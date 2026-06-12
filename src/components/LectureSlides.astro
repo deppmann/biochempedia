@@ -14,6 +14,14 @@ const { slides } = Astro.props;
         <span class="slide-src">{s.source}</span>
       </figcaption>
       <img class="slide-img" src={s.src} alt={s.alt} loading="lazy" />
+      {s.audio && (
+        <div class="slide-audio">
+          <span class="slide-audio-label">🔊 Listen — narrated</span>
+          <audio controls preload="none" src={s.audio}>
+            Your browser doesn't support audio playback.
+          </audio>
+        </div>
+      )}
       <details class="slide-notes" open>
         <summary>Presenter notes</summary>
         <p>{s.notes}</p>
@@ -60,6 +68,24 @@ const { slides } = Astro.props;
     width: 100%;
     height: auto;
     background: #fff;
+  }
+  .slide-audio {
+    display: flex;
+    align-items: center;
+    gap: var(--ddp-space-3);
+    flex-wrap: wrap;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-top: 1px solid var(--ddp-color-line);
+  }
+  .slide-audio-label {
+    font-size: var(--ddp-text-sm);
+    font-weight: 600;
+    color: var(--ddp-color-primary);
+  }
+  .slide-audio audio {
+    height: 36px;
+    flex: 1;
+    min-width: 220px;
   }
   .slide-notes {
     border-top: 1px solid var(--ddp-color-line);

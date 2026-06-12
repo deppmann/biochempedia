@@ -29,18 +29,58 @@ const localSims = lesson.simulations.filter((s) => s.type === 'local');
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const hasQuiz =
   lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
+
+// Orientation: quick counts + a generated "On this page" table of contents.
+const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
+const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
+const toc = [
+  { id: 'concept', label: 'The idea', show: true },
+  { id: 'lecture', label: 'From the lecture', show: lesson.lectureSlides.length > 0 },
+  { id: 'structures', label: 'Structures', show: lesson.structures.length > 0 },
+  { id: 'explore', label: 'Simulations', show: lesson.simulations.length > 0 },
+  { id: 'people', label: 'Scientists', show: lesson.scientists.length > 0 },
+  { id: 'watch', label: 'Watch & listen', show: lesson.videos.length > 0 || !!lesson.podcast },
+  { id: 'self-test', label: 'Self-test', show: hasQuiz },
+  { id: 'sources', label: 'Sources', show: true },
+].filter((s) => s.show);
 ---
 
 <BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary}>
-  <article>
+  <article id="top">
     <header class="lesson-hero wrap">
       <p class="eyebrow">{lesson.courseChapter}</p>
       <h1>{lesson.title}</h1>
       <p class="summary">{lesson.summary}</p>
     </header>
 
+    {/* Orientation: what you'll learn, how long, and a jump menu. */}
+    <aside class="wrap orient" aria-label="Lesson overview">
+      {lesson.objectives.length > 0 && (
+        <div class="orient-obj card">
+          <h2>What you'll learn</h2>
+          <ul>
+            {lesson.objectives.map((o) => <li>{o}</li>)}
+          </ul>
+        </div>
+      )}
+      <div class="orient-side">
+        <ul class="orient-meta">
+          {lesson.estMinutes && <li><span>⏱</span> ~{lesson.estMinutes} min</li>}
+          {lesson.structures.length > 0 && <li><span>🧬</span> {lesson.structures.length} live 3D structures</li>}
+          {narratedSlides > 0 && <li><span>🎧</span> {narratedSlides} narrated slides</li>}
+          {qCount > 0 && <li><span>📝</span> {qCount} self-test questions</li>}
+        </ul>
+        <nav class="orient-toc" aria-label="On this page">
+          <span class="orient-toc-label">On this page</span>
+          <ul>
+            {toc.map((s) => <li><a href={`#${s.id}`}>{s.label}</a></li>)}
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
     {/* The plain-language concept + "how the technique works" prose (MDX body). */}
-    <div class="wrap prose-col lesson-body">
+    <div id="concept" class="wrap prose-col lesson-body scroll-anchor">
       <Content />
     </div>
 
@@ -59,7 +99,7 @@ const hasQuiz =
     )}
 
     {lesson.lectureSlides.length > 0 && (
-      <section class="wrap section">
+      <section id="lecture" class="wrap section scroll-anchor">
         <h2>From the lecture</h2>
         <p class="section-lede">
           Selected slides from Prof. Deppmann's BIOL 3030 lectures — his own
@@ -71,7 +111,7 @@ const hasQuiz =
     )}
 
     {lesson.structures.length > 0 && (
-      <section class="wrap section">
+      <section id="structures" class="wrap section scroll-anchor">
         <h2>See it — live molecular structures</h2>
         <p class="section-lede">
           These are real, deposited coordinates streamed from public databases.
@@ -84,7 +124,7 @@ const hasQuiz =
     )}
 
     {lesson.simulations.length > 0 && (
-      <section class="wrap section">
+      <section id="explore" class="wrap section scroll-anchor">
         <h2>Explore — simulations</h2>
         {localSims.map((s) => {
           const Comp = LOCAL_SIMS[s.ref];
@@ -97,7 +137,7 @@ const hasQuiz =
     )}
 
     {lesson.scientists.length > 0 && (
-      <section class="wrap section">
+      <section id="people" class="wrap section scroll-anchor">
         <h2>The people behind the idea</h2>
         <p class="section-lede">
           Quotes are verbatim from the historical record, drawn from
@@ -112,7 +152,7 @@ const hasQuiz =
     )}
 
     {(lesson.videos.length > 0 || lesson.podcast) && (
-      <section class="wrap section">
+      <section id="watch" class="wrap section scroll-anchor">
         <h2>Watch &amp; listen</h2>
         {lesson.videos.map((v) => (
           <YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} />
@@ -128,15 +168,17 @@ const hasQuiz =
     )}
 
     {hasQuiz && (
-      <section class="wrap section">
+      <section id="self-test" class="wrap section scroll-anchor">
         <h2>Test yourself</h2>
         <QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} />
       </section>
     )}
 
-    <div class="wrap">
+    <div id="sources" class="wrap scroll-anchor">
       <SourcesFooter lesson={lesson} />
     </div>
+
+    <a href="#top" class="to-top" aria-label="Back to top">↑ Top</a>
   </article>
 
   <style>
@@ -161,6 +203,115 @@ const hasQuiz =
       font-size: var(--ddp-text-lg);
       color: var(--ddp-color-ink-soft);
     }
+    /* Anchored sections clear the sticky header when jumped to. */
+    .scroll-anchor {
+      scroll-margin-top: 84px;
+    }
+
+    /* Orientation card: objectives + meta + on-this-page nav. */
+    .orient {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: var(--ddp-space-6);
+      margin-bottom: var(--ddp-space-4);
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .orient {
+        grid-template-columns: 1fr;
+      }
+    }
+    .orient-obj {
+      padding: var(--ddp-space-5) var(--ddp-space-6);
+    }
+    .orient-obj h2 {
+      font-size: var(--ddp-text-lg);
+      margin: 0 0 var(--ddp-space-3);
+    }
+    .orient-obj ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: var(--ddp-space-2);
+    }
+    .orient-obj li {
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink-soft);
+    }
+    .orient-side {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ddp-space-4);
+    }
+    .orient-meta {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ddp-space-2) var(--ddp-space-4);
+    }
+    .orient-meta li {
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+    .orient-toc {
+      border-top: 1px solid var(--ddp-color-line);
+      padding-top: var(--ddp-space-3);
+    }
+    .orient-toc-label {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ddp-color-muted);
+    }
+    .orient-toc ul {
+      list-style: none;
+      margin: var(--ddp-space-2) 0 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ddp-space-2);
+    }
+    .orient-toc a {
+      display: inline-block;
+      font-size: var(--ddp-text-sm);
+      text-decoration: none;
+      color: var(--ddp-color-accent);
+      background: var(--ddp-color-accent-soft);
+      border-radius: 999px;
+      padding: 0.2em 0.8em;
+    }
+    .orient-toc a:hover {
+      text-decoration: none;
+      background: color-mix(in srgb, var(--ddp-color-accent) 22%, #fff);
+    }
+
+    .to-top {
+      position: fixed;
+      right: var(--ddp-space-6);
+      bottom: var(--ddp-space-6);
+      z-index: 40;
+      font-size: var(--ddp-text-sm);
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--ddp-color-surface);
+      background: var(--ddp-color-primary);
+      border-radius: 999px;
+      padding: 0.5em 0.9em;
+      box-shadow: var(--ddp-shadow);
+      opacity: 0.85;
+    }
+    .to-top:hover {
+      opacity: 1;
+      text-decoration: none;
+    }
+
     .lesson-body {
       padding-top: var(--ddp-space-4);
     }

@@ -172,6 +172,9 @@ const lectureSlide = z.object({
   title: z.string().min(1),
   /** The instructor's presenter notes, shown below the slide. */
   notes: z.string().min(1),
+  /** Optional narrated voiceover (mp3 under /public) — lets students listen
+   *  to the slide instead of (or alongside) reading the notes. */
+  audio: z.string().optional(),
   /** Provenance: which deck + slide (e.g. "BIOL 3030 · CH07 Kinetics · slide 9"). */
   source: z.string().min(1),
   /** Authorship/credit for the slide (the instructor's original work). */
@@ -189,6 +192,11 @@ export const lessonSchema = z.object({
   /** The course slide-deck title this lesson maps to (e.g. "Mechanisms and Inhibitors"). */
   courseChapter: z.string().min(1),
   summary: z.string().min(1),
+
+  /** Learning objectives shown in the orientation card ("What you'll learn"). */
+  objectives: z.array(z.string()).default([]),
+  /** Rough time-on-page in minutes, shown to set expectations. */
+  estMinutes: z.number().optional(),
 
   scientists: z.array(scientist).default([]),
   techniques: z.array(technique).default([]),
