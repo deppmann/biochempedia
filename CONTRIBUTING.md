@@ -49,6 +49,7 @@ the **single source of truth** for the lesson. It is validated against
 | `simulations[]` | `{ type, ref, title, attribution, caption }`. `type:"phet"` → `ref` is the HTML5 sim URL; `type:"local"` → `ref` is a registered component name. |
 | `practiceQuestions[]`, `mcatQuestions[]` | `{ stem, choices[], answer, rationale }`. `answer` is the **0-based index** of the correct choice. |
 | `images[]` | `{ src, alt, aiGenerated, factCheckedBy, credit }`. See the integrity rules below. Prefer leaving this **empty** and using live structures. |
+| `lectureSlides[]` | `{ src, alt, title, notes, source, credit, reviewedBy }`. Slides from your own deck with presenter `notes` shown beneath. `reviewedBy` is **required** — name who confirmed the slide is accurate AND copyright-clean (your own content, no reproduced publisher figures), or the build fails. |
 | `corpusTags[]` | Tags reserved for the future AI tutor. Add a few; they aren't rendered yet. |
 
 ### Where to find the IDs

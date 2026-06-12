@@ -38,6 +38,22 @@ its kinetics plots from equations in the browser. There is nothing to fact-check
 This is the recommended default: **prefer live data and generated plots over
 static figures.**
 
+### 5. Lecture slides: the instructor's own work, screened for figures.
+Slides reproduced from an instructor's deck (`lectureSlides[]`) are the author's
+original teaching work — but lecture decks often carry **publisher figures**,
+which are banned from this public site (see [LICENSING.md](LICENSING.md)). So
+every slide is screened on **two** axes before inclusion:
+1. **Accuracy** — is the science right?
+2. **Copyright** — is it the instructor's own content (text, their own diagrams
+   and analogies), with **no reproduced publisher figures**?
+
+Each slide must name a human in `reviewedBy`, or the build fails. In the
+enzyme-kinetics lesson, the four included slides are Chris's own compositions
+(the toll-booth analogy, the Km comparison, the kcat infographic, the
+uncompetitive-inhibition explainer); slides that reproduced textbook figures
+(the magenta progress curves, the standard M–M/Lineweaver–Burk plots, the
+enzyme-cartoon inhibitor series) were deliberately left out.
+
 ## How the enforcement works
 
 The gate lives in [`src/schema.ts`](src/schema.ts) as Zod `superRefine` checks on

@@ -160,6 +160,27 @@ const image = z
     }
   });
 
+/** A lecture slide reproduced from the instructor's own deck, with presenter
+ *  notes shown beneath it. These are the author's original teaching work — but
+ *  because lecture decks can carry publisher figures (banned from this public
+ *  site), every slide must be screened for BOTH accuracy and copyright and name
+ *  the human who cleared it. The build FAILS without `reviewedBy`. */
+const lectureSlide = z.object({
+  /** Path to the rendered slide image (under /public). */
+  src: z.string().min(1),
+  alt: z.string().min(1, 'Every slide needs descriptive alt text.'),
+  title: z.string().min(1),
+  /** The instructor's presenter notes, shown below the slide. */
+  notes: z.string().min(1),
+  /** Provenance: which deck + slide (e.g. "BIOL 3030 · CH07 Kinetics · slide 9"). */
+  source: z.string().min(1),
+  /** Authorship/credit for the slide (the instructor's original work). */
+  credit: z.string().min(1),
+  /** REQUIRED: the human who confirmed it is accurate AND copyright-clean
+   *  (their own content, no reproduced publisher figures). No reviewer → no build. */
+  reviewedBy: z.string().min(1, 'A lecture slide must name who reviewed it for accuracy + copyright.'),
+});
+
 /** The full lesson frontmatter schema. */
 export const lessonSchema = z.object({
   title: z.string().min(1),
@@ -183,6 +204,9 @@ export const lessonSchema = z.object({
 
   images: z.array(image).default([]),
 
+  /** Instructor lecture slides (own work; copyright-screened) with presenter notes. */
+  lectureSlides: z.array(lectureSlide).default([]),
+
   /** Reserved for the future RAG-grounded tutor. Not rendered yet. */
   corpusTags: z.array(z.string()).default([]),
 
@@ -196,3 +220,4 @@ export type ScientistCard = z.infer<typeof scientist>;
 export type StructureRef = z.infer<typeof structure>;
 export type Question = z.infer<typeof question>;
 export type SimulationRef = z.infer<typeof simulation>;
+export type LectureSlide = z.infer<typeof lectureSlide>;

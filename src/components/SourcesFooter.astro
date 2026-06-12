@@ -98,6 +98,21 @@ const local = lesson.simulations.filter((s) => s.type === 'local');
       </div>
     )}
 
+    {lesson.lectureSlides.length > 0 && (
+      <div class="src-block">
+        <h3>Lecture slides</h3>
+        <ul>
+          {lesson.lectureSlides.map((s) => (
+            <li>
+              <strong>{s.title}</strong>
+              <span class="src-meta"> · {s.source} · {s.credit} · reviewed by {s.reviewedBy}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="src-meta">Instructor's own slides; screened for accuracy and to exclude reproduced publisher figures.</p>
+      </div>
+    )}
+
     <div class="src-block">
       <h3>Images &amp; figures</h3>
       {lesson.images.length === 0 ? (

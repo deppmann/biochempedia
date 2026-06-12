@@ -8,6 +8,7 @@ import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
 import ScientistCard from '../../components/ScientistCard.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
+import LectureSlides from '../../components/LectureSlides.astro';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 
 export async function getStaticPaths() {
@@ -54,6 +55,18 @@ const hasQuiz =
             </div>
           ))}
         </div>
+      </section>
+    )}
+
+    {lesson.lectureSlides.length > 0 && (
+      <section class="wrap section">
+        <h2>From the lecture</h2>
+        <p class="section-lede">
+          Selected slides from Prof. Deppmann's BIOL 3030 lectures — his own
+          diagrams and analogies, with the presenter notes underneath. (Slides
+          that reproduced publisher figures were left out.)
+        </p>
+        <LectureSlides slides={lesson.lectureSlides} />
       </section>
     )}
 
