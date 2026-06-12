@@ -41,9 +41,20 @@ h4 {
   text-wrap: balance;
 }
 
-/* The readable column for prose. */
+/* Page container — the centered max-content column shared by every page.
+   (Defined globally, NOT in a component's scoped <style>, so it actually
+   applies to `.wrap` elements rendered inside page components.) */
+.wrap {
+  max-width: 1040px;
+  margin-inline: auto;
+  padding-inline: var(--ddp-space-6);
+}
+
+/* The readable column for prose. Left-aligned within `.wrap` so its left edge
+   lines up with the section headings rather than floating centered. */
 .prose-col {
   max-width: var(--ddp-maxw);
+  margin-inline-end: auto;
 }
 
 .prose-col p,
