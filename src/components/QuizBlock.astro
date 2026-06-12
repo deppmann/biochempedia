@@ -1,0 +1,247 @@
+---
+import type { Question } from '../schema';
+
+interface Props {
+  practice: Question[];
+  mcat: Question[];
+}
+const { practice, mcat } = Astro.props;
+
+const groups = [
+  { key: 'practice', label: 'Practice questions', badge: null as string | null, items: practice },
+  { key: 'mcat', label: 'MCAT-style questions', badge: 'MCAT-style · original', items: mcat },
+];
+const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+let n = 0;
+---
+
+<section class="quiz" data-quiz aria-label="Self-test">
+  <div class="quiz-bar">
+    <p class="quiz-score">Score: <strong data-correct>0</strong> / <span data-total></span></p>
+    <button type="button" class="quiz-reset" data-reset>Reset</button>
+  </div>
+
+  {groups.map((g) => (
+    <div class="quiz-group">
+      <h3 class="quiz-group-title">
+        {g.label}
+        {g.badge && <span class="quiz-badge">{g.badge}</span>}
+      </h3>
+
+      {g.items.map((q) => {
+        n++;
+        return (
+          <article class="q card" data-question data-answer={q.answer}>
+            <p class="q-stem"><span class="q-num">{n}.</span> {q.stem}</p>
+            <ul class="q-choices">
+              {q.choices.map((choice, i) => (
+                <li>
+                  <button type="button" class="q-choice" data-idx={i} aria-pressed="false">
+                    <span class="q-letter">{letters[i]}</span>
+                    <span>{choice}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div class="q-feedback" hidden>
+              <p class="q-verdict" data-verdict></p>
+              <p class="q-rationale"><strong>Why:</strong> {q.rationale}</p>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  ))}
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((root) => {
+    const questions = Array.from(root.querySelectorAll<HTMLElement>('[data-question]'));
+    const total = questions.length;
+    const totalEl = root.querySelector('[data-total]');
+    const correctEl = root.querySelector('[data-correct]');
+    if (totalEl) totalEl.textContent = String(total);
+    const answered = new Set<HTMLElement>();
+    let correct = 0;
+
+    function refreshScore() {
+      if (correctEl) correctEl.textContent = String(correct);
+    }
+
+    questions.forEach((q) => {
+      const answer = Number(q.getAttribute('data-answer'));
+      const choices = Array.from(q.querySelectorAll<HTMLButtonElement>('.q-choice'));
+      const feedback = q.querySelector<HTMLElement>('.q-feedback')!;
+      const verdict = q.querySelector<HTMLElement>('[data-verdict]')!;
+
+      choices.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-idx'));
+          const firstTry = !answered.has(q);
+          // lock styling: reveal correct + chosen
+          choices.forEach((b) => {
+            const bi = Number(b.getAttribute('data-idx'));
+            b.classList.remove('is-correct', 'is-wrong', 'is-chosen');
+            if (bi === answer) b.classList.add('is-correct');
+            if (bi === idx && idx !== answer) b.classList.add('is-wrong');
+            if (bi === idx) b.classList.add('is-chosen');
+            b.setAttribute('aria-pressed', bi === idx ? 'true' : 'false');
+          });
+          const right = idx === answer;
+          verdict.textContent = right ? '✓ Correct' : '✗ Not quite';
+          verdict.className = 'q-verdict ' + (right ? 'is-correct' : 'is-wrong');
+          feedback.hidden = false;
+          if (firstTry) {
+            answered.add(q);
+            if (right) correct++;
+            refreshScore();
+          }
+        });
+      });
+    });
+
+    const reset = root.querySelector('[data-reset]');
+    reset?.addEventListener('click', () => {
+      correct = 0;
+      answered.clear();
+      refreshScore();
+      questions.forEach((q) => {
+        q.querySelectorAll('.q-choice').forEach((b) => {
+          b.classList.remove('is-correct', 'is-wrong', 'is-chosen');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        const fb = q.querySelector<HTMLElement>('.q-feedback');
+        if (fb) fb.hidden = true;
+      });
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    refreshScore();
+  });
+</script>
+
+<style>
+  .quiz {
+    margin: var(--ddp-space-6) 0;
+  }
+  .quiz-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--ddp-space-4);
+  }
+  .quiz-score {
+    margin: 0;
+    font-family: var(--ddp-font-mono);
+  }
+  .quiz-score strong {
+    color: var(--ddp-color-verified);
+    font-size: var(--ddp-text-lg);
+  }
+  .quiz-reset {
+    border: 1px solid var(--ddp-color-line);
+    background: var(--ddp-color-surface);
+    border-radius: 999px;
+    padding: 0.3rem 1rem;
+    cursor: pointer;
+    font-size: var(--ddp-text-sm);
+  }
+  .quiz-reset:hover {
+    border-color: var(--ddp-color-accent);
+    color: var(--ddp-color-accent);
+  }
+  .quiz-group-title {
+    font-size: var(--ddp-text-lg);
+    margin: var(--ddp-space-8) 0 var(--ddp-space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--ddp-space-3);
+  }
+  .quiz-badge {
+    font-family: var(--ddp-font-sans);
+    font-size: var(--ddp-text-xs);
+    font-weight: 600;
+    color: var(--ddp-color-secondary);
+    background: #fdeede;
+    border-radius: 999px;
+    padding: 0.15em 0.7em;
+  }
+  .q {
+    padding: var(--ddp-space-5);
+    margin-bottom: var(--ddp-space-4);
+  }
+  .q-stem {
+    margin: 0 0 var(--ddp-space-4);
+    font-size: var(--ddp-text-base);
+  }
+  .q-num {
+    font-weight: 700;
+    color: var(--ddp-color-primary);
+    margin-right: 0.3em;
+  }
+  .q-choices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ddp-space-2);
+  }
+  .q-choice {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ddp-space-3);
+    text-align: left;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-surface);
+    cursor: pointer;
+    font-size: var(--ddp-text-sm);
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .q-choice:hover {
+    border-color: var(--ddp-color-accent);
+  }
+  .q-letter {
+    font-family: var(--ddp-font-mono);
+    font-weight: 700;
+    color: var(--ddp-color-muted);
+    flex: none;
+  }
+  .q-choice.is-correct {
+    border-color: var(--ddp-color-verified);
+    background: var(--ddp-color-verified-soft);
+  }
+  .q-choice.is-correct .q-letter {
+    color: var(--ddp-color-verified);
+  }
+  .q-choice.is-wrong {
+    border-color: #c0392b;
+    background: #fcebe9;
+  }
+  .q-choice.is-wrong .q-letter {
+    color: #c0392b;
+  }
+  .q-feedback {
+    margin-top: var(--ddp-space-4);
+    padding-top: var(--ddp-space-3);
+    border-top: 1px dashed var(--ddp-color-line);
+    font-size: var(--ddp-text-sm);
+  }
+  .q-verdict {
+    margin: 0 0 var(--ddp-space-2);
+    font-weight: 700;
+  }
+  .q-verdict.is-correct {
+    color: var(--ddp-color-verified);
+  }
+  .q-verdict.is-wrong {
+    color: #c0392b;
+  }
+  .q-rationale {
+    margin: 0;
+    color: var(--ddp-color-ink-soft);
+  }
+</style>

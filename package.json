@@ -3,13 +3,26 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
+  "description": "Biochempedia — an interactive biochemistry learning site (AI Catalyst grant deliverable).",
   "scripts": {
+    "sync:molstar": "node scripts/sync-molstar.mjs",
+    "predev": "npm run sync:molstar",
     "dev": "astro dev",
-    "build": "astro build",
+    "start": "astro dev",
+    "prebuild": "npm run sync:molstar",
+    "build": "astro check && astro build",
+    "build:fast": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
+  "license": "MIT",
   "dependencies": {
-    "astro": "^5.17.1"
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/mdx": "^4.3.14",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^5.18.2",
+    "molstar": "^4.18.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^5.9.3"
   }
 }

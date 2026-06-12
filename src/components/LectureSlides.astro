@@ -1,0 +1,116 @@
+---
+import type { LectureSlide } from '../schema';
+interface Props {
+  slides: LectureSlide[];
+}
+const { slides } = Astro.props;
+---
+
+<div class="slides">
+  {slides.map((s) => (
+    <figure class="slide card">
+      <figcaption class="slide-head">
+        <span class="slide-title">{s.title}</span>
+        <span class="slide-src">{s.source}</span>
+      </figcaption>
+      <img class="slide-img" src={s.src} alt={s.alt} loading="lazy" />
+      {s.audio && (
+        <div class="slide-audio">
+          <span class="slide-audio-label">🔊 Listen — narrated</span>
+          <audio controls preload="none" src={s.audio}>
+            Your browser doesn't support audio playback.
+          </audio>
+        </div>
+      )}
+      <details class="slide-notes" open>
+        <summary>Presenter notes</summary>
+        <p>{s.notes}</p>
+      </details>
+      <p class="slide-credit">
+        <span class="verified-chip">✓ reviewed</span>
+        {s.credit} · accuracy &amp; copyright cleared by {s.reviewedBy}
+      </p>
+    </figure>
+  ))}
+</div>
+
+<style>
+  .slides {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ddp-space-8);
+    margin-top: var(--ddp-space-4);
+  }
+  .slide {
+    overflow: hidden;
+  }
+  .slide-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ddp-space-2);
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-bottom: 1px solid var(--ddp-color-line);
+  }
+  .slide-title {
+    font-weight: 600;
+    font-family: var(--ddp-font-serif);
+    color: var(--ddp-color-primary);
+  }
+  .slide-src {
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+  }
+  .slide-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #fff;
+  }
+  .slide-audio {
+    display: flex;
+    align-items: center;
+    gap: var(--ddp-space-3);
+    flex-wrap: wrap;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-top: 1px solid var(--ddp-color-line);
+  }
+  .slide-audio-label {
+    font-size: var(--ddp-text-sm);
+    font-weight: 600;
+    color: var(--ddp-color-primary);
+  }
+  .slide-audio audio {
+    height: 36px;
+    flex: 1;
+    min-width: 220px;
+  }
+  .slide-notes {
+    border-top: 1px solid var(--ddp-color-line);
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    background: var(--ddp-color-accent-soft);
+  }
+  .slide-notes summary {
+    cursor: pointer;
+    font-size: var(--ddp-text-sm);
+    font-weight: 600;
+    color: var(--ddp-color-accent);
+  }
+  .slide-notes p {
+    margin: var(--ddp-space-2) 0 0;
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+  .slide-credit {
+    margin: 0;
+    padding: var(--ddp-space-2) var(--ddp-space-4) var(--ddp-space-3);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    flex-wrap: wrap;
+  }
+</style>

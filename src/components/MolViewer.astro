@@ -1,0 +1,274 @@
+---
+/**
+ * MolViewer — a live, rotatable 3D molecular structure.
+ *
+ * NEVER draws geometry. It loads real, deposited coordinates by accession ID:
+ *   • source="rcsb"    → Mol*.loadPdb(id)  (macromolecules; data CC0)
+ *   • source="pubchem" → Mol*.loadStructureFromUrl(PubChem 3D SDF)  (small molecules)
+ *
+ * Uses the prebuilt Mol* standalone viewer (vendored to /vendor/molstar/ by
+ * `npm run sync:molstar`). The 4.9 MB bundle is lazy-loaded the first time ANY
+ * viewer scrolls near the viewport, then shared across all viewers on the page.
+ */
+interface Props {
+  source: 'rcsb' | 'pubchem';
+  id: string;
+  label: string;
+  caption?: string;
+  height?: number;
+}
+const { source, id, label, caption, height = 460 } = Astro.props;
+const domId = `mol-${source}-${id}`.replace(/[^a-zA-Z0-9_-]/g, '');
+const providerLabel = source === 'rcsb' ? 'RCSB PDB' : 'PubChem';
+const sourceHref =
+  source === 'rcsb'
+    ? `https://www.rcsb.org/structure/${id}`
+    : `https://pubchem.ncbi.nlm.nih.gov/compound/${id}`;
+---
+
+<figure class="mol card" data-mol-viewer>
+  <figcaption class="mol-head">
+    <div>
+      <span class="mol-label">{label}</span>
+      <span class="live-chip" title="Loaded live from a public structure database">
+        ● LIVE · {providerLabel} {id}
+      </span>
+    </div>
+    <a class="mol-src" href={sourceHref} target="_blank" rel="noopener noreferrer">
+      open {id} ↗
+    </a>
+  </figcaption>
+
+  <div class="mol-stage" style={`height:${height}px`}>
+    <div id={domId} class="mol-canvas"></div>
+    <div id={`${domId}-status`} class="mol-status">
+      <span class="spinner" aria-hidden="true"></span>
+      Loading live structure {id} from {providerLabel}…
+    </div>
+    <img
+      id={`${domId}-fallback`}
+      class="mol-fallback"
+      hidden
+      alt={`2D structure of ${label} from PubChem (CID ${id})`}
+    />
+  </div>
+
+  {caption && <p class="mol-caption">{caption}</p>}
+  <p class="mol-hint">Drag to rotate · scroll to zoom · right-drag to pan</p>
+</figure>
+
+<!-- Shared, idempotent Mol* bundle loader (defined once; reused by every viewer). -->
+<script is:inline>
+  window.__loadMolstar =
+    window.__loadMolstar ||
+    function () {
+      if (window.__molstarPromise) return window.__molstarPromise;
+      window.__molstarPromise = new Promise(function (resolve, reject) {
+        if (!document.getElementById('molstar-css')) {
+          var l = document.createElement('link');
+          l.id = 'molstar-css';
+          l.rel = 'stylesheet';
+          l.href = '/vendor/molstar/molstar.css';
+          document.head.appendChild(l);
+        }
+        var s = document.createElement('script');
+        s.src = '/vendor/molstar/molstar.js';
+        s.onload = function () {
+          resolve(window.molstar);
+        };
+        s.onerror = function () {
+          reject(new Error('Failed to load Mol* bundle'));
+        };
+        document.head.appendChild(s);
+      });
+      return window.__molstarPromise;
+    };
+</script>
+
+<script
+  is:inline
+  define:vars={{ domId, source, id }}
+>
+  (function () {
+    var stage = document.getElementById(domId);
+    if (!stage) return;
+    var statusEl = document.getElementById(domId + '-status');
+    var fallbackEl = document.getElementById(domId + '-fallback');
+    var started = false;
+
+    function showFallback(message) {
+      if (statusEl) statusEl.innerHTML = message;
+    }
+
+    function init() {
+      if (started) return;
+      started = true;
+      window
+        .__loadMolstar()
+        .then(function (molstar) {
+          return molstar.Viewer.create(domId, {
+            layoutIsExpanded: false,
+            layoutShowControls: false,
+            layoutShowSequence: false,
+            layoutShowLog: false,
+            layoutShowLeftPanel: false,
+            layoutShowRemoteState: false,
+            viewportShowExpand: true,
+            viewportShowSelectionMode: false,
+            viewportShowAnimation: false,
+            pdbProvider: 'rcsb',
+            emdbProvider: 'rcsb',
+          });
+        })
+        .then(function (viewer) {
+          if (source === 'rcsb') {
+            return viewer.loadPdb(id);
+          }
+          // PubChem small molecule: pull the 3D conformer SDF live.
+          var url =
+            'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/' +
+            id +
+            '/record/SDF?record_type=3d';
+          return viewer.loadStructureFromUrl(url, 'sdf', false);
+        })
+        .then(function () {
+          if (statusEl) statusEl.remove();
+        })
+        .catch(function (err) {
+          console.error('[MolViewer] load failed for', source, id, err);
+          if (source === 'pubchem' && fallbackEl) {
+            // Fall back to the real PubChem 2D depiction (still a PubChem source).
+            fallbackEl.src =
+              'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/' +
+              id +
+              '/PNG';
+            fallbackEl.hidden = false;
+            showFallback(
+              'Live 3D unavailable — showing the PubChem 2D depiction. ' +
+                '<a href="https://pubchem.ncbi.nlm.nih.gov/compound/' +
+                id +
+                '" target="_blank" rel="noopener">Open CID ' +
+                id +
+                ' ↗</a>'
+            );
+          } else {
+            showFallback(
+              'Could not load the live structure. ' +
+                '<a href="https://www.rcsb.org/structure/' +
+                id +
+                '" target="_blank" rel="noopener">Open ' +
+                id +
+                ' on RCSB PDB ↗</a>'
+            );
+          }
+        });
+    }
+
+    // Lazy-load: only fetch the heavy (~5 MB) bundle once the viewer nears the
+    // viewport. Proximity check on scroll/resize (plus an initial check) — robust
+    // across browsers and headless harnesses.
+    function nearViewport() {
+      var r = stage.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+      return r.top < vh + 400 && r.bottom > -400;
+    }
+    function cleanup() {
+      window.removeEventListener('scroll', maybeLoad);
+      window.removeEventListener('resize', maybeLoad);
+    }
+    function maybeLoad() {
+      if (started) return;
+      if (nearViewport()) {
+        cleanup();
+        init();
+      }
+    }
+    window.addEventListener('scroll', maybeLoad, { passive: true });
+    window.addEventListener('resize', maybeLoad);
+    maybeLoad(); // covers a structure already in view on load
+  })();
+</script>
+
+<style>
+  .mol {
+    margin: var(--ddp-space-8) 0;
+    overflow: hidden;
+  }
+  .mol-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ddp-space-2);
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-bottom: 1px solid var(--ddp-color-line);
+  }
+  .mol-label {
+    font-weight: 600;
+    margin-right: var(--ddp-space-3);
+  }
+  .mol-src {
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    white-space: nowrap;
+  }
+  .mol-stage {
+    position: relative;
+    width: 100%;
+    background: #06080d;
+  }
+  .mol-canvas {
+    position: absolute;
+    inset: 0;
+  }
+  .mol-status {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    text-align: center;
+    padding: var(--ddp-space-6);
+    color: #cfd6e4;
+    font-size: var(--ddp-text-sm);
+    pointer-events: none;
+  }
+  .mol-status :global(a) {
+    pointer-events: auto;
+    color: #7fd4dc;
+  }
+  .mol-fallback {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    max-width: 70%;
+    max-height: 80%;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #7fd4dc;
+    border-radius: 50%;
+    animation: mol-spin 0.8s linear infinite;
+  }
+  @keyframes mol-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .mol-caption {
+    padding: var(--ddp-space-3) var(--ddp-space-4) 0;
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+  .mol-hint {
+    padding: var(--ddp-space-1) var(--ddp-space-4) var(--ddp-space-3);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+  }
+</style>

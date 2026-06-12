@@ -1,0 +1,63 @@
+---
+/**
+ * Spotify embed (iframe only — never rehosted). Accepts any canonical
+ * open.spotify.com URL for a show OR an episode and converts it to the
+ * matching /embed/ URL.
+ */
+interface Props {
+  url: string;
+  title?: string;
+  note?: string;
+}
+const { url, title, note } = Astro.props;
+
+// Convert an open.spotify.com/<type>/<id> URL into its embeddable form.
+function toEmbed(u: string): string {
+  try {
+    const parsed = new URL(u);
+    if (parsed.pathname.startsWith('/embed/')) return u;
+    return `https://open.spotify.com${parsed.pathname}`.replace(
+      'open.spotify.com/',
+      'open.spotify.com/embed/'
+    );
+  } catch {
+    return u;
+  }
+}
+const src = toEmbed(url);
+// Shows get a taller player (episode list); single episodes are compact.
+const isShow = /\/show\//.test(src);
+const height = isShow ? 352 : 232;
+---
+
+<figure class="spotify">
+  <iframe
+    src={src}
+    title={title ?? 'Spotify player'}
+    width="100%"
+    height={height}
+    style="border-radius:12px; border:0"
+    loading="lazy"
+    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+  ></iframe>
+  {(title || note) && (
+    <figcaption>
+      {title && <strong>{title}</strong>}
+      {note && <span class="note"> — {note}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .spotify {
+    margin: var(--ddp-space-6) 0;
+  }
+  .spotify figcaption {
+    margin-top: var(--ddp-space-2);
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+  .spotify .note {
+    color: var(--ddp-color-muted);
+  }
+</style>

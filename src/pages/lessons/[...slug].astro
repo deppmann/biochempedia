@@ -1,0 +1,350 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MolViewer from '../../components/MolViewer.astro';
+import PhetEmbed from '../../components/PhetEmbed.astro';
+import MichaelisMentenPlotter from '../../components/MichaelisMentenPlotter.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
+import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
+import ScientistCard from '../../components/ScientistCard.astro';
+import QuizBlock from '../../components/QuizBlock.astro';
+import LectureSlides from '../../components/LectureSlides.astro';
+import SourcesFooter from '../../components/SourcesFooter.astro';
+
+export async function getStaticPaths() {
+  const lessons = await getCollection('lessons');
+  return lessons.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const lesson = entry.data;
+
+// Registry mapping a local-sim `ref` (frontmatter string) → its component.
+const LOCAL_SIMS: Record<string, any> = { MichaelisMentenPlotter };
+const localSims = lesson.simulations.filter((s) => s.type === 'local');
+const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
+const hasQuiz =
+  lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
+
+// Orientation: quick counts + a generated "On this page" table of contents.
+const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
+const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
+const toc = [
+  { id: 'concept', label: 'The idea', show: true },
+  { id: 'lecture', label: 'From the lecture', show: lesson.lectureSlides.length > 0 },
+  { id: 'structures', label: 'Structures', show: lesson.structures.length > 0 },
+  { id: 'explore', label: 'Simulations', show: lesson.simulations.length > 0 },
+  { id: 'people', label: 'Scientists', show: lesson.scientists.length > 0 },
+  { id: 'watch', label: 'Watch & listen', show: lesson.videos.length > 0 || !!lesson.podcast },
+  { id: 'self-test', label: 'Self-test', show: hasQuiz },
+  { id: 'sources', label: 'Sources', show: true },
+].filter((s) => s.show);
+---
+
+<BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary}>
+  <article id="top">
+    <header class="lesson-hero wrap">
+      <p class="eyebrow">{lesson.courseChapter}</p>
+      <h1>{lesson.title}</h1>
+      <p class="summary">{lesson.summary}</p>
+    </header>
+
+    {/* Orientation: what you'll learn, how long, and a jump menu. */}
+    <aside class="wrap orient" aria-label="Lesson overview">
+      {lesson.objectives.length > 0 && (
+        <div class="orient-obj card">
+          <h2>What you'll learn</h2>
+          <ul>
+            {lesson.objectives.map((o) => <li>{o}</li>)}
+          </ul>
+        </div>
+      )}
+      <div class="orient-side">
+        <ul class="orient-meta">
+          {lesson.estMinutes && <li><span>⏱</span> ~{lesson.estMinutes} min</li>}
+          {lesson.structures.length > 0 && <li><span>🧬</span> {lesson.structures.length} live 3D structures</li>}
+          {narratedSlides > 0 && <li><span>🎧</span> {narratedSlides} narrated slides</li>}
+          {qCount > 0 && <li><span>📝</span> {qCount} self-test questions</li>}
+        </ul>
+        <nav class="orient-toc" aria-label="On this page">
+          <span class="orient-toc-label">On this page</span>
+          <ul>
+            {toc.map((s) => <li><a href={`#${s.id}`}>{s.label}</a></li>)}
+          </ul>
+        </nav>
+      </div>
+    </aside>
+
+    {/* The plain-language concept + "how the technique works" prose (MDX body). */}
+    <div id="concept" class="wrap prose-col lesson-body scroll-anchor">
+      <Content />
+    </div>
+
+    {lesson.techniques.length > 0 && (
+      <section class="wrap section">
+        <h2>How we measure it — techniques at a glance</h2>
+        <div class="tech-grid">
+          {lesson.techniques.map((t) => (
+            <div class="tech card">
+              <h3>{t.name}</h3>
+              <p>{t.blurb}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {lesson.lectureSlides.length > 0 && (
+      <section id="lecture" class="wrap section scroll-anchor">
+        <h2>From the lecture</h2>
+        <p class="section-lede">
+          Selected slides from Prof. Deppmann's BIOL 3030 lectures — his own
+          diagrams and analogies, with the presenter notes underneath. (Slides
+          that reproduced publisher figures were left out.)
+        </p>
+        <LectureSlides slides={lesson.lectureSlides} />
+      </section>
+    )}
+
+    {lesson.structures.length > 0 && (
+      <section id="structures" class="wrap section scroll-anchor">
+        <h2>See it — live molecular structures</h2>
+        <p class="section-lede">
+          These are real, deposited coordinates streamed from public databases.
+          Drag to rotate. Nothing here is drawn by an AI.
+        </p>
+        {lesson.structures.map((s) => (
+          <MolViewer source={s.source} id={s.id} label={s.label} caption={s.caption} />
+        ))}
+      </section>
+    )}
+
+    {lesson.simulations.length > 0 && (
+      <section id="explore" class="wrap section scroll-anchor">
+        <h2>Explore — simulations</h2>
+        {localSims.map((s) => {
+          const Comp = LOCAL_SIMS[s.ref];
+          return Comp ? <Comp /> : null;
+        })}
+        {phetSims.map((s) => (
+          <PhetEmbed url={s.ref} title={s.title} attribution={s.attribution} caption={s.caption} />
+        ))}
+      </section>
+    )}
+
+    {lesson.scientists.length > 0 && (
+      <section id="people" class="wrap section scroll-anchor">
+        <h2>The people behind the idea</h2>
+        <p class="section-lede">
+          Quotes are verbatim from the historical record, drawn from
+          <em> The Molecule Hunters</em>.
+        </p>
+        <div class="sci-grid">
+          {lesson.scientists.map((s) => (
+            <ScientistCard scientist={s} />
+          ))}
+        </div>
+      </section>
+    )}
+
+    {(lesson.videos.length > 0 || lesson.podcast) && (
+      <section id="watch" class="wrap section scroll-anchor">
+        <h2>Watch &amp; listen</h2>
+        {lesson.videos.map((v) => (
+          <YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} />
+        ))}
+        {lesson.podcast && (
+          <SpotifyEmbed
+            url={lesson.podcast.url}
+            title={lesson.podcast.title}
+            note={lesson.podcast.note}
+          />
+        )}
+      </section>
+    )}
+
+    {hasQuiz && (
+      <section id="self-test" class="wrap section scroll-anchor">
+        <h2>Test yourself</h2>
+        <QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} />
+      </section>
+    )}
+
+    <div id="sources" class="wrap scroll-anchor">
+      <SourcesFooter lesson={lesson} />
+    </div>
+
+    <a href="#top" class="to-top" aria-label="Back to top">↑ Top</a>
+  </article>
+
+  <style>
+    .lesson-hero {
+      padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6);
+    }
+    .eyebrow {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ddp-color-accent);
+      margin: 0 0 var(--ddp-space-2);
+    }
+    .lesson-hero h1 {
+      font-size: var(--ddp-text-3xl);
+      max-width: 20ch;
+      margin-bottom: var(--ddp-space-3);
+    }
+    .summary {
+      max-width: 60ch;
+      font-size: var(--ddp-text-lg);
+      color: var(--ddp-color-ink-soft);
+    }
+    /* Anchored sections clear the sticky header when jumped to. */
+    .scroll-anchor {
+      scroll-margin-top: 84px;
+    }
+
+    /* Orientation card: objectives + meta + on-this-page nav. */
+    .orient {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: var(--ddp-space-6);
+      margin-bottom: var(--ddp-space-4);
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      .orient {
+        grid-template-columns: 1fr;
+      }
+    }
+    .orient-obj {
+      padding: var(--ddp-space-5) var(--ddp-space-6);
+    }
+    .orient-obj h2 {
+      font-size: var(--ddp-text-lg);
+      margin: 0 0 var(--ddp-space-3);
+    }
+    .orient-obj ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: var(--ddp-space-2);
+    }
+    .orient-obj li {
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink-soft);
+    }
+    .orient-side {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ddp-space-4);
+    }
+    .orient-meta {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ddp-space-2) var(--ddp-space-4);
+    }
+    .orient-meta li {
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+    .orient-toc {
+      border-top: 1px solid var(--ddp-color-line);
+      padding-top: var(--ddp-space-3);
+    }
+    .orient-toc-label {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ddp-color-muted);
+    }
+    .orient-toc ul {
+      list-style: none;
+      margin: var(--ddp-space-2) 0 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ddp-space-2);
+    }
+    .orient-toc a {
+      display: inline-block;
+      font-size: var(--ddp-text-sm);
+      text-decoration: none;
+      color: var(--ddp-color-accent);
+      background: var(--ddp-color-accent-soft);
+      border-radius: 999px;
+      padding: 0.2em 0.8em;
+    }
+    .orient-toc a:hover {
+      text-decoration: none;
+      background: color-mix(in srgb, var(--ddp-color-accent) 22%, #fff);
+    }
+
+    .to-top {
+      position: fixed;
+      right: var(--ddp-space-6);
+      bottom: var(--ddp-space-6);
+      z-index: 40;
+      font-size: var(--ddp-text-sm);
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--ddp-color-surface);
+      background: var(--ddp-color-primary);
+      border-radius: 999px;
+      padding: 0.5em 0.9em;
+      box-shadow: var(--ddp-shadow);
+      opacity: 0.85;
+    }
+    .to-top:hover {
+      opacity: 1;
+      text-decoration: none;
+    }
+
+    .lesson-body {
+      padding-top: var(--ddp-space-4);
+    }
+    .section {
+      padding-top: var(--ddp-space-8);
+      padding-bottom: var(--ddp-space-4);
+    }
+    .section > h2 {
+      font-size: var(--ddp-text-2xl);
+    }
+    .section-lede {
+      max-width: 60ch;
+      color: var(--ddp-color-ink-soft);
+      margin-top: 0;
+    }
+    .tech-grid,
+    .sci-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--ddp-space-4);
+      margin-top: var(--ddp-space-4);
+    }
+    .tech {
+      padding: var(--ddp-space-5);
+    }
+    .tech h3 {
+      margin: 0 0 var(--ddp-space-2);
+      font-size: var(--ddp-text-base);
+    }
+    .tech p {
+      margin: 0;
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink-soft);
+    }
+  </style>
+</BaseLayout>

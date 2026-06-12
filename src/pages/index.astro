@@ -1,113 +1,118 @@
 ---
-import Footer from "../../brand/Footer.astro";
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
-const PUBLIC_SITE = "https://deppmannlab.com";
-const PODCAST_URL = "https://open.spotify.com/show/6gUAeZTYYRPzdAc84Lj4Gt";
+const lessons = (await getCollection('lessons'))
+  .filter((l) => !l.data.draft)
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Biochempedia — a teaching platform from the Deppmann Lab. Grounded, citation-faithful lessons in biochemistry with real molecular structures."
-    />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta property="og:title" content="Biochempedia" />
-    <meta property="og:description" content="A teaching platform from the Deppmann Lab." />
-    <meta property="og:type" content="website" />
-    <title>Biochempedia — Deppmann Lab</title>
-  </head>
-  <body>
-    <main class="hero">
-      <div class="hero__inner">
-        <img src="/favicon.svg" alt="" class="hero__mark" width="64" height="64" />
-        <span class="kicker">Deppmann Lab · Teaching</span>
-        <h1>Biochem<span>pedia</span></h1>
-        <p class="lede">
-          A teaching platform for biochemistry — built to be honest about what it
-          knows. Grounded lessons with <strong>real molecular structures</strong>
-          (rendered from PDB / PubChem, never AI-invented) and citation-faithful
-          explanations.
-        </p>
-        <p class="status">Launching with one finished exemplar: <em>enzyme kinetics</em>. More with the students.</p>
-        <div class="links">
-          <a class="btn" href={PUBLIC_SITE} target="_blank" rel="noopener">Deppmann Lab</a>
-          <a class="btn btn--ghost" href={PODCAST_URL} target="_blank" rel="noopener">We Are Biochemistry</a>
-        </div>
-      </div>
-    </main>
+<BaseLayout
+  title="Biochempedia — an interactive biochemistry textbook"
+  description="An interactive, integrity-first biochemistry learning site: live 3D molecules, original simulations, and self-tests, built from Prof. Deppmann's lectures and The Molecule Hunters."
+>
+  <section class="hero wrap">
+    <p class="eyebrow">Biochempedia · BIOL 3030 · University of Virginia</p>
+    <h1>Biochemistry you can rotate, drag, and quiz yourself on.</h1>
+    <p class="lede">
+      Every structure is loaded live from a public database — nothing is drawn by
+      an AI. Every simulation is something you can poke. Every question carries a
+      verified answer and an explanation. Built from twenty years of lectures and
+      the scientist stories in <em>The Molecule Hunters</em>.
+    </p>
+  </section>
 
-    <Footer
-      brand="Biochempedia"
-      tagline="A teaching platform from the Deppmann Lab"
-      columns={[
-        { heading: "Lab", links: [
-          { label: "Deppmann Lab", href: PUBLIC_SITE, external: true },
-          { label: "Podcast", href: PODCAST_URL, external: true },
-        ]},
-      ]}
-    />
+  <section class="wrap lessons">
+    <h2>Lessons</h2>
+    {lessons.length === 0 ? (
+      <p>No lessons published yet.</p>
+    ) : (
+      <ul class="lesson-list">
+        {lessons.map((l) => (
+          <li>
+            <a href={`/lessons/${l.data.slug}/`} class="lesson-card card">
+              <span class="lc-chapter">{l.data.courseChapter}</span>
+              <span class="lc-title">{l.data.title}</span>
+              <span class="lc-summary">{l.data.summary}</span>
+              <span class="lc-meta">
+                {l.data.structures.length} live structures ·
+                {' '}{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
 
-    <style is:global>
-      @import "../../brand/tokens.css";
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
-      h1 { font-family: var(--font-heading); }
-      a { text-decoration: none; }
-    </style>
-
-    <style>
-      .hero {
-        min-height: 78vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        background: linear-gradient(135deg, var(--color-navy-dark) 0%, var(--color-navy) 40%, var(--color-teal-dark) 100%);
-        padding: var(--space-4xl) var(--space-xl);
-        position: relative;
-        overflow: hidden;
-      }
-      .hero::before {
-        content: "";
-        position: absolute; inset: 0; pointer-events: none;
-        background:
-          radial-gradient(circle at 25% 35%, rgba(42,123,136,0.35) 0%, transparent 45%),
-          radial-gradient(circle at 78% 70%, rgba(212,168,67,0.18) 0%, transparent 42%);
-      }
-      .hero__inner { position: relative; z-index: 1; max-width: 640px; }
-      .hero__mark { margin: 0 auto var(--space-lg); display: block; }
-      .kicker {
-        display: inline-block;
-        font-size: var(--text-xs);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        color: var(--color-gold);
-        margin-bottom: var(--space-md);
-      }
-      h1 { font-size: var(--text-5xl); color: var(--color-white); letter-spacing: -0.02em; margin-bottom: var(--space-lg); }
-      h1 span {
-        background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      }
-      .lede { color: rgba(255,255,255,0.82); font-size: var(--text-lg); margin: 0 auto var(--space-md); max-width: 54ch; }
-      .status { color: rgba(255,255,255,0.6); font-size: var(--text-sm); margin-bottom: var(--space-xl); }
-      .links { display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap; }
-      .btn {
-        display: inline-flex; align-items: center;
-        padding: 0.75rem 1.75rem; font-size: var(--text-sm); font-weight: 600;
-        border-radius: 50px;
-        background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
-        color: var(--color-navy-dark);
-        transition: transform var(--transition-base);
-      }
-      .btn:hover { transform: translateY(-2px); }
-      .btn--ghost { background: transparent; color: var(--color-white); border: 2px solid rgba(255,255,255,0.4); }
-      .btn--ghost:hover { border-color: rgba(255,255,255,0.8); }
-    </style>
-  </body>
-</html>
+  <style>
+    .hero {
+      padding: var(--ddp-space-16) var(--ddp-space-6) var(--ddp-space-8);
+    }
+    .eyebrow {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ddp-color-accent);
+      margin: 0 0 var(--ddp-space-3);
+    }
+    .hero h1 {
+      font-size: var(--ddp-text-3xl);
+      max-width: 18ch;
+    }
+    .lede {
+      max-width: 60ch;
+      font-size: var(--ddp-text-lg);
+      color: var(--ddp-color-ink-soft);
+    }
+    .lessons {
+      padding-bottom: var(--ddp-space-12);
+    }
+    .lesson-list {
+      list-style: none;
+      padding: 0;
+      margin: var(--ddp-space-6) 0 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--ddp-space-4);
+    }
+    .lesson-card {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ddp-space-2);
+      padding: var(--ddp-space-6);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .lesson-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(26, 26, 31, 0.1);
+      text-decoration: none;
+    }
+    .lc-chapter {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ddp-color-accent);
+    }
+    .lc-title {
+      font-family: var(--ddp-font-serif);
+      font-size: var(--ddp-text-xl);
+      color: var(--ddp-color-primary);
+      line-height: 1.2;
+    }
+    .lc-summary {
+      color: var(--ddp-color-ink-soft);
+      font-size: var(--ddp-text-sm);
+    }
+    .lc-meta {
+      margin-top: auto;
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      color: var(--ddp-color-muted);
+    }
+  </style>
+</BaseLayout>

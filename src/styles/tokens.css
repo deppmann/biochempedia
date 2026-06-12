@@ -1,0 +1,68 @@
+/* =============================================================================
+   deppmann-brand bridge
+   -----------------------------------------------------------------------------
+   The shared brand package is vendored as the `brand/` git submodule
+   (github.com/deppmann/deppmann-brand). We import its canonical tokens (the
+   single source of truth for the whole deppmannlab.com ecosystem) and then
+   ALIAS them onto the `--ddp-*` names this site's components already use. That
+   way the brand owns the actual values (navy / gold / teal, Inter + Playfair,
+   the type & spacing scales) and nothing in the components had to change.
+
+   To update the look, edit `brand/tokens.css` (or bump the submodule), never
+   the values here. A few `--ddp-*` tokens have no brand equivalent (a couple of
+   soft tint backgrounds, the prose measure); those are derived from brand colors
+   via color-mix or kept as sensible literals.
+   ============================================================================ */
+
+@import "../../brand/tokens.css";
+
+:root {
+  /* --- color: alias brand → component names ---------------------------- */
+  --ddp-color-bg: var(--color-bg);
+  --ddp-color-surface: var(--color-white);
+  --ddp-color-ink: var(--color-text);
+  --ddp-color-ink-soft: var(--color-text-light);
+  --ddp-color-muted: var(--color-text-muted);
+  --ddp-color-line: var(--color-border);
+
+  --ddp-color-primary: var(--color-navy);
+  --ddp-color-primary-soft: var(--color-navy-light);
+  --ddp-color-accent: var(--color-teal);
+  --ddp-color-accent-soft: color-mix(in srgb, var(--color-teal) 12%, #fff);
+  --ddp-color-secondary: var(--color-gold);
+
+  --ddp-color-verified: var(--color-success);
+  --ddp-color-verified-soft: color-mix(in srgb, var(--color-success) 12%, #fff);
+  --ddp-color-caution: var(--color-gold-dark);
+  --ddp-color-caution-soft: color-mix(in srgb, var(--color-gold) 18%, #fff);
+
+  /* --- type: brand families + fluid scale ------------------------------ */
+  --ddp-font-sans: var(--font-body);
+  --ddp-font-serif: var(--font-heading);
+  --ddp-font-mono: var(--font-mono);
+
+  --ddp-text-xs: var(--text-xs);
+  --ddp-text-sm: var(--text-sm);
+  --ddp-text-base: var(--text-base);
+  --ddp-text-lg: var(--text-lg);
+  --ddp-text-xl: var(--text-xl);
+  --ddp-text-2xl: var(--text-2xl);
+  --ddp-text-3xl: var(--text-4xl); /* hero punch */
+  --ddp-leading: 1.65;
+
+  /* --- space: brand scale (a couple of in-between steps kept literal) --- */
+  --ddp-space-1: var(--space-xs);
+  --ddp-space-2: var(--space-sm);
+  --ddp-space-3: 0.75rem;
+  --ddp-space-4: var(--space-md);
+  --ddp-space-6: var(--space-lg);
+  --ddp-space-8: var(--space-xl);
+  --ddp-space-12: var(--space-2xl);
+  --ddp-space-16: var(--space-3xl);
+
+  /* --- radius / shadow / measure --------------------------------------- */
+  --ddp-radius: var(--border-radius-lg);
+  --ddp-radius-sm: var(--border-radius);
+  --ddp-shadow: var(--shadow-md);
+  --ddp-maxw: 72ch;
+}

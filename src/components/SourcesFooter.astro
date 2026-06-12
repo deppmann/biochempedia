@@ -1,0 +1,207 @@
+---
+import type { Lesson } from '../schema';
+
+interface Props {
+  lesson: Lesson;
+}
+const { lesson } = Astro.props;
+
+const rcsb = lesson.structures.filter((s) => s.source === 'rcsb');
+const pubchem = lesson.structures.filter((s) => s.source === 'pubchem');
+const phet = lesson.simulations.filter((s) => s.type === 'phet');
+const local = lesson.simulations.filter((s) => s.type === 'local');
+---
+
+<section class="sources" aria-label="Sources and integrity">
+  <h2>Sources &amp; Integrity</h2>
+  <p class="sources-intro">
+    Everything interactive on this page is generated from a real, citable source.
+    No molecular structure is AI-drawn; every figure and question is accounted for
+    below. This panel is generated automatically from the lesson's data file, so
+    it can't drift out of sync with what's on the page.
+  </p>
+
+  <div class="sources-grid">
+    {lesson.structures.length > 0 && (
+      <div class="src-block">
+        <h3>Molecular structures <span class="verified-chip">live data</span></h3>
+        <ul>
+          {rcsb.map((s) => (
+            <li>
+              <strong>{s.label}</strong> — RCSB PDB
+              <a href={`https://www.rcsb.org/structure/${s.id}`} target="_blank" rel="noopener"><code>{s.id}</code></a>
+              <span class="src-meta"> · coordinates CC0{ s.note ? ` · ${s.note}` : '' }</span>
+            </li>
+          ))}
+          {pubchem.map((s) => (
+            <li>
+              <strong>{s.label}</strong> — PubChem
+              <a href={`https://pubchem.ncbi.nlm.nih.gov/compound/${s.id}`} target="_blank" rel="noopener"><code>CID {s.id}</code></a>
+              <span class="src-meta">{ s.note ? ` · ${s.note}` : '' }</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {lesson.simulations.length > 0 && (
+      <div class="src-block">
+        <h3>Simulations</h3>
+        <ul>
+          {phet.map((s) => (
+            <li>
+              <strong>{s.title}</strong>
+              <span class="src-meta"> · {s.attribution}</span>
+            </li>
+          ))}
+          {local.map((s) => (
+            <li>
+              <strong>{s.title}</strong>
+              <span class="src-meta"> · {s.attribution}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {(lesson.videos.length > 0 || lesson.podcast) && (
+      <div class="src-block">
+        <h3>Media (embedded, not rehosted)</h3>
+        <ul>
+          {lesson.podcast && (
+            <li>
+              <strong>{lesson.podcast.title ?? 'Podcast'}</strong> — Spotify
+              <a href={lesson.podcast.url} target="_blank" rel="noopener">↗</a>
+              <span class="src-meta">{ lesson.podcast.note ? ` · ${lesson.podcast.note}` : '' }</span>
+            </li>
+          )}
+          {lesson.videos.map((v) => (
+            <li>
+              <strong>{v.title}</strong> — YouTube
+              <a href={`https://www.youtube.com/watch?v=${v.youtubeId}`} target="_blank" rel="noopener"><code>{v.youtubeId}</code></a>
+              <span class="src-meta"> · {v.sourceNote}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {lesson.scientists.length > 0 && (
+      <div class="src-block">
+        <h3>Scientist profiles &amp; quotes</h3>
+        <ul>
+          {lesson.scientists.map((s) => (
+            <li><strong>{s.name}</strong> <span class="src-meta">— {s.profileSourceAnchor}</span></li>
+          ))}
+        </ul>
+        <p class="src-meta">Quotes are verbatim from the cited source. Profile text adapted from <em>The Molecule Hunters</em> (authors' IP).</p>
+      </div>
+    )}
+
+    {lesson.lectureSlides.length > 0 && (
+      <div class="src-block">
+        <h3>Lecture slides</h3>
+        <ul>
+          {lesson.lectureSlides.map((s) => (
+            <li>
+              <strong>{s.title}</strong>
+              <span class="src-meta"> · {s.source} · {s.credit} · reviewed by {s.reviewedBy}</span>
+            </li>
+          ))}
+        </ul>
+        <p class="src-meta">Instructor's own slides; screened for accuracy and to exclude reproduced publisher figures.</p>
+      </div>
+    )}
+
+    <div class="src-block">
+      <h3>Images &amp; figures</h3>
+      {lesson.images.length === 0 ? (
+        <p class="src-meta">
+          This lesson uses <strong>no raster figures</strong> — all structures are
+          rendered live from RCSB&nbsp;PDB / PubChem, and the kinetics plots are
+          drawn from equations in the browser. Nothing to fact-check.
+        </p>
+      ) : (
+        <ul>
+          {lesson.images.map((img) => (
+            <li>
+              <strong>{img.alt}</strong>
+              {img.aiGenerated ? (
+                <span class="src-meta"> · <span class="ai-flag">AI-generated</span> · fact-checked by {img.factCheckedBy}</span>
+              ) : (
+                <span class="src-meta"> · {img.credit}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+
+  <p class="integrity-statement">
+    <span class="verified-chip">integrity</span>
+    Structures load by accession ID from public databases (never AI-drawn).
+    AI-generated images are permitted only when flagged and human-verified — and
+    an unverified one fails the build. Questions are original; MCAT-style items are
+    written for this site and are not real AAMC questions. Banned sources (the
+    Tymoczko textbook, publisher decks, copyrighted figures) are not used.
+  </p>
+</section>
+
+<style>
+  .sources {
+    margin-top: var(--ddp-space-16);
+    padding-top: var(--ddp-space-8);
+    border-top: 2px solid var(--ddp-color-line);
+  }
+  .sources-intro {
+    color: var(--ddp-color-ink-soft);
+    max-width: var(--ddp-maxw);
+  }
+  .sources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--ddp-space-6);
+    margin: var(--ddp-space-6) 0;
+  }
+  .src-block h3 {
+    font-size: var(--ddp-text-base);
+    margin: 0 0 var(--ddp-space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--ddp-space-2);
+  }
+  .src-block ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: var(--ddp-text-sm);
+  }
+  .src-block li {
+    margin-bottom: var(--ddp-space-2);
+  }
+  .src-block code {
+    font-size: 0.85em;
+  }
+  .src-meta {
+    color: var(--ddp-color-muted);
+    font-size: var(--ddp-text-xs);
+  }
+  .ai-flag {
+    color: var(--ddp-color-caution);
+    background: var(--ddp-color-caution-soft);
+    border-radius: 4px;
+    padding: 0 0.3em;
+    font-weight: 600;
+  }
+  .integrity-statement {
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+    background: var(--ddp-color-accent-soft);
+    border-radius: var(--ddp-radius);
+    padding: var(--ddp-space-4) var(--ddp-space-6);
+    display: flex;
+    gap: var(--ddp-space-3);
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+</style>

@@ -1,55 +1,102 @@
-# biochempedia
+# Biochempedia
 
-**Biochempedia** — a public teaching platform from the Deppmann Lab, at
-**`biochempedia.deppmannlab.com`**. This repo is the Phase-0 scaffold: an
-on-brand landing page plus the shared brand. The lessons come next.
+An interactive, **integrity-first** biochemistry learning site for BIOL 3030 at the
+University of Virginia — the deliverable for Prof. Chris Deppmann's AI Catalyst
+grant, *"Biochempedia: An AI Tutor and Interactive Textbook."*
 
-## Host & gate decisions
+Every molecular structure is loaded **live from a public database** (nothing is
+drawn by an AI). Every simulation is something a student can poke. Every question
+carries a verified answer and an explanation. The content is built from twenty
+years of lectures and the scientist stories in *The Molecule Hunters*.
 
-- **Host:** Cloudflare Pages (static Astro build, output `dist/`).
-- **Gate:** **public** — no Cloudflare Access. (Members/corpus are gated;
-  Biochempedia is the open teaching surface.)
-- **DNS:** `biochempedia.deppmannlab.com` is a Cloudflare Pages custom domain.
-  The public `deppmannlab.com` stays on **Netlify (DNS-only)** —
-  **never proxy Netlify through Cloudflare.**
-- **Brand:** consumes [`@deppmann/brand`](https://github.com/deppmann/deppmann-brand)
-  via the `brand/` git submodule (tokens + shared `Footer`).
-- **Repo visibility:** public.
+> **Status:** First version. **One fully-finished exemplar lesson** —
+> *Enzyme Kinetics / Michaelis–Menten* — plus the site skeleton, the typed lesson
+> schema, and the build-time integrity gate. The AI tutor and "talk to a
+> scientist" features are intentionally **deferred** (see below).
 
-Full ecosystem decisions + kill switches: brand repo `DECISIONS.md`.
+## What's in the exemplar lesson
 
-## What it will be (not built here)
+`src/content/lessons/enzyme-kinetics/lesson.mdx`
 
-A teaching platform built to be honest about what it knows:
+- The concept explained plainly (from Chris's CH07/CH08 slide notes) + a
+  "how the technique works" section (assays, initial velocity, Km/Vmax).
+- A **live, rotatable Mol\* structure** — hen egg-white lysozyme (PDB `1LYZ`) —
+  and the **PubChem** small-molecule view of its substrate (CID `439174`).
+- An **original Michaelis–Menten plotter** (v vs [S] with draggable/typed Km & Vmax,
+  a live Lineweaver–Burk double-reciprocal, and a competitive-inhibitor overlay)
+  plus a **PhET** embed.
+- 4 grounded **scientist cards** with verbatim book quotes (Fischer, Michaelis &
+  Menten, Koshland, Phillips).
+- A **Spotify** episode embed + 2 curated **YouTube** embeds.
+- A self-test quiz: **5 original practice + 3 original MCAT-style** questions, each
+  with a verified key and rationale.
+- An auto-generated **Sources & Integrity** footer listing every ID, attribution,
+  and media source.
 
-- One finished **exemplar lesson** first (enzyme kinetics / Michaelis–Menten) +
-  a content pipeline, then scale with the student.
-- **Real molecular structures** rendered from RCSB PDB / PubChem via Mol\* —
-  never AI-generated geometry.
-- Citation-faithful explanations; a visible guardrail that flags any cited claim
-  not in the retrieved set.
-- Cross-links to *The Molecule Hunters* (book) and the *We Are Biochemistry*
-  podcast so the three surfaces share one narrative spine.
+## Stack
 
-## Develop
+- **Astro 5** (static-first; islands only where interactive) + `@astrojs/mdx`
+- **Content Collections + Zod** — the typed lesson schema *is* the integrity gate
+- **Tailwind v4** (via `@tailwindcss/vite`) + a stubbed `deppmann-brand` token layer
+- **Mol\*** for 3D structures · **PhET** (iframe) · YouTube/Spotify (iframe)
+
+## Run it
 
 ```bash
-git clone --recurse-submodules https://github.com/deppmann/biochempedia.git
+git clone --recurse-submodules https://github.com/deppmann/biochempedia
 cd biochempedia
 npm install
-npm run dev
-npm run build   # → dist/
+npm run dev        # http://localhost:4321
+npm run build      # astro check + build; FAILS if any integrity field is missing
 ```
 
-Forgot submodules? `git submodule update --init --recursive`.
+> The shared brand (`@deppmann/brand`) is vendored as the **`brand/` git
+> submodule**; the build imports `brand/tokens.css`, so clone with
+> `--recurse-submodules` (or run `git submodule update --init`). Already cloned
+> without it? `git submodule update --init`.
 
-## Deploy
+The Mol* viewer bundle is vendored from `node_modules` into `public/vendor/` by a
+`predev`/`prebuild` hook (`npm run sync:molstar`); it's gitignored and regenerated.
 
-Cloudflare Pages → connect this repo → build `npm run build`, output `dist`,
-**Git submodules: On**. Add custom domain `biochempedia.deppmannlab.com`. No
-Access application (public).
+## The integrity gate
 
-## Contributing
+The build **fails** if:
+- an image has `aiGenerated: true` without a `factCheckedBy`,
+- a question is missing its `answer` or `rationale`,
+- a structure isn't from a real `rcsb`/`pubchem` accession ID, or
+- a PhET sim isn't attributed to PhET.
 
-Edit content/pages, open a PR — don't push to `main`. Brand changes (color,
-type, footer) go in the **brand** repo, not here.
+See [`IMAGE_POLICY.md`](IMAGE_POLICY.md), [`LICENSING.md`](LICENSING.md), and
+[`src/schema.ts`](src/schema.ts).
+
+## Add a lesson
+
+Copy the lesson folder, fill the schema, write the prose, make the build pass, open
+a PR. Full walkthrough in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Deferred (not in this version)
+
+The **AI tutor** and **scientist-persona chat** are intentionally not built yet — a
+tutor that is confidently wrong would do real harm. When added, they will be
+RAG-grounded in the course material, carry an "AI — verify" banner, and reuse the
+research project's retrieval module.
+
+## Deploy target
+
+Cloudflare Pages at `biochempedia.deppmannlab.com` — **public** (no Cloudflare
+Access; the members/corpus surfaces are the gated ones). Static Astro build,
+output `dist/`. The brand comes from the real [`deppmann-brand`](https://github.com/deppmann/deppmann-brand)
+package via the `brand/` submodule; [`src/styles/tokens.css`](src/styles/tokens.css)
+aliases those tokens onto the components' `--ddp-*` names.
+
+> **DNS guardrail (from the Phase-0 decisions):** the public `deppmannlab.com`
+> apex/www stay on **Netlify, DNS-only** — never proxy Netlify through
+> Cloudflare. Only the subdomains get Cloudflare Pages. Full ecosystem decisions
+> live in the brand repo's `DECISIONS.md`.
+
+## License
+
+Code: **MIT** ([LICENSE](LICENSE)). Lesson narrative & scientist profiles are the
+authors' IP ([NOTICE](NOTICE)) — fork the code, bring your own content.
+
+🤖 Scaffolded with [Claude Code](https://claude.com/claude-code).
