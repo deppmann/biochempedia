@@ -1,0 +1,72 @@
+---
+/**
+ * PhET simulation embed (iframe). PhET sims are CC BY 4.0 — the attribution
+ * line is REQUIRED and is enforced in the schema (a PhET entry whose
+ * attribution doesn't name PhET fails the build).
+ */
+interface Props {
+  url: string;
+  title: string;
+  attribution: string;
+  caption?: string;
+}
+const { url, title, attribution, caption } = Astro.props;
+---
+
+<figure class="phet card">
+  <figcaption class="phet-head">
+    <span class="phet-label">{title}</span>
+    <span class="live-chip">▶ PhET · interactive</span>
+  </figcaption>
+  <div class="phet-stage">
+    <iframe
+      src={url}
+      title={title}
+      loading="lazy"
+      allowfullscreen></iframe>
+  </div>
+  {caption && <p class="phet-caption">{caption}</p>}
+  <p class="phet-attribution">{attribution}</p>
+</figure>
+
+<style>
+  .phet {
+    margin: var(--ddp-space-8) 0;
+    overflow: hidden;
+  }
+  .phet-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ddp-space-2);
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-bottom: 1px solid var(--ddp-color-line);
+  }
+  .phet-label {
+    font-weight: 600;
+  }
+  .phet-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #f7f7f9;
+  }
+  .phet-stage iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .phet-caption {
+    padding: var(--ddp-space-3) var(--ddp-space-4) 0;
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+  .phet-attribution {
+    padding: var(--ddp-space-2) var(--ddp-space-4) var(--ddp-space-3);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+  }
+</style>

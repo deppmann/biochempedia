@@ -1,0 +1,186 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MolViewer from '../../components/MolViewer.astro';
+import PhetEmbed from '../../components/PhetEmbed.astro';
+import MichaelisMentenPlotter from '../../components/MichaelisMentenPlotter.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
+import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
+import ScientistCard from '../../components/ScientistCard.astro';
+import QuizBlock from '../../components/QuizBlock.astro';
+import SourcesFooter from '../../components/SourcesFooter.astro';
+
+export async function getStaticPaths() {
+  const lessons = await getCollection('lessons');
+  return lessons.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const lesson = entry.data;
+
+// Registry mapping a local-sim `ref` (frontmatter string) → its component.
+const LOCAL_SIMS: Record<string, any> = { MichaelisMentenPlotter };
+const localSims = lesson.simulations.filter((s) => s.type === 'local');
+const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
+const hasQuiz =
+  lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
+---
+
+<BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary}>
+  <article>
+    <header class="lesson-hero wrap">
+      <p class="eyebrow">{lesson.courseChapter}</p>
+      <h1>{lesson.title}</h1>
+      <p class="summary">{lesson.summary}</p>
+    </header>
+
+    {/* The plain-language concept + "how the technique works" prose (MDX body). */}
+    <div class="wrap prose-col lesson-body">
+      <Content />
+    </div>
+
+    {lesson.techniques.length > 0 && (
+      <section class="wrap section">
+        <h2>How we measure it — techniques at a glance</h2>
+        <div class="tech-grid">
+          {lesson.techniques.map((t) => (
+            <div class="tech card">
+              <h3>{t.name}</h3>
+              <p>{t.blurb}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {lesson.structures.length > 0 && (
+      <section class="wrap section">
+        <h2>See it — live molecular structures</h2>
+        <p class="section-lede">
+          These are real, deposited coordinates streamed from public databases.
+          Drag to rotate. Nothing here is drawn by an AI.
+        </p>
+        {lesson.structures.map((s) => (
+          <MolViewer source={s.source} id={s.id} label={s.label} caption={s.caption} />
+        ))}
+      </section>
+    )}
+
+    {lesson.simulations.length > 0 && (
+      <section class="wrap section">
+        <h2>Explore — simulations</h2>
+        {localSims.map((s) => {
+          const Comp = LOCAL_SIMS[s.ref];
+          return Comp ? <Comp /> : null;
+        })}
+        {phetSims.map((s) => (
+          <PhetEmbed url={s.ref} title={s.title} attribution={s.attribution} caption={s.caption} />
+        ))}
+      </section>
+    )}
+
+    {lesson.scientists.length > 0 && (
+      <section class="wrap section">
+        <h2>The people behind the idea</h2>
+        <p class="section-lede">
+          Quotes are verbatim from the historical record, drawn from
+          <em> The Molecule Hunters</em>.
+        </p>
+        <div class="sci-grid">
+          {lesson.scientists.map((s) => (
+            <ScientistCard scientist={s} />
+          ))}
+        </div>
+      </section>
+    )}
+
+    {(lesson.videos.length > 0 || lesson.podcast) && (
+      <section class="wrap section">
+        <h2>Watch &amp; listen</h2>
+        {lesson.videos.map((v) => (
+          <YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} />
+        ))}
+        {lesson.podcast && (
+          <SpotifyEmbed
+            url={lesson.podcast.url}
+            title={lesson.podcast.title}
+            note={lesson.podcast.note}
+          />
+        )}
+      </section>
+    )}
+
+    {hasQuiz && (
+      <section class="wrap section">
+        <h2>Test yourself</h2>
+        <QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} />
+      </section>
+    )}
+
+    <div class="wrap">
+      <SourcesFooter lesson={lesson} />
+    </div>
+  </article>
+
+  <style>
+    .lesson-hero {
+      padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6);
+    }
+    .eyebrow {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ddp-color-accent);
+      margin: 0 0 var(--ddp-space-2);
+    }
+    .lesson-hero h1 {
+      font-size: var(--ddp-text-3xl);
+      max-width: 20ch;
+      margin-bottom: var(--ddp-space-3);
+    }
+    .summary {
+      max-width: 60ch;
+      font-size: var(--ddp-text-lg);
+      color: var(--ddp-color-ink-soft);
+    }
+    .lesson-body {
+      padding-top: var(--ddp-space-4);
+    }
+    .section {
+      padding-top: var(--ddp-space-8);
+      padding-bottom: var(--ddp-space-4);
+    }
+    .section > h2 {
+      font-size: var(--ddp-text-2xl);
+    }
+    .section-lede {
+      max-width: 60ch;
+      color: var(--ddp-color-ink-soft);
+      margin-top: 0;
+    }
+    .tech-grid,
+    .sci-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--ddp-space-4);
+      margin-top: var(--ddp-space-4);
+    }
+    .tech {
+      padding: var(--ddp-space-5);
+    }
+    .tech h3 {
+      margin: 0 0 var(--ddp-space-2);
+      font-size: var(--ddp-text-base);
+    }
+    .tech p {
+      margin: 0;
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink-soft);
+    }
+  </style>
+</BaseLayout>

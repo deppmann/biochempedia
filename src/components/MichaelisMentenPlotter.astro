@@ -1,0 +1,452 @@
+---
+/**
+ * MichaelisMentenPlotter — ORIGINAL interactive island (Biochempedia).
+ *
+ * Left  : v vs [S], the Michaelis–Menten hyperbola  v = Vmax·[S] / (Km + [S]).
+ *         Km and Vmax are draggable on the plot AND typeable in the inputs.
+ * Right : the Lineweaver–Burk double-reciprocal  1/v = (Km/Vmax)(1/[S]) + 1/Vmax,
+ *         auto-scaled so both intercepts are always visible.
+ * Bonus : a competitive-inhibitor overlay (Km → αKm, Vmax unchanged) so the
+ *         "Inhibitors" half of the chapter is something you can feel — watch the
+ *         Lineweaver–Burk lines pivot about a shared y-intercept.
+ *
+ * No external libraries; pure SVG + pointer events. Built with seeded, real
+ * kinetics — nothing here is AI-drawn.
+ */
+---
+
+<section class="mm card" data-mm-plotter aria-label="Interactive Michaelis–Menten plotter">
+  <header class="mm-head">
+    <div>
+      <span class="mm-title">Michaelis–Menten plotter</span>
+      <span class="live-chip">⚙ original · interactive</span>
+    </div>
+    <p class="mm-eq">v = V<sub>max</sub>·[S] / (K<sub>m</sub> + [S])</p>
+  </header>
+
+  <div class="mm-grid">
+    <figure class="mm-fig">
+      <figcaption>Velocity vs. substrate — drag the dots</figcaption>
+      <svg class="mm-svg" data-plot="mm" viewBox="0 0 420 320" role="img"
+        aria-label="Plot of reaction velocity versus substrate concentration"></svg>
+    </figure>
+    <figure class="mm-fig">
+      <figcaption>Lineweaver–Burk (double-reciprocal)</figcaption>
+      <svg class="mm-svg" data-plot="lb" viewBox="0 0 420 320" role="img"
+        aria-label="Double reciprocal Lineweaver-Burk plot"></svg>
+    </figure>
+  </div>
+
+  <div class="mm-controls">
+    <label class="mm-ctrl">
+      <span>V<sub>max</sub> <em data-out="vmax"></em> µmol·min⁻¹</span>
+      <input type="range" data-in="vmax" min="20" max="200" step="1" value="100" />
+      <input type="number" data-num="vmax" min="20" max="200" step="1" value="100" />
+    </label>
+    <label class="mm-ctrl">
+      <span>K<sub>m</sub> <em data-out="km"></em> mM</span>
+      <input type="range" data-in="km" min="1" max="25" step="0.5" value="8" />
+      <input type="number" data-num="km" min="1" max="25" step="0.5" value="8" />
+    </label>
+    <label class="mm-ctrl mm-inhib">
+      <span>
+        <input type="checkbox" data-in="inhibon" />
+        Competitive inhibitor · α = 1+[I]/K<sub>i</sub> = <em data-out="alpha"></em>
+      </span>
+      <input type="range" data-in="alpha" min="1" max="5" step="0.25" value="2.5" disabled />
+    </label>
+  </div>
+
+  <dl class="mm-readout">
+    <div><dt>½ V<sub>max</sub></dt><dd data-out="halfv"></dd></div>
+    <div><dt>K<sub>m</sub> (where v = ½V<sub>max</sub>)</dt><dd data-out="kmread"></dd></div>
+    <div><dt>L–B y-intercept = 1/V<sub>max</sub></dt><dd data-out="yint"></dd></div>
+    <div><dt>L–B x-intercept = −1/K<sub>m</sub></dt><dd data-out="xint"></dd></div>
+    <div class="mm-inhib-read" hidden><dt>Apparent K<sub>m</sub> (with inhibitor)</dt><dd data-out="kmapp"></dd></div>
+  </dl>
+
+  <p class="mm-note">
+    Notice: a <strong>competitive</strong> inhibitor raises the <em>apparent</em>
+    K<sub>m</sub> but leaves V<sub>max</sub> unchanged — so on the Lineweaver–Burk
+    plot the lines pivot about a <strong>shared y-intercept</strong>. That shared
+    intercept is competitive inhibition's fingerprint.
+  </p>
+</section>
+
+<script>
+  type Plot = {
+    svg: SVGSVGElement;
+    L: number; R: number; T: number; B: number;
+    W: number; H: number;
+  };
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86';
+  const NAVY = '#232d4b';
+  const ORANGE = '#e57200';
+  const GRID = '#e6e3db';
+  const INK = '#4b4b55';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  // Fixed plotting frame for both SVGs (viewBox 420×320).
+  function frame(svg: SVGSVGElement): Plot {
+    return { svg, L: 54, R: 404, T: 16, B: 276, W: 350, H: 260 };
+  }
+
+  function initPlotter(root: HTMLElement) {
+    const mmSvg = root.querySelector<SVGSVGElement>('[data-plot="mm"]')!;
+    const lbSvg = root.querySelector<SVGSVGElement>('[data-plot="lb"]')!;
+    const mm = frame(mmSvg);
+    const lb = frame(lbSvg);
+
+    // Domains for the MM plot are fixed so dragging is intuitive.
+    const S_MAX = 100; // mM
+    const V_TOP = 220; // µmol/min (matches the Vmax slider max)
+
+    const state = { vmax: 100, km: 8, inhibOn: false, alpha: 2.5 };
+
+    const sx = (s: number) => mm.L + (s / S_MAX) * mm.W;
+    const sy = (v: number) => mm.T + (1 - v / V_TOP) * mm.H;
+    const sxInv = (px: number) => ((px - mm.L) / mm.W) * S_MAX;
+    const syInv = (py: number) => (1 - (py - mm.T) / mm.H) * V_TOP;
+
+    function mmCurve(km: number, vmax: number): string {
+      let d = '';
+      for (let i = 0; i <= 120; i++) {
+        const s = (i / 120) * S_MAX;
+        const v = (vmax * s) / (km + s);
+        d += (i === 0 ? 'M' : 'L') + sx(s).toFixed(1) + ' ' + sy(v).toFixed(1) + ' ';
+      }
+      return d.trim();
+    }
+
+    function axis(p: Plot, xlab: string, ylab: string, xticks: number[], yticks: number[],
+      xmin: number, xmax: number, ymin: number, ymax: number) {
+      const px = (x: number) => p.L + ((x - xmin) / (xmax - xmin)) * p.W;
+      const py = (y: number) => p.T + (1 - (y - ymin) / (ymax - ymin)) * p.H;
+      // gridlines + ticks
+      yticks.forEach((y) => {
+        p.svg.appendChild(el('line', { x1: p.L, y1: py(y), x2: p.R, y2: py(y), stroke: GRID, 'stroke-width': 1 }));
+        const t = el('text', { x: p.L - 6, y: py(y) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+        t.textContent = String(+y.toFixed(3));
+        p.svg.appendChild(t);
+      });
+      xticks.forEach((x) => {
+        p.svg.appendChild(el('line', { x1: px(x), y1: p.T, x2: px(x), y2: p.B, stroke: GRID, 'stroke-width': 1 }));
+        const t = el('text', { x: px(x), y: p.B + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+        t.textContent = String(+x.toFixed(2));
+        p.svg.appendChild(t);
+      });
+      // axes (emphasize zero lines)
+      const y0 = ymin <= 0 && ymax >= 0 ? py(0) : p.B;
+      const x0 = xmin <= 0 && xmax >= 0 ? px(0) : p.L;
+      p.svg.appendChild(el('line', { x1: p.L, y1: y0, x2: p.R, y2: y0, stroke: '#9a9aa3', 'stroke-width': 1.4 }));
+      p.svg.appendChild(el('line', { x1: x0, y1: p.T, x2: x0, y2: p.B, stroke: '#9a9aa3', 'stroke-width': 1.4 }));
+      const xl = el('text', { x: (p.L + p.R) / 2, y: 314, 'text-anchor': 'middle', 'font-size': 11, fill: NAVY, 'font-weight': 600 });
+      xl.textContent = xlab;
+      p.svg.appendChild(xl);
+      const yl = el('text', { x: 14, y: (p.T + p.B) / 2, 'text-anchor': 'middle', 'font-size': 11, fill: NAVY, 'font-weight': 600, transform: `rotate(-90 14 ${(p.T + p.B) / 2})` });
+      yl.textContent = ylab;
+      p.svg.appendChild(yl);
+      return { px, py };
+    }
+
+    function renderMM() {
+      mmSvg.replaceChildren();
+      axis(mm, '[S]  (mM)', 'v  (µmol·min⁻¹)', [20, 40, 60, 80, 100], [55, 110, 165, 220], 0, S_MAX, 0, V_TOP);
+      const { vmax, km } = state;
+      const halfv = vmax / 2;
+
+      // Vmax asymptote
+      mmSvg.appendChild(el('line', { x1: mm.L, y1: sy(vmax), x2: mm.R, y2: sy(vmax), stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '5 4', opacity: 0.7 }));
+      const vlab = el('text', { x: mm.R, y: sy(vmax) - 5, 'text-anchor': 'end', 'font-size': 10, fill: NAVY });
+      vlab.textContent = 'Vmax';
+      mmSvg.appendChild(vlab);
+
+      // half-Vmax + Km guide lines
+      mmSvg.appendChild(el('line', { x1: mm.L, y1: sy(halfv), x2: sx(km), y2: sy(halfv), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.8 }));
+      mmSvg.appendChild(el('line', { x1: sx(km), y1: sy(halfv), x2: sx(km), y2: mm.B, stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.8 }));
+      const kmlab = el('text', { x: sx(km), y: mm.B + 26, 'text-anchor': 'middle', 'font-size': 10, fill: ACCENT, 'font-weight': 600 });
+      kmlab.textContent = 'Km';
+      mmSvg.appendChild(kmlab);
+
+      // inhibitor curve (apparent Km = alpha*Km)
+      if (state.inhibOn) {
+        const kmA = km * state.alpha;
+        mmSvg.appendChild(el('path', { d: mmCurve(kmA, vmax), fill: 'none', stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '6 4', opacity: 0.9 }));
+      }
+
+      // main MM curve
+      mmSvg.appendChild(el('path', { d: mmCurve(km, vmax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // drag handles
+      const hVmax = el('circle', { cx: sx(S_MAX * 0.86), cy: sy(vmax), r: 7, fill: NAVY, stroke: '#fff', 'stroke-width': 2, cursor: 'ns-resize', 'data-handle': 'vmax' });
+      mmSvg.appendChild(hVmax);
+      const hKm = el('circle', { cx: sx(km), cy: sy(halfv), r: 7, fill: ACCENT, stroke: '#fff', 'stroke-width': 2, cursor: 'ew-resize', 'data-handle': 'km' });
+      mmSvg.appendChild(hKm);
+    }
+
+    function renderLB() {
+      lbSvg.replaceChildren();
+      const { vmax, km } = state;
+      // auto-scale so both intercepts show with margin
+      const xmin = -1.4 / km;
+      const xmax = 3 / km;
+      const slope = km / vmax;
+      const yint = 1 / vmax;
+      const yAtXmax = slope * xmax + yint; // 4/vmax
+      const ymax = (state.inhibOn ? (km * state.alpha) / vmax * xmax + yint : yAtXmax) * 1.12;
+      const ymin = -ymax * 0.12;
+
+      const xticks = [xmin, 0, xmax / 2, xmax].map((v) => +v.toFixed(3));
+      const yticks = [0, ymax / 3, (2 * ymax) / 3, ymax].map((v) => +v.toFixed(4));
+      const { px, py } = axis(lb, '1 / [S]   (mM⁻¹)', '1 / v', xticks, yticks, xmin, xmax, ymin, ymax);
+
+      function lbLine(slope: number, color: string, dash?: string) {
+        const x1 = xmin, x2 = xmax;
+        const y1 = slope * x1 + yint;
+        const y2 = slope * x2 + yint;
+        const attrs: Record<string, string | number> = { x1: px(x1), y1: py(y1), x2: px(x2), y2: py(y2), stroke: color, 'stroke-width': 2.4 };
+        if (dash) attrs['stroke-dasharray'] = dash;
+        lbSvg.appendChild(el('line', attrs));
+      }
+      if (state.inhibOn) lbLine((km * state.alpha) / vmax, ORANGE, '6 4');
+      lbLine(slope, ACCENT);
+
+      // intercept markers
+      lbSvg.appendChild(el('circle', { cx: px(0), cy: py(yint), r: 4.5, fill: NAVY }));
+      const yl = el('text', { x: px(0) + 8, y: py(yint) - 6, 'font-size': 9, fill: NAVY });
+      yl.textContent = '1/Vmax';
+      lbSvg.appendChild(yl);
+      lbSvg.appendChild(el('circle', { cx: px(-1 / km), cy: py(0), r: 4.5, fill: ACCENT }));
+      const xl = el('text', { x: px(-1 / km), y: py(0) + 16, 'font-size': 9, fill: ACCENT, 'text-anchor': 'middle' });
+      xl.textContent = '−1/Km';
+      lbSvg.appendChild(xl);
+    }
+
+    function syncInputs() {
+      (root.querySelector('[data-in="vmax"]') as HTMLInputElement).value = String(state.vmax);
+      (root.querySelector('[data-num="vmax"]') as HTMLInputElement).value = String(state.vmax);
+      (root.querySelector('[data-in="km"]') as HTMLInputElement).value = String(state.km);
+      (root.querySelector('[data-num="km"]') as HTMLInputElement).value = String(state.km);
+      (root.querySelector('[data-in="alpha"]') as HTMLInputElement).value = String(state.alpha);
+      (root.querySelector('[data-in="alpha"]') as HTMLInputElement).disabled = !state.inhibOn;
+      (root.querySelector('[data-in="inhibon"]') as HTMLInputElement).checked = state.inhibOn;
+    }
+
+    function readouts() {
+      const set = (k: string, v: string) => {
+        const e = root.querySelector(`[data-out="${k}"]`);
+        if (e) e.textContent = v;
+      };
+      set('vmax', state.vmax.toFixed(0));
+      set('km', state.km.toFixed(1));
+      set('alpha', state.alpha.toFixed(2));
+      set('halfv', (state.vmax / 2).toFixed(1) + ' µmol·min⁻¹');
+      set('kmread', state.km.toFixed(1) + ' mM');
+      set('yint', (1 / state.vmax).toFixed(4) + ' (min·µmol⁻¹)');
+      set('xint', (-1 / state.km).toFixed(3) + ' mM⁻¹');
+      const kmappRow = root.querySelector<HTMLElement>('.mm-inhib-read');
+      if (kmappRow) kmappRow.hidden = !state.inhibOn;
+      set('kmapp', (state.km * state.alpha).toFixed(1) + ' mM  (Vmax unchanged)');
+    }
+
+    function renderAll() {
+      renderMM();
+      renderLB();
+      readouts();
+    }
+
+    // ---- input wiring ----
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+    function bindPair(key: 'vmax' | 'km' | 'alpha', lo: number, hi: number) {
+      const range = root.querySelector<HTMLInputElement>(`[data-in="${key}"]`)!;
+      const num = root.querySelector<HTMLInputElement>(`[data-num="${key}"]`);
+      const apply = (raw: string) => {
+        const v = clamp(parseFloat(raw), lo, hi);
+        if (!Number.isNaN(v)) {
+          state[key] = v;
+          syncInputs();
+          renderAll();
+        }
+      };
+      range.addEventListener('input', () => apply(range.value));
+      if (num) num.addEventListener('input', () => apply(num.value));
+    }
+    bindPair('vmax', 20, 200);
+    bindPair('km', 1, 25);
+    bindPair('alpha', 1, 5);
+
+    const inhibBox = root.querySelector<HTMLInputElement>('[data-in="inhibon"]')!;
+    inhibBox.addEventListener('change', () => {
+      state.inhibOn = inhibBox.checked;
+      syncInputs();
+      renderAll();
+    });
+
+    // ---- dragging on the MM plot ----
+    let dragging: 'vmax' | 'km' | null = null;
+    function svgPoint(evt: PointerEvent) {
+      const pt = mmSvg.createSVGPoint();
+      pt.x = evt.clientX;
+      pt.y = evt.clientY;
+      const ctm = mmSvg.getScreenCTM();
+      return ctm ? pt.matrixTransform(ctm.inverse()) : pt;
+    }
+    mmSvg.addEventListener('pointerdown', (evt) => {
+      const t = evt.target as SVGElement;
+      const h = t.getAttribute('data-handle');
+      if (h === 'vmax' || h === 'km') {
+        dragging = h;
+        mmSvg.setPointerCapture(evt.pointerId);
+        evt.preventDefault();
+      }
+    });
+    mmSvg.addEventListener('pointermove', (evt) => {
+      if (!dragging) return;
+      const p = svgPoint(evt);
+      if (dragging === 'vmax') {
+        state.vmax = clamp(Math.round(syInv(p.y)), 20, 200);
+      } else {
+        state.km = clamp(+sxInv(p.x).toFixed(1), 1, 25);
+      }
+      syncInputs();
+      renderAll();
+    });
+    const endDrag = () => (dragging = null);
+    mmSvg.addEventListener('pointerup', endDrag);
+    mmSvg.addEventListener('pointercancel', endDrag);
+
+    syncInputs();
+    renderAll();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-mm-plotter]').forEach(initPlotter);
+</script>
+
+<style>
+  .mm {
+    margin: var(--ddp-space-8) 0;
+    padding: var(--ddp-space-6);
+  }
+  .mm-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ddp-space-2);
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--ddp-space-4);
+  }
+  .mm-title {
+    font-weight: 700;
+    font-family: var(--ddp-font-serif);
+    font-size: var(--ddp-text-lg);
+    color: var(--ddp-color-primary);
+    margin-right: var(--ddp-space-2);
+  }
+  .mm-eq {
+    margin: 0;
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+  .mm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ddp-space-4);
+  }
+  @media (max-width: 720px) {
+    .mm-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .mm-fig {
+    margin: 0;
+  }
+  .mm-fig figcaption {
+    font-size: var(--ddp-text-sm);
+    font-weight: 600;
+    color: var(--ddp-color-ink);
+    margin-bottom: var(--ddp-space-1);
+  }
+  .mm-svg {
+    width: 100%;
+    height: auto;
+    background: #fff;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius-sm);
+    touch-action: none;
+  }
+  .mm-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ddp-space-4) var(--ddp-space-8);
+    margin-top: var(--ddp-space-6);
+  }
+  .mm-ctrl {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: var(--ddp-text-sm);
+  }
+  .mm-ctrl > span {
+    font-weight: 600;
+  }
+  .mm-ctrl em {
+    font-style: normal;
+    font-family: var(--ddp-font-mono);
+    color: var(--ddp-color-accent);
+  }
+  .mm-ctrl input[type='range'] {
+    width: 100%;
+    accent-color: var(--ddp-color-accent);
+  }
+  .mm-ctrl input[type='number'] {
+    width: 6rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 6px;
+    font-family: var(--ddp-font-mono);
+  }
+  .mm-inhib {
+    grid-column: 1 / -1;
+  }
+  .mm-inhib > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mm-readout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--ddp-space-3);
+    margin: var(--ddp-space-6) 0 0;
+    padding: var(--ddp-space-4);
+    background: var(--ddp-color-accent-soft);
+    border-radius: var(--ddp-radius-sm);
+  }
+  .mm-readout div {
+    margin: 0;
+  }
+  .mm-readout dt {
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-ink-soft);
+  }
+  .mm-readout dd {
+    margin: 0;
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-sm);
+    font-weight: 600;
+    color: var(--ddp-color-primary);
+  }
+  .mm-note {
+    margin: var(--ddp-space-4) 0 0;
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+</style>

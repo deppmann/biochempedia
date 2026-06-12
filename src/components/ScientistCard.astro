@@ -1,0 +1,85 @@
+---
+import type { ScientistCard } from '../schema';
+interface Props {
+  scientist: ScientistCard;
+}
+const { scientist } = Astro.props;
+---
+
+<article class="sci card">
+  <header class="sci-head">
+    <h3 class="sci-name">{scientist.name}</h3>
+    {scientist.dates && <span class="sci-dates">{scientist.dates}</span>}
+  </header>
+  <p class="sci-contribution">{scientist.contribution}</p>
+
+  {scientist.quotes.length > 0 && (
+    <ul class="sci-quotes">
+      {scientist.quotes.map((q) => (
+        <li><blockquote>“{q}”</blockquote></li>
+      ))}
+    </ul>
+  )}
+
+  <p class="sci-source">
+    <span class="verified-chip">✓ verbatim</span>
+    {scientist.profileSourceAnchor}
+  </p>
+</article>
+
+<style>
+  .sci {
+    padding: var(--ddp-space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ddp-space-2);
+    height: 100%;
+  }
+  .sci-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ddp-space-2);
+  }
+  .sci-name {
+    margin: 0;
+    font-size: var(--ddp-text-lg);
+  }
+  .sci-dates {
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+    white-space: nowrap;
+  }
+  .sci-contribution {
+    margin: 0;
+    color: var(--ddp-color-ink-soft);
+    font-size: var(--ddp-text-sm);
+  }
+  .sci-quotes {
+    list-style: none;
+    padding: 0;
+    margin: var(--ddp-space-2) 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ddp-space-3);
+  }
+  .sci-quotes blockquote {
+    margin: 0;
+    padding: 0 0 0 var(--ddp-space-4);
+    border-left: 3px solid var(--ddp-color-accent);
+    font-family: var(--ddp-font-serif);
+    font-style: italic;
+    color: var(--ddp-color-ink);
+    font-size: var(--ddp-text-base);
+  }
+  .sci-source {
+    margin: var(--ddp-space-2) 0 0;
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    flex-wrap: wrap;
+  }
+</style>

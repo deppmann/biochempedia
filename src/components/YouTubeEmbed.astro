@@ -1,0 +1,40 @@
+---
+/** YouTube embed (iframe only — never rehosted). Privacy-enhanced (nocookie). */
+interface Props {
+  youtubeId: string;
+  title: string;
+  sourceNote?: string;
+}
+const { youtubeId, title, sourceNote } = Astro.props;
+const src = `https://www.youtube-nocookie.com/embed/${youtubeId}`;
+---
+
+<figure class="yt">
+  <div class="embed-16x9">
+    <iframe
+      src={src}
+      title={title}
+      loading="lazy"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen></iframe>
+  </div>
+  <figcaption>
+    <strong>{title}</strong>
+    {sourceNote && <span class="note"> — {sourceNote}</span>}
+  </figcaption>
+</figure>
+
+<style>
+  .yt {
+    margin: var(--ddp-space-6) 0;
+  }
+  .yt figcaption {
+    margin-top: var(--ddp-space-2);
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-ink-soft);
+  }
+  .yt .note {
+    color: var(--ddp-color-muted);
+  }
+</style>

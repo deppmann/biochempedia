@@ -1,0 +1,343 @@
+---
+title: "Enzyme Kinetics: The Michaelis–Menten Model"
+slug: "enzyme-kinetics"
+courseChapter: "Mechanisms and Inhibitors"
+order: 1
+summary: >-
+  Why doesn't doubling the substrate keep doubling the rate? Enzymes saturate.
+  This lesson builds the Michaelis–Menten model from a single idea — that an
+  enzyme must grab a substrate before it can change it — then shows how Km, Vmax,
+  the Lineweaver–Burk plot, and the three kinds of inhibitor all fall out of it.
+
+scientists:
+  - name: "Emil Fischer"
+    dates: "1852–1919"
+    contribution: >-
+      Framed enzyme specificity as a geometric fit between enzyme and substrate —
+      the "lock and key" that every later model (including saturation kinetics)
+      had to explain.
+    profileSourceAnchor: "The Molecule Hunters (v10) — section intro, \"The Invisible Machines: Enzymes and Catalysis.\""
+    quotes:
+      - "Enzyme and glucoside must fit together like a lock and key."
+
+  - name: "Leonor Michaelis & Maud Menten"
+    dates: "1875–1949 · 1879–1960"
+    contribution: >-
+      Buffered the pH and measured only the initial velocity, turning Victor
+      Henri's leaky 1903 rate law into a reproducible equation —
+      v = Vmax[S]/(Km + [S]) — that describes essentially every non-allosteric enzyme.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"Proving Enzymes Are Proteins,\" Michaelis & Menten profile."
+    quotes:
+      - "I was confident physical chemistry would have important applications in biological studies."
+      - "If this assumption is correct, the rate of inversion must be proportional to the prevailing concentration of the sucrose-enzyme complex."
+
+  - name: "Daniel Koshland"
+    dates: "1920–2007"
+    contribution: >-
+      Replaced Fischer's rigid lock with "induced fit": the enzyme reshapes itself
+      around the substrate. It explains why water — small enough to enter any open
+      site — doesn't trigger catalysis, and why kinetics depend on binding.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"How Enzymes Work: Mechanism and Kinetics,\" Koshland profile."
+    quotes:
+      - "What is new is not true, and what is true is not new. — an anonymous reviewer's dismissal of Koshland's induced-fit paper, as recounted in The Molecule Hunters"
+
+  - name: "David Phillips"
+    dates: "1924–1999"
+    contribution: >-
+      Solved the first atom-by-atom structure of an enzyme — hen egg-white
+      lysozyme (the very structure you can rotate below) — and caught catalysis in
+      the act, the enzyme bending its sugar substrate into a strained, breakable shape.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"How Enzymes Work: Mechanism and Kinetics,\" Phillips profile."
+    quotes:
+      - "Don't let the best be the enemy of the good."
+
+techniques:
+  - name: "The enzyme assay"
+    blurb: >-
+      Velocity is a slope: product formed per unit time. If the product absorbs
+      light, you watch a spectrophotometer's reading climb and read the rate
+      straight off the line — how many classic assays work.
+  - name: "Measuring initial velocity (V₀)"
+    blurb: >-
+      Measure the slope in the first instants, before substrate is depleted or
+      product builds up and gums the enzyme. V₀ is the clean, reproducible number
+      every kinetic parameter is built from.
+  - name: "Extracting Km and Vmax"
+    blurb: >-
+      Measure V₀ at many substrate concentrations and fit the hyperbola (today, by
+      non-linear regression). The Lineweaver–Burk double-reciprocal linearizes the
+      same data: y-intercept = 1/Vmax, x-intercept = −1/Km, slope = Km/Vmax.
+
+structures:
+  - label: "Hen egg-white lysozyme — the first enzyme ever seen atom-by-atom"
+    source: "rcsb"
+    id: "1LYZ"
+    note: "EC 3.2.1.17 · 129 residues · the structure David Phillips solved"
+    caption: >-
+      Lysozyme cleaves the sugar backbone of bacterial cell walls. Phillips saw
+      that the substrate can't fit the cleft without bending into a strained
+      half-chair — mechanical stress that primes the bond to break.
+  - label: "N-acetyl-D-glucosamine (NAG) — the sugar lysozyme grips"
+    source: "pubchem"
+    id: "439174"
+    note: "C₈H₁₅NO₆ · a building block of the cell-wall polymer"
+    caption: >-
+      The small molecule on the other side of the lock-and-key. Rotating it next
+      to the enzyme makes the size-and-shape complementarity tangible.
+
+podcast:
+  platform: "spotify"
+  url: "https://open.spotify.com/show/6gUAeZTYYRPzdAc84Lj4Gt"
+  title: "We Are Biochemistry"
+  note: >-
+    The show feed. SEAM: swap this for the direct episode URL of the enzymes &
+    kinetics episode once Season 2 publishes (the people-focused remaster).
+
+videos:
+  - title: "Steady states and the Michaelis–Menten equation"
+    youtubeId: "7u2MkbsE_dw"
+    sourceNote: "Khan Academy (MCAT) — the steady-state derivation, told conceptually."
+  - title: "Biochemistry | Michaelis–Menten Equation"
+    youtubeId: "4eLjRcHnMCk"
+    sourceNote: "Ninja Nerd — a longer, worked walkthrough of the equation and Km."
+
+simulations:
+  - type: "local"
+    ref: "MichaelisMentenPlotter"
+    title: "Michaelis–Menten plotter (with a competitive-inhibitor overlay)"
+    attribution: "Original interactive — Biochempedia (Deppmann Lab)."
+  - type: "phet"
+    ref: "https://phet.colorado.edu/sims/html/reactants-products-and-leftovers/latest/reactants-products-and-leftovers_all.html"
+    title: "Reactants, Products & Leftovers"
+    attribution: "PhET Interactive Simulations, University of Colorado Boulder, https://phet.colorado.edu (CC BY 4.0)."
+    caption: >-
+      Build a reaction and watch the limiting reactant cap how much product you
+      can make — the same intuition behind enzyme saturation: once the scarce
+      partner runs out, adding more of the other doesn't help.
+
+practiceQuestions:
+  - stem: "An enzyme obeys Michaelis–Menten kinetics. By definition, the Michaelis constant Km is the substrate concentration at which:"
+    choices:
+      - "the reaction reaches its maximum velocity, Vmax"
+      - "the reaction velocity is half of Vmax"
+      - "every active site is permanently and irreversibly occupied"
+      - "the enzyme begins to denature"
+    answer: 1
+    rationale: >-
+      Km is defined as the [S] at which v = ½Vmax. Vmax itself is only approached
+      as [S] → ∞ (it's an asymptote you never quite reach), which is why Km — a
+      point you can actually locate on the curve — is the useful handle.
+
+  - stem: "For a Michaelis–Menten enzyme, what substrate concentration (as a multiple of Km) gives 80% of Vmax?"
+    choices:
+      - "0.8 × Km"
+      - "1.25 × Km"
+      - "4 × Km"
+      - "8 × Km"
+    answer: 2
+    rationale: >-
+      Set v = 0.8 Vmax in v = Vmax[S]/(Km+[S]): 0.8(Km+[S]) = [S] → 0.8 Km = 0.2[S]
+      → [S] = 4 Km. In general, to reach a fraction f of Vmax you need [S] =
+      (f / (1−f)) · Km, so 0.8/0.2 = 4.
+
+  - stem: "On a Lineweaver–Burk (double-reciprocal) plot of 1/v versus 1/[S], the y-intercept equals:"
+    choices:
+      - "Vmax"
+      - "1/Vmax"
+      - "−1/Km"
+      - "Km/Vmax"
+    answer: 1
+    rationale: >-
+      Taking reciprocals of the Michaelis–Menten equation gives 1/v =
+      (Km/Vmax)(1/[S]) + 1/Vmax — a straight line. The y-intercept (where 1/[S] = 0)
+      is 1/Vmax; the x-intercept is −1/Km; the slope is Km/Vmax. A classic exam trap
+      is forgetting the intercept is the reciprocal of Vmax, not Vmax itself.
+
+  - stem: "A competitive inhibitor binds the free enzyme's active site. Compared with the uninhibited reaction, it:"
+    choices:
+      - "lowers Vmax and raises the apparent Km"
+      - "leaves Vmax unchanged but raises the apparent Km"
+      - "lowers both Vmax and the apparent Km"
+      - "leaves Km unchanged but lowers Vmax"
+    answer: 1
+    rationale: >-
+      Substrate and inhibitor compete for the same site, so flooding the system
+      with substrate still out-competes the inhibitor — Vmax is unchanged. But you
+      now need more substrate to reach ½Vmax, so the apparent Km rises. On a
+      Lineweaver–Burk plot this is a shared y-intercept (1/Vmax) with a steeper slope.
+
+  - stem: "Vmax measured in a test tube depends on how much enzyme you added. To get a property of the enzyme molecule itself you compute kcat = Vmax/[E]ₜ. kcat tells you:"
+    choices:
+      - "the substrate concentration at half-maximal velocity"
+      - "how many substrate molecules one enzyme molecule converts per second when saturated"
+      - "the total amount of product the reaction will ever form"
+      - "the activation energy of the reaction"
+    answer: 1
+    rationale: >-
+      kcat (the turnover number, units s⁻¹) is the maximum number of reactions one
+      enzyme molecule catalyzes per second when fully saturated — carbonic
+      anhydrase's is ~600,000 s⁻¹. The half-max [S] is Km; the ratio kcat/Km
+      measures catalytic efficiency under sub-saturating (physiological) conditions.
+
+mcatQuestions:
+  - stem: "An enzyme has Vmax = 60 µmol·min⁻¹ and Km = 4 mM. At a substrate concentration of 12 mM, the initial velocity is closest to:"
+    choices:
+      - "15 µmol·min⁻¹"
+      - "30 µmol·min⁻¹"
+      - "45 µmol·min⁻¹"
+      - "60 µmol·min⁻¹"
+    answer: 2
+    rationale: >-
+      v = Vmax[S]/(Km+[S]) = 60 × 12 / (4 + 12) = 720/16 = 45 µmol·min⁻¹. Shortcut:
+      [S] = 12 mM is 3 × Km, and at [S] = 3 Km the velocity is ¾ Vmax = 45.
+
+  - stem: "On a Lineweaver–Burk plot, the lines measured with and without an inhibitor intersect on the y-axis (same 1/Vmax), but the inhibited line has a steeper slope. The inhibitor is:"
+    choices:
+      - "uncompetitive"
+      - "competitive"
+      - "purely noncompetitive"
+      - "irreversible"
+    answer: 1
+    rationale: >-
+      A shared y-intercept means Vmax is unchanged; a steeper slope (Km/Vmax) means
+      the apparent Km rose — the competitive signature. Uncompetitive inhibition
+      lowers Vmax and Km together, giving parallel lines; pure noncompetitive
+      inhibition lowers Vmax with Km unchanged, so those lines share the x-intercept
+      (−1/Km). You can reproduce all three with the plotter above.
+
+  - stem: "Enzymes accelerate reactions by binding the transition state more tightly than they bind the substrate. This principle predicts that the most potent reversible inhibitors are molecules that:"
+    choices:
+      - "closely resemble the substrate in its stable, ground state"
+      - "closely resemble the high-energy transition state"
+      - "closely resemble the final product"
+      - "are far larger than the active site can accommodate"
+    answer: 1
+    rationale: >-
+      The active site is complementary to the transition state, not the substrate.
+      A transition-state analog therefore exploits the enzyme's full binding energy
+      and clings far more tightly than the substrate does — which is exactly why
+      transition-state analogs make such powerful inhibitors (Pauling's insight,
+      central to rational drug design).
+
+images: []
+
+corpusTags:
+  - "enzyme-kinetics"
+  - "michaelis-menten"
+  - "lineweaver-burk"
+  - "enzyme-inhibition"
+  - "lysozyme"
+  - "catalysis"
+---
+
+**Carbonic anhydrase processes about 600,000 reactions every second** — faster
+than any machine humans have ever built. So here is the question this whole
+lesson turns on: if enzymes are that fast, why isn't every enzyme in your body
+running at top speed right now? And if you keep doubling the amount of substrate,
+does the rate just keep doubling forever?
+
+It doesn't. And the reason why is one of the most useful ideas in all of
+biochemistry.
+
+## The idea: why velocity hits a ceiling
+
+Thermodynamics tells you the *destination* — whether a reaction can happen.
+Kinetics tells you the *journey* — how fast. An enzyme speeds up a reaction, but
+to do anything at all it first has to **grab its substrate and hold it**, forming
+a temporary enzyme–substrate (ES) complex, before it can convert it to product:
+
+> E + S ⇌ ES → E + P
+
+Here's the catch: there are only so many enzyme molecules, each with a limited
+number of active sites. When substrate is scarce, adding more speeds things up —
+every new molecule finds an empty site quickly. But as substrate climbs, the
+sites start filling. Eventually **every site is occupied**: the enzyme is
+*saturated*, working flat out, and pouring in more substrate changes nothing.
+
+Think of a toll booth. When traffic is light, cars are processed as fast as they
+arrive. When traffic is heavy, you hit the booth's maximum capacity — a longer
+line doesn't make the attendant faster. That capacity ceiling is **Vmax**, the
+maximum velocity.
+
+Plot initial velocity (V₀) against substrate concentration [S] and you get a
+**hyperbola**: steep at first, then bending over toward the Vmax asymptote. In
+1913 Leonor Michaelis and Maud Menten captured that whole curve in one equation:
+
+> **v = Vmax · [S] / (Km + [S])**
+
+Two numbers describe any such enzyme:
+
+- **Vmax** — the top speed, reached only when the enzyme is saturated.
+- **Km** (the Michaelis constant) — the substrate concentration at which the
+  enzyme runs at *half* its maximum speed. Think of Km as the enzyme's "substrate
+  sweet spot": a **small Km** means the enzyme reaches half-speed at low [S], so
+  it grabs substrate efficiently. Km is fixed for a given enzyme–substrate pair.
+
+One subtlety worth keeping straight: Km is *not* the same as binding affinity. It
+only approximates the dissociation constant of the ES complex when catalysis is
+slow compared with substrate falling back off. More safely, read Km as **"how
+much substrate you need to get this enzyme going."**
+
+Finally, Vmax depends on how much enzyme you put in the tube — double the enzyme,
+double Vmax. To get a property of the enzyme *molecule* itself, divide it out:
+**kcat = Vmax / [E]ₜ**, the *turnover number* — how many reactions one molecule
+runs per second when saturated. The ratio **kcat/Km** measures catalytic
+efficiency, and the best enzymes push it right up against the diffusion limit.
+
+**Use the plotter below** to feel all of this: drag Vmax up and down, slide Km
+left and right, and watch where the half-max point lands.
+
+## Reading the curve a second way: Lineweaver–Burk
+
+There's a practical problem with the hyperbola: Vmax is an asymptote you never
+actually reach, so reading it off a curve by eye is error-prone. Before computers
+could fit hyperbolae, biochemists needed a *straight line* they could analyze
+with a ruler. Take the reciprocal of both sides of the Michaelis–Menten equation
+and you get one:
+
+> **1/v = (Km/Vmax) · (1/[S]) + 1/Vmax**
+
+That's just `y = mx + b`. Plotting 1/v against 1/[S] — the **double-reciprocal**
+or **Lineweaver–Burk** plot — gives a line whose **y-intercept is 1/Vmax**, whose
+**x-intercept is −1/Km**, and whose **slope is Km/Vmax**. (Watch the reciprocals:
+the intercept is 1/Vmax, *not* Vmax — a reliable source of exam mistakes.) The
+right-hand panel of the plotter draws this line live as you change the parameters.
+
+## When something gets in the way: inhibitors
+
+The same framework explains how molecules *slow* an enzyme down. Reversible
+inhibitors come in three flavors, and Lineweaver–Burk makes them easy to tell
+apart:
+
+- **Competitive** — the inhibitor competes for the active site itself. Flood the
+  system with substrate and you win, so **Vmax is unchanged**, but you need more
+  substrate to get going (**apparent Km rises**). *Signature: lines pivot about a
+  shared y-intercept.*
+- **Uncompetitive** — the inhibitor binds only the ES complex, locking the enzyme
+  mid-reaction. Both **Vmax and Km fall** together. *Signature: parallel lines.*
+- **Noncompetitive** — the inhibitor binds whether or not substrate is present and
+  reduces the enzyme's catalytic ability. **Vmax falls, Km unchanged.**
+  *Signature: lines share the x-intercept.*
+
+Toggle the **competitive inhibitor** on in the plotter and watch the two
+Lineweaver–Burk lines pivot about that shared 1/Vmax intercept — competitive
+inhibition's fingerprint.
+
+Why is the active site so picky about what binds it? Because catalysis works by
+gripping the fleeting **transition state** more tightly than the substrate
+itself. That single idea — the active site is shaped for the transition state,
+not the resting molecule — is why **transition-state analogs** make such potent
+inhibitors, and it's the thread running through the scientists below: from
+Fischer's rigid "lock and key," to Koshland's flexible "induced fit," to the
+moment David Phillips finally *saw* an enzyme bend its substrate out of shape.
+
+## How we measure it in the lab
+
+Velocity is a slope — product formed per unit time — so the trick is to watch the
+reaction happen. If the product (or substrate) absorbs light, a spectrophotometer
+reads the change continuously and the rate falls straight off the line. The one
+discipline that matters most: measure the **initial velocity**, in the first
+moments before substrate is noticeably depleted, before product accumulates and
+interferes, before the enzyme tires. Repeat that clean V₀ measurement across a
+range of substrate concentrations, fit the curve, and out come Km and Vmax — the
+two numbers that let you compare any enzyme to any other.
