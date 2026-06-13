@@ -201,6 +201,8 @@ const anecdote = z.object({
   title: z.string().min(1),
   text: z.string().min(1),
   source: z.string().min(1),
+  /** Optional little animation that plays when the card expands. */
+  animation: z.enum(['fast-counter', 'flush', 'crystal', 'needle', 'car']).optional(),
 });
 
 /** The full lesson frontmatter schema. */

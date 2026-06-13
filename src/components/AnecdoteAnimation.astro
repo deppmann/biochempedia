@@ -1,0 +1,123 @@
+---
+/**
+ * A small, cute CSS/SVG animation shown at the top of an anecdote card.
+ * Animations only run when the wrapper has `.is-playing` (added by the lightbox
+ * open handler), so they replay each time the story is opened. No libraries.
+ */
+interface Props {
+  anim: 'fast-counter' | 'flush' | 'crystal' | 'needle' | 'car';
+}
+const { anim } = Astro.props;
+---
+
+<div class={`anec-anim anim-${anim}`} data-anim={anim} aria-hidden="true">
+  {anim === 'fast-counter' && (
+    <div class="ac">
+      <div class="ac-num" data-counter data-to="600000">0</div>
+      <div class="ac-sub">reactions / second</div>
+      <div class="ac-zips">{[0, 1, 2, 3, 4].map((i) => <span style={`--d:${i * 0.18}s`}></span>)}</div>
+    </div>
+  )}
+
+  {anim === 'flush' && (
+    <svg viewBox="0 0 200 120" class="svg-flush">
+      <circle class="cheek" cx="68" cy="66" r="13" />
+      <circle class="cheek" cx="132" cy="66" r="13" />
+      <circle cx="100" cy="60" r="44" fill="none" stroke="#232d4b" stroke-width="3" />
+      <circle cx="84" cy="52" r="4" fill="#232d4b" />
+      <circle cx="116" cy="52" r="4" fill="#232d4b" />
+      <path d="M82 76 Q100 90 118 76" fill="none" stroke="#232d4b" stroke-width="3" stroke-linecap="round" />
+    </svg>
+  )}
+
+  {anim === 'crystal' && (
+    <svg viewBox="0 0 200 120" class="svg-crystal">
+      <g class="xtal">
+        <polygon points="100,28 128,60 100,92 72,60" fill="#3a9dad" opacity="0.85" />
+        <polygon points="100,28 128,60 100,60" fill="#2a7b88" />
+        <polygon points="100,92 128,60 100,60" fill="#1e5c66" />
+        <polygon points="100,28 72,60 100,60" fill="#3a9dad" />
+      </g>
+      <g class="sparkle"><path d="M150 38 l2 7 7 2 -7 2 -2 7 -2 -7 -7 -2 7 -2z" fill="#D4A843" /></g>
+      <g class="sparkle s2"><path d="M48 78 l1.5 5 5 1.5 -5 1.5 -1.5 5 -1.5 -5 -5 -1.5 5 -1.5z" fill="#E8C76B" /></g>
+    </svg>
+  )}
+
+  {anim === 'needle' && (
+    <svg viewBox="0 0 200 120" class="svg-needle">
+      <path d="M40 95 A60 60 0 0 1 160 95" fill="none" stroke="#e6e3db" stroke-width="8" stroke-linecap="round" />
+      <text x="36" y="92" font-size="13" fill="#8a8a8a">−</text>
+      <text x="97" y="30" font-size="13" fill="#8a8a8a">0</text>
+      <text x="158" y="92" font-size="13" fill="#8a8a8a">+</text>
+      <g class="ndl"><line x1="100" y1="95" x2="100" y2="42" stroke="#0e7c86" stroke-width="3.5" stroke-linecap="round" /></g>
+      <circle cx="100" cy="95" r="6" fill="#232d4b" />
+    </svg>
+  )}
+
+  {anim === 'car' && (
+    <svg viewBox="0 0 260 110" class="svg-car">
+      <line x1="0" y1="92" x2="260" y2="92" stroke="#e6e3db" stroke-width="3" />
+      <g class="car">
+        <g class="hat"><ellipse cx="78" cy="34" rx="20" ry="5" fill="#232d4b" /><path d="M64 34 Q78 12 92 34 Z" fill="#232d4b" /><rect x="68" y="28" width="20" height="5" fill="#D4A843" /></g>
+        <path d="M40 70 L52 50 L96 50 L108 62 L128 62 L128 70 Z" fill="#2a7b88" />
+        <rect x="38" y="68" width="92" height="8" rx="3" fill="#1e5c66" />
+        <g class="wheel" style="transform-origin:60px 80px"><circle cx="60" cy="80" r="11" fill="#232d4b" /><circle cx="60" cy="80" r="4" fill="#f8f6f2" /><line x1="60" y1="71" x2="60" y2="89" stroke="#f8f6f2" stroke-width="1.5" /><line x1="51" y1="80" x2="69" y2="80" stroke="#f8f6f2" stroke-width="1.5" /></g>
+        <g class="wheel" style="transform-origin:112px 80px"><circle cx="112" cy="80" r="11" fill="#232d4b" /><circle cx="112" cy="80" r="4" fill="#f8f6f2" /><line x1="112" y1="71" x2="112" y2="89" stroke="#f8f6f2" stroke-width="1.5" /><line x1="103" y1="80" x2="121" y2="80" stroke="#f8f6f2" stroke-width="1.5" /></g>
+      </g>
+    </svg>
+  )}
+</div>
+
+<style>
+  .anec-anim {
+    display: grid; place-items: center;
+    background: color-mix(in srgb, var(--ddp-color-accent) 7%, var(--ddp-color-surface));
+    border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+    padding: var(--ddp-space-3); margin-bottom: var(--ddp-space-4); min-height: 120px; overflow: hidden;
+  }
+  .anec-anim svg { width: 100%; max-width: 260px; height: auto; }
+
+  /* fast-counter */
+  .ac { text-align: center; }
+  .ac-num { font-family: var(--ddp-font-mono); font-size: 2.2rem; font-weight: 700; color: var(--ddp-color-primary); line-height: 1; }
+  .ac-sub { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-top: 0.2rem; }
+  .ac-zips { position: relative; height: 14px; margin-top: 0.4rem; }
+  .ac-zips span { position: absolute; left: -10px; top: 4px; width: 8px; height: 4px; border-radius: 2px; background: var(--ddp-color-accent); opacity: 0; }
+  .is-playing .ac-zips span { animation: zip 0.9s linear infinite; animation-delay: var(--d); }
+  @keyframes zip { 0% { left: -10px; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+  /* flush */
+  .svg-flush .cheek { fill: #e8736b; opacity: 0; }
+  .is-playing .svg-flush .cheek { animation: flush 2s ease-in-out forwards; }
+  @keyframes flush { 0% { opacity: 0; } 60% { opacity: 0.85; } 80% { opacity: 0.55; } 100% { opacity: 0.8; } }
+
+  /* crystal */
+  .svg-crystal .xtal { transform: scale(0); transform-origin: 100px 60px; }
+  .svg-crystal .sparkle { opacity: 0; }
+  .is-playing .svg-crystal .xtal { animation: grow 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  .is-playing .svg-crystal .sparkle { animation: twinkle 1.6s ease-in-out 0.6s infinite; }
+  .is-playing .svg-crystal .s2 { animation-delay: 1s; }
+  @keyframes grow { to { transform: scale(1); } }
+  @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1); } }
+
+  /* needle (swings + → 0 → − → settles, the polarimeter "inversion") */
+  .svg-needle .ndl { transform-origin: 100px 95px; transform: rotate(55deg); }
+  .is-playing .svg-needle .ndl { animation: swing 2.6s cubic-bezier(0.5, 0, 0.5, 1) forwards; }
+  @keyframes swing { 0% { transform: rotate(55deg); } 45% { transform: rotate(0deg); } 80% { transform: rotate(-45deg); } 100% { transform: rotate(-38deg); } }
+
+  /* car (drives across, wheels spin, hat bobs) */
+  .svg-car .car { transform: translateX(-150px); }
+  .svg-car .wheel, .svg-car .hat { }
+  .is-playing .svg-car .car { animation: drive 3.4s linear infinite; }
+  .is-playing .svg-car .wheel { animation: roll 0.6s linear infinite; }
+  .is-playing .svg-car .hat { animation: bob 0.7s ease-in-out infinite; }
+  @keyframes drive { from { transform: translateX(-150px); } to { transform: translateX(260px); } }
+  @keyframes roll { to { transform: rotate(360deg); } }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .is-playing * { animation: none !important; }
+    .svg-crystal .xtal { transform: scale(1); }
+    .svg-flush .cheek { opacity: 0.8; }
+  }
+</style>

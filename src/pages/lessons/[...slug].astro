@@ -8,6 +8,7 @@ import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
 import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
 import SourcesFooter from '../../components/SourcesFooter.astro';
+import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 
 export async function getStaticPaths() {
   const lessons = await getCollection('lessons');
@@ -264,7 +265,10 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
     {lesson.anecdotes.map((a, i) => (
       <dialog id={`lb-anec-${i}`} class="lightbox">
         <div class="lightbox-head"><span>{a.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-        <div class="lightbox-body"><div class="prose-col level-body">{paras(a.text).map((p) => <p>{p}</p>)}<p class="anec-source">— {a.source}</p></div></div>
+        <div class="lightbox-body">
+          {a.animation && <AnecdoteAnimation anim={a.animation} />}
+          <div class="prose-col level-body">{paras(a.text).map((p) => <p>{p}</p>)}<p class="anec-source">— {a.source}</p></div>
+        </div>
       </dialog>
     ))}
 
@@ -272,6 +276,19 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
   </article>
 
   <script>
+    function animateCounter(el: HTMLElement) {
+      const to = parseInt(el.getAttribute('data-to') || '0', 10);
+      const dur = 1500;
+      const start = performance.now();
+      function step(now: number) {
+        const t = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+        el.textContent = Math.round(to * eased).toLocaleString();
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
     // Lightbox: open on rail-thumb click, close on ✕ / backdrop / Esc.
     document.querySelectorAll<HTMLElement>('[data-open]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -279,10 +296,16 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
         if (!d?.showModal) return;
         d.showModal();
         // Auto-play the visible slide's narration when the slideshow opens
-        // (within this click gesture, so the browser allows it). The audio's own
-        // controls let the student pause / mute.
+        // (within this click gesture, so the browser allows it).
         const slideAudio = d.querySelector<HTMLAudioElement>('.deck-slide:not([hidden]) audio');
         if (slideAudio) slideAudio.play().catch(() => {});
+        // Play the anecdote's little animation (and run its counter) on open.
+        const anim = d.querySelector('.anec-anim');
+        if (anim) {
+          anim.classList.add('is-playing');
+          const counter = anim.querySelector<HTMLElement>('[data-counter]');
+          if (counter) animateCounter(counter);
+        }
         // Nudge lazy viewers (Mol*) now that they're visible + sized.
         requestAnimationFrame(() => {
           window.dispatchEvent(new Event('resize'));
@@ -295,6 +318,13 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
       d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
       d.addEventListener('close', () => {
         d.querySelectorAll<HTMLMediaElement>('audio, video').forEach((m) => m.pause());
+        // Reset the anecdote animation so it replays next time the story opens.
+        const anim = d.querySelector('.anec-anim');
+        if (anim) {
+          anim.classList.remove('is-playing');
+          const counter = anim.querySelector<HTMLElement>('[data-counter]');
+          if (counter) counter.textContent = '0';
+        }
       });
     });
   </script>
