@@ -188,6 +188,21 @@ const lectureSlide = z.object({
   reviewedBy: z.string().min(1, 'A lecture slide must name who reviewed it for accuracy + copyright.'),
 });
 
+/** A multi-level explanation of the lesson's core idea ("explain it like I'm…"). */
+const explainLevel = z.object({
+  level: z.enum(['eli5', 'highschool', 'college', 'grad']),
+  label: z.string().min(1),
+  text: z.string().min(1),
+});
+
+/** A fun, optional story/aside surfaced as a sidebar — kept OUT of the main text.
+ *  `source` records where it came from (lecture note / book), for integrity. */
+const anecdote = z.object({
+  title: z.string().min(1),
+  text: z.string().min(1),
+  source: z.string().min(1),
+});
+
 /** The full lesson frontmatter schema. */
 export const lessonSchema = z.object({
   title: z.string().min(1),
@@ -218,6 +233,12 @@ export const lessonSchema = z.object({
 
   /** Instructor lecture slides (own work; copyright-screened) with presenter notes. */
   lectureSlides: z.array(lectureSlide).default([]),
+
+  /** "Explain it like I'm…" — the same idea at escalating depth. */
+  explainLevels: z.array(explainLevel).default([]),
+
+  /** Optional fun stories / asides shown as sidebars, never in the main text. */
+  anecdotes: z.array(anecdote).default([]),
 
   /** Reserved for the future RAG-grounded tutor. Not rendered yet. */
   corpusTags: z.array(z.string()).default([]),

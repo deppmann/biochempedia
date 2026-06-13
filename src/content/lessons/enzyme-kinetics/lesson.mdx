@@ -100,7 +100,7 @@ scientists:
     dates: "1924–1999"
     contribution: >-
       Solved the first atom-by-atom structure of an enzyme — hen egg-white
-      lysozyme (the very structure you can rotate below) — and caught catalysis in
+      lysozyme (the very structure you can open and rotate from the rail) — and caught catalysis in
       the act, the enzyme bending its sugar substrate into a strained, breakable shape.
     profileSourceAnchor: "The Molecule Hunters (v10) — \"How Enzymes Work: Mechanism and Kinetics,\" Phillips profile."
     quotes:
@@ -109,7 +109,7 @@ scientists:
     story: >-
       Where Koshland argued enzymes must move, David Phillips made one hold still
       long enough to photograph. In 1965 he solved the first atom-by-atom structure
-      of an enzyme — hen egg-white lysozyme, the very structure you can rotate above.
+      of an enzyme — hen egg-white lysozyme, the very structure you can open and rotate from the rail.
       In a three-day burst of reasoning he saw not just the fold but the mechanism:
       the enzyme's deep cleft grips the sugar chain of a bacterial cell wall, and the
       sugar can't fit without bending into a strained "half-chair," wrenched far
@@ -372,6 +372,130 @@ lectureSlides:
       enzyme appears to have higher affinity, but it's an illusion — those ES
       complexes are getting trapped. (Think of a doorstop that only works once the
       door is closed; adding more substrate actually worsens it. Net: Vmax ↓ and Km ↓.)
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: |
+      Imagine a toll booth on a road. When only a few cars come, the worker waves
+      each one through as fast as it shows up — but they can only handle one car at
+      a time. When a giant line piles up, the worker is already going as fast as
+      they possibly can, and adding more cars doesn't speed them up at all. Enzymes
+      are tiny workers in your body, and substrates are the cars. Once every worker
+      is busy, the line moves at top speed and no faster.
+  - level: "highschool"
+    label: "High school"
+    text: |
+      An enzyme has to grab a molecule — the substrate — and hold it before it can
+      change it. When substrate is scarce, adding more speeds things up, because
+      empty enzymes find new substrate quickly. But there's a fixed number of
+      enzymes. As substrate climbs they all get busy, until every enzyme is
+      occupied. Now the enzyme is saturated and works at its top speed, called Vmax
+      — pouring in more substrate can't push past it.
+
+      Plot speed against substrate concentration and you get a curve that rises,
+      then flattens at Vmax. Km is the amount of substrate needed to run at half of
+      Vmax. A small Km means the enzyme gets going on very little substrate — think
+      of it as how much substrate it takes to reach cruising speed.
+  - level: "college"
+    label: "College"
+    text: |
+      Michaelis and Menten captured the whole saturation curve in one equation:
+
+      v = Vmax·[S] / (Km + [S])
+
+      At low [S], velocity rises nearly linearly; at high [S] it plateaus at Vmax.
+      Setting [S] = Km gives v = ½Vmax, so Km is the substrate concentration at
+      half-maximal velocity — read it as "how much substrate the enzyme needs," not
+      automatically as affinity.
+
+      Vmax depends on how much enzyme you added, so divide it out: kcat = Vmax/[E]ᴛ,
+      the turnover number — reactions per enzyme per second when saturated (carbonic
+      anhydrase ≈ 600,000 s⁻¹). The ratio kcat/Km measures catalytic efficiency.
+
+      Because Vmax is an asymptote you never reach, the Lineweaver–Burk plot
+      linearizes the data: 1/v = (Km/Vmax)(1/[S]) + 1/Vmax, with y-intercept 1/Vmax,
+      x-intercept −1/Km, and slope Km/Vmax.
+
+      Three reversible inhibitors give distinct signatures: competitive (binds the
+      free active site) leaves Vmax unchanged but raises apparent Km, so the lines
+      share a y-intercept; uncompetitive (binds only ES) lowers both Vmax and Km,
+      giving parallel lines; noncompetitive (binds E or ES) lowers Vmax with Km
+      unchanged, so the lines share an x-intercept.
+  - level: "grad"
+    label: "Graduate"
+    text: |
+      The mechanism is E + S ⇌ ES → E + P, with rate constants k₁, k₋₁ (binding)
+      and k₂ (catalysis). Briggs and Haldane replaced Michaelis and Menten's
+      rapid-equilibrium assumption with the steady-state assumption: shortly after
+      initiation, d[ES]/dt ≈ 0. Solving for [ES] and substituting into v = k₂[ES]
+      yields the Michaelis–Menten form with Km = (k₋₁ + k₂)/k₁.
+
+      So Km equals the dissociation constant Kd = k₋₁/k₁ only when k₂ ≪ k₋₁
+      (substrate falls off far faster than it turns over); otherwise Km exceeds Kd
+      and "low Km = high affinity" is unsafe. For this minimal scheme kcat = k₂.
+
+      The ratio kcat/Km is the specificity constant: it governs velocity at low [S]
+      (v ≈ (kcat/Km)[E][S]) and sets an enzyme's preference among competing
+      substrates. Its ceiling is the diffusion-controlled limit (~10⁸–10⁹ M⁻¹s⁻¹),
+      where nearly every encounter is productive — "kinetically perfect" enzymes.
+
+      Allosteric, multi-subunit enzymes violate Michaelis–Menten: cooperative T⇌R
+      transitions give sigmoidal v–[S] curves, so we report K₀.₅ rather than a
+      mechanistic Km. Underlying all of it, catalysis comes from transition-state
+      stabilization — the active site is complementary to the high-energy transition
+      state, not the ground-state substrate, and the binding energy released pays
+      down ΔG‡. That's why transition-state analogs are such potent inhibitors.
+
+anecdotes:
+  - title: "An enzyme faster than any machine we've built"
+    source: "BIOL 3030 · CH07 lecture notes"
+    text: >-
+      Carbonic anhydrase processes roughly 600,000 reactions per second — each
+      molecule converting 600,000 CO₂ molecules to bicarbonate every second. That
+      turnover number is faster than nearly any chemical reaction you'll ever meet,
+      and faster than any machine humans have ever built. Which raises the question
+      this whole topic turns on: if enzymes are that fast, why isn't every enzyme in
+      your body running flat out right now?
+  - title: "\"Asian flush\" is secretly a Km story — and Antabuse weaponizes it"
+    source: "BIOL 3030 · CH07 lecture notes (Clinical Insight)"
+    text: >-
+      Two enzymes clear alcohol: alcohol dehydrogenase makes acetaldehyde, and
+      aldehyde dehydrogenase (ALDH) clears it. A common genetic variant gives ALDH a
+      high Km, so it can't efficiently mop up acetaldehyde — it piles up and causes
+      the facial flushing and nausea of the "Asian flush." The drug disulfiram
+      (Antabuse) inhibits ALDH on purpose, recreating that buildup as aversion
+      therapy for alcohol-use disorder.
+  - title: "The one-armed chemist who spent nine years crystallizing an enzyme"
+    source: "The Molecule Hunters — Sumner profile"
+    text: >-
+      Working alone at Cornell, missing his left arm since a teenage shotgun
+      accident and told repeatedly his project was hopeless, James Sumner spent nine
+      years extracting jack-bean meal with acetone. In 1926 he pulled out octahedral
+      crystals of urease that were fully active and gave every test for protein —
+      proof that enzymes are proteins. The Nobel laureate Richard Willstätter
+      dismissed it as a trace contaminant; Sumner answered with controls, and shared
+      the 1946 Nobel Prize.
+  - title: "The polarimeter needle that swung past zero"
+    source: "The Molecule Hunters — Victor Henri profile"
+    text: >-
+      Around 1902 in Paris, Victor Henri watched invertase split sucrose under a
+      polarimeter; as fructose was freed the rotation didn't just fall to zero — it
+      flipped sign, the "inversion" that named the reaction and gave him a clock to
+      time the enzyme. From that hyperbolic curve he wrote the first enzyme rate
+      equation, a decade before Michaelis and Menten cleaned up the measurements.
+      They openly credited him; since the 2013 centenary, journals increasingly call
+      it the Henri–Michaelis–Menten equation.
+  - title: "Maud Menten drove her Model T in Paris hats"
+    source: "The Molecule Hunters — Michaelis & Menten profile"
+    text: >-
+      Menten earned an M.D. and later a Ph.D. when many universities refused women
+      advanced degrees, co-wrote the equation in 1913, and developed an azo-dye
+      enzyme stain still used in pathology labs today. She worked eighteen-hour days,
+      played clarinet, painted landscapes hung in juried exhibitions, summered
+      mountaineering in the Canadian wilderness — and reportedly hurtled through
+      Pittsburgh in her Model T wearing Paris hats. Challenged on her science, she
+      would smile sweetly and keep doing it her way.
 
 corpusTags:
   - "enzyme-kinetics"

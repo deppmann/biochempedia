@@ -36,19 +36,21 @@ it's open, and loads heavy media only when summoned.
 
 | Resource | Rail thumbnail | In the lightbox |
 |---|---|---|
-| **Lecture slides** | first-slide preview | a **slideshow** — one slide at a time, notes + narration per slide |
+| **Explain at my level** | 🧸🎒🎓🔬 | the same idea at four depths — ELI5 / high-school / college / graduate |
+| **Lecture slides** | the actual first slide | a **slideshow** — one slide at a time; opening auto-plays slide 1's narration (pause/mute available) with notes open |
 | **3D molecules** | the RCSB / PubChem image | the **live Mol\*** viewer (loads on open), rotatable |
-| **Simulations** | icon | the **Michaelis–Menten plotter** / PhET (iframe loads on open) |
+| **Simulations** | — | the **mini Michaelis–Menten plots are inline in the prose** (float, text wraps); **PhET** launches from the rail |
 | **Scientists** | the book's **portrait** | the full **profile** — story, verbatim quotes, source |
+| **Stories & asides** | 💡 | optional fun anecdotes mined from the lecture notes + book (kept OUT of the main text) |
 | **Watch / listen** | YouTube thumbnail / 🎧 | the video (iframe on click) / Spotify player |
 | **Test yourself** | 📝 | the quiz **stepper** — one question at a time, progress + score |
 | **Sources** | 📚 | the full provenance manifest |
 
 ### What stays in the reading column (deliberately)
 
-The **concept prose** and the brief **technique reference** stay inline — that's
-the lesson's spine, meant to be read top to bottom. Everything interactive or
-heavy is in the rail.
+The **concept prose**, the brief **technique reference**, and the **inline
+mini-plots** (the student drags Km/Vmax as they read) stay in the reading column —
+that's the lesson's spine. Everything else lives one tap away in the rail.
 
 ### Practical rules
 

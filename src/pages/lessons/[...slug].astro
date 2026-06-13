@@ -28,6 +28,8 @@ const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.t
 const pubchemThumb = (id: string) => `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${id}/PNG`;
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-${s.id}`.replace(/[^a-zA-Z0-9-]/g, '');
+const LEVEL_ICONS: Record<string, string> = { eli5: '🧸', highschool: '🎒', college: '🎓', grad: '🔬' };
+const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
 ---
 
 <BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary}>
@@ -73,6 +75,18 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
       <aside class="rail" aria-label="Explore — open any resource">
         <p class="rail-title">Explore <span>· tap to open</span></p>
 
+        {lesson.explainLevels.length > 0 && (
+          <div class="rail-group">
+            <h3>Explain at my level</h3>
+            {lesson.explainLevels.map((lv) => (
+              <button type="button" class="rail-thumb" data-open={`lb-level-${lv.level}`}>
+                <span class="rail-ico" aria-hidden="true">{LEVEL_ICONS[lv.level]}</span>
+                <span class="rail-label">{lv.label} <em>explain it →</em></span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {lesson.lectureSlides.length > 0 && (
           <div class="rail-group">
             <h3>Lecture slides</h3>
@@ -117,6 +131,18 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
                   ? <img src={s.photo} alt="" loading="lazy" />
                   : <span class="rail-ico" aria-hidden="true">👤</span>}
                 <span class="rail-label">{s.name} {s.dates && <em>{s.dates}</em>}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {lesson.anecdotes.length > 0 && (
+          <div class="rail-group">
+            <h3>Stories &amp; asides</h3>
+            {lesson.anecdotes.map((a, i) => (
+              <button type="button" class="rail-thumb" data-open={`lb-anec-${i}`}>
+                <span class="rail-ico" aria-hidden="true">💡</span>
+                <span class="rail-label">{a.title} <em>story</em></span>
               </button>
             ))}
           </div>
@@ -227,6 +253,20 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
       <div class="lightbox-body"><SourcesFooter lesson={lesson} /></div>
     </dialog>
+
+    {lesson.explainLevels.map((lv) => (
+      <dialog id={`lb-level-${lv.level}`} class="lightbox">
+        <div class="lightbox-head"><span>{lv.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><div class="prose-col level-body">{paras(lv.text).map((p) => <p>{p}</p>)}</div></div>
+      </dialog>
+    ))}
+
+    {lesson.anecdotes.map((a, i) => (
+      <dialog id={`lb-anec-${i}`} class="lightbox">
+        <div class="lightbox-head"><span>{a.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><div class="prose-col level-body">{paras(a.text).map((p) => <p>{p}</p>)}<p class="anec-source">— {a.source}</p></div></div>
+      </dialog>
+    ))}
 
     <a href="#top" class="to-top" aria-label="Back to top">↑ Top</a>
   </article>
@@ -374,6 +414,9 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
     }
     .lightbox-close:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
     .lightbox-body { padding: var(--ddp-space-5); }
+    .level-body p { font-size: var(--ddp-text-base); line-height: 1.65; margin: 0 0 var(--ddp-space-4); }
+    .level-body p:last-child { margin-bottom: 0; }
+    .anec-source { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-style: italic; }
 
     /* Scientist profile (inside lightbox) */
     .profile { display: grid; grid-template-columns: 160px 1fr; gap: var(--ddp-space-6); align-items: start; }
