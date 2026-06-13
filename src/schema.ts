@@ -27,7 +27,7 @@ import { z } from 'astro:content';
 /** A scientist card, grounded in the book. Quotes must be verbatim. */
 const scientist = z.object({
   name: z.string().min(1),
-  /** One-line statement of what they contributed to this concept. */
+  /** One-line statement of what they contributed to this concept (the teaser). */
   contribution: z.string().min(1),
   /** Where in the source manuscript this profile lives (citation anchor). */
   profileSourceAnchor: z.string().min(1),
@@ -35,6 +35,10 @@ const scientist = z.object({
   quotes: z.array(z.string().min(1)).default([]),
   /** Optional portrait years etc., for display only. */
   dates: z.string().optional(),
+  /** Portrait image (from the book) shown on the card. Path under /public. */
+  photo: z.string().optional(),
+  /** The fuller story, revealed when the card is expanded. Adapted from the book. */
+  story: z.string().optional(),
 });
 
 /** A technique, for the "how the technique works" quick-reference panel. */

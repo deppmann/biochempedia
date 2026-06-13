@@ -1,40 +1,95 @@
 ---
-/** YouTube embed (iframe only — never rehosted). Privacy-enhanced (nocookie). */
+/**
+ * Compact YouTube embed (progressive disclosure + performance): shows a
+ * thumbnail with a play button; the actual iframe loads only when clicked, so
+ * the page doesn't pull two players up front. Embed only — never rehosted.
+ */
 interface Props {
   youtubeId: string;
   title: string;
   sourceNote?: string;
 }
 const { youtubeId, title, sourceNote } = Astro.props;
-const src = `https://www.youtube-nocookie.com/embed/${youtubeId}`;
+const thumb = `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
 ---
 
-<figure class="yt">
-  <div class="embed-16x9">
-    <iframe
-      src={src}
-      title={title}
-      loading="lazy"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowfullscreen></iframe>
-  </div>
-  <figcaption>
+<figure class="yt card" data-yt>
+  <button type="button" class="yt-thumb" data-yt-id={youtubeId} aria-label={`Play video: ${title}`}>
+    <img src={thumb} alt="" loading="lazy" />
+    <span class="yt-play" aria-hidden="true">▶</span>
+  </button>
+  <figcaption class="yt-cap">
     <strong>{title}</strong>
-    {sourceNote && <span class="note"> — {sourceNote}</span>}
+    {sourceNote && <span class="yt-note"> {sourceNote}</span>}
   </figcaption>
 </figure>
 
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-yt-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-yt-id');
+      const frame = document.createElement('iframe');
+      frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1`;
+      frame.title = btn.getAttribute('aria-label') || 'YouTube video';
+      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      frame.allowFullscreen = true;
+      frame.loading = 'lazy';
+      btn.replaceWith(frame);
+    });
+  });
+</script>
+
 <style>
   .yt {
-    margin: var(--ddp-space-6) 0;
+    overflow: hidden;
   }
-  .yt figcaption {
-    margin-top: var(--ddp-space-2);
+  .yt-thumb {
+    display: block;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    background: #000;
+  }
+  .yt-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.15s;
+  }
+  .yt-thumb:hover img {
+    opacity: 0.82;
+  }
+  .yt-play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(27, 42, 74, 0.82);
+    color: #fff;
+    font-size: 1.2rem;
+    padding-left: 4px;
+    pointer-events: none;
+  }
+  .yt :global(iframe) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+  }
+  .yt-cap {
+    padding: var(--ddp-space-3) var(--ddp-space-4);
     font-size: var(--ddp-text-sm);
     color: var(--ddp-color-ink-soft);
   }
-  .yt .note {
+  .yt-note {
     color: var(--ddp-color-muted);
   }
 </style>

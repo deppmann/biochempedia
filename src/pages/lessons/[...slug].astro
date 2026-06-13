@@ -156,9 +156,13 @@ const toc = [
     {(lesson.videos.length > 0 || lesson.podcast) && (
       <section id="watch" class="wrap section scroll-anchor">
         <h2>Watch &amp; listen</h2>
-        {lesson.videos.map((v) => (
-          <YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} />
-        ))}
+        {lesson.videos.length > 0 && (
+          <div class="video-grid">
+            {lesson.videos.map((v) => (
+              <YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} />
+            ))}
+          </div>
+        )}
         {lesson.podcast && (
           <SpotifyEmbed
             url={lesson.podcast.url}
@@ -335,6 +339,17 @@ const toc = [
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: var(--ddp-space-4);
       margin-top: var(--ddp-space-4);
+    }
+    /* Scientist cards expand inline, so keep them in a single tidy column. */
+    .sci-grid {
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      align-items: start;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--ddp-space-4);
+      margin-bottom: var(--ddp-space-6);
     }
     .tech {
       padding: var(--ddp-space-5);

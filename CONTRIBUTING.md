@@ -76,6 +76,13 @@ and sources render in their own sections automatically, in this order:
 
 ## 4b. Make it easy to use (and to hear)
 
+Follow the **progressive-disclosure** design philosophy ([`DESIGN.md`](DESIGN.md)):
+supporting material is compact by default and expands on demand — slides are a
+slideshow, scientists are click-to-expand profile cards, questions are a stepper,
+and video/sim players load only when clicked. The concept prose, the live
+structure, and the plotter stay open. A lesson should read like a tidy index, not
+a wall of full-width blocks.
+
 A lesson should be quick to get into and reachable in more than one way:
 
 - **Orientation:** fill `objectives[]` and `estMinutes` — they render a "What

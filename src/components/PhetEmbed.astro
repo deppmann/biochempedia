@@ -1,8 +1,8 @@
 ---
 /**
- * PhET simulation embed (iframe). PhET sims are CC BY 4.0 — the attribution
- * line is REQUIRED and is enforced in the schema (a PhET entry whose
- * attribution doesn't name PhET fails the build).
+ * PhET simulation — compact by default: a "launch" panel that loads the heavy
+ * iframe only on click. CC BY 4.0; the attribution line is REQUIRED (and is
+ * enforced in the schema).
  */
 interface Props {
   url: string;
@@ -13,25 +13,38 @@ interface Props {
 const { url, title, attribution, caption } = Astro.props;
 ---
 
-<figure class="phet card">
+<figure class="phet card" data-phet>
   <figcaption class="phet-head">
     <span class="phet-label">{title}</span>
     <span class="live-chip">▶ PhET · interactive</span>
   </figcaption>
-  <div class="phet-stage">
-    <iframe
-      src={url}
-      title={title}
-      loading="lazy"
-      allowfullscreen></iframe>
-  </div>
+  <button type="button" class="phet-launch" data-phet-url={url} aria-label={`Launch the interactive: ${title}`}>
+    <span class="phet-play" aria-hidden="true">▶</span>
+    <span class="phet-launch-text">Launch the interactive</span>
+    <span class="phet-launch-sub">loads on click</span>
+  </button>
   {caption && <p class="phet-caption">{caption}</p>}
   <p class="phet-attribution">{attribution}</p>
 </figure>
 
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-phet-url]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-phet-url')!;
+      const wrap = document.createElement('div');
+      wrap.className = 'phet-stage';
+      const frame = document.createElement('iframe');
+      frame.src = url;
+      frame.title = btn.getAttribute('aria-label') || 'PhET simulation';
+      frame.allowFullscreen = true;
+      wrap.appendChild(frame);
+      btn.replaceWith(wrap);
+    });
+  });
+</script>
+
 <style>
   .phet {
-    margin: var(--ddp-space-8) 0;
     overflow: hidden;
   }
   .phet-head {
@@ -46,13 +59,48 @@ const { url, title, attribution, caption } = Astro.props;
   .phet-label {
     font-weight: 600;
   }
-  .phet-stage {
+  .phet-launch {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--ddp-color-line);
+    background: color-mix(in srgb, var(--ddp-color-accent) 6%, var(--ddp-color-surface));
+    cursor: pointer;
+    padding: var(--ddp-space-8) var(--ddp-space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ddp-space-2);
+  }
+  .phet-launch:hover {
+    background: color-mix(in srgb, var(--ddp-color-accent) 12%, var(--ddp-color-surface));
+  }
+  .phet-play {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ddp-color-accent);
+    color: #fff;
+    font-size: 1.1rem;
+    padding-left: 3px;
+  }
+  .phet-launch-text {
+    font-weight: 600;
+    color: var(--ddp-color-primary);
+  }
+  .phet-launch-sub {
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+    font-family: var(--ddp-font-mono);
+  }
+  .phet :global(.phet-stage) {
     position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
     background: #f7f7f9;
   }
-  .phet-stage iframe {
+  .phet :global(.phet-stage iframe) {
     position: absolute;
     inset: 0;
     width: 100%;

@@ -12,8 +12,11 @@ const phet = lesson.simulations.filter((s) => s.type === 'phet');
 const local = lesson.simulations.filter((s) => s.type === 'local');
 ---
 
-<section class="sources" aria-label="Sources and integrity">
-  <h2>Sources &amp; Integrity</h2>
+<details class="sources" aria-label="Sources and integrity">
+  <summary class="sources-summary">
+    <h2>Sources &amp; Integrity</h2>
+    <span class="sources-hint">every ID, attribution &amp; fact-check — tap to open</span>
+  </summary>
   <p class="sources-intro">
     Everything interactive on this page is generated from a real, citable source.
     No molecular structure is AI-drawn; every figure and question is accounted for
@@ -146,13 +149,40 @@ const local = lesson.simulations.filter((s) => s.type === 'local');
     written for this site and are not real AAMC questions. Banned sources (the
     Tymoczko textbook, publisher decks, copyrighted figures) are not used.
   </p>
-</section>
+</details>
 
 <style>
   .sources {
     margin-top: var(--ddp-space-16);
     padding-top: var(--ddp-space-8);
     border-top: 2px solid var(--ddp-color-line);
+  }
+  .sources-summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--ddp-space-3);
+  }
+  .sources-summary::-webkit-details-marker {
+    display: none;
+  }
+  .sources-summary h2 {
+    margin: 0;
+    display: inline;
+  }
+  .sources-summary::after {
+    content: '▾';
+    color: var(--ddp-color-muted);
+    transition: transform 0.2s;
+  }
+  details[open] .sources-summary::after {
+    transform: rotate(180deg);
+  }
+  .sources-hint {
+    font-size: var(--ddp-text-sm);
+    color: var(--ddp-color-muted);
   }
   .sources-intro {
     color: var(--ddp-color-ink-soft);
