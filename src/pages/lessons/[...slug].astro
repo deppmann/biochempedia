@@ -3,7 +3,6 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MolViewer from '../../components/MolViewer.astro';
 import PhetEmbed from '../../components/PhetEmbed.astro';
-import MichaelisMentenPlotter from '../../components/MichaelisMentenPlotter.astro';
 import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
 import LectureSlides from '../../components/LectureSlides.astro';
@@ -19,8 +18,6 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const lesson = entry.data;
 
-const LOCAL_SIMS: Record<string, any> = { MichaelisMentenPlotter };
-const localSims = lesson.simulations.filter((s) => s.type === 'local');
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
@@ -79,9 +76,9 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
         {lesson.lectureSlides.length > 0 && (
           <div class="rail-group">
             <h3>Lecture slides</h3>
-            <button type="button" class="rail-thumb" data-open="lb-slides">
-              <img src={lesson.lectureSlides[0].src} alt="" loading="lazy" />
-              <span class="rail-label">The big points <em>{lesson.lectureSlides.length} slides · narrated</em></span>
+            <button type="button" class="rail-slidepreview" data-open="lb-slides">
+              <img src={lesson.lectureSlides[0].src} alt={`Preview: ${lesson.lectureSlides[0].title}`} loading="lazy" />
+              <span class="rail-label">Lecture slides <em>{lesson.lectureSlides.length} · narrated · tap to open</em></span>
             </button>
           </div>
         )}
@@ -98,15 +95,10 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
           </div>
         )}
 
-        {(localSims.length > 0 || phetSims.length > 0) && (
+        {phetSims.length > 0 && (
           <div class="rail-group">
             <h3>Simulations</h3>
-            {localSims.map((s) => (
-              <button type="button" class="rail-thumb" data-open="lb-plotter">
-                <span class="rail-ico" aria-hidden="true">📈</span>
-                <span class="rail-label">{s.title.split('(')[0].trim()} <em>interactive</em></span>
-              </button>
-            ))}
+            <p class="rail-note">The Michaelis–Menten plotter is woven into the text above — try the sliders as you read.</p>
             {phetSims.map((s, i) => (
               <button type="button" class="rail-thumb" data-open={`lb-phet-${i}`}>
                 <span class="rail-ico" aria-hidden="true">▶</span>
@@ -183,16 +175,6 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
       </dialog>
     ))}
 
-    {localSims.map((s) => {
-      const Comp = LOCAL_SIMS[s.ref];
-      return (
-        <dialog id="lb-plotter" class="lightbox">
-          <div class="lightbox-head"><span>{s.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-          <div class="lightbox-body">{Comp && <Comp />}</div>
-        </dialog>
-      );
-    })}
-
     {phetSims.map((s, i) => (
       <dialog id={`lb-phet-${i}`} class="lightbox">
         <div class="lightbox-head"><span>{s.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
@@ -256,6 +238,11 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
         const d = document.getElementById(btn.getAttribute('data-open')!) as HTMLDialogElement | null;
         if (!d?.showModal) return;
         d.showModal();
+        // Auto-play the visible slide's narration when the slideshow opens
+        // (within this click gesture, so the browser allows it). The audio's own
+        // controls let the student pause / mute.
+        const slideAudio = d.querySelector<HTMLAudioElement>('.deck-slide:not([hidden]) audio');
+        if (slideAudio) slideAudio.play().catch(() => {});
         // Nudge lazy viewers (Mol*) now that they're visible + sized.
         requestAnimationFrame(() => {
           window.dispatchEvent(new Event('resize'));
@@ -353,6 +340,17 @@ const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-$
       font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.25;
     }
     .rail-label em { font-style: normal; font-weight: 400; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .rail-note { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.4; }
+
+    /* Lecture-slides rail item: an actual mini slide viewer (preview the slide). */
+    .rail-slidepreview {
+      display: block; width: 100%; text-align: left; padding: 0; cursor: pointer; overflow: hidden;
+      border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+      background: var(--ddp-color-surface); transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+    }
+    .rail-slidepreview:hover { border-color: var(--ddp-color-accent); transform: translateY(-1px); box-shadow: var(--ddp-shadow); }
+    .rail-slidepreview img { display: block; width: 100%; background: #fff; }
+    .rail-slidepreview .rail-label { padding: var(--ddp-space-2) var(--ddp-space-3); }
 
     /* Lightbox dialog */
     .lightbox {

@@ -272,7 +272,7 @@ mcatQuestions:
       the apparent Km rose — the competitive signature. Uncompetitive inhibition
       lowers Vmax and Km together, giving parallel lines; pure noncompetitive
       inhibition lowers Vmax with Km unchanged, so those lines share the x-intercept
-      (−1/Km). You can reproduce all three with the plotter above.
+      (−1/Km). You can reproduce these signatures with the mini-plots in the lesson.
 
   - stem: "Enzymes accelerate reactions by binding the transition state more tightly than they bind the substrate. This principle predicts that the most potent reversible inhibitors are molecules that:"
     choices:
@@ -382,6 +382,8 @@ corpusTags:
   - "catalysis"
 ---
 
+import MiniPlot from '../../../components/MiniPlot.astro';
+
 **Carbonic anhydrase processes about 600,000 reactions every second** — faster
 than any machine humans have ever built. So here is the question this whole
 lesson turns on: if enzymes are that fast, why isn't every enzyme in your body
@@ -392,6 +394,8 @@ It doesn't. And the reason why is one of the most useful ideas in all of
 biochemistry.
 
 ## The idea: why velocity hits a ceiling
+
+<MiniPlot view="mm" />
 
 Thermodynamics tells you the *destination* — whether a reaction can happen.
 Kinetics tells you the *journey* — how fast. An enzyme speeds up a reaction, but
@@ -436,10 +440,12 @@ double Vmax. To get a property of the enzyme *molecule* itself, divide it out:
 runs per second when saturated. The ratio **kcat/Km** measures catalytic
 efficiency, and the best enzymes push it right up against the diffusion limit.
 
-**Use the plotter below** to feel all of this: drag Vmax up and down, slide Km
-left and right, and watch where the half-max point lands.
+**Try the plotter on the right** — drag Vmax up and down, slide Km left and
+right, and watch where the half-max point lands.
 
 ## Reading the curve a second way: Lineweaver–Burk
+
+<MiniPlot view="lb" />
 
 There's a practical problem with the hyperbola: Vmax is an asymptote you never
 actually reach, so reading it off a curve by eye is error-prone. Before computers
@@ -453,9 +459,11 @@ That's just `y = mx + b`. Plotting 1/v against 1/[S] — the **double-reciprocal
 or **Lineweaver–Burk** plot — gives a line whose **y-intercept is 1/Vmax**, whose
 **x-intercept is −1/Km**, and whose **slope is Km/Vmax**. (Watch the reciprocals:
 the intercept is 1/Vmax, *not* Vmax — a reliable source of exam mistakes.) The
-right-hand panel of the plotter draws this line live as you change the parameters.
+mini-plot here draws this line live as you slide Km and Vmax.
 
 ## When something gets in the way: inhibitors
+
+<MiniPlot view="inhibitor" />
 
 The same framework explains how molecules *slow* an enzyme down. Reversible
 inhibitors come in three flavors, and Lineweaver–Burk makes them easy to tell
@@ -471,9 +479,10 @@ apart:
   reduces the enzyme's catalytic ability. **Vmax falls, Km unchanged.**
   *Signature: lines share the x-intercept.*
 
-Toggle the **competitive inhibitor** on in the plotter and watch the two
-Lineweaver–Burk lines pivot about that shared 1/Vmax intercept — competitive
-inhibition's fingerprint.
+Slide the inhibitor strength **α** up on the plot here: the curve shifts right —
+the *apparent* Km grows — while Vmax holds steady. (On a Lineweaver–Burk plot
+that shows up as lines pivoting about a shared 1/Vmax intercept — competitive
+inhibition's fingerprint.)
 
 Why is the active site so picky about what binds it? Because catalysis works by
 gripping the fleeting **transition state** more tightly than the substrate

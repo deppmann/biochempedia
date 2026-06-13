@@ -1,0 +1,130 @@
+---
+/**
+ * MiniPlot — a small, floatable interactive that lives INLINE in the prose so
+ * the text wraps around it and the student feels the kinetics while reading.
+ * One plot per instance:
+ *   view="mm"        v vs [S] hyperbola (Km, Vmax sliders)
+ *   view="lb"        Lineweaver–Burk double-reciprocal (Km, Vmax)
+ *   view="inhibitor" v vs [S] with a competitive-inhibitor overlay (Km, Vmax, α)
+ * The full, dual-panel plotter still lives in the resource rail.
+ */
+interface Props {
+  view: 'mm' | 'lb' | 'inhibitor';
+  float?: 'right' | 'left';
+  title?: string;
+}
+const { view, float = 'right', title } = Astro.props;
+const heading =
+  title ??
+  (view === 'mm'
+    ? 'Try it: v vs [S]'
+    : view === 'lb'
+      ? 'Try it: Lineweaver–Burk'
+      : 'Try it: competitive inhibitor');
+---
+
+<figure class={`miniplot card mini-${float}`} data-miniplot data-view={view}>
+  <figcaption class="mini-head">{heading}<span class="mini-chip">drag the sliders</span></figcaption>
+  <svg class="mini-svg" viewBox="0 0 320 230" role="img" aria-label={heading}></svg>
+  <div class="mini-controls">
+    <label>V<sub>max</sub> <input type="range" data-in="vmax" min="20" max="200" step="1" value="100" /></label>
+    <label>K<sub>m</sub> <input type="range" data-in="km" min="1" max="25" step="0.5" value="8" /></label>
+    {view === 'inhibitor' && (
+      <label>α (inhibitor) <input type="range" data-in="alpha" min="1" max="5" step="0.25" value="2.5" /></label>
+    )}
+  </div>
+  <p class="mini-readout" data-readout></p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GRID = '#e6e3db';
+  const S_MAX = 100, V_TOP = 220;
+  const L = 46, R = 308, T = 12, B = 196, W = 262, H = 184;
+
+  function el(name: string, attrs: Record<string, string | number>) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-miniplot]').forEach((root) => {
+    const view = root.getAttribute('data-view') as 'mm' | 'lb' | 'inhibitor';
+    const svg = root.querySelector<SVGSVGElement>('.mini-svg')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const state = { vmax: 100, km: 8, alpha: 2.5 };
+
+    const sx = (s: number) => L + (s / S_MAX) * W;
+    const sy = (v: number) => T + (1 - v / V_TOP) * H;
+
+    function axes(xlab: string, ylab: string) {
+      svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+      svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+      const xl = el('text', { x: (L + R) / 2, y: 224, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); xl.textContent = xlab; svg.appendChild(xl);
+      const yl = el('text', { x: 12, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 12 ${(T + B) / 2})` }); yl.textContent = ylab; svg.appendChild(yl);
+    }
+    function mmCurve(km: number, vmax: number) {
+      let d = '';
+      for (let i = 0; i <= 100; i++) { const s = (i / 100) * S_MAX; const v = (vmax * s) / (km + s); d += (i === 0 ? 'M' : 'L') + sx(s).toFixed(1) + ' ' + sy(v).toFixed(1) + ' '; }
+      return d.trim();
+    }
+
+    function render() {
+      svg.replaceChildren();
+      const { vmax, km, alpha } = state;
+      if (view === 'lb') {
+        const xmin = -1.4 / km, xmax = 3 / km, slope = km / vmax, yint = 1 / vmax;
+        const ymax = (slope * xmax + yint) * 1.14, ymin = -ymax * 0.14;
+        const px = (x: number) => L + ((x - xmin) / (xmax - xmin)) * W;
+        const py = (y: number) => T + (1 - (y - ymin) / (ymax - ymin)) * H;
+        svg.appendChild(el('line', { x1: L, y1: py(0), x2: R, y2: py(0), stroke: GRID, 'stroke-width': 1 }));
+        svg.appendChild(el('line', { x1: px(0), y1: T, x2: px(0), y2: B, stroke: GRID, 'stroke-width': 1 }));
+        axes('1 / [S]', '1 / v');
+        svg.appendChild(el('line', { x1: px(xmin), y1: py(slope * xmin + yint), x2: px(xmax), y2: py(slope * xmax + yint), stroke: ACCENT, 'stroke-width': 2.4 }));
+        svg.appendChild(el('circle', { cx: px(0), cy: py(yint), r: 4, fill: NAVY }));
+        svg.appendChild(el('circle', { cx: px(-1 / km), cy: py(0), r: 4, fill: ACCENT }));
+        readout.innerHTML = `y-int 1/V<sub>max</sub> = ${yint.toFixed(4)} · x-int −1/K<sub>m</sub> = ${(-1 / km).toFixed(3)}`;
+        return;
+      }
+      // mm / inhibitor
+      axes('[S] (mM)', 'v');
+      svg.appendChild(el('line', { x1: L, y1: sy(vmax), x2: R, y2: sy(vmax), stroke: NAVY, 'stroke-width': 1, 'stroke-dasharray': '4 3', opacity: 0.6 }));
+      svg.appendChild(el('line', { x1: L, y1: sy(vmax / 2), x2: sx(km), y2: sy(vmax / 2), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.7 }));
+      svg.appendChild(el('line', { x1: sx(km), y1: sy(vmax / 2), x2: sx(km), y2: B, stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.7 }));
+      const km2 = el('text', { x: sx(km), y: B + 12, 'text-anchor': 'middle', 'font-size': 9, fill: ACCENT }); km2.textContent = 'Km'; svg.appendChild(km2);
+      if (view === 'inhibitor') svg.appendChild(el('path', { d: mmCurve(km * alpha, vmax), fill: 'none', stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+      svg.appendChild(el('path', { d: mmCurve(km, vmax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
+      readout.innerHTML = view === 'inhibitor'
+        ? `K<sub>m</sub> ${km.toFixed(1)} → apparent ${(km * alpha).toFixed(1)} mM · V<sub>max</sub> unchanged`
+        : `V<sub>max</sub> ${vmax} · K<sub>m</sub> ${km.toFixed(1)} mM · ½V<sub>max</sub> at [S]=K<sub>m</sub>`;
+    }
+
+    root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const k = inp.getAttribute('data-in') as 'vmax' | 'km' | 'alpha';
+        state[k] = parseFloat(inp.value);
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .miniplot { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); width: min(320px, 46%); }
+  .mini-right { float: right; margin: 0.25rem 0 var(--ddp-space-4) var(--ddp-space-6); clear: right; }
+  .mini-left { float: left; margin: 0.25rem var(--ddp-space-6) var(--ddp-space-4) 0; clear: left; }
+  @media (max-width: 640px) {
+    .miniplot { float: none; width: 100%; margin: var(--ddp-space-4) 0; }
+  }
+  .mini-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .mini-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mini-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mini-controls { display: flex; flex-direction: column; gap: 0.3rem; margin-top: var(--ddp-space-3); }
+  .mini-controls label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mini-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .mini-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+</style>
