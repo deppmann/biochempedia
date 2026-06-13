@@ -169,6 +169,9 @@ const sourceHref =
     // across browsers and headless harnesses.
     function nearViewport() {
       var r = stage.getBoundingClientRect();
+      // Must actually be visible with real size — guards against initializing
+      // while hidden inside a closed <dialog> (a hidden element reports 0×0).
+      if (r.width < 2 || r.height < 2) return false;
       var vh = window.innerHeight || document.documentElement.clientHeight || 0;
       return r.top < vh + 400 && r.bottom > -400;
     }

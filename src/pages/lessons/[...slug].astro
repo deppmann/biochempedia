@@ -6,43 +6,31 @@ import PhetEmbed from '../../components/PhetEmbed.astro';
 import MichaelisMentenPlotter from '../../components/MichaelisMentenPlotter.astro';
 import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
-import ScientistCard from '../../components/ScientistCard.astro';
-import QuizBlock from '../../components/QuizBlock.astro';
 import LectureSlides from '../../components/LectureSlides.astro';
+import QuizBlock from '../../components/QuizBlock.astro';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 
 export async function getStaticPaths() {
   const lessons = await getCollection('lessons');
-  return lessons.map((entry) => ({
-    params: { slug: entry.data.slug },
-    props: { entry },
-  }));
+  return lessons.map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
 }
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const lesson = entry.data;
 
-// Registry mapping a local-sim `ref` (frontmatter string) → its component.
 const LOCAL_SIMS: Record<string, any> = { MichaelisMentenPlotter };
 const localSims = lesson.simulations.filter((s) => s.type === 'local');
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
-const hasQuiz =
-  lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
-
-// Orientation: quick counts + a generated "On this page" table of contents.
-const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
+const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
-const toc = [
-  { id: 'concept', label: 'The idea', show: true },
-  { id: 'lecture', label: 'From the lecture', show: lesson.lectureSlides.length > 0 },
-  { id: 'structures', label: 'Structures', show: lesson.structures.length > 0 },
-  { id: 'explore', label: 'Simulations', show: lesson.simulations.length > 0 },
-  { id: 'people', label: 'Scientists', show: lesson.scientists.length > 0 },
-  { id: 'watch', label: 'Watch & listen', show: lesson.videos.length > 0 || !!lesson.podcast },
-  { id: 'self-test', label: 'Self-test', show: hasQuiz },
-  { id: 'sources', label: 'Sources', show: true },
-].filter((s) => s.show);
+const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
+
+// Thumbnail helpers for the rail.
+const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.toLowerCase()}_assembly-1.jpeg`;
+const pubchemThumb = (id: string) => `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${id}/PNG`;
+const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-${s.id}`.replace(/[^a-zA-Z0-9-]/g, '');
 ---
 
 <BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary}>
@@ -53,315 +41,363 @@ const toc = [
       <p class="summary">{lesson.summary}</p>
     </header>
 
-    {/* Orientation: what you'll learn, how long, and a jump menu. */}
-    <aside class="wrap orient" aria-label="Lesson overview">
-      {lesson.objectives.length > 0 && (
+    {lesson.objectives.length > 0 && (
+      <aside class="wrap orient" aria-label="Lesson overview">
         <div class="orient-obj card">
           <h2>What you'll learn</h2>
-          <ul>
-            {lesson.objectives.map((o) => <li>{o}</li>)}
-          </ul>
+          <ul>{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
         </div>
-      )}
-      <div class="orient-side">
         <ul class="orient-meta">
           {lesson.estMinutes && <li><span>⏱</span> ~{lesson.estMinutes} min</li>}
           {lesson.structures.length > 0 && <li><span>🧬</span> {lesson.structures.length} live 3D structures</li>}
           {narratedSlides > 0 && <li><span>🎧</span> {narratedSlides} narrated slides</li>}
           {qCount > 0 && <li><span>📝</span> {qCount} self-test questions</li>}
         </ul>
-        <nav class="orient-toc" aria-label="On this page">
-          <span class="orient-toc-label">On this page</span>
-          <ul>
-            {toc.map((s) => <li><a href={`#${s.id}`}>{s.label}</a></li>)}
-          </ul>
-        </nav>
-      </div>
-    </aside>
+      </aside>
+    )}
 
-    {/* The plain-language concept + "how the technique works" prose (MDX body). */}
-    <div id="concept" class="wrap lesson-body scroll-anchor">
-      <div class="prose-col">
-        <Content />
-      </div>
-    </div>
+    {/* Two-column: reading column + sticky resource rail. */}
+    <div class="wrap lesson-layout">
+      <main class="lesson-main">
+        <div class="prose-col"><Content /></div>
 
-    {lesson.techniques.length > 0 && (
-      <section class="wrap section">
-        <h2>How we measure it — techniques at a glance</h2>
-        <div class="tech-grid">
-          {lesson.techniques.map((t) => (
-            <div class="tech card">
-              <h3>{t.name}</h3>
-              <p>{t.blurb}</p>
+        {lesson.techniques.length > 0 && (
+          <section class="tech-panel">
+            <h2>How we measure it</h2>
+            <div class="tech-grid">
+              {lesson.techniques.map((t) => (
+                <div class="tech card"><h3>{t.name}</h3><p>{t.blurb}</p></div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-    )}
+          </section>
+        )}
+      </main>
 
-    {lesson.lectureSlides.length > 0 && (
-      <section id="lecture" class="wrap section scroll-anchor">
-        <h2>From the lecture</h2>
-        <p class="section-lede">
-          Selected slides from Prof. Deppmann's BIOL 3030 lectures — his own
-          diagrams and analogies, with the presenter notes underneath. (Slides
-          that reproduced publisher figures were left out.)
-        </p>
-        <LectureSlides slides={lesson.lectureSlides} />
-      </section>
-    )}
+      <aside class="rail" aria-label="Explore — open any resource">
+        <p class="rail-title">Explore <span>· tap to open</span></p>
 
-    {lesson.structures.length > 0 && (
-      <section id="structures" class="wrap section scroll-anchor">
-        <h2>See it — live molecular structures</h2>
-        <p class="section-lede">
-          These are real, deposited coordinates streamed from public databases.
-          Drag to rotate. Nothing here is drawn by an AI.
-        </p>
-        {lesson.structures.map((s) => (
-          <MolViewer source={s.source} id={s.id} label={s.label} caption={s.caption} />
-        ))}
-      </section>
-    )}
+        {lesson.lectureSlides.length > 0 && (
+          <div class="rail-group">
+            <h3>Lecture slides</h3>
+            <button type="button" class="rail-thumb" data-open="lb-slides">
+              <img src={lesson.lectureSlides[0].src} alt="" loading="lazy" />
+              <span class="rail-label">The big points <em>{lesson.lectureSlides.length} slides · narrated</em></span>
+            </button>
+          </div>
+        )}
 
-    {lesson.simulations.length > 0 && (
-      <section id="explore" class="wrap section scroll-anchor">
-        <h2>Explore — simulations</h2>
-        {localSims.map((s) => {
-          const Comp = LOCAL_SIMS[s.ref];
-          return Comp ? <Comp /> : null;
-        })}
-        {phetSims.map((s) => (
-          <PhetEmbed url={s.ref} title={s.title} attribution={s.attribution} caption={s.caption} />
-        ))}
-      </section>
-    )}
-
-    {lesson.scientists.length > 0 && (
-      <section id="people" class="wrap section scroll-anchor">
-        <h2>The people behind the idea</h2>
-        <p class="section-lede">
-          Quotes are verbatim from the historical record, drawn from
-          <em> The Molecule Hunters</em>.
-        </p>
-        <div class="sci-grid">
-          {lesson.scientists.map((s) => (
-            <ScientistCard scientist={s} />
-          ))}
-        </div>
-      </section>
-    )}
-
-    {(lesson.videos.length > 0 || lesson.podcast) && (
-      <section id="watch" class="wrap section scroll-anchor">
-        <h2>Watch &amp; listen</h2>
-        {lesson.videos.length > 0 && (
-          <div class="video-grid">
-            {lesson.videos.map((v) => (
-              <YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} />
+        {lesson.structures.length > 0 && (
+          <div class="rail-group">
+            <h3>3D molecules</h3>
+            {lesson.structures.map((s) => (
+              <button type="button" class="rail-thumb" data-open={structId(s)}>
+                <img src={s.source === 'rcsb' ? rcsbThumb(s.id) : pubchemThumb(s.id)} alt="" loading="lazy" />
+                <span class="rail-label">{s.label.split('—')[0].trim()} <em>{s.source === 'rcsb' ? `PDB ${s.id}` : `CID ${s.id}`} · rotate</em></span>
+              </button>
             ))}
           </div>
         )}
-        {lesson.podcast && (
-          <SpotifyEmbed
-            url={lesson.podcast.url}
-            title={lesson.podcast.title}
-            note={lesson.podcast.note}
-          />
+
+        {(localSims.length > 0 || phetSims.length > 0) && (
+          <div class="rail-group">
+            <h3>Simulations</h3>
+            {localSims.map((s) => (
+              <button type="button" class="rail-thumb" data-open="lb-plotter">
+                <span class="rail-ico" aria-hidden="true">📈</span>
+                <span class="rail-label">{s.title.split('(')[0].trim()} <em>interactive</em></span>
+              </button>
+            ))}
+            {phetSims.map((s, i) => (
+              <button type="button" class="rail-thumb" data-open={`lb-phet-${i}`}>
+                <span class="rail-ico" aria-hidden="true">▶</span>
+                <span class="rail-label">{s.title} <em>PhET</em></span>
+              </button>
+            ))}
+          </div>
         )}
-      </section>
+
+        {lesson.scientists.length > 0 && (
+          <div class="rail-group">
+            <h3>The people</h3>
+            {lesson.scientists.map((s, i) => (
+              <button type="button" class="rail-thumb" data-open={`lb-sci-${i}`}>
+                {s.photo
+                  ? <img src={s.photo} alt="" loading="lazy" />
+                  : <span class="rail-ico" aria-hidden="true">👤</span>}
+                <span class="rail-label">{s.name} {s.dates && <em>{s.dates}</em>}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {(lesson.videos.length > 0 || lesson.podcast) && (
+          <div class="rail-group">
+            <h3>Watch &amp; listen</h3>
+            {lesson.videos.map((v, i) => (
+              <button type="button" class="rail-thumb" data-open={`lb-video-${i}`}>
+                <img src={ytThumb(v.youtubeId)} alt="" loading="lazy" />
+                <span class="rail-label">{v.title} <em>video</em></span>
+              </button>
+            ))}
+            {lesson.podcast && (
+              <button type="button" class="rail-thumb" data-open="lb-podcast">
+                <span class="rail-ico" aria-hidden="true">🎧</span>
+                <span class="rail-label">{lesson.podcast.title ?? 'Podcast'} <em>listen</em></span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {hasQuiz && (
+          <div class="rail-group">
+            <h3>Test yourself</h3>
+            <button type="button" class="rail-thumb" data-open="lb-quiz">
+              <span class="rail-ico" aria-hidden="true">📝</span>
+              <span class="rail-label">Self-test <em>{qCount} questions</em></span>
+            </button>
+          </div>
+        )}
+
+        <div class="rail-group">
+          <h3>Reference</h3>
+          <button type="button" class="rail-thumb" data-open="lb-sources">
+            <span class="rail-ico" aria-hidden="true">📚</span>
+            <span class="rail-label">Sources &amp; Integrity <em>every ID &amp; source</em></span>
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    {/* ---- Lightboxes (one per resource; hidden until opened) ---- */}
+    {lesson.lectureSlides.length > 0 && (
+      <dialog id="lb-slides" class="lightbox">
+        <div class="lightbox-head"><span>From the lecture</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><LectureSlides slides={lesson.lectureSlides} /></div>
+      </dialog>
+    )}
+
+    {lesson.structures.map((s) => (
+      <dialog id={structId(s)} class="lightbox">
+        <div class="lightbox-head"><span>{s.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><MolViewer source={s.source} id={s.id} label={s.label} caption={s.caption} height={520} /></div>
+      </dialog>
+    ))}
+
+    {localSims.map((s) => {
+      const Comp = LOCAL_SIMS[s.ref];
+      return (
+        <dialog id="lb-plotter" class="lightbox">
+          <div class="lightbox-head"><span>{s.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+          <div class="lightbox-body">{Comp && <Comp />}</div>
+        </dialog>
+      );
+    })}
+
+    {phetSims.map((s, i) => (
+      <dialog id={`lb-phet-${i}`} class="lightbox">
+        <div class="lightbox-head"><span>{s.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><PhetEmbed url={s.ref} title={s.title} attribution={s.attribution} caption={s.caption} /></div>
+      </dialog>
+    ))}
+
+    {lesson.scientists.map((s, i) => (
+      <dialog id={`lb-sci-${i}`} class="lightbox">
+        <div class="lightbox-head"><span>{s.name}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body">
+          <div class="profile">
+            {s.photo && <img class="profile-photo" src={s.photo} alt={`Portrait of ${s.name}`} />}
+            <div class="profile-text">
+              <h3>{s.name} {s.dates && <span class="profile-dates">{s.dates}</span>}</h3>
+              <p class="profile-contribution">{s.contribution}</p>
+              {s.story && <p class="profile-story">{s.story}</p>}
+              {s.quotes.length > 0 && (
+                <ul class="profile-quotes">{s.quotes.map((q) => <li><blockquote>“{q}”</blockquote></li>)}</ul>
+              )}
+              <p class="profile-source"><span class="verified-chip">✓ verbatim</span> {s.profileSourceAnchor}</p>
+            </div>
+          </div>
+        </div>
+      </dialog>
+    ))}
+
+    {lesson.videos.map((v, i) => (
+      <dialog id={`lb-video-${i}`} class="lightbox">
+        <div class="lightbox-head"><span>{v.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} /></div>
+      </dialog>
+    ))}
+
+    {lesson.podcast && (
+      <dialog id="lb-podcast" class="lightbox">
+        <div class="lightbox-head"><span>{lesson.podcast.title ?? 'Podcast'}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><SpotifyEmbed url={lesson.podcast.url} title={lesson.podcast.title} note={lesson.podcast.note} /></div>
+      </dialog>
     )}
 
     {hasQuiz && (
-      <section id="self-test" class="wrap section scroll-anchor">
-        <h2>Test yourself</h2>
-        <QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} />
-      </section>
+      <dialog id="lb-quiz" class="lightbox">
+        <div class="lightbox-head"><span>Test yourself</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+        <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} /></div>
+      </dialog>
     )}
 
-    <div id="sources" class="wrap scroll-anchor">
-      <SourcesFooter lesson={lesson} />
-    </div>
+    <dialog id="lb-sources" class="lightbox">
+      <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
+      <div class="lightbox-body"><SourcesFooter lesson={lesson} /></div>
+    </dialog>
 
     <a href="#top" class="to-top" aria-label="Back to top">↑ Top</a>
   </article>
 
+  <script>
+    // Lightbox: open on rail-thumb click, close on ✕ / backdrop / Esc.
+    document.querySelectorAll<HTMLElement>('[data-open]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const d = document.getElementById(btn.getAttribute('data-open')!) as HTMLDialogElement | null;
+        if (!d?.showModal) return;
+        d.showModal();
+        // Nudge lazy viewers (Mol*) now that they're visible + sized.
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new Event('resize'));
+          window.dispatchEvent(new Event('scroll'));
+        });
+      });
+    });
+    document.querySelectorAll<HTMLDialogElement>('dialog.lightbox').forEach((d) => {
+      d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+      d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
+      d.addEventListener('close', () => {
+        d.querySelectorAll<HTMLMediaElement>('audio, video').forEach((m) => m.pause());
+      });
+    });
+  </script>
+
   <style>
-    .lesson-hero {
-      padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6);
-    }
+    .lesson-hero { padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6); }
     .eyebrow {
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ddp-color-accent);
+      font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent);
       margin: 0 0 var(--ddp-space-2);
     }
-    .lesson-hero h1 {
-      font-size: var(--ddp-text-3xl);
-      max-width: 20ch;
-      margin-bottom: var(--ddp-space-3);
-    }
-    .summary {
-      max-width: 60ch;
-      font-size: var(--ddp-text-lg);
-      color: var(--ddp-color-ink-soft);
-    }
-    /* Anchored sections clear the sticky header when jumped to. */
-    .scroll-anchor {
-      scroll-margin-top: 84px;
-    }
+    .lesson-hero h1 { font-size: var(--ddp-text-3xl); max-width: 20ch; margin-bottom: var(--ddp-space-3); }
+    .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
 
-    /* Orientation card: objectives + meta + on-this-page nav. */
     .orient {
+      display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--ddp-space-6);
+      margin-bottom: var(--ddp-space-6); align-items: start;
+    }
+    @media (max-width: 760px) { .orient { grid-template-columns: 1fr; } }
+    .orient-obj { padding: var(--ddp-space-5) var(--ddp-space-6); }
+    .orient-obj h2 { font-size: var(--ddp-text-lg); margin: 0 0 var(--ddp-space-3); }
+    .orient-obj ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .orient-obj li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .orient-meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); }
+    .orient-meta li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: inline-flex; align-items: center; gap: 0.4em; }
+
+    /* Two-column layout */
+    .lesson-layout {
       display: grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap: var(--ddp-space-6);
-      margin-bottom: var(--ddp-space-4);
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: var(--ddp-space-8);
       align-items: start;
-    }
-    @media (max-width: 720px) {
-      .orient {
-        grid-template-columns: 1fr;
-      }
-    }
-    .orient-obj {
-      padding: var(--ddp-space-5) var(--ddp-space-6);
-    }
-    .orient-obj h2 {
-      font-size: var(--ddp-text-lg);
-      margin: 0 0 var(--ddp-space-3);
-    }
-    .orient-obj ul {
-      margin: 0;
-      padding-left: 1.1rem;
-      display: flex;
-      flex-direction: column;
-      gap: var(--ddp-space-2);
-    }
-    .orient-obj li {
-      font-size: var(--ddp-text-sm);
-      color: var(--ddp-color-ink-soft);
-    }
-    .orient-side {
-      display: flex;
-      flex-direction: column;
-      gap: var(--ddp-space-4);
-    }
-    .orient-meta {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--ddp-space-2) var(--ddp-space-4);
-    }
-    .orient-meta li {
-      font-size: var(--ddp-text-sm);
-      color: var(--ddp-color-ink-soft);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4em;
-    }
-    .orient-toc {
-      border-top: 1px solid var(--ddp-color-line);
-      padding-top: var(--ddp-space-3);
-    }
-    .orient-toc-label {
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--ddp-color-muted);
-    }
-    .orient-toc ul {
-      list-style: none;
-      margin: var(--ddp-space-2) 0 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--ddp-space-2);
-    }
-    .orient-toc a {
-      display: inline-block;
-      font-size: var(--ddp-text-sm);
-      text-decoration: none;
-      color: var(--ddp-color-accent);
-      background: var(--ddp-color-accent-soft);
-      border-radius: 999px;
-      padding: 0.2em 0.8em;
-    }
-    .orient-toc a:hover {
-      text-decoration: none;
-      background: color-mix(in srgb, var(--ddp-color-accent) 22%, #fff);
-    }
-
-    .to-top {
-      position: fixed;
-      right: var(--ddp-space-6);
-      bottom: var(--ddp-space-6);
-      z-index: 40;
-      font-size: var(--ddp-text-sm);
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--ddp-color-surface);
-      background: var(--ddp-color-primary);
-      border-radius: 999px;
-      padding: 0.5em 0.9em;
-      box-shadow: var(--ddp-shadow);
-      opacity: 0.85;
-    }
-    .to-top:hover {
-      opacity: 1;
-      text-decoration: none;
-    }
-
-    .lesson-body {
       padding-top: var(--ddp-space-4);
     }
-    .section {
-      padding-top: var(--ddp-space-8);
-      padding-bottom: var(--ddp-space-4);
-    }
-    .section > h2 {
-      font-size: var(--ddp-text-2xl);
-    }
-    .section-lede {
-      max-width: 60ch;
-      color: var(--ddp-color-ink-soft);
-      margin-top: 0;
-    }
-    .tech-grid,
-    .sci-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    @media (max-width: 900px) { .lesson-layout { grid-template-columns: 1fr; } }
+    .lesson-main { min-width: 0; }
+    .lesson-main h2 { font-size: var(--ddp-text-2xl); }
+
+    .tech-panel { margin-top: var(--ddp-space-12); }
+    .tech-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); margin-top: var(--ddp-space-4); }
+    .tech { padding: var(--ddp-space-4) var(--ddp-space-5); }
+    .tech h3 { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-base); }
+    .tech p { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+
+    /* Sticky resource rail */
+    .rail {
+      position: sticky;
+      top: 84px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
       gap: var(--ddp-space-4);
-      margin-top: var(--ddp-space-4);
+      padding-right: 2px;
     }
-    /* Scientist cards expand inline, so keep them in a single tidy column. */
-    .sci-grid {
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      align-items: start;
+    @media (max-width: 900px) {
+      .rail { position: static; max-height: none; margin-top: var(--ddp-space-8); }
     }
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: var(--ddp-space-4);
-      margin-bottom: var(--ddp-space-6);
+    .rail-title {
+      margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-primary);
     }
-    .tech {
-      padding: var(--ddp-space-5);
+    .rail-title span { color: var(--ddp-color-muted); }
+    .rail-group { display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .rail-group h3 {
+      margin: 0; font-size: var(--ddp-text-xs); text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--ddp-color-muted); font-family: var(--ddp-font-sans);
     }
-    .tech h3 {
-      margin: 0 0 var(--ddp-space-2);
-      font-size: var(--ddp-text-base);
+    .rail-thumb {
+      display: flex; align-items: center; gap: var(--ddp-space-3);
+      width: 100%; text-align: left; padding: var(--ddp-space-2);
+      border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+      background: var(--ddp-color-surface); cursor: pointer; transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
     }
-    .tech p {
-      margin: 0;
-      font-size: var(--ddp-text-sm);
-      color: var(--ddp-color-ink-soft);
+    .rail-thumb:hover { border-color: var(--ddp-color-accent); transform: translateY(-1px); box-shadow: var(--ddp-shadow); }
+    .rail-thumb img, .rail-ico {
+      width: 46px; height: 46px; flex: none; border-radius: 6px; object-fit: cover;
+      background: var(--ddp-color-bg-alt, #f0ede7); border: 1px solid var(--ddp-color-line);
     }
+    .rail-ico { display: grid; place-items: center; font-size: 1.2rem; }
+    .rail-label {
+      display: flex; flex-direction: column; min-width: 0;
+      font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.25;
+    }
+    .rail-label em { font-style: normal; font-weight: 400; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+
+    /* Lightbox dialog */
+    .lightbox {
+      border: none; padding: 0; border-radius: var(--ddp-radius);
+      width: min(1000px, 94vw); max-width: 94vw; max-height: 92vh; overflow: auto;
+      background: var(--ddp-color-surface); box-shadow: 0 24px 70px rgba(20, 22, 30, 0.35);
+    }
+    .lightbox::backdrop { background: rgba(20, 22, 30, 0.62); backdrop-filter: blur(2px); }
+    .lightbox-head {
+      position: sticky; top: 0; z-index: 2;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--ddp-space-3) var(--ddp-space-5);
+      border-bottom: 1px solid var(--ddp-color-line);
+      background: var(--ddp-color-surface);
+      font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary);
+    }
+    .lightbox-close {
+      border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface);
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.9rem;
+      color: var(--ddp-color-ink-soft); flex: none;
+    }
+    .lightbox-close:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+    .lightbox-body { padding: var(--ddp-space-5); }
+
+    /* Scientist profile (inside lightbox) */
+    .profile { display: grid; grid-template-columns: 160px 1fr; gap: var(--ddp-space-6); align-items: start; }
+    @media (max-width: 600px) { .profile { grid-template-columns: 1fr; } }
+    .profile-photo { width: 100%; border-radius: var(--ddp-radius); border: 1px solid var(--ddp-color-line); }
+    .profile-text h3 { margin: 0; font-size: var(--ddp-text-xl); }
+    .profile-dates { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); font-weight: 400; }
+    .profile-contribution { margin: var(--ddp-space-2) 0 0; color: var(--ddp-color-ink-soft); }
+    .profile-story { margin: var(--ddp-space-4) 0 0; line-height: 1.65; }
+    .profile-quotes { list-style: none; padding: 0; margin: var(--ddp-space-4) 0 0; display: flex; flex-direction: column; gap: var(--ddp-space-3); }
+    .profile-quotes blockquote {
+      margin: 0; padding: 0 0 0 var(--ddp-space-4); border-left: 3px solid var(--ddp-color-accent);
+      font-family: var(--ddp-font-serif); font-style: italic; font-size: var(--ddp-text-base);
+    }
+    .profile-source { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap; }
+
+    .to-top {
+      position: fixed; right: var(--ddp-space-6); bottom: var(--ddp-space-6); z-index: 40;
+      font-size: var(--ddp-text-sm); font-weight: 600; text-decoration: none;
+      color: var(--ddp-color-surface); background: var(--ddp-color-primary);
+      border-radius: 999px; padding: 0.5em 0.9em; box-shadow: var(--ddp-shadow); opacity: 0.85;
+    }
+    .to-top:hover { opacity: 1; text-decoration: none; }
   </style>
 </BaseLayout>

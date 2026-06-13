@@ -2,42 +2,63 @@
 
 The guiding principle, applied throughout the site:
 
-## Progressive disclosure — compact by default, expand on demand
+## Read on the left, explore from the rail
 
-A lesson should feel like a tidy, scannable index — not a wall of full-width
-blocks the student has to scroll past. Heavy or secondary content is **collapsed
-into a compact, summarized item that the student opens when they want it.** This
-keeps the page short, keeps the student in control, and (for media) keeps the
-page fast.
+A lesson is **a reading column plus a resource rail.** The student reads the
+concept text in a comfortable column on the left; everything else — slides,
+molecules, simulations, scientist profiles, video, podcast, the quiz, the
+sources — lives as **compact thumbnails in a sticky rail on the right.** Tapping
+a thumbnail opens that resource in a **full-screen lightbox** over the page;
+closing it returns the student exactly where they were reading.
 
-### How each element applies it
+This keeps the page short and scannable (no wall of full-width blocks), keeps the
+student in control of what they open, gives each resource the full screen when
+it's open, and loads heavy media only when summoned.
 
-| Element | Compact (default) | Expanded (on demand) |
+### Layout
+
+```
+┌────────────────────────────────┬──────────────┐
+│  Reading column                 │  Resource    │
+│  (concept prose — stays open)   │  rail        │   ── click a thumb ──▶  ┌─────────────┐
+│                                 │  · slides    │                         │  Lightbox   │
+│  How we measure it (technique)  │  · molecules │                         │  (full      │
+│                                 │  · sims      │                         │   screen)   │
+│                                 │  · people    │                         └─────────────┘
+│                                 │  · watch     │
+│                                 │  · quiz      │
+│                                 │  · sources   │
+└────────────────────────────────┴──────────────┘
+   (single column < 900px: rail drops below the text)
+```
+
+### Inside each lightbox — compact, progressive components
+
+| Resource | Rail thumbnail | In the lightbox |
 |---|---|---|
-| **Lecture slides** | A **slideshow** — one slide at a time, prev/next + dots + counter | Notes collapse under "Presenter notes"; audio plays inline |
-| **Scientists** | A card: portrait + name + one-line contribution | Click → full story (from the book) + verbatim quotes + source |
-| **Questions** | A **stepper** — one question at a time, progress bar, score | Pick an answer → instant verdict + rationale |
-| **YouTube** | A thumbnail with a play button | Click → the iframe loads (lazy) and plays |
-| **PhET** | A "Launch the interactive" panel | Click → the sim iframe loads |
-| **Sources & Integrity** | A single collapsed line | Click → the full provenance manifest |
+| **Lecture slides** | first-slide preview | a **slideshow** — one slide at a time, notes + narration per slide |
+| **3D molecules** | the RCSB / PubChem image | the **live Mol\*** viewer (loads on open), rotatable |
+| **Simulations** | icon | the **Michaelis–Menten plotter** / PhET (iframe loads on open) |
+| **Scientists** | the book's **portrait** | the full **profile** — story, verbatim quotes, source |
+| **Watch / listen** | YouTube thumbnail / 🎧 | the video (iframe on click) / Spotify player |
+| **Test yourself** | 📝 | the quiz **stepper** — one question at a time, progress + score |
+| **Sources** | 📚 | the full provenance manifest |
 
-### What stays prominent (deliberately)
+### What stays in the reading column (deliberately)
 
-Not everything should be hidden. The **concept prose**, the **live Mol\*
-structure**, and the **original Michaelis–Menten plotter** are the heart of the
-lesson and stay open — they're what the student came for. Progressive disclosure
-is for the *supporting* material around them.
+The **concept prose** and the brief **technique reference** stay inline — that's
+the lesson's spine, meant to be read top to bottom. Everything interactive or
+heavy is in the rail.
 
 ### Practical rules
 
-- **One thing open at a time, by the student's choice.** Default to collapsed.
-- **Summaries must stand alone** — the collapsed state should tell the student
-  whether it's worth opening.
-- **Lazy-load heavy media** (video/sim iframes) behind a click — never load a
-  player the student hasn't asked for.
-- **Use native `<details>`/`<summary>`** where a simple toggle suffices (it's
-  keyboard- and screen-reader-accessible for free); reach for a JS island only
-  when you need a stepper/slideshow.
+- **Default to closed.** A resource opens only when the student asks.
+- **Thumbnails must stand alone** — a real preview image where one exists (slide,
+  structure, portrait, video), a clear icon + label otherwise.
+- **Lazy-load heavy media** — the Mol\* viewer initializes on lightbox open;
+  video/sim iframes load on click. Never load a player up front.
+- **Use native `<dialog>` + `showModal()`** for the lightbox (free focus-trap,
+  Esc-to-close, backdrop) and native `<details>` for simple in-place toggles.
 
-This philosophy should run through every future lesson — see
+This pattern should run through every future lesson — see
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
