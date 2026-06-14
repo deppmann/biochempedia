@@ -1,0 +1,236 @@
+---
+/**
+ * PathwayMap — a clickable, step-by-step metabolic-pathway map that lives INLINE
+ * in the prose (the metabolic-pathway analog of MiniPlot / AminoTitrator). Reveal
+ * each enzymatic step to see substrate → product, the enzyme, the cofactor change,
+ * and a one-line mechanism note; a running ledger tallies ATP and NADH as you go.
+ *
+ * This is the ARCHETYPE interactive for every metabolic-pathway lesson. The data
+ * lives in a single `STEPS` array below; a future chapter (TCA cycle, β-oxidation,
+ * gluconeogenesis…) swaps that array and reuses the component unchanged. Glycolysis
+ * is the first instance.
+ *
+ * Phases follow the lesson exactly: Investment (1–3), Cleavage (4–5), Payoff (6–10).
+ * From step 6 on, every yield is doubled (two trioses per glucose).
+ */
+interface Step {
+  n: number;
+  enzyme: string;
+  sub: string;
+  prod: string;
+  atp: number;   // per-triose ATP delta (negative = spent)
+  nadh: number;  // per-triose NADH produced
+  phase: 'investment' | 'cleavage' | 'payoff';
+  regulated?: boolean;   // irreversible + a control point → amber + lock
+  doubled?: boolean;     // steps 6–10: ×2 per glucose
+  note: string;
+  regNote?: string;
+  clinical?: string;
+}
+
+const STEPS: Step[] = [
+  { n: 1, enzyme: 'Hexokinase', sub: 'Glucose', prod: 'Glucose-6-phosphate', atp: -1, nadh: 0, phase: 'investment', regulated: true,
+    note: 'Spends one ATP to phosphorylate glucose. Induced fit closes the enzyme around the sugar, excluding water so ATP isn’t wasted on hydrolysis — and the charged product can no longer cross the membrane, trapping glucose inside the cell.',
+    regNote: 'Inhibited by its own product, glucose-6-phosphate.' },
+  { n: 2, enzyme: 'Phosphoglucose isomerase', sub: 'Glucose-6-phosphate', prod: 'Fructose-6-phosphate', atp: 0, nadh: 0, phase: 'investment',
+    note: 'Aldose → ketose: a quiet repositioning of the carbonyl so the six-carbon sugar can later be split cleanly down the middle.' },
+  { n: 3, enzyme: 'Phosphofructokinase-1', sub: 'Fructose-6-phosphate', prod: 'Fructose-1,6-bisphosphate', atp: -1, nadh: 0, phase: 'investment', regulated: true,
+    note: 'The committed step. Once fructose-1,6-bisphosphate forms, the molecule is locked into glycolysis. The second and last ATP is spent here.',
+    regNote: 'Inhibited by ATP and citrate; activated by AMP and fructose-2,6-bisphosphate. This is the master throttle of glycolytic flux.' },
+  { n: 4, enzyme: 'Aldolase', sub: 'Fructose-1,6-bisphosphate', prod: 'DHAP + glyceraldehyde-3-phosphate', atp: 0, nadh: 0, phase: 'cleavage',
+    note: 'Splits the six-carbon sugar into two three-carbon halves — the symmetry break the whole pathway is built around.' },
+  { n: 5, enzyme: 'Triose phosphate isomerase', sub: 'DHAP', prod: 'Glyceraldehyde-3-phosphate', atp: 0, nadh: 0, phase: 'cleavage',
+    note: 'Converts DHAP into a second glyceraldehyde-3-phosphate, so both three-carbon halves run the payoff phase. From here, everything counts twice.',
+    clinical: 'TPI deficiency: when this enzyme fails, DHAP piles up and forms toxic methylglyoxal. It is the most severe glycolytic enzymopathy — hemolytic anemia plus progressive neurodegeneration.' },
+  { n: 6, enzyme: 'GAPDH', sub: 'Glyceraldehyde-3-phosphate', prod: '1,3-bisphosphoglycerate', atp: 0, nadh: 1, phase: 'payoff', doubled: true,
+    note: 'The only oxidation step. A thioester on an active-site cysteine couples oxidation to phosphate capture — using inorganic phosphate, not ATP — and banks the energy as NADH.' },
+  { n: 7, enzyme: 'Phosphoglycerate kinase', sub: '1,3-bisphosphoglycerate', prod: '3-phosphoglycerate', atp: 1, nadh: 0, phase: 'payoff', doubled: true,
+    note: 'The first ATP is made here by substrate-level phosphorylation: the high-energy phosphate goes straight from substrate to ADP. The ledger is now back to break-even.' },
+  { n: 8, enzyme: 'Phosphoglycerate mutase', sub: '3-phosphoglycerate', prod: '2-phosphoglycerate', atp: 0, nadh: 0, phase: 'payoff', doubled: true,
+    note: 'Moves the phosphate from the third carbon to the second, setting up the next step’s dehydration.' },
+  { n: 9, enzyme: 'Enolase', sub: '2-phosphoglycerate', prod: 'Phosphoenolpyruvate', atp: 0, nadh: 0, phase: 'payoff', doubled: true,
+    note: 'A dehydration traps the molecule as an unstable enol, loading phosphoenolpyruvate with the highest phosphoryl-transfer potential in the whole pathway.' },
+  { n: 10, enzyme: 'Pyruvate kinase', sub: 'Phosphoenolpyruvate', prod: 'Pyruvate', atp: 1, nadh: 0, phase: 'payoff', doubled: true, regulated: true,
+    note: 'Phosphoenolpyruvate hands its phosphate to ADP — the second substrate-level ATP — and the pathway ends at pyruvate.',
+    regNote: 'Activated by fructose-1,6-bisphosphate (feedforward); inhibited by ATP and alanine; the liver isoform is switched off by PKA phosphorylation during fasting.' },
+];
+
+const PHASES = [
+  { key: 'investment', label: 'Investment phase', steps: 'steps 1–3 · spend 2 ATP' },
+  { key: 'cleavage', label: 'Cleavage', steps: 'steps 4–5 · split into two trioses' },
+  { key: 'payoff', label: 'Payoff phase', steps: 'steps 6–10 · ×2, earn 4 ATP + 2 NADH' },
+] as const;
+
+const badge = (s: Step) => {
+  const parts: string[] = [];
+  if (s.atp < 0) parts.push(`−${-s.atp} ATP`);
+  if (s.atp > 0) parts.push(`+${s.atp} ATP`);
+  if (s.nadh > 0) parts.push(`+${s.nadh} NADH`);
+  return parts.join(' · ');
+};
+---
+
+<figure class="pathway card" data-pathway>
+  <figcaption class="pw-head">
+    Glycolysis · 10 steps <span class="pw-chip">tap a step to reveal it</span>
+  </figcaption>
+
+  <div class="pw-tally" data-tally role="status" aria-live="polite">
+    <span><em data-t="invested">0</em> ATP invested</span>
+    <span><em data-t="produced">0</em> ATP made</span>
+    <span><em data-t="nadh">0</em> NADH</span>
+    <span class="pw-net">Net <em data-t="net">0</em> ATP</span>
+  </div>
+
+  <div class="pw-steps">
+    {PHASES.map((ph) => (
+      <div class="pw-phase" data-phase={ph.key}>
+        <p class="pw-phase-head"><span>{ph.label}</span> {ph.steps}</p>
+        {STEPS.filter((s) => s.phase === ph.key).map((s) => (
+          <div class={`pw-step${s.regulated ? ' is-reg' : ''}`} data-step={s.n} data-atp={s.atp} data-nadh={s.nadh} data-doubled={s.doubled ? '1' : '0'}>
+            <button type="button" class="pw-step-head" aria-expanded="false">
+              <span class="pw-num">{s.n}</span>
+              <span class="pw-main">
+                <span class="pw-enzyme">{s.enzyme}{s.regulated && <span class="pw-lock" title="Regulated, irreversible step" aria-label="regulated step">🔒</span>}</span>
+                <span class="pw-rxn">{s.sub} → {s.prod}</span>
+              </span>
+              {badge(s) && <span class="pw-badge">{badge(s)}{s.doubled && <i> ×2</i>}</span>}
+            </button>
+            <div class="pw-body" hidden>
+              <p>{s.note}</p>
+              {s.regNote && <p class="pw-reg"><strong>Regulation.</strong> {s.regNote}</p>}
+              {s.clinical && <p class="pw-clin"><strong>Clinical.</strong> {s.clinical}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+
+  <div class="pw-controls">
+    <button type="button" class="pw-btn" data-revealall>Reveal all 10 steps</button>
+    <button type="button" class="pw-btn pw-btn-quiet" data-reset>Reset</button>
+  </div>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-pathway]').forEach((root) => {
+    const tally = root.querySelector<HTMLElement>('[data-tally]')!;
+    const out = {
+      invested: tally.querySelector<HTMLElement>('[data-t="invested"]')!,
+      produced: tally.querySelector<HTMLElement>('[data-t="produced"]')!,
+      nadh: tally.querySelector<HTMLElement>('[data-t="nadh"]')!,
+      net: tally.querySelector<HTMLElement>('[data-t="net"]')!,
+    };
+    const steps = Array.from(root.querySelectorAll<HTMLElement>('.pw-step'));
+    const visited = new Set<string>();
+
+    function recompute() {
+      let invested = 0, produced = 0, nadh = 0;
+      steps.forEach((step) => {
+        const n = step.getAttribute('data-step')!;
+        if (!visited.has(n)) return;
+        const mult = step.getAttribute('data-doubled') === '1' ? 2 : 1;
+        const atp = parseInt(step.getAttribute('data-atp') || '0', 10);
+        const nd = parseInt(step.getAttribute('data-nadh') || '0', 10);
+        if (atp < 0) invested += -atp * mult;
+        if (atp > 0) produced += atp * mult;
+        nadh += nd * mult;
+      });
+      out.invested.textContent = String(invested);
+      out.produced.textContent = String(produced);
+      out.nadh.textContent = String(nadh);
+      const net = produced - invested;
+      out.net.textContent = (net > 0 ? '+' : '') + net;
+      tally.classList.toggle('is-positive', net > 0);
+    }
+
+    function setOpen(step: HTMLElement, open: boolean) {
+      const btn = step.querySelector<HTMLButtonElement>('.pw-step-head')!;
+      const body = step.querySelector<HTMLElement>('.pw-body')!;
+      btn.setAttribute('aria-expanded', String(open));
+      body.hidden = !open;
+      if (open) {
+        visited.add(step.getAttribute('data-step')!);
+        step.classList.add('is-visited');
+      }
+    }
+
+    steps.forEach((step) => {
+      step.querySelector<HTMLButtonElement>('.pw-step-head')!.addEventListener('click', () => {
+        const open = step.querySelector('.pw-body')!.hasAttribute('hidden');
+        setOpen(step, open);
+        recompute();
+      });
+    });
+
+    root.querySelector<HTMLButtonElement>('[data-revealall]')!.addEventListener('click', () => {
+      steps.forEach((s) => setOpen(s, true));
+      recompute();
+    });
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
+      visited.clear();
+      steps.forEach((s) => { setOpen(s, false); s.classList.remove('is-visited'); });
+      recompute();
+    });
+
+    recompute();
+  });
+</script>
+
+<style>
+  .pathway { padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-5); margin: var(--ddp-space-6) 0; }
+  .pw-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3);
+  }
+  .pw-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+
+  .pw-tally {
+    display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4);
+    padding: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-bg-alt, #f0ede7);
+    font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft);
+  }
+  .pw-tally em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
+  .pw-net { margin-left: auto; }
+  .pw-tally.is-positive .pw-net em { color: var(--ddp-color-verified); }
+
+  .pw-phase { margin-bottom: var(--ddp-space-3); }
+  .pw-phase-head {
+    margin: var(--ddp-space-2) 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--ddp-color-muted);
+  }
+  .pw-phase-head span { color: var(--ddp-color-accent); font-weight: 700; }
+
+  .pw-step { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); margin-bottom: var(--ddp-space-2); background: var(--ddp-color-surface); overflow: hidden; }
+  .pw-step.is-reg { border-color: var(--ddp-color-secondary); border-left-width: 3px; }
+  .pw-step.is-visited { box-shadow: inset 2px 0 0 var(--ddp-color-accent); }
+  .pw-step-head {
+    display: flex; align-items: center; gap: var(--ddp-space-3); width: 100%; text-align: left;
+    padding: var(--ddp-space-2) var(--ddp-space-3); background: none; border: 0; cursor: pointer;
+  }
+  .pw-step-head:hover { background: var(--ddp-color-accent-soft); }
+  .pw-num {
+    flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--ddp-color-primary); color: var(--ddp-color-surface);
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700;
+  }
+  .pw-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .pw-enzyme { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+  .pw-lock { font-size: 0.75em; margin-left: 0.3em; }
+  .pw-rxn { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pw-badge { flex: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); white-space: nowrap; }
+  .pw-badge i { color: var(--ddp-color-secondary); font-style: normal; font-weight: 700; }
+  .pw-body { padding: 0 var(--ddp-space-3) var(--ddp-space-3) calc(26px + var(--ddp-space-3) + var(--ddp-space-3)); }
+  .pw-body p { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .pw-reg { color: var(--ddp-color-ink-soft); }
+  .pw-clin { background: var(--ddp-color-accent-soft); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); }
+
+  .pw-controls { display: flex; gap: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .pw-btn { font-size: var(--ddp-text-sm); font-weight: 600; padding: 0.4rem 0.9rem; border-radius: var(--ddp-radius-sm); border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .pw-btn:hover { opacity: 0.9; }
+  .pw-btn-quiet { background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); border-color: var(--ddp-color-line); }
+  .pw-btn-quiet:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+</style>
