@@ -1,0 +1,286 @@
+---
+/**
+ * AminoTitrator — a small, floatable interactive that lives INLINE in the prose
+ * (the amino-acids analog of MiniPlot for enzyme kinetics). Drag the pH cursor
+ * up and down a live titration curve and read off the dominant ionic species and
+ * net charge at any pH; switch between amino acids; tune each pKa to see the
+ * curve, the buffering regions, and the isoelectric point recompute.
+ *
+ * Everything is drawn from first principles in the browser (no figure is loaded):
+ *   f_i(pH)   = 1 / (1 + 10^(pKa_i − pH))          fraction deprotonated of group i
+ *   Eq(pH)    = Σ f_i(pH)                          equivalents of base consumed (x)
+ *   charge(pH)= Σ (acid: −f_i ; base: +(1−f_i))    net charge
+ *   pI        = pH where charge(pH) = 0            (bisection — recomputed live)
+ */
+interface Props {
+  float?: 'right' | 'left';
+  title?: string;
+}
+const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
+---
+
+<figure class={`titrator card titr-${float}`} data-titrator>
+  <figcaption class="titr-head">{title}<span class="titr-chip">drag the pH line</span></figcaption>
+  <svg class="titr-svg" viewBox="0 0 320 250" role="img" aria-label="Interactive amino-acid titration curve: pH versus equivalents of base added"></svg>
+  <p class="titr-readout" data-readout></p>
+  <div class="titr-species" data-species aria-hidden="true"></div>
+  <div class="titr-controls">
+    <label class="titr-aa">Amino acid
+      <select data-aa>
+        <option value="glycine">Glycine (2 groups)</option>
+        <option value="histidine">Histidine (3 groups)</option>
+        <option value="aspartate">Aspartate (acidic side chain)</option>
+        <option value="lysine">Lysine (basic side chain)</option>
+      </select>
+    </label>
+    <div class="titr-sliders" data-sliders></div>
+    <button type="button" class="titr-reset" data-reset>Reset pKa values</button>
+  </div>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', GOLD = '#D4A843', ORANGE = '#e57200', GRID = '#e6e3db', MUTE = '#9a9aa3';
+  const L = 40, R = 306, T = 12, B = 206, W = 266, H = 194; // plot box; y = pH 0..14
+
+  type Grp = { name: string; pKa: number; type: 'acid' | 'base' };
+  type AA = { label: string; groups: Grp[] };
+  const AAS: Record<string, AA> = {
+    glycine: { label: 'Glycine', groups: [
+      { name: 'α-COOH', pKa: 2.34, type: 'acid' },
+      { name: 'α-NH₃⁺', pKa: 9.60, type: 'base' },
+    ] },
+    histidine: { label: 'Histidine', groups: [
+      { name: 'α-COOH', pKa: 1.82, type: 'acid' },
+      { name: 'imidazole', pKa: 6.00, type: 'base' },
+      { name: 'α-NH₃⁺', pKa: 9.17, type: 'base' },
+    ] },
+    aspartate: { label: 'Aspartate', groups: [
+      { name: 'α-COOH', pKa: 1.99, type: 'acid' },
+      { name: 'β-COOH', pKa: 3.90, type: 'acid' },
+      { name: 'α-NH₃⁺', pKa: 9.90, type: 'base' },
+    ] },
+    lysine: { label: 'Lysine', groups: [
+      { name: 'α-COOH', pKa: 2.18, type: 'acid' },
+      { name: 'α-NH₃⁺', pKa: 8.95, type: 'base' },
+      { name: 'ε-NH₃⁺', pKa: 10.53, type: 'base' },
+    ] },
+  };
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name) as SVGElement;
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const fDeprot = (pH: number, pKa: number) => 1 / (1 + Math.pow(10, pKa - pH));
+
+  document.querySelectorAll<HTMLElement>('[data-titrator]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('.titr-svg')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const speciesBar = root.querySelector<HTMLElement>('[data-species]')!;
+    const slidersBox = root.querySelector<HTMLElement>('[data-sliders]')!;
+    const sel = root.querySelector<HTMLSelectElement>('[data-aa]')!;
+
+    let key = 'glycine';
+    let pKas: number[] = AAS[key].groups.map((g) => g.pKa);
+    let pH = 6; // cursor
+
+    const groups = () => AAS[key].groups;
+    const N = () => groups().length;
+    const xMax = () => N() + 0.2;
+
+    const px = (eq: number) => L + (eq / xMax()) * W;
+    const py = (p: number) => T + (1 - p / 14) * H;
+
+    const eqAt = (p: number) => pKas.reduce((s, k) => s + fDeprot(p, k), 0);
+    const chargeAt = (p: number) =>
+      groups().reduce((s, g, i) => {
+        const f = fDeprot(p, pKas[i]);
+        return s + (g.type === 'acid' ? -f : 1 - f);
+      }, 0);
+
+    function computePI(): number {
+      let lo = 0, hi = 14, cLo = chargeAt(lo);
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        const cMid = chargeAt(mid);
+        if (Math.abs(cMid) < 1e-4) return mid;
+        if (cLo > 0 === cMid > 0) { lo = mid; cLo = cMid; } else { hi = mid; }
+      }
+      return (lo + hi) / 2;
+    }
+
+    // fractional abundance of each of the N+1 species (sequential deprotonation,
+    // groups already in increasing-pKa order)
+    function speciesFractions(p: number): number[] {
+      const f = pKas.map((k) => fDeprot(p, k));
+      const out: number[] = [];
+      let total = 0;
+      for (let kk = 0; kk <= N(); kk++) {
+        let prod = 1;
+        for (let i = 0; i < N(); i++) prod *= i < kk ? f[i] : 1 - f[i];
+        out.push(prod);
+        total += prod;
+      }
+      return out.map((v) => (total > 0 ? v / total : 0));
+    }
+    const speciesCharge = (kk: number) =>
+      groups().reduce((s, g, i) => s + (g.type === 'acid' ? (i < kk ? -1 : 0) : (i < kk ? 0 : 1)), 0);
+
+    function curvePath(): string {
+      let d = '';
+      let first = true;
+      for (let p = 0; p <= 14.0001; p += 0.05) {
+        const x = px(eqAt(p)), y = py(p);
+        d += (first ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+        first = false;
+      }
+      return d.trim();
+    }
+
+    function render() {
+      svg.replaceChildren();
+      // buffering bands (±1 pH around each pKa)
+      pKas.forEach((k) => {
+        const top = py(Math.min(14, k + 1)), bot = py(Math.max(0, k - 1));
+        svg.appendChild(el('rect', { x: L, y: top, width: W, height: Math.max(0, bot - top), fill: GOLD, opacity: 0.1 }));
+      });
+      // grid + axes
+      for (let p = 0; p <= 14; p += 2) {
+        svg.appendChild(el('line', { x1: L, y1: py(p), x2: R, y2: py(p), stroke: GRID, 'stroke-width': 1 }));
+        const t = el('text', { x: L - 4, y: py(p) + 3, 'text-anchor': 'end', 'font-size': 8, fill: MUTE }); t.textContent = String(p); svg.appendChild(t);
+      }
+      svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
+      svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
+      const xl = el('text', { x: (L + R) / 2, y: 226, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); xl.textContent = 'OH⁻ added (equivalents)'; svg.appendChild(xl);
+      const yl = el('text', { x: 11, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY, transform: `rotate(-90 11 ${(T + B) / 2})` }); yl.textContent = 'pH'; svg.appendChild(yl);
+
+      // pKa dashed lines + half-equivalence dots + labels
+      pKas.forEach((k, i) => {
+        svg.appendChild(el('line', { x1: L, y1: py(k), x2: R, y2: py(k), stroke: MUTE, 'stroke-width': 0.8, 'stroke-dasharray': '3 3', opacity: 0.7 }));
+        svg.appendChild(el('circle', { cx: px(i + 0.5), cy: py(k), r: 2.6, fill: TEAL }));
+        const lab = el('text', { x: R - 2, y: py(k) - 2.5, 'text-anchor': 'end', 'font-size': 7.5, fill: TEAL }); lab.textContent = `pKa${i + 1} ${k.toFixed(2)}`; svg.appendChild(lab);
+      });
+
+      // the curve
+      svg.appendChild(el('path', { d: curvePath(), fill: 'none', stroke: TEAL, 'stroke-width': 2.4 }));
+
+      // pI marker (gold — the one rationed accent)
+      const pI = computePI();
+      svg.appendChild(el('circle', { cx: px(eqAt(pI)), cy: py(pI), r: 4, fill: GOLD, stroke: '#fff', 'stroke-width': 1 }));
+      const piLab = el('text', { x: px(eqAt(pI)) + 6, y: py(pI) + 3, 'font-size': 8, fill: '#9a7a16', 'font-weight': '700' }); piLab.textContent = `pI ${pI.toFixed(2)}`; svg.appendChild(piLab);
+
+      // draggable pH cursor
+      const cy = py(pH), cx = px(eqAt(pH));
+      svg.appendChild(el('line', { x1: L, y1: cy, x2: R, y2: cy, stroke: NAVY, 'stroke-width': 1.4 }));
+      svg.appendChild(el('line', { x1: cx, y1: cy, x2: cx, y2: B, stroke: NAVY, 'stroke-width': 0.8, 'stroke-dasharray': '2 2', opacity: 0.6 }));
+      svg.appendChild(el('circle', { cx, cy, r: 4.5, fill: NAVY }));
+      // grab handle on the left edge
+      svg.appendChild(el('rect', { x: L - 6, y: cy - 5, width: 6, height: 10, rx: 2, fill: NAVY }));
+
+      // readout + species bar
+      const q = chargeAt(pH);
+      const sign = q > 0.05 ? '+' : q < -0.05 ? '−' : '';
+      const mag = Math.abs(q) < 0.05 ? '0' : Math.abs(q).toFixed(2);
+      const name = Math.abs(q) < 0.05 ? 'net 0 — isoelectric' : `net ${sign}${mag}`;
+      readout.innerHTML = `pH <strong>${pH.toFixed(2)}</strong> · ${AAS[key].label} · charge ${sign}${mag} <span class="titr-species-name">(${name})</span>`;
+
+      const fr = speciesFractions(pH);
+      speciesBar.replaceChildren();
+      fr.forEach((v, kk) => {
+        const c = speciesCharge(kk);
+        const col = c > 0 ? ORANGE : c < 0 ? TEAL : '#b9b3a6';
+        const seg = document.createElement('span');
+        seg.className = 'titr-seg';
+        seg.style.width = `${(v * 100).toFixed(1)}%`;
+        seg.style.background = col;
+        seg.title = `${c > 0 ? '+' + c : c} form: ${(v * 100).toFixed(0)}%`;
+        speciesBar.appendChild(seg);
+      });
+    }
+
+    function buildSliders() {
+      slidersBox.replaceChildren();
+      groups().forEach((g, i) => {
+        const wrap = document.createElement('label');
+        wrap.className = 'titr-slider';
+        const span = document.createElement('span');
+        span.textContent = `pKa${i + 1} ${g.name}`;
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = String(Math.max(0, g.pKa - 2));
+        input.max = String(Math.min(14, g.pKa + 2));
+        input.step = '0.05';
+        input.value = String(pKas[i]);
+        const val = document.createElement('em');
+        val.textContent = pKas[i].toFixed(2);
+        input.addEventListener('input', () => {
+          pKas[i] = parseFloat(input.value);
+          val.textContent = pKas[i].toFixed(2);
+          render();
+        });
+        wrap.append(span, input, val);
+        slidersBox.appendChild(wrap);
+      });
+    }
+
+    function loadAA(k: string) {
+      key = k;
+      pKas = AAS[key].groups.map((g) => g.pKa);
+      pH = Math.min(13, Math.max(1, computePI()));
+      buildSliders();
+      render();
+    }
+
+    // pH cursor drag (pointer = mouse + touch)
+    let dragging = false;
+    const setFromEvent = (clientY: number) => {
+      const rect = svg.getBoundingClientRect();
+      const vbY = ((clientY - rect.top) / rect.height) * 250; // viewBox height
+      pH = Math.min(14, Math.max(0, 14 * (1 - (vbY - T) / H)));
+      render();
+    };
+    svg.addEventListener('pointerdown', (e: PointerEvent) => { dragging = true; svg.setPointerCapture(e.pointerId); setFromEvent(e.clientY); });
+    svg.addEventListener('pointermove', (e: PointerEvent) => { if (dragging) setFromEvent(e.clientY); });
+    svg.addEventListener('pointerup', () => { dragging = false; });
+    svg.addEventListener('pointercancel', () => { dragging = false; });
+
+    sel.addEventListener('change', () => loadAA(sel.value));
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
+      pKas = AAS[key].groups.map((g) => g.pKa);
+      buildSliders();
+      render();
+    });
+
+    buildSliders();
+    render();
+  });
+</script>
+
+<style>
+  .titrator { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); width: min(380px, 52%); }
+  .titr-right { float: right; margin: 0.25rem 0 var(--ddp-space-4) var(--ddp-space-6); clear: right; }
+  .titr-left { float: left; margin: 0.25rem var(--ddp-space-6) var(--ddp-space-4) 0; clear: left; }
+  @media (max-width: 680px) {
+    .titrator { float: none; width: 100%; margin: var(--ddp-space-4) 0; }
+  }
+  .titr-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .titr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .titr-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: none; cursor: ns-resize; }
+  .titr-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .titr-species-name { color: var(--ddp-color-muted); }
+  .titr-species { display: flex; height: 8px; width: 100%; margin-top: 6px; border-radius: 3px; overflow: hidden; border: 1px solid var(--ddp-color-line); background: #fff; }
+  .titr-seg { display: block; height: 100%; }
+  .titr-controls { display: flex; flex-direction: column; gap: 0.45rem; margin-top: var(--ddp-space-3); }
+  .titr-aa { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .titr-aa select { font-size: var(--ddp-text-xs); padding: 2px 4px; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); }
+  .titr-sliders { display: flex; flex-direction: column; gap: 0.3rem; }
+  .titr-slider { display: grid; grid-template-columns: 7.5rem 1fr 2.2rem; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .titr-slider input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .titr-slider em { font-style: normal; font-family: var(--ddp-font-mono); color: var(--ddp-color-muted); text-align: right; }
+  .titr-reset { align-self: flex-start; font-size: var(--ddp-text-xs); padding: 0.25rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .titr-reset:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+</style>
