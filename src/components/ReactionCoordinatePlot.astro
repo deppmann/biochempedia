@@ -1,0 +1,206 @@
+---
+/**
+ * ReactionCoordinatePlot — the thermodynamics/transition-state analog of MiniPlot.
+ * An interactive Gibbs free-energy reaction-coordinate diagram: drag ΔG, the
+ * uncatalyzed activation energy, and an enzyme "catalysis %" and watch the
+ * energy landscape redraw. The load-bearing lesson: the enzyme lowers ONLY the
+ * activation barrier (the catalyzed peak); ΔG and the valley levels never move.
+ * Self-contained Astro island — inline style + vanilla TS script, no props.
+ */
+---
+
+<figure class="rcp card" data-rcp>
+  <figcaption class="rcp-head">
+    Reaction-coordinate explorer
+    <span class="rcp-chip">drag the sliders</span>
+  </figcaption>
+
+  <svg class="rcp-svg" viewBox="0 0 520 320" role="img" aria-label="Gibbs free-energy reaction-coordinate diagram" data-svg></svg>
+
+  <div class="rcp-body">
+    <div class="rcp-controls">
+      <label><span class="rcp-lbl">ΔG (kJ/mol)</span>
+        <input type="range" data-in="dg" min="-60" max="60" step="5" value="-30" />
+      </label>
+      <label><span class="rcp-lbl">E<sub>a</sub>, uncatalyzed (kJ/mol)</span>
+        <input type="range" data-in="ea" min="20" max="120" step="5" value="80" />
+      </label>
+      <label><span class="rcp-lbl">Enzyme catalysis (%)</span>
+        <input type="range" data-in="cat" min="0" max="90" step="5" value="60" />
+      </label>
+      <div class="rcp-btns">
+        <button type="button" data-toggle>Hide uncatalyzed</button>
+        <button type="button" data-reset>Reset</button>
+      </div>
+    </div>
+
+    <div class="rcp-side">
+      <p class="rcp-readout" data-readout></p>
+      <p class="rcp-note">An enzyme lowers E<sub>a</sub>. It never changes ΔG or K<sub>eq</sub>.</p>
+    </div>
+  </div>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200';
+  const GRAY = '#9a9aa3', PURPLE = '#7a5bb0', GREEN = '#2e8b57';
+  // plot frame inside the 520×320 viewBox
+  const L = 76, R = 498, T = 26, PB = 280;
+
+  function el(name: string, attrs: Record<string, string | number>) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rcp]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const toggleBtn = root.querySelector<HTMLButtonElement>('[data-toggle]')!;
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    const state = { dg: -30, ea: 80, cat: 60, showUncat: true };
+
+    // normalized reaction-coordinate x (0.1 reactant … 0.9 product) → screen x
+    const px = (t: number) => L + t * (R - L);
+
+    function peakUncat() { return state.ea; }
+    function peakCat() { return state.ea * (1 - state.cat / 100); }
+
+    // one smooth barrier from two cubic Béziers meeting at the peak (horizontal
+    // tangents at reactant, peak, and product so the hump reads cleanly).
+    function barrierPath(peakG: number, gToY: (g: number) => number) {
+      const yR = gToY(0), yPk = gToY(peakG), yP = gToY(state.dg);
+      const xR = px(0.1), xPk = px(0.5), xP = px(0.9);
+      return `M ${xR} ${yR} C ${px(0.30)} ${yR} ${px(0.45)} ${yPk} ${xPk} ${yPk}`
+        + ` C ${px(0.55)} ${yPk} ${px(0.70)} ${yP} ${xP} ${yP}`;
+    }
+
+    function arrow(x: number, y1: number, y2: number, color: string) {
+      // a thin double-headed vertical measure line
+      const g = el('g', {});
+      g.appendChild(el('line', { x1: x, y1, x2: x, y2, stroke: color, 'stroke-width': 1.3 }));
+      const head = (y: number, dir: number) => {
+        const p = el('path', { d: `M ${x - 3} ${y + dir * 5} L ${x} ${y} L ${x + 3} ${y + dir * 5}`, fill: 'none', stroke: color, 'stroke-width': 1.3 });
+        g.appendChild(p);
+      };
+      head(y1, y1 < y2 ? 1 : -1); head(y2, y2 < y1 ? 1 : -1);
+      return g;
+    }
+
+    function label(x: number, y: number, text: string, color: string, anchor = 'middle', size = 11) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill: color });
+      t.textContent = text; return t;
+    }
+
+    function render() {
+      svg.replaceChildren();
+      const { dg, showUncat } = state;
+      const pkU = peakUncat(), pkC = peakCat();
+
+      // vertical scale: fit reactant(0), product(ΔG), and the taller peak
+      const gMax = Math.max(pkU, 0) + 14;
+      const gMin = Math.min(dg, 0) - 16;
+      const gToY = (g: number) => T + (gMax - g) / (gMax - gMin) * (PB - T);
+
+      // axes
+      svg.appendChild(el('line', { x1: L, y1: T - 6, x2: L, y2: PB, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+      svg.appendChild(el('line', { x1: L, y1: PB, x2: R, y2: PB, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+      svg.appendChild(label((L + R) / 2, 308, 'Reaction coordinate (progress) →', NAVY, 'middle', 11));
+      const yl = label(18, (T + PB) / 2, 'Gibbs free energy (G) →', NAVY, 'middle', 11);
+      yl.setAttribute('transform', `rotate(-90 18 ${(T + PB) / 2})`); svg.appendChild(yl);
+
+      // reactant + product guide rails
+      svg.appendChild(el('line', { x1: px(0.1), y1: gToY(0), x2: R, y2: gToY(0), stroke: PURPLE, 'stroke-width': 1, 'stroke-dasharray': '4 3', opacity: 0.65 }));
+      svg.appendChild(el('line', { x1: L, y1: gToY(dg), x2: px(0.9), y2: gToY(dg), stroke: GREEN, 'stroke-width': 1, 'stroke-dasharray': '4 3', opacity: 0.7 }));
+
+      // ΔG measure (reactant level → product level), at the far right
+      svg.appendChild(arrow(R - 12, gToY(0), gToY(dg), NAVY));
+      svg.appendChild(label(R - 8, (gToY(0) + gToY(dg)) / 2, 'ΔG', NAVY, 'start', 11));
+
+      // uncatalyzed barrier (gray dashed) + its Ea measure
+      if (showUncat) {
+        svg.appendChild(el('path', { d: barrierPath(pkU, gToY), fill: 'none', stroke: GRAY, 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
+        svg.appendChild(arrow(px(0.265), gToY(0), gToY(pkU), GRAY));
+        svg.appendChild(label(px(0.265) - 5, gToY(pkU) - 6, 'Ea (uncat.)', GRAY, 'end', 10));
+        svg.appendChild(el('circle', { cx: px(0.5), cy: gToY(pkU), r: 4.2, fill: ORANGE }));
+        svg.appendChild(label(px(0.5), gToY(pkU) - 8, '‡', NAVY, 'middle', 13));
+      }
+
+      // catalyzed barrier (teal solid) + its Ea measure
+      svg.appendChild(el('path', { d: barrierPath(pkC, gToY), fill: 'none', stroke: TEAL, 'stroke-width': 2.6 }));
+      svg.appendChild(arrow(px(0.735), gToY(0), gToY(pkC), TEAL));
+      svg.appendChild(label(px(0.735) + 5, gToY(pkC) - 6, 'Ea (cat.)', TEAL, 'start', 10));
+      svg.appendChild(el('circle', { cx: px(0.5), cy: gToY(pkC), r: 4.2, fill: ORANGE }));
+
+      // endpoint dots + labels
+      svg.appendChild(el('circle', { cx: px(0.1), cy: gToY(0), r: 3.5, fill: NAVY }));
+      svg.appendChild(el('circle', { cx: px(0.9), cy: gToY(dg), r: 3.5, fill: NAVY }));
+      svg.appendChild(label(px(0.1) + 2, gToY(0) - 8, 'Substrate', NAVY, 'middle', 10));
+      svg.appendChild(label(px(0.9), gToY(dg) + (dg < 0 ? 16 : -8), 'Product', NAVY, 'middle', 10));
+
+      // readouts
+      const keq = dg < -20 ? 'strongly favors products (Keq ≫ 1)'
+        : dg <= 20 ? 'near equilibrium (Keq ≈ 1)'
+        : 'strongly favors reactants (Keq ≪ 1)';
+      readout.innerHTML = `ΔG <b>${dg}</b> · E<sub>a</sub> uncat <b>${pkU.toFixed(0)}</b> · `
+        + `E<sub>a</sub> cat <b>${pkC.toFixed(0)}</b> kJ/mol<br>${keq}`;
+      svg.setAttribute('aria-label',
+        `Reaction coordinate: ΔG ${dg} kJ/mol; uncatalyzed activation energy ${pkU.toFixed(0)}, `
+        + `catalyzed ${pkC.toFixed(0)} kJ/mol; equilibrium ${keq}.`);
+    }
+
+    root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((inp) => {
+      inp.addEventListener('input', () => {
+        const k = inp.getAttribute('data-in') as 'dg' | 'ea' | 'cat';
+        state[k] = parseFloat(inp.value);
+        render();
+      });
+    });
+    toggleBtn.addEventListener('click', () => {
+      state.showUncat = !state.showUncat;
+      toggleBtn.textContent = state.showUncat ? 'Hide uncatalyzed' : 'Show uncatalyzed';
+      render();
+    });
+    resetBtn.addEventListener('click', () => {
+      state.dg = -30; state.ea = 80; state.cat = 60; state.showUncat = true;
+      toggleBtn.textContent = 'Hide uncatalyzed';
+      root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((inp) => {
+        const k = inp.getAttribute('data-in');
+        if (k === 'dg') inp.value = '-30';
+        if (k === 'ea') inp.value = '80';
+        if (k === 'cat') inp.value = '60';
+      });
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .rcp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rcp-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .rcp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rcp-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rcp-body { display: flex; flex-wrap: wrap; gap: var(--ddp-space-4); margin-top: var(--ddp-space-3); }
+  .rcp-controls { flex: 1 1 260px; display: flex; flex-direction: column; gap: 0.45rem; }
+  .rcp-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rcp-controls .rcp-lbl { display: block; }
+  .rcp-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .rcp-btns { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
+  .rcp-btns button {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.3rem 0.6rem;
+  }
+  .rcp-btns button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .rcp-side { flex: 1 1 190px; display: flex; flex-direction: column; justify-content: center; gap: var(--ddp-space-2); }
+  .rcp-readout { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .rcp-note {
+    margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 600;
+    border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.5rem;
+  }
+</style>

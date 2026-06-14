@@ -1,0 +1,768 @@
+---
+title: "Basic Concepts of Enzyme Action"
+slug: "enzyme-action-basics"
+courseChapter: "Enzymes and Bioenergetics"
+order: 6
+summary: >-
+  Can an enzyme make an impossible reaction happen? No — it can only make a
+  possible one fast. This chapter separates what a reaction *will* do
+  (thermodynamics: ΔG, Keq) from how *fast* it does it (kinetics: the activation
+  barrier), and shows that an enzyme touches only the second — by gripping the
+  fleeting transition state more tightly than the substrate.
+
+estMinutes: 22
+objectives:
+  - "Classify an enzyme into its EC class and tell the cofactor terms apart — coenzyme vs. metal ion, prosthetic group, apoenzyme vs. holoenzyme."
+  - "Use ΔG to call a reaction exergonic or endergonic, and connect ΔG°′ to the equilibrium constant through ΔG°′ = −RT ln Keq."
+  - "Explain why an enzyme changes the rate of a reaction but never its ΔG, ΔG°, or Keq."
+  - "Describe how an enzyme lowers the activation barrier by stabilizing the transition state through binding energy and induced fit."
+
+scientists:
+  - name: "Emil Fischer"
+    dates: "1852–1919"
+    contribution: >-
+      Coined the "lock and key" picture of enzyme specificity in 1894 — the
+      metaphor this chapter spends its last section correcting, since the real
+      active site flexes shut around what it binds (induced fit) rather than
+      sitting rigid like a lock.
+    profileSourceAnchor: "The Molecule Hunters (v10) — section intro, \"The Invisible Machines: Enzymes and Catalysis\"; Fischer's 1894 lecture and 1894/1898 papers, quoted inline."
+    quotes:
+      - "Enzyme and glucoside must fit together like a lock and key."
+      - "Only in the case of similar geometrical structure"
+      - "the asymmetric structure of the enzyme molecule"
+      - "I am far from placing this hypothesis side by side to the established theories of our science, and readily admit that it can only be thoroughly tested when we are able to isolate the enzymes in a pure state and thus investigate their configuration."
+      - "the progress of science has deprived the highly respected lifeforce of even this last hiding-place: for we are now in a position to artificially prepare such active substances without any assistance from a living organism."
+    photo: "/scientists/emil-fischer.png"
+    story: >-
+      The most durable metaphor in enzymology escaped almost by accident. Closing
+      an 1894 lecture, Fischer reached for an image to explain why an enzyme would
+      tear one sugar apart and ignore its near-twin: enzyme and substrate had to
+      fit "like lock and key." He distrusted it the moment he said it. By 1898 he
+      was publicly walking it back, insisting the specificity lay in "the
+      asymmetric structure of the enzyme molecule" and that he had used the
+      picture only to make the thought clearer. Then the warning this chapter
+      proves him right to give: the idea "can only be thoroughly tested when we
+      are able to isolate the enzymes in a pure state and thus investigate their
+      configuration." It took most of a century. When crystallographers finally
+      held a pure enzyme and looked, the brass lock turned out to flex — closing
+      around its substrate, and gripping the fleeting transition state tighter
+      still. That correction is what Koshland named induced fit. Fischer reached
+      the lock-and-key idea the way he read structure off behavior everywhere
+      else: he built sugars from glycerol to prove life held no chemistry beyond
+      the ordinary, declaring that science had stripped the "lifeforce" of "this
+      last hiding-place." The phenylhydrazine that fingerprinted those sugars
+      also, slowly, poisoned him; in 1919, dying of an inoperable cancer, he took
+      his own life.
+
+  - name: "Daniel Koshland"
+    dates: "1920–2007"
+    contribution: >-
+      Replaced Fischer's rigid lock with "induced fit" (1958): the enzyme
+      reshapes itself around what it binds, reaching its tightest grip on the
+      strained transition state rather than the resting substrate.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"The Invisible Machines: Enzymes and Catalysis,\" Koshland profile."
+    quotes:
+      - "What is new is not true, and what is true is not new. — an anonymous reviewer's dismissal of Koshland's induced-fit paper, as recounted in The Molecule Hunters"
+    photo: "/scientists/daniel-koshland.png"
+    story: >-
+      By the 1950s the lock-and-key picture decorated every textbook, and Daniel
+      Koshland knew it was incomplete — because of water. If an active site sat
+      permanently open and waiting, water, smaller than any substrate, should slip
+      in constantly and trigger chaos. It doesn't. So something must change when
+      the real substrate arrives: the site closes around it, and the
+      complementarity that matters is reached not at the resting substrate but at
+      the strained transition state. Binding induces the fit, and water is too
+      small to force it. The idea cut so hard against the dogma that the standard
+      journals turned it away; one reviewer's verdict became famous ("What is new
+      is not true, and what is true is not new"). Koshland slipped the paper into
+      PNAS in 1958 through a loophole, and X-ray crystallography later proved him
+      right: enzymes flex, shift, and clamp down. He had moved biochemistry from a
+      science of static shapes to one of moving machines.
+
+techniques:
+  - name: "Measuring rate enhancement"
+    blurb: >-
+      Run the reaction with the enzyme and without it, take each rate, and divide.
+      A catalyzed rate of 540 s⁻¹ over an uncatalyzed 2.9×10⁻⁶ s⁻¹ gives 1.9×10⁸ —
+      the number that says how much work the protein is doing.
+  - name: "Reading ΔG°′ from the equilibrium constant"
+    blurb: >-
+      Let a reaction reach equilibrium, measure [products]/[reactants], and that
+      ratio is Keq. Plug it into ΔG°′ = −RT ln Keq (R = 8.314 J/mol·K, T = 298 K)
+      to convert a concentration you can measure into a free energy you cannot.
+  - name: "Transition-state analog binding"
+    blurb: >-
+      Build a stable molecule shaped like the transition state, then measure how
+      tightly the enzyme holds it versus the real substrate. Proline racemase
+      binds its analog 160× tighter — strong evidence the active site is
+      complementary to the transition state, not the substrate.
+
+structures:
+  - label: "Human catalase — an oxidoreductase carrying both kinds of cofactor"
+    source: "rcsb"
+    id: "1DGF"
+    note: "EC 1.11.1.6 · oxidoreductase (class 1) · heme + NADPH · 1.5 Å"
+    caption: >-
+      Human catalase disproportionates hydrogen peroxide to water and O₂. This one
+      structure shows both cofactor types at once — a heme B prosthetic group and a
+      bound NADPH coenzyme.
+  - label: "Triosephosphate isomerase — the textbook TIM-barrel fold"
+    source: "rcsb"
+    id: "1YPI"
+    note: "EC 5.3.1.1 · isomerase (class 5) · near-perfect catalyst"
+    caption: >-
+      An isomerase: it simply rearranges one triose phosphate into another. Its
+      eight-strand barrel is the most common enzyme fold in nature, and it runs
+      close to the diffusion limit.
+  - label: "TIM gripping a transition-state analog"
+    source: "rcsb"
+    id: "7TIM"
+    note: "EC 5.3.1.1 · TIM bound to phosphoglycolohydroxamate (a TS analog)"
+    caption: >-
+      The same enzyme caught holding a stable mimic of its high-energy enediol
+      transition state — a direct picture of an active site built to bind the
+      transition state, not the resting substrate.
+  - label: "Trypsin — a serine-protease hydrolase with the Ser–His–Asp triad"
+    source: "rcsb"
+    id: "1TLD"
+    note: "EC 3.4.21.4 · hydrolase (class 3) · catalytic triad · 1.5 Å"
+    caption: >-
+      Trypsin uses water to cut peptide bonds after Lys or Arg. Rotate it to find
+      the three residues — serine, histidine, aspartate — that the chain pulls
+      together into one catalytic machine.
+  - label: "DNA ligase I — a ligase wrapped around nicked DNA"
+    source: "rcsb"
+    id: "1X9N"
+    note: "EC 6.5.1.1 · ligase (class 6) · ATP-dependent · encircling nicked DNA"
+    caption: >-
+      A ligase joins two molecules and spends ATP to do it. Here human DNA ligase I
+      forms a complete ring around a nicked DNA duplex — the "joining" is right
+      there in the shape.
+  - label: "F₁-ATPase — where the cell's energy currency is made"
+    source: "rcsb"
+    id: "1BMF"
+    note: "ATP synthase F₁ (α₃β₃γ) · couples a proton gradient to ATP synthesis · 2.8 Å"
+    caption: >-
+      Walker's landmark structure of the catalytic core of ATP synthase: three
+      β-subunits each frozen in a different nucleotide state. This is the enzyme
+      that turns a proton gradient into ATP.
+  - label: "Hydrogen peroxide — catalase's substrate"
+    source: "pubchem"
+    id: "784"
+    note: "CID 784 · substrate of catalase"
+    caption: >-
+      The reactive-oxygen species catalase destroys: 2 H₂O₂ → 2 H₂O + O₂. A small
+      molecule your cells must clear quickly to avoid oxidative damage.
+  - label: "NAD⁺ — a loosely bound coenzyme (vitamin B3)"
+    source: "pubchem"
+    id: "925"
+    note: "CID 925 · coenzyme · derived from niacin"
+    caption: >-
+      Nicotinamide adenine dinucleotide ferries electrons for oxidoreductases. It
+      binds, reacts, and leaves — a coenzyme, the come-and-go kind of cofactor.
+  - label: "FAD — a tightly bound coenzyme (vitamin B2)"
+    source: "pubchem"
+    id: "643975"
+    note: "CID 643975 · prosthetic-group coenzyme · derived from riboflavin"
+    caption: >-
+      Flavin adenine dinucleotide does the same redox job as NAD⁺ but usually
+      stays bound tight to its enzyme. That permanence is what makes it a
+      prosthetic group rather than a free coenzyme.
+  - label: "Heme B — the metal-centered prosthetic group of catalase"
+    source: "pubchem"
+    id: "444098"
+    note: "CID 444098 · iron protoporphyrin IX · metal-ion prosthetic group"
+    caption: >-
+      The iron-porphyrin cofactor at the heart of catalase (and of hemoglobin). A
+      permanently bound, metal-centered prosthetic group — part of the holoenzyme
+      for good.
+  - label: "ATP — energy currency and ligase cofactor"
+    source: "pubchem"
+    id: "5957"
+    note: "CID 5957 · cofactor + energy currency"
+    caption: >-
+      Adenosine triphosphate. Its hydrolysis (ΔG°′ = −30.5 kJ/mol) is the
+      benchmark exergonic reaction, and it powers ligases like the DNA ligase
+      above.
+  - label: "Pyridoxal 5′-phosphate (PLP) — a coenzyme from vitamin B6"
+    source: "pubchem"
+    id: "1051"
+    note: "CID 1051 · coenzyme · derived from vitamin B6"
+    caption: >-
+      The coenzyme of transaminases and many other enzymes — one more example of
+      how broadly vitamins seed the cell's coenzyme toolkit.
+
+videos:
+  - title: "The seven enzyme classes (MCAT)"
+    youtubeId: "AD3-v1oKjSk"
+    sourceNote: "Khan Academy (MCAT) — walks the EC classes with reaction-type examples. Openly available."
+  - title: "Enzymes: catalysts, active sites, and activation energy"
+    youtubeId: "A90HKrgUOg0"
+    sourceNote: "Khan Academy (Biology) — enzymes as biological catalysts: active sites, induced fit, and lowering the activation barrier."
+
+simulations:
+  - type: "local"
+    ref: "ReactionCoordinatePlot"
+    title: "Reaction-coordinate explorer (ΔG, activation energy, and catalysis)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "A newly characterized enzyme catalyzes the intramolecular conversion of glucose-6-phosphate to fructose-6-phosphate, rearranging atoms within a single molecule without adding or removing any group. To which EC class does this enzyme belong?"
+    choices:
+      - "Transferases"
+      - "Hydrolases"
+      - "Isomerases"
+      - "Ligases"
+    answer: 2
+    rationale: >-
+      Isomerases (EC class 5) catalyze intramolecular rearrangements, converting a
+      molecule into one of its isomers without changing its molecular formula —
+      phosphoglucose isomerase is the classic example. Transferases move a group
+      between molecules; hydrolases use water to cleave bonds; ligases join two
+      molecules using ATP. None of those describes a simple rearrangement.
+
+  - stem: "A purified enzyme shows no activity in a tube of buffer and substrate, but full activity returns when Zn²⁺ is added. Using this chapter's cofactor terms, which statement is correct?"
+    choices:
+      - "The enzyme alone is the holoenzyme, and adding Zn²⁺ converts it to the apoenzyme"
+      - "The enzyme alone is the apoenzyme, and the Zn²⁺-bound active form is the holoenzyme"
+      - "Zn²⁺ is an organic coenzyme derived from a vitamin"
+      - "Zn²⁺ is a prosthetic group because it dissociates freely from the protein"
+    answer: 1
+    rationale: >-
+      The inactive protein lacking its required cofactor is the apoenzyme (apo =
+      away/absent); the active protein-plus-cofactor complex is the holoenzyme
+      (holo = whole). Zn²⁺ is an inorganic metal-ion cofactor, not an organic
+      vitamin-derived coenzyme, so C is wrong. A prosthetic group is a tightly
+      bound cofactor — "dissociates freely" contradicts that, so D is wrong.
+
+  - stem: "A reaction has ΔG°′ = +13.8 kJ/mol (the chapter's value for glucose-6-phosphate formation). Adding the appropriate enzyme to a mixture at equilibrium will:"
+    choices:
+      - "Make the reaction spontaneous by lowering ΔG°′ below zero"
+      - "Increase the equilibrium constant so more product accumulates"
+      - "Have no effect on ΔG°′ or Keq, because enzymes change only the rate"
+      - "Reverse the reaction so products become reactants"
+    answer: 2
+    rationale: >-
+      Enzymes lower the activation energy (ΔG‡) and speed the approach to
+      equilibrium, but they cannot change ΔG, ΔG°′, or Keq. A positive-ΔG°′
+      reaction stays thermodynamically unfavorable in the standard direction
+      regardless of enzyme — the catalyst just lets the system reach its
+      (unchanged) equilibrium faster. A, B, and D all wrongly move the position of
+      equilibrium.
+
+  - stem: "Proline racemase binds the analog pyrrole-2-carboxylate (Kd = 0.022 mM) about 160-fold more tightly than its substrate L-proline (Kd = 3.6 mM). What does this most directly support?"
+    choices:
+      - "The lock-and-key model, because the enzyme binds substrate with maximum affinity"
+      - "Induced fit, because the active site is most complementary to the transition state, not the substrate"
+      - "That the enzyme increases the equilibrium constant of the reaction"
+      - "That the analog is the true physiological substrate of the enzyme"
+    answer: 1
+    rationale: >-
+      The active site achieves maximal complementarity to the transition state, not
+      the ground-state substrate — and tighter binding of a transition-state analog
+      than of the substrate is the experimental hallmark of that idea. Lock-and-key
+      predicts the opposite (A). Binding affects rate, not Keq (C). A transition-
+      state analog is a stable mimic, not the molecule the enzyme turns over (D).
+
+  - stem: "A student claims that because all known catalysts in cells are proteins, RNA cannot perform catalysis. Which counterexample from this chapter best refutes the claim?"
+    choices:
+      - "DNA ligase, which seals nicks in the DNA backbone"
+      - "Carbonic anhydrase, which interconverts CO₂ and bicarbonate"
+      - "The ribosome, whose peptidyl transferase activity is carried out by RNA"
+      - "Trypsin, which cleaves peptide bonds after Lys and Arg residues"
+    answer: 2
+    rationale: >-
+      Ribozymes are catalytic RNA molecules, and the ribosome's peptide-bond-forming
+      center is itself RNA-catalyzed — the ribosome is a ribozyme, which directly
+      refutes the "all enzymes are proteins" trap. DNA ligase, carbonic anhydrase,
+      and trypsin are all protein enzymes, so none serves as a counterexample.
+
+mcatQuestions:
+  - stem: "An enzyme catalyzes its reaction at 540 s⁻¹, whereas the uncatalyzed rate is 2.9 × 10⁻⁶ s⁻¹. Approximately what rate enhancement does the enzyme provide, and what does this tell you about the reaction's equilibrium constant?"
+    choices:
+      - "~1.9 × 10⁸; the enhancement also increases Keq by the same factor"
+      - "~1.9 × 10⁸; Keq is unchanged because catalysis affects only rate"
+      - "~5.4 × 10⁻⁹; Keq is decreased proportionally"
+      - "~2.9 × 10²; Keq is unchanged because catalysis affects only rate"
+    answer: 1
+    rationale: >-
+      Rate enhancement = catalyzed/uncatalyzed = 540 / (2.9×10⁻⁶) ≈ 1.9×10⁸. A
+      catalyst speeds the forward and reverse reactions equally, so it accelerates
+      the approach to equilibrium without altering the equilibrium constant — Keq is
+      unchanged. A wrongly couples Keq to rate; C and D miscompute the ratio.
+
+  - stem: "Using ΔG°′ = −RT ln Keq with R = 8.314 J/(mol·K) and T = 298 K, a reaction with ΔG°′ = −17 kJ/mol has an equilibrium constant closest to which value, and which direction does it favor?"
+    choices:
+      - "Keq ≈ 10⁻³; favors reactants"
+      - "Keq ≈ 1; equal reactants and products"
+      - "Keq ≈ 10³; favors products"
+      - "Keq ≈ 10¹⁷; favors products"
+    answer: 2
+    rationale: >-
+      Keq = e^(−ΔG/RT) = e^(17000 / (8.314 × 298)) = e^(6.86) ≈ 950, on the order of
+      10³. A negative ΔG°′ gives Keq > 1, so products are favored. A would need a
+      positive ΔG°′; B needs ΔG°′ near zero; D (10¹⁷) needs a far more negative ΔG°′.
+
+  - stem: "Statins inhibit HMG-CoA reductase, the rate-limiting enzyme of cholesterol synthesis, acting as transition-state analogs that bind ~10,000-fold more tightly than the natural substrate. A small subset of patients develops muscle pain with elevated creatine kinase. Which mechanistic chain best explains this off-target effect?"
+    choices:
+      - "Statins covalently modify actin, degrading muscle filaments independent of the mevalonate pathway"
+      - "By blocking the mevalonate pathway, statins reduce CoQ10 and isoprenoid synthesis, impairing mitochondrial electron transport and muscle protein function, leading to myocyte breakdown"
+      - "Statins raise the equilibrium constant for cholesterol synthesis, causing toxic cholesterol accumulation in muscle"
+      - "Statins increase HMG-CoA reductase activity in muscle, overproducing ATP and rupturing myocytes"
+    answer: 1
+    rationale: >-
+      HMG-CoA reductase sits at the head of the mevalonate pathway, so inhibiting it
+      reduces not only cholesterol but also downstream CoQ10 (needed for the
+      mitochondrial electron transport chain) and isoprenoids (needed for muscle
+      protein function) — leading to mitochondrial dysfunction, ATP depletion, and
+      myocyte breakdown with elevated creatine kinase. A invents a covalent actin
+      mechanism; C wrongly has an inhibitor raising Keq; D has statins activating,
+      not inhibiting, the enzyme.
+
+images: []
+
+lectureSlides:
+  - src: "/slides/enzyme-action-basics/statin-mystery-hook.png"
+    audio: "/slides/enzyme-action-basics/audio/statin-mystery-hook.mp3"
+    title: "Clinical case: the statin mystery"
+    alt: "A clinical case hook: a patient on a statin develops muscle pain and a tenfold-elevated creatine kinase, with the question 'what's happening at the molecular level?'"
+    source: "CH06 (Chapter 7) Enzyme Action · slide 2"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Here's the puzzle we'll spend the whole chapter solving. A patient starts a
+      statin for cholesterol, and within three weeks their muscles ache and a blood
+      marker called creatine kinase climbs tenfold. The drug is doing exactly what
+      it was designed to do — and that is the problem. To see why, you have to
+      understand what an enzyme can and cannot do. Hold onto this case; by the last
+      slide it will make complete mechanistic sense.
+  - src: "/slides/enzyme-action-basics/soda-fizz-carbonic-anhydrase.png"
+    audio: "/slides/enzyme-action-basics/audio/soda-fizz-carbonic-anhydrase.mp3"
+    title: "The soda-fizz phenomenon"
+    alt: "Three panels tracing carbonation from CO₂ dissolved under pressure, to slow chemistry as the can opens, to carbonic anhydrase on the tongue rapidly releasing the protons you taste."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 6"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      The fizz you taste isn't really the bubbles. CO₂ is dissolved under pressure
+      in the can; pop the top and it slowly forms carbonic acid by ordinary
+      chemistry. But on your tongue, the enzyme carbonic anhydrase accelerates that
+      same reaction almost instantly, releasing a burst of protons that your taste
+      receptors read as the sharp tingle of a carbonated drink. Same chemistry, two
+      speeds — and the speed is entirely the enzyme's doing.
+  - src: "/slides/enzyme-action-basics/six-enzyme-classes.png"
+    audio: "/slides/enzyme-action-basics/audio/six-enzyme-classes.mp3"
+    title: "The enzyme classes (a mnemonic)"
+    alt: "A six-panel summary of the enzyme classes — oxidoreductases, transferases, hydrolases, lyases, isomerases, ligases — with the mnemonic 'Old Tiresome Harold Loves Indoor Lamps' and a footer adding translocases as the seventh class."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 21"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Every enzyme is filed by the chemistry it does. Oxidoreductases move
+      electrons; transferases move a chemical group; hydrolases break a bond with
+      water; lyases add or remove groups across a double bond; isomerases rearrange
+      a molecule into its isomer; and ligases join two molecules, spending ATP to do
+      it. The mnemonic — Old Tiresome Harold Loves Indoor Lamps — fixes the order.
+      One addition since 2018: a seventh class, the translocases, which move ions
+      and molecules across membranes.
+  - src: "/slides/enzyme-action-basics/thermodynamics-vs-kinetics-gps.png"
+    audio: "/slides/enzyme-action-basics/audio/thermodynamics-vs-kinetics-gps.mp3"
+    title: "Thermodynamics vs. kinetics — a GPS analogy"
+    alt: "A GPS analogy: 'will it happen?' (thermodynamics, ΔG) versus 'how fast?' (kinetics, ΔG‡), with the conclusion that enzymes answer only the second question."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 26"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Two GPS questions hide inside "does this reaction work?" First: will this
+      route actually reach the destination? That's thermodynamics — ΔG — and it
+      tells you whether the reaction is favorable at all. Second: how congested is
+      the road? That's kinetics — ΔG‡, the activation energy — and it tells you how
+      fast you'll get there. Here's the line to remember: an enzyme answers only the
+      second question. It never changes whether a reaction can happen, only how fast.
+  - src: "/slides/enzyme-action-basics/gibbs-free-energy.png"
+    audio: "/slides/enzyme-action-basics/audio/gibbs-free-energy.mp3"
+    title: "G = H − TS: what each term means"
+    alt: "The Gibbs equation G = H − TS with arrows labeling G as the portion of energy that can do work, H as all the energy, and TS as the portion that cannot do work."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 31"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      The simplest way to read the Gibbs equation. H is all the energy in the
+      system. TS is the portion locked up in entropy, unavailable to do work. G —
+      Gibbs free energy — is what's left over: the usable part. What matters for a
+      reaction is the change, ΔG. A negative ΔG means the reaction releases free
+      energy and runs on its own. A positive ΔG means it needs an energy input and
+      won't go by itself.
+  - src: "/slides/enzyme-action-basics/thermodynamic-traffic-light.png"
+    audio: "/slides/enzyme-action-basics/audio/thermodynamic-traffic-light.mp3"
+    title: "The thermodynamic traffic light"
+    alt: "A traffic light mapping the sign of ΔG: green (ΔG < 0, spontaneous), yellow (ΔG = 0, equilibrium), red (ΔG > 0, needs energy), with the note that enzymes cannot change the light color."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 33"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Map the sign of ΔG onto a traffic light. Green — ΔG less than zero — means go:
+      the reaction is spontaneous. Yellow — ΔG equals zero — is equilibrium, no net
+      movement. Red — ΔG greater than zero — means stop: the cell has to spend
+      energy to push it forward. The crucial part is the caption: an enzyme cannot
+      change the color of the light. It can only speed your passage through a green
+      one. Spontaneity belongs to thermodynamics, not the catalyst.
+  - src: "/slides/enzyme-action-basics/what-enzymes-can-and-cannot-do.png"
+    audio: "/slides/enzyme-action-basics/audio/what-enzymes-can-and-cannot-do.mp3"
+    title: "What enzymes can and cannot do"
+    alt: "A can-do / cannot-do panel: enzymes accelerate reactions, lower activation energy, speed the approach to equilibrium; they cannot shift equilibrium, change ΔG, or force an unfavorable reaction. Tagline: 'same destination, faster arrival.'"
+    source: "CH06 (Chapter 7) Enzyme Action · slide 45"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      This is the whole chapter on one slide. What enzymes can do: accelerate a
+      reaction, lower the activation energy, and speed the approach to equilibrium.
+      What they cannot do: shift the equilibrium position, change ΔG, or force an
+      unfavorable reaction to run. The tagline says it best — same destination,
+      faster arrival. A catalyst changes the kinetics, never the thermodynamics.
+  - src: "/slides/enzyme-action-basics/mountain-shortcut.png"
+    audio: "/slides/enzyme-action-basics/audio/mountain-shortcut.mp3"
+    title: "The mountain shortcut"
+    alt: "A mountain analogy: without an enzyme reactants climb over a high peak; with an enzyme they take a lower shortcut. Both routes reach the same destination on the far side."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 48"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      A picture for the next section. Without an enzyme, reactants have to climb over
+      a high mountain — the long way around. With an enzyme, they take a shortcut
+      through a lower pass. Notice both routes end at the same place on the far side:
+      the enzyme doesn't move the destination, it just makes the crossing easier. So
+      how exactly does it lower the pass? That's the transition-state secret, coming
+      up.
+  - src: "/slides/enzyme-action-basics/enzyme-lowers-activation-energy.png"
+    audio: "/slides/enzyme-action-basics/audio/enzyme-lowers-activation-energy.mp3"
+    title: "Enzyme lowers activation energy, not ΔG"
+    alt: "A reaction-coordinate diagram with two curves sharing the same substrate and product levels (same ΔG) but different peak heights — the catalyzed activation energy ΔG‡ is much lower than the uncatalyzed one."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 49"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      This is the single most important diagram in the chapter. Both curves start at
+      the same substrate and end at the same product, so ΔG — the overall
+      free-energy change — is identical with or without the enzyme. What changes is
+      the height of the hill in between: the activation energy, ΔG‡, is far lower
+      when the enzyme is present. Enzymes speed reactions by stabilizing the
+      transition state at the top of that hill, not by changing where the reaction
+      ends up.
+  - src: "/slides/enzyme-action-basics/what-is-the-transition-state.png"
+    audio: "/slides/enzyme-action-basics/audio/what-is-the-transition-state.mp3"
+    title: "What is the transition state?"
+    alt: "Two rows: a conceptual arc of substrate → transition state → product, and a molecular view of partial bonds forming and breaking, with the key insight that the transition state has a specific geometry enzymes evolved to recognize."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 50"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      The transition state is neither substrate nor product — it's a fleeting,
+      highest-energy arrangement of atoms that exists for about ten femtoseconds. The
+      top row shows the arc: substrate in, transition state, product out. The bottom
+      row zooms in on the chemistry — bonds half-broken and half-formed at the same
+      instant. The key insight: that transition state has a specific geometry, and
+      it's the shape evolution has tuned the enzyme to recognize and grip.
+  - src: "/slides/enzyme-action-basics/binding-energy-catalysis.png"
+    audio: "/slides/enzyme-action-basics/audio/binding-energy-catalysis.mp3"
+    title: "Binding energy facilitates catalysis"
+    alt: "A four-panel framework: the enzyme lowers the barrier by releasing binding energy at the transition state; shape complementarity favors the transition state; ΔG‡(catalyzed) = ΔG‡(uncatalyzed) − binding energy; transition-state-analog drugs exploit the tight fit."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 54"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Four panels, one idea. First, the enzyme lowers the activation barrier by
+      releasing binding energy right at the transition state. Second, shape
+      complementarity: the active site fits the transition state better than it fits
+      the ground-state substrate. Third, the bookkeeping — catalyzed ΔG‡ equals the
+      uncatalyzed barrier minus the binding energy. Fourth, the payoff in medicine:
+      drugs shaped like the transition state exploit that tight fit, binding far
+      harder than substrate mimics. The enzyme's job, in one line: bind the
+      transition state tighter than the substrate.
+  - src: "/slides/enzyme-action-basics/statin-mystery-solved.png"
+    audio: "/slides/enzyme-action-basics/audio/statin-mystery-solved.mp3"
+    title: "The statin mystery, solved"
+    alt: "A three-panel resolution: statins are transition-state analogs of HMG-CoA reductase binding ~10,000× tighter than substrate, which blocks both cholesterol and CoQ10 synthesis, and the CoQ10 drop in mitochondria explains the muscle side effect."
+    source: "CH06 (Chapter 7) Enzyme Action · slide 57"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Now the case resolves. Statins are transition-state analogs of HMG-CoA
+      reductase, the rate-limiting enzyme of cholesterol synthesis, and they bind it
+      about ten thousand times tighter than its natural substrate — the same
+      tight-binding principle proline racemase showed us. That shuts the pathway
+      down, which lowers cholesterol as intended. But the same pathway also makes
+      CoQ10 for mitochondrial energy, so muscle mitochondria starve, cells break
+      down, and creatine kinase leaks into the blood. The aching muscles were the
+      predictable cost of an inhibitor doing its job.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: |
+      Pretend your body needs to push a heavy ball over a hill. Some balls roll
+      down the other side all by themselves once they're over the top — those
+      reactions like to happen. But the hill is in the way, so it's slow. An enzyme
+      is a helper that digs a little tunnel through the hill. The ball still ends up
+      in the same low spot it was always going to roll to — the enzyme can't move
+      that spot — but now it gets there really, really fast. An enzyme can't make a
+      ball roll uphill on its own. It can only make a downhill trip quicker.
+  - level: "highschool"
+    label: "High school"
+    text: |
+      Two different questions hide inside "does this reaction work?" The first is
+      whether it will happen at all. That depends on Gibbs free energy: if the
+      products have lower free energy than the reactants (negative ΔG), the reaction
+      is spontaneous and called exergonic. If they have higher free energy (positive
+      ΔG), it needs an energy push and is endergonic. The second question is how
+      fast it happens. Even a spontaneous reaction can be painfully slow, because
+      the molecules first have to pass through a high-energy, awkward in-between form
+      called the transition state. The energy needed to reach it is the activation
+      energy.
+
+      An enzyme is a protein that lowers that activation energy. It does it by
+      binding the transition state more tightly than it binds the starting molecule,
+      which makes the awkward in-between easier to reach. The key idea: the enzyme
+      speeds things up, but it never changes whether the reaction was going to favor
+      products in the first place. It changes the speed, not the destination.
+  - level: "college"
+    label: "College"
+    text: |
+      Thermodynamics and kinetics answer different questions, and an enzyme touches
+      only one of them.
+
+      Thermodynamics asks whether a reaction is favorable. The sign of ΔG decides:
+      ΔG < 0 is exergonic (spontaneous), ΔG > 0 is endergonic (needs energy input),
+      ΔG = 0 is equilibrium. The standard free-energy change connects directly to
+      the equilibrium constant:
+
+      ΔG°′ = −RT ln Keq
+
+      where R = 8.314 J/mol·K and T = 298 K. A ΔG°′ of −17 kJ/mol corresponds to
+      Keq ≈ 950 — products strongly favored. The relationship is logarithmic, so
+      small free-energy changes shift equilibrium dramatically. Crucially, an enzyme
+      changes none of these: not ΔG, not ΔG°, not Keq.
+
+      Kinetics asks how fast. A reaction proceeds through a transition state (X‡),
+      the highest-energy point on the reaction coordinate; the gap between substrate
+      and that peak is the activation energy ΔG‡, which governs rate. Enzymes lower
+      ΔG‡. They do it by binding the transition state more tightly than the
+      substrate — the active site is complementary to X‡, not to the ground-state
+      substrate. The binding energy released pays down the barrier: ΔG‡(cat) =
+      ΔG‡(uncat) − ΔG(binding). Fischer's rigid lock-and-key (1894) was replaced by
+      Koshland's induced fit (1958): both enzyme and substrate change conformation,
+      reaching maximal complementarity at the transition state. The proof is
+      quantitative — proline racemase binds a transition-state analog 160× tighter
+      than its substrate.
+  - level: "grad"
+    label: "Graduate"
+    text: |
+      The conceptual core is that ΔG‡ and ΔG are independent quantities, and
+      catalysis acts strictly on the former. ΔG (and ΔG°′, Keq via ΔG°′ = −RT ln
+      Keq) are state functions — path-independent thermodynamic quantities fixed by
+      the free energies of substrate and product. ΔG‡ = G(X‡) − G(S) is a kinetic
+      quantity describing the barrier height, and by transition-state theory the
+      rate scales with exp(−ΔG‡/RT). A catalyst stabilizes X‡ relative to S,
+      lowering ΔG‡, and by microscopic reversibility it lowers the barrier equally
+      in both directions — which is precisely why Keq is untouched: equilibrium is
+      reached faster, not shifted.
+
+      The physical basis is differential binding. Pauling's insight, formalized by
+      Jencks, is that the active site is complementary to the transition state
+      rather than the ground-state substrate; the intrinsic binding energy not
+      consumed in substrate recognition is channeled into transition-state
+      stabilization. Induced fit (Koshland, 1958) describes the conformational
+      coupling — substrate binding triggers a protein rearrangement that completes
+      the catalytically competent geometry — and also rationalizes why product, a
+      poorer fit to the reshaped site, dissociates. The accounting is ΔG‡(cat) =
+      ΔG‡(uncat) − ΔG(binding, TS). Transition-state analogs are the experimental and
+      pharmacological corollary: a stable mimic of X‡ geometry exploits the full
+      binding energy and binds orders of magnitude tighter than substrate — proline
+      racemase's pyrrole-2-carboxylate at 160×, and statins against HMG-CoA
+      reductase at ~10⁴×, the basis of rational mechanism-based inhibitor design.
+
+anecdotes:
+  - title: "Lock-and-key is wrong — and its inventor knew it first"
+    source: "CH06 (Chapter 7) deck, slide 52; The Molecule Hunters — Fischer profile."
+    text: >-
+      The model in every textbook is the one this chapter takes apart. If
+      lock-and-key were right, an enzyme would grip its substrate with maximum
+      affinity. It doesn't — it grips the transition state hardest, which is the
+      whole reason it speeds the reaction. Emil Fischer floated "lock and key" in
+      1894 and spent the next four years trying to talk everyone out of taking it
+      too literally; Koshland's 1958 induced-fit model finished the job. Locks don't
+      change shape. Enzymes do.
+  - title: "A fake transition state that binds 160× tighter"
+    source: "CH06 (Chapter 7) deck, slide 55."
+    text: >-
+      How do you show an active site is built for the transition state and not the
+      substrate? Hand it a molecule shaped like the transition state and see how
+      hard it holds on. Proline racemase binds its real substrate, L-proline, with a
+      Kd of 3.6 mM. It binds pyrrole-2-carboxylate — a flat mimic of the planar
+      transition state — with a Kd of 0.022 mM. That's 160-fold tighter binding to a
+      molecule the enzyme can't even turn over.
+  - title: "A reaction that would outlast the Earth — finished in milliseconds"
+    animation: "fast-counter"
+    source: "CH06 (Chapter 7) deck, slides 7–8."
+    text: >-
+      Strip the enzyme away and some essential reactions barely happen at all. OMP
+      decarboxylase runs a step your cells need constantly; uncatalyzed, its
+      half-life is 78 million years — longer than the time since the non-avian
+      dinosaurs died out. The enzyme does it in milliseconds. That's a rate
+      enhancement near 10¹⁷, the largest known, and it is why life cannot wait on
+      chemistry to proceed on its own.
+  - title: "The machine that builds every protein is not a protein"
+    source: "CH06 (Chapter 7) deck, slide 10."
+    text: >-
+      "All enzymes are proteins" is a trap, and the counterexample sits in every one
+      of your cells. The ribosome forms each peptide bond using a catalytic RNA — it
+      is a ribozyme. So the machine that makes all your proteins is itself made of
+      RNA, which is the RNA-World hypothesis in a single fact: catalysis came before
+      the proteins it now mostly runs on.
+
+corpusTags:
+  - "enzyme-action"
+  - "catalysis"
+  - "transition-state"
+  - "activation-energy"
+  - "gibbs-free-energy"
+  - "induced-fit"
+  - "cofactors"
+  - "ec-classification"
+---
+
+import ReactionCoordinatePlot from '../../../components/ReactionCoordinatePlot.astro';
+
+**A patient starts a cholesterol drug and within weeks their muscles ache and a
+blood marker called CK climbs.** The drug is doing exactly what it was designed to
+do — and that is the problem. To understand why, you need to understand what an
+enzyme can and cannot do. By the end of this chapter, the muscle pain will make
+mechanistic sense.
+
+OMP decarboxylase, an enzyme your cells run constantly, speeds its reaction by a
+factor of about 10¹⁷. Without it, that single step has a half-life of 78 million
+years — longer than the time since the dinosaurs vanished. With it, the reaction
+finishes in milliseconds. Enzymes are not gentle nudges. They are the difference
+between a reaction that effectively never happens and one fast enough to keep you
+alive.
+
+## What an enzyme is, and how we file it
+
+An enzyme is a reusable protein catalyst — with one important exception: some
+enzymes are RNA (**ribozymes**), and the ribosome that builds every protein in
+your body is itself one. Its activity depends on temperature, pH, and often on a
+helper molecule, and its name usually ends in *-ase*.
+
+There are seven official classes, sorted by the chemistry they do.
+**Oxidoreductases** move electrons. **Transferases** move a chemical group from
+one molecule to another. **Hydrolases** use water to break a bond. **Lyases** add
+or remove groups across a double bond. **Isomerases** rearrange a molecule into
+its isomer. **Ligases** join two molecules and spend ATP to do it.
+**Translocases**, added to the list in 2018, move ions and molecules across
+membranes. Each enzyme gets a four-part EC number: hexokinase is EC 2.7.1.1,
+which reads as transferase, phosphate group, alcohol acceptor, first on the list.
+
+Many enzymes cannot work alone. A **cofactor** is a small helper required for
+activity, and it comes in two kinds: a **coenzyme** is an organic molecule,
+usually derived from a vitamin (niacin becomes NAD⁺; thiamine becomes TPP), and a
+**metal ion** is the inorganic kind (Zn²⁺, Mg²⁺). When a cofactor — organic or
+metal — binds tightly and permanently rather than coming and going, we call it a
+**prosthetic group**; the heme iron buried in catalase is the classic example.
+The vocabulary that trips students up is the pair underneath this: an enzyme
+missing its cofactor is an **apoenzyme** and it does not work; the assembled,
+working complex is the **holoenzyme**. Apo means away; holo means whole.
+
+## What a reaction will do, before how fast
+
+Now separate two questions that students constantly merge. *Will* this reaction
+happen? That is thermodynamics. *How fast* will it happen? That is kinetics. An
+enzyme answers only the second, and seeing why requires the first.
+
+The currency of thermodynamics is **Gibbs free energy**, G — the energy in a
+system available to do work. What matters for a reaction is the change, ΔG, and
+its sign tells you the direction. A negative ΔG means the reaction releases free
+energy and runs on its own: it is **exergonic**, spontaneous. A positive ΔG means
+the reaction needs an input of energy to go: it is **endergonic**. ATP hydrolysis
+is the textbook exergonic reaction at ΔG°′ = −30.5 kJ/mol; forming
+glucose-6-phosphate is the textbook endergonic one at +13.8 kJ/mol. When ΔG
+reaches zero, the reaction sits at equilibrium and goes nowhere net.
+
+One trap worth flagging now: exoTHERMIC and exoGONIC are not the same word.
+Exothermic is about heat (ΔH); exergonic is about free energy (ΔG). A reaction can
+release free energy without releasing much heat.
+
+The sign of ΔG also tells you where equilibrium sits, through one of the most
+useful equations in biochemistry:
+
+> **ΔG°′ = −RT ln Keq**
+
+Keq is just the ratio of products to reactants once the reaction settles. The
+more negative ΔG°′, the larger Keq, and the further the reaction runs toward
+products before stopping. Work an example: a reaction with ΔG°′ = −17 kJ/mol has a
+Keq of about 950 — roughly a thousand-to-one in favor of products. The
+relationship is logarithmic, so a modest change in free energy moves the
+equilibrium a lot.
+
+{/* ISLAND */}
+
+<ReactionCoordinatePlot />
+
+## What an enzyme changes — and what it cannot
+
+An enzyme **cannot** change ΔG, ΔG°, or Keq. The destination of a reaction —
+whether it favors products, and by how much — is set by thermodynamics, and no
+catalyst touches it. What an enzyme changes is the *route, not the destination*:
+it speeds the reaction's approach to that same equilibrium.
+
+Think of a mountain between two valleys. The starting valley and the ending
+valley sit at fixed elevations; that difference is ΔG. The enzyme does not lower
+either valley. It digs a tunnel through the peak. Travelers move between the same
+two points far faster, and they still end up exactly where thermodynamics said
+they would.
+
+The peak the enzyme tunnels through is the **activation barrier**, and to lower it
+the enzyme exploits the highest, strangest point on the whole reaction.
+
+## The transition state
+
+Between substrate and product, every reaction passes through a **transition
+state** (written X‡): a fleeting arrangement of atoms, neither starting material
+nor product, with bonds half-broken and half-formed. It lives for femtoseconds
+and sits at the top of the energy hill. The height of that hill above the
+substrate is the **activation energy**, ΔG‡, and it sets the rate. Lower the hill
+and the reaction speeds up.
+
+This is the move enzymes make. The active site — a small cleft built from amino
+acids pulled together from distant parts of the protein chain — is not shaped to
+fit the substrate. It is shaped to fit the *transition state*. When the enzyme
+grips that high-energy, distorted form most tightly, the energy released by
+binding (the **binding energy**) pays down the activation barrier: ΔG‡(catalyzed)
+= ΔG‡(uncatalyzed) − ΔG(binding).
+
+Emil Fischer guessed at this in 1894 with his "lock and key" — enzyme and
+substrate fitting like a key in a lock. He was close, and he distrusted his own
+metaphor almost immediately, warning it could only be confirmed once someone
+could hold a pure enzyme and see its shape. He was right to worry: a rigid lock
+would bind the substrate most tightly, and enzymes don't. In 1958 Daniel Koshland
+corrected it with **induced fit** — enzyme and substrate both change shape as they
+meet, and the complementarity that matters is reached at the transition state.
+Product fits the reshaped site worse, which is exactly why it lets go.
+
+## How we measure it
+
+The cleanest evidence that the active site is built for the transition state comes
+from a simple comparison. Proline racemase binds its real substrate, L-proline,
+with a Kd of 3.6 mM. Then chemists made a stable molecule, pyrrole-2-carboxylate,
+shaped like the planar transition state the enzyme passes through. The enzyme
+binds *that* with a Kd of 0.022 mM — 160 times tighter than the substrate it
+actually works on. The enzyme grips the shape it is built to stabilize.
+
+That principle is also a drug-design strategy, which brings us back to the case we
+opened with. Statins are transition-state analogs of HMG-CoA reductase, the
+rate-limiting enzyme of cholesterol synthesis, and they bind it roughly 10,000
+times more tightly than its natural substrate. They shut the pathway down, which
+lowers cholesterol as intended. However, that same pathway also makes CoQ10 for
+mitochondrial energy and the isoprenoids muscle cells need. Block it hard enough
+and muscle mitochondria starve, cells break down, and CK leaks into the blood. The
+aching muscles were the predictable cost of an enzyme inhibitor doing its job
+exactly as designed.
