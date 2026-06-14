@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import LessonIcon from '../components/LessonIcon.astro';
 
 const lessons = (await getCollection('lessons'))
   .filter((l) => !l.data.draft)
@@ -9,34 +10,112 @@ const lessons = (await getCollection('lessons'))
 
 <BaseLayout
   title="Biochemistry-pedia — an interactive biochemistry textbook"
-  description="An interactive, integrity-first biochemistry learning site: live 3D molecules, original simulations, and self-tests, built from Prof. Deppmann's lectures and The Molecule Hunters."
+  description="An interactive biochemistry textbook for the students who'd rather understand it than survive it. Real molecules loaded live, simulations you move, verified answers, and the scientists who found it."
 >
   <section class="hero wrap">
-    <p class="eyebrow">Biochemistry-pedia · BIOL 3030 · University of Virginia</p>
-    <h1>Biochemistry you can rotate, drag, and quiz yourself on.</h1>
-    <p class="lede">
-      Every structure is loaded live from a public database — nothing is drawn by
-      an AI. Every simulation is something you can poke. Every question carries a
-      verified answer and an explanation. Built from twenty years of lectures and
-      the scientist stories in <em>The Molecule Hunters</em>.
+    <p class="eyebrow">
+      <span>Biochemistry-pedia · BIOL 3030 · University of Virginia</span>
+      <span class="rule" aria-hidden="true"></span>
     </p>
+
+    <h1>You understand a molecule once you can <em>turn it over in your hands.</em></h1>
+
+    <div class="goldrule" aria-hidden="true"></div>
+
+    <p class="lede">
+      Most students meet biochemistry as a wall of terms to get past before the
+      exam, and never reach the part where it's astonishing. This is the version
+      where you change something and watch the reaction answer back — until you
+      walk away understanding <em>why</em> a thing happens, not just remembering
+      <em>that</em> it does. Hemoglobin stops being four letters on a slide and
+      becomes a real protein, found by a real person, that you can rotate yourself.
+    </p>
+
+    <p class="tagline">For students who'd rather understand it than survive it.</p>
+
+    <div class="register">
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1.5">
+              <ellipse cx="24" cy="24" rx="19" ry="6.5" />
+              <ellipse cx="24" cy="24" rx="19" ry="6.5" transform="rotate(60 24 24)" />
+              <ellipse cx="24" cy="24" rx="19" ry="6.5" transform="rotate(120 24 24)" />
+              <circle cx="24" cy="24" r="4.5" />
+            </g>
+            <circle cx="24" cy="24" r="2.4" style="fill:var(--ddp-color-secondary)" />
+          </svg>
+        </span>
+        <p class="chip-lab">Real molecules</p>
+        <p class="chip-sub">Loaded live from a public database, never drawn by an AI.</p>
+      </div>
+
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 38 V11 M11 38 H39" />
+              <path d="M11 36 Q24 16 39 14" />
+              <path d="M27 26 V31 M24.5 28.7 L27 31 L29.5 28.7" />
+            </g>
+            <circle cx="27" cy="18.6" r="3.4" stroke="currentColor" stroke-width="1.5" style="fill:var(--ddp-color-bg)" />
+          </svg>
+        </span>
+        <p class="chip-lab">Sliders you move</p>
+        <p class="chip-sub">Change one condition and watch the curve respond.</p>
+      </div>
+
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M24 9 L37 13 V25 C37 33 31 37 24 40 C17 37 11 33 11 25 V13 Z" stroke-width="1.5" />
+              <path d="M18 24 L22.5 28.5 L31 19" stroke-width="2" />
+            </g>
+          </svg>
+        </span>
+        <p class="chip-lab">Checked answers</p>
+        <p class="chip-sub">Every question carries a verified answer and an explanation.</p>
+      </div>
+
+      <div class="chip">
+        <span class="chip-ico">
+          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M24 14 C20 11 14.5 11 9 13 V36 C14.5 34 20 34 24 37" />
+              <path d="M24 14 C28 11 33.5 11 39 13 V36 C33.5 34 28 34 24 37" />
+              <line x1="24" y1="14" x2="24" y2="37" />
+              <line x1="12.5" y1="19.5" x2="20" y2="19.5" />
+              <line x1="12.5" y1="23.5" x2="19" y2="23.5" />
+              <circle cx="32" cy="22" r="3" />
+              <path d="M28.5 30 C28.5 26.4 35.5 26.4 35.5 30" />
+            </g>
+          </svg>
+        </span>
+        <p class="chip-lab">Scientist stories</p>
+        <p class="chip-sub">The people behind the molecules, from The Molecule Hunters.</p>
+      </div>
+    </div>
   </section>
 
   <section class="wrap lessons">
-    <h2>Lessons</h2>
+    <p class="sec-label">Chapters · {lessons.length === 1 ? 'one live now' : `${lessons.length} live now`}</p>
     {lessons.length === 0 ? (
-      <p>No lessons published yet.</p>
+      <p class="empty">No lessons published yet.</p>
     ) : (
       <ul class="lesson-list">
         {lessons.map((l) => (
           <li>
-            <a href={`/lessons/${l.data.slug}/`} class="lesson-card card">
-              <span class="lc-chapter">{l.data.courseChapter}</span>
-              <span class="lc-title">{l.data.title}</span>
-              <span class="lc-summary">{l.data.summary}</span>
-              <span class="lc-meta">
-                {l.data.structures.length} live structures ·
-                {' '}{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions
+            <a href={`/lessons/${l.data.slug}/`} class="lesson-card">
+              <span class="lc-ico"><LessonIcon slug={l.data.slug} /></span>
+              <span class="lc-body">
+                <span class="lc-chapter">{l.data.courseChapter}</span>
+                <span class="lc-title">{l.data.title}</span>
+                <span class="lc-summary">{l.data.summary}</span>
+                <span class="lc-meta">
+                  {l.data.structures.length} live structures ·
+                  {' '}{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions{l.data.estMinutes ? ` · ~${l.data.estMinutes} min` : ''}
+                </span>
               </span>
             </a>
           </li>
@@ -46,73 +125,245 @@ const lessons = (await getCollection('lessons'))
   </section>
 
   <style>
+    /* ---- Hero: a left-aligned editorial column, "quiet authority" ---- */
     .hero {
       padding: var(--ddp-space-16) var(--ddp-space-6) var(--ddp-space-8);
     }
     .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: var(--ddp-space-4);
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);
-      letter-spacing: 0.08em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--ddp-color-accent);
-      margin: 0 0 var(--ddp-space-3);
+      color: var(--ddp-color-caution);
+      margin: 0 0 var(--ddp-space-4);
+    }
+    .eyebrow .rule {
+      flex: 1;
+      height: 1px;
+      background: var(--ddp-color-line);
     }
     .hero h1 {
+      font-family: var(--ddp-font-serif);
+      font-weight: 500;
       font-size: var(--ddp-text-3xl);
-      max-width: 18ch;
+      line-height: 1.1;
+      color: var(--ddp-color-primary);
+      max-width: 20ch;
+      margin: 0;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--ddp-color-accent);
+    }
+    .goldrule {
+      width: 64px;
+      height: 3px;
+      background: var(--ddp-color-secondary);
+      margin: var(--ddp-space-6) 0;
+      transform-origin: left center;
     }
     .lede {
       max-width: 60ch;
       font-size: var(--ddp-text-lg);
+      line-height: 1.6;
       color: var(--ddp-color-ink-soft);
+      margin: 0;
     }
+    .lede em {
+      font-style: italic;
+      color: var(--ddp-color-ink);
+    }
+    .tagline {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-sm);
+      letter-spacing: 0.04em;
+      color: var(--ddp-color-caution);
+      margin: var(--ddp-space-4) 0 0;
+    }
+
+    /* ---- Feature register: four engraving chips on a single ruled grid.
+       gap:1px over a line-colored background paints the hairline dividers, so
+       it stays clean when it wraps to 2 / 1 columns. ---- */
+    .register {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--ddp-color-line);
+      border-top: 1px solid var(--ddp-color-line);
+      border-bottom: 1px solid var(--ddp-color-line);
+      margin-top: var(--ddp-space-8);
+    }
+    .chip {
+      background: var(--ddp-color-bg);
+      padding: var(--ddp-space-6) var(--ddp-space-4);
+    }
+    .chip-ico {
+      display: block;
+      line-height: 0;
+      color: var(--ddp-color-accent);
+    }
+    .chip-ico svg {
+      transition: transform 0.18s ease, color 0.18s ease;
+    }
+    .chip:hover .chip-ico {
+      color: var(--ddp-color-primary);
+    }
+    .chip:hover .chip-ico svg {
+      transform: rotate(-6deg) scale(1.06);
+    }
+    .chip-lab {
+      font-family: var(--ddp-font-serif);
+      font-weight: 600;
+      font-size: var(--ddp-text-base);
+      color: var(--ddp-color-primary);
+      margin: var(--ddp-space-3) 0 var(--ddp-space-1);
+    }
+    .chip-sub {
+      font-size: var(--ddp-text-xs);
+      line-height: 1.45;
+      color: var(--ddp-color-muted);
+      margin: 0;
+    }
+    @media (max-width: 720px) {
+      .register { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .register { grid-template-columns: 1fr; }
+    }
+
+    /* ---- Lessons grid ---- */
     .lessons {
       padding-bottom: var(--ddp-space-12);
+    }
+    .sec-label {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ddp-color-muted);
+      margin: var(--ddp-space-8) 0 var(--ddp-space-4);
     }
     .lesson-list {
       list-style: none;
       padding: 0;
-      margin: var(--ddp-space-6) 0 0;
+      margin: 0;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: var(--ddp-space-4);
     }
     .lesson-card {
+      position: relative;
+      overflow: hidden;
       display: flex;
-      flex-direction: column;
-      gap: var(--ddp-space-2);
+      gap: var(--ddp-space-4);
+      align-items: flex-start;
       padding: var(--ddp-space-6);
+      background: var(--ddp-color-surface);
+      border: 1px solid var(--ddp-color-line);
+      border-radius: var(--ddp-radius);
       text-decoration: none;
       color: inherit;
-      transition: transform 0.12s, box-shadow 0.12s;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .lesson-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--ddp-color-secondary);
+      transform: scaleY(0);
+      transform-origin: top;
+      transition: transform 0.22s ease;
     }
     .lesson-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(26, 26, 31, 0.1);
+      transform: translateY(-3px);
+      box-shadow: var(--ddp-shadow);
       text-decoration: none;
     }
+    .lesson-card:hover::before {
+      transform: scaleY(1);
+    }
+    .lc-ico {
+      flex: none;
+      line-height: 0;
+      margin-top: 2px;
+    }
+    .lc-body {
+      min-width: 0;
+    }
     .lc-chapter {
+      display: block;
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.07em;
       color: var(--ddp-color-accent);
+      margin-bottom: var(--ddp-space-1);
     }
     .lc-title {
+      display: block;
       font-family: var(--ddp-font-serif);
+      font-weight: 600;
       font-size: var(--ddp-text-xl);
       color: var(--ddp-color-primary);
       line-height: 1.2;
+      margin-bottom: var(--ddp-space-2);
     }
     .lc-summary {
+      display: block;
       color: var(--ddp-color-ink-soft);
       font-size: var(--ddp-text-sm);
+      margin-bottom: var(--ddp-space-2);
     }
     .lc-meta {
-      margin-top: auto;
+      display: block;
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);
       color: var(--ddp-color-muted);
+    }
+    .empty {
+      color: var(--ddp-color-muted);
+    }
+
+    /* ---- Entrance: one calm staggered rise; gold rule draws after the
+       headline lands. All motion is disabled under reduced-motion. ---- */
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes drawRule {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+    .hero .eyebrow,
+    .hero h1,
+    .hero .lede,
+    .hero .tagline,
+    .register {
+      animation: riseIn 0.5s ease both;
+    }
+    .hero h1 { animation-delay: 0.05s; }
+    .hero .lede { animation-delay: 0.12s; }
+    .hero .tagline { animation-delay: 0.18s; }
+    .register { animation-delay: 0.24s; }
+    .goldrule { animation: drawRule 0.5s ease 0.1s both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero .eyebrow,
+      .hero h1,
+      .hero .lede,
+      .hero .tagline,
+      .register,
+      .goldrule { animation: none !important; }
+      .goldrule { transform: none; }
+      .chip-ico svg,
+      .lesson-card,
+      .lesson-card::before { transition: none; }
     }
   </style>
 </BaseLayout>
