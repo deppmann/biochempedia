@@ -1,0 +1,225 @@
+---
+/**
+ * PurificationSimulator — walk a crude lysate through five purification steps and
+ * watch the purification table fill while a simulated SDS-PAGE gel cleans up to a
+ * single band. The numbers match the lecture table (specific activity climbs
+ * 10 → 30 → 90 → 1,100 → 30,000; ~3,000-fold; yield 100% → 36%), so the table and
+ * the gel tell the same story. Self-contained Astro island: vanilla TS, no props.
+ */
+---
+
+<figure class="psim card" data-psim>
+  <figcaption class="psim-head">
+    Purification simulator
+    <span class="psim-chip">run each step</span>
+  </figcaption>
+
+  <div class="psim-steps" data-steps></div>
+  <p class="psim-callout" data-callout>Press <b>1 · Crude homogenate</b> to load your starting material, then run each step in order and watch specific activity climb.</p>
+
+  <div class="psim-grid">
+    <div class="psim-tablewrap">
+      <table class="psim-table">
+        <thead>
+          <tr><th>Step</th><th>Protein<br/>(mg)</th><th>Activity<br/>(units)</th><th>Sp. act.<br/>(u/mg)</th><th>Yield<br/>(%)</th><th>Fold</th></tr>
+        </thead>
+        <tbody data-tbody></tbody>
+      </table>
+      <p class="psim-summary" data-summary></p>
+    </div>
+
+    <div class="psim-gelwrap">
+      <div class="psim-gel-title">Simulated SDS-PAGE <span class="psim-gel-sub">(small proteins run farther)</span></div>
+      <svg class="psim-gel" viewBox="0 0 400 330" role="img" aria-label="Simulated SDS-PAGE gel; lanes fill in as purification steps run, contaminant bands fading until a single target band remains" data-gel></svg>
+    </div>
+  </div>
+
+  <div class="psim-btns">
+    <button type="button" data-reset>Reset experiment</button>
+  </div>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', GOLD = '#D4A843';
+
+  type Band = { mw: number; intensity: number; target?: boolean };
+  type Step = { name: string; tp: number; ta: number; principle: string; bands: Band[] };
+
+  const TARGET_MW = 36;
+  const STEPS: Step[] = [
+    {
+      name: '1 · Crude homogenate', tp: 10000, ta: 100000,
+      principle: 'Break the cells open and spin out debris. Everything is here — every protein in the cell, your target lost in the crowd. Specific activity starts at its lowest.',
+      bands: [[205,.45],[150,.4],[120,.45],[97,.55],[80,.5],[66,.6],[55,.5],[48,.45],[36,.65,true],[30,.55],[24,.5],[19,.45],[14,.45]].map(b => ({ mw: b[0] as number, intensity: b[1] as number, target: b[2] as boolean })),
+    },
+    {
+      name: '2 · Salting-out', tp: 3000, ta: 90000,
+      principle: 'Ammonium sulfate drops proteins out of solution at different salt concentrations. A well-chosen cut leaves many contaminants behind, then dialysis removes the salt.',
+      bands: [[150,.3],[97,.4],[66,.5],[55,.4],[40,.4],[36,.8,true],[30,.4],[22,.35],[16,.3]].map(b => ({ mw: b[0] as number, intensity: b[1] as number, target: b[2] as boolean })),
+    },
+    {
+      name: '3 · Ion-exchange', tp: 900, ta: 81000,
+      principle: 'Bind by charge on a DEAE (anion) resin at pH above the target’s pI, then elute with a rising salt gradient. A bigger jump in purity.',
+      bands: [[97,.25],[66,.35],[45,.3],[36,.9,true],[28,.3],[20,.25]].map(b => ({ mw: b[0] as number, intensity: b[1] as number, target: b[2] as boolean })),
+    },
+    {
+      name: '4 · Gel filtration', tp: 60, ta: 66000,
+      principle: 'Separate by size — and remember, large proteins elute first. Specific activity is now in the thousands; only a few contaminants remain.',
+      bands: [[60,.25],[36,.95,true],[27,.2]].map(b => ({ mw: b[0] as number, intensity: b[1] as number, target: b[2] as boolean })),
+    },
+    {
+      name: '5 · Affinity', tp: 1.2, ta: 36000,
+      principle: 'A bead carrying NADH grabs only your dehydrogenase; everything else flows through. Elute with free NADH. The largest single jump — down to one band.',
+      bands: [[72,.13],[36,1.0,true]].map(b => ({ mw: b[0] as number, intensity: b[1] as number, target: b[2] as boolean })),
+    },
+  ];
+  const LADDER = [205, 116, 97, 66, 45, 31, 21, 14];
+  const SA0 = STEPS[0].ta / STEPS[0].tp;
+
+  function el(name: string, attrs: Record<string, string | number>) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function fmt(n: number) {
+    if (n >= 1000) return Math.round(n).toLocaleString('en-US');
+    if (n >= 10) return Math.round(n).toString();
+    return n.toFixed(n < 1 ? 2 : 1);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-psim]').forEach((root) => {
+    const stepsBar = root.querySelector<HTMLElement>('[data-steps]')!;
+    const callout = root.querySelector<HTMLElement>('[data-callout]')!;
+    const tbody = root.querySelector<HTMLElement>('[data-tbody]')!;
+    const summary = root.querySelector<HTMLElement>('[data-summary]')!;
+    const gel = root.querySelector<SVGSVGElement>('[data-gel]')!;
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    let done = 0; // how many steps have been run
+
+    // build step buttons
+    STEPS.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'psim-step';
+      b.textContent = s.name;
+      b.addEventListener('click', () => {
+        if (i > done) { callout.textContent = 'Complete the previous step first — purification is sequential.'; return; }
+        if (i < done) return;
+        done = i + 1;
+        callout.textContent = s.principle;
+        render();
+      });
+      stepsBar.appendChild(b);
+    });
+
+    // MW (log) → y on the gel
+    const GT = 40, GB = 296, MWMAX = 240, MWMIN = 12;
+    const yOf = (mw: number) => GT + (Math.log(MWMAX) - Math.log(mw)) / (Math.log(MWMAX) - Math.log(MWMIN)) * (GB - GT);
+    const laneX = [44, 96, 144, 192, 240, 288]; // ladder + 5 step lanes
+    const HALF = 17;
+
+    function renderGel() {
+      gel.replaceChildren();
+      // ladder ticks + labels
+      LADDER.forEach((mw) => {
+        const y = yOf(mw);
+        gel.appendChild(el('line', { x1: laneX[0] - 4, y1: y, x2: laneX[0] + HALF, y2: y, stroke: '#b9b6ad', 'stroke-width': 1 }));
+        const t = el('text', { x: laneX[0] - 8, y: y + 3, 'text-anchor': 'end', 'font-size': 8, fill: NAVY }); t.textContent = String(mw); gel.appendChild(t);
+      });
+      const lh = el('text', { x: laneX[0], y: GB + 16, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); lh.textContent = 'kDa'; gel.appendChild(lh);
+      // step lanes
+      STEPS.forEach((s, i) => {
+        const cx = laneX[i + 1];
+        const run = i < done;
+        // lane background
+        gel.appendChild(el('rect', { x: cx - HALF, y: GT - 4, width: HALF * 2, height: GB - GT + 8, fill: run ? '#f3f1ea' : '#faf9f6', stroke: '#e6e3db', 'stroke-width': 1, rx: 2 }));
+        const num = el('text', { x: cx, y: GB + 16, 'text-anchor': 'middle', 'font-size': 9, fill: run ? NAVY : '#b9b6ad' }); num.textContent = String(i + 1); gel.appendChild(num);
+        if (!run) return;
+        for (const band of s.bands) {
+          const y = yOf(band.mw);
+          gel.appendChild(el('rect', {
+            x: cx - HALF + 2, y: y - 2.2, width: HALF * 2 - 4, height: 4.4, rx: 1.5,
+            fill: band.target ? TEAL : NAVY, opacity: band.target ? 1 : Math.max(0.18, band.intensity).toFixed(2),
+          }));
+          if (band.target) gel.appendChild(el('rect', { x: cx - HALF + 1, y: y - 3.4, width: HALF * 2 - 2, height: 6.8, rx: 2, fill: 'none', stroke: GOLD, 'stroke-width': 1.2 }));
+        }
+      });
+      // target legend
+      const lg = el('text', { x: laneX[5] + HALF, y: GT - 12, 'text-anchor': 'end', 'font-size': 9, fill: TEAL }); lg.textContent = '■ target (LDH, ~36 kDa)'; gel.appendChild(lg);
+    }
+
+    function renderTable() {
+      tbody.replaceChildren();
+      for (let i = 0; i < done; i++) {
+        const s = STEPS[i];
+        const sa = s.ta / s.tp, yld = s.ta / STEPS[0].ta * 100, fold = sa / SA0;
+        const tr = document.createElement('tr');
+        if (i === done - 1) tr.className = 'psim-active';
+        tr.innerHTML = `<td>${s.name}</td><td>${fmt(s.tp)}</td><td>${fmt(s.ta)}</td>`
+          + `<td><b>${fmt(sa)}</b></td><td>${Math.round(yld)}</td><td>${fmt(fold)}×</td>`;
+        tbody.appendChild(tr);
+      }
+      if (done === STEPS.length) {
+        const last = STEPS[STEPS.length - 1];
+        const fold = (last.ta / last.tp) / SA0, yld = last.ta / STEPS[0].ta * 100;
+        summary.innerHTML = `<b>${fmt(fold)}× purification</b> at ${Math.round(yld)}% yield. `
+          + `Total protein and activity both fell — specific activity rose every step. That single teal band is your enzyme, alone.`;
+      } else {
+        summary.textContent = '';
+      }
+    }
+
+    function render() { renderTable(); renderGel(); }
+
+    resetBtn.addEventListener('click', () => {
+      done = 0;
+      callout.innerHTML = 'Press <b>1 · Crude homogenate</b> to load your starting material, then run each step in order and watch specific activity climb.';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .psim { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .psim-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .psim-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .psim-steps { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: var(--ddp-space-2); }
+  .psim-step {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.32rem 0.6rem;
+  }
+  .psim-step:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .psim-callout {
+    margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft);
+    border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; min-height: 2.4em; line-height: 1.5;
+  }
+  .psim-grid { display: flex; flex-wrap: wrap; gap: var(--ddp-space-4); align-items: flex-start; }
+  .psim-tablewrap { flex: 1 1 300px; min-width: 280px; }
+  .psim-gelwrap { flex: 1 1 280px; min-width: 260px; }
+  .psim-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); }
+  .psim-table th, .psim-table td { border-bottom: 1px solid var(--ddp-color-line); padding: 0.3rem 0.35rem; text-align: right; }
+  .psim-table th:first-child, .psim-table td:first-child { text-align: left; }
+  .psim-table thead th { color: var(--ddp-color-muted); font-weight: 600; vertical-align: bottom; }
+  .psim-table tbody tr.psim-active { background: color-mix(in srgb, var(--ddp-color-accent) 9%, transparent); }
+  .psim-table tbody tr td b { color: var(--ddp-color-primary); }
+  .psim-summary { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .psim-gel-title { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .psim-gel-sub { color: var(--ddp-color-muted); }
+  .psim-gel { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .psim-btns { margin-top: var(--ddp-space-3); }
+  .psim-btns button {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.3rem 0.6rem;
+  }
+  .psim-btns button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  @media (max-width: 640px) {
+    .psim-grid { flex-direction: column; }
+  }
+</style>
