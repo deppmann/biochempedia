@@ -219,7 +219,7 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
       <dialog id={`lb-sci-${i}`} class="lightbox">
         <div class="lightbox-head"><span>{s.name}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
-          <div class="profile">
+          <div class={`profile${s.photo ? '' : ' no-photo'}`}>
             {s.photo && <img class="profile-photo" src={s.photo} alt={`Portrait of ${s.name}`} />}
             <div class="profile-text">
               <h3>{s.name} {s.dates && <span class="profile-dates">{s.dates}</span>}</h3>
@@ -466,6 +466,7 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
 
     /* Scientist profile (inside lightbox) */
     .profile { display: grid; grid-template-columns: 160px 1fr; gap: var(--ddp-space-6); align-items: start; }
+    .profile.no-photo { grid-template-columns: 1fr; }
     @media (max-width: 600px) { .profile { grid-template-columns: 1fr; } }
     .profile-photo { width: 100%; border-radius: var(--ddp-radius); border: 1px solid var(--ddp-color-line); }
     .profile-text h3 { margin: 0; font-size: var(--ddp-text-xl); }
