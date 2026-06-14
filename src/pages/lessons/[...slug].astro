@@ -33,7 +33,7 @@ const LEVEL_ICONS: Record<string, string> = { eli5: '🧸', highschool: '🎒', 
 const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
 ---
 
-<BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary}>
+<BaseLayout title={`${lesson.title} — Biochemistry-pedia`} description={lesson.summary}>
   <article id="top">
     <header class="lesson-hero wrap">
       <p class="eyebrow">{lesson.courseChapter}</p>
@@ -159,10 +159,16 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
               </button>
             ))}
             {lesson.podcast && (
-              <button type="button" class="rail-thumb" data-open="lb-podcast">
-                <span class="rail-ico" aria-hidden="true">🎧</span>
-                <span class="rail-label">{lesson.podcast.title ?? 'Podcast'} <em>listen</em></span>
-              </button>
+              <details class="rail-player">
+                <summary>
+                  <span class="rail-ico" aria-hidden="true">🎧</span>
+                  <span class="rail-label">{lesson.podcast.title ?? 'Podcast'} <em>listen here ▾</em></span>
+                </summary>
+                <div class="rail-player-body">
+                  <SpotifyEmbed url={lesson.podcast.url} title={lesson.podcast.title} note={lesson.podcast.note} compact />
+                  {lesson.podcast.note && <p class="rail-note">{lesson.podcast.note}</p>}
+                </div>
+              </details>
             )}
           </div>
         )}
@@ -235,13 +241,6 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
         <div class="lightbox-body"><YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} /></div>
       </dialog>
     ))}
-
-    {lesson.podcast && (
-      <dialog id="lb-podcast" class="lightbox">
-        <div class="lightbox-head"><span>{lesson.podcast.title ?? 'Podcast'}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-        <div class="lightbox-body"><SpotifyEmbed url={lesson.podcast.url} title={lesson.podcast.title} note={lesson.podcast.note} /></div>
-      </dialog>
-    )}
 
     {hasQuiz && (
       <dialog id="lb-quiz" class="lightbox">
@@ -411,6 +410,23 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
     }
     .rail-label em { font-style: normal; font-weight: 400; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
     .rail-note { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.4; }
+
+    /* Podcast: a small player that lives IN the rail and expands in place, so the
+       main reading column keeps scrolling past it while it plays (no modal). */
+    .rail-player {
+      border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+      background: var(--ddp-color-surface); overflow: hidden;
+      transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .rail-player[open] { border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); }
+    .rail-player > summary {
+      display: flex; align-items: center; gap: var(--ddp-space-3);
+      padding: var(--ddp-space-2); cursor: pointer; list-style: none;
+    }
+    .rail-player > summary::-webkit-details-marker { display: none; }
+    .rail-player:not([open]) > summary:hover { border-color: var(--ddp-color-accent); }
+    .rail-player-body { padding: 0 var(--ddp-space-2) var(--ddp-space-2); }
+    .rail-player-body .rail-note { margin-top: var(--ddp-space-2); }
 
     /* Lecture-slides rail item: an actual mini slide viewer (preview the slide). */
     .rail-slidepreview {

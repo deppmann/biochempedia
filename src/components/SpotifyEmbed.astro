@@ -8,8 +8,11 @@ interface Props {
   url: string;
   title?: string;
   note?: string;
+  /** Compact mode: a small player sized for the sidebar rail (no big margins,
+   *  shortest Spotify layout) so the main column stays scrollable while it plays. */
+  compact?: boolean;
 }
-const { url, title, note } = Astro.props;
+const { url, title, note, compact = false } = Astro.props;
 
 // Convert an open.spotify.com/<type>/<id> URL into its embeddable form.
 function toEmbed(u: string): string {
@@ -26,11 +29,13 @@ function toEmbed(u: string): string {
 }
 const src = toEmbed(url);
 // Shows get a taller player (episode list); single episodes are compact.
+// In `compact` (sidebar) mode we force Spotify's shortest layout (152px) so the
+// player tucks into the rail and the main reading column keeps scrolling past it.
 const isShow = /\/show\//.test(src);
-const height = isShow ? 352 : 232;
+const height = compact ? 152 : isShow ? 352 : 232;
 ---
 
-<figure class="spotify">
+<figure class={compact ? 'spotify spotify-compact' : 'spotify'}>
   <iframe
     src={src}
     title={title ?? 'Spotify player'}
@@ -40,7 +45,7 @@ const height = isShow ? 352 : 232;
     loading="lazy"
     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
   ></iframe>
-  {(title || note) && (
+  {!compact && (title || note) && (
     <figcaption>
       {title && <strong>{title}</strong>}
       {note && <span class="note"> — {note}</span>}
@@ -51,6 +56,10 @@ const height = isShow ? 352 : 232;
 <style>
   .spotify {
     margin: var(--ddp-space-6) 0;
+  }
+  /* Sidebar player: no vertical margin so it sits flush inside the rail card. */
+  .spotify-compact {
+    margin: 0;
   }
   .spotify figcaption {
     margin-top: var(--ddp-space-2);
