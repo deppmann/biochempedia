@@ -1,0 +1,184 @@
+---
+/**
+ * CentralDogmaFlow — a build-the-dogma widget. Tap a molecule, then tap the
+ * station that uses it: DNA polymerase → replication, RNA polymerase →
+ * transcription (both in the nucleus), ribosome → translation (in the cytoplasm).
+ * The nucleus/cytoplasm zones make compartmentalization visible; wrong tokens get
+ * a hint, right ones lock in and reveal what the step produces. Tap-to-place
+ * (not drag) so it works on every device and for keyboard users.
+ * Self-contained Astro island: vanilla TS, no props.
+ */
+---
+
+<figure class="cdf card" data-cdf>
+  <figcaption class="cdf-head">
+    Build the central dogma
+    <span class="cdf-chip">tap a molecule, then tap its step</span>
+  </figcaption>
+
+  <div class="cdf-banner" data-banner hidden>✓ Flow complete — <b>DNA → mRNA → protein</b>, nucleus to cytoplasm.</div>
+
+  <div class="cdf-zones">
+    <div class="cdf-zone">
+      <div class="cdf-zone-label">Nucleus</div>
+      <div class="cdf-station" data-station="s1" data-answer="dna-pol" tabindex="0" role="button" aria-label="Replication station: what copies DNA?">
+        <div class="cdf-st-title">1 · Replication</div>
+        <div class="cdf-st-prompt">What copies DNA?</div>
+        <div class="cdf-st-fill" data-fill></div>
+        <div class="cdf-st-note" data-note hidden>Replication: DNA → DNA</div>
+      </div>
+      <div class="cdf-station" data-station="s2" data-answer="rna-pol" tabindex="0" role="button" aria-label="Transcription station: what reads DNA and makes RNA?">
+        <div class="cdf-st-title">2 · Transcription</div>
+        <div class="cdf-st-prompt">What reads DNA and makes RNA?</div>
+        <div class="cdf-st-fill" data-fill></div>
+        <div class="cdf-st-note" data-note hidden>Transcription: DNA → mRNA</div>
+      </div>
+    </div>
+    <div class="cdf-arrow" aria-hidden="true">→</div>
+    <div class="cdf-zone">
+      <div class="cdf-zone-label">Cytoplasm</div>
+      <div class="cdf-station" data-station="s3" data-answer="ribosome" tabindex="0" role="button" aria-label="Translation station: what reads mRNA and makes protein?">
+        <div class="cdf-st-title">3 · Translation</div>
+        <div class="cdf-st-prompt">What reads mRNA and makes protein?</div>
+        <div class="cdf-st-fill" data-fill></div>
+        <div class="cdf-st-note" data-note hidden>Translation: mRNA → protein</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cdf-palette" data-palette>
+    <button type="button" class="cdf-token" data-token="dna-pol">DNA polymerase</button>
+    <button type="button" class="cdf-token" data-token="rna-pol">RNA polymerase</button>
+    <button type="button" class="cdf-token" data-token="ribosome">Ribosome</button>
+    <button type="button" class="cdf-token" data-token="helicase">Helicase</button>
+    <button type="button" class="cdf-token" data-token="trna">tRNA</button>
+    <button type="button" class="cdf-token" data-token="lipid">Lipid bilayer</button>
+  </div>
+
+  <p class="cdf-feedback" data-feedback aria-live="polite">Pick a molecule, then tap the step it carries out.</p>
+  <div class="cdf-btns"><button type="button" data-reset>Reset</button></div>
+</figure>
+
+<script>
+  const NAMES: Record<string, string> = {
+    'dna-pol': 'DNA polymerase', 'rna-pol': 'RNA polymerase', 'ribosome': 'Ribosome',
+    'helicase': 'Helicase', 'trna': 'tRNA', 'lipid': 'Lipid bilayer',
+  };
+  const HINTS: Record<string, string> = {
+    'helicase': 'Helicase unzips the double helix — but it is not the enzyme that copies it.',
+    'trna': 'tRNA is the matchmaker that carries amino acids — it does not run a whole step alone.',
+    'lipid': 'A lipid bilayer builds membranes, not nucleic acids or proteins.',
+    'wrong-step': 'Right molecule, wrong step — try another station.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-cdf]').forEach((root) => {
+    const tokens = [...root.querySelectorAll<HTMLButtonElement>('.cdf-token')];
+    const stations = [...root.querySelectorAll<HTMLElement>('.cdf-station')];
+    const feedback = root.querySelector<HTMLElement>('[data-feedback]')!;
+    const banner = root.querySelector<HTMLElement>('[data-banner]')!;
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    let selected: string | null = null;
+    const filled = new Set<string>();
+
+    function clearSel() {
+      selected = null;
+      tokens.forEach((t) => t.classList.remove('cdf-sel'));
+    }
+    function selectToken(btn: HTMLButtonElement) {
+      if (btn.disabled) return;
+      const id = btn.getAttribute('data-token')!;
+      if (selected === id) { clearSel(); feedback.textContent = 'Pick a molecule, then tap the step it carries out.'; return; }
+      clearSel();
+      selected = id;
+      btn.classList.add('cdf-sel');
+      feedback.textContent = `${NAMES[id]} selected — now tap the step it carries out.`;
+    }
+    function place(station: HTMLElement) {
+      const sid = station.getAttribute('data-station')!;
+      if (filled.has(sid)) return;
+      if (!selected) { feedback.textContent = 'Pick a molecule first, then tap a step.'; return; }
+      const correct = station.getAttribute('data-answer');
+      if (selected === correct) {
+        filled.add(sid);
+        station.classList.add('cdf-done');
+        station.querySelector<HTMLElement>('[data-fill]')!.textContent = NAMES[selected];
+        const note = station.querySelector<HTMLElement>('[data-note]')!;
+        note.hidden = false;
+        const tok = tokens.find((t) => t.getAttribute('data-token') === selected)!;
+        tok.disabled = true; tok.classList.add('cdf-used');
+        feedback.textContent = `✓ ${NAMES[selected]} — ${station.querySelector('.cdf-st-title')!.textContent!.replace(/^\d+ · /, '')}.`;
+        clearSel();
+        if (filled.size === 3) { banner.hidden = false; feedback.textContent = 'All three steps placed. That is the central dogma, nucleus to cytoplasm.'; }
+      } else {
+        station.classList.remove('cdf-shake');
+        void station.offsetWidth; // restart animation
+        station.classList.add('cdf-shake');
+        const isEnzymeButWrongStep = ['dna-pol', 'rna-pol', 'ribosome'].includes(selected);
+        feedback.textContent = isEnzymeButWrongStep ? HINTS['wrong-step'] : (HINTS[selected] || 'Not the right molecule for this step.');
+      }
+    }
+
+    tokens.forEach((t) => t.addEventListener('click', () => selectToken(t)));
+    stations.forEach((s) => {
+      s.addEventListener('click', () => place(s));
+      s.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); place(s); } });
+    });
+    resetBtn.addEventListener('click', () => {
+      filled.clear(); clearSel(); banner.hidden = true;
+      stations.forEach((s) => {
+        s.classList.remove('cdf-done', 'cdf-shake');
+        s.querySelector<HTMLElement>('[data-fill]')!.textContent = '';
+        s.querySelector<HTMLElement>('[data-note]')!.hidden = true;
+      });
+      tokens.forEach((t) => { t.disabled = false; t.classList.remove('cdf-used', 'cdf-sel'); });
+      feedback.textContent = 'Pick a molecule, then tap the step it carries out.';
+    });
+  });
+</script>
+
+<style>
+  .cdf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cdf-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .cdf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cdf-banner {
+    background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent);
+    border: 1px solid var(--ddp-color-accent); color: var(--ddp-color-primary);
+    border-radius: 6px; padding: 0.4rem 0.6rem; font-size: var(--ddp-text-sm); margin-bottom: var(--ddp-space-3);
+  }
+  .cdf-zones { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--ddp-space-3); }
+  .cdf-zone { flex: 1 1 240px; border: 1.5px dashed var(--ddp-color-line); border-radius: 10px; padding: 0.5rem; background: #faf9f6; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cdf-zone-label { font-size: var(--ddp-text-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ddp-color-muted); }
+  .cdf-arrow { align-self: center; font-size: 1.4rem; color: var(--ddp-color-muted); }
+  .cdf-station { border: 1px solid var(--ddp-color-line); border-radius: 8px; padding: 0.5rem 0.6rem; background: #fff; cursor: pointer; }
+  .cdf-station:hover { border-color: var(--ddp-color-accent); }
+  .cdf-station:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cdf-station.cdf-done { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 7%, #fff); }
+  .cdf-st-title { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .cdf-st-prompt { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cdf-st-fill { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); min-height: 1em; margin-top: 0.2rem; font-weight: 700; }
+  .cdf-st-note { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cdf-palette { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: var(--ddp-space-3); }
+  .cdf-token {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.35rem 0.6rem;
+  }
+  .cdf-token:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .cdf-token.cdf-sel { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); color: var(--ddp-color-primary); font-weight: 600; }
+  .cdf-token.cdf-used { opacity: 0.4; text-decoration: line-through; cursor: default; }
+  .cdf-feedback { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.5rem; min-height: 1.4em; }
+  .cdf-btns { margin-top: var(--ddp-space-2); }
+  .cdf-btns button {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.3rem 0.6rem;
+  }
+  .cdf-btns button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  @keyframes cdf-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  .cdf-shake { animation: cdf-shake 0.25s; }
+  @media (prefers-reduced-motion: reduce) { .cdf-shake { animation: none; } }
+  @media (max-width: 640px) { .cdf-arrow { transform: rotate(90deg); } }
+</style>
