@@ -1,0 +1,236 @@
+---
+/**
+ * HBondRuler — an interactive weak-bond strength comparator. Pick two chemical
+ * groups, set the distance between them, and read the interaction energy in real
+ * time; then crank the "how many bonds" slider and watch trivial single-bond
+ * energies sum into a folded-protein-scale ΔG. Teaches the chapter's core claims:
+ * weak interactions live in the ~4 Å window, and they matter because they ADD.
+ * Self-contained Astro island: vanilla TS, no props.
+ */
+---
+
+<figure class="hbr card" data-hbr>
+  <figcaption class="hbr-head">
+    Weak-bond ruler
+    <span class="hbr-chip">pick two groups, set the distance</span>
+  </figcaption>
+
+  <div class="hbr-grid">
+    <div class="hbr-controls">
+      <label><span class="hbr-lbl">Group A</span>
+        <select data-in="a">
+          <option value="amine-NH">amine –N–H (donor)</option>
+          <option value="carbonyl-O">carbonyl O (acceptor)</option>
+          <option value="water-O">water O (donor + acceptor)</option>
+          <option value="carboxylate-O">carboxylate –COO⁻ (negative)</option>
+          <option value="lysine-NH3">lysine –NH₃⁺ (positive)</option>
+          <option value="methyl-CH3">methyl –CH₃ (nonpolar)</option>
+          <option value="benzene-pi">aromatic ring (nonpolar)</option>
+        </select>
+      </label>
+      <label><span class="hbr-lbl">Group B</span>
+        <select data-in="b">
+          <option value="amine-NH">amine –N–H (donor)</option>
+          <option value="carbonyl-O" selected>carbonyl O (acceptor)</option>
+          <option value="water-O">water O (donor + acceptor)</option>
+          <option value="carboxylate-O">carboxylate –COO⁻ (negative)</option>
+          <option value="lysine-NH3">lysine –NH₃⁺ (positive)</option>
+          <option value="methyl-CH3">methyl –CH₃ (nonpolar)</option>
+          <option value="benzene-pi">aromatic ring (nonpolar)</option>
+        </select>
+      </label>
+      <label><span class="hbr-lbl">Distance: <b data-dlabel>2.8 Å</b></span>
+        <input type="range" data-in="dist" min="2.0" max="12.0" step="0.1" value="2.8" />
+      </label>
+      <label><span class="hbr-lbl">How many bonds: <b data-nlabel>1</b></span>
+        <input type="range" data-in="n" min="1" max="100" step="1" value="1" />
+      </label>
+      <div class="hbr-presets">
+        <button type="button" data-preset="dna">DNA base pair (A–T)</button>
+        <button type="button" data-preset="helix">α-helix H-bond</button>
+        <button type="button" data-preset="leu">Leucine buried in core</button>
+      </div>
+    </div>
+
+    <div class="hbr-viz">
+      <svg class="hbr-svg" viewBox="0 0 360 300" role="img" aria-label="Two chemical groups at an adjustable distance, with their interaction energy plotted against distance" data-svg></svg>
+    </div>
+
+    <div class="hbr-side">
+      <div class="hbr-type" data-type>Hydrogen bond</div>
+      <div class="hbr-energy" data-energy>−20 kJ/mol</div>
+      <div class="hbr-energy-lbl">per bond</div>
+      <div class="hbr-total" data-total>×1 = −20 kJ/mol total</div>
+      <p class="hbr-context" data-context>One hydrogen bond, at its ideal 2.8 Å.</p>
+      <p class="hbr-approx">Approximate energies, in water at ~37 °C.</p>
+    </div>
+  </div>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GREEN = '#2e8b57', GRAY = '#9a9aa3', RED = '#c0392b', GOLDBAND = '#D4A843';
+
+  type Kind = 'hbond' | 'vdw' | 'ionic' | 'ionic-rep' | 'none';
+
+  const CHARGE: Record<string, number> = { 'carboxylate-O': -1, 'lysine-NH3': 1 };
+  const DONOR: Record<string, number> = { 'amine-NH': 1, 'water-O': 1, 'lysine-NH3': 1 };
+  const ACCEPTOR: Record<string, number> = { 'carbonyl-O': 1, 'water-O': 1, 'carboxylate-O': 1 };
+  const NONPOLAR: Record<string, number> = { 'methyl-CH3': 1, 'benzene-pi': 1 };
+  const SHORT: Record<string, string> = {
+    'amine-NH': 'N–H', 'carbonyl-O': 'C=O', 'water-O': 'H₂O', 'carboxylate-O': 'COO⁻',
+    'lysine-NH3': 'NH₃⁺', 'methyl-CH3': 'CH₃', 'benzene-pi': 'π',
+  };
+
+  function classify(a: string, b: string): Kind {
+    if (CHARGE[a] && CHARGE[b]) return CHARGE[a] === CHARGE[b] ? 'ionic-rep' : 'ionic';
+    if (NONPOLAR[a] && NONPOLAR[b]) return 'vdw';
+    if ((DONOR[a] && ACCEPTOR[b]) || (DONOR[b] && ACCEPTOR[a])) return 'hbond';
+    return 'none';
+  }
+  // energy (kJ/mol) as a function of distance r (Å) — simplified, citable
+  function energy(kind: Kind, r: number): number {
+    if (kind === 'hbond') return Math.max(-40, -20 * Math.pow(2.8 / r, 6));
+    if (kind === 'vdw') { const x = 3.7 / r; return 4 * 0.6 * (Math.pow(x, 12) - Math.pow(x, 6)); }
+    if (kind === 'ionic') return -32 / r;       // Coulomb proxy, D folded in
+    if (kind === 'ionic-rep') return 32 / r;    // same-sign repulsion
+    return -0.1 * Math.pow(3.5 / r, 6);          // negligible polar/nonpolar mismatch
+  }
+  const LABEL: Record<Kind, string> = {
+    hbond: 'Hydrogen bond', vdw: 'Van der Waals', ionic: 'Ionic (salt bridge)',
+    'ionic-rep': 'Ionic — repulsive!', none: 'Negligible',
+  };
+
+  function el(name: string, attrs: Record<string, string | number>) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-hbr]').forEach((root) => {
+    const selA = root.querySelector<HTMLSelectElement>('[data-in="a"]')!;
+    const selB = root.querySelector<HTMLSelectElement>('[data-in="b"]')!;
+    const dist = root.querySelector<HTMLInputElement>('[data-in="dist"]')!;
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]')!;
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const dlabel = root.querySelector<HTMLElement>('[data-dlabel]')!;
+    const nlabel = root.querySelector<HTMLElement>('[data-nlabel]')!;
+    const typeEl = root.querySelector<HTMLElement>('[data-type]')!;
+    const energyEl = root.querySelector<HTMLElement>('[data-energy]')!;
+    const totalEl = root.querySelector<HTMLElement>('[data-total]')!;
+    const contextEl = root.querySelector<HTMLElement>('[data-context]')!;
+
+    function colorFor(e: number): string {
+      if (e > 0.2) return RED;
+      if (e < -2) return GREEN;
+      if (e < -0.5) return ORANGE;
+      return GRAY;
+    }
+
+    function render() {
+      const a = selA.value, b = selB.value, r = parseFloat(dist.value), n = parseInt(nIn.value, 10);
+      const kind = classify(a, b);
+      const e = energy(kind, r);
+      const clash = r < 2.2 && kind !== 'none';
+      dlabel.textContent = r.toFixed(1) + ' Å';
+      nlabel.textContent = String(n);
+
+      // ---- SVG ----
+      svg.replaceChildren();
+      // top: two spheres + bond
+      const cy = 70;
+      const gap = 26 + (r - 2) / 10 * 150; // 2 Å→26px, 12 Å→176px
+      const xA = 180 - gap / 2, xB = 180 + gap / 2;
+      const favorable = e < -0.3 && !clash;
+      svg.appendChild(el('line', { x1: xA, y1: cy, x2: xB, y2: cy, stroke: favorable ? TEAL : (clash ? RED : GRAY), 'stroke-width': clash ? 2.5 : 2, 'stroke-dasharray': clash ? '0' : '5 4' }));
+      const dseg = el('text', { x: 180, y: cy - 10, 'text-anchor': 'middle', 'font-size': 11, fill: NAVY }); dseg.textContent = r.toFixed(1) + ' Å'; svg.appendChild(dseg);
+      [[xA, a], [xB, b]].forEach(([x, g]) => {
+        const charged = CHARGE[g as string];
+        const fill = charged ? (charged > 0 ? '#3b6fb0' : '#b0473b') : (NONPOLAR[g as string] ? '#c9a24b' : TEAL);
+        svg.appendChild(el('circle', { cx: x as number, cy, r: 15, fill, opacity: 0.88 }));
+        const lab = el('text', { x: x as number, y: cy + 4, 'text-anchor': 'middle', 'font-size': 10, fill: '#fff', 'font-weight': 700 }); lab.textContent = SHORT[g as string]; svg.appendChild(lab);
+      });
+      if (clash) { const c = el('text', { x: 180, y: cy + 32, 'text-anchor': 'middle', 'font-size': 10, fill: RED }); c.textContent = 'steric clash — atoms repel'; svg.appendChild(c); }
+
+      // bottom: energy-vs-distance curve
+      const PX0 = 40, PX1 = 340, PY0 = 130, PY1 = 270;
+      const rmin = 2, rmax = 8, emin = -30, emax = 12;
+      const px = (rr: number) => PX0 + (rr - rmin) / (rmax - rmin) * (PX1 - PX0);
+      const py = (ee: number) => PY1 - (Math.max(emin, Math.min(emax, ee)) - emin) / (emax - emin) * (PY1 - PY0);
+      // axes + zero line
+      svg.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: '#b9b6ad', 'stroke-width': 1 }));
+      svg.appendChild(el('line', { x1: PX0, y1: py(0), x2: PX1, y2: py(0), stroke: '#d8d5cc', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      // ~4 Å sweet-spot shaded band (2.5–5 Å)
+      svg.appendChild(el('rect', { x: px(2.5), y: PY0, width: px(5) - px(2.5), height: PY1 - PY0, fill: GOLDBAND, opacity: 0.16 }));
+      const sw = el('text', { x: px(3.6), y: PY0 + 11, 'text-anchor': 'middle', 'font-size': 8.5, fill: '#9a7b16' }); sw.textContent = '~4 Å: life happens here'; svg.appendChild(sw);
+      // curve for current kind
+      let d = '';
+      for (let i = 0; i <= 120; i++) { const rr = rmin + (i / 120) * (rmax - rmin); const ee = energy(kind, rr); d += (i === 0 ? 'M' : 'L') + px(rr).toFixed(1) + ' ' + py(ee).toFixed(1) + ' '; }
+      svg.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: TEAL, 'stroke-width': 2 }));
+      // marker dot at current r (only if within plotted range)
+      if (r >= rmin && r <= rmax) svg.appendChild(el('circle', { cx: px(r), cy: py(e), r: 4, fill: ORANGE }));
+      svg.appendChild((() => { const t = el('text', { x: (PX0 + PX1) / 2, y: 290, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); t.textContent = 'interaction energy vs. distance (Å)'; return t; })());
+
+      // ---- readouts ----
+      typeEl.textContent = LABEL[kind];
+      typeEl.style.color = clash ? RED : NAVY;
+      energyEl.textContent = (clash ? '+' : '') + (clash ? (Math.abs(e) + 5).toFixed(1) : e.toFixed(1)) + ' kJ/mol';
+      energyEl.style.color = colorFor(clash ? 1 : e);
+      const tot = e * n;
+      totalEl.innerHTML = `×${n} = <b>${tot.toFixed(0)} kJ/mol</b> total`;
+      // context line
+      let ctx = '';
+      if (clash) ctx = 'Too close — the atoms overlap and shove each other apart.';
+      else if (kind === 'none') ctx = 'A polar group and a nonpolar group barely interact — almost no energy.';
+      else if (kind === 'ionic-rep') ctx = 'Two like charges repel; pushing them together costs energy.';
+      else if (n >= 50) ctx = `${n} of these bonds sum to ${tot.toFixed(0)} kJ/mol — the scale of a folded protein's stability. Specific recognition, built from forgettable parts.`;
+      else if (kind === 'vdw') ctx = 'One van der Waals contact is almost nothing. Its power is in the sum — a gecko hangs from millions of them.';
+      else if (kind === 'hbond') ctx = r <= 3.2 ? 'A hydrogen bond near its ideal geometry.' : 'Stretch the H-bond and it fades fast.';
+      else if (kind === 'ionic') ctx = 'A salt bridge. In water it is heavily screened; buried in a protein it gets far stronger.';
+      contextEl.textContent = ctx;
+    }
+
+    [selA, selB, dist, nIn].forEach((c) => c.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = btn.getAttribute('data-preset');
+        if (p === 'dna') { selA.value = 'amine-NH'; selB.value = 'carbonyl-O'; dist.value = '2.9'; nIn.value = '2'; }
+        if (p === 'helix') { selA.value = 'amine-NH'; selB.value = 'carbonyl-O'; dist.value = '2.8'; nIn.value = '1'; }
+        if (p === 'leu') { selA.value = 'methyl-CH3'; selB.value = 'methyl-CH3'; dist.value = '4.0'; nIn.value = '8'; }
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .hbr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hbr-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .hbr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hbr-grid { display: flex; flex-wrap: wrap; gap: var(--ddp-space-4); align-items: flex-start; }
+  .hbr-controls { flex: 1 1 200px; min-width: 190px; display: flex; flex-direction: column; gap: 0.5rem; }
+  .hbr-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hbr-controls select { font-family: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; color: var(--ddp-color-ink-soft); }
+  .hbr-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .hbr-presets { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem; }
+  .hbr-presets button {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer; text-align: left;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.3rem 0.5rem;
+  }
+  .hbr-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .hbr-viz { flex: 2 1 300px; min-width: 260px; }
+  .hbr-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hbr-side { flex: 1 1 160px; min-width: 150px; display: flex; flex-direction: column; gap: 0.15rem; }
+  .hbr-type { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .hbr-energy { font-family: var(--ddp-font-mono); font-size: 1.35rem; font-weight: 700; line-height: 1.1; }
+  .hbr-energy-lbl { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-bottom: 0.2rem; }
+  .hbr-total { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hbr-context { margin: 0.4rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.5rem; }
+  .hbr-approx { margin: 0.3rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-style: italic; }
+  @media (max-width: 640px) { .hbr-grid { flex-direction: column; } }
+</style>
