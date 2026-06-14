@@ -1,0 +1,723 @@
+---
+title: "Protein Three-Dimensional Structure: How a Sequence Folds Itself"
+slug: "protein-3d-structure"
+courseChapter: "Protein Three-Dimensional Structure"
+order: 4
+summary: >-
+  A 100-residue protein could adopt more shapes than it could ever sample in the
+  age of the universe, yet it folds into one in milliseconds. The answer is
+  constraints. This lesson builds the four levels of structure from a single rule —
+  the backbone can rotate only two bonds per residue — then shows how the
+  Ramachandran plot, the alpha helix, the beta sheet, and the whole
+  sequence-to-structure-to-function chain fall out of it, ending with Anfinsen's
+  proof that the fold is written in the sequence and the diseases that follow when
+  one letter changes.
+
+estMinutes: 22
+objectives:
+  - "Order the four levels of protein structure — primary, secondary, tertiary, quaternary — and name the force that builds each."
+  - "Explain why only two backbone bonds per residue (phi and psi) can rotate, and read a Ramachandran plot to tell allowed conformations from forbidden ones."
+  - "Trace how an amino acid sequence dictates a 3D fold, that fold dictates function, and a single substitution can break both (sickle cell, collagen disease)."
+  - "State what Anfinsen's experiment proved about where folding information lives, and why prions and disordered proteins complicate the rule."
+
+scientists:
+  - name: "Linus Pauling"
+    dates: "1901–1994"
+    photo: "/scientists/linus-pauling.png"
+    contribution: >-
+      Predicted the alpha helix and beta sheet in 1951 — the two basic shapes of
+      protein secondary structure — from chemical first principles, years before any
+      experiment could confirm them.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"Protein Three-Dimensional Structure,\" Linus Pauling profile."
+    quotes:
+      - "I was so pleased with this structure that I stayed up until late in the night, pondering about it."
+    story: >-
+      In March 1948 Pauling was on his back in Oxford with a sinus infection, reading
+      mystery novels until they bored him. Then he asked his wife to bring him paper
+      and a slide rule. He drew a polypeptide chain at the right scale, kept every
+      peptide bond flat the way the chemistry demanded, and folded the strip until it
+      wound onto itself — a right-handed coil, 3.6 residues per turn, every backbone
+      NH hydrogen-bonded to a CO four residues back. He noticed the rise per turn came
+      out near 5.4 angstroms, not quite the 5.1 measured for keratin, and let the
+      discrepancy stand rather than bend the chemistry to fit it. He had taught the
+      world to deduce a structure from the bonds alone — and four years later the
+      State Department refused to renew his passport, keeping him out of London where
+      the DNA photographs waited. The man who could read structure from first
+      principles missed the structure of the gene.
+  - name: "Frederick Sanger"
+    dates: "1918–2013"
+    photo: "/scientists/frederick-sanger.png"
+    contribution: >-
+      Read insulin end to end in 1955 — the first complete sequence of any protein —
+      proving an amino acid sequence is exact and specific, not random. He later
+      invented DNA sequencing and won a second Nobel Prize.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"Protein Three-Dimensional Structure,\" Frederick Sanger profile."
+    quotes:
+      - "Practically nothing was known about the relative order in which these residues were arranged in the molecules."
+      - "academically not brilliant"
+      - "it had better be good"
+    story: >-
+      Sanger spent twelve years on a single molecule. He worked on Tennis Court Road
+      in Cambridge, a Quaker conscientious objector who had spent the war scrubbing
+      hospital toilets with a mop, and he called himself "academically not brilliant"
+      — he had taken three years over the first part of his degree. Insulin fought him:
+      its disulfide bonds rearranged themselves mid-experiment, the molecule
+      effectively lying to him about its own structure, until he caught them with a
+      trace of thioglycolic acid. In 1955 he published the answer — fifty-one amino
+      acids, two chains, three sulfur bridges, in one fixed order. He did it again with
+      DNA in 1977, sequenced the first complete genome, and took a second Nobel in
+      1980, the only person of the century to win the chemistry prize twice. He
+      declined a knighthood because he did not want to be different, and retired at
+      sixty-five to his garden. When the great genome center at Hinxton asked to take
+      his name, his only condition was a sentence that could stand as his whole creed:
+      it had better be good.
+  - name: "Max Perutz & John Kendrew"
+    dates: "1914–2002 · 1917–1997"
+    photo: "/scientists/perutz-kendrew.png"
+    contribution: >-
+      Solved the first atomic three-dimensional structures of proteins — Kendrew's
+      myoglobin in 1958, Perutz's hemoglobin in 1959 — founding structural biology
+      after more than twenty years of work.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"Protein Three-Dimensional Structure,\" combined Perutz & Kendrew profile."
+    quotes:
+      - "Please call me Max"
+      - "unexpected twists"
+    story: >-
+      "Please call me Max" were the first words Perutz offered almost every young
+      scientist who came to him. He had a model of hemoglobin hanging from his office
+      ceiling and had been chasing the one molecule since 1937 — twenty-two years
+      before he solved it. The breakthrough was a trick: soak the crystals in mercury
+      and silver to triangulate the missing information. Kendrew ran it first, on
+      myoglobin. There was no computer screen in 1958, so the group drew the electron
+      density by hand and stacked the contours on dozens of sheets of clear plastic
+      until the molecule climbed up into three dimensions. What rose out of the sheets
+      was a fat, irregular rod doubling back on itself with no symmetry anyone had
+      predicted — the lab called it the sausage model, and Kendrew admitted only to
+      surprise at its "unexpected twists," conceding the shape could not be recommended
+      on aesthetic grounds. The first protein ever seen was a mess. It was also exactly
+      right. The two men shared the 1962 Nobel Prize.
+  - name: "Christian Anfinsen"
+    dates: "1916–1995"
+    photo: "/scientists/christian-anfinsen.png"
+    contribution: >-
+      Proved that the amino acid sequence alone contains all the information a protein
+      needs to fold — the principle behind everything from the folding funnel to
+      AlphaFold — by unfolding ribonuclease completely and watching it refold to full
+      activity on its own.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"Protein Three-Dimensional Structure,\" Christian Anfinsen profile."
+    quotes:
+      - "The native conformation is determined by the totality of interatomic interactions and hence by the amino acid sequence, in a given environment."
+    story: >-
+      Anfinsen was a tall, Lincolnesque figure at the NIH who reached for his viola
+      when the science got too loud. In 1960 he took ribonuclease apart with urea and
+      beta-mercaptoethanol — a reagent that, the book notes, smells like rotten eggs
+      crossed with skunk — and watched the enzyme collapse to zero activity, a random
+      coil. Then he washed the chemicals away and waited. The molecule found its way
+      back to one hundred percent activity, the molecular equivalent of an egg
+      unscrambling itself. No template, no helper, no instructions but its own
+      sequence. He stated it plainly to the Royal Swedish Academy in his 1972 Nobel
+      lecture: the native fold is the lowest free-energy state the sequence can reach,
+      in a given environment. Years later he left the lab and flew to Argentina during
+      the Dirty War to confront government ministers over disappeared scientists. His
+      method, the book observes, was the same one he had used on the enzyme: remove the
+      denaturant, and see what refolds.
+  - name: "G. N. Ramachandran"
+    dates: "1922–2001"
+    photo: "/scientists/ramachandran.png"
+    contribution: >-
+      Created the Ramachandran plot — the map of sterically allowed backbone angles
+      that every protein structure in the world is still validated against — in a
+      single 1963 paper from the University of Madras.
+    profileSourceAnchor: "The Molecule Hunters (v10) — \"Protein Three-Dimensional Structure,\" G. N. Ramachandran profile."
+    quotes: []
+    story: >-
+      Ramachandran trained as a physicist under C. V. Raman and built a new physics
+      department at the University of Madras from almost nothing. In 1963, with two
+      colleagues, he asked a question no one had put precisely before: for every amino
+      acid in a chain, which pairs of backbone angles — phi and psi — are possible
+      without atoms colliding? They calculated the allowed distances, shaded the
+      forbidden combinations, and plotted the result axis by axis. The survivors
+      clustered into two compact islands — one for the alpha helix, one for the beta
+      sheet — with the rest of the plane nearly empty. Sixty years on, his plot is the
+      first sanity check run on every new protein structure in the world. The Nobel
+      Committee never called; the prizes that touched his field passed him by. He died
+      in Chennai in 2001, after Parkinson's disease and the loss of his wife of
+      fifty-three years.
+
+techniques:
+  - name: "X-ray crystallography"
+    blurb: >-
+      Fire X-rays at a protein crystal and the diffraction pattern encodes where every
+      atom sits. Kendrew solved myoglobin this way in 1958 — the first
+      three-dimensional protein fold ever solved — by stacking hand-drawn
+      electron-density contours on sheets of plastic until the fold rose into three
+      dimensions.
+  - name: "Reading a Ramachandran plot"
+    blurb: >-
+      Plot a residue's two rotatable backbone angles, phi against psi, and the allowed
+      combinations cluster into two compact islands — one alpha-helix, one beta-sheet —
+      with the rest of the map forbidden by atoms colliding. It is the first sanity
+      check run on every new structure.
+  - name: "Denaturation and refolding (Anfinsen's assay)"
+    blurb: >-
+      Strip a protein to a random coil with urea and a reducing agent, watch activity
+      vanish, then wash the chemicals away. If the protein refolds to full activity on
+      its own, the folding instructions had to be in the sequence — nowhere else.
+
+structures:
+  - label: "Myoglobin — the first protein fold ever solved"
+    source: "rcsb"
+    id: "1MBN"
+    note: "PDB 1MBN · sperm whale · 153 residues · Kendrew 1958"
+    caption: >-
+      Myoglobin — the first protein whose 3D fold was solved, by John Kendrew in 1958.
+      Eight alpha-helices cradle a heme group. Every copy in your muscle folds into
+      this exact shape in milliseconds — the Levinthal paradox made vivid. A clean
+      example of tertiary structure.
+  - label: "Hemoglobin — quaternary structure"
+    source: "rcsb"
+    id: "2HHB"
+    note: "PDB 2HHB · human deoxyhemoglobin · α₂β₂ tetramer · Perutz"
+    caption: >-
+      Human deoxyhemoglobin — two alpha and two beta subunits, each myoglobin-like,
+      assembled into one tetramer. Color the chains separately and quaternary
+      structure becomes tangible: four polypeptides, held together non-covalently,
+      working as a single machine.
+  - label: "Collagen triple helix — a fibrous protein"
+    source: "rcsb"
+    id: "1CAG"
+    note: "PDB 1CAG · collagen model peptide · Gly-X-Y triple helix"
+    caption: >-
+      A collagen model peptide — three chains wound into a right-handed triple helix.
+      Every third residue must be glycine, the only amino acid small enough to fit at
+      the crowded center. Same peptide-bond chemistry as the globular proteins,
+      radically different architecture: the basis of tendon, bone, and skin.
+  - label: "Insulin — disulfide bridges from cysteine"
+    source: "rcsb"
+    id: "1MSO"
+    note: "PDB 1MSO · human insulin · A and B chains, three disulfide bonds"
+    caption: >-
+      Insulin is two short chains held together by three disulfide bridges between
+      cysteine residues. Frederick Sanger sequenced insulin (the bovine form) in 1955;
+      the fold and its cross-links are the same idea — covalent −S−S− bonds locking a
+      protein's architecture in place.
+  - label: "Ribonuclease A — Anfinsen's protein"
+    source: "rcsb"
+    id: "7RSA"
+    note: "PDB 7RSA · bovine pancreatic RNase A · 124 residues · four disulfides"
+    caption: >-
+      Bovine ribonuclease A — the enzyme Anfinsen unfolded and watched refold to full
+      activity on its own. Its four disulfide bonds scrambled when denatured, then
+      found their correct partners again when the denaturant was removed: proof that
+      the folding information lives in the sequence.
+  - label: "Prion protein — when folding goes wrong"
+    source: "rcsb"
+    id: "1QM2"
+    note: "PDB 1QM2 · human prion protein (PrP) · NMR · the helix-rich native fold"
+    caption: >-
+      The human prion protein in its normal, helix-rich fold (PrPᶜ). The same 253-residue
+      sequence can reach a second, beta-sheet-rich fold (PrPˢᶜ) that aggregates and
+      templates its own spread — the sharpest exception to "one sequence, one fold."
+  - label: "Heme — the prosthetic group myoglobin cradles"
+    source: "pubchem"
+    id: "26945"
+    note: "CID 26945 · hemin, Fe-protoporphyrin IX (the ferric form of heme)"
+    caption: >-
+      Heme — the iron-bearing ring that sits inside myoglobin and each hemoglobin
+      subunit and actually binds the oxygen. The protein fold builds the pocket; the
+      heme does the catching.
+
+videos:
+  - title: "Four levels of protein structure"
+    youtubeId: "O5gN-IK6uKs"
+    sourceNote: "Khan Academy (MCAT) — primary, secondary, tertiary, and quaternary structure, told conceptually."
+  - title: "Four levels of protein structure, walked through"
+    youtubeId: "3SQxHo3ODxY"
+    sourceNote: "Biology Professor — a slower walkthrough of the four levels with structural diagrams."
+
+simulations:
+  - type: "local"
+    ref: "RamachandranExplorer"
+    title: "Ramachandran plot explorer (drag φ/ψ and see the backbone respond)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "A 33 kDa protein is analyzed by mass spectrometry. Using the lesson's rule of thumb for average residue mass, approximately how many amino acid residues does it contain?"
+    choices:
+      - "~110 residues"
+      - "~150 residues"
+      - "~300 residues"
+      - "~3,300 residues"
+    answer: 2
+    rationale: >-
+      The average residue contributes ~110 Da (after the loss of the elements of water
+      during peptide-bond formation), so 33,000 Da ÷ 110 Da/residue ≈ 300 residues.
+      "~110 residues" confuses the per-residue mass with a count; "~3,300" divides by
+      10 instead of 110; "~150" has no basis in the calculation.
+  - stem: "Which statement correctly distinguishes the hydrogen-bonding patterns of an alpha-helix from those of a beta-sheet?"
+    choices:
+      - "In an alpha-helix the C=O of residue i bonds to the N–H of residue i+4 within the same chain; in a beta-sheet, hydrogen bonds form between backbone groups of strands that may be far apart in the primary sequence."
+      - "Both rely exclusively on hydrogen bonds between amino acid R-groups rather than backbone atoms."
+      - "In an alpha-helix hydrogen bonds form between strands far apart in sequence; in a beta-sheet the C=O of residue i bonds to the N–H of residue i+4."
+      - "Alpha-helices are held together by disulfide bonds, beta-sheets by backbone hydrogen bonds."
+    answer: 0
+    rationale: >-
+      Secondary structure is defined by backbone (not R-group) hydrogen bonds. The
+      alpha-helix uses the i → i+4 pattern between residues near each other in sequence;
+      beta-sheet hydrogen bonds bridge strands that can be distant in the primary
+      sequence. Choice 2 wrongly invokes side chains; choice 3 reverses the two
+      patterns; choice 4 wrongly makes disulfides (tertiary cross-links) the basis of
+      secondary structure.
+  - stem: "Anfinsen denatured ribonuclease with urea and beta-mercaptoethanol, abolishing activity, then slowly removed both reagents and saw full activity return. What is the central conclusion?"
+    choices:
+      - "Folding requires dedicated chaperone proteins that read the sequence."
+      - "All the information needed to specify the native 3D fold is contained in the amino acid sequence, and the native state is the thermodynamically most stable conformation."
+      - "Disulfide bonds, once broken, can never reform correctly without enzymatic help."
+      - "The native structure is set by the order in which the ribosome synthesizes the chain, not by the final sequence."
+    answer: 1
+    rationale: >-
+      Renaturation to full activity after complete denaturation shows the sequence alone
+      encodes the fold and that the native structure is the thermodynamic minimum in
+      that environment. Chaperones were absent in the tube (ruling out choice 1); the
+      disulfides did reform correctly on slow oxidation (ruling out choice 3); and the
+      information lives in the sequence, not in synthesis kinetics (ruling out choice 4).
+  - stem: "Why is glycine required at every third position of the collagen Gly-Pro-Pro repeat, and why does substituting a larger residue (as in osteogenesis imperfecta) destabilize the structure?"
+    choices:
+      - "Glycine is the only residue that can donate a backbone hydrogen bond; larger residues cannot."
+      - "Glycine is the only residue small enough to fit at the crowded center of the triple helix where the three chains pack together; a bulkier side chain causes steric clash."
+      - "Glycine carries a negative charge that forms salt bridges between chains; larger residues neutralize it."
+      - "Glycine introduces a rigid ring that locks the backbone; larger residues make it too flexible."
+    answer: 1
+    rationale: >-
+      In the collagen triple helix the three chains pack so tightly that only glycine's
+      single-hydrogen side chain fits at the central axis, where every third residue
+      points inward. A larger residue cannot fit and disrupts packing — the molecular
+      basis of osteogenesis imperfecta. Glycine has no charge (ruling out the salt-bridge
+      choice), and it is flexible, not ring-rigid (that describes proline).
+  - stem: "Disulfide bonds form by oxidation of two cysteines to cystine. In which cellular context are they predominantly found, and why?"
+    choices:
+      - "The cytosol, because it is strongly oxidizing and promotes cystine formation."
+      - "Extracellular (secreted) proteins, because the extracellular environment is oxidizing, whereas the intracellular environment is reducing and keeps cysteines as free thiols."
+      - "The mitochondrial matrix, because it lacks oxygen entirely."
+      - "The nucleus, because DNA-binding proteins need covalent cross-links."
+    answer: 1
+    rationale: >-
+      Disulfides are predominantly extracellular because the secretory/extracellular
+      environment is oxidizing, while the intracellular environment is reducing and keeps
+      cysteines as free thiols. The cytosol is reducing (not oxidizing), so choice 1 is
+      wrong; the mitochondrial and nuclear rationales are not supported.
+
+mcatQuestions:
+  - stem: "A single missense mutation places a proline in the middle of what was a long, stable alpha-helix in a soluble enzyme. The mutated region most likely loses helical structure for which combination of reasons?"
+    choices:
+      - "Proline's rigid ring constrains its phi angle, and its ring nitrogen lacks the backbone amide hydrogen needed to donate the helix's i → i+4 hydrogen bond."
+      - "Proline introduces a positive charge that repels the helix dipole, and it adds an extra rotatable backbone bond."
+      - "Proline is beta-branched, creating steric clash, and it forms a disulfide bond that kinks the chain."
+      - "Proline is too flexible to adopt any fixed conformation, eliminating all backbone restriction."
+    answer: 0
+    rationale: >-
+      Proline breaks alpha-helices for exactly two reasons: its pyrrolidine ring
+      constrains phi, and its nitrogen has no backbone N–H to donate the i → i+4 hydrogen
+      bond. Choice 2 invents a charge effect and falsely adds a rotatable bond (proline
+      removes phi rotation); choice 3 confuses proline with beta-branched residues and
+      falsely claims it forms disulfides; choice 4 describes glycine's flexibility, the
+      opposite of proline's rigidity.
+  - stem: "A new structure is validated against a Ramachandran plot. Most residues fall into two dense allowed clusters, but the active-site catalytic residue lies in a sparsely populated, normally disfavored region. The best interpretation is:"
+    choices:
+      - "A crystallographic error, since residues are physically forbidden from disfavored φ/ψ regions."
+      - "Evidence the protein is denatured, because functional proteins occupy only the two main clusters."
+      - "A functionally important outlier: only ~15% of φ/ψ space is generally accessible, but residues in strained conformations can be stabilized by their environment and often serve catalytic or regulatory roles."
+      - "Proof the residue is a glycine, since only glycine can occupy any region and all catalytic residues are glycine."
+    answer: 2
+    rationale: >-
+      ~15% of φ/ψ space is allowed and the two dense clusters are helix and sheet, but
+      "forbidden" means sterically disfavored, not impossible — outliers stabilized by
+      their local environment are often catalytically important. Choice 1 overstates the
+      rule; choice 2 wrongly equates an outlier with denaturation; choice 4
+      overgeneralizes (glycine reaches wider regions, but not all catalytic residues are
+      glycine, and the data given do not establish identity).
+  - stem: "Myoglobin (a single 153-residue chain binding one heme, largely alpha-helical) and hemoglobin (an α₂β₂ assembly of four myoglobin-like subunits) are compared. Which statement correctly maps them onto the levels of structure?"
+    choices:
+      - "Hemoglobin's assembly of four chains is quaternary structure, held together by the same forces (hydrophobic effect, hydrogen bonds, salt bridges) that stabilize tertiary structure; single-chain myoglobin has up to tertiary structure but no quaternary structure."
+      - "Myoglobin has quaternary structure because it contains multiple alpha-helices; hemoglobin has only tertiary."
+      - "Both lack quaternary structure because quaternary structure requires covalent peptide bonds between subunits."
+      - "Hemoglobin's four-chain arrangement is secondary structure, since it is defined by hydrogen bonds."
+    answer: 0
+    rationale: >-
+      Quaternary structure is the assembly of multiple polypeptide subunits, so
+      hemoglobin's α₂β₂ tetramer qualifies while single-chain myoglobin stops at
+      tertiary. The same non-covalent forces (hydrophobic effect, hydrogen bonds, salt
+      bridges) operate within and between chains. Choice 2 misdefines quaternary
+      (multiple helices in one chain is still tertiary); choice 3 is wrong because
+      subunits associate non-covalently; choice 4 confuses quaternary assembly with
+      local backbone hydrogen bonding.
+
+images: []
+
+lectureSlides:
+  - src: "/slides/protein-3d-structure/why-sequences-matter.png"
+    audio: "/slides/protein-3d-structure/audio/why-sequences-matter.mp3"
+    title: "Why sequence matters: four reasons"
+    alt: "A numbered text slide listing four reasons sequence matters: it sets 3D structure, structure sets function, mutations cause disease, and sequence records evolution."
+    source: "CH04 Protein Structure · slide 10"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Four connected reasons: sequence sets structure, structure sets function,
+      mutations cause disease (cystic fibrosis, sickle cell), and sequence records
+      evolution — with 3D structure more conserved than sequence itself.
+  - src: "/slides/protein-3d-structure/protein-mass-rule.png"
+    audio: "/slides/protein-3d-structure/audio/protein-mass-rule.mp3"
+    title: "Protein mass: ~110 Da per residue"
+    alt: "A schematic linking residues to daltons to kilodaltons, with a protein size scale from small enzymes (~25 kDa) to titin."
+    source: "CH04 Protein Structure · slide 11"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      The rule of thumb: ~110 Da per residue; most proteins are 5–200 kDa. Multiply
+      residues by 110 for daltons, divide by 1,000 for kDa — the scale gels and Western
+      blots read.
+  - src: "/slides/protein-3d-structure/disulfide-cross-linking.png"
+    audio: "/slides/protein-3d-structure/audio/disulfide-cross-linking.mp3"
+    title: "Cross-linking and disulfide bonds"
+    alt: "A schematic of two cysteine thiols oxidizing to a cystine disulfide bond, within or between chains."
+    source: "CH04 Protein Structure · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Two oxidized cysteines form a disulfide bond (cystine), within a chain or between
+      chains — and predominantly outside the cell, where the environment is oxidizing.
+  - src: "/slides/protein-3d-structure/bond-chemistry-to-conformations.png"
+    audio: "/slides/protein-3d-structure/audio/bond-chemistry-to-conformations.mp3"
+    title: "From peptide-bond chemistry to allowed conformations"
+    alt: "A five-box flow diagram: resonance → planarity → two rotatable bonds (phi, psi) → steric constraints → the Ramachandran plot."
+    source: "CH04 Protein Structure · slide 18"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      The logical chain: resonance makes the peptide bond planar, leaving only phi and
+      psi free; steric clashes forbid most of those too; the Ramachandran plot is the
+      ~15% that survives.
+  - src: "/slides/protein-3d-structure/helix-breakers.png"
+    audio: "/slides/protein-3d-structure/audio/helix-breakers.mp3"
+    title: "Not every sequence likes an alpha-helix"
+    alt: "A three-panel schematic of helix disruptors: proline's ring, beta-branched residues, and competing polar side chains."
+    source: "CH04 Protein Structure · slide 25"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Sequence biases secondary structure: proline (no backbone N–H, locked phi) breaks
+      helices; beta-branched Val/Ile clash; Ser/Asp/Glu compete for the backbone's
+      hydrogen bonds.
+  - src: "/slides/protein-3d-structure/collagen-triple-helix.png"
+    audio: "/slides/protein-3d-structure/audio/collagen-triple-helix.mp3"
+    title: "The collagen triple helix"
+    alt: "A diagram contrasting a single collagen strand with the three-stranded triple helix, distinguishing intrachain from interchain hydrogen bonds."
+    source: "CH04 Protein Structure · slide 39"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Collagen is not an alpha-helix: stability comes from interchain hydrogen bonds.
+      Glycine fills every third position; hydroxyproline (vitamin-C-dependent) tightens
+      it — which is why scurvy is a collagen disease.
+  - src: "/slides/protein-3d-structure/hydrophobic-effect-engine.png"
+    audio: "/slides/protein-3d-structure/audio/hydrophobic-effect-engine.mp3"
+    title: "The hydrophobic effect is the engine of folding"
+    alt: "A schematic contrasting a soluble protein (hydrophobic core, polar surface) with a membrane porin (hydrophobic outside, polar channel)."
+    source: "CH04 Protein Structure · slide 43"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Water drives folding: burying nonpolar side chains releases ordered water and is
+      entropically favorable. Membrane porins invert the logic — greasy outside, polar
+      channel within.
+  - src: "/slides/protein-3d-structure/four-levels-summary.png"
+    audio: "/slides/protein-3d-structure/audio/four-levels-summary.mp3"
+    title: "Putting it all together: the four levels"
+    alt: "A summary table of the four levels of protein structure with the stabilizing force for each, beside a folding-progression schematic."
+    source: "CH04 Protein Structure · slide 46"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Each level is defined by its force: primary = covalent peptide bonds; secondary =
+      backbone H-bonds; tertiary = the hydrophobic effect (plus disulfides, salt
+      bridges); quaternary = the same non-covalent forces between subunits.
+  - src: "/slides/protein-3d-structure/constraints-create-function.png"
+    audio: "/slides/protein-3d-structure/audio/constraints-create-function.mp3"
+    title: "Constraints don't limit function — they create it"
+    alt: "A funnel diagram showing constraints (planarity, trans preference, Ramachandran limits, hydrophobic effect) narrowing an astronomical conformation count to one fold."
+    source: "CH04 Protein Structure · slide 48"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      The chapter's thesis as a filter: planarity, the trans preference, Ramachandran
+      limits, and the hydrophobic effect each eliminate wrong folds — constraints are
+      how a sequence encodes one unique structure.
+  - src: "/slides/protein-3d-structure/levinthals-paradox.png"
+    audio: "/slides/protein-3d-structure/audio/levinthals-paradox.mp3"
+    title: "Levinthal's paradox"
+    alt: "A schematic of the conformational-space math against a timeline showing a random search would outlast the age of the universe."
+    source: "CH04 Protein Structure · slide 54"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      A random conformational search would outlast the universe, so folding cannot be
+      random — it follows biased pathways and stabilizes intermediates, funneling toward
+      the native state.
+  - src: "/slides/protein-3d-structure/alpha1-antitrypsin.png"
+    audio: "/slides/protein-3d-structure/audio/alpha1-antitrypsin.mp3"
+    title: "One mutation, two organ systems"
+    alt: "A clinical schematic of alpha-1-antitrypsin deficiency: a Glu342Lys mutation causes liver aggregation and, separately, lung emphysema."
+    source: "CH04 Protein Structure · slide 47"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Alpha-1-antitrypsin: one substitution (Glu342→Lys) misfolds the protein,
+      aggregating in the liver and leaving lung elastase unchecked — one mutation, two
+      organs, the cost of a folding failure.
+  - src: "/slides/protein-3d-structure/prion-mechanism.png"
+    audio: "/slides/protein-3d-structure/audio/prion-mechanism.mp3"
+    title: "How a prion propagates"
+    alt: "A schematic of PrPᶜ converting to PrPˢᶜ and templating normal copies into the misfolded, aggregating form."
+    source: "CH04 Protein Structure · slide 61"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      A prion is a misfolded protein that templates its own shape onto normal copies.
+      Same sequence, opposite secondary structure (helix-rich → sheet-rich) — the
+      misfolded form is itself the infectious agent, no DNA or RNA required.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: |
+      Think of a long beaded necklace. You might think you could bend it into any shape
+      at all, but the beads bump into each other, so it can really only bend a few ways.
+      Because of that, the necklace always folds up into the same neat shape by itself —
+      fast, every single time. Proteins are tiny necklaces inside your body, and the
+      order of their beads tells them exactly how to fold. If even one bead is the wrong
+      kind, the necklace folds wrong, and that can make you sick.
+  - level: "highschool"
+    label: "High school"
+    text: |
+      A protein is a chain of amino acids, and the order of those amino acids is its
+      primary structure. You might expect a floppy chain to take any shape, but it
+      can't. The backbone can only rotate at two bonds per amino acid, and even those
+      are limited because the atoms bump into each other. Those limits force the chain
+      into repeating patterns — coils called alpha helices and flat strands called beta
+      sheets (secondary structure) — which then pack into one compact 3D shape (tertiary
+      structure). Several chains can join into one unit (quaternary structure), like
+      hemoglobin's four pieces — two of each of two kinds. The key idea: the sequence
+      decides the shape, and the shape decides the job. Change one amino acid and you
+      can break it — that's what causes sickle cell anemia.
+  - level: "college"
+    label: "College"
+    text: |
+      Protein structure has four levels: primary (sequence), secondary (local backbone
+      H-bond patterns — alpha helices and beta sheets), tertiary (the full 3D fold,
+      driven by R-group interactions and the hydrophobic effect), and quaternary
+      (multi-subunit assembly).
+
+      The geometry comes from one constraint. The peptide bond is planar (partial
+      double-bond character, ~1.32 Å, no rotation), so only two backbone bonds per
+      residue rotate: phi (φ, N–Cα) and psi (ψ, Cα–C). Plot φ against ψ on a
+      Ramachandran plot and only ~15% of the space is sterically allowed; the allowed
+      regions map directly onto alpha-helix (φ ≈ −57°, ψ ≈ −47°; 3.6 residues/turn; i →
+      i+4 H-bond) and beta-sheet geometry.
+
+      Anfinsen's ribonuclease experiment proved all the folding information is in the
+      sequence: full denaturation (urea + reductant) abolishes activity, and slow
+      renaturation restores it completely, so the native fold is the thermodynamic
+      minimum. This resolves Levinthal's paradox (a random search of ~10⁴⁷-plus
+      conformations is impossible) via progressive stabilization of intermediates — the
+      folding funnel.
+
+      The rule has limits: intrinsically disordered proteins fold only on binding, and
+      prions reach a second stable, aggregation-prone fold from the same sequence.
+  - level: "grad"
+    label: "Graduate"
+    text: |
+      The conformational space of a polypeptide is governed by backbone dihedrals φ and
+      ψ; the peptide bond ω is fixed near 180° (trans) by ~40% double-bond character,
+      with cis disfavored except at X-Pro. Ramachandran analysis (hard-sphere then
+      refined potentials) shows allowed regions are dictated by 1,4 and 1,5 steric
+      overlap, partitioning into the αR basin, the broad β region, and the small αL basin
+      (accessible mainly to glycine, which lacks a Cβ).
+
+      Anfinsen's thermodynamic hypothesis — the native state is the global free-energy
+      minimum encoded by the sequence in a given environment — is the conceptual
+      foundation. Levinthal's paradox is resolved not by a unique pathway but by a biased
+      energy landscape: the folding funnel, where native-like contacts are enthalpically
+      favored and configurational entropy decreases as the chain descends, with kinetic
+      traps as local minima. The dominant driving force is the hydrophobic effect
+      (favorable solvent-entropy gain on burial of nonpolar surface), with backbone
+      H-bonding and packing providing specificity.
+
+      The sequence→structure map is many-to-one but not strictly one-to-one. IDPs occupy
+      a region of sequence space (low hydrophobicity, high net charge) that fails to fund
+      a stable core; metamorphic proteins interconvert between comparable-energy folds.
+      Prions are the sharpest challenge: PrPᶜ (~42% helix) and PrPˢᶜ (~43% sheet) share
+      one sequence, implying PrPᶜ is a kinetically trapped product while the aggregated,
+      possibly thermodynamically favored PrPˢᶜ is normally inaccessible. AlphaFold's
+      success (learning the map from ~170,000 structures) is the strongest empirical
+      evidence that the map is, for folded domains, sequence-determined — while its blind
+      spots (dynamics, disorder, PTMs) mark exactly where the simple rule ends.
+
+anecdotes:
+  - title: "A protein has more shapes than the universe has time to try"
+    text: >-
+      A chain of 100 amino acids, with just three options at each backbone position, can
+      fold roughly 10⁴⁷ different ways. If a protein tried each shape in turn it would
+      take longer than the age of the universe to find the right one — yet the myoglobin
+      in your muscle folds in milliseconds, every time, without a single wrong
+      commitment. That gap between 10⁴⁷ and a few thousandths of a second is the whole
+      problem this lesson exists to solve. The answer is not search. The answer is
+      constraint: the chemistry forbids almost every shape before folding even begins.
+    source: "CH04 lecture (Levinthal's paradox opener)"
+  - title: "Four Nobel Prizes, two scientists, one chapter"
+    text: >-
+      Only two people anchor this chapter, and between them they hold four Nobel Prizes.
+      Linus Pauling took Chemistry in 1954 and Peace in 1962 — still the only person with
+      two unshared Nobels in different fields. Frederick Sanger took Chemistry in 1958
+      and again in 1980, the only person to win it twice. Sanger was so uninterested in
+      distinction that he turned down a knighthood: a knighthood, he said, would make you
+      different, and he did not want to be different.
+    source: "CH04 lecture (the Nobel laureates of protein structure)"
+  - title: "The peptide bond that would outlive you 400 times over"
+    text: >-
+      Left alone in water, with no help, a single peptide bond takes 400 to 600 years to
+      break. The bonds holding your proteins together are that stable. And yet you digest
+      a steak in an afternoon — because a protease speeds the same reaction up about ten
+      billion-fold. The bond's stubbornness is the point: proteins last because the
+      spontaneous reaction is hopelessly slow, and they turn over only when an enzyme
+      decides it is time.
+    source: "CH04 lecture (peptide-bond stability)"
+  - title: "The same flaw that breaks a helix builds a rope"
+    text: >-
+      Proline is the troublemaker of the alpha helix. Its ring locks the backbone into
+      one angle, and its nitrogen has no hydrogen to donate, so a proline punched into a
+      helix snaps the chain of hydrogen bonds that holds the helix together. But take
+      that exact same rigidity — the locked ring, the missing donor — and wind three
+      proline-rich chains around each other, and you get collagen: the triple helix in
+      your tendons, your bone, your skin. What destroys one structure is what makes the
+      other possible. Chemical properties are not good or bad. They are good or bad for a
+      given job.
+    source: "CH04 lecture (proline: helix breaker, collagen builder)"
+
+corpusTags:
+  - "protein-structure"
+  - "secondary-structure"
+  - "ramachandran"
+  - "alpha-helix"
+  - "beta-sheet"
+  - "protein-folding"
+  - "anfinsen"
+  - "collagen"
+  - "prion"
+  - "quaternary-structure"
+---
+
+import RamachandranExplorer from '../../../components/RamachandranExplorer.astro';
+
+**A 100-residue protein can adopt roughly 10⁴⁷ shapes** if each residue has just
+three backbone options. Searching them one at a time would take longer than the
+universe has existed. Yet the myoglobin in your muscle folds into one exact shape in
+milliseconds — every copy, the same fold, every time. How?
+
+The answer is the most useful idea in this chapter: **constraints**. A protein does
+not search for its fold. The sequence encodes a set of restrictions, and those
+restrictions eliminate almost every wrong shape before folding even begins.
+
+## The idea: four levels, one rule
+
+A protein is built in layers. The **primary structure** is the amino acid sequence —
+residues linked N-terminus to C-terminus by peptide bonds, in an order that is exact,
+not random. Frederick Sanger proved this in 1955 by reading insulin end to end: 51
+residues, one defined sequence. That single fact carries the whole chapter, because:
+
+> Sequence dictates structure. Structure dictates function. One changed residue can
+> break both.
+
+Sickle cell anemia is one wrong letter — Glu to Val at position 6 of beta-globin —
+turning a charged surface residue hydrophobic so the protein polymerizes into fibers.
+The sequence is not arbitrary; it is the instruction set.
+
+The next three levels are what that instruction set produces. **Secondary structure**
+is local: hydrogen bonds between backbone groups of residues *near each other* in
+sequence, folding the chain into alpha helices and beta sheets. **Tertiary structure**
+is global: the whole chain packed into a compact 3D shape, driven by interactions
+between R-groups *far apart* in sequence. **Quaternary structure** is assembly:
+several folded chains held together into one machine — hemoglobin is two alpha and two
+beta subunits, each myoglobin-like, working as one.
+
+Here is the rule underneath all of it. The peptide bond is **planar** — six atoms
+locked in a single plane by partial double-bond character, unable to rotate. So of the
+three backbone bonds per residue, one is frozen. Only **two can turn**: phi (φ) and
+psi (ψ). The entire path of a protein backbone is set by these two angles, repeated
+down the chain.
+
+## The Ramachandran plot: where folding gets its constraints
+
+<RamachandranExplorer />
+
+Two free angles sounds like freedom. It is not. Most φ/ψ combinations are impossible —
+the backbone atoms would crash into each other. When G. N. Ramachandran sat down in
+Madras in 1963 and calculated which pairs were sterically allowed, the survivors
+clustered into a few compact islands and left the rest of the map empty. **Only about
+15% of all φ/ψ space is accessible.** The forbidden 85% is the first wall of
+constraints, and a protein never has to consider it.
+
+The allowed islands are not random either. One island is exactly the geometry of the
+**alpha helix**: a right-handed coil with 3.6 residues per turn, every backbone C=O
+hydrogen-bonded to the N–H four residues ahead, R-groups bristling outward. A second
+island is the **beta sheet**: strands stretched nearly flat, R-groups alternating
+above and below, hydrogen-bonded to neighboring strands running parallel or
+antiparallel. Pauling worked out the alpha helix from a sickbed in 1948 — paper, a
+slide rule, and the chemistry — and published both helix and sheet, predicted from
+first principles, in 1951, before anyone had seen either. The Ramachandran plot is why
+he could: those structures sit where the chemistry allows the backbone to go.
+
+Proline shows the rule has teeth. Its ring locks φ and it has no backbone N–H to
+donate, so it breaks alpha helices. The same two features make it the backbone of the
+**collagen** triple helix, where a Gly-Pro-Pro repeat lets three chains wind together
+with glycine — the only residue small enough — at the crowded center every third
+position. What kills one structure builds another. Substitute anything larger than
+glycine into that center and you get osteogenesis imperfecta, brittle-bone disease.
+Constraints, again, all the way down.
+
+## The payoff: sequence is the whole answer
+
+So where does the folding information actually live? In the sequence, in helper
+proteins, in the cell? Christian Anfinsen settled it. He unfolded ribonuclease
+completely with urea and a reducing agent — zero activity, a random coil — then washed
+the chemicals away and watched the enzyme refold on its own to full activity. Nothing
+in the tube but the protein and water. The conclusion, in his words: "The native
+conformation is determined by the totality of interatomic interactions and hence by
+the amino acid sequence, in a given environment." The fold is the lowest-energy state
+the sequence can reach.
+
+That resolves Levinthal's paradox. Folding is not a random search; partly-correct
+intermediates are slightly more stable, so they are kept, and the protein funnels
+downhill toward its native state. Fifty years later AlphaFold gave the strongest
+computational evidence for it — a neural network trained only on sequence now predicts
+structure to near-experimental accuracy; it shared the 2024 Chemistry Nobel (alongside
+David Baker's work on protein design).
+
+The rule has telling exceptions. Intrinsically disordered proteins do not fold until
+they meet a partner. And prions take the same 253-residue sequence and reach a *second*
+stable fold, rich in beta sheet, that aggregates and kills — the thermodynamic product
+(the aggregate) defeating the normally kinetically-trapped native fold. The exceptions
+are real, and they matter, but they are the edge of a rule that holds across the
+proteome.
+
+## How we measure it in the lab
+
+To know a fold, you have to see it. **X-ray crystallography** turns a protein crystal's
+diffraction pattern into an atom-by-atom map; it gave Kendrew myoglobin in 1958 and
+Perutz hemoglobin in 1959, founding structural biology after more than twenty years of
+work each. **Cryo-electron microscopy** now does the same for large assemblies without
+crystals, by averaging thousands of frozen-hydrated images. And the cheapest first
+check on any new model is the **Ramachandran plot**: scatter every residue's φ/ψ onto
+the map, and if the points fall in the allowed islands, the structure is plausible — if
+they stray into the forbidden zone, something is wrong. Drag the point above to feel
+why those zones exist.

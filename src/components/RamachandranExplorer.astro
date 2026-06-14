@@ -1,0 +1,159 @@
+---
+/**
+ * RamachandranExplorer — an inline interactive that makes the φ/ψ backbone
+ * constraint visceral (the protein-structure analog of MiniPlot / AminoTitrator).
+ * Drag the point across the Ramachandran map: the readout names the secondary-
+ * structure region it lands in, and the right panel draws the matching backbone
+ * cartoon (right-handed helix / β-sheet / left-handed helix / steric clash).
+ *
+ * Everything is computed in the browser from simplified allowed-region boxes — no
+ * figure is loaded. Allowed regions are teaching simplifications (bounding boxes),
+ * not exact energy contours.
+ */
+interface Props { title?: string; }
+const { title = 'Try it: the Ramachandran plot' } = Astro.props;
+---
+
+<figure class="rama card" data-rama>
+  <figcaption class="rama-head">{title}<span class="rama-chip">drag the point</span></figcaption>
+  <div class="rama-grid">
+    <div class="rama-plotwrap">
+      <svg class="rama-svg" viewBox="0 0 300 300" role="img" aria-label="Ramachandran plot of backbone phi and psi angles; drag the point to explore allowed conformations"></svg>
+      <p class="rama-readout" data-readout></p>
+    </div>
+    <div class="rama-cartoon">
+      <p class="rama-cartoon-head">What this φ/ψ looks like</p>
+      <div class="rama-cartoon-body" data-cartoon></div>
+      <p class="rama-cartoon-sub" data-cartoon-sub></p>
+    </div>
+  </div>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const NAVY = '#232d4b', GRID = '#e6e3db', MUTE = '#9a9aa3';
+  const COL = { aR: '#0e7c86', b: '#2e7d32', aL: '#e57200', forbidden: '#b23b3b' };
+  const L = 42, R = 286, T = 12, B = 256; // plot box; φ x, ψ y
+
+  type Region = 'aR' | 'b' | 'aL' | 'forbidden';
+  const REGIONS: { key: Region; name: string; box: [number, number, number, number]; ell: [number, number, number, number] }[] = [
+    { key: 'aR', name: 'Right-handed α-helix', box: [-90, -35, -70, -15], ell: [-63, -43, 32, 32] },
+    { key: 'b', name: 'β-sheet', box: [-160, -80, 90, 170], ell: [-120, 130, 42, 44] },
+    { key: 'aL', name: 'Left-handed α-helix (rare)', box: [60, 45, 0, 0], ell: [60, 45, 20, 20] },
+  ];
+  const NAMES: Record<Region, string> = { aR: 'Right-handed α-helix', b: 'β-sheet', aL: 'Left-handed α-helix (rare)', forbidden: 'Forbidden — steric clash' };
+  const SUBS: Record<Region, string> = {
+    aR: 'A right-handed coil, 3.6 residues per turn — the most common secondary structure.',
+    b: 'Extended strands hydrogen-bonded side by side into a pleated sheet.',
+    aL: 'A left-handed coil — geometrically allowed but rare in real proteins (mostly glycine).',
+    forbidden: 'Backbone atoms collide here — about 85% of the map is off-limits.',
+  };
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name) as SVGElement;
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const px = (phi: number) => L + ((phi + 180) / 360) * (R - L);
+  const py = (psi: number) => B - ((psi + 180) / 360) * (B - T);
+
+  function regionOf(phi: number, psi: number): Region {
+    for (const r of REGIONS) {
+      if (r.key === 'aL') { if (phi >= 35 && phi <= 80 && psi >= 20 && psi <= 70) return 'aL'; continue; }
+      const [x0, x1, y0, y1] = r.box;
+      if (phi >= x0 && phi <= x1 && psi >= y0 && psi <= y1) return r.key;
+    }
+    return 'forbidden';
+  }
+
+  // backbone cartoons (inline SVG), one per region
+  const CARTOON: Record<Region, string> = {
+    aR: `<svg viewBox="0 0 140 150" width="120" height="128"><path d="M70 14 C40 26 40 44 70 56 C100 68 100 86 70 98 C40 110 40 128 70 140" fill="none" stroke="${COL.aR}" stroke-width="9" stroke-linecap="round"/></svg>`,
+    b: `<svg viewBox="0 0 150 140" width="130" height="120"><g stroke="${COL.b}" stroke-width="8" stroke-linecap="round" fill="none"><path d="M20 35 H118"/><path d="M118 35 l-12 -7 M118 35 l-12 7"/><path d="M20 70 H118"/><path d="M118 70 l-12 -7 M118 70 l-12 7"/><path d="M20 105 H118"/><path d="M118 105 l-12 -7 M118 105 l-12 7"/></g><g stroke="${MUTE}" stroke-width="1.5" stroke-dasharray="3 3"><path d="M50 35 V70"/><path d="M85 35 V70"/><path d="M50 70 V105"/><path d="M85 70 V105"/></g></svg>`,
+    aL: `<svg viewBox="0 0 140 150" width="110" height="118"><path d="M70 14 C100 26 100 44 70 56 C40 68 40 86 70 98 C100 110 100 128 70 140" fill="none" stroke="${COL.aL}" stroke-width="9" stroke-linecap="round"/></svg>`,
+    forbidden: `<svg viewBox="0 0 140 140" width="118" height="118"><g stroke="${NAVY}" stroke-width="7" stroke-linecap="round" fill="none"><path d="M30 40 L75 78"/><path d="M110 44 L66 82"/></g><g stroke="${COL.forbidden}" stroke-width="3" stroke-linecap="round"><path d="M70 70 l16 -16 M70 70 l-16 -16 M70 70 l16 16 M70 70 l-16 16 M70 56 v-14 M70 84 v14 M56 70 h-14 M84 70 h14"/></g></svg>`,
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-rama]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('.rama-svg')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const cartoon = root.querySelector<HTMLElement>('[data-cartoon]')!;
+    const cartoonSub = root.querySelector<HTMLElement>('[data-cartoon-sub]')!;
+    let phi = -63, psi = -43, dragging = false;
+
+    function drawStatic() {
+      svg.replaceChildren();
+      // grid + zero lines
+      for (let a = -180; a <= 180; a += 60) {
+        svg.appendChild(el('line', { x1: px(a), y1: T, x2: px(a), y2: B, stroke: a === 0 ? MUTE : GRID, 'stroke-width': a === 0 ? 1 : 0.6 }));
+        svg.appendChild(el('line', { x1: L, y1: py(a), x2: R, y2: py(a), stroke: a === 0 ? MUTE : GRID, 'stroke-width': a === 0 ? 1 : 0.6 }));
+        const xt = el('text', { x: px(a), y: B + 12, 'text-anchor': 'middle', 'font-size': 8, fill: MUTE }); xt.textContent = String(a); svg.appendChild(xt);
+        const yt = el('text', { x: L - 6, y: py(a) + 3, 'text-anchor': 'end', 'font-size': 8, fill: MUTE }); yt.textContent = String(a); svg.appendChild(yt);
+      }
+      // allowed regions (ellipses)
+      for (const r of REGIONS) {
+        const [cphi, cpsi, rphi, rpsi] = r.ell;
+        svg.appendChild(el('ellipse', { cx: px(cphi), cy: py(cpsi), rx: (rphi / 360) * (R - L), ry: (rpsi / 360) * (B - T), fill: COL[r.key], opacity: 0.18, stroke: COL[r.key], 'stroke-width': 1 }));
+        const lab = el('text', { x: px(cphi), y: py(cpsi) - (rpsi / 360) * (B - T) - 2, 'text-anchor': 'middle', 'font-size': 7.5, fill: COL[r.key], 'font-weight': '700' });
+        lab.textContent = r.key === 'aR' ? 'αR' : r.key === 'b' ? 'β' : 'αL'; svg.appendChild(lab);
+      }
+      // axes
+      svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
+      svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
+      const xl = el('text', { x: (L + R) / 2, y: B + 26, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); xl.textContent = 'φ (degrees)'; svg.appendChild(xl);
+      const yl = el('text', { x: 12, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 12 ${(T + B) / 2})` }); yl.textContent = 'ψ (degrees)'; svg.appendChild(yl);
+      pointGroup = el('g', {}); svg.appendChild(pointGroup);
+    }
+    let pointGroup: SVGElement;
+
+    function update() {
+      const reg = regionOf(phi, psi);
+      pointGroup.replaceChildren();
+      pointGroup.appendChild(el('circle', { cx: px(phi), cy: py(psi), r: 6, fill: '#fff', stroke: NAVY, 'stroke-width': 2 }));
+      const c = COL[reg as Exclude<Region, never>] ?? MUTE;
+      readout.innerHTML = `φ = <strong>${Math.round(phi)}°</strong>  ψ = <strong>${Math.round(psi)}°</strong> · <span style="color:${c};font-weight:600">${NAMES[reg]}</span>`;
+      cartoon.innerHTML = CARTOON[reg];
+      cartoonSub.textContent = SUBS[reg];
+    }
+
+    function setFromEvent(clientX: number, clientY: number) {
+      const rect = svg.getBoundingClientRect();
+      const vx = ((clientX - rect.left) / rect.width) * 300;
+      const vy = ((clientY - rect.top) / rect.height) * 300;
+      phi = Math.max(-180, Math.min(180, ((vx - L) / (R - L)) * 360 - 180));
+      psi = Math.max(-180, Math.min(180, 180 - ((vy - T) / (B - T)) * 360));
+      update();
+    }
+    svg.addEventListener('pointerdown', (e: PointerEvent) => { dragging = true; svg.setPointerCapture(e.pointerId); setFromEvent(e.clientX, e.clientY); });
+    svg.addEventListener('pointermove', (e: PointerEvent) => { if (dragging) setFromEvent(e.clientX, e.clientY); });
+    svg.addEventListener('pointerup', () => { dragging = false; });
+    svg.addEventListener('pointercancel', () => { dragging = false; });
+    svg.setAttribute('tabindex', '0');
+    svg.addEventListener('keydown', (e: KeyboardEvent) => {
+      const step = 5;
+      if (e.key === 'ArrowLeft') phi = Math.max(-180, phi - step);
+      else if (e.key === 'ArrowRight') phi = Math.min(180, phi + step);
+      else if (e.key === 'ArrowDown') psi = Math.max(-180, psi - step);
+      else if (e.key === 'ArrowUp') psi = Math.min(180, psi + step);
+      else return;
+      e.preventDefault(); update();
+    });
+
+    drawStatic();
+    update();
+  });
+</script>
+
+<style>
+  .rama { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-6) 0; }
+  .rama-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .rama-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rama-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--ddp-space-4); align-items: center; }
+  @media (max-width: 640px) { .rama-grid { grid-template-columns: 1fr; } }
+  .rama-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: none; cursor: crosshair; }
+  .rama-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rama-cartoon { text-align: center; }
+  .rama-cartoon-head { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .rama-cartoon-body { display: grid; place-items: center; min-height: 130px; }
+  .rama-cartoon-sub { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); }
+</style>
