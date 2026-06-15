@@ -1,0 +1,222 @@
+---
+/**
+ * AnomerMutarotationExplorer — makes the chapter's thesis manipulable: one
+ * hydroxyl flip at C1 decides storage vs structure, reducing vs locked. Three
+ * panels: (1) the α/β anomer toggle (they interconvert only through the open
+ * chain); (2) the anomeric equilibrium (~36% α, ~64% β, <1% open) plus reducing
+ * power and accumulated glycation; (3) a polymer builder — α-1,4 (starch/glycogen,
+ * branchable, digestible) vs β-1,4 (cellulose, straight, indigestible), where
+ * adding branches makes MORE non-reducing ends and a FASTER release rate.
+ * Self-contained vanilla-TS Astro island, no deps. Original, computed live.
+ */
+---
+
+<figure class="anomer card" data-anomer>
+  <figcaption class="anomer-head">Try it: one hydroxyl, two fates<span class="anomer-chip">flip C1 · build a polymer</span></figcaption>
+  <div class="anomer-grid">
+
+    <section class="anomer-panel">
+      <h4>1 · Anomer</h4>
+      <svg class="anomer-svg" viewBox="0 0 200 150" role="img" aria-label="A glucose ring showing the C1 hydroxyl below the ring (alpha) or above it (beta)" data-ring></svg>
+      <div class="anomer-seg" role="group" aria-label="Anomer">
+        <button type="button" data-an="alpha" aria-pressed="true">α</button>
+        <button type="button" data-an="beta" aria-pressed="false">β</button>
+      </div>
+      <p class="anomer-note" data-an-note>α = C1–OH below the ring. They interconvert only through the open chain.</p>
+    </section>
+
+    <section class="anomer-panel">
+      <h4>2 · Equilibrium &amp; reducing power</h4>
+      <div class="anomer-bar" aria-label="Anomeric equilibrium: about 36% alpha, 64% beta, under 1% open chain">
+        <span class="anomer-seg-a" style="width:36%">α 36%</span>
+        <span class="anomer-seg-o" style="width:4%">&lt;1%</span>
+        <span class="anomer-seg-b" style="width:60%">β 64%</span>
+      </div>
+      <p class="anomer-mini">β wins: its bulky groups sit equatorial, lower strain.</p>
+      <label class="anomer-slabel">Months of high blood glucose <em data-m-out>3.0</em>
+        <input type="range" data-in="months" min="0" max="6" step="0.5" value="3" />
+      </label>
+      <div class="anomer-readrow">
+        <div class="anomer-swatch" data-swatch></div>
+        <div class="anomer-read">
+          <div>Reducing test: <b data-redox>—</b></div>
+          <div>Glycated Hb (HbA1c-style): <b data-a1c>—</b></div>
+        </div>
+      </div>
+      <p class="anomer-note">Glucose is reducing not because it is usually open-chain, but because it <em>can</em> become open-chain — and that trace, over months, glycates your proteins.</p>
+    </section>
+
+    <section class="anomer-panel">
+      <h4>3 · Build a polymer</h4>
+      <div class="anomer-seg" role="group" aria-label="Glycosidic bond">
+        <button type="button" data-bond="alpha" aria-pressed="true">α-1,4</button>
+        <button type="button" data-bond="beta" aria-pressed="false">β-1,4</button>
+      </div>
+      <svg class="anomer-svg" viewBox="0 0 200 110" role="img" aria-label="A growing glucose polymer" data-poly></svg>
+      <div class="anomer-btns">
+        <button type="button" data-add>+ glucose</button>
+        <button type="button" data-branch>+ α-1,6 branch</button>
+        <button type="button" data-resetp>reset</button>
+      </div>
+      <p class="anomer-counts" data-counts>—</p>
+      <p class="anomer-badge" data-badge>—</p>
+    </section>
+  </div>
+  <p class="anomer-foot">One hydroxyl flip on one glucose cascades into storage vs structure, reducing vs locked, self vs foreign.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', GOLD = '#D4A843', ORANGE = '#e57200';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function lerp(a: number, b: number, t: number) { return Math.round(a + (b - a) * t); }
+
+  document.querySelectorAll<HTMLElement>('[data-anomer]').forEach((root) => {
+    // ---- Panel 1: anomer ring ----
+    const ring = root.querySelector<SVGSVGElement>('[data-ring]')!;
+    const anNote = root.querySelector<HTMLElement>('[data-an-note]')!;
+    let anomer: 'alpha' | 'beta' = 'alpha';
+    function drawRing(open: boolean) {
+      ring.replaceChildren();
+      if (open) {
+        // open-chain aldehyde flash
+        ring.appendChild(el('polyline', { points: '100,20 90,40 110,55 90,70 110,85 100,105', fill: 'none', stroke: NAVY, 'stroke-width': 2 }));
+        const cho = el('text', { x: 100, y: 16, 'text-anchor': 'middle', 'font-size': 11, fill: ORANGE, 'font-weight': 700 }); cho.textContent = 'CHO (open chain)'; ring.appendChild(cho);
+        return;
+      }
+      // hexagon pyranose ring
+      const pts = [[100, 30], [148, 55], [148, 100], [100, 125], [52, 100], [52, 55]];
+      ring.appendChild(el('polygon', { points: pts.map((p) => p.join(',')).join(' '), fill: 'none', stroke: NAVY, 'stroke-width': 2 }));
+      const ox = el('text', { x: 148, y: 50, 'text-anchor': 'middle', 'font-size': 10, fill: TEAL }); ox.textContent = 'O'; ring.appendChild(ox);
+      const c1 = el('text', { x: 162, y: 103, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); c1.textContent = 'C1'; ring.appendChild(c1);
+      // C1 substituent: below (alpha) or above (beta) the ring at the C1 vertex (148,100)
+      const yOH = anomer === 'alpha' ? 122 : 78;
+      ring.appendChild(el('line', { x1: 148, y1: 100, x2: 148, y2: yOH, stroke: GOLD, 'stroke-width': 2.4 }));
+      ring.appendChild(el('circle', { cx: 148, cy: yOH, r: 5, fill: GOLD }));
+      const oh = el('text', { x: 165, y: yOH + 3, 'text-anchor': 'middle', 'font-size': 9, fill: GOLD, 'font-weight': 700 }); oh.textContent = 'OH'; ring.appendChild(oh);
+    }
+    let flipping = false;
+    function setAnomer(a: 'alpha' | 'beta') {
+      if (flipping || a === anomer) return;
+      flipping = true;
+      drawRing(true); // flash open chain
+      window.setTimeout(() => {
+        anomer = a;
+        root.querySelectorAll<HTMLButtonElement>('[data-an]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-an') === a)));
+        anNote.textContent = a === 'alpha'
+          ? 'α = C1–OH below the ring. They interconvert only through the open chain.'
+          : 'β = C1–OH above the ring (equatorial, favored). The flip goes through the open chain.';
+        drawRing(false);
+        flipping = false;
+      }, 420);
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-an]').forEach((b) =>
+      b.addEventListener('click', () => setAnomer(b.getAttribute('data-an') as 'alpha' | 'beta')));
+    drawRing(false);
+
+    // ---- Panel 2: reducing power + glycation ----
+    const months = root.querySelector<HTMLInputElement>('[data-in="months"]')!;
+    const mOut = root.querySelector<HTMLElement>('[data-m-out]')!;
+    const swatch = root.querySelector<HTMLElement>('[data-swatch]')!;
+    const redox = root.querySelector<HTMLElement>('[data-redox]')!;
+    const a1c = root.querySelector<HTMLElement>('[data-a1c]')!;
+    function renderGlyc() {
+      const m = parseFloat(months.value);
+      const t = m / 6; // 0..1
+      mOut.textContent = m.toFixed(1);
+      // reducing test colour: Benedict's blue -> brick red as exposure rises
+      const r = lerp(43, 168, t), g = lerp(95, 51, t), b = lerp(166, 31, t);
+      swatch.style.background = `rgb(${r},${g},${b})`;
+      redox.textContent = t < 0.25 ? 'Cu(II) blue (little reduced)' : t < 0.7 ? 'green → orange' : 'Cu₂O brick-red (strongly reducing)';
+      a1c.textContent = (5.0 + t * 7).toFixed(1) + '%';
+    }
+    months.addEventListener('input', renderGlyc);
+    renderGlyc();
+
+    // ---- Panel 3: polymer builder ----
+    const poly = root.querySelector<SVGSVGElement>('[data-poly]')!;
+    const counts = root.querySelector<HTMLElement>('[data-counts]')!;
+    const badge = root.querySelector<HTMLElement>('[data-badge]')!;
+    const branchBtn = root.querySelector<HTMLButtonElement>('[data-branch]')!;
+    const state = { bond: 'alpha' as 'alpha' | 'beta', units: 4, branches: 0 };
+    function drawPoly() {
+      poly.replaceChildren();
+      const n = state.units;
+      if (state.bond === 'alpha') {
+        // coil for storage polymer
+        let d = '';
+        for (let i = 0; i < n; i++) { const x = 16 + i * (168 / Math.max(1, n)); const y = 55 + Math.sin(i * 1.1) * 18; d += (i === 0 ? 'M' : 'L') + x.toFixed(0) + ' ' + y.toFixed(0) + ' '; }
+        poly.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: GOLD, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+        for (let i = 0; i < n; i++) { const x = 16 + i * (168 / Math.max(1, n)); const y = 55 + Math.sin(i * 1.1) * 18; poly.appendChild(el('circle', { cx: x, cy: y, r: 4, fill: GOLD })); }
+        // branches sprouting up
+        for (let bch = 0; bch < state.branches; bch++) {
+          const x = 40 + bch * 36; poly.appendChild(el('line', { x1: x, y1: 50, x2: x, y2: 18, stroke: ORANGE, 'stroke-width': 2.4 }));
+          poly.appendChild(el('circle', { cx: x, cy: 14, r: 4, fill: ORANGE }));
+        }
+      } else {
+        // straight ribbons for cellulose + H-bond ticks
+        for (const yy of [45, 70]) {
+          poly.appendChild(el('line', { x1: 16, y1: yy, x2: 184, y2: yy, stroke: TEAL, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+          for (let i = 0; i < n; i++) { const x = 16 + i * (168 / Math.max(1, n)); poly.appendChild(el('circle', { cx: x, cy: yy, r: 3.5, fill: TEAL })); }
+        }
+        for (let i = 0; i < n; i++) { const x = 16 + i * (168 / Math.max(1, n)); poly.appendChild(el('line', { x1: x, y1: 48, x2: x, y2: 67, stroke: '#9a9aa3', 'stroke-width': 1, 'stroke-dasharray': '2 2' })); }
+      }
+      const ends = state.bond === 'alpha' ? 1 + state.branches : 1;
+      counts.innerHTML = `units: <b>${state.units}</b> · non-reducing ends: <b>${ends}</b> · release rate: <b>${'▮'.repeat(ends)}</b>`;
+      badge.textContent = state.bond === 'alpha'
+        ? 'STARCH / GLYCOGEN · storage · digestible — more branches = more ends = faster mobilization'
+        : 'CELLULOSE · structure · indigestible — straight β-1,4 chains H-bond into fibers; humans lack β-glucosidase';
+      badge.className = 'anomer-badge ' + (state.bond === 'alpha' ? 'is-storage' : 'is-structure');
+      branchBtn.disabled = state.bond !== 'alpha';
+    }
+    function setBond(b: 'alpha' | 'beta') {
+      state.bond = b; if (b === 'beta') state.branches = 0;
+      root.querySelectorAll<HTMLButtonElement>('[data-bond]').forEach((x) => x.setAttribute('aria-pressed', String(x.getAttribute('data-bond') === b)));
+      drawPoly();
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-bond]').forEach((b) => b.addEventListener('click', () => setBond(b.getAttribute('data-bond') as 'alpha' | 'beta')));
+    root.querySelector<HTMLButtonElement>('[data-add]')!.addEventListener('click', () => { if (state.units < 12) state.units++; drawPoly(); });
+    branchBtn.addEventListener('click', () => { if (state.bond === 'alpha' && state.branches < 4) state.branches++; drawPoly(); });
+    root.querySelector<HTMLButtonElement>('[data-resetp]')!.addEventListener('click', () => { state.units = 4; state.branches = 0; drawPoly(); });
+    drawPoly();
+  });
+</script>
+
+<style>
+  .anomer { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .anomer-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .anomer-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .anomer-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-4); }
+  @media (min-width: 760px) { .anomer-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .anomer-panel h4 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .anomer-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .anomer-seg { display: inline-flex; gap: 0; margin: var(--ddp-space-2) 0; border: 1px solid var(--ddp-color-line); border-radius: 6px; overflow: hidden; }
+  .anomer-seg button { font-family: inherit; font-size: var(--ddp-text-xs); border: none; background: #fff; color: var(--ddp-color-ink-soft); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .anomer-seg button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; }
+  .anomer-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .anomer-mini { margin: 0.3rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .anomer-bar { display: flex; height: 22px; border-radius: 5px; overflow: hidden; font-size: 9px; color: #fff; font-weight: 700; }
+  .anomer-bar span { display: grid; place-items: center; white-space: nowrap; }
+  .anomer-seg-a { background: var(--ddp-color-secondary); } .anomer-seg-b { background: var(--ddp-color-accent); } .anomer-seg-o { background: #e57200; font-size: 7px; }
+  .anomer-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-top: var(--ddp-space-2); }
+  .anomer-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .anomer-slabel input { accent-color: var(--ddp-color-accent); }
+  .anomer-readrow { display: flex; gap: 0.5rem; align-items: center; margin-top: var(--ddp-space-2); }
+  .anomer-swatch { width: 38px; height: 38px; border-radius: 6px; border: 1px solid var(--ddp-color-line); flex: none; }
+  .anomer-read { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .anomer-read b { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .anomer-btns { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: var(--ddp-space-2) 0; }
+  .anomer-btns button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.3rem 0.5rem; cursor: pointer; }
+  .anomer-btns button:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .anomer-btns button:disabled { opacity: 0.4; cursor: default; }
+  .anomer-counts { margin: 0.2rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); font-family: var(--ddp-font-mono); }
+  .anomer-counts b { color: var(--ddp-color-primary); }
+  .anomer-badge { margin: 0.2rem 0 0; font-size: var(--ddp-text-xs); line-height: 1.4; padding: 0.35rem 0.5rem; border-radius: 5px; }
+  .anomer-badge.is-storage { background: color-mix(in srgb, var(--ddp-color-secondary) 18%, transparent); color: var(--ddp-color-ink-soft); }
+  .anomer-badge.is-structure { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); color: var(--ddp-color-ink-soft); }
+  .anomer-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
