@@ -179,6 +179,10 @@ const lectureSlide = z.object({
   /** Optional narrated voiceover (mp3 under /public) — lets students listen
    *  to the slide instead of (or alongside) reading the notes. */
   audio: z.string().optional(),
+  /** Optional caveat flagging a known AI-image-generation artifact on THIS slide
+   *  (e.g. a chemically-incorrect structure orientation). Rendered as a visible
+   *  warning so students treat the figure as conceptual, not authoritative. */
+  aiNote: z.string().optional(),
   /** Provenance: which deck + slide (e.g. "CH07 Kinetics · slide 9"). */
   source: z.string().min(1),
   /** Authorship/credit for the slide (the instructor's original work). */

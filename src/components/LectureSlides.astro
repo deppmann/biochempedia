@@ -7,6 +7,12 @@ const { slides } = Astro.props;
 ---
 
 <section class="deck card" data-deck aria-roledescription="carousel" aria-label="Lecture slides">
+  <p class="deck-disclaimer">
+    ⚠️ Many of these slides use AI-assisted figures, so fidelity to exact chemical
+    structure isn't always perfect. Treat them as a <strong>conceptual framework</strong>,
+    not a reference for memorizing structures — for that, use the <strong>3D molecules</strong>
+    in the sidebar. Known artifacts are flagged on the affected slides.
+  </p>
   <div class="deck-stage">
     {slides.map((s, i) => (
       <figure class="deck-slide" data-slide={i} hidden={i !== 0}>
@@ -20,6 +26,9 @@ const { slides } = Astro.props;
           alt={s.alt}
           loading={i === 0 ? 'eager' : 'lazy'}
         />
+        {s.aiNote && (
+          <p class="deck-ainote">⚠️ <strong>AI-image note:</strong> {s.aiNote}</p>
+        )}
         <div class="deck-foot">
           {s.audio && (
             <div class="deck-audio">
@@ -92,6 +101,24 @@ const { slides } = Astro.props;
 <style>
   .deck {
     overflow: hidden;
+  }
+  .deck-disclaimer {
+    margin: 0;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-bottom: 1px solid var(--ddp-color-line);
+    background: color-mix(in srgb, var(--ddp-color-secondary) 10%, transparent);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-ink-soft);
+    line-height: 1.5;
+  }
+  .deck-ainote {
+    margin: 0;
+    padding: var(--ddp-space-2) var(--ddp-space-4);
+    background: color-mix(in srgb, var(--ddp-color-secondary) 16%, transparent);
+    border-top: 1px solid var(--ddp-color-line);
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-ink-soft);
+    line-height: 1.5;
   }
   .deck:focus-visible {
     outline: 2px solid var(--ddp-color-accent);

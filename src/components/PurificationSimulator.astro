@@ -15,7 +15,7 @@
   </figcaption>
 
   <div class="psim-steps" data-steps></div>
-  <p class="psim-callout" data-callout>Press <b>1 · Crude homogenate</b> to load your starting material, then run each step in order and watch specific activity climb.</p>
+  <p class="psim-callout" data-callout>Run the purification one step at a time — click the highlighted <b>▶ button</b> to advance. Watch the table and gel update as specific activity climbs and contaminants drop away.</p>
 
   <div class="psim-grid">
     <div class="psim-tablewrap">
@@ -97,21 +97,34 @@
     const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
     let done = 0; // how many steps have been run
 
-    // build step buttons
+    // build step buttons — only the NEXT step is ever enabled, so the order is obvious
+    const stepBtns: HTMLButtonElement[] = [];
     STEPS.forEach((s, i) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'psim-step';
-      b.textContent = s.name;
       b.addEventListener('click', () => {
-        if (i > done) { callout.textContent = 'Complete the previous step first — purification is sequential.'; return; }
-        if (i < done) return;
+        if (i !== done) return; // disabled anyway; guard for safety
         done = i + 1;
         callout.textContent = s.principle;
         render();
       });
+      stepBtns.push(b);
       stepsBar.appendChild(b);
     });
+
+    // Paint each step button's state so the click order is self-evident.
+    function paintSteps() {
+      stepBtns.forEach((b, i) => {
+        const s = STEPS[i];
+        const isDone = i < done, isNext = i === done;
+        b.classList.toggle('is-done', isDone);
+        b.classList.toggle('is-next', isNext);
+        b.classList.toggle('is-locked', i > done);
+        b.disabled = !isNext;
+        b.textContent = (isDone ? '✓ ' : isNext ? '▶ ' : '') + s.name;
+      });
+    }
 
     // MW (log) → y on the gel
     const GT = 40, GB = 296, MWMAX = 240, MWMIN = 12;
@@ -170,11 +183,11 @@
       }
     }
 
-    function render() { renderTable(); renderGel(); }
+    function render() { renderTable(); renderGel(); paintSteps(); }
 
     resetBtn.addEventListener('click', () => {
       done = 0;
-      callout.innerHTML = 'Press <b>1 · Crude homogenate</b> to load your starting material, then run each step in order and watch specific activity climb.';
+      callout.innerHTML = 'Run the purification one step at a time — click the highlighted <b>▶ button</b> to advance. Watch the table and gel update as specific activity climbs and contaminants drop away.';
       render();
     });
     render();
@@ -194,7 +207,16 @@
     border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
     border-radius: 5px; padding: 0.32rem 0.6rem;
   }
-  .psim-step:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .psim-step:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .psim-step.is-next {
+    border-color: var(--ddp-color-accent);
+    background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff);
+    color: var(--ddp-color-primary); font-weight: 700;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ddp-color-accent) 22%, transparent);
+  }
+  .psim-step.is-done { opacity: 0.6; color: var(--ddp-color-accent); border-style: dashed; }
+  .psim-step.is-locked { opacity: 0.38; }
+  .psim-step:disabled { cursor: default; }
   .psim-callout {
     margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft);
     border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; min-height: 2.4em; line-height: 1.5;
