@@ -1,0 +1,232 @@
+---
+/**
+ * CascadeAmplifier — makes the chapter's two core ideas manipulable: (1) signaling
+ * amplification is MULTIPLICATIVE (output = product of the per-step gains, so one
+ * hormone → millions of glucose), and (2) the same large output can come from a real
+ * hormone signal OR from a broken OFF-switch, which is the molecular logic of disease.
+ * Set the gain of each enzymatic step and watch the running tally climb a log-scale
+ * bar; knock out a step and watch the product collapse; flip a disease preset
+ * (cholera, caffeine, Cushing's, β-blocker) and see output appear with no hormone.
+ * Self-contained vanilla-TS Astro island, no deps. Teaching-grade gains, illustrative.
+ */
+---
+
+<figure class="casc card" data-cascade-amplifier>
+  <figcaption class="casc-head">Cascade amplifier<span class="casc-chip">set gains · flip switches</span></figcaption>
+
+  <div class="casc-presets" role="group" aria-label="Scenarios">
+    <button type="button" data-preset="normal" aria-pressed="true">Normal (hormone ON)</button>
+    <button type="button" data-preset="cholera">Cholera — Gs locked ON</button>
+    <button type="button" data-preset="caffeine">Caffeine — PDE blocked</button>
+    <button type="button" data-preset="cushings">Cushing's — PKA stuck ON</button>
+    <button type="button" data-preset="blocker">β-blocker — receptor blocked</button>
+  </div>
+
+  <div class="casc-grid">
+    <section class="casc-col">
+      <label class="casc-epi">Epinephrine molecules bound <input type="number" data-epi min="0" max="100" step="1" value="1" /></label>
+      <div class="casc-nodes" data-nodes></div>
+      <label class="casc-ko">Knock out one step:
+        <select data-knockout>
+          <option value="">— none —</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="casc-col casc-out">
+      <div class="casc-bignum-wrap">
+        <div class="casc-bignum" data-bignum>—</div>
+        <div class="casc-bignum-lbl">glucose molecules mobilized</div>
+      </div>
+      <div class="casc-bar-wrap">
+        <div class="casc-bar-track"><div class="casc-bar-fill" data-bar></div></div>
+        <div class="casc-bar-ticks"><span>10⁹</span><span>10⁶</span><span>10³</span><span>1</span></div>
+      </div>
+      <p class="casc-caption" data-caption>One molecule in, millions out: output is the product of the gains.</p>
+    </section>
+  </div>
+
+  <p class="casc-foot">The same final number can come from a real hormone (Normal) or from a switch that will not turn off (Cholera, Cushing's). That is the molecular logic of disease.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', MUTED = '#9a9aa3';
+  type Sw = { receptorBlocked: boolean; gsOn: boolean; pkaOn: boolean; pdeBlocked: boolean };
+  type State = { epi: number; gains: number[]; knockout: number | null; sw: Sw };
+
+  // node 0 Epi, 1 receptor, 2 Gs, 3 cyclase, 4 cAMP, 5 PKA, 6 Phos.kinase, 7 phosphorylase ; then glucose
+  const NODE_LABELS = ['Epinephrine', 'β-receptor', 'Gs protein', 'Adenylyl cyclase', 'cAMP', 'PKA', 'Phosphorylase kinase', 'Glycogen phosphorylase'];
+  const GAIN_LABELS = ['receptor → Gs', 'Gs → cyclase', 'cyclase → cAMP', 'cAMP → PKA', 'PKA → phos. kinase', 'phos. kinase → phosphorylase', 'phosphorylase → glucose'];
+  const GAIN_DEFAULTS = [8, 5, 120, 3, 25, 20, 50];
+  const GAIN_MAX = [40, 40, 300, 12, 100, 80, 200];
+
+  function fmt(n: number): string {
+    if (n === 0) return '0';
+    if (n < 1000) return String(Math.round(n));
+    if (n < 1e6) return Math.round(n).toLocaleString('en-US');
+    return n.toExponential(1).replace('e+', ' × 10^').replace('e', ' × 10^');
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-cascade-amplifier]').forEach((root) => {
+    const nodesEl = root.querySelector<HTMLElement>('[data-nodes]')!;
+    const epiInput = root.querySelector<HTMLInputElement>('[data-epi]')!;
+    const koSelect = root.querySelector<HTMLSelectElement>('[data-knockout]')!;
+    const bignum = root.querySelector<HTMLElement>('[data-bignum]')!;
+    const bar = root.querySelector<HTMLElement>('[data-bar]')!;
+    const caption = root.querySelector<HTMLElement>('[data-caption]')!;
+
+    const state: State = { epi: 1, gains: [...GAIN_DEFAULTS], knockout: null, sw: { receptorBlocked: false, gsOn: false, pkaOn: false, pdeBlocked: false } };
+
+    // build the cascade DOM once: a node row, then a gain slider, repeating
+    const sliders: HTMLInputElement[] = [];
+    const tallies: HTMLElement[] = [];
+    const badges: HTMLElement[] = [];
+    NODE_LABELS.forEach((label, i) => {
+      const row = document.createElement('div');
+      row.className = 'casc-node';
+      const name = document.createElement('span'); name.className = 'casc-node-name'; name.textContent = label;
+      const badge = document.createElement('span'); badge.className = 'casc-node-badge';
+      const tally = document.createElement('span'); tally.className = 'casc-node-tally';
+      row.appendChild(name); row.appendChild(badge); row.appendChild(tally);
+      nodesEl.appendChild(row);
+      badges.push(badge); tallies.push(tally);
+      if (i < GAIN_LABELS.length) {
+        const grp = document.createElement('label'); grp.className = 'casc-gain';
+        const gl = document.createElement('span'); gl.className = 'casc-gain-lbl';
+        const out = document.createElement('em'); out.textContent = '×' + GAIN_DEFAULTS[i];
+        gl.append('×', GAIN_LABELS[i] + ' ', out);
+        const inp = document.createElement('input');
+        inp.type = 'range'; inp.min = '1'; inp.max = String(GAIN_MAX[i]); inp.step = '1'; inp.value = String(GAIN_DEFAULTS[i]);
+        inp.setAttribute('aria-label', 'gain ' + GAIN_LABELS[i]);
+        inp.addEventListener('input', () => { state.gains[i] = parseInt(inp.value, 10); out.textContent = '×' + inp.value; state.knockout = null; koSelect.value = ''; clearPreset(); render(); });
+        grp.appendChild(gl); grp.appendChild(inp);
+        nodesEl.appendChild(grp);
+        sliders.push(inp);
+        const opt = document.createElement('option'); opt.value = String(i); opt.textContent = GAIN_LABELS[i]; koSelect.appendChild(opt);
+      }
+    });
+    // glucose output node
+    const outRow = document.createElement('div'); outRow.className = 'casc-node casc-node-glucose';
+    const gname = document.createElement('span'); gname.className = 'casc-node-name'; gname.textContent = 'Glucose released';
+    const gtally = document.createElement('span'); gtally.className = 'casc-node-tally';
+    outRow.appendChild(gname); outRow.appendChild(document.createElement('span')); outRow.appendChild(gtally);
+    nodesEl.appendChild(outRow);
+
+    function compute() {
+      const g = [...state.gains];
+      if (state.knockout !== null) g[state.knockout] = 1;
+      const amt = new Array(8).fill(0);
+      amt[0] = state.epi;
+      amt[1] = state.sw.receptorBlocked ? 0 : amt[0];
+      amt[2] = amt[1] * g[0];
+      if (state.sw.gsOn) amt[2] = Math.max(amt[2], 1); // constitutively active Gs (cholera)
+      amt[3] = amt[2] * g[1];
+      amt[4] = amt[3] * g[2];
+      amt[5] = amt[4] * g[3];
+      if (state.sw.pkaOn) amt[5] = Math.max(amt[5], 1); // R-free PKA (Cushing's)
+      amt[6] = amt[5] * g[4];
+      amt[7] = amt[6] * g[5];
+      let glucose = amt[7] * g[6];
+      if (state.sw.pdeBlocked) glucose *= 3; // cAMP not cleared → lingers/accumulates
+      return { amt, glucose };
+    }
+
+    function render() {
+      const { amt, glucose } = compute();
+      for (let i = 0; i < 8; i++) tallies[i].textContent = fmt(amt[i]);
+      gtally.textContent = fmt(glucose);
+      // badges
+      badges[1].textContent = state.sw.receptorBlocked ? 'blocked' : 'open';
+      badges[1].className = 'casc-node-badge ' + (state.sw.receptorBlocked ? 'is-off' : 'is-on');
+      badges[2].textContent = amt[2] > 0 ? 'GTP (ON)' : 'GDP (OFF)';
+      badges[2].className = 'casc-node-badge ' + (amt[2] > 0 ? 'is-on' : 'is-off');
+      badges[4].textContent = state.sw.pdeBlocked ? 'present (not cleared)' : (amt[4] > 0 ? 'present' : 'cleared');
+      badges[4].className = 'casc-node-badge ' + (amt[4] > 0 ? 'is-on' : 'is-off');
+      badges[5].textContent = amt[5] > 0 ? 'free C (ON)' : 'R₂C₂ (OFF)';
+      badges[5].className = 'casc-node-badge ' + (amt[5] > 0 ? 'is-on' : 'is-off');
+      [0, 3, 6, 7].forEach((i) => { badges[i].textContent = ''; badges[i].className = 'casc-node-badge'; });
+      // big number + log bar
+      bignum.textContent = fmt(glucose);
+      const logv = glucose > 0 ? Math.log10(glucose) : 0;
+      bar.style.height = Math.max(0, Math.min(100, (logv / 9) * 100)) + '%';
+      bar.style.background = glucose > 0 ? ACCENT : MUTED;
+    }
+
+    function clearPreset() {
+      root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    }
+    function resetGains() {
+      state.gains = [...GAIN_DEFAULTS];
+      sliders.forEach((s, i) => { s.value = String(GAIN_DEFAULTS[i]); (s.previousElementSibling!.querySelector('em') as HTMLElement).textContent = '×' + GAIN_DEFAULTS[i]; });
+      state.knockout = null; koSelect.value = '';
+    }
+
+    const PRESETS: Record<string, { epi: number; sw: Sw; caption: string }> = {
+      normal: { epi: 1, sw: { receptorBlocked: false, gsOn: false, pkaOn: false, pdeBlocked: false }, caption: 'Normal: one hormone in, the product of the gains out. Every switch is doing its job.' },
+      cholera: { epi: 0, sw: { receptorBlocked: false, gsOn: true, pkaOn: false, pdeBlocked: false }, caption: "Cholera: Gs can't hydrolyze its GTP, so it stays ON — full output with zero hormone bound." },
+      caffeine: { epi: 1, sw: { receptorBlocked: false, gsOn: false, pkaOn: false, pdeBlocked: true }, caption: 'Caffeine: phosphodiesterase is blocked, so cAMP is not cleared and the signal lingers and builds.' },
+      cushings: { epi: 0, sw: { receptorBlocked: false, gsOn: false, pkaOn: true, pdeBlocked: false }, caption: "Cushing's: PKA's catalytic subunit is no longer held by its regulatory subunit — active without any upstream signal." },
+      blocker: { epi: 1, sw: { receptorBlocked: true, gsOn: false, pkaOn: false, pdeBlocked: false }, caption: 'β-blocker: the receptor is blocked, so the ligand cannot act and output falls to zero.' },
+    };
+
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-preset')!;
+        const p = PRESETS[key];
+        resetGains();
+        state.epi = p.epi; epiInput.value = String(p.epi);
+        state.sw = { ...p.sw };
+        clearPreset(); btn.setAttribute('aria-pressed', 'true');
+        caption.textContent = p.caption;
+        render();
+      });
+    });
+
+    epiInput.addEventListener('input', () => { state.epi = Math.max(0, parseInt(epiInput.value, 10) || 0); clearPreset(); caption.textContent = 'Output is the product of every gain, scaled by the number of hormone molecules bound.'; render(); });
+    koSelect.addEventListener('change', () => {
+      state.knockout = koSelect.value === '' ? null : parseInt(koSelect.value, 10);
+      clearPreset();
+      caption.textContent = state.knockout === null ? 'No step knocked out.' : `Knock out one amplifying step and the whole product collapses — you are dividing the output, not subtracting a term.`;
+      render();
+    });
+
+    render();
+  });
+</script>
+
+<style>
+  .casc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .casc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .casc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .casc-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .casc-presets button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.55rem; cursor: pointer; }
+  .casc-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .casc-presets button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .casc-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-4); }
+  @media (min-width: 760px) { .casc-grid { grid-template-columns: 1.4fr 1fr; } }
+  .casc-epi { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
+  .casc-epi input { width: 64px; font-family: var(--ddp-font-mono); padding: 0.15rem 0.3rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; }
+  .casc-node { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 0.4rem; padding: 0.3rem 0.5rem; border: 1px solid var(--ddp-color-line); border-left: 3px solid var(--ddp-color-accent); border-radius: 5px; background: #fff; }
+  .casc-node-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 600; }
+  .casc-node-badge { font-size: 0.62rem; font-family: var(--ddp-font-mono); padding: 0 0.3rem; border-radius: 3px; }
+  .casc-node-badge.is-on { color: var(--ddp-color-accent); }
+  .casc-node-badge.is-off { color: var(--ddp-color-muted); }
+  .casc-node-tally { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 64px; text-align: right; }
+  .casc-node-glucose { border-left-color: var(--ddp-color-secondary); background: color-mix(in srgb, var(--ddp-color-secondary) 10%, #fff); }
+  .casc-gain { display: flex; flex-direction: column; gap: 0.05rem; padding: 0.15rem 0.5rem 0.35rem; }
+  .casc-gain-lbl { font-size: 0.66rem; color: var(--ddp-color-muted); }
+  .casc-gain-lbl em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .casc-gain input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .casc-ko { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-top: var(--ddp-space-2); }
+  .casc-ko select { font-family: inherit; font-size: var(--ddp-text-xs); padding: 0.15rem 0.3rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; }
+  .casc-out { display: flex; flex-direction: column; gap: var(--ddp-space-3); }
+  .casc-bignum-wrap { text-align: center; }
+  .casc-bignum { font-family: var(--ddp-font-mono); font-size: 1.5rem; font-weight: 700; color: var(--ddp-color-primary); line-height: 1.1; }
+  .casc-bignum-lbl { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .casc-bar-wrap { display: flex; align-items: flex-end; gap: 0.5rem; height: 180px; }
+  .casc-bar-track { position: relative; flex: 1; height: 100%; background: color-mix(in srgb, var(--ddp-color-accent) 7%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 5px; display: flex; align-items: flex-end; overflow: hidden; }
+  .casc-bar-fill { width: 100%; background: var(--ddp-color-accent); transition: height 0.35s ease; }
+  .casc-bar-ticks { display: flex; flex-direction: column; justify-content: space-between; height: 100%; font-size: 0.62rem; color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .casc-caption { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; margin: 0; }
+  .casc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

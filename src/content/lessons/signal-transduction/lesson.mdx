@@ -1,0 +1,678 @@
+---
+title: "Signal-Transduction Pathways: How Cells Compute With Molecular Switches"
+slug: "signal-transduction"
+courseChapter: "Cell Signaling"
+order: 13
+summary: >-
+  One epinephrine molecule mobilizes millions of glucose molecules. That single fact
+  contains the whole logic of cell signaling: a tiny extracellular signal is converted
+  at the membrane into an internal messenger, then amplified down a relay of enzymes
+  until it changes what the cell does. This lesson builds every pathway from one
+  repeating template: switch ON, the signal spreads and amplifies, switch OFF. And it
+  shows that disease is what happens when the OFF switch fails. The beta-adrenergic
+  cAMP cascade is the worked paradigm; insulin is the deep dive; cholera, Cushing's,
+  and CML are the cautionary tales that prove the wiring.
+
+estMinutes: 26
+objectives:
+  - "Lay out the five universal components of any signaling pathway and tell first messengers from second messengers, including why size and polarity decide where the receptor lives."
+  - "Trace the beta-adrenergic cascade from epinephrine to glucose, and explain why amplification is multiplicative rather than additive."
+  - "Distinguish the three G-protein logics (Gs, Gi, Gq) and the three receptor classes (GPCR, kinase-recruiting dimers, RTKs that are themselves kinases)."
+  - "Contrast PLC cleaving PIP2 with PI3K phosphorylating PIP2, and walk the insulin cascade to GLUT4 translocation."
+  - "Map each disease and drug (cholera, Cushing's, CML/Gleevec, cetuximab, KRAS bypass) onto the exact signaling step it breaks or blocks."
+
+scientists:
+  - name: "Earl Sutherland & Theodore Rall"
+    dates: "Sutherland 1915–1974 · Rall 1928–2015"
+    contribution: >-
+      Discovered cyclic AMP and founded the second-messenger concept: the hormone never
+      enters the cell; the membrane converts its arrival into an internal small molecule
+      that carries the order inward.
+    profileSourceAnchor: "The Molecule Hunters (v10) — Sutherland & Rall profile (quote grep-confirmed)."
+    quotes:
+      - "I was not the smartest person in any room, but I was usually the most stubborn."
+    story: >-
+      In 1957 Sutherland and Rall ground up dog liver, split it into membrane particles
+      and soluble supernatant, and hit a paradox: adrenaline needed the membrane fraction
+      to act, but the response showed up in the supernatant where there are no receptors.
+      The hormone could not be in two places at once. The resolution — that adrenaline
+      never enters the cell, and the membrane makes a small water-soluble messenger (cAMP)
+      that carries the order inward — became the organizing principle of the whole field.
+      Rall ended his career at UVA; the 1971 Nobel went to Sutherland alone, though Rall
+      did much of the bench work.
+  - name: "Edwin Krebs & Edmond Fischer"
+    dates: "Krebs 1918–2009 · Fischer 1920–2021"
+    contribution: >-
+      Discovered reversible protein phosphorylation: a single phosphate clipped on by a
+      kinase and pulled off by a phosphatase flips an enzyme between off and on. Krebs
+      later purified PKA, the kinase this chapter's epinephrine cascade runs through.
+    profileSourceAnchor: "The Molecule Hunters (v10) — Krebs & Fischer profile (quotes grep-confirmed)."
+    quotes:
+      - "Ed and I never published a paper where we argued about who should be first author. We alternated, or we flipped a coin. It simply did not matter."
+      - "We didn't solve that problem, but in the course of trying we discovered the molecular mechanism by which interconversion of the two forms of phosphorylase takes place; namely, reversible protein phosphorylation."
+      - "We realized we were looking at something more general than glycogen metabolism."
+    story: >-
+      Across a hallway at the University of Washington in Seattle, Krebs and Fischer set
+      out to answer a tidy question — how does 5'-AMP activate phosphorylase b — and never
+      answered it. Instead they stumbled onto reversible phosphorylation, the single most
+      common regulatory mechanism in eukaryotic cells. Fischer was a Swiss-born pianist
+      turned enzymologist; Krebs kept his medical license as a backup. In 1968 Krebs (with
+      Donal Walsh) purified PKA, the very kinase this chapter's epinephrine cascade runs
+      through. They shared the 1992 Nobel. People kept congratulating Krebs for the Krebs
+      cycle — a different Krebs entirely.
+  - name: "Martin Rodbell & Alfred Gilman"
+    dates: "Rodbell 1925–1998 · Gilman 1941–2015"
+    contribution: >-
+      Discovered the G-protein transducer between receptor and effector. Rodbell proposed
+      the GTP-driven relay; Gilman first caught the transducer at UVA with the cyc⁻ assay
+      (GTP-dependent rescue) and later purified Gs and resolved its α/β/γ subunits at UT
+      Southwestern.
+    profileSourceAnchor: "The Molecule Hunters (v10) — Rodbell & Gilman profile (quotes grep-confirmed); local UVA history (Gilman)."
+    quotes:
+      - "It takes a community of effort to make things really work."
+      - "It is not an individual that really does something."
+    story: >-
+      The deck flags this as local UVA history: Gilman was on the UVA faculty by 1971,
+      chasing Rodbell's inferred transducer with a single question — what is this protein,
+      and how do you grasp it in your hand. His wedge was a broken cancer cell, the cyc⁻
+      S49 lymphoma that could not raise cAMP; adding back a normal-cell extract restored
+      signaling, but only with GTP present. He later purified Gs from rabbit liver at UT
+      Southwestern and resolved the GTPase cycle Rodbell had only inferred. Gilman was, in
+      a phrase from the deck, named after a textbook: his father co-wrote Goodman &
+      Gilman's Pharmacology the year he was born. He trained under Theodore Rall, the same
+      Rall from the Sutherland cAMP story. They shared the 1994 Nobel; Rodbell deflected
+      the credit to a community of effort.
+  - name: "Robert J. Lefkowitz & Brian Kobilka"
+    dates: "Lefkowitz 1943– · Kobilka 1955–"
+    contribution: >-
+      Cloned the beta-adrenergic receptor and mapped the GPCR superfamily (Lefkowitz),
+      then crystallized the receptor in its active state coupled to Gs (Kobilka): the
+      receptor side of the cAMP machinery this chapter is built on.
+    profileSourceAnchor: "The Molecule Hunters (v10) — Lefkowitz & Kobilka profile (quote grep-confirmed)."
+    quotes:
+      - "I had a rude awakening when I started at the NIH. At the one-year point, I had made no progress whatsoever. I was not cut out to be a scientist."
+    story: >-
+      In 1968 a 25-year-old Lefkowitz, a Bronx-born cardiologist drafted into the Public
+      Health Service, was alone in an empty NIH lab, eighteen months in with the research
+      failed completely, clinically depressed and planning to quit. His father talked him
+      off the ledge. His job that night was simply to tag adrenaline receptors with
+      radioactive iodine — and that was the beginning of receptor pharmacology. He went on
+      to clone the beta-adrenergic receptor that opens this chapter's epinephrine cascade.
+      When Stockholm called Kobilka at 2:20 a.m. in 2012 he thought it was a prank, until
+      the Swedish accents sounded convincing. They shared the 2012 Chemistry Nobel for
+      work on GPCRs.
+  - name: "Brian Druker"
+    dates: "1955–"
+    contribution: >-
+      Aimed a single small molecule (imatinib/Gleevec, STI-571) at the mutant Bcr-Abl
+      kinase and turned CML from a lethal leukemia into a manageable condition: the proof
+      that understanding a pathway enables rational, targeted drug design.
+    profileSourceAnchor: "The Molecule Hunters (v10) — Brian Druker profile (quote grep-confirmed)."
+    quotes:
+      - "I grew up in an era where we were told we were going to win the war on cancer, but all I saw was how much we were hurting people with our treatments."
+    story: >-
+      In 1993 Druker called Nicholas Lydon at Ciba-Geigy wanting a compound that shuts off
+      one kinase and only that kinase — the BCR-ABL fusion made by the Philadelphia
+      chromosome that keeps CML cells locked on. He arrived at 4 a.m. to run Western blots
+      before clinical rounds; the STI-571 data came back so clean that journals rejected
+      his papers, suspecting numbers too perfect to be real. At 300 mg essentially all
+      chronic-phase patients normalized their blood counts. He keeps the file on Patient
+      01, who is still alive. Imatinib wedges into the kinase's ATP pocket and stabilizes
+      the inactive conformation — the molecular basis of the chapter's gum-in-a-lock image.
+
+techniques:
+  - name: "The cell-fractionation paradox (Sutherland's method)"
+    blurb: >-
+      Grind tissue, spin it, and split it into a membrane pellet and a soluble supernatant.
+      Sutherland found adrenaline needed the membrane fraction to act but the response
+      showed up in the supernatant. The hormone could not be in two places at once. The
+      resolution was a diffusible second messenger made at the membrane.
+  - name: "Reconstitution with a broken cell (Gilman's cyc⁻ assay)"
+    blurb: >-
+      Start with a mutant cell that cannot raise cAMP, add back an extract from normal
+      cells, and watch signaling return. Gilman's cyc⁻ S49 lymphoma restored cAMP only
+      when GTP was present, which is how the G-protein transducer was first caught; Gilman
+      purified Gs from rabbit liver some years later.
+  - name: "Radioligand receptor binding"
+    blurb: >-
+      Tag a hormone with a radioactive label and count how much sticks to membranes at
+      equilibrium. Lefkowitz tagged adrenaline with radioactive iodine, the first handle on
+      a receptor as a countable molecule and the start of receptor pharmacology.
+  - name: "Western blot readout of kinase inhibition"
+    blurb: >-
+      Run cell lysate on a gel, transfer it, and probe with a phospho-specific antibody to
+      see whether a kinase is firing. Druker used this to show STI-571 (Gleevec) shut down
+      Bcr-Abl so cleanly the data looked too perfect to publish.
+
+structures:
+  - label: "β₂-adrenergic receptor bound to Gs (the GPCR ternary complex)"
+    source: "rcsb"
+    id: "3SN6"
+    note: "PDB 3SN6 · ligand → 7TM receptor → G protein"
+    caption: >-
+      The exact molecular event that opens this chapter: an agonist-bound seven-transmembrane
+      receptor coupled to the heterotrimeric Gs protein, caught in the act of passing the
+      signal inward.
+  - label: "Adenylyl cyclase catalytic domains with Gs-α"
+    source: "rcsb"
+    id: "1AZS"
+    note: "PDB 1AZS · the effector that makes cAMP"
+    caption: >-
+      The cyclase caught being switched on by the stimulatory G-α subunit — the step that
+      converts ATP into the second messenger cAMP.
+  - label: "Protein kinase A (PKA) catalytic subunit"
+    source: "rcsb"
+    id: "1ATP"
+    note: "PDB 1ATP · the kinase cAMP sets free"
+    caption: >-
+      The classic protein-kinase structure, with ATP and a peptide in the active site. cAMP
+      frees this catalytic subunit from its regulatory clamp; it then phosphorylates the
+      cascade's targets.
+  - label: "Calmodulin bound to Ca²⁺ (four EF-hands)"
+    source: "rcsb"
+    id: "1CLL"
+    note: "PDB 1CLL · the calcium sensor"
+    caption: >-
+      The dumbbell-shaped calcium sensor with four helix-loop-helix EF-hand sites. Loaded
+      with Ca²⁺, it switches on targets including CaM kinase and the calcium pump that ends
+      the signal.
+  - label: "H-Ras bound to a GTP analog (the ON state)"
+    source: "rcsb"
+    id: "5P21"
+    note: "PDB 5P21 · the monomeric GTPase switch"
+    caption: >-
+      The small GTPase in its active, GTP-bound conformation — a tiny version of G-α.
+      Mutations that block its GTP hydrolysis lock it ON, the lesion in roughly a third of
+      human cancers.
+  - label: "Abl kinase bound to imatinib (Gleevec)"
+    source: "rcsb"
+    id: "1IEP"
+    note: "PDB 1IEP · gum in the ATP-pocket lock"
+    caption: >-
+      The drug wedged into the kinase's ATP-binding cleft, holding it in the inactive
+      conformation. This is how Gleevec switches off the Bcr-Abl kinase that drives CML.
+  - label: "Insulin receptor ectodomain bound to insulin"
+    source: "rcsb"
+    id: "6CE9"
+    note: "PDB 6CE9 · the pre-dimerized RTK"
+    caption: >-
+      The receptor tyrosine kinase of the insulin deep-dive, shown with insulin engaged.
+      Unlike EGFR it is already a dimer; insulin binding rearranges it to fire.
+  - label: "Insulin — the prototype peptide first messenger"
+    source: "rcsb"
+    id: "4INS"
+    note: "PDB 4INS · A and B chains, disulfide-linked"
+    caption: >-
+      The classic 2-Zn insulin structure: two chains held by disulfide bonds. Too large and
+      polar to cross the membrane, so it must be read at the surface.
+  - label: "Cyclic AMP (cAMP) — the first second messenger"
+    source: "pubchem"
+    id: "6076"
+    note: "CID 6076 · used ATP with a circular handle"
+    caption: >-
+      The molecule Sutherland discovered: ATP with two phosphates clipped off and the rest
+      cyclized. The cyclic phosphate is the message — cAMP is not the same molecule as AMP.
+  - label: "ATP — cyclase substrate and phosphate donor"
+    source: "pubchem"
+    id: "5957"
+    note: "CID 5957 · source of cAMP, fuel for kinases"
+    caption: >-
+      Adenylyl cyclase makes cAMP from this, and every kinase in the chapter uses it as the
+      phosphate donor that flips its target on or off.
+  - label: "Inositol 1,4,5-trisphosphate (IP3)"
+    source: "pubchem"
+    id: "439456"
+    note: "CID 439456 · the soluble PLC product"
+    caption: >-
+      One of the two messengers PLC releases from PIP2. Being soluble, it floats to the ER
+      and opens a calcium channel, releasing a flood of Ca²⁺.
+  - label: "Imatinib (Gleevec) — the targeted inhibitor"
+    source: "pubchem"
+    id: "5291"
+    note: "CID 5291 · the Bcr-Abl kinase inhibitor"
+    caption: >-
+      The small molecule that occupies Bcr-Abl's ATP pocket and shuts it off, turning a
+      rapidly fatal leukemia into a manageable chronic condition.
+  - label: "Epinephrine (adrenaline) — the prototype first messenger"
+    source: "pubchem"
+    id: "5816"
+    note: "CID 5816 · opens the cAMP cascade"
+    caption: >-
+      The catecholamine ligand of the beta-adrenergic receptor. One molecule at the surface
+      ends up mobilizing millions of glucose molecules inside.
+
+videos:
+  - title: "Cellular communication (overview of cell signaling)"
+    youtubeId: "5MoIg5lWLXA"
+    sourceNote: "Khan Academy (MCAT) — first vs second messengers, receptor types, and the logic of a signaling pathway. Openly available."
+  - title: "Activation and inhibition of signal-transduction pathways"
+    youtubeId: "zYX5a65LrXs"
+    sourceNote: "Khan Academy (AP Biology) — how signaling pathways are switched on and off, and how drugs and toxins intervene."
+
+simulations:
+  - type: "local"
+    ref: "CascadeAmplifier"
+    title: "Cascade amplifier (set the per-step gains and watch one hormone become millions of glucose; flip a disease preset to make output appear with no hormone)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab). Teaching-grade gains, illustrative."
+
+practiceQuestions:
+  - stem: "A peptide hormone binds a receptor on the outside of a liver cell and, seconds later, glycogen breakdown begins inside. In the five-component scheme of a signaling pathway, the molecule that carries the message across that gap — generated inside the cell only after the receptor is activated — is called the:"
+    choices:
+      - "second messenger"
+      - "first (primary) messenger"
+      - "effector"
+      - "physiological response"
+    answer: 0
+    rationale: >-
+      The second messenger (for example cAMP) is the intracellular signal made after
+      receptor activation; it bridges the outside-bound hormone and the inside response.
+      The first messenger is the extracellular hormone itself, which binds the receptor but
+      does not cross the membrane. The effector is the downstream enzyme the second messenger
+      acts on (such as PKA), not the messenger. The physiological response is the end output
+      (glucose release), not the carrier of the message.
+  - stem: "Cholera toxin ADP-ribosylates Gs-α so that it can no longer hydrolyze GTP. Compared with a healthy cell, the affected intestinal cell will have:"
+    choices:
+      - "lower cAMP, because Gs can no longer be activated"
+      - "unchanged cAMP, because adenylate cyclase is the real target"
+      - "persistently high cAMP, because Gs is locked in its active GTP-bound form"
+      - "high IP3 and DAG, because the toxin switches the cell to the Gq branch"
+    answer: 2
+    rationale: >-
+      Blocking GTP hydrolysis traps Gs-α in the GTP-bound ON state, so it continuously
+      stimulates adenylate cyclase and cAMP stays high — driving the chloride and water
+      efflux that causes the diarrhea. cAMP does not fall, because the lesion locks Gs ON,
+      not OFF. Adenylate cyclase is downstream and over-stimulated, not bypassed. And the
+      toxin acts on Gs, not Gq, so it does not switch the cell into the IP3/DAG branch.
+  - stem: "PIP2 is a substrate in two different pathways with opposite outcomes. Which pairing correctly states what each enzyme does to PIP2?"
+    choices:
+      - "PLC phosphorylates PIP2 to PIP3; PI3K cleaves PIP2 into IP3 + DAG"
+      - "Both enzymes cleave PIP2, but PLC works in the membrane and PI3K in the cytosol"
+      - "Both enzymes phosphorylate PIP2, but at different positions on the inositol ring"
+      - "PLC cleaves PIP2 into IP3 + DAG; PI3K phosphorylates PIP2 to PIP3"
+    answer: 3
+    rationale: >-
+      PLC hydrolyzes (cleaves) PIP2 into soluble IP3 and membrane-bound DAG; PI3K is a lipid
+      kinase that phosphorylates PIP2 to make PIP3. Swapping the two enzymes is wrong. PI3K
+      does not cleave PIP2, so "both cleave" fails; PLC does not phosphorylate PIP2, so "both
+      phosphorylate" fails. Same substrate, opposite chemistry, opposite outcome is the whole
+      point of the contrast.
+  - stem: "In the beta-adrenergic cascade, one active receptor turns on ~10 G proteins, each adenylate cyclase makes ~100 cAMP, and so on down the chain. Why does one epinephrine molecule end up mobilizing millions of glucose molecules?"
+    choices:
+      - "The per-step gains add together, and many small additions reach a large total"
+      - "The per-step gains multiply, so the output is the product of all the gains"
+      - "Epinephrine is consumed and regenerated, re-firing the receptor millions of times"
+      - "The receptor stays bound permanently, so the signal never has to be amplified"
+    answer: 1
+    rationale: >-
+      Amplification is multiplicative: the final output is the product of the per-step gains,
+      which grows steeply down the cascade (10 × 100 × … reaches millions from one input).
+      Adding the gains would give only a small sum. Epinephrine is not consumed and
+      regenerated to re-fire; the amplification comes from the enzyme relay, not from reusing
+      the ligand. The receptor does not bind permanently — ligand dissociation is part of
+      termination — and amplification is exactly what the cascade is for.
+  - stem: "Gleevec (imatinib) and cetuximab are both anticancer drugs that target signaling, but in opposite ways. Which statement is correct?"
+    choices:
+      - "Gleevec wedges into the Bcr-Abl ATP pocket inside the cell; cetuximab is an antibody that blocks EGF from binding EGFR outside"
+      - "Gleevec is an antibody that blocks ligand binding outside; cetuximab wedges into an ATP pocket inside"
+      - "Both act outside the cell at the ligand-binding site, so a downstream KRAS mutation defeats both"
+      - "Both act inside at the ATP pocket, so neither is affected by mutations in the receptor's ligand site"
+    answer: 0
+    rationale: >-
+      Gleevec is a small-molecule kinase inhibitor that occupies the Bcr-Abl ATP-binding
+      pocket (acting inside, "gum in a lock"); cetuximab is a monoclonal antibody that blocks
+      EGF from binding EGFR and prevents dimerization (acting outside, "covering the
+      doorbell"). Swapping the two is wrong. A downstream KRAS mutation defeats cetuximab
+      specifically, because it leaves the pathway stuck ON below the receptor; it is not a
+      problem for both. And they do not both act at the ATP pocket — one is an antibody.
+
+mcatQuestions:
+  - stem: "A researcher treats cells with caffeine, a phosphodiesterase inhibitor, while stimulating the beta-adrenergic receptor with a fixed dose of agonist. Compared with agonist alone, caffeine co-treatment will most likely:"
+    choices:
+      - "lower cAMP, because phosphodiesterase normally makes cAMP"
+      - "block Gs activation, because phosphodiesterase is required for GDP–GTP exchange"
+      - "prolong and raise cAMP, because the enzyme that degrades cAMP is blocked"
+      - "have no effect, because phosphodiesterase acts only on GTP"
+    answer: 2
+    rationale: >-
+      Phosphodiesterase degrades cAMP to AMP; inhibiting it lets cAMP accumulate and persist,
+      amplifying and prolonging the signal. cAMP would rise, not fall, because the enzyme
+      destroys cAMP rather than making it. It acts on cAMP, not GTP. And GDP–GTP exchange on
+      Gs is catalyzed by the activated receptor, not by phosphodiesterase, so Gs activation is
+      unaffected.
+  - stem: "A tumor has lost both copies of PTEN, a lipid phosphatase that converts PIP3 back to PIP2. The most direct signaling consequence is:"
+    choices:
+      - "loss of PIP3, shutting down the Akt arm of insulin signaling"
+      - "increased PLC activity, raising IP3 and intracellular calcium"
+      - "failure to activate Ras, because PTEN is its GTPase-activating protein"
+      - "accumulation of PIP3 and constitutive Akt signaling, promoting growth and survival"
+    answer: 3
+    rationale: >-
+      PTEN reverses PI3K by dephosphorylating PIP3 to PIP2; without it, PIP3 accumulates and
+      Akt is chronically activated, driving growth and survival — which is why PTEN is a tumor
+      suppressor. Losing PTEN raises PIP3, it does not lower it. PTEN acts on the PI3K/PIP3
+      lipid arm, not on PLC/IP3, so it does not directly raise calcium. And PTEN is a lipid
+      phosphatase, not a Ras GAP, so it has nothing to do with Ras GTP hydrolysis.
+  - stem: "An oncogenic point mutation in Ras prevents hydrolysis of GTP but leaves nucleotide exchange intact. Functionally, this mutant Ras behaves most like:"
+    choices:
+      - "a Ras that is permanently in the inactive GDP-bound state"
+      - "a Ras that is constitutively active because it stays GTP-bound"
+      - "a Ras that can no longer bind guanine nucleotides at all"
+      - "a Gi protein locked in its inhibitory conformation"
+    answer: 1
+    rationale: >-
+      Ras is ON when GTP-bound and OFF once it hydrolyzes GTP to GDP; a mutant that cannot
+      hydrolyze GTP is stuck in the GTP-bound active state, firing the Raf-MEK-ERK
+      proliferation cascade continuously (this is how roughly 30% of cancers carry Ras). It is
+      not locked in the inactive GDP state — that is the opposite of blocked hydrolysis. It
+      still binds nucleotide, since exchange is intact. And Ras is a monomeric small GTPase,
+      not a heterotrimeric Gi, which would inhibit adenylate cyclase rather than drive
+      proliferation.
+
+images: []
+
+lectureSlides:
+  - src: "/slides/signal-transduction/switch-logic.png"
+    audio: "/slides/signal-transduction/audio/switch-logic.mp3"
+    title: "Cell signaling as switch logic"
+    alt: "A schematic of a signaling switch flipping ON when a ligand binds, second messengers fanning out, and the OFF step via phosphatases and messenger-degrading enzymes."
+    source: "CH13 Signaling · slide 3"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Think of cell signaling as switch logic. When a ligand binds its receptor, the switch
+      flips ON, and second messengers like cyclic AMP, IP3, and calcium fan out through the
+      cell. But every switch that turns on must also turn off, through phosphatases that
+      remove phosphates and enzymes that destroy the messengers. Hold onto that pairing.
+      Almost every pathway in this chapter is the same four-beat sentence: a switch turns on,
+      the signal spreads and amplifies, the switch turns off, and when the off step fails,
+      the switch sticks, and that is disease.
+  - src: "/slides/signal-transduction/five-components.png"
+    audio: "/slides/signal-transduction/audio/five-components.mp3"
+    title: "The five components every pathway shares"
+    alt: "A circuit diagram: primary messenger, receptor, second messenger, effectors, physiological response, plus active termination."
+    source: "CH13 Signaling · slide 4"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Every signal transduction pathway, whatever the receptor, shares the same molecular
+      logic. A primary messenger, a hormone or neurotransmitter, is detected by a
+      membrane-spanning receptor. The receptor generates or activates a second messenger
+      inside the cell, which drives effector molecules, which produce the physiological
+      response. Five parts in order, plus one that is easy to forget: active termination. The
+      pathway has to be switched off on purpose, or the signal never ends.
+  - src: "/slides/signal-transduction/first-messengers.png"
+    audio: "/slides/signal-transduction/audio/first-messengers.mp3"
+    title: "First messengers: who is doing the signaling"
+    alt: "First messengers — hormones, neurotransmitters, growth factors, light — and the split between lipophilic signals that cross the membrane and polar ones that cannot."
+    source: "CH13 Signaling · slide 5"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Before the receptor mechanisms, ask what is doing the signaling in the first place.
+      First messengers are the extracellular signals: hormones, neurotransmitters, growth
+      factors, even light. The key split is physical. Small, lipophilic messengers like
+      steroids slip straight through the membrane to receptors inside the cell. Large or polar
+      messengers like peptide hormones cannot cross, so they must be read by a receptor that
+      spans the membrane and relays the news inward. Size and polarity decide where the
+      receptor lives.
+  - src: "/slides/signal-transduction/epinephrine-fuel.png"
+    audio: "/slides/signal-transduction/audio/epinephrine-fuel.mp3"
+    title: "Epinephrine and glucagon trigger fuel mobilization"
+    alt: "Glucagon and epinephrine launching a cascade that breaks down glycogen, shuts off glycogen synthesis, and frees stored fat."
+    source: "CH13 Signaling · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Glucagon and epinephrine are the classic first messengers for fuel mobilization. When
+      blood glucose drops, or the fight-or-flight response fires, these hormones launch a
+      signaling cascade that hits fuel metabolism on several fronts at once: it breaks down
+      glycogen, shuts off glycogen synthesis, and frees stored fat. One hormone arriving at
+      the surface reorganizes the cell's entire energy strategy, because the signal is
+      amplified into a large, coordinated response.
+  - src: "/slides/signal-transduction/camp-fuel-switch.png"
+    audio: "/slides/signal-transduction/audio/camp-fuel-switch.mp3"
+    title: "cAMP as the master switch for fuel"
+    alt: "Rising cAMP activating PKA, which inhibits glycogen synthase while activating phosphorylase kinase and glycogen phosphorylase."
+    source: "CH13 Signaling · slide 11"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      When cyclic AMP rises inside a cell, it acts as a master switch for fuel metabolism
+      through protein kinase A. PKA hits several targets at once: it shuts down glycogen
+      synthesis by inhibiting glycogen synthase, and it turns on glycogen breakdown by
+      activating phosphorylase kinase, which activates glycogen phosphorylase. One second
+      messenger, working through one kinase, flips the cell from storing fuel to releasing
+      it, all by adding phosphates to the right enzymes.
+  - src: "/slides/signal-transduction/receptor-dimerization.png"
+    audio: "/slides/signal-transduction/audio/receptor-dimerization.mp3"
+    title: "Receptor dimerization recruits a kinase"
+    alt: "A growth hormone bringing two receptor chains together, recruiting JAKs that cross-phosphorylate and then phosphorylate STATs."
+    source: "CH13 Signaling · slide 29"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Not every receptor talks to a G protein. Some, like the growth hormone receptor, work
+      by dimerization. When the ligand binds, two receptor chains come together, and that
+      clustering is the activation switch: it brings the intracellular tails close enough
+      that the recruited kinases, the JAKs, can cross-phosphorylate each other. They then
+      phosphorylate STAT proteins, which dimerize, enter the nucleus, and change gene
+      expression. The trick is cross-phosphorylation: the kinases phosphorylate each other,
+      not themselves.
+  - src: "/slides/signal-transduction/ras-gtpase.png"
+    audio: "/slides/signal-transduction/audio/ras-gtpase.mp3"
+    title: "Ras: a monomeric G-protein switch"
+    alt: "Ras cycling between inactive GDP-bound and active GTP-bound states, activated by RTKs and driving the Raf-MEK-ERK cascade."
+    source: "CH13 Signaling · slide 35"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Ras belongs to a family of small, monomeric G proteins that act as molecular switches.
+      Like the trimeric G proteins, Ras cycles between an inactive GDP-bound state and an
+      active GTP-bound state, with its own intrinsic GTPase to turn itself off. Receptor
+      tyrosine kinases activate Ras through adaptor proteins, and active Ras drives the
+      Raf-MEK-ERK cascade toward cell division. About a third of human cancers carry a Ras
+      mutation that blocks GTP hydrolysis, locking the switch on. The broken-off-switch
+      story, one tier down.
+  - src: "/slides/signal-transduction/insulin-pathway.png"
+    audio: "/slides/signal-transduction/audio/insulin-pathway.mp3"
+    title: "The insulin signaling pathway"
+    alt: "Insulin binding its pre-dimerized receptor, cross-phosphorylation, IRS recruiting PI3K, PIP2 to PIP3, Akt driving GLUT4 translocation and glycogen synthesis."
+    source: "CH13 Signaling · slide 38"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      This flowchart maps the insulin cascade from receptor to glucose transporter. The
+      insulin receptor is a receptor tyrosine kinase, but a pre-formed dimer. Insulin binding
+      triggers cross-phosphorylation of its kinase domains, which then phosphorylate IRS
+      adaptor proteins. IRS recruits PI3-kinase, a lipid kinase that phosphorylates PIP2 to
+      PIP3. PIP3 recruits Akt, and Akt drives the fed-state outcomes: GLUT4 glucose
+      transporters move to the membrane for glucose uptake, and glycogen synthesis turns on.
+  - src: "/slides/signal-transduction/plc-two-messengers.png"
+    audio: "/slides/signal-transduction/audio/plc-two-messengers.mp3"
+    title: "PLC: one cut, two messengers"
+    alt: "Phospholipase C cutting PIP2 into DAG (stays in the membrane) and IP3 (soluble, opens an ER calcium channel), together activating PKC."
+    source: "CH13 Signaling · slide 43"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      When a Gq-coupled receptor fires, it activates phospholipase C, which makes a single
+      cut in the membrane lipid PIP2 and releases two second messengers at once. DAG stays in
+      the membrane. IP3 is soluble and floats to the endoplasmic reticulum, where it opens a
+      calcium channel and releases a flood of calcium. Together, DAG and calcium activate
+      protein kinase C. One cut, a two-for-one deal, with the two products going to different
+      places to do different jobs.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: |
+      Imagine you whisper a secret to one friend, who tells ten friends, who each tell a
+      hundred more. By the end, a whole crowd knows, even though you only whispered once.
+      Cells work like that. A tiny signal touches the outside of a cell, and the cell passes
+      it inward, getting louder at every step, until the message is big enough to make the
+      cell do something, like let in sugar. The cell also has an OFF button for the message.
+      When that button breaks and the message never stops, the person gets sick.
+  - level: "highschool"
+    label: "High school"
+    text: |
+      A signal molecule (a hormone) arrives at a cell. If it is small and oily it can slip
+      through the membrane; if it is big it has to knock on a receptor that sticks through the
+      membrane. The receptor passes the message to the inside by making a "second messenger"
+      like cAMP. That kicks off a chain of enzymes, and at each step one enzyme switches on
+      many of the next, so the message gets amplified. One adrenaline molecule ends up
+      releasing millions of glucose molecules from storage. Every pathway has an ON phase, an
+      amplification phase, and an OFF phase. Diseases like cholera and many cancers happen
+      when the OFF phase fails and a switch gets stuck in the ON position.
+  - level: "college"
+    label: "College"
+    text: |
+      Five components define a pathway: first messenger, receptor, second messenger,
+      effectors, response, plus active termination. The beta-adrenergic paradigm runs
+      epinephrine to GPCR to Gs to adenylate cyclase to cAMP to PKA to phosphorylase kinase to
+      glycogen breakdown. The G protein is a heterotrimer; receptor activation catalyzes
+      GDP-to-GTP exchange on alpha, which dissociates and acts on its effector. Three logics:
+      Gs raises cAMP, Gi lowers it, Gq activates PLC (IP3 plus DAG, then Ca²⁺ and PKC). PKA is
+      an R2C2 tetramer freed by cAMP. Amplification is the product of per-step gains, not the
+      sum. Termination is active: intrinsic GTPase, phosphodiesterase (caffeine inhibits it),
+      ligand dissociation, desensitization, with AKAP scaffolds positioning PKA and
+      co-locating phosphatases. Other receptor classes: dimers that recruit JAK (growth
+      hormone to JAK2 to STAT5) and RTKs that are kinases (EGFR to Grb2/SOS to Ras to
+      Raf-MEK-ERK). Insulin's RTK is pre-dimerized and routes through IRS to PI3K, which
+      phosphorylates PIP2 to PIP3 (contrast: PLC cleaves PIP2), then Akt to GLUT4. PTEN
+      reverses PIP3 to PIP2 and is a tumor suppressor. Disease is a stuck switch: cholera
+      locks Gs ON, pertussis locks Gi OFF, Cushing's frees PKA, Ras and Bcr-Abl lock kinases ON.
+  - level: "grad"
+    label: "Graduate"
+    text: |
+      Read the cascade as a set of coupled GTPase and phosphorylation cycles whose duty cycles
+      set signal duration. The heterotrimeric Gα cycle (GEF = the activated receptor, intrinsic
+      and RGS-accelerated GTP hydrolysis as the timer) is mechanistically homologous to the
+      monomeric Ras cycle (GEF = SOS, GAP-accelerated hydrolysis as the timer); oncogenic Ras
+      mutations (e.g. G12, Q61) impair the GAP-stimulated transition state for hydrolysis, not
+      nucleotide exchange, which is why they lock GTP-on. The cAMP node illustrates that
+      steady-state second-messenger concentration is set by a synthesis/degradation balance
+      (adenylate cyclase vs phosphodiesterase), so methylxanthine PDE inhibition shifts the
+      setpoint without touching the receptor. Spatial computation is real: AKAP-anchored PKA
+      plus co-recruited phosphatase generates local cAMP microdomains and steep phospho-
+      gradients, so the same kinase yields target-specific outputs. The PIP2 fork is a clean
+      lesson in hydrolysis vs covalent modification: PLC hydrolyzes the glycerophosphodiester
+      bond (yielding soluble IP3 and membrane DAG, a coincidence input for conventional PKC),
+      whereas class I PI3K phosphorylates the 3-OH of the inositol ring to make PIP3, a
+      PH-domain docking platform for PDK1 and Akt; PTEN is the 3-phosphatase that opposes it,
+      and its loss phenocopies activating PI3K mutations. The recurring design principle is
+      that signaling specificity and reversibility are enforced kinetically by opposing enzyme
+      pairs, and oncogenesis is the failure of the negative arm.
+
+anecdotes:
+  - title: "A cell is a computer made of molecular switches"
+    source: "CH13 lecture notes — the cell as a computer made of molecular switches."
+    text: >-
+      Your laptop has ten billion transistors and computes by flipping each between two
+      states. A cell does the same with proteins instead of silicon — thousands of them,
+      switching one another on and off. The difference is the failure mode. A laptop with a
+      stuck bit reboots; a cell with a stuck switch does not get a second chance. Cholera,
+      Cushing's, and most cancers are, mechanistically, a switch that will not turn off.
+  - title: "Why the mail slot decides where the receptor lives"
+    source: "CH13 lecture notes — first messengers as mail delivery."
+    text: >-
+      Some messages fit through the mail slot; others make you answer the door. A steroid or
+      thyroid hormone is small and oily, so it slips straight through the membrane to a
+      receptor waiting inside the cell. A peptide hormone or growth factor is too big and too
+      polar to cross, so it has to be read at the door by a receptor that spans the membrane.
+      Size and polarity decide where the receptor lives, nothing about how important the
+      message is.
+  - title: "The same ligand, three different answers"
+    source: "CH13 lecture notes — same ligand, different answer (Gs vs Gi vs Gq)."
+    text: >-
+      Adrenaline reaches your heart, your liver, and your blood vessels at the same instant,
+      and each tissue does something different with it. The molecule is identical everywhere.
+      What differs is the receptor it lands on and the G protein behind it: Gs turns cAMP up,
+      Gi turns it down, Gq opens the calcium branch. The meaning of a signal is written in the
+      receiver, which is how one hormone can say three different things at once.
+  - title: "Two toxins, one trick, opposite disasters"
+    source: "CH13 lecture notes — cholera vs pertussis, one mechanism opposite effects."
+    text: >-
+      Cholera and whooping cough both work by ADP-ribosylation, the same chemical
+      modification of a G protein. Choleragen traps Gs-α in its active GTP-bound form, so cAMP
+      never stops and chloride and water pour into the gut, dehydrating a person in hours.
+      Pertussis toxin does the mirror image: it locks Gi in its inactive form, so Gi can no
+      longer inhibit, and signaling runs unchecked. The same wrench, turned on different
+      bolts, breaks the machine in opposite directions.
+
+corpusTags:
+  - "signal-transduction"
+  - "GPCR"
+  - "second-messenger"
+  - "cAMP"
+  - "G-protein"
+  - "receptor-tyrosine-kinase"
+  - "protein-kinase"
+  - "oncogene"
+---
+
+import CascadeAmplifier from '../../../components/CascadeAmplifier.astro';
+
+**One epinephrine molecule can mobilize millions of glucose molecules.** That is the quantitative signature of how cells handle information, and it is the reason signal-transduction pathways exist at all. A signal that arrives as a few molecules at the cell surface has to become a response large enough to change metabolism, and it does that by passing through a relay of enzymes that each multiply the message.
+
+Your phone holds maybe ten billion transistors. A single cell runs on thousands of signaling proteins wired together in countless combinations, and with them it computes: it senses the outside, weighs competing inputs, and commits to an action. The vocabulary is large, but the grammar is small. Almost every pathway in this chapter is the same four-beat sentence. A switch turns ON. The signal spreads and amplifies. The switch turns OFF. And when an OFF mechanism fails, the switch sticks, and that is disease. Hold onto that fourth beat. Cholera, Cushing's syndrome, and most cancers are, mechanistically, broken OFF switches.
+
+## The five parts every pathway shares
+
+Strip any pathway down and the same five components appear in order: a **primary (first) messenger** arrives from outside, binds a **receptor**, which generates or activates a **second messenger** inside the cell, which drives **effector molecules**, which produce the **physiological response**. A sixth feature is non-negotiable and easy to forget: **active termination**. The pathway has to be switched off on purpose.
+
+First and second messengers sit on opposite sides of the membrane. A first messenger is the extracellular signal: epinephrine, insulin, a growth factor. A second messenger is made *after* the receptor fires and carries the order inward: cAMP, IP3, DAG, calcium, PIP3. The split exists because of a physical constraint. Small, lipophilic signals (steroids, thyroid hormone) slip straight through the membrane and find receptors inside the cell. Large or polar signals (peptide hormones, growth factors) cannot cross, so they must be read by a receptor that spans the membrane and relays the news to the inside.
+
+## The cAMP paradigm: epinephrine to glucose
+
+The canonical cascade runs: epinephrine to the **beta-adrenergic receptor**, to **Gs**, to **adenylate cyclase**, to **cAMP**, to **protein kinase A (PKA)**, to **phosphorylase kinase**, to **glycogen phosphorylase**, which liberates glucose. Each arrow is a relay handoff, and most arrows multiply.
+
+Earl Sutherland found cAMP by walking into a contradiction. Adrenaline needed the membrane fraction of broken liver cells to work, yet the glucose-releasing effect appeared in the soluble fraction where no receptors live. The hormone could not act in two places at once. The only resolution was that adrenaline never enters the cell. The membrane converts its arrival into a small, water-soluble messenger that carries the command inward. That messenger is cyclic AMP, the first second messenger ever identified. Adenylate cyclase makes it from ATP by clipping off two phosphates and cyclizing the rest. Think of cAMP as used ATP with a circular handle. The cyclic phosphate is the message; cAMP is not the same molecule as AMP.
+
+The receptor itself is a **GPCR**, a seven-transmembrane protein. GPCRs are the largest receptor family in humans (roughly 800 of them) and the target of about 35% of approved drugs. The ligand binds on the outside and never passes through. Binding outside causes a conformational change that is detected inside, and that change is what activates the G protein.
+
+The **heterotrimeric G protein** has three subunits: alpha, beta, gamma. At rest, alpha holds GDP and the trimer is intact. An activated receptor acts as a catalyst, prying GDP off alpha and letting GTP take its place. Alpha-GTP then dissociates from beta-gamma and carries the signal to its effector. There are three logics depending on which alpha you have. **Gs** stimulates adenylate cyclase and raises cAMP. **Gi** inhibits it and lowers cAMP. **Gq** activates phospholipase C and launches the calcium branch. Same architecture, opposite outputs. The same epinephrine can speed your heart, mobilize glucose, and constrict a vessel, because the response is written into the *receptor and its G protein* rather than the ligand.
+
+cAMP's job is to free PKA. PKA sits as an **R2C2 tetramer**, two regulatory subunits clamping two catalytic subunits silent. cAMP binds the regulatory subunits, they let go, and the catalytic subunits come free and active. This is the universal toggle in action: reversible phosphorylation. Kinases add a phosphate using ATP; phosphatases take it off. The phosphate brings two negative charges and some bulk, which forces a conformational change that can activate or inhibit depending on where it lands. The human genome encodes more kinases than phosphatases, which tells you something about how much of biology is run by this one switch.
+
+{/* ISLAND */}
+<CascadeAmplifier />
+
+Now the amplification. It is **multiplicative, not additive**. One active receptor can switch on perhaps ten G proteins; each adenylate cyclase makes hundreds of cAMP; each PKA phosphorylates many phosphorylase kinases; and so on down the line. The final output is the *product* of the per-step gains, which is why one hormone molecule can release millions of glucose molecules. Knock out a single amplifying step and the whole output collapses, because you are dividing the product, not subtracting a term. The widget above lets you feel this: set the gains, watch the running tally climb a log-scale bar, then remove one step and watch millions become thousands.
+
+## Switching OFF, and why it is the hard part
+
+A signal that cannot be turned off is not a signal; it is a stuck cell. Termination is active and has several layers. Alpha's **intrinsic GTPase** hydrolyzes its own GTP back to GDP, so alpha reassociates with beta-gamma and goes quiet. **Phosphodiesterase** chews cAMP into ordinary AMP, ending the message. Caffeine inhibits phosphodiesterase (one of several effects), so cAMP lingers. Ligand dissociates as its concentration falls. And the receptor desensitizes and internalizes after sustained stimulation.
+
+Spatial control comes from **AKAP scaffold proteins**, which tether PKA next to the specific targets it should phosphorylate. The clever part is that AKAPs also recruit phosphatases, building the OFF switch right beside the ON switch. The scaffold is a surgical tray with every instrument pre-arranged and within reach.
+
+Three diseases make the point that the OFF switch is where things break. In **cholera**, choleragen chemically modifies Gs-alpha by ADP-ribosylation so it can no longer hydrolyze its GTP. Gs is locked ON, cAMP never stops, and chloride and water pour into the intestine. Severe dehydration can kill within hours. **Pertussis** (whooping cough) toxin uses the same chemistry, ADP-ribosylation, on a different target with the opposite result: it locks Gi in its inactive form, so Gi can no longer inhibit, and signaling runs unchecked. Two toxins, one mechanism, opposite effects. In some cases of **Cushing's syndrome**, a mutation leaves PKA's catalytic subunit unable to bind its regulatory subunit, so PKA is never inhibited and cortisol production runs without a hormone telling it to. The clinical picture (muscle weakness, thin and easily bruised skin, osteoporosis) is the downstream cost of a switch that will not turn off.
+
+A reassuring counter-example from the same GPCR family: **GLP-1 receptor agonists** (Ozempic, Wegovy, Mounjaro). GLP-1 is released from gut L-cells after a meal and acts through a Gs-coupled GPCR with the same architecture as the beta-adrenergic receptor. Its safety feature is built into the wiring: GLP-1 stimulates insulin release only when blood glucose is already high. That glucose-dependence means these drugs rarely cause hypoglycemia, unlike the older sulfonylureas, while still acting on pancreas, brain, and stomach.
+
+## The Gq branch: one cut, two messengers
+
+When Gq fires, it activates **phospholipase C**, which cleaves the membrane lipid **PIP2** into two messengers at once. **IP3** is soluble; it floats to the endoplasmic reticulum and opens an IP3-gated calcium channel, releasing a flood of Ca²⁺. **DAG** stays in the membrane, and together with that Ca²⁺ it activates **protein kinase C**. Conventional PKC needs *both* signals, which makes it a coincidence detector: it fires only when the pathway has confirmed itself two different ways. One PLC cut, a two-for-one deal, with the two products going to different places to do different jobs.
+
+## Dimerizing receptors: recruiting a kinase or being one
+
+Not every receptor talks to a G protein. The second class is dimeric receptors that **recruit** a kinase. Growth hormone has two receptor-binding sites on one molecule, so it grabs two receptor chains and pulls their intracellular tails together. That clustering recruits **JAK2**, and the JAKs cross-phosphorylate each other, then phosphorylate **STAT5**, which dimerizes, enters the nucleus, and changes gene expression. JAK is named for Janus, the two-faced Roman god, because it carries two kinase-like domains though only one actually works. Cross-phosphorylation is the recurring trick here: the kinases phosphorylate each other, not themselves. Overdrive this pathway and you get acromegaly in adults or gigantism in children.
+
+The third class is the **receptor tyrosine kinases (RTKs)**, which do not recruit a kinase because they *are* one. EGFR dimerizes on ligand binding, the two halves cross-phosphorylate, and the resulting phospho-tyrosines become docking sites for the adaptor Grb2, which brings in SOS, which activates **Ras**. Ras is a monomeric small GTPase, a tiny version of G-alpha: GDP-off, GTP-on, with its own intrinsic GTPase. Active Ras drives the Raf-MEK-ERK cascade toward proliferation. About 30% of human cancers carry a Ras mutation that blocks GTP hydrolysis, locking Ras (and the proliferation signal) ON. It is the broken-OFF-switch story again, one tier down.
+
+## Insulin: the lipid-kinase deep dive
+
+The insulin receptor is an RTK with one twist: it is a **pre-formed dimer**, already assembled before insulin arrives. Insulin binding triggers a quaternary rearrangement, the halves cross-phosphorylate, and the receptor phosphorylates adaptor proteins called **IRS**. Here the pathway forks away from the EGFR route. IRS recruits **PI3K**, and PI3K is a *lipid* kinase: it phosphorylates PIP2 to make **PIP3**, a membrane second messenger. PIP3 recruits PDK and **Akt**, and Akt drives the two outcomes that define the fed state: **GLUT4 translocation** to the membrane for glucose uptake, and glycogen synthesis.
+
+Hold the two PIP2 stories side by side, because it is the cleanest contrast here. In the Gq branch, PLC **cleaves** PIP2 into IP3 and DAG. In insulin signaling, PI3K **phosphorylates** PIP2 into PIP3. Same substrate, opposite chemistry, opposite outcome.
+
+Termination matters as much here as anywhere. Protein phosphatases strip the activating phosphates, and a *lipid* phosphatase called **PTEN** converts PIP3 back to PIP2, shutting down the Akt arm. PTEN is a tumor suppressor: lose it, and Akt signals constitutively, which drives cancer. Every clinical failure of this pathway is a failure at a specific node. Any block along insulin, receptor, IRS, PI3K, PIP3, Akt, GLUT4 reduces glucose uptake, and that is where type 2 diabetes lives.
+
+## Calcium and the cancer-as-signaling view
+
+Calcium is a ubiquitous second messenger, and the common sensor that reads it is **calmodulin**, which carries four Ca²⁺-binding **EF-hand** motifs, each a helix-loop-helix fold (the motif is named for helices E and F of parvalbumin, where it was first seen). The finger pose, where index and thumb form the two helices and the curled middle fingers form the loop, is the mnemonic for the fold. Ca²⁺-loaded calmodulin then activates targets including the plasma-membrane Ca²⁺ ATPase (which pumps calcium back out, terminating the signal) and CaM kinase.
+
+Step back and cancer is fundamentally a disease of signaling. **Proto-oncogenes** promote growth and become **oncogenes** when stuck ON; **tumor-suppressor genes** brake growth and cause cancer when lost. Ras stuck ON, PKA stuck ON, PTEN lost: each is a switch that failed.
+
+Two drug strategies attack the wiring from opposite sides. **Gleevec (imatinib)** treats chronic myelogenous leukemia, where the Philadelphia chromosome fuses two genes into a constitutively active Bcr-Abl tyrosine kinase. Gleevec wedges into the kinase's ATP-binding pocket and shuts it off, turning a rapidly fatal leukemia into a manageable chronic condition. It acts from the inside. **Cetuximab** is an antibody that blocks EGF from binding EGFR, preventing dimerization from the outside. If Gleevec is like putting gum in a lock, cetuximab is like covering the doorbell so no one can ring it. But cetuximab only helps if the cancer is actually EGFR-driven. A downstream **KRAS** mutation leaves the pathway stuck ON below the receptor, so blocking the doorbell does nothing. That is why precision medicine requires knowing the tumor's genetics, and why single-pathway drugs so often fail: pathways cross-talk, and the cell reroutes around a block.
+
+Cells compute with molecular switches. Broken switches cause disease. Knowing the wiring is what makes a therapy targetable. That is signal transduction.
