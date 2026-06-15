@@ -80,24 +80,41 @@
     const ring = root.querySelector<SVGSVGElement>('[data-ring]')!;
     const anNote = root.querySelector<HTMLElement>('[data-an-note]')!;
     let anomer: 'alpha' | 'beta' = 'alpha';
+    const HFAINT = '#b9b9c2';
     function drawRing(open: boolean) {
       ring.replaceChildren();
       if (open) {
-        // open-chain aldehyde flash
-        ring.appendChild(el('polyline', { points: '100,20 90,40 110,55 90,70 110,85 100,105', fill: 'none', stroke: NAVY, 'stroke-width': 2 }));
+        // open-chain aldehyde flash (vertical zig-zag with the reactive CHO on top)
+        ring.appendChild(el('polyline', { points: '100,24 88,42 112,56 88,70 112,84 100,104', fill: 'none', stroke: NAVY, 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
         const cho = el('text', { x: 100, y: 16, 'text-anchor': 'middle', 'font-size': 11, fill: ORANGE, 'font-weight': 700 }); cho.textContent = 'CHO (open chain)'; ring.appendChild(cho);
         return;
       }
-      // hexagon pyranose ring
-      const pts = [[100, 30], [148, 55], [148, 100], [100, 125], [52, 100], [52, 55]];
-      ring.appendChild(el('polygon', { points: pts.map((p) => p.join(',')).join(' '), fill: 'none', stroke: NAVY, 'stroke-width': 2 }));
-      const ox = el('text', { x: 148, y: 50, 'text-anchor': 'middle', 'font-size': 10, fill: TEAL }); ox.textContent = 'O'; ring.appendChild(ox);
-      const c1 = el('text', { x: 162, y: 103, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); c1.textContent = 'C1'; ring.appendChild(c1);
-      // C1 substituent: below (alpha) or above (beta) the ring at the C1 vertex (148,100)
-      const yOH = anomer === 'alpha' ? 122 : 78;
-      ring.appendChild(el('line', { x1: 148, y1: 100, x2: 148, y2: yOH, stroke: GOLD, 'stroke-width': 2.4 }));
-      ring.appendChild(el('circle', { cx: 148, cy: yOH, r: 5, fill: GOLD }));
-      const oh = el('text', { x: 165, y: yOH + 3, 'text-anchor': 'middle', 'font-size': 9, fill: GOLD, 'font-weight': 700 }); oh.textContent = 'OH'; ring.appendChild(oh);
+      // Haworth pyranose: a flattened hexagon lying flat, ring O at back-right,
+      // C1 (the anomeric carbon) at the far right. The front (lower) edge is drawn
+      // bold to give the ring its 3-D tilt, the convention students learn.
+      const C5: [number, number] = [62, 60], O: [number, number] = [138, 60], C1: [number, number] = [166, 84];
+      const C2: [number, number] = [138, 108], C3: [number, number] = [62, 108], C4: [number, number] = [36, 84];
+      const j = (p: [number, number]) => p.join(',');
+      // back edges (thin): C4–C5–O–C1
+      ring.appendChild(el('polyline', { points: [C4, C5, O, C1].map(j).join(' '), fill: 'none', stroke: NAVY, 'stroke-width': 1.6, 'stroke-linejoin': 'round' }));
+      // front edges (bold): C1–C2–C3–C4
+      ring.appendChild(el('polyline', { points: [C1, C2, C3, C4].map(j).join(' '), fill: 'none', stroke: NAVY, 'stroke-width': 3.2, 'stroke-linejoin': 'round' }));
+      // ring oxygen + C1 labels
+      const ox = el('text', { x: O[0], y: O[1] - 4, 'text-anchor': 'middle', 'font-size': 11, fill: TEAL, 'font-weight': 700 }); ox.textContent = 'O'; ring.appendChild(ox);
+      const c1 = el('text', { x: C1[0] + 11, y: C1[1] + 4, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); c1.textContent = 'C1'; ring.appendChild(c1);
+      // C6 (CH2OH) off C5, always pointing up — orients the viewer
+      ring.appendChild(el('line', { x1: C5[0], y1: C5[1], x2: C5[0], y2: C5[1] - 22, stroke: NAVY, 'stroke-width': 1.6 }));
+      const ch = el('text', { x: C5[0], y: C5[1] - 26, 'text-anchor': 'middle', 'font-size': 8, fill: NAVY }); ch.textContent = 'CH₂OH'; ring.appendChild(ch);
+      // anomeric substituents on C1: the OH (gold) and an H (faint) point to OPPOSITE
+      // faces. alpha = OH below the ring plane; beta = OH above it.
+      const ohUp = anomer === 'beta';
+      const ohY = ohUp ? C1[1] - 26 : C1[1] + 26;
+      const hY = ohUp ? C1[1] + 22 : C1[1] - 22;
+      ring.appendChild(el('line', { x1: C1[0], y1: C1[1], x2: C1[0], y2: ohY, stroke: GOLD, 'stroke-width': 2.6 }));
+      ring.appendChild(el('circle', { cx: C1[0], cy: ohY, r: 5, fill: GOLD }));
+      const oh = el('text', { x: C1[0] + 14, y: ohY + 3, 'text-anchor': 'middle', 'font-size': 9, fill: GOLD, 'font-weight': 700 }); oh.textContent = 'OH'; ring.appendChild(oh);
+      ring.appendChild(el('line', { x1: C1[0], y1: C1[1], x2: C1[0], y2: hY, stroke: HFAINT, 'stroke-width': 1.6 }));
+      const h = el('text', { x: C1[0] + 9, y: hY + 3, 'text-anchor': 'middle', 'font-size': 8, fill: HFAINT }); h.textContent = 'H'; ring.appendChild(h);
     }
     let flipping = false;
     function setAnomer(a: 'alpha' | 'beta') {
@@ -147,16 +164,21 @@
       poly.replaceChildren();
       const n = state.units;
       if (state.bond === 'alpha') {
-        // coil for storage polymer
+        // coil for storage polymer. Keep the backbone in the lower half so branches
+        // have room to sprout upward from real units.
+        const ux = (i: number) => 16 + i * (168 / Math.max(1, n));
+        const uy = (i: number) => 64 + Math.sin(i * 1.1) * 14;
         let d = '';
-        for (let i = 0; i < n; i++) { const x = 16 + i * (168 / Math.max(1, n)); const y = 55 + Math.sin(i * 1.1) * 18; d += (i === 0 ? 'M' : 'L') + x.toFixed(0) + ' ' + y.toFixed(0) + ' '; }
+        for (let i = 0; i < n; i++) { d += (i === 0 ? 'M' : 'L') + ux(i).toFixed(0) + ' ' + uy(i).toFixed(0) + ' '; }
         poly.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: GOLD, 'stroke-width': 3, 'stroke-linecap': 'round' }));
-        for (let i = 0; i < n; i++) { const x = 16 + i * (168 / Math.max(1, n)); const y = 55 + Math.sin(i * 1.1) * 18; poly.appendChild(el('circle', { cx: x, cy: y, r: 4, fill: GOLD })); }
-        // branches sprouting up
+        // branches FIRST, so the backbone circles sit on top of where each branch joins
         for (let bch = 0; bch < state.branches; bch++) {
-          const x = 40 + bch * 36; poly.appendChild(el('line', { x1: x, y1: 50, x2: x, y2: 18, stroke: ORANGE, 'stroke-width': 2.4 }));
-          poly.appendChild(el('circle', { cx: x, cy: 14, r: 4, fill: ORANGE }));
+          const ai = Math.min(n - 1, 1 + bch); // anchor on an actual backbone unit
+          const bx = ux(ai), by = uy(ai), tipY = by - 30;
+          poly.appendChild(el('line', { x1: bx, y1: by, x2: bx, y2: tipY, stroke: ORANGE, 'stroke-width': 2.4, 'stroke-linecap': 'round' }));
+          poly.appendChild(el('circle', { cx: bx, cy: tipY, r: 4, fill: ORANGE }));
         }
+        for (let i = 0; i < n; i++) { poly.appendChild(el('circle', { cx: ux(i), cy: uy(i), r: 4, fill: GOLD })); }
       } else {
         // straight ribbons for cellulose + H-bond ticks
         for (const yy of [45, 70]) {
@@ -171,7 +193,7 @@
         ? 'STARCH / GLYCOGEN · storage · digestible — more branches = more ends = faster mobilization'
         : 'CELLULOSE · structure · indigestible — straight β-1,4 chains H-bond into fibers; humans lack β-glucosidase';
       badge.className = 'anomer-badge ' + (state.bond === 'alpha' ? 'is-storage' : 'is-structure');
-      branchBtn.disabled = state.bond !== 'alpha';
+      branchBtn.disabled = state.bond !== 'alpha' || state.branches >= Math.min(4, state.units - 1);
     }
     function setBond(b: 'alpha' | 'beta') {
       state.bond = b; if (b === 'beta') state.branches = 0;
@@ -180,7 +202,7 @@
     }
     root.querySelectorAll<HTMLButtonElement>('[data-bond]').forEach((b) => b.addEventListener('click', () => setBond(b.getAttribute('data-bond') as 'alpha' | 'beta')));
     root.querySelector<HTMLButtonElement>('[data-add]')!.addEventListener('click', () => { if (state.units < 12) state.units++; drawPoly(); });
-    branchBtn.addEventListener('click', () => { if (state.bond === 'alpha' && state.branches < 4) state.branches++; drawPoly(); });
+    branchBtn.addEventListener('click', () => { if (state.bond === 'alpha' && state.branches < Math.min(4, state.units - 1)) state.branches++; drawPoly(); });
     root.querySelector<HTMLButtonElement>('[data-resetp]')!.addEventListener('click', () => { state.units = 4; state.branches = 0; drawPoly(); });
     drawPoly();
   });
