@@ -1,0 +1,191 @@
+---
+/**
+ * OxygenBindingExplorer — "the cooperativity sandbox." A live plot of fractional
+ * O2 saturation (Y) vs partial pressure (pO2), computed entirely in the browser
+ * from the Hill equation Y = p^n / (P50^n + p^n) — no image, no network. Students
+ * drag the Hill coefficient and P50 (or hit presets: BPG, Bohr, exercise, fetal,
+ * bar-headed goose, CO poisoning) and watch the hyperbola↔sigmoid signature, and
+ * the emergent "% O2 delivered between lungs and tissue" — which falls out of the
+ * equation, not a hardcoded number. Ghost reference curves: myoglobin (n=1,
+ * P50≈2) and normal HbA (n≈2.8, P50≈26). Original, computed live.
+ */
+interface Props { title?: string; }
+const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
+---
+
+<figure class="obc card" data-obc>
+  <figcaption class="obc-head">{title}<span class="obc-chip">drag · original · computed live</span></figcaption>
+  <svg class="obc-svg" viewBox="0 0 460 320" role="img" aria-label="Oxygen-binding saturation curve: O2 saturation versus partial pressure pO2, comparing myoglobin and hemoglobin" data-svg></svg>
+  <div class="obc-presets" data-presets>
+    <button type="button" data-preset="hba">Normal HbA</button>
+    <button type="button" data-preset="mb">Myoglobin</button>
+    <button type="button" data-preset="bpg">+ 2,3-BPG</button>
+    <button type="button" data-preset="bohr">Acidosis / Bohr</button>
+    <button type="button" data-preset="exercise">Exercise (all four)</button>
+    <button type="button" data-preset="fetal">Fetal Hb</button>
+    <button type="button" data-preset="goose">Bar-headed goose</button>
+    <button type="button" data-preset="co">CO poisoning</button>
+  </div>
+  <div class="obc-body">
+    <div class="obc-controls">
+      <label>Hill coefficient n<sub>H</sub> <em data-out="n">2.8</em>
+        <input type="range" data-in="n" min="1" max="4" step="0.1" value="2.8" />
+      </label>
+      <label>P<sub>50</sub> (torr) <em data-out="p50">26</em>
+        <input type="range" data-in="p50" min="2" max="50" step="1" value="26" />
+      </label>
+    </div>
+    <dl class="obc-readout">
+      <div><dt>Y at lungs (100 torr)</dt><dd data-r="lungs">—</dd></div>
+      <div><dt>Y at tissue (30 torr)</dt><dd data-r="tissue">—</dd></div>
+      <div><dt>O₂ delivered</dt><dd data-r="delivered" class="obc-big">—</dd></div>
+    </dl>
+  </div>
+  <p class="obc-caption" data-caption>At n<sub>H</sub> 2.8 and P<sub>50</sub> 26, hemoglobin delivers about two-thirds of its O₂ between lungs (100 torr) and resting tissue (20 torr). Hit "Myoglobin" to see a non-cooperative, high-affinity carrier give up only ~7%.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GRID = '#e6e3db', GHOST = '#b9b6ad';
+  const L = 50, R = 444, T = 16, B = 280, PMAX = 120;
+  const LUNGS = 100, TISSUE = 20; // lungs ~100 torr, resting tissue ~20 torr
+
+  // Hill equation — treated as a black box (not derived).
+  function hill(p: number, n: number, p50: number): number {
+    return Math.pow(p, n) / (Math.pow(p50, n) + Math.pow(p, n));
+  }
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Preset = { n: number; p50: number; ymax: number; cap: string };
+  const PRESETS: Record<string, Preset> = {
+    hba: { n: 2.8, p50: 26, ymax: 1, cap: 'Normal adult hemoglobin: a steep sigmoid sitting right in the physiological window.' },
+    mb: { n: 1, p50: 2, ymax: 1, cap: 'Myoglobin: one site, no cooperativity. It clamps onto O₂ and barely lets go — a store, not a carrier.' },
+    bpg: { n: 2.8, p50: 34, ymax: 1, cap: '2,3-BPG wedges into the T-state cavity and right-shifts the curve, so more O₂ unloads in the tissues.' },
+    bohr: { n: 2.8, p50: 38, ymax: 1, cap: 'The Bohr effect: low pH stabilizes the T state, right-shifting the curve and boosting unloading where CO₂ is high.' },
+    exercise: { n: 2.8, p50: 46, ymax: 1, cap: 'Exercising muscle: low pO₂, low pH, high CO₂, and high BPG all stabilize T — extraction climbs toward ~70%.' },
+    fetal: { n: 2.8, p50: 19, ymax: 1, cap: 'Fetal Hb binds BPG weakly, so it is left-shifted — it pulls O₂ across the placenta from the mother.' },
+    goose: { n: 2.8, p50: 14, ymax: 1, cap: 'The bar-headed goose: a left-shifted curve grabs O₂ from the thin air over the Himalayas.' },
+    co: { n: 2.2, p50: 8, ymax: 0.82, cap: 'Carbon monoxide locks hemoglobin in the high-affinity R state and caps saturation — the blood carries O₂ but cannot release it.' },
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-obc]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]')!;
+    const pIn = root.querySelector<HTMLInputElement>('[data-in="p50"]')!;
+    const nOut = root.querySelector<HTMLElement>('[data-out="n"]')!;
+    const pOut = root.querySelector<HTMLElement>('[data-out="p50"]')!;
+    const caption = root.querySelector<HTMLElement>('[data-caption]')!;
+    const state = { n: 2.8, p50: 26, ymax: 1 };
+
+    const px = (p: number) => L + (p / PMAX) * (R - L);
+    const py = (y: number) => B - y * (B - T);
+
+    function curvePath(n: number, p50: number, ymax: number): string {
+      let d = '';
+      for (let i = 0; i <= 120; i++) {
+        const p = (i / 120) * PMAX;
+        const y = ymax * hill(p, n, p50);
+        d += (i === 0 ? 'M' : 'L') + px(p).toFixed(1) + ' ' + py(y).toFixed(1) + ' ';
+      }
+      return d.trim();
+    }
+    function ghost(n: number, p50: number, label: string) {
+      svg.appendChild(el('path', { d: curvePath(n, p50, 1), fill: 'none', stroke: GHOST, 'stroke-width': 1.3, 'stroke-dasharray': '4 3' }));
+      const lx = px(p50) + 6, ly = py(hill(p50 * 1.6, n, p50));
+      const t = el('text', { x: lx, y: ly, 'font-size': 9, fill: GHOST }); t.textContent = label; svg.appendChild(t);
+    }
+
+    function render() {
+      svg.replaceChildren();
+      // gridlines + axes
+      for (let g = 0; g <= 100; g += 25) {
+        svg.appendChild(el('line', { x1: L, y1: py(g / 100), x2: R, y2: py(g / 100), stroke: GRID, 'stroke-width': 1 }));
+        const yl = el('text', { x: L - 6, y: py(g / 100) + 3, 'text-anchor': 'end', 'font-size': 9, fill: NAVY }); yl.textContent = String(g); svg.appendChild(yl);
+      }
+      for (let p = 0; p <= PMAX; p += 30) {
+        const xl = el('text', { x: px(p), y: B + 14, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); xl.textContent = String(p); svg.appendChild(xl);
+      }
+      svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+      svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+      const xlab = el('text', { x: (L + R) / 2, y: B + 30, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); xlab.textContent = 'pO₂ (torr)'; svg.appendChild(xlab);
+      const ylab = el('text', { x: 13, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 13 ${(T + B) / 2})` }); ylab.textContent = 'O₂ saturation (%)'; svg.appendChild(ylab);
+
+      // lungs / tissue markers
+      for (const [p, name] of [[LUNGS, 'lungs'], [TISSUE, 'tissue']] as [number, string][]) {
+        svg.appendChild(el('line', { x1: px(p), y1: T, x2: px(p), y2: B, stroke: NAVY, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.45 }));
+        const t = el('text', { x: px(p), y: T + 9, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); t.textContent = name; svg.appendChild(t);
+      }
+
+      // ghost reference curves
+      ghost(1, 2, 'Mb');
+      ghost(2.8, 26, 'HbA');
+
+      // delivered-fraction band (between Y at tissue and Y at lungs on the active curve)
+      const yL = state.ymax * hill(LUNGS, state.n, state.p50);
+      const yTis = state.ymax * hill(TISSUE, state.n, state.p50);
+      svg.appendChild(el('rect', { x: px(TISSUE), y: py(yL), width: px(LUNGS) - px(TISSUE), height: py(yTis) - py(yL), fill: ACCENT, opacity: 0.14 }));
+      svg.appendChild(el('line', { x1: px(TISSUE), y1: py(yL), x2: px(LUNGS), y2: py(yL), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.6 }));
+      svg.appendChild(el('line', { x1: px(TISSUE), y1: py(yTis), x2: px(LUNGS), y2: py(yTis), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.6 }));
+      const dlab = el('text', { x: (px(TISSUE) + px(LUNGS)) / 2, y: (py(yL) + py(yTis)) / 2 + 3, 'text-anchor': 'middle', 'font-size': 9, fill: ACCENT, 'font-weight': 700 }); dlab.textContent = 'delivered'; svg.appendChild(dlab);
+
+      // active curve
+      svg.appendChild(el('path', { d: curvePath(state.n, state.p50, state.ymax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      svg.appendChild(el('circle', { cx: px(LUNGS), cy: py(yL), r: 3.5, fill: NAVY }));
+      svg.appendChild(el('circle', { cx: px(TISSUE), cy: py(yTis), r: 3.5, fill: ORANGE }));
+
+      // readouts
+      const set = (k: string, v: string) => { const e = root.querySelector<HTMLElement>(`[data-r="${k}"]`); if (e) e.textContent = v; };
+      set('lungs', (yL * 100).toFixed(0) + '%');
+      set('tissue', (yTis * 100).toFixed(0) + '%');
+      set('delivered', ((yL - yTis) * 100).toFixed(0) + '%');
+      nOut.textContent = state.n.toFixed(1);
+      pOut.textContent = String(state.p50);
+      svg.setAttribute('aria-label', `Oxygen saturation curve: Hill coefficient ${state.n.toFixed(1)}, P50 ${state.p50} torr; ${((yL - yTis) * 100).toFixed(0)} percent of O2 delivered between lungs and tissue.`);
+    }
+
+    nIn.addEventListener('input', () => { state.n = parseFloat(nIn.value); state.ymax = 1; render(); });
+    pIn.addEventListener('input', () => { state.p50 = parseFloat(pIn.value); state.ymax = 1; render(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const pr = PRESETS[b.getAttribute('data-preset')!];
+        state.n = pr.n; state.p50 = pr.p50; state.ymax = pr.ymax;
+        nIn.value = String(pr.n); pIn.value = String(pr.p50);
+        caption.textContent = pr.cap;
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .obc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .obc-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
+    font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
+  }
+  .obc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .obc-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .obc-presets { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: var(--ddp-space-3); }
+  .obc-presets button {
+    font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer;
+    border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);
+    border-radius: 5px; padding: 0.3rem 0.55rem;
+  }
+  .obc-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .obc-body { display: flex; flex-wrap: wrap; gap: var(--ddp-space-4); margin-top: var(--ddp-space-3); }
+  .obc-controls { flex: 1 1 220px; display: flex; flex-direction: column; gap: 0.5rem; }
+  .obc-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .obc-controls em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .obc-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .obc-readout { flex: 1 1 180px; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+  .obc-readout div { display: flex; justify-content: space-between; gap: 0.5rem; font-size: var(--ddp-text-xs); }
+  .obc-readout dt { color: var(--ddp-color-muted); margin: 0; }
+  .obc-readout dd { margin: 0; font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .obc-readout dd.obc-big { color: var(--ddp-color-accent); font-size: var(--ddp-text-sm); }
+  .obc-caption { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; min-height: 2.2em; }
+</style>
