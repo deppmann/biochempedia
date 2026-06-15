@@ -1,0 +1,277 @@
+---
+/**
+ * PermeabilityCliff — makes selective permeability tangible as an energy balance,
+ * not a sieve. Click a molecule to watch it cross (or bounce off) the bilayer; each
+ * test drops a point onto a log-scale permeability plot spanning ~12 orders of
+ * magnitude, so the student builds the cliff between small-nonpolar species (top)
+ * and ions (bottom). A desolvation-cost slider acts only on charged species and
+ * shows that a small change in the energy of shedding water moves permeability by
+ * orders of magnitude; an aquaporin toggle gives water its one channel exception
+ * while still excluding ions. Self-contained vanilla-TS Astro island, no deps.
+ * Teaching-grade logP values, not lab measurements. Original, computed live.
+ */
+---
+
+<figure class="pc card" data-permeability-cliff>
+  <figcaption class="pc-head">The permeability cliff<span class="pc-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="pc-chiprow" role="group" aria-label="Pick a molecule to test">
+    <!-- chips injected by script -->
+  </div>
+
+  <div class="pc-grid">
+    <section class="pc-col">
+      <svg class="pc-svg" viewBox="0 0 320 220" role="img" aria-label="A lipid bilayer with a molecule attempting to cross from the top water layer to the bottom" data-stage></svg>
+      <p class="pc-info" data-info>Pick a molecule above and watch it try to cross.</p>
+      <p class="pc-rate" data-rate>relative crossing rate: —</p>
+    </section>
+
+    <section class="pc-col">
+      <svg class="pc-svg" viewBox="0 0 320 240" role="img" aria-label="Permeability coefficient on a log scale; each molecule you test adds a point" data-plot></svg>
+      <p class="pc-info">Each molecule you test drops onto the log-scale plot. Watch the cliff open up between small neutral molecules and ions.</p>
+    </section>
+  </div>
+
+  <div class="pc-controls">
+    <label class="pc-slabel">Desolvation cost <em data-desolv-out>—</em> kJ/mol <span class="pc-hint" data-desolv-note>(select a charged species)</span>
+      <input type="range" data-desolv min="0" max="90" step="5" value="60" disabled />
+    </label>
+    <label class="pc-check">
+      <input type="checkbox" data-aqp /> add an aquaporin (water channel)
+    </label>
+  </div>
+
+  <p class="pc-foot">Selective permeability is an energy balance, not a sieve. The same desolvation logic returns in the K⁺ selectivity filter — where Na⁺, too small to be paid back by eight carbonyl oxygens, owes a water debt the channel will not refund.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const LINE = '#c9d6d5', PRIMARY = '#17252a', INK = '#4b4b55';
+  const KLASS_COLOR: Record<string, string> = {
+    gas: '#2e8b57', water: '#2b6fb0', 'small-polar': '#e57200', aromatic: '#7a4fbf', ion: '#c0392b',
+  };
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  type Klass = 'gas' | 'small-polar' | 'water' | 'ion' | 'aromatic';
+  type Mol = { id: string; label: string; klass: Klass; logP: number; dGdesolv: number; rule: string };
+  const MOLECULES: Mol[] = [
+    { id: 'o2', label: 'O₂', klass: 'gas', logP: 0.5, dGdesolv: 0, rule: 'Small and nonpolar — a free pass straight through the core.' },
+    { id: 'co2', label: 'CO₂', klass: 'gas', logP: 0.5, dGdesolv: 0, rule: 'Small and nonpolar — crosses freely, no water shell to shed.' },
+    { id: 'h2o', label: 'H₂O', klass: 'water', logP: -2.5, dGdesolv: 0, rule: 'Tiny and only weakly polar — slips through slowly on its own.' },
+    { id: 'etoh', label: 'ethanol', klass: 'small-polar', logP: -3.0, dGdesolv: 0, rule: 'Small polar — partly greasy, so it crosses, just not fast.' },
+    { id: 'urea', label: 'urea', klass: 'small-polar', logP: -6, dGdesolv: 0, rule: 'Polar and hydrogen-bonding — pays a real price to cross.' },
+    { id: 'glycerol', label: 'glycerol', klass: 'small-polar', logP: -6.5, dGdesolv: 0, rule: 'Three hydroxyls clinging to water — slow going.' },
+    { id: 'glucose', label: 'glucose', klass: 'small-polar', logP: -8, dGdesolv: 0, rule: 'Large and heavily hydroxylated — needs a transporter in practice.' },
+    { id: 'indole', label: 'indole', klass: 'aromatic', logP: -2, dGdesolv: 0, rule: 'The aromatic ring with no charge — crosses easily.' },
+    { id: 'trp', label: 'tryptophan', klass: 'aromatic', logP: -7, dGdesolv: 50, rule: 'Same ring as indole, but charged groups stall it. Charge is the toll.' },
+    { id: 'cl', label: 'Cl⁻', klass: 'ion', logP: -8.5, dGdesolv: 55, rule: 'Charged — wrapped in water it must shed. The core repels it.' },
+    { id: 'k', label: 'K⁺', klass: 'ion', logP: -10, dGdesolv: 60, rule: 'Charged — bounces off the core; needs a channel to cross.' },
+    { id: 'na', label: 'Na⁺', klass: 'ion', logP: -12, dGdesolv: 80, rule: 'The biggest water debt of all — essentially blocked.' },
+  ];
+  const R = 8.314, T = 310; // J/mol/K, body temperature
+  const LOGP_MIN = -12, LOGP_MAX = 1;
+
+  document.querySelectorAll<HTMLElement>('[data-permeability-cliff]').forEach((root) => {
+    const chiprow = root.querySelector<HTMLElement>('.pc-chiprow')!;
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const info = root.querySelector<HTMLElement>('[data-info]')!;
+    const rateOut = root.querySelector<HTMLElement>('[data-rate]')!;
+    const desolv = root.querySelector<HTMLInputElement>('[data-desolv]')!;
+    const desolvOut = root.querySelector<HTMLElement>('[data-desolv-out]')!;
+    const desolvNote = root.querySelector<HTMLElement>('[data-desolv-note]')!;
+    const aqp = root.querySelector<HTMLInputElement>('[data-aqp]')!;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let selected: Mol | null = null;
+    const tested = new Map<string, { mol: Mol; effLogP: number }>();
+    let animId = 0;
+
+    function effectiveLogP(mol: Mol): number {
+      let lp = mol.logP;
+      // desolvation slider acts only on charged species
+      if (mol.dGdesolv > 0) {
+        const dGextra = (parseFloat(desolv.value) - mol.dGdesolv) * 1000; // J/mol
+        lp = mol.logP - dGextra / (2.303 * R * T);
+      }
+      // aquaporin acts only on water
+      if (mol.id === 'h2o' && aqp.checked) lp += 1.8;
+      return lp;
+    }
+
+    // ---- chips ----
+    MOLECULES.forEach((mol) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pc-chipbtn';
+      b.textContent = mol.label;
+      b.setAttribute('data-chip', mol.id);
+      b.setAttribute('aria-pressed', 'false');
+      b.style.setProperty('--pc-c', KLASS_COLOR[mol.klass]);
+      b.addEventListener('click', () => select(mol));
+      chiprow.appendChild(b);
+    });
+
+    // ---- bilayer stage ----
+    function drawStage() {
+      stage.replaceChildren();
+      stage.appendChild(el('rect', { x: 0, y: 0, width: 320, height: 78, fill: '#eef5f6' }));
+      stage.appendChild(el('rect', { x: 0, y: 142, width: 320, height: 78, fill: '#eef5f6' }));
+      stage.appendChild(el('rect', { x: 0, y: 78, width: 320, height: 64, fill: '#fbf7ee' }));
+      const core = el('text', { x: 8, y: 114, 'font-size': 9, fill: INK, opacity: 0.7 }); core.textContent = 'hydrophobic core'; stage.appendChild(core);
+      const wtop = el('text', { x: 8, y: 16, 'font-size': 9, fill: INK, opacity: 0.7 }); wtop.textContent = 'water'; stage.appendChild(wtop);
+      // lipids
+      for (let i = 0; i < 11; i++) {
+        const x = 20 + i * 28;
+        stage.appendChild(el('circle', { cx: x, cy: 70, r: 5, fill: PRIMARY }));
+        stage.appendChild(el('line', { x1: x, y1: 75, x2: x, y2: 108, stroke: PRIMARY, 'stroke-width': 1.6, opacity: 0.55 }));
+        stage.appendChild(el('circle', { cx: x, cy: 150, r: 5, fill: PRIMARY }));
+        stage.appendChild(el('line', { x1: x, y1: 145, x2: x, y2: 112, stroke: PRIMARY, 'stroke-width': 1.6, opacity: 0.55 }));
+      }
+    }
+
+    function animateCrossing(mol: Mol) {
+      cancelAnimationFrame(animId);
+      drawStage();
+      const lp = effectiveLogP(mol);
+      const crosses = lp > -7.5; // ions / blocked species below this bounce off the core
+      const puck = el('g', {}) as SVGGElement;
+      const dot = el('circle', { cx: 0, cy: 0, r: 11, fill: KLASS_COLOR[mol.klass], stroke: '#fff', 'stroke-width': 2 });
+      const txt = el('text', { x: 0, y: 4, 'text-anchor': 'middle', 'font-size': 9, fill: '#fff', 'font-weight': 700 }); txt.textContent = mol.label;
+      puck.appendChild(dot); puck.appendChild(txt);
+      stage.appendChild(puck);
+      const X = 160, yStart = 18, yEnd = 202, yCore = 110;
+      if (reduceMotion) {
+        puck.setAttribute('transform', `translate(${X},${crosses ? yEnd : yCore})`);
+        return;
+      }
+      // duration: fast for high logP, slow for low
+      const frac = (lp - LOGP_MIN) / (LOGP_MAX - LOGP_MIN); // 0..1
+      const dur = 1700 - Math.max(0, Math.min(1, frac)) * 1300; // 400..1700 ms
+      let start = 0;
+      function step(ts: number) {
+        if (!start) start = ts;
+        const p = Math.min(1, (ts - start) / dur);
+        let y: number;
+        if (crosses) {
+          y = yStart + p * (yEnd - yStart);
+        } else {
+          // descend to core, then bounce back up
+          if (p < 0.5) y = yStart + (p / 0.5) * (yCore - yStart);
+          else y = yCore - ((p - 0.5) / 0.5) * (yCore - yStart);
+        }
+        puck.setAttribute('transform', `translate(${X},${y.toFixed(1)})`);
+        if (p < 1) animId = requestAnimationFrame(step);
+      }
+      animId = requestAnimationFrame(step);
+    }
+
+    // ---- log plot ----
+    function logPToY(lp: number): number {
+      const top = 24, bot = 210;
+      const c = Math.max(LOGP_MIN, Math.min(LOGP_MAX, lp));
+      return top + ((LOGP_MAX - c) / (LOGP_MAX - LOGP_MIN)) * (bot - top);
+    }
+    function drawPlot() {
+      plot.replaceChildren();
+      // axis
+      plot.appendChild(el('line', { x1: 44, y1: 20, x2: 44, y2: 214, stroke: INK, 'stroke-width': 1 }));
+      const yl = el('text', { x: 12, y: 16, 'font-size': 8, fill: INK }); yl.textContent = 'log P (cm/s)'; plot.appendChild(yl);
+      for (let d = LOGP_MAX; d >= LOGP_MIN; d -= 2) {
+        const y = logPToY(d);
+        plot.appendChild(el('line', { x1: 44, y1: y, x2: 312, y2: y, stroke: LINE, 'stroke-width': 0.6 }));
+        const t = el('text', { x: 40, y: y + 3, 'text-anchor': 'end', 'font-size': 8, fill: INK }); t.textContent = String(d); plot.appendChild(t);
+      }
+      const fast = el('text', { x: 48, y: logPToY(LOGP_MAX) + 2, 'font-size': 8, fill: INK, opacity: 0.7 }); fast.textContent = 'fast'; plot.appendChild(fast);
+      const slow = el('text', { x: 48, y: logPToY(LOGP_MIN) - 2, 'font-size': 8, fill: INK, opacity: 0.7 }); slow.textContent = 'blocked'; plot.appendChild(slow);
+      // points
+      let i = 0;
+      tested.forEach(({ mol, effLogP }) => {
+        const x = 64 + i * (244 / Math.max(1, MOLECULES.length - 1));
+        const y = logPToY(effLogP);
+        plot.appendChild(el('circle', { cx: x, cy: y, r: 5, fill: KLASS_COLOR[mol.klass], stroke: '#fff', 'stroke-width': 1 }));
+        const lab = el('text', { x: x, y: y - 8, 'text-anchor': 'middle', 'font-size': 7.5, fill: INK }); lab.textContent = mol.label; plot.appendChild(lab);
+        i++;
+      });
+    }
+
+    function updateRate() {
+      if (!selected) { rateOut.textContent = 'relative crossing rate: —'; return; }
+      const lp = effectiveLogP(selected);
+      // relative to the fastest molecule TESTED so far
+      let maxLp = lp;
+      tested.forEach(({ effLogP }) => { if (effLogP > maxLp) maxLp = effLogP; });
+      const rel = Math.pow(10, lp - maxLp);
+      const relStr = rel >= 0.01 ? rel.toFixed(2) : rel.toExponential(0);
+      rateOut.textContent = `relative crossing rate: ${relStr}×`;
+    }
+
+    function select(mol: Mol) {
+      selected = mol;
+      root.querySelectorAll<HTMLButtonElement>('[data-chip]').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-chip') === mol.id)));
+      // enable/disable desolvation slider
+      const charged = mol.dGdesolv > 0;
+      desolv.disabled = !charged;
+      desolvNote.textContent = charged ? '(drag to change this ion’s water debt)' : '(select a charged species)';
+      if (charged) { desolv.value = String(mol.dGdesolv); }
+      desolvOut.textContent = charged ? desolv.value : '—';
+      info.textContent = mol.rule + (mol.id === 'h2o' && aqp.checked ? ' With an aquaporin open, water now races through — ions still cannot.' : '');
+      const eff = effectiveLogP(mol);
+      tested.set(mol.id, { mol, effLogP: eff });
+      animateCrossing(mol);
+      drawPlot();
+      updateRate();
+    }
+
+    desolv.addEventListener('input', () => {
+      if (!selected || selected.dGdesolv === 0) return;
+      desolvOut.textContent = desolv.value;
+      const eff = effectiveLogP(selected);
+      tested.set(selected.id, { mol: selected, effLogP: eff });
+      info.textContent = `${selected.label}: water debt ${desolv.value} kJ/mol → log P ${eff.toFixed(1)}. A few kJ/mol moves permeability by orders of magnitude.`;
+      animateCrossing(selected);
+      drawPlot();
+      updateRate();
+    });
+    aqp.addEventListener('change', () => {
+      // re-test water if it has been tested, and refresh selection text
+      if (tested.has('h2o')) {
+        const water = MOLECULES.find((m) => m.id === 'h2o')!;
+        tested.set('h2o', { mol: water, effLogP: effectiveLogP(water) });
+        drawPlot();
+      }
+      if (selected && selected.id === 'h2o') select(selected);
+    });
+
+    drawStage();
+    drawPlot();
+  });
+</script>
+
+<style>
+  .pc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .pc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pc-chiprow { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .pc-chipbtn { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 999px; padding: 0.22rem 0.6rem; cursor: pointer; border-left: 3px solid var(--pc-c, #888); }
+  .pc-chipbtn:hover { border-color: var(--pc-c, var(--ddp-color-accent)); color: var(--ddp-color-primary); }
+  .pc-chipbtn[aria-pressed='true'] { background: color-mix(in srgb, var(--pc-c, var(--ddp-color-accent)) 16%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--pc-c, var(--ddp-color-accent)); }
+  .pc-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  @media (min-width: 640px) { .pc-grid { grid-template-columns: 1fr 1fr; } }
+  .pc-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: none; }
+  .pc-info { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; min-height: 2.4em; }
+  .pc-rate { margin: 0.2rem 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .pc-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .pc-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: 1 1 240px; }
+  .pc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pc-slabel input { accent-color: var(--ddp-color-accent); }
+  .pc-slabel input:disabled { opacity: 0.4; }
+  .pc-hint { color: var(--ddp-color-muted); }
+  .pc-check { display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pc-check input { accent-color: var(--ddp-color-accent); }
+  .pc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
