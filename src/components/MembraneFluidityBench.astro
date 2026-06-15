@@ -1,0 +1,298 @@
+---
+/**
+ * MembraneFluidityBench — makes the chapter's spine ("shape is destiny →
+ * packing → Tm → function") manipulable. Three composition sliders (chain
+ * length, cis double bonds, mole-% cholesterol) plus a temperature slider
+ * drive two linked views: a live bilayer cartoon (left) and an order-vs-
+ * temperature curve with a marked melting transition Tm (right). Cholesterol
+ * does NOT shift Tm; it BROADENS the transition, so the membrane resists both
+ * freezing and over-melting — the "thermostat, not a heater or an AC" line.
+ * Habitat presets (Arctic fish / Desert plant / Human / E. coli) teach
+ * homeoviscous adaptation by play: each is tuned to stay fluid at its habitat
+ * temperature. Self-contained vanilla-TS Astro island, no deps. Teaching-grade
+ * model, not literal Tm values. Original, computed live.
+ */
+---
+
+<figure class="bench card" data-fluidity-bench>
+  <figcaption class="bench-head">The membrane fluidity bench<span class="bench-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="bench-grid">
+    <section class="bench-col">
+      <svg class="bench-svg" viewBox="0 0 420 320" role="img" aria-label="A patch of lipid bilayer: heads as circles top and bottom, hydrocarbon tails pointing inward, with cholesterol ring-plates wedged between tails" data-bilayer></svg>
+      <p class="bench-cap" data-bilayer-cap>—</p>
+    </section>
+
+    <section class="bench-col">
+      <svg class="bench-svg" viewBox="0 0 420 320" role="img" aria-label="Membrane order plotted against temperature: a sigmoid that crosses 0.5 at the melting temperature Tm, with the current temperature marked" data-plot></svg>
+      <p class="bench-cap">Solid line = your membrane. Dashed line = the same lipids with no cholesterol. Cholesterol flattens the curve in both directions.</p>
+    </section>
+  </div>
+
+  <div class="bench-controls">
+    <label class="bench-slabel">Chain length <em data-out="chain">18</em> carbons
+      <input type="range" data-in="chain" min="12" max="22" step="1" value="18" />
+    </label>
+    <label class="bench-slabel">cis double bonds / chain <em data-out="db">1</em>
+      <input type="range" data-in="db" min="0" max="4" step="1" value="1" />
+    </label>
+    <label class="bench-slabel">Cholesterol <em data-out="chol">20</em> %
+      <input type="range" data-in="chol" min="0" max="40" step="5" value="20" />
+    </label>
+    <label class="bench-slabel">Temperature <em data-out="temp">25</em> °C
+      <input type="range" data-in="temp" min="-10" max="60" step="1" value="25" />
+    </label>
+  </div>
+
+  <div class="bench-habrow" role="group" aria-label="Habitat presets">
+    <span class="bench-hablbl">Habitat:</span>
+    <button type="button" data-preset="arctic">Arctic fish</button>
+    <button type="button" data-preset="desert">Desert plant</button>
+    <button type="button" data-preset="human">Human</button>
+    <button type="button" data-preset="ecoli">E. coli (cold)</button>
+  </div>
+
+  <dl class="bench-readout" data-readout>
+    <div><dt>Melting point (Tm)</dt><dd data-r-tm>—</dd></div>
+    <div><dt>Transition width</dt><dd data-r-width>—</dd></div>
+    <div><dt>Membrane state</dt><dd data-r-state>—</dd></div>
+  </dl>
+  <p class="bench-why" data-why>—</p>
+
+  <p class="bench-foot">Same physics, opposite solutions: a salmon near freezing and a desert plant in the sun both keep their membranes fluid — by tuning chain length and double bonds, not temperature.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', GOLD = '#D4A843';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  // Teaching-grade model (NOT literal lab values; documented for transparency):
+  // Tm rises with chain length (more van der Waals contact) and falls sharply
+  // with each cis double bond (a kink that blocks packing). Calibrated so the
+  // four habitat presets each read FLUID at their habitat temperature.
+  function computeTm(chain: number, db: number) { return 3.5 * (chain - 14) + 24 - 25 * db; }
+  // Cholesterol broadens (does not shift) the transition.
+  function computeWidth(chol: number) { return 6 + 0.6 * chol; }
+  function order(T: number, Tm: number, w: number) { return 1 / (1 + Math.exp((T - Tm) / (w / 4))); }
+
+  type Preset = { chain: number; db: number; chol: number; temp: number };
+  const PRESETS: Record<string, Preset> = {
+    arctic: { chain: 18, db: 3, chol: 5, temp: 2 },
+    desert: { chain: 20, db: 0, chol: 10, temp: 48 },
+    human: { chain: 18, db: 1, chol: 25, temp: 37 },
+    ecoli: { chain: 16, db: 2, chol: 0, temp: 15 },
+  };
+  const HAB_NAME: Record<string, string> = { arctic: 'Arctic fish', desert: 'Desert plant', human: 'Human', ecoli: 'E. coli (cold)' };
+
+  document.querySelectorAll<HTMLElement>('[data-fluidity-bench]').forEach((root) => {
+    const ins = {
+      chain: root.querySelector<HTMLInputElement>('[data-in="chain"]')!,
+      db: root.querySelector<HTMLInputElement>('[data-in="db"]')!,
+      chol: root.querySelector<HTMLInputElement>('[data-in="chol"]')!,
+      temp: root.querySelector<HTMLInputElement>('[data-in="temp"]')!,
+    };
+    const outs = {
+      chain: root.querySelector<HTMLElement>('[data-out="chain"]')!,
+      db: root.querySelector<HTMLElement>('[data-out="db"]')!,
+      chol: root.querySelector<HTMLElement>('[data-out="chol"]')!,
+      temp: root.querySelector<HTMLElement>('[data-out="temp"]')!,
+    };
+    const bilayer = root.querySelector<SVGSVGElement>('[data-bilayer]')!;
+    const bilayerCap = root.querySelector<HTMLElement>('[data-bilayer-cap]')!;
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const rTm = root.querySelector<HTMLElement>('[data-r-tm]')!;
+    const rWidth = root.querySelector<HTMLElement>('[data-r-width]')!;
+    const rState = root.querySelector<HTMLElement>('[data-r-state]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    let activePreset: string | null = 'human';
+
+    // Deterministic pseudo-jitter so the fluid cartoon is stable, never AI-random.
+    function seeded(i: number) { const x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x); }
+
+    function readVals() {
+      return {
+        chain: parseInt(ins.chain.value, 10),
+        db: parseInt(ins.db.value, 10),
+        chol: parseInt(ins.chol.value, 10),
+        temp: parseInt(ins.temp.value, 10),
+      };
+    }
+
+    // ---- right panel: order-vs-temperature plot ----
+    const PX0 = 46, PX1 = 404, PY0 = 28, PY1 = 286, TMIN = -10, TMAX = 60;
+    function xPix(T: number) { return PX0 + ((T - TMIN) / (TMAX - TMIN)) * (PX1 - PX0); }
+    function yPix(o: number) { return PY0 + o * (PY1 - PY0); }
+    function curvePath(Tm: number, w: number) {
+      let d = '';
+      for (let T = TMIN; T <= TMAX; T += 1) { d += (T === TMIN ? 'M' : 'L') + xPix(T).toFixed(1) + ' ' + yPix(order(T, Tm, w)).toFixed(1) + ' '; }
+      return d.trim();
+    }
+    function renderPlot(v: { chain: number; db: number; chol: number; temp: number }, Tm: number, w: number) {
+      plot.replaceChildren();
+      // axes
+      plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      const fl = el('text', { x: PX0 - 6, y: PY0 + 6, 'text-anchor': 'end', 'font-size': 9, fill: INK }); fl.textContent = 'fluid'; plot.appendChild(fl);
+      const gl = el('text', { x: PX0 - 6, y: PY1, 'text-anchor': 'end', 'font-size': 9, fill: INK }); gl.textContent = 'gel'; plot.appendChild(gl);
+      for (const T of [-10, 0, 20, 37, 60]) {
+        plot.appendChild(el('line', { x1: xPix(T), y1: PY1, x2: xPix(T), y2: PY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: xPix(T), y: PY1 + 14, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); t.textContent = String(T); plot.appendChild(t);
+      }
+      const xl = el('text', { x: (PX0 + PX1) / 2, y: 314, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); xl.textContent = 'temperature (°C)'; plot.appendChild(xl);
+      // reference curve: same lipids, no cholesterol (steeper)
+      if (v.chol > 0) plot.appendChild(el('path', { d: curvePath(Tm, computeWidth(0)), fill: 'none', stroke: ORANGE, 'stroke-width': 1.4, 'stroke-dasharray': '3 3', opacity: 0.8 }));
+      // current curve
+      plot.appendChild(el('path', { d: curvePath(Tm, w), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // Tm guide
+      if (Tm >= TMIN && Tm <= TMAX) {
+        plot.appendChild(el('line', { x1: xPix(Tm), y1: PY0, x2: xPix(Tm), y2: PY1, stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+        const tl = el('text', { x: xPix(Tm), y: PY0 - 4, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY, 'font-weight': 700 }); tl.textContent = 'Tm'; plot.appendChild(tl);
+      }
+      // current temperature marker
+      const o = order(v.temp, Tm, w);
+      plot.appendChild(el('line', { x1: xPix(v.temp), y1: PY0, x2: xPix(v.temp), y2: PY1, stroke: ORANGE, 'stroke-width': 1.6 }));
+      plot.appendChild(el('circle', { cx: xPix(v.temp), cy: yPix(o), r: 5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+    }
+
+    // ---- left panel: bilayer cartoon ----
+    function renderBilayer(v: { chain: number; db: number; chol: number; temp: number }, isGel: boolean) {
+      bilayer.replaceChildren();
+      const N = 7;
+      const spacing = isGel ? 40 : 52 + v.db * 6; // fluid + more kinks = looser packing
+      const startX = (420 - (N - 1) * spacing) / 2;
+      const headTop = 70, headBot = 250, midTop = 88, midBot = 232;
+      const tailLen = 30 + (v.chain - 12) * 6; // longer chains drawn longer
+      // water band hint
+      bilayer.appendChild(el('rect', { x: 0, y: 0, width: 420, height: 52, fill: '#eef5f6' }));
+      bilayer.appendChild(el('rect', { x: 0, y: 268, width: 420, height: 52, fill: '#eef5f6' }));
+      const tailColor = isGel ? '#5b7f9a' : ACCENT;
+      for (let i = 0; i < N; i++) {
+        const x = startX + i * spacing;
+        const j = isGel ? 0 : (seeded(i) - 0.5) * 10;
+        // two leaflets, heads point outward, tails inward
+        for (const top of [true, false]) {
+          const hy = top ? headTop : headBot;
+          const ty0 = top ? midTop : midBot;
+          const dir = top ? 1 : -1;
+          // tail polyline with one kink per double bond
+          let d = 'M' + (x + j).toFixed(1) + ' ' + ty0.toFixed(1) + ' ';
+          const seg = tailLen / (v.db + 1);
+          let cx = x + j, cy = ty0;
+          for (let k = 0; k < v.db + 1; k++) {
+            cy += dir * seg;
+            const kink = k < v.db ? (k % 2 === 0 ? 7 : -7) : 0;
+            cx += kink;
+            d += 'L' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ';
+          }
+          bilayer.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: tailColor, 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+          bilayer.appendChild(el('circle', { cx: x + j, cy: hy, r: 7, fill: NAVY }));
+        }
+      }
+      // cholesterol ring-plates wedged between tails
+      const nChol = Math.round(v.chol / 10);
+      for (let c = 0; c < nChol; c++) {
+        const x = startX + (c + 0.5) * spacing + spacing * 0.5;
+        if (x > 410) continue;
+        for (const yc of [midTop + tailLen * 0.45, midBot - tailLen * 0.45]) {
+          bilayer.appendChild(el('rect', { x: x - 4, y: yc - 16, width: 8, height: 32, rx: 3, fill: GOLD, stroke: '#a8862f', 'stroke-width': 0.8 }));
+        }
+      }
+      const lbl = el('text', { x: 210, y: 16, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+      lbl.textContent = isGel ? 'gel — chains straight, tightly packed' : 'fluid — kinks and gaps, chains mobile';
+      bilayer.appendChild(lbl);
+    }
+
+    function renderAll() {
+      const v = readVals();
+      outs.chain.textContent = String(v.chain);
+      outs.db.textContent = String(v.db);
+      outs.chol.textContent = String(v.chol);
+      outs.temp.textContent = String(v.temp);
+      const Tm = computeTm(v.chain, v.db);
+      const w = computeWidth(v.chol);
+      const o = order(v.temp, Tm, w);
+      const isGel = o > 0.5;
+      renderBilayer(v, isGel);
+      renderPlot(v, Tm, w);
+      rTm.textContent = Tm.toFixed(1) + ' °C';
+      rWidth.textContent = '±' + (w / 2).toFixed(1) + ' °C';
+      rState.textContent = isGel ? 'GEL (ordered, frozen)' : 'FLUID';
+      rState.className = isGel ? 'is-gel' : 'is-fluid';
+      bilayerCap.textContent = isGel
+        ? 'Below Tm: chains pack into an ordered gel — proteins can barely move.'
+        : 'Above Tm: kinked, loosely packed chains let lipids and proteins diffuse.';
+      // why line + habitat challenge
+      let msg = '';
+      if (isGel) {
+        msg = v.db === 0
+          ? 'No double bonds and a long chain push Tm high; at this temperature the membrane has frozen. Add a cis double bond to drop Tm and thaw it.'
+          : 'The temperature has fallen below Tm and the membrane has gelled. More cis double bonds, or cholesterol, would hold it fluid.';
+      } else {
+        msg = v.chol >= 25
+          ? 'Fluid — and cholesterol is holding the transition broad, so this membrane resists both freezing and over-melting across a wide range.'
+          : 'Fluid — the temperature sits above Tm, so kinks and gaps keep the chains mobile.';
+      }
+      if (activePreset) {
+        const name = HAB_NAME[activePreset];
+        msg = isGel
+          ? `${name}: GEL at its habitat temperature ✗ — a real ${name.toLowerCase()} would remodel its lipids (more double bonds) to stay fluid. ` + msg
+          : `${name}: FLUID at its habitat temperature ✓ — this is homeoviscous adaptation in action. ` + msg;
+      }
+      why.textContent = msg;
+    }
+
+    Object.values(ins).forEach((inp) => inp.addEventListener('input', () => {
+      activePreset = null;
+      root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      renderAll();
+    }));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-preset')!;
+        const p = PRESETS[key];
+        ins.chain.value = String(p.chain);
+        ins.db.value = String(p.db);
+        ins.chol.value = String(p.chol);
+        ins.temp.value = String(p.temp);
+        activePreset = key;
+        root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        renderAll();
+      });
+    });
+    // start on the Human preset
+    root.querySelector<HTMLButtonElement>('[data-preset="human"]')!.setAttribute('aria-pressed', 'true');
+    renderAll();
+  });
+</script>
+
+<style>
+  .bench { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bench-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bench-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bench-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  @media (min-width: 720px) { .bench-grid { grid-template-columns: 1fr 1fr; } }
+  .bench-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: none; }
+  .bench-cap { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .bench-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  @media (min-width: 720px) { .bench-controls { grid-template-columns: 1fr 1fr 1fr 1fr; } }
+  .bench-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bench-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .bench-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .bench-habrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: var(--ddp-space-2) 0; }
+  .bench-hablbl { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-right: 0.2rem; }
+  .bench-habrow button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.3rem 0.6rem; cursor: pointer; }
+  .bench-habrow button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .bench-habrow button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .bench-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .bench-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .bench-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bench-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .bench-readout dd.is-gel { color: #2b5fa6; }
+  .bench-readout dd.is-fluid { color: var(--ddp-color-accent); }
+  .bench-why { margin: 0.2rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.4em; }
+  .bench-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
