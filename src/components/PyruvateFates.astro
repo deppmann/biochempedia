@@ -1,0 +1,116 @@
+---
+/**
+ * PyruvateFates — the "what next?" companion to the glycolysis pathway map. Glycolysis
+ * leaves the cell with 2 pyruvate and 2 NADH, and it cannot continue unless that NAD⁺
+ * is regenerated. Pick a fate — aerobic oxidation, lactate fermentation, or alcoholic
+ * fermentation — and the diagram shows the product and, crucially, how (or whether)
+ * NAD⁺ comes back, so the logic of fermentation lands: it exists to recycle NAD⁺ when
+ * oxygen can't. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pf card" data-pyruvatefates>
+  <figcaption class="pf-head">Three fates of pyruvate<span class="pf-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="pf-tabs" role="group" aria-label="Fate of pyruvate">
+    <button type="button" data-fate="aerobic" aria-pressed="true">Aerobic (O₂ present)</button>
+    <button type="button" data-fate="lactate" aria-pressed="false">Lactate fermentation</button>
+    <button type="button" data-fate="ethanol" aria-pressed="false">Alcoholic fermentation</button>
+  </div>
+
+  <svg class="pf-svg" viewBox="0 0 320 180" role="img" aria-label="Pyruvate's fate and how NAD+ is regenerated" data-svg></svg>
+
+  <dl class="pf-readout">
+    <div><dt>Product</dt><dd data-r-prod>Acetyl-CoA → CO₂</dd></div>
+    <div><dt>NAD⁺ regenerated?</dt><dd data-r-nad>by the electron-transport chain</dd></div>
+  </dl>
+  <p class="pf-why" data-why>With oxygen, pyruvate is fully oxidized and NADH is reoxidized by the electron-transport chain — the high-yield route.</p>
+
+  <p class="pf-foot">Fermentation makes no extra ATP. Its entire job is to regenerate NAD⁺ so glycolysis (and its 2 ATP per glucose) can keep running when oxygen is scarce.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', GOLD = '#D4A843';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function box(svg: SVGSVGElement, x: number, y: number, w: number, h: number, text: string, fill: string, tcol: string) {
+    svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 6, fill, stroke: NAVY, 'stroke-width': 1.2 }));
+    const t = el('text', { x: x + w / 2, y: y + h / 2 + 3.5, 'text-anchor': 'middle', 'font-size': 10, fill: tcol, 'font-weight': 600 }); t.textContent = text; svg.appendChild(t);
+  }
+  function arrow(svg: SVGSVGElement, x1: number, y1: number, x2: number, y2: number, color: string, label?: string) {
+    svg.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 2 }));
+    const ang = Math.atan2(y2 - y1, x2 - x1);
+    svg.appendChild(el('path', { d: `M${x2} ${y2} L${(x2 - 7 * Math.cos(ang - 0.4)).toFixed(1)} ${(y2 - 7 * Math.sin(ang - 0.4)).toFixed(1)} L${(x2 - 7 * Math.cos(ang + 0.4)).toFixed(1)} ${(y2 - 7 * Math.sin(ang + 0.4)).toFixed(1)} Z`, fill: color }));
+    if (label) { const t = el('text', { x: (x1 + x2) / 2, y: (y1 + y2) / 2 - 5, 'text-anchor': 'middle', 'font-size': 8.5, fill: INK }); t.textContent = label; svg.appendChild(t); }
+  }
+
+  type Fate = { prod: string; nad: string; why: string; product: string; recycler: string; co2: boolean };
+  const FATES: Record<string, Fate> = {
+    aerobic: { prod: 'Acetyl-CoA → TCA → CO₂', nad: 'by the electron-transport chain', product: 'Acetyl-CoA', recycler: 'ETC (O₂)', co2: true,
+      why: 'With oxygen, pyruvate enters the mitochondrion, is fully oxidized to CO₂, and NADH is reoxidized by the electron-transport chain — the high-yield route (~30+ ATP per glucose).' },
+    lactate: { prod: 'Lactate', nad: 'by lactate dehydrogenase', product: 'Lactate', recycler: 'lactate dehydrogenase', co2: false,
+      why: 'Without enough oxygen (sprinting muscle, red blood cells), lactate dehydrogenase reduces pyruvate to lactate, reoxidizing NADH to NAD⁺. No extra ATP — the point is to keep glycolysis running. The lactate is shipped to the liver (the Cori cycle).' },
+    ethanol: { prod: 'Ethanol + CO₂', nad: 'by alcohol dehydrogenase', product: 'Ethanol', recycler: 'ADH (+ decarboxylase)', co2: true,
+      why: 'In yeast, pyruvate is decarboxylated to acetaldehyde (losing CO₂) and then reduced to ethanol, regenerating NAD⁺. Same logic as lactate — recycle NAD⁺ without oxygen — and the basis of brewing and baking.' },
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-pyruvatefates]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]')!;
+    const rProd = root.querySelector<HTMLElement>('[data-r-prod]')!;
+    const rNad = root.querySelector<HTMLElement>('[data-r-nad]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    function render(key: string) {
+      const f = FATES[key];
+      svg.replaceChildren();
+      // glycolysis summary (top)
+      box(svg, 70, 8, 180, 26, 'Glucose → 2 Pyruvate + 2 NADH', '#eef5f6', NAVY);
+      // pyruvate
+      box(svg, 120, 56, 80, 26, 'Pyruvate', 'color-mix(in srgb,#0e7c86 14%,#fff)', NAVY);
+      arrow(svg, 160, 34, 160, 56, INK);
+      // product
+      box(svg, 110, 120, 100, 28, f.product, key === 'aerobic' ? 'color-mix(in srgb,#0e7c86 14%,#fff)' : '#fff4e6', NAVY);
+      arrow(svg, 160, 82, 160, 120, ACCENT);
+      if (f.co2) { const c = el('text', { x: 214, y: 104, 'font-size': 9, fill: ORANGE, 'font-weight': 700 }); c.textContent = '+ CO₂ ↑'; svg.appendChild(c); }
+      // NAD+ recycling loop (the key teaching point) for fermentation, or ETC note for aerobic
+      if (key === 'aerobic') {
+        const t = el('text', { x: 248, y: 72, 'font-size': 8.5, fill: ACCENT }); t.textContent = 'NADH → ETC'; svg.appendChild(t);
+        arrow(svg, 200, 69, 244, 69, ACCENT);
+      } else {
+        // curved recycling arrow from product back up to glycolysis: NADH -> NAD+
+        svg.appendChild(el('path', { d: 'M108 134 C40 130 40 40 66 22', fill: 'none', stroke: GOLD, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+        svg.appendChild(el('path', { d: 'M66 22 l8 -1 -3 8 z', fill: GOLD }));
+        const t = el('text', { x: 20, y: 84, 'font-size': 8.5, fill: GOLD, 'font-weight': 700 }); t.textContent = 'NAD⁺'; svg.appendChild(t);
+        const t2 = el('text', { x: 14, y: 96, 'font-size': 7.5, fill: INK }); t2.textContent = 'recycled'; svg.appendChild(t2);
+        const r = el('text', { x: 214, y: 138, 'font-size': 8, fill: INK }); r.textContent = f.recycler; svg.appendChild(r);
+      }
+      rProd.textContent = f.prod; rNad.textContent = f.nad; why.textContent = f.why;
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-fate]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-fate]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        render(b.getAttribute('data-fate')!);
+      }));
+    render('aerobic');
+  });
+</script>
+
+<style>
+  .pf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .pf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pf-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .pf-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .pf-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .pf-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .pf-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .pf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .pf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .pf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
