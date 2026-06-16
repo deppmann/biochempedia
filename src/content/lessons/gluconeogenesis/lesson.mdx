@@ -207,6 +207,10 @@ simulations:
     ref: "PathwayExplorer"
     title: "Gluconeogenesis pathway map (reveal each bypass; the cost meter tallies 4 ATP + 2 GTP + 2 NADH per glucose)"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "CoriCycleLab"
+    title: "Cori cycle (drive muscle effort and watch lactate ship to the liver, glucose come back, and the body pay 4 ATP per loop)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "During a prolonged fast, which tissue is the principal site of gluconeogenesis, and why can skeletal muscle not contribute free glucose to the blood?"
@@ -608,6 +612,7 @@ lectureSlides:
 ---
 
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+import CoriCycleLab from '../../../components/CoriCycleLab.astro';
 
 export const gngSteps = [
   { n: 1, enzyme: 'Pyruvate carboxylase (bypass 1a)', sub: 'Pyruvate + CO₂', prod: 'Oxaloacetate', atp: -1, regulated: true, doubled: true,
@@ -667,6 +672,8 @@ Then comes the shipping problem. PEPCK, the enzyme that takes the next step, liv
 From PEP, the shared enzymes run in reverse up to fructose-1,6-bisphosphate. There **FBPase-1** simply hydrolyzes off a phosphate, with no ATP made or spent, a clean snip past the PFK-1 wall. It is the main regulated step of the pathway, inhibited by AMP and by fructose-2,6-bisphosphate.
 
 The last wall, **glucose-6-phosphatase**, hides in a revealing place: the lumen of the endoplasmic reticulum. Glucose-6-phosphate has to be carried in by the T1 transporter to be dephosphorylated. Why tuck it away there? Because hexokinase sits in the cytosol running the opposite reaction, and keeping the two enzymes in separate rooms prevents a futile cycle. Only liver and kidney cortex express G6Pase. Muscle does not, which means muscle can never release free glucose into the blood. It hoards what it makes and ships out lactate instead, and that single missing enzyme is the reason the Cori cycle has to exist.
+
+<CoriCycleLab />
 
 {/* ISLAND */}
 <PathwayExplorer steps={gngSteps} title="Gluconeogenesis · 11 steps" doubledNote="×2 per glucose" />

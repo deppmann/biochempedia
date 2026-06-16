@@ -1,0 +1,110 @@
+---
+/**
+ * CoriCycleLab — the inter-organ companion to the gluconeogenesis step map. The PathwayExplorer
+ * walks the eleven enzymatic steps inside one cell; this island zooms out to two organs: a
+ * sprinting muscle dumps lactate into the blood, the liver spends ATP to rebuild it into glucose,
+ * and ships it back. Drag the effort slider to drive lactate flux and watch the asymmetric ATP
+ * ledger — the muscle banks 2, the liver pays 6 — so the body spends 4 ATP per cycle to move the
+ * energy debt to a tissue that has oxygen. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cori card" data-cori>
+  <figcaption class="cori-head">The Cori cycle — borrowing energy from the liver<span class="cori-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cori-svg" viewBox="0 0 460 210" role="img" data-svg></svg>
+
+  <label class="cori-slabel">Muscle effort <em data-out="eff">sprint</em>
+    <input type="range" data-in="eff" min="0" max="100" step="5" value="85" />
+  </label>
+
+  <div class="cori-ledger">
+    <div class="cori-cell"><span class="cori-c-name">Muscle (anaerobic glycolysis)</span><span class="cori-c-v cori-pos" data-musc>+2 ATP</span></div>
+    <div class="cori-cell"><span class="cori-c-name">Liver (gluconeogenesis)</span><span class="cori-c-v cori-neg" data-liver>−6 ATP</span></div>
+    <div class="cori-cell"><span class="cori-c-name">Net cost to the body</span><span class="cori-c-v" data-net>−4 ATP / cycle</span></div>
+  </div>
+  <p class="cori-why" data-why></p>
+
+  <p class="cori-foot">The Cori cycle makes no new energy — it relocates the bill. A sprinting muscle outruns its oxygen and can only make ATP by fermenting glucose to lactate; shipping that lactate to the liver lets a tissue that still has oxygen pay the 6-ATP cost of rebuilding glucose. That deferred cost is part of why you keep breathing hard after the sprint ends.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  function draw(svg: SVGElement, eff: number) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const flux = eff / 100; // 0..1
+    // organ boxes
+    const box = (x: number, label: string, sub: string, color: string) => {
+      svg.appendChild(el('rect', { x, y: 70, width: 110, height: 70, rx: 10, fill: color, opacity: 0.12, stroke: color, 'stroke-width': 2 }));
+      const t1 = el('text', { x: x + 55, y: 100, 'text-anchor': 'middle', fill: color, 'font-size': 15, 'font-weight': 700 }); t1.textContent = label; svg.appendChild(t1);
+      const t2 = el('text', { x: x + 55, y: 120, 'text-anchor': 'middle', fill: INK, 'font-size': 10 }); t2.textContent = sub; svg.appendChild(t2);
+    };
+    box(20, 'Muscle', 'sprint → lactate', ORANGE);
+    box(330, 'Liver', 'lactate → glucose', NAVY);
+    // top arrow: lactate muscle -> liver
+    const w = 1 + flux * 9;
+    svg.appendChild(el('line', { x1: 130, y1: 55, x2: 330, y2: 55, stroke: ORANGE, 'stroke-width': w, 'marker-end': 'url(#cori-ar)' }));
+    const lt = el('text', { x: 230, y: 44, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 11, 'font-weight': 600 }); lt.textContent = `lactate →  (${Math.round(flux * 100)}%)`; svg.appendChild(lt);
+    // bottom arrow: glucose liver -> muscle
+    svg.appendChild(el('line', { x1: 330, y1: 165, x2: 130, y2: 165, stroke: ACCENT, 'stroke-width': w, 'marker-end': 'url(#cori-ar2)' }));
+    const gt = el('text', { x: 230, y: 185, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 11, 'font-weight': 600 }); gt.textContent = '← glucose'; svg.appendChild(gt);
+    // blood label
+    const bl = el('text', { x: 230, y: 112, 'text-anchor': 'middle', fill: '#b9b9c2', 'font-size': 10 }); bl.textContent = 'bloodstream'; svg.appendChild(bl);
+    // arrow markers
+    const defs = el('defs', {});
+    const mk = (id: string, color: string) => {
+      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+      m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: color }));
+      return m;
+    };
+    defs.appendChild(mk('cori-ar', ORANGE)); defs.appendChild(mk('cori-ar2', ACCENT));
+    svg.appendChild(defs);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-cori]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const effIn = root.querySelector<HTMLInputElement>('[data-in="eff"]')!;
+    const effOut = root.querySelector<HTMLElement>('[data-out="eff"]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    function render() {
+      const eff = parseInt(effIn.value, 10);
+      effOut.textContent = eff > 70 ? 'sprint' : eff > 35 ? 'jogging' : eff > 5 ? 'walking' : 'at rest';
+      draw(svg, eff);
+      whyEl.textContent = eff > 70
+        ? 'All-out: the muscle has outrun its oxygen, so glycolysis runs anaerobically and floods the blood with lactate. The liver works hard to recycle it — the Cori cycle is running fast, and the 4-ATP deficit per glucose is mounting.'
+        : eff > 35
+          ? 'Moderate effort: some lactate spills into the blood and the liver recycles it, but most pyruvate is still oxidized aerobically in the muscle. The Cori cycle ticks along.'
+          : eff > 5
+            ? 'Light effort: the muscle gets nearly all its ATP from aerobic respiration, so little lactate is made and the Cori cycle is nearly idle.'
+            : 'At rest the muscle burns fuel aerobically and exports almost no lactate. The Cori cycle is essentially off — there is no debt to relocate.';
+    }
+    effIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .cori { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cori-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .cori-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cori-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .cori-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
+  .cori-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cori-slabel input { accent-color: var(--ddp-color-accent); }
+  .cori-ledger { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .cori-ledger { grid-template-columns: repeat(3, 1fr); } }
+  .cori-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .cori-c-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cori-c-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .cori-pos { color: #2e8b57; }
+  .cori-neg { color: #c0392b; }
+  .cori-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cori-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
