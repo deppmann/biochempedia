@@ -22,7 +22,7 @@ const lesson = entry.data;
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const localSims = lesson.simulations.filter((s) => s.type === 'local');
 // The in-text island name (strip any parenthetical), used for the rail caption.
-const inTextSimName = localSims.length ? localSims[0].title.split('(')[0].trim() : null;
+const localSimNames = localSims.map((s) => s.title.split('(')[0].trim());
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
 const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
@@ -113,11 +113,14 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
           </div>
         )}
 
-        {(phetSims.length > 0 || inTextSimName) && (
+        {(phetSims.length > 0 || localSimNames.length > 0) && (
           <div class="rail-group">
             <h3>Simulations</h3>
-            {inTextSimName && (
-              <p class="rail-note">This lesson's interactive — <strong>{inTextSimName}</strong> — is built into the text above; try it as you read.</p>
+            {localSimNames.length === 1 && (
+              <p class="rail-note">This lesson's interactive — <strong>{localSimNames[0]}</strong> — is built into the text above; try it as you read.</p>
+            )}
+            {localSimNames.length > 1 && (
+              <p class="rail-note">This lesson's interactives — {localSimNames.map((n, i) => (<>{i > 0 ? ', ' : ''}<strong>{n}</strong></>))} — are built into the text above; try them as you read.</p>
             )}
             {phetSims.map((s, i) => (
               <button type="button" class="rail-thumb" data-open={`lb-phet-${i}`}>
