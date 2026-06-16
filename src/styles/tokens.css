@@ -72,3 +72,44 @@
   --ddp-shadow: var(--shadow-md);
   --ddp-maxw: 72ch;
 }
+
+/* =============================================================================
+   Dark mode (prefers-color-scheme). Strategy: the page CHROME + prose go dark by
+   overriding the role tokens; but every .card (interactive islands, slide decks,
+   scientist/quiz cards) RE-ASSERTS the light palette, so SVG islands — whose JS
+   draws with fixed navy/ink hex — stay readable on light "paper." Light mode is
+   untouched (this block only adds rules under the dark media query).
+   ============================================================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --ddp-color-bg: #0f1522;
+    --ddp-color-surface: #1a2233;
+    --ddp-color-ink: #e7e9f0;
+    --ddp-color-ink-soft: #c3c8d6;
+    --ddp-color-muted: #9aa2b4;            /* ~6:1 on the dark surface — passes AA */
+    --ddp-color-line: #2c3650;
+    --ddp-color-primary: #d3dcf2;          /* headings/strong text → light */
+    --ddp-color-primary-soft: #aab6da;
+    --ddp-color-accent: #4fb3c4;           /* lighter teal for contrast on dark */
+    --ddp-color-accent-soft: color-mix(in srgb, #4fb3c4 18%, var(--ddp-color-surface));
+    --ddp-color-secondary: #e0b452;        /* gold pops on dark */
+    --ddp-color-secondary-ink: #e8c76b;    /* gold TEXT → light gold on dark */
+  }
+  /* Content cards stay light paper so fixed-hex SVG graphics + white panels read. */
+  .card {
+    color-scheme: light;
+    --ddp-color-surface: #ffffff;
+    --ddp-color-ink: #2d2d2d;
+    --ddp-color-ink-soft: #5a5a5a;
+    --ddp-color-muted: #6b6b6b;
+    --ddp-color-line: #e2dfd8;
+    --ddp-color-primary: var(--color-navy);
+    --ddp-color-primary-soft: var(--color-navy-light);
+    --ddp-color-accent: var(--color-teal);
+    --ddp-color-accent-soft: color-mix(in srgb, var(--color-teal) 12%, #fff);
+    --ddp-color-secondary: var(--color-gold);
+    --ddp-color-secondary-ink: #7f6315;
+    color: var(--ddp-color-ink);
+  }
+}
