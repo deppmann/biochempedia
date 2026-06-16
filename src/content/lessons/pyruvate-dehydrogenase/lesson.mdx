@@ -123,6 +123,10 @@ simulations:
     ref: "PathwayExplorer"
     title: "PDC reaction map (reveal each step; the tally lands on 1 NADH + 1 CO₂ + acetyl-CoA per pyruvate)"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "PdhSwitch"
+    title: "PDH on/off switch (toggle energy-charge effectors or pick a physiological state and watch PDK/PDP flip the gate)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 practiceQuestions:
   - stem: "Which statement correctly describes the net reaction carried out by the pyruvate dehydrogenase complex?"
     choices:
@@ -324,6 +328,7 @@ lectureSlides:
 ---
 
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+import PdhSwitch from '../../../components/PdhSwitch.astro';
 
 export const pdcSteps = [{"n": 1, "enzyme": "Pyruvate transporter (MPC)", "sub": "Pyruvate (cytosol)", "prod": "Pyruvate (matrix)", "note": "Pyruvate made by glycolysis in the cytosol is carried across the inner mitochondrial membrane by the mitochondrial pyruvate carrier. Nothing is consumed or produced here; this is the geographic move from glycolysis into the matrix, where the complex waits at the one-way gate."}, {"n": 2, "enzyme": "E1 (pyruvate dehydrogenase) · TPP, Mg²⁺", "sub": "Pyruvate", "prod": "Hydroxyethyl-TPP + CO₂", "co2": 1, "regulated": true, "note": "The C2 carbanion (ylide) of thiamine pyrophosphate attacks pyruvate's carbonyl, and the carboxyl carbon leaves as CO₂. This decarboxylation is the irreversible, committed event: a large negative ΔG, the carbon gone as gas, and animals have no enzyme to put it back. E1 is also the principal control point.", "regNote": "E1 is switched off by PDH kinase (phosphorylation) when acetyl-CoA and NADH are high, and on by PDH phosphatase when ADP/pyruvate/Ca²⁺ rise.", "clinical": "Thiamine (B1) deficiency starves E1 of TPP; the complex stalls, pyruvate and lactate accumulate, and beriberi or Wernicke's follows. Give thiamine BEFORE glucose in malnourished patients, or a glucose load drives lactic acidosis."}, {"n": 3, "enzyme": "E1 (pyruvate dehydrogenase)", "sub": "Hydroxyethyl-TPP", "prod": "Acetyl-lipoamide", "note": "Still on E1: the two-carbon hydroxyethyl unit is oxidized to an acetyl group and transferred onto lipoamide's disulfide in the same motion. The S–S of lipoamide is reduced to a dithiol and TPP is regenerated. The electrons are now held on the lipoamide arm, NOT yet on NAD⁺ — so no NADH is made here, a common trap."}, {"n": 4, "enzyme": "E2 (dihydrolipoyl transacetylase)", "sub": "Acetyl-lipoamide + CoA-SH", "prod": "Acetyl-CoA + dihydrolipoamide", "note": "The swinging lipoamide arm carries the acetyl group to the E2 core, which transfers it to coenzyme A, forming the high-energy thioester acetyl-CoA (~−31 kJ/mol). Acetyl-CoA is released; the lipoamide is left reduced and must be reset before the cycle runs again.", "clinical": "Arsenite (As³⁺) and mercury (Hg²⁺) bridge the two –SH groups of the dithiol lipoamide, locking the arm. The complex freezes, and the brain and heart, most dependent on its flux, are hit hardest."}, {"n": 5, "enzyme": "E3 (dihydrolipoamide dehydrogenase) · FAD", "sub": "Dihydrolipoamide", "prod": "Lipoamide (S–S) + FADH₂ (bound)", "note": "E3 reoxidizes the dithiol back to the lipoamide disulfide, resetting the arm. The electrons pass to E3's tightly bound FAD, making FADH₂ transiently. This FADH₂ stays on the enzyme — an internal relay, not a released product — which is why PDC's net carriers list NADH and not FADH₂."}, {"n": 6, "enzyme": "E3 (dihydrolipoamide dehydrogenase) · NAD⁺", "sub": "FADH₂ (bound) + NAD⁺", "prod": "FAD + NADH + H⁺", "nadh": 1, "note": "The electrons move from FADH₂ to NAD⁺, producing NADH and regenerating FAD. This is the only NADH-producing step of the whole complex. No molecular O₂ is used directly; the complex needs aerobic conditions only because the electron-transport chain must regenerate NAD⁺ downstream.", "clinical": "In hyperglycemia, excess glucose floods the TCA cycle with electron donors, the mitochondrial proton gradient climbs past a threshold, and electrons leak from the chain as superoxide; that oxidative stress contributes to diabetic neuropathy."}];
 
@@ -372,6 +377,8 @@ A gate this important is heavily controlled, and PDC reads the cell's **energy c
 The fast layer is **allosteric**, responding in seconds. The products themselves are inhibitors: ATP, NADH, and acetyl-CoA all say "we have plenty, slow down." ADP and pyruvate are activators: "we are hungry, speed up."
 
 The slower, sustained layer is **covalent**, acting over minutes. A dedicated kinase, **PDK** (pyruvate dehydrogenase kinase), phosphorylates a serine on E1 and switches the complex OFF. A phosphatase, **PDP**, removes that phosphate and switches it back ON. Note the direction: here phosphorylation **inactivates**, the same convention as glycogen synthase. PDK is itself stimulated by the high-energy signals ATP, NADH, and acetyl-CoA, reinforcing the allosteric brake.
+
+<PdhSwitch />
 
 The cleanest illustration is muscle. When a muscle contracts, the cytosol fills with **Ca2+**. Calcium activates PDP, PDP dephosphorylates E1, PDC switches on, and acetyl-CoA surges into the TCA cycle exactly when the muscle needs ATP. The same calcium that triggers contraction also unlocks the fuel.
 

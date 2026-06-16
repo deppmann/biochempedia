@@ -1,0 +1,106 @@
+---
+/**
+ * PdhSwitch — the regulation companion to the PDC reaction map. The pyruvate
+ * dehydrogenase complex sits at an irreversible gate, so it is heavily controlled:
+ * a dedicated kinase (PDK) turns it OFF by phosphorylation when fuel is plentiful
+ * (ATP, NADH, acetyl-CoA high), and a phosphatase (PDP) turns it back ON when the
+ * cell needs fuel (ADP, pyruvate, Ca²⁺ high). Toggle the effectors — or pick a
+ * physiological state — and watch the switch flip and pyruvate→acetyl-CoA flux start
+ * or stall. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pdh card" data-pdhswitch>
+  <figcaption class="pdh-head">Switching the PDH complex on and off<span class="pdh-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="pdh-presets" role="group" aria-label="Physiological state">
+    <button type="button" data-preset="fed">Fed / resting</button>
+    <button type="button" data-preset="sprint">Sprinting muscle</button>
+    <button type="button" data-preset="fasting">Fasting (burning fat)</button>
+  </div>
+
+  <div class="pdh-effectors">
+    <div class="pdh-col">
+      <p class="pdh-col-head">Turns PDH OFF<br/><span>(activates PDK)</span></p>
+      <label><input type="checkbox" data-eff="atp" data-dir="off" /> ATP high</label>
+      <label><input type="checkbox" data-eff="nadh" data-dir="off" /> NADH high</label>
+      <label><input type="checkbox" data-eff="acetylcoa" data-dir="off" /> Acetyl-CoA high</label>
+    </div>
+    <div class="pdh-col">
+      <p class="pdh-col-head">Turns PDH ON<br/><span>(activates PDP / blocks PDK)</span></p>
+      <label><input type="checkbox" data-eff="adp" data-dir="on" /> ADP high</label>
+      <label><input type="checkbox" data-eff="pyruvate" data-dir="on" /> Pyruvate high</label>
+      <label><input type="checkbox" data-eff="ca" data-dir="on" /> Ca²⁺ high</label>
+    </div>
+  </div>
+
+  <div class="pdh-state" data-state>
+    <div class="pdh-badge" data-badge>PDH ON</div>
+    <div class="pdh-flux" data-flux>Pyruvate → Acetyl-CoA: flowing</div>
+  </div>
+  <p class="pdh-why" data-why>With no effectors set, the phosphatase keeps the complex dephosphorylated and active by default.</p>
+
+  <p class="pdh-foot">Phosphorylation is the master switch: PDK adds a phosphate to shut PDH off when the cell is fuel-rich; PDP removes it to turn PDH on when the cell needs to burn pyruvate. The products of the reaction (acetyl-CoA, NADH) feed back to switch it off — classic product inhibition through a kinase.</p>
+</figure>
+
+<script>
+  type Preset = Record<string, boolean>;
+  const PRESETS: Record<string, { effs: Preset; why: string }> = {
+    fed: { effs: { atp: true, nadh: true }, why: 'Fed and resting: ATP and NADH are plentiful, so PDK phosphorylates and shuts the complex OFF — no need to burn more pyruvate to acetyl-CoA right now.' },
+    sprint: { effs: { adp: true, pyruvate: true, ca: true }, why: 'Sprinting muscle: ADP, pyruvate, and the Ca²⁺ that triggers contraction all rise, activating the phosphatase. PDH switches ON to feed the cycle and meet the energy demand.' },
+    fasting: { effs: { acetylcoa: true, nadh: true }, why: 'Fasting: fat oxidation floods the matrix with acetyl-CoA and NADH, which switch PDH OFF — sparing pyruvate (and the glucose it could become) for the brain. This is why you cannot turn fat into glucose here.' },
+  };
+  document.querySelectorAll<HTMLElement>('[data-pdhswitch]').forEach((root) => {
+    const boxes = Array.from(root.querySelectorAll<HTMLInputElement>('[data-eff]'));
+    const badge = root.querySelector<HTMLElement>('[data-badge]')!;
+    const flux = root.querySelector<HTMLElement>('[data-flux]')!;
+    const stateBox = root.querySelector<HTMLElement>('[data-state]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    function render(presetWhy?: string) {
+      let off = 0, on = 0;
+      boxes.forEach((b) => { if (b.checked) { if (b.getAttribute('data-dir') === 'off') off++; else on++; } });
+      // ON effectors win ties (phosphatase active by default); PDH ON unless OFF effectors strictly dominate
+      const pdhOn = on >= off;
+      badge.textContent = pdhOn ? 'PDH ON (active · dephosphorylated)' : 'PDH OFF (inactive · phosphorylated)';
+      flux.textContent = pdhOn ? 'Pyruvate → Acetyl-CoA: flowing into the cycle' : 'Pyruvate → Acetyl-CoA: stalled at the gate';
+      stateBox.classList.toggle('is-on', pdhOn);
+      stateBox.classList.toggle('is-off', !pdhOn);
+      if (presetWhy) { why.textContent = presetWhy; return; }
+      why.textContent = off === 0 && on === 0
+        ? 'With no effectors set, the phosphatase keeps the complex dephosphorylated and active by default.'
+        : pdhOn
+          ? `The ON signals (${on}) hold the phosphatase in charge, so PDH stays dephosphorylated and active — pyruvate is committed to acetyl-CoA.`
+          : `The OFF signals (${off}) outweigh the ON signals (${on}), so PDK phosphorylates the complex and the gate closes.`;
+    }
+    boxes.forEach((b) => b.addEventListener('change', () => render()));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.getAttribute('data-preset')!];
+        boxes.forEach((b) => { b.checked = !!p.effs[b.getAttribute('data-eff')!]; });
+        render(p.why);
+      }));
+    render();
+  });
+</script>
+
+<style>
+  .pdh { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pdh-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .pdh-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pdh-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .pdh-presets button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .pdh-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .pdh-effectors { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  .pdh-col { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); }
+  .pdh-col-head { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); line-height: 1.3; }
+  .pdh-col-head span { font-weight: 400; color: var(--ddp-color-muted); }
+  .pdh-col label { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: 0.15rem 0; }
+  .pdh-col input { accent-color: var(--ddp-color-accent); }
+  .pdh-state { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; padding: var(--ddp-space-2) var(--ddp-space-3); border-radius: 6px; border: 1px solid var(--ddp-color-line); }
+  .pdh-state.is-on { background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); border-color: var(--ddp-color-accent); }
+  .pdh-state.is-off { background: color-mix(in srgb, var(--ddp-color-secondary) 14%, #fff); border-color: var(--ddp-color-secondary); }
+  .pdh-badge { font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .pdh-flux { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pdh-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .pdh-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
