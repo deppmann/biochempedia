@@ -1,0 +1,420 @@
+---
+title: "Fatty Acid Synthesis: Building the Chain Two Carbons at a Time"
+slug: "fatty-acid-synthesis"
+courseChapter: "Lipid Metabolism"
+order: 28
+summary: "Fatty acid synthesis is how a fed cell turns spare acetyl CoA into long-chain fat, and the organizing idea is that it is deliberately not beta-oxidation run backward. Three differences make that possible: the work happens in the cytoplasm on a dedicated carrier (ACP), it spends NADPH instead of banking NADH, and a single committed enzyme (acetyl CoA carboxylase) decides whether any fat gets made at all. Trace the carbon from citrate to palmitate and the whole pathway resolves into one stoichiometric ledger: 8 acetyl CoA, 7 ATP, and 14 NADPH per C16 chain."
+estMinutes: 24
+objectives:
+  - "Explain the three ways fatty acid synthesis differs from beta-oxidation (cytoplasm vs mitochondria, ACP/phosphopantetheine vs CoA, NADPH consumed vs NADH/FADH2 produced) and why that separation permits independent regulation and prevents a futile cycle."
+  - "Trace carbon and reducing power through the citrate shuttle, accounting for how citrate delivers both acetyl groups and, via malic enzyme, 8 of the 14 NADPH, with the remaining 6 from the pentose phosphate pathway."
+  - "Identify acetyl CoA carboxylase as the committed, biotin-dependent step and explain why spending ATP to add CO2 (making malonyl CoA) pulls condensation forward even though CO2 is released again."
+  - "Walk the four-step CRDR cycle on fatty acid synthase (condensation, reduction, dehydration, reduction) and reproduce the full stoichiometry: 8 acetyl CoA + 7 ATP + 14 NADPH + 7 HCO3⁻ yield palmitate + 7 CO2 + 8 CoA + 6 H2O."
+  - "Describe the three layers of ACC regulation (AMPK/PP2A phosphorylation, citrate/palmitoyl-CoA allostery, insulin/glucagon hormones) and the reciprocal block of CPT-I by malonyl CoA, then apply it to metformin and to alcohol-induced fatty liver."
+scientists:
+  - name: "Feodor Lynen"
+    dates: "1911-1979"
+    contribution: "Determined the thioester structure of acetyl-CoA (acetate clamped to a sulfur atom) and showed fatty acids are built on a dedicated cytoplasmic assembly, fatty acid synthase, welding activated acetyl units onto a growing chain two carbons at a time rather than running beta-oxidation in reverse. Shared the 1964 Nobel with Bloch."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Feodor Lynen profile, Part 10 (quotes grep-confirmed)."
+    quotes:
+      - "Euch macht ihr's leicht, mir macht ihr's schwer"
+    story: "Working in patched-together rooms in bombed-flat postwar Munich in 1951, Lynen took a boiled yeast extract and worked out how acetate rides on coenzyme A: not on the pantothenic acid as others guessed, but clamped to a sulfur atom as a high-energy thioester, giving acetyl-CoA, the busiest small molecule in metabolism, a structure you could draw, in a barely-one-page paper to Angewandte Chemie. He then showed the cell builds fat on its own route (FAS), not by reversing degradation, and traced the same scraps up to cholesterol, finding the committed step at HMG-CoA reductase, later the statin target. He earned his doctorate under Heinrich Wieland on death-cap mushroom toxins and married Wieland's daughter Eva, becoming Germany's first Professor of Biochemistry in 1953. At the 1964 Stockholm banquet he borrowed Hans Sachs from Wagner's Die Meistersinger, \"you make it easy for yourselves, you make it hard for me,\" when given, as he put it, a poor man too much honor."
+  - name: "Konrad Emil Bloch"
+    dates: "1912-2000"
+    contribution: "Established that animal cells build cholesterol from two-carbon acetate, the same acetyl building blocks used in fatty acid synthesis, and mapped intermediates such as squalene along the more-than-thirty-step route. Shared the 1964 Nobel with Lynen."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Konrad Emil Bloch profile, Part 10 (quotes grep-confirmed)."
+    quotes:
+      - "When I arrived"
+      - "it turned out that the station had a single dogfish in the aquarium"
+    story: "With David Rittenberg, Bloch fed animals deuterium-labeled acetate and found the heavy label inside their cholesterol, proof that animals synthesize the sterol from a two-carbon fragment. Chasing squalene as an intermediate, he traveled to the Bermuda Biological Station to inject labeled acetate into dogfish (sharks pool squalene in their livers), but the single available dogfish died in the tank and he returned empty-handed. The irony: had it lived, the experiment would still have failed, because the shark's enormous squalene background would have drowned the labeled signal. He kept the idea, dropped the shark, and in 1952 fed radioactive acetate to rats with cold squalene as carrier, recovering radioactive squalene and nailing it as a true intermediate on the path from acetate to cholesterol."
+  - name: "John Vane"
+    dates: "1927-2004"
+    contribution: "Showed that aspirin works by irreversibly inhibiting cyclooxygenase (COX), the enzyme that converts arachidonate into prostaglandins and thromboxanes, the biochemical basis of the eicosanoid and NSAID material. Also discovered prostacyclin. Shared the 1982 Nobel with Bergstrom and Samuelsson."
+    profileSourceAnchor: "The Molecule Hunters (v10) — John Vane profile, Part 8 (quotes grep-confirmed verbatim)."
+    quotes:
+      - "Aspirin does not slow cyclooxygenase down. It handcuffs the enzyme for good."
+      - "The proof was three pages and one figure."
+    story: "In May 1971, drafting a review, Vane realized prostaglandins released during lung trauma were synthesized on the spot, not stored. He prepared a cell-free soup of guinea-pig lung, added arachidonic acid, and watched aspirin shut down prostaglandin output, pinning the action on cyclooxygenase and explaining in one mechanism aspirin's effects on pain, inflammation, fever, and platelet clumping. The three-page Nature New Biology paper gave seventy years of empirical medicine a molecular basis. In 1976 he discovered prostacyclin, the endothelial counterweight to platelet thromboxane A2, explaining why low-dose aspirin thins blood: platelets cannot regenerate COX, but the vessel wall can. Every aspirin tablet acetylates a serine in the COX active site, the irreversible handcuff Vane characterized."
+  - name: "Rudolf Schoenheimer"
+    dates: "1898-1941"
+    contribution: "Pioneered stable-isotope tracing (deuterium, nitrogen-15) with mass spectrometry, proving body constituents including fatty acids and cholesterol are continuously torn down and rebuilt, the dynamic state of body constituents, which is the conceptual and methodological foundation for studying lipid turnover and synthesis."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Rudolf Schoenheimer profile, Part 2 (quote grep-confirmed)."
+    quotes:
+      - "the dynamic state of body constituents"
+    story: "Across the hall from Harold Urey, deuterium's discoverer, at Columbia, Schoenheimer recruited physical chemist David Rittenberg to thread non-radioactive heavy isotopes into biomolecules and track them by mass spectrometry. Feeding rats nitrogen-15-tagged amino acids, he found that within hours the label scattered across the entire protein pool, overturning the wear-and-tear model and showing tissue is under perpetual demolition and rebuilding. He pushed the same deuterium method onto fatty acids and cholesterol, finding every major biomolecule class in constant flux. Konrad Bloch finished his training in Schoenheimer's lab. Schoenheimer, who had long suffered manic-depressive illness, took his own life in 1941; his Dunham Lectures were assembled posthumously as The Dynamic State of Body Constituents in 1942, which Bloch later credited as essential to the systematic biochemistry of the 1950s."
+techniques:
+  - name: "Radioisotope and stable-isotope tracing"
+    blurb: "Feed an animal acetate labeled with deuterium or carbon-14 and find the label inside its fat and cholesterol. This is how Schoenheimer showed body lipids are in constant turnover and how Bloch proved animals build sterols from two-carbon acetate. The same logic, run with a labeled bicarbonate, demonstrates that the CO2 added by ACC is the one released during condensation, never incorporated into the chain."
+  - name: "Avidin-biotin affinity capture"
+    blurb: "Egg-white avidin binds biotin with a dissociation constant near 10 to the minus 15 molar, one of the tightest non-covalent interactions known. Biochemists exploit it to pull any biotin-tagged molecule cleanly out of a mixture. Historically the same binding starved rats fed raw egg white of their biotin, the 1927 Wisconsin observation that revealed biotin as a vitamin and, later, as ACC's CO2 carrier."
+  - name: "Enzyme assay of a regulated polymer"
+    blurb: "ACC is active only as a long filament and inactive as a dissociated dimer. Adding citrate to the purified enzyme drives polymerization and switches it on; adding palmitoyl CoA depolymerizes it and switches it off. Watching velocity rise and fall as you titrate one effector at a time is how the allosteric controls on the committed step were mapped."
+structures:
+  - label: "Mammalian fatty acid synthase (FAS), porcine, full multidomain dimer"
+    source: "rcsb"
+    id: "2VZ8"
+    note: "PDB 2VZ8"
+    caption: "Cryo-EM/X-ray structure of mammalian (Sus scrofa) fatty acid synthase showing the homodimeric multienzyme with KS/MAT/DH/ER/KR domains (Maier, Leibundgut, Ban 2008)"
+  - label: "Mammalian FAS at 3.2 A (Ban lab)"
+    source: "rcsb"
+    id: "2CF2"
+    note: "PDB 2CF2"
+    caption: "Mammalian fatty acid synthase structure (Maier/Jenni/Ban) — the multidomain assembly-line enzyme; backup candidate for the FAS structure figure"
+  - label: "Acetyl-CoA carboxylase (ACC) — biotin carboxylase / carboxyltransferase domain"
+    source: "rcsb"
+    id: "1OD2"
+    note: "PDB 1OD2"
+    caption: "Acetyl-CoA carboxylase carboxyltransferase domain (yeast/structural) — the committed-step regulatory enzyme; should be an ACC catalytic domain structure"
+  - label: "ATP-citrate lyase (human)"
+    source: "rcsb"
+    id: "3MWD"
+    note: "PDB 3MWD"
+    caption: "Human ATP-citrate lyase, the Stage-1 enzyme cleaving citrate to acetyl CoA + OAA in the cytoplasm"
+  - label: "Acyl carrier protein (ACP) with phosphopantetheine"
+    source: "rcsb"
+    id: "2FAE"
+    note: "PDB 2FAE"
+    caption: "E. coli acyl carrier protein structure showing the phosphopantetheine-bearing scaffold that carries fatty-acyl intermediates"
+  - label: "AMP-activated protein kinase (AMPK) heterotrimer"
+    source: "rcsb"
+    id: "4CFE"
+    note: "PDB 4CFE"
+    caption: "Mammalian AMPK full heterotrimeric complex (the master energy-sensing kinase that phosphorylates and inactivates ACC)"
+  - label: "Cyclooxygenase-1 (COX-1, PGHS-1) with substrate/inhibitor"
+    source: "rcsb"
+    id: "1EQG"
+    note: "PDB 1EQG"
+    caption: "Ovine prostaglandin H synthase-1 (COX-1) in complex with ibuprofen — the eicosanoid/aspirin-target enzyme for 28.2"
+  - label: "Avidin–biotin complex"
+    source: "rcsb"
+    id: "2AVI"
+    note: "PDB 2AVI"
+    caption: "Hen egg-white avidin bound to biotin, the ultra-high-affinity interaction in Chris's egg-white vignette"
+  - label: "Acetyl-CoA"
+    source: "pubchem"
+    id: "444493"
+    note: "CID 444493"
+    caption: "Acetyl coenzyme A — the C2 building block and FAS priming/elongation precursor"
+  - label: "Malonyl-CoA"
+    source: "pubchem"
+    id: "644066"
+    note: "CID 644066"
+    caption: "Malonyl coenzyme A — committed-step product of ACC, the activated 2-carbon donor for elongation"
+  - label: "Palmitate (palmitic acid)"
+    source: "pubchem"
+    id: "985"
+    note: "CID 985"
+    caption: "Palmitic acid (C16:0), the end product released by FAS thioesterase"
+  - label: "Biotin"
+    source: "pubchem"
+    id: "171548"
+    note: "CID 171548"
+    caption: "Biotin (vitamin B7), the CO2-carrying cofactor of ACC"
+  - label: "NADPH"
+    source: "pubchem"
+    id: "5884"
+    note: "CID 5884"
+    caption: "NADPH — the reducing equivalent consumed (14 per palmitate) in the two reduction steps of CRDR"
+  - label: "Citrate (citric acid)"
+    source: "pubchem"
+    id: "311"
+    note: "CID 311"
+    caption: "Citrate — the acetyl-group shuttle carrier and allosteric activator of ACC"
+  - label: "Arachidonic acid"
+    source: "pubchem"
+    id: "444899"
+    note: "CID 444899"
+    caption: "Arachidonate (20:4 ω-6) — the polyunsaturated eicosanoid precursor released by phospholipase A2"
+videos:
+  - title: "Fatty acid synthesis (part 1)"
+    youtubeId: "6YV0bHzHAfw"
+    sourceNote: "Khan Academy (MCAT) — the citrate shuttle, ACC, and the synthase cycle. Openly available."
+  - title: "Fatty acid synthesis (part 1)"
+    youtubeId: "nBFSz63T1c0"
+    sourceNote: "Ninja Nerd — building the chain on fatty acid synthase, step by step."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "FA synthesis map — one CRDR turn adds two carbons for 1 ATP (at ACC) + 2 NADPH; palmitate (C16) takes 7 turns = 7 ATP + 14 NADPH, from 8 acetyl-CoA delivered as citrate"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "Fatty acid synthesis is often contrasted with beta-oxidation. Which set of three features correctly describes synthesis (not degradation)?"
+    choices:
+      - "Cytoplasm, CoA carrier, FADH2 produced"
+      - "Mitochondrion, ACP carrier, NADPH consumed"
+      - "Cytoplasm, ACP carrier, NADPH consumed"
+      - "Mitochondrion, CoA carrier, NADH produced"
+    answer: 2
+    rationale: "Synthesis occurs in the cytoplasm, carries intermediates on ACP via a phosphopantetheine arm, and consumes NADPH as its reducing equivalent. The option naming the mitochondrion with CoA and NADH describes beta-oxidation. The other two mix features from both pathways, which is exactly the confusion the chapter is built to prevent."
+  - stem: "Which reaction is the committed step of fatty acid synthesis, and what cofactor does the enzyme require?"
+    choices:
+      - "Acetyl CoA carboxylase making malonyl CoA; requires biotin"
+      - "Ketoacyl synthase condensing acetyl and malonyl; requires biotin"
+      - "ATP-citrate lyase cleaving citrate; requires NADPH"
+      - "Thioesterase releasing palmitate; requires CoA"
+    answer: 0
+    rationale: "Acetyl CoA carboxylase (ACC) carboxylates acetyl CoA to malonyl CoA using a biotin cofactor and one ATP; once malonyl CoA is made, the carbon is committed to fat, making this the committed step. ATP-citrate lyase is the upstream export step, thioesterase is the release step, and ketoacyl synthase performs the condensation but is not the committed regulatory point."
+  - stem: "A student claims the CO2 added by ACC ends up incorporated into the carbon skeleton of palmitate. Why is this incorrect?"
+    choices:
+      - "CO2 is incorporated, but only into the terminal carboxyl group"
+      - "The CO2 is released again during the condensation step; its decarboxylation drives the otherwise uphill reaction forward"
+      - "CO2 is never added by ACC; ACC adds a hydroxyl group"
+      - "The CO2 is reduced to a methyl group by NADPH"
+    answer: 1
+    rationale: "The CO2 attached to make malonyl CoA is released during condensation, and that decarboxylation is the thermodynamic driving force that makes joining two units favorable. CO2 is a leaving group, not a building block (the vending-machine quarter). It is not incorporated, not reduced to methyl, and ACC does add CO2 rather than a hydroxyl."
+  - stem: "Per molecule of palmitate (C16) synthesized from acetyl CoA, how many NADPH and ATP are consumed?"
+    choices:
+      - "16 NADPH and 8 ATP"
+      - "8 NADPH and 7 ATP"
+      - "7 NADPH and 14 ATP"
+      - "14 NADPH and 7 ATP"
+    answer: 3
+    rationale: "The full stoichiometry is 8 acetyl CoA + 7 ATP + 14 NADPH + 7 HCO3⁻ yielding palmitate + 7 CO2 + 8 CoA + 6 H2O. Fourteen NADPH come from the two reduction steps across seven CRDR cycles (two per cycle), and seven ATP are spent making the seven malonyl CoA units at ACC. The other options swap or mis-scale the two currencies."
+  - stem: "Malonyl CoA does more than feed chain elongation. What is its key regulatory action that enforces reciprocal control between fat synthesis and fat breakdown?"
+    choices:
+      - "It inhibits CPT-I, blocking fatty acid entry into the mitochondrion for oxidation"
+      - "It depolymerizes ACC, switching synthesis off"
+      - "It activates cytochrome b5 on the ER"
+      - "It activates AMPK, slowing synthesis"
+    answer: 0
+    rationale: "Malonyl CoA inhibits carnitine palmitoyltransferase I (CPT-I), the gate for importing fatty acids into mitochondria for beta-oxidation. So the moment the cell commits to synthesis it blocks oxidation, the reciprocal see-saw. Palmitoyl CoA (not malonyl CoA) depolymerizes ACC; AMPK is activated by low energy charge, not by malonyl CoA; and cytochrome b5 serves desaturases, unrelated to this control."
+mcatQuestions:
+  - stem: "A patient with type 2 diabetes is started on metformin. Metformin inhibits mitochondrial Complex I, raising the cellular AMP:ATP ratio. Predict the downstream effect on acetyl CoA carboxylase (ACC) and on fatty acid metabolism."
+    choices:
+      - "Citrate accumulates, polymerizing ACC and increasing synthesis"
+      - "AMPK is activated, ACC is phosphorylated and inhibited, so fatty acid synthesis falls and oxidation rises"
+      - "PP2A is activated, ACC is dephosphorylated and activated, so fatty acid synthesis rises"
+      - "Insulin signaling increases, activating ACC and increasing malonyl CoA"
+    answer: 1
+    rationale: "A higher AMP:ATP ratio activates AMPK, which phosphorylates and inactivates ACC. Less ACC activity means less malonyl CoA, so synthesis falls; less malonyl CoA also relieves the CPT-I block, so oxidation rises. The other options describe activating influences (PP2A, insulin, citrate) that would raise ACC activity, the opposite of metformin's effect through AMPK."
+  - stem: "A researcher feeds a cell line acetyl CoA uniformly labeled with carbon-14 and, separately, bicarbonate labeled with carbon-14, then isolates the palmitate. Compared with the acetyl-CoA label, what will the bicarbonate label in palmitate show, and why?"
+    choices:
+      - "Label only in the terminal methyl group, because that is where bicarbonate enters"
+      - "Equal labeling, because both carbons are incorporated into the chain"
+      - "Heavy labeling at every other carbon, because bicarbonate provides the methylene carbons"
+      - "Little to no label, because the CO2 from bicarbonate is released during condensation rather than incorporated"
+    answer: 3
+    rationale: "The CO2 from bicarbonate is fixed by ACC to make malonyl CoA, but it is released again during the condensation step, so it is not built into the palmitate skeleton. The acetyl-CoA carbons, by contrast, all end up in the chain. This isotope result is the classic proof that CO2 is a leaving group, not a building block."
+  - stem: "A genetic defect abolishes cytoplasmic malic enzyme activity in hepatocytes, while the pentose phosphate pathway is intact. The cell still imports citrate normally. What is the most direct metabolic consequence for fatty acid synthesis?"
+    choices:
+      - "Acetyl CoA can no longer be exported from the mitochondrion"
+      - "The committed step (ACC) can no longer carboxylate acetyl CoA"
+      - "About 8 of the 14 NADPH per palmitate are lost, so synthesis is limited unless the pentose phosphate pathway compensates"
+      - "Palmitate cannot be released because thioesterase requires malic enzyme"
+    answer: 2
+    rationale: "Malic enzyme generates roughly 8 of the 14 NADPH needed per palmitate as part of the citrate shuttle; the pentose phosphate pathway supplies the rest. Losing malic enzyme cuts a major NADPH source, throttling synthesis unless the pentose phosphate pathway makes up the shortfall. Acetyl CoA export (ATP-citrate lyase) and ACC carboxylation are independent of malic enzyme, and thioesterase does not require it."
+images: []
+corpusTags:
+  - "fatty-acid-synthesis"
+  - "fatty-acid-synthase"
+  - "acetyl-coa-carboxylase"
+  - "malonyl-coa"
+  - "nadph"
+  - "citrate-shuttle"
+  - "CRDR"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "When you eat more food than your body needs right now, your body doesn't throw the extra away. It saves it as fat, like packing snacks for later. It builds the fat by snapping together tiny two-piece blocks, over and over, until it has a long chain. It even has a little helper arm that swings the growing chain from one tool to the next, like a robot on an assembly line. And your body is careful: it never builds fat and burns fat at the same time, because that would be like filling a bathtub while it's draining."
+  - level: "highschool"
+    label: "High school"
+    text: "Fatty acid synthesis is how a well-fed cell turns extra food energy into fat. It happens in the cytoplasm and is not just the breakdown pathway run backward. First the cell ships acetyl CoA out of the mitochondria disguised as citrate. Then a key enzyme, ACC, adds CO2 to make malonyl CoA, which is the committed step: once you make it, you're making fat. A big multi-tool enzyme called fatty acid synthase then runs a four-step cycle (condense, reduce, dehydrate, reduce) seven times, adding two carbons each round, until it builds a sixteen-carbon fatty acid called palmitate. It uses NADPH as the power source, not the NADH the breakdown pathway makes."
+  - level: "college"
+    label: "College"
+    text: "Fatty acid synthesis builds palmitate from acetyl CoA in the cytoplasm and differs from beta-oxidation in three ways: location (cytoplasm vs mitochondrion), carrier (ACP-phosphopantetheine vs CoA), and reducing equivalent (NADPH consumed vs NADH/FADH2 produced), which permits independent regulation. Stage 1: the citrate shuttle exports acetyl CoA (ATP-citrate lyase) and, via cytoplasmic MDH plus malic enzyme, generates 8 of the 14 required NADPH; the pentose phosphate pathway supplies the rest. Stage 2: acetyl CoA carboxylase, a biotin enzyme, carboxylates acetyl CoA to malonyl CoA at the cost of one ATP, the committed step. Stage 3: fatty acid synthase runs the CRDR cycle (condensation driven by decarboxylation of the malonyl unit, NADPH reduction, dehydration, NADPH reduction) seven times to reach C16. Net: 8 acetyl CoA + 7 ATP + 14 NADPH + 7 HCO3⁻ yield palmitate + 7 CO2 + 8 CoA + 6 H2O. ACC is regulated by phosphorylation (AMPK off, PP2A on), allostery (citrate on, palmitoyl CoA off), and hormones (insulin on, glucagon off), and its product malonyl CoA inhibits CPT-I to block simultaneous oxidation."
+  - level: "grad"
+    label: "Graduate"
+    text: "The architecture of fatty acid synthesis is a study in compartmentalized metabolic control. The cytoplasm/mitochondrion split, the ACP/CoA carrier distinction, and the NADPH/NADH currency separation together insulate anabolic flux from catabolic flux, eliminating a thermodynamically wasteful futile cycle and permitting opposed regulation. The committed reaction, ACC, is the integration node: its biotin-dependent carboxylation is reversibly inactivated by AMPK phosphorylation and reactivated by PP2A, allosterically polymerized into active filaments by citrate and depolymerized by long-chain acyl-CoA feedback, and hormonally set by the insulin/glucagon axis through these same effectors. The energetic logic of chain elongation is the malonyl decarboxylation: direct Claisen condensation of two acetyl-CoA is endergonic, so the cell invests ATP in a carboxylation whose CO2 is subsequently lost during condensation, coupling an exergonic decarboxylation to the C-C bond formation, with ACP's phosphopantetheine tether enforcing substrate channeling across the FAS dimer. The reciprocal CPT-I inhibition by malonyl CoA (notably via ACC2) hardwires the synthesis/oxidation switch, and the AMPK node explains metformin's pleiotropic effect: Complex I inhibition raises AMP:ATP, activating AMPK to suppress lipogenesis and gluconeogenesis while derepressing fatty acid oxidation. The stereochemical inversion (D-3-hydroxyacyl in synthesis vs L in oxidation) and the NADPH dependence are mechanistic fingerprints confirming the two pathways are non-superimposable, not mirror images."
+anecdotes:
+  - title: "One cookie, one slice of pizza"
+    text: "The pathway is not abstract. When you eat more than you burn, the carbon in a single cookie or slice of pizza is converted to acetyl CoA and stitched into fatty acid chains by exactly the enzymes in this chapter. The cell does not waste surplus fuel; it banks it. Holding the everyday food in mind keeps the stoichiometry from feeling like bookkeeping for its own sake: 8 acetyl CoA, 7 ATP, and 14 NADPH is what one snack's worth of overflow actually costs to store."
+    source: "CH28 lecture notes — \"One cookie, one slice of pizza, if you don't burn it your body converts it to fat using exactly this pathway.\""
+  - title: "Citrate is an Uber for acetyl groups"
+    text: "Acetyl CoA is made in the mitochondrion but cannot cross the membrane into the cytoplasm where fat is built. So the cell loads the acetyl group onto citrate, which can cross, and cleaves it back out on the other side. Citrate is an Uber for acetyl groups, and the ride is a two-for-one: the same shuttle that delivers the carbon also generates NADPH at the malic-enzyme step, supplying 8 of the 14 reducing equivalents a palmitate needs."
+    source: "CH28 lecture notes — \"citrate is an Uber for acetyl groups\" (2-for-1: carbon plus reducing power)."
+  - title: "CO2 is a quarter in a vending machine"
+    text: "Two acetyl groups cannot condense directly because the reaction is uphill. So the cell spends an ATP to attach CO2 to acetyl CoA, making malonyl CoA, and then releases that very CO2 during condensation. The decarboxylation pulls the reaction forward. CO2 is a leaving group, not a building block: the quarter you drop into a vending machine, never gotten back, but it makes the snack come out. This single trick is why making malonyl CoA, not the condensation itself, is the committed step."
+    source: "CH28 lecture notes — \"CO2 is a leaving group, not a building block\" / \"quarter in a vending machine.\""
+  - title: "The 1927 egg-white rats"
+    text: "Biotin, the CO2 taxi on acetyl CoA carboxylase, was discovered through poisoning. In 1927, Wisconsin researchers fed rats raw egg white and watched them sicken. Egg white contains avidin, a protein that binds biotin with a dissociation constant near 10 to the minus 15 molar, one of the tightest bonds in biology. Avidin sequestered the vitamin and starved the enzymes that depend on it. The accident revealed biotin as a vitamin, and biochemists now exploit that same fierce binding to pull biotin-tagged molecules out of any mixture."
+    source: "CH28 lecture notes — avidin / raw egg white (Kd ~10^-15 M), the 1927 Wisconsin egg-white rats vignette."
+lectureSlides:
+  - src: "/slides/fatty-acid-synthesis/synthesis-vs-degradation-side-by-side.png"
+    audio: "/slides/fatty-acid-synthesis/audio/synthesis-vs-degradation-side-by-side.mp3"
+    title: "Synthesis vs. Degradation: A Side-by-Side"
+    alt: "Synthesis vs. Degradation: A Side-by-Side"
+    source: "CH28 Fatty Acid Synthesis · slide 3"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Before we build a single fatty acid, hold two pathways in your mind at once. Synthesis and degradation are not simply each other run backward. They live in different rooms: synthesis in the cytoplasm, degradation in the mitochondrion. They use different carriers, ACP for building, CoA for breaking down, and different redox currencies, NADPH to construct, NAD plus and FAD to dismantle. Even the chemistry differs in stereochemistry. Why bother separating them? Compartmentation. By keeping the two operations physically apart, the cell can regulate them independently and avoid a futile cycle that would burn energy doing nothing."
+  - src: "/slides/fatty-acid-synthesis/big-picture-where-carbons-come-from.png"
+    audio: "/slides/fatty-acid-synthesis/audio/big-picture-where-carbons-come-from.mp3"
+    title: "Big Picture: Where the Carbons Come From"
+    alt: "Big Picture: Where the Carbons Come From"
+    source: "CH28 Fatty Acid Synthesis · slide 4"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Start with the geography of the problem. Acetyl CoA, the two-carbon brick we need, is made inside the mitochondrion, but synthesis happens out in the cytoplasm. Acetyl CoA cannot cross the inner membrane directly, so the cell plays a shuttle game. It condenses acetyl CoA with oxaloacetate to make citrate, exports the citrate, and regenerates acetyl CoA on the other side. Trace the arrows from mitochondrion to cytoplasm and notice how cleverly the cell solves a transport problem with ordinary metabolites. Keep this map in mind, because every detail we add hangs on it."
+  - src: "/slides/fatty-acid-synthesis/three-stages-fatty-acid-synthesis.png"
+    audio: "/slides/fatty-acid-synthesis/audio/three-stages-fatty-acid-synthesis.mp3"
+    title: "The Three Stages of Fatty Acid Synthesis"
+    alt: "The Three Stages of Fatty Acid Synthesis"
+    source: "CH28 Fatty Acid Synthesis · slide 5"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Everything we do today fits into three stages. Stage one, transport: ATP-citrate lyase cleaves citrate to deliver acetyl CoA into the cytoplasm. Stage two, activation, the committed step: acetyl CoA carboxylase spends an ATP to make malonyl CoA, locking the cell into building fat. Stage three, elongation: fatty acid synthase runs a four-step cycle over and over, adding two carbons each pass until it reaches palmitate. Notice the logic, get the bricks to the site, commit irreversibly, then build. If you remember nothing else, remember transport, activation, elongation, in that order."
+  - src: "/slides/fatty-acid-synthesis/stage-2-committed-step.png"
+    audio: "/slides/fatty-acid-synthesis/audio/stage-2-committed-step.mp3"
+    title: "Stage 2: The Committed Step"
+    alt: "Stage 2: The Committed Step"
+    source: "CH28 Fatty Acid Synthesis · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the decision point of the entire pathway. Acetyl CoA carboxylase takes acetyl CoA, bicarbonate, and ATP, and produces malonyl CoA. This is the committed step, the reaction that says the cell is now making fat and nothing else. The enzyme depends on biotin, a vitamin cofactor whose job is to carry carbon dioxide. Think of biotin as a swinging arm that grabs a carboxyl group and delivers it. Because this step is committed and irreversible, it is exactly where regulation should sit, and indeed this enzyme is the master control valve we will return to."
+  - src: "/slides/fatty-acid-synthesis/egg-white-mystery-1927.png"
+    audio: "/slides/fatty-acid-synthesis/audio/egg-white-mystery-1927.mp3"
+    title: "The Egg White Mystery, 1927"
+    alt: "The Egg White Mystery, 1927"
+    source: "CH28 Fatty Acid Synthesis · slide 10"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "In 1927 lab rats fed raw egg whites developed hair loss, skin lesions, and loss of coordination. The culprit was a protein in egg white called avidin, which binds biotin with extraordinary tightness and locks the gips closed. With biotin sequestered, acetyl CoA carboxylase cannot carry carbon dioxide, and fatty acid synthesis stalls. The fix is almost comic in its simplicity: cook the eggs. Heat denatures avidin, biotin goes free, and the symptoms resolve. This is the whole chapter in miniature, a vitamin cofactor, a committed enzyme, and the visible cost when the chemistry fails."
+  - src: "/slides/fatty-acid-synthesis/stage-3-building-chain.png"
+    audio: "/slides/fatty-acid-synthesis/audio/stage-3-building-chain.mp3"
+    title: "Stage 3: Building the Chain"
+    alt: "Stage 3: Building the Chain"
+    source: "CH28 Fatty Acid Synthesis · slide 11"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Now we build. Fatty acid synthase is one enzyme complex that runs a repeating four-step cycle: condensation, reduction, dehydration, reduction. Remember it as CRDR. Each turn of the cycle joins the growing chain to a fresh two-carbon unit and then chemically grooms the new linkage into a saturated stretch. The cycle is not run once but seven times, because each pass adds two carbons and we are aiming for a sixteen-carbon product, palmitate. The elegance is that a single enzyme assembly does the same four moves repeatedly, like a machine stamping out identical parts on an assembly line."
+  - src: "/slides/fatty-acid-synthesis/malonyl-drives-condensation-forward.png"
+    audio: "/slides/fatty-acid-synthesis/audio/malonyl-drives-condensation-forward.mp3"
+    title: "Why Malonyl Drives Condensation Forward"
+    alt: "Why Malonyl Drives Condensation Forward"
+    source: "CH28 Fatty Acid Synthesis · slide 15"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the chemical trick that makes synthesis go. We have a primer, the acetyl group, and an extender, the malonyl group. When they condense, the malonyl loses its extra carboxyl as carbon dioxide. That decarboxylation is the engine. Releasing carbon dioxide is so thermodynamically favorable that it drags the otherwise sluggish condensation forward, the way letting go of a heavy weight pulls the whole rope along. The product, acetoacetyl-ACP, forms readily because the cell paid for that carbon dioxide earlier with ATP. So the carbon we added in stage two leaves here, but its purpose was always to power this step."
+  - src: "/slides/fatty-acid-synthesis/malonyl-coa-gambit.png"
+    audio: "/slides/fatty-acid-synthesis/audio/malonyl-coa-gambit.mp3"
+    title: "The Malonyl CoA Gambit"
+    alt: "The Malonyl CoA Gambit"
+    source: "CH28 Fatty Acid Synthesis · slide 16"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Step back and ask a fair question: why spend an ATP to attach a carbon dioxide in stage two, only to throw that same carbon dioxide away during condensation? It looks wasteful. The answer is that the cell is buying thermodynamics. Direct condensation of two acetyl units is unfavorable and would barely proceed. By investing one ATP to carboxylate first, the cell stores energy in malonyl CoA. Then, when that carbon dioxide is released, its departure makes condensation strongly downhill. It is a gambit: pay up front, release on demand, and gain control over a reaction that otherwise would not run. Every carbon still traces back to acetyl CoA."
+  - src: "/slides/fatty-acid-synthesis/you-cannot-make-omega-3.png"
+    audio: "/slides/fatty-acid-synthesis/audio/you-cannot-make-omega-3.mp3"
+    title: "Why You Cannot Make Omega-3"
+    alt: "Why You Cannot Make Omega-3"
+    source: "CH28 Fatty Acid Synthesis · slide 24"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Mammals are skilled fat builders, but we have a blind spot. Our desaturase enzymes can insert double bonds up to carbon nine, counting from the carboxyl end, and no further. That single missing capability is why omega-three and omega-six fatty acids are essential, meaning we must eat them. The story goes back to Burr and Burr in 1929, who showed that rats deprived of these fats sickened and recovered when fed linoleate. Plants make the double bonds we cannot. We eat the plants. This one genetic gap, a desaturase we never evolved, explains an entire aisle of dietary supplements."
+  - src: "/slides/fatty-acid-synthesis/cox-1-from-fatty-acid-signal.png"
+    audio: "/slides/fatty-acid-synthesis/audio/cox-1-from-fatty-acid-signal.mp3"
+    title: "COX-1: From Fatty Acid to Signal"
+    alt: "COX-1: From Fatty Acid to Signal"
+    source: "CH28 Fatty Acid Synthesis · slide 25"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Fatty acids are not only fuel and structure, they are raw material for signaling. The COX-1 pathway takes arachidonic acid, a twenty-carbon polyunsaturated fatty acid, and converts it through a series of steps into prostanoids, the prostaglandins and thromboxanes. These molecules act locally as hormones, regulating inflammation, fever, pain, blood clotting, and the protection of the stomach lining. Follow the pathway from the membrane lipid, released on demand, through the COX enzyme, to a family of short-lived but potent signals. This is the bridge from lipid metabolism into physiology, and it sets up exactly how aspirin works."
+  - src: "/slides/fatty-acid-synthesis/metformin-lives-this-pathway.png"
+    audio: "/slides/fatty-acid-synthesis/audio/metformin-lives-this-pathway.mp3"
+    title: "Metformin Lives in This Pathway"
+    alt: "Metformin Lives in This Pathway"
+    source: "CH28 Fatty Acid Synthesis · slide 31"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The most prescribed diabetes drug in the world acts right here, in the pathway we just learned. Metformin, taken by roughly a hundred fifty million people every day, activates AMPK, the cell's energy sensor. When AMPK switches on, it shuts down acetyl CoA carboxylase, throttling fatty acid synthesis, and tilts liver metabolism toward burning fuel rather than storing it. There is a lovely history here too: metformin descends from a compound in goat's rue, a plant used in folk medicine for sweet urine. A medieval herb and a modern blockbuster meet at the same enzyme you now understand."
+  - src: "/slides/fatty-acid-synthesis/ampk-cellular-fuel-gauge.png"
+    audio: "/slides/fatty-acid-synthesis/audio/ampk-cellular-fuel-gauge.mp3"
+    title: "AMPK: The Cellular Fuel Gauge"
+    alt: "AMPK: The Cellular Fuel Gauge"
+    source: "CH28 Fatty Acid Synthesis · slide 32"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of AMPK as the fuel gauge on the dashboard of the cell. It reads the ratio of AMP to ATP, which rises when energy runs low. When the tank reads empty, AMPK does two things at once. It switches anabolic pathways off, blocking fatty acid synthesis, cholesterol synthesis, and protein synthesis, because building is expensive. And it switches catabolic pathways on, ramping up fatty acid oxidation and glucose uptake to refill the tank. Triggers include exercise, fasting, and hypoxia. The single principle to carry away: when energy is scarce, stop construction and start burning reserves."
+  - src: "/slides/fatty-acid-synthesis/seventy-year-arc-discovery.png"
+    audio: "/slides/fatty-acid-synthesis/audio/seventy-year-arc-discovery.mp3"
+    title: "A Seventy-Year Arc of Discovery"
+    alt: "A Seventy-Year Arc of Discovery"
+    source: "CH28 Fatty Acid Synthesis · slide 36"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let me leave you with the long view. This one pathway, fatty acid synthesis and its regulation, has earned a remarkable run of recognition across the twentieth century, from the early identification of vitamins and cofactors through the elucidation of the synthase machinery and its control by AMPK. The lesson is not the trophies. It is that a single, seemingly narrow piece of metabolism connects a vitamin deficiency in lab rats, a diabetes drug taken by millions, the action of aspirin, and the diet we need to eat. Understand this chapter well, and you hold a thread that runs through decades of biochemistry."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const fasSteps = [{"n": 1, "enzyme": "ATP-citrate lyase", "sub": "Citrate + CoA", "prod": "Acetyl-CoA + oxaloacetate", "note": "Carbon delivery (a preamble to the tally). Citrate made in the mitochondrion is exported and cleaved in the cytoplasm, spending one ATP to release the acetyl group onto CoA — citrate is the shuttle that carries acetyl groups across a membrane acetyl-CoA itself cannot cross.", "clinical": "Targeted by the cholesterol drug bempedoic acid, activated only in liver, which lowers LDL with less muscle effect than statins."}, {"n": 2, "enzyme": "Malate dehydrogenase + malic enzyme", "sub": "Oxaloacetate", "prod": "Pyruvate + NADPH", "note": "The leftover oxaloacetate is reduced to malate, then decarboxylated by malic enzyme, generating NADPH and returning pyruvate to the mitochondrion. Routed this way, about eight of the fourteen NADPH per palmitate come from the shuttle; the other six come from the pentose phosphate pathway."}, {"n": 3, "enzyme": "Acetyl-CoA carboxylase (ACC)", "sub": "Acetyl-CoA + HCO₃⁻ + ATP", "prod": "Malonyl-CoA", "atp": -1, "regulated": true, "note": "The committed step. A biotin arm acts as a CO₂ taxi (the same trick pyruvate carboxylase uses), attaching CO₂ to acetyl-CoA at the cost of one ATP. Once malonyl-CoA exists, the carbon is committed to fat. The CO₂ added here is released again at condensation, so it is a thermodynamic lever, not a building block.", "regNote": "Activated by citrate, inhibited by palmitoyl-CoA and by AMPK phosphorylation. Malonyl-CoA also blocks CPT-I, so the cell will not burn and build fat at once.", "clinical": "AMPK, the cell's low-energy sensor, switches ACC off during exercise — the metabolic logic behind metformin and exercise both restraining fat synthesis."}, {"n": 4, "enzyme": "FAS: malonyl/acetyl transferase (priming)", "sub": "Acetyl-CoA + malonyl-CoA", "prod": "Acetyl-ACP + malonyl-ACP", "note": "Both substrates are loaded onto the acyl carrier protein arm of fatty acid synthase, a multidomain homodimer. ACP carries intermediates on a long phosphopantetheine swinging arm — the same chemistry as CoA, but tethered so the growing chain never floats free."}, {"n": 5, "enzyme": "FAS: ketoacyl synthase (Condensation)", "sub": "Acetyl-ACP + malonyl-ACP", "prod": "β-ketoacyl-ACP + CO₂", "note": "The C of CRDR. The units join into a four-carbon β-ketoacyl chain, and the malonyl CO₂ — the one ACC just added — is released. That decarboxylation is the engine: two acetyl units cannot condense directly because the reaction is uphill, so the cell spends a CO₂ to pull it forward, then takes it right back."}, {"n": 6, "enzyme": "FAS: ketoreductase (Reduction)", "sub": "β-ketoacyl-ACP + NADPH", "prod": "D-3-hydroxyacyl-ACP", "nadph": -1, "note": "The R of CRDR. The keto group is reduced to a hydroxyl using NADPH. Synthesis makes the D-isomer here; β-oxidation runs through the L-isomer — same atoms, opposite stereochemistry, one more sign the two pathways are genuinely separate machines."}, {"n": 7, "enzyme": "FAS: dehydratase (Dehydration)", "sub": "D-3-hydroxyacyl-ACP", "prod": "trans-enoyl-ACP + H₂O", "note": "The D of CRDR. Water leaves, creating a trans double bond. The chain is now one reduction away from being fully saturated."}, {"n": 8, "enzyme": "FAS: enoyl reductase (Reduction)", "sub": "trans-enoyl-ACP + NADPH", "prod": "Acyl-ACP (saturated, +2C)", "nadph": -1, "note": "The second R of CRDR. A second NADPH saturates the double bond, finishing one turn with a chain two carbons longer. The cycle then repeats: each turn adds one malonyl-CoA (two carbons) and spends two NADPH. Seven turns build C16."}, {"n": 9, "enzyme": "FAS: thioesterase (release)", "sub": "Palmitoyl-ACP + H₂O", "prod": "Palmitate (C16) + ACP", "note": "After seven CRDR cycles the chain reaches sixteen carbons and thioesterase cleaves it free as palmitate. The balanced ledger: 8 acetyl-CoA + 7 ATP + 14 NADPH + 7 HCO₃⁻ → palmitate + 7 CO₂ + 8 CoA + 14 NADP⁺ + 7 ADP + 7 Pᵢ + 6 H₂O. Elongation past C16 and double bonds are added later, on the endoplasmic reticulum.", "clinical": "Mammals lack the desaturases for the omega-6 and omega-3 positions, so linoleate and linolenate are essential fatty acids that must come from the diet."}];
+
+**One cookie. One slice of pizza. If you don't burn it, your body turns it into fat using exactly this pathway.** Not a vague metaphor for "fat" but the literal chemistry, running in your liver and fat cells whenever you eat more than you spend. The carbon in that cookie becomes acetyl CoA, and acetyl CoA, in the fed state, gets stitched into long fatty acid chains two carbons at a time.
+
+Here is the trap to avoid from the first sentence. You have already learned beta-oxidation, the pathway that *takes fat apart*, and it is tempting to assume synthesis just runs it backward. It does not. Synthesis is a separate machine in a separate place, and the differences are the whole point.
+
+## Why it is not beta-oxidation in reverse
+
+Three differences set the two pathways apart, and each one earns its keep.
+
+**Location.** Degradation happens in the mitochondrion. Synthesis happens in the cytoplasm. The cell physically separates the factory from the demolition crew.
+
+**Carrier.** Beta-oxidation carries its intermediates on coenzyme A. Synthesis carries them on a dedicated acyl carrier protein, ACP, using a long phosphopantetheine arm that swings the growing chain from one active site to the next without ever letting it float free.
+
+**Reducing power.** Degradation *produces* the high-energy carriers NADH and FADH2. Synthesis *consumes* NADPH. That single letter, the P on NADPH, is the cell's accounting trick: it keeps a separate currency for building and for burning so the two never get confused.
+
+Why bother with all this separation? Because it lets the cell regulate the two directions independently and avoid a futile cycle, the wasteful spin of building and tearing down the same molecule at the same time. Keep that idea close. It is the spine of the whole chapter.
+
+## Stage 1: getting the carbon out, with reducing power for free
+
+Acetyl CoA is made in the mitochondrion, but synthesis happens in the cytoplasm, and acetyl CoA cannot cross the mitochondrial membrane. So the cell sends it across in disguise.
+
+When fuel is plentiful, citrate from the TCA cycle is exported to the cytoplasm. There, **ATP-citrate lyase** cleaves it back into acetyl CoA and oxaloacetate. Think of citrate as an Uber for acetyl groups: it carries the passenger across a membrane the passenger could not cross alone.
+
+The leftover oxaloacetate then does something clever. It is reduced to malate, and malic enzyme decarboxylates malate to pyruvate, generating NADPH on the way out. So the citrate shuttle is a two-for-one: it delivers the carbon *and* it makes reducing power. Eight of the fourteen NADPH a palmitate needs come from this shuttle; the pentose phosphate pathway supplies the other six.
+
+## Stage 2: the committed step
+
+Once the acetyl CoA is in the cytoplasm, **acetyl CoA carboxylase (ACC)** makes the decision that matters. This is the committed step, the one Chris flags as the exam goldmine, and it does one thing: it attaches CO2 to acetyl CoA to make **malonyl CoA**, spending one ATP.
+
+ACC carries a biotin cofactor, a vitamin tethered to a lysine that acts as a CO2 taxi, picking up carbon dioxide at one active site and dropping it at another. It is the same mechanism pyruvate carboxylase uses, so you have seen it before.
+
+Biotin's grip on this story has a vivid history. In 1927, researchers in Wisconsin fed rats raw egg white and watched them sicken. The culprit was avidin, an egg-white protein that binds biotin so tightly (a dissociation constant near 10 to the minus 15 molar) that it sequesters the vitamin and starves the enzymes that need it. That accident is how biotin was discovered.
+
+Once you make malonyl CoA, you are committed to making fat. That single sentence is worth memorizing.
+
+<PathwayExplorer steps={fasSteps} title="Fatty acid synthesis · shuttle, commit, and the CRDR cycle" />
+## Stage 3: the assembly line, two carbons at a time
+
+The actual chain is built by **fatty acid synthase (FAS)**, in mammals a single giant polypeptide folded into a homodimer that carries every catalytic activity it needs: a condensing enzyme, a couple of reductases, a dehydratase, a transferase, and the swinging ACP arm. It is a one-stop assembly line.
+
+The chain grows by a four-step cycle, and the mnemonic is **CRDR**:
+
+- **Condensation** joins an acetyl group and a malonyl group into a four-carbon beta-ketoacyl chain, releasing CO2.
+- **Reduction** uses NADPH to turn the keto group into a hydroxyl.
+- **Dehydration** removes water, leaving a double bond.
+- **Reduction** uses a second NADPH to saturate that double bond.
+
+After cycle one you have butyryl-ACP, four carbons. The cycle then repeats, adding two carbons each turn, seven turns in all, until the chain reaches sixteen carbons and a thioesterase clips it free as **palmitate**.
+
+The cleverest piece is the condensation. Two acetyl groups cannot simply join, because that reaction is uphill and will not go on its own. So the cell first spends an ATP to bolt CO2 onto acetyl CoA, making malonyl CoA, and then releases that same CO2 during condensation. The decarboxylation pulls the reaction forward. **CO2 is a leaving group here, not a building block.** It is the quarter you drop into a vending machine: you do not get the quarter back, but it makes the snack come out. (One more tell that synthesis and degradation are different machines: synthesis makes D-hydroxyacyl intermediates, while beta-oxidation runs through the L-isomers.)
+
+Count it all up and the ledger is clean:
+
+> **8 acetyl CoA + 7 ATP + 14 NADPH + 7 HCO3⁻ → palmitate + 7 CO2 + 8 CoA + 6 H2O.**
+
+## After palmitate, and why some fats are essential
+
+FAS stops at sixteen carbons. Longer chains and any double bonds are added afterward on the endoplasmic reticulum: elongases extend the chain, and desaturases (using O2, NADH, and cytochrome b5) install double bonds. Mammals can make a double bond at carbon 9 but lack the enzymes to place one past it, at the omega-6 and omega-3 positions. That gap is why **linoleate and linolenate are essential fatty acids** you must eat. Burr and Burr proved it in 1929 by raising rats on fat-free diets and watching them fail. Downstream, arachidonate becomes the eicosanoids: cyclooxygenase makes prostaglandins and thromboxanes, and aspirin works by permanently acetylating that enzyme, which is why a single dose thins your blood for a week.
+
+## Regulation: the see-saw between building and burning
+
+ACC is controlled three ways, and they all converge on one idea: do not build fat and burn fat at the same time.
+
+**Phosphorylation.** AMPK, the cell's low-fuel sensor, phosphorylates ACC and shuts it off. PP2A removes the phosphate and turns it on. **Allostery.** Citrate (abundant fuel) makes ACC polymerize into active filaments; palmitoyl CoA (the end product) depolymerizes them, a clean feedback brake. **Hormones.** Insulin activates ACC; glucagon and epinephrine inhibit it.
+
+The reciprocal piece is the elegant part. Malonyl CoA, the product of ACC, also blocks CPT-I, the gate that lets fat *into* the mitochondrion for burning. So the moment the cell commits to synthesis, it slams the door on oxidation. This is why metformin works in diabetes: it inhibits Complex I, the AMP-to-ATP ratio climbs, AMPK switches on, synthesis falls, and oxidation rises. (Metformin descends from the French lilac, a folk remedy for high blood sugar.)
+
+Alcohol breaks the see-saw from a different angle. Metabolizing ethanol floods the liver with NADH, which stalls the TCA cycle and shunts acetyl CoA toward fat and ketone bodies, producing the fatty liver of heavy drinking.
+
+Several Nobel Prizes touch this pathway and its neighbors. Next, in **chapter 29**, we follow palmitate and its cousins back the other way, into beta-oxidation, and you will see exactly how the cell keeps the two directions from ever running at once.
