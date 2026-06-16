@@ -45,7 +45,7 @@
     <section class="eeb-mod">
       <h3 class="eeb-modh">Rank the donors: phosphate only rolls downhill</h3>
       <svg class="eeb-svg eeb-svg-ladder" viewBox="0 0 200 300" role="img" data-svg="ladder" aria-label="Phosphoryl-transfer potential ladder with a draggable phosphate token"></svg>
-      <p class="eeb-laddermsg" data-out="laddermsg">Drag the Pi token to a rung. Downhill only.</p>
+      <p class="eeb-laddermsg" data-out="laddermsg">Drag the Pi token to a rung — or focus it and use the arrow keys. Downhill only.</p>
       <p class="eeb-tip">Transfer potential = −ΔG°' of hydrolysis. ATP sits in the middle on purpose: high-energy donors (PEP, 1,3-BPG, creatine-P) can charge it; it in turn can phosphorylate glucose. Glucose-6-P can't pay ATP back.</p>
     </section>
 
@@ -158,7 +158,7 @@
       if (r.currency) { const tag = el('text', { x: LAD_X + 16, y: y + 3, fill: GOLD, 'font-size': 8, 'font-weight': 700 }); tag.textContent = '◆ currency'; svg.appendChild(tag); }
     }
     // draggable Pi token at the source rung
-    const tok = el('circle', { cx: LAD_X + 38, cy: rungY(tokenIdx), r: 11, fill: ORANGE, stroke: '#fff', 'stroke-width': 2, cursor: 'grab', 'data-token': '1' }) as SVGCircleElement;
+    const tok = el('circle', { cx: LAD_X + 38, cy: rungY(tokenIdx), r: 11, fill: ORANGE, stroke: '#fff', 'stroke-width': 2, cursor: 'grab', tabindex: 0, role: 'button', 'aria-label': 'Phosphate token — drag to a rung, or press the down arrow to transfer it to the next lower (spontaneous) rung', 'data-token': '1' }) as SVGCircleElement;
     svg.appendChild(tok);
     const pl = el('text', { x: LAD_X + 38, y: rungY(tokenIdx) + 3, 'text-anchor': 'middle', fill: '#fff', 'font-size': 8, 'font-weight': 700, 'pointer-events': 'none', 'data-tokenlabel': '1' }); pl.textContent = 'Pi'; svg.appendChild(pl);
     return tok;
@@ -242,31 +242,40 @@
       }
     });
     ladderSvg.addEventListener('pointermove', (evt) => { if (dragging) moveToken(svgY(evt)); });
-    function endDrag(evt: PointerEvent): void {
-      if (!dragging) return;
-      dragging = false;
-      tokenEl.setAttribute('cursor', 'grab');
-      const target = nearestRung(svgY(evt));
-      // legal only if target is a WEAKER donor (less negative ΔG°') than the source — downhill
-      if (target === sourceIdx) {
+    // Shared transfer decision (used by both drag-drop and keyboard). A transfer is only
+    // spontaneous DOWNHILL — to a rung with a less-negative ΔG°' (a weaker phosphoryl donor).
+    function commit(target: number): void {
+      if (target < 0 || target >= LADDER.length || target === sourceIdx) {
         moveToken(rungY(sourceIdx));
-        ladderMsg.textContent = 'Same rung — no transfer.';
+        ladderMsg.textContent = target === sourceIdx ? 'Same rung — no transfer.' : 'No rung there.';
         ladderMsg.dataset.state = 'neutral';
       } else if (LADDER[target].dg > LADDER[sourceIdx].dg) {
-        // downhill: source phosphorylates target
         moveToken(rungY(target));
         ladderMsg.textContent = `${LADDER[sourceIdx].name} → ${LADDER[target].name} ✓ spontaneous transfer`;
         ladderMsg.dataset.state = 'ok';
         sourceIdx = target;
       } else {
-        // uphill: bounce back
         moveToken(rungY(sourceIdx));
         ladderMsg.textContent = `Uphill (${LADDER[sourceIdx].name} → ${LADDER[target].name}) — not spontaneous.`;
         ladderMsg.dataset.state = 'bad';
       }
     }
+    function endDrag(evt: PointerEvent): void {
+      if (!dragging) return;
+      dragging = false;
+      tokenEl.setAttribute('cursor', 'grab');
+      commit(nearestRung(svgY(evt)));
+    }
     ladderSvg.addEventListener('pointerup', endDrag);
     ladderSvg.addEventListener('pointercancel', endDrag);
+    // Keyboard path: focus the token, arrow down to transfer to the next lower (spontaneous)
+    // rung, arrow up to attempt (and be refused) an uphill move, Home to reset to ATP.
+    ladderSvg.addEventListener('keydown', (evt) => {
+      const k = evt.key;
+      if (k === 'ArrowDown' || k === 'ArrowRight') { commit(sourceIdx + 1); evt.preventDefault(); }
+      else if (k === 'ArrowUp' || k === 'ArrowLeft') { commit(sourceIdx - 1); evt.preventDefault(); }
+      else if (k === 'Home') { sourceIdx = 3; moveToken(rungY(3)); ladderMsg.textContent = 'Reset to ATP.'; ladderMsg.dataset.state = 'neutral'; evt.preventDefault(); }
+    });
     // keep a reference fresh if the SVG is ever redrawn (it isn't after init, but typed-safe)
     tokenEl = ladderSvg.querySelector<SVGCircleElement>('[data-token]')!;
 
