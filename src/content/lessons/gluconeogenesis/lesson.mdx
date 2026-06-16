@@ -1,0 +1,682 @@
+---
+title: "Gluconeogenesis: Pushing Glucose Back Uphill"
+slug: "gluconeogenesis"
+courseChapter: "Glucose Homeostasis"
+order: 17
+summary: >-
+  Gluconeogenesis is how the body builds glucose from scratch when food runs out, and
+  its single organizing idea is that it is not glycolysis run backward. It shares seven
+  near-equilibrium enzymes with glycolysis but routes around the three irreversible
+  glycolytic steps with four different enzymes, working across three compartments and
+  paying real ATP to climb a thermodynamic hill. The same fructose-2,6-bisphosphate
+  switch that turns glycolysis on turns gluconeogenesis off, so a healthy cell almost
+  never runs both at once.
+
+estMinutes: 24
+objectives:
+  - "Explain why the brain and red blood cells force the body to make new glucose during fasting, and name the three classes of precursor (lactate, glucogenic amino acids, glycerol) and where each enters the pathway."
+  - "Defend the claim that gluconeogenesis is NOT glycolysis in reverse by identifying the three irreversible glycolytic steps and the four bypass enzymes (pyruvate carboxylase, PEPCK, FBPase-1, glucose-6-phosphatase) that replace them."
+  - "Trace the pyruvate-to-PEP bypass across compartments, including why pyruvate carboxylase needs acetyl-CoA and biotin, why the malate shuttle exists, and how the CO₂ added by PC and removed by PEPCK acts as a thermodynamic lever."
+  - "Tally the energetic cost of one glucose (4 ATP + 2 GTP + 2 NADH) and contrast it with the +2 ATP yield of glycolysis, explaining why running both pathways at once would be a futile cycle."
+  - "Explain reciprocal regulation through the bifunctional PFK-2/FBPase-2 enzyme and fructose-2,6-bisphosphate, and connect this control logic to pyruvate carboxylase deficiency, type 2 diabetes, and the Cori and alanine interorgan cycles."
+
+scientists:
+  - name: "Carl Cori & Gerty Cori"
+    dates: "Carl 1896–1984 · Gerty 1896–1957"
+    contribution: >-
+      Traced the muscle-to-liver lactate–glucose loop now called the Cori cycle — the
+      interorgan backbone of this chapter — and matched a single missing enzyme to an
+      inherited human disease, the first time an absent enzyme was tied to a genetic
+      disorder.
+    profileSourceAnchor: "The Molecule Hunters (v10) — Carl and Gerty Cori profile (quotes grep-confirmed)."
+    quotes:
+      - "It's free glucose, it's free glucose!"
+      - "the unforgotten moments of my life are those rare ones which come after years of plodding work, when the veil over nature's secret seems suddenly to lift, and when what was dark and chaotic appears in a clear and beautiful light and pattern"
+    photo: "/scientists/cori.png"
+    story: >-
+      They met in the dissection hall at Prague and recognized each other at once as the
+      same kind of person. They married, came to the United States in 1922, and ran into
+      the rules of the era head-on: a Buffalo institute director ordered Gerty to stop
+      publishing with her husband, and she refused; at Washington University she was hired
+      at a tenth of Carl's salary for sixteen years under nepotism rules. The lab she built
+      at that salary trained five future Nobel laureates. The Cori cycle came out of work
+      they did on the side of the tumor metabolism they were paid to study: muscle breaks
+      glucose to lactate, the blood carries the lactate to the liver, and the liver spends
+      energy to rebuild glucose. Chasing a fraction everyone else discarded, they found the
+      glycogen debranching enzyme, and Gerty read its chromatography spot instantly and ran
+      down the hall shouting, "It's free glucose, it's free glucose!" — the same free
+      glucose that this chapter's last enzyme, glucose-6-phosphatase, releases to the blood.
+      She went further, matching the wrong-shaped glycogen in sick children to specific
+      missing enzymes: the first proof that one broken enzyme can cause an inherited
+      disease. When the Nobel came in 1947, Carl used the banquet to center Gerty. The same
+      year, dying of the myelofibrosis she had worked through for a decade, she was finally
+      made a full professor.
+
+techniques:
+  - name: "Isotopic carbon tracing of precursors"
+    blurb: >-
+      Feed a precursor labeled at a known carbon — ¹⁴C-lactate, ¹³C-alanine, or
+      ¹³C-glycerol — and track where the atoms land in newly made glucose. The carbon
+      skeleton is what becomes glucose (alanine's nitrogen is stripped by transamination
+      first), so the label has to sit on carbon. This is how the field proved the fact at
+      the heart of the chapter: carbons from even-chain fatty acids never reach glucose,
+      because the two that enter the cycle as acetyl-CoA leave again as CO₂.
+  - name: "Stable-isotope tracing of glucose production"
+    blurb: >-
+      To measure how much glucose the liver is making, infuse a labeled glucose tracer in
+      an overnight-fasted (basal) subject and read the dilution: total glucose appearance
+      minus any infused glucose is endogenous glucose production, mostly gluconeogenesis.
+      A hyperinsulinemic-euglycemic clamp answers a different question — it raises insulin
+      to see how well it SUPPRESSES that output, so failure to suppress is the read-out of
+      hepatic insulin resistance, not a measure of fasting gluconeogenesis itself.
+  - name: "Allosteric enzyme assay with single effectors"
+    blurb: >-
+      To map a control point you purify the enzyme and change one effector at a time while
+      watching velocity. Adding acetyl-CoA to pyruvate carboxylase, AMP or
+      fructose-2,6-bisphosphate to FBPase-1, or running the bifunctional PFK-2/FBPase-2
+      enzyme with and without PKA phosphorylation is how the reciprocal regulators of this
+      pathway were assigned to their enzymes, one molecule at a time.
+
+structures:
+  - label: "Pyruvate carboxylase — bypass 1a"
+    source: "rcsb"
+    id: "2QF7"
+    note: "PDB 2QF7 · biotin-dependent, acetyl-CoA-gated"
+    caption: >-
+      The mitochondrial enzyme that adds CO₂ to pyruvate. A biotin on a long lysine arm
+      ferries the carboxyl group, and acetyl-CoA switches the whole enzyme on — the cell's
+      signal that there is fuel to spare for building glucose.
+  - label: "PEP carboxykinase (PEPCK) — bypass 1b"
+    source: "rcsb"
+    id: "1KHB"
+    note: "PDB 1KHB · GTP-dependent, with GTP analog"
+    caption: >-
+      The cytosolic enzyme that spends a GTP and removes the same CO₂ pyruvate carboxylase
+      added, producing high-energy phosphoenolpyruvate. Its transcription is what runs
+      unchecked in insulin resistance.
+  - label: "Fructose-1,6-bisphosphatase (FBPase-1) — bypass 2"
+    source: "rcsb"
+    id: "1FBP"
+    note: "PDB 1FBP · with F6P, AMP, and Mg²⁺"
+    caption: >-
+      The main regulated step: a clean hydrolysis past the PFK-1 wall, shown here bound to
+      its allosteric inhibitor AMP. Fructose-2,6-bisphosphate inhibits it too.
+  - label: "Glucokinase (hexokinase IV) — the liver glucose sensor"
+    source: "rcsb"
+    id: "1V4S"
+    note: "PDB 1V4S · the opposing kinase"
+    caption: >-
+      The liver isoform of hexokinase that phosphorylates glucose in the fed state. It is
+      the forward-direction counterpart that glucose-6-phosphatase must be kept apart from
+      to avoid a futile cycle.
+  - label: "PFK-2/FBPase-2 — the bifunctional switch"
+    source: "rcsb"
+    id: "1BIF"
+    note: "PDB 1BIF · one protein, two opposite domains"
+    caption: >-
+      A single polypeptide carrying both a kinase and a phosphatase domain. PKA
+      phosphorylation tips which domain wins, setting fructose-2,6-bisphosphate and so
+      choosing glycolysis or gluconeogenesis.
+  - label: "Malate dehydrogenase"
+    source: "rcsb"
+    id: "1MLD"
+    note: "PDB 1MLD · the malate shuttle enzyme"
+    caption: >-
+      Interconverts oxaloacetate and malate. Because oxaloacetate can't cross the inner
+      mitochondrial membrane, this enzyme on both sides lets it ride out as malate.
+  - label: "Lactate dehydrogenase (LDH)"
+    source: "rcsb"
+    id: "1I0Z"
+    note: "PDB 1I0Z · lactate → pyruvate"
+    caption: >-
+      Converts incoming lactate back to pyruvate, the entry reaction for the Cori cycle's
+      most abundant gluconeogenic precursor.
+  - label: "Alanine aminotransferase (ALT)"
+    source: "rcsb"
+    id: "3IHJ"
+    note: "PDB 3IHJ · PLP-dependent, the alanine cycle"
+    caption: >-
+      Transaminates alanine to pyruvate, the heart of the alanine cycle that carries muscle
+      nitrogen to the liver. A rising serum ALT is a clinic's flag for liver damage.
+  - label: "Pyruvate — the central precursor"
+    source: "pubchem"
+    id: "1060"
+    note: "CID 1060 · where lactate and alanine converge"
+    caption: >-
+      The three-carbon hub. Lactate and alanine both become pyruvate before the pathway
+      lifts them toward glucose.
+  - label: "Oxaloacetate (OAA)"
+    source: "pubchem"
+    id: "970"
+    note: "CID 970 · the four-carbon intermediate"
+    caption: >-
+      Made by pyruvate carboxylase and consumed by PEPCK. The carboxylation that builds it
+      and the decarboxylation that spends it are a single thermodynamic maneuver.
+  - label: "Phosphoenolpyruvate (PEP)"
+    source: "pubchem"
+    id: "1005"
+    note: "CID 1005 · the high-energy product of PEPCK"
+    caption: >-
+      The molecule with the highest phosphoryl-transfer potential in the pathway. Making it
+      is the whole point of the two-enzyme pyruvate bypass.
+  - label: "Fructose-1,6-bisphosphate — the intermediate"
+    source: "pubchem"
+    id: "10267"
+    note: "CID 10267 · 1,6 is the pathway"
+    caption: >-
+      A true pathway intermediate, hydrolyzed by FBPase-1. Do not confuse it with
+      fructose-2,6-bisphosphate, which only regulates.
+  - label: "Fructose-2,6-bisphosphate — the regulator"
+    source: "pubchem"
+    id: "105021"
+    note: "CID 105021 · 2,6 is the switch"
+    caption: >-
+      The master regulator, not a pathway molecule. High when fed (glycolysis on), low when
+      fasting (gluconeogenesis on). 1,6 is the pathway; 2,6 is the regulator.
+  - label: "Biotin (vitamin B7)"
+    source: "pubchem"
+    id: "171548"
+    note: "CID 171548 · the CO₂ carrier"
+    caption: >-
+      The cofactor on pyruvate carboxylase's swinging arm that physically carries the
+      activated CO₂ to the substrate.
+  - label: "Glycerol — the fat-derived precursor"
+    source: "pubchem"
+    id: "753"
+    note: "CID 753 · enters as DHAP"
+    caption: >-
+      Released when triacylglycerols are mobilized, glycerol is the one part of fat that can
+      become glucose, entering the pathway as DHAP.
+
+videos:
+  - title: "Gluconeogenesis: the big picture"
+    youtubeId: "FJkxYCVwJO0"
+    sourceNote: "Khan Academy (MCAT) — where gluconeogenesis fits in carbohydrate metabolism and the reactions unique to it. Openly available."
+  - title: "Regulation of glycolysis and gluconeogenesis"
+    youtubeId: "7fuLw031H-g"
+    sourceNote: "Khan Academy (MCAT) — reciprocal control and why the two pathways are not run at the same time."
+
+podcast:
+  platform: "spotify"
+  url: "https://open.spotify.com/episode/3vvxVl6Drnd3I7BcNffDEh"
+  title: "Gluconeogenesis: The Lifesaving Pathway"
+  note: "We Are Biochemistry (S1) — the fasting-state story of building glucose from spare parts."
+
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "Gluconeogenesis pathway map (reveal each bypass; the cost meter tallies 4 ATP + 2 GTP + 2 NADH per glucose)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "During a prolonged fast, which tissue is the principal site of gluconeogenesis, and why can skeletal muscle not contribute free glucose to the blood?"
+    choices:
+      - "The pancreas, because it secretes insulin that drives glucose synthesis"
+      - "The liver (and kidney cortex in long fasts); muscle lacks glucose-6-phosphatase, so it cannot release free glucose"
+      - "Adipose tissue, because it stores the glycerol used to build glucose"
+      - "The brain, because it consumes the most glucose and therefore makes its own"
+    answer: 1
+    rationale: >-
+      The liver is the primary gluconeogenic organ, with the kidney cortex contributing in
+      prolonged fasting. Muscle lacks glucose-6-phosphatase, the final bypass enzyme that
+      strips the phosphate off glucose-6-phosphate, so it cannot release free glucose and
+      instead exports lactate. The pancreas secretes hormones but does not synthesize
+      glucose; adipose supplies glycerol but is not a gluconeogenic site; and the brain is a
+      glucose consumer, not a producer.
+  - stem: "A student claims that gluconeogenesis is simply glycolysis run in reverse. What is the strongest reason this is incorrect?"
+    choices:
+      - "Gluconeogenesis uses four different enzymes to bypass the three irreversible glycolytic steps, in different compartments and at net energetic cost"
+      - "Gluconeogenesis and glycolysis use entirely different sets of enzymes for all of their steps"
+      - "Glycolysis occurs in mitochondria while gluconeogenesis occurs only in the cytosol"
+      - "Gluconeogenesis produces ATP, whereas glycolysis consumes it"
+    answer: 0
+    rationale: >-
+      Gluconeogenesis shares its seven near-equilibrium enzymes with glycolysis but cannot
+      reverse the three irreversible steps; it routes around them with pyruvate carboxylase
+      plus PEPCK, FBPase-1, and glucose-6-phosphatase, spanning mitochondrion, cytosol, and
+      ER and spending energy. It does not use entirely different enzymes for all steps,
+      glycolysis is cytosolic rather than mitochondrial, and it is gluconeogenesis that
+      consumes energy while glycolysis nets ATP.
+  - stem: "Why can even-chain fatty acids not serve as a source of net glucose synthesis?"
+    choices:
+      - "Fatty acids cannot cross the mitochondrial membrane to reach gluconeogenic enzymes"
+      - "Acetyl-CoA from β-oxidation cannot enter the citric acid cycle at all"
+      - "Acetyl-CoA enters the TCA cycle but two carbons are lost as CO₂ per turn, yielding no net oxaloacetate gain"
+      - "Fatty acid carbons are converted directly to lactate, which cannot make glucose"
+    answer: 2
+    rationale: >-
+      Each acetyl-CoA condenses with one oxaloacetate to enter the cycle, and over one turn
+      two carbons leave as CO₂, so the OAA consumed is exactly regenerated with no net gain.
+      Without net OAA there is no net glucose. Fatty acids do reach the matrix and acetyl-CoA
+      does enter the cycle, so those options are wrong, and fatty acid carbons are not routed
+      to lactate.
+  - stem: "In the pyruvate-to-PEP bypass, what is the purpose of converting oxaloacetate to malate before exporting it from the mitochondrion?"
+    choices:
+      - "To generate ATP needed for the cytosolic steps"
+      - "To activate pyruvate carboxylase allosterically"
+      - "To detoxify oxaloacetate, which is toxic to the cytosol"
+      - "Oxaloacetate lacks an inner-membrane transporter, so it is shuttled as malate, which also delivers cytosolic NADH"
+    answer: 3
+    rationale: >-
+      Oxaloacetate cannot cross the inner mitochondrial membrane, so it is reduced to
+      malate, exported on the malate–α-ketoglutarate carrier, and re-oxidized to OAA in the
+      cytosol — a step that, with pyruvate or alanine precursors, also supplies the NADH
+      that GAPDH later needs. The shuttle does not generate ATP, acetyl-CoA (not malate
+      conversion) activates pyruvate carboxylase, and OAA is not a cytosolic toxin.
+  - stem: "Fructose-2,6-bisphosphate is best described as which of the following?"
+    choices:
+      - "A glycolytic pathway intermediate converted to glyceraldehyde-3-phosphate"
+      - "The high-energy phosphate donor used by PEPCK"
+      - "A purely regulatory molecule that activates PFK-1 and inhibits FBPase-1"
+      - "A precursor that enters gluconeogenesis at the level of DHAP"
+    answer: 2
+    rationale: >-
+      Fructose-2,6-bisphosphate is a regulator only: it activates PFK-1 (favoring glycolysis)
+      and inhibits FBPase-1 (suppressing gluconeogenesis). It is not a pathway intermediate —
+      that is fructose-1,6-bisphosphate. PEPCK uses GTP as its phosphate donor, and the
+      gluconeogenic precursor entering at DHAP is glycerol.
+
+mcatQuestions:
+  - stem: "An infant presents with severe fasting hypoglycemia and lactic acidosis. Liver biopsy shows normal glycogen structure but absent activity of a biotin-dependent mitochondrial enzyme. Which downstream consequence best explains BOTH the hypoglycemia and the lactic acidosis?"
+    choices:
+      - "Loss of glucose-6-phosphatase prevents free glucose release and traps phosphate"
+      - "Loss of pyruvate carboxylase blocks oxaloacetate formation, so gluconeogenesis stalls and pyruvate is diverted to lactate"
+      - "Loss of PEPCK prevents the malate shuttle from operating, raising cytosolic NADH"
+      - "Loss of glycerol kinase blocks the only gluconeogenic precursor"
+    answer: 1
+    rationale: >-
+      A biotin-dependent mitochondrial enzyme catalyzing the committed step is pyruvate
+      carboxylase. Without it, no oxaloacetate forms, so gluconeogenesis cannot start
+      (hypoglycemia) and accumulating pyruvate is converted to lactate (lactic acidosis) —
+      one enzyme, two findings. Glucose-6-phosphatase is neither biotin-dependent nor
+      mitochondrial, PEPCK is cytosolic and GTP-dependent, and glycerol is only one of
+      several precursors.
+  - stem: "A hepatocyte is shifted abruptly from a fed to a fasted hormonal state. Glucagon binds its receptor and raises cAMP. Which sequence correctly predicts the effect on the fructose-6-phosphate / fructose-1,6-bisphosphate node?"
+    choices:
+      - "PKA phosphorylates the bifunctional enzyme, the FBPase-2 domain dominates, F-2,6-BP falls, FBPase-1 is de-inhibited, and gluconeogenesis proceeds"
+      - "PKA dephosphorylates the bifunctional enzyme, PFK-2 dominates, F-2,6-BP rises, and glycolysis proceeds"
+      - "cAMP directly binds FBPase-1 and activates it independent of F-2,6-BP"
+      - "PKA phosphorylates PFK-1, raising F-2,6-BP and activating glycolysis"
+    answer: 0
+    rationale: >-
+      Glucagon raises cAMP, activating PKA, which phosphorylates the bifunctional
+      PFK-2/FBPase-2 enzyme. Phosphorylation favors the phosphatase (FBPase-2) domain, so
+      F-2,6-BP falls; lower F-2,6-BP relieves inhibition of FBPase-1 and removes activation
+      of PFK-1, tipping the node toward gluconeogenesis. PKA phosphorylates rather than
+      dephosphorylates the enzyme, cAMP does not bind FBPase-1 directly, and PFK-1 is not
+      the PKA substrate here.
+  - stem: "A researcher infuses a patient with ¹³C-labeled alanine and finds label in blood glucose, but ¹⁴C-labeled palmitate (a 16-carbon fatty acid) yields essentially no label in glucose. The alanine result but not the palmitate result is expected because:"
+    choices:
+      - "Palmitate cannot be taken up by the liver, whereas alanine can"
+      - "Alanine enters at glucose-6-phosphate directly, bypassing all regulated steps"
+      - "Palmitate is converted to glycerol, which is not gluconeogenic"
+      - "Alanine is transaminated to pyruvate, a gluconeogenic substrate, while palmitate yields only acetyl-CoA, which gives no net oxaloacetate"
+    answer: 3
+    rationale: >-
+      Alanine is transaminated to pyruvate, which enters gluconeogenesis and contributes
+      carbons to glucose. Palmitate, an even-chain fatty acid, is oxidized only to
+      acetyl-CoA; the two carbons that enter the TCA cycle are matched by two lost as CO₂,
+      giving no net oxaloacetate and so no net glucose carbons. The liver does take up
+      palmitate, alanine does not enter at G6P, and palmitate is not converted to glycerol.
+
+images: []
+
+corpusTags:
+  - "gluconeogenesis"
+  - "glucose-homeostasis"
+  - "pyruvate-carboxylase"
+  - "PEPCK"
+  - "fructose-2-6-bisphosphate"
+  - "cori-cycle"
+  - "reciprocal-regulation"
+  - "fasting"
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: |
+      When you don't eat for a long time, your body runs low on sugar, and your brain
+      really, really needs sugar to work. So your liver becomes a little sugar factory. It
+      takes leftover bits — like the stuff your muscles make when you run hard — and glues
+      them back together into brand-new sugar. Building sugar costs energy, the way sliding
+      down a hill is easy but climbing back up is hard work. That is why your body only
+      builds sugar when it has to, and never tries to build it and tear it down at the same
+      time.
+  - level: "highschool"
+    label: "High school"
+    text: |
+      Gluconeogenesis is making new glucose from things that aren't carbohydrates: lactate,
+      certain amino acids like alanine, and glycerol from fat. It happens mostly in the liver
+      during fasting, because the brain and red blood cells depend on glucose. It looks like
+      glycolysis running backward, but it isn't. Glycolysis has three one-way steps that
+      can't be reversed, so gluconeogenesis goes around them with four different enzymes, and
+      it has to spend energy to do it: about 6 high-energy phosphates and 2 NADH per glucose,
+      versus the 2 ATP glycolysis makes. One key fact: you can't turn ordinary fat into
+      sugar, because the carbons leave as CO₂ before they can become glucose. A master switch
+      molecule called fructose-2,6-bisphosphate makes sure the cell runs either glycolysis or
+      gluconeogenesis, never both at once.
+  - level: "college"
+    label: "College"
+    text: |
+      Gluconeogenesis synthesizes glucose from pyruvate-level precursors (lactate via LDH,
+      glucogenic amino acids, glycerol entering as DHAP). It shares the seven near-equilibrium
+      enzymes of glycolysis and bypasses the three irreversible steps with four enzymes.
+      Bypass 1: mitochondrial pyruvate carboxylase (biotin-dependent, acetyl-CoA-activated)
+      makes oxaloacetate, which exits as malate via the malate shuttle (also delivering
+      cytosolic NADH for GAPDH from pyruvate/alanine precursors); cytosolic PEPCK then
+      converts OAA to PEP using GTP, with the PC-added CO₂ removed as a thermodynamic lever.
+      Bypass 2: FBPase-1 hydrolyzes fructose-1,6-bisphosphate. Bypass 3: glucose-6-phosphatase,
+      in the ER lumen, releases free glucose (liver and kidney cortex only; muscle lacks it).
+      Cost is 4 ATP + 2 GTP + 2 NADH per glucose. Reciprocal regulation at the three pairs is
+      governed by fructose-2,6-bisphosphate, set by the bifunctional PFK-2/FBPase-2 enzyme
+      under insulin/glucagon (PKA) control, which prevents futile cycling.
+  - level: "grad"
+    label: "Graduate"
+    text: |
+      The architecture of gluconeogenesis is a study in how irreversibility is bypassed
+      without sacrificing thermodynamic control. The PK bypass is split spatially: pyruvate
+      carboxylase performs an ATP- and biotin-dependent carboxylation (an anaplerotic
+      reaction allosterically gated by acetyl-CoA, signaling adequate acetyl-CoA flux and a
+      need to replenish OAA rather than oxidize it), and PEPCK performs a GTP-dependent
+      β-decarboxylation. The carboxylation/decarboxylation cycle is not wasteful: the
+      transient CO₂ fixation raises the group-transfer potential needed to generate PEP, and
+      the obligatory malate shuttle co-transports reducing equivalents matched to cytosolic
+      GAPDH demand, so redox and carbon are balanced by design. Compartmentalizing G6Pase to
+      the ER lumen physically separates antagonistic activities (G6Pase vs hexokinase), the
+      same substrate-cycle-avoidance logic that fructose-2,6-bisphosphate enforces
+      allosterically at the F6P/FBP node. F-2,6-BP is the integrator: made and degraded by a
+      single bifunctional polypeptide whose kinase/phosphatase balance is set by PKA
+      phosphorylation, coupling hormonal state to the simultaneous, opposite control of PFK-1
+      and FBPase-1. The systems point is that flux direction at a substrate cycle is governed
+      not by enzyme presence but by the ratio of opposing activities — which is why
+      unrestrained PEPCK/G6Pase expression in insulin resistance presents as a regulatory
+      failure rather than an enzymatic absence.
+
+anecdotes:
+  - title: "It's free glucose!"
+    source: "CH17 lecture notes — the Cori cycle and the debranching-enzyme discovery."
+    text: >-
+      Gerty Cori spent years on a fraction other chemists threw away — the supernatant left
+      after recrystallizing phosphorylase. In it she found the glycogen debranching enzyme,
+      and when its product ran on chromatography she read the spot at a glance and bolted down
+      the hall shouting, "It's free glucose, it's free glucose!" That is the exact molecule
+      this chapter ends on: free glucose, the thing only liver and kidney can release because
+      only they carry glucose-6-phosphatase. The Cori cycle she and Carl mapped — muscle
+      lactate to liver glucose and back — is the interorgan loop that makes the whole pathway
+      matter beyond a single cell.
+  - title: "Why you really can't turn fat into sugar"
+    source: "CH17 lecture notes — \"you consume one OAA to bring acetyl-CoA in, get one back; net glucose = zero\""
+    text: >-
+      It feels like fat should be convertible to glucose; it's an energy store, after all.
+      But even-chain fatty acids cannot make net glucose, and the reason is an accounting
+      trick worth memorizing. Acetyl-CoA enters the citric acid cycle by combining with one
+      oxaloacetate, and over a turn of the cycle two carbons leave as CO₂. You spend one OAA
+      to bring acetyl-CoA in and you get exactly one OAA back, so net OAA gain is zero and net
+      glucose is zero. Only odd-chain fatty acids escape, by sending their final propionyl-CoA
+      to succinyl-CoA and on to OAA.
+  - title: "CO₂ as a thermodynamic lever"
+    source: "CH17 lecture notes — \"the CO₂ added by PC is removed by PEPCK; CO₂ is a thermodynamic lever\""
+    text: >-
+      It looks pointless: pyruvate carboxylase bolts a CO₂ onto pyruvate, and a few steps
+      later PEPCK pries the same CO₂ right back off. Why add a carbon just to remove it?
+      Because the round trip is a lever. Putting the carboxyl on and then taking it off is
+      what makes forming high-energy phosphoenolpyruvate thermodynamically favorable. CO₂ here
+      is a lever, not cargo — the carboxylation and decarboxylation are one coordinated
+      maneuver, not two unrelated steps.
+  - title: "One missing enzyme, a glycogen-stuffed liver"
+    source: "CH17 lecture notes — Von Gierke disease (glucose-6-phosphatase deficiency)."
+    text: >-
+      Von Gierke disease is the clinic's proof that the last bypass enzyme is non-negotiable.
+      Lose glucose-6-phosphatase (or the transporter that feeds it) and the liver can build
+      glucose-6-phosphate but can never release free glucose, so an infant crashes into severe
+      fasting hypoglycemia and lactic acidosis, with a liver swollen by the glycogen it cannot
+      cash out. It is the same enzyme that lets muscle keep its glucose to itself, seen from
+      the other side: when even the liver loses it, the whole body loses access to stored fuel.
+
+lectureSlides:
+  - src: "/slides/gluconeogenesis/where-does-glucose-come-from-fed-vs-fasted.png"
+    audio: "/slides/gluconeogenesis/audio/where-does-glucose-come-from-fed-vs-fasted.mp3"
+    title: "Where does glucose come from? Fed vs. fasted"
+    alt: "Two supply chains: in the fed state cells burn glucose via glycolysis; in fasting the liver makes glucose from lactate, alanine, and glycerol."
+    source: "CH17 Gluconeogenesis · slide 3"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Think of your body as running two different supply chains depending on whether you have
+      just eaten. In the fed state, blood glucose is abundant, so cells simply burn it:
+      glycolysis feeds the citric acid cycle, which makes ATP. Hours after a meal glucose runs
+      scarce, yet the brain and red blood cells still demand it constantly, so the body
+      switches to gluconeogenesis, manufacturing glucose from non-sugar raw materials. Three
+      streams feed that factory: lactate from muscle and red cells, alanine from muscle
+      protein, and glycerol from fat breakdown. Hold onto this fed-versus-fasted framing,
+      because it explains every regulatory decision in the chapter.
+  - src: "/slides/gluconeogenesis/three-irreversible-steps-that-must-be-bypa.png"
+    audio: "/slides/gluconeogenesis/audio/three-irreversible-steps-that-must-be-bypa.mp3"
+    title: "The three irreversible steps that must be bypassed"
+    alt: "Glycolysis's three large-negative-ΔG steps (hexokinase, PFK-1, pyruvate kinase) and the four bypass enzymes that route around them."
+    source: "CH17 Gluconeogenesis · slide 7"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Most of glycolysis is freely reversible, and gluconeogenesis just runs those steps
+      backward. The problem lives in exactly three places where glycolysis releases so much
+      free energy that the reaction is effectively one-way: hexokinase, phosphofructokinase,
+      and pyruvate kinase each have large negative ΔG values, so reversing them directly is
+      impossible. Gluconeogenesis solves this with four dedicated bypass enzymes:
+      glucose-6-phosphatase, fructose-1,6-bisphosphatase, and the pyruvate-carboxylase plus
+      PEP-carboxykinase pair. Pyruvate-to-PEP is split into two reactions whose combined
+      energetics make the climb feasible. Same map, different roads around the cliffs.
+  - src: "/slides/gluconeogenesis/oxaloacetate-shuttle-across-mitochondrial.png"
+    audio: "/slides/gluconeogenesis/audio/oxaloacetate-shuttle-across-mitochondrial.mp3"
+    title: "The oxaloacetate shuttle across the mitochondrial membrane"
+    alt: "Oxaloacetate made in the matrix is reduced to malate, crosses the inner membrane, and is re-oxidized to OAA in the cytosol, regenerating NADH."
+    source: "CH17 Gluconeogenesis · slide 12"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Here is a logistics problem the cell must solve. Pyruvate carboxylase lives inside the
+      mitochondrial matrix, so oxaloacetate is made there, but the next enzyme, PEP
+      carboxykinase, needs it out in the cytoplasm, and the membrane has no oxaloacetate
+      transporter. The workaround is elegant: reduce oxaloacetate to malate, which can cross,
+      then re-oxidize malate back to oxaloacetate on the other side. With pyruvate or alanine
+      precursors that second oxidation also regenerates the cytoplasmic NADH gluconeogenesis
+      needs downstream, so one shuttle moves carbon out and delivers reducing power exactly
+      where the next reactions will consume it.
+  - src: "/slides/gluconeogenesis/bypass-steps-regulation-side-by-side.png"
+    audio: "/slides/gluconeogenesis/audio/bypass-steps-regulation-side-by-side.mp3"
+    title: "Bypass steps and regulation, side by side"
+    alt: "Glycolysis descending on the left, gluconeogenesis climbing on the right, sharing metabolites down the middle, with the three regulated control points called out."
+    source: "CH17 Gluconeogenesis · slide 13"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      This is the master map: glycolysis running downhill on the left, gluconeogenesis
+      climbing uphill on the right, sharing the same metabolites down the middle. The three
+      callout boxes mark the regulated control points, and the colored arrows show which
+      signals activate or inhibit each enzyme. The whole logic fits in one line: glycolysis
+      runs when energy is low, gluconeogenesis runs when energy is high, and the key control
+      sits at PFK-1 versus FBPase-1 and at the pyruvate-to-PEP bypass. Keep returning to this
+      diagram, because every regulatory detail later is just a closer look at one of these
+      arrows.
+  - src: "/slides/gluconeogenesis/hydrolysis-fructose-1-6-bisphosphate.png"
+    audio: "/slides/gluconeogenesis/audio/hydrolysis-fructose-1-6-bisphosphate.mp3"
+    title: "Hydrolysis of fructose-1,6-bisphosphate"
+    alt: "FBPase-1 hydrolyzing the C1 phosphate of fructose-1,6-bisphosphate to fructose-6-phosphate plus inorganic phosphate, the second bypass."
+    source: "CH17 Gluconeogenesis · slide 14"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      After PEP is made, gluconeogenesis can coast for several steps, running glycolytic
+      enzymes in reverse, until it hits the next irreversible barrier: removing the phosphate
+      at carbon one of fructose-1,6-bisphosphate. Instead of trying to reverse the
+      energy-releasing kinase reaction, the cell hydrolyzes the phosphate directly, releasing
+      inorganic phosphate and producing fructose-6-phosphate. The enzyme is
+      fructose-1,6-bisphosphatase, and it is allosteric — a major regulatory hub. Watching how
+      cleanly hydrolysis sidesteps the thermodynamic wall is the key idea.
+  - src: "/slides/gluconeogenesis/counting-energy-cost-six-high-energy-phosp.png"
+    audio: "/slides/gluconeogenesis/audio/counting-energy-cost-six-high-energy-phosp.mp3"
+    title: "Counting the energy cost: six high-energy phosphates"
+    alt: "An energy ledger: per glucose, 2 ATP at pyruvate carboxylase, 2 GTP at PEPCK, 2 ATP at phosphoglycerate kinase, plus 2 NADH."
+    source: "CH17 Gluconeogenesis · slide 16"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Walk through the energy ledger. Making one glucose from two pyruvates is expensive. Each
+      of the two branches spends ATP at pyruvate carboxylase, a GTP at PEP carboxykinase, and
+      ATP again at phosphoglycerate kinase. Add those across both halves and you spend four
+      ATP plus two GTP — six high-transfer-potential phosphoryl groups — alongside two NADH for
+      the reductive step. That is the real price of synthesis. Compare it to the mere two ATP
+      glycolysis returns, and you see immediately why the two pathways cannot both run at full
+      speed.
+  - src: "/slides/gluconeogenesis/thermodynamic-bargain.png"
+    audio: "/slides/gluconeogenesis/audio/thermodynamic-bargain.mp3"
+    title: "The thermodynamic bargain"
+    alt: "Glycolysis releasing ~74 kJ/mol (downhill) versus gluconeogenesis consuming energy, with the extra cost making synthesis favorable and preventing a futile cycle."
+    source: "CH17 Gluconeogenesis · slide 17"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Why does gluconeogenesis need its own enzymes instead of just reversing glycolysis?
+      Think of it as a bargain the cell strikes with thermodynamics. Glycolysis releases
+      energy, about seventy-four kilojoules per mole, so it is downhill and spontaneous.
+      Gluconeogenesis consumes energy, and that extra cost, the six nucleotide-triphosphate
+      equivalents, is precisely what tips the synthetic direction to also be favorable. If
+      synthesis were free, both pathways would run at once in the same cell, a futile cycle
+      that burns ATP and dumps it as heat with no net product. The energy cost is not waste;
+      it is the price of directional control.
+  - src: "/slides/gluconeogenesis/three-control-points-at-glance.png"
+    audio: "/slides/gluconeogenesis/audio/three-control-points-at-glance.mp3"
+    title: "Three control points at a glance"
+    alt: "The three reciprocal enzyme pairs — hexokinase/G6Pase, PFK-1/FBPase-1, pyruvate kinase/(PC+PEPCK) — and their key effectors."
+    source: "CH17 Gluconeogenesis · slide 19"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Consolidate regulation into three matched pairs. At the first, hexokinase pushes
+      glycolysis forward while glucose-6-phosphatase reverses it, and glucose-6-phosphate
+      inhibits the kinase. At the second, PFK-1 opposes FBPase-1, and the star regulator is
+      fructose-2,6-bisphosphate, which activates the glycolytic enzyme and inhibits the
+      gluconeogenic one. At the third, pyruvate kinase opposes the carboxylase-plus-PEPCK
+      team, with fructose-1,6-bisphosphate feeding forward to activate pyruvate kinase and
+      acetyl-CoA flagging that the carboxylase should run. Learn these three pairs and their
+      effectors and you can predict the cell's choice in any metabolic state.
+  - src: "/slides/gluconeogenesis/pyruvate-carboxylase-deficiency-block-gluc.png"
+    audio: "/slides/gluconeogenesis/audio/pyruvate-carboxylase-deficiency-block-gluc.mp3"
+    title: "Pyruvate carboxylase deficiency: a block in gluconeogenesis"
+    alt: "Loss of pyruvate carboxylase blocks oxaloacetate formation, so pyruvate backs up to lactate (lactic acidosis) and no glucose is made (hypoglycemia)."
+    source: "CH17 Gluconeogenesis · slide 30"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Watch what happens when one bypass enzyme fails. If pyruvate carboxylase is missing, the
+      very first committed step of gluconeogenesis is blocked, and two consequences cascade.
+      First, pyruvate cannot be drawn off toward oxaloacetate, so it backs up and is shunted to
+      lactate, driving a dangerous lactic acidosis. Second, with the pathway sealed, glucose
+      cannot be synthesized, producing hypoglycemia. Combine acid buildup with low blood sugar
+      and you get the clinical picture: severe neurological deficits, neonatal onset, often
+      fatal. It shows why each bypass enzyme is non-negotiable.
+  - src: "/slides/gluconeogenesis/type-2-diabetes-insulin-fails-inhibit-gluc.png"
+    audio: "/slides/gluconeogenesis/audio/type-2-diabetes-insulin-fails-inhibit-gluc.mp3"
+    title: "Type 2 diabetes: insulin fails to inhibit gluconeogenesis"
+    alt: "In insulin resistance the liver keeps running gluconeogenesis despite high blood glucose, driving fasting hyperglycemia."
+    source: "CH17 Gluconeogenesis · slide 31"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      This connects the pathway directly to disease. Normally insulin, the fed-state signal,
+      suppresses gluconeogenesis: it keeps fructose-2,6-bisphosphate high, favors glycolysis,
+      and tells the liver to stop making glucose. In type 2 diabetes the liver becomes
+      resistant to insulin, so that brake fails. The liver keeps running gluconeogenesis even
+      when blood glucose is already high, pouring still more glucose into circulation. That is
+      why fasting blood glucose stays high in diabetes, and why these regulatory steps — PEPCK,
+      FBPase-1, the bifunctional enzyme — are drug targets, including for metformin.
+  - src: "/slides/gluconeogenesis/cori-cycle-liver-muscle-cooperation.png"
+    audio: "/slides/gluconeogenesis/audio/cori-cycle-liver-muscle-cooperation.mp3"
+    title: "The Cori cycle: liver and muscle cooperation"
+    alt: "Muscle exports lactate to the blood; the liver rebuilds it into glucose and returns it, paying the ATP cost the muscle saved."
+    source: "CH17 Gluconeogenesis · slide 32"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: >-
+      Zoom out to whole-body cooperation. During hard contraction, muscle runs glycolysis fast
+      and produces lactate, but it cannot turn that lactate back into glucose, so it exports
+      lactate into the blood. The liver picks it up and runs gluconeogenesis, rebuilding glucose
+      and sending it back to the muscle. Follow the loop: glucose to pyruvate to lactate in
+      muscle, then lactate to pyruvate to glucose in liver. Notice the energy asymmetry — two
+      ATP gained in muscle, six high-energy phosphates spent in liver. The liver subsidizes the
+      muscle's energy debt, shifting the burden to where fuel is available.
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const gngSteps = [
+  { n: 1, enzyme: 'Pyruvate carboxylase (bypass 1a)', sub: 'Pyruvate + CO₂', prod: 'Oxaloacetate', atp: -1, regulated: true, doubled: true,
+    note: 'Mitochondrial. A biotin cofactor on a swinging ~14-Å lysine arm carries the added CO₂. The enzyme is switched on only when acetyl-CoA is high — the cell\'s signal that fuel is plentiful and it should build glucose, not burn more pyruvate.',
+    regNote: 'Allosterically activated by acetyl-CoA; this is the anaplerotic gate into gluconeogenesis.',
+    clinical: 'Pyruvate carboxylase deficiency gives one enzyme but two findings: hypoglycemia (no OAA to start) and lactic acidosis (pyruvate shunted to lactate).' },
+  { n: 2, enzyme: 'Malate shuttle (transport)', sub: 'OAA (mito) → malate → OAA (cytosol)', prod: 'Oxaloacetate (cytosol)', doubled: true,
+    note: 'OAA can\'t cross the inner membrane, so it is reduced to malate, ferried out on the malate–α-ketoglutarate carrier, and re-oxidized to OAA in the cytosol. With pyruvate or alanine precursors this relocation also supplies the NADH GAPDH will need; with lactate, LDH already made that NADH and OAA can leave as aspartate. The reducing power was spent in the matrix making malate, so it is moved, not minted — no free NADH credit here.' },
+  { n: 3, enzyme: 'PEP carboxykinase / PEPCK (bypass 1b)', sub: 'Oxaloacetate + GTP', prod: 'Phosphoenolpyruvate + CO₂', gtp: -1, regulated: true, doubled: true,
+    note: 'Cytosolic. Removes the very CO₂ pyruvate carboxylase just added. That carboxylation-then-decarboxylation pair is a thermodynamic lever that makes forming high-energy PEP favorable. Spends a GTP, tracked here as a high-energy phosphate.',
+    clinical: 'In insulin resistance, PEPCK transcription is no longer suppressed, so hepatic gluconeogenesis runs unchecked and feeds fasting hyperglycemia.' },
+  { n: 4, enzyme: 'Enolase (shared, reversed)', sub: 'Phosphoenolpyruvate', prod: '2-phosphoglycerate', doubled: true,
+    note: 'A near-equilibrium glycolytic enzyme run in reverse, a hydration this direction. No new enzyme needed.' },
+  { n: 5, enzyme: 'Phosphoglycerate mutase (shared)', sub: '2-phosphoglycerate', prod: '3-phosphoglycerate', doubled: true,
+    note: 'Shared and reversible. Moves the phosphate from C2 back to C3.' },
+  { n: 6, enzyme: 'Phosphoglycerate kinase (shared, reversed)', sub: '3-phosphoglycerate + ATP', prod: '1,3-bisphosphoglycerate', atp: -1, doubled: true,
+    note: 'Runs the substrate-level step in reverse, so here it COSTS an ATP rather than making one. This is one of the places gluconeogenesis pays for fighting gravity.' },
+  { n: 7, enzyme: 'GAPDH (shared, reversed)', sub: '1,3-bisphosphoglycerate + NADH', prod: 'Glyceraldehyde-3-phosphate', nadh: -1, doubled: true,
+    note: 'Consumes the cytosolic NADH, reducing the acyl-phosphate back to an aldehyde. This is the reductive step the malate shuttle was feeding.' },
+  { n: 8, enzyme: 'Aldolase + triose phosphate isomerase (shared)', sub: 'G3P + DHAP', prod: 'Fructose-1,6-bisphosphate', doubled: false,
+    note: 'Two trioses condense back into one six-carbon sugar, the mirror of the aldolase cleavage in glycolysis. Glycerol enters here, as DHAP.' },
+  { n: 9, enzyme: 'Fructose-1,6-bisphosphatase / FBPase-1 (bypass 2)', sub: 'Fructose-1,6-bisphosphate + H₂O', prod: 'Fructose-6-phosphate + Pᵢ', regulated: true, doubled: false,
+    note: 'A simple hydrolysis that lops off the C1 phosphate, bypassing irreversible PFK-1. This is the main regulated step: inhibited by AMP and by fructose-2,6-bisphosphate, activated by citrate.',
+    regNote: 'Fructose-2,6-bisphosphate is the master inhibitor — high when fed, low when fasting.',
+    clinical: 'FBPase-1 deficiency causes fasting hypoglycemia and lactic acidosis in infants, especially when sick.' },
+  { n: 10, enzyme: 'Phosphoglucose isomerase (shared)', sub: 'Fructose-6-phosphate', prod: 'Glucose-6-phosphate', doubled: false,
+    note: 'Shared and reversible. Ketose back to aldose.' },
+  { n: 11, enzyme: 'Glucose-6-phosphatase / G6Pase (bypass 3)', sub: 'Glucose-6-phosphate + H₂O', prod: 'Glucose + Pᵢ', regulated: true, doubled: false,
+    note: 'Hydrolysis in the ER lumen, deliberately separated from cytosolic hexokinase to avoid a futile cycle; the T1 transporter carries G6P in. Only liver and kidney cortex express it, which is why muscle cannot release free glucose and ships out lactate instead.',
+    clinical: 'Von Gierke disease (glycogen storage disease type I): loss of G6Pase or its transporter gives severe fasting hypoglycemia, lactic acidosis, and a glycogen-laden liver.' },
+];
+
+**Skip breakfast and lunch, and somewhere in the early afternoon your liver starts building glucose out of spare parts.** It has to. Your brain runs almost entirely on glucose, and your red blood cells run on nothing else, because they have no mitochondria. Stored glycogen covers maybe twelve hours. After that, blood sugar stays in its narrow lane (about 70–100 mg/dL fasting) only because the liver, and in a long fast the kidney cortex, is manufacturing fresh glucose. That manufacturing pathway is gluconeogenesis.
+
+Fasting itself is old and human. The Teton Sioux fasted to invite a spiritual awakening, and cultures across the world still fast for clarity or devotion. Your brain does not care about enlightenment; it cares about glucose, and it will get it. Fasting is not the same as running out of energy. Your body is switching fuel sources, and gluconeogenesis is the switch that keeps the most glucose-dependent tissues supplied while everything else learns to burn fat.
+
+## Three ways to build a sugar
+
+Gluconeogenesis assembles glucose from non-carbohydrate precursors, and there are three to know. **Lactate** comes back from hard-working muscle and red cells; lactate dehydrogenase converts it to pyruvate. **Glucogenic amino acids**, alanine chief among them, enter at pyruvate or at oxaloacetate after losing their nitrogen. **Glycerol**, released when fat is mobilized, enters as DHAP by way of glycerol kinase and glycerol-3-phosphate dehydrogenase.
+
+Notice what is missing from that list: fat itself. This trips up almost everyone, so hold onto it. Even-chain fatty acids cannot become glucose. Their carbons enter the citric acid cycle as acetyl-CoA, but for every acetyl-CoA that comes in, two carbons leave as CO₂. You spend one oxaloacetate to bring acetyl-CoA into the cycle and you get exactly one back. Net oxaloacetate gain is zero, so net glucose from fat is zero. The one exception is odd-chain fatty acids, whose final three-carbon propionyl-CoA can be routed through succinyl-CoA to oxaloacetate. That is the whole reason "you can't turn fat into sugar" is true for the fat you actually carry.
+
+## The trap: is this just glycolysis in reverse?
+
+No. This is the single most important idea in the chapter. Gluconeogenesis shares seven of its enzymes with glycolysis, the near-equilibrium ones that run happily in either direction. But glycolysis has three irreversible, energy-dumping steps, and you cannot simply push those backward. So gluconeogenesis routes around all three with four different enzymes, in different compartments, at real energetic cost.
+
+The three walls and their bypasses: pyruvate kinase is bypassed by **pyruvate carboxylase plus PEPCK**; phosphofructokinase-1 is bypassed by **fructose-1,6-bisphosphatase**; and hexokinase is bypassed by **glucose-6-phosphatase**. Different enzymes, different doors, same map run as opposite traffic.
+
+## Bypass 1: the shipping problem
+
+The first wall is the most elaborate, and it spans two compartments. Inside the mitochondrion, **pyruvate carboxylase** adds CO₂ to pyruvate to make oxaloacetate, spending one ATP. It uses a biotin cofactor mounted on a roughly 14-Å lysine arm that swings the carboxyl group into place, and it is allosterically switched on by acetyl-CoA, the cell's way of saying *plenty of fuel here, make glucose rather than burn more pyruvate.*
+
+Then comes the shipping problem. PEPCK, the enzyme that takes the next step, lives in the cytosol, and oxaloacetate has no transporter across the inner mitochondrial membrane. The fix is the **malate shuttle**: oxaloacetate is reduced to malate, malate rides out on the malate–α-ketoglutarate carrier, and in the cytosol it is oxidized back to oxaloacetate. The trip does double duty, exporting the carbon skeleton and (for pyruvate or alanine precursors) carrying the NADH that GAPDH will need later. Then **PEPCK** spends a GTP and removes the very CO₂ that pyruvate carboxylase added, producing phosphoenolpyruvate. That carboxylate-then-decarboxylate move is a thermodynamic lever: adding CO₂ and pulling it back off is what makes forming high-energy PEP favorable.
+
+## Bypasses 2 and 3, and why muscle can't share
+
+From PEP, the shared enzymes run in reverse up to fructose-1,6-bisphosphate. There **FBPase-1** simply hydrolyzes off a phosphate, with no ATP made or spent, a clean snip past the PFK-1 wall. It is the main regulated step of the pathway, inhibited by AMP and by fructose-2,6-bisphosphate.
+
+The last wall, **glucose-6-phosphatase**, hides in a revealing place: the lumen of the endoplasmic reticulum. Glucose-6-phosphate has to be carried in by the T1 transporter to be dephosphorylated. Why tuck it away there? Because hexokinase sits in the cytosol running the opposite reaction, and keeping the two enzymes in separate rooms prevents a futile cycle. Only liver and kidney cortex express G6Pase. Muscle does not, which means muscle can never release free glucose into the blood. It hoards what it makes and ships out lactate instead, and that single missing enzyme is the reason the Cori cycle has to exist.
+
+{/* ISLAND */}
+<PathwayExplorer steps={gngSteps} title="Gluconeogenesis · 11 steps" doubledNote="×2 per glucose" />
+
+## The bill, and the switch that prevents waste
+
+Walk the cost meter up the island and it lands on **4 ATP + 2 GTP + 2 NADH per glucose**. Glycolysis nets only 2 ATP. Building is far more expensive than breaking, exactly as you would expect. Glycolysis runs downhill the way gravity pulls water; gluconeogenesis is the pump that pushes it back up, and pumps cost energy because they fight thermodynamics.
+
+That expense is why the cell must never run both pathways at once, because doing so would just spin ATP into heat. The guard against this is **reciprocal regulation** at the three enzyme pairs, and its master switch is **fructose-2,6-bisphosphate**. Lock in the distinction: fructose-**1,6**-bisphosphate is a pathway intermediate, while fructose-**2,6**-bisphosphate is a regulator only. *1,6 is the pathway; 2,6 is the regulator.* Both are made by the **bifunctional PFK-2/FBPase-2 enzyme**, a single protein carrying a kinase domain and a phosphatase domain. When you are fed, insulin keeps it dephosphorylated, the kinase wins, F-2,6-BP rises, and glycolysis runs. When you fast, glucagon raises cAMP, PKA phosphorylates the enzyme, the phosphatase wins, F-2,6-BP falls, and gluconeogenesis takes over. PKA also shuts off liver pyruvate kinase, closing the door behind you.
+
+The clinic makes all of this concrete. Pyruvate carboxylase deficiency produces hypoglycemia and lactic acidosis together, one missing enzyme and two findings, because pyruvate can neither start gluconeogenesis nor stop piling up as lactate. In type 2 diabetes, insulin resistance lifts the brake on PEPCK, hepatic gluconeogenesis runs unchecked, and fasting blood sugar climbs; metformin works largely by activating AMPK to rein it back in. And the interorgan loops tie the body together. The **Cori cycle** sends muscle lactate to the liver to be rebuilt into glucose, with the liver paying the ATP bill, while the **alanine cycle** carries muscle nitrogen to the liver safely packaged on alanine, because muscle lacks the urea-cycle machinery to dispose of ammonia on its own. A rising serum ALT, the very enzyme that runs the alanine cycle, is a clinic's flag for liver damage.
+
+In the next chapter we follow pyruvate the other way, into the mitochondrion, where the pyruvate dehydrogenase complex commits it to the citric acid cycle and acetyl-CoA finally gets fully burned.

@@ -1,0 +1,188 @@
+---
+/**
+ * PathwayExplorer — the generic, data-driven version of PathwayMap. A clickable,
+ * step-by-step metabolic-pathway map that lives INLINE in the prose. Reveal each
+ * step to see substrate → product, the enzyme, a one-line mechanism note, optional
+ * regulation/clinical notes; a running ledger tallies any of ATP / NADH / FADH₂ /
+ * NADPH / GTP / CO₂ as you go.
+ *
+ * Unlike PathwayMap (which hard-codes glycolysis), this one takes its data via
+ * props, so every metabolic-pathway lesson (gluconeogenesis, the citric acid cycle,
+ * β-oxidation, the pentose phosphate pathway, …) reuses this single proven
+ * component — pass it a `steps` array. Self-contained vanilla-TS island; the tally
+ * recomputes from per-step data attributes, so it must pass `astro check`.
+ */
+export interface PathwayStep {
+  n: number;
+  enzyme: string;
+  sub: string;
+  prod: string;
+  atp?: number;    // signed: negative = spent
+  nadh?: number;
+  fadh2?: number;
+  nadph?: number;
+  gtp?: number;
+  co2?: number;
+  regulated?: boolean;
+  doubled?: boolean;  // counts ×2 (e.g. two trioses, two turns of the cycle per glucose)
+  note: string;
+  regNote?: string;
+  clinical?: string;
+}
+interface Props {
+  steps: PathwayStep[];
+  title: string;                // e.g. "Gluconeogenesis · 11 steps"
+  chip?: string;                // small hint, default "tap a step to reveal it"
+  ledger?: Array<'atp' | 'nadh' | 'fadh2' | 'nadph' | 'gtp' | 'co2'>;
+  doubledNote?: string;         // shown next to ×2 badges, e.g. "×2 per glucose"
+  cyclic?: boolean;             // label the reveal-all button "turn the cycle"
+}
+const { steps, title, chip = 'tap a step to reveal it', ledger, doubledNote = '×2', cyclic = false } = Astro.props;
+
+const COUNTERS: Record<string, string> = { atp: 'ATP', nadh: 'NADH', fadh2: 'FADH₂', nadph: 'NADPH', gtp: 'GTP', co2: 'CO₂' };
+const ALL_KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2'] as const;
+type Key = (typeof ALL_KEYS)[number];
+const val = (s: PathwayStep, k: Key) => (s[k] ?? 0);
+const keys: Key[] = (ledger ?? ALL_KEYS.filter((k) => steps.some((s) => val(s, k) !== 0))) as Key[];
+const hasNegATP = steps.some((s) => val(s, 'atp') < 0);
+
+const badge = (s: PathwayStep) => {
+  const parts: string[] = [];
+  for (const k of keys) {
+    const v = val(s, k);
+    if (v === 0) continue;
+    const sign = v > 0 ? '+' : '−';
+    parts.push(`${sign}${Math.abs(v)} ${COUNTERS[k]}`);
+  }
+  return parts.join(' · ');
+};
+const dataAttrs = (s: PathwayStep) => {
+  const o: Record<string, string> = { 'data-step': String(s.n), 'data-doubled': s.doubled ? '1' : '0' };
+  for (const k of ALL_KEYS) o[`data-c-${k}`] = String(val(s, k));
+  return o;
+};
+---
+
+<figure class="pathway-x card" data-pathwayx>
+  <figcaption class="pwx-head">
+    {title} <span class="pwx-chip">{chip}</span>
+  </figcaption>
+
+  <div class="pwx-tally" data-tally role="status" aria-live="polite">
+    {keys.map((k) => (
+      <span><em data-t={k}>0</em> {COUNTERS[k]}</span>
+    ))}
+    {hasNegATP && <span class="pwx-net">Net <em data-t="net">0</em> ATP</span>}
+  </div>
+
+  <div class="pwx-steps">
+    {steps.map((s) => (
+      <div class={`pwx-step${s.regulated ? ' is-reg' : ''}`} {...dataAttrs(s)}>
+        <button type="button" class="pwx-step-head" aria-expanded="false">
+          <span class="pwx-num">{s.n}</span>
+          <span class="pwx-main">
+            <span class="pwx-enzyme">{s.enzyme}{s.regulated && <span class="pwx-lock" title="Regulated / committed step" aria-label="regulated step">🔒</span>}</span>
+            <span class="pwx-rxn">{s.sub} → {s.prod}</span>
+          </span>
+          {badge(s) && <span class="pwx-badge">{badge(s)}{s.doubled && <i> {doubledNote}</i>}</span>}
+        </button>
+        <div class="pwx-body" hidden>
+          <p>{s.note}</p>
+          {s.regNote && <p class="pwx-reg"><strong>Regulation.</strong> {s.regNote}</p>}
+          {s.clinical && <p class="pwx-clin"><strong>Clinical.</strong> {s.clinical}</p>}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="pwx-controls">
+    <button type="button" class="pwx-btn" data-revealall>{cyclic ? 'Turn the whole cycle' : `Reveal all ${steps.length} steps`}</button>
+    <button type="button" class="pwx-btn pwx-btn-quiet" data-reset>Reset</button>
+  </div>
+</figure>
+
+<script>
+  const KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2'] as const;
+  document.querySelectorAll<HTMLElement>('[data-pathwayx]').forEach((root) => {
+    const tally = root.querySelector<HTMLElement>('[data-tally]')!;
+    const steps = Array.from(root.querySelectorAll<HTMLElement>('.pwx-step'));
+    const visited = new Set<string>();
+
+    function recompute() {
+      const totals: Record<string, number> = {};
+      KEYS.forEach((k) => (totals[k] = 0));
+      steps.forEach((step) => {
+        const n = step.getAttribute('data-step')!;
+        if (!visited.has(n)) return;
+        const mult = step.getAttribute('data-doubled') === '1' ? 2 : 1;
+        KEYS.forEach((k) => {
+          totals[k] += parseInt(step.getAttribute(`data-c-${k}`) || '0', 10) * mult;
+        });
+      });
+      KEYS.forEach((k) => {
+        const el = tally.querySelector<HTMLElement>(`[data-t="${k}"]`);
+        if (el) el.textContent = (k === 'atp' && totals[k] > 0 ? '+' : '') + totals[k];
+      });
+      const netEl = tally.querySelector<HTMLElement>('[data-t="net"]');
+      if (netEl) {
+        const net = totals.atp;
+        netEl.textContent = (net > 0 ? '+' : '') + net;
+        tally.classList.toggle('is-positive', net > 0);
+      }
+    }
+
+    function setOpen(step: HTMLElement, open: boolean) {
+      const btn = step.querySelector<HTMLButtonElement>('.pwx-step-head')!;
+      const body = step.querySelector<HTMLElement>('.pwx-body')!;
+      btn.setAttribute('aria-expanded', String(open));
+      body.hidden = !open;
+      if (open) { visited.add(step.getAttribute('data-step')!); step.classList.add('is-visited'); }
+    }
+
+    steps.forEach((step) => {
+      step.querySelector<HTMLButtonElement>('.pwx-step-head')!.addEventListener('click', () => {
+        const open = step.querySelector('.pwx-body')!.hasAttribute('hidden');
+        setOpen(step, open);
+        recompute();
+      });
+    });
+    root.querySelector<HTMLButtonElement>('[data-revealall]')!.addEventListener('click', () => { steps.forEach((s) => setOpen(s, true)); recompute(); });
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
+      visited.clear();
+      steps.forEach((s) => { setOpen(s, false); s.classList.remove('is-visited'); });
+      recompute();
+    });
+    recompute();
+  });
+</script>
+
+<style>
+  .pathway-x { padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-5); margin: var(--ddp-space-6) 0; }
+  .pwx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pwx-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pwx-tally { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-bg-alt, #f0ede7); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pwx-tally em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
+  .pwx-net { margin-left: auto; }
+  .pwx-tally.is-positive .pwx-net em { color: var(--ddp-color-verified, #2e7d32); }
+  .pwx-step { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); margin-bottom: var(--ddp-space-2); background: var(--ddp-color-surface); overflow: hidden; }
+  .pwx-step.is-reg { border-color: var(--ddp-color-secondary); border-left-width: 3px; }
+  .pwx-step.is-visited { box-shadow: inset 2px 0 0 var(--ddp-color-accent); }
+  .pwx-step-head { display: flex; align-items: center; gap: var(--ddp-space-3); width: 100%; text-align: left; padding: var(--ddp-space-2) var(--ddp-space-3); background: none; border: 0; cursor: pointer; }
+  .pwx-step-head:hover { background: var(--ddp-color-accent-soft); }
+  .pwx-num { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--ddp-color-primary); color: var(--ddp-color-surface); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; }
+  .pwx-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .pwx-enzyme { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+  .pwx-lock { font-size: 0.75em; margin-left: 0.3em; }
+  .pwx-rxn { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pwx-badge { flex: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); white-space: nowrap; }
+  .pwx-badge i { color: var(--ddp-color-secondary); font-style: normal; font-weight: 700; }
+  .pwx-body { padding: 0 var(--ddp-space-3) var(--ddp-space-3) calc(26px + var(--ddp-space-3) + var(--ddp-space-3)); }
+  .pwx-body p { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  .pwx-reg { color: var(--ddp-color-ink-soft); }
+  .pwx-clin { background: var(--ddp-color-accent-soft); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); }
+  .pwx-controls { display: flex; gap: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .pwx-btn { font-size: var(--ddp-text-sm); font-weight: 600; padding: 0.4rem 0.9rem; border-radius: var(--ddp-radius-sm); border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .pwx-btn:hover { opacity: 0.9; }
+  .pwx-btn-quiet { background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); border-color: var(--ddp-color-line); }
+  .pwx-btn-quiet:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+</style>
