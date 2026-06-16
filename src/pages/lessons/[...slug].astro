@@ -34,9 +34,20 @@ const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-${s.id}`.replace(/[^a-zA-Z0-9-]/g, '');
 const LEVEL_ICONS: Record<string, string> = { eli5: '🧸', highschool: '🎒', college: '🎓', grad: '🔬' };
 const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+const lessonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LearningResource',
+  name: lesson.title,
+  description: lesson.summary,
+  educationalLevel: 'undergraduate',
+  learningResourceType: 'interactive lesson',
+  inLanguage: 'en',
+  about: lesson.courseChapter,
+  isPartOf: { '@type': 'Course', name: 'Biochemistry-pedia', provider: { '@type': 'Organization', name: 'Deppmann Lab, University of Virginia' } },
+};
 ---
 
-<BaseLayout title={`${lesson.title} — Biochemistry-pedia`} description={lesson.summary}>
+<BaseLayout title={`${lesson.title} — Biochemistry-pedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
   <article id="top">
     <header class="lesson-hero wrap">
       <p class="eyebrow">{lesson.courseChapter}</p>
