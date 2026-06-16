@@ -1,0 +1,107 @@
+---
+/**
+ * EnzymeClassClassifier — the "how we file it" companion to the reaction-coordinate plot.
+ * The energy diagram is about thermodynamics vs kinetics; this island is about taxonomy:
+ * given what a reaction actually does to the bonds, which of the seven EC classes is it?
+ * Includes the cases that trip people (fumarase adds water across a double bond, so it is a
+ * lyase, NOT a hydrolase). Click a class, get instant reasoning, keep score.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ecc card" data-ecclass>
+  <figcaption class="ecc-head">Classify the enzyme — by what it does to the bond<span class="ecc-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="ecc-prompt" data-prompt></p>
+
+  <div class="ecc-choices" data-choices role="group" aria-label="EC class"></div>
+
+  <p class="ecc-fb" data-fb>Pick the class. The trick is to ignore the enzyme's name and ask what happens to the chemical bond.</p>
+
+  <div class="ecc-bar">
+    <span class="ecc-score" data-score>0 / 0 correct</span>
+    <button type="button" data-next disabled>Next reaction ›</button>
+  </div>
+
+  <p class="ecc-foot">EC class is decided by the reaction, not the name. Oxidoreductases move electrons; transferases move a group; hydrolases break a bond with water; lyases add or remove a group across a double bond (no water, no redox); isomerases rearrange one molecule; ligases join two and spend ATP; translocases move things across a membrane.</p>
+</figure>
+
+<script>
+  type Q = { rxn: string; answer: string; why: string };
+  const CLASSES = ['Oxidoreductase', 'Transferase', 'Hydrolase', 'Lyase', 'Isomerase', 'Ligase', 'Translocase'];
+  const QS: Q[] = [
+    { rxn: 'Lactate dehydrogenase passes electrons (a hydride) between lactate and NAD⁺.', answer: 'Oxidoreductase', why: 'Anything that moves electrons — a dehydrogenase, oxidase, or reductase — is an oxidoreductase (EC 1).' },
+    { rxn: 'Hexokinase moves a phosphate group from ATP onto glucose.', answer: 'Transferase', why: 'A group (here phosphate) is moved from one molecule to another. Kinases are phosphotransferases (EC 2.7).' },
+    { rxn: 'Trypsin uses a water molecule to cleave a peptide bond.', answer: 'Hydrolase', why: 'Bond broken by adding water — that is hydrolysis (EC 3). Proteases, lipases, and phosphatases all live here.' },
+    { rxn: 'Fumarase adds a water molecule across the C=C double bond of fumarate.', answer: 'Lyase', why: 'Gotcha: water appears, but it is ADDED across a double bond, not used to cleave a bond. Addition/removal across a double bond is a lyase (EC 4) — fumarase is EC 4.2.1.2.' },
+    { rxn: 'Phosphoglucose isomerase converts glucose-6-phosphate into fructose-6-phosphate.', answer: 'Isomerase', why: 'One molecule rearranged into its isomer, nothing added or removed — an isomerase (EC 5).' },
+    { rxn: 'DNA ligase joins two DNA fragments, spending ATP to seal the bond.', answer: 'Ligase', why: 'Two molecules joined AND a nucleotide triphosphate is spent — the ATP cost is the ligase signature (EC 6).' },
+    { rxn: 'Pyruvate decarboxylase strips CO₂ off pyruvate to give acetaldehyde — no water, no redox.', answer: 'Lyase', why: 'Removing a group (CO₂) without hydrolysis or oxidation is a lyase (EC 4). Decarboxylases that do not also oxidize are lyases.' },
+    { rxn: 'The Na⁺/K⁺-ATPase pumps sodium and potassium across the plasma membrane.', answer: 'Translocase', why: 'Moving ions or molecules across a membrane is the newest class, translocase (EC 7, added in 2018).' },
+    { rxn: 'Catalase breaks hydrogen peroxide into water and oxygen.', answer: 'Oxidoreductase', why: 'Peroxide is both oxidized and reduced — electrons move — so catalase is an oxidoreductase (EC 1.11.1.6).' },
+  ];
+
+  document.querySelectorAll<HTMLElement>('[data-ecclass]').forEach((root) => {
+    const promptEl = root.querySelector<HTMLElement>('[data-prompt]')!;
+    const choicesEl = root.querySelector<HTMLElement>('[data-choices]')!;
+    const fbEl = root.querySelector<HTMLElement>('[data-fb]')!;
+    const scoreEl = root.querySelector<HTMLElement>('[data-score]')!;
+    const nextB = root.querySelector<HTMLButtonElement>('[data-next]')!;
+    let idx = 0, asked = 0, correct = 0, answered = false;
+
+    CLASSES.forEach((c) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ecc-choice'; b.textContent = c; b.setAttribute('data-class', c);
+      b.addEventListener('click', () => choose(c, b));
+      choicesEl.appendChild(b);
+    });
+    const btns = Array.from(choicesEl.querySelectorAll<HTMLButtonElement>('.ecc-choice'));
+
+    function load() {
+      const q = QS[idx];
+      promptEl.textContent = q.rxn;
+      answered = false;
+      btns.forEach((b) => { b.disabled = false; b.classList.remove('is-right', 'is-wrong'); });
+      fbEl.textContent = 'Pick the class. The trick is to ignore the enzyme’s name and ask what happens to the chemical bond.';
+      fbEl.className = 'ecc-fb';
+      nextB.disabled = true;
+    }
+    function choose(c: string, b: HTMLButtonElement) {
+      if (answered) return;
+      answered = true; asked++;
+      const q = QS[idx];
+      const right = c === q.answer;
+      if (right) correct++;
+      b.classList.add(right ? 'is-right' : 'is-wrong');
+      btns.forEach((x) => { if (x.getAttribute('data-class') === q.answer) x.classList.add('is-right'); x.disabled = true; });
+      fbEl.textContent = (right ? '✓ Correct. ' : `✗ It is ${q.answer}. `) + q.why;
+      fbEl.className = 'ecc-fb ' + (right ? 'is-ok' : 'is-no');
+      scoreEl.textContent = `${correct} / ${asked} correct`;
+      nextB.disabled = false;
+    }
+    nextB.addEventListener('click', () => { idx = (idx + 1) % QS.length; load(); });
+    load();
+  });
+</script>
+
+<style>
+  .ecc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ecc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .ecc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ecc-prompt { font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.45; margin: 0 0 var(--ddp-space-3); min-height: 2.6em; }
+  .ecc-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .ecc-choice { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 6px; padding: 0.4rem 0.5rem; cursor: pointer; }
+  .ecc-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .ecc-choice:disabled { cursor: default; }
+  .ecc-choice.is-right { border-color: #2e8b57; background: color-mix(in srgb, #2e8b57 14%, #fff); color: #1c5f3a; font-weight: 700; }
+  .ecc-choice.is-wrong { border-color: #c0392b; background: color-mix(in srgb, #c0392b 12%, #fff); color: #8c241a; }
+  .ecc-fb { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ecc-fb.is-ok { background: color-mix(in srgb, #2e8b57 12%, transparent); }
+  .ecc-fb.is-no { background: color-mix(in srgb, #c0392b 9%, transparent); }
+  .ecc-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .ecc-score { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); }
+  .ecc-bar button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; }
+  .ecc-bar button:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .ecc-bar button:disabled { opacity: 0.4; cursor: default; }
+  .ecc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
