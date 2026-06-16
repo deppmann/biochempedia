@@ -1,0 +1,107 @@
+---
+/**
+ * AminoAcidClassifier — the "know the twenty" companion to the titration curve. The 20
+ * standard amino acids fall into a few families by what their side chains do, and that
+ * chemistry predicts where each sits in a folded protein. Click a property to light up
+ * its members, with the rule and a worked example; click a single residue to see its
+ * one-line role. Distinct from the titrator (which dials one residue's charge across pH).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="aac card" data-aaclassifier>
+  <figcaption class="aac-head">The twenty, by what their side chains do<span class="aac-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="aac-filters" role="group" aria-label="Side-chain property">
+    <button type="button" data-cat="all" aria-pressed="true">All 20</button>
+    <button type="button" data-cat="nonpolar">Nonpolar</button>
+    <button type="button" data-cat="aromatic">Aromatic</button>
+    <button type="button" data-cat="polar">Polar uncharged</button>
+    <button type="button" data-cat="acidic">Acidic (−)</button>
+    <button type="button" data-cat="basic">Basic (+)</button>
+  </div>
+
+  <div class="aac-grid" data-grid></div>
+
+  <p class="aac-rule" data-rule>Each color is a side-chain family. Click a family above to isolate it, or click any residue for its role.</p>
+  <p class="aac-foot">Side-chain chemistry is destiny: nonpolar residues bury in the water-fearing core, polar and charged ones face the water or line active sites, and the three "specials" (glycine's flexibility, proline's kink, cysteine's disulfide) bend the rules on purpose.</p>
+</figure>
+
+<script>
+  type AA = { code: string; name: string; cat: string; note: string };
+  const AAS: AA[] = [
+    { code: 'Gly', name: 'Glycine', cat: 'nonpolar', note: 'Just an H side chain — the smallest and most flexible; fits tight turns where nothing else can.' },
+    { code: 'Ala', name: 'Alanine', cat: 'nonpolar', note: 'A small methyl group; the generic hydrophobic residue.' },
+    { code: 'Val', name: 'Valine', cat: 'nonpolar', note: 'Branched and hydrophobic; the Glu→Val swap is exactly what causes sickle-cell.' },
+    { code: 'Leu', name: 'Leucine', cat: 'nonpolar', note: 'Bulky, hydrophobic; common in the buried core and in leucine zippers.' },
+    { code: 'Ile', name: 'Isoleucine', cat: 'nonpolar', note: 'Branched hydrophobic isomer of leucine.' },
+    { code: 'Met', name: 'Methionine', cat: 'nonpolar', note: 'Sulfur-containing, hydrophobic; the start codon always codes for it.' },
+    { code: 'Pro', name: 'Proline', cat: 'nonpolar', note: 'Its ring locks the backbone — the helix-breaker and the kink in collagen.' },
+    { code: 'Phe', name: 'Phenylalanine', cat: 'aromatic', note: 'A hydrophobic benzene ring; accumulates toxically in untreated PKU.' },
+    { code: 'Tyr', name: 'Tyrosine', cat: 'aromatic', note: 'Phenylalanine plus an −OH; its hydroxyl is a phosphorylation target in signaling.' },
+    { code: 'Trp', name: 'Tryptophan', cat: 'aromatic', note: 'The largest residue, an indole ring; rare and often functionally important.' },
+    { code: 'Ser', name: 'Serine', cat: 'polar', note: 'A small −OH; a phosphorylation site and a catalytic nucleophile in serine proteases.' },
+    { code: 'Thr', name: 'Threonine', cat: 'polar', note: 'A branched −OH; also phosphorylated in regulation.' },
+    { code: 'Cys', name: 'Cysteine', cat: 'polar', note: 'A reactive −SH; two cysteines form a disulfide bond that staples a fold together.' },
+    { code: 'Asn', name: 'Asparagine', cat: 'polar', note: 'An amide side chain; the anchor for N-linked glycosylation.' },
+    { code: 'Gln', name: 'Glutamine', cat: 'polar', note: 'A longer amide; a major nitrogen carrier in the blood.' },
+    { code: 'Asp', name: 'Aspartate', cat: 'acidic', note: 'A carboxylate, negative at pH 7; common in active sites and metal binding.' },
+    { code: 'Glu', name: 'Glutamate', cat: 'acidic', note: 'A longer carboxylate; also the brain\'s main excitatory neurotransmitter.' },
+    { code: 'Lys', name: 'Lysine', cat: 'basic', note: 'A long amine, positive at pH 7; a target for acetylation on histones.' },
+    { code: 'Arg', name: 'Arginine', cat: 'basic', note: 'A guanidinium group, the most reliably positive residue; binds phosphates and DNA.' },
+    { code: 'His', name: 'Histidine', cat: 'basic', note: 'An imidazole with a pKa near 6 — it can grab or give a proton at physiological pH, the workhorse of acid–base catalysis.' },
+  ];
+  const CATCOLOR: Record<string, string> = { nonpolar: '#0e7c86', aromatic: '#7a4fbf', polar: '#2b6fb0', acidic: '#c0392b', basic: '#e57200' };
+  const CATRULE: Record<string, string> = {
+    all: 'Each color marks a side-chain family. Click a family to isolate it, or any residue for its role.',
+    nonpolar: 'Nonpolar (hydrophobic) side chains avoid water, so they pack into the protein\'s buried core and into membrane-spanning helices. Example: the Glu→Val substitution that makes hemoglobin sticky in sickle-cell disease.',
+    aromatic: 'Aromatic rings are large and mostly hydrophobic (tyrosine is the polar exception). They stack against each other and absorb UV at 280 nm — the basis of measuring protein concentration.',
+    polar: 'Polar uncharged side chains make hydrogen bonds and often do chemistry: serine/threonine are phosphorylated, cysteine forms disulfides, asparagine anchors sugars.',
+    acidic: 'Acidic side chains (aspartate, glutamate) carry a negative charge at pH 7 — they cluster in active sites, bind metals and positive partners, and shape electrostatics.',
+    basic: 'Basic side chains (lysine, arginine, histidine) are positive at pH 7 and bind the negatively charged backbone of DNA and the phosphates of substrates; histidine\'s near-neutral pKa makes it the catalytic proton shuttle.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-aaclassifier]').forEach((root) => {
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    const rule = root.querySelector<HTMLElement>('[data-rule]')!;
+    AAS.forEach((aa) => {
+      const chip = document.createElement('button');
+      chip.type = 'button'; chip.className = 'aac-chip-btn'; chip.setAttribute('data-aacat', aa.cat);
+      chip.style.setProperty('--aac-c', CATCOLOR[aa.cat]);
+      chip.innerHTML = `<b>${aa.code}</b><span>${aa.name}</span>`;
+      chip.addEventListener('click', () => { rule.textContent = `${aa.name} (${aa.code}): ${aa.note}`; });
+      grid.appendChild(chip);
+    });
+    function filter(cat: string) {
+      grid.querySelectorAll<HTMLElement>('.aac-chip-btn').forEach((c) => {
+        const match = cat === 'all' || c.getAttribute('data-aacat') === cat;
+        c.classList.toggle('is-dim', !match);
+      });
+      rule.textContent = CATRULE[cat];
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-cat]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        filter(b.getAttribute('data-cat')!);
+      }));
+    filter('all');
+  });
+</script>
+
+<style>
+  .aac { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .aac-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .aac-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .aac-filters { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .aac-filters button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .aac-filters button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .aac-filters button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 0.4rem; }
+  .aac-chip-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem; font-family: inherit; text-align: left; border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--aac-c, #888); background: #fff; border-radius: 5px; padding: 0.3rem 0.45rem; cursor: pointer; transition: opacity 0.2s; }
+  .aac-chip-btn b { font-size: var(--ddp-text-sm); color: var(--aac-c, var(--ddp-color-primary)); }
+  .aac-chip-btn span { font-size: 0.62rem; color: var(--ddp-color-muted); }
+  .aac-chip-btn:hover { border-color: var(--aac-c); }
+  .aac-chip-btn.is-dim { opacity: 0.22; }
+  .aac-rule { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .aac-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
