@@ -114,6 +114,10 @@ simulations:
     ref: "PathwayExplorer"
     title: "PPP map (oxidative phase banks 2 NADPH + 1 CO₂; the non-oxidative phase reshuffles carbon: 3 C5 → 2 F6P + 1 G3P)"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "PPPModes"
+    title: "Four modes selector (how the oxidative and non-oxidative branches re-balance for ribose, NADPH, or ATP demand)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 practiceQuestions:
   - stem: "What are the two principal products of the pentose phosphate pathway, and how much ATP does it generate?"
     choices:
@@ -291,6 +295,7 @@ lectureSlides:
 ---
 
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+import PPPModes from '../../../components/PPPModes.astro';
 
 export const pppSteps = [{"n": 1, "enzyme": "Glucose-6-phosphate dehydrogenase (G6PD)", "sub": "Glucose-6-phosphate (C6)", "prod": "6-phosphoglucono-δ-lactone (C6)", "nadph": 1, "regulated": true, "note": "The committed, rate-limiting step. Oxidizes C1 of glucose-6-phosphate and reduces NADP⁺ to the first NADPH. This is the door into the pathway, and the cell holds it shut when NADPH is plentiful.", "clinical": "G6PD deficiency affects ~400 million people. With G6PD weak, red cells cannot regenerate NADPH, glutathione falls, hemoglobin oxidizes into Heinz bodies, and the spleen destroys the cells — a hemolytic crisis triggered by fava beans, certain drugs, or infection. The same allele is hostile to the malaria parasite, which is why it persists where malaria is endemic."}, {"n": 2, "enzyme": "6-Phosphogluconolactonase", "sub": "6-phosphoglucono-δ-lactone (C6)", "prod": "6-phosphogluconate (C6)", "note": "Hydrolyzes the strained lactone ring open to the linear acid. A quiet housekeeping step that also occurs slowly on its own, but the enzyme makes it fast and clean."}, {"n": 3, "enzyme": "6-Phosphogluconate dehydrogenase", "sub": "6-phosphogluconate (C6)", "prod": "Ribulose-5-phosphate (C5) + CO₂", "nadph": 1, "co2": 1, "note": "Oxidative decarboxylation: makes the second NADPH and releases C1 as CO₂. Losing that carbon is what makes the whole oxidative phase irreversible — you can run a sugar uphill, but you cannot put a CO₂ back.", "clinical": "Because this step releases CO₂ without consuming O₂ (unlike full glucose oxidation), tissues running the PPP hard add CO₂ disproportionately — a useful illustration of heavy PPP flux, not a clinical diagnostic on its own."}, {"n": 4, "enzyme": "Phosphopentose isomerase", "sub": "Ribulose-5-phosphate (C5)", "prod": "Ribose-5-phosphate (C5)", "note": "Ketose → aldose. This is the exit toward biosynthesis: ribose-5-phosphate is the sugar backbone of every nucleotide, so this branch feeds DNA, RNA, ATP, NAD⁺, and coenzyme A.", "clinical": "Ribose-5-phosphate is the precursor of PRPP, the activated sugar that starts both purine and pyrimidine synthesis — the reason every dividing cell needs this pathway."}, {"n": 5, "enzyme": "Phosphopentose epimerase", "sub": "Ribulose-5-phosphate (C5)", "prod": "Xylulose-5-phosphate (C5)", "note": "Inverts the configuration at a single carbon (C3). Ribulose and xylulose are epimers, identical except at that one stereocenter, but transketolase needs xylulose, so the small change matters."}, {"n": 6, "enzyme": "Transketolase (TPP)", "sub": "Xylulose-5-P (C5) + ribose-5-P (C5)", "prod": "Glyceraldehyde-3-P (C3) + sedoheptulose-7-P (C7)", "note": "Molecular scissors: snips a two-carbon ketol unit off xylulose and welds it onto ribose. Requires thiamine pyrophosphate (TPP), the same cofactor pyruvate dehydrogenase uses. Carbon check: 5 + 5 = 3 + 7.", "clinical": "TPP comes from vitamin B1 (thiamine). In thiamine deficiency (Wernicke-Korsakoff, classically in alcoholism) transketolase activity falls — the assay for it is a clinical test of thiamine status."}, {"n": 7, "enzyme": "Transaldolase", "sub": "Sedoheptulose-7-P (C7) + glyceraldehyde-3-P (C3)", "prod": "Fructose-6-P (C6) + erythrose-4-P (C4)", "note": "Transfers a three-carbon dihydroxyacetone unit using an active-site lysine that forms a Schiff base with the substrate, the same trick aldolase uses in glycolysis. No external cofactor. Carbon check: 7 + 3 = 6 + 4."}, {"n": 8, "enzyme": "Transketolase (TPP)", "sub": "Erythrose-4-P (C4) + xylulose-5-P (C5)", "prod": "Fructose-6-P (C6) + glyceraldehyde-3-P (C3)", "note": "Transketolase again, second cut, moving another two-carbon unit so both end products are ordinary glycolytic intermediates. Carbon check: 4 + 5 = 6 + 3. Net of the non-oxidative phase: three C5 sugars become two F6P and one G3P."}];
 
@@ -336,7 +341,11 @@ Walk the interactive below. Each metabolite carries a carbon-count badge so you 
 
 ## Four modes: one pathway, four answers
 
-Because the non-oxidative phase is reversible, the cell can run the PPP in whichever direction the moment requires. Chris's four nicknames:
+Because the non-oxidative phase is reversible, the cell can run the PPP in whichever direction the moment requires. Pick a demand below and watch which branches fire:
+
+<PPPModes />
+
+Chris's four nicknames:
 
 - **Mode 1, the "ribose builder."** A cell needs ribose but already has plenty of NADPH. It skips the oxidative phase entirely and runs the non-oxidative steps *backward*, building ribose-5-P out of fructose-6-P and glyceraldehyde-3-P pulled from glycolysis. No NADPH made.
 - **Mode 2, the "balanced trader."** Ribose and NADPH are needed in equal measure. Run the oxidative phase, then isomerize ribulose-5-P to ribose-5-P. Two NADPH and one ribose per glucose.

@@ -1,0 +1,99 @@
+---
+/**
+ * PPPModes — the regulation companion to the pentose-phosphate pathway map. The PPP is
+ * not one fixed route; the cell tunes the balance of its oxidative and non-oxidative
+ * branches to whatever it needs most — ribose-5-phosphate for DNA, NADPH for
+ * biosynthesis and antioxidant defense, or both, sometimes feeding the leftover carbon
+ * back into glycolysis for ATP. Pick a demand and see which branches run, in which
+ * direction, and what comes out. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ppm card" data-pppmodes>
+  <figcaption class="ppm-head">Four modes of the pentose phosphate pathway<span class="ppm-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="ppm-tabs" role="group" aria-label="Cellular demand">
+    <button type="button" data-mode="ribose" aria-pressed="true">Need ribose, not NADPH</button>
+    <button type="button" data-mode="both" aria-pressed="false">Need both</button>
+    <button type="button" data-mode="nadph" aria-pressed="false">Need NADPH, not ribose</button>
+    <button type="button" data-mode="nadphatp" aria-pressed="false">Need NADPH + ATP</button>
+  </div>
+
+  <div class="ppm-branches">
+    <div class="ppm-branch" data-b-ox><span class="ppm-b-name">Oxidative branch</span><span class="ppm-b-state" data-ox-state>—</span></div>
+    <div class="ppm-branch" data-b-non><span class="ppm-b-name">Non-oxidative branch</span><span class="ppm-b-state" data-non-state>—</span></div>
+  </div>
+
+  <dl class="ppm-readout">
+    <div><dt>Net output</dt><dd data-r-out>—</dd></div>
+    <div><dt>Where you see it</dt><dd data-r-where>—</dd></div>
+  </dl>
+  <p class="ppm-why" data-why>The same enzymes, run forward or backward in different proportions, let one pathway serve four very different cellular needs.</p>
+
+  <p class="ppm-foot">The oxidative branch (G6PD onward) is one-way and makes NADPH + CO₂. The non-oxidative branch (transketolase / transaldolase) is fully reversible, so the cell runs it whichever way the demand points.</p>
+</figure>
+
+<script>
+  type Mode = { ox: string; non: string; out: string; where: string; why: string; oxOn: boolean };
+  const MODES: Record<string, Mode> = {
+    ribose: { oxOn: false, ox: 'off', non: 'runs in reverse', out: 'ribose-5-P (no NADPH)',
+      where: 'rapidly dividing cells (DNA/RNA synthesis)',
+      why: 'When a cell needs ribose for nucleotides but not reducing power, it skips the oxidative branch entirely and runs the non-oxidative enzymes BACKWARD, building ribose-5-phosphate out of glycolytic fructose-6-phosphate and glyceraldehyde-3-phosphate.' },
+    both: { oxOn: true, non: 'idle', ox: 'runs forward', out: '2 NADPH + ribose-5-P',
+      where: 'cells balancing growth and biosynthesis',
+      why: 'When NADPH and ribose are needed in roughly equal measure, the oxidative branch alone does the job: it makes 2 NADPH and delivers ribose-5-phosphate directly, with no carbon reshuffling required.' },
+    nadph: { oxOn: true, non: 'recycles ribose → F6P/G3P', ox: 'runs forward',
+      out: 'NADPH (ribose recycled back to glycolysis)',
+      where: 'liver, adipose, lactating mammary (making fat)',
+      why: 'When the cell wants maximum NADPH and little ribose, the oxidative branch runs hard and the non-oxidative branch then converts the leftover ribose-5-phosphate back into fructose-6-phosphate and glyceraldehyde-3-phosphate, which loop back through glycolysis to be re-oxidized — squeezing out NADPH without piling up ribose.' },
+    nadphatp: { oxOn: true, non: 'sends ribose → glycolysis', ox: 'runs forward',
+      out: 'NADPH + ATP (carbon to pyruvate)',
+      where: 'cells needing both reducing power and energy',
+      why: 'When both NADPH and ATP are needed, the oxidative branch makes NADPH and the non-oxidative branch funnels the carbon into fructose-6-phosphate and glyceraldehyde-3-phosphate, which continue down glycolysis to pyruvate and ATP. Reducing power and energy from one stream.' },
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-pppmodes]').forEach((root) => {
+    const oxState = root.querySelector<HTMLElement>('[data-ox-state]')!;
+    const nonState = root.querySelector<HTMLElement>('[data-non-state]')!;
+    const bOx = root.querySelector<HTMLElement>('[data-b-ox]')!;
+    const out = root.querySelector<HTMLElement>('[data-r-out]')!;
+    const where = root.querySelector<HTMLElement>('[data-r-where]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    function render(key: string) {
+      const m = MODES[key];
+      oxState.textContent = m.ox;
+      nonState.textContent = m.non;
+      bOx.classList.toggle('is-on', m.oxOn);
+      bOx.classList.toggle('is-off', !m.oxOn);
+      out.textContent = m.out; where.textContent = m.where; why.textContent = m.why;
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        render(b.getAttribute('data-mode')!);
+      }));
+    render('ribose');
+  });
+</script>
+
+<style>
+  .ppm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ppm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .ppm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ppm-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .ppm-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .ppm-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .ppm-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .ppm-branches { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-2); }
+  .ppm-branch { border: 1px solid var(--ddp-color-line); border-left: 3px solid var(--ddp-color-muted); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .ppm-branch.is-on { border-left-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 8%, #fff); }
+  .ppm-branch.is-off { opacity: 0.6; }
+  .ppm-b-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ppm-b-state { font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .ppm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ppm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ppm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ppm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .ppm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.6em; }
+  .ppm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
