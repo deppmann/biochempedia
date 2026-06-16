@@ -1,0 +1,101 @@
+---
+/**
+ * RubiscoFork — the companion to the Calvin-cycle map. Rubisco is promiscuous: it fixes
+ * CO₂ (productive carboxylation → two 3-PGA) but also reacts with O₂ (wasteful
+ * oxygenation → photorespiration, which loses fixed carbon and costs ATP). Dial the
+ * CO₂/O₂ availability and the temperature and watch the split move — heat and low CO₂
+ * both push the enzyme toward oxygenation, which is exactly the problem C4 and CAM
+ * plants evolved to dodge. Self-contained vanilla-TS Astro island. Original; the model
+ * is teaching-grade (a specificity factor that falls with temperature), not lab data.
+ */
+---
+
+<figure class="rf card" data-rubisco>
+  <figcaption class="rf-head">Rubisco's fork — fix carbon or waste it<span class="rf-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="rf-bars">
+    <div class="rf-bar-row"><span class="rf-bar-lbl">carboxylation</span><div class="rf-bar-track"><div class="rf-bar-fill is-carb" data-bar-carb></div><b data-carb-n>75%</b></div></div>
+    <div class="rf-bar-row"><span class="rf-bar-lbl">oxygenation</span><div class="rf-bar-track"><div class="rf-bar-fill is-oxy" data-bar-oxy></div><b data-oxy-n>25%</b></div></div>
+  </div>
+
+  <div class="rf-controls">
+    <label class="rf-slabel">CO₂ / O₂ availability <em data-out="ratio">normal</em>
+      <input type="range" data-in="ratio" min="0.3" max="4" step="0.1" value="1" />
+    </label>
+    <label class="rf-slabel">Leaf temperature <em data-out="temp">25</em> °C
+      <input type="range" data-in="temp" min="15" max="45" step="1" value="25" />
+    </label>
+  </div>
+
+  <dl class="rf-readout">
+    <div><dt>Carboxylation : oxygenation</dt><dd data-r-ratio>3 : 1</dd></div>
+    <div><dt>Fate of the wasteful branch</dt><dd>photorespiration</dd></div>
+  </dl>
+  <p class="rf-why" data-why>At normal leaf conditions Rubisco fixes carbon about three times for every wasteful reaction with O₂ — already a remarkable amount of waste for life's most abundant enzyme.</p>
+
+  <p class="rf-foot">Oxygenation makes 2-phosphoglycolate, which the cell must salvage at the cost of ATP and one CO₂ released — photorespiration. Heat and water stress (closed stomata → low CO₂) make it worse, which is why C4 and CAM plants concentrate CO₂ around Rubisco.</p>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rubisco]').forEach((root) => {
+    const ratioIn = root.querySelector<HTMLInputElement>('[data-in="ratio"]')!;
+    const tempIn = root.querySelector<HTMLInputElement>('[data-in="temp"]')!;
+    const ratioOut = root.querySelector<HTMLElement>('[data-out="ratio"]')!;
+    const tempOut = root.querySelector<HTMLElement>('[data-out="temp"]')!;
+    const barCarb = root.querySelector<HTMLElement>('[data-bar-carb]')!;
+    const barOxy = root.querySelector<HTMLElement>('[data-bar-oxy]')!;
+    const carbN = root.querySelector<HTMLElement>('[data-carb-n]')!;
+    const oxyN = root.querySelector<HTMLElement>('[data-oxy-n]')!;
+    const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    function render() {
+      const ratio = parseFloat(ratioIn.value);
+      const T = parseInt(tempIn.value, 10);
+      // teaching-grade model: specificity ~90 at 25 °C, falls with T; effective CO2/O2 also falls with T
+      const Sco = 90 * (1 - 0.02 * (T - 25));
+      const rEff = 0.033 * ratio * (1 - 0.015 * (T - 25));
+      const carb = Math.max(0, Math.min(1, (Sco * rEff) / (Sco * rEff + 1)));
+      const oxy = 1 - carb;
+      ratioOut.textContent = ratio < 0.7 ? 'low (stomata closing)' : ratio > 1.6 ? 'high (CO₂-rich)' : 'normal';
+      tempOut.textContent = String(T);
+      barCarb.style.width = (carb * 100).toFixed(0) + '%';
+      barOxy.style.width = (oxy * 100).toFixed(0) + '%';
+      carbN.textContent = Math.round(carb * 100) + '%';
+      oxyN.textContent = Math.round(oxy * 100) + '%';
+      const co = carb / oxy;
+      rRatio.textContent = co >= 1 ? co.toFixed(1) + ' : 1' : '1 : ' + (1 / co).toFixed(1);
+      why.textContent = oxy > 0.4
+        ? `At ${T} °C and this CO₂ level, oxygenation has climbed to ${Math.round(oxy * 100)}% — photorespiration is now bleeding away a large fraction of the plant's effort. This is precisely the regime where C4 and CAM plants win.`
+        : oxy > 0.28
+          ? `Carboxylation still leads (${Math.round(carb * 100)}%), but the wasteful branch is rising as it gets hotter or drier — a steady tax on C3 photosynthesis.`
+          : `Cool and CO₂-rich: Rubisco fixes carbon ${co.toFixed(1)}× for every wasteful reaction with O₂. Even here, no enzyme this important is this error-prone — which is why plants make so much of it.`;
+    }
+    ratioIn.addEventListener('input', render);
+    tempIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .rf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rf-bars { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .rf-bar-row { display: flex; align-items: center; gap: 0.5rem; }
+  .rf-bar-lbl { width: 92px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: none; text-align: right; }
+  .rf-bar-track { position: relative; flex: 1; height: 22px; background: color-mix(in srgb, var(--ddp-color-accent) 6%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 5px; }
+  .rf-bar-fill { height: 100%; border-radius: 4px 0 0 4px; transition: width 0.25s ease; }
+  .rf-bar-fill.is-carb { background: var(--ddp-color-accent); }
+  .rf-bar-fill.is-oxy { background: var(--ddp-color-secondary); }
+  .rf-bar-track b { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); }
+  .rf-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; }
+  .rf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rf-slabel input { accent-color: var(--ddp-color-accent); }
+  .rf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .rf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .rf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .rf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

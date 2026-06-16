@@ -119,6 +119,10 @@ simulations:
     ref: "PathwayExplorer"
     title: "Calvin cycle per CO₂ fixed — the reduction steps run twice, so the meter lands on 3 ATP + 2 NADPH per CO₂ (18 ATP + 12 NADPH per hexose); RuBP is regenerated each turn"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "RubiscoFork"
+    title: "Rubisco's fork (CO₂/O₂ availability and temperature set the carboxylation-vs-photorespiration split)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab). Teaching-grade specificity model."
 practiceQuestions:
   - stem: "In the Calvin cycle, which statement correctly distinguishes the two roles CO2 can play at Rubisco?"
     choices:
@@ -296,6 +300,7 @@ lectureSlides:
 ---
 
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+import RubiscoFork from '../../../components/RubiscoFork.astro';
 
 export const calvinSteps = [{"n": 1, "enzyme": "Rubisco (carboxylation)", "sub": "RuBP (5C) + CO₂", "prod": "2 × 3-PGA (3C)", "regulated": true, "note": "The fixation step and the rate-limiter. RuBP forms a C2–C3 enediol; CO₂ adds at C2 to give a six-carbon intermediate that is hydrated and then cleaved at the C2–C3 bond into two molecules of 3-PGA. It costs no ATP or NADPH — the energy is paid later. Needs the Lys-201 carbamate plus Mg²⁺, and that carbamate CO₂ is not the substrate CO₂.", "clinical": "Rubisco is the most abundant protein on Earth yet turns over only ~3 molecules per second. Its sluggishness throttles the entire global food supply — plants compensate by making astonishing amounts of it, about a quarter of all leaf protein."}, {"n": 2, "enzyme": "Phosphoglycerate kinase", "sub": "3-PGA (3C) + ATP", "prod": "1,3-BPG (3C)", "atp": -1, "doubled": true, "note": "Reduction stage begins. One ATP phosphorylates the carboxylate to a mixed anhydride, priming the carbon for reduction — a glycolytic payoff step run backward. It happens twice per CO₂, once for each 3-PGA."}, {"n": 3, "enzyme": "Glyceraldehyde-3-phosphate dehydrogenase", "sub": "1,3-BPG (3C) + NADPH", "prod": "G3P (3C)", "nadph": -1, "doubled": true, "note": "NADPH delivers the electrons that actually reduce the molecule to a triose sugar, releasing Pᵢ. The chloroplast isoform uses NADPH, not NADH — the reducing power comes straight from Photosystem I. This is the only true reduction in the cycle, and it runs twice per CO₂."}, {"n": 4, "enzyme": "Aldolase + transketolase (sugar shuffle)", "sub": "5 × G3P (3C)", "prod": "3 × ribulose-5-P (5C)", "regulated": true, "note": "Regeneration. Five of every six G3P (15 carbons) are reshuffled into three 5-carbon sugars by aldolase and transketolase, with FBPase and SBPase clipping phosphates. The sixth G3P exits as the net product. FBPase and SBPase are light-activated control points."}, {"n": 5, "enzyme": "Phosphoribulokinase (PRK)", "sub": "ribulose-5-P (5C) + ATP", "prod": "RuBP (5C)", "atp": -1, "regulated": true, "note": "The last ATP of the cycle phosphorylates ribulose-5-P back to the CO₂ acceptor RuBP, closing the loop. This regeneration ATP is why the cycle needs more ATP than NADPH (3:2). PRK is switched on by reduced thioredoxin in the light and off in the dark."}];
 
@@ -334,6 +339,8 @@ First, when the light reactions pump protons into the thylakoid lumen, the **str
 ## Photorespiration, and the workarounds
 
 Rubisco has a costly flaw written into its name: it is also an **oxygenase**. When O2 wins the active site instead of CO2, RuBP is split into one 3-PGA plus one **phosphoglycolate** — no carbon fixed, and salvaging the phosphoglycolate actually *releases* CO2. This **photorespiration** worsens on hot, dry days, when stomata close, CO2 falls, and O2 builds up. On a scorching afternoon a plant can lose a quarter of its fixed carbon this way.
+
+<RubiscoFork />
 
 Two lineages evolved fixes. **C4 plants** (corn, sugarcane) separate the chemistry in *space*: in mesophyll cells, **PEP carboxylase** — which has high CO2 affinity and no oxygenase activity — fixes CO2 into oxaloacetate, then malate, which is shuttled into bundle-sheath cells and decarboxylated to flood Rubisco with concentrated CO2. It costs two extra ATP per CO2 (C4 runs at **5 ATP + 2 NADPH** per CO2, spent regenerating PEP), worth it in heat and dry light. **CAM plants** (cacti, agave, pineapple) separate it in *time*: they open stomata only at night to fix CO2 into malate, then close up by day and release that CO2 to the Calvin cycle, conserving precious water. The same PEP carboxylase that drives both also discriminates less against heavy 13C than Rubisco does, which is why C4 and C3 plants carry distinct **isotopic signatures** — a fingerprint paleoecologists read straight out of fossils.
 
