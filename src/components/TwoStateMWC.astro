@@ -1,0 +1,130 @@
+---
+/**
+ * TwoStateMWC — the mechanism companion to the oxygen-binding curve. The OxygenBindingExplorer
+ * shows the sigmoid (the phenotype); this island shows WHY: the Monod–Wyman–Changeux model, in
+ * which every subunit of the protein flips together between a Tense (low-affinity) and Relaxed
+ * (high-affinity) state. Ligand binds R better, so binding pulls the whole population toward R —
+ * that positive feedback IS cooperativity. Drag ligand, switch the allosteric effector, and watch
+ * the T⇌R population and the saturation respond. Real MWC equations (n=4, c=0.01). Original island.
+ */
+---
+
+<figure class="mwc card" data-mwc>
+  <figcaption class="mwc-head">The switch behind the sigmoid — T ⇌ R<span class="mwc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="mwc-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+
+  <label class="mwc-slabel">Ligand (O₂) concentration <em data-out="lig">low</em>
+    <input type="range" data-in="lig" min="0" max="100" step="2" value="20" />
+  </label>
+
+  <div class="mwc-eff" role="group" aria-label="Allosteric effector">
+    <span class="mwc-eff-label">Effector:</span>
+    <button type="button" data-eff="inh">Inhibitor (BPG, low pH)</button>
+    <button type="button" data-eff="none" aria-pressed="true">None</button>
+    <button type="button" data-eff="act">Activator</button>
+  </div>
+
+  <div class="mwc-meters">
+    <div class="mwc-meter"><span class="mwc-m-name">In R (high-affinity) state</span><span class="mwc-m-v" data-rstate>0%</span></div>
+    <div class="mwc-meter"><span class="mwc-m-name">Sites occupied (saturation)</span><span class="mwc-m-v" data-sat>0%</span></div>
+  </div>
+  <p class="mwc-why" data-why></p>
+
+  <p class="mwc-foot">Cooperativity needs no new physics — just a population. Each binding event makes the R state a little more favorable, which raises affinity for the next ligand, which favors R still more. An inhibitor like 2,3-BPG stabilizes T and shifts the whole curve right (releasing more O₂ to hungry tissue); an activator stabilizes R and shifts it left. The single-subunit reference, myoglobin, has no T⇌R conversation at all, so its curve is a plain hyperbola.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', NAVY = '#232d4b';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const N_SITES = 4, C_RATIO = 0.01, ALPHA_MAX = 25;
+  const EFF_L: Record<string, number> = { inh: 20000, none: 1000, act: 20 };
+
+  function mwc(alpha: number, L: number) {
+    const r = Math.pow(1 + alpha, N_SITES);
+    const t = L * Math.pow(1 + C_RATIO * alpha, N_SITES);
+    const Rbar = r / (r + t);
+    const Y = (alpha * Math.pow(1 + alpha, N_SITES - 1) + L * C_RATIO * alpha * Math.pow(1 + C_RATIO * alpha, N_SITES - 1)) / (r + t);
+    return { Rbar, Y };
+  }
+
+  function draw(svg: SVGElement, Rbar: number, Y: number) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const N = 12, cols = 12, w = 460 / cols, top = 30;
+    const nR = Math.round(Rbar * N);
+    for (let i = 0; i < N; i++) {
+      const cx = i * w + w / 2, cy = top + 20;
+      const isR = i >= N - nR; // fill R from the right
+      const color = isR ? ACCENT : ORANGE;
+      if (isR) svg.appendChild(el('circle', { cx, cy, r: 13, fill: color, opacity: 0.18, stroke: color, 'stroke-width': 2 }));
+      else svg.appendChild(el('rect', { x: cx - 11, y: cy - 11, width: 22, height: 22, rx: 3, fill: color, opacity: 0.18, stroke: color, 'stroke-width': 2 }));
+      const lab = el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: color, 'font-size': 11, 'font-weight': 700 });
+      lab.textContent = isR ? 'R' : 'T'; svg.appendChild(lab);
+    }
+    // occupancy bar
+    svg.appendChild(el('rect', { x: 20, y: 84, width: 420, height: 10, rx: 5, fill: '#e6e3db' }));
+    svg.appendChild(el('rect', { x: 20, y: 84, width: 420 * Y, height: 10, rx: 5, fill: NAVY }));
+    const cap = el('text', { x: 20, y: 110, fill: NAVY, 'font-size': 10 }); cap.textContent = 'O₂ saturation'; svg.appendChild(cap);
+    const t2 = el('text', { x: 20, y: 18, fill: '#b9b9c2', 'font-size': 10 }); t2.textContent = '12 molecules: T (tense, low affinity) ⇌ R (relaxed, high affinity)'; svg.appendChild(t2);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-mwc]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const ligIn = root.querySelector<HTMLInputElement>('[data-in="lig"]')!;
+    const ligOut = root.querySelector<HTMLElement>('[data-out="lig"]')!;
+    const rStateEl = root.querySelector<HTMLElement>('[data-rstate]')!;
+    const satEl = root.querySelector<HTMLElement>('[data-sat]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    let eff = 'none';
+    function render() {
+      const v = parseInt(ligIn.value, 10);
+      const alpha = (v / 100) * ALPHA_MAX;
+      const L = EFF_L[eff];
+      const { Rbar, Y } = mwc(alpha, L);
+      ligOut.textContent = v > 66 ? 'high (lungs)' : v > 33 ? 'moderate' : v > 5 ? 'low (tissue)' : 'near zero';
+      rStateEl.textContent = Math.round(Rbar * 100) + '%';
+      satEl.textContent = Math.round(Y * 100) + '%';
+      draw(svg, Rbar, Y);
+      whyEl.textContent = Rbar > 0.6
+        ? 'Ligand has pulled most of the population into the R (relaxed, high-affinity) state. Once flipped, R grabs O₂ readily — the upper, easy-loading shoulder of the sigmoid.'
+        : Rbar > 0.15
+          ? 'Right in the switch: T and R are close to balanced, so a small rise in O₂ flips many molecules to R at once. This steep middle is the cooperative transition — the sigmoid’s rise.'
+          : 'Almost all molecules sit in T (tense, low-affinity), reluctant to bind. This is the flat foot of the sigmoid — and exactly where an inhibitor like BPG keeps hemoglobin so it dumps O₂ in the tissues.';
+    }
+    ligIn.addEventListener('input', render);
+    root.querySelectorAll<HTMLButtonElement>('[data-eff]').forEach((b) =>
+      b.addEventListener('click', () => {
+        eff = b.getAttribute('data-eff')!;
+        root.querySelectorAll<HTMLButtonElement>('[data-eff]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        render();
+      }));
+    render();
+  });
+</script>
+
+<style>
+  .mwc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mwc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .mwc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mwc-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .mwc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
+  .mwc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .mwc-slabel input { accent-color: var(--ddp-color-accent); }
+  .mwc-eff { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .mwc-eff-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mwc-eff button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .mwc-eff button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .mwc-eff button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .mwc-meters { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 480px) { .mwc-meters { grid-template-columns: repeat(2, 1fr); } }
+  .mwc-meter { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .mwc-m-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mwc-m-v { font-size: var(--ddp-text-lg); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-accent); }
+  .mwc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mwc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
