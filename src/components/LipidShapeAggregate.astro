@@ -1,0 +1,150 @@
+---
+/**
+ * LipidShapeAggregate — the self-assembly companion to the membrane-fluidity bench. The bench
+ * is about melting (chain length, saturation, cholesterol → Tm); this island is about geometry:
+ * a lipid's head-to-tail shape decides what it spontaneously forms in water. A cone (one tail,
+ * big head) packs into a micelle; a cylinder (two tails, matched head) lays down a bilayer; an
+ * inverted cone (small head, bulky tails) curves the other way into the hexagonal phase that
+ * drives membrane fusion. Pick a shape, watch the aggregate redraw. Vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="lsa card" data-lshape>
+  <figcaption class="lsa-head">Shape decides what a lipid builds<span class="lsa-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="lsa-tabs" role="group" aria-label="Lipid shape">
+    <button type="button" data-shape="cone" aria-pressed="true">Cone — one tail</button>
+    <button type="button" data-shape="cyl">Cylinder — two tails</button>
+    <button type="button" data-shape="inv">Inverted cone</button>
+  </div>
+
+  <svg class="lsa-svg" viewBox="0 0 460 210" role="img" data-svg></svg>
+
+  <div class="lsa-readout">
+    <div class="lsa-name" data-name></div>
+    <dl class="lsa-facts">
+      <div><dt>Geometry</dt><dd data-geo></dd></div>
+      <div><dt>Self-assembles into</dt><dd data-form></dd></div>
+      <div><dt>Biology</dt><dd data-bio></dd></div>
+    </dl>
+  </div>
+
+  <p class="lsa-foot">No enzyme arranges these — the shapes fall into place because water excludes the tails. The ratio of head area to tail volume (the packing parameter) sets the curvature: big head over thin tail bends tightly into a micelle, a matched cylinder lies flat as a bilayer, and a small head over fat tails bends the opposite way. That last, negative curvature is exactly what a membrane needs to pinch, fuse, and bud.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  type Mode = { name: string; color: string; geo: string; form: string; bio: string };
+  const MODES: Record<string, Mode> = {
+    cone: {
+      name: 'Cone — free fatty acid or lysolipid', color: ORANGE,
+      geo: 'One tail under a large polar head: wide at the top, narrow at the bottom.',
+      form: 'A micelle — a single ball of lipids, tails tucked inside, heads facing the water.',
+      bio: 'Soap and bile salts. Micelles trap grease in their oily core, which is how soap cleans and how bile emulsifies dietary fat.',
+    },
+    cyl: {
+      name: 'Cylinder — glycerophospholipid', color: ACCENT,
+      geo: 'Two tails under a matched head: the molecule is roughly the same width top to bottom.',
+      form: 'A bilayer (here a vesicle) — two sheets tail-to-tail, the basis of every membrane.',
+      bio: 'Phosphatidylcholine and most membrane lipids. The cylinder is why the cell can wrap itself in a stable, flat, self-sealing sheet.',
+    },
+    inv: {
+      name: 'Inverted cone — PE or cardiolipin', color: NAVY,
+      geo: 'A small head over bulky or splayed tails: narrow at the top, wide at the bottom.',
+      form: 'The inverted hexagonal phase — heads line a water channel, tails splay outward.',
+      bio: 'Phosphatidylethanolamine and cardiolipin. Their negative curvature stresses the bilayer and helps it fuse, pinch, and bud during vesicle traffic.',
+    },
+  };
+
+  function glyph(svg: SVGElement, hx: number, hy: number, dx: number, dy: number, tails: number, color: string) {
+    const len = 18;
+    const px = -dy, py = dx; // perpendicular
+    for (let t = 0; t < tails; t++) {
+      const off = tails === 1 ? 0 : (t === 0 ? -2.6 : 2.6);
+      const sx = hx + px * off, sy = hy + py * off;
+      svg.appendChild(el('line', { x1: sx, y1: sy, x2: sx + dx * len, y2: sy + dy * len, stroke: color, 'stroke-width': 2, 'stroke-linecap': 'round' }));
+    }
+    svg.appendChild(el('circle', { cx: hx, cy: hy, r: 5.5, fill: color, stroke: '#fff', 'stroke-width': 1 }));
+  }
+
+  function draw(svg: SVGElement, mode: string) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const c = MODES[mode].color;
+    const cx = 150, cy = 105;
+    if (mode === 'cone') {
+      const N = 13, R = 56;
+      for (let i = 0; i < N; i++) {
+        const a = (2 * Math.PI * i) / N, hx = cx + R * Math.cos(a), hy = cy + R * Math.sin(a);
+        glyph(svg, hx, hy, -Math.cos(a), -Math.sin(a), 1, c); // tail inward
+      }
+    } else if (mode === 'cyl') {
+      const Ro = 62, Ri = 30, No = 16, Ni = 9;
+      for (let i = 0; i < No; i++) { const a = (2 * Math.PI * i) / No; glyph(svg, cx + Ro * Math.cos(a), cy + Ro * Math.sin(a), -Math.cos(a), -Math.sin(a), 2, c); }
+      for (let i = 0; i < Ni; i++) { const a = (2 * Math.PI * i) / Ni; glyph(svg, cx + Ri * Math.cos(a), cy + Ri * Math.sin(a), Math.cos(a), Math.sin(a), 2, c); }
+    } else {
+      // inverted hexagonal: water channel in center, heads face it, tails outward
+      svg.appendChild(el('circle', { cx, cy, r: 14, fill: '#cfe6ea', opacity: 0.7 }));
+      const N = 12, R = 22;
+      for (let i = 0; i < N; i++) { const a = (2 * Math.PI * i) / N; glyph(svg, cx + R * Math.cos(a), cy + R * Math.sin(a), Math.cos(a), Math.sin(a), 2, c); }
+    }
+    // single-molecule shape schematic, right side
+    const ox = 360, oy = 60;
+    const outline = mode === 'cone'
+      ? 'M' + (ox - 18) + ',' + oy + ' L' + (ox + 18) + ',' + oy + ' L' + ox + ',' + (oy + 70) + ' Z'
+      : mode === 'cyl'
+        ? 'M' + (ox - 15) + ',' + oy + ' L' + (ox + 15) + ',' + oy + ' L' + (ox + 15) + ',' + (oy + 70) + ' L' + (ox - 15) + ',' + (oy + 70) + ' Z'
+        : 'M' + ox + ',' + oy + ' L' + (ox + 20) + ',' + (oy + 70) + ' L' + (ox - 20) + ',' + (oy + 70) + ' Z';
+    svg.appendChild(el('path', { d: outline, fill: c, opacity: 0.1, stroke: c, 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }));
+    glyph(svg, ox, oy + 8, 0, 1, mode === 'cone' ? 1 : 2, c);
+    const lab = el('text', { x: ox, y: oy + 90, 'text-anchor': 'middle', fill: NAVY, 'font-size': 10 });
+    lab.textContent = mode === 'cone' ? 'cone' : mode === 'cyl' ? 'cylinder' : 'inverted cone';
+    svg.appendChild(lab);
+    const lab2 = el('text', { x: cx, y: 198, 'text-anchor': 'middle', fill: GOLD, 'font-size': 11, 'font-weight': 600 });
+    lab2.textContent = mode === 'cone' ? 'micelle' : mode === 'cyl' ? 'bilayer / vesicle' : 'hexagonal (HII) phase';
+    svg.appendChild(lab2);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-lshape]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const nameEl = root.querySelector<HTMLElement>('[data-name]')!;
+    const geoEl = root.querySelector<HTMLElement>('[data-geo]')!;
+    const formEl = root.querySelector<HTMLElement>('[data-form]')!;
+    const bioEl = root.querySelector<HTMLElement>('[data-bio]')!;
+    function select(mode: string) {
+      const m = MODES[mode];
+      nameEl.textContent = m.name; nameEl.style.color = m.color;
+      geoEl.textContent = m.geo; formEl.textContent = m.form; bioEl.textContent = m.bio;
+      draw(svg, mode);
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-shape]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-shape]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        select(b.getAttribute('data-shape')!);
+      }));
+    select('cone');
+  });
+</script>
+
+<style>
+  .lsa { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lsa-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .lsa-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lsa-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .lsa-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .lsa-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .lsa-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .lsa-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }
+  .lsa-name { font-size: var(--ddp-text-lg); font-weight: 700; margin-bottom: var(--ddp-space-2); }
+  .lsa-facts { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: 0; }
+  @media (min-width: 560px) { .lsa-facts { grid-template-columns: repeat(3, 1fr); } }
+  .lsa-facts > div { border-left: 3px solid var(--ddp-color-line); padding-left: 0.55rem; }
+  .lsa-facts dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-bottom: 0.15rem; }
+  .lsa-facts dd { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .lsa-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
