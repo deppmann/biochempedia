@@ -1,0 +1,108 @@
+---
+/**
+ * CellSizeScaler — a companion to the central-dogma flow for the intro chapter. Drag a
+ * cell's radius and watch surface area, volume, and the surface-area-to-volume ratio
+ * respond: volume (the demand for nutrients) grows as r³ while surface (the supply
+ * across the membrane) grows only as r², so SA:V = 3/r collapses as a cell enlarges.
+ * That single inequality is why cells stay small, why a neuron is thin, and why the
+ * gut and mitochondria fold their membranes. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="cs card" data-cellsize>
+  <figcaption class="cs-head">Why cells stay small — surface vs volume<span class="cs-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cs-grid">
+    <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="A cell drawn to scale by its radius" data-cell></svg>
+    <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="Surface-area-to-volume ratio falling as radius rises" data-plot></svg>
+  </div>
+
+  <label class="cs-slabel">Cell radius <em data-out="r">10</em> µm
+    <input type="range" data-in="r" min="1" max="50" step="1" value="10" />
+  </label>
+
+  <dl class="cs-readout">
+    <div><dt>Surface area ∝ r²</dt><dd data-r-sa>—</dd></div>
+    <div><dt>Volume ∝ r³</dt><dd data-r-v>—</dd></div>
+    <div><dt>SA : V (= 3/r)</dt><dd data-r-ratio>—</dd></div>
+  </dl>
+  <p class="cs-why" data-why>A small cell has lots of surface per unit of contents, so nutrients and waste cross fast enough. Double the radius and the inside grows eightfold but the membrane only fourfold.</p>
+
+  <p class="cs-foot">Demand scales with volume, supply with surface — so above a few tens of microns a naked sphere starves. The fix is folding: microvilli, the cristae of a mitochondrion, the flattened sheets of the ER all buy back surface.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-cellsize]').forEach((root) => {
+    const rIn = root.querySelector<HTMLInputElement>('[data-in="r"]')!;
+    const rOut = root.querySelector<HTMLElement>('[data-out="r"]')!;
+    const cell = root.querySelector<SVGSVGElement>('[data-cell]')!;
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const rSa = root.querySelector<HTMLElement>('[data-r-sa]')!;
+    const rV = root.querySelector<HTMLElement>('[data-r-v]')!;
+    const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    function drawCell(r: number) {
+      cell.replaceChildren();
+      const px = 8 + (r / 50) * 86; // map 1..50 µm to a visible radius
+      cell.appendChild(el('circle', { cx: 100, cy: 105, r: px, fill: 'color-mix(in srgb,#0e7c86 12%,#fff)', stroke: NAVY, 'stroke-width': 2 }));
+      // reference 10 µm cell outline
+      const ref = 8 + (10 / 50) * 86;
+      cell.appendChild(el('circle', { cx: 100, cy: 105, r: ref, fill: 'none', stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      const t = el('text', { x: 100, y: 22, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); t.textContent = `radius ${r} µm`; cell.appendChild(t);
+      const t2 = el('text', { x: 100, y: 196, 'text-anchor': 'middle', 'font-size': 8, fill: FAINT }); t2.textContent = 'dashed = 10 µm reference'; cell.appendChild(t2);
+    }
+    const PX0 = 36, PX1 = 188, PY0 = 16, PY1 = 176;
+    function drawPlot(r: number) {
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      const yl = el('text', { x: PX0 - 4, y: PY0 + 8, 'text-anchor': 'end', 'font-size': 8, fill: INK }); yl.textContent = 'SA:V'; plot.appendChild(yl);
+      const xl = el('text', { x: (PX0 + PX1) / 2, y: PY1 + 16, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); xl.textContent = 'radius (µm)'; plot.appendChild(xl);
+      const rx = (rr: number) => PX0 + (rr / 50) * (PX1 - PX0);
+      const ry = (ratio: number) => PY1 - (Math.min(3, ratio) / 3) * (PY1 - PY0); // 3/r, max 3 at r=1
+      let d = '';
+      for (let rr = 1; rr <= 50; rr += 0.5) { d += (rr === 1 ? 'M' : 'L') + rx(rr).toFixed(1) + ' ' + ry(3 / rr).toFixed(1) + ' '; }
+      plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
+      plot.appendChild(el('circle', { cx: rx(r), cy: ry(3 / r), r: 4, fill: ORANGE }));
+    }
+    function render() {
+      const r = parseInt(rIn.value, 10);
+      rOut.textContent = String(r);
+      const sa = 4 * Math.PI * r * r, v = (4 / 3) * Math.PI * r * r * r, ratio = 3 / r;
+      rSa.textContent = Math.round(sa).toLocaleString('en-US') + ' µm²';
+      rV.textContent = Math.round(v).toLocaleString('en-US') + ' µm³';
+      rRatio.textContent = ratio.toFixed(2) + ' µm⁻¹';
+      drawCell(r); drawPlot(r);
+      why.textContent = r <= 12
+        ? `At ${r} µm the cell has a healthy SA:V of ${ratio.toFixed(2)} — plenty of membrane per unit of contents, so exchange keeps up with metabolism.`
+        : `At ${r} µm the SA:V has fallen to ${ratio.toFixed(2)}: the interior (∝ r³) has outrun the membrane (∝ r²). A real cell this big must fold its membranes or stay thin, because diffusion across the center now takes far too long (time ∝ r²).`;
+    }
+    rIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .cs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-3); }
+  .cs-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cs-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cs-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cs-slabel input { accent-color: var(--ddp-color-accent); }
+  .cs-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cs-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .cs-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cs-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .cs-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .cs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
