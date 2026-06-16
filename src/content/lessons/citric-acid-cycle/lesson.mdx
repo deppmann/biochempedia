@@ -1,0 +1,384 @@
+---
+title: "The Citric Acid Cycle: Harvesting Electrons"
+slug: "citric-acid-cycle"
+courseChapter: "The Citric Acid Cycle"
+order: 19
+summary: "The citric acid cycle does not make ATP. Its real product is high-energy electrons — three NADH and one FADH2 per acetyl-CoA — carried off to the electron transport chain where most of the cell's ATP is actually minted. Watch one carbon, count the cofactors, and notice that oxaloacetate comes out of every turn exactly as it went in: the cycle is a catalyst, not a fuel, which is the single fact most students get wrong."
+estMinutes: 24
+objectives:
+  - "Explain the cycle's true job — harvesting high-energy electrons (3 NADH + 1 FADH2 per acetyl-CoA) — and why the 1 GTP and 2 CO2 are byproducts, not the point."
+  - "Prove that oxaloacetate is catalytic: it is regenerated unchanged every turn, so the cycle is never consumed (the #1 misconception)."
+  - "Walk all eight enzymes as a two-stage factory — Stage One (steps 1–4) burns the two acetyl carbons to CO2 and banks 2 NADH; Stage Two (steps 5–8) rebuilds oxaloacetate and banks 1 GTP, 1 FADH2, and 1 NADH."
+  - "Locate the two control points (isocitrate dehydrogenase and α-ketoglutarate dehydrogenase) and apply the energy-charge rule: ATP/NADH = STOP, ADP/Ca2+ = GO."
+  - "Account for why O2 is not a substrate of the cycle yet is absolutely required, and finish the ATP math to ~10 ATP per acetyl-CoA (~30–32 per glucose)."
+scientists:
+  - name: "Hans Krebs"
+    dates: "1900–1981"
+    contribution: "Discovered the citric acid cycle (1937) using minced pigeon-breast muscle on Warburg manometers, and proved its cyclical order by selective inhibition — malonate backs up succinate, fluoroacetate backs up citrate. He had earlier discovered the urea cycle (1932), which taught him to hunt for the molecule that emerges unchanged."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Hans Krebs profile by Caoilainn Bischoff, Part 2 (quotes grep-confirmed at lines 406, 1025, 1033, 1035)."
+    quotes:
+      - "I did not invent the citric acid cycle; I discovered it."
+      - "citrate was not only broken down at a rapid rate but was also readily formed in muscle and in other tissues provided that oxaloacetate was added"
+      - "It is indeed remarkable that all foodstuffs are burnt through a common terminal pathway"
+    story: "Krebs found the cycle spoke by spoke, proving the sequence by jamming it with poisons and watching which intermediate flooded and which ran dry — the exact logic of the malonate problem in this chapter. A Jewish refugee dismissed from Freiburg in 1933, he sailed to England carrying 24 Warburg manometers in 16 crates and rebuilt his career at Cambridge, then Sheffield. His 1937 submission to Nature was declined for a crowded correspondence column, not on scientific grounds; he kept the rejection slip and treated it as a lesson that the judgment of the gatekeepers is not the judgment of nature. He published in Enzymologia instead and shared the 1953 Nobel Prize with Fritz Lipmann. Nature itself called the rejection an egregious error in 1988."
+  - name: "Fritz Lipmann"
+    dates: "1899–1986"
+    contribution: "Discovered coenzyme A (the 'A' is for acetylation) and the concept of high-energy phosphate-bond energy as the cell's universal currency. CoA's reactive thiol forms the energy-rich thioester that delivers the 2-carbon acetyl fragment into the cycle as acetyl-CoA, the substrate of step 1. He introduced the ~P notation for high-transfer-potential phosphates."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Fritz Lipmann Editor's Profile, Part 2 (no first-person verbatim quote cleanly attributable; quotes left empty rather than invent one)."
+    quotes: []
+    story: "The other half of the 1953 Nobel: as the book puts it, Krebs's and Lipmann's work click together like the halves of a buckle, and in his Nobel lecture Krebs deferred to Lipmann to explain coenzyme A. Lipmann conceived high-energy phosphate-bond energy on a 1940 lakeside vacation in Vermont, then spent years making it testable, running liter after liter of pigeon-liver mash through columns to isolate CoA — whose chemical heart turned out to be the ordinary B vitamin pantothenic acid. He is the reason acetyl-CoA's thioester counts as 'high-energy,' which is what powers citrate synthase (step 1) and succinyl-CoA synthetase (step 5)."
+  - name: "Otto Warburg"
+    dates: "1883–1970"
+    contribution: "Krebs's mentor; invented the Warburg manometer, the instrument on which Krebs (and a whole generation) measured cellular respiration and built the cycle. Also the namesake of the Warburg effect, this chapter's cancer-metabolism insight: tumor cells favor glycolysis over the cycle even when oxygen is plentiful."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Otto Warburg profile, Part 2 (quote 'measure, do not speculate' grep-confirmed at line 1025)."
+    quotes:
+      - "measure, do not speculate"
+    story: "Two direct ties to this chapter. First, the tool: Krebs used Warburg manometers to find the cycle, and when he later asked Warburg for the manometer's design plans, Warburg refused — so Krebs rebuilt the instrument from memory in Sheffield. Warburg's creed, 'measure, do not speculate,' was the discipline Krebs absorbed. Second, the disease: the Warburg effect is exactly the metabolic reprogramming on this chapter's cancer slide. Krebs said of Warburg that he was the teacher from whom he had learnt more than from any other single teacher."
+techniques:
+  - name: "Warburg manometry (respirometry)"
+    blurb: "A sealed flask on a manometer measures the gas a tissue exchanges — O2 consumed, CO2 released — in real time. Krebs used minced pigeon-breast muscle on Warburg's manometer to watch respiration speed up when he added an intermediate, the assay that built the cycle. Its modern descendant is the Seahorse analyzer, which reads cellular oxygen consumption to fingerprint mitochondrial function."
+  - name: "Selective enzyme inhibition (pathway dissection)"
+    blurb: "Jam one step with a specific poison, then see which intermediate floods and which runs dry — that pattern reveals the order of the steps. Malonate blocks succinate dehydrogenase and backs up succinate; fluoroacetate blocks aconitase and backs up citrate. This 'poison and watch the traffic jam' logic is exactly how Krebs proved the sequence was a cycle."
+  - name: "Isotopic carbon tracking"
+    blurb: "Label a carbon with ¹³C or ¹⁴C and trace where it lands turn by turn. This is the only way to see that the carbons leaving as CO2 in one turn are not the carbons that just entered — and that after succinate the molecule becomes symmetric, so the two ends become indistinguishable. It turns 'memorize the cycle' into 'reason about the cycle.'"
+structures:
+  - label: "Citrate synthase (pig heart, closed/induced-fit)"
+    source: "rcsb"
+    id: "2CTS"
+    note: "PDB 2CTS"
+    caption: "Citrate synthase enzyme, classic induced-fit closed conformation structure"
+  - label: "Aconitase (mitochondrial, with [4Fe-4S] cluster)"
+    source: "rcsb"
+    id: "1C96"
+    note: "PDB 1C96"
+    caption: "Aconitase enzyme showing the iron-sulfur cluster active site"
+  - label: "Isocitrate dehydrogenase (rate-limiting enzyme)"
+    source: "rcsb"
+    id: "1AI2"
+    note: "PDB 1AI2"
+    caption: "NADP-dependent isocitrate dehydrogenase (E. coli) enzyme structure"
+  - label: "Succinate dehydrogenase / Complex II"
+    source: "rcsb"
+    id: "1NEK"
+    note: "PDB 1NEK"
+    caption: "E. coli succinate dehydrogenase (respiratory Complex II) full complex"
+  - label: "Fumarase (fumarate hydratase)"
+    source: "rcsb"
+    id: "1FUO"
+    note: "PDB 1FUO"
+    caption: "Fumarase / fumarate hydratase enzyme structure"
+  - label: "Malate dehydrogenase"
+    source: "rcsb"
+    id: "1MLD"
+    note: "PDB 1MLD"
+    caption: "Malate dehydrogenase (mitochondrial/porcine) enzyme structure"
+  - label: "Succinyl-CoA synthetase"
+    source: "rcsb"
+    id: "1SCU"
+    note: "PDB 1SCU"
+    caption: "Succinyl-CoA synthetase (E. coli) enzyme structure with phosphohistidine site"
+  - label: "Pyruvate carboxylase (anaplerotic enzyme)"
+    source: "rcsb"
+    id: "3BG5"
+    note: "PDB 3BG5"
+    caption: "Pyruvate carboxylase full tetramer (Rhizobium/S. aureus) biotin-dependent"
+  - label: "Acetyl-CoA (cycle entry substrate)"
+    source: "pubchem"
+    id: "444493"
+    note: "CID 444493"
+    caption: "Acetyl-coenzyme A molecule"
+  - label: "Citrate (first cycle intermediate)"
+    source: "pubchem"
+    id: "311"
+    note: "CID 311"
+    caption: "Citric acid / citrate"
+  - label: "Isocitrate"
+    source: "pubchem"
+    id: "1198"
+    note: "CID 1198"
+    caption: "Isocitric acid / isocitrate"
+  - label: "alpha-Ketoglutarate"
+    source: "pubchem"
+    id: "51"
+    note: "CID 51"
+    caption: "2-oxoglutarate / alpha-ketoglutaric acid"
+  - label: "Succinyl-CoA (high-energy thioester)"
+    source: "pubchem"
+    id: "92133"
+    note: "CID 92133"
+    caption: "Succinyl-coenzyme A"
+  - label: "Oxaloacetate (the catalytic 4-carbon regenerator)"
+    source: "pubchem"
+    id: "970"
+    note: "CID 970"
+    caption: "Oxaloacetic acid / oxaloacetate"
+  - label: "Fumarate"
+    source: "pubchem"
+    id: "444972"
+    note: "CID 444972"
+    caption: "Fumaric acid / fumarate"
+  - label: "NAD+ (electron carrier, reduced to NADH)"
+    source: "pubchem"
+    id: "5893"
+    note: "CID 5893"
+    caption: "Nicotinamide adenine dinucleotide (NAD+)"
+  - label: "Malonate (SDH competitive inhibitor — Quick Quiz)"
+    source: "pubchem"
+    id: "867"
+    note: "CID 867"
+    caption: "Malonic acid / malonate"
+videos:
+  - title: "The citric acid (Krebs) cycle"
+    youtubeId: "juM2ROSLWfw"
+    sourceNote: "Khan Academy — the cycle as cellular respiration's electron-harvesting hub. Openly available."
+  - title: "ATP & respiration (Crash Course Biology #7)"
+    youtubeId: "00jbG_cfGuQ"
+    sourceNote: "CrashCourse — where the cycle sits in the bigger respiration picture."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "The citric acid cycle as a roundabout (turn the cycle; the tally lands on 3 NADH + 1 FADH₂ + 1 GTP + 2 CO₂ per acetyl-CoA)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "A student claims the main purpose of the citric acid cycle is to produce ATP directly. What is the best correction?"
+    choices:
+      - "The cycle's main product is reduced electron carriers (3 NADH + 1 FADH2); it makes only 1 GTP directly"
+      - "The cycle makes most of the cell's ATP through substrate-level phosphorylation at four separate steps"
+      - "The cycle's main product is CO2, which is later converted to ATP in the lungs"
+      - "The cycle produces no ATP or GTP at all; all energy leaves as heat"
+    answer: 0
+    rationale: "Per acetyl-CoA the cycle yields 3 NADH, 1 FADH2, 1 GTP, and 2 CO2. Its real job is harvesting high-energy electrons onto carriers for the ETC; only the single GTP is direct high-energy phosphate, so the claim about ATP being the main direct product is wrong. The 'no ATP/GTP at all' choice ignores the one GTP; the 'four substrate-level steps' choice is false (there is only one); CO2 is not turned into ATP."
+  - stem: "Malonate competitively inhibits succinate dehydrogenase. What pattern of intermediates would you expect shortly after adding malonate to actively respiring mitochondria?"
+    choices:
+      - "Fumarate accumulates while succinate is depleted"
+      - "Succinate accumulates while fumarate and downstream intermediates are depleted"
+      - "All eight intermediates rise equally because the cycle is a closed loop"
+      - "Oxaloacetate accumulates because it can no longer be consumed"
+    answer: 1
+    rationale: "Succinate dehydrogenase converts succinate to fumarate. Block it and its substrate (succinate) backs up while everything downstream (fumarate, malate, oxaloacetate) runs dry — the 'traffic jam' logic Krebs used to order the cycle. Fumarate would fall, not rise; a closed loop does not mean uniform accumulation when one step is blocked; oxaloacetate is downstream of the block, so it is depleted, not accumulated."
+  - stem: "Why does the citric acid cycle stall within seconds when oxygen is removed, even though no enzyme of the cycle uses O2 as a substrate?"
+    choices:
+      - "CO2 cannot be released without O2, so the cycle is blocked at isocitrate dehydrogenase"
+      - "O2 is a direct substrate of malate dehydrogenase, so that step fails first"
+      - "Without O2 the ETC cannot reoxidize NADH back to NAD+, so the cycle's NAD+ supply runs out"
+      - "O2 normally inhibits citrate synthase, and its loss locks the enzyme open"
+    answer: 2
+    rationale: "O2 appears in none of the eight steps, but it is the terminal electron acceptor of the ETC. Without it the ETC backs up, NADH cannot be reoxidized to NAD+, and the cycle's small fixed NAD+ pool is consumed — the dehydrogenase steps then have no oxidized carrier to use. O2 is not a substrate of malate dehydrogenase; O2 does not inhibit citrate synthase; CO2 release does not require O2."
+  - stem: "Oxaloacetate is described as catalytic in the citric acid cycle. Which statement best supports that label?"
+    choices:
+      - "Oxaloacetate is the molecule oxidized to the two CO2 released each turn"
+      - "Oxaloacetate donates the high-energy phosphate that becomes GTP"
+      - "Oxaloacetate is consumed each turn and must be replaced from glucose"
+      - "Oxaloacetate is regenerated unchanged at the end of each turn, so one molecule can run many turns"
+    answer: 3
+    rationale: "A catalyst is regenerated unchanged. Oxaloacetate enters at citrate synthase and is reformed at malate dehydrogenase, so a single molecule can turn the cycle repeatedly; the fuel actually consumed is acetyl-CoA. Oxaloacetate is not consumed/replaced from glucose during normal turning; the carbons released as CO2 derive from the cycle intermediates, not specifically from oxaloacetate being burned; the GTP phosphate comes from succinyl-CoA's thioester, not oxaloacetate."
+  - stem: "Succinate dehydrogenase uses FAD rather than NAD+ as its electron acceptor. What is the primary reason?"
+    choices:
+      - "Oxidizing the C–C single bond of succinate releases too little energy to reduce NAD+"
+      - "NAD+ is unavailable in the mitochondrial matrix"
+      - "FAD is required because succinate dehydrogenase is a soluble cytoplasmic enzyme"
+      - "FAD can diffuse out of the membrane while NADH cannot"
+    answer: 0
+    rationale: "Reducing NAD+ requires a redox potential that the succinate-to-fumarate oxidation (a low-energy C–C oxidation) does not provide, so FAD, with its more accessible potential, is used. FAD here is covalently bound and does not diffuse freely; NAD+ is abundant in the matrix; succinate dehydrogenase is membrane-bound (Complex II of the ETC), not cytoplasmic, which is the opposite of the last choice."
+mcatQuestions:
+  - stem: "A glioma carries a gain-of-function mutation in isocitrate dehydrogenase that causes it to produce 2-hydroxyglutarate from α-ketoglutarate instead of performing its normal reaction. Beyond the epigenetic effects of 2-hydroxyglutarate, what immediate consequence for the citric acid cycle would you predict in cells relying on this mutant enzyme?"
+    choices:
+      - "Accumulation of oxaloacetate due to faster malate dehydrogenase activity"
+      - "Increased NADH output from step 3, accelerating the cycle"
+      - "Loss of the normal oxidative decarboxylation at step 3, reducing flux through the cycle and NADH yield"
+      - "No change, because step 4 can fully compensate for step 3"
+    answer: 2
+    rationale: "Isocitrate dehydrogenase normally performs the rate-limiting oxidative decarboxylation (isocitrate to α-ketoglutarate + CO2 + NADH). A neomorphic enzyme diverting α-ketoglutarate to 2-hydroxyglutarate undercuts normal forward flux and NADH production at this control point, so the cycle slows rather than speeds up. Step 4 acts on α-ketoglutarate downstream and cannot replace the step-3 reaction; oxaloacetate would not accumulate from this lesion."
+  - stem: "In a working cardiac muscle cell during exercise, intracellular Ca2+ rises sharply and ADP increases. Which combined effect on the citric acid cycle is expected?"
+    choices:
+      - "Ca2+ activates citrate synthase only, while ADP has no regulatory role"
+      - "Ca2+ inhibits the cycle but ADP overrides it, producing no net change"
+      - "Ca2+ and ADP both inhibit isocitrate and α-ketoglutarate dehydrogenase, slowing the cycle to conserve fuel"
+      - "Ca2+ activates the two dehydrogenase control points and the rising ADP (low energy charge) further promotes flux, speeding the cycle"
+    answer: 3
+    rationale: "The energy-charge rule: ADP and Ca2+ are GO signals, ATP and NADH are STOP signals. Ca2+ released during contraction directly activates isocitrate dehydrogenase and α-ketoglutarate dehydrogenase (and PDH), while rising ADP signals low energy charge and relieves inhibition — both push flux up to match demand. The other options invert the regulatory logic or wrongly assign the control points."
+  - stem: "You incubate isolated mitochondria with acetyl-CoA uniformly labeled with ¹⁴C at both acetyl carbons and let exactly one turn of the cycle complete. Where is the ¹⁴C label after that single turn?"
+    choices:
+      - "Entirely released as the two ¹⁴CO2 molecules during that turn"
+      - "Retained in the four-carbon intermediates (e.g., succinate/malate/oxaloacetate); the CO2 released this turn comes from oxaloacetate-derived carbons"
+      - "Half in CO2 and half in citrate, evenly split"
+      - "Completely absent from all intermediates because acetyl-CoA never becomes part of the carbon skeleton"
+    answer: 1
+    rationale: "Classic isotope-tracing result: the two CO2 lost in a given turn are derived from the oxaloacetate carbons, not from the acetyl carbons that just entered. The labeled acetyl carbons are incorporated into the four-carbon intermediates and only exit as CO2 in subsequent turns. Because the four-carbon intermediate becomes symmetric at succinate (and fumarate after it), label distributes across the two ends, but it is retained in the skeleton after one turn rather than fully released or absent."
+images: []
+corpusTags:
+  - "citric-acid-cycle"
+  - "krebs-cycle"
+  - "acetyl-coa"
+  - "oxidative-decarboxylation"
+  - "oncometabolite"
+  - "anaplerosis"
+  - "substrate-level-phosphorylation"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Imagine a little merry-go-round inside your cells. Every time it spins once, it grabs the energy out of a tiny piece of food and loads it onto special batteries. The merry-go-round itself never gets used up — it just keeps spinning and grabbing energy. Later, your cell takes those charged-up batteries somewhere else to make the energy it really wants. So this part isn't where the energy gets spent. It's where the batteries get charged."
+  - level: "highschool"
+    label: "High school"
+    text: "The citric acid cycle (also called the Krebs cycle) happens in your mitochondria after glycolysis. It takes a 2-carbon piece called acetyl-CoA and runs it around a loop of eight enzymes. Each loop releases 2 CO2 (the carbons you breathe out) and, more importantly, charges up electron carriers: 3 NADH and 1 FADH2, plus 1 GTP. Those carriers are the real product — they carry electrons to the next stage, the electron transport chain, where most of your ATP gets made. The starting molecule, oxaloacetate, comes back at the end every single time, so the cycle keeps reusing it instead of getting used up. Oxygen isn't actually in any step of the cycle, but you still need it: without it, the carriers can't be emptied and refilled, so the cycle stops."
+  - level: "college"
+    label: "College"
+    text: "The TCA cycle oxidizes one acetyl-CoA to 2 CO2, capturing the energy as 3 NADH + 1 FADH2 + 1 GTP. It splits conceptually into two stages: Stage One (citrate synthase, aconitase, isocitrate dehydrogenase, α-KG dehydrogenase) oxidizes the two acetyl carbons to CO2 and banks 2 NADH; Stage Two (succinyl-CoA synthetase, succinate dehydrogenase, fumarase, malate dehydrogenase) regenerates oxaloacetate and banks GTP, FADH2, and the third NADH. Oxaloacetate is catalytic — regenerated each turn. Three features to know cold: citrate synthase ('synthase,' no ATP) is the most exergonic, effectively irreversible committing step; succinate dehydrogenase is Complex II of the ETC and uses FAD because the C–C oxidation is low-energy; and succinyl-CoA synthetase is the only substrate-level phosphorylation. Control sits at the two oxidative decarboxylations (IDH and α-KGDH): inhibited by ATP/NADH, activated by ADP/NAD+/Ca2+. Net ATP yield ≈ 10 per acetyl-CoA (NADH ≈ 2.5, FADH2 ≈ 1.5)."
+  - level: "grad"
+    label: "Graduate"
+    text: "The cycle is best read as electron logistics under tight thermodynamic and regulatory constraint. Three reactions are held far from equilibrium and carry flux control — citrate synthase (ΔG ≈ −31.4 kJ/mol; ordered induced fit with in-situ hydrolysis of enzyme-bound citryl-CoA to capture thioester energy), IDH, and the α-KGDH complex (a PDH-homologous E1/E2/E3 megacomplex employing lipoyl-arm substrate channeling). The remaining steps run near equilibrium and are pulled vectorially, most notably the strongly endergonic malate→OAA step, which is dragged forward only because citrate synthase keeps [OAA] vanishingly low. Cofactor choice is mechanistically dictated: SDH uses covalently bound FAD because the succinate→fumarate redox potential is too low to reduce NAD+, and SDH's identity as Complex II couples the cycle physically to the respiratory chain. Regulation integrates energy charge (ATP/ADP, NADH/NAD+) with the Ca2+ signal that co-activates IDH, α-KGDH, and PDH during contraction. The amphibolic role demands cataplerosis/anaplerosis balance (pyruvate carboxylase, feedforward-activated by acetyl-CoA, as the chief OAA refill). The oncometabolite axis — gain-of-function IDH producing D-2-hydroxyglutarate, and loss-of-function SDH/FH elevating succinate/fumarate — links cycle dysregulation to competitive inhibition of α-ketoglutarate-dependent dioxygenases and epigenetic remodeling, now a tractable drug target."
+anecdotes:
+  - title: "The cycle is a roundabout, not a tank"
+    text: "Chris's go-to image: this is a metabolic roundabout, not a fuel tank. Cars (acetyl-CoA) merge on, drive around once, and leave as exhaust (CO2); the roundabout itself — oxaloacetate — is never consumed, it just keeps directing traffic. The reason students lose exam points is that they picture the cycle 'getting used up.' It doesn't. One oxaloacetate can run thousands of turns. Find the molecule that comes out unchanged and you've found the catalyst."
+    source: "CH19 lecture notes — 'metabolic roundabout' hook"
+  - title: "Rechargeable batteries, and oxygen runs the charger"
+    text: "NADH and FADH2 are rechargeable electron batteries. The cycle charges them; the electron transport chain recharges them by emptying them; and oxygen powers that charger by accepting the spent electrons at the very end. This is why Chris's trick question — 'is O2 a substrate of the citric acid cycle?' — trips people up. The honest answer is no: oxygen appears in none of the eight steps. It's required only indirectly, to regenerate NAD+. Required, but not a substrate."
+    source: "CH19 lecture notes — 'rechargeable electron batteries' hook"
+  - title: "Burn the fuel. Rebuild the machine."
+    text: "Chris's firewood analogy for holding eight enzymes in your head: Stage One is the furnace — it burns the firewood (the two acetyl carbons) down to CO2 and captures the heat as NADH. Stage Two is the cleanup crew that sweeps the ashes back into a fresh fireplace, rebuilding oxaloacetate so you can burn again. Four steps to burn, four steps to rebuild. 'Burn the fuel, rebuild the machine' is the whole cycle in five words."
+    source: "CH19 lecture notes — 'Burn the fuel. Rebuild the machine.' hook"
+  - title: "Where memorization fails and reasoning begins"
+    text: "There is one moment the chapter stops rewarding memorization. Trace a labeled carbon and you hit a wall at succinate: it is a symmetric molecule (and so is fumarate after it), so the cell can no longer tell its two ends apart. The carbons that leave as CO2 in a given turn are not the ones that just entered; the new carbons stay and only exit on later turns. You cannot memorize your way through that. You have to reason about the symmetry, which is exactly the point."
+    source: "CH19 lecture notes — 'this is the point where memorization fails and reasoning begins' hook"
+lectureSlides:
+  - src: "/slides/citric-acid-cycle/real-job-cycle-harvest-electrons.png"
+    audio: "/slides/citric-acid-cycle/audio/real-job-cycle-harvest-electrons.mp3"
+    title: "The Real Job of the Cycle: Harvest Electrons"
+    alt: "The Real Job of the Cycle: Harvest Electrons"
+    source: "CH19 Citric Acid Cycle · slide 3"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Strip away the chemistry and the citric acid cycle has one real job: harvest high-energy electrons from carbon fuel. A two-carbon acetyl fragment enters and condenses onto a four-carbon receiver to make six carbons. Around the ring we lose two carbons as carbon dioxide and shrink back down, and as we do, we capture electrons in NADH and FADH2 and squeeze out a single ATP. Notice the carbon bookkeeping along the rim, six to five to four, and notice how every step that drops a carbon also banks reducing power. The cycle is not really about making ATP directly; it is an electron-harvesting machine feeding the next stage."
+  - src: "/slides/citric-acid-cycle/two-stage-machine-burn-then-reset.png"
+    audio: "/slides/citric-acid-cycle/audio/two-stage-machine-burn-then-reset.mp3"
+    title: "A Two-Stage Machine: Burn, Then Reset"
+    alt: "A Two-Stage Machine: Burn, Then Reset"
+    source: "CH19 Citric Acid Cycle · slide 4"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of the cycle as a two-stage machine. In stage one, oxidation, two carbons are introduced as an acetyl group onto oxaloacetate to form citrate, and that six-carbon citrate undergoes two oxidative decarboxylations, burning off two molecules of carbon dioxide. That is the burn-carbon half. Stage two is regeneration, rebuilding the catalyst: the remaining backbone is reworked step by step until oxaloacetate is restored and ready to accept the next acetyl group. The dividing line in the middle is the stage boundary. Both halves matter, because both generate the high-energy electrons that ultimately power ATP synthesis in oxidative phosphorylation downstream."
+  - src: "/slides/citric-acid-cycle/cycle-stops-without-oxygen.png"
+    audio: "/slides/citric-acid-cycle/audio/cycle-stops-without-oxygen.mp3"
+    title: "Why the Cycle Stops Without Oxygen"
+    alt: "Why the Cycle Stops Without Oxygen"
+    source: "CH19 Citric Acid Cycle · slide 5"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is a puzzle worth sitting with: oxygen never appears anywhere in the citric acid cycle, yet the cycle is strictly aerobic. Why? The cycle produces NADH and FADH2, but it can only keep running if it gets NAD+ and FAD back. Those carriers are regenerated only when the electron transport chain reoxidizes them, and the electron transport chain hands its electrons to oxygen at the very end. Remove oxygen and the chain backs up, the carriers stay reduced, NAD+ and FAD never return, and the cycle grinds to a halt. So the cycle depends on oxygen indirectly, through the carriers it must recycle."
+  - src: "/slides/citric-acid-cycle/where-does-acetyl-coa-come-from.png"
+    audio: "/slides/citric-acid-cycle/audio/where-does-acetyl-coa-come-from.mp3"
+    title: "Where Does Acetyl-CoA Come From?"
+    alt: "Where Does Acetyl-CoA Come From?"
+    source: "CH19 Citric Acid Cycle · slide 6"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Before we run the cycle, ask where the fuel comes from, because acetyl-CoA is the common entry point for everything we eat. Carbohydrates become glucose, which glycolysis and the pyruvate dehydrogenase complex convert through pyruvate into acetyl-CoA. Fats are chopped down by beta-oxidation directly into acetyl-CoA. And many amino acids, after deamination removes their nitrogen, also funnel into acetyl-CoA. Three very different macronutrients, three different routes, one shared product. That convergence is the whole point: the citric acid cycle is the central hub where all fuel types are ultimately oxidized, so whatever you burn, it ends up here."
+  - src: "/slides/citric-acid-cycle/two-carbons-two-out-but-not-same-ones.png"
+    audio: "/slides/citric-acid-cycle/audio/two-carbons-two-out-but-not-same-ones.mp3"
+    title: "Two Carbons In, Two Out, But Not the Same Ones"
+    alt: "Two Carbons In, Two Out, But Not the Same Ones"
+    source: "CH19 Citric Acid Cycle · slide 12"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the subtle bookkeeping that trips students up. Two carbons enter as acetyl-CoA and two leave as carbon dioxide, so it is tempting to assume the carbons that came in are the ones that go out. They are not. Follow the colors: the carbons released as carbon dioxide on the first turn come from oxaloacetate, the four-carbon receiver, not from the acetyl group you just added. The acetyl carbons stay in the molecule and only leave on later turns. The accounting balances overall, but the identity of the atoms is scrambled. Focus on the principle here rather than the exact structures, which are simplified."
+  - src: "/slides/citric-acid-cycle/enzymes-cluster-into-complexes.png"
+    audio: "/slides/citric-acid-cycle/audio/enzymes-cluster-into-complexes.mp3"
+    title: "Why Enzymes Cluster Into Complexes"
+    alt: "Why Enzymes Cluster Into Complexes"
+    source: "CH19 Citric Acid Cycle · slide 14"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Why would the cell physically organize some cycle enzymes into complexes? Picture the alternative. Without channeling, each intermediate is released into the surrounding solution and must randomly diffuse to find the next enzyme, which is slow and lets product drift away. With substrate channeling, intermediates are handed directly from one active site to the next, like passing a baton. That buys you three things: speed, because diffusion is no longer the bottleneck; selectivity, because the intermediate cannot wander off into competing pathways; and efficiency, because nothing is lost. This is a recurring design principle in metabolism, and the cycle exploits it where it counts."
+  - src: "/slides/citric-acid-cycle/halftime-checkpoint-value-harvested.png"
+    audio: "/slides/citric-acid-cycle/audio/halftime-checkpoint-value-harvested.mp3"
+    title: "Halftime Checkpoint: Value Harvested"
+    alt: "Halftime Checkpoint: Value Harvested"
+    source: "CH19 Citric Acid Cycle · slide 15"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let us pause at the halfway mark and tally what the cycle has already extracted by the time we reach succinyl-CoA. Two carbons have left as carbon dioxide. Two molecules of NADH have been captured. And one high-energy thioester bond has been formed in succinyl-CoA, primed to make ATP in the very next step. We are only halfway around the ring and the cell has already pulled out most of the value. That is the takeaway: oxidation front-loads the payoff. The second half mainly regenerates oxaloacetate while picking up a bit more reducing power on the way."
+  - src: "/slides/citric-acid-cycle/cell-financially-literate.png"
+    audio: "/slides/citric-acid-cycle/audio/cell-financially-literate.mp3"
+    title: "The Cell Is Financially Literate"
+    alt: "The Cell Is Financially Literate"
+    source: "CH19 Citric Acid Cycle · slide 19"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of the cell as financially literate, constantly converting between currencies. The citric acid cycle does not finish the job; it hands off the charge. Most of its output is not cash-in-hand ATP but reducing power, NADH and FADH2, which is like a high-value asset that has to be sold. The electron transport chain is where that sale happens, converting each NADH into roughly two and a half ATP and each FADH2 into about one and a half, by reducing oxygen. So the cycle banks the electrons, and the next pathway liquidates them. Keep that handoff in mind; the real ATP windfall comes downstream."
+  - src: "/slides/citric-acid-cycle/this-regulation-makes-sense.png"
+    audio: "/slides/citric-acid-cycle/audio/this-regulation-makes-sense.mp3"
+    title: "Why This Regulation Makes Sense"
+    alt: "Why This Regulation Makes Sense"
+    source: "CH19 Citric Acid Cycle · slide 27"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The regulation of the cycle is not arbitrary; it tracks the cell's energy balance directly. In a high-energy state, when ATP and NADH are abundant, the cell does not need to burn more fuel, so these molecules act as signals that slow the cycle down at its committed, irreversible steps. In a low-energy state, when ADP piles up and ATP is scarce, the brakes come off and the cycle speeds up to regenerate ATP. The same logic coordinates pyruvate dehydrogenase upstream, so feeding into the cycle and running the cycle stay matched. Supply chases demand, and the controls sit exactly where flux commits."
+  - src: "/slides/citric-acid-cycle/clinical-insight-cycle-defects-cancer.png"
+    audio: "/slides/citric-acid-cycle/audio/clinical-insight-cycle-defects-cancer.mp3"
+    title: "Clinical Insight: Cycle Defects and Cancer"
+    alt: "Clinical Insight: Cycle Defects and Cancer"
+    source: "CH19 Citric Acid Cycle · slide 29"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The citric acid cycle is not just textbook metabolism; broken versions of it drive disease. Mutations in several cycle enzymes, including succinate dehydrogenase, fumarase, and isocitrate dehydrogenase, are linked to cancer. The most striking example is mutant isocitrate dehydrogenase, which gains an abnormal activity and produces 2-hydroxyglutarate, an oncometabolite. That molecule does not feed metabolism; it rewires gene expression and pushes cells toward unrestrained growth. Other defects nudge cancer cells toward aerobic glycolysis instead of full oxidation. The lesson is that a central metabolic pathway is also a signaling node, and when it fails, the consequences reach all the way to the genome."
+  - src: "/slides/citric-acid-cycle/glyoxylate-bypass-fats-into-sugar.png"
+    audio: "/slides/citric-acid-cycle/audio/glyoxylate-bypass-fats-into-sugar.mp3"
+    title: "The Glyoxylate Bypass: Fats Into Sugar"
+    alt: "The Glyoxylate Bypass: Fats Into Sugar"
+    source: "CH19 Citric Acid Cycle · slide 30"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Plants and many bacteria run a clever variant called the glyoxylate cycle, which lets them do something animals cannot: build carbohydrate from fat. The trick is bypassing the two decarboxylation steps that would otherwise burn off carbon as carbon dioxide. By skipping those losses, the pathway conserves carbon, allowing two acetyl-CoA units to be woven into a four-carbon molecule that can exit toward gluconeogenesis. Trace the bypass through glyoxylate and back to malate. This is exactly why oil-rich seeds, like sunflower seeds, can mobilize stored fat to grow a seedling before it can photosynthesize. Conserve the carbon, and you can make sugar from fat."
+  - src: "/slides/citric-acid-cycle/nadh-tally-so-far.png"
+    audio: "/slides/citric-acid-cycle/audio/nadh-tally-so-far.mp3"
+    title: "The NADH Tally So Far"
+    alt: "The NADH Tally So Far"
+    source: "CH19 Citric Acid Cycle · slide 33"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let us close by counting reducing equivalents per glucose, because the cycle only makes sense in the larger ledger. Glycolysis gives two NADH. Pyruvate oxidation gives two more. The citric acid cycle, run twice for the two pyruvates, contributes six NADH plus two FADH2. Add it up and we are sitting on ten NADH and two FADH2, all queued and waiting. None of that is ATP yet; it is stored electrical potential. In the next lecture we cash these carriers in through the electron transport chain, converting them into roughly thirty to thirty-two ATP. That is where the energy investment finally pays off."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const tcaSteps = [{"n": 1, "enzyme": "Citrate synthase", "sub": "Oxaloacetate (4C) + acetyl-CoA (2C)", "prod": "Citrate (6C) + CoA-SH", "note": "The condensation that starts the turn. 'Synthase' means no ATP is spent: the energy comes from cleaving acetyl-CoA's high-energy thioester. Ordered induced fit, with the citryl-CoA intermediate hydrolyzed while still bound so the thioester energy is not wasted. The most exergonic step (ΔG°′ ≈ −31.4 kJ/mol, standard free energy), effectively irreversible — the committed step that pulls the whole cycle forward.", "clinical": "Because it consumes oxaloacetate, this step drives the otherwise-unfavorable malate→oxaloacetate step (8) forward: the cycle's reactions are coupled, not independent."}, {"n": 2, "enzyme": "Aconitase", "sub": "Citrate", "prod": "Isocitrate (via cis-aconitate)", "note": "An isomerization, not a redox step: a dehydration then a rehydration moves the hydroxyl from a tertiary, un-oxidizable carbon to a secondary one so step 3 can oxidize it. Uses a [4Fe-4S] iron–sulfur cluster to position the substrate.", "clinical": "Fluoroacetate (a rodenticide from Australian Gastrolobium plants) is converted in the cell to fluorocitrate, a suicide inhibitor that jams aconitase and backs up citrate — one of Krebs's diagnostic poisons."}, {"n": 3, "enzyme": "Isocitrate dehydrogenase", "sub": "Isocitrate", "prod": "α-Ketoglutarate + CO₂ (#1)", "nadh": 1, "co2": 1, "regulated": true, "note": "First oxidative decarboxylation: oxidize, then lose CO₂ (via a bound oxalosuccinate intermediate), banking NADH #1. A principal flux-controlling step and the cycle's primary throttle — distinct from the committed step (citrate synthase), which provides the thermodynamic pull.", "clinical": "Mutant IDH (in gliomas and AML) gains a new activity, making the oncometabolite 2-hydroxyglutarate, which scrambles DNA and histone methylation. IDH inhibitors are now approved drugs."}, {"n": 4, "enzyme": "α-Ketoglutarate dehydrogenase complex", "sub": "α-Ketoglutarate", "prod": "Succinyl-CoA + CO₂ (#2)", "nadh": 1, "co2": 1, "regulated": true, "note": "Second oxidative decarboxylation, banking NADH #2 and the cycle's second CO₂. Mechanistically the twin of pyruvate dehydrogenase: E1/E2/E3 with five cofactors and substrate channeling. Both acetyl carbons have now, formally, balanced out as CO₂.", "clinical": "A second control point: inhibited by its products NADH and succinyl-CoA, activated by Ca²⁺ during exercise."}, {"n": 5, "enzyme": "Succinyl-CoA synthetase", "sub": "Succinyl-CoA", "prod": "Succinate + GTP", "gtp": 1, "note": "The only substrate-level phosphorylation in the cycle. Cleaving succinyl-CoA's thioester drives GDP→GTP (ATP in some tissues) through a phosphohistidine enzyme intermediate. The cycle's lone direct high-energy phosphate.", "clinical": "'Synthetase' (uses/forms a nucleotide triphosphate) versus 'synthase' (step 1, none): the naming tells you whether nucleotide energy is involved."}, {"n": 6, "enzyme": "Succinate dehydrogenase (Complex II)", "sub": "Succinate", "prod": "Fumarate + FADH₂", "fadh2": 1, "note": "The only membrane-bound step — it IS Complex II of the electron-transport chain, embedded in the inner membrane and feeding electrons straight into the chain. FAD is used instead of NAD⁺ because oxidizing a C–C single bond releases too little energy for NAD⁺. Note: succinate is itself symmetric, so from here on the two original acetyl carbons can no longer be told apart.", "clinical": "Competitively inhibited by malonate (succinate minus one CH₂), a classic traffic jam. SDH loss-of-function mutations cause paragangliomas, with succinate acting as an oncometabolite."}, {"n": 7, "enzyme": "Fumarase", "sub": "Fumarate", "prod": "L-malate", "note": "A stereospecific hydration that adds water across the double bond to make only L-malate. Fumarate, like succinate before it, is symmetric, so carbon tracking from here is by reasoning, not memorization.", "clinical": "Fumarate hydratase mutations cause hereditary leiomyomatosis and renal cell cancer; accumulated fumarate is an oncometabolite."}, {"n": 8, "enzyme": "Malate dehydrogenase", "sub": "L-malate", "prod": "Oxaloacetate + NADH (#3)", "nadh": 1, "note": "Regenerates oxaloacetate and banks NADH #3, closing the ring. In isolation this step is strongly unfavorable (very positive ΔG°′), but citrate synthase immediately consumes oxaloacetate, pulling it forward — the catalyst is restored and the next turn begins.", "clinical": "Oxaloacetate comes out exactly as it went in: the cycle is a catalyst, not a fuel. That is the whole point."}];
+
+Glycolysis handed off two pyruvates and warned us the real bottleneck was NAD+. The citric acid cycle is where that warning comes due. Almost every student arrives believing this cycle's job is to make ATP. It is not. Per turn, the cycle makes exactly one high-energy phosphate. Its actual product is electrons — three NADH and one FADH2 — which it ships to the electron transport chain, where the bulk of your ATP is finally minted. Get that one reframe and the whole chapter clicks: **the citric acid cycle harvests electrons; the ETC spends them.**
+
+## The cycle's real job is to harvest electrons
+
+Think of NADH and FADH2 as rechargeable batteries. The cycle's eight enzymes pry high-energy electrons off carbon and load them onto these carriers. The electron transport chain then recharges the carriers by emptying them, and oxygen powers that charger by accepting the spent electrons at the very end. This is why a favorite trick question — *is O2 a substrate of the citric acid cycle?* — has the answer **no**. Look at all eight reactions and you will not find oxygen in any of them. O2 is still absolutely required, but only indirectly: without it the ETC cannot regenerate NAD+, the cycle runs out of empty batteries, and the whole roundabout stalls within seconds. That distinction, *required but not a substrate*, is worth more than any mnemonic.
+
+The bookkeeping for one acetyl-CoA is clean and worth memorizing: **3 NADH, 1 FADH2, 1 GTP, 2 CO2**. The two carbons that leave as CO2 are the carbons being oxidized; the electrons stripped off them are the prize.
+
+## Oxaloacetate is a catalyst, not a fuel
+
+Here is the misconception that sinks more exam answers than any other: students picture the cycle getting "used up," as if oxaloacetate were burned away. It is not. Oxaloacetate (OAA) enters step 1, runs all the way around, and is regenerated unchanged at step 8. A single OAA molecule can run thousands of turns. The fuel that gets consumed is acetyl-CoA, fed in fresh each turn; OAA is the reusable jig the cell builds each acetyl group onto.
+
+Krebs learned to look for exactly this kind of molecule from his earlier work on the urea cycle — find the thing that comes out unchanged, and you have found the catalyst at the heart of a cycle. <PathwayExplorer steps={tcaSteps} title="The citric acid cycle · 8 steps" cyclic /> Click through the ring above and watch the tally climb to 3 NADH + 1 FADH2 + 1 GTP, then hit "run" and watch oxaloacetate come back to where it started. That regeneration *is* the catalytic payoff.
+
+## Burn the fuel, then rebuild the machine
+
+The cleanest way to hold eight enzymes in your head is to see the cycle as a two-stage factory. Picture a fireplace: Stage One burns the firewood down to CO2, and Stage Two sweeps the ashes into a new fireplace so you can burn again.
+
+**Stage One — the furnace (steps 1–4)** burns the two acetyl carbons to two CO2 and banks 2 NADH. **Citrate synthase** condenses 4-carbon OAA with 2-carbon acetyl-CoA into 6-carbon citrate. Note the name: a *synthase* uses no ATP — the energy comes free from cleaving acetyl-CoA's high-energy thioester. (Contrast a *synthetase*, which would spend a nucleotide triphosphate; you will meet one at step 5.) **Aconitase** then isomerizes citrate to isocitrate, simply relocating a hydroxyl group so it can be oxidized — no redox here. **Isocitrate dehydrogenase** performs the first oxidative decarboxylation, releasing CO2 #1 and NADH #1; this is the **rate-limiting step** and the cycle's main throttle. **The α-ketoglutarate dehydrogenase complex** performs the second, releasing CO2 #2 and NADH #2. That complex is the structural and mechanistic twin of pyruvate dehydrogenase — same E1/E2/E3 architecture, same five cofactors (TPP, lipoic acid, CoA, FAD, NAD+), same substrate channeling that tunnels intermediates from one active site to the next without ever letting them diffuse free.
+
+**Stage Two — the rebuilding crew (steps 5–8)** regenerates OAA and banks 1 GTP, 1 FADH2, and 1 NADH. **Succinyl-CoA synthetase** is the cycle's lone substrate-level phosphorylation: cleaving succinyl-CoA's thioester drives GDP to GTP through a phosphohistidine intermediate. **Succinate dehydrogenase** is the odd one out — it sits in the inner mitochondrial membrane and *is* Complex II of the ETC, feeding electrons straight into the chain. It uses FAD instead of NAD+ because oxidizing a plain C–C bond yields too little energy for NAD+. **Fumarase** hydrates fumarate to L-malate, and **malate dehydrogenase** regenerates OAA with NADH #3, closing the ring. That last step is unfavorable in isolation, but citrate synthase devours OAA the instant it appears, pulling the reaction forward. The steps are coupled, not independent.
+
+## Where memorization fails and reasoning begins
+
+Trace a labeled carbon and something surprising happens. The four-carbon intermediate becomes symmetric at succinate, so from there on the cell cannot tell the two ends apart. The carbons that leave as CO2 in any given turn are *not* the carbons that just entered as acetyl-CoA; those entering carbons stay in the molecule and only exit on later turns. You cannot brute-force this with memory; you have to reason about symmetry. The carbon-tracking mode in the interactive grays out the two acetyl carbons at succinate, the moment the bookkeeping stops being trivial.
+
+## The throttle: ATP says stop, ADP and calcium say go
+
+The cell is financially literate, and it regulates the cycle by reading its own energy charge. The two control points are the two irreversible oxidative decarboxylations: **isocitrate dehydrogenase** and **α-ketoglutarate dehydrogenase**. The rule is simple: **ATP and NADH = STOP** (the cell is rich, no need to burn more), **ADP, NAD+, and Ca2+ = GO**. Calcium is the exercise signal — when a muscle contracts, the same Ca2+ released to drive contraction directly activates the cycle, matching fuel-burning to demand. Pyruvate dehydrogenase gates entry upstream by the same logic.
+
+## Amphibolic, anaplerotic, and clinical
+
+The cycle is **amphibolic** — it runs in both directions of metabolism. Its intermediates are siphoned off to build things: citrate exports for fatty-acid synthesis, α-ketoglutarate becomes glutamate and other amino acids, succinyl-CoA builds heme, and OAA feeds gluconeogenesis. Drain intermediates and you would deplete OAA, so the cell refills it by **anaplerosis** — chiefly pyruvate carboxylase, which adds CO2 to pyruvate to make OAA and is switched on by acetyl-CoA in a smart feedforward signal ("fuel is arriving; build more of the jig").
+
+The clinical payoffs are striking. Mutations in succinate dehydrogenase and fumarase let succinate and fumarate pile up as **oncometabolites** that drive paragangliomas and kidney cancer; mutant isocitrate dehydrogenase makes 2-hydroxyglutarate, scrambling the epigenome in gliomas and leukemias, and IDH inhibitors are now real drugs. The Warburg effect — tumors running glycolysis hard even with oxygen available — is the same metabolic rewiring seen from the front door.
+
+## The ATP math, and what comes next
+
+Now cash the batteries. Each NADH is worth about 2.5 ATP at the ETC, each FADH2 about 1.5, and the GTP counts as one: 3×2.5 + 1×1.5 + 1 ≈ **10 ATP per acetyl-CoA**, which works out to roughly **30–32 ATP per glucose** once you add glycolysis and pyruvate oxidation. But notice — almost none of that ATP was made *here*. The cycle's job was to fill the carriers. Cashing them is the subject of the next chapter, oxidative phosphorylation and the electron transport chain, where oxygen finally takes the stage.
