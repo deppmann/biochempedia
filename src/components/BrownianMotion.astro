@@ -1,0 +1,182 @@
+---
+/**
+ * BrownianMotion — the molecular basis of "things in water are never still." A
+ * crowd of fast, invisible-scale water molecules ricochets around the box and
+ * batters a larger tracer particle, whose center of mass therefore performs a
+ * random walk (the jittering trail). Sliders for temperature and particle size
+ * make the Einstein–Stokes intuition tangible: warmer water jiggles harder, and
+ * a bigger particle averages out more kicks and drifts more slowly (D ∝ T/r).
+ * Canvas animation; respects prefers-reduced-motion. Self-contained vanilla-TS
+ * Astro island, no deps. Original, computed live.
+ */
+---
+
+<figure class="bm card" data-brownian>
+  <figcaption class="bm-head">Brownian motion — water never sits still<span class="bm-chip">⚙ original · interactive</span></figcaption>
+
+  <canvas class="bm-canvas" width="600" height="360" data-canvas role="img" aria-label="A large tracer particle performing a random walk as it is struck by many small water molecules"></canvas>
+
+  <div class="bm-controls">
+    <label class="bm-slabel">Temperature <em data-out="temp">warm</em>
+      <input type="range" data-in="temp" min="20" max="160" step="5" value="70" />
+    </label>
+    <label class="bm-slabel">Tracer size <em data-out="size">medium</em>
+      <input type="range" data-in="size" min="5" max="20" step="1" value="10" />
+    </label>
+    <div class="bm-btns">
+      <button type="button" data-toggle>❚❚ pause</button>
+      <button type="button" data-reset>↺ reset trail</button>
+      <label class="bm-check"><input type="checkbox" data-hidewater /> hide the water (Brown's view)</label>
+    </div>
+  </div>
+
+  <dl class="bm-readout">
+    <div><dt>Relative diffusion D ∝ T/r</dt><dd data-r-d>—</dd></div>
+    <div><dt>Mean-square displacement</dt><dd data-r-msd>—</dd></div>
+  </dl>
+  <p class="bm-why" data-why>The big particle is never pushed by a hand — only by lopsided volleys of water molecules. Warm it up or shrink it and the walk speeds up.</p>
+
+  <p class="bm-foot">Einstein's 1905 insight: the jitter you can see in a microscope is direct evidence of molecules you cannot. Diffusion is just this random walk, summed over billions of particles.</p>
+</figure>
+
+<script>
+  type V = { x: number; y: number; vx: number; vy: number };
+  document.querySelectorAll<HTMLElement>('[data-brownian]').forEach((root) => {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const W = canvas.width, H = canvas.height;
+    const tempIn = root.querySelector<HTMLInputElement>('[data-in="temp"]')!;
+    const sizeIn = root.querySelector<HTMLInputElement>('[data-in="size"]')!;
+    const tempOut = root.querySelector<HTMLElement>('[data-out="temp"]')!;
+    const sizeOut = root.querySelector<HTMLElement>('[data-out="size"]')!;
+    const toggleBtn = root.querySelector<HTMLButtonElement>('[data-toggle]')!;
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    const hideWater = root.querySelector<HTMLInputElement>('[data-hidewater]')!;
+    const rD = root.querySelector<HTMLElement>('[data-r-d]')!;
+    const rMsd = root.querySelector<HTMLElement>('[data-r-msd]')!;
+    const ACCENT = '#0e7c86', NAVY = '#232d4b', WATER = 'rgba(43,111,176,0.55)', GOLD = '#D4A843';
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const N = 90;
+    const mols: V[] = [];
+    function speedScale() { return parseInt(tempIn.value, 10) / 70; } // ~1 at default
+    function seed() {
+      mols.length = 0;
+      for (let i = 0; i < N; i++) {
+        const ang = (i * 2.39996) % (Math.PI * 2), sp = (1 + (i % 5) * 0.2);
+        mols.push({ x: 20 + ((i * 53) % (W - 40)), y: 20 + ((i * 97) % (H - 40)), vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp });
+      }
+    }
+    let tracer: V = { x: W / 2, y: H / 2, vx: 0, vy: 0 };
+    let trail: Array<[number, number]> = [];
+    let origin: [number, number] = [W / 2, H / 2];
+    let running = true, raf = 0, frames = 0;
+
+    function reset() {
+      tracer = { x: W / 2, y: H / 2, vx: 0, vy: 0 };
+      trail = [[W / 2, H / 2]];
+      origin = [W / 2, H / 2];
+      frames = 0;
+    }
+
+    function labels() {
+      const t = parseInt(tempIn.value, 10);
+      tempOut.textContent = t < 45 ? 'cold' : t < 95 ? 'warm' : 'hot';
+      const s = parseInt(sizeIn.value, 10);
+      sizeOut.textContent = s <= 8 ? 'small' : s <= 14 ? 'medium' : 'large';
+      const r = parseInt(sizeIn.value, 10);
+      const D = (parseInt(tempIn.value, 10) / 70) / (r / 10); // T / r, normalized to 1 at defaults
+      rD.textContent = D.toFixed(2) + '×';
+    }
+
+    function step() {
+      const sc = speedScale();
+      const r = parseInt(sizeIn.value, 10);
+      // small water molecules
+      for (const m of mols) {
+        m.x += m.vx * sc; m.y += m.vy * sc;
+        if (m.x < 4 || m.x > W - 4) m.vx *= -1;
+        if (m.y < 4 || m.y > H - 4) m.vy *= -1;
+        m.x = Math.max(4, Math.min(W - 4, m.x));
+        m.y = Math.max(4, Math.min(H - 4, m.y));
+      }
+      // tracer: random kicks, magnitude ∝ temperature and ∝ 1/radius (heavier = smaller steps)
+      const kick = 1.8 * sc * (10 / r);
+      tracer.vx += (Math.random() - 0.5) * kick;
+      tracer.vy += (Math.random() - 0.5) * kick;
+      tracer.vx *= 0.86; tracer.vy *= 0.86; // viscous damping
+      tracer.x += tracer.vx; tracer.y += tracer.vy;
+      const m = r + 2;
+      if (tracer.x < m || tracer.x > W - m) { tracer.vx *= -0.7; tracer.x = Math.max(m, Math.min(W - m, tracer.x)); }
+      if (tracer.y < m || tracer.y > H - m) { tracer.vy *= -0.7; tracer.y = Math.max(m, Math.min(H - m, tracer.y)); }
+      trail.push([tracer.x, tracer.y]);
+      if (trail.length > 320) trail.shift();
+      frames++;
+      const dx = tracer.x - origin[0], dy = tracer.y - origin[1];
+      rMsd.textContent = Math.round(dx * dx + dy * dy).toLocaleString('en-US') + ' px²';
+    }
+
+    function draw() {
+      ctx!.clearRect(0, 0, W, H);
+      ctx!.fillStyle = '#f5fbfc'; ctx!.fillRect(0, 0, W, H);
+      if (!hideWater.checked) {
+        ctx!.fillStyle = WATER;
+        for (const mol of mols) { ctx!.beginPath(); ctx!.arc(mol.x, mol.y, 2.4, 0, Math.PI * 2); ctx!.fill(); }
+      }
+      // trail
+      ctx!.strokeStyle = GOLD; ctx!.lineWidth = 1.4; ctx!.beginPath();
+      trail.forEach((p, i) => { if (i === 0) ctx!.moveTo(p[0], p[1]); else ctx!.lineTo(p[0], p[1]); });
+      ctx!.stroke();
+      // tracer
+      const r = parseInt(sizeIn.value, 10);
+      ctx!.fillStyle = ACCENT; ctx!.beginPath(); ctx!.arc(tracer.x, tracer.y, r, 0, Math.PI * 2); ctx!.fill();
+      ctx!.strokeStyle = NAVY; ctx!.lineWidth = 1.5; ctx!.stroke();
+    }
+
+    function loop() { if (!running) return; step(); draw(); raf = requestAnimationFrame(loop); }
+
+    tempIn.addEventListener('input', labels);
+    sizeIn.addEventListener('input', labels);
+    hideWater.addEventListener('change', draw);
+    toggleBtn.addEventListener('click', () => {
+      running = !running;
+      toggleBtn.textContent = running ? '❚❚ pause' : '▶ play';
+      if (running) loop();
+    });
+    resetBtn.addEventListener('click', () => { reset(); draw(); });
+
+    seed(); reset(); labels();
+    if (reduce) {
+      // draw a static sample random walk so the idea reads without animation
+      running = false; toggleBtn.textContent = '▶ play';
+      for (let i = 0; i < 240; i++) step();
+      draw();
+    } else {
+      draw(); loop();
+    }
+  });
+</script>
+
+<style>
+  .bm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bm-canvas { width: 100%; height: auto; display: block; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #f5fbfc; }
+  .bm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  @media (min-width: 640px) { .bm-controls { grid-template-columns: 1fr 1fr auto; } }
+  .bm-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bm-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .bm-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .bm-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+  .bm-btns button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.3rem 0.55rem; cursor: pointer; }
+  .bm-btns button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .bm-check { display: flex; align-items: center; gap: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bm-check input { accent-color: var(--ddp-color-accent); }
+  .bm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .bm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .bm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .bm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.4em; }
+  .bm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
