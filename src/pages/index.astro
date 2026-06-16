@@ -104,9 +104,10 @@ const lessons = (await getCollection('lessons'))
       <p class="empty">No lessons published yet.</p>
     ) : (
       <ul class="lesson-list">
-        {lessons.map((l) => (
+        {lessons.map((l, i) => (
           <li>
             <a href={`/lessons/${l.data.slug}/`} class="lesson-card">
+              <span class="lc-order" aria-hidden="true">{i + 1}</span>
               <span class="lc-ico"><LessonIcon slug={l.data.slug} /></span>
               <span class="lc-body">
                 <span class="lc-chapter">{l.data.courseChapter}</span>
@@ -288,6 +289,34 @@ const lessons = (await getCollection('lessons'))
     .lesson-card:hover::before {
       transform: scaleY(1);
     }
+    /* Reading-order number in the card's corner: blue-on-light, reversed in dark mode. */
+    .lc-order {
+      position: absolute;
+      top: var(--ddp-space-3);
+      right: var(--ddp-space-3);
+      z-index: 1;
+      min-width: 1.55rem;
+      height: 1.55rem;
+      padding: 0 0.4rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      font-weight: 700;
+      line-height: 1;
+      border-radius: 999px;
+      color: var(--ddp-color-primary);
+      background: color-mix(in srgb, var(--ddp-color-primary) 9%, #fff);
+      border: 1px solid color-mix(in srgb, var(--ddp-color-primary) 22%, transparent);
+    }
+    @media (prefers-color-scheme: dark) {
+      .lc-order {
+        color: #fff;
+        background: var(--ddp-color-primary);
+        border-color: color-mix(in srgb, #fff 28%, transparent);
+      }
+    }
     .lc-ico {
       flex: none;
       line-height: 0;
@@ -295,6 +324,7 @@ const lessons = (await getCollection('lessons'))
     }
     .lc-body {
       min-width: 0;
+      padding-right: 1.4rem; /* clear the corner order-number badge */
     }
     .lc-chapter {
       display: block;
