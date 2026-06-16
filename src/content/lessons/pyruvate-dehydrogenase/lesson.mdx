@@ -1,0 +1,382 @@
+---
+title: "The Pyruvate Dehydrogenase Complex: The One-Way Gate to the Cycle"
+slug: "pyruvate-dehydrogenase"
+courseChapter: "The Citric Acid Cycle"
+order: 18
+summary: "The pyruvate dehydrogenase complex is the one-way gate between glycolysis and the TCA cycle: it converts pyruvate to acetyl-CoA, releasing one CO2 and banking one NADH, and once a cell walks through it there is no walking back. One physical machine, three enzymes, five coenzymes, and a 14-Angstrom swinging arm hand the carbon down an assembly line without ever letting it escape into solution. Because the step is irreversible and sits at a metabolic crossroads, it is also one of the most heavily regulated reactions in the cell."
+estMinutes: 24
+objectives:
+  - "Write and explain the net PDC reaction (pyruvate + CoA + NAD+ -> acetyl-CoA + CO2 + NADH + H+), and state why it is irreversible in animals and what that forces gluconeogenesis to do."
+  - "Explain why the acetyl-CoA thioester is a high-energy bond (~-31 kJ/mol) using sulfur's poor resonance stabilization, and contrast it with an ordinary oxygen ester."
+  - "Walk the five mechanistic steps across the three enzymes and five coenzymes (TPP, lipoamide, CoA, FAD, NAD+), naming which step releases CO2 and identifying E3 as the ONLY NADH-producing step."
+  - "Describe substrate channeling and the lipoamide swinging arm, and explain why a single ~10-MDa complex is more efficient than three free enzymes."
+  - "Predict how the two regulatory layers (allosteric energy-charge sensing and covalent PDK/PDP phosphorylation, with the Ca2+ muscle axis) turn PDC on or off, and connect failures to beriberi, arsenic/mercury poisoning, and the Warburg effect."
+scientists:
+  - name: "Fritz Lipmann"
+    dates: "1899-1986"
+    contribution: "Discovered Coenzyme A (the A = acetylation) and established that the high-energy thioester bond of acetyl-CoA is the carrier that delivers the two-carbon acetyl unit into the TCA cycle and fatty-acid synthesis. Also originated the concept of the ~P 'high-energy phosphate bond' as the cell's common energy currency. Shared the 1953 Nobel with Krebs."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Fritz Lipmann profile, Part 2 (quotes grep-confirmed at lines 1062-1068)."
+    quotes:
+      - "Metabolic Generation and Utilization of Phosphate Bond Energy"
+      - "group potential"
+    story: "Lipmann traced the idea that cellular energy flows through a single common channel — the terminal phosphate bond of ATP — back to a 1940 lakeside vacation in Vermont, at age forty, working at Cornell Medical School. The resulting paper, 'Metabolic Generation and Utilization of Phosphate Bond Energy,' was an argument disguised as a review; he coined 'group potential' (what matters is not bond strength but how much more stable the products are than the reactants) and marked the special phosphates with a hand-drawn tilde, ~P. That same suspicion of a common carrier sent him to Massachusetts General in 1941, where pigeon-liver extracts acetylated sulfonamide drugs through an unnamed heat-stable cofactor; running liter after liter of liver mash through chromatography, his group named what they found Coenzyme A. Its heart turned out to be pantothenic acid, an ordinary B vitamin — the cell's universal acetyl carrier built around something an animal must eat, working through a single reactive thiol that snaps onto acyl groups in energy-rich thioester bonds. His conviction proved right twice: in the ~P bond that banks energy and the thioester that spends it. The 1953 Nobel, shared with Hans Krebs, set the two halves side by side."
+  - name: "Feodor Lynen"
+    dates: "1911-1979"
+    contribution: "Determined the structure of acetyl-CoA — proved the acetate is clamped to a sulfur atom as a high-energy THIOESTER, explaining why the cell finds the bond so easy to make and break. This is the exact bond chemistry at the heart of CH18. Shared the 1964 Nobel (with Konrad Bloch) for fatty-acid and cholesterol metabolism."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Feodor Lynen profile, Part 10 (quote grep-confirmed at line 4278)."
+    quotes:
+      - "Euch macht ihr's leicht, mir macht ihr's schwer"
+    story: "Munich, 1951: the chemistry building had been bombed flat six years earlier and was still flat. Lynen had trucked his bench out to the village of Schondorf during the worst of the war and now worked in patched-together rooms. In one sat a boiled yeast extract containing the thing four years of others' work had named without describing — Lipmann's Coenzyme A. Everyone agreed CoA existed; nobody had pinned down how acetate rode on it. The obvious guess put it on the pantothenic acid; Lynen guessed otherwise — the acetate was clamped to a sulfur atom, a thioester, a high-energy linkage explaining why the cell makes and breaks the bond so readily. He confirmed it within months in an Angewandte Chemie paper barely a page long, giving acetyl-CoA, the busiest small molecule in metabolism, a structure you could draw. He went on to show the cell builds fatty acids on a dedicated synthase (not by reversing breakdown), welding activated acetyl units two carbons at a time. At the 1964 Stockholm banquet he quoted Hans Sachs from Wagner's Die Meistersinger — 'Euch macht ihr's leicht, mir macht ihr's schwer' (you make it easy for yourselves, you make it hard for me) — when honored too much, then thanked them anyway."
+  - name: "Christiaan Eijkman"
+    dates: "1858-1930"
+    contribution: "First clear demonstration of a deficiency disease — beriberi (vitamin B1/thiamine deficiency). Thiamine is the precursor of TPP, the E1 coenzyme of PDC; CH18's clinical hook (beriberi -> PDC failure -> lactic acidosis) traces directly to his work. Shared the 1929 Nobel with Hopkins."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Christiaan Eijkman profile, Part of the vitamin-hunters section (no verbatim first-person quote present in the file; quotes left empty rather than fabricated)."
+    quotes: []
+    story: "Trained in Berlin under Robert Koch, Eijkman arrived in Java on a Dutch commission convinced beriberi was an infection. The proof never came: injecting healthy birds with blood from the diseased produced nothing — the cause was an absence, not a microbe he could stain. The answer was in the kitchen. The hospital had been feeding laboratory fowls leftover polished white rice, and the birds toppled with the same splayed legs and craning necks seen in the human wards; when a new cook refused to give army rice to civilian chickens and switched the flock to cheap unhusked paddy, the disease lifted. By 1897 Eijkman could turn beriberi on and off at the bench simply by milling the grain or leaving it whole. He clung to a half-measure (a starch-fermentation toxin neutralized by the husk) that kept the germ paradigm intact; his successor Gerrit Grijns gave the plain reading in 1901 — a missing essential substance. That substance was later named thiamine, vitamin B1, the coenzyme without which nerve and muscle cannot turn sugar into usable energy, which is why glucose-dependent nerves starve first when it is gone. He shared the 1929 Nobel with Frederick Gowland Hopkins."
+techniques:
+  - name: "Substrate channeling in multienzyme complexes"
+    blurb: "When several active sites are tethered into one physical complex, an intermediate made at one site is handed directly to the next without diffusing into the cytosol. PDC is the textbook case: the lipoamide arm of E2 swings the growing acetyl unit between E1, E2, and E3, so reactive intermediates never escape, side reactions are suppressed, and local concentrations stay high. The same principle is read out experimentally by cryo-EM of the assembled core and by kinetic comparison of the intact complex versus the dissociated enzymes."
+  - name: "Reductive carboxylation / decarboxylation tracing with labeled carbon"
+    blurb: "Feed cells pyruvate labeled at C1 (the carboxyl) versus C2/C3, and the released CO2 tells you which carbon left. This is how the field established that PDC strips the carboxyl carbon (C1) as CO2 and that the surviving two carbons (C2, C3) become the acetyl group. Scaled up, the same logic underlies clinical 13C-pyruvate breath and MRI hyperpolarization studies of metabolism in tumors and failing heart."
+  - name: "Phospho-state assays for covalent regulation"
+    blurb: "To see whether PDC is on or off you measure the phosphorylation state of the E1 serine, using phospho-specific antibodies or activity assays before and after adding PDK, PDP, ATP, or Ca2+. Watching activity fall when PDK phosphorylates E1 and rise when PDP (Ca2+-activated) removes the phosphate is how the kinase/phosphatase switch was mapped, and it is the same readout used to test PDK inhibitors like dichloroacetate."
+structures:
+  - label: "Pyruvate dehydrogenase complex (E2 core, B. stearothermophilus)"
+    source: "rcsb"
+    id: "1B5S"
+    note: "PDB 1B5S"
+    caption: "Dihydrolipoyl transacetylase (E2) catalytic core / cubic-core structure of the pyruvate dehydrogenase multienzyme complex"
+  - label: "Pyruvate dehydrogenase E1 component (human)"
+    source: "rcsb"
+    id: "1NI4"
+    note: "PDB 1NI4"
+    caption: "Human pyruvate dehydrogenase E1 (alpha2-beta2) with TPP/thiamine pyrophosphate bound"
+  - label: "E1 pyruvate dehydrogenase with TPP (B. stearothermophilus)"
+    source: "rcsb"
+    id: "1W85"
+    note: "PDB 1W85"
+    caption: "Pyruvate dehydrogenase E1 component showing thiamine pyrophosphate cofactor in active site"
+  - label: "Dihydrolipoyl dehydrogenase (E3) with FAD"
+    source: "rcsb"
+    id: "1EBD"
+    note: "PDB 1EBD"
+    caption: "E3 dihydrolipoamide dehydrogenase (FAD-containing) bound to E2 peripheral-subunit-binding domain"
+  - label: "Lipoyl domain of E2"
+    source: "rcsb"
+    id: "1LAB"
+    note: "PDB 1LAB"
+    caption: "Lipoyl (lipoamide-bearing) domain of the dihydrolipoyl acetyltransferase E2, the swinging-arm domain"
+  - label: "Pyruvate dehydrogenase kinase (PDK)"
+    source: "rcsb"
+    id: "1Y8N"
+    note: "PDB 1Y8N"
+    caption: "Human pyruvate dehydrogenase kinase isoform (PDK) — the regulatory kinase that phosphorylates/inactivates E1"
+  - label: "Coenzyme A"
+    source: "pubchem"
+    id: "87642"
+    note: "CID 87642"
+    caption: "Coenzyme A (free CoA-SH), the acyl-group carrier built on pantothenate"
+  - label: "Acetyl-CoA"
+    source: "pubchem"
+    id: "444493"
+    note: "CID 444493"
+    caption: "Acetyl coenzyme A — acetyl group in high-energy thioester linkage to CoA, the PDC product"
+  - label: "Thiamine pyrophosphate (TPP)"
+    source: "pubchem"
+    id: "1132"
+    note: "CID 1132"
+    caption: "Thiamine pyrophosphate / thiamine diphosphate, the E1 coenzyme (active form of vitamin B1)"
+  - label: "Thiamine (vitamin B1)"
+    source: "pubchem"
+    id: "1130"
+    note: "CID 1130"
+    caption: "Thiamine (vitamin B1), dietary precursor of TPP"
+  - label: "Lipoic acid"
+    source: "pubchem"
+    id: "864"
+    note: "CID 864"
+    caption: "Alpha-Lipoic acid (thioctic acid), the disulfide-bearing cofactor attached to lysine on E2 as lipoamide"
+  - label: "Pyruvate"
+    source: "pubchem"
+    id: "1060"
+    note: "CID 1060"
+    caption: "Pyruvate / pyruvic acid, the PDC substrate"
+  - label: "NAD+"
+    source: "pubchem"
+    id: "5893"
+    note: "CID 5893"
+    caption: "Nicotinamide adenine dinucleotide (oxidized NAD+), the final electron acceptor at E3"
+  - label: "FAD"
+    source: "pubchem"
+    id: "643975"
+    note: "CID 643975"
+    caption: "Flavin adenine dinucleotide (FAD), the bound prosthetic group of E3"
+videos:
+  - title: "Regulation of pyruvate dehydrogenase"
+    youtubeId: "o0Bi_U_8T_E"
+    sourceNote: "Khan Academy (MCAT) — how PDC is switched on and off by phosphorylation and its effectors. Openly available."
+  - title: "Krebs / citric acid cycle"
+    youtubeId: "juM2ROSLWfw"
+    sourceNote: "Khan Academy — where the acetyl-CoA that PDC makes goes next."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "PDC reaction map (reveal each step; the tally lands on 1 NADH + 1 CO₂ + acetyl-CoA per pyruvate)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "Which statement correctly describes the net reaction carried out by the pyruvate dehydrogenase complex?"
+    choices:
+      - "Pyruvate + CoA + NAD+ -> acetyl-CoA + CO2 + NADH + H+"
+      - "Pyruvate + CoA + FAD -> acetyl-CoA + CO2 + FADH2"
+      - "Acetyl-CoA + CO2 + NADH -> pyruvate + CoA + NAD+"
+      - "Pyruvate + CoA + NAD+ + ATP -> acetyl-CoA + CO2 + NADH + ADP"
+    answer: 0
+    rationale: "PDC performs an oxidative decarboxylation: pyruvate loses its carboxyl carbon as CO2, is joined to CoA as acetyl-CoA, and NAD+ is reduced to NADH. FADH2 is only a transient enzyme-bound intermediate at E3, not a net product, so the FAD-based equation is wrong. The reverse reaction does not occur in animals because the step is irreversible. No ATP is consumed or produced by PDC, ruling out the ATP-containing equation."
+  - stem: "A medical resident is about to start a glucose IV on a severely malnourished, alcohol-dependent patient. Based on PDC biochemistry, what should be given first and why?"
+    choices:
+      - "Niacin (B3), because NAD+ must be supplied before the gate can open"
+      - "Thiamine (B1), because without TPP the E1 step fails and a glucose load drives lactic acidosis"
+      - "Lipoic acid, because the swinging arm is depleted in malnutrition"
+      - "Acetyl-CoA, because PDC needs its product to prime the reaction"
+    answer: 1
+    rationale: "Thiamine is the precursor of TPP, the coenzyme E1 requires to decarboxylate pyruvate. In thiamine-deficient patients PDC is already failing; a glucose load floods the cell with pyruvate that cannot be processed, so it backs up into lactate and causes lactic acidosis (refeeding syndrome). Hence thiamine before glucose. Acetyl-CoA is the product, not a primer. Niacin/NAD+ deficiency is not the limiting factor here. Lipoic acid is synthesized endogenously and is not the deficiency at issue."
+  - stem: "At which point in the PDC mechanism is NADH actually produced?"
+    choices:
+      - "When the hydroxyethyl group is oxidized and transferred to lipoamide on E1"
+      - "When E2 transfers the acetyl group to coenzyme A"
+      - "When E3 passes electrons from FADH2 to NAD+"
+      - "When E1 decarboxylates pyruvate and releases CO2"
+    answer: 2
+    rationale: "NADH is generated only at the final E3 step, where electrons held first on lipoamide and then on E3's bound FAD (as FADH2) are finally transferred to NAD+. The E1 decarboxylation releases CO2 but makes no NADH; the E1 oxidation/transfer reduces lipoamide, not NAD+ (a classic trap); the E2 step makes acetyl-CoA. Only the electron handoff to NAD+ at E3 yields NADH."
+  - stem: "Why must gluconeogenesis bypass the pyruvate dehydrogenase complex rather than simply running it in reverse?"
+    choices:
+      - "PDC is located in the cytosol, where gluconeogenesis cannot reach it"
+      - "PDC requires oxygen, which is absent during fasting"
+      - "Acetyl-CoA is too small a molecule to re-enter the pathway"
+      - "The PDC reaction is essentially irreversible in animals because of its large negative free-energy change"
+    answer: 3
+    rationale: "The oxidative decarboxylation has a large negative dG and no enzyme exists in animals to reverse it, so acetyl-CoA cannot be converted back to pyruvate. Gluconeogenesis therefore detours using pyruvate carboxylase and PEPCK. PDC is in the mitochondrial matrix, not the cytosol, and the irreversibility, not localization or molecule size, is the reason. PDC does not directly consume O2; it depends on aerobic conditions only because the ETC regenerates NAD+."
+  - stem: "During vigorous muscle contraction, intracellular Ca2+ rises. How does this affect PDC activity?"
+    choices:
+      - "Ca2+ activates PDK, phosphorylating E1 to turn PDC off"
+      - "Ca2+ activates PDP, which dephosphorylates E1 and turns PDC on"
+      - "Ca2+ allosterically binds acetyl-CoA, blocking product inhibition"
+      - "Ca2+ inhibits PDP, so E1 stays phosphorylated and PDC turns off"
+    answer: 1
+    rationale: "Calcium activates pyruvate dehydrogenase phosphatase (PDP), which removes the inhibitory phosphate from the E1 serine, switching PDC on. This couples the calcium signal that triggers contraction to a surge of acetyl-CoA for ATP production. PDK is the kinase that turns PDC off (phosphorylation inactivates), and Ca2+ acts on PDP, not PDK. Ca2+ does not bind acetyl-CoA."
+mcatQuestions:
+  - stem: "A tumor cell line shows high glucose uptake and high lactate output even under normal oxygen (the Warburg effect). Molecular analysis reveals HIF-1a-driven overexpression of PDK. Which downstream consequence best explains the lactate phenotype?"
+    choices:
+      - "The thioester bond of acetyl-CoA is stabilized, blocking entry into the TCA cycle"
+      - "Lipoamide is oxidized prematurely, releasing FADH2 into the cytosol"
+      - "E1 is constitutively phosphorylated and inactive, so pyruvate is diverted to lactate instead of acetyl-CoA"
+      - "PDP is overexpressed, dephosphorylating E1 and overdriving acetyl-CoA production"
+    answer: 2
+    rationale: "PDK phosphorylates the E1 serine and inactivates PDC. With PDK chronically upregulated, E1 stays phosphorylated, pyruvate is not converted to acetyl-CoA, and it is instead reduced to lactate (regenerating NAD+ for continued glycolysis and supplying biosynthetic carbon). Overactive PDP would do the opposite (turn PDC on). Thioester stability and cytosolic FADH2 release are not the mechanism; FADH2 in PDC is enzyme-bound and never released."
+  - stem: "A toxicologist studies arsenite (As3+) poisoning. Arsenite binds vicinal dithiols. Which PDC component is its primary target, and what is the immediate functional result?"
+    choices:
+      - "The bound FAD of E3, preventing electron transfer to NAD+"
+      - "Coenzyme A, preventing thioester formation"
+      - "TPP on E1, preventing decarboxylation of pyruvate"
+      - "The reduced dithiol form of lipoamide on E2, locking the swinging arm and halting the complex"
+    answer: 3
+    rationale: "Arsenite (and Hg2+) bridge the two adjacent thiols of the reduced dihydrolipoamide, immobilizing the lipoyl swinging arm so it can no longer shuttle the acetyl group and reset. The complex stops. TPP is a thiazolium/diphosphate, not a vicinal dithiol; FAD and CoA are not vicinal-dithiol targets. Brain and heart, most dependent on PDC flux, are affected first, consistent with arsenic neurotoxicity and cardiotoxicity."
+  - stem: "A patient with a genetic E3 (dihydrolipoamide dehydrogenase) deficiency shows lactic acidosis. E3 is shared by PDC, the alpha-ketoglutarate dehydrogenase complex, and the branched-chain alpha-ketoacid dehydrogenase complex. Which biochemical observation is most consistent with losing this shared subunit?"
+    choices:
+      - "Multiple oxidative decarboxylations fail, because E3 regenerates oxidized lipoamide in all three complexes"
+      - "NAD+ is overproduced, driving excessive flux through all three complexes"
+      - "Only pyruvate metabolism is impaired, since E3 is unique to PDC"
+      - "Acetyl-CoA accumulates because E2 cannot release it"
+    answer: 0
+    rationale: "E3 is the common dihydrolipoamide dehydrogenase shared by PDC, alpha-ketoglutarate dehydrogenase, and the branched-chain alpha-ketoacid dehydrogenase complex. Its job is to reoxidize the dithiol lipoamide back to the disulfide (passing electrons via FAD to NAD+). Losing E3 stalls all three complexes, so the defect is not unique to pyruvate metabolism. Without E3, lipoamide stays reduced and the upstream chemistry cannot reset, so acetyl-CoA does not accumulate; and NAD+ reduction (NADH formation) is impaired, not overproduced, which contributes to the lactic acidosis as pyruvate is shunted to lactate."
+images: []
+corpusTags:
+  - "pyruvate-dehydrogenase"
+  - "acetyl-coa"
+  - "thiamine-pyrophosphate"
+  - "lipoamide"
+  - "oxidative-decarboxylation"
+  - "multienzyme-complex"
+  - "mitochondria"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "After your body breaks up sugar, it ends up with a little leftover piece called pyruvate. To use it for energy, that piece has to go through a special one-way door. On the other side, it gets trimmed (one tiny bit floats away as the gas you breathe out) and clipped onto a little carrier, like snapping a Lego brick onto a handle. That handle, called acetyl-CoA, is what feeds the body's power plant. The door only opens one way, so once the piece goes through, it can never come back."
+  - level: "highschool"
+    label: "High school"
+    text: "Glycolysis turns glucose into pyruvate in the cytoplasm. To get more energy out, pyruvate moves into the mitochondrion, where the pyruvate dehydrogenase complex (PDC) converts it to acetyl-CoA. In the process one carbon leaves as CO2 and the cell makes one NADH. The reaction is one-way (irreversible), so acetyl-CoA can't be turned back into glucose. PDC is a giant machine made of three enzymes and five helper molecules (coenzymes), four of which come from vitamins you eat. A swinging chemical arm hands the carbon from one part of the machine to the next without dropping it. The cell turns PDC up when it needs energy (low ATP) and down when it has plenty (high ATP, NADH, acetyl-CoA)."
+  - level: "college"
+    label: "College"
+    text: "PDC catalyzes the oxidative decarboxylation of pyruvate in the mitochondrial matrix: pyruvate + CoA + NAD+ -> acetyl-CoA + CO2 + NADH + H+, with a large negative dG that makes it irreversible (hence gluconeogenesis must bypass it). It is a ~10-MDa complex of three enzymes (E1, E2, E3) and five coenzymes (TPP, lipoamide, CoA, FAD, NAD+). E1 (TPP/Mg2+) decarboxylates pyruvate, the irreversible step; the hydroxyethyl-TPP is oxidized and transferred to lipoamide; E2 transfers the acetyl to CoA forming the high-energy thioester acetyl-CoA; E3 reoxidizes the dithiol lipoamide through bound FAD to FADH2, then to NAD+ yielding NADH. NADH is produced only at E3. The lipoamide swinging arm enables substrate channeling. Regulation is two-tiered: allosteric inhibition by ATP/NADH/acetyl-CoA and activation by ADP/pyruvate, plus covalent control where PDK phosphorylates E1 (off) and Ca2+-activated PDP dephosphorylates it (on). Phosphorylation here inactivates."
+  - level: "grad"
+    label: "Graduate"
+    text: "PDC is a paradigm of metabolic channeling and integrated control. The thiazolium C2 of TPP, a stabilized ylide, performs nucleophilic addition to pyruvate's 2-oxo carbon; decarboxylation is driven by the resulting enamine/hydroxyethylidene-TPP intermediate, which is then oxidatively acylated onto the distal lipoyl-lysine of E2's lipoyl domain. The lipoyl domain shuttles between E1, E2, and E3 active sites (a tethered, swinging-arm channeling that keeps reactive acyl and dithiol intermediates out of bulk solvent and maintains high effective local concentration). E2 acetyltransfer to CoA is exergonic because the acetyl-lipoamide and acetyl-CoA thioesters have low resonance stabilization (poor 3p-2p overlap at sulfur), conserving group-transfer potential (~-31 kJ/mol). E3 is a disulfide-oxidoreductase: dihydrolipoamide reduces an active-site cystine, electrons pass to FAD, then to NAD+, the sole NAD-reducing event; the bound FADH2 is an obligatory internal relay, never a free product. Flux is governed at E1 by reversible Ser phosphorylation (PDK/PDP), nested within allosteric product inhibition (NADH/CoA acyl charge, ATP). PDK is feed-forward-activated by elevated NADH/H+ and acetyl-CoA/CoA ratios and ATP/ADP; PDP1 is Ca2+- and Mg2+-dependent, coupling excitation-contraction to oxidative fuel selection. The Randle cycle, dichloroacetate (PDK inhibitor) pharmacology, and HIF-1a-driven PDK4 induction in the Warburg phenotype are all readouts of this node."
+anecdotes:
+  - title: "Traffic only goes one way through the gate"
+    text: "Chris frames the whole chapter as an airport with a one-way security gate. Glycolysis is Terminal 1, the TCA cycle is Terminal 2, and the pyruvate dehydrogenase complex is the gate between them. Pyruvate clears the gate, becomes acetyl-CoA, and commits to oxidation. There is no walking backward. That image is doing real biochemical work: because the reaction is irreversible, gluconeogenesis must detour around PDC entirely, and animals cannot make a net amount of glucose from fat, since fat enters as acetyl-CoA already on the far side of the gate."
+    source: "CH18 lecture notes — 'traffic only goes one way... once pyruvate crosses this gate, there's no going back.'"
+  - title: "Why a thioester is a wound spring"
+    text: "To explain why acetyl-CoA's bond is high-energy, Chris reaches for two images: a wound spring versus a relaxed one, and a boulder perched on a cliff versus one sitting in a valley. The chemistry behind the picture is real. Sulfur is bigger than oxygen, so its orbitals overlap the carbonyl carbon poorly and cannot stabilize the bond by resonance the way an oxygen ester's lone pairs do. The thioester is left strained and ready to spring, which is exactly why hydrolyzing it releases roughly as much energy as splitting ATP. The energy is in the bond, not in the coenzyme handle."
+    source: "CH18 lecture notes — 'wound spring vs relaxed spring' and 'boulder on a cliff' for thioester energetics."
+  - title: "The exam trap: NADH is made only at E3"
+    text: "Chris flags one mistake harder than any other in this chapter. Students see the oxidation happen on E1 (the hydroxyethyl group becomes an acetyl group) and assume that is where NADH is born. It is not. Those electrons go onto lipoamide, then onto E3's bound FAD as FADH2, and only at the very last step does E3 hand them to NAD+ to make NADH. The FADH2 never leaves the enzyme. So the single NADH per pyruvate is produced only at E3, at the end, not at the obvious-looking oxidation in the middle."
+    source: "CH18 lecture notes — Chris flags hard that NADH is produced only at E3, NOT at step 2."
+  - title: "Give thiamine before glucose"
+    text: "The chapter's most actionable clinical rule comes straight from PDC's wiring. Thiamine (B1) becomes TPP, the coenzyme E1 cannot work without. In a malnourished or alcohol-dependent patient, B1 is already scarce, so PDC is barely holding on. Push in a glucose drip and you flood the cell with pyruvate that PDC cannot process; it backs up into lactate and the patient crashes into lactic acidosis (part of refeeding syndrome). The fix is order of operations: give thiamine first, then the glucose. The same one-enzyme logic explains beriberi and Wernicke's encephalopathy."
+    source: "CH18 lecture notes — 'Give thiamine BEFORE glucose in malnourished patients' (refeeding syndrome)."
+lectureSlides:
+  - src: "/slides/pyruvate-dehydrogenase/acetyl-coa-structure-two-fates.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/acetyl-coa-structure-two-fates.mp3"
+    title: "Acetyl CoA: Structure and Two Fates"
+    alt: "Acetyl CoA: Structure and Two Fates"
+    source: "CH18 Pyruvate Dehydrogenase · slide 3"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Acetyl CoA is the universal carrier that hands a two-carbon unit into central metabolism. The acetyl group rides on coenzyme A through a thioester bond, and that bond is the whole point. Under aerobic conditions pyruvate enters the mitochondrion and is converted into acetyl CoA, which then sits at a branch point with two principal fates. One arrow goes into the citric acid cycle, where the acetyl unit is fully oxidized to two molecules of carbon dioxide while feeding high-transfer-potential electrons toward ATP synthesis. The other arrow routes carbon into fatty acid synthesis and storage. Same molecule, two completely different metabolic destinies depending on the cell's energy needs."
+  - src: "/slides/pyruvate-dehydrogenase/thioester-bond-high-energy.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/thioester-bond-high-energy.mp3"
+    title: "Why the Thioester Bond Is High-Energy"
+    alt: "Why the Thioester Bond Is High-Energy"
+    source: "CH18 Pyruvate Dehydrogenase · slide 4"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Compare the thioester in acetyl CoA to an ordinary oxygen ester. Hydrolyzing the thioester releases about thirty-one kilojoules per mole, right in the neighborhood of ATP, while the ordinary ester gives up only around twenty. That extra punch comes from chemistry, not magic. Sulfur is larger than oxygen, so it stabilizes the carbonyl far less effectively through resonance. With weaker electron donation into the carbonyl, the carbon stays more reactive and more electrophilic. The starting thioester is therefore less stabilized than its hydrolysis products, so breaking it releases more free energy. That is what makes acetyl CoA an activated, group-transferring fuel."
+  - src: "/slides/pyruvate-dehydrogenase/pyruvate-acetyl-coa-three-steps.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/pyruvate-acetyl-coa-three-steps.mp3"
+    title: "Pyruvate to Acetyl CoA: Three Steps"
+    alt: "Pyruvate to Acetyl CoA: Three Steps"
+    source: "CH18 Pyruvate Dehydrogenase · slide 7"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Converting pyruvate to acetyl CoA is not one reaction but three, carried out in sequence by a single complex. First comes decarboxylation, where pyruvate loses carbon dioxide and the remaining two-carbon fragment is captured on thiamine pyrophosphate. Second is oxidation, where two electrons leave and the fragment is handed to the lipoamide arm. Third is transfer to coenzyme A, producing acetyl CoA. Follow the carbon across the three boxes and follow the electrons separately, because those electrons end up reducing NAD-plus to NADH. Notice that each step uses its own coenzyme, and several of those coenzymes trace back to B vitamins."
+  - src: "/slides/pyruvate-dehydrogenase/five-coenzymes-four-from-b-vitamins.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/five-coenzymes-four-from-b-vitamins.mp3"
+    title: "Five Coenzymes, Four From B Vitamins"
+    alt: "Five Coenzymes, Four From B Vitamins"
+    source: "CH18 Pyruvate Dehydrogenase · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The pyruvate dehydrogenase complex needs five coenzymes, and four of the five derive directly from B vitamins. Thiamine pyrophosphate comes from thiamine, vitamin B-one, and works on enzyme E-one. Coenzyme A comes from pantothenic acid, vitamin B-five. FAD comes from riboflavin, B-two, and NAD-plus from niacin, B-three; both serve enzyme E-three. Lipoamide is the outlier, synthesized endogenously from lipoic acid, though it is sometimes called vitamin-like. This is why a thiamine deficiency such as beriberi cripples energy metabolism: knock out one vitamin-derived cofactor and the whole gateway from glycolysis to the citric acid cycle stalls."
+  - src: "/slides/pyruvate-dehydrogenase/thiamine-pyrophosphate-carbanion.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/thiamine-pyrophosphate-carbanion.mp3"
+    title: "Thiamine Pyrophosphate and Its Carbanion"
+    alt: "Thiamine Pyrophosphate and Its Carbanion"
+    source: "CH18 Pyruvate Dehydrogenase · slide 11"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Thiamine pyrophosphate is the coenzyme that does the first chemical work on pyruvate, and it is built from the vitamin thiamine. The reactive heart of the molecule is the thiazolium ring. Look at the carbon wedged between the nitrogen and the sulfur: its proton is unusually acidic. Remove that proton and you generate a carbanion, a carbon with a lone pair that is hungry to attack. This ylide form is stabilized by the adjacent positively charged nitrogen. That carbanion is the nucleophile that will grab the carbonyl carbon of pyruvate in the very next step, setting up decarboxylation. The pyrophosphate tail simply anchors TPP in the enzyme."
+  - src: "/slides/pyruvate-dehydrogenase/step-1-decarboxylation-tpp.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/step-1-decarboxylation-tpp.mp3"
+    title: "Step 1: Decarboxylation on TPP"
+    alt: "Step 1: Decarboxylation on TPP"
+    source: "CH18 Pyruvate Dehydrogenase · slide 12"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the first catalytic step in detail. Enzyme E-one, pyruvate dehydrogenase, uses the TPP carbanion we just generated. That nucleophilic carbon attacks the keto carbon of pyruvate, forming a covalent adduct. Once attached, the carboxyl group leaves as carbon dioxide, and the thiazolium ring stabilizes the negative charge that develops during that loss. The product is hydroxyethyl-TPP, with the former pyruvate carbons now hanging off the ring as a hydroxyethyl group. No NADH is made yet; this step is purely the carbon-dioxide-releasing decarboxylation. The electrons are still held within the molecule, waiting to be passed onward in the oxidation step that follows."
+  - src: "/slides/pyruvate-dehydrogenase/lipoamide-swinging-arm.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/lipoamide-swinging-arm.mp3"
+    title: "Lipoamide: The Swinging Arm"
+    alt: "Lipoamide: The Swinging Arm"
+    source: "CH18 Pyruvate Dehydrogenase · slide 14"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Lipoamide is the coenzyme that physically shuttles the growing acetyl group between active sites. It is formed by attaching the vitamin lipoic acid to a lysine residue on enzyme E-two, dihydrolipoyl transacetylase. The business end is the reactive disulfide, two sulfurs in a strained five-membered ring ready to be reduced and to carry a thioester. What makes this elegant is geometry. Counting from the lysine side chain out to the disulfide, the arm reaches roughly fourteen angstroms. That length is no accident: it lets the tip swing from the E-one active site to E-two and on to E-three without the intermediate ever diffusing away into solution."
+  - src: "/slides/pyruvate-dehydrogenase/lipoamide-arm-visits-three-sites.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/lipoamide-arm-visits-three-sites.mp3"
+    title: "How the Lipoamide Arm Visits Three Sites"
+    alt: "How the Lipoamide Arm Visits Three Sites"
+    source: "CH18 Pyruvate Dehydrogenase · slide 15"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Watch the lipoamide arm make its rounds. Tethered to the E-two core, it first swings to E-one and picks up the acetyl group, becoming acetyl-lipoamide. Next it pivots back to E-two and delivers that acetyl unit to coenzyme A, releasing acetyl CoA and leaving the arm reduced as dihydrolipoamide. Finally it reaches E-three to be reoxidized, regenerating the disulfide so the cycle can repeat. Because the arm is about fourteen angstroms long and the E-two core has many copies, twenty-four or sixty depending on the organism, all three active sites stay within reach. The intermediates never escape; they ride the tethered arm from station to station."
+  - src: "/slides/pyruvate-dehydrogenase/four-step-pdc-mechanism.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/four-step-pdc-mechanism.mp3"
+    title: "The Four-Step PDC Mechanism"
+    alt: "The Four-Step PDC Mechanism"
+    source: "CH18 Pyruvate Dehydrogenase · slide 16"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let me put the whole mechanism on one timeline so you know exactly where NADH is born. Step one, decarboxylation on E-one, releases carbon dioxide and makes no NADH. Step two, oxidative transfer, hands the hydroxyethyl group to lipoamide as it is oxidized to an acetyl group, still no NADH. Step three, acetyl transfer on E-two, produces acetyl CoA and leaves dihydrolipoamide, again no NADH. Only in step four, regeneration on E-three, is the reduced lipoamide reoxidized by FAD, and the electrons flow onward to make NADH. So three steps build the product and exactly one step, the last, generates the reducing power."
+  - src: "/slides/pyruvate-dehydrogenase/step-3-forming-acetyl-coa.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/step-3-forming-acetyl-coa.mp3"
+    title: "Step 3: Forming Acetyl CoA"
+    alt: "Step 3: Forming Acetyl CoA"
+    source: "CH18 Pyruvate Dehydrogenase · slide 17"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "This is the payoff step. Coming in, the acetyl group is held as a thioester on the lipoamide arm, that is acetyl-lipoamide. Enzyme E-two, the transacetylase, catalyzes a transfer: the thiol of coenzyme A attacks, and the acetyl group moves from sulfur to sulfur. The products are acetyl CoA, our activated two-carbon fuel, and dihydrolipoamide, the arm now left with two free thiol groups. Notice the chemistry is a thioester-to-thioester exchange, so the high group-transfer potential of the acetyl unit is preserved as it lands on coenzyme A. The reduced arm must now be reoxidized before the complex can run again."
+  - src: "/slides/pyruvate-dehydrogenase/e3-reoxidizing-arm-make-nadh.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/e3-reoxidizing-arm-make-nadh.mp3"
+    title: "E3: Reoxidizing the Arm to Make NADH"
+    alt: "E3: Reoxidizing the Arm to Make NADH"
+    source: "CH18 Pyruvate Dehydrogenase · slide 18"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "After delivering its acetyl cargo, the lipoamide arm is stuck in the reduced dihydrolipoamide form with two free thiols, and it cannot work again until those sulfurs are restored to a disulfide. Enzyme E-three, dihydrolipoamide dehydrogenase, handles this. First FAD oxidizes dihydrolipoamide back to the disulfide form of lipoamide, becoming FADH-two in the process. Then those electrons are passed from FADH-two to NAD-plus, generating NADH plus a proton and regenerating FAD. This is the step that finally produces the molecule's reducing power. The NADH carries the electrons originally stripped from pyruvate onward to the electron transport chain."
+  - src: "/slides/pyruvate-dehydrogenase/e1-regulation-by-phosphorylation.png"
+    audio: "/slides/pyruvate-dehydrogenase/audio/e1-regulation-by-phosphorylation.mp3"
+    title: "E1 Regulation by Phosphorylation"
+    alt: "E1 Regulation by Phosphorylation"
+    source: "CH18 Pyruvate Dehydrogenase · slide 23"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Enzyme E-one is the key regulatory site of the entire complex, and it is controlled by a simple on-off switch built from a kinase and a phosphatase that travel with the complex. A kinase phosphorylates E-one and inactivates it; a phosphatase removes that phosphate and reactivates it. The switch reads the cell's energy state. When ATP, acetyl CoA, and NADH are abundant, signaling plenty of fuel and product, the complex is inhibited. When ADP and pyruvate accumulate, signaling demand and available substrate, the complex is stimulated. So the gateway from glycolysis to the citric acid cycle opens only when the cell actually needs to burn pyruvate."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const pdcSteps = [{"n": 1, "enzyme": "Pyruvate transporter (MPC)", "sub": "Pyruvate (cytosol)", "prod": "Pyruvate (matrix)", "note": "Pyruvate made by glycolysis in the cytosol is carried across the inner mitochondrial membrane by the mitochondrial pyruvate carrier. Nothing is consumed or produced here; this is the geographic move from glycolysis into the matrix, where the complex waits at the one-way gate."}, {"n": 2, "enzyme": "E1 (pyruvate dehydrogenase) · TPP, Mg²⁺", "sub": "Pyruvate", "prod": "Hydroxyethyl-TPP + CO₂", "co2": 1, "regulated": true, "note": "The C2 carbanion (ylide) of thiamine pyrophosphate attacks pyruvate's carbonyl, and the carboxyl carbon leaves as CO₂. This decarboxylation is the irreversible, committed event: a large negative ΔG, the carbon gone as gas, and animals have no enzyme to put it back. E1 is also the principal control point.", "regNote": "E1 is switched off by PDH kinase (phosphorylation) when acetyl-CoA and NADH are high, and on by PDH phosphatase when ADP/pyruvate/Ca²⁺ rise.", "clinical": "Thiamine (B1) deficiency starves E1 of TPP; the complex stalls, pyruvate and lactate accumulate, and beriberi or Wernicke's follows. Give thiamine BEFORE glucose in malnourished patients, or a glucose load drives lactic acidosis."}, {"n": 3, "enzyme": "E1 (pyruvate dehydrogenase)", "sub": "Hydroxyethyl-TPP", "prod": "Acetyl-lipoamide", "note": "Still on E1: the two-carbon hydroxyethyl unit is oxidized to an acetyl group and transferred onto lipoamide's disulfide in the same motion. The S–S of lipoamide is reduced to a dithiol and TPP is regenerated. The electrons are now held on the lipoamide arm, NOT yet on NAD⁺ — so no NADH is made here, a common trap."}, {"n": 4, "enzyme": "E2 (dihydrolipoyl transacetylase)", "sub": "Acetyl-lipoamide + CoA-SH", "prod": "Acetyl-CoA + dihydrolipoamide", "note": "The swinging lipoamide arm carries the acetyl group to the E2 core, which transfers it to coenzyme A, forming the high-energy thioester acetyl-CoA (~−31 kJ/mol). Acetyl-CoA is released; the lipoamide is left reduced and must be reset before the cycle runs again.", "clinical": "Arsenite (As³⁺) and mercury (Hg²⁺) bridge the two –SH groups of the dithiol lipoamide, locking the arm. The complex freezes, and the brain and heart, most dependent on its flux, are hit hardest."}, {"n": 5, "enzyme": "E3 (dihydrolipoamide dehydrogenase) · FAD", "sub": "Dihydrolipoamide", "prod": "Lipoamide (S–S) + FADH₂ (bound)", "note": "E3 reoxidizes the dithiol back to the lipoamide disulfide, resetting the arm. The electrons pass to E3's tightly bound FAD, making FADH₂ transiently. This FADH₂ stays on the enzyme — an internal relay, not a released product — which is why PDC's net carriers list NADH and not FADH₂."}, {"n": 6, "enzyme": "E3 (dihydrolipoamide dehydrogenase) · NAD⁺", "sub": "FADH₂ (bound) + NAD⁺", "prod": "FAD + NADH + H⁺", "nadh": 1, "note": "The electrons move from FADH₂ to NAD⁺, producing NADH and regenerating FAD. This is the only NADH-producing step of the whole complex. No molecular O₂ is used directly; the complex needs aerobic conditions only because the electron-transport chain must regenerate NAD⁺ downstream.", "clinical": "In hyperglycemia, excess glucose floods the TCA cycle with electron donors, the mitochondrial proton gradient climbs past a threshold, and electrons leak from the chain as superoxide; that oxidative stress contributes to diabetic neuropathy."}];
+
+**Glycolysis ends with pyruvate, and pyruvate is standing at a one-way gate.** Once it walks through, there is no walking back. The reaction on the other side, run by the pyruvate dehydrogenase complex, converts pyruvate into acetyl-CoA, releases a carbon as CO2, and banks one NADH. It is the bridge between two terminals: glycolysis in the cytosol and the citric acid cycle in the mitochondrial matrix. And it is the reason animals cannot turn fat into sugar.
+
+Picture an airport. Glycolysis is Terminal 1. The TCA cycle is Terminal 2. Between them sits a security gate that only opens one way. Pyruvate clears the gate, becomes acetyl-CoA, and commits to oxidation. Traffic does not flow backward. That single fact, written in thermodynamics, organizes the entire chapter.
+
+## The reaction and the one-way gate
+
+The net reaction is worth memorizing exactly:
+
+> **Pyruvate + CoA + NAD+ -> Acetyl-CoA + CO2 + NADH + H+**
+
+It is an oxidative decarboxylation. Pyruvate (3 carbons) loses its carboxyl carbon as CO2 and emerges as a 2-carbon acetyl group carried by coenzyme A. The oxidation that strips that carbon also reduces NAD+ to NADH. It happens in the matrix, so pyruvate must first cross the inner mitochondrial membrane through the mitochondrial pyruvate carrier.
+
+Here is the load-bearing point: in animals this reaction is **irreversible**, with a large negative free-energy change. There is no enzyme to run it backward. Acetyl-CoA cannot be turned back into pyruvate, which is why gluconeogenesis cannot simply reverse glycolysis through this step; it must detour around PDC entirely using pyruvate carboxylase and PEPCK. The same wall explains a dinner-table fact: you cannot make a net amount of glucose from fatty acids, because fat enters metabolism as acetyl-CoA, on the far side of the gate.
+
+## Acetyl-CoA: the energy is in the bond
+
+Students often imagine coenzyme A as the valuable part. It is not. CoA is the handle; the energy lives in the **thioester bond** that joins the acetyl group to CoA's sulfur. Hydrolyzing that bond releases about -31 kJ/mol, roughly the same as ATP's -30.5. An ordinary oxygen ester releases only about -21.
+
+Why the difference? Sulfur is a larger atom than oxygen, so its electron orbitals overlap poorly with the carbonyl carbon. In an oxygen ester, the oxygen lone pairs stabilize the C=O by resonance, making the bond comfortable and low-energy. Sulfur cannot lend that stabilization. The thioester is left strained, like a spring wound tight rather than relaxed, or a boulder perched on a cliff edge. Release it and a lot of energy comes out. That stored potential is exactly what lets acetyl-CoA drive the first step of the TCA cycle and seed fatty-acid synthesis. Acetyl-CoA has two fates: complete oxidation for ATP, or storage as fat.
+
+## One machine, three enzymes, five coenzymes
+
+PDC is one of the largest enzyme assemblies in the cell, roughly 10 megadaltons in eukaryotes, larger than a ribosome. It is not three enzymes floating loose; it is three enzymes welded into a single particle. E2 forms a central core scaffold (classically 60 copies, the pentagonal dodecahedron; recent mammalian cryo-EM suggests the functional core may be smaller), and E1 and E3 dock around the periphery.
+
+That architecture buys **substrate channeling**: the intermediate never escapes into solution. Think of a robot arm on an assembly line. A lipoic acid molecule is amide-bonded to a lysine on E2, forming **lipoamide**, and this ~14-Angstrom arm physically swings the growing acetyl unit from one active site to the next by Brownian motion. Nothing is dropped, nothing diffuses away, nothing is wasted.
+
+Five coenzymes do the chemistry. A useful mnemonic is **"Tender Loving Care For Nancy"**: TPP, Lipoamide, CoA, FAD, NAD+. Four trace back to vitamins you must eat: TPP from B1 (thiamine, at E1), CoA from B5 (pantothenate, at E2), FAD from B2 (riboflavin, at E3), and NAD+ from B3 (niacin, at E3). Lipoic acid is the exception; the body synthesizes it, so it is not a true vitamin.
+
+## Walking the mechanism
+
+Trace the carbon through the complex below. Open each step and watch where the CO2 leaves and, critically, where the NADH is actually made.
+
+<PathwayExplorer steps={pdcSteps} title="Pyruvate dehydrogenase complex · 6 steps" />
+
+The five mechanistic moves, in order: **E1** uses TPP to attack pyruvate and lop off the carboxyl carbon as CO2, the irreversible step, leaving a hydroxyethyl group on TPP. Still on **E1**, that group is oxidized to an acetyl group and handed to lipoamide, reducing its disulfide to a dithiol. **E2** transfers the acetyl from lipoamide to CoA, releasing acetyl-CoA and leaving lipoamide reduced. **E3** reoxidizes that dithiol, passing the electrons to its bound FAD to make FADH2. Finally **E3** moves those electrons from FADH2 to NAD+, producing NADH and resetting FAD.
+
+The exam trap lives here, so flag it hard: **NADH is produced only at E3, at the very end, not at the oxidation step on E1.** The FADH2 formed along the way never leaves the enzyme; it is an internal relay, which is why the net carrier is NADH, not FADH2. And note that no molecular O2 is consumed anywhere in PDC. The reaction needs aerobic conditions only indirectly, because the electron transport chain must regenerate NAD+ for the complex to keep running.
+
+## Two layers of regulation
+
+A gate this important is heavily controlled, and PDC reads the cell's **energy charge** with the same logic as PFK-1 from the glycolysis chapter.
+
+The fast layer is **allosteric**, responding in seconds. The products themselves are inhibitors: ATP, NADH, and acetyl-CoA all say "we have plenty, slow down." ADP and pyruvate are activators: "we are hungry, speed up."
+
+The slower, sustained layer is **covalent**, acting over minutes. A dedicated kinase, **PDK** (pyruvate dehydrogenase kinase), phosphorylates a serine on E1 and switches the complex OFF. A phosphatase, **PDP**, removes that phosphate and switches it back ON. Note the direction: here phosphorylation **inactivates**, the same convention as glycogen synthase. PDK is itself stimulated by the high-energy signals ATP, NADH, and acetyl-CoA, reinforcing the allosteric brake.
+
+The cleanest illustration is muscle. When a muscle contracts, the cytosol fills with **Ca2+**. Calcium activates PDP, PDP dephosphorylates E1, PDC switches on, and acetyl-CoA surges into the TCA cycle exactly when the muscle needs ATP. The same calcium that triggers contraction also unlocks the fuel.
+
+## When the gate fails
+
+These mechanisms turn into medicine the moment they break. **Beriberi** is B1 deficiency: no thiamine, no TPP, E1 cannot work, pyruvate and lactate pile up, and the nervous and cardiovascular systems suffer. This is why a malnourished or alcohol-dependent patient must get thiamine before a glucose drip, or the sugar load drives a dangerous lactic acidosis (a cause of refeeding syndrome). **Arsenite and mercury** bind the dithiol form of lipoamide and clamp the swinging arm shut, freezing the whole complex; brain and heart, most dependent on PDC, are hit first. And the **Warburg effect** in cancer is PDC regulation hijacked: HIF-1a drives up PDK, E1 stays phosphorylated and off, pyruvate is shunted to lactate even when oxygen is abundant, and the tumor gets fast ATP plus biosynthetic carbon for growth.
+
+With acetyl-CoA now in hand, we are standing at the door of Terminal 2. The next chapter runs that acetyl group through the citric acid cycle, where each turn squeezes out the CO2, NADH, FADH2, and GTP that feed the electron transport chain.
