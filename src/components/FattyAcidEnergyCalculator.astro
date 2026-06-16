@@ -1,0 +1,101 @@
+---
+/**
+ * FattyAcidEnergyCalculator — the payoff companion to the β-oxidation pathway map.
+ * Pick an even-chain saturated fatty acid and the calculator counts the spiral
+ * turns, the acetyl-CoA / FADH₂ / NADH harvest, and the net ATP under the modern
+ * P/O convention (2.5 ATP/NADH, 1.5/FADH₂, 10/acetyl-CoA via the TCA cycle and
+ * oxidative phosphorylation), minus the 2-ATP activation toll. A bar compares the
+ * yield to one glucose (~32 ATP) and reports ATP per carbon, making "fat is the
+ * dense fuel" quantitative. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fae card" data-fae>
+  <figcaption class="fae-head">Fatty acid energy calculator<span class="fae-chip">⚙ original · interactive</span></figcaption>
+
+  <label class="fae-slabel">Fatty acid chain length <em data-out="n">16</em> carbons <span class="fae-name" data-name>(palmitate)</span>
+    <input type="range" data-in="n" min="4" max="24" step="2" value="16" />
+  </label>
+
+  <div class="fae-grid">
+    <dl class="fae-ledger">
+      <div><dt>Spiral turns</dt><dd data-r-cycles>7</dd></div>
+      <div><dt>Acetyl-CoA</dt><dd data-r-acetyl>8</dd></div>
+      <div><dt>FADH₂</dt><dd data-r-fadh2>7</dd></div>
+      <div><dt>NADH</dt><dd data-r-nadh>7</dd></div>
+      <div><dt>Activation toll</dt><dd>−2 ATP</dd></div>
+      <div class="fae-net"><dt>Net ATP</dt><dd data-r-atp>106</dd></div>
+    </dl>
+
+    <div class="fae-barwrap">
+      <div class="fae-bar-row"><span class="fae-bar-lbl">this fat</span><div class="fae-bar-track"><div class="fae-bar-fill is-fat" data-bar-fat></div><b data-bar-fat-n>106</b></div></div>
+      <div class="fae-bar-row"><span class="fae-bar-lbl">glucose</span><div class="fae-bar-track"><div class="fae-bar-fill is-glc" style="width:30%"></div><b>~32</b></div></div>
+      <p class="fae-eff">ATP per carbon: <b data-r-perc>6.6</b> &nbsp;·&nbsp; glucose ≈ 5.3</p>
+    </div>
+  </div>
+
+  <p class="fae-why" data-why>Palmitate (C16) nets about 106 ATP — far more than glucose, and more per carbon, because its carbons start more reduced and are stored without water.</p>
+  <p class="fae-foot">Modern P/O ratios (2.5 ATP/NADH, 1.5/FADH₂, ~10/acetyl-CoA). Older textbooks counting 3 and 2 give higher totals (palmitate ≈ 129). Even chains only here; odd chains leave a propionyl-CoA.</p>
+</figure>
+
+<script>
+  const NAMES: Record<number, string> = { 4: 'butyrate', 6: 'caproate', 8: 'caprylate', 10: 'caprate', 12: 'laurate', 14: 'myristate', 16: 'palmitate', 18: 'stearate', 20: 'arachidate', 22: 'behenate', 24: 'lignocerate' };
+  document.querySelectorAll<HTMLElement>('[data-fae]').forEach((root) => {
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]')!;
+    const q = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const out = { n: q('[data-out="n"]'), name: q('[data-name]'), cycles: q('[data-r-cycles]'), acetyl: q('[data-r-acetyl]'), fadh2: q('[data-r-fadh2]'), nadh: q('[data-r-nadh]'), atp: q('[data-r-atp]'), perc: q('[data-r-perc]'), why: q('[data-why]'), barFat: q('[data-bar-fat]'), barFatN: q('[data-bar-fat-n]') };
+    const GLUCOSE = 32;
+    function render() {
+      const n = parseInt(nIn.value, 10);
+      const cycles = n / 2 - 1;
+      const acetyl = n / 2;
+      const fadh2 = cycles, nadh = cycles;
+      const gross = acetyl * 10 + fadh2 * 1.5 + nadh * 2.5;
+      const net = gross - 2;
+      out.n.textContent = String(n);
+      out.name.textContent = NAMES[n] ? `(${NAMES[n]})` : '';
+      out.cycles.textContent = String(cycles);
+      out.acetyl.textContent = String(acetyl);
+      out.fadh2.textContent = String(fadh2);
+      out.nadh.textContent = String(nadh);
+      out.atp.textContent = String(Math.round(net));
+      out.perc.textContent = (net / n).toFixed(1);
+      out.barFatN.textContent = String(Math.round(net));
+      // bar scaled so glucose (32) = 30% width; cap at 100%
+      const w = Math.min(100, (net / GLUCOSE) * 30);
+      out.barFat.style.width = w.toFixed(0) + '%';
+      out.why.textContent = `A C${n} fatty acid runs ${cycles} turns of the spiral, yielding ${acetyl} acetyl-CoA, ${fadh2} FADH₂, and ${nadh} NADH — about ${Math.round(net)} net ATP (${(net / n).toFixed(1)} per carbon, versus ~5.3 for glucose). Longer chains scale almost linearly.`;
+    }
+    nIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .fae { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fae-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fae-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fae-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
+  .fae-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fae-name { color: var(--ddp-color-muted); }
+  .fae-slabel input { accent-color: var(--ddp-color-accent); }
+  .fae-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  @media (min-width: 600px) { .fae-grid { grid-template-columns: 1fr 1fr; } }
+  .fae-ledger { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: 0; }
+  .fae-ledger div { display: flex; flex-direction: column; gap: 0.05rem; }
+  .fae-ledger dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fae-ledger dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .fae-net dd { color: var(--ddp-color-accent); font-size: var(--ddp-text-lg, 1.1rem); }
+  .fae-barwrap { display: flex; flex-direction: column; gap: 0.4rem; justify-content: center; }
+  .fae-bar-row { display: flex; align-items: center; gap: 0.5rem; }
+  .fae-bar-lbl { width: 52px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: none; text-align: right; }
+  .fae-bar-track { position: relative; flex: 1; height: 20px; background: color-mix(in srgb, var(--ddp-color-accent) 7%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 5px; }
+  .fae-bar-fill { height: 100%; border-radius: 4px 0 0 4px; transition: width 0.25s ease; }
+  .fae-bar-fill.is-fat { background: var(--ddp-color-accent); }
+  .fae-bar-fill.is-glc { background: var(--ddp-color-secondary); }
+  .fae-bar-track b { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); }
+  .fae-eff { margin: 0.2rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fae-eff b { font-family: var(--ddp-font-mono); color: var(--ddp-color-accent); }
+  .fae-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.4em; }
+  .fae-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

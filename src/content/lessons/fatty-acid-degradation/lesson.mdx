@@ -107,6 +107,10 @@ simulations:
     ref: "PathwayExplorer"
     title: "β-oxidation map — activation costs 2 ATP up front; each turn of the spiral harvests 1 FADH₂ + 1 NADH + 1 acetyl-CoA and shortens the chain by two carbons"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "FattyAcidEnergyCalculator"
+    title: "Fatty acid energy calculator (pick a chain length; tally turns, carriers, and net ATP vs glucose)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 practiceQuestions:
   - stem: "During fatty acid activation, acyl-CoA synthetase consumes ATP. Why is the energetic cost counted as 2 ATP equivalents rather than 1?"
     choices:
@@ -292,6 +296,7 @@ lectureSlides:
 ---
 
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+import FattyAcidEnergyCalculator from '../../../components/FattyAcidEnergyCalculator.astro';
 
 export const boxSteps = [{"n": 1, "enzyme": "Acyl-CoA synthetase (fatty acid thiokinase)", "sub": "Fatty acid + CoA + ATP", "prod": "Acyl-CoA + AMP + 2 Pᵢ", "atp": -2, "regulated": true, "note": "Activation, done once before the spiral begins. The fatty acid is adenylated to an acyl-adenylate, then CoA displaces AMP. ATP is split to AMP plus pyrophosphate, and hydrolysis of that pyrophosphate to 2 Pᵢ pulls the reaction forward and makes it irreversible. The cost is 2 ATP equivalents, not 1, because ATP went to AMP rather than ADP — the most-missed line in the ledger."}, {"n": 2, "enzyme": "Carnitine shuttle (CPT-I → translocase → CPT-II)", "sub": "Acyl-CoA (cytosol)", "prod": "Acyl-CoA (matrix)", "regulated": true, "note": "Acyl-CoA is too charged to cross the inner membrane, so CPT-I swaps CoA for carnitine on the outer face, a translocase carries acylcarnitine across, and CPT-II regenerates acyl-CoA inside. CPT-I is the regulatory keystone: malonyl-CoA, the first committed intermediate of fatty acid synthesis, inhibits it, so the cell never builds and burns fat at the same time.", "clinical": "The Inuit CPT1A P479L variant lowers CPT-I activity and its sensitivity to malonyl-CoA. Carried at high frequency on a marine-mammal-fat diet, it looks adaptive but raises the risk of infant hypoglycemia and sudden death during fasting — adaptation with a real tradeoff."}, {"n": 3, "enzyme": "Acyl-CoA dehydrogenase (cycle step 1)", "sub": "Acyl-CoA", "prod": "trans-Δ²-enoyl-CoA", "fadh2": 1, "note": "Oxidation at the β-carbon installs a trans double bond between C2 and C3, handing two electrons to FAD to make FADH₂. Chain-length isozymes (VLCAD, LCAD, MCAD, SCAD) split the labor across long-to-short substrates.", "clinical": "MCAD deficiency (~1:10,000) stalls medium chains here, causing hypoketotic hypoglycemia under fasting; once misread as SIDS, it is now caught on the newborn heel-prick. Jamaican vomiting sickness from unripe ackee (hypoglycin A) inhibits this same step."}, {"n": 4, "enzyme": "Enoyl-CoA hydratase (crotonase, cycle step 2)", "sub": "trans-Δ²-enoyl-CoA", "prod": "L-3-hydroxyacyl-CoA", "note": "Water adds across the new double bond with strict stereochemistry, placing an OH on the β-carbon (the L-3-hydroxy product). No cofactor; this just sets up the next oxidation."}, {"n": 5, "enzyme": "L-3-hydroxyacyl-CoA dehydrogenase (cycle step 3)", "sub": "L-3-hydroxyacyl-CoA", "prod": "3-ketoacyl-CoA", "nadh": 1, "note": "The β-carbon hydroxyl is oxidized to a ketone, reducing NAD⁺ to NADH. The carbonyl now polarizes the C2–C3 bond, priming it for cleavage."}, {"n": 6, "enzyme": "β-ketothiolase (3-ketoacyl-CoA thiolase, cycle step 4)", "sub": "3-ketoacyl-CoA + CoA", "prod": "Acetyl-CoA + acyl-CoA (−2C)", "note": "A second CoA attacks the β-keto carbon and cleaves off the two terminal carbons as acetyl-CoA, leaving an acyl-CoA shortened by two carbons that re-enters at the dehydrogenase. Each acetyl-CoA can feed the TCA cycle; each FADH₂ and NADH feeds the electron-transport chain."}];
 
@@ -325,6 +330,8 @@ Inside the matrix, the same four reactions repeat, each pass targeting the **β-
 4. **β-ketothiolase** cleaves off **acetyl-CoA**, leaving an acyl chain two carbons shorter that re-enters at step 1.
 
 Now the ledger that the chapter is built around. Palmitate is 16 carbons, so it runs 7 cycles to make 8 acetyl-CoA, and along the way 7 FADH2 and 7 NADH. Feed the acetyl-CoA to the TCA cycle and the carriers to the electron transport chain, then subtract the 2-ATP activation toll, and palmitate nets **about 106 ATP** (using the modern P/O ratios of 2.5 per NADH and 1.5 per FADH₂; older textbooks counting 3 and 2 give a higher figure near 129). That is why fat is the reserve fuel: one molecule yields what dozens of glucose passes through glycolysis cannot.
+
+<FattyAcidEnergyCalculator />
 
 Step 1 comes in chain-length flavors — VLCAD, LCAD, MCAD, SCAD — and the medium-chain one is the famous failure point. **MCAD deficiency** (about 1 in 10,000) leaves a child unable to burn medium chains during a fast, producing hypoketotic hypoglycemia. It was once written off as SIDS; now a newborn heel-prick catches it. One enzyme, one heel prick, thousands of lives. The same step is the target in **Jamaican vomiting sickness**, where hypoglycin A from unripe ackee fruit poisons the dehydrogenase.
 
