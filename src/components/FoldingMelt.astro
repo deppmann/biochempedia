@@ -1,0 +1,121 @@
+---
+/**
+ * FoldingMelt — the stability companion to the Ramachandran explorer. A two-state
+ * thermal denaturation curve (fraction folded vs temperature) showing that folding
+ * is cooperative and all-or-none: the protein stays folded, then melts over a
+ * narrow window around its Tm. Sliders for Tm and cooperativity (ΔH), plus a
+ * "stabilizing change" toggle (a disulfide / thermophile substitution) that shifts
+ * Tm up. A marker at body temperature reads out the folded fraction, making
+ * marginal stability concrete. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fm card" data-folding>
+  <figcaption class="fm-head">Folding is cooperative — the melt curve<span class="fm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fm-svg" viewBox="0 0 320 220" role="img" aria-label="Fraction of protein folded versus temperature, a sigmoidal melting curve with the melting temperature marked" data-plot></svg>
+
+  <div class="fm-controls">
+    <label class="fm-slabel">Melting temperature T<sub>m</sub> <em data-out="tm">60</em> °C
+      <input type="range" data-in="tm" min="40" max="95" step="1" value="60" />
+    </label>
+    <label class="fm-slabel">Cooperativity (ΔH) <em data-out="coop">sharp</em>
+      <input type="range" data-in="coop" min="1" max="6" step="0.5" value="4" />
+    </label>
+    <label class="fm-check"><input type="checkbox" data-stab /> add a stabilizing change (disulfide / thermophile)</label>
+  </div>
+
+  <dl class="fm-readout">
+    <div><dt>Folded at 37 °C</dt><dd data-r-f37>~100%</dd></div>
+    <div><dt>Melting temperature</dt><dd data-r-tm>60 °C</dd></div>
+  </dl>
+  <p class="fm-why" data-why>A protein does not loosen gradually; it holds its shape, then unravels over a few degrees. That sharp transition is the signature of cooperative folding.</p>
+
+  <p class="fm-foot">Native proteins are only marginally stable — the folded state beats the unfolded one by the energy of just a few hydrogen bonds. A single disulfide or a thermophile's extra salt bridge can push Tm well up.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', NAVY = '#232d4b', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-folding]').forEach((root) => {
+    const tmIn = root.querySelector<HTMLInputElement>('[data-in="tm"]')!;
+    const coopIn = root.querySelector<HTMLInputElement>('[data-in="coop"]')!;
+    const stab = root.querySelector<HTMLInputElement>('[data-stab]')!;
+    const tmOut = root.querySelector<HTMLElement>('[data-out="tm"]')!;
+    const coopOut = root.querySelector<HTMLElement>('[data-out="coop"]')!;
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const rF37 = root.querySelector<HTMLElement>('[data-r-f37]')!;
+    const rTm = root.querySelector<HTMLElement>('[data-r-tm]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    const X0 = 40, X1 = 304, Y0 = 16, Y1 = 192, TMIN = 20, TMAX = 100;
+    const px = (t: number) => X0 + ((t - TMIN) / (TMAX - TMIN)) * (X1 - X0);
+    const py = (f: number) => Y1 - f * (Y1 - Y0);
+    function folded(T: number, tm: number, coop: number) { return 1 / (1 + Math.exp((T - tm) * coop * 0.12)); }
+    function curve(tm: number, coop: number) {
+      let d = '';
+      for (let t = TMIN; t <= TMAX; t += 0.5) { d += (t === TMIN ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(folded(t, tm, coop)).toFixed(1) + ' '; }
+      return d.trim();
+    }
+    function render() {
+      const baseTm = parseInt(tmIn.value, 10);
+      const tm = baseTm + (stab.checked ? 18 : 0);
+      const coop = parseFloat(coopIn.value);
+      tmOut.textContent = String(baseTm);
+      coopOut.textContent = coop < 2.5 ? 'gradual' : coop < 4.5 ? 'sharp' : 'switch-like';
+      plot.replaceChildren();
+      // axes + gridlines
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const f of [0.5, 1]) { plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' })); const t = el('text', { x: X0 - 4, y: py(f) + 3, 'text-anchor': 'end', 'font-size': 8, fill: INK }); t.textContent = (f * 100) + '%'; plot.appendChild(t); }
+      for (const T of [20, 37, 60, 80, 100]) { plot.appendChild(el('line', { x1: px(T), y1: Y1, x2: px(T), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 })); const t = el('text', { x: px(T), y: Y1 + 13, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); t.textContent = String(T); plot.appendChild(t); }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 26, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); xl.textContent = 'temperature (°C)'; plot.appendChild(xl);
+      const yl = el('text', { x: X0 - 2, y: Y0 - 4, 'text-anchor': 'start', 'font-size': 9, fill: INK }); yl.textContent = '% folded'; plot.appendChild(yl);
+      // body temp marker
+      plot.appendChild(el('line', { x1: px(37), y1: Y0, x2: px(37), y2: Y1, stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+      const bt = el('text', { x: px(37), y: Y0 + 8, 'text-anchor': 'middle', 'font-size': 7.5, fill: INK }); bt.textContent = '37'; plot.appendChild(bt);
+      // curve
+      plot.appendChild(el('path', { d: curve(tm, coop), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // Tm marker (50% folded)
+      if (tm >= TMIN && tm <= TMAX) { plot.appendChild(el('line', { x1: px(tm), y1: py(0.5), x2: px(tm), y2: Y1, stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' })); plot.appendChild(el('circle', { cx: px(tm), cy: py(0.5), r: 4, fill: NAVY })); const tl = el('text', { x: px(tm), y: py(0.5) - 6, 'text-anchor': 'middle', 'font-size': 8, fill: NAVY, 'font-weight': 700 }); tl.textContent = 'Tm'; plot.appendChild(tl); }
+      // 37C folded fraction point
+      const f37 = folded(37, tm, coop);
+      plot.appendChild(el('circle', { cx: px(37), cy: py(f37), r: 4, fill: ORANGE }));
+      rF37.textContent = (f37 > 0.995 ? '~100' : Math.round(f37 * 100)) + '%';
+      rTm.textContent = tm + ' °C';
+      why.textContent = stab.checked
+        ? `The stabilizing change pushed Tm to ${tm} °C — the protein now resists heat that would have melted the wild type. This is how thermophiles keep their enzymes folded in boiling springs.`
+        : f37 < 0.9
+          ? `At a Tm of ${tm} °C the protein is already partly unfolded at body temperature (${Math.round(f37 * 100)}% folded) — a destabilizing change can drop Tm into the danger zone, which is how many disease mutations act.`
+          : 'A protein does not loosen gradually; it holds its shape, then unravels over a few degrees. That sharp transition is the signature of cooperative folding — the whole structure goes at once.';
+    }
+    tmIn.addEventListener('input', render);
+    coopIn.addEventListener('input', render);
+    stab.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .fm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fm-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .fm-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fm-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fm-slabel input { accent-color: var(--ddp-color-accent); }
+  .fm-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fm-check input { accent-color: var(--ddp-color-accent); }
+  .fm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .fm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .fm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .fm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

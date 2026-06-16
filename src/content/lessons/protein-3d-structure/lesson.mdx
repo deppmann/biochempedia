@@ -240,6 +240,10 @@ simulations:
     ref: "RamachandranExplorer"
     title: "Ramachandran plot explorer (drag φ/ψ and see the backbone respond)"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "FoldingMelt"
+    title: "Folding melt curve (cooperative thermal denaturation; tune Tm and watch the protein unravel)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "A 33 kDa protein is analyzed by mass spectrometry. Using the lesson's rule of thumb for average residue mass, approximately how many amino acid residues does it contain?"
@@ -618,6 +622,7 @@ corpusTags:
 ---
 
 import RamachandranExplorer from '../../../components/RamachandranExplorer.astro';
+import FoldingMelt from '../../../components/FoldingMelt.astro';
 
 **A 100-residue protein can adopt roughly 10⁴⁷ shapes** if each residue has just
 three backbone options. Searching them one at a time would take longer than the
@@ -695,6 +700,12 @@ in the tube but the protein and water. The conclusion, in his words: "The native
 conformation is determined by the totality of interatomic interactions and hence by
 the amino acid sequence, in a given environment." The fold is the lowest-energy state
 the sequence can reach.
+
+That winning margin is thin. A folded protein is only marginally more stable than its
+unfolded coil, which is why heat can undo it — and when it melts, it does so all at
+once, over just a few degrees, because the whole cooperative structure lets go together.
+
+<FoldingMelt />
 
 That resolves Levinthal's paradox. Folding is not a random search; partly-correct
 intermediates are slightly more stable, so they are kept, and the protein funnels
