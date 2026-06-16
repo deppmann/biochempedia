@@ -1,0 +1,132 @@
+---
+/**
+ * ChromatographyColumn — the separation-mechanism companion to the PurificationSimulator. The
+ * simulator tracks the purification table and SDS-PAGE cleanup across steps; this island isolates
+ * one idea: the SAME four-protein mixture comes off in a DIFFERENT order depending on which
+ * property the column exploits. Pick size-exclusion, ion-exchange, affinity, or hydrophobic
+ * interaction and watch the elution order rearrange — including the counterintuitive size-exclusion
+ * result, where the biggest protein leaves first. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="chr card" data-chrom>
+  <figcaption class="chr-head">Same mixture, different column, different order<span class="chr-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="chr-tabs" role="group" aria-label="Column type">
+    <button type="button" data-col="sec" aria-pressed="true">Size-exclusion</button>
+    <button type="button" data-col="iex">Ion-exchange (cation)</button>
+    <button type="button" data-col="aff">Affinity (His-tag)</button>
+    <button type="button" data-col="hic">Hydrophobic (HIC)</button>
+  </div>
+
+  <svg class="chr-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+
+  <p class="chr-principle" data-principle></p>
+  <p class="chr-insight" data-insight></p>
+
+  <div class="chr-legend" data-legend></div>
+
+  <p class="chr-foot">No single column purifies a protein — but each sorts on a different axis, so two or three in series exploit independent properties and multiply their power. Affinity is the outlier: by exploiting one specific binding interaction it can do in a single step what size and charge need several to approach.</p>
+</figure>
+
+<script>
+  type Prot = { id: string; name: string; mw: number; charge: number; phob: number; tag: boolean; color: string };
+  const PROTS: Prot[] = [
+    { id: 'P1', name: 'Large enzyme (250 kDa, neutral)', mw: 250, charge: 0, phob: 2, tag: false, color: '#232d4b' },
+    { id: 'P2', name: 'Small acidic protein (15 kDa, −)', mw: 15, charge: -1, phob: 1, tag: false, color: '#0e7c86' },
+    { id: 'P3', name: 'Basic protein (40 kDa, +)', mw: 40, charge: 1, phob: 4, tag: false, color: '#e57200' },
+    { id: 'P4', name: 'His-tagged target (60 kDa, hydrophobic, TAG)', mw: 60, charge: 0, phob: 7, tag: true, color: '#D4A843' },
+  ];
+  type Col = { name: string; order: (p: Prot[]) => Prot[]; principle: string; insight: string };
+  const COLS: Record<string, Col> = {
+    sec: {
+      name: 'Size-exclusion (gel filtration)',
+      order: (p) => [...p].sort((a, b) => b.mw - a.mw),
+      principle: 'Separates by size. The porous beads are a maze only small proteins can enter; big ones are excluded, take the short path around, and elute first.',
+      insight: 'The counterintuitive one: the LARGEST protein comes off first, the smallest last — the opposite of what most students guess.',
+    },
+    iex: {
+      name: 'Ion-exchange (negatively-charged cation exchanger)',
+      order: (p) => [...p].sort((a, b) => a.charge - b.charge),
+      principle: 'Separates by charge. A negatively-charged resin grips positively-charged proteins; negatives are repelled and rush through, and bound proteins are then pried off with a rising salt gradient.',
+      insight: 'Acidic (−) protein flows through first; the basic (+) protein clings hardest and elutes last as salt climbs.',
+    },
+    aff: {
+      name: 'Affinity (Ni-NTA for the His-tag)',
+      order: (p) => [...p.filter((x) => !x.tag), ...p.filter((x) => x.tag)],
+      principle: 'Separates by a single specific binding interaction. Only the protein bearing the matching tag (or ligand) sticks; everything else washes straight through.',
+      insight: 'One step, near-complete purity: the three untagged proteins flow through together and the tagged target elutes alone — the highest-resolution method here.',
+    },
+    hic: {
+      name: 'Hydrophobic interaction (HIC)',
+      order: (p) => [...p].sort((a, b) => a.phob - b.phob),
+      principle: 'Separates by surface hydrophobicity. High salt drives hydrophobic patches onto the resin; lowering the salt releases them, least-sticky first.',
+      insight: 'The most hydrophobic protein (here the tagged target) binds tightest and elutes last.',
+    },
+  };
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function draw(svg: SVGElement, ordered: Prot[]) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const n = ordered.length, w = 460 / n;
+    const t0 = el('text', { x: 12, y: 16, fill: '#b9b9c2', 'font-size': 10 }); t0.textContent = 'Elution order — fractions collected early → late'; svg.appendChild(t0);
+    ordered.forEach((p, i) => {
+      const cx = i * w + w / 2;
+      // test tube
+      svg.appendChild(el('rect', { x: cx - 16, y: 30, width: 32, height: 56, rx: 4, fill: '#fff', stroke: '#cfcfd6', 'stroke-width': 1.5 }));
+      // protein band
+      svg.appendChild(el('rect', { x: cx - 13, y: 58, width: 26, height: 25, rx: 2, fill: p.color, opacity: 0.85 }));
+      const lab = el('text', { x: cx, y: 74, 'text-anchor': 'middle', fill: '#fff', 'font-size': 11, 'font-weight': 700 }); lab.textContent = p.id; svg.appendChild(lab);
+      const ord = el('text', { x: cx, y: 104, 'text-anchor': 'middle', fill: '#4b4b55', 'font-size': 10 }); ord.textContent = `${i + 1}`; svg.appendChild(ord);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-chrom]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const principleEl = root.querySelector<HTMLElement>('[data-principle]')!;
+    const insightEl = root.querySelector<HTMLElement>('[data-insight]')!;
+    const legend = root.querySelector<HTMLElement>('[data-legend]')!;
+    PROTS.forEach((p) => {
+      const chip = document.createElement('div');
+      chip.className = 'chr-leg'; chip.style.setProperty('--chr-c', p.color);
+      chip.innerHTML = `<b>${p.id}</b> ${p.name}`;
+      legend.appendChild(chip);
+    });
+    function select(col: string) {
+      const c = COLS[col];
+      const ordered = c.order(PROTS);
+      principleEl.textContent = c.principle;
+      insightEl.textContent = c.insight;
+      draw(svg, ordered);
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-col]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-col]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        select(b.getAttribute('data-col')!);
+      }));
+    select('sec');
+  });
+</script>
+
+<style>
+  .chr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .chr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .chr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .chr-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .chr-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .chr-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .chr-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .chr-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .chr-principle { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .chr-insight { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.6em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .chr-legend { display: grid; grid-template-columns: 1fr; gap: 0.3rem; }
+  @media (min-width: 560px) { .chr-legend { grid-template-columns: repeat(2, 1fr); } }
+  .chr-leg { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 4px solid var(--chr-c, #888); padding-left: 0.5rem; }
+  .chr-leg b { color: var(--chr-c, var(--ddp-color-primary)); font-family: var(--ddp-font-mono); }
+  .chr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
