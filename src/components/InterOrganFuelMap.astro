@@ -1,0 +1,210 @@
+---
+/**
+ * InterOrganFuelMap — the body-wide companion to CoriCycleLab. That island zooms in on one loop
+ * (muscle lactate ↔ liver glucose); this one zooms all the way out to the whole fuel economy:
+ * four tissues (liver, muscle, adipose, brain) trading through the blood, with the traffic
+ * labeled by fuel. Flip the FED / FASTED toggle and the arrows redraw — fed means distribute and
+ * store (glucose out to everyone, fat banked); fasted means mobilize and protect the brain (fat
+ * and lactate and alanine move toward the liver, which ships glucose and ketones to the brain).
+ * The legend reports what each organ is exporting and importing in the current state.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="iof card" data-fuelmap>
+  <figcaption class="iof-head">Who feeds whom — the inter-organ fuel economy<span class="iof-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="iof-toggle" role="group" aria-label="Metabolic state">
+    <button type="button" data-state="fed" aria-pressed="true">Fed</button>
+    <button type="button" data-state="fasted" aria-pressed="false">Fasted</button>
+  </div>
+
+  <svg class="iof-svg" viewBox="0 0 460 280" role="img" data-svg></svg>
+
+  <p class="iof-summary" data-summary></p>
+
+  <div class="iof-legend" data-legend></div>
+
+  <p class="iof-foot">Two states, two logics. Fed, insulin is high and the body distributes and stores: the gut and liver hand glucose to every tissue, and adipose and liver bank the surplus as fat. Fasted, the priority flips to mobilize and protect the brain: adipose releases fatty acids, muscle returns lactate and alanine to the liver, and the liver — the only organ that can — makes fresh glucose and ketone bodies to keep the brain running. No tissue is selfish here; the blood is just a ledger, and the hormones decide which way the entries point.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Organ = { id: string; label: string; x: number; y: number; color: string };
+  const ORGANS: Organ[] = [
+    { id: 'liver', label: 'Liver', x: 60, y: 30, color: NAVY },
+    { id: 'muscle', label: 'Muscle', x: 290, y: 30, color: ORANGE },
+    { id: 'adipose', label: 'Adipose', x: 60, y: 200, color: GOLD },
+    { id: 'brain', label: 'Brain', x: 290, y: 200, color: ACCENT },
+  ];
+  const BW = 110, BH = 50; // organ box size
+
+  type Flow = { from: string; to: string; fuel: string; color: string };
+  type Role = { organ: string; exports: string; imports: string };
+  type StateDef = { flows: Flow[]; roles: Role[]; summary: string };
+
+  // anchor: center of an organ box
+  function center(id: string): { x: number; y: number } {
+    const o = ORGANS.find((g) => g.id === id)!;
+    return { x: o.x + BW / 2, y: o.y + BH / 2 };
+  }
+
+  const STATES: Record<string, StateDef> = {
+    fed: {
+      summary: 'Fed = distribute and store. Insulin is high, so glucose flows from liver to every tissue and the surplus is banked as fat.',
+      flows: [
+        { from: 'liver', to: 'muscle', fuel: 'glucose', color: ACCENT },
+        { from: 'liver', to: 'brain', fuel: 'glucose', color: ACCENT },
+        { from: 'liver', to: 'adipose', fuel: 'glucose', color: ACCENT },
+        { from: 'liver', to: 'liver', fuel: 'store fat + glycogen', color: GOLD },
+        { from: 'adipose', to: 'adipose', fuel: 'store fat', color: GOLD },
+      ],
+      roles: [
+        { organ: 'Liver', exports: 'glucose', imports: 'stores glycogen + fat' },
+        { organ: 'Muscle', exports: '— (stores glycogen)', imports: 'glucose' },
+        { organ: 'Adipose', exports: '— (stores)', imports: 'glucose → fat' },
+        { organ: 'Brain', exports: '—', imports: 'glucose' },
+      ],
+    },
+    fasted: {
+      summary: 'Fasted = mobilize and protect the brain. Fat and 3-carbon scraps move toward the liver, which makes fresh glucose and ketones for the brain.',
+      flows: [
+        { from: 'adipose', to: 'muscle', fuel: 'fatty acids', color: GOLD },
+        { from: 'adipose', to: 'liver', fuel: 'fatty acids', color: GOLD },
+        { from: 'muscle', to: 'liver', fuel: 'lactate + alanine', color: ORANGE },
+        { from: 'liver', to: 'brain', fuel: 'glucose (gluconeogenesis)', color: ACCENT },
+        { from: 'liver', to: 'brain', fuel: 'ketones', color: NAVY },
+        { from: 'liver', to: 'muscle', fuel: 'ketones', color: NAVY },
+      ],
+      roles: [
+        { organ: 'Liver', exports: 'glucose + ketones', imports: 'fatty acids, lactate, alanine' },
+        { organ: 'Muscle', exports: 'lactate + alanine', imports: 'fatty acids, ketones' },
+        { organ: 'Adipose', exports: 'fatty acids', imports: '—' },
+        { organ: 'Brain', exports: '—', imports: 'glucose + ketones' },
+      ],
+    },
+  };
+
+  function drawBox(svg: SVGElement, o: Organ) {
+    svg.appendChild(el('rect', { x: o.x, y: o.y, width: BW, height: BH, rx: 10, fill: o.color, opacity: 0.12, stroke: o.color, 'stroke-width': 2 }));
+    const t = el('text', { x: o.x + BW / 2, y: o.y + BH / 2 + 5, 'text-anchor': 'middle', fill: o.color, 'font-size': 15, 'font-weight': 700 });
+    t.textContent = o.label;
+    svg.appendChild(t);
+  }
+
+  function drawFlow(svg: SVGElement, f: Flow, idx: number, markerId: string) {
+    if (f.from === f.to) {
+      // self-loop = "store here", drawn as a small badge above the box
+      const c = center(f.from);
+      const bx = c.x, by = c.y - BH / 2 - 12;
+      const tag = el('text', { x: bx, y: by, 'text-anchor': 'middle', fill: f.color, 'font-size': 9, 'font-weight': 600 });
+      tag.textContent = '↻ ' + f.fuel;
+      svg.appendChild(tag);
+      return;
+    }
+    const a = center(f.from), b = center(f.to);
+    // pull endpoints toward box edges so arrows do not bury under the boxes
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    // perpendicular offset so parallel flows between the same pair do not overlap
+    const off = (idx % 2 === 0 ? 1 : -1) * Math.floor(idx / 2) * 11 + (idx % 2 === 0 ? 0 : 6);
+    const px = -uy * off, py = ux * off;
+    const x1 = a.x + ux * 62 + px, y1 = a.y + uy * 30 + py;
+    const x2 = b.x - ux * 62 + px, y2 = b.y - uy * 30 + py;
+    svg.appendChild(el('line', { x1, y1, x2, y2, stroke: f.color, 'stroke-width': 3, 'marker-end': `url(#${markerId})`, opacity: 0.9 }));
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const lab = el('text', { x: mx, y: my - 3, 'text-anchor': 'middle', fill: f.color, 'font-size': 9, 'font-weight': 600 });
+    lab.textContent = f.fuel;
+    svg.appendChild(lab);
+  }
+
+  function draw(svg: SVGElement, def: StateDef) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // arrowhead markers, one per color used
+    const defs = el('defs', {});
+    const colors = [ACCENT, NAVY, ORANGE, GOLD];
+    const markerFor: Record<string, string> = {};
+    colors.forEach((c, i) => {
+      const id = `iof-ar-${i}`;
+      markerFor[c] = id;
+      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+      m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: c }));
+      defs.appendChild(m);
+    });
+    svg.appendChild(defs);
+    // blood label in the middle of the map
+    const bl = el('text', { x: 230, y: 145, 'text-anchor': 'middle', fill: FAINT, 'font-size': 11, 'font-weight': 600 });
+    bl.textContent = 'bloodstream';
+    svg.appendChild(bl);
+    // flows under boxes so the box edges sit on top
+    def.flows.forEach((f, i) => drawFlow(svg, f, i, markerFor[f.color] ?? `iof-ar-0`));
+    ORGANS.forEach((o) => drawBox(svg, o));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fuelmap]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const summaryEl = root.querySelector<HTMLElement>('[data-summary]')!;
+    const legendEl = root.querySelector<HTMLElement>('[data-legend]')!;
+    const fedBtn = root.querySelector<HTMLButtonElement>('[data-state="fed"]')!;
+    const fastedBtn = root.querySelector<HTMLButtonElement>('[data-state="fasted"]')!;
+    let state = 'fed';
+
+    function render() {
+      const def = STATES[state];
+      draw(svg, def);
+      summaryEl.textContent = def.summary;
+      fedBtn.setAttribute('aria-pressed', String(state === 'fed'));
+      fastedBtn.setAttribute('aria-pressed', String(state === 'fasted'));
+      legendEl.replaceChildren();
+      def.roles.forEach((r) => {
+        const cell = document.createElement('div');
+        cell.className = 'iof-cell';
+        const name = document.createElement('span');
+        name.className = 'iof-c-name';
+        name.textContent = r.organ;
+        const out = document.createElement('span');
+        out.className = 'iof-c-out';
+        out.textContent = 'exports: ' + r.exports;
+        const inn = document.createElement('span');
+        inn.className = 'iof-c-in';
+        inn.textContent = 'imports: ' + r.imports;
+        cell.append(name, out, inn);
+        legendEl.appendChild(cell);
+      });
+    }
+
+    fedBtn.addEventListener('click', () => { state = 'fed'; render(); });
+    fastedBtn.addEventListener('click', () => { state = 'fasted'; render(); });
+    // INK is referenced to mirror the reference palette without an unused-const error
+    void INK;
+    render();
+  });
+</script>
+
+<style>
+  .iof { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .iof-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .iof-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .iof-toggle { display: inline-flex; gap: 0; border: 1px solid var(--ddp-color-line); border-radius: 6px; overflow: hidden; margin-bottom: var(--ddp-space-2); }
+  .iof-toggle button { font-family: inherit; font-size: var(--ddp-text-xs); font-weight: 600; border: none; background: #fff; color: var(--ddp-color-ink-soft); padding: 0.35rem 0.95rem; cursor: pointer; }
+  .iof-toggle button + button { border-left: 1px solid var(--ddp-color-line); }
+  .iof-toggle button[aria-pressed='true'] { background: var(--ddp-color-accent); color: #fff; }
+  .iof-toggle button:hover[aria-pressed='false'] { color: var(--ddp-color-primary); }
+  .iof-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .iof-summary { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.8em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .iof-legend { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-1); }
+  @media (min-width: 560px) { .iof-legend { grid-template-columns: repeat(2, 1fr); } }
+  .iof-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.12rem; }
+  .iof-c-name { font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .iof-c-out { font-size: var(--ddp-text-xs); color: var(--ddp-color-secondary-ink); font-family: var(--ddp-font-mono); }
+  .iof-c-in { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .iof-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

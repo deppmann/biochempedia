@@ -1,0 +1,175 @@
+---
+/**
+ * FedFastedTimeline — "hours since your last meal." The other islands sit inside one pathway;
+ * this one zooms all the way out to the whole-body fuel economy and lets you scrub time. Drag
+ * the slider from a fresh meal out to three days of fasting and watch the body hand the job of
+ * defending blood glucose from one source to the next: the plate, then liver glycogen, then
+ * gluconeogenesis, then ketones. The hormonal switch (insulin vs. glucagon) flips with it, and
+ * four organs — liver, adipose, muscle, brain — change what they burn and what they export. The
+ * payoff is the brain's slow pivot to ketone bodies, the adaptation that lets us outlast a long
+ * fast without dismantling our own muscle. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fft card" data-fedfast>
+  <figcaption class="fft-head">Hours since your last meal — how the body switches fuels<span class="fft-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fft-svg" viewBox="0 0 460 150" role="img" data-svg></svg>
+
+  <label class="fft-slabel">Time since eating <em data-out="time">0 h</em>
+    <input type="range" data-in="time" min="0" max="72" step="1" value="0" />
+  </label>
+
+  <div class="fft-state">
+    <span class="fft-statename" data-name></span>
+    <span class="fft-hormone" data-hormone></span>
+  </div>
+  <p class="fft-glucose" data-glucose></p>
+
+  <div class="fft-organs">
+    <div class="fft-organ"><span class="fft-o-name">Liver</span><span class="fft-o-job" data-liver></span></div>
+    <div class="fft-organ"><span class="fft-o-name">Adipose</span><span class="fft-o-job" data-adipose></span></div>
+    <div class="fft-organ"><span class="fft-o-name">Muscle</span><span class="fft-o-job" data-muscle></span></div>
+    <div class="fft-organ"><span class="fft-o-name">Brain</span><span class="fft-o-job" data-brain></span></div>
+  </div>
+
+  <p class="fft-foot">The body never lets blood glucose drift far — it just keeps changing who pays for it. For the first few hours the meal covers the bill; then liver glycogen, good for maybe a day; then gluconeogenesis, built from lactate, the glycerol off your fat, and amino acids pulled from muscle. Run that too long and you would burn through your own muscle. The escape hatch is ketogenesis: the liver ships ketone bodies the brain learns to burn, cutting its glucose demand from roughly 120 to 40 grams a day. That single adaptation is the reason a healthy person survives weeks without food instead of days.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type State = {
+    name: string; color: string; hormone: string; glucose: string;
+    liver: string; adipose: string; muscle: string; brain: string;
+  };
+  // four whole-body states keyed by hours since eating
+  function stateFor(h: number): State {
+    if (h < 4) return {
+      name: 'FED · absorptive', color: ORANGE,
+      hormone: 'Insulin high · glucagon low',
+      glucose: 'Keeping blood glucose up right now: the meal itself — dietary carbohydrate is still being absorbed.',
+      liver: 'Storing glycogen and converting excess glucose into fat.',
+      adipose: 'Storing incoming fat as triglyceride.',
+      muscle: 'Taking up glucose and topping off its own glycogen.',
+      brain: 'Burning glucose, as always.',
+    };
+    if (h < 16) return {
+      name: 'POSTABSORPTIVE · early fast', color: GOLD,
+      hormone: 'Insulin falling · glucagon rising',
+      glucose: 'Keeping blood glucose up right now: liver glycogenolysis — the liver breaks down its glycogen and releases glucose.',
+      liver: 'Glycogenolysis: breaking glycogen back down to glucose and exporting it.',
+      adipose: 'Beginning to release fatty acids as insulin falls.',
+      muscle: 'Shifting toward burning fatty acids to spare glucose.',
+      brain: 'Still glucose-only.',
+    };
+    if (h < 48) return {
+      name: 'FASTING', color: ACCENT,
+      hormone: 'Glucagon dominant · insulin low',
+      glucose: 'Keeping blood glucose up right now: gluconeogenesis — the liver builds new glucose from lactate, alanine, and glycerol.',
+      liver: 'Gluconeogenesis: making new glucose from lactate, alanine, and glycerol.',
+      adipose: 'Lipolysis in full swing, flooding the blood with free fatty acids.',
+      muscle: 'Burning fatty acids and ketones; sparing glucose for the brain.',
+      brain: 'Still mostly glucose, but ketone use is starting to climb.',
+    };
+    return {
+      name: 'STARVATION', color: NAVY,
+      hormone: 'Glucagon dominant · insulin minimal',
+      glucose: 'Keeping blood glucose up right now: ketones spare it — the brain burns ketone bodies, so far less glucose has to be made.',
+      liver: 'Ketogenesis: converting fatty acids into ketone bodies and exporting them.',
+      adipose: 'Sustained lipolysis — fat is now the body’s main fuel reserve.',
+      muscle: 'Burning fatty acids and ketones; protein breakdown slows as ketones spare it.',
+      brain: 'Adapted: burning ketone bodies, cutting glucose need from ~120 to ~40 g/day and sparing muscle protein.',
+    };
+  }
+
+  function draw(svg: SVGElement, h: number, s: State) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const x0 = 30, x1 = 430, y = 60, span = x1 - x0;
+    // boundaries at 4, 16, 48 h on a 0..72 scale
+    const bounds = [0, 4, 16, 48, 72];
+    const fills = [ORANGE, GOLD, ACCENT, NAVY];
+    const labels = ['Fed', 'Early fast', 'Fasting', 'Starvation'];
+    for (let i = 0; i < 4; i++) {
+      const sx = x0 + (bounds[i] / 72) * span;
+      const ex = x0 + (bounds[i + 1] / 72) * span;
+      svg.appendChild(el('rect', { x: sx, y, width: ex - sx, height: 22, fill: fills[i], opacity: 0.16, stroke: fills[i], 'stroke-width': 1 }));
+      const lt = el('text', { x: (sx + ex) / 2, y: y + 14, 'text-anchor': 'middle', fill: INK, 'font-size': 9 });
+      lt.textContent = labels[i]; svg.appendChild(lt);
+    }
+    // axis ticks
+    for (const t of [0, 4, 16, 48, 72]) {
+      const tx = x0 + (t / 72) * span;
+      svg.appendChild(el('line', { x1: tx, y1: y + 22, x2: tx, y2: y + 28, stroke: '#b9b9c2', 'stroke-width': 1 }));
+      const tl = el('text', { x: tx, y: y + 40, 'text-anchor': 'middle', fill: '#b9b9c2', 'font-size': 9 });
+      tl.textContent = `${t} h`; svg.appendChild(tl);
+    }
+    // moving marker for current time
+    const mx = x0 + (h / 72) * span;
+    svg.appendChild(el('line', { x1: mx, y1: y - 16, x2: mx, y2: y + 28, stroke: s.color, 'stroke-width': 2 }));
+    svg.appendChild(el('circle', { cx: mx, cy: y - 16, r: 6, fill: s.color, stroke: '#fff', 'stroke-width': 2 }));
+    const ml = el('text', { x: Math.min(Math.max(mx, x0 + 30), x1 - 30), y: y - 26, 'text-anchor': 'middle', fill: s.color, 'font-size': 11, 'font-weight': 700 });
+    ml.textContent = s.name.split(' · ')[0]; svg.appendChild(ml);
+  }
+
+  function fmtTime(h: number): string {
+    if (h < 24) return `${h} h`;
+    const d = Math.floor(h / 24), r = h % 24;
+    return r === 0 ? `${d} d` : `${d} d ${r} h`;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-fedfast]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const timeIn = root.querySelector<HTMLInputElement>('[data-in="time"]')!;
+    const timeOut = root.querySelector<HTMLElement>('[data-out="time"]')!;
+    const nameEl = root.querySelector<HTMLElement>('[data-name]')!;
+    const hormoneEl = root.querySelector<HTMLElement>('[data-hormone]')!;
+    const glucoseEl = root.querySelector<HTMLElement>('[data-glucose]')!;
+    const liverEl = root.querySelector<HTMLElement>('[data-liver]')!;
+    const adiposeEl = root.querySelector<HTMLElement>('[data-adipose]')!;
+    const muscleEl = root.querySelector<HTMLElement>('[data-muscle]')!;
+    const brainEl = root.querySelector<HTMLElement>('[data-brain]')!;
+    function render() {
+      const h = parseInt(timeIn.value, 10);
+      const s = stateFor(h);
+      timeOut.textContent = fmtTime(h);
+      nameEl.textContent = s.name;
+      nameEl.style.color = s.color;
+      hormoneEl.textContent = s.hormone;
+      glucoseEl.textContent = s.glucose;
+      liverEl.textContent = s.liver;
+      adiposeEl.textContent = s.adipose;
+      muscleEl.textContent = s.muscle;
+      brainEl.textContent = s.brain;
+      draw(svg, h, s);
+    }
+    timeIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .fft { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fft-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .fft-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fft-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .fft-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
+  .fft-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fft-slabel input { accent-color: var(--ddp-color-accent); }
+  .fft-state { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-1); }
+  .fft-statename { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
+  .fft-hormone { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); text-align: right; }
+  .fft-glucose { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fft-organs { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .fft-organs { grid-template-columns: repeat(2, 1fr); } }
+  .fft-organ { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .fft-o-name { font-size: var(--ddp-text-xs); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-secondary-ink); }
+  .fft-o-job { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .fft-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
