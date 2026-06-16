@@ -1,0 +1,358 @@
+---
+title: "The Pentose Phosphate Pathway: NADPH and Five-Carbon Sugars"
+slug: "pentose-phosphate-pathway"
+courseChapter: "Glucose Homeostasis"
+order: 26
+summary: "Glycolysis is not the only fate of glucose-6-phosphate. At that branch point, a cell can route the sugar into the pentose phosphate pathway instead, and walk away with two things glycolysis never makes: NADPH, the reducing power for building molecules and quenching reactive oxygen, and ribose-5-phosphate, the backbone of every nucleotide. It makes no ATP, and that is the point. Every cell that divides, and every cell that must defend itself against oxidative damage, depends on it."
+estMinutes: 24
+objectives:
+  - "Explain why the cell keeps two separate nicotinamide pools — NAD+/NADH near 1000:1 for catabolism, NADP+/NADPH strongly reduced (often cited near 1:50-1:100) for anabolism — and why that separation prevents futile cycling."
+  - "Trace the three irreversible oxidative steps and account for the products: G6P + 2 NADP+ + H2O → ribulose-5-P + 2 NADPH + 2 H+ + CO2, and explain why losing a carbon as CO2 makes the phase one-way."
+  - "Verify the carbon arithmetic of the reversible non-oxidative phase (3 C5 ⇌ 2 C6 + 1 C3) by following the two transketolase reactions and the one transaldolase reaction."
+  - "Explain why NADP+ concentration is the primary regulator (G6PD is product-inhibited by NADPH) and how the four operating modes let one pathway meet ribose-heavy, NADPH-heavy, or mixed demand."
+  - "Trace the clinical cascade of G6PD deficiency — G6PD↓ → NADPH↓ → GSH↓ → ROS↑ → Heinz bodies → hemolysis — and explain why red blood cells are uniquely vulnerable and why the allele persists where malaria is endemic."
+scientists:
+  - name: "Otto Warburg"
+    dates: "1883–1970"
+    contribution: "Took apart the cell's hydrogen-carrying coenzyme and found the nicotinamide ring at its working end — the same ring the cell builds into NAD and its phosphate NADP, the carriers at the center of this chapter's NADP+/NADPH economy. He also discovered (1924) that cancer cells ferment glucose even with oxygen present, the Warburg effect behind the chapter's closing cancer-metabolism point."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Otto Warburg (1883–1970) profile; NAD/NADP passage (quotes grep-confirmed verbatim against the PROOF epub)."
+    quotes:
+      - "Warburg first measured that hunger with glass and mercury."
+      - "Why do cancer cells burn glucose so recklessly, even when oxygen is plentiful? He never stopped demanding an answer."
+    story: "Otto Warburg was nominated for the Nobel Prize six times and won once, in 1931, for identifying the iron-containing respiratory enzyme. The manometers that made his quantitative biology possible were his own invention — sealed glass vessels that read oxygen uptake from milligrams of tissue by the throw of a mercury meniscus he watched by eye. Trained in both chemistry (under Emil Fischer) and medicine, he insisted biology yield to both at once. His most durable observation came from comparing tumor slices to normal liver: cancer cells fermented glucose to lactate even when oxygen was abundant. He spent his life wrongly arguing that damaged respiration causes cancer — wrong about the cause, right about the measurement. The Warburg effect now underpins FDG-PET tumor scanning, and this chapter ties it to the PPP because dividing cancer cells need NADPH for biosynthesis and for surviving their own oxidative stress. He worked, formidable and feud-prone, into his ninth decade."
+  - name: "Sir Frederick Gowland Hopkins"
+    dates: "1861–1947"
+    contribution: "Isolated glutathione in 1921 — the small sulfur-bearing tripeptide (γ-Glu-Cys-Gly) at the center of this chapter's antioxidant section. Glutathione is the molecule the PPP exists to keep reduced: NADPH regenerates GSH from GSSG, and when that supply fails (G6PD deficiency) red-cell defense collapses."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Sir Frederick Gowland Hopkins (1861–1947) profile; glutathione passage (quote grep-confirmed verbatim against the PROOF epub)."
+    quotes:
+      - "He had already, in 1921, isolated glutathione, the small sulfur-bearing tripeptide that shuttles electrons inside nearly every living cell, and through the 1930s he was chasing its redox partners through yeast and muscle"
+    story: "Hopkins founded the science of vitamins by feeding animals a chemically pure diet, watching them fail, and reviving them with a few drops of milk — proof that invisible trace 'accessory food factors' are essential to life (1929 Nobel, shared with Christiaan Eijkman). Less remembered is that the same instinct for the smallest carriers of life's chemistry led him, in 1921, to isolate glutathione, the tripeptide that shuttles a single hydrogen and decides whether a cell's redox machinery runs or fails. That tripeptide is exactly the antioxidant the pentose phosphate pathway is built to protect: the PPP supplies NADPH, glutathione reductase spends it to regenerate reduced GSH, and red blood cells — lacking mitochondria — depend wholly on this chain. Hopkins's trace molecule, isolated decades before its pathway was mapped, is the load-bearing piece of the chapter's clinical story."
+techniques:
+  - name: "Respiratory quotient (RQ = CO2/O2)"
+    blurb: "Measure the ratio of CO2 exhaled to O2 consumed and you can read which fuel a tissue is burning. Pure carbohydrate oxidation gives RQ ≈ 1.0; fat gives ≈ 0.7. The oxidative phase of the PPP is unusual in releasing CO2 without consuming O2, so heavy PPP flux nudges the ratio upward; at the whole-organism level, though, an RQ above 1.0 more often reflects net fat synthesis. Read it as an illustration of CO2-without-O2 chemistry, not a clean PPP assay."
+  - name: "Isotopic carbon tracing"
+    blurb: "Feed cells glucose labeled at a specific carbon (13C or 14C on C1 vs C6) and follow where the atom lands. Because the oxidative phase removes C1 of glucose as CO2 while glycolysis would keep it, the position of the released label tells you what fraction of glucose ran the PPP versus glycolysis. This is how the relative flux through the two branches was first measured in different tissues."
+  - name: "Enzyme assay for G6PD (the clinical screen)"
+    blurb: "Glucose-6-phosphate dehydrogenase activity is measured by following NADPH production spectrophotometrically (NADPH absorbs at 340 nm; NADP+ does not). A drop in the rate of A340 rise in a patient's red cells is the standard diagnostic for G6PD deficiency — the same initial-velocity logic from enzyme kinetics, used to decide whether an oxidative-stress drug is safe to prescribe."
+  - name: "Glutathione redox ratio (GSH/GSSG)"
+    blurb: "The ratio of reduced glutathione to its oxidized disulfide form is a readout of a cell's antioxidant reserve, and it is held high entirely by NADPH from the PPP. Measuring GSH/GSSG (by HPLC or enzymatic recycling assays) reports whether the pathway is keeping up with oxidative demand — it collapses when NADPH supply fails."
+structures:
+  - label: "Glucose-6-phosphate dehydrogenase (G6PD), human"
+    source: "rcsb"
+    id: "6E08"
+    note: "PDB 6E08"
+    caption: "Human glucose-6-phosphate dehydrogenase (G6PD), the rate-limiting committed enzyme of the oxidative phase; deficiency variant relevant"
+  - label: "6-Phosphogluconate dehydrogenase"
+    source: "rcsb"
+    id: "2JKV"
+    note: "PDB 2JKV"
+    caption: "6-phosphogluconate dehydrogenase (decarboxylating), the oxidative-phase enzyme that makes NADPH #2 and releases CO2"
+  - label: "Transketolase (TPP-dependent)"
+    source: "rcsb"
+    id: "1QGD"
+    note: "PDB 1QGD"
+    caption: "Transketolase enzyme, thiamine pyrophosphate-dependent, transfers 2-carbon ketol units in the non-oxidative phase (yeast transketolase)"
+  - label: "Glutathione reductase"
+    source: "rcsb"
+    id: "3GRS"
+    note: "PDB 3GRS"
+    caption: "Human glutathione reductase, FAD/NADPH-dependent enzyme that regenerates reduced glutathione (GSH) from GSSG using NADPH"
+  - label: "NADPH (reduced nicotinamide adenine dinucleotide phosphate)"
+    source: "pubchem"
+    id: "5884"
+    note: "CID 5884"
+    caption: "NADPH, the key reducing-power product of the PPP oxidative phase"
+  - label: "NADP+ (oxidized)"
+    source: "pubchem"
+    id: "5886"
+    note: "CID 5886"
+    caption: "NADP+, the electron acceptor and primary regulatory metabolite controlling PPP flux"
+  - label: "Glucose 6-phosphate"
+    source: "pubchem"
+    id: "5958"
+    note: "CID 5958"
+    caption: "Glucose-6-phosphate, the branch-point substrate entering the PPP (D-glucose 6-phosphate)"
+  - label: "6-Phosphogluconic acid"
+    source: "pubchem"
+    id: "91493"
+    note: "CID 91493"
+    caption: "6-phosphogluconate / 6-phosphogluconic acid, oxidative-phase intermediate before the second dehydrogenase"
+  - label: "Ribulose 5-phosphate"
+    source: "pubchem"
+    id: "439184"
+    note: "CID 439184"
+    caption: "D-ribulose 5-phosphate, the C5 ketose product of the oxidative phase (branch point of non-oxidative phase)"
+  - label: "Ribose 5-phosphate"
+    source: "pubchem"
+    id: "439167"
+    note: "CID 439167"
+    caption: "D-ribose 5-phosphate, the nucleotide-precursor product (isomer of ribulose-5-P)"
+  - label: "Sedoheptulose 7-phosphate"
+    source: "pubchem"
+    id: "165007"
+    note: "CID 165007"
+    caption: "Sedoheptulose 7-phosphate, the C7 sugar formed by transketolase #1 and consumed by transaldolase"
+  - label: "Thiamine pyrophosphate (TPP)"
+    source: "pubchem"
+    id: "1132"
+    note: "CID 1132"
+    caption: "Thiamine pyrophosphate / thiamine diphosphate, the cofactor required by transketolase"
+  - label: "Glutathione (reduced, GSH)"
+    source: "pubchem"
+    id: "124886"
+    note: "CID 124886"
+    caption: "Reduced glutathione (GSH), the tripeptide antioxidant gamma-Glu-Cys-Gly regenerated by NADPH"
+videos:
+  - title: "The pentose phosphate pathway"
+    youtubeId: "eXXpUxg9vn4"
+    sourceNote: "Ninja Nerd — the oxidative and non-oxidative phases in detail. Openly available."
+  - title: "Pentose phosphate pathway"
+    youtubeId: "EP_E-7jPnNs"
+    sourceNote: "Khan Academy (MCAT) — how the PPP connects to glycolysis and nucleotide synthesis."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "PPP map (oxidative phase banks 2 NADPH + 1 CO₂; the non-oxidative phase reshuffles carbon: 3 C5 → 2 F6P + 1 G3P)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "What are the two principal products of the pentose phosphate pathway, and how much ATP does it generate?"
+    choices:
+      - "NADPH and ribose-5-phosphate; no net ATP"
+      - "NADPH and pyruvate; net +2 ATP"
+      - "FADH2 and ribose-5-phosphate; no net ATP"
+      - "NADH and ribose-5-phosphate; net +2 ATP"
+    answer: 0
+    rationale: "The PPP yields NADPH (reducing power for biosynthesis and antioxidant defense) and ribose-5-phosphate (the nucleotide backbone), and it makes no ATP. The option naming NADH is wrong because the PPP uses the NADP+/NADPH couple, not NAD+/NADH; the pyruvate option describes glycolysis; the FADH2 option names a carrier the pathway does not produce."
+  - stem: "Why is the oxidative phase of the PPP irreversible?"
+    choices:
+      - "Because it consumes two ATP that cannot be recovered"
+      - "Because the transketolase reaction cannot run backward"
+      - "Because the second dehydrogenase releases a carbon as CO2"
+      - "Because NADPH is product-inhibited by NADP+"
+    answer: 2
+    rationale: "6-phosphogluconate dehydrogenase performs an oxidative decarboxylation, releasing one carbon as CO2 (G6P, C6 → ribulose-5-P, C5). A lost CO2 cannot be re-added, which makes the phase one-way. The oxidative phase consumes no ATP; transketolase belongs to the reversible non-oxidative phase; and G6PD is inhibited by NADPH, not the reverse."
+  - stem: "A cell keeps its NAD+/NADH pool near 1000:1 (oxidized) and its NADP+/NADPH pool near 1:10 (reduced). What is the functional reason for maintaining two separate pools?"
+    choices:
+      - "Because NAD+ and NADPH have different absorption spectra at 340 nm"
+      - "To allow catabolism (needing NAD+) and reductive biosynthesis (needing NADPH) to run simultaneously without one draining the other"
+      - "To double the cell's total store of nicotinamide cofactor"
+      - "Because NADP+ cannot be reduced inside mitochondria"
+    answer: 1
+    rationale: "Abundant oxidized NAD+ serves catabolic dehydrogenations; abundant reduced NADPH serves reductive biosynthesis and antioxidant defense. Keeping the pools separate (distinguished by one phosphate) prevents the high-capacity NAD+ pool from oxidizing away the NADPH the cell built, avoiding a futile cycle. The other options are not the functional rationale — total store, mitochondrial reduction, and absorbance are not why the couples are kept apart."
+  - stem: "The non-oxidative phase converts three five-carbon sugars into which set of products?"
+    choices:
+      - "One sedoheptulose-7-phosphate and two erythrose-4-phosphate"
+      - "Two ribose-5-phosphate and one CO2"
+      - "Three fructose-6-phosphate"
+      - "Two fructose-6-phosphate and one glyceraldehyde-3-phosphate"
+    answer: 3
+    rationale: "The net of the non-oxidative phase is 3 C5 ⇌ 2 fructose-6-P (C6) + 1 glyceraldehyde-3-P (C3). Carbon balance confirms it: 3×5 = 15 = 2×6 + 3. Both products are glycolytic intermediates. Three F6P would be 18 carbons; sedoheptulose-7-P and erythrose-4-P are transient intermediates, not net products; and the non-oxidative phase produces no CO2 (that is the oxidative phase)."
+  - stem: "Which statement correctly describes the primary regulation of the PPP?"
+    choices:
+      - "It is regulated by phosphofructokinase-1 in response to AMP"
+      - "Citrate allosterically activates the first enzyme of the pathway"
+      - "G6PD is product-inhibited by NADPH, so rising NADP+ accelerates the pathway"
+      - "ATP allosterically inhibits transaldolase to slow carbon flux"
+    answer: 2
+    rationale: "The primary control is NADP+ availability: glucose-6-phosphate dehydrogenase is product-inhibited by NADPH, so when NADPH is spent and NADP+ rises, the inhibition lifts and oxidative flux speeds up. PFK-1, citrate, and ATP-on-transaldolase describe glycolytic regulation or invented controls, not the PPP's NADP+-driven feedback."
+mcatQuestions:
+  - stem: "A red blood cell from a patient with G6PD deficiency is exposed to an oxidizing drug. Compared with a normal red cell, which change best explains why the deficient cell undergoes hemolysis?"
+    choices:
+      - "It cannot make ATP because the oxidative phase is its only energy source"
+      - "It accumulates lactate because pyruvate kinase is inhibited"
+      - "It overproduces ribose-5-phosphate, which is toxic to the membrane"
+      - "It cannot regenerate reduced glutathione because NADPH production is impaired"
+    answer: 3
+    rationale: "Weak G6PD lowers NADPH, and glutathione reductase needs NADPH to regenerate reduced glutathione (GSH) from GSSG. Without GSH, peroxides and oxidized hemoglobin (Heinz bodies) accumulate and the spleen destroys the cell. The PPP makes no ATP, so it is not the cell's energy source; lactate/pyruvate kinase concern glycolysis; and the deficient cell makes less, not more, downstream product because the entry step is impaired."
+  - stem: "A rapidly dividing cell needs large amounts of ribose-5-phosphate for nucleotide synthesis but already has abundant NADPH. Which strategy lets it meet this demand most efficiently?"
+    choices:
+      - "Run the non-oxidative phase in reverse, building ribose-5-phosphate from fructose-6-phosphate and glyceraldehyde-3-phosphate"
+      - "Convert ribose-5-phosphate back to glucose-6-phosphate to recycle carbon"
+      - "Inhibit transketolase to trap five-carbon sugars"
+      - "Run the oxidative phase repeatedly to maximize NADPH and ribose together"
+    answer: 0
+    rationale: "This is Mode 1, the 'ribose builder': when NADPH is already high, the cell skips the NADPH-generating oxidative phase and runs the reversible non-oxidative reactions backward, assembling ribose-5-P from glycolytic intermediates. Running the oxidative phase would overproduce unneeded NADPH; recycling ribose to G6P (Mode 3) is for maximizing NADPH, the opposite need; inhibiting transketolase would not build net ribose."
+  - stem: "A tumor sample shows markedly increased flux through the pentose phosphate pathway. Sequencing reveals a loss-of-function mutation in TP53 (p53). What is the most direct mechanistic link between p53 loss and elevated PPP flux?"
+    choices:
+      - "p53 loss increases citrate, which activates G6PD"
+      - "p53 normally blocks G6PD from forming its active dimer, so losing p53 de-represses G6PD"
+      - "p53 loss raises the NADPH/NADP+ ratio, which stimulates G6PD"
+      - "p53 normally phosphorylates transketolase to keep it active"
+    answer: 1
+    rationale: "Wild-type p53 restrains the pathway by preventing G6PD from assembling into its active dimer; losing p53 removes that brake and increases G6PD activity and PPP flux. Citrate activating G6PD is invented; a higher NADPH/NADP+ ratio would inhibit G6PD (product inhibition), not stimulate it; and p53 does not phosphorylate transketolase to activate it."
+images: []
+corpusTags:
+  - "pentose-phosphate-pathway"
+  - "nadph"
+  - "ribose-5-phosphate"
+  - "g6pd"
+  - "glutathione"
+  - "transketolase"
+  - "reductive-biosynthesis"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Your body uses sugar for more than just energy. One special path takes a piece of sugar and, instead of making energy, makes two helpers. One helper is like a tiny tool the cell uses to build new parts, like the instructions inside every new cell. The other helper is like sunscreen for the inside of the cell — it stops invisible little sparks from doing damage. A cell needs this path most when it is about to make a brand-new copy of itself. Some people are born with a weak version of the first step on this path, and for them certain foods, like a kind of bean, can make them feel very sick — but that same weak step also makes it harder for a malaria bug to live in their blood, so it can be a little bit of a shield too."
+  - level: "highschool"
+    label: "High school"
+    text: "Glucose-6-phosphate can go into glycolysis to make ATP, or into the pentose phosphate pathway, which makes no ATP at all. Instead it makes two things: NADPH, which is the cell's reducing power for building molecules and for fighting damage from reactive oxygen, and ribose-5-phosphate, the sugar that DNA and RNA are built on. The first part (the oxidative phase) is irreversible: it makes two NADPH and throws away one carbon as CO2. The second part (the non-oxidative phase) is just a reversible carbon-shuffle that rearranges five-carbon sugars into six- and three-carbon sugars the cell can send back into glycolysis. Because that second part runs both ways, the cell can choose to make mostly ribose, mostly NADPH, or a mix. The main control is the enzyme G6PD, which slows down when NADPH is already high. People with weak G6PD can get a dangerous breakdown of red blood cells from fava beans or certain drugs — but that same trait protects against malaria."
+  - level: "college"
+    label: "College"
+    text: "At the glucose-6-phosphate branch point, G6PD diverts carbon from glycolysis into the PPP. The oxidative phase (G6PD → lactonase → 6-phosphogluconate dehydrogenase) is irreversible and nets G6P + 2 NADP+ + H2O → ribulose-5-P + 2 NADPH + CO2; the decarboxylation is what makes it one-way. The non-oxidative phase is fully reversible and amounts to 3 ribulose-5-P (via the isomerase/epimerase to ribose-5-P and xylulose-5-P) ⇌ 2 fructose-6-P + glyceraldehyde-3-P, executed by two TPP-dependent transketolase reactions (2-carbon transfers) and one transaldolase reaction (3-carbon transfer via a Schiff-base lysine). The cell keeps NAD+/NADH (~1000:1, oxidized, for catabolism) separate from NADP+/NADPH (~1:10, reduced, for anabolism) to avoid futile cycling. Reversibility lets four operating modes balance ribose vs NADPH demand, and the primary regulator is NADP+ availability, since G6PD is product-inhibited by NADPH. Clinically, NADPH regenerates glutathione (via glutathione reductase); G6PD deficiency collapses this in RBCs (no mitochondria, no nucleus), causing oxidative hemolysis, with the allele maintained by malaria resistance."
+  - level: "grad"
+    label: "Graduate"
+    text: "The PPP's architecture is a study in metabolic flexibility under a thermodynamic constraint. The oxidative segment is held far from equilibrium and committed by an entropically irreversible decarboxylation at 6-phosphogluconate dehydrogenase; flux control resides almost entirely at G6PD, whose activity tracks the NADP+/NADPH ratio (competitive product inhibition by NADPH against NADP+), making cytosolic redox poise — not substrate supply — the governing variable. The compartmentalization of the two nicotinamide couples (oxidized NAD+ for catabolic dehydrogenations, reduced NADPH for reductive biosynthesis and thiol-based antioxidant defense) is enforced by cofactor-specificity residues and prevents the high-capacity NAD+ pool from dissipating reductive potential. The non-oxidative segment, being near-equilibrium and reversible, functions as a carbon-rearranging exchange network (transketolase's TPP ylide chemistry for C2 transfers; transaldolase's lysine-enamine for C3 transfers) that allows the system to interconvert pentoses, hexoses, and trioses stoichiometrically (3 C5 ⇌ 2 C6 + C3) and thereby decouple NADPH production from ribose demand across the four canonical flux modes. The clinical corollary — that erythrocytes, lacking both nucleus and mitochondria, are wholly dependent on this single NADPH source for glutathione recycling — and the balanced-polymorphism maintenance of G6PD deficiency against P. falciparum, illustrate how a housekeeping redox pathway becomes a node of selective pressure. The oncologic dimension (p53-dependent suppression of G6PD dimerization, TIGAR and PKM2 routing) shows the same control point co-opted: loss of p53 de-represses PPP flux to supply the anabolic and antioxidant demands of proliferation."
+anecdotes:
+  - title: "The fava-bean mystery that opens the chapter"
+    text: "Why would a bean send someone to the hospital? For a person with G6PD deficiency, a serving of fava beans can trigger a sudden, severe breakdown of red blood cells. The chain runs straight through this chapter: weak G6PD means too little NADPH, too little NADPH means glutathione cannot stay reduced, and without that antioxidant the hemoglobin inside red cells oxidizes and clumps into Heinz bodies that the spleen then destroys. Red cells are the perfect victims — no nucleus to make new enzyme, no mitochondria, so the PPP is their only NADPH source. The deficiency is the most common enzyme deficiency on Earth, in roughly 400 million people, and it is why doctors screen before prescribing certain oxidative-stress drugs."
+    source: "CH26 lecture notes — the medical-mystery opener (fava beans / favism)"
+  - title: "The evolutionary plot twist: why a 'defect' refuses to die out"
+    text: "If G6PD deficiency is dangerous, why is it so common? Because it protects against malaria. A G6PD-deficient red cell is a hostile place for Plasmodium falciparum to grow, so in regions where malaria has been endemic, the allele earned its keep. Draw the map of where the deficiency is common and it overlays the historical map of malaria almost exactly. It is a balanced polymorphism — the same evolutionary logic as sickle-cell trait — where a trait that risks one disease bought protection against a deadlier one."
+    source: "CH26 lecture notes — the balanced-polymorphism payoff (malaria map)"
+  - title: "Hummingbirds run the PPP so hard you can measure it in their breath"
+    text: "A hummingbird sustains the highest metabolic rate of any vertebrate, and that ferocious metabolism throws off a flood of reactive oxygen. To keep up its antioxidant defense it leans hard on the oxidative phase of the PPP, which releases CO2 without consuming O2. The pathway you study in red cells turns out to matter most, of all places, in the metabolism of a hovering bird."
+    source: "CH26 lecture notes — the hummingbird hook (RQ > 1)"
+  - title: "Cancer wants what dividing cells want — and p53 is the brake"
+    text: "Cancer cells are famous for burning glucose recklessly through glycolysis (the Warburg effect), but they also run the PPP hard, because dividing fast means needing both nucleotides and NADPH — for building lipids and DNA and for surviving their own oxidative stress. The tumor suppressor p53 normally restrains the pathway by blocking G6PD from assembling into its active form. Lose p53 — the single most common mutation in human cancer — and that brake comes off, and PPP flux climbs. The exam-testable line: p53 loss means more PPP."
+    source: "CH26 lecture notes — the closing cancer slide (Warburg effect + p53)"
+lectureSlides:
+  - src: "/slides/pentose-phosphate-pathway/glucose-gives-you-choices.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/glucose-gives-you-choices.mp3"
+    title: "Glucose Gives You Choices"
+    alt: "Glucose Gives You Choices"
+    source: "CH26 Pentose Phosphate Pathway · slide 4"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of glucose 6-phosphate as standing at a fork in the road, deciding what the cell needs most. If the cell is hungry for energy, phosphoglucose isomerase pushes it into glycolysis to make ATP. But if the cell needs reducing power and building blocks, glucose 6-phosphate dehydrogenase diverts it into the pentose phosphate pathway. That branch yields NADPH for biosynthesis and defense, plus five-carbon sugars for DNA, RNA, and cofactors. The same starting molecule, two completely different destinies. The cell reads its own moment-to-moment demands and routes carbon accordingly, which is exactly why this single phosphorylated sugar is such a pivotal decision point."
+  - src: "/slides/pentose-phosphate-pathway/nad-versus-nadp-two-pools-two-jobs.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/nad-versus-nadp-two-pools-two-jobs.mp3"
+    title: "NAD versus NADP: Two Pools, Two Jobs"
+    alt: "NAD versus NADP: Two Pools, Two Jobs"
+    source: "CH26 Pentose Phosphate Pathway · slide 5"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "NAD and NADP look almost identical, differing by a single phosphate, yet the cell keeps them in dramatically different states for dramatically different purposes. The NAD pool sits oxidized, roughly a thousand-to-one in favor of NAD-plus, because catabolism needs an electron acceptor ready to grab electrons from fuel. The NADP pool is the mirror image, held about ten-to-one toward NADPH, because anabolism and antioxidant defense need an electron donor on tap. Same backbone, opposite redox poise. By maintaining these as separate cytosolic pools, the cell can run breakdown and biosynthesis simultaneously without the two electron economies interfering with each other."
+  - src: "/slides/pentose-phosphate-pathway/fate-glucose-6-phosphate.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/fate-glucose-6-phosphate.mp3"
+    title: "The Fate of Glucose 6-Phosphate"
+    alt: "The Fate of Glucose 6-Phosphate"
+    source: "CH26 Pentose Phosphate Pathway · slide 6"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Glucose enters and hexokinase traps it as glucose 6-phosphate, the true branch point of central metabolism. From here the molecule faces a committed choice. Phosphoglucose isomerase channels it leftward into glycolysis, where the payoff is ATP and pyruvate, the energy currency the cell spends. Alternatively, glucose 6-phosphate dehydrogenase commits it rightward into the pentose phosphate pathway, whose products are NADPH for reductive biosynthesis and ribose 5-phosphate for nucleotide synthesis. The deciding factor is simple: what does the cell need right now? Energy or building blocks. This fork captures the entire logic of why the pentose phosphate pathway exists alongside glycolysis."
+  - src: "/slides/pentose-phosphate-pathway/nadph-regenerates-glutathione.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/nadph-regenerates-glutathione.mp3"
+    title: "NADPH Regenerates Glutathione"
+    alt: "NADPH Regenerates Glutathione"
+    source: "CH26 Pentose Phosphate Pathway · slide 9"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Reactive oxygen species are molecules carrying super-energetic electrons that attack and damage proteins, lipids, and DNA. The cell's frontline defense is glutathione, which neutralizes these threats by taking the oxidative hit so other molecules don't have to. But once glutathione absorbs that hit it becomes oxidized and useless, linked into the GSSG dimer. To get it back into the reduced, protective GSH form, the cell spends NADPH. And where does that NADPH come from? The pentose phosphate pathway. So G6PD sits at the very root of antioxidant defense: lose that enzyme, lose your ability to regenerate glutathione, and oxidative damage runs unchecked."
+  - src: "/slides/pentose-phosphate-pathway/hummingbirds-pathway.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/hummingbirds-pathway.mp3"
+    title: "Hummingbirds and the Pathway"
+    alt: "Hummingbirds and the Pathway"
+    source: "CH26 Pentose Phosphate Pathway · slide 14"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "A hummingbird is a beautiful illustration of metabolic flexibility. Hovering demands an extraordinary rate of fuel oxidation, so the bird burns sugar at a furious pace through glycolysis and beyond. But sustained high metabolism also generates reactive oxygen species and demands constant cellular maintenance, which requires NADPH. The same glucose that powers the wings can be routed into the pentose phosphate pathway to supply that reducing power. The hummingbird teaches the central lesson of this chapter: a cell, like the bird, constantly balances burning fuel for immediate energy against diverting fuel to protect and rebuild itself, tuning the split to the demands of the moment."
+  - src: "/slides/pentose-phosphate-pathway/key-points-about-ppp.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/key-points-about-ppp.mp3"
+    title: "Key Points About the PPP"
+    alt: "Key Points About the PPP"
+    source: "CH26 Pentose Phosphate Pathway · slide 15"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let's consolidate. The pentose phosphate pathway, also called the hexose monophosphate shunt, runs in two phases that can operate together or independently. The oxidative phase is irreversible: it produces two NADPH, needed to combat oxidative stress and to drive lipid and steroid synthesis. The non-oxidative phase is reversible carbon scrambling that yields ribose 5-phosphate for nucleotides and cofactors; if ribose isn't needed, it can interconvert sugars and feed intermediates back into glycolysis. The whole system flexes with the cell's needs and is regulated by ROS, NADPH levels, and intermediate concentrations. The rate-determining, key regulatory step is glucose 6-phosphate dehydrogenase."
+  - src: "/slides/pentose-phosphate-pathway/carbon-accounting-nonoxidative-phase.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/carbon-accounting-nonoxidative-phase.mp3"
+    title: "Carbon Accounting in the Nonoxidative Phase"
+    alt: "Carbon Accounting in the Nonoxidative Phase"
+    source: "CH26 Pentose Phosphate Pathway · slide 18"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The non-oxidative phase is best understood as carbon bookkeeping carried out by two enzymes, transketolase and transaldolase. Track the carbons. First, transketolase takes two five-carbon sugars and produces a three-carbon and a seven-carbon sugar. Then transaldolase converts that three plus seven into a six and a four-carbon sugar. Finally transketolase acts again, turning a four and a five into a six and a three. Sum it all and the net result is clean: three five-carbon sugars become two six-carbon sugars and one three-carbon sugar. That is how excess pentoses are recycled back into glycolytic intermediates when the cell needs energy more than ribose."
+  - src: "/slides/pentose-phosphate-pathway/four-modes-pathway.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/four-modes-pathway.mp3"
+    title: "Four Modes of the Pathway"
+    alt: "Four Modes of the Pathway"
+    source: "CH26 Pentose Phosphate Pathway · slide 23"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The pentose phosphate pathway is not one fixed route but four operating modes, and the cell selects among them based on what it needs. When it needs ribose for nucleotides but little NADPH, it runs only the non-oxidative phase. When it needs both NADPH and ribose in balance, it runs the oxidative phase straight through. When it needs lots of NADPH but little ribose, it routes ribose back into glycolytic intermediates and recycles them. And when it needs NADPH plus ATP, it pushes carbon all the way into pyruvate. One pathway, four behaviors, each a different combination of glycolysis, gluconeogenesis, and the shunt."
+  - src: "/slides/pentose-phosphate-pathway/four-modes-decision-table.png"
+    audio: "/slides/pentose-phosphate-pathway/audio/four-modes-decision-table.mp3"
+    title: "Four Modes Decision Table"
+    alt: "Four Modes Decision Table"
+    source: "CH26 Pentose Phosphate Pathway · slide 25"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the decision table that ties the four modes together. Mode one, ribose without NADPH: only the non-oxidative phase runs, the cell is building nucleotides, as in dividing cells. Mode two, balanced NADPH and ribose: the oxidative phase runs, producing both, ideal for rapidly dividing cells. Mode three, NADPH without ribose: excess pentose is recycled back to glucose 6-phosphate, supporting fatty acid synthesis in tissues like liver and adipose. Mode four, NADPH plus ATP: carbon flows through to pyruvate. The takeaway is that the non-oxidative phase acts as a traffic controller, steering carbon wherever the cell's current demand points."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const pppSteps = [{"n": 1, "enzyme": "Glucose-6-phosphate dehydrogenase (G6PD)", "sub": "Glucose-6-phosphate (C6)", "prod": "6-phosphoglucono-δ-lactone (C6)", "nadph": 1, "regulated": true, "note": "The committed, rate-limiting step. Oxidizes C1 of glucose-6-phosphate and reduces NADP⁺ to the first NADPH. This is the door into the pathway, and the cell holds it shut when NADPH is plentiful.", "clinical": "G6PD deficiency affects ~400 million people. With G6PD weak, red cells cannot regenerate NADPH, glutathione falls, hemoglobin oxidizes into Heinz bodies, and the spleen destroys the cells — a hemolytic crisis triggered by fava beans, certain drugs, or infection. The same allele is hostile to the malaria parasite, which is why it persists where malaria is endemic."}, {"n": 2, "enzyme": "6-Phosphogluconolactonase", "sub": "6-phosphoglucono-δ-lactone (C6)", "prod": "6-phosphogluconate (C6)", "note": "Hydrolyzes the strained lactone ring open to the linear acid. A quiet housekeeping step that also occurs slowly on its own, but the enzyme makes it fast and clean."}, {"n": 3, "enzyme": "6-Phosphogluconate dehydrogenase", "sub": "6-phosphogluconate (C6)", "prod": "Ribulose-5-phosphate (C5) + CO₂", "nadph": 1, "co2": 1, "note": "Oxidative decarboxylation: makes the second NADPH and releases C1 as CO₂. Losing that carbon is what makes the whole oxidative phase irreversible — you can run a sugar uphill, but you cannot put a CO₂ back.", "clinical": "Because this step releases CO₂ without consuming O₂ (unlike full glucose oxidation), tissues running the PPP hard add CO₂ disproportionately — a useful illustration of heavy PPP flux, not a clinical diagnostic on its own."}, {"n": 4, "enzyme": "Phosphopentose isomerase", "sub": "Ribulose-5-phosphate (C5)", "prod": "Ribose-5-phosphate (C5)", "note": "Ketose → aldose. This is the exit toward biosynthesis: ribose-5-phosphate is the sugar backbone of every nucleotide, so this branch feeds DNA, RNA, ATP, NAD⁺, and coenzyme A.", "clinical": "Ribose-5-phosphate is the precursor of PRPP, the activated sugar that starts both purine and pyrimidine synthesis — the reason every dividing cell needs this pathway."}, {"n": 5, "enzyme": "Phosphopentose epimerase", "sub": "Ribulose-5-phosphate (C5)", "prod": "Xylulose-5-phosphate (C5)", "note": "Inverts the configuration at a single carbon (C3). Ribulose and xylulose are epimers, identical except at that one stereocenter, but transketolase needs xylulose, so the small change matters."}, {"n": 6, "enzyme": "Transketolase (TPP)", "sub": "Xylulose-5-P (C5) + ribose-5-P (C5)", "prod": "Glyceraldehyde-3-P (C3) + sedoheptulose-7-P (C7)", "note": "Molecular scissors: snips a two-carbon ketol unit off xylulose and welds it onto ribose. Requires thiamine pyrophosphate (TPP), the same cofactor pyruvate dehydrogenase uses. Carbon check: 5 + 5 = 3 + 7.", "clinical": "TPP comes from vitamin B1 (thiamine). In thiamine deficiency (Wernicke-Korsakoff, classically in alcoholism) transketolase activity falls — the assay for it is a clinical test of thiamine status."}, {"n": 7, "enzyme": "Transaldolase", "sub": "Sedoheptulose-7-P (C7) + glyceraldehyde-3-P (C3)", "prod": "Fructose-6-P (C6) + erythrose-4-P (C4)", "note": "Transfers a three-carbon dihydroxyacetone unit using an active-site lysine that forms a Schiff base with the substrate, the same trick aldolase uses in glycolysis. No external cofactor. Carbon check: 7 + 3 = 6 + 4."}, {"n": 8, "enzyme": "Transketolase (TPP)", "sub": "Erythrose-4-P (C4) + xylulose-5-P (C5)", "prod": "Fructose-6-P (C6) + glyceraldehyde-3-P (C3)", "note": "Transketolase again, second cut, moving another two-carbon unit so both end products are ordinary glycolytic intermediates. Carbon check: 4 + 5 = 6 + 3. Net of the non-oxidative phase: three C5 sugars become two F6P and one G3P."}];
+
+**Glucose-6-phosphate stands at a fork.** One road is glycolysis, which you already know: ten steps, two ATP earned, energy as the goal. The other road is the pentose phosphate pathway, and it earns no ATP at all. A cell that takes it walks away with two prizes glycolysis never offers — NADPH, the reducing power for building molecules and disarming reactive oxygen, and ribose-5-phosphate, the sugar backbone of every nucleotide.
+
+That trade — energy for building blocks and antioxidant defense — is why the pathway matters. Every cell that divides needs it, because no cell makes DNA without ribose. Every cell under oxidative stress needs it, because NADPH is what keeps the cell's antioxidant machinery loaded. The red blood cell carrying oxygen past your retina right now is running it as its only source of NADPH.
+
+## Two ledgers the cell keeps apart
+
+Here is the design principle that makes the whole chapter click. The cell runs two separate accounts of nicotinamide cofactor, and it keeps them apart on purpose.
+
+The NAD+/NADH pool sits at roughly 1000:1 in favor of the *oxidized* form. Plenty of NAD+ standing ready to *accept* electrons is exactly what catabolism wants — glycolysis and the citric acid cycle are constantly pulling electrons off fuel. The NADP+/NADPH pool sits the other way, near 1:10 in favor of the *reduced* form. Plenty of NADPH standing ready to *donate* electrons is what anabolism wants — fatty-acid synthesis, nucleotide synthesis, and glutathione regeneration all spend reducing power.
+
+The two molecules differ by one phosphate group, and that single tag is enough for enzymes to tell them apart. Why bother? Because if the cell pooled them, the abundant NAD+ would constantly drain the NADPH the cell worked to build, and biosynthesis would fight catabolism in a futile cycle. Keeping them separate lets the cell run both directions at once. At the glucose-6-phosphate fork, phosphoglucose isomerase pulls toward glycolysis and ATP; glucose-6-phosphate dehydrogenase pulls toward the PPP and NADPH.
+
+## The oxidative phase: irreversible, and that is the point
+
+The first three steps are a one-way street, and they are where both NADPH molecules and the pathway's signature carbon loss happen.
+
+**Glucose-6-phosphate dehydrogenase (G6PD)** opens the door. It oxidizes glucose-6-phosphate and reduces the first NADP+ to NADPH. This is the committed, rate-limiting step, and it is the regulated one. **Lactonase** then cracks open the strained lactone ring to give 6-phosphogluconate. **6-phosphogluconate dehydrogenase** makes the second NADPH and, in the same breath, lops off a carbon as CO2, leaving the five-carbon ribulose-5-phosphate.
+
+That lost carbon is what locks the phase shut. You can push a sugar through a reversible rearrangement, but you cannot reach out and stick a CO2 molecule back on. The net is worth memorizing:
+
+> **G6P + 2 NADP+ + H2O → ribulose-5-P + 2 NADPH + 2 H+ + CO2**
+
+Two NADPH, one CO2, no ATP. The CO2 matters because the oxidative phase releases it without consuming O2, unlike full glucose oxidation. Hummingbirds, which sustain the highest metabolic rate of any vertebrate and generate enormous reactive-oxygen loads, lean on this phase heavily for antioxidant defense.
+
+## The non-oxidative phase: carbon, shuffled
+
+Now the cell faces a logistics problem. It often needs *more NADPH than ribose*, or *more ribose than NADPH*. The non-oxidative phase is the accounting trick that lets it rebalance, and unlike the oxidative phase, every step here is reversible.
+
+Two routing enzymes set up the sugars. **Phosphopentose isomerase** turns ribulose-5-phosphate into ribose-5-phosphate, the aldose that exits toward nucleotide synthesis. **Phosphopentose epimerase** turns ribulose-5-phosphate into xylulose-5-phosphate, its epimer, differing at a single stereocenter. Then three transfer reactions reshuffle the carbons:
+
+- **Transketolase** (Chris's "molecular scissors") snips a two-carbon unit off xylulose-5-P and welds it onto ribose-5-P: C5 + C5 → C3 (glyceraldehyde-3-P) + C7 (sedoheptulose-7-P). It runs on thiamine pyrophosphate, the same cofactor pyruvate dehydrogenase uses.
+- **Transaldolase** moves a three-carbon unit: C7 + C3 → C6 (fructose-6-P) + C4 (erythrose-4-P). It needs no external cofactor — it uses an active-site lysine to form a Schiff base, exactly the mechanism aldolase uses in glycolysis.
+- **Transketolase again**: C4 + C5 → C6 (fructose-6-P) + C3 (glyceraldehyde-3-P).
+
+Stand back and the whole phase reduces to one tidy equation: **three C5 sugars become two fructose-6-P and one glyceraldehyde-3-P.** Check the carbons — 3 × 5 = 15, and 2 × 6 + 3 = 15. Both products are glycolytic intermediates, so the carbon can flow straight back into the energy pathway.
+
+Walk the interactive below. Each metabolite carries a carbon-count badge so you can verify the arithmetic at every cut, and the mode selector lets you watch the pathway re-route to match demand.
+
+<PathwayExplorer steps={pppSteps} title="The pentose phosphate pathway · 8 steps" />
+
+## Four modes: one pathway, four answers
+
+Because the non-oxidative phase is reversible, the cell can run the PPP in whichever direction the moment requires. Chris's four nicknames:
+
+- **Mode 1, the "ribose builder."** A cell needs ribose but already has plenty of NADPH. It skips the oxidative phase entirely and runs the non-oxidative steps *backward*, building ribose-5-P out of fructose-6-P and glyceraldehyde-3-P pulled from glycolysis. No NADPH made.
+- **Mode 2, the "balanced trader."** Ribose and NADPH are needed in equal measure. Run the oxidative phase, then isomerize ribulose-5-P to ribose-5-P. Two NADPH and one ribose per glucose.
+- **Mode 3, the "NADPH baron" (the name is about reducing power, not ATP).** A cell wants maximum NADPH and little ribose — think liver or fat tissue making fatty acids. Run the oxidative phase, then use the non-oxidative phase forward to recycle the ribose carbons back to glucose-6-phosphate, which loops through again. Many NADPH, almost no leftover ribose.
+- **Mode 4, the "resourceful alchemist."** A cell wants NADPH *and* ATP. Run the oxidative phase for NADPH, then feed the fructose-6-P and glyceraldehyde-3-P straight into glycolysis. No net ribose.
+
+The throttle behind all four is one number: **NADP+ concentration.** G6PD is product-inhibited by NADPH. When the cell spends NADPH on biosynthesis or on fighting oxidative damage, NADP+ rises, the inhibition lifts, and the oxidative phase accelerates. The pathway answers demand without any hormone or second messenger — feedback written directly into the active site.
+
+## Why a fava bean can be dangerous
+
+Here is the clinical payoff, and it starts with a medical mystery: why do some people suffer a sudden, severe anemia after eating fava beans?
+
+NADPH from the PPP is what keeps **glutathione** reduced. Glutathione is a small tripeptide (γ-Glu-Cys-Gly) with a reactive cysteine thiol, and it is the cell's frontline antioxidant. Glutathione peroxidase spends reduced glutathione (GSH) to neutralize peroxides, turning it into the oxidized disulfide GSSG; glutathione reductase then spends NADPH to turn GSSG back into GSH. The whole cycle leans on the PPP. Cut off the NADPH and the antioxidant defense collapses.
+
+**G6PD deficiency** — the most common enzyme deficiency on Earth, affecting roughly 400 million people — does exactly that. The cascade is clean: G6PD↓ → NADPH↓ → GSH↓ → reactive oxygen accumulates → hemoglobin oxidizes and clumps into Heinz bodies → the spleen culls the damaged cells → hemolytic crisis. Red blood cells are uniquely exposed. They have no nucleus, so they cannot transcribe more enzyme, and no mitochondria, so the PPP is their *only* source of NADPH. Fava beans, certain antimalarial and sulfa drugs, and infection all push oxidative stress past what a weakened cell can handle.
+
+Then the evolutionary plot twist. The deficiency persists because it is protective: G6PD-deficient red cells are a hostile environment for *Plasmodium falciparum*, the malaria parasite. Map the allele's prevalence and it mirrors the historical range of malaria. The same trait that risks hemolysis bought survival against a deadlier threat — a balanced polymorphism, the textbook companion to sickle-cell trait. The practical lesson: screen for G6PD before prescribing an oxidative-stress drug.
+
+The PPP also closes a loop back to cancer, which the next chapters develop. Dividing tumor cells run glycolysis hard (the Warburg effect) *and* the PPP hard, because they need NADPH for lipid and nucleotide synthesis and for surviving their own oxidative stress. The tumor suppressor p53 normally restrains G6PD by blocking its assembly into the active dimer; lose p53 — the single most common cancer mutation — and the brake comes off, and PPP flux climbs. Carry that pairing forward: the same NADPH economy you just learned is one the most dangerous cells exploit. From here we follow glucose-6-phosphate's carbons the other direction, into the citric acid cycle.
