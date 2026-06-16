@@ -1,0 +1,204 @@
+---
+/**
+ * WoehlerIsomerization — the moment vitalism started to lose. In 1828 Wöhler heated ammonium
+ * cyanate, a lifeless inorganic salt, and got urea — the very compound an animal kidney makes to
+ * dump nitrogen. This island puts the two molecules side by side, draws them atom-for-atom, and
+ * tallies their inventory: 1 C, 4 H, 2 N, 1 O on both sides. They are isomers — same atoms, only
+ * the wiring differs. Press "Apply heat (Δ)" and the salt rearranges into urea, no kidney and no
+ * vital spark required. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="woe card" data-woehler>
+  <figcaption class="woe-head">Wöhler, 1828 — the same atoms, with and without life<span class="woe-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="woe-svg" viewBox="0 0 460 230" role="img" data-svg></svg>
+
+  <div class="woe-tally">
+    <span class="woe-tally-label">Atom inventory (identical on both sides)</span>
+    <span class="woe-tally-row"><strong>C</strong>:1 &nbsp; <strong>H</strong>:4 &nbsp; <strong>N</strong>:2 &nbsp; <strong>O</strong>:1</span>
+  </div>
+
+  <p class="woe-payoff" data-payoff hidden></p>
+
+  <div class="woe-controls">
+    <button type="button" data-heat>Apply heat (Δ)</button>
+    <button type="button" data-reset class="woe-reset">Reset</button>
+    <span class="woe-state" data-state>Unreacted salt</span>
+  </div>
+
+  <p class="woe-foot">This is an isomerization: same formula (CH₄N₂O), atoms simply rearranged. No new matter, no missing matter — and yet a lifeless salt became a hallmark of animal metabolism. That single flask is where vitalism, the idea that life's molecules need a living source, began its long retreat.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Atom = { id: string; sym: string; x: number; y: number; color: string };
+  type Bond = { a: string; b: string; double?: boolean };
+
+  // Layout of the same six atoms in two arrangements. Atom ids are preserved across states
+  // so the heating step can move identical atoms from salt positions to urea positions.
+  const SALT: Atom[] = [
+    // ammonium ion NH4+ — central N with four H, left cluster
+    { id: 'N1', sym: 'N', x: 95, y: 115, color: NAVY },
+    { id: 'H1', sym: 'H', x: 95, y: 70, color: FAINT },
+    { id: 'H2', sym: 'H', x: 95, y: 160, color: FAINT },
+    { id: 'H3', sym: 'H', x: 52, y: 115, color: FAINT },
+    { id: 'H4', sym: 'H', x: 138, y: 115, color: FAINT },
+    // cyanate ion O=C=N(-) — O, C, N in a row, right cluster
+    { id: 'O1', sym: 'O', x: 290, y: 115, color: ORANGE },
+    { id: 'C1', sym: 'C', x: 345, y: 115, color: ACCENT },
+    { id: 'N2', sym: 'N', x: 400, y: 115, color: NAVY },
+  ];
+  const SALT_BONDS: Bond[] = [
+    { a: 'N1', b: 'H1' }, { a: 'N1', b: 'H2' }, { a: 'N1', b: 'H3' }, { a: 'N1', b: 'H4' },
+    { a: 'O1', b: 'C1', double: true }, { a: 'C1', b: 'N2', double: true },
+  ];
+
+  const UREA: Atom[] = [
+    // central C double-bonded to O, two -NH2 groups: H2N-CO-NH2
+    { id: 'C1', sym: 'C', x: 230, y: 130, color: ACCENT },
+    { id: 'O1', sym: 'O', x: 230, y: 70, color: ORANGE },
+    { id: 'N1', sym: 'N', x: 165, y: 165, color: NAVY },
+    { id: 'N2', sym: 'N', x: 295, y: 165, color: NAVY },
+    { id: 'H1', sym: 'H', x: 120, y: 140, color: FAINT },
+    { id: 'H2', sym: 'H', x: 150, y: 210, color: FAINT },
+    { id: 'H3', sym: 'H', x: 340, y: 140, color: FAINT },
+    { id: 'H4', sym: 'H', x: 310, y: 210, color: FAINT },
+  ];
+  const UREA_BONDS: Bond[] = [
+    { a: 'C1', b: 'O1', double: true },
+    { a: 'C1', b: 'N1' }, { a: 'C1', b: 'N2' },
+    { a: 'N1', b: 'H1' }, { a: 'N1', b: 'H2' },
+    { a: 'N2', b: 'H3' }, { a: 'N2', b: 'H4' },
+  ];
+
+  function bondLine(from: Atom, to: Atom, color: string, dbl: boolean): SVGElement {
+    const g = el('g', {});
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    // trim the line so it stops at the atom-circle edge (r = 16)
+    const ux = dx / len, uy = dy / len, pad = 16;
+    const x1 = from.x + ux * pad, y1 = from.y + uy * pad;
+    const x2 = to.x - ux * pad, y2 = to.y - uy * pad;
+    if (dbl) {
+      // offset perpendicular for the two parallel lines of a double bond
+      const ox = -uy * 3, oy = ux * 3;
+      g.appendChild(el('line', { x1: x1 + ox, y1: y1 + oy, x2: x2 + ox, y2: y2 + oy, stroke: color, 'stroke-width': 2 }));
+      g.appendChild(el('line', { x1: x1 - ox, y1: y1 - oy, x2: x2 - ox, y2: y2 - oy, stroke: color, 'stroke-width': 2 }));
+    } else {
+      g.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 2 }));
+    }
+    return g;
+  }
+
+  function draw(svg: SVGElement, atoms: Atom[], bonds: Bond[], title: string) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const byId: Record<string, Atom> = {};
+    for (const a of atoms) byId[a.id] = a;
+    // bonds first, under the atoms
+    for (const b of bonds) {
+      const fa = byId[b.a], ta = byId[b.b];
+      if (fa && ta) svg.appendChild(bondLine(fa, ta, INK, !!b.double));
+    }
+    // atoms as labeled circles
+    for (const a of atoms) {
+      svg.appendChild(el('circle', { cx: a.x, cy: a.y, r: 16, fill: a.color, stroke: '#fff', 'stroke-width': 2 }));
+      const t = el('text', { x: a.x, y: a.y + 5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 14, 'font-weight': 700, 'font-family': 'monospace' });
+      t.textContent = a.sym;
+      svg.appendChild(t);
+    }
+    const cap = el('text', { x: 230, y: 222, 'text-anchor': 'middle', fill: INK, 'font-size': 11 });
+    cap.textContent = title;
+    svg.appendChild(cap);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-woehler]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const payoffEl = root.querySelector<HTMLElement>('[data-payoff]')!;
+    const stateEl = root.querySelector<HTMLElement>('[data-state]')!;
+    const heatB = root.querySelector<HTMLButtonElement>('[data-heat]')!;
+    const resetB = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+
+    const SALT_TITLE = 'Ammonium cyanate (NH₄OCN) — an inorganic salt · CH₄N₂O';
+    const UREA_TITLE = 'Urea (H₂N-CO-NH₂) — a signature of animal metabolism · CH₄N₂O';
+    const PAYOFF = 'Same atoms, different connectivity — one a lifeless salt, the other a molecule the body makes to dump nitrogen. Wöhler made it in a flask with no kidney and no vital spark, in 1828.';
+
+    let heated = false;
+
+    function showSalt() {
+      heated = false;
+      draw(svg, SALT, SALT_BONDS, SALT_TITLE);
+      stateEl.textContent = 'Unreacted salt';
+      payoffEl.hidden = true;
+      heatB.disabled = false;
+    }
+    function showUrea() {
+      heated = true;
+      draw(svg, UREA, UREA_BONDS, UREA_TITLE);
+      stateEl.textContent = 'Urea — heated (Δ)';
+      payoffEl.textContent = PAYOFF;
+      payoffEl.hidden = false;
+      heatB.disabled = true;
+    }
+
+    function animateToUrea() {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce || document.hidden) { showUrea(); return; }
+      // safety net: if rAF never delivers (throttled/backgrounded tab), guarantee the end state
+      window.setTimeout(() => { if (!heated) showUrea(); }, 1300);
+      // tween each atom from its salt position to its urea position by id
+      const saltById: Record<string, Atom> = {};
+      for (const a of SALT) saltById[a.id] = a;
+      const start = performance.now();
+      const dur = 700;
+      heatB.disabled = true;
+      stateEl.textContent = 'Rearranging…';
+      payoffEl.hidden = true;
+      function frame(now: number) {
+        const t = Math.min(1, (now - start) / dur);
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        const moving: Atom[] = UREA.map((u) => {
+          const s = saltById[u.id]!;
+          return { id: u.id, sym: u.sym, color: u.color, x: s.x + (u.x - s.x) * ease, y: s.y + (u.y - s.y) * ease };
+        });
+        // draw bonds only once atoms are mostly home, so lines don't whip around
+        draw(svg, moving, ease > 0.85 ? UREA_BONDS : [], ease > 0.85 ? UREA_TITLE : SALT_TITLE);
+        if (t < 1) requestAnimationFrame(frame);
+        else showUrea();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    heatB.addEventListener('click', () => { if (!heated) animateToUrea(); });
+    resetB.addEventListener('click', showSalt);
+
+    // clear static initial state — the unreacted salt, fully drawn, no animation needed
+    showSalt();
+  });
+</script>
+
+<style>
+  .woe { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .woe-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .woe-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .woe-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .woe-tally { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; margin-bottom: var(--ddp-space-3); }
+  .woe-tally-label { color: var(--ddp-color-muted); }
+  .woe-tally-row { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); letter-spacing: 0.02em; }
+  .woe-tally-row strong { color: var(--ddp-color-accent); }
+  .woe-payoff { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-secondary) 12%, transparent); border-radius: 6px; }
+  .woe-controls { display: flex; align-items: center; gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .woe-controls button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; }
+  .woe-controls button:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .woe-controls button:disabled { opacity: 0.4; cursor: default; }
+  .woe-reset { margin-left: 0; }
+  .woe-state { margin-left: auto; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .woe-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

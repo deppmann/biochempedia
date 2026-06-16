@@ -1,0 +1,167 @@
+---
+/**
+ * VitalismTimeline — the 70-year retreat of the vital force. The textbook opens by granting that
+ * life is chemistry; this island shows that the grant was won slowly, one synthesis at a time.
+ * Click along the row from 1828 to 1897 and watch the "ground remaining for the vital force" meter
+ * shrink as each chemist removes one more place for it to hide. The teaching point lives in the
+ * gaps: Wöhler's urea did NOT kill vitalism — critics noted his cyanate came from animal sources,
+ * so the fight went on for another seventy years. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="vtl card" data-vitaltimeline>
+  <figcaption class="vtl-head">The 70-year retreat of the vital force<span class="vtl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="vtl-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+
+  <div class="vtl-meter">
+    <div class="vtl-meter-row">
+      <span class="vtl-meter-label">Ground remaining for the vital force</span>
+      <strong class="vtl-meter-pct" data-pct>70%</strong>
+    </div>
+    <div class="vtl-meter-track"><div class="vtl-meter-fill" data-fill></div></div>
+  </div>
+
+  <div class="vtl-detail">
+    <div class="vtl-d-head">
+      <span class="vtl-d-year" data-year>1828</span>
+      <span class="vtl-d-who" data-who>Friedrich Wöhler</span>
+    </div>
+    <p class="vtl-d-made" data-made></p>
+    <div class="vtl-d-grid">
+      <div class="vtl-d-cell vtl-removed">
+        <span class="vtl-d-cell-tag">Excuse removed</span>
+        <span class="vtl-d-cell-txt" data-removed></span>
+      </div>
+      <div class="vtl-d-cell vtl-remaining">
+        <span class="vtl-d-cell-tag">Excuse remaining</span>
+        <span class="vtl-d-cell-txt" data-remaining></span>
+      </div>
+    </div>
+  </div>
+
+  <p class="vtl-foot">Vitalism was not refuted in one afternoon. It was a fighting retreat across seventy years — each synthesis pried the vital force out of one more hiding place, until Buchner's cell-free ferment left it nowhere to stand. Once you grant that life is chemistry, the rest of biochemistry becomes possible: you can lift the machinery out of the cell and study it one reaction at a time.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  type Node = { year: string; who: string; ground: number; made: string; removed: string; remaining: string };
+  const NODES: Node[] = [
+    {
+      year: '1828', who: 'Friedrich Wöhler', ground: 70,
+      made: 'Heated ammonium cyanate and got UREA — an organic molecule out of an inorganic salt, with no living thing in the flask.',
+      removed: '"Only life can make organic molecules." Cracked, for the first time.',
+      remaining: 'This did NOT kill vitalism — the myth. Critics noted his ammonium cyanate was itself derived from organic (animal) sources, so the vital force could still claim it never really left the loop.',
+    },
+    {
+      year: '1845', who: 'Hermann Kolbe', ground: 45,
+      made: 'Built ACETIC ACID up from carbon disulfide (charcoal plus sulfur), finishing with a battery, not a cell.',
+      removed: 'The "organic-source loophole." His starting materials touched nothing alive.',
+      remaining: 'But these were small, simple molecules. Surely the complex molecules of the body still need life to assemble them.',
+    },
+    {
+      year: '1854', who: 'Marcellin Berthelot', ground: 25,
+      made: 'Synthesized FATS — real triglycerides — from glycerol and fatty acids, building a whole CLASS of the body’s molecules.',
+      removed: '"Only simple molecules can be made without life." Gone.',
+      remaining: 'But surely the PROCESSES of life — fermentation, digestion — still need the living cell itself. This was Pasteur’s stand.',
+    },
+    {
+      year: '1897', who: 'Eduard Buchner', ground: 3,
+      made: 'CELL-FREE FERMENTATION: dead yeast "press-juice," with no living cells left, fermented sugar to alcohol. He named the agent "zymase."',
+      removed: '"Metabolism needs the intact living cell." Gone.',
+      remaining: 'Essentially none. Life is chemistry; the machinery can be lifted out of the cell and studied one reaction at a time.',
+    },
+  ];
+
+  function draw(svg: SVGElement, sel: number) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const n = NODES.length;
+    const x0 = 50, x1 = 410, y = 52;
+    const xs = NODES.map((_, i) => x0 + (x1 - x0) * (i / (n - 1)));
+    // baseline track
+    svg.appendChild(el('line', { x1: x0, y1: y, x2: x1, y2: y, stroke: FAINT, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+    // progress line up to selected node, in retreating accent
+    svg.appendChild(el('line', { x1: x0, y1: y, x2: xs[sel], y2: y, stroke: ACCENT, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+    NODES.forEach((node, i) => {
+      const active = i === sel;
+      const r = active ? 13 : 9;
+      svg.appendChild(el('circle', { cx: xs[i], cy: y, r, fill: active ? ORANGE : (i < sel ? ACCENT : '#fff'), stroke: active ? ORANGE : (i <= sel ? ACCENT : FAINT), 'stroke-width': 2 }));
+      const yr = el('text', { x: xs[i], y: y - 22, 'text-anchor': 'middle', fill: active ? NAVY : INK, 'font-size': active ? 14 : 12, 'font-weight': active ? 700 : 500, 'font-family': 'monospace' });
+      yr.textContent = node.year; svg.appendChild(yr);
+      const wh = el('text', { x: xs[i], y: y + 32, 'text-anchor': 'middle', fill: active ? NAVY : FAINT, 'font-size': 9 });
+      wh.textContent = node.who.split(' ').slice(-1)[0]; svg.appendChild(wh);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-vitaltimeline]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const pctEl = root.querySelector<HTMLElement>('[data-pct]')!;
+    const fillEl = root.querySelector<HTMLElement>('[data-fill]')!;
+    const yearEl = root.querySelector<HTMLElement>('[data-year]')!;
+    const whoEl = root.querySelector<HTMLElement>('[data-who]')!;
+    const madeEl = root.querySelector<HTMLElement>('[data-made]')!;
+    const removedEl = root.querySelector<HTMLElement>('[data-removed]')!;
+    const remainingEl = root.querySelector<HTMLElement>('[data-remaining]')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let sel = 0;
+    function render() {
+      const node = NODES[sel];
+      pctEl.textContent = `${node.ground}%`;
+      fillEl.style.width = `${node.ground}%`;
+      fillEl.style.transition = reduce ? 'none' : 'width 0.4s ease';
+      yearEl.textContent = node.year;
+      whoEl.textContent = node.who;
+      madeEl.textContent = node.made;
+      removedEl.textContent = node.removed;
+      remainingEl.textContent = node.remaining;
+      draw(svg, sel);
+    }
+    svg.addEventListener('click', (ev: MouseEvent) => {
+      const pt = (ev.target as SVGElement);
+      void pt;
+      const rect = svg.getBoundingClientRect();
+      const fx = ((ev.clientX - rect.left) / rect.width) * 460;
+      let best = 0, bestD = Infinity;
+      const x0 = 50, x1 = 410, n = NODES.length;
+      NODES.forEach((_, i) => {
+        const cx = x0 + (x1 - x0) * (i / (n - 1));
+        const d = Math.abs(cx - fx);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      sel = best; render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .vtl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .vtl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .vtl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .vtl-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); cursor: pointer; }
+  .vtl-meter { margin-bottom: var(--ddp-space-3); }
+  .vtl-meter-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-1); }
+  .vtl-meter-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vtl-meter-pct { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-secondary); }
+  .vtl-meter-track { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); overflow: hidden; border: 1px solid var(--ddp-color-line); }
+  .vtl-meter-fill { height: 100%; background: color-mix(in srgb, var(--ddp-color-secondary) 70%, var(--ddp-color-primary)); border-radius: 6px 0 0 6px; }
+  .vtl-detail { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  .vtl-d-head { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: var(--ddp-space-2); }
+  .vtl-d-year { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-secondary); }
+  .vtl-d-who { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
+  .vtl-d-made { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .vtl-d-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); }
+  @media (min-width: 560px) { .vtl-d-grid { grid-template-columns: 1fr 1fr; } }
+  .vtl-d-cell { border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.25rem; }
+  .vtl-removed { background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-left: 3px solid var(--ddp-color-accent); }
+  .vtl-remaining { background: color-mix(in srgb, var(--ddp-color-secondary) 8%, transparent); border-left: 3px solid var(--ddp-color-secondary); }
+  .vtl-d-cell-tag { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ddp-color-muted); }
+  .vtl-d-cell-txt { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .vtl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
