@@ -152,6 +152,10 @@ simulations:
     ref: "PathwayExplorer"
     title: "The urea cycle as a wheel — 4 high-energy phosphate bonds per urea (2 ATP at CPS-I, 2 at argininosuccinate synthetase); ornithine is consumed at step 2 and regenerated at step 5, so it turns catalytically"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "AminoAcidFateSorter"
+    title: "Glucogenic or ketogenic? (sort all 20 amino-acid skeletons by where the carbon enters metabolism — only leucine and lysine can never become glucose)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 practiceQuestions:
   - stem: "Why does the cell expend ATP during ubiquitin-mediated protein degradation, given that hydrolysis of a peptide bond is itself exergonic?"
     choices:
@@ -385,6 +389,7 @@ lectureSlides:
 ---
 
 import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+import AminoAcidFateSorter from '../../../components/AminoAcidFateSorter.astro';
 
 export const ureaSteps = [{"n": 1, "enzyme": "Carbamoyl phosphate synthetase I (CPS-I)", "sub": "NH₄⁺ + HCO₃⁻ + 2 ATP", "prod": "Carbamoyl phosphate", "atp": -2, "regulated": true, "note": "Mitochondrial. The committed, rate-limiting step: free ammonia and bicarbonate are condensed into carbamoyl phosphate at the cost of two ATP, the first two of the four high-energy bonds per urea.", "regNote": "Activated only when N-acetylglutamate (NAG) is present — a feedforward signal, made from acetyl-CoA + glutamate and amplified by arginine, that says nitrogen is arriving.", "clinical": "CPS-I deficiency causes severe neonatal hyperammonemia."}, {"n": 2, "enzyme": "Ornithine transcarbamylase (OTC)", "sub": "Carbamoyl phosphate + ornithine", "prod": "Citrulline", "note": "Mitochondrial. The carbamoyl group is handed to ornithine, building citrulline, which is exported to the cytosol. Ornithine is the carrier regenerated at the end — Krebs's catalytic wheel.", "clinical": "OTC deficiency is the most common urea cycle disorder (~1/14,000) and X-linked. Lab triad: high ammonia, low citrulline, and high urinary orotic acid (excess carbamoyl phosphate spills into pyrimidine synthesis)."}, {"n": 3, "enzyme": "Argininosuccinate synthetase (ASS)", "sub": "Citrulline + aspartate + ATP", "prod": "Argininosuccinate", "atp": -2, "note": "Cytosolic. Aspartate donates the second nitrogen of urea. ATP is cleaved to AMP + PPᵢ and the pyrophosphate is hydrolyzed, so this single step costs two high-energy bonds, completing the four per urea.", "clinical": "Deficiency causes citrullinemia: citrulline backs up because it cannot be condensed with aspartate."}, {"n": 4, "enzyme": "Argininosuccinate lyase (ASL)", "sub": "Argininosuccinate", "prod": "Arginine + fumarate", "note": "Cytosolic. The molecule is cleaved into arginine and fumarate. The fumarate is the gear that meshes the urea cycle with the TCA cycle (the Krebs bicycle): fumarate → malate → OAA links nitrogen disposal to gluconeogenesis.", "clinical": "Deficiency (argininosuccinic aciduria) accumulates argininosuccinate; managed with arginine plus nitrogen scavengers."}, {"n": 5, "enzyme": "Arginase", "sub": "Arginine + H₂O", "prod": "Urea + ornithine", "note": "Cytosolic. Arginine is hydrolyzed to release urea, the final nitrogen waste, and regenerate ornithine, which re-enters the mitochondrion to turn the wheel again. Ornithine is a true catalyst: consumed at step 2, returned here.", "clinical": "Arginase deficiency (argininemia) is the rarest urea cycle disorder and causes spastic diplegia more than acute hyperammonemic crisis."}];
 
@@ -423,6 +428,8 @@ When the cycle breaks, ammonia rises and astrocytes swell as they trap it in glu
 ## Act 3: carbon is too valuable to waste
 
 The skeleton left after the nitrogen is gone is just carbon, and the cell will not throw it away. All 20 amino acids funnel into one of **seven entry points**: pyruvate, acetyl-CoA, acetoacetyl-CoA, alpha-ketoglutarate, succinyl-CoA, fumarate, or oxaloacetate. The logic, not the memorized list, is what matters. Thirteen amino acids are purely glucogenic. Only two, leucine and lysine, are purely ketogenic, because they enter as acetyl-CoA and the pyruvate dehydrogenase step is irreversible, so there is no path back to glucose. Five are mixed. Cofactors fingerprint the mechanism: PLP for amino transfer, biotin for carboxylation, B12 for the rearrangement that methylmalonyl-CoA mutase performs into succinyl-CoA.
+
+<AminoAcidFateSorter />
 
 Break one of these enzymes and you get an inborn error, collectively about 1 in 1500 births. Archibald Garrod named the first, alkaptonuria, in 1902. PKU (defective phenylalanine hydroxylase) is caught by newborn screening and managed by diet, BH4, or pegvaliase. MSUD (defective branched-chain keto-acid dehydrogenase) gives urine that smells of maple syrup and leucine that is neurotoxic. Alkaptonuria turns urine black and stains cartilage.
 

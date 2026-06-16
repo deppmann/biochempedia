@@ -1,0 +1,105 @@
+---
+/**
+ * AminoAcidFateSorter — the carbon-fate companion to the urea-cycle map. The PathwayExplorer
+ * handles the nitrogen (caged as urea); this island handles the carbon skeleton left behind:
+ * where does each amino acid enter metabolism, and can that carbon become glucose? Filter by
+ * fate or click a residue to see its entry point. The punchline students must hold: only two
+ * amino acids (leucine, lysine) are purely ketogenic — everything else can, at least in part,
+ * be rebuilt into glucose. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="afs card" data-aafate>
+  <figcaption class="afs-head">Where does the carbon skeleton go?<span class="afs-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="afs-filters" role="group" aria-label="Catabolic fate">
+    <button type="button" data-fate="all" aria-pressed="true">All 20</button>
+    <button type="button" data-fate="gluco">Glucogenic</button>
+    <button type="button" data-fate="keto">Ketogenic</button>
+    <button type="button" data-fate="both">Both</button>
+  </div>
+
+  <div class="afs-grid" data-grid></div>
+
+  <p class="afs-rule" data-rule></p>
+  <p class="afs-foot">The split comes down to one irreversible reaction: pyruvate dehydrogenase. A skeleton that enters as pyruvate or a TCA intermediate can be pumped back up to glucose, so it is glucogenic. A skeleton that enters as acetyl-CoA is stuck — animals have no way to turn acetyl-CoA into net glucose — so it can only become ketone bodies or fat. That is why, in prolonged starvation, your glucogenic amino acids keep your blood sugar up while the ketogenic ones feed the ketones your brain learns to burn.</p>
+</figure>
+
+<script>
+  type AA = { code: string; name: string; fate: string; entry: string; note: string };
+  const G = 'gluco', K = 'keto', B = 'both';
+  const AAS: AA[] = [
+    { code: 'Ala', name: 'Alanine', fate: G, entry: 'pyruvate', note: 'Transaminates directly to pyruvate — the simplest glucogenic case, and the carrier of muscle nitrogen to the liver in the glucose–alanine cycle.' },
+    { code: 'Gly', name: 'Glycine', fate: G, entry: 'pyruvate', note: 'Converted to serine, then to pyruvate. Glucogenic.' },
+    { code: 'Ser', name: 'Serine', fate: G, entry: 'pyruvate', note: 'Deaminated to pyruvate. Glucogenic.' },
+    { code: 'Cys', name: 'Cysteine', fate: G, entry: 'pyruvate', note: 'Loses its sulfur and enters as pyruvate. Glucogenic.' },
+    { code: 'Thr', name: 'Threonine', fate: B, entry: 'succinyl-CoA + acetyl-CoA', note: 'Splits: part of the skeleton is glucogenic (succinyl-CoA), part is ketogenic (acetyl-CoA). Both.' },
+    { code: 'Trp', name: 'Tryptophan', fate: B, entry: 'pyruvate (via Ala) + acetyl-CoA', note: 'The largest residue is split — a glucogenic alanine/pyruvate piece and a ketogenic acetyl-CoA piece. Both.' },
+    { code: 'Val', name: 'Valine', fate: G, entry: 'succinyl-CoA', note: 'A branched-chain amino acid that enters as succinyl-CoA. Glucogenic.' },
+    { code: 'Met', name: 'Methionine', fate: G, entry: 'succinyl-CoA', note: 'Enters as succinyl-CoA after donating methyl groups. Glucogenic.' },
+    { code: 'Ile', name: 'Isoleucine', fate: B, entry: 'succinyl-CoA + acetyl-CoA', note: 'A branched-chain amino acid split between a glucogenic (succinyl-CoA) and ketogenic (acetyl-CoA) end. Both.' },
+    { code: 'Asp', name: 'Aspartate', fate: G, entry: 'oxaloacetate', note: 'One transamination from oxaloacetate, a TCA intermediate. Glucogenic.' },
+    { code: 'Asn', name: 'Asparagine', fate: G, entry: 'oxaloacetate', note: 'Hydrolyzed to aspartate, then to oxaloacetate. Glucogenic.' },
+    { code: 'Glu', name: 'Glutamate', fate: G, entry: 'α-ketoglutarate', note: 'The hub of nitrogen handling; its skeleton is α-ketoglutarate. Glucogenic.' },
+    { code: 'Gln', name: 'Glutamine', fate: G, entry: 'α-ketoglutarate', note: 'Deamidated to glutamate, then α-ketoglutarate. Glucogenic.' },
+    { code: 'Pro', name: 'Proline', fate: G, entry: 'α-ketoglutarate', note: 'Oxidized to glutamate, then α-ketoglutarate. Glucogenic.' },
+    { code: 'Arg', name: 'Arginine', fate: G, entry: 'α-ketoglutarate', note: 'Funnels through glutamate to α-ketoglutarate. Glucogenic.' },
+    { code: 'His', name: 'Histidine', fate: G, entry: 'α-ketoglutarate', note: 'Converted to glutamate, then α-ketoglutarate. Glucogenic.' },
+    { code: 'Phe', name: 'Phenylalanine', fate: B, entry: 'fumarate + acetoacetate', note: 'Hydroxylated to tyrosine, then split into glucogenic fumarate and ketogenic acetoacetate. Both. (The blocked first step causes PKU.)' },
+    { code: 'Tyr', name: 'Tyrosine', fate: B, entry: 'fumarate + acetoacetate', note: 'Degraded to glucogenic fumarate and ketogenic acetoacetate. Both.' },
+    { code: 'Leu', name: 'Leucine', fate: K, entry: 'acetyl-CoA + acetoacetate', note: 'One of only two purely ketogenic amino acids — its entire skeleton becomes acetyl-CoA/acetoacetate and can never be glucose.' },
+    { code: 'Lys', name: 'Lysine', fate: K, entry: 'acetoacetyl-CoA', note: 'The other purely ketogenic amino acid. Its carbons can only become ketone bodies or fat.' },
+  ];
+  const COLOR: Record<string, string> = { gluco: '#0e7c86', keto: '#e57200', both: '#D4A843' };
+  const RULE: Record<string, string> = {
+    all: 'Each color is a catabolic fate — teal glucogenic, orange ketogenic, gold both. Click any residue to see where its carbon skeleton enters metabolism.',
+    gluco: 'Glucogenic skeletons enter as pyruvate, α-ketoglutarate, succinyl-CoA, fumarate, or oxaloacetate — all of which gluconeogenesis can pull back up to glucose. Eighteen of the twenty are at least partly glucogenic.',
+    keto: 'Ketogenic skeletons enter as acetyl-CoA or acetoacetate, which animals cannot convert to net glucose, so these carbons become ketone bodies or fat. Only leucine and lysine are PURELY ketogenic — the two L’s.',
+    both: 'Five amino acids are split down the middle — part becomes glucose, part becomes ketone bodies: isoleucine, phenylalanine, tyrosine, tryptophan, threonine.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-aafate]').forEach((root) => {
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    const rule = root.querySelector<HTMLElement>('[data-rule]')!;
+    AAS.forEach((aa) => {
+      const chip = document.createElement('button');
+      chip.type = 'button'; chip.className = 'afs-chip-btn'; chip.setAttribute('data-aafatecat', aa.fate);
+      chip.style.setProperty('--afs-c', COLOR[aa.fate]);
+      chip.innerHTML = `<b>${aa.code}</b><span>${aa.entry}</span>`;
+      chip.addEventListener('click', () => { rule.textContent = `${aa.name} (${aa.code}) → ${aa.entry}. ${aa.note}`; });
+      grid.appendChild(chip);
+    });
+    function filter(cat: string) {
+      grid.querySelectorAll<HTMLElement>('.afs-chip-btn').forEach((c) => {
+        const f = c.getAttribute('data-aafatecat');
+        const match = cat === 'all' || f === cat || (cat === 'gluco' && f === 'both') || (cat === 'keto' && f === 'both');
+        c.classList.toggle('is-dim', !match);
+      });
+      rule.textContent = RULE[cat];
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-fate]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-fate]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        filter(b.getAttribute('data-fate')!);
+      }));
+    filter('all');
+  });
+</script>
+
+<style>
+  .afs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .afs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .afs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .afs-filters { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .afs-filters button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .afs-filters button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .afs-filters button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .afs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.4rem; }
+  .afs-chip-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem; font-family: inherit; text-align: left; border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--afs-c, #888); background: #fff; border-radius: 5px; padding: 0.3rem 0.45rem; cursor: pointer; transition: opacity 0.2s; }
+  .afs-chip-btn b { font-size: var(--ddp-text-sm); color: var(--afs-c, var(--ddp-color-primary)); }
+  .afs-chip-btn span { font-size: 0.6rem; color: var(--ddp-color-muted); }
+  .afs-chip-btn:hover { border-color: var(--afs-c); }
+  .afs-chip-btn.is-dim { opacity: 0.2; }
+  .afs-rule { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .afs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
