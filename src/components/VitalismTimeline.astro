@@ -12,7 +12,9 @@
 <figure class="vtl card" data-vitaltimeline>
   <figcaption class="vtl-head">The 70-year retreat of the vital force<span class="vtl-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="vtl-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+  <svg class="vtl-svg" viewBox="0 0 460 120" role="img" aria-label="Timeline 1828–1897; use the buttons below to step through it" data-svg></svg>
+
+  <div class="vtl-nodes" data-nodes role="group" aria-label="Choose a synthesis to view"></div>
 
   <div class="vtl-meter">
     <div class="vtl-meter-row">
@@ -108,10 +110,23 @@
     const madeEl = root.querySelector<HTMLElement>('[data-made]')!;
     const removedEl = root.querySelector<HTMLElement>('[data-removed]')!;
     const remainingEl = root.querySelector<HTMLElement>('[data-remaining]')!;
+    const nodesWrap = root.querySelector<HTMLElement>('[data-nodes]')!;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let sel = 0;
+    // Keyboard- and screen-reader-accessible controls (the SVG click is a visual shortcut).
+    NODES.forEach((n, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'vtl-node-btn';
+      b.setAttribute('data-node-btn', String(i));
+      b.innerHTML = `<b>${n.year}</b><span>${n.who.split(' ').slice(-1)[0]}</span>`;
+      b.addEventListener('click', () => { sel = i; render(); });
+      nodesWrap.appendChild(b);
+    });
+    const nodeBtns = Array.from(nodesWrap.querySelectorAll<HTMLButtonElement>('[data-node-btn]'));
     function render() {
       const node = NODES[sel];
+      nodeBtns.forEach((b, i) => b.setAttribute('aria-pressed', String(i === sel)));
       pctEl.textContent = `${node.ground}%`;
       fillEl.style.width = `${node.ground}%`;
       fillEl.style.transition = reduce ? 'none' : 'width 0.4s ease';
@@ -145,6 +160,13 @@
   .vtl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
   .vtl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .vtl-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); cursor: pointer; }
+  .vtl-nodes { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .vtl-node-btn { display: flex; flex-direction: column; align-items: center; gap: 0.05rem; flex: 1; min-width: 64px; font-family: inherit; border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 6px; padding: 0.3rem 0.4rem; cursor: pointer; }
+  .vtl-node-btn b { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .vtl-node-btn span { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vtl-node-btn:hover { border-color: var(--ddp-color-accent); }
+  .vtl-node-btn[aria-pressed='true'] { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); }
+  .vtl-node-btn[aria-pressed='true'] b { color: var(--ddp-color-accent); }
   .vtl-meter { margin-bottom: var(--ddp-space-3); }
   .vtl-meter-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-1); }
   .vtl-meter-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }

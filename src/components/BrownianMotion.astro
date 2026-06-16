@@ -134,7 +134,9 @@
       ctx!.strokeStyle = NAVY; ctx!.lineWidth = 1.5; ctx!.stroke();
     }
 
-    function loop() { if (!running) return; step(); draw(); raf = requestAnimationFrame(loop); }
+    let onScreen = true;
+    function loop() { if (!running || !onScreen || document.hidden) return; step(); draw(); raf = requestAnimationFrame(loop); }
+    function resume() { if (running && onScreen && !document.hidden && !reduce) { cancelAnimationFrame(raf); loop(); } }
 
     tempIn.addEventListener('input', labels);
     sizeIn.addEventListener('input', labels);
@@ -145,6 +147,12 @@
       if (running) loop();
     });
     resetBtn.addEventListener('click', () => { reset(); draw(); });
+
+    // Don't burn CPU/battery animating when scrolled offscreen or the tab is hidden.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => { onScreen = entries[0].isIntersecting; resume(); }, { threshold: 0.01 }).observe(root);
+    }
+    document.addEventListener('visibilitychange', resume);
 
     seed(); reset(); labels();
     if (reduce) {
