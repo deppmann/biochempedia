@@ -95,7 +95,7 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
           <div class="rail-group">
             <h3>Lecture slides</h3>
             <button type="button" class="rail-slidepreview" data-open="lb-slides">
-              <img src={lesson.lectureSlides[0].src} alt={`Preview: ${lesson.lectureSlides[0].title}`} loading="lazy" />
+              <img src={lesson.lectureSlides[0].src.replace(/\.png$/, '.thumb.webp')} alt={`Preview: ${lesson.lectureSlides[0].title}`} loading="lazy" decoding="async" />
               <span class="rail-label">Lecture slides <em>{lesson.lectureSlides.length} · narrated · tap to open</em></span>
             </button>
           </div>
@@ -443,7 +443,7 @@ const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolea
       background: var(--ddp-color-surface); transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
     }
     .rail-slidepreview:hover { border-color: var(--ddp-color-accent); transform: translateY(-1px); box-shadow: var(--ddp-shadow); }
-    .rail-slidepreview img { display: block; width: 100%; background: #fff; }
+    .rail-slidepreview img { display: block; width: 100%; aspect-ratio: 22 / 17; object-fit: cover; background: #fff; }
     .rail-slidepreview .rail-label { padding: var(--ddp-space-2) var(--ddp-space-3); }
 
     /* Lightbox dialog */

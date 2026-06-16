@@ -22,9 +22,10 @@ const { slides } = Astro.props;
         </figcaption>
         <img
           class="deck-img"
-          src={s.src}
+          src={s.src.replace(/\.png$/, '.webp')}
           alt={s.alt}
           loading={i === 0 ? 'eager' : 'lazy'}
+          decoding="async"
         />
         {s.aiNote && (
           <p class="deck-ainote">⚠️ <strong>AI-image note:</strong> {s.aiNote}</p>
@@ -146,6 +147,7 @@ const { slides } = Astro.props;
   .deck-img {
     display: block;
     width: 100%;
+    aspect-ratio: 22 / 17; /* reserve space pre-load (slides are ~4:3) → no layout shift */
     max-height: 56vh;
     object-fit: contain;
     background: #fff;
