@@ -1,0 +1,150 @@
+---
+/**
+ * GlycosidicLinkageLab — the "one bond, opposite jobs" companion to the carbohydrates
+ * lesson. The anomer/mutarotation explorer dials a single ring; this one zooms out to the
+ * polymer: pick how identical glucose bricks are linked and watch the same monomer become a
+ * digestible energy store or indigestible structural fiber. Click a linkage to redraw the
+ * chain's shape and read off its job, digestibility, and the biology that follows.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="gll card" data-glink>
+  <figcaption class="gll-head">Same brick, opposite destiny — pick the bond<span class="gll-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="gll-tabs" role="group" aria-label="Glycosidic linkage">
+    <button type="button" data-link="a14" aria-pressed="true">α-1,4 linear</button>
+    <button type="button" data-link="branch">α-1,4 + α-1,6 branched</button>
+    <button type="button" data-link="b14">β-1,4</button>
+  </div>
+
+  <svg class="gll-svg" viewBox="0 0 460 200" role="img" data-svg></svg>
+
+  <div class="gll-readout">
+    <div class="gll-name" data-name>Amylose (starch)</div>
+    <dl class="gll-facts">
+      <div><dt>Shape</dt><dd data-shape></dd></div>
+      <div><dt>Job</dt><dd data-job></dd></div>
+      <div><dt>Humans digest it?</dt><dd data-digest></dd></div>
+    </dl>
+    <p class="gll-so" data-so></p>
+  </div>
+
+  <p class="gll-foot">One geometric choice at the anomeric carbon — α down, β up — decides whether a glucose chain is food or fiber. Branching adds a second lever: every α-1,6 branch is another loose end an enzyme can grab, which is why glycogen mobilizes glucose fast enough to sprint on.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  type Mode = {
+    name: string; color: string; shape: string; job: string; digest: string; so: string;
+  };
+  const MODES: Record<string, Mode> = {
+    a14: {
+      name: 'Amylose (starch)', color: ACCENT,
+      shape: 'A loose left-handed helix — the α bond kinks each glucose, so the chain coils.',
+      job: 'Energy storage in plants. Compact and easy to take apart from the ends.',
+      digest: 'Yes — salivary and pancreatic amylase cleave α-1,4 bonds.',
+      so: 'The α-1,4 link folds the chain into a helix the body can unzip. This is the glucose you actually eat as starch.',
+    },
+    branch: {
+      name: 'Glycogen / amylopectin', color: ORANGE,
+      shape: 'A bush: α-1,4 backbone with α-1,6 branches every ~12 (glycogen) or ~30 (amylopectin) residues.',
+      job: 'Fast-access energy store in animals (liver, muscle).',
+      digest: 'Yes — and the branches make it faster: every branch is one more non-reducing end.',
+      so: 'A liver glycogen molecule presents ~2,000 loose ends at once, so thousands of enzymes chew inward in parallel. That branching is what lets you sprint.',
+    },
+    b14: {
+      name: 'Cellulose', color: NAVY,
+      shape: 'Flat, straight chains that hydrogen-bond side-by-side into rigid fibrils.',
+      job: 'Structural — the load-bearing fiber of plant cell walls (and your pencil).',
+      digest: 'No. Humans lack cellulase; the β-1,4 bond passes through as dietary fiber.',
+      so: 'Same glucose brick, laid β instead of α: a cow lives on grass because its gut bacteria make cellulase, and you cannot because yours do not.',
+    },
+  };
+
+  function draw(svg: SVGElement, mode: string) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const c = MODES[mode].color;
+    const bead = (x: number, y: number, fill: string) => {
+      svg.appendChild(el('circle', { cx: x, cy: y, r: 9, fill, stroke: '#fff', 'stroke-width': 1.5 }));
+    };
+    const link = (x1: number, y1: number, x2: number, y2: number, color: string, dash = '') => {
+      svg.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 3, ...(dash ? { 'stroke-dasharray': dash } : {}) }));
+    };
+    if (mode === 'a14') {
+      // loose helix: beads along a sine wave
+      const n = 11; const x0 = 40, dx = 34, midY = 100, amp = 34;
+      let px = 0, py = 0;
+      for (let i = 0; i < n; i++) {
+        const x = x0 + i * dx;
+        const y = midY + amp * Math.sin(i * 0.9);
+        if (i > 0) link(px, py, x, y, c);
+        px = x; py = y;
+      }
+      for (let i = 0; i < n; i++) bead(x0 + i * dx, midY + amp * Math.sin(i * 0.9), c);
+    } else if (mode === 'branch') {
+      // backbone with two upward branches
+      const x0 = 40, dx = 38, y = 140; const n = 9;
+      for (let i = 0; i < n - 1; i++) link(x0 + i * dx, y, x0 + (i + 1) * dx, y, c);
+      // branches at residue 2 and 6
+      const bA = x0 + 2 * dx, bB = x0 + 6 * dx;
+      link(bA, y, bA + dx * 0.5, y - 40, GOLD); link(bA + dx * 0.5, y - 40, bA + dx * 1.0, y - 70, GOLD);
+      link(bB, y, bB + dx * 0.5, y - 40, GOLD); link(bB + dx * 0.5, y - 40, bB + dx * 1.0, y - 70, GOLD);
+      for (let i = 0; i < n; i++) bead(x0 + i * dx, y, c);
+      bead(bA + dx * 0.5, y - 40, GOLD); bead(bA + dx * 1.0, y - 70, GOLD);
+      bead(bB + dx * 0.5, y - 40, GOLD); bead(bB + dx * 1.0, y - 70, GOLD);
+    } else {
+      // two flat parallel chains with H-bonds between
+      const x0 = 40, dx = 36, n = 11; const yTop = 78, yBot = 122;
+      for (let i = 0; i < n - 1; i++) { link(x0 + i * dx, yTop, x0 + (i + 1) * dx, yTop, c); link(x0 + i * dx, yBot, x0 + (i + 1) * dx, yBot, c); }
+      for (let i = 0; i < n; i++) link(x0 + i * dx, yTop + 9, x0 + i * dx, yBot - 9, FAINT, '3 3');
+      for (let i = 0; i < n; i++) { bead(x0 + i * dx, yTop, c); bead(x0 + i * dx, yBot, c); }
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-glink]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const nameEl = root.querySelector<HTMLElement>('[data-name]')!;
+    const shapeEl = root.querySelector<HTMLElement>('[data-shape]')!;
+    const jobEl = root.querySelector<HTMLElement>('[data-job]')!;
+    const digestEl = root.querySelector<HTMLElement>('[data-digest]')!;
+    const soEl = root.querySelector<HTMLElement>('[data-so]')!;
+    function select(mode: string) {
+      const m = MODES[mode];
+      nameEl.textContent = m.name; nameEl.style.color = m.color;
+      shapeEl.textContent = m.shape; jobEl.textContent = m.job; digestEl.textContent = m.digest; soEl.textContent = m.so;
+      draw(svg, mode);
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-link]').forEach((b) =>
+      b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-link]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        select(b.getAttribute('data-link')!);
+      }));
+    select('a14');
+  });
+</script>
+
+<style>
+  .gll { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gll-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .gll-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gll-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .gll-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .gll-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .gll-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .gll-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }
+  .gll-name { font-size: var(--ddp-text-lg); font-weight: 700; margin-bottom: var(--ddp-space-2); }
+  .gll-facts { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: 0 0 var(--ddp-space-2); }
+  @media (min-width: 560px) { .gll-facts { grid-template-columns: repeat(3, 1fr); } }
+  .gll-facts > div { border-left: 3px solid var(--ddp-color-line); padding-left: 0.55rem; }
+  .gll-facts dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-bottom: 0.15rem; }
+  .gll-facts dd { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .gll-so { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gll-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
