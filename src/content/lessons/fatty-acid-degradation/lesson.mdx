@@ -1,0 +1,341 @@
+---
+title: "Fatty Acid Degradation: The β-Oxidation Spiral"
+slug: "fatty-acid-degradation"
+courseChapter: "Lipid Metabolism"
+order: 27
+summary: "Fat is the body's long-term fuel reserve, and getting energy out of it runs in three stages: mobilize the triacylglycerol in adipose, activate and shuttle each fatty acid into the mitochondrion, then chop it two carbons at a time by beta-oxidation. The chapter's organizing idea is bookkeeping: every round of the four-step cycle yields one acetyl-CoA, one FADH2, and one NADH, and palmitate's roughly 106 net ATP only balances once you subtract the two-ATP activation toll. When glucose runs out, the liver packages surplus acetyl-CoA into ketone bodies so the brain can keep running, the same fuel switch that let Angus Barbieri fast for 382 days."
+estMinutes: 24
+objectives:
+  - "Walk a fatty acid through all three stages — adipose mobilization (perilipin/HSL via the cAMP-PKA cascade), activation plus the carnitine shuttle, and matrix beta-oxidation — and say what each stage costs and produces."
+  - "Run the energy ledger for palmitate: 7 cycles yield 8 acetyl-CoA, 7 FADH2, 7 NADH, and roughly 106 net ATP after subtracting the 2-ATP activation penalty (ATP to AMP, not ADP)."
+  - "Order the four repeating beta-oxidation reactions (acyl-CoA dehydrogenase, enoyl-CoA hydratase, 3-hydroxyacyl-CoA dehydrogenase, thiolase) and identify the cofactor each one moves."
+  - "Explain how the cell prevents a futile synthesis/degradation cycle: malonyl-CoA, the first committed intermediate of fatty acid synthesis, inhibits CPT-I and blocks import."
+  - "Explain why even-chain fatty acids cannot become glucose, why odd-chain fatty acids partly can (propionyl-CoA to succinyl-CoA), and why the liver makes ketone bodies it cannot itself use."
+scientists:
+  - name: "Feodor Lynen"
+    dates: "1911-1979"
+    contribution: "Determined the structure of acetyl-CoA, showing the acetate is clamped to a sulfur atom as a high-energy thioester — giving metabolism's busiest small molecule a drawable structure. The same activated two-carbon unit is the product of every round of beta-oxidation. Shared the 1964 Nobel Prize with Konrad Bloch for the mechanisms and regulation of fatty acid and cholesterol metabolism."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Feodor Lynen profile, Part 10 (quotes grep-confirmed at line 4278)."
+    quotes:
+      - "Euch macht ihr's leicht, mir macht ihr's schwer"
+    story: "In bombed-flat postwar Munich (1951), working in patched-together rooms, Lynen took a boiled yeast extract and solved how acetate rides on coenzyme A: not on the pantothenic acid as everyone guessed, but clamped to a sulfur atom as a thioester, a high-energy linkage explaining why the cell makes and breaks the bond so easily. He confirmed it within months in a paper barely a page long. He went on to show that cells build fatty acids on a dedicated synthase rather than by simply running degradation in reverse. At the 1964 Stockholm Nobel banquet he quoted Wagner's Hans Sachs, 'you make it easy for yourselves, you make it hard for me,' when given a poor man too much honor, finding his own honors a little absurd. He trained 88 students over 37 years with a famously sharp tongue and a rule that nobody could leave before the second beer, where the good ideas surfaced."
+  - name: "Rudolf Schoenheimer"
+    dates: "1898-1941"
+    contribution: "Used non-radioactive heavy isotopes (15N, deuterium) to show that the body's molecules — proteins, fatty acids, cholesterol — are in perpetual turnover, overturning the 'wear and tear' model. He extended the deuterium-tracer method directly to fatty acids, showing that even fat stores are continuously torn down and remade, the conceptual frame underlying all of metabolic flux including fatty acid turnover."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Rudolf Schoenheimer profile, Part 2 (quotes grep-confirmed at lines 868-874)."
+    quotes:
+      - "the dynamic state of body constituents"
+      - "wear and tear"
+    story: "Across the hall from Harold Urey at Columbia, Schoenheimer seized the new heavy isotopes Urey had discovered. He recruited physical chemist David Rittenberg to build the instruments and, from 1937 with Konrad Bloch, fed rats amino acids tagged with 15N. The 'wear and tear' model predicted the label would pass through and leave in the urine; instead, within hours it was everywhere, woven into tissues the animal was not supposed to be touching (rat liver protein half-life ~10 days). He pushed the same deuterium method onto fatty acids and cholesterol with the same result: every major biomolecule was being remade on the fly. He named it 'the dynamic state of body constituents.' He died by suicide in 1941 at 43 while preparing the Dunham Lectures; the manuscript was assembled posthumously as The Dynamic State of Body Constituents (1942). Bloch wrote that without the dynamic-state framework the systematic biochemistry of the 1950s could not have been built."
+techniques:
+  - name: "Energy-ledger accounting (the activation toll)"
+    blurb: "The yield from a fatty acid is counted, not asserted. Tally one acetyl-CoA, one FADH2, and one NADH per cycle, run (n/2 − 1) cycles for an even chain, convert the carriers through the ETC, then subtract 2 ATP for activation (ATP goes to AMP plus 2 Pi, which costs two high-energy bonds). For palmitate that lands near 106 net ATP, and the activation toll is the single most-missed line in the books."
+  - name: "Stable-isotope tracing of flux"
+    blurb: "Rudolf Schoenheimer fed animals fatty acids and amino acids tagged with deuterium and 15N and followed where the labels went. The tracers showed that fat stores are not inert ballast but are continuously torn down and rebuilt — the dynamic-state view that turns metabolism from a static map into measurable flux."
+  - name: "Newborn heel-prick screening (tandem mass spectrometry)"
+    blurb: "A drop of blood from a newborn's heel is analyzed by tandem MS for acylcarnitine signatures. A medium-chain acylcarnitine spike flags MCAD deficiency before the first fasting crisis, turning a disorder once misread as SIDS into something caught and managed. One enzyme, one heel prick, thousands of lives."
+structures:
+  - label: "Medium-chain acyl-CoA dehydrogenase (MCAD, step 1)"
+    source: "rcsb"
+    id: "1EGE"
+    note: "PDB 1EGE"
+    caption: "Human or pig medium-chain acyl-CoA dehydrogenase, the step-1 β-oxidation flavoenzyme (FAD) and the MCAD-deficiency enzyme"
+  - label: "Enoyl-CoA hydratase (crotonase, step 2)"
+    source: "rcsb"
+    id: "1DUB"
+    note: "PDB 1DUB"
+    caption: "Rat liver enoyl-CoA hydratase (crotonase), catalyzing hydration of trans-Δ²-enoyl-CoA"
+  - label: "L-3-hydroxyacyl-CoA dehydrogenase (step 3)"
+    source: "rcsb"
+    id: "1F0Y"
+    note: "PDB 1F0Y"
+    caption: "3-hydroxyacyl-CoA dehydrogenase (NAD+-dependent), step 3 of β-oxidation"
+  - label: "3-ketoacyl-CoA thiolase / β-ketothiolase (step 4)"
+    source: "rcsb"
+    id: "1AFW"
+    note: "PDB 1AFW"
+    caption: "Thiolase (3-ketoacyl-CoA thiolase), catalyzes thiolytic cleavage releasing acetyl-CoA"
+  - label: "Long-chain acyl-CoA synthetase / thiokinase"
+    source: "rcsb"
+    id: "1V26"
+    note: "PDB 1V26"
+    caption: "Long-chain fatty acyl-CoA synthetase (fatty acid thiokinase), the FA activation enzyme"
+  - label: "Acetyl-CoA"
+    source: "pubchem"
+    id: "444493"
+    note: "CID 444493"
+    caption: "Acetyl coenzyme A, the two-carbon product of each β-oxidation round (Lynen's thioester)"
+  - label: "Coenzyme A"
+    source: "pubchem"
+    id: "87642"
+    note: "CID 87642"
+    caption: "Coenzyme A, the thiol carrier attached during fatty acid activation"
+  - label: "L-Carnitine"
+    source: "pubchem"
+    id: "10917"
+    note: "CID 10917"
+    caption: "L-carnitine, the acyl carrier of the mitochondrial shuttle"
+  - label: "Palmitic acid (palmitate)"
+    source: "pubchem"
+    id: "985"
+    note: "CID 985"
+    caption: "Palmitic acid (C16:0), the canonical β-oxidation substrate in the energy ledger"
+  - label: "Acetoacetate"
+    source: "pubchem"
+    id: "96"
+    note: "CID 96"
+    caption: "Acetoacetic acid / acetoacetate, the primary ketone body"
+  - label: "D-3-Hydroxybutyrate (β-hydroxybutyrate)"
+    source: "pubchem"
+    id: "441"
+    note: "CID 441"
+    caption: "(R)-3-hydroxybutyric acid, the predominant circulating ketone body"
+  - label: "Acetone"
+    source: "pubchem"
+    id: "180"
+    note: "CID 180"
+    caption: "Acetone, the volatile decarboxylation product exhaled in ketosis"
+videos:
+  - title: "Overview of fatty acid oxidation"
+    youtubeId: "acA5iF1zrDI"
+    sourceNote: "Khan Academy (MCAT) — activation, the carnitine shuttle, and the four-step cycle. Openly available."
+  - title: "Fatty acid oxidation (part 1)"
+    youtubeId: "OyQ1cgBw8HA"
+    sourceNote: "Ninja Nerd — the β-oxidation spiral and its energy yield in detail."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "β-oxidation map — activation costs 2 ATP up front; each turn of the spiral harvests 1 FADH₂ + 1 NADH + 1 acetyl-CoA and shortens the chain by two carbons"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "During fatty acid activation, acyl-CoA synthetase consumes ATP. Why is the energetic cost counted as 2 ATP equivalents rather than 1?"
+    choices:
+      - "Because ATP is hydrolyzed to AMP + PPi, and the subsequent hydrolysis of PPi to 2 Pi consumes a second high-energy bond"
+      - "Because two ATP molecules are bound simultaneously in the active site"
+      - "Because one ATP is used to make acyl-CoA and a second to attach carnitine"
+      - "Because the reaction is reversible and must be run twice"
+    answer: 0
+    rationale: "Acyl-CoA synthetase splits ATP all the way to AMP plus pyrophosphate (not ADP + Pi). The pyrophosphate is then hydrolyzed to 2 Pi, which both makes the activation irreversible and consumes a second high-energy phosphoanhydride bond, so the true cost is 2 ATP equivalents. Carnitine attachment does not cost ATP; the synthetase binds one ATP, not two; and the reaction is driven forward, not run twice."
+  - stem: "A drug that blocks carnitine palmitoyltransferase I (CPT-I) would most directly impair which process?"
+    choices:
+      - "Hydrolysis of triacylglycerol in the adipocyte"
+      - "Entry of long-chain acyl groups into the mitochondrial matrix"
+      - "Reduction of acetoacetate to D-3-hydroxybutyrate"
+      - "Phosphorylation of glycerol in the liver"
+    answer: 1
+    rationale: "CPT-I sits on the outer mitochondrial membrane and transfers the acyl group from CoA to carnitine, the first committed step of the shuttle that imports long-chain fatty acids into the matrix for beta-oxidation. Blocking it strands acyl-CoA in the cytosol. It does not act on triacylglycerol lipolysis, on ketone-body interconversion, or on glycerol kinase."
+  - stem: "How many molecules of acetyl-CoA, FADH2, and NADH are produced by the complete beta-oxidation of one molecule of palmitate (C16), not counting downstream TCA or ETC steps?"
+    choices:
+      - "16 acetyl-CoA, 16 FADH2, 16 NADH"
+      - "8 acetyl-CoA, 8 FADH2, 8 NADH"
+      - "8 acetyl-CoA, 7 FADH2, 7 NADH"
+      - "7 acetyl-CoA, 7 FADH2, 7 NADH"
+    answer: 2
+    rationale: "A C16 fatty acid is cut into 8 two-carbon acetyl-CoA units, which requires only 7 cycles of the four-step pathway (the final cycle splits a 4-carbon unit into two acetyl-CoA at once). Each cycle yields one FADH2 and one NADH, so there are 7 of each, not 8. The 16/16/16 and 8/8/8 options miscount the number of cycles versus the number of acetyl-CoA."
+  - stem: "Why can odd-chain fatty acids contribute to net glucose synthesis while even-chain fatty acids cannot?"
+    choices:
+      - "Even-chain fatty acids are oxidized in peroxisomes, which lack gluconeogenic enzymes"
+      - "Odd-chain fatty acids are activated without an ATP cost, leaving energy for gluconeogenesis"
+      - "Odd-chain fatty acids bypass the carnitine shuttle and enter the cytosol directly"
+      - "Odd-chain oxidation ends in propionyl-CoA, which becomes succinyl-CoA, a TCA intermediate that can leave as oxaloacetate; even chains yield only acetyl-CoA"
+    answer: 3
+    rationale: "Even-chain oxidation produces only acetyl-CoA, and the two carbons entering the TCA cycle are matched by two lost as CO2, so there is no net oxaloacetate to seed gluconeogenesis. Odd-chain oxidation leaves a final propionyl-CoA, converted (via biotin and B12 enzymes) to succinyl-CoA, which can be drawn off as a net four-carbon TCA intermediate and feed glucose synthesis. Activation cost, the carnitine shuttle, and peroxisomal location are not the basis of this distinction."
+  - stem: "A patient in diabetic ketoacidosis has a fruity odor on the breath. Which molecule is responsible, and how is it formed?"
+    choices:
+      - "D-3-hydroxybutyrate, exhaled directly from the blood"
+      - "Acetone, formed by spontaneous decarboxylation of acetoacetate"
+      - "Acetyl-CoA, released from the liver into the airways"
+      - "Ethanol, formed by fermentation of excess glucose"
+    answer: 1
+    rationale: "Acetoacetate, one of the ketone bodies, spontaneously decarboxylates to acetone, which is volatile and exhaled, producing the characteristic fruity 'acetone breath.' D-3-hydroxybutyrate is the dominant blood ketone but is not volatile and is not exhaled; acetyl-CoA is membrane-impermeant and not exhaled; ethanol is not produced by human ketogenesis."
+mcatQuestions:
+  - stem: "An infant presents with hypoketotic hypoglycemia after an overnight fast. Plasma analysis shows elevated medium-chain acylcarnitines and inappropriately low ketone bodies despite low glucose. Which enzymatic defect best explains this combination?"
+    choices:
+      - "Deficiency of HMG-CoA reductase, blocking cholesterol synthesis"
+      - "Overactivity of acetyl-CoA carboxylase, raising malonyl-CoA"
+      - "Deficiency of medium-chain acyl-CoA dehydrogenase (MCAD), blocking beta-oxidation of medium-chain fatty acids and limiting acetyl-CoA for ketogenesis"
+      - "Deficiency of glucose-6-phosphatase, blocking hepatic glucose output"
+    answer: 2
+    rationale: "Low ketones in the setting of fasting hypoglycemia points to a failure to oxidize fat (hypoketotic, not the high-ketone state of normal fasting). Accumulated medium-chain acylcarnitines localize the block to medium-chain acyl-CoA dehydrogenase, step 1 of beta-oxidation for those chains; with beta-oxidation stalled, acetyl-CoA for ketogenesis is not made. Glucose-6-phosphatase deficiency causes hypoglycemia but with normal or high ketones and a different metabolite pattern; HMG-CoA reductase is a cholesterol-synthesis enzyme; raising malonyl-CoA would inhibit CPT-I but would not produce a medium-chain acylcarnitine signature."
+  - stem: "A researcher infuses an animal with a compound that strongly activates acetyl-CoA carboxylase in the liver. What is the most likely immediate effect on mitochondrial fatty acid oxidation, and by what mechanism?"
+    choices:
+      - "Unchanged oxidation, because acetyl-CoA carboxylase acts only in the cytosol"
+      - "Increased oxidation, because carnitine synthesis is stimulated"
+      - "Increased oxidation, because more acetyl-CoA is available as substrate"
+      - "Decreased oxidation, because elevated malonyl-CoA inhibits CPT-I and blocks fatty acid import"
+    answer: 3
+    rationale: "Acetyl-CoA carboxylase makes malonyl-CoA, the first committed intermediate of fatty acid synthesis and a direct inhibitor of CPT-I. Raising malonyl-CoA closes the carnitine import gate, so long-chain fatty acids cannot enter the matrix and oxidation falls. This reciprocal control prevents simultaneous synthesis and degradation. Acetyl-CoA is a product, not the limiting substrate, of beta-oxidation here; the cytosolic location of ACC is exactly why malonyl-CoA can act on the outer-membrane CPT-I; and carnitine synthesis is not the regulated variable."
+  - stem: "A monounsaturated fatty acid with a single cis double bond is oxidized. Compared with the equivalent fully saturated fatty acid, what additional enzyme is required, and what is the energetic consequence?"
+    choices:
+      - "cis-Δ³-enoyl-CoA isomerase, which repositions the double bond and requires no extra reducing equivalents"
+      - "No additional enzyme; the cis bond is handled by the standard hydratase"
+      - "2,4-dienoyl-CoA reductase, which consumes NADPH and lowers net yield"
+      - "An additional thiokinase, doubling the activation cost"
+    answer: 0
+    rationale: "A single cis double bond at an odd-numbered position yields a cis-Δ³-enoyl-CoA that the standard hydratase cannot use; cis-Δ³-enoyl-CoA isomerase converts it to the normal trans-Δ² intermediate, requiring no extra reducing equivalents (the existing double bond means that one round skips the FAD-dependent dehydrogenase, slightly lowering FADH2 yield). 2,4-dienoyl-CoA reductase and its NADPH cost are needed only for polyunsaturated fatty acids with even-position double bonds, not a single cis bond; no extra thiokinase is involved; and the standard hydratase alone cannot resolve the misplaced bond."
+  - stem: "After 40 days of total starvation, measurements show that daily protein breakdown has fallen from roughly 75 g/day early in the fast to about 20 g/day. What metabolic adaptation most directly accounts for this protein sparing?"
+    choices:
+      - "The muscle has switched to oxidizing branched-chain amino acids exclusively"
+      - "The brain has shifted much of its fuel use to ketone bodies, reducing its demand for glucose made from amino acids"
+      - "Hepatic gluconeogenesis has increased to supply more glucose to the brain"
+      - "Red blood cells have begun oxidizing fatty acids to spare glucose"
+    answer: 1
+    rationale: "Early in a fast the brain depends on glucose, which the liver must make largely from amino acids (muscle protein), so proteolysis is high. As ketone bodies rise, the brain shifts much of its fuel use to D-3-hydroxybutyrate, cutting its glucose demand and therefore the need to break down protein for gluconeogenic substrate — the Cahill protein-sparing adaptation. Increasing gluconeogenesis would require more, not less, protein; red blood cells lack mitochondria and cannot oxidize fatty acids or ketones; and muscle BCAA oxidation does not by itself reduce whole-body proteolysis to this degree."
+images: []
+corpusTags:
+  - "beta-oxidation"
+  - "fatty-acid-degradation"
+  - "carnitine-shuttle"
+  - "acetyl-coa"
+  - "ketone-bodies"
+  - "MCAD"
+  - "fasting-metabolism"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Your body keeps a big pantry of fat for when there is no food. To use it, your body unpacks the fat, carries the pieces into a tiny power plant inside your cells, and then chops each piece two bits at a time, like cutting a long licorice rope into little chunks. Each little chunk gets burned for energy. If you go a really long time without eating, your liver makes a special backup fuel so your brain can keep thinking. That is how a person can go a long time on water and still walk and talk."
+  - level: "highschool"
+    label: "High school"
+    text: "Fat is stored as triacylglycerol, which is glycerol holding three fatty acids. When you need energy, hormones (glucagon, epinephrine) trigger lipases that release the fatty acids into the blood, where they ride on a protein called albumin. To burn one, the cell first attaches coenzyme A (this costs 2 ATP), then uses a carnitine shuttle to carry it into the mitochondrion. Inside, beta-oxidation runs a four-step cycle that snips off two carbons each round as acetyl-CoA, producing FADH2 and NADH that the cell turns into lots of ATP. A 16-carbon fat (palmitate) yields about 106 ATP. When sugar runs low, the liver turns extra acetyl-CoA into ketone bodies so the brain can use them."
+  - level: "college"
+    label: "College"
+    text: "Fatty acid degradation runs in three stages. (1) Mobilization: glucagon/epinephrine act through 7TM receptors → cAMP → PKA, which phosphorylates perilipin and HSL; ATGL, HSL, and MAG lipase sequentially release three fatty acids and glycerol. (2) Activation and transport: acyl-CoA synthetase forms acyl-CoA via an acyl-adenylate, hydrolyzing ATP to AMP + 2 Pi (a 2-ATP cost); the carnitine shuttle (CPT-I, translocase, CPT-II) imports the acyl group, and malonyl-CoA inhibits CPT-I to prevent simultaneous synthesis and degradation. (3) Beta-oxidation: acyl-CoA dehydrogenase (FAD), enoyl-CoA hydratase, 3-hydroxyacyl-CoA dehydrogenase (NAD+), and thiolase remove acetyl-CoA each cycle. Palmitate (C16) → 8 acetyl-CoA, 7 FADH2, 7 NADH, ≈106 net ATP. Unsaturated FAs need an isomerase (± 2,4-dienoyl-CoA reductase); odd-chain FAs yield propionyl-CoA → methylmalonyl-CoA (biotin) → succinyl-CoA (B12). During fasting the liver makes ketone bodies (acetoacetate, D-3-hydroxybutyrate, acetone) for extrahepatic tissues."
+  - level: "grad"
+    label: "Graduate"
+    text: "The architecture of fatty acid catabolism is a study in compartmentation and reciprocal regulation. Activation is thermodynamically forced by pyrophosphate hydrolysis (ΔG'° driven by PPi → 2 Pi), and its AMP product is the energetic '2-ATP' charge that must enter any honest yield calculation. The carnitine shuttle is the committed, rate-controlling import step, and its inhibition by malonyl-CoA links degradation directly to the acetyl-CoA carboxylase reaction of synthesis: malonyl-CoA rises when ACC is active (high citrate, insulin signaling), closing CPT-I and enforcing reciprocity so the two opposing pathways are never co-active. Beta-oxidation's four reactions are mechanistically the mirror of the latter half of the TCA cycle (oxidation, hydration, oxidation), exploiting β-carbonyl activation to make the C2–C3 bond thiolytically labile. The substrate-specific dehydrogenase isozymes (VLCAD→SCAD) reflect a kinetic optimization across chain length, and MCAD loss produces a chain-length-dependent metabolic block with hypoketotic hypoglycemia. The inability of animals to achieve net gluconeogenesis from even-chain fatty acids is a stoichiometric consequence of the TCA cycle's two decarboxylations: acetyl-CoA carbon cannot accumulate as oxaloacetate. Ketogenesis (HMGCS2-gated, the regulated step) and the liver's lack of SCOT/thiophorase make the liver an obligate exporter, and the Cahill adaptation reflects a glucose-sparing reallocation of fuel to D-3-hydroxybutyrate that minimizes proteolysis during prolonged starvation."
+anecdotes:
+  - title: "382 days on water, tea, and his own fat"
+    text: "In 1965 a 27-year-old Scotsman, Angus Barbieri, weighed 456 pounds and, under medical supervision, simply stopped eating. He kept it up for 382 days on water, tea, coffee, and vitamins, finishing at 180 pounds. For over a year his brain ran largely on D-3-hydroxybutyrate made from his own body fat, with the rest of its glucose need met by gluconeogenesis. The case is a living demonstration of Cahill's starvation data: as a fast drags on, the liver's ketone export lets the brain switch off glucose, and the body stops cannibalizing muscle to make it. Fat is not just storage; it is a year of brain fuel waiting to be unlocked."
+    source: "CH27 lecture notes — 'Hibernating animals teach us how to survive for months without eating'"
+  - title: "One enzyme, one heel prick, thousands of lives"
+    text: "MCAD deficiency blocks the very first step of beta-oxidation for medium-chain fats, so during an ordinary childhood fast — a stomach bug, a skipped breakfast — the child cannot burn fat or make enough ketones, and blood sugar crashes. For decades these deaths were filed under SIDS, cause unknown. The fix was almost absurdly small: a drop of blood from a newborn's heel, run on tandem mass spectrometry, reveals the tell-tale acylcarnitine before the first crisis. A disorder that once killed quietly is now caught on day two of life."
+    source: "CH27 lecture notes — 'One Enzyme, One Heel Prick, Thousands of Lives'"
+  - title: "The ackee fruit that poisons step one"
+    text: "Jamaican vomiting sickness comes from eating unripe ackee fruit, which carries a toxin called hypoglycin A. Hypoglycin A inhibits acyl-CoA dehydrogenase, the first enzyme of beta-oxidation — so the body suddenly cannot burn fat, ketones do not appear, and blood sugar plummets into severe hypoglycemia and vomiting. It is the same lesion as MCAD deficiency, but chemically induced from the outside: block step one of fat burning and a person who looks well-fed can crash like someone starving."
+    source: "CH27 lecture notes — Jamaican vomiting sickness / hypoglycin A hook"
+  - title: "Acetone breath and the arrest that should not have happened"
+    text: "When fat-burning runs away in uncontrolled diabetes, acetoacetate decarboxylates to acetone, which is volatile and leaves on the breath with a sweet, fruity smell. That smell has repeatedly been mistaken for alcohol, and people in diabetic ketoacidosis have been treated as drunk instead of critically ill. The same chemistry that lets the brain survive a year-long fast — ketone bodies in the blood — becomes, unbuffered and unchecked, a medical emergency that can be misread at the worst possible moment."
+    source: "CH27 lecture notes — acetone-breath / DKA mis-arrest hook"
+lectureSlides:
+  - src: "/slides/fatty-acid-degradation/three-stages-fatty-acid-processing.png"
+    audio: "/slides/fatty-acid-degradation/audio/three-stages-fatty-acid-processing.mp3"
+    title: "Three Stages of Fatty Acid Processing"
+    alt: "Three Stages of Fatty Acid Processing"
+    source: "CH27 Fatty Acid Degradation · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Before a fat can fuel anything, it has to be unpacked in three deliberate stages. First, the triacylglycerols stored in adipose tissue are hydrolyzed by lipase, splitting each molecule into three free fatty acids plus a glycerol backbone, which travel out into the blood toward tissues that need energy. Second, those fatty acids are activated and shuttled across the mitochondrial membranes. Third, inside the matrix the fatty acid is dismantled into acetyl CoA units the citric acid cycle can burn. Keep this roadmap in mind: release, activation and import, then degradation. Everything that follows is just detail filling in these three moves."
+  - src: "/slides/fatty-acid-degradation/where-products-lipolysis-go.png"
+    audio: "/slides/fatty-acid-degradation/audio/where-products-lipolysis-go.mp3"
+    title: "Where the Products of Lipolysis Go"
+    alt: "Where the Products of Lipolysis Go"
+    source: "CH27 Fatty Acid Degradation · slide 10"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Once the fat cell releases its cargo, the two products take very different routes. Glycerol heads to the liver, where it feeds either glycolysis to make pyruvate or gluconeogenesis to make glucose, so even the backbone earns its keep. The fatty acids go to other tissues, where beta oxidation chews them into acetyl CoA. That acetyl CoA enters the citric acid cycle and is fully oxidized to carbon dioxide and water, releasing the bulk of the energy. Notice the division of labor: the liver salvages the small glycerol fragment for sugar metabolism while peripheral tissues extract the real energy payload from the long hydrocarbon tails."
+  - src: "/slides/fatty-acid-degradation/carnitine-shuttle.png"
+    audio: "/slides/fatty-acid-degradation/audio/carnitine-shuttle.mp3"
+    title: "The Carnitine Shuttle"
+    alt: "The Carnitine Shuttle"
+    source: "CH27 Fatty Acid Degradation · slide 15"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Activated fatty acids face a wall: coenzyme A cannot cross the inner mitochondrial membrane, so the acyl group needs a different passport to reach the matrix. That passport is carnitine. In step one the fatty acid is activated to acyl CoA in the cytosol. Then carnitine palmitoyltransferase I swaps CoA for carnitine, forming acyl carnitine, which the translocase ferries across the inner membrane. On the matrix side, CPT II reverses the swap, handing the acyl group back to a fresh CoA so beta oxidation can begin. Carnitine itself is recycled back out. This shuttle is also the key regulatory checkpoint controlling fatty acid entry."
+  - src: "/slides/fatty-acid-degradation/into-matrix-cycle.png"
+    audio: "/slides/fatty-acid-degradation/audio/into-matrix-cycle.mp3"
+    title: "Into the Matrix, On to the Cycle"
+    alt: "Into the Matrix, On to the Cycle"
+    source: "CH27 Fatty Acid Degradation · slide 17"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the handoff point in the story. Up to now we have spent all our effort getting the fatty acid activated and physically across two membranes into the mitochondrial matrix. That work was just logistics. Now that the fatty acyl CoA sits inside the matrix, the actual disassembly can start. The molecule will be broken down two carbons at a time into acetyl CoA, and each of those acetyl CoA units feeds directly into the citric acid cycle for full oxidation. So this is the pivot from transport to combustion: the fuel has arrived at the furnace, and the burning is about to begin."
+  - src: "/slides/fatty-acid-degradation/it-s-called-beta-oxidation.png"
+    audio: "/slides/fatty-acid-degradation/audio/it-s-called-beta-oxidation.mp3"
+    title: "Why It's Called Beta Oxidation"
+    alt: "Why It's Called Beta Oxidation"
+    source: "CH27 Fatty Acid Degradation · slide 18"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The name beta oxidation tells you exactly where the chemistry happens. Number the carbons starting from the carboxyl carbon as carbon one. Carbon two is the alpha carbon, and carbon three, the next one out, is the beta carbon. Beta oxidation means we attack and oxidize that beta carbon, converting it to a keto group so the chain can be cleaved there. The delta notation is a companion convention: delta-n marks the first carbon of a double bond, so delta-two means a double bond between carbons two and three. Each round of oxidation generates acetyl CoA along with the reduced carriers NADH and FADH2, the energy currency we are after."
+  - src: "/slides/fatty-acid-degradation/atp-accounting-palmitate.png"
+    audio: "/slides/fatty-acid-degradation/audio/atp-accounting-palmitate.mp3"
+    title: "ATP Accounting for Palmitate"
+    alt: "ATP Accounting for Palmitate"
+    source: "CH27 Fatty Acid Degradation · slide 22"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let's tally the payoff for fully oxidizing palmitate, a sixteen carbon fat. Activation costs two ATP equivalents up front, so we start at minus two. Seven rounds of beta oxidation each yield one FADH2 and one NADH, and those seven rounds produce eight acetyl CoA. Feed all eight through the citric acid cycle and run the reduced carriers through oxidative phosphorylation, and the books close at roughly one hundred six ATP. Compare that to glucose, which nets around thirty-two ATP per molecule. Per carbon, fat yields about twenty-five percent more ATP than sugar. That density is exactly why the body stores long-term energy as fat rather than carbohydrate."
+  - src: "/slides/fatty-acid-degradation/unsaturated-fatty-acids-need-help.png"
+    audio: "/slides/fatty-acid-degradation/audio/unsaturated-fatty-acids-need-help.mp3"
+    title: "Unsaturated Fatty Acids Need Help"
+    alt: "Unsaturated Fatty Acids Need Help"
+    source: "CH27 Fatty Acid Degradation · slide 24"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The standard beta oxidation machinery assumes a clean saturated chain, so naturally occurring double bonds cause a problem. Monounsaturated fats like palmitoleate get degraded normally until a cis-delta-three double bond appears, and that bond cannot be handled by acyl CoA dehydrogenase. The fix is an isomerase. Cis-delta-three-enoyl CoA isomerase converts that bond into trans-delta-two-enoyl CoA, which is a normal beta oxidation substrate. The rule to remember: to re-enter the pathway, a double bond must sit at the delta-two position, between carbons two and three, and it must be in the trans configuration. Get position and geometry right, and degradation simply resumes."
+  - src: "/slides/fatty-acid-degradation/decision-tree-unsaturated-fats.png"
+    audio: "/slides/fatty-acid-degradation/audio/decision-tree-unsaturated-fats.mp3"
+    title: "Decision Tree for Unsaturated Fats"
+    alt: "Decision Tree for Unsaturated Fats"
+    source: "CH27 Fatty Acid Degradation · slide 26"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the whole unsaturated story reduced to a single yes-or-no flowchart. When a fat enters beta oxidation, ask one question: after a cycle, where does the double bond land? If it sits at the cis-delta-three position, you only need the isomerase to flip it to trans-delta-two, and normal oxidation continues. If instead you have a conjugated delta-two, delta-four dienoyl, you need the reductase, which uses NADPH to collapse it to a single trans-delta-three bond, and then the isomerase finishes the job. The rule box captures it: odd numbers of double bonds need only the isomerase, even numbers need both enzymes. One picture, two enzymes, every case covered."
+  - src: "/slides/fatty-acid-degradation/integrated-map-fat-metabolism.png"
+    audio: "/slides/fatty-acid-degradation/audio/integrated-map-fat-metabolism.mp3"
+    title: "Integrated Map of Fat Metabolism"
+    alt: "Integrated Map of Fat Metabolism"
+    source: "CH27 Fatty Acid Degradation · slide 28"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "This is the big picture that ties the chapter together. Fatty acids feed beta oxidation, producing acetyl CoA, NADH, and FADH2; acetyl CoA runs the citric acid cycle, and the reduced carriers drive the electron transport chain to make ATP. Branching off, note three context-dependent fates. Odd-chain fatty acids generate propionyl CoA, which becomes succinyl CoA and can route carbon toward gluconeogenesis. During fasting, the liver diverts acetyl CoA into ketone body synthesis, exporting acetoacetate and beta-hydroxybutyrate as an alternative fuel, crucially for the brain. The fed-versus-fasting toggle at the top reminds you the same machinery is governed by hormonal state."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const boxSteps = [{"n": 1, "enzyme": "Acyl-CoA synthetase (fatty acid thiokinase)", "sub": "Fatty acid + CoA + ATP", "prod": "Acyl-CoA + AMP + 2 Pᵢ", "atp": -2, "regulated": true, "note": "Activation, done once before the spiral begins. The fatty acid is adenylated to an acyl-adenylate, then CoA displaces AMP. ATP is split to AMP plus pyrophosphate, and hydrolysis of that pyrophosphate to 2 Pᵢ pulls the reaction forward and makes it irreversible. The cost is 2 ATP equivalents, not 1, because ATP went to AMP rather than ADP — the most-missed line in the ledger."}, {"n": 2, "enzyme": "Carnitine shuttle (CPT-I → translocase → CPT-II)", "sub": "Acyl-CoA (cytosol)", "prod": "Acyl-CoA (matrix)", "regulated": true, "note": "Acyl-CoA is too charged to cross the inner membrane, so CPT-I swaps CoA for carnitine on the outer face, a translocase carries acylcarnitine across, and CPT-II regenerates acyl-CoA inside. CPT-I is the regulatory keystone: malonyl-CoA, the first committed intermediate of fatty acid synthesis, inhibits it, so the cell never builds and burns fat at the same time.", "clinical": "The Inuit CPT1A P479L variant lowers CPT-I activity and its sensitivity to malonyl-CoA. Carried at high frequency on a marine-mammal-fat diet, it looks adaptive but raises the risk of infant hypoglycemia and sudden death during fasting — adaptation with a real tradeoff."}, {"n": 3, "enzyme": "Acyl-CoA dehydrogenase (cycle step 1)", "sub": "Acyl-CoA", "prod": "trans-Δ²-enoyl-CoA", "fadh2": 1, "note": "Oxidation at the β-carbon installs a trans double bond between C2 and C3, handing two electrons to FAD to make FADH₂. Chain-length isozymes (VLCAD, LCAD, MCAD, SCAD) split the labor across long-to-short substrates.", "clinical": "MCAD deficiency (~1:10,000) stalls medium chains here, causing hypoketotic hypoglycemia under fasting; once misread as SIDS, it is now caught on the newborn heel-prick. Jamaican vomiting sickness from unripe ackee (hypoglycin A) inhibits this same step."}, {"n": 4, "enzyme": "Enoyl-CoA hydratase (crotonase, cycle step 2)", "sub": "trans-Δ²-enoyl-CoA", "prod": "L-3-hydroxyacyl-CoA", "note": "Water adds across the new double bond with strict stereochemistry, placing an OH on the β-carbon (the L-3-hydroxy product). No cofactor; this just sets up the next oxidation."}, {"n": 5, "enzyme": "L-3-hydroxyacyl-CoA dehydrogenase (cycle step 3)", "sub": "L-3-hydroxyacyl-CoA", "prod": "3-ketoacyl-CoA", "nadh": 1, "note": "The β-carbon hydroxyl is oxidized to a ketone, reducing NAD⁺ to NADH. The carbonyl now polarizes the C2–C3 bond, priming it for cleavage."}, {"n": 6, "enzyme": "β-ketothiolase (3-ketoacyl-CoA thiolase, cycle step 4)", "sub": "3-ketoacyl-CoA + CoA", "prod": "Acetyl-CoA + acyl-CoA (−2C)", "note": "A second CoA attacks the β-keto carbon and cleaves off the two terminal carbons as acetyl-CoA, leaving an acyl-CoA shortened by two carbons that re-enters at the dehydrogenase. Each acetyl-CoA can feed the TCA cycle; each FADH₂ and NADH feeds the electron-transport chain."}];
+
+**In 1965, a 27-year-old Scotsman named Angus Barbieri weighed 456 pounds, so under medical supervision he simply stopped eating.** He kept it up for 382 days, drinking only water, tea, coffee, and vitamins, and came out the other side at 180 pounds. For more than a year his brain ran largely on a fuel made from his own body fat, the remainder of its glucose supplied by gluconeogenesis. That is not a stunt of willpower alone. It is biochemistry, and this chapter is how it works.
+
+Fat is the body's long-haul fuel. A gram of fat stores more than twice the energy of a gram of carbohydrate, and unlike glycogen it is stored nearly water-free, so it is dense. The cost of that density is access: fat is hidden away as triacylglycerol in droplets, the fatty acids are hydrophobic, and the whole supply chain has to be unlocked, ferried through blood, and smuggled across a mitochondrial membrane before a single bond is burned. Three stages do that work.
+
+Before we start, fix three words apart, because students conflate them constantly. *Dietary fat* is what you eat. *Body fat* is what you store. *Free fatty acid* is the released, blood-borne form. Free fatty acids are so insoluble that they ride through plasma clamped to serum albumin, six or seven per protein.
+
+## Stage 1: Mobilization — unlocking the droplet
+
+Triacylglycerol is a glycerol backbone holding three fatty acids by ester bonds, and about 95% of its energy sits in those chains. When you fast or sprint, glucagon and epinephrine bind 7-transmembrane receptors on the adipocyte, raise cAMP, and activate protein kinase A. If that cascade sounds familiar, it should — it is the exact same signal that breaks down glycogen. One hormone, one second messenger, one kinase, two storage depots emptied at once.
+
+PKA does two things. It phosphorylates **perilipin**, the protein coating the lipid droplet, peeling back the cover, and it phosphorylates **hormone-sensitive lipase (HSL)**. Three lipases then strip the chains off in order: ATGL takes triacylglycerol to diacylglycerol, HSL takes that to monoacylglycerol, and monoacylglycerol lipase removes the last fatty acid. When ATGL is broken, fat accumulates in tissues that should not hold it — that is Chanarin-Dorfman syndrome. The freed glycerol is water-soluble and goes to the liver, where glycerol kinase phosphorylates it into glycolysis or gluconeogenesis. Adipose itself lacks glycerol kinase, so it cannot reclaim its own glycerol.
+
+## Stage 2: Activation and the carnitine gate
+
+A free fatty acid cannot just walk into the furnace. First it is **activated**. Acyl-CoA synthetase couples it to coenzyme A, and here is the bookkeeping detail people miss for the rest of their careers: the reaction splits ATP all the way to AMP plus pyrophosphate, not to ADP. Hydrolyzing that pyrophosphate to two phosphates makes the step irreversible, but it means activation costs **two** high-energy bonds, not one. Charge that 2-ATP toll against the yield at the very end.
+
+Activated acyl-CoA is still too charged to cross the inner mitochondrial membrane, so it hands its cargo to **carnitine** (Latin *carnis*, flesh). CPT-I on the outer face swaps CoA for carnitine, a translocase ferries the acylcarnitine across, and CPT-II inside regenerates acyl-CoA. CPT-I is the regulatory keystone of the whole pathway. It is inhibited by **malonyl-CoA**, the first committed intermediate of fatty acid *synthesis*. The logic is elegant: when the cell is building fat, malonyl-CoA is high, the import gate is shut, and the cell does not waste energy burning what it is busy making. The Inuit CPT1A P479L variant shows the gate's importance the hard way — it is an apparent adaptation to a marine-mammal-fat diet, but it raises infant hypoglycemia and sudden-death risk during fasting.
+
+## Stage 3: Beta-oxidation — chopping two carbons at a time
+
+Inside the matrix, the same four reactions repeat, each pass targeting the **β-carbon** (carbon 3) and clipping off the end two carbons as acetyl-CoA. Walk the cycle in the interactive below and watch the carriers stack up.
+
+<PathwayExplorer steps={boxSteps} title="β-oxidation · activation, shuttle, and the 4-step spiral" />
+
+1. **Acyl-CoA dehydrogenase** oxidizes between C2 and C3, making a trans double bond and one **FADH2**.
+2. **Enoyl-CoA hydratase** adds water across that bond, placing an OH on the β-carbon.
+3. **3-hydroxyacyl-CoA dehydrogenase** oxidizes that OH to a ketone, making one **NADH**.
+4. **β-ketothiolase** cleaves off **acetyl-CoA**, leaving an acyl chain two carbons shorter that re-enters at step 1.
+
+Now the ledger that the chapter is built around. Palmitate is 16 carbons, so it runs 7 cycles to make 8 acetyl-CoA, and along the way 7 FADH2 and 7 NADH. Feed the acetyl-CoA to the TCA cycle and the carriers to the electron transport chain, then subtract the 2-ATP activation toll, and palmitate nets **about 106 ATP** (using the modern P/O ratios of 2.5 per NADH and 1.5 per FADH₂; older textbooks counting 3 and 2 give a higher figure near 129). That is why fat is the reserve fuel: one molecule yields what dozens of glucose passes through glycolysis cannot.
+
+Step 1 comes in chain-length flavors — VLCAD, LCAD, MCAD, SCAD — and the medium-chain one is the famous failure point. **MCAD deficiency** (about 1 in 10,000) leaves a child unable to burn medium chains during a fast, producing hypoketotic hypoglycemia. It was once written off as SIDS; now a newborn heel-prick catches it. One enzyme, one heel prick, thousands of lives. The same step is the target in **Jamaican vomiting sickness**, where hypoglycin A from unripe ackee fruit poisons the dehydrogenase.
+
+## Special cases that break the rhythm
+
+Real fats are not all neat even chains. A **cis double bond** in an unsaturated fatty acid stalls the cycle, so an isomerase (cis-Δ³-enoyl-CoA isomerase) repositions it; polyunsaturated chains need a second helper, 2,4-dienoyl-CoA reductase, which spends NADPH. **Odd-chain** fatty acids end with a three-carbon propionyl-CoA, converted via a biotin enzyme to methylmalonyl-CoA and then, using vitamin B12, to succinyl-CoA — which enters the TCA cycle and is uniquely gluconeogenic. A B12 deficiency stalls this and spills methylmalonic acid into urine.
+
+That last point names a hard rule: **animals cannot turn even-chain fatty acids into glucose**. Each turn brings in two carbons as acetyl-CoA and loses two as CO2 in the TCA cycle, so there is no net oxaloacetate to seed gluconeogenesis. Only the odd-chain tail and the glycerol backbone make sugar.
+
+## Ketone bodies: the liver's fasting export
+
+When glucose is scarce, acetyl-CoA piles up faster than the TCA cycle can take it, and the liver repackages it. Thiolase, HMG-CoA synthase (HMGCS2), and HMG-CoA lyase build **acetoacetate**, which is reduced to **D-3-hydroxybutyrate** (the dominant form in blood) or decarboxylates spontaneously to **acetone**, exhaled as the fruity "acetone breath" that has caused diabetic ketoacidosis to be mistaken for drunkenness. The liver makes ketones but cannot use them — it lacks the enzyme thiophorase — and red blood cells cannot use them either, having no mitochondria. Heart, muscle, kidney, and, after adaptation, the brain run on them happily. This is exactly Cahill's starvation data: by day 40 of a fast, protein breakdown falls from roughly 75 to 20 grams a day as the brain shifts onto ketones, sparing muscle. It is also why Russell Wilder's 1921 ketogenic diet, revived by the Charlie Foundation in 1994, controls drug-resistant epilepsy.
+
+Carry the acetyl-CoA forward: in the next chapter on the **citric acid cycle**, you will follow those two-carbon units the rest of the way to CO2 and see where the FADH2 and NADH you tallied here finally cash out.
