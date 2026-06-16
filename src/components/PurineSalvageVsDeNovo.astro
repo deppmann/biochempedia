@@ -1,0 +1,157 @@
+---
+/**
+ * PurineSalvageVsDeNovo — "Build it or recycle it: the cost of a purine." Two routes converge on
+ * the same product (an IMP/AMP/GMP nucleotide), but the price tags are wildly different. DE NOVO
+ * assembles the purine ring from scratch on PRPP — ~6 ATP, ~10 enzymatic steps, committed at
+ * glutamine-PRPP amidotransferase. SALVAGE snaps a free base back onto PRPP in ONE step (HGPRT for
+ * hypoxanthine/guanine, APRT for adenine) — ~1 ATP-equivalent. Toggle the two paths and watch the
+ * ATP meter, the step count, and the "when the cell uses this" note swing. The clinical payoff:
+ * Lesch-Nyhan (HGPRT loss) breaks salvage, forcing the wasteful de novo route AND dumping the
+ * unsalvaged bases into uric acid — hyperuricemia plus neurological disease. Salvage is the thrifty
+ * default; losing it is both wasteful and toxic. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="psd card" data-salvage>
+  <figcaption class="psd-head">Build it or recycle it — the cost of a purine<span class="psd-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="psd-toggle" role="group" aria-label="Choose a route to a purine nucleotide">
+    <button type="button" data-path="denovo" aria-pressed="true">De novo (build)</button>
+    <button type="button" data-path="salvage" aria-pressed="false">Salvage (recycle)</button>
+  </div>
+
+  <svg class="psd-svg" viewBox="0 0 460 150" role="img" data-svg></svg>
+
+  <div class="psd-stats">
+    <div class="psd-stat"><span class="psd-s-name">ATP cost</span><span class="psd-s-v" data-atp>≈ 6 ATP</span></div>
+    <div class="psd-stat"><span class="psd-s-name">Enzymatic steps</span><span class="psd-s-v" data-steps>~10</span></div>
+    <div class="psd-stat"><span class="psd-s-name">Committed step</span><span class="psd-s-v psd-s-small" data-commit>Gln-PRPP amidotransferase</span></div>
+  </div>
+
+  <div class="psd-meter" aria-hidden="true">
+    <span class="psd-meter-label">ATP burned</span>
+    <span class="psd-meter-track"><span class="psd-meter-fill" data-fill></span></span>
+  </div>
+
+  <p class="psd-when" data-when></p>
+
+  <div class="psd-clin">
+    <span class="psd-clin-head">Clinical payoff — Lesch-Nyhan syndrome</span>
+    <p class="psd-clin-body">Knock out HGPRT and salvage breaks. The cell can no longer recycle hypoxanthine or guanine, so it is forced down the wasteful <strong>de novo</strong> route to keep its purine pools full. Meanwhile the bases it can't salvage pile up and are oxidized to <strong>uric acid</strong> — hence the hyperuricemia (gout, kidney stones) and the severe neurological disease. One missing enzyme, and the thrifty default becomes both wasteful and toxic.</p>
+  </div>
+
+  <p class="psd-foot">Most resting tissue salvages — it is cheaper to glue a used base back onto PRPP than to build a ten-carbon-and-nitrogen ring from glutamine, glycine, and CO₂. De novo is the route a rapidly dividing cell pays for when there simply aren't enough scrap bases to go around. The lesson sits in the contrast: salvage is the thrifty default, and Lesch-Nyhan shows what it costs to lose it — you pay twice, once in ATP and once in uric acid.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Path = {
+    atp: number; atpLabel: string; steps: string; commit: string; color: string;
+    nodes: string[]; when: string;
+  };
+  const PATHS: Record<string, Path> = {
+    denovo: {
+      atp: 6, atpLabel: '≈ 6 ATP', steps: '~10', commit: 'Gln-PRPP amidotransferase', color: ORANGE,
+      nodes: ['PRPP', '+ amino acids,\nCO₂, N₁₀-formyl-THF', '× ~10 steps', 'IMP → AMP / GMP'],
+      when: 'When the cell uses this: rapidly dividing cells — bone marrow, gut lining, a tumor — lean on de novo synthesis because they need more purines than the scrap heap of free bases can supply.',
+    },
+    salvage: {
+      atp: 1, atpLabel: '≈ 1 ATP-eq', steps: '1', commit: 'HGPRT (hypoxanthine/guanine) · APRT (adenine)', color: ACCENT,
+      nodes: ['Free base\n(hypoxanthine / guanine / adenine)', '+ PRPP', 'one transferase step', 'IMP / GMP / AMP'],
+      when: 'When the cell uses this: most resting tissue — including the brain — salvages by default. Recycling a free base onto PRPP costs about one ATP-equivalent, roughly a sixth of building the ring from scratch.',
+    },
+  };
+
+  function draw(svg: SVGElement, p: Path) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const n = p.nodes.length;
+    const gap = 460 / n;
+    for (let i = 0; i < n; i++) {
+      const cx = gap * i + gap / 2;
+      const cy = 62;
+      svg.appendChild(el('rect', { x: cx - gap / 2 + 8, y: cy - 26, width: gap - 16, height: 52, rx: 9, fill: p.color, opacity: 0.12, stroke: p.color, 'stroke-width': 2 }));
+      const lines = p.nodes[i].split('\n');
+      const startY = cy - (lines.length - 1) * 6;
+      for (let j = 0; j < lines.length; j++) {
+        const t = el('text', { x: cx, y: startY + j * 12 + 4, 'text-anchor': 'middle', fill: j === 0 ? p.color : INK, 'font-size': j === 0 && lines.length === 1 ? 12 : 9.5, 'font-weight': j === 0 ? 700 : 400 });
+        t.textContent = lines[j];
+        svg.appendChild(t);
+      }
+      if (i < n - 1) {
+        const ax = gap * (i + 1) - 6;
+        svg.appendChild(el('line', { x1: ax - 8, y1: cy, x2: ax + 4, y2: cy, stroke: FAINT, 'stroke-width': 2, 'marker-end': 'url(#psd-ar)' }));
+      }
+    }
+    const cap = el('text', { x: 230, y: 132, 'text-anchor': 'middle', fill: p.color, 'font-size': 11, 'font-weight': 600 });
+    cap.textContent = p.color === ORANGE ? 'Build the ring from scratch on PRPP' : 'Snap a used base back onto PRPP — one step';
+    svg.appendChild(cap);
+    const defs = el('defs', {});
+    const m = el('marker', { id: 'psd-ar', markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+    m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: FAINT }));
+    defs.appendChild(m);
+    svg.appendChild(defs);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-salvage]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const btns = root.querySelectorAll<HTMLButtonElement>('[data-path]');
+    const atpEl = root.querySelector<HTMLElement>('[data-atp]')!;
+    const stepsEl = root.querySelector<HTMLElement>('[data-steps]')!;
+    const commitEl = root.querySelector<HTMLElement>('[data-commit]')!;
+    const fillEl = root.querySelector<HTMLElement>('[data-fill]')!;
+    const whenEl = root.querySelector<HTMLElement>('[data-when]')!;
+    let current = 'denovo';
+    function render() {
+      const p = PATHS[current];
+      atpEl.textContent = p.atpLabel;
+      stepsEl.textContent = p.steps;
+      commitEl.textContent = p.commit;
+      whenEl.textContent = p.when;
+      atpEl.style.color = p.color;
+      fillEl.style.width = `${(p.atp / 6) * 100}%`;
+      fillEl.style.background = p.color;
+      btns.forEach((b) => {
+        const on = b.getAttribute('data-path') === current;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.classList.toggle('psd-on', on);
+      });
+      draw(svg, p);
+    }
+    btns.forEach((b) => b.addEventListener('click', () => { current = b.getAttribute('data-path') || 'denovo'; render(); }));
+    render();
+  });
+</script>
+
+<style>
+  .psd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .psd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .psd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .psd-toggle { display: flex; gap: 0.4rem; margin-bottom: var(--ddp-space-2); }
+  .psd-toggle button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.35rem 0.8rem; cursor: pointer; }
+  .psd-toggle button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .psd-toggle button.psd-on { background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 700; }
+  .psd-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .psd-stats { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .psd-stats { grid-template-columns: repeat(3, 1fr); } }
+  .psd-stat { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .psd-s-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .psd-s-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .psd-s-small { font-size: var(--ddp-text-xs); font-weight: 600; }
+  .psd-meter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: var(--ddp-space-3); }
+  .psd-meter-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); white-space: nowrap; }
+  .psd-meter-track { flex: 1; height: 10px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); border-radius: 6px; overflow: hidden; border: 1px solid var(--ddp-color-line); }
+  .psd-meter-fill { display: block; height: 100%; width: 100%; background: var(--ddp-color-accent); transition: width 0.25s ease; }
+  @media (prefers-reduced-motion: reduce) { .psd-meter-fill { transition: none; } }
+  .psd-when { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .psd-clin { border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 45%, var(--ddp-color-line)); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-secondary) 8%, transparent); margin-bottom: var(--ddp-space-3); }
+  .psd-clin-head { display: block; font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-secondary-ink); margin-bottom: 0.2rem; }
+  .psd-clin-body { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .psd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
