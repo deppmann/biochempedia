@@ -1,0 +1,342 @@
+---
+title: "The Calvin Cycle: Fixing Carbon from Thin Air"
+slug: "calvin-cycle"
+courseChapter: "Photosynthesis"
+order: 23
+summary: "The Calvin cycle is the chemistry that builds you. Every carbon in every sugar, protein, and strand of DNA on Earth was pulled out of thin air by this one loop running in the chloroplast stroma. It turns three turns at a time, spending ATP and NADPH from the light reactions to weld CO2 onto a five-carbon sugar, reduce it to a triose, and regenerate the acceptor so the loop never stops. Master one number set (3 ATP + 2 NADPH per CO2) and one enzyme (Rubisco), and the whole pathway falls into place."
+estMinutes: 24
+objectives:
+  - "Trace a single carbon atom from atmospheric CO2 through fixation, reduction, and regeneration, naming the molecule it occupies at each stage (RuBP → 3-PGA → 1,3-BPG → G3P → back to RuBP)."
+  - "State and derive the canonical stoichiometry — 3 ATP + 2 NADPH per CO2, 9 ATP + 6 NADPH per G3P, 18 ATP + 12 NADPH per hexose — and explain why the cycle consumes more ATP than NADPH."
+  - "Describe the Rubisco carboxylation mechanism, including the enediol intermediate, the transient 6-carbon species, and the role of the Lys-201 carbamate plus Mg2+ — and distinguish the activating CO2 from the substrate CO2."
+  - "Explain how light regulates the cycle through three stromal signals (rising pH, rising Mg2+, and reduced thioredoxin) and predict why the cycle stalls in the dark."
+  - "Account for photorespiration as Rubisco's oxygenase side-reaction and compare the C4 (spatial) and CAM (temporal) strategies that suppress it, including their ATP costs."
+scientists:
+  - name: "Melvin Calvin, Andrew Benson, & James Bassham"
+    dates: "Calvin 1911–1997; Benson 1917–2015; Bassham 1922–2012"
+    contribution: "Mapped the entire carbon-fixation cycle at Berkeley using a carbon-14 radiotracer and 2D paper chromatography, identifying 3-phosphoglycerate as the first stable product and tracing the full loop from CO2 + RuBP through G3P and back to regenerated RuBP."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Calvin/Benson/Bassham profile, Part 3 (\"Photosynthesis: Capturing Sunlight\"); \"lollipop\" apparatus at line 1319, full-loop mapping at line 1321, Benson quote grep-confirmed at line 1323."
+    quotes:
+      - "Melvin's name was added; there was no alternative."
+    story: "In the Old Radiation Laboratory at Berkeley in the late 1940s, Benson built an apparatus the team called the \"lollipop\" — a flat circular glass vessel of green algae held under bright lamps — and fed it CO2 labeled with carbon-14. The plan was brutally simple: expose the algae for shorter and shorter intervals, kill the cells, spread the contents across paper by two-dimensional chromatography, then press the sheet against X-ray film to see which molecules the radioactive carbon had reached. At thirty seconds, dozens of compounds lit up. At five seconds, almost everything vanished except one three-carbon molecule, 3-phosphoglycerate. From that anchor the group mapped the whole loop now in every textbook. Calvin ran the room — an organizer who aimed chemists, physicists, and biologists at one question and convened weekly meetings where a first-year was expected to challenge the data on the board. Benson built the lollipop and did the exacting chromatography. Bassham, trained as a physicist, worked out the regeneration steps that close the loop and co-authored the 1957 book. Benson left at the end of 1954 under disputed circumstances; in his account, after he wrote up the carbon-fixing enzyme, \"Melvin's name was added; there was no alternative.\" Calvin alone received the 1961 Nobel, and the citation named no one else. The textbooks have been correcting the name one edition at a time toward Calvin-Benson-Bassham. The cycle still pulls roughly 100 billion tons of carbon out of the air each year."
+  - name: "Bessel Kok"
+    dates: "1918–1979"
+    contribution: "Showed photosynthesis pays an honest thermodynamic price and, with Forbush and McGloin (1970), proposed the S-state 'oxygen clock' of Photosystem II's oxygen-evolving complex — relevant to the light-reaction inputs (ATP/NADPH) the Calvin cycle depends on."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Bessel Kok profile, Part 3; both quotes grep-confirmed at line 1340."
+    quotes:
+      - "I never studied"
+      - "a shambles of equipment-building"
+    story: "Kok came at photosynthesis with his hands, shaped first by survival. As a doctoral student in occupied Utrecht in the winter of 1944 he distilled gin from rye and beets in his kitchen and bartered the bottles for food to keep his family alive, a falsified passport always in his pocket. He held a Ph.D. in biophysics yet waved the credential off with a line he liked to repeat, \"I never studied,\" trusting instead the understanding he could build himself. At Wageningen his bench became, in a colleague's phrase, \"a shambles of equipment-building\"; when a machinist dragged his feet on a wheel meant to chop a light beam into precisely timed flashes, Kok stopped waiting and built it himself, and with it caught P700 by the faint bleaching of its absorbance near 700 nm. The flash wheel let him read the strange four-beat oscillation in oxygen yield and propose that the oxygen-evolving complex is a counter cycling through S0–S4 states, releasing O2 only at S4 — rationing the dangerous half-finished oxidants so the plant splits water without destroying itself. A good aside for where the Calvin cycle's ATP and NADPH actually come from."
+techniques:
+  - name: "Carbon-14 radiotracer kinetics"
+    blurb: "Feed a photosynthesizing system 14CO2, then kill the cells at shorter and shorter intervals. Whichever molecule is labeled first is the earliest product. This is how Calvin's team caught 3-phosphoglycerate as the first stable product of fixation — at 5 seconds almost everything else had gone dark."
+  - name: "Two-dimensional paper chromatography"
+    blurb: "Spread a killed cell extract across paper, run solvent in one direction, rotate 90°, run a second solvent, then press the sheet against X-ray film. Each labeled compound lands at its own spot and exposes the film. Pairing this with the 14C pulse let the Berkeley group map the entire loop one intermediate at a time."
+  - name: "Stable-isotope (13C/12C) signature analysis"
+    blurb: "PEP carboxylase discriminates less against heavy 13C than Rubisco does, so C4 and CAM plants leave a measurably different 13C/12C ratio than C3 plants. Mass spectrometry of this ratio lets paleoecologists read whether ancient diets and ecosystems were C3- or C4-based from fossil teeth and soil carbon."
+  - name: "Transition-state analog crystallography"
+    blurb: "To trap Rubisco in its active, carbamylated form, crystallographers co-crystallize it with 2-carboxyarabinitol-1,5-bisphosphate (2-CABP), a stable mimic of the unstable 6-carbon reaction intermediate. The analog locks the enzyme around the geometry it normally holds for milliseconds, revealing the Lys-201 carbamate and Mg2+ in place (PDB 1RCX)."
+structures:
+  - label: "Rubisco (spinach, L8S8 holoenzyme)"
+    source: "rcsb"
+    id: "8RUC"
+    note: "PDB 8RUC"
+    caption: "Activated spinach ribulose-1,5-bisphosphate carboxylase/oxygenase (Rubisco) complex with CABP/Mg2+ — the canonical 8 large + 8 small subunit form (carbamylated Lys-201)."
+  - label: "Rubisco (activated, with 2-CABP transition-state analog)"
+    source: "rcsb"
+    id: "1RCX"
+    note: "PDB 1RCX"
+    caption: "Spinach Rubisco activated complex bound to the reaction-intermediate analog 2-carboxyarabinitol-1,5-bisphosphate (2-CABP) with carbamate and Mg2+."
+  - label: "Rubisco activase"
+    source: "rcsb"
+    id: "4W5W"
+    note: "PDB 4W5W"
+    caption: "Rubisco activase (AAA+ ATPase) structure, e.g. from tobacco or Nicotiana/creosote — the ATP-dependent chaperone that removes inhibitory sugar phosphates from Rubisco."
+  - label: "Thioredoxin (chloroplast/plant)"
+    source: "rcsb"
+    id: "1XFL"
+    note: "PDB 1XFL"
+    caption: "A plant/chloroplast thioredoxin (thioredoxin f or m) showing the CxxC redox-active disulfide motif."
+  - label: "Ferredoxin (plant, [2Fe-2S])"
+    source: "rcsb"
+    id: "1A70"
+    note: "PDB 1A70"
+    caption: "Spinach [2Fe-2S] plant-type ferredoxin — the PSI electron donor that reduces ferredoxin-thioredoxin reductase."
+  - label: "Transketolase"
+    source: "rcsb"
+    id: "1TRK"
+    note: "PDB 1TRK"
+    caption: "Transketolase (thiamine pyrophosphate-dependent), the enzyme that transfers 2-carbon units during RuBP regeneration."
+  - label: "Fructose-1,6-bisphosphatase (chloroplast/plant)"
+    source: "rcsb"
+    id: "1D9Q"
+    note: "PDB 1D9Q"
+    caption: "Plant chloroplast fructose-1,6-bisphosphatase (thioredoxin-regulated Calvin Cycle enzyme)."
+  - label: "Phosphoenolpyruvate carboxylase (PEPC)"
+    source: "rcsb"
+    id: "1JQO"
+    note: "PDB 1JQO"
+    caption: "Phosphoenolpyruvate carboxylase, the C4/CAM CO2-fixing enzyme (high CO2 affinity, no oxygenase activity)."
+  - label: "Carbon dioxide"
+    source: "pubchem"
+    id: "280"
+    note: "CID 280"
+    caption: "CO2 — the substrate fixed in the carboxylation reaction."
+  - label: "Ribulose 1,5-bisphosphate (RuBP)"
+    source: "pubchem"
+    id: "123658"
+    note: "CID 123658"
+    caption: "D-ribulose 1,5-bisphosphate, the 5-carbon CO2 acceptor."
+  - label: "3-Phosphoglycerate (3-PGA)"
+    source: "pubchem"
+    id: "724"
+    note: "CID 724"
+    caption: "3-phospho-D-glycerate (3-phosphoglyceric acid), the first stable product of fixation."
+  - label: "Glyceraldehyde-3-phosphate (G3P)"
+    source: "pubchem"
+    id: "729"
+    note: "CID 729"
+    caption: "D-glyceraldehyde 3-phosphate, the triose product of the reduction stage."
+  - label: "1,3-Bisphosphoglycerate"
+    source: "pubchem"
+    id: "683"
+    note: "CID 683"
+    caption: "1,3-bisphospho-D-glycerate, the ATP-activated intermediate in the reduction stage."
+  - label: "NADPH"
+    source: "pubchem"
+    id: "5884"
+    note: "CID 5884"
+    caption: "NADPH (reduced nicotinamide adenine dinucleotide phosphate), the reducing power for the reduction stage."
+videos:
+  - title: "The Calvin cycle"
+    youtubeId: "slm6D2VEXYs"
+    sourceNote: "Khan Academy — carbon fixation, reduction, and regeneration. Openly available."
+  - title: "Photosynthesis (Crash Course Biology #8)"
+    youtubeId: "sQK3Yr4Sc_k"
+    sourceNote: "CrashCourse — where the Calvin cycle sits relative to the light reactions."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "Calvin cycle per CO₂ fixed — the reduction steps run twice, so the meter lands on 3 ATP + 2 NADPH per CO₂ (18 ATP + 12 NADPH per hexose); RuBP is regenerated each turn"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "In the Calvin cycle, which statement correctly distinguishes the two roles CO2 can play at Rubisco?"
+    choices:
+      - "One CO2 is the substrate fixed onto RuBP; a different CO2 forms a carbamate on Lys-201 that binds Mg2+ to activate the enzyme"
+      - "CO2 binds only the small regulatory subunits and never the active site"
+      - "The activating CO2 is fixed first, then transferred to RuBP"
+      - "Both CO2 molecules are reduced by NADPH to form sugar"
+    answer: 0
+    rationale: "The substrate CO2 is added to the RuBP enediol at C2. A separate CO2 reacts with Lys-201 to form a carbamate that chelates Mg2+ and builds the catalytic site. Confusing these two CO2 molecules is the classic error. NADPH reduces 1,3-BPG (not CO2 directly), and the carbamate forms on the large catalytic subunit, not the small subunits."
+  - stem: "Three turns of the Calvin cycle fix three CO2 and produce six molecules of G3P, yet only one G3P is counted as net product. What happens to the other five?"
+    choices:
+      - "They are oxidized back to CO2 to drive regeneration"
+      - "They are exported as sucrose immediately"
+      - "They are reshuffled by aldolase and transketolase to regenerate three molecules of RuBP"
+      - "They are reduced further to glucose inside the stroma"
+    answer: 2
+    rationale: "Five G3P (15 carbons) are rearranged by aldolase and transketolase, with FBPase/SBPase and phosphoribulokinase, into three 5-carbon RuBP (15 carbons) to regenerate the CO2 acceptor. Carbon is conserved, not oxidized to CO2. Only the single net G3P leaves to build hexose; glucose is not assembled within the stroma in this cycle."
+  - stem: "Why does the Calvin cycle consume ATP and NADPH in a 3:2 ratio rather than 1:1 per CO2 fixed?"
+    choices:
+      - "The reduction stage uses two ATP for every NADPH"
+      - "An extra ATP is spent during regeneration (phosphoribulokinase) beyond the 1:1 used in reduction"
+      - "NADPH is partially recycled, lowering its apparent count"
+      - "Fixation itself consumes one ATP per CO2"
+    answer: 1
+    rationale: "Reduction uses ATP and NADPH 1:1 (PGA kinase + G3P dehydrogenase). Regeneration then spends additional ATP — notably at phosphoribulokinase — with no NADPH, tipping the per-CO2 total to 3 ATP + 2 NADPH. Fixation by Rubisco costs neither ATP nor NADPH, and NADPH is not recycled within the cycle."
+  - stem: "A researcher moves an actively photosynthesizing chloroplast preparation from light into complete darkness. Which change best explains why the Calvin cycle stalls within minutes?"
+    choices:
+      - "CO2 can no longer diffuse into the chloroplast in the dark"
+      - "RuBP becomes covalently bonded to the thylakoid membrane"
+      - "Stromal pH drops below 5, denaturing Rubisco"
+      - "Oxygen re-oxidizes thioredoxin, reforming disulfides that inactivate FBPase, SBPase, and phosphoribulokinase"
+    answer: 3
+    rationale: "In the dark the light reactions stop making reduced ferredoxin, so thioredoxin is re-oxidized by O2; its target enzymes (FBPase, SBPase, PRK, Rubisco activase) reform their regulatory disulfides and switch off. The stroma also loses its light-driven pH and Mg2+ shifts. pH does not crash to 5, CO2 diffusion is not light-gated, and RuBP does not bond to the membrane."
+  - stem: "Compared with a typical C3 plant, why does a C4 plant such as corn suffer far less photorespiration on a hot day?"
+    choices:
+      - "C4 Rubisco has lost its oxygenase active site through mutation"
+      - "C4 plants lack Rubisco entirely"
+      - "PEP carboxylase fixes CO2 in mesophyll cells and concentrates it around Rubisco in bundle-sheath cells, where it outcompetes O2"
+      - "C4 plants run the Calvin cycle at night when O2 is low"
+    answer: 2
+    rationale: "C4 plants use PEP carboxylase (high CO2 affinity, no oxygenase activity) to fix CO2 in mesophyll cells, ship it as malate to bundle-sheath cells, and decarboxylate it to flood Rubisco with CO2 — a spatial CO2 pump that suppresses oxygenation. They still have Rubisco (with its oxygenase activity) and still run the Calvin cycle by day. Running fixation at night is the CAM strategy, not C4."
+mcatQuestions:
+  - stem: "A plant biochemist supplies isolated chloroplasts with 14CO2 and abundant ATP and NADPH in the light, but adds an inhibitor that fully blocks phosphoribulokinase. After several seconds, where will the 14C label predominantly accumulate, and why will net CO2 fixation soon halt?"
+    choices:
+      - "In 3-PGA and downstream sugar phosphates, because RuBP cannot be regenerated and the acceptor pool is depleted"
+      - "In phosphoglycolate, because the block forces Rubisco into oxygenase mode"
+      - "Evenly across all intermediates, because the cycle reaches a new steady state"
+      - "In RuBP, because phosphoribulokinase normally consumes RuBP"
+    answer: 0
+    rationale: "Phosphoribulokinase makes RuBP (ribulose-5-P + ATP → RuBP). Blocking it stops RuBP regeneration, so existing RuBP is fixed into 3-PGA and reduced toward G3P/sugar phosphates where label piles up, but with no new RuBP the CO2 acceptor runs out and net fixation stops. The block does not generate RuBP, does not force oxygenase activity, and prevents (rather than permits) a productive steady state."
+  - stem: "A mutant Rubisco shows a normal carboxylation rate but a markedly increased oxygenase-to-carboxylase ratio at a given CO2/O2. Holding light and temperature constant, which intervention would most directly reduce this plant's carbon loss to photorespiration?"
+    choices:
+      - "Decreasing the amount of NADPH supplied by the light reactions"
+      - "Inhibiting Rubisco activase to keep more enzyme RuBP-bound"
+      - "Lowering the stromal Mg2+ concentration"
+      - "Raising the CO2 concentration at the active site (e.g., via a CO2-concentrating mechanism)"
+    answer: 3
+    rationale: "Carboxylation and oxygenation compete for the same active site, so raising local CO2 (as C4/CAM CO2-concentrating mechanisms do) shifts the balance toward carboxylation and cuts photorespiratory loss. Lowering Mg2+ would impair carbamylation and overall activity; cutting NADPH starves the reduction stage without favoring carboxylation; inhibiting activase leaves Rubisco inactive (RuBP-locked), reducing all turnover, not the oxygenase fraction."
+  - stem: "Two desert succulents are compared. Plant X opens its stomata only at night, fixing CO2 into malate that it stores in vacuoles and decarboxylates the next day with stomata closed. Plant Y keeps stomata open by day and uses spatially separated mesophyll and bundle-sheath cells. Which statement about these strategies is correct?"
+    choices:
+      - "Plant X is C4 and conserves water by separating fixation from the Calvin cycle in space"
+      - "Plant X uses CAM (temporal separation) to conserve water, while Plant Y uses C4 (spatial separation); both rely on PEP carboxylase for the initial fixation"
+      - "Both plants avoid using Rubisco, fixing all carbon with PEP carboxylase only"
+      - "Plant Y conserves more water than Plant X because it keeps stomata closed at night"
+    answer: 1
+    rationale: "Night-time CO2 capture into malate with daytime decarboxylation behind closed stomata is CAM (temporal separation), which conserves water in arid heat. Mesophyll/bundle-sheath spatial separation is C4. Both use PEP carboxylase for the initial fixation and both still ultimately run the Calvin cycle (and thus Rubisco). Plant Y (C4) keeps stomata open by day, so it does not out-conserve the night-fixing CAM plant on water."
+images: []
+corpusTags:
+  - "calvin-cycle"
+  - "carbon-fixation"
+  - "rubisco"
+  - "photorespiration"
+  - "C4-photosynthesis"
+  - "NADPH"
+  - "chloroplast"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Plants eat air. They grab the invisible gas you breathe out (CO2) and snap it onto a little sugar-stick to make the stick longer. To do that they use power packs called ATP and NADPH that they charge up from sunlight. They do this over and over in a circle, and after a few loops one new sugar piece pops out. That sugar is food — for the plant, and eventually for you."
+  - level: "highschool"
+    label: "High school"
+    text: "In the chloroplast stroma, the Calvin cycle builds sugar from CO2. The enzyme Rubisco attaches CO2 to a 5-carbon sugar (RuBP), making two 3-carbon molecules (3-PGA). The plant then spends ATP and NADPH (made by the light reactions) to turn 3-PGA into G3P, a small sugar. Most of the G3P gets recycled to rebuild RuBP so the cycle keeps going; a little exits to make glucose. It takes 6 turns and 6 CO2 to build one glucose. The cycle runs in daylight, even though it's nicknamed the 'dark reactions.'"
+  - level: "college"
+    label: "College"
+    text: "The Calvin cycle fixes CO2 in three stages: fixation (Rubisco carboxylates RuBP into two 3-PGA via an enediol and a transient C6 intermediate), reduction (PGA kinase + ATP, then G3P dehydrogenase + NADPH yield G3P), and regeneration (aldolase/transketolase plus FBPase, SBPase, and phosphoribulokinase rebuild RuBP). Per CO2: 3 ATP + 2 NADPH; per hexose: 18 ATP + 12 NADPH. The extra regeneration ATP explains the 3:2 ATP:NADPH ratio. Light activates the cycle via rising stromal pH and Mg2+ (promoting the Lys-201 carbamate) and via reduced thioredoxin switching on FBPase, SBPase, PRK, and Rubisco activase."
+  - level: "grad"
+    label: "Graduate"
+    text: "Carboxylation proceeds through a 2,3-enediolate of RuBP; CO2 (distinct from the activating carbamate CO2 on Lys-201, which chelates the catalytic Mg2+) adds at C2 to give a 6-carbon 2-carboxy-3-keto-arabinitol-1,5-bisphosphate, hydrated and cleaved to two 3-PGA — a mechanism frozen crystallographically by the transition-state analog 2-CABP. kcat is ~3 s−1 with imperfect CO2/O2 specificity, so oxygenation generates 2-phosphoglycolate, salvaged at a net CO2 and ATP/reductant cost. Flux control is distributed: Rubisco activation state (activase, an AAA+ ATPase, removes tight-binding inhibitory sugar phosphates such as CA1P), the ferredoxin–thioredoxin system reductively activating FBPase/SBPase/PRK, and stromal pH/Mg2+ shifts all gate the cycle to the redox poise set by linear electron flow, balancing ATP:NADPH supply (~3:2) against demand including the regeneration phosphoribulokinase step."
+anecdotes:
+  - title: "The five-second photograph"
+    text: "The trick that cracked the cycle was speed. Calvin's team fed green algae carbon-14 in the 'lollipop,' then killed the cells at shorter and shorter intervals and read the X-ray film. At thirty seconds dozens of compounds glowed. At five seconds nearly all of them had gone dark except one three-carbon spot — 3-phosphoglycerate. Whatever lights up first is the earliest product. That single bright spot was the thread they pulled to unravel the whole loop."
+    source: "CH23 lecture notes — 'trace a carbon atom from air to sugar'"
+  - title: "Three names, one cycle"
+    text: "The pathway was simply 'the Calvin cycle' for decades, but three pairs of hands traced that carbon. Benson built the apparatus and ran the chromatography; Bassham, a physicist, worked out the regeneration steps and co-wrote the 1957 book; Calvin ran the room and, in 1961, received the Nobel alone. In Benson's account of writing up the carbon-fixing enzyme, 'Melvin's name was added; there was no alternative.' The textbooks have been quietly correcting it toward Calvin-Benson-Bassham, one edition at a time — a reminder that a discovery's name and its labor don't always match."
+    source: "CH23 lecture notes — 'three names, one cycle' credit-and-collaboration hook"
+  - title: "Why a volcano fed the planet"
+    text: "When Mount Pinatubo erupted in 1991, its sulfate haze scattered sunlight into soft, diffuse light — and global carbon fixation went UP. The reason is geometry: the top of the canopy was already light-saturated, soaking up all the photons it could use, so direct sun there was wasted. Diffuse light slipped sideways and downward into the shaded lower leaves that had been starved for photons. The Calvin cycle's real limit isn't always total sunlight; sometimes it's how evenly the light is spread."
+    source: "CH23 lecture notes — Mount Pinatubo 1991 diffuse-light hook"
+  - title: "Maple syrup is fixed carbon you can taste"
+    text: "The sweetness in a bucket under a tapped maple is sucrose — the same sucrose the Calvin cycle's exported G3P is built into, then loaded into the phloem and shipped through the plant. The tree fixed that carbon the previous summer, stored it as starch, and remobilized it in spring. Every gallon of syrup is roughly forty gallons of xylem sap, which is to say a great many turns of the cycle, boiled down to breakfast."
+    source: "CH23 lecture notes — maple syrup = sucrose tapped from xylem hook"
+lectureSlides:
+  - src: "/slides/calvin-cycle/carbon-dioxide-dance.png"
+    audio: "/slides/calvin-cycle/audio/carbon-dioxide-dance.mp3"
+    title: "The Carbon Dioxide Dance"
+    alt: "The Carbon Dioxide Dance"
+    source: "CH23 Calvin Cycle · slide 5"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of the Calvin cycle as a choreographed dance whose whole purpose is to capture carbon dioxide from the air and convert it into sugar. This is the chemistry that powers nearly all life on Earth, and it does its work at ordinary temperature and neutral pH, with no extreme conditions required. We sometimes call these the dark reactions, but that name is misleading. The cycle does not need darkness. It simply does not directly require light, instead consuming the ATP and NADPH that the light reactions produce. The headline transformation is simple to state: gaseous carbon dioxide becomes solid glucose, six carbons stitched together into the most important molecule in biology."
+  - src: "/slides/calvin-cycle/fixation-rubp-plus-co2-two-3-pga.png"
+    audio: "/slides/calvin-cycle/audio/fixation-rubp-plus-co2-two-3-pga.mp3"
+    title: "Fixation: RuBP plus CO2 to Two 3-PGA"
+    alt: "Fixation: RuBP plus CO2 to Two 3-PGA"
+    source: "CH23 Calvin Cycle · slide 7"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the first committed step drawn as simple beads on a string. Ribulose 1,5-bisphosphate is a five-carbon backbone capped at each end by a phosphate. The enzyme rubisco grabs a single molecule of carbon dioxide and attaches it to that five-carbon chain, briefly making a six-carbon intermediate. That intermediate is unstable and immediately splits down the middle. The result is two identical three-carbon molecules of 3-phosphoglycerate. Notice the bookkeeping: one five-carbon sugar plus one carbon dioxide yields six carbons total, which divide cleanly into two threes. Counting carbons this way is the key to following the entire cycle without getting lost."
+  - src: "/slides/calvin-cycle/calvin-cycle-energy-balance-sheet.png"
+    audio: "/slides/calvin-cycle/audio/calvin-cycle-energy-balance-sheet.mp3"
+    title: "Calvin Cycle Energy Balance Sheet"
+    alt: "Calvin Cycle Energy Balance Sheet"
+    source: "CH23 Calvin Cycle · slide 16"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let us total the energy bill as a pyramid built from the bottom up. At the base, one carbon dioxide enters. Three turns of the cycle, fixing three carbon dioxides, cost nine ATP and six NADPH and yield one net molecule of glyceraldehyde 3-phosphate. To assemble a full six-carbon glucose you must run the cycle six times, doubling everything: eighteen ATP and twelve NADPH per glucose. Breaking it down by phase, fixation by rubisco is energetically free, the reduction step that turns acid into sugar costs the ATP and NADPH, and regenerating ribulose bisphosphate costs additional ATP. Sugar is expensive, and this ledger shows exactly where every high-energy molecule is spent."
+  - src: "/slides/calvin-cycle/light-tunes-stromal-environment.png"
+    audio: "/slides/calvin-cycle/audio/light-tunes-stromal-environment.mp3"
+    title: "Light Tunes the Stromal Environment"
+    alt: "Light Tunes the Stromal Environment"
+    source: "CH23 Calvin Cycle · slide 20"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The Calvin cycle does not need light directly, yet it is exquisitely timed to it, and the trick is the chemistry of the stroma. Compare the two boxes. In the dark, protons sit in the stroma and magnesium stays low, conditions under which rubisco is sluggish. When light strikes, the light reactions pump protons out of the stroma into the thylakoid, raising stromal pH. To preserve electrical neutrality, magnesium ions flow the other way, into the stroma. That rising pH and rising magnesium are precisely the conditions that favor carbamate formation on rubisco, switching the enzyme on. Light, in effect, reaches the cycle by reshaping its surroundings."
+  - src: "/slides/calvin-cycle/light-switch-via-thioredoxin.png"
+    audio: "/slides/calvin-cycle/audio/light-switch-via-thioredoxin.mp3"
+    title: "The Light Switch via Thioredoxin"
+    alt: "The Light Switch via Thioredoxin"
+    source: "CH23 Calvin Cycle · slide 22"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the cycle's master switch drawn as an electrical relay. Photosystem one captures light energy and pushes electrons onto ferredoxin. Reduced ferredoxin then hands electrons to thioredoxin, which carries a reactive pair of cysteines. Thioredoxin uses those electrons to break disulfide bonds on a panel of Calvin cycle enzymes, and reducing those bridges unlocks them. So in the light, rubisco activase, the bisphosphatases, the dehydrogenase, and the kinase all flip to active and the cycle runs. In the dark, the electron supply stops, the disulfides reform, the locks snap shut, and the cycle goes quiet. One light-driven signal coordinates the entire pathway."
+  - src: "/slides/calvin-cycle/hot-weather-problem.png"
+    audio: "/slides/calvin-cycle/audio/hot-weather-problem.mp3"
+    title: "The Hot Weather Problem"
+    alt: "The Hot Weather Problem"
+    source: "CH23 Calvin Cycle · slide 26"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Follow the dominoes that fall when a plant gets too hot. Temperature rises, so the plant closes its stomata to conserve water. But closed stomata trap the leaf: fresh carbon dioxide can no longer enter, and internal carbon dioxide drops while oxygen builds up. Now oxygen starts winning the competition for rubisco's active site, and the enzyme misfires as an oxygenase. That wasteful oxygenase reaction burns carbon and energy for no sugar gained. Each step forces the next, and the chain ends in lost productivity. This single cascade explains why hot, dry climates are so hard on ordinary plants, and it sets up the two evolutionary fixes: spatial and temporal."
+  - src: "/slides/calvin-cycle/carbon-cost-photorespiration.png"
+    audio: "/slides/calvin-cycle/audio/carbon-cost-photorespiration.mp3"
+    title: "The Carbon Cost of Photorespiration"
+    alt: "The Carbon Cost of Photorespiration"
+    source: "CH23 Calvin Cycle · slide 28"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Compare two runs of the cycle side by side, counting carbons the whole way. On top, the normal cycle: six carbon dioxides feed in, rubisco makes twelve molecules of 3-PGA, which become twelve G3P. Ten G3P regenerate the starting sugars, two exit, and you net one glucose, a gain of six fixed carbons. On the bottom, photorespiration: rubisco grabs oxygen instead, producing 3-PGA plus phosphoglycolate. The salvage pathway recovers some carbon but releases carbon dioxide, and you actually lose three fixed carbons. There are not even enough carbons left to regenerate the starting sugar, and no glucose is made. The contrast makes the cost unmistakable."
+  - src: "/slides/calvin-cycle/cam-splitting-day-from-night.png"
+    audio: "/slides/calvin-cycle/audio/cam-splitting-day-from-night.mp3"
+    title: "CAM: Splitting Day from Night"
+    alt: "CAM: Splitting Day from Night"
+    source: "CH23 Calvin Cycle · slide 36"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "This is the complete CAM strategy, and the secret is using time as a barrier. At night, when it is cool and humid, the stomata open. Incoming carbon dioxide is captured by PEP carboxylase into oxaloacetate, then reduced to malate, which is stored in the vacuole until morning. By day, the stomata stay shut to conserve water. The stored malate is released and decarboxylated, flooding the Calvin cycle with concentrated carbon dioxide right where rubisco needs it. The accounting still holds: six carbon dioxides, eighteen ATP, twelve NADPH per glucose. Desert plants like cacti, agave, and pineapple separate carbon capture from sugar synthesis across the clock."
+  - src: "/slides/calvin-cycle/isotopes-reveal-ancient-diets.png"
+    audio: "/slides/calvin-cycle/audio/isotopes-reveal-ancient-diets.mp3"
+    title: "Isotopes Reveal Ancient Diets"
+    alt: "Isotopes Reveal Ancient Diets"
+    source: "CH23 Calvin Cycle · slide 38"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is an elegant consequence of having two different carbon-fixing enzymes. PEP carboxylase, the enzyme C4 and CAM plants use, not only binds carbon dioxide more tightly than rubisco, it also takes up the heavier carbon-thirteen isotope more readily. Because of that bias, C4 plants and C3 plants end up with measurably different carbon-thirteen to carbon-twelve ratios, distinct isotopic signatures locked into their tissues. Mass spectrometry can read those signatures, and that is genuinely powerful. Ecologists and evolutionary biologists use these ratios to reconstruct ancient diets and vanished ecosystems, telling whether a fossil herbivore grazed on C4 grasses or browsed C3 plants. Enzyme chemistry becomes a window into deep time."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const calvinSteps = [{"n": 1, "enzyme": "Rubisco (carboxylation)", "sub": "RuBP (5C) + CO₂", "prod": "2 × 3-PGA (3C)", "regulated": true, "note": "The fixation step and the rate-limiter. RuBP forms a C2–C3 enediol; CO₂ adds at C2 to give a six-carbon intermediate that is hydrated and then cleaved at the C2–C3 bond into two molecules of 3-PGA. It costs no ATP or NADPH — the energy is paid later. Needs the Lys-201 carbamate plus Mg²⁺, and that carbamate CO₂ is not the substrate CO₂.", "clinical": "Rubisco is the most abundant protein on Earth yet turns over only ~3 molecules per second. Its sluggishness throttles the entire global food supply — plants compensate by making astonishing amounts of it, about a quarter of all leaf protein."}, {"n": 2, "enzyme": "Phosphoglycerate kinase", "sub": "3-PGA (3C) + ATP", "prod": "1,3-BPG (3C)", "atp": -1, "doubled": true, "note": "Reduction stage begins. One ATP phosphorylates the carboxylate to a mixed anhydride, priming the carbon for reduction — a glycolytic payoff step run backward. It happens twice per CO₂, once for each 3-PGA."}, {"n": 3, "enzyme": "Glyceraldehyde-3-phosphate dehydrogenase", "sub": "1,3-BPG (3C) + NADPH", "prod": "G3P (3C)", "nadph": -1, "doubled": true, "note": "NADPH delivers the electrons that actually reduce the molecule to a triose sugar, releasing Pᵢ. The chloroplast isoform uses NADPH, not NADH — the reducing power comes straight from Photosystem I. This is the only true reduction in the cycle, and it runs twice per CO₂."}, {"n": 4, "enzyme": "Aldolase + transketolase (sugar shuffle)", "sub": "5 × G3P (3C)", "prod": "3 × ribulose-5-P (5C)", "regulated": true, "note": "Regeneration. Five of every six G3P (15 carbons) are reshuffled into three 5-carbon sugars by aldolase and transketolase, with FBPase and SBPase clipping phosphates. The sixth G3P exits as the net product. FBPase and SBPase are light-activated control points."}, {"n": 5, "enzyme": "Phosphoribulokinase (PRK)", "sub": "ribulose-5-P (5C) + ATP", "prod": "RuBP (5C)", "atp": -1, "regulated": true, "note": "The last ATP of the cycle phosphorylates ribulose-5-P back to the CO₂ acceptor RuBP, closing the loop. This regeneration ATP is why the cycle needs more ATP than NADPH (3:2). PRK is switched on by reduced thioredoxin in the light and off in the dark."}];
+
+**Pick a carbon atom in the CO2 you just exhaled. Follow it. Within a day, somewhere in a leaf, that exact atom can be welded into a sugar — and the machine that does the welding is the Calvin cycle.** Nearly every carbon in your body, in your last meal, in the wood of the table in front of you, entered the living world through this one loop of chemistry. It pulls roughly 100 billion tons of carbon out of the air each year. There is no larger chemical reaction on the planet.
+
+The cycle runs in the **stroma**, the soup inside the chloroplast surrounding the thylakoid stacks. It is often called the "dark reactions," and that name is doubly wrong. It runs in broad daylight, and it cannot run without the light reactions, because it spends two products they make: **ATP for energy** and **NADPH for reducing power** — the electrons that actually build the sugar. Hold onto that division of labor; the whole cycle is just ATP and NADPH being cashed in.
+
+We'll take it in two acts, the way I do on the board. Act 1 is the engine: how the carbon actually gets fixed. Act 2 is the control panel: how the plant turns the engine on at dawn and off at dusk.
+
+## Act 1: three stages, one number to memorize
+
+The engine runs in three stages, and the single number that organizes everything is **3 ATP + 2 NADPH per CO2 fixed**.
+
+**Stage 1 — Fixation.** One CO2 is grabbed by **ribulose-1,5-bisphosphate (RuBP)**, a five-carbon sugar, and the product is two molecules of **3-phosphoglycerate (3-PGA)**, each three carbons. The catalyst is **Rubisco**, ribulose-1,5-bisphosphate carboxylase/oxygenase, the most abundant protein on Earth. Mechanistically, RuBP first forms a high-energy **enediol** across carbons 2 and 3. CO2 attacks C2, producing a six-carbon intermediate so unstable it never accumulates — it immediately hydrolyzes between C2 and C3 into the two three-carbon products. This carboxylation is the **rate-limiting step**, and remarkably it costs no ATP and no NADPH. The price comes due later.
+
+Here is the exam point students miss every year. Rubisco needs a CO2 molecule to even work — but not as substrate. A separate CO2 reacts with **Lys-201** on the large subunit to form a **carbamate**, which then chelates **Mg2+**. That carbamate-Mg2+ pair builds the active site. So one CO2 *activates* the enzyme and a *different* CO2 gets fixed. If Rubisco isn't activated, it clamps onto RuBP so tightly it shuts itself down, and an ATP-burning chaperone called **Rubisco activase** has to pry the inhibitory sugar loose.
+
+**Stage 2 — Reduction.** Now the cell pays. Each 3-PGA is phosphorylated by ATP (phosphoglycerate kinase) to **1,3-bisphosphoglycerate**, then reduced by NADPH (G3P dehydrogenase) to **glyceraldehyde-3-phosphate (G3P)**. If that sounds like glycolysis run in reverse, it is — these are the same two steps, backward, using NADPH instead of NADH. Per three CO2, reduction burns **6 ATP and 6 NADPH**. This is where almost all the energy goes.
+
+**Stage 3 — Regeneration.** Now the bookkeeping trick that confuses everyone. Three turns of the cycle fix three CO2 and make **six** G3P. But only **one** G3P leaves as net product. The other five (5 × 3 = 15 carbons) are reshuffled — by **aldolase** and **transketolase**, with two phosphatases (FBPase, SBPase) clipping phosphates — back into three molecules of five-carbon RuBP (3 × 5 = 15 carbons, the books balance). The final step, **phosphoribulokinase**, spends one more ATP per RuBP to rebuild the acceptor and close the loop. Regeneration costs **3 ATP per 3 CO2** and no NADPH.
+
+Add it up and you get the answer to a question students always ask: *why does the cycle need more ATP than NADPH?* Because regeneration spends ATP alone. Reduction needs them in a 1:1 ratio, but the extra regeneration ATP tips the total to **18 ATP and 12 NADPH per hexose** — a 3:2 ratio. The full balance sheet:
+
+> **6 CO2 + 18 ATP + 12 NADPH + 12 H2O → C6H12O6 + 18 ADP + 18 Pi + 12 NADP+**
+
+<PathwayExplorer steps={calvinSteps} title="The Calvin cycle · per CO₂ fixed" doubledNote="×2 per CO₂" cyclic />
+
+The single G3P that exits doesn't stay G3P. It runs G3P → fructose-1,6-bisphosphate → fructose-6-phosphate into the hexose pool, a path that mirrors **gluconeogenesis** almost step for step. From there the plant partitions its sugar two ways: into **sucrose**, exported to the rest of the plant through the phloem, or into **starch**, stockpiled right inside the chloroplast for the night. When you tap a maple in spring, the sweetness running into the bucket is sucrose the tree fixed last summer and stored, now mobilized through the xylem.
+
+## Act 2: the control panel runs on light
+
+The cycle would be wasteful in the dark — it would burn ATP and NADPH the plant can no longer make. So light itself flips the switches, through three stromal signals.
+
+First, when the light reactions pump protons into the thylakoid lumen, the **stromal pH rises from about 7 to 8**. Second, to keep the charge balanced, **Mg2+ flows out of the lumen into the stroma**. Both changes favor carbamate formation on Lys-201, activating Rubisco. Third, and most elegant: Photosystem I generates **reduced ferredoxin**, which feeds **ferredoxin-thioredoxin reductase** to make **reduced thioredoxin**. Thioredoxin then reaches into four Calvin enzymes — FBPase, SBPase, phosphoribulokinase, and Rubisco activase — and reduces a regulatory disulfide bond, switching each one on. At nightfall, oxygen re-oxidizes thioredoxin, the disulfides reform, and the cycle quietly stalls. The plant has wired its sugar factory directly to the sun.
+
+## Photorespiration, and the workarounds
+
+Rubisco has a costly flaw written into its name: it is also an **oxygenase**. When O2 wins the active site instead of CO2, RuBP is split into one 3-PGA plus one **phosphoglycolate** — no carbon fixed, and salvaging the phosphoglycolate actually *releases* CO2. This **photorespiration** worsens on hot, dry days, when stomata close, CO2 falls, and O2 builds up. On a scorching afternoon a plant can lose a quarter of its fixed carbon this way.
+
+Two lineages evolved fixes. **C4 plants** (corn, sugarcane) separate the chemistry in *space*: in mesophyll cells, **PEP carboxylase** — which has high CO2 affinity and no oxygenase activity — fixes CO2 into oxaloacetate, then malate, which is shuttled into bundle-sheath cells and decarboxylated to flood Rubisco with concentrated CO2. It costs two extra ATP per CO2 (C4 runs at **5 ATP + 2 NADPH** per CO2, spent regenerating PEP), worth it in heat and dry light. **CAM plants** (cacti, agave, pineapple) separate it in *time*: they open stomata only at night to fix CO2 into malate, then close up by day and release that CO2 to the Calvin cycle, conserving precious water. The same PEP carboxylase that drives both also discriminates less against heavy 13C than Rubisco does, which is why C4 and C3 plants carry distinct **isotopic signatures** — a fingerprint paleoecologists read straight out of fossils.
+
+One last surprise about how much light is enough. When **Mount Pinatubo** erupted in 1991, its sulfate haze scattered sunlight into soft, diffuse light. Counterintuitively, global carbon fixation *rose*: the upper canopy was already light-saturated, so the diffuse light reached deeper into shaded lower leaves that had been starved for photons. The Calvin cycle, it turns out, is limited less by total sunlight than by how evenly it's spread.
+
+Next, we'll follow the sugars this cycle builds into the pathways that store and mobilize them — how the plant's starch and your own glycogen are assembled, defended, and torn down on demand.
