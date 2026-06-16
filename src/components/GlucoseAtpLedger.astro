@@ -1,0 +1,181 @@
+---
+/**
+ * GlucoseAtpLedger — the capstone accounting island for aerobic respiration. Where
+ * ProtonGradientBattery shows the membrane MECHANISM (the proton-motive force turning the
+ * synthase), this island does the WHOLE-GLUCOSE BOOKKEEPING: sum every ATP from the complete
+ * oxidation of one glucose, stage by stage — glycolysis, pyruvate→acetyl-CoA, two turns of the
+ * citric acid cycle, then the electron-transport chain cashing in the NADH/FADH2 via the P/O
+ * ratios. Two toggles drive the grand total live: the P/O convention (modern 2.5/1.5 vs
+ * classic textbook 3/2) and the cytosolic-NADH shuttle (malate-aspartate, which delivers the
+ * 2 glycolytic NADH as NADH, vs glycerophosphate, which delivers them as FADH2 and costs ~2 ATP).
+ * The teaching point: the famous "38" is the old number; the modern estimate is ~30–32, and the
+ * exact figure depends on the shuttle and P/O assumptions. Accounting, not dogma. Original.
+ */
+---
+
+<figure class="gal card" data-glucledger>
+  <figcaption class="gal-head">How much ATP from one glucose? The full ledger<span class="gal-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="gal-toggles">
+    <div class="gal-tgroup">
+      <span class="gal-tlabel">P/O convention</span>
+      <div class="gal-tbtns" role="group">
+        <button type="button" data-po="modern" class="gal-on">Modern (2.5 / 1.5)</button>
+        <button type="button" data-po="classic">Classic (3 / 2)</button>
+      </div>
+    </div>
+    <div class="gal-tgroup">
+      <span class="gal-tlabel">Cytosolic-NADH shuttle</span>
+      <div class="gal-tbtns" role="group">
+        <button type="button" data-shuttle="malate" class="gal-on">Malate–aspartate</button>
+        <button type="button" data-shuttle="glycerol">Glycerophosphate</button>
+      </div>
+    </div>
+  </div>
+
+  <table class="gal-table">
+    <thead>
+      <tr>
+        <th scope="col">Stage</th>
+        <th scope="col" class="gal-num">Direct ATP/GTP</th>
+        <th scope="col" class="gal-num">NADH</th>
+        <th scope="col" class="gal-num">FADH₂</th>
+        <th scope="col" class="gal-num">ATP from this stage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Glycolysis (cytosol)</th>
+        <td class="gal-num">2</td>
+        <td class="gal-num" data-glyc-nadh>2*</td>
+        <td class="gal-num">0</td>
+        <td class="gal-num gal-sub" data-row="glyc">—</td>
+      </tr>
+      <tr>
+        <th scope="row">Pyruvate → acetyl-CoA (×2)</th>
+        <td class="gal-num">0</td>
+        <td class="gal-num">2</td>
+        <td class="gal-num">0</td>
+        <td class="gal-num gal-sub" data-row="pdh">—</td>
+      </tr>
+      <tr>
+        <th scope="row">Citric acid cycle (×2 turns)</th>
+        <td class="gal-num">2</td>
+        <td class="gal-num">6</td>
+        <td class="gal-num">2</td>
+        <td class="gal-num gal-sub" data-row="tca">—</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="gal-total-row">
+        <th scope="row">Grand total per glucose</th>
+        <td class="gal-num">4</td>
+        <td class="gal-num">10</td>
+        <td class="gal-num">2</td>
+        <td class="gal-num gal-grand" data-total>—</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <p class="gal-note">
+    <span data-conv>—</span> · <span data-shut>—</span>.
+    <span class="gal-foot-line">* The 2 cytosolic NADH from glycolysis can't cross the mitochondrial membrane directly — a shuttle moves their electrons in, and which shuttle decides whether they're cashed as NADH or as FADH₂.</span>
+  </p>
+
+  <p class="gal-why" data-why></p>
+
+  <p class="gal-foot">The famous "~38 ATP per glucose" is the old textbook number, built on round P/O ratios of 3 and 2. Measured proton stoichiometry gives the modern estimate of roughly 30–32, and the exact figure isn't a constant of nature — it depends on which shuttle a tissue uses and on the leakiness of the membrane. The lesson of this ledger isn't a number to memorize; it's that the cell does accounting, and the answer shifts with the assumptions you bring to the books.</p>
+</figure>
+
+<script>
+  type PO = 'modern' | 'classic';
+  type Shuttle = 'malate' | 'glycerol';
+
+  document.querySelectorAll<HTMLElement>('[data-glucledger]').forEach((root) => {
+    const poBtns = root.querySelectorAll<HTMLButtonElement>('[data-po]');
+    const shutBtns = root.querySelectorAll<HTMLButtonElement>('[data-shuttle]');
+    const glycCell = root.querySelector<HTMLElement>('[data-row="glyc"]')!;
+    const pdhCell = root.querySelector<HTMLElement>('[data-row="pdh"]')!;
+    const tcaCell = root.querySelector<HTMLElement>('[data-row="tca"]')!;
+    const totalCell = root.querySelector<HTMLElement>('[data-total]')!;
+    const convEl = root.querySelector<HTMLElement>('[data-conv]')!;
+    const shutEl = root.querySelector<HTMLElement>('[data-shut]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+
+    let po: PO = 'modern';
+    let shuttle: Shuttle = 'malate';
+
+    function render() {
+      const nadhYield = po === 'modern' ? 2.5 : 3;
+      const fadhYield = po === 'modern' ? 1.5 : 2;
+      // Per-stage ATP.
+      // Glycolysis: 2 substrate-level + its 2 cytosolic NADH, cashed per the shuttle.
+      const cytoNadhYield = shuttle === 'malate' ? nadhYield : fadhYield;
+      const glyc = 2 + 2 * cytoNadhYield;
+      const pdh = 2 * nadhYield;
+      const tca = 2 + 6 * nadhYield + 2 * fadhYield;
+      const total = glyc + pdh + tca;
+
+      const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+      glycCell.textContent = fmt(glyc);
+      pdhCell.textContent = fmt(pdh);
+      tcaCell.textContent = fmt(tca);
+      totalCell.textContent = `${fmt(total)} ATP`;
+
+      convEl.textContent = po === 'modern'
+        ? 'Modern P/O: NADH ≈ 2.5 ATP, FADH₂ ≈ 1.5 ATP'
+        : 'Classic P/O: NADH = 3 ATP, FADH₂ = 2 ATP';
+      shutEl.textContent = shuttle === 'malate'
+        ? 'malate–aspartate shuttle (glycolytic NADH enter as NADH)'
+        : 'glycerophosphate shuttle (glycolytic NADH enter as FADH₂)';
+
+      whyEl.textContent = total === 32
+        ? 'The standard modern textbook figure: ~32 ATP. Modern P/O ratios with the malate–aspartate shuttle (heart, liver) preserve the full reducing power of the glycolytic NADH.'
+        : total === 30
+          ? 'About 30 ATP — modern P/O, but the glycerophosphate shuttle (muscle, brain) downgrades the 2 glycolytic NADH to FADH₂, surrendering ~2 ATP for a faster, less reversible transfer.'
+          : total === 38
+            ? 'The classic "38 ATP" you may have memorized — round P/O ratios of 3 and 2 with the malate–aspartate shuttle. Historically standard, but it overestimates the real yield.'
+            : 'The classic convention with the glycerophosphate shuttle gives 36 — the older counterpart to the ~30 modern figure for muscle and brain.';
+    }
+
+    poBtns.forEach((b) => b.addEventListener('click', () => {
+      po = (b.dataset.po as PO);
+      poBtns.forEach((x) => x.classList.toggle('gal-on', x === b));
+      render();
+    }));
+    shutBtns.forEach((b) => b.addEventListener('click', () => {
+      shuttle = (b.dataset.shuttle as Shuttle);
+      shutBtns.forEach((x) => x.classList.toggle('gal-on', x === b));
+      render();
+    }));
+
+    render();
+  });
+</script>
+
+<style>
+  .gal { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gal-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gal-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gal-toggles { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .gal-toggles { grid-template-columns: repeat(2, 1fr); } }
+  .gal-tgroup { display: flex; flex-direction: column; gap: 0.25rem; }
+  .gal-tlabel { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gal-tbtns { display: flex; gap: 0.35rem; }
+  .gal-tbtns button { flex: 1; font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: var(--ddp-radius-sm); padding: 0.34rem 0.5rem; cursor: pointer; }
+  .gal-tbtns button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .gal-tbtns button.gal-on { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 700; }
+  .gal-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); margin-bottom: var(--ddp-space-3); }
+  .gal-table th, .gal-table td { padding: var(--ddp-space-2) var(--ddp-space-2); text-align: left; border-bottom: 1px solid var(--ddp-color-line); }
+  .gal-table thead th { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-muted); border-bottom: 2px solid var(--ddp-color-line); }
+  .gal-table tbody th { font-weight: 600; color: var(--ddp-color-primary); }
+  .gal-num { text-align: right; font-family: var(--ddp-font-mono); }
+  th.gal-num, td.gal-num { text-align: right; }
+  .gal-sub { color: var(--ddp-color-accent); font-weight: 700; }
+  .gal-total-row th, .gal-total-row td { border-bottom: none; border-top: 2px solid var(--ddp-color-line); font-weight: 700; color: var(--ddp-color-primary); padding-top: var(--ddp-space-2); }
+  .gal-grand { font-size: var(--ddp-text-lg); color: var(--ddp-color-accent); }
+  .gal-note { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .gal-foot-line { display: block; margin-top: 0.3rem; color: var(--ddp-color-muted); }
+  .gal-why { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gal-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

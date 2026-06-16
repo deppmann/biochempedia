@@ -1,0 +1,179 @@
+---
+/**
+ * CyclicVsLinear — the ATP:NADPH balancing companion to the ZSchemeHighway island. The Z-scheme
+ * traces electrons uphill through the energy diagram of linear flow; this island instead contrasts
+ * the two MODES the light reactions can run in and the bookkeeping problem that forces the chloroplast
+ * to use both. Toggle LINEAR (H2O → PSII → b6f → PSI → ferredoxin → NADP+: makes O2, NADPH, and some
+ * ATP) against CYCLIC (PSI only: ferredoxin loops electrons back to b6f, pumping protons for extra ATP
+ * — no NADPH, no O2). The readouts and the ATP:NADPH balance redraw against the Calvin cycle's 3:2
+ * demand, showing why pure linear flow runs short on ATP and the leaf tops it up with cyclic flow.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cvl card" data-cyclicflow>
+  <figcaption class="cvl-head">Linear vs cyclic flow — tuning the ATP:NADPH ratio<span class="cvl-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cvl-toggle" role="tablist" aria-label="Electron flow mode">
+    <button type="button" data-mode="linear" class="cvl-tab" role="tab">Linear (non-cyclic)</button>
+    <button type="button" data-mode="cyclic" class="cvl-tab" role="tab">Cyclic (PSI only)</button>
+  </div>
+
+  <svg class="cvl-svg" viewBox="0 0 460 200" role="img" data-svg></svg>
+
+  <div class="cvl-readouts">
+    <div class="cvl-prod"><span class="cvl-p-name">O₂ (water split)</span><span class="cvl-p-v" data-o2>—</span></div>
+    <div class="cvl-prod"><span class="cvl-p-name">NADPH</span><span class="cvl-p-v" data-nadph>—</span></div>
+    <div class="cvl-prod"><span class="cvl-p-name">ATP</span><span class="cvl-p-v" data-atp>—</span></div>
+  </div>
+
+  <div class="cvl-balance">
+    <span class="cvl-b-label">This mode delivers</span>
+    <strong class="cvl-b-ratio" data-ratio>—</strong>
+    <span class="cvl-b-demand">vs Calvin's demand of ~3 ATP : 2 NADPH per CO₂</span>
+  </div>
+
+  <p class="cvl-why" data-why></p>
+
+  <p class="cvl-foot">Two products, two jobs. Linear flow is the only mode that splits water and reduces NADP⁺, so it has to run — it is where the O₂ and all the NADPH come from. But the protons it pumps buy slightly less than the 3 ATP the Calvin cycle spends for every 2 NADPH it consumes, so a leaf living on linear flow alone would slowly run out of ATP. Cyclic flow is the fix: route PSI's electrons back through b6f, pump protons without touching NADP⁺, and make ATP with no NADPH on the side. The chloroplast dials in just enough cyclic flow to balance the books at 3:2 — the same trick as topping up one currency without minting the other.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Mode = 'linear' | 'cyclic';
+
+  function box(svg: SVGElement, x: number, label: string, color: string, dim: boolean) {
+    svg.appendChild(el('rect', { x, y: 78, width: 64, height: 44, rx: 8, fill: color, opacity: dim ? 0.06 : 0.14, stroke: color, 'stroke-width': 2, 'stroke-opacity': dim ? 0.3 : 1 }));
+    const t = el('text', { x: x + 32, y: 104, 'text-anchor': 'middle', fill: dim ? FAINT : color, 'font-size': 12, 'font-weight': 700 });
+    t.textContent = label; svg.appendChild(t);
+  }
+
+  function flowLine(svg: SVGElement, x1: number, y1: number, x2: number, y2: number, color: string, marker: string) {
+    svg.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 3, 'marker-end': `url(#${marker})` }));
+  }
+
+  function caption(svg: SVGElement, x: number, y: number, text: string, color: string) {
+    const t = el('text', { x, y, 'text-anchor': 'middle', fill: color, 'font-size': 10, 'font-weight': 600 });
+    t.textContent = text; svg.appendChild(t);
+  }
+
+  function draw(svg: SVGElement, mode: Mode) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // shared markers
+    const defs = el('defs', {});
+    const mk = (id: string, color: string) => {
+      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+      m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: color }));
+      return m;
+    };
+    defs.appendChild(mk('cvl-ar-acc', ACCENT));
+    defs.appendChild(mk('cvl-ar-org', ORANGE));
+    defs.appendChild(mk('cvl-ar-gold', GOLD));
+    svg.appendChild(defs);
+
+    // four stations along the path
+    const cyclic = mode === 'cyclic';
+    box(svg, 14, 'PSII', ORANGE, cyclic);   // dimmed in cyclic mode
+    box(svg, 138, 'b6f', GOLD, false);
+    box(svg, 262, 'PSI', ACCENT, false);
+    box(svg, 386, 'Fd', NAVY, false);        // ferredoxin
+
+    // water in (only linear)
+    if (!cyclic) {
+      flowLine(svg, 46, 60, 46, 78, ACCENT, 'cvl-ar-acc');
+      caption(svg, 46, 50, 'H₂O → O₂', ACCENT);
+      // PSII -> b6f
+      flowLine(svg, 78, 100, 138, 100, ACCENT, 'cvl-ar-acc');
+    }
+    // b6f -> PSI (both modes)
+    flowLine(svg, 202, 100, 262, 100, ACCENT, 'cvl-ar-acc');
+    // PSI -> Fd (both modes)
+    flowLine(svg, 326, 100, 386, 100, ACCENT, 'cvl-ar-acc');
+
+    if (cyclic) {
+      // Fd loops BACK to b6f over the top
+      svg.appendChild(el('path', { d: 'M 418 78 C 418 30, 170 30, 170 78', fill: 'none', stroke: ORANGE, 'stroke-width': 3, 'marker-end': 'url(#cvl-ar-org)' }));
+      caption(svg, 294, 26, 'electrons loop back — extra H⁺ pumped → ATP', ORANGE);
+      // no NADP+ exit; label it
+      caption(svg, 418, 150, 'NADP⁺ untouched', FAINT);
+    } else {
+      // Fd -> NADP+ exit (down)
+      flowLine(svg, 418, 122, 418, 150, NAVY, 'cvl-ar-gold');
+      caption(svg, 418, 168, 'NADP⁺ → NADPH', NAVY);
+    }
+
+    // proton/ATP note from b6f (both modes pump some; cyclic pumps more)
+    flowLine(svg, 170, 122, 170, 150, GOLD, 'cvl-ar-gold');
+    caption(svg, 170, 168, cyclic ? 'more H⁺ → more ATP' : 'H⁺ gradient → ATP', GOLD);
+
+    // mode title baseline
+    const title = el('text', { x: 230, y: 192, 'text-anchor': 'middle', fill: INK, 'font-size': 11, 'font-weight': 700 });
+    title.textContent = cyclic ? 'CYCLIC: PSI only — ATP, no NADPH, no O₂' : 'LINEAR: H₂O → PSII → b6f → PSI → Fd → NADP⁺';
+    svg.appendChild(title);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-cyclicflow]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const tabs = root.querySelectorAll<HTMLButtonElement>('[data-mode]');
+    const o2El = root.querySelector<HTMLElement>('[data-o2]')!;
+    const nadphEl = root.querySelector<HTMLElement>('[data-nadph]')!;
+    const atpEl = root.querySelector<HTMLElement>('[data-atp]')!;
+    const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    let mode: Mode = 'linear';
+
+    function render() {
+      const cyclic = mode === 'cyclic';
+      tabs.forEach((t) => t.classList.toggle('cvl-active', t.dataset.mode === mode));
+      draw(svg, mode);
+
+      o2El.textContent = cyclic ? 'none' : 'yes — from splitting water';
+      o2El.className = cyclic ? 'cvl-p-v cvl-no' : 'cvl-p-v cvl-yes';
+      nadphEl.textContent = cyclic ? 'none' : 'yes';
+      nadphEl.className = cyclic ? 'cvl-p-v cvl-no' : 'cvl-p-v cvl-yes';
+      atpEl.textContent = cyclic ? 'yes — extra (the whole point)' : 'yes — but short of demand';
+      atpEl.className = 'cvl-p-v cvl-yes';
+
+      ratioEl.textContent = cyclic ? 'ATP only — 0 NADPH' : '~2.6 ATP : 2 NADPH (short on ATP)';
+
+      whyEl.textContent = cyclic
+        ? 'Cyclic flow runs PSI alone. Ferredoxin hands its electrons back to cytochrome b6f instead of to NADP⁺, so the electrons go around in a loop, pumping protons each pass. The product is ATP — and only ATP. No water is split, so no O₂; nothing reaches NADP⁺, so no NADPH. This is the dial the chloroplast turns when it needs ATP without making more reducing power.'
+        : 'Linear flow is the workhorse: water is split at PSII (releasing O₂), electrons run downhill through b6f to PSI and on to ferredoxin, which reduces NADP⁺ to NADPH. The proton gradient built along the way also makes ATP. But the ATP it yields per NADPH falls just short of the 3:2 the Calvin cycle demands — which is exactly why pure linear flow cannot pay the carbon-fixing bill on its own.';
+    }
+
+    tabs.forEach((t) => t.addEventListener('click', () => { mode = (t.dataset.mode as Mode); render(); }));
+    render();
+  });
+</script>
+
+<style>
+  .cvl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cvl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .cvl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cvl-toggle { display: flex; gap: 0.4rem; margin-bottom: var(--ddp-space-2); }
+  .cvl-tab { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: var(--ddp-radius-sm); padding: 0.34rem 0.8rem; cursor: pointer; }
+  .cvl-tab:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .cvl-tab.cvl-active { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 700; }
+  .cvl-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .cvl-readouts { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .cvl-readouts { grid-template-columns: repeat(3, 1fr); } }
+  .cvl-prod { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .cvl-p-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cvl-p-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .cvl-yes { color: #2e8b57; }
+  .cvl-no { color: #c0392b; }
+  .cvl-balance { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; margin-bottom: var(--ddp-space-3); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-secondary) 10%, transparent); border-radius: 6px; }
+  .cvl-b-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cvl-b-ratio { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .cvl-b-demand { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cvl-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cvl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

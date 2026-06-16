@@ -1,0 +1,185 @@
+---
+/**
+ * GiTractEnzymeBar — the pH/location companion to the DigestionLanes island. DigestionLanes
+ * traces the macronutrient breakdown sequence (carb/protein/fat → monomers); this island
+ * answers a different question: where, and at what pH, does each digestive enzyme actually
+ * work? Drag the location slider down the GI tract (Mouth → Stomach → Small intestine), watch
+ * the local pH swing from ~6.8 to ~1.8 to ~8, and see each enzyme light up or dim against its
+ * own pH optimum. The teaching point: every enzyme's optimum is matched to its compartment.
+ * Stomach acid both ACTIVATES pepsin and irreversibly DENATURES salivary amylase; pancreatic
+ * bicarbonate then resets the pH so the intestinal enzymes can run. Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+---
+
+<figure class="get card" data-gitract>
+  <figcaption class="get-head">Where (and at what pH) does each digestive enzyme work?<span class="get-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="get-stage">
+    <span class="get-loc" data-locname>Stomach</span>
+    <span class="get-ph">local pH <strong data-ph>1.8</strong></span>
+  </div>
+
+  <label class="get-slabel">Position along the GI tract <em data-out="loc">Stomach</em>
+    <input type="range" data-in="loc" min="0" max="2" step="1" value="1" />
+    <span class="get-ticks"><span>Mouth</span><span>Stomach</span><span>Small intestine</span></span>
+  </label>
+
+  <ul class="get-bars" data-bars></ul>
+
+  <p class="get-why" data-why></p>
+
+  <p class="get-foot">There is no single "best" pH for digestion — each enzyme is tuned to the compartment it works in. Salivary amylase starts on starch at the near-neutral pH of the mouth, then the stomach's acid bath denatures it for good while switching pepsin on. Once the chyme reaches the duodenum, pancreatic bicarbonate neutralizes the acid back to ~8, which is exactly where pancreatic amylase, trypsin, chymotrypsin, and lipase do their best work. Match the enzyme to its pH, and you have matched it to its place.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const GREEN = '#2e8b57';
+
+  type Loc = { name: string; ph: number; why: string };
+  const LOCS: Loc[] = [
+    { name: 'Mouth', ph: 6.8, why: 'Mouth, pH ~6.8: salivary amylase begins breaking down starch at near-neutral pH. Nothing acid-loving works here yet — pepsin needs an acid bath it will not get until the stomach.' },
+    { name: 'Stomach', ph: 1.8, why: 'Stomach, pH ~1.8: the acid bath activates pepsin (its optimum is ~1.5–2, alone among these enzymes) and irreversibly DENATURES the salivary amylase that arrived from the mouth. The pancreatic enzymes cannot tolerate this pH.' },
+    { name: 'Small intestine', ph: 8.0, why: 'Small intestine, pH ~8: pancreatic bicarbonate has neutralized the stomach acid, resetting the pH to where pancreatic amylase, trypsin, chymotrypsin, and lipase all work best. Pepsin, the acid-lover, is now switched off.' },
+  ];
+
+  type Enzyme = { name: string; opt: string; color: string; active: boolean[]; denatured: boolean[]; tag: (i: number) => string };
+  // active/denatured indexed by location: [Mouth, Stomach, Small intestine]
+  const ENZYMES: Enzyme[] = [
+    {
+      name: 'Salivary amylase', opt: 'optimum ~6.8', color: ORANGE,
+      active: [true, false, false], denatured: [false, true, true],
+      tag: (i) => i === 0 ? 'active — digesting starch' : 'irreversibly denatured by acid',
+    },
+    {
+      name: 'Pepsin', opt: 'optimum ~1.5–2', color: GOLD,
+      active: [false, true, false], denatured: [false, false, false],
+      tag: (i) => i === 1 ? 'active — the lone acid-lover' : 'inactive (needs acid)',
+    },
+    {
+      name: 'Pancreatic amylase', opt: 'optimum ~7–8', color: ACCENT,
+      active: [false, false, true], denatured: [false, false, false],
+      tag: (i) => i === 2 ? 'active — finishing starch' : 'not secreted here yet',
+    },
+    {
+      name: 'Trypsin', opt: 'optimum ~7–8', color: ACCENT,
+      active: [false, false, true], denatured: [false, false, false],
+      tag: (i) => i === 2 ? 'active — cleaving proteins' : 'not secreted here yet',
+    },
+    {
+      name: 'Chymotrypsin', opt: 'optimum ~7–8', color: ACCENT,
+      active: [false, false, true], denatured: [false, false, false],
+      tag: (i) => i === 2 ? 'active — cleaving proteins' : 'not secreted here yet',
+    },
+    {
+      name: 'Pancreatic lipase', opt: 'optimum ~7–8', color: ACCENT,
+      active: [false, false, true], denatured: [false, false, false],
+      tag: (i) => i === 2 ? 'active — splitting fats' : 'not secreted here yet',
+    },
+  ];
+
+  function buildBars(list: HTMLElement) {
+    for (const enz of ENZYMES) {
+      const li = document.createElement('li');
+      li.className = 'get-bar';
+      const head = document.createElement('div');
+      head.className = 'get-bar-head';
+      const nm = document.createElement('span');
+      nm.className = 'get-bar-name';
+      nm.textContent = enz.name;
+      const opt = document.createElement('span');
+      opt.className = 'get-bar-opt';
+      opt.textContent = enz.opt;
+      head.appendChild(nm);
+      head.appendChild(opt);
+      const track = document.createElement('div');
+      track.className = 'get-bar-track';
+      const fill = document.createElement('div');
+      fill.className = 'get-bar-fill';
+      track.appendChild(fill);
+      const tag = document.createElement('span');
+      tag.className = 'get-bar-tag';
+      li.appendChild(head);
+      li.appendChild(track);
+      li.appendChild(tag);
+      list.appendChild(li);
+    }
+  }
+
+  function paint(list: HTMLElement, i: number) {
+    const bars = list.querySelectorAll<HTMLElement>('.get-bar');
+    bars.forEach((bar, b) => {
+      const enz = ENZYMES[b];
+      const fill = bar.querySelector<HTMLElement>('.get-bar-fill')!;
+      const tag = bar.querySelector<HTMLElement>('.get-bar-tag')!;
+      const denatured = enz.denatured[i];
+      const active = enz.active[i];
+      if (active) {
+        fill.style.width = '100%';
+        fill.style.background = enz.color;
+        fill.style.opacity = '1';
+        tag.style.color = GREEN;
+      } else if (denatured) {
+        fill.style.width = '18%';
+        fill.style.background = '#c0392b';
+        fill.style.opacity = '0.45';
+        tag.style.color = '#c0392b';
+      } else {
+        fill.style.width = '18%';
+        fill.style.background = FAINT;
+        fill.style.opacity = '0.5';
+        tag.style.color = INK;
+      }
+      bar.style.opacity = active ? '1' : '0.62';
+      tag.textContent = enz.tag(i);
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-gitract]').forEach((root) => {
+    const locIn = root.querySelector<HTMLInputElement>('[data-in="loc"]')!;
+    const locOut = root.querySelector<HTMLElement>('[data-out="loc"]')!;
+    const locName = root.querySelector<HTMLElement>('[data-locname]')!;
+    const phEl = root.querySelector<HTMLElement>('[data-ph]')!;
+    const barsEl = root.querySelector<HTMLElement>('[data-bars]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+
+    buildBars(barsEl);
+
+    function render() {
+      const i = parseInt(locIn.value, 10);
+      const loc = LOCS[i];
+      locOut.textContent = loc.name;
+      locName.textContent = loc.name;
+      phEl.textContent = loc.ph.toFixed(1);
+      phEl.style.color = loc.ph < 4 ? '#c0392b' : loc.ph > 7.4 ? ACCENT : NAVY;
+      paint(barsEl, i);
+      whyEl.textContent = loc.why;
+    }
+    locIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .get { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .get-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .get-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .get-stage { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-2); }
+  .get-loc { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
+  .get-ph { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .get-ph strong { font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .get-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
+  .get-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .get-slabel input { accent-color: var(--ddp-color-accent); }
+  .get-ticks { display: flex; justify-content: space-between; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .get-bars { list-style: none; margin: 0 0 var(--ddp-space-3); padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); }
+  .get-bar { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); transition: opacity 0.15s; }
+  .get-bar-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.3rem; }
+  .get-bar-name { font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .get-bar-opt { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .get-bar-track { height: 9px; border-radius: 999px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); overflow: hidden; }
+  .get-bar-fill { height: 100%; width: 18%; border-radius: 999px; transition: width 0.18s ease, background 0.18s, opacity 0.18s; }
+  .get-bar-tag { display: block; margin-top: 0.28rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .get-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .get-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

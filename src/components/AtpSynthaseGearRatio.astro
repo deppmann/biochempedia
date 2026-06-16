@@ -1,0 +1,149 @@
+---
+/**
+ * AtpSynthaseGearRatio — the rotary-stoichiometry companion to the ProtonMotiveDam island.
+ * That one perturbs the proton-motive force and the coupling; this one isolates the gearbox.
+ * ATP synthase is a literal molecular gear train: the Fo c-ring turns one notch per proton, and
+ * one full 360° turn drives the F1 head through 3 catalytic β-subunit cycles — so 3 ATP per turn.
+ * That makes the proton cost of ATP = (c-subunits in the ring) / 3. But the ring size VARIES across
+ * life — mammal c8, yeast c10, spinach chloroplast c14 — so the H+/ATP "gear ratio" is a real,
+ * measurable, species-varying number, not a universal constant. Slide the ring size and watch the
+ * ratio, the efficiency framing, and the ATP yield from one NADH's proton budget. Original.
+ */
+---
+
+<figure class="agr card" data-gearratio>
+  <figcaption class="agr-head">ATP synthase as a molecular gearbox<span class="agr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="agr-svg" viewBox="0 0 460 220" role="img" data-svg></svg>
+
+  <div class="agr-presets">
+    <span class="agr-presets-label">Species:</span>
+    <button type="button" data-preset="8">Mammal · c8</button>
+    <button type="button" data-preset="10">Yeast · c10</button>
+    <button type="button" data-preset="14">Chloroplast · c14</button>
+  </div>
+
+  <label class="agr-slabel">c-ring size <em data-out="cnum">8</em> c-subunits
+    <input type="range" data-in="cnum" min="8" max="15" step="1" value="8" />
+  </label>
+
+  <div class="agr-ledger">
+    <div class="agr-cell"><span class="agr-c-name">Full turn → catalytic cycles</span><span class="agr-c-v" data-turns>3 ATP / 360° turn</span></div>
+    <div class="agr-cell"><span class="agr-c-name">Proton cost (gear ratio)</span><span class="agr-c-v agr-hi" data-ratio>2.7 H⁺ / ATP</span></div>
+    <div class="agr-cell"><span class="agr-c-name">ATP from one NADH (~10 H⁺)</span><span class="agr-c-v" data-yield>3.8 ATP</span></div>
+  </div>
+  <p class="agr-why" data-why></p>
+
+  <p class="agr-foot">The "P/O ratio" you memorized as a constant is really a gear ratio you can read off the hardware. A smaller c-ring (mammal c8 ≈ 2.7 H⁺/ATP) is a high-yield gearbox — fewer protons per ATP — but it needs a steeper proton-motive force to crank, like a low gear on a hill. A bigger ring (spinach c14 ≈ 4.7) spends more protons per ATP yet turns at a gentler Δp. Same machine, different transmission — and evolution tuned each one to the membrane it lives in.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  const H_PER_NADH = 10; // protons pumped per NADH down the electron transport chain
+
+  function draw(svg: SVGElement, c: number) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // membrane band
+    svg.appendChild(el('rect', { x: 0, y: 96, width: 235, height: 50, fill: ACCENT, opacity: 0.08 }));
+    const ml = el('text', { x: 8, y: 92, fill: FAINT, 'font-size': 9 }); ml.textContent = 'inner membrane'; svg.appendChild(ml);
+
+    // Fo c-ring: N subunits evenly spaced around a circle, one notch per proton
+    const cx = 118, cy = 121, R = 40;
+    svg.appendChild(el('circle', { cx, cy, r: R, fill: 'none', stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+    for (let i = 0; i < c; i++) {
+      const ang = (i / c) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + R * Math.cos(ang), y = cy + R * Math.sin(ang);
+      svg.appendChild(el('circle', { cx: x, cy: y, r: 9, fill: ORANGE, opacity: 0.9, stroke: '#fff', 'stroke-width': 1.5 }));
+    }
+    const ct = el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: NAVY, 'font-size': 13, 'font-weight': 700, 'font-family': 'monospace' });
+    ct.textContent = 'c' + c; svg.appendChild(ct);
+    const fl = el('text', { x: cx, y: cy + R + 22, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10, 'font-weight': 600 });
+    fl.textContent = 'Fo c-ring — 1 notch / H⁺'; svg.appendChild(fl);
+
+    // proton entering (one notch)
+    svg.appendChild(el('text', { x: cx, y: 56, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 11, 'font-weight': 700 })).textContent = 'H⁺ →';
+
+    // central shaft connecting Fo to F1
+    svg.appendChild(el('line', { x1: cx + R + 6, y1: cy, x2: 300, y2: cy, stroke: NAVY, 'stroke-width': 5 }));
+    svg.appendChild(el('text', { x: 245, y: cy - 6, 'text-anchor': 'middle', fill: NAVY, 'font-size': 9 })).textContent = 'γ shaft';
+
+    // F1 head: 3 catalytic β-subunits = 3 ATP per turn
+    const hx = 358, hy = cy;
+    svg.appendChild(el('circle', { cx: hx, cy: hy, r: 34, fill: NAVY, opacity: 0.1, stroke: NAVY, 'stroke-width': 1.5 }));
+    const labels = ['β', 'β', 'β'];
+    for (let i = 0; i < 3; i++) {
+      const ang = (i / 3) * Math.PI * 2 - Math.PI / 2;
+      const x = hx + 18 * Math.cos(ang), y = hy + 18 * Math.sin(ang);
+      svg.appendChild(el('circle', { cx: x, cy: y, r: 12, fill: GOLD, opacity: 0.9, stroke: '#fff', 'stroke-width': 1.5 }));
+      svg.appendChild(el('text', { x, y: y + 4, 'text-anchor': 'middle', fill: NAVY, 'font-size': 11, 'font-weight': 700 })).textContent = labels[i];
+    }
+    svg.appendChild(el('text', { x: hx, y: hy + 52, 'text-anchor': 'middle', fill: GOLD, 'font-size': 10, 'font-weight': 600 })).textContent = 'F1 head — 3 ATP / turn';
+
+    // ATP out
+    svg.appendChild(el('text', { x: hx, y: 30, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 12, 'font-weight': 700 })).textContent = '↑ 3 ATP';
+
+    // gear-ratio readout strip across the bottom
+    const ratio = c / 3;
+    const gr = el('text', { x: 230, y: 206, 'text-anchor': 'middle', fill: INK, 'font-size': 11, 'font-family': 'monospace' });
+    gr.textContent = `${c} H⁺  ÷  3 ATP  =  ${ratio.toFixed(1)} H⁺ / ATP`; svg.appendChild(gr);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-gearratio]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const cIn = root.querySelector<HTMLInputElement>('[data-in="cnum"]')!;
+    const cOut = root.querySelector<HTMLElement>('[data-out="cnum"]')!;
+    const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
+    const yieldEl = root.querySelector<HTMLElement>('[data-yield]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const presetBtns = root.querySelectorAll<HTMLButtonElement>('[data-preset]');
+
+    function render() {
+      const c = parseInt(cIn.value, 10);
+      cOut.textContent = String(c);
+      const ratio = c / 3;
+      ratioEl.textContent = `${ratio.toFixed(1)} H⁺ / ATP`;
+      yieldEl.textContent = `${(H_PER_NADH / ratio).toFixed(1)} ATP`;
+      presetBtns.forEach((b) => b.classList.toggle('is-on', parseInt(b.dataset.preset!, 10) === c));
+      whyEl.textContent = c <= 8
+        ? `Mammalian mitochondria run the smallest known ring (c8). At ${ratio.toFixed(1)} H⁺/ATP this is the highest-yield gearbox in the lineup — one NADH's ~10 protons buy about ${(H_PER_NADH / ratio).toFixed(1)} ATP — but it only turns if the membrane holds a steep proton-motive force.`
+        : c <= 11
+          ? `A mid-sized ring (yeast and E. coli sit near c10). At ${ratio.toFixed(1)} H⁺/ATP the gearbox spends a few more protons per ATP than the mammalian c8, and one NADH yields roughly ${(H_PER_NADH / ratio).toFixed(1)} ATP.`
+          : `A large ring — the spinach chloroplast runs c14, and some bacteria push to c15. At ${ratio.toFixed(1)} H⁺/ATP this is a low-yield, low-torque gearbox: it costs more protons per ATP (one NADH-budget makes only ~${(H_PER_NADH / ratio).toFixed(1)} ATP) but it can turn at the gentler Δp these membranes maintain.`;
+      draw(svg, c);
+    }
+
+    cIn.addEventListener('input', render);
+    presetBtns.forEach((b) => b.addEventListener('click', () => { cIn.value = b.dataset.preset!; render(); }));
+    render();
+  });
+</script>
+
+<style>
+  .agr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .agr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .agr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .agr-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .agr-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: var(--ddp-space-2); }
+  .agr-presets-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .agr-presets button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; }
+  .agr-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .agr-presets button.is-on { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); color: var(--ddp-color-primary); font-weight: 600; }
+  .agr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
+  .agr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .agr-slabel input { accent-color: var(--ddp-color-accent); }
+  .agr-ledger { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .agr-ledger { grid-template-columns: repeat(3, 1fr); } }
+  .agr-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .agr-c-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .agr-c-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .agr-hi { color: var(--ddp-color-accent); }
+  .agr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .agr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

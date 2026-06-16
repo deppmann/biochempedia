@@ -1,0 +1,175 @@
+---
+/**
+ * CarbonOxidationLadder — the oxidation-state companion to the EnergyEconomyBench island. Where
+ * the bench is about coupling reactions and energy charge, this island is about WHY fuels differ
+ * in energy density. It stacks biomolecules as rungs on a vertical ladder, ordered by the average
+ * oxidation state of their carbons: most reduced at the top (palmitate, ≈ −2 per C; methane −4 as
+ * a reference), down through glucose (0 average), pyruvate, acetate, to fully oxidized CO2 (+4) at
+ * the bottom. Click a rung to read its average carbon oxidation state and its energy on full
+ * oxidation. The teaching point: cellular fuel metabolism is controlled oxidation — the further a
+ * fuel sits from CO2, the more electrons it can surrender and the more energy it releases. That is
+ * why fat (most reduced) packs ~9 kcal/g while carbohydrate and protein store ~4 kcal/g.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cox card" data-coxladder>
+  <figcaption class="cox-head">The carbon oxidation ladder — oxidation is energy<span class="cox-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cox-grid">
+    <div class="cox-ladder" data-ladder role="list" aria-label="Biomolecules ordered by average carbon oxidation state">
+      <span class="cox-pole cox-pole-top">most reduced · electron-rich · most energy</span>
+      <span class="cox-pole cox-pole-bot">most oxidized · electron-poor · no energy left</span>
+    </div>
+
+    <div class="cox-detail" data-detail>
+      <span class="cox-d-name" data-name></span>
+      <div class="cox-d-row"><span class="cox-d-key">Average C oxidation state</span><span class="cox-d-val" data-ox></span></div>
+      <div class="cox-d-row"><span class="cox-d-key">Energy density (full oxidation)</span><span class="cox-d-val" data-kcal></span></div>
+      <div class="cox-d-row"><span class="cox-d-key">Distance from CO₂</span><span class="cox-d-val" data-dist></span></div>
+      <div class="cox-bar" aria-hidden="true"><span class="cox-bar-fill" data-bar></span></div>
+      <p class="cox-note" data-note></p>
+    </div>
+  </div>
+
+  <p class="cox-why" data-why></p>
+
+  <p class="cox-foot">Burning a fuel means stripping electrons off its carbons and handing them, ultimately, to oxygen — and every electron handed down that chain pays out ATP. A carbon already at +4 (CO₂) has nothing left to give, so it is metabolic ash. A carbon near −2 (the long reduced chain of a fatty acid) is loaded with electrons, which is why a gram of fat yields more than twice the energy of a gram of carbohydrate or protein. Energy density is just distance from CO₂.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+
+  type Rung = { name: string; sub: string; ox: number; oxLabel: string; kcal: number; kcalLabel: string; ref: boolean; note: string };
+  // Ordered most-reduced (top) → most-oxidized (bottom). ox = average carbon oxidation state.
+  const RUNGS: Rung[] = [
+    { name: 'Methane (CH₄)', sub: 'reference — not a cellular fuel', ox: -4, oxLabel: '−4', kcal: 13.3, kcalLabel: '≈ 13 kcal/g', ref: true,
+      note: 'The most reduced carbon possible — every bond is to hydrogen. Shown only as the floor of the scale; cells do not burn methane, but it marks where "fully reduced" lives.' },
+    { name: 'Palmitate (fatty acid)', sub: 'fat — the body’s energy store', ox: -2, oxLabel: '≈ −2', kcal: 9, kcalLabel: '9 kcal/g', ref: false,
+      note: 'A long chain of −CH₂− carbons sitting near −2 on average. This deep reduction is exactly why fat is the densest fuel the body keeps — about 9 kcal/g, more than double sugar.' },
+    { name: 'Glucose (carbohydrate)', sub: 'blood sugar — the fast fuel', ox: 0, oxLabel: '0', kcal: 4, kcalLabel: '4 kcal/g', ref: false,
+      note: 'Each carbon already carries an oxygen, so the average oxidation state is right at zero — halfway between fully reduced fat and fully oxidized CO₂. Fewer electrons to give up than fat, hence ~4 kcal/g.' },
+    { name: 'Pyruvate', sub: 'glycolysis product', ox: 0.67, oxLabel: '≈ +0.7', kcal: 2.9, kcalLabel: '≈ 2.9 kcal/g', ref: false,
+      note: 'Three carbons, already partly oxidized on the way down from glucose. Closer to CO₂ than glucose is, so less energy remains to extract.' },
+    { name: 'Acetate / Acetyl-CoA', sub: 'the carbon that enters the TCA cycle', ox: 0, oxLabel: '0 (avg)', kcal: 3.5, kcalLabel: '≈ 3.5 kcal/g', ref: false,
+      note: 'Two carbons whose oxidation states average to zero (one methyl near −3, one carboxyl near +3). This is the universal hand-off point: whatever the fuel, its carbons funnel through here on their way to CO₂.' },
+    { name: 'Carbon dioxide (CO₂)', sub: 'fully oxidized — metabolic ash', ox: 4, oxLabel: '+4', kcal: 0, kcalLabel: '0 kcal/g', ref: false,
+      note: 'The most oxidized carbon there is — every bond is to oxygen, no electrons left to surrender. This is where all fuel carbons end up, and the reason it cannot be burned for energy: there is nothing left to take.' },
+  ];
+
+  const OX_MIN = -4, OX_MAX = 4; // for the energy bar: energy ∝ distance above CO₂
+
+  document.querySelectorAll<HTMLElement>('[data-coxladder]').forEach((root) => {
+    const ladder = root.querySelector<HTMLElement>('[data-ladder]')!;
+    const nameEl = root.querySelector<HTMLElement>('[data-name]')!;
+    const oxEl = root.querySelector<HTMLElement>('[data-ox]')!;
+    const kcalEl = root.querySelector<HTMLElement>('[data-kcal]')!;
+    const distEl = root.querySelector<HTMLElement>('[data-dist]')!;
+    const barEl = root.querySelector<HTMLElement>('[data-bar]')!;
+    const noteEl = root.querySelector<HTMLElement>('[data-note]')!;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+
+    const buttons: HTMLButtonElement[] = [];
+
+    function colorFor(r: Rung): string {
+      if (r.ref) return FAINT;
+      if (r.ox <= -2) return ORANGE;   // most reduced cellular fuel
+      if (r.ox < 0.5) return GOLD;     // glucose / acetate
+      if (r.ox < 4) return ACCENT;     // pyruvate
+      return NAVY;                     // CO2
+    }
+
+    function select(idx: number) {
+      const r = RUNGS[idx];
+      buttons.forEach((b, j) => {
+        const on = j === idx;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      nameEl.textContent = r.name;
+      oxEl.textContent = r.oxLabel + ' per carbon';
+      kcalEl.textContent = r.kcal > 0 ? r.kcalLabel : 'none — fully oxidized';
+      const dist = r.ox - OX_MAX; // negative = below CO2 on the oxidation scale
+      distEl.textContent = r.ox >= OX_MAX
+        ? 'at CO₂ — the bottom of the ladder'
+        : `${Math.abs(dist).toFixed(1)} oxidation units below CO₂`;
+      // energy bar: fraction of the full reduced→oxidized span still available
+      const frac = (OX_MAX - r.ox) / (OX_MAX - OX_MIN); // 0 at CO2, 1 at methane
+      barEl.style.width = `${Math.round(frac * 100)}%`;
+      barEl.style.background = colorFor(r);
+      noteEl.textContent = r.note;
+      whyEl.textContent = r.ox >= OX_MAX
+        ? 'CO₂ is the end of the line: its carbon is maxed out at +4, so there are no electrons left to feed the chain and no ATP left to make. Every fuel below is just a carbon that has not yet fallen this far.'
+        : r.ox <= -2
+          ? 'This fuel’s carbons sit far above CO₂ — a deep reservoir of electrons. The cell oxidizes them step by step, banking ATP at each handoff. Maximum distance from CO₂ means maximum energy, which is why fat is the body’s long-term store.'
+          : 'A middle rung: partly oxidized already, so some electrons have been spent but more remain. Its energy density tracks exactly how far it still sits above CO₂.';
+    }
+
+    RUNGS.forEach((r, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cox-rung';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-pressed', 'false');
+      btn.style.borderLeftColor = colorFor(r);
+      const dot = document.createElement('span');
+      dot.className = 'cox-rung-ox';
+      dot.style.background = colorFor(r);
+      dot.style.color = '#fff';
+      dot.textContent = r.oxLabel;
+      const txt = document.createElement('span');
+      txt.className = 'cox-rung-txt';
+      const nm = document.createElement('span');
+      nm.className = 'cox-rung-name';
+      nm.textContent = r.name;
+      const sb = document.createElement('span');
+      sb.className = 'cox-rung-sub';
+      sb.textContent = r.sub;
+      txt.appendChild(nm);
+      txt.appendChild(sb);
+      const kc = document.createElement('span');
+      kc.className = 'cox-rung-kcal';
+      kc.style.color = r.kcal > 0 ? INK : FAINT;
+      kc.textContent = r.kcalLabel;
+      btn.appendChild(dot);
+      btn.appendChild(txt);
+      btn.appendChild(kc);
+      btn.addEventListener('click', () => select(i));
+      buttons.push(btn);
+      // insert before the bottom pole label (last child)
+      ladder.insertBefore(btn, ladder.lastElementChild);
+    });
+
+    select(1); // open on palmitate — the headline "fat is densest" case
+  });
+</script>
+
+<style>
+  .cox { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cox-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .cox-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cox-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 620px) { .cox-grid { grid-template-columns: 1.15fr 1fr; align-items: start; } }
+  .cox-ladder { display: flex; flex-direction: column; gap: var(--ddp-space-1); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; }
+  .cox-pole { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-align: center; }
+  .cox-pole-top { margin-bottom: var(--ddp-space-1); }
+  .cox-pole-bot { margin-top: var(--ddp-space-1); }
+  .cox-rung { display: flex; align-items: center; gap: var(--ddp-space-2); width: 100%; text-align: left; font-family: inherit; background: #fff; border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: 0.4rem var(--ddp-space-2); cursor: pointer; transition: border-color 0.12s, box-shadow 0.12s; }
+  .cox-rung:hover { border-color: var(--ddp-color-accent); }
+  .cox-rung.is-active { border-color: var(--ddp-color-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ddp-color-accent) 25%, transparent); }
+  .cox-rung-ox { flex: none; min-width: 2.6rem; text-align: center; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; border-radius: var(--ddp-radius-sm); padding: 0.15rem 0.2rem; }
+  .cox-rung-txt { display: flex; flex-direction: column; gap: 0.05rem; flex: 1 1 auto; min-width: 0; }
+  .cox-rung-name { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .cox-rung-sub { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cox-rung-kcal { flex: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; }
+  .cox-detail { border: 1px solid var(--ddp-color-line); border-radius: 8px; padding: var(--ddp-space-3); display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .cox-d-name { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
+  .cox-d-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .cox-d-key { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cox-d-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-accent); text-align: right; }
+  .cox-bar { width: 100%; height: 0.5rem; background: color-mix(in srgb, var(--ddp-color-muted) 22%, transparent); border-radius: 999px; overflow: hidden; }
+  .cox-bar-fill { display: block; height: 100%; width: 0%; border-radius: 999px; transition: width 0.18s ease; }
+  .cox-note { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .cox-why { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cox-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

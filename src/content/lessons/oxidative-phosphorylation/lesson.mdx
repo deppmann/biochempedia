@@ -133,6 +133,10 @@ simulations:
     ref: "ProtonGradientBattery"
     title: "The proton-gradient battery — a cross-section of the inner membrane: run electrons through Complexes I→III→IV to charge the gradient, mint ATP, then add an uncoupler and watch ATP collapse while electrons keep flowing as heat"
     attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+  - type: "local"
+    ref: "GlucoseAtpLedger"
+    title: "Total-ATP ledger (sum one glucose all the way to CO₂; toggle the P/O convention and the NADH shuttle to see why the answer is ~30–32, not the old 38)"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
 practiceQuestions:
   - stem: "In Mitchell's chemiosmotic model, where is the energy from electron transport stored before it is used to make ATP?"
     choices:
@@ -334,6 +338,7 @@ lectureSlides:
 ---
 
 import ProtonGradientBattery from '../../../components/ProtonGradientBattery.astro';
+import GlucoseAtpLedger from '../../../components/GlucoseAtpLedger.astro';
 
 **Cyanide kills in minutes, and the reason is one enzyme at the very bottom of the electron-transport chain.** Block that last step and electrons have nowhere to fall, the whole chain backs up, the proton gradient collapses, and a cell that runs on oxygen suffocates from the inside while surrounded by air. To understand why a single blocked step is lethal that fast, you have to understand what the chain is actually doing, and the central idea is simpler and stranger than most students expect.
 
@@ -366,6 +371,8 @@ Cryo-EM now shows these complexes assembling into **supercomplexes** (the respir
 Now the accounting that earns the central idea. Pumping protons charges a battery, the proton-motive force. ATP synthase discharges it. The exchange rate, including the cost of importing ADP and exporting ATP across the membrane, runs about 4 protons per ATP.
 
 NADH drives all three pumps, so it banks roughly 10 protons, which buys about **2.5 ATP**. FADH2 enters at Complex II and skips the first pump, banking roughly 6 protons, which buys about **1.5 ATP**. The difference is not a memorized constant. It is the structural consequence of one complex that never learned to pump. Multiply across a glucose and you reach the headline number: ETC plus chemiosmotic gradient plus ATP synthase yields roughly **30 to 32 ATP per glucose**, an order of magnitude beyond what glycolysis alone delivers.
+
+<GlucoseAtpLedger />
 
 ## When the chain breaks
 
