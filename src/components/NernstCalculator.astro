@@ -1,0 +1,150 @@
+---
+/**
+ * NernstCalculator — the quantitative companion to the permeability cliff. Pick an
+ * ion, set its inside/outside concentrations, and read its equilibrium (Nernst)
+ * potential, E = (61.5/z)·log₁₀([out]/[in]) mV at 37 °C, plotted on an mV axis
+ * against the resting membrane potential (~−70 mV). It makes the logic of the
+ * resting potential concrete: the cell sits near E_K because it is most permeable
+ * to K⁺, and each ion "wants" to drag the membrane toward its own E. Self-contained
+ * vanilla-TS Astro island, no deps. Original, computed live.
+ */
+---
+
+<figure class="nrn card" data-nernst>
+  <figcaption class="nrn-head">Nernst — every ion's equilibrium potential<span class="nrn-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="nrn-ions" role="group" aria-label="Ion">
+    <button type="button" data-ion="K" aria-pressed="true">K⁺</button>
+    <button type="button" data-ion="Na" aria-pressed="false">Na⁺</button>
+    <button type="button" data-ion="Cl" aria-pressed="false">Cl⁻</button>
+    <button type="button" data-ion="Ca" aria-pressed="false">Ca²⁺</button>
+  </div>
+
+  <div class="nrn-sliders">
+    <label class="nrn-slabel">Outside [ion]ₒ <em data-out="out">5</em> mM
+      <input type="range" data-in="out" min="0" max="100" step="1" value="50" />
+    </label>
+    <label class="nrn-slabel">Inside [ion]ᵢ <em data-out="in">140</em> mM
+      <input type="range" data-in="in" min="0" max="100" step="1" value="50" />
+    </label>
+  </div>
+
+  <svg class="nrn-svg" viewBox="0 0 320 120" role="img" aria-label="A millivolt axis showing this ion's equilibrium potential relative to the resting membrane potential" data-axis></svg>
+
+  <dl class="nrn-readout">
+    <div><dt>Equilibrium potential E<sub>ion</sub></dt><dd data-r-e>−89 mV</dd></div>
+    <div><dt>Concentration ratio out/in</dt><dd data-r-ratio>0.04</dd></div>
+  </dl>
+  <p class="nrn-why" data-why>Potassium is high inside and low outside, so it tends to leak out, leaving the inside negative — which is why the resting cell sits near E_K.</p>
+
+  <p class="nrn-foot">E = (61.5 / z) · log₁₀([out]/[in]) mV at body temperature. Each ion pulls the membrane toward its own E; the resting potential is the weighted compromise, dominated by whichever ion the membrane lets through most.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  type Ion = { z: number; out: number; in: number; label: string; max: number; note: string };
+  const IONS: Record<string, Ion> = {
+    K: { z: 1, out: 5, in: 140, label: 'K⁺', max: 160, note: 'Potassium is high inside and low outside, so it tends to leak out, leaving the inside negative — which is why the resting cell sits near E_K.' },
+    Na: { z: 1, out: 145, in: 15, label: 'Na⁺', max: 160, note: 'Sodium is high outside and low inside, so it is driven strongly inward; opening Na⁺ channels swings the membrane toward its large positive E_Na — the upstroke of an action potential.' },
+    Cl: { z: -1, out: 110, in: 10, label: 'Cl⁻', max: 130, note: 'Chloride is negative, so its sign flips: high outside, it tends to enter, and because it is an anion that hyperpolarizes the cell, sitting near the resting potential.' },
+    Ca: { z: 2, out: 2, in: 0.0001, label: 'Ca²⁺', max: 4, note: 'Calcium is kept ~10,000-fold lower inside than out, so its equilibrium potential is huge and positive — a tiny channel opening unleashes a steep inward driving force, which is why Ca²⁺ is such a potent signal.' },
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-nernst]').forEach((root) => {
+    const outIn = root.querySelector<HTMLInputElement>('[data-in="out"]')!;
+    const inIn = root.querySelector<HTMLInputElement>('[data-in="in"]')!;
+    const outOut = root.querySelector<HTMLElement>('[data-out="out"]')!;
+    const inOut = root.querySelector<HTMLElement>('[data-out="in"]')!;
+    const axis = root.querySelector<SVGSVGElement>('[data-axis]')!;
+    const rE = root.querySelector<HTMLElement>('[data-r-e]')!;
+    const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    let ion: string = 'K';
+
+    // map slider 0..100 to a concentration on a log-ish scale up to ion.max
+    function sliderToConc(v: number, max: number) {
+      const f = v / 100; // 0..1
+      return Math.max(0.0001, +(max * Math.pow(f, 1.6)).toFixed(max < 10 ? 4 : 1));
+    }
+    function concToSlider(c: number, max: number) {
+      return Math.round(Math.pow(Math.max(0, c / max), 1 / 1.6) * 100);
+    }
+
+    const EMIN = -120, EMAX = 160, AX0 = 16, AX1 = 304, AY = 70;
+    function ex(mv: number) { return AX0 + ((mv - EMIN) / (EMAX - EMIN)) * (AX1 - AX0); }
+    function drawAxis(e: number) {
+      axis.replaceChildren();
+      axis.appendChild(el('line', { x1: AX0, y1: AY, x2: AX1, y2: AY, stroke: INK, 'stroke-width': 1 }));
+      for (const mv of [-120, -70, 0, 80, 160]) {
+        axis.appendChild(el('line', { x1: ex(mv), y1: AY - 4, x2: ex(mv), y2: AY + 4, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: ex(mv), y: AY + 16, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); t.textContent = String(mv); axis.appendChild(t);
+      }
+      const xl = el('text', { x: (AX0 + AX1) / 2, y: AY + 30, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); xl.textContent = 'membrane potential (mV)'; axis.appendChild(xl);
+      // resting Vm reference
+      axis.appendChild(el('line', { x1: ex(-70), y1: AY - 22, x2: ex(-70), y2: AY + 4, stroke: FAINT, 'stroke-width': 1.4, 'stroke-dasharray': '3 3' }));
+      const rl = el('text', { x: ex(-70), y: AY - 26, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); rl.textContent = 'rest −70'; axis.appendChild(rl);
+      // E_ion marker
+      const cl = Math.max(EMIN, Math.min(EMAX, e));
+      axis.appendChild(el('line', { x1: ex(cl), y1: 18, x2: ex(cl), y2: AY, stroke: ACCENT, 'stroke-width': 2 }));
+      axis.appendChild(el('circle', { cx: ex(cl), cy: 18, r: 5, fill: ACCENT }));
+      const el2 = el('text', { x: ex(cl), y: 12, 'text-anchor': 'middle', 'font-size': 9, fill: ACCENT, 'font-weight': 700 }); el2.textContent = 'E'; axis.appendChild(el2);
+    }
+
+    function render() {
+      const def = IONS[ion];
+      const o = sliderToConc(parseInt(outIn.value, 10), def.max);
+      const i = sliderToConc(parseInt(inIn.value, 10), def.max);
+      outOut.textContent = o < 10 ? o.toString() : Math.round(o).toString();
+      inOut.textContent = i < 10 ? i.toString() : Math.round(i).toString();
+      const e = (61.5 / def.z) * Math.log10(o / i);
+      rE.textContent = (e > 0 ? '+' : '') + Math.round(e) + ' mV';
+      rRatio.textContent = (o / i).toPrecision(2);
+      drawAxis(e);
+      // tailor the why line: use the ion note when concentrations are near-physiological, else a generic driving-force line
+      why.textContent = def.note;
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-ion]').forEach((b) =>
+      b.addEventListener('click', () => {
+        ion = b.getAttribute('data-ion')!;
+        root.querySelectorAll<HTMLButtonElement>('[data-ion]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        const def = IONS[ion];
+        outIn.value = String(concToSlider(def.out, def.max));
+        inIn.value = String(concToSlider(def.in, def.max));
+        render();
+      }));
+    outIn.addEventListener('input', render);
+    inIn.addEventListener('input', render);
+    // init at K physiological
+    outIn.value = String(concToSlider(IONS.K.out, IONS.K.max));
+    inIn.value = String(concToSlider(IONS.K.in, IONS.K.max));
+    render();
+  });
+</script>
+
+<style>
+  .nrn { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .nrn-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .nrn-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .nrn-ions { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .nrn-ions button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.7rem; cursor: pointer; }
+  .nrn-ions button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .nrn-ions button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .nrn-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin-bottom: var(--ddp-space-2); }
+  .nrn-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .nrn-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .nrn-slabel input { accent-color: var(--ddp-color-accent); }
+  .nrn-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .nrn-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .nrn-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .nrn-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .nrn-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .nrn-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .nrn-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
