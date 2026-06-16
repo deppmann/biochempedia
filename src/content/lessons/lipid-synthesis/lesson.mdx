@@ -1,0 +1,415 @@
+---
+title: "Lipid Synthesis: Building Cholesterol from Acetyl-CoA"
+slug: "lipid-synthesis"
+courseChapter: "Lipid Metabolism"
+order: 29
+summary: "One precursor, acetyl-CoA, branches into three biological destinies: storage fat, membranes, and signaling molecules built on cholesterol. This chapter follows the cholesterol spine from two-carbon acetate to a 27-carbon ring system, anchors the whole pathway at one committed enzyme, HMG-CoA reductase, and shows how four layers of control over that single throttle gave us the statins. Master the committed step and its regulation and the rest of lipid biosynthesis falls into place."
+estMinutes: 26
+objectives:
+  - "Trace cholesterol biosynthesis through its three stages — condense (acetyl-CoA to mevalonate), assemble (C5 isoprenoid units to C30 squalene), and cyclize (squalene to lanosterol to cholesterol) — and identify HMG-CoA reductase as the committed, rate-limiting, irreversible step."
+  - "Explain the four-level, multi-timescale regulation of HMG-CoA reductase (transcription via SREBP, mRNA/translation, AMPK phosphorylation at Ser872, and sterol-triggered degradation) and how statins exploit it to lower serum LDL by a double mechanism."
+  - "Diagram the phosphatidate hub: how glycerol-3-phosphate is doubly acylated to phosphatidate, and how PAP/Lipin 1 localization switches the carbon between storage triacylglycerol and membrane phospholipids made through CDP-DAG."
+  - "Describe receptor-mediated endocytosis of LDL via ApoB-100 and the LDL receptor, explain why familial hypercholesterolemia is a disorder of uptake rather than synthesis, and account for how PCSK9 and its inhibitors reset serum LDL."
+  - "List the five identities cholesterol scaffolds — bile salts, glucocorticoids/mineralocorticoids/sex steroids, and vitamin D — and connect specific tissue P450 enzymes (aromatase, 5alpha-reductase, CYP7A1) to named drugs."
+scientists:
+  - name: "Konrad Emil Bloch"
+    dates: "1912-2000"
+    contribution: "Traced the path from 2-carbon acetate to cholesterol; with Rittenberg used deuterated acetate to prove animals build cholesterol from acetate, and with Langdon (1952) showed squalene is an on-pathway intermediate. Shared the 1964 Nobel with Lynen for the mechanisms and regulation of cholesterol and fatty-acid metabolism."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Konrad Emil Bloch profile, The Cholesterol Arc (quotes grep-confirmed)."
+    quotes:
+      - "When I arrived, it turned out that the station had a single dogfish in the aquarium."
+      - "Science is, in the best and strictest sense, glorious entertainment."
+    story: "Bloch suspected squalene was a hidden stop on the road from acetate to cholesterol, and chose the shark because its liver is drenched in squalene. He crossed an ocean to the Bermuda Biological Station only to find one dogfish in the tank; the animals died in captivity and he went home empty-handed. The irony: had the fish lived, the experiment would still have failed — a labeled signal would have drowned in the liver's huge squalene background. So he kept the idea, dropped the shark, and used rats with added carrier squalene (1952, with Langdon) to catch the radioactive intermediate in the quiet place where it could finally be heard. At the Nobel banquet he declined to be the hero, quoting Jacques Barzun. Perfect hook for the squalene stage and for choosing the right model organism."
+  - name: "Feodor Lynen"
+    dates: "1911-1979"
+    contribution: "Determined the thioester structure of acetyl-CoA (acetate clamped to a sulfur, high-energy bond), showed fatty-acid synthesis is a dedicated cytoplasmic route (not beta-oxidation in reverse), and identified HMG-CoA reductase as the committed throttle of cholesterol synthesis. Shared the 1964 Nobel with Bloch."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Feodor Lynen profile, The Cholesterol Arc (quote grep-confirmed)."
+    quotes:
+      - "Euch macht ihr's leicht, mir macht ihr's schwer"
+    story: "Lynen did defining work in bombed-out postwar Munich, trucking his bench to a village to escape the air raids. From boiled yeast extract he pinned down how acetate rides on coenzyme A — as a thioester to a sulfur atom — giving acetyl-CoA a drawable structure in a one-page paper. He then mapped fatty-acid synthase and the cholesterol throttle, HMG-CoA reductase, the exact enzyme Endo and Alberts would later choke to make statins. At the 1964 Stockholm banquet he borrowed Hans Sachs from Wagner's Die Meistersinger — 'you make it easy for yourselves, you make it hard for me' — to call himself a poor man given too much honor. Direct tie-in to the 'committed step = HMG-CoA reductase' slide."
+  - name: "Joseph Goldstein & Michael Brown"
+    dates: "Goldstein 1940- ; Brown 1941-"
+    contribution: "Discovered the LDL receptor and receptor-mediated endocytosis of LDL, proved familial hypercholesterolemia is a disorder of cholesterol UPTAKE not synthesis, cloned the LDL receptor (1984), showed sterol-stimulated proteolytic degradation of HMG-CoA reductase, and identified SREBP as the master sterol transcription factor. Nobel Prize 1985."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Joseph Goldstein & Michael Brown joint profile, The Cholesterol Arc (quotes grep-confirmed)."
+    quotes:
+      - "The disease attracted our attention because no one knew the basis for the elevated cholesterol, and it was the most dramatic example of an inherited form of heart attacks."
+      - "We have an advantage. Each of us has the courage to tell the other when he's wrong."
+    story: "They met as interns at Mass General and built one of the most productive partnerships in 20th-century biochemistry at UT Southwestern. Tagging LDL with radioactive iodine, they found normal fibroblasts gobble LDL while FH cells barely take it up — the cells were not making abnormal cholesterol, they were starving for it. A micrograph of a sick child's cells settled the debate: in FH the receptors bind LDL but never cluster into clathrin-coated pits, so delivery fails — binding is not enough, location matters. The work led straight to statins (block synthesis, cells upregulate LDL receptors). This profile carries three lecture slides at once: LDL-receptor endocytosis, SREBP, and reductase degradation. The textbook 'genetics first, mechanism second, drug third' template."
+  - name: "Akira Endo"
+    dates: "1933-2024"
+    contribution: "Discovered the first statin. Hypothesized fungi make HMG-CoA reductase inhibitors as chemical weapons; screened 6,392 fungal strains (1971-73) and isolated ML-236B (compactin/mevastatin) from Penicillium citrinum — a competitive inhibitor mimicking HMG-CoA."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Akira Endo profile, The Cholesterol Arc (quotes grep-confirmed)."
+    quotes:
+      - "It was going to be a research like a bet... and if I was unable to discover the substance I set out to find, I would then terminate my research."
+    story: "As a boy in wartime northern Japan, Endo felt the growing tumor in his dying grandmother's belly — the emotional seed of his vocation. After watching heart-attack ambulances during a Bronx fellowship, he bet his career that some mold made a cholesterol-lowering molecule and screened thousands of strains. The winner came from a rice sample in a Kyoto grain shop. The project nearly died in the 'rat paradox' (compactin works in vitro but rats compensate); he rescued it with a make-or-break experiment in laying hens showing a 50% plasma-cholesterol drop. He never profited; Sankyo ostracized him on his early departure, leaving him to empty his office alone. Ideal hook for the statin/competitive-inhibition slide and for perseverance."
+  - name: "Alfred Alberts"
+    dates: "1931-2018"
+    contribution: "Built the HMG-CoA reductase screen at Merck and pulled mevinolin (lovastatin) from Aspergillus terreus broth in 1978 — a substrate-analog inhibitor with nanomolar affinity that became Mevacor (FDA-approved 1987), the first statin on the U.S. market."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Alfred Alberts profile, The Cholesterol Arc (no first-person quote in profile)."
+    quotes: []
+    story: "Where Endo cracked the principle an ocean away, Alberts crossed from principle to pill. At Merck's Rahway labs he built a sensitive screen for anything that shut HMG-CoA reductase down — 'the biochemical equivalent of panning for gold, and Alberts had built the pan' — fed by hundreds of microbial broths. Aspergillus terreus paid out lovastatin: the open acid form carries a dihydroxyheptanoic side chain shaped like the HMG portion of HMG-CoA mid-reaction plus a rigid decalin that wedges a pocket the true substrate never touches, binding with ~0.6 nM Ki. Reinforces the 'statins mimic mevalonate' mechanism with a vivid structural picture."
+  - name: "Pindaros Roy Vagelos"
+    dates: "1929-"
+    contribution: "Discovered acyl carrier protein (ACP) and showed fatty-acid synthesis intermediates are tethered to a swinging carrier arm; as Merck's research head halted lovastatin trials over a cancer scare until the drug was proven clean, then brought Mevacor to market in 1987."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Pindaros Roy Vagelos profile, The Cholesterol Arc (quotes grep-confirmed)."
+    quotes:
+      - "We couldn't put humans at risk"
+      - "We didn't develop this medicine for the profits. We developed it for the patients."
+    story: "A luncheonette kid in wartime Rahway who absorbed chemistry from Merck scientists talking shop at the counter, Vagelos struggled with rote memorization (Greek was his first language) but thrived on logic. In Earl Stadtman's NIH lab he helped show fatty-acid synthesis is organized — every intermediate tethered to ACP, a flexible arm ferrying the growing chain between enzyme stations. Back at Merck he stopped lovastatin's trials in 1980 over an animal-tumor rumor, then proved his own rule that insight counts only when it reaches the patient safely — later giving away the river-blindness drug ivermectin for free. Ties the statin-to-clinic story to the fatty-acid synthesis backbone."
+techniques:
+  - name: "Isotopic precursor tracing"
+    blurb: "Feed an animal acetate labeled with deuterium or carbon-14 and follow the atoms into the product. This is how Bloch and Rittenberg proved animals build cholesterol from two-carbon acetate, and how Bloch and Langdon later caught squalene as an on-pathway intermediate. Every carbon of the 27-carbon ring system traces back to acetyl-CoA, and the label is what proved it."
+  - name: "Microbial natural-product screening"
+    blurb: "Grow thousands of fungal strains, extract their broths, and assay each for the ability to shut down a target enzyme. Endo screened 6,392 strains to pull compactin from Penicillium citrinum; Alberts built a sensitive HMG-CoA reductase assay at Merck and pulled lovastatin from Aspergillus terreus. The principle: organisms make potent enzyme inhibitors as chemical weapons, and you can mine them."
+  - name: "Radioligand binding and receptor-mediated endocytosis assays"
+    blurb: "Tag LDL with radioactive iodine and measure how much a cell binds and internalizes. Brown and Goldstein showed normal fibroblasts gobble LDL while familial-hypercholesterolemia cells barely take it up — proving the defect is in the receptor, not in cholesterol chemistry. Electron micrographs then showed the receptors bind LDL but never cluster into clathrin-coated pits, so binding alone is not enough; location matters."
+  - name: "P450 monooxygenase chemistry"
+    blurb: "Cytochrome P450 enzymes install single oxygen atoms onto inert carbon scaffolds: R-H plus O2 plus NADPH yields R-OH plus water. This one reaction type, run by tissue-specific isoforms, turns the same cholesterol-derived backbone into cortisol, aldosterone, testosterone, and estradiol, and trims squalene's ring system down to cholesterol. Aromatase (CYP19A1) and the 7alpha-hydroxylase that commits cholesterol to bile salts are both P450s, which is why they are clean drug targets."
+structures:
+  - label: "Human HMG-CoA reductase catalytic domain with atorvastatin"
+    source: "rcsb"
+    id: "1HWK"
+    note: "PDB 1HWK"
+    caption: "The catalytic portion of human HMG-CoA reductase in complex with a statin (atorvastatin) — the rate-limiting, committed enzyme and statin target."
+  - label: "Human HMG-CoA reductase with HMG-CoA + NADP"
+    source: "rcsb"
+    id: "1DQA"
+    note: "PDB 1DQA"
+    caption: "HMG-CoA reductase complexed with its substrate HMG-CoA and cofactor NADP(H), showing the natural reaction the statins block."
+  - label: "Human LDL receptor extracellular region (acidic pH)"
+    source: "rcsb"
+    id: "1N7D"
+    note: "PDB 1N7D"
+    caption: "Extracellular domain of the human LDL receptor at endosomal pH, the receptor mutated in familial hypercholesterolemia (Brown & Goldstein)."
+  - label: "Human oxidosqualene cyclase (lanosterol synthase)"
+    source: "rcsb"
+    id: "1W6K"
+    note: "PDB 1W6K"
+    caption: "Human oxidosqualene cyclase (lanosterol synthase) — the single enzyme that cyclizes 2,3-oxidosqualene into the four-ring lanosterol nucleus."
+  - label: "Human aromatase (CYP19A1) with androstenedione"
+    source: "rcsb"
+    id: "3EQM"
+    note: "PDB 3EQM"
+    caption: "Human placental aromatase cytochrome P450 (CYP19A1) bound to androstenedione — converts androgens to estrogens, target of aromatase inhibitors in ER+ breast cancer."
+  - label: "Human PCSK9"
+    source: "rcsb"
+    id: "2P4E"
+    note: "PDB 2P4E"
+    caption: "Human PCSK9, the secreted protease that targets the LDL receptor for degradation; target of alirocumab/evolocumab/inclisiran."
+  - label: "PCSK9 bound to LDL receptor EGF-A domain"
+    source: "rcsb"
+    id: "3BPS"
+    note: "PDB 3BPS"
+    caption: "Complex of human PCSK9 with the EGF-A domain of the LDL receptor, showing how PCSK9 grabs the receptor to send it to the lysosome."
+  - label: "SREBP-2 bHLH-zip transcription factor on DNA"
+    source: "rcsb"
+    id: "1AM9"
+    note: "PDB 1AM9"
+    caption: "Basic-helix-loop-helix-leucine-zipper DNA-binding domain of SREBP (sterol regulatory element binding protein) bound to a sterol regulatory element / E-box DNA."
+  - label: "Cholesterol"
+    source: "pubchem"
+    id: "5997"
+    note: "CID 5997"
+    caption: "Cholesterol — the 27-carbon end product of the biosynthetic pathway and scaffold for bile salts, steroid hormones, and vitamin D."
+  - label: "Acetyl-CoA"
+    source: "pubchem"
+    id: "444493"
+    note: "CID 444493"
+    caption: "Acetyl-coenzyme A — the universal 2-carbon precursor that feeds all three lipid forks (TAG, membrane, cholesterol)."
+  - label: "(R)-Mevalonate / mevalonic acid"
+    source: "pubchem"
+    id: "439230"
+    note: "CID 439230"
+    caption: "Mevalonic acid (mevalonate) — product of the committed HMG-CoA reductase step and branchpoint precursor to all isoprenoids."
+  - label: "Squalene"
+    source: "pubchem"
+    id: "638072"
+    note: "CID 638072"
+    caption: "Squalene — the linear C30 polyisoprenoid hydrocarbon assembled from six C5 units, cyclized into lanosterol."
+  - label: "Lanosterol"
+    source: "pubchem"
+    id: "246983"
+    note: "CID 246983"
+    caption: "Lanosterol — the first sterol/four-ring product of squalene cyclization, trimmed in ~19 steps to cholesterol."
+  - label: "Isopentenyl pyrophosphate (IPP)"
+    source: "pubchem"
+    id: "1195"
+    note: "CID 1195"
+    caption: "Isopentenyl pyrophosphate — the universal C5 isoprenoid building block made from mevalonate (3 ATP, lose CO2)."
+  - label: "Lovastatin"
+    source: "pubchem"
+    id: "53232"
+    note: "CID 53232"
+    caption: "Lovastatin (mevinolin) — Alberts's Aspergillus terreus statin, first U.S.-approved (Mevacor); HMG-CoA reductase inhibitor."
+  - label: "Calcitriol (1,25-dihydroxyvitamin D3)"
+    source: "pubchem"
+    id: "5280453"
+    note: "CID 5280453"
+    caption: "Calcitriol, the active 1,25-(OH)2 vitamin D3 hormone produced via skin/liver/kidney from 7-dehydrocholesterol; acts through the nuclear VDR."
+videos:
+  - title: "Triglyceride synthesis"
+    youtubeId: "v-5RcGtSa8Y"
+    sourceNote: "Ninja Nerd — how the cell esterifies fatty acids and glycerol into storage fat. Openly available."
+  - title: "Lipids: an overview"
+    youtubeId: "7dmoH5dAvpY"
+    sourceNote: "The Organic Chemistry Tutor — the full cast of lipids cholesterol synthesis feeds into (membranes, hormones, vitamin D)."
+simulations:
+  - type: "local"
+    ref: "PathwayExplorer"
+    title: "Cholesterol synthesis map — the committed step is HMG-CoA reductase (the statin target). Overall, one C27 cholesterol costs roughly 18 acetyl-CoA, ~18 ATP, and ~16 NADPH; the meter shows the costs of the segments you reveal."
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "Which enzyme catalyzes the committed, rate-limiting, irreversible step of cholesterol biosynthesis and is the direct target of statin drugs?"
+    choices:
+      - "Oxidosqualene cyclase"
+      - "HMG-CoA synthase"
+      - "Squalene synthase"
+      - "HMG-CoA reductase"
+    answer: 3
+    rationale: "HMG-CoA reductase converts HMG-CoA to mevalonate using two NADPH and is the committed, rate-limiting, irreversible step; statins are competitive inhibitors that mimic its reaction intermediate. HMG-CoA synthase acts one step earlier and is not rate-limiting. Squalene synthase and oxidosqualene cyclase act far downstream in the assemble and cyclize stages, not at the committed throttle."
+  - stem: "In the glycerolipid pathway, phosphatidate sits at the branch point between storage and membrane lipids. What does PAP/Lipin 1 do to push carbon toward storage triacylglycerol?"
+    choices:
+      - "Removes the phosphate from phosphatidate to make diacylglycerol"
+      - "Condenses serine with palmitoyl-CoA to form ceramide"
+      - "Adds CTP to phosphatidate to form CDP-diacylglycerol"
+      - "Acylates glycerol-3-phosphate at the sn-1 position"
+    answer: 0
+    rationale: "PAP/Lipin 1 dephosphorylates phosphatidate to diacylglycerol, which is then acylated to triacylglycerol for storage. Reaction of phosphatidate with CTP to form CDP-diacylglycerol routes carbon toward membrane phospholipids instead. Acylation at sn-1 is done earlier by GPAT, and the serine + palmitoyl-CoA condensation begins the separate sphingolipid pathway."
+  - stem: "A patient with familial hypercholesterolemia has very high serum LDL. Brown and Goldstein showed the underlying defect is best described as a problem of:"
+    choices:
+      - "Lipoprotein lipase, preventing VLDL conversion to LDL"
+      - "Cholesterol uptake, due to a defective LDL receptor"
+      - "Cholesterol synthesis, due to excessive HMG-CoA reductase activity"
+      - "Bile salt excretion, due to loss of CYP7A1"
+    answer: 1
+    rationale: "Familial hypercholesterolemia is caused by LDL-receptor mutations, so cells cannot internalize LDL by receptor-mediated endocytosis and LDL accumulates in the blood — a disorder of uptake, not synthesis. The cells make normal cholesterol; in fact they are cholesterol-starved intracellularly. CYP7A1 (bile salts) and lipoprotein lipase defects cause different lipid disorders, not classic FH."
+  - stem: "When intracellular cholesterol is HIGH, SREBP target genes (including HMG-CoA reductase and the LDL receptor) are turned OFF. Which molecular event explains this?"
+    choices:
+      - "AMPK phosphorylates SREBP at Ser872, inactivating it"
+      - "S1P and S2P proteases cleave SREBP to release the active transcription factor"
+      - "Cholesterol binds SCAP, which recruits Insig and traps the SCAP-SREBP complex in the ER"
+      - "PCSK9 binds SREBP and targets it for lysosomal degradation"
+    answer: 2
+    rationale: "High sterol is sensed by SCAP's sterol-sensing domain; SCAP then recruits Insig, and the SCAP-SREBP complex is retained in the ER, so SREBP never reaches the Golgi to be cleaved and activated. S1P/S2P cleavage is what happens in the LOW-cholesterol state, the opposite condition. AMPK acts on HMG-CoA reductase (Ser872), not SREBP, and PCSK9 degrades the LDL receptor, not SREBP."
+  - stem: "Cholesterol is the scaffold for several classes of products. Which pairing of product with its committing or installing enzyme is correct?"
+    choices:
+      - "Bile salts — CYP7A1 (7-alpha-hydroxylase)"
+      - "Sphingomyelin — HMG-CoA reductase"
+      - "Triacylglycerol — aromatase (CYP19A1)"
+      - "Estrogens — squalene synthase"
+    answer: 0
+    rationale: "CYP7A1 (7-alpha-hydroxylase) catalyzes the committed step of bile salt synthesis from cholesterol. Aromatase (CYP19A1) makes estrogens from androgens, not triacylglycerol; squalene synthase builds squalene in cholesterol synthesis and has nothing to do with estrogens; and sphingomyelin comes from the ceramide pathway, not from HMG-CoA reductase."
+mcatQuestions:
+  - stem: "A patient on a high-dose statin shows a 40% drop in hepatic cholesterol synthesis yet an even larger drop in serum LDL. Which mechanism best explains why serum LDL falls MORE than synthesis alone would predict?"
+    choices:
+      - "Reduced mevalonate increases hepatic VLDL secretion, diluting serum LDL"
+      - "Lower hepatocyte cholesterol activates SREBP, increasing LDL-receptor expression and LDL clearance from blood"
+      - "Statins directly bind ApoB-100 and accelerate LDL filtration by the kidney"
+      - "The statin inhibits PCSK9, sparing existing LDL receptors from degradation"
+    answer: 1
+    rationale: "By lowering intracellular cholesterol, statins relieve the SCAP-Insig block, SREBP is processed and activates transcription of the LDL receptor, and more receptors clear more LDL from blood — the 'double hit' that makes statins more effective than the synthetic block alone. Statins do not bind ApoB-100 or directly inhibit PCSK9 (that is a separate drug class), and reduced mevalonate does not increase VLDL secretion to dilute LDL."
+  - stem: "A research compound blocks squalene synthase. Compared with a statin (HMG-CoA reductase inhibitor), this compound would be LESS likely to reduce which downstream product, because that product branches off ABOVE the squalene synthase step?"
+    choices:
+      - "Lanosterol"
+      - "Cholesterol"
+      - "Coenzyme Q10 (a prenylated isoprenoid)"
+      - "2,3-oxidosqualene"
+    answer: 2
+    rationale: "Squalene synthase commits farnesyl-PP specifically to sterols; everything past it (squalene, 2,3-oxidosqualene, lanosterol, cholesterol) is reduced when the enzyme is blocked. Coenzyme Q10 is built from isoprenoid units that branch off at or before farnesyl-PP, ABOVE squalene synthase, so a squalene synthase inhibitor spares it — whereas a statin, acting upstream at the committed step, would cut the whole isoprenoid supply including CoQ10. This branch-point logic is the key distinction."
+  - stem: "During prolonged fasting and exercise, cellular ATP falls and AMP rises. Which immediate (minutes-scale) regulatory event most directly throttles cholesterol synthesis under these conditions?"
+    choices:
+      - "Increased transcription of the LDL receptor gene"
+      - "Insig-dependent proteolytic degradation of HMG-CoA reductase in the ER"
+      - "SREBP cleavage by S1P and S2P in the Golgi"
+      - "AMPK phosphorylation of HMG-CoA reductase at Ser872, inactivating the enzyme"
+    answer: 3
+    rationale: "AMPK is the energy sensor; when AMP/ATP rises it phosphorylates HMG-CoA reductase at Ser872 and switches the enzyme off within minutes, conserving ATP and NADPH for survival rather than biosynthesis. Sterol-triggered ER degradation and SREBP cleavage operate over hours and respond to cholesterol, not energy charge. Increased LDL-receptor transcription would import cholesterol, not throttle its synthesis, and is also a slow, SREBP-driven response."
+images: []
+corpusTags:
+  - "cholesterol-synthesis"
+  - "mevalonate-pathway"
+  - "hmg-coa-reductase"
+  - "statins"
+  - "isoprenoid"
+  - "SREBP"
+  - "squalene"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Your body has a tiny building block called acetyl-CoA. It is like one kind of LEGO brick. With that same brick your cells can build three different things: fat to store energy, the walls around your cells, and a special bendy molecule called cholesterol that gets turned into messengers your body uses to grow and feel things. The amazing part is that the body has little on-off switches that decide which thing to build. A famous medicine called a statin flips one of those switches so your body makes less cholesterol, which helps keep the pipes that carry your blood clean."
+  - level: "highschool"
+    label: "High school"
+    text: "All lipids start from one molecule, acetyl-CoA, which forks three ways: storage fat (triacylglycerol), membrane lipids (phospholipids), and cholesterol. Cholesterol is a 27-carbon molecule built up two carbons at a time from acetyl-CoA in three stages: condense to mevalonate, assemble 5-carbon units up to 30-carbon squalene, then cyclize squalene into the four-ring sterol. The key enzyme is HMG-CoA reductase, which makes mevalonate. It is the committed, rate-limiting step, and statins block it to lower cholesterol. Cholesterol travels through blood in lipoproteins like LDL ('bad') and HDL ('good'), and your cells grab LDL using a receptor that reads the protein ApoB-100. If that receptor is broken (familial hypercholesterolemia), cholesterol piles up in the blood. Cholesterol is also the starting material for steroid hormones, bile salts, and vitamin D."
+  - level: "college"
+    label: "College"
+    text: "Lipid biosynthesis radiates from acetyl-CoA into three fates governed by three switches. The glycerolipid hub is phosphatidate (glycerol-3-P doubly acylated by GPAT and AGPAT); PAP/Lipin 1 dephosphorylates it toward DAG and triacylglycerol (storage), while reaction with CTP gives CDP-DAG for phospholipids (membrane). Lipin 1 is controlled by localization: dephosphorylated and ER-bound = ON (insulin), phosphorylated and cytosolic = OFF (glucagon). Cholesterol synthesis runs condense (acetyl-CoA to HMG-CoA to mevalonate, via the committed HMG-CoA reductase + 2 NADPH), assemble (mevalonate + 3 ATP, lose CO2, to IPP; head-to-tail elongation to FPP; two FPP tail-to-tail to squalene), cyclize (epoxidation, then oxidosqualene cyclase to lanosterol; ~19 trim steps to cholesterol). HMG-CoA reductase is regulated four ways: SREBP transcription, mRNA/translation, AMPK phosphorylation at Ser872, and sterol-induced degradation. SREBP is released only when SCAP, free of Insig at low sterol, escorts it to the Golgi for S1P/S2P cleavage. Statins competitively inhibit the reductase and secondarily upregulate LDL receptors via SREBP. LDL is cleared by ApoB-100/LDL-receptor endocytosis; FH is a receptor defect; PCSK9 degrades the receptor and is itself a drug target."
+  - level: "grad"
+    label: "Graduate"
+    text: "The chapter's load-bearing idea is regulatory architecture at a single committed node. HMG-CoA reductase is held under multi-timescale, multi-modal control to give >200-fold range: SREBP-2-driven transcription (the sterol-sensed, SCAP/Insig-gated, COPII/Golgi-cleaved bHLH-zip output binding the SRE), sterol-accelerated mRNA decay and translational attenuation, energy-sensed inactivation by AMPK phosphorylation at Ser872, and sterol- and oxysterol-triggered Insig-dependent ER-associated degradation. This layered design is why statin inhibition produces a paradoxical SREBP activation that upregulates LDLR and amplifies serum LDL clearance beyond the synthetic block itself. Mechanistically, note the conserved use of activated carriers (CDP-DAG and CDP-choline mirroring UDP-sugar logic) and pyrophosphate hydrolysis as the thermodynamic driver across prenyl couplings. The cyclization by oxidosqualene cyclase is a single-turnover, substrate-folding-controlled polycyclization that sets multiple stereocenters concertedly, the canonical example of enzyme-templated cation-olefin cascade chemistry. The systems lesson, recurring from glycolysis, is that flux control concentrates at irreversible reactions held far from equilibrium, and that sub-cellular localization (Lipin 1 membrane recruitment; SCAP trafficking) is itself a regulatory variable on par with mass action and covalent modification."
+anecdotes:
+  - title: "The shark that wasn't there"
+    text: "Bloch was sure squalene was a hidden waypoint between acetate and cholesterol, and he picked the perfect organism to prove it: sharks, whose livers are drenched in squalene. He crossed an ocean to the Bermuda Biological Station and found a single dogfish in the tank. The animals died in captivity and he went home empty-handed. The twist students should sit with is that the shark would have failed him anyway: a radioactive squalene signal would have drowned in the liver's enormous natural squalene background. He kept the idea, dropped the wrong model, and caught the intermediate in rats with added carrier squalene. The lesson is not 'choose an organism rich in your molecule.' It is 'choose the one where your signal can be heard.'"
+    source: "The Cholesterol Arc lecture notes — squalene stage / choose the right model organism"
+  - title: "The bet that nearly ended in an empty office"
+    text: "Akira Endo bet his entire career on a hunch: that some mold, somewhere, made a molecule to sabotage cholesterol synthesis as a chemical weapon. He told himself that if he failed to find it, he would simply quit research. Thousands of fungal strains later, the winner turned up in a rice sample from a Kyoto grain shop. Then came the 'rat paradox' — the compound worked in the test tube but did nothing in rats, who simply made more enzyme to compensate. The project was nearly dead. He rescued it with a make-or-break experiment in laying hens that showed a 50 percent drop in plasma cholesterol. He never profited from the statins; he later cleaned out his own office alone. Perseverance is the hook here, and so is the reminder that the right animal model can make or break a true result."
+    source: "The Cholesterol Arc lecture notes — statin / competitive-inhibition slide"
+  - title: "Binding is not enough: a micrograph settled the debate"
+    text: "Brown and Goldstein tagged LDL with radioactive iodine and watched normal skin cells gobble it up while cells from a child with familial hypercholesterolemia barely touched it. The sick cells were not making bad cholesterol; they were starving for it. The clincher was an electron micrograph: in FH the receptors could bind LDL just fine, but they never clustered into the clathrin-coated pits that pull cargo into the cell. Binding was not enough. Location was the missing step. That single image rerouted the field from 'FH is a synthesis disease' to 'FH is an uptake disease,' and it pointed straight at the strategy behind statins."
+    source: "The Cholesterol Arc lecture notes — LDL-receptor endocytosis / SREBP slides"
+  - title: "Insig binds SCAP, not SREBP"
+    text: "The SREBP system is where students lose points, almost always on the same wiring error. When cholesterol is low, the escort protein SCAP carries SREBP to the Golgi to be clipped into an active transcription factor. When cholesterol is high, the sterol binds SCAP's sensing domain, which then recruits Insig, and the whole complex gets stuck in the ER. The trap is to say cholesterol or Insig acts on SREBP. It does not. The sterol is sensed by SCAP, and Insig grabs SCAP. SREBP is just the passenger that never reaches its stop. Get the subject of each verb right and the feedback loop, including why statins paradoxically switch it on, becomes obvious."
+    source: "The Cholesterol Arc lecture notes — SREBP mechanism / Insig binds SCAP not SREBP"
+lectureSlides:
+  - src: "/slides/lipid-synthesis/one-precursor-three-destinies.png"
+    audio: "/slides/lipid-synthesis/audio/one-precursor-three-destinies.mp3"
+    title: "One precursor, three destinies"
+    alt: "One precursor, three destinies"
+    source: "CH29 Lipid Synthesis · slide 2"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Everything in lipid synthesis begins with a single two-carbon unit, acetyl-CoA, and from that one starting point the cell builds three completely different kinds of molecules. It can pour carbons into storage fats, the triacylglycerols that bank energy. It can route them into membranes, the phospholipids and sphingolipids that wrap every cell. Or it can elaborate them into hormones and signaling molecules like cholesterol and steroids. The same carbons, three destinations. What decides the fate is not the raw material but the regulatory switches: whether you are fed or fasting, flush with energy or starving, and how much cholesterol you already hold."
+  - src: "/slides/lipid-synthesis/phosphatidate-branch-point.png"
+    audio: "/slides/lipid-synthesis/audio/phosphatidate-branch-point.mp3"
+    title: "Phosphatidate: the branch point"
+    alt: "Phosphatidate: the branch point"
+    source: "CH29 Lipid Synthesis · slide 4"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Phosphatidate is the single intersection where lipid synthesis splits. Picture a Y in the road. Coming up from the bottom is phosphatidate itself, a glycerol backbone carrying two fatty-acyl chains and a phosphate. From here the molecule faces a binary decision. Turn one way and the phosphate comes off, sending it toward storage as triacylglycerol, the cell's fat depot. Turn the other way and a polar head group is installed, building the phospholipids that form membranes. One molecule, two choices, many downstream fates. Hold this hub in mind, because every regulatory story later in the chapter is really about which arm of this fork gets favored."
+  - src: "/slides/lipid-synthesis/storage-fat-membrane.png"
+    audio: "/slides/lipid-synthesis/audio/storage-fat-membrane.mp3"
+    title: "Storage fat or membrane"
+    alt: "Storage fat or membrane"
+    source: "CH29 Lipid Synthesis · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Watch the actual chemistry of the fork. Phosphatidate can lose its phosphate group, producing diacylglycerol, which then accepts a third fatty acid to become triacylglycerol, a dense, anhydrous fuel reserve. Alternatively, phosphatidate is activated and coupled to an alcohol head group through a CDP-diacylglycerol intermediate, yielding a phospholipid destined for membranes. These are not casual choices; they are two committed commitments made from the same starting molecule. When the cell needs to bank calories it pushes toward fat. When it needs to grow membrane it pushes toward phospholipid. One precursor, two enzymatic exits, and the balance between them is tightly controlled."
+  - src: "/slides/lipid-synthesis/all-27-carbons-from-acetyl-coa.png"
+    audio: "/slides/lipid-synthesis/audio/all-27-carbons-from-acetyl-coa.mp3"
+    title: "All 27 carbons from acetyl-CoA"
+    alt: "All 27 carbons from acetyl-CoA"
+    source: "CH29 Lipid Synthesis · slide 14"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Cholesterol is an enormous biosynthetic feat. Every one of its twenty-seven carbons traces back to the same humble two-carbon unit, acetyl-CoA. Eighteen acetyl-CoA molecules are pooled and condensed, and twenty-seven of those carbons are retained in the final sterol. The assembly happens in three broad stages and roughly thirty enzymatic steps: first building activated isoprene units, then chaining them into the thirty-carbon squalene, then folding and trimming squalene into cholesterol. The takeaway is conceptual, not arithmetic. A molecule this structurally rich is built entirely from small, identical bricks, which is exactly why its synthesis is so energetically expensive and so heavily regulated."
+  - src: "/slides/lipid-synthesis/hmg-coa-reductase-four-levels-control.png"
+    audio: "/slides/lipid-synthesis/audio/hmg-coa-reductase-four-levels-control.mp3"
+    title: "HMG-CoA reductase: four levels of control"
+    alt: "HMG-CoA reductase: four levels of control"
+    source: "CH29 Lipid Synthesis · slide 16"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "HMG-CoA reductase is the rate-limiting enzyme of cholesterol synthesis and the target of statins, so the cell guards it with four independent control layers operating on different timescales. Fastest is phosphorylation by AMPK, which switches the enzyme off within seconds to minutes when energy is low. Slower is translational control, where mevalonate-derived products suppress the messenger RNA over minutes to hours. Slower still is transcriptional control through SREBP, tuning enzyme amount over hours. And finally, sterol-induced degradation accelerates destruction of the protein itself. Four dials, one enzyme. Cholesterol is essential but toxic in excess, so the cell never relies on a single switch."
+  - src: "/slides/lipid-synthesis/cholesterol-thermostat.png"
+    audio: "/slides/lipid-synthesis/audio/cholesterol-thermostat.mp3"
+    title: "The cholesterol thermostat"
+    alt: "The cholesterol thermostat"
+    source: "CH29 Lipid Synthesis · slide 20"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of cholesterol synthesis as a thermostat with two sensors feeding one dial. SREBP senses cholesterol itself: when the membrane runs low on cholesterol, SREBP turns synthesis up. AMPK senses energy: when ATP runs low and AMP rises, AMPK turns synthesis down because you should not spend fuel building expensive molecules during a famine. The two inputs converge on a single setpoint, balancing supply against both demand and affordability. High cholesterol pushes the needle toward less synthesis; low energy does the same for a different reason. The cell is not maximizing cholesterol; it is matching production precisely to need."
+  - src: "/slides/lipid-synthesis/ampk-shuts-synthesis-off-when-energy-low.png"
+    audio: "/slides/lipid-synthesis/audio/ampk-shuts-synthesis-off-when-energy-low.mp3"
+    title: "AMPK shuts synthesis off when energy is low"
+    alt: "AMPK shuts synthesis off when energy is low"
+    source: "CH29 Lipid Synthesis · slide 24"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "AMPK is the cell's low-fuel warning light, and it reads the AMP to ATP ratio directly. When that ratio climbs, signaling a low-energy state, AMPK becomes active and starts phosphorylating the expensive biosynthetic enzymes. It shuts down HMG-CoA reductase, halting cholesterol synthesis, and it inactivates acetyl-CoA carboxylase, halting fatty-acid synthesis. The logic is blunt and sensible: do not spend ATP building storage and membrane molecules when you do not have ATP to spare. This is metabolic triage. Energy charge is monitored continuously, and the moment reserves dip, AMPK pulls the brake on anabolism across multiple pathways at once."
+  - src: "/slides/lipid-synthesis/lipoproteins-package-hydrophobic-cargo.png"
+    audio: "/slides/lipid-synthesis/audio/lipoproteins-package-hydrophobic-cargo.mp3"
+    title: "Lipoproteins package hydrophobic cargo"
+    alt: "Lipoproteins package hydrophobic cargo"
+    source: "CH29 Lipid Synthesis · slide 27"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Cholesterol and triacylglycerols are oily and refuse to dissolve in blood, so the body ships them inside lipoproteins, which work like a lipid taxi with a protein driver. The core holds the hydrophobic cargo, triacylglycerols and cholesteryl esters, kept dry and away from water. Wrapping that core is a single shell of phospholipids with their polar heads facing outward, plus free cholesterol tucked among them. Riding on the surface are apolipoproteins, like apoB-100, which act as address labels and structural anchors. This simple architecture solves a hard transport problem: how to move greasy molecules through a watery bloodstream without them clumping."
+  - src: "/slides/lipid-synthesis/ldl-receptor-mediated-endocytosis.png"
+    audio: "/slides/lipid-synthesis/audio/ldl-receptor-mediated-endocytosis.mp3"
+    title: "LDL receptor-mediated endocytosis"
+    alt: "LDL receptor-mediated endocytosis"
+    source: "CH29 Lipid Synthesis · slide 30"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Cells acquire cholesterol by capturing whole LDL particles in a five-step uptake cycle. First, apoB-100 on the LDL surface binds the LDL receptor at the cell surface. Second, the bound complexes cluster into coated pits lined with clathrin. Third, the pit pinches off into an internal vesicle. Fourth, the vesicle matures into an endosome where the acidic environment releases LDL from its receptor. Fifth, the cargo is delivered: LDL goes to the lysosome to be disassembled into free cholesterol, while the receptor is recycled back to the surface for another round. Receptors are reused; cargo is broken down. This recycling logic is exactly what familial hypercholesterolemia disrupts."
+  - src: "/slides/lipid-synthesis/oxldl-foam-cells-atherosclerosis.png"
+    audio: "/slides/lipid-synthesis/audio/oxldl-foam-cells-atherosclerosis.mp3"
+    title: "oxLDL, foam cells, atherosclerosis"
+    alt: "oxLDL, foam cells, atherosclerosis"
+    source: "CH29 Lipid Synthesis · slide 33"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The damage in atherosclerosis is not done by native LDL but by oxidized LDL, and the sequence unfolds in four steps. First, LDL trapped in the artery wall becomes chemically oxidized. Second, macrophages take up this oxidized LDL through scavenger receptors that, unlike the normal LDL receptor, are not switched off by cholesterol load. Third, the engorged macrophages become foam cells, inflamed and secreting cytokines. Fourth, foam cells accumulate into a plaque that can rupture, triggering a thrombus, a clot, and a heart attack. The key conceptual twist is that the body's own cleanup cells, lacking a shut-off signal, gorge themselves into the disease."
+  - src: "/slides/lipid-synthesis/one-molecule-many-identities.png"
+    audio: "/slides/lipid-synthesis/audio/one-molecule-many-identities.mp3"
+    title: "One molecule, many identities"
+    alt: "One molecule, many identities"
+    source: "CH29 Lipid Synthesis · slide 35"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Cholesterol is far more than a membrane stiffener; it is the master precursor for an entire family of essential molecules. From the same sterol ring system the body carves out bile salts, which emulsify dietary fats for absorption. It builds the steroid hormones that govern reproduction, stress, and metabolism. It makes vitamin D, supporting calcium absorption and bone health. And through the shared isoprenoid pathway it contributes to membrane anchors and cofactors like coenzyme Q. The unifying idea is that a single molecule wears many identities. Whatever you may have heard about cholesterol as a villain, life simply cannot run without it."
+  - src: "/slides/lipid-synthesis/cytochrome-p450-oxygen-adding-machine.png"
+    audio: "/slides/lipid-synthesis/audio/cytochrome-p450-oxygen-adding-machine.mp3"
+    title: "Cytochrome P450: the oxygen-adding machine"
+    alt: "Cytochrome P450: the oxygen-adding machine"
+    source: "CH29 Lipid Synthesis · slide 38"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "How does one cholesterol scaffold become five different steroid hormones? The answer is cytochrome P450, an oxygen-adding machine. Using molecular oxygen and NADPH, P450 enzymes insert hydroxyl groups at specific positions on the steroid skeleton, and the position of that single hydroxyl determines the molecule's function. A hydroxyl at one carbon yields a glucocorticoid like cortisol; modification elsewhere produces androgens; a further oxidation step opens the path to estrogens. One scaffold, many hormones, all distinguished by where the oxygen lands. This is precision chemistry: tiny, regiospecific edits to a shared backbone generate hormones with profoundly different physiological roles."
+  - src: "/slides/lipid-synthesis/ipp-nature-s-favorite-c5-brick.png"
+    audio: "/slides/lipid-synthesis/audio/ipp-nature-s-favorite-c5-brick.mp3"
+    title: "IPP: nature's favorite C5 brick"
+    alt: "IPP: nature's favorite C5 brick"
+    source: "CH29 Lipid Synthesis · slide 43"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Isopentenyl pyrophosphate, IPP, is nature's favorite five-carbon building block, and following it reveals how one small unit seeds an astonishing range of molecules. Chain IPP units together and you can build cholesterol and steroid hormones, coenzyme Q for the electron transport chain, dolichol for glycoprotein assembly, vitamin K for blood clotting, beta-carotene and the vitamins derived from it, and even natural rubber. One five-carbon brick, six universes of molecules. The lesson is that biology is endlessly economical: it reuses a single activated isoprene over and over, varying only how many it strings together and how it folds them, to populate vast chemical territory."
+---
+
+import PathwayExplorer from '../../../components/PathwayExplorer.astro';
+
+export const cholSteps = [{"n": 1, "enzyme": "Thiolase", "sub": "2 acetyl-CoA", "prod": "Acetoacetyl-CoA", "note": "Two two-carbon acetyl-CoA units condense head-to-tail, releasing one CoA. This is where a 27-carbon molecule literally begins counting up from two-carbon pieces."}, {"n": 2, "enzyme": "HMG-CoA synthase", "sub": "Acetoacetyl-CoA + acetyl-CoA", "prod": "HMG-CoA", "note": "A third acetyl-CoA is added to make 3-hydroxy-3-methylglutaryl-CoA (HMG-CoA), the six-carbon substrate one step before the throttle. The cytosolic pool feeds cholesterol; a separate mitochondrial pool feeds ketone bodies."}, {"n": 3, "enzyme": "HMG-CoA reductase", "sub": "HMG-CoA + 2 NADPH", "prod": "Mevalonate", "nadph": -2, "regulated": true, "note": "The committed, irreversible, rate-limiting step. Two NADPH reduce HMG-CoA to mevalonate. This one enzyme is controlled at four levels (SREBP transcription, mRNA stability, AMPK phosphorylation, sterol-triggered degradation) for more than 200-fold dynamic range.", "regNote": "Sterol end-product feedback plus SREBP and AMPK give this step its enormous dynamic range.", "clinical": "Statins are nanomolar competitive inhibitors that mimic the reaction intermediate. Blocking the enzyme lowers cell cholesterol, which turns SREBP ON, so the liver makes more LDL receptors and clears even more serum LDL."}, {"n": 4, "enzyme": "Mevalonate kinase segment (3 enzymes)", "sub": "Mevalonate + 3 ATP", "prod": "Isopentenyl pyrophosphate (IPP)", "atp": -3, "note": "Three ATP phosphorylate mevalonate, then a decarboxylation loses CO₂ to make IPP, the universal five-carbon isoprenoid building block (it interconverts with its isomer DMAPP). Cost is 3 ATP per IPP, and about six IPP go into one cholesterol.", "clinical": "Bisphosphonate osteoporosis drugs inhibit farnesyl-PP synthase downstream of here, in osteoclasts."}, {"n": 5, "enzyme": "Prenyltransferase (head-to-tail)", "sub": "IPP + DMAPP", "prod": "Geranyl-PP (C10) → farnesyl-PP (C15)", "note": "Five-carbon units add head-to-tail: DMAPP + IPP gives the ten-carbon geranyl-PP, then another IPP gives fifteen-carbon farnesyl-PP. Each coupling releases pyrophosphate, hydrolyzed to pull the reaction forward.", "clinical": "Farnesyl-PP anchors Ras and geranylgeranyl-PP anchors Rho-family GTPases — prenyl lipid tethers for signaling proteins, one reason statins have effects beyond cholesterol."}, {"n": 6, "enzyme": "Squalene synthase", "sub": "2 farnesyl-PP + NADPH", "prod": "Squalene (C30)", "nadph": -1, "note": "Two fifteen-carbon farnesyl-PP units join tail-to-tail, consuming NADPH, to make the thirty-carbon linear hydrocarbon squalene. This is the committing step to sterols: everything past here is locked into the cholesterol branch.", "clinical": "Squalene is abundant in shark liver — the model Bloch first chose to chase this intermediate before switching to rats."}, {"n": 7, "enzyme": "Squalene monooxygenase", "sub": "Squalene + O₂ + NADPH", "prod": "2,3-oxidosqualene", "nadph": -1, "note": "O₂ and NADPH install a single epoxide oxygen on one end of squalene, priming the linear chain for cyclization. A second regulated point in the pathway."}, {"n": 8, "enzyme": "Oxidosqualene cyclase (lanosterol synthase)", "sub": "2,3-oxidosqualene", "prod": "Lanosterol", "note": "One enzyme, one turnover, builds all four fused rings and sets the stereochemistry in a single concerted cascade — arguably the most elegant single-enzyme step in metabolism. A linear chain becomes a sterol nucleus."}, {"n": 9, "enzyme": "~19-step trimming pathway", "sub": "Lanosterol", "prod": "Cholesterol", "note": "Roughly nineteen oxygen- and NADPH-dependent steps remove three methyl groups and adjust the double bonds to yield the final 27-carbon cholesterol. The end product feeds back to shut HMG-CoA reductase off.", "clinical": "Cholesterol is the scaffold for bile salts (CYP7A1), steroid hormones (P450s including aromatase), and vitamin D — one scaffold, many identities."}];
+
+**One molecule, acetyl-CoA, has three completely different biological destinies.** The same two-carbon unit that burns for energy in the mitochondrion can instead be built up into storage fat, into the phospholipids of a membrane, or into cholesterol and the hormones it scaffolds. Lipid synthesis is the story of how a cell decides which fork to take, and the decision comes down to a handful of switches sitting at a handful of committed steps.
+
+That framing organizes the whole chapter. Three forks, three switches. The glycerolipid switch (PAP/Lipin 1) splits carbon between storage and membrane. The sterol switch (SREBP) governs cholesterol. The energy switch (AMPK) overrides both when fuel runs low. Learn where each switch sits and you can predict what a fed liver, a fasting liver, or a statin-treated liver will do with its acetyl-CoA.
+
+## The phosphatidate hub: one enzyme decides storage versus membrane
+
+Start with the fats and membranes, because they share a backbone. Glycerol 3-phosphate gets acylated twice. GPAT adds the first fatty acid at the sn-1 position, making lysophosphatidate; AGPAT adds the second at sn-2, making **phosphatidate**. Note the position chemistry, because it shows up everywhere downstream: sn-1 tends to carry a saturated chain, sn-2 an unsaturated one. And note the name carefully. Phosphatidate is diacylglycerol-3-phosphate; it is not the same as diacylglycerol. The phosphate is the whole point.
+
+Phosphatidate is the fork. One enzyme, PAP (also called Lipin 1), removes that phosphate to give diacylglycerol, which is then acylated a third time into triacylglycerol, the storage form. If instead phosphatidate reacts with CTP, it becomes CDP-diacylglycerol, the activated donor for the membrane phospholipids: phosphatidylinositol, phosphatidylglycerol, cardiolipin, phosphatidylserine. This is the same activated-intermediate logic you have already seen with UDP-sugars and CDP-choline. The leaving pyrophosphate gets hydrolyzed, and that hydrolysis is what pulls the reaction forward.
+
+Here is the punchline, and it is the kind of detail that rewards attention: the real switch is localization, not just enzyme abundance. Dephosphorylated Lipin 1 binds the ER membrane, where its substrate lives, and the storage pathway runs. Phosphorylated Lipin 1 stays in the cytosol, away from the membrane, and the pathway is off. Insulin (the fed signal) pushes Lipin 1 onto the membrane and favors storage; glucagon and fasting oppose it. Mutations that break this control cause human lipodystrophy. Where an enzyme sits can matter as much as how much of it there is.
+
+Sphingolipids run on a different backbone entirely. Palmitoyl-CoA condenses with serine, and after a few steps you reach **ceramide**, the sphingolipid hub. Add phosphocholine and you get sphingomyelin; add sugars and you get cerebrosides and then gangliosides. The clinical anchor is Tay-Sachs disease: loss of hexosaminidase A blocks ganglioside breakdown, the gangliosides accumulate in neurons, and the result is fatal neurodegeneration.
+
+## The cholesterol spine: condense, assemble, cyclize
+
+Now the third fork, and the spine of the chapter. Cholesterol is 27 carbons, every one of them delivered by two-carbon acetyl-CoA, across more than nineteen enzymatic steps. Konrad Bloch and his colleagues proved this with labeled acetate, and the proof took a model-organism detour we will come back to. Hold three words in mind: condense, assemble, cyclize.
+
+**Condense** (cytosolic). Two acetyl-CoA make acetoacetyl-CoA; a third gives HMG-CoA; then HMG-CoA reductase uses two NADPH to make **mevalonate**. That reductase step is the committed, irreversible, rate-limiting step of the entire pathway, and it is the single most important enzyme in this chapter.
+
+**Assemble.** Mevalonate is phosphorylated by three ATP and decarboxylated to **isopentenyl pyrophosphate (IPP)**, the universal five-carbon isoprenoid unit. IPP and its isomer DMAPP add head-to-tail: C5 plus C5 gives geranyl-PP (C10), plus another C5 gives farnesyl-PP (C15). Then two farnesyl-PP join tail-to-tail to make **squalene** (C30). Each coupling spits out pyrophosphate.
+
+**Cyclize.** Squalene monooxygenase adds an epoxide; then oxidosqualene cyclase runs one concerted cascade that builds all four fused rings and sets the stereochemistry in a single turnover. A linear chain becomes a sterol in one of the most elegant enzyme steps in all of biochemistry. The product, lanosterol, is then trimmed over roughly nineteen steps to cholesterol. Walk the spine yourself below and watch the carbons climb from 2 to 30.
+
+<PathwayExplorer steps={cholSteps} title="Cholesterol synthesis · acetyl-CoA to sterol" />
+
+Mevalonate is not only the road to cholesterol. The same intermediate feeds CoQ10, dolichol, vitamin K, and the prenyl anchors (farnesyl-PP, geranylgeranyl-PP) that tether signaling proteins like Ras to membranes. That branching is exactly why statins, which block upstream of mevalonate, have effects beyond cholesterol.
+
+## One enzyme, four controls, and the statin
+
+The cell regulates HMG-CoA reductase at four levels across four timescales, achieving more than 200-fold dynamic range. Over hours, transcription is driven by **SREBP**. Over hours, sterols destabilize the reductase mRNA and slow translation. In minutes, **AMPK** phosphorylates the enzyme at Ser872 and switches it off when ATP is low. Over hours, accumulating sterols trigger the enzyme's own proteolytic degradation in the ER.
+
+SREBP itself is a small mechanism worth getting right. When cholesterol is low, SCAP escorts SREBP from the ER to the Golgi inside a COPII vesicle. Two proteases, S1P then S2P, clip SREBP, releasing a transcription factor that travels to the nucleus, binds the sterol regulatory element, and turns ON the reductase, the LDL receptor, and fatty acid synthase. When cholesterol is high, it binds SCAP's sterol-sensing domain, which recruits Insig and locks the whole complex in the ER. Get the wiring right: Insig binds SCAP, not SREBP.
+
+Statins exploit all of this. They are nanomolar competitive inhibitors shaped like the reaction intermediate, so hepatic cholesterol synthesis drops 30 to 50 percent. The lower cell cholesterol then turns SREBP ON, the liver makes more LDL receptors, and serum LDL falls even further. That is the double hit, and it is why a drug that blocks synthesis ends up working largely by boosting uptake.
+
+## Transport, uptake, and the five identities
+
+Cholesterol does not dissolve in blood, so it rides in lipoproteins: a shell of phospholipid, free cholesterol, and apolipoprotein around a core of triacylglycerol and cholesteryl ester. ApoB-100 is the address label the LDL receptor reads. The liver secretes VLDL; lipoprotein lipase strips its triglyceride to make IDL; hepatic lipase finishes the job to make LDL. LDL is made in the blood, not secreted as such. Cells take it up by receptor-mediated endocytosis: ApoB-100 binds the receptor, the receptor clusters into a clathrin-coated pit, the vesicle fuses with a lysosome, free cholesterol is released, and the receptor recycles. HDL runs this in reverse, pulling cholesterol back to the liver.
+
+Familial hypercholesterolemia, an LDL-receptor mutation carried by roughly one person in 250, is the disease that cracked the whole system open. Brown and Goldstein proved it is a disorder of uptake, not synthesis. PCSK9, a secreted protease that destroys the LDL receptor, is the newest target: inhibitors drop LDL by 50 to 70 percent.
+
+Finally, the payoff. Cholesterol is biology's Swiss army knife, one scaffold with five identities: bile salts (committed by CYP7A1), glucocorticoids and mineralocorticoids and sex steroids (installed by tissue-specific P450s such as aromatase and 5alpha-reductase), and vitamin D (a steroid hormone built across skin, liver, and kidney). Every drug in this chapter, from statins to finasteride to aromatase inhibitors, came from understanding the pathway first. Next we move from building lipids to integrating all of metabolism, where these same switches answer to the fed and fasted state.
