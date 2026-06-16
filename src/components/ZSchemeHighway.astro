@@ -93,8 +93,8 @@
   // PSI leg continues 8..14 = p700..nadph.
   const PSII_END = IDX['pc'];   // electron parked here after a PSII run
 
-  type State = { photons: number; electrons: number; protons: number; o2: number; nadph: number; pos: number; parkedAtPC: boolean };
-  function fresh(): State { return { photons: 0, electrons: 0, protons: 0, o2: 0, nadph: 0, pos: -1, parkedAtPC: false }; }
+  type State = { photons: number; psii: number; psi: number; electrons: number; protons: number; o2: number; nadph: number; pos: number; parkedAtPC: boolean };
+  function fresh(): State { return { photons: 0, psii: 0, psi: 0, electrons: 0, protons: 0, o2: 0, nadph: 0, pos: -1, parkedAtPC: false }; }
 
   function drawStatic(svg: SVGElement): void {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -216,13 +216,14 @@
     // The b6f Q-cycle pumps ~2 extra H+ per electron; we add 2 H+/electron from the chain.
     function runPSII(): void {
       st.photons += 1;
+      st.psii += 1;
       st.electrons += 1;
       st.parkedAtPC = true;
       st.pos = PSII_END;
       // protons: 1 H+ released into lumen from water-splitting per electron, +2 from the Q-cycle
       st.protons += 3;
-      // every 4th PSII photon completes a water-splitting cycle → release O2
-      if (st.photons % 4 === 0) st.o2 += 1;
+      // every 4th PSII turnover completes a water-splitting cycle → release O2
+      if (st.psii % 4 === 0) st.o2 += 1;
       renderCounters();
       stageEl.textContent =
         'PSII fires: the 680-nm photon lifts P680 to P680* (the big upstroke on the left). '
@@ -230,9 +231,9 @@
         + 'pumping H⁺ into the lumen on the way. P680⁺ left behind is the strongest oxidant in biology and rips an '
         + 'electron off water. The electron is now parked at plastocyanin; fire PSI to lift it again.';
       netEl.textContent =
-        st.photons % 4 === 0
-          ? `Net so far: ${st.photons} PSII photons have split ${st.o2 * 2} H₂O → ${st.o2} O₂ + ${st.protons} H⁺ banked in the lumen. An electron waits at plastocyanin.`
-          : `Net so far: ${st.photons} PSII photon(s) in, ${st.protons} H⁺ in the lumen, ${st.electrons} e⁻ delivered to plastocyanin. ${4 - (st.photons % 4)} more PSII photon(s) until the next O₂.`;
+        st.psii % 4 === 0
+          ? `Net so far: ${st.psii} PSII photons have split ${st.o2 * 2} H₂O → ${st.o2} O₂ + ${st.protons} H⁺ banked in the lumen. An electron waits at plastocyanin.`
+          : `Net so far: ${st.psii} PSII photon(s) in, ${st.protons} H⁺ in the lumen, ${st.electrons} e⁻ delivered to plastocyanin. ${4 - (st.psii % 4)} more PSII photon(s) until the next O₂.`;
     }
 
     // One PSI firing: requires an electron parked at plastocyanin. Lift P700→P700*, slide to NADP+.
@@ -240,11 +241,11 @@
     function runPSI(): void {
       if (!st.parkedAtPC) return;
       st.photons += 1;
+      st.psi += 1;
       st.parkedAtPC = false;
       st.pos = IDX['nadph'];
-      // 2 electrons through PSI make 1 NADPH; count electrons delivered to ferredoxin
-      // electrons already incremented at PSII; one NADPH per 2 PSI firings
-      if (st.photons > 0 && (countPSI() % 2 === 0)) st.nadph += 1;
+      // 2 electrons through PSI make 1 NADPH
+      if (st.psi % 2 === 0) st.nadph += 1;
       renderCounters();
       stageEl.textContent =
         'PSI fires: the 700-nm photon lifts P700 to P700* (the second, even higher upstroke). '
@@ -256,14 +257,8 @@
         + 'Plastocyanin is empty again — fire PSII to reload it.';
     }
 
-    // PSI firings = total photons minus PSII firings; but simpler: track via electrons delivered.
-    // We infer PSI count from nadph progress; keep a dedicated tally for clarity.
-    let psiFired = 0;
-    function countPSI(): number { psiFired += 1; return psiFired; }
-
     function reset(): void {
       st = fresh();
-      psiFired = 0;
       renderCounters();
       stageEl.textContent =
         'The full Z-scheme is drawn: nodes sit at their true reduction potentials, so the chain climbs twice and '
