@@ -1,0 +1,91 @@
+---
+/**
+ * FattyAcidSwitch — the regulatory companion to the fatty-acid-synthesis map. One
+ * molecule, malonyl-CoA, enforces that a cell never builds and burns fat at once:
+ * it is the committed substrate of synthesis AND a direct inhibitor of CPT-1, the
+ * gate into β-oxidation. Slide the cell's energy/hormonal state and watch malonyl-CoA
+ * rise or fall, switching synthesis on while β-oxidation goes off, and vice versa.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="fas2 card" data-fatswitch>
+  <figcaption class="fas2-head">Build or burn — never both at once<span class="fas2-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="fas2-presets" role="group" aria-label="State">
+    <button type="button" data-preset="fed">Fed (insulin high)</button>
+    <button type="button" data-preset="fasting">Fasting / exercise (glucagon, AMPK)</button>
+  </div>
+
+  <label class="fas2-slabel">Acetyl-CoA carboxylase (ACC) activity → malonyl-CoA <em data-out="mal">high</em>
+    <input type="range" data-in="mal" min="0" max="100" step="5" value="80" />
+  </label>
+
+  <div class="fas2-states">
+    <div class="fas2-state" data-s-syn><span class="fas2-s-name">Fatty acid synthesis</span><span class="fas2-s-v" data-syn>ON</span></div>
+    <div class="fas2-state" data-s-cpt><span class="fas2-s-name">CPT-1 gate (fat import)</span><span class="fas2-s-v" data-cpt>blocked</span></div>
+    <div class="fas2-state" data-s-ox><span class="fas2-s-name">β-oxidation (fat burning)</span><span class="fas2-s-v" data-ox>OFF</span></div>
+  </div>
+  <p class="fas2-why" data-why>When malonyl-CoA is high, synthesis runs and that same malonyl-CoA plugs CPT-1, so fat cannot enter the mitochondrion to be burned. The cell builds.</p>
+
+  <p class="fas2-foot">ACC is the hinge. Insulin activates it (build); glucagon and the low-energy sensor AMPK shut it off (burn). Because its product malonyl-CoA both feeds synthesis and blocks the burn gate, one signal flips the whole cell between storing and spending fat.</p>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-fatswitch]').forEach((root) => {
+    const malIn = root.querySelector<HTMLInputElement>('[data-in="mal"]')!;
+    const malOut = root.querySelector<HTMLElement>('[data-out="mal"]')!;
+    const syn = root.querySelector<HTMLElement>('[data-syn]')!;
+    const cpt = root.querySelector<HTMLElement>('[data-cpt]')!;
+    const ox = root.querySelector<HTMLElement>('[data-ox]')!;
+    const sSyn = root.querySelector<HTMLElement>('[data-s-syn]')!;
+    const sCpt = root.querySelector<HTMLElement>('[data-s-cpt]')!;
+    const sOx = root.querySelector<HTMLElement>('[data-s-ox]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    function setState(elm: HTMLElement, on: boolean) { elm.classList.toggle('is-on', on); elm.classList.toggle('is-off', !on); }
+    function render(presetWhy?: string) {
+      const m = parseInt(malIn.value, 10);
+      malOut.textContent = m > 60 ? 'high' : m < 30 ? 'low' : 'moderate';
+      const building = m >= 50;
+      syn.textContent = building ? 'ON' : 'off';
+      cpt.textContent = building ? 'blocked by malonyl-CoA' : 'open';
+      ox.textContent = building ? 'OFF' : 'ON';
+      setState(sSyn, building); setState(sCpt, !building); setState(sOx, !building);
+      if (presetWhy) { why.textContent = presetWhy; return; }
+      why.textContent = building
+        ? 'High malonyl-CoA: synthesis runs, and that same malonyl-CoA plugs CPT-1, so fatty acids cannot enter the mitochondrion to be burned. The cell is building and storing fat.'
+        : 'Low malonyl-CoA: synthesis stops and CPT-1 opens, so fatty acids stream into the mitochondrion for β-oxidation. The cell is burning fat. One molecule, opposite states — never both at once.';
+    }
+    malIn.addEventListener('input', () => render());
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const fed = b.getAttribute('data-preset') === 'fed';
+        malIn.value = fed ? '85' : '10';
+        render(fed
+          ? 'Fed state: insulin activates ACC, malonyl-CoA climbs, fatty acid synthesis runs, and CPT-1 is blocked — the cell stockpiles fat and will not burn it.'
+          : 'Fasting or exercise: glucagon and AMPK shut ACC off, malonyl-CoA falls, CPT-1 opens, and β-oxidation burns fat for fuel — while synthesis is silent.');
+      }));
+    render();
+  });
+</script>
+
+<style>
+  .fas2 { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fas2-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .fas2-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fas2-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .fas2-presets button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .fas2-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .fas2-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
+  .fas2-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fas2-slabel input { accent-color: var(--ddp-color-accent); }
+  .fas2-states { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .fas2-states { grid-template-columns: repeat(3, 1fr); } }
+  .fas2-state { border: 1px solid var(--ddp-color-line); border-left: 3px solid var(--ddp-color-muted); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .fas2-state.is-on { border-left-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, #fff); }
+  .fas2-state.is-off { opacity: 0.6; }
+  .fas2-s-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fas2-s-v { font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .fas2-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .fas2-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
