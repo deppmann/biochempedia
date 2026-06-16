@@ -1,0 +1,363 @@
+---
+/**
+ * EnergyEconomyBench — the chapter's ONE idea made manipulable: metabolism is an
+ * energy economy. Thermodynamically unfavorable reactions don't happen on their own;
+ * the cell DRIVES them by coupling to ATP hydrolysis, and its spending is gated by
+ * energy charge. Three benches:
+ *   1. Couple it      — add an uphill reaction's ΔG°' to ATP's −30.5 and watch the
+ *                       sum (and K'eq) flip from "won't go" to spontaneous.
+ *   2. Rank the donors — drag a phosphoryl group down the transfer-potential ladder;
+ *                        the cell can only push phosphate downhill (PEP→ADP→glucose).
+ *   3. Read the battery — an energy-charge gauge: EC = (ATP + ½ADP)/(ATP+ADP+AMP).
+ *                        Drop ATP and AMP rises disproportionately (adenylate kinase),
+ *                        redlining the needle and flipping the cell into BURN mode.
+ * Self-contained vanilla-TS Astro island. No libraries, no props. Original — every
+ * number is computed from the equations, nothing is AI-drawn.
+ */
+---
+
+<figure class="eeb card" data-eeb>
+  <figcaption class="eeb-head">The Energy Economy Bench — coupling, currency, and the cell's battery<span class="eeb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="eeb-grid">
+    <!-- MODULE 1 — Couple it -->
+    <section class="eeb-mod">
+      <h3 class="eeb-modh">Couple it: ATP pays for the uphill climb</h3>
+      <svg class="eeb-svg eeb-svg-hill" viewBox="0 0 260 150" role="img" data-svg="hill" aria-label="Two wagons on a hill showing reaction coupling"></svg>
+
+      <label class="eeb-slabel">Target reaction A → B, ΔG°' = <em data-out="targetdg">+12</em> kJ/mol
+        <input type="range" data-in="targetdg" min="5" max="25" step="1" value="12" />
+      </label>
+      <label class="eeb-check">
+        <input type="checkbox" data-in="couple" />
+        Couple to ATP hydrolysis (−30.5 kJ/mol)
+      </label>
+
+      <dl class="eeb-readout">
+        <div><dt>ΔG°' of target</dt><dd data-out="dg-target">+12.0 kJ/mol</dd></div>
+        <div><dt>ΔG°' summed</dt><dd data-out="dg-sum">+12.0 kJ/mol</dd></div>
+        <div><dt>K'eq (310 K)</dt><dd data-out="keq">9.5e-3</dd></div>
+      </dl>
+      <p class="eeb-tip">These don't happen simultaneously — they share intermediate B, so their ΔG°' values simply add.</p>
+    </section>
+
+    <!-- MODULE 2 — Rank the donors -->
+    <section class="eeb-mod">
+      <h3 class="eeb-modh">Rank the donors: phosphate only rolls downhill</h3>
+      <svg class="eeb-svg eeb-svg-ladder" viewBox="0 0 200 300" role="img" data-svg="ladder" aria-label="Phosphoryl-transfer potential ladder with a draggable phosphate token"></svg>
+      <p class="eeb-laddermsg" data-out="laddermsg">Drag the Pi token to a rung. Downhill only.</p>
+      <p class="eeb-tip">Transfer potential = −ΔG°' of hydrolysis. ATP sits in the middle on purpose: high-energy donors (PEP, 1,3-BPG, creatine-P) can charge it; it in turn can phosphorylate glucose. Glucose-6-P can't pay ATP back.</p>
+    </section>
+
+    <!-- MODULE 3 — Read the battery -->
+    <section class="eeb-mod">
+      <h3 class="eeb-modh">Read the battery: energy charge gates spending</h3>
+      <svg class="eeb-svg eeb-svg-gauge" viewBox="0 0 200 130" role="img" data-svg="gauge" aria-label="Energy charge gauge from 0 to 1"></svg>
+      <div class="eeb-ec">Energy charge <strong data-out="ec">0.91</strong></div>
+      <div class="eeb-ampk" data-out="ampk">High charge — STORE mode</div>
+      <div class="eeb-modes">
+        <span class="eeb-mode" data-mode="cata">🔥 catabolic · burn fuel</span>
+        <span class="eeb-mode" data-mode="ana">🧱 anabolic · build</span>
+      </div>
+      <label class="eeb-slabel">[ATP] <em data-out="atp">85</em><input type="range" data-in="atp" min="0" max="100" step="1" value="85" /></label>
+      <label class="eeb-slabel">[ADP] <em data-out="adp">12</em><input type="range" data-in="adp" min="0" max="100" step="1" value="12" /></label>
+      <label class="eeb-slabel">[AMP] <em data-out="amp">3</em><input type="range" data-in="amp" min="0" max="100" step="1" value="3" /></label>
+      <p class="eeb-tip">AMP is the cell's sensitive alarm: adenylate kinase (2 ADP ⇌ ATP + AMP) makes AMP spike as ATP falls, so the gauge redlines faster than ATP alone would predict.</p>
+    </section>
+  </div>
+
+  <p class="eeb-foot">Run the first bench and the whole chapter collapses into one sentence: alone, A → B has a K'eq near 0.001 and effectively never happens, but bolt it to ATP hydrolysis and the summed ΔG°' goes negative — K'eq jumps past 200, and the reaction runs. That is all coupling is: arithmetic on ΔG, paid in ATP. The third bench tells you when the cell is willing to pay. It does not spend its last dollar; it holds energy charge near 0.85–0.92, throttling fuel-burning and fuel-building against the same gauge, the way you'd manage a checking account you can never let hit zero.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const R = 8.314e-3; // kJ/mol·K
+  const T = 310; // K
+  const ATP_DG = -30.5; // kJ/mol
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
+
+  type Rung = { name: string; dg: number; currency: boolean };
+  const LADDER: Rung[] = [
+    { name: 'PEP', dg: -61.9, currency: false },
+    { name: '1,3-BPG', dg: -49.3, currency: false },
+    { name: 'creatine-P', dg: -43.0, currency: false },
+    { name: 'ATP → ADP', dg: -30.5, currency: true },
+    { name: 'glucose-6-P', dg: -13.8, currency: false },
+    { name: 'AMP', dg: -9.2, currency: false },
+  ];
+
+  // ---------- MODULE 1: coupling ----------
+  function drawHill(svg: SVGSVGElement, targetDG: number, coupled: boolean): void {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // ground
+    svg.appendChild(el('line', { x1: 8, y1: 132, x2: 252, y2: 132, stroke: FAINT, 'stroke-width': 1 }));
+    // the hill the target must climb — height scales with targetDG (5..25 -> ~30..96 px tall)
+    const peak = 132 - (28 + (targetDG - 5) / 20 * 70);
+    svg.appendChild(el('path', { d: `M40 132 Q105 ${peak} 170 132`, fill: 'none', stroke: INK, 'stroke-width': 1.4, opacity: 0.5 }));
+    // small target wagon, stalled partway up the hill (never crests on its own)
+    const tw = el('g', {});
+    tw.appendChild(el('rect', { x: 66, y: 116, width: 24, height: 13, rx: 3, fill: ORANGE, opacity: 0.92 }));
+    tw.appendChild(el('circle', { cx: 71, cy: 131, r: 3, fill: NAVY }));
+    tw.appendChild(el('circle', { cx: 85, cy: 131, r: 3, fill: NAVY }));
+    const tlab = el('text', { x: 78, y: 110, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 9, 'font-weight': 700 }); tlab.textContent = 'A→B'; tw.appendChild(tlab);
+    // uphill arrow
+    tw.appendChild(el('path', { d: 'M92 122 L106 112', stroke: ORANGE, 'stroke-width': 1.6, 'marker-end': 'url(#eeb-up)' }));
+    svg.appendChild(tw);
+    if (coupled) {
+      // ATP wagon rolling downhill on the right, linked by a rod sharing intermediate B
+      const aw = el('g', {});
+      aw.appendChild(el('rect', { x: 196, y: 30, width: 34, height: 18, rx: 4, fill: ACCENT, opacity: 0.95 }));
+      aw.appendChild(el('circle', { cx: 203, cy: 50, r: 4, fill: NAVY }));
+      aw.appendChild(el('circle', { cx: 223, cy: 50, r: 4, fill: NAVY }));
+      const al = el('text', { x: 213, y: 43, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9, 'font-weight': 700 }); al.textContent = 'ATP'; aw.appendChild(al);
+      // downhill slope under the ATP wagon
+      aw.appendChild(el('path', { d: 'M196 52 L120 116', stroke: ACCENT, 'stroke-width': 1.4, 'stroke-dasharray': '4 3', opacity: 0.6, 'marker-end': 'url(#eeb-down)' }));
+      // shared coupling rod between the two wagons through B
+      aw.appendChild(el('line', { x1: 96, y1: 122, x2: 196, y2: 44, stroke: GOLD, 'stroke-width': 2 }));
+      const bl = el('text', { x: 150, y: 78, 'text-anchor': 'middle', fill: GOLD, 'font-size': 9, 'font-weight': 700 }); bl.textContent = 'shared B'; aw.appendChild(bl);
+      svg.appendChild(aw);
+    }
+    // markers
+    const defs = el('defs', {});
+    const up = el('marker', { id: 'eeb-up', markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: 'auto' });
+    up.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: ORANGE })); defs.appendChild(up);
+    const down = el('marker', { id: 'eeb-down', markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: 'auto' });
+    down.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: ACCENT })); defs.appendChild(down);
+    svg.appendChild(defs);
+  }
+
+  // ---------- MODULE 2: ladder geometry ----------
+  const LAD_TOP = 28, LAD_BOT = 272, LAD_X = 132;
+  const rungY = (i: number): number => LAD_TOP + (i / (LADDER.length - 1)) * (LAD_BOT - LAD_TOP);
+  function nearestRung(y: number): number {
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < LADDER.length; i++) {
+      const d = Math.abs(y - rungY(i));
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  function drawLadder(svg: SVGSVGElement, tokenIdx: number): SVGCircleElement {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // spine
+    svg.appendChild(el('line', { x1: LAD_X, y1: LAD_TOP, x2: LAD_X, y2: LAD_BOT, stroke: FAINT, 'stroke-width': 2 }));
+    const top = el('text', { x: LAD_X, y: 14, 'text-anchor': 'middle', fill: INK, 'font-size': 8 }); top.textContent = '↑ stronger donor'; svg.appendChild(top);
+    const bot = el('text', { x: LAD_X, y: 290, 'text-anchor': 'middle', fill: INK, 'font-size': 8 }); bot.textContent = '↓ weaker donor'; svg.appendChild(bot);
+    for (let i = 0; i < LADDER.length; i++) {
+      const r = LADDER[i], y = rungY(i);
+      svg.appendChild(el('line', { x1: LAD_X - 10, y1: y, x2: LAD_X + 10, y2: y, stroke: r.currency ? GOLD : INK, 'stroke-width': r.currency ? 3 : 1.6 }));
+      const nm = el('text', { x: LAD_X - 16, y: y - 2, 'text-anchor': 'end', fill: r.currency ? GOLD : NAVY, 'font-size': 9, 'font-weight': r.currency ? 700 : 600 }); nm.textContent = r.name; svg.appendChild(nm);
+      const dgt = el('text', { x: LAD_X - 16, y: y + 8, 'text-anchor': 'end', fill: INK, 'font-size': 7.5 }); dgt.textContent = `${r.dg.toFixed(1)} kJ/mol`; svg.appendChild(dgt);
+      if (r.currency) { const tag = el('text', { x: LAD_X + 16, y: y + 3, fill: GOLD, 'font-size': 8, 'font-weight': 700 }); tag.textContent = '◆ currency'; svg.appendChild(tag); }
+    }
+    // draggable Pi token at the source rung
+    const tok = el('circle', { cx: LAD_X + 38, cy: rungY(tokenIdx), r: 11, fill: ORANGE, stroke: '#fff', 'stroke-width': 2, cursor: 'grab', 'data-token': '1' }) as SVGCircleElement;
+    svg.appendChild(tok);
+    const pl = el('text', { x: LAD_X + 38, y: rungY(tokenIdx) + 3, 'text-anchor': 'middle', fill: '#fff', 'font-size': 8, 'font-weight': 700, 'pointer-events': 'none', 'data-tokenlabel': '1' }); pl.textContent = 'Pi'; svg.appendChild(pl);
+    return tok;
+  }
+
+  // ---------- MODULE 3: gauge ----------
+  function ecAngle(ec: number): number { return Math.PI - clamp(ec, 0, 1) * Math.PI; } // 0->left(π), 1->right(0)
+  function gaugePt(ec: number, rad: number): { x: number; y: number } {
+    const a = ecAngle(ec);
+    return { x: 100 + Math.cos(a) * rad, y: 110 - Math.sin(a) * rad };
+  }
+  function drawGauge(svg: SVGSVGElement, ec: number): void {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const Rr = 78;
+    // base arc
+    const a0 = gaugePt(0, Rr), a1 = gaugePt(1, Rr);
+    svg.appendChild(el('path', { d: `M${a0.x.toFixed(1)} ${a0.y.toFixed(1)} A ${Rr} ${Rr} 0 0 1 ${a1.x.toFixed(1)} ${a1.y.toFixed(1)}`, fill: 'none', stroke: FAINT, 'stroke-width': 8, 'stroke-linecap': 'round' }));
+    // green healthy band 0.80–0.95
+    const g0 = gaugePt(0.80, Rr), g1 = gaugePt(0.95, Rr);
+    svg.appendChild(el('path', { d: `M${g0.x.toFixed(1)} ${g0.y.toFixed(1)} A ${Rr} ${Rr} 0 0 1 ${g1.x.toFixed(1)} ${g1.y.toFixed(1)}`, fill: 'none', stroke: '#2e8b57', 'stroke-width': 8, 'stroke-linecap': 'round', opacity: 0.85 }));
+    // tick labels
+    [0, 0.5, 1].forEach((v) => { const p = gaugePt(v, Rr + 14); const tt = el('text', { x: p.x, y: p.y + 3, 'text-anchor': 'middle', fill: INK, 'font-size': 8 }); tt.textContent = v.toFixed(1); svg.appendChild(tt); });
+    // needle
+    const np = gaugePt(ec, Rr - 6);
+    svg.appendChild(el('line', { x1: 100, y1: 110, x2: np.x.toFixed(1), y2: np.y.toFixed(1), stroke: ec < 0.70 ? ORANGE : NAVY, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+    svg.appendChild(el('circle', { cx: 100, cy: 110, r: 5, fill: NAVY }));
+    const ecl = el('text', { x: 100, y: 126, 'text-anchor': 'middle', fill: ec < 0.70 ? ORANGE : NAVY, 'font-size': 13, 'font-weight': 700, 'font-family': 'monospace' }); ecl.textContent = ec.toFixed(2); svg.appendChild(ecl);
+  }
+
+  // ---------- init ----------
+  function initBench(root: HTMLElement): void {
+    // MODULE 1
+    const hillSvg = root.querySelector<SVGSVGElement>('[data-svg="hill"]')!;
+    const dgIn = root.querySelector<HTMLInputElement>('[data-in="targetdg"]')!;
+    const coupleIn = root.querySelector<HTMLInputElement>('[data-in="couple"]')!;
+    const dgOut = root.querySelector<HTMLElement>('[data-out="targetdg"]')!;
+    const dgTargetOut = root.querySelector<HTMLElement>('[data-out="dg-target"]')!;
+    const dgSumOut = root.querySelector<HTMLElement>('[data-out="dg-sum"]')!;
+    const keqOut = root.querySelector<HTMLElement>('[data-out="keq"]')!;
+
+    function renderCouple(): void {
+      const targetDG = Number.parseFloat(dgIn.value);
+      const coupled = coupleIn.checked;
+      const sum = coupled ? targetDG + ATP_DG : targetDG;
+      const keq = Math.exp(-sum / (R * T));
+      dgOut.textContent = `+${targetDG.toFixed(0)}`;
+      dgTargetOut.textContent = `+${targetDG.toFixed(1)} kJ/mol`;
+      dgSumOut.textContent = `${sum >= 0 ? '+' : ''}${sum.toFixed(1)} kJ/mol`;
+      dgSumOut.style.color = sum > 0 ? 'var(--ddp-color-caution)' : 'var(--ddp-color-verified)';
+      keqOut.textContent = keq.toExponential(1);
+      drawHill(hillSvg, targetDG, coupled);
+    }
+    dgIn.addEventListener('input', renderCouple);
+    coupleIn.addEventListener('change', renderCouple);
+
+    // MODULE 2
+    const ladderSvg = root.querySelector<SVGSVGElement>('[data-svg="ladder"]')!;
+    const ladderMsg = root.querySelector<HTMLElement>('[data-out="laddermsg"]')!;
+    let sourceIdx = 3; // ATP rung
+    let tokenEl = drawLadder(ladderSvg, sourceIdx);
+
+    function svgY(evt: PointerEvent): number {
+      const pt = ladderSvg.createSVGPoint();
+      pt.x = evt.clientX; pt.y = evt.clientY;
+      const ctm = ladderSvg.getScreenCTM();
+      return ctm ? pt.matrixTransform(ctm.inverse()).y : evt.clientY;
+    }
+    let dragging = false;
+    function moveToken(y: number): void {
+      tokenEl.setAttribute('cy', String(clamp(y, LAD_TOP, LAD_BOT)));
+      const lbl = ladderSvg.querySelector<SVGTextElement>('[data-tokenlabel]')!;
+      lbl.setAttribute('y', String(clamp(y, LAD_TOP, LAD_BOT) + 3));
+    }
+    ladderSvg.addEventListener('pointerdown', (evt) => {
+      const t = evt.target as SVGElement;
+      if (t.getAttribute('data-token') === '1') {
+        dragging = true;
+        ladderSvg.setPointerCapture(evt.pointerId);
+        tokenEl.setAttribute('cursor', 'grabbing');
+        evt.preventDefault();
+      }
+    });
+    ladderSvg.addEventListener('pointermove', (evt) => { if (dragging) moveToken(svgY(evt)); });
+    function endDrag(evt: PointerEvent): void {
+      if (!dragging) return;
+      dragging = false;
+      tokenEl.setAttribute('cursor', 'grab');
+      const target = nearestRung(svgY(evt));
+      // legal only if target is a WEAKER donor (less negative ΔG°') than the source — downhill
+      if (target === sourceIdx) {
+        moveToken(rungY(sourceIdx));
+        ladderMsg.textContent = 'Same rung — no transfer.';
+        ladderMsg.dataset.state = 'neutral';
+      } else if (LADDER[target].dg > LADDER[sourceIdx].dg) {
+        // downhill: source phosphorylates target
+        moveToken(rungY(target));
+        ladderMsg.textContent = `${LADDER[sourceIdx].name} → ${LADDER[target].name} ✓ spontaneous transfer`;
+        ladderMsg.dataset.state = 'ok';
+        sourceIdx = target;
+      } else {
+        // uphill: bounce back
+        moveToken(rungY(sourceIdx));
+        ladderMsg.textContent = `Uphill (${LADDER[sourceIdx].name} → ${LADDER[target].name}) — not spontaneous.`;
+        ladderMsg.dataset.state = 'bad';
+      }
+    }
+    ladderSvg.addEventListener('pointerup', endDrag);
+    ladderSvg.addEventListener('pointercancel', endDrag);
+    // keep a reference fresh if the SVG is ever redrawn (it isn't after init, but typed-safe)
+    tokenEl = ladderSvg.querySelector<SVGCircleElement>('[data-token]')!;
+
+    // MODULE 3
+    const gaugeSvg = root.querySelector<SVGSVGElement>('[data-svg="gauge"]')!;
+    const atpIn = root.querySelector<HTMLInputElement>('[data-in="atp"]')!;
+    const adpIn = root.querySelector<HTMLInputElement>('[data-in="adp"]')!;
+    const ampIn = root.querySelector<HTMLInputElement>('[data-in="amp"]')!;
+    const atpOut = root.querySelector<HTMLElement>('[data-out="atp"]')!;
+    const adpOut = root.querySelector<HTMLElement>('[data-out="adp"]')!;
+    const ampOut = root.querySelector<HTMLElement>('[data-out="amp"]')!;
+    const ecOut = root.querySelector<HTMLElement>('[data-out="ec"]')!;
+    const ampkOut = root.querySelector<HTMLElement>('[data-out="ampk"]')!;
+    const cataEl = root.querySelector<HTMLElement>('[data-mode="cata"]')!;
+    const anaEl = root.querySelector<HTMLElement>('[data-mode="ana"]')!;
+
+    function renderBattery(nudgeFromAtp: boolean): void {
+      const atp = Number.parseFloat(atpIn.value);
+      let adp = Number.parseFloat(adpIn.value);
+      let amp = Number.parseFloat(ampIn.value);
+      // adenylate-kinase dramatization: lowering ATP makes AMP rise disproportionately
+      if (nudgeFromAtp) {
+        amp = clamp(amp + (85 - atp) * 0.4, 0, 100);
+        ampIn.value = String(Math.round(amp));
+      }
+      adp = Number.parseFloat(adpIn.value);
+      amp = Number.parseFloat(ampIn.value);
+      const total = atp + adp + amp;
+      const ec = total > 0 ? (atp + 0.5 * adp) / total : 0;
+      atpOut.textContent = String(Math.round(atp));
+      adpOut.textContent = String(Math.round(adp));
+      ampOut.textContent = String(Math.round(amp));
+      ecOut.textContent = ec.toFixed(2);
+      drawGauge(gaugeSvg, ec);
+      const low = ec < 0.70;
+      ampkOut.textContent = low ? 'AMPK: BURN mode' : 'High charge — STORE mode';
+      ampkOut.dataset.state = low ? 'burn' : 'store';
+      // low charge: catabolic ON, anabolic dim; high charge: reverse
+      cataEl.dataset.on = low ? '1' : '0';
+      anaEl.dataset.on = low ? '0' : '1';
+    }
+    atpIn.addEventListener('input', () => renderBattery(true));
+    adpIn.addEventListener('input', () => renderBattery(false));
+    ampIn.addEventListener('input', () => renderBattery(false));
+
+    // static initial render
+    renderCouple();
+    renderBattery(false);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-eeb]').forEach(initBench);
+</script>
+
+<style>
+  .eeb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-6) 0; }
+  .eeb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .eeb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+
+  .eeb-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-4); }
+  @media (min-width: 760px) { .eeb-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+  .eeb-mod { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-3); display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .eeb-modh { margin: 0; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); line-height: 1.3; }
+
+  .eeb-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); touch-action: none; }
+  .eeb-svg-ladder, .eeb-svg-gauge { cursor: default; }
+
+  .eeb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .eeb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .eeb-slabel input { accent-color: var(--ddp-color-accent); }
+  .eeb-check { display: flex; align-items: flex-start; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.3; }
+  .eeb-check input { accent-color: var(--ddp-color-accent); margin-top: 0.1rem; }
+
+  .eeb-readout { margin: 0; display: grid; grid-template-columns: 1fr; gap: 0.25rem; padding: var(--ddp-space-2); background: var(--ddp-color-accent-soft); border-radius: var(--ddp-radius-sm); }
+  .eeb-readout div { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .eeb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin: 0; }
+  .eeb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
+
+  .eeb-tip { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+
+  .eeb-laddermsg { margin: 0; font-size: var(--ddp-text-xs); font-weight: 700; font-family: var(--ddp-font-mono); padding: var(--ddp-space-2); border-radius: var(--ddp-radius-sm); color: var(--ddp-color-ink-soft); background: var(--ddp-color-accent-soft); min-height: 2.6em; }
+  .eeb-laddermsg[data-state="ok"] { color: var(--ddp-color-verified); }
+  .eeb-laddermsg[data-state="bad"] { color: var(--ddp-color-caution); }
+
+  .eeb-ec { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .eeb-ec strong { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-lg); color: var(--ddp-color-accent); }
+  .eeb-ampk { font-size: var(--ddp-text-xs); font-weight: 700; font-family: var(--ddp-font-mono); padding: 0.25rem 0.5rem; border-radius: var(--ddp-radius-sm); color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); text-align: center; }
+  .eeb-ampk[data-state="burn"] { color: var(--ddp-color-caution); background: var(--ddp-color-caution-soft); }
+  .eeb-modes { display: flex; gap: 0.35rem; }
+  .eeb-mode { flex: 1; font-size: var(--ddp-text-xs); text-align: center; padding: 0.25rem; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); color: var(--ddp-color-muted); opacity: 0.45; }
+  .eeb-mode[data-on="1"] { opacity: 1; color: var(--ddp-color-primary); border-color: var(--ddp-color-accent); font-weight: 700; }
+
+  .eeb-foot { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

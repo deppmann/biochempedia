@@ -1,0 +1,287 @@
+---
+/**
+ * ProtonMotiveDam — the coupling control panel for oxidative phosphorylation. Where the CH20
+ * ProtonGradientBattery draws the membrane in cross-section, this island is the DAM/TURBINE
+ * analogy plus a PERTURBATION-PREDICTION panel: the proton gradient is water held behind a dam,
+ * and ATP synthase is the turbine the water drives. Because electron transport and ATP synthesis
+ * are COUPLED through the proton-motive force (Δp = ΔΨ − 59·ΔpH mV at 37 °C, ΔΨ the larger term),
+ * any one perturbation moves three readouts together. Pick a condition — block the chain, jam the
+ * turbine, or punch a leak — and the island predicts electron flow / O₂ use, gradient Δp, ATP
+ * output, and heat. The subtle, important case is oligomycin: jamming the turbine backs the water
+ * up and stalls the chain too (respiratory control). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pmd card" data-pmdam>
+  <figcaption class="pmd-head">The mitochondrial dam &amp; turbine — coupling, predicted<span class="pmd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pmd-svg" viewBox="0 0 720 360" role="img" aria-label="A dam analogy for oxidative phosphorylation: the electron transport chain on the left pumps protons up behind a dam (the proton gradient, center), and the height of the water drives a turbine (ATP synthase) on the right that makes ATP." data-svg></svg>
+
+  <div class="pmd-conditions" role="group" aria-label="Perturbation conditions">
+    <button type="button" class="pmd-cond" data-cond="normal" aria-pressed="true">Normal (coupled)</button>
+    <button type="button" class="pmd-cond" data-cond="etc" aria-pressed="false">Block the chain<small>rotenone · antimycin · cyanide</small></button>
+    <button type="button" class="pmd-cond" data-cond="oligo" aria-pressed="false">Jam the turbine<small>oligomycin</small></button>
+    <button type="button" class="pmd-cond" data-cond="uncoupler" aria-pressed="false">Punch a leak<small>DNP · FCCP · thermogenin</small></button>
+  </div>
+
+  <div class="pmd-readouts">
+    <div class="pmd-bar"><span class="pmd-b-name">Electron flow / O₂ use</span>
+      <span class="pmd-track"><span class="pmd-fill" data-fill="o2"></span></span>
+      <span class="pmd-b-val" data-val="o2">high</span></div>
+    <div class="pmd-bar"><span class="pmd-b-name">Gradient Δp (water behind dam)</span>
+      <span class="pmd-track"><span class="pmd-fill" data-fill="grad"></span></span>
+      <span class="pmd-b-val" data-val="grad">high</span></div>
+    <div class="pmd-bar"><span class="pmd-b-name">ATP output (turbine)</span>
+      <span class="pmd-track"><span class="pmd-fill" data-fill="atp"></span></span>
+      <span class="pmd-b-val" data-val="atp">high</span></div>
+    <div class="pmd-heat"><span class="pmd-b-name">Heat</span><span class="pmd-heat-dot" data-heat>little</span></div>
+  </div>
+
+  <p class="pmd-why" data-why></p>
+
+  <dl class="pmd-readout-sr" data-readout>
+    <dt>Δp formula</dt><dd>Δp = ΔΨ − 59·ΔpH mV (37 °C); ΔΨ is the larger term, ~150–200 mV.</dd>
+    <dt>Electron flow / O₂ use</dt><dd data-sr="o2"></dd>
+    <dt>Gradient Δp</dt><dd data-sr="grad"></dd>
+    <dt>ATP output</dt><dd data-sr="atp"></dd>
+    <dt>Heat</dt><dd data-sr="heat"></dd>
+  </dl>
+
+  <p class="pmd-foot">The whole point of coupling is that you cannot move one of these dials alone. Block the chain and the dam runs dry; jam the turbine and the water backs up until the pumps can't push against it — that back-pressure is respiratory control, and it's why a poisoned turbine also quiets the chain. Punch a leak and the chain races flat-out to refill a dam that never fills, burning fuel straight to heat — that's how brown fat keeps a newborn warm, and how DNP diet pills cooked people from the inside in the 1930s. Same gradient, three very different fates. (Qualitative teaching model, not literal kinetics.)</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Level = 'high' | 'mid' | 'low' | 'zero' | 'max';
+  type Cond = {
+    o2: Level; grad: Level; atp: Level; heat: Level;
+    label: string; why: string;
+  };
+  const LEVELS: Record<Level, number> = { zero: 0, low: 18, mid: 52, high: 88, max: 100 };
+  const WORDS: Record<Level, string> = { zero: 'stopped', low: 'low', mid: 'moderate', high: 'high', max: 'maxed' };
+
+  const CONDS: Record<string, Cond> = {
+    normal: {
+      o2: 'high', grad: 'high', atp: 'high', heat: 'low',
+      label: 'Normal (coupled)',
+      why: 'Coupled and running: the chain pumps protons up behind the dam, the high gradient drives the turbine, and ATP pours out. Electron flow and ATP synthesis rise and fall together — that is the coupling. A little heat always leaks, but most of the energy lands in ATP.',
+    },
+    etc: {
+      o2: 'zero', grad: 'low', atp: 'zero', heat: 'zero',
+      label: 'Block the chain (rotenone / antimycin / cyanide)',
+      why: 'Stop the pumps and you stop filling the dam. Rotenone hits Complex I, antimycin Complex III, cyanide/CO Complex IV — wherever you block it, electrons stop flowing, so O₂ is no longer consumed, the gradient drains away through normal leak, and with no water behind the dam the turbine stops. Everything goes to zero together.',
+    },
+    oligo: {
+      o2: 'low', grad: 'max', atp: 'zero', heat: 'zero',
+      label: 'Jam the turbine (oligomycin)',
+      why: 'Oligomycin plugs the turbine, so protons have nowhere to fall — ATP output stops and the gradient builds to its maximum. Here is the subtle part: that back-pressure pushes back on the pumps. The chain cannot keep shoving protons uphill against a brim-full dam, so electron flow and O₂ use slow to a crawl too. Jamming the turbine quiets the chain — this is respiratory control.',
+    },
+    uncoupler: {
+      o2: 'max', grad: 'low', atp: 'zero', heat: 'max',
+      label: 'Punch a leak (DNP / FCCP / thermogenin)',
+      why: 'An uncoupler lets protons leak straight back across the membrane, bypassing the turbine. The dam can never fill, so the chain runs flat-out trying to refill it — O₂ use is maxed — but the water falls without turning the turbine, so ATP is near zero and the energy comes out as heat. This is nonshivering thermogenesis in brown fat (thermogenin/UCP1); it is also why the DNP diet pills of the 1930s cooked people from the inside.',
+    },
+  };
+
+  const ORDER = ['normal', 'etc', 'oligo', 'uncoupler'];
+
+  function pumpsAlive(c: Cond): boolean { return c.o2 !== 'zero'; }
+
+  function draw(svg: SVGElement, c: Cond) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    const gradFrac = LEVELS[c.grad] / 100; // 0..1
+    const flux = LEVELS[c.o2] / 100;       // electron flow proxy 0..1
+
+    // ---- LEFT: electron transport chain pumping protons up behind the dam ----
+    const memX = 40, memTop = 60, memBot = 300;
+    // matrix label (low side)
+    const ml = el('text', { x: memX + 50, y: 322, 'text-anchor': 'middle', fill: INK, 'font-size': 11 }); ml.textContent = 'matrix (low H⁺)'; svg.appendChild(ml);
+    // inner-membrane band
+    svg.appendChild(el('rect', { x: memX, y: memTop, width: 26, height: memBot - memTop, rx: 5, fill: color(NAVY, 0.10), stroke: NAVY, 'stroke-width': 1.5 }));
+    // four pump blocks straddling the membrane
+    const pumps = ['I', 'II→Q', 'III', 'IV'];
+    const alive = pumpsAlive(c);
+    pumps.forEach((p, i) => {
+      const py = memTop + 14 + i * 56;
+      svg.appendChild(el('rect', { x: memX - 8, y: py, width: 42, height: 40, rx: 6, fill: alive ? color(ACCENT, 0.85) : color(FAINT, 0.7), stroke: alive ? ACCENT : FAINT, 'stroke-width': 1.5 }));
+      const t = el('text', { x: memX + 13, y: py + 25, 'text-anchor': 'middle', fill: '#fff', 'font-size': 11, 'font-weight': 700 }); t.textContent = p; svg.appendChild(t);
+      // pumped H+ rising into the reservoir, count ∝ flux
+      const n = Math.round(flux * 3);
+      for (let h = 0; h < n; h++) {
+        const hy = py + 6 - h * 16;
+        svg.appendChild(el('circle', { cx: memX + 46 + h * 12, cy: hy, r: 4, fill: ORANGE }));
+      }
+    });
+    const pl = el('text', { x: memX + 13, y: 50, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 11, 'font-weight': 700 }); pl.textContent = 'ETC'; svg.appendChild(pl);
+
+    // ---- CENTER: the reservoir = water behind the dam (height ∝ gradient) ----
+    const damX = 160, damW = 230, damTop = 60, damBot = 300, damH = damBot - damTop;
+    // dam basin outline
+    svg.appendChild(el('rect', { x: damX, y: damTop, width: damW, height: damH, rx: 6, fill: 'none', stroke: color(NAVY, 0.45), 'stroke-width': 2, 'stroke-dasharray': '4 4' }));
+    // water fill from the bottom up
+    const waterH = Math.max(6, damH * gradFrac);
+    const waterY = damBot - waterH;
+    svg.appendChild(el('rect', { x: damX + 2, y: waterY, width: damW - 4, height: waterH - 2, rx: 4, fill: color(ACCENT, 0.55) }));
+    // water surface line
+    svg.appendChild(el('line', { x1: damX + 2, y1: waterY, x2: damX + damW - 2, y2: waterY, stroke: ACCENT, 'stroke-width': 2 }));
+    // reservoir label
+    const rl = el('text', { x: damX + damW / 2, y: 50, 'text-anchor': 'middle', fill: NAVY, 'font-size': 12, 'font-weight': 700 }); rl.textContent = 'proton reservoir = water behind the dam'; svg.appendChild(rl);
+    const gl = el('text', { x: damX + damW / 2, y: Math.min(damBot - 12, waterY + 20), 'text-anchor': 'middle', fill: '#fff', 'font-size': 12, 'font-weight': 700 }); gl.textContent = `Δp ${WORDS[c.grad]}`; svg.appendChild(gl);
+
+    // ΔΨ bar (the larger term) just right of the basin
+    const psiX = damX + damW + 12;
+    svg.appendChild(el('rect', { x: psiX, y: damTop, width: 16, height: damH, rx: 4, fill: color(GOLD, 0.18), stroke: GOLD, 'stroke-width': 1 }));
+    const psiH = Math.max(4, damH * gradFrac);
+    svg.appendChild(el('rect', { x: psiX + 1, y: damBot - psiH, width: 14, height: psiH - 1, rx: 3, fill: color(GOLD, 0.85) }));
+    const psl = el('text', { x: psiX + 8, y: 320, 'text-anchor': 'middle', fill: INK, 'font-size': 10 }); psl.textContent = 'ΔΨ'; svg.appendChild(psl);
+
+    // ---- penstock: water falling toward the turbine (or leaking, for uncoupler) ----
+    const leak = c.atp === 'zero' && c.grad === 'low' && c.o2 === 'max';
+    const stallAtp = c.atp === 'zero';
+    const fallX = psiX + 30;
+    const fallColor = leak ? ORANGE : ACCENT;
+    if (gradFrac > 0.05) {
+      const fw = leak ? 8 : (stallAtp ? 0 : 4 + 6 * (LEVELS[c.atp] / 100));
+      if (fw > 0) {
+        svg.appendChild(el('line', { x1: fallX, y1: waterY + 6, x2: fallX + 90, y2: 250, stroke: fallColor, 'stroke-width': fw, 'marker-end': 'url(#pmd-arr)' }));
+        const fl = el('text', { x: fallX + 30, y: 150, fill: fallColor, 'font-size': 10, 'font-weight': 600 }); fl.textContent = leak ? 'leak (no turbine)' : 'flow → turbine'; svg.appendChild(fl);
+      }
+    }
+
+    // ---- RIGHT: the turbine = ATP synthase ----
+    const tCx = 640, tCy = 150, tR = 46;
+    // c-ring as a ring of dots
+    const cN = 10;
+    for (let i = 0; i < cN; i++) {
+      const a = (i / cN) * Math.PI * 2;
+      svg.appendChild(el('circle', { cx: tCx + Math.cos(a) * tR, cy: tCy + Math.sin(a) * tR, r: 5, fill: color(NAVY, 0.7) }));
+    }
+    // hub + γ shaft (static angle; tilted when spinning, flat when stalled)
+    const spinning = !stallAtp && flux > 0.05;
+    const ga = spinning ? -0.6 : 0;
+    svg.appendChild(el('line', { x1: tCx, y1: tCy, x2: tCx + Math.cos(ga) * (tR - 8), y2: tCy + Math.sin(ga) * (tR - 8), stroke: spinning ? ORANGE : FAINT, 'stroke-width': 4, 'stroke-linecap': 'round' }));
+    svg.appendChild(el('circle', { cx: tCx, cy: tCy, r: 9, fill: spinning ? ORANGE : FAINT }));
+    const tl = el('text', { x: tCx, y: 230, 'text-anchor': 'middle', fill: NAVY, 'font-size': 12, 'font-weight': 700 }); tl.textContent = 'ATP synthase'; svg.appendChild(tl);
+    const tl2 = el('text', { x: tCx, y: 246, 'text-anchor': 'middle', fill: INK, 'font-size': 10 }); tl2.textContent = stallAtp ? (c.grad === 'max' ? 'jammed' : 'idle — no water') : 'turbine'; svg.appendChild(tl2);
+
+    // ATP token(s) emitted when turbine spins
+    if (spinning && c.atp !== 'low') {
+      const tokens = c.atp === 'high' ? 2 : 1;
+      for (let k = 0; k < tokens; k++) {
+        const ax = tCx + 4 + k * 30, ay = tCy - tR - 14;
+        svg.appendChild(el('circle', { cx: ax, cy: ay, r: 12, fill: color(GOLD, 0.25), stroke: GOLD, 'stroke-width': 1.5 }));
+        const at = el('text', { x: ax, y: ay + 4, 'text-anchor': 'middle', fill: NAVY, 'font-size': 9, 'font-weight': 700 }); at.textContent = 'ATP'; svg.appendChild(at);
+      }
+    }
+
+    // heat shimmer for the uncoupler
+    if (c.heat === 'max') {
+      for (let k = 0; k < 3; k++) {
+        svg.appendChild(el('path', { d: `M ${fallX + 20 + k * 22} 270 q 6 -10 0 -20 q -6 -10 0 -20`, fill: 'none', stroke: '#c0392b', 'stroke-width': 2, opacity: 0.7 }));
+      }
+      const ht = el('text', { x: fallX + 42, y: 300, 'text-anchor': 'middle', fill: '#c0392b', 'font-size': 11, 'font-weight': 700 }); ht.textContent = '→ HEAT'; svg.appendChild(ht);
+    }
+
+    // arrow marker
+    const defs = el('defs', {});
+    const m = el('marker', { id: 'pmd-arr', markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+    m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: fallColor }));
+    defs.appendChild(m);
+    svg.appendChild(defs);
+  }
+
+  function color(hex: string, alpha: number): string {
+    return `color-mix(in srgb, ${hex} ${Math.round(alpha * 100)}%, transparent)`;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-pmdam]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const heatEl = root.querySelector<HTMLElement>('[data-heat]')!;
+    const btns = Array.from(root.querySelectorAll<HTMLButtonElement>('.pmd-cond'));
+    const fills: Record<string, HTMLElement> = {
+      o2: root.querySelector<HTMLElement>('[data-fill="o2"]')!,
+      grad: root.querySelector<HTMLElement>('[data-fill="grad"]')!,
+      atp: root.querySelector<HTMLElement>('[data-fill="atp"]')!,
+    };
+    const vals: Record<string, HTMLElement> = {
+      o2: root.querySelector<HTMLElement>('[data-val="o2"]')!,
+      grad: root.querySelector<HTMLElement>('[data-val="grad"]')!,
+      atp: root.querySelector<HTMLElement>('[data-val="atp"]')!,
+    };
+    const srs: Record<string, HTMLElement> = {
+      o2: root.querySelector<HTMLElement>('[data-sr="o2"]')!,
+      grad: root.querySelector<HTMLElement>('[data-sr="grad"]')!,
+      atp: root.querySelector<HTMLElement>('[data-sr="atp"]')!,
+      heat: root.querySelector<HTMLElement>('[data-sr="heat"]')!,
+    };
+
+    let current = 'normal';
+
+    function paintBar(key: 'o2' | 'grad' | 'atp', lvl: Level) {
+      const pct = LEVELS[lvl];
+      fills[key].style.width = pct + '%';
+      const hot = (key === 'atp' || key === 'o2') ? (lvl === 'high' || lvl === 'max') : false;
+      fills[key].style.background = lvl === 'zero' ? '#c0392b' : (lvl === 'max' ? ORANGE : (hot ? '#2e8b57' : ACCENT));
+      vals[key].textContent = WORDS[lvl];
+    }
+
+    function render() {
+      const c = CONDS[current];
+      btns.forEach((b) => {
+        const on = b.dataset.cond === current;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.classList.toggle('on', on);
+      });
+      paintBar('o2', c.o2); paintBar('grad', c.grad); paintBar('atp', c.atp);
+      heatEl.textContent = WORDS[c.heat] === 'maxed' ? 'pouring out' : (c.heat === 'zero' ? 'none' : WORDS[c.heat]);
+      heatEl.style.color = c.heat === 'max' ? '#c0392b' : INK;
+      whyEl.textContent = c.why;
+      srs.o2.textContent = `${WORDS[c.o2]} (${LEVELS[c.o2]}%)`;
+      srs.grad.textContent = `${WORDS[c.grad]} (${LEVELS[c.grad]}%)`;
+      srs.atp.textContent = `${WORDS[c.atp]} (${LEVELS[c.atp]}%)`;
+      srs.heat.textContent = c.heat === 'max' ? 'pouring out' : (c.heat === 'zero' ? 'none' : WORDS[c.heat]);
+      draw(svg, c);
+    }
+
+    btns.forEach((b) => b.addEventListener('click', () => {
+      const cond = b.dataset.cond;
+      if (cond && ORDER.indexOf(cond) >= 0) { current = cond; render(); }
+    }));
+
+    render();
+  });
+</script>
+
+<style>
+  .pmd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pmd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .pmd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pmd-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }
+  .pmd-conditions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 620px) { .pmd-conditions { grid-template-columns: repeat(4, 1fr); } }
+  .pmd-cond { display: flex; flex-direction: column; gap: 0.1rem; font-family: inherit; font-size: var(--ddp-text-xs); font-weight: 600; text-align: left; border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); cursor: pointer; }
+  .pmd-cond small { font-weight: 400; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pmd-cond:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .pmd-cond.on { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); color: var(--ddp-color-primary); }
+  .pmd-readouts { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .pmd-bar { display: grid; grid-template-columns: 1fr; gap: 0.15rem; }
+  @media (min-width: 560px) { .pmd-bar { grid-template-columns: 13rem 1fr 5rem; align-items: center; gap: var(--ddp-space-2); } }
+  .pmd-b-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pmd-track { display: block; height: 0.7rem; border-radius: 999px; background: color-mix(in srgb, var(--ddp-color-muted) 18%, transparent); overflow: hidden; }
+  .pmd-fill { display: block; height: 100%; width: 88%; background: var(--ddp-color-accent); border-radius: 999px; transition: width 0.35s ease, background 0.35s ease; }
+  .pmd-b-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
+  .pmd-heat { display: flex; align-items: baseline; gap: var(--ddp-space-2); padding-top: var(--ddp-space-1); border-top: 1px dashed var(--ddp-color-line); }
+  .pmd-heat-dot { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; }
+  .pmd-why { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; min-height: 4.6em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pmd-readout-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .pmd-foot { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

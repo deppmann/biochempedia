@@ -1,0 +1,380 @@
+---
+title: "Oxidative Phosphorylation: The Electron-Transport Chain"
+slug: "oxidative-phosphorylation"
+courseChapter: "Cellular Respiration"
+order: 20
+summary: "The whole point of oxidative phosphorylation is that electron flow and ATP synthesis are two separate machines linked by one thing: a proton gradient across the inner mitochondrial membrane. Electrons fall from NADH down a five-story redox ladder to oxygen, and the three big drops pump protons; ATP synthase then spends that gradient to mint ~30-32 ATP per glucose. Get the gradient as the currency and the famous misconceptions dissolve: why FADH2 yields less ATP, why uncouplers make heat instead of ATP, and why cyanide kills in minutes."
+estMinutes: 26
+objectives:
+  - "Explain the chemiosmotic idea: that the energy from electron transport is stored as a transmembrane proton gradient (proton-motive force), and that ATP synthesis is a physically separate event coupled to electron flow only through that gradient."
+  - "Rank the four complexes and mobile carriers by reduction potential (E0'), and use the five-story-building metaphor to predict the direction of electron flow and which three complexes (I, III, IV) release enough free energy to pump protons."
+  - "Account for the proton budget (~10 H+/NADH, ~6 H+/FADH2 at ~4 H+/ATP) to derive ~2.5 ATP/NADH and ~1.5 ATP/FADH2, and explain why Complex II's missing pump is the structural reason FADH2 yields less."
+  - "Trace the chemistry of the dangerous steps: the Q cycle's solution to the one-electron/two-electron problem at Complex III and its semiquinone radical, and Complex IV's binuclear vise-grip that reduces O2 to water without leaking ROS."
+  - "Connect ETC mechanism to clinical and ecological reality: how inhibitors (rotenone, antimycin A, cyanide) reveal the chain's order, why ischemia-reperfusion produces a ROS tsunami, and how broken Fe-S assembly causes Friedreich's ataxia."
+scientists:
+  - name: "Peter Mitchell"
+    dates: "1920-1992"
+    contribution: "Proposed the chemiosmotic hypothesis (1961): the energy from electron transport is stored not in a phantom high-energy chemical intermediate but as a proton gradient (proton-motive force) across the impermeable inner mitochondrial membrane, which ATP synthase then discharges to make ATP. Awarded the 1978 Nobel Prize in Chemistry, alone."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Peter Mitchell profile (quotes grep-confirmed)."
+    quotes:
+      - "a pity that the search for the 'high-energy' chemical intermediates ... has been so unsuccessful"
+      - "Why, astonishment."
+    story: "After acute gastric ulcers forced him to resign from Edinburgh in 1963, Mitchell bought the half-ruined Glynn House in Cornwall, restored it with his own hands and money, fitted one wing as the Glynn Research Institute, and ran an award-winning dairy herd to help carry the place. The field met his spatial, gradient-based idea with brutal resistance for years; the establishment expected a high-energy phosphorylated intermediate and dismissed chemiosmosis as too simple. Working far from any university with collaborator Jennifer Moyle and a single technician, he went and measured: with a fast glass pH electrode on a mitochondrial suspension, he and Moyle pulsed in oxygen and watched the medium acidify, close to two protons ejected per ATP. The 1966 Jagendorf-Uribe acid-bath chloroplast experiment (ATP made in darkness from a hand-built proton gradient) sealed it. The 1978 Nobel telephone rang at Glynn House while he was at lunch; asked his reaction he said only, 'Why, astonishment,' and put the prize money toward the lab and farm overdraft."
+  - name: "David Keilin"
+    dates: "1887-1963"
+    contribution: "Discovered and characterized the cytochrome chain — the series of heme-iron carriers that step electrons down in stages during respiration — by directly observing their reversible oxidation and reduction with a microspectroscope. His cytochromes are the cyt b, c1, c, a, and a3 of the ETC."
+    profileSourceAnchor: "The Molecule Hunters (v10) — David Keilin profile."
+    quotes: []
+    story: "A Cambridge parasitologist born in Moscow in 1887 to a Polish Jewish family, Keilin reopened a case the authority Felix Hoppe-Seyler had closed: the four tissue absorption bands the Irish physician Charles MacMunn had seen forty years earlier and been told were mere haemoglobin breakdown products. With an almost embarrassingly simple experiment, suspending yeast in water and shaking it with air, Keilin watched the four bands vanish when oxygen rushed in and creep back, one by one, as the cells consumed it. He was watching respiration happen in real time through a length of brass and a sliver of mirror. He named the pigment cytochrome and, in the same paper, finished the case in MacMunn's favor, restoring a buried name to the record. Asthma had kept him out of school until age ten and pushed him toward the microscope. He was Peter Mitchell's mentor, the memory of whom Mitchell credited with carrying him through his years of isolation."
+  - name: "Albert Lehninger"
+    dates: "1917-1986"
+    contribution: "First showed that ADP phosphorylation to ATP is coupled to electron flow down the respiratory chain, and (with Eugene Kennedy, 1949) located oxidative phosphorylation and the citric acid cycle in the mitochondrion — establishing that the chemistry of respiration lives in a specific organelle and, by tearing mitochondria into submitochondrial particles, that the inner membrane carries OxPhos while the matrix runs the soluble reactions."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Albert Lehninger profile (quote grep-confirmed)."
+    quotes:
+      - "how the remarkable properties of living organisms arise from the thousands of different lifeless biomolecules"
+    story: "In the late 1940s in a Chicago lab, Lehninger and graduate student Eugene Kennedy spun intact mitochondria out of broken rat liver, added a fatty acid to the pellet of granules, and watched the oxygen go: the mitochondria burned the fuel, the rest of the cell did not. A single asymmetry gave the engine of aerobic life a street address. Lehninger had nearly become a writer, an English major drafting stories at Wesleyan until a teacher handed him Warburg and Krebs and he traded poems for pathways. The writing never left him; his 1982 Principles of Biochemistry asked 'how the remarkable properties of living organisms arise from the thousands of different lifeless biomolecules.' His own picture of the coupling was wrong, since he assumed a chemical intermediate, but the intact, impermeable, closed compartment he proved indispensable was exactly the structure Mitchell's chemiosmotic theory required. The mechanism inside the room changed; the room held."
+  - name: "Paul Boyer & John Walker"
+    dates: "Boyer 1918-2018; Walker 1941-"
+    contribution: "Boyer deduced HOW ATP synthase works — the binding-change mechanism, in which the proton gradient's energy is spent not forging the ATP bond (which happens spontaneously at the catalytic site) but prying the finished ATP off the enzyme as its three sites cycle through open/loose/tight states. Walker showed WHAT it looks like — the 1994 crystal structure of the F1 head, catching the three beta subunits in three different conformations at once. ATP synthase is a rotary motor powered by the proton gradient. They shared the 1997 Nobel Prize in Chemistry. (Mechanism detail belongs to CH21, but it is the converter that spends the gradient CH20 builds.)"
+    profileSourceAnchor: "The Molecule Hunters (v10) — Paul Boyer & John Walker joint profile (quotes grep-confirmed)."
+    quotes:
+      - "What would you say, if I told you that it doesn't take energy to make ATP at the catalytic site of ATP synthase, but rather that it takes energy to get ATP off the catalytic site?"
+      - "I don't have the first idea."
+    story: "During an early-1970s UCLA seminar, Boyer stopped listening to the speaker because a piece of old, unexplained data had suddenly rearranged itself in his mind; afterward he approached a postdoc in unusual excitement and posed the inside-out question that became the binding-change mechanism, that energy is needed to release ATP, not to make it. He built the case over nearly two decades of isotope-labeling experiments. An ocean away, John Walker learned of the 1997 Nobel while pruning apple trees in his Cambridge garden, so absorbed in reaching a high branch that he missed the phone; when a radio journalist finally asked how it felt, Walker replied, 'I don't have the first idea.' Walker had spent the 1970s sequencing every bovine ATP-synthase subunit, then in 1994 solved the F1 structure showing the open-loose-tight cycle frozen mid-turn. The enzyme makes ~400 ATP/second and has been turning in every cell for billions of years."
+techniques:
+  - name: "Difference spectroscopy of cytochromes"
+    blurb: "Keilin's microspectroscope read respiration in real time: oxidized and reduced cytochromes absorb light at different wavelengths, so watching absorption bands appear and vanish as oxygen is added or consumed tells you which carrier is reduced and which is oxidized. Add an inhibitor and the chain freezes in a 'crossover' pattern (reduced upstream, oxidized downstream), and that pattern is how the order of the carriers was deduced before any structure existed."
+  - name: "Inhibitor crossover analysis"
+    blurb: "Specific blockers cut the chain at known points: rotenone at Complex I, antimycin A at the Complex III Qi site, cyanide and CO at Complex IV. Apply one, and every carrier upstream of the block piles up reduced while everything downstream goes oxidized. Mapping that boundary for each inhibitor pins down where each component sits in the sequence and is the classic logic for ordering an electron-transfer pathway."
+  - name: "Submitochondrial particles and the pH-electrode pulse"
+    blurb: "Tear mitochondria apart and the inner membrane reseals into closed vesicles that still pump and still make ATP, proving OxPhos lives on the membrane while the matrix runs the soluble reactions. Mitchell and Moyle put a fast glass pH electrode in a mitochondrial suspension, pulsed in oxygen, and watched the medium acidify, measuring close to two protons ejected per ATP and turning chemiosmosis from hypothesis into number."
+  - name: "Cryo-EM of supercomplexes"
+    blurb: "Single-particle cryo-electron microscopy froze whole respiratory chains and revealed the 'respirasome' (Complex I + III2 + IV) assembling into supercomplexes, which may shorten the diffusion path for CoQ and cytochrome c and reduce electron leak. The same technique solved the individual complexes (Complex I's L-shaped 46-subunit machine, the bc1 Q-cycle, cytochrome c oxidase) at near-atomic resolution."
+structures:
+  - label: "Complex I (NADH-Q oxidoreductase / NADH dehydrogenase)"
+    source: "rcsb"
+    id: "5XTD"
+    note: "PDB 5XTD"
+    caption: "Cryo-EM structure of mammalian (ovine/Sus) mitochondrial respiratory Complex I, the L-shaped NADH dehydrogenase with FMN and Fe-S clusters"
+  - label: "Complex II (succinate dehydrogenase / succinate-Q reductase)"
+    source: "rcsb"
+    id: "1ZOY"
+    note: "PDB 1ZOY"
+    caption: "Porcine/mammalian mitochondrial Complex II (succinate dehydrogenase) with FAD, Fe-S clusters, and heme b — the non-pumping ETC entry point and citric-acid-cycle enzyme"
+  - label: "Complex III (cytochrome bc1)"
+    source: "rcsb"
+    id: "1BGY"
+    note: "PDB 1BGY"
+    caption: "Bovine mitochondrial cytochrome bc1 complex (Complex III), the Q-cycle machine with Rieske iron-sulfur protein, cyt b and cyt c1"
+  - label: "Complex IV (cytochrome c oxidase)"
+    source: "rcsb"
+    id: "1OCC"
+    note: "PDB 1OCC"
+    caption: "Bovine heart cytochrome c oxidase (Complex IV) with CuA, heme a, and the heme a3/CuB binuclear center — terminal oxidase that reduces O2 to water"
+  - label: "Cytochrome c (mobile carrier)"
+    source: "rcsb"
+    id: "1HRC"
+    note: "PDB 1HRC"
+    caption: "Horse heart cytochrome c, the small soluble single-heme mobile electron carrier shuttling electrons from Complex III to Complex IV"
+  - label: "ATP synthase F1 head (binding-change/rotary motor)"
+    source: "rcsb"
+    id: "1BMF"
+    note: "PDB 1BMF"
+    caption: "Bovine mitochondrial F1-ATPase crystal structure (Abrahams, Leslie, Lutter, Walker 1994) showing the three alpha/three beta subunits in different conformations around the gamma camshaft"
+  - label: "Superoxide dismutase (Cu/Zn SOD)"
+    source: "rcsb"
+    id: "1SOS"
+    note: "PDB 1SOS"
+    caption: "Cu/Zn superoxide dismutase, the antioxidant enzyme that dismutates superoxide to H2O2 + O2"
+  - label: "NADH (electron donor)"
+    source: "pubchem"
+    id: "439153"
+    note: "CID 439153"
+    caption: "NADH, reduced nicotinamide adenine dinucleotide — the high-potential electron donor feeding Complex I"
+  - label: "FAD (Complex II / FADH2 cofactor)"
+    source: "pubchem"
+    id: "643975"
+    note: "CID 643975"
+    caption: "FAD, flavin adenine dinucleotide — tightly bound cofactor of Complex II whose reduced form FADH2 feeds electrons to ubiquinone"
+  - label: "FMN (Complex I entry cofactor)"
+    source: "pubchem"
+    id: "643976"
+    note: "CID 643976"
+    caption: "FMN, flavin mononucleotide (riboflavin-5'-phosphate) — the Complex I entry-point flavin that accepts electrons from NADH"
+  - label: "Coenzyme Q10 / ubiquinone (mobile lipophilic carrier)"
+    source: "pubchem"
+    id: "5281915"
+    note: "CID 5281915"
+    caption: "Ubiquinone / Coenzyme Q10, the lipid-soluble mobile electron carrier (Q/QH2) shuttling electrons between Complexes I/II and III"
+  - label: "Heme (cytochrome prosthetic group)"
+    source: "pubchem"
+    id: "26945"
+    note: "CID 26945"
+    caption: "Heme b / iron-protoporphyrin IX, the Fe2+/Fe3+ redox group embedded in cytochromes b, c1, c, a, and a3"
+  - label: "Molecular oxygen (terminal electron acceptor)"
+    source: "pubchem"
+    id: "977"
+    note: "CID 977"
+    caption: "O2, dioxygen — the final electron acceptor reduced to water at Complex IV"
+  - label: "Superoxide radical anion (ROS)"
+    source: "pubchem"
+    id: "5359597"
+    note: "CID 5359597"
+    caption: "Superoxide anion radical (O2•−), the reactive oxygen species formed by electron leak at Complexes I and III, substrate of superoxide dismutase"
+videos:
+  - title: "Oxidative phosphorylation and the electron transport chain | Khan Academy"
+    youtubeId: "J30zpvbmw7s"
+    sourceNote: "Khan Academy — openly available."
+  - title: "Metabolism | Electron Transport Chain: DETAILED | Part 1"
+    youtubeId: "UyTto4Aegss"
+    sourceNote: "Ninja Nerd — openly available."
+simulations:
+  - type: "local"
+    ref: "ProtonGradientBattery"
+    title: "The proton-gradient battery — a cross-section of the inner membrane: run electrons through Complexes I→III→IV to charge the gradient, mint ATP, then add an uncoupler and watch ATP collapse while electrons keep flowing as heat"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "In Mitchell's chemiosmotic model, where is the energy from electron transport stored before it is used to make ATP?"
+    choices:
+      - "In a high-energy phosphorylated chemical intermediate that hands its bond directly to ADP"
+      - "As a proton gradient (proton-motive force) across the inner mitochondrial membrane"
+      - "In the reduced cytochrome c pool waiting at Complex IV"
+      - "As heat released by the inner membrane that ATP synthase later recaptures"
+    answer: 1
+    rationale: "Chemiosmotic coupling stores the energy as an electrochemical proton gradient across the impermeable inner membrane; ATP synthase then discharges that gradient to make ATP. The high-energy chemical intermediate was the rejected chemical-coupling hypothesis (the intermediate was never found). Reduced cytochrome c carries electrons, not the stored coupling energy, and the gradient is not stored as heat (heat is what an uncoupler wastes it as)."
+  - stem: "Why does FADH2 yield approximately 1.5 ATP while NADH yields approximately 2.5 ATP?"
+    choices:
+      - "FADH2 carries only one electron, so it can reduce only half as much oxygen"
+      - "FADH2 enters at Complex II, which pumps no protons, so it drives fewer pumps than NADH"
+      - "FADH2 has a more negative reduction potential than NADH, releasing less energy"
+      - "ATP synthase cannot use protons pumped by FADH2-derived electrons"
+    answer: 1
+    rationale: "FADH2 feeds electrons in at Complex II (succinate dehydrogenase), which lacks proton-pumping machinery, so its electrons skip the first pump and bank only ~6 H+ versus ~10 for NADH. Both carriers deliver two electrons. FADH2 actually sits at a more positive potential than NADH, and ATP synthase uses all pumped protons equally regardless of their source."
+  - stem: "A researcher adds antimycin A to actively respiring mitochondria and monitors the redox state of the carriers by spectroscopy. What pattern is expected?"
+    choices:
+      - "All carriers become fully oxidized because electron input stops"
+      - "Carriers upstream of Complex III become reduced and those downstream become oxidized"
+      - "Only cytochrome c oxidase changes state; the rest are unaffected"
+      - "All carriers oscillate rapidly between oxidized and reduced states"
+    answer: 1
+    rationale: "Antimycin A blocks Complex III. Electrons entering from NADH/FADH2 still flow in and pile up reduced everywhere upstream of the block (Complexes I and II, CoQ), while everything downstream (cyt c, Complex IV) loses its electron supply and goes oxidized. This crossover pattern is exactly the inhibitor logic used to establish the order of the chain."
+  - stem: "Complex IV holds O2 at its heme a3/CuB binuclear center until all four electrons have been delivered. What is the primary functional consequence of this 'vise-grip' mechanism?"
+    choices:
+      - "It prevents the release of partially reduced, ROS-generating oxygen intermediates"
+      - "It allows Complex IV to pump more protons than any other complex"
+      - "It lets O2 be reduced without consuming any protons from the matrix"
+      - "It enables Complex IV to accept two electrons from cytochrome c at once"
+    answer: 0
+    rationale: "By clamping O2 until four electrons arrive, the binuclear center avoids releasing peroxide or superoxide (partially reduced O2), which is why Complex IV almost never leaks ROS. It does not pump the most protons (it removes 8 H+ per O2 total, but 4 are chemical), it consumes 4 matrix protons to make water, and cytochrome c delivers electrons strictly one at a time."
+  - stem: "An uncoupler such as 2,4-dinitrophenol makes the inner mitochondrial membrane leaky to protons. What is the immediate effect on electron transport and ATP synthesis?"
+    choices:
+      - "Electron transport stops and ATP synthesis continues from stored gradient"
+      - "Both electron transport and ATP synthesis stop simultaneously"
+      - "Electron transport speeds up while ATP synthesis falls and heat rises"
+      - "ATP synthase reverses and begins pumping protons out of the matrix"
+    answer: 2
+    rationale: "An uncoupler dissipates the proton gradient, so protons return without passing through ATP synthase and ATP output collapses while the energy is released as heat. Because the gradient no longer builds up to oppose pumping, electron transport actually accelerates (respiration increases). This is how brown fat and a fever generate warmth, and how DNP was dangerously used for weight loss."
+mcatQuestions:
+  - stem: "A patient is exposed to cyanide. Given that cyanide binds the heme a3/CuB center of Complex IV, which downstream consequence best explains death within minutes?"
+    choices:
+      - "Pyruvate can no longer enter the citric acid cycle, halting acetyl-CoA production"
+      - "Electrons cannot reach O2, so the entire chain backs up, the proton gradient collapses, and oxidative ATP synthesis stops"
+      - "ATP synthase runs in reverse and rapidly hydrolyzes the cell's ATP pool"
+      - "Glycolysis is directly inhibited, eliminating substrate-level phosphorylation"
+    answer: 1
+    rationale: "Blocking the terminal oxidase prevents electrons from reaching O2, so every upstream carrier saturates reduced, no further protons are pumped, the proton-motive force dissipates, and ATP synthase loses its driving gradient. Cells dependent on oxidative ATP fail almost immediately. Cyanide does not directly block pyruvate entry or glycolysis, and the lethal effect is loss of the gradient, not reversal of ATP synthase as the primary event."
+  - stem: "In a reconstituted system, isolated Complex II is supplied with succinate and ubiquinone in a sealed vesicle, and the proton gradient is measured. Compared with an identical vesicle running Complex I with NADH, what is observed?"
+    choices:
+      - "Complex II builds a larger gradient because succinate is a stronger reductant than NADH"
+      - "Complex II builds no proton gradient of its own because it lacks proton-pumping subunits"
+      - "Both build identical gradients because both reduce ubiquinone"
+      - "Complex II builds a gradient only if cytochrome c is also present"
+    answer: 1
+    rationale: "Complex II oxidizes succinate and reduces ubiquinone but has no proton-pumping apparatus, so it generates no gradient itself, which is precisely why FADH2-derived electrons yield less ATP. Succinate/FAD is a weaker reductant than NADH (more positive E0'), Complex I does pump, and cytochrome c acts downstream at Complex III/IV, not at Complex II."
+  - stem: "During reperfusion after a myocardial infarction, the inner-membrane carriers are highly reduced from the ischemic period and O2 is suddenly restored. Which intervention most directly targets the mechanism of reperfusion injury?"
+    choices:
+      - "A mitochondria-targeted antioxidant that neutralizes superoxide as O2 floods back"
+      - "A glycolytic inhibitor to reduce cytosolic ATP demand"
+      - "An ATP synthase activator to accelerate ATP production"
+      - "A drug that increases outer-membrane VDAC permeability"
+    answer: 0
+    rationale: "Reperfusion injury arises when backed-up, highly reduced carriers dump electrons onto reintroduced O2, producing a burst of superoxide that overwhelms defenses. A mitochondria-targeted antioxidant scavenges that ROS at the source. Inhibiting glycolysis or boosting ATP synthase does not address the radical burst, and increasing VDAC permeability would not blunt matrix-side ROS generation at Complexes I and III."
+images: []
+corpusTags:
+  - "oxidative-phosphorylation"
+  - "electron-transport-chain"
+  - "respiratory-complexes"
+  - "proton-pumping"
+  - "ATP-synthase"
+  - "uncouplers"
+  - "chemiosmosis"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Imagine tiny balls rolling down a five-story slide inside your cells. Every time a ball drops past certain spots, it pushes a little pump that squirts water up to a high tank. When lots of water is up in the tank, it pours back down and spins a waterwheel, and the spinning wheel makes the cell's energy money called ATP. The slide and the waterwheel are two different machines, and the water in the tank is what connects them. Air (oxygen) waits at the bottom to catch the balls so the slide never gets jammed. If something blocks the bottom, every ball gets stuck, the wheel stops, and that is why a poison like cyanide is so fast and deadly."
+  - level: "highschool"
+    label: "High school"
+    text: "Oxidative phosphorylation is how your cells make most of their ATP, and it happens on the folded inner membrane of the mitochondrion. Electrons from NADH and FADH2 (made earlier in glucose breakdown) flow down a chain of four protein complexes, ending at oxygen, which becomes water. As electrons fall, three of the complexes (I, III, IV) use the energy to pump protons (H+) from the inside of the mitochondrion to the space between its membranes. That builds up a proton gradient, like water behind a dam. Then the protons flow back through a turbine called ATP synthase, and that flow powers ATP production. The key trick: electron flow and ATP-making are separate steps connected only by the proton gradient. NADH makes about 2.5 ATP and FADH2 about 1.5, because FADH2 enters at Complex II, which doesn't pump. Poisons like cyanide block the last step, the chain jams, and the cell can't make energy."
+  - level: "college"
+    label: "College"
+    text: "The ETC is a series of redox carriers in the inner mitochondrial membrane arranged by increasing reduction potential (E0'), from NADH (−0.32 V) to O2 (+0.82 V). Electrons flow spontaneously down this gradient (ΔG°' = −nFΔE°'). Complex I (NADH→FMN→7 Fe-S→Q) pumps ~4 H+; Complex II (succinate→FAD→Fe-S→Q) pumps none and is the structural reason FADH2 yields less ATP; Complex III runs the Q cycle (resolving the 2e−/1e− mismatch via the Rieske Fe-S and b hemes, generating a semiquinone radical) and pumps ~4 H+; Complex IV reduces O2 to water at the heme a3/CuB binuclear center, holding O2 until 4 electrons arrive so no ROS escape, and contributes 8 H+ removed from the matrix per O2. CoQ (lipophilic, in the bilayer) and cytochrome c (water-soluble, on the IMS face) are the mobile carriers. The pumped protons create the proton-motive force; ATP synthase discharges it at ~4 H+/ATP, giving ~2.5 ATP/NADH and ~1.5 ATP/FADH2, for ~30-32 ATP/glucose. This is Mitchell's chemiosmotic coupling: the energy is stored as a gradient, not a chemical intermediate. Inhibitor crossover (rotenone/I, antimycin A/III, cyanide/IV) reveals chain order; uncouplers dissipate the gradient as heat."
+  - level: "grad"
+    label: "Graduate"
+    text: "OxPhos is the canonical case of energy transduction by vectorial chemistry: the inner membrane's ion impermeability converts scalar redox free energy into a transmembrane electrochemical proton potential (Δp = Δψ − 2.3RT/F·ΔpH), dominated in mitochondria by the membrane potential term. Carrier organization follows thermodynamics (ascending E0') but the kinetically interesting features are mechanistic: Complex I couples NADH:Q oxidoreduction to long-range conformational proton pumping across antiporter-like subunits remote from the redox chemistry; Complex III's bifurcated Q cycle at the Qo site is an electron-bifurcation event whose obligatory semiquinone is the principal site of mitochondrial superoxide, gated by the Rieske head's conformational swing; Complex IV achieves four-electron O2 reduction through the Pm/F/Oh intermediates of the binuclear center, coupling each electron to proton uptake while avoiding partially reduced oxygen release. The H+/2e− stoichiometries (4/0/4/4 across I/II/III/IV, with IV's 4 'chemical' protons also vectorial) and the ATP synthase c-ring stoichiometry (which sets H+/ATP, typically ~8 c-subunits → ~2.7 H+/ATP plus ~1 for ANT/Pi) jointly determine the ~2.5/1.5 ATP yields, which are non-integer precisely because coupling is chemiosmotic rather than stoichiometric. Respiratory supercomplex assembly (respirasome) is proposed to channel CoQ/cyt c and limit ROS, though substrate channeling vs. random-diffusion remains contested. Pathology maps cleanly onto mechanism: frataxin loss (Friedreich's ataxia) cripples Fe-S biogenesis; I/R injury reflects RET (reverse electron transport) through Complex I from accumulated succinate as the acute superoxide source on reperfusion, the rationale for succinate-targeted and mito-targeted antioxidant strategies."
+anecdotes:
+  - title: "Oxygen was industrial waste before it was fuel"
+    text: "Roughly 2.4 billion years ago, cyanobacteria did not invent photosynthesis to make oxygen. They made oxygen because they needed somewhere to dump electrons, and O2 was convenient. From their perspective it was waste; from every other organism's perspective it was poison. The Great Oxygenation Event was an environmental apocalypse. What makes the story turn is that the survivors did not merely tolerate the poison, they weaponized it: fermentation yields about 2 ATP per glucose, aerobic respiration yields roughly 15-18 ATP per glucose in this framing. That is not an incremental upgrade, it is a metabolic revolution, and it is the reason complex life exists at all. The oxygen keeping you alive right now started as the byproduct nobody wanted."
+    source: "CH20 lecture notes — Module 1: The Oxygen Catastrophe"
+  - title: "The iron in your mitochondria once rusted the oceans"
+    text: "During the Great Oxygenation Event the seas were saturated with dissolved Fe2+. When cyanobacteria released O2, the chemistry was inevitable: Fe2+ plus O2 made rust, precipitating the banded iron formations still visible in Precambrian rock worldwide. The oceans lost their dissolved iron. But evolution did not discard the metal, it repurposed the exact redox chemistry that had just rusted the seas. The iron-sulfur clusters threaded through Complexes I, II, and III run the same Fe2+/Fe3+ electron-transfer cycle that once oxidized ferrous iron in seawater. The lesson behind the lesson is repurposing: evolution rarely designs new chemistry, it salvages a failed experiment and finds a new structural context to exploit it."
+    source: "CH20 lecture notes — Module 3: Iron's Second Life in the Electron Transport Chain"
+  - title: "The FADH2 tax: why the favorite exam mistake happens"
+    text: "The single most common ATP-counting error on biochemistry exams comes from forgetting the full cost of doing business across a membrane. Students remember NADH makes ~2.5 ATP and FADH2 makes ~1.5, but they treat the numbers as arbitrary. The real accounting: ATP synthase needs about 4 H+ per ATP, and the adenine nucleotide translocase charges roughly 1 more H+ to export each ATP and import ADP. So the true price is about 5 H+ per ATP. NADH banks ~10 protons (10/5 ≈ 2), FADH2 banks ~6 (6/5 ≈ 1.2). The gap is not thermodynamic mystery, it is the cumulative tax of membrane transport, hitting the smaller FADH2 budget proportionally harder."
+    source: "CH20 lecture notes — Module 4: The FADH2 Tax and Why Students Get It Wrong"
+  - title: "The most lethal hours after a heart attack are caused by oxygen returning"
+    text: "During ischemia, blood supply is cut, the cell goes anaerobic, and the ETC backs up as NADH and FADH2 accumulate with no O2 to accept their electrons. Electrons sit queued for hours. Then reperfusion restores blood flow and oxygen floods back, and the backed-up electrons dump onto O2 all at once in an uncontrolled burst. Superoxide and hydroxyl radicals overwhelm the cell's defenses, doing more damage than the oxygen shortage ever did. This is why the first 24 hours after an MI or stroke are so dangerous, and it is why therapies aim at the chemistry directly: gradual reperfusion, mitochondria-targeted antioxidants, and therapeutic hypothermia to slow the chain during the critical window."
+    source: "CH20 lecture notes — Module 8: Ischemia-Reperfusion Injury"
+lectureSlides:
+  - src: "/slides/oxidative-phosphorylation/what-oxidative-phosphorylation.png"
+    audio: "/slides/oxidative-phosphorylation/audio/what-oxidative-phosphorylation.mp3"
+    title: "What Oxidative Phosphorylation Is"
+    alt: "What Oxidative Phosphorylation Is"
+    source: "CH20 Oxidative Phosphorylation · slide 2"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the big picture before any of the machinery. Oxidative phosphorylation is how the cell cashes in the high-energy electrons it harvested earlier, turning them into ATP. Electrons stripped from NADH and FADH2 flow toward oxygen through a series of carriers, and that downhill, exergonic flow is what we call the electron-transport chain. Notice the logic of the coupling: the electron flow does not make ATP directly. Instead it pumps protons and builds a gradient, and the gradient is the currency that powers ATP synthesis. The citric acid cycle plus this process together are what we mean by cellular respiration."
+  - src: "/slides/oxidative-phosphorylation/chemiosmotic-theory.png"
+    audio: "/slides/oxidative-phosphorylation/audio/chemiosmotic-theory.mp3"
+    title: "Chemiosmotic Theory"
+    alt: "Chemiosmotic Theory"
+    source: "CH20 Oxidative Phosphorylation · slide 9"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "This is the single most important idea in the chapter, so hold onto it. Electron flow and ATP synthesis are two separate events linked only by a proton gradient. On the left, electrons hop downhill through carriers in the inner membrane, and each exergonic step does work by pushing protons from the matrix out into the intermembrane space. That accumulation of protons is potential energy, like water behind a dam. On the right, ATP synthase lets those protons flood back down their gradient, and that flow drives the phosphorylation of ADP. Peter Mitchell proposed this in 1961, was met with deep skepticism, and won the Nobel Prize for being right."
+  - src: "/slides/oxidative-phosphorylation/electron-flow-redox-potential.png"
+    audio: "/slides/oxidative-phosphorylation/audio/electron-flow-redox-potential.mp3"
+    title: "Electron Flow and Redox Potential"
+    alt: "Electron Flow and Redox Potential"
+    source: "CH20 Oxidative Phosphorylation · slide 12"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let me show you why electrons move at all. Every carrier has a reduction potential, plotted here on the vertical axis. NADH sits high, at a very negative potential, meaning it holds electrons loosely and donates them readily. Oxygen sits at the bottom, strongly positive, meaning it grabs electrons hungrily. Electrons always flow from low potential to high potential, from generous donor to greedy acceptor, and that is why they cascade from NADH down to oxygen. The total drop is about 1.14 volts, which translates to roughly minus 220 kilojoules per mole. That released energy is exactly what gets spent pumping protons across the membrane."
+  - src: "/slides/oxidative-phosphorylation/five-landmarks-chain.png"
+    audio: "/slides/oxidative-phosphorylation/audio/five-landmarks-chain.mp3"
+    title: "The Five Landmarks of the Chain"
+    alt: "The Five Landmarks of the Chain"
+    source: "CH20 Oxidative Phosphorylation · slide 13"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Rather than memorizing a tangle of carriers, anchor yourself to five landmarks ranked by reduction potential. NADH is the summit, the most energy-rich electron source. FADH2 enters lower, which is why it ultimately yields less ATP. Ubiquinone sits near zero and serves as our reference point in the middle. Cytochrome c is further down, and oxygen is the floor, the least energetic and strongest oxidant of them all. Read this as a staircase electrons descend, and notice the right side: at each major drop, protons are pumped into the intermembrane space. Energy released by falling electrons is captured as a proton gradient."
+  - src: "/slides/oxidative-phosphorylation/respiratory-chain-three-pumps-plus-feeder.png"
+    audio: "/slides/oxidative-phosphorylation/audio/respiratory-chain-three-pumps-plus-feeder.mp3"
+    title: "The Respiratory Chain: Three Pumps Plus a Feeder"
+    alt: "The Respiratory Chain: Three Pumps Plus a Feeder"
+    source: "CH20 Oxidative Phosphorylation · slide 24"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Now we assemble the chain from named parts. Electrons from NADH enter at Complex I, NADH-Q oxidoreductase, and are handed to ubiquinone. Complex III, Q-cytochrome c oxidoreductase, passes them to cytochrome c. Complex IV, cytochrome c oxidase, delivers them to oxygen. Those three are the proton pumps. Notice the side door: Complex II, succinate-Q reductase, feeds electrons from succinate-derived FADH2 into the Q pool, but it does not pump protons. That single fact, that Complex II is a feeder and not a pump, explains why FADH2 yields less ATP than NADH. The reduction potentials on the left confirm every step runs downhill."
+  - src: "/slides/oxidative-phosphorylation/complex-iii-cytochrome-c.png"
+    audio: "/slides/oxidative-phosphorylation/audio/complex-iii-cytochrome-c.mp3"
+    title: "Complex III and Cytochrome c"
+    alt: "Complex III and Cytochrome c"
+    source: "CH20 Oxidative Phosphorylation · slide 31"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let me isolate the handoff at Complex III, because cytochrome c is easy to lose track of. Electrons arriving on QH2 move through cytochrome b, then cytochrome c1, and finally onto cytochrome c itself. The key thing about cytochrome c is that it is not built into a complex. It is a small, mobile carrier that lives in the intermembrane space, loosely associated with the outer face of the inner membrane. It docks onto Complex III where the complex emerges from the membrane, picks up a single electron, and then ferries it over to Complex IV. Think of it as the shuttle bus between the two big stations."
+  - src: "/slides/oxidative-phosphorylation/cash-register-analogy-q-cycle.png"
+    audio: "/slides/oxidative-phosphorylation/audio/cash-register-analogy-q-cycle.mp3"
+    title: "The Cash Register Analogy for the Q Cycle"
+    alt: "The Cash Register Analogy for the Q Cycle"
+    source: "CH20 Oxidative Phosphorylation · slide 32"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The Q cycle confuses people because the bookkeeping looks wasteful, so here is an everyday analogy. Imagine paying a ten dollar tab with a twenty dollar bill. The register cannot just take twenty; it must give you change. QH2 is your twenty, a two-electron carrier. Cytochrome c is the exact-change requirement, accepting only one electron at a time. So the complex makes change: it sends one electron forward to cytochrome c and recycles the other back onto a fresh quinone. The net result of the full cycle is two cytochrome c reduced, one QH2 effectively recycled, and crucially four protons pumped. The apparent inefficiency is actually a proton-pumping trick."
+  - src: "/slides/oxidative-phosphorylation/q-cycle-two-halves.png"
+    audio: "/slides/oxidative-phosphorylation/audio/q-cycle-two-halves.mp3"
+    title: "The Q Cycle in Two Halves"
+    alt: "The Q Cycle in Two Halves"
+    source: "CH20 Oxidative Phosphorylation · slide 33"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the mechanism behind the cash-register analogy, drawn in two halves. The fundamental mismatch is that QH2 carries two electrons while cytochrome c accepts only one, so the complex splits the pair. In each half-cycle, one electron from QH2 travels up through cytochrome c1 to cytochrome c, while the second electron loops back down through cytochrome b to regenerate a reduced quinone. Run both halves and the accounting closes: two QH2 plus one Q go in, and you recover one QH2, reduce two cytochrome c, and pump four protons to the intermembrane space while consuming two from the matrix. The looping electron is what makes Complex III a proton pump."
+  - src: "/slides/oxidative-phosphorylation/airlock-analogy-complex-iv.png"
+    audio: "/slides/oxidative-phosphorylation/audio/airlock-analogy-complex-iv.mp3"
+    title: "The Airlock Analogy for Complex IV"
+    alt: "The Airlock Analogy for Complex IV"
+    source: "CH20 Oxidative Phosphorylation · slide 38"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Complex IV faces a serious safety problem, and the airlock analogy captures why it is built the way it is. Reducing oxygen to water takes four electrons, but they arrive one at a time on cytochrome c. If oxygen were released after only one or two electrons, it would leave as superoxide or peroxide, reactive species that damage the cell. So Complex IV behaves like an airlock: it holds oxygen clamped tightly to its iron-copper center and refuses to release anything until all four electrons have been delivered and the molecule is fully reduced to two waters. No partial products escape. The danger of partial reduction is exactly why this controlled, all-or-nothing handling exists."
+  - src: "/slides/oxidative-phosphorylation/electron-transport-chain-at-glance.png"
+    audio: "/slides/oxidative-phosphorylation/audio/electron-transport-chain-at-glance.mp3"
+    title: "The Electron-Transport Chain at a Glance"
+    alt: "The Electron-Transport Chain at a Glance"
+    source: "CH20 Oxidative Phosphorylation · slide 39"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let us consolidate everything into one reference you can reason from. Reading across the table: Complex I takes electrons from NADH and pumps; Complex II takes them from FADH2 or succinate and does not pump; Complex III moves them from QH2 to cytochrome c and pumps; Complex IV passes them to oxygen and pumps. Memorize the electron entry and exit for each, and which ones pump. The inhibitor column is your exam gold: rotenone hits Complex I, malonate hits Complex II, antimycin hits Complex III, and cyanide and carbon monoxide block Complex IV. Roughly ten protons per NADH, six per FADH2, because Complex II contributes no pumping."
+  - src: "/slides/oxidative-phosphorylation/using-inhibitors-order-chain.png"
+    audio: "/slides/oxidative-phosphorylation/audio/using-inhibitors-order-chain.mp3"
+    title: "Using Inhibitors to Order the Chain"
+    alt: "Using Inhibitors to Order the Chain"
+    source: "CH20 Oxidative Phosphorylation · slide 40"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "This is a beautiful piece of experimental logic, and it is a favorite exam scenario, so reason through it with me. If you block the chain at one point, everything upstream of the block piles up in the reduced state because electrons cannot leave, and everything downstream becomes oxidized because no new electrons arrive. So rotenone, blocking Complex I, leaves NADH reduced and the rest oxidized. Antimycin A, blocking Complex III, leaves carriers up to cytochrome b reduced. Cyanide, blocking Complex IV, leaves the entire chain reduced and only oxygen unreduced. By reading which carriers turn reduced versus oxidized, you can deduce the exact sequence of electron flow."
+  - src: "/slides/oxidative-phosphorylation/battery-analogy-proton-motive-force.png"
+    audio: "/slides/oxidative-phosphorylation/audio/battery-analogy-proton-motive-force.mp3"
+    title: "The Battery Analogy for Proton-Motive Force"
+    alt: "The Battery Analogy for Proton-Motive Force"
+    source: "CH20 Oxidative Phosphorylation · slide 42"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Tie the whole chapter together with one image: the mitochondrion as a rechargeable battery. The electron-transport chain is the charging cable, using the energy of electron flow to pump protons and build up charge, the proton-motive force, across the inner membrane. ATP synthase is the discharge circuit, letting protons flow back down to do useful work and make ATP. Now the diseases and drugs make sense. Cut the charging cable, as cyanide does by blocking Complex IV, and the battery never charges. Add an uncoupler, which pokes holes in the membrane, and the battery short-circuits, draining its charge as heat instead of ATP."
+---
+
+import ProtonGradientBattery from '../../../components/ProtonGradientBattery.astro';
+
+**Cyanide kills in minutes, and the reason is one enzyme at the very bottom of the electron-transport chain.** Block that last step and electrons have nowhere to fall, the whole chain backs up, the proton gradient collapses, and a cell that runs on oxygen suffocates from the inside while surrounded by air. To understand why a single blocked step is lethal that fast, you have to understand what the chain is actually doing, and the central idea is simpler and stranger than most students expect.
+
+Oxidative phosphorylation is two machines, not one. The first machine drops electrons down a ladder and uses the released energy to pump protons across a membrane. The second machine lets those protons flow back and uses *that* to make ATP. The two are linked by exactly one thing: the proton gradient. Hold onto that, because nearly every famous misconception in this chapter dissolves the moment you treat the gradient as the currency.
+
+## The five-story building
+
+Electrons fall the way water falls: from high potential energy to low. The measure of that potential is the reduction potential, E0'. A more negative E0' means a molecule holds its electrons loosely and donates them eagerly; a more positive E0' means it grabs electrons hard. Electrons flow spontaneously from negative toward positive, and the free energy released at each drop is ΔG°' = −nFΔE°'.
+
+Picture the chain as a five-story building. NADH sits in the penthouse at −0.32 V. Oxygen waits in the basement at +0.82 V. In between are the landmarks the field measured one by one: FMN at −0.30, the iron-sulfur clusters near 0, coenzyme Q around +0.04, cytochrome c at +0.25, cytochrome a at +0.29. The total fall from NADH to O2 is large, and the cell does not waste it as a single crash. It breaks the descent into stages, and at three of those stages the drop is steep enough to do work: pump a proton uphill, against its own gradient, out of the matrix.
+
+## The four complexes, in order
+
+Everything happens on the **inner mitochondrial membrane**, folded into cristae and impermeable to ions. That impermeability is the whole foundation, because a gradient is only useful if it cannot leak away. The outer membrane is porous (VDAC lets through anything under ~5000 Da); the matrix inside runs the citric acid cycle and fatty-acid oxidation.
+
+**Complex I** (NADH-Q oxidoreductase) is an L-shaped giant of ~46 subunits. NADH hands two electrons to FMN, which passes them through a relay of about seven Fe-S clusters to coenzyme Q. The drop is steep, and Complex I pumps about 4 protons.
+
+**Complex II** (succinate dehydrogenase) is the quiet one, and it carries the chapter's most-tested lesson. It is also a citric acid cycle enzyme, oxidizing succinate to fumarate, and it feeds the resulting FADH2 electrons to Q. But Complex II pumps **zero protons**. It is small, only four subunits, repurposed from the cycle without ever evolving the pumping hardware. This is the entire reason FADH2 yields less ATP than NADH. The electrons are real, but they enter below the first pump and skip it.
+
+**Complex III** (cytochrome bc1) runs the **Q cycle**, which solves a packaging problem. Reduced QH2 carries two electrons, but cytochrome c can only take one at a time. So the complex splits them: one electron goes through the Rieske Fe-S cluster to cyt c1 and out to cyt c, while the other loops back through the b hemes to reduce another Q at a second site. Two turns reduce two cytochrome c and move 4 protons to the intermembrane space. The cost is a semiquinone radical (Q•⁻) that lingers at the Qp site, and if it meets O2 it makes superoxide. Complex III is both elegant and dangerous, which is why antimycin A blocks it as a classic experimental tool.
+
+**Complex IV** (cytochrome c oxidase) is the terminal step, and it handles the most dangerous molecule in metabolism without ever fumbling it. Electrons pass from cyt c to CuA, to heme a, to the heme a3/CuB binuclear center, where O2 binds. Think of that binuclear center as a vise grip: it clamps O2 and refuses to release it until all four electrons have arrived, so no half-reduced, radical-spitting intermediate ever escapes. Four electrons plus four protons plus O2 give two water molecules. Per O2, Complex IV removes 8 protons from the matrix (4 become water, 4 are pumped). Cyanide and CO jam this site, and the chain dies here.
+
+Cryo-EM now shows these complexes assembling into **supercomplexes** (the respirasome, I + III2 + IV), which may shorten the diffusion path for the mobile carriers and reduce leak. Whether that matters for normal function is still debated.
+
+<ProtonGradientBattery />
+
+## The proton budget, and the FADH2 tax
+
+Now the accounting that earns the central idea. Pumping protons charges a battery, the proton-motive force. ATP synthase discharges it. The exchange rate, including the cost of importing ADP and exporting ATP across the membrane, runs about 4 protons per ATP.
+
+NADH drives all three pumps, so it banks roughly 10 protons, which buys about **2.5 ATP**. FADH2 enters at Complex II and skips the first pump, banking roughly 6 protons, which buys about **1.5 ATP**. The difference is not a memorized constant. It is the structural consequence of one complex that never learned to pump. Multiply across a glucose and you reach the headline number: ETC plus chemiosmotic gradient plus ATP synthase yields roughly **30 to 32 ATP per glucose**, an order of magnitude beyond what glycolysis alone delivers.
+
+## When the chain breaks
+
+The same logic that builds the chain explains how it fails. **Inhibitors** freeze it at a single point, and the freeze is diagnostic. Rotenone blocks Complex I, antimycin A blocks Complex III, cyanide blocks Complex IV. Apply any one and every carrier upstream piles up reduced while everything downstream goes oxidized. That crossover pattern, read by spectroscopy, is literally how the order of the chain was worked out before anyone had a structure.
+
+**Uncouplers** punch a proton leak in the membrane. Protons rush back without passing through ATP synthase, so the energy of the fall comes out as heat instead of ATP. Your brown fat does this on purpose to keep you warm; the diet drug DNP did it lethally.
+
+**Reactive oxygen species** are the standing tax of running on oxygen. About 1 to 2 percent of the O2 handled leaks out as superoxide, mostly at the Complex I flavin and the Complex III semiquinone (Complex IV almost never leaks). Superoxide dismutase converts two superoxides to H2O2 and O2, then catalase and peroxidases finish the cleanup.
+
+These mechanisms are clinical. In **Friedreich's ataxia**, a GAA-repeat expansion silences frataxin, Fe-S cluster assembly fails, and the ETC collapses first in the neurons and heart that demand the most ATP. In **ischemia-reperfusion injury**, electrons queue up in an oxygen-starved chain during a heart attack or stroke, then dump onto O2 in a ROS tsunami the instant blood flow returns, which is why the first 24 hours after an MI are so dangerous. Even the Gulf of Mexico **dead zone** is this chemistry at ecosystem scale: nutrient runoff fuels a bloom, the bloom's respiration strips the water of oxygen, and the terminal electron acceptor everything depends on simply runs out.
+
+Next, in **CH21**, we follow the gradient into the second machine: ATP synthase, the rotary motor that spends the battery this chapter charged.

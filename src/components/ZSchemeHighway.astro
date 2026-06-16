@@ -1,0 +1,304 @@
+---
+/**
+ * ZSchemeHighway — the energy-landscape companion to the light-reactions chapter. Most diagrams
+ * of photosynthesis draw the thylakoid membrane as plumbing; this island redraws it as the thing
+ * that actually matters: a reduction-potential ladder. The vertical axis is E (volts), so the path
+ * literally traces a 'Z' — two photon-driven UPHILL boosts (P680→P680*, P700→P700*) separated by
+ * a DOWNHILL slide of electron carriers. Fire photons one at a time and watch the electron climb,
+ * fall, split water, fill the lumen with H+, release O2, and finally reduce NADP+ to NADPH. State
+ * advances synchronously on each click — every counter is inspectable in the DOM, no animation
+ * required. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="zsh card" data-zsh>
+  <figcaption class="zsh-head">The Z-scheme as an energy ladder<span class="zsh-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="zsh-svg" viewBox="0 0 760 420" role="img" aria-label="Z-scheme reduction-potential diagram" data-svg></svg>
+
+  <div class="zsh-controls">
+    <button type="button" data-fire="psii">⚡ Fire photon at PSII (680 nm)</button>
+    <button type="button" data-fire="psi">⚡ Fire photon at PSI (700 nm)</button>
+    <button type="button" data-reset class="zsh-reset">Reset</button>
+  </div>
+
+  <p class="zsh-stage" data-stage></p>
+
+  <div class="zsh-counters" aria-live="polite">
+    <div class="zsh-counter"><span class="zsh-c-name">Photons absorbed</span><span class="zsh-c-v" data-c="photons">0</span></div>
+    <div class="zsh-counter"><span class="zsh-c-name">e⁻ moved through chain</span><span class="zsh-c-v" data-c="electrons">0</span></div>
+    <div class="zsh-counter"><span class="zsh-c-name">H⁺ in lumen</span><span class="zsh-c-v" data-c="protons">0</span></div>
+    <div class="zsh-counter"><span class="zsh-c-name">O₂ released</span><span class="zsh-c-v" data-c="o2">0</span></div>
+    <div class="zsh-counter"><span class="zsh-c-name">NADPH made</span><span class="zsh-c-v" data-c="nadph">0</span></div>
+  </div>
+
+  <p class="zsh-net" data-net></p>
+
+  <div class="zsh-misc">
+    <strong>Energy is not the electron.</strong> Hundreds of antenna pigments hand the photon's
+    <em>energy</em> inward by resonance — like a struck tuning fork setting the next one ringing — and not
+    one of them loses an electron. Only at the reaction center (P680, P700) does a real electron actually
+    leave the chlorophyll and enter the chain. That single hand-off, energy → charge separation, is the
+    whole point of the antenna.
+  </div>
+
+  <p class="zsh-foot">Read the Z left to right and the story is honest about its bookkeeping: light pays
+  twice. The first photon pries an electron off water — the only molecule on Earth's surface stubborn
+  enough that it takes a +1.1 V oxidant (P680⁺) to do it — and the electron slides downhill, pumping
+  protons into the lumen as it goes. The second photon lifts that same electron a second time, high
+  enough to finally reduce NADP⁺. Two uphill boosts, one downhill valley between them; out the back come
+  O₂, a proton gradient, and the NADPH that the Calvin cycle will spend. No light, no climb, no sugar.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  // Plot geometry: x left→right, y maps reduction potential E (volts) to pixels.
+  const X0 = 70, X1 = 730, Y_TOP = 30, Y_BOT = 360;
+  const E_HI = -1.4, E_LO = 0.95; // volts at top / bottom of the axis
+  function ey(E: number): number {
+    return Y_TOP + (E - E_HI) / (E_LO - E_HI) * (Y_BOT - Y_TOP);
+  }
+
+  type ZNode = { id: string; label: string; cofactor: string; E: number; x: number; psi: boolean };
+  // x positions hand-placed so the chain marches left→right and the trace is a literal Z.
+  const NODES: ZNode[] = [
+    { id: 'h2o',   label: 'H₂O / OEC (Mn₄CaO₅)', cofactor: 'Manganese cluster', E: 0.82,  x: 95,  psi: false },
+    { id: 'p680',  label: 'P680',                 cofactor: 'Reaction-center Chl a', E: 1.10,  x: 150, psi: false },
+    { id: 'p680s', label: 'P680*',                cofactor: 'Excited P680', E: -0.80, x: 150, psi: false },
+    { id: 'pheo',  label: 'Pheophytin',           cofactor: 'Pheo a', E: -0.55, x: 205, psi: false },
+    { id: 'qa',    label: 'QA',                    cofactor: 'Bound plastoquinone', E: -0.13, x: 250, psi: false },
+    { id: 'qb',    label: 'QB → PQ pool',         cofactor: 'Plastoquinone', E: 0.00,  x: 300, psi: false },
+    { id: 'b6f',   label: 'Cytochrome b₆f',       cofactor: 'Fe–S + cyt b/f (Q-cycle)', E: 0.20,  x: 355, psi: false },
+    { id: 'pc',    label: 'Plastocyanin',         cofactor: 'Cu protein', E: 0.37,  x: 410, psi: false },
+    { id: 'p700',  label: 'P700',                 cofactor: 'Reaction-center Chl a', E: 0.43,  x: 460, psi: true },
+    { id: 'p700s', label: 'P700*',                cofactor: 'Excited P700', E: -1.30, x: 460, psi: true },
+    { id: 'a0',    label: 'A₀',                    cofactor: 'Chl a acceptor', E: -1.05, x: 510, psi: true },
+    { id: 'a1',    label: 'A₁',                    cofactor: 'Phylloquinone', E: -0.75, x: 555, psi: true },
+    { id: 'fd',    label: 'Ferredoxin',           cofactor: 'Soluble Fe–S', E: -0.42, x: 610, psi: true },
+    { id: 'fnr',   label: 'FNR',                   cofactor: 'FAD flavoenzyme', E: -0.37, x: 665, psi: true },
+    { id: 'nadph', label: 'NADP⁺ → NADPH',        cofactor: 'Final electron acceptor', E: -0.32, x: 720, psi: true },
+  ];
+  const IDX: Record<string, number> = {};
+  NODES.forEach((n, i) => { IDX[n.id] = i; });
+
+  // Legs the electron can occupy. index = how many "legs" it has advanced this electron's journey.
+  // PSII leg: parked at -1 (none), 0..7 = h2o..pc (electron resting at plastocyanin = end of PSII run).
+  // PSI leg continues 8..14 = p700..nadph.
+  const PSII_END = IDX['pc'];   // electron parked here after a PSII run
+
+  type State = { photons: number; electrons: number; protons: number; o2: number; nadph: number; pos: number; parkedAtPC: boolean };
+  function fresh(): State { return { photons: 0, electrons: 0, protons: 0, o2: 0, nadph: 0, pos: -1, parkedAtPC: false }; }
+
+  function drawStatic(svg: SVGElement): void {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // axis + gridlines at +0.5, 0, -0.5, -1.0
+    svg.appendChild(el('line', { x1: X0, y1: Y_TOP, x2: X0, y2: Y_BOT, stroke: INK, 'stroke-width': 1.5 }));
+    const ticks = [0.5, 0.0, -0.5, -1.0];
+    for (const t of ticks) {
+      const y = ey(t);
+      svg.appendChild(el('line', { x1: X0, y1: y, x2: X1, y2: y, stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '3 4' }));
+      const lab = el('text', { x: X0 - 8, y: y + 4, 'text-anchor': 'end', fill: INK, 'font-size': 11, 'font-family': 'monospace' });
+      lab.textContent = (t > 0 ? '+' : '') + t.toFixed(1);
+      svg.appendChild(lab);
+    }
+    const axTitle = el('text', { x: 16, y: (Y_TOP + Y_BOT) / 2, fill: NAVY, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', transform: `rotate(-90 16 ${(Y_TOP + Y_BOT) / 2})` });
+    axTitle.textContent = 'Reduction potential E (V)';
+    svg.appendChild(axTitle);
+    const hint = el('text', { x: X0 + 6, y: Y_TOP - 14, fill: ACCENT, 'font-size': 11, 'font-weight': 600 });
+    hint.textContent = '↑ more negative = higher energy';
+    svg.appendChild(hint);
+
+    // photon arrows at the two reaction centers (the uphill boosts)
+    boost(svg, IDX['p680'], IDX['p680s'], '680 nm');
+    boost(svg, IDX['p700'], IDX['p700s'], '700 nm');
+
+    // connective path (the Z), drawn faint under the nodes
+    for (let i = 0; i < NODES.length - 1; i++) {
+      const a = NODES[i], b = NODES[i + 1];
+      // skip the two vertical photon legs (handled by boost arrows)
+      if ((a.id === 'p680' && b.id === 'p680s') || (a.id === 'p700' && b.id === 'p700s')) continue;
+      svg.appendChild(el('line', { x1: a.x, y1: ey(a.E), x2: b.x, y2: ey(b.E), stroke: FAINT, 'stroke-width': 2 }));
+    }
+
+    // nodes
+    for (const n of NODES) {
+      const cy = ey(n.E);
+      const isRC = n.id === 'p680' || n.id === 'p700' || n.id === 'p680s' || n.id === 'p700s';
+      svg.appendChild(el('circle', { cx: n.x, cy, r: isRC ? 9 : 7, fill: '#fff', stroke: n.psi ? ACCENT : NAVY, 'stroke-width': isRC ? 3 : 2, 'data-dot': n.id }));
+      const tx = el('text', { x: n.x, y: n.E < -0.5 ? cy - 14 : cy + 20, 'text-anchor': 'middle', fill: INK, 'font-size': 9.5, 'data-lab': n.id });
+      tx.textContent = n.label;
+      svg.appendChild(tx);
+    }
+
+    // lumen tank (right edge): fills upward as protons accumulate
+    svg.appendChild(el('rect', { x: 700, y: 375, width: 46, height: 38, rx: 4, fill: 'none', stroke: NAVY, 'stroke-width': 1.5 }));
+    svg.appendChild(el('rect', { x: 701, y: 412, width: 44, height: 0, fill: ACCENT, opacity: 0.5, 'data-tank': '1' }));
+    const tlab = el('text', { x: 723, y: 372, 'text-anchor': 'middle', fill: NAVY, 'font-size': 9 });
+    tlab.textContent = 'lumen H⁺';
+    svg.appendChild(tlab);
+
+    // moving electron marker (hidden until it has a position)
+    svg.appendChild(el('circle', { cx: -20, cy: -20, r: 6, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5, 'data-electron': '1' }));
+  }
+
+  function boost(svg: SVGElement, fromIdx: number, toIdx: number, nm: string): void {
+    const a = NODES[fromIdx], b = NODES[toIdx];
+    svg.appendChild(el('line', { x1: a.x, y1: ey(a.E), x2: b.x, y2: ey(b.E), stroke: GOLD, 'stroke-width': 3, 'marker-end': 'url(#zsh-up)' }));
+    const t = el('text', { x: a.x - 8, y: (ey(a.E) + ey(b.E)) / 2, 'text-anchor': 'end', fill: GOLD, 'font-size': 10, 'font-weight': 700 });
+    t.textContent = 'hν ' + nm;
+    svg.appendChild(t);
+    // arrow marker (added once is fine; setAttribute on duplicate id is harmless, but guard anyway)
+    if (!svg.querySelector('#zsh-up')) {
+      const defs = el('defs', {});
+      const m = el('marker', { id: 'zsh-up', markerWidth: 8, markerHeight: 8, refX: 4, refY: 7, orient: 'auto' });
+      m.appendChild(el('path', { d: 'M0,7 L4,0 L8,7 Z', fill: GOLD }));
+      defs.appendChild(m);
+      svg.appendChild(defs);
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-zsh]').forEach((root) => {
+    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const firePSII = root.querySelector<HTMLButtonElement>('[data-fire="psii"]')!;
+    const firePSI = root.querySelector<HTMLButtonElement>('[data-fire="psi"]')!;
+    const resetB = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    const stageEl = root.querySelector<HTMLElement>('[data-stage]')!;
+    const netEl = root.querySelector<HTMLElement>('[data-net]')!;
+    const cPhotons = root.querySelector<HTMLElement>('[data-c="photons"]')!;
+    const cElectrons = root.querySelector<HTMLElement>('[data-c="electrons"]')!;
+    const cProtons = root.querySelector<HTMLElement>('[data-c="protons"]')!;
+    const cO2 = root.querySelector<HTMLElement>('[data-c="o2"]')!;
+    const cNadph = root.querySelector<HTMLElement>('[data-c="nadph"]')!;
+
+    drawStatic(svg);
+    let st = fresh();
+
+    function moveElectronTo(idx: number): void {
+      const dot = svg.querySelector('[data-electron]') as unknown as SVGElement | null;
+      if (!dot) return;
+      if (idx < 0) { dot.setAttribute('cx', '-20'); dot.setAttribute('cy', '-20'); return; }
+      const n = NODES[idx];
+      dot.setAttribute('cx', String(n.x));
+      dot.setAttribute('cy', String(ey(n.E)));
+      dot.setAttribute('fill', n.psi ? NAVY : ORANGE);
+    }
+
+    function fillTank(): void {
+      const tank = svg.querySelector('[data-tank]') as unknown as SVGElement | null;
+      if (!tank) return;
+      const maxH = 37;
+      const h = Math.min(maxH, st.protons * (maxH / 8)); // 8 H+ ≈ full tank visually
+      tank.setAttribute('height', String(h));
+      tank.setAttribute('y', String(412 - h));
+    }
+
+    function renderCounters(): void {
+      cPhotons.textContent = String(st.photons);
+      cElectrons.textContent = String(st.electrons);
+      cProtons.textContent = String(st.protons);
+      cO2.textContent = String(st.o2);
+      cNadph.textContent = String(st.nadph);
+      firePSI.disabled = !st.parkedAtPC;
+      fillTank();
+      moveElectronTo(st.pos);
+    }
+
+    // One PSII firing: lift P680→P680*, slide the electron down to plastocyanin.
+    // Deck stoichiometry: 4 PSII photons split 2 H2O → 1 O2 + 4 H+ (from water) + 4 e-.
+    // The b6f Q-cycle pumps ~2 extra H+ per electron; we add 2 H+/electron from the chain.
+    function runPSII(): void {
+      st.photons += 1;
+      st.electrons += 1;
+      st.parkedAtPC = true;
+      st.pos = PSII_END;
+      // protons: 1 H+ released into lumen from water-splitting per electron, +2 from the Q-cycle
+      st.protons += 3;
+      // every 4th PSII photon completes a water-splitting cycle → release O2
+      if (st.photons % 4 === 0) st.o2 += 1;
+      renderCounters();
+      stageEl.textContent =
+        'PSII fires: the 680-nm photon lifts P680 to P680* (the big upstroke on the left). '
+        + 'The excited electron jumps to pheophytin and slides DOWNHILL — QA → QB → cytochrome b₆f → plastocyanin — '
+        + 'pumping H⁺ into the lumen on the way. P680⁺ left behind is the strongest oxidant in biology and rips an '
+        + 'electron off water. The electron is now parked at plastocyanin; fire PSI to lift it again.';
+      netEl.textContent =
+        st.photons % 4 === 0
+          ? `Net so far: ${st.photons} PSII photons have split ${st.o2 * 2} H₂O → ${st.o2} O₂ + ${st.protons} H⁺ banked in the lumen. An electron waits at plastocyanin.`
+          : `Net so far: ${st.photons} PSII photon(s) in, ${st.protons} H⁺ in the lumen, ${st.electrons} e⁻ delivered to plastocyanin. ${4 - (st.photons % 4)} more PSII photon(s) until the next O₂.`;
+    }
+
+    // One PSI firing: requires an electron parked at plastocyanin. Lift P700→P700*, slide to NADP+.
+    // Deck stoichiometry: a photon per electron at PSI; 2 e- (so 2 PSI photons) → 1 NADPH.
+    function runPSI(): void {
+      if (!st.parkedAtPC) return;
+      st.photons += 1;
+      st.parkedAtPC = false;
+      st.pos = IDX['nadph'];
+      // 2 electrons through PSI make 1 NADPH; count electrons delivered to ferredoxin
+      // electrons already incremented at PSII; one NADPH per 2 PSI firings
+      if (st.photons > 0 && (countPSI() % 2 === 0)) st.nadph += 1;
+      renderCounters();
+      stageEl.textContent =
+        'PSI fires: the 700-nm photon lifts P700 to P700* (the second, even higher upstroke). '
+        + 'From P700* the electron passes A₀ → A₁ → ferredoxin → FNR and finally reduces NADP⁺ to NADPH. '
+        + 'P700⁺ is refilled by the electron that plastocyanin was holding — closing the gap between the two photosystems. '
+        + 'Two PSI electrons make one NADPH.';
+      netEl.textContent =
+        `Net so far: ${st.photons} total photons absorbed, ${st.protons} H⁺ in the lumen, ${st.o2} O₂ released, ${st.nadph} NADPH made. `
+        + 'Plastocyanin is empty again — fire PSII to reload it.';
+    }
+
+    // PSI firings = total photons minus PSII firings; but simpler: track via electrons delivered.
+    // We infer PSI count from nadph progress; keep a dedicated tally for clarity.
+    let psiFired = 0;
+    function countPSI(): number { psiFired += 1; return psiFired; }
+
+    function reset(): void {
+      st = fresh();
+      psiFired = 0;
+      renderCounters();
+      stageEl.textContent =
+        'The full Z-scheme is drawn: nodes sit at their true reduction potentials, so the chain climbs twice and '
+        + 'falls twice — a literal Z. Fire a photon at PSII to start an electron on its journey from water.';
+      netEl.textContent = 'Net so far: nothing fired yet. Water is intact, the lumen is empty, no NADPH.';
+    }
+
+    firePSII.addEventListener('click', runPSII);
+    firePSI.addEventListener('click', runPSI);
+    resetB.addEventListener('click', reset);
+    reset();
+  });
+</script>
+
+<style>
+  .zsh { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .zsh-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .zsh-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .zsh-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }
+  .zsh-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .zsh-controls button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.4rem 0.8rem; cursor: pointer; }
+  .zsh-controls button:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .zsh-controls button:disabled { opacity: 0.4; cursor: default; }
+  .zsh-reset { margin-left: auto; }
+  .zsh-stage { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .zsh-counters { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  @media (min-width: 560px) { .zsh-counters { grid-template-columns: repeat(5, 1fr); } }
+  .zsh-counter { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
+  .zsh-c-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .zsh-c-v { font-size: var(--ddp-text-lg); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-accent); }
+  .zsh-net { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.8em; font-family: var(--ddp-font-mono); }
+  .zsh-misc { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-secondary) 10%, transparent); border-radius: 6px; margin-bottom: var(--ddp-space-3); }
+  .zsh-misc strong { color: var(--ddp-color-primary); }
+  .zsh-misc em { font-style: italic; color: var(--ddp-color-primary); }
+  .zsh-foot { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (prefers-reduced-motion: reduce) { .zsh [data-electron], .zsh [data-tank] { transition: none; } }
+  @media (max-width: 640px) { .zsh-reset { margin-left: 0; } }
+</style>

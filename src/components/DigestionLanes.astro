@@ -1,0 +1,357 @@
+---
+/**
+ * DigestionLanes — three digestion swimlanes (carbohydrate, protein, fat) tracing each
+ * macronutrient from mouth → stomach → small-intestine lumen → brush border → enterocyte →
+ * blood/lymph. Click any stage to reveal the enzyme, the bond it hydrolyzes, the condition or
+ * cofactor it needs, the absorbable product, and Chris's hook. The pedagogical spine: every
+ * class reaches the same finish line (absorbable monomers) by the same reaction — hydrolysis —
+ * and the entire protein+fat side hangs on ONE master switch (enteropeptidase → trypsin).
+ * Three controls make the lesson manipulable: knock out the master switch (protein AND fat
+ * fail, carbs survive), show the water (every cleavage is bond + H₂O), and show drug targets.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="dgl card" data-diglanes>
+  <figcaption class="dgl-head">Three lanes to the same finish line — digestion by hydrolysis<span class="dgl-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="dgl-controls" role="group" aria-label="Lesson controls">
+    <button type="button" class="dgl-btn" data-toggle="ko" aria-pressed="false">Knock out enteropeptidase / trypsin</button>
+    <button type="button" class="dgl-btn" data-toggle="lens" aria-pressed="false">Show the water</button>
+    <button type="button" class="dgl-btn" data-toggle="drugs" aria-pressed="false">Show drug targets</button>
+  </div>
+
+  <p class="dgl-banner" data-banner></p>
+
+  <div class="dgl-ribbon" aria-hidden="true">
+    <span class="dgl-ribbon-cell">Mouth</span>
+    <span class="dgl-ribbon-cell">Stomach</span>
+    <span class="dgl-ribbon-cell">Small-Intestine Lumen</span>
+    <span class="dgl-ribbon-cell">Brush Border</span>
+    <span class="dgl-ribbon-cell">Enterocyte</span>
+    <span class="dgl-ribbon-cell">Blood / Lymph</span>
+  </div>
+
+  <div class="dgl-lanes" data-lanes></div>
+
+  <svg class="dgl-converge" viewBox="0 0 460 130" role="img" aria-label="All three lanes converge on absorbable monomers; the fat lane forks to lymph" data-converge></svg>
+
+  <div class="dgl-panel" role="status" aria-live="polite" data-panel>
+    <p class="dgl-panel-empty">Click any stage above to see the enzyme, the bond it breaks, and where each macronutrient becomes absorbable.</p>
+  </div>
+
+  <p class="dgl-foot">Three classes, three sets of enzymes, one reaction: hydrolysis. Carbohydrate ends as monosaccharides, protein as amino acids, fat as fatty acids and monoglycerides — all small enough to cross the gut wall. Carbs and protein head straight to the blood; fat is too bulky for capillaries, so it takes the scenic route through the lymph. And the whole protein-and-fat side balances on a single switch: enteropeptidase flips trypsin on, trypsin flips everyone else on. Knock that switch out and an infant can starve at a full table.</p>
+</figure>
+
+<script>
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2';
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  type Bond = 'peptide' | 'glycosidic' | 'ester' | '-';
+  type Drug = { name: string; mech: string };
+  interface DStep {
+    id: string;
+    organ: string;
+    col: number; // 0..5 anatomy column
+    enzyme: string;
+    bond: Bond;
+    condition: string;
+    product: string;
+    hook: string;
+    trypsinDependent?: boolean;
+    drug?: Drug;
+  }
+  type Lane = { key: string; name: string; color: string; steps: DStep[] };
+
+  const PROTEIN: DStep[] = [
+    { id: 'p-mouth', organ: 'Mouth', col: 0, enzyme: 'Mechanical only', bond: '-', condition: 'Chewing; no protease in saliva', product: 'Intact protein, smaller pieces', hook: 'Teeth start it, chemistry does not — protein digestion has no mouth enzyme.' },
+    { id: 'p-stomach', organ: 'Stomach', col: 1, enzyme: 'Pepsinogen → pepsin', bond: 'peptide', condition: 'Low pH 1.5–2.5 from the H⁺/K⁺-ATPase; autocatalytic activation (pepsin makes more pepsin)', product: 'Large peptides', hook: 'The acid is the activator. Drop the pH and the zymogen clips itself into pepsin — a chain reaction in a bath of acid.', drug: { name: 'omeprazole', mech: 'acid-activated prodrug; a covalent suicide inhibitor of the proton pump. Takes 1–2 days to fully build up and 1–2 days to wear off, because you must make new pumps.' } },
+    { id: 'p-lumen', organ: 'Lumen', col: 2, enzyme: 'Trypsinogen → trypsin (by enteropeptidase) → activates chymotrypsin, elastase, carboxypeptidase', bond: 'peptide', condition: 'Enteropeptidase on the brush border flips the MASTER SWITCH; trypsin then activates every other pancreatic protease', product: 'Short peptides + some amino acids', hook: 'One switch runs the whole room: enteropeptidase turns on trypsin, and trypsin turns on everyone else.', trypsinDependent: true },
+    { id: 'p-brush', organ: 'Brush border', col: 3, enzyme: 'Aminopeptidases', bond: 'peptide', condition: 'Surface peptidases trim from the N-terminus', product: 'Amino acids + di/tripeptides', hook: 'The last few cuts happen on the wall itself, not free in the lumen.', trypsinDependent: true },
+    { id: 'p-entero', organ: 'Enterocyte', col: 4, enzyme: 'PepT1 importer + cytoplasmic peptidases', bond: '-', condition: 'PepT1 pulls in di/tripeptides; cytoplasmic peptidases finish the job inside', product: 'Free amino acids', hook: 'You absorb whole di- and tripeptides, then finish digesting them indoors.', trypsinDependent: true },
+    { id: 'p-blood', organ: 'Blood', col: 5, enzyme: 'Basolateral AA antiporters', bond: '-', condition: 'Amino acids exit the cell into the portal blood', product: 'Amino acids → blood', hook: 'Amino acids ship out through the portal vein — straight to the liver.', trypsinDependent: true },
+  ];
+
+  const CARB: DStep[] = [
+    { id: 'c-mouth', organ: 'Mouth', col: 0, enzyme: 'Salivary α-amylase', bond: 'glycosidic', condition: 'Cleaves α-1,4 only — blind to α-1,6 branch points and to β bonds', product: 'Shorter oligosaccharides', hook: 'Starch digestion starts before you swallow — but amylase only sees α-1,4, never the branch points.' },
+    { id: 'c-lumen', organ: 'Lumen', col: 2, enzyme: 'Pancreatic α-amylase', bond: 'glycosidic', condition: 'Cleaves interior α-1,4 bonds; leaves α-1,6 branches as limit dextrins', product: 'Maltose, oligosaccharides, limit dextrins', hook: 'Same enzyme, bigger dose — and it still cannot touch the branch points it leaves behind.' },
+    { id: 'c-brush', organ: 'Brush border', col: 3, enzyme: 'α-glucosidase, α-dextrinase, sucrase, lactase', bond: 'glycosidic', condition: 'The disaccharidases finish the job on the wall; lactase is the fragile one', product: 'Glucose, galactose, fructose', hook: 'Lose lactase and undigested lactose pulls water into the gut — that osmotic load is the cramp and the diarrhea.' },
+    { id: 'c-absorb', organ: 'Enterocyte', col: 4, enzyme: 'SGLT1 (glucose/galactose) + GLUT5 (fructose)', bond: '-', condition: 'SGLT1 is Na⁺-coupled secondary active transport; GLUT5 is facilitated diffusion', product: 'Monosaccharides inside the cell', hook: 'Glucose rides in on the sodium gradient — it pays nothing directly, the Na⁺/K⁺-ATPase already paid.', drug: { name: 'ouabain / SGLT2 inhibitors', mech: 'ouabain kills the Na⁺/K⁺-ATPase, the sodium gradient collapses, and SGLT1 stalls. Gliflozins block kidney SGLT2 → glucose spills into urine (glucosuria).' } },
+    { id: 'c-blood', organ: 'Blood', col: 5, enzyme: 'GLUT2 (basolateral)', bond: '-', condition: 'Facilitated exit across the basolateral membrane', product: 'Monosaccharides → blood', hook: 'GLUT2 is the back door — sugars leave the cell down their gradient into the portal blood.' },
+  ];
+
+  const LIPID: DStep[] = [
+    { id: 'l-emulsify', organ: 'Lumen (emulsify)', col: 2, enzyme: 'Bile salts', bond: 'ester', condition: 'Bile salts emulsify — soap on greasy dishes — breaking fat into tiny droplets to make interface', product: 'Emulsified fat droplets', hook: 'No bond broken yet. Bile salts just make surface area, the way dish soap shatters grease into beads.' },
+    { id: 'l-digest', organ: 'Lumen (digest)', col: 2, enzyme: 'Pancreatic lipase + colipase', bond: 'ester', condition: 'Colipase anchors lipase to the bile-coated droplet; lipase cleaves the sn-1 and sn-3 ester bonds. Prolipase needs trypsin to activate', product: '2-monoacylglycerol + 2 free fatty acids', hook: 'Lipase shaves the two outer fatty acids off and leaves the middle one — and it cannot start until trypsin switches on its zymogen.', trypsinDependent: true },
+    { id: 'l-micelle', organ: 'Brush border', col: 3, enzyme: 'Bile salts (packaging)', bond: '-', condition: 'Bile salts package the products into micelles that ferry them to the absorptive surface', product: 'Micelles delivering MAG + FFA', hook: 'Micelles are the delivery van — they carry the fat products right up to the brush border.' },
+    { id: 'l-entero', organ: 'Enterocyte', col: 4, enzyme: 'TAG re-synthesis → chylomicron assembly', bond: '-', condition: 'Inside the cell the fatty acids and monoglyceride are re-esterified into triglyceride and wrapped into chylomicrons', product: 'Chylomicrons', hook: 'IKEA in reverse: you break the fat apart to get it through the door, then rebuild it inside.' },
+    { id: 'l-lymph', organ: 'Lymph', col: 5, enzyme: 'Exit via lacteals', bond: '-', condition: 'Chylomicrons are too big for the blood capillaries, so they exit through the lymphatic lacteals', product: 'Chylomicrons → lymph', hook: 'Fat takes the scenic route — too bulky for the capillaries, it rides the lymph and bypasses the liver on the way in.' },
+  ];
+
+  const LANES: Lane[] = [
+    { key: 'carb', name: 'Carbohydrate', color: ACCENT, steps: CARB },
+    { key: 'protein', name: 'Protein', color: ORANGE, steps: PROTEIN },
+    { key: 'lipid', name: 'Fat', color: GOLD, steps: LIPID },
+  ];
+
+  const STEP_INDEX: Record<string, DStep> = {};
+  for (const lane of LANES) for (const s of lane.steps) STEP_INDEX[s.id] = s;
+
+  // The stomach node carries an attachable GLP-1 drug note in the overlay.
+  const GLP1: Drug = { name: 'semaglutide (GLP-1)', mech: 'slows gastric emptying so food trickles into the gut. The nausea side effect IS the mechanism — the stomach is being held shut.' };
+
+  function bondLabel(b: Bond): string {
+    return b === 'peptide' ? 'peptide bond' : b === 'glycosidic' ? 'glycosidic bond' : b === 'ester' ? 'ester bond' : 'no bond cut (transport / mechanical)';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-diglanes]').forEach((root) => {
+    const lanesEl = root.querySelector<HTMLElement>('[data-lanes]')!;
+    const panelEl = root.querySelector<HTMLElement>('[data-panel]')!;
+    const bannerEl = root.querySelector<HTMLElement>('[data-banner]')!;
+    const convergeSvg = root.querySelector('[data-converge]') as unknown as SVGElement;
+    const koBtn = root.querySelector<HTMLButtonElement>('[data-toggle="ko"]')!;
+    const lensBtn = root.querySelector<HTMLButtonElement>('[data-toggle="lens"]')!;
+    const drugsBtn = root.querySelector<HTMLButtonElement>('[data-toggle="drugs"]')!;
+
+    const state: { selected: string | null; ko: boolean; lens: boolean; drugs: boolean } = {
+      selected: null, ko: false, lens: false, drugs: false,
+    };
+
+    // Build the lanes once; render() only toggles classes + panel.
+    for (const lane of LANES) {
+      const row = document.createElement('div');
+      row.className = 'dgl-lane';
+      row.dataset.lane = lane.key;
+      row.style.setProperty('--lane', lane.color);
+
+      const chip = document.createElement('span');
+      chip.className = 'dgl-lane-chip';
+      chip.textContent = lane.name;
+      row.appendChild(chip);
+
+      const track = document.createElement('div');
+      track.className = 'dgl-track';
+      for (const s of lane.steps) {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'dgl-card-btn';
+        card.dataset.step = s.id;
+        card.style.gridColumn = String(s.col + 1);
+        card.setAttribute('aria-expanded', 'false');
+
+        const organ = document.createElement('span');
+        organ.className = 'dgl-card-organ';
+        organ.textContent = s.organ;
+        card.appendChild(organ);
+
+        const enz = document.createElement('span');
+        enz.className = 'dgl-card-enz';
+        enz.textContent = s.enzyme;
+        card.appendChild(enz);
+
+        if (s.bond !== '-') {
+          const badge = document.createElement('span');
+          badge.className = 'dgl-water';
+          badge.textContent = `${s.bond} + H₂O → –H | –OH`;
+          card.appendChild(badge);
+        }
+        if (s.drug) {
+          const rx = document.createElement('span');
+          rx.className = 'dgl-rx';
+          rx.textContent = `Rx ${s.drug.name}`;
+          card.appendChild(rx);
+        }
+        if (s.trypsinDependent) {
+          const tag = document.createElement('span');
+          tag.className = 'dgl-master';
+          tag.textContent = 'needs the master switch';
+          card.appendChild(tag);
+        }
+
+        card.addEventListener('click', () => {
+          state.selected = state.selected === s.id ? null : s.id;
+          render();
+        });
+        track.appendChild(card);
+      }
+      row.appendChild(track);
+      lanesEl.appendChild(row);
+    }
+
+    function drawConverge(): void {
+      while (convergeSvg.firstChild) convergeSvg.removeChild(convergeSvg.firstChild);
+      const defs = el('defs', {});
+      const mk = (id: string, color: string) => {
+        const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+        m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: color }));
+        return m;
+      };
+      const protColor = state.ko ? FAINT : ORANGE;
+      const lipColor = state.ko ? FAINT : GOLD;
+      defs.appendChild(mk('dgl-ar-c', ACCENT));
+      defs.appendChild(mk('dgl-ar-p', protColor));
+      defs.appendChild(mk('dgl-ar-l', lipColor));
+      convergeSvg.appendChild(defs);
+
+      // shared monomers tile
+      const tileX = 250, tileY = 38, tileW = 150, tileH = 54;
+      convergeSvg.appendChild(el('rect', { x: tileX, y: tileY, width: tileW, height: tileH, rx: 8, fill: ACCENT, opacity: 0.1, stroke: ACCENT, 'stroke-width': 2 }));
+      const tt = el('text', { x: tileX + tileW / 2, y: tileY + 22, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 13, 'font-weight': 700 }); tt.textContent = 'Absorbable monomers'; convergeSvg.appendChild(tt);
+      const ts = el('text', { x: tileX + tileW / 2, y: tileY + 40, 'text-anchor': 'middle', fill: '#4b4b55', 'font-size': 9 }); ts.textContent = 'sugars · amino acids · fatty acids'; convergeSvg.appendChild(ts);
+
+      // lymph fork tile (lipid scenic route)
+      const lymphX = 250, lymphY = 100;
+      convergeSvg.appendChild(el('rect', { x: lymphX, y: lymphY, width: tileW, height: 24, rx: 6, fill: lipColor, opacity: 0.12, stroke: lipColor, 'stroke-width': 1.5 }));
+      const ly = el('text', { x: lymphX + tileW / 2, y: lymphY + 16, 'text-anchor': 'middle', fill: lipColor, 'font-size': 10, 'font-weight': 600 }); ly.textContent = 'Lymph (chylomicrons → blood later)'; convergeSvg.appendChild(ly);
+
+      // three converging arrows on the left
+      const arrow = (y: number, color: string, id: string, label: string) => {
+        convergeSvg.appendChild(el('line', { x1: 12, y1: y, x2: tileX - 4, y2: tileY + tileH / 2, stroke: color, 'stroke-width': 3, 'marker-end': `url(#${id})` }));
+        const t = el('text', { x: 16, y: y - 6, fill: color, 'font-size': 10, 'font-weight': 600 }); t.textContent = label; convergeSvg.appendChild(t);
+      };
+      arrow(28, ACCENT, 'dgl-ar-c', 'Carb → blood');
+      arrow(65, protColor, 'dgl-ar-p', 'Protein → blood');
+      // lipid forks: dashed line from the monomers tile down to the lymph tile
+      convergeSvg.appendChild(el('line', { x1: 12, y1: 102, x2: lymphX - 4, y2: lymphY + 12, stroke: lipColor, 'stroke-width': 3, 'marker-end': 'url(#dgl-ar-l)' }));
+      const lt = el('text', { x: 16, y: 96, fill: lipColor, 'font-size': 10, 'font-weight': 600 }); lt.textContent = 'Fat → lymph (scenic route)'; convergeSvg.appendChild(lt);
+    }
+
+    function renderPanel(): void {
+      if (!state.selected) {
+        panelEl.innerHTML = '<p class="dgl-panel-empty">Click any stage above to see the enzyme, the bond it breaks, and where each macronutrient becomes absorbable.</p>';
+        return;
+      }
+      const s = STEP_INDEX[state.selected];
+      const koHit = state.ko && s.trypsinDependent === true;
+      const rows: string[] = [];
+      rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Organ</span><span class="dgl-p-v">${s.organ}</span></div>`);
+      rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Enzyme / step</span><span class="dgl-p-v">${s.enzyme}</span></div>`);
+      rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Bond hydrolyzed</span><span class="dgl-p-v">${bondLabel(s.bond)}</span></div>`);
+      rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Condition / cofactor</span><span class="dgl-p-v">${s.condition}</span></div>`);
+      rows.push(`<div class="dgl-p-row"><span class="dgl-p-k">Product</span><span class="dgl-p-v">${s.product}</span></div>`);
+
+      let html = '';
+      if (s.trypsinDependent) {
+        html += `<span class="dgl-p-master${koHit ? ' is-cut' : ''}">${koHit ? '✕ master switch knocked out — this step is OFF' : 'needs the master switch (trypsin)'}</span>`;
+      }
+      html += `<div class="dgl-p-rows">${rows.join('')}</div>`;
+      html += `<p class="dgl-p-hook">${s.hook}</p>`;
+
+      if (state.lens && s.bond !== '-') {
+        html += `<p class="dgl-p-lens">Hydrolysis lens: <strong>${s.bond} + H₂O → –H added to one side, –OH to the other.</strong> Peptide, glycosidic, and ester cleavage are the same reaction wearing different clothes.</p>`;
+      }
+      if (state.drugs && s.drug) {
+        html += `<div class="dgl-p-drug"><span class="dgl-p-drug-h">Drug target — ${s.drug.name}</span><span class="dgl-p-drug-m">${s.drug.mech}</span></div>`;
+      }
+      if (state.drugs && s.id === 'p-stomach') {
+        html += `<div class="dgl-p-drug"><span class="dgl-p-drug-h">Also here — ${GLP1.name}</span><span class="dgl-p-drug-m">${GLP1.mech}</span></div>`;
+      }
+      panelEl.innerHTML = html;
+    }
+
+    function render(): void {
+      koBtn.setAttribute('aria-pressed', String(state.ko));
+      lensBtn.setAttribute('aria-pressed', String(state.lens));
+      drugsBtn.setAttribute('aria-pressed', String(state.drugs));
+      root.classList.toggle('lens-on', state.lens);
+      root.classList.toggle('drugs-on', state.drugs);
+
+      root.querySelectorAll<HTMLButtonElement>('.dgl-card-btn').forEach((card) => {
+        const id = card.dataset.step!;
+        const s = STEP_INDEX[id];
+        const koHit = state.ko && s.trypsinDependent === true;
+        card.classList.toggle('is-ko', koHit);
+        card.classList.toggle('is-selected', state.selected === id);
+        card.setAttribute('aria-expanded', String(state.selected === id));
+      });
+
+      if (state.ko) {
+        bannerEl.textContent = 'No trypsin → protein AND fat digestion both fail. Carbohydrates still digest. This is enteropeptidase deficiency: an infant starving in the presence of food.';
+        bannerEl.classList.add('is-on');
+      } else {
+        bannerEl.textContent = '';
+        bannerEl.classList.remove('is-on');
+      }
+
+      drawConverge();
+      renderPanel();
+    }
+
+    koBtn.addEventListener('click', () => { state.ko = !state.ko; render(); });
+    lensBtn.addEventListener('click', () => { state.lens = !state.lens; render(); });
+    drugsBtn.addEventListener('click', () => { state.drugs = !state.drugs; render(); });
+
+    render();
+  });
+</script>
+
+<style>
+  .dgl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dgl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .dgl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+
+  .dgl-controls { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: var(--ddp-space-2); }
+  .dgl-btn { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: var(--ddp-radius-sm); padding: 0.32rem 0.7rem; cursor: pointer; }
+  .dgl-btn:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .dgl-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 600; }
+
+  .dgl-banner { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 0; }
+  .dgl-banner.is-on { padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-secondary); background: color-mix(in srgb, var(--ddp-color-secondary) 8%, transparent); border-radius: var(--ddp-radius-sm); color: var(--ddp-color-primary); font-weight: 600; }
+
+  .dgl-ribbon { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.25rem; margin-bottom: 0.3rem; }
+  .dgl-ribbon-cell { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-align: center; padding: 0.2rem 0.1rem; border-bottom: 2px solid var(--ddp-color-line); line-height: 1.15; }
+
+  .dgl-lanes { display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .dgl-lane { display: grid; grid-template-columns: 88px 1fr; align-items: stretch; gap: 0.4rem; }
+  .dgl-lane-chip { display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--ddp-text-xs); font-weight: 700; color: #fff; background: var(--lane); border-radius: var(--ddp-radius-sm); padding: 0.2rem 0.3rem; line-height: 1.1; }
+  .dgl-track { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.25rem; }
+
+  .dgl-card-btn { display: flex; flex-direction: column; gap: 0.12rem; text-align: left; font-family: inherit; cursor: pointer; border: 1px solid color-mix(in srgb, var(--lane) 45%, var(--ddp-color-line)); border-left: 3px solid var(--lane); background: color-mix(in srgb, var(--lane) 6%, #fff); border-radius: var(--ddp-radius-sm); padding: 0.3rem 0.35rem; min-height: 100%; }
+  .dgl-card-btn:hover { background: color-mix(in srgb, var(--lane) 14%, #fff); }
+  .dgl-card-btn.is-selected { outline: 2px solid var(--lane); outline-offset: 1px; background: color-mix(in srgb, var(--lane) 16%, #fff); }
+  .dgl-card-btn.is-ko { opacity: 0.35; border-style: dashed; }
+  .dgl-card-organ { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dgl-card-enz { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.2; }
+
+  .dgl-water { display: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); border-radius: 3px; padding: 0.05rem 0.2rem; margin-top: 0.1rem; }
+  .lens-on .dgl-water { display: inline-block; animation: dgl-pulse 1.6s ease-in-out infinite; }
+  @keyframes dgl-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+  .dgl-rx { display: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-secondary); border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 50%, var(--ddp-color-line)); border-radius: 999px; padding: 0.02rem 0.34rem; margin-top: 0.1rem; align-self: flex-start; }
+  .drugs-on .dgl-rx { display: inline-block; }
+
+  .dgl-master { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-secondary); margin-top: 0.1rem; }
+
+  .dgl-converge { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin: var(--ddp-space-2) 0; }
+
+  .dgl-panel { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 4%, #fff); min-height: 4em; }
+  .dgl-panel-empty { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .dgl-p-rows { display: grid; grid-template-columns: 1fr; gap: 0.25rem; margin: 0.3rem 0; }
+  .dgl-p-row { display: grid; grid-template-columns: 130px 1fr; gap: 0.5rem; font-size: var(--ddp-text-xs); }
+  .dgl-p-k { color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
+  .dgl-p-v { color: var(--ddp-color-ink); line-height: 1.4; }
+  .dgl-p-hook { margin: 0.4rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; border-left: 3px solid var(--ddp-color-accent); padding-left: 0.5rem; }
+  .dgl-p-master { display: inline-block; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-secondary); border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 50%, var(--ddp-color-line)); border-radius: 999px; padding: 0.05rem 0.4rem; margin-bottom: 0.2rem; }
+  .dgl-p-master.is-cut { color: #fff; background: var(--ddp-color-secondary); border-color: var(--ddp-color-secondary); }
+  .dgl-p-lens { margin: 0.4rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: var(--ddp-radius-sm); }
+  .dgl-p-lens strong { color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .dgl-p-drug { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.4rem; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-secondary) 8%, transparent); border-radius: var(--ddp-radius-sm); border-left: 3px solid var(--ddp-color-secondary); }
+  .dgl-p-drug-h { font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-secondary); font-family: var(--ddp-font-mono); }
+  .dgl-p-drug-m { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+
+  .dgl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; line-height: 1.5; }
+
+  @media (max-width: 560px) {
+    .dgl-ribbon { display: none; }
+    .dgl-lane { grid-template-columns: 1fr; gap: 0.25rem; }
+    .dgl-lane-chip { justify-content: flex-start; }
+    .dgl-track { grid-template-columns: 1fr; }
+    .dgl-card-btn { grid-column: 1 !important; }
+    .dgl-p-row { grid-template-columns: 1fr; gap: 0.1rem; }
+  }
+</style>

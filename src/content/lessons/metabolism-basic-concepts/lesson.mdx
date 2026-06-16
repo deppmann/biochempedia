@@ -1,0 +1,409 @@
+---
+title: "Metabolism: Basic Concepts and Design"
+slug: "metabolism-basic-concepts"
+courseChapter: "Metabolism: Foundations"
+order: 15
+summary: "Metabolism is an energy economy, and this chapter teaches its grammar before any pathway teaches its vocabulary. A cell earns ATP by burning fuel (catabolism) and spends it to build, move, and pump (anabolism); the two are coupled through shared intermediates, run on a small set of activated carriers, and are throttled by the cell's energy charge. Get these five ideas — convergence on acetyl-CoA, reaction coupling, ATP's middle-of-the-ladder transfer potential, the activated carriers, and energy-charge regulation — and every later chapter becomes bookkeeping."
+estMinutes: 24
+objectives:
+  - "Explain why catabolism is convergent — how a steak, a potato, and olive oil all reduce to acetyl-CoA — and lay out the three stages by which fuel becomes ATP."
+  - "Show how an endergonic reaction is driven by coupling to an exergonic one through a shared intermediate, and predict the summed ΔG°' and the ~10^5 shift in K'eq."
+  - "Locate ATP in the phosphoryl-transfer ladder and explain why its intermediate position, not a 'high-energy bond,' is what makes it good currency."
+  - "Name the major activated carriers (ATP, NADH, FADH2, NADPH, CoA-SH), what each delivers, the vitamin it derives from, and the disease its deficiency causes."
+  - "Compute energy charge, explain why AMP is a hypersensitive alarm via adenylate kinase, and connect the three modes of regulation to diabetes, the Warburg effect, and mitochondrial disease."
+scientists:
+  - name: "Hans Krebs"
+    dates: "1900-1981"
+    contribution: "Discovered the citric acid (Krebs) cycle — the central wheel through which the carbon of all fuels passes to be oxidized — after first discovering the urea cycle, the first metabolic cycle ever described. His cycle is the amphibolic hub introduced conceptually in CH15 (acetyl-CoA enters; NADH/FADH2 and CO2 come off) and detailed later in the course."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Hans Krebs profile (Part on Metabolism/Krebs cycle; quotes grep-confirmed)."
+    quotes:
+      - "I did not invent the citric acid cycle; I discovered it"
+      - "It is indeed remarkable"
+      - "all foodstuffs are burnt through a common terminal pathway"
+      - "citrate was not only broken down at a rapid rate"
+      - "From whom I have learnt more than from any other single teacher"
+      - "suggests that the mechanism of energy production has arisen very early"
+    story: "A refugee from Nazi Germany, Krebs learned to read the Warburg manometer in Otto Warburg's Berlin laboratory under the creed 'measure, do not speculate.' At Freiburg in 1931 he discovered the urea cycle when a pinch of ornithine kept driving urea output without being consumed — teaching him to look for the molecule that comes out unchanged: a wheel. Dismissed under the 1933 civil-service law, he carried 24 Warburg manometers in 16 crates to England. Using minced pigeon breast muscle (a trick from Szent-Gyorgyi), he and William Johnson saw citrate both burned and built when oxaloacetate was added — the same wheel signature — and closed the cycle in June 1937. Nature rejected his note for lack of column space; he kept the rejection slip as a lesson. Shared the 1953 Nobel with Fritz Lipmann, whose coenzyme A delivers the two-carbon fragment into Krebs's wheel."
+  - name: "Fritz Lipmann"
+    dates: "1899-1986"
+    contribution: "Established ATP's terminal phosphate bond as the cell's universal energy currency (introducing the ~P 'squiggle' and the concept of 'group potential' = phosphoryl-transfer potential), and discovered Coenzyme A, the activated acyl-group carrier built around the vitamin pantothenate. Both ideas are core CH15 content (ATP as currency; CoA as activated carrier; phosphoryl-transfer potential)."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Fritz Lipmann Editor's Profile (quotes grep-confirmed)."
+    quotes:
+      - "group potential"
+      - "subconsciously mapped out there"
+    story: "On a Vermont lakeside vacation in spring 1940, Lipmann turned over a single idea: that energy in living cells flows through one common channel, the phosphate bond at the end of ATP. His 1941 review 'Metabolic Generation and Utilization of Phosphate Bond Energy' coined 'group potential' — what mattered was not bond strength but how much more stable the products were — and marked the special phosphates with a tilde, ~P. Hunting a heat-stable cofactor that let pigeon-liver extracts acetylate sulfonamides, his group ran liters of liver mash through columns and named what they found coenzyme A ('A' for acetylation); its heart turned out to be pantothenic acid, an ordinary B vitamin, and it worked through a single reactive thiol forming energy-rich thioesters. Born in Königsberg, he trained under Meyerhof, left Germany ahead of the Nazis via Copenhagen, and shared the 1953 Nobel with Krebs — the two halves of metabolism's machine clicking together like a buckle."
+  - name: "Peter Mitchell"
+    dates: "1920-1992"
+    contribution: "Proposed the chemiosmotic theory: the energy from electron transport is not stored in a phantom chemical intermediate but as a proton gradient (proton-motive force) across a sealed membrane, discharged through ATP synthase to make ATP. This is exactly the 'electrons flow, protons pump, gradient drives the turbine' sketch CH15 previews for oxidative phosphorylation (full detail in Ch19)."
+    profileSourceAnchor: "The Molecule Hunters (v10) — Peter Mitchell profile, Part 3 bioenergetics (quotes grep-confirmed)."
+    quotes:
+      - "a pity that the search for the 'high-energy' chemical intermediates"
+      - "Why, astonishment"
+      - "intellectual loneliness"
+    story: "After acute gastric ulcers forced him to resign from Edinburgh in 1963, Mitchell bought the half-ruined Glynn House in Cornwall, restored it himself, and built a privately funded laboratory (the Glynn Research Institute), partly bankrolled by his award-winning dairy herd. His 1961 Nature paper argued the long-hunted high-energy intermediate did not exist; instead, oxidation pumps protons across the inner mitochondrial membrane, and letting them fall back through ATP synthase makes ATP — 'like water behind a dam.' The field, led by critics like E.C. Slater ('in Mitchell's garden of the mind, ideas seemed to have deeper roots than facts'), was brutal for years. With Jennifer Moyle he measured the proton ejection directly; Jagendorf and Uribe's 1966 acid-bath chloroplast experiment (ATP made in the dark from a hand-built proton gradient) sealed it. He won the 1978 Nobel in Chemistry, alone; asked his reaction, he said only, 'Why, astonishment.'"
+techniques:
+  - name: "Phosphoryl-transfer potential (the ΔG°' of hydrolysis)"
+    blurb: "Rank a phosphorylated compound by how much free energy its hydrolysis releases under standard conditions. Measured against a common reference, these values build the ladder that tells you which molecule can phosphorylate which: PEP and creatine phosphate sit above ATP and can charge ADP; glucose-6-phosphate sits below and cannot. The whole logic of substrate-level phosphorylation falls out of this one measured quantity."
+  - name: "Energy charge"
+    blurb: "A single number, ([ATP] + 0.5[ADP]) / ([ATP] + [ADP] + [AMP]), that reports how 'charged' the cell's adenylate pool is, normally near 0.85–0.90. Because adenylate kinase interconverts the three nucleotides, a small drop in ATP produces a large spike in AMP, so energy charge is a sensitive, dimensionless readout of metabolic state — the experimental basis for understanding AMPK signaling."
+  - name: "Isotopic and PET tracing of fuel use"
+    blurb: "Label a fuel carbon and follow where it lands, or scan a patient with an 18F-glucose analog and watch which tissues take up sugar fastest. Tracing is how convergence on acetyl-CoA was established and how the Warburg effect is read clinically — tumors light up on a PET scan because they run glycolysis hard even when oxygen is plentiful."
+structures:
+  - label: "ATP (adenosine triphosphate)"
+    source: "pubchem"
+    id: "5957"
+    note: "CID 5957"
+    caption: "Adenosine-5'-triphosphate, the central energy currency molecule"
+  - label: "ADP (adenosine diphosphate)"
+    source: "pubchem"
+    id: "6022"
+    note: "CID 6022"
+    caption: "Adenosine-5'-diphosphate, hydrolysis product of ATP"
+  - label: "AMP (adenosine monophosphate)"
+    source: "pubchem"
+    id: "6083"
+    note: "CID 6083"
+    caption: "Adenosine-5'-monophosphate, the AMPK energy-alarm signal"
+  - label: "Acetyl-CoA"
+    source: "pubchem"
+    id: "444493"
+    note: "CID 444493"
+    caption: "Acetyl coenzyme A, the central convergent metabolic intermediate / activated acyl carrier"
+  - label: "Coenzyme A (CoA-SH)"
+    source: "pubchem"
+    id: "87642"
+    note: "CID 87642"
+    caption: "Coenzyme A, free acyl-carrier with reactive thiol; built around pantothenate"
+  - label: "NAD+ (oxidized)"
+    source: "pubchem"
+    id: "5893"
+    note: "CID 5893"
+    caption: "Nicotinamide adenine dinucleotide, oxidized electron carrier (niacin-derived)"
+  - label: "NADH (reduced)"
+    source: "pubchem"
+    id: "439153"
+    note: "CID 439153"
+    caption: "Reduced nicotinamide adenine dinucleotide, electron carrier feeding the ETC"
+  - label: "FAD (flavin adenine dinucleotide)"
+    source: "pubchem"
+    id: "643975"
+    note: "CID 643975"
+    caption: "Flavin adenine dinucleotide, oxidized electron carrier (riboflavin-derived, isoalloxazine ring)"
+  - label: "NADP+"
+    source: "pubchem"
+    id: "5886"
+    note: "CID 5886"
+    caption: "Nicotinamide adenine dinucleotide phosphate, reductive-biosynthesis electron carrier"
+  - label: "Creatine phosphate (phosphocreatine)"
+    source: "pubchem"
+    id: "587"
+    note: "CID 587"
+    caption: "Phosphocreatine, high phosphoryl-transfer-potential muscle ATP buffer"
+  - label: "Phosphoenolpyruvate (PEP)"
+    source: "pubchem"
+    id: "1005"
+    note: "CID 1005"
+    caption: "Phosphoenolpyruvate, highest phosphoryl-transfer-potential compound in the ladder"
+  - label: "1,3-Bisphosphoglycerate"
+    source: "pubchem"
+    id: "683"
+    note: "CID 683"
+    caption: "1,3-bisphosphoglycerate, acyl-phosphate intermediate that drives substrate-level phosphorylation"
+  - label: "Pantothenate (vitamin B5)"
+    source: "pubchem"
+    id: "6613"
+    note: "CID 6613"
+    caption: "Pantothenic acid, the vitamin precursor of coenzyme A (PKAN clinical tie-in)"
+  - label: "Creatine kinase (muscle)"
+    source: "rcsb"
+    id: "1I0E"
+    note: "PDB 1I0E"
+    caption: "Creatine kinase enzyme structure (the enzyme that regenerates ATP from creatine phosphate)"
+  - label: "ATP synthase (F1 catalytic domain)"
+    source: "rcsb"
+    id: "1BMF"
+    note: "PDB 1BMF"
+    caption: "Bovine mitochondrial F1-ATPase, Boyer/Walker rotary engine that makes ATP from the proton gradient"
+  - label: "Adenylate kinase"
+    source: "rcsb"
+    id: "1AKE"
+    note: "PDB 1AKE"
+    caption: "Adenylate kinase, enzyme catalyzing 2 ADP <-> ATP + AMP (energy-charge amplifier)"
+videos:
+  - title: "Introduction to metabolism: anabolism and catabolism | Khan Academy"
+    youtubeId: "KwNe9x0eChs"
+    sourceNote: "Khan Academy — openly available."
+  - title: "Oxidation and reduction in metabolism | Biomolecules | MCAT | Khan Academy"
+    youtubeId: "g7GXj5QTnJw"
+    sourceNote: "khanacademymedicine — openly available."
+simulations:
+  - type: "local"
+    ref: "EnergyEconomyBench"
+    title: "The energy-economy bench — couple an uphill reaction to ATP hydrolysis and watch the summed ΔG flip negative, then dial the cell's energy charge to switch it between building and burning"
+    attribution: "Original interactive — Biochemistry-pedia (Deppmann Lab)."
+practiceQuestions:
+  - stem: "A reaction A → B has ΔG°' = +14 kJ/mol and will not proceed on its own. In the cell it is coupled to ATP hydrolysis (ΔG°' = −30.5 kJ/mol) through a shared intermediate. What is the net ΔG°' of the coupled process, and will it now proceed?"
+    choices:
+      - "+44.5 kJ/mol; it still will not proceed"
+      - "−16.5 kJ/mol; it will now proceed"
+      - "−30.5 kJ/mol; it proceeds because ATP overrides A → B"
+      - "+14 kJ/mol; coupling does not change ΔG°'"
+    answer: 1
+    rationale: "Coupling works because ΔG°' values are additive when reactions share a common intermediate: +14 + (−30.5) = −16.5 kJ/mol, which is negative, so the coupled process is now spontaneous. The +44.5 value comes from subtracting instead of adding and is wrong. ATP does not 'override' the other reaction; the two free energies simply sum. And coupling absolutely does change the net ΔG°' — that is the entire mechanism."
+  - stem: "Which statement correctly explains why ATP hydrolysis is exergonic (ΔG°' ≈ −30.5 kJ/mol)?"
+    choices:
+      - "The terminal phosphate bond physically stores energy that is released when it breaks"
+      - "The products (ADP + Pi) are more stable than ATP due to charge relief, resonance, entropy, and hydration"
+      - "ATP is the most reactive phosphate in the cell and hydrolyzes the fastest"
+      - "The bond between adenine and ribose is a high-energy bond"
+      - "Hydrolysis consumes water, which is thermodynamically favorable on its own"
+    answer: 1
+    rationale: "The energy is not stored in a special bond. Hydrolysis is favorable because the products ADP and Pi are more stable than ATP — relief of electrostatic repulsion, better resonance stabilization of released phosphate, increased entropy, and improved hydration. ATP is actually kinetically stable (slow to hydrolyze without an enzyme), so it is not the fastest-reacting phosphate. The adenine–ribose bond is irrelevant to the energetics of phosphoryl transfer, and water consumption alone does not account for the free-energy change."
+  - stem: "On the phosphoryl-transfer ladder, which compound can directly phosphorylate ADP to form ATP?"
+    choices:
+      - "Glucose-6-phosphate"
+      - "AMP"
+      - "Phosphoenolpyruvate (PEP)"
+      - "ATP itself"
+    answer: 2
+    rationale: "A phosphoryl transfer is spontaneous only when it runs downhill — from a compound of higher transfer potential to one of lower. PEP sits above ATP on the ladder (more negative hydrolysis ΔG°'), so it can hand a phosphate down to ADP and make ATP. Glucose-6-phosphate and AMP both sit below ATP and cannot charge ADP. ATP phosphorylating ADP to make ATP is meaningless (no net change in transfer potential)."
+  - stem: "A cell's adenylate pool is measured as [ATP] = 8, [ADP] = 1, [AMP] = 1 (relative units). What is its energy charge, and what response would you expect?"
+    choices:
+      - "≈ 0.85; the cell favors building (anabolism) and AMPK is largely off"
+      - "≈ 0.50; the cell is energy-starved and triggers strong AMPK catabolism"
+      - "≈ 0.85; AMPK is fully active and shuts down all biosynthesis"
+      - "≈ 0.95; the cell halts catabolism entirely"
+    answer: 0
+    rationale: "Energy charge = ([ATP] + 0.5[ADP]) / ([ATP] + [ADP] + [AMP]) = (8 + 0.5) / 10 = 0.85. That is squarely in the normal resting range (~0.85–0.90), where the cell is well-charged, AMPK is largely inactive, and anabolic (building) pathways are favored. The 0.50 value would require far more AMP/ADP. A charge of 0.85 does not represent starvation, and 0.95 with a total catabolic halt does not match these concentrations."
+  - stem: "Which activated carrier is matched correctly to the kind of group it delivers and its vitamin precursor?"
+    choices:
+      - "NADP+/NADPH — delivers acyl groups — derived from niacin"
+      - "Coenzyme A — delivers acyl groups via a thioester — derived from pantothenate"
+      - "FAD/FADH2 — delivers phosphoryl groups — derived from thiamine"
+      - "ATP — delivers electrons for biosynthesis — derived from riboflavin"
+    answer: 1
+    rationale: "Coenzyme A carries acyl groups through a high-transfer-potential thioester linkage and is built around pantothenate (vitamin B5) — the pairing tested by PKAN, a pantothenate kinase deficiency. NADP+/NADPH carries electrons for reductive biosynthesis (not acyl groups). FAD/FADH2 carries electrons (riboflavin-derived), not phosphoryl groups. ATP carries phosphoryl groups, not biosynthetic electrons, and is not riboflavin-derived."
+mcatQuestions:
+  - stem: "An enzyme couples the synthesis of compound X (X-formation alone: ΔG°' = +22 kJ/mol) to the hydrolysis of ATP to ADP + Pi (ΔG°' = −30.5 kJ/mol). A researcher engineers a mutant enzyme that still catalyzes X-formation and still hydrolyzes ATP, but at two physically separate active sites with no shared intermediate. Compared with the wild-type enzyme, the mutant will most likely:"
+    choices:
+      - "Synthesize X faster, because ATP hydrolysis now proceeds unhindered"
+      - "Fail to drive X-formation, because coupling requires a shared intermediate"
+      - "Synthesize X at the same rate, since the summed ΔG°' is unchanged at −8.5 kJ/mol"
+      - "Reverse the reaction and consume X to make ATP"
+    answer: 1
+    rationale: "Free-energy additivity only delivers a favorable net ΔG when the two reactions are mechanistically linked through a common (usually phosphorylated) intermediate. If ATP hydrolysis and X-formation happen at separate sites with no shared intermediate, the −30.5 kJ/mol of ATP hydrolysis is simply dissipated as heat and cannot pay for the +22 kJ/mol X-formation, which remains endergonic and will not proceed. The arithmetic sum (−8.5) is irrelevant without the coupling mechanism, so the 'same rate' choice is wrong. ATP hydrolysis being 'unhindered' does not help X-formation, and there is no basis for net reversal to make ATP."
+  - stem: "A muscle biopsy from a patient with a creatine kinase deficiency is compared with normal muscle during the first 60 seconds of intense exercise. Relative to normal muscle, the patient's muscle would be expected to show:"
+    choices:
+      - "A faster fall in ATP during the first minute, because the creatine phosphate buffer cannot recharge ADP"
+      - "A slower fall in ATP, because creatine phosphate is bypassed and glycolysis starts immediately"
+      - "No change in ATP kinetics, since creatine phosphate is below ATP on the transfer ladder"
+      - "Higher serum creatine kinase, reflecting compensatory enzyme release"
+    answer: 0
+    rationale: "Creatine phosphate sits above ATP on the phosphoryl-transfer ladder and, through creatine kinase, rapidly recharges ADP to ATP during the first 30–60 seconds of intense effort — bridging the gap between stored ATP (seconds) and glycolysis. Without functional creatine kinase, that buffer is unavailable, so ATP falls faster early in exercise. Creatine phosphate is above ATP on the ladder (not below), which is precisely why it can donate phosphate. A deficiency would not raise serum CK; elevated serum CK reflects leakage of the enzyme from damaged muscle, the opposite scenario."
+  - stem: "A tumor biopsy is examined on a PET scan using an 18F-labeled glucose analog and shows intense uptake even though the tissue is well-oxygenated. This finding is best explained by which principle from metabolic design?"
+    choices:
+      - "Mitochondrial electron transport failure forcing anaerobic ATP production"
+      - "The Warburg effect: cells run high glycolytic flux for biosynthetic precursors and redox supply, not for maximal ATP yield per glucose"
+      - "Loss of all activated carriers, eliminating oxidative metabolism"
+      - "An increase in energy charge above 0.95 that shuts down catabolism"
+    answer: 1
+    rationale: "The Warburg effect describes proliferating (often cancer) cells running aerobic glycolysis — high glucose throughput even with oxygen present — because the purpose of the flux is to supply biosynthetic intermediates and reducing power for rapid growth, not to maximize ATP per glucose. That high glucose appetite is what lights tumors up on a PET scan. It is not driven by ETC failure (that would be mitochondrial disease with lactic acidosis from a different cause), cells retain their activated carriers, and a high energy charge would suppress, not drive, glucose uptake."
+images: []
+corpusTags:
+  - "metabolism"
+  - "bioenergetics"
+  - "reaction-coupling"
+  - "ATP"
+  - "energy-charge"
+  - "activated-carriers"
+  - "catabolism-anabolism"
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm 5"
+    text: "Your body is like a piggy bank for energy. When you eat food, you put energy coins into the bank. When you run, think, or grow, you take coins out and spend them. The special coin your body uses is called ATP. The clever trick is that hard jobs that need a lot of energy get done by tying them to easy jobs that give a lot of energy, like pulling a little wagon up a hill by tying it to a big wagon rolling down. And no matter what food you eat — meat, potatoes, or oil — your body turns it into the same little building block before it burns it for coins."
+  - level: "highschool"
+    label: "High school"
+    text: "Metabolism is how cells manage energy. Catabolism breaks fuel down and makes ATP (the cell's energy money); anabolism uses ATP to build things and move stuff around. A key idea is reaction coupling: a reaction that wouldn't happen on its own (it needs energy) gets paired with one that releases a lot of energy, like ATP breaking down, so together they go forward. ATP isn't special because of a 'high-energy bond' — it's because its breakdown products are more stable, so energy is released. Different foods all funnel into one molecule, acetyl-CoA, before being burned. The cell uses a few reusable helper molecules (NADH, FADH2, NADPH, coenzyme A), many made from vitamins, and it senses how much energy it has using something called energy charge, which decides whether to burn fuel or build."
+  - level: "college"
+    label: "College"
+    text: "This is the framework chapter. Catabolism is convergent: macronutrients are digested, funneled into key intermediates (chiefly acetyl-CoA), and oxidized to CO2 with electrons banked on carriers. Endergonic reactions are driven by coupling to exergonic ones through a shared intermediate, exploiting the additivity of ΔG°' (e.g., a +12 kJ/mol step coupled to ATP hydrolysis at −30.5 kJ/mol nets −18.5). ATP's favorable hydrolysis (ΔG°' ≈ −30.5 kJ/mol) reflects product stabilization — charge separation relief, Pi resonance, entropy, hydration — not a literal high-energy bond, and ΔG°' = −RT ln K'eq means coupling shifts K'eq by ~10^5. ATP's intermediate phosphoryl-transfer potential (below PEP, 1,3-BPG, creatine phosphate; above glucose-6-P) is what makes it good currency. Activated carriers (ATP, NAD+/NADH ~2.5 ATP, FAD/FADH2 ~1.5 ATP entering at Complex II, NADPH for biosynthesis, CoA-SH for acyl groups via thioester) are vitamin-derived. Regulation operates via enzyme amount (transcription), activity (allostery + covalent modification), and accessibility (compartmentation), all integrated through energy charge, with adenylate kinase amplifying AMP as a sensitive alarm for AMPK."
+  - level: "grad"
+    label: "Graduate"
+    text: "The chapter's value is its set of unifying thermodynamic and regulatory principles. Free-energy additivity under a common-intermediate mechanism is the formal basis of metabolic coupling; the cell's apparent ability to perform endergonic transformations reduces to enzyme-enforced sharing of a phosphorylated or acyl intermediate whose summed ΔG is negative. The 'high-energy bond' framing is replaced by product stabilization arguments (electrostatic relief, increased resonance and solvation of orthophosphate, entropic gain). The phosphoryl-transfer potential series is itself the design rationale for adenylate as the central currency: occupying an intermediate rank lets ATP be both regenerated by super-equilibrium donors (PEP, 1,3-BPG, phosphocreatine) and serve as a kinetically competent donor to sub-ATP acceptors, while kinetic stability (high activation barrier to spontaneous hydrolysis) makes covalent phosphorylation a clean, enzyme-gated switch. Carrier specialization — NADH/FADH2 partitioned to catabolic electron delivery at different ETC entry points and redox potentials, NADPH reserved for anabolic reductive demand despite near-identical chemistry — implements thermodynamic compartmentalization of redox pools. Regulation is hierarchical in timescale (transcriptional abundance, post-translational allostery/covalent modification, spatial compartmentation) and integrated by energy charge, whose sensitivity is engineered by the adenylate kinase equilibrium that converts modest ATP depletion into large fractional AMP increases, the signal AMPK reads. The Warburg phenotype is the clean counterexample to naive yield-maximization: flux purpose (biosynthetic precursor and redox supply for proliferation) rather than ATP-per-glucose can dictate pathway selection."
+anecdotes:
+  - title: "A steak, a potato, and olive oil walk into a mitochondrion"
+    text: "Here is the hook that makes the whole chapter click: whether you eat a steak, a potato, or a spoonful of olive oil, your mitochondria see the same molecule — acetyl-CoA. Protein, starch, and fat are three completely different highways, and they all lead to the same city center. That convergence is not a coincidence; it is the reason you can learn one central pathway and have it apply to every fuel you will ever eat. Catabolism is built to funnel, and acetyl-CoA is the funnel's spout."
+    source: "CH15 lecture notes — \"Whether you eat a steak, a potato, or olive oil, your mitochondria see the same molecule: acetyl CoA; different highways all leading to the same city center.\""
+  - title: "Your wallet holds a few hundred dollars; you spend fifty thousand a year"
+    text: "Your body contains only about 100 grams of ATP at any instant. Yet you recycle roughly 40 kilograms of it every single day. The way I put it in lecture: your wallet holds a few hundred dollars, but your yearly spending is fifty thousand. The molecule isn't a savings account — it's cash flowing through your hands constantly, made and spent and made again thousands of times. That is why ATP has to be regenerated continuously and why running low, even briefly, is an emergency the cell takes seriously."
+    source: "CH15 lecture notes — \"your wallet holds a few hundred dollars but yearly spending is $50,000.\""
+  - title: "Income and spending, same account, different passwords"
+    text: "Students always ask: if catabolism makes ATP and anabolism spends it, why doesn't a pathway just run backward to switch jobs? The answer is the one I keep coming back to — income and spending use the same bank account, but different passwords. A pathway doesn't reverse by running one enzyme backward. The cell installs separate, separately regulated, irreversible enzymes for each direction. That is also why the citric acid cycle can be amphibolic, running both ways, without the two directions ever colliding. Distinct controls, not reversed chemistry."
+    source: "CH15 lecture notes — \"income and spending use the same bank account but different passwords\" / \"Catabolism is your paycheck; anabolism is your spending.\""
+  - title: "Pulling a wagon uphill by tying it to a heavier one rolling down"
+    text: "The single most important idea in this chapter is reaction coupling, and the picture I want you to keep is two wagons. A reaction that won't go on its own is a light wagon stuck at the bottom of a hill. Tie it to a heavier wagon rolling downhill — ATP hydrolysis — and the system rolls forward together. They don't take turns; they share an intermediate, and because free energies simply add, the combined ΔG is negative. The cell never violates thermodynamics. It just always pairs the uphill job with a bigger downhill one."
+    source: "CH15 lecture notes — \"pulling a wagon uphill by attaching it to a heavier wagon rolling downhill.\""
+lectureSlides:
+  - src: "/slides/metabolism-basic-concepts/metabolism-as-rubik-s-cube.png"
+    audio: "/slides/metabolism-basic-concepts/audio/metabolism-as-rubik-s-cube.mp3"
+    title: "Metabolism as a Rubik's Cube"
+    alt: "Metabolism as a Rubik's Cube"
+    source: "CH15 Metabolism: Basic Concepts · slide 7"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Think of metabolism the way you'd think of a scrambled Rubik's cube. Glucose is the starting state, and the cell's job is to convert it, through a defined series of moves, into an ordered, useful outcome. Glycolysis takes glucose through roughly ten enzymatic steps to pyruvate. From pyruvate the cell faces a fork: without oxygen, it reduces pyruvate to lactate in fermentation; with oxygen, it commits pyruvate to acetyl CoA and feeds the citric acid cycle. Each enzyme is one deliberate twist. The whole set of these interconnecting reactions, every linked transformation in the cell, is what we call intermediary metabolism."
+  - src: "/slides/metabolism-basic-concepts/catabolism-versus-anabolism.png"
+    audio: "/slides/metabolism-basic-concepts/audio/catabolism-versus-anabolism.mp3"
+    title: "Catabolism Versus Anabolism"
+    alt: "Catabolism Versus Anabolism"
+    source: "CH15 Metabolism: Basic Concepts · slide 8"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Every metabolic pathway falls into one of two camps, and keeping them straight will carry you through the whole course. Catabolic pathways break large molecules down. They combust carbon fuels like carbohydrates and fats to carbon dioxide and water, and they capture the released energy as ATP or as ion gradients. Anabolic pathways run the other direction. They take simple precursors and spend energy and reducing power to build complex biomolecules. So catabolism releases energy by tearing down; anabolism consumes energy to assemble. The cell is constantly running both at once, with the products of one feeding the other."
+  - src: "/slides/metabolism-basic-concepts/driving-unfavorable-reaction-by-coupling.png"
+    audio: "/slides/metabolism-basic-concepts/audio/driving-unfavorable-reaction-by-coupling.mp3"
+    title: "Driving an Unfavorable Reaction by Coupling"
+    alt: "Driving an Unfavorable Reaction by Coupling"
+    source: "CH15 Metabolism: Basic Concepts · slide 12"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "A reaction that won't go on its own can be forced uphill if we link it to one that wants to go downhill. On the left, A to B plus C has a positive delta G of plus twenty-one, so alone it stalls. On the right we couple it to a strongly favorable reaction with a delta G of minus thirty-four. Add them and the net delta G is minus thirteen, comfortably negative, so the combined pathway proceeds. This is the central trick of metabolism. Individual steps must be specific, but only the pathway as a whole has to be thermodynamically favorable. Coupling is how the cell pays for the reactions it needs."
+  - src: "/slides/metabolism-basic-concepts/atp-hydrolysis-releases-energy.png"
+    audio: "/slides/metabolism-basic-concepts/audio/atp-hydrolysis-releases-energy.mp3"
+    title: "Why ATP Hydrolysis Releases Energy"
+    alt: "Why ATP Hydrolysis Releases Energy"
+    source: "CH15 Metabolism: Basic Concepts · slide 15"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "ATP hydrolysis is exergonic, and four distinct effects explain why. First, charge repulsion drops: the triphosphate tail carries several closely packed negative charges, and cutting it apart relieves that strain. Second, resonance stabilization increases, because inorganic phosphate has more equivalent resonance forms than the phosphate locked inside ATP. Third, entropy rises, since one molecule becomes two. Fourth, the products are better stabilized by water through hydration than the reactant was. No single factor dominates; together they make hydrolysis favorable. Crucially, ATP is thermodynamically unstable but kinetically stable, so it doesn't waste itself until an enzyme calls on it."
+  - src: "/slides/metabolism-basic-concepts/atp-shifts-equilibrium.png"
+    audio: "/slides/metabolism-basic-concepts/audio/atp-shifts-equilibrium.mp3"
+    title: "How ATP Shifts an Equilibrium"
+    alt: "How ATP Shifts an Equilibrium"
+    source: "CH15 Metabolism: Basic Concepts · slide 16"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here's the payoff of coupling, made quantitative. An unfavorable reaction sitting alone has an equilibrium constant of about one one-thousandth, so almost no product forms. Now couple that same reaction to ATP hydrolysis. The favorable energy of hydrolysis adds in, the combined equilibrium constant jumps to roughly two hundred sixty-seven, and product now dominates. That's a shift of about ten to the fifth, a hundred-thousand-fold change in where the reaction settles. This single idea is why ATP is the cell's universal coupling agent: spending one phosphoanhydride bond can drag an otherwise hopeless reaction all the way to completion."
+  - src: "/slides/metabolism-basic-concepts/three-energy-systems-working-muscle.png"
+    audio: "/slides/metabolism-basic-concepts/audio/three-energy-systems-working-muscle.mp3"
+    title: "Three Energy Systems of Working Muscle"
+    alt: "Three Energy Systems of Working Muscle"
+    source: "CH15 Metabolism: Basic Concepts · slide 23"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "When a muscle suddenly demands power, it draws on three energy systems in sequence. The immediate system is the small pool of stored ATP, good for only a second or two. Next, the short-term system uses creatine phosphate to rapidly rephosphorylate ADP back to ATP, buying several more seconds, the regime of a sprinter. Finally, the sustained system kicks in: glycolysis and oxidative metabolism regenerate ATP for the long haul. Notice the trade-off across the tiers, fast sources are tiny, large sources are slow. A sprinter lives on the first two; a marathoner depends almost entirely on the third."
+  - src: "/slides/metabolism-basic-concepts/fat-beats-glucose-as-fuel.png"
+    audio: "/slides/metabolism-basic-concepts/audio/fat-beats-glucose-as-fuel.mp3"
+    title: "Why Fat Beats Glucose as Fuel"
+    alt: "Why Fat Beats Glucose as Fuel"
+    source: "CH15 Metabolism: Basic Concepts · slide 27"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Compare two fuels side by side. Glucose is a carbohydrate, and its carbons are already partly oxidized, dotted with oxygen in carbon-oxygen bonds. A fatty acid like palmitate is a long hydrocarbon chain, highly reduced, packed with carbon-hydrogen bonds and almost no oxygen. The rule is simple: the more reduced a carbon is, the more energy its oxidation releases. That's why fats yield roughly nine kilocalories per gram while carbohydrates yield about four. Carbohydrate is the quick-access fuel, fast to mobilize; fat is the dense long-term store. Their chemistry, not biology, sets the energy density."
+  - src: "/slides/metabolism-basic-concepts/coupling-carbon-oxidation-atp.png"
+    audio: "/slides/metabolism-basic-concepts/audio/coupling-carbon-oxidation-atp.mp3"
+    title: "Coupling Carbon Oxidation to ATP"
+    alt: "Coupling Carbon Oxidation to ATP"
+    source: "CH15 Metabolism: Basic Concepts · slide 29"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Here is the essence of catabolism in one move: capture the energy of oxidizing a carbon atom as ATP. Watch glyceraldehyde 3-phosphate. Its aldehyde carbon is oxidized, and instead of simply releasing that energy as heat, the cell traps it by forming an acyl phosphate, 1,3-bisphosphoglycerate, while reducing NAD-plus to NADH. That acyl phosphate is a compound with high phosphoryl-transfer potential. In the next step its phosphate is handed directly to ADP, generating ATP and leaving 3-phosphoglycerate. So oxidation creates a high-energy intermediate, and that intermediate pays out as ATP. This logic repeats throughout fuel metabolism."
+  - src: "/slides/metabolism-basic-concepts/proton-gradient-as-battery.png"
+    audio: "/slides/metabolism-basic-concepts/audio/proton-gradient-as-battery.mp3"
+    title: "The Proton Gradient as a Battery"
+    alt: "The Proton Gradient as a Battery"
+    source: "CH15 Metabolism: Basic Concepts · slide 31"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Picture the proton gradient as the cell's rechargeable battery. On the left, fuel oxidation does the charging: electrons stripped from glucose and fatty acids flow as NADH and FADH2 into the electron transport chain. As those electrons move, protons are pumped across the inner membrane into the intermembrane space, building up potential energy, the charged battery. On the right, that stored gradient discharges through ATP synthase, which lets protons flow back down and uses their rush to make ATP. Oxidation charges the battery; ATP synthase draws it down. This two-step, oxidation then synthesis, is the heart of oxidative phosphorylation."
+  - src: "/slides/metabolism-basic-concepts/activated-carriers-as-delivery-trucks.png"
+    audio: "/slides/metabolism-basic-concepts/audio/activated-carriers-as-delivery-trucks.mp3"
+    title: "Activated Carriers as Delivery Trucks"
+    alt: "Activated Carriers as Delivery Trucks"
+    source: "CH15 Metabolism: Basic Concepts · slide 33"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Activated carriers are the delivery trucks of metabolism. Catabolism is the loading dock: breaking down food loads the trucks with cargo, electrons onto NADH, phosphoryl groups onto ATP, acetyl groups onto coenzyme A. The loaded carrier then drives that high-energy payload across the cell. Anabolism is the unloading dock, where biosynthesis pulls cargo off the carriers to build new structures. The key concept is modularity: the same handful of carriers shuttle between hundreds of reactions, so the cell doesn't need a custom energy link for every pathway. A small, reusable fleet connects all of metabolism."
+  - src: "/slides/metabolism-basic-concepts/activated-carrier-inventory.png"
+    audio: "/slides/metabolism-basic-concepts/audio/activated-carrier-inventory.mp3"
+    title: "The Activated Carrier Inventory"
+    alt: "The Activated Carrier Inventory"
+    source: "CH15 Metabolism: Basic Concepts · slide 34"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let's name the fleet and what each truck carries. ATP is the activated carrier of phosphoryl groups. NADH, NADPH, and FADH2 carry activated electrons, effectively hydrogens, harvested from the oxidation of fuels. Biotin carries carboxyl groups for adding carbon dioxide. TPP, thiamine pyrophosphate, carries aldehyde units. Coenzyme A carries acetyl and other acyl groups. Notice that several of these are built from vitamins, which is exactly why those vitamins are dietary essentials. This short, modular list of carriers, each specialized for one kind of chemical group, is what makes metabolism economical and recombinable across thousands of reactions."
+  - src: "/slides/metabolism-basic-concepts/energy-charge-cell-s-fuel-gauge.png"
+    audio: "/slides/metabolism-basic-concepts/audio/energy-charge-cell-s-fuel-gauge.mp3"
+    title: "Energy Charge: The Cell's Fuel Gauge"
+    alt: "Energy Charge: The Cell's Fuel Gauge"
+    source: "CH15 Metabolism: Basic Concepts · slide 43"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "The cell monitors its own energy state with a number called the energy charge, and it works like a fuel gauge running from zero to one. The formula weights ATP fully and ADP half, then divides by the total adenylate pool, so a cell loaded with ATP reads near the top and a depleted cell reads low. This single value governs flux: when the charge is high, the cell throttles down catabolic, ATP-generating pathways and turns up anabolic, ATP-spending ones. When the charge falls, it does the reverse. Energy charge is the master signal balancing energy production against energy consumption."
+  - src: "/slides/metabolism-basic-concepts/metabolic-principles-meet-disease.png"
+    audio: "/slides/metabolism-basic-concepts/audio/metabolic-principles-meet-disease.mp3"
+    title: "Metabolic Principles Meet Disease"
+    alt: "Metabolic Principles Meet Disease"
+    source: "CH15 Metabolism: Basic Concepts · slide 48"
+    credit: "Original — C. Deppmann (lecture)"
+    reviewedBy: "C. Deppmann (lecture author)"
+    notes: "Let's close by connecting the chapter's principles to the clinic. Diabetes is, at its core, a failure of regulated fuel use, glucose handling gone wrong. Cancer cells rewire metabolism to feed relentless growth, shifting how they generate ATP and building blocks. Mitochondrial diseases strike the very machinery of oxidative phosphorylation, so tissues that demand the most energy, muscle and nerve, fail first. Each of these isn't a separate mystery; each is the same metabolic logic we built today, energy needs, fuel oxidation, ATP coupling, regulation, pushed off balance. Understanding the normal pathways is what reveals the therapeutic targets."
+---
+
+import EnergyEconomyBench from '../../../components/EnergyEconomyBench.astro';
+
+**You will not memorize a metabolic map in this chapter. You will learn the grammar that every later map obeys.** Glycolysis, the citric acid cycle, fatty-acid oxidation — each is a long sentence, and this chapter teaches the parts of speech. Get the grammar and the rest is reading. Skip it and you will be memorizing arrows for the rest of the semester.
+
+Here is the organizing idea, and it is worth holding onto for the next ten chapters: **metabolism is an energy economy.** A cell earns energy by burning fuel and spends it to build molecules, move itself, and pump ions against gradients. Earning is catabolism. Spending is anabolism. Almost everything else in this chapter is a detail about how the books are kept.
+
+## Why all roads lead to acetyl-CoA
+
+Cells need energy for three jobs: mechanical work (a muscle contracting, a cell crawling), active transport (the Na⁺/K⁺ pump fighting a gradient), and biosynthesis (building proteins, lipids, nucleic acids). Plants and other phototrophs capture sunlight. We are chemotrophs: we oxidize carbon fuels. Energy is never created or destroyed here, only transformed — from the bonds of food into the currency the cell can spend.
+
+Food becomes usable energy in three stages. First, digestion breaks large molecules into small ones: proteins to amino acids, starch to sugars, fats to fatty acids. Second, those small molecules funnel into a handful of key intermediates, above all **acetyl-CoA**. Third, acetyl-CoA is oxidized completely, and that oxidation drives ATP synthesis.
+
+The striking thing is the convergence. Whether you eat a steak, a potato, or a spoonful of olive oil, your mitochondria see the same molecule: acetyl-CoA. Different highways, all leading to the same city center. That single fact is why you can learn one central pathway (the citric acid cycle, Chapter 17) and have it apply to every fuel you will ever eat.
+
+## Coupling: how the cell pays for unfavorable reactions
+
+Building a molecule is usually uphill — endergonic, with a positive ΔG. So how does it happen? Not by magic and not by reversing some enzyme. The cell pays for it.
+
+A thermodynamically unfavorable reaction proceeds when it is coupled to a favorable one through a **shared intermediate**. The trick is that ΔG values are additive. If A → B has ΔG°' = +12 kJ/mol and ATP hydrolysis has ΔG°' = −30.5 kJ/mol, then running them together through a shared intermediate gives a net −18.5 kJ/mol, and the reaction goes. Picture pulling a light wagon uphill by hitching it to a heavier wagon rolling down. The two are not happening at separate times; they are linked, and the combined system rolls in the favorable direction.
+
+This is why catabolism and anabolism are coupled rather than independent. Catabolism is your paycheck; anabolism is your spending. Some pathways, like the citric acid cycle, are amphibolic — they run in both directions depending on need. But direction is never set by reversing a single enzyme. It is set by using distinct, separately regulated, irreversible enzymes for each direction. Income and spending use the same bank account, but different passwords.
+
+Try the first module of the bench below: set a positive ΔG°' for a target reaction, then couple it to ATP hydrolysis and watch the equilibrium constant leap.
+
+<EnergyEconomyBench />
+
+## ATP, and the myth of the high-energy bond
+
+ATP is the universal energy currency. Its structure is adenine plus ribose plus three phosphates, named α, β, and γ from the ribose outward; the γ-phosphate is the one transferred. Hydrolysis of that terminal phosphate is exergonic, with ΔG°' ≈ −30.5 kJ/mol.
+
+Now correct a common misconception. There is no "high-energy bond" storing the energy. Energy is not in a bond waiting to spring out. Hydrolysis is favorable because the **products are more stable than the reactants**: ADP and Pi enjoy more charge separation relief, better resonance stabilization of the released phosphate, more entropy, and better hydration than ATP did. The free energy comes from the difference in stability, not from a special bond.
+
+That ΔG°' is what lets ATP drive other reactions. Recall ΔG°' = −RT ln K'eq: a ΔG°' near −30.5 kJ/mol corresponds to coupling that shifts an unfavorable reaction's effective K'eq by roughly a factor of 10⁵. Couple to ATP and a reaction that essentially would not happen now runs to near completion.
+
+The deeper point is where ATP sits on the **phosphoryl-transfer ladder** — a ranking of how eagerly each phosphorylated compound gives up its phosphate. Phosphoenolpyruvate, 1,3-bisphosphoglycerate, and creatine phosphate all rank above ATP; glucose-6-phosphate ranks below. ATP sits in the middle, and that is exactly what makes it good currency. A compound at the top can recharge ADP into ATP; ATP in turn can phosphorylate things lower down, like glucose. A bill of intermediate denomination is the one you can both receive and spend. Drag the phosphoryl token in the ladder module and you will discover the rule yourself: transfers only run downhill.
+
+One more property earns ATP its job. Phosphate esters are thermodynamically unstable but **kinetically stable** — they want to hydrolyze, but they will not do it on their own at any useful rate without an enzyme. That mismatch makes them ideal on/off switches: a kinase adds a phosphate to flip a protein on, a phosphatase removes it to flip it off, and nothing happens in between.
+
+You can feel ATP's timescale in your own muscles. Stored ATP lasts seconds. Then creatine phosphate, sitting above ATP on the ladder, recharges ADP for another 30 to 60 seconds via creatine kinase. (When muscle is injured, creatine kinase leaks into the blood, which is why elevated serum CK is a clinical marker of muscle damage.) After that, glycolysis takes over, and finally aerobic respiration for the long haul.
+
+## Activated carriers and recurring motifs
+
+Beneath the thousands of named reactions, metabolism uses only about six reaction types — redox, ligation (ATP-driven joining), isomerization, group transfer, hydrolysis, and lyase reactions. Learn the verbs and the sentences get short.
+
+It also runs on a small set of **activated carriers** — think delivery trucks. They are kinetically stable, few in number, and most are built from vitamins, which is why a vitamin deficiency hits metabolism hard. ATP carries phosphoryl groups. **NADH** carries electrons from carbon oxidations (from niacin, vitamin B3) and feeds them to the electron transport chain, worth roughly 2.5 ATP each. **FADH₂** also carries electrons (from riboflavin, B2; the working part is the isoalloxazine ring) but enters lower in the chain at Complex II, worth about 1.5 ATP. **NADPH** is the carrier for reductive biosynthesis — same electron-carrying chemistry, dedicated to building rather than burning. And **coenzyme A** carries acyl groups through a thioester linkage; that bond has high transfer potential because sulfur stabilizes the product poorly by resonance, leaving the energy available. CoA's core is pantothenate, vitamin B5.
+
+The clinical tie-ins write themselves. Pantothenate kinase deficiency causes PKAN, with brain iron accumulation and neurodegeneration. Niacin deficiency is pellagra; thiamine deficiency (the carrier TPP) is beriberi; riboflavin deficiency is ariboflavinosis. Each disease is a missing truck.
+
+## Regulation: amount, activity, access
+
+A cell controls flux three ways, on three timescales. It changes the **amount** of an enzyme by transcription (hours to days). It changes the **activity** of existing enzymes by allostery and reversible covalent modification (seconds to minutes), which is how hormones like insulin coordinate the whole body fast. And it changes **substrate accessibility** by compartmentation — keeping fatty-acid synthesis in the cytosol and fatty-acid oxidation in the mitochondrion so the two never run at once in a futile cycle.
+
+The master gauge is **energy charge**: ([ATP] + 0.5[ADP]) / ([ATP] + [ADP] + [AMP]), normally held near 0.85–0.90. It is the cell's battery meter. Adenylate kinase (2 ADP ⇌ ATP + AMP) makes AMP a hypersensitive alarm: a small dip in ATP produces a large spike in AMP, which activates AMPK to switch on catabolism and shut down anabolism. Read the battery in the third module and watch the needle redline as ATP falls.
+
+When this regulation fails, you get disease — and this is the frame to carry through the whole course: pathophysiology is biochemistry in a clinical context. Diabetes is regulation failure at the level of insulin signaling. Cancer cells run aerobic glycolysis (the Warburg effect), burning glucose for biosynthetic building blocks rather than maximal ATP, which is why tumors light up on a PET scan. Mitochondrial disease is electron-transport failure, often presenting as lactic acidosis.
+
+That is the grammar. In **Chapter 16, Glycolysis**, you will watch every one of these ideas — coupling, substrate-level phosphorylation, activated carriers, energy-charge regulation — come alive in a single ten-step pathway.
