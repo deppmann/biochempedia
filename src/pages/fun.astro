@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SpotifyEmbed from '../components/SpotifyEmbed.astro';
+
+/**
+ * The Fun Stuff — creative course materials made by BIOL 3030 students.
+ * Privacy: everything here is shown anonymously. The trading-card and meme
+ * galleries are LINKED OUT to their already-anonymized github.io pages (so the
+ * student-submission forms living on those pages are never embedded here); the
+ * music and podcast are Spotify embeds (iframe-only, no names). No individual
+ * student is named anywhere on this page, by design.
+ */
+const cards = [
+  {
+    kind: 'link' as const,
+    icon: 'cards',
+    title: 'Biochemist Trading Cards',
+    blurb:
+      'More than 750 students designed Studio-Ghibli-style trading cards of famous biochemists — each with stats and a short biography. Flip, sort, and browse the whole deck.',
+    href: 'https://deppmann.github.io/biochemist-cards/',
+    cta: 'Open the card gallery',
+  },
+  {
+    kind: 'link' as const,
+    icon: 'meme',
+    title: 'Biochem Meme Gallery',
+    blurb:
+      'Original memes students made about the concepts in this course — a few favorites picked each semester. Proof that you understand something when you can joke about it.',
+    href: 'https://deppmann.github.io/biochem-memes/',
+    cta: 'Open the meme gallery',
+  },
+  {
+    kind: 'spotify' as const,
+    icon: 'music',
+    title: 'Bio3030 Music',
+    blurb:
+      'Original biochemistry songs, collected on the albums “Allosteric Anthems” and “The Hemoglobin Chronicles.” Yes, there is a hemoglobin ballad.',
+    url: 'https://open.spotify.com/artist/7AAFUvlYJtmuGBOcoqSMfh',
+    embedTitle: 'Bio3030 Music on Spotify',
+  },
+  {
+    kind: 'spotify' as const,
+    icon: 'podcast',
+    title: 'We Are Biochemistry',
+    blurb:
+      'A student podcast — conversational episodes on enzyme mechanisms, metabolic regulation, and the rest of the course, in plain language.',
+    url: 'https://open.spotify.com/show/6gUAeZTYYRPzdAc84Lj4Gt',
+    embedTitle: 'We Are Biochemistry podcast on Spotify',
+  },
+];
+
+function icon(kind: string): string {
+  const a = 'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"';
+  const gold = 'fill="var(--ddp-color-secondary)"';
+  const open = '<svg viewBox="0 0 56 56" width="40" height="40" role="img" aria-hidden="true">';
+  switch (kind) {
+    case 'cards':
+      return `${open}<g ${a}><rect x="9" y="17" width="22" height="30" rx="3" transform="rotate(-8 20 32)"/><rect x="24" y="12" width="22" height="30" rx="3"/></g><path d="M35 19 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5 z" ${gold}/></svg>`;
+    case 'meme':
+      return `${open}<g ${a}><path d="M10 12 H46 a3 3 0 0 1 3 3 V36 a3 3 0 0 1 -3 3 H25 l-8 8 v-8 H10 a3 3 0 0 1 -3 -3 V15 a3 3 0 0 1 3 -3 Z"/><path d="M19 26 q9 8 18 0"/></g><circle cx="21" cy="21" r="2" ${gold}/><circle cx="35" cy="21" r="2" ${gold}/></svg>`;
+    case 'music':
+      return `${open}<g ${a}><path d="M22 41 V15 L44 10 V34"/></g><circle cx="17" cy="42" r="5" ${gold}/><circle cx="39" cy="35" r="5" ${gold}/></svg>`;
+    case 'podcast':
+      return `${open}<g ${a}><rect x="22" y="8" width="12" height="22" rx="6"/><path d="M16 26 a12 12 0 0 0 24 0"/><line x1="28" y1="38" x2="28" y2="46"/><line x1="20" y1="46" x2="36" y2="46"/></g><circle cx="28" cy="15" r="2.4" ${gold}/></svg>`;
+    default:
+      return `${open}<circle cx="28" cy="28" r="14" ${a}/></svg>`;
+  }
+}
+---
+
+<BaseLayout
+  title="The Fun Stuff — Biochemistry-pedia"
+  description="Creative course materials made by BIOL 3030 students at UVA — biochemist trading cards, memes, original songs, and a podcast. Shared anonymously."
+>
+  <article class="wrap fun-col" style="padding-top: var(--ddp-space-12)">
+    <p class="eyebrow">The Fun Stuff</p>
+    <h1>The best way to learn biochemistry is to make it your own.</h1>
+    <p class="fun-intro">
+      Some of our favorite things to come out of BIOL&nbsp;3030 weren't on any
+      problem set. Students drew the scientists, wrote the songs, made the jokes,
+      and recorded the episodes below. It's all here anonymously — no names, by
+      design — but every bit of it was made by the people taking this course.
+    </p>
+
+    <div class="fun-grid">
+      {cards.map((c) => (
+        <section class="fun-card card">
+          <span class="fun-ico" aria-hidden="true" set:html={icon(c.icon)} />
+          <div class="fun-body">
+            <h2>{c.title}</h2>
+            <p>{c.blurb}</p>
+            {c.kind === 'link' && (
+              <a class="fun-cta" href={c.href} target="_blank" rel="noopener noreferrer">
+                {c.cta} <span aria-hidden="true">↗</span>
+              </a>
+            )}
+            {c.kind === 'spotify' && (
+              <div class="fun-embed"><SpotifyEmbed url={c.url} title={c.embedTitle} compact /></div>
+            )}
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <p class="fun-credit">
+      Created by the students of <strong>BIOL&nbsp;3030 · Biochemistry · University of Virginia</strong>,
+      and shared with their permission. Individual work is kept anonymous.
+    </p>
+    <p><a href="/">← Back to the lessons</a></p>
+  </article>
+
+  <style>
+    .fun-col { max-width: 60rem; }
+    .eyebrow {
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ddp-color-accent);
+    }
+    .fun-intro {
+      max-width: 46rem;
+      font-size: var(--ddp-text-lg);
+      color: var(--ddp-color-ink-soft);
+    }
+    .fun-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--ddp-space-4);
+      margin: var(--ddp-space-8) 0;
+    }
+    .fun-card {
+      display: flex;
+      gap: var(--ddp-space-4);
+      align-items: flex-start;
+      padding: var(--ddp-space-6);
+    }
+    .fun-ico { flex: none; line-height: 0; margin-top: 2px; color: var(--ddp-color-primary); }
+    .fun-body { min-width: 0; }
+    .fun-body h2 {
+      margin: 0 0 var(--ddp-space-2);
+      font-family: var(--ddp-font-serif);
+      font-size: var(--ddp-text-lg);
+      color: var(--ddp-color-primary);
+    }
+    .fun-body p { margin: 0 0 var(--ddp-space-3); color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
+    .fun-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ddp-color-accent);
+      text-decoration: none;
+    }
+    .fun-cta:hover { text-decoration: underline; }
+    .fun-embed { margin-top: var(--ddp-space-2); }
+    .fun-credit {
+      border-left: 3px solid var(--ddp-color-secondary);
+      padding-left: 0.7rem;
+      color: var(--ddp-color-ink-soft);
+      font-size: var(--ddp-text-sm);
+    }
+  </style>
+</BaseLayout>

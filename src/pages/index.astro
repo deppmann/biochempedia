@@ -125,7 +125,37 @@ const lessons = (await getCollection('lessons'))
     )}
   </section>
 
+  <section class="wrap funbar">
+    <a href="/fun" class="funbar-link">
+      <span class="funbar-text">
+        <strong>The Fun Stuff</strong>
+        <span>Trading cards, memes, songs, and a podcast — made by BIOL 3030 students.</span>
+      </span>
+      <span class="funbar-arrow" aria-hidden="true">→</span>
+    </a>
+  </section>
+
   <style>
+    .funbar { padding: 0 var(--ddp-space-6) var(--ddp-space-16); }
+    .funbar-link {
+      display: flex;
+      align-items: center;
+      gap: var(--ddp-space-4);
+      justify-content: space-between;
+      padding: var(--ddp-space-6);
+      border: 1px solid var(--ddp-color-line);
+      border-radius: var(--ddp-radius);
+      background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface));
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .funbar-link:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .funbar-text { display: flex; flex-direction: column; gap: 0.15rem; }
+    .funbar-text strong { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+    .funbar-text span { color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
+    .funbar-arrow { font-size: 1.5rem; color: var(--ddp-color-secondary); flex: none; }
+
     /* ---- Hero: a left-aligned editorial column, "quiet authority" ---- */
     .hero {
       padding: var(--ddp-space-16) var(--ddp-space-6) var(--ddp-space-8);
