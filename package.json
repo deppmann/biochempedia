@@ -13,17 +13,23 @@
     "build": "astro check && astro build && node scripts/check-assets.mjs",
     "build:fast": "astro build",
     "check:assets": "node scripts/check-assets.mjs",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "npm run build && wrangler dev",
+    "astro": "astro",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "license": "MIT",
   "dependencies": {
     "@astrojs/check": "^0.9.9",
+    "@astrojs/cloudflare": "12",
     "@astrojs/mdx": "^4.3.14",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^5.18.2",
     "molstar": "^4.18.0",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.101.0"
   }
 }
