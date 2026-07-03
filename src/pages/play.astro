@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/arcade.css';
+
+/**
+ * The Metabolism Arcade — an interactive game for learning metabolic pathways.
+ * Pick a pathway, then interrogate it four ways: Build (order the steps + watch
+ * the ATP/NADH ledger), Regulate (fed / fasted / sprint / rest / disease
+ * scenarios), Diagnose (enzyme-deficiency case files), and MCAT Blitz (timed
+ * boss battle). The whole game is a client island built at runtime from the
+ * typed Pathway model in src/game/. The <div id="arcade"> holds a
+ * server-rendered fallback (h1 + no-JS note) that the engine clears on mount.
+ */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LearningResource',
+  name: 'Metabolism Arcade',
+  learningResourceType: 'Game',
+  educationalUse: 'self-assessment',
+  description:
+    'A game for learning metabolic pathways — build the pathway, regulate it through exercise/rest/fed/fasted/disease states, diagnose enzyme deficiencies, and survive a timed MCAT boss battle.',
+  audience: { '@type': 'EducationalAudience', educationalRole: 'student' },
+  isPartOf: { '@type': 'WebSite', name: 'Biochemistry-pedia' },
+};
+---
+
+<BaseLayout
+  title="Metabolism Arcade — play the pathways | Biochemistry-pedia"
+  description="An interactive game for learning metabolic pathways: build glycolysis step by step, regulate it through a sprint or an all-nighter, diagnose the broken enzyme, and survive a timed MCAT boss battle. Fun, silly, and exam-accurate."
+  ogType="website"
+  jsonLd={jsonLd}
+>
+  <section class="wrap arc-page">
+    <div id="arcade" class="arc-root">
+      <div class="arc-fallback">
+        <h1>Metabolism Arcade</h1>
+        <p>
+          Pick a metabolic pathway and interrogate it four ways — build it,
+          regulate it, diagnose it, and blitz it MCAT-style.
+        </p>
+        <p class="arc-loading">Loading the arcade…</p>
+        <noscript>
+          <p>
+            This game needs JavaScript. Meanwhile, every pathway is also written
+            up as a full lesson — start with <a href="/lessons/glycolysis/">Glycolysis</a>.
+          </p>
+        </noscript>
+      </div>
+    </div>
+
+    <p class="arc-pagenote">
+      Every fact in the arcade is cross-checked against the
+      <a href="/">Biochemistry-pedia lessons</a>. Wrong answers explain
+      themselves — that’s the point. Built for BIOL&nbsp;3030 and anyone prepping
+      for the MCAT.
+    </p>
+  </section>
+
+  <script>
+    import { mountArcade } from '../game/engine/arcade';
+    import { PATHWAYS } from '../game/data';
+
+    const root = document.getElementById('arcade');
+    if (root) {
+      root.innerHTML = '';
+      mountArcade(root, PATHWAYS);
+    }
+  </script>
+
+  <style>
+    .arc-page { padding-top: var(--ddp-space-8); padding-bottom: var(--ddp-space-8); }
+    .arc-fallback { padding: 3rem 1.5rem; text-align: center; }
+    .arc-fallback h1 { font-family: var(--ddp-font-serif); color: var(--ddp-color-primary); }
+    .arc-fallback p { color: var(--ddp-color-ink-soft); max-width: 46ch; margin-inline: auto; }
+    .arc-loading { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); margin-top: 1rem; }
+    .arc-pagenote {
+      max-width: 60ch; margin: var(--ddp-space-6) auto 0; text-align: center;
+      font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5;
+    }
+  </style>
+</BaseLayout>
