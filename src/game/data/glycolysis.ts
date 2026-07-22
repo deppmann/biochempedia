@@ -32,6 +32,7 @@ export const glycolysis: Pathway = {
       irreversible: true,
       emoji: '🔒',
       fact: 'Spends 1 ATP. Induced fit clamps shut around glucose to exclude water (no futile hydrolysis), and the charge traps the sugar inside the cell. Product-inhibited by G6P.',
+      misconception: { grab: 'ATP', why: 'Trap! Hexokinase is a kinase that SPENDS ATP (−1) here — the investment phase. Don’t bank a +ATP; pay the toll.' },
     },
     {
       n: 2,
@@ -76,6 +77,7 @@ export const glycolysis: Pathway = {
       tokens: { nadh: 1 },
       emoji: '🔋',
       fact: 'The ONLY oxidation. Grabs inorganic phosphate (Pi, not ATP!) and banks the energy as NADH, forming a high-energy acyl-phosphate via an active-site cysteine.',
+      misconception: { grab: 'ATP', why: 'Trap! GAPDH makes NADH using inorganic phosphate (Pi) — NO ATP is made here. The energy is banked in the high-energy 1,3-BPG for step 7 to cash.' },
     },
     {
       n: 7,
