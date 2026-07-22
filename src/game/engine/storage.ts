@@ -1,7 +1,9 @@
 /* Progress + high scores in localStorage. Everything is best-effort: if storage
    is blocked (private mode), the game still plays — it just won't remember. */
 
-export type ModeId = 'build' | 'regulate' | 'diagnose' | 'blitz';
+export type ModeId =
+  | 'build' | 'regulate' | 'diagnose' | 'blitz' // legacy modes
+  | 'ledger' | 'autopsy' | 'foundry' | 'mixing' | 'wire' | 'gauntlet'; // the new games
 export type Medal = 'none' | 'bronze' | 'silver' | 'gold';
 
 interface Progress {

@@ -47,6 +47,9 @@ export interface Step {
   fact: string;
   /** Emoji "face" for this metabolite — the silly layer. */
   emoji?: string;
+  /** LEDGER RUSH: a wrong token a common misconception would grab AT this step
+   *  (e.g. an "ATP" at GAPDH). Rejecting it un-learns a specific error. */
+  misconception?: { grab: string; why: string };
 }
 
 /** A named control point, listed on the Regulate console. */
@@ -101,6 +104,25 @@ export interface Disease {
   teach: string;
   /** A high-yield one-liner for the flashcard in your head. */
   pearl?: string;
+  /** METABOLIC AUTOPSY: 0-based index of the step[] whose enzyme is deficient.
+   *  The engine derives "upstream reads HIGH / downstream reads LOW" from this.
+   *  Omit for cases with no single clean block point (e.g. a poison/uncoupler). */
+  blockStep?: number;
+  /** METABOLIC AUTOPSY: named-compound assays beyond position (2,3-BPG, ammonia,
+   *  orotic acid…) that let the player confirm the block mechanistically. */
+  traces?: Array<{ name: string; result: 'high' | 'low' | 'normal'; tellsYou: string }>;
+}
+
+/** MIXING BOARD: one allosteric/hormonal effector on a pathway's regulated step.
+ *  Polarity only — deliberately NO invented kinetics (per the design critic). */
+export interface Effector {
+  /** e.g. "ATP", "AMP", "F-2,6-BP", "citrate", "insulin", "glucagon". */
+  name: string;
+  /** 0-based index of the step[] (enzyme) it acts on. */
+  actsOn: number;
+  /** +1 activates, −1 inhibits. */
+  polarity: 1 | -1;
+  kind: 'allosteric' | 'hormonal';
 }
 
 export type QuizTag = 'basics' | 'energetics' | 'regulation' | 'disease' | 'integration';
@@ -142,6 +164,9 @@ export interface Pathway {
   scenarios: Scenario[];
   diseases: Disease[];
   quiz: QuizItem[];
+  /** MIXING BOARD: allosteric + hormonal effectors on this pathway's regulated
+   *  steps (polarity only). Present for pathways with real regulation to control. */
+  effectors?: Effector[];
   /** Optional link back to the matching textbook lesson. */
   lessonSlug?: string;
   /** A closing "whoa" fact for the victory screen. */
