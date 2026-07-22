@@ -83,16 +83,29 @@ research project's retrieval module.
 
 ## Deploy target
 
-Cloudflare Pages at `biochempedia.deppmannlab.com` — **public** (no Cloudflare
-Access; the members/corpus surfaces are the gated ones). Static Astro build,
-output `dist/`. The brand comes from the real [`deppmann-brand`](https://github.com/deppmann/deppmann-brand)
+Cloudflare at **`biochemistrypedia.com`** — its own apex domain, registered on
+Cloudflare (so the DNS zone is already there), **public** (no Cloudflare Access;
+the members/corpus surfaces are the gated ones). Static Astro build, output
+`dist/`. The brand comes from the real [`deppmann-brand`](https://github.com/deppmann/deppmann-brand)
 package via the `brand/` submodule; [`src/styles/tokens.css`](src/styles/tokens.css)
 aliases those tokens onto the components' `--ddp-*` names.
 
-> **DNS guardrail (from the Phase-0 decisions):** the public `deppmannlab.com`
-> apex/www stay on **Netlify, DNS-only** — never proxy Netlify through
-> Cloudflare. Only the subdomains get Cloudflare Pages. Full ecosystem decisions
-> live in the brand repo's `DECISIONS.md`.
+**To point the domain at this project** (one-time, in the Cloudflare dashboard):
+Workers & Pages → **biochempedia** → Custom domains → *Add* → `biochemistrypedia.com`
+(and `www`). Because the zone is already on Cloudflare, it creates the DNS record
+and provisions the certificate automatically. Then confirm `site` in
+[`astro.config.mjs`](astro.config.mjs) matches.
+
+> **Why not `biochempedia.deppmannlab.com`?** That subdomain was the original
+> plan, but it depends on the GoDaddy → Cloudflare DNS migration for
+> `deppmannlab.com` (see the brand repo's `RUNBOOK_DNS.md`), which is still
+> pending. `biochemistrypedia.com` is registered on Cloudflare outright, so it
+> needs none of that.
+>
+> **DNS guardrail (unchanged, from the Phase-0 decisions):** the public
+> `deppmannlab.com` apex/www stay on **Netlify, DNS-only** — never proxy Netlify
+> through Cloudflare. Full ecosystem decisions live in the brand repo's
+> `DECISIONS.md`.
 
 ## License
 
