@@ -11,7 +11,7 @@ interface Props {
 }
 const { title, description, ogType = 'website', jsonLd } = Astro.props;
 const year = 2026;
-const SITE_NAME = 'Biochemistry-pedia';
+const SITE_NAME = 'Biochempedia';
 const DEFAULT_DESC =
   'An interactive biochemistry textbook — live 3D molecules, original simulations, and the history behind the science. From the Deppmann Lab.';
 const desc = description ?? DEFAULT_DESC;
@@ -61,10 +61,9 @@ const websiteLd = {
       <nav class="wrap">
         <a href="/" class="brand">
           <span class="brand-mark">⬡</span>
-          <span class="brand-name">Biochemistry-pedia</span>
+          <span class="brand-name">Biochempedia</span>
         </a>
         <span class="brand-tag">an interactive biochemistry textbook</span>
-        <a href="/play" class="nav-link nav-play">▶&nbsp;Play</a>
         <a href="/fun" class="nav-link">The&nbsp;Fun&nbsp;Stuff</a>
       </nav>
     </header>
@@ -76,7 +75,7 @@ const websiteLd = {
     <footer class="site-footer">
       <div class="wrap">
         <p>
-          <strong>Biochemistry-pedia</strong> — an interactive biochemistry textbook,
+          <strong>Biochempedia</strong> — an interactive biochemistry textbook,
           an <a href="/about">AI&nbsp;Catalyst</a> project by the
           Deppmann Lab.
         </p>
@@ -151,17 +150,9 @@ const websiteLd = {
         white-space: nowrap;
       }
       .nav-link:hover { text-decoration: underline; }
-      /* Only the first nav-link absorbs the free space, so Play + Fun group at
+      /* Only the first nav-link absorbs the free space, so any siblings group at
          the right edge (two auto margins would split the gap unevenly). */
       .nav-link ~ .nav-link { margin-left: 0; }
-      .nav-play {
-        color: var(--ddp-color-secondary-ink);
-        background: color-mix(in srgb, var(--ddp-color-secondary) 20%, transparent);
-        border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 45%, transparent);
-        border-radius: 999px;
-        padding: 0.25em 0.75em;
-      }
-      .nav-play:hover { background: color-mix(in srgb, var(--ddp-color-secondary) 32%, transparent); text-decoration: none; }
       @media (max-width: 560px) {
         .brand-tag {
           display: none;

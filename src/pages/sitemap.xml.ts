@@ -9,7 +9,7 @@ import { getCollection } from 'astro:content';
 export async function GET(context: APIContext): Promise<Response> {
   const base = (context.site?.href ?? 'https://biochempedia.deppmannlab.com').replace(/\/$/, '');
   const lessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
-  const paths = ['/', '/about', '/contact', ...lessons.map((l) => `/lessons/${l.data.slug}/`)];
+  const paths = ['/', '/about', '/fun', '/contact', ...lessons.map((l) => `/lessons/${l.data.slug}/`)];
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
