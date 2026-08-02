@@ -11,7 +11,10 @@ import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 
 export async function getStaticPaths() {
-  const lessons = await getCollection('lessons');
+  // Drafts must not generate a route. The homepage and sitemap already filter
+  // them; without the same filter here, a draft stays reachable by direct URL
+  // even though nothing links to it.
+  const lessons = await getCollection('lessons', ({ data }) => !data.draft);
   return lessons.map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
 }
 
@@ -43,11 +46,11 @@ const lessonLd = {
   learningResourceType: 'interactive lesson',
   inLanguage: 'en',
   about: lesson.courseChapter,
-  isPartOf: { '@type': 'Course', name: 'Biochemistry-pedia', provider: { '@type': 'Organization', name: 'Deppmann Lab, University of Virginia' } },
+  isPartOf: { '@type': 'Course', name: 'Biochempedia', provider: { '@type': 'Organization', name: 'Deppmann Lab, University of Virginia' } },
 };
 ---
 
-<BaseLayout title={`${lesson.title} — Biochemistry-pedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
+<BaseLayout title={`${lesson.title} — Biochempedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
   <article id="top">
     <header class="lesson-hero wrap">
       <p class="eyebrow">{lesson.courseChapter}</p>
@@ -72,7 +75,10 @@ const lessonLd = {
 
     {/* Two-column: reading column + sticky resource rail. */}
     <div class="wrap lesson-layout">
-      <main class="lesson-main">
+      {/* A <div>, not a <main>: BaseLayout already owns the page's single
+          <main id="main"> landmark, and nesting a second one is invalid HTML
+          that makes landmark navigation ambiguous for screen readers. */}
+      <div class="lesson-main">
         <div class="prose-col"><Content /></div>
 
         {lesson.techniques.length > 0 && (
