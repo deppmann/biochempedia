@@ -49,7 +49,11 @@ const sourceHref =
       id={`${domId}-fallback`}
       class="mol-fallback"
       hidden
-      alt={`2D structure of ${label} from PubChem (CID ${id})`}
+      alt={
+        source === 'rcsb'
+          ? `2D structure of ${label} from RCSB PDB (PDB ID ${id})`
+          : `2D structure of ${label} from PubChem (CID ${id})`
+      }
     />
   </div>
 

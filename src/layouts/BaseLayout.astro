@@ -11,7 +11,7 @@ interface Props {
 }
 const { title, description, ogType = 'website', jsonLd } = Astro.props;
 const year = 2026;
-const SITE_NAME = 'Biochemistry-pedia';
+const SITE_NAME = 'Biochempedia';
 const DEFAULT_DESC =
   'An interactive biochemistry textbook — live 3D molecules, original simulations, and the history behind the science. From the Deppmann Lab.';
 const desc = description ?? DEFAULT_DESC;
@@ -61,10 +61,9 @@ const websiteLd = {
       <nav class="wrap">
         <a href="/" class="brand">
           <span class="brand-mark">⬡</span>
-          <span class="brand-name">Biochemistry-pedia</span>
+          <span class="brand-name">Biochempedia</span>
         </a>
         <span class="brand-tag">an interactive biochemistry textbook</span>
-        <a href="/play" class="nav-link nav-play">▶&nbsp;Play</a>
         <a href="/fun" class="nav-link">The&nbsp;Fun&nbsp;Stuff</a>
       </nav>
     </header>
@@ -76,7 +75,7 @@ const websiteLd = {
     <footer class="site-footer">
       <div class="wrap">
         <p>
-          <strong>Biochemistry-pedia</strong> — an interactive biochemistry textbook,
+          <strong>Biochempedia</strong> — an interactive biochemistry textbook,
           an <a href="/about">AI&nbsp;Catalyst</a> project by the
           Deppmann Lab.
         </p>
@@ -91,15 +90,15 @@ const websiteLd = {
           Simulations from PhET (CC&nbsp;BY&nbsp;4.0). &copy; {year}.
         </p>
         <p class="fine disclaimer">
-          <strong>A note on the figures.</strong> Many of the lecture slides here use
-          AI-assisted imagery, so there may be occasional &ldquo;slop&rdquo; artifacts —
-          a bond drawn wrong, a structure oriented oddly. Take the slides as a conceptual
-          framework, not a reference for memorizing structures; the live 3D molecules in
-          each lesson&rsquo;s sidebar are the accurate source. We flag issues as we catch
-          them, and this is an evolving project. Spot a correction? See the
-          <a href="/contact">contact page</a> or email
-          <a href="mailto:deppmann@gmail.com">deppmann@gmail.com</a> and we&rsquo;ll get
-          it fixed.
+          <strong>A note on the figures.</strong> Some lecture slides here use AI-assisted
+          illustration, and a few carry a caption flagging a specific artifact on that
+          slide — a bond drawn wrong, a ring in the wrong chair. For anything you intend
+          to memorize, work from the live 3D structures in the lesson&rsquo;s Explore panel:
+          those load by accession ID from RCSB&nbsp;PDB and PubChem, so no one has drawn
+          them by hand or by model. Every slide names the person who screened it, and each
+          lesson&rsquo;s Sources &amp; Integrity panel lists what that covers. Found an
+          error? Tell me and I will fix it — the <a href="/contact">contact page</a>, or
+          <a href="mailto:deppmann@gmail.com">deppmann@gmail.com</a>.
         </p>
         <!-- SEAM: the shared deppmann-brand footer partial (student-credit +
              inspiration-credit lines) replaces this block once Handoff 0 ships. -->
@@ -151,21 +150,22 @@ const websiteLd = {
         white-space: nowrap;
       }
       .nav-link:hover { text-decoration: underline; }
-      /* Only the first nav-link absorbs the free space, so Play + Fun group at
+      /* Only the first nav-link absorbs the free space, so any siblings group at
          the right edge (two auto margins would split the gap unevenly). */
       .nav-link ~ .nav-link { margin-left: 0; }
-      .nav-play {
-        color: var(--ddp-color-secondary-ink);
-        background: color-mix(in srgb, var(--ddp-color-secondary) 20%, transparent);
-        border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 45%, transparent);
-        border-radius: 999px;
-        padding: 0.25em 0.75em;
-      }
-      .nav-play:hover { background: color-mix(in srgb, var(--ddp-color-secondary) 32%, transparent); text-decoration: none; }
+      /* The wordmark must never break across two lines — "Biochem/pedia" in a
+         sticky header is the first thing a phone visitor sees. Below 560px the
+         tagline goes, and below 400px the mark shrinks rather than wraps. */
+      .brand-name { white-space: nowrap; }
       @media (max-width: 560px) {
         .brand-tag {
           display: none;
         }
+        .site-header nav { gap: var(--ddp-space-3); }
+      }
+      @media (max-width: 400px) {
+        .brand { font-size: var(--ddp-text-base); }
+        .nav-link { font-size: 0.66rem; }
       }
       .site-footer {
         margin-top: var(--ddp-space-16);

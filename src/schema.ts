@@ -48,16 +48,35 @@ const technique = z.object({
 });
 
 /** A live molecular structure — ONLY from a real accession ID. */
-const structure = z.object({
-  label: z.string().min(1),
-  /** rcsb = macromolecule (PDB, data CC0); pubchem = small molecule. */
-  source: z.enum(['rcsb', 'pubchem']),
-  /** The accession ID: a PDB ID (e.g. "1LYZ") or a PubChem CID (e.g. "439174"). */
-  id: z.string().min(1),
-  caption: z.string().optional(),
-  /** Optional: EC number / extra provenance shown in the integrity footer. */
-  note: z.string().optional(),
-});
+const structure = z
+  .object({
+    label: z.string().min(1),
+    /** rcsb = macromolecule (PDB, data CC0); pubchem = small molecule. */
+    source: z.enum(['rcsb', 'pubchem']),
+    /** The accession ID: a PDB ID (e.g. "1LYZ") or a PubChem CID (e.g. "439174"). */
+    id: z.string().min(1),
+    caption: z.string().optional(),
+    /** Optional: EC number / extra provenance shown in the integrity footer. */
+    note: z.string().optional(),
+  })
+  .superRefine((s, ctx) => {
+    // RULE #1 (format half): the accession must actually look like one, per source —
+    // otherwise a typo'd or made-up ID passes silently and fails only at render time.
+    if (s.source === 'rcsb' && !/^[0-9][A-Za-z0-9]{3}$/.test(s.id)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `An rcsb structure id must be a 4-character PDB ID (digit + 3 alphanumeric, e.g. "1LYZ"), got "${s.id}".`,
+        path: ['id'],
+      });
+    }
+    if (s.source === 'pubchem' && !/^[0-9]+$/.test(s.id)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `A pubchem structure id must be an all-digit CID (e.g. "439174"), got "${s.id}".`,
+        path: ['id'],
+      });
+    }
+  });
 
 /** Spotify podcast embed (show or episode). Embed-only, never rehosted. */
 const podcast = z.object({
