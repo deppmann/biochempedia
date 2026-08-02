@@ -73,6 +73,32 @@ const lessonLd = {
       </aside>
     )}
 
+    {/* Mobile-only shortcut. On a phone the two-column grid collapses and the
+        resource rail lands after the whole narrative — on a long lesson that is
+        thousands of pixels down, which effectively hides the best part of the
+        page. These chips reuse the same [data-open] dialogs as the rail, so a
+        reader reaches the slides, the self-test, and the sources from the first
+        screen. The desktop rail is untouched. */}
+    <nav class="wrap mobile-explore" aria-label="Explore this lesson">
+      <p class="me-title">Explore this lesson</p>
+      <ul class="me-chips">
+        {lesson.lectureSlides.length > 0 && (
+          <li><button type="button" data-open="lb-slides">🖼 Slides <em>{lesson.lectureSlides.length}</em></button></li>
+        )}
+        {lesson.structures.length > 0 && (
+          <li><a href="#rail">🧬 3D molecules <em>{lesson.structures.length}</em></a></li>
+        )}
+        {hasQuiz && (
+          <li><button type="button" data-open="lb-quiz">📝 Self-test <em>{qCount}</em></button></li>
+        )}
+        {lesson.explainLevels.length > 0 && (
+          <li><button type="button" data-open={`lb-level-${lesson.explainLevels[0].level}`}>🧸 Explain it simply</button></li>
+        )}
+        <li><button type="button" data-open="lb-sources">📚 Sources</button></li>
+        <li><a href="#rail">All resources →</a></li>
+      </ul>
+    </nav>
+
     {/* Two-column: reading column + sticky resource rail. */}
     <div class="wrap lesson-layout">
       {/* A <div>, not a <main>: BaseLayout already owns the page's single
@@ -93,7 +119,7 @@ const lessonLd = {
         )}
       </main>
 
-      <aside class="rail" aria-label="Explore — open any resource">
+      <aside class="rail" id="rail" aria-label="Explore — open any resource">
         <p class="rail-title">Explore <span>· tap to open</span></p>
 
         {lesson.explainLevels.length > 0 && (
@@ -337,6 +363,23 @@ const lessonLd = {
         });
       });
     });
+    // Reveal the "↑ Top" pill only once the reader has scrolled past the hero, so
+    // it can never cover the title or the objectives card on a small screen. A
+    // scroll listener rather than an IntersectionObserver: IO callbacks don't fire
+    // while the document is hidden, which makes the behaviour untestable in a
+    // background tab and flaky on restore.
+    const toTop = document.querySelector<HTMLElement>('.to-top');
+    const hero = document.querySelector<HTMLElement>('.lesson-hero');
+    if (toTop && hero) {
+      const syncToTop = () => {
+        const past = window.scrollY > hero.offsetTop + hero.offsetHeight;
+        toTop.classList.toggle('is-visible', past);
+      };
+      syncToTop();
+      window.addEventListener('scroll', syncToTop, { passive: true });
+      window.addEventListener('resize', syncToTop, { passive: true });
+    }
+
     document.querySelectorAll<HTMLDialogElement>('dialog.lightbox').forEach((d) => {
       d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
       d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
@@ -374,6 +417,38 @@ const lessonLd = {
     .orient-obj li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
     .orient-meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); }
     .orient-meta li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: inline-flex; align-items: center; gap: 0.4em; }
+
+    /* Mobile-only Explore chips (see the note at the markup). Hidden entirely at
+       the width where the sticky rail is visible and does the same job. */
+    .mobile-explore { display: none; }
+    @media (max-width: 900px) {
+      .mobile-explore {
+        display: block;
+        padding: 0 var(--ddp-space-6) var(--ddp-space-2);
+        margin-bottom: var(--ddp-space-4);
+      }
+      .me-title {
+        margin: 0 0 var(--ddp-space-2);
+        font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+        letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-primary);
+      }
+      .me-chips {
+        list-style: none; margin: 0; padding: 0;
+        display: flex; flex-wrap: wrap; gap: var(--ddp-space-2);
+      }
+      .me-chips button, .me-chips a {
+        display: inline-flex; align-items: center; gap: 0.4em;
+        /* 44px min target: these are the primary mobile affordance. */
+        min-height: 44px; padding: 0.5em 0.85em;
+        font: inherit; font-size: var(--ddp-text-sm); font-weight: 600;
+        color: var(--ddp-color-ink); text-decoration: none;
+        background: var(--ddp-color-surface);
+        border: 1px solid var(--ddp-color-line); border-radius: 999px;
+        cursor: pointer;
+      }
+      .me-chips button:hover, .me-chips a:hover { border-color: var(--ddp-color-accent); }
+      .me-chips em { font-style: normal; font-weight: 400; color: var(--ddp-color-muted); }
+    }
 
     /* Two-column layout */
     .lesson-layout {
@@ -505,12 +580,19 @@ const lessonLd = {
     }
     .profile-source { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap; }
 
+    /* Hidden until the reader has actually left the top of the page. It used to
+       render immediately and, on a phone, sat on top of the objectives card. */
     .to-top {
       position: fixed; right: var(--ddp-space-6); bottom: var(--ddp-space-6); z-index: 40;
       font-size: var(--ddp-text-sm); font-weight: 600; text-decoration: none;
       color: var(--ddp-color-surface); background: var(--ddp-color-primary);
-      border-radius: 999px; padding: 0.5em 0.9em; box-shadow: var(--ddp-shadow); opacity: 0.85;
+      border-radius: 999px; padding: 0.5em 0.9em; box-shadow: var(--ddp-shadow);
+      opacity: 0; visibility: hidden; transition: opacity 0.18s ease, visibility 0.18s;
     }
+    .to-top.is-visible { opacity: 0.85; visibility: visible; }
     .to-top:hover { opacity: 1; text-decoration: none; }
+    /* Keep the pill clear of the last line of content on narrow screens. */
+    @media (max-width: 900px) { .lesson-layout { padding-bottom: var(--ddp-space-12); } }
+    @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
   </style>
 </BaseLayout>

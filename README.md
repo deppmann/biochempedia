@@ -9,29 +9,35 @@ drawn by an AI). Every simulation is something a student can poke. Every questio
 carries a verified answer and an explanation. The content is built from twenty
 years of lectures and the scientist stories in *The Molecule Hunters*.
 
-> **Status:** First version. **One fully-finished exemplar lesson** —
-> *Enzyme Kinetics / Michaelis–Menten* — plus the site skeleton, the typed lesson
-> schema, and the build-time integrity gate. The AI tutor and "talk to a
-> scientist" features are intentionally **deferred** (see below).
+> **Status:** 30 lessons, all published — the one-semester sequence, an opening
+> interlude on vitalism, and two closing supplements (nucleotide metabolism,
+> integration of metabolism). 34 pages, 305 lecture slides, ~60 original
+> interactive islands, 407 live structure references. The AI tutor and "talk to a
+> scientist" features are intentionally **deferred** (see below). The Metabolism
+> Arcade is held back from v1 and lives on `origin/five-game-redesign`.
 
-## What's in the exemplar lesson
+## What's in a lesson
 
-`src/content/lessons/enzyme-kinetics/lesson.mdx`
+Every lesson is one folder — `src/content/lessons/<slug>/lesson.mdx` — validated
+against the typed schema in `src/schema.ts`. Copy a folder to start a new one.
+`enzyme-kinetics` is the reference implementation:
 
-- The concept explained plainly (from Chris's CH07/CH08 slide notes) + a
-  "how the technique works" section (assays, initial velocity, Km/Vmax).
-- A **live, rotatable Mol\* structure** — hen egg-white lysozyme (PDB `1LYZ`) —
-  and the **PubChem** small-molecule view of its substrate (CID `439174`).
-- An **original Michaelis–Menten plotter** (v vs [S] with draggable/typed Km & Vmax,
-  a live Lineweaver–Burk double-reciprocal, and a competitive-inhibitor overlay)
-  plus a **PhET** embed.
-- 4 grounded **scientist cards** with verbatim book quotes (Fischer, Michaelis &
-  Menten, Koshland, Phillips).
-- A **Spotify** episode embed + 2 curated **YouTube** embeds.
-- A self-test quiz: **5 original practice + 3 original MCAT-style** questions, each
-  with a verified key and rationale.
-- An auto-generated **Sources & Integrity** footer listing every ID, attribution,
-  and media source.
+- The concept explained plainly (from Chris's lecture notes) plus a generated
+  "how we measure it" techniques panel.
+- **Live, rotatable Mol\* structures** loaded by accession ID from RCSB PDB
+  (macromolecules) and PubChem (small molecules) — for this lesson, hen egg-white
+  lysozyme (PDB `1LYZ`) and its substrate (CID `439174`).
+- **Original interactive islands** — here, a Michaelis–Menten plotter with
+  draggable Km/Vmax, a live Lineweaver–Burk double-reciprocal, and a
+  competitive-inhibitor overlay — plus a **PhET** embed.
+- **Scientist cards** with verbatim quotes from *The Molecule Hunters*.
+- **Spotify** and **YouTube** media, embedded from source and never rehosted.
+- A self-test of original practice and MCAT-style questions, each with a verified
+  key and rationale.
+- **Lecture slides** with presenter notes and narration, each naming the person who
+  screened it for accuracy and copyright.
+- An auto-generated **Sources & Integrity** panel listing every ID, attribution, and
+  media source in that lesson.
 
 ## Stack
 
@@ -62,9 +68,17 @@ The Mol* viewer bundle is vendored from `node_modules` into `public/vendor/` by 
 
 The build **fails** if:
 - an image has `aiGenerated: true` without a `factCheckedBy`,
-- a question is missing its `answer` or `rationale`,
-- a structure isn't from a real `rcsb`/`pubchem` accession ID, or
+- a question is missing its `answer` or `rationale`, or points at a choice index
+  that doesn't exist,
+- a structure's `id` isn't well-formed for its `source` (a 4-character PDB code for
+  `rcsb`, an all-digit CID for `pubchem`),
+- a lecture slide doesn't name who screened it, or
 - a PhET sim isn't attributed to PhET.
+
+Local asset and link references are checked separately by `scripts/check-assets.mjs`,
+which fails the build on any broken local reference. What the build does **not** do is
+confirm that a remote accession still resolves — that is a periodic manual audit, last
+run 2026-08-01 against the live RCSB and PubChem APIs (378 unique IDs, all resolving).
 
 See [`IMAGE_POLICY.md`](IMAGE_POLICY.md), [`LICENSING.md`](LICENSING.md), and
 [`src/schema.ts`](src/schema.ts).

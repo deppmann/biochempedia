@@ -32,11 +32,17 @@ A non-AI image must declare where it came from via a `credit` field — either
 `"Original — <name>"` or a CC license plus attribution. A non-AI image with no
 `credit` also fails the build.
 
-### 4. The exemplar lesson uses zero raster images — on purpose.
-The enzyme-kinetics lesson renders every structure live (Mol*/PubChem) and draws
-its kinetics plots from equations in the browser. There is nothing to fact-check.
-This is the recommended default: **prefer live data and generated plots over
-static figures.**
+### 4. No lesson ships a standalone raster figure — on purpose.
+All 30 lessons carry an empty `images[]`. Every structure renders live from an
+accession ID (Mol*/PubChem) and every plot is drawn from its equation in the
+browser, so there is no hand-made figure to keep in sync with the prose. This is
+the standing default: **prefer live data and generated plots over static figures.**
+
+The exception is `lectureSlides[]`, covered next. Those *are* raster, and at 305
+slides they are the site's main image surface. A lesson's Sources & Integrity panel
+has to account for both collections: keying its "no raster figures" line off
+`images[]` alone once had 27 lessons telling students there was nothing to
+fact-check while they carried slides.
 
 ### 5. Lecture slides: the instructor's own work, screened for figures.
 Slides reproduced from an instructor's deck (`lectureSlides[]`) are the author's
@@ -47,17 +53,21 @@ every slide is screened on **two** axes before inclusion:
 2. **Copyright** — is it the instructor's own content (text, their own diagrams
    and analogies), with **no reproduced publisher figures**?
 
-Each slide must name a human in `reviewedBy`, or the build fails. In the
-enzyme-kinetics lesson, the four included slides are Chris's own compositions
-(the toll-booth analogy, the Km comparison, the kcat infographic, the
-uncompetitive-inhibition explainer); slides that reproduced textbook figures
-(the magenta progress curves, the standard M–M/Lineweaver–Burk plots, the
-enzyme-cartoon inhibitor series) were deliberately left out.
+Each slide must name a human in `reviewedBy`, or the build fails. Across the site
+that is 305 slides, every one screened by the lecture author, C. Deppmann. Slides
+that reproduced textbook figures were left out of the decks rather than published
+with a caveat.
+
+Where a published slide uses AI-assisted illustration and has a known artifact —
+a bond drawn wrong, a ring in the wrong chair — the slide carries an `aiNote`, and
+that note renders as a visible caption under the slide. Two slides currently carry
+one. `aiNote` records a defect on an otherwise-cleared slide; it is not a substitute
+for the `reviewedBy` screen, which every slide must pass regardless.
 
 ## How the enforcement works
 
 The gate lives in [`src/schema.ts`](src/schema.ts) as Zod `superRefine` checks on
-the `images`, `structures`, and `question` shapes. Astro validates every lesson's
+the `images`, `structures`, `lectureSlide`, and `question` shapes. Astro validates every lesson's
 frontmatter against this schema during `astro build`, so any violation aborts the
 build with a clear message.
 
