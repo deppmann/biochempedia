@@ -78,7 +78,7 @@ The build **fails** if:
 Local asset and link references are checked separately by `scripts/check-assets.mjs`,
 which fails the build on any broken local reference. What the build does **not** do is
 confirm that a remote accession still resolves — that is a periodic manual audit, last
-run 2026-08-01 against the live RCSB and PubChem APIs (378 unique IDs, all resolving).
+run 2026-08-12 against the live RCSB and PubChem APIs (378 unique IDs, all resolving).
 
 See [`IMAGE_POLICY.md`](IMAGE_POLICY.md), [`LICENSING.md`](LICENSING.md), and
 [`src/schema.ts`](src/schema.ts).
