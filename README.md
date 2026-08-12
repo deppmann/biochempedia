@@ -97,16 +97,29 @@ research project's retrieval module.
 
 ## Deploy target
 
-Cloudflare Pages at `biochempedia.deppmannlab.com` — **public** (no Cloudflare
-Access; the members/corpus surfaces are the gated ones). Static Astro build,
-output `dist/`. The brand comes from the real [`deppmann-brand`](https://github.com/deppmann/deppmann-brand)
+A **Cloudflare Worker** (Workers Builds), git-connected to `main` — a push builds
+and deploys automatically, ~1–2 min. Static Astro build, output `dist/`.
+**Public**; no Cloudflare Access (the members/corpus surfaces are the gated ones).
+
+- Worker origin: `biochempedia.deppmann.workers.dev`
+- Public canonical domain: **`biochemistrypedia.com`** (Cloudflare Registrar,
+  Cloudflare nameservers, same account as the Worker)
+
+`site` in [`astro.config.mjs`](astro.config.mjs) must equal the public canonical
+domain — canonical links, OG urls, and `/sitemap.xml` all derive from it, and
+`public/robots.txt` hardcodes the sitemap URL alongside it. Change all three
+together or search engines get pointed at a host that isn't bound.
+
+The brand comes from the real [`deppmann-brand`](https://github.com/deppmann/deppmann-brand)
 package via the `brand/` submodule; [`src/styles/tokens.css`](src/styles/tokens.css)
 aliases those tokens onto the components' `--ddp-*` names.
 
-> **DNS guardrail (from the Phase-0 decisions):** the public `deppmannlab.com`
-> apex/www stay on **Netlify, DNS-only** — never proxy Netlify through
-> Cloudflare. Only the subdomains get Cloudflare Pages. Full ecosystem decisions
-> live in the brand repo's `DECISIONS.md`.
+> **DNS guardrail (from the Phase-0 decisions):** `deppmannlab.com` apex/www stay
+> on **Netlify, DNS-only** — never proxy Netlify through Cloudflare. That domain
+> is not involved in this deploy: `biochemistrypedia.com` is a separate
+> Cloudflare-registered zone. Full ecosystem decisions live in the brand repo's
+> `DECISIONS.md`, which still describes the older `biochempedia.deppmannlab.com`
+> plan and wants updating.
 
 ## License
 

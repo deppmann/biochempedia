@@ -7,7 +7,7 @@ import { getCollection } from 'astro:content';
  * astro.config.mjs. Prerendered to /sitemap.xml at build time.
  */
 export async function GET(context: APIContext): Promise<Response> {
-  const base = (context.site?.href ?? 'https://biochempedia.deppmannlab.com').replace(/\/$/, '');
+  const base = (context.site?.href ?? 'https://biochemistrypedia.com').replace(/\/$/, '');
   const lessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
   const paths = ['/', '/about', '/fun', '/contact', ...lessons.map((l) => `/lessons/${l.data.slug}/`)];
   const body =
