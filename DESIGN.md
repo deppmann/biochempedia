@@ -1,4 +1,4 @@
-# Biochempedia — Design Philosophy
+# Biochemistrypedia — Design Philosophy
 
 The guiding principle, applied throughout the site:
 

@@ -1,4 +1,4 @@
-# Contributing a lesson to Biochempedia
+# Contributing a lesson to Biochemistrypedia
 
 A lesson is **one folder**. To add lesson #2, you copy the example folder, fill in
 the data, write the prose, and open a pull request. The build checks your work.

@@ -1,4 +1,4 @@
-# Biochempedia
+# Biochemistrypedia
 
 An interactive, **integrity-first** biochemistry learning site for BIOL 3030 at the
 University of Virginia — the deliverable for Prof. Chris Deppmann's AI Catalyst

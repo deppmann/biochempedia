@@ -1,6 +1,6 @@
 # Licensing & Source Policy
 
-This file is the **allow / deny list** for everything that goes into a Biochempedia
+This file is the **allow / deny list** for everything that goes into a Biochemistrypedia
 lesson. When in doubt, ask before adding a source.
 
 ## Code vs. content
