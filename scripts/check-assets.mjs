@@ -87,4 +87,55 @@ if (missing.size) {
 }
 
 console.log(`✓ check-assets: ${checked} local references across ${files.length} pages all resolve.`);
+
+/* ---------------------------------------------------------------------------
+   Webfont gate.
+
+   The brand tokens carry the Google Fonts @import that loads Playfair Display
+   and Inter. This site has only the two `preconnect` hints in <head> and no
+   stylesheet <link> of its own, so if that @import ever disappears the whole
+   site silently falls back to system fonts — every heading, every lesson — and
+   the build still passes. That happened once for real: bumping the `brand/`
+   submodule pin to a commit that had moved the @import out to the consumer
+   shipped a fontless site to production, and nothing caught it.
+
+   So assert the fonts are actually reachable, by either route.
+   --------------------------------------------------------------------------- */
+const FONT_HOST = 'fonts.googleapis.com';
+let fontSource = null;
+
+const cssDir = join(DIST, '_astro');
+if (existsSync(cssDir)) {
+  for (const entry of await readdir(cssDir)) {
+    if (!entry.endsWith('.css')) continue;
+    if ((await readFile(join(cssDir, entry), 'utf8')).includes(FONT_HOST)) {
+      fontSource = `@import in _astro/${entry}`;
+      break;
+    }
+  }
+}
+if (!fontSource) {
+  // A <link rel="stylesheet"> in <head> is the other legitimate way to load them.
+  for (const file of files) {
+    const html = await readFile(file, 'utf8');
+    if (/<link[^>]+rel=["']?stylesheet["']?[^>]*fonts\.googleapis\.com/i.test(html) ||
+        /<link[^>]+fonts\.googleapis\.com[^>]*rel=["']?stylesheet/i.test(html)) {
+      fontSource = `<link rel="stylesheet"> in ${posix.basename(file)}`;
+      break;
+    }
+  }
+}
+
+if (!fontSource) {
+  console.error(`\n✗ check-assets: no webfont source found in the build.`);
+  console.error(`  Playfair Display and Inter would fall back to system fonts sitewide.`);
+  console.error(`  Most likely cause: the brand/ submodule pin moved to a commit that`);
+  console.error(`  dropped the Google Fonts @import from tokens.css and expects the`);
+  console.error(`  consumer to carry its own <link rel="stylesheet"> in <head>.`);
+  console.error(`  Fix: restore the pin (git ls-tree main brand), or add the <link> to`);
+  console.error(`  BaseLayout.astro alongside the existing preconnect hints.\n`);
+  process.exit(1);
+}
+console.log(`✓ check-assets: webfonts load via ${fontSource}.`);
+
 await stat(DIST); // touch, keep import used
