@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 
-// Biochempedia — static-first Astro site. Islands only where interactive
+// Biochemistrypedia — static-first Astro site. Islands only where interactive
 // (the Mol* viewer and the Michaelis–Menten plotter ship JS; everything else
 // renders to static HTML).
 //

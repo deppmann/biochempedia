@@ -1,7 +1,7 @@
 import { z } from 'astro:content';
 
 /* =============================================================================
-   Biochempedia lesson schema  (single source of truth for a lesson)
+   Biochemistrypedia lesson schema  (single source of truth for a lesson)
    -----------------------------------------------------------------------------
    Every lesson's frontmatter is validated against this at build time. Because
    Astro runs content-collection validation during `astro build`, ANY violation
