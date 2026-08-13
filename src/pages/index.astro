@@ -33,8 +33,12 @@ if (unmapped.length > 0) units.push({ name: 'New', slugs: [], entries: unmapped 
 
 /* Card hook: the `hook` frontmatter one-liner once approved; until then, the
    summary's first sentence, clamped to two lines by CSS. */
+/* An authored hook is printed whole. Only the fallback gets clipped to its
+   first sentence — applying the clip to both silently truncated every
+   two-sentence hook ("…before age three?" losing "The answer is
+   compartments."). */
 const hookFor = (l: (typeof lessons)[number]) =>
-  ((l.data as { hook?: string }).hook ?? l.data.summary).split(/(?<=[.?!])\s+/)[0];
+  (l.data as { hook?: string }).hook ?? l.data.summary.split(/(?<=[.?!])\s+/)[0];
 const firstLesson = lessons[0];
 ---
 
