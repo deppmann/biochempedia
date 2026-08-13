@@ -35,6 +35,15 @@ const websiteLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {/* Playfair Display + Inter, loaded here rather than via an @import inside the
+        brand tokens. A <link> in <head> starts the request immediately; the @import
+        sat three CSS hops deep. Same URL and same placement the lab site uses, and
+        the brand package expects each consumer to own this line. If you remove it,
+        scripts/check-assets.mjs fails the build rather than shipping system fonts. */}
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+    />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
     <meta name="description" content={desc} />
