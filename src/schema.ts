@@ -35,7 +35,12 @@ const scientist = z.object({
   quotes: z.array(z.string().min(1)).default([]),
   /** Optional portrait years etc., for display only. */
   dates: z.string().optional(),
-  /** Portrait image (from the book) shown on the card. Path under /public. */
+  /** Portrait image shown on the card. Path under /public. The whole set is
+   *  AI-generated engraving-style artwork from the book's profiles (confirmed
+   *  by the author, 2026-08-13) — depictions of likeness, not scientific
+   *  figures, so the images[] factCheckedBy gate does not apply. Disclosure is
+   *  mandatory instead: SourcesFooter labels them AI-generated wherever they
+   *  appear, and the <img> alt text says so too. See IMAGE_POLICY.md §6. */
   photo: z.string().optional(),
   /** The fuller story, revealed when the card is expanded. Adapted from the book. */
   story: z.string().optional(),

@@ -64,6 +64,26 @@ that note renders as a visible caption under the slide. Two slides currently car
 one. `aiNote` records a defect on an otherwise-cleared slide; it is not a substitute
 for the `reviewedBy` screen, which every slide must pass regardless.
 
+### 6. Scientist portraits: AI-generated artwork, labeled as artwork.
+The engraving-style portraits on the scientist cards (`scientist.photo`, 32 images)
+are **all AI-generated** — they come from *The Molecule Hunters*' profile set, and
+the author confirmed their provenance on 2026-08-13. They sit outside the Rule-2
+`factCheckedBy` gate on purpose: that gate exists for images that carry **science**
+(a pathway, a mechanism, a structure), where a confident error teaches something
+false. A portrait carries a likeness. There is no scientific claim in it to check,
+and no one is asked to trust it as a photograph.
+
+What the site owes the reader instead is disclosure, enforced by convention in
+code rather than by schema:
+- every lesson's **Sources & Integrity panel** labels the portraits AI-generated
+  wherever it counts or mentions them (`SourcesFooter.astro`);
+- every portrait's **alt text** says "AI-generated illustrated portrait of …"
+  (`[...slug].astro`).
+
+If a portrait is ever replaced with a real photograph, it needs a license +
+`credit` like any other non-AI image — move it into `images[]` or extend the
+schema at that point.
+
 ## How the enforcement works
 
 The gate lives in [`src/schema.ts`](src/schema.ts) as Zod `superRefine` checks on

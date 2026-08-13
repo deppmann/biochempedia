@@ -112,7 +112,9 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
         </ul>
         <p class="src-meta">
           Quotes are verbatim from the cited source. Profile text adapted from <em>The Molecule Hunters</em> (authors' IP).
-          {portraitCount > 0 && ` The ${portraitCount === 1 ? 'portrait is a stylized engraving-style illustration' : `${portraitCount} portraits are stylized engraving-style illustrations`} from the book's profiles, not historical photographs.`}
+          {portraitCount > 0 && ` The ${portraitCount === 1 ? 'portrait is an' : `${portraitCount} portraits are`} `}
+          {portraitCount > 0 && <span class="ai-flag">AI-generated</span>}
+          {portraitCount > 0 && ` engraving-style illustration${portraitCount === 1 ? '' : 's'} from the book's profiles — artistic depictions of each scientist, never photographs.`}
         </p>
       </div>
     )}
@@ -146,7 +148,7 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
           the ones itemized in this panel:
           {slideCount > 0 && ` its ${slideCount} lecture slides (each listed above with its deck, its credit, and the person who screened it for accuracy and copyright)`}
           {slideCount > 0 && portraitCount > 0 && ' and'}
-          {portraitCount > 0 && ` its ${portraitCount} scientist portrait${portraitCount === 1 ? '' : 's'} (illustrations from the book's profiles, listed in the Scientist profiles panel)`}.
+          {portraitCount > 0 && ` its ${portraitCount} scientist portrait${portraitCount === 1 ? '' : 's'} (AI-generated illustrations from the book's profiles, disclosed in the Scientist profiles panel)`}.
           {flaggedSlides > 0 && ` ${flaggedSlides} slide${flaggedSlides === 1 ? ' carries' : 's carry'} a caption flagging a known illustration artifact.`}
           {' '}Every 3D structure is rendered live from an accession ID.
         </p>
@@ -172,8 +174,10 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
     Two different things are checked here, and they are worth telling apart. The
     build verifies the mechanical facts: every accession ID resolves, every local
     asset exists, every question's answer key points at a real choice, and any
-    AI-generated figure in the lesson's figure list names the human who checked
-    it (scientist portraits are the book's own illustrations, credited above). The science is checked by a
+    AI-generated scientific figure names the human who checked it. The scientist
+    portraits are AI-generated artwork, labeled as such above — they depict the
+    person, they carry no science, and nothing on this site asks you to trust a
+    picture of a face. The science is checked by a
     person — Prof.&nbsp;Deppmann cleared each lecture slide for accuracy and for
     copyright, and his name is on every one of them in the panel above. Questions
     are original; MCAT-style items are written for this site and are not real AAMC
