@@ -241,6 +241,11 @@ export const lessonSchema = z.object({
   /** The course slide-deck title this lesson maps to (e.g. "Mechanisms and Inhibitors"). */
   courseChapter: z.string().min(1),
   summary: z.string().min(1),
+  /** One-line outcome shown on the homepage card (author-approved). Without
+   *  it the card falls back to the summary's first sentence. Zod strips
+   *  unknown keys, so this field must exist here for authored hooks to
+   *  survive parsing. */
+  hook: z.string().optional(),
 
   /** Learning objectives shown in the orientation card ("What you'll learn"). */
   objectives: z.array(z.string()).default([]),
