@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import LabMenu from '../components/LabMenu.astro';
+import Footer from '../../brand/Footer.astro';
+import { feedbackUrl } from '../lib/feedback';
 
 interface Props {
   title: string;
@@ -82,40 +84,64 @@ const websiteLd = {
       <slot />
     </main>
 
-    <footer class="site-footer">
-      <div class="wrap">
-        <p>
-          <strong>Biochemistrypedia</strong> — an interactive biochemistry textbook,
-          an <a href="/about">AI&nbsp;Catalyst</a> project by the
-          Deppmann Lab.
-        </p>
-        <p class="fine footer-nav">
-          <a href="/">Lessons</a> · <a href="/about">About</a> · <a href="/fun">The Fun Stuff</a> · <a href="/contact">Contact</a>
-          · <a href="https://deppmannlab.com">Deppmann&nbsp;Lab</a> ↗
-          · <a href="https://deppmannlab.com/podcast">Podcast</a> ↗
-        </p>
-        <p class="fine">
-          Code: MIT. Lesson narrative & scientist profiles are drawn from
-          <em>The Molecule Hunters</em> and Prof. Deppmann's lectures (authors'
-          IP — see <a href="https://github.com/deppmann/biochempedia/blob/main/NOTICE">NOTICE</a>).
-          Structures are loaded live from RCSB&nbsp;PDB (CC0) and PubChem.
-          Simulations from PhET (CC&nbsp;BY&nbsp;4.0). &copy; {year}.
-        </p>
-        <p class="fine disclaimer">
-          <strong>A note on the figures.</strong> Some lecture slides here use AI-assisted
-          illustration, and a few carry a caption flagging a specific artifact on that
-          slide — a bond drawn wrong, a ring in the wrong chair. For anything you intend
-          to memorize, work from the live 3D structures in the lesson&rsquo;s Explore panel:
-          those load by accession ID from RCSB&nbsp;PDB and PubChem, so no one has drawn
-          them by hand or by model. Every slide names the person who screened it, and each
-          lesson&rsquo;s Sources &amp; Integrity panel lists what that covers. Found an
-          error? Tell me and I will fix it — the <a href="/contact">contact page</a>, or
-          <a href="mailto:deppmann@gmail.com">deppmann@gmail.com</a>.
-        </p>
-        <!-- SEAM: the shared deppmann-brand footer partial (student-credit +
-             inspiration-credit lines) replaces this block once Handoff 0 ships. -->
-      </div>
-    </footer>
+    {/* The shared deppmann-brand footer — this is the SEAM the old hand-rolled
+        block was holding open. Columns carry the ecosystem links so the two
+        sites read as one place; the slot carries what this surface owes and the
+        others do not (third-party licences, the figure caveat). */}
+    <Footer
+      brand="Biochemistrypedia"
+      address={[
+        'An interactive biochemistry textbook',
+        'from the Deppmann Lab',
+        'University of Virginia',
+      ]}
+      tagline="An AI Catalyst project · University of Virginia"
+      columns={[
+        {
+          heading: 'This site',
+          links: [
+            { label: 'Lessons', href: '/' },
+            { label: 'About', href: '/about' },
+            { label: 'The Fun Stuff', href: '/fun' },
+            { label: 'Contact', href: '/contact' },
+          ],
+        },
+        {
+          heading: 'From the lab',
+          links: [
+            { label: 'Deppmann Lab', href: 'https://deppmannlab.com', external: true },
+            { label: 'Teaching', href: 'https://deppmannlab.com/teaching', external: true },
+            { label: 'We Are Biochemistry', href: 'https://deppmannlab.com/podcast', external: true },
+          ],
+        },
+        {
+          heading: 'Corrections',
+          links: [
+            { label: 'Report an error', href: feedbackUrl(), external: true },
+            { label: 'deppmann@gmail.com', href: 'mailto:deppmann@gmail.com' },
+          ],
+        },
+      ]}
+    >
+      <p>
+        <strong>A note on the figures.</strong> Some lecture slides here use AI-assisted
+        illustration, and a few carry a caption flagging a specific artifact on that
+        slide — a bond drawn wrong, a ring in the wrong chair. For anything you intend
+        to memorize, work from the live 3D structures in the lesson&rsquo;s Explore panel:
+        those load by accession ID from RCSB&nbsp;PDB and PubChem, so no one has drawn
+        them by hand or by model. Every slide names the person who screened it, and each
+        lesson&rsquo;s Sources &amp; Integrity panel lists what that covers.
+        <a href="/contact">Found an error? Tell me and I will fix it.</a>
+      </p>
+      <p>
+        The code is MIT-licensed. Lesson narrative and scientist profiles are drawn from
+        <em>The Molecule Hunters</em> and Prof. Deppmann&rsquo;s lectures, and remain the
+        authors&rsquo; own (see the
+        <a href="https://github.com/deppmann/biochempedia/blob/main/NOTICE">NOTICE</a>).
+        Structures load live from RCSB&nbsp;PDB (CC0) and PubChem. Simulations from
+        PhET Interactive Simulations (CC&nbsp;BY&nbsp;4.0).
+      </p>
+    </Footer>
 
     <style>
       .site-header {
@@ -180,27 +206,6 @@ const websiteLd = {
       @media (max-width: 400px) {
         .brand { font-size: var(--ddp-text-base); }
         .nav-link { font-size: 0.66rem; }
-      }
-      .site-footer {
-        margin-top: var(--ddp-space-16);
-        border-top: 1px solid var(--ddp-color-line);
-        padding: var(--ddp-space-8) 0 var(--ddp-space-12);
-        color: var(--ddp-color-ink-soft);
-        font-size: var(--ddp-text-sm);
-      }
-      .site-footer .fine {
-        color: var(--ddp-color-muted);
-        font-size: var(--ddp-text-xs);
-      }
-      .site-footer .disclaimer {
-        margin-top: var(--ddp-space-4);
-        padding-top: var(--ddp-space-4);
-        border-top: 1px solid var(--ddp-color-line);
-        max-width: 80ch;
-        line-height: 1.6;
-      }
-      .site-footer .disclaimer a {
-        color: var(--ddp-color-accent);
       }
     </style>
   </body>
