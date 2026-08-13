@@ -17,7 +17,10 @@
   <figcaption class="cox-head">The carbon oxidation ladder — oxidation is energy<span class="cox-chip">⚙ original · interactive</span></figcaption>
 
   <div class="cox-grid">
-    <div class="cox-ladder" data-ladder role="list" aria-label="Biomolecules ordered by average carbon oxidation state">
+    {/* role="group", not "list": the rungs are buttons, and giving them
+        role="listitem" overrode the button role so AT never announced them
+        as operable. */}
+    <div class="cox-ladder" data-ladder role="group" aria-label="Biomolecules ordered by average carbon oxidation state">
       <span class="cox-pole cox-pole-top">most reduced · electron-rich · most energy</span>
       <span class="cox-pole cox-pole-bot">most oxidized · electron-poor · no energy left</span>
     </div>
@@ -109,7 +112,6 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'cox-rung';
-      btn.setAttribute('role', 'listitem');
       btn.setAttribute('aria-pressed', 'false');
       btn.style.borderLeftColor = colorFor(r);
       const dot = document.createElement('span');

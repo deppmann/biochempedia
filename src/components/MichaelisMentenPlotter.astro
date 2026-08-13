@@ -185,9 +185,9 @@
       mmSvg.appendChild(el('path', { d: mmCurve(km, vmax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
 
       // drag handles
-      const hVmax = el('circle', { cx: sx(S_MAX * 0.86), cy: sy(vmax), r: 7, fill: NAVY, stroke: '#fff', 'stroke-width': 2, cursor: 'ns-resize', 'data-handle': 'vmax' });
+      const hVmax = el('circle', { cx: sx(S_MAX * 0.86), cy: sy(vmax), r: 7, fill: NAVY, stroke: '#fff', 'stroke-width': 2, cursor: 'ns-resize', 'data-handle': 'vmax', style: 'touch-action: none' });
       mmSvg.appendChild(hVmax);
-      const hKm = el('circle', { cx: sx(km), cy: sy(halfv), r: 7, fill: ACCENT, stroke: '#fff', 'stroke-width': 2, cursor: 'ew-resize', 'data-handle': 'km' });
+      const hKm = el('circle', { cx: sx(km), cy: sy(halfv), r: 7, fill: ACCENT, stroke: '#fff', 'stroke-width': 2, cursor: 'ew-resize', 'data-handle': 'km', style: 'touch-action: none' });
       mmSvg.appendChild(hKm);
     }
 
@@ -380,7 +380,8 @@
     background: #fff;
     border: 1px solid var(--ddp-color-line);
     border-radius: var(--ddp-radius-sm);
-    touch-action: none;
+    /* touch-action lives on the drag handles, not here — on the whole plot it
+       made a full-width figure impossible to scroll past on a phone. */
   }
   .mm-controls {
     display: grid;
