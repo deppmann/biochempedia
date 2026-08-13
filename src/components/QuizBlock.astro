@@ -16,11 +16,14 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 ---
 
 <section class="quiz card" data-quiz aria-label="Self-test">
+  {/* aria-live so Prev/Next announces which question is showing; the score
+      changes in the same tick as the verdict, so it stays out of the live
+      region to avoid double-speaking. */}
   <div class="quiz-top">
-    <span class="quiz-progress">Question <strong data-qnum>1</strong> of {items.length}</span>
+    <span class="quiz-progress" aria-live="polite">Question <strong data-qnum>1</strong> of {items.length}</span>
     <span class="quiz-score">Score <strong data-correct>0</strong> / <span data-answered>0</span></span>
   </div>
-  <div class="quiz-bar"><span class="quiz-bar-fill" data-bar></span></div>
+  <div class="quiz-bar"><span class="quiz-bar-fill" data-bar style={`width: ${(1 / items.length) * 100}%`}></span></div>
 
   <div class="quiz-stage">
     {items.map((it, i) => (
@@ -37,7 +40,10 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             </li>
           ))}
         </ul>
-        <div class="q-feedback" hidden>
+        {/* role="status": answering must be announced — verdict + rationale are
+            the whole point of a self-test, and they were silent to screen
+            readers. */}
+        <div class="q-feedback" role="status" hidden>
           <p class="q-verdict" data-verdict></p>
           <p class="q-rationale"><strong>Why:</strong> {it.q.rationale}</p>
         </div>
@@ -153,7 +159,7 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
   .quiz-bar-fill {
     display: block;
     height: 100%;
-    width: 12.5%;
+    /* width comes from the inline style (1/N at render, updated by JS). */
     background: var(--ddp-color-accent);
     transition: width 0.25s ease;
   }
