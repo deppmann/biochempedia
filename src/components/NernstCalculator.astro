@@ -22,10 +22,10 @@
 
   <div class="nrn-sliders">
     <label class="nrn-slabel">Outside [ion]ₒ <em data-out="out">5</em> mM
-      <input type="range" data-in="out" min="0" max="100" step="1" value="50" />
+      <input type="range" data-in="out" min="0" max="100" step="1" value="50" aria-valuetext="5 mM" />
     </label>
     <label class="nrn-slabel">Inside [ion]ᵢ <em data-out="in">140</em> mM
-      <input type="range" data-in="in" min="0" max="100" step="1" value="50" />
+      <input type="range" data-in="in" min="0" max="100" step="1" value="50" aria-valuetext="140 mM" />
     </label>
   </div>
 
@@ -35,7 +35,7 @@
     <div><dt>Equilibrium potential E<sub>ion</sub></dt><dd data-r-e>−89 mV</dd></div>
     <div><dt>Concentration ratio out/in</dt><dd data-r-ratio>0.04</dd></div>
   </dl>
-  <p class="nrn-why" data-why>Potassium is high inside and low outside, so it tends to leak out, leaving the inside negative — which is why the resting cell sits near E_K.</p>
+  <p class="nrn-why" data-why role="status">Potassium is high inside and low outside, so it tends to leak out, leaving the inside negative — which is why the resting cell sits near E_K.</p>
 
   <p class="nrn-foot">E = (61.5 / z) · log₁₀([out]/[in]) mV at body temperature. Each ion pulls the membrane toward its own E; the resting potential is the weighted compromise, dominated by whichever ion the membrane lets through most.</p>
 </figure>
@@ -102,6 +102,8 @@
       const i = sliderToConc(parseInt(inIn.value, 10), def.max);
       outOut.textContent = o < 10 ? o.toString() : Math.round(o).toString();
       inOut.textContent = i < 10 ? i.toString() : Math.round(i).toString();
+      outIn.setAttribute('aria-valuetext', outOut.textContent + ' mM');
+      inIn.setAttribute('aria-valuetext', inOut.textContent + ' mM');
       const e = (61.5 / def.z) * Math.log10(o / i);
       rE.textContent = (e > 0 ? '+' : '') + Math.round(e) + ' mV';
       rRatio.textContent = (o / i).toPrecision(2);

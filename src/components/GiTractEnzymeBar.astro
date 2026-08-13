@@ -21,13 +21,13 @@
   </div>
 
   <label class="get-slabel">Position along the GI tract <em data-out="loc">Stomach</em>
-    <input type="range" data-in="loc" min="0" max="2" step="1" value="1" />
+    <input type="range" data-in="loc" min="0" max="2" step="1" value="1" aria-valuetext="Stomach" />
     <span class="get-ticks"><span>Mouth</span><span>Stomach</span><span>Small intestine</span></span>
   </label>
 
   <ul class="get-bars" data-bars></ul>
 
-  <p class="get-why" data-why></p>
+  <p class="get-why" data-why role="status"></p>
 
   <p class="get-foot">There is no single "best" pH for digestion — each enzyme is tuned to the compartment it works in. Salivary amylase starts on starch at the near-neutral pH of the mouth, then the stomach's acid bath denatures it for good while switching pepsin on. Once the chyme reaches the duodenum, pancreatic bicarbonate neutralizes the acid back to ~8, which is exactly where pancreatic amylase, trypsin, chymotrypsin, and lipase do their best work. Match the enzyme to its pH, and you have matched it to its place.</p>
 </figure>
@@ -149,6 +149,7 @@
       const i = parseInt(locIn.value, 10);
       const loc = LOCS[i];
       locOut.textContent = loc.name;
+      locIn.setAttribute('aria-valuetext', loc.name);
       locName.textContent = loc.name;
       phEl.textContent = loc.ph.toFixed(1);
       phEl.style.color = loc.ph < 4 ? '#c0392b' : loc.ph > 7.4 ? ACCENT : NAVY;

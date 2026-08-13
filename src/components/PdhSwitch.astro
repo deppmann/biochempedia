@@ -14,9 +14,9 @@
   <figcaption class="pdh-head">Switching the PDH complex on and off<span class="pdh-chip">⚙ original · interactive</span></figcaption>
 
   <div class="pdh-presets" role="group" aria-label="Physiological state">
-    <button type="button" data-preset="fed">Fed / resting</button>
-    <button type="button" data-preset="sprint">Sprinting muscle</button>
-    <button type="button" data-preset="fasting">Fasting (burning fat)</button>
+    <button type="button" data-preset="fed" aria-pressed="false">Fed / resting</button>
+    <button type="button" data-preset="sprint" aria-pressed="false">Sprinting muscle</button>
+    <button type="button" data-preset="fasting" aria-pressed="false">Fasting (burning fat)</button>
   </div>
 
   <div class="pdh-effectors">
@@ -38,7 +38,7 @@
     <div class="pdh-badge" data-badge>PDH ON</div>
     <div class="pdh-flux" data-flux>Pyruvate → Acetyl-CoA: flowing</div>
   </div>
-  <p class="pdh-why" data-why>With no effectors set, the phosphatase keeps the complex dephosphorylated and active by default.</p>
+  <p class="pdh-why" data-why role="status">With no effectors set, the phosphatase keeps the complex dephosphorylated and active by default.</p>
 
   <p class="pdh-foot">Phosphorylation is the master switch: PDK adds a phosphate to shut PDH off when the cell is fuel-rich; PDP removes it to turn PDH on when the cell needs to burn pyruvate. The products of the reaction (acetyl-CoA, NADH) feed back to switch it off — classic product inhibition through a kinase.</p>
 </figure>
@@ -76,6 +76,7 @@
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) =>
       btn.addEventListener('click', () => {
         const p = PRESETS[btn.getAttribute('data-preset')!];
+        root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
         boxes.forEach((b) => { b.checked = !!p.effs[b.getAttribute('data-eff')!]; });
         render(p.why);
       }));

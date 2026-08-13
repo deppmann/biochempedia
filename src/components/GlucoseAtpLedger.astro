@@ -20,15 +20,15 @@
     <div class="gal-tgroup">
       <span class="gal-tlabel">P/O convention</span>
       <div class="gal-tbtns" role="group">
-        <button type="button" data-po="modern" class="gal-on">Modern (2.5 / 1.5)</button>
-        <button type="button" data-po="classic">Classic (3 / 2)</button>
+        <button type="button" data-po="modern" class="gal-on" aria-pressed="true">Modern (2.5 / 1.5)</button>
+        <button type="button" data-po="classic" aria-pressed="false">Classic (3 / 2)</button>
       </div>
     </div>
     <div class="gal-tgroup">
       <span class="gal-tlabel">Cytosolic-NADH shuttle</span>
       <div class="gal-tbtns" role="group">
-        <button type="button" data-shuttle="malate" class="gal-on">Malate–aspartate</button>
-        <button type="button" data-shuttle="glycerol">Glycerophosphate</button>
+        <button type="button" data-shuttle="malate" class="gal-on" aria-pressed="true">Malate–aspartate</button>
+        <button type="button" data-shuttle="glycerol" aria-pressed="false">Glycerophosphate</button>
       </div>
     </div>
   </div>
@@ -82,7 +82,7 @@
     <span class="gal-foot-line">* The 2 cytosolic NADH from glycolysis can't cross the mitochondrial membrane directly — a shuttle moves their electrons in, and which shuttle decides whether they're cashed as NADH or as FADH₂.</span>
   </p>
 
-  <p class="gal-why" data-why></p>
+  <p class="gal-why" data-why role="status"></p>
 
   <p class="gal-foot">The famous "~38 ATP per glucose" is the old textbook number, built on round P/O ratios of 3 and 2. Measured proton stoichiometry gives the modern estimate of roughly 30–32, and the exact figure isn't a constant of nature — it depends on which shuttle a tissue uses and on the leakiness of the membrane. The lesson of this ledger isn't a number to memorize; it's that the cell does accounting, and the answer shifts with the assumptions you bring to the books.</p>
 </figure>
@@ -141,11 +141,13 @@
     poBtns.forEach((b) => b.addEventListener('click', () => {
       po = (b.dataset.po as PO);
       poBtns.forEach((x) => x.classList.toggle('gal-on', x === b));
+      poBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       render();
     }));
     shutBtns.forEach((b) => b.addEventListener('click', () => {
       shuttle = (b.dataset.shuttle as Shuttle);
       shutBtns.forEach((x) => x.classList.toggle('gal-on', x === b));
+      shutBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       render();
     }));
 

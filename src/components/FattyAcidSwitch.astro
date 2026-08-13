@@ -13,15 +13,15 @@
   <figcaption class="fas2-head">Build or burn — never both at once<span class="fas2-chip">⚙ original · interactive</span></figcaption>
 
   <div class="fas2-presets" role="group" aria-label="State">
-    <button type="button" data-preset="fed">Fed (insulin high)</button>
-    <button type="button" data-preset="fasting">Fasting / exercise (glucagon, AMPK)</button>
+    <button type="button" data-preset="fed" aria-pressed="true">Fed (insulin high)</button>
+    <button type="button" data-preset="fasting" aria-pressed="false">Fasting / exercise (glucagon, AMPK)</button>
   </div>
 
   <label class="fas2-slabel">Acetyl-CoA carboxylase (ACC) activity → malonyl-CoA <em data-out="mal">high</em>
     <input type="range" data-in="mal" min="0" max="100" step="5" value="80" />
   </label>
 
-  <div class="fas2-states">
+  <div class="fas2-states" role="status">
     <div class="fas2-state" data-s-syn><span class="fas2-s-name">Fatty acid synthesis</span><span class="fas2-s-v" data-syn>ON</span></div>
     <div class="fas2-state" data-s-cpt><span class="fas2-s-name">CPT-1 gate (fat import)</span><span class="fas2-s-v" data-cpt>blocked</span></div>
     <div class="fas2-state" data-s-ox><span class="fas2-s-name">β-oxidation (fat burning)</span><span class="fas2-s-v" data-ox>OFF</span></div>
@@ -59,6 +59,7 @@
     malIn.addEventListener('input', () => render());
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) =>
       b.addEventListener('click', () => {
+        root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
         const fed = b.getAttribute('data-preset') === 'fed';
         malIn.value = fed ? '85' : '10';
         render(fed

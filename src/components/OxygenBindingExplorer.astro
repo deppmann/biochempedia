@@ -17,14 +17,14 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
   <figcaption class="obc-head">{title}<span class="obc-chip">drag · original · computed live</span></figcaption>
   <svg class="obc-svg" viewBox="0 0 460 320" role="img" aria-label="Oxygen-binding saturation curve: O2 saturation versus partial pressure pO2, comparing myoglobin and hemoglobin" data-svg></svg>
   <div class="obc-presets" data-presets>
-    <button type="button" data-preset="hba">Normal HbA</button>
-    <button type="button" data-preset="mb">Myoglobin</button>
-    <button type="button" data-preset="bpg">+ 2,3-BPG</button>
-    <button type="button" data-preset="bohr">Acidosis / Bohr</button>
-    <button type="button" data-preset="exercise">Exercise (all four)</button>
-    <button type="button" data-preset="fetal">Fetal Hb</button>
-    <button type="button" data-preset="goose">Bar-headed goose</button>
-    <button type="button" data-preset="co">CO poisoning</button>
+    <button type="button" data-preset="hba" aria-pressed="true">Normal HbA</button>
+    <button type="button" data-preset="mb" aria-pressed="false">Myoglobin</button>
+    <button type="button" data-preset="bpg" aria-pressed="false">+ 2,3-BPG</button>
+    <button type="button" data-preset="bohr" aria-pressed="false">Acidosis / Bohr</button>
+    <button type="button" data-preset="exercise" aria-pressed="false">Exercise (all four)</button>
+    <button type="button" data-preset="fetal" aria-pressed="false">Fetal Hb</button>
+    <button type="button" data-preset="goose" aria-pressed="false">Bar-headed goose</button>
+    <button type="button" data-preset="co" aria-pressed="false">CO poisoning</button>
   </div>
   <div class="obc-body">
     <div class="obc-controls">
@@ -41,7 +41,7 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
       <div><dt>O₂ delivered</dt><dd data-r="delivered" class="obc-big">—</dd></div>
     </dl>
   </div>
-  <p class="obc-caption" data-caption>At n<sub>H</sub> 2.8 and P<sub>50</sub> 26, hemoglobin delivers about two-thirds of its O₂ between lungs (100 torr) and resting tissue (20 torr). Hit "Myoglobin" to see a non-cooperative, high-affinity carrier give up only ~7%.</p>
+  <p class="obc-caption" data-caption role="status">At n<sub>H</sub> 2.8 and P<sub>50</sub> 26, hemoglobin delivers about two-thirds of its O₂ between lungs (100 torr) and resting tissue (20 torr). Hit "Myoglobin" to see a non-cooperative, high-affinity carrier give up only ~7%.</p>
 </figure>
 
 <script>
@@ -152,6 +152,7 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
       b.addEventListener('click', () => {
         const pr = PRESETS[b.getAttribute('data-preset')!];
+        root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
         state.n = pr.n; state.p50 = pr.p50; state.ymax = pr.ymax;
         nIn.value = String(pr.n); pIn.value = String(pr.p50);
         caption.textContent = pr.cap;

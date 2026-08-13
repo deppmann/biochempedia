@@ -18,9 +18,9 @@
 
   <div class="agr-presets">
     <span class="agr-presets-label">Species:</span>
-    <button type="button" data-preset="8">Mammal · c8</button>
-    <button type="button" data-preset="10">Yeast · c10</button>
-    <button type="button" data-preset="14">Chloroplast · c14</button>
+    <button type="button" data-preset="8" aria-pressed="true">Mammal · c8</button>
+    <button type="button" data-preset="10" aria-pressed="false">Yeast · c10</button>
+    <button type="button" data-preset="14" aria-pressed="false">Chloroplast · c14</button>
   </div>
 
   <label class="agr-slabel">c-ring size <em data-out="cnum">8</em> c-subunits
@@ -32,7 +32,7 @@
     <div class="agr-cell"><span class="agr-c-name">Proton cost (gear ratio)</span><span class="agr-c-v agr-hi" data-ratio>2.7 H⁺ / ATP</span></div>
     <div class="agr-cell"><span class="agr-c-name">ATP from one NADH (~10 H⁺)</span><span class="agr-c-v" data-yield>3.8 ATP</span></div>
   </div>
-  <p class="agr-why" data-why></p>
+  <p class="agr-why" data-why role="status"></p>
 
   <p class="agr-foot">The "P/O ratio" you memorized as a constant is really a gear ratio you can read off the hardware. A smaller c-ring (mammal c8 ≈ 2.7 H⁺/ATP) is a high-yield gearbox — fewer protons per ATP — but it needs a steeper proton-motive force to crank, like a low gear on a hill. A bigger ring (spinach c14 ≈ 4.7) spends more protons per ATP yet turns at a gentler Δp. Same machine, different transmission — and evolution tuned each one to the membrane it lives in.</p>
 </figure>
@@ -111,6 +111,7 @@
       ratioEl.textContent = `${ratio.toFixed(1)} H⁺ / ATP`;
       yieldEl.textContent = `${(H_PER_NADH / ratio).toFixed(1)} ATP`;
       presetBtns.forEach((b) => b.classList.toggle('is-on', parseInt(b.dataset.preset!, 10) === c));
+      presetBtns.forEach((b) => b.setAttribute('aria-pressed', String(parseInt(b.dataset.preset!, 10) === c)));
       whyEl.textContent = c <= 8
         ? `Mammalian mitochondria run the smallest known ring (c8). At ${ratio.toFixed(1)} H⁺/ATP this is the highest-yield gearbox in the lineup — one NADH's ~10 protons buy about ${(H_PER_NADH / ratio).toFixed(1)} ATP — but it only turns if the membrane holds a steep proton-motive force.`
         : c <= 11
