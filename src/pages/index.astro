@@ -6,6 +6,36 @@ import LessonIcon from '../components/LessonIcon.astro';
 const lessons = (await getCollection('lessons'))
   .filter((l) => !l.data.draft)
   .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+
+/* Course units (approved 2026-08-13). Membership is by slug so a typo or an
+   unmapped new lesson is visible: anything not listed falls into "New", it is
+   never silently dropped. Within a unit, lessons keep their global order. */
+const UNITS: { name: string; slugs: string[] }[] = [
+  { name: 'Foundations', slugs: ['vitalism', 'intro-biochemistry-cell-biology', 'water-weak-bonds'] },
+  { name: 'Proteins', slugs: ['amino-acids', 'protein-3d-structure', 'protein-purification-techniques'] },
+  { name: 'Enzymes & Binding', slugs: ['enzyme-action-basics', 'enzyme-kinetics', 'protein-binding-allostery'] },
+  { name: 'Sugars, Lipids & Membranes', slugs: ['carbohydrates', 'lipids', 'membrane-structure-function'] },
+  { name: 'Signaling & Digestion', slugs: ['signal-transduction', 'digestion'] },
+  { name: 'Central Metabolism', slugs: ['metabolism-basic-concepts', 'glycolysis', 'gluconeogenesis', 'citric-acid-cycle', 'pyruvate-dehydrogenase', 'oxidative-phosphorylation', 'proton-motive-force'] },
+  { name: 'Photosynthesis', slugs: ['light-reactions', 'calvin-cycle'] },
+  { name: 'Fuels, Fat & Nitrogen', slugs: ['pentose-phosphate-pathway', 'fatty-acid-degradation', 'fatty-acid-synthesis', 'lipid-synthesis', 'protein-turnover-amino-acid-catabolism'] },
+  { name: 'Supplements', slugs: ['nucleotide-metabolism', 'integration-of-metabolism'] },
+];
+const mapped = new Set(UNITS.flatMap((u) => u.slugs));
+const units = UNITS.map((u) => ({
+  ...u,
+  entries: lessons
+    .map((l, i) => ({ l, n: i + 1 }))
+    .filter(({ l }) => u.slugs.includes(l.data.slug)),
+})).filter((u) => u.entries.length > 0);
+const unmapped = lessons.map((l, i) => ({ l, n: i + 1 })).filter(({ l }) => !mapped.has(l.data.slug));
+if (unmapped.length > 0) units.push({ name: 'New', slugs: [], entries: unmapped });
+
+/* Card hook: the `hook` frontmatter one-liner once approved; until then, the
+   summary's first sentence, clamped to two lines by CSS. */
+const hookFor = (l: (typeof lessons)[number]) =>
+  ((l.data as { hook?: string }).hook ?? l.data.summary).split(/(?<=[.?!])\s+/)[0];
+const firstLesson = lessons[0];
 ---
 
 <BaseLayout
@@ -33,6 +63,54 @@ const lessons = (await getCollection('lessons'))
 
     <p class="tagline">For students who'd rather understand it than survive it.</p>
 
+    {/* The one unmistakable primary action (approved layout, 2026-08-13):
+        a first-time visitor starts at chapter 1; a returning student jumps
+        to the unit list one anchor away. */}
+    <p class="hero-cta">
+      <a class="cta" href={`/lessons/${firstLesson.data.slug}/`}>Start with Chapter 1 →</a>
+      <a class="cta-ghost" href="#lessons">Browse the units ↓</a>
+    </p>
+  </section>
+
+  <section class="wrap lessons" id="lessons">
+    <p class="sec-label">Chapters · {lessons.length === 1 ? 'one live now' : `${lessons.length} live now`}</p>
+
+    <nav class="unit-filter" aria-label="Filter lessons by unit">
+      <button type="button" data-unit="all" aria-pressed="true">All</button>
+      {units.map((u) => (
+        <button type="button" data-unit={u.name} aria-pressed="false">{u.name}</button>
+      ))}
+    </nav>
+
+    {units.map((u, ui) => (
+      <section class="unit" data-unit-section={u.name}>
+        <h2 class="unit-h">Unit {ui + 1} · {u.name}</h2>
+        <ul class="lesson-list">
+          {u.entries.map(({ l, n }) => (
+            <li>
+              <a href={`/lessons/${l.data.slug}/`} class="lesson-card">
+                <span class="lc-order" aria-hidden="true">{n}</span>
+                <span class="lc-ico"><LessonIcon slug={l.data.slug} /></span>
+                <span class="lc-body">
+                  <span class="lc-chapter">{l.data.courseChapter}</span>
+                  <span class="lc-title">{l.data.title}</span>
+                  <span class="lc-summary">{hookFor(l)}</span>
+                  <span class="lc-meta">
+                    {l.data.structures.length} structures ·
+                    {' '}{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions{l.data.estMinutes ? ` · ~${l.data.estMinutes} min` : ''}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </section>
+
+  {/* The feature register explains the site to someone already sold — it sits
+      below the chapters now instead of in front of them. */}
+  <section class="wrap register-band">
     <div class="register">
       <div class="chip">
         <span class="chip-ico">
@@ -98,33 +176,6 @@ const lessons = (await getCollection('lessons'))
     </div>
   </section>
 
-  <section class="wrap lessons">
-    <p class="sec-label">Chapters · {lessons.length === 1 ? 'one live now' : `${lessons.length} live now`}</p>
-    {lessons.length === 0 ? (
-      <p class="empty">No lessons published yet.</p>
-    ) : (
-      <ul class="lesson-list">
-        {lessons.map((l, i) => (
-          <li>
-            <a href={`/lessons/${l.data.slug}/`} class="lesson-card">
-              <span class="lc-order" aria-hidden="true">{i + 1}</span>
-              <span class="lc-ico"><LessonIcon slug={l.data.slug} /></span>
-              <span class="lc-body">
-                <span class="lc-chapter">{l.data.courseChapter}</span>
-                <span class="lc-title">{l.data.title}</span>
-                <span class="lc-summary">{l.data.summary}</span>
-                <span class="lc-meta">
-                  {l.data.structures.length} live structures ·
-                  {' '}{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions{l.data.estMinutes ? ` · ~${l.data.estMinutes} min` : ''}
-                </span>
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    )}
-  </section>
-
   <section class="wrap funbar">
     <a href="/fun" class="funbar-link">
       <span class="funbar-text">
@@ -134,6 +185,22 @@ const lessons = (await getCollection('lessons'))
       <span class="funbar-arrow" aria-hidden="true">→</span>
     </a>
   </section>
+
+  <script>
+    // Unit filter. "All" restores everything; a unit chip shows only that unit.
+    const filter = document.querySelector('.unit-filter');
+    if (filter) {
+      const chips = Array.from(filter.querySelectorAll<HTMLButtonElement>('button[data-unit]'));
+      const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-unit-section]'));
+      chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const pick = chip.getAttribute('data-unit')!;
+          chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+          sections.forEach((s) => (s.hidden = pick !== 'all' && s.getAttribute('data-unit-section') !== pick));
+        });
+      });
+    }
+  </script>
 
   <style>
     .funbar { padding: 0 var(--ddp-space-6) var(--ddp-space-16); }
@@ -159,6 +226,13 @@ const lessons = (await getCollection('lessons'))
     /* ---- Hero: a left-aligned editorial column, "quiet authority" ---- */
     .hero {
       padding: var(--ddp-space-16) var(--ddp-space-6) var(--ddp-space-8);
+    }
+    /* Phone: same content, less air, so "Start with Chapter 1" clears the fold. */
+    @media (max-width: 720px) {
+      .hero { padding-top: var(--ddp-space-8); }
+      .goldrule { margin: var(--ddp-space-4) 0; }
+      .hero-cta { margin-top: var(--ddp-space-4); }
+      .sec-label { margin-top: var(--ddp-space-4); }
     }
     .eyebrow {
       display: flex;
@@ -214,6 +288,85 @@ const lessons = (await getCollection('lessons'))
       color: var(--ddp-color-caution);
       margin: var(--ddp-space-4) 0 0;
     }
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ddp-space-4);
+      margin: var(--ddp-space-6) 0 0;
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0.55em 1.3em;
+      background: var(--ddp-color-primary);
+      color: var(--ddp-color-surface);
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 999px;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .cta:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; color: var(--ddp-color-surface); }
+    .cta-ghost {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: var(--ddp-color-accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .cta-ghost:hover { text-decoration: underline; }
+
+    /* Unit filter: one sticky row of chips. Filtering is enhancement — with no
+       JS every unit stays visible and the chips are inert. */
+    .unit-filter {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ddp-space-2);
+      padding: var(--ddp-space-3) 0;
+      margin-bottom: var(--ddp-space-2);
+      background: var(--ddp-color-bg);
+      border-bottom: 1px solid var(--ddp-color-line);
+    }
+    .unit-filter button {
+      font: inherit;
+      font-size: var(--ddp-text-xs);
+      font-weight: 600;
+      color: var(--ddp-color-ink-soft);
+      background: var(--ddp-color-surface);
+      border: 1px solid var(--ddp-color-line);
+      border-radius: 999px;
+      padding: 0.35em 0.8em;
+      min-height: 36px;
+      cursor: pointer;
+    }
+    .unit-filter button:hover { border-color: var(--ddp-color-accent); }
+    .unit-filter button[aria-pressed='true'] {
+      color: var(--ddp-color-primary);
+      border-color: var(--ddp-color-accent);
+      background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface));
+      font-weight: 700;
+    }
+    .unit { margin-bottom: var(--ddp-space-6); }
+    .unit[hidden] { display: none; }
+    .unit-h {
+      display: flex;
+      align-items: center;
+      gap: var(--ddp-space-3);
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ddp-color-muted);
+      margin: var(--ddp-space-6) 0 var(--ddp-space-3);
+    }
+    .unit-h::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
+    .register-band { padding: 0 var(--ddp-space-6) var(--ddp-space-8); }
 
     /* ---- Feature register: four engraving chips on a single ruled grid.
        gap:1px over a line-colored background paints the hairline dividers, so
@@ -291,7 +444,7 @@ const lessons = (await getCollection('lessons'))
       display: flex;
       gap: var(--ddp-space-4);
       align-items: flex-start;
-      padding: var(--ddp-space-6);
+      padding: var(--ddp-space-4) var(--ddp-space-5);
       background: var(--ddp-color-surface);
       border: 1px solid var(--ddp-color-line);
       border-radius: var(--ddp-radius);
@@ -369,13 +522,17 @@ const lessons = (await getCollection('lessons'))
       display: block;
       font-family: var(--ddp-font-serif);
       font-weight: 600;
-      font-size: var(--ddp-text-xl);
+      font-size: var(--ddp-text-lg);
       color: var(--ddp-color-primary);
       line-height: 1.2;
       margin-bottom: var(--ddp-space-2);
     }
+    /* One-line hook, clamped: the full summary lives on the lesson page. */
     .lc-summary {
-      display: block;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
       color: var(--ddp-color-ink-soft);
       font-size: var(--ddp-text-sm);
       margin-bottom: var(--ddp-space-2);
