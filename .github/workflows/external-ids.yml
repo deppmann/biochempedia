@@ -1,0 +1,20 @@
+# Weekly re-resolution of every external accession the lessons cite
+# (RCSB PDB, PubChem, YouTube, PhET, Spotify). The build can't catch a
+# retracted PDB entry or a pulled video; this can. A red run means a live
+# lesson cites something that no longer exists — check the log for the
+# exact IDs. Replaces the manual audit last run 2026-08-12.
+name: External IDs
+on:
+  schedule:
+    - cron: '0 12 * * 1' # Mondays 12:00 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/audit-external-ids.mjs

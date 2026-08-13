@@ -1,0 +1,31 @@
+# CI gate. Cloudflare Workers Builds deploys straight from main regardless of
+# this workflow's result — CI cannot block a deploy, it can only tell you a
+# push was broken. Treat a red run on main as "production is likely broken"
+# and fix forward immediately.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The brand/ submodule (pinned, detached) carries the design tokens;
+          # without it the build fails to resolve the shared CSS.
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # astro check && astro build && check-assets (local refs + webfont gate)
+      - run: npm run build
+      # Answer keys must not be exploitably biased toward one letter.
+      - run: node scripts/check-quiz.mjs
+      # Draft lessons must not generate public routes or sitemap entries.
+      - run: node scripts/check-drafts.mjs
