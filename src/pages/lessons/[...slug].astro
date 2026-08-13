@@ -62,7 +62,8 @@ const lessonLd = {
     {lesson.objectives.length > 0 && (
       <aside class="wrap orient" aria-label="Lesson overview">
         <div class="orient-obj card">
-          <h2>What you'll learn</h2>
+          {/* Time lives in the heading so hiding the meta row on mobile loses nothing. */}
+          <h2>What you'll learn{lesson.estMinutes ? ` · ~${lesson.estMinutes} min` : ''}</h2>
           <ul>{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
         </div>
         <ul class="orient-meta">
@@ -277,7 +278,7 @@ const lessonLd = {
         <div class="lightbox-head"><span>{s.name}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           <div class={`profile${s.photo ? '' : ' no-photo'}`}>
-            {s.photo && <img class="profile-photo" src={s.photo} alt={`Portrait of ${s.name}`} />}
+            {s.photo && <img class="profile-photo" src={s.photo} alt={`AI-generated illustrated portrait of ${s.name}`} />}
             <div class="profile-text">
               <h3>{s.name} {s.dates && <span class="profile-dates">{s.dates}</span>}</h3>
               <p class="profile-contribution">{s.contribution}</p>
@@ -386,6 +387,25 @@ const lessonLd = {
       window.addEventListener('resize', syncToTop, { passive: true });
     }
 
+    // The mobile Explore chips stay sticky for the first ~2 screens of
+    // narrative, then release so they never shadow the whole read. Same
+    // scroll-listener pattern as .to-top (IO doesn't fire in hidden tabs).
+    const explore = document.querySelector<HTMLElement>('.mobile-explore');
+    if (explore) {
+      const releaseAt = () => explore.offsetTop + 2 * (window.innerHeight || 800);
+      let limit = releaseAt();
+      const syncExplore = () => {
+        explore.classList.toggle('me-released', window.scrollY > limit);
+        explore.classList.toggle(
+          'is-stuck',
+          window.scrollY > explore.offsetTop && window.scrollY <= limit
+        );
+      };
+      syncExplore();
+      window.addEventListener('scroll', syncExplore, { passive: true });
+      window.addEventListener('resize', () => { limit = releaseAt(); syncExplore(); }, { passive: true });
+    }
+
     document.querySelectorAll<HTMLDialogElement>('dialog.lightbox').forEach((d) => {
       d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
       d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
@@ -430,9 +450,19 @@ const lessonLd = {
     @media (max-width: 900px) {
       .mobile-explore {
         display: block;
-        padding: 0 var(--ddp-space-6) var(--ddp-space-2);
+        padding: var(--ddp-space-2) var(--ddp-space-6);
         margin-bottom: var(--ddp-space-4);
+        /* Sticky through the first stretch of narrative (JS releases it after
+           ~2 screens), so the shortcuts are in hand at the first "rotate this
+           molecule" reference. */
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: var(--ddp-color-bg);
+        border-bottom: 1px solid transparent;
       }
+      .mobile-explore.is-stuck { border-bottom-color: var(--ddp-color-line); }
+      .mobile-explore.me-released { position: static; }
       .me-title {
         margin: 0 0 var(--ddp-space-2);
         font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
@@ -601,5 +631,24 @@ const lessonLd = {
     /* Keep the pill clear of the last line of content on narrow screens. */
     @media (max-width: 900px) { .lesson-layout { padding-bottom: var(--ddp-space-12); } }
     @media (prefers-reduced-motion: reduce) { .to-top { transition: none; } }
+
+    /* Approved layout (2026-08-13): on a phone the opening burned 1.5 screens
+       before the first sentence. The objectives stay; their treatment shrinks,
+       and the meta row goes — the Explore chips just below repeat it exactly.
+       This block sits LAST in the stylesheet: media queries add no specificity,
+       so placed earlier the base .orient-meta { display:flex } would win. */
+    @media (max-width: 900px) {
+      .lesson-hero { padding-top: var(--ddp-space-8); }
+      .orient { margin-bottom: var(--ddp-space-4); }
+      .orient-meta { display: none; }
+      .orient-obj { padding: var(--ddp-space-3) var(--ddp-space-4); }
+      .orient-obj h2 {
+        font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+        letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-2);
+      }
+      .orient-obj ul { gap: var(--ddp-space-1); }
+      .orient-obj li { font-size: var(--ddp-text-xs); line-height: 1.5; }
+    }
   </style>
 </BaseLayout>
