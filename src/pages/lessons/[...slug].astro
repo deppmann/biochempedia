@@ -9,6 +9,7 @@ import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
+import { feedbackUrl } from '../../lib/feedback';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -117,7 +118,7 @@ const lessonLd = {
             </div>
           </section>
         )}
-      </main>
+      </div>
 
       <aside class="rail" id="rail" aria-label="Explore — open any resource">
         <p class="rail-title">Explore <span>· tap to open</span></p>
@@ -240,6 +241,11 @@ const lessonLd = {
             <span class="rail-ico" aria-hidden="true">📚</span>
             <span class="rail-label">Sources &amp; Integrity <em>every ID &amp; source</em></span>
           </button>
+          {/* Prefilled with this lesson, so a report arrives tagged. */}
+          <a class="rail-thumb" href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">
+            <span class="rail-ico" aria-hidden="true">✎</span>
+            <span class="rail-label">Report an error <em>or request something ↗</em></span>
+          </a>
         </div>
       </aside>
     </div>
@@ -494,6 +500,7 @@ const lessonLd = {
     }
     .rail-thumb {
       display: flex; align-items: center; gap: var(--ddp-space-3);
+      text-decoration: none; color: inherit;
       width: 100%; text-align: left; padding: var(--ddp-space-2);
       border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
       background: var(--ddp-color-surface); cursor: pointer; transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;

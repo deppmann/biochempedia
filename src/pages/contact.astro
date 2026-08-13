@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { feedbackUrl } from '../lib/feedback';
 ---
 
 <BaseLayout title="Contact & corrections — Biochemistrypedia" description="Found an error? Tell us and we'll fix it.">
@@ -18,8 +19,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <h2>Spotted a correction?</h2>
     <p>
-      Email <a href="mailto:deppmann@gmail.com?subject=Biochemistrypedia%20correction">deppmann@gmail.com</a>
-      with the lesson, the slide or section, and what looks off. A screenshot helps.
+      <a class="cta" href={feedbackUrl()} target="_blank" rel="noopener">Open the correction form ↗</a>
+    </p>
+    <p>
+      It takes a minute and you do not have to say who you are. Tell me which
+      lesson, where on the page, and what looks off. Opening it from a lesson
+      fills the lesson name in for you.
+    </p>
+    <p>
+      The same form takes requests — a topic you want covered, an interactive
+      that would help, anything the site is missing.
+    </p>
+    <p>
+      If you would rather write to me directly, or you need to attach a
+      screenshot, email
+      <a href="mailto:deppmann@gmail.com?subject=Biochemistrypedia%20correction">deppmann@gmail.com</a>.
       I read every one, and a confirmed error gets fixed or the figure comes down.
     </p>
 
@@ -42,5 +56,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color: var(--ddp-color-muted);
       font-size: var(--ddp-text-sm);
     }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0.6em 1.1em;
+      border-radius: 999px;
+      background: var(--ddp-color-primary);
+      color: var(--ddp-color-surface);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .cta:hover { text-decoration: none; opacity: 0.9; }
   </style>
 </BaseLayout>
