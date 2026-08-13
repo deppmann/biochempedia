@@ -37,6 +37,14 @@ for (const dir of (await readdir(LESSONS, { withFileTypes: true })).filter((d) =
   const answers = [...text.matchAll(/^\s*answer:\s*(\d+)\s*$/gm)].map((m) => Number(m[1]));
   if (!answers.length) continue;
 
+  // Rationales must never refer to choices by position — students see letters,
+  // the files historically mixed 0- and 1-based counting, and any reorder (or a
+  // future shuffle) silently falsifies the reference. Cleaned site-wide on
+  // 2026-08-13; this keeps it clean.
+  for (const m of text.matchAll(/\bchoices? [0-9]\b|\bthe (?:first|second|third|last) (?:choice|option)\b/gi)) {
+    failures.push(`${dir.name}: positional choice reference in text: "…${m[0]}…" — name the choice's content instead`);
+  }
+
   const dist = new Map();
   for (const a of answers) {
     dist.set(a, (dist.get(a) ?? 0) + 1);
