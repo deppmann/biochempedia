@@ -41,7 +41,8 @@ const sourceHref =
 
   <div class="mol-stage" style={`height:${height}px`}>
     <div id={domId} class="mol-canvas"></div>
-    <div id={`${domId}-status`} class="mol-status">
+    {/* role="status": load failures were silent to screen readers. */}
+    <div id={`${domId}-status`} class="mol-status" role="status">
       <span class="spinner" aria-hidden="true"></span>
       Loading live structure {id} from {providerLabel}…
     </div>
@@ -81,6 +82,11 @@ const sourceHref =
           resolve(window.molstar);
         };
         s.onerror = function () {
+          // Un-cache the failure and drop the dead <script> so the NEXT viewer
+          // retries the fetch. Caching the rejected promise meant one blip on a
+          // flaky connection permanently killed every viewer on the page.
+          window.__molstarPromise = null;
+          s.remove();
           reject(new Error('Failed to load Mol* bundle'));
         };
         document.head.appendChild(s);
