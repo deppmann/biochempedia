@@ -27,7 +27,9 @@ const websiteLd = {
   name: SITE_NAME,
   url: siteUrl || undefined,
   description: DEFAULT_DESC,
-  publisher: { '@type': 'Organization', name: 'Deppmann Lab, University of Virginia' },
+  // The publisher is the person, not the university — this is the same claim
+  // the footer's copyright line makes, in the form search engines read.
+  publisher: { '@type': 'Person', name: 'Christopher Deppmann' },
 };
 ---
 
@@ -88,14 +90,19 @@ const websiteLd = {
         block was holding open. Columns carry the ecosystem links so the two
         sites read as one place; the slot carries what this surface owes and the
         others do not (third-party licences, the figure caveat). */}
+    {/* This site is Chris's own work — not university work, and not the
+        deliverable of a funded grant — so it names him as the rights holder
+        and claims no institutional sponsorship. `copyright` overrides the
+        brand default of "<brand>, University of Virginia"; tagline="" is
+        deliberate, since omitting it would inherit the lab's department line. */}
     <Footer
       brand="Biochemistrypedia"
       address={[
         'An interactive biochemistry textbook',
         'from the Deppmann Lab',
-        'University of Virginia',
       ]}
-      tagline="An AI Catalyst project · University of Virginia"
+      copyright="Christopher Deppmann"
+      tagline=""
       columns={[
         {
           heading: 'This site',

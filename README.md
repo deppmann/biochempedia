@@ -1,8 +1,8 @@
 # Biochemistrypedia
 
 An interactive, **integrity-first** biochemistry learning site for BIOL 3030 at the
-University of Virginia — the deliverable for Prof. Chris Deppmann's AI Catalyst
-grant, *"Biochempedia: An AI Tutor and Interactive Textbook."*
+University of Virginia. It is Prof. Chris Deppmann's own project — unfunded, and
+not a deliverable owed to anyone.
 
 Every molecular structure is loaded **live from a public database** (nothing is
 drawn by an AI). Every simulation is something a student can poke. Every question
