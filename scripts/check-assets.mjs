@@ -139,3 +139,52 @@ if (!fontSource) {
 console.log(`✓ check-assets: webfonts load via ${fontSource}.`);
 
 await stat(DIST); // touch, keep import used
+
+/* ---------------------------------------------------------------------------
+   Analytics gate.
+
+   Same failure shape as the webfont gate above: a <head> tag that can vanish
+   without breaking anything visible. If the Plausible snippet stops emitting,
+   every page still renders perfectly and the build still passes — the only
+   symptom is a traffic graph that quietly flatlines, which nobody notices for
+   weeks.
+
+   Two ways it can silently disappear: BaseLayout's `import.meta.env.PROD`
+   guard failing to be true in the deploy environment, or someone dropping
+   `is:inline` and letting Astro bundle the tags into a module (the queue shim
+   must run before the remote script, and hoisting breaks that order).
+
+   So assert both halves are present, inline, in the built HTML.
+   --------------------------------------------------------------------------- */
+const PLAUSIBLE_HOST = 'plausible.io/js/';
+let analyticsPage = null;
+let missingInit = null;
+
+for (const file of files) {
+  const html = await readFile(file, 'utf8');
+  if (!html.includes(PLAUSIBLE_HOST)) continue;
+  // The remote tag alone is not enough — without the init call nothing fires.
+  if (html.includes('plausible.init()')) {
+    analyticsPage = posix.basename(file);
+    break;
+  }
+  missingInit = posix.basename(file);
+}
+
+if (!analyticsPage) {
+  console.error(`\n✗ check-assets: the Plausible snippet is not in the built HTML.`);
+  if (missingInit) {
+    console.error(`  Found the remote script in ${missingInit} but no plausible.init() call,`);
+    console.error(`  so the tracker loads and never fires. Most likely cause: Astro bundled`);
+    console.error(`  the inline shim — check that BOTH <script> tags still carry is:inline.`);
+  } else {
+    console.error(`  No page carries it, so biochemistrypedia.com records zero traffic.`);
+    console.error(`  Most likely cause: the import.meta.env.PROD guard in BaseLayout.astro`);
+    console.error(`  is false in this build, or the block was removed.`);
+    console.error(`  Note: a dev build legitimately omits it — this gate runs after`);
+    console.error(`  \`astro build\`, where PROD is true.`);
+  }
+  console.error(``);
+  process.exit(1);
+}
+console.log(`✓ check-assets: Plausible snippet present and initialised (${analyticsPage}).`);

@@ -68,6 +68,24 @@ const websiteLd = {
     <meta name="generator" content={Astro.generator} />
     <script type="application/ld+json" set:html={JSON.stringify(websiteLd)} />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {/* Plausible analytics. Cookieless and collects no personal data, which is why
+        this site can carry it without putting a consent banner in front of students.
+
+        `is:inline` on both tags is load-bearing. Astro bundles and hoists <script>
+        by default, which would rewrite this snippet into a module and break the
+        contract it depends on: the queue shim has to exist before plausible.init()
+        runs, and the remote file has to stay a plain async tag.
+
+        Production only, so `astro dev` sessions do not report as traffic. */}
+    {import.meta.env.PROD && (
+      <Fragment>
+        <script is:inline async src="https://plausible.io/js/pa-jxoRZ4lv7R_mVBfemACiu.js"></script>
+        <script is:inline>
+          window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+          plausible.init()
+        </script>
+      </Fragment>
+    )}
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to content</a>
