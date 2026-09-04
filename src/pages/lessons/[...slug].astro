@@ -63,7 +63,7 @@ const lessonLd = {
       <aside class="wrap orient" aria-label="Lesson overview">
         <div class="orient-obj card">
           {/* Time lives in the heading so hiding the meta row on mobile loses nothing. */}
-          <h2>What you'll learn{lesson.estMinutes ? ` · ~${lesson.estMinutes} min` : ''}</h2>
+          <h2 class="orient-pad-left" >What you'll learn{lesson.estMinutes ? ` · ~${lesson.estMinutes} min` : ''}</h2>
           <ul>{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
         </div>
         <ul class="orient-meta">
@@ -114,7 +114,7 @@ const lessonLd = {
             <h2>How we measure it</h2>
             <div class="tech-grid">
               {lesson.techniques.map((t) => (
-                <div class="tech card"><h3>{t.name}</h3><p>{t.blurb}</p></div>
+                <div class="tech card orient-pad"><h3>{t.name}</h3><p>{t.blurb}</p></div>
               ))}
             </div>
           </section>
@@ -126,13 +126,20 @@ const lessonLd = {
 
         {lesson.explainLevels.length > 0 && (
           <div class="rail-group">
-            <h3>Explain at my level</h3>
-            {lesson.explainLevels.map((lv) => (
-              <button type="button" class="rail-thumb" data-open={`lb-level-${lv.level}`}>
-                <span class="rail-ico" aria-hidden="true">{LEVEL_ICONS[lv.level]}</span>
-                <span class="rail-label">{lv.label} <em>explain it →</em></span>
+            <h3>
+              <button type="button" class="rail-toggle rail-btn" aria-expanded="false" aria-controls="levels-list">
+                Explain at my level
+                <span aria-hidden="true">⌄</span>
               </button>
-            ))}
+            </h3>
+            <div id="levels-list" class="rail-items" hidden>
+              {lesson.explainLevels.map((lv) => (
+                <button type="button" class="rail-thumb" data-open={`lb-level-${lv.level}`}>
+                  <span class="rail-ico" aria-hidden="true">{LEVEL_ICONS[lv.level]}</span>
+                  <span class="rail-label">{lv.label} <em>explain it →</em></span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -148,13 +155,20 @@ const lessonLd = {
 
         {lesson.structures.length > 0 && (
           <div class="rail-group">
-            <h3>3D molecules</h3>
-            {lesson.structures.map((s) => (
+            <h3>
+              <button type="button" class="rail-toggle rail-btn" aria-expanded="false" aria-controls="molecule-list">
+                3D molecules ({ lesson.structures.length })
+                <span aria-hidden="true">⌄</span>
+              </button>
+            </h3>
+            <div id="molecule-list" class="rail-items" hidden>
+              {lesson.structures.map((s) => (
               <button type="button" class="rail-thumb" data-open={structId(s)}>
                 <img src={s.source === 'rcsb' ? rcsbThumb(s.id) : pubchemThumb(s.id)} alt="" loading="lazy" />
                 <span class="rail-label">{s.label.split('—')[0].trim()} <em>{s.source === 'rcsb' ? `PDB ${s.id}` : `CID ${s.id}`} · rotate</em></span>
               </button>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
@@ -178,33 +192,53 @@ const lessonLd = {
 
         {lesson.scientists.length > 0 && (
           <div class="rail-group">
-            <h3>The people</h3>
-            {lesson.scientists.map((s, i) => (
-              <button type="button" class="rail-thumb" data-open={`lb-sci-${i}`}>
-                {s.photo
-                  ? <img src={s.photo} alt="" loading="lazy" />
-                  : <span class="rail-ico" aria-hidden="true">👤</span>}
-                <span class="rail-label">{s.name} {s.dates && <em>{s.dates}</em>}</span>
+            <h3>
+              <button type="button" class="rail-toggle rail-btn" aria-expanded="false" aria-controls="people-list">
+                The people ({ lesson.scientists.length })
+                <span aria-hidden="true">⌄</span>
               </button>
-            ))}
+            </h3>
+            <div id="people-list" class="rail-items" hidden>
+              {lesson.scientists.map((s, i) => (
+                <button type="button" class="rail-thumb" data-open={`lb-sci-${i}`}>
+                  {s.photo
+                    ? <img src={s.photo} alt="" loading="lazy" />
+                    : <span class="rail-ico" aria-hidden="true">👤</span>}
+                  <span class="rail-label">{s.name} {s.dates && <em>{s.dates}</em>}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {lesson.anecdotes.length > 0 && (
           <div class="rail-group">
-            <h3>Stories &amp; asides</h3>
-            {lesson.anecdotes.map((a, i) => (
-              <button type="button" class="rail-thumb" data-open={`lb-anec-${i}`}>
-                <span class="rail-ico" aria-hidden="true">💡</span>
-                <span class="rail-label">{a.title} <em>story</em></span>
+            <h3>
+              <button type="button" class="rail-toggle rail-btn" aria-expanded="false" aria-controls="story-list">
+                Stories &amp; asides ({ lesson.anecdotes.length })
+                <span aria-hidden="true">⌄</span>
               </button>
-            ))}
+            </h3>
+            <div id="story-list" class="rail-items" hidden>
+              {lesson.anecdotes.map((a, i) => (
+                <button type="button" class="rail-thumb" data-open={`lb-anec-${i}`}>
+                  <span class="rail-ico" aria-hidden="true">💡</span>
+                  <span class="rail-label">{a.title} <em>story</em></span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {(lesson.videos.length > 0 || lesson.podcast) && (
           <div class="rail-group">
-            <h3>Watch &amp; listen</h3>
+            <h3>
+              <button type="button" class="rail-toggle rail-btn" aria-expanded="false" aria-controls="video-list">
+                Watch &amp; listen ({lesson.videos.length + (lesson.podcast ? 1 : 0)})
+                <span aria-hidden="true">⌄</span>
+              </button>
+            </h3>
+            <div id="video-list" class="rail-items" hidden>
             {lesson.videos.map((v, i) => (
               <button type="button" class="rail-thumb" data-open={`lb-video-${i}`}>
                 <img src={ytThumb(v.youtubeId)} alt="" loading="lazy" />
@@ -223,6 +257,7 @@ const lessonLd = {
                 </div>
               </details>
             )}
+            </div>
           </div>
         )}
 
@@ -253,28 +288,28 @@ const lessonLd = {
 
     {/* ---- Lightboxes (one per resource; hidden until opened) ---- */}
     {lesson.lectureSlides.length > 0 && (
-      <dialog id="lb-slides" class="lightbox">
+      <dialog id="lb-slides" class="lightbox lock-scroll">
         <div class="lightbox-head"><span>From the lecture</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><LectureSlides slides={lesson.lectureSlides} /></div>
       </dialog>
     )}
 
     {lesson.structures.map((s) => (
-      <dialog id={structId(s)} class="lightbox">
+      <dialog id={structId(s)} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{s.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><MolViewer source={s.source} id={s.id} label={s.label} caption={s.caption} height={520} /></div>
       </dialog>
     ))}
 
     {phetSims.map((s, i) => (
-      <dialog id={`lb-phet-${i}`} class="lightbox">
+      <dialog id={`lb-phet-${i}`} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{s.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><PhetEmbed url={s.ref} title={s.title} attribution={s.attribution} caption={s.caption} /></div>
       </dialog>
     ))}
 
     {lesson.scientists.map((s, i) => (
-      <dialog id={`lb-sci-${i}`} class="lightbox">
+      <dialog id={`lb-sci-${i}`} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{s.name}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           <div class={`profile${s.photo ? '' : ' no-photo'}`}>
@@ -294,33 +329,33 @@ const lessonLd = {
     ))}
 
     {lesson.videos.map((v, i) => (
-      <dialog id={`lb-video-${i}`} class="lightbox">
+      <dialog id={`lb-video-${i}`} class="lightbox lcok-scroll">
         <div class="lightbox-head"><span>{v.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><YouTubeEmbed youtubeId={v.youtubeId} title={v.title} sourceNote={v.sourceNote} /></div>
       </dialog>
     ))}
 
     {hasQuiz && (
-      <dialog id="lb-quiz" class="lightbox">
+      <dialog id="lb-quiz" class="lightbox lock-scroll">
         <div class="lightbox-head"><span>Test yourself</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} /></div>
       </dialog>
     )}
 
-    <dialog id="lb-sources" class="lightbox">
+    <dialog id="lb-sources" class="lightbox lock-scroll">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
       <div class="lightbox-body"><SourcesFooter lesson={lesson} /></div>
     </dialog>
 
     {lesson.explainLevels.map((lv) => (
-      <dialog id={`lb-level-${lv.level}`} class="lightbox">
+      <dialog id={`lb-level-${lv.level}`} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{lv.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body"><div class="prose-col level-body">{paras(lv.text).map((p) => <p>{p}</p>)}</div></div>
       </dialog>
     ))}
 
     {lesson.anecdotes.map((a, i) => (
-      <dialog id={`lb-anec-${i}`} class="lightbox">
+      <dialog id={`lb-anec-${i}`} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{a.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           {a.animation && <AnecdoteAnimation anim={a.animation} />}
@@ -531,7 +566,7 @@ const lessonLd = {
     .rail-thumb {
       display: flex; align-items: center; gap: var(--ddp-space-3);
       text-decoration: none; color: inherit;
-      width: 100%; text-align: left; padding: var(--ddp-space-2);
+      width: 100%; text-align: left; padding: var(--ddp-space-2); margin: var(--ddp-space-2) 0;
       border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
       background: var(--ddp-color-surface); cursor: pointer; transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
     }
@@ -575,17 +610,53 @@ const lessonLd = {
     .rail-slidepreview img { display: block; width: 100%; aspect-ratio: 22 / 17; object-fit: cover; background: #fff; }
     .rail-slidepreview .rail-label { padding: var(--ddp-space-2) var(--ddp-space-3); }
 
+    /* Styling for collapsible rail elements */
+    .rail-group h3 { margin: 0; }
+    .rail-toggle {
+      appearance: none;
+      width: 100%;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font: inherit;
+      font-size: 16px;
+      color: var(--text);
+      border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition:
+        background 120ms ease,
+        border-color 120ms ease;
+    }
+    .rail-toggle:hover { background: var(--surface-hover); border-color: var(--border-hover); }
+    .rail-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .rail-toggle span[aria-hidden] { transition: transform 160ms ease; }
+    .rail-toggle[aria-expanded="true"] span[aria-hidden] { transform: rotate(180deg); }
+    .rail-btn { font-family: var(--ddp-font-mono),serif; font-size: var(--ddp-text-sm);}
+
     /* Lightbox dialog */
     .lightbox {
-      border: none; padding: 0; border-radius: var(--ddp-radius);
-      width: min(1000px, 94vw); max-width: 94vw; max-height: 92vh; overflow: auto;
-      background: var(--ddp-color-surface); box-shadow: 0 24px 70px rgba(20, 22, 30, 0.35);
+      border: none;
+      padding: 0;
+      border-radius: var(--ddp-radius);
+      width: min(1000px, 94vw);
+      max-width: 94vw;
+      max-height: 92vh;
+      overflow: auto;
+      margin: auto;
+      background: var(--ddp-color-surface);
+      box-shadow: 0 24px 70px rgba(20, 22, 30, 0.35);
     }
     .lightbox::backdrop { background: rgba(20, 22, 30, 0.62); backdrop-filter: blur(2px); }
     .lightbox-head {
       position: sticky; top: 0; z-index: 2;
       display: flex; align-items: center; justify-content: space-between;
-      padding: var(--ddp-space-3) var(--ddp-space-5);
+      padding:
+        clamp(0.75rem, 1.5vw, 1rem)
+        clamp(1rem, 2vw, 1.5rem);
       border-bottom: 1px solid var(--ddp-color-line);
       background: var(--ddp-color-surface);
       font-family: var(--ddp-font-serif); font-weight: 600; color: var(--ddp-color-primary);
@@ -596,7 +667,7 @@ const lessonLd = {
       color: var(--ddp-color-ink-soft); flex: none;
     }
     .lightbox-close:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
-    .lightbox-body { padding: var(--ddp-space-5); }
+    .lightbox-body { padding: var(--ddp-space-3); }
     .level-body p { font-size: var(--ddp-text-base); line-height: 1.65; margin: 0 0 var(--ddp-space-4); }
     .level-body p:last-child { margin-bottom: 0; }
     .anec-source { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-style: italic; }
@@ -650,5 +721,46 @@ const lessonLd = {
       .orient-obj ul { gap: var(--ddp-space-1); }
       .orient-obj li { font-size: var(--ddp-text-xs); line-height: 1.5; }
     }
+
+    /* Fixing padding issues on elements */
+    .orient-pad-left { padding-inline-start: var(--ddp-space-3); }
+    .orient-pad { padding-inline: var(--ddp-space-3); }
+
+    /* Toggle class to lock scrolling on outer window while lightbox active */
+    body.scroll-locked {
+      overflow: hidden;
+    }
+    .lock-scroll {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
   </style>
+  <script>
+    /*
+    Lock scroll on outside window while elements with "lock-scroll" class are active
+        - Currently present on all lightbox elements
+    */
+    document.querySelectorAll('.lock-scroll').forEach((element) => {
+      element.addEventListener('mouseenter', () => {
+        document.body.classList.add('scroll-locked');
+      });
+      element.addEventListener('mouseleave', () => {
+        document.body.classList.remove('scroll-locked');
+      });
+    });
+
+    /*
+    Hide sub-elements for categories in the "Explore" nav bar
+    */
+    document.querySelectorAll('.rail-toggle').forEach((toggle) => {
+      toggle.addEventListener('click', () => {
+        const targetId = toggle.getAttribute('aria-controls');
+        const items = document.getElementById(targetId);
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        items.hidden = expanded;
+      });
+    });
+  </script>
 </BaseLayout>

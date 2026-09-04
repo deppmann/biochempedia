@@ -71,7 +71,7 @@ const websiteLd = {
     {/* Plausible analytics. Cookieless and collects no personal data, which is why
         this site can carry it without putting a consent banner in front of students.
 
-        `is:inline` on both tags is load-bearing. Astro bundles and hoists <script>
+        `is:inline` on both tags is load-bearing. Astro bundles and hoists script tags
         by default, which would rewrite this snippet into a module and break the
         contract it depends on: the queue shim has to exist before plausible.init()
         runs, and the remote file has to stay a plain async tag.
@@ -171,6 +171,9 @@ const websiteLd = {
     </Footer>
 
     <style>
+      #main {
+        padding-bottom: var(--ddp-space-6);
+      }
       .site-header {
         border-bottom: 1px solid var(--ddp-color-line);
         background: color-mix(in srgb, var(--ddp-color-surface) 88%, transparent);

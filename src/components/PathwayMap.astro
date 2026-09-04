@@ -71,7 +71,7 @@ const badge = (s: Step) => {
 ---
 
 <figure class="pathway card" data-pathway>
-  <figcaption class="pw-head">
+  <figcaption class="pw-head orient-pad">
     Glycolysis · 10 steps <span class="pw-chip">tap a step to reveal it</span>
   </figcaption>
 
@@ -85,7 +85,7 @@ const badge = (s: Step) => {
   <div class="pw-steps">
     {PHASES.map((ph) => (
       <div class="pw-phase" data-phase={ph.key}>
-        <p class="pw-phase-head"><span>{ph.label}</span> {ph.steps}</p>
+        <p class="pw-phase-head orient-pad-left"><span>{ph.label}</span> {ph.steps}</p>
         {STEPS.filter((s) => s.phase === ph.key).map((s) => (
           <div class={`pw-step${s.regulated ? ' is-reg' : ''}`} data-step={s.n} data-atp={s.atp} data-nadh={s.nadh} data-doubled={s.doubled ? '1' : '0'}>
             <button type="button" class="pw-step-head" aria-expanded="false">
@@ -107,7 +107,7 @@ const badge = (s: Step) => {
     ))}
   </div>
 
-  <div class="pw-controls">
+  <div class="pw-controls orient-pad-left">
     <button type="button" class="pw-btn" data-revealall>Reveal all 10 steps</button>
     <button type="button" class="pw-btn pw-btn-quiet" data-reset>Reset</button>
   </div>
@@ -233,4 +233,8 @@ const badge = (s: Step) => {
   .pw-btn:hover { opacity: 0.9; }
   .pw-btn-quiet { background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); border-color: var(--ddp-color-line); }
   .pw-btn-quiet:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+
+  /* Fixing padding issues on elements */
+    .orient-pad-left { padding-inline-start: var(--ddp-space-3); }
+    .orient-pad { padding-inline: var(--ddp-space-3); padding-top: var(--ddp-space-3) }
 </style>
