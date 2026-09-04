@@ -755,7 +755,11 @@ const lessonLd = {
     document.querySelectorAll('.rail-toggle').forEach((toggle) => {
       toggle.addEventListener('click', () => {
         const targetId = toggle.getAttribute('aria-controls');
+        if (!targetId) return;
+
         const items = document.getElementById(targetId);
+        if (!items) return;
+
         const expanded = toggle.getAttribute('aria-expanded') === 'true';
 
         toggle.setAttribute('aria-expanded', String(!expanded));
