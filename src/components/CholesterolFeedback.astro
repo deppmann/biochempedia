@@ -12,21 +12,23 @@
 <figure class="chf card" data-cholfb>
   <figcaption class="chf-head">The cholesterol thermostat — SREBP and the statin<span class="chf-chip">⚙ original · interactive</span></figcaption>
 
-  <label class="chf-slabel">Cholesterol reaching the cell (diet + uptake) <em data-out="chol">moderate</em>
-    <input type="range" data-in="chol" min="0" max="100" step="5" value="70" />
+  <label class="chf-slabel">
+    <span class="chf-slabel-row">Cholesterol reaching the cell (diet + uptake): <em data-out="chol">high</em></span>
+    <input type="range" data-in="chol" min="0" max="100" step="5" value="70" aria-valuetext="high, above the set point" />
+    <span class="chf-scale" aria-hidden="true"><span>low</span><span class="chf-scale-mid">set point</span><span>high</span></span>
   </label>
 
   <label class="chf-toggle"><input type="checkbox" data-in="statin" /> Statin (blocks HMG-CoA reductase)</label>
 
   <div class="chf-states">
-    <div class="chf-state" data-s-srebp><span class="chf-s-name">SREBP sensor</span><span class="chf-s-v" data-srebp></span></div>
-    <div class="chf-state" data-s-enz><span class="chf-s-name">HMG-CoA reductase</span><span class="chf-s-v" data-enz></span></div>
-    <div class="chf-state" data-s-ldlr><span class="chf-s-name">LDL receptors on surface</span><span class="chf-s-v" data-ldlr></span></div>
-    <div class="chf-state" data-s-blood><span class="chf-s-name">Blood LDL</span><span class="chf-s-v" data-blood></span></div>
+    <div class="chf-state is-off" data-s-srebp><span class="chf-s-name">SREBP sensor</span><span class="chf-s-v" data-srebp>inactive (held in ER)</span></div>
+    <div class="chf-state is-off" data-s-enz><span class="chf-s-name">HMG-CoA reductase</span><span class="chf-s-v" data-enz>low (synthesis off)</span></div>
+    <div class="chf-state is-off" data-s-ldlr><span class="chf-s-name">LDL receptors on surface</span><span class="chf-s-v" data-ldlr>low</span></div>
+    <div class="chf-state is-off" data-s-blood><span class="chf-s-name">Blood LDL</span><span class="chf-s-v" data-blood>rising ↑</span></div>
   </div>
-  <p class="chf-why" data-why role="status"></p>
+  <p class="chf-why" data-why role="status">Cell cholesterol is above the set point: SREBP stays clamped in the ER, the reductase is shut down and degraded, and LDL receptors are sparse. With few receptors clearing it, blood LDL drifts up — the state a high-cholesterol diet pushes you toward. Tick the statin box to see what the drug changes.</p>
 
-  <p class="chf-foot">HMG-CoA reductase is the committed, rate-limiting step, so the cell guards it four ways — transcription (SREBP), enzyme degradation, phosphorylation by AMPK, and the statin's competitive block. The clinical twist lives in the loop: when a statin starves the cell of cholesterol, the cell believes it is short and floods its surface with LDL receptors. Those receptors pull LDL out of the blood — which is how a synthesis inhibitor ends up lowering the number on your lab report.</p>
+  <p class="chf-foot">HMG-CoA reductase is the committed, rate-limiting step, so the cell guards it four ways — SREBP-driven transcription, translational control, AMPK phosphorylation, and sterol-triggered degradation — and a statin adds a fifth, a competitive block. The clinical twist lives in the loop: when a statin starves the cell of cholesterol, the cell believes it is short and floods its surface with LDL receptors. Those receptors pull LDL out of the blood — which is how a synthesis inhibitor ends up lowering the number on your lab report.</p>
 </figure>
 
 <script>
@@ -49,11 +51,16 @@
       const statin = statinIn.checked;
       // a statin blocks synthesis, so the cell ends up with less sterol than its supply suggests
       const effSterol = statin ? Math.max(0, chol - 45) : chol;
-      cholOut.textContent = chol > 66 ? 'high' : chol > 33 ? 'moderate' : 'low';
+      // the set point is 50: the supply label and the SREBP switch always agree
+      const level = chol >= 50 ? (chol >= 70 ? 'high' : 'slightly high') : (chol < 30 ? 'low' : 'slightly low');
+      cholOut.textContent = level;
+      cholIn.setAttribute('aria-valuetext', `${level}, ${chol >= 50 ? 'above' : 'below'} the set point`);
       const srebpActive = effSterol < 50;
       srebp.textContent = srebpActive ? 'ACTIVE → nucleus' : 'inactive (held in ER)';
       // enzyme: transcription up when SREBP active; statin blocks catalysis regardless
-      enz.textContent = statin ? 'protein up, but BLOCKED by statin' : (srebpActive ? 'high (synthesis ON)' : 'low (synthesis off)');
+      enz.textContent = statin
+        ? (srebpActive ? 'more made, but BLOCKED by statin' : 'low, and blocked by statin')
+        : (srebpActive ? 'high (synthesis ON)' : 'low (synthesis off)');
       ldlr.textContent = srebpActive ? 'HIGH' : 'low';
       blood.textContent = srebpActive ? 'falling ↓' : 'rising ↑';
       // sEnz lit only when the enzyme is actually producing sterol (SREBP on AND not statin-blocked)
@@ -62,10 +69,12 @@
       set(sLdlr, srebpActive);
       set(sBlood, srebpActive);
       why.textContent = statin
-        ? 'Statin on: synthesis is blocked, so the cell runs short of cholesterol even with supply coming in. SREBP activates, the cell carpets its surface with LDL receptors, and they vacuum LDL out of the blood — blood LDL falls. The receptor surge, not the blocked enzyme alone, is the real cholesterol-lowering mechanism.'
+        ? (srebpActive
+          ? 'Statin on: synthesis is blocked, so the cell runs short of cholesterol even with supply coming in. SREBP activates, the cell carpets its surface with LDL receptors, and they vacuum LDL out of the blood — blood LDL falls. The receptor surge, not the blocked enzyme alone, is the real cholesterol-lowering mechanism.'
+          : 'Statin on, but in this model the cholesterol supply is so high that the cell still senses plenty: SREBP stays in the ER, no receptor surge follows, and blood LDL is not pulled down. Slide the supply lower and the statin’s receptor surge appears — the drug works by making the cell feel short.')
         : srebpActive
-          ? 'Cell cholesterol is low: SREBP travels to the nucleus and switches on both HMG-CoA reductase (make more) and the LDL receptor (import more). The cell refills its cholesterol, and blood LDL drops as receptors clear it.'
-          : 'Cell cholesterol is high: SREBP stays clamped in the ER, the reductase is shut down and degraded, and LDL receptors are sparse. With few receptors clearing it, blood LDL drifts up — the state a high-cholesterol diet pushes you toward.';
+          ? 'Cell cholesterol is below the set point: SREBP travels to the nucleus and switches on both HMG-CoA reductase (make more) and the LDL receptor (import more). The cell refills its cholesterol, and blood LDL drops as receptors clear it.'
+          : 'Cell cholesterol is above the set point: SREBP stays clamped in the ER, the reductase is shut down and degraded, and LDL receptors are sparse. With few receptors clearing it, blood LDL drifts up — the state a high-cholesterol diet pushes you toward. Tick the statin box to see what the drug changes.';
     }
     cholIn.addEventListener('input', render);
     statinIn.addEventListener('change', render);
@@ -77,9 +86,13 @@
   .chf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
   .chf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
   .chf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .chf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
+  .chf-slabel-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem; }
+  .chf-scale { position: relative; display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--ddp-color-muted); }
+  .chf-scale-mid { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+  .chf-scale-mid::before { content: '▲ '; color: var(--ddp-color-accent); }
+  .chf-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
   .chf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
-  .chf-slabel input { accent-color: var(--ddp-color-accent); }
+  .chf-slabel input { accent-color: var(--ddp-color-accent); width: 100%; margin: 0.2rem 0 0; }
   .chf-toggle { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); cursor: pointer; }
   .chf-toggle input { accent-color: var(--ddp-color-accent); }
   .chf-states { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
