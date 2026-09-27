@@ -98,10 +98,13 @@ const firstLesson = lessons[0];
                 <span class="lc-body">
                   <span class="lc-chapter">{l.data.courseChapter}</span>
                   <span class="lc-title">{l.data.title}</span>
-                  <span class="lc-summary">{hookFor(l)}</span>
+                  <span class={`lc-summary${(l.data as { hook?: string }).hook ? ' is-hook' : ''}`}>{hookFor(l)}</span>
+                  {/* Each figure is its own nowrap span, so a wrap falls between
+                      items and never splits "6 / questions". */}
                   <span class="lc-meta">
-                    {l.data.structures.length} structures ·
-                    {' '}{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions{l.data.estMinutes ? ` · ~${l.data.estMinutes} min` : ''}
+                    <span>{l.data.structures.length} structures</span>{' · '}
+                    <span>{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions</span>
+                    {l.data.estMinutes && <>{' · '}<span>~{l.data.estMinutes} min</span></>}
                   </span>
                 </span>
               </a>
@@ -156,8 +159,8 @@ const firstLesson = lessons[0];
             </g>
           </svg>
         </span>
-        <p class="chip-lab">Checked answers</p>
-        <p class="chip-sub">Every question carries a verified answer and an explanation.</p>
+        <p class="chip-lab">Answers explained</p>
+        <p class="chip-sub">Every self-test question shows the answer and explains why.</p>
       </div>
 
       <div class="chip">
@@ -445,6 +448,9 @@ const firstLesson = lessons[0];
     .lesson-card {
       position: relative;
       overflow: hidden;
+      /* Fill the grid cell so cards in one row share a bottom edge. */
+      height: 100%;
+      box-sizing: border-box;
       display: flex;
       gap: var(--ddp-space-4);
       align-items: flex-start;
@@ -531,7 +537,9 @@ const firstLesson = lessons[0];
       line-height: 1.2;
       margin-bottom: var(--ddp-space-2);
     }
-    /* One-line hook, clamped: the full summary lives on the lesson page. */
+    /* The fallback (first sentence of the summary) is clamped to two lines.
+       An approved hook is printed whole: at card width the clamp was cutting
+       every one of them mid-phrase ("Water's own…"). */
     .lc-summary {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -541,12 +549,18 @@ const firstLesson = lessons[0];
       font-size: var(--ddp-text-sm);
       margin-bottom: var(--ddp-space-2);
     }
+    .lc-summary.is-hook {
+      display: block;
+      -webkit-line-clamp: unset;
+      overflow: visible;
+    }
     .lc-meta {
       display: block;
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);
       color: var(--ddp-color-muted);
     }
+    .lc-meta span { white-space: nowrap; }
     .empty {
       color: var(--ddp-color-muted);
     }

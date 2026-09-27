@@ -8,10 +8,11 @@ const { slides } = Astro.props;
 
 <section class="deck card" data-deck aria-roledescription="carousel" aria-label="Lecture slides">
   <p class="deck-disclaimer">
-    ⚠️ Many of these slides use AI-assisted figures, so fidelity to exact chemical
-    structure isn't always perfect. Treat them as a <strong>conceptual framework</strong>,
-    not a reference for memorizing structures — for that, use the <strong>3D molecules</strong>
-    in the sidebar. Known artifacts are flagged on the affected slides.
+    ⚠️ Many of these slides use AI-assisted figures, so a bond or a ring can be
+    drawn slightly wrong. Use them for the <strong>big picture</strong>. To learn an
+    exact structure, open the <strong>3D molecules</strong> in this lesson's Explore
+    panel, which load from the structure databases. A slide with a known drawing
+    error carries a note saying what is wrong.
   </p>
   <div class="deck-stage">
     {slides.map((s, i) => (
@@ -158,7 +159,9 @@ const { slides } = Astro.props;
     display: block;
     width: 100%;
     aspect-ratio: 22 / 17; /* reserve space pre-load (slides are ~4:3) → no layout shift */
-    max-height: 56vh;
+    /* Leave room for the title, narration bar and slide controls, so the
+       Next button sits inside the dialog without scrolling on a laptop screen. */
+    max-height: max(240px, min(56vh, calc(92vh - 25rem)));
     object-fit: contain;
     background: #fff;
   }

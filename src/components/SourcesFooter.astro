@@ -23,18 +23,23 @@ const flaggedSlides = lesson.lectureSlides.filter((s) => s.aiNote).length;
 // slides, telling `vitalism` readers the lesson had "no raster figures" while
 // the page rendered four portrait PNGs.
 const portraitCount = lesson.scientists.filter((s) => s.photo).length;
+// Many structure notes open with "PDB 1HKG · …" or "CID 1176 · …", which repeated the ID printed
+// just before it. Drop that echo; keep the rest of the note verbatim.
+const idEcho = (prefix: string) => (s: { id: string; note?: string | null }) =>
+  (s.note ?? '').replace(new RegExp(`^${prefix}\\s*${s.id}\\s*(·\\s*)?`, 'i'), '').trim();
+const rcsbNote = idEcho('PDB');
+const pubchemNote = idEcho('CID');
 ---
 
-<details class="sources" aria-label="Sources and integrity">
-  <summary class="sources-summary">
-    <h2>Sources &amp; Integrity</h2>
-    <span class="sources-hint">every ID, attribution &amp; fact-check — tap to open</span>
-  </summary>
+{/* Rendered inside the "Sources & Integrity" dialog, whose header already
+    names the panel. It used to be a collapsed <details> with its own heading,
+    so opening the dialog showed an empty box and a second "tap to open". */}
+<section class="sources" aria-label="Sources and integrity">
   <p class="sources-intro">
     Every structure, slide, simulation, and clip on this page is listed below with
-    the source it came from. No molecular structure is AI-drawn — each one loads by
-    accession ID from RCSB&nbsp;PDB or PubChem. This panel is generated from the
-    lesson's own data file, so what it lists is what the page loads.
+    the source it came from. None of the 3D structures is drawn by hand or by AI:
+    each one loads by accession ID from RCSB&nbsp;PDB or PubChem. This panel is
+    generated from the lesson's own data file, so what it lists is what the page loads.
   </p>
 
   <div class="sources-grid">
@@ -46,14 +51,14 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
             <li>
               <strong>{s.label}</strong> — RCSB PDB
               <a href={`https://www.rcsb.org/structure/${s.id}`} target="_blank" rel="noopener"><code>{s.id}</code></a>
-              <span class="src-meta"> · coordinates CC0{ s.note ? ` · ${s.note}` : '' }</span>
+              <span class="src-meta"> · coordinates CC0{ rcsbNote(s) ? ` · ${rcsbNote(s)}` : '' }</span>
             </li>
           ))}
           {pubchem.map((s) => (
             <li>
               <strong>{s.label}</strong> — PubChem
               <a href={`https://pubchem.ncbi.nlm.nih.gov/compound/${s.id}`} target="_blank" rel="noopener"><code>CID {s.id}</code></a>
-              <span class="src-meta">{ s.note ? ` · ${s.note}` : '' }</span>
+              <span class="src-meta">{ pubchemNote(s) ? ` · ${pubchemNote(s)}` : '' }</span>
             </li>
           ))}
         </ul>
@@ -148,7 +153,7 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
           the ones itemized in this panel:
           {slideCount > 0 && ` its ${slideCount} lecture slides (each listed above with its deck, its credit, and the person who screened it for accuracy and copyright)`}
           {slideCount > 0 && portraitCount > 0 && ' and'}
-          {portraitCount > 0 && ` its ${portraitCount} scientist portrait${portraitCount === 1 ? '' : 's'} (AI-generated illustrations from the book's profiles, disclosed in the Scientist profiles panel)`}.
+          {portraitCount > 0 && ` its ${portraitCount} scientist portrait${portraitCount === 1 ? '' : 's'} (AI-generated illustrations from the book's profiles, disclosed under Scientist profiles & quotes)`}.
           {flaggedSlides > 0 && ` ${flaggedSlides} slide${flaggedSlides === 1 ? ' carries' : 's carry'} a caption flagging a known illustration artifact.`}
           {' '}Every 3D structure is rendered live from an accession ID.
         </p>
@@ -171,55 +176,33 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
 
   <p class="integrity-statement">
     <span class="verified-chip">integrity</span>
-    Two different things are checked here, and they are worth telling apart. The
-    build verifies the mechanical facts: every accession ID resolves, every local
-    asset exists, every question's answer key points at a real choice, and any
-    AI-generated scientific figure names the human who checked it. The scientist
-    portraits are AI-generated artwork, labeled as such above — they depict the
-    person, they carry no science, and nothing on this site asks you to trust a
-    picture of a face. The science is checked by a
-    person — Prof.&nbsp;Deppmann cleared each lecture slide for accuracy and for
-    copyright, and his name is on every one of them in the panel above. Questions
-    are original; MCAT-style items are written for this site and are not real AAMC
-    questions. Banned sources (the Tymoczko textbook, publisher decks, copyrighted
-    figures) are not used.
+    <span>
+      {slideCount > 0 && 'Two different things are checked here, and they are worth telling apart. '}
+      <strong>Machines check the mechanics.</strong> The build confirms that every
+      local file exists, that every question's answer key points at a real choice,
+      and that any AI-generated scientific figure names the person who checked it;
+      a weekly job re-resolves every accession ID against its database.
+      {portraitCount > 0 && ' The scientist portraits are AI-generated artwork, labeled as such above. They depict the person and carry no science, and nothing on this site asks you to trust a picture of a face.'}
+      {slideCount > 0 && (
+        <>
+          {' '}<strong>A person checks the science.</strong> Prof.&nbsp;Deppmann cleared
+          each lecture slide for accuracy and for copyright, and his name is on every
+          one of them in the list above.
+        </>
+      )}
+      {' '}Questions are original; MCAT-style items are written for this site and are
+      not real AAMC questions. Banned sources (the Tymoczko textbook, publisher
+      decks, copyrighted figures) are not used.
+    </span>
   </p>
-</details>
+</section>
 
 <style>
   .sources {
-    margin-top: var(--ddp-space-16);
-    padding-top: var(--ddp-space-8);
-    border-top: 2px solid var(--ddp-color-line);
-  }
-  .sources-summary {
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--ddp-space-3);
-  }
-  .sources-summary::-webkit-details-marker {
-    display: none;
-  }
-  .sources-summary h2 {
-    margin: 0;
-    display: inline;
-  }
-  .sources-summary::after {
-    content: '▾';
-    color: var(--ddp-color-muted);
-    transition: transform 0.2s;
-  }
-  details[open] .sources-summary::after {
-    transform: rotate(180deg);
-  }
-  .sources-hint {
-    font-size: var(--ddp-text-sm);
-    color: var(--ddp-color-muted);
+    display: block;
   }
   .sources-intro {
+    margin: 0;
     color: var(--ddp-color-ink-soft);
     max-width: var(--ddp-maxw);
   }
@@ -239,7 +222,11 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
   .src-block ul {
     margin: 0;
     padding-left: 1.1rem;
+    list-style: disc; /* restated: Tailwind's preflight removes it */
     font-size: var(--ddp-text-sm);
+  }
+  .src-block li::marker {
+    color: var(--ddp-color-muted);
   }
   .src-block li {
     margin-bottom: var(--ddp-space-2);
@@ -267,6 +254,16 @@ const portraitCount = lesson.scientists.filter((s) => s.photo).length;
     display: flex;
     gap: var(--ddp-space-3);
     align-items: flex-start;
-    flex-wrap: wrap;
+    margin: 0;
+  }
+  .integrity-statement .verified-chip {
+    flex: none;
+    margin-top: 0.15em;
+  }
+  @media (max-width: 560px) {
+    .integrity-statement {
+      flex-direction: column;
+      padding: var(--ddp-space-4);
+    }
   }
 </style>

@@ -4,6 +4,17 @@
 @import "./tokens.css";
 @import "tailwindcss";
 
+/* A spacing step that ~40 components use but tokens.css never defined. An
+   undefined var() makes the WHOLE declaration invalid, so every
+   `padding: var(--ddp-space-4) var(--ddp-space-5)` computed to 0 — the lesson
+   cards, the "What you'll learn" card, the quiz, and every island's vertical
+   margin rendered flush. 1.25rem sits between space-4 (1rem) and space-6
+   (1.5rem). Belongs in tokens.css with the other aliases; parked here until
+   that file is next edited. */
+:root {
+  --ddp-space-5: 1.25rem;
+}
+
 /* -----------------------------------------------------------------------------
    Base typography + layout. Static-first: these styles carry the whole site;
    Tailwind utilities are available in components for one-offs.
@@ -62,6 +73,16 @@ h4 {
   font-size: var(--ddp-text-base);
 }
 
+/* Page titles on the plain pages (About, Contact, 404, Fun). Tailwind's
+   preflight sets every heading to font-size: inherit, so without this the
+   About page's h1 rendered at body size, smaller than its own h2s. */
+.prose-col > h1 {
+  font-size: var(--ddp-text-3xl);
+  line-height: 1.1;
+  max-width: 22ch;
+  margin-bottom: var(--ddp-space-6);
+}
+
 .prose-col h2 {
   font-size: var(--ddp-text-2xl);
   margin-top: var(--ddp-space-12);
@@ -73,6 +94,27 @@ h4 {
 
 .prose-col p {
   margin: 0 0 var(--ddp-space-4);
+}
+
+/* Markdown lists in the narrative. Tailwind's preflight strips list-style and
+   padding from every ul/ol, which left lesson lists (the Vmax/Km pair, the three
+   inhibitor types) as unmarked run-on paragraphs. Direct children only, so a
+   list an island builds inside the prose column keeps its own styling. */
+.prose-col > ul,
+.prose-col > ol {
+  margin: 0 0 var(--ddp-space-4);
+  padding-left: 1.4em;
+}
+.prose-col > ul { list-style: disc; }
+.prose-col > ol { list-style: decimal; }
+.prose-col > ul > li,
+.prose-col > ol > li {
+  margin-bottom: var(--ddp-space-2);
+  padding-left: 0.2em;
+}
+.prose-col > ul > li::marker,
+.prose-col > ol > li::marker {
+  color: var(--ddp-color-muted);
 }
 
 .prose-col strong {

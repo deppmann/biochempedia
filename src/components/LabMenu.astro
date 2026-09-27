@@ -159,7 +159,10 @@ const items: Item[] = [
   }
   .labmenu-list a:hover,
   .labmenu-list a:focus-visible {
-    background: var(--ddp-color-bg-alt, #f0ede7);
+    /* A tint of the page ink over the panel surface, so it darkens in light
+       mode and lightens in dark mode. The old fixed cream fallback put light
+       dark-mode text on a cream box and made the item unreadable. */
+    background: color-mix(in srgb, var(--ddp-color-ink) 7%, var(--ddp-color-surface));
     text-decoration: none;
   }
   .labmenu-item-label { font-size: var(--ddp-text-sm); font-weight: 600; }

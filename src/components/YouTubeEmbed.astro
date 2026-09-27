@@ -67,16 +67,25 @@ const thumb = `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
     position: absolute;
     inset: 0;
     margin: auto;
-    width: 56px;
-    height: 56px;
+    width: 68px;
+    height: 68px;
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: rgba(27, 42, 74, 0.82);
+    /* A white ring and a shadow keep the button visible on any thumbnail;
+       the old translucent navy disc disappeared into dark or busy frames. */
+    background: rgba(27, 42, 74, 0.92);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     color: #fff;
-    font-size: 1.2rem;
-    padding-left: 4px;
+    font-size: 1.35rem;
+    padding-left: 5px;
     pointer-events: none;
+    transition: transform 0.15s ease;
+  }
+  .yt-thumb:hover .yt-play { transform: scale(1.06); }
+  @media (prefers-reduced-motion: reduce) {
+    .yt-play { transition: none; }
   }
   .yt :global(iframe) {
     display: block;
@@ -84,7 +93,12 @@ const thumb = `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
     aspect-ratio: 16 / 9;
     border: 0;
   }
+  /* Title and source note on separate lines: run together, "Overview of
+     glycolysis Khan Academy — …" read as one phrase. */
   .yt-cap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
     padding: var(--ddp-space-3) var(--ddp-space-4);
     font-size: var(--ddp-text-sm);
     color: var(--ddp-color-ink-soft);

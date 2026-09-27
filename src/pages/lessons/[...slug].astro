@@ -30,6 +30,12 @@ const localSimNames = localSims.map((s) => s.title.split('(')[0].trim());
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
 const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
+// Slides without a recording, counted separately so no count calls a silent
+// slide "narrated".
+const slidesSilent = lesson.lectureSlides.length - narratedSlides;
+const slidesTag =
+  narratedSlides === 0 ? '' : narratedSlides === lesson.lectureSlides.length ? ' · narrated' : ` · ${narratedSlides} narrated`;
+const hasStats = lesson.structures.length + lesson.lectureSlides.length + qCount + lesson.scientists.length > 0;
 
 // Thumbnail helpers for the rail.
 const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.toLowerCase()}_assembly-1.jpeg`;
@@ -66,12 +72,20 @@ const lessonLd = {
           <h2 class="orient-pad-left" >What you'll learn{lesson.estMinutes ? ` · ~${lesson.estMinutes} min` : ''}</h2>
           <ul>{lesson.objectives.map((o) => <li>{o}</li>)}</ul>
         </div>
-        <ul class="orient-meta">
-          {lesson.estMinutes && <li><span>⏱</span> ~{lesson.estMinutes} min</li>}
-          {lesson.structures.length > 0 && <li><span>🧬</span> {lesson.structures.length} live 3D structures</li>}
-          {narratedSlides > 0 && <li><span>🎧</span> {narratedSlides} narrated slides</li>}
-          {qCount > 0 && <li><span>📝</span> {qCount} self-test questions</li>}
-        </ul>
+        {/* The reading time is already in the card's heading, so the stats
+            column lists only what the lesson contains. */}
+        {hasStats && (
+          <div class="orient-meta">
+            <p class="orient-meta-h">In this lesson</p>
+            <ul>
+              {lesson.structures.length > 0 && <li><span aria-hidden="true">🧬</span> <b>{lesson.structures.length}</b> live 3D {lesson.structures.length === 1 ? 'structure' : 'structures'}</li>}
+              {narratedSlides > 0 && <li><span aria-hidden="true">🎧</span> <b>{narratedSlides}</b> narrated {narratedSlides === 1 ? 'slide' : 'slides'}</li>}
+              {slidesSilent > 0 && <li><span aria-hidden="true">🖼</span> <b>{slidesSilent}</b> lecture {slidesSilent === 1 ? 'slide' : 'slides'}</li>}
+              {qCount > 0 && <li><span aria-hidden="true">📝</span> <b>{qCount}</b> self-test {qCount === 1 ? 'question' : 'questions'}</li>}
+              {lesson.scientists.length > 0 && <li><span aria-hidden="true">👤</span> <b>{lesson.scientists.length}</b> scientist {lesson.scientists.length === 1 ? 'profile' : 'profiles'}</li>}
+            </ul>
+          </div>
+        )}
       </aside>
     )}
 
@@ -148,7 +162,7 @@ const lessonLd = {
             <h3>Lecture slides</h3>
             <button type="button" class="rail-slidepreview" data-open="lb-slides">
               <img src={lesson.lectureSlides[0].src.replace(/\.png$/, '.thumb.webp')} alt={`Preview: ${lesson.lectureSlides[0].title}`} loading="lazy" decoding="async" />
-              <span class="rail-label">Lecture slides <em>{lesson.lectureSlides.length} · narrated · tap to open</em></span>
+              <span class="rail-label">Lecture slides <em>{lesson.lectureSlides.length}{slidesTag} · tap to open</em></span>
             </button>
           </div>
         )}
@@ -370,6 +384,10 @@ const lessonLd = {
   <script>
     function animateCounter(el: HTMLElement) {
       const to = parseInt(el.getAttribute('data-to') || '0', 10);
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        el.textContent = to.toLocaleString();
+        return;
+      }
       const dur = 1500;
       const start = performance.now();
       function step(now: number) {
@@ -391,6 +409,9 @@ const lessonLd = {
         // (within this click gesture, so the browser allows it).
         const slideAudio = d.querySelector<HTMLAudioElement>('.deck-slide:not([hidden]) audio');
         if (slideAudio) slideAudio.play().catch(() => {});
+        // A PhET sim opened from the rail: the reader already asked for it, so
+        // start loading it rather than asking for a second "Launch" click.
+        d.querySelector<HTMLButtonElement>('.phet-launch')?.click();
         // Play the anecdote's little animation (and run its counter) on open.
         const anim = d.querySelector('.anec-anim');
         if (anim) {
@@ -405,6 +426,34 @@ const lessonLd = {
         });
       });
     });
+    // Rail thumbnails come straight from RCSB and PubChem. PubChem throttles
+    // bursts (about five requests a second), so a lesson with a dozen small
+    // molecules loses some thumbnails to 503s and showed broken-image icons.
+    // Retry each failure once after a staggered pause; if it fails again, show
+    // a neutral hexagon so the row still looks deliberate. The viewer itself
+    // loads by ID when opened, so nothing is lost but the preview.
+    const THUMB_FALLBACK =
+      'data:image/svg+xml,' +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 46"><rect width="46" height="46" fill="#f4f2ed"/>' +
+          '<path d="M23 12l9.5 5.5v11L23 34l-9.5-5.5v-11z" fill="none" stroke="#8a93a6" stroke-width="1.6"/></svg>'
+      );
+    document.querySelectorAll<HTMLImageElement>('.rail-thumb img').forEach((img, i) => {
+      let tries = 0;
+      const onFail = () => {
+        if (img.src.startsWith('data:')) return;
+        if (tries++ === 0) {
+          const src = img.src;
+          setTimeout(() => { img.src = src + (src.includes('?') ? '&' : '?') + 'r=1'; }, 1200 + i * 250);
+        } else {
+          img.src = THUMB_FALLBACK;
+        }
+      };
+      img.addEventListener('error', onFail);
+      // An image that already failed before this script ran fires no event.
+      if (img.complete && img.naturalWidth === 0 && img.currentSrc) onFail();
+    });
+
     // Reveal the "↑ Top" pill only once the reader has scrolled past the hero, so
     // it can never cover the title or the objectives card on a small screen. A
     // scroll listener rather than an IntersectionObserver: IO callbacks don't fire
@@ -474,10 +523,26 @@ const lessonLd = {
     @media (max-width: 760px) { .orient { grid-template-columns: 1fr; } }
     .orient-obj { padding: var(--ddp-space-5) var(--ddp-space-6); }
     .orient-obj h2 { font-size: var(--ddp-text-lg); margin: 0 0 var(--ddp-space-3); }
-    .orient-obj ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
-    .orient-obj li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
-    .orient-meta { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); }
-    .orient-meta li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: inline-flex; align-items: center; gap: 0.4em; }
+    /* list-style is restated because Tailwind's preflight removes it. */
+    .orient-obj ul { margin: 0; padding-left: 1.2rem; list-style: disc; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .orient-obj li { font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink-soft); padding-left: 0.15em; }
+    .orient-obj li::marker { color: var(--ddp-color-muted); }
+    /* Stats column: anchored to the card's top edge by a hairline rule and a
+       small label, one stat per row, so it reads as the card's companion
+       instead of a loose cluster floating beside it. */
+    .orient-meta {
+      padding: var(--ddp-space-2) 0 var(--ddp-space-2) var(--ddp-space-5);
+      border-left: 1px solid var(--ddp-color-line);
+    }
+    .orient-meta-h {
+      margin: 0 0 var(--ddp-space-3);
+      font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted);
+    }
+    .orient-meta ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-3); }
+    .orient-meta li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; align-items: baseline; gap: 0.55em; }
+    .orient-meta li span { width: 1.3em; text-align: center; flex: none; }
+    .orient-meta b { font-weight: 700; color: var(--ddp-color-primary); font-variant-numeric: tabular-nums; }
 
     /* Mobile-only Explore chips (see the note at the markup). Hidden entirely at
        the width where the sticky rail is visible and does the same job. */
@@ -675,7 +740,12 @@ const lessonLd = {
     /* Scientist profile (inside lightbox) */
     .profile { display: grid; grid-template-columns: 160px 1fr; gap: var(--ddp-space-6); align-items: start; }
     .profile.no-photo { grid-template-columns: 1fr; }
-    @media (max-width: 600px) { .profile { grid-template-columns: 1fr; } }
+    /* On a phone the stacked portrait used to fill the dialog's full width and
+       push the text a whole screen down; a small portrait keeps it in view. */
+    @media (max-width: 600px) {
+      .profile { grid-template-columns: 1fr; gap: var(--ddp-space-4); }
+      .profile-photo { max-width: 150px; }
+    }
     .profile-photo { width: 100%; border-radius: var(--ddp-radius); border: 1px solid var(--ddp-color-line); }
     .profile-text h3 { margin: 0; font-size: var(--ddp-text-xl); }
     .profile-dates { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); font-weight: 400; }
@@ -710,7 +780,7 @@ const lessonLd = {
        so placed earlier the base .orient-meta { display:flex } would win. */
     @media (max-width: 900px) {
       .lesson-hero { padding-top: var(--ddp-space-8); }
-      .orient { margin-bottom: var(--ddp-space-4); }
+      .orient { margin-bottom: var(--ddp-space-4); grid-template-columns: 1fr; }
       .orient-meta { display: none; }
       .orient-obj { padding: var(--ddp-space-3) var(--ddp-space-4); }
       .orient-obj h2 {

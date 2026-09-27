@@ -98,6 +98,10 @@ const { url, title, attribution, caption } = Astro.props;
     position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
+    /* In the lesson's lightbox a full-width 4:3 stage ran past the bottom of
+       the dialog and hid the sim's own controls bar. Cap it to what fits under
+       the dialog header and caption; PhET letterboxes itself to any box. */
+    max-height: max(320px, calc(92vh - 15rem));
     background: #f7f7f9;
   }
   .phet :global(.phet-stage iframe) {

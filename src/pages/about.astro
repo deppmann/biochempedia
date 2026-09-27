@@ -1,5 +1,11 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Counted from the collection so the sentence below cannot go stale.
+const NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty', 'thirty-one', 'thirty-two', 'thirty-three', 'thirty-four', 'thirty-five', 'thirty-six', 'thirty-seven', 'thirty-eight', 'thirty-nine', 'forty'];
+const lessonCount = (await getCollection('lessons', ({ data }) => !data.draft)).length;
+const lessonWord = NUM[lessonCount] ?? String(lessonCount);
 ---
 
 <BaseLayout title="About — Biochemistrypedia" description="What Biochemistrypedia is, and the rules that keep it honest.">
@@ -18,8 +24,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <h2>The rules that keep it honest</h2>
     <ul>
       <li><strong>No invented molecules.</strong> Every 3D structure is loaded live by accession ID from RCSB&nbsp;PDB (macromolecules) or PubChem (small molecules). Nothing is drawn by an AI, ever.</li>
-      <li><strong>No unverified AI images.</strong> An AI-generated figure is allowed only if it is flagged and a named human has fact-checked it. An unreviewed one fails the build — the site literally won't compile.</li>
-      <li><strong>No borrowed questions.</strong> Every practice and MCAT-style question is written for this site, with a verified answer and an explanation. MCAT-style items are original, not real AAMC questions.</li>
+      <li><strong>No unreviewed figures.</strong> Every lecture slide names the person who checked it for accuracy and copyright, and a slide without a reviewer fails the build — the site literally won't compile. Many slides use AI-assisted illustration; the slide viewer says so, and a slide with a known drawing error carries a note saying what is wrong. The scientist portraits are AI-generated artwork and are labeled that way.</li>
+      <li><strong>No borrowed questions.</strong> Every practice and MCAT-style question is written for this site and comes with its answer and an explanation of why. MCAT-style items are original, not real AAMC questions.</li>
       <li><strong>Honest media.</strong> Videos and podcasts are embedded from their source, never rehosted.</li>
     </ul>
 
@@ -28,7 +34,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       The AI tutor and the "talk to a scientist" characters are intentionally not
       built yet. A tutor that is confidently wrong would do real harm, so that
       part waits until it can be grounded in the course material and clearly
-      labelled. What is here is the reading: thirty lessons, each one finished
+      labelled. What is here is the reading: {lessonWord} lessons, each one finished
       before it went up.
     </p>
 

@@ -66,6 +66,8 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
     const correctEl = root.querySelector('[data-correct]');
     const answeredEl = root.querySelector('[data-answered]');
     const bar = root.querySelector<HTMLElement>('[data-bar]');
+    const prevBtn = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const nextBtn = root.querySelector<HTMLButtonElement>('[data-next]');
     const answered = new Set<HTMLElement>();
     let correct = 0;
     let idx = 0;
@@ -75,6 +77,14 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
       if (correctEl) correctEl.textContent = String(correct);
       if (answeredEl) answeredEl.textContent = String(answered.size);
       if (bar) bar.style.width = `${((idx + 1) / total) * 100}%`;
+      // At either end the button used to stay live and silently do nothing.
+      if (prevBtn) prevBtn.disabled = idx === 0;
+      if (nextBtn) nextBtn.disabled = idx === total - 1;
+      // A button that just became disabled drops keyboard focus to <body>;
+      // hand it to the other arrow instead.
+      const active = document.activeElement;
+      if (active === nextBtn && nextBtn?.disabled) prevBtn?.focus();
+      if (active === prevBtn && prevBtn?.disabled) nextBtn?.focus();
     }
     function show(next: number) {
       idx = Math.max(0, Math.min(total - 1, next));
@@ -111,8 +121,8 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
       });
     });
 
-    root.querySelector('[data-prev]')?.addEventListener('click', () => show(idx - 1));
-    root.querySelector('[data-next]')?.addEventListener('click', () => show(idx + 1));
+    prevBtn?.addEventListener('click', () => show(idx - 1));
+    nextBtn?.addEventListener('click', () => show(idx + 1));
     root.querySelector('[data-reset]')?.addEventListener('click', () => {
       correct = 0;
       answered.clear();
@@ -258,7 +268,11 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
     cursor: pointer;
     font-size: var(--ddp-text-sm);
   }
-  .quiz-navbtn:hover {
+  .quiz-navbtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .quiz-navbtn:not(:disabled):hover {
     border-color: var(--ddp-color-accent);
     color: var(--ddp-color-accent);
   }
