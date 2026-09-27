@@ -20,12 +20,12 @@
     <button type="button" data-path="salvage" aria-pressed="false">Salvage (recycle)</button>
   </div>
 
-  <svg class="psd-svg" viewBox="0 0 460 150" role="img" data-svg></svg>
+  <svg class="psd-svg" viewBox="0 0 460 170" role="img" aria-label="Two routes to the same purine nucleotide: de novo takes about ten enzymatic steps from PRPP; salvage takes one" data-svg></svg>
 
   <div class="psd-stats">
     <div class="psd-stat"><span class="psd-s-name">ATP cost</span><span class="psd-s-v" data-atp>≈ 6 ATP</span></div>
     <div class="psd-stat"><span class="psd-s-name">Enzymatic steps</span><span class="psd-s-v" data-steps>~10</span></div>
-    <div class="psd-stat"><span class="psd-s-name">Committed step</span><span class="psd-s-v psd-s-small" data-commit>Gln-PRPP amidotransferase</span></div>
+    <div class="psd-stat"><span class="psd-s-name" data-commitname>Committed step</span><span class="psd-s-v psd-s-small" data-commit>Gln-PRPP amidotransferase</span></div>
   </div>
 
   <div class="psd-meter" aria-hidden="true">
@@ -40,92 +40,180 @@
     <p class="psd-clin-body">Knock out HGPRT and salvage breaks. The cell can no longer recycle hypoxanthine or guanine, so it is forced down the wasteful <strong>de novo</strong> route to keep its purine pools full. Meanwhile the bases it can't salvage pile up and are oxidized to <strong>uric acid</strong> — hence the hyperuricemia (gout, kidney stones) and the severe neurological disease. One missing enzyme, and the thrifty default becomes both wasteful and toxic.</p>
   </div>
 
-  <p class="psd-foot">Most resting tissue salvages — it is cheaper to glue a used base back onto PRPP than to build a ten-carbon-and-nitrogen ring from glutamine, glycine, and CO₂. De novo is the route a rapidly dividing cell pays for when there simply aren't enough scrap bases to go around. The lesson sits in the contrast: salvage is the thrifty default, and Lesch-Nyhan shows what it costs to lose it — you pay twice, once in ATP and once in uric acid.</p>
+  <p class="psd-foot">Most resting tissue salvages — it is cheaper to glue a used base back onto PRPP than to build the nine-atom double ring (five carbons, four nitrogens) from glutamine, glycine, aspartate, CO₂, and folate-carried formyl groups. De novo is the route a rapidly dividing cell pays for when there simply aren't enough scrap bases to go around. The lesson sits in the contrast: salvage is the thrifty default, and Lesch-Nyhan shows what it costs to lose it — you pay twice, once in ATP and once in uric acid.</p>
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', ORANGE_INK = '#b35900', FAINT = '#b9b9c2', INK = '#4b4b55', MUTED = '#6b6b6b';
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
     const e = document.createElementNS(SVGNS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
     return e;
   }
 
+  type PathKey = 'denovo' | 'salvage';
   type Path = {
-    atp: number; atpLabel: string; steps: string; commit: string; color: string;
-    nodes: string[]; when: string;
+    atp: number; atpLabel: string; steps: string; stepsN: number; commitName: string; commit: string;
+    color: string; ink: string; title: string; input: string[]; stepTag: string; when: string; ms: number;
   };
-  const PATHS: Record<string, Path> = {
+  const PATHS: Record<PathKey, Path> = {
     denovo: {
-      atp: 6, atpLabel: '≈ 6 ATP', steps: '~10', commit: 'Gln-PRPP amidotransferase', color: ORANGE,
-      nodes: ['PRPP', '+ amino acids,\nCO₂, N₁₀-formyl-THF', '× ~10 steps', 'IMP → AMP / GMP'],
+      atp: 6, atpLabel: '≈ 6 ATP', steps: '~10', stepsN: 10, commitName: 'Committed step', commit: 'Gln-PRPP amidotransferase',
+      color: ORANGE, ink: ORANGE_INK, title: 'De novo — build the ring',
+      input: ['PRPP', '+ Gln, Gly, Asp,', 'CO₂, N¹⁰-formyl-THF'], stepTag: 'committed step',
       when: 'When the cell uses this: rapidly dividing cells — bone marrow, gut lining, a tumor — lean on de novo synthesis because they need more purines than the scrap heap of free bases can supply.',
+      ms: 1400,
     },
     salvage: {
-      atp: 1, atpLabel: '≈ 1 ATP-eq', steps: '1', commit: 'HGPRT (hypoxanthine/guanine) · APRT (adenine)', color: ACCENT,
-      nodes: ['Free base\n(hypoxanthine / guanine / adenine)', '+ PRPP', 'one transferase step', 'IMP / GMP / AMP'],
+      atp: 1, atpLabel: '≈ 1 ATP-eq', steps: '1', stepsN: 1, commitName: 'Salvage enzymes', commit: 'HGPRT (hypoxanthine/guanine) · APRT (adenine)',
+      color: ACCENT, ink: ACCENT, title: 'Salvage — recycle a base',
+      input: ['PRPP', '+ a free base:', 'hypoxanthine,', 'guanine, or adenine'], stepTag: 'HGPRT / APRT',
       when: 'When the cell uses this: most resting tissue — including the brain — salvages by default. Recycling a free base onto PRPP costs about one ATP-equivalent, roughly a sixth of building the ring from scratch.',
+      ms: 450,
     },
   };
 
-  function draw(svg: SVGElement, p: Path) {
+  // Both routes are drawn every time, one lane each, converging on the same product; the chosen lane
+  // is in color and its step dots light up in order (progress 0..1), the other lane is ghosted.
+  function draw(svg: SVGElement, current: PathKey, progress: number) {
+    const W = Math.round(Math.max(300, Math.min(720, svg.getBoundingClientRect().width || 460)));
+    const narrow = W < 460;
+    const pW = narrow ? 62 : Math.min(120, W * 0.2);
+    const inX = 6, pX = W - 6 - pW;
+    // Wide: input box, then the step track to its right. Narrow: the track runs under the input box,
+    // so ten step dots still have room to read as ten separate steps.
+    const boxH = (k: PathKey) => PATHS[k].input.length * 13.5 + 10;
+    type Geo = { key: PathKey; titleY: number; boxY: number; boxW: number; trackY: number; x0: number; x1: number };
+    const geo: Geo[] = [];
+    let y = 20;
+    (['denovo', 'salvage'] as PathKey[]).forEach((key) => {
+      const bh = boxH(key);
+      if (narrow) {
+        const boxW = pX - 14 - inX;
+        geo.push({ key, titleY: y, boxY: y + 8, boxW, trackY: y + 8 + bh + 30, x0: inX + 2, x1: pX - 10 });
+        y += 8 + bh + 30 + 48;
+      } else {
+        const boxW = Math.min(180, W * 0.3), cy = y + 8 + 34;
+        geo.push({ key, titleY: y, boxY: cy - bh / 2, boxW, trackY: cy, x0: inX + boxW + 10, x1: pX - 12 });
+        y += 88;
+      }
+    });
+    const H = Math.round(geo[1].trackY + 38);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    const n = p.nodes.length;
-    const gap = 460 / n;
-    for (let i = 0; i < n; i++) {
-      const cx = gap * i + gap / 2;
-      const cy = 62;
-      svg.appendChild(el('rect', { x: cx - gap / 2 + 8, y: cy - 26, width: gap - 16, height: 52, rx: 9, fill: p.color, opacity: 0.12, stroke: p.color, 'stroke-width': 2 }));
-      const lines = p.nodes[i].split('\n');
-      const startY = cy - (lines.length - 1) * 6;
-      for (let j = 0; j < lines.length; j++) {
-        const t = el('text', { x: cx, y: startY + j * 12 + 4, 'text-anchor': 'middle', fill: j === 0 ? p.color : INK, 'font-size': j === 0 && lines.length === 1 ? 12 : 9.5, 'font-weight': j === 0 ? 700 : 400 });
-        t.textContent = lines[j];
-        svg.appendChild(t);
-      }
-      if (i < n - 1) {
-        const ax = gap * (i + 1) - 6;
-        svg.appendChild(el('line', { x1: ax - 8, y1: cy, x2: ax + 4, y2: cy, stroke: FAINT, 'stroke-width': 2, 'marker-end': 'url(#psd-ar)' }));
-      }
-    }
-    const cap = el('text', { x: 230, y: 132, 'text-anchor': 'middle', fill: p.color, 'font-size': 11, 'font-weight': 600 });
-    cap.textContent = p.color === ORANGE ? 'Build the ring from scratch on PRPP' : 'Snap a used base back onto PRPP — one step';
-    svg.appendChild(cap);
+
     const defs = el('defs', {});
-    const m = el('marker', { id: 'psd-ar', markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
-    m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: FAINT }));
-    defs.appendChild(m);
+    [['psd-ar-on-d', ORANGE], ['psd-ar-on-s', ACCENT], ['psd-ar-off', FAINT]].forEach(([id, c]) => {
+      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 5.5, refY: 3, orient: 'auto' });
+      m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: c }));
+      defs.appendChild(m);
+    });
     svg.appendChild(defs);
+
+    // shared product box spanning both lanes
+    const pY0 = geo[0].trackY - 34, pY1 = geo[1].trackY + 32, pcx = pX + pW / 2, pcy = (pY0 + pY1) / 2;
+    svg.appendChild(el('rect', { x: pX, y: pY0, width: pW, height: pY1 - pY0, rx: 10, fill: '#fff', stroke: NAVY, 'stroke-width': 1.5 }));
+    svg.appendChild(el('text', { x: pcx, y: pcy - 24, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10.5 }, 'same'));
+    svg.appendChild(el('text', { x: pcx, y: pcy - 11, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10.5 }, 'product'));
+    ['IMP', 'AMP', 'GMP'].forEach((t, i) => {
+      svg.appendChild(el('text', { x: pcx, y: pcy + 10 + i * 15, 'text-anchor': 'middle', fill: NAVY, 'font-size': 13, 'font-weight': 700 }, t));
+    });
+
+    geo.forEach((G) => {
+      const p = PATHS[G.key];
+      const on = G.key === current;
+      const col = on ? p.color : FAINT;
+      const txt = on ? p.ink : MUTED;
+      const g = el('g', { opacity: on ? 1 : 0.55 });
+      svg.appendChild(g);
+      g.appendChild(el('text', { x: inX, y: G.titleY, fill: txt, 'font-size': 12, 'font-weight': 700 }, p.title));
+      const bh = boxH(G.key);
+      g.appendChild(el('rect', { x: inX, y: G.boxY, width: G.boxW, height: bh, rx: 8, fill: on ? p.color : '#fff', 'fill-opacity': on ? 0.1 : 1, stroke: col, 'stroke-width': on ? 1.8 : 1.2 }));
+      p.input.forEach((line, j) => {
+        g.appendChild(el('text', {
+          x: inX + 9, y: G.boxY + 17 + j * 13.5, fill: j === 0 ? (on ? NAVY : MUTED) : (on ? INK : MUTED),
+          'font-size': j === 0 ? 12.5 : 11, 'font-weight': j === 0 ? 700 : 400,
+        }, line));
+      });
+      // track + step dots, lit in order as the route is walked
+      const n = p.stepsN, cy = G.trackY;
+      g.appendChild(el('line', { x1: G.x0, y1: cy, x2: G.x1, y2: cy, stroke: col, 'stroke-width': on ? 2 : 1.5, 'marker-end': `url(#${on ? (G.key === 'denovo' ? 'psd-ar-on-d' : 'psd-ar-on-s') : 'psd-ar-off'})` }));
+      const span = G.x1 - G.x0 - 14;
+      const lit = on ? Math.floor(progress * n + 1e-6) : 0;
+      const r = n === 1 ? 7 : Math.min(5.5, (span - 8) / (n - 1) / 2 - 1);
+      for (let i = 0; i < n; i++) {
+        const x = n === 1 ? G.x0 + span / 2 : G.x0 + 8 + (span - 8) * (i / (n - 1));
+        g.appendChild(el('circle', { cx: x, cy, r, fill: on && i < lit ? p.color : '#fff', stroke: col, 'stroke-width': 1.6 }));
+        if (i === 0) {
+          g.appendChild(el('text', { x: n === 1 ? x : Math.max(x - 6, G.x0), y: cy - 12, 'text-anchor': n === 1 ? 'middle' : 'start', fill: txt, 'font-size': 10.5, 'font-weight': 600 }, p.stepTag));
+        }
+      }
+      const stepCap = n === 1 ? '1 step' : `${n} steps to IMP`;
+      g.appendChild(el('text', { x: (G.x0 + G.x1) / 2, y: cy + 20, 'text-anchor': 'middle', fill: txt, 'font-size': 11 }, stepCap));
+    });
   }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   document.querySelectorAll<HTMLElement>('[data-salvage]').forEach((root) => {
     const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
     const btns = root.querySelectorAll<HTMLButtonElement>('[data-path]');
     const atpEl = root.querySelector<HTMLElement>('[data-atp]')!;
     const stepsEl = root.querySelector<HTMLElement>('[data-steps]')!;
+    const commitNameEl = root.querySelector<HTMLElement>('[data-commitname]')!;
     const commitEl = root.querySelector<HTMLElement>('[data-commit]')!;
     const fillEl = root.querySelector<HTMLElement>('[data-fill]')!;
     const whenEl = root.querySelector<HTMLElement>('[data-when]')!;
-    let current = 'denovo';
-    function render() {
+    let current: PathKey = 'denovo';
+    let raf = 0;
+    let progress = 1;
+
+    function frame() {
+      const p = PATHS[current];
+      fillEl.style.width = `${((p.atp * progress) / 6) * 100}%`;
+      draw(svg, current, progress);
+    }
+    function render(animate: boolean) {
       const p = PATHS[current];
       atpEl.textContent = p.atpLabel;
       stepsEl.textContent = p.steps;
+      commitNameEl.textContent = p.commitName;
       commitEl.textContent = p.commit;
       whenEl.textContent = p.when;
-      atpEl.style.color = p.color;
-      fillEl.style.width = `${(p.atp / 6) * 100}%`;
+      atpEl.style.color = p.ink;
       fillEl.style.background = p.color;
       btns.forEach((b) => {
         const on = b.getAttribute('data-path') === current;
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
         b.classList.toggle('psd-on', on);
       });
-      draw(svg, p);
+      cancelAnimationFrame(raf);
+      if (!animate || reduceMotion.matches) { progress = 1; frame(); return; }
+      // walk the chosen route: step dots light up in order while the ATP bar fills
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - t0) / p.ms);
+        progress = t;
+        frame();
+        if (t < 1) raf = requestAnimationFrame(tick);
+      };
+      progress = 0;
+      raf = requestAnimationFrame(tick);
     }
-    btns.forEach((b) => b.addEventListener('click', () => { current = b.getAttribute('data-path') || 'denovo'; render(); }));
-    render();
+    btns.forEach((b) => b.addEventListener('click', () => {
+      current = (b.getAttribute('data-path') as PathKey) || 'denovo';
+      render(true);
+    }));
+    let lastW = 0;
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(() => {
+        const w = Math.round(svg.getBoundingClientRect().width);
+        if (w && Math.abs(w - lastW) > 4) { lastW = w; frame(); }
+      }).observe(svg as unknown as Element);
+    }
+    render(false);
   });
 </script>
 
@@ -147,8 +235,8 @@
   .psd-meter { display: flex; align-items: center; gap: 0.5rem; margin-bottom: var(--ddp-space-3); }
   .psd-meter-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); white-space: nowrap; }
   .psd-meter-track { flex: 1; height: 10px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); border-radius: 6px; overflow: hidden; border: 1px solid var(--ddp-color-line); }
-  .psd-meter-fill { display: block; height: 100%; width: 100%; background: var(--ddp-color-accent); transition: width 0.25s ease; }
-  @media (prefers-reduced-motion: reduce) { .psd-meter-fill { transition: none; } }
+  .psd-meter-fill { display: block; height: 100%; width: 100%; background: var(--ddp-color-accent); }
+  .psd-toggle button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .psd-when { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .psd-clin { border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 45%, var(--ddp-color-line)); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-secondary) 8%, transparent); margin-bottom: var(--ddp-space-3); }
   .psd-clin-head { display: block; font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-secondary-ink); margin-bottom: 0.2rem; }

@@ -14,9 +14,9 @@
 <figure class="fft card" data-fedfast>
   <figcaption class="fft-head">Hours since your last meal — how the body switches fuels<span class="fft-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="fft-svg" viewBox="0 0 460 150" role="img" data-svg></svg>
+  <svg class="fft-svg" viewBox="0 0 460 200" role="img" aria-label="Schematic timeline: after a meal, blood glucose is supplied first by the meal, then by liver glycogen, then by gluconeogenesis, while blood ketone bodies rise over the first three days of fasting" data-svg></svg>
 
-  <label class="fft-slabel">Time since eating <em data-out="time">0 h</em>
+  <label class="fft-slabel"><span>Drag to set the time since your last meal: <em data-out="time">0 h</em></span>
     <input type="range" data-in="time" min="0" max="72" step="1" value="0" />
   </label>
 
@@ -37,7 +37,7 @@
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', INK = '#4b4b55';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843';
   const SVGNS = 'http://www.w3.org/2000/svg';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(SVGNS, name);
@@ -75,47 +75,98 @@
       glucose: 'Keeping blood glucose up right now: gluconeogenesis — the liver builds new glucose from lactate, alanine, and glycerol.',
       liver: 'Gluconeogenesis: making new glucose from lactate, alanine, and glycerol.',
       adipose: 'Lipolysis in full swing, flooding the blood with free fatty acids.',
-      muscle: 'Burning fatty acids and ketones; sparing glucose for the brain.',
+      muscle: 'Burning fatty acids and ketones, sparing glucose for the brain — and breaking down some protein to send alanine to the liver.',
       brain: 'Still mostly glucose, but ketone use is starting to climb.',
     };
     return {
       name: 'STARVATION', color: NAVY,
       hormone: 'Glucagon dominant · insulin minimal',
-      glucose: 'Keeping blood glucose up right now: ketones spare it — the brain burns ketone bodies, so far less glucose has to be made.',
-      liver: 'Ketogenesis: converting fatty acids into ketone bodies and exporting them.',
+      glucose: 'Keeping blood glucose up right now: still gluconeogenesis, though ketones increasingly spare it. The more ketone bodies the brain burns, the less glucose (and muscle protein) the liver has to spend.',
+      liver: 'Ketogenesis ramps up — fatty acids become ketone bodies for export — while gluconeogenesis continues.',
       adipose: 'Sustained lipolysis — fat is now the body’s main fuel reserve.',
       muscle: 'Burning fatty acids and ketones; protein breakdown slows as ketones spare it.',
-      brain: 'Adapted: burning ketone bodies, cutting glucose need from ~120 to ~40 g/day and sparing muscle protein.',
+      brain: 'Adapting: ketone bodies supply a growing share of its fuel. Over several days this cuts its glucose need from ~120 to ~40 g/day, sparing muscle protein.',
     };
   }
 
+  // Schematic (shape, not data) of who supplies blood glucose, after Cahill's classic picture:
+  // the meal first, then liver glycogen, then gluconeogenesis — handing off gradually, with the
+  // glycogen / gluconeogenesis split roughly even after an overnight fast. Shares sum to 1.
+  const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  function supply(h: number): [number, number, number] {
+    const meal = 1 - smooth(1.5, 5, h);
+    const glycFrac = 1 / (1 + Math.exp((h - 12) / 4.5));
+    return [meal, (1 - meal) * glycFrac, (1 - meal) * (1 - glycFrac)];
+  }
+  // blood ketone bodies, relative to their 72-h level: low for a day, then climbing steeply
+  const ketone = (h: number) => 0.03 + 0.97 * Math.pow(h / 72, 1.6);
+
+  const BOUNDS = [0, 4, 16, 48, 72];
+  const BAND_FILL = [ORANGE, GOLD, ACCENT, NAVY];
+  const BAND_LABEL = ['Fed', 'Early fast', 'Fasting', 'Starvation'];
+  const MUTED = '#6b6b6b', GOLD_INK = '#7f6315', ORANGE_INK = '#b35900';
+
   function draw(svg: SVGElement, h: number, s: State) {
+    const W = Math.round(Math.max(300, Math.min(760, svg.getBoundingClientRect().width || 460)));
+    const x0 = 36, x1 = W - 14, span = x1 - x0;
+    const X = (t: number) => x0 + (t / 72) * span;
+    const pT = 34, pB = 116;            // stacked-area plot
+    const kT = 128, kB = 150;           // ketone strip
+    const bT = 158, bB = 178;           // state band
+    const H = 200;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    const x0 = 30, x1 = 430, y = 60, span = x1 - x0;
-    // boundaries at 4, 16, 48 h on a 0..72 scale
-    const bounds = [0, 4, 16, 48, 72];
-    const fills = [ORANGE, GOLD, ACCENT, NAVY];
-    const labels = ['Fed', 'Early fast', 'Fasting', 'Starvation'];
+    const add = (n: string, a: Record<string, string | number>, t?: string) => { const e = el(n, a); if (t !== undefined) e.textContent = t; svg.appendChild(e); return e; };
+
+    // --- stacked area: share of blood-glucose supply ---------------------------------------
+    add('text', { x: x0, y: 13, fill: NAVY, 'font-size': 11.5, 'font-weight': 700 }, 'Who is supplying blood glucose?');
+    add('text', { x: x1, y: 13, 'text-anchor': 'end', fill: MUTED, 'font-size': 10 }, 'schematic');
+    const N = 144, pts: [number, number, number][] = [];
+    for (let i = 0; i <= N; i++) { const t = (i / N) * 72; pts.push(supply(t)); }
+    const Y = (f: number) => pB - f * (pB - pT);
+    const layer = (lo: (p: [number, number, number]) => number, hi: (p: [number, number, number]) => number, fill: string) => {
+      let d = '';
+      pts.forEach((p, i) => { d += `${i ? 'L' : 'M'}${X((i / N) * 72).toFixed(1)},${Y(hi(p)).toFixed(1)}`; });
+      for (let i = N; i >= 0; i--) d += `L${X((i / N) * 72).toFixed(1)},${Y(lo(pts[i])).toFixed(1)}`;
+      add('path', { d: d + 'Z', fill, 'fill-opacity': 0.55, stroke: fill, 'stroke-width': 1 });
+    };
+    layer(() => 0, (p) => p[0], ORANGE);
+    layer((p) => p[0], (p) => p[0] + p[1], GOLD);
+    layer((p) => p[0] + p[1], () => 1, ACCENT);
+    add('line', { x1: x0, y1: pT, x2: x0, y2: pB, stroke: '#b9b9c2', 'stroke-width': 1 });
+    // --- current-time marker ----------------------------------------------------------------
+    const mx = X(h);
+    add('line', { x1: mx, y1: pT - 2, x2: mx, y2: bB + 2, stroke: NAVY, 'stroke-width': 1.6, 'stroke-dasharray': '3 2' });
+    add('circle', { cx: mx, cy: pT - 2, r: 4.5, fill: s.color, stroke: '#fff', 'stroke-width': 1.5, 'data-knob': 1 });
+    add('text', { x: x0 - 5, y: pT + 4, 'text-anchor': 'end', fill: MUTED, 'font-size': 10 }, '100%');
+    add('text', { x: x0 - 5, y: pB, 'text-anchor': 'end', fill: MUTED, 'font-size': 10 }, '0');
+    // in-area labels, placed where each source is thickest
+    add('text', { x: X(1.2), y: pT - 5, fill: ORANGE_INK, 'font-size': 10.5, 'font-weight': 700 }, '↓ the meal');
+    add('text', { x: Math.max(x0 + 4, X(8) - 40), y: Y(0.14), fill: GOLD_INK, 'font-size': 11, 'font-weight': 700 }, 'liver glycogen');
+    add('text', { x: X(46), y: Y(0.55), 'text-anchor': 'middle', fill: NAVY, 'font-size': 11.5, 'font-weight': 700 }, 'gluconeogenesis');
+
+    // --- ketone strip -------------------------------------------------------------------------
+    let kd = `M${X(0)},${kB}`;
+    for (let i = 0; i <= N; i++) { const t = (i / N) * 72; kd += `L${X(t).toFixed(1)},${(kB - ketone(t) * (kB - kT)).toFixed(1)}`; }
+    kd += `L${X(72)},${kB}Z`;
+    add('path', { d: kd, fill: NAVY, 'fill-opacity': 0.18, stroke: NAVY, 'stroke-width': 1.4 });
+    add('text', { x: x0 + 4, y: kT + 10, fill: NAVY, 'font-size': 10.5, 'font-weight': 600 }, 'blood ketone bodies');
+
+    // --- state band + hour ticks --------------------------------------------------------------
     for (let i = 0; i < 4; i++) {
-      const sx = x0 + (bounds[i] / 72) * span;
-      const ex = x0 + (bounds[i + 1] / 72) * span;
-      svg.appendChild(el('rect', { x: sx, y, width: ex - sx, height: 22, fill: fills[i], opacity: 0.16, stroke: fills[i], 'stroke-width': 1 }));
-      const lt = el('text', { x: (sx + ex) / 2, y: y + 14, 'text-anchor': 'middle', fill: INK, 'font-size': 9 });
-      lt.textContent = labels[i]; svg.appendChild(lt);
+      const sx = X(BOUNDS[i]), ex = X(BOUNDS[i + 1]);
+      const on = h >= BOUNDS[i] && (h < BOUNDS[i + 1] || (i === 3 && h === 72));
+      add('rect', { x: sx, y: bT, width: ex - sx, height: bB - bT, fill: BAND_FILL[i], 'fill-opacity': on ? 0.32 : 0.12, stroke: BAND_FILL[i], 'stroke-width': on ? 1.5 : 0.8 });
+      if (ex - sx > BAND_LABEL[i].length * 6 + 6) {
+        add('text', { x: (sx + ex) / 2, y: bT + 14, 'text-anchor': 'middle', fill: on ? NAVY : '#4b4b55', 'font-size': 10.5, 'font-weight': on ? 700 : 400 }, BAND_LABEL[i]);
+      }
     }
-    // axis ticks
-    for (const t of [0, 4, 16, 48, 72]) {
-      const tx = x0 + (t / 72) * span;
-      svg.appendChild(el('line', { x1: tx, y1: y + 22, x2: tx, y2: y + 28, stroke: '#b9b9c2', 'stroke-width': 1 }));
-      const tl = el('text', { x: tx, y: y + 40, 'text-anchor': 'middle', fill: '#b9b9c2', 'font-size': 9 });
-      tl.textContent = `${t} h`; svg.appendChild(tl);
-    }
-    // moving marker for current time
-    const mx = x0 + (h / 72) * span;
-    svg.appendChild(el('line', { x1: mx, y1: y - 16, x2: mx, y2: y + 28, stroke: s.color, 'stroke-width': 2 }));
-    svg.appendChild(el('circle', { cx: mx, cy: y - 16, r: 6, fill: s.color, stroke: '#fff', 'stroke-width': 2 }));
-    const ml = el('text', { x: Math.min(Math.max(mx, x0 + 30), x1 - 30), y: y - 26, 'text-anchor': 'middle', fill: s.color, 'font-size': 11, 'font-weight': 700 });
-    ml.textContent = s.name.split(' · ')[0]; svg.appendChild(ml);
+    BOUNDS.forEach((t) => {
+      add('line', { x1: X(t), y1: bB, x2: X(t), y2: bB + 4, stroke: '#9a9aa3', 'stroke-width': 1 });
+      add('text', { x: X(t), y: bB + 15, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 }, t === 72 ? '72 h' : String(t));
+    });
+    svg.appendChild(svg.querySelector('[data-knob]')!); // keep the time knob on top
+
   }
 
   function fmtTime(h: number): string {
@@ -147,9 +198,17 @@
       adiposeEl.textContent = s.adipose;
       muscleEl.textContent = s.muscle;
       brainEl.textContent = s.brain;
+      timeIn.setAttribute('aria-valuetext', `${fmtTime(h)} since eating: ${s.name.toLowerCase()}`);
       draw(svg, h, s);
     }
     timeIn.addEventListener('input', render);
+    let lastW = 0;
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(() => {
+        const w = Math.round(svg.getBoundingClientRect().width);
+        if (w && Math.abs(w - lastW) > 4) { lastW = w; render(); }
+      }).observe(svg as unknown as Element);
+    }
     render();
   });
 </script>
@@ -161,8 +220,9 @@
   .fft-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
   .fft-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
   .fft-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fft-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .fft-slabel input { accent-color: var(--ddp-color-accent); }
-  .fft-state { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-1); }
+  .fft-state { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.1rem 0.75rem; margin-bottom: var(--ddp-space-1); }
   .fft-statename { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
   .fft-hormone { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); text-align: right; }
   .fft-glucose { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }

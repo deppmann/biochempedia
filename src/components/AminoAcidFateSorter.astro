@@ -14,9 +14,9 @@
 
   <div class="afs-filters" role="group" aria-label="Catabolic fate">
     <button type="button" data-fate="all" aria-pressed="true">All 20</button>
-    <button type="button" data-fate="gluco">Glucogenic</button>
-    <button type="button" data-fate="keto">Ketogenic</button>
-    <button type="button" data-fate="both">Both</button>
+    <button type="button" data-fate="gluco" aria-pressed="false"><i class="afs-sw" style="--afs-c:#0e7c86" aria-hidden="true"></i>Glucogenic</button>
+    <button type="button" data-fate="keto" aria-pressed="false"><i class="afs-sw" style="--afs-c:#e57200" aria-hidden="true"></i>Ketogenic</button>
+    <button type="button" data-fate="both" aria-pressed="false"><i class="afs-sw" style="--afs-c:#D4A843" aria-hidden="true"></i>Both</button>
   </div>
 
   <div class="afs-grid" data-grid></div>
@@ -50,23 +50,41 @@
     { code: 'Leu', name: 'Leucine', fate: K, entry: 'acetyl-CoA + acetoacetate', note: 'One of only two purely ketogenic amino acids — its entire skeleton becomes acetyl-CoA/acetoacetate and can never be glucose.' },
     { code: 'Lys', name: 'Lysine', fate: K, entry: 'acetoacetyl-CoA', note: 'The other purely ketogenic amino acid. Its carbons can only become ketone bodies or fat.' },
   ];
+  // stripe/fill colors, plus darker text inks so the gold and orange codes clear WCAG AA on white
   const COLOR: Record<string, string> = { gluco: '#0e7c86', keto: '#e57200', both: '#D4A843' };
+  const INKC: Record<string, string> = { gluco: '#0e7c86', keto: '#b35900', both: '#7f6315' };
+  const FATE_WORD: Record<string, string> = { gluco: 'glucogenic', keto: 'purely ketogenic', both: 'both glucogenic and ketogenic' };
   const RULE: Record<string, string> = {
-    all: 'Each color is a catabolic fate — teal glucogenic, orange ketogenic, gold both. Click any residue to see where its carbon skeleton enters metabolism.',
-    gluco: 'Glucogenic skeletons enter as pyruvate, α-ketoglutarate, succinyl-CoA, fumarate, or oxaloacetate — all of which gluconeogenesis can pull back up to glucose. Eighteen of the twenty are at least partly glucogenic.',
-    keto: 'Ketogenic skeletons enter as acetyl-CoA or acetoacetate, which animals cannot convert to net glucose, so these carbons become ketone bodies or fat. Only leucine and lysine are PURELY ketogenic — the two L’s.',
+    all: 'Each color is a catabolic fate — teal glucogenic, orange ketogenic, gold both. Under each code is the metabolite its carbon skeleton becomes. Click any residue for the story behind it.',
+    gluco: 'Glucogenic skeletons enter as pyruvate, α-ketoglutarate, succinyl-CoA, fumarate, or oxaloacetate — all of which gluconeogenesis can pull back up to glucose. Eighteen of the twenty are at least partly glucogenic: the thirteen teal ones fully, the gold five in part.',
+    keto: 'Ketogenic skeletons enter as acetyl-CoA, acetoacetyl-CoA, or acetoacetate, which animals cannot convert to net glucose, so these carbons become ketone bodies or fat. Only leucine and lysine (orange) are PURELY ketogenic — the two L’s; the gold five are partly ketogenic.',
     both: 'Five amino acids are split down the middle — part becomes glucose, part becomes ketone bodies: isoleucine, phenylalanine, tyrosine, tryptophan, threonine.',
   };
 
   document.querySelectorAll<HTMLElement>('[data-aafate]').forEach((root) => {
     const grid = root.querySelector<HTMLElement>('[data-grid]')!;
     const rule = root.querySelector<HTMLElement>('[data-rule]')!;
+    function select(chip: HTMLElement | null) {
+      grid.querySelectorAll<HTMLElement>('.afs-chip-btn').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+    }
     AAS.forEach((aa) => {
       const chip = document.createElement('button');
       chip.type = 'button'; chip.className = 'afs-chip-btn'; chip.setAttribute('data-aafatecat', aa.fate);
+      chip.setAttribute('aria-pressed', 'false');
+      chip.setAttribute('aria-label', `${aa.name}: ${FATE_WORD[aa.fate]}, enters as ${aa.entry}`);
       chip.style.setProperty('--afs-c', COLOR[aa.fate]);
-      chip.innerHTML = `<b>${aa.code}</b><span>${aa.entry}</span>`;
-      chip.addEventListener('click', () => { rule.textContent = `${aa.name} (${aa.code}) → ${aa.entry}. ${aa.note}`; });
+      chip.style.setProperty('--afs-ink', INKC[aa.fate]);
+      const code = document.createElement('b'); code.textContent = aa.code;
+      const entry = document.createElement('span'); entry.textContent = aa.entry;
+      chip.append(code, entry);
+      chip.addEventListener('click', () => {
+        select(chip);
+        rule.replaceChildren();
+        const head = document.createElement('strong');
+        head.textContent = `${aa.name} (${aa.code})`;
+        head.style.color = INKC[aa.fate];
+        rule.append(head, ` → ${aa.entry}. ${aa.note}`);
+      });
       grid.appendChild(chip);
     });
     function filter(cat: string) {
@@ -75,6 +93,7 @@
         const match = cat === 'all' || f === cat || (cat === 'gluco' && f === 'both') || (cat === 'keto' && f === 'both');
         c.classList.toggle('is-dim', !match);
       });
+      select(null);
       rule.textContent = RULE[cat];
     }
     root.querySelectorAll<HTMLButtonElement>('[data-fate]').forEach((b) =>
@@ -95,11 +114,16 @@
   .afs-filters button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
   .afs-filters button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
   .afs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.4rem; }
+  @media (max-width: 480px) { .afs-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem; } .afs-chip-btn span { font-size: 0.64rem; } }
   .afs-chip-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem; font-family: inherit; text-align: left; border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--afs-c, #888); background: #fff; border-radius: 5px; padding: 0.3rem 0.45rem; cursor: pointer; transition: opacity 0.2s; }
-  .afs-chip-btn b { font-size: var(--ddp-text-sm); color: var(--afs-c, var(--ddp-color-primary)); }
-  .afs-chip-btn span { font-size: 0.6rem; color: var(--ddp-color-muted); }
+  .afs-chip-btn b { font-size: var(--ddp-text-sm); color: var(--afs-ink, var(--ddp-color-primary)); }
+  .afs-chip-btn span { font-size: 0.68rem; line-height: 1.3; color: var(--ddp-color-muted); }
   .afs-chip-btn:hover { border-color: var(--afs-c); }
-  .afs-chip-btn.is-dim { opacity: 0.2; }
+  .afs-chip-btn[aria-pressed='true'] { border-color: var(--afs-c); background: color-mix(in srgb, var(--afs-c) 12%, #fff); box-shadow: 0 0 0 1px var(--afs-c); }
+  .afs-chip-btn:focus-visible, .afs-filters button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .afs-chip-btn.is-dim { opacity: 0.22; }
+  .afs-sw { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; background: var(--afs-c); margin-right: 0.35rem; vertical-align: -0.02rem; }
+  @media (prefers-reduced-motion: reduce) { .afs-chip-btn { transition: none; } }
   .afs-rule { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .afs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

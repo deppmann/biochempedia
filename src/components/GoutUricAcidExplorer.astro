@@ -12,19 +12,20 @@
 <figure class="gout card" data-gout>
   <figcaption class="gout-head">From purine to uric acid — and how allopurinol stops the flare<span class="gout-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="gout-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+  <svg class="gout-svg" role="img" aria-label="Purine breakdown: AMP and GMP are degraded to hypoxanthine and guanine, which converge on xanthine; xanthine oxidase makes uric acid, which humans cannot break down further" data-svg></svg>
 
   <div class="gout-controls">
-    <label class="gout-slabel">Purine load <em data-out="load">moderate</em>
-      <input type="range" data-in="load" min="0" max="100" step="5" value="55" />
+    <label class="gout-slabel"><span>Purine load <span class="gout-hint">(diet + cell turnover)</span> <em data-out="load">high</em></span>
+      <input type="range" data-in="load" min="0" max="100" step="5" value="75" />
     </label>
     <button type="button" data-allo class="gout-toggle" aria-pressed="false">Allopurinol: off</button>
   </div>
 
   <div class="gout-readout">
-    <div class="gout-meter" data-meter role="img" aria-label="serum urate relative to solubility threshold"></div>
+    <div class="gout-meter" data-meter aria-hidden="true"></div>
+    <div class="gout-scale" aria-hidden="true"><span>0</span><span class="gout-scale-lim" data-limpos>6.8</span><span>11 mg/dL</span></div>
     <div class="gout-vals">
-      <span class="gout-urate">Serum urate <strong data-urate>7.4</strong> mg/dL</span>
+      <span class="gout-urate">Serum urate <strong data-urate>8.0</strong> mg/dL</span>
       <span class="gout-thresh">solubility limit ≈ 6.8 mg/dL</span>
     </div>
   </div>
@@ -35,88 +36,148 @@
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55', MUTED = '#6b6b6b';
   const GREEN = '#2e8b57', RED = '#c0392b';
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
     const e = document.createElementNS(SVGNS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
     return e;
   }
 
-  type Node = { x: number; label: string; sub: string };
-  const NODES: Node[] = [
-    { x: 18, label: 'AMP', sub: 'adenosine' },
-    { x: 125, label: 'inosine', sub: '' },
-    { x: 222, label: 'hypoxanthine', sub: '' },
-    { x: 330, label: 'xanthine', sub: '' },
-    { x: 430, label: 'URIC ACID', sub: 'end product' },
+  // The purine tail as a small graph. Adenine and guanine nucleotides are broken down on two
+  // parallel tracks that converge on xanthine; xanthine oxidase (XO) catalyzes the last two
+  // oxidations, and the uricase step that would continue to allantoin is missing in humans.
+  type NodeId = 'amp' | 'ino' | 'hyp' | 'gmp' | 'guo' | 'gua' | 'xan' | 'uric' | 'alla';
+  const LABEL: Record<NodeId, string> = {
+    amp: 'AMP', ino: 'inosine', hyp: 'hypoxanthine', gmp: 'GMP', guo: 'guanosine', gua: 'guanine',
+    xan: 'xanthine', uric: 'uric acid', alla: 'allantoin',
+  };
+  type Edge = { a: NodeId; b: NodeId; xo?: boolean; lost?: boolean };
+  const EDGES: Edge[] = [
+    { a: 'amp', b: 'ino' }, { a: 'ino', b: 'hyp' }, { a: 'hyp', b: 'xan', xo: true },
+    { a: 'gmp', b: 'guo' }, { a: 'guo', b: 'gua' }, { a: 'gua', b: 'xan' },
+    { a: 'xan', b: 'uric', xo: true }, { a: 'uric', b: 'alla', lost: true },
   ];
-  // arrows 2 and 3 (index 2,3 by their start node) are the xanthine-oxidase steps
-  const XO_ARROWS = [2, 3];
 
-  function drawPathway(svg: SVGElement, allo: boolean) {
+  type Layout = { W: number; H: number; bw: number; bh: number; pos: Record<NodeId, [number, number]>; legendY: number; tall?: boolean };
+  function layoutFor(W: number): Layout {
+    const bh = 26;
+    if (W >= 470) {
+      // wide: left-to-right, adenine track on top, guanine track below, converging on xanthine
+      const pad = 8, col = (W - 2 * pad) / 5, bw = Math.min(100, col - 30);
+      const cx = (i: number) => pad + col * (i + 0.5);
+      const yT = 26, yB = 104, yM = 65;
+      return { W, H: 172, bw, bh, legendY: 160, pos: {
+        amp: [cx(0), yT], ino: [cx(1), yT], hyp: [cx(2), yT],
+        gmp: [cx(0), yB], guo: [cx(1), yB], gua: [cx(2), yB],
+        xan: [cx(3), yM], uric: [cx(4), yM], alla: [cx(4), yB + 10],
+      } };
+    }
+    // narrow: top-to-bottom, adenine track on the left, guanine track on the right
+    const bw = Math.min(118, W * 0.4), xl = W * 0.27, xr = W * 0.73, xc = W * 0.5;
+    const r = (i: number) => 22 + i * 46;
+    return { W, H: r(5) + 42, bw, bh, legendY: r(5) + 34, tall: true, pos: {
+      amp: [xl, r(0)], ino: [xl, r(1)], hyp: [xl, r(2)],
+      gmp: [xr, r(0)], guo: [xr, r(1)], gua: [xr, r(2)],
+      xan: [xc, r(3)], uric: [xc, r(4)], alla: [xc, r(5)],
+    } };
+  }
+
+  // point where the segment from box-center a toward b leaves box a (so arrows start/stop at edges)
+  function edgePoint(c: [number, number], toward: [number, number], bw: number, bh: number, gap: number): [number, number] {
+    const dx = toward[0] - c[0], dy = toward[1] - c[1];
+    const sx = dx === 0 ? Infinity : (bw / 2 + gap) / Math.abs(dx);
+    const sy = dy === 0 ? Infinity : (bh / 2 + gap) / Math.abs(dy);
+    const t = Math.min(sx, sy);
+    return [c[0] + dx * t, c[1] + dy * t];
+  }
+
+  function drawPathway(svg: SVGElement, allo: boolean, over: boolean) {
+    const W = Math.round(Math.max(300, Math.min(720, svg.getBoundingClientRect().width || 460)));
+    const L = layoutFor(W);
+    svg.setAttribute('viewBox', `0 0 ${L.W} ${L.H}`);
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    const y = 52;
     const defs = el('defs', {});
     const mk = (id: string, color: string) => {
-      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
+      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 5.5, refY: 3, orient: 'auto' });
       m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: color }));
       return m;
     };
     defs.appendChild(mk('gout-ar', INK));
-    defs.appendChild(mk('gout-ar-xo', allo ? FAINT : ACCENT));
+    defs.appendChild(mk('gout-ar-xo', ACCENT));
+    defs.appendChild(mk('gout-ar-off', FAINT));
     svg.appendChild(defs);
 
-    for (let i = 0; i < NODES.length - 1; i++) {
-      const isXO = XO_ARROWS.indexOf(i) !== -1;
-      const greyed = isXO && allo;
-      const color = isXO ? (greyed ? FAINT : ACCENT) : INK;
-      const x1 = NODES[i].x + 44, x2 = NODES[i + 1].x - 4;
-      svg.appendChild(el('line', { x1, y1: y, x2, y2: y, stroke: color, 'stroke-width': isXO ? 2.4 : 1.6, 'marker-end': greyed ? 'url(#gout-ar-xo)' : (isXO ? 'url(#gout-ar-xo)' : 'url(#gout-ar)') }));
-      if (isXO) {
-        const lab = el('text', { x: (x1 + x2) / 2, y: y - 8, 'text-anchor': 'middle', fill: greyed ? FAINT : ACCENT, 'font-size': 8.5, 'font-weight': 600 });
-        lab.textContent = greyed ? 'XO ✕ blocked' : 'xanthine oxidase';
-        svg.appendChild(lab);
+    EDGES.forEach((e) => {
+      const A = L.pos[e.a], B = L.pos[e.b];
+      const p1 = edgePoint(A, B, L.bw, L.bh, 2), p2 = edgePoint(B, A, L.bw, L.bh, 4);
+      const blocked = !!e.xo && allo;
+      const color = e.lost || blocked ? FAINT : e.xo ? ACCENT : INK;
+      const marker = e.lost || blocked ? 'gout-ar-off' : e.xo ? 'gout-ar-xo' : 'gout-ar';
+      svg.appendChild(el('line', {
+        x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1], stroke: color, 'stroke-width': e.xo ? 2.4 : 1.5,
+        'stroke-dasharray': e.lost || blocked ? '4 3' : 'none', 'marker-end': `url(#${marker})`,
+      }));
+      const mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2;
+      if (e.xo) {
+        // label the XO steps beside the arrow (on its upper / right side); when allopurinol is on, stamp them blocked
+        const dx = p2[0] - p1[0], dy = p2[1] - p1[1], len = Math.hypot(dx, dy) || 1;
+        let nx = -dy / len, ny = dx / len;
+        if (ny > 0 || (Math.abs(ny) < 0.2 && nx < 0)) { nx = -nx; ny = -ny; }
+        const vertical = Math.abs(nx) > 0.8;
+        let lx = mx + nx * (vertical ? 7 : 9), ly = my + ny * 9 + (vertical ? 4 : 0), anchor = vertical ? 'start' : 'middle';
+        // tall layout: the short diagonal hugs the boxes above it, so label it from below-left instead
+        if (L.tall && !vertical) { lx = mx - 8; ly = my + 13; anchor = 'end'; }
+        const t = el('text', { x: lx, y: ly, 'text-anchor': anchor, fill: blocked ? RED : ACCENT, 'font-size': 11, 'font-weight': 700 }, blocked ? 'XO ✕' : 'XO');
+        svg.appendChild(t);
       }
-    }
-
-    NODES.forEach((n, idx) => {
-      const last = idx === NODES.length - 1;
-      const fill = last ? (allo ? '#7a8a86' : ORANGE) : '#fff';
-      const stroke = last ? (allo ? '#7a8a86' : ORANGE) : NAVY;
-      svg.appendChild(el('rect', { x: n.x, y: y - 13, width: 88, height: 26, rx: 6, fill: fill, opacity: last ? 0.16 : 1, stroke: stroke, 'stroke-width': last ? 2 : 1.2 }));
-      const t = el('text', { x: n.x + 44, y: y + 1, 'text-anchor': 'middle', fill: last ? (allo ? INK : ORANGE) : NAVY, 'font-size': last ? 10 : 9.5, 'font-weight': last ? 700 : 500 });
-      t.textContent = n.label;
-      svg.appendChild(t);
-      if (n.sub) {
-        const s = el('text', { x: n.x + 44, y: y + 24, 'text-anchor': 'middle', fill: FAINT, 'font-size': 7.5 });
-        s.textContent = n.sub;
-        svg.appendChild(s);
+      if (e.lost) {
+        // keep the label inside the canvas: to the right of the arrow if there is room, else to the left
+        const right = mx + 140 < L.W;
+        svg.appendChild(el('text', { x: right ? mx + 8 : mx - 8, y: my + 4, 'text-anchor': right ? 'start' : 'end', fill: MUTED, 'font-size': 10 }, 'uricase ✕ lost in humans'));
       }
     });
 
-    const cap = el('text', { x: 230, y: 108, 'text-anchor': 'middle', fill: INK, 'font-size': 9 });
-    cap.textContent = 'humans lack uricase — uric acid is the dead-end';
-    svg.appendChild(cap);
+    (Object.keys(L.pos) as NodeId[]).forEach((id) => {
+      const [cx, cy] = L.pos[id];
+      const x = cx - L.bw / 2, y = cy - L.bh / 2;
+      if (id === 'alla') {
+        svg.appendChild(el('rect', { x, y, width: L.bw, height: L.bh, rx: 6, fill: '#fff', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+        svg.appendChild(el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: MUTED, 'font-size': 11 }, 'allantoin'));
+        return;
+      }
+      if (id === 'uric') {
+        const c = over ? RED : allo ? GREEN : ORANGE;
+        svg.appendChild(el('rect', { x, y, width: L.bw, height: L.bh, rx: 6, fill: c, 'fill-opacity': 0.14, stroke: c, 'stroke-width': 2 }));
+        svg.appendChild(el('text', { x: cx, y: cy + 4.5, 'text-anchor': 'middle', fill: over ? RED : NAVY, 'font-size': 12, 'font-weight': 700 }, LABEL[id]));
+        return;
+      }
+      svg.appendChild(el('rect', { x, y, width: L.bw, height: L.bh, rx: 6, fill: '#fff', stroke: NAVY, 'stroke-width': 1.2 }));
+      svg.appendChild(el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: NAVY, 'font-size': 11.5, 'font-weight': 500 }, LABEL[id]));
+    });
+
+    const leg = el('text', { x: L.W / 2, y: L.legendY, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10.5 });
+    leg.textContent = allo ? 'XO ✕ = xanthine oxidase, blocked by allopurinol' : 'XO = xanthine oxidase (allopurinol’s target)';
+    svg.appendChild(leg);
   }
 
-  const THRESHOLD = 6.8;
+  const THRESHOLD = 6.8, MAX = 11;
 
-  function drawMeter(meter: HTMLElement, urate: number) {
-    while (meter.firstChild) meter.removeChild(meter.firstChild);
-    const max = 11;
-    const over = urate > THRESHOLD;
-    const fill = document.createElement('div');
-    fill.className = 'gout-fill';
-    fill.style.width = `${Math.min(100, (urate / max) * 100)}%`;
+  function drawMeter(meter: HTMLElement, urate: number, over: boolean) {
+    // build the fill + threshold line once, then only restyle, so the width change can transition
+    let fill = meter.querySelector<HTMLElement>('.gout-fill');
+    if (!fill) {
+      fill = document.createElement('div');
+      fill.className = 'gout-fill';
+      const line = document.createElement('div');
+      line.className = 'gout-line';
+      line.style.left = `${(THRESHOLD / MAX) * 100}%`;
+      meter.append(fill, line);
+    }
+    fill.style.width = `${Math.min(100, (urate / MAX) * 100)}%`;
     fill.style.background = over ? RED : GREEN;
-    const line = document.createElement('div');
-    line.className = 'gout-line';
-    line.style.left = `${(THRESHOLD / max) * 100}%`;
-    line.title = 'solubility threshold 6.8 mg/dL';
-    meter.appendChild(fill);
-    meter.appendChild(line);
   }
 
   document.querySelectorAll<HTMLElement>('[data-gout]').forEach((root) => {
@@ -127,41 +188,55 @@
     const meter = root.querySelector<HTMLElement>('[data-meter]')!;
     const urateEl = root.querySelector<HTMLElement>('[data-urate]')!;
     const stateEl = root.querySelector<HTMLElement>('[data-state]')!;
+    const limPos = root.querySelector<HTMLElement>('[data-limpos]')!;
+    limPos.style.left = `${(THRESHOLD / MAX) * 100}%`;
     let allo = false;
 
+    // Teaching model, not a clinical calculator: serum urate rises linearly with purine load
+    // (baseline 3.5 → 9.5 mg/dL); allopurinol cuts the production above a ~3 mg/dL floor by ~38%.
     function urateFor(load: number): number {
-      // baseline 3.5, climbs with purine load toward ~9.5; allopurinol cuts production ~38%
       const raw = 3.5 + (load / 100) * 6.0;
       return allo ? 3.0 + (raw - 3.0) * 0.62 : raw;
     }
 
     function render() {
       const load = parseInt(loadIn.value, 10);
-      loadOut.textContent = load > 70 ? 'high' : load > 35 ? 'moderate' : load > 5 ? 'low' : 'minimal';
+      const word = load > 70 ? 'high' : load > 35 ? 'moderate' : load > 5 ? 'low' : 'minimal';
+      loadOut.textContent = word;
       alloBtn.textContent = `Allopurinol: ${allo ? 'on' : 'off'}`;
       alloBtn.setAttribute('aria-pressed', String(allo));
       alloBtn.classList.toggle('gout-toggle--on', allo);
 
-      const urate = urateFor(load);
-      urateEl.textContent = urate.toFixed(1);
+      const urate = Math.round(urateFor(load) * 10) / 10; // compare the value the student sees
       const over = urate > THRESHOLD;
+      urateEl.textContent = urate.toFixed(1);
       urateEl.style.color = over ? RED : GREEN;
-      drawMeter(meter, urate);
-      drawPathway(svg, allo);
+      loadIn.setAttribute('aria-valuetext', `${word} purine load; serum urate ${urate.toFixed(1)} mg/dL`);
+      drawMeter(meter, urate, over);
+      drawPathway(svg, allo, over);
 
       if (over) {
-        stateEl.textContent = `Crystals forming — gout flare. At ${urate.toFixed(1)} mg/dL the serum is past uric acid's solubility limit, so monosodium urate falls out of solution as needle-sharp crystals in the joint.`;
+        stateEl.textContent = allo
+          ? `Still above the line. Allopurinol has cut urate production, but at this purine load the serum is still ${urate.toFixed(1)} mg/dL — past the ≈ 6.8 mg/dL solubility limit, so crystals can keep forming. Lower the load (or, clinically, raise the dose) to get under it.`
+          : `Above the solubility limit — crystals can form. At ${urate.toFixed(1)} mg/dL the serum is supersaturated with urate, so monosodium urate can fall out of solution as needle-shaped crystals in a joint; that is what sets off a gout flare. Try switching allopurinol on.`;
         stateEl.className = 'gout-state gout-state--bad';
       } else {
         stateEl.textContent = allo
-          ? `Soluble — safe. Allopurinol has throttled xanthine oxidase, so urate production drops and the serum sits at ${urate.toFixed(1)} mg/dL, comfortably under the line. The crystals dissolve.`
-          : `Soluble — safe. At ${urate.toFixed(1)} mg/dL the urate stays dissolved, below its solubility limit. No crystals.`;
+          ? `Below the line. Allopurinol has throttled xanthine oxidase, so less hypoxanthine and xanthine become urate and the serum sits at ${urate.toFixed(1)} mg/dL, under the solubility limit. Kept there, existing crystals slowly dissolve.`
+          : `Below the line. At ${urate.toFixed(1)} mg/dL the urate stays dissolved, under its ≈ 6.8 mg/dL solubility limit. No crystals form. Push the purine load up to see what happens.`;
         stateEl.className = 'gout-state gout-state--ok';
       }
     }
 
     loadIn.addEventListener('input', render);
     alloBtn.addEventListener('click', () => { allo = !allo; render(); });
+    let lastW = 0;
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(() => {
+        const w = Math.round(svg.getBoundingClientRect().width);
+        if (w && Math.abs(w - lastW) > 4) { lastW = w; render(); }
+      }).observe(svg as unknown as Element);
+    }
     render();
   });
 </script>
@@ -173,7 +248,8 @@
   .gout-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }
   .gout-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
   .gout-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: 1 1 200px; }
-  .gout-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gout-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); margin-left: 0.3rem; }
+  .gout-hint { color: var(--ddp-color-muted); }
   .gout-slabel input { accent-color: var(--ddp-color-accent); }
   .gout-toggle { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.38rem 0.8rem; cursor: pointer; white-space: nowrap; }
   .gout-toggle:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
@@ -181,8 +257,17 @@
   .gout-readout { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: var(--ddp-space-3); }
   .gout-meter { position: relative; width: 100%; height: 18px; background: color-mix(in srgb, var(--ddp-color-muted) 18%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 9px; overflow: hidden; }
   .gout-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px 0 0 9px; }
-  .gout-line { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ddp-color-secondary-ink); }
-  .gout-vals { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gout-fill { transition: width 0.25s ease, background-color 0.25s ease; }
+  .gout-line { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: var(--ddp-color-primary); z-index: 1; }
+  .gout-scale { position: relative; height: 1.1em; font-family: var(--ddp-font-mono); font-size: 0.68rem; color: var(--ddp-color-muted); }
+  .gout-scale span { position: absolute; top: 0; }
+  .gout-scale span:first-child { left: 0; }
+  .gout-scale span:last-child { right: 0; }
+  .gout-scale .gout-scale-lim { transform: translateX(-50%); color: var(--ddp-color-primary); font-weight: 700; }
+  .gout-vals { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.2rem 0.75rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gout-vals > span { white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .gout-fill { transition: none; } }
+  .gout-toggle:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .gout-urate strong { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); }
   .gout-thresh { font-family: var(--ddp-font-mono); color: var(--ddp-color-secondary-ink); }
   .gout-state { margin: 0; font-size: var(--ddp-text-xs); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); border-radius: 6px; color: var(--ddp-color-ink-soft); }
