@@ -81,6 +81,7 @@ const badge = (s: Step) => {
     <span><em data-t="nadh">0</em> NADH</span>
     <span class="pw-net">Net <em data-t="net">0</em> ATP</span>
   </div>
+  <p class="pw-key"><span><span aria-hidden="true">🔒</span> irreversible, regulated step</span><span><b>×2</b> counts twice: two trioses per glucose</span></p>
 
   <div class="pw-steps">
     {PHASES.map((ph) => (
@@ -179,7 +180,7 @@ const badge = (s: Step) => {
 </script>
 
 <style>
-  .pathway { padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-5); margin: var(--ddp-space-6) 0; }
+  .pathway { padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-5); margin: var(--ddp-space-6) 0; container-type: inline-size; }
   .pw-head {
     display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem;
     font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3);
@@ -188,7 +189,7 @@ const badge = (s: Step) => {
 
   .pw-tally {
     display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4);
-    padding: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-4);
+    padding: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-2);
     border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
     background: var(--ddp-color-bg-alt, #f0ede7);
     font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft);
@@ -196,6 +197,8 @@ const badge = (s: Step) => {
   .pw-tally em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
   .pw-net { margin-left: auto; }
   .pw-tally.is-positive .pw-net em { color: var(--ddp-color-verified); }
+  .pw-key { display: flex; flex-wrap: wrap; gap: 0.2rem var(--ddp-space-4); margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pw-key b { font-family: var(--ddp-font-mono); color: var(--ddp-color-secondary-ink); }
 
   .pw-phase { margin-bottom: var(--ddp-space-3); }
   .pw-phase-head {
@@ -208,7 +211,8 @@ const badge = (s: Step) => {
   .pw-step.is-reg { border-color: var(--ddp-color-secondary); border-left-width: 3px; }
   .pw-step.is-visited { box-shadow: inset 2px 0 0 var(--ddp-color-accent); }
   .pw-step-head {
-    display: flex; align-items: center; gap: var(--ddp-space-3); width: 100%; text-align: left;
+    display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center;
+    column-gap: var(--ddp-space-3); row-gap: 0.2rem; width: 100%; text-align: left;
     padding: var(--ddp-space-2) var(--ddp-space-3); background: none; border: 0; cursor: pointer;
   }
   .pw-step-head:hover { background: var(--ddp-color-accent-soft); }
@@ -223,6 +227,12 @@ const badge = (s: Step) => {
   .pw-rxn { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pw-badge { flex: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); white-space: nowrap; }
   .pw-badge i { color: var(--ddp-color-secondary-ink); font-style: normal; font-weight: 700; }
+  /* Narrow column: the yield badge drops under the reaction instead of
+     squeezing the enzyme name. */
+  @container (max-width: 520px) {
+    .pw-num { align-self: start; }
+    .pw-badge { grid-column: 2 / -1; grid-row: 2; justify-self: start; }
+  }
   .pw-body { padding: 0 var(--ddp-space-3) var(--ddp-space-3) calc(26px + var(--ddp-space-3) + var(--ddp-space-3)); }
   .pw-body p { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
   .pw-reg { color: var(--ddp-color-ink-soft); }

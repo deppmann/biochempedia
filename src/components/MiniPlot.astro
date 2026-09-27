@@ -27,26 +27,55 @@ const heading =
   <figcaption class="mini-head">{heading}<span class="mini-chip">drag the sliders</span></figcaption>
   <svg class="mini-svg" viewBox="0 0 320 230" role="img" aria-label={heading}></svg>
   <div class="mini-controls">
-    <label>V<sub>max</sub> <input type="range" data-in="vmax" min="20" max="200" step="1" value="100" /></label>
-    <label>K<sub>m</sub> <input type="range" data-in="km" min="1" max="25" step="0.5" value="8" /></label>
+    <label>
+      <span class="mini-lab">V<sub>max</sub></span>
+      <input type="range" data-in="vmax" min="20" max="200" step="1" value="100" />
+      <output class="mini-val" data-out="vmax">100</output>
+    </label>
+    <label>
+      <span class="mini-lab">K<sub>m</sub></span>
+      <input type="range" data-in="km" min="1" max="25" step="0.5" value="8" />
+      <output class="mini-val" data-out="km">8.0 mM</output>
+    </label>
     {view === 'inhibitor' && (
-      <label>α (inhibitor) <input type="range" data-in="alpha" min="1" max="5" step="0.25" value="2.5" /></label>
+      <label>
+        <span class="mini-lab">α</span>
+        <input type="range" data-in="alpha" min="1" max="5" step="0.25" value="2.5" aria-label="α, competitive-inhibitor strength" />
+        <output class="mini-val" data-out="alpha">2.50</output>
+      </label>
     )}
   </div>
-  <p class="mini-readout" data-readout></p>
+  <p class="mini-readout" data-readout aria-live="polite"></p>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GRID = '#e6e3db';
+  // Brand hexes: the island sits on a .card, which stays light "paper" in dark mode.
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GRID = '#ece9e2', AXIS = '#9a9aa3', INK = '#5a5a5a';
   const S_MAX = 100, V_TOP = 220;
-  const L = 46, R = 308, T = 12, B = 196, W = 262, H = 184;
+  // Plot frame inside the 320 × 230 viewBox (room for tick labels + axis titles).
+  const L = 50, R = 308, T = 12, B = 184, W = R - L, H = B - T;
+  // Lineweaver–Burk axes are FIXED (not auto-scaled), so moving a slider visibly
+  // slides the intercepts: Km moves the x-intercept, Vmax moves the y-intercept.
+  const LB_X = [-1.1, 0.6], LB_Y = [-0.012, 0.12];
 
-  function el(name: string, attrs: Record<string, string | number>) {
+  type Attrs = Record<string, string | number>;
+  function el(name: string, attrs: Attrs, text?: string) {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
     return e;
   }
+  // Text with a white halo so a label stays legible where it crosses a line.
+  function label(x: number, y: number, parts: Array<[string, boolean?]>, attrs: Attrs = {}) {
+    const t = el('text', { x, y, 'font-size': 10.5, 'font-weight': 600, stroke: '#fff', 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke', ...attrs });
+    for (const [str, sub] of parts) {
+      const ts = el('tspan', sub ? { 'baseline-shift': 'sub', 'font-size': 8 } : {}, str);
+      t.appendChild(ts);
+    }
+    return t;
+  }
+  const fmtNum = (v: number, d: number) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(d);
 
   document.querySelectorAll<HTMLElement>('[data-miniplot]').forEach((root) => {
     const view = root.getAttribute('data-view') as 'mm' | 'lb' | 'inhibitor';
@@ -56,47 +85,104 @@ const heading =
 
     const sx = (s: number) => L + (s / S_MAX) * W;
     const sy = (v: number) => T + (1 - v / V_TOP) * H;
+    const add = (e: Element) => svg.appendChild(e);
 
-    function axes(xlab: string, ylab: string) {
-      svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
-      svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
-      const xl = el('text', { x: (L + R) / 2, y: 224, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); xl.textContent = xlab; svg.appendChild(xl);
-      const yl = el('text', { x: 12, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 12 ${(T + B) / 2})` }); yl.textContent = ylab; svg.appendChild(yl);
+    function axisTitles(xlab: string, ylab: string) {
+      add(el('text', { x: (L + R) / 2, y: 222, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: NAVY }, xlab));
+      add(el('text', { x: 13, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 600, fill: NAVY, transform: `rotate(-90 13 ${(T + B) / 2})` }, ylab));
     }
     function mmCurve(km: number, vmax: number) {
       let d = '';
-      for (let i = 0; i <= 100; i++) { const s = (i / 100) * S_MAX; const v = (vmax * s) / (km + s); d += (i === 0 ? 'M' : 'L') + sx(s).toFixed(1) + ' ' + sy(v).toFixed(1) + ' '; }
+      for (let i = 0; i <= 120; i++) { const s = (i / 120) * S_MAX; const v = (vmax * s) / (km + s); d += (i === 0 ? 'M' : 'L') + sx(s).toFixed(1) + ' ' + sy(v).toFixed(1) + ' '; }
       return d.trim();
+    }
+
+    function renderLB() {
+      const { vmax, km } = state;
+      const [x0, x1] = LB_X, [y0, y1] = LB_Y;
+      const px = (x: number) => L + ((x - x0) / (x1 - x0)) * W;
+      const py = (y: number) => T + (1 - (y - y0) / (y1 - y0)) * H;
+      // grid + ticks
+      [-1, -0.5, 0.5].forEach((x) => {
+        add(el('line', { x1: px(x), y1: T, x2: px(x), y2: B, stroke: GRID }));
+        add(el('text', { x: px(x), y: B + 13, 'text-anchor': 'middle', 'font-size': 9.5, fill: INK }, fmtNum(x, 1)));
+      });
+      [0.05, 0.1].forEach((y) => {
+        add(el('line', { x1: L, y1: py(y), x2: R, y2: py(y), stroke: GRID }));
+        add(el('text', { x: L - 5, y: py(y) + 3, 'text-anchor': 'end', 'font-size': 9.5, fill: INK }, y.toFixed(2)));
+      });
+      add(el('text', { x: px(0), y: B + 13, 'text-anchor': 'middle', 'font-size': 9.5, fill: INK }, '0'));
+      // axes through the origin (the intercepts live on them)
+      add(el('line', { x1: L, y1: py(0), x2: R, y2: py(0), stroke: AXIS, 'stroke-width': 1.3 }));
+      add(el('line', { x1: px(0), y1: T, x2: px(0), y2: B, stroke: AXIS, 'stroke-width': 1.3 }));
+      axisTitles('1 / [S]  (mM⁻¹)', '1 / v  (min/µmol)');
+      // the line, clipped to the plot frame
+      const clipId = `mini-clip-${Math.random().toString(36).slice(2, 8)}`;
+      const cp = el('clipPath', { id: clipId });
+      cp.appendChild(el('rect', { x: L, y: T, width: W, height: H }));
+      add(cp);
+      const slope = km / vmax, yint = 1 / vmax;
+      add(el('line', { x1: px(x0), y1: py(slope * x0 + yint), x2: px(x1), y2: py(slope * x1 + yint), stroke: ACCENT, 'stroke-width': 2.4, 'clip-path': `url(#${clipId})` }));
+      // intercepts
+      const xi = px(-1 / km), yi = py(yint);
+      add(el('circle', { cx: px(0), cy: yi, r: 4.5, fill: NAVY, stroke: '#fff', 'stroke-width': 1.5 }));
+      // Labels sit in the quadrant the line never enters: up-left of the
+      // y-intercept, down-right of the x-intercept.
+      add(label(px(0) - 7, yi - 6, [['1/V'], ['max', true]], { fill: NAVY, 'text-anchor': 'end' }));
+      add(el('circle', { cx: xi, cy: py(0), r: 4.5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 }));
+      add(label(xi + 5, py(0) + 14, [['−1/K'], ['m', true]], { fill: ACCENT }));
+      readout.innerHTML =
+        `y-intercept 1/V<sub>max</sub> = ${yint.toFixed(4)} → V<sub>max</sub> = ${vmax} µmol/min<br>` +
+        `x-intercept −1/K<sub>m</sub> = ${fmtNum(-1 / km, 3)} → K<sub>m</sub> = ${km.toFixed(1)} mM`;
+    }
+
+    function renderMM() {
+      const { vmax, km, alpha } = state;
+      const halfv = vmax / 2;
+      [25, 50, 75, 100].forEach((x) => {
+        add(el('line', { x1: sx(x), y1: T, x2: sx(x), y2: B, stroke: GRID }));
+        // the Km marker takes this slot on the axis when it's close by
+        if (Math.abs(x - km) > 7) add(el('text', { x: sx(x), y: B + 13, 'text-anchor': 'middle', 'font-size': 9.5, fill: INK }, String(x)));
+      });
+      [50, 100, 150, 200].forEach((y) => {
+        add(el('line', { x1: L, y1: sy(y), x2: R, y2: sy(y), stroke: GRID }));
+        add(el('text', { x: L - 5, y: sy(y) + 3, 'text-anchor': 'end', 'font-size': 9.5, fill: INK }, String(y)));
+      });
+      add(el('text', { x: L - 5, y: B + 3, 'text-anchor': 'end', 'font-size': 9.5, fill: INK }, '0'));
+      add(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: AXIS, 'stroke-width': 1.3 }));
+      add(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: AXIS, 'stroke-width': 1.3 }));
+      axisTitles('[S]  (mM)', 'v  (µmol/min)');
+      // Vmax asymptote + half-max guides
+      add(el('line', { x1: L, y1: sy(vmax), x2: R, y2: sy(vmax), stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '5 4', opacity: 0.7 }));
+      add(el('line', { x1: L, y1: sy(halfv), x2: sx(km), y2: sy(halfv), stroke: ACCENT, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+      add(el('line', { x1: sx(km), y1: sy(halfv), x2: sx(km), y2: B, stroke: ACCENT, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+      if (view === 'inhibitor') add(el('path', { d: mmCurve(km * alpha, vmax), fill: 'none', stroke: ORANGE, 'stroke-width': 2.2, 'stroke-dasharray': '6 4' }));
+      add(el('path', { d: mmCurve(km, vmax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      add(el('circle', { cx: sx(km), cy: sy(halfv), r: 4.5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 }));
+      // labels (haloed so they read where they cross a line)
+      add(label(R - 2, sy(vmax) - 5, [['V'], ['max', true]], { fill: NAVY, 'text-anchor': 'end' }));
+      // ½Vmax sits down-right of the half-max point, where the curve never goes
+      // (for [S] > Km the curve is above ½Vmax); Km is read on the x-axis itself.
+      add(label(sx(km) + 7, Math.min(sy(halfv) + 13, B - 4), [['½V'], ['max', true]], { fill: ACCENT }));
+      add(label(sx(km), B + 13, [['K'], ['m', true]], { fill: ACCENT, 'text-anchor': 'middle' }));
+      if (view === 'inhibitor') {
+        add(el('line', { x1: R - 92, y1: B - 30, x2: R - 72, y2: B - 30, stroke: ORANGE, 'stroke-width': 2.2, 'stroke-dasharray': '6 4' }));
+        add(el('text', { x: R - 68, y: B - 26.5, 'font-size': 10, fill: INK }, '+ inhibitor'));
+        add(el('line', { x1: R - 92, y1: B - 16, x2: R - 72, y2: B - 16, stroke: ACCENT, 'stroke-width': 2.6 }));
+        add(el('text', { x: R - 68, y: B - 12.5, 'font-size': 10, fill: INK }, 'no inhibitor'));
+      }
+      readout.innerHTML = view === 'inhibitor'
+        ? `Apparent K<sub>m</sub> = α·K<sub>m</sub> = ${(km * alpha).toFixed(1)} mM (was ${km.toFixed(1)}) · V<sub>max</sub> unchanged`
+        : `At [S] = K<sub>m</sub> = ${km.toFixed(1)} mM, v = ½V<sub>max</sub> = ${fmtNum(halfv, halfv % 1 ? 1 : 0)} µmol/min`;
     }
 
     function render() {
       svg.replaceChildren();
-      const { vmax, km, alpha } = state;
-      if (view === 'lb') {
-        const xmin = -1.4 / km, xmax = 3 / km, slope = km / vmax, yint = 1 / vmax;
-        const ymax = (slope * xmax + yint) * 1.14, ymin = -ymax * 0.14;
-        const px = (x: number) => L + ((x - xmin) / (xmax - xmin)) * W;
-        const py = (y: number) => T + (1 - (y - ymin) / (ymax - ymin)) * H;
-        svg.appendChild(el('line', { x1: L, y1: py(0), x2: R, y2: py(0), stroke: GRID, 'stroke-width': 1 }));
-        svg.appendChild(el('line', { x1: px(0), y1: T, x2: px(0), y2: B, stroke: GRID, 'stroke-width': 1 }));
-        axes('1 / [S]', '1 / v');
-        svg.appendChild(el('line', { x1: px(xmin), y1: py(slope * xmin + yint), x2: px(xmax), y2: py(slope * xmax + yint), stroke: ACCENT, 'stroke-width': 2.4 }));
-        svg.appendChild(el('circle', { cx: px(0), cy: py(yint), r: 4, fill: NAVY }));
-        svg.appendChild(el('circle', { cx: px(-1 / km), cy: py(0), r: 4, fill: ACCENT }));
-        readout.innerHTML = `y-int 1/V<sub>max</sub> = ${yint.toFixed(4)} · x-int −1/K<sub>m</sub> = ${(-1 / km).toFixed(3)}`;
-        return;
-      }
-      // mm / inhibitor
-      axes('[S] (mM)', 'v');
-      svg.appendChild(el('line', { x1: L, y1: sy(vmax), x2: R, y2: sy(vmax), stroke: NAVY, 'stroke-width': 1, 'stroke-dasharray': '4 3', opacity: 0.6 }));
-      svg.appendChild(el('line', { x1: L, y1: sy(vmax / 2), x2: sx(km), y2: sy(vmax / 2), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.7 }));
-      svg.appendChild(el('line', { x1: sx(km), y1: sy(vmax / 2), x2: sx(km), y2: B, stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.7 }));
-      const km2 = el('text', { x: sx(km), y: B + 12, 'text-anchor': 'middle', 'font-size': 9, fill: ACCENT }); km2.textContent = 'Km'; svg.appendChild(km2);
-      if (view === 'inhibitor') svg.appendChild(el('path', { d: mmCurve(km * alpha, vmax), fill: 'none', stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
-      svg.appendChild(el('path', { d: mmCurve(km, vmax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
-      readout.innerHTML = view === 'inhibitor'
-        ? `K<sub>m</sub> ${km.toFixed(1)} → apparent ${(km * alpha).toFixed(1)} mM · V<sub>max</sub> unchanged`
-        : `V<sub>max</sub> ${vmax} · K<sub>m</sub> ${km.toFixed(1)} mM · ½V<sub>max</sub> at [S]=K<sub>m</sub>`;
+      if (view === 'lb') renderLB(); else renderMM();
+      root.querySelectorAll<HTMLOutputElement>('output[data-out]').forEach((o) => {
+        const k = o.getAttribute('data-out') as 'vmax' | 'km' | 'alpha';
+        o.value = k === 'km' ? `${state.km.toFixed(1)} mM` : k === 'alpha' ? state.alpha.toFixed(2) : String(state.vmax);
+      });
     }
 
     root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((inp) => {
@@ -111,7 +197,7 @@ const heading =
 </script>
 
 <style>
-  .miniplot { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); width: min(320px, 46%); }
+  .miniplot { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); width: min(340px, 48%); }
   .mini-right { float: right; margin: 0.25rem 0 var(--ddp-space-4) var(--ddp-space-6); clear: right; }
   .mini-left { float: left; margin: 0.25rem var(--ddp-space-6) var(--ddp-space-4) 0; clear: left; }
   @media (max-width: 640px) {
@@ -122,9 +208,11 @@ const heading =
     font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2);
   }
   .mini-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .mini-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
-  .mini-controls { display: flex; flex-direction: column; gap: 0.3rem; margin-top: var(--ddp-space-3); }
-  .mini-controls label { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
-  .mini-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
-  .mini-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mini-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mini-controls { display: flex; flex-direction: column; gap: 0.35rem; margin-top: var(--ddp-space-3); }
+  .mini-controls label { display: grid; grid-template-columns: 2.6rem 1fr 4.2rem; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mini-lab { font-weight: 600; color: var(--ddp-color-ink); white-space: nowrap; }
+  .mini-controls input[type='range'] { width: 100%; min-width: 0; accent-color: var(--ddp-color-accent); }
+  .mini-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); text-align: right; white-space: nowrap; }
+  .mini-readout { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); line-height: 1.5; color: var(--ddp-color-ink-soft); }
 </style>

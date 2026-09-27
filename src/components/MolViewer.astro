@@ -20,6 +20,9 @@ interface Props {
 const { source, id, label, caption, height = 460 } = Astro.props;
 const domId = `mol-${source}-${id}`.replace(/[^a-zA-Z0-9_-]/g, '');
 const providerLabel = source === 'rcsb' ? 'RCSB PDB' : 'PubChem';
+// Structures that are ABOUT water (aquaporins, water-adding enzymes) keep their
+// crystallographic waters; every other macromolecule hides them for a clean fold.
+const keepWater = /\bwater\b/i.test(`${label} ${caption ?? ''}`);
 const sourceHref =
   source === 'rcsb'
     ? `https://www.rcsb.org/structure/${id}`
@@ -31,11 +34,11 @@ const sourceHref =
     <div>
       <span class="mol-label">{label}</span>
       <span class="live-chip" title="Loaded live from a public structure database">
-        ● LIVE · {providerLabel} {id}
+        ● LIVE · {providerLabel} {source === 'pubchem' ? `CID ${id}` : id}
       </span>
     </div>
     <a class="mol-src" href={sourceHref} target="_blank" rel="noopener noreferrer">
-      open {id} ↗
+      open on {providerLabel} ↗
     </a>
   </figcaption>
 
@@ -59,7 +62,7 @@ const sourceHref =
   </div>
 
   {caption && <p class="mol-caption">{caption}</p>}
-  <p class="mol-hint">Drag to rotate · scroll to zoom · right-drag to pan</p>
+  <p class="mol-hint">Drag to rotate · scroll or pinch to zoom · right-drag to pan</p>
 </figure>
 
 <!-- Shared, idempotent Mol* bundle loader (defined once; reused by every viewer). -->
@@ -97,7 +100,7 @@ const sourceHref =
 
 <script
   is:inline
-  define:vars={{ domId, source, id }}
+  define:vars={{ domId, source, id, keepWater }}
 >
   (function () {
     var stage = document.getElementById(domId);
@@ -106,8 +109,30 @@ const sourceHref =
     var fallbackEl = document.getElementById(domId + '-fallback');
     var started = false;
 
+    // Crystallographic waters render as a haze of loose red dots around the
+    // protein; they clutter the fold and shrink the default camera framing.
+    // Drop them (unless this structure is about water, e.g. an aquaporin) and
+    // re-fit the camera to what remains. Cosmetic only: any failure is ignored.
+    function hideWater(viewer) {
+      try {
+        var h = viewer.plugin.managers.structure.hierarchy;
+        var water = [];
+        h.current.structures.forEach(function (s) {
+          s.components.forEach(function (c) {
+            if (/-water$/.test(c.key || '')) water.push(c);
+          });
+        });
+        if (!water.length) return;
+        return Promise.resolve(h.remove(water))
+          .then(function () { viewer.plugin.managers.camera.reset(); })
+          .catch(function () {});
+      } catch (e) { /* keep the default view */ }
+    }
+
     function showFallback(message) {
-      if (statusEl) statusEl.innerHTML = message;
+      if (!statusEl) return;
+      statusEl.innerHTML = message;
+      statusEl.classList.add('is-error');
     }
 
     function init() {
@@ -132,7 +157,9 @@ const sourceHref =
         })
         .then(function (viewer) {
           if (source === 'rcsb') {
-            return viewer.loadPdb(id);
+            return viewer.loadPdb(id).then(function () {
+              if (!keepWater) return hideWater(viewer);
+            });
           }
           // PubChem small molecule: pull the 3D conformer SDF live.
           var url =
@@ -228,7 +255,9 @@ const sourceHref =
   .mol-stage {
     position: relative;
     width: 100%;
-    background: #06080d;
+    /* Matches the Mol* canvas clear color, so the stage doesn't flash black
+       while the bundle loads and the loading text is readable on it. */
+    background: #fcfbf9;
   }
   .mol-canvas {
     position: absolute;
@@ -243,13 +272,18 @@ const sourceHref =
     gap: 0.6em;
     text-align: center;
     padding: var(--ddp-space-6);
-    color: #cfd6e4;
+    color: var(--ddp-color-ink-soft);
     font-size: var(--ddp-text-sm);
     pointer-events: none;
   }
+  /* After a failure the message drops to the bottom edge so it never sits on
+     top of the 2D fallback image centred in the stage. */
+  .mol-status.is-error {
+    align-items: flex-end;
+  }
   .mol-status :global(a) {
     pointer-events: auto;
-    color: #7fd4dc;
+    color: var(--ddp-color-accent);
   }
   .mol-fallback {
     position: absolute;
@@ -264,10 +298,24 @@ const sourceHref =
   .spinner {
     width: 1em;
     height: 1em;
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    border-top-color: #7fd4dc;
+    flex: none;
+    border: 2px solid var(--ddp-color-line);
+    border-top-color: var(--ddp-color-accent);
     border-radius: 50%;
     animation: mol-spin 0.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 2.4s; }
+  }
+  /* Inside a lightbox the dialog header already names the structure; keep the
+     label for screen readers but don't print the same title twice. */
+  :global(dialog) .mol-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   @keyframes mol-spin {
     to {

@@ -44,7 +44,12 @@ const ALL_KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2'] as const;
 type Key = (typeof ALL_KEYS)[number];
 const val = (s: PathwayStep, k: Key) => (s[k] ?? 0);
 const keys: Key[] = (ledger ?? ALL_KEYS.filter((k) => steps.some((s) => val(s, k) !== 0))) as Key[];
-const hasNegATP = steps.some((s) => val(s, 'atp') < 0);
+// "Net ATP" only adds information when the pathway both spends AND makes ATP
+// (otherwise it just repeats the ATP counter beside it).
+const hasNetATP = steps.some((s) => val(s, 'atp') < 0) && steps.some((s) => val(s, 'atp') > 0);
+const hasRegulated = steps.some((s) => s.regulated);
+const hasSpent = steps.some((s) => keys.some((k) => val(s, k) < 0));
+const hasMade = steps.some((s) => keys.some((k) => val(s, k) > 0));
 
 const badge = (s: PathwayStep) => {
   const parts: string[] = [];
@@ -69,11 +74,18 @@ const dataAttrs = (s: PathwayStep) => {
   </figcaption>
 
   <div class="pwx-tally" data-tally role="status" aria-live="polite">
+    <span class="pwx-tally-label">Running total</span>
     {keys.map((k) => (
       <span><em data-t={k}>0</em> {COUNTERS[k]}</span>
     ))}
-    {hasNegATP && <span class="pwx-net">Net <em data-t="net">0</em> ATP</span>}
+    {hasNetATP && <span class="pwx-net">Net <em data-t="net">0</em> ATP</span>}
   </div>
+  {(hasRegulated || hasSpent) && (
+    <p class="pwx-key">
+      {hasRegulated && <span><span aria-hidden="true">🔒</span> regulated step</span>}
+      {hasSpent && <span><b>−</b> used up{hasMade && <> · <b>+</b> produced</>}</span>}
+    </p>
+  )}
 
   <div class="pwx-steps">
     {steps.map((s) => (
@@ -103,6 +115,8 @@ const dataAttrs = (s: PathwayStep) => {
 
 <script>
   const KEYS = ['atp', 'nadh', 'fadh2', 'nadph', 'gtp', 'co2'] as const;
+  // Typographic minus (U+2212), matching the step badges; ATP keeps an explicit +.
+  const fmt = (v: number, plus = false) => (v < 0 ? '−' + Math.abs(v) : (plus && v > 0 ? '+' : '') + v);
   document.querySelectorAll<HTMLElement>('[data-pathwayx]').forEach((root) => {
     const tally = root.querySelector<HTMLElement>('[data-tally]')!;
     const steps = Array.from(root.querySelectorAll<HTMLElement>('.pwx-step'));
@@ -121,12 +135,12 @@ const dataAttrs = (s: PathwayStep) => {
       });
       KEYS.forEach((k) => {
         const el = tally.querySelector<HTMLElement>(`[data-t="${k}"]`);
-        if (el) el.textContent = (k === 'atp' && totals[k] > 0 ? '+' : '') + totals[k];
+        if (el) el.textContent = fmt(totals[k], k === 'atp');
       });
       const netEl = tally.querySelector<HTMLElement>('[data-t="net"]');
       if (netEl) {
         const net = totals.atp;
-        netEl.textContent = (net > 0 ? '+' : '') + net;
+        netEl.textContent = fmt(net, true);
         tally.classList.toggle('is-positive', net > 0);
       }
     }
@@ -157,17 +171,20 @@ const dataAttrs = (s: PathwayStep) => {
 </script>
 
 <style>
-  .pathway-x { padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-5); margin: var(--ddp-space-6) 0; }
+  .pathway-x { padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-5); margin: var(--ddp-space-6) 0; container-type: inline-size; }
   .pwx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
   .pwx-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .pwx-tally { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-bg-alt, #f0ede7); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .pwx-tally { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ddp-space-2) var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); margin-bottom: var(--ddp-space-2); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-bg-alt, #f0ede7); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
   .pwx-tally em { font-style: normal; font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
+  .pwx-tally-label { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ddp-color-muted); }
   .pwx-net { margin-left: auto; }
+  .pwx-key { display: flex; flex-wrap: wrap; gap: 0.2rem var(--ddp-space-4); margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pwx-key b { font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); }
   .pwx-tally.is-positive .pwx-net em { color: var(--ddp-color-verified, #2e7d32); }
   .pwx-step { border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); margin-bottom: var(--ddp-space-2); background: var(--ddp-color-surface); overflow: hidden; }
   .pwx-step.is-reg { border-color: var(--ddp-color-secondary); border-left-width: 3px; }
   .pwx-step.is-visited { box-shadow: inset 2px 0 0 var(--ddp-color-accent); }
-  .pwx-step-head { display: flex; align-items: center; gap: var(--ddp-space-3); width: 100%; text-align: left; padding: var(--ddp-space-2) var(--ddp-space-3); background: none; border: 0; cursor: pointer; }
+  .pwx-step-head { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; column-gap: var(--ddp-space-3); row-gap: 0.2rem; width: 100%; text-align: left; padding: var(--ddp-space-2) var(--ddp-space-3); background: none; border: 0; cursor: pointer; }
   .pwx-step-head:hover { background: var(--ddp-color-accent-soft); }
   .pwx-num { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--ddp-color-primary); color: var(--ddp-color-surface); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; }
   .pwx-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
@@ -176,6 +193,12 @@ const dataAttrs = (s: PathwayStep) => {
   .pwx-rxn { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pwx-badge { flex: none; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); white-space: nowrap; }
   .pwx-badge i { color: var(--ddp-color-secondary-ink); font-style: normal; font-weight: 700; }
+  /* In a narrow column the cofactor badge drops under the reaction instead of
+     squeezing the enzyme name into a one-word-per-line sliver. */
+  @container (max-width: 520px) {
+    .pwx-num { align-self: start; }
+    .pwx-badge { grid-column: 2 / -1; grid-row: 2; justify-self: start; white-space: normal; }
+  }
   .pwx-body { padding: 0 var(--ddp-space-3) var(--ddp-space-3) calc(26px + var(--ddp-space-3) + var(--ddp-space-3)); }
   .pwx-body p { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
   .pwx-reg { color: var(--ddp-color-ink-soft); }

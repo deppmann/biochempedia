@@ -21,8 +21,8 @@ const { anim } = Astro.props;
 
   {anim === 'flush' && (
     <svg viewBox="0 0 200 120" class="svg-flush">
-      <circle class="cheek" cx="68" cy="66" r="13" />
-      <circle class="cheek" cx="132" cy="66" r="13" />
+      <circle class="cheek" cx="73" cy="68" r="10" />
+      <circle class="cheek" cx="127" cy="68" r="10" />
       <circle cx="100" cy="60" r="44" fill="none" stroke="#232d4b" stroke-width="3" />
       <circle cx="84" cy="52" r="4" fill="#232d4b" />
       <circle cx="116" cy="52" r="4" fill="#232d4b" />
@@ -76,6 +76,18 @@ const { anim } = Astro.props;
     padding: var(--ddp-space-3); margin-bottom: var(--ddp-space-4); min-height: 120px; overflow: hidden;
   }
   .anec-anim svg { width: 100%; max-width: 260px; height: auto; }
+  /* The drawings use fixed navy/teal ink, so the panel stays light "paper" in
+     dark mode (the same strategy tokens.css uses for .card islands). */
+  @media (prefers-color-scheme: dark) {
+    .anec-anim {
+      color-scheme: light;
+      --ddp-color-primary: var(--color-navy);
+      --ddp-color-accent: var(--color-teal);
+      --ddp-color-muted: #6b6b6b;
+      --ddp-color-surface: #ffffff;
+      --ddp-color-line: #e2dfd8;
+    }
+  }
 
   /* fast-counter */
   .ac { text-align: center; }
@@ -115,9 +127,13 @@ const { anim } = Astro.props;
   @keyframes roll { to { transform: rotate(360deg); } }
   @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
 
+  /* Reduced motion: no movement, but still show each story's END state (the
+     needle past zero on the − side, the car parked in view). */
   @media (prefers-reduced-motion: reduce) {
     .is-playing * { animation: none !important; }
     .svg-crystal .xtal { transform: scale(1); }
     .svg-flush .cheek { opacity: 0.8; }
+    .svg-needle .ndl { transform: rotate(-38deg); }
+    .svg-car .car { transform: translateX(46px); }
   }
 </style>
