@@ -15,25 +15,27 @@
 <figure class="pc card" data-permeability-cliff>
   <figcaption class="pc-head">The permeability cliff<span class="pc-chip">⚙ original · interactive</span></figcaption>
 
+  <p class="pc-lead">Click a molecule to test it. It will try to cross the bilayer, and its permeability lands on the plot.</p>
   <div class="pc-chiprow" role="group" aria-label="Pick a molecule to test">
     <!-- chips injected by script -->
   </div>
+  <p class="pc-legend" aria-hidden="true"><span style="--pc-c:#2e8b57">gas</span><span style="--pc-c:#2b6fb0">water</span><span style="--pc-c:#e57200">small polar</span><span style="--pc-c:#7a4fbf">aromatic</span><span style="--pc-c:#c0392b">charged</span></p>
 
   <div class="pc-grid">
     <section class="pc-col">
       <svg class="pc-svg" viewBox="0 0 320 220" role="img" aria-label="A lipid bilayer with a molecule attempting to cross from the top water layer to the bottom" data-stage></svg>
       <p class="pc-info" data-info role="status">Pick a molecule above and watch it try to cross.</p>
-      <p class="pc-rate" data-rate>relative crossing rate: —</p>
+      <p class="pc-rate" data-rate>crossing rate: —</p>
     </section>
 
     <section class="pc-col">
-      <svg class="pc-svg" viewBox="0 0 320 240" role="img" aria-label="Permeability coefficient on a log scale; each molecule you test adds a point" data-plot></svg>
-      <p class="pc-info">Each molecule you test drops onto the log-scale plot. Watch the cliff open up between small neutral molecules and ions.</p>
+      <svg class="pc-svg" viewBox="0 0 320 262" role="img" aria-label="Permeability coefficient on a log scale; each molecule you test adds a point in its own column" data-plot></svg>
+      <p class="pc-info">Each molecule you test lands in its own column, fastest on the left. Test them all and the cliff opens up: every gridline down is 100× slower.</p>
     </section>
   </div>
 
   <div class="pc-controls">
-    <label class="pc-slabel">Desolvation cost <em data-desolv-out>—</em> kJ/mol <span class="pc-hint" data-desolv-note>(select a charged species)</span>
+    <label class="pc-slabel"><span>Desolvation cost (water debt): <em data-desolv-out>—</em> kJ/mol <span class="pc-hint" data-desolv-note>(select a charged species)</span></span>
       <input type="range" data-desolv min="0" max="90" step="5" value="60" disabled />
     </label>
     <label class="pc-check">
@@ -115,37 +117,51 @@
       chiprow.appendChild(b);
     });
 
-    // ---- bilayer stage ----
-    function drawStage() {
-      stage.replaceChildren();
-      stage.appendChild(el('rect', { x: 0, y: 0, width: 320, height: 78, fill: '#eef5f6' }));
-      stage.appendChild(el('rect', { x: 0, y: 142, width: 320, height: 78, fill: '#eef5f6' }));
-      stage.appendChild(el('rect', { x: 0, y: 78, width: 320, height: 64, fill: '#fbf7ee' }));
-      const core = el('text', { x: 8, y: 114, 'font-size': 9, fill: INK, opacity: 0.7 }); core.textContent = 'hydrophobic core'; stage.appendChild(core);
-      const wtop = el('text', { x: 8, y: 16, 'font-size': 9, fill: INK, opacity: 0.7 }); wtop.textContent = 'water'; stage.appendChild(wtop);
-      // lipids
-      for (let i = 0; i < 11; i++) {
-        const x = 20 + i * 28;
-        stage.appendChild(el('circle', { cx: x, cy: 70, r: 5, fill: PRIMARY }));
-        stage.appendChild(el('line', { x1: x, y1: 75, x2: x, y2: 108, stroke: PRIMARY, 'stroke-width': 1.6, opacity: 0.55 }));
-        stage.appendChild(el('circle', { cx: x, cy: 150, r: 5, fill: PRIMARY }));
-        stage.appendChild(el('line', { x1: x, y1: 145, x2: x, y2: 112, stroke: PRIMARY, 'stroke-width': 1.6, opacity: 0.55 }));
-      }
+    // Type scale: the SVGs shrink with their column; scale text up as they narrow.
+    let k = 1;
+    const fs = (n: number) => +(n * k).toFixed(1);
+    function txt(svg: SVGSVGElement, x: number, y: number, str: string, size: number, fill: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': fs(size), fill, ...extra }); t.textContent = str; svg.appendChild(t); return t;
     }
 
+    // ---- bilayer stage ----
+    const X_LANE = 174; // the molecule's path runs in the gap between two lipids
+    function drawStage() {
+      stage.replaceChildren();
+      stage.appendChild(el('rect', { x: 0, y: 0, width: 320, height: 76, fill: '#eef5f6' }));
+      stage.appendChild(el('rect', { x: 0, y: 144, width: 320, height: 76, fill: '#eef5f6' }));
+      stage.appendChild(el('rect', { x: 0, y: 76, width: 320, height: 68, fill: '#fbf7ee' }));
+      // lipids: head + two tails per leaflet, tails meeting at the midplane
+      for (let i = 0; i < 12; i++) {
+        const x = 20 + i * 28;
+        for (const top of [true, false]) {
+          const hy = top ? 72 : 148, dir = top ? 1 : -1;
+          for (const off of [-2.6, 2.6]) stage.appendChild(el('line', { x1: x + off, y1: hy + dir * 4, x2: x + off, y2: 110 - dir * 1.5, stroke: PRIMARY, 'stroke-width': 1.4, opacity: 0.45 }));
+          stage.appendChild(el('circle', { cx: x, cy: hy, r: 5.5, fill: PRIMARY }));
+        }
+      }
+      txt(stage, 6, 110 + fs(9) * 0.35, 'oily core', 9, INK, { opacity: 0.85 });
+      txt(stage, 6, 8 + fs(9), 'water (outside)', 9, INK, { opacity: 0.85 });
+      txt(stage, 6, 214, 'water (inside)', 9, INK, { opacity: 0.85 });
+    }
+
+    const ease = (p: number) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
     function animateCrossing(mol: Mol) {
       cancelAnimationFrame(animId);
       drawStage();
       const lp = effectiveLogP(mol);
       const crosses = lp > -7.5; // ions / blocked species below this bounce off the core
       const puck = el('g', {}) as SVGGElement;
-      const dot = el('circle', { cx: 0, cy: 0, r: 11, fill: KLASS_COLOR[mol.klass], stroke: '#fff', 'stroke-width': 2 });
-      const txt = el('text', { x: 0, y: 4, 'text-anchor': 'middle', 'font-size': 9, fill: '#fff', 'font-weight': 700 }); txt.textContent = mol.label;
-      puck.appendChild(dot); puck.appendChild(txt);
+      const r = mol.label.length > 4 ? 15 : 12;
+      const dot = el('circle', { cx: 0, cy: 0, r, fill: KLASS_COLOR[mol.klass], stroke: '#fff', 'stroke-width': 2 });
+      const t = el('text', { x: 0, y: 3.2, 'text-anchor': 'middle', 'font-size': mol.label.length > 6 ? 7 : 9, fill: '#fff', 'font-weight': 700 }); t.textContent = mol.label;
+      puck.appendChild(dot); puck.appendChild(t);
       stage.appendChild(puck);
-      const X = 160, yStart = 18, yEnd = 202, yCore = 110;
+      const X = X_LANE, yStart = 26, yEnd = 196, yCore = 104;
+      const verdict = (ok: boolean) => txt(stage, X + r + 6, (ok ? yEnd : yStart) + fs(9.5) * 0.35, ok ? 'crossed ✓' : 'bounced back ✗', 9.5, ok ? '#1f6b43' : '#a02c20', { 'font-weight': 700 });
       if (reduceMotion) {
-        puck.setAttribute('transform', `translate(${X},${crosses ? yEnd : yCore})`);
+        puck.setAttribute('transform', `translate(${X},${crosses ? yEnd : yStart})`);
+        verdict(crosses);
         return;
       }
       // duration: fast for high logP, slow for low
@@ -157,56 +173,72 @@
         const p = Math.min(1, (ts - start) / dur);
         let y: number;
         if (crosses) {
-          y = yStart + p * (yEnd - yStart);
+          y = yStart + ease(p) * (yEnd - yStart);
         } else {
-          // descend to core, then bounce back up
-          if (p < 0.5) y = yStart + (p / 0.5) * (yCore - yStart);
-          else y = yCore - ((p - 0.5) / 0.5) * (yCore - yStart);
+          // descend into the head groups, stall at the edge of the core, then get pushed back out
+          if (p < 0.5) y = yStart + ease(p / 0.5) * (yCore - 14 - yStart);
+          else y = yCore - 14 - ease((p - 0.5) / 0.5) * (yCore - 14 - yStart);
         }
         puck.setAttribute('transform', `translate(${X},${y.toFixed(1)})`);
         if (p < 1) animId = requestAnimationFrame(step);
+        else verdict(crosses);
       }
       animId = requestAnimationFrame(step);
     }
 
     // ---- log plot ----
+    // Every molecule has its own column, ordered by its baseline permeability, so the
+    // cliff appears as a staircase however the student clicks.
+    const SLOT = [...MOLECULES].sort((a, b) => b.logP - a.logP).map((m) => m.id);
+    const PL = 52, PR = 312, PT = 26, PB = 196;
     function logPToY(lp: number): number {
-      const top = 24, bot = 210;
       const c = Math.max(LOGP_MIN, Math.min(LOGP_MAX, lp));
-      return top + ((LOGP_MAX - c) / (LOGP_MAX - LOGP_MIN)) * (bot - top);
+      return PT + ((LOGP_MAX - c) / (LOGP_MAX - LOGP_MIN)) * (PB - PT);
     }
     function drawPlot() {
       plot.replaceChildren();
-      // axis
-      plot.appendChild(el('line', { x1: 44, y1: 20, x2: 44, y2: 214, stroke: INK, 'stroke-width': 1 }));
-      const yl = el('text', { x: 12, y: 16, 'font-size': 8, fill: INK }); yl.textContent = 'log P (cm/s)'; plot.appendChild(yl);
-      for (let d = LOGP_MAX; d >= LOGP_MIN; d -= 2) {
+      plot.appendChild(el('line', { x1: PL, y1: PT - 4, x2: PL, y2: PB + 2, stroke: INK, 'stroke-width': 1 }));
+      txt(plot, 14, (PT + PB) / 2, 'permeability, log₁₀ P (cm/s)', 9, INK, { 'text-anchor': 'middle', transform: `rotate(-90 14 ${(PT + PB) / 2})` });
+      for (let d = LOGP_MAX - 1; d >= LOGP_MIN; d -= 2) {
         const y = logPToY(d);
-        plot.appendChild(el('line', { x1: 44, y1: y, x2: 312, y2: y, stroke: LINE, 'stroke-width': 0.6 }));
-        const t = el('text', { x: 40, y: y + 3, 'text-anchor': 'end', 'font-size': 8, fill: INK }); t.textContent = String(d); plot.appendChild(t);
+        plot.appendChild(el('line', { x1: PL, y1: y, x2: PR, y2: y, stroke: LINE, 'stroke-width': 0.7 }));
+        txt(plot, PL - 4, y + fs(8.5) * 0.35, String(d), 8.5, INK, { 'text-anchor': 'end' });
       }
-      const fast = el('text', { x: 48, y: logPToY(LOGP_MAX) + 2, 'font-size': 8, fill: INK, opacity: 0.7 }); fast.textContent = 'fast'; plot.appendChild(fast);
-      const slow = el('text', { x: 48, y: logPToY(LOGP_MIN) - 2, 'font-size': 8, fill: INK, opacity: 0.7 }); slow.textContent = 'blocked'; plot.appendChild(slow);
-      // points
-      let i = 0;
+      txt(plot, PR, PT - 10, 'faster ↑', 8.5, INK, { 'text-anchor': 'end', opacity: 0.8 });
+      if (!tested.size) txt(plot, (PL + PR) / 2, (PT + PB) / 2, 'test a molecule to add a point', 9.5, INK, { 'text-anchor': 'middle', opacity: 0.6 });
+      const colW = (PR - PL - 16) / (SLOT.length - 1);
+      // categorical x axis: one slanted label per column, dark once that molecule is tested
+      plot.appendChild(el('line', { x1: PL, y1: PB + 2, x2: PR, y2: PB + 2, stroke: INK, 'stroke-width': 1 }));
+      SLOT.forEach((id, i) => {
+        const m = MOLECULES.find((mm) => mm.id === id)!;
+        const x = PL + 8 + i * colW, on = tested.has(id);
+        txt(plot, x + 2, PB + 8 + fs(8) * 0.5, m.label, 8, on ? PRIMARY : '#9a9aa3', { 'text-anchor': 'end', transform: `rotate(-50 ${x + 2} ${PB + 8 + fs(8) * 0.5})`, 'font-weight': on ? 700 : 400 });
+      });
       tested.forEach(({ mol, effLogP }) => {
-        const x = 64 + i * (244 / Math.max(1, MOLECULES.length - 1));
+        const x = PL + 8 + SLOT.indexOf(mol.id) * colW;
         const y = logPToY(effLogP);
-        plot.appendChild(el('circle', { cx: x, cy: y, r: 5, fill: KLASS_COLOR[mol.klass], stroke: '#fff', 'stroke-width': 1 }));
-        const lab = el('text', { x: x, y: y - 8, 'text-anchor': 'middle', 'font-size': 7.5, fill: INK }); lab.textContent = mol.label; plot.appendChild(lab);
-        i++;
+        const sel = selected && selected.id === mol.id;
+        plot.appendChild(el('circle', { cx: x, cy: y, r: sel ? 6.5 : 5, fill: KLASS_COLOR[mol.klass], stroke: sel ? PRIMARY : '#fff', 'stroke-width': sel ? 1.6 : 1 }));
+        plot.appendChild(el('line', { x1: x, y1: y + 6, x2: x, y2: PB + 2, stroke: KLASS_COLOR[mol.klass], 'stroke-width': 1, opacity: 0.35 }));
       });
     }
 
+    const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    function fmtRel(rel: number): string {
+      if (rel >= 0.01) return rel.toFixed(2);
+      let e = Math.floor(Math.log10(rel)), m = rel / Math.pow(10, e);
+      if (Math.round(m) >= 10) { m /= 10; e += 1; }
+      return `${m.toFixed(0)} × 10${String(e).split('').map((ch) => SUP[ch] ?? ch).join('')}`;
+    }
     function updateRate() {
-      if (!selected) { rateOut.textContent = 'relative crossing rate: —'; return; }
+      if (!selected) { rateOut.textContent = 'crossing rate: —'; return; }
       const lp = effectiveLogP(selected);
       // relative to the fastest molecule TESTED so far
-      let maxLp = lp;
-      tested.forEach(({ effLogP }) => { if (effLogP > maxLp) maxLp = effLogP; });
-      const rel = Math.pow(10, lp - maxLp);
-      const relStr = rel >= 0.01 ? rel.toFixed(2) : rel.toExponential(0);
-      rateOut.textContent = `relative crossing rate: ${relStr}×`;
+      let maxLp = lp, fastest = selected.label;
+      tested.forEach(({ mol, effLogP }) => { if (effLogP > maxLp) { maxLp = effLogP; fastest = mol.label; } });
+      rateOut.textContent = maxLp === lp
+        ? `crossing rate: the fastest you have tested so far`
+        : `crossing rate: ${fmtRel(Math.pow(10, lp - maxLp))} times as fast as ${fastest}`;
     }
 
     function select(mol: Mol) {
@@ -247,31 +279,39 @@
       if (selected && selected.id === 'h2o') select(selected);
     });
 
+    const fit = () => { const w = plot.getBoundingClientRect().width || 320; const nk = Math.min(1.5, Math.max(1, 380 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; drawPlot(); if (!selected) drawStage(); } };
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(plot);
     drawStage();
     drawPlot();
+    fit();
   });
 </script>
 
 <style is:global>
   .pc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
-  .pc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
-  .pc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .pc-chiprow { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
-  .pc-chipbtn { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 999px; padding: 0.22rem 0.6rem; cursor: pointer; border-left: 3px solid var(--pc-c, #888); }
-  .pc-chipbtn:hover { border-color: var(--pc-c, var(--ddp-color-accent)); color: var(--ddp-color-primary); }
-  .pc-chipbtn[aria-pressed='true'] { background: color-mix(in srgb, var(--pc-c, var(--ddp-color-accent)) 16%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--pc-c, var(--ddp-color-accent)); }
-  .pc-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
-  @media (min-width: 640px) { .pc-grid { grid-template-columns: 1fr 1fr; } }
-  .pc-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
-  .pc-info { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; min-height: 2.4em; }
-  .pc-rate { margin: 0.2rem 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
-  .pc-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
-  .pc-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: 1 1 240px; }
-  .pc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
-  .pc-slabel input { accent-color: var(--ddp-color-accent); }
-  .pc-slabel input:disabled { opacity: 0.4; }
-  .pc-hint { color: var(--ddp-color-muted); }
-  .pc-check { display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
-  .pc-check input { accent-color: var(--ddp-color-accent); }
-  .pc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .pc .pc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .pc .pc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pc .pc-chiprow { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
+  .pc .pc-chipbtn { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 999px; padding: 0.22rem 0.6rem; cursor: pointer; border-left: 3px solid var(--pc-c, #888); }
+  .pc .pc-chipbtn:hover { border-color: var(--pc-c, var(--ddp-color-accent)); color: var(--ddp-color-primary); }
+  .pc .pc-chipbtn[aria-pressed='true'] { background: color-mix(in srgb, var(--pc-c, var(--ddp-color-accent)) 16%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--pc-c, var(--ddp-color-accent)); }
+  .pc .pc-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
+  @media (min-width: 640px) { .pc .pc-grid { grid-template-columns: 1fr 1fr; } }
+  .pc .pc-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pc .pc-info { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; min-height: 2.4em; }
+  .pc .pc-rate { margin: 0.2rem 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .pc .pc-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .pc .pc-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: 1 1 240px; }
+  .pc .pc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pc .pc-slabel input { accent-color: var(--ddp-color-accent); }
+  .pc .pc-slabel input:disabled { opacity: 0.4; }
+  .pc .pc-hint { color: var(--ddp-color-muted); }
+  .pc .pc-check { display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pc .pc-check input { accent-color: var(--ddp-color-accent); }
+  .pc .pc-lead { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pc .pc-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; margin: calc(-1 * var(--ddp-space-2)) 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pc .pc-legend span::before { content: ''; display: inline-block; width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--pc-c); margin-right: 0.3em; vertical-align: 0.05em; }
+  .pc .pc-chipbtn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .pc .pc-svg { display: block; }
+  .pc .pc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

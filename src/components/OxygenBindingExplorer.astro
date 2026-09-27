@@ -15,7 +15,7 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
 
 <figure class="obc card" data-obc>
   <figcaption class="obc-head">{title}<span class="obc-chip">drag · original · computed live</span></figcaption>
-  <svg class="obc-svg" viewBox="0 0 460 320" role="img" aria-label="Oxygen-binding saturation curve: O2 saturation versus partial pressure pO2, comparing myoglobin and hemoglobin" data-svg></svg>
+  <svg class="obc-svg" viewBox="0 0 460 330" role="img" aria-label="Oxygen-binding saturation curve: O2 saturation versus partial pressure pO2, comparing myoglobin and hemoglobin" data-svg></svg>
   <div class="obc-presets" data-presets>
     <button type="button" data-preset="hba" aria-pressed="true">Normal HbA</button>
     <button type="button" data-preset="mb" aria-pressed="false">Myoglobin</button>
@@ -28,17 +28,17 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
   </div>
   <div class="obc-body">
     <div class="obc-controls">
-      <label>Hill coefficient n<sub>H</sub> <em data-out="n">2.8</em>
+      <label><span>Hill coefficient n<sub>H</sub> <em data-out="n">2.8</em> <small>(1 = no teamwork, 4 = perfect)</small></span>
         <input type="range" data-in="n" min="1" max="4" step="0.1" value="2.8" />
       </label>
-      <label>P<sub>50</sub> (torr) <em data-out="p50">26</em>
+      <label><span>P<sub>50</sub> <em data-out="p50">26</em> torr <small>(pO₂ at half-saturation; lower = tighter grip)</small></span>
         <input type="range" data-in="p50" min="2" max="50" step="1" value="26" />
       </label>
     </div>
     <dl class="obc-readout">
-      <div><dt>Y at lungs (100 torr)</dt><dd data-r="lungs">—</dd></div>
-      <div><dt>Y at tissue (30 torr)</dt><dd data-r="tissue">—</dd></div>
-      <div><dt>O₂ delivered</dt><dd data-r="delivered" class="obc-big">—</dd></div>
+      <div><dt>Saturation at lungs (100 torr)</dt><dd data-r="lungs">—</dd></div>
+      <div><dt>Saturation at resting tissue (20 torr)</dt><dd data-r="tissue">—</dd></div>
+      <div><dt>O₂ delivered (lungs − tissue)</dt><dd data-r="delivered" class="obc-big">—</dd></div>
     </dl>
   </div>
   <p class="obc-caption" data-caption role="status">At n<sub>H</sub> 2.8 and P<sub>50</sub> 26, hemoglobin delivers about two-thirds of its O₂ between lungs (100 torr) and resting tissue (20 torr). Hit "Myoglobin" to see a non-cooperative, high-affinity carrier give up only ~7%.</p>
@@ -47,7 +47,9 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GRID = '#e6e3db', GHOST = '#b9b6ad';
-  const L = 50, R = 444, T = 16, B = 280, PMAX = 120;
+  // Text-weight inks: the line colours darkened enough to pass contrast as small type on white.
+  const ACCENT_INK = '#0a5f67', ORANGE_INK = '#b35900', GHOST_INK = '#8a877f';
+  const L = 56, R = 444, T = 16, B = 280, PMAX = 120;
   const LUNGS = 100, TISSUE = 20; // lungs ~100 torr, resting tissue ~20 torr
 
   // Hill equation — treated as a black box (not derived).
@@ -66,7 +68,7 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
     mb: { n: 1, p50: 2, ymax: 1, cap: 'Myoglobin: one site, no cooperativity. It clamps onto O₂ and barely lets go — a store, not a carrier.' },
     bpg: { n: 2.8, p50: 34, ymax: 1, cap: '2,3-BPG wedges into the T-state cavity and right-shifts the curve, so more O₂ unloads in the tissues.' },
     bohr: { n: 2.8, p50: 38, ymax: 1, cap: 'The Bohr effect: low pH stabilizes the T state, right-shifting the curve and boosting unloading where CO₂ is high.' },
-    exercise: { n: 2.8, p50: 46, ymax: 1, cap: 'Exercising muscle: low pO₂, low pH, high CO₂, and high BPG all stabilize T — extraction climbs toward ~70%.' },
+    exercise: { n: 2.8, p50: 46, ymax: 1, cap: 'Exercising muscle: falling pO₂, falling pH, rising CO₂, and (over hours) rising BPG all favor T. The last three slide the curve right, so the delivered band grows. Compare it with Normal HbA.' },
     fetal: { n: 2.8, p50: 19, ymax: 1, cap: 'Fetal Hb binds BPG weakly, so it is left-shifted — it pulls O₂ across the placenta from the mother.' },
     goose: { n: 2.8, p50: 14, ymax: 1, cap: 'The bar-headed goose: a left-shifted curve grabs O₂ from the thin air over the Himalayas.' },
     co: { n: 2.2, p50: 8, ymax: 0.82, cap: 'Carbon monoxide locks hemoglobin in the high-affinity R state and caps saturation — the blood carries O₂ but cannot release it.' },
@@ -93,10 +95,16 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
       }
       return d.trim();
     }
+    // Font scale: the SVG shrinks with the column, so on a phone its 9-unit text
+    // would render ~6px. Scale type (not geometry) up as the figure narrows.
+    let k = 1;
+    const fs = (n: number) => +(n * k).toFixed(1);
+    function txt(x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': fs(size), fill, ...extra }); t.textContent = s; svg.appendChild(t); return t;
+    }
     function ghost(n: number, p50: number, label: string) {
       svg.appendChild(el('path', { d: curvePath(n, p50, 1), fill: 'none', stroke: GHOST, 'stroke-width': 1.3, 'stroke-dasharray': '4 3' }));
-      const lx = px(p50) + 6, ly = py(hill(p50 * 1.6, n, p50));
-      const t = el('text', { x: lx, y: ly, 'font-size': 9, fill: GHOST }); t.textContent = label; svg.appendChild(t);
+      txt(px(p50) + 6, py(hill(p50 * 1.6, n, p50)), label, 9, GHOST_INK);
     }
 
     function render() {
@@ -104,21 +112,20 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
       // gridlines + axes
       for (let g = 0; g <= 100; g += 25) {
         svg.appendChild(el('line', { x1: L, y1: py(g / 100), x2: R, y2: py(g / 100), stroke: GRID, 'stroke-width': 1 }));
-        const yl = el('text', { x: L - 6, y: py(g / 100) + 3, 'text-anchor': 'end', 'font-size': 9, fill: NAVY }); yl.textContent = String(g); svg.appendChild(yl);
+        txt(L - 6, py(g / 100) + 3, String(g), 9, NAVY, { 'text-anchor': 'end' });
       }
-      for (let p = 0; p <= PMAX; p += 30) {
-        const xl = el('text', { x: px(p), y: B + 14, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); xl.textContent = String(p); svg.appendChild(xl);
-      }
+      for (let p = 0; p <= PMAX; p += 30) txt(px(p), B + 6 + fs(9), String(p), 9, NAVY, { 'text-anchor': 'middle' });
       svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
       svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
-      const xlab = el('text', { x: (L + R) / 2, y: B + 30, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); xlab.textContent = 'pO₂ (torr)'; svg.appendChild(xlab);
-      const ylab = el('text', { x: 13, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 13 ${(T + B) / 2})` }); ylab.textContent = 'O₂ saturation (%)'; svg.appendChild(ylab);
+      txt((L + R) / 2, B + 10 + fs(9) + fs(10), 'pO₂ (torr)', 10, NAVY, { 'text-anchor': 'middle' });
+      txt(14, (T + B) / 2, 'O₂ saturation (%)', 10, NAVY, { 'text-anchor': 'middle', transform: `rotate(-90 14 ${(T + B) / 2})` });
 
-      // lungs / tissue markers
-      for (const [p, name] of [[LUNGS, 'lungs'], [TISSUE, 'tissue']] as [number, string][]) {
-        svg.appendChild(el('line', { x1: px(p), y1: T, x2: px(p), y2: B, stroke: NAVY, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.45 }));
-        const t = el('text', { x: px(p), y: T + 9, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); t.textContent = name; svg.appendChild(t);
-      }
+      // lungs / tissue markers — labelled at the foot of each line, where the
+      // curve never runs, so the label cannot collide with it.
+      svg.appendChild(el('line', { x1: px(LUNGS), y1: T, x2: px(LUNGS), y2: B, stroke: NAVY, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.45 }));
+      svg.appendChild(el('line', { x1: px(TISSUE), y1: T, x2: px(TISSUE), y2: B, stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.6 }));
+      txt(px(LUNGS) - 4, B - 6, 'lungs', 9, NAVY, { 'text-anchor': 'end', 'font-weight': 600 });
+      txt(px(TISSUE) + 4, B - 6, 'tissue', 9, ORANGE_INK, { 'text-anchor': 'start', 'font-weight': 600 });
 
       // ghost reference curves
       ghost(1, 2, 'Mb');
@@ -127,28 +134,53 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
       // delivered-fraction band (between Y at tissue and Y at lungs on the active curve)
       const yL = state.ymax * hill(LUNGS, state.n, state.p50);
       const yTis = state.ymax * hill(TISSUE, state.n, state.p50);
-      svg.appendChild(el('rect', { x: px(TISSUE), y: py(yL), width: px(LUNGS) - px(TISSUE), height: py(yTis) - py(yL), fill: ACCENT, opacity: 0.14 }));
+      const pct = Math.round((yL - yTis) * 100);
+      svg.appendChild(el('rect', { x: px(TISSUE), y: py(yL), width: px(LUNGS) - px(TISSUE), height: Math.max(0, py(yTis) - py(yL)), fill: ACCENT, opacity: 0.14 }));
       svg.appendChild(el('line', { x1: px(TISSUE), y1: py(yL), x2: px(LUNGS), y2: py(yL), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.6 }));
       svg.appendChild(el('line', { x1: px(TISSUE), y1: py(yTis), x2: px(LUNGS), y2: py(yTis), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.6 }));
-      const dlab = el('text', { x: (px(TISSUE) + px(LUNGS)) / 2, y: (py(yL) + py(yTis)) / 2 + 3, 'text-anchor': 'middle', 'font-size': 9, fill: ACCENT, 'font-weight': 700 }); dlab.textContent = 'delivered'; svg.appendChild(dlab);
+      // the band label sits in its right half (the curve hugs the left edge);
+      // when the band is too thin to hold it, it moves just below the band.
+      const bandH = py(yTis) - py(yL);
+      const lx = px(TISSUE) + (px(LUNGS) - px(TISSUE)) * 0.68;
+      const ly = bandH > fs(10) * 1.6 ? (py(yL) + py(yTis)) / 2 + fs(10) * 0.35 : py(yTis) + fs(10) + 3;
+      txt(lx, ly, `${pct}% delivered`, 10, ACCENT_INK, { 'text-anchor': 'middle', 'font-weight': 700 });
 
       // active curve
       svg.appendChild(el('path', { d: curvePath(state.n, state.p50, state.ymax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
-      svg.appendChild(el('circle', { cx: px(LUNGS), cy: py(yL), r: 3.5, fill: NAVY }));
-      svg.appendChild(el('circle', { cx: px(TISSUE), cy: py(yTis), r: 3.5, fill: ORANGE }));
+      svg.appendChild(el('circle', { cx: px(LUNGS), cy: py(yL), r: 4, fill: NAVY, stroke: '#fff', 'stroke-width': 1.2 }));
+      svg.appendChild(el('circle', { cx: px(TISSUE), cy: py(yTis), r: 4, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.2 }));
 
       // readouts
-      const set = (k: string, v: string) => { const e = root.querySelector<HTMLElement>(`[data-r="${k}"]`); if (e) e.textContent = v; };
+      const set = (key: string, v: string) => { const e = root.querySelector<HTMLElement>(`[data-r="${key}"]`); if (e) e.textContent = v; };
       set('lungs', (yL * 100).toFixed(0) + '%');
       set('tissue', (yTis * 100).toFixed(0) + '%');
-      set('delivered', ((yL - yTis) * 100).toFixed(0) + '%');
+      set('delivered', pct + '%');
       nOut.textContent = state.n.toFixed(1);
       pOut.textContent = String(state.p50);
-      svg.setAttribute('aria-label', `Oxygen saturation curve: Hill coefficient ${state.n.toFixed(1)}, P50 ${state.p50} torr; ${((yL - yTis) * 100).toFixed(0)} percent of O2 delivered between lungs and tissue.`);
+      svg.setAttribute('aria-label', `Oxygen saturation curve: Hill coefficient ${state.n.toFixed(1)}, P50 ${state.p50} torr; ${pct} percent of O2 delivered between lungs and tissue.`);
+      return pct;
     }
 
-    nIn.addEventListener('input', () => { state.n = parseFloat(nIn.value); state.ymax = 1; render(); });
-    pIn.addEventListener('input', () => { state.p50 = parseFloat(pIn.value); state.ymax = 1; render(); });
+    // Dragging a slider leaves the preset world: un-press the presets and say what
+    // the student's own curve does, against normal HbA (≈65%).
+    function onDrag() {
+      root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      state.ymax = 1;
+      const pct = render();
+      const base = 65;
+      const cmp = pct > base + 2 ? 'more than' : pct < base - 2 ? 'less than' : 'about the same as';
+      const why = state.n < 1.5
+        ? ' With so little cooperativity the curve is nearly a hyperbola: it loads less fully at the lungs and still holds much of its O₂ at tissue pressures.'
+        : state.p50 < 15
+          ? ' A low P50 means a tight grip: the carrier loads easily but holds on at tissue pressures.'
+          : state.p50 > 40
+            ? ' A high P50 unloads generously, but watch the lungs point: push it further and hemoglobin stops filling up.'
+            : '';
+      caption.textContent = `Your curve: nH ${state.n.toFixed(1)}, P50 ${state.p50} torr, delivers ${pct}% of its O₂ between lungs and resting tissue, ${cmp} normal HbA (≈${base}%).${why}`;
+    }
+
+    nIn.addEventListener('input', () => { state.n = parseFloat(nIn.value); onDrag(); });
+    pIn.addEventListener('input', () => { state.p50 = parseFloat(pIn.value); onDrag(); });
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
       b.addEventListener('click', () => {
         const pr = PRESETS[b.getAttribute('data-preset')!];
@@ -159,7 +191,11 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
         render();
       });
     });
+    // Re-render when the column width changes so the type scale tracks it.
+    const fit = () => { const w = svg.getBoundingClientRect().width || 460; const nk = Math.min(1.6, Math.max(1, 520 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; render(); } };
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(svg);
     render();
+    fit();
   });
 </script>
 
@@ -178,15 +214,19 @@ const { title = 'Try it: the cooperativity sandbox' } = Astro.props;
     border-radius: 5px; padding: 0.3rem 0.55rem;
   }
   .obc-presets button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .obc-presets button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .obc-presets button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .obc-body { display: flex; flex-wrap: wrap; gap: var(--ddp-space-4); margin-top: var(--ddp-space-3); }
   .obc-controls { flex: 1 1 220px; display: flex; flex-direction: column; gap: 0.5rem; }
   .obc-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .obc-controls small { display: block; font-size: 0.95em; color: var(--ddp-color-muted); }
   .obc-controls em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .obc-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
   .obc-readout { flex: 1 1 180px; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
-  .obc-readout div { display: flex; justify-content: space-between; gap: 0.5rem; font-size: var(--ddp-text-xs); }
+  .obc-readout div { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-size: var(--ddp-text-xs); }
   .obc-readout dt { color: var(--ddp-color-muted); margin: 0; }
   .obc-readout dd { margin: 0; font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); font-weight: 600; }
-  .obc-readout dd.obc-big { color: var(--ddp-color-accent); font-size: var(--ddp-text-sm); }
+  .obc-readout dd.obc-big { color: var(--ddp-color-accent); font-size: var(--ddp-text-lg); }
+  .obc-readout div:last-child { border-top: 1px solid var(--ddp-color-line); padding-top: 0.3rem; margin-top: 0.1rem; }
   .obc-caption { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; min-height: 2.2em; }
 </style>

@@ -12,9 +12,9 @@
 <figure class="mwc card" data-mwc>
   <figcaption class="mwc-head">The switch behind the sigmoid — T ⇌ R<span class="mwc-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="mwc-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+  <svg class="mwc-svg" viewBox="0 0 460 272" role="img" aria-label="Twelve hemoglobin molecules, each wholly T or wholly R, above a plot of saturation and fraction in R versus ligand concentration" data-svg></svg>
 
-  <label class="mwc-slabel">Ligand (O₂) concentration <em data-out="lig">low</em>
+  <label class="mwc-slabel"><span>Ligand (O₂) concentration: <em data-out="lig">low</em> <small>— drag, and watch the marker ride up the curve</small></span>
     <input type="range" data-in="lig" min="0" max="100" step="2" value="20" />
   </label>
 
@@ -53,24 +53,68 @@
     return { Rbar, Y };
   }
 
-  function draw(svg: SVGElement, Rbar: number, Y: number) {
+  const MUTED = '#6b6b6b', GRID = '#e6e3db', GHOST = '#b9b6ad';
+  // Plot frame (SVG units) for the saturation curve under the molecule row.
+  const PL = 58, PR = 444, PT = 118, PB = 226;
+  const xOf = (a: number) => PL + (a / ALPHA_MAX) * (PR - PL);
+  const yOf = (f: number) => PB - f * (PB - PT);
+  function curve(L: number, key: 'Y' | 'Rbar') {
+    let d = '';
+    for (let i = 0; i <= 100; i++) { const a = (i / 100) * ALPHA_MAX; d += (i ? 'L' : 'M') + xOf(a).toFixed(1) + ' ' + yOf(mwc(a, L)[key]).toFixed(1) + ' '; }
+    return d.trim();
+  }
+
+  function draw(svg: SVGElement, alpha: number, L: number, eff: string, k: number) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    const N = 12, cols = 12, w = 460 / cols, top = 30;
+    const fs = (n: number) => +(n * k).toFixed(1);
+    const txt = (x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) => {
+      const t = el('text', { x, y, 'font-size': fs(size), fill, ...extra }); t.textContent = s; svg.appendChild(t); return t;
+    };
+    const { Rbar, Y } = mwc(alpha, L);
+    // --- the population: 12 molecules, each wholly T or wholly R, with its 4 O₂ sites.
+    // Sites fill at each state's own affinity: R binds O₂ well, T (c = 0.01) barely.
+    const fR = alpha / (1 + alpha), fT = (C_RATIO * alpha) / (1 + C_RATIO * alpha);
+    const N = 12, w = 460 / N, cy = 52;
     const nR = Math.round(Rbar * N);
+    txt(8, 16, '12 molecules, each all-T or all-R · dots = O₂ bound', 9.5, MUTED);
     for (let i = 0; i < N; i++) {
-      const cx = i * w + w / 2, cy = top + 20;
+      const cx = i * w + w / 2;
       const isR = i >= N - nR; // fill R from the right
       const color = isR ? ACCENT : ORANGE;
-      if (isR) svg.appendChild(el('circle', { cx, cy, r: 13, fill: color, opacity: 0.18, stroke: color, 'stroke-width': 2 }));
-      else svg.appendChild(el('rect', { x: cx - 11, y: cy - 11, width: 22, height: 22, rx: 3, fill: color, opacity: 0.18, stroke: color, 'stroke-width': 2 }));
-      const lab = el('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', fill: color, 'font-size': 11, 'font-weight': 700 });
-      lab.textContent = isR ? 'R' : 'T'; svg.appendChild(lab);
+      if (isR) svg.appendChild(el('circle', { cx, cy, r: 14, fill: color, 'fill-opacity': 0.16, stroke: color, 'stroke-width': 2 }));
+      else svg.appendChild(el('rect', { x: cx - 12, y: cy - 12, width: 24, height: 24, rx: 3, fill: color, 'fill-opacity': 0.16, stroke: color, 'stroke-width': 2 }));
+      txt(cx, cy + fs(11) * 0.36, isR ? 'R' : 'T', 11, isR ? '#0a5f67' : '#b35900', { 'text-anchor': 'middle', 'font-weight': 700 });
+      const bound = Math.round(4 * (isR ? fR : fT));
+      for (let s = 0; s < 4; s++) {
+        const dx = cx - 10.5 + s * 7;
+        svg.appendChild(el('circle', { cx: dx, cy: cy + 24, r: 2.6, fill: s < bound ? NAVY : '#fff', stroke: NAVY, 'stroke-width': 1 }));
+      }
     }
-    // occupancy bar
-    svg.appendChild(el('rect', { x: 20, y: 84, width: 420, height: 10, rx: 5, fill: '#e6e3db' }));
-    svg.appendChild(el('rect', { x: 20, y: 84, width: 420 * Y, height: 10, rx: 5, fill: NAVY }));
-    const cap = el('text', { x: 20, y: 110, fill: NAVY, 'font-size': 10 }); cap.textContent = 'O₂ saturation'; svg.appendChild(cap);
-    const t2 = el('text', { x: 20, y: 18, fill: '#b9b9c2', 'font-size': 10 }); t2.textContent = '12 molecules: T (tense, low affinity) ⇌ R (relaxed, high affinity)'; svg.appendChild(t2);
+    // --- the curve: saturation (solid) and fraction of molecules in R (dashed) vs ligand.
+    for (const f of [0, 0.5, 1]) {
+      svg.appendChild(el('line', { x1: PL, y1: yOf(f), x2: PR, y2: yOf(f), stroke: GRID, 'stroke-width': 1 }));
+      txt(PL - 5, yOf(f) + fs(8.5) * 0.35, `${f * 100}%`, 8.5, NAVY, { 'text-anchor': 'end' });
+    }
+    svg.appendChild(el('line', { x1: PL, y1: PB, x2: PR, y2: PB, stroke: '#9a9aa3', 'stroke-width': 1.2 }));
+    txt((PL + PR) / 2, PB + 6 + fs(9.5), 'ligand (O₂) concentration →', 9.5, NAVY, { 'text-anchor': 'middle' });
+    if (eff !== 'none') {
+      svg.appendChild(el('path', { d: curve(EFF_L.none, 'Y'), fill: 'none', stroke: GHOST, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+      const gx = xOf(ALPHA_MAX * 0.2);
+      txt(gx + 4, yOf(mwc(ALPHA_MAX * 0.2, EFF_L.none).Y) - 4, 'no effector', 8.5, '#8a877f');
+    }
+    svg.appendChild(el('path', { d: curve(L, 'Rbar'), fill: 'none', stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
+    svg.appendChild(el('path', { d: curve(L, 'Y'), fill: 'none', stroke: NAVY, 'stroke-width': 2.6 }));
+    // current ligand level
+    svg.appendChild(el('line', { x1: xOf(alpha), y1: PT - 4, x2: xOf(alpha), y2: PB, stroke: ORANGE, 'stroke-width': 1.2, opacity: 0.8 }));
+    svg.appendChild(el('circle', { cx: xOf(alpha), cy: yOf(Rbar), r: 3.6, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.2 }));
+    svg.appendChild(el('circle', { cx: xOf(alpha), cy: yOf(Y), r: 4.6, fill: NAVY, stroke: '#fff', 'stroke-width': 1.4 }));
+    // legend
+    const ly = PB + 12 + fs(9.5) + fs(9);
+    svg.appendChild(el('line', { x1: PL, y1: ly - fs(9) * 0.35, x2: PL + 20, y2: ly - fs(9) * 0.35, stroke: NAVY, 'stroke-width': 2.6 }));
+    txt(PL + 25, ly, 'O₂ saturation', 9, NAVY);
+    const lx2 = PL + 25 + fs(9) * 7.2 + 14;
+    svg.appendChild(el('line', { x1: lx2, y1: ly - fs(9) * 0.35, x2: lx2 + 20, y2: ly - fs(9) * 0.35, stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
+    txt(lx2 + 25, ly, 'molecules in R', 9, '#0a5f67');
   }
 
   document.querySelectorAll<HTMLElement>('[data-mwc]').forEach((root) => {
@@ -89,13 +133,16 @@
       ligOut.textContent = v > 66 ? 'high (lungs)' : v > 33 ? 'moderate' : v > 5 ? 'low (tissue)' : 'near zero';
       rStateEl.textContent = Math.round(Rbar * 100) + '%';
       satEl.textContent = Math.round(Y * 100) + '%';
-      draw(svg, Rbar, Y);
+      draw(svg, alpha, L, eff, k);
       whyEl.textContent = Rbar > 0.6
         ? 'Ligand has pulled most of the population into the R (relaxed, high-affinity) state. Once flipped, R grabs O₂ readily — the upper, easy-loading shoulder of the sigmoid.'
         : Rbar > 0.15
           ? 'Right in the switch: T and R are close to balanced, so a small rise in O₂ flips many molecules to R at once. This steep middle is the cooperative transition — the sigmoid’s rise.'
           : 'Almost all molecules sit in T (tense, low-affinity), reluctant to bind. This is the flat foot of the sigmoid — and exactly where an inhibitor like BPG keeps hemoglobin so it dumps O₂ in the tissues.';
     }
+    let k = 1;
+    const fit = () => { const w = (svg as unknown as Element).getBoundingClientRect().width || 460; const nk = Math.min(1.6, Math.max(1, 520 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; render(); } };
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(svg as unknown as Element);
     ligIn.addEventListener('input', render);
     root.querySelectorAll<HTMLButtonElement>('[data-eff]').forEach((b) =>
       b.addEventListener('click', () => {
@@ -104,6 +151,7 @@
         render();
       }));
     render();
+    fit();
   });
 </script>
 
@@ -113,11 +161,13 @@
   .mwc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .mwc-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
   .mwc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
+  .mwc-slabel small { font-size: 1em; color: var(--ddp-color-muted); }
   .mwc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .mwc-slabel input { accent-color: var(--ddp-color-accent); }
   .mwc-eff { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-bottom: var(--ddp-space-3); }
   .mwc-eff-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .mwc-eff button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .mwc-eff button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .mwc-eff button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
   .mwc-eff button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
   .mwc-meters { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }

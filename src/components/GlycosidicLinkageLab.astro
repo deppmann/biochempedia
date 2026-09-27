@@ -34,7 +34,7 @@
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2';
   const SVGNS = 'http://www.w3.org/2000/svg';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(SVGNS, name);
@@ -53,7 +53,7 @@
       so: 'The α-1,4 link folds the chain into a helix the body can unzip. This is the glucose you actually eat as starch.',
     },
     branch: {
-      name: 'Glycogen / amylopectin', color: ORANGE,
+      name: 'Glycogen / amylopectin', color: ACCENT,
       shape: 'A bush: α-1,4 backbone with α-1,6 branches every ~12 (glycogen) or ~30 (amylopectin) residues.',
       job: 'Fast-access energy store in animals (liver, muscle).',
       digest: 'Yes — and the branches make it faster: every branch is one more non-reducing end.',
@@ -68,43 +68,86 @@
     },
   };
 
-  function draw(svg: SVGElement, mode: string) {
+  const INKT = '#0a5f67', MUTED = '#6b6b6b';
+  function draw(svg: SVGElement, mode: string, k: number) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const c = MODES[mode].color;
-    const bead = (x: number, y: number, fill: string) => {
-      svg.appendChild(el('circle', { cx: x, cy: y, r: 9, fill, stroke: '#fff', 'stroke-width': 1.5 }));
+    const fs = (n: number) => +(n * k).toFixed(1);
+    const txt = (x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) => {
+      const t = el('text', { x, y, 'font-size': fs(size), fill, ...extra }); t.textContent = s; svg.appendChild(t); return t;
     };
-    const link = (x1: number, y1: number, x2: number, y2: number, color: string, dash = '') => {
-      svg.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 3, ...(dash ? { 'stroke-dasharray': dash } : {}) }));
+    const bead = (x: number, y: number, fill: string, r = 9, op = 1) => {
+      svg.appendChild(el('circle', { cx: x, cy: y, r, fill, 'fill-opacity': op, stroke: '#fff', 'stroke-width': 1.5 }));
     };
+    const link = (x1: number, y1: number, x2: number, y2: number, color: string, extra: Record<string, string | number> = {}) => {
+      svg.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 3, 'stroke-linecap': 'round', ...extra }));
+    };
+    // dashed halo = a non-reducing end, where digestive and glycogen-mobilizing enzymes work
+    const endRing = (x: number, y: number) => svg.appendChild(el('circle', { cx: x, cy: y, r: 14, fill: 'none', stroke: NAVY, 'stroke-width': 1.3, 'stroke-dasharray': '3 2.5' }));
     if (mode === 'a14') {
-      // loose helix: beads along a sine wave
-      const n = 11; const x0 = 40, dx = 34, midY = 100, amp = 34;
-      let px = 0, py = 0;
-      for (let i = 0; i < n; i++) {
-        const x = x0 + i * dx;
-        const y = midY + amp * Math.sin(i * 0.9);
-        if (i > 0) link(px, py, x, y, c);
-        px = x; py = y;
+      // a left-handed helix, ~6 glucoses per turn, drawn in perspective: back
+      // residues small and faded, front residues full size.
+      const n = 16, x0 = 36, x1 = 424, midY = 92, r = 36;
+      const at = (t: number) => {
+        const th = (t * 2 * Math.PI) / 6;
+        const z = -Math.sin(th);
+        // side view of the helix: y traces the coil, z (toward the viewer) sets size and shade
+        return { x: x0 + (t * (x1 - x0)) / (n - 1), y: midY - r * Math.cos(th), z };
+      };
+      const pts = Array.from({ length: n }, (_, i) => at(i));
+      svg.appendChild(el('line', { x1: x0 - 14, y1: midY, x2: x1 + 14, y2: midY, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '4 4' }));
+      // a smooth helical backbone, split into back (faded) and front (solid) runs;
+      // draw order: back strand, back residues, front strand, front residues.
+      const STEP = 0.1;
+      const runs: { front: boolean; d: string }[] = [];
+      for (let t = 0; t <= n - 1 + 1e-9; t += STEP) {
+        const p = at(Math.min(t, n - 1)), front = p.z >= 0;
+        const last = runs[runs.length - 1];
+        if (!last || last.front !== front) runs.push({ front, d: (last ? last.d.split(' ').slice(-2).join(' ').replace(/^L/, 'M') + ' ' : 'M') + (last ? 'L' : '') + p.x.toFixed(1) + ' ' + p.y.toFixed(1) });
+        else last.d += ' L' + p.x.toFixed(1) + ' ' + p.y.toFixed(1);
       }
-      for (let i = 0; i < n; i++) bead(x0 + i * dx, midY + amp * Math.sin(i * 0.9), c);
+      const strand = (front: boolean) => runs.filter((r0) => r0.front === front).forEach((r0) =>
+        svg.appendChild(el('path', { d: r0.d, fill: 'none', stroke: c, 'stroke-width': front ? 3.4 : 2.4, 'stroke-opacity': front ? 1 : 0.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })));
+      const beads = (front: boolean) => pts.filter((p) => (p.z >= 0) === front).forEach((p) => bead(p.x, p.y, c, 6 + 3 * (p.z + 1) / 2, 0.45 + 0.55 * (p.z + 1) / 2));
+      strand(false); beads(false); strand(true); beads(true);
+      endRing(pts[0].x, pts[0].y);
+      txt(pts[0].x, 172, 'non-reducing end', 9.5, NAVY, { 'text-anchor': 'start' });
+      txt(x1, 172, 'reducing end', 9.5, NAVY, { 'text-anchor': 'end' });
+      txt(230, 20, k > 1.2 ? 'left-handed helix · ~6 glucoses/turn' : 'left-handed helix · about 6 glucoses per turn', 9.5, MUTED, { 'text-anchor': 'middle' });
     } else if (mode === 'branch') {
-      // backbone with two upward branches
-      const x0 = 40, dx = 38, y = 140; const n = 9;
+      // α-1,4 backbone with α-1,6 side chains; every chain tip is a non-reducing end
+      const x0 = 40, dx = 38, y = 136, n = 11;
+      const branchAt = [2, 6];
+      const tips: [number, number][] = [[x0, y]];
       for (let i = 0; i < n - 1; i++) link(x0 + i * dx, y, x0 + (i + 1) * dx, y, c);
-      // branches at residue 2 and 6
-      const bA = x0 + 2 * dx, bB = x0 + 6 * dx;
-      link(bA, y, bA + dx * 0.5, y - 40, GOLD); link(bA + dx * 0.5, y - 40, bA + dx * 1.0, y - 70, GOLD);
-      link(bB, y, bB + dx * 0.5, y - 40, GOLD); link(bB + dx * 0.5, y - 40, bB + dx * 1.0, y - 70, GOLD);
+      for (const bi of branchAt) {
+        const bx = x0 + bi * dx;
+        const p = [[bx, y], [bx - 10, y - 32], [bx - 2, y - 64], [bx - 14, y - 96]];
+        for (let j = 0; j < p.length - 1; j++) link(p[j][0], p[j][1], p[j + 1][0], p[j + 1][1], ORANGE);
+        for (let j = 1; j < p.length; j++) bead(p[j][0], p[j][1], ORANGE);
+        tips.push([p[3][0], p[3][1]]);
+      }
       for (let i = 0; i < n; i++) bead(x0 + i * dx, y, c);
-      bead(bA + dx * 0.5, y - 40, GOLD); bead(bA + dx * 1.0, y - 70, GOLD);
-      bead(bB + dx * 0.5, y - 40, GOLD); bead(bB + dx * 1.0, y - 70, GOLD);
+      tips.forEach(([tx, ty]) => endRing(tx, ty));
+      const bx = x0 + 6 * dx;
+      txt(bx + 14, y - 22, '← α-1,6 branch point', 9.5, '#b35900', { 'font-weight': 600 });
+      txt(x0 + (n - 1) * dx + 6, y + 28, 'reducing end', 9.5, NAVY, { 'text-anchor': 'end' });
+      txt(x0 - 12, 190, k > 1.2 ? `${tips.length} non-reducing ends (dashed rings)` : `${tips.length} non-reducing ends (dashed rings) · enzymes work on every one at once`, 9.5, NAVY);
     } else {
-      // two flat parallel chains with H-bonds between
-      const x0 = 40, dx = 36, n = 11; const yTop = 78, yBot = 122;
-      for (let i = 0; i < n - 1; i++) { link(x0 + i * dx, yTop, x0 + (i + 1) * dx, yTop, c); link(x0 + i * dx, yBot, x0 + (i + 1) * dx, yBot, c); }
-      for (let i = 0; i < n; i++) link(x0 + i * dx, yTop + 9, x0 + i * dx, yBot - 9, FAINT, '3 3');
-      for (let i = 0; i < n; i++) { bead(x0 + i * dx, yTop, c); bead(x0 + i * dx, yBot, c); }
+      // β-1,4: alternate residues flipped 180°, so chains run dead straight and
+      // stack side by side, zipped together by hydrogen bonds.
+      const x0 = 40, dx = 38, n = 11, rows = [52, 100, 148];
+      rows.forEach((yy, ri) => {
+        if (ri < rows.length - 1) for (let i = 0; i < n; i++) link(x0 + i * dx, yy + 10, x0 + i * dx, rows[ri + 1] - 10, ACCENT, { 'stroke-width': 1.4, 'stroke-dasharray': '3 3', 'stroke-linecap': 'butt' });
+        for (let i = 0; i < n - 1; i++) link(x0 + i * dx, yy, x0 + (i + 1) * dx, yy, c);
+        for (let i = 0; i < n; i++) {
+          const flip = i % 2 ? 1 : -1;
+          svg.appendChild(el('line', { x1: x0 + i * dx, y1: yy, x2: x0 + i * dx + 8, y2: yy + 13 * flip, stroke: c, 'stroke-width': 1.6, opacity: 0.55 }));
+          bead(x0 + i * dx, yy, c);
+        }
+      });
+      txt(230, 22, k > 1.2 ? 'straight chains; alternate glucoses flipped' : 'straight chains, each glucose flipped 180° from its neighbour', 9.5, MUTED, { 'text-anchor': 'middle' });
+      txt(230, 186, k > 1.2 ? '┆ H-bonds zip chains into a fibril' : '┆ hydrogen bonds zip neighbouring chains into a rigid fibril', 9.5, INKT, { 'text-anchor': 'middle' });
     }
   }
 
@@ -115,18 +158,24 @@
     const jobEl = root.querySelector<HTMLElement>('[data-job]')!;
     const digestEl = root.querySelector<HTMLElement>('[data-digest]')!;
     const soEl = root.querySelector<HTMLElement>('[data-so]')!;
-    function select(mode: string) {
+    let mode = 'a14', k = 1;
+    function select(next: string) {
+      mode = next;
       const m = MODES[mode];
-      nameEl.textContent = m.name; nameEl.style.color = m.color;
+      nameEl.textContent = m.name; nameEl.style.color = mode === 'branch' ? '#b35900' : m.color;
       shapeEl.textContent = m.shape; jobEl.textContent = m.job; digestEl.textContent = m.digest; soEl.textContent = m.so;
-      draw(svg, mode);
+      draw(svg, mode, k);
+      svg.setAttribute('aria-label', `${m.name}: ${m.shape}`);
     }
+    const fit = () => { const w = (svg as unknown as Element).getBoundingClientRect().width || 460; const nk = Math.min(1.6, Math.max(1, 520 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; draw(svg, mode, k); } };
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(svg as unknown as Element);
     root.querySelectorAll<HTMLButtonElement>('[data-link]').forEach((b) =>
       b.addEventListener('click', () => {
         root.querySelectorAll<HTMLButtonElement>('[data-link]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
         select(b.getAttribute('data-link')!);
       }));
     select('a14');
+    fit();
   });
 </script>
 
@@ -136,6 +185,7 @@
   .gll-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .gll-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
   .gll-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .gll-tabs button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .gll-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
   .gll-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
   .gll-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-3); }

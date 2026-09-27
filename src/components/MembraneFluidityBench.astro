@@ -25,21 +25,21 @@
 
     <section class="bench-col">
       <svg class="bench-svg" viewBox="0 0 420 320" role="img" aria-label="Membrane order plotted against temperature: a sigmoid that crosses 0.5 at the melting temperature Tm, with the current temperature marked" data-plot></svg>
-      <p class="bench-cap">Solid line = your membrane. Dashed line = the same lipids with no cholesterol. Cholesterol flattens the curve in both directions.</p>
+      <p class="bench-cap">The curve shows how fluid the membrane is at each temperature; it crosses halfway at T<sub>m</sub>. Cholesterol flattens it in both directions: compare the dashed no-cholesterol curve.</p>
     </section>
   </div>
 
   <div class="bench-controls">
-    <label class="bench-slabel">Chain length <em data-out="chain">18</em> carbons
+    <label class="bench-slabel"><span>Chain length <em data-out="chain">18</em> C</span>
       <input type="range" data-in="chain" min="12" max="22" step="1" value="18" />
     </label>
-    <label class="bench-slabel">cis double bonds / chain <em data-out="db">1</em>
+    <label class="bench-slabel"><span>cis double bonds per chain <em data-out="db">1</em></span>
       <input type="range" data-in="db" min="0" max="4" step="1" value="1" />
     </label>
-    <label class="bench-slabel">Cholesterol <em data-out="chol">20</em> %
+    <label class="bench-slabel"><span>Cholesterol <em data-out="chol">20</em> mol %</span>
       <input type="range" data-in="chol" min="0" max="40" step="5" value="20" />
     </label>
-    <label class="bench-slabel">Temperature <em data-out="temp">25</em> °C
+    <label class="bench-slabel"><span>Temperature <em data-out="temp">25</em> °C</span>
       <input type="range" data-in="temp" min="-10" max="60" step="1" value="25" />
     </label>
   </div>
@@ -65,6 +65,7 @@
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', GOLD = '#D4A843';
+  const GEL = '#5b7f9a', GEL_INK = '#2b5fa6', ACCENT_INK = '#0a5f67', ORANGE_INK = '#b35900';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -122,88 +123,129 @@
       };
     }
 
-    // ---- right panel: order-vs-temperature plot ----
-    const PX0 = 46, PX1 = 404, PY0 = 28, PY1 = 286, TMIN = -10, TMAX = 60;
+    // Type scale: both SVGs shrink with their column; scale text (not geometry) up as they narrow.
+    let k = 1;
+    const fs = (n: number) => +(n * k).toFixed(1);
+    function txt(svg: SVGSVGElement, x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': fs(size), fill, ...extra }); t.textContent = s; svg.appendChild(t); return t;
+    }
+
+    // ---- right panel: fluidity-vs-temperature plot ----
+    const PX0 = 50, PX1 = 404, PY0 = 30, PY1 = 270, TMIN = -10, TMAX = 60;
     function xPix(T: number) { return PX0 + ((T - TMIN) / (TMAX - TMIN)) * (PX1 - PX0); }
     function yPix(o: number) { return PY0 + o * (PY1 - PY0); }
     function curvePath(Tm: number, w: number) {
       let d = '';
-      for (let T = TMIN; T <= TMAX; T += 1) { d += (T === TMIN ? 'M' : 'L') + xPix(T).toFixed(1) + ' ' + yPix(order(T, Tm, w)).toFixed(1) + ' '; }
+      for (let T = TMIN; T <= TMAX; T += 0.5) { d += (T === TMIN ? 'M' : 'L') + xPix(T).toFixed(1) + ' ' + yPix(order(T, Tm, w)).toFixed(1) + ' '; }
       return d.trim();
     }
     function renderPlot(v: { chain: number; db: number; chol: number; temp: number }, Tm: number, w: number) {
       plot.replaceChildren();
-      // axes
+      // halfway guide + axes
+      plot.appendChild(el('line', { x1: PX0, y1: yPix(0.5), x2: PX1, y2: yPix(0.5), stroke: '#e6e3db', 'stroke-width': 1 }));
       plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
       plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
-      const fl = el('text', { x: PX0 - 6, y: PY0 + 6, 'text-anchor': 'end', 'font-size': 9, fill: INK }); fl.textContent = 'fluid'; plot.appendChild(fl);
-      const gl = el('text', { x: PX0 - 6, y: PY1, 'text-anchor': 'end', 'font-size': 9, fill: INK }); gl.textContent = 'gel'; plot.appendChild(gl);
+      txt(plot, PX0 - 5, PY0 + fs(9) * 0.35, 'fluid', 9, ACCENT_INK, { 'text-anchor': 'end', 'font-weight': 600 });
+      txt(plot, PX0 - 5, PY1, 'gel', 9, GEL_INK, { 'text-anchor': 'end', 'font-weight': 600 });
       for (const T of [-10, 0, 20, 37, 60]) {
         plot.appendChild(el('line', { x1: xPix(T), y1: PY1, x2: xPix(T), y2: PY1 + 3, stroke: INK, 'stroke-width': 1 }));
-        const t = el('text', { x: xPix(T), y: PY1 + 14, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); t.textContent = String(T); plot.appendChild(t);
+        txt(plot, xPix(T), PY1 + 4 + fs(9), String(T), 9, INK, { 'text-anchor': 'middle' });
       }
-      const xl = el('text', { x: (PX0 + PX1) / 2, y: 314, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); xl.textContent = 'temperature (°C)'; plot.appendChild(xl);
+      txt(plot, (PX0 + PX1) / 2, PY1 + 10 + fs(9) + fs(10), 'temperature (°C)', 10, INK, { 'text-anchor': 'middle' });
       // reference curve: same lipids, no cholesterol (steeper)
-      if (v.chol > 0) plot.appendChild(el('path', { d: curvePath(Tm, computeWidth(0)), fill: 'none', stroke: ORANGE, 'stroke-width': 1.4, 'stroke-dasharray': '3 3', opacity: 0.8 }));
+      if (v.chol > 0) plot.appendChild(el('path', { d: curvePath(Tm, computeWidth(0)), fill: 'none', stroke: '#8a877f', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
       // current curve
-      plot.appendChild(el('path', { d: curvePath(Tm, w), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
-      // Tm guide
+      plot.appendChild(el('path', { d: curvePath(Tm, w), fill: 'none', stroke: ACCENT, 'stroke-width': 2.8 }));
+      // Tm guide (or an arrow saying where it went, when it is off the chart)
       if (Tm >= TMIN && Tm <= TMAX) {
         plot.appendChild(el('line', { x1: xPix(Tm), y1: PY0, x2: xPix(Tm), y2: PY1, stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
-        const tl = el('text', { x: xPix(Tm), y: PY0 - 4, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY, 'font-weight': 700 }); tl.textContent = 'Tm'; plot.appendChild(tl);
+        txt(plot, xPix(Tm), PY0 - 6, `Tm ${Tm.toFixed(0)} °C`, 9.5, NAVY, { 'text-anchor': 'middle', 'font-weight': 700 });
+      } else {
+        const left = Tm < TMIN;
+        txt(plot, left ? PX0 + 4 : PX1, PY0 - 6, left ? `← Tm ${Tm.toFixed(0)} °C, off the chart` : `Tm ${Tm.toFixed(0)} °C, off the chart →`, 9.5, NAVY, { 'text-anchor': left ? 'start' : 'end', 'font-weight': 700 });
+      }
+      // legend: top-left on a paper chip, so a curve passing behind it stays readable
+      const lgx = PX0 + 34, lgy = PY0 + 8 + fs(9);
+      const lgw = fs(9) * 7.4 + 34, lgh = v.chol > 0 ? fs(9) * 2.6 + 8 : fs(9) + 8;
+      plot.appendChild(el('rect', { x: PX0 + 5, y: lgy - fs(9) - 4, width: lgw, height: lgh, rx: 4, fill: '#fff', 'fill-opacity': 0.88 }));
+      plot.appendChild(el('line', { x1: lgx - 24, y1: lgy - fs(9) * 0.35, x2: lgx - 4, y2: lgy - fs(9) * 0.35, stroke: ACCENT, 'stroke-width': 2.8 }));
+      txt(plot, lgx, lgy, 'your membrane', 9, INK);
+      if (v.chol > 0) {
+        plot.appendChild(el('line', { x1: lgx - 24, y1: lgy + fs(9) * 1.1, x2: lgx - 4, y2: lgy + fs(9) * 1.1, stroke: '#8a877f', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        txt(plot, lgx, lgy + fs(9) * 1.45, 'no cholesterol', 9, INK);
       }
       // current temperature marker
       const o = order(v.temp, Tm, w);
       plot.appendChild(el('line', { x1: xPix(v.temp), y1: PY0, x2: xPix(v.temp), y2: PY1, stroke: ORANGE, 'stroke-width': 1.6 }));
-      plot.appendChild(el('circle', { cx: xPix(v.temp), cy: yPix(o), r: 5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+      plot.appendChild(el('circle', { cx: xPix(v.temp), cy: yPix(o), r: 5.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+      // label the marker in the empty half of the plot: below the point when the
+      // membrane is fluid (curve is high), above it when gelled (curve is low)
+      const right = xPix(v.temp) < PX1 - 70;
+      txt(plot, xPix(v.temp) + (right ? 6 : -6), o < 0.5 ? PY1 - 8 : PY0 + 60, `you: ${v.temp} °C`, 9.5, ORANGE_INK, { 'text-anchor': right ? 'start' : 'end', 'font-weight': 700 });
     }
 
     // ---- left panel: bilayer cartoon ----
+    // Each phospholipid = a head (navy) with two tails. Gel: straight, tightly packed
+    // tails at full length. Fluid: cis kinks, jitter, looser packing, and a slightly
+    // thinner bilayer (disordered chains are effectively shorter).
     function renderBilayer(v: { chain: number; db: number; chol: number; temp: number }, isGel: boolean) {
       bilayer.replaceChildren();
-      const N = 7;
-      const spacing = isGel ? 40 : 52 + v.db * 6; // fluid + more kinks = looser packing
-      const startX = (420 - (N - 1) * spacing) / 2;
-      const headTop = 70, headBot = 250, midTop = 88, midBot = 232;
-      const tailLen = 30 + (v.chain - 12) * 6; // longer chains drawn longer
-      // water band hint
-      bilayer.appendChild(el('rect', { x: 0, y: 0, width: 420, height: 52, fill: '#eef5f6' }));
-      bilayer.appendChild(el('rect', { x: 0, y: 268, width: 420, height: 52, fill: '#eef5f6' }));
-      const tailColor = isGel ? '#5b7f9a' : ACCENT;
-      for (let i = 0; i < N; i++) {
-        const x = startX + i * spacing;
-        const j = isGel ? 0 : (seeded(i) - 0.5) * 10;
-        // two leaflets, heads point outward, tails inward
-        for (const top of [true, false]) {
-          const hy = top ? headTop : headBot;
-          const ty0 = top ? midTop : midBot;
-          const dir = top ? 1 : -1;
-          // tail polyline with one kink per double bond
-          let d = 'M' + (x + j).toFixed(1) + ' ' + ty0.toFixed(1) + ' ';
+      const W = 420, headTop = 70, headBot = 250, R0 = 8;
+      const spacing = isGel ? 30 : 34 + v.db * 3;
+      const N = Math.floor((W - 36) / spacing) + 1;
+      const startX = (W - (N - 1) * spacing) / 2;
+      const full = 44 + (v.chain - 12) * 4.2;          // 12 C → 44, 22 C → 86 (midplane is 90 away)
+      const tailLen = isGel ? full : full * 0.86;
+      // water on both faces
+      bilayer.appendChild(el('rect', { x: 0, y: 0, width: W, height: headTop, fill: '#eef5f6' }));
+      bilayer.appendChild(el('rect', { x: 0, y: headBot, width: W, height: 320 - headBot, fill: '#eef5f6' }));
+      txt(bilayer, 8, headTop - R0 - 6, 'water', 9, INK, { opacity: 0.75 });
+      txt(bilayer, 8, headBot + R0 + 6 + fs(9) * 0.7, 'water', 9, INK, { opacity: 0.75 });
+      const tailColor = isGel ? GEL : ACCENT;
+      const tail = (x: number, y0: number, dir: number, seed: number) => {
+        let d = `M${x.toFixed(1)} ${y0.toFixed(1)}`;
+        if (isGel || v.db === 0) {
+          const wob = isGel ? 0 : (seeded(seed) - 0.5) * 6;
+          d += ` L${(x + wob).toFixed(1)} ${(y0 + dir * tailLen).toFixed(1)}`;
+        } else {
+          // a ~30° kink at each cis double bond, alternating direction
           const seg = tailLen / (v.db + 1);
-          let cx = x + j, cy = ty0;
-          for (let k = 0; k < v.db + 1; k++) {
-            cy += dir * seg;
-            const kink = k < v.db ? (k % 2 === 0 ? 7 : -7) : 0;
-            cx += kink;
-            d += 'L' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ';
+          let cx = x, cy = y0;
+          for (let kk = 0; kk <= v.db; kk++) {
+            const ang = kk === 0 ? 0 : (kk % 2 ? 1 : -1) * 0.52 + (seeded(seed + kk) - 0.5) * 0.3;
+            cx += Math.sin(ang) * seg; cy += dir * Math.cos(ang) * seg;
+            d += ` L${cx.toFixed(1)} ${cy.toFixed(1)}`;
           }
-          bilayer.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: tailColor, 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
-          bilayer.appendChild(el('circle', { cx: x + j, cy: hy, r: 7, fill: NAVY }));
         }
-      }
-      // cholesterol ring-plates wedged between tails
-      const nChol = Math.round(v.chol / 10);
-      for (let c = 0; c < nChol; c++) {
-        const x = startX + (c + 0.5) * spacing + spacing * 0.5;
-        if (x > 410) continue;
-        for (const yc of [midTop + tailLen * 0.45, midBot - tailLen * 0.45]) {
-          bilayer.appendChild(el('rect', { x: x - 4, y: yc - 16, width: 8, height: 32, rx: 3, fill: GOLD, stroke: '#a8862f', 'stroke-width': 0.8 }));
+        bilayer.appendChild(el('path', { d, fill: 'none', stroke: tailColor, 'stroke-width': 2.4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      };
+      // cholesterol: rigid ring-plates in the gaps, OH at the head-group level
+      const nChol = Math.min(N - 1, Math.round((N * (v.chol / 100)) / Math.max(0.01, 1 - v.chol / 100)));
+      const cholGaps = new Set<number>();
+      for (let c = 0; c < nChol; c++) cholGaps.add(Math.floor(((c + 0.5) * (N - 1)) / nChol));
+      for (const top of [true, false]) {
+        const hy = top ? headTop : headBot, dir = top ? 1 : -1;
+        for (let i = 0; i < N; i++) {
+          const jx = isGel ? 0 : (seeded(i + (top ? 0 : 50)) - 0.5) * 6;
+          const jy = isGel ? 0 : (seeded(i + (top ? 7 : 57)) - 0.5) * 6;
+          const x = startX + i * spacing + jx, y = hy + jy;
+          tail(x - 4, y + dir * (R0 - 1), dir, i * 3 + (top ? 0 : 100));
+          tail(x + 4, y + dir * (R0 - 1), dir, i * 3 + 1 + (top ? 0 : 100));
+          bilayer.appendChild(el('circle', { cx: x, cy: y, r: R0, fill: NAVY }));
         }
+        cholGaps.forEach((g) => {
+          const x = startX + (g + 0.5) * spacing;
+          const y0 = hy + dir * (R0 + 1);
+          const len = full * 0.62;
+          bilayer.appendChild(el('rect', { x: x - 3.5, y: top ? y0 + 3 : y0 - 3 - len, width: 7, height: len, rx: 2.5, fill: GOLD, stroke: '#a8862f', 'stroke-width': 0.8 }));
+          bilayer.appendChild(el('circle', { cx: x, cy: y0, r: 2.6, fill: '#fff', stroke: '#a8862f', 'stroke-width': 1 }));
+        });
       }
-      const lbl = el('text', { x: 210, y: 16, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
-      lbl.textContent = isGel ? 'gel — chains straight, tightly packed' : 'fluid — kinks and gaps, chains mobile';
-      bilayer.appendChild(lbl);
+      txt(bilayer, 210, 20, isGel ? 'GEL — straight tails, packed tight' : 'FLUID — kinked tails, loosely packed', 11, isGel ? GEL_INK : ACCENT_INK, { 'text-anchor': 'middle', 'font-weight': 700 });
+      if (nChol > 0) {
+        bilayer.appendChild(el('rect', { x: 210 - fs(10) * 3.4, y: 300 - fs(10) * 0.9, width: 6, height: fs(10), rx: 2, fill: GOLD, stroke: '#a8862f', 'stroke-width': 0.8 }));
+        txt(bilayer, 210 - fs(10) * 3.4 + 11, 300, 'cholesterol', 10, INK);
+      }
     }
 
     function renderAll() {
@@ -265,7 +307,10 @@
     });
     // start on the Human preset
     root.querySelector<HTMLButtonElement>('[data-preset="human"]')!.setAttribute('aria-pressed', 'true');
+    const fit = () => { const w = plot.getBoundingClientRect().width || 420; const nk = Math.min(1.6, Math.max(1, 440 / w)); if (Math.abs(nk - k) > 0.02) { k = nk; renderAll(); } };
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(plot);
     renderAll();
+    fit();
   });
 </script>
 
@@ -275,11 +320,12 @@
   .bench-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .bench-grid { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-3); }
   @media (min-width: 720px) { .bench-grid { grid-template-columns: 1fr 1fr; } }
-  .bench-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bench-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
   .bench-cap { margin: var(--ddp-space-1) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
   .bench-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   @media (min-width: 720px) { .bench-controls { grid-template-columns: 1fr 1fr 1fr 1fr; } }
   .bench-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bench-habrow button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .bench-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .bench-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
   .bench-habrow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: var(--ddp-space-2) 0; }
