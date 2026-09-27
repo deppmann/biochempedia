@@ -12,7 +12,13 @@
 <figure class="cct card" data-cctrack>
   <figcaption class="cct-head">Follow the carbons through one turn<span class="cct-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="cct-svg" viewBox="0 0 460 150" role="img" data-svg></svg>
+  <svg class="cct-svg" viewBox="0 0 460 140" role="img" aria-label="The carbon skeleton of the current intermediate, colored by where each carbon came from, with the CO₂ released so far." data-svg></svg>
+
+  <ul class="cct-legend" aria-hidden="true">
+    <li><i class="cct-key cct-key-a"></i>from acetyl-CoA (this turn)</li>
+    <li><i class="cct-key cct-key-o"></i>from oxaloacetate</li>
+    <li><i class="cct-key cct-key-s"></i>scrambled: 50/50 either origin</li>
+  </ul>
 
   <div class="cct-stage">
     <span class="cct-stepname" data-name></span>
@@ -21,9 +27,9 @@
   <p class="cct-note" data-note role="status"></p>
 
   <div class="cct-controls">
-    <button type="button" data-prev>‹ Back</button>
+    <button type="button" data-prev aria-label="Previous step">‹ Back</button>
     <span class="cct-progress" data-prog>Step 1 / 9</span>
-    <button type="button" data-next>Next ›</button>
+    <button type="button" data-next aria-label="Next step">Next ›</button>
     <button type="button" data-reset class="cct-reset">Reset</button>
   </div>
 
@@ -33,41 +39,72 @@
 </figure>
 
 <script>
-  const ORANGE = '#e57200', NAVY = '#232d4b';
+  const ORANGE = '#e57200', NAVY = '#232d4b', MUTED = '#6b6b6b';
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
     const e = document.createElementNS(SVGNS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
     return e;
   }
-  type Step = { name: string; navy: number; orange: number; scramble: boolean; co2: number; note: string };
+  type Step = { name: string; enzyme: string; navy: number; orange: number; scramble: boolean; co2: number; note: string };
   const STEPS: Step[] = [
-    { name: 'Oxaloacetate', navy: 4, orange: 0, scramble: false, co2: 0, note: 'The four-carbon acceptor (navy), waiting for fuel. No acetyl carbons yet.' },
-    { name: 'Citrate', navy: 4, orange: 2, scramble: false, co2: 0, note: 'Acetyl-CoA delivers two carbons (orange). They condense onto oxaloacetate to make six-carbon citrate.' },
-    { name: 'Isocitrate', navy: 4, orange: 2, scramble: false, co2: 0, note: 'Citrate is just rearranged into isocitrate — still six carbons, nothing lost.' },
-    { name: 'α-Ketoglutarate', navy: 3, orange: 2, scramble: false, co2: 1, note: 'First CO₂ leaves (isocitrate dehydrogenase, the rate-limiting step). The departing carbon is oxaloacetate-derived — not one of the two you just added.' },
-    { name: 'Succinyl-CoA', navy: 2, orange: 2, scramble: false, co2: 2, note: 'Second CO₂ leaves (α-ketoglutarate dehydrogenase). Again oxaloacetate-derived. Both CO₂ for this turn are now gone — and neither was an acetyl carbon.' },
-    { name: 'Succinate', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Succinate is symmetric: the enzyme can no longer tell its two ends apart, so the acetyl label scrambles across all four carbons (shown half-and-half).' },
-    { name: 'Fumarate', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Four carbons, label still scrambled.' },
-    { name: 'Malate', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Four carbons, one oxidation from the finish.' },
-    { name: 'Oxaloacetate (regenerated)', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Back to oxaloacetate, ready for the next acetyl-CoA. Your two labeled carbons are still here — they only leave in later turns.' },
+    { name: 'Oxaloacetate', enzyme: 'start of the turn', navy: 4, orange: 0, scramble: false, co2: 0, note: 'The four-carbon acceptor (navy), waiting for fuel. No acetyl carbons yet.' },
+    { name: 'Citrate', enzyme: 'citrate synthase', navy: 4, orange: 2, scramble: false, co2: 0, note: 'Acetyl-CoA delivers two carbons (orange). They condense onto oxaloacetate to make six-carbon citrate.' },
+    { name: 'Isocitrate', enzyme: 'aconitase', navy: 4, orange: 2, scramble: false, co2: 0, note: 'Citrate is just rearranged into isocitrate — still six carbons, nothing lost.' },
+    { name: 'α-Ketoglutarate', enzyme: 'isocitrate dehydrogenase', navy: 3, orange: 2, scramble: false, co2: 1, note: 'First CO₂ leaves (isocitrate dehydrogenase, the rate-limiting step). The departing carbon is oxaloacetate-derived — not one of the two you just added.' },
+    { name: 'Succinyl-CoA', enzyme: 'α-ketoglutarate dehydrogenase', navy: 2, orange: 2, scramble: false, co2: 2, note: 'Second CO₂ leaves (α-ketoglutarate dehydrogenase). Again oxaloacetate-derived. Both CO₂ for this turn are now gone — and neither was an acetyl carbon.' },
+    { name: 'Succinate', enzyme: 'succinyl-CoA synthetase', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Succinate is symmetric: the enzyme can no longer tell its two ends apart, so the acetyl label scrambles — each of the four carbons is now 50/50 acetyl- or oxaloacetate-derived (shown half-and-half).' },
+    { name: 'Fumarate', enzyme: 'succinate dehydrogenase', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Four carbons, label still scrambled.' },
+    { name: 'Malate', enzyme: 'fumarase', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Four carbons, one oxidation from the finish.' },
+    { name: 'Oxaloacetate (regenerated)', enzyme: 'malate dehydrogenase', navy: 2, orange: 2, scramble: true, co2: 2, note: 'Back to oxaloacetate, ready for the next acetyl-CoA. Your two labeled carbons are still here — they only leave in later turns.' },
   ];
 
-  function draw(svg: SVGElement, step: Step) {
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
+  function draw(svg: SVGElement, step: Step, prev: Step | null, animate: boolean) {
+    const g = el('g', {});
     const total = step.navy + step.orange;
-    const startX = 230 - (total - 1) * 22;
+    const cy = 84, gap = 46;
+    const startX = 190 - (total - 1) * gap / 2;
+    const released = prev ? step.co2 - prev.co2 : 0;
+    const joined = prev ? step.orange - prev.orange : 0;
+    // step caption: which enzyme produced this intermediate
+    g.appendChild(el('text', { x: 12, y: 22, fill: MUTED, 'font-size': 11.5, 'font-style': 'italic' }, step.enzyme === 'start of the turn' ? step.enzyme : `via ${step.enzyme}`));
+    // bonds, then atoms
+    for (let i = 0; i < total - 1; i++) {
+      g.appendChild(el('line', { x1: startX + i * gap, y1: cy, x2: startX + (i + 1) * gap, y2: cy, stroke: '#9aa0b4', 'stroke-width': 4, 'stroke-linecap': 'round' }));
+    }
     for (let i = 0; i < total; i++) {
-      const x = startX + i * 44, y = 70;
-      svg.appendChild(el('circle', { cx: x, cy: y, r: 16, fill: step.scramble ? '#7a5a3a' : (i < step.navy ? NAVY : ORANGE), stroke: '#fff', 'stroke-width': 2 }));
-      svg.appendChild(el('text', { x, y: y + 5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 13, 'font-family': 'monospace' })).textContent = 'C';
+      const x = startX + i * gap, r = 17;
+      const isNew = animate && joined > 0 && i < step.orange;
+      const atom = el('g', isNew ? { class: 'cct-pop', style: `transform-origin:${x}px ${cy}px` } : {});
+      if (step.scramble) {
+        atom.appendChild(el('path', { d: `M${x},${cy - r} A${r},${r} 0 0 0 ${x},${cy + r} Z`, fill: ORANGE }));
+        atom.appendChild(el('path', { d: `M${x},${cy - r} A${r},${r} 0 0 1 ${x},${cy + r} Z`, fill: NAVY }));
+        atom.appendChild(el('circle', { cx: x, cy, r, fill: 'none', stroke: '#fff', 'stroke-width': 2 }));
+      } else {
+        atom.appendChild(el('circle', { cx: x, cy, r, fill: i < step.orange ? ORANGE : NAVY, stroke: '#fff', 'stroke-width': 2 }));
+      }
+      atom.appendChild(el('text', { x, y: cy + 5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 14, 'font-weight': 700 }, 'C'));
+      g.appendChild(atom);
     }
-    // CO2 bubbles released so far, floating top-right
-    for (let j = 0; j < step.co2; j++) {
-      const x = 380 + j * 50, y = 28;
-      svg.appendChild(el('circle', { cx: x, cy: y, r: 13, fill: NAVY, opacity: 0.5, stroke: NAVY, 'stroke-width': 1 }));
-      svg.appendChild(el('text', { x, y: y + 4, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10, 'font-family': 'monospace' })).textContent = 'CO₂';
+    if (step.name === 'Citrate') {
+      g.appendChild(el('text', { x: startX + gap / 2, y: cy + 38, 'text-anchor': 'middle', fill: '#a85400', 'font-size': 11, 'font-weight': 700 }, '+ 2 C from acetyl-CoA'));
     }
+    // CO2 released so far this turn, parked top-right; the one released on this step floats up
+    g.appendChild(el('text', { x: 405, y: 122, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10.5 }, step.co2 ? 'released (from OAA)' : 'no CO₂ yet'));
+    for (let j = 0; j < 2; j++) {
+      const x = 380 + j * 50, y = cy;
+      if (j >= step.co2) {
+        g.appendChild(el('circle', { cx: x, cy: y, r: 18, fill: 'none', stroke: '#c9cedb', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        continue;
+      }
+      const fresh = animate && released > 0 && j === step.co2 - 1;
+      const b = el('g', fresh ? { class: 'cct-float', style: `--cct-dx:${j ? -125 : -95}px` } : {});
+      b.appendChild(el('circle', { cx: x, cy: y, r: 18, fill: '#fff', stroke: NAVY, 'stroke-width': 2.5 }));
+      b.appendChild(el('text', { x, y: y + 4.5, 'text-anchor': 'middle', fill: NAVY, 'font-size': 12, 'font-weight': 700 }, 'CO₂'));
+      g.appendChild(b);
+    }
+    svg.replaceChildren(g);
   }
 
   document.querySelectorAll<HTMLElement>('[data-cctrack]').forEach((root) => {
@@ -80,8 +117,9 @@
     const prevB = root.querySelector<HTMLButtonElement>('[data-prev]')!;
     const nextB = root.querySelector<HTMLButtonElement>('[data-next]')!;
     const resetB = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     let i = 0;
-    function render() {
+    function render(from: number | null = null) {
       const s = STEPS[i];
       nameEl.textContent = s.name;
       countEl.textContent = `${s.navy + s.orange} carbons`;
@@ -89,10 +127,12 @@
       progEl.textContent = `Step ${i + 1} / ${STEPS.length}`;
       co2El.textContent = String(s.co2);
       prevB.disabled = i === 0; nextB.disabled = i === STEPS.length - 1;
-      draw(svg, s);
+      const forward = from !== null && from === i - 1;
+      draw(svg, s, forward ? STEPS[from as number] : null, forward && !reduce.matches);
     }
-    prevB.addEventListener('click', () => { if (i > 0) { i--; render(); } });
-    nextB.addEventListener('click', () => { if (i < STEPS.length - 1) { i++; render(); } });
+    // keep focus on a usable button when one disables itself at either end
+    prevB.addEventListener('click', () => { if (i > 0) { i--; render(); if (i === 0) nextB.focus(); } });
+    nextB.addEventListener('click', () => { if (i < STEPS.length - 1) { i++; render(i - 1); if (i === STEPS.length - 1) prevB.focus(); } });
     resetB.addEventListener('click', () => { i = 0; render(); });
     render();
   });
@@ -103,9 +143,16 @@
   .cct-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
   .cct-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .cct-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .cct .cct-legend { list-style: none; margin: 0 0 var(--ddp-space-2); padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cct .cct-legend li { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0; padding: 0; font-size: var(--ddp-text-xs); line-height: 1.4; }
+  .cct .cct-legend li::before, .cct .cct-legend li::marker { content: none; }
+  .cct-key { display: inline-block; width: 0.75rem; height: 0.75rem; border-radius: 50%; }
+  .cct-key-a { background: #e57200; }
+  .cct-key-o { background: #232d4b; }
+  .cct-key-s { background: linear-gradient(90deg, #e57200 50%, #232d4b 50%); }
   .cct-stage { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: var(--ddp-space-1); }
   .cct-stepname { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
-  .cct-count { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); }
+  .cct-count { white-space: nowrap; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); }
   .cct-note { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; }
   .cct-controls { display: flex; align-items: center; gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
   .cct-controls button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; }
@@ -116,4 +163,13 @@
   .cct-tally { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .cct-tally strong { color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .cct-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
+
+<style is:global>
+  /* runtime-drawn SVG groups (no Astro scope stamp), anchored to the .cct prefix */
+  .cct .cct-pop { animation: cct-pop 420ms cubic-bezier(.2,.9,.3,1.3) both; }
+  .cct .cct-float { animation: cct-float 520ms ease-out both; }
+  @keyframes cct-pop { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes cct-float { from { transform: translate(var(--cct-dx, -100px), 0) scale(0.6); opacity: 0.2; } to { transform: translate(0, 0) scale(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .cct .cct-pop, .cct .cct-float { animation: none; } }
 </style>

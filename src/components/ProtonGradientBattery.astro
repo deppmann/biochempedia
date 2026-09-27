@@ -5,39 +5,56 @@
  * proton gradient. The respiratory chain (Complexes I→III→IV) is a pump that charges a battery;
  * ATP synthase is a motor that spends it. They never touch — the only wire between them is H+.
  *
- * Run electrons and watch three things happen in lockstep: electrons step DOWN the redox ladder
- * (NADH −0.32 V in the penthouse → O2 +0.82 V in the basement), the big energy drops at I, III,
- * and IV pump H+ up into the intermembrane space, and once the gradient is charged ATP synthase
- * spins and mints ATP. Flip the uncoupler and the wire is cut: electrons keep flowing, O2 is still
- * consumed, but the protons leak straight back as HEAT instead of through the motor — ATP collapses.
+ * Send an electron pair and watch it run down the chain (and down the redox ladder drawn beneath
+ * the membrane, with rungs placed at their true E°′ so the big drops at I, III and IV are visible),
+ * the pumps lift H+ into the intermembrane space, the gradient meter fill, and — once the gradient
+ * is above threshold — the F1 rotor turn 120° per ATP. Flip the uncoupler and the wire is cut:
+ * electrons keep flowing, O2 is still consumed, but the protons leak straight back as HEAT.
+ * Inhibitors stop electron flow at one complex and show the crossover pattern on the carriers.
  *
- * Teaching-grade stoichiometry (documented so the counters are honest):
- *   H+ pumped per electron pair — Complex I = 4, Complex II = 0, Complex III = 4,
- *   Complex IV = 2 pumped + 4 "chemical" H+ pulled from the matrix to reduce O2→H2O (those leave
- *   the matrix too, so they also build the gradient). Effective H+/NADH ~10, H+/FADH2 ~6.
- *   ATP synthase ~4 H+/ATP (including ANT/Pi transport) → ~2.5 ATP/NADH, ~1.5 ATP/FADH2.
- * Deterministic stepped state machine — no real-time randomness. Self-contained vanilla-TS Astro
- * island, no imports, no props, no client directive, no external deps. Original.
+ * Teaching-grade stoichiometry (standard textbook accounting, matching the lesson prose):
+ *   H+ pumped per electron pair — Complex I = 4, Complex II = 0, Complex III = 4, Complex IV = 2.
+ *   So NADH banks 10 H+ and FADH2 banks 6 H+. One pair reduces ½ O2 to H2O.
+ *   ATP synthase ~4 H+/ATP (including ADP/Pi import) → ~2.5 ATP/NADH, ~1.5 ATP/FADH2.
+ *   The synthase only turns while the gradient is above a threshold (it needs enough driving force
+ *   to make ATP), so the first pair charges the battery and later pairs cash it in; the running
+ *   average converges on 2.5 or 1.5.
+ * Deterministic model; the run animation uses requestAnimationFrame and is skipped entirely under
+ * prefers-reduced-motion. Self-contained vanilla-TS Astro island, no imports, no props. Original.
  */
 ---
 
 <figure class="pgb card" data-pgbattery>
   <figcaption class="pgb-head">The proton gradient is a battery — charge it, spend it, or short it out<span class="pgb-chip">⚙ original · interactive</span></figcaption>
 
+  <p class="pgb-howto">Press <strong>Send one electron pair</strong> and follow it: down the chain, down the redox ladder, H⁺ pumped up, then ATP synthase spending the gradient. Then try an inhibitor or the uncoupler.</p>
+
   <svg
     class="pgb-svg"
-    viewBox="0 0 720 380"
+    viewBox="0 0 540 508"
     role="img"
-    aria-label="Side-view cross-section of the inner mitochondrial membrane showing Complexes I, II, III, IV pumping protons into the intermembrane space and ATP synthase using the proton gradient to make ATP, with a redox ladder on the left and a proton-motive-force gauge on the right."
+    aria-label="Side-view cross-section of the inner mitochondrial membrane: Complexes I to IV pump protons from the matrix into the intermembrane space, ATP synthase lets them flow back to make ATP. Below, a redox ladder places each electron carrier at its reduction potential."
     data-stage
   ></svg>
 
+  <ul class="pgb-legend" aria-hidden="true">
+    <li><i class="pgb-dot pgb-dot-e"></i>electron pair</li>
+    <li><i class="pgb-dot pgb-dot-h"></i>H⁺</li>
+    <li><i class="pgb-dot pgb-dot-red"></i>carrier reduced (holding e⁻)</li>
+    <li><i class="pgb-dot pgb-dot-ox"></i>carrier oxidized</li>
+  </ul>
+
+  <div class="pgb-meter">
+    <div class="pgb-meter-top"><span>Proton gradient — the battery's charge</span><strong data-pmf-num>0 H⁺</strong></div>
+    <div class="pgb-bar"><div class="pgb-bar-fill" data-bar></div><div class="pgb-bar-thresh" data-thresh></div></div>
+    <div class="pgb-meter-note">The tick marks the threshold: ATP synthase turns only while the gradient is charged above it.</div>
+  </div>
+
   <div class="pgb-readouts">
-    <div class="pgb-ro"><span class="pgb-ro-name">H⁺ in gradient</span><span class="pgb-ro-v" data-pmf-num>0</span></div>
     <div class="pgb-ro"><span class="pgb-ro-name">ATP made</span><span class="pgb-ro-v pgb-pos" data-atp>0</span></div>
     <div class="pgb-ro"><span class="pgb-ro-name">O₂ consumed</span><span class="pgb-ro-v" data-o2>0</span></div>
-    <div class="pgb-ro"><span class="pgb-ro-name">Heat lost</span><span class="pgb-ro-v pgb-neg" data-heat>0</span></div>
-    <div class="pgb-ro"><span class="pgb-ro-name">ATP / pair</span><span class="pgb-ro-v" data-yield>—</span></div>
+    <div class="pgb-ro"><span class="pgb-ro-name">Heat (H⁺ leaked)</span><span class="pgb-ro-v pgb-neg" data-heat>0</span></div>
+    <div class="pgb-ro"><span class="pgb-ro-name">Per pair, at 4 H⁺/ATP</span><span class="pgb-ro-v" data-yield>—</span></div>
   </div>
 
   <div class="pgb-controls">
@@ -67,407 +84,580 @@
     </div>
 
     <div class="pgb-actions">
-      <button type="button" class="pgb-run" data-run>Run one electron pair ▸</button>
+      <button type="button" class="pgb-run" data-run>Send one electron pair ▸</button>
       <button type="button" class="pgb-reset" data-reset>Reset</button>
     </div>
   </div>
 
+  <p class="pgb-log" data-log aria-live="polite"></p>
   <p class="pgb-takeaway" data-takeaway role="status"></p>
 
   <p class="pgb-foot">Here is the whole chapter in one sentence: the respiratory chain and ATP synthase are <em>two different machines that never touch</em>. The chain is a pump that charges a battery (the H⁺ gradient); ATP synthase is a motor that spends it. Cut the wire between them — add an uncoupler like 2,4-dinitrophenol — and electrons still flow, O₂ is still burned, but the protons leak back as heat and almost no ATP gets made. That is exactly how brown fat keeps a newborn warm and why a fever spikes your metabolic rate. It is also why DNP, sold as a 1930s diet pill, melted fat by literally turning the battery into a space heater — and killed people by cooking them from the inside. Same physics, two destinies, decided entirely by whether the protons go through the motor.</p>
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GOLD = '#D4A843', GOLD_INK = '#7f6315';
+  const INK = '#4b4b55', MUTED = '#6b6b6b', RED = '#c0392b', SLATE = '#8a93ad', FAINT = '#c9cedb';
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+  // SVG text scale: the 540-wide scene shrinks to ~60% on a phone, so enlarge its text there
+  let FS = 1;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
     const e = document.createElementNS(SVGNS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
     return e;
   }
 
   type Entry = 'NADH' | 'FADH2';
   type Inhib = 'none' | 'I' | 'III' | 'IV';
-  type State = {
-    entry: Entry;
-    hPlus: number;
-    atp: number;
-    heat: number;
-    o2: number;
-    inhib: Inhib;
-    uncouple: boolean;
-    activeRung: number; // index into LADDER, -1 = idle
-    pairs: number;      // electron pairs successfully run to O2
+  type Cx = 'I' | 'II' | 'III' | 'IV';
+
+  // --- model constants -------------------------------------------------------------------
+  const H_PER_ATP = 4;     // ~4 H+ per ATP including ADP/Pi transport
+  const THRESH = 12;       // synthase turns only while the gradient holds more than this
+  const MAX_H = 30;        // meter ceiling (max possible charge is THRESH + 3 + 10 = 25)
+  const PUMP: Record<Cx, number> = { I: 4, II: 0, III: 4, IV: 2 };
+
+  // --- scene geometry (viewBox 540 × 508) ---------------------------------------------------
+  const W = 540;
+  const IMS_BOT = 96, MEM_TOP = 96, MEM_BOT = 184, MAT_BOT = 300;
+  const CXX: Record<Cx, number> = { I: 60, II: 145, III: 230, IV: 315 };
+  const CW = 64, C_TOP = 88, C_BOT = 192;
+  const E_Y = 170;                               // electron track inside the complexes
+  const Q_POS = { x: 187.5, y: 170 }, C_POS = { x: 272.5, y: 88 };
+  const LEAK_X = 395, SYN_X = 470, F1_Y = 244;
+
+  // --- redox ladder (true E°′ spacing on the y axis) ---------------------------------------
+  type Rung = { label: string; volts: number; x: number };
+  const LADDER: Rung[] = [
+    { label: 'NADH', volts: -0.32, x: 40 },
+    { label: 'FMN', volts: -0.30, x: 105 },
+    { label: 'Fe-S', volts: 0.00, x: 170 },
+    { label: 'CoQ', volts: 0.04, x: 240 },
+    { label: 'cyt c', volts: 0.25, x: 320 },
+    { label: 'cyt a', volts: 0.29, x: 395 },
+    { label: 'O₂', volts: 0.82, x: 480 },
+  ];
+  const ly = (v: number) => 374 + (v + 0.35) * (114 / 1.2);
+
+  // deterministic scatter of H+ positions in the intermembrane space
+  const DOTS: { x: number; y: number }[] = (() => {
+    const out: { x: number; y: number }[] = [];
+    let seed = 7;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    // keep clear of the pump arrows + their labels, the synthase inlet, and cytochrome c
+    const clear = (x: number, y: number) =>
+      ![60, 230, 315].some((cx) => x > cx - 11 && x < cx + 40) && !(x > 459 && x < 481) && !(x > 258 && x < 287 && y > 70);
+    let tries = 0;
+    while (out.length < MAX_H && tries < 20000) {
+      tries++;
+      const x = 12 + rnd() * 516, y = 30 + rnd() * 52;
+      if (!clear(x, y)) continue;
+      const gap = tries > 8000 ? 9 : 14;
+      if (out.every((d) => Math.hypot(d.x - x, d.y - y) > gap)) out.push({ x, y });
+    }
+    while (out.length < MAX_H) out.push({ x: 20 + out.length * 15, y: 80 }); // never reached; safety
+    return out;
+  })();
+
+  type Pt = { x: number; y: number };
+  type Stop = { p: Pt; rung: number; cx?: Cx };
+
+  function blockAt(entry: Entry, inhib: Inhib): Cx | null {
+    if (inhib === 'I') return entry === 'NADH' ? 'I' : null; // FADH2 enters downstream of I
+    if (inhib === 'III') return 'III';
+    if (inhib === 'IV') return 'IV';
+    return null;
+  }
+
+  function pathFor(entry: Entry, block: Cx | null): Stop[] {
+    const full: Stop[] = entry === 'NADH'
+      ? [
+          { p: { x: CXX.I, y: 250 }, rung: 0 },
+          { p: { x: CXX.I, y: E_Y }, rung: 2, cx: 'I' },
+          { p: Q_POS, rung: 3 },
+          { p: { x: CXX.III, y: E_Y }, rung: 3.5, cx: 'III' },
+          { p: C_POS, rung: 4 },
+          { p: { x: CXX.IV, y: E_Y }, rung: 5, cx: 'IV' },
+          { p: { x: CXX.IV, y: 238 }, rung: 6 },
+        ]
+      : [
+          { p: { x: CXX.II, y: 250 }, rung: 3 },
+          { p: { x: CXX.II, y: E_Y }, rung: 3, cx: 'II' },
+          { p: Q_POS, rung: 3 },
+          { p: { x: CXX.III, y: E_Y }, rung: 3.5, cx: 'III' },
+          { p: C_POS, rung: 4 },
+          { p: { x: CXX.IV, y: E_Y }, rung: 5, cx: 'IV' },
+          { p: { x: CXX.IV, y: 238 }, rung: 6 },
+        ];
+    if (!block) return full;
+    // electrons advance up to the blocked complex and pile up there
+    const i = full.findIndex((st) => st.cx === block);
+    const cut = full.slice(0, i + 1).map((st) => ({ ...st }));
+    const last = cut[cut.length - 1];
+    last.rung = block === 'I' ? 0 : block === 'III' ? 3 : 5; // where the pile-up sits on the ladder
+    last.cx = undefined; // a blocked complex does not pump
+    return cut;
+  }
+
+  // ---------------------------------------------------------------------------------------
+  type View = {
+    entry: Entry; inhib: Inhib; uncouple: boolean; pairs: number;
+    dots: { x: number; y: number; moving?: boolean }[];
+    electron: Pt | null; ladderPos: number | null;
+    activeCx: Cx | null; rotor: number; synthRunning: boolean; leaking: boolean;
   };
 
-  const MAX_H = 40;        // gauge ceiling
-  const H_PER_ATP = 4;     // ~4 H+ per ATP including transport
-
-  type Rung = { label: string; volts: number };
-  // Redox ladder, top (most negative, highest energy) → bottom (most positive)
-  const LADDER: Rung[] = [
-    { label: 'NADH', volts: -0.32 },
-    { label: 'FMN', volts: -0.30 },
-    { label: 'Fe-S', volts: 0.00 },
-    { label: 'CoQ', volts: 0.04 },
-    { label: 'cyt c', volts: 0.25 },
-    { label: 'cyt a', volts: 0.29 },
-    { label: 'O₂', volts: 0.82 },
-  ];
-
-  // SVG geometry
-  const W = 720, H = 380;
-  const LADDER_X = 70;
-  const IMS_TOP = 40, IMS_BOT = 120;          // intermembrane space band
-  const MEM_TOP = 120, MEM_BOT = 230;         // inner membrane band
-  const MAT_TOP = 230, MAT_BOT = 350;         // matrix band
-  // complex slots within the membrane band
-  const CX = { I: 175, II: 285, III: 395, IV: 505, ATP: 625 };
-  const CW = 78, CH = MEM_BOT - MEM_TOP - 10;
-
-  function pumpsAt(s: State, complex: 'I' | 'III' | 'IV'): number {
-    // returns effective H+ contributed if the pair reaches this complex unblocked
-    if (complex === 'I') return s.entry === 'NADH' ? 4 : 0;
-    if (complex === 'III') return 4;
-    return 2 + 4; // IV: 2 pumped + 4 chemical from matrix
+  function upArrow(g: SVGElement, x: number, y1: number, y2: number, color: string, w = 3): void {
+    g.appendChild(el('line', { x1: x, y1, x2: x, y2: y2 + 7, stroke: color, 'stroke-width': w, 'stroke-linecap': 'round' }));
+    g.appendChild(el('path', { d: `M${x - 6},${y2 + 9} L${x},${y2} L${x + 6},${y2 + 9} Z`, fill: color }));
+  }
+  function downArrow(g: SVGElement, x: number, y1: number, y2: number, color: string, w = 3, dash?: string): void {
+    const a: Record<string, string | number> = { x1: x, y1, x2: x, y2: y2 - 7, stroke: color, 'stroke-width': w, 'stroke-linecap': 'round' };
+    if (dash) a['stroke-dasharray'] = dash;
+    g.appendChild(el('line', a));
+    g.appendChild(el('path', { d: `M${x - 6},${y2 - 9} L${x},${y2} L${x + 6},${y2 - 9} Z`, fill: color }));
   }
 
-  // how far down the chain does a pair get, given the inhibitor?
-  function lastReachable(s: State): 'none' | 'I' | 'II' | 'III' | 'IV' {
-    if (s.inhib === 'I' && s.entry === 'NADH') return 'none'; // rotenone blocks NADH entry at I
-    if (s.inhib === 'III') return s.entry === 'NADH' ? 'I' : 'II';
-    if (s.inhib === 'IV') return 'III';
-    return 'IV';
-  }
+  function drawScene(svg: SVGElement, v: View): void {
+    const w = svg.getBoundingClientRect().width;
+    FS = w > 0 && w < 480 ? 1.3 : 1;
+    const g = el('g', {});
+    const block = blockAt(v.entry, v.inhib);
+    const flowing = !block;
+    const cycled = v.pairs > 0;
 
-  function makeBand(layer: SVGElement, y: number, h: number, fill: string, op: number, label: string, labelColor: string): void {
-    layer.appendChild(el('rect', { x: 0, y, width: W, height: h, fill, opacity: op }));
-    const t = el('text', { x: 12, y: y + 16, fill: labelColor, 'font-size': 12, 'font-weight': 700, 'font-family': 'monospace' });
-    t.textContent = label;
-    layer.appendChild(t);
-  }
+    // ---- compartments
+    g.appendChild(el('rect', { x: 0, y: 0, width: W, height: IMS_BOT, fill: '#fbf6ea' }));
+    g.appendChild(el('rect', { x: 0, y: MEM_TOP, width: W, height: MEM_BOT - MEM_TOP, fill: '#e9ecf4' }));
+    g.appendChild(el('rect', { x: 0, y: MEM_BOT, width: W, height: MAT_BOT - MEM_BOT, fill: '#eef6f6' }));
+    for (let x = 4; x < W; x += 9) {
+      g.appendChild(el('circle', { cx: x, cy: MEM_TOP + 4, r: 3.4, fill: '#cfd5e4' }));
+      g.appendChild(el('circle', { cx: x, cy: MEM_BOT - 4, r: 3.4, fill: '#cfd5e4' }));
+    }
+    g.appendChild(el('text', { x: 8, y: 16, fill: INK, 'font-size': 11 * FS, 'font-weight': 700, 'letter-spacing': '0.04em' }, FS > 1 ? 'INTERMEMBRANE SPACE · high [H⁺]' : 'INTERMEMBRANE SPACE · high [H⁺], + side'));
+    g.appendChild(el('text', { x: 8, y: MAT_BOT - 8, fill: ACCENT, 'font-size': 11 * FS, 'font-weight': 700, 'letter-spacing': '0.04em' }, FS > 1 ? 'MATRIX · low [H⁺]' : 'MATRIX · low [H⁺], − side'));
+    if (!v.uncouple) {
+      g.appendChild(el('text', { x: LEAK_X, y: MEM_TOP + 40, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 * FS, 'font-style': 'italic' }, 'inner'));
+      g.appendChild(el('text', { x: LEAK_X, y: MEM_TOP + 52, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10 * FS, 'font-style': 'italic' }, 'membrane'));
+    }
 
-  function makeComplex(layer: SVGElement, x: number, label: string, sub: string, color: string, active: boolean, blocked: boolean): void {
-    const fill = blocked ? '#c0392b' : (active ? ACCENT : color);
-    layer.appendChild(el('rect', {
-      x: x - CW / 2, y: MEM_TOP + 5, width: CW, height: CH, rx: 10,
-      fill, opacity: blocked ? 0.85 : (active ? 0.9 : 0.18),
-      stroke: fill, 'stroke-width': active || blocked ? 3 : 2,
-    }));
-    const t1 = el('text', { x, y: MEM_TOP + 5 + CH / 2 - 4, 'text-anchor': 'middle', fill: blocked || active ? '#fff' : color, 'font-size': 18, 'font-weight': 800 });
-    t1.textContent = label;
-    layer.appendChild(t1);
-    const t2 = el('text', { x, y: MEM_TOP + 5 + CH / 2 + 14, 'text-anchor': 'middle', fill: blocked || active ? '#fff' : INK, 'font-size': 8.5 });
-    t2.textContent = sub;
-    layer.appendChild(t2);
-  }
+    // ---- complexes
+    const subs: Record<Cx, string> = { I: 'NADH → Q', II: 'succ. → Q', III: 'Q → cyt c', IV: 'cyt c → O₂' };
+    (['I', 'II', 'III', 'IV'] as Cx[]).forEach((c) => {
+      const x = CXX[c];
+      const bypassed = (c === 'I' && v.entry === 'FADH2') || (c === 'II' && v.entry === 'NADH');
+      const isBlocked = block === c;
+      const active = v.activeCx === c;
+      const stroke = isBlocked ? RED : active ? ACCENT : NAVY;
+      g.appendChild(el('rect', {
+        x: x - CW / 2, y: C_TOP, width: CW, height: C_BOT - C_TOP, rx: 12,
+        fill: active ? ACCENT : isBlocked ? '#fbe9e7' : '#dfe3ee', 'fill-opacity': active ? 0.9 : 1,
+        stroke, 'stroke-width': active || isBlocked ? 2.5 : 1.5, opacity: bypassed ? 0.45 : 1,
+      }));
+      g.appendChild(el('text', { x, y: C_TOP + 36, 'text-anchor': 'middle', fill: active ? '#fff' : isBlocked ? RED : NAVY, 'font-size': 20 * FS, 'font-weight': 800, opacity: bypassed ? 0.5 : 1 }, c));
+      g.appendChild(el('text', { x, y: C_TOP + 52, 'text-anchor': 'middle', fill: active ? '#fff' : INK, 'font-size': 9.5 * FS, opacity: bypassed ? 0.5 : 1 }, subs[c]));
+      if (isBlocked) {
+        g.appendChild(el('path', { d: `M${x - 9},${E_Y - 9} L${x + 9},${E_Y + 9} M${x + 9},${E_Y - 9} L${x - 9},${E_Y + 9}`, stroke: RED, 'stroke-width': 4, 'stroke-linecap': 'round' }));
+      }
+      // pump arrows with their stoichiometry
+      const pumps = PUMP[c];
+      if (c === 'II') {
+        if (v.entry === 'FADH2') g.appendChild(el('text', { x, y: 60, 'text-anchor': 'middle', fill: MUTED, 'font-size': 11 * FS, 'font-weight': 700 }, '0 H⁺'));
+        return;
+      }
+      if (bypassed) return;
+      const path = pathFor(v.entry, null);
+      const reached = !block || path.findIndex((s) => s.cx === c) < path.findIndex((s) => s.cx === block);
+      const op = flowing && reached ? 1 : 0.22;
+      const ag = el('g', { opacity: op });
+      upArrow(ag, x, C_TOP - 4, 42, GOLD);
+      ag.appendChild(el('text', { x: x + 9, y: 54, fill: GOLD_INK, 'font-size': 11 * FS, 'font-weight': 800 }, `${pumps} H⁺`));
+      g.appendChild(ag);
+    });
 
-  function pumpArrow(layer: SVGElement, x: number): void {
-    // small up-arrow proton-pump glyph rising into the IMS above the complex
-    layer.appendChild(el('line', { x1: x, y1: MEM_TOP, x2: x, y2: IMS_BOT - 6, stroke: GOLD, 'stroke-width': 3, 'marker-end': 'url(#pgb-pump)' }));
-    const t = el('text', { x: x + 8, y: IMS_BOT - 8, fill: GOLD, 'font-size': 10, 'font-weight': 700, 'font-family': 'monospace' });
-    t.textContent = 'H⁺';
-    layer.appendChild(t);
-  }
+    // ---- mobile carriers: crossover colouring
+    const qReduced = block === 'III' || block === 'IV' || (flowing && cycled);
+    const cReduced = block === 'IV' || (flowing && cycled);
+    const carrier = (p: Pt, label: string, reduced: boolean) => {
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 11, fill: reduced ? ACCENT : SLATE, stroke: '#fff', 'stroke-width': 2 }));
+      g.appendChild(el('text', { x: p.x, y: p.y + 4, 'text-anchor': 'middle', fill: '#fff', 'font-size': 11 * FS, 'font-weight': 800 }, label));
+    };
+    carrier(Q_POS, 'Q', qReduced);
+    carrier(C_POS, 'c', cReduced);
 
-  function drawLadder(layer: SVGElement, s: State): void {
-    const top = 50, bot = 350;
-    layer.appendChild(el('line', { x1: LADDER_X, y1: top, x2: LADDER_X, y2: bot, stroke: FAINT, 'stroke-width': 2 }));
-    const cap = el('text', { x: LADDER_X - 8, y: top - 8, 'text-anchor': 'end', fill: INK, 'font-size': 9, 'font-weight': 700 });
-    cap.textContent = 'redox ladder (V)';
-    layer.appendChild(cap);
+    // ---- electron entry + O2 labels in the matrix
+    g.appendChild(el('text', { x: CXX.I, y: 214, 'text-anchor': 'middle', fill: v.entry === 'NADH' ? ORANGE : FAINT, 'font-size': 10.5 * FS, 'font-weight': 700 }, 'NADH → NAD⁺'));
+    g.appendChild(el('text', { x: CXX.II, y: FS > 1 ? 232 : 214, 'text-anchor': 'middle', fill: v.entry === 'FADH2' ? ORANGE : FAINT, 'font-size': 10.5 * FS, 'font-weight': 700 }, 'FADH₂ → FAD'));
+    g.appendChild(el('text', { x: CXX.IV, y: 214, 'text-anchor': 'middle', fill: flowing ? ACCENT : FAINT, 'font-size': 10.5 * FS, 'font-weight': 700 }, '½O₂ + 2H⁺ → H₂O'));
+
+    // ---- uncoupler leak channel
+    if (v.uncouple) {
+      g.appendChild(el('rect', { x: LEAK_X - 17, y: MEM_TOP + 52, width: 34, height: 18, rx: 5, fill: ORANGE }));
+      g.appendChild(el('text', { x: LEAK_X, y: MEM_TOP + 65, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10 * FS, 'font-weight': 800 }, 'DNP'));
+      downArrow(g, LEAK_X, 60, MEM_TOP + 50, ORANGE, 2.5, '5 4');
+      downArrow(g, LEAK_X, MEM_TOP + 72, 226, ORANGE, 2.5, '5 4');
+      g.appendChild(el('text', { x: LEAK_X, y: 242, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10.5 * FS, 'font-weight': 800 }, 'H⁺ leak'));
+      g.appendChild(el('text', { x: LEAK_X, y: 255, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10.5 * FS, 'font-weight': 800 }, '→ heat'));
+    }
+
+    // ---- ATP synthase (F0 in the membrane, F1 head in the matrix)
+    const synCol = v.uncouple ? ORANGE : GOLD;
+    g.appendChild(el('text', { x: SYN_X, y: 18, 'text-anchor': 'middle', fill: v.uncouple ? ORANGE : GOLD_INK, 'font-size': 11 * FS, 'font-weight': 800 }, 'ATP synthase'));
+    downArrow(g, SYN_X, 26, MEM_TOP - 2, synCol, v.synthRunning ? 4 : 2.5);
+    g.appendChild(el('rect', { x: SYN_X - 20, y: MEM_TOP + 4, width: 40, height: MEM_BOT - MEM_TOP - 8, rx: 10, fill: '#f5ecd2', stroke: synCol, 'stroke-width': 2 }));
+    for (let k = -12; k <= 12; k += 8) g.appendChild(el('line', { x1: SYN_X + k, y1: MEM_TOP + 10, x2: SYN_X + k, y2: MEM_BOT - 10, stroke: synCol, 'stroke-opacity': 0.5, 'stroke-width': 1.5 }));
+    g.appendChild(el('line', { x1: SYN_X + 27, y1: MEM_TOP + 40, x2: SYN_X + 27, y2: F1_Y - 16, stroke: '#b9a878', 'stroke-width': 5, 'stroke-linecap': 'round' }));
+    g.appendChild(el('line', { x1: SYN_X, y1: MEM_BOT - 4, x2: SYN_X, y2: F1_Y, stroke: NAVY, 'stroke-width': 5 }));
+    g.appendChild(el('circle', { cx: SYN_X, cy: F1_Y, r: 29, fill: '#fbf3dc', stroke: synCol, 'stroke-width': 2 }));
+    for (let k = 0; k < 6; k++) {
+      const a = (k * 60 - 90) * Math.PI / 180;
+      g.appendChild(el('circle', { cx: SYN_X + 18 * Math.cos(a), cy: F1_Y + 18 * Math.sin(a), r: 9, fill: k % 2 ? '#efe0b4' : '#f8eed3', stroke: '#c9a94a', 'stroke-width': 1 }));
+    }
+    const rg = el('g', { transform: `rotate(${v.rotor.toFixed(2)} ${SYN_X} ${F1_Y})` });
+    rg.appendChild(el('line', { x1: SYN_X, y1: F1_Y, x2: SYN_X, y2: F1_Y - 15, stroke: NAVY, 'stroke-width': 4.5, 'stroke-linecap': 'round' }));
+    rg.appendChild(el('circle', { cx: SYN_X, cy: F1_Y, r: 4.5, fill: NAVY }));
+    g.appendChild(rg);
+    g.appendChild(el('text', { x: SYN_X, y: 288, 'text-anchor': 'middle', fill: v.uncouple ? ORANGE : GOLD_INK, 'font-size': 10.5 * FS, 'font-weight': 700 }, v.uncouple ? 'bypassed: no ATP' : 'ADP + Pᵢ → ATP'));
+
+    // ---- protons in the IMS (and in flight)
+    v.dots.forEach((d) => {
+      g.appendChild(el('circle', { cx: d.x, cy: d.y, r: d.moving ? 4.2 : 3.6, fill: GOLD, stroke: d.moving ? GOLD_INK : 'none', 'stroke-width': 1 }));
+    });
+
+    // ---- the electron pair
+    if (v.electron) {
+      g.appendChild(el('circle', { cx: v.electron.x, cy: v.electron.y, r: 8, fill: ORANGE, stroke: '#fff', 'stroke-width': 2 }));
+      g.appendChild(el('text', { x: v.electron.x, y: v.electron.y + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 9 * FS, 'font-weight': 800 }, '2e⁻'));
+    }
+
+    // ---- redox ladder panel
+    const L = el('g', {});
+    L.appendChild(el('rect', { x: 0, y: 306, width: W, height: 202, fill: '#ffffff' }));
+    L.appendChild(el('line', { x1: 0, y1: 306, x2: W, y2: 306, stroke: FAINT, 'stroke-width': 1 }));
+    const title = el('text', { x: 8, y: 324, fill: NAVY, 'font-size': 11.5 * FS, 'font-weight': 800 });
+    title.appendChild(el('tspan', {}, 'Redox ladder'));
+    title.appendChild(el('tspan', { fill: INK, 'font-weight': 400 }, ' — electrons fall toward more positive E°′ (volts)'));
+    L.appendChild(title);
+    const bands: { from: number; to: number; label: string; cx: Cx }[] = [
+      { from: 18, to: 240, label: v.entry === 'FADH2' ? 'Complex I — skipped by FADH₂' : 'Complex I → pumps 4 H⁺', cx: 'I' },
+      { from: 240, to: 320, label: 'III → 4 H⁺', cx: 'III' },
+      { from: 320, to: 505, label: 'Complex IV → 2 H⁺', cx: 'IV' },
+    ];
+    bands.forEach((b, i) => {
+      L.appendChild(el('rect', { x: b.from, y: 332, width: b.to - b.from, height: 168, fill: i % 2 ? '#f3f5fa' : '#fafbfd', opacity: b.cx === 'I' && v.entry === 'FADH2' ? 0.5 : 1 }));
+      L.appendChild(el('text', { x: (b.from + b.to) / 2, y: 346, 'text-anchor': 'middle', fill: b.cx === 'I' && v.entry === 'FADH2' ? MUTED : GOLD_INK, 'font-size': 10 * FS, 'font-weight': 700 }, b.label));
+    });
+    const endRung = pathFor(v.entry, block).slice(-1)[0].rung;
+    const startRung = v.entry === 'NADH' ? 0 : 3;
     for (let i = 0; i < LADDER.length; i++) {
       const r = LADDER[i];
-      const y = top + (i / (LADDER.length - 1)) * (bot - top);
-      const isActive = i === s.activeRung;
-      layer.appendChild(el('line', { x1: LADDER_X - 6, y1: y, x2: LADDER_X + 6, y2: y, stroke: isActive ? ACCENT : FAINT, 'stroke-width': isActive ? 3 : 1.5 }));
-      const lab = el('text', { x: LADDER_X - 10, y: y + 3, 'text-anchor': 'end', fill: isActive ? ACCENT : INK, 'font-size': 9, 'font-weight': isActive ? 800 : 400 });
-      lab.textContent = `${r.label} ${r.volts > 0 ? '+' : ''}${r.volts.toFixed(2)}`;
-      layer.appendChild(lab);
-      if (isActive) {
-        layer.appendChild(el('circle', { cx: LADDER_X + 14, cy: y, r: 5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 }));
+      const y = ly(r.volts);
+      const live = i >= startRung && (!block || i <= endRung);
+      const op = live ? 1 : 0.35;
+      if (i < LADDER.length - 1) {
+        const n = LADDER[i + 1];
+        L.appendChild(el('path', { d: `M${r.x + 22},${y} L${n.x - 22},${ly(n.volts)}`, stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '3 3', fill: 'none', opacity: op }));
       }
+      L.appendChild(el('line', { x1: r.x - 22, y1: y, x2: r.x + 22, y2: y, stroke: live ? NAVY : SLATE, 'stroke-width': 3, 'stroke-linecap': 'round', opacity: op }));
+      L.appendChild(el('text', { x: r.x, y: y - 9, 'text-anchor': 'middle', fill: NAVY, 'font-size': 10.5 * FS, 'font-weight': 700, opacity: op }, r.label));
+      L.appendChild(el('text', { x: r.x, y: y + 13, 'text-anchor': 'middle', fill: INK, 'font-size': 9.5 * FS, 'font-family': 'ui-monospace, monospace', opacity: op }, `${r.volts > 0 ? '+' : r.volts < 0 ? '−' : ''}${Math.abs(r.volts).toFixed(2)}`));
     }
+    if (v.entry === 'FADH2') {
+      L.appendChild(el('text', { x: 240, y: 380, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10 * FS, 'font-weight': 700 }, 'FADH₂ joins here'));
+    }
+    if (block) {
+      const r = LADDER[Math.floor(endRung)];
+      const x = r.x + 32, y = ly(r.volts) + 8;
+      L.appendChild(el('path', { d: `M${x - 6},${y - 6} L${x + 6},${y + 6} M${x + 6},${y - 6} L${x - 6},${y + 6}`, stroke: RED, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+    }
+    if (v.ladderPos !== null) {
+      const i = Math.min(LADDER.length - 1, Math.floor(v.ladderPos));
+      const j = Math.min(LADDER.length - 1, i + 1);
+      const f = v.ladderPos - i;
+      const x = LADDER[i].x + (LADDER[j].x - LADDER[i].x) * f;
+      const y = ly(LADDER[i].volts) + (ly(LADDER[j].volts) - ly(LADDER[i].volts)) * f;
+      L.appendChild(el('circle', { cx: x, cy: y, r: 5.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+    }
+    g.appendChild(L);
+
+    svg.replaceChildren(g);
   }
 
-  function drawGauge(layer: SVGElement, s: State): void {
-    const gx = W - 34, gtop = 50, gbot = 350, gh = gbot - gtop, gw = 22;
-    layer.appendChild(el('rect', { x: gx, y: gtop, width: gw, height: gh, rx: 5, fill: '#fff', stroke: FAINT, 'stroke-width': 1.5 }));
-    const frac = Math.max(0, Math.min(1, s.hPlus / MAX_H));
-    const fh = gh * frac;
-    const fillColor = s.uncouple ? ORANGE : GOLD;
-    layer.appendChild(el('rect', { x: gx, y: gbot - fh, width: gw, height: fh, rx: 5, fill: fillColor, opacity: 0.85 }));
-    const cap = el('text', { x: gx + gw / 2, y: gtop - 8, 'text-anchor': 'middle', fill: INK, 'font-size': 9, 'font-weight': 700 });
-    cap.textContent = 'pmf';
-    layer.appendChild(cap);
-    const num = el('text', { x: gx + gw / 2, y: gbot + 14, 'text-anchor': 'middle', fill: fillColor, 'font-size': 11, 'font-weight': 800, 'font-family': 'monospace' });
-    num.textContent = String(s.hPlus);
-    layer.appendChild(num);
-  }
-
-  function drawCarrier(layer: SVGElement, x: number, y: number, label: string, reduced: boolean): void {
-    layer.appendChild(el('circle', { cx: x, cy: y, r: 13, fill: reduced ? ACCENT : '#5b6b9a', stroke: '#fff', 'stroke-width': 2 }));
-    const t = el('text', { x, y: y + 3, 'text-anchor': 'middle', fill: '#fff', 'font-size': 8, 'font-weight': 700, 'font-family': 'monospace' });
-    t.textContent = label;
-    layer.appendChild(t);
-  }
-
-  function buildDefs(): SVGElement {
-    const defs = el('defs', {});
-    const m = el('marker', { id: 'pgb-pump', markerWidth: 8, markerHeight: 8, refX: 4, refY: 6, orient: 'auto' });
-    m.appendChild(el('path', { d: 'M0,6 L4,0 L8,6 Z', fill: GOLD }));
-    defs.appendChild(m);
-    return defs;
-  }
-
-  function render(svg: SVGElement, s: State): void {
-    let layer = svg.querySelector('[data-layer]') as unknown as SVGElement | null;
-    if (!layer) {
-      svg.appendChild(buildDefs());
-      layer = el('g', { 'data-layer': '1' });
-      svg.appendChild(layer);
-    }
-    layer.replaceChildren();
-
-    // bands
-    makeBand(layer, IMS_TOP, IMS_BOT - IMS_TOP, '#faf9f6', 1, 'INTERMEMBRANE SPACE  (H⁺ accumulate — the + side)', INK);
-    makeBand(layer, MEM_TOP, MEM_BOT - MEM_TOP, NAVY, 0.10, 'INNER MEMBRANE', NAVY);
-    makeBand(layer, MAT_TOP, MAT_BOT - MAT_TOP, ACCENT, 0.06, 'MATRIX  (low H⁺ — the − side)', ACCENT);
-
-    drawLadder(layer, s);
-    drawGauge(layer, s);
-
-    const reach = lastReachable(s);
-    const reachIdx = reach === 'none' ? -1 : reach === 'I' ? 1 : reach === 'II' ? 1 : reach === 'III' ? 2 : 3;
-
-    // complexes
-    makeComplex(layer, CX.I, 'I', 'NADH-Q oxidored.', NAVY, false, s.inhib === 'I');
-    makeComplex(layer, CX.II, 'II', 'succinate-Q', NAVY, false, false);
-    makeComplex(layer, CX.III, 'III', 'cyt bc₁', NAVY, false, s.inhib === 'III');
-    makeComplex(layer, CX.IV, 'IV', 'cyt c oxidase', NAVY, false, s.inhib === 'IV');
-
-    // ATP synthase block with rotor
-    const synBlocked = s.uncouple; // motor starves when gradient is shorted
-    const synColor = synBlocked ? ORANGE : GOLD;
-    layer.appendChild(el('rect', { x: CX.ATP - CW / 2, y: MEM_TOP + 5, width: CW, height: CH, rx: 10, fill: synColor, opacity: 0.18, stroke: synColor, 'stroke-width': 2 }));
-    layer.appendChild(el('circle', { cx: CX.ATP, cy: MEM_BOT - 16, r: 16, fill: '#fff', stroke: synColor, 'stroke-width': 3 }));
-    layer.appendChild(el('circle', { cx: CX.ATP, cy: MEM_BOT - 16, r: 4, fill: synColor }));
-    const sl = el('text', { x: CX.ATP, y: MEM_TOP + 24, 'text-anchor': 'middle', fill: synColor, 'font-size': 11, 'font-weight': 800 });
-    sl.textContent = 'ATP synthase';
-    layer.appendChild(sl);
-    const sl2 = el('text', { x: CX.ATP, y: MEM_TOP + 36, 'text-anchor': 'middle', fill: INK, 'font-size': 8 });
-    sl2.textContent = 'the motor';
-    layer.appendChild(sl2);
-
-    // electron entry highlight
-    const entryX = s.entry === 'NADH' ? CX.I : CX.II;
-    layer.appendChild(el('text', { x: entryX, y: MAT_TOP + 22, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 10, 'font-weight': 700 }))
-      .textContent = s.entry === 'NADH' ? 'NADH e⁻ in' : 'FADH₂ e⁻ in';
-
-    // mobile carriers: CoQ between I/II and III; cyt c between III and IV (along IMS face)
-    const coqReduced = reachIdx >= 1;
-    drawCarrier(layer, (CX.II + CX.III) / 2, MEM_TOP + CH / 2 + 5, 'Q', coqReduced);
-    const cytcReduced = reachIdx >= 2;
-    drawCarrier(layer, (CX.III + CX.IV) / 2, IMS_BOT - 14, 'c', cytcReduced);
-
-    // O2 -> H2O at IV when reachable
-    if (reach === 'IV') {
-      const ot = el('text', { x: CX.IV, y: MAT_TOP + 22, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 9, 'font-weight': 700 });
-      ot.textContent = '½O₂ → H₂O';
-      layer.appendChild(ot);
-    }
-
-    // active rung highlight + pump glyphs for the most recently run pair
-    if (s.activeRung >= 0) {
-      // electron position marker on the active complex
-      let activeX = entryX;
-      if (s.activeRung >= 4) activeX = CX.III;
-      if (s.activeRung >= 5) activeX = CX.IV;
-      layer.appendChild(el('circle', { cx: activeX, cy: MEM_TOP + 5 + CH / 2, r: 9, fill: ORANGE, stroke: '#fff', 'stroke-width': 2 }));
-    }
-
-    // proton pump arrows (only when not shorted and the complex was reached)
-    if (!s.uncouple) {
-      if (s.entry === 'NADH' && reachIdx >= 1 && s.inhib !== 'I') pumpArrow(layer, CX.I);
-      if (reachIdx >= 2) pumpArrow(layer, CX.III);
-      if (reach === 'IV') pumpArrow(layer, CX.IV);
-    }
-
-    // uncoupler leak channel: protons short-circuit back to matrix
-    if (s.uncouple) {
-      const lx = CX.IV + 58;
-      layer.appendChild(el('line', { x1: lx, y1: IMS_BOT - 6, x2: lx, y2: MAT_TOP + 6, stroke: ORANGE, 'stroke-width': 3, 'stroke-dasharray': '5 4' }));
-      const lt = el('text', { x: lx + 4, y: (IMS_BOT + MAT_TOP) / 2, fill: ORANGE, 'font-size': 9, 'font-weight': 700, 'font-family': 'monospace' });
-      lt.textContent = 'H⁺ leak → heat';
-      layer.appendChild(lt);
-    }
-  }
-
-  function yieldFor(entry: Entry): number {
-    return entry === 'NADH' ? 2.5 : 1.5;
-  }
+  // ---------------------------------------------------------------------------------------
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
+  const lerp = (a: Pt, b: Pt, t: number): Pt => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+  const fmtHalf = (halves: number) => (halves % 2 === 0 ? String(halves / 2) : `${Math.floor(halves / 2) > 0 ? Math.floor(halves / 2) : ''}½`);
 
   document.querySelectorAll<HTMLElement>('[data-pgbattery]').forEach((root) => {
-    const svg = root.querySelector('[data-svg], [data-stage]') as unknown as SVGElement;
+    const svg = root.querySelector('[data-stage]') as unknown as SVGElement;
     const pmfNum = root.querySelector<HTMLElement>('[data-pmf-num]')!;
+    const bar = root.querySelector<HTMLElement>('[data-bar]')!;
+    const thresh = root.querySelector<HTMLElement>('[data-thresh]')!;
     const atpEl = root.querySelector<HTMLElement>('[data-atp]')!;
     const o2El = root.querySelector<HTMLElement>('[data-o2]')!;
     const heatEl = root.querySelector<HTMLElement>('[data-heat]')!;
     const yieldEl = root.querySelector<HTMLElement>('[data-yield]')!;
+    const logEl = root.querySelector<HTMLElement>('[data-log]')!;
     const takeawayEl = root.querySelector<HTMLElement>('[data-takeaway]')!;
     const runBtn = root.querySelector<HTMLButtonElement>('[data-run]')!;
     const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
     const uncoupleBtn = root.querySelector<HTMLButtonElement>('[data-uncouple]')!;
     const entryBtns = root.querySelectorAll<HTMLButtonElement>('[data-entry]');
     const inhibBtns = root.querySelectorAll<HTMLButtonElement>('[data-inhib]');
+    thresh.style.left = `${(THRESH / MAX_H) * 100}%`;
 
-    const s: State = { entry: 'NADH', hPlus: 0, atp: 0, heat: 0, o2: 0, inhib: 'none', uncouple: false, activeRung: -1, pairs: 0 };
+    const s = {
+      entry: 'NADH' as Entry, inhib: 'none' as Inhib, uncouple: false,
+      hPlus: 0, atp: 0, heat: 0, o2Halves: 0, pairs: 0, rotor: 0,
+      endRung: null as number | null,
+    };
 
-    function lastReach(): 'none' | 'I' | 'II' | 'III' | 'IV' {
-      return lastReachable(s);
+    type Plan = {
+      stops: Stop[]; pumps: { cx: Cx; n: number; t: number; first: number }[];
+      h0: number; hPeak: number; hAfter: number; atpMade: number; leaked: number; reachesO2: boolean;
+      tElec: number; tSettle: number; tEnd: number;
+    };
+    let anim: { plan: Plan; t0: number; raf: number } | null = null;
+
+    function pumpedPerPair(): number {
+      if (blockAt(s.entry, s.inhib)) return 0;
+      return s.entry === 'NADH' ? PUMP.I + PUMP.III + PUMP.IV : PUMP.II + PUMP.III + PUMP.IV;
+    }
+
+    function staticView(): View {
+      const dots = DOTS.slice(0, Math.min(MAX_H, s.hPlus)).map((d) => ({ ...d }));
+      return {
+        entry: s.entry, inhib: s.inhib, uncouple: s.uncouple, pairs: s.pairs, dots,
+        electron: null, ladderPos: s.endRung, activeCx: null, rotor: s.rotor, synthRunning: false, leaking: false,
+      };
+    }
+
+    function setMeter(h: number): void {
+      pmfNum.textContent = `${Math.round(h)} H⁺`;
+      bar.style.width = `${Math.min(100, (h / MAX_H) * 100)}%`;
+      bar.classList.toggle('is-above', h > THRESH);
     }
 
     function takeaway(): string {
       if (s.inhib === 'IV') {
-        return 'Cyanide jams Complex IV: electrons pile up behind it, O₂ can no longer be reduced, the whole chain stalls, and the gradient drains. No gradient, no ATP — this is why cyanide kills in minutes. The mitochondria are full of fuel and oxygen and still cannot make energy.';
+        return 'Cyanide jams Complex IV: electrons pile up behind it (every carrier stays reduced), O₂ can no longer be reduced, and the whole chain stalls. The pumps stop, the gradient cannot be recharged, and ATP synthesis stops — this is why cyanide kills in minutes. The mitochondria are full of fuel and oxygen and still cannot make energy.';
       }
       if (s.inhib === 'III') {
-        return 'Antimycin A blocks Complex III: carriers upstream (CoQ) stay reduced, everything downstream (cyt c, Complex IV) stays oxidized — the classic crossover point. Pumping stops at I only, the gradient barely charges, ATP output collapses.';
+        return 'Antimycin A blocks Complex III: CoQ upstream stays reduced while cyt c downstream stays oxidized — the classic crossover point. With nowhere to send its electrons, Complex I stalls too, so pumping stops, no O₂ is consumed, and ATP output collapses.';
       }
       if (s.inhib === 'I' && s.entry === 'NADH') {
-        return 'Rotenone blocks Complex I, so NADH electrons cannot enter at all — flow is dead on arrival. (Switch the entry point to FADH₂ and electrons bypass I entirely at Complex II — rotenone does nothing to that route.)';
-      }
-      if (s.inhib === 'I' && s.entry === 'FADH2') {
-        return 'Rotenone blocks Complex I — but FADH₂ enters at Complex II, downstream of the block, so electrons sail right past it. This is the whole logic of crossover inhibitor experiments: where flow stops tells you where the block is.';
+        return 'Rotenone blocks Complex I, so NADH electrons cannot get in at all — flow is dead on arrival, and the carriers downstream stay oxidized. (Switch the entry point to FADH₂: those electrons enter at Complex II, downstream of the block, and flow resumes.)';
       }
       if (s.uncouple) {
-        return 'Uncoupler engaged: the protons skip ATP synthase and leak straight back across the membrane. Electrons still flow, O₂ is still consumed — but the energy comes out as HEAT, not ATP. This is brown fat warming a newborn, a fever raising your set point, and the lethal logic of the DNP diet pill.';
+        return 'Uncoupler engaged: the pumps still work, but the protons skip ATP synthase and leak straight back across the membrane. Electrons still flow and O₂ is still consumed — the energy comes out as HEAT, not ATP. This is brown fat warming a newborn, and the lethal logic of the DNP diet pill.';
       }
+      const lead = s.inhib === 'I' && s.entry === 'FADH2'
+        ? 'Rotenone blocks Complex I — but FADH₂ enters at Complex II, downstream of the block, so its electrons flow on untouched. Where flow stops tells you where the block is. '
+        : '';
       if (s.pairs === 0) {
-        return 'Idle. The chain is loaded but no electrons are moving. Hit "Run one electron pair" and watch the pump charge the battery.';
+        return `${lead}Idle. The chain is loaded but no electrons are moving. Send an electron pair and watch the pumps charge the battery.`;
       }
-      if (s.atp > 0) {
-        return `Coupled and running. Electrons step down the redox ladder, the big drops at I, III, and IV pump H⁺ up into the intermembrane space, and once the battery is charged ATP synthase spins and mints ATP — converging on ~${yieldFor(s.entry).toFixed(1)} ATP per ${s.entry === 'NADH' ? 'NADH' : 'FADH₂'}.`;
+      if (s.atp === 0) {
+        return `${lead}Charging: the pumps have stored ${s.hPlus} H⁺, but ATP synthase only turns once the gradient is above the threshold. Send another pair.`;
       }
-      return 'Pumping H⁺ into the gradient. The battery is charging — ATP synthase will start spinning once enough protons have accumulated.';
+      const n = pumpedPerPair();
+      return `${lead}Coupled and running. Each ${s.entry === 'NADH' ? 'NADH' : 'FADH₂'} pair pumps ${n} H⁺${s.entry === 'FADH2' ? ' (it skips Complex I, and Complex II pumps none)' : ''}; at ~4 H⁺ per ATP that buys ~${(n / H_PER_ATP).toFixed(1)} ATP. The first pair only charged the battery, so the running total lags — keep sending pairs and ATP ÷ pairs climbs toward ${(n / H_PER_ATP).toFixed(1)}.`;
     }
 
     function statusClass(): void {
-      const coupled = s.inhib === 'none' && !s.uncouple && s.pairs > 0 && s.atp > 0;
+      const coupled = !blockAt(s.entry, s.inhib) && !s.uncouple && s.atp > 0;
       takeawayEl.classList.toggle('pgb-ok', coupled);
-      takeawayEl.classList.toggle('pgb-bad', s.inhib === 'IV' || (s.uncouple && s.pairs > 0));
+      takeawayEl.classList.toggle('pgb-bad', !!blockAt(s.entry, s.inhib) || s.uncouple);
     }
 
     function refresh(): void {
-      pmfNum.textContent = String(s.hPlus);
+      setMeter(s.hPlus);
       atpEl.textContent = String(s.atp);
-      o2El.textContent = String(s.o2);
+      o2El.textContent = fmtHalf(s.o2Halves);
       heatEl.textContent = String(s.heat);
-      yieldEl.textContent = s.pairs > 0 ? `${(s.atp / s.pairs).toFixed(2)} (→ ~${yieldFor(s.entry).toFixed(1)})` : `~${yieldFor(s.entry).toFixed(1)}`;
+      const n = pumpedPerPair();
+      yieldEl.textContent = n === 0 ? '0 H⁺ → 0 ATP'
+        : s.uncouple ? `${n} H⁺ → leak, 0 ATP`
+          : `${n} H⁺ ÷ 4 = ${(n / H_PER_ATP).toFixed(1)} ATP`;
       takeawayEl.textContent = takeaway();
       statusClass();
-      render(svg, s);
+      drawScene(svg, staticView());
     }
 
-    // mint ATP from the current gradient (or leak it as heat if uncoupled)
-    function settleGradient(): void {
-      if (s.uncouple) {
-        // protons leak back as heat, no ATP
-        s.heat += s.hPlus;
-        s.hPlus = 0;
-        return;
-      }
-      while (s.hPlus >= H_PER_ATP) {
-        s.hPlus -= H_PER_ATP;
-        s.atp += 1;
-      }
+    function makePlan(): Plan {
+      const block = blockAt(s.entry, s.inhib);
+      const stops = pathFor(s.entry, block);
+      const seg = 190;
+      const tElec = (stops.length - 1) * seg;
+      const pumps: Plan['pumps'] = [];
+      let cum = 0;
+      // a blocked chain has no steady electron flow, so no complex pumps (not even the ones upstream)
+      if (!block) stops.forEach((st, i) => {
+        if (st.cx && PUMP[st.cx] > 0) { pumps.push({ cx: st.cx, n: PUMP[st.cx], t: i * seg, first: cum }); cum += PUMP[st.cx]; }
+      });
+      const h0 = s.hPlus, hPeak = Math.min(MAX_H, h0 + cum);
+      let atpMade = 0, leaked = 0, hAfter = hPeak;
+      if (s.uncouple) { leaked = hPeak; hAfter = 0; }
+      else { atpMade = Math.max(0, Math.floor((hPeak - THRESH) / H_PER_ATP)); hAfter = hPeak - atpMade * H_PER_ATP; }
+      const leaving = hPeak - hAfter;
+      const tSettle = tElec + 380;
+      const tEnd = tSettle + (leaving > 0 ? 520 + leaving * 45 : 200);
+      return { stops, pumps, h0, hPeak, hAfter, atpMade, leaked, reachesO2: !block, tElec, tSettle, tEnd };
     }
 
-    // run one electron pair through the chain deterministically
-    function runPair(): void {
-      const reach = lastReach();
-      if (reach === 'none') {
-        // blocked at entry — nothing flows
-        s.activeRung = -1;
-        refresh();
-        return;
-      }
-      s.pairs += 1;
-
-      // pump protons at each reached complex (unless uncoupled — then nothing accumulates)
-      let pumped = 0;
-      const reachIdx = reach === 'I' ? 1 : reach === 'II' ? 1 : reach === 'III' ? 2 : 3;
-      if (!s.uncouple) {
-        if (s.entry === 'NADH' && reachIdx >= 1 && s.inhib !== 'I') pumped += pumpsAt(s, 'I');
-        if (reachIdx >= 2) pumped += pumpsAt(s, 'III');
-        if (reach === 'IV') pumped += pumpsAt(s, 'IV');
-        s.hPlus = Math.min(MAX_H, s.hPlus + pumped);
-      } else {
-        // electrons still flow and O2 is still consumed, but every proton's worth of energy → heat
-        if (s.entry === 'NADH' && reachIdx >= 1 && s.inhib !== 'I') pumped += pumpsAt(s, 'I');
-        if (reachIdx >= 2) pumped += pumpsAt(s, 'III');
-        if (reach === 'IV') pumped += pumpsAt(s, 'IV');
-        s.heat += pumped;
-      }
-
-      // O2 consumed only if electrons reach Complex IV
-      if (reach === 'IV') s.o2 += 1;
-
-      // settle the gradient into ATP (or leak)
-      settleGradient();
-
-      // active rung = bottom reached, for the ladder highlight
-      s.activeRung = reach === 'IV' ? LADDER.length - 1 : reach === 'III' ? 4 : reach === 'II' ? 3 : 2;
-
+    function commit(p: Plan): void {
+      s.pairs += p.reachesO2 ? 1 : 0;
+      s.hPlus = p.hAfter;
+      s.atp += p.atpMade;
+      s.heat += p.leaked;
+      if (p.reachesO2) s.o2Halves += 1;
+      s.rotor = (s.rotor + 120 * p.atpMade) % 360;
+      s.endRung = p.stops[p.stops.length - 1].rung;
+      const pumped = p.hPeak - p.h0;
+      const who = s.entry === 'NADH' ? 'NADH' : 'FADH₂';
+      logEl.textContent = !p.reachesO2
+        ? `No flow: the ${who} electrons stop at the blocked complex — 0 H⁺ pumped, no O₂ used, no ATP.`
+        : s.uncouple
+          ? `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water — and every proton leaked back as heat. 0 ATP.`
+          : `Pair ${s.pairs} (${who}): ${pumped} H⁺ pumped, ½ O₂ reduced to water, ${p.atpMade} ATP made; ${p.hAfter} H⁺ left in the gradient.`;
       refresh();
     }
 
+    function frame(now: number): void {
+      if (!anim) return;
+      const p = anim.plan, t = now - anim.t0;
+      // electron position along its stops
+      const segs = p.stops.length - 1;
+      const fe = clamp01(t / p.tElec) * segs;
+      const si = Math.min(segs - 1, Math.floor(fe));
+      const sf = ease(fe - si);
+      const done = t >= p.tElec;
+      const a = p.stops[si], b = p.stops[si + 1];
+      const electron = done ? null : lerp(a.p, b.p, sf);
+      const ladderPos = done ? p.stops[segs].rung : a.rung + (b.rung - a.rung) * sf;
+      const activeCx = done ? null : (sf > 0.8 ? b.cx : a.cx) ?? null;
+
+      // protons: rising from pumps, then leaving through the synthase or the leak
+      const dots: View['dots'] = [];
+      let present = p.h0;
+      for (let i = 0; i < p.h0; i++) dots.push({ ...DOTS[i] });
+      p.pumps.forEach((pu) => {
+        for (let k = 0; k < pu.n; k++) {
+          const idx = p.h0 + pu.first + k;
+          if (idx >= MAX_H) continue;
+          const st = t - pu.t - k * 55;
+          if (st < 0) continue;
+          const f = ease(clamp01(st / 420));
+          const from = { x: CXX[pu.cx] + (k - (pu.n - 1) / 2) * 7, y: C_TOP + 6 };
+          if (f < 1) dots.push({ ...lerp(from, DOTS[idx], f), moving: true });
+          else { dots.push({ ...DOTS[idx] }); present++; }
+        }
+      });
+      const leaving = p.hPeak - p.hAfter;
+      const exitX = s.uncouple ? LEAK_X : SYN_X;
+      if (t >= p.tSettle && leaving > 0) {
+        for (let m = 0; m < leaving; m++) {
+          const idx = p.hPeak - 1 - m;
+          const st = t - p.tSettle - m * 45;
+          const di = dots.findIndex((d) => d.x === DOTS[idx].x && d.y === DOTS[idx].y);
+          if (st < 0 || di < 0) continue;
+          const f = clamp01(st / 520);
+          dots.splice(di, 1);
+          present--;
+          if (f < 1) {
+            const mid = { x: exitX, y: 44 }, end = { x: exitX, y: s.uncouple ? 226 : MEM_BOT - 6 };
+            const pos = f < 0.5 ? lerp(DOTS[idx], mid, ease(f * 2)) : lerp(mid, end, ease((f - 0.5) * 2));
+            dots.push({ ...pos, moving: true });
+          }
+        }
+      }
+      const sp = clamp01((t - p.tSettle) / Math.max(1, p.tEnd - p.tSettle - 120));
+      const rotor = s.rotor + 120 * p.atpMade * ease(sp);
+      setMeter(present);
+      if (p.atpMade > 0) atpEl.textContent = String(s.atp + Math.floor(p.atpMade * sp + 1e-6));
+      if (p.leaked > 0) heatEl.textContent = String(s.heat + Math.round(p.leaked * sp));
+
+      drawScene(svg, {
+        entry: s.entry, inhib: s.inhib, uncouple: s.uncouple, pairs: s.pairs + (done && p.reachesO2 ? 1 : 0), dots,
+        electron, ladderPos, activeCx, rotor, synthRunning: t >= p.tSettle && p.atpMade > 0, leaking: s.uncouple,
+      });
+      if (t >= p.tEnd) { const pl = p; anim = null; commit(pl); return; }
+      anim.raf = requestAnimationFrame(frame);
+    }
+
+    function finishAnim(): void {
+      if (!anim) return;
+      cancelAnimationFrame(anim.raf);
+      const p = anim.plan; anim = null; commit(p);
+    }
+
+    function runPair(): void {
+      finishAnim();
+      const plan = makePlan();
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) { commit(plan); return; }
+      anim = { plan, t0: performance.now(), raf: 0 };
+      anim.raf = requestAnimationFrame(frame);
+    }
+
     function setEntry(entry: Entry): void {
-      s.entry = entry;
+      finishAnim();
+      s.entry = entry; s.endRung = null;
       entryBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.entry === entry)));
+      logEl.textContent = '';
       refresh();
     }
 
     function setInhib(inhib: Inhib): void {
-      s.inhib = inhib;
+      finishAnim();
+      s.inhib = inhib; s.endRung = null;
       inhibBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.inhib === inhib)));
-      if (inhib === 'IV') {
-        // cyanide crashes the gradient and ATP toward 0
-        s.hPlus = 0;
-      }
+      logEl.textContent = '';
       refresh();
     }
 
     function setUncouple(on: boolean): void {
+      finishAnim();
       s.uncouple = on;
       uncoupleBtn.setAttribute('aria-pressed', String(on));
       uncoupleBtn.textContent = `DNP / proton leak: ${on ? 'ON' : 'OFF'}`;
-      if (on) {
-        // existing gradient immediately leaks away as heat
+      if (on && s.hPlus > 0) {
+        // the stored gradient immediately leaks away as heat
+        logEl.textContent = `The ${s.hPlus} H⁺ already stored leak straight back through the uncoupler as heat.`;
         s.heat += s.hPlus;
         s.hPlus = 0;
-      }
+      } else logEl.textContent = '';
       refresh();
     }
 
     function resetAll(): void {
-      s.entry = 'NADH'; s.hPlus = 0; s.atp = 0; s.heat = 0; s.o2 = 0;
-      s.inhib = 'none'; s.uncouple = false; s.activeRung = -1; s.pairs = 0;
+      if (anim) { cancelAnimationFrame(anim.raf); anim = null; }
+      Object.assign(s, { entry: 'NADH', inhib: 'none', uncouple: false, hPlus: 0, atp: 0, heat: 0, o2Halves: 0, pairs: 0, rotor: 0, endRung: null });
       entryBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.entry === 'NADH')));
       inhibBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.inhib === 'none')));
       uncoupleBtn.setAttribute('aria-pressed', 'false');
       uncoupleBtn.textContent = 'DNP / proton leak: OFF';
+      logEl.textContent = '';
       refresh();
     }
 
-    entryBtns.forEach((b) => b.addEventListener('click', () => setEntry((b.dataset.entry as Entry))));
-    inhibBtns.forEach((b) => b.addEventListener('click', () => setInhib((b.dataset.inhib as Inhib))));
+    entryBtns.forEach((b) => b.addEventListener('click', () => setEntry(b.dataset.entry as Entry)));
+    inhibBtns.forEach((b) => b.addEventListener('click', () => setInhib(b.dataset.inhib as Inhib)));
     uncoupleBtn.addEventListener('click', () => setUncouple(!s.uncouple));
-    runBtn.addEventListener('click', () => runPair());
-    resetBtn.addEventListener('click', () => resetAll());
+    runBtn.addEventListener('click', runPair);
+    resetBtn.addEventListener('click', resetAll);
 
-    // No continuous animation: every visual change is discrete per click, so
-    // prefers-reduced-motion is satisfied by construction (no rAF loop to gate).
+    // re-lay the text when the figure crosses the phone breakpoint (rotation, window resize)
+    if ('ResizeObserver' in window) {
+      let lastFs = 0;
+      new ResizeObserver(() => {
+        const w = svg.getBoundingClientRect().width;
+        const f = w > 0 && w < 480 ? 1.3 : 1;
+        if (f !== lastFs) { lastFs = f; if (!anim) drawScene(svg, staticView()); }
+      }).observe(svg as unknown as Element);
+    }
 
     refresh();
   });
@@ -477,10 +667,30 @@
   .pgb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
   .pgb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
   .pgb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pgb-howto { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .pgb-howto strong { color: var(--ddp-color-accent); }
   .pgb-svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; margin-bottom: var(--ddp-space-2); }
 
+  .pgb .pgb-legend { list-style: none; margin: 0 0 var(--ddp-space-3); padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pgb .pgb-legend li { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0; padding: 0; font-size: var(--ddp-text-xs); line-height: 1.4; }
+  .pgb .pgb-legend li::before, .pgb .pgb-legend li::marker { content: none; }
+  .pgb-dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; }
+  .pgb-dot-e { background: #e57200; }
+  .pgb-dot-h { background: #D4A843; }
+  .pgb-dot-red { background: #0e7c86; }
+  .pgb-dot-ox { background: #8a93ad; }
+
+  .pgb-meter { margin-bottom: var(--ddp-space-3); }
+  .pgb-meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: 0.25rem; }
+  .pgb-meter-top strong { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .pgb-bar { position: relative; height: 0.8rem; border-radius: 999px; background: color-mix(in srgb, var(--ddp-color-line) 70%, #fff); overflow: hidden; }
+  .pgb-bar-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: color-mix(in srgb, #D4A843 55%, #fff); border-radius: 999px; }
+  .pgb-bar-fill.is-above { background: #D4A843; }
+  .pgb-bar-thresh { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ddp-color-primary); }
+  .pgb-meter-note { margin-top: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+
   .pgb-readouts { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
-  @media (min-width: 560px) { .pgb-readouts { grid-template-columns: repeat(5, 1fr); } }
+  @media (min-width: 560px) { .pgb-readouts { grid-template-columns: repeat(4, 1fr); } }
   .pgb-ro { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
   .pgb-ro-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .pgb-ro-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
@@ -497,13 +707,14 @@
   }
   .pgb-seg button:hover, .pgb-actions button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
   .pgb-seg button[aria-pressed='true'] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
-  [data-uncouple][aria-pressed='true'] { background: var(--ddp-color-secondary); border-color: var(--ddp-color-secondary); color: #fff; font-weight: 700; }
+  .pgb-seg button[data-uncouple][aria-pressed='true'] { background: #e57200; border-color: #e57200; color: #fff; font-weight: 700; }
 
   .pgb-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .pgb-run { font-weight: 700; }
-  .pgb-run:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); }
+  .pgb-actions .pgb-run { font-weight: 700; background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; }
+  .pgb-actions .pgb-run:hover { background: color-mix(in srgb, var(--ddp-color-accent) 85%, #000); color: #fff; }
   .pgb-reset { margin-left: auto; }
 
+  .pgb-log { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); min-height: 1.5em; line-height: 1.5; }
   .pgb-takeaway {
     margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5;
     min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3);
@@ -515,8 +726,9 @@
 
   .pgb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; line-height: 1.55; }
 
-  @media (max-width: 720px) {
-    .pgb-seg { flex-direction: column; }
-    .pgb-seg button { width: 100%; text-align: left; }
+  @media (max-width: 560px) {
+    .pgb-seg { display: grid; grid-template-columns: 1fr 1fr; }
+    .pgb-seg button { width: 100%; }
+    .pgb-seg [data-uncouple] { grid-column: 1 / -1; }
   }
 </style>

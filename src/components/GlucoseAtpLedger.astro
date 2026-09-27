@@ -40,7 +40,7 @@
         <th scope="col" class="gal-num">Direct ATP/GTP</th>
         <th scope="col" class="gal-num">NADH</th>
         <th scope="col" class="gal-num">FADH₂</th>
-        <th scope="col" class="gal-num">ATP from this stage</th>
+        <th scope="col" class="gal-num">ATP<span class="gal-long"> from this stage</span></th>
       </tr>
     </thead>
     <tbody>
@@ -49,21 +49,21 @@
         <td class="gal-num">2</td>
         <td class="gal-num" data-glyc-nadh>2*</td>
         <td class="gal-num">0</td>
-        <td class="gal-num gal-sub" data-row="glyc">—</td>
+        <td class="gal-num gal-sub"><span data-row="glyc">—</span><small class="gal-calc" data-calc="glyc"></small></td>
       </tr>
       <tr>
         <th scope="row">Pyruvate → acetyl-CoA (×2)</th>
         <td class="gal-num">0</td>
         <td class="gal-num">2</td>
         <td class="gal-num">0</td>
-        <td class="gal-num gal-sub" data-row="pdh">—</td>
+        <td class="gal-num gal-sub"><span data-row="pdh">—</span><small class="gal-calc" data-calc="pdh"></small></td>
       </tr>
       <tr>
         <th scope="row">Citric acid cycle (×2 turns)</th>
         <td class="gal-num">2</td>
         <td class="gal-num">6</td>
         <td class="gal-num">2</td>
-        <td class="gal-num gal-sub" data-row="tca">—</td>
+        <td class="gal-num gal-sub"><span data-row="tca">—</span><small class="gal-calc" data-calc="tca"></small></td>
       </tr>
     </tbody>
     <tfoot>
@@ -72,7 +72,7 @@
         <td class="gal-num">4</td>
         <td class="gal-num">10</td>
         <td class="gal-num">2</td>
-        <td class="gal-num gal-grand" data-total>—</td>
+        <td class="gal-num gal-grand"><span data-total>—</span><small class="gal-calc" data-calc="total"></small></td>
       </tr>
     </tfoot>
   </table>
@@ -101,6 +101,7 @@
     const convEl = root.querySelector<HTMLElement>('[data-conv]')!;
     const shutEl = root.querySelector<HTMLElement>('[data-shut]')!;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const calc = (k: string, s: string) => { const e = root.querySelector<HTMLElement>(`[data-calc="${k}"]`); if (e) e.textContent = s; };
 
     let po: PO = 'modern';
     let shuttle: Shuttle = 'malate';
@@ -121,6 +122,12 @@
       pdhCell.textContent = fmt(pdh);
       tcaCell.textContent = fmt(tca);
       totalCell.textContent = `${fmt(total)} ATP`;
+      // show the arithmetic, so the totals are checkable rather than magic
+      const cytoAsNadh = shuttle === 'malate';
+      calc('glyc', `2 + 2×${fmt(cytoNadhYield)}`);
+      calc('pdh', `2×${fmt(nadhYield)}`);
+      calc('tca', `2 + 6×${fmt(nadhYield)} + 2×${fmt(fadhYield)}`);
+      calc('total', `4 + ${cytoAsNadh ? 10 : 8}×${fmt(nadhYield)} + ${cytoAsNadh ? 2 : 4}×${fmt(fadhYield)}`);
 
       convEl.textContent = po === 'modern'
         ? 'Modern P/O: NADH ≈ 2.5 ATP, FADH₂ ≈ 1.5 ATP'
@@ -171,8 +178,11 @@
   .gal-table th, .gal-table td { padding: var(--ddp-space-2) var(--ddp-space-2); text-align: left; border-bottom: 1px solid var(--ddp-color-line); }
   .gal-table thead th { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-muted); border-bottom: 2px solid var(--ddp-color-line); }
   .gal-table tbody th { font-weight: 600; color: var(--ddp-color-primary); }
-  .gal-num { text-align: right; font-family: var(--ddp-font-mono); }
-  th.gal-num, td.gal-num { text-align: right; }
+  .gal-table .gal-num { text-align: right; font-family: var(--ddp-font-mono); }
+  .gal-table thead th.gal-num { font-family: inherit; }
+  .gal-calc { display: block; font-size: 0.7rem; font-weight: 400; color: var(--ddp-color-muted); white-space: nowrap; }
+  .gal-grand span { white-space: nowrap; }
+  @media (max-width: 560px) { .gal-long { display: none; } .gal-table th, .gal-table td { padding-left: 0.3rem; padding-right: 0.3rem; } .gal-calc { white-space: normal; } }
   .gal-sub { color: var(--ddp-color-accent); font-weight: 700; }
   .gal-total-row th, .gal-total-row td { border-bottom: none; border-top: 2px solid var(--ddp-color-line); font-weight: 700; color: var(--ddp-color-primary); padding-top: var(--ddp-space-2); }
   .gal-grand { font-size: var(--ddp-text-lg); color: var(--ddp-color-accent); }

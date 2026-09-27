@@ -12,15 +12,15 @@
 <figure class="cori card" data-cori>
   <figcaption class="cori-head">The Cori cycle — borrowing energy from the liver<span class="cori-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="cori-svg" viewBox="0 0 460 210" role="img" data-svg></svg>
+  <svg class="cori-svg" viewBox="0 0 460 232" role="img" aria-label="Muscle sends lactate through the blood to the liver, which rebuilds it into glucose and sends it back. Arrow thickness shows how fast the cycle is running." data-svg></svg>
 
-  <label class="cori-slabel">Muscle effort <em data-out="eff">sprint</em>
+  <label class="cori-slabel"><span>Drag to set muscle effort: <em data-out="eff">sprint</em></span>
     <input type="range" data-in="eff" min="0" max="100" step="5" value="85" />
   </label>
 
   <div class="cori-ledger">
-    <div class="cori-cell"><span class="cori-c-name">Muscle (anaerobic glycolysis)</span><span class="cori-c-v cori-pos" data-musc>+2 ATP</span></div>
-    <div class="cori-cell"><span class="cori-c-name">Liver (gluconeogenesis)</span><span class="cori-c-v cori-neg" data-liver>−6 ATP</span></div>
+    <div class="cori-cell"><span class="cori-c-name">Muscle: glucose → 2 lactate</span><span class="cori-c-v cori-pos" data-musc>+2 ATP</span></div>
+    <div class="cori-cell"><span class="cori-c-name">Liver: 2 lactate → glucose</span><span class="cori-c-v cori-neg" data-liver>−6 ATP <small>(4 ATP + 2 GTP)</small></span></div>
     <div class="cori-cell"><span class="cori-c-name">Net cost to the body</span><span class="cori-c-v" data-net>−4 ATP / cycle</span></div>
   </div>
   <p class="cori-why" data-why role="status"></p>
@@ -29,43 +29,58 @@
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', ORANGE_INK = '#a85400', INK = '#4b4b55', MUTED = '#6b6b6b';
+  const GREEN = '#2e8b57', RED = '#c0392b';
   const SVGNS = 'http://www.w3.org/2000/svg';
-  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
     const e = document.createElementNS(SVGNS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
     return e;
   }
 
-  function draw(svg: SVGElement, eff: number) {
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-    const flux = eff / 100; // 0..1
-    // organ boxes
-    const box = (x: number, label: string, sub: string, color: string) => {
-      svg.appendChild(el('rect', { x, y: 70, width: 110, height: 70, rx: 10, fill: color, opacity: 0.12, stroke: color, 'stroke-width': 2 }));
-      const t1 = el('text', { x: x + 55, y: 100, 'text-anchor': 'middle', fill: color, 'font-size': 15, 'font-weight': 700 }); t1.textContent = label; svg.appendChild(t1);
-      const t2 = el('text', { x: x + 55, y: 120, 'text-anchor': 'middle', fill: INK, 'font-size': 10 }); t2.textContent = sub; svg.appendChild(t2);
+  // lactate leaves the muscle over the top; glucose returns from the liver underneath
+  const LAC_D = 'M138,82 C200,26 262,26 322,82';
+  const GLC_D = 'M322,150 C262,206 200,206 138,150';
+
+  function arrowHead(g: SVGElement, path: SVGPathElement, color: string, size: number): void {
+    const L = path.getTotalLength();
+    const tip = path.getPointAtLength(L), back = path.getPointAtLength(L - 1);
+    const ang = Math.atan2(tip.y - back.y, tip.x - back.x);
+    const p = (d: number, a: number) => `${tip.x + d * Math.cos(ang + a)},${tip.y + d * Math.sin(ang + a)}`;
+    g.appendChild(el('path', { d: `M${tip.x},${tip.y} L${p(size, Math.PI - 0.45)} L${p(size, Math.PI + 0.45)} Z`, fill: color }));
+  }
+
+  function drawStatic(svg: SVGElement, flux: number): { lac: SVGPathElement; glc: SVGPathElement; dots: SVGElement } {
+    const g = el('g', {});
+    const idle = flux < 0.08;
+    // organs
+    const organ = (x: number, name: string, color: string, nameColor: string, l1: string, l2: string, l2color: string) => {
+      g.appendChild(el('rect', { x, y: 70, width: 120, height: 92, rx: 12, fill: color, 'fill-opacity': 0.1, stroke: color, 'stroke-width': 2 }));
+      g.appendChild(el('text', { x: x + 60, y: 98, 'text-anchor': 'middle', fill: nameColor, 'font-size': 16, 'font-weight': 800 }, name));
+      g.appendChild(el('text', { x: x + 60, y: 118, 'text-anchor': 'middle', fill: INK, 'font-size': 10.5 }, l1));
+      g.appendChild(el('text', { x: x + 60, y: 140, 'text-anchor': 'middle', fill: l2color, 'font-size': 12, 'font-weight': 800 }, l2));
     };
-    box(20, 'Muscle', 'sprint → lactate', ORANGE);
-    box(330, 'Liver', 'lactate → glucose', NAVY);
-    // top arrow: lactate muscle -> liver
-    const w = 1 + flux * 9;
-    svg.appendChild(el('line', { x1: 130, y1: 55, x2: 330, y2: 55, stroke: ORANGE, 'stroke-width': w, 'marker-end': 'url(#cori-ar)' }));
-    const lt = el('text', { x: 230, y: 44, 'text-anchor': 'middle', fill: ORANGE, 'font-size': 11, 'font-weight': 600 }); lt.textContent = `lactate →  (${Math.round(flux * 100)}%)`; svg.appendChild(lt);
-    // bottom arrow: glucose liver -> muscle
-    svg.appendChild(el('line', { x1: 330, y1: 165, x2: 130, y2: 165, stroke: ACCENT, 'stroke-width': w, 'marker-end': 'url(#cori-ar2)' }));
-    const gt = el('text', { x: 230, y: 185, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 11, 'font-weight': 600 }); gt.textContent = '← glucose'; svg.appendChild(gt);
-    // blood label
-    const bl = el('text', { x: 230, y: 112, 'text-anchor': 'middle', fill: '#b9b9c2', 'font-size': 10 }); bl.textContent = 'bloodstream'; svg.appendChild(bl);
-    // arrow markers
-    const defs = el('defs', {});
-    const mk = (id: string, color: string) => {
-      const m = el('marker', { id, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: 'auto' });
-      m.appendChild(el('path', { d: 'M0,0 L6,3 L0,6 Z', fill: color }));
-      return m;
-    };
-    defs.appendChild(mk('cori-ar', ORANGE)); defs.appendChild(mk('cori-ar2', ACCENT));
-    svg.appendChild(defs);
+    organ(16, 'Muscle', ORANGE, ORANGE_INK, 'glucose → 2 lactate', '+2 ATP', GREEN);
+    organ(324, 'Liver', NAVY, NAVY, '2 lactate → glucose', '−4 ATP, −2 GTP', RED);
+    // oxygen status: the whole reason the cycle exists
+    g.appendChild(el('text', { x: 76, y: 182, 'text-anchor': 'middle', fill: flux > 0.7 ? RED : MUTED, 'font-size': 10, 'font-weight': 700 }, flux > 0.7 ? 'demand outruns O₂' : flux > 0.35 ? 'O₂ mostly keeping up' : 'O₂ plentiful'));
+    g.appendChild(el('text', { x: 384, y: 182, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10, 'font-weight': 700 }, 'O₂ plentiful'));
+    // blood vessels
+    const w = 2 + flux * 7;
+    const lac = el('path', { d: LAC_D, fill: 'none', stroke: ORANGE, 'stroke-width': w, 'stroke-linecap': 'round', opacity: idle ? 0.35 : 0.85 }) as SVGPathElement;
+    const glc = el('path', { d: GLC_D, fill: 'none', stroke: ACCENT, 'stroke-width': w, 'stroke-linecap': 'round', opacity: idle ? 0.35 : 0.85 }) as SVGPathElement;
+    g.appendChild(lac); g.appendChild(glc);
+    svg.replaceChildren(g);                      // paths must be in the DOM to be measured
+    arrowHead(g, lac, ORANGE, 10 + flux * 6);
+    arrowHead(g, glc, ACCENT, 10 + flux * 6);
+    g.appendChild(el('text', { x: 230, y: 20, 'text-anchor': 'middle', fill: ORANGE_INK, 'font-size': 12, 'font-weight': 800 }, 'lactate →'));
+    g.appendChild(el('text', { x: 230, y: 222, 'text-anchor': 'middle', fill: ACCENT, 'font-size': 12, 'font-weight': 800 }, '← glucose'));
+    g.appendChild(el('text', { x: 230, y: 112, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10.5, 'font-style': 'italic' }, 'bloodstream'));
+    g.appendChild(el('text', { x: 230, y: 128, 'text-anchor': 'middle', fill: MUTED, 'font-size': 10.5 }, `cycle speed: ${Math.round(flux * 100)}%`));
+    const dots = el('g', {});
+    g.appendChild(dots);
+    return { lac, glc, dots };
   }
 
   document.querySelectorAll<HTMLElement>('[data-cori]').forEach((root) => {
@@ -73,19 +88,61 @@
     const effIn = root.querySelector<HTMLInputElement>('[data-in="eff"]')!;
     const effOut = root.querySelector<HTMLElement>('[data-out="eff"]')!;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let parts: ReturnType<typeof drawStatic> | null = null;
+    let flux = 0, phase = 0, last = 0, raf = 0, visible = false;
+
+    // molecules riding the blood: count scales with flux; they drift only when motion is allowed
+    function placeDots(): void {
+      if (!parts) return;
+      const n = Math.round(flux * 9);
+      const kids: SVGElement[] = [];
+      ([[parts.lac, ORANGE], [parts.glc, ACCENT]] as [SVGPathElement, string][]).forEach(([path, color]) => {
+        const L = path.getTotalLength() - 14;
+        for (let i = 0; i < n; i++) {
+          const f = (i / n + phase) % 1;
+          const pt = path.getPointAtLength(8 + f * L);
+          const fade = Math.min(1, f * 8, (1 - f) * 8);
+          kids.push(el('circle', { cx: pt.x.toFixed(1), cy: pt.y.toFixed(1), r: 3.4 + flux * 1.4, fill: '#fff', stroke: color, 'stroke-width': 2, opacity: fade.toFixed(2) }));
+        }
+      });
+      parts.dots.replaceChildren(...kids);
+    }
+    function tick(now: number): void {
+      raf = 0;
+      if (!visible || reduce.matches || flux < 0.08) return;
+      const dt = last ? Math.min(64, now - last) : 16;
+      last = now;
+      phase = (phase + dt * (0.00006 + flux * 0.00016)) % 1;
+      placeDots();
+      raf = requestAnimationFrame(tick);
+    }
+    function kick(): void {
+      if (!raf && visible && !reduce.matches && flux >= 0.08) { last = 0; raf = requestAnimationFrame(tick); }
+    }
+
     function render() {
       const eff = parseInt(effIn.value, 10);
-      effOut.textContent = eff > 70 ? 'sprint' : eff > 35 ? 'jogging' : eff > 5 ? 'walking' : 'at rest';
-      draw(svg, eff);
+      flux = eff / 100;
+      const name = eff > 70 ? 'sprint' : eff > 35 ? 'jogging' : eff > 5 ? 'walking' : 'at rest';
+      effOut.textContent = name;
+      effIn.setAttribute('aria-valuetext', `${name}, ${eff}% effort`);
+      parts = drawStatic(svg, flux);
+      placeDots();
+      kick();
       whyEl.textContent = eff > 70
-        ? 'All-out: the muscle has outrun its oxygen, so glycolysis runs anaerobically and floods the blood with lactate. The liver works hard to recycle it — the Cori cycle is running fast, and the 4-ATP deficit per glucose is mounting.'
+        ? 'All-out: the muscle has outrun its oxygen, so glycolysis runs anaerobically and floods the blood with lactate. The liver works hard to recycle it — the Cori cycle is running fast, and every turn costs the body 4 ATP.'
         : eff > 35
           ? 'Moderate effort: some lactate spills into the blood and the liver recycles it, but most pyruvate is still oxidized aerobically in the muscle. The Cori cycle ticks along.'
           : eff > 5
             ? 'Light effort: the muscle gets nearly all its ATP from aerobic respiration, so little lactate is made and the Cori cycle is nearly idle.'
-            : 'At rest the muscle burns fuel aerobically and exports almost no lactate. The Cori cycle is essentially off — there is no debt to relocate.';
+            : 'At rest the muscle burns fuel aerobically and exports almost no lactate, so its share of the Cori cycle is essentially off. (A trickle still runs on lactate from red blood cells, which have no mitochondria.)';
     }
     effIn.addEventListener('input', render);
+    reduce.addEventListener?.('change', () => { placeDots(); kick(); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; kick(); }).observe(root);
+    } else { visible = true; }
     render();
   });
 </script>
@@ -103,6 +160,7 @@
   .cori-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); display: flex; flex-direction: column; gap: 0.15rem; }
   .cori-c-name { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .cori-c-v { font-size: var(--ddp-text-sm); font-weight: 700; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .cori-c-v small { font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .cori-pos { color: #2e8b57; }
   .cori-neg { color: #c0392b; }
   .cori-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
