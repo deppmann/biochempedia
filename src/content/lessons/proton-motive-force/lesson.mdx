@@ -7,7 +7,7 @@ summary: "Electron transport and ATP synthesis are one coupled machine, joined b
 hook: "Peter Mitchell saw the proton gradient in 1961, was ridiculed for seventeen years, and was vindicated."
 estMinutes: 24
 objectives:
-  - "Write the proton-motive force as Δp = ΔΨ + (chemical ΔpH) term and explain why both the electrical (ΔΨ, ~0.14 V, matrix negative) and chemical (~1.4 pH units) components matter — students who drop ΔΨ lose the larger part of the energy."
+  - "Write the proton-motive force Δp as the sum of an electrical term (ΔΨ) and a chemical term (ΔpH), and explain why both the electrical (ΔΨ, ~0.14 V, matrix negative) and chemical (~1.4 pH units) components matter — students who drop ΔΨ lose the larger part of the energy."
   - "Explain chemiosmotic coupling: how the proton gradient links electron flow to ATP synthesis so that blocking one (cyanide or oligomycin) stops the other, and cite the Racker–Stoeckenius reconstitution and Jagendorf acid-bath experiments as the proof."
   - "Describe ATP synthase as a real rotary motor — Fo c-ring rotor + a-subunit half-channels, F1 α3β3γ head — and walk Boyer's binding-change mechanism (O→L→T), explaining that energy is spent releasing tightly bound ATP, not forming it."
   - "Predict the effect of any ETC inhibitor, the ATP-synthase inhibitor oligomycin, or an uncoupler on three readouts (O2 consumption, ATP output, gradient size), and explain why oligomycin raises the gradient while uncouplers raise O2 consumption."
@@ -34,7 +34,7 @@ scientists:
     profileSourceAnchor: "The Molecule Hunters (v10) — Paul Boyer & John Walker joint profile (quote grep-confirmed at line 1233)."
     quotes:
       - "I don't have the first idea."
-    story: "Walker learned he had won the 1997 Nobel while pruning apple trees in his Cambridge garden, so absorbed in reaching a high branch that he missed the phone; when a radio journalist asked how it felt, he answered I don't have the first idea. Trained as a chemist at Oxford under penicillin chemist Edward Abraham, he joined the MRC Laboratory of Molecular Biology in 1974 and spent a decade sequencing ATP synthase subunits before the 1994 structure (Abrahams, Leslie, Lutter, Walker, Nature) turned a structure into a proof of Boyer's mechanism. He went on to lead the MRC Mitochondrial Biology Unit. Chris pairs them as Boyer conceived the engine; Walker drew its blueprint one crystal at a time."
+    story: "Walker learned he had won the 1997 Nobel while pruning apple trees in his Cambridge garden, so absorbed in reaching a high branch that he missed the phone; when a radio journalist asked how it felt, he answered I don't have the first idea. Trained as a chemist at Oxford under penicillin chemist Edward Abraham, he joined the MRC Laboratory of Molecular Biology in 1974 and spent a decade sequencing ATP synthase subunits before the 1994 structure (Abrahams, Leslie, Lutter, Walker, Nature) turned a structure into a proof of Boyer's mechanism. He went on to lead the MRC Mitochondrial Biology Unit. Chris pairs them this way: Boyer conceived the engine; Walker drew its blueprint one crystal at a time."
   - name: "Albert Lehninger"
     dates: "1917–1986"
     contribution: "With Eugene Kennedy (1949), showed that oxidative phosphorylation — the coupling of ATP synthesis to electron flow down the respiratory chain — occurs in the mitochondrion, and later localized the citric acid cycle to the matrix and oxidative phosphorylation to the inner membrane. Established that the chemistry of respiration lives in a specific architecture, the intact sealed membrane Mitchell's theory would later require."
@@ -346,25 +346,23 @@ The vindication came from experiments you can hold in your head. Jagendorf and U
 
 The proton-motive force, written Δp, has two parts, and forgetting one is the single most common mistake here.
 
-The first is **chemical**: protons are simply more concentrated outside the matrix, a difference of roughly 1.4 pH units. The second is **electrical**: pumping positive charge outward leaves the matrix negative, a membrane potential ΔΨ of about 0.14 volts. You need both. Together they come to roughly 21 kJ per mole of protons returning — and a student who tracks only the pH difference throws away about half the energy. Note the asymmetry the cell maintains: the matrix is both *alkaline* and *negative*, which is exactly what pulls a positive proton back in.
+The first is **chemical**: protons are simply more concentrated outside the matrix, a difference of roughly 1.4 pH units. The second is **electrical**: pumping positive charge outward leaves the matrix negative, a membrane potential ΔΨ of about 0.14 volts. You need both. Together they come to roughly 21 kJ per mole of protons returning — and a student who tracks only the pH difference throws away more than half the energy, because the electrical term is the larger of the two. Note the asymmetry the cell maintains: the matrix is both *alkaline* and *negative*, which is exactly what pulls a positive proton back in.
 
 ## A motor, not a metaphor
 
 ATP synthase has two parts named, unhelpfully, F<sub>o</sub> and F<sub>1</sub>.
 
-F<sub>o</sub> sits in the membrane and is the proton channel: a ring of c-subunits (the rotor) pressed against a stationary a-subunit that holds two offset half-channels. A proton enters the half-channel from the intermembrane space and protonates a conserved acidic residue on the c-ring — a glutamate in mitochondria, an aspartate in *E. coli*. Neutralizing that charge lets the ring rotate one notch into the oily membrane interior; one full turn later, the proton is released into the matrix through the second half-channel. Protons walk the ring around, one step at a time.
+F<sub>o</sub> sits in the membrane and is the proton channel: a ring of c-subunits (the rotor) pressed against a stationary a-subunit that holds two offset half-channels. A proton enters the half-channel from the intermembrane space and protonates a conserved acidic residue on the c-ring — a glutamate in mitochondria, an aspartate in *E. coli*. Neutralizing that charge lets the ring rotate one notch into the oily membrane interior; nearly a full turn later, that c-subunit comes back around to the a-subunit and releases its proton into the matrix through the second half-channel. Protons walk the ring around, one step at a time.
 
 F<sub>1</sub> is the catalytic head poking into the matrix: three α and three β subunits arranged like orange segments around a single bent, asymmetric γ shaft. The c-ring and γ are bolted together. So the proton flow that spins the rotor spins the shaft, and the shaft's own rotation is what drives chemistry: γ's off-center bend touches only one β subunit at full force at any instant, forcing that subunit through a shape change while holding the other two in different states — the mechanical seed of the three-state cycle below.
-
-<ProtonMotiveDam />
 
 ## Boyer's inside-out insight
 
 Here is the question Paul Boyer posed that reorganized the whole field. What would you say if I told you it takes no energy to *make* ATP at the catalytic site — but it takes energy to get the ATP *off*?
 
-That is the binding-change mechanism. Each β subunit cycles through three states as γ turns: **Open** (loosely binds ADP and Pi, or releases product), **Loose** (substrates trapped), and **Tight** (ATP forms spontaneously, held so firmly it won't leave). The proton gradient's job is to wrench the tight site open and let the finished ATP go. Each 120° turn of γ advances one β through one state, so a full 360° rotation releases three ATP. John Walker later caught all three β subunits in different nucleotide states in a single crystal — a frozen snapshot of Boyer's cycle, drawn one structure at a time.
+That is the binding-change mechanism. Each β subunit cycles through three states as γ turns: **Open** (empty; it releases finished ATP and takes in fresh ADP and Pi), **Loose** (ADP and Pi trapped, but held loosely), and **Tight** (ATP forms spontaneously, held so firmly it won't leave). The proton gradient's job is to wrench the tight site open and let the finished ATP go. At any instant the three β subunits sit in three different states. Each 120° turn of γ moves all three forward one state and releases one ATP, so a full 360° rotation releases three. John Walker later caught all three β subunits in different nucleotide states in a single crystal — a frozen snapshot of Boyer's cycle, drawn one structure at a time.
 
-You can watch it turn. Noji and Yoshida glued isolated α<sub>3</sub>β<sub>3</sub> heads to glass, attached a fluorescent actin filament to the γ shaft, added ATP, and saw the filament rotate in discrete 120° steps — roughly 130 revolutions per second, about 400 ATP per second. The world's smallest motor, running under a microscope. And run it backward — isolated F<sub>1</sub> with no gradient will *hydrolyze* ATP and spin the other way. The gradient does not make the chemistry possible; it sets the direction.
+You can watch it turn. Noji and Yoshida glued isolated α<sub>3</sub>β<sub>3</sub> heads to glass, attached a fluorescent actin filament to the γ shaft, added ATP, and saw the filament rotate in discrete 120° steps, one step per ATP. The world's smallest motor, running under a microscope. Swap the long, draggy filament for a tiny bead and the same motor spins roughly 130 revolutions per second, about 400 ATP per second. And run it backward — isolated F<sub>1</sub> with no gradient will *hydrolyze* ATP and spin the other way. The gradient does not make the chemistry possible; it sets the direction.
 
 ## Counting protons and ATP
 
@@ -376,10 +374,20 @@ Two more wrinkles set the final glucose tally. Cytoplasmic NADH from glycolysis 
 
 ## Setting the rate, and breaking it on purpose
 
-The cell throttles all of this with **acceptor (respiratory) control**: ADP availability sets the pace. Plenty of ADP and respiration races (State 3); ADP runs low and the gradient backs up and the chain idles (State 4). The master gauge is energy charge, ([ATP] + ½[ADP]) / ([ATP] + [ADP] + [AMP]), held near 0.85–0.90 — a fuel gauge that simultaneously tunes PFK-1, isocitrate dehydrogenase, and pyruvate dehydrogenase.
+The cell throttles all of this with **acceptor (respiratory) control**: ADP availability sets the pace. Plenty of ADP and respiration races (State 3). When ADP runs low, ATP synthase stops draining the gradient, the gradient backs up against the pumps, and the chain idles (State 4). The master gauge is energy charge, ([ATP] + ½[ADP]) / ([ATP] + [ADP] + [AMP]), held near 0.85–0.90 — a fuel gauge that simultaneously tunes PFK-1, isocitrate dehydrogenase, and pyruvate dehydrogenase.
 
-Poisons let you dissect the coupling, and the three-way table they make is heavily tested. **ETC inhibitors** (rotenone at CI, antimycin A at CIII, cyanide/CO at CIV) stop pumping: O₂ down, ATP down, gradient down. **Oligomycin** plugs F<sub>o</sub>: protons can't fall, the gradient *rises* as back-pressure, and the stalled pumps stop consuming O₂ — so O₂ down, ATP down, gradient **up**. **Uncouplers** (DNP, FCCP) punch a leak in the membrane: the gradient drains without making ATP, and the chain races to refill it — so O₂ **up**, ATP down, gradient down. The biology runs its own uncoupler: **UCP1 (thermogenin)** in brown fat deliberately leaks protons to make heat instead of ATP, the basis of nonshivering thermogenesis you can light up on a PET-CT in a cold adult. (Pigs lack UCP1, which is why piglets shiver.) And the IF1 inhibitor protein locks the rotor at low pH during ischemia, stopping the synthase from running backward and burning ATP when the gradient collapses — a switch some cancers exploit.
+Poisons let you dissect the coupling, and the three-way table they make is heavily tested. Read each one on three gauges: O₂ consumption, ATP output, and gradient size.
+
+- **ETC inhibitors** (rotenone at CI, antimycin A at CIII, cyanide/CO at CIV) stop pumping: O₂ down, ATP down, gradient down.
+- **Oligomycin** plugs F<sub>o</sub>: protons can't fall, the gradient *rises* as back-pressure, and the stalled pumps stop consuming O₂ — so O₂ down, ATP down, gradient **up**.
+- **Uncouplers** (DNP, FCCP) punch a leak in the membrane: the gradient drains without making ATP, and the chain races to refill it — so O₂ **up**, ATP down, gradient down.
+
+Run all three on the dam below and predict each gauge before you click.
+
+<ProtonMotiveDam />
+
+The biology runs its own uncoupler: **UCP1 (thermogenin)** in brown fat deliberately leaks protons to make heat instead of ATP, the basis of nonshivering thermogenesis you can light up on a PET-CT in a cold adult. (Pigs lack UCP1, which is why piglets shiver.) And the IF1 inhibitor protein locks the rotor at low pH during ischemia, stopping the synthase from running backward and burning ATP when the gradient collapses — a switch some cancers exploit.
 
 Mutations bring it home. mtDNA is maternally inherited and present in many copies, so disease depends on **heteroplasmy** — the fraction of mutant genomes — and strikes high-demand tissues first. LHON (the m.11778G>A mutation in ND4, a Complex I subunit) blinds otherwise healthy young men over weeks. The proton gradient is older than mitochondria: chloroplasts, bacterial flagella, and bacteriorhodopsin all run on it.
 
-We have now followed one glucose from the gut to the last drop of ATP. Next we turn the engine around and ask where the fuel itself comes from when the diet runs short — gluconeogenesis and the management of blood glucose.
+We have now followed one glucose from the gut to the last drop of ATP. Next we leave the mitochondrion for the chloroplast, where the same proton-gradient trick runs on sunlight instead of food.
