@@ -16,7 +16,7 @@ hook: "Pull one protein out of a soup of ten thousand others — then prove you 
 estMinutes: 24
 objectives:
   - "Explain why every purification needs an assay, and use specific activity (units/mg) to judge whether a step worked."
-  - "Match the four chromatographic principles — solubility, size, charge, and binding affinity — to what you know about a target protein."
+  - "Match the four separation principles — solubility, size, charge, and binding affinity — to what you know about a target protein."
   - "Read a purification table: why total protein and total activity both fall while specific activity and fold-purification climb."
   - "Trace a protein from a gel band to a confirmed identity using SDS-PAGE, immunoassays, Edman degradation, and MALDI-TOF mass spectrometry."
 
@@ -597,9 +597,9 @@ explainLevels:
       enzyme, you can watch the reaction it runs.
 
       Then you separate. Spinning samples very fast (centrifugation) sorts cell parts
-      by weight. Columns called chromatography sort proteins by other traits: how
-      soluble they are, how big they are, what charge they carry, or what they like to
-      stick to. Each step throws away contaminants and keeps your protein, so the
+      by weight. Adding salt and running columns (chromatography) sort proteins by
+      other traits: how soluble they are, how big they are, what charge they carry, or
+      what they like to stick to. Each step throws away contaminants and keeps your protein, so the
       fraction of the sample that is your protein — its specific activity — keeps
       going up.
 
@@ -618,7 +618,7 @@ explainLevels:
 
       The workflow: disrupt cells, then use differential centrifugation (increasing g
       pellets progressively smaller structures; final supernatant = cytosol). Then
-      chromatography on four principles — salting out (ammonium sulfate; solubility),
+      separation on four principles — salting out (ammonium sulfate; solubility),
       gel filtration (size; large proteins elute first because they're excluded from
       bead pores), ion exchange (charge; pH < pI → cation exchange, pH > pI → anion
       exchange), and affinity (a ligand only the target binds; elute with free
@@ -739,9 +739,9 @@ remodeled. To study one protein, you have to get it out of that building alone.
 Before the first spin, before the first column, you need an **assay** — a way to
 detect your protein in a tube where you cannot see it. For an enzyme, the assay is
 usually its own reaction. Lactate dehydrogenase converts pyruvate to lactate using
-the coenzyme NADH, which is consumed as the reaction runs; NADH absorbs light at
-340 nm and lactate does not, so the absorbance falls, and the slope of that fall
-is the activity. The number that matters is **specific activity** — units of
+the coenzyme NADH, which is consumed as the reaction runs. NADH absorbs light at
+340 nm and its oxidized form, NAD⁺, does not, so the absorbance falls, and the
+slope of that fall is the activity. The number that matters is **specific activity** — units of
 activity divided by milligrams of total protein. Picture a jar of mixed marbles:
 the count of red marbles is the activity, but the *fraction* that are red is the
 specific activity. A good step throws away other-colored marbles without losing
@@ -756,8 +756,9 @@ gentle spin drops the heavy nuclei; crank it harder and mitochondria pellet;
 harder still and the smallest vesicles go down, leaving cytosol in the final
 supernatant. Each spin trades one mixture for two cleaner ones.
 
-What centrifugation cannot finish, **chromatography** does, by exploiting four
-different properties of your protein, one at a time.
+What centrifugation cannot finish, you finish by exploiting four different
+properties of your protein, one at a time: the first by precipitation, the other
+three on **chromatography** columns.
 
 The first is **solubility**. Add ammonium sulfate and proteins begin to drop out
 of solution, but not all at once. Different proteins precipitate at different salt
@@ -771,19 +772,27 @@ Small proteins wander into the pores, take the long way around, and come off las
 It is the part students most often get backward.
 
 The third is **charge**. An ion-exchange column carries fixed charges on its beads,
-and opposite charges stick. The rule follows from the protein's pI: below its pI a
-protein is net positive and binds a negative (cation-exchange) resin; above its pI
-it is net negative and binds a positive (anion-exchange) resin. Raise the salt or
+and opposite charges stick. The rule comes from comparing the buffer pH with the
+protein's pI. At a pH below its pI, a protein is net positive and binds a negative
+(cation-exchange) resin; at a pH above its pI, it is net negative and binds a
+positive (anion-exchange) resin. Raise the salt or
 shift the pH and the protein lets go.
 
 The fourth, and most powerful, is **binding affinity**. Decorate the beads with
 something only your protein recognizes — a substrate analog, a cofactor, an
 antibody, a metal that grips a His-tag — and your target binds while everything
-else flows through. Then displace it with a flood of free ligand. So the choice is
-simple: if you know a binding partner, run affinity; if you know the size, gel
-filtration; if you know the pI, ion exchange; if you know nothing yet, salt it out
-and start narrowing. HPLC speeds any of these up — fine beads under high pressure,
-paid for with expensive plumbing.
+else flows through. Then displace it with a flood of free ligand.
+
+So which column first? If you know a binding partner, run affinity; if you know the
+size, gel filtration; if you know the pI, ion exchange; if you know nothing yet,
+salt it out and start narrowing. HPLC (high-performance liquid chromatography)
+speeds any of these up — fine beads under high pressure, paid for with expensive
+plumbing.
+
+The column chooser below runs one four-protein mixture through four columns: size
+exclusion, ion exchange, affinity, and hydrophobic interaction (HIC), which sorts
+proteins by how greasy their surfaces are. Switch columns and watch the elution
+order rearrange.
 
 <ChromatographyColumn />
 
@@ -801,8 +810,8 @@ contaminant faster than it sacrifices target.
 
 Run it and watch the table fill. Specific activity climbs from about 10 to 30,000
 units/mg, a three-thousandfold purification. Yield, meanwhile, slides from 100% to
-roughly a third. The gel tells the same story in pictures: lane one is a smear of
-forty bands, and by the affinity step a single sharp band remains. That band is
+roughly a third. The gel tells the same story in pictures: lane one is crowded with
+contaminant bands, and by the affinity step one strong band stands essentially alone. That band is
 your protein, finally alone.
 
 ## Reading the band: identity, sequence, mass
@@ -810,8 +819,8 @@ your protein, finally alone.
 A pure band is not yet an answer. **SDS-PAGE** got you there by erasing every
 difference except mass: the detergent SDS coats the chain at roughly one molecule
 per two residues, giving every protein the same charge-to-mass ratio, so they sort
-by size alone and the small ones run fastest. **Isoelectric focusing** sorts the
-other way, letting proteins drift through a pH gradient until each stalls at the pH
+by size alone and the small ones run fastest. **Isoelectric focusing** sorts by
+charge instead, letting proteins drift through a pH gradient until each stalls at the pH
 where its net charge is zero — its pI. Run focusing first, then SDS-PAGE at a right
 angle, and you get a **2D gel**: every protein becomes a spot placed by both pI and
 mass. Compare a healthy proteome to a tumor's, and a spot that shifts or brightens
@@ -835,15 +844,17 @@ the heavier ones arrive later, weighing them to a fraction of a dalton. Cut your
 protein with trypsin, weigh the pieces, and match the mass list against a database
 — a peptide mass fingerprint. Push further with tandem MS, fragmenting one peptide
 and reading sequence directly from the spacing between peaks. Frederick Sanger
-spent twelve years reading the 51 amino acids of insulin by hand; today a
-500-residue protein is sequenced in minutes.
+spent twelve years reading the 51 amino acids of insulin by hand; today mass
+spectrometry can identify a 500-residue protein from its peptides in minutes.
 
 ## What each method actually answers
 
-Every method here answers one of five questions about your protein: is it present,
-how pure is it, did the last step help, how much did you keep, and is it still
-intact. Specific activity answers the first four at a glance — the slope you watch
-climb, step by step, from a smear to a single band. Mass spectrometry and Edman
-degradation answer the question the table cannot: which protein, exactly, read off
-one peptide mass or one residue at a time. Find it, enrich it, prove it. That is
+Every method here answers a short list of questions about your protein. Is it
+present? How pure is it? Did the last step help? How much did you keep? Is it
+still intact? The purification table answers the first four at a glance: activity
+says the protein is there, specific activity tracks purity and whether each step
+helped, and yield says how much you kept. The gel answers the fifth, one band at
+the right size. Mass spectrometry and Edman degradation answer the question the
+table cannot: which protein, exactly, read off one peptide mass or one residue at
+a time. Find it, enrich it, prove it. That is
 protein biochemistry, and now it is a few hours of work instead of twelve years.

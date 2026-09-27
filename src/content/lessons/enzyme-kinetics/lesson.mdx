@@ -43,7 +43,7 @@ scientists:
       built sugars from glycerol to prove life holds no chemistry beyond the
       ordinary, named the peptide bond, and trained a generation of Nobel
       laureates. The phenylhydrazine that fingerprinted his sugars also, slowly,
-      gave him the cancer he died of in 1919.
+      poisoned him. He died in 1919.
 
   - name: "Leonor Michaelis & Maud Menten"
     dates: "1875–1949 · 1879–1960"
@@ -130,7 +130,8 @@ techniques:
   - name: "Measuring initial velocity (V₀)"
     blurb: >-
       Measure the slope in the first instants, before substrate is depleted or
-      product builds up and gums the enzyme. V₀ is the clean, reproducible number
+      product builds up and starts to inhibit the enzyme or run the reaction
+      backward. V₀ is the clean, reproducible number
       every kinetic parameter is built from.
   - name: "Extracting Km and Vmax"
     blurb: >-
@@ -278,7 +279,8 @@ mcatQuestions:
       the apparent Km rose — the competitive signature. Uncompetitive inhibition
       lowers Vmax and Km together, giving parallel lines; pure noncompetitive
       inhibition lowers Vmax with Km unchanged, so those lines share the x-intercept
-      (−1/Km). You can reproduce these signatures with the mini-plots in the lesson.
+      (−1/Km). You can reproduce these signatures with the inhibition explorer in
+      the lesson.
 
   - stem: "Enzymes accelerate reactions by binding the transition state more tightly than they bind the substrate. This principle predicts that the most potent reversible inhibitors are molecules that:"
     choices:
@@ -400,8 +402,8 @@ explainLevels:
       — pouring in more substrate can't push past it.
 
       Plot speed against substrate concentration and you get a curve that rises,
-      then flattens at Vmax. Km is the amount of substrate needed to run at half of
-      Vmax. A small Km means the enzyme gets going on very little substrate — think
+      then flattens at Vmax. Km is the substrate concentration needed to run at half
+      of Vmax. A small Km means the enzyme gets going on very little substrate — think
       of it as how much substrate it takes to reach cruising speed.
   - level: "college"
     label: "College"
@@ -426,8 +428,8 @@ explainLevels:
       Three reversible inhibitors give distinct signatures: competitive (binds the
       free active site) leaves Vmax unchanged but raises apparent Km, so the lines
       share a y-intercept; uncompetitive (binds only ES) lowers both Vmax and Km,
-      giving parallel lines; noncompetitive (binds E or ES) lowers Vmax with Km
-      unchanged, so the lines share an x-intercept.
+      giving parallel lines; noncompetitive (binds E and ES equally well) lowers
+      Vmax with Km unchanged, so the lines share an x-intercept.
   - level: "grad"
     label: "Graduate"
     text: |
@@ -561,9 +563,10 @@ Two numbers describe any such enzyme:
 
 - **Vmax** — the top speed, reached only when the enzyme is saturated.
 - **Km** (the Michaelis constant) — the substrate concentration at which the
-  enzyme runs at *half* its maximum speed. Think of Km as the enzyme's "substrate
-  sweet spot": a **small Km** means the enzyme reaches half-speed at low [S], so
-  it grabs substrate efficiently. Km is fixed for a given enzyme–substrate pair.
+  enzyme runs at *half* its maximum speed. A **small Km** means the enzyme
+  reaches half-speed at low [S]: it gets going on very little substrate. Under
+  fixed conditions (pH, temperature), Km is a constant for a given
+  enzyme–substrate pair.
 
 One subtlety worth keeping straight: Km is *not* the same as binding affinity. It
 only approximates the dissociation constant of the ES complex when catalysis is
@@ -576,8 +579,8 @@ double Vmax. To get a property of the enzyme *molecule* itself, divide it out:
 runs per second when saturated. The ratio **kcat/Km** measures catalytic
 efficiency, and the best enzymes push it right up against the diffusion limit.
 
-**Try the plotter here** — drag Vmax up and down, slide Km left and
-right, and watch where the half-max point lands.
+**Try the plotter at the top of this section** — drag Vmax up and down, slide
+Km left and right, and watch where the half-max point lands.
 
 ## Reading the curve a second way: Lineweaver–Burk
 
@@ -611,8 +614,9 @@ apart:
   shared y-intercept.*
 - **Uncompetitive** — the inhibitor binds only the ES complex, locking the enzyme
   mid-reaction. Both **Vmax and Km fall** together. *Signature: parallel lines.*
-- **Noncompetitive** — the inhibitor binds whether or not substrate is present and
-  reduces the enzyme's catalytic ability. **Vmax falls, Km unchanged.**
+- **Noncompetitive** — the inhibitor binds a site away from the active site, and
+  binds equally well whether or not substrate is present, reducing the enzyme's
+  catalytic ability. **Vmax falls, Km unchanged.**
   *Signature: lines share the x-intercept.*
 
 Click **Competitive**, then slide **Inhibitor amount [I]/Ki** up: the curve
@@ -635,6 +639,6 @@ reaction happen. If the product (or substrate) absorbs light, a spectrophotomete
 reads the change continuously and the rate falls straight off the line. The one
 discipline that matters most: measure the **initial velocity**, in the first
 moments before substrate is noticeably depleted, before product accumulates and
-interferes, before the enzyme tires. Repeat that clean V₀ measurement across many
+interferes, before the enzyme starts to lose activity. Repeat that clean V₀ measurement across many
 substrate concentrations and fit the curve. Out come Km and Vmax — the two
 numbers that let you compare any enzyme to any other.
