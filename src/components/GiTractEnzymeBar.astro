@@ -20,7 +20,15 @@
     <span class="get-ph">local pH <strong data-ph>1.8</strong></span>
   </div>
 
-  <label class="get-slabel">Position along the GI tract <em data-out="loc">Stomach</em>
+  <div class="get-phscale" aria-hidden="true">
+    <div class="get-phtrack">
+      <span class="get-phmark" data-phmark></span>
+    </div>
+    <div class="get-phlabels"><span style="left: 0%">pH 1</span><span style="left: 25%">3</span><span style="left: 50%">5</span><span style="left: 75%">7</span><span style="left: 100%">9</span></div>
+    <div class="get-phwords"><span>← more acidic</span><span>neutral ≈ 7 · more basic →</span></div>
+  </div>
+
+  <label class="get-slabel">Drag to move the food along the GI tract <em data-out="loc">Stomach</em>
     <input type="range" data-in="loc" min="0" max="2" step="1" value="1" aria-valuetext="Stomach" />
     <span class="get-ticks"><span>Mouth</span><span>Stomach</span><span>Small intestine</span></span>
   </label>
@@ -142,6 +150,7 @@
     const phEl = root.querySelector<HTMLElement>('[data-ph]')!;
     const barsEl = root.querySelector<HTMLElement>('[data-bars]')!;
     const whyEl = root.querySelector<HTMLElement>('[data-why]')!;
+    const phMark = root.querySelector<HTMLElement>('[data-phmark]')!;
 
     buildBars(barsEl);
 
@@ -153,6 +162,10 @@
       locName.textContent = loc.name;
       phEl.textContent = loc.ph.toFixed(1);
       phEl.style.color = loc.ph < 4 ? '#c0392b' : loc.ph > 7.4 ? ACCENT : NAVY;
+      phMark.style.left = ((loc.ph - 1) / 8) * 100 + '%';
+      phMark.style.background = loc.ph < 4 ? '#c0392b' : loc.ph > 7.4 ? ACCENT : NAVY;
+      phMark.dataset.label = loc.name + ' · pH ' + loc.ph.toFixed(1);
+      phMark.style.setProperty('--lx', i === 0 ? '-50%' : i === 1 ? '-12%' : '-88%'); // keep the label inside the card at the scale's ends
       paint(barsEl, i);
       whyEl.textContent = loc.why;
     }
@@ -169,6 +182,16 @@
   .get-loc { font-size: var(--ddp-text-lg); font-weight: 700; color: var(--ddp-color-primary); }
   .get-ph { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .get-ph strong { font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .get-phscale { margin: 1.3rem 0.6rem var(--ddp-space-3); }
+  .get-phtrack { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #c0392b 0%, color-mix(in srgb, #c0392b 35%, #fff) 35%, #f2f0ea 75%, color-mix(in srgb, var(--ddp-color-accent) 70%, #fff) 100%); border: 1px solid var(--ddp-color-line); }
+  .get-phmark { position: absolute; top: 50%; left: 10%; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--ddp-color-primary); transform: translate(-50%, -50%); transition: left 0.35s ease, background 0.35s; }
+  .get-phmark::before { content: attr(data-label); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(var(--lx, -50%)); font-family: var(--ddp-font-mono); font-size: 0.68rem; font-weight: 700; color: var(--ddp-color-primary); white-space: nowrap; }
+  .get-phwords { display: flex; justify-content: space-between; font-size: 0.66rem; color: var(--ddp-color-muted); }
+  @media (prefers-reduced-motion: reduce) { .get-phmark { transition: none; } }
+  .get-phlabels { position: relative; height: 1.1rem; margin-top: 0.25rem; }
+  .get-phlabels span { position: absolute; top: 0; font-family: var(--ddp-font-mono); font-size: 0.66rem; color: var(--ddp-color-muted); white-space: nowrap; transform: translateX(-50%); }
+  .get-phlabels span:first-child { transform: none; }
+  .get-phlabels span:last-child { transform: translateX(-100%); }
   .get-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-3); }
   .get-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .get-slabel input { accent-color: var(--ddp-color-accent); }
@@ -181,6 +204,6 @@
   .get-bar-track { height: 9px; border-radius: 999px; background: color-mix(in srgb, var(--ddp-color-line) 60%, #fff); overflow: hidden; }
   .get-bar-fill { height: 100%; width: 18%; border-radius: 999px; transition: width 0.18s ease, background 0.18s, opacity 0.18s; }
   .get-bar-tag { display: block; margin-top: 0.28rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
-  .get-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
-  .get-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .get .get-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .get .get-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

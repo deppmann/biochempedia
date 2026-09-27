@@ -29,7 +29,7 @@
       <span class="cox-d-name" data-name></span>
       <div class="cox-d-row"><span class="cox-d-key">Average C oxidation state</span><span class="cox-d-val" data-ox></span></div>
       <div class="cox-d-row"><span class="cox-d-key">Energy density (full oxidation)</span><span class="cox-d-val" data-kcal></span></div>
-      <div class="cox-d-row"><span class="cox-d-key">Distance from CO₂</span><span class="cox-d-val" data-dist></span></div>
+      <div class="cox-d-row"><span class="cox-d-key">Distance from CO₂ (electrons left)</span><span class="cox-d-val" data-dist></span></div>
       <div class="cox-bar" aria-hidden="true"><span class="cox-bar-fill" data-bar></span></div>
       <p class="cox-note" data-note></p>
     </div>
@@ -45,17 +45,19 @@
 
   type Rung = { name: string; sub: string; ox: number; oxLabel: string; kcal: number; kcalLabel: string; ref: boolean; note: string };
   // Ordered most-reduced (top) → most-oxidized (bottom). ox = average carbon oxidation state.
+  // Acetyl sits ABOVE pyruvate on purpose: by oxidation state it is the more reduced of the two
+  // (0 vs +0.67), because the pyruvate→acetyl-CoA step exports the oxidized carbon as CO₂.
   const RUNGS: Rung[] = [
     { name: 'Methane (CH₄)', sub: 'reference — not a cellular fuel', ox: -4, oxLabel: '−4', kcal: 13.3, kcalLabel: '≈ 13 kcal/g', ref: true,
       note: 'The most reduced carbon possible — every bond is to hydrogen. Shown only as the floor of the scale; cells do not burn methane, but it marks where "fully reduced" lives.' },
-    { name: 'Palmitate (fatty acid)', sub: 'fat — the body’s energy store', ox: -2, oxLabel: '≈ −2', kcal: 9, kcalLabel: '9 kcal/g', ref: false,
-      note: 'A long chain of −CH₂− carbons sitting near −2 on average. This deep reduction is exactly why fat is the densest fuel the body keeps — about 9 kcal/g, more than double sugar.' },
+    { name: 'Palmitate (fatty acid)', sub: 'fat — the body’s energy store', ox: -1.75, oxLabel: '−1.75', kcal: 9, kcalLabel: '9 kcal/g', ref: false,
+      note: 'Fifteen of its sixteen carbons are −CH₂− or −CH₃ carbons at −2 or −3; only the carboxyl carbon (+3) is oxidized, which pulls the average to −1.75. This deep reduction is exactly why fat is the densest fuel the body keeps — about 9 kcal/g, more than double sugar.' },
     { name: 'Glucose (carbohydrate)', sub: 'blood sugar — the fast fuel', ox: 0, oxLabel: '0', kcal: 4, kcalLabel: '4 kcal/g', ref: false,
       note: 'Each carbon already carries an oxygen, so the average oxidation state is right at zero — halfway between fully reduced fat and fully oxidized CO₂. Fewer electrons to give up than fat, hence ~4 kcal/g.' },
+    { name: 'Acetate / Acetyl-CoA', sub: 'the carbon that enters the TCA cycle', ox: 0, oxLabel: '0', kcal: 3.5, kcalLabel: '≈ 3.5 kcal/g', ref: false,
+      note: 'Two carbons whose oxidation states average to zero (one methyl near −3, one carboxyl near +3). This is the universal hand-off point: whatever the fuel, its carbons funnel through here on their way to CO₂. Why does it sit above pyruvate, even though pyruvate is converted into it? Pyruvate dehydrogenase removes pyruvate’s most oxidized carbon as CO₂ (and the electrons as NADH), so the two carbons left behind average 0.' },
     { name: 'Pyruvate', sub: 'glycolysis product', ox: 0.67, oxLabel: '≈ +0.7', kcal: 2.9, kcalLabel: '≈ 2.9 kcal/g', ref: false,
       note: 'Three carbons, already partly oxidized on the way down from glucose. Closer to CO₂ than glucose is, so less energy remains to extract.' },
-    { name: 'Acetate / Acetyl-CoA', sub: 'the carbon that enters the TCA cycle', ox: 0, oxLabel: '0 (avg)', kcal: 3.5, kcalLabel: '≈ 3.5 kcal/g', ref: false,
-      note: 'Two carbons whose oxidation states average to zero (one methyl near −3, one carboxyl near +3). This is the universal hand-off point: whatever the fuel, its carbons funnel through here on their way to CO₂.' },
     { name: 'Carbon dioxide (CO₂)', sub: 'fully oxidized — metabolic ash', ox: 4, oxLabel: '+4', kcal: 0, kcalLabel: '0 kcal/g', ref: false,
       note: 'The most oxidized carbon there is — every bond is to oxygen, no electrons left to surrender. This is where all fuel carbons end up, and the reason it cannot be burned for energy: there is nothing left to take.' },
   ];
@@ -76,7 +78,7 @@
 
     function colorFor(r: Rung): string {
       if (r.ref) return FAINT;
-      if (r.ox <= -2) return ORANGE;   // most reduced cellular fuel
+      if (r.ox <= -1.5) return ORANGE; // most reduced cellular fuel
       if (r.ox < 0.5) return GOLD;     // glucose / acetate
       if (r.ox < 4) return ACCENT;     // pyruvate
       return NAVY;                     // CO2
@@ -93,19 +95,22 @@
       oxEl.textContent = r.oxLabel + ' per carbon';
       kcalEl.textContent = r.kcal > 0 ? r.kcalLabel : 'none — fully oxidized';
       const dist = r.ox - OX_MAX; // negative = below CO2 on the oxidation scale
+      const e = Math.abs(dist);
       distEl.textContent = r.ox >= OX_MAX
-        ? 'at CO₂ — the bottom of the ladder'
-        : `${Math.abs(dist).toFixed(1)} oxidation units below CO₂`;
+        ? 'none — already at CO₂'
+        : `${Number.isInteger(e) ? e : e.toFixed(2).replace(/0$/, '')} e⁻ per carbon still to give`;
       // energy bar: fraction of the full reduced→oxidized span still available
       const frac = (OX_MAX - r.ox) / (OX_MAX - OX_MIN); // 0 at CO2, 1 at methane
       barEl.style.width = `${Math.round(frac * 100)}%`;
       barEl.style.background = colorFor(r);
       noteEl.textContent = r.note;
-      whyEl.textContent = r.ox >= OX_MAX
+      whyEl.textContent = r.ref
+        ? 'Methane marks the floor of the scale: carbon cannot be more reduced than −4. Cells do not burn it, but it shows that the more hydrogen a carbon carries, the more electrons (and energy) it can give up.'
+        : r.ox >= OX_MAX
         ? 'CO₂ is the end of the line: its carbon is maxed out at +4, so there are no electrons left to feed the chain and no ATP left to make. Every fuel below is just a carbon that has not yet fallen this far.'
-        : r.ox <= -2
+        : r.ox <= -1.5
           ? 'This fuel’s carbons sit far above CO₂ — a deep reservoir of electrons. The cell oxidizes them step by step, banking ATP at each handoff. Maximum distance from CO₂ means maximum energy, which is why fat is the body’s long-term store.'
-          : 'A middle rung: partly oxidized already, so some electrons have been spent but more remain. Its energy density tracks exactly how far it still sits above CO₂.';
+          : 'A middle rung: partly oxidized already, so some electrons have been spent but more remain. Its energy density tracks how far its carbons still sit above CO₂.';
     }
 
     RUNGS.forEach((r, i) => {
@@ -117,7 +122,7 @@
       const dot = document.createElement('span');
       dot.className = 'cox-rung-ox';
       dot.style.background = colorFor(r);
-      dot.style.color = '#fff';
+      dot.style.color = colorFor(r) === GOLD || r.ref ? NAVY : '#fff'; // white on gold/grey is unreadable
       dot.textContent = r.oxLabel;
       const txt = document.createElement('span');
       txt.className = 'cox-rung-txt';
@@ -171,7 +176,7 @@
   .cox-d-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-accent); text-align: right; }
   .cox-bar { width: 100%; height: 0.5rem; background: color-mix(in srgb, var(--ddp-color-muted) 22%, transparent); border-radius: 999px; overflow: hidden; }
   .cox-bar-fill { display: block; height: 100%; width: 0%; border-radius: 999px; transition: width 0.18s ease; }
-  .cox-note { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
-  .cox-why { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
-  .cox-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .cox .cox-note { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .cox .cox-why { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cox .cox-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

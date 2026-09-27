@@ -16,22 +16,22 @@
   <svg class="dr-svg" viewBox="0 0 340 230" role="img" aria-label="A semilog dose–response curve of response versus log ligand concentration" data-plot></svg>
 
   <div class="dr-controls">
-    <label class="dr-slabel">Efficacy E<sub>max</sub> <em data-out="emax">100</em>%
+    <label class="dr-slabel"><span>Efficacy E<sub>max</sub> <em data-out="emax">100</em>%</span>
       <input type="range" data-in="emax" min="20" max="100" step="5" value="100" />
     </label>
-    <label class="dr-slabel">Potency (log EC₅₀) <em data-out="ec50">0</em>
+    <label class="dr-slabel"><span>Potency: log EC₅₀ <em data-out="ec50">0</em> <small>(left = more potent)</small></span>
       <input type="range" data-in="ec50" min="-2" max="2" step="0.25" value="0" />
     </label>
-    <label class="dr-slabel">Hill steepness n <em data-out="hill">1</em>
+    <label class="dr-slabel"><span>Hill steepness n <em data-out="hill">1</em></span>
       <input type="range" data-in="hill" min="1" max="4" step="0.5" value="1" />
     </label>
-    <label class="dr-slabel">Competitive antagonist [B]/K<sub>b</sub> <em data-out="ant">0</em>
+    <label class="dr-slabel"><span>Competitive antagonist [B]/K<sub>b</sub> <em data-out="ant">0</em></span>
       <input type="range" data-in="ant" min="0" max="30" step="1" value="0" />
     </label>
   </div>
 
   <dl class="dr-readout">
-    <div><dt>Apparent EC₅₀</dt><dd data-r-ec50>1.0</dd></div>
+    <div><dt>Apparent EC₅₀ (relative units)</dt><dd data-r-ec50>1.0</dd></div>
     <div><dt>Ceiling response</dt><dd data-r-emax>100%</dd></div>
   </dl>
   <p class="dr-why" data-why role="status">The dose that gives half-maximal response is the EC₅₀ — the lower it is, the more potent the drug. Efficacy is how high the curve can reach.</p>
@@ -42,6 +42,8 @@
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sup = (n: number) => String(n).split('').map((c) => SUP[c] ?? c).join('');
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -55,7 +57,7 @@
     const emaxOut = o('[data-out="emax"]'), ec50Out = o('[data-out="ec50"]'), hillOut = o('[data-out="hill"]'), antOut = o('[data-out="ant"]');
     const rEc50 = o('[data-r-ec50]'), rEmax = o('[data-r-emax]'), why = o('[data-why]');
 
-    const X0 = 40, X1 = 326, Y0 = 16, Y1 = 196, LMIN = -3, LMAX = 3; // x = log10 dose
+    const X0 = 40, X1 = 326, Y0 = 18, Y1 = 192, LMIN = -3, LMAX = 3; // x = log10 dose
     const px = (lx: number) => X0 + ((lx - LMIN) / (LMAX - LMIN)) * (X1 - X0);
     const py = (r: number) => Y1 - (r / 100) * (Y1 - Y0);
     function curve(emax: number, logEc50: number, n: number) {
@@ -83,21 +85,35 @@
       plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
       for (const r of [50, 100]) {
         plot.appendChild(el('line', { x1: X0, y1: py(r), x2: X1, y2: py(r), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
-        const t = el('text', { x: X0 - 4, y: py(r) + 3, 'text-anchor': 'end', 'font-size': 8, fill: INK }); t.textContent = r + '%'; plot.appendChild(t);
+        const t = el('text', { x: X0 - 4, y: py(r) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = r + '%'; plot.appendChild(t);
       }
       for (const lx of [-3, -2, -1, 0, 1, 2, 3]) {
         plot.appendChild(el('line', { x1: px(lx), y1: Y1, x2: px(lx), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
-        const t = el('text', { x: px(lx), y: Y1 + 13, 'text-anchor': 'middle', 'font-size': 7.5, fill: INK }); t.textContent = '10' + (lx < 0 ? '⁻' + (-lx) : lx === 0 ? '⁰' : lx); plot.appendChild(t);
+        const t = el('text', { x: px(lx), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); t.textContent = '10' + sup(lx); plot.appendChild(t);
       }
-      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 26, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); xl.textContent = 'log [ligand]'; plot.appendChild(xl);
-      const yl = el('text', { x: X0 - 2, y: Y0 - 5, 'text-anchor': 'start', 'font-size': 9, fill: INK }); yl.textContent = 'response'; plot.appendChild(yl);
-      // reference (no antagonist, full Emax slider) faint, and current
-      plot.appendChild(el('path', { d: curve(emax, baseLog, n), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 28, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = '[agonist] (relative units, log scale)'; plot.appendChild(xl);
+      const yl = el('text', { x: X0 - 2, y: Y0 - 5, 'text-anchor': 'start', 'font-size': 10, fill: INK }); yl.textContent = 'response (% of maximum)'; plot.appendChild(yl);
+      // Dashed ghost = what the current curve is being compared with. With an antagonist
+      // present it is the same agonist alone (so the rightward shift is visible); otherwise
+      // it is a fixed reference drug (Emax 100%, EC50 1, n 1) so potency, efficacy and
+      // steepness changes all read as a displacement from it.
+      const ghost = ant > 0 ? curve(emax, baseLog, n) : curve(100, 0, 1);
+      const ghostLabel = ant > 0 ? 'agonist alone' : 'reference drug';
+      plot.appendChild(el('path', { d: ghost, fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
       plot.appendChild(el('path', { d: curve(emax, appLog, n), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // legend (top-left, clear of the curve's plateau)
+      // Legend goes top-left unless a left-shifted (very potent) curve occupies that corner.
+      const leftShifted = Math.min(appLog, ant > 0 ? baseLog : 0) < -0.6;
+      const LX = leftShifted ? X1 - 112 : X0 + 8, LY = leftShifted ? Y1 - 26 : Y0 + 12;
+      plot.appendChild(el('line', { x1: LX, y1: LY, x2: LX + 16, y2: LY, stroke: ACCENT, 'stroke-width': 2.6 }));
+      const l1 = el('text', { x: LX + 20, y: LY + 3, 'font-size': 9, fill: INK }); l1.textContent = ant > 0 ? 'agonist + antagonist' : 'your drug'; plot.appendChild(l1);
+      plot.appendChild(el('line', { x1: LX, y1: LY + 13, x2: LX + 16, y2: LY + 13, stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      const l2 = el('text', { x: LX + 20, y: LY + 16, 'font-size': 9, fill: INK }); l2.textContent = ghostLabel; plot.appendChild(l2);
       // mark EC50 (half of THIS curve's emax) on the current curve
       if (appLog >= LMIN && appLog <= LMAX) {
         plot.appendChild(el('line', { x1: px(appLog), y1: py(emax / 2), x2: px(appLog), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
         plot.appendChild(el('circle', { cx: px(appLog), cy: py(emax / 2), r: 4, fill: ORANGE }));
+        const ecT = el('text', { x: px(appLog) + 6, y: py(emax / 2) + 12, 'font-size': 9, 'font-weight': 700, fill: ORANGE }); ecT.textContent = 'EC₅₀'; plot.appendChild(ecT);
       }
       rEc50.textContent = Math.pow(10, appLog).toPrecision(2);
       rEmax.textContent = emax + '%';
@@ -116,9 +132,10 @@
   .dr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
   .dr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
   .dr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .dr-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
   .dr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .dr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dr-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
   .dr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
   .dr-slabel input { accent-color: var(--ddp-color-accent); }
   .dr-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
