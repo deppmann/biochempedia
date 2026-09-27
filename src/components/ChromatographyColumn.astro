@@ -19,10 +19,10 @@
     <button type="button" data-col="hic">Hydrophobic (HIC)</button>
   </div>
 
-  <svg class="chr-svg" viewBox="0 0 460 120" role="img" data-svg></svg>
+  <svg class="chr-svg" viewBox="0 0 460 136" role="img" aria-label="Elution order of four proteins" data-svg></svg>
 
   <p class="chr-principle" data-principle role="status"></p>
-  <p class="chr-insight" data-insight role="status"></p>
+  <p class="chr-insight" data-insight></p>
 
   <div class="chr-legend" data-legend></div>
 
@@ -30,36 +30,48 @@
 </figure>
 
 <script>
-  type Prot = { id: string; name: string; mw: number; charge: number; phob: number; tag: boolean; color: string };
+  type Prot = { id: string; name: string; mw: number; charge: number; phob: number; tag: boolean; color: string; ink: string };
   const PROTS: Prot[] = [
-    { id: 'P1', name: 'Large enzyme (250 kDa, neutral)', mw: 250, charge: 0, phob: 2, tag: false, color: '#232d4b' },
-    { id: 'P2', name: 'Small acidic protein (15 kDa, −)', mw: 15, charge: -1, phob: 1, tag: false, color: '#0e7c86' },
-    { id: 'P3', name: 'Basic protein (40 kDa, +)', mw: 40, charge: 1, phob: 4, tag: false, color: '#e57200' },
-    { id: 'P4', name: 'His-tagged target (60 kDa, hydrophobic, TAG)', mw: 60, charge: 0, phob: 7, tag: true, color: '#D4A843' },
+    { id: 'P1', name: 'Large enzyme (250 kDa, neutral)', mw: 250, charge: 0, phob: 2, tag: false, color: '#232d4b', ink: '#fff' },
+    { id: 'P2', name: 'Small acidic protein (15 kDa, −)', mw: 15, charge: -1, phob: 1, tag: false, color: '#0e7c86', ink: '#fff' },
+    { id: 'P3', name: 'Basic protein (40 kDa, +)', mw: 40, charge: 1, phob: 4, tag: false, color: '#e57200', ink: '#232d4b' },
+    { id: 'P4', name: 'His-tagged target (60 kDa, hydrophobic, TAG)', mw: 60, charge: 0, phob: 7, tag: true, color: '#D4A843', ink: '#232d4b' },
   ];
-  type Col = { name: string; order: (p: Prot[]) => Prot[]; principle: string; insight: string };
+  // `prop` is the property this column actually sorts on, printed under each tube so the rule is visible.
+  // `bound(p)` false = washes through unbound in the flow-through; true = sticks and is eluted later.
+  type Col = { name: string; order: (p: Prot[]) => Prot[]; prop: (p: Prot) => string; bound?: (p: Prot) => boolean; elute?: string; note?: string; principle: string; insight: string };
   const COLS: Record<string, Col> = {
     sec: {
       name: 'Size-exclusion (gel filtration)',
       order: (p) => [...p].sort((a, b) => b.mw - a.mw),
+      prop: (p) => `${p.mw} kDa`,
+      note: 'nothing binds: size alone sets the order',
       principle: 'Separates by size. The porous beads are a maze only small proteins can enter; big ones are excluded, take the short path around, and elute first.',
       insight: 'The counterintuitive one: the LARGEST protein comes off first, the smallest last — the opposite of what most students guess.',
     },
     iex: {
       name: 'Ion-exchange (negatively-charged cation exchanger)',
       order: (p) => [...p].sort((a, b) => a.charge - b.charge),
-      principle: 'Separates by charge. A negatively-charged resin grips positively-charged proteins; negatives are repelled and rush through, and bound proteins are then pried off with a rising salt gradient.',
-      insight: 'Acidic (−) protein flows through first; the basic (+) protein clings hardest and elutes last as salt climbs.',
+      prop: (p) => (p.charge > 0 ? 'net +' : p.charge < 0 ? 'net −' : 'neutral'),
+      bound: (p) => p.charge > 0,
+      elute: 'bound · eluted by salt',
+      principle: 'Separates by charge. A negatively-charged resin grips positively-charged proteins; negative and neutral proteins are not held and wash through, and bound proteins are then pried off with a rising salt gradient.',
+      insight: 'The acidic (−) protein is repelled and the neutral ones are not held, so all three wash through; only the basic (+) protein clings, and it elutes last as the salt climbs.',
     },
     aff: {
       name: 'Affinity (Ni-NTA for the His-tag)',
       order: (p) => [...p.filter((x) => !x.tag), ...p.filter((x) => x.tag)],
+      prop: (p) => (p.tag ? 'His-tag' : 'no tag'),
+      bound: (p) => p.tag,
+      elute: 'bound · eluted by imidazole',
       principle: 'Separates by a single specific binding interaction. Only the protein bearing the matching tag (or ligand) sticks; everything else washes straight through.',
       insight: 'One step, near-complete purity: the three untagged proteins flow through together and the tagged target elutes alone — the highest-resolution method here.',
     },
     hic: {
       name: 'Hydrophobic interaction (HIC)',
       order: (p) => [...p].sort((a, b) => a.phob - b.phob),
+      prop: (p) => (p.phob >= 6 ? 'very greasy' : p.phob >= 3 ? 'greasy' : 'polar'),
+      note: 'all bind in high salt, then come off one by one as salt falls',
       principle: 'Separates by surface hydrophobicity. High salt drives hydrophobic patches onto the resin; lowering the salt releases them, least-sticky first.',
       insight: 'The most hydrophobic protein (here the tagged target) binds tightest and elutes last.',
     },
@@ -71,23 +83,10 @@
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
     return e;
   }
-  function draw(svg: SVGElement, ordered: Prot[]) {
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
-    const n = ordered.length, w = 460 / n;
-    const t0 = el('text', { x: 12, y: 16, fill: '#b9b9c2', 'font-size': 10 }); t0.textContent = 'Elution order — fractions collected early → late'; svg.appendChild(t0);
-    ordered.forEach((p, i) => {
-      const cx = i * w + w / 2;
-      // test tube
-      svg.appendChild(el('rect', { x: cx - 16, y: 30, width: 32, height: 56, rx: 4, fill: '#fff', stroke: '#cfcfd6', 'stroke-width': 1.5 }));
-      // protein band
-      svg.appendChild(el('rect', { x: cx - 13, y: 58, width: 26, height: 25, rx: 2, fill: p.color, opacity: 0.85 }));
-      const lab = el('text', { x: cx, y: 74, 'text-anchor': 'middle', fill: '#fff', 'font-size': 11, 'font-weight': 700 }); lab.textContent = p.id; svg.appendChild(lab);
-      const ord = el('text', { x: cx, y: 104, 'text-anchor': 'middle', fill: '#4b4b55', 'font-size': 10 }); ord.textContent = `${i + 1}`; svg.appendChild(ord);
-    });
-  }
+  const W = 460;
 
   document.querySelectorAll<HTMLElement>('[data-chrom]').forEach((root) => {
-    const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const svg = root.querySelector('[data-svg]') as unknown as SVGSVGElement;
     const principleEl = root.querySelector<HTMLElement>('[data-principle]')!;
     const insightEl = root.querySelector<HTMLElement>('[data-insight]')!;
     const legend = root.querySelector<HTMLElement>('[data-legend]')!;
@@ -97,36 +96,104 @@
       chip.innerHTML = `<b>${p.id}</b> ${p.name}`;
       legend.appendChild(chip);
     });
+
+    // Static scaffold + one persistent group per protein, so switching columns SLIDES each tube
+    // to its new slot (CSS transition on transform; instant under prefers-reduced-motion).
+    const n = PROTS.length, slot = W / n;
+    // SVG text never below ~9 px on screen (the strip is ~300 px wide on phones)
+    let k = 1;
+    const fs = (n: number) => String(Math.max(n, 9 / k));
+    const sized: [SVGElement, number][] = [];
+    const sz = (e: SVGElement, n: number) => { sized.push([e, n]); e.setAttribute('font-size', fs(n)); return e; };
+    const title = sz(el('text', { x: 10, y: 15, fill: '#6b6b6b' }), 10); title.textContent = 'Elution order: fractions collected early → late';
+    svg.appendChild(title);
+    const bracketLayer = el('g', {}); svg.appendChild(bracketLayer);
+    const tubes = new Map<string, { g: SVGGElement; prop: SVGTextElement; ord: SVGTextElement }>();
+    PROTS.forEach((p) => {
+      const g = el('g', { class: 'chr-tube' }) as SVGGElement;
+      g.appendChild(el('rect', { x: -16, y: 38, width: 32, height: 52, rx: 4, fill: '#fff', stroke: '#cfcfd6', 'stroke-width': 1.5 }));
+      g.appendChild(el('rect', { x: -13, y: 62, width: 26, height: 25, rx: 2, fill: p.color, opacity: 0.9 }));
+      const lab = sz(el('text', { x: 0, y: 79, 'text-anchor': 'middle', fill: p.ink, 'font-weight': 700 }), 11); lab.textContent = p.id; g.appendChild(lab);
+      const prop = sz(el('text', { x: 0, y: 104, 'text-anchor': 'middle', fill: '#232d4b', 'font-weight': 600 }), 10) as SVGTextElement; g.appendChild(prop);
+      const ord = sz(el('text', { x: 0, y: 33, 'text-anchor': 'middle', fill: '#6b6b6b' }), 9) as SVGTextElement; g.appendChild(ord);
+      svg.appendChild(g);
+      tubes.set(p.id, { g, prop, ord });
+    });
+
+    function brackets(c: Col, ordered: Prot[]) {
+      bracketLayer.replaceChildren();
+      if (!c.bound) {
+        const t = el('text', { x: W / 2, y: 126, 'text-anchor': 'middle', fill: '#4b4b55', 'font-size': fs(9.5) }); t.textContent = c.note ?? '';
+        bracketLayer.appendChild(t);
+        return;
+      }
+      const groups: { label: string; from: number; to: number }[] = [];
+      ordered.forEach((p, i) => {
+        // short labels when the strip is phone-narrow, so the two bracket captions never collide
+        const label = c.bound!(p) ? (k < 0.8 ? 'bound → eluted' : c.elute!) : (k < 0.8 ? 'flow-through' : 'flow-through · not bound');
+        const last = groups[groups.length - 1];
+        if (last && last.label === label) last.to = i; else groups.push({ label, from: i, to: i });
+      });
+      for (const gr of groups) {
+        const x1 = gr.from * slot + 10, x2 = (gr.to + 1) * slot - 10;
+        bracketLayer.appendChild(el('path', { d: `M${x1} 111 v4 H${x2} v-4`, fill: 'none', stroke: '#9a9aa3', 'stroke-width': 1 }));
+        // a one-tube group at the right edge is right-aligned so its label cannot run off the strip
+        const edge = gr.to === n - 1 && gr.from === gr.to;
+        const t = el('text', { x: edge ? x2 : (x1 + x2) / 2, y: 127, 'text-anchor': edge ? 'end' : 'middle', fill: '#4b4b55', 'font-size': fs(9.5) }); t.textContent = gr.label;
+        bracketLayer.appendChild(t);
+      }
+    }
+
+    let current = 'sec';
     function select(col: string) {
+      current = col;
       const c = COLS[col];
       const ordered = c.order(PROTS);
+      ordered.forEach((p, i) => {
+        const t = tubes.get(p.id)!;
+        t.g.style.transform = `translate(${i * slot + slot / 2}px, 0px)`;
+        t.prop.textContent = c.prop(p);
+        t.ord.textContent = `#${i + 1}`;
+      });
+      brackets(c, ordered);
       principleEl.textContent = c.principle;
       insightEl.textContent = c.insight;
-      draw(svg, ordered);
+      svg.setAttribute('aria-label', `${c.name}: elution order ${ordered.map((p, i) => `${i + 1}. ${p.id} (${c.prop(p)})`).join(', ')}.`);
     }
-    root.querySelectorAll<HTMLButtonElement>('[data-col]').forEach((b) =>
+    root.querySelectorAll<HTMLButtonElement>('[data-col]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-col') === 'sec'));
       b.addEventListener('click', () => {
         root.querySelectorAll<HTMLButtonElement>('[data-col]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
         select(b.getAttribute('data-col')!);
-      }));
+      });
+    });
     select('sec');
+    new ResizeObserver(() => {
+      k = (svg.getBoundingClientRect().width || W) / W;
+      for (const [e, n0] of sized) e.setAttribute('font-size', fs(n0));
+      brackets(COLS[current], COLS[current].order(PROTS));
+    }).observe(svg);
   });
 </script>
 
 <style is:global>
+  /* Selectors are anchored under .chr so the lesson's `.prose-col p` rule cannot override them. */
   .chr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
-  .chr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
-  .chr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .chr-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
-  .chr-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
-  .chr-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
-  .chr-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
-  .chr-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
-  .chr-principle { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
-  .chr-insight { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 2.6em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
-  .chr-legend { display: grid; grid-template-columns: 1fr; gap: 0.3rem; }
-  @media (min-width: 560px) { .chr-legend { grid-template-columns: repeat(2, 1fr); } }
-  .chr-leg { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 4px solid var(--chr-c, #888); padding-left: 0.5rem; }
-  .chr-leg b { color: var(--chr-c, var(--ddp-color-primary)); font-family: var(--ddp-font-mono); }
-  .chr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .chr .chr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .chr .chr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .chr .chr-tabs { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: var(--ddp-space-2); }
+  .chr .chr-tabs button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.28rem 0.6rem; cursor: pointer; }
+  .chr .chr-tabs button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .chr .chr-tabs button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .chr .chr-tabs button[aria-pressed='true'] { background: color-mix(in srgb, var(--ddp-color-accent) 14%, #fff); color: var(--ddp-color-primary); font-weight: 700; border-color: var(--ddp-color-accent); }
+  .chr .chr-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .chr .chr-tube { transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1); }
+  @media (prefers-reduced-motion: reduce) { .chr .chr-tube { transition: none; } }
+  .chr .chr-principle { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .chr .chr-insight { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); line-height: 1.5; min-height: 2.6em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .chr .chr-legend { display: grid; grid-template-columns: 1fr; gap: 0.3rem; }
+  @media (min-width: 560px) { .chr .chr-legend { grid-template-columns: repeat(2, 1fr); } }
+  .chr .chr-leg { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 4px solid var(--chr-c, #888); padding-left: 0.5rem; }
+  .chr .chr-leg b { color: var(--ddp-color-primary); font-family: var(--ddp-font-mono); }
+  .chr .chr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

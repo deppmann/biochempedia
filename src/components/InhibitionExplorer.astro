@@ -20,7 +20,7 @@
     <button type="button" data-type="uncompetitive" aria-pressed="false">Uncompetitive</button>
   </div>
 
-  <label class="inh-slabel">Inhibitor amount [I]/K<sub>i</sub> <em data-i-out>0</em>
+  <label class="inh-slabel"><span>Inhibitor amount [I]/K<sub>i</sub> <em data-i-out>0</em> <span class="inh-hint" data-hint>(pick an inhibitor type first)</span></span>
     <input type="range" data-in="i" min="0" max="5" step="0.5" value="0" disabled />
   </label>
 
@@ -35,6 +35,8 @@
     </section>
   </div>
 
+  <p class="inh-key" aria-hidden="true"><span class="inh-key-solid"></span> with inhibitor <span class="inh-key-dash"></span> no inhibitor (baseline)</p>
+
   <dl class="inh-readout">
     <div><dt>Apparent K<sub>m</sub></dt><dd data-r-km>2.0</dd></div>
     <div><dt>Apparent V<sub>max</sub></dt><dd data-r-vmax>100</dd></div>
@@ -46,7 +48,7 @@
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', ORANGE_TXT = '#b35500', INK = '#4b4b55', FAINT = '#b9b9c2';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -59,10 +61,17 @@
     const lb = root.querySelector<SVGSVGElement>('[data-lb]')!;
     const slider = root.querySelector<HTMLInputElement>('[data-in="i"]')!;
     const iOut = root.querySelector<HTMLElement>('[data-i-out]')!;
+    const hint = root.querySelector<HTMLElement>('[data-hint]')!;
     const rKm = root.querySelector<HTMLElement>('[data-r-km]')!;
     const rVmax = root.querySelector<HTMLElement>('[data-r-vmax]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
     let type: 'none' | 'competitive' | 'noncompetitive' | 'uncompetitive' = 'none';
+    // SVG text never below ~9.5 px on screen (the plots render ~300 px wide on phones)
+    let fs = (n: number) => n;
+    function text(svg: SVGElement, x: number, y: number, str: string, size: number, fill: string, anchor = 'middle') {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': fs(size), fill });
+      t.textContent = str; svg.appendChild(t); return t;
+    }
 
     function apparent() {
       const r = parseFloat(slider.value);
@@ -79,65 +88,105 @@
     const my = (v: number) => Y1 - (v / VTOP) * (Y1 - Y0);
     function curve(km: number, vmax: number) {
       let d = '';
-      for (let s = 0; s <= SMAX; s += 0.4) { const v = (vmax * s) / (km + s); d += (s === 0 ? 'M' : 'L') + mx(s).toFixed(1) + ' ' + my(v).toFixed(1) + ' '; }
+      for (let s = 0; s <= SMAX + 1e-9; s += 0.2) { const v = (vmax * s) / (km + s); d += (s === 0 ? 'M' : 'L') + mx(s).toFixed(1) + ' ' + my(v).toFixed(1) + ' '; }
       return d.trim();
     }
-    function drawMM(km: number, vmax: number) {
+    function drawMM(km: number, vmax: number, active: boolean) {
       mm.replaceChildren();
       mm.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
       mm.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
-      const yl = el('text', { x: X0 - 6, y: Y0 + 8, 'text-anchor': 'end', 'font-size': 9, fill: INK }); yl.textContent = 'v'; mm.appendChild(yl);
-      const xl = el('text', { x: X1, y: Y1 + 16, 'text-anchor': 'end', 'font-size': 9, fill: INK }); xl.textContent = '[S]'; mm.appendChild(xl);
+      text(mm, X0 - 6, Y0 + 8, 'v', 9, INK, 'end');
+      text(mm, X1, Y1 + 16, '[S]', 9, INK, 'end');
       // Vmax asymptotes
       mm.appendChild(el('line', { x1: X0, y1: my(VMAX), x2: X1, y2: my(VMAX), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
-      if (type !== 'none' && parseFloat(slider.value) > 0) mm.appendChild(el('line', { x1: X0, y1: my(vmax), x2: X1, y2: my(vmax), stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '2 3', opacity: 0.6 }));
-      const vlab = el('text', { x: X1 - 2, y: my(VMAX) - 3, 'text-anchor': 'end', 'font-size': 8, fill: INK }); vlab.textContent = 'Vmax'; mm.appendChild(vlab);
+      text(mm, X1 - 2, my(VMAX) - 3, 'Vmax', 8, INK, 'end');
+      if (active && vmax < VMAX - 0.5) {
+        mm.appendChild(el('line', { x1: X0, y1: my(vmax), x2: X1, y2: my(vmax), stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '2 3', opacity: 0.8 }));
+        text(mm, X1 - 2, my(vmax) - 3, 'new Vmax', 8, ORANGE_TXT, 'end');
+      }
       // baseline (faint) + current
       mm.appendChild(el('path', { d: curve(KM, VMAX), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
       mm.appendChild(el('path', { d: curve(km, vmax), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // Km marker on the current curve: the [S] that gives half of ITS Vmax
+      if (km <= SMAX) {
+        mm.appendChild(el('line', { x1: mx(km), y1: my(vmax / 2), x2: mx(km), y2: Y1, stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+        mm.appendChild(el('line', { x1: X0, y1: my(vmax / 2), x2: mx(km), y2: my(vmax / 2), stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '3 3', opacity: 0.6 }));
+        mm.appendChild(el('circle', { cx: mx(km), cy: my(vmax / 2), r: 3.2, fill: ACCENT }));
+        text(mm, mx(km), Y1 + 11, 'Km', 8, ACCENT);
+        text(mm, X0 - 4, my(vmax / 2) + 3, '½Vmax', 7.5, ACCENT, 'end');
+      }
     }
 
     // ---- Lineweaver–Burk panel ----
-    const LX0 = 52, LX1 = 304, LY0 = 18, LY1 = 200, RXMIN = -0.6, RXMAX = 1.0, RYMAX = 0.16;
+    // The x-range reaches far enough left to show the uncompetitive x-intercept at the default [I]/Ki.
+    const LX0 = 14, LX1 = 304, LY0 = 18, LY1 = 196, RXMIN = -1.6, RXMAX = 1.0, RYMIN = -0.012, RYMAX = 0.16;
     const lx = (x: number) => LX0 + ((x - RXMIN) / (RXMAX - RXMIN)) * (LX1 - LX0);
-    const ly = (y: number) => LY1 - (y / RYMAX) * (LY1 - LY0);
-    function lbLine(km: number, vmax: number, color: string, w: number, dash?: string) {
-      // 1/v = (km/vmax)(1/[S]) + 1/vmax  → y = slope*x + b
-      const slope = km / vmax, b = 1 / vmax;
-      const a: Record<string, string | number> = { x1: lx(RXMIN), y1: ly(slope * RXMIN + b), x2: lx(RXMAX), y2: ly(slope * RXMAX + b), stroke: color, 'stroke-width': w };
-      if (dash) a['stroke-dasharray'] = dash;
-      return el('line', a);
+    const ly = (y: number) => LY1 - ((y - RYMIN) / (RYMAX - RYMIN)) * (LY1 - LY0);
+    // Draw 1/v = (Km/Vmax)(1/[S]) + 1/Vmax: solid where data would be (1/[S] > 0), dashed where the
+    // line is extrapolated back to its x-intercept (−1/Km). Clipped to the plot window.
+    function lbLine(km: number, vmax: number, color: string, w: number, baseline: boolean) {
+      const slope = km / vmax, b = 1 / vmax, xint = -1 / km;
+      const g = el('g', {});
+      const seg = (xa: number, xb: number, dash?: string) => {
+        // clip against the top of the window
+        const xTop = (RYMAX - b) / slope;
+        xb = Math.min(xb, xTop);
+        if (xb <= xa) return;
+        const a: Record<string, string | number> = { x1: lx(xa), y1: ly(slope * xa + b), x2: lx(xb), y2: ly(slope * xb + b), stroke: color, 'stroke-width': w, 'stroke-linecap': 'round' };
+        if (dash) a['stroke-dasharray'] = dash;
+        g.appendChild(el('line', a));
+      };
+      if (baseline) { seg(Math.max(xint, RXMIN), RXMAX, '4 3'); return g; }
+      seg(Math.max(xint, RXMIN), 0, '3 3');
+      seg(0, RXMAX);
+      return g;
     }
     function drawLB(km: number, vmax: number) {
       lb.replaceChildren();
       // axes (x-axis at y=0, y-axis at x=0)
-      lb.appendChild(el('line', { x1: lx(0), y1: LY0, x2: lx(0), y2: LY1 + 6, stroke: INK, 'stroke-width': 1 }));
+      lb.appendChild(el('line', { x1: lx(0), y1: LY0, x2: lx(0), y2: LY1, stroke: INK, 'stroke-width': 1 }));
       lb.appendChild(el('line', { x1: LX0, y1: ly(0), x2: LX1, y2: ly(0), stroke: INK, 'stroke-width': 1 }));
-      const yl = el('text', { x: lx(0) + 4, y: LY0 + 8, 'font-size': 9, fill: INK }); yl.textContent = '1/v'; lb.appendChild(yl);
-      const xl = el('text', { x: LX1, y: ly(0) + 14, 'text-anchor': 'end', 'font-size': 9, fill: INK }); xl.textContent = '1/[S]'; lb.appendChild(xl);
+      text(lb, lx(0) + 4, LY0 + 8, '1/v', 9, INK, 'start');
+      text(lb, LX1, ly(0) + 16, '1/[S]', 9, INK, 'end');
       // baseline (faint) + current
-      lb.appendChild(lbLine(KM, VMAX, FAINT, 1.8, '4 3'));
-      lb.appendChild(lbLine(km, vmax, ACCENT, 2.6));
-      // mark intercepts of current line
+      lb.appendChild(lbLine(KM, VMAX, FAINT, 1.8, true));
+      lb.appendChild(lbLine(km, vmax, ACCENT, 2.6, false));
+      // label the intercepts of the current line
       const b = 1 / vmax, xint = -1 / km;
-      lb.appendChild(el('circle', { cx: lx(0), cy: ly(b), r: 3, fill: ACCENT }));
-      if (xint >= RXMIN) lb.appendChild(el('circle', { cx: lx(xint), cy: ly(0), r: 3, fill: ACCENT }));
+      lb.appendChild(el('circle', { cx: lx(0), cy: ly(b), r: 3.2, fill: ACCENT }));
+      text(lb, lx(0) - 5, ly(b) - 5, '1/Vmax', 8, ACCENT, 'end');
+      if (xint >= RXMIN) {
+        lb.appendChild(el('circle', { cx: lx(xint), cy: ly(0), r: 3.2, fill: ACCENT }));
+        text(lb, lx(xint), ly(0) + 14, '−1/Km', 8, ACCENT);
+      } else {
+        text(lb, LX0 + 2, ly(0) + 14, '← −1/Km off scale', 8, ACCENT, 'start');
+      }
+    }
+
+    function fold(now: number, base: number) {
+      const r = now / base;
+      if (Math.abs(r - 1) < 0.01) return 'unchanged';
+      return r > 1 ? `↑ ${r.toFixed(1)}× higher` : `↓ ${(1 / r).toFixed(1)}× lower`;
     }
 
     function render() {
       const r = parseFloat(slider.value);
       iOut.textContent = r.toFixed(1);
+      hint.hidden = type !== 'none';
       const { km, vmax } = apparent();
-      drawMM(km, vmax); drawLB(km, vmax);
-      rKm.textContent = km.toFixed(1); rVmax.textContent = Math.round(vmax).toString();
       const active = type !== 'none' && r > 0;
+      const w = mm.getBoundingClientRect().width || 320;
+      fs = (n: number) => Math.max(n, 9.5 / (w / 320));
+      drawMM(km, vmax, active); drawLB(km, vmax);
+      rKm.innerHTML = `${km.toFixed(1)} <small>${fold(km, KM)}</small>`;
+      rVmax.innerHTML = `${Math.round(vmax)} <small>${fold(vmax, VMAX)}</small>`;
       why.textContent = !active
-        ? 'No inhibitor: the baseline curve (dashed) and the current curve coincide. Add an inhibitor and watch which intercept moves.'
+        ? 'No inhibitor: the current curve (solid) sits on top of the baseline (dashed). Pick an inhibitor type, then drag [I]/Ki and watch which intercept moves.'
         : type === 'competitive'
-          ? 'Competitive: the inhibitor competes for the active site, so more substrate overcomes it — Vmax is unchanged but apparent Km rises. On the double-reciprocal plot the lines share a y-intercept (1/Vmax) and pivot there.'
+          ? 'Competitive: the inhibitor competes for the active site, so enough substrate overcomes it. Vmax is unchanged but the apparent Km rises. On the double-reciprocal plot the lines share a y-intercept (1/Vmax) and pivot there.'
         : type === 'noncompetitive'
-          ? 'Noncompetitive: the inhibitor binds away from the active site, so substrate cannot outcompete it — Vmax falls while Km is unchanged. The lines share an x-intercept (−1/Km) and pivot there.'
-          : 'Uncompetitive: the inhibitor binds only the enzyme–substrate complex, lowering both Vmax and Km by the same factor. The lines stay parallel (same slope), shifted up.';
+          ? 'Noncompetitive: the inhibitor binds away from the active site, so substrate cannot outcompete it. Vmax falls while Km is unchanged. The lines share an x-intercept (−1/Km) and pivot there.'
+          : 'Uncompetitive: the inhibitor binds only the enzyme–substrate complex, lowering Vmax and Km by the same factor. The slope (Km/Vmax) is unchanged, so the lines stay parallel, shifted up.';
     }
 
     root.querySelectorAll<HTMLButtonElement>('[data-type]').forEach((b) =>
@@ -150,6 +199,7 @@
         render();
       }));
     slider.addEventListener('input', render);
+    new ResizeObserver(() => render()).observe(mm);
     render();
   });
 </script>
@@ -174,6 +224,11 @@
   .inh-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .inh-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .inh-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
-  .inh-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .inh-readout dd :global(small) { font-family: var(--ddp-font-sans); font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-accent); margin-left: 0.25rem; }
+  .inh-hint { color: var(--ddp-color-muted); font-style: italic; }
+  .inh-key { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; justify-content: center; margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .inh-key-solid, .inh-key-dash { display: inline-block; width: 1.4rem; height: 0; border-top: 2.5px solid #0e7c86; }
+  .inh-key-dash { border-top: 2px dashed #b9b9c2; margin-left: 0.6rem; }
+  .inh-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); line-height: 1.5; min-height: 4.5em; }
   .inh-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

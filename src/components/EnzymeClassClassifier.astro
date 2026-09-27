@@ -19,7 +19,7 @@
   <p class="ecc-fb" data-fb role="status">Pick the class. The trick is to ignore the enzyme's name and ask what happens to the chemical bond.</p>
 
   <div class="ecc-bar">
-    <span class="ecc-score" data-score>0 / 0 correct</span>
+    <span class="ecc-score" data-score>Reaction 1 of 9 · 0 correct so far</span>
     <button type="button" data-next disabled>Next reaction ›</button>
   </div>
 
@@ -48,6 +48,10 @@
     const scoreEl = root.querySelector<HTMLElement>('[data-score]')!;
     const nextB = root.querySelector<HTMLButtonElement>('[data-next]')!;
     let idx = 0, asked = 0, correct = 0, answered = false;
+    const NEXT_LABEL = 'Next reaction ›';
+    function paintScore() {
+      scoreEl.textContent = `Reaction ${idx + 1} of ${QS.length} · ${correct} of ${asked} correct`;
+    }
 
     CLASSES.forEach((c) => {
       const b = document.createElement('button');
@@ -65,6 +69,8 @@
       fbEl.textContent = 'Pick the class. The trick is to ignore the enzyme’s name and ask what happens to the chemical bond.';
       fbEl.className = 'ecc-fb';
       nextB.disabled = true;
+      nextB.textContent = idx === QS.length - 1 ? 'Finish ›' : NEXT_LABEL;
+      paintScore();
     }
     function choose(c: string, b: HTMLButtonElement) {
       if (answered) return;
@@ -76,32 +82,50 @@
       btns.forEach((x) => { if (x.getAttribute('data-class') === q.answer) x.classList.add('is-right'); x.disabled = true; });
       fbEl.textContent = (right ? '✓ Correct. ' : `✗ It is ${q.answer}. `) + q.why;
       fbEl.className = 'ecc-fb ' + (right ? 'is-ok' : 'is-no');
-      scoreEl.textContent = `${correct} / ${asked} correct`;
+      paintScore();
       nextB.disabled = false;
+      // the clicked choice is now disabled, so hand keyboard focus to the obvious next step
+      nextB.focus();
     }
-    nextB.addEventListener('click', () => { idx = (idx + 1) % QS.length; load(); });
+    let finished = false;
+    nextB.addEventListener('click', () => {
+      if (idx === QS.length - 1 && answered && !finished) {
+        finished = true;
+        // end of the round: show the tally, then offer a fresh round
+        fbEl.textContent = `Round complete: ${correct} of ${QS.length} correct. ${correct >= 8 ? 'You are sorting enzymes by what happens to the bond.' : 'Start over and watch for the lyase traps: water added across a double bond, CO₂ removed without redox.'}`;
+        fbEl.className = 'ecc-fb ' + (correct >= 8 ? 'is-ok' : '');
+        nextB.textContent = 'Start over ›';
+        return;
+      }
+      if (finished) { finished = false; idx = 0; asked = 0; correct = 0; }
+      else idx = (idx + 1) % QS.length;
+      load();
+      btns[0].focus();
+    });
     load();
   });
 </script>
 
 <style is:global>
   .ecc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
-  .ecc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
-  .ecc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
-  .ecc-prompt { font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.45; margin: 0 0 var(--ddp-space-3); min-height: 2.6em; }
-  .ecc-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .ecc .ecc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .ecc .ecc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ecc .ecc-prompt { font-size: var(--ddp-text-base); color: var(--ddp-color-primary); font-weight: 600; line-height: 1.45; margin: 0 0 var(--ddp-space-3); min-height: 2.6em; }
+  .ecc .ecc-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
   .ecc-choice { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 6px; padding: 0.4rem 0.5rem; cursor: pointer; }
   .ecc-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
   .ecc-choice:disabled { cursor: default; }
+  .ecc-choice:focus-visible, .ecc-bar button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .ecc-choice.is-right { border-color: #2e8b57; background: color-mix(in srgb, #2e8b57 14%, #fff); color: #1c5f3a; font-weight: 700; }
   .ecc-choice.is-wrong { border-color: #c0392b; background: color-mix(in srgb, #c0392b 12%, #fff); color: #8c241a; }
-  .ecc-fb { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
-  .ecc-fb.is-ok { background: color-mix(in srgb, #2e8b57 12%, transparent); }
-  .ecc-fb.is-no { background: color-mix(in srgb, #c0392b 9%, transparent); }
+  .ecc .ecc-fb { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); line-height: 1.5; min-height: 3.4em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ecc .ecc-fb.is-ok { background: color-mix(in srgb, #2e8b57 12%, transparent); }
+  .ecc .ecc-fb.is-no { background: color-mix(in srgb, #c0392b 9%, transparent); }
   .ecc-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
   .ecc-score { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); }
-  .ecc-bar button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; }
+  .ecc-bar button { font-family: inherit; font-size: var(--ddp-text-xs); border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft); border-radius: 5px; padding: 0.32rem 0.7rem; cursor: pointer; white-space: nowrap; }
   .ecc-bar button:hover:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
   .ecc-bar button:disabled { opacity: 0.4; cursor: default; }
-  .ecc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .ecc-bar button:not(:disabled) { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 600; }
+  .ecc .ecc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

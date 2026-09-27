@@ -15,11 +15,12 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
 ---
 
 <figure class="rama card" data-rama>
-  <figcaption class="rama-head">{title}<span class="rama-chip">drag the point</span></figcaption>
+  <figcaption class="rama-head">{title}<span class="rama-chip">drag the point · or focus it and use arrow keys</span></figcaption>
   <div class="rama-grid">
     <div class="rama-plotwrap">
-      <svg class="rama-svg" viewBox="0 0 300 300" role="img" aria-label="Ramachandran plot of backbone phi and psi angles; drag the point to explore allowed conformations"></svg>
-      <p class="rama-readout" data-readout role="status"></p>
+      <svg class="rama-svg" viewBox="0 0 300 300" role="slider" aria-label="Ramachandran plot of backbone phi and psi angles. Drag the point, or use the left and right arrow keys to change phi and the up and down arrow keys to change psi." aria-valuemin="-180" aria-valuemax="180"></svg>
+      <p class="rama-readout" data-readout></p>
+      <p class="rama-sr" data-live role="status" aria-live="polite"></p>
     </div>
     <div class="rama-cartoon">
       <p class="rama-cartoon-head">What this φ/ψ looks like</p>
@@ -33,19 +34,24 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
   const NS = 'http://www.w3.org/2000/svg';
   const NAVY = '#232d4b', GRID = '#e6e3db', MUTE = '#9a9aa3';
   const COL = { aR: '#0e7c86', b: '#2e7d32', aL: '#e57200', forbidden: '#b23b3b' };
+  // darker variants for TEXT on white (the orange fill color is too light to read as type)
+  const TXT = { aR: '#0b6770', b: '#2e7d32', aL: '#b35500', forbidden: '#b23b3b' };
   const L = 42, R = 286, T = 12, B = 256; // plot box; φ x, ψ y
 
   type Region = 'aR' | 'b' | 'aL' | 'forbidden';
-  const REGIONS: { key: Region; name: string; box: [number, number, number, number]; ell: [number, number, number, number] }[] = [
-    { key: 'aR', name: 'Right-handed α-helix', box: [-90, -35, -70, -15], ell: [-63, -43, 32, 32] },
-    { key: 'b', name: 'β-sheet', box: [-160, -80, 90, 170], ell: [-120, 130, 42, 44] },
-    { key: 'aL', name: 'Left-handed α-helix (rare)', box: [60, 45, 0, 0], ell: [60, 45, 20, 20] },
+  // Allowed islands as ellipses [φ centre, ψ centre, φ radius, ψ radius]. The SAME shapes are
+  // drawn and hit-tested, so the readout always agrees with the shading under the point.
+  // β is broad enough to include the polyproline-II / collagen corner (φ ≈ −75°, ψ ≈ +145°).
+  const REGIONS: { key: Region; name: string; ell: [number, number, number, number] }[] = [
+    { key: 'aR', name: 'Right-handed α-helix', ell: [-63, -43, 32, 32] },
+    { key: 'b', name: 'β-sheet', ell: [-115, 135, 58, 45] },
+    { key: 'aL', name: 'Left-handed α-helix (rare)', ell: [60, 45, 20, 20] },
   ];
   const NAMES: Record<Region, string> = { aR: 'Right-handed α-helix', b: 'β-sheet', aL: 'Left-handed α-helix (rare)', forbidden: 'Forbidden — steric clash' };
   const SUBS: Record<Region, string> = {
-    aR: 'A right-handed coil, 3.6 residues per turn — the most common secondary structure.',
+    aR: 'A right-handed coil, 3.6 residues per turn (dots = residues); the near-side strands climb up to the right. The most common secondary structure.',
     b: 'Extended strands hydrogen-bonded side by side into a pleated sheet.',
-    aL: 'A left-handed coil — geometrically allowed but rare in real proteins (mostly glycine).',
+    aL: 'The mirror image: a left-handed coil, near-side strands climbing up to the left. Allowed, but rare in real proteins (mostly glycine).',
     forbidden: 'Backbone atoms collide here — about 85% of the map is off-limits.',
   };
 
@@ -59,19 +65,55 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
 
   function regionOf(phi: number, psi: number): Region {
     for (const r of REGIONS) {
-      if (r.key === 'aL') { if (phi >= 35 && phi <= 80 && psi >= 20 && psi <= 70) return 'aL'; continue; }
-      const [x0, x1, y0, y1] = r.box;
-      if (phi >= x0 && phi <= x1 && psi >= y0 && psi <= y1) return r.key;
+      const [cphi, cpsi, rphi, rpsi] = r.ell;
+      if (((phi - cphi) / rphi) ** 2 + ((psi - cpsi) / rpsi) ** 2 <= 1) return r.key;
     }
     return 'forbidden';
   }
 
-  // backbone cartoons (inline SVG), one per region
+  // Backbone cartoons. The helices are drawn as true 3-D coils (back strands faint, front strands
+  // bold) so handedness is visible: in a right-handed helix the front strands climb up to the RIGHT.
+  // Dots mark residues every 100° of turn (3.6 residues per turn).
+  function helixSVG(right: boolean, color: string): string {
+    const W = 140, H = 150, cx = 70, A = 30, turns = 3, top = 14, bot = 136;
+    const tMax = turns * 2 * Math.PI, N = 180;
+    const pt = (t: number) => {
+      const x = cx + (right ? 1 : -1) * A * Math.cos(t);
+      const y = bot - (t / tMax) * (bot - top);
+      return { x, y, front: Math.sin(t) < 0 };
+    };
+    const back: string[] = [], front: string[] = [];
+    let cur = '', curFront: boolean | null = null;
+    for (let i = 0; i <= N; i++) {
+      const p = pt((i / N) * tMax);
+      if (curFront === null || p.front !== curFront) {
+        if (cur) (curFront ? front : back).push(cur);
+        const prev = i > 0 ? pt(((i - 1) / N) * tMax) : p;
+        cur = `M${prev.x.toFixed(1)} ${prev.y.toFixed(1)}`;
+        curFront = p.front;
+      }
+      cur += ` L${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+    }
+    if (cur) (curFront ? front : back).push(cur);
+    let dotsBack = '', dotsFront = '';
+    for (let r = 0; r * (100 * Math.PI / 180) <= tMax + 1e-6; r++) {
+      const p = pt(r * 100 * Math.PI / 180);
+      const c = `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.front ? 3.6 : 2.6}" fill="${p.front ? '#fff' : '#e6e3db'}" stroke="${p.front ? NAVY : MUTE}" stroke-width="1.3"/>`;
+      if (p.front) dotsFront += c; else dotsBack += c;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" width="124" height="133" aria-hidden="true">`
+      + `<line x1="${cx}" y1="${top - 6}" x2="${cx}" y2="${bot + 6}" stroke="${GRID}" stroke-width="1" stroke-dasharray="3 3"/>`
+      + back.map((d) => `<path d="${d}" fill="none" stroke="${color}" stroke-opacity="0.35" stroke-width="5" stroke-linecap="round"/>`).join('')
+      + dotsBack
+      + front.map((d) => `<path d="${d}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round"/>`).join('')
+      + dotsFront
+      + `</svg>`;
+  }
   const CARTOON: Record<Region, string> = {
-    aR: `<svg viewBox="0 0 140 150" width="120" height="128"><path d="M70 14 C40 26 40 44 70 56 C100 68 100 86 70 98 C40 110 40 128 70 140" fill="none" stroke="${COL.aR}" stroke-width="9" stroke-linecap="round"/></svg>`,
-    b: `<svg viewBox="0 0 150 140" width="130" height="120"><g stroke="${COL.b}" stroke-width="8" stroke-linecap="round" fill="none"><path d="M20 35 H118"/><path d="M118 35 l-12 -7 M118 35 l-12 7"/><path d="M20 70 H118"/><path d="M118 70 l-12 -7 M118 70 l-12 7"/><path d="M20 105 H118"/><path d="M118 105 l-12 -7 M118 105 l-12 7"/></g><g stroke="${MUTE}" stroke-width="1.5" stroke-dasharray="3 3"><path d="M50 35 V70"/><path d="M85 35 V70"/><path d="M50 70 V105"/><path d="M85 70 V105"/></g></svg>`,
-    aL: `<svg viewBox="0 0 140 150" width="110" height="118"><path d="M70 14 C100 26 100 44 70 56 C40 68 40 86 70 98 C100 110 100 128 70 140" fill="none" stroke="${COL.aL}" stroke-width="9" stroke-linecap="round"/></svg>`,
-    forbidden: `<svg viewBox="0 0 140 140" width="118" height="118"><g stroke="${NAVY}" stroke-width="7" stroke-linecap="round" fill="none"><path d="M30 40 L75 78"/><path d="M110 44 L66 82"/></g><g stroke="${COL.forbidden}" stroke-width="3" stroke-linecap="round"><path d="M70 70 l16 -16 M70 70 l-16 -16 M70 70 l16 16 M70 70 l-16 16 M70 56 v-14 M70 84 v14 M56 70 h-14 M84 70 h14"/></g></svg>`,
+    aR: helixSVG(true, COL.aR),
+    b: `<svg viewBox="0 0 150 140" width="130" height="120" aria-hidden="true"><g stroke="${COL.b}" stroke-width="8" stroke-linecap="round" fill="none"><path d="M20 35 H118"/><path d="M118 35 l-12 -7 M118 35 l-12 7"/><path d="M20 70 H118"/><path d="M118 70 l-12 -7 M118 70 l-12 7"/><path d="M20 105 H118"/><path d="M118 105 l-12 -7 M118 105 l-12 7"/></g><g stroke="${MUTE}" stroke-width="1.5" stroke-dasharray="3 3"><path d="M50 35 V70"/><path d="M85 35 V70"/><path d="M50 70 V105"/><path d="M85 70 V105"/></g></svg>`,
+    aL: helixSVG(false, COL.aL),
+    forbidden: `<svg viewBox="0 0 140 140" width="118" height="118" aria-hidden="true"><g stroke="${NAVY}" stroke-width="7" stroke-linecap="round" fill="none"><path d="M30 40 L75 78"/><path d="M110 44 L66 82"/></g><g stroke="${COL.forbidden}" stroke-width="3" stroke-linecap="round"><path d="M70 70 l16 -16 M70 70 l-16 -16 M70 70 l16 16 M70 70 l-16 16 M70 56 v-14 M70 84 v14 M56 70 h-14 M84 70 h14"/></g></svg>`,
   };
 
   document.querySelectorAll<HTMLElement>('[data-rama]').forEach((root) => {
@@ -79,29 +121,35 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
     const readout = root.querySelector<HTMLElement>('[data-readout]')!;
     const cartoon = root.querySelector<HTMLElement>('[data-cartoon]')!;
     const cartoonSub = root.querySelector<HTMLElement>('[data-cartoon-sub]')!;
-    let phi = -63, psi = -43, dragging = false;
+    const live = root.querySelector<HTMLElement>('[data-live]')!;
+    let phi = -63, psi = -43, dragging = false, lastReg: Region | null = null;
+    // Keep SVG text legible when the plot renders narrow (phones): never below ~9 px on screen.
+    let fs = (n: number) => n;
 
     function drawStatic() {
+      const k = (svg.getBoundingClientRect().width || 300) / 300;
+      fs = (n: number) => Math.max(n, 9 / k);
       svg.replaceChildren();
       // grid + zero lines
       for (let a = -180; a <= 180; a += 60) {
         svg.appendChild(el('line', { x1: px(a), y1: T, x2: px(a), y2: B, stroke: a === 0 ? MUTE : GRID, 'stroke-width': a === 0 ? 1 : 0.6 }));
         svg.appendChild(el('line', { x1: L, y1: py(a), x2: R, y2: py(a), stroke: a === 0 ? MUTE : GRID, 'stroke-width': a === 0 ? 1 : 0.6 }));
-        const xt = el('text', { x: px(a), y: B + 12, 'text-anchor': 'middle', 'font-size': 8, fill: MUTE }); xt.textContent = String(a); svg.appendChild(xt);
-        const yt = el('text', { x: L - 6, y: py(a) + 3, 'text-anchor': 'end', 'font-size': 8, fill: MUTE }); yt.textContent = String(a); svg.appendChild(yt);
+        const xt = el('text', { x: px(a), y: B + 12, 'text-anchor': 'middle', 'font-size': fs(8), fill: MUTE }); xt.textContent = String(a); svg.appendChild(xt);
+        const yt = el('text', { x: L - 6, y: py(a) + 3, 'text-anchor': 'end', 'font-size': fs(8), fill: MUTE }); yt.textContent = String(a); svg.appendChild(yt);
       }
       // allowed regions (ellipses)
       for (const r of REGIONS) {
         const [cphi, cpsi, rphi, rpsi] = r.ell;
         svg.appendChild(el('ellipse', { cx: px(cphi), cy: py(cpsi), rx: (rphi / 360) * (R - L), ry: (rpsi / 360) * (B - T), fill: COL[r.key], opacity: 0.18, stroke: COL[r.key], 'stroke-width': 1 }));
-        const lab = el('text', { x: px(cphi), y: py(cpsi) - (rpsi / 360) * (B - T) - 2, 'text-anchor': 'middle', 'font-size': 7.5, fill: COL[r.key], 'font-weight': '700' });
+        // β's island reaches the top edge, so its label sits inside the shading instead of above it
+        const lab = el('text', { x: px(cphi), y: r.key === 'b' ? py(cpsi) + 3 : py(cpsi) - (rpsi / 360) * (B - T) - 2, 'text-anchor': 'middle', 'font-size': fs(9), fill: TXT[r.key], 'font-weight': '700' });
         lab.textContent = r.key === 'aR' ? 'αR' : r.key === 'b' ? 'β' : 'αL'; svg.appendChild(lab);
       }
       // axes
       svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
       svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
-      const xl = el('text', { x: (L + R) / 2, y: B + 26, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }); xl.textContent = 'φ (degrees)'; svg.appendChild(xl);
-      const yl = el('text', { x: 12, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 12 ${(T + B) / 2})` }); yl.textContent = 'ψ (degrees)'; svg.appendChild(yl);
+      const xl = el('text', { x: (L + R) / 2, y: B + 26, 'text-anchor': 'middle', 'font-size': fs(10), fill: NAVY }); xl.textContent = 'φ (degrees)'; svg.appendChild(xl);
+      const yl = el('text', { x: 12, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': fs(10), fill: NAVY, transform: `rotate(-90 12 ${(T + B) / 2})` }); yl.textContent = 'ψ (degrees)'; svg.appendChild(yl);
       pointGroup = el('g', {}); svg.appendChild(pointGroup);
     }
     let pointGroup: SVGElement;
@@ -110,10 +158,17 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
       const reg = regionOf(phi, psi);
       pointGroup.replaceChildren();
       pointGroup.appendChild(el('circle', { cx: px(phi), cy: py(psi), r: 6, fill: '#fff', stroke: NAVY, 'stroke-width': 2 }));
-      const c = COL[reg as Exclude<Region, never>] ?? MUTE;
-      readout.innerHTML = `φ = <strong>${Math.round(phi)}°</strong>  ψ = <strong>${Math.round(psi)}°</strong> · <span style="color:${c};font-weight:600">${NAMES[reg]}</span>`;
-      cartoon.innerHTML = CARTOON[reg];
-      cartoonSub.textContent = SUBS[reg];
+      readout.innerHTML = `φ = <strong>${Math.round(phi)}°</strong>  ψ = <strong>${Math.round(psi)}°</strong> · <span style="color:${TXT[reg]};font-weight:600">${NAMES[reg]}</span>`;
+      const vt = `phi ${Math.round(phi)} degrees, psi ${Math.round(psi)} degrees: ${NAMES[reg]}`;
+      svg.setAttribute('aria-valuenow', String(Math.round(phi)));
+      svg.setAttribute('aria-valuetext', vt);
+      if (reg !== lastReg) {
+        cartoon.innerHTML = CARTOON[reg];
+        cartoonSub.textContent = SUBS[reg];
+        // announce only when the point crosses into a new region, not on every pixel of a drag
+        if (lastReg !== null) live.textContent = `${NAMES[reg]}. ${SUBS[reg]}`;
+        lastReg = reg;
+      }
     }
 
     function setFromEvent(clientX: number, clientY: number) {
@@ -130,7 +185,7 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
     svg.addEventListener('pointercancel', () => { dragging = false; });
     svg.setAttribute('tabindex', '0');
     svg.addEventListener('keydown', (e: KeyboardEvent) => {
-      const step = 5;
+      const step = e.shiftKey ? 20 : 5;
       if (e.key === 'ArrowLeft') phi = Math.max(-180, phi - step);
       else if (e.key === 'ArrowRight') phi = Math.min(180, phi + step);
       else if (e.key === 'ArrowDown') psi = Math.max(-180, psi - step);
@@ -141,6 +196,7 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
 
     drawStatic();
     update();
+    new ResizeObserver(() => { drawStatic(); update(); }).observe(svg);
   });
 </script>
 
@@ -151,9 +207,11 @@ const { title = 'Try it: the Ramachandran plot' } = Astro.props;
   .rama-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--ddp-space-4); align-items: center; }
   @media (max-width: 640px) { .rama-grid { grid-template-columns: 1fr; } }
   .rama-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: none; cursor: crosshair; }
+  .rama-svg:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rama-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .rama-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .rama-cartoon { text-align: center; }
   .rama-cartoon-head { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--ddp-color-muted); font-family: var(--ddp-font-mono); }
   .rama-cartoon-body { display: grid; place-items: center; min-height: 130px; }
-  .rama-cartoon-sub { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); }
+  .rama-cartoon-sub { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-ink); min-height: 4.4em; }
 </style>

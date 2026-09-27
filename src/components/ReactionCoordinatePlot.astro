@@ -19,23 +19,23 @@
 
   <div class="rcp-body">
     <div class="rcp-controls">
-      <label><span class="rcp-lbl">ΔG (kJ/mol)</span>
+      <label><span class="rcp-lbl">ΔG, product minus substrate <b data-out="dg">−30</b> kJ/mol</span>
         <input type="range" data-in="dg" min="-60" max="60" step="5" value="-30" />
       </label>
-      <label><span class="rcp-lbl">E<sub>a</sub>, uncatalyzed (kJ/mol)</span>
+      <label><span class="rcp-lbl">Activation energy E<sub>a</sub> without enzyme <b data-out="ea">80</b> kJ/mol</span>
         <input type="range" data-in="ea" min="20" max="120" step="5" value="80" />
       </label>
-      <label><span class="rcp-lbl">Enzyme catalysis (%)</span>
+      <label><span class="rcp-lbl">How much of the barrier the enzyme removes <b data-out="cat">60</b>%</span>
         <input type="range" data-in="cat" min="0" max="90" step="5" value="60" />
       </label>
       <div class="rcp-btns">
-        <button type="button" data-toggle>Hide uncatalyzed</button>
+        <button type="button" data-toggle aria-pressed="true">Hide uncatalyzed</button>
         <button type="button" data-reset>Reset</button>
       </div>
     </div>
 
     <div class="rcp-side">
-      <p class="rcp-readout" data-readout></p>
+      <dl class="rcp-readout" data-readout aria-live="polite"></dl>
       <p class="rcp-note">An enzyme lowers E<sub>a</sub>. It never changes ΔG or K<sub>eq</sub>.</p>
     </div>
   </div>
@@ -44,14 +44,25 @@
 <script>
   const NS = 'http://www.w3.org/2000/svg';
   const TEAL = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200';
-  const GRAY = '#9a9aa3', PURPLE = '#7a5bb0', GREEN = '#2e8b57';
+  const GRAY = '#8a8a93', PURPLE = '#7a5bb0', GREEN = '#2e8b57';
   // plot frame inside the 520×320 viewBox
   const L = 76, R = 498, T = 26, PB = 280;
+  const RT = 0.008314 * 298; // kJ/mol at 25 °C, the temperature the lesson's worked example uses
+  const MIN_HUMP = 5; // kJ/mol: a barrier must stand at least this far above the higher valley
 
   function el(name: string, attrs: Record<string, string | number>) {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
     return e;
+  }
+  // 1.8 × 10⁵ style formatting for big ratios
+  const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  function sci(x: number): string {
+    if (x >= 0.01 && x < 1000) return x >= 10 ? Math.round(x).toString() : x.toPrecision(2);
+    const e = Math.floor(Math.log10(x));
+    const m = x / Math.pow(10, e);
+    const ms = m.toFixed(1).replace(/\.0$/, '');
+    return `${ms === '1' ? '' : ms + ' × '}10${String(e).split('').map((c) => SUP[c]).join('')}`;
   }
 
   document.querySelectorAll<HTMLElement>('[data-rcp]').forEach((root) => {
@@ -59,13 +70,31 @@
     const readout = root.querySelector<HTMLElement>('[data-readout]')!;
     const toggleBtn = root.querySelector<HTMLButtonElement>('[data-toggle]')!;
     const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]')!;
+    const inputs = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-in]'));
+    const inp = (k: string) => inputs.find((i) => i.getAttribute('data-in') === k)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
     const state = { dg: -30, ea: 80, cat: 60, showUncat: true };
+    let bumped = false; // true when Ea had to be raised to stay above an uphill product
+    let fs = (n: number) => n;
 
     // normalized reaction-coordinate x (0.1 reactant … 0.9 product) → screen x
     const px = (t: number) => L + t * (R - L);
 
+    // The barrier has to clear BOTH valleys. For an uphill (endergonic) reaction the forward barrier
+    // can never be lower than ΔG itself, so the enzyme shrinks only the hump ABOVE the higher valley.
+    const top = () => Math.max(0, state.dg);
     function peakUncat() { return state.ea; }
-    function peakCat() { return state.ea * (1 - state.cat / 100); }
+    function peakCat() { return top() + (state.ea - top()) * (1 - state.cat / 100); }
+
+    function enforceBarrier() {
+      const floor = top() + MIN_HUMP;
+      bumped = false;
+      if (state.ea < floor) {
+        state.ea = Math.ceil(floor / 5) * 5;
+        inp('ea').value = String(state.ea);
+        bumped = true;
+      }
+    }
 
     // one smooth barrier from two cubic Béziers meeting at the peak (horizontal
     // tangents at reactant, peak, and product so the hump reads cleanly).
@@ -84,16 +113,20 @@
         const p = el('path', { d: `M ${x - 3} ${y + dir * 5} L ${x} ${y} L ${x + 3} ${y + dir * 5}`, fill: 'none', stroke: color, 'stroke-width': 1.3 });
         g.appendChild(p);
       };
-      head(y1, y1 < y2 ? 1 : -1); head(y2, y2 < y1 ? 1 : -1);
+      if (Math.abs(y2 - y1) > 10) { head(y1, y1 < y2 ? 1 : -1); head(y2, y2 < y1 ? 1 : -1); }
       return g;
     }
 
     function label(x: number, y: number, text: string, color: string, anchor = 'middle', size = 11) {
-      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill: color });
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': fs(size), fill: color });
       t.textContent = text; return t;
     }
+    const guide = (x1: number, x2: number, y: number, color: string) =>
+      el('line', { x1, y1: y, x2, y2: y, stroke: color, 'stroke-width': 1, 'stroke-dasharray': '1.5 3' });
 
     function render() {
+      const k = (svg.getBoundingClientRect().width || 520) / 520;
+      fs = (n: number) => Math.max(n, 9.5 / k);
       svg.replaceChildren();
       const { dg, showUncat } = state;
       const pkU = peakUncat(), pkC = peakCat();
@@ -116,63 +149,74 @@
 
       // ΔG measure (reactant level → product level), at the far right
       svg.appendChild(arrow(R - 12, gToY(0), gToY(dg), NAVY));
-      svg.appendChild(label(R - 8, (gToY(0) + gToY(dg)) / 2, 'ΔG', NAVY, 'start', 11));
+      svg.appendChild(label(R - 8, (gToY(0) + gToY(dg)) / 2 + 4, 'ΔG', NAVY, 'start', 11));
 
-      // uncatalyzed barrier (gray dashed) + its Ea measure
+      // uncatalyzed barrier (gray dashed) + its Ea measure, tied to its peak by a dotted guide
       if (showUncat) {
         svg.appendChild(el('path', { d: barrierPath(pkU, gToY), fill: 'none', stroke: GRAY, 'stroke-width': 2, 'stroke-dasharray': '6 4' }));
+        svg.appendChild(guide(px(0.265), px(0.5), gToY(pkU), GRAY));
         svg.appendChild(arrow(px(0.265), gToY(0), gToY(pkU), GRAY));
-        svg.appendChild(label(px(0.265) - 5, gToY(pkU) - 6, 'Ea (uncat.)', GRAY, 'end', 10));
+        svg.appendChild(label(px(0.265) - 5, gToY(pkU) - 6, 'Ea without enzyme', GRAY, 'end', 10));
         svg.appendChild(el('circle', { cx: px(0.5), cy: gToY(pkU), r: 4.2, fill: ORANGE }));
         svg.appendChild(label(px(0.5), gToY(pkU) - 8, '‡', NAVY, 'middle', 13));
       }
 
       // catalyzed barrier (teal solid) + its Ea measure
       svg.appendChild(el('path', { d: barrierPath(pkC, gToY), fill: 'none', stroke: TEAL, 'stroke-width': 2.6 }));
+      svg.appendChild(guide(px(0.5), px(0.735), gToY(pkC), TEAL));
       svg.appendChild(arrow(px(0.735), gToY(0), gToY(pkC), TEAL));
-      svg.appendChild(label(px(0.735) + 5, gToY(pkC) - 6, 'Ea (cat.)', TEAL, 'start', 10));
+      svg.appendChild(label(px(0.735) + 5, gToY(pkC) - 6, 'Ea with enzyme', TEAL, 'start', 10));
       svg.appendChild(el('circle', { cx: px(0.5), cy: gToY(pkC), r: 4.2, fill: ORANGE }));
+      if (!showUncat) svg.appendChild(label(px(0.5), gToY(pkC) - 8, '‡', NAVY, 'middle', 13));
 
       // endpoint dots + labels
       svg.appendChild(el('circle', { cx: px(0.1), cy: gToY(0), r: 3.5, fill: NAVY }));
       svg.appendChild(el('circle', { cx: px(0.9), cy: gToY(dg), r: 3.5, fill: NAVY }));
       svg.appendChild(label(px(0.1) + 2, gToY(0) - 8, 'Substrate', NAVY, 'middle', 10));
-      svg.appendChild(label(px(0.9), gToY(dg) + (dg < 0 ? 16 : -8), 'Product', NAVY, 'middle', 10));
+      // below the dot in every case: above it would collide with the barrier labels on an uphill reaction
+      svg.appendChild(label(px(0.9), gToY(dg) + 16, 'Product', NAVY, 'middle', 10));
 
-      // readouts
-      const keq = dg < -20 ? 'strongly favors products (Keq ≫ 1)'
-        : dg <= 20 ? 'near equilibrium (Keq ≈ 1)'
-        : 'strongly favors reactants (Keq ≪ 1)';
-      readout.innerHTML = `ΔG <b>${dg}</b> · E<sub>a</sub> uncat <b>${pkU.toFixed(0)}</b> · `
-        + `E<sub>a</sub> cat <b>${pkC.toFixed(0)}</b> kJ/mol<br>${keq}`;
+      // readouts — Keq from ΔG°′ = −RT ln Keq (treating the ΔG shown as the standard ΔG°′, 25 °C)
+      const keqN = Math.exp(-dg / RT);
+      const keq = Math.abs(dg) <= 3 ? 'near 1: substrate and product balanced'
+        : dg < 0 ? 'products favored' : 'substrate favored';
+      const speedup = Math.exp((pkU - pkC) / RT);
+      out('dg').textContent = String(dg).replace('-', '−');
+      out('ea').textContent = String(state.ea);
+      out('cat').textContent = String(state.cat);
+      readout.innerHTML =
+        `<div><dt>K<sub>eq</sub> <span>(taking this ΔG as ΔG°′, 25 °C)</span></dt><dd><b>${sci(keqN)}</b> · ${keq}</dd></div>`
+        + `<div><dt>E<sub>a</sub> without → with enzyme</dt><dd><b>${pkU.toFixed(0)} → ${pkC.toFixed(0)}</b> kJ/mol</dd></div>`
+        + `<div><dt>Enzyme speeds the reaction</dt><dd><b>${state.cat === 0 ? 'not at all' : '≈ ' + sci(speedup) + '-fold'}</b>${state.cat === 0 ? '' : ', forward and reverse alike'}</dd></div>`
+        + (bumped ? `<div class="rcp-warn">E<sub>a</sub> raised to ${state.ea}: for an uphill reaction the barrier has to sit above the product.</div>` : '');
       svg.setAttribute('aria-label',
-        `Reaction coordinate: ΔG ${dg} kJ/mol; uncatalyzed activation energy ${pkU.toFixed(0)}, `
-        + `catalyzed ${pkC.toFixed(0)} kJ/mol; equilibrium ${keq}.`);
+        `Reaction coordinate: ΔG ${dg} kJ/mol; activation energy ${pkU.toFixed(0)} kJ/mol without enzyme, `
+        + `${pkC.toFixed(0)} with enzyme; Keq about ${sci(keqN)}, ${keq}.`);
     }
 
-    root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((inp) => {
-      inp.addEventListener('input', () => {
-        const k = inp.getAttribute('data-in') as 'dg' | 'ea' | 'cat';
-        state[k] = parseFloat(inp.value);
+    inputs.forEach((i) => {
+      i.addEventListener('input', () => {
+        const k = i.getAttribute('data-in') as 'dg' | 'ea' | 'cat';
+        state[k] = parseFloat(i.value);
+        enforceBarrier();
         render();
       });
     });
     toggleBtn.addEventListener('click', () => {
       state.showUncat = !state.showUncat;
       toggleBtn.textContent = state.showUncat ? 'Hide uncatalyzed' : 'Show uncatalyzed';
+      toggleBtn.setAttribute('aria-pressed', String(state.showUncat));
       render();
     });
     resetBtn.addEventListener('click', () => {
       state.dg = -30; state.ea = 80; state.cat = 60; state.showUncat = true;
       toggleBtn.textContent = 'Hide uncatalyzed';
-      root.querySelectorAll<HTMLInputElement>('input[data-in]').forEach((inp) => {
-        const k = inp.getAttribute('data-in');
-        if (k === 'dg') inp.value = '-30';
-        if (k === 'ea') inp.value = '80';
-        if (k === 'cat') inp.value = '60';
-      });
+      toggleBtn.setAttribute('aria-pressed', 'true');
+      inp('dg').value = '-30'; inp('ea').value = '80'; inp('cat').value = '60';
+      enforceBarrier();
       render();
     });
+    new ResizeObserver(() => render()).observe(svg);
     render();
   });
 </script>
@@ -197,8 +241,14 @@
     border-radius: 5px; padding: 0.3rem 0.6rem;
   }
   .rcp-btns button:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
-  .rcp-side { flex: 1 1 190px; display: flex; flex-direction: column; justify-content: center; gap: var(--ddp-space-2); }
-  .rcp-readout { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .rcp-side { flex: 1 1 220px; display: flex; flex-direction: column; justify-content: center; gap: var(--ddp-space-2); }
+  .rcp-readout { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rcp-readout :global(dt) { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rcp-readout :global(dt span) { font-style: italic; }
+  .rcp-readout :global(dd) { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+  .rcp-readout :global(dd b) { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .rcp-readout :global(.rcp-warn) { font-size: var(--ddp-text-xs); color: var(--ddp-color-secondary-ink); font-weight: 600; }
+  .rcp-lbl b { font-family: var(--ddp-font-mono); color: var(--ddp-color-accent); }
   .rcp-note {
     margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 600;
     border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.5rem;
