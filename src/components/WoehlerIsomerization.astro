@@ -12,7 +12,8 @@
 <figure class="woe card" data-woehler>
   <figcaption class="woe-head">Wöhler, 1828 — the same atoms, with and without life<span class="woe-chip">⚙ original · interactive</span></figcaption>
 
-  <svg class="woe-svg" viewBox="0 0 460 230" role="img" data-svg></svg>
+  <svg class="woe-svg" viewBox="20 40 420 192" role="img" aria-label="Ammonium cyanate drawn atom by atom: an ammonium ion, NH4 plus, beside a cyanate ion, OCN minus" data-svg></svg>
+  <p class="woe-cap" data-cap></p>
 
   <div class="woe-tally">
     <span class="woe-tally-label">Atom inventory (identical on both sides)</span>
@@ -31,7 +32,8 @@
 </figure>
 
 <script>
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', FAINT = '#b9b9c2', INK = '#4b4b55', MUTE = '#6b6b6b';
+  const FONT = 'Inter, system-ui, -apple-system, sans-serif';
   const SVGNS = 'http://www.w3.org/2000/svg';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(SVGNS, name);
@@ -42,7 +44,7 @@
   type Atom = { id: string; sym: string; x: number; y: number; color: string };
   type Bond = { a: string; b: string; double?: boolean };
 
-  // Layout of the same six atoms in two arrangements. Atom ids are preserved across states
+  // Layout of the same eight atoms in two arrangements. Atom ids are preserved across states
   // so the heating step can move identical atoms from salt positions to urea positions.
   const SALT: Atom[] = [
     // ammonium ion NH4+ — central N with four H, left cluster
@@ -78,8 +80,12 @@
     { a: 'N1', b: 'H1' }, { a: 'N1', b: 'H2' },
     { a: 'N2', b: 'H3' }, { a: 'N2', b: 'H4' },
   ];
+  // What the heat actually changed: the ammonium N (N1) bonds to carbon, and two of its
+  // hydrogens (H3, H4) end up on the cyanate N (N2). Highlighted in the urea drawing.
+  const NEW_BOND = { a: 'C1', b: 'N1' };
+  const MOVED_H = ['H3', 'H4'];
 
-  function bondLine(from: Atom, to: Atom, color: string, dbl: boolean): SVGElement {
+  function bondLine(from: Atom, to: Atom, color: string, dbl: boolean, width = 2): SVGElement {
     const g = el('g', {});
     const dx = to.x - from.x, dy = to.y - from.y;
     const len = Math.hypot(dx, dy) || 1;
@@ -90,58 +96,92 @@
     if (dbl) {
       // offset perpendicular for the two parallel lines of a double bond
       const ox = -uy * 3, oy = ux * 3;
-      g.appendChild(el('line', { x1: x1 + ox, y1: y1 + oy, x2: x2 + ox, y2: y2 + oy, stroke: color, 'stroke-width': 2 }));
-      g.appendChild(el('line', { x1: x1 - ox, y1: y1 - oy, x2: x2 - ox, y2: y2 - oy, stroke: color, 'stroke-width': 2 }));
+      g.appendChild(el('line', { x1: x1 + ox, y1: y1 + oy, x2: x2 + ox, y2: y2 + oy, stroke: color, 'stroke-width': width }));
+      g.appendChild(el('line', { x1: x1 - ox, y1: y1 - oy, x2: x2 - ox, y2: y2 - oy, stroke: color, 'stroke-width': width }));
     } else {
-      g.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 2 }));
+      g.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': width, 'stroke-linecap': 'round' }));
     }
     return g;
   }
 
-  function draw(svg: SVGElement, atoms: Atom[], bonds: Bond[], title: string) {
+  // Square brackets around an ion with its overall charge at the top right, the way a salt
+  // is written on paper: [NH4]+ and [OCN]−.
+  function ionBracket(x0: number, y0: number, x1: number, y1: number, charge: string, name: string, opacity: number): SVGElement {
+    const g = el('g', { opacity });
+    const arm = 7;
+    g.appendChild(el('path', { d: `M${x0 + arm} ${y0} H${x0} V${y1} H${x0 + arm}`, fill: 'none', stroke: INK, 'stroke-width': 1.6 }));
+    g.appendChild(el('path', { d: `M${x1 - arm} ${y0} H${x1} V${y1} H${x1 - arm}`, fill: 'none', stroke: INK, 'stroke-width': 1.6 }));
+    const q = el('text', { x: x1 + 4, y: y0 + 11, fill: NAVY, 'font-size': 17, 'font-weight': 700, 'font-family': FONT });
+    q.textContent = charge;
+    g.appendChild(q);
+    const lab = el('text', { x: (x0 + x1) / 2, y: 207, 'text-anchor': 'middle', fill: MUTE, 'font-size': 11, 'font-family': FONT });
+    lab.textContent = name;
+    g.appendChild(lab);
+    return g;
+  }
+
+  type DrawOpts = { bonds: Bond[]; bondOpacity?: number; ions?: number; highlight?: boolean };
+  function draw(svg: SVGElement, atoms: Atom[], o: DrawOpts) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const byId: Record<string, Atom> = {};
     for (const a of atoms) byId[a.id] = a;
-    // bonds first, under the atoms
-    for (const b of bonds) {
-      const fa = byId[b.a], ta = byId[b.b];
-      if (fa && ta) svg.appendChild(bondLine(fa, ta, INK, !!b.double));
+    if (o.ions && o.ions > 0.01) {
+      svg.appendChild(ionBracket(34, 50, 156, 180, '+', 'ammonium ion, NH₄⁺', o.ions));
+      svg.appendChild(ionBracket(270, 93, 420, 137, '−', 'cyanate ion, OCN⁻', o.ions));
     }
+    // bonds first, under the atoms
+    const bg = el('g', { opacity: o.bondOpacity ?? 1 });
+    for (const b of o.bonds) {
+      const fa = byId[b.a], ta = byId[b.b];
+      if (!fa || !ta) continue;
+      const isNew = o.highlight && b.a === NEW_BOND.a && b.b === NEW_BOND.b;
+      bg.appendChild(bondLine(fa, ta, isNew ? ACCENT : INK, !!b.double, isNew ? 4 : 2));
+    }
+    svg.appendChild(bg);
     // atoms as labeled circles
     for (const a of atoms) {
+      if (o.highlight && MOVED_H.includes(a.id)) {
+        svg.appendChild(el('circle', { cx: a.x, cy: a.y, r: 21, fill: 'none', stroke: ACCENT, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      }
       svg.appendChild(el('circle', { cx: a.x, cy: a.y, r: 16, fill: a.color, stroke: '#fff', 'stroke-width': 2 }));
-      const t = el('text', { x: a.x, y: a.y + 5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 14, 'font-weight': 700, 'font-family': 'monospace' });
+      const t = el('text', { x: a.x, y: a.y + 5, 'text-anchor': 'middle', fill: a.sym === 'H' ? NAVY : '#fff', 'font-size': 15, 'font-weight': 700, 'font-family': FONT });
       t.textContent = a.sym;
       svg.appendChild(t);
     }
-    const cap = el('text', { x: 230, y: 222, 'text-anchor': 'middle', fill: INK, 'font-size': 11 });
-    cap.textContent = title;
-    svg.appendChild(cap);
   }
 
   document.querySelectorAll<HTMLElement>('[data-woehler]').forEach((root) => {
     const svg = root.querySelector('[data-svg]') as unknown as SVGElement;
+    const capEl = root.querySelector<HTMLElement>('[data-cap]')!;
     const payoffEl = root.querySelector<HTMLElement>('[data-payoff]')!;
     const stateEl = root.querySelector<HTMLElement>('[data-state]')!;
     const heatB = root.querySelector<HTMLButtonElement>('[data-heat]')!;
     const resetB = root.querySelector<HTMLButtonElement>('[data-reset]')!;
 
-    const SALT_TITLE = 'Ammonium cyanate (NH₄OCN) — an inorganic salt · CH₄N₂O';
-    const UREA_TITLE = 'Urea (H₂N-CO-NH₂) — a signature of animal metabolism · CH₄N₂O';
+    const SALT_TITLE = '<strong>Ammonium cyanate</strong> (NH₄⁺ OCN⁻) — an inorganic salt of two ions · CH₄N₂O';
+    const UREA_TITLE = '<strong>Urea</strong> (H₂N–CO–NH₂) — a signature of animal metabolism · CH₄N₂O';
+    const CHANGED = '<span class="woe-key" aria-hidden="true"></span>What changed: the ammonium nitrogen bonded to the carbon (thick teal bond), and two of its hydrogens (dashed rings) moved onto the cyanate nitrogen.';
     const PAYOFF = 'Same atoms, different connectivity — one a lifeless salt, the other a molecule the body makes to dump nitrogen. Wöhler made it in a flask with no kidney and no vital spark, in 1828.';
+    const SALT_LABEL = 'Ammonium cyanate: an ammonium ion, NH4 plus, beside a cyanate ion, OCN minus';
+    const UREA_LABEL = 'Urea: a carbon double-bonded to oxygen and single-bonded to two NH2 groups. The new carbon–nitrogen bond and the two hydrogens that moved are highlighted.';
 
     let heated = false;
+    let animating = false;
 
     function showSalt() {
-      heated = false;
-      draw(svg, SALT, SALT_BONDS, SALT_TITLE);
+      heated = false; animating = false;
+      draw(svg, SALT, { bonds: SALT_BONDS, ions: 1 });
+      svg.setAttribute('aria-label', SALT_LABEL);
+      capEl.innerHTML = SALT_TITLE;
       stateEl.textContent = 'Unreacted salt';
       payoffEl.hidden = true;
       heatB.disabled = false;
     }
     function showUrea() {
-      heated = true;
-      draw(svg, UREA, UREA_BONDS, UREA_TITLE);
+      heated = true; animating = false;
+      draw(svg, UREA, { bonds: UREA_BONDS, highlight: true });
+      svg.setAttribute('aria-label', UREA_LABEL);
+      capEl.innerHTML = `${UREA_TITLE}<span class="woe-changed">${CHANGED}</span>`;
       stateEl.textContent = 'Urea — heated (Δ)';
       payoffEl.textContent = PAYOFF;
       payoffEl.hidden = false;
@@ -151,32 +191,37 @@
     function animateToUrea() {
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduce || document.hidden) { showUrea(); return; }
+      animating = true;
       // safety net: if rAF never delivers (throttled/backgrounded tab), guarantee the end state
-      window.setTimeout(() => { if (!heated) showUrea(); }, 1300);
+      window.setTimeout(() => { if (animating) showUrea(); }, 1600);
       // tween each atom from its salt position to its urea position by id
       const saltById: Record<string, Atom> = {};
       for (const a of SALT) saltById[a.id] = a;
       const start = performance.now();
-      const dur = 700;
+      const dur = 1000;
       heatB.disabled = true;
       stateEl.textContent = 'Rearranging…';
       payoffEl.hidden = true;
       function frame(now: number) {
+        if (!animating) return; // reset pressed mid-animation
         const t = Math.min(1, (now - start) / dur);
         const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         const moving: Atom[] = UREA.map((u) => {
           const s = saltById[u.id]!;
           return { id: u.id, sym: u.sym, color: u.color, x: s.x + (u.x - s.x) * ease, y: s.y + (u.y - s.y) * ease };
         });
-        // draw bonds only once atoms are mostly home, so lines don't whip around
-        draw(svg, moving, ease > 0.85 ? UREA_BONDS : [], ease > 0.85 ? UREA_TITLE : SALT_TITLE);
+        // Old bonds fade out as the atoms leave; new bonds fade in as they arrive,
+        // so no line ever whips across the drawing.
+        if (ease < 0.35) draw(svg, moving, { bonds: SALT_BONDS, bondOpacity: 1 - ease / 0.35, ions: 1 - ease / 0.35 });
+        else if (ease > 0.65) draw(svg, moving, { bonds: UREA_BONDS, bondOpacity: (ease - 0.65) / 0.35 });
+        else draw(svg, moving, { bonds: [] });
         if (t < 1) requestAnimationFrame(frame);
         else showUrea();
       }
       requestAnimationFrame(frame);
     }
 
-    heatB.addEventListener('click', () => { if (!heated) animateToUrea(); });
+    heatB.addEventListener('click', () => { if (!heated && !animating) animateToUrea(); });
     resetB.addEventListener('click', showSalt);
 
     // clear static initial state — the unreacted salt, fully drawn, no animation needed
@@ -189,6 +234,10 @@
   .woe-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
   .woe-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .woe-svg { width: 100%; height: auto; display: block; background: color-mix(in srgb, var(--ddp-color-accent) 5%, #fff); border: 1px solid var(--ddp-color-line); border-radius: 8px; margin-bottom: var(--ddp-space-2); }
+  .woe-cap { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; text-align: center; }
+  .woe-cap :global(strong) { color: var(--ddp-color-primary); }
+  .woe-cap :global(.woe-changed) { display: block; margin-top: 0.2rem; color: var(--ddp-color-accent); }
+  .woe-cap :global(.woe-key) { display: inline-block; width: 0.8em; height: 0.8em; border: 1.5px dashed var(--ddp-color-accent); border-radius: 50%; margin-right: 0.35em; vertical-align: -0.1em; }
   .woe-tally { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; margin-bottom: var(--ddp-space-3); }
   .woe-tally-label { color: var(--ddp-color-muted); }
   .woe-tally-row { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); letter-spacing: 0.02em; }

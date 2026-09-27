@@ -13,18 +13,18 @@
   <figcaption class="cs-head">Why cells stay small — surface vs volume<span class="cs-chip">⚙ original · interactive</span></figcaption>
 
   <div class="cs-grid">
-    <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="A cell drawn to scale by its radius" data-cell></svg>
+    <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="The cell drawn to scale, with a dashed 10-micrometer reference outline" data-cell></svg>
     <svg class="cs-svg" viewBox="0 0 200 200" role="img" aria-label="Surface-area-to-volume ratio falling as radius rises" data-plot></svg>
   </div>
 
-  <label class="cs-slabel">Cell radius <em data-out="r">10</em> µm
+  <label class="cs-slabel"><span>Drag to change the cell radius: <em data-out="r">10</em> µm</span>
     <input type="range" data-in="r" min="1" max="50" step="1" value="10" />
   </label>
 
   <dl class="cs-readout">
-    <div><dt>Surface area ∝ r²</dt><dd data-r-sa>—</dd></div>
-    <div><dt>Volume ∝ r³</dt><dd data-r-v>—</dd></div>
-    <div><dt>SA : V (= 3/r)</dt><dd data-r-ratio>—</dd></div>
+    <div><dt>Surface area, 4πr²</dt><dd data-r-sa>—</dd></div>
+    <div><dt>Volume, ⁴⁄₃πr³</dt><dd data-r-v>—</dd></div>
+    <div><dt>SA : V = 3/r</dt><dd data-r-ratio>—</dd></div>
   </dl>
   <p class="cs-why" data-why role="status">A small cell has lots of surface per unit of contents, so nutrients and waste cross fast enough. Double the radius and the inside grows eightfold but the membrane only fourfold.</p>
 
@@ -33,7 +33,7 @@
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const ACCENT = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', INK = '#4b4b55';
   function el(name: string, attrs: Record<string, string | number>): SVGElement {
     const e = document.createElementNS(NS, name);
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
@@ -49,41 +49,60 @@
     const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]')!;
     const why = root.querySelector<HTMLElement>('[data-why]')!;
 
+    const SCALE = 1.64; // px per µm, so the drawing is truly to scale (50 µm → 82 px, clear of the labels)
+    const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace', SANS = 'Inter, system-ui, sans-serif';
     function drawCell(r: number) {
       cell.replaceChildren();
-      const px = 8 + (r / 50) * 86; // map 1..50 µm to a visible radius
-      cell.appendChild(el('circle', { cx: 100, cy: 105, r: px, fill: 'color-mix(in srgb,#0e7c86 12%,#fff)', stroke: NAVY, 'stroke-width': 2 }));
-      // reference 10 µm cell outline
-      const ref = 8 + (10 / 50) * 86;
-      cell.appendChild(el('circle', { cx: 100, cy: 105, r: ref, fill: 'none', stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
-      const t = el('text', { x: 100, y: 22, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); t.textContent = `radius ${r} µm`; cell.appendChild(t);
-      const t2 = el('text', { x: 100, y: 196, 'text-anchor': 'middle', 'font-size': 8, fill: FAINT }); t2.textContent = 'dashed = 10 µm reference'; cell.appendChild(t2);
+      const cx = 100, cy = 103;
+      cell.appendChild(el('circle', { cx, cy, r: Math.max(1.5, r * SCALE), fill: 'color-mix(in srgb,#0e7c86 14%,#fff)', stroke: NAVY, 'stroke-width': r < 4 ? 1.2 : 2 }));
+      // reference 10 µm cell outline, drawn on top so it stays visible inside a big cell
+      cell.appendChild(el('circle', { cx, cy, r: 10 * SCALE, fill: 'none', stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+      const t = el('text', { x: 100, y: 16, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: NAVY, 'font-family': SANS }); t.textContent = `radius ${r} µm`; cell.appendChild(t);
+      const t2 = el('text', { x: 100, y: 196, 'text-anchor': 'middle', 'font-size': 9, fill: INK, 'font-family': SANS }); t2.textContent = 'orange dashes = a 10 µm cell, to scale'; cell.appendChild(t2);
     }
-    const PX0 = 36, PX1 = 188, PY0 = 16, PY1 = 176;
+    const PX0 = 34, PX1 = 190, PY0 = 22, PY1 = 168;
     function drawPlot(r: number) {
       plot.replaceChildren();
-      plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
-      plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
-      const yl = el('text', { x: PX0 - 4, y: PY0 + 8, 'text-anchor': 'end', 'font-size': 8, fill: INK }); yl.textContent = 'SA:V'; plot.appendChild(yl);
-      const xl = el('text', { x: (PX0 + PX1) / 2, y: PY1 + 16, 'text-anchor': 'middle', 'font-size': 8, fill: INK }); xl.textContent = 'radius (µm)'; plot.appendChild(xl);
       const rx = (rr: number) => PX0 + (rr / 50) * (PX1 - PX0);
       const ry = (ratio: number) => PY1 - (Math.min(3, ratio) / 3) * (PY1 - PY0); // 3/r, max 3 at r=1
+      // gridlines + tick labels (x: radius in µm; y: SA:V in µm⁻¹)
+      for (let v = 0; v <= 3; v++) {
+        plot.appendChild(el('line', { x1: PX0, y1: ry(v), x2: PX1, y2: ry(v), stroke: '#ece9e2', 'stroke-width': 1 }));
+        const t = el('text', { x: PX0 - 4, y: ry(v) + 3, 'text-anchor': 'end', 'font-size': 8.5, fill: INK, 'font-family': MONO }); t.textContent = String(v); plot.appendChild(t);
+      }
+      for (let v = 0; v <= 50; v += 10) {
+        plot.appendChild(el('line', { x1: rx(v), y1: PY1, x2: rx(v), y2: PY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: rx(v), y: PY1 + 12, 'text-anchor': 'middle', 'font-size': 8.5, fill: INK, 'font-family': MONO }); t.textContent = String(v); plot.appendChild(t);
+      }
+      plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      const yl = el('text', { x: PX0 - 2, y: 12, 'text-anchor': 'start', 'font-size': 9, fill: NAVY, 'font-family': SANS }); yl.textContent = 'SA:V (µm⁻¹)'; plot.appendChild(yl);
+      const xl = el('text', { x: (PX0 + PX1) / 2, y: PY1 + 25, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY, 'font-family': SANS }); xl.textContent = 'cell radius (µm)'; plot.appendChild(xl);
       let d = '';
       for (let rr = 1; rr <= 50; rr += 0.5) { d += (rr === 1 ? 'M' : 'L') + rx(rr).toFixed(1) + ' ' + ry(3 / rr).toFixed(1) + ' '; }
       plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
-      plot.appendChild(el('circle', { cx: rx(r), cy: ry(3 / r), r: 4, fill: ORANGE }));
+      // drop-lines from the current point to both axes
+      plot.appendChild(el('path', { d: `M${rx(r)} ${PY1} V${ry(3 / r)} H${PX0}`, fill: 'none', stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.8 }));
+      plot.appendChild(el('circle', { cx: rx(r), cy: ry(3 / r), r: 4, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
     }
+    const fmtX = (x: number) => (x >= 10 ? x.toFixed(0) : x >= 1 ? x.toFixed(1).replace(/\.0$/, '') : String(Number(x.toPrecision(2))));
     function render() {
       const r = parseInt(rIn.value, 10);
       rOut.textContent = String(r);
+      rIn.setAttribute('aria-valuetext', `${r} micrometers`);
       const sa = 4 * Math.PI * r * r, v = (4 / 3) * Math.PI * r * r * r, ratio = 3 / r;
       rSa.textContent = Math.round(sa).toLocaleString('en-US') + ' µm²';
       rV.textContent = Math.round(v).toLocaleString('en-US') + ' µm³';
       rRatio.textContent = ratio.toFixed(2) + ' µm⁻¹';
       drawCell(r); drawPlot(r);
+      // compare with the 10 µm reference cell, so the r² vs r³ race is concrete
+      const k = r / 10, saX = fmtX(k * k), vX = fmtX(k * k * k);
+      const vs = r === 10
+        ? 'This is the reference cell. Drag right to double the radius: the surface grows 4×, the volume 8×.'
+        : `Compared with the 10 µm cell: surface ×${saX}, volume ×${vX}.`;
       why.textContent = r <= 12
-        ? `At ${r} µm the cell has a healthy SA:V of ${ratio.toFixed(2)} — plenty of membrane per unit of contents, so exchange keeps up with metabolism.`
-        : `At ${r} µm the SA:V has fallen to ${ratio.toFixed(2)}: the interior (∝ r³) has outrun the membrane (∝ r²). A real cell this big must fold its membranes or stay thin, because diffusion across the center now takes far too long (time ∝ r²).`;
+        ? `At ${r} µm, SA:V is ${ratio.toFixed(2)} µm⁻¹ — plenty of membrane per unit of contents, so exchange keeps up with metabolism. ${vs}`
+        : `At ${r} µm, SA:V has fallen to ${ratio.toFixed(2)} µm⁻¹: the interior (∝ r³) has outrun the membrane (∝ r²). ${vs} A real cell this big must fold its membranes or stay thin, because diffusion to the center now takes far too long (time ∝ r²).`;
     }
     rIn.addEventListener('input', render);
     render();
@@ -95,11 +114,14 @@
   .cs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
   .cs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-3); }
+  /* On a phone two side-by-side 200-unit squares shrink their labels below legibility; stack them. */
+  @media (max-width: 520px) { .cs-grid { grid-template-columns: 1fr; } .cs-svg { max-width: 340px; justify-self: center; } }
   .cs-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
-  .cs-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cs-slabel { display: flex; flex-direction: column; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
   .cs-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
-  .cs-slabel input { accent-color: var(--ddp-color-accent); }
-  .cs-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cs-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .cs-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cs-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
   .cs-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
   .cs-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .cs-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }

@@ -39,13 +39,15 @@
           <option value="benzene-pi">aromatic ring (nonpolar)</option>
         </select>
       </label>
-      <label><span class="hbr-lbl">Distance: <b data-dlabel>2.8 Å</b></span>
-        <input type="range" data-in="dist" min="2.0" max="12.0" step="0.1" value="2.8" />
+      <label><span class="hbr-lbl">Distance between the groups: <b data-dlabel>2.8 Å</b></span>
+        <input type="range" data-in="dist" min="2.0" max="10.0" step="0.1" value="2.8" aria-describedby="hbr-dist-help" />
+        <span class="hbr-help" id="hbr-dist-help">Slide left to push the groups together, right to pull them apart.</span>
       </label>
       <label><span class="hbr-lbl">How many bonds: <b data-nlabel>1</b></span>
         <input type="range" data-in="n" min="1" max="100" step="1" value="1" />
       </label>
-      <div class="hbr-presets">
+      <div class="hbr-presets" role="group" aria-label="Real examples">
+        <span class="hbr-lbl">Or load a real example:</span>
         <button type="button" data-preset="dna">DNA base pair (A–T)</button>
         <button type="button" data-preset="helix">α-helix H-bond</button>
         <button type="button" data-preset="leu">Leucine buried in core</button>
@@ -53,7 +55,7 @@
     </div>
 
     <div class="hbr-viz">
-      <svg class="hbr-svg" viewBox="0 0 360 300" role="img" aria-label="Two chemical groups at an adjustable distance, with their interaction energy plotted against distance" data-svg></svg>
+      <svg class="hbr-svg" viewBox="0 0 360 304" role="img" aria-label="Two chemical groups at an adjustable distance, with their interaction energy plotted against distance" data-svg></svg>
     </div>
 
     <div class="hbr-side" role="status">
@@ -62,14 +64,15 @@
       <div class="hbr-energy-lbl">per bond</div>
       <div class="hbr-total" data-total>×1 = −20 kJ/mol total</div>
       <p class="hbr-context" data-context>One hydrogen bond, at its ideal 2.8 Å.</p>
-      <p class="hbr-approx">Approximate energies, in water at ~37 °C.</p>
+      <p class="hbr-approx">Simplified model: approximate energies in water at ~37 °C.</p>
     </div>
   </div>
 </figure>
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const TEAL = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GREEN = '#2e8b57', GRAY = '#9a9aa3', RED = '#c0392b', GOLDBAND = '#D4A843';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', ORANGE = '#e57200', GREEN = '#2e8b57', GRAY = '#9a9aa3', RED = '#c0392b', GOLDBAND = '#D4A843', INK = '#4b4b55';
+  const SANS = 'Inter, system-ui, sans-serif', MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 
   type Kind = 'hbond' | 'vdw' | 'ionic' | 'ionic-rep' | 'none';
 
@@ -79,7 +82,7 @@
   const NONPOLAR: Record<string, number> = { 'methyl-CH3': 1, 'benzene-pi': 1 };
   const SHORT: Record<string, string> = {
     'amine-NH': 'N–H', 'carbonyl-O': 'C=O', 'water-O': 'H₂O', 'carboxylate-O': 'COO⁻',
-    'lysine-NH3': 'NH₃⁺', 'methyl-CH3': 'CH₃', 'benzene-pi': 'π',
+    'lysine-NH3': 'NH₃⁺', 'methyl-CH3': 'CH₃', 'benzene-pi': 'ring',
   };
 
   function classify(a: string, b: string): Kind {
@@ -88,17 +91,30 @@
     if ((DONOR[a] && ACCEPTOR[b]) || (DONOR[b] && ACCEPTOR[a])) return 'hbond';
     return 'none';
   }
-  // energy (kJ/mol) as a function of distance r (Å) — simplified, citable
+  // Energy (kJ/mol) vs distance r (Å). Simplified textbook forms, each with a short-range
+  // repulsive wall so "closer than that and atoms repel" is visible in the curve itself.
+  //   H-bond: 12-10 potential, minimum −20 kJ/mol at 2.8 Å (N···O).
+  //   van der Waals: Lennard-Jones 12-6, well depth 0.6 kJ/mol (minimum ≈ 4.2 Å).
+  //   ionic: screened Coulomb proxy −32/r (dielectric folded in) plus an r⁻¹² wall, minimum at 2.8 Å.
+  //   none: a very weak 12-6 contact (0.15 kJ/mol).
+  const HB_D = 20, HB_R0 = 2.8, ION_K = 32, ION_A = (ION_K * Math.pow(2.8, 11)) / 12;
   function energy(kind: Kind, r: number): number {
-    if (kind === 'hbond') return Math.max(-40, -20 * Math.pow(2.8 / r, 6));
+    if (kind === 'hbond') { const x = HB_R0 / r; return HB_D * (5 * Math.pow(x, 12) - 6 * Math.pow(x, 10)); }
     if (kind === 'vdw') { const x = 3.7 / r; return 4 * 0.6 * (Math.pow(x, 12) - Math.pow(x, 6)); }
-    if (kind === 'ionic') return -32 / r;       // Coulomb proxy, D folded in
-    if (kind === 'ionic-rep') return 32 / r;    // same-sign repulsion
-    return -0.1 * Math.pow(3.5 / r, 6);          // negligible polar/nonpolar mismatch
+    if (kind === 'ionic') return -ION_K / r + ION_A / Math.pow(r, 12);
+    if (kind === 'ionic-rep') return ION_K / r;    // same-sign repulsion
+    const x = 3.5 / r; return 4 * 0.15 * (Math.pow(x, 12) - Math.pow(x, 6));
   }
+  // distance of the energy minimum; closer than this, the wall takes over
+  const RMIN: Record<Kind, number> = { hbond: 2.8, vdw: 3.7 * Math.pow(2, 1 / 6), ionic: 2.8, 'ionic-rep': 0, none: 3.5 * Math.pow(2, 1 / 6) };
   const LABEL: Record<Kind, string> = {
-    hbond: 'Hydrogen bond', vdw: 'Van der Waals', ionic: 'Ionic (salt bridge)',
-    'ionic-rep': 'Ionic — repulsive!', none: 'Negligible',
+    hbond: 'Hydrogen bond', vdw: 'Van der Waals contact', ionic: 'Ionic (salt bridge)',
+    'ionic-rep': 'Ionic — repulsive!', none: 'Negligible interaction',
+  };
+  const PRESET_NOTE: Record<string, string> = {
+    dna: 'An A–T base pair is held by two hydrogen bonds (G–C has three).',
+    helix: 'In an α-helix, each backbone C=O accepts a hydrogen bond from the N–H four residues along the chain.',
+    leu: 'A buried leucine side chain touches its packed neighbors through several tiny van der Waals contacts.',
   };
 
   function el(name: string, attrs: Record<string, string | number>) {
@@ -106,7 +122,11 @@
     for (const k in attrs) e.setAttribute(k, String(attrs[k]));
     return e;
   }
+  const txt = (s: string, attrs: Record<string, string | number>) => { const t = el('text', { 'font-family': SANS, ...attrs }); t.textContent = s; return t; };
+  // proper minus sign, explicit plus for repulsion
+  const fmtE = (e: number, d = 1) => (e > 0.05 ? '+' : e < -0.05 ? '−' : '') + Math.abs(e).toFixed(d);
 
+  let uid = 0;
   document.querySelectorAll<HTMLElement>('[data-hbr]').forEach((root) => {
     const selA = root.querySelector<HTMLSelectElement>('[data-in="a"]')!;
     const selB = root.querySelector<HTMLSelectElement>('[data-in="b"]')!;
@@ -119,6 +139,8 @@
     const energyEl = root.querySelector<HTMLElement>('[data-energy]')!;
     const totalEl = root.querySelector<HTMLElement>('[data-total]')!;
     const contextEl = root.querySelector<HTMLElement>('[data-context]')!;
+    const clipId = `hbr-clip-${uid++}`;
+    let presetNote = '';
 
     function colorFor(e: number): string {
       if (e > 0.2) return RED;
@@ -131,72 +153,112 @@
       const a = selA.value, b = selB.value, r = parseFloat(dist.value), n = parseInt(nIn.value, 10);
       const kind = classify(a, b);
       const e = energy(kind, r);
-      const clash = r < 2.2 && kind !== 'none';
+      const clash = kind !== 'ionic-rep' && e > 0 && r < RMIN[kind];
       dlabel.textContent = r.toFixed(1) + ' Å';
       nlabel.textContent = String(n);
+      dist.setAttribute('aria-valuetext', `${r.toFixed(1)} ångströms`);
 
       // ---- SVG ----
       svg.replaceChildren();
-      // top: two spheres + bond
-      const cy = 70;
-      const gap = 26 + (r - 2) / 10 * 150; // 2 Å→26px, 12 Å→176px
+      // top: the two groups drawn to scale (12 px per Å), sphere radius ≈ 1.5 Å
+      const cy = 64, SC = 12, RAD = 17;
+      const gap = r * SC;
       const xA = 180 - gap / 2, xB = 180 + gap / 2;
       const favorable = e < -0.3 && !clash;
-      svg.appendChild(el('line', { x1: xA, y1: cy, x2: xB, y2: cy, stroke: favorable ? TEAL : (clash ? RED : GRAY), 'stroke-width': clash ? 2.5 : 2, 'stroke-dasharray': clash ? '0' : '5 4' }));
-      const dseg = el('text', { x: 180, y: cy - 10, 'text-anchor': 'middle', 'font-size': 11, fill: NAVY }); dseg.textContent = r.toFixed(1) + ' Å'; svg.appendChild(dseg);
+      // dimension line above the pair
+      const dy = cy - RAD - 12;
+      svg.appendChild(el('path', { d: `M${xA} ${dy + 4} V${dy} H${xB} V${dy + 4}`, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      svg.appendChild(txt(r.toFixed(1) + ' Å', { x: 180, y: dy - 5, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: NAVY }));
       [[xA, a], [xB, b]].forEach(([x, g]) => {
         const charged = CHARGE[g as string];
         const fill = charged ? (charged > 0 ? '#3b6fb0' : '#b0473b') : (NONPOLAR[g as string] ? '#c9a24b' : TEAL);
-        svg.appendChild(el('circle', { cx: x as number, cy, r: 15, fill, opacity: 0.88 }));
-        const lab = el('text', { x: x as number, y: cy + 4, 'text-anchor': 'middle', 'font-size': 10, fill: '#fff', 'font-weight': 700 }); lab.textContent = SHORT[g as string]; svg.appendChild(lab);
+        svg.appendChild(el('circle', { cx: x as number, cy, r: RAD, fill, opacity: 0.85, stroke: '#fff', 'stroke-width': 1.5 }));
+        svg.appendChild(txt(SHORT[g as string], { x: x as number, y: cy + 4, 'text-anchor': 'middle', 'font-size': 10.5, fill: '#fff', 'font-weight': 700 }));
       });
-      if (clash) { const c = el('text', { x: 180, y: cy + 32, 'text-anchor': 'middle', 'font-size': 10, fill: RED }); c.textContent = 'steric clash — atoms repel'; svg.appendChild(c); }
+      // the interaction itself, between the sphere surfaces when there is room
+      if (gap > 2 * RAD + 6) {
+        svg.appendChild(el('line', { x1: xA + RAD + 2, y1: cy, x2: xB - RAD - 2, y2: cy, stroke: favorable ? TEAL : GRAY, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      }
+      if (clash) svg.appendChild(txt('too close — atoms repel', { x: 180, y: cy + RAD + 16, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: RED }));
+      else svg.appendChild(txt('drawn to scale', { x: 350, y: 14, 'text-anchor': 'end', 'font-size': 9, fill: GRAY }));
 
       // bottom: energy-vs-distance curve
-      const PX0 = 40, PX1 = 340, PY0 = 130, PY1 = 270;
-      const rmin = 2, rmax = 8, emin = -30, emax = 12;
+      const PX0 = 50, PX1 = 346, PY0 = 118, PY1 = 262;
+      const rmin = 2, rmax = 10, emin = -25, emax = 15;
       const px = (rr: number) => PX0 + (rr - rmin) / (rmax - rmin) * (PX1 - PX0);
-      const py = (ee: number) => PY1 - (Math.max(emin, Math.min(emax, ee)) - emin) / (emax - emin) * (PY1 - PY0);
-      // axes + zero line
-      svg.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: '#b9b6ad', 'stroke-width': 1 }));
-      svg.appendChild(el('line', { x1: PX0, y1: py(0), x2: PX1, y2: py(0), stroke: '#d8d5cc', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      const py = (ee: number) => PY1 - (ee - emin) / (emax - emin) * (PY1 - PY0);
+      const clip = el('clipPath', { id: clipId });
+      clip.appendChild(el('rect', { x: PX0, y: PY0, width: PX1 - PX0, height: PY1 - PY0 }));
+      svg.appendChild(clip);
       // ~4 Å sweet-spot shaded band (2.5–5 Å)
       svg.appendChild(el('rect', { x: px(2.5), y: PY0, width: px(5) - px(2.5), height: PY1 - PY0, fill: GOLDBAND, opacity: 0.16 }));
-      const sw = el('text', { x: px(3.6), y: PY0 + 11, 'text-anchor': 'middle', 'font-size': 8.5, fill: '#9a7b16' }); sw.textContent = '~4 Å: life happens here'; svg.appendChild(sw);
-      // curve for current kind
+      // label sits just above the plot box, where no curve can run through it
+      svg.appendChild(txt('~4 Å window: life happens here', { x: (px(2.5) + px(5)) / 2, y: PY0 - 4, 'text-anchor': 'middle', 'font-size': 9, fill: '#7f6315' }));
+      // y gridlines + labels
+      for (let v = -20; v <= 10; v += 10) {
+        svg.appendChild(el('line', { x1: PX0, y1: py(v), x2: PX1, y2: py(v), stroke: v === 0 ? '#bdb9ae' : '#eeebe4', 'stroke-width': 1, 'stroke-dasharray': v === 0 ? '4 3' : '0' }));
+        svg.appendChild(txt(v > 0 ? `+${v}` : v < 0 ? `−${-v}` : '0', { x: PX0 - 5, y: py(v) + 3.5, 'text-anchor': 'end', 'font-size': 9.5, fill: INK, 'font-family': MONO }));
+      }
+      svg.appendChild(txt('↑ repulsive', { x: PX1 - 4, y: PY0 + 12, 'text-anchor': 'end', 'font-size': 9, fill: GRAY }));
+      svg.appendChild(txt('↓ attractive', { x: PX1 - 4, y: PY1 - 5, 'text-anchor': 'end', 'font-size': 9, fill: GRAY }));
+      // x ticks
+      for (let v = 2; v <= 10; v += 1) {
+        svg.appendChild(el('line', { x1: px(v), y1: PY1, x2: px(v), y2: PY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        if (v % 2 === 0) svg.appendChild(txt(String(v), { x: px(v), y: PY1 + 13, 'text-anchor': 'middle', 'font-size': 9.5, fill: INK, 'font-family': MONO }));
+      }
+      svg.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: '#9d998f', 'stroke-width': 1 }));
+      svg.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: '#9d998f', 'stroke-width': 1 }));
+      svg.appendChild(txt('distance between the groups (Å)', { x: (PX0 + PX1) / 2, y: PY1 + 28, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY }));
+      const ylx = 13, yly = (PY0 + PY1) / 2;
+      svg.appendChild(txt('energy (kJ/mol)', { x: ylx, y: yly, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, transform: `rotate(-90 ${ylx} ${yly})` }));
+      // curve for current kind (clipped to the plot box so the repulsive wall exits the top)
       let d = '';
-      for (let i = 0; i <= 120; i++) { const rr = rmin + (i / 120) * (rmax - rmin); const ee = energy(kind, rr); d += (i === 0 ? 'M' : 'L') + px(rr).toFixed(1) + ' ' + py(ee).toFixed(1) + ' '; }
-      svg.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: TEAL, 'stroke-width': 2 }));
-      // marker dot at current r (only if within plotted range)
-      if (r >= rmin && r <= rmax) svg.appendChild(el('circle', { cx: px(r), cy: py(e), r: 4, fill: ORANGE }));
-      svg.appendChild((() => { const t = el('text', { x: (PX0 + PX1) / 2, y: 290, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); t.textContent = 'interaction energy vs. distance (Å)'; return t; })());
+      for (let i = 0; i <= 240; i++) {
+        const rr = rmin + (i / 240) * (rmax - rmin);
+        const ee = Math.max(emin - 5, Math.min(emax + 40, energy(kind, rr)));
+        d += (i === 0 ? 'M' : 'L') + px(rr).toFixed(1) + ' ' + py(ee).toFixed(1) + ' ';
+      }
+      svg.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: TEAL, 'stroke-width': 2.2, 'clip-path': `url(#${clipId})` }));
+      // marker at current r; pinned to the top edge (as a caret) when it is off the scale
+      if (e > emax) svg.appendChild(el('path', { d: `M${px(r) - 5} ${PY0 + 7} L${px(r)} ${PY0 - 1} L${px(r) + 5} ${PY0 + 7} Z`, fill: RED }));
+      else svg.appendChild(el('circle', { cx: px(r), cy: py(Math.max(emin, e)), r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.2 }));
 
       // ---- readouts ----
-      typeEl.textContent = LABEL[kind];
+      typeEl.textContent = clash ? `${LABEL[kind]} — too close` : LABEL[kind];
       typeEl.style.color = clash ? RED : NAVY;
-      energyEl.textContent = (clash ? '+' : '') + (clash ? (Math.abs(e) + 5).toFixed(1) : e.toFixed(1)) + ' kJ/mol';
-      energyEl.style.color = colorFor(clash ? 1 : e);
+      energyEl.textContent = (e > 50 ? '> +50' : fmtE(e)) + ' kJ/mol';
+      energyEl.style.color = colorFor(e);
       const tot = e * n;
-      totalEl.innerHTML = `×${n} = <b>${tot.toFixed(0)} kJ/mol</b> total`;
-      // context line
+      totalEl.innerHTML = e > 50 ? `×${n} = <b>strongly repulsive</b>` : `×${n} = <b>${fmtE(tot, 0)} kJ/mol</b> total`;
+      // context line: what just happened, in words
+      const polarWord = (g: string) => (CHARGE[g] ? 'charged' : 'polar');
       let ctx = '';
-      if (clash) ctx = 'Too close — the atoms overlap and shove each other apart.';
-      else if (kind === 'none') ctx = 'A polar group and a nonpolar group barely interact — almost no energy.';
-      else if (kind === 'ionic-rep') ctx = 'Two like charges repel; pushing them together costs energy.';
-      else if (n >= 50) ctx = `${n} of these bonds sum to ${tot.toFixed(0)} kJ/mol — the scale of a folded protein's stability. Specific recognition, built from forgettable parts.`;
-      else if (kind === 'vdw') ctx = 'One van der Waals contact is almost nothing. Its power is in the sum — a gecko hangs from millions of them.';
-      else if (kind === 'hbond') ctx = r <= 3.2 ? 'A hydrogen bond near its ideal geometry.' : 'Stretch the H-bond and it fades fast.';
+      const CLASH_MSG = 'Too close: the electron clouds overlap and the atoms shove each other apart (a steric clash). Pull them back toward the minimum of the curve.';
+      if (clash && kind !== 'none') ctx = CLASH_MSG;
+      else if (kind === 'ionic-rep') ctx = 'Two like charges repel; pushing them together costs energy at every distance.';
+      else if (kind === 'none') {
+        if (NONPOLAR[a] || NONPOLAR[b]) {
+          const pg = NONPOLAR[a] ? b : a;
+          ctx = `A ${polarWord(pg)} group and a nonpolar group barely interact — almost no energy either way.`;
+        } else if (DONOR[a] && DONOR[b]) ctx = 'Two hydrogen-bond donors: both offer an H, but neither has a lone pair to accept it, so no hydrogen bond forms. An H-bond needs one donor and one acceptor.';
+        else ctx = 'Two hydrogen-bond acceptors: both have lone pairs, but neither has an H to donate, so no hydrogen bond forms. An H-bond needs one donor and one acceptor.';
+        if (clash) ctx += ' At this distance they are also too close, so they repel.';
+      } else if (n > 1 && tot <= -100) ctx = `${n} bonds × ${fmtE(e)} kJ/mol = ${fmtE(tot, 0)} kJ/mol — covalent-bond territory (100–1,000 kJ/mol), yet each contact can still break and re-form on its own. That is how weak bonds hold a double helix or a folded protein together without locking it.`;
+      else if (n > 1) ctx = `${n} bonds × ${fmtE(e)} kJ/mol = ${fmtE(tot, 0)} kJ/mol. They add — keep raising the bond count and watch the total grow toward covalent-bond territory (100–1,000 kJ/mol).`;
+      else if (kind === 'vdw') ctx = 'One van der Waals contact is almost nothing — well under a kilocalorie per mole. Its power is in the sum: a gecko hangs from millions of them.';
+      else if (kind === 'hbond') ctx = r <= 3.2 ? 'A hydrogen bond near its ideal geometry: about 2.8 Å between the donor and acceptor atoms.' : 'Stretch the H-bond and it fades fast — by about 4 Å little is left.';
       else if (kind === 'ionic') ctx = 'A salt bridge. In water it is heavily screened; buried in a protein it gets far stronger.';
-      contextEl.textContent = ctx;
+      contextEl.textContent = presetNote ? `${presetNote} ${ctx}` : ctx;
     }
 
-    [selA, selB, dist, nIn].forEach((c) => c.addEventListener('input', render));
+    [selA, selB, dist, nIn].forEach((c) => c.addEventListener('input', () => { presetNote = ''; render(); }));
     root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const p = btn.getAttribute('data-preset');
+        const p = btn.getAttribute('data-preset')!;
         if (p === 'dna') { selA.value = 'amine-NH'; selB.value = 'carbonyl-O'; dist.value = '2.9'; nIn.value = '2'; }
         if (p === 'helix') { selA.value = 'amine-NH'; selB.value = 'carbonyl-O'; dist.value = '2.8'; nIn.value = '1'; }
         if (p === 'leu') { selA.value = 'methyl-CH3'; selB.value = 'methyl-CH3'; dist.value = '4.0'; nIn.value = '8'; }
+        presetNote = PRESET_NOTE[p] || '';
         render();
       });
     });
@@ -216,7 +278,10 @@
   .hbr-controls label { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .hbr-controls select { font-family: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; color: var(--ddp-color-ink-soft); }
   .hbr-controls input[type='range'] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .hbr-help { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
   .hbr-presets { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem; }
+  .hbr-presets .hbr-lbl { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hbr-presets button:focus-visible, .hbr-controls select:focus-visible, .hbr-controls input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .hbr-presets button {
     font-size: var(--ddp-text-xs); font-family: inherit; cursor: pointer; text-align: left;
     border: 1px solid var(--ddp-color-line); background: #fff; color: var(--ddp-color-ink-soft);

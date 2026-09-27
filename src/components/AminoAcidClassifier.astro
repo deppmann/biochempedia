@@ -52,13 +52,14 @@
     { code: 'His', name: 'Histidine', cat: 'basic', note: 'An imidazole with a pKa near 6 — it can grab or give a proton at physiological pH, the workhorse of acid–base catalysis.' },
   ];
   const CATCOLOR: Record<string, string> = { nonpolar: '#0e7c86', aromatic: '#7a4fbf', polar: '#2b6fb0', acidic: '#c0392b', basic: '#e57200' };
+  const FAMNAME: Record<string, string> = { nonpolar: 'nonpolar', aromatic: 'aromatic', polar: 'polar uncharged', acidic: 'acidic (−)', basic: 'basic (+)' };
   const CATRULE: Record<string, string> = {
     all: 'Each color marks a side-chain family. Click a family to isolate it, or any residue for its role.',
     nonpolar: 'Nonpolar (hydrophobic) side chains avoid water, so they pack into the protein\'s buried core and into membrane-spanning helices. Example: the Glu→Val substitution that makes hemoglobin sticky in sickle-cell disease.',
-    aromatic: 'Aromatic rings are large and mostly hydrophobic (tyrosine is the polar exception). They stack against each other and absorb UV at 280 nm — the basis of measuring protein concentration.',
+    aromatic: 'Aromatic rings are large and mostly hydrophobic (tyrosine is the polar exception). They stack against each other, and tryptophan and tyrosine absorb UV at 280 nm — the basis of measuring protein concentration.',
     polar: 'Polar uncharged side chains make hydrogen bonds and often do chemistry: serine/threonine are phosphorylated, cysteine forms disulfides, asparagine anchors sugars.',
     acidic: 'Acidic side chains (aspartate, glutamate) carry a negative charge at pH 7 — they cluster in active sites, bind metals and positive partners, and shape electrostatics.',
-    basic: 'Basic side chains (lysine, arginine, histidine) are positive at pH 7 and bind the negatively charged backbone of DNA and the phosphates of substrates; histidine\'s near-neutral pKa makes it the catalytic proton shuttle.',
+    basic: 'Basic side chains can carry a positive charge. Lysine and arginine are positive at pH 7 and bind the negatively charged backbone of DNA and the phosphates of substrates. Histidine, with a pKa near 6, is only partly protonated at pH 7 — which is exactly what makes it the catalytic proton shuttle.',
   };
 
   document.querySelectorAll<HTMLElement>('[data-aaclassifier]').forEach((root) => {
@@ -69,13 +70,18 @@
       chip.type = 'button'; chip.className = 'aac-chip-btn'; chip.setAttribute('data-aacat', aa.cat);
       chip.style.setProperty('--aac-c', CATCOLOR[aa.cat]);
       chip.innerHTML = `<b>${aa.code}</b><span>${aa.name}</span>`;
-      chip.addEventListener('click', () => { rule.textContent = `${aa.name} (${aa.code}): ${aa.note}`; });
+      chip.setAttribute('aria-pressed', 'false');
+      chip.addEventListener('click', () => {
+        grid.querySelectorAll<HTMLElement>('.aac-chip-btn').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        rule.innerHTML = `<strong>${aa.name} (${aa.code})</strong> · <span class="aac-fam">${FAMNAME[aa.cat]}</span> — ${aa.note}`;
+      });
       grid.appendChild(chip);
     });
     function filter(cat: string) {
       grid.querySelectorAll<HTMLElement>('.aac-chip-btn').forEach((c) => {
         const match = cat === 'all' || c.getAttribute('data-aacat') === cat;
         c.classList.toggle('is-dim', !match);
+        c.setAttribute('aria-pressed', 'false');
       });
       rule.textContent = CATRULE[cat];
     }
@@ -99,9 +105,13 @@
   .aac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 0.4rem; }
   .aac-chip-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem; font-family: inherit; text-align: left; border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--aac-c, #888); background: #fff; border-radius: 5px; padding: 0.3rem 0.45rem; cursor: pointer; transition: opacity 0.2s; }
   .aac-chip-btn b { font-size: var(--ddp-text-sm); color: var(--aac-c, var(--ddp-color-primary)); }
-  .aac-chip-btn span { font-size: 0.62rem; color: var(--ddp-color-muted); }
+  .aac-chip-btn span { font-size: 0.66rem; color: var(--ddp-color-muted); }
   .aac-chip-btn:hover { border-color: var(--aac-c); }
   .aac-chip-btn.is-dim { opacity: 0.22; }
-  .aac-rule { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
-  .aac-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .aac-chip-btn[aria-pressed='true'] { border-color: var(--aac-c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--aac-c) 35%, transparent); opacity: 1; }
+  .aac-chip-btn:focus-visible, .aac-filters button:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .aac .aac-rule strong { color: var(--ddp-color-primary); }
+  .aac-fam { color: var(--ddp-color-muted); }
+  .aac .aac-rule { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .aac .aac-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
 </style>

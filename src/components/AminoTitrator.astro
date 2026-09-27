@@ -20,10 +20,11 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
 ---
 
 <figure class={`titrator card titr-${float}`} data-titrator>
-  <figcaption class="titr-head">{title}<span class="titr-chip">drag the pH line</span></figcaption>
-  <svg class="titr-svg" viewBox="0 0 320 250" role="img" aria-label="Interactive amino-acid titration curve: pH versus equivalents of base added"></svg>
+  <figcaption class="titr-head">{title}<span class="titr-chip">drag the pH line · or ↑↓ keys</span></figcaption>
+  <svg class="titr-svg" viewBox="0 0 320 250" tabindex="0" role="slider" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="14" aria-label="pH cursor on the titration curve (pH versus equivalents of base added). Use the up and down arrow keys to change pH."></svg>
   <p class="titr-readout" data-readout></p>
   <div class="titr-species" data-species aria-hidden="true"></div>
+  <p class="titr-form" data-form></p>
   <div class="titr-controls">
     <label class="titr-aa">Amino acid
       <select data-aa>
@@ -40,30 +41,32 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
 
 <script>
   const NS = 'http://www.w3.org/2000/svg';
-  const TEAL = '#0e7c86', NAVY = '#232d4b', GOLD = '#D4A843', ORANGE = '#e57200', GRID = '#e6e3db', MUTE = '#9a9aa3';
+  const TEAL = '#0e7c86', NAVY = '#232d4b', GOLD = '#D4A843', ORANGE = '#e57200', GRID = '#e6e3db', MUTE = '#9a9aa3', INK = '#4b4b55';
+  const SANS = 'Inter, system-ui, sans-serif', MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace';
   const L = 40, R = 306, T = 12, B = 206, W = 266, H = 194; // plot box; y = pH 0..14
 
-  type Grp = { name: string; pKa: number; type: 'acid' | 'base' };
+  // `forms` = how the group is written protonated → deprotonated
+  type Grp = { name: string; pKa: number; type: 'acid' | 'base'; forms: [string, string] };
   type AA = { label: string; groups: Grp[] };
   const AAS: Record<string, AA> = {
     glycine: { label: 'Glycine', groups: [
-      { name: 'α-COOH', pKa: 2.34, type: 'acid' },
-      { name: 'α-NH₃⁺', pKa: 9.60, type: 'base' },
+      { name: 'α-COOH', pKa: 2.34, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
+      { name: 'α-NH₃⁺', pKa: 9.60, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
     ] },
     histidine: { label: 'Histidine', groups: [
-      { name: 'α-COOH', pKa: 1.82, type: 'acid' },
-      { name: 'imidazole', pKa: 6.00, type: 'base' },
-      { name: 'α-NH₃⁺', pKa: 9.17, type: 'base' },
+      { name: 'α-COOH', pKa: 1.82, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
+      { name: 'imidazole', pKa: 6.00, type: 'base', forms: ['imidazole-H⁺', 'imidazole (neutral)'] },
+      { name: 'α-NH₃⁺', pKa: 9.17, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
     ] },
     aspartate: { label: 'Aspartate', groups: [
-      { name: 'α-COOH', pKa: 1.99, type: 'acid' },
-      { name: 'β-COOH', pKa: 3.90, type: 'acid' },
-      { name: 'α-NH₃⁺', pKa: 9.90, type: 'base' },
+      { name: 'α-COOH', pKa: 1.99, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
+      { name: 'β-COOH', pKa: 3.90, type: 'acid', forms: ['β-COOH', 'β-COO⁻'] },
+      { name: 'α-NH₃⁺', pKa: 9.90, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
     ] },
     lysine: { label: 'Lysine', groups: [
-      { name: 'α-COOH', pKa: 2.18, type: 'acid' },
-      { name: 'α-NH₃⁺', pKa: 8.95, type: 'base' },
-      { name: 'ε-NH₃⁺', pKa: 10.53, type: 'base' },
+      { name: 'α-COOH', pKa: 2.18, type: 'acid', forms: ['α-COOH', 'α-COO⁻'] },
+      { name: 'α-NH₃⁺', pKa: 8.95, type: 'base', forms: ['α-NH₃⁺', 'α-NH₂'] },
+      { name: 'ε-NH₃⁺', pKa: 10.53, type: 'base', forms: ['ε-NH₃⁺', 'ε-NH₂'] },
     ] },
   };
 
@@ -73,17 +76,20 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
     return e;
   }
   const fDeprot = (pH: number, pKa: number) => 1 / (1 + Math.pow(10, pKa - pH));
+  const signed = (q: number) => (Math.abs(q) < 0.005 ? '0' : (q > 0 ? '+' : '−') + Math.abs(q).toFixed(2));
+  const chargeName = (c: number) => (c > 0 ? `+${c}` : c < 0 ? `−${-c}` : '0');
 
   document.querySelectorAll<HTMLElement>('[data-titrator]').forEach((root) => {
     const svg = root.querySelector<SVGSVGElement>('.titr-svg')!;
     const readout = root.querySelector<HTMLElement>('[data-readout]')!;
     const speciesBar = root.querySelector<HTMLElement>('[data-species]')!;
+    const formEl = root.querySelector<HTMLElement>('[data-form]')!;
     const slidersBox = root.querySelector<HTMLElement>('[data-sliders]')!;
     const sel = root.querySelector<HTMLSelectElement>('[data-aa]')!;
 
     let key = 'glycine';
     let pKas: number[] = AAS[key].groups.map((g) => g.pKa);
-    let pH = 6; // cursor
+    let pH = 7.4; // cursor starts at physiological pH, where the lesson anchors every charge
 
     const groups = () => AAS[key].groups;
     const N = () => groups().length;
@@ -101,10 +107,13 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
 
     function computePI(): number {
       let lo = 0, hi = 14, cLo = chargeAt(lo);
-      for (let i = 0; i < 40; i++) {
+      // Plain bisection to full precision. (An early exit on |charge| < 1e-4 used to stop
+      // far from the root, because net charge is nearly flat around the pI: it reported
+      // glycine's pI as 5.91 instead of 5.97.)
+      for (let i = 0; i < 50; i++) {
         const mid = (lo + hi) / 2;
         const cMid = chargeAt(mid);
-        if (Math.abs(cMid) < 1e-4) return mid;
+        if (cMid === 0) return mid;
         if (cLo > 0 === cMid > 0) { lo = mid; cLo = cMid; } else { hi = mid; }
       }
       return (lo + hi) / 2;
@@ -126,6 +135,14 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
     }
     const speciesCharge = (kk: number) =>
       groups().reduce((s, g, i) => s + (g.type === 'acid' ? (i < kk ? -1 : 0) : (i < kk ? 0 : 1)), 0);
+    // "α-COO⁻ · α-NH₃⁺" — the groups as they are written in species kk
+    const speciesFormula = (kk: number) => groups().map((g, i) => g.forms[i < kk ? 1 : 0]).join(' · ');
+    const hasBothCharges = (kk: number) => {
+      const gs = groups();
+      const neg = gs.some((g, i) => g.type === 'acid' && i < kk);
+      const pos = gs.some((g, i) => g.type === 'base' && i >= kk);
+      return neg && pos;
+    };
 
     function curvePath(): string {
       let d = '';
@@ -136,6 +153,12 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
         first = false;
       }
       return d.trim();
+    }
+    // text with a white halo so labels stay legible where they cross lines
+    function label(str: string, attrs: Record<string, string | number>) {
+      const t = el('text', { 'font-family': SANS, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke', 'stroke-linejoin': 'round', ...attrs });
+      t.textContent = str;
+      svg.appendChild(t);
     }
 
     function render() {
@@ -148,18 +171,22 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       // grid + axes
       for (let p = 0; p <= 14; p += 2) {
         svg.appendChild(el('line', { x1: L, y1: py(p), x2: R, y2: py(p), stroke: GRID, 'stroke-width': 1 }));
-        const t = el('text', { x: L - 4, y: py(p) + 3, 'text-anchor': 'end', 'font-size': 8, fill: MUTE }); t.textContent = String(p); svg.appendChild(t);
+        const t = el('text', { x: L - 4, y: py(p) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK, 'font-family': MONO }); t.textContent = String(p); svg.appendChild(t);
+      }
+      for (let q = 0; q <= N(); q++) {
+        svg.appendChild(el('line', { x1: px(q), y1: B, x2: px(q), y2: B + 3, stroke: MUTE, 'stroke-width': 1 }));
+        const t = el('text', { x: px(q), y: B + 12, 'text-anchor': 'middle', 'font-size': 9, fill: INK, 'font-family': MONO }); t.textContent = String(q); svg.appendChild(t);
       }
       svg.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
       svg.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: MUTE, 'stroke-width': 1.2 }));
-      const xl = el('text', { x: (L + R) / 2, y: 226, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY }); xl.textContent = 'OH⁻ added (equivalents)'; svg.appendChild(xl);
-      const yl = el('text', { x: 11, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 9, fill: NAVY, transform: `rotate(-90 11 ${(T + B) / 2})` }); yl.textContent = 'pH'; svg.appendChild(yl);
+      const xl = el('text', { x: (L + R) / 2, y: 238, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, 'font-family': SANS }); xl.textContent = 'OH⁻ added (equivalents)'; svg.appendChild(xl);
+      const yl = el('text', { x: 12, y: (T + B) / 2, 'text-anchor': 'middle', 'font-size': 10, fill: NAVY, 'font-family': SANS, transform: `rotate(-90 12 ${(T + B) / 2})` }); yl.textContent = 'pH'; svg.appendChild(yl);
 
-      // pKa dashed lines + half-equivalence dots + labels
+      // pKa dashed lines + half-equivalence dots (on the curve) + labels
       pKas.forEach((k, i) => {
         svg.appendChild(el('line', { x1: L, y1: py(k), x2: R, y2: py(k), stroke: MUTE, 'stroke-width': 0.8, 'stroke-dasharray': '3 3', opacity: 0.7 }));
-        svg.appendChild(el('circle', { cx: px(i + 0.5), cy: py(k), r: 2.6, fill: TEAL }));
-        const lab = el('text', { x: R - 2, y: py(k) - 2.5, 'text-anchor': 'end', 'font-size': 7.5, fill: TEAL }); lab.textContent = `pKa${i + 1} ${k.toFixed(2)}`; svg.appendChild(lab);
+        svg.appendChild(el('circle', { cx: px(eqAt(k)), cy: py(k), r: 2.8, fill: TEAL }));
+        label(`pKa${i + 1} ${k.toFixed(2)}`, { x: R - 2, y: py(k) - 3, 'text-anchor': 'end', 'font-size': 8.5, fill: TEAL });
       });
 
       // the curve
@@ -168,7 +195,11 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       // pI marker (gold — the one rationed accent)
       const pI = computePI();
       svg.appendChild(el('circle', { cx: px(eqAt(pI)), cy: py(pI), r: 4, fill: GOLD, stroke: '#fff', 'stroke-width': 1 }));
-      const piLab = el('text', { x: px(eqAt(pI)) + 6, y: py(pI) + 3, 'font-size': 8, fill: '#9a7a16', 'font-weight': '700' }); piLab.textContent = `pI ${pI.toFixed(2)}`; svg.appendChild(piLab);
+      // label goes on whichever side of the marker the pH cursor is not
+      const piBelow = pH > pI;
+      // round half-up so an exact midpoint like (6.00 + 9.17)/2 = 7.585 reads 7.59, as in the text
+      const pIText = (Math.round(pI * 100 + 1e-4) / 100).toFixed(2);
+      label(`pI ${pIText}`, { x: px(eqAt(pI)) + 7, y: py(pI) + (piBelow ? 12 : -5), 'font-size': 9, fill: '#7f6315', 'font-weight': '700' });
 
       // draggable pH cursor
       const cy = py(pH), cx = px(eqAt(pH));
@@ -178,13 +209,15 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       // grab handle on the left edge
       svg.appendChild(el('rect', { x: L - 6, y: cy - 5, width: 6, height: 10, rx: 2, fill: NAVY }));
 
-      // readout + species bar
+      // readout: pH and net charge, in words
       const q = chargeAt(pH);
-      const sign = q > 0.05 ? '+' : q < -0.05 ? '−' : '';
-      const mag = Math.abs(q) < 0.05 ? '0' : Math.abs(q).toFixed(2);
-      const name = Math.abs(q) < 0.05 ? 'net 0 — isoelectric' : `net ${sign}${mag}`;
-      readout.innerHTML = `pH <strong>${pH.toFixed(2)}</strong> · ${AAS[key].label} · charge ${sign}${mag} <span class="titr-species-name">(${name})</span>`;
+      const atPI = Math.abs(pH - pI) < 0.05;
+      const note = atPI ? 'at the pI: no net charge' : q > 0.005 ? 'net positive — pH is below the pI' : q < -0.005 ? 'net negative — pH is above the pI' : 'essentially neutral';
+      readout.innerHTML = `pH <strong>${pH.toFixed(2)}</strong> · net charge <strong>${signed(q)}</strong> <span class="titr-species-name">(${note})</span>`;
+      svg.setAttribute('aria-valuenow', pH.toFixed(2));
+      svg.setAttribute('aria-valuetext', `pH ${pH.toFixed(2)}, net charge ${signed(q).replace('−', 'minus ')}`);
 
+      // species bar + the dominant form written out
       const fr = speciesFractions(pH);
       speciesBar.replaceChildren();
       fr.forEach((v, kk) => {
@@ -194,9 +227,21 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
         seg.className = 'titr-seg';
         seg.style.width = `${(v * 100).toFixed(1)}%`;
         seg.style.background = col;
-        seg.title = `${c > 0 ? '+' + c : c} form: ${(v * 100).toFixed(0)}%`;
+        seg.title = `${chargeName(c)} form: ${(v * 100).toFixed(0)}%`;
+        if (v > 0.12) seg.textContent = chargeName(c);
+        if (c === 0) seg.style.color = NAVY; // dark text on the pale neutral segment
         speciesBar.appendChild(seg);
       });
+      const order = fr.map((v, kk) => [v, kk] as [number, number]).sort((x, y) => y[0] - x[0]);
+      const describe = (kk: number) => {
+        const c = speciesCharge(kk);
+        const zw = c === 0 && hasBothCharges(kk) ? ', a zwitterion' : '';
+        return `<span class="titr-f">${speciesFormula(kk)}</span> <em>(net ${chargeName(c)}${zw})</em>`;
+      };
+      const [v0, k0] = order[0], [v1, k1] = order[1];
+      formEl.innerHTML = v0 >= 0.9
+        ? `Main form (${Math.round(v0 * 100)}%): ${describe(k0)}`
+        : `A mix — ${Math.round(v0 * 100)}% ${describe(k0)} and ${Math.round(v1 * 100)}% ${describe(k1)}. Near a pKa, a group is part-way through giving up its proton.`;
     }
 
     function buildSliders() {
@@ -244,6 +289,18 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
     svg.addEventListener('pointermove', (e: PointerEvent) => { if (dragging) setFromEvent(e.clientY); });
     svg.addEventListener('pointerup', () => { dragging = false; });
     svg.addEventListener('pointercancel', () => { dragging = false; });
+    // keyboard: arrows nudge by 0.1, Page keys by 1, Home/End jump to the ends
+    svg.addEventListener('keydown', (e: KeyboardEvent) => {
+      const stepMap: Record<string, number> = { ArrowUp: 0.1, ArrowRight: 0.1, ArrowDown: -0.1, ArrowLeft: -0.1, PageUp: 1, PageDown: -1 };
+      let next = pH;
+      if (e.key in stepMap) next = pH + stepMap[e.key];
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = 14;
+      else return;
+      e.preventDefault();
+      pH = Math.min(14, Math.max(0, Math.round(next * 100) / 100));
+      render();
+    });
 
     sel.addEventListener('change', () => loadAA(sel.value));
     root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
@@ -270,10 +327,16 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
   }
   .titr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
   .titr-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: none; cursor: ns-resize; }
-  .titr-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .titrator .titr-readout { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); }
+  .titrator .titr-readout strong { color: var(--ddp-color-primary); }
+  .titrator .titr-form { margin: 0.35rem 0 0; font-size: var(--ddp-text-xs); line-height: 1.45; color: var(--ddp-color-ink-soft); }
+  .titr-form .titr-f { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); white-space: nowrap; }
+  .titr-form em { font-style: normal; color: var(--ddp-color-muted); }
+  .titr-svg:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
   .titr-species-name { color: var(--ddp-color-muted); }
-  .titr-species { display: flex; height: 8px; width: 100%; margin-top: 6px; border-radius: 3px; overflow: hidden; border: 1px solid var(--ddp-color-line); background: #fff; }
-  .titr-seg { display: block; height: 100%; }
+  .titr-species { display: flex; height: 15px; width: 100%; margin-top: 6px; border-radius: 3px; overflow: hidden; border: 1px solid var(--ddp-color-line); background: #fff; }
+  .titr-seg { display: flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; font-family: var(--ddp-font-mono); font-size: 0.62rem; font-weight: 700; color: #fff; line-height: 1; transition: width 0.12s linear; }
+  @media (prefers-reduced-motion: reduce) { .titr-seg { transition: none; } }
   .titr-controls { display: flex; flex-direction: column; gap: 0.45rem; margin-top: var(--ddp-space-3); }
   .titr-aa { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
   .titr-aa select { font-size: var(--ddp-text-xs); padding: 2px 4px; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); }
