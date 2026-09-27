@@ -205,7 +205,7 @@ structures:
     source: "rcsb"
     id: "1MSO"
     note: "PDB 1MSO · 1.0 Å · human insulin"
-    caption: "Two short chains held together by three disulfide bridges between cysteine residues — one amino acid's chemistry locking a protein's architecture in place."
+    caption: "Two short chains joined by two disulfide bridges between cysteine residues, with a third bridge tying the A chain to itself — one amino acid's chemistry locking a protein's architecture in place."
 
 videos:
   - title: "Introduction to amino acids"
@@ -576,9 +576,10 @@ anecdotes:
       Australia, in 1969 carried a slight excess of L-amino acids, hinting the bias
       may predate life itself; other ideas blame circularly polarized starlight, or a
       pure frozen accident locked in at the origin and never undone. The thought
-      experiment that makes it land: if we ever find life elsewhere, checking whether
-      it runs on L or D would tell us whether it arose on its own or shares our single
-      common ancestor.
+      experiment that makes it land: if we ever find life elsewhere, check its hand.
+      Life that runs on D-amino acids would almost certainly have arisen on its own;
+      life that runs on L might share our ancestor, or might simply have inherited the
+      same cosmic bias.
     source: "CH03 lecture (L-vs-D chirality)"
 
 corpusTags:
@@ -616,8 +617,6 @@ side chain loops back onto its own backbone nitrogen, so its amino group is a
 secondary amine. The R group is the variable, and it carries all the personality:
 its size, its charge, whether it loves or flees water, whether it can react.
 
-<AminoAcidClassifier />
-
 That four-groups-on-one-carbon arrangement has a consequence. When all four are
 different, the carbon is **chiral** — it has two non-superimposable mirror images,
 L and D, like your two hands. Proteins are built almost exclusively from the **L
@@ -638,21 +637,29 @@ Gln; the reactive thiol of Cys), **positively charged** (Lys, Arg, His), and
 it sits and what it does. Ask where you would put an amino acid in a
 membrane-spanning helix, surrounded by lipid, and the answer is forced: hydrophobic.
 
+The classifier below sorts all twenty by side chain. It gives the aromatic rings (Phe,
+Tyr, Trp) a color of their own; click any residue to see the job it does.
+
+<AminoAcidClassifier />
+
 ## Charge depends on pH: the zwitterion and the one rule
 
-Here is where the side chain starts doing chemistry. At the pH inside your body —
-about **7.4** — an amino acid is not neutral and not singly charged. Its carboxyl
+Here is where the amino acid starts doing chemistry. At the pH inside your body —
+about **7.4** — an amino acid does not look like the uncharged −NH₂/−COOH form
+described above. Its carboxyl
 group has given up a proton to become −COO⁻, and its amino group has grabbed one to
 become −NH₃⁺. It carries a positive and a negative charge at the same time. That
 double-charged, net-neutral form is a **zwitterion**.
 
-What decides whether any given group holds its proton? One rule, and you will use it
-for the rest of biochemistry:
+What decides whether any given group holds its proton? Every ionizable group has a
+**pKa**, the pH at which half of that group's molecules carry the proton. Compare the
+pH to the pKa and one rule, which you will use for the rest of biochemistry, gives the
+answer:
 
 > **pH > pKa → deprotonated. pH < pKa → protonated.**
 
-The pKa is the pH at which a group is half-protonated. Sit above it and the group has
-mostly let go of its proton; sit below it and the group mostly holds on. Anchor
+Sit above the pKa and the group has mostly let go of its proton; sit below it and the
+group mostly holds on. Anchor
 everything to physiological pH and you can read any amino acid's charge off its pKa
 values.
 
@@ -685,9 +692,11 @@ imidazole, has three plateaus (pKa₁ = 1.82, pKa₂ = 6.00, pKa₃ = 9.17) and 
 The shortcut for pI is worth committing to memory: find the form on the charge ladder
 that is net-zero, then average the two pKa values that flank it. For glycine the
 neutral zwitterion is bracketed by 2.34 and 9.60, so pI = (2.34 + 9.60)/2 = 5.97.
-Drag the pH cursor across the plotter above and it shows which species dominates and
-the net charge at every point. Push histidine's imidazole pKa toward 7.4 and you can
-see for yourself why a catalytic residue wants its pKa near physiological pH.
+Drag the pH cursor up and down the plotter above and it shows which species dominates
+and the net charge at every point. Then switch to histidine and slide its imidazole
+pKa toward 7.4: its buffering plateau slides up until it is centered on body pH, where
+half the imidazoles hold a proton and half do not, ready to give one or take one. That is why a
+catalytic residue wants its pKa near physiological pH.
 
 ## The payoff: one swap, one property, a disease
 
@@ -695,8 +704,10 @@ Now the opening mystery resolves. In sickle cell disease, position 6 of the
 beta-globin chain carries a **valine** where a **glutamate** belongs. Glutamate is
 negatively charged and hydrophilic; it sits comfortably on the protein's water-facing
 surface. Valine is hydrophobic. The substitution plants a greasy patch on a surface
-that should be wet, and under low oxygen those patches stick to each other,
-polymerizing hemoglobin into rigid fibers that deform the red cell into a sickle. One
+that should be wet. When hemoglobin gives up its oxygen, its shape shifts and a
+matching hydrophobic pocket opens on its surface. The valine patch of one molecule
+sticks into that pocket on the next, chaining hemoglobin into rigid fibers that deform
+the red cell into a sickle. One
 side chain changed from charged to greasy. That is the whole disease. The same logic
 — R-group property predicts behavior — runs from the membrane helix to the active
 site to the clinic.
