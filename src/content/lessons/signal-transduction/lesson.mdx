@@ -73,14 +73,14 @@ scientists:
       - "It takes a community of effort to make things really work."
       - "It is not an individual that really does something."
     story: >-
-      The deck flags this as local UVA history: Gilman was on the UVA faculty by 1971,
+      This is local UVA history: Gilman was on the UVA faculty by 1971,
       chasing Rodbell's inferred transducer with a single question — what is this protein,
       and how do you grasp it in your hand. His wedge was a broken cancer cell, the cyc⁻
       S49 lymphoma that could not raise cAMP; adding back a normal-cell extract restored
       signaling, but only with GTP present. He later purified Gs from rabbit liver at UT
       Southwestern and resolved the GTPase cycle Rodbell had only inferred. Gilman was, in
-      a phrase from the deck, named after a textbook: his father co-wrote Goodman &
-      Gilman's Pharmacology the year he was born. He trained under Theodore Rall, the same
+      effect, named after a textbook: his father co-wrote Goodman & Gilman's Pharmacology
+      the year he was born, and his middle name is Goodman. He trained under Theodore Rall, the same
       Rall from the Sutherland cAMP story. They shared the 1994 Nobel; Rodbell deflected
       the credit to a community of effort.
   - name: "Robert J. Lefkowitz & Brian Kobilka"
@@ -367,7 +367,8 @@ mcatQuestions:
     rationale: >-
       Ras is ON when GTP-bound and OFF once it hydrolyzes GTP to GDP; a mutant that cannot
       hydrolyze GTP is stuck in the GTP-bound active state, firing the Raf-MEK-ERK
-      proliferation cascade continuously (this is how roughly 30% of cancers carry Ras). It is
+      proliferation cascade continuously (mutations of this kind appear in roughly 30% of
+      human cancers). It is
       not locked in the inactive GDP state — that is the opposite of blocked hydrolysis. It
       still binds nucleotide, since exchange is intact. And Ras is a monomeric small GTPase,
       not a heterotrimeric Gi, which would inhibit adenylate cyclase rather than drive
@@ -601,7 +602,7 @@ anecdotes:
       modification of a G protein. Choleragen traps Gs-α in its active GTP-bound form, so cAMP
       never stops and chloride and water pour into the gut, dehydrating a person in hours.
       Pertussis toxin does the mirror image: it locks Gi in its inactive form, so Gi can no
-      longer inhibit, and signaling runs unchecked. The same wrench, turned on different
+      longer brake adenylate cyclase, and cAMP signaling runs unchecked. The same wrench, turned on different
       bolts, breaks the machine in opposite directions.
 
 corpusTags:
@@ -638,12 +639,12 @@ The receptor itself is a **GPCR**, a seven-transmembrane protein. GPCRs are the 
 
 The **heterotrimeric G protein** has three subunits: alpha, beta, gamma. At rest, alpha holds GDP and the trimer is intact. An activated receptor acts as a catalyst, prying GDP off alpha and letting GTP take its place. Alpha-GTP then dissociates from beta-gamma and carries the signal to its effector. There are three logics depending on which alpha you have. **Gs** stimulates adenylate cyclase and raises cAMP. **Gi** inhibits it and lowers cAMP. **Gq** activates phospholipase C and launches the calcium branch. Same architecture, opposite outputs. The same epinephrine can speed your heart, mobilize glucose, and constrict a vessel, because the response is written into the *receptor and its G protein* rather than the ligand.
 
-cAMP's job is to free PKA. PKA sits as an **R2C2 tetramer**, two regulatory subunits clamping two catalytic subunits silent. cAMP binds the regulatory subunits, they let go, and the catalytic subunits come free and active. This is the universal toggle in action: reversible phosphorylation. Kinases add a phosphate using ATP; phosphatases take it off. The phosphate brings two negative charges and some bulk, which forces a conformational change that can activate or inhibit depending on where it lands. The human genome encodes more kinases than phosphatases, which tells you something about how much of biology is run by this one switch.
+cAMP's job is to free PKA. PKA sits as an **R2C2 tetramer**, two regulatory subunits clamping two catalytic subunits silent. cAMP binds the regulatory subunits, they let go, and the catalytic subunits come free and active. Free PKA then phosphorylates its targets, which puts the cell's universal toggle to work: reversible phosphorylation. Kinases add a phosphate using ATP; phosphatases take it off. The phosphate brings two negative charges and some bulk, which forces a conformational change that can activate or inhibit depending on where it lands. The human genome encodes more kinases than phosphatases, which tells you something about how much of biology is run by this one switch.
+
+Now the amplification. It is **multiplicative, not additive**. One active receptor can switch on perhaps ten G proteins; each adenylate cyclase makes hundreds of cAMP; each PKA phosphorylates many phosphorylase kinases; and so on down the line. The final output is the *product* of the per-step gains, which is why one hormone molecule can release millions of glucose molecules. Knock out a single amplifying step and the whole output collapses, because you are dividing the product, not subtracting a term. The widget below lets you feel this: set the gains, watch the running tally climb a log-scale bar, then remove one step and watch millions become thousands.
 
 {/* ISLAND */}
 <CascadeAmplifier />
-
-Now the amplification. It is **multiplicative, not additive**. One active receptor can switch on perhaps ten G proteins; each adenylate cyclase makes hundreds of cAMP; each PKA phosphorylates many phosphorylase kinases; and so on down the line. The final output is the *product* of the per-step gains, which is why one hormone molecule can release millions of glucose molecules. Knock out a single amplifying step and the whole output collapses, because you are dividing the product, not subtracting a term. The widget above lets you feel this: set the gains, watch the running tally climb a log-scale bar, then remove one step and watch millions become thousands.
 
 ## Switching OFF, and why it is the hard part
 
@@ -651,9 +652,11 @@ A signal that cannot be turned off is not a signal; it is a stuck cell. Terminat
 
 Spatial control comes from **AKAP scaffold proteins**, which tether PKA next to the specific targets it should phosphorylate. The clever part is that AKAPs also recruit phosphatases, building the OFF switch right beside the ON switch. The scaffold is a surgical tray with every instrument pre-arranged and within reach.
 
-Three diseases make the point that the OFF switch is where things break. In **cholera**, choleragen chemically modifies Gs-alpha by ADP-ribosylation so it can no longer hydrolyze its GTP. Gs is locked ON, cAMP never stops, and chloride and water pour into the intestine. Severe dehydration can kill within hours. **Pertussis** (whooping cough) toxin uses the same chemistry, ADP-ribosylation, on a different target with the opposite result: it locks Gi in its inactive form, so Gi can no longer inhibit, and signaling runs unchecked. Two toxins, one mechanism, opposite effects. In some cases of **Cushing's syndrome**, a mutation leaves PKA's catalytic subunit unable to bind its regulatory subunit, so PKA is never inhibited and cortisol production runs without a hormone telling it to. The clinical picture (muscle weakness, thin and easily bruised skin, osteoporosis) is the downstream cost of a switch that will not turn off.
+Three diseases make the point that the OFF switch is where things break. In **cholera**, choleragen chemically modifies Gs-alpha by ADP-ribosylation so it can no longer hydrolyze its GTP. Gs is locked ON, cAMP never stops, and chloride and water pour into the intestine. Severe dehydration can kill within hours. **Pertussis** (whooping cough) toxin uses the same chemistry, ADP-ribosylation, on a different target with the opposite result: it locks Gi in its inactive form, so Gi can no longer brake adenylate cyclase, and cAMP signaling runs unchecked. Two toxins, one mechanism, opposite effects. In some cases of **Cushing's syndrome**, a mutation leaves PKA's catalytic subunit unable to bind its regulatory subunit, so PKA is never inhibited and cortisol production runs without a hormone telling it to. The clinical picture (muscle weakness, thin and easily bruised skin, osteoporosis) is the downstream cost of a switch that will not turn off.
 
 A reassuring counter-example from the same GPCR family: **GLP-1 receptor agonists** (Ozempic, Wegovy, Mounjaro). GLP-1 is released from gut L-cells after a meal and acts through a Gs-coupled GPCR with the same architecture as the beta-adrenergic receptor. Its safety feature is built into the wiring: GLP-1 stimulates insulin release only when blood glucose is already high. That glucose-dependence means these drugs rarely cause hypoglycemia, unlike the older sulfonylureas, while still acting on pancreas, brain, and stomach.
+
+Every drug that acts on a receptor, GLP-1 agonists included, is described by two separate numbers. **Potency** is how much drug it takes to get half the maximal response (the EC₅₀); **efficacy** is how large that maximal response can get (Emax). In the explorer below, the potency slider moves the curve left or right and the efficacy slider sets its height. Then add a competitive antagonist and watch the curve slide right while its ceiling stays put: enough extra agonist always wins the competition back.
 
 <DoseResponseExplorer />
 
@@ -669,7 +672,7 @@ The third class is the **receptor tyrosine kinases (RTKs)**, which do not recrui
 
 ## Insulin: the lipid-kinase deep dive
 
-The insulin receptor is an RTK with one twist: it is a **pre-formed dimer**, already assembled before insulin arrives. Insulin binding triggers a quaternary rearrangement, the halves cross-phosphorylate, and the receptor phosphorylates adaptor proteins called **IRS**. Here the pathway forks away from the EGFR route. IRS recruits **PI3K**, and PI3K is a *lipid* kinase: it phosphorylates PIP2 to make **PIP3**, a membrane second messenger. PIP3 recruits PDK and **Akt**, and Akt drives the two outcomes that define the fed state: **GLUT4 translocation** to the membrane for glucose uptake, and glycogen synthesis.
+The insulin receptor is an RTK with one twist: it is a **pre-formed dimer**, already assembled before insulin arrives. Insulin binding triggers a quaternary rearrangement, the halves cross-phosphorylate, and the receptor phosphorylates adaptor proteins called **IRS**. Here the pathway forks away from the EGFR route. IRS recruits **PI3K**, and PI3K is a *lipid* kinase: it phosphorylates PIP2 to make **PIP3**, a membrane second messenger. PIP3 recruits the kinase **Akt** to the membrane, along with PDK1, the kinase that activates it, and Akt drives the two outcomes that define the fed state: **GLUT4 translocation** to the membrane for glucose uptake, and glycogen synthesis.
 
 Hold the two PIP2 stories side by side, because it is the cleanest contrast here. In the Gq branch, PLC **cleaves** PIP2 into IP3 and DAG. In insulin signaling, PI3K **phosphorylates** PIP2 into PIP3. Same substrate, opposite chemistry, opposite outcome.
 
@@ -677,7 +680,7 @@ Termination matters as much here as anywhere. Protein phosphatases strip the act
 
 ## Calcium and the cancer-as-signaling view
 
-Calcium is a ubiquitous second messenger, and the common sensor that reads it is **calmodulin**, which carries four Ca²⁺-binding **EF-hand** motifs, each a helix-loop-helix fold (the motif is named for helices E and F of parvalbumin, where it was first seen). The finger pose, where index and thumb form the two helices and the curled middle fingers form the loop, is the mnemonic for the fold. Ca²⁺-loaded calmodulin then activates targets including the plasma-membrane Ca²⁺ ATPase (which pumps calcium back out, terminating the signal) and CaM kinase.
+Calcium is a ubiquitous second messenger, and the common sensor that reads it is **calmodulin**, which carries four Ca²⁺-binding **EF-hand** motifs, each a helix-loop-helix fold (the motif is named for helices E and F of parvalbumin, where it was first seen). Your own hand is the mnemonic for the fold: stretch out your index finger and thumb as the two helices and curl your middle finger as the calcium-binding loop between them. Ca²⁺-loaded calmodulin then activates targets including the plasma-membrane Ca²⁺ ATPase (which pumps calcium back out, terminating the signal) and CaM kinase.
 
 Step back and cancer is fundamentally a disease of signaling. **Proto-oncogenes** promote growth and become **oncogenes** when stuck ON; **tumor-suppressor genes** brake growth and cause cancer when lost. Ras stuck ON, PKA stuck ON, PTEN lost: each is a switch that failed.
 

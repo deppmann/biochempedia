@@ -134,7 +134,7 @@ techniques:
   - name: "Isotopic carbon tracing"
     blurb: >-
       Feed cells glucose labeled at a specific carbon — say ¹³C or ¹⁴C on C1 — and
-      follow where that atom lands. Tracing is how the field proved the symmetric
+      follow where that atom lands. Tracing is how the field proved the
       six-carbon sugar splits into two three-carbon halves, and why both halves run
       the payoff phase. The same trick, scaled to a PET scanner, reads a tumor's
       glucose appetite off an ¹⁸F-labeled analog.
@@ -397,7 +397,8 @@ mcatQuestions:
       catalytic cofactor present in limited amount and required by GAPDH (step 6). Block LDH
       and NADH accumulates, NAD+ is depleted, GAPDH stalls, the payoff phase cannot run, and
       ATP production stops. The red blood cell cannot use the mitochondrial route (it has
-      none); choices B and D are biochemically incorrect.
+      none). ATP accumulation would inhibit PFK-1, not activate it, and lactate
+      cannot phosphorylate ADP, so neither of those explanations holds.
 
 images: []
 
@@ -567,9 +568,9 @@ explainLevels:
       (ATP/AMP), biosynthetic status (citrate), and hormonal state via
       fructose-2,6-bisphosphate, itself set by the bifunctional PFK2/FBPase2 under PKA
       control. With a fixed NAD+/NADH pool, glycolytic flux is hostage to NAD+
-      regeneration. That is why pyruvate disposal — fermentation, the malate–aspartate
-      or glycerol-phosphate shuttles, or full oxidation — sets the ceiling on anaerobic
-      throughput. The Warburg phenotype — aerobic glycolysis sustained for biosynthetic
+      regeneration. That is why NADH reoxidation (by fermentation, which reduces
+      pyruvate, or aerobically by the malate–aspartate and glycerol-phosphate shuttles
+      feeding the respiratory chain) sets the ceiling on glycolytic throughput. The Warburg phenotype — aerobic glycolysis sustained for biosynthetic
       intermediate supply rather than ATP yield — is the canonical illustration that
       flux purpose, not bioenergetic necessity, can govern pathway use.
 
@@ -657,12 +658,18 @@ one ATP to phosphorylate glucose, and phosphofructokinase-1 spends a second. By 
 end of step 5 the ledger reads **−2 ATP, nothing earned**. The cell has put down a
 deposit and seen no return.
 
+The deposit buys two things. The first phosphate traps glucose inside the cell:
+glucose-6-phosphate carries a negative charge, and the glucose transporters will not
+carry it back out. The second phosphate sets up the split. With a phosphate on each
+end, fructose-1,6-bisphosphate can be cut into two three-carbon halves that each
+carry a phosphate of their own.
+
 Then the molecule is cut in half. Aldolase splits the six-carbon sugar into two
 three-carbon fragments, and triose phosphate isomerase converts one of them into a
 second copy of the other — so two identical three-carbon molecules now head down the
-rest of the path. From here, everything happens twice. From step 6 onward every yield
-counts double — the doubling students most often forget when they tally the
-ledger.
+rest of the path. From here, everything happens twice, so every yield from step 6
+onward counts double. That doubling is the one students most often forget when they
+tally the ledger.
 
 The **payoff phase** (steps 6–10) collects. One oxidation step (GAPDH) banks the
 energy as NADH and primes a high-energy phosphate. Two later steps — phosphoglycerate
@@ -705,7 +712,9 @@ protein.
 The same enzyme is wired differently in different tissues, which is the deeper lesson.
 Muscle PFK-1 listens to the muscle's own energy charge — local, immediate, "I need ATP
 now." Liver PFK-1 listens to hormones from the pancreas instead: insulin says store
-glucose, glucagon says release it. Same protein, opposite job, because the tissue's
+glucose, glucagon says release it. The hormones reach the enzyme through a regulator
+called fructose-2,6-bisphosphate: insulin raises its level and switches PFK-1 on, and
+glucagon lowers it and slows PFK-1 down. Same step, opposite job, because the tissue's
 purpose differs. Enzyme identity does not determine regulation; context does.
 
 ## Why pyruvate, not glucose, is the real bottleneck
@@ -714,11 +723,16 @@ Here is the part that surprises people. The thing that can stall glycolysis isn'
 running out of glucose. It's running out of **NAD+**.
 
 Step 6 consumes NAD+ and produces NADH. But the cell holds only a small, fixed pool of
-NAD+, and it must be recycled or the pathway grinds to a halt within seconds. So
+NAD+, and it must be recycled or the pathway grinds to a halt within seconds. With
+plenty of oxygen, the mitochondria reoxidize NADH. When oxygen runs short, or in a cell
+with no mitochondria at all, the electrons go to pyruvate or to a molecule made from it. So
 pyruvate's fate is really about regenerating that NAD+. A sprinting muscle does it by
 handing the electrons to pyruvate itself, making lactate and recovering NAD+ in one
 step. Yeast does the same thing by making ethanol — which is convenient for brewers but
 incidental to the yeast, who care only about their NAD+.
+
+Pick a route in the widget below and follow the electrons: each fate ends with NADH
+handing them off and NAD⁺ coming back to step 6.
 
 <PyruvateFates />
 
@@ -729,8 +743,8 @@ legs is not the lactate. The lactate is the rescue.
 
 ## Proving the pathway: isotope tracing and enzyme assays
 
-The net yield was *counted*, not assumed — by labeling one carbon of glucose with a
-heavy or radioactive isotope and tracing where it lands. That tracing proved the
+The pathway was *mapped*, not assumed. One tool was labeling a single carbon of
+glucose with a heavy or radioactive isotope and tracing where it lands. That tracing proved the
 six-carbon sugar splits into two three-carbon halves and that both halves run the
 payoff phase. The same trick, scaled up to a PET scanner, reads glucose uptake in a
 living tumor: cancer cells run glycolysis hard even when oxygen is plentiful, and an
