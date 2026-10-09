@@ -111,7 +111,7 @@ export function createShell(root: HTMLElement, goHome: () => void, lesson?: Less
 
   let backHandler: (() => void) | null = null;
   if (lesson) {
-    back.textContent = `‹ ${plain(lesson.title)} lesson`;
+    back.textContent = `‹ ${plain(lesson.title).split(":")[0].trim()}`;
     back.setAttribute('aria-label', `Back to the ${plain(lesson.title)} lesson`);
   }
   back.addEventListener('click', () => {
@@ -203,7 +203,7 @@ export function createShell(root: HTMLElement, goHome: () => void, lesson?: Less
     if (lesson) {
       // Opened from a lesson: send the student onward, or back to it.
       const next = lesson.nextSlug
-        ? el('a.arc-btn.is-primary', { href: `/lessons/${lesson.nextSlug}/` }, `Next: ${plain(lesson.nextTitle ?? 'next lesson')} →`)
+        ? el('a.arc-btn.is-primary', { href: `/lessons/${lesson.nextSlug}/` }, `Next: ${plain(lesson.nextTitle ?? 'next lesson').split(':')[0].trim()} →`)
         : el('a.arc-btn.is-primary', { href: '/#lessons' }, 'All lessons');
       actions.append(next, el('a.arc-btn', { href: lessonHref }, 'Back to the lesson'), again);
     } else {
