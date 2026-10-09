@@ -35,7 +35,9 @@ const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
 const slidesSilent = lesson.lectureSlides.length - narratedSlides;
 const slidesTag =
   narratedSlides === 0 ? '' : narratedSlides === lesson.lectureSlides.length ? ' · narrated' : ` · ${narratedSlides} narrated`;
-const hasStats = lesson.structures.length + lesson.lectureSlides.length + qCount + lesson.scientists.length > 0;
+const ex = lesson.explainer;
+const exLen = ex ? `${Math.floor(ex.durationSec / 60)}:${String(Math.round(ex.durationSec % 60)).padStart(2, '0')}` : '';
+const hasStats = (ex ? 1 : 0) + lesson.structures.length + lesson.lectureSlides.length + qCount + lesson.scientists.length > 0;
 
 // Thumbnail helpers for the rail.
 const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.toLowerCase()}_assembly-1.jpeg`;
@@ -78,6 +80,7 @@ const lessonLd = {
           <div class="orient-meta">
             <p class="orient-meta-h">In this lesson</p>
             <ul>
+              {ex && <li><span aria-hidden="true">🎬</span> <b>{exLen}</b> animated explainer</li>}
               {lesson.structures.length > 0 && <li><span aria-hidden="true">🧬</span> <b>{lesson.structures.length}</b> live 3D {lesson.structures.length === 1 ? 'structure' : 'structures'}</li>}
               {narratedSlides > 0 && <li><span aria-hidden="true">🎧</span> <b>{narratedSlides}</b> narrated {narratedSlides === 1 ? 'slide' : 'slides'}</li>}
               {slidesSilent > 0 && <li><span aria-hidden="true">🖼</span> <b>{slidesSilent}</b> lecture {slidesSilent === 1 ? 'slide' : 'slides'}</li>}
@@ -89,6 +92,25 @@ const lessonLd = {
       </aside>
     )}
 
+    {ex && (
+      <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h">
+        <figure class="explainer-fig">
+          <video controls preload="none" playsinline poster={ex.poster} width="1920" height="1080">
+            <source src={ex.src} type="video/mp4" />
+            <track kind="captions" src={ex.captions} srclang="en" label="English" />
+            Your browser cannot play this video. <a href={ex.src}>Download the explainer (MP4)</a>.
+          </video>
+          <figcaption>
+            <p class="explainer-h" id="explainer-h"><span class="explainer-kicker">Watch first</span> {ex.title} <span class="explainer-len">· {exLen}</span></p>
+            <p class="explainer-note">
+              Narration: {ex.narration}. The animation is a schematic drawn in code by an AI
+              (Claude): boxes, arrows and plots, never a molecular structure. {ex.factCheckedBy ? `Checked by ${ex.factCheckedBy}.` : 'No person has reviewed the animation yet.'} Captions: press CC.
+            </p>
+          </figcaption>
+        </figure>
+      </section>
+    )}
+
     {/* Mobile-only shortcut. On a phone the two-column grid collapses and the
         resource rail lands after the whole narrative — on a long lesson that is
         thousands of pixels down, which effectively hides the best part of the
@@ -98,6 +120,9 @@ const lessonLd = {
     <nav class="wrap mobile-explore" aria-label="Explore this lesson">
       <p class="me-title">Explore this lesson</p>
       <ul class="me-chips">
+        {ex && (
+          <li><a href="#explainer">▶ Explainer <em>{exLen}</em></a></li>
+        )}
         {lesson.lectureSlides.length > 0 && (
           <li><button type="button" data-open="lb-slides">🖼 Slides <em>{lesson.lectureSlides.length}</em></button></li>
         )}
@@ -543,6 +568,22 @@ const lessonLd = {
     .orient-meta li { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; align-items: baseline; gap: 0.55em; }
     .orient-meta li span { width: 1.3em; text-align: center; flex: none; }
     .orient-meta b { font-weight: 700; color: var(--ddp-color-primary); font-variant-numeric: tabular-nums; }
+    /* Animated explainer: the video gets the reading column's width plus a
+       little, sits under the orientation card, and loads nothing until play. */
+    .explainer { margin-bottom: var(--ddp-space-8); }
+    .explainer-fig { margin: 0; max-width: 880px; }
+    .explainer-fig video {
+      display: block; width: 100%; height: auto; aspect-ratio: 16 / 9;
+      background: #0f1117; border-radius: var(--ddp-radius); box-shadow: var(--ddp-shadow);
+    }
+    .explainer-fig figcaption { margin-top: var(--ddp-space-3); display: grid; gap: var(--ddp-space-1); }
+    .explainer-h { margin: 0; font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+    .explainer-kicker {
+      font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ddp-color-accent); margin-right: 0.4em; vertical-align: 0.15em;
+    }
+    .explainer-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .explainer-note { margin: 0; max-width: 72ch; font-size: var(--ddp-text-xs); line-height: 1.55; color: var(--ddp-color-muted); }
 
     /* Mobile-only Explore chips (see the note at the markup). Hidden entirely at
        the width where the sticky rail is visible and does the same job. */

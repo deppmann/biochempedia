@@ -64,6 +64,7 @@ that note renders as a visible caption under the slide. Two slides currently car
 one. `aiNote` records a defect on an otherwise-cleared slide; it is not a substitute
 for the `reviewedBy` screen, which every slide must pass regardless.
 
+
 ### 6. Scientist portraits: AI-generated artwork, labeled as artwork.
 The engraving-style portraits on the scientist cards (`scientist.photo`, 32 images)
 are **all AI-generated** — they come from *The Molecule Hunters*' profile set, and
@@ -83,6 +84,23 @@ code rather than by schema:
 If a portrait is ever replaced with a real photograph, it needs a license +
 `credit` like any other non-AI image — move it into `images[]` or extend the
 schema at that point.
+
+### 7. Animated explainers: schematic, disclosed, captioned.
+Some lessons open with a short narrated explainer video in the 3Blue1Brown style
+(`explainer` in the frontmatter, files under `public/explainers/<slug>/`). The
+narration is the lesson's own slide audio (the site's ElevenLabs narrator voice,
+Sarah, generated from the presenter notes); where a lesson has no narrated slides,
+new narration is written from the lesson's prose in the same voice. The animation
+is drawn **in code by an AI** (Manim, authored by Claude), so:
+- It is a **schematic**: labelled boxes, arrows, timelines and plots computed from
+  their equations. It never draws a molecular structure; rule 1 still holds.
+- `aiGenerated: true` is required by the schema, and the page says so under the video
+  and in the Sources & Integrity panel.
+- `factCheckedBy` names a real person once someone has checked the animation. Until
+  then the page states plainly that no person has reviewed it yet. An AI verifier
+  pass does not count and is never named there.
+- Every video ships with a WebVTT captions track built from its narration script.
+
 
 ## How the enforcement works
 

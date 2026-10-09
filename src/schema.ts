@@ -234,6 +234,25 @@ const anecdote = z.object({
 });
 
 /** The full lesson frontmatter schema. */
+/** A narrated, animated explainer video (3Blue1Brown style) at the top of a lesson.
+ *  The animation is drawn in code by an AI as a SCHEMATIC: it may show labelled
+ *  boxes, arrows and plots computed from equations, never a drawn molecular
+ *  structure (see IMAGE_POLICY.md rule 6). `aiGenerated: true` is mandatory so the
+ *  page always discloses it; until a person fills `factCheckedBy`, the page says
+ *  plainly that no person has reviewed the animation yet. */
+const explainer = z.object({
+  src: z.string().regex(/^\/explainers\/[a-z0-9-]+\/[a-z0-9-]+\.mp4$/, 'Explainer videos live under /explainers/<slug>/.'),
+  captions: z.string().regex(/\.vtt$/, 'Every explainer needs a WebVTT captions file.'),
+  poster: z.string().min(1),
+  title: z.string().min(1),
+  durationSec: z.number().positive(),
+  /** Where the voice comes from, in plain words (shown on the page). */
+  narration: z.string().min(1),
+  aiGenerated: z.literal(true),
+  /** A real human who checked the animation against the science. */
+  factCheckedBy: z.string().min(1).optional(),
+});
+
 export const lessonSchema = z.object({
   title: z.string().min(1),
   /** URL slug (also the lesson folder name, by convention). */
@@ -255,6 +274,9 @@ export const lessonSchema = z.object({
   scientists: z.array(scientist).default([]),
   techniques: z.array(technique).default([]),
   structures: z.array(structure).default([]),
+
+  /** Optional animated explainer shown under the orientation card. */
+  explainer: explainer.optional(),
 
   podcast: podcast.optional(),
   videos: z.array(video).default([]),

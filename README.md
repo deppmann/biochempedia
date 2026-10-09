@@ -24,6 +24,10 @@ against the typed schema in `src/schema.ts`. Copy a folder to start a new one.
 
 - The concept explained plainly (from Chris's lecture notes) plus a generated
   "how we measure it" techniques panel.
+- **An animated explainer** (first ten lessons): a 2–4 minute 3Blue1Brown-style video
+  narrated with the lesson's own slide audio, captioned, and drawn in code as a
+  schematic (never a molecular structure). It is labelled as AI-made on the page;
+  see [`IMAGE_POLICY.md`](IMAGE_POLICY.md) rule 7.
 - **Live, rotatable Mol\* structures** loaded by accession ID from RCSB PDB
   (macromolecules) and PubChem (small molecules) — for this lesson, hen egg-white
   lysozyme (PDB `1LYZ`) and its substrate (CID `439174`).
