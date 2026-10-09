@@ -459,6 +459,8 @@ class S04Bargain(SpokenScene):
         self.at("instead of just reversing")
         self.play(FadeIn(n_glu), FadeIn(n_pyr), GrowFromCenter(n_arr), run_time=0.8)
         self.play(FadeIn(n_q, shift=UP * 0.1), run_time=0.5)
+        self.play(Indicate(n_arr, color=GOLD, scale_factor=1.15), Indicate(n_q, color=GOLD, scale_factor=1.1),
+                  run_time=1.2)
         self.at("bargain")
         q2 = T("A bargain with thermodynamics", 36, font=TITLE_FONT, color=GOLD).move_to([0, 3.3, 0])
         self.play(ReplacementTransform(q, q2), run_time=0.9)
@@ -481,10 +483,10 @@ class S04Bargain(SpokenScene):
         self.at("Glycolysis releases energy")
         self.play(FadeIn(gl_head), run_time=0.5)
         self.play(Create(glu_line), FadeIn(glu_lab), Create(pyr_line), FadeIn(pyr_lab), run_time=0.9)
-        self.at("about 74 kilojoules")
-        drop_val = M("releases \u2248 74 kJ/mol", 24, BLUE).move_to([-3.4, -2.75, 0])
-        self.play(Create(ramp_l), run_time=1.0)
-        self.play(FadeIn(drop_val, shift=UP * 0.1), run_time=0.6)
+        self.at("about 85 kilojoules")
+        drop_val = M("releases \u2248 85 kJ/mol", 24, BLUE).move_to([-3.4, -2.75, 0])
+        self.play(Create(ramp_l), run_time=0.8)
+        self.play(FadeIn(drop_val, shift=UP * 0.1), run_time=0.5)
         self.at("so it is downhill")
         pts = ramp_pts(LX0 + 1.3, Y_GLU, LX1 - 1.3, Y_PYR)
         ball = Dot(pts[0] + UP * 0.14, radius=0.14, color=YELLOW)
@@ -526,7 +528,7 @@ class S04Bargain(SpokenScene):
         self.play(FadeOut(ballr), run_time=0.15)
 
         # six NTP pay the bill
-        self.at("the six nucleotide triphosphate")
+        self.at("six nucleotide triphosphate")
         ntp = VGroup(*[chip("NTP", GREEN, 24, pad=0.1) for _ in range(6)]).arrange_in_grid(2, 3, buff=0.15)
         ntp.move_to([5.0, -1.85, 0])
         lab6 = T("6 NTP equivalents", 24, GREEN).move_to([5.0, -2.85, 0])
@@ -538,17 +540,16 @@ class S04Bargain(SpokenScene):
         e_new = T("Glucose + 6 NDP + 6 Pi", 24, YELLOW)
         e_new.add_updater(lambda m: m.move_to([RX1 - 1.25, end_y.get_value() - 0.4, 0]))
         self.play(FadeOut(lab6), FadeOut(s_lab), FadeOut(e_lab), run_time=0.3)
-        self.play(ntp.animate.scale(0.3).move_to([RX0 + 0.65, Y_GLU + 1.3, 0]).set_opacity(0),
-                  start_y.animate.set_value(Y_GLU + 1.3), run_time=1.4)
+        self.play(ntp.animate.scale(0.3).move_to([RX0 + 0.65, Y_GLU + 1.15, 0]).set_opacity(0),
+                  start_y.animate.set_value(Y_GLU + 1.15), run_time=1.4)
         self.play(FadeIn(s_new), FadeIn(e_new), run_time=0.4)
         self.at("to also be favorable")
-        ball2 = Dot([RX0 + 1.3, Y_GLU + 1.3 + 0.14, 0], radius=0.14, color=YELLOW)
-        rpts2 = [p + UP * 0.14 for p in ramp_pts(RX0 + 1.3, Y_GLU + 1.3, RX1 - 1.3, Y_GLU)]
+        ball2 = Dot([RX0 + 1.3, Y_GLU + 1.15 + 0.14, 0], radius=0.14, color=YELLOW)
+        rpts2 = [p + UP * 0.14 for p in ramp_pts(RX0 + 1.3, Y_GLU + 1.15, RX1 - 1.3, Y_GLU)]
         path2 = VMobject(); path2.set_points_smoothly(rpts2)
         self.add(ball2)
-        self.play(MoveAlongPath(ball2, path2), run_time=1.2, rate_func=smooth)
         fav = T("downhill again", 26, ORANGE).move_to([2.1, Y_GLU + 0.2, 0])
-        self.play(FadeIn(fav, shift=UP * 0.1), run_time=0.5)
+        self.play(MoveAlongPath(ball2, path2, rate_func=smooth), FadeIn(fav, shift=UP * 0.1), run_time=1.0)
 
         # ---- the futile cycle --------------------------------------------------------------
         self.at("If synthesis were free")
@@ -592,11 +593,11 @@ class S04Bargain(SpokenScene):
 
         self.at("with no net product")
         net = VGroup(T("net glucose made:", 28), M("0", 34, RED, weight=BOLD)).arrange(RIGHT, buff=0.25)
-        net.move_to([0, -3.35, 0])
+        net.move_to([0, -3.25, 0])
         self.play(FadeIn(net, shift=UP * 0.1), run_time=0.7)
 
         # ---- the price of directional control ----------------------------------------------
-        self.at("The energy cost is not waste")
+        self.at("The energy cost is not")
         self.play(FadeOut(VGroup(cell, glu, pyr, a_gly, a_gn, lg, ln, fut, loop_d, heat, heat_t, net, free_t,
                                  atp1)), run_time=0.6)
         l1 = T("The energy cost is not waste.", 40, font=TITLE_FONT).move_to([0, 2.1, 0])

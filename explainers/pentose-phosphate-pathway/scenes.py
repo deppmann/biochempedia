@@ -242,8 +242,8 @@ class S02Pools(SpokenScene):
         self.at("mirror image")
         mirror = DashedLine([0, 3.45, 0], [0, -3.0, 0], color=GREY, stroke_width=3, dash_length=0.18)
         self.play(Create(mirror), run_time=0.7)
-        self.at("held about")
-        sub_r = T("NADPH outweighs NADP⁺", 22, GREY).move_to([RX, 0.18, 0])
+        self.at("held strongly")
+        sub_r = T("held strongly toward NADPH", 22, GREY).move_to([RX, 0.18, 0])
         reduced = T("mostly reduced", 28, PURPLE, weight=BOLD).move_to([RX, 0.62, 0])
         self.play(FadeIn(reduced, shift=UP * 0.1), FadeIn(sub_r), run_time=0.7)
 

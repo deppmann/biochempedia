@@ -197,7 +197,7 @@ class S02Twosteps(SpokenScene):
         self.play(FadeIn(aas[0], shift=RIGHT * 0.2), FadeIn(dots[0], scale=0.6), run_time=0.7)
 
         # ---- step 1
-        self.at("Step 1 is transamination")
+        self.at("Step one is transamination")
         step1 = heading("Step 1: transamination")
         self.play(Transform(head, step1), run_time=0.7)
         self.at("amino transferase")
@@ -235,16 +235,16 @@ class S02Twosteps(SpokenScene):
         self.play(FadeIn(one, shift=UP * 0.1), *[Indicate(a, color=PURPLE) for a in arrs], run_time=1.0)
 
         # ---- step 2: clear the stage; glutamate moves left
-        self.at("Step 2 is oxidative deamination")
+        self.at("Step two is oxidative deamination")
         step2 = heading("Step 2: oxidative deamination", 36)
         stage1 = VGroup(*aas, *arrs, tag, rev, one)
         self.play(FadeOut(stage1), Transform(head, step2), run_time=0.9)
         pair = VGroup(hub, carried)
         self.play(pair.animate.shift(LEFT * 6.35), run_time=0.8)
-        amm = chip("free ammonia", RED, 30).move_to([3.7, 0, 0])
+        amm = chip("free ammonia (NH₄⁺)", RED, 30).move_to([3.45, 0, 0])
         a_main = arrow(pt(-2.0, 0), amm.get_left(), TEXT, 4)
         self.at("Glutamate dehydrogenase")
-        gdh = chip("glutamate dehydrogenase", GREY, 26, pad=0.14).move_to([-0.1, 0.95, 0])
+        gdh = chip("glutamate dehydrogenase", GREY, 26, pad=0.14).move_to([-0.1, 1.15, 0])
         self.play(FadeIn(gdh, shift=DOWN * 0.1), GrowArrow(a_main), run_time=0.8)
         self.at("releases the nitrogen")
         self.play(hop(carried, [-0.1, 0.0], angle=-PI / 3), run_time=0.8)
@@ -261,16 +261,34 @@ class S02Twosteps(SpokenScene):
         again = T("ready for more nitrogen", 26, GREY).next_to(loop, DOWN, buff=0.15)
         self.play(Create(loop), FadeIn(again), run_time=1.0)
 
-        # ---- one-way
-        self.at("Essentially irreversible")
-        one_way = T("net flow: toward disposal", 28, TEXT).move_to([-0.1, -0.65, 0])
-        self.play(a_main.animate.set_stroke(width=8), FadeIn(one_way, shift=UP * 0.1), run_time=0.8)
-        self.at("commits the nitrogen")
-        self.play(Indicate(amm, color=RED, scale_factor=1.15), run_time=0.9)
+        # ---- reversible, with the urea cycle pulling the ammonia off
+        # lay out the real equilibrium: glutamate <-> alpha-ketoglutarate + NH4+ (alpha-KG is a product, not the substrate)
+        self.at("can run both ways")
+        glu2 = chip("glutamate", BLUE, 30).move_to(hub.get_center())
+        plus = T("+", 40, GREY).move_to([3.45, 0.84, 0])
+        self.play(FadeOut(loop), FadeOut(again), hub.animate.scale(26 / 30).move_to([3.45, 1.6, 0]),
+                  FadeIn(glu2), FadeIn(plus), gdh.animate.move_to([-0.9, 1.15, 0]), run_time=0.9)
+        a_back = arrow(amm.get_left() + LEFT * 0.1 + DOWN * 0.45, pt(-2.0, -0.45), TEXT, 4)
+        both = T("the reaction runs both ways", 28, TEXT).move_to([0.5, -1.05, 0])
+        self.play(GrowArrow(a_back), FadeIn(both, shift=UP * 0.1), run_time=0.9)
+        self.at("the urea cycle")
+        urea = chip("urea cycle (liver)", GREEN, 28).move_to([3.45, -2.55, 0])
+        draw = arrow(amm.get_bottom(), urea.get_top(), GREEN, 4)
+        self.play(FadeIn(urea, shift=UP * 0.1), GrowArrow(draw), run_time=0.8)
+        self.at("drawing the ammonia off")
+        pulled = ndot().move_to(amm.get_bottom())
+        self.play(FadeIn(pulled, scale=0.6), run_time=0.25)
+        self.play(pulled.animate.move_to(urea.get_top() + UP * 0.35), run_time=0.9)
+        self.play(FadeOut(pulled), Indicate(urea, color=GREEN, scale_factor=1.1), run_time=0.4)
+        self.at("so the nitrogen flows")
+        net = T("net flow: toward disposal", 28, TEXT).move_to([0.5, -1.05, 0])
+        self.play(a_main.animate.set_stroke(width=9), a_back.animate.set_stroke(width=2).set_opacity(0.4),
+                  Transform(both, net), run_time=0.9)
+        self.play(Indicate(urea, color=GREEN, scale_factor=1.12), run_time=0.8)
 
         # ---- recap row
         self.at("Many amino acids in")
-        self.play(FadeOut(VGroup(hub, amm, a_main, gdh, loop, again, one_way)),
+        self.play(FadeOut(VGroup(hub, glu2, plus, amm, a_main, a_back, gdh, both, urea, draw)),
                   Transform(head, heading("Many in, two moves, ammonia out")), run_time=0.6)
         r1 = chip("amino acids", TEXT, 28)
         r2 = chip("glutamate", BLUE, 28)

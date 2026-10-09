@@ -96,7 +96,7 @@ class S00Title(TitleCard):
 
 # --------------------------------------------------------------------------------------------
 class S01Job(SpokenScene):
-    """The ring: C2 joins C4 -> C6 -> C5 -> C4; every carbon lost banks electrons; ATP is a rounding error."""
+    """The ring: C2 joins C4 -> C6 -> C5 -> C4; every carbon lost banks electrons; one GTP (worth one ATP) is the only direct payout."""
 
     def construct(self):
         C = np.array([-0.8, -0.7, 0])
@@ -139,7 +139,7 @@ class S01Job(SpokenScene):
         self.play(Transform(tok, tk("C₄").move_to(P(C, R, ND["c4"])), path_arc=-math.radians(75)),
                   FadeIn(co2b, shift=RIGHT * 0.2), GrowArrow(a_co2b), run_time=1.0)
 
-        # ---- we capture electrons in NADH and FADH2 and squeeze out a single ATP
+        # ---- we capture electrons in NADH and FADH2 and squeeze out a single GTP, worth one ATP
         self.at("NADH")
         n1 = pk("NADH").move_to([2.8, 0.75, 0])
         n2 = pk("NADH").move_to([2.8, -1.6, 0])
@@ -155,11 +155,16 @@ class S01Job(SpokenScene):
         a_fad = arrow(P(C, R, 180), fad.get_right(), PINK)
         self.play(FadeIn(fad, scale=0.7), GrowArrow(a_fad), run_time=0.5)
         self.at("squeeze out")
-        atp = chip("ATP", GOLD, 26, pad=0.16).move_to([-4.2, -2.3, 0])
+        atp = chip("GTP", GOLD, 26, pad=0.16).move_to([-4.2, -2.3, 0])
         a_atp = arrow(P(C, R, -130), atp.get_right(), GOLD)
-        self.play(FadeIn(atp, scale=0.7), GrowArrow(a_atp),
-                  Transform(tok, tk("C₄").move_to(P(C, R, ND["oaa"])), path_arc=-math.radians(160)),
-                  run_time=1.7)
+        # the label steps aside while the token rides the ring home, so the two never overlap
+        self.play(Transform(tok, tk("C₄").move_to(P(C, R, ND["oaa"])), path_arc=-math.radians(160)),
+                  oaa_lbl.animate(rate_func=rush_from).set_opacity(0), run_time=0.9)
+        self.at("single GTP")
+        self.play(FadeIn(atp, scale=0.7), GrowArrow(a_atp), oaa_lbl.animate.set_opacity(1), run_time=0.6)
+        self.at("worth one ATP")
+        atp_eq = T("= 1 ATP", 24, GOLD).next_to(atp, DOWN, buff=0.15)
+        self.play(FadeIn(atp_eq, shift=UP * 0.1), run_time=0.5)
         self.play(Indicate(oaa_lbl, color=BLUE), run_time=0.7)
 
         # ---- the carbon bookkeeping along the rim: six to five to four
@@ -168,11 +173,11 @@ class S01Job(SpokenScene):
         g5 = chip("C₅", GREY, 28, fill_opacity=0.0).move_to(P(C, R, -15))
         g4 = chip("C₄", GREY, 28, fill_opacity=0.0).move_to(P(C, R, -90))
         self.play(FadeIn(g6), FadeIn(g5), FadeIn(g4), run_time=0.7)
-        self.at("six to")
+        self.at("6 to")
         self.play(g6.animate.set_color(BLUE), run_time=0.3)
-        self.at("five to")
+        self.at("5 to")
         self.play(g5.animate.set_color(BLUE), run_time=0.3)
-        self.at("to four")
+        self.at("to 4")
         self.play(g4.animate.set_color(BLUE), run_time=0.3)
 
         # ---- every step that drops a carbon also banks reducing power
@@ -181,12 +186,12 @@ class S01Job(SpokenScene):
         self.at("banks reducing power")
         self.play(Indicate(n1, color=PINK), Indicate(n2, color=PINK), run_time=0.9)
 
-        # ---- not really about ATP: an electron-harvesting machine feeding the next stage
+        # ---- not really about making ATP directly: an electron-harvesting machine feeding the next stage
         self.at("not really about")
-        self.play(atp.animate.scale(0.75).set_opacity(0.35), FadeOut(a_atp), run_time=0.8)
+        self.play(atp.animate.scale(0.75).set_opacity(0.35), atp_eq.animate.set_opacity(0.35), FadeOut(a_atp), run_time=0.8)
         self.at("electron harvesting machine")
         rim = VGroup(arcs, mid, tok, g6, g5, g4, oaa_lbl, co2a, co2b, a_co2a, a_co2b, a_n1, a_n2, a_n3,
-                     a_fad, atp)
+                     a_fad, atp, atp_eq)
         col = [1.25, 0.35, -0.55, -1.45]
         self.play(rim.animate.set_opacity(0.0),
                   n1.animate.move_to([-1.3, col[0], 0]).scale(1.15),

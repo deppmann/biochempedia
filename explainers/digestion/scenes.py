@@ -491,14 +491,20 @@ class S04Deficiency(SpokenScene):
         self.play(*L["try"].to_active("trypsin", GOLD), run_time=0.7)
         L_arrows = []
         for i, phrase in enumerate(["activates chymotrypsin", "the carboxypeptidases", "elastase",
-                                    "and even helps with lipase"]):
+                                    "and procolipase"]):
             self.at(phrase)
             self.play(Create(L["fan"][i]), run_time=0.4)
             self.play(*L["tg"][i].to_active(L["act"][i], BLUE), run_time=0.6)
             L_arrows.append(L["fan"][i])
-        self.at("with lipase")
-        helper = T("helps lipase work", 22, GREY).next_to(L["tg"][3].box, DOWN, buff=0.18, aligned_edge=LEFT)
-        self.play(FadeIn(helper), run_time=0.5)
+        # lipase is secreted already active; colipase is its partner (nothing here shows lipase being activated)
+        self.at("the partner lipase")
+        lipL = Node("lipase", BLUE, 22, zymogen=False, anchor="left", pad=0.13).place_left(-PX - 0.55, -2.6)
+        linkL = Line([-PX - 0.15, L["tg"][3].box.get_bottom()[1], 0], [-PX - 0.15, lipL.box.get_top()[1], 0],
+                     color=BLUE, stroke_width=3.5)
+        self.play(Create(linkL), FadeIn(lipL.group, shift=UP * 0.1), run_time=0.8)
+        self.at("to digest fat")
+        helper = T("digests fat", 24, GREY).next_to(lipL.box, RIGHT, buff=0.25)
+        self.play(FadeIn(helper, shift=LEFT * 0.1), pulse(lipL, BLUE, 1.12), run_time=0.8)
 
         # --- right: trypsinogen removed -----------------------------------------------------------
         self.at("On the right")
@@ -515,7 +521,7 @@ class S04Deficiency(SpokenScene):
                                   color=GREY, stroke_width=3).set_opacity(0.3) for t in R["tg"]])
         self.play(FadeOut(R["try"].group), FadeIn(g), FadeIn(dash_fan), run_time=0.8)
         self.at("Now the master switch is gone")
-        cap = T("master switch gone", 26, RED).move_to([PX, -2.95, 0])
+        cap = T("master switch gone", 26, RED).move_to([PX, -3.2, 0])
         self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.6)
         self.at("every downstream zymogen stays locked")
         locks = [lock_icon(s=1.2).move_to([t.box.get_left()[0] - 0.22, t.box.get_center()[1] + 0.02, 0]).set_z_index(5) for t in R["tg"]]
@@ -536,13 +542,22 @@ class S04Deficiency(SpokenScene):
         gl = ghost_of(L["tg"][2])
         self.play(FadeOut(L["tg"][2].group), FadeOut(L["fan"][2]), FadeIn(gl), run_time=0.8)
         self.at("Lose one branch")
-        cap1 = T("lose one branch, lose one enzyme", 24).move_to([-PX, -2.95, 0])
+        cap1 = T("lose one branch, lose one enzyme", 24).move_to([-PX, -3.2, 0])
         self.play(FadeIn(cap1, shift=UP * 0.1), run_time=0.6)
         self.at("Lose trypsin")
-        cap2 = T("lose trypsin, lose the whole network", 24, RED).move_to([PX, -2.95, 0])
-        self.play(FadeOut(cap), FadeIn(cap2, shift=UP * 0.1), run_time=0.6)
-        self.at("the entire protein and lipid digestion network")
-        self.play(*[pulse(t, RED, 1.08) for t in R["tg"]], run_time=1.5)
+        self.play(FadeOut(cap), Indicate(g, color=RED, scale_factor=1.15), run_time=0.8)
+        self.at("protein digestion collapses")
+        cap2 = T("protein digestion collapses", 24, RED).move_to([PX, -3.2, 0])
+        self.play(FadeIn(cap2, shift=UP * 0.1), *[pulse(t, RED, 1.08) for t in R["tg"][:3]], run_time=1.3)
+        # fat digestion: lipase is still active, so it is impaired (not abolished) without colipase
+        self.at("while fat digestion")
+        lipR = Node("lipase", BLUE, 22, zymogen=False, anchor="left", pad=0.13).place_left(PX - 0.55, -2.6)
+        self.play(FadeIn(lipR.group, shift=UP * 0.1), run_time=0.9)
+        self.at("falters without colipase")
+        tagR = T("slower", 24, RED).next_to(lipR.box, RIGHT, buff=0.25)
+        cap3 = T("fat digestion falters", 24, RED).move_to([PX, -3.2, 0])
+        self.play(FadeOut(cap2), FadeIn(cap3, shift=UP * 0.1), FadeIn(tagR), pulse(R["tg"][3], RED, 1.1),
+                  run_time=1.2)
         self.finish()
 
 

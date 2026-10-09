@@ -16,7 +16,7 @@ captions. "tts" scenes are spoken with ElevenLabs Sarah (EXAVITQu4vr4xnSDxMaL, e
 the site's narrator voice per CONTRIBUTING.md; cached by text hash; --dry-run prints characters only.
 Writes audio/<id>.wav (48 kHz mono) and audio/durations.json.
 """
-import argparse, hashlib, json, re, subprocess, sys, urllib.request, wave
+import argparse, hashlib, json, re, subprocess, sys, time, urllib.error, urllib.request, wave
 from pathlib import Path
 
 import yaml
@@ -62,7 +62,14 @@ def eleven(text, out_wav):
                                  json.dumps(body).encode(),
                                  {"xi-api-key": key(), "Content-Type": "application/json", "Accept": "audio/mpeg"},
                                  method="POST")
-    mp3 = urllib.request.urlopen(req, timeout=120).read()
+    for attempt in range(8):   # ElevenLabs allows few concurrent requests: back off on 429/5xx
+        try:
+            mp3 = urllib.request.urlopen(req, timeout=180).read()
+            break
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503) or attempt == 7:
+                raise
+            time.sleep(10 * (attempt + 1))
     ff(["-f", "mp3", "-i", "pipe:0", "-ar", "48000", "-ac", "1", str(out_wav)], mp3)
 
 
