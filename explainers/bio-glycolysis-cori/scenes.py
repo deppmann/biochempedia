@@ -26,13 +26,15 @@ config.disable_caching = True
 
 AMBER = "#E0A458"
 CX = 1.9            # centre of the content area to the right of the portrait column
-PORT_X = -4.7       # portrait column centre
-PORT_H = 3.4
-PORT_Y = 1.1
+PORT_X = -4.8      # portrait column centre
+PORT_H = 3.5
+PORT_Y = 1.25
+CROP_AR = 800 / 760.0   # cori_crop.png: full engraving, both faces complete (cropped from public/scientists/cori.png)
 IMG = Path(os.environ.get("KX_SCRIPT", __file__)).resolve().parent / "cori_crop.png"
 NAME = "Carl Cori & Gerty Cori"
 DATES = "1896–1984 · 1896–1957"
 CAPTION = "illustration · AI-generated"
+DIM = 0.62
 
 
 def portrait(height=PORT_H, center=(PORT_X, PORT_Y)):
@@ -40,28 +42,54 @@ def portrait(height=PORT_H, center=(PORT_X, PORT_Y)):
     img.set_resampling_algorithm(RESAMPLING_ALGORITHMS["cubic"])
     img.set_height(height)
     img.move_to([center[0], center[1], 0])
+    img.set_z_index(0)
     border = Rectangle(width=img.width, height=img.height, stroke_color=GOLD, stroke_width=3, fill_opacity=0)
-    border.move_to(img)
+    border.move_to(img).set_z_index(3)
     return img, border
 
 
-def column_labels():
-    """Caption, name and dates under the inset portrait."""
-    cap = T(CAPTION, 22, GREY).move_to([PORT_X, PORT_Y - PORT_H / 2 - 0.32, 0])
-    n1 = T("Carl Cori", 28, TEXT, font=TITLE_FONT)
-    n2 = T("& Gerty Cori", 28, TEXT, font=TITLE_FONT)
-    name = VGroup(n1, n2).arrange(DOWN, buff=0.1).move_to([PORT_X, PORT_Y - PORT_H / 2 - 1.2, 0])
-    dates = T(DATES, 22, GOLD).move_to([PORT_X, PORT_Y - PORT_H / 2 - 1.95, 0])
-    if dates.width > 3.2:
-        dates.scale_to_fit_width(3.2)
-    return cap, name, dates
+def dimmers(focus="both", height=PORT_H, center=(PORT_X, PORT_Y)):
+    """Two half-frame veils over the portrait: left half = Carl, right half = Gerty."""
+    w = height * CROP_AR
+    mk = lambda dx, op: Rectangle(width=w / 2, height=height, stroke_width=0, fill_color=BG,
+                                  fill_opacity=op).move_to([center[0] + dx, center[1], 0]).set_z_index(2)
+    return (mk(-w / 4, DIM if focus == "right" else 0), mk(w / 4, DIM if focus == "left" else 0))
+
+
+def column_labels(focus="both"):
+    """Caption plus a name and years under each face (Carl left, Gerty right)."""
+    w = PORT_H * CROP_AR
+    y = PORT_Y - PORT_H / 2
+    cap = T(CAPTION, 22, GREY).move_to([PORT_X, y - 0.32, 0])
+    nl = VGroup(T("Carl Cori", 24, TEXT, font=TITLE_FONT), T("1896–1984", 22, GOLD)).arrange(DOWN, buff=0.1)
+    nr = VGroup(T("Gerty Cori", 24, TEXT, font=TITLE_FONT), T("1896–1957", 22, GOLD)).arrange(DOWN, buff=0.1)
+    nl.move_to([PORT_X - w / 4, y - 1.12, 0]); nr.move_to([PORT_X + w / 4, y - 1.12, 0])
+    # same text lines for both pairs ("Gerty" has a descender, which otherwise drops her pair)
+    nr[0].align_to(nl[0], UP); nr[1].align_to(nl[1], UP)
+    nl.set_opacity(0.4 if focus == "right" else 1)
+    nr.set_opacity(0.4 if focus == "left" else 1)
+    return cap, nl, nr
+
+
+def focus_anims(plate, which):
+    """Animations that move the highlight to 'left' (Carl), 'right' (Gerty) or 'both'."""
+    dl, dr, nl, nr = plate
+    return [dl.animate.set_fill(BG, opacity=DIM if which == "right" else 0),
+            dr.animate.set_fill(BG, opacity=DIM if which == "left" else 0),
+            nl.animate.set_opacity(0.4 if which == "right" else 1),
+            nr.animate.set_opacity(0.4 if which == "left" else 1)]
 
 
 class BioScene(SpokenScene):
-    def add_column(self):
+    def add_column(self, focus="both"):
         img, border = portrait()
-        cap, name, dates = column_labels()
-        self.add(img, border, cap, name, dates)
+        cap, nl, nr = column_labels(focus)
+        dl, dr = dimmers(focus)
+        self.add(img, border, dl, dr, cap, nl, nr)
+        self.plate = (dl, dr, nl, nr)
+
+    def focus(self, which):
+        return focus_anims(self.plate, which)
 
     def chip_at(self, text, color, x, y, size=28, **kw):
         c = chip(text, color, size, **kw)
@@ -92,13 +120,13 @@ class S00Title(BioScene):
                   Write(name, run_time=1.0), run_time=1.5, rate_func=linear)
         self.play(GrowFromCenter(rule), FadeIn(dates), run_time=0.35)
         # hand over to the inset layout used by every later scene
-        cap2, name2, dates2 = column_labels()
+        cap2, nl, nr = column_labels()
         self.play(AnimationGroup(
             img.animate.scale(1 / (k * 1.05)).move_to([PORT_X, PORT_Y, 0]),
             border.animate.scale(1 / (k * 1.05)).move_to([PORT_X, PORT_Y, 0]),
             cap.animate.move_to(cap2),
             Succession(AnimationGroup(FadeOut(name), FadeOut(dates), FadeOut(rule), FadeOut(brand)),
-                       AnimationGroup(FadeIn(name2), FadeIn(dates2))),
+                       AnimationGroup(FadeIn(nl), FadeIn(nr))),
             run_time=0.8))
         self.finish()
 
@@ -157,7 +185,7 @@ class S02NewWorld(BioScene):
         order = T("stop publishing with her husband", 30, RED).move_to([CX, -1.9, 0])
         down = Arrow(dirc.get_bottom() + DOWN * 0.05, order.get_top() + UP * 0.12, buff=0, color=RED, stroke_width=4,
                      max_tip_length_to_length_ratio=0.35)
-        self.play(GrowArrow(down), FadeIn(order, shift=DOWN * 0.1), run_time=0.7)
+        self.play(GrowArrow(down), FadeIn(order, shift=DOWN * 0.1), *self.focus("right"), run_time=0.7)
         self.at("and she refused")
         strike = Line(order.get_left() + LEFT * 0.1, order.get_right() + RIGHT * 0.1, color=GOLD, stroke_width=6)
         refused = T("She refused.", 38, GOLD, font=TITLE_FONT).move_to([CX, -2.95, 0])
@@ -203,7 +231,7 @@ class S02NewWorld(BioScene):
 
 class S03Discovery(BioScene):
     def construct(self):
-        self.add_column()
+        self.add_column("right")
         # --- the lab trained five future Nobel laureates
         lab = self.chip_at("the lab Gerty built", GOLD, CX, 2.4, 32)
         self.play(FadeIn(lab, shift=DOWN * 0.1), run_time=0.5)
@@ -254,12 +282,12 @@ class S03Discovery(BioScene):
         deb = self.chip_at("debranching enzyme", BLUE, 3.7, 0.15, 30)
         a3 = Arrow([tx + tw / 2 + 0.15, 0.15, 0], deb.get_left() + LEFT * 0.08, buff=0, color=GOLD, stroke_width=5,
                    max_tip_length_to_length_ratio=0.3)
-        self.play(GrowArrow(a3), FadeIn(deb, scale=0.9), run_time=0.8)
+        self.play(GrowArrow(a3), FadeIn(deb, scale=0.9), *self.focus("both"), run_time=0.8)
         self.play(Indicate(deb, color=GOLD, scale_factor=1.06), run_time=0.7)
 
         # --- the chromatography spot
         self.at("and Gertie understood", lead=0.5)
-        self.play(FadeOut(Group(tube, pellet, sup, sup_lbl, ptr1, lab_ph, ptr2, deb, a3)), run_time=0.35)
+        self.play(FadeOut(Group(tube, pellet, sup, sup_lbl, ptr1, lab_ph, ptr2, deb, a3)), *self.focus("right"), run_time=0.35)
         strip = Rectangle(width=1.3, height=3.0, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12)
         strip.move_to([-0.8, 1.0, 0])
         spot = Circle(radius=0.2, color=GREEN, stroke_width=0, fill_color=GREEN, fill_opacity=0.9).move_to([-0.8, 0.45, 0])
@@ -292,7 +320,7 @@ class S03Discovery(BioScene):
 
 class S04Disease(BioScene):
     def construct(self):
-        self.add_column()
+        self.add_column("right")
         self.at("matching the wrong")
         gly = self.chip_at("wrong-shaped glycogen", GREEN, CX, 2.8, 28)
         self.play(FadeIn(gly, shift=DOWN * 0.1), run_time=0.6)
@@ -330,18 +358,18 @@ class S04Disease(BioScene):
 
 class S05Nobel(BioScene):
     def construct(self):
-        self.add_column()
+        self.add_column("right")
         self.at("the Nobel")
         medal = VGroup(Circle(radius=0.68, color=GOLD, stroke_width=5, fill_color=GOLD, fill_opacity=0.2),
                        T("Nobel", 24, GOLD, weight=BOLD)).move_to([CX - 1.5, 2.55, 0])
-        self.play(GrowFromCenter(medal), run_time=0.6)
+        self.play(GrowFromCenter(medal), *self.focus("both"), run_time=0.6)
         self.at("1947")
         yr = M("1947", 60, YELLOW).move_to([CX + 1.2, 2.55, 0])
         self.play(Write(yr), run_time=0.6)
 
         self.at("Carl said")
         said = T("Carl, at the banquet", 28, GREY).move_to([CX, 1.3, 0])
-        self.play(FadeIn(said, shift=UP * 0.1), run_time=0.5)
+        self.play(FadeIn(said, shift=UP * 0.1), *self.focus("left"), run_time=0.5)
         self.at("including his wife")
         inc = T("including his wife", 32, TEXT, font=TITLE_FONT).move_to([CX, 0.55, 0])
         self.play(FadeIn(inc, shift=UP * 0.1), run_time=0.5)
@@ -364,7 +392,7 @@ class S05Nobel(BioScene):
 
         # --- the same year: a timeline
         self.at("The same year", lead=0.45)
-        self.play(FadeOut(Group(medal, yr, said, inc, q, gal, cross, acc, ul)), run_time=0.4)
+        self.play(FadeOut(Group(medal, yr, said, inc, q, gal, cross, acc, ul)), *self.focus("right"), run_time=0.4)
         ty = 1.0
         x22, x47 = 0.0, 4.2
         line = Line([x22 - 0.9, ty, 0], [x47 + 1.5, ty, 0], color=GREY, stroke_width=4)
@@ -390,7 +418,7 @@ class S05Nobel(BioScene):
 
 class S06Quote(BioScene):
     def construct(self):
-        self.add_column()
+        self.add_column("right")
         mark = T("“", 120, GOLD, font=TITLE_FONT).move_to([-1.9, 2.0, 0])
         lines = [T("That the award should have included", 36, TEXT, font=TITLE_FONT),
                  T("my wife as well has been a source", 36, TEXT, font=TITLE_FONT),
@@ -400,7 +428,7 @@ class S06Quote(BioScene):
         qg.move_to([CX + 0.1, 0.5, 0])
         mark.scale(0.7).next_to(lines[0], LEFT, buff=0.12).align_to(lines[0], UP).shift(UP * 0.12)
         att = T("Carl Cori, at the Nobel banquet, 1947", 28, GOLD).next_to(qg, DOWN, buff=0.6).align_to(qg, RIGHT)
-        self.play(FadeIn(mark, shift=DOWN * 0.1), run_time=0.6)
+        self.play(FadeIn(mark, shift=DOWN * 0.1), *self.focus("left"), run_time=0.6)
         t = 0.8
         for ln in lines:
             self.play(FadeIn(ln, shift=UP * 0.1), run_time=0.9)
