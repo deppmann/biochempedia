@@ -9,7 +9,9 @@ import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
+import FinishLine from '../../components/FinishLine.astro';
 import { feedbackUrl } from '../../lib/feedback';
+import { LESSON_GAMES, gameHref } from '../../data/lesson-games';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -20,6 +22,19 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
+// Global lesson order, same sort + numbering as the homepage.
+const allLessons = (await getCollection('lessons', ({ data }) => !data.draft)).sort(
+  (a, b) => (a.data.order ?? 99) - (b.data.order ?? 99),
+);
+const hookFor = (l: (typeof allLessons)[number]) =>
+  (l.data as { hook?: string }).hook ?? l.data.summary.split(/(?<=[.?!])\s+/)[0];
+const navOf = (l: (typeof allLessons)[number] | undefined) =>
+  l ? { slug: l.data.slug, title: l.data.title, hook: hookFor(l), n: allLessons.indexOf(l) + 1 } : undefined;
+const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
+const prevNav = navOf(allLessons[lessonIdx - 1]);
+const nextNav = navOf(allLessons[lessonIdx + 1]);
+const games = LESSON_GAMES[entry.data.slug] ?? [];
+const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
 const { Content } = await render(entry);
 const lesson = entry.data;
 
@@ -132,6 +147,9 @@ const lessonLd = {
         {hasQuiz && (
           <li><button type="button" data-open="lb-quiz">📝 Self-test <em>{qCount}</em></button></li>
         )}
+        {games.length > 0 && (
+          <li><a href={gameHref(games[0], entry.data.slug)}>Play <em>{games[0].minutes} min</em></a></li>
+        )}
         {lesson.explainLevels.length > 0 && (
           <li><button type="button" data-open={`lb-level-${lesson.explainLevels[0].level}`}>🧸 Explain it simply</button></li>
         )}
@@ -158,6 +176,8 @@ const lessonLd = {
             </div>
           </section>
         )}
+
+        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} />
       </div>
 
       <aside class="rail" id="rail" aria-label="Explore — open any resource">
@@ -307,6 +327,18 @@ const lessonLd = {
               <span class="rail-ico" aria-hidden="true">📝</span>
               <span class="rail-label">Self-test <em>{qCount} questions</em></span>
             </button>
+          </div>
+        )}
+
+        {games.length > 0 && (
+          <div class="rail-group">
+            <h3>Play it</h3>
+            {games.map((g) => (
+              <a class="rail-thumb" href={gameHref(g, entry.data.slug)}>
+                <span class="rail-ico rail-game" aria-hidden="true">{GAME_CODES[g.game]}</span>
+                <span class="rail-label">{g.title} <em>about {g.minutes} min · play →</em></span>
+              </a>
+            ))}
           </div>
         )}
 
@@ -699,6 +731,10 @@ const lessonLd = {
       background: var(--ddp-color-bg-alt, #f0ede7); border: 1px solid var(--ddp-color-line);
     }
     .rail-ico { display: grid; place-items: center; font-size: 1.2rem; }
+    .rail-ico.rail-game {
+      background: var(--ddp-color-secondary); border-color: var(--ddp-color-secondary);
+      color: #1d2433; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700;
+    }
     .rail-label {
       display: flex; flex-direction: column; min-width: 0;
       font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.25;
