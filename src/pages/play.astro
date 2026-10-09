@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/arcade.css';
+
+/**
+ * The Metabolism Arcade — interactive games for learning metabolic pathways:
+ * Ledger Rush, Metabolic Autopsy, Wire the Cell, Flux Foundry, Mixing Board and
+ * the timed MCAT Gauntlet. The whole arcade is a client island built at runtime from the
+ * typed Pathway model in src/game/. The <div id="arcade"> holds a
+ * server-rendered fallback (h1 + no-JS note) that the engine clears on mount.
+ */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LearningResource',
+  name: 'Metabolism Arcade',
+  learningResourceType: 'Game',
+  educationalUse: 'self-assessment',
+  description:
+    'Games for learning metabolic pathways — diagnose a broken enzyme, wire the cell, balance the regulators, and survive a timed MCAT drill.',
+  audience: { '@type': 'EducationalAudience', educationalRole: 'student' },
+  isPartOf: { '@type': 'WebSite', name: 'Biochemistrypedia' },
+};
+---
+
+<BaseLayout
+  title="Metabolism Arcade — play the pathways | Biochemistrypedia"
+  description="Interactive games for learning metabolic pathways: diagnose the broken enzyme, wire the cell, balance the regulators, and survive a timed MCAT drill. Exam-accurate and built for BIOL 3030."
+  ogType="website"
+  jsonLd={jsonLd}
+>
+  <section class="wrap arc-page">
+    <div id="arcade" class="arc-root">
+      <div class="arc-fallback">
+        <h1>Metabolism Arcade</h1>
+        <p>
+          Five games and a timed MCAT drill for learning metabolic pathways.
+        </p>
+        <p class="arc-loading">Loading the arcade…</p>
+        <noscript>
+          <p>
+            This game needs JavaScript. Meanwhile, every pathway is also written
+            up as a full lesson — start with <a href="/lessons/glycolysis/">Glycolysis</a>.
+          </p>
+        </noscript>
+      </div>
+    </div>
+
+    <p class="arc-pagenote">
+      Every fact in the arcade is cross-checked against the
+      <a href="/">Biochemistrypedia lessons</a>. Wrong answers explain
+      themselves — that’s the point. Built for BIOL&nbsp;3030 and anyone prepping
+      for the MCAT.
+    </p>
+  </section>
+
+  <script>
+    import { mountHub } from '../game/engine/hub';
+    import { PATHWAYS } from '../game/data';
+
+    const root = document.getElementById('arcade');
+    if (root) {
+      root.innerHTML = '';
+      mountHub(root, PATHWAYS);
+    }
+  </script>
+
+  <style>
+    .arc-page { padding-top: var(--ddp-space-8); padding-bottom: var(--ddp-space-8); }
+    .arc-fallback { padding: 3rem 1.5rem; text-align: center; }
+    .arc-fallback h1 { font-family: var(--ddp-font-serif); color: var(--ddp-color-primary); }
+    .arc-fallback p { color: var(--ddp-color-ink-soft); max-width: 46ch; margin-inline: auto; }
+    .arc-loading { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); margin-top: 1rem; }
+    .arc-pagenote {
+      max-width: 60ch; margin: var(--ddp-space-6) auto 0; text-align: center;
+      font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5;
+    }
+  </style>
+</BaseLayout>
