@@ -19,11 +19,14 @@ const nodeInfo = (id: string) => NETMAP.nodes.find((n) => n.id === id);
 
 interface Tally { score: number; solved: number; firstTry: number; fails: number; medals: Medal[]; }
 
-export function launchWireCell(shell: Shell): void {
-  play(shell, 0, { score: 0, solved: 0, firstTry: 0, fails: 0, medals: [] });
+/** Optionally start at a given puzzle id; the run continues through the later ones. */
+export function launchWireCell(shell: Shell, startPuzzle?: string): void {
+  const i = startPuzzle ? DEMANDS.findIndex((d) => d.id === startPuzzle) : -1;
+  const start = i < 0 ? 0 : i;
+  play(shell, start, start, { score: 0, solved: 0, firstTry: 0, fails: 0, medals: [] });
 }
 
-function play(shell: Shell, demandIdx: number, tally: Tally): void {
+function play(shell: Shell, startIdx: number, demandIdx: number, tally: Tally): void {
   const d = DEMANDS[demandIdx];
   const placed = new Set<string>();
   let fails = 0;
@@ -152,7 +155,7 @@ function play(shell: Shell, demandIdx: number, tally: Tally): void {
           score: tally.score + pts, solved: tally.solved + 1, firstTry: tally.firstTry + (fails === 0 ? 1 : 0),
           fails: tally.fails + fails, medals: [...tally.medals, medal],
         };
-        if (last) finish(shell, t); else play(shell, demandIdx + 1, t);
+        if (last) finish(shell, startIdx, t); else play(shell, startIdx, demandIdx + 1, t);
       });
       balance.append(el('p.arc-wire-medal', null, note), next);
     } else {
@@ -171,8 +174,8 @@ function play(shell: Shell, demandIdx: number, tally: Tally): void {
   shell.setStage(wrap);
 }
 
-function finish(shell: Shell, t: Tally): void {
-  const n = DEMANDS.length;
+function finish(shell: Shell, startIdx: number, t: Tally): void {
+  const n = DEMANDS.length - startIdx; // puzzles in this run
   const medal: Medal = t.score >= n * 450 ? 'gold' : t.score >= n * 300 ? 'silver' : 'bronze';
   shell.showResults({
     recordId: 'wire', mode: 'wire', won: true, medal, score: t.score,
@@ -184,7 +187,7 @@ function finish(shell: Shell, t: Tally): void {
       ['Puzzle medals', t.medals.map((m) => m[0].toUpperCase()).join(' ')],
     ],
     funFact: 'Every one of those ATP totals, 32 from glucose and 106 from palmitate, is the real number the MCAT asks you to reconstruct. You just built the machine that makes it.',
-    replay: () => launchWireCell(shell),
+    replay: () => launchWireCell(shell, DEMANDS[startIdx].id),
   });
 }
 

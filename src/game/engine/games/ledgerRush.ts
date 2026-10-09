@@ -142,9 +142,11 @@ function buildQueue(p: Pathway): Chip[] {
   return q;
 }
 
-export function launchLedgerRush(shell: Shell, pathways: Pathway[]): void {
+export function launchLedgerRush(shell: Shell, pathways: Pathway[], pathwayId?: string): void {
   // Ledger Rush needs steps with cofactor tokens; all 13 qualify but filter defensively.
   const eligible = pathways.filter((p) => p.id === 'oxidative-phosphorylation' || p.steps.some((s) => s.tokens));
+  const direct = pathwayId ? eligible.find((p) => p.id === pathwayId) : undefined;
+  if (direct) { play(shell, pathways, direct); return; }
   shell.pathwayPicker({
     title: 'Ledger Rush',
     sub: 'Bank the real ATP/NADH, toss the myths, and catch the ×2 cards after the split. How clean can you keep the ledger?',

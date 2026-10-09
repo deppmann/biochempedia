@@ -11,6 +11,8 @@ import { sfx } from './sound';
 import { createShell } from './shell';
 import type { Shell } from './shell';
 import type { ModeId } from './storage';
+import { GAME_ICONS } from './icons';
+import type { LaunchRequest } from './launch';
 import { launchLedgerRush } from './games/ledgerRush';
 import { launchAutopsy } from './games/autopsy';
 import { launchWireCell } from './games/wireCell';
@@ -20,36 +22,35 @@ import { launchGauntlet } from './games/gauntlet';
 
 interface GameDef {
   id: ModeId;
-  icon: string;
   name: string;
   verb: string;
   blurb: string;
   status: 'live' | 'soon';
   cram?: boolean;
-  launch?: (shell: Shell, pathways: Pathway[]) => void;
+  launch?: (shell: Shell, pathways: Pathway[], req?: LaunchRequest) => void;
 }
 
 const GAMES: GameDef[] = [
-  { id: 'ledger', icon: '⚡', name: 'Ledger Rush', verb: 'Dexterity', status: 'live', launch: launchLedgerRush,
+  { id: 'ledger', name: 'Ledger Rush', verb: 'Dexterity', status: 'live', launch: (s, p, r) => launchLedgerRush(s, p, r?.pathway),
     blurb: 'Bank the real ATP & NADH, toss the misconceptions, catch DOUBLE after the split. A speed drill for the energetics ledger.' },
-  { id: 'autopsy', icon: '🔬', name: 'Metabolic Autopsy', verb: 'Deduction', status: 'live', launch: launchAutopsy,
+  { id: 'autopsy', name: 'Metabolic Autopsy', verb: 'Deduction', status: 'live', launch: (s, p, r) => launchAutopsy(s, p, r?.pathway),
     blurb: 'One enzyme is secretly broken. Order lab tests, read what pools up vs starves, and prove the block in the fewest tests.' },
-  { id: 'wire', icon: '🔌', name: 'Wire the Cell', verb: 'Construction', status: 'live', launch: launchWireCell,
+  { id: 'wire', name: 'Wire the Cell', verb: 'Construction', status: 'live', launch: (s, _p, r) => launchWireCell(s, r?.puzzle),
     blurb: 'Snap pathway modules together so the tokens balance, hit RUN, and watch the flux flow. A Zachlike metabolism puzzle.' },
-  { id: 'foundry', icon: '🏭', name: 'Flux Foundry', verb: 'Engine-builder', status: 'live', launch: launchFluxFoundry,
+  { id: 'foundry', name: 'Flux Foundry', verb: 'Engine-builder', status: 'live', launch: launchFluxFoundry,
     blurb: 'Draw a fuel, route its carbon, chase an ATP quota as fed/fasted/sprint events re-price the whole economy. One more run.' },
-  { id: 'mixing', icon: '🎛️', name: 'Mixing Board', verb: 'Control', status: 'live', launch: launchMixingBoard,
+  { id: 'mixing', name: 'Mixing Board', verb: 'Control', status: 'live', launch: launchMixingBoard,
     blurb: 'You are the cell’s regulators. Set the board so flux lands right for THIS body state — and never run the futile cycle.' },
-  { id: 'gauntlet', icon: '🎓', name: 'MCAT Gauntlet', verb: 'Cram tool', status: 'live', cram: true, launch: launchGauntlet,
+  { id: 'gauntlet', name: 'MCAT Gauntlet', verb: 'Cram tool', status: 'live', cram: true, launch: launchGauntlet,
     blurb: 'Timed rapid-fire across every pathway. The spaced-retrieval drill for the night before test day.' },
 ];
 
-export function mountHub(root: HTMLElement, pathways: Pathway[]): void {
+export function mountHub(root: HTMLElement, pathways: Pathway[], req: LaunchRequest = {}): void {
   let shell: Shell;
 
   function home(): void {
     shell.setCrumb('Metabolism Arcade', undefined);
-    shell.setMascot('Five games, one cell. Pick one to start.');
+    shell.setMascot('Five games and a cram tool. Pick one to start.');
     const wrap = el('div.arc-home');
     wrap.append(
       el('p.arc-eyebrow', null, 'Metabolism Arcade'),
@@ -61,7 +62,7 @@ export function mountHub(root: HTMLElement, pathways: Pathway[]): void {
     for (const g of GAMES) {
       const card = el(`button.arc-gamecard${g.status === 'soon' ? '.is-soon' : ''}${g.cram ? '.is-cram' : ''}`, { type: 'button' });
       card.append(
-        el('span.arc-gamecard-ico', { 'aria-hidden': 'true' }, g.icon),
+        el('span.arc-gamecard-ico', { 'aria-hidden': 'true', html: GAME_ICONS[g.id] ?? '' }),
         el('span.arc-gamecard-verb', null, g.verb),
         el('span.arc-gamecard-name', null, g.name),
         el('span.arc-gamecard-blurb', null, g.blurb),
@@ -96,6 +97,9 @@ export function mountHub(root: HTMLElement, pathways: Pathway[]): void {
     shell.setStage(wrap);
   }
 
-  shell = createShell(root, home);
-  home();
+  shell = createShell(root, home, req.lesson);
+  // Direct link (/play?game=…): skip the hub and open that game.
+  const direct = req.game ? GAMES.find((g) => g.id === req.game && g.status === 'live' && g.launch) : undefined;
+  if (direct?.launch) direct.launch(shell, pathways, req);
+  else home();
 }

@@ -1,6 +1,18 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/arcade.css';
+
+// slug -> {title, n, next} for the "from the lesson" context (client can't query content).
+const ordered = (await getCollection('lessons'))
+  .filter((l) => !l.data.draft)
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+const lessonMap = Object.fromEntries(
+  ordered.map((l, i) => [
+    l.data.slug,
+    { title: l.data.title, n: i + 1, nextSlug: ordered[i + 1]?.data.slug, nextTitle: ordered[i + 1]?.data.title },
+  ]),
+);
 
 /**
  * The Metabolism Arcade — interactive games for learning metabolic pathways:
@@ -33,7 +45,7 @@ const jsonLd = {
       <div class="arc-fallback">
         <h1>Metabolism Arcade</h1>
         <p>
-          Five games and a timed MCAT drill for learning metabolic pathways.
+          Five games and a timed cram drill for learning metabolic pathways.
         </p>
         <p class="arc-loading">Loading the arcade…</p>
         <noscript>
@@ -53,14 +65,20 @@ const jsonLd = {
     </p>
   </section>
 
+  <script type="application/json" id="arc-lessons" is:inline set:html={JSON.stringify(lessonMap)} />
+
   <script>
     import { mountHub } from '../game/engine/hub';
     import { PATHWAYS } from '../game/data';
+    import { resolveLaunch } from '../game/engine/launch';
+    import type { LessonMap } from '../game/engine/launch';
 
     const root = document.getElementById('arcade');
     if (root) {
+      let lessons: LessonMap = {};
+      try { lessons = JSON.parse(document.getElementById('arc-lessons')?.textContent || '{}'); } catch { /* no lesson context */ }
       root.innerHTML = '';
-      mountHub(root, PATHWAYS);
+      mountHub(root, PATHWAYS, resolveLaunch(window.location.search, PATHWAYS, lessons));
     }
   </script>
 

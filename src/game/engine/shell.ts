@@ -14,6 +14,7 @@ import type { Medal, ModeId } from './storage';
 import { confettiBurst } from './confetti';
 import { quip } from './quips';
 import { getPathway } from '../data';
+import type { LessonCtx } from './launch';
 
 const MEDAL_EMOJI: Record<Medal, string> = { none: '', bronze: '🥉', silver: '🥈', gold: '🥇' };
 const MEDAL_LABEL: Record<Medal, string> = { none: '', bronze: 'Bronze', silver: 'Silver', gold: 'Gold' };
@@ -81,7 +82,7 @@ export interface Shell {
   medalEmoji(m: Medal): string;
 }
 
-export function createShell(root: HTMLElement, goHome: () => void): Shell {
+export function createShell(root: HTMLElement, goHome: () => void, lesson?: LessonCtx): Shell {
   initSound();
 
   // The Back button is created once but only attached to the DOM while there is
@@ -99,17 +100,29 @@ export function createShell(root: HTMLElement, goHome: () => void): Shell {
   mute.addEventListener('click', () => { setMuted(!isMuted()); syncMute(); if (!isMuted()) sfx.select(); });
   syncMute();
 
-  const hud = el('header.arc-hud', null, crumb, el('div.arc-stats', null, streak, atp, mute));
+  // Opened from a lesson: the Back button always returns there, and says so.
+  const lessonHref = lesson ? `/lessons/${lesson.slug}/` : '';
+  const fromNote = lesson ? el('span.arc-from', null, `from Lesson ${lesson.n}`) : null;
+  const hud = el('header.arc-hud', null, crumb, ...(fromNote ? [fromNote] : []), el('div.arc-stats', null, streak, atp, mute));
   const stage = el('div.arc-stage');
   const mascotEl = el('div.arc-mascot', { 'aria-hidden': 'true' }, '⚡');
   const bubbleEl = el('div.arc-bubble', { role: 'status', 'aria-live': 'polite' });
   root.append(hud, stage, el('div.arc-mascot-wrap', null, bubbleEl, mascotEl));
 
   let backHandler: (() => void) | null = null;
-  back.addEventListener('click', () => { sfx.select(); backHandler?.(); });
+  if (lesson) {
+    back.textContent = `‹ ${plain(lesson.title).split(":")[0].trim()}`;
+    back.setAttribute('aria-label', `Back to the ${plain(lesson.title)} lesson`);
+  }
+  back.addEventListener('click', () => {
+    sfx.select();
+    if (lesson) { window.location.href = lessonHref; return; }
+    backHandler?.();
+  });
 
   function syncStats(): void {
     const s = store.studyStreak();
+    streak.hidden = s < 1; // new players: no "0-day streak"
     streak.textContent = `${s}-day streak`;
     streak.title = 'Days in a row you have played';
     atp.textContent = `${store.totalAtp().toLocaleString()} ATP`;
@@ -119,7 +132,7 @@ export function createShell(root: HTMLElement, goHome: () => void): Shell {
   function setCrumb(text: string, onBack?: () => void): void {
     crumb.textContent = plain(text);
     backHandler = onBack ?? null;
-    if (onBack) { if (!back.isConnected) hud.insertBefore(back, crumb); }
+    if (onBack || lesson) { if (!back.isConnected) hud.insertBefore(back, crumb); }
     else back.remove();
     syncStats();
   }
@@ -173,7 +186,7 @@ export function createShell(root: HTMLElement, goHome: () => void): Shell {
     let links: LessonLink[] = o.lessons ?? [];
     if (!links.length && o.lessonHref) links = [{ title: '', href: o.lessonHref }];
     if (!links.length) { const l = lessonFor(o.recordId); if (l) links = [l]; }
-    if (links.length) {
+    if (links.length && !lesson) {
       const row = el('p.arc-results-lessons', null, links.length > 1 ? 'Review the lessons: ' : '');
       links.forEach((l, i) => {
         if (i) row.append(' · ');
@@ -185,11 +198,20 @@ export function createShell(root: HTMLElement, goHome: () => void): Shell {
     }
 
     const actions = el('div.arc-results-actions');
-    const again = el('button.arc-btn.is-primary', { type: 'button' }, 'Play again');
+    const again = el('button.arc-btn', { type: 'button' }, 'Play again');
     again.addEventListener('click', () => { sfx.select(); o.replay(); });
-    const homeBtn = el('button.arc-btn', { type: 'button' }, 'All games');
-    homeBtn.addEventListener('click', () => { sfx.select(); goHome(); });
-    actions.append(again, homeBtn);
+    if (lesson) {
+      // Opened from a lesson: send the student onward, or back to it.
+      const next = lesson.nextSlug
+        ? el('a.arc-btn.is-primary', { href: `/lessons/${lesson.nextSlug}/` }, `Next: ${plain(lesson.nextTitle ?? 'next lesson').split(':')[0].trim()} →`)
+        : el('a.arc-btn.is-primary', { href: '/#lessons' }, 'All lessons');
+      actions.append(next, el('a.arc-btn', { href: lessonHref }, 'Back to the lesson'), again);
+    } else {
+      again.classList.add('is-primary');
+      const homeBtn = el('button.arc-btn', { type: 'button' }, 'All games');
+      homeBtn.addEventListener('click', () => { sfx.select(); goHome(); });
+      actions.append(again, homeBtn);
+    }
     card.append(actions);
 
     const overlay = el('div.arc-overlay');
@@ -208,7 +230,6 @@ export function createShell(root: HTMLElement, goHome: () => void): Shell {
       const best = store.getBest(p.id, opts.mode);
       const cab = el('button.arc-cabinet', { type: 'button' });
       cab.append(
-        el('span.arc-cab-emoji', { 'aria-hidden': 'true' }, p.emoji),
         el('span.arc-cab-name', null, p.name),
         el('span.arc-cab-tag', null, p.tagline),
         el('span.arc-cab-meta', null,
