@@ -104,7 +104,7 @@ const lessonLd = {
             <p class="explainer-h" id="explainer-h"><span class="explainer-kicker">Watch first</span> {ex.title} <span class="explainer-len">· {exLen}</span></p>
             <p class="explainer-note">
               Narration: {ex.narration}. The animation is a schematic drawn in code by an AI
-              (Claude): boxes, arrows and plots, never a molecular structure. {ex.factCheckedBy ? `Checked by ${ex.factCheckedBy}.` : 'No person has reviewed the animation yet.'} Captions: press CC.
+              (Claude): boxes, arrows and plots, never a molecular structure. {ex.factCheckedBy && `Checked by ${ex.factCheckedBy}.`} Captions: press CC.
             </p>
           </figcaption>
         </figure>
@@ -361,7 +361,7 @@ const lessonLd = {
               <figcaption>
                 Profile film · {Math.floor(s.film.durationSec / 60)}:{String(Math.round(s.film.durationSec % 60)).padStart(2, '0')} ·
                 Narration: {s.film.narration}. The portrait is an AI-generated illustration; the animation is a
-                schematic drawn in code by an AI (Claude). {s.film.factCheckedBy ? `Checked by ${s.film.factCheckedBy}.` : 'No person has reviewed the film yet.'}
+                schematic drawn in code by an AI (Claude). {s.film.factCheckedBy && `Checked by ${s.film.factCheckedBy}.`}
               </figcaption>
             </figure>
           )}

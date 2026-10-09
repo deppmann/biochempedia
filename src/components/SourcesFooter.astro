@@ -131,8 +131,7 @@ const pubchemNote = idEcho('CID');
           {lesson.scientists.filter((s) => s.film).map((s) => (
             <li>
               <strong>{s.name}</strong>
-              <span class="src-meta"> · narration: {s.film!.narration} · portrait and animation <span class="ai-flag">AI-generated</span> ·
-                {s.film!.factCheckedBy ? ` checked by ${s.film!.factCheckedBy}` : ' not yet reviewed by a person'}</span>
+              <span class="src-meta"> · narration: {s.film!.narration} · portrait and animation <span class="ai-flag">AI-generated</span>{s.film!.factCheckedBy && ` · checked by ${s.film!.factCheckedBy}`}</span>
             </li>
           ))}
         </ul>
@@ -146,7 +145,7 @@ const pubchemNote = idEcho('CID');
           <strong>{lesson.explainer.title}</strong> · narration: {lesson.explainer.narration} ·
           animation: <span class="ai-flag">AI-generated</span> in code (Manim) by Claude, a schematic with no drawn
           molecular structures, plots computed from their equations ·
-          {lesson.explainer.factCheckedBy ? ` checked by ${lesson.explainer.factCheckedBy}` : ' not yet reviewed by a person'} ·
+          {lesson.explainer.factCheckedBy && ` checked by ${lesson.explainer.factCheckedBy} ·`}
           captions from the narration script.
         </p>
       </div>

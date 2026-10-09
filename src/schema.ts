@@ -250,8 +250,7 @@ const anecdote = z.object({
  *  The animation is drawn in code by an AI as a SCHEMATIC: it may show labelled
  *  boxes, arrows and plots computed from equations, never a drawn molecular
  *  structure (see IMAGE_POLICY.md rule 6). `aiGenerated: true` is mandatory so the
- *  page always discloses it; until a person fills `factCheckedBy`, the page says
- *  plainly that no person has reviewed the animation yet. */
+ *  page always discloses it; once a person fills `factCheckedBy`, the page names them. */
 const explainer = z.object({
   src: z.string().regex(/^\/explainers\/[a-z0-9-]+\/[a-z0-9-]+\.mp4$/, 'Explainer videos live under /explainers/<slug>/.'),
   captions: z.string().regex(/\.vtt$/, 'Every explainer needs a WebVTT captions file.'),

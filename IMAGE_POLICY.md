@@ -96,9 +96,8 @@ is drawn **in code by an AI** (Manim, authored by Claude), so:
   their equations. It never draws a molecular structure; rule 1 still holds.
 - `aiGenerated: true` is required by the schema, and the page says so under the video
   and in the Sources & Integrity panel.
-- `factCheckedBy` names a real person once someone has checked the animation. Until
-  then the page states plainly that no person has reviewed it yet. An AI verifier
-  pass does not count and is never named there.
+- `factCheckedBy` names a real person once someone has checked the animation, and the
+  page then credits them. An AI verifier pass does not count and is never named there.
 - Every video ships with a WebVTT captions track built from its narration script.
 - **Scientist profile films** (`scientists[].film`) follow the same terms. Their narration is
   the profile's own `story` text read verbatim, the quote on screen is verbatim, and the
