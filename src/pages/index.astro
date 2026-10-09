@@ -40,6 +40,8 @@ if (unmapped.length > 0) units.push({ name: 'New', slugs: [], entries: unmapped 
 const hookFor = (l: (typeof lessons)[number]) =>
   (l.data as { hook?: string }).hook ?? l.data.summary.split(/(?<=[.?!])\s+/)[0];
 const firstLesson = lessons[0];
+/* Units whose pathways the Metabolism Arcade plays. */
+const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
 ---
 
 <BaseLayout
@@ -72,6 +74,7 @@ const firstLesson = lessons[0];
         to the unit list one anchor away. */}
     <p class="hero-cta">
       <a class="cta" href={`/lessons/${firstLesson.data.slug}/`}>Start with Chapter 1 →</a>
+      <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
       <a class="cta-ghost" href="#lessons">Browse the units ↓</a>
     </p>
   </section>
@@ -89,6 +92,13 @@ const firstLesson = lessons[0];
     {units.map((u, ui) => (
       <section class="unit" data-unit-section={u.name}>
         <h2 class="unit-h">Unit {ui + 1} · {u.name}</h2>
+        {ARCADE_UNITS.has(u.name) && (
+          <a class="unit-play" href="/play">
+            <span class="unit-play-ico" aria-hidden="true">▶</span>
+            <span><strong>Play these pathways.</strong> Wire the cell, run the regulators through a fast, and diagnose a broken enzyme in the Metabolism Arcade.</span>
+            <span class="unit-play-arrow" aria-hidden="true">→</span>
+          </a>
+        )}
         <ul class="lesson-list">
           {u.entries.map(({ l, n }) => (
             <li>
@@ -335,6 +345,36 @@ const firstLesson = lessons[0];
       text-decoration: none;
     }
     .cta-ghost:hover { text-decoration: underline; }
+    .cta-play {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0.55em 1.3em;
+      border-radius: 999px;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--ddp-color-ink);
+      background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 28%, var(--ddp-color-surface));
+      border: 1.5px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 70%, transparent);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .cta-play:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .unit-play {
+      display: flex;
+      align-items: center;
+      gap: var(--ddp-space-3);
+      margin: 0 0 var(--ddp-space-3);
+      padding: var(--ddp-space-3) var(--ddp-space-4);
+      border-radius: var(--ddp-radius, 10px);
+      font-size: var(--ddp-text-sm);
+      color: var(--ddp-color-ink);
+      text-decoration: none;
+      background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 14%, var(--ddp-color-surface));
+      border: 1px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 45%, var(--ddp-color-line));
+    }
+    .unit-play:hover { border-color: var(--ddp-color-secondary, #e0b452); text-decoration: none; }
+    .unit-play-ico, .unit-play-arrow { color: var(--ddp-color-ink); font-weight: 700; }
+    .unit-play-arrow { margin-left: auto; }
 
     /* Unit filter: one sticky row of chips. Filtering is enhancement — with no
        JS every unit stays visible and the chips are inert. */

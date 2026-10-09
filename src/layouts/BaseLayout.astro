@@ -96,6 +96,7 @@ const websiteLd = {
           <span class="brand-name">Biochemistrypedia</span>
         </a>
         <span class="brand-tag">an interactive biochemistry textbook from the <a href="https://deppmannlab.com" class="brand-tag-link">Deppmann&nbsp;Lab</a></span>
+        <a href="/play" class="nav-play">▶&nbsp;Play</a>
         <LabMenu />
       </nav>
     </header>
@@ -209,6 +210,28 @@ const websiteLd = {
       }
       .brand-tag-link { color: var(--ddp-color-teal, var(--ddp-color-accent)); text-decoration: none; }
       .brand-tag-link:hover { text-decoration: underline; }
+      /* The arcade gets a visible pill on every page; it takes the free space
+         so the Lab menu sits snug to its right. */
+      .nav-play {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 0.2em 0.85em;
+        border-radius: 999px;
+        font-family: var(--ddp-font-mono);
+        font-size: var(--ddp-text-xs);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        text-decoration: none;
+        color: var(--ddp-color-secondary-ink, var(--ddp-color-ink));
+        background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 22%, transparent);
+        border: 1px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 55%, transparent);
+      }
+      .nav-play:hover { background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 36%, transparent); }
+      :global(.nav-play + .labmenu) { margin-left: 0; }
       .nav-link {
         margin-left: auto;
         color: var(--ddp-color-accent);
@@ -227,6 +250,10 @@ const websiteLd = {
          sticky header is the first thing a phone visitor sees. Below 560px the
          tagline goes, and below 400px the mark shrinks rather than wraps. */
       .brand-name { white-space: nowrap; }
+      /* With the Play pill in the bar, the tagline only fits on wide screens. */
+      @media (max-width: 900px) {
+        .brand-tag { display: none; }
+      }
       @media (max-width: 560px) {
         .brand-tag {
           display: none;
