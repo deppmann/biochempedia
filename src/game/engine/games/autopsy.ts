@@ -86,8 +86,10 @@ function buildCases(p: Pathway): Case[] {
   return cases.slice(0, 4);
 }
 
-export function launchAutopsy(shell: Shell, pathways: Pathway[]): void {
+export function launchAutopsy(shell: Shell, pathways: Pathway[], pathwayId?: string): void {
   const eligible = pathways.filter((p) => p.steps.length >= 3);
+  const direct = pathwayId ? eligible.find((p) => p.id === pathwayId) : undefined;
+  if (direct) { play(shell, pathways, direct); return; }
   shell.pathwayPicker({
     title: 'Metabolic Autopsy',
     sub: 'One enzyme is secretly broken. Test the ladder, read the accumulate/deplete pattern, and prove the block in the fewest tests.',

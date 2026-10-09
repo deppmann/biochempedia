@@ -169,7 +169,6 @@
 }
 .arc-cabinet:hover { transform: translateY(-4px); box-shadow: var(--ddp-shadow); border-color: var(--ddp-color-accent); }
 .arc-cabinet:hover::after { transform: scaleX(1); }
-.arc-cab-emoji { font-size: 2.4rem; line-height: 1; }
 .arc-cab-name { font-family: var(--ddp-font-serif); font-weight: 700; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
 .arc-cab-tag { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.4; flex: 1; }
 .arc-cab-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.3rem; }
@@ -444,7 +443,20 @@ a.arc-chip-link:hover { text-decoration: underline; }
 }
 .arc-gamecard:hover { transform: translateY(-4px); box-shadow: var(--ddp-shadow); border-color: var(--ddp-color-accent); }
 .arc-gamecard:hover::after { transform: scaleX(1); }
-.arc-gamecard-ico { font-size: 2.6rem; line-height: 1; }
+.arc-gamecard-ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem; border-radius: 10px;
+  color: var(--ddp-color-accent);
+  background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface));
+  border: 1px solid var(--ddp-color-line);
+}
+.arc-gamecard-ico svg { width: 24px; height: 24px; display: block; }
+.arc-from {
+  font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+  color: var(--ddp-color-ink-soft); white-space: nowrap;
+}
+.arc-stat[hidden] { display: none; }
+a.arc-btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .arc-gamecard-verb {
   font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--ddp-color-accent);
@@ -735,6 +747,7 @@ a.arc-chip-link:hover { text-decoration: underline; }
 .arc-bubble { background: var(--arc-bubble-bg); color: var(--arc-bubble-fg); }
 .arc-btn.is-primary { color: var(--arc-on-accent); }
 .arc-btn.is-primary:hover { background: color-mix(in srgb, var(--ddp-color-accent) 86%, #000); }
+a.arc-btn.is-primary { color: var(--arc-on-accent); }
 .arc-opt.is-correct .arc-optnum { background: var(--ddp-color-verified); color: var(--arc-on-ok); }
 .arc-opt.is-wrong { border-color: var(--arc-bad); background: var(--arc-bad-soft); color: var(--ddp-color-ink); }
 .arc-opt.is-wrong .arc-optnum { background: var(--arc-bad); color: var(--arc-on-ok); }
@@ -834,3 +847,6 @@ a.arc-chip-link:hover { text-decoration: underline; }
 .arc-lesson-link { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
 .arc-lesson-link:hover { text-decoration: underline; }
 .arc-results-medaltext { color: var(--ddp-color-secondary-ink); }
+
+/* Long lesson titles in the Back button truncate rather than crowd the HUD. */
+.arc-back { max-width: min(46ch, 55vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; }
