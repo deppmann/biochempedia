@@ -124,6 +124,21 @@ const pubchemNote = idEcho('CID');
       </div>
     )}
 
+    {lesson.scientists.some((s) => s.film) && (
+      <div class="src-block">
+        <h3>Scientist profile films</h3>
+        <ul>
+          {lesson.scientists.filter((s) => s.film).map((s) => (
+            <li>
+              <strong>{s.name}</strong>
+              <span class="src-meta"> · narration: {s.film!.narration} · portrait and animation <span class="ai-flag">AI-generated</span> ·
+                {s.film!.factCheckedBy ? ` checked by ${s.film!.factCheckedBy}` : ' not yet reviewed by a person'}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
     {lesson.explainer && (
       <div class="src-block">
         <h3>Animated explainer</h3>

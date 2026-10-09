@@ -100,6 +100,9 @@ is drawn **in code by an AI** (Manim, authored by Claude), so:
   then the page states plainly that no person has reviewed it yet. An AI verifier
   pass does not count and is never named there.
 - Every video ships with a WebVTT captions track built from its narration script.
+- **Scientist profile films** (`scientists[].film`) follow the same terms. Their narration is
+  the profile's own `story` text read verbatim, the quote on screen is verbatim, and the
+  AI-generated portrait (rule 6) is captioned as an illustration inside the film itself.
 
 
 ## How the enforcement works

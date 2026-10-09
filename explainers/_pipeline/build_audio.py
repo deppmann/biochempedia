@@ -94,7 +94,8 @@ def main():
                 problems.append(f"{s['id']}: {s['clip']} is not a narrated slide in {script['lesson']}")
                 continue
             ff(["-i", str(REPO / "public" / s["clip"].lstrip("/")), "-ar", "48000", "-ac", "1", str(w)])
-            s["narration"] = speakable(slide.get("notes"))
+            if "notes" not in s:   # once align.py has run, narration holds the transcript: keep it
+                s["narration"] = speakable(slide.get("notes"))
             s["slideTitle"] = slide.get("title", "")
         elif "tts" in s:
             cache = out / ".tts" / (hashlib.sha256(s["tts"].encode()).hexdigest()[:16] + ".wav")

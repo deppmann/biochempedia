@@ -44,6 +44,18 @@ const scientist = z.object({
   photo: z.string().optional(),
   /** The fuller story, revealed when the card is expanded. Adapted from the book. */
   story: z.string().optional(),
+  /** Optional short narrated profile film shown at the top of the profile:
+   *  the story above read aloud over the portrait and a schematic animation.
+   *  Same terms as a lesson's explainer (IMAGE_POLICY.md rule 7). */
+  film: z.object({
+    src: z.string().regex(/^\/explainers\/[a-z0-9-]+\/[a-z0-9-]+\.mp4$/, 'Profile films live under /explainers/.'),
+    captions: z.string().regex(/\.vtt$/, 'Every film needs a WebVTT captions file.'),
+    poster: z.string().min(1),
+    durationSec: z.number().positive(),
+    narration: z.string().min(1),
+    aiGenerated: z.literal(true),
+    factCheckedBy: z.string().min(1).optional(),
+  }).optional(),
 });
 
 /** A technique, for the "how the technique works" quick-reference panel. */

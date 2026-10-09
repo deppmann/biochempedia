@@ -15,8 +15,14 @@ Rules every scene follows:
   at 1080p (font_size >= 22 in Manim units here).
 - No burned-in subtitles: captions ship as a separate .vtt track.
 """
+import json, os, re
+from pathlib import Path
 from manim import *  # noqa: F401,F403
 from kx_manim import NarratedScene, BG, BLUE, YELLOW, GREEN, RED, GREY, TEXT  # noqa: F401
+
+# Manim's partial-movie cache reused STALE clips across re-renders in the first batch
+# (scene lengths drifted between renders). Always render fresh.
+config.disable_caching = True
 
 FONT = "Avenir Next"     # labels and body
 TITLE_FONT = "Georgia"   # titles (stands in for the site's Playfair Display)
@@ -26,6 +32,47 @@ GOLD = "#D4A843"         # Biochemistrypedia gold, used sparingly (title rule, o
 
 SAFE_W = 12.6   # Manim frame is 14.22 x 8 units; keep content inside this
 SAFE_H = 7.0
+
+
+def _norm(w):
+    return re.sub(r"[^a-z0-9']", "", w.lower())
+
+
+class SpokenScene(NarratedScene):
+    """NarratedScene + word-level sync to the REAL audio.
+
+    self.at("phrase")      waits until the narrator starts saying that phrase (minus a 0.2 s lead).
+    self.t_of("phrase")    seconds into the scene when the phrase starts.
+    Word timings come from audio/words.json (written by align.py from a transcript of the audio).
+    Match the phrase to the words as spoken (see script.json "narration"); punctuation/case ignored.
+    Every phrase you sync to must exist, or the render fails loudly (good: it means a typo).
+    A log of how late each cue landed goes to sync.log in the video directory.
+    """
+
+    def _words(self):
+        if not hasattr(self, "_wl"):
+            sid = os.environ["KX_SCENE_ID"]
+            vdir = Path(os.environ["KX_SCRIPT"]).parent
+            words = json.loads((vdir / "audio" / "words.json").read_text())[sid]
+            self._wl = [(float(w[0]), _norm(w[2])) for w in words if _norm(w[2])]
+        return self._wl
+
+    def t_of(self, phrase, nth=0):
+        toks = [_norm(p) for p in phrase.split() if _norm(p)]
+        wl = self._words()
+        hits = [wl[i][0] for i in range(len(wl) - len(toks) + 1) if [x[1] for x in wl[i:i + len(toks)]] == toks]
+        if len(hits) <= nth:
+            raise ValueError(f"phrase not spoken in {os.environ.get('KX_SCENE_ID')}: {phrase!r} (nth={nth})")
+        return hits[nth]
+
+    def at(self, phrase, lead=0.2, nth=0):
+        target = self.t_of(phrase, nth) - lead
+        rest = target - self.elapsed()
+        with open(Path(os.environ["KX_SCRIPT"]).parent / "sync.log", "a") as lg:
+            lg.write(f"{os.environ.get('KX_SCENE_ID')}  {phrase[:30]!r:36} at {target + lead:6.2f}  "
+                     f"now {self.elapsed():6.2f}  late {-rest:+5.2f}\n")
+        if rest > 0.02:
+            self.wait(rest)
 
 
 def T(text, size=30, color=TEXT, font=FONT, weight=NORMAL, **kw):
