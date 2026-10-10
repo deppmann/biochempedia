@@ -2,6 +2,7 @@
    Pure (no DOM) so it can be unit-checked from node. */
 import type { Pathway } from '../types';
 import { DEMANDS } from './games/wireCellLogic';
+import { unitReviewById } from '../../data/lesson-games';
 
 export const GAME_IDS = ['ledger', 'autopsy', 'wire', 'foundry', 'mixing', 'gauntlet'] as const;
 export type GameId = (typeof GAME_IDS)[number];
@@ -21,6 +22,8 @@ export interface LaunchRequest {
   game?: GameId;
   pathway?: string;
   puzzle?: string;
+  /** Gauntlet only: a unit-review id (see UNIT_REVIEWS). Unknown ids are dropped. */
+  unit?: string;
   lesson?: LessonCtx;
 }
 
@@ -38,6 +41,8 @@ export function resolveLaunch(search: string, pathways: Pathway[], lessons: Less
     const pathway = q.get('pathway');
     if (pathway && PATHWAY_GAMES.has(game) && pathways.some((p) => p.id === pathway)) out.pathway = pathway;
     const puzzle = q.get('puzzle');
+    const unit = q.get('unit');
+    if (unit && game === 'gauntlet' && unitReviewById(unit)) out.unit = unit;
     if (puzzle && game === 'wire' && DEMANDS.some((d) => d.id === puzzle)) out.puzzle = puzzle;
   }
   return out;

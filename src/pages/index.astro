@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LessonIcon from '../components/LessonIcon.astro';
+import { unitReviewByUnit, unitReviewHref } from '../data/lesson-games';
 
 const lessons = (await getCollection('lessons'))
   .filter((l) => !l.data.draft)
@@ -121,6 +122,11 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
             </li>
           ))}
         </ul>
+        {unitReviewByUnit(u.name) && (
+          <p class="unit-review">
+            Finished the unit? <a href={unitReviewHref(unitReviewByUnit(u.name)!.id)}>Take the unit review →</a>
+          </p>
+        )}
       </section>
     ))}
   </section>
@@ -375,6 +381,13 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
     .unit-play:hover { border-color: var(--ddp-color-secondary, #e0b452); text-decoration: none; }
     .unit-play-ico, .unit-play-arrow { color: var(--ddp-color-ink); font-weight: 700; }
     .unit-play-arrow { margin-left: auto; }
+    .unit-review {
+      margin: var(--ddp-space-3) 0 0;
+      font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
+      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted);
+    }
+    .unit-review a { color: var(--ddp-color-ink); font-weight: 600; text-underline-offset: 3px; }
+    .unit-review a:hover { color: var(--ddp-color-accent); }
 
     /* Unit filter: one sticky row of chips. Filtering is enhancement — with no
        JS every unit stays visible and the chips are inert. */

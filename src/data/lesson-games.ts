@@ -89,3 +89,46 @@ export function gameHref(g: LessonGame, from?: string): string {
   if (from) q.set('from', from);
   return `/play?${q.toString()}`;
 }
+
+/**
+ * Unit reviews: a Gauntlet restricted to one unit's pathways, offered on the
+ * unit's last lesson and under the unit on the homepage. `unit` must match the
+ * homepage UNITS name; `pathways` are ids from src/game/data.
+ */
+export interface UnitReview {
+  id: string;
+  unit: string;
+  pathways: string[];
+  /** Human-readable pathway list for blurbs, e.g. "glycolysis, … and X". */
+  covers: string;
+  /** Slug of the unit's last lesson (where the review card appears). */
+  lastLesson: string;
+}
+
+export const UNIT_REVIEWS: UnitReview[] = [
+  {
+    id: 'central-metabolism',
+    unit: 'Central Metabolism',
+    pathways: ['glycolysis', 'gluconeogenesis', 'pyruvate-dehydrogenase', 'citric-acid-cycle', 'oxidative-phosphorylation'],
+    covers: 'glycolysis, gluconeogenesis, pyruvate dehydrogenase, the citric acid cycle and oxidative phosphorylation',
+    lastLesson: 'proton-motive-force',
+  },
+  {
+    id: 'fuels-fat-nitrogen',
+    unit: 'Fuels, Fat & Nitrogen',
+    pathways: ['pentose-phosphate-pathway', 'fatty-acid-oxidation', 'ketone-bodies', 'fatty-acid-synthesis', 'amino-acid-catabolism', 'urea-cycle'],
+    covers: 'the pentose phosphate pathway, fatty acid oxidation, ketone bodies, fatty acid synthesis, amino acid catabolism and the urea cycle',
+    lastLesson: 'protein-turnover-amino-acid-catabolism',
+  },
+];
+
+export const unitReviewById = (id: string): UnitReview | undefined => UNIT_REVIEWS.find((u) => u.id === id);
+export const unitReviewFor = (lessonSlug: string): UnitReview | undefined => UNIT_REVIEWS.find((u) => u.lastLesson === lessonSlug);
+export const unitReviewByUnit = (unit: string): UnitReview | undefined => UNIT_REVIEWS.find((u) => u.unit === unit);
+
+/** Arcade URL for a unit review; `from` is the lesson slug it was opened from. */
+export function unitReviewHref(id: string, from?: string): string {
+  const q = new URLSearchParams({ game: 'gauntlet', unit: id });
+  if (from) q.set('from', from);
+  return `/play?${q.toString()}`;
+}

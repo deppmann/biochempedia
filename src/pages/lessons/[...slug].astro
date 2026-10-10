@@ -11,7 +11,7 @@ import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
 import { feedbackUrl } from '../../lib/feedback';
-import { LESSON_GAMES, gameHref } from '../../data/lesson-games';
+import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
@@ -34,6 +34,7 @@ const lessonIdx = allLessons.findIndex((l) => l.data.slug === entry.data.slug);
 const prevNav = navOf(allLessons[lessonIdx - 1]);
 const nextNav = navOf(allLessons[lessonIdx + 1]);
 const games = LESSON_GAMES[entry.data.slug] ?? [];
+const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
 const { Content } = await render(entry);
 const lesson = entry.data;
@@ -330,7 +331,7 @@ const lessonLd = {
           </div>
         )}
 
-        {games.length > 0 && (
+        {(games.length > 0 || unitReview) && (
           <div class="rail-group">
             <h3>Play it</h3>
             {games.map((g) => (
@@ -339,6 +340,12 @@ const lessonLd = {
                 <span class="rail-label">{g.title} <em>about {g.minutes} min · play →</em></span>
               </a>
             ))}
+            {unitReview && (
+              <a class="rail-thumb" href={unitReviewHref(unitReview.id, entry.data.slug)}>
+                <span class="rail-ico rail-game" aria-hidden="true">{GAME_CODES.gauntlet}</span>
+                <span class="rail-label">Unit review: {unitReview.unit} <em>15 timed questions · play →</em></span>
+              </a>
+            )}
           </div>
         )}
 
