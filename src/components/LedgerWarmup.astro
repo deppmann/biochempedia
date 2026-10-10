@@ -1,0 +1,286 @@
+---
+/**
+ * LedgerWarmup — "The 60-second ledger": a cut-down, in-lesson version of the arcade's
+ * Ledger Rush. The student walks glycolysis's token-bearing steps; each card shows ONE
+ * token (+/- ATP or NADH) and they decide whether it is a real yield or cost of that step
+ * ("Bank it") or a myth ("Toss it"). After the aldolase split a doubled yield is a single
+ * card marked x2. Wrong answers show the step's vetted explanation and wait for "Next".
+ *
+ * The queue is built at BUILD time from src/game/data/glycolysis.ts (the same vetted data
+ * the arcade uses; the arcade engine itself is NOT imported) and serialized as small JSON.
+ * Every element is server-rendered; the script only toggles text, attributes and `hidden`,
+ * so scoped CSS reaches everything. Records nothing (no storage, no analytics). No
+ * document-level key listeners: it is plain <button>s, so Tab/Enter/Space just work and
+ * the lesson's slide deck and narration player keep their arrow keys.
+ */
+import { glycolysis } from '../game/data/glycolysis';
+
+type Kind = 'atp' | 'nadh';
+interface Card {
+  real: boolean;
+  step: number;
+  enzyme: string;
+  kind: Kind;
+  sign: 1 | -1;
+  amt: number; // 2 after the aldolase split
+  why: string; // real: the step's fact; decoy: why the token is a myth
+}
+
+const LABEL: Record<Kind, string> = { atp: 'ATP', nadh: 'NADH' };
+const p = glycolysis;
+// Decoys to include: the two authored misconceptions (hexokinase, GAPDH) plus a generated
+// wrong-kind token at the two ATP-payoff steps (the same rule ledgerRush.ts falls back to).
+const DECOY_STEPS = new Set([1, 6, 7, 10]);
+
+const queue: Card[] = [];
+for (const s of p.steps) {
+  if (!s.tokens) continue;
+  const amt = p.doubleAfter > 0 && s.n > p.doubleAfter ? 2 : 1;
+  const real: Card[] = [];
+  for (const kind of ['atp', 'nadh'] as Kind[]) {
+    const v = (s.tokens as Record<string, number | undefined>)[kind] ?? 0;
+    for (let i = 0; i < Math.abs(v); i++) {
+      real.push({ real: true, step: s.n, enzyme: s.enzyme, kind, sign: v > 0 ? 1 : -1, amt, why: s.fact });
+    }
+  }
+  let decoy: Card | undefined;
+  if (DECOY_STEPS.has(s.n) && real.length) {
+    if (s.misconception) {
+      decoy = { real: false, step: s.n, enzyme: s.enzyme, kind: s.misconception.grab.toLowerCase() === 'nadh' ? 'nadh' : 'atp', sign: 1, amt: 1, why: s.misconception.why };
+    } else {
+      const wrong: Kind = real.some((r) => r.kind === 'atp') ? 'nadh' : 'atp';
+      const made = [...new Set(real.map((r) => LABEL[r.kind]))].join(' and ');
+      decoy = { real: false, step: s.n, enzyme: s.enzyme, kind: wrong, sign: 1, amt: 1, why: `${s.enzyme} makes ${made}, not ${LABEL[wrong]}. Only GAPDH (step 6) makes NADH in glycolysis.` };
+    }
+  }
+  // Deterministic, non-trivial order: odd steps lead with the decoy, even steps end with it.
+  if (decoy) { if (s.n % 2 === 1) real.unshift(decoy); else real.push(decoy); }
+  queue.push(...real);
+}
+
+const truth = { atp: 0, nadh: 0 };
+for (const c of queue) if (c.real) truth[c.kind] += c.sign * c.amt;
+const fmt = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+const first = queue[0];
+const payload = JSON.stringify({ queue, truth, doubleAfter: p.doubleAfter });
+---
+
+<figure class="lw card" data-ledgerwarmup data-payload={payload}>
+  <figcaption class="lw-head">
+    <span class="lw-kicker">Warm-up &middot; 60 seconds</span>
+    <span class="lw-title">Keep the ledger for one glucose</span>
+  </figcaption>
+
+  <p class="lw-how">For each card, is this token a <strong>real</strong> yield or cost of that step? Bank the real ones, toss the myths.</p>
+
+  <div class="lw-ledger" role="group" aria-label="Your running ledger">
+    <span class="lw-lbl">Your ledger</span>
+    <span class="lw-cell">ATP <b data-atp>0</b></span>
+    <span class="lw-cell">NADH <b data-nadh>0</b></span>
+  </div>
+
+  <div class="lw-play" data-play>
+    <div class="lw-prog">
+      <span data-count>Card 1 of {queue.length}</span>
+      <span class="lw-bar" aria-hidden="true"><span class="lw-barfill" data-bar style="width:0%"></span></span>
+    </div>
+
+    <div class="lw-card" data-card tabindex="-1" aria-label="Current card">
+      <p class="lw-step" data-step>Step {first.step} &middot; {first.enzyme}</p>
+      <p class="lw-token" data-tokenwrap data-sign={first.sign > 0 ? 'plus' : 'minus'}>
+        <span class="lw-sign" aria-hidden="true" data-signglyph>{first.sign > 0 ? '+' : '−'}</span>
+        <span class="lw-kind" data-kind>{LABEL[first.kind]}</span>
+        <span class="lw-x2" data-x2 hidden>&times;2</span>
+        <span class="lw-sr" data-tokensr>{first.sign > 0 ? 'plus' : 'minus'} {LABEL[first.kind]}</span>
+      </p>
+      <p class="lw-split" data-split hidden>After the aldolase split: one card, counts twice.</p>
+    </div>
+
+    <div class="lw-actions">
+      <button type="button" class="lw-btn" data-toss>Toss it</button>
+      <button type="button" class="lw-btn lw-btn-bank" data-bank>Bank it</button>
+    </div>
+
+    <div class="lw-fb" data-fb role="status" aria-live="polite"></div>
+    <button type="button" class="lw-next" data-next hidden>Next</button>
+  </div>
+
+  <div class="lw-end" data-end hidden>
+    <h3 class="lw-endh" data-endh tabindex="-1">Ledger closed</h3>
+    <p class="lw-sum" data-summary></p>
+    <p class="lw-take">The investment phase spends 2 ATP; the payoff phase makes 4 ATP and 2 NADH, because everything after the aldolase split counts twice. Net: {fmt(truth.atp)} ATP, {fmt(truth.nadh)} NADH.</p>
+    <div class="lw-endbtns">
+      <button type="button" class="lw-btn" data-again>Try again</button>
+      <a class="lw-link" href="/play?game=ledger&pathway=glycolysis&from=glycolysis">Play the full game &rarr;</a>
+    </div>
+  </div>
+</figure>
+
+<script>
+  type Kind = 'atp' | 'nadh';
+  interface Card { real: boolean; step: number; enzyme: string; kind: Kind; sign: 1 | -1; amt: number; why: string }
+  interface Payload { queue: Card[]; truth: Record<Kind, number>; doubleAfter: number }
+
+  const LABEL: Record<Kind, string> = { atp: 'ATP', nadh: 'NADH' };
+  const fmt = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+
+  document.querySelectorAll<HTMLElement>('[data-ledgerwarmup]').forEach((root) => {
+    const q = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const data: Payload = JSON.parse(root.dataset.payload || '{}');
+    const queue = data.queue;
+    const play = q('[data-play]'), end = q('[data-end]'), card = q('[data-card]');
+    const stepEl = q('[data-step]'), tokenWrap = q('[data-tokenwrap]'), signEl = q('[data-signglyph]');
+    const kindEl = q('[data-kind]'), x2 = q('[data-x2]'), tokenSr = q('[data-tokensr]'), split = q('[data-split]');
+    const count = q('[data-count]'), bar = q('[data-bar]'), fb = q('[data-fb]'), nextBtn = q<HTMLButtonElement>('[data-next]');
+    const tossBtn = q<HTMLButtonElement>('[data-toss]'), bankBtn = q<HTMLButtonElement>('[data-bank]');
+    const atpEl = q('[data-atp]'), nadhEl = q('[data-nadh]'), endH = q('[data-endh]'), summary = q('[data-summary]');
+    const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let idx = 0, errors = 0, locked = false;
+    let timer: number | undefined;
+    const ledger: Record<Kind, number> = { atp: 0, nadh: 0 };
+
+    const describe = (c: Card) =>
+      `${c.sign > 0 ? 'plus' : 'minus'} ${LABEL[c.kind]}${c.amt > 1 ? ', times 2, counts twice' : ''}`;
+
+    function setLocked(v: boolean) {
+      locked = v;
+      tossBtn.setAttribute('aria-disabled', String(v));
+      bankBtn.setAttribute('aria-disabled', String(v));
+    }
+
+    function renderCard(announce: string) {
+      const c = queue[idx];
+      stepEl.textContent = `Step ${c.step} · ${c.enzyme}`;
+      tokenWrap.setAttribute('data-sign', c.sign > 0 ? 'plus' : 'minus');
+      signEl.textContent = c.sign > 0 ? '+' : '−';
+      kindEl.textContent = LABEL[c.kind];
+      x2.hidden = c.amt < 2;
+      split.hidden = c.amt < 2;
+      tokenSr.textContent = describe(c);
+      count.textContent = `Card ${idx + 1} of ${queue.length}`;
+      bar.style.width = `${(idx / queue.length) * 100}%`;
+      if (!reduced()) { card.classList.remove('lw-in'); void card.offsetWidth; card.classList.add('lw-in'); }
+      fb.textContent = announce ? `${announce} Card ${idx + 1} of ${queue.length}: step ${c.step}, ${c.enzyme}, ${describe(c)}.` : '';
+      nextBtn.hidden = true;
+      setLocked(false);
+    }
+
+    function syncLedger() {
+      atpEl.textContent = fmt(ledger.atp);
+      nadhEl.textContent = fmt(ledger.nadh);
+    }
+
+    function finish() {
+      window.clearTimeout(timer);
+      bar.style.width = '100%';
+      play.hidden = true;
+      end.hidden = false;
+      const ok = ledger.atp === data.truth.atp && ledger.nadh === data.truth.nadh;
+      const truthStr = `${fmt(data.truth.atp)} ATP and ${fmt(data.truth.nadh)} NADH`;
+      const mistakes = errors === 0 ? 'No mistakes.' : `${errors} mistake${errors === 1 ? '' : 's'}.`;
+      summary.textContent = ok
+        ? `You banked ${truthStr} — the true net of glycolysis. ${mistakes}`
+        : `Your ledger ended at ${fmt(ledger.atp)} ATP and ${fmt(ledger.nadh)} NADH; the true net of glycolysis is ${truthStr}. ${mistakes}`;
+      endH.focus({ preventScroll: true });
+    }
+
+    function advance(fromNext: boolean) {
+      window.clearTimeout(timer);
+      idx++;
+      if (idx >= queue.length) { finish(); return; }
+      renderCard(fromNext ? '' : 'Correct.');
+      if (fromNext) card.focus({ preventScroll: true });
+    }
+
+    function decide(bank: boolean) {
+      if (locked || idx >= queue.length) return;
+      const c = queue[idx];
+      setLocked(true);
+      if (bank) ledger[c.kind] += c.sign * c.amt;
+      syncLedger();
+      if (bank === c.real) {
+        fb.textContent = c.real ? 'Correct: a real yield, banked.' : 'Correct: a myth, tossed.';
+        timer = window.setTimeout(() => advance(false), 500);
+      } else {
+        errors++;
+        const lead = c.real
+          ? `That one was real: ${LABEL[c.kind]} ${fmt(c.sign * c.amt)} belongs on the ledger. `
+          : 'That one was a myth. ';
+        fb.textContent = lead + c.why;
+        nextBtn.textContent = idx + 1 >= queue.length ? 'See results' : 'Next';
+        nextBtn.hidden = false;
+        nextBtn.focus({ preventScroll: true });
+      }
+    }
+
+    function reset() {
+      window.clearTimeout(timer);
+      idx = 0; errors = 0; ledger.atp = 0; ledger.nadh = 0;
+      syncLedger();
+      end.hidden = true;
+      play.hidden = false;
+      renderCard('');
+      card.focus({ preventScroll: true });
+    }
+
+    tossBtn.addEventListener('click', () => decide(false));
+    bankBtn.addEventListener('click', () => decide(true));
+    nextBtn.addEventListener('click', () => advance(true));
+    q('[data-again]').addEventListener('click', reset);
+  });
+</script>
+
+<style>
+  .lw { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-6) 0; }
+  .lw [hidden] { display: none !important; }
+  .lw-head { display: flex; flex-direction: column; gap: 0.1rem; margin-bottom: var(--ddp-space-2); }
+  .lw-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .lw-title { font-weight: 700; font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+  .lw-how { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+
+  .lw-ledger { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 1rem; padding: var(--ddp-space-2) var(--ddp-space-3); border-radius: var(--ddp-radius-sm); border: 1px solid var(--ddp-color-line); background: color-mix(in srgb, var(--ddp-color-accent) 8%, var(--ddp-color-surface)); }
+  .lw-lbl { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lw-cell { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+  .lw-cell b { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); margin-left: 0.2rem; }
+
+  .lw-prog { display: flex; align-items: center; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lw-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--ddp-color-line); overflow: hidden; }
+  .lw-barfill { display: block; height: 100%; background: var(--ddp-color-accent); transition: width 0.3s ease; }
+
+  .lw-card { text-align: center; padding: var(--ddp-space-4) var(--ddp-space-3); border-radius: var(--ddp-radius); border: 2px solid var(--ddp-color-line); background: var(--ddp-color-surface); }
+  .lw-card:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lw-in { animation: lw-pop 0.25s ease-out; }
+  @keyframes lw-pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .lw-step { margin: 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .lw-token { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) auto; padding: 0.3rem 1.1rem; width: fit-content; max-width: 100%; border-radius: var(--ddp-radius); border: 2px solid var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 14%, var(--ddp-color-surface)); color: var(--ddp-color-ink); }
+  .lw-token[data-sign='minus'] { border-style: dashed; border-color: var(--ddp-color-secondary-ink); background: color-mix(in srgb, var(--ddp-color-secondary) 22%, var(--ddp-color-surface)); }
+  .lw-sign { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-3xl); font-weight: 700; line-height: 1; color: var(--ddp-color-primary); }
+  .lw-kind { font-size: var(--ddp-text-2xl); font-weight: 700; color: var(--ddp-color-ink); }
+  .lw-x2 { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+  .lw-split { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+
+  .lw-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .lw-btn { min-height: 48px; font: inherit; font-size: var(--ddp-text-base); font-weight: 700; padding: 0.5rem 1rem; border-radius: var(--ddp-radius-sm); border: 2px solid var(--ddp-color-primary); background: var(--ddp-color-surface); color: var(--ddp-color-primary); cursor: pointer; }
+  .lw-btn-bank { background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+  .lw-btn:hover { border-color: var(--ddp-color-accent); }
+  .lw-btn:focus-visible, .lw-next:focus-visible, .lw-link:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lw-btn[aria-disabled='true'] { opacity: 0.55; cursor: default; }
+
+  .lw-fb { margin: var(--ddp-space-3) 0 0; min-height: 3em; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink); }
+  .lw-next { min-height: 44px; margin-top: var(--ddp-space-2); font: inherit; font-weight: 700; padding: 0.4rem 1.4rem; border-radius: var(--ddp-radius-sm); border: 2px solid var(--ddp-color-primary); background: var(--ddp-color-primary); color: var(--ddp-color-surface); cursor: pointer; }
+
+  .lw-endh { margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+  .lw-endh:focus { outline: none; }
+  .lw-sum { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-ink); }
+  .lw-take { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.6rem; }
+  .lw-endbtns { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3) var(--ddp-space-4); }
+  .lw-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; color: var(--ddp-color-primary); text-decoration: underline; text-underline-offset: 3px; }
+
+  .lw-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lw-in { animation: none; }
+    .lw-barfill { transition: none; }
+  }
+</style>
