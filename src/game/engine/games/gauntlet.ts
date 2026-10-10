@@ -20,6 +20,7 @@ import type { Shell, LessonLink } from '../shell';
 import { lessonFor } from '../shell';
 import type { Medal } from '../storage';
 import { getPref, setPref } from '../storage';
+import { unitReviewById } from '../../../data/lesson-games';
 
 type Scope = 'mcat' | 'full';
 type Level = 1 | 2 | 3;
@@ -61,12 +62,12 @@ function eligible(pathways: Pathway[], scope: Scope): Array<{ p: Pathway; items:
     .filter((x) => x.items.length > 0);
 }
 
-function bankSize(pathways: Pathway[], scope: Scope): number {
+export function bankSize(pathways: Pathway[], scope: Scope): number {
   return eligible(pathways, scope).reduce((n, x) => n + x.items.length, 0);
 }
 
 /** 15 questions, dealt round-robin across pathways so one topic can't dominate. */
-function buildBank(pathways: Pathway[], scope: Scope): GItem[] {
+export function buildBank(pathways: Pathway[], scope: Scope): GItem[] {
   const piles = shuffle(eligible(pathways, scope)).map((x) => ({ p: x.p, items: shuffle(x.items) }));
   const pool: GItem[] = [];
   while (pool.length < ROUND && piles.some((x) => x.items.length)) {
@@ -84,7 +85,17 @@ function buildBank(pathways: Pathway[], scope: Scope): GItem[] {
 const fmtClock = (s: number) => `${Math.floor(s / 60)}:${String(Math.ceil(s) % 60).padStart(2, '0')}`.replace(/^(\d+):60$/, (_, m) => `${+m + 1}:00`);
 const livesText = (n: number) => `Lives ${'● '.repeat(Math.max(0, n))}${'○ '.repeat(Math.max(0, 3 - n))}`.trim();
 
-export function launchGauntlet(shell: Shell, pathways: Pathway[]): void {
+/** The pathways a Gauntlet draws from: all of them, or one unit review's. */
+export function poolFor(all: Pathway[], unitId?: string): Pathway[] {
+  const u = unitId ? unitReviewById(unitId) : undefined;
+  return u ? all.filter((p) => u.pathways.includes(p.id)) : all;
+}
+
+/** `unitId` (optional) restricts the run to one unit's pathways ("unit review"). */
+export function launchGauntlet(shell: Shell, allPathways: Pathway[], unitId?: string): void {
+  const unit = unitId ? unitReviewById(unitId) : undefined;
+  const pathways = poolFor(allPathways, unit?.id);
+  const title = unit ? `Unit review · ${unit.unit}` : 'MCAT Gauntlet';
   let keyHandler: ((e: KeyboardEvent) => void) | null = null;
   let timer: number | null = null;
   const stop = () => { if (timer != null) { clearInterval(timer); timer = null; } };
@@ -93,16 +104,17 @@ export function launchGauntlet(shell: Shell, pathways: Pathway[]): void {
   /* ---- start screen: scope toggle ------------------------------------- */
   function start(): void {
     cleanup();
-    shell.setCrumb('MCAT Gauntlet', () => { cleanup(); shell.goHome(); });
+    shell.setCrumb(title, () => { cleanup(); shell.goHome(); });
     shell.setMascot('Pick your scope, then beat the clock.');
     let scope: Scope = getPref<Scope>('gauntlet-scope', 'mcat') === 'full' ? 'full' : 'mcat';
 
     const wrap = el('div.arc-home.arc-gauntlet-start');
     wrap.append(
-      el('p.arc-eyebrow', null, 'Cram tool'),
-      el('h1.arc-title', null, 'MCAT Gauntlet'),
+      el('p.arc-eyebrow', null, unit ? `Unit review · ${unit.unit}` : 'Cram tool'),
+      el('h1.arc-title', null, unit ? `MCAT Gauntlet: ${unit.unit}` : 'MCAT Gauntlet'),
       el('p.arc-lede', null, `${ROUND} timed questions, three lives, one boss. Easy questions get a short clock and hard ones a long one, so the pressure matches the difficulty.`),
     );
+    if (unit) wrap.append(el('p.arc-lede.arc-unit-covers', null, `This unit review draws only on ${unit.covers}.`));
 
     const group = el('div.arc-scope', { role: 'radiogroup', 'aria-label': 'Question scope' });
     const note = el('p.arc-scope-note', { role: 'status' });
@@ -114,8 +126,8 @@ export function launchGauntlet(shell: Shell, pathways: Pathway[]): void {
     const sync = () => {
       const n = bankSize(pathways, scope);
       note.textContent = scope === 'mcat'
-        ? `${n} questions in the bank. Beyond-MCAT items are hidden.`
-        : `${n} questions in the bank, including ${n - bankSize(pathways, 'mcat')} beyond-MCAT items.`;
+        ? `${n} questions in ${unit ? 'this unit’s' : 'the'} bank. Beyond-MCAT items are hidden.`
+        : `${n} questions in ${unit ? 'this unit’s' : 'the'} bank, including ${n - bankSize(pathways, 'mcat')} beyond-MCAT items.`;
       inputs.forEach((i) => { i.closest('label')?.classList.toggle('is-on', i.value === scope); });
     };
     for (const d of defs) {
@@ -128,7 +140,7 @@ export function launchGauntlet(shell: Shell, pathways: Pathway[]): void {
     }
     wrap.append(group, note);
 
-    const go = el('button.arc-btn.is-primary', { type: 'button' }, 'Start the Gauntlet');
+    const go = el('button.arc-btn.is-primary', { type: 'button' }, unit ? 'Start the unit review' : 'Start the Gauntlet');
     go.addEventListener('click', () => { sfx.select(); play(scope); });
     wrap.append(go);
     sync();
@@ -142,7 +154,7 @@ export function launchGauntlet(shell: Shell, pathways: Pathway[]): void {
     let idx = 0, hearts = 3, combo = 0, maxCombo = 0, score = 0, correct = 0;
     const missed = new Set<string>();
 
-    shell.setCrumb('MCAT Gauntlet', () => { cleanup(); start(); });
+    shell.setCrumb(title, () => { cleanup(); start(); });
 
     function renderQ(): void {
       const q = bank[idx];
@@ -250,10 +262,12 @@ export function launchGauntlet(shell: Shell, pathways: Pathway[]): void {
         if (lessons.length >= 3) break;
       }
       shell.showResults({
-        recordId: 'gauntlet', mode: 'gauntlet', won,
+        recordId: unit ? `gauntlet:${unit.id}` : 'gauntlet', mode: 'gauntlet', won,
         medal, score,
-        headline: won && hearts === 3 ? 'Flawless victory' : won ? 'The MCAT, defeated' : hearts <= 0 ? 'The MCAT won… this time' : 'Time up',
-        lines: [['Scope', scope === 'mcat' ? 'MCAT' : 'Full course'], ['Correct', `${correct}/${total}`], ['Best combo', `${maxCombo}x`], ['Lives left', `${Math.max(0, hearts)} of 3`]],
+        headline: unit
+          ? (won && hearts === 3 ? 'Unit review: flawless' : won ? 'Unit review: cleared' : hearts <= 0 ? 'Unit review: not yet' : 'Unit review: time up')
+          : (won && hearts === 3 ? 'Flawless victory' : won ? 'The MCAT, defeated' : hearts <= 0 ? 'The MCAT won… this time' : 'Time up'),
+        lines: [...(unit ? [['Unit review', unit.unit] as [string, string]] : []), ['Scope', scope === 'mcat' ? 'MCAT' : 'Full course'], ['Correct', `${correct}/${total}`], ['Best combo', `${maxCombo}x`], ['Lives left', `${Math.max(0, hearts)} of 3`]],
         lessons,
         replay: () => start(),
       });

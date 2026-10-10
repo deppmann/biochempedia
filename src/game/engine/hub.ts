@@ -41,7 +41,7 @@ const GAMES: GameDef[] = [
     blurb: 'Draw a fuel, route its carbon, chase an ATP quota as fed/fasted/sprint events re-price the whole economy. One more run.' },
   { id: 'mixing', name: 'Mixing Board', verb: 'Control', status: 'live', launch: launchMixingBoard,
     blurb: 'You are the cell’s regulators. Set the board so flux lands right for THIS body state — and never run the futile cycle.' },
-  { id: 'gauntlet', name: 'MCAT Gauntlet', verb: 'Cram tool', status: 'live', cram: true, launch: launchGauntlet,
+  { id: 'gauntlet', name: 'MCAT Gauntlet', verb: 'Cram tool', status: 'live', cram: true, launch: (s, p, r) => launchGauntlet(s, p, r?.unit),
     blurb: 'Timed rapid-fire across every pathway. The spaced-retrieval drill for the night before test day.' },
 ];
 

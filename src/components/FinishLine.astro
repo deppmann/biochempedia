@@ -4,7 +4,7 @@
  * Previous link. Fully server-rendered (the quiz button reuses the page's
  * existing [data-open="lb-quiz"] dialog opener).
  */
-import { LESSON_GAMES, gameHref } from '../data/lesson-games';
+import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../data/lesson-games';
 
 interface Nav { slug: string; title: string; hook: string; n: number }
 interface Props {
@@ -17,6 +17,7 @@ const { slug, qCount, prev, next } = Astro.props;
 const games = LESSON_GAMES[slug] ?? [];
 const main = games[0];
 const more = games.slice(1);
+const review = unitReviewFor(slug);
 ---
 
 <section class="finish" aria-labelledby="finish-h">
@@ -54,6 +55,17 @@ const more = games.slice(1);
       </div>
     )}
   </div>
+
+  {review && (
+    <div class="fl-unit">
+      <div class="fl-unit-text">
+        <p class="fl-kicker">Unit review · {review.unit}</p>
+        <p class="fl-title">MCAT Gauntlet: {review.unit}</p>
+        <p class="fl-blurb">15 timed questions across {review.covers}. Three lives.</p>
+      </div>
+      <a class="fl-go" href={unitReviewHref(review.id, slug)}>Start the unit review →</a>
+    </div>
+  )}
 
   {more.length > 0 && (
     <p class="fl-also">
@@ -118,6 +130,23 @@ const more = games.slice(1);
   .fl-next .fl-blurb { color: #e6ebf7; }
   .fl-next .fl-go { background: #fff; border-color: #fff; color: var(--color-navy); }
   .fl-next .fl-go:hover { background: #e6ebf7; }
+
+  /* Unit review: a full-width, quiet band under the three cards. */
+  .fl-unit {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--ddp-space-4);
+    margin-top: var(--ddp-space-3); padding: var(--ddp-space-4);
+    border: 1px solid color-mix(in srgb, var(--ddp-color-accent) 35%, var(--ddp-color-line));
+    border-radius: var(--ddp-radius-sm, 8px);
+    background: color-mix(in srgb, var(--ddp-color-accent) 8%, var(--ddp-color-surface));
+    color: var(--ddp-color-ink);
+  }
+  .fl-unit p { margin: 0; }
+  .fl-unit .fl-blurb { flex: none; }
+  .fl-unit .fl-go { margin-top: 0; flex: none; }
+  @media (max-width: 760px) {
+    .fl-unit { flex-direction: column; align-items: stretch; }
+    .fl-unit .fl-go { margin-top: var(--ddp-space-2); align-self: flex-start; }
+  }
 
   .fl-also, .fl-prev { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
   .fl-also a, .fl-prev a { color: var(--ddp-color-ink); font-weight: 600; text-underline-offset: 2px; }
