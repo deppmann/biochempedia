@@ -367,7 +367,18 @@ corpusTags:
   - "signal-termination"
   - "cell-signaling"
 draft: true
+films:
+  - id: "gtp-puzzle"
+    src: "/explainers/gtpase-switches/gtp-puzzle.mp4"
+    captions: "/explainers/gtpase-switches/gtp-puzzle.vtt"
+    poster: "/explainers/gtpase-switches/gtp-puzzle-poster.jpg"
+    title: "The Hidden Requirement for GTP"
+    durationSec: 112.4
+    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+    aiGenerated: true
 ---
+
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 import GtpaseTimer from '../../../components/GtpaseTimer.astro';
 
@@ -376,6 +387,8 @@ import GtpaseTimer from '../../../components/GtpaseTimer.astro';
 The receptor is not the clock. The hormone leaves, the receptor lets go, and something else decides how much longer the cell goes on answering. That something is a protein holding a molecule of GTP and slowly cutting it. This lesson follows how that protein was found and what happens when its timer is broken.
 
 ## The puzzle: a requirement nobody expected
+
+<LessonFilm film={frontmatter.films[0]} />
 
 Around 1970, Martin Rodbell's laboratory at the National Institutes of Health was studying how the hormone glucagon switches on adenylyl cyclase in liver membranes. Adenylyl cyclase is the enzyme that makes cyclic AMP, the small messenger that tells the inside of a cell a hormone has arrived. The glucagon-binding experiments behaved strangely: in plain buffer the hormone stuck to the membranes and would not wash off, but when ATP was in the buffer it came off within seconds, which was odd, since ATP is the enzyme's fuel. The cause was a contaminant: commercial ATP carries a little GTP. When the group added GTP on purpose, it proved to be required. Without it, glucagon barely switched the cyclase on.
 
