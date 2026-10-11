@@ -27,6 +27,7 @@ async function fromBucket(request, env) {
     headers.set('ETag', obj.httpEtag);
     headers.set('Accept-Ranges', 'bytes');
     headers.set('Cache-Control', MEDIA_CACHE);
+    headers.set('X-Served-From', 'r2');   // lets a curl tell the bucket from the static assets
     const r = obj.range;
     if (!head && r && request.headers.has('Range')) {
       const start = r.offset ?? Math.max(0, obj.size - r.suffix);

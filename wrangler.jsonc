@@ -13,5 +13,9 @@
     "not_found_handling": "404-page",
     "run_worker_first": ["/explainers/*", "/slides/*/audio/*"]
   },
+  // Film files also live in this R2 bucket under the same paths they have on the site
+  // (uploaded with `node scripts/upload-media.mjs`). The worker serves them from here and
+  // falls back to the static assets, so a file may be in either place.
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "biochempedia-media" }],
   "observability": { "enabled": true }
 }
