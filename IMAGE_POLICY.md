@@ -90,12 +90,16 @@ Some lessons open with a short narrated explainer video in the 3Blue1Brown style
 (`explainer` in the frontmatter, files under `public/explainers/<slug>/`). The
 narration is the lesson's own slide audio (the site's ElevenLabs narrator voice,
 Sarah, generated from the presenter notes); where a lesson has no narrated slides,
-new narration is written from the lesson's prose in the same voice. The animation
+new narration is written from the lesson's prose in the same voice. The Cell Signaling
+course's films are narrated instead by a Gemini text-to-speech voice (Charon), reading narration
+written from each lesson's fact-checked text, or by the narrator of the instructor's graduate
+modules where a film is cut from those; each lesson's `explainer.narration` line says which. The animation
 is drawn **in code by an AI** (Manim, authored by Claude), so:
 - It is a **schematic**: labelled boxes, arrows, timelines and plots computed from
   their equations. It never draws a molecular structure; rule 1 still holds.
-- `aiGenerated: true` is required by the schema, and the page says so under the video
-  and in the Sources & Integrity panel.
+- `aiGenerated: true` is required by the schema, and the page says so in the Sources &
+  Integrity panel, with the narrator named there. (A note under the video itself was dropped
+  on 2026-10-11 at the author's request.)
 - `factCheckedBy` names a real person once someone has checked the animation, and the
   page then credits them. An AI verifier pass does not count and is never named there.
 - Every video ships with a WebVTT captions track built from its narration script.

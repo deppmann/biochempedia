@@ -268,6 +268,9 @@ export const lessonSchema = z.object({
   title: z.string().min(1),
   /** URL slug (also the lesson folder name, by convention). */
   slug: z.string().min(1),
+  /** Which course this lesson belongs to (a slug from src/data/courses.ts). Every
+   *  lesson written before the course layer existed is biochemistry, hence the default. */
+  course: z.string().min(1).default('biochemistry'),
   /** The course slide-deck title this lesson maps to (e.g. "Mechanisms and Inhibitors"). */
   courseChapter: z.string().min(1),
   summary: z.string().min(1),
@@ -288,6 +291,11 @@ export const lessonSchema = z.object({
 
   /** Optional animated explainer shown under the orientation card. */
   explainer: explainer.optional(),
+  /** Further short films, each placed beside the section it explains with
+   *  <LessonFilm film={frontmatter.films[n]} />. Same terms as `explainer`. */
+  films: z.array(explainer.extend({
+    id: z.string().regex(/^[a-z0-9-]+$/, 'A film id is lowercase letters, digits and hyphens.'),
+  })).default([]),
 
   podcast: podcast.optional(),
   videos: z.array(video).default([]),

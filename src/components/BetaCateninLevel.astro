@@ -1,0 +1,144 @@
+---
+/**
+ * BetaCateninLevel — β-catenin is made all the time and destroyed all the time; Wnt stops
+ * the destruction. Controls: a Wnt switch and one broken part (none, APC lost, or a
+ * β-catenin that cannot be phosphorylated). The destruction complex is drawn as labelled
+ * blocks, lit when they work and grey when they do not, with a level bar and the state of
+ * the TCF target genes. Rules come from the wnt-signaling lesson; the numbers 1 and 10 are
+ * a sketch built on the lesson's "slow destruction ten-fold, level rises ten-fold" example.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="bcl card" data-bcl>
+  <figcaption class="bcl-head">β-Catenin level: made all the time, destroyed all the time<span class="bcl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="bcl-svg" viewBox="0 0 360 232" role="img" aria-label="Blocks for the Wnt signal and the destruction complex, lit or grey, above a bar showing the level of beta-catenin and whether the TCF target genes are on" data-stage></svg>
+
+  <div class="bcl-controls">
+    <label class="bcl-switch"><input type="checkbox" data-wnt /> Wnt is present</label>
+    <fieldset class="bcl-lesion">
+      <legend>One broken part</legend>
+      <label><input type="radio" name="bcl-lesion" value="none" checked /> none</label>
+      <label><input type="radio" name="bcl-lesion" value="apc" /> APC lost</label>
+      <label><input type="radio" name="bcl-lesion" value="sites" /> β-catenin cannot be phosphorylated (its sites are mutated)</label>
+    </fieldset>
+  </div>
+
+  <p class="bcl-verdict" data-verdict role="status"></p>
+
+  <p class="bcl-foot">Rule to keep: the level is the rate of synthesis divided by the rate constant of destruction, so anything that stops the destruction raises it, and a broken destruction complex does so with no Wnt. The numbers 1 and 10 are relative units in this sketch, taken from the lesson's example of slowing destruction ten-fold; they are not measurements, and synthesis is held the same throughout. The picture is a sketch of the logic, and the junction pool of β-catenin is left out. The same 10 is used for Wnt and for each lesion; the lesson does not say they are equally strong.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Lesion = 'none' | 'apc' | 'sites';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-bcl]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const wntBox = root.querySelector<HTMLInputElement>('[data-wnt]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="bcl-lesion"]'));
+    const INK = '#4b4b55';
+
+    function block(x: number, y: number, w: number, h: number, label: string, on: boolean, color: string) {
+      stage.appendChild(el('rect', { x, y, width: w, height: h, rx: 5, fill: on ? color : '#e6e6ec', stroke: on ? color : '#8a8a96', 'stroke-width': 1, 'stroke-dasharray': on ? '0' : '3 2' }));
+      stage.appendChild(el('text', { x: x + w / 2, y: y + h / 2 + 3.5, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: on ? '#fff' : INK }, label));
+    }
+    function arrow(x1: number, y1: number, x2: number, y2: number, on: boolean) {
+      stage.appendChild(el('line', { x1, y1, x2, y2, stroke: on ? INK : '#c4c4cc', 'stroke-width': 1.3, 'marker-end': on ? 'url(#bcl-ah)' : 'url(#bcl-ag)' }));
+    }
+
+    function render() {
+      const wnt = wntBox.checked;
+      const lesion = (radios.find((r) => r.checked)?.value ?? 'none') as Lesion;
+      const complexPulled = wnt; // Wnt pulls the complex to the receptor and it stops delivering β-catenin
+      const axin = !complexPulled, ck1 = !complexPulled, gsk3 = !complexPulled;
+      const apc = !complexPulled && lesion !== 'apc';
+      const marking = !wnt && lesion === 'none';
+      const level = marking ? 1 : 10;
+      const genesOn = level > 1;
+
+      stage.replaceChildren();
+      const defs = el('defs', {});
+      for (const [id, col] of [['bcl-ah', INK], ['bcl-ag', '#c4c4cc']]) {
+        const m = el('marker', { id, viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 6, markerHeight: 6, orient: 'auto' });
+        m.appendChild(el('path', { d: 'M0,0 L8,4 L0,8 z', fill: col }));
+        defs.appendChild(m);
+      }
+      stage.appendChild(defs);
+
+      // signal row
+      stage.appendChild(el('text', { x: 8, y: 11, 'font-size': 9, fill: INK }, 'signal'));
+      block(8, 16, 56, 22, 'Wnt', wnt, '#7a5ea8');
+      block(74, 16, 120, 22, 'Frizzled + LRP5/6', wnt, '#2f6f8f');
+      block(204, 16, 84, 22, 'Dishevelled', wnt, '#0e7c86');
+      arrow(64, 27, 72, 27, wnt); arrow(194, 27, 202, 27, wnt);
+      if (wnt) stage.appendChild(el('text', { x: 292, y: 31, 'font-size': 9, fill: INK }, 'pulls complex'));
+
+      // destruction complex
+      stage.appendChild(el('rect', { x: 6, y: 50, width: 348, height: 56, rx: 6, fill: 'none', stroke: complexPulled ? '#8a8a96' : '#0e7c86', 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      stage.appendChild(el('text', { x: 12, y: 61, 'font-size': 9, fill: INK }, complexPulled ? 'destruction complex: pulled to receptor, not delivering (how: argued)' : (lesion === 'apc' ? 'destruction complex: cannot work without APC' : 'destruction complex')));
+      block(14, 70, 74, 26, 'Axin', axin, '#0e7c86');
+      block(96, 70, 74, 26, 'APC', apc, '#0e7c86');
+      block(178, 70, 74, 26, 'CK1', ck1, '#e57200');
+      block(260, 70, 86, 26, 'GSK3', gsk3, '#e57200');
+
+      // marking and destruction
+      stage.appendChild(el('text', { x: 8, y: 123, 'font-size': 9, fill: INK }, marking ? 'β-catenin is marked and destroyed' : 'β-catenin is not marked'));
+      block(8, 128, 150, 24, 'phosphates on S33, S37', marking, '#e57200');
+      block(176, 128, 92, 24, 'β-TrCP / SCF', marking, '#b8860b');
+      block(286, 128, 68, 24, 'proteasome', marking, '#4b4b55');
+      arrow(158, 140, 174, 140, marking); arrow(268, 140, 284, 140, marking);
+
+      // level bar
+      stage.appendChild(el('text', { x: 8, y: 172, 'font-size': 9, fill: INK }, 'β-catenin in the cell (relative units, a sketch)'));
+      stage.appendChild(el('rect', { x: 8, y: 178, width: 344, height: 16, rx: 3, fill: '#f1f1f4', stroke: '#8a8a96', 'stroke-width': 1 }));
+      stage.appendChild(el('rect', { x: 8, y: 178, width: level * 34.4, height: 16, rx: 3, fill: genesOn ? '#d9534f' : '#0e7c86' }));
+      stage.appendChild(el('text', { x: 8 + level * 34.4 + (level > 5 ? -5 : 5), y: 190, 'font-size': 10, 'font-weight': 700, 'text-anchor': level > 5 ? 'end' : 'start', fill: level > 5 ? '#fff' : INK }, `${level} in this sketch`));
+
+      // target genes
+      stage.appendChild(el('rect', { x: 8, y: 202, width: 344, height: 24, rx: 5, fill: genesOn ? '#d9534f' : '#e6e6ec', stroke: genesOn ? '#d9534f' : '#8a8a96', 'stroke-width': 1 }));
+      stage.appendChild(el('text', { x: 180, y: 218, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'middle', fill: genesOn ? '#fff' : INK },
+        genesOn ? 'TCF target genes ON: β-catenin has displaced Groucho' : 'TCF target genes OFF: TCF holds Groucho'));
+
+      // status line
+      let v: string;
+      if (wnt) {
+        v = 'Wnt is present, so Frizzled, LRP5/6 and Dishevelled pull the destruction complex to the receptor, and it stops delivering β-catenin to the ligase (how it is stopped is still argued). Newly made β-catenin survives, builds up and enters the nucleus, where it displaces Groucho on TCF and the target genes come on. In this sketch the level is 10 relative units against 1, the lesson\'s ten-fold example, with synthesis unchanged.';
+        if (lesion === 'apc') v += ' APC is also lost, but the drain is already plugged by Wnt, so the broken part changes nothing here: switch Wnt off to see what the loss does on its own.';
+        else if (lesion === 'sites') v += ' The phosphorylation sites are also mutated, but the drain is already plugged by Wnt, so the broken part changes nothing here: switch Wnt off to see what the mutation does on its own.';
+      } else if (lesion === 'none') {
+        v = 'No Wnt, and every part works. CK1 puts a phosphate on serine 45 that primes GSK3, which adds three more; β-TrCP reads the phosphates on serines 33 and 37, SCF adds ubiquitin and the proteasome destroys β-catenin. In this sketch the level is 1 relative unit, and TCF keeps the target genes off with Groucho. Now switch Wnt on, or break a part.';
+      } else if (lesion === 'apc') {
+        v = 'No Wnt, but APC is lost. Without APC the complex cannot mark β-catenin, so the drain is plugged and the level is 10 relative units in this sketch. TCF is on with no Wnt: a broken destruction complex gives the Wnt answer with no Wnt. APC is mutated in about four in five colon cancers in people with no family history.';
+      } else {
+        v = 'No Wnt, and the destruction complex is intact, but β-catenin has lost the serines and the threonine that CK1 and GSK3 phosphorylate. Without the phosphorylation sites β-catenin cannot be marked, so the drain is plugged and the level is 10 relative units in this sketch. TCF is on with no Wnt: the Wnt answer with no Wnt. Some colon tumours with normal APC carry such mutations in β-catenin.';
+      }
+      verdict.textContent = v;
+    }
+    wntBox.addEventListener('change', render);
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .bcl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bcl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bcl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bcl-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bcl-controls { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: flex-start; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bcl-switch { font-weight: 600; padding-top: 0.5rem; }
+  .bcl-lesion { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: grid; gap: 0.2rem; min-width: 0; flex: 1 1 240px; }
+  .bcl-lesion legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .bcl-controls input { accent-color: var(--ddp-color-accent); }
+  .bcl-controls input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .bcl-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .bcl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

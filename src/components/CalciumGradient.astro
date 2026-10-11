@@ -1,0 +1,197 @@
+---
+/**
+ * CalciumGradient — calcium cannot be made or broken, only moved. Three compartments on a log
+ * axis (outside, cytosol, the store) at the concentrations the calcium-signaling lesson gives.
+ * The learner opens a channel (from outside, or from the store) and closes it, and switches the
+ * pumps and buffers on or off. The lesson gives no rate and no peak above "about 1 micromolar",
+ * so time is in relative units and anything beyond that figure is marked as this sketch's.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cgr card" data-calciumgradient>
+  <figcaption class="cgr-head">Calcium gradient: open a channel, then let the pumps work<span class="cgr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cgr-svg" viewBox="0 0 360 240" role="img" aria-label="Three vertical bars on a logarithmic scale: calcium outside the cell, in the cytosol, and in the store, with arrows showing which way calcium moves" data-stage></svg>
+
+  <div class="cgr-controls">
+    <fieldset class="cgr-fs">
+      <legend>Where the channel is</legend>
+      <label><input type="radio" name="cgr-src" value="out" checked data-src /> plasma membrane (calcium from outside)</label>
+      <label><input type="radio" name="cgr-src" value="store" data-src /> on the store (e.g. an IP3 receptor)</label>
+    </fieldset>
+    <div class="cgr-btns">
+      <button type="button" class="cgr-btn" data-channel aria-pressed="false">Channel: closed (click to open)</button>
+      <button type="button" class="cgr-btn" data-pump aria-pressed="true">Pumps and buffers: on (click to switch off)</button>
+    </div>
+  </div>
+
+  <p class="cgr-status" data-status role="status"></p>
+
+  <p class="cgr-foot">Calcium is an element: the cell cannot make or break it, only move it, and an open channel only opens a path while the gradient does the work. Time is in relative units and the picture is a sketch of the logic, not a measurement. The store bar's height is drawn at 500 µM only for the picture; the lesson says several hundred micromolar, and the outside bar spans 1 to 2 mM.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // log10 of molar concentration
+  const REST = -7;        // 100 nM, the lesson's resting cytosol
+  const PEAK = -6;        // "tenfold, to about 1 micromolar", the lesson's figure
+  const OUT_LO = Math.log10(1e-3), OUT_HI = Math.log10(2e-3); // 1 to 2 mM
+  const STORE = Math.log10(5e-4); // "several hundred micromolar": bar height is this sketch's choice
+  const TOP = -2, BOT = -8, Y0 = 30, Y1 = 200; // axis: 10 nM .. 10 mM
+  const yOf = (l: number) => Y1 - ((l - BOT) / (TOP - BOT)) * (Y1 - Y0);
+
+  document.querySelectorAll<HTMLElement>('[data-calciumgradient]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const chBtn = root.querySelector<HTMLButtonElement>('[data-channel]')!;
+    const pmBtn = root.querySelector<HTMLButtonElement>('[data-pump]')!;
+    const srcs = root.querySelectorAll<HTMLInputElement>('[data-src]');
+    let open = false, pumps = true, c = REST, touched = false, everOpened = false;
+    let timer: number | undefined;
+    const source = () => (Array.from(srcs).find((r) => r.checked)!.value as 'out' | 'store');
+    const srcLevel = () => (source() === 'out' ? Math.log10(1.5e-3) : STORE);
+
+    function target(): number | null {
+      if (open) return pumps ? PEAK : Math.max(c, srcLevel()); // pumps off: nothing opposes the flow; no net flow once level equals the source
+      return pumps ? REST : null;                 // closed, pumps off: nothing removes calcium
+    }
+    function rate() { return open ? (pumps ? 0.08 : 0.03) : 0.06; }
+    function tick() {
+      const t = target();
+      if (t !== null) {
+        c += (t - c) * rate();
+        if (Math.abs(t - c) < 0.004) { c = t; stop(); }
+      } else stop();
+      draw(); say();
+    }
+    function go() { if (timer === undefined) timer = window.setInterval(tick, 50); }
+    function stop() { if (timer !== undefined) { window.clearInterval(timer); timer = undefined; } }
+
+    function arrow(x1: number, y1: number, x2: number, y2: number, color: string, dash = false) {
+      const g = el('g', {});
+      g.appendChild(el('line', { x1, y1, x2, y2, stroke: color, 'stroke-width': 2.5, ...(dash ? { 'stroke-dasharray': '4 3' } : {}) }));
+      const a = Math.atan2(y2 - y1, x2 - x1), s = 6;
+      g.appendChild(el('polygon', { points: `${x2},${y2} ${x2 - s * Math.cos(a - 0.45)},${y2 - s * Math.sin(a - 0.45)} ${x2 - s * Math.cos(a + 0.45)},${y2 - s * Math.sin(a + 0.45)}`, fill: color }));
+      return g;
+    }
+    function draw() {
+      stage.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORG = '#e57200', GOLD = '#b8860b';
+      // axis
+      stage.appendChild(el('line', { x1: 40, y1: Y0, x2: 40, y2: Y1, stroke: FAINT }));
+      const ticks: [number, string][] = [[-8, '10 nM'], [-7, '100 nM'], [-6, '1 µM'], [-5, '10 µM'], [-4, '100 µM'], [-3, '1 mM'], [-2, '10 mM']];
+      for (const [l, t] of ticks) {
+        stage.appendChild(el('line', { x1: 37, y1: yOf(l), x2: 355, y2: yOf(l), stroke: '#ececf0' }));
+        stage.appendChild(el('text', { x: 35, y: yOf(l) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, t));
+      }
+      stage.appendChild(el('text', { x: 6, y: 12, 'font-size': 9, fill: INK }, 'free Ca²⁺, log scale (each gridline is ten times the one below)'));
+      const cols = [{ x: 62, name: 'outside' }, { x: 160, name: 'cytosol' }, { x: 258, name: 'the store (ER)' }];
+      const bw = 64;
+      // outside bar with its 1-2 mM band
+      stage.appendChild(el('rect', { x: cols[0].x, y: yOf(OUT_LO), width: bw, height: Y1 - yOf(OUT_LO), fill: GOLD, opacity: 0.35 }));
+      stage.appendChild(el('rect', { x: cols[0].x, y: yOf(OUT_HI), width: bw, height: yOf(OUT_LO) - yOf(OUT_HI), fill: GOLD }));
+      stage.appendChild(el('text', { x: cols[0].x + bw / 2, y: yOf(OUT_HI) - 4, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, '1 to 2 mM'));
+      // store
+      stage.appendChild(el('rect', { x: cols[2].x, y: yOf(STORE), width: bw, height: Y1 - yOf(STORE), fill: ORG, opacity: 0.85 }));
+      stage.appendChild(el('text', { x: cols[2].x + bw / 2, y: yOf(STORE) - 4, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'several hundred µM'));
+      // cytosol live bar and the resting mark
+      stage.appendChild(el('rect', { x: cols[1].x, y: yOf(c), width: bw, height: Y1 - yOf(c), fill: TEAL }));
+      stage.appendChild(el('line', { x1: cols[1].x - 6, y1: yOf(REST), x2: cols[1].x + bw + 6, y2: yOf(REST), stroke: INK, 'stroke-dasharray': '3 2' }));
+      stage.appendChild(el('text', { x: cols[1].x + bw / 2, y: yOf(Math.max(c, REST)) - 4, 'font-size': 9, 'text-anchor': 'middle', fill: INK, 'font-weight': 700 }, levelWord()));
+      for (const col of cols) stage.appendChild(el('text', { x: col.x + bw / 2, y: Y1 + 14, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, col.name));
+      stage.appendChild(el('text', { x: cols[1].x + bw / 2, y: Y1 + 26, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'dashed line = rest, near 100 nM'));
+      // channel arrow: source -> cytosol
+      if (open) {
+        const from = source() === 'out' ? cols[0].x + bw : cols[2].x;
+        const to = source() === 'out' ? cols[1].x : cols[1].x + bw;
+        const y = source() === 'out' ? yOf(-3.3) : yOf(-3.6);
+        stage.appendChild(arrow(from + (source() === 'out' ? 2 : -2), y, to + (source() === 'out' ? -2 : 2), y, ORG));
+        stage.appendChild(el('text', { x: (from + to) / 2, y: 26, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'channel open'));
+      }
+      // pump arrows: cytosol -> outside and cytosol -> store (dashed)
+      if (pumps) {
+        stage.appendChild(arrow(cols[1].x - 2, yOf(-6.6), cols[0].x + bw + 2, yOf(-6.6), TEAL, true));
+        stage.appendChild(arrow(cols[1].x + bw + 2, yOf(-6.6), cols[2].x - 2, yOf(-6.6), TEAL, true));
+        stage.appendChild(el('text', { x: (cols[0].x + bw + cols[1].x) / 2, y: yOf(-6.6) - 5, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'pumps'));
+        stage.appendChild(el('text', { x: (cols[2].x + cols[1].x + bw) / 2, y: yOf(-6.6) - 5, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'pumps'));
+      }
+    }
+    function levelWord(): string {
+      if (Math.abs(c - REST) < 0.02) return 'near 100 nM';
+      if (Math.abs(c - PEAK) < 0.02) return 'about 1 µM';
+      if (c > PEAK) return 'above 1 µM (sketch)';
+      return c > REST ? 'between 100 nM and 1 µM' : 'near 100 nM';
+    }
+    function say() {
+      const s = source() === 'out' ? 'the outside' : 'the store';
+      const gradient = source() === 'out'
+        ? 'about 1 to 2 mM there against about 100 nM in the cytosol, ten to twenty thousand times higher'
+        : 'several hundred µM there against about 100 nM in the cytosol';
+      const atRest = Math.abs(c - REST) < 0.02;
+      const atPeak = Math.abs(c - PEAK) < 0.02;
+      const atSrc = c >= srcLevel() - 0.02;
+      let t: string;
+      if (!open && !touched) {
+        t = 'At rest the cytosol holds free calcium near 100 nM, the outside 1 to 2 mM (ten to twenty thousand times higher) and the store several hundred µM. Calcium cannot be made or broken down, so the cell keeps it low by pumping it out and into the store. Open the channel to see what the gradient does.';
+      } else if (open && pumps) {
+        t = c > PEAK + 0.02
+          ? 'Channel open, pumps and buffers back on: the pumps pull the level back down toward about 1 µM.'
+          : atPeak
+          ? `Channel open: calcium has come in from ${s}, because it is far more concentrated there (${gradient}). The lesson puts the cytosol at about 1 µM, a tenfold rise. The channel only opened a path; the gradient did the work. In this sketch the pumps and buffers hold it there while the channel stays open.`
+          : `Channel open: calcium is moving from ${s} into the cytosol, because it is far more concentrated there (${gradient}). The lesson says the cytosol rises about tenfold, to about 1 µM. The speed is this sketch's.`;
+      } else if (open && !pumps) {
+        t = atSrc
+          ? `Channel open, pumps and buffers off: in this sketch the cytosol has reached the level of ${s}, so there is no gradient left to drive calcium through the channel. The lesson gives no number for this; the bar is not a prediction.`
+          : `Channel open, pumps and buffers off: calcium keeps flowing in from ${s} and nothing takes it out. In this sketch the level climbs past the lesson's 1 µM toward the level of the source; the lesson gives no number for that, so the bar is not a prediction.`;
+      } else if (!open && pumps) {
+        t = atRest && !everOpened
+          ? 'Channel closed: the cytosol sits near 100 nM, kept there by the pumps and buffers. Open the channel to see what the gradient does.'
+          : atRest
+          ? 'Channel closed and the pumps and buffers have brought the cytosol back to about 100 nM, ready for the next signal. The cell cannot break calcium down; it only moved it back out of the cytosol.'
+          : 'Channel closed: the pumps, the exchanger and the buffers are taking calcium out of the cytosol again, and the signal ends as the level falls back toward 100 nM. Calcium is an element, so removal is the only way to end it.';
+      } else {
+        t = atRest
+          ? 'Channel closed, pumps and buffers off: nothing has been added yet, so the cytosol stays near 100 nM. Open the channel to see what the missing pumps would cost.'
+          : 'Channel closed, pumps and buffers off: nothing takes calcium out. No enzyme can break calcium down, so in this sketch the cytosol stays where it is. In the lesson the signal ends only when pumps, exchangers and buffers take the ion out of the cytosol.';
+      }
+      if (status.textContent !== t) status.textContent = t;
+    }
+    function refresh() {
+      chBtn.textContent = open ? 'Channel: open (click to close)' : 'Channel: closed (click to open)';
+      chBtn.setAttribute('aria-pressed', String(open));
+      chBtn.classList.toggle('cgr-on', open);
+      pmBtn.textContent = pumps ? 'Pumps and buffers: on (click to switch off)' : 'Pumps and buffers: off (click to switch on)';
+      pmBtn.setAttribute('aria-pressed', String(pumps));
+      pmBtn.classList.toggle('cgr-on', pumps);
+      draw(); say(); go();
+    }
+    chBtn.addEventListener('click', () => { open = !open; touched = true; if (open) everOpened = true; refresh(); });
+    pmBtn.addEventListener('click', () => { pumps = !pumps; touched = true; refresh(); });
+    srcs.forEach((r) => r.addEventListener('change', () => { touched = true; refresh(); }));
+    refresh(); stop();
+  });
+</script>
+
+<style is:global>
+  .cgr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cgr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cgr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cgr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cgr-controls { display: flex; flex-direction: column; gap: 0.5rem; }
+  .cgr-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cgr-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .cgr-fs input { accent-color: var(--ddp-color-accent); }
+  .cgr-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .cgr-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.4rem 0.7rem; cursor: pointer; text-align: left; }
+  .cgr-btn.cgr-on { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 600; }
+  .cgr-btn:focus-visible, .cgr-fs input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cgr-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 5em; }
+  .cgr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

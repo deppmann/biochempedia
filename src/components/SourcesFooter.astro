@@ -116,7 +116,10 @@ const pubchemNote = idEcho('CID');
           ))}
         </ul>
         <p class="src-meta">
-          Quotes are verbatim from the cited source. Profile text adapted from <em>The Molecule Hunters</em> (authors' IP).
+          Quotes are verbatim from the cited source.{' '}
+          {lesson.course === 'biochemistry'
+            ? <>Profile text adapted from <em>The Molecule Hunters</em> (authors' IP).</>
+            : <>Profile text is original to this site and was checked against the sources cited.</>}
           {portraitCount > 0 && ` The ${portraitCount === 1 ? 'portrait is an' : `${portraitCount} portraits are`} `}
           {portraitCount > 0 && <span class="ai-flag">AI-generated</span>}
           {portraitCount > 0 && ` engraving-style illustration${portraitCount === 1 ? '' : 's'} from the book's profiles — artistic depictions of each scientist, never photographs.`}
@@ -148,6 +151,20 @@ const pubchemNote = idEcho('CID');
           {lesson.explainer.factCheckedBy && ` checked by ${lesson.explainer.factCheckedBy} ·`}
           captions from the narration script.
         </p>
+      </div>
+    )}
+
+    {lesson.films.length > 0 && (
+      <div class="src-block">
+        <h3>Section films</h3>
+        <ul>
+          {lesson.films.map((f) => (
+            <li>
+              <strong>{f.title}</strong>
+              <span class="src-meta"> · narration: {f.narration} · animation <span class="ai-flag">AI-generated</span> in code (Manim) by Claude, a schematic with no drawn molecular structures{f.factCheckedBy && ` · checked by ${f.factCheckedBy}`} · captions from the narration script.</span>
+            </li>
+          ))}
+        </ul>
       </div>
     )}
 

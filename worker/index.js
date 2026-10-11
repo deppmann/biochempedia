@@ -7,8 +7,47 @@
 // the server answers "Range: bytes=…" with 206 Partial Content.
 const MEDIA_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
 
+const TYPES = { mp4: 'video/mp4', vtt: 'text/vtt; charset=utf-8', jpg: 'image/jpeg', png: 'image/png', mp3: 'audio/mpeg', m4a: 'audio/mp4', webm: 'video/webm' };
+
+// Media can also live in an R2 bucket bound as MEDIA (see wrangler.jsonc), under the same
+// path it has on the site: /explainers/x/explainer.mp4 is the object "explainers/x/explainer.mp4".
+// R2 answers byte ranges itself, so nothing is buffered. Returns null when there is no bucket,
+// no such object, or anything goes wrong, and the caller falls back to the static assets, so
+// a file can be in either place (or both) while media moves out of the repository.
+async function fromBucket(request, env) {
+  if (!env.MEDIA) return null;
+  try {
+    const key = decodeURIComponent(new URL(request.url).pathname).replace(/^\/+/, '');
+    const head = request.method === 'HEAD';
+    const obj = head ? await env.MEDIA.head(key) : await env.MEDIA.get(key, { range: request.headers });
+    if (!obj) return null;
+    const headers = new Headers();
+    obj.writeHttpMetadata(headers);
+    if (!headers.has('Content-Type')) headers.set('Content-Type', TYPES[key.split('.').pop().toLowerCase()] || 'application/octet-stream');
+    headers.set('ETag', obj.httpEtag);
+    headers.set('Accept-Ranges', 'bytes');
+    headers.set('Cache-Control', MEDIA_CACHE);
+    const r = obj.range;
+    if (!head && r && request.headers.has('Range')) {
+      const start = r.offset ?? Math.max(0, obj.size - r.suffix);
+      const length = r.length ?? obj.size - start;
+      headers.set('Content-Range', `bytes ${start}-${start + length - 1}/${obj.size}`);
+      headers.set('Content-Length', String(length));
+      return new Response(obj.body, { status: 206, headers });
+    }
+    headers.set('Content-Length', String(obj.size));
+    return new Response(head ? null : obj.body, { status: 200, headers });
+  } catch {
+    return null;
+  }
+}
+
 export default {
   async fetch(request, env) {
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const hit = await fromBucket(request, env);
+      if (hit) return hit;
+    }
     const res = await env.ASSETS.fetch(request);
     if (res.status !== 200 || (request.method !== 'GET' && request.method !== 'HEAD')) return res;
 

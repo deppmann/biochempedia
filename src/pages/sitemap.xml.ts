@@ -9,7 +9,14 @@ import { getCollection } from 'astro:content';
 export async function GET(context: APIContext): Promise<Response> {
   const base = (context.site?.href ?? 'https://biochemistrypedia.com').replace(/\/$/, '');
   const lessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
-  const paths = ['/', '/about', '/fun', '/play', '/contact', ...lessons.map((l) => `/lessons/${l.data.slug}/`)];
+  // A course page exists only once the course has a published lesson. Biochemistry
+  // is the homepage itself, so it has no /courses/ entry.
+  const courses = [...new Set(lessons.map((l) => l.data.course))].filter((c) => c !== 'biochemistry');
+  const paths = [
+    '/', '/about', '/fun', '/play', '/contact',
+    ...courses.map((c) => `/courses/${c}/`),
+    ...lessons.map((l) => `/lessons/${l.data.slug}/`),
+  ];
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

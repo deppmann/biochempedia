@@ -1,0 +1,84 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COURSES, unitsFor } from '../../data/courses';
+
+/* One page per course other than biochemistry (which is the homepage). A course
+   gets a page only once it has a lesson to show. `astro dev` counts drafts so an
+   author can read a course before any of it is published; a production build
+   never does, which keeps an all-draft course off the live site entirely. */
+export async function getStaticPaths() {
+  const lessons = await getCollection('lessons', ({ data }) => import.meta.env.DEV || !data.draft);
+  return COURSES.filter((c) => c.slug !== 'biochemistry')
+    .map((course) => ({ course, mine: lessons.filter((l) => l.data.course === course.slug) }))
+    .filter(({ mine }) => mine.length > 0)
+    .map(({ course, mine }) => ({ params: { course: course.slug }, props: { course, lessons: mine } }));
+}
+
+const { course, lessons } = Astro.props;
+const units = unitsFor(course, lessons);
+const drafts = lessons.filter((l) => l.data.draft).length;
+const first = units[0]?.entries[0]?.l;
+---
+
+<BaseLayout title={`${course.title} — Biochemistrypedia`} description={course.blurb}>
+  <section class="wrap course-hero">
+    <p class="eyebrow"><a href="/">Biochemistrypedia</a> · course</p>
+    <h1>{course.title}</h1>
+    <p class="lede">{course.blurb}</p>
+    {drafts > 0 && (
+      <p class="draft-banner" role="note">
+        {drafts} of {lessons.length} lessons here are drafts. They are visible only in local preview and have not been reviewed by a person.
+      </p>
+    )}
+    {first && <p><a class="cta" href={`/lessons/${first.data.slug}/`}>Start with lesson 1 →</a></p>}
+  </section>
+
+  <section class="wrap">
+    {units.map((u, ui) => (
+      <section class="unit">
+        <h2 class="unit-h">Unit {ui + 1} · {u.name}</h2>
+        <ol class="lesson-list">
+          {u.entries.map(({ l, n }) => (
+            <li>
+              <a href={`/lessons/${l.data.slug}/`} class="lesson-row">
+                <span class="lr-n" aria-hidden="true">{n}</span>
+                <span class="lr-body">
+                  <span class="lr-title">{l.data.title}{l.data.draft && <span class="lr-draft">draft</span>}</span>
+                  <span class="lr-hook">{l.data.hook ?? l.data.summary.split(/(?<=[.?!])\s+/)[0]}</span>
+                  <span class="lr-meta">
+                    <span>{l.data.structures.length} structures</span>{' · '}
+                    <span>{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions</span>
+                    {l.data.estMinutes && <>{' · '}<span>~{l.data.estMinutes} min</span></>}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))}
+  </section>
+
+  <style>
+    .course-hero { padding-block: var(--ddp-space-6, 2rem) var(--ddp-space-4, 1rem); display: flex; flex-direction: column; gap: var(--ddp-space-3, 0.75rem); }
+    .eyebrow { font-size: var(--ddp-text-sm); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-secondary-ink); margin: 0; }
+    .eyebrow a { color: inherit; }
+    h1 { font-family: var(--ddp-font-serif); color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .lede { font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); max-width: 44rem; margin: 0; }
+    .draft-banner { align-self: flex-start; margin: 0; padding: 0.3rem 0.7rem; border: 1px dashed var(--ddp-color-caution); border-radius: 6px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-size: var(--ddp-text-sm); }
+    .cta { display: inline-block; padding: 0.6rem 1rem; border-radius: 8px; background: var(--ddp-color-primary); color: var(--ddp-color-surface); text-decoration: none; font-weight: 600; }
+    .cta:hover, .cta:focus-visible { background: var(--ddp-color-primary-soft); color: var(--ddp-color-surface); }
+    .unit { margin-block: var(--ddp-space-5, 1.5rem); }
+    .unit-h { font-size: var(--ddp-text-sm); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); border-bottom: 1px solid var(--ddp-color-line); padding-bottom: 0.4rem; margin: 0 0 0.5rem; }
+    .lesson-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+    .lesson-row { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0 0.75rem; padding: 0.7rem 0.5rem; border-bottom: 1px solid var(--ddp-color-line); color: inherit; text-decoration: none; border-radius: 6px; }
+    .lesson-row:hover, .lesson-row:focus-visible { background: var(--ddp-color-accent-soft); }
+    .lr-n { color: var(--ddp-color-muted); font-variant-numeric: tabular-nums; text-align: right; padding-top: 0.1rem; }
+    .lr-body { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+    .lr-title { font-weight: 600; color: var(--ddp-color-primary); }
+    .lr-draft { margin-left: 0.5rem; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); border: 1px solid var(--ddp-color-line); border-radius: 3px; padding: 0.05rem 0.35rem; }
+    .lr-hook { color: var(--ddp-color-ink-soft); }
+    .lr-meta { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  </style>
+</BaseLayout>

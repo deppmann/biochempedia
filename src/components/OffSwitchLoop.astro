@@ -1,0 +1,120 @@
+---
+/**
+ * OffSwitchLoop — the test-tube experiment from "Turning the Signal Off". A receptor
+ * rebuilt into lipid vesicles is given the pure kinase, arrestin, both or neither;
+ * one bar shows the receptor's ability to activate Gs as a percentage of the
+ * untreated receptor. Only the lesson's own end-point values are used; there is no
+ * time axis. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="osl card" data-osl>
+  <figcaption class="osl-head">The off-switch loop — a test-tube experiment<span class="osl-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="osl-cuts">
+    <legend>Set up the test tube: reconstituted receptor with agonist bound</legend>
+    <label><input type="checkbox" data-in="kinase" /> Add the pure kinase (it marks only an active receptor)</label>
+    <label><input type="checkbox" data-in="arrestin" /> Add arrestin</label>
+  </fieldset>
+
+  <svg class="osl-loop" viewBox="0 0 380 74" role="img" aria-label="The loop: active receptor, kinase writes a mark, arrestin reads the mark, G protein access reduced. Absent parts are grey and the cut link is crossed in red." data-loop></svg>
+  <svg class="osl-svg" viewBox="0 0 340 110" role="img" aria-label="Bar: the receptor's ability to activate Gs as a percentage of the untreated receptor" data-plot></svg>
+
+  <p class="osl-why" data-why role="status"></p>
+
+  <p class="osl-foot">In the lesson's test-tube experiment a kinase marks only an active receptor and arrestin reads the mark: with both, the receptor lost about 40% of its ability to switch on Gs; with one missing, little changed.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', INK = '#4b4b55', FAINT = '#b9b9c2', RED = '#b3261e', GREY = '#6b6b75';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const TAIL = ' In a cell, the lesson says only that the response fades within minutes, with no size given.';
+  // [low, high] percent of untreated activity left, all from the lesson.
+  function state(k: boolean, a: boolean): { lo: number; hi: number; label: string; text: string } {
+    if (!k && !a) return { lo: 100, hi: 100, label: '100% (reference)', text: 'Nothing added: the untreated receptor, with agonist bound, can still switch on Gs. This is the reference, 100%.' };
+    if (k && !a) return { lo: 85, hi: 90, label: '85 to 90% left', text: 'Pure kinase alone: it still adds phosphate (about 8 per receptor) and the receptor can still switch on Gs. The lesson says the pure enzyme cut activity by only 10 to 15%. The mark alone does little, so the phosphate cannot be the off switch by itself.' };
+    if (k && a) return { lo: 59, hi: 59, label: 'about 59% left', text: 'Kinase and arrestin together: the receptor’s activity fell to about 59% of the untreated receptor’s, a loss of about 40%. Arrestin reads the mark and sits where the G protein needs to sit, so arrestin occupies the surface the G protein needs.' };
+    return { lo: 98.1, hi: 98.1, label: '98.1% left', text: 'Arrestin alone, on a receptor the kinase never marked: activity stayed at 98.1% of the value without arrestin, across 13 measurements. The reader needs the mark.' };
+  }
+  document.querySelectorAll<HTMLElement>('[data-osl]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const loop = root.querySelector<SVGSVGElement>('[data-loop]')!;
+    const kIn = root.querySelector<HTMLInputElement>('[data-in="kinase"]')!;
+    const aIn = root.querySelector<HTMLInputElement>('[data-in="arrestin"]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const txt = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+      const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra }); t.textContent = s; return t;
+    };
+    function drawLoop(k: boolean, a: boolean) {
+      loop.replaceChildren();
+      const boxes = ['Active receptor', 'Kinase writes mark', 'Arrestin reads mark', 'G protein access reduced'];
+      // a part is live only if everything upstream of it is present
+      const live = [true, k, k && a, k && a];
+      // the cut sits on the first arrow that has no live part behind it
+      const cutIdx = !k ? 0 : !a ? 1 : -1;
+      const w = 76, gap = 20, y = 10, h = 34;
+      boxes.forEach((b, i) => {
+        const x = 8 + i * (w + gap), dead = !live[i];
+        loop.appendChild(el('rect', { x, y, width: w, height: h, rx: 5, fill: dead ? '#f3f3f5' : '#e6f3f4', stroke: dead ? FAINT : ACCENT, 'stroke-width': 1.3, 'stroke-dasharray': dead ? '3 2' : '0' }));
+        const words = b.split(' '), mid = Math.ceil(words.length / 2);
+        const c = dead ? GREY : INK;
+        loop.appendChild(txt(x + w / 2, y + 15, words.slice(0, mid).join(' '), { 'text-anchor': 'middle', fill: c }));
+        loop.appendChild(txt(x + w / 2, y + 27, words.slice(mid).join(' '), { 'text-anchor': 'middle', fill: c }));
+        if (i < 3) {
+          const ax = x + w, bx = ax + gap, ay = y + h / 2;
+          const isCut = i === cutIdx, dim = !live[i + 1];
+          loop.appendChild(el('line', { x1: ax + 1, y1: ay, x2: bx - 1, y2: ay, stroke: isCut ? RED : dim ? FAINT : INK, 'stroke-width': 1.4, 'stroke-dasharray': isCut || dim ? '2 3' : '0' }));
+          if (isCut) {
+            loop.appendChild(el('line', { x1: ax + 6, y1: ay - 6, x2: bx - 6, y2: ay + 6, stroke: RED, 'stroke-width': 2 }));
+            loop.appendChild(el('line', { x1: ax + 6, y1: ay + 6, x2: bx - 6, y2: ay - 6, stroke: RED, 'stroke-width': 2 }));
+          } else if (!dim) loop.appendChild(el('path', { d: `M${bx - 5} ${ay - 3} L${bx - 1} ${ay} L${bx - 5} ${ay + 3}`, fill: 'none', stroke: INK, 'stroke-width': 1.2 }));
+        }
+      });
+      const note = k && a ? 'all links present'
+        : !k && !a ? 'no kinase: no mark'
+        : k ? 'link cut: no arrestin to read the mark'
+        : 'arrestin is in the tube, but with no kinase there is no mark for it to read';
+      loop.appendChild(txt(8, 64, note, { fill: k && a ? INK : RED, 'font-weight': 700 }));
+    }
+    function render() {
+      const k = kIn.checked, a = aIn.checked;
+      const s = state(k, a);
+      drawLoop(k, a);
+      plot.replaceChildren();
+      const X0 = 20, X1 = 320, Y = 40, H = 26;
+      const px = (p: number) => X0 + (p / 100) * (X1 - X0);
+      plot.appendChild(txt(X0, 14, "Receptor's ability to activate Gs (% of untreated receptor)", { 'font-size': 10 }));
+      plot.appendChild(el('rect', { x: X0, y: Y, width: X1 - X0, height: H, fill: '#f3f3f5', stroke: FAINT, 'stroke-width': 1 }));
+      plot.appendChild(el('rect', { x: X0, y: Y, width: px(s.lo) - X0, height: H, fill: ACCENT }));
+      if (s.hi > s.lo) plot.appendChild(el('rect', { x: px(s.lo), y: Y, width: px(s.hi) - px(s.lo), height: H, fill: ACCENT, opacity: 0.35 }));
+      for (const p of [0, 50, 100]) {
+        plot.appendChild(el('line', { x1: px(p), y1: Y + H, x2: px(p), y2: Y + H + 4, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt(px(p), Y + H + 14, p + '%', { 'text-anchor': p === 0 ? 'start' : p === 100 ? 'end' : 'middle' }));
+      }
+      plot.appendChild(txt(X0, Y + H + 32, s.label, { 'font-size': 11, 'font-weight': 700, fill: ACCENT }));
+      if (s.hi > s.lo) plot.appendChild(txt(X1, Y + H + 32, 'light part = range given', { 'text-anchor': 'end', fill: GREY }));
+      why.textContent = s.text + TAIL;
+    }
+    kIn.addEventListener('change', render);
+    aIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .osl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .osl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .osl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .osl-cuts { border: 0; margin: 0 0 var(--ddp-space-3); padding: 0; display: flex; flex-direction: column; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .osl-cuts legend { padding: 0; margin-bottom: 0.3rem; font-weight: 600; }
+  .osl-cuts label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+  .osl-cuts input { accent-color: var(--ddp-color-accent); }
+  .osl-svg, .osl-loop { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .osl-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 7em; }
+  .osl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

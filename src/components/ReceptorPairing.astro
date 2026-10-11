@@ -1,0 +1,168 @@
+---
+/**
+ * ReceptorPairing — a receptor tyrosine kinase is switched on by being brought next to a
+ * partner. The learner picks a receptor (EGF receptor pair, insulin receptor, or the mixed
+ * HER2 + HER3 pair) and ticks whether ligand is present. Two labelled receptors are drawn
+ * through a membrane, apart or together, with phosphate marks on the tails only when the
+ * lesson says the kinases are on. Every rule here is a statement of the receptor-tyrosine-
+ * kinases lesson; nothing is drawn as a molecular structure (labelled blocks only).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="rp card" data-receptorpairing>
+  <figcaption class="rp-head">Receptor pairing: what switches the kinase on<span class="rp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rp-svg" viewBox="0 0 360 246" role="img" aria-label="Two receptors drawn through a membrane, either apart or side by side, with their kinases and tails inside the cell" data-stage></svg>
+
+  <fieldset class="rp-ctl">
+    <legend>Receptors</legend>
+    <label><input type="radio" name="rp-kind" value="egfr" checked /> EGF receptor pair</label>
+    <label><input type="radio" name="rp-kind" value="ins" /> insulin receptor</label>
+    <label><input type="radio" name="rp-kind" value="mixed" /> HER2 with HER3</label>
+  </fieldset>
+  <div class="rp-ctl rp-one">
+    <label><input type="checkbox" data-lig /> ligand present</label>
+  </div>
+
+  <p class="rp-verdict" data-verdict role="status"></p>
+
+  <p class="rp-foot">Rule to keep: a lone receptor’s kinase stays off, or close to it, until a partner is brought side by side; the insulin receptor works differently, because the pair is permanent, so pairing cannot be its signal, and insulin instead changes the shape of the pair so that the two kinase-bearing legs, held apart at rest, come together. Distances and which tails are marked are a sketch of the logic, not to scale.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Kind = 'egfr' | 'ins' | 'mixed';
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', GOLD = '#d4a017', BLUE = '#2f6f8f', ORANGE = '#c25f00';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const NAMES: Record<Kind, [string, string]> = {
+    egfr: ['EGF receptor', 'EGF receptor'],
+    ins: ['insulin receptor half', 'insulin receptor half'],
+    mixed: ['HER2', 'HER3'],
+  };
+  const LIGAND: Record<Kind, string> = { egfr: 'EGF', ins: 'insulin', mixed: 'ligand' };
+
+  // What the lesson says about each case. "In this sketch" marks what is only drawing.
+  function say(kind: Kind, lig: boolean): string {
+    if (kind === 'egfr') {
+      return lig
+        ? 'EGF is bound. One EGF binds one receptor and holds its outside extended with the dimerization arm out; two extended receptors clasp each other by their arms, and the two EGF molecules sit on the outer faces, far from the contact. With the kinases side by side, the large lobe of one presses against the small lobe of the other and pushes its active site into its working shape: the pressed copy is the one that switches on, and the pressing copy only has to supply a surface. Once on, the kinases phosphorylate tyrosines outside the kinase core, most of them on the two tails (in this sketch, both tails are marked, and which kinase marks which tail is not shown). In this sketch the left copy is the pressed one and the right copy presses it (supplies a surface).'
+        : 'No EGF. At rest the EGF receptor’s outside is mostly folded over on itself, with the dimerization arm tucked out of reach, and a lone receptor’s kinase stays off, or close to it. In this sketch the two receptors are drawn apart and no tail carries a phosphate.';
+    }
+    if (kind === 'ins') {
+      return lig
+        ? 'Insulin has changed the shape of the pair, so the two kinase-bearing legs, held apart at rest, come together. When two kinases are held together, each phosphorylates the loop of the other (autophosphorylation in trans). With three phosphates on the loop, the loop stays clear of the active site, the lobes close on ATP and the kinase runs. The kinases then phosphorylate tyrosines on the tails, which become docking sites (in this sketch, both tails are marked).'
+        : 'No insulin. The receptor is already a pair, built as two halves joined by disulfide bonds, so pairing cannot be its signal. At rest the two kinase-bearing legs are held apart, and in each kinase the activation loop lies folded into the active site, so the kinase is plugged by a piece of itself. No loop and no tail carries a phosphate.';
+    }
+    return lig
+      ? 'The EGF receptor’s relatives HER2, HER3 and HER4 use the same contact as the EGF receptor, so they can work in mixed pairs. HER3’s own kinase has almost no activity, yet a pair of HER2 and HER3 signals strongly, because HER3 can do the pressing. In this sketch the pair is drawn together with HER2 as the pressed copy that switches on, and both tails are marked. The lesson does not say which receptor binds the ligand, so none is drawn on either.'
+      : 'HER3’s own kinase has almost no activity. The lesson does not say whether HER2 and HER3 pair without a ligand; this sketch draws no pair, and no phosphates. (Where HER2 is amplified, its exposed arm lets crowding make pairs.)';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-receptorpairing]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const lig = root.querySelector<HTMLInputElement>('[data-lig]')!;
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="rp-kind"]');
+    const kind = (): Kind => (Array.from(radios).find((r) => r.checked)?.value as Kind) || 'egfr';
+
+    function receptor(side: 0 | 1, k: Kind, together: boolean, on: boolean) {
+      // ex: where the outside and the membrane helix sit; kx: where the kinase and tail sit.
+      const apartX = side === 0 ? 100 : 260, nearX = side === 0 ? 163 : 197;
+      const ex = k === 'ins' ? nearX : together ? nearX : apartX;
+      const kx = together ? nearX : apartX;
+      const pressed = k === 'mixed' ? side === 0 : true; // HER2 is the pressed copy; HER3 almost inactive
+      const kinaseOn = on && (k === 'ins' || (k === 'egfr' ? side === 0 : pressed));
+      const name = NAMES[k][side];
+      const tight = k === 'ins' ? true : together;
+      const tx = tight ? (side === 0 ? 178 : 182) : ex;
+      stage.appendChild(el('text', { x: tx, y: 40, 'font-size': 9, 'text-anchor': tight ? (side === 0 ? 'end' : 'start') : 'middle', fill: INK, 'font-weight': 700 }, name));
+      // outside part, membrane helix
+      stage.appendChild(el('rect', { x: ex - 15, y: 48, width: 30, height: 40, rx: 3, fill: BLUE, opacity: 0.9 }));
+      stage.appendChild(el('rect', { x: ex - 5, y: 88, width: 10, height: 24, rx: 2, fill: BLUE }));
+      // leg from helix to kinase (bends when the legs are held apart)
+      if (ex !== kx) stage.appendChild(el('line', { x1: ex, y1: 112, x2: kx, y2: 122, stroke: BLUE, 'stroke-width': 3 }));
+      // kinase
+      stage.appendChild(el('rect', { x: kx - 16, y: 122, width: 32, height: 26, rx: 4, fill: kinaseOn ? TEAL : '#fff', stroke: kinaseOn ? TEAL : FAINT, 'stroke-width': 1.5, 'stroke-dasharray': k === 'mixed' && side === 1 ? '3 2' : '0' }));
+      stage.appendChild(el('text', { x: kx, y: 139, 'font-size': 9, 'text-anchor': 'middle', fill: kinaseOn ? '#fff' : INK }, 'kinase'));
+      const presses = on && k !== 'ins' && !kinaseOn;
+      const state = presses ? (k === 'mixed' ? 'almost no activity; presses' : 'presses (supplies a surface)') : kinaseOn ? 'on' : (k === 'mixed' && side === 1 ? 'almost no activity' : 'off, or nearly');
+      const sx = side === 0 ? kx - 12 : kx + 12;
+      stage.appendChild(el('text', { x: sx, y: 161, 'font-size': 9, 'text-anchor': side === 0 ? 'end' : 'start', fill: INK }, state));
+      // insulin: three phosphates on each activation loop when on
+      if (k === 'ins' && on) {
+        for (let i = 0; i < 3; i++) {
+          const dx = side === 0 ? kx - 24 : kx + 24;
+          stage.appendChild(el('circle', { cx: dx, cy: 126 + i * 9, r: 3.4, fill: GOLD }));
+        }
+      }
+      // tail with two tyrosines
+      stage.appendChild(el('line', { x1: kx, y1: 148, x2: kx, y2: 205, stroke: BLUE, 'stroke-width': 2 }));
+      for (const y of [180, 198]) {
+        stage.appendChild(el('circle', { cx: kx, cy: y, r: 7, fill: on ? GOLD : '#fff', stroke: on ? GOLD : FAINT, 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: kx, y: y + 3, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: on ? '#fff' : INK }, on ? 'P' : 'Y'));
+      }
+    }
+
+    function draw(k: Kind, ligand: boolean) {
+      stage.replaceChildren();
+      const together = k === 'ins' ? true : ligand; // the insulin receptor is always a pair
+      stage.appendChild(el('rect', { x: 0, y: 88, width: 360, height: 24, fill: '#d9d9e0' }));
+      stage.appendChild(el('text', { x: 352, y: 14, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'outside the cell'));
+      stage.appendChild(el('text', { x: 352, y: 104, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'membrane'));
+      stage.appendChild(el('text', { x: 352, y: 128, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'cytosol'));
+      const on = ligand;
+      const kinTogether = ligand;
+      receptor(0, k, kinTogether, on);
+      receptor(1, k, kinTogether, on);
+      if (k === 'ins') stage.appendChild(el('rect', { x: 177, y: 48, width: 6, height: 40, fill: BLUE }));
+      if (k === 'ins') stage.appendChild(el('text', { x: 180, y: 84, 'font-size': 9, 'text-anchor': 'middle', fill: '#fff' }, 'S–S'));
+      if (ligand) {
+        const L = LIGAND[k];
+        if (k === 'ins') {
+          stage.appendChild(el('circle', { cx: 180, cy: 20, r: 6, fill: ORANGE }));
+          stage.appendChild(el('text', { x: 190, y: 23, 'font-size': 9, fill: ORANGE, 'font-weight': 700 }, L));
+        } else if (k === 'mixed') {
+          stage.appendChild(el('text', { x: 180, y: 28, 'font-size': 9, 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 }, 'ligand present; which receptor binds it is not shown'));
+        } else {
+          for (const cx of [138, 222]) {
+            stage.appendChild(el('circle', { cx, cy: 68, r: 6, fill: ORANGE }));
+            stage.appendChild(el('text', { x: cx < 180 ? cx - 9 : cx + 9, y: 71, 'font-size': 9, 'text-anchor': cx < 180 ? 'end' : 'start', fill: ORANGE, 'font-weight': 700 }, L));
+          }
+        }
+      }
+      stage.appendChild(el('text', { x: 8, y: 214, 'font-size': 9, fill: INK }, 'blue blocks above the membrane = the part outside the cell'));
+      stage.appendChild(el('text', { x: 8, y: 226, 'font-size': 9, fill: INK }, 'Y = tyrosine, no phosphate · P = phosphate' + (k === 'ins' ? ' · gold dots = loop P' : '')));
+      stage.appendChild(el('text', { x: 8, y: 238, 'font-size': 9, fill: INK }, 'two tyrosines per tail drawn; not the real number'));
+      void together;
+    }
+
+    function render() {
+      const k = kind(), l = lig.checked;
+      draw(k, l);
+      verdict.textContent = say(k, l);
+      stage.setAttribute('aria-label', 'Two receptors (' + NAMES[k].join(' and ') + ') drawn through a membrane, ' + (k === 'ins' ? (l ? 'with the kinase legs together' : 'already a pair, with the kinase legs apart') : (l ? 'side by side' : 'apart')) + (l ? ', with phosphates on the tails' : ', with no phosphates'));
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    lig.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .rp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rp-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rp-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-2) 0; padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.3rem 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rp-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .rp-ctl input { accent-color: var(--ddp-color-accent); }
+  .rp-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 6em; }
+  .rp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .rp input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+</style>

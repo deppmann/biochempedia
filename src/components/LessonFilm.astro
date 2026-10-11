@@ -1,0 +1,32 @@
+---
+/**
+ * LessonFilm — a short explainer film placed beside the section it explains. A lesson's
+ * opening film stays in `explainer` (rendered by the lesson page as "Watch first"); any
+ * further films are listed in the frontmatter's `films` and placed in the body with
+ *   <LessonFilm film={frontmatter.films[0]} />
+ * Same terms as the opening film (IMAGE_POLICY.md rule 7): a schematic drawn in code, with
+ * captions; the Sources & Integrity panel carries the AI disclosure and the narrator.
+ */
+interface Props {
+  film: { src: string; captions: string; poster: string; title: string; durationSec: number };
+}
+const { film } = Astro.props;
+const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durationSec % 60)).padStart(2, '0')}`;
+---
+
+<figure class="lf">
+  <video controls preload="none" playsinline poster={film.poster} width="1920" height="1080">
+    <source src={film.src} type="video/mp4" />
+    <track kind="captions" src={film.captions} srclang="en" label="English" />
+    Your browser cannot play this video. <a href={film.src}>Download the film (MP4)</a>.
+  </video>
+  <figcaption><span class="lf-kicker">Watch</span> {film.title} <span class="lf-len">· {len}</span></figcaption>
+</figure>
+
+<style>
+  .lf { margin: var(--ddp-space-5) 0; max-width: 880px; }
+  .lf video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
+  .lf figcaption { margin-top: var(--ddp-space-2); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+  .lf-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin-right: 0.4rem; }
+  .lf-len { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+</style>

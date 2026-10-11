@@ -1,0 +1,142 @@
+---
+/**
+ * DrugAndEscape — read the escape, design the next drug. The learner picks the kinase
+ * (BCR-ABL as the drugs-against-a-part lesson describes it, or the same kinase with
+ * threonine 315 changed to isoleucine, T315I) and the drug (none, imatinib, ponatinib).
+ * The picture is a labelled pocket block with the drug as a labelled wedge that fits or
+ * does not, and a verdict on whether the kinase works. Blocks and wedges only; no chemical
+ * structure is drawn. Every sentence of feedback is a statement of that lesson. Pairings
+ * the lesson does not state are marked as not stated. Self-contained vanilla-TS island.
+ */
+---
+
+<figure class="dae card" data-drugescape>
+  <figcaption class="dae-head">Drug and escape: read the relapse, design the next drug<span class="dae-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="dae-svg" viewBox="0 0 360 210" role="img" aria-label="A kinase block with an ATP pocket and a labelled residue 315, and the chosen drug as a wedge that either sits in the pocket or is held out" data-stage></svg>
+
+  <div class="dae-controls">
+    <fieldset class="dae-group">
+      <legend>Kinase</legend>
+      <label><input type="radio" name="dae-k" value="wt" checked /> BCR-ABL (threonine 315)</label>
+      <label><input type="radio" name="dae-k" value="mut" /> BCR-ABL T315I (isoleucine 315)</label>
+    </fieldset>
+    <fieldset class="dae-group">
+      <legend>Drug</legend>
+      <label><input type="radio" name="dae-d" value="none" checked /> none</label>
+      <label><input type="radio" name="dae-d" value="ima" /> imatinib</label>
+      <label><input type="radio" name="dae-d" value="pon" /> ponatinib</label>
+    </fieldset>
+  </div>
+
+  <p class="dae-verdict" data-verdict role="status"></p>
+
+  <p class="dae-foot">Rule to keep: a relapse that changes one residue the drug touches, while the kinase still works, tells you what the next drug must do, which is to grip the kinase without needing that residue. The shapes are a sketch of the logic, not a drawing of the molecules, and not to scale.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#6b6b78', TEAL = '#0e7c86', ORANGE = '#e57200', RED = '#b3261e';
+  type K = 'wt' | 'mut';
+  type D = 'none' | 'ima' | 'pon';
+  const DRUG = {
+    ima: { name: 'imatinib', fill: '#2f6f8f' },
+    pon: { name: 'ponatinib', fill: '#7a5ea8' },
+  };
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // Outcome of each pairing. 'unknown' = the lesson does not state it.
+  function judge(k: K, d: D): { fits: boolean | null; works: boolean | null; text: string } {
+    if (d === 'none') {
+      return k === 'wt'
+        ? { fits: null, works: true, text: 'No drug. BCR-ABL is a tyrosine kinase that is always on, so it works. This is the leukaemia the drugs were made for.' }
+        : { fits: null, works: true, text: 'No drug. The T315I kinase also works: the enzyme does not need residue 315 for its own reaction, so the kinase keeps working.' };
+    }
+    if (d === 'ima') {
+      return k === 'wt'
+        ? { fits: true, works: false, text: 'Imatinib sits in the ATP pocket. Threonine 315 is one of the contacts that hold it there, so the kinase is inhibited. This is the drug that killed BCR-ABL cells and spared normal ones.' }
+        : { fits: false, works: true, text: 'Imatinib does not hold. Isoleucine is bulkier than threonine and cannot make the contact threonine 315 made, so the drug fails to bind while the kinase keeps working. This is the relapse that Gorre and Sawyers found.' };
+    }
+    return k === 'mut'
+      ? { fits: true, works: false, text: 'Ponatinib was built for this escape. It has a slim, straight carbon-carbon triple bond where the isoleucine side chain sticks out, so it passes residue 315 without needing the contact, and it inhibits the T315I kinase.' }
+      : { fits: null, works: null, text: 'The lesson does not say whether ponatinib acts on the unmutated kinase; it describes ponatinib only against T315I. The wedge is parked outside and no verdict is given.' };
+  }
+  document.querySelectorAll<HTMLElement>('[data-drugescape]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const val = (n: string) => root.querySelector<HTMLInputElement>(`input[name="${n}"]:checked`)!.value;
+
+    function draw(k: K, d: D, fits: boolean | null, works: boolean | null) {
+      stage.replaceChildren();
+      const T = (x: number, y: number, str: string, o: Record<string, string | number> = {}) =>
+        stage.appendChild(el('text', { x, y, 'font-size': 10, fill: INK, ...o }, str));
+      const bulky = k === 'mut';
+      // kinase block with a dip (the ATP pocket) in its top edge: walls x140 and x260, floor y130
+      stage.appendChild(el('path', { d: 'M40 90 H140 V130 H260 V90 H320 V176 H40 Z', fill: bulky ? '#ecdff0' : '#dfeaf0', stroke: INK, 'stroke-width': 1.5 }));
+      T(48, 108, 'BCR-ABL', { 'font-weight': 700 });
+      T(48, 122, bulky ? 'T315I kinase' : 'kinase', { 'font-weight': 700 });
+      T(240, 150, 'ATP pocket', { 'text-anchor': 'middle', fill: FAINT });
+      stage.appendChild(el('line', { x1: 240, y1: 141, x2: 240, y2: 133, stroke: FAINT, 'stroke-width': 1 }));
+      // residue 315 on the pocket floor, under the middle of a fitted drug
+      const col = bulky ? ORANGE : TEAL;
+      if (bulky) stage.appendChild(el('rect', { x: 182, y: 118, width: 22, height: 12, rx: 2, fill: col }));
+      else stage.appendChild(el('rect', { x: 190, y: 124, width: 16, height: 6, rx: 2, fill: col }));
+      stage.appendChild(el('line', { x1: 196, y1: 130, x2: 196, y2: 160, stroke: col, 'stroke-width': 1 }));
+      T(44, 170, bulky ? 'isoleucine 315 (bulkier)' : 'threonine 315 (a contact for imatinib)', { 'font-weight': 700, fill: col });
+      // the drug wedge
+      if (d === 'none') {
+        T(292, 84, 'no drug', { fill: FAINT, 'text-anchor': 'middle', 'font-weight': 700 });
+      } else {
+        const D_ = DRUG[d];
+        const y0 = fits === true ? 100 : fits === false ? 60 : 38;
+        const g = el('g', { opacity: fits === null ? 0.55 : 1 });
+        if (d === 'pon') {
+          g.appendChild(el('rect', { x: 150, y: y0 + 3, width: 58, height: 8, fill: D_.fill }));
+          g.appendChild(el('rect', { x: 206, y: y0, width: 44, height: 24, rx: 3, fill: D_.fill }));
+        } else {
+          g.appendChild(el('path', { d: `M160 ${y0} H250 V${y0 + 24} H160 L150 ${y0 + 12} Z`, fill: D_.fill }));
+        }
+        stage.appendChild(g);
+        T(200, y0 - 4, D_.name, { 'text-anchor': 'middle', 'font-weight': 700, fill: D_.fill });
+        if (fits === true) T(292, 84, 'fits', { 'font-weight': 700, fill: TEAL, 'text-anchor': 'middle', 'font-size': 12 });
+        if (fits === false) {
+          T(292, 70, 'does not fit', { 'font-weight': 700, fill: RED, 'text-anchor': 'middle', 'font-size': 12 });
+          stage.appendChild(el('path', { d: 'M195 89 L205 99 M205 89 L195 99', stroke: RED, 'stroke-width': 2.5 }));
+        }
+        if (fits === null) T(292, 50, 'not stated', { fill: FAINT, 'text-anchor': 'middle', 'font-weight': 700 });
+      }
+      // the outcome
+      const lab = works === null ? 'in this sketch: no verdict' : works ? 'the kinase works' : 'the kinase is inhibited';
+      const oc = works === null ? FAINT : works ? RED : TEAL;
+      stage.appendChild(el('rect', { x: 80, y: 184, width: 200, height: 22, rx: 11, fill: '#fff', stroke: oc, 'stroke-width': 1.5 }));
+      T(180, 199, lab, { 'text-anchor': 'middle', 'font-weight': 700, fill: oc, 'font-size': 11 });
+    }
+    function render() {
+      const k = val('dae-k') as K, d = val('dae-d') as D;
+      const r = judge(k, d);
+      draw(k, d, r.fits, r.works);
+      verdict.textContent = r.text;
+    }
+    root.querySelectorAll('input').forEach((i) => i.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .dae { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dae-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dae-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dae-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dae-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); }
+  @media (max-width: 480px) { .dae-controls { grid-template-columns: 1fr; } }
+  .dae-group { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dae-group legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .dae-group input { accent-color: var(--ddp-color-accent); }
+  .dae-group input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dae-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .dae-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

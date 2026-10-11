@@ -2,35 +2,32 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LessonIcon from '../components/LessonIcon.astro';
+import { COURSES, courseOf, unitsFor } from '../data/courses';
 import { unitReviewByUnit, unitReviewHref } from '../data/lesson-games';
 
-const lessons = (await getCollection('lessons'))
-  .filter((l) => !l.data.draft)
+/* The homepage is the biochemistry course. Other courses live at /courses/<slug>/
+   and are listed in src/data/courses.ts. */
+const allLessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
+const lessons = allLessons
+  .filter((l) => l.data.course === 'biochemistry')
   .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+// An empty homepage must never ship quietly. It happened once in development: a
+// stale content cache served lessons parsed before `course` existed, the filter
+// above matched nothing, and the page rendered with no chapters and no error.
+if (lessons.length === 0) {
+  throw new Error('Homepage: no biochemistry lessons found. If you just changed src/schema.ts, delete node_modules/.astro/data-store.json and rebuild.');
+}
 
-/* Course units (approved 2026-08-13). Membership is by slug so a typo or an
+/* Units come from the course definition. Membership is by slug so a typo or an
    unmapped new lesson is visible: anything not listed falls into "New", it is
    never silently dropped. Within a unit, lessons keep their global order. */
-const UNITS: { name: string; slugs: string[] }[] = [
-  { name: 'Foundations', slugs: ['vitalism', 'intro-biochemistry-cell-biology', 'water-weak-bonds'] },
-  { name: 'Proteins', slugs: ['amino-acids', 'protein-3d-structure', 'protein-purification-techniques'] },
-  { name: 'Enzymes & Binding', slugs: ['enzyme-action-basics', 'enzyme-kinetics', 'protein-binding-allostery'] },
-  { name: 'Sugars, Lipids & Membranes', slugs: ['carbohydrates', 'lipids', 'membrane-structure-function'] },
-  { name: 'Signaling & Digestion', slugs: ['signal-transduction', 'digestion'] },
-  { name: 'Central Metabolism', slugs: ['metabolism-basic-concepts', 'glycolysis', 'gluconeogenesis', 'citric-acid-cycle', 'pyruvate-dehydrogenase', 'oxidative-phosphorylation', 'proton-motive-force'] },
-  { name: 'Photosynthesis', slugs: ['light-reactions', 'calvin-cycle'] },
-  { name: 'Fuels, Fat & Nitrogen', slugs: ['pentose-phosphate-pathway', 'fatty-acid-degradation', 'fatty-acid-synthesis', 'lipid-synthesis', 'protein-turnover-amino-acid-catabolism'] },
-  { name: 'Supplements', slugs: ['nucleotide-metabolism', 'integration-of-metabolism'] },
-];
-const mapped = new Set(UNITS.flatMap((u) => u.slugs));
-const units = UNITS.map((u) => ({
-  ...u,
-  entries: lessons
-    .map((l, i) => ({ l, n: i + 1 }))
-    .filter(({ l }) => u.slugs.includes(l.data.slug)),
-})).filter((u) => u.entries.length > 0);
-const unmapped = lessons.map((l, i) => ({ l, n: i + 1 })).filter(({ l }) => !mapped.has(l.data.slug));
-if (unmapped.length > 0) units.push({ name: 'New', slugs: [], entries: unmapped });
+const units = unitsFor(courseOf('biochemistry'), lessons);
+
+/* Other courses appear here only once they have a published lesson, so the page
+   is unchanged until then. */
+const otherCourses = COURSES.filter((c) => c.slug !== 'biochemistry')
+  .map((c) => ({ c, count: allLessons.filter((l) => l.data.course === c.slug).length }))
+  .filter(({ count }) => count > 0);
 
 /* Card hook: the `hook` frontmatter one-liner once approved; until then, the
    summary's first sentence, clamped to two lines by CSS. */
@@ -74,11 +71,28 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
         a first-time visitor starts at chapter 1; a returning student jumps
         to the unit list one anchor away. */}
     <p class="hero-cta">
-      <a class="cta" href={`/lessons/${firstLesson.data.slug}/`}>Start with Chapter 1 →</a>
+      {firstLesson && <a class="cta" href={`/lessons/${firstLesson.data.slug}/`}>Start with Chapter 1 →</a>}
       <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
       <a class="cta-ghost" href="#lessons">Browse the units ↓</a>
     </p>
   </section>
+
+  {otherCourses.length > 0 && (
+    <section class="wrap courses" aria-labelledby="courses-h">
+      <p class="sec-label" id="courses-h">More courses</p>
+      <ul class="course-list">
+        {otherCourses.map(({ c, count }) => (
+          <li>
+            <a href={`/courses/${c.slug}/`} class="course-card">
+              <span class="cc-title">{c.title}</span>
+              <span class="cc-tag">{c.tagline}</span>
+              <span class="cc-meta">{count} {count === 1 ? 'lesson' : 'lessons'}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <section class="wrap lessons" id="lessons">
     <p class="sec-label">Chapters · {lessons.length === 1 ? 'one live now' : `${lessons.length} live now`}</p>
@@ -664,5 +678,14 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       .lesson-card,
       .lesson-card::before { transition: none; }
     }
-  </style>
+  
+  /* Other courses (rendered only when one has a published lesson). */
+  .courses { margin-top: var(--ddp-space-6, 2rem); }
+  .course-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--ddp-space-3, 0.75rem); }
+  .course-card { display: flex; flex-direction: column; gap: 0.25rem; padding: var(--ddp-space-4, 1rem); border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); color: inherit; text-decoration: none; }
+  .course-card:hover, .course-card:focus-visible { border-color: var(--ddp-color-accent); }
+  .cc-title { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+  .cc-tag { color: var(--ddp-color-ink-soft); }
+  .cc-meta { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+</style>
 </BaseLayout>

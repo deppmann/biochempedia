@@ -1,0 +1,139 @@
+---
+/**
+ * CoincidenceDetector — conventional protein kinase C answers only when calcium and DAG
+ * arrive together. The learner switches calcium and DAG on and off and sets how strongly
+ * each contact alone favors the membrane (the lesson's example: say thirtyfold). The model
+ * is the lesson's: binding energies add, so preferences multiply (K(both) = K(C1) x K(C2));
+ * only the pair holds the enzyme firmly enough to free the active site. The slider changes
+ * the numbers, not the rule. Labelled blocks and bars only. Self-contained vanilla-TS island.
+ */
+---
+
+<figure class="cd card" data-coincidence>
+  <figcaption class="cd-head">Coincidence detector: conventional PKC needs both signals<span class="cd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cd-svg" viewBox="0 0 360 220" role="img" aria-label="Conventional protein kinase C either loose in the cytosol or held on the inner face of the membrane by its calcium-bound C2 domain and its DAG-bound C1 domain, with a bar showing how strongly the membrane is favored" data-stage></svg>
+
+  <fieldset class="cd-ctl">
+    <legend>The signals</legend>
+    <label><input type="checkbox" data-in="ca" /> calcium is high (C2 can grip)</label>
+    <label><input type="checkbox" data-in="dag" /> DAG is in the membrane (C1 can grip)</label>
+  </fieldset>
+  <div class="cd-slide">
+    <label for="cd-k">Each contact alone favors the membrane by (say): <strong data-kval>30</strong>-fold</label>
+    <input id="cd-k" type="range" min="2" max="100" step="1" value="30" data-k />
+  </div>
+
+  <p class="cd-verdict" data-verdict role="status"></p>
+
+  <p class="cd-foot">Keep the rule: neither signal alone is enough, because only the pair holds a conventional PKC at the membrane firmly enough to free its active site. Thirtyfold is the lesson's example, not a measured value, and this is true of conventional PKC, not of every PKC. This is a sketch of the logic. The slider's range, 2 to 100, is this sketch's own, and the lesson states no threshold.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function fold(n: number): string {
+    return n >= 1000 ? Math.round(n).toLocaleString('en-US') : String(Math.round(n));
+  }
+  document.querySelectorAll<HTMLElement>('[data-coincidence]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const kval = root.querySelector<HTMLElement>('[data-kval]')!;
+    const slider = root.querySelector<HTMLInputElement>('[data-k]')!;
+    const ca = root.querySelector<HTMLInputElement>('[data-in="ca"]')!;
+    const dag = root.querySelector<HTMLInputElement>('[data-in="dag"]')!;
+    const INK = '#4b4b55', FAINT = '#b9b9c2';
+
+    function draw(hasCa: boolean, hasDag: boolean, k: number, favor: number) {
+      stage.replaceChildren();
+      const both = hasCa && hasDag;
+      // membrane
+      stage.appendChild(el('rect', { x: 0, y: 30, width: 360, height: 12, fill: '#d9d9e0' }));
+      stage.appendChild(el('text', { x: 8, y: 22, 'font-size': 9, fill: INK }, 'membrane'));
+      stage.appendChild(el('text', { x: 8, y: 58, 'font-size': 9, fill: INK }, 'inner face, cytosol'));
+      // DAG heads
+      for (const x of [214, 250, 286]) {
+        stage.appendChild(el('rect', { x: x - 6, y: 42, width: 12, height: 8, rx: 2, fill: hasDag ? '#7a5ea8' : '#fff', stroke: hasDag ? '#7a5ea8' : FAINT, 'stroke-width': 1.2 }));
+      }
+      stage.appendChild(el('text', { x: 250, y: 22, 'font-size': 9, 'text-anchor': 'middle', fill: hasDag ? '#7a5ea8' : INK }, hasDag ? 'DAG present' : 'no DAG'));
+      // calcium dots
+      if (hasCa) for (const [x, y] of [[104, 62], [136, 74], [78, 80], [150, 58]]) {
+        stage.appendChild(el('circle', { cx: x, cy: y, r: 3.2, fill: '#b8860b' }));
+      }
+      stage.appendChild(el('text', { x: 140, y: 22, 'font-size': 9, 'text-anchor': 'middle', fill: hasCa ? '#b8860b' : INK }, hasCa ? 'calcium high' : 'calcium low'));
+      // kinase: C2, C1, pseudosubstrate, kinase domain
+      const y = both ? 52 : 120, x0 = 100, w = 40;
+      const blocks: { name: string; fill: string; on: boolean }[] = [
+        { name: 'C2', fill: '#b8860b', on: hasCa },
+        { name: 'C1', fill: '#7a5ea8', on: hasDag },
+      ];
+      blocks.forEach((b, i) => {
+        const x = x0 + i * (w + 4);
+        stage.appendChild(el('rect', { x, y, width: w, height: 24, rx: 5, fill: '#fff' }));
+        stage.appendChild(el('rect', { x, y, width: w, height: 24, rx: 5, fill: b.fill, opacity: b.on ? 1 : 0.45 }));
+        stage.appendChild(el('text', { x: x + w / 2, y: y + 16, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, b.name));
+        if (b.on && !both) stage.appendChild(el('text', { x: x + w / 2, y: y - 4, 'font-size': 9, 'text-anchor': 'middle', fill: b.fill }, 'weak contact'));
+        if (both) stage.appendChild(el('line', { x1: x + w / 2, y1: y, x2: x + w / 2, y2: 44, stroke: b.fill, 'stroke-width': 1.5, 'stroke-dasharray': '2 2' }));
+      });
+      const kx = x0 + 2 * (w + 4);
+      stage.appendChild(el('rect', { x: kx, y, width: 92, height: 24, rx: 5, fill: '#4b4b55' }));
+      stage.appendChild(el('text', { x: kx + 46, y: y + 16, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'kinase domain'));
+      // pseudosubstrate: in the active site (blocking) or pulled out
+      if (both) {
+        stage.appendChild(el('rect', { x: kx + 8, y: y + 32, width: 76, height: 16, rx: 4, fill: '#fff', stroke: '#c0392b', 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: kx + 46, y: y + 44, 'font-size': 9, 'text-anchor': 'middle', fill: '#c0392b' }, 'pseudosubstrate'));
+        stage.appendChild(el('text', { x: 180, y: y + 66, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#0e7c86' }, 'held at the membrane: kinase works'));
+      } else {
+        stage.appendChild(el('rect', { x: kx + 8, y: y + 8, width: 76, height: 14, rx: 4, fill: '#fff', stroke: '#c0392b', 'stroke-width': 1.5 }));
+        stage.appendChild(el('text', { x: kx + 46, y: y + 19, 'font-size': 9, 'text-anchor': 'middle', fill: '#c0392b' }, 'pseudosubstrate'));
+        stage.appendChild(el('text', { x: 180, y: y + 44, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'pseudosubstrate in the active site: kinase off'));
+      }
+      // preference bar, log scale up to k*k at the slider's maximum (10,000)
+      const bx = 20, bw = 320, by = 184;
+      stage.appendChild(el('text', { x: bx, y: by - 8, 'font-size': 9, fill: INK }, 'how strongly the membrane is favored (log scale, relative units)'));
+      stage.appendChild(el('rect', { x: bx, y: by, width: bw, height: 14, rx: 3, fill: '#fff', stroke: FAINT }));
+      const frac = Math.log(favor) / Math.log(10000);
+      if (favor > 1) stage.appendChild(el('rect', { x: bx, y: by, width: Math.max(2, bw * frac), height: 14, rx: 3, fill: both ? '#0e7c86' : '#8aa4ad' }));
+      stage.appendChild(el('text', { x: bx, y: by + 28, 'font-size': 10, 'font-weight': 700, fill: INK }, favor === 1 ? 'no preference (1-fold)' : `${fold(favor)}-fold`));
+      stage.appendChild(el('text', { x: bx + bw, y: by + 28, 'font-size': 9, 'text-anchor': 'end', fill: INK }, `one contact: ${fold(k)}-fold; both: about ${fold(k * k)}-fold`));
+    }
+    function render() {
+      const hasCa = ca.checked, hasDag = dag.checked, k = Number(slider.value);
+      kval.textContent = String(k);
+      const favor = (hasCa ? k : 1) * (hasDag ? k : 1);
+      draw(hasCa, hasDag, k, favor);
+      const both = hasCa && hasDag;
+      let v: string;
+      if (both) v = `Calcium lets C2 land on the membrane and C1 finds DAG. Binding energies add, so preferences multiply: ${fold(k)} × ${fold(k)} is about ${fold(k * k)}-fold. In this sketch, only the pair holds the enzyme there firmly enough to pull the pseudosubstrate out of the active site, so the kinase works.`;
+      else if (hasCa) v = `Calcium alone lets C2 touch the membrane, favoring it about ${fold(k)}-fold. That is weak: the contact is too weak to hold the enzyme firmly enough to pull the pseudosubstrate out, so the kinase stays off. DAG is missing.`;
+      else if (hasDag) v = `DAG alone gives C1 a contact that favors the membrane about ${fold(k)}-fold. That is weak: the contact is too weak to hold the enzyme firmly enough to pull the pseudosubstrate out, so the kinase stays off. Calcium is missing.`;
+      else v = 'With neither signal the enzyme is folded shut in the cytosol, with its pseudosubstrate blocking the active site. Switch on calcium and DAG to see what a single signal does, then both.';
+      verdict.textContent = v;
+    }
+    slider.addEventListener('input', render);
+    ca.addEventListener('change', render);
+    dag.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .cd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cd-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cd-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cd-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .cd-ctl input, .cd-slide input { accent-color: var(--ddp-color-accent); }
+  .cd-slide { display: flex; flex-direction: column; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .cd-slide input { width: 100%; }
+  .cd input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cd-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .cd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cd-ctl { grid-template-columns: 1fr; } }
+</style>

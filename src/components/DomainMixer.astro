@@ -1,0 +1,219 @@
+---
+/**
+ * DomainMixer — build a signaling protein from modular domains and see where the cell
+ * puts it. The learner snaps readers (SH2, SH3, PH, C2) and a passenger enzyme onto a
+ * backbone, then switches three cell conditions (receptor phosphorylated, PIP3 made,
+ * calcium high). The protein is held at the membrane only by grips whose target is
+ * present. A "grip strength" switch contrasts ordinary grips (any one holds) with the
+ * deliberately weak grips of a coincidence detector (all must hold), which is the design
+ * problem of the protein-interaction-modules lesson. Every rule here is a statement of
+ * that lesson; nothing is drawn as a molecular structure (labelled blocks only).
+ * Self-contained vanilla-TS Astro island. Original.
+ *
+ * `lite` shows only the parts a lesson has introduced when that lesson covers SH2 and SH3
+ * alone (how-signaling-evolved): no PH or C2, no PIP3, calcium or weak-grip switch.
+ */
+const { lite = false } = Astro.props;
+---
+
+<figure class="dm card" data-domainmixer data-lite={lite ? "1" : undefined}>
+  <figcaption class="dm-head">Domain mixer: build a protein from parts<span class="dm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="dm-svg" viewBox="0 0 360 200" role="img" aria-label="A membrane with a receptor, and the protein you built either held at the membrane or loose in the cytosol" data-stage></svg>
+
+  <div class="dm-row">
+    <span class="dm-label">Add a part</span>
+    <div class="dm-palette" data-palette></div>
+  </div>
+  <div class="dm-row">
+    <span class="dm-label">Your protein</span>
+    <div class="dm-chain" data-chain aria-live="polite"></div>
+    <button type="button" class="dm-btn dm-clear" data-clear>clear</button>
+  </div>
+  <div class="dm-row">
+    <span class="dm-label">Or start from</span>
+    <div class="dm-presets" data-presets></div>
+  </div>
+
+  <fieldset class="dm-cell">
+    <legend>The cell</legend>
+    <label><input type="checkbox" data-in="ptyr" /> receptor phosphorylated on tyrosine</label>
+    <label data-full><input type="checkbox" data-in="pip3" /> PI 3-kinase has made PIP3</label>
+    <label data-full><input type="checkbox" data-in="ca" /> calcium is high</label>
+    <label class="dm-weak" data-full><input type="checkbox" data-in="weak" /> every grip is weak (coincidence detector)</label>
+  </fieldset>
+
+  <p class="dm-verdict" data-verdict role="status"></p>
+  <ul class="dm-list" data-list></ul>
+
+  <p class="dm-foot">A module keeps its job when you move it. Each reader grips only when its target is there, and an enzyme with no reader is not brought anywhere. This is a sketch of the logic, not a prediction for a real construct.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Kind = 'SH2' | 'SH3' | 'PH' | 'C2' | 'ENZ';
+  type Cond = { ptyr: boolean; pip3: boolean; ca: boolean; weak: boolean };
+  const PARTS: Record<Kind, { name: string; fill: string; reads: string; grip: 'ptyr' | 'pip3' | 'ca' | null }> = {
+    SH2: { name: 'SH2', fill: '#0e7c86', reads: 'a phosphotyrosine and the residues just after it', grip: 'ptyr' },
+    SH3: { name: 'SH3', fill: '#e57200', reads: 'a proline-rich motif with a PxxP core', grip: null },
+    PH: { name: 'PH', fill: '#7a5ea8', reads: 'PIP3 (a PH domain of the Akt type)', grip: 'pip3' },
+    C2: { name: 'C2', fill: '#b8860b', reads: 'acidic membrane lipids, only with calcium bound', grip: 'ca' },
+    ENZ: { name: 'enzyme', fill: '#4b4b55', reads: 'nothing: it converts a substrate and has no grip of its own', grip: null },
+  };
+  const PRESETS: { label: string; chain: Kind[]; note: string }[] = [
+    { label: 'Grb2', chain: ['SH3', 'SH2', 'SH3'], note: 'Grb2 is little more than an SH3, an SH2 and a second SH3 in a row.' },
+    { label: 'Crk', chain: ['SH2', 'SH3'], note: 'The viral Crk protein is an SH2 domain joined to an SH3 domain, with no enzyme anywhere in it.' },
+    { label: 'reader on an enzyme', chain: ['SH2', 'ENZ'], note: 'A reader spliced onto an enzyme that already works lets a receptor control it.' },
+    { label: 'design problem', chain: ['PH', 'SH2', 'C2'], note: 'One answer to the design problem: a PH domain, an SH2 domain and a calcium-dependent C2 domain. Tick the weak-grip box.' },
+  ];
+  const MAX = 5;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-domainmixer]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const palette = root.querySelector<HTMLElement>('[data-palette]')!;
+    const chainEl = root.querySelector<HTMLElement>('[data-chain]')!;
+    const presets = root.querySelector<HTMLElement>('[data-presets]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const lite = root.dataset.lite === '1';
+    if (lite) root.querySelectorAll<HTMLElement>('[data-full]').forEach((e) => { e.hidden = true; });
+    let chain: Kind[] = ['SH2', 'ENZ'];
+    let note = '';
+
+    function cond(): Cond {
+      return { ptyr: inp('ptyr').checked, pip3: inp('pip3').checked, ca: inp('ca').checked, weak: inp('weak').checked };
+    }
+    function judge(c: Cond) {
+      const grips = chain.filter((k) => PARTS[k].grip);
+      const held = grips.filter((k) => c[PARTS[k].grip!]);
+      // A weak grip never holds alone: the coincidence detector needs two or more different inputs.
+      const atMembrane = grips.length > 0 && (c.weak ? new Set(grips).size >= 2 && held.length === grips.length : held.length > 0);
+      return { grips, held, atMembrane };
+    }
+    function drawStage(c: Cond, atMembrane: boolean) {
+      stage.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#8a8a96';
+      stage.appendChild(el('text', { x: 8, y: 14, 'font-size': 9, fill: INK }, 'outside the cell'));
+      stage.appendChild(el('rect', { x: 0, y: 40, width: 360, height: 12, fill: '#d9d9e0' }));
+      stage.appendChild(el('text', { x: 352, y: 66, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'inner face of the membrane'));
+      stage.appendChild(el('text', { x: 352, y: 192, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'cytosol'));
+      // receptor: a bar through the membrane with a tail
+      stage.appendChild(el('rect', { x: 84, y: 20, width: 12, height: 44, rx: 3, fill: '#2f6f8f' }));
+      stage.appendChild(el('line', { x1: 90, y1: 64, x2: 90, y2: 96, stroke: '#2f6f8f', 'stroke-width': 3 }));
+      stage.appendChild(el('text', { x: 100, y: 30, 'font-size': 9, fill: INK }, 'receptor'));
+      stage.appendChild(el('circle', { cx: 90, cy: 96, r: 7, fill: c.ptyr ? '#d4a017' : '#fff', stroke: c.ptyr ? '#d4a017' : FAINT, 'stroke-width': 1.5 }));
+      stage.appendChild(el('text', { x: 90, y: 99, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: c.ptyr ? '#fff' : INK }, c.ptyr ? 'P' : 'Y'));
+      // PIP3 lipid heads on the inner face
+      if (!lite) for (const x of [170, 196, 222]) {
+        stage.appendChild(el('rect', { x: x - 6, y: 52, width: 12, height: 8, rx: 2, fill: c.pip3 ? '#7a5ea8' : '#fff', stroke: c.pip3 ? '#7a5ea8' : FAINT, 'stroke-width': 1.2 }));
+      }
+      if (!lite) stage.appendChild(el('text', { x: 196, y: 34, 'font-size': 9, 'text-anchor': 'middle', fill: c.pip3 ? '#7a5ea8' : FAINT }, c.pip3 ? 'PIP3' : 'no PIP3'));
+      // calcium
+      if (c.ca) for (const [x, y] of [[286, 84], [304, 100], [322, 82], [296, 120], [330, 112]]) {
+        stage.appendChild(el('circle', { cx: x, cy: y, r: 3.2, fill: '#b8860b' }));
+      }
+      if (!lite) stage.appendChild(el('text', { x: 308, y: 34, 'font-size': 9, 'text-anchor': 'middle', fill: c.ca ? '#b8860b' : FAINT }, c.ca ? 'calcium high' : 'calcium low'));
+      // the protein: a row of labelled blocks
+      const w = chain.length > 3 ? 38 : 44, gap = 4, total = chain.length * w + (chain.length - 1) * gap;
+      const x0 = Math.max(104, (360 - total) / 2), y = atMembrane ? 72 : 138;
+      if (chain.length === 0) {
+        stage.appendChild(el('text', { x: 180, y: 150, 'font-size': 10, 'text-anchor': 'middle', fill: FAINT }, 'add a part to begin'));
+        return;
+      }
+      stage.appendChild(el('line', { x1: x0, y1: y + 12, x2: x0 + total, y2: y + 12, stroke: INK, 'stroke-width': 1.5 }));
+      chain.forEach((k, i) => {
+        const p = PARTS[k], x = x0 + i * (w + gap);
+        const on = p.grip ? c[p.grip] : false;
+        stage.appendChild(el('rect', { x, y, width: w, height: 24, rx: 5, fill: '#fff' }));
+        stage.appendChild(el('rect', { x, y, width: w, height: 24, rx: 5, fill: p.fill, opacity: p.grip && !on ? 0.6 : 1 }));
+        stage.appendChild(el('text', { x: x + w / 2, y: y + 16, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, p.name));
+        if (p.grip && on && atMembrane) stage.appendChild(el('line', { x1: x + w / 2, y1: y, x2: x + w / 2, y2: 62, stroke: p.fill, 'stroke-width': 1.5, 'stroke-dasharray': '2 2' }));
+      });
+      stage.appendChild(el('text', { x: 180, y: y + 40, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: atMembrane ? '#0e7c86' : INK }, atMembrane ? 'held at the membrane' : 'loose in the cytosol'));
+    }
+    function render() {
+      const c = cond();
+      const { grips, held, atMembrane } = judge(c);
+      chainEl.replaceChildren();
+      chain.forEach((k, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'dm-part'; b.style.background = PARTS[k].fill;
+        b.textContent = PARTS[k].name + ' ×'; b.setAttribute('aria-label', `remove ${PARTS[k].name}`);
+        b.addEventListener('click', () => { chain.splice(i, 1); note = ''; render(); });
+        chainEl.appendChild(b);
+      });
+      if (chain.length === 0) chainEl.textContent = 'empty';
+      drawStage(c, atMembrane);
+      const hasSH3 = chain.includes('SH3'), hasEnz = chain.includes('ENZ');
+      let v: string;
+      if (chain.length === 0) v = 'Add a part to build a protein.';
+      else if (grips.length === 0) v = hasSH3
+        ? 'This protein has no grip on the membrane or on the receptor. Its SH3 domain can hold a proline-rich partner, but nothing brings the pair to the receptor.'
+        : 'This protein has no reader at all. It stays in the cytosol whatever the cell does.';
+      else if (atMembrane) v = c.weak
+        ? `All ${grips.length} grips are engaged, so the protein stays. With weak grips it stays only where every target is within reach.`
+        : `${held.length} of ${grips.length} grip${grips.length === 1 ? '' : 's'} engaged: the protein is held at the membrane.`;
+      else v = c.weak && held.length > 0
+        ? (held.length === grips.length
+          ? 'Each grip alone is weak, so the protein does not stay. A coincidence detector needs two different inputs.'
+          : `Only ${held.length} of ${grips.length} grips are engaged. Each grip alone is weak, so the protein does not stay.`)
+        : 'None of its grips has a target yet, so the protein stays in the cytosol.';
+      if (atMembrane && hasEnz) v += ' Its enzyme is now held at the membrane.';
+      if (atMembrane && hasSH3) v += ' Any proline-rich partner its SH3 domain holds is brought to the membrane too.';
+      verdict.textContent = (note ? note + ' ' : '') + v;
+      list.replaceChildren();
+      const seen = new Set<Kind>();
+      chain.forEach((k) => {
+        if (seen.has(k)) return; seen.add(k);
+        const li = document.createElement('li');
+        const p = PARTS[k];
+        const state = p.grip ? (c[p.grip] ? 'target present' : 'target absent') : '';
+        li.innerHTML = `<strong style="color:${p.fill}">${p.name}</strong> reads ${p.reads}${state ? ` <em>(${state})</em>` : ''}.`;
+        list.appendChild(li);
+      });
+    }
+    (Object.keys(PARTS) as Kind[]).filter((k) => !lite || (k !== 'PH' && k !== 'C2')).forEach((k) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'dm-part'; b.style.background = PARTS[k].fill;
+      b.textContent = '+ ' + PARTS[k].name;
+      b.addEventListener('click', () => { if (chain.length < MAX) { chain.push(k); note = ''; } else note = 'Five parts is the limit here: remove one to add another.'; render(); });
+      palette.appendChild(b);
+    });
+    PRESETS.filter((p) => !lite || (p.label !== 'Crk' && p.label !== 'design problem')).forEach((p) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'dm-btn'; b.textContent = p.label;
+      b.addEventListener('click', () => { chain = [...p.chain]; note = p.note; render(); });
+      presets.appendChild(b);
+    });
+    root.querySelector<HTMLButtonElement>('[data-clear]')!.addEventListener('click', () => { chain = []; note = ''; render(); });
+    ['ptyr', 'pip3', 'ca', 'weak'].forEach((k) => inp(k).addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .dm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dm-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.35rem 0; }
+  .dm-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 6.2em; }
+  .dm-palette, .dm-chain, .dm-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dm-part { border: 0; border-radius: 5px; color: #fff; font-weight: 700; font-size: var(--ddp-text-xs); padding: 0.3rem 0.55rem; cursor: pointer; }
+  .dm-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.25rem 0.5rem; cursor: pointer; }
+  .dm-part:focus-visible, .dm-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dm-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dm-cell legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .dm-cell input { accent-color: var(--ddp-color-accent); }
+  .dm-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .dm-list { margin: 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .dm-list em { color: var(--ddp-color-muted); }
+  .dm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .dm-cell { grid-template-columns: 1fr; } }
+</style>

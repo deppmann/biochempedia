@@ -11,19 +11,26 @@ import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
 import { feedbackUrl } from '../../lib/feedback';
+import { courseOf } from '../../data/courses';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 
 export async function getStaticPaths() {
   // Drafts must not generate a route. The homepage and sitemap already filter
   // them; without the same filter here, a draft stays reachable by direct URL
   // even though nothing links to it.
-  const lessons = await getCollection('lessons', ({ data }) => !data.draft);
+  // Exception: `astro dev` renders drafts so an author can read one before it is
+  // published. A production build never does, and scripts/check-drafts.mjs still
+  // fails the build if a draft reaches dist/.
+  const lessons = await getCollection('lessons', ({ data }) => import.meta.env.DEV || !data.draft);
   return lessons.map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
 }
 
 const { entry } = Astro.props;
-// Global lesson order, same sort + numbering as the homepage.
-const allLessons = (await getCollection('lessons', ({ data }) => !data.draft)).sort(
+// Lesson order within this lesson's own course, same sort and numbering as its course
+// page (the homepage, for biochemistry). Previous and next never cross into another
+// course. Drafts count only in `astro dev`, where they are the pages being previewed.
+const allLessons = (await getCollection('lessons', ({ data }) =>
+  data.course === entry.data.course && (import.meta.env.DEV || !data.draft))).sort(
   (a, b) => (a.data.order ?? 99) - (b.data.order ?? 99),
 );
 const hookFor = (l: (typeof allLessons)[number]) =>
@@ -38,6 +45,7 @@ const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
 const { Content } = await render(entry);
 const lesson = entry.data;
+const course = courseOf(lesson.course);
 
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const localSims = lesson.simulations.filter((s) => s.type === 'local');
@@ -71,13 +79,18 @@ const lessonLd = {
   learningResourceType: 'interactive lesson',
   inLanguage: 'en',
   about: lesson.courseChapter,
-  isPartOf: { '@type': 'Course', name: 'Biochemistrypedia', provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
+  isPartOf: { '@type': 'Course', name: course.slug === 'biochemistry' ? 'Biochemistrypedia' : course.title, provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
 };
 ---
 
 <BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
   <article id="top">
     <header class="lesson-hero wrap">
+      {lesson.draft && (
+        <p class="draft-banner" role="note">
+          Draft. Visible only in local preview, and not yet reviewed by a person.
+        </p>
+      )}
       <p class="eyebrow">{lesson.courseChapter}</p>
       <h1>{lesson.title}</h1>
       <p class="summary">{lesson.summary}</p>
@@ -118,10 +131,6 @@ const lessonLd = {
           </video>
           <figcaption>
             <p class="explainer-h" id="explainer-h"><span class="explainer-kicker">Watch first</span> {ex.title} <span class="explainer-len">· {exLen}</span></p>
-            <p class="explainer-note">
-              Narration: {ex.narration}. The animation is a schematic drawn in code by an AI
-              (Claude): boxes, arrows and plots, never a molecular structure. {ex.factCheckedBy && `Checked by ${ex.factCheckedBy}.`} Captions: press CC.
-            </p>
           </figcaption>
         </figure>
       </section>
@@ -585,6 +594,7 @@ const lessonLd = {
   </script>
 
   <style>
+    .draft-banner { display: inline-block; margin: 0 0 var(--ddp-space-3); padding: 0.3rem 0.7rem; border: 1px dashed var(--ddp-color-caution); border-radius: 6px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-size: var(--ddp-text-sm); }
     .lesson-hero { padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6); }
     .eyebrow {
       font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);

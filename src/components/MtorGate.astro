@@ -1,0 +1,159 @@
+---
+/**
+ * MtorGate — mTORC1 needs two yeses (a growth-factor signal and an amino acid signal) and
+ * can be vetoed by low energy (AMPK). Three switches; the wiring of the lesson is drawn as
+ * labelled blocks, each link lit or grey, with one output: mTORC1 on or off. The status
+ * line says which input is missing and what that input does (activation versus position).
+ * Every rule here is a statement of the mtor-and-ampk lesson; the lesson's hedges are kept.
+ * Labelled blocks only; no molecules are drawn. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mg card" data-mtorgate>
+  <figcaption class="mg-head">The mTORC1 gate: two yeses and a veto<span class="mg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="mg-svg" viewBox="0 0 360 240" role="img" aria-label="Wiring diagram: growth factor to Akt to the TSC complex to Rheb to mTORC1; amino acids to the Rags to mTORC1; low energy to AMPK, which acts on the TSC complex and on Raptor" data-stage></svg>
+
+  <fieldset class="mg-cell">
+    <legend>The cell</legend>
+    <label><input type="checkbox" data-in="gf" checked /> a growth factor is present</label>
+    <label><input type="checkbox" data-in="aa" checked /> amino acids are present</label>
+    <label><input type="checkbox" data-in="lo" /> energy is low (AMPK is on)</label>
+  </fieldset>
+
+  <p class="mg-verdict" data-verdict role="status"></p>
+
+  <p class="mg-foot">mTORC1 gives the order only when the growth-factor input and the amino acid input are both there, and low energy can veto it. The picture is a sketch of the logic: in this sketch, an arrowhead is an activation and a flat bar is an inhibition; teal means an input is present and being passed on, rust means a brake or the energy veto is acting, and grey means quiet. Where Akt and AMPK both act on the TSC complex, the sketch lets AMPK win.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const TEAL = '#0e7c86', RUST = '#b34a2a', GREY = '#8a8a96', INK = '#4b4b55';
+  type S = { gf: boolean; aa: boolean; lo: boolean };
+
+  document.querySelectorAll<HTMLElement>('[data-mtorgate]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+
+    // kind: 'on' (teal), 'brake' (rust), 'off' (grey)
+    function block(x: number, y: number, w: number, label: string, kind: string, caption: string) {
+      const fill = kind === 'on' ? TEAL : kind === 'brake' ? RUST : '#ececf0';
+      const stroke = kind === 'off' ? GREY : fill;
+      stage.appendChild(el('rect', { x, y, width: w, height: 26, rx: 5, fill, stroke, 'stroke-width': 1.5 }));
+      stage.appendChild(el('text', { x: x + w / 2, y: y + 17, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: kind === 'off' ? INK : '#fff' }, label));
+      stage.appendChild(el('text', { x: x + w / 2, y: y - 5, 'font-size': 9, 'text-anchor': 'middle', fill: kind === 'off' ? INK : kind === 'brake' ? RUST : TEAL }, caption));
+    }
+    function link(pts: [number, number][], kind: string, end: 'arrow' | 'bar' = 'arrow', dashed = false) {
+      const col = kind === 'on' ? TEAL : kind === 'brake' ? RUST : '#c4c4cc';
+      const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' ');
+      const path = el('path', { d, fill: 'none', stroke: col, 'stroke-width': kind === 'off' ? 1.5 : 2.5 });
+      if (dashed) path.setAttribute('stroke-dasharray', '4 3');
+      stage.appendChild(path);
+      const [a, b] = [pts[pts.length - 2], pts[pts.length - 1]];
+      const dx = Math.sign(b[0] - a[0]), dy = Math.sign(b[1] - a[1]);
+      if (end === 'bar') {
+        const bar = dx ? `M${b[0]} ${b[1] - 6} L${b[0]} ${b[1] + 6}` : `M${b[0] - 6} ${b[1]} L${b[0] + 6} ${b[1]}`;
+        stage.appendChild(el('path', { d: bar, stroke: col, 'stroke-width': 3, fill: 'none' }));
+        return;
+      }
+      const tip = dx ? `${b[0]} ${b[1]} L${b[0] - 6 * dx} ${b[1] - 4} L${b[0] - 6 * dx} ${b[1] + 4} Z` : `${b[0]} ${b[1]} L${b[0] - 4} ${b[1] - 6 * dy} L${b[0] + 4} ${b[1] - 6 * dy} Z`;
+      stage.appendChild(el('path', { d: 'M' + tip, fill: col }));
+    }
+    function note(x: number, y: number, t: string, anchor = 'middle', fill = INK) {
+      stage.appendChild(el('text', { x, y, 'font-size': 9, 'text-anchor': anchor, fill }, t));
+    }
+
+    function draw(s: S) {
+      stage.replaceChildren();
+      const rhebOn = s.gf && !s.lo;
+      const tscBrake = !s.gf || s.lo;
+      const on = s.gf && s.aa && !s.lo;
+      // links (arrowhead = activation, flat bar = inhibition)
+      link([[76, 37], [90, 37]], s.gf ? 'on' : 'off');
+      link([[128, 37], [144, 37]], s.gf ? 'on' : 'off', 'bar');
+      link([[208, 37], [224, 37]], tscBrake ? 'brake' : 'off', 'bar');
+      link([[268, 37], [288, 37]], rhebOn ? 'on' : 'off');
+      link([[76, 113], [90, 113]], s.aa ? 'on' : 'off');
+      link([[140, 113], [288, 113]], s.aa ? 'on' : 'off');
+      link([[76, 197], [90, 197]], s.lo ? 'brake' : 'off');
+      link([[132, 197], [178, 197], [178, 52]], s.lo ? 'brake' : 'off', 'arrow', true);
+      link([[178, 197], [288, 197]], s.lo ? 'brake' : 'off', 'bar', true);
+      // blocks
+      block(4, 24, 72, 'Growth factor', s.gf ? 'on' : 'off', s.gf ? 'present' : 'absent');
+      block(90, 24, 38, 'Akt', s.gf ? 'on' : 'off', s.gf ? 'on' : 'off');
+      block(144, 24, 64, 'TSC complex', tscBrake ? 'brake' : 'off', s.lo ? 'more active' : s.gf ? 'silenced' : 'active (GAP)');
+      block(224, 24, 44, 'Rheb', rhebOn ? 'on' : 'off', rhebOn ? 'holds GTP' : 'no GTP');
+      block(4, 100, 72, 'Amino acids', s.aa ? 'on' : 'off', s.aa ? 'present' : 'absent');
+      block(90, 100, 50, 'Rags', s.aa ? 'on' : 'off', s.aa ? (s.lo ? 'carry signal' : 'hold mTORC1') : 'let it go');
+      block(4, 184, 72, 'Low energy', s.lo ? 'brake' : 'off', s.lo ? 'AMP up' : 'not low');
+      block(90, 184, 42, 'AMPK', s.lo ? 'brake' : 'off', s.lo ? 'on' : 'quiet');
+      // notes on links
+      note(286, 62, 'thought to meet', 'end');
+      note(286, 72, 'Rheb here', 'end');
+      if (!s.lo) note(214, 106, s.aa ? 'to lysosome' : 'not placed', 'middle', s.aa ? TEAL : INK);
+      note(184, 160, 'to TSC2', 'start', s.lo ? RUST : INK);
+      note(238, 192, 'to Raptor', 'middle', s.lo ? RUST : INK);
+      // output
+      stage.appendChild(el('rect', { x: 290, y: 24, width: 66, height: 188, rx: 6, fill: on ? TEAL : '#ececf0', stroke: on ? TEAL : GREY, 'stroke-width': 1.5 }));
+      stage.appendChild(el('text', { x: 323, y: 50, 'font-size': 11, 'text-anchor': 'middle', 'font-weight': 700, fill: on ? '#fff' : INK }, 'mTORC1'));
+      stage.appendChild(el('text', { x: 323, y: 120, 'font-size': 18, 'text-anchor': 'middle', 'font-weight': 700, fill: on ? '#fff' : INK }, on ? 'ON' : 'OFF'));
+      if (!s.lo) stage.appendChild(el('text', { x: 323, y: 148, 'font-size': 9, 'text-anchor': 'middle', fill: on ? '#fff' : INK }, s.aa ? 'on lysosome' : 'in cytoplasm'));
+      stage.appendChild(el('text', { x: 323, y: 200, 'font-size': 9, 'text-anchor': 'middle', fill: on ? '#fff' : INK }, 'output'));
+    }
+
+    function say(s: S): string {
+      if (s.gf && s.aa && !s.lo) {
+        return 'Both yeses and no veto. Akt has silenced the TSC complex, so Rheb holds GTP, and the Rags hold mTORC1 on the lysosome surface, where it is thought to meet Rheb. mTORC1 is on: S6 kinase is switched on and 4E-BP1 lets go of eIF4E. AMPK is quiet.';
+      }
+      const parts: string[] = [];
+      if (!s.gf) {
+        parts.push(
+          'No growth factor, so Akt is off and does not take the TSC complex out of action. The complex, a GAP, keeps Rheb from holding GTP, and Rheb-GTP is the direct activator of mTORC1. This input is the activation.' +
+            (s.aa && !s.lo ? ' The Rags have still brought mTORC1 to the lysosome, but Rheb-GTP can activate only an mTORC1 that has been brought to it, and here Rheb is off.' : ''),
+        );
+      }
+      if (!s.aa) {
+        parts.push(
+          'No amino acids, so the Rags release mTORC1 and it leaves the lysosome. This input is the position, not the activation: the Rags do not raise the kinase activity directly, they move mTORC1.' +
+            (s.gf && !s.lo ? ' Rheb may still hold GTP, but it can activate only an mTORC1 that has been brought to it.' : ''),
+        );
+      }
+      if (s.lo) {
+        parts.push(
+          'Energy is low: AMP has risen and AMPK is on. It phosphorylates TSC2, which makes the TSC complex more active and drains Rheb of GTP, and it phosphorylates Raptor, which inhibits mTORC1 directly. This is the veto: the lesson says mTORC1 is shut off even when growth factors and amino acids are present.' +
+            (s.gf ? ' The lesson does not say whether Akt or AMPK wins on the TSC complex; in this sketch AMPK wins, and mTORC1 is off anyway because AMPK also acts on Raptor.' : '') +
+            (s.aa ? ' Where mTORC1 sits when energy is low is not stated in the lesson; the sketch keeps the Rag signal separate.' : ''),
+        );
+      }
+      return parts.join(' ');
+    }
+
+    function render() {
+      const s: S = { gf: inp('gf').checked, aa: inp('aa').checked, lo: inp('lo').checked };
+      draw(s);
+      verdict.textContent = say(s);
+    }
+    ['gf', 'aa', 'lo'].forEach((k) => inp(k).addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .mg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mg-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mg-cell { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mg-cell legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .mg-cell input { accent-color: var(--ddp-color-accent); }
+  .mg-cell input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mg-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .mg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
