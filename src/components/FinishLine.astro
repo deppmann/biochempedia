@@ -12,8 +12,10 @@ interface Props {
   qCount: number;
   prev?: Nav;
   next?: Nav;
+  /** The lesson's course page, for "All lessons" after the last one. */
+  allHref?: string;
 }
-const { slug, qCount, prev, next } = Astro.props;
+const { slug, qCount, prev, next, allHref = '/#courses' } = Astro.props;
 const games = LESSON_GAMES[slug] ?? [];
 const main = games[0];
 const more = games.slice(1);
@@ -51,7 +53,7 @@ const review = unitReviewFor(slug);
         <p class="fl-kicker">That's the last lesson</p>
         <p class="fl-title">Back to all lessons</p>
         <p class="fl-blurb">Pick another topic, or revisit one you want to firm up.</p>
-        <a class="fl-go" href="/#lessons">All lessons →</a>
+        <a class="fl-go" href={allHref}>All lessons →</a>
       </div>
     )}
   </div>

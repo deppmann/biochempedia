@@ -1,4 +1,5 @@
 ---
+import { SIGNALING_ICONS } from '../data/signaling-icons';
 /**
  * A small, fun topic icon for a lesson card on the home grid.
  * Engraving style: navy single-weight linework (currentColor) with gold accents
@@ -13,9 +14,17 @@ interface Props {
   size?: number;
 }
 const { slug, size = 46 } = Astro.props;
+/* The Cell Signaling icons are data (src/data/signaling-icons.ts), drawn in the
+   same 56-box engraving style as the hand-written ones below. */
+const art = SIGNALING_ICONS[slug];
 ---
 
-{slug === 'enzyme-kinetics' ? (
+{art ? (
+  <svg viewBox="0 0 56 56" width={size} height={size} role="img" aria-label={art.label} style="color:var(--ddp-color-primary)">
+    <g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" set:html={art.ink} />
+    <Fragment set:html={art.gold} />
+  </svg>
+) : slug === 'enzyme-kinetics' ? (
   <svg
     viewBox="0 0 56 56"
     width={size}

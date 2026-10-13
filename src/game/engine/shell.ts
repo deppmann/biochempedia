@@ -204,7 +204,7 @@ export function createShell(root: HTMLElement, goHome: () => void, lesson?: Less
       // Opened from a lesson: send the student onward, or back to it.
       const next = lesson.nextSlug
         ? el('a.arc-btn.is-primary', { href: `/lessons/${lesson.nextSlug}/` }, `Next: ${plain(lesson.nextTitle ?? 'next lesson').split(':')[0].trim()} →`)
-        : el('a.arc-btn.is-primary', { href: '/#lessons' }, 'All lessons');
+        : el('a.arc-btn.is-primary', { href: '/courses/biochemistry/' }, 'All lessons');
       actions.append(next, el('a.arc-btn', { href: lessonHref }, 'Back to the lesson'), again);
     } else {
       again.classList.add('is-primary');

@@ -2,49 +2,45 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LessonIcon from '../components/LessonIcon.astro';
-import { COURSES, courseOf, unitsFor } from '../data/courses';
-import { unitReviewByUnit, unitReviewHref } from '../data/lesson-games';
+import SiteSearch from '../components/SiteSearch.astro';
+import { COURSES, courseHref, unitsFor } from '../data/courses';
 
-/* The homepage is the biochemistry course. Other courses live at /courses/<slug>/
-   and are listed in src/data/courses.ts. */
+/* The homepage is the catalog: one card per course, core courses first and
+   electives below. Each course's lessons live on its own page, /courses/<slug>/. */
 const allLessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
-const lessons = allLessons
-  .filter((l) => l.data.course === 'biochemistry')
-  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
 // An empty homepage must never ship quietly. It happened once in development: a
-// stale content cache served lessons parsed before `course` existed, the filter
-// above matched nothing, and the page rendered with no chapters and no error.
-if (lessons.length === 0) {
+// stale content cache served lessons parsed before `course` existed, the course
+// filter matched nothing, and the page rendered with no chapters and no error.
+if (!allLessons.some((l) => l.data.course === 'biochemistry')) {
   throw new Error('Homepage: no biochemistry lessons found. If you just changed src/schema.ts, delete node_modules/.astro/data-store.json and rebuild.');
 }
 
-/* Units come from the course definition. Membership is by slug so a typo or an
-   unmapped new lesson is visible: anything not listed falls into "New", it is
-   never silently dropped. Within a unit, lessons keep their global order. */
-const units = unitsFor(courseOf('biochemistry'), lessons);
-
-/* Other courses appear here only once they have a published lesson, so the page
-   is unchanged until then. */
-const otherCourses = COURSES.filter((c) => c.slug !== 'biochemistry')
-  .map((c) => ({ c, count: allLessons.filter((l) => l.data.course === c.slug).length }))
-  .filter(({ count }) => count > 0);
-
-/* Card hook: the `hook` frontmatter one-liner once approved; until then, the
-   summary's first sentence, clamped to two lines by CSS. */
-/* An authored hook is printed whole. Only the fallback gets clipped to its
-   first sentence — applying the clip to both silently truncated every
-   two-sentence hook ("…before age three?" losing "The answer is
-   compartments."). */
-const hookFor = (l: (typeof lessons)[number]) =>
-  (l.data as { hook?: string }).hook ?? l.data.summary.split(/(?<=[.?!])\s+/)[0];
-const firstLesson = lessons[0];
-/* Units whose pathways the Metabolism Arcade plays. */
-const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
+/* A course appears only once it has a published lesson. */
+const cards = COURSES.map((c) => {
+  const mine = allLessons.filter((l) => l.data.course === c.slug);
+  const units = unitsFor(c, mine);
+  return {
+    c,
+    lessons: mine.length,
+    units: units.length,
+    films: mine.reduce((n, l) => n + (l.data.explainer ? 1 : 0) + l.data.films.length, 0),
+    sims: mine.reduce((n, l) => n + l.data.simulations.length, 0),
+    questions: mine.reduce((n, l) => n + l.data.practiceQuestions.length + l.data.mcatQuestions.length, 0),
+    /* The icon of the course's first lesson stands for the course. */
+    icon: units[0]?.entries[0]?.l.data.slug ?? c.slug,
+    unitNames: units.map((u) => u.name),
+  };
+}).filter((k) => k.lessons > 0);
+const tiers = [
+  { key: 'core', title: 'Core courses', note: 'The foundation subjects: the ones a first degree in biology is built on, and the ones the MCAT tests.' },
+  { key: 'elective', title: 'Electives', note: 'One subject taken further, for students who have the core behind them.' },
+].map((t) => ({ ...t, cards: cards.filter((k) => k.c.tier === t.key) })).filter((t) => t.cards.length > 0);
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 ---
 
 <BaseLayout
-  title="Biochemistrypedia — an interactive biochemistry textbook"
-  description="An interactive biochemistry textbook for the students who'd rather understand it than survive it. Real molecules loaded live, simulations you move, verified answers, and the scientists who found it."
+  title="Biochemistrypedia — free interactive courses in biochemistry and cell biology"
+  description="Free interactive courses in biochemistry and cell biology, for the students who'd rather understand it than survive it. Real molecules loaded live, simulations you move, short films of the experiments, verified answers, and the scientists who found it."
 >
   <section class="hero wrap">
     <p class="eyebrow">
@@ -52,95 +48,66 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       <span class="rule" aria-hidden="true"></span>
     </p>
 
-    <h1>You understand a molecule once you can <em>turn it over in your hands.</em></h1>
+    <h1>You understand biology once you can <em>turn it over in your hands.</em></h1>
 
     <div class="goldrule" aria-hidden="true"></div>
 
     <p class="lede">
-      Most students meet biochemistry as a wall of terms to get past before the
-      exam, and never reach the part where it's astonishing. This is the version
-      where you change something and watch the reaction answer back — until you
-      walk away understanding <em>why</em> a thing happens, not just remembering
+      Most students meet biology as a wall of terms to get past before the exam,
+      and never reach the part where it's astonishing. These are free courses
+      where you change something and watch the cell answer back, until you walk
+      away understanding <em>why</em> a thing happens, not just remembering
       <em>that</em> it does. Hemoglobin stops being four letters on a slide and
-      becomes a real protein, found by a real person, that you can rotate yourself.
+      becomes a real protein you can rotate yourself. A signaling pathway stops
+      being a chart of arrows and becomes an experiment somebody ran, and you can
+      watch it.
     </p>
 
     <p class="tagline">For students who'd rather understand it than survive it.</p>
 
-    {/* The one unmistakable primary action (approved layout, 2026-08-13):
-        a first-time visitor starts at chapter 1; a returning student jumps
-        to the unit list one anchor away. */}
+    {/* The primary action is the catalog one anchor away; the first core
+        course and the arcade sit beside it. */}
     <p class="hero-cta">
-      {firstLesson && <a class="cta" href={`/lessons/${firstLesson.data.slug}/`}>Start with Chapter 1 →</a>}
+      <a class="cta" href="#courses">Browse the courses ↓</a>
       <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
-      <a class="cta-ghost" href="#lessons">Browse the units ↓</a>
+      <a class="cta-ghost" href={courseHref('biochemistry')}>Start with Biochemistry →</a>
     </p>
   </section>
 
-  {otherCourses.length > 0 && (
-    <section class="wrap courses" aria-labelledby="courses-h">
-      <p class="sec-label" id="courses-h">More courses</p>
-      <ul class="course-list">
-        {otherCourses.map(({ c, count }) => (
-          <li>
-            <a href={`/courses/${c.slug}/`} class="course-card">
-              <span class="cc-title">{c.title}</span>
-              <span class="cc-tag">{c.tagline}</span>
-              <span class="cc-meta">{count} {count === 1 ? 'lesson' : 'lessons'}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
+  <section class="wrap home-search">
+    <SiteSearch label="Search every course" />
+  </section>
 
-  <section class="wrap lessons" id="lessons">
-    <p class="sec-label">Chapters · {lessons.length === 1 ? 'one live now' : `${lessons.length} live now`}</p>
-
-    <nav class="unit-filter" aria-label="Filter lessons by unit">
-      <button type="button" data-unit="all" aria-pressed="true">All</button>
-      {units.map((u) => (
-        <button type="button" data-unit={u.name} aria-pressed="false">{u.name}</button>
-      ))}
-    </nav>
-
-    {units.map((u, ui) => (
-      <section class="unit" data-unit-section={u.name}>
-        <h2 class="unit-h">Unit {ui + 1} · {u.name}</h2>
-        {ARCADE_UNITS.has(u.name) && (
-          <a class="unit-play" href="/play">
-            <span class="unit-play-ico" aria-hidden="true">▶</span>
-            <span><strong>Play these pathways.</strong> Wire the cell, run the regulators through a fast, and diagnose a broken enzyme in the Metabolism Arcade.</span>
-            <span class="unit-play-arrow" aria-hidden="true">→</span>
-          </a>
-        )}
-        <ul class="lesson-list">
-          {u.entries.map(({ l, n }) => (
+  {/* `lessons` stays as an anchor here: older links point at /#lessons. */}
+  <section class="wrap catalog" id="courses">
+    <span id="lessons"></span>
+    {tiers.map((t) => (
+      <section class="tier" aria-labelledby={`tier-${t.key}`}>
+        <h2 class="tier-h" id={`tier-${t.key}`}>{t.title}</h2>
+        <p class="tier-note">{t.note}</p>
+        <ul class="course-list">
+          {t.cards.map((k) => (
             <li>
-              <a href={`/lessons/${l.data.slug}/`} class="lesson-card">
-                <span class="lc-order" aria-hidden="true">{n}</span>
-                <span class="lc-ico"><LessonIcon slug={l.data.slug} /></span>
-                <span class="lc-body">
-                  <span class="lc-chapter">{l.data.courseChapter}</span>
-                  <span class="lc-title">{l.data.title}</span>
-                  <span class={`lc-summary${(l.data as { hook?: string }).hook ? ' is-hook' : ''}`}>{hookFor(l)}</span>
-                  {/* Each figure is its own nowrap span, so a wrap falls between
-                      items and never splits "6 / questions". */}
-                  <span class="lc-meta">
-                    <span>{l.data.structures.length} structures</span>{' · '}
-                    <span>{l.data.practiceQuestions.length + l.data.mcatQuestions.length} questions</span>
-                    {l.data.estMinutes && <>{' · '}<span>~{l.data.estMinutes} min</span></>}
+              <a href={courseHref(k.c.slug)} class="course-card">
+                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /></span>
+                <span class="cc-body">
+                  <span class="cc-kicker">{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}</span>
+                  <span class="cc-title">{k.c.title}</span>
+                  <span class="cc-tag">{k.c.tagline}</span>
+                  <span class="cc-units">{k.unitNames.join(' · ')}</span>
+                  <span class="cc-meta">
+                    {[
+                      k.films > 0 && plural(k.films, 'film', 'films'),
+                      k.sims > 0 && plural(k.sims, 'simulation', 'simulations'),
+                      plural(k.questions, 'question', 'questions'),
+                    ].filter(Boolean).map((m, i) => <>{i > 0 && ' · '}<span>{m}</span></>)}
                   </span>
+                  <span class="cc-go">Open the course →</span>
                 </span>
               </a>
             </li>
           ))}
         </ul>
-        {unitReviewByUnit(u.name) && (
-          <p class="unit-review">
-            Finished the unit? <a href={unitReviewHref(unitReviewByUnit(u.name)!.id)}>Take the unit review →</a>
-          </p>
-        )}
       </section>
     ))}
   </section>
@@ -233,22 +200,6 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
     </a>
   </section>
 
-  <script>
-    // Unit filter. "All" restores everything; a unit chip shows only that unit.
-    const filter = document.querySelector('.unit-filter');
-    if (filter) {
-      const chips = Array.from(filter.querySelectorAll<HTMLButtonElement>('button[data-unit]'));
-      const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-unit-section]'));
-      chips.forEach((chip) => {
-        chip.addEventListener('click', () => {
-          const pick = chip.getAttribute('data-unit')!;
-          chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-          sections.forEach((s) => (s.hidden = pick !== 'all' && s.getAttribute('data-unit-section') !== pick));
-        });
-      });
-    }
-  </script>
-
   <style>
     .funbar { padding: 0 var(--ddp-space-6) var(--ddp-space-16); }
     .playbar { padding-bottom: var(--ddp-space-4); }
@@ -280,7 +231,6 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       .hero { padding-top: var(--ddp-space-8); }
       .goldrule { margin: var(--ddp-space-4) 0; }
       .hero-cta { margin-top: var(--ddp-space-4); }
-      .sec-label { margin-top: var(--ddp-space-4); }
     }
     .eyebrow {
       display: flex;
@@ -379,78 +329,6 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
     .cta-play:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
-    .unit-play {
-      display: flex;
-      align-items: center;
-      gap: var(--ddp-space-3);
-      margin: 0 0 var(--ddp-space-3);
-      padding: var(--ddp-space-3) var(--ddp-space-4);
-      border-radius: var(--ddp-radius, 10px);
-      font-size: var(--ddp-text-sm);
-      color: var(--ddp-color-ink);
-      text-decoration: none;
-      background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 14%, var(--ddp-color-surface));
-      border: 1px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 45%, var(--ddp-color-line));
-    }
-    .unit-play:hover { border-color: var(--ddp-color-secondary, #e0b452); text-decoration: none; }
-    .unit-play-ico, .unit-play-arrow { color: var(--ddp-color-ink); font-weight: 700; }
-    .unit-play-arrow { margin-left: auto; }
-    .unit-review {
-      margin: var(--ddp-space-3) 0 0;
-      font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
-      letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted);
-    }
-    .unit-review a { color: var(--ddp-color-ink); font-weight: 600; text-underline-offset: 3px; }
-    .unit-review a:hover { color: var(--ddp-color-accent); }
-
-    /* Unit filter: one sticky row of chips. Filtering is enhancement — with no
-       JS every unit stays visible and the chips are inert. */
-    .unit-filter {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--ddp-space-2);
-      padding: var(--ddp-space-3) 0;
-      margin-bottom: var(--ddp-space-2);
-      background: var(--ddp-color-bg);
-      border-bottom: 1px solid var(--ddp-color-line);
-    }
-    .unit-filter button {
-      font: inherit;
-      font-size: var(--ddp-text-xs);
-      font-weight: 600;
-      color: var(--ddp-color-ink-soft);
-      background: var(--ddp-color-surface);
-      border: 1px solid var(--ddp-color-line);
-      border-radius: 999px;
-      padding: 0.35em 0.8em;
-      min-height: 36px;
-      cursor: pointer;
-    }
-    .unit-filter button:hover { border-color: var(--ddp-color-accent); }
-    .unit-filter button[aria-pressed='true'] {
-      color: var(--ddp-color-primary);
-      border-color: var(--ddp-color-accent);
-      background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface));
-      font-weight: 700;
-    }
-    .unit { margin-bottom: var(--ddp-space-6); }
-    .unit[hidden] { display: none; }
-    .unit-h {
-      display: flex;
-      align-items: center;
-      gap: var(--ddp-space-3);
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--ddp-color-muted);
-      margin: var(--ddp-space-6) 0 var(--ddp-space-3);
-    }
-    .unit-h::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
     .register-band { padding: 0 var(--ddp-space-6) var(--ddp-space-8); }
 
     /* ---- Feature register: four engraving chips on a single ruled grid.
@@ -503,36 +381,41 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       .register { grid-template-columns: 1fr; }
     }
 
-    /* ---- Lessons grid ---- */
-    .lessons {
-      padding-bottom: var(--ddp-space-12);
-    }
-    .sec-label {
+    /* ---- Catalog: one card per course, in two tiers ---- */
+    .home-search { padding-block: var(--ddp-space-2) 0; }
+    .catalog { padding-bottom: var(--ddp-space-8); scroll-margin-top: var(--ddp-space-4); }
+    .tier { margin-top: var(--ddp-space-8); }
+    .tier-h {
+      display: flex;
+      align-items: center;
+      gap: var(--ddp-space-3);
       font-family: var(--ddp-font-mono);
       font-size: var(--ddp-text-xs);
+      font-weight: 600;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--ddp-color-muted);
-      margin: var(--ddp-space-8) 0 var(--ddp-space-4);
+      margin: 0 0 var(--ddp-space-2);
     }
-    .lesson-list {
+    .tier-h::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
+    .tier-note { margin: 0 0 var(--ddp-space-4); max-width: 60ch; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
+    .course-list {
       list-style: none;
-      padding: 0;
       margin: 0;
+      padding: 0;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
       gap: var(--ddp-space-4);
     }
-    .lesson-card {
+    .course-card {
       position: relative;
       overflow: hidden;
-      /* Fill the grid cell so cards in one row share a bottom edge. */
       height: 100%;
       box-sizing: border-box;
       display: flex;
-      gap: var(--ddp-space-4);
+      gap: var(--ddp-space-5);
       align-items: flex-start;
-      padding: var(--ddp-space-4) var(--ddp-space-5);
+      padding: var(--ddp-space-6);
       background: var(--ddp-color-surface);
       border: 1px solid var(--ddp-color-line);
       border-radius: var(--ddp-radius);
@@ -540,7 +423,7 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       color: inherit;
       transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
-    .lesson-card::before {
+    .course-card::before {
       content: "";
       position: absolute;
       left: 0;
@@ -552,95 +435,20 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       transform-origin: top;
       transition: transform 0.22s ease;
     }
-    .lesson-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--ddp-shadow);
-      text-decoration: none;
-    }
-    .lesson-card:hover::before {
-      transform: scaleY(1);
-    }
-    /* Reading-order number in the card's corner: blue-on-light, reversed in dark mode. */
-    .lc-order {
-      position: absolute;
-      top: var(--ddp-space-3);
-      right: var(--ddp-space-3);
-      z-index: 1;
-      min-width: 1.55rem;
-      height: 1.55rem;
-      padding: 0 0.4rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      font-weight: 700;
-      line-height: 1;
-      border-radius: 999px;
-      color: var(--ddp-color-primary);
-      background: color-mix(in srgb, var(--ddp-color-primary) 9%, #fff);
-      border: 1px solid color-mix(in srgb, var(--ddp-color-primary) 22%, transparent);
-    }
-    @media (prefers-color-scheme: dark) {
-      .lc-order {
-        color: var(--ddp-color-ink);
-        background: color-mix(in srgb, var(--ddp-color-ink) 12%, transparent);
-        border-color: color-mix(in srgb, var(--ddp-color-ink) 32%, transparent);
-      }
-    }
-    .lc-ico {
-      flex: none;
-      line-height: 0;
-      margin-top: 2px;
-    }
-    .lc-body {
-      min-width: 0;
-      padding-right: 1.4rem; /* clear the corner order-number badge */
-    }
-    .lc-chapter {
-      display: block;
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--ddp-color-accent);
-      margin-bottom: var(--ddp-space-1);
-    }
-    .lc-title {
-      display: block;
-      font-family: var(--ddp-font-serif);
-      font-weight: 600;
-      font-size: var(--ddp-text-lg);
-      color: var(--ddp-color-primary);
-      line-height: 1.2;
-      margin-bottom: var(--ddp-space-2);
-    }
-    /* The fallback (first sentence of the summary) is clamped to two lines.
-       An approved hook is printed whole: at card width the clamp was cutting
-       every one of them mid-phrase ("Water's own…"). */
-    .lc-summary {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      color: var(--ddp-color-ink-soft);
-      font-size: var(--ddp-text-sm);
-      margin-bottom: var(--ddp-space-2);
-    }
-    .lc-summary.is-hook {
-      display: block;
-      -webkit-line-clamp: unset;
-      overflow: visible;
-    }
-    .lc-meta {
-      display: block;
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      color: var(--ddp-color-muted);
-    }
-    .lc-meta span { white-space: nowrap; }
-    .empty {
-      color: var(--ddp-color-muted);
+    .course-card:hover { transform: translateY(-3px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .course-card:hover::before { transform: scaleY(1); }
+    .cc-ico { flex: none; line-height: 0; margin-top: 2px; }
+    .cc-body { display: flex; flex-direction: column; gap: var(--ddp-space-2); min-width: 0; }
+    .cc-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.07em; color: var(--ddp-color-accent); }
+    .cc-title { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-2xl, 1.6rem); line-height: 1.15; color: var(--ddp-color-primary); }
+    .cc-tag { color: var(--ddp-color-ink-soft); }
+    .cc-units { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-muted); }
+    .cc-meta { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .cc-meta span { white-space: nowrap; }
+    .cc-go { font-weight: 700; color: var(--ddp-color-accent); margin-top: var(--ddp-space-1); }
+    .course-card:hover .cc-go { text-decoration: underline; text-underline-offset: 3px; }
+    @media (max-width: 480px) {
+      .course-card { flex-direction: column; gap: var(--ddp-space-3); padding: var(--ddp-space-5); }
     }
 
     /* ---- Entrance: one calm staggered rise; gold rule draws after the
@@ -675,17 +483,9 @@ const ARCADE_UNITS = new Set(['Central Metabolism', 'Fuels, Fat & Nitrogen']);
       .goldrule { animation: none !important; }
       .goldrule { transform: none; }
       .chip-ico svg,
-      .lesson-card,
-      .lesson-card::before { transition: none; }
+      .course-card,
+      .course-card::before { transition: none; }
     }
   
-  /* Other courses (rendered only when one has a published lesson). */
-  .courses { margin-top: var(--ddp-space-6, 2rem); }
-  .course-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--ddp-space-3, 0.75rem); }
-  .course-card { display: flex; flex-direction: column; gap: 0.25rem; padding: var(--ddp-space-4, 1rem); border: 1px solid var(--ddp-color-line); border-radius: 10px; background: var(--ddp-color-surface); color: inherit; text-decoration: none; }
-  .course-card:hover, .course-card:focus-visible { border-color: var(--ddp-color-accent); }
-  .cc-title { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
-  .cc-tag { color: var(--ddp-color-ink-soft); }
-  .cc-meta { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
 </style>
 </BaseLayout>

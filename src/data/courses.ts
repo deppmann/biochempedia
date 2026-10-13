@@ -8,10 +8,11 @@
    page. It is never silently dropped.
 
    A lesson says which course it belongs to with `course:` in its frontmatter
-   (default "biochemistry"). Biochemistry is the homepage. Every other course
-   gets a page at /courses/<slug>/, and that page exists only once the course has
-   at least one published lesson, so adding a course here changes nothing on the
-   live site until a lesson in it stops being a draft.
+   (default "biochemistry"). The homepage shows one card per course, core courses
+   first and electives below. Every course has a page at /courses/<slug>/, and
+   that page (and its homepage card) exists only once the course has at least one
+   published lesson, so adding a course here changes nothing on the live site
+   until a lesson in it stops being a draft.
    ============================================================================ */
 
 export interface Unit {
@@ -22,6 +23,9 @@ export interface Unit {
 export interface Course {
   slug: string;
   title: string;
+  /** Core courses are the foundation subjects (the ones entrance exams test);
+   *  electives build on them. The homepage lists the two groups separately. */
+  tier: 'core' | 'elective';
   /** One line under the title on the course page and on the homepage card. */
   tagline: string;
   /** A short paragraph for the course page. */
@@ -33,6 +37,7 @@ export const COURSES: Course[] = [
   {
     slug: 'biochemistry',
     title: 'Biochemistry',
+    tier: 'core',
     tagline: 'The one-semester sequence: molecules, enzymes, membranes, metabolism.',
     blurb:
       'Thirty lessons that follow a one-semester biochemistry course, from water and weak bonds to the integration of metabolism.',
@@ -52,6 +57,7 @@ export const COURSES: Course[] = [
   {
     slug: 'signaling',
     title: 'Cell Signaling',
+    tier: 'elective',
     tagline: 'How a cell hears a message and decides what to do next.',
     blurb:
       'An elective that follows the biochemistry course. It starts with the parts every pathway is built from, then takes the pathways one family at a time.',
@@ -95,7 +101,7 @@ export const COURSES: Course[] = [
 /** The course a lesson belongs to. An unknown slug falls back to a bare course
  *  with no units, so its lessons still render and still show up under "New". */
 export function courseOf(slug: string): Course {
-  return COURSES.find((c) => c.slug === slug) ?? { slug, title: slug, tagline: '', blurb: '', units: [] };
+  return COURSES.find((c) => c.slug === slug) ?? { slug, title: slug, tier: 'elective', tagline: '', blurb: '', units: [] };
 }
 
 /** Group a course's lessons into its units, in unit order, keeping each lesson's
@@ -111,3 +117,6 @@ export function unitsFor<T extends { data: { slug: string; order?: number } }>(c
   if (unmapped.length > 0) units.push({ name: 'New', entries: unmapped });
   return units;
 }
+
+/** Where a course lives. */
+export const courseHref = (slug: string) => `/courses/${slug}/`;

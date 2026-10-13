@@ -11,7 +11,7 @@ import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
 import { feedbackUrl } from '../../lib/feedback';
-import { courseOf } from '../../data/courses';
+import { courseOf, courseHref } from '../../data/courses';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 
 export async function getStaticPaths() {
@@ -91,7 +91,7 @@ const lessonLd = {
           Draft. Visible only in local preview, and not yet reviewed by a person.
         </p>
       )}
-      <p class="eyebrow">{lesson.courseChapter}</p>
+      <p class="eyebrow"><a class="eyebrow-course" href={courseHref(course.slug)}>{course.title}</a> · {lesson.courseChapter.replace(`${course.title} · `, '')}</p>
       <h1>{lesson.title}</h1>
       <p class="summary">{lesson.summary}</p>
     </header>
@@ -187,7 +187,7 @@ const lessonLd = {
           </section>
         )}
 
-        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} />
+        <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} />
       </div>
 
       <aside class="rail" id="rail" aria-label="Explore — open any resource">
@@ -596,6 +596,7 @@ const lessonLd = {
   <style>
     .draft-banner { display: inline-block; margin: 0 0 var(--ddp-space-3); padding: 0.3rem 0.7rem; border: 1px dashed var(--ddp-color-caution); border-radius: 6px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-size: var(--ddp-text-sm); }
     .lesson-hero { padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6); }
+    .eyebrow-course { color: inherit; text-underline-offset: 3px; }
     .eyebrow {
       font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs);
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent);

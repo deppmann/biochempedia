@@ -1,0 +1,220 @@
+---
+/**
+ * Search across every course, or inside one. The index (/search-index.json) is
+ * built with the site and fetched the first time the box is used, so the page
+ * pays nothing for it until someone types. Results are lessons, each with the
+ * section headings that matched, linked to that section.
+ *
+ * `scope` preselects a course; the chips let the reader widen it again.
+ * `autofocus` is for the search page, where the box is the point of the page.
+ */
+interface Props {
+  scope?: string;
+  autofocus?: boolean;
+  label?: string;
+}
+const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro.props;
+---
+
+<div class="ss" data-site-search data-scope={scope}>
+  <form class="ss-form" role="search" action="/search/" method="get">
+    <label class="ss-label" for="ss-q">{label}</label>
+    <div class="ss-row">
+      <svg class="ss-ico" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 L21 21" />
+      </svg>
+      <input id="ss-q" class="ss-input" type="search" name="q" autocomplete="off" spellcheck="false"
+        placeholder="Try “allostery”, “Ras”, “western blot”…" autofocus={autofocus} />
+    </div>
+  </form>
+  <div class="ss-scope" role="group" aria-label="Where to search" hidden></div>
+  <p class="ss-status" role="status" aria-live="polite"></p>
+  <ol class="ss-results"></ol>
+</div>
+
+<script>
+  interface Rec { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][] }
+  interface Index { courses: { s: string; t: string }[]; lessons: Rec[] }
+
+  const norm = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[‐-―]/g, '-');
+  const esc = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+  /* A token matches at the start of a word ("phos" finds "phosphorylation"), so
+     short queries stay precise; "mapk" still finds "Ras-to-MAPK" because a
+     hyphen starts a word. */
+  const hits = (hay: string, tok: string) => {
+    let i = hay.indexOf(tok);
+    while (i !== -1) {
+      if (i === 0 || !/[a-z0-9]/.test(hay[i - 1])) return true;
+      i = hay.indexOf(tok, i + 1);
+    }
+    return false;
+  };
+
+  let indexPromise: Promise<Index> | null = null;
+  const loadIndex = (): Promise<Index> => (indexPromise ??= fetch('/search-index.json').then((r) => {
+    if (!r.ok) throw new Error(String(r.status));
+    return r.json() as Promise<Index>;
+  }));
+
+  document.querySelectorAll<HTMLElement>('[data-site-search]').forEach((root) => {
+    const input = root.querySelector<HTMLInputElement>('.ss-input')!;
+    const form = root.querySelector<HTMLFormElement>('.ss-form')!;
+    const scopeBox = root.querySelector<HTMLElement>('.ss-scope')!;
+    const status = root.querySelector<HTMLElement>('.ss-status')!;
+    const list = root.querySelector<HTMLElement>('.ss-results')!;
+    let scope = root.dataset.scope || 'all';
+    let prepared: (Rec & { nt: string; nh: string; nx: string; ng: string[] })[] | null = null;
+    let courses: Index['courses'] = [];
+
+    const drawScope = () => {
+      if (courses.length < 2) return;
+      scopeBox.hidden = false;
+      scopeBox.innerHTML = [{ s: 'all', t: 'All courses' }, ...courses]
+        .map((c) => `<button type="button" class="ss-chip" data-scope="${esc(c.s)}" aria-pressed="${c.s === scope}">${esc(c.t)}</button>`)
+        .join('');
+    };
+    scopeBox.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-scope]');
+      if (!b) return;
+      scope = b.dataset.scope!;
+      drawScope();
+      run();
+    });
+
+    const run = () => {
+      const q = norm(input.value).trim();
+      if (!q) { status.textContent = ''; list.innerHTML = ''; return; }
+      if (!prepared) return;
+      const toks = q.split(/\s+/).filter(Boolean);
+      const out: { r: Rec; score: number; heads: [string, string][] }[] = [];
+      for (const r of prepared) {
+        if (scope !== 'all' && r.c !== scope) continue;
+        let score = 0;
+        let all = true;
+        const heads = new Set<number>();
+        for (const tok of toks) {
+          let s = 0;
+          if (hits(r.nt, tok)) s += 10;
+          r.ng.forEach((g, i) => { if (hits(g, tok)) { s += 4; heads.add(i); } });
+          if (hits(r.nh, tok)) s += 3;
+          if (hits(r.nx, tok)) s += 2;
+          if (s === 0) { all = false; break; }
+          score += s;
+        }
+        if (!all) continue;
+        // The whole phrase in the title is the best answer there is.
+        if (toks.length > 1 && r.nt.includes(q)) score += 15;
+        out.push({ r, score, heads: [...heads].slice(0, 3).map((i) => r.g[i]) });
+      }
+      out.sort((a, b) => b.score - a.score || a.r.c.localeCompare(b.r.c) || a.r.n - b.r.n);
+      const shown = out.slice(0, 24);
+      const where = scope === 'all' ? 'all courses' : courses.find((c) => c.s === scope)?.t ?? scope;
+      status.textContent = out.length === 0
+        ? `No lesson in ${where} matches “${input.value.trim()}”. The search reads titles, section headings, objectives and names, not every sentence.`
+        : `${out.length} ${out.length === 1 ? 'lesson' : 'lessons'} in ${where}${out.length > shown.length ? `, showing the first ${shown.length}` : ''}.`;
+      /* The link is assembled here, not written as href="/lessons/…" in the
+         template: the asset guard reads every quoted href in the built page,
+         inline script included, and would take the template for a real path. */
+      const link = (slug: string, hash?: string) => ['href', `"/lessons/${esc(slug)}/${hash ? `#${esc(hash)}` : ''}"`].join('=');
+      const courseTitle = (s: string) => courses.find((c) => c.s === s)?.t ?? s;
+      list.innerHTML = shown.map(({ r, heads }) => `
+        <li class="ss-hit">
+          <a class="ss-hit-main" ${link(r.s)}>
+            <span class="ss-hit-where">${esc(courseTitle(r.c))}${r.u ? ` · ${esc(r.u)}` : ''} · Lesson ${r.n}</span>
+            <span class="ss-hit-title">${esc(r.t)}</span>
+            <span class="ss-hit-hook">${esc(r.h)}</span>
+          </a>
+          ${heads.length ? `<ul class="ss-hit-heads">${heads.map(([t, a]) => `<li><a ${link(r.s, a)}>§ ${esc(t)}</a></li>`).join('')}</ul>` : ''}
+        </li>`).join('');
+    };
+
+    const start = () => {
+      if (prepared) { run(); return; }
+      status.textContent = 'Loading the index…';
+      loadIndex().then((idx: Index) => {
+        courses = idx.courses;
+        if (scope !== 'all' && !courses.some((c) => c.s === scope)) scope = 'all';
+        prepared = idx.lessons.map((r: Rec) => ({ ...r, nt: norm(r.t), nh: norm(`${r.h} ${r.k} ${r.u}`), nx: norm(r.x), ng: r.g.map((g: [string, string]) => norm(g[0])) }));
+        drawScope();
+        status.textContent = '';
+        run();
+      }).catch(() => { status.textContent = 'The search index did not load. Reload the page to try again.'; });
+    };
+
+    let timer = 0;
+    input.addEventListener('input', () => { window.clearTimeout(timer); timer = window.setTimeout(start, 90); });
+    input.addEventListener('focus', () => { if (!prepared) loadIndex().catch(() => {}); }, { once: true });
+    // With JS the results appear in place; the form only navigates without it.
+    form.addEventListener('submit', (e) => { e.preventDefault(); start(); });
+
+    // A query in the address (/search/?q=…) runs at once.
+    const preset = new URLSearchParams(location.search).get('q');
+    if (preset && root === document.querySelector('[data-site-search]')) { input.value = preset; start(); }
+  });
+</script>
+
+{/* Global because the chips and results are created by script. */}
+<style is:global>
+  .ss { margin: 0; }
+  .ss-label {
+    display: block;
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ddp-color-muted);
+    margin-bottom: var(--ddp-space-2);
+  }
+  .ss-row { position: relative; max-width: 40rem; }
+  .ss-ico { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: var(--ddp-color-muted); pointer-events: none; }
+  .ss-input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 0.6rem 1rem 0.6rem 2.7rem;
+    font: inherit;
+    font-size: var(--ddp-text-base);
+    color: var(--ddp-color-ink);
+    background: var(--ddp-color-surface);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+  }
+  .ss-input::placeholder { color: var(--ddp-color-muted); }
+  .ss-input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; border-color: var(--ddp-color-accent); }
+  .ss-scope { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin-top: var(--ddp-space-3); }
+  .ss-scope[hidden] { display: none; }
+  .ss-chip {
+    font: inherit;
+    font-size: var(--ddp-text-xs);
+    font-weight: 600;
+    color: var(--ddp-color-ink-soft);
+    background: var(--ddp-color-surface);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+    padding: 0.35em 0.8em;
+    min-height: 36px;
+    cursor: pointer;
+  }
+  .ss-chip:hover { border-color: var(--ddp-color-accent); }
+  .ss-chip[aria-pressed='true'] {
+    color: var(--ddp-color-primary);
+    border-color: var(--ddp-color-accent);
+    background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface));
+    font-weight: 700;
+  }
+  .ss-status { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); min-height: 1.2em; }
+  .ss-status:empty { display: none; }
+  .ss-results { list-style: none; margin: var(--ddp-space-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--ddp-space-3); }
+  .ss-results:empty { display: none; }
+  .ss-hit { background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); padding: var(--ddp-space-3) var(--ddp-space-4); min-width: 0; }
+  .ss-hit:hover { border-color: var(--ddp-color-accent); }
+  .ss-hit-main { display: flex; flex-direction: column; gap: 0.2rem; color: inherit; text-decoration: none; }
+  .ss-hit-main:hover { text-decoration: none; }
+  .ss-hit-where { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .ss-hit-title { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg); line-height: 1.2; color: var(--ddp-color-primary); }
+  .ss-hit-main:hover .ss-hit-title { text-decoration: underline; text-underline-offset: 3px; }
+  .ss-hit-hook { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .ss-hit-heads { list-style: none; margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) 0 0; border-top: 1px solid var(--ddp-color-line); display: flex; flex-direction: column; gap: 0.25rem; }
+  .ss-hit-heads a { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); text-underline-offset: 3px; }
+  .ss-hit-heads a:hover { color: var(--ddp-color-accent); }
+</style>
