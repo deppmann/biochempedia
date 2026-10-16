@@ -44,7 +44,7 @@ const GAMES: GameDef[] = [
     blurb: 'You are the cell’s regulators. Set the board so flux lands right for THIS body state — and never run the futile cycle.' },
   { id: 'gauntlet', name: 'MCAT Gauntlet', verb: 'Cram tool', status: 'live', cram: true, launch: (s, p, r) => launchGauntlet(s, p, r?.unit),
     blurb: 'Timed rapid-fire across every pathway. The spaced-retrieval drill for the night before test day.' },
-  { id: 'mcat', name: "MCAT Deep Review", verb: '', status: 'soon', launch: launchMCAT,
+  { id: 'mcat', name: "MCAT Deep Review", verb: '', status: 'live', launch: launchMCAT,
     blurb: 'Master MCAT concepts through untimed practice, guided reasoning, and in-depth explanations of why every answer is right or wrong.'},
 ];
 
