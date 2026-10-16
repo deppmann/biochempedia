@@ -4,7 +4,7 @@ import type { Pathway } from '../types';
 import { DEMANDS } from './games/wireCellLogic';
 import { unitReviewById } from '../../data/lesson-games';
 
-export const GAME_IDS = ['ledger', 'autopsy', 'wire', 'foundry', 'mixing', 'gauntlet'] as const;
+export const GAME_IDS = ['ledger', 'autopsy', 'wire', 'foundry', 'mixing', 'gauntlet', 'mcat'] as const;
 export type GameId = (typeof GAME_IDS)[number];
 
 /** Per-lesson context, generated at build time in play.astro. */

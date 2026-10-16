@@ -3,7 +3,7 @@
 
 export type ModeId =
   | 'build' | 'regulate' | 'diagnose' | 'blitz' // legacy modes
-  | 'ledger' | 'autopsy' | 'foundry' | 'mixing' | 'wire' | 'gauntlet'; // the new games
+  | 'ledger' | 'autopsy' | 'foundry' | 'mixing' | 'wire' | 'gauntlet' | 'mcat'; // the new games
 export type Medal = 'none' | 'bronze' | 'silver' | 'gold';
 
 interface Progress {
