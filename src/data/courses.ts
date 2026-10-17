@@ -30,6 +30,8 @@ export interface Course {
   tagline: string;
   /** A short paragraph for the course page. */
   blurb: string;
+  /** Example searches shown in the course page's search box; the site-wide default is used if absent. */
+  searchHint?: string;
   units: Unit[];
 }
 
@@ -101,6 +103,7 @@ export const COURSES: Course[] = [
     title: 'Developmental Neuroscience',
     tier: 'elective',
     tagline: 'How a nervous system builds itself, one local decision at a time.',
+    searchHint: 'Try “netrin”, “Reelin”, “NGF”…',
     blurb:
       'An elective that follows Cell Signaling. It starts with a sheet of embryonic cells and ends with a working, wired brain: how tissue becomes neural, how neurons are made and move, how axons find their targets, why half the neurons die, and how experience refines what the genes began.',
     /* Course units (proposed 2026-10-16, approved by Chris the same day). */

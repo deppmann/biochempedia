@@ -12,8 +12,9 @@ interface Props {
   scope?: string;
   autofocus?: boolean;
   label?: string;
+  placeholder?: string;
 }
-const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro.props;
+const { scope = 'all', autofocus = false, label = 'Search the lessons', placeholder = 'Try “allostery”, “Ras”, “western blot”…' } = Astro.props;
 ---
 
 <div class="ss" data-site-search data-scope={scope}>
@@ -24,7 +25,7 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons' } = Astro
         <circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 L21 21" />
       </svg>
       <input id="ss-q" class="ss-input" type="search" name="q" autocomplete="off" spellcheck="false"
-        placeholder="Try “allostery”, “Ras”, “western blot”…" autofocus={autofocus} />
+        placeholder={placeholder} autofocus={autofocus} />
     </div>
   </form>
   <div class="ss-scope" role="group" aria-label="Where to search" hidden></div>
