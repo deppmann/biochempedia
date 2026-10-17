@@ -1,0 +1,195 @@
+---
+/**
+ * LeavingFractionPool — the production schedule of birth-order-and-layers. The learner
+ * sets the leaving fraction Q for each cell cycle and watches the progenitor pool and
+ * the neurons made per cycle follow the lesson's own equation:
+ *   P + Q = 1;  progenitors after = 2 x P x progenitors before;  neurons made = 2 x Q x progenitors before.
+ * Q below 0.5 grows the pool, above 0.5 shrinks it. Cycle count (eleven) and the
+ * crossing of 0.5 in the eighth cycle come from the lesson's account of Takahashi,
+ * Nowakowski and Caviness; all other Q values are an illustrative sketch. Pool sizes are
+ * in units of the starting pool. Labelled bars only. Self-contained vanilla-TS Astro
+ * island. Original.
+ */
+---
+
+<figure class="lf card" data-lfp>
+  <figcaption class="lf-head">Leaving fraction Q: grow the pool, then spend it<span class="lf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="lf-svg" viewBox="0 0 360 220" role="img" aria-label="Bars for each of eleven cell cycles: the progenitor pool left after the cycle and the neurons made in that cycle, in units of the starting pool" data-plot></svg>
+
+  <div class="lf-row">
+    <span class="lf-label">Start from</span>
+    <div class="lf-presets">
+      <button type="button" class="lf-btn" data-preset="rising">Q rising, as in mouse cortex</button>
+      <button type="button" class="lf-btn" data-preset="low">Q low every cycle</button>
+      <button type="button" class="lf-btn" data-preset="half">Q = 0.5 every cycle</button>
+      <button type="button" class="lf-btn" data-preset="high">Q high every cycle</button>
+    </div>
+  </div>
+
+  <div class="lf-controls">
+    <label class="lf-slabel"><span>Cell cycle to change</span>
+      <select data-cycle></select>
+    </label>
+    <label class="lf-slabel"><span>Leaving fraction Q for that cycle <em data-out="q">0.50</em></span>
+      <input type="range" data-q min="0" max="1" step="0.05" value="0.5" />
+    </label>
+  </div>
+
+  <dl class="lf-readout">
+    <div><dt data-r-eq-label>This cycle</dt><dd data-r-eq></dd></div>
+    <div><dt>Progenitor pool after cycle 11</dt><dd data-r-pool></dd></div>
+    <div><dt>All neurons made, cycles 1 to 11</dt><dd data-r-total></dd></div>
+  </dl>
+
+  <p class="lf-why" data-why role="status"></p>
+
+  <p class="lf-foot">P + Q = 1. Below 0.5 the pool grows, above 0.5 it shrinks. The pool is built first and then spent. This is a sketch of the logic: sizes are in units of the starting pool, and only the eleven cycles, the crossing of 0.5 in the eighth and a Q of about 0.8 late come from the lesson's mouse measurements. It assumes no cell death and that every daughter either keeps cycling or leaves.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = 11;
+  const POOL = '#0e7c86', NEUR = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const PRESETS: Record<string, number[]> = {
+    // illustrative sketch: low early, 0.5 in the eighth cycle, about 0.8 late
+    rising: [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.65, 0.8, 0.8],
+    low: Array(N).fill(0.2),
+    half: Array(N).fill(0.5),
+    high: Array(N).fill(0.8),
+  };
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmt = (v: number) => (v > 0 && v < 0.01 ? '< 0.01' : v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2));
+  document.querySelectorAll<HTMLElement>('[data-lfp]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const sel = root.querySelector<HTMLSelectElement>('[data-cycle]')!;
+    const slider = root.querySelector<HTMLInputElement>('[data-q]')!;
+    const qOut = root.querySelector<HTMLElement>('[data-out="q"]')!;
+    const rEq = root.querySelector<HTMLElement>('[data-r-eq]')!;
+    const rEqLabel = root.querySelector<HTMLElement>('[data-r-eq-label]')!;
+    const rPool = root.querySelector<HTMLElement>('[data-r-pool]')!;
+    const rTotal = root.querySelector<HTMLElement>('[data-r-total]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    let qs = [...PRESETS.rising];
+    let cur = 0;
+    let preset: string | null = 'rising';
+
+    for (let i = 0; i < N; i++) {
+      const o = document.createElement('option');
+      o.value = String(i); o.textContent = 'Cycle ' + (i + 1);
+      sel.appendChild(o);
+    }
+
+    function run() {
+      const pool: number[] = [], neur: number[] = [];
+      let p = 1;
+      for (let i = 0; i < N; i++) {
+        neur.push(2 * qs[i] * p);
+        p = 2 * (1 - qs[i]) * p;
+        pool.push(p);
+      }
+      return { pool, neur };
+    }
+
+    function render() {
+      const { pool, neur } = run();
+      const q = qs[cur];
+      sel.value = String(cur);
+      slider.value = String(q);
+      qOut.textContent = q.toFixed(2);
+
+      // plot
+      const X0 = 44, X1 = 352, Y0 = 34, Y1 = 176;
+      const slot = (X1 - X0) / N;
+      const top = Math.max(1, ...pool, ...neur) * 1.08;
+      const py = (v: number) => Y1 - (v / top) * (Y1 - Y0);
+      plot.replaceChildren();
+      plot.appendChild(el('rect', { x: X0 + cur * slot, y: Y0 - 6, width: slot, height: Y1 - Y0 + 6, fill: '#e6f2f3' }));
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      // start line
+      plot.appendChild(el('line', { x1: X0, y1: py(1), x2: X1, y2: py(1), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      if (py(1) <= Y1 - 10) plot.appendChild(el('text', { x: X0 - 4, y: py(1) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '1'));
+      plot.appendChild(el('text', { x: X0 - 4, y: Y1 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '0'));
+      const topLabel = Math.round(top / 1.08);
+      if (py(topLabel) < py(1) - 11) plot.appendChild(el('text', { x: X0 - 4, y: py(topLabel) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(topLabel)));
+      plot.appendChild(el('text', { x: 4, y: 14, 'font-size': 9, fill: INK }, 'in units of the starting pool (dashed line = 1)'));
+      // legend
+      plot.appendChild(el('rect', { x: 4, y: 20, width: 8, height: 8, fill: POOL }));
+      plot.appendChild(el('text', { x: 16, y: 28, 'font-size': 9, fill: INK }, 'progenitors left after the cycle'));
+      plot.appendChild(el('rect', { x: 186, y: 20, width: 8, height: 8, fill: NEUR }));
+      plot.appendChild(el('text', { x: 198, y: 28, 'font-size': 9, fill: INK }, 'neurons made in the cycle'));
+      for (let i = 0; i < N; i++) {
+        const cx = X0 + i * slot + slot / 2;
+        const bw = slot / 2 - 2;
+        const hp = Y1 - py(pool[i]), hn = Y1 - py(neur[i]);
+        plot.appendChild(el('rect', { x: cx - bw - 0.5, y: py(pool[i]), width: bw, height: Math.max(0, hp), fill: POOL }));
+        plot.appendChild(el('rect', { x: cx + 0.5, y: py(neur[i]), width: bw, height: Math.max(0, hn), fill: NEUR }));
+        plot.appendChild(el('text', { x: cx, y: Y1 + 12, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': i === cur ? 700 : 400, fill: INK }, String(i + 1)));
+        plot.appendChild(el('text', { x: cx, y: Y1 + 24, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': i === cur ? 700 : 400, fill: qs[i] > 0.5 ? NEUR : qs[i] < 0.5 ? POOL : INK }, qs[i].toFixed(2).replace(/^0\./, '.')));
+        const hit = el('rect', { x: X0 + i * slot, y: Y0 - 6, width: slot, height: Y1 - Y0 + 40, fill: 'transparent' });
+        hit.addEventListener('click', () => { cur = i; render(); });
+        (hit as SVGElement).style.cursor = 'pointer';
+        plot.appendChild(hit);
+      }
+      plot.appendChild(el('text', { x: 4, y: Y1 + 24, 'font-size': 9, fill: INK }, 'Q'));
+      plot.appendChild(el('text', { x: (X0 + X1) / 2, y: 214, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'cell cycle, 1 to 11 (a sketch, relative units)'));
+
+      // readouts
+      const before = cur === 0 ? 1 : pool[cur - 1];
+      const P = 1 - q;
+      rEqLabel.textContent = 'Cycle ' + (cur + 1) + ' (pool before = ' + fmt(before) + ')';
+      rEq.textContent = 'progenitors 2 × ' + P.toFixed(2) + ' × ' + fmt(before) + ' = ' + fmt(pool[cur]) + ' · neurons 2 × ' + q.toFixed(2) + ' × ' + fmt(before) + ' = ' + fmt(neur[cur]);
+      rPool.textContent = '× ' + fmt(pool[N - 1]) + ' the starting pool';
+      rTotal.textContent = fmt(neur.reduce((a, b) => a + b, 0)) + ' starting pools of neurons';
+
+      // status
+      let s: string;
+      const c = 'Cycle ' + (cur + 1);
+      if (q < 0.5) s = c + ': Q is ' + q.toFixed(2) + ', below 0.5, so the pool grows. Each cycle leaves ' + fmt(2 * (1 - q)) + ' progenitors for every one before it, and makes ' + fmt(2 * q) + ' new neurons per progenitor.';
+      else if (q === 0.5) s = c + ': Q is 0.5, so the pool holds at ' + fmt(before) + '. Half the daughters keep cycling and half leave, which makes ' + fmt(neur[cur]) + ' neurons.';
+      else if (q < 1) s = c + ': Q is ' + q.toFixed(2) + ', above 0.5, so the pool shrinks, from ' + fmt(before) + ' to ' + fmt(pool[cur]) + ', while ' + fmt(neur[cur]) + ' neurons are made.';
+      else s = c + ': Q is 1, so every daughter leaves the cycle. ' + fmt(neur[cur]) + ' neurons are made and no progenitors remain to divide.';
+      const rising = qs.every((v, i) => v === PRESETS.rising[i]);
+      if (rising) s += ' This is the shape the lesson describes: the cortex first builds its progenitor pool and then spends it.';
+      else if (qs.slice(0, N - 1).some((v) => v === 1)) s += ' With the pool at zero, later cycles make no neurons.';
+      why.textContent = s;
+    }
+
+    sel.addEventListener('change', () => { cur = parseInt(sel.value, 10); render(); });
+    slider.addEventListener('input', () => { qs[cur] = Math.round(parseFloat(slider.value) * 100) / 100; preset = null; render(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => { qs = [...PRESETS[b.dataset.preset!]]; preset = b.dataset.preset!; render(); });
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .lf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lf-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.35rem 0; }
+  .lf-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 5.5em; }
+  .lf-presets { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .lf-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.25rem 0.5rem; cursor: pointer; }
+  .lf-btn:focus-visible, .lf-slabel select:focus-visible, .lf-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lf-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .lf-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .lf-slabel input { accent-color: var(--ddp-color-accent); }
+  .lf-slabel select { font-size: var(--ddp-text-xs); padding: 0.25rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); }
+  .lf-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .lf-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .lf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .lf-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 4.5em; }
+  .lf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .lf-controls { grid-template-columns: 1fr; } }
+</style>

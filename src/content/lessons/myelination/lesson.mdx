@@ -162,7 +162,13 @@ structures:
       A rigid ring system with a small polar head. Myelin is unusually rich in cholesterol, which
       packs between the other lipids and makes the membrane less leaky to ions.
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "ConductionSpeedPlot"
+    title: "Conduction speed: diameter and myelin"
+    caption: >-
+      Set a fibre's diameter and switch myelin on or off to see conduction velocity rise roughly with the square root of diameter in a bare axon and roughly in proportion to diameter in a myelinated one.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which statement correctly contrasts the two myelinating glia?"
@@ -358,6 +364,8 @@ corpusTags:
 draft: false
 ---
 
+import ConductionSpeedPlot from '../../../components/ConductionSpeedPlot.astro';
+
 **A mutant mouse called shiverer begins to tremble in the second or third week after birth. Its neurons are present and so are its axons. What it lacks is one protein of the wrapping around those axons.**
 
 That wrapping is myelin, and in the shiverer brain almost none of it is compact. The mouse raises the three questions of this lesson. How does a glial cell decide which axon to wrap, and how thickly? What holds the layers together? And can experience or disease change the answer later?
@@ -371,6 +379,8 @@ Why wrap at all? Think of a leaky garden hose. A bare axon is like that: current
 The axon exploits this by packing its voltage-gated sodium channels into short gaps between sheaths, the nodes of Ranvier. Each wrapped stretch is an internode. The action potential is regenerated only at the nodes and seems to leap from one to the next: saltatory conduction, from the Latin for "to jump".
 
 The gain is large. In unmyelinated axons, conduction velocity rises roughly with the square root of diameter. In myelinated fibers it rises roughly in proportion to diameter. A classic estimate from mammalian peripheral nerve (Hursh, 1939) is about 6 meters per second for each micrometer of fiber diameter, so the largest mammalian fibers reach tens of meters per second, up to around 100, while thin unmyelinated fibers conduct at about a meter per second or less. Sheath thickness is described by the g ratio:
+
+<ConductionSpeedPlot />
 
 > **g ratio = axon diameter ÷ fiber diameter (axon plus myelin). Velocity of a large myelinated mammalian fiber ≈ 6 m/s × fiber diameter in µm.**
 

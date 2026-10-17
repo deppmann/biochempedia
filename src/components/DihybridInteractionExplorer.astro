@@ -1,0 +1,200 @@
+---
+/**
+ * DihybridInteractionExplorer — the 16-box grid of an AaBb x AaBb cross, recolored by the
+ * rule that says how two genes act on one trait. Pick a rule (no interaction, recessive
+ * epistasis, complementary genes, dominant epistasis, duplicate genes) and the same sixteen
+ * boxes merge into 9:3:3:1, 9:3:4, 9:7, 12:3:1 or 15:1. A sample of 64 progeny is drawn
+ * at random from the grid; "Resample" draws again. Changing the rule regroups the SAME
+ * progeny, because only the phenotype labels change, not the gametes. Every rule and
+ * example is a statement of the extending-mendel lesson. Original, self-contained.
+ */
+---
+
+<figure class="dix card" data-dix>
+  <figcaption class="dix-head">Two genes, one trait: regroup the 16 boxes<span class="dix-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="dix-rules">
+    <legend>How the two genes act on the trait</legend>
+    <div class="dix-radios" data-radios></div>
+  </fieldset>
+
+  <svg class="dix-svg" viewBox="0 0 360 200" role="img" aria-label="A four by four grid of the sixteen offspring genotypes of AaBb crossed with AaBb, each box coloured by phenotype class under the chosen rule" data-grid></svg>
+
+  <table class="dix-table">
+    <caption class="dix-sr">Classes under the chosen rule: sixteenths, expected count and observed count in the sample</caption>
+    <thead><tr><th scope="col">Class</th><th scope="col">Sixteenths</th><th scope="col">Expected of 64</th><th scope="col">Observed of 64</th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <div class="dix-actions">
+    <button type="button" class="dix-btn" data-resample>Resample 64 progeny</button>
+    <span class="dix-note" data-ratio></span>
+  </div>
+
+  <p class="dix-verdict" data-status role="status"></p>
+
+  <p class="dix-foot">The gametes and their sixteen combinations never change; only the phenotype labels do. Expected counts are 64 x (sixteenths) / 16, and the observed counts scatter around them. This is a sketch of the logic, not data.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Rule = {
+    id: string; label: string; ratio: string;
+    classOf: (a: boolean, b: boolean) => number; // a, b: has a dominant allele at that gene
+    names: string[];
+    text: string;
+  };
+  const RULES: Rule[] = [
+    {
+      id: 'none', label: 'No interaction', ratio: '9:3:3:1',
+      classOf: (a, b) => (a && b ? 0 : a ? 1 : b ? 2 : 3),
+      names: ['A_B_', 'A_bb', 'aaB_', 'aabb'],
+      text: 'Each of the four phenotype classes stays separate, the 9:3:3:1 of Mendel’s dihybrid cross.',
+    },
+    {
+      id: 'rec', label: 'Recessive epistasis', ratio: '9:3:4',
+      classOf: (a, b) => (!a ? 2 : b ? 0 : 1),
+      names: ['A_B_', 'A_bb', 'aaB_ + aabb'],
+      text: 'aa hides the B gene, so the last two classes merge: 3 + 1 = 4. It hides it only when homozygous. In the Labrador example, ee hides the B locus (here aa hides B); mouse albino (cc) is another case.',
+    },
+    {
+      id: 'comp', label: 'Both dominant alleles needed', ratio: '9:7',
+      classOf: (a, b) => (a && b ? 0 : 1),
+      names: ['A_B_', 'A_bb + aaB_ + aabb'],
+      text: 'Colour needs a dominant allele at each gene, so only A_B_ is coloured and the other three classes merge: 3 + 3 + 1 = 7. These are complementary genes, as in sweet-pea flower colour.',
+    },
+    {
+      id: 'dom', label: 'Dominant epistasis', ratio: '12:3:1',
+      classOf: (a, b) => (a ? 0 : b ? 1 : 2),
+      names: ['A_B_ + A_bb', 'aaB_', 'aabb'],
+      text: 'A dominant allele at A hides the B gene, so the first two classes merge: 9 + 3 = 12. Among aa plants the B gene still shows (in squash, ww plants split by Y). In summer squash fruit colour a dominant allele at one gene hides the other.',
+    },
+    {
+      id: 'dup', label: 'Either dominant allele is enough', ratio: '15:1',
+      classOf: (a, b) => (a || b ? 0 : 1),
+      names: ['A_B_ + A_bb + aaB_', 'aabb'],
+      text: 'A dominant allele at either gene is enough, so only aabb differs: 9 + 3 + 3 = 15 to 1. These are duplicate genes, as in the shepherd’s purse seed capsule.',
+    },
+  ];
+  const FILL = ['#0e7c86', '#b85a00', '#7a5ea8', '#8a6508'];
+  const GAM = ['AB', 'Ab', 'aB', 'ab'];
+  const N = 64;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // genotype of the box formed by column gamete and row gamete, dominant allele written first
+  function genotype(r: number, c: number): { name: string; a: boolean; b: boolean } {
+    const g1 = GAM[r], g2 = GAM[c];
+    const aa = [g1[0], g2[0]].sort().join(''); // 'AA' | 'Aa' | 'aa' (uppercase sorts first)
+    const bb = [g1[1], g2[1]].sort().join('');
+    return { name: aa + bb, a: aa.includes('A'), b: bb.includes('B') };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-dix]').forEach((root) => {
+    const radios = root.querySelector<HTMLElement>('[data-radios]')!;
+    const grid = root.querySelector<SVGSVGElement>('[data-grid]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const ratioEl = root.querySelector<HTMLElement>('[data-ratio]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const uid = Math.random().toString(36).slice(2, 8);
+    let rule = RULES[1];
+    let sample: number[] = []; // box index (0..15) of each of the 64 progeny
+
+    function resample() {
+      sample = [];
+      for (let i = 0; i < N; i++) sample.push(Math.floor(Math.random() * 16));
+    }
+
+    function render() {
+      const nCls = rule.names.length;
+      const sixteenths = new Array(nCls).fill(0);
+      const observed = new Array(nCls).fill(0);
+      const clsOfBox: number[] = [];
+      for (let i = 0; i < 16; i++) {
+        const g = genotype(Math.floor(i / 4), i % 4);
+        const k = rule.classOf(g.a, g.b);
+        clsOfBox.push(k);
+        sixteenths[k]++;
+      }
+      sample.forEach((i) => { observed[clsOfBox[i]]++; });
+
+      // grid
+      grid.replaceChildren();
+      const INK = '#4b4b55';
+      const x0 = 56, y0 = 30, cw = 74, ch = 40;
+      grid.appendChild(el('text', { x: x0 + 2 * cw, y: 11, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'gametes of one AaBb parent (each 1/4)'));
+      GAM.forEach((g, i) => {
+        grid.appendChild(el('text', { x: x0 + i * cw + cw / 2, y: 25, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, g));
+        grid.appendChild(el('text', { x: x0 - 8, y: y0 + i * ch + ch / 2 + 4, 'font-size': 10, 'text-anchor': 'end', 'font-weight': 700, fill: INK }, g));
+      });
+      grid.appendChild(el('text', { x: 6, y: y0 + 2 * ch + 4, 'font-size': 9, fill: INK }, 'other'));
+      grid.appendChild(el('text', { x: 6, y: y0 + 2 * ch + 14, 'font-size': 9, fill: INK }, 'parent'));
+      for (let i = 0; i < 16; i++) {
+        const r = Math.floor(i / 4), c = i % 4, g = genotype(r, c), k = clsOfBox[i];
+        const x = x0 + c * cw, y = y0 + r * ch;
+        grid.appendChild(el('rect', { x: x + 1, y: y + 1, width: cw - 2, height: ch - 2, rx: 4, fill: FILL[k] }));
+        grid.appendChild(el('text', { x: x + cw / 2, y: y + 19, 'font-size': 11, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, g.name));
+        grid.appendChild(el('text', { x: x + cw / 2, y: y + 32, 'font-size': 9, 'text-anchor': 'middle', fill: '#fff' }, 'class ' + (k + 1)));
+      }
+
+      // table
+      rows.replaceChildren();
+      for (let k = 0; k < nCls; k++) {
+        const tr = document.createElement('tr');
+        const exp = (N * sixteenths[k]) / 16;
+        tr.innerHTML =
+          `<th scope="row"><span class="dix-sw" style="background:${FILL[k]}"></span>class ${k + 1}: ${rule.names[k]}</th>` +
+          `<td>${sixteenths[k]}/16</td><td>${exp}</td><td><strong>${observed[k]}</strong></td>`;
+        rows.appendChild(tr);
+      }
+      const obsRatio = observed.join(' : ');
+      const expRatio = sixteenths.join(' : ');
+      ratioEl.textContent = `expected ${rule.ratio}`;
+      status.textContent =
+        `${rule.label}: the sixteen boxes fall into ${nCls} classes in the ratio ${expRatio}. ${rule.text} ` +
+        `In this sample of ${N} progeny the observed counts are ${obsRatio} against ${sixteenths.map((s) => (N * s) / 16).join(' : ')} expected; resample to see the scatter.`;
+    }
+
+    RULES.forEach((r) => {
+      const lab = document.createElement('label');
+      lab.className = 'dix-opt';
+      const inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = 'dix-rule-' + uid; inp.value = r.id; inp.checked = r === rule;
+      inp.addEventListener('change', () => { rule = r; render(); });
+      lab.appendChild(inp);
+      lab.appendChild(document.createTextNode(` ${r.label} (${r.ratio})`));
+      radios.appendChild(lab);
+    });
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => { resample(); render(); });
+    resample();
+    render();
+  });
+</script>
+
+<style is:global>
+  .dix { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dix-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dix-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dix-rules { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: 0.4rem 0.7rem; }
+  .dix-rules legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .dix-radios { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dix-opt { cursor: pointer; }
+  .dix-opt input { accent-color: var(--ddp-color-accent); }
+  .dix-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dix-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: var(--ddp-space-2); }
+  .dix-table th, .dix-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); font-weight: 400; }
+  .dix-table thead th { color: var(--ddp-color-muted); }
+  .dix-table tbody th { overflow-wrap: anywhere; }
+  .dix-sw { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 2px; margin-right: 0.4em; vertical-align: -0.05em; }
+  .dix-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .dix-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin: var(--ddp-space-2) 0; }
+  .dix-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .dix-btn:focus-visible, .dix-opt input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dix-note { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dix-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .dix-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .dix-radios { grid-template-columns: 1fr; } }
+</style>

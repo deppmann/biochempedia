@@ -1,0 +1,438 @@
+---
+title: "Probability, Crosses and the Chi-Square Test"
+slug: "probability-and-crosses"
+course: "genetics"
+courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
+order: 303
+summary: >-
+  A cross predicts proportions, but real offspring come in counts that never match the ratio
+  exactly. This lesson gives you the two rules of probability that predict crosses of many genes
+  without a Punnett square, the binomial for counting outcomes in a family, and the chi-square
+  test for asking whether a deviation from a ratio is larger than chance would usually produce.
+  Afterwards you can run the test and say what its p-value does and does not mean.
+hook: "Mendel expected 312.75 round yellow seeds and counted 315. How far off can a count be before the ratio is wrong?"
+
+estMinutes: 24
+objectives:
+  - "Use the product rule for independent events, the sum rule for mutually exclusive events and the branch method to predict the outcomes of crosses with three or more unlinked genes."
+  - "Apply the binomial distribution to the number of children or offspring of a given type in a family of fixed size."
+  - "Run a chi-square goodness-of-fit test: expected counts, the statistic, degrees of freedom and a critical value or p-value."
+  - "State what a p-value is and is not, and explain why failing to reject a hypothesis does not prove it."
+
+explainer:
+  src: "/explainers/probability-and-crosses/explainer.mp4"
+  captions: "/explainers/probability-and-crosses/explainer.vtt"
+  poster: "/explainers/probability-and-crosses/poster.jpg"
+  title: "How Far Can a Count Stray?"
+  durationSec: 180.4
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Gregor Mendel"
+    contribution: >-
+      Counted the offspring of controlled pea crosses in thousands and read ratios from the counts,
+      which made inheritance a question of probability. His counts remain a classic
+      worked example for the chi-square test.
+    profileSourceAnchor: "Mendel, Verhandlungen des naturforschenden Vereines in Brünn 4:3–47 (1866); English translation by Abbott & Fairbanks, Genetics 204:407–422 (2016)."
+    quotes: []
+    story: >-
+      Mendel was an Augustinian friar in Brünn, now Brno. Before making a single cross for his
+      study, he grew 34 varieties of pea for two years to check which ones bred true, and chose 22
+      of them. To cross two plants he removed the stamens of one flower before it could pollinate
+      itself, then dusted on pollen from the other plant. He kept some potted plants in a
+      glasshouse as a control, in case insects were carrying pollen in the garden. He presented the
+      work at two meetings of the natural science society in February and March 1865, and it was
+      published in 1866. His counts were large: 7,324 seeds from 253 hybrid plants in one
+      experiment alone. He also noticed that ratios fluctuated more when only 100 plants were
+      examined, and he planned further experiments to test whether the rules he found in peas held in other plants.
+      That attention to sample size is what made his numbers usable for a statistical test written
+      decades after he published them.
+  - name: "Karl Pearson"
+    contribution: >-
+      Introduced the chi-square criterion in 1900: a single number that measures how far a set of
+      observed counts lies from the counts a hypothesis predicts, and a way to find how often
+      chance alone would produce a deviation that large.
+    profileSourceAnchor: "Pearson, Philosophical Magazine, series 5, 50:157–175 (1900); Karl Pearson Papers, UCL Special Collections."
+    quotes: []
+    story: >-
+      Pearson worked at University College London, where he and his colleagues built mathematical
+      statistics into a discipline. In 1900 he published, in the Philosophical Magazine, a paper
+      asking a general question: given a set of observed frequencies and the frequencies a theory
+      predicts, how probable is it that the differences arose from random sampling alone? His
+      answer was the statistic now written as chi-square, the sum over classes of the squared
+      difference between observed and expected counts, divided by the expected count, together with
+      a table of how often chance gives each value. The paper was not about peas. It was about any
+      theory that predicts frequencies. Pearson was also a leading biometrician, who studied
+      continuous variation, and he was for years a critic of the Mendelian school. From 1911 he
+      held UCL's Galton professorship of eugenics. His test outlived those disputes and became the
+      everyday tool for asking whether a genetic ratio fits a set of counts.
+  - name: "Ronald Fisher"
+    contribution: >-
+      Showed in 1922 that the degrees of freedom of a chi-square test depend on how many quantities
+      are estimated from the data, correcting how the test was applied to tables, and in 1936
+      re-analysed Mendel's counts and argued that they fit expectation more closely than chance
+      would usually allow.
+    profileSourceAnchor: "Fisher, Journal of the Royal Statistical Society 85:87–94 (1922); Fisher, Annals of Science 1:115–137 (1936)."
+    quotes: []
+    story: >-
+      Fisher brought Mendelian genetics and statistics together. In 1918 he showed that many genes
+      of small effect, each inherited as Mendel described, can produce the continuous variation
+      that biometricians measured. In 1922 he turned to Pearson's chi-square test. When the
+      expected counts are calculated from the data themselves, as in a table testing whether two
+      traits are associated, each quantity estimated from the data uses up a degree of freedom.
+      Pearson had not subtracted them, so tests run his way were too lenient. Fisher's correction
+      is the reason you count degrees of freedom with care. In 1936 he applied the test to
+      Mendel's paper as a whole. Experiment by experiment the fits were good, and taken together
+      they were better than chance would usually give. The paper started a long debate about how
+      Mendel's data were gathered, which is still discussed. It also showed that a test can flag a
+      fit that is too close as well as one that is too far.
+
+techniques:
+  - name: "Controlled cross with stamen removal"
+    blurb: >-
+      The stamens of a flower are removed before it can pollinate itself, and pollen from a chosen
+      plant is applied. The cross then has known parents, so the offspring counts can be compared
+      with a prediction.
+  - name: "Progeny testing"
+    blurb: >-
+      Plants with the dominant phenotype are selfed or crossed and their offspring scored. Plants
+      that breed true are homozygous; plants that give both forms are heterozygous. Mendel used it
+      to show that two-thirds of dominant-looking F2 plants were hybrids.
+  - name: "Chi-square goodness-of-fit test"
+    blurb: >-
+      Observed counts in each class are compared with the counts a hypothesis predicts. The
+      statistic, with its degrees of freedom, gives the probability of a deviation at least this
+      large if the hypothesis were true.
+
+structures:
+  - label: "Starch branching enzyme I from rice — the enzyme behind round and wrinkled seeds"
+    source: "rcsb"
+    id: "3AMK"
+    note: "Oryza sativa starch branching enzyme I, X-ray crystal structure"
+    caption: >-
+      Mendel's wrinkled-seed allele disrupts the pea version of this enzyme. Look for the barrel
+      domain that holds the active site, where a starch chain is cut and joined back as a branch.
+  - label: "Sucrose — the sugar that piles up in wrinkled seeds"
+    source: "pubchem"
+    id: "5988"
+    note: "PubChem compound record for sucrose"
+    caption: >-
+      With less starch made, more sugar stays free in the developing seed, which takes up water
+      and then shrinks and wrinkles as it dries.
+  - label: "Gibberellin receptor GID1 with gibberellin and a DELLA protein — the hormone behind tall and dwarf"
+    source: "rcsb"
+    id: "2ZSH"
+    note: "Arabidopsis GID1A bound to gibberellin A3 and the DELLA domain of GAI, X-ray crystal structure (Murase et al., Nature, 2008)"
+    caption: >-
+      The hormone sits in a pocket of the receptor, and a lid closes over it to make a surface the
+      DELLA protein binds. Mendel's dwarf peas carry an allele that lowers the plant's supply of
+      active gibberellin.
+
+simulations:
+  - type: "local"
+    ref: "ChiSquareCrossTester"
+    title: "Chi-square tester: do these counts fit the ratio?"
+    caption: >-
+      Enter or resample counts against a ratio and watch chi-square, degrees of freedom and p respond, with the plain meaning of p beside them.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "Two plants heterozygous at three unlinked genes (AaBbCc) are crossed. What fraction of the offspring is expected to be aabbcc?"
+    choices:
+      - "1/8"
+      - "1/64"
+      - "3/64"
+      - "1/16"
+    answer: 1
+    rationale: >-
+      Each gene gives aa, bb or cc with probability 1/4, and because the genes are unlinked the
+      three events are independent, so the product is 1/4 x 1/4 x 1/4 = 1/64. The value 1/8 is the
+      chance that one gamete carries a, b and c, not the chance that two such gametes meet. The
+      value 1/16 is the answer for two genes and forgets the third. The value 3/64 adds a factor of
+      three that belongs to questions about any one of several classes, not to a single fully
+      specified genotype.
+  - stem: "A chi-square test of an F2 against 9:3:3:1 gives p = 0.62. Which statement about this result is correct?"
+    choices:
+      - "There is a 62% chance that the 9:3:3:1 hypothesis is true"
+      - "There is a 38% chance that the 9:3:3:1 hypothesis is false"
+      - "The counts prove that the two genes assort independently"
+      - "Counts this far from 9:3:3:1 are common if the ratio holds"
+    answer: 3
+    rationale: >-
+      A p-value is calculated assuming the hypothesis is true: here, deviations at least this large
+      would arise about 62% of the time by chance if 9:3:3:1 held. It is not the probability that
+      the hypothesis is true, so 62% true is wrong, and 38% false is the same mistake turned
+      around. A large p-value does not prove independent assortment; it says only that these counts
+      give no reason to reject it, and other models could fit as well.
+  - stem: "An F2 is scored into four phenotype classes and tested against a 9:3:3:1 ratio fixed in advance. How many degrees of freedom does the chi-square test have?"
+    choices:
+      - "3"
+      - "4"
+      - "1"
+      - "2"
+    answer: 0
+    rationale: >-
+      With the ratio fixed in advance and no quantity estimated from the data, degrees of freedom
+      are classes minus one, 4 - 1 = 3, because once three counts and the total are known the fourth
+      is fixed. Four counts the classes and forgets the minus one. One is the value for a 2 x 2
+      contingency test of independence, a different test. Two would be right only if one parameter
+      had been estimated from the data, which did not happen here.
+  - stem: "Two parents are both heterozygous carriers (Aa) of a recessive allele. They have three children. Assuming complete penetrance and independent births, what is the probability that exactly two of the three are aa?"
+    choices:
+      - "3/64"
+      - "1/16"
+      - "9/64"
+      - "27/64"
+    answer: 2
+    rationale: >-
+      One particular order, such as affected, affected, unaffected, has probability (1/4)(1/4)(3/4)
+      = 3/64, and there are three orders, so the answer is 3 x 3/64 = 9/64. The value 3/64 is one
+      order alone, forgetting the factor that counts birth orders. The value 1/16 multiplies only
+      the two affected children and leaves out the unaffected one. The value 27/64 is (3/4)^3, the
+      chance that none of the three is affected.
+  - stem: "A student tests an F2 of 400 plants, 310 tall and 90 dwarf, against 3:1. She enters percentages (77.5 and 22.5 against 75 and 25) in the formula and gets chi-square = 0.33. What should she do instead?"
+    choices:
+      - "Nothing, since percentages and counts give the same answer"
+      - "Use counts, which give chi-square = 1.33 with 1 df"
+      - "Use counts, which give chi-square = 1.33 with 2 df"
+      - "Use ratios, which give chi-square = 0.33 with 1 df"
+    answer: 1
+    rationale: >-
+      The test needs counts. Expected counts are 300 and 100, so chi-square = 100/300 + 100/100 =
+      1.33, with two classes and 1 df; this is below 3.84, so 3:1 is not rejected. Percentages give
+      the same value as counts only when the sample is exactly 100, so the claim that they always
+      agree is wrong. Two degrees of freedom would need three classes. Ratios lose the sample size
+      just as percentages do, and the size of the sample is what makes a deviation more or less
+      surprising.
+
+mcatQuestions:
+  - stem: "A breeder self-pollinates a tomato plant heterozygous at three unlinked genes, each with one completely dominant allele. She grows 640 seedlings and scores all three traits. About how many seedlings are expected to show the dominant phenotype for exactly two of the three traits?"
+    choices:
+      - "90"
+      - "360"
+      - "270"
+      - "10"
+    answer: 2
+    rationale: >-
+      One way to be dominant for two traits and recessive for the third, such as A_ B_ cc, has
+      probability (3/4)(3/4)(1/4) = 9/64. The recessive trait can be any of the three, and these
+      outcomes are mutually exclusive, so they add: 3 x 9/64 = 27/64, and 27/64 x 640 = 270. The
+      value 90 counts only one of the three combinations. The value 360 is 9/16 of 640, the
+      two-gene answer for being dominant at both, which ignores the third gene. The value 10 is the
+      expected number of fully recessive aabbcc seedlings, 1/64 of 640.
+  - stem: "A pea F2 from a monohybrid cross contains 200 plants: 140 tall and 60 dwarf. A student tests the counts against a 3:1 ratio using the chi-square test at the 0.05 level, where the critical value for 1 degree of freedom is 3.84. Which result is correct?"
+    choices:
+      - "Chi-square is 2.67, and 3:1 is not rejected at 0.05"
+      - "Chi-square is 0.67, and 3:1 is not rejected at 0.05"
+      - "Chi-square is 2.67, and 3:1 is shown to be correct"
+      - "Chi-square is 2.67, and 3:1 is rejected at the 0.05 level"
+    answer: 0
+    rationale: >-
+      Expected counts are 150 tall and 50 dwarf, so chi-square = 100/150 + 100/50 = 0.67 + 2.00 =
+      2.67. That is below 3.84, so 3:1 is not rejected (p is about 0.10). The value 0.67 adds only
+      the tall class and drops the dwarf class, which contributes most. Rejection would need a value
+      above 3.84, so the claim of rejection misreads the critical value. Failing to reject does not
+      show that 3:1 is correct; other ratios could fit these counts too.
+  - stem: "In a mouse colony, pairs heterozygous for a recessive coat-colour allele are mated, and 256 litters of exactly four pups are scored. Each pup independently has a 1/4 chance of showing the recessive coat. About how many litters are expected to contain at least one pup with the recessive coat?"
+    choices:
+      - "64"
+      - "81"
+      - "108"
+      - "175"
+    answer: 3
+    rationale: >-
+      The easy route is the complement. A litter has no recessive pup with probability (3/4)^4 =
+      81/256, so at least one appears with probability 1 - 81/256 = 175/256, which is 175 of 256
+      litters. The value 81 is the number of litters with none. The value 108 is the number with
+      exactly one, 4 x (1/4)(3/4)^3 x 256, which leaves out litters with two, three or four. The
+      value 64 divides the litters by four, as if each litter had to contain one recessive pup per
+      four pups.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      If you flip a coin, it lands heads half the time. If you flip two coins, both land heads only
+      one time in four, because you take half of a half. Babies get their parents' genes a bit like
+      coin flips. And when you count real coins, you almost never get exactly half heads, so
+      scientists have a test that tells them when a count is too far off to be just luck.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Each offspring of a cross gets one allele of each gene from each parent, and for genes on
+      different chromosomes those choices are independent. So you can multiply: the chance of
+      being aa is 1/4, the chance of being bb is 1/4, and the chance of both is 1/16. When there are
+      several separate ways to get an outcome, you add their chances. Real counts never match a
+      ratio exactly, so geneticists use the chi-square test. They compare the counts they got with
+      the counts the ratio predicts, add up the squared differences divided by the expected counts,
+      and look the total up in a table. A small total means the ratio could easily explain the
+      counts; a large one means it probably cannot.
+  - level: "college"
+    label: "College"
+    text: >-
+      For unlinked loci, segregation at each locus is an independent event, so the probability of
+      a multilocus phenotype is the product of single-locus probabilities (the product rule), and
+      the probability of any one of several mutually exclusive outcomes is their sum (the sum
+      rule). The branch method applies both without a Punnett square. For a fixed number n of
+      independent offspring with constant probability p, the number of a given type is binomial:
+      P(k) = [n!/(k!(n-k)!)] p^k (1-p)^(n-k), where the coefficient counts the orders. To test
+      whether observed counts fit a hypothesis, compute expected counts as total times probability,
+      then chi-square = sum of (O - E)^2 / E, with degrees of freedom equal to classes minus one
+      minus the number of parameters estimated from the data. The p-value is the probability of a
+      statistic at least this large if the hypothesis and the rest of the model hold. Failing to
+      reject is not proof.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Pearson's statistic is asymptotically chi-square distributed under a multinomial null; the
+      approximation degrades when expected counts are small (an introductory rule is at least five
+      per class), when exact tests or simulation of the multinomial are better. Degrees of freedom
+      are k - 1 - m for k classes and m parameters estimated from the data, the point Fisher made
+      in 1922 against Pearson's handling of contingency tables. A p-value conditions on the whole
+      model, not only the genetic hypothesis: independent sampling, correct classification, equal
+      viability of genotypes, no selective scoring. A small p therefore does not say which
+      assumption failed (segregation distortion, linkage, lethality, misscoring), and a large p
+      does not establish the model, since several models can fit the same counts.
+
+
+      An open question, raised by Fisher's 1936 re-analysis, is why Mendel's aggregate data fit
+      more closely than sampling would usually allow. Proposals have included unconscious bias in
+      classification, selective reporting of experiments, and features of how the plants were
+      sampled, and later analyses have disagreed about how strong the evidence for excessive fit
+      actually is.
+
+anecdotes:
+  - title: "Too good to be true?"
+    source: "Fisher, Has Mendel's work been rediscovered? Annals of Science 1:115–137 (1936)."
+    text: >-
+      In 1936 Ronald Fisher went through Mendel's paper experiment by experiment and computed a
+      chi-square for each. A fit can be too good: if a hypothesis is true, chance still scatters
+      counts around it, and very small chi-square values should be uncommon. Adding Mendel's
+      experiments together, Fisher found agreement closer than chance would usually give. He wrote that the data seemed adjusted to match Mendel's expectations, and suggested that an assistant who knew too well what was expected might have done it, not Mendel himself. The cause is still argued over. The lesson for a student is that
+      the test reads both tails of credibility: too far from expectation, and too close.
+  - title: "The hidden two-thirds"
+    source: "Mendel (1866), Abbott & Fairbanks translation, Genetics 204:407–422 (2016)."
+    text: >-
+      Round seeds look alike, but Mendel predicted they were not all the same. He grew 565 plants
+      from round F2 seeds and scored the seeds they made. Of these, 193 gave only round seeds and
+      372 gave both round and wrinkled. A 1:2 ratio predicts 188.3 and 376.7. Chi-square is about
+      0.17 with 1 degree of freedom, an ordinary deviation from a simple 1:2 ratio. Fisher later argued that if only about ten seeds were sown per plant, 5 to 6 per cent of hybrids would pass as true-breeding, so the exact expectation is a little lower than 2:1. Two-thirds of the dominant-looking
+      plants were hybrids, as the model said, which no amount of looking at the seeds could have
+      shown.
+  - title: "Statisticians issue a statement"
+    source: "Wasserstein & Lazar, The American Statistician 70:129–133 (2016)."
+    text: >-
+      In 2016 the American Statistical Association issued a formal statement on p-values, written
+      up by Ronald Wasserstein and Nicole Lazar. It set out six principles. Among them: a p-value
+      does not measure the probability that the hypothesis studied is true, and a single threshold
+      such as 0.05 should not by itself decide a scientific conclusion. None of this changed the
+      arithmetic of the chi-square test. It changed what careful scientists say after doing it.
+
+corpusTags:
+  - "probability"
+  - "product-rule"
+  - "sum-rule"
+  - "forked-line-method"
+  - "binomial-distribution"
+  - "chi-square-test"
+  - "p-value"
+  - "degrees-of-freedom"
+  - "mendel"
+  - "independent-assortment"
+draft: false
+---
+
+import ChiSquareCrossTester from '../../../components/ChiSquareCrossTester.astro';
+
+**Mendel crossed peas that differed in seed shape and seed colour and counted 556 seeds from the hybrids: 315 round yellow, 108 round green, 101 wrinkled yellow and 32 wrinkled green. A 9:3:3:1 ratio predicts 312.75, 104.25, 104.25 and 34.75. None of his counts matches.**
+
+That is normal. A ratio is a probability, and counts drawn from a probability scatter around it, the way ten coin tosses rarely give exactly five heads. This lesson asks two questions. How do you predict the proportions of a cross involving many genes? And how far can a count stray from the prediction before you stop believing the prediction? The tools are two rules of probability, the binomial distribution, and the chi-square test.
+
+## Two rules: and means multiply, or means add
+
+A **gene** sits at a place on a chromosome called its **locus**, and its versions are **alleles**. An organism with two copies of the same allele is **homozygous**; with two different alleles, **heterozygous**. When a heterozygote (Aa) makes gametes, half carry A and half carry a, as you saw in [Mendel's peas](/lessons/mendels-peas/).
+
+Two events are **independent** when the outcome of one does not change the chance of the other. For independent events, the chance of both is the product:
+
+> P(A and B) = P(A) x P(B)
+
+Two events are **mutually exclusive** when they cannot both happen. For those, the chance of either is the sum:
+
+> P(A or B) = P(A) + P(B)
+
+Apply them to Aa x Aa. An offspring is AA when the egg carries A and the sperm carries A: 1/2 x 1/2 = 1/4. It is Aa in two exclusive ways (A from the egg and a from the sperm, or the reverse): 1/4 + 1/4 = 1/2. It shows the dominant phenotype, written A_, if it is AA or Aa: 1/4 + 1/2 = 3/4.
+
+Independence is an assumption, and you must earn it. Genes on different chromosomes, or far apart on one chromosome, assort independently, those on different chromosomes because of how chromosomes line up and separate in meiosis and those far apart on one chromosome because crossing over shuffles them about as often as not (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). Genes close together on one chromosome tend to be inherited together, and the product rule then fails (see [linkage and mapping](/lessons/linkage-and-mapping/)). So every calculation below says **unlinked**, and means it.
+
+## Many genes at once: follow the branches
+
+A Punnett square for three genes has 64 boxes. You do not need it. Treat each gene as its own small cross, then multiply along branches: for each locus, branch into the dominant phenotype (3/4) or the recessive one (1/4), and the probability of a path is the product of the probabilities on it. This is the branch, or forked-line, method.
+
+**Worked problem, part 1.** Assume three unlinked genes, complete dominance at each, and no selection. Cross AaBbCc x AaBbCc.
+
+1. *What fraction is A_ bb C_?* One path: 3/4 x 1/4 x 3/4 = 9/64.
+2. *What fraction is fully recessive, aabbcc?* 1/4 x 1/4 x 1/4 = 1/64.
+3. *What fraction shows the dominant phenotype for exactly two of the three traits?* There are three paths: recessive at A only, at B only, or at C only. Each has probability (3/4)(3/4)(1/4) = 9/64. The paths are mutually exclusive, so add them: 3 x 9/64 = 27/64.
+
+The third question is where students go wrong. "Exactly two" is an *or* question built from *and* pieces. Multiply along each path, then add the paths. Check by a different route: the eight paths fall into four groups with probabilities 27/64 (all dominant), 27/64 (exactly two), 9/64 (exactly one) and 1/64 (none), which sum to 64/64.
+
+## Families: the binomial counts the birth orders
+
+A different question: two parents are both carriers (Aa) of a recessive allele, and they have four children. How many of the four will be aa? This is a probability exercise, not a forecast for any real family. Assume complete **penetrance** (every aa child shows the trait) and that each child is an independent event with probability 1/4.
+
+The **binomial distribution** handles any fixed number of independent trials, each with the same probability p of a given outcome:
+
+> P(exactly k of n) = [n! / (k! (n - k)!)] x p^k x (1 - p)^(n - k)
+
+The bracket counts the number of different orders in which k outcomes can fall among n trials.
+
+**Worked problem, part 2.** n = 4, p = 1/4.
+
+1. *Exactly one affected child.* One particular order, say the first child affected and the other three not, has probability (1/4)(3/4)(3/4)(3/4) = 27/256. The affected child could be first, second, third or fourth: four orders. So P = 4 x 27/256 = 108/256 = 27/64, about 0.42.
+2. *At least one affected child.* Use the complement. P(none affected) = (3/4)^4 = 81/256. So P(at least one) = 1 - 81/256 = 175/256, about 0.68.
+
+The factor of 4 is the step students forget. And note what independence means here. If the first child is affected, the chance for the second is still 1/4. Believing that the family has "used up" its affected child is the gambler's fallacy; segregation has no memory.
+
+## Is the deviation chance? The chi-square test
+
+Now the opening question. Suppose a dihybrid F2 of 160 plants gives 98, 28, 26 and 8 in the four phenotype classes. Does it fit 9:3:3:1?
+
+Karl Pearson's **chi-square** statistic, introduced in 1900, measures the distance between observed (O) and expected (E) counts:
+
+> chi-square = sum over classes of (O - E)^2 / E
+
+**Worked problem, part 3.** Assume independent plants, correct scoring and equal survival of all genotypes.
+
+1. *Expected counts.* Multiply the total by each probability: 160 x 9/16 = 90, 160 x 3/16 = 30, 30, and 160 x 1/16 = 10.
+2. *Each class.* (98 - 90)^2/90 = 64/90 = 0.711. (28 - 30)^2/30 = 4/30 = 0.133. (26 - 30)^2/30 = 16/30 = 0.533. (8 - 10)^2/10 = 4/10 = 0.400.
+3. *Sum.* chi-square = 1.78.
+4. *Degrees of freedom.* With four classes and a ratio fixed in advance, df = 4 - 1 = 3: once three counts and the total are known, the fourth is set. If you had estimated a parameter from the data, you would subtract one more, the point Ronald Fisher made for contingency tables in 1922 and for the general case in 1924.
+5. *Compare.* The critical value for 3 df at the 0.05 level is 7.81. 1.78 is well below it; the p-value is about 0.62. The data are consistent with 9:3:3:1.
+
+Three rules keep the test honest. Use **counts**, never percentages or ratios, because the size of the sample is what makes a deviation surprising. Keep expected counts above about five in every class, or the chi-square approximation becomes poor; small families are a bad fit for this test. And keep the two kinds of test apart: a goodness-of-fit test against four classes has 3 df, while a 2 x 2 test of whether two traits are associated has 1 df.
+
+Mendel's own 556 seeds give chi-square = 0.47 against 9:3:3:1, also with 3 df, p about 0.93.
+
+### What a p-value does and does not tell you
+
+A **p-value** is the probability of getting data at least this far from expectation *if the hypothesis and every other assumption of the model were true*. A p of 0.62 means a deviation this size is unremarkable under 9:3:3:1.
+
+It is not the probability that the hypothesis is true. And p > 0.05 does not prove the hypothesis: it means you **fail to reject** it. Other models may fit the same counts as well. A small p-value does not tell you which assumption failed, either: linkage, a lethal genotype and misscored plants can all inflate chi-square. Our F2 is consistent with independent assortment; it does not prove it.
+
+<ChiSquareCrossTester />
+
+### Design problem
+
+Two true-breeding white-flowered lines are crossed and the F1 is all purple. The F2 of 160 plants contains 96 purple and 64 white. Test a 3:1 ratio and a 9:7 ratio, decide which the data allow, and say what experiment you would do next.
+
+<details>
+<summary>One way to do it</summary>
+
+**3:1.** Expected 120 purple and 40 white. Chi-square = (96 - 120)^2/120 + (64 - 40)^2/40 = 576/120 + 576/40 = 4.8 + 14.4 = 19.2, with 1 df. The critical value at 0.05 is 3.84, so 3:1 is rejected (p is far below 0.001).
+
+**9:7.** Expected 160 x 9/16 = 90 and 160 x 7/16 = 70. Chi-square = 36/90 + 36/70 = 0.40 + 0.51 = 0.91, with 1 df, p about 0.34. Not rejected.
+
+**What next.** A good fit does not establish the model. A 5:3 ratio (100:60) fits these counts too, with chi-square about 0.43, and no one is proposing it. What 9:7 adds is a mechanism: two genes, each needed for purple, with each white parent lacking a different one. Test that mechanism with a cross whose outcome differs between models. Cross F2 white plants with each other in many pairs. Under one gene, white x white always gives white. Under two genes, some pairs (one carrying aa, the other bb, each with the other gene's dominant allele) give purple offspring. Crossing the F1 back to either white parent should give about 1 purple : 1 white. How two genes produce 9:7 is the subject of [extending Mendel](/lessons/extending-mendel/).
+
+</details>

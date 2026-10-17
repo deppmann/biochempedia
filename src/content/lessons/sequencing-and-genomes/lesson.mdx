@@ -1,0 +1,460 @@
+---
+title: "Sequencing and Genomes"
+slug: "sequencing-and-genomes"
+course: "genetics"
+courseChapter: "Genetics and Molecular Biology · Unit 5: Tools and genomes"
+order: 323
+summary: >-
+  How do you read three billion bases when no machine can read more than a short stretch of one
+  molecule at a time? This lesson explains Sanger chain termination, short-read sequencing by
+  synthesis and the two main long-read methods, then shows how reads are counted into coverage
+  and stitched into a genome, and why repeats break the stitching. Afterwards you can calculate
+  how many reads a genome needs, explain why the human reference took two decades to finish, and
+  read a structural variant from the pattern of reads it leaves.
+hook: "Two drafts of the human genome appeared in 2001. Why did a gapless one take until 2022?"
+
+estMinutes: 24
+objectives:
+  - "Explain how dideoxynucleotides turn base order into a ladder of fragment lengths, and how reversible terminators let short-read machines read one base per cycle instead."
+  - "Calculate the reads needed for a stated mean coverage, and use the Poisson model to estimate how much of a genome goes unread."
+  - "Explain why a repeat longer than a read breaks an assembly, and why long reads from PacBio and Oxford Nanopore instruments can resolve it."
+  - "Describe the human reference from the 2001 drafts to T2T-CHM13 and the 2023 draft pangenome, and explain why a variant call depends on the reference used."
+
+explainer:
+  src: "/explainers/sequencing-and-genomes/explainer.mp4"
+  captions: "/explainers/sequencing-and-genomes/explainer.vtt"
+  poster: "/explainers/sequencing-and-genomes/poster.jpg"
+  title: "Depth cannot fix a repeat"
+  durationSec: 168.8
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Frederick Sanger"
+    dates: "1918–2013"
+    contribution: >-
+      With Steve Nicklen and Alan Coulson, published in 1977 the chain-termination method, in which
+      dideoxynucleotides stop DNA copying at known bases, the basis of most DNA sequencing for the
+      next quarter century.
+    profileSourceAnchor: "Sanger, Nicklen & Coulson, PNAS 74:5463 (1977); Sanger, Nobel Lecture in Chemistry (1980)."
+    quotes: []
+    story: >-
+      Sanger already had one Nobel Prize, the 1958 Chemistry prize for his work on the structure of
+      proteins, insulin above all, when he turned to reading DNA at the Medical Research Council
+      Laboratory of Molecular Biology in Cambridge. His group first worked out the sequence of the
+      DNA of bacteriophage phiX174 with a method they called "plus and minus". In December 1977,
+      Sanger, Steve Nicklen and Alan Coulson published a simpler idea in the Proceedings of the
+      National Academy of Sciences. Copy the DNA with a polymerase, but include a small amount of a
+      nucleotide that lacks the 3' hydroxyl, so that each copy stops where that analogue goes in.
+      Earlier the same year Allan Maxam and Walter Gilbert had published a different method that
+      reads DNA by cutting it chemically. The 1980 Chemistry prize went half to Paul Berg and half
+      jointly to Gilbert and Sanger, his second. Chain termination, made fluorescent and run in
+      capillaries, produced most of the sequence in the first human genome drafts.
+  - name: "Eric Lander"
+    contribution: >-
+      First author, for the International Human Genome Sequencing Consortium, of the 2001 analysis
+      of the draft human genome, and earlier, with Michael Waterman, of the mathematics that
+      predicts how much of a genome random clones leave uncovered.
+    profileSourceAnchor: "International Human Genome Sequencing Consortium, Nature 409:860 (2001); Lander & Waterman, Genomics 2:231 (1988)."
+    quotes: []
+    story: >-
+      Lander came to genomes from mathematics. In 1988, with Michael Waterman, he worked out how
+      many random pieces of DNA you must sample before they overlap into long continuous stretches,
+      and how many gaps to expect at a given depth. Their paper analysed random clones for physical maps; the same Poisson reasoning is used to plan sequencing projects and is the one in this lesson's worked problem. At the Whitehead Institute in
+      Cambridge, Massachusetts, his centre became one of the largest in the publicly funded
+      International Human Genome Sequencing Consortium, and he was first author of its paper in
+      Nature in February 2001. The consortium sequenced mapped clones; in the same month a
+      company, Celera Genomics, with J. Craig Venter as first author, published a draft in Science
+      built by shotgun sequencing the whole genome. Both were drafts with many gaps. The
+      consortium paper also reported that about half the sequence derived from transposable
+      elements, and its estimate of 30,000 to 40,000 protein-coding genes was later revised
+      downward. The finished sequence followed in 2004.
+  - name: "Adam Phillippy"
+    contribution: >-
+      With Karen Miga, led the Telomere-to-Telomere Consortium, whose 2022 assembly of the CHM13
+      genome was gapless for every chromosome except Y, built from accurate long reads and
+      ultra-long nanopore reads.
+    profileSourceAnchor: "Nurk et al., Science 376:44 (2022); Rhie et al., Nature 621:344 (2023)."
+    quotes: []
+    story: >-
+      Phillippy, a computational biologist at the US National Human Genome Research Institute,
+      works on genome assembly, the step that turns reads into chromosomes. With Karen Miga, whose
+      work at the University of California, Santa Cruz centres on the long repeats at centromeres,
+      he led an open group called the Telomere-to-Telomere (T2T) Consortium. Their aim was a human
+      genome with no gaps at all. The material was the CHM13 cell line, derived from a complete
+      hydatidiform mole, in which both copies of each chromosome are nearly identical, so the
+      assembler did not have to separate two versions of every region. Combining PacBio HiFi reads
+      with Oxford Nanopore ultra-long reads, the consortium, with Sergey Nurk as first author,
+      published in Science in 2022 a 3.055-billion-base assembly gapless for all chromosomes except
+      Y. Evan Eichler's laboratory led companion analyses of segmental duplications, long
+      near-identical repeats. In 2023 Arang Rhie and colleagues added a complete Y chromosome from
+      a different person, HG002, so every human chromosome had now been read end to end.
+  - name: "Human Pangenome Reference Consortium"
+    contribution: >-
+      Published in 2023 a draft human pangenome of 47 phased diploid assemblies from genetically
+      diverse people, and showed that aligning to it reduced errors in the variant calls tested.
+    profileSourceAnchor: "Liao et al., Nature 617:312 (2023)."
+    quotes: []
+    story: >-
+      A single reference, however complete, is one genome, and no single genome carries all the
+      variation of a species. The Human Pangenome Reference Consortium set out to build a reference
+      from many people. In its first draft, published in Nature in 2023 with Wen-Wei Liao as first
+      author, the consortium assembled 47 people's genomes as phased diploid assemblies, meaning
+      that each person's two copies of every chromosome were kept apart rather than merged. It
+      joined the assemblies into a graph in which shared sequence is drawn once and each person's
+      chromosome copy is a path through it. The graph held 119 million bases of euchromatic
+      sequence that varies between people and is absent from GRCh38, the reference most
+      laboratories use. In the short-read benchmarks the paper reported, workflows built on the
+      pangenome made 34% fewer small-variant errors and found 104% more structural variants per
+      haplotype than workflows built on GRCh38. The draft made it practical to ask whether a
+      variant is unusual or only unusual compared with one reference.
+
+techniques:
+  - name: "Sanger chain-termination sequencing"
+    blurb: >-
+      A polymerase copies one template from a primer with ordinary nucleotides plus a small amount
+      of dideoxynucleotides, each type carrying its own fluorescent dye. Capillary electrophoresis
+      sorts the stopped copies by length, and the dye at each length names the base. It reads one
+      region at a time, commonly up to about 800 to 1,000 bases.
+  - name: "Short-read sequencing by synthesis"
+    blurb: >-
+      Fragments with adapters are amplified into clusters on a flow cell, then copied one base per
+      cycle with fluorescent reversible terminators, imaging every cluster after each cycle. Hundreds
+      of millions of short reads, often from both ends of each fragment, come from one run.
+  - name: "Long-read single-molecule sequencing"
+    blurb: >-
+      PacBio instruments watch a single polymerase copy a circular molecule many times; Oxford
+      Nanopore instruments read the change in ionic current as one DNA strand passes through a
+      protein pore. Reads run to tens of kilobases or longer, long enough to span most repeats.
+  - name: "Read alignment, depth and de novo assembly"
+    blurb: >-
+      Reads are either aligned to a reference genome, where depth and read-pair geometry reveal
+      variants, or assembled de novo by their overlaps into contigs and scaffolds. Coverage
+      statistics say how evenly and how completely the genome was sampled.
+
+structures:
+  - label: "T7 DNA polymerase with a primer-template and a nucleotide in the active site — the enzyme family that makes Sanger copies"
+    source: "rcsb"
+    id: "1T7P"
+    note: "Doublié et al., Nature 1998; T7 DNA polymerase with thioredoxin, primer-template and incoming nucleotide"
+    caption: >-
+      Find the 3' end of the primer and the incoming nucleotide beside it. The complex was trapped
+      with a dideoxy-terminated primer, so the polymerase holds the next nucleotide but cannot join
+      it: the same missing 3' hydroxyl that Sanger sequencing relies on.
+  - label: "Alpha-hemolysin pore — the protein channel used in the 1996 nanopore experiment"
+    source: "rcsb"
+    id: "7AHL"
+    note: "Song et al., Science 1996; heptameric Staphylococcus aureus alpha-hemolysin"
+    caption: >-
+      Look down the seven-fold axis at the narrow channel. A single DNA strand driven through a pore
+      like this one changes the ionic current, the signal that nanopore sequencers decode into bases.
+  - label: "B-DNA dodecamer — the double helix that every method here reads"
+    source: "rcsb"
+    id: "1BNA"
+    note: "Drew et al., PNAS 1981; the Dickerson-Drew dodecamer"
+    caption: >-
+      Trace one strand from its 5' end to its 3' hydroxyl. Every sequencing method in this lesson
+      depends on whether that 3' hydroxyl is free to take the next nucleotide.
+
+simulations:
+  - type: "local"
+    ref: "CoverageAndRepeatsSampler"
+    title: "Coverage and repeats: will the reads assemble?"
+    caption: >-
+      Set read length and depth for a genome with a repeated segment, then sample reads to see which bases go unread and whether any read spans the repeat.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "Why does a dideoxynucleotide stop a growing DNA chain once a polymerase has added it?"
+    choices:
+      - "It lacks the 5' triphosphate that the polymerase needs to add it"
+      - "It lacks the 3' hydroxyl that the next nucleotide must bond to"
+      - "It lacks a base, so the polymerase stalls opposite the template"
+      - "It lacks the 2' hydroxyl, so the sugar cannot join the backbone"
+    answer: 1
+    rationale: >-
+      The 3' hydroxyl is the nucleophile that attacks the next nucleotide's alpha phosphate, so a
+      chain ending in a sugar without it cannot grow. The analogue does carry a 5' triphosphate;
+      that is how the polymerase adds it in the first place. It carries a normal base, which is why
+      it is added opposite its complementary template base and names the end of the fragment. A
+      missing 2' hydroxyl is what every deoxynucleotide already has, so it cannot be what stops the
+      chain.
+  - stem: "How many 250-base reads give 40-fold mean coverage of a 5-megabase bacterial genome?"
+    choices:
+      - "80,000 reads"
+      - "20,000 reads"
+      - "8,000,000 reads"
+      - "800,000 reads"
+    answer: 3
+    rationale: >-
+      Rearranging C = N x L / G gives N = C x G / L = 40 x 5,000,000 / 250 = 800,000 reads. The
+      figure of 20,000 is G / L, the reads for 1-fold coverage, which forgets the factor of 40.
+      The figure of 80,000 slips a factor of ten in the arithmetic, and 8,000,000 slips one in the
+      other direction; checking that 800,000 x 250 = 200 million bases, which is 40 times 5
+      million, catches both.
+  - stem: "Reads land at random on a genome at a mean coverage of 3. About what fraction of bases is expected to receive no read at all?"
+    choices:
+      - "About 5 percent of bases"
+      - "About 33 percent of bases"
+      - "About 95 percent of bases"
+      - "None, since each base is read 3 times"
+    answer: 0
+    rationale: >-
+      Under the Poisson model the fraction with zero reads is e^-C, and e^-3 is about 0.05, or 5
+      percent. About 95 percent is the fraction covered at least once, the complement of the right
+      answer. About 33 percent comes from treating 1/C as the uncovered fraction, which is not how
+      random sampling behaves. Saying no base is missed confuses mean coverage with uniform
+      coverage: an average of three still leaves some bases with none.
+  - stem: "A genome contains two identical copies of a 6-kilobase repeat. Why can 150-base reads at 30-fold coverage not tell which flanking sequences belong together?"
+    choices:
+      - "Repeated DNA is copied poorly, so too few reads come from it"
+      - "More depth would place it, so 30-fold coverage was too low"
+      - "A read lying inside the repeat fits either copy equally well"
+      - "Short reads make more errors in repeats, so they are discarded"
+    answer: 2
+    rationale: >-
+      A read that lies wholly inside the repeat matches both copies, and no read is long enough to
+      run from unique sequence on one side through 6 kilobases to unique sequence on the other, so
+      nothing links each copy to its flanks. Extra depth adds more reads of the same ambiguous
+      kind, so it does not help. Repeats are copied and sequenced; the reads exist but cannot be
+      placed. Error rates are not the problem either, since the copies are identical and even
+      perfect reads would be ambiguous.
+  - stem: "A base called as a variant in a patient's genome against GRCh38 turns out to be the allele carried by most haplotypes in the draft human pangenome. What is the best reading?"
+    choices:
+      - "The patient carries a rare new mutation at this site"
+      - "The reference carries the less common allele at this site"
+      - "The sequencer misread this base in most of the samples"
+      - "The site must be under strong selection in human groups"
+    answer: 1
+    rationale: >-
+      A variant call is a difference from the reference, and GRCh38 is a mosaic of a few donors'
+      haplotypes, so at some sites it carries the rarer allele. The patient then looks variant only
+      because the reference is unusual there. A rare new mutation would be absent from most
+      haplotypes, not present in most. Independent assemblies of many people do not share one
+      sequencing error at the same base. Nothing in the observation bears on selection; a common
+      allele can be common for many reasons.
+
+mcatQuestions:
+  - stem: "A student runs a classical Sanger reaction with a primer, DNA polymerase, all four dNTPs and, in four separate tubes, a small amount of ddA, ddC, ddG or ddT. On the gel, reading from the shortest fragment to the longest, bands appear in the ddG, ddA, ddT, ddT and then ddC lanes. What is the sequence of the template strand in this region, written 5' to 3'?"
+    choices:
+      - "5'-GATTC-3'"
+      - "5'-CTAAG-3'"
+      - "5'-GAATC-3'"
+      - "5'-CTTAG-3'"
+    answer: 2
+    rationale: >-
+      Reading shortest to longest gives the new strand 5' to 3': 5'-GATTC-3'. The template is
+      complementary and antiparallel, 3'-CTAAG-5', which written 5' to 3' is 5'-GAATC-3'. The
+      sequence GATTC is the new strand, not the template. CTAAG is the complement written in the
+      wrong direction, a 3' to 5' sequence labelled as 5' to 3'. CTTAG reverses the order of the
+      new strand without complementing it.
+  - stem: "A team sequences a hypothetical bacterium whose genome is 4.6 megabases long, obtaining 4-fold mean coverage with reads whose start points are random. They then search the assembly for gaps. Under the Poisson model of coverage, about how much of the genome do they expect no read to cover?"
+    choices:
+      - "About 84 kilobases"
+      - "About 1.15 megabases"
+      - "About 4.5 megabases"
+      - "None of the genome"
+    answer: 0
+    rationale: >-
+      The uncovered fraction is e^-4, about 0.0183, and 0.0183 x 4,600,000 is about 84,000 bases.
+      The figure of 1.15 megabases divides the genome by the coverage, which is not a probability.
+      About 4.5 megabases is the part covered at least once, 1 minus e^-4 of the genome, the
+      opposite of what was asked. Expecting no gaps assumes every base is read four times; random
+      starts guarantee some bases are missed, and real libraries, which are less even, miss more.
+  - stem: "Short reads from a person's blood DNA are aligned to the reference. Across a diploid autosomal region the mean depth is 30-fold, but across one 50-kilobase segment it is 45-fold. At the segment's two ends, a few dozen read pairs map in an orientation that is expected when a stretch is repeated head to tail. Which interpretation fits best?"
+    choices:
+      - "A homozygous deletion of the segment"
+      - "A heterozygous deletion of the segment"
+      - "A homozygous duplication of the segment"
+      - "A heterozygous duplication of the segment"
+    answer: 3
+    rationale: >-
+      Depth scales with copy number. Two copies give 30-fold, so 45-fold means three copies: one
+      chromosome carries the segment twice and the other once, a heterozygous tandem duplication,
+      and the read pairs at the edges mark the head-to-tail junction. A homozygous duplication
+      would give four copies and about 60-fold. A heterozygous deletion would halve depth to about
+      15-fold, and a homozygous deletion would leave almost no reads in the segment.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      DNA is a very long string of four kinds of letter. No machine can read the whole string at
+      once, so we break it into many small pieces, read each piece, and fit the pieces back
+      together like a jigsaw. Pieces that look exactly alike are the hard part, because you cannot
+      tell where each one goes. Longer pieces help, because they include the edges that make each
+      spot different.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      To read DNA, scientists copy it. In Sanger sequencing the copying mix includes a few special
+      nucleotides that stop the copy, so you get copies of every length, each ending at a known
+      letter; sorting them by length spells out the sequence. Modern machines read hundreds of
+      millions of short pieces at once, one letter per cycle. Because every piece is short, a
+      computer must overlap them or line them up against a reference genome, and long repeated
+      stretches confuse it. Newer machines read single molecules tens of thousands of letters
+      long, which is how the first gapless human genome was finished in 2022.
+  - level: "college"
+    label: "College"
+    text: >-
+      Sanger sequencing copies one template from a primer in the presence of dNTPs and a small
+      amount of ddNTPs, which lack the 3'-OH and terminate the chain. Fragments sorted by length,
+      now by capillary electrophoresis with four dye-labelled terminators, give the new strand 5'
+      to 3'. Short-read sequencing by synthesis amplifies fragments into clusters and adds one
+      fluorescent, reversibly blocked nucleotide per cycle, then removes the block and the dye.
+      Mean coverage is C = N x L / G, and under random sampling the unread fraction is e^-C.
+      Reads are aligned to a reference or assembled de novo into contigs and scaffolds, but a
+      repeat longer than a read, or than a read pair's span, cannot be placed. Long reads from
+      PacBio HiFi and Oxford Nanopore instruments span such repeats; combined, they gave the
+      T2T-CHM13 assembly in 2022. Variants (SNVs, indels, structural variants of 50 bp or more,
+      copy-number changes) are always called against some reference, so the reference shapes the
+      calls.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      The Lander-Waterman model treats read starts as a Poisson process, giving an uncovered
+      fraction of e^-C and an expected number of gaps that falls exponentially with depth; real
+      libraries violate it through GC bias from PCR, mappability and duplicates, so breadth at a
+      stated minimum depth is the honest metric. The deeper limit is information, not depth: an
+      exact repeat longer than the longest read or read-pair span creates an ambiguity in the
+      assembly graph that no amount of short-read sampling removes, which is why GRCh38 kept
+      collapsed segmental duplications and unresolved centromeric arrays. T2T-CHM13 used a nearly
+      homozygous genome to avoid the haplotype problem, accurate HiFi reads to separate
+      near-identical copies, and ultra-long nanopore reads to bridge them.
+
+      The 2023 draft pangenome shifts the question from completeness to representation:
+      aligning to a graph of 47 phased diploid assemblies reduced small-variant errors and raised
+      structural-variant recall in the benchmarks reported. An open question is how to make
+      graph references standard in clinical pipelines, where coordinates, annotation and
+      established truth sets are all still tied to a linear reference.
+
+anecdotes:
+  - title: "Two ways to read DNA in one year"
+    source: "Maxam & Gilbert, PNAS 74:560 (1977); Sanger, Nicklen & Coulson, PNAS 74:5463 (1977); Nobel Prize in Chemistry 1980."
+    text: >-
+      In 1977 two laboratories published two different ways to read DNA. Allan Maxam and Walter
+      Gilbert at Harvard labelled one end of a DNA fragment and broke it with chemicals that attack
+      particular bases. Months later Sanger, Nicklen and Coulson in Cambridge let a polymerase
+      build copies that stop at chosen bases. Both methods produced a ladder of fragments read on a
+      gel. The chemical method was widely used for some years, but chain termination proved simpler
+      to scale and to automate with fluorescent dyes. In 1980 Gilbert and Sanger shared half of the Chemistry
+      prize.
+  - title: "A genome with no second copy"
+    source: "Nurk et al., Science 376:44 (2022); Rhie et al., Nature 621:344 (2023)."
+    text: >-
+      The first gapless human assembly came from cells of a complete hydatidiform mole, an
+      abnormal growth in which, typically, all the chromosomes come from one sperm and are
+      duplicated. Sequencing confirmed that the CHM13 cell line was nearly uniformly homozygous, so
+      the assemblers faced one version of each chromosome instead of two. The same origin meant
+      the cells were 46,XX and had no Y chromosome. A complete Y was assembled separately, from a
+      man's genome called HG002, and published in 2023 at 62,460,029 bases.
+  - title: "A human genome from 35-base reads"
+    source: "Bentley et al., Nature 456:53 (2008)."
+    text: >-
+      In 2008 David Bentley and colleagues, including Shankar Balasubramanian of the University of
+      Cambridge chemistry department, reported a human genome sequenced with reversible
+      terminators on a flow cell. The donor was a Yoruba man from Ibadan, Nigeria. The reads were
+      only 35 bases from each end of a fragment, but there were enough of them to give more than
+      30-fold average depth, and aligning them to the reference produced the consensus. The paper
+      is a reminder that resequencing against a reference and assembling a genome from scratch are
+      different tasks.
+
+corpusTags:
+  - "sanger-sequencing"
+  - "dideoxynucleotides"
+  - "sequencing-by-synthesis"
+  - "long-read-sequencing"
+  - "nanopore"
+  - "sequencing-coverage"
+  - "genome-assembly"
+  - "human-reference-genome"
+  - "t2t-chm13"
+  - "human-pangenome"
+  - "structural-variation"
+draft: false
+---
+
+import CoverageAndRepeatsSampler from '../../../components/CoverageAndRepeatsSampler.astro';
+
+**Two drafts of the human genome were published in February 2001. The first assembly in which every human chromosome but one ran from end to end without a gap was published in 2022.**
+
+Why the twenty-year wait, when the machines got faster every year? Speed was never the bottleneck. No instrument reads a chromosome in one pass. Every method reads pieces, and a genome is only as good as the way the pieces are put back together. This lesson is about reading the pieces, counting them, and the one feature of genomes that defeats short pieces: repeats.
+
+## Reading DNA one base at a time: Sanger's stopped copies
+
+Imagine photocopying a long sentence a thousand times on a copier that, at random, quits after some letter and highlights the letter it quit on. Sort the copies by length and read the highlighted letters in order, and you have the sentence.
+
+Sanger sequencing does this with a DNA polymerase. You supply a single-stranded template, a short **primer** (a piece of DNA that pairs with the template and gives the polymerase a 3' end to extend), the four ordinary deoxynucleotides, and a small amount of **dideoxynucleotides** (ddNTPs). A ddNTP lacks the 3' hydroxyl that the next nucleotide must bond to, the chemistry you met in [nucleotide metabolism](/lessons/nucleotide-metabolism/). The polymerase adds it opposite its partner base, and that copy can grow no further. Across millions of template molecules, every possible stopping point is represented.
+
+Frederick Sanger, Steve Nicklen and Alan Coulson published the method in 1977, using DNA from the phage phiX174. In the classical version, four tubes each held one kind of ddNTP, and the radioactive fragments ran in four lanes of a gel that separates pieces differing by a single nucleotide. Later versions put a different fluorescent dye on each of the four terminators, so one reaction holds all four, and a capillary sorts the fragments by size while a detector reads the colour of each. Reading from the shortest fragment to the longest gives the **new** strand, 5' to 3'; the template is its reverse complement.
+
+Sanger reads are accurate, but each reaction reads one region, commonly up to about 800 to 1,000 bases, and the first few dozen bases are often poor. The sequence in the 2001 drafts came mostly from this chemistry, run on many instruments at once.
+
+## Reading millions at once, short and long
+
+Short-read sequencing reads hundreds of millions of fragments in parallel. Genomic DNA is broken into fragments a few hundred bases long and fitted with adapters. In the method David Bentley and colleagues described in 2008, which became the Illumina platform, each fragment is copied in place on a glass flow cell into a **cluster** of identical copies. Then the polymerase adds one nucleotide per cycle. Each nucleotide carries a dye and a **reversible terminator**, a removable block on the 3' end. The machine images every cluster, reads the colour, then cleaves off the dye and the block to regenerate the 3' hydroxyl for the next cycle.
+
+This is not Sanger run in parallel. Sanger stops chains for good and reads lengths; sequencing by synthesis pauses every chain at each base and reads colours, cycle by cycle. Each fragment is often read from both ends, a **paired-end** read, so you know two short sequences and roughly how far apart they lie. Reads are short (35 bases from each end in the 2008 human genome; commonly 100 to 150 now), and the errors in the study of one such instrument were mostly substitutions.
+
+Long-read methods read single molecules. In PacBio instruments one polymerase sits at the bottom of a tiny well and copies a circular template, with the dye on the nucleotide's terminal phosphate so it is released as the base joins; going round the circle many times gives **HiFi** reads, in a 2019 study of one human genome averaging 13.5 kilobases at 99.8% accuracy, with leftover errors mostly small insertions or deletions in runs of one base. In Oxford Nanopore instruments a strand passes through a protein pore and software decodes the changing ionic current into bases; a 2018 study of human DNA reported ultra-long libraries in which half the sequence lay in reads longer than 100 kilobases. The trade-off is plain: short reads give many accurate bases per run but cannot span long repeats; long reads span them.
+
+## Coverage and assembly: the repeat problem
+
+A **read** is the sequence reported from one fragment. **Coverage** (depth) is how many reads, on average, lie over each base:
+
+> **C = N x L / G**, where N is the number of reads, L the read length and G the haploid genome length
+
+Reads are then either **aligned** to a reference genome, or assembled **de novo**, without one, by their overlaps. A de novo assembly yields **contigs**, continuous consensus sequences, and **scaffolds**, contigs placed in order and orientation with estimated gaps between them.
+
+**Worked problem.** Assume reads start at random positions, all reads are usable, and the haploid human genome is G = 3.1 x 10^9 bases (an estimate rounded for the calculation).
+
+(a) How many 150-base reads give 30-fold mean coverage?
+
+> **N = C x G / L = 30 x 3.1 x 10^9 / 150 = 9.3 x 10^10 / 150 = 6.2 x 10^8 reads**
+
+That is 620 million reads, or 310 million read pairs of 2 x 150 bases, and 93 billion bases. Check: 6.2 x 10^8 x 150 = 9.3 x 10^10, and dividing by 3.1 x 10^9 gives 30.
+
+(b) How much of the genome gets no read at all? With random starts, the number of reads over a base follows a Poisson distribution with mean C, so the fraction with zero reads is e^-C.
+
+> **C = 1: e^-1 = 0.37, so 37% unread**
+>
+> **C = 5: e^-5 = 0.0067, so 0.0067 x 3.1 x 10^9 = about 21 million bases unread**
+>
+> **C = 30: e^-30 is about 9 x 10^-14, far less than one base**
+
+So 30-fold is a mean, not a guarantee, and real libraries cover some regions, such as very GC-rich ones, less evenly than this model assumes. This Poisson treatment follows Eric Lander and Michael Waterman's 1988 analysis of random clones.
+
+(c) Now give the genome two identical copies of a 6-kilobase repeat. A 150-base read from inside the repeat fits both copies equally well. Reads at its edges are unique, but no read, and no pair from a 400-base fragment, reaches across 6 kilobases to the far edge. The assembler cannot tell which flanking sequences belong together, so it collapses the two copies into one or breaks the contig. Deeper coverage adds more reads of the same ambiguous kind. A 15-kilobase read, by contrast, can hold a whole 6-kilobase copy with several kilobases of unique sequence on each side, and that pins the copy in place. Some human-specific gene duplications described in [the human brain expansion lesson](/lessons/human-brain-expansion/) sit in long near-identical repeats like these, one reason they were hard to study.
+
+<CoverageAndRepeatsSampler />
+
+## The human reference: gaps, a finished genome and a pangenome
+
+The 2001 papers, from the public International Human Genome Sequencing Consortium and from Celera Genomics, were drafts. The consortium's "finished" sequence of 2004 covered about 99% of the **euchromatin** (the gene-rich, less tightly packed part of the genome) and still had 341 gaps, many associated with segmental duplications; centromeres and other heterochromatin were not part of its target. The same paper estimated 20,000 to 25,000 protein-coding genes, far fewer than the 2001 estimate. The reference most laboratories use today, GRCh38, descends from it, and it is a mosaic of DNA clones from several people, not the genome of any one person.
+
+The gaps were the repeats from the worked problem, at chromosome scale. The Telomere-to-Telomere Consortium closed them using the CHM13 cell line, whose two copies of each chromosome are nearly identical, and a combination of PacBio HiFi and Oxford Nanopore ultra-long reads. Their 2022 assembly, T2T-CHM13, is 3.055 billion bases and gapless for every chromosome except Y, which CHM13 lacks. A complete Y from a different person, HG002, followed in 2023.
+
+One complete genome still represents one person. In 2023 the Human Pangenome Reference Consortium released a draft **pangenome**: 47 people's genomes, each with its two chromosome copies assembled separately, joined into a graph in which each person's copy is a path. It added 119 million bases of variable euchromatic sequence missing from GRCh38.
+
+## What varies between two genomes, and why the reference matters
+
+Differences come in sizes. A **single-nucleotide variant** (SNV) changes one base. A small **indel** inserts or deletes a few bases. A **structural variant** is larger, by a common convention 50 bases or more, and includes deletions, duplications, inversions, insertions and translocations; when a deletion or duplication changes the number of copies of a segment, it is a **copy-number variant**. The chromosome-scale versions are in [chromosome changes](/lessons/chromosome-changes/), and how such changes arise is in [mutation](/lessons/mutation/).
+
+In the 1000 Genomes Project's 2015 analysis of 2,504 people from 26 populations, a typical genome differed from the reference at 4.1 to 5.0 million sites, and structural variants affected more bases than SNVs and small indels together. Every one of those calls is a difference from a reference. Where the reference carries a rare allele, most people look "variant" there; where a sequence is missing from the reference, reads from it have nowhere to align. In the Human Pangenome Reference Consortium's benchmarks, short-read workflows using the pangenome made 34% fewer small-variant errors and found 104% more structural variants per haplotype than workflows using GRCh38.
+
+Short reads detect large variants indirectly, from **depth** (copy number changes the number of reads), **discordant pairs** (two ends of a fragment mapping farther apart than the fragment could be) and **split reads** (one read aligning in two pieces across a junction).
+
+### Design problem
+
+Short paired-end reads from a patient sample are aligned to the reference. The fragments are normally 400 ± 50 bases long. Depth is 30-fold across a chromosome segment but 15-fold across one 10-kilobase stretch within it. Forty read pairs map with their two ends 10.4 kilobases apart across that stretch, and several reads split, aligning partly to each edge. What does this pattern show, and how would you confirm it?
+
+<details>
+<summary>One way to do it</summary>
+
+Read the three signals in turn. Half depth means one copy instead of two: one chromosome has lost the stretch and the other has not, a heterozygous deletion. The discordant pairs give its size: ends that should lie about 400 bases apart map 10.4 kilobases apart, so about 10.4 - 0.4 = 10 kilobases are missing from the chromosome they came from. The split reads mark the two breakpoints to the base.
+
+Confirm it two ways. Design PCR primers just outside the two breakpoints. On the intact chromosome they lie about 10.4 kilobases apart, too far for a standard short PCR, but on the deleted chromosome they lie a few hundred bases apart, so a short product appears only from the deleted allele; sequence it to read the junction. Long reads across the region would show both alleles directly.
+
+Then ask whether the deletion is unusual at all. Check population variant collections and the pangenome haplotypes: if many people lack this stretch, the reference may carry a less common insertion, and the "deletion" is common. Finding a variant says nothing on its own about any effect on health.
+
+</details>

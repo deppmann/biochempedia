@@ -1,0 +1,265 @@
+---
+/**
+ * CrisprRepairOutcome — pick a guide site and say whether a repair template is supplied, then
+ * see what a Cas9 cut leaves behind in a diploid pool. Two sites: an exon 2 site where the
+ * 20-nucleotide match sits next to an NGG PAM (Cas9 cuts 3 bp upstream of the PAM), and a site
+ * that matches the guide but has no NGG next to it (Cas9 ignores it: no cut, no repair). With a
+ * cut and no template the break goes to end joining and the alleles follow the lesson's own
+ * table (unedited 10%, minus 1 bp 35%, plus 1 bp 25%, minus 3 bp 15%, minus 6 bp 5%, minus 7 bp
+ * 10%). With a template, some share of cut alleles is repaired from it; the lesson gives no
+ * split between pathways, so that share is a labelled assumption and the rest of the alleles
+ * follow the table. Frameshift = indel length not a multiple of 3; the two alleles of a cell are
+ * edited independently, so cells with both frameshifted = (frameshift fraction) squared.
+ * Alleles and cells are drawn at random; expected values sit beside the observed ones.
+ * Labelled bars only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cro card" data-cro>
+  <figcaption class="cro-head">Repair outcomes: what does one Cas9 cut leave behind?<span class="cro-chip">⚙ original · simulated · interactive</span></figcaption>
+
+  <svg class="cro-svg" viewBox="0 0 360 292" role="img" aria-label="A gene with the chosen guide site, bars for each kind of allele left in a pool of 100 simulated cells beside the expected values, and stacked bars for how many cells have both, one or neither allele frameshifted" data-plot></svg>
+
+  <div class="cro-controls">
+    <label class="cro-field"><span>Guide site</span>
+      <select data-site>
+        <option value="pam">Exon 2: 20-nt match with an NGG PAM next to it</option>
+        <option value="nopam">Exon 3: 20-nt match, but no NGG next to it</option>
+      </select>
+    </label>
+    <label class="cro-check"><input type="checkbox" data-tpl /> supply a repair template</label>
+    <label class="cro-field"><span>Assumed share of cut alleles repaired from the template: <output data-hout>—</output></span>
+      <input type="range" data-h min="0" max="10" step="1" value="3" aria-valuetext="30%" />
+    </label>
+    <button type="button" class="cro-btn" data-resample>Resample</button>
+  </div>
+
+  <dl class="cro-readout">
+    <div><dt>alleles frameshifted, simulated</dt><dd data-a-obs>–</dd></div>
+    <div><dt>alleles frameshifted, expected</dt><dd data-a-exp>–</dd></div>
+    <div><dt>cells with both alleles frameshifted, simulated</dt><dd data-c-obs>–</dd></div>
+    <div><dt>cells with both alleles frameshifted, expected</dt><dd data-c-exp>–</dd></div>
+  </dl>
+
+  <p class="cro-verdict" data-verdict role="status"></p>
+
+  <p class="cro-foot">Rule to keep: a cut is not a mutation and a mutation is not a knockout. Only indels whose length is not a multiple of 3 shift the frame, and with the two alleles edited independently the cells with both frameshifted are the frameshift fraction squared. The picture is a sketch of the logic: the allele table is the lesson’s worked example, other guides give other spectra, and the template share is an assumption, not a measured value.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ORANGE = '#e57200', TEAL = '#0e7c86', PURPLE = '#7a5ea8', GREY = '#8a8a96', INK = '#4b4b55', GRID = '#d9d9e0', LORANGE = '#f3c08a';
+  const CELLS = 100;
+  type Kind = 'fs' | 'inframe' | 'none' | 'precise';
+  type Cls = { key: string; l1: string; l2: string; kind: Kind; w: number };
+  // The lesson's worked example: sequencing of alleles in the pool after one guide in exon 2.
+  const CLASSES: Cls[] = [
+    { key: 'precise', l1: 'precise', l2: 'edit', kind: 'precise', w: 0 },
+    { key: 'un', l1: 'unedited', l2: '', kind: 'none', w: 0.10 },
+    { key: 'm1', l1: '−1 bp', l2: '', kind: 'fs', w: 0.35 },
+    { key: 'p1', l1: '+1 bp', l2: '', kind: 'fs', w: 0.25 },
+    { key: 'm3', l1: '−3 bp', l2: '', kind: 'inframe', w: 0.15 },
+    { key: 'm6', l1: '−6 bp', l2: '', kind: 'inframe', w: 0.05 },
+    { key: 'm7', l1: '−7 bp', l2: '', kind: 'fs', w: 0.10 },
+  ];
+  const COL: Record<Kind, string> = { fs: ORANGE, inframe: TEAL, none: GREY, precise: PURPLE };
+  const KIND_LABEL: Record<Kind, string> = { fs: 'frameshift', inframe: 'in frame', none: 'unedited', precise: 'template' };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const pct = (x: number) => { const v = Math.round(x * 1000) / 10; return (Number.isInteger(v) ? String(v) : v.toFixed(1)) + '%'; };
+
+  document.querySelectorAll<HTMLElement>('[data-cro]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const siteSel = root.querySelector<HTMLSelectElement>('[data-site]')!;
+    const tpl = root.querySelector<HTMLInputElement>('[data-tpl]')!;
+    const hIn = root.querySelector<HTMLInputElement>('[data-h]')!;
+    const hOut = root.querySelector<HTMLOutputElement>('[data-hout]')!;
+    const aObs = root.querySelector<HTMLElement>('[data-a-obs]')!;
+    const aExp = root.querySelector<HTMLElement>('[data-a-exp]')!;
+    const cObs = root.querySelector<HTMLElement>('[data-c-obs]')!;
+    const cExp = root.querySelector<HTMLElement>('[data-c-exp]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+
+    type Draw = { counts: number[]; both: number; one: number; zero: number };
+    let last: Draw | null = null;
+
+    const cuts = () => siteSel.value === 'pam';
+    const share = () => (cuts() && tpl.checked ? Number(hIn.value) / 10 : 0);
+
+    // Probability of each allele class under the current settings.
+    function probs(): number[] {
+      if (!cuts()) return CLASSES.map((c) => (c.key === 'un' ? 1 : 0));
+      const h = share();
+      return CLASSES.map((c) => (c.key === 'precise' ? h : c.w * (1 - h)));
+    }
+    function pFs(p: number[]): number {
+      return CLASSES.reduce((s, c, i) => s + (c.kind === 'fs' ? p[i] : 0), 0);
+    }
+    function pick(p: number[]): number {
+      let u = Math.random(), i = 0;
+      for (; i < p.length - 1; i++) { if (u < p[i]) break; u -= p[i]; }
+      return i;
+    }
+    function draw(): Draw {
+      const p = probs();
+      const counts = CLASSES.map(() => 0);
+      let both = 0, one = 0, zero = 0;
+      for (let n = 0; n < CELLS; n++) {
+        let fs = 0;
+        for (let a = 0; a < 2; a++) {
+          const i = pick(p);
+          counts[i]++;
+          if (CLASSES[i].kind === 'fs') fs++;
+        }
+        if (fs === 2) both++; else if (fs === 1) one++; else zero++;
+      }
+      return { counts, both, one, zero };
+    }
+
+    function drawPlot() {
+      plot.replaceChildren();
+      if (!last) return;
+      const p = probs(), f = pFs(p);
+      const exp3 = [f * f, 2 * f * (1 - f), (1 - f) * (1 - f)];
+      const site = cuts();
+      // Gene sketch (not to scale)
+      plot.appendChild(el('text', { x: 10, y: 14, 'font-size': 9, fill: INK }, 'the gene (not to scale)'));
+      plot.appendChild(el('line', { x1: 14, y1: 34, x2: 346, y2: 34, stroke: GREY, 'stroke-width': 1.5 }));
+      const exons: [number, number, string][] = [[24, 84, 'exon 1'], [124, 224, 'exon 2'], [262, 336, 'exon 3']];
+      exons.forEach(([x1, x2, lab]) => {
+        plot.appendChild(el('rect', { x: x1, y: 26, width: x2 - x1, height: 16, rx: 3, fill: '#d9d9e0' }));
+        plot.appendChild(el('text', { x: (x1 + x2) / 2, y: 38, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, lab));
+      });
+      // guide site: 20-nt match, then PAM. Cut 3 bp upstream of the PAM.
+      const gx = site ? 138 : 270;
+      const gw = 60, px = gx + gw;
+      plot.appendChild(el('rect', { x: gx, y: 46, width: gw, height: 8, rx: 2, fill: TEAL }));
+      plot.appendChild(el('text', { x: gx + gw / 2, y: 66, 'font-size': 9, 'text-anchor': 'middle', fill: TEAL }, '20-nt match'));
+      if (site) {
+        plot.appendChild(el('rect', { x: px, y: 46, width: 20, height: 8, rx: 2, fill: INK }));
+        plot.appendChild(el('text', { x: px + 10, y: 66, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'NGG'));
+        plot.appendChild(el('line', { x1: px - 6, y1: 22, x2: px - 6, y2: 56, stroke: '#c0392b', 'stroke-width': 2 }));
+        plot.appendChild(el('text', { x: 352, y: 18, 'font-size': 9, 'text-anchor': 'end', fill: '#c0392b' }, 'cut, 3 bp upstream of the PAM (plasmid assay)'));
+      } else {
+        plot.appendChild(el('rect', { x: px, y: 46, width: 20, height: 8, rx: 2, fill: '#fff', stroke: GREY, 'stroke-dasharray': '2 2' }));
+        plot.appendChild(el('text', { x: px + 10, y: 66, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'no NGG'));
+        plot.appendChild(el('text', { x: gx - 4, y: 18, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'no cut here'));
+      }
+
+      // Allele bars: observed (filled) beside expected (dashed outline)
+      const top = 92, base = 178, H = 70;
+      const total = CELLS * 2;
+      plot.appendChild(el('text', { x: 10, y: 84, 'font-size': 9, fill: INK }, 'alleles, % (simulated · expected); filled = simulated, dashed = expected'));
+      plot.appendChild(el('line', { x1: 14, y1: base, x2: 346, y2: base, stroke: INK, 'stroke-width': 1 }));
+      const colW = 48, x0 = 12;
+      CLASSES.forEach((c, i) => {
+        const cx = x0 + i * colW;
+        const o = last!.counts[i] / total, e = p[i];
+        const ho = o * H, he = e * H;
+        plot.appendChild(el('rect', { x: cx + 3, y: base - ho, width: 18, height: Math.max(ho, 0.5), fill: COL[c.kind] }));
+        plot.appendChild(el('rect', { x: cx + 23, y: base - he, width: 18, height: Math.max(he, 0.5), fill: '#fff', stroke: COL[c.kind], 'stroke-width': 1.6, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('text', { x: cx + 22, y: base - Math.max(ho, he) - 3, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, `${Math.round(o * 100)} · ${Math.round(e * 100)}`));
+        plot.appendChild(el('text', { x: cx + 22, y: base + 12, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, c.l1));
+        if (c.l2) plot.appendChild(el('text', { x: cx + 22, y: base + 22, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, c.l2));
+        plot.appendChild(el('text', { x: cx + 22, y: base + 32, 'font-size': 9, 'text-anchor': 'middle', fill: COL[c.kind] === GREY ? INK : COL[c.kind] }, KIND_LABEL[c.kind]));
+      });
+
+      // Cell bars
+      const sy = 238, sx0 = 70, sx1 = 346, sw = sx1 - sx0;
+      plot.appendChild(el('text', { x: 10, y: 228, 'font-size': 9, fill: INK }, 'the 100 cells, by how many of their 2 alleles are frameshifted'));
+      const segs = [{ c: ORANGE, k: 'both' }, { c: LORANGE, k: 'one' }, { c: TEAL, k: 'none' }];
+      const rows: { y: number; label: string; v: number[] }[] = [
+        { y: sy, label: 'simulated', v: [last.both / CELLS, last.one / CELLS, last.zero / CELLS] },
+        { y: sy + 20, label: 'expected', v: exp3 },
+      ];
+      rows.forEach((r, ri) => {
+        plot.appendChild(el('text', { x: 66, y: r.y + 11, 'font-size': 9, 'text-anchor': 'end', fill: INK }, r.label));
+        let x = sx0;
+        r.v.forEach((v, i) => {
+          const w = v * sw;
+          if (w > 0) plot.appendChild(el('rect', { x, y: r.y, width: w, height: 14, fill: ri === 1 ? '#fff' : segs[i].c, stroke: segs[i].c, 'stroke-width': ri === 1 ? 1.6 : 0, 'stroke-dasharray': ri === 1 ? '3 2' : '' }));
+          x += w;
+        });
+      });
+      // legend
+      const lg: [string, string][] = [[ORANGE, 'both frameshifted'], [LORANGE, 'one'], [TEAL, 'neither']];
+      let lx = 70;
+      lg.forEach(([c, t]) => {
+        plot.appendChild(el('rect', { x: lx, y: 280, width: 8, height: 8, fill: c }));
+        plot.appendChild(el('text', { x: lx + 11, y: 288, 'font-size': 9, fill: INK }, t));
+        lx += t.length * 5 + 26;
+      });
+    }
+
+    function say(): string {
+      const site = cuts();
+      if (!site) {
+        return 'This stretch matches the guide completely, but there is no NGG next to it. Cas9 ignored, in the lesson’s assay, DNA that matched the guide but lacked a nearby PAM, so there is no cut, nothing for either repair pathway to act on, and every allele stays unedited, with or without a template. Choose the exon 2 site to see a cut.';
+      }
+      const p = probs(), f = pFs(p), h = share();
+      const both = f * f;
+      let head: string;
+      if (!tpl.checked) {
+        head = 'In the original plasmid assay Cas9 cut 3 bp upstream of the PAM. With no template supplied, the break goes to non-homologous end joining, which can rejoin accurately or leave an indel. In the lesson’s example pool ';
+        return head + `${pct(f)} of alleles are frameshifted (minus 1, plus 1 and minus 7 bp), 20% are in-frame deletions and 10% are unedited. Both alleles of a cell are frameshifted in ${pct(f)} squared = ${pct(both)} of cells, so about half the cells still carry an allele that is in frame or unedited: a mosaic, not a knockout.`;
+      }
+      if (h === 0) {
+        return 'A template is supplied, but the assumed share repaired from it is 0%, so every cut allele goes to end joining and the pool matches the no-template case: 70% of alleles frameshifted and 49% of cells with both alleles frameshifted. Raise the share to see precise edits appear.';
+      }
+      head = `A template is supplied, so a cut allele can be repaired from it by homology-directed repair, which is more efficient in dividing cells; the lesson gives no split between the pathways, so the share here (${pct(h)}) is an assumption. Those alleles carry the edit you designed, and the rest are assumed to follow the end-joining table. `;
+      return head + `Frameshifted alleles fall to ${pct(f)} and cells with both alleles frameshifted to ${pct(both)}: in this sketch the precise-edit alleles are counted as not frameshifted, so these figures depend on the assumed share and on the template you design.`;
+    }
+
+    function render() {
+      const h = Number(hIn.value) * 10;
+      hIn.disabled = !(cuts() && tpl.checked);
+      const hv = hIn.disabled ? '—' : h + '%';
+      hOut.textContent = hv;
+      hIn.setAttribute('aria-valuetext', hv);
+      tpl.disabled = !cuts();
+      drawPlot();
+      if (!last) return;
+      const p = probs(), f = pFs(p);
+      const fsObs = CLASSES.reduce((s, c, i) => s + (c.kind === 'fs' ? last!.counts[i] : 0), 0);
+      aObs.textContent = `${fsObs} of 200 (${pct(fsObs / 200)})`;
+      aExp.textContent = `${(f * 200).toFixed(1)} of 200 (${pct(f)})`;
+      cObs.textContent = `${last.both} of ${CELLS}`;
+      cExp.textContent = `${(f * f * CELLS).toFixed(1)} of ${CELLS}`;
+      verdict.textContent = say();
+    }
+
+    function resample() { last = draw(); render(); }
+
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', resample);
+    siteSel.addEventListener('change', resample);
+    tpl.addEventListener('change', resample);
+    hIn.addEventListener('input', resample);
+    resample();
+  });
+</script>
+
+<style is:global>
+  .cro { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cro-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cro-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cro-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cro-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem 1rem; margin: var(--ddp-space-2) 0; }
+  .cro-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cro-field select { font-size: var(--ddp-text-xs); padding: 0.3rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); max-width: 100%; }
+  .cro-field input[type="range"] { accent-color: var(--ddp-color-accent); width: 14rem; max-width: 100%; }
+  .cro-field input:disabled { opacity: 0.45; }
+  .cro-check { display: flex; align-items: center; gap: 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding-bottom: 0.3rem; }
+  .cro-check input { accent-color: var(--ddp-color-accent); }
+  .cro-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); font-weight: 700; padding: 0.4rem 0.8rem; cursor: pointer; }
+  .cro-field select:focus-visible, .cro-field input:focus-visible, .cro-check input:focus-visible, .cro-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cro-readout { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); }
+  .cro-readout dt { color: var(--ddp-color-muted); }
+  .cro-readout dd { margin: 0; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); font-weight: 600; }
+  .cro-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 6em; }
+  .cro-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

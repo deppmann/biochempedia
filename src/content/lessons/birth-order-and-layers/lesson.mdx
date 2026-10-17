@@ -137,7 +137,13 @@ structures:
       The T domain grips DNA with a fold shared across the T-box family. Tbr1, a marker of early-born
       deep-layer and subplate neurons, carries a domain of this family.
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "LeavingFractionPool"
+    title: "Leaving fraction Q: grow the pool, then spend it"
+    caption: >-
+      Set the leaving fraction Q for each of eleven cell cycles and watch the progenitor pool grow, hold or shrink and the neurons made per cycle, using the lesson's own equation.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "As the first neurons of the cortical plate arrive in the mouse cortex, what happens to the preplate?"
@@ -348,6 +354,8 @@ corpusTags:
 draft: false
 ---
 
+import LeavingFractionPool from '../../../components/LeavingFractionPool.astro';
+
 **In the mouse cortex, a neuron born early in cortical neurogenesis ends up deepest, beside the white matter. A neuron born days later ends up near the surface, after climbing past every neuron made before it.**
 
 You have seen how Notch and Numb make two sister cells different (see [asymmetric division](/lessons/asymmetric-division/)). That gives a yes or no. The professor's question is the one it leaves open: "If Numb only makes daughter cells different, how does a daughter cell decide which fate to choose?" A fly neuroblast and a mammalian cortex give the same answer from opposite ends. Part of a neuron's identity is set by when it is born.
@@ -414,6 +422,8 @@ How many neurons come out at each stage? Every division gives two daughters. Eac
 > **P + Q = 1. Progenitors after one cycle = 2 × P × progenitors before. Neurons made in that cycle = 2 × Q × progenitors before.**
 
 When Q is below 0.5 the pool grows; above 0.5 it shrinks. In 1996 Takao Takahashi, Richard Nowakowski and Verne Caviness measured Q in mouse dorsomedial cortex in the ventricular epithelium. Q was low early, crossed 0.5 on E14, in the eighth cycle, and rose to about 0.8 by E16. Their model spanned eleven cell cycles over E11 to E17. The cycle also lengthens over the same days. So the cortex first builds its progenitor pool and then spends it, and the order in which it spends it is the order of the layers.
+
+<LeavingFractionPool />
 
 Each layer's neurons carry identity genes that serve as markers. In mouse, Tbr1 is high in subplate and layer 6 neurons; Ctip2 and Fezf2 are high in layer 5 neurons that project below the cortex; Satb2 marks callosal neurons, which are mostly in the upper layers. Expression overlaps, and position alone does not define a class.
 

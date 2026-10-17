@@ -1,0 +1,287 @@
+---
+/**
+ * CoverageAndRepeatsSampler — sample reads from a toy genome that holds two identical
+ * 6-kilobase repeat copies. The learner sets the read length (150 bases, 1,000 bases or
+ * 15 kilobases) and the mean coverage C, and sees (1) the bases no read covers, set against
+ * the Poisson expectation e^-C, and (2) whether any read runs from unique sequence on one
+ * side of each repeat copy to unique sequence on the other, which is what lets an assembler
+ * place the repeat. Every rule is from the sequencing-and-genomes lesson: C = N x L / G,
+ * unread fraction e^-C, and "a read inside the repeat fits both copies equally well".
+ * The 60-kb toy genome and its placement of the repeats are chosen for the picture only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cr card" data-covrep>
+  <figcaption class="cr-head">Coverage and repeats: will the reads assemble?<span class="cr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cr-svg" viewBox="0 0 360 262" role="img" aria-label="A toy genome with two identical repeat copies, the coverage that sampled reads give along it, the stretches no read covers, the reads that span a repeat copy, and the resulting assembly" data-stage></svg>
+
+  <div class="cr-controls">
+    <fieldset class="cr-fs">
+      <legend>Read length</legend>
+      <label><input type="radio" name="cr-len" value="150" checked /> 150 bases (short read)</label>
+      <label><input type="radio" name="cr-len" value="1000" /> 1,000 bases (about the longest Sanger read)</label>
+      <label><input type="radio" name="cr-len" value="15000" /> 15,000 bases (long read)</label>
+    </fieldset>
+    <div class="cr-depth">
+      <label for="cr-depth-input">Mean coverage C: <output data-depth-out>5</output>-fold</label>
+      <input id="cr-depth-input" type="range" min="1" max="30" step="1" value="5" data-depth />
+      <button type="button" class="cr-btn" data-resample>Resample reads</button>
+    </div>
+  </div>
+
+  <p class="cr-verdict" data-verdict role="status"></p>
+
+  <table class="cr-table">
+    <thead><tr><th scope="col">In this draw</th><th scope="col">Observed</th><th scope="col">Expected</th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <p class="cr-foot">Depth decides how many bases go unread (e<sup>−C</sup>), but only a read that reaches unique sequence on both sides of a repeat can place it; this is a sketch of the logic on a toy 60-kilobase ring (so the ends behave like the middle), not a real assembler, a real assembler needs more unique flank than one base, and real libraries cover the genome less evenly.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const G = 60000;            // toy genome, bases (chosen for the picture)
+  const REP = 6000;           // repeat length, bases (lesson)
+  const COPIES = [15000, 39000]; // start of each repeat copy (chosen for the picture)
+  const NB = 150, BIN = G / NB;
+  const X0 = 24, W = 330, SX = W / G;
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#e57200', RED = '#b3261e';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const n0 = (x: number) => Math.round(x).toLocaleString('en-US');
+  function fmtExp(x: number): string {
+    if (x < 0.05) return 'less than 0.05';
+    if (x < 10) return x.toFixed(1);
+    return n0(x);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-covrep]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const depthIn = root.querySelector<HTMLInputElement>('[data-depth]')!;
+    const depthOut = root.querySelector<HTMLElement>('[data-depth-out]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="cr-len"]'));
+    let seed = 20220401;
+
+    function render() {
+      const C = Number(depthIn.value);
+      const L = Number(radios.find((r) => r.checked)!.value);
+      depthOut.textContent = String(C);
+      const N = Math.max(1, Math.round((C * G) / L));
+      const rand = rng(seed);
+
+      // sample reads: random starts on the ring
+      const diff = new Int32Array(G + 1);
+      const spanStarts: number[][] = [[], []];
+      for (let i = 0; i < N; i++) {
+        const s = Math.floor(rand() * G);
+        const e = s + L;
+        if (e <= G) { diff[s]++; diff[e]--; } else { diff[s]++; diff[G]--; diff[0]++; diff[e - G]--; }
+        COPIES.forEach((cs, j) => {
+          // offset of the unique base just before the copy, counted from the read start
+          const o = (cs - 1 - s + G) % G;
+          if (o + REP + 1 < L) spanStarts[j].push(s);
+        });
+      }
+      const cov = new Int32Array(G);
+      let run = 0;
+      for (let p = 0; p < G; p++) { run += diff[p]; cov[p] = run; }
+
+      let unread = 0;
+      const gapRuns: [number, number][] = [];
+      let totalReads = 0;
+      for (let p = 0; p < G; p++) {
+        totalReads += cov[p];
+        if (cov[p] === 0) {
+          unread++;
+          const last = gapRuns[gapRuns.length - 1];
+          if (last && last[1] === p - 1) last[1] = p; else gapRuns.push([p, p]);
+        }
+      }
+      let stretches = gapRuns.length;
+      if (stretches > 1 && gapRuns[0][0] === 0 && gapRuns[stretches - 1][1] === G - 1) stretches--;
+      const meanCov = totalReads / G;
+      const expUnread = Math.exp(-C) * G;
+      const canSpan = L > REP + 1;
+      const expSpan = canSpan ? (N * (L - REP - 1)) / G : 0;
+      const sp = spanStarts.map((a) => a.length);
+      const nSpanned = sp.filter((n) => n > 0).length;
+
+      // ---- bins for the coverage bars
+      const bins: number[] = [];
+      let maxBin = 0;
+      for (let b = 0; b < NB; b++) {
+        let sum = 0;
+        for (let p = b * BIN; p < (b + 1) * BIN; p++) sum += cov[p];
+        const m = sum / BIN;
+        bins.push(m);
+        if (m > maxBin) maxBin = m;
+      }
+      const yMax = Math.max(2, Math.ceil(Math.max(maxBin, C)));
+
+      // ---- draw
+      stage.replaceChildren();
+      const T = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) =>
+        stage.appendChild(el('text', { x, y, 'font-size': 9, fill: INK, ...extra }, s));
+      T(X0, 10, 'toy genome, 60 kb, not to scale');
+      stage.appendChild(el('rect', { x: X0, y: 14, width: W, height: 14, fill: '#c9d3d9' }));
+      COPIES.forEach((cs, j) => {
+        stage.appendChild(el('rect', { x: X0 + cs * SX, y: 14, width: REP * SX, height: 14, fill: ORANGE }));
+        T(X0 + (cs + REP / 2) * SX, 38, `repeat ${j + 1}`, { 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 });
+      });
+      T(X0 + 30000 * SX, 25, 'unique', { fill: INK, 'text-anchor': 'middle' });
+
+      // coverage bars
+      const PT = 52, PB = 118, PH = PB - PT;
+      T(X0, 49, 'reads over each base (mean per 400-base bin)');
+      T(X0 - 3, PT + 3, String(yMax), { 'text-anchor': 'end' });
+      T(X0 - 3, PB, '0', { 'text-anchor': 'end' });
+      stage.appendChild(el('line', { x1: X0, y1: PB, x2: X0 + W, y2: PB, stroke: FAINT, 'stroke-width': 1 }));
+      const bw = W / NB;
+      bins.forEach((m, b) => {
+        const h = (m / yMax) * PH;
+        if (h > 0) stage.appendChild(el('rect', { x: X0 + b * bw, y: PB - h, width: Math.max(bw - 0.2, 0.5), height: h, fill: TEAL, opacity: 0.85 }));
+      });
+      const yC = PB - (C / yMax) * PH;
+      stage.appendChild(el('line', { x1: X0, y1: yC, x2: X0 + W, y2: yC, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      T(X0 + W, yC - 2, `mean C = ${C}`, { 'text-anchor': 'end' });
+
+      // gap track
+      T(X0, 130, 'stretches no read covers (red)');
+      stage.appendChild(el('rect', { x: X0, y: 133, width: W, height: 8, fill: '#f1f1f4' }));
+      gapRuns.forEach(([a, b]) => {
+        stage.appendChild(el('rect', { x: X0 + a * SX, y: 133, width: Math.max((b - a + 1) * SX, 1.6), height: 8, fill: RED }));
+      });
+
+      // spanning reads
+      T(X0, 154, 'reads that run across a repeat copy');
+      stage.appendChild(el('rect', { x: X0, y: 158, width: W, height: 50, fill: '#fff' }));
+      COPIES.forEach((cs) => {
+        stage.appendChild(el('rect', { x: X0 + cs * SX, y: 158, width: REP * SX, height: 50, fill: '#fdeedd' }));
+      });
+      if (!canSpan) {
+        T(X0 + W / 2, 186, `none: no ${n0(L)}-base read can reach both sides`, { 'text-anchor': 'middle' });
+      } else {
+        const per = 4;
+        const shown = [spanStarts[0].slice(0, per), spanStarts[1].slice(0, per)];
+        let row = 0;
+        for (let k = 0; k < per; k++) {
+          [0, 1].forEach((j) => {
+            const s = shown[j][k];
+            if (s === undefined) return;
+            const y = 161 + row * 5.5;
+            stage.appendChild(el('line', { x1: X0 + s * SX, y1: y, x2: X0 + (s + L) * SX, y2: y, stroke: TEAL, 'stroke-width': 3 }));
+            row++;
+          });
+        }
+        const hidden = Math.max(0, sp[0] - per) + Math.max(0, sp[1] - per);
+        if (hidden > 0) T(X0 + W, 215, `+${hidden} more not drawn`, { 'text-anchor': 'end' });
+        if (sp[0] + sp[1] === 0) T(X0 + W / 2, 186, 'none in this draw', { 'text-anchor': 'middle' });
+      }
+
+      // assembly bar
+      T(X0, 222, 'assembly in this draw');
+      stage.appendChild(el('rect', { x: X0, y: 226, width: W, height: 14, fill: TEAL }));
+      COPIES.forEach((cs, j) => {
+        const ok = sp[j] > 0;
+        stage.appendChild(el('rect', { x: X0 + cs * SX, y: 226, width: REP * SX, height: 14, fill: ok ? TEAL : RED }));
+        stage.appendChild(el('rect', { x: X0 + cs * SX, y: 226, width: REP * SX, height: 14, fill: 'none', stroke: ORANGE, 'stroke-width': 1.5 }));
+        T(X0 + (cs + REP / 2) * SX, 236, ok ? 'placed' : '?', { 'text-anchor': 'middle', fill: '#fff', 'font-weight': 700 });
+      });
+      gapRuns.forEach(([a, b]) => {
+        stage.appendChild(el('rect', { x: X0 + a * SX - 0.5, y: 224, width: Math.max((b - a + 1) * SX, 1.6) + 1, height: 18, fill: '#fff' }));
+        stage.appendChild(el('line', { x1: X0 + a * SX, y1: 224, x2: X0 + a * SX, y2: 242, stroke: RED, 'stroke-width': 1.5 }));
+      });
+      T(X0 + W / 2, 249, 'red ? = repeat copy with no spanning read', { 'text-anchor': 'middle', fill: INK });
+      T(X0 + W / 2, 259, 'white break = bases never read', { 'text-anchor': 'middle', fill: INK });
+
+      // ---- table
+      rows.replaceChildren();
+      const addRow = (what: string, obs: string, exp: string) => {
+        const tr = document.createElement('tr');
+        [what, obs, exp].forEach((t, i) => {
+          const c = document.createElement(i === 0 ? 'th' : 'td');
+          if (i === 0) c.setAttribute('scope', 'row');
+          c.textContent = t;
+          tr.appendChild(c);
+        });
+        rows.appendChild(tr);
+      };
+      addRow('Reads, N', n0(N), `C × G / L = ${n0((C * G) / L)}`);
+            addRow('Bases with no read', n0(unread), `Poisson approximation, e^−${C} × G = ${fmtExp(expUnread)}`);
+      addRow('Reads spanning repeat 1 (whole copy + at least 1 unique base each side, a sketch threshold)', n0(sp[0]), canSpan ? `N × (L − 6,001) / G = ${fmtExp(expSpan)}` : 'none possible');
+      addRow('Reads spanning repeat 2 (whole copy + at least 1 unique base each side, a sketch threshold)', n0(sp[1]), canSpan ? `N × (L − 6,001) / G = ${fmtExp(expSpan)}` : 'none possible');
+
+      // ---- status
+      const covPart = unread === 0
+        ? `Every base got at least one read in this draw; random starts at ${C}-fold expect ${fmtExp(expUnread)} bases unread (e^−${C} of the genome).`
+        : `${n0(unread)} ${unread === 1 ? 'base' : 'bases'} in ${stretches} stretch${stretches === 1 ? '' : 'es'} got no read; random starts at ${C}-fold expect ${fmtExp(expUnread)} bases (e^−${C} of the genome).`;
+      let repPart: string;
+      if (!canSpan) {
+        repPart = `A ${n0(L)}-base read is shorter than the 6-kilobase repeat, so no read can run from unique sequence on one side to unique sequence on the other. A read inside the repeat fits both copies equally well, so the assembler cannot tell which flanking sequences belong together, and more depth only adds reads of the same ambiguous kind.`;
+      } else if (nSpanned === 2) {
+        repPart = 'A 15-kilobase read can hold a whole 6-kilobase copy with unique sequence on each side, and in this draw both copies have such a read, so each copy is spanned in this sketch.';
+      } else if (nSpanned === 1) {
+        const bad = sp[0] === 0 ? 1 : 2;
+        repPart = `Long reads can span the repeat, but by chance none started where it would cross repeat ${bad} in this draw, so that copy is not tied to its flanks. More depth or another draw makes this less likely.`;
+      } else {
+        repPart = 'Long reads can span the repeat, but by chance none started where it would cross either copy in this draw, so the copies are not tied to their flanks. More depth or another draw makes this less likely.';
+      }
+      const reasons: string[] = [];
+      if (unread > 0) reasons.push('some bases were never read');
+      if (nSpanned < 2) reasons.push('a repeat copy cannot be placed');
+      const end = reasons.length === 0
+        ? 'The assembly succeeds in this draw: every base is read and both repeat copies are placed.'
+        : `The assembly breaks in this draw (the assembler collapses the copies or splits the contig): ${reasons.join(' and ')}.`;
+      verdict.textContent = `${covPart} ${repPart} ${end}`;
+    }
+
+    depthIn.addEventListener('input', render);
+    radios.forEach((r) => r.addEventListener('change', render));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => {
+      seed = Math.floor(Math.random() * 4294967296);
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .cr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem; align-items: start; }
+  .cr-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: grid; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cr-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .cr-fs input, .cr-depth input { accent-color: var(--ddp-color-accent); }
+  .cr-depth { display: grid; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cr-depth input[type="range"] { width: 100%; }
+  .cr-btn { justify-self: start; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .cr-btn:focus-visible, .cr-fs input:focus-visible, .cr-depth input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cr-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .cr-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cr-table th, .cr-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); font-weight: 400; vertical-align: top; }
+  .cr-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .cr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cr-controls { grid-template-columns: 1fr; } }
+</style>

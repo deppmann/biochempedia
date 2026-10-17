@@ -146,7 +146,13 @@ structures:
       The phosphonate end mimics part of glutamate, so the D form competes with glutamate at the
       NMDA receptor's binding site. The L form is far weaker and served as a control.
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "RetinalWaveRefinement"
+    title: "Retinal waves and map refinement"
+    caption: >-
+      Switch between normal retinal waves and the beta2 knockout and step through moments of firing: when neighbours fire together their axons end in a small zone, and when firing is uncorrelated the zone stays broad (a sketch in relative units).
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In the mouse retina, which sequence lists the main driver of spontaneous waves from earliest to latest stage?"
@@ -352,6 +358,8 @@ corpusTags:
 draft: false
 ---
 
+import RetinalWaveRefinement from '../../../components/RetinalWaveRefinement.astro';
+
 **In the retina of a newborn ferret, whose eyes have not yet opened, ganglion cells fire bursts lasting a few seconds that sweep across the tissue at about 100 micrometres per second, separated by a minute or two of silence.**
 
 Nothing is being seen. Ganglion cells are the retina's output neurons; their axons make up the optic nerve. Here they fire on their own, in groups, and the group moves. Why would a retina that cannot yet sense an image bother to send this pattern to the brain? The answer is that the brain is still wiring itself, and this pattern carries information the wiring can use.
@@ -404,5 +412,7 @@ Blocking both eyes removes the difference and the correlation together, so segre
 </details>
 
 **Change the pattern, keep the spikes.** Todd McLaughlin, Chandra Torborg, Marla Feller and Dennis O'Leary used mice lacking the beta2 nicotinic subunit. In their recordings these mice had no waves in the first postnatal week, yet their ganglion cells fired at high rates without correlation. Their title states the result: "Retinotopic map refinement requires spontaneous retinal waves during a brief critical period of development". By day 8, axons of neighbouring ganglion cells in normal mice had converged on small termination zones in the superior colliculus, the midbrain visual target. In the mutants the zones stayed broad. Glutamatergic waves and then vision arrived later, and the zones still failed to remodel. Two hedges belong here. Later laboratories recorded correlated but altered waves in beta2 knockout retinas under some conditions, so the mutants lack normal waves rather than all waves. And a knockout removes the subunit everywhere, not only in the retina. Later work that restored beta2 in retinal ganglion cells alone has kept the retina at the centre of the explanation.
+
+<RetinalWaveRefinement />
 
 **Add an eye.** A frog's optic tectum, its main visual target, normally receives one eye only, so it has no reason to make eye-specific stripes. In 1978 Martha Constantine-Paton and Martha Law implanted an extra eye primordium into frog embryos, and the normal and extra eyes sent axons into a single tectal lobe. The two projections formed alternating bands. Competition between inputs created stripes where none exist in nature. In 1987 Hollis Cline, Elizabeth Debski and Constantine-Paton laid slow-release polymer containing APV, an NMDA receptor antagonist, on the tecta of three-eyed tadpoles. The active form of APV desegregated the stripes, while the retinal axons still responded; the inactive form left them normal; NMDA itself sharpened their borders; and after APV was removed the stripes returned within two weeks. Keeping the stripes needed NMDA receptors on the receiving side, the detector the Hebbian account calls for.

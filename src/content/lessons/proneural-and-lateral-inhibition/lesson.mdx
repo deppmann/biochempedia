@@ -167,7 +167,13 @@ structures:
       A small dipeptide-like molecule that blocks the cut inside the membrane. Treating neural
       progenitors with it removes Notch signaling and lets proneural genes rise.
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "LateralInhibitionGrid"
+    title: "Lateral inhibition grid: one cell picks, the rest hold back"
+    caption: >-
+      Step a sheet of equivalent cells through Delta-Notch feedback and see whether a small random difference grows into one neural cell among held-back neighbours, or fades when the feedback is weak.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What kind of protein does a proneural gene such as achaete, atonal or Ascl1 encode?"
@@ -383,6 +389,8 @@ corpusTags:
 draft: false
 ---
 
+import LateralInhibitionGrid from '../../../components/LateralInhibitionGrid.astro';
+
 **In the fly embryo, the cells that will make the nervous system sit in small groups. Every cell in a group can become a neural precursor, yet usually only one does.**
 
 The professor's starting point is a single line: "All cells start off equivalent potential to take on neuroblast fate". A neuroblast is a neural stem cell of the fly embryo; a sensory organ precursor (SOP) is the cell that will build one bristle and its neuron on the fly's back. If the cells are equivalent at the start, something must break the tie. The answer comes in two layers. Proneural genes make a group of cells able to become neural. Then the cells signal to each other, and one wins.
@@ -406,6 +414,8 @@ In a proneural cluster the targets that matter are the Enhancer of split, or E(s
 > **more Delta on cell A → more Notch activity in cell B → more E(spl) in B → less proneural activity and less Delta in B → less Notch activity in A → more proneural activity in A**
 
 Each cell inhibits its neighbour, and the neighbour's inhibition of it falls in return. Two inhibitions in a row make positive feedback, the switch-making arrangement described in the lesson on [signaling circuits](/lessons/signaling-circuits/). The professor calls this "Balanced / imbalanced feedback/bistability". A perfectly balanced pair could in principle sit in the middle forever, the way a pencil can balance on its point, but the slightest imbalance tips it. There are two stable outcomes: A neural and B not, or the reverse.
+
+<LateralInhibitionGrid />
 
 Two kinds of evidence support this picture. First, the phenotype. Fly embryos lacking Notch or Delta make far too many neuroblasts and too little skin on their underside; such genes are called neurogenic, a name used by José Campos-Ortega's laboratory in the early 1980s for the set, after Donald Poulson's 1930s descriptions of embryos lacking Notch. Without the receptor, no cell can be told "not you".
 

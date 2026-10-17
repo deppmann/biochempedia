@@ -1,0 +1,260 @@
+---
+/**
+ * TwoHitTimeline — Knudson's two-hit arithmetic as a race over time. A child who inherits
+ * one mutant RB1 allele needs one more hit in any of many cells; a child who inherits none
+ * needs two hits in the same cell. Tumors per eye are Poisson: carrier mean = 1.5 at the end
+ * of the window (3 per person, the lesson's figure), non-carrier mean = 0.0001 at the same
+ * point (the lesson's sporadic example). The per-cell hit rate scales the carrier mean
+ * linearly and the non-carrier mean as its square. Self-contained vanilla-TS island. Original.
+ */
+---
+
+<figure class="thk card" data-twohit>
+  <figcaption class="thk-head">Two hits or one — who gets retinoblastoma, and when<span class="thk-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="thk-svg" viewBox="0 0 340 215" role="img" aria-label="Share of children with at least one tumor against age, for carriers of one mutant RB1 allele and for children who inherit none" data-plot></svg>
+
+  <div class="thk-controls">
+    <label class="thk-slabel"><span>Per-cell hit rate <em data-out="rate">×1.00</em> <small>(1 = the lesson’s example)</small></span>
+      <input type="range" data-in="rate" min="-1" max="0.5" step="0.05" value="0" />
+    </label>
+    <label class="thk-slabel"><span>Age <em data-out="age">1.00</em> <small>(relative units)</small></span>
+      <input type="range" data-in="age" min="0.05" max="1" step="0.05" value="1" />
+    </label>
+    <label class="thk-slabel"><span>Children per group
+      <select data-in="n">
+        <option value="100">100</option>
+        <option value="1000" selected>1,000</option>
+        <option value="10000">10,000</option>
+      </select></span>
+    </label>
+    <div class="thk-btnwrap"><button type="button" class="thk-btn" data-resample>Resample</button></div>
+  </div>
+
+  <svg class="thk-svg thk-svg2" viewBox="0 0 340 170" role="img" aria-label="Number of tumors per carrier at the chosen age, observed bars and expected values" data-hist></svg>
+
+  <table class="thk-table">
+    <caption class="thk-sr">Expected and observed results at the chosen age</caption>
+    <thead><tr><th scope="col"></th><th scope="col">Inherits one mutant allele</th><th scope="col">Inherits none</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Mean tumors per eye (this sketch)</th><td data-c="m1"></td><td data-c="m2"></td></tr>
+      <tr><th scope="row">≥ 1 tumor: expected</th><td data-c="e1"></td><td data-c="e2"></td></tr>
+      <tr><th scope="row">≥ 1 tumor: observed</th><td data-c="o1"></td><td data-c="o2"></td></tr>
+      <tr><th scope="row">Tumors per person: expected / observed</th><td data-c="t1"></td><td data-c="t2"></td></tr>
+      <tr><th scope="row">Tumors in both eyes: expected / observed</th><td data-c="b1"></td><td data-c="b2"></td></tr>
+    </tbody>
+  </table>
+
+  <p class="thk-why" data-why role="status"></p>
+
+  <p class="thk-foot">In this sketch the carrier mean grows in proportion to age and the non-carrier mean with its square (relative units, not data), both scaled to the lesson’s end-of-window figures.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const M_CARRIER_END = 1.5;   // lesson: mean tumors per eye in a carrier (3 per person)
+  const M_SPORADIC_END = 0.0001; // lesson: sporadic example, expected tumors per eye
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+    const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+    t.textContent = s;
+    parent.appendChild(t);
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function poisson(mean: number, r: () => number): number {
+    const L = Math.exp(-mean);
+    let k = 0, p = 1;
+    do { k++; p *= r(); } while (p > L);
+    return k - 1;
+  }
+  const pct = (x: number) => {
+    if (x === 0) return '0%';
+    const v = x * 100;
+    return (v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(1) : v >= 0.01 ? v.toFixed(2) : sci(v)) + '%';
+  };
+  const SUPD: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sci = (x: number, d = 1) => {
+    const [m, e] = x.toExponential(d).split('e');
+    return m + ' × 10' + String(parseInt(e, 10)).split('').map((c) => SUPD[c] ?? c).join('');
+  };
+  const fmt = (x: number) => (x >= 0.1 ? x.toFixed(2) : x >= 0.001 ? x.toPrecision(2) : sci(x));
+
+  document.querySelectorAll<HTMLElement>('[data-twohit]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const hist = root.querySelector<SVGSVGElement>('[data-hist]')!;
+    const rateIn = root.querySelector<HTMLInputElement>('[data-in="rate"]')!;
+    const ageIn = root.querySelector<HTMLInputElement>('[data-in="age"]')!;
+    const nIn = root.querySelector<HTMLSelectElement>('[data-in="n"]')!;
+    const rateOut = root.querySelector<HTMLElement>('[data-out="rate"]')!;
+    const ageOut = root.querySelector<HTMLElement>('[data-out="age"]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const cell = (k: string) => root.querySelector<HTMLElement>(`[data-c="${k}"]`)!;
+    let seed = 12345;
+
+    // Per-eye mean tumors at age t, for hit-rate multiplier k.
+    const mCar = (k: number, t: number) => M_CARRIER_END * k * t;           // one hit needed
+    const mSpo = (k: number, t: number) => M_SPORADIC_END * k * k * t * t;  // two hits in one cell
+    const shareAny = (m: number) => 1 - Math.exp(-2 * m);
+
+    function render() {
+      const k = Math.pow(10, parseFloat(rateIn.value));
+      const t = parseFloat(ageIn.value);
+      const n = parseInt(nIn.value, 10);
+      rateOut.textContent = '×' + k.toFixed(2);
+      ageOut.textContent = t.toFixed(2);
+
+      // sample both groups with the same seed so sliders move the picture smoothly
+      const r = rng(seed);
+      const m1 = mCar(k, t), m2 = mSpo(k, t);
+      let any1 = 0, any2 = 0, tum1 = 0, tum2 = 0, bil1 = 0, bil2 = 0;
+      const counts = new Array(13).fill(0);
+      for (let i = 0; i < n; i++) {
+        const a = poisson(m1, r), b = poisson(m1, r);
+        if (a + b > 0) any1++;
+        if (a > 0 && b > 0) bil1++;
+        tum1 += a + b;
+        counts[Math.min(12, a + b)]++;
+      }
+      for (let i = 0; i < n; i++) {
+        const a = poisson(m2, r), b = poisson(m2, r);
+        if (a + b > 0) any2++;
+        if (a > 0 && b > 0) bil2++;
+        tum2 += a + b;
+      }
+
+      // ---------- top plot: share with a tumor against age ----------
+      const X0 = 44, X1 = 326, Y0 = 20, Y1 = 170;
+      const px = (a: number) => X0 + (a / 1) * (X1 - X0);
+      const py = (s: number) => Y1 - s * (Y1 - Y0);
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const s of [0, 0.5, 1]) {
+        if (s > 0) plot.appendChild(el('line', { x1: X0, y1: py(s), x2: X1, y2: py(s), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        txt(plot, X0 - 4, py(s) + 3, Math.round(s * 100) + '%', { 'text-anchor': 'end' });
+      }
+      for (const a of [0, 0.5, 1]) txt(plot, px(a), Y1 + 12, a.toFixed(1), { 'text-anchor': 'middle' });
+      txt(plot, (X0 + X1) / 2, Y1 + 25, 'age (relative units)', { 'text-anchor': 'middle', 'font-size': 10 });
+      txt(plot, X0 - 2, Y0 - 7, 'children with at least one tumor', { 'font-size': 10 });
+      const path = (f: (a: number) => number) => {
+        let d = '';
+        for (let i = 0; i <= 50; i++) { const a = i / 50; d += (i ? 'L' : 'M') + px(a).toFixed(1) + ' ' + py(shareAny(f(a))).toFixed(1) + ' '; }
+        return d.trim();
+      };
+      plot.appendChild(el('path', { d: path((a) => mCar(k, a)), fill: 'none', stroke: TEAL, 'stroke-width': 2.6 }));
+      plot.appendChild(el('path', { d: path((a) => mSpo(k, a)), fill: 'none', stroke: ORANGE, 'stroke-width': 2.6 }));
+      // marker at chosen age
+      plot.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: px(t), cy: py(any1 / n), r: 4.5, fill: '#fff', stroke: TEAL, 'stroke-width': 2 }));
+      plot.appendChild(el('circle', { cx: px(t), cy: py(any2 / n), r: 4.5, fill: '#fff', stroke: ORANGE, 'stroke-width': 2 }));
+      // legend
+      plot.appendChild(el('rect', { x: X0 + 4, y: Y1 - 62, width: 232, height: 52, fill: '#fff', stroke: FAINT, 'stroke-width': 0.7 }));
+      plot.appendChild(el('line', { x1: X0 + 10, y1: Y1 - 52, x2: X0 + 28, y2: Y1 - 52, stroke: TEAL, 'stroke-width': 2.6 }));
+      txt(plot, X0 + 32, Y1 - 49, 'inherits one mutant allele (one more hit needed)');
+      plot.appendChild(el('line', { x1: X0 + 10, y1: Y1 - 38, x2: X0 + 28, y2: Y1 - 38, stroke: ORANGE, 'stroke-width': 2.6 }));
+      txt(plot, X0 + 32, Y1 - 35, 'inherits none (two hits in one cell)');
+      plot.appendChild(el('circle', { cx: X0 + 19, cy: Y1 - 24, r: 4, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+      txt(plot, X0 + 32, Y1 - 21, 'ring = observed in this sample');
+
+      // ---------- bottom: tumors per carrier, observed vs expected ----------
+      hist.replaceChildren();
+      const hx0 = 36, hx1 = 330, hy0 = 22, hy1 = 130;
+      const mean = 2 * m1;
+      const expP: number[] = [];
+      let pk = Math.exp(-mean), cum = 0;
+      for (let j = 0; j < 12; j++) { expP.push(pk); cum += pk; pk = pk * mean / (j + 1); }
+      expP.push(Math.max(0, 1 - cum));
+      let top = 0;
+      for (let j = 0; j < 13; j++) top = Math.max(top, counts[j] / n, expP[j]);
+      top = Math.max(top * 1.15, 0.05);
+      const bw = (hx1 - hx0) / 13;
+      const hy = (f: number) => hy1 - (f / top) * (hy1 - hy0);
+      hist.appendChild(el('line', { x1: hx0, y1: hy1, x2: hx1, y2: hy1, stroke: INK, 'stroke-width': 1 }));
+      hist.appendChild(el('line', { x1: hx0, y1: hy0, x2: hx0, y2: hy1, stroke: INK, 'stroke-width': 1 }));
+      txt(hist, hx0 - 4, hy0 + 3, pct(top), { 'text-anchor': 'end' });
+      txt(hist, hx0 - 4, hy1 + 3, '0%', { 'text-anchor': 'end' });
+      txt(hist, hx0 - 2, hy0 - 9, 'carriers: tumors per person (bar observed, tick expected)', { 'font-size': 10 });
+      for (let j = 0; j < 13; j++) {
+        const x = hx0 + j * bw;
+        const f = counts[j] / n;
+        hist.appendChild(el('rect', { x: x + 2, y: hy(f), width: bw - 4, height: Math.max(0, hy1 - hy(f)), fill: TEAL, opacity: 0.85 }));
+        hist.appendChild(el('line', { x1: x + 1, y1: hy(expP[j]), x2: x + bw - 1, y2: hy(expP[j]), stroke: ORANGE, 'stroke-width': 2.6 }));
+        txt(hist, x + bw / 2, hy1 + 12, j === 12 ? '12+' : String(j), { 'text-anchor': 'middle' });
+      }
+      txt(hist, (hx0 + hx1) / 2, hy1 + 26, 'tumors in the two eyes together', { 'text-anchor': 'middle', 'font-size': 10 });
+
+      // ---------- table ----------
+      cell('m1').textContent = fmt(m1);
+      cell('m2').textContent = sci(m2);
+      cell('e1').textContent = pct(shareAny(m1));
+      cell('e2').textContent = pct(shareAny(m2));
+      cell('o1').textContent = `${pct(any1 / n)} (${any1} of ${n})`;
+      cell('o2').textContent = `${pct(any2 / n)} (${any2} of ${n})`;
+      cell('t1').textContent = `${(2 * m1).toFixed(2)} / ${(tum1 / n).toFixed(2)}`;
+      cell('t2').textContent = `${fmt(2 * m2)} / ${(tum2 / n === 0 ? '0' : sci(tum2 / n))}`;
+      cell('b1').textContent = `${pct(Math.pow(1 - Math.exp(-m1), 2))} / ${pct(bil1 / n)}`;
+      cell('b2').textContent = `${pct(Math.pow(1 - Math.exp(-m2), 2))} / ${pct(bil2 / n)}`;
+
+      // ---------- status ----------
+      const pc = shareAny(m1), ps = shareAny(m2);
+      const ratio = ps > 0 ? pc / ps : Infinity;
+      let s = `At age ${t.toFixed(2)} (relative units), a carrier is expected to have ${fmt(2 * m1)} tumors, and ${pct(pc)} of carriers have at least one. In this sketch, a child who inherits none (taking the lesson’s illustrative 0.0001 tumors per eye at the end) has ${pct(ps)}, because two rare hits must fall in the same cell. `;
+      s += `With ${n.toLocaleString()} children per group you saw ${any1} affected carriers (expected ${(pc * n).toFixed(1)}) and ${any2} affected non-carriers (expected ${(ps * n).toFixed(2)}). `;
+      if (Math.abs(k - 1) < 0.03 && t > 0.97) {
+        s += 'These are the lesson’s worked numbers: about 3 tumors per carrier, about 5% of carriers tumor free, most affected carriers bilateral.';
+      } else if (ratio > 1000) {
+        s += 'Carriers are ahead by orders of magnitude because the first hit is already in every cell.';
+      } else {
+        s += 'The carrier is still ahead, since one hit is enough for it and the other child needs two. Press Resample to see the scatter.';
+      }
+      if (pc > 0.9 && pc < 0.999) s += ' Penetrance is high but below 100%.';
+      why.textContent = s;
+    }
+
+    [rateIn, ageIn, nIn].forEach((c) => c.addEventListener('input', render));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .thk { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .thk-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .thk-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .thk-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .thk-svg2 { margin-top: var(--ddp-space-3); }
+  .thk-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .thk-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .thk-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .thk-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .thk-slabel input { accent-color: var(--ddp-color-accent); }
+  .thk-slabel select { font: inherit; padding: 0.2rem; }
+  .thk-btn { font: inherit; font-size: var(--ddp-text-xs); font-weight: 600; padding: 0.35rem 0.8rem; border: 1px solid var(--ddp-color-accent); background: #fff; color: var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .thk-btn:hover, .thk-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 10%, #fff); }
+  .thk-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); }
+  .thk-table th, .thk-table td { overflow-wrap: anywhere; min-width: 0; text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .thk-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .thk-table tbody th { font-weight: 400; color: var(--ddp-color-ink-soft); }
+  .thk-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .thk-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .thk-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .thk-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .thk-controls { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,139 @@
+---
+/**
+ * CreLoxMouseBuilder — build a conditional mouse on paper. Choose a Cre driver (made in one
+ * cell type), say whether the gene is floxed, say whether a Cre-dependent reporter is present,
+ * and say whether the reporter is the easier target for Cre. The sketch shows which cells make
+ * Cre, which lose the gene and which glow, including the lesson's trap: a reporter cross tells
+ * you where Cre acted, not where the floxed gene was lost. Eight cells, four per type; which
+ * cells escape deletion is arbitrary (a sketch of the logic). Self-contained vanilla-TS Astro
+ * island. Original.
+ */
+---
+
+<figure class="clm card" data-cremouse>
+  <figcaption class="clm-head">Conditional mouse builder: where does Cre act?<span class="clm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="clm-svg" viewBox="0 0 360 200" role="img" aria-label="Eight cells in two groups, sensory neurons and other cells, showing which make Cre, which lose the floxed gene and which glow" data-stage></svg>
+
+  <div class="clm-controls">
+    <label class="clm-field"><span>Cre driver (where Cre is made)</span>
+      <select data-in="driver">
+        <option value="none">no Cre in this mouse</option>
+        <option value="sensory" selected>Advillin-Cre: sensory neurons</option>
+        <option value="other">a driver active in a different cell type</option>
+      </select>
+    </label>
+    <label class="clm-check"><input type="checkbox" data-in="floxed" checked /> gene X is floxed (loxP sites flank it)</label>
+    <label class="clm-check"><input type="checkbox" data-in="reporter" checked /> a Cre-dependent reporter is present</label>
+    <label class="clm-check"><input type="checkbox" data-in="easy" /> (in this sketch) the reporter recombines more readily than the floxed gene</label>
+  </div>
+
+  <p class="clm-geno" data-geno></p>
+  <p class="clm-verdict" data-verdict role="status"></p>
+
+  <p class="clm-foot">A reporter cross tells you where Cre acted, not where the floxed gene was lost: the two lox-flanked targets recombine independently. This is a sketch of the logic, not a count from a real cross; how many and which cells keep the gene is arbitrary here.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  type Driver = 'none' | 'sensory' | 'other';
+  document.querySelectorAll<HTMLElement>('[data-cremouse]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const geno = root.querySelector<HTMLElement>('[data-geno]')!;
+    const driverIn = root.querySelector<HTMLSelectElement>('[data-in="driver"]')!;
+    const chk = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const INK = '#4b4b55', FAINT = '#8a8a96', GREEN = '#1f8a3e', TEAL = '#0e7c86', ORANGE = '#e57200';
+    // Eight cells: four sensory neurons, four of another type. In the "easier reporter" sketch,
+    // the 2nd and 4th Cre-making cell of a group keep the floxed gene (arbitrary choice).
+    const GROUPS = [
+      { key: 'sensory', label: 'sensory neurons', x0: 8 },
+      { key: 'other', label: 'cells of a different type', x0: 186 },
+    ];
+    function render() {
+      const driver = driverIn.value as Driver;
+      const floxed = chk('floxed').checked, reporter = chk('reporter').checked, easy = chk('easy').checked;
+      stage.replaceChildren();
+      let nCre = 0, nLost = 0, nGlow = 0, nGlowKeep = 0;
+      GROUPS.forEach((g) => {
+        const hasCre = driver === g.key;
+        stage.appendChild(el('text', { x: g.x0 + 85, y: 16, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, g.label));
+        for (let i = 0; i < 4; i++) {
+          const cx = g.x0 + 22 + i * 42;
+          const glows = hasCre && reporter;
+          const lost = hasCre && floxed && !(easy && i % 2 === 1);
+          if (hasCre) nCre++;
+          if (lost) nLost++;
+          if (glows) { nGlow++; if (floxed && !lost) nGlowKeep++; }
+          if (glows) stage.appendChild(el('circle', { cx, cy: 62, r: 21, fill: '#b9efc8', opacity: 0.8 }));
+          stage.appendChild(el('circle', { cx, cy: 62, r: 15, fill: glows ? GREEN : '#e8e8ee', stroke: glows ? GREEN : FAINT, 'stroke-width': 1.5 }));
+          if (hasCre) stage.appendChild(el('text', { x: cx, y: 66, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'middle', fill: glows ? '#fff' : INK }, 'Cre'));
+          // the floxed gene: solid block while present, dashed outline once deleted
+          if (floxed) {
+            if (lost) stage.appendChild(el('rect', { x: cx - 12, y: 94, width: 24, height: 11, rx: 2, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+            else stage.appendChild(el('rect', { x: cx - 12, y: 94, width: 24, height: 11, rx: 2, fill: TEAL }));
+            stage.appendChild(el('text', { x: cx, y: 118, 'font-size': 9, 'text-anchor': 'middle', fill: lost ? ORANGE : TEAL }, lost ? 'X deleted' : 'X intact'));
+          } else {
+            stage.appendChild(el('rect', { x: cx - 12, y: 94, width: 24, height: 11, rx: 2, fill: '#fff', stroke: FAINT, 'stroke-width': 1 }));
+            stage.appendChild(el('text', { x: cx, y: 118, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'no lox'));
+          }
+        }
+        if (hasCre) {
+          stage.appendChild(el('line', { x1: g.x0 + 7, y1: 130, x2: g.x0 + 163, y2: 130, stroke: INK, 'stroke-width': 1.5 }));
+          stage.appendChild(el('text', { x: g.x0 + 85, y: 143, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'Cre is made in these cells'));
+        }
+      });
+      // legend
+      stage.appendChild(el('circle', { cx: 18, cy: 168, r: 6, fill: GREEN }));
+      stage.appendChild(el('text', { x: 28, y: 171, 'font-size': 9, fill: INK }, 'reporter glows'));
+      stage.appendChild(el('rect', { x: 110, y: 163, width: 16, height: 9, rx: 2, fill: TEAL }));
+      stage.appendChild(el('text', { x: 131, y: 171, 'font-size': 9, fill: INK }, 'gene present'));
+      stage.appendChild(el('rect', { x: 206, y: 163, width: 16, height: 9, rx: 2, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+      stage.appendChild(el('text', { x: 227, y: 171, 'font-size': 9, fill: INK }, 'gene deleted'));
+      stage.appendChild(el('text', { x: 18, y: 192, 'font-size': 9, fill: FAINT }, 'sketch of the logic; four cells of each type, not to scale'));
+
+      const dname = driver === 'sensory' ? 'AvilCre/+' : driver === 'other' ? 'a Cre driver for a different cell type' : 'no Cre';
+      geno.textContent = 'Genotype: ' + (driver === 'none' ? 'no Cre' : dname) + (floxed ? '; gene X floxed' : '; gene X not floxed') + (reporter ? '; Cre-dependent reporter' : '; no reporter') + '.';
+
+      let v: string;
+      const where = driver === 'sensory' ? 'sensory neurons' : 'a different cell type';
+      if (driver === 'none') {
+        v = 'There is no Cre, so nothing is deleted and no reporter is switched on in any cell. Cre deletes the flanked segment only in cells that make Cre.';
+      } else if (!floxed && !reporter) {
+        v = `In this sketch Cre is made only in ${where}, but gene X has no lox sites and there is no reporter, so nothing is deleted and nothing glows. This cross does not mark where Cre acted.`;
+      } else if (!floxed) {
+        v = `In this sketch Cre is made only in ${where}, and the reporter glows there. Gene X has no lox sites, so no cell loses it: this shows where Cre acted and nothing about the gene.`;
+      } else if (!reporter) {
+        v = `In this sketch Cre is made only in ${where}, and gene X is deleted there${easy ? ' (the easier-reporter setting has no effect without a reporter)' : ''}. Nothing glows because there is no reporter, so this cross does not mark where Cre acted.`;
+      } else if (!easy) {
+        v = `In this sketch Cre is made only in ${where}. Gene X is deleted there and the reporter glows there, while the other cells keep the gene and stay dark. In this sketch the two switches match; in a real cross you still have to check, because the two targets recombine independently.`;
+      } else {
+        v = `The reporter glows in all ${nGlow} cells that make Cre, but only ${nLost} of them lost gene X, so ${nGlowKeep} glowing cells still carry it. The reporter is usually the easier substrate, and a reporter cross tells you where Cre acted, not where the gene was lost. Measure X in the reporter-positive cells.`;
+      }
+      verdict.textContent = v;
+    }
+    [driverIn, chk('floxed'), chk('reporter'), chk('easy')].forEach((c) => c.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .clm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .clm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .clm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .clm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .clm-controls { display: grid; gap: 0.45rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .clm-field { display: grid; gap: 0.2rem; color: var(--ddp-color-muted); }
+  .clm-field select { font: inherit; padding: 0.3rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); max-width: 100%; }
+  .clm-check input { accent-color: var(--ddp-color-accent); }
+  .clm-field select:focus-visible, .clm-check input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .clm-geno { margin: var(--ddp-space-3) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .clm-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .clm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
