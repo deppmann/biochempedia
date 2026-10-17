@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LessonIcon from '../components/LessonIcon.astro';
+import { COURSE_ICONS } from '../data/course-icons';
 import SiteSearch from '../components/SiteSearch.astro';
 import { COURSES, courseHref, unitsFor } from '../data/courses';
 
@@ -26,8 +27,8 @@ const cards = COURSES.map((c) => {
     films: mine.reduce((n, l) => n + (l.data.explainer ? 1 : 0) + l.data.films.length, 0),
     sims: mine.reduce((n, l) => n + l.data.simulations.length, 0),
     questions: mine.reduce((n, l) => n + l.data.practiceQuestions.length + l.data.mcatQuestions.length, 0),
-    /* The icon of the course's first lesson stands for the course. */
-    icon: units[0]?.entries[0]?.l.data.slug ?? c.slug,
+    /* A course's own icon if it has one, else its first lesson's icon. */
+    icon: COURSE_ICONS[`course:${c.slug}`] ? `course:${c.slug}` : (units[0]?.entries[0]?.l.data.slug ?? c.slug),
     unitNames: units.map((u) => u.name),
   };
 }).filter((k) => k.lessons > 0);
