@@ -96,6 +96,61 @@ export const COURSES: Course[] = [
       },
     ],
   },
+  {
+    slug: 'developmental-neuroscience',
+    title: 'Developmental Neuroscience',
+    tier: 'elective',
+    tagline: 'How a nervous system builds itself, one local decision at a time.',
+    blurb:
+      'An elective that follows Cell Signaling. It starts with a sheet of embryonic cells and ends with a working, wired brain: how tissue becomes neural, how neurons are made and move, how axons find their targets, why half the neurons die, and how experience refines what the genes began.',
+    /* Course units (proposed 2026-10-16, approved by Chris the same day). */
+    units: [
+      {
+        name: 'The problem and the tools',
+        slugs: ['wiring-problem', 'neuron-doctrine', 'growth-cone', 'tools-for-development'],
+      },
+      {
+        name: 'Becoming neural',
+        slugs: ['the-organizer', 'neural-induction', 'neurulation-and-tube-defects'],
+      },
+      {
+        name: 'Coordinates: patterning the tube',
+        slugs: ['hox-and-hindbrain', 'local-organizers', 'shh-bmp-neural-tube', 'motor-neuron-code', 'cortical-areas'],
+      },
+      {
+        name: 'Making neurons',
+        slugs: ['radial-glia-progenitors', 'proneural-and-lateral-inhibition', 'asymmetric-division', 'birth-order-and-layers'],
+      },
+      {
+        name: 'Cells on the move',
+        slugs: ['radial-migration', 'reelin-and-reeler', 'tangential-migration', 'neural-crest'],
+      },
+      {
+        name: 'Axons find their way',
+        slugs: ['neuronal-polarity', 'guidance-cues-and-pioneers', 'netrin-and-dcc', 'crossing-the-midline', 'semaphorins', 'topographic-maps', 'partners-layers-self-avoidance'],
+      },
+      {
+        name: 'Survival and competition',
+        slugs: ['naturally-occurring-death', 'neurotrophic-hypothesis', 'trk-and-p75', 'death-machinery-in-neurons', 'competition-for-targets', 'retrograde-signal', 'axon-pruning'],
+      },
+      {
+        name: 'Building synapses',
+        slugs: ['neuromuscular-junction', 'cns-synapses', 'synapse-elimination'],
+      },
+      {
+        name: 'Experience refines the wiring',
+        slugs: ['spontaneous-activity', 'ocular-dominance', 'critical-period-control', 'microglia-complement-pruning', 'sensitive-periods-behavior'],
+      },
+      {
+        name: 'Glia',
+        slugs: ['origins-of-glia', 'myelination', 'glia-metabolic-partners'],
+      },
+      {
+        name: 'Rebuilding, evolving, and going wrong',
+        slugs: ['injury-and-regeneration', 'adult-neurogenesis', 'microcephaly-and-malformations', 'synapse-disorders', 'human-brain-expansion', 'organoids'],
+      },
+    ],
+  },
 ];
 
 /** The course a lesson belongs to. An unknown slug falls back to a bare course
