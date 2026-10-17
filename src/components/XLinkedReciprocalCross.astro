@@ -118,7 +118,7 @@
 
     function panel(y0: number, title: string, obs: Counts, exp: Counts) {
       const INK = '#4b4b55', FAINT = '#8a8a96';
-      const top = y0 + 22, h = 92, base = top + h;
+      const top = y0 + 30, h = 80, base = top + h;
       const ceil = Math.max(0.6 * n, ...CLASSES.map((c) => obs[c.key]));
       stage.appendChild(el('text', { x: 8, y: y0 + 10, 'font-size': 10, 'font-weight': 700, fill: INK }, title));
       stage.appendChild(el('line', { x1: 24, y1: base, x2: 352, y2: base, stroke: FAINT, 'stroke-width': 1 }));
@@ -130,7 +130,7 @@
         const ey = base - (exp[c.key] * n / ceil) * h;
         stage.appendChild(el('line', { x1: cx - w / 2 - 5, y1: ey, x2: cx + w / 2 + 5, y2: ey, stroke: '#0e7c86', 'stroke-width': 2, 'stroke-dasharray': '4 2' }));
         const lblY = Math.min(base - bh, ey) - 4;
-        stage.appendChild(el('text', { x: cx, y: Math.max(lblY, top - 2), 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, String(obs[c.key])));
+        stage.appendChild(el('text', { x: cx, y: Math.max(lblY, top - 4), 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, String(obs[c.key])));
         stage.appendChild(el('text', { x: cx, y: base + 12, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, c.label));
       });
     }
