@@ -147,7 +147,13 @@ structures:
       One NGF dimer holds two receptor domains, one on each side. Because one dimer brings two
       TrkA molecules together, binding pairs the receptor's kinases inside the cell.
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "SurvivalCeilingExplorer"
+    title: "Survival ceiling: made, supported, surviving"
+    caption: >-
+      Set how many neurons were made and how many the target's factor can support, and see that survivors equal the smaller of the two, so extra factor helps only until every neuron made is supported.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "According to the neurotrophic factor hypothesis, what do developing neurons compete for?"
@@ -345,6 +351,8 @@ corpusTags:
 draft: false
 ---
 
+import SurvivalCeilingExplorer from '../../../components/SurvivalCeilingExplorer.astro';
+
 **Inject a newborn mouse with an antiserum against one protein, and its sympathetic ganglia waste away. Give it extra of the same protein, and they swell.**
 
 The protein is nerve growth factor, NGF. Results like these tempt a strong conclusion: NGF decides how many sympathetic neurons an animal has. The neurotrophic hypothesis makes a narrower claim than that, and the tests of it show where the line falls. A survival factor can decide how many of the neurons that were made stay alive. It cannot add neurons that were never made.
@@ -403,6 +411,8 @@ This gives you a ceiling:
 > **neurons surviving = the smaller of (neurons made) and (neurons the target's factor can support)**
 
 Extra factor raises the second term. Nothing about a survival factor raises the first. Once every neuron has more factor than it can use, a larger dose adds nothing.
+
+<SurvivalCeilingExplorer />
 
 The ceiling holds for the population you measured, with its own factor. Motor neurons are the caution. Limb motor neurons do not depend on NGF, and in chick embryos several other factors each reduce part of their normal death. A ceiling found for sympathetic neurons and NGF does not transfer to them.
 

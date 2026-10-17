@@ -1,0 +1,138 @@
+---
+/**
+ * EphrinGradientMapper — retinal axons carrying a graded EphA receptor meet a target with a
+ * graded ephrin-A ligand, and each axon stops where ephrin-A repels it. The learner picks one
+ * condition of the mouse (normal, one working copy of each of ephrin-A2 and ephrin-A5, both
+ * removed, or the Isl2-EphA3 knock-in) and sees the map the topographic-maps lesson describes.
+ * Positions are relative units, and the scatter in the knockouts is a sketch of the lesson's
+ * statement that the map loses much of its order; it is not data. Nothing is drawn as a
+ * molecular structure. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="egm card" data-egm>
+  <figcaption class="egm-head">Ephrin gradient mapper: where does each axon stop?<span class="egm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="egm-svg" viewBox="0 0 360 250" role="img" aria-label="Ten retinal axons, temporal on the left to nasal on the right, and the place on the target where each one ends, against a gradient of ephrin-A that is low at the front and high at the back" data-stage></svg>
+
+  <fieldset class="egm-ctl">
+    <legend>The mouse</legend>
+    <label><input type="radio" name="egm-cond" value="normal" checked /> normal</label>
+    <label><input type="radio" name="egm-cond" value="half" /> ephrin-A2 and ephrin-A5: one working copy of each gene</label>
+    <label><input type="radio" name="egm-cond" value="dko" /> ephrin-A2 and ephrin-A5 both removed (double knockout)</label>
+    <label><input type="radio" name="egm-cond" value="ki" /> Isl2-EphA3 knock-in: extra EphA3 in a random half of the ganglion cells</label>
+  </fieldset>
+
+  <p class="egm-verdict" data-verdict role="status"></p>
+
+  <p class="egm-foot">Rule to keep: an axon with more EphA stops sooner against rising ephrin-A, and where cells differ, each axon is placed by its signal relative to its neighbours. Positions are in relative units, and the picture is a sketch of the logic, not data; the shading of the bar is only a sketch.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  type Cond = 'normal' | 'half' | 'dko' | 'ki';
+  const N = 10; // axons, index 0 = most temporal (most EphA) ... 9 = most nasal (least EphA)
+  const PATCH = [1, 2, 3]; // one small patch of neighbouring retinal cells
+  const KI = [0, 1, 1, 0, 1, 0, 0, 1, 0, 1]; // which cells carry the extra EphA3 (scattered)
+  // Shifts from the ordinary place, in fractions of the axis; a sketch of "less order", not a measurement.
+  const SHIFT_HALF = [0, 0, 0.1, 0, 0, -0.09, 0, 0, 0.08, 0];
+  const SHIFT_DKO = [0.12, 0.42, -0.1, 0.55, -0.14, 0.2, -0.22, 0.12, -0.17, 0.08];
+  const X0 = 40, W = 280, YR = 62, YT = 176;
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#e57200';
+
+  const TEXT: Record<Cond, string> = {
+    normal: 'Each axon stops where the ephrin-A it meets repels it. Temporal axons carry the most EphA, so a little ephrin-A repels them and they stop in the anterior target; nasal axons carry little EphA, tolerate more ephrin-A and travel into the posterior target. The neighbouring cells of the orange patch end next to one another: an ordered map.',
+    half: 'With one working copy of each gene the lesson reports a defect even so: a few axons, shown shifted, no longer end in their usual places. The defect grows as ligand is lowered, so it is the amount of ephrin-A, not merely its presence, that carries position.',
+    dko: 'With both genes removed, axons from one small patch of retina (orange) end at several places scattered along the axis. The map loses much of its anterior-posterior order but not all of it: the projection still reaches the target, and some order remains. The defect grows as ligand is lowered, so the amount of ephrin-A carries position.',
+    ki: 'Half of the ganglion cells (ringed) now carry extra EphA3, at every retinal position. Within each region the ringed cells outrank their unringed neighbours, and in the lesson’s result the ringed population takes the anterior colliculus in its own order and the unringed population the posterior. In this sketch the two groups are drawn as clean halves. Unringed cells ending somewhere new is what an absolute reading cannot explain, so axons read relative, not absolute, levels.',
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-egm]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const radios = root.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const clamp = (v: number) => Math.min(0.97, Math.max(0.03, v));
+    const xOf = (f: number) => X0 + f * W;
+
+    // Where each axon ends, as a fraction of the axis from anterior (0) to posterior (1).
+    function endings(c: Cond): number[] {
+      const base = (t: number) => (t + 0.5) / N;
+      if (c === 'normal') return Array.from({ length: N }, (_, t) => base(t));
+      if (c === 'half') return Array.from({ length: N }, (_, t) => clamp(base(t) + SHIFT_HALF[t]));
+      if (c === 'dko') return Array.from({ length: N }, (_, t) => clamp(base(t) + SHIFT_DKO[t]));
+      // knock-in: rank by EphA signal; ringed cells outrank unringed ones, each group keeps its own order
+      const nK = KI.reduce((a, b) => a + b, 0);
+      let k = 0, w = 0;
+      return Array.from({ length: N }, (_, t) => (KI[t] ? (k++ + 0.5) / N : (nK + w++ + 0.5) / N));
+    }
+
+    function draw(c: Cond) {
+      stage.replaceChildren();
+      const end = endings(c);
+      const grad = el('linearGradient', { id: 'egm-g', x1: 0, y1: 0, x2: 1, y2: 0 });
+      grad.appendChild(el('stop', { offset: '0%', 'stop-color': '#7a5ea8', 'stop-opacity': c === 'dko' ? 0 : 0.05 }));
+      grad.appendChild(el('stop', { offset: '100%', 'stop-color': '#7a5ea8', 'stop-opacity': c === 'normal' || c === 'ki' ? 0.85 : c === 'half' ? 0.45 : 0 }));
+      const defs = el('defs', {});
+      defs.appendChild(grad);
+      stage.appendChild(defs);
+
+      stage.appendChild(el('text', { x: 180, y: 14, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'retina: EphA receptor on each axon'));
+      stage.appendChild(el('text', { x: X0, y: 28, 'font-size': 9.5, fill: INK }, 'temporal: most EphA'));
+      stage.appendChild(el('text', { x: X0 + W, y: 28, 'font-size': 9.5, 'text-anchor': 'end', fill: INK }, 'nasal: least EphA'));
+
+      // axons: line from the retinal cell to where it stops
+      for (let t = 0; t < N; t++) {
+        const patch = PATCH.includes(t);
+        stage.appendChild(el('line', { x1: xOf((t + 0.5) / N), y1: YR + 8, x2: xOf(end[t]), y2: YT - 2, stroke: patch ? ORANGE : TEAL, 'stroke-width': patch ? 2 : 1.2, opacity: patch ? 1 : 0.55 }));
+      }
+      // retinal cells: darker means more EphA
+      for (let t = 0; t < N; t++) {
+        const x = xOf((t + 0.5) / N), patch = PATCH.includes(t);
+        const ring = c === 'ki' && KI[t];
+        const level = 1 - t / (N - 1);
+        stage.appendChild(el('circle', { cx: x, cy: YR, r: 7, fill: patch ? ORANGE : TEAL, 'fill-opacity': patch ? 1 : 0.25 + 0.7 * level }));
+        if (ring) stage.appendChild(el('circle', { cx: x, cy: YR, r: 10.5, fill: 'none', stroke: INK, 'stroke-width': 2 }));
+      }
+      // the target: ephrin-A gradient bar
+      stage.appendChild(el('rect', { x: X0, y: YT, width: W, height: 26, fill: '#fff', stroke: '#c9c9d2' }));
+      stage.appendChild(el('rect', { x: X0, y: YT, width: W, height: 26, fill: 'url(#egm-g)' }));
+      stage.appendChild(el('rect', { x: X0, y: YT, width: W, height: 26, fill: 'none', stroke: '#c9c9d2' }));
+      if (c === 'dko') stage.appendChild(el('text', { x: 180, y: YT + 17, 'font-size': 9.5, 'text-anchor': 'middle', fill: INK }, 'ephrin-A2 and ephrin-A5 removed'));
+      // where axons stop
+      for (let t = 0; t < N; t++) {
+        const patch = PATCH.includes(t);
+        stage.appendChild(el('circle', { cx: xOf(end[t]), cy: YT - 2, r: patch ? 4.5 : 3.2, fill: patch ? ORANGE : TEAL, stroke: '#fff', 'stroke-width': 1 }));
+      }
+      stage.appendChild(el('text', { x: X0, y: YT + 40, 'font-size': 9.5, fill: INK }, 'anterior: lowest ephrin-A'));
+      stage.appendChild(el('text', { x: X0 + W, y: YT + 40, 'font-size': 9.5, 'text-anchor': 'end', fill: INK }, 'posterior: highest ephrin-A'));
+      stage.appendChild(el('text', { x: 180, y: YT + 54, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'target: tectum (chick) or superior colliculus (mouse)'));
+      stage.appendChild(el('text', { x: 180, y: 244, 'font-size': 9.5, 'text-anchor': 'middle', fill: FAINT }, 'orange: one small patch of retina · relative units, not to scale' + (c === 'ki' ? ' · ring: extra EphA3' : '')));
+    }
+
+    function render() {
+      const c = (Array.from(radios).find((r) => r.checked)?.value ?? 'normal') as Cond;
+      draw(c);
+      verdict.textContent = TEXT[c];
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .egm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .egm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .egm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .egm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .egm-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; gap: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .egm-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .egm-ctl input { accent-color: var(--ddp-color-accent); }
+  .egm-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .egm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

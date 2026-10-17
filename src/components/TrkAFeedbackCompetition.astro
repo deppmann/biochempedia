@@ -1,0 +1,147 @@
+---
+/**
+ * TrkAFeedbackCompetition — a fixed supply of target NGF is shared among twelve sympathetic
+ * neurons that differ only slightly in early access. The learner sets how strongly NGF signaling
+ * raises TrkA (the positive feedback of the competition lesson) and scrubs or plays time. With
+ * feedback off the neurons stay close together; with feedback on, a small lead grows into a
+ * winning group and a losing group. A sketch of the logic in relative units, not a fit to data.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="tfc card" data-tfc>
+  <figcaption class="tfc-head">TrkA feedback: how a small lead becomes a win<span class="tfc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="tfc-svg" viewBox="0 0 360 210" role="img" aria-label="Bars for twelve neurons showing relative TrkA level at the chosen time" data-stage></svg>
+
+  <div class="tfc-ctl">
+    <label for="tfc-k-0" class="tfc-lab">Feedback: how strongly NGF signal raises TrkA <output data-kout></output></label>
+    <input id="tfc-k-0" type="range" min="0" max="3" step="0.1" value="1.5" data-k />
+    <span class="tfc-ends"><span>off</span><span>strong</span></span>
+  </div>
+  <div class="tfc-ctl">
+    <label for="tfc-t-0" class="tfc-lab">Time during the death period (relative units)</label>
+    <div class="tfc-trow">
+      <button type="button" class="tfc-btn" data-play>Play</button>
+      <input id="tfc-t-0" type="range" min="0" max="160" step="1" value="160" data-t />
+    </div>
+  </div>
+
+  <p class="tfc-verdict" data-verdict role="status"></p>
+
+  <p class="tfc-foot">NGF raises TrkA, so a neuron with a little more receptor collects more of a limited supply and pulls further ahead. This is a sketch of the logic in relative units, not a measurement or a prediction for real neurons. How the supply is divided among neurons and the cutoff for calling a split are choices made in this sketch, not taken from the lesson or the paper.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = 12, STEPS = 160;
+  const ACCESS: number[] = [];
+  for (let i = 0; i < N; i++) ACCESS.push(0.9 + (0.2 * i) / (N - 1));
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  // Caricature of the lesson: change in TrkA = basal synthesis + k x (NGF signal) - decay x TrkA,
+  // where the NGF signal of a neuron rises with both its access and its TrkA, from a fixed supply.
+  function simulate(k: number): number[][] {
+    let T = ACCESS.map(() => 1);
+    const out = [T.slice()];
+    const basal = 0.1, decay = 0.1, dt = 0.5;
+    for (let t = 0; t < STEPS; t++) {
+      const w = T.map((x, i) => ACCESS[i] * x);
+      const S = w.reduce((p, c) => p + c, 0);
+      // share = 1 means an equal share of the fixed supply; neurons above it gain, those below it fall behind
+      T = T.map((x, i) => { const s = (N * w[i]) / S; const h = (2 * s ** 4) / (1 + s ** 4); return x + dt * (basal + k * 0.1 * h - decay * x); });
+      out.push(T.slice());
+    }
+    return out;
+  }
+  document.querySelectorAll<HTMLElement>('[data-tfc]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const kIn = root.querySelector<HTMLInputElement>('[data-k]')!;
+    const tIn = root.querySelector<HTMLInputElement>('[data-t]')!;
+    const kOut = root.querySelector<HTMLElement>('[data-kout]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    let run = simulate(parseFloat(kIn.value));
+    let timer: number | undefined;
+    const INK = '#4b4b55', FAINT = '#8a8a96', WIN = '#0e7c86', LOSE = '#e57200', MID = '#6b7a99';
+
+    function stop() { if (timer !== undefined) { window.clearInterval(timer); timer = undefined; } playBtn.textContent = 'Play'; }
+    function draw() {
+      const k = parseFloat(kIn.value), t = parseInt(tIn.value, 10);
+      const T = run[t];
+      const yTop = Math.max(2, ...run[STEPS]) * 1.1;
+      const lo = Math.min(...T), hi = Math.max(...T);
+      const ratio = hi / lo;
+      const split = ratio >= 3;
+      const cut = Math.sqrt(hi * lo);
+      stage.replaceChildren();
+      const x0 = 40, x1 = 350, base = 170, top = 40, bw = 18, gap = (x1 - x0 - N * bw) / (N - 1);
+      const yOf = (v: number) => base - (v / yTop) * (base - top);
+      stage.appendChild(el('text', { x: 6, y: 12, 'font-size': 9, fill: INK }, 'TrkA level (relative to start)'));
+      stage.appendChild(el('line', { x1: x0 - 4, y1: base, x2: x1, y2: base, stroke: FAINT, 'stroke-width': 1 }));
+      stage.appendChild(el('line', { x1: x0 - 4, y1: yOf(1), x2: x1, y2: yOf(1), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      stage.appendChild(el('text', { x: 2, y: yOf(1) - 3, 'font-size': 9, fill: INK }, 'start'));
+      T.forEach((v, i) => {
+        const x = x0 + i * (bw + gap);
+        const col = split ? (v >= cut ? WIN : LOSE) : MID;
+        stage.appendChild(el('rect', { x, y: yOf(v), width: bw, height: base - yOf(v), rx: 2, fill: col }));
+      });
+      stage.appendChild(el('text', { x: x0, y: base + 14, 'font-size': 9, fill: INK }, 'slightly less early NGF access'));
+      stage.appendChild(el('text', { x: x1, y: base + 14, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'slightly more'));
+      stage.appendChild(el('text', { x: x0, y: base + 28, 'font-size': 9, fill: INK }, 'twelve neurons share one fixed supply of NGF from the target'));
+      if (split) {
+        stage.appendChild(el('text', { x: x1, y: 14, 'font-size': 9, 'text-anchor': 'end', 'font-weight': 700, fill: WIN }, 'winners: high TrkA'));
+        stage.appendChild(el('text', { x: x1, y: 27, 'font-size': 9, 'text-anchor': 'end', 'font-weight': 700, fill: LOSE }, 'losers: low TrkA'));
+      }
+      stage.appendChild(el('text', { x: 6, y: 204, 'font-size': 9, fill: INK }, `time ${t} of ${STEPS} (relative units, not to scale)`));
+      kOut.textContent = k === 0 ? '(off)' : `(${k.toFixed(1)})`;
+
+      let v: string;
+      if (t === 0) v = 'At the start every neuron has the same TrkA level. They differ only in a small, chance difference in early NGF access.';
+      else if (k === 0) v = 'No feedback: NGF does not raise TrkA, so the small early differences are not amplified and the neurons stay at their starting level. Nothing turns a chance difference into a win.';
+      else if (!split) v = ratio < 1.5
+        ? 'Feedback is on: neurons that collect a little more NGF are starting to make a little more TrkA, but the group has not yet separated.'
+        : 'Feedback is on and the neurons are pulling apart, but the gap between the highest and lowest is still small.';
+      else v = 'Positive feedback has turned a small lead into a large one: the neurons have split into a winning group with high TrkA and a losing group with low TrkA. The lesson links low TrkA to p75 death signaling and trophic deprivation; neither is simulated here.';
+      if (k > 0 && k < 0.6 && !split && t > 0) v += ' With weak feedback the separation is slow or may not appear in this time.';
+      verdict.textContent = v;
+    }
+    function resim() { run = simulate(parseFloat(kIn.value)); draw(); }
+    kIn.addEventListener('input', resim);
+    tIn.addEventListener('input', () => { stop(); draw(); });
+    playBtn.addEventListener('click', () => {
+      if (timer !== undefined) { stop(); return; }
+      if (parseInt(tIn.value, 10) >= STEPS) tIn.value = '0';
+      playBtn.textContent = 'Pause';
+      timer = window.setInterval(() => {
+        const t = parseInt(tIn.value, 10) + 2;
+        tIn.value = String(Math.min(STEPS, t));
+        draw();
+        if (t >= STEPS) stop();
+      }, 40);
+    });
+    draw();
+  });
+</script>
+
+<style is:global>
+  .tfc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tfc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tfc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tfc-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tfc-ctl { margin: 0.5rem 0; }
+  .tfc-lab { display: block; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-bottom: 0.2rem; }
+  .tfc-lab output { font-family: var(--ddp-font-mono); color: var(--ddp-color-muted); }
+  .tfc-ctl input[type="range"] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .tfc-ends { display: flex; justify-content: space-between; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tfc-trow { display: flex; align-items: center; gap: 0.6rem; }
+  .tfc-trow input { flex: 1; min-width: 0; }
+  .tfc-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.25rem 0.7rem; cursor: pointer; min-width: 4.5em; }
+  .tfc-btn:focus-visible, .tfc-ctl input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .tfc-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .tfc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

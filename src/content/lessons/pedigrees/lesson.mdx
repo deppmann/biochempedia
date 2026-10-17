@@ -1,0 +1,471 @@
+---
+title: "Reading Pedigrees: Human Inheritance"
+slug: "pedigrees"
+course: "genetics"
+courseChapter: "Genetics and Molecular Biology · Unit 1: Inheritance"
+order: 305
+summary: >-
+  You cannot set up a cross in people, so human geneticists read the families that already
+  exist, drawn as pedigrees. This lesson teaches the symbols, the signatures of the five simple
+  modes of inheritance and the one observation that rules each out, then the two calculations
+  that matter most: the 2/3 carrier risk of an unaffected sibling and a Bayesian update from
+  unaffected sons. Afterwards you can compute a recurrence probability under stated assumptions
+  and say why reduced penetrance, new mutations, mosaicism, heteroplasmy and small families make
+  a pedigree less certain than it looks.
+hook: "Your brother has cystic fibrosis and you do not. Is your chance of being a carrier 1/2 or 2/3?"
+
+estMinutes: 24
+objectives:
+  - "Read pedigree symbols and recognize the signatures of autosomal dominant, autosomal recessive, X-linked recessive, X-linked dominant and mitochondrial inheritance, naming the observation that rules each one out."
+  - "Calculate carrier and recurrence probabilities under stated assumptions, including the 2/3 carrier probability of an unaffected sibling of an affected person."
+  - "Update a carrier probability with Bayes' rule from the phenotypes of a woman's sons."
+  - "Explain how reduced or age-dependent penetrance, new mutations, germline mosaicism, heteroplasmy and small families make pedigree inference uncertain."
+
+explainer:
+  src: "/explainers/pedigrees/explainer.mp4"
+  captions: "/explainers/pedigrees/explainer.vtt"
+  poster: "/explainers/pedigrees/poster.jpg"
+  title: "A Fact Changes What You Know"
+  durationSec: 160.3
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Archibald Garrod"
+    contribution: >-
+      Studied families with alkaptonuria, a condition in which urine darkens on standing, and
+      noticed that affected people were often siblings with unaffected parents who were first
+      cousins. Read with William Bateson as a rare recessive Mendelian trait, it became one of the
+      earliest human conditions interpreted in Mendel's terms.
+    profileSourceAnchor: "Garrod, 'The incidence of alkaptonuria: a study in chemical individuality', The Lancet (1902); Garrod, Croonian Lectures, 'Inborn errors of metabolism', The Lancet (1908)."
+    quotes: []
+    story: >-
+      Garrod was a London physician interested in the chemistry of urine. Alkaptonuria gave him a
+      condition he could measure: affected people excrete homogentisic acid, which turns the
+      urine dark when it stands. In 1902, two years after Mendel's work was rediscovered, he
+      published in The Lancet an analysis of the families he could trace. Affected people tended
+      to cluster among brothers and sisters, their parents were usually unaffected, and an
+      unusually large share of those parents were first cousins. William Bateson saw what this
+      meant in Mendel's terms: a rare recessive allele is most likely to meet a second copy when
+      the two parents share an ancestor. Garrod went further and proposed that alkaptonuria
+      reflects one blocked step in the body's chemistry, an idea he later called an inborn error
+      of metabolism. In 1996, nearly a century later, the gene for the missing enzyme,
+      homogentisate 1,2-dioxygenase, was cloned. Garrod's pedigrees, read with Bateson, gave early evidence that
+      human traits follow the same rules as peas, and that a gene can be read through the reaction it controls.
+  - name: "George Huntington"
+    contribution: >-
+      Described in 1872 a hereditary chorea, a disorder of involuntary movement, that began in
+      adult life and passed from an affected parent to children, a description of what is now
+      recognized as autosomal dominant inheritance with adult onset.
+    profileSourceAnchor: "Huntington, 'On chorea', Medical and Surgical Reporter (Philadelphia), 1872; Gusella et al., Nature 306:234–238 (1983); The Huntington's Disease Collaborative Research Group, Cell 72:971–983 (1993)."
+    quotes: []
+    story: >-
+      Huntington was a young physician whose father and grandfather had practised medicine on the
+      eastern end of Long Island, New York, and had seen the same families over decades. His short
+      paper of 1872, titled simply "On chorea", set out the features of a hereditary form of the
+      disorder: involuntary movements that began in adult life, worsened steadily, and came with
+      changes in mind and behaviour. He also described how it passed down families. It appeared
+      in children of an affected parent, and when a child of an affected parent lived a full life
+      without it, that line of the family was free of it. That is the pattern of a dominant
+      allele, written down before Mendel's rules were known to medicine. In 1983 the laboratory
+      of James Gusella, working with large Huntington families, found a DNA
+      marker on chromosome 4 that was inherited with the disease. In 1993 a collaborative group of
+      laboratories found the cause: an expanded run of CAG repeats in the gene now called HTT.
+      His family description became the starting point for mapping a human disease gene.
+  - name: "Douglas C. Wallace"
+    contribution: >-
+      With colleagues, linked Leber's hereditary optic neuropathy in maternally inheriting families
+      to a single base change in the mitochondrial ND4 gene, tying a maternal pedigree pattern to a
+      specific change in mitochondrial DNA.
+    profileSourceAnchor: "Wallace, Singh, Lott, Hodge, Schurr, Lezza, Elsas & Nikoskelainen, Science 242:1427–1430 (1988)."
+    quotes: []
+    story: >-
+      Leber's hereditary optic neuropathy, or LHON, is a loss of central vision that usually
+      begins in young adulthood. In affected families it passes from mothers to their children,
+      not from fathers, which is the signature of an inheritance that does not follow the
+      nucleus. Mitochondria carry their own small DNA, inherited in humans from the mother through
+      the egg. Wallace and his colleagues compared mitochondrial DNA from LHON families that showed
+      maternal inheritance and found a change that was correlated with the disease in more than
+      one family. It replaced arginine with histidine at codon 340 of ND4,
+      a subunit of respiratory complex I, and removed a site cut by the restriction enzyme SfaNI,
+      so the change could be detected by restriction digestion. In the same year another group reported large deletions of
+      mitochondrial DNA in patients with mitochondrial muscle disease. The two papers helped open human
+      mitochondrial genetics as a field in which a maternal pedigree could be tested directly by
+      reading mitochondrial DNA.
+
+techniques:
+  - name: "Pedigree construction with standardized nomenclature"
+    blurb: >-
+      A family history is drawn with agreed symbols for sex or gender, affection status,
+      relationships, deceased members and the proband. A shared code lets any reader test an
+      inheritance model against the same chart.
+  - name: "Conditional and Bayesian risk calculation"
+    blurb: >-
+      Genotype probabilities are enumerated under a stated model, then conditioned on what is
+      observed, such as an unaffected phenotype or a set of unaffected children. The result is a
+      probability for an untested person under those assumptions.
+  - name: "Linkage analysis with DNA markers"
+    blurb: >-
+      A variable DNA marker is typed in every family member and tested for co-inheritance with the
+      disease. A marker that travels with the disease far more often than chance places the gene
+      near it, as for Huntington disease on chromosome 4.
+  - name: "Deep sequencing of several tissues"
+    blurb: >-
+      A variant is sequenced to very high depth in blood, saliva, sperm or other tissues of each
+      parent. The fraction of reads carrying it measures mosaicism or heteroplasmy, which a single
+      blood test can miss.
+
+structures:
+  - label: "Human CFTR — the chloride channel whose alleles cause cystic fibrosis"
+    source: "rcsb"
+    id: "5UAK"
+    note: "Human CFTR, dephosphorylated and ATP-free, cryo-EM structure (Liu et al., Cell, 2017)"
+    caption: >-
+      Look for the two membrane-spanning halves that form the channel and the two
+      nucleotide-binding domains below them. Recessive CFTR alleles reduce the amount or the
+      function of this protein.
+  - label: "Huntingtin with its partner HAP40 — the protein made from the HTT gene"
+    source: "rcsb"
+    id: "6EZ8"
+    note: "Human huntingtin in complex with HAP40, cryo-EM structure (Guo et al., Nature, 2018)"
+    caption: >-
+      A large protein built from many curved repeats. The polyglutamine stretch encoded by the CAG
+      repeat lies near the start of the protein and is not resolved in the structure.
+  - label: "Human homogentisate 1,2-dioxygenase — the enzyme missing in Garrod's alkaptonuria"
+    source: "rcsb"
+    id: "1EY2"
+    note: "Human homogentisate 1,2-dioxygenase, X-ray crystal structure (Titus et al., Nature Structural Biology, 2000)"
+    caption: >-
+      Each subunit holds an iron ion in its active site, where the ring of homogentisic acid is
+      opened. Loss of this activity lets the acid build up and appear in the urine.
+  - label: "Homogentisic acid — the compound that darkens alkaptonuric urine"
+    source: "pubchem"
+    id: "780"
+    note: "PubChem compound record for homogentisic acid"
+    caption: >-
+      A benzene ring with two hydroxyl groups and an acetic acid side chain. On standing in air it
+      oxidizes to dark pigments, which is the sign Garrod's patients showed.
+
+simulations:
+  - type: "local"
+    ref: "PedigreeRiskCalculator"
+    title: "Pedigree risk calculator: carrier and recurrence odds"
+    caption: >-
+      Pick the sister, her partner or their first child, toggle whether her brother is affected, and watch the carrier and recurrence probabilities (2/3, 1/25, 1/150) be computed step by step and checked against random families.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In a pedigree, two partners are joined by a double horizontal line instead of a single one. What does the double line record?"
+    choices:
+      - "The partners both carry the same recessive allele"
+      - "The partners are related to each other by descent"
+      - "The partners separated after their children were born"
+      - "The partners are identical twins of the proband"
+    answer: 1
+    rationale: >-
+      A double relationship line marks consanguinity: the partners share an ancestor, as first
+      cousins do. It does not record carrier status, which is shown with fill patterns or older
+      dot symbols inside a person's own symbol and is often unknown. Separation is shown with
+      slashes across the relationship line, not a second line. Twins are shown by lines that
+      branch from one point on the sibship line, not by a relationship line between partners.
+  - stem: "An affected man and his unaffected wife have three daughters and three sons. All three daughters are affected and none of the sons is. Assuming full penetrance, which mode of inheritance fits best?"
+    choices:
+      - "Autosomal dominant"
+      - "Mitochondrial"
+      - "X-linked dominant"
+      - "X-linked recessive"
+    answer: 2
+    rationale: >-
+      A father gives his X to every daughter and his Y to every son, so a fully penetrant
+      X-linked dominant allele in an affected father reaches all daughters and no sons. Autosomal
+      dominant would give each child a 1/2 chance regardless of sex, so six children split exactly
+      by sex is unlikely under it. Mitochondrial inheritance passes through mothers, so an
+      affected father should have no affected children through it. X-linked recessive would leave
+      daughters of an unaffected mother as unaffected carriers.
+  - stem: "Which single observation, under full penetrance and no new mutation, rules out X-linked recessive inheritance for a trait?"
+    choices:
+      - "An affected man's son is affected, and the son's mother carries no copy"
+      - "An affected woman's sons are all affected, and her daughters are not"
+      - "Two unaffected parents have an affected son and an unaffected daughter"
+      - "Affected men in two generations are linked through unaffected women"
+    answer: 0
+    rationale: >-
+      A son receives his father's Y chromosome and his mother's X, so an X-linked allele cannot
+      pass from father to son; an affected son whose mother has no copy rules the mode out. An
+      affected woman is homozygous under this mode and gives an affected X to every son, while
+      her daughters receive a normal X from an unaffected father, so that pattern fits. Two
+      unaffected parents with an affected son is the classic case of a carrier mother. Affected
+      men linked through unaffected women describes passage through carrier daughters, the usual
+      X-linked recessive pattern.
+  - stem: "A man's sister has an autosomal recessive disorder. Both parents and the man are unaffected. Assuming full penetrance and no new mutation, what is the probability that he is a carrier?"
+    choices:
+      - "1/2"
+      - "1/4"
+      - "3/4"
+      - "2/3"
+    answer: 3
+    rationale: >-
+      His affected sister shows that both parents are carriers, so before his phenotype is known
+      his genotype is AA, Aa, aA or aa, each 1/4. He is unaffected, which removes aa and leaves
+      three equal outcomes, two of them carriers: 2/3. The value 1/2 is the carrier chance before
+      conditioning on his being unaffected. The value 1/4 is the chance of an affected child of two
+      carriers. The value 3/4 is the chance of being unaffected, not of being a carrier.
+  - stem: "An autosomal dominant allele shows 80% penetrance: 80% of heterozygotes develop the condition. A heterozygous parent and a parent without the allele have a child. Assuming no other cause of the condition, what is the probability that the child is affected?"
+    choices:
+      - "0.20"
+      - "0.50"
+      - "0.40"
+      - "0.80"
+    answer: 2
+    rationale: >-
+      The child inherits the allele with probability 1/2 and, having it, shows the condition with
+      probability 0.8, so the product is 0.5 x 0.8 = 0.40. The value 0.50 is the chance of
+      inheriting the allele and ignores penetrance. The value 0.80 is the penetrance alone and
+      ignores the chance of not inheriting the allele. The value 0.20 is the chance that a
+      heterozygote stays unaffected.
+
+mcatQuestions:
+  - stem: "In a family with Huntington disease, CAG repeat length in the HTT gene was measured. The affected father, aged 52, has alleles of 17 and 44 repeats. His daughter, aged 26 and without symptoms, has alleles of 17 and 43 repeats. Her brother, aged 30 and without symptoms, has alleles of 17 and 19 repeats. Which interpretation is best supported?"
+    choices:
+      - "The trait has skipped her, so it is likely recessive in this family"
+      - "She carries an expanded allele; onset is usually in adult life"
+      - "Her 43-repeat allele lies in the range of reduced penetrance"
+      - "Her brother carries the risk allele but has not yet shown it"
+    answer: 1
+    rationale: >-
+      The daughter inherited her father's expanded allele, and 43 repeats lies in the range of 40
+      or more usually described as fully penetrant; onset in Huntington disease is usually in
+      adulthood, so being without symptoms at 26 fits a dominant allele with age-dependent onset.
+      Calling the trait recessive mistakes age of onset for a skipped generation, and the father is
+      a heterozygote. The range of reduced penetrance is usually given as about 36 to 39 repeats,
+      below her allele. Her brother's 19-repeat allele is in the normal range, so he did not
+      inherit the expanded allele.
+  - stem: "A woman's mother is a known carrier of an X-linked recessive allele that is fully penetrant in males. The woman has not been tested. She has three sons, and none is affected. Using her prior and this evidence, what is the probability that she is a carrier?"
+    choices:
+      - "1/9"
+      - "1/8"
+      - "1/5"
+      - "1/2"
+    answer: 0
+    rationale: >-
+      Her prior is 1/2. If she is a carrier, each son is unaffected with probability 1/2, so three
+      unaffected sons have likelihood 1/8; if she is not, the likelihood is 1. The posterior is
+      (1/2 x 1/8) / (1/2 x 1/8 + 1/2 x 1) = (1/16) / (9/16) = 1/9. The value 1/8 is the likelihood
+      alone, without the prior or the comparison. The value 1/5 is the answer for two unaffected
+      sons, not three. The value 1/2 ignores the sons altogether.
+  - stem: "In a study of whole-genome sequences from blood of 11,035 mother-father-child trios, seven children showed a mitochondrial sequence signature resembling the father's, at 5–25% of reads. In every one of the seven, the father and child also shared a newly found segment of mitochondrial-derived DNA inserted in a nuclear chromosome. Which conclusion do these data best support?"
+    choices:
+      - "Paternal mitochondria entered these children and persisted in blood"
+      - "The children's mothers were heteroplasmic for the father's haplotype"
+      - "Seven in 11,035 is the human rate of paternal mitochondrial transfer"
+      - "An inherited nuclear insert can mimic paternal mitochondrial DNA"
+    answer: 3
+    rationale: >-
+      Every apparent case came with a nuclear insert of mitochondrial-derived sequence shared by
+      father and child, and such inserts are inherited like any nuclear DNA, so the reads can come
+      from the nucleus and only mimic paternal mitochondria. Claiming that paternal mitochondria
+      persisted ignores the shared insert that explains the signal. Maternal heteroplasmy would not
+      explain why the extra sequence matched the father and was shared with him. Treating seven in
+      11,035 as a transmission rate counts artefacts as events; it is a rate of a signature, not of
+      transfer.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      A pedigree is a family tree with a code. Boys are squares, girls are circles, and people who
+      have a condition are coloured in. By looking at who is coloured in and who their parents
+      were, you can guess how the condition is passed down, like guessing the rule of a game by
+      watching people play it.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Scientists cannot do breeding experiments with people, so they study families. A pedigree
+      draws a family with squares for males, circles for females, lines for parents and children,
+      and filled symbols for people with a trait. Different ways of inheriting leave different
+      patterns. A dominant trait usually shows up in every generation. A recessive trait often
+      appears in brothers and sisters whose parents are both unaffected carriers. A trait carried
+      on the X chromosome mostly affects males and never passes from father to son. A trait
+      carried in mitochondria passes only from mothers. Probability lets you work out the chance
+      that a relative is a carrier.
+  - level: "college"
+    label: "College"
+    text: >-
+      A pedigree is tested against models of inheritance, and the useful question is which
+      observation excludes a model. An affected child of two unaffected parents argues against
+      autosomal dominant inheritance; an unaffected child of two affected parents excludes
+      autosomal recessive; male-to-male transmission excludes X-linked inheritance; an affected
+      father with an unaffected daughter excludes X-linked dominant; transmission from a father
+      excludes mitochondrial inheritance. Each exclusion assumes full penetrance, no new mutation
+      and correct relationships. Probabilities come from segregation and conditioning: an
+      unaffected sibling of an affected child of two carriers has a 2/3 carrier probability,
+      because the aa outcome is removed and two of the three remaining outcomes are heterozygous.
+      Bayes' rule then combines a prior carrier probability with the likelihood of observed
+      children.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Pedigree inference is likelihood-based model comparison on small, ascertained samples.
+      Each mode predicts transmission probabilities, and penetrance (often age-dependent, as in
+      Huntington disease, where CAG repeat length shifts both penetrance and age at onset) maps
+      genotype to phenotype. Ascertainment matters: families are found through affected members,
+      and a study of 1,052 colorectal-cancer patients in 1995 found that meeting a family-history
+      criterion was associated with the number of first-degree relatives available. Molecular
+      data revise sparse pedigrees. Deep sequencing of several tissues in families with one child
+      carrying an apparently de novo variant estimated a recurrence risk below 0.1% in 35 of 58
+      families, while five showed parental mixed mosaicism associated with higher risk.
+      Heteroplasmy makes mitochondrial transmission quantitative, through a bottleneck in the
+      number of mtDNA molecules passed through the female germline, and nuclear inserts of
+      mtDNA-derived sequence can mimic paternal transmission in short-read data.
+
+
+      An open question is how far individual recurrence estimates can go when the relevant tissue
+      cannot be sampled. Sperm can be sequenced directly, but oocytes cannot, so maternal germline
+      mosaicism is still inferred indirectly.
+
+anecdotes:
+  - title: "Three generations of doctors in one place"
+    source: "Huntington, 'On chorea', Medical and Surgical Reporter (Philadelphia), 1872."
+    text: >-
+      George Huntington did not discover his disease in a laboratory. His grandfather and then his
+      father had practised medicine in the same part of eastern Long Island, and the families they
+      treated were the families he wrote about. A single doctor sees a patient for a few years. A
+      practice handed down for three generations sees a family across its generations, which is
+      what a dominant, adult-onset disorder needs before its pattern can be seen. His paper was
+      short, and its description of how the disorder passed from parent to child was correct.
+  - title: "The father who was not there"
+    source: "Wei et al., Nature Communications (2020), on apparent paternal mitochondrial DNA transmission."
+    text: >-
+      In 2018 a report described families in which children seemed to carry mitochondrial DNA from
+      their fathers as well as their mothers, and the claim was debated. Two years later Wei and
+      colleagues searched sequences from more than eleven thousand trios and found seven children
+      with a similar signal. In all seven, father and child shared a piece of mitochondrial-derived
+      DNA inserted into a nuclear chromosome, inherited like any nuclear gene. The extra reads came
+      from the nucleus. The authors found no evidence of paternal mitochondrial transmission in
+      their data, and the case shows why apparent exceptions need molecular controls.
+  - title: "A recurrence risk that a blood test could not see"
+    source: "Bernkopf et al., Nature Communications (2023), the PREGCARE study."
+    text: >-
+      When a child has a dominant disorder and neither parent does, the variant is usually called
+      de novo, and the chance of a second affected child is assumed to be low. The PREGCARE study
+      sequenced several tissues from each parent, including sperm, to very high depth. Among 58
+      families, estimated recurrence risk was below 0.1% in 35, while five had parental mosaicism
+      associated with higher risk. In three fathers the variant was present in 5.6 to 12.1% of
+      sperm DNA. In two further families with repeated affected pregnancies, routine testing of
+      parental blood had not identified the parent of origin.
+
+corpusTags:
+  - "pedigree-analysis"
+  - "autosomal-dominant"
+  - "autosomal-recessive"
+  - "x-linked-inheritance"
+  - "mitochondrial-inheritance"
+  - "conditional-probability"
+  - "bayesian-risk"
+  - "penetrance"
+  - "germline-mosaicism"
+  - "heteroplasmy"
+  - "cystic-fibrosis"
+  - "huntington-disease"
+  - "lhon"
+draft: false
+---
+
+import PedigreeRiskCalculator from '../../../components/PedigreeRiskCalculator.astro';
+
+**A woman's brother has cystic fibrosis. Her parents do not, and neither does she. Asked the chance that she carries a cystic fibrosis allele, most students say 1/2. Under the standard model the answer is 2/3.**
+
+You cannot cross people, so human genetics works backwards from the families that already exist. The data set is a **pedigree**, a family tree drawn to a code. This lesson teaches you to read the code, to test the five simple modes of inheritance against a chart, and to calculate the probabilities a pedigree supports, including that 2/3. Then it shows why real pedigrees are less certain than they look.
+
+## Reading the chart: a family tree drawn to a code
+
+A pedigree uses a small set of symbols. In the 2022 revision of the standard from the National Society of Genetic Counselors, a square is a man or boy, a circle is a woman or girl, and a diamond is a nonbinary person or someone whose sex or gender is not specified. The revision ties the shape to gender and records sex assigned at birth separately. A filled symbol means affected, for the condition named in the chart's key. A diagonal slash through a symbol marks someone who has died.
+
+Lines carry the relationships. A horizontal line joins two partners. A vertical line drops from it to a horizontal sibship line, from which each child hangs. A double partner line marks **consanguinity**: the partners are related by descent, as first cousins are. Generations are numbered in roman numerals (I, II, III) and people within a generation from left to right, so II-3 is a single person. An arrow marks the **proband**, the person through whom the family came to attention.
+
+A **carrier** is a person heterozygous for a recessive allele, who carries it without showing the trait. Many textbook charts put a dot in the centre of a circle for a woman known to carry an X-linked recessive allele. The 2022 revision changes how carrier status is shown, so always read the key.
+
+## Five patterns, and the one observation that rules each out
+
+Reading a pedigree resembles checking alibis. You rarely prove that a mode is right, but one observation can show that a mode is wrong. Each rule below assumes full **penetrance** (everyone with the genotype shows the trait), no new mutation and correct family relationships.
+
+1. **Autosomal dominant.** One copy of the allele, in a heterozygote, is enough. The trait usually appears in every generation, in both sexes, and can pass from father to son. A heterozygous parent with an unaffected partner passes the allele to each child with probability 1/2. *Ruled out by:* an affected child of two unaffected parents.
+2. **Autosomal recessive.** Affected people have two pathogenic alleles at the locus, the same one twice or two different ones. They are usually the children of two unaffected carriers, so the trait appears among brothers and sisters of either sex, with few affected relatives elsewhere. Partners related by descent are more often seen, because they are more likely to carry the same rare allele. *Ruled out by:* two affected parents with an unaffected child.
+3. **X-linked recessive.** A male has one X, so one copy of the allele affects him. Affected men are much more common than affected women, and the allele passes from an affected man through his carrier daughters to half of their sons. Heterozygous women can show some signs, partly through X-inactivation. *Ruled out by:* father-to-son transmission, since a father gives his son a Y.
+4. **X-linked dominant.** An affected father passes it to all his daughters and none of his sons; an affected heterozygous mother passes it to half her children of either sex. *Ruled out by:* an affected father with an unaffected daughter, or with a son who inherited it from him.
+5. **Mitochondrial.** Human mitochondrial DNA normally comes from the mother, so an affected mother can have affected children of both sexes and an affected father passes the trait to none. Mitochondrial DNA encodes only a handful of respiratory-chain subunits (see [oxidative phosphorylation](/lessons/oxidative-phosphorylation/)); most mitochondrial proteins are encoded in the nucleus, so many mitochondrial diseases follow Mendelian patterns instead. *Ruled out by:* transmission from an affected father.
+
+Two traps follow. Consanguinity raises the chance of a recessive disorder but does not prove that a trait is recessive. And "skips a generation" is no proof of recessive inheritance, because a dominant allele with reduced penetrance does the same. Rett syndrome and fragile X syndrome, which you meet in [synapse disorders](/lessons/synapse-disorders/), are X-linked examples whose pedigrees are complicated by new mutations and repeat expansion.
+
+## Conditional probability: the 2/3 rule
+
+**Worked problem, part 1.** A woman's brother has cystic fibrosis, an autosomal recessive disorder caused by two pathogenic alleles of the *CFTR* gene. Her parents are unaffected, and so is she. Her partner has no family history. What is the probability that their first child is affected?
+
+Assume full penetrance, no new mutations, correct relationships, and a carrier frequency of 1/25 in the partner's population. That figure is often quoted for people of northern European ancestry and is lower in many other populations; it is an assumption of the exercise, not a universal number.
+
+1. *Her parents.* Two unaffected parents have an affected child, so both are carriers, Aa.
+2. *Her genotype before her phenotype is known.* From Aa x Aa, four equally likely outcomes: AA, Aa (A from the mother), aA (A from the father) and aa, each 1/4.
+3. *Condition on what you know.* She is unaffected, so aa is impossible. Three equal outcomes remain, two of them carriers:
+
+> P(carrier | unaffected) = (1/2) / (1/4 + 1/2) = (1/2) / (3/4) = 2/3
+
+4. *Her partner.* P(carrier) = 1/25.
+5. *The child.* The child is affected only if both parents are carriers and both pass a, which has probability 1/4 for two carriers:
+
+> P(affected child) = 2/3 x 1/25 x 1/4 = 2/300 = 1/150
+
+Check it another way: 1/150 is about 0.0067, and 0.667 x 0.04 x 0.25 = 0.0067.
+
+The answer 1/2 is the carrier probability before you learn that she is unaffected. Knowing her phenotype removes one of four outcomes, and the denominator shrinks from 4 to 3. These numbers are exercises in the logic, not risk figures for a real family.
+
+<PedigreeRiskCalculator />
+
+## Updating with evidence: Bayes and the unaffected sons
+
+Conditioning can use more than one fact. Bayes' rule combines what you believed before (the **prior**) with how likely the new evidence is under each hypothesis (the **likelihood**).
+
+**Worked problem, part 2.** A woman's mother is a known carrier of an X-linked recessive allele that is fully penetrant in males. The woman has not been tested and has two sons, both unaffected. What is the probability that she is a carrier?
+
+1. *Prior.* She received one of her mother's two X chromosomes, so P(carrier) = 1/2 and P(not carrier) = 1/2.
+2. *Likelihood.* If she is a carrier, each son is unaffected with probability 1/2, so two unaffected sons have probability (1/2)^2 = 1/4. If she is not, the probability is 1.
+3. *Joint.* Carrier: 1/2 x 1/4 = 1/8. Not carrier: 1/2 x 1 = 1/2.
+4. *Posterior.*
+
+> P(carrier | two unaffected sons) = (1/8) / (1/8 + 1/2) = (1/8) / (5/8) = 1/5
+
+Check with odds. Prior odds are 1 : 1, the evidence is four times likelier if she is not a carrier, so posterior odds are 1 : 4, which is 1/5. Under the same model, the chance that her next son is affected is 1/5 x 1/2 = 1/10.
+
+Her sons did not change her genotype. They changed what you know about it.
+
+## Why real pedigrees mislead
+
+Every rule above assumed a tidy family. Real families break the assumptions in five common ways.
+
+**Reduced and age-dependent penetrance.** In Huntington disease, inherited as a dominant, symptoms usually begin in adulthood, so a young unaffected child of an affected parent may carry the allele. Penetrance also depends on the length of a CAG repeat in *HTT*: about 36 to 39 repeats is usually described as reduced penetrance and 40 or more as full penetrance. **Variable expressivity**, the same genotype giving different clinical pictures in different people, blurs the chart further.
+
+**New mutations.** A new pathogenic variant can cause a dominant disorder in a child with no affected parent, which looks like the exclusion rule for dominance.
+
+**Germline mosaicism.** A parent can carry a variant in only some cells, including some sperm or eggs. In one study of 58 families with one affected child and an apparently new variant, sequencing several parental tissues estimated a recurrence risk below 0.1% for 35 families, while 5 had parental mosaicism associated with higher risk. In three fathers the variant was in 5.6 to 12.1% of sperm DNA. In two further families with repeated affected pregnancies, routine testing of parental blood had not identified the parent of origin.
+
+**Heteroplasmy.** A cell can hold a mixture of normal and mutant mitochondrial DNA. A heteroplasmic mother can pass different proportions to different children, so severity varies and some children may be unaffected.
+
+**Small families.** Two carriers with two children have no affected child with probability (3/4)^2 = 9/16, more than half the time. Such families look as if nothing is inherited at all.
+
+Apparent exceptions need molecular checks. When 11,035 trios were searched for mitochondrial DNA from fathers, the seven candidate signals were each explained by a mitochondrial-derived insert in a nuclear chromosome shared by father and child.
+
+### Design problem
+
+An affected woman has five children, all affected. Her affected son has three children, none affected. Her affected daughter has two children, both affected. Severity varies among the affected. Decide between mitochondrial and X-linked dominant inheritance, and say what data would settle it.
+
+<details>
+<summary>One way to do it</summary>
+
+**The affected son is the test.** Under X-linked dominant inheritance with full penetrance, he gives his X to every daughter, so all his daughters would be affected and none of his sons. Under mitochondrial inheritance, he passes no mitochondrial DNA to any child, so all three are unaffected. Three unaffected children fit mitochondrial inheritance. They rule out X-linked dominant inheritance if at least one is a daughter.
+
+**The rest of the chart does not discriminate.** An affected mother with all five children affected, and an affected daughter with both children affected, fit both models. Under X-linked dominant, a heterozygous mother has 1/2 chance per child, so five of five has probability (1/2)^5 = 1/32: possible but unlikely. Under mitochondrial inheritance, a mother passes her mitochondria to every child.
+
+**Variable severity** fits heteroplasmy, since children receive different fractions of mutant mitochondrial DNA. It also occurs in X-linked dominant disorders through X-inactivation in women, so it is supporting evidence, not proof.
+
+**What would settle it.** Find an affected father with an affected daughter whose mother is unaffected and outside the maternal line; that excludes mitochondrial inheritance. Or sequence mitochondrial DNA in affected and unaffected relatives, look for a variant present only in the maternal line, and measure its heteroplasmy in more than one tissue. A heteroplasmy level that tracks severity, and absence of the variant in the son's children, would support the mitochondrial model.
+
+</details>

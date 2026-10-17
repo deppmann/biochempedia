@@ -1,0 +1,430 @@
+---
+title: "Forward and Reverse Genetics: Screens, RNAi and CRISPR"
+slug: "crispr-and-functional-genomics"
+course: "genetics"
+courseChapter: "Genetics and Molecular Biology · Unit 5: Tools and genomes"
+order: 324
+summary: >-
+  Genetics runs in two directions. In a forward screen you mutagenize at random, pick out an
+  animal with the phenotype you care about, and then hunt for the gene. In a reverse experiment
+  you choose the gene first and ask whether disrupting it matters. This lesson sets the two
+  against each other, then takes apart the tool that made the reverse direction routine: how a
+  20-nucleotide guide and a PAM aim Cas9, and why a cut, a mutation and a knockout are three
+  different things. Afterwards you can read a table of edited alleles and say how much of the
+  pool is actually null.
+hook: "You cut both copies of a gene in every cell of a dish. Why is half the dish still making the protein?"
+
+estMinutes: 24
+objectives:
+  - "Compare forward and reverse genetics, and state what each direction can and cannot find."
+  - "Explain how a 20-nucleotide guide sequence and an adjacent PAM aim Cas9, and where it cuts."
+  - "Predict the repair outcomes of a Cas9 break, and calculate what fraction of a pool is frameshifted."
+  - "Distinguish RNAi knockdown from a DNA knockout, and name the controls each one needs."
+
+explainer:
+  src: "/explainers/crispr-and-functional-genomics/explainer.mp4"
+  captions: "/explainers/crispr-and-functional-genomics/explainer.vtt"
+  poster: "/explainers/crispr-and-functional-genomics/poster.jpg"
+  title: "A Cut Is Not a Knockout"
+  durationSec: 165.5
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Christiane Nüsslein-Volhard"
+    contribution: >-
+      With Eric Wieschaus, searched embryonic-lethal Drosophila mutants for changes in larval
+      segmentation and reported 15 loci whose phenotypes indicated at least three levels of
+      spatial organization in the body plan.
+    profileSourceAnchor: "Nüsslein-Volhard & Wieschaus, Nature 287:795 (1980)."
+    quotes: []
+    story: >-
+      The 1980 screen is the model that later screens copied. Working in Drosophila
+      melanogaster, Nüsslein-Volhard and Wieschaus did not start from a gene, a protein or a
+      guess about mechanism. They started from a question about pattern: which mutations change
+      the number or the polarity of a larva's segments? They mutagenized flies, raised families,
+      and looked at embryos that died before hatching, sorting the dead ones by what their
+      cuticle pattern looked like. Fifteen loci came out. What made the result more than a list
+      was the sorting: the phenotypes fell into classes acting at different scales, which
+      indicated at least three levels of spatial organization rather than one gradient or one
+      master switch. The genes were named for their mutant animals, not for their products,
+      because nobody yet knew the products. That is the signature of a forward screen, and it
+      is why such screens can find mechanisms no one had thought to look for.
+  - name: "Rodolphe Barrangou"
+    contribution: >-
+      With Philippe Horvath, Sylvain Moineau and colleagues, showed in Streptococcus
+      thermophilus that phage challenge adds phage-derived spacers to a CRISPR array, and that
+      adding or removing particular spacers changes which phages the cells resist.
+    profileSourceAnchor: "Barrangou et al., Science 315:1709 (2007); Gasiunas, Barrangou, Horvath & Siksnys, PNAS 109:E2579 (2012)."
+    quotes: []
+    story: >-
+      The 2007 experiment was about yoghurt before it was about editing. Streptococcus
+      thermophilus is a dairy starter culture, and phage infections ruin fermentations, so a
+      laboratory with industrial affiliations had a practical reason to ask how these bacteria
+      survive phage. Barrangou and colleagues challenged the cells with phage, sequenced the
+      CRISPR arrays of survivors, and found new spacers matching the phage DNA. Correlation
+      alone would have proved little, so they went further and engineered the arrays, adding and
+      removing particular spacers. Resistance followed the spacers, and its specificity tracked
+      spacer-phage sequence similarity. That perturbation is what turned CRISPR from a curious
+      repeat pattern into an adaptive immune system with a sequence-addressed memory. In 2012
+      Barrangou was also an author on the Vilnius biochemical study that showed Cas9 cutting DNA
+      in vitro, so his name sits on both the immunology and the enzymology.
+  - name: "Emmanuelle Charpentier"
+    contribution: >-
+      Her laboratory identified tracrRNA and showed that crRNA maturation in the native
+      Streptococcus pyogenes type II system involves RNase III and the Cas protein Csn1; she was
+      a corresponding author on the 2012 study that programmed purified Cas9 with a single RNA.
+    profileSourceAnchor: "Deltcheva et al., Nature 471:602 (2011); Jinek et al., Science 337:816 (2012)."
+    quotes: []
+    story: >-
+      The reason a working guide RNA exists at all runs through the 2011 tracrRNA paper. Using
+      differential RNA sequencing in Streptococcus pyogenes, Deltcheva and colleagues in
+      Charpentier's laboratory found a small transcribed RNA that was not part of the CRISPR
+      array yet was needed to make mature crRNA, together with RNase III and the Cas protein
+      then called Csn1. The natural system therefore uses two RNAs, not one. In 2012, with
+      Jennifer Doudna's laboratory, that two-RNA architecture was fused into a single chimeric
+      RNA that directed purified Cas9 to cut DNA at a sequence the RNA specified. Charpentier's
+      laboratory at Umeå University took part in that paper. The 2012 work was biochemical, done with purified
+      protein and DNA substrates, and it is the single-guide design, more than the cutting
+      itself, that made the enzyme a general tool.
+  - name: "Jennifer Doudna"
+    contribution: >-
+      Corresponding author, with Charpentier, on the 2012 demonstration that an engineered
+      single RNA directs sequence-specific Cas9 cleavage of DNA in vitro; her laboratory later
+      measured how Cas9 binding and cleavage depend on PAM recognition, not guide complementarity alone.
+    profileSourceAnchor: "Jinek et al., Science 337:816 (2012); Sternberg et al., Nature 507:62 (2014)."
+    quotes: []
+    story: >-
+      Doudna's laboratory at the University of California, Berkeley came to Cas9 from RNA
+      structural biochemistry, and the 2012 paper reads like it: purified protein, defined RNA
+      guides, defined DNA substrates, and a map of where the enzyme cuts. Two results from that
+      work are still the practical core of guide design. The segment of RNA that pairs with the
+      target is 20 nucleotides long, and cleavage in their plasmid assay fell three base pairs
+      upstream of the PAM. In 2014 Sternberg and colleagues in the same laboratory measured the
+      constraint that stops guide design from being a simple search for matching sequence: Cas9
+      ignored DNA that matched the guide completely but lacked a nearby PAM. Binding and
+      cutting both required that short adjacent motif. Charpentier and Doudna shared the 2020
+      Nobel Prize in Chemistry.
+
+techniques:
+  - name: "Mutagenesis screen with mapping by sequencing"
+    blurb: >-
+      Mutagenize a population, score a defined phenotype, and recover mutant lines. Cross each
+      mutant to a polymorphic strain, select mutant recombinants, and sequence the pool; the
+      allele-frequency pattern points at an interval. A candidate still needs causal follow-up
+      by complementation or rescue.
+  - name: "RNAi knockdown with rescue"
+    blurb: >-
+      Deliver a double-stranded or small interfering RNA against a target transcript, then
+      measure how much target protein is left by immunoblotting or immunofluorescence. The
+      specificity test is a rescue with a transgene made refractory to the RNAi reagent, plus a
+      second, non-overlapping reagent against the same gene.
+  - name: "Amplicon sequencing of edited alleles"
+    blurb: >-
+      Amplify a short window around the cut site from an edited population and sequence it to
+      count insertions and deletions. It gives allele frequencies, not function, and it only
+      reports on the interval you amplified.
+  - name: "Pooled CRISPR screening"
+    blurb: >-
+      Deliver a library of guide RNAs so that each cell carries one, apply a selection, then
+      sequence the guides in the survivors. Enrichment marks genes whose loss helps under that
+      selection; depletion marks genes whose loss hurts.
+
+structures:
+  - label: "Cas9 with its single guide RNA and target DNA — the whole targeting machine in one file"
+    source: "rcsb"
+    id: "4OO8"
+    note: "Crystal structure of Streptococcus pyogenes Cas9 in complex with sgRNA and target DNA (Nishimasu et al., 2014)."
+    caption: >-
+      Follow the RNA: one end is the 20-nucleotide segment paired with the DNA target strand, the
+      rest is the scaffold that holds the protein in its cutting conformation.
+  - label: "Cas9 bound to guide RNA and PAM-containing DNA — where the short motif is read"
+    source: "rcsb"
+    id: "4UN3"
+    note: "Streptococcus pyogenes Cas9 with sgRNA and PAM-containing target DNA (Anders et al., 2014)."
+    caption: >-
+      Look at the protein side chains contacting the two guanines of the NGG motif on the
+      non-target strand. That contact is why complementarity alone does not license a cut.
+  - label: "Human Argonaute2 holding a small RNA guide — the knockdown machine for comparison"
+    source: "rcsb"
+    id: "4W5N"
+    note: "Human Argonaute2 bound to a microRNA guide (Schirle & MacRae laboratory, 2014)."
+    caption: >-
+      Same logic, different polymer: a short RNA guide held in a groove, aimed at RNA rather
+      than DNA, and leaving the gene itself untouched.
+
+simulations:
+  - type: "local"
+    ref: "CrisprRepairOutcome"
+    title: "Repair outcomes: what does one Cas9 cut leave behind?"
+    caption: >-
+      Choose a guide site and whether a template is supplied, and see which alleles a Cas9 cut leaves and how many cells have both copies frameshifted.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "A laboratory mutagenizes zebrafish, screens larvae for a bent-tail phenotype, recovers mutant lines, and then maps the lesion by sequencing. Which description fits this experiment?"
+    choices:
+      - "Reverse genetics, because sequencing identified the gene at the end"
+      - "Forward genetics, because the phenotype was chosen before the gene"
+      - "Reverse genetics, because the mutagen was applied to whole animals"
+      - "Forward genetics, because the mutations arose without any mutagen"
+    answer: 1
+    rationale: >-
+      The direction is set by what you choose first, and here the phenotype was chosen first and
+      the gene found afterwards, which is forward genetics. Sequencing at the end identifies the
+      lesion but does not change the direction of the logic. Applying a mutagen to whole animals
+      is a feature of many forward screens and says nothing about direction. The claim that the
+      mutations arose spontaneously is simply false here, since a mutagen was used.
+  - stem: "An siRNA against gene X lowers X protein on a blot by 80%, and the cells migrate less. What has the experiment shown about the gene?"
+    choices:
+      - "That the DNA sequence of gene X has been altered in these cells"
+      - "That X is dispensable for migration in this cell type"
+      - "That lowering X protein is associated with less migration here"
+      - "That X acts through a pathway shared with other migration genes"
+    answer: 2
+    rationale: >-
+      RNAi works on the transcript, so the honest statement is an association between reduced
+      protein and reduced migration in this cell type. No DNA was changed; the worm experiments
+      that defined RNAi found no evidence of altered primary DNA sequence. Calling X dispensable
+      inverts the result, since migration fell rather than stayed normal. Nothing in a single
+      knockdown identifies a shared pathway, which would need epistasis or rescue experiments.
+  - stem: "You want to target a sequence with Streptococcus pyogenes Cas9, and the 20-nucleotide stretch you like has no NGG motif immediately next to it. What follows?"
+    choices:
+      - "Cas9 binds the matching DNA but cannot open the duplex"
+      - "Cas9 cuts, but three base pairs further from the match"
+      - "Cas9 largely ignores the site despite the perfect match"
+      - "Cas9 cuts the site at a reduced but usable efficiency"
+    answer: 2
+    rationale: >-
+      In the biochemical experiments, Cas9 ignored DNA that matched its guide fully but had no
+      nearby PAM, so the site is effectively invisible to this enzyme. Stable binding without
+      cutting is not what was observed; PAM recognition gates binding as well as cleavage. The
+      three-base-pair figure describes where cleavage falls relative to a PAM that is present,
+      not a shift when one is absent. Reduced-but-usable cutting describes mismatch tolerance,
+      a different phenomenon.
+  - stem: "Sequencing of edited alleles in a pool gives: unedited 10%, minus 1 bp 35%, plus 1 bp 25%, minus 3 bp 15%, minus 6 bp 5%, minus 7 bp 10%. What fraction of alleles carries a frameshift?"
+    choices:
+      - "90%, every allele that shows an indel"
+      - "65%, the deletions in the pool"
+      - "35%, the commonest single outcome"
+      - "70%, the indels not divisible by three"
+    answer: 3
+    rationale: >-
+      A frameshift needs an indel whose length is not a multiple of three, so minus 1, plus 1 and
+      minus 7 sum to 70%. Counting every indel reaches 90% but wrongly includes the minus 3 and
+      minus 6 alleles, which stay in frame. Summing the deletions mixes in-frame and out-of-frame
+      classes and also drops the plus 1 insertion. The commonest single class is one outcome among
+      several frameshifting ones, not the total.
+  - stem: "A pooled CRISPR screen selects cells that survive a drug, then sequences the guide RNAs in survivors. A guide against gene Y is strongly enriched. What is the most defensible next step?"
+    choices:
+      - "Report Y as a validated resistance gene on the strength of enrichment"
+      - "Test independent guides against Y and attempt a rescue of the phenotype"
+      - "Repeat the same screen at higher guide coverage to confirm enrichment"
+      - "Measure Y transcript levels in the parental population before selection"
+    answer: 1
+    rationale: >-
+      Concordance between independent guides and reversal of the phenotype by restoring the gene
+      are the standard tests that separate gene-specific effects from reagent-specific ones.
+      Reporting a hit from enrichment alone ignores off-target cutting and gene-independent
+      antiproliferative responses to Cas9 targeting. Repeating the identical screen tests
+      reproducibility, not specificity, and would repeat any systematic artefact. Baseline
+      transcript levels in unselected cells describe expression and do not test causality.
+
+mcatQuestions:
+  - stem: "Guides targeting the human AAVS1 locus were used in two preparations. In 293T cells, sequencing of alleles showed mutation frequencies of 10 to 25%; in PGP1 induced pluripotent stem cells, the same approach gave 2 to 4%. A student concludes that one guide design is adequate for both preparations."
+    choices:
+      - "The guide sequences must differ in PAM content between the two preparations"
+      - "Mutation frequency is a property of the guide and transfers between cell types"
+      - "Editing frequency depends on the preparation as well as on the guide sequence"
+      - "The iPS cell measurements reflect failed sequencing rather than low editing"
+    answer: 2
+    rationale: >-
+      The same locus gave different frequencies in different cells, so the cellular context
+      contributes alongside guide sequence, and a figure measured in one preparation should not be
+      carried to another. The PAM is a property of the genomic target, which was the same locus in
+      both preparations. Treating frequency as a transferable guide property is the conclusion the
+      data contradict. Calling the low values a sequencing failure invents a technical fault that
+      the design, with the same locus measured in both preparations, gives no reason to suspect.
+  - stem: "Paired Cas9 cuts were made at 71 sites in mouse and human cells, and the products of joining the two distal ends were sequenced. Across those sites, about 50% of end-joining events had been joined accurately, with no change in sequence."
+    choices:
+      - "End joining can restore the original sequence rather than always leaving an indel"
+      - "Homology-directed repair accounted for roughly half of the joining products scored"
+      - "Accurate repair occurs in about half of all breaks in every cell type examined"
+      - "Paired cutting suppresses the indel-generating activity of the end-joining pathway"
+    answer: 0
+    rationale: >-
+      The measurement shows that accurate joining is a common end-joining outcome, which breaks
+      the shorthand that every joined break carries an indel. The products were scored as
+      end-joining events and no donor template was involved, so attributing them to
+      homology-directed repair misreads the assay. Extending the figure to all breaks in every
+      cell type ignores the denominator, which was distal-end-joining products at paired cuts.
+      Claiming that pairing suppresses mutagenic joining is a mechanism the experiment did not
+      test.
+  - stem: "A cell line is edited with one guide in exon 2. Amplicon sequencing of the pool gives 70% frameshifted alleles and 30% in-frame or unedited alleles. The alleles in a diploid cell are edited independently of each other, and the investigators call the pool a knockout."
+    choices:
+      - "About 49% of cells carry two frameshifted alleles, so the pool is mixed"
+      - "About 70% of cells carry two frameshifted alleles, so the pool is mostly null"
+      - "About 91% of cells carry at least one frameshift, so the pool is null"
+      - "About 9% of cells carry no frameshift at all, so the pool is a knockout"
+    answer: 0
+    rationale: >-
+      Under independence, both alleles are frameshifted in 0.70 squared, which is 0.49, so about
+      half the cells keep an in-frame or unedited allele and the pool is a mosaic rather than a
+      knockout. Reading 70% as the fraction of doubly edited cells uses the allele frequency where
+      the squared value is needed. The figure of 91% is the chance of at least one frameshift,
+      which one functional allele can mask. The 9% with no frameshift is correctly calculated but
+      supports the opposite conclusion, since the problem is the cells in between.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      There are two ways to find out what a part of a machine does. You can shake the machine
+      until something breaks, see what stops working, and then look for the broken part. Or you
+      can pick a part, take it out on purpose, and see what stops. Scientists now have scissors
+      they can aim at any part of the instructions inside a cell. The tricky bit is that the cell
+      glues the cut back together in its own way, and sometimes the glued version still works.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Forward genetics starts with a phenotype: cause random mutations, find the organisms that
+      look different, then track down the gene. Reverse genetics starts with the gene: disrupt it
+      and see what happens. RNA interference does the gentle version, lowering the amount of
+      protein made from a gene while leaving the gene's DNA intact. CRISPR-Cas9 does the permanent
+      version. A short guide RNA pairs with a 20-nucleotide stretch of DNA next to a required
+      short motif called a PAM, Cas9 cuts, and the cell's own repair machinery decides what the
+      sequence looks like afterwards.
+  - level: "college"
+    label: "College"
+    text: >-
+      The two directions answer different questions. A forward screen is unbiased about mechanism
+      but biased by its phenotype criterion: it finds only what the assay can see. A reverse
+      experiment is precise about the gene but silent about everything you did not choose. In
+      Streptococcus pyogenes Cas9, a 20-nucleotide guide segment pairs with the target and an
+      adjacent NGG PAM licenses binding and cleavage, which in the original plasmid assay fell
+      three base pairs upstream of the PAM. The break then enters non-homologous end joining,
+      which can rejoin accurately or leave an indel, or homology-directed repair from a supplied
+      template, which is more efficient in dividing cells. Cut, mutated allele and functional
+      knockout are three separate states, and only the last one is a genetic result.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Interpreting a perturbation means tracking the denominator. Amplicon sequencing reports
+      allele frequencies in a short window, so large on-target deletions and rearrangements, seen
+      by long-range PCR and long-read sequencing in mouse and human preparations, go unrecorded.
+      Repair outcome spectra are reproducible functions of local target sequence and of cell line
+      rather than random draws, which is why a universal frameshift fraction is not a usable
+      number. Add gene-independent antiproliferative responses to Cas9 targeting in some cancer
+      lines, and a p53-associated damage response reported in immortalized human retinal pigment
+      epithelial cells, and a dropout hit has several explanations besides gene essentiality. An
+      open question for teaching and for practice: when a knockdown and a knockout disagree, how
+      do you distinguish an off-target knockdown effect from genetic compensation in the mutant,
+      given that each has been documented?
+anecdotes:
+  - title: "One in a thousand"
+    source: "Thomas & Capecchi, Cell 51:503 (1987); Schwartzberg et al., Science 246:799 (1989)."
+    text: >-
+      Targeted knockouts began as a numbers problem. Thomas and Capecchi disrupted the
+      endogenous mouse Hprt gene in embryonic stem cells using a construct that carried
+      neomycin resistance into an exon, and relied on homologous recombination to put it in the
+      right place. Among colonies that survived the drug, about one in a thousand had also
+      become resistant to 6-thioguanine, the sign that Hprt was gone. Two years later, germline
+      transmission of a targeted allele was demonstrated for c-abl. A targeted cell and a
+      transmitting animal are different achievements.
+  - title: "Why yoghurt cultures taught us to edit genomes"
+    source: "Barrangou et al., Science 315:1709 (2007)."
+    text: >-
+      The experiment that made CRISPR an immune system was done on Streptococcus thermophilus, a
+      dairy starter culture whose fermentations are ruined by phage. Barrangou and colleagues
+      challenged the cells with phage and found that survivors had acquired new spacers matching
+      the phage DNA. Then they engineered the arrays, adding and removing particular spacers, and
+      resistance followed the spacer content, with specificity tracking spacer-phage sequence
+      similarity. The paper lists an industrial affiliation. Nothing about it was aimed at human
+      genomes.
+  - title: "The guide that nobody asked for"
+    source: "Deltcheva et al., Nature 471:602 (2011)."
+    text: >-
+      The single-guide RNA that every CRISPR experiment now uses is a fusion of two natural RNAs,
+      and the second one was found by sequencing the small RNAs of Streptococcus pyogenes rather
+      than by looking for it. Deltcheva and colleagues described a transcript outside the CRISPR
+      array, tracrRNA, that was needed along with RNase III and the Cas protein Csn1 to produce
+      mature crRNA. Only after the natural system turned out to use two RNAs could anyone think
+      of tying them together into one.
+
+corpusTags:
+  - "crispr"
+  - "forward-genetics"
+  - "reverse-genetics"
+  - "rnai"
+  - "genome-editing"
+draft: false
+---
+
+import CrisprRepairOutcome from '../../../components/CrisprRepairOutcome.astro';
+
+**A screen in flies that started with no gene names at all recovered 15 loci controlling the pattern of a larva's segments. A CRISPR experiment starts from the opposite end: you name the gene first, and then find out whether the cell cares.** Both are genetics. Which direction you run decides what you are able to find, and it decides which way you can be fooled.
+
+## Phenotype first: the forward screen
+
+A forward screen begins with something you can see and works back toward its genetic cause. The order is fixed: mutagenize a population at random, score a defined phenotype, recover the mutant lines, map the lesion, then test whether the candidate gene really causes the phenotype. A locus is a position in the genome where a gene sits, and in a forward screen you often know the locus long before you know what its product does.
+
+The classic example is the 1980 Drosophila screen by Nüsslein-Volhard and Wieschaus. They looked through embryonic-lethal mutants for changes in larval segmentation and reported 15 loci. The phenotypes sorted into classes acting at different scales, which indicated at least three levels of spatial organization in the segmentation process. Earlier, Brenner's 1974 work in Caenorhabditis elegans characterized about 300 mutants from chemical mutagenesis and defined about 100 genes; in budding yeast, Hartwell and colleagues organized 148 temperature-sensitive mutants into 32 complementation groups. A complementation group is a set of mutations that fail to restore function in combination, which under the standard assumptions marks them as hits in one gene. That logic is the subject of [complementation and pathways](/lessons/complementation-and-pathways/), and the mapping step is [three-point mapping](/lessons/three-point-mapping/) scaled up with sequencing.
+
+The strength of this direction is that it is unbiased about mechanism. You do not have to guess which gene matters. The weakness is that a screen inherits the bias of its phenotype criterion: it finds only what the assay can see. The zebrafish screeners said so explicitly when they qualified their coverage estimate by what their screen was able to discover, and an Arabidopsis study noted that meiotic defects could fall below the detection threshold of a screen scored on fruit length. Mutagenized backgrounds also carry extra variants, so backcrossing and a causal test by complementation or rescue are part of the method, not optional extras. [Mutation](/lessons/mutation/) covers how the mutagens act.
+
+## Gene first: knockdown and knockout
+
+Reverse genetics starts from a chosen gene and asks what changing its sequence or expression does. An early targeted mouse version was arithmetic as much as biology. Thomas and Capecchi disrupted endogenous mouse Hprt in embryonic stem cells with a construct that put neomycin resistance into an exon by homologous recombination; about one in a thousand drug-resistant colonies had also lost Hprt function. Germline transmission of a targeted allele came later, for c-abl.
+
+The gentler route is RNA interference, which lowers how much protein a gene makes without touching the gene. In 1998 Fire, Mello and colleagues injected RNA into C. elegans and found that double-stranded RNA produced substantially stronger, specific interference than either single strand, and that the small effective amount suggested a catalytic or amplifying step. A companion study found evidence that the effect was post-transcriptional, targeting endogenous mRNA, with no evidence of any change in primary DNA sequence. By 2001, 21-nucleotide siRNA duplexes were suppressing expression in cultured human HEK293 and HeLa cells. The mechanism belongs to [eukaryotic regulation](/lessons/eukaryotic-regulation/); what matters here is the bookkeeping. Knockdown reduces output and leaves the gene intact; knockout alters the DNA.
+
+That difference sets the controls. A knockdown needs a measurement of the perturbation itself, by immunoblotting or immunofluorescence for the target protein, two non-overlapping reagents against the same gene, and a rescue with a transgene made refractory to the reagent. Even a successful rescue does not formally exclude a phenotype that also requires an off-target effect. A knockout needs its own checks, because an indel is not a guarantee of lost function.
+
+## CRISPR came from a bacterial immune system
+
+In 2005 Mojica and colleagues noticed that some CRISPR spacers, the variable sequences between the repeats, matched transmissible genetic elements, which implied a relationship to immunity against foreign DNA. In 2007 Barrangou and colleagues tested that in Streptococcus thermophilus: phage challenge added phage-derived spacers, and engineering the array by adding or removing particular spacers changed resistance, with specificity tracking spacer-phage sequence similarity. In 2011 the Charpentier laboratory found tracrRNA and showed that mature crRNA in the native Streptococcus pyogenes system is made with RNase III and the Cas protein Csn1. The natural guide is two RNAs.
+
+In 2012 the Jinek study fused those two into one chimeric RNA and showed that purified Cas9 cut DNA wherever the RNA specified. A separate 2012 study from Siksnys and colleagues, with Barrangou and Horvath, showed Streptococcus thermophilus Cas9 cleaving DNA in vitro, and that the RuvC and HNH active sites nick opposite strands. Both were biochemistry with purified components. Editing inside cells came in 2013, when Cong and colleagues and Mali and colleagues independently directed Cas9 to endogenous loci in cultured human and mouse cells. The 2012 papers did not edit a genome.
+
+## Programming the cut, and what the cell does next
+
+For Streptococcus pyogenes Cas9 the targeting rule is short. The guide's target-binding segment is 20 nucleotides, the target must sit immediately next to an NGG motif called the PAM, and in the original plasmid assay cleavage fell three base pairs upstream of the PAM. The PAM is not a formality: Cas9 ignored DNA that matched the guide completely but had no nearby PAM. Mismatches are not a clean off switch either, since tolerance in human cells depended on the number, position and distribution of mismatches.
+
+The cut is where your control ends. A double-strand break can enter non-homologous end joining, which needs no template, or homology-directed repair from a template you supply, which is more efficient in dividing cells. End joining is often described as error-prone, and it does produce insertions and deletions, but in a study of paired cuts at 71 sites in mouse and human cells about 50% of end-joining events had been joined accurately. Outcomes are also not random: a survey of more than 40,000 guides on synthetic targets found repair spectra that depended reproducibly on local sequence and on cell line. The repair pathways themselves are [DNA repair and recombination](/lessons/dna-repair-and-recombination/).
+
+So cut, mutated allele and functional knockout are three states, and only the third is a genetic result. Here is the arithmetic. You cut exon 2 of a gene in a diploid line with one guide, and sequencing of alleles in the pool gives: unedited 10%, minus 1 bp 35%, plus 1 bp 25%, minus 3 bp 15%, minus 6 bp 5%, minus 7 bp 10%.
+
+<CrisprRepairOutcome />
+
+> frameshifted alleles = indels whose length is not a multiple of 3 = 35 + 25 + 10 = 70%
+
+In-frame edits are 15 + 5 = 20%, and 10% is unedited, which accounts for all 100%. Now assume the two alleles in a cell are edited independently.
+
+> fraction of cells with both alleles frameshifted = 0.70 x 0.70 = 0.49
+
+About half the cells still carry at least one in-frame or unedited allele. Frameshifts often trigger nonsense-mediated decay, and in-frame deletions can leave partial function, so a pool like this is a mosaic, not a null. You derive clones and genotype them, or use more than one guide, before you call the phenotype a knockout. Two more cautions sit underneath the table: amplicon sequencing reports only the window you amplified, and long-range assays have revealed large on-target deletions and rearrangements in mouse and human preparations. Editing also provoked a p53-associated damage response and arrest in immortalized human retinal pigment epithelial cells.
+
+### Design problem
+
+An siRNA against gene X reduces cell migration. A CRISPR knockout clone of X migrates normally. Design experiments to decide which result reflects X's function.
+
+<details>
+<summary>One way to do it</summary>
+
+Attack both reagents before you believe either phenotype.
+
+On the knockdown side, repeat it with two or more independent, non-overlapping siRNAs against X and confirm by immunoblot that X protein is actually reduced in each case. Then do the test that matters for off-target effects: rescue the knockdown by expressing an siRNA-resistant X cDNA, with silent changes in the target site. If migration returns, the phenotype tracks X. If it does not, you are probably looking at an off-target effect, although a successful rescue still does not formally exclude one.
+
+On the knockout side, genotype the clone properly. Sequence both alleles separately rather than a pooled amplicon, and look for an in-frame indel that leaves a partially functional product; add a long-range assay, since a short amplicon can look clean while a large deletion sits outside it. Blot for the protein, including with an antibody to a region downstream of the cut, to rule out a truncated product or re-initiation. Make and test several independent clones with different guides, because one clone is an n of 1 with its own history.
+
+Then test compensation. A mutant line can upregulate related genes in a way an acute knockdown does not, as reported for zebrafish morphants compared with mutants. Measure paralogue expression in the knockout clone, and ask whether acute degradation of X protein in that same clone's parent reproduces the knockdown phenotype.
+
+</details>
+
+## Somatic, germline, and who decides
+
+A somatic edit changes cells in one person. A germline edit in an embryo can be passed to descendants, which is why the two sit in different places in every governance document. In November 2018, He Jiankui announced that twin girls had been born after editing aimed at CCR5 in human embryos, work carried out without the review such an application would require.
+
+The published guidance draws the line at reproduction rather than at embryos. The 2021 ISSCR guidelines placed reproductive heritable genome editing in a prohibited category because the methods were not sufficiently safe or efficient, allowed non-reproductive human embryo editing research under robust review and oversight, and required meaningful public engagement before any clinical heritable application. The same year, WHO recommendations emphasized oversight, registries, and equitable access to the benefits of genome editing. Those are questions about consent, access and who speaks for future generations, and no efficiency measurement answers them.
+
+Somatic editing has reached the clinic. In the first reported patients, a person's own CD34-positive blood stem cells were edited at the BCL11A erythroid enhancer and returned after myeloablation, and fetal haemoglobin rose in both; that approach has since been approved for sickle cell disease and transfusion-dependent beta thalassaemia. It is a transplant procedure with an editing step inside it, and nothing here is clinical advice. For the sequencing and library methods these screens depend on, see [recombinant DNA and PCR](/lessons/recombinant-dna-and-pcr/) and [sequencing and genomes](/lessons/sequencing-and-genomes/).

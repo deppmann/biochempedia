@@ -1,0 +1,209 @@
+---
+/**
+ * XLinkedReciprocalCross — run Morgan-style reciprocal crosses for the recessive X-linked
+ * white-eye allele and read F1 and F2 by sex. The learner picks which parent is white-eyed;
+ * the F1 and a random F2 brood are drawn with the observed count beside the expected count
+ * for each of four classes (red or white, daughter or son). Every rule is the lesson's:
+ * a male is hemizygous and takes his only X from his mother, a daughter takes one X from
+ * each parent, segregation is ordinary, survival is equal, and half the offspring of each
+ * sex. Counts are chance draws around those expectations. Labelled bars only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="xrc card" data-xrc>
+  <figcaption class="xrc-head">Reciprocal crosses for white eyes: F1 and F2 by sex<span class="xrc-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="xrc-row">
+    <legend>Which parent is white-eyed?</legend>
+    <label><input type="radio" name="xrc-cross" value="B" checked /> the mother (white ♀ × red ♂)</label>
+    <label><input type="radio" name="xrc-cross" value="A" /> the father (red ♀ × white ♂)</label>
+  </fieldset>
+
+  <div class="xrc-row xrc-tools">
+    <label class="xrc-size">Flies scored per generation: <output data-size-out>400</output>
+      <input type="range" min="40" max="800" step="40" value="400" data-size aria-label="Flies scored per generation" />
+    </label>
+    <button type="button" class="xrc-btn" data-resample>Resample</button>
+  </div>
+
+  <svg class="xrc-svg" viewBox="0 0 360 330" role="img" aria-label="Parents of the cross, then bar charts of observed and expected F1 and F2 flies in four classes: red daughters, white daughters, red sons, white sons" data-stage></svg>
+
+  <p class="xrc-verdict" data-verdict role="status"></p>
+
+  <table class="xrc-table">
+    <caption>Expected (from the rules) and observed (one random brood)</caption>
+    <thead>
+      <tr><th scope="col">Class</th><th scope="col">F1 expected</th><th scope="col">F1 observed</th><th scope="col">F2 expected</th><th scope="col">F2 observed</th></tr>
+    </thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <p class="xrc-foot">Assumes ordinary segregation, equal survival, half of each sex and complete penetrance, as in the lesson’s worked problem; the F1 female is taken as an ideal X⁺Xʷ and the F1 male’s X comes from his mother. Counts are chance draws around the expected values; real broods are noisier, and in Morgan’s own F2 from the red-female cross the white-eyed males were under a quarter of the flies.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Cross = 'A' | 'B';
+  // Classes in display order.
+  const CLASSES = [
+    { key: 'rf', label: 'red ♀', long: 'red-eyed daughters', red: true },
+    { key: 'wf', label: 'white ♀', long: 'white-eyed daughters', red: false },
+    { key: 'rm', label: 'red ♂', long: 'red-eyed sons', red: true },
+    { key: 'wm', label: 'white ♂', long: 'white-eyed sons', red: false },
+  ] as const;
+  type Key = (typeof CLASSES)[number]['key'];
+  type Counts = Record<Key, number>;
+  const ZERO = (): Counts => ({ rf: 0, wf: 0, rm: 0, wm: 0 });
+
+  // Parents. Alleles: '+' red, 'w' white. mother = two X alleles, father = his one X allele.
+  const PARENTS: Record<Cross, { mother: [string, string]; father: string; mLabel: string; fLabel: string }> = {
+    A: { mother: ['+', '+'], father: 'w', mLabel: 'X⁺X⁺ red', fLabel: 'XʷY white' },
+    B: { mother: ['w', 'w'], father: '+', mLabel: 'XʷXʷ white', fLabel: 'X⁺Y red' },
+  };
+  const sym = (a: string) => (a === '+' ? 'X⁺' : 'Xʷ');
+
+  // One fly from a mother (two X alleles) and a father with one X allele: sex half and half,
+  // each X allele of the mother half and half. A daughter is white only if both of her X carry w.
+  function fly(mother: [string, string], fx: string, rnd: () => number): Key {
+    const egg = mother[rnd() < 0.5 ? 0 : 1];
+    if (rnd() < 0.5) return egg === 'w' ? 'wm' : 'rm';
+    return egg === 'w' && fx === 'w' ? 'wf' : 'rf';
+  }
+  // Expected fractions by enumerating the same rules.
+  function expected(mother: [string, string], fx: string): Counts {
+    const e = ZERO();
+    for (const egg of mother) {
+      e[egg === 'w' ? 'wm' : 'rm'] += 0.25;
+      e[egg === 'w' && fx === 'w' ? 'wf' : 'rf'] += 0.25;
+    }
+    return e;
+  }
+  function draw(n: number, mother: [string, string], fx: string): Counts {
+    const c = ZERO();
+    for (let i = 0; i < n; i++) c[fly(mother, fx, Math.random)]++;
+    return c;
+  }
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-xrc]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const rows = root.querySelector<HTMLElement>('[data-rows]')!;
+    const size = root.querySelector<HTMLInputElement>('[data-size]')!;
+    const sizeOut = root.querySelector<HTMLElement>('[data-size-out]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="xrc-cross"]'));
+    let f1 = ZERO(), f2 = ZERO(), f1e = ZERO(), f2e = ZERO();
+    let cross: Cross = 'B';
+    let n = 400;
+
+    function sample() {
+      cross = (radios.find((r) => r.checked)?.value as Cross) || 'B';
+      n = Number(size.value);
+      sizeOut.textContent = String(n);
+      const p = PARENTS[cross];
+      f1 = draw(n, p.mother, p.father);
+      f1e = expected(p.mother, p.father);
+      // The F1 mother is always X+Xw. The F1 father is an F1 son: his only X is his mother's allele.
+      const sonX = p.mother[0];
+      f2 = draw(n, ['+', 'w'], sonX);
+      f2e = expected(['+', 'w'], sonX);
+      render();
+    }
+
+    function panel(y0: number, title: string, obs: Counts, exp: Counts) {
+      const INK = '#4b4b55', FAINT = '#8a8a96';
+      const top = y0 + 22, h = 92, base = top + h;
+      const ceil = Math.max(0.6 * n, ...CLASSES.map((c) => obs[c.key]));
+      stage.appendChild(el('text', { x: 8, y: y0 + 10, 'font-size': 10, 'font-weight': 700, fill: INK }, title));
+      stage.appendChild(el('line', { x1: 24, y1: base, x2: 352, y2: base, stroke: FAINT, 'stroke-width': 1 }));
+      CLASSES.forEach((c, i) => {
+        const cx = 66 + i * 80, w = 40;
+        const bh = (obs[c.key] / ceil) * h;
+        stage.appendChild(el('rect', { x: cx - w / 2, y: base - bh, width: w, height: bh, fill: c.red ? '#c0392b' : '#fff', stroke: c.red ? '#c0392b' : INK, 'stroke-width': 1.5 }));
+        // expected marker: a dark dashed line across the bar position
+        const ey = base - (exp[c.key] * n / ceil) * h;
+        stage.appendChild(el('line', { x1: cx - w / 2 - 5, y1: ey, x2: cx + w / 2 + 5, y2: ey, stroke: '#0e7c86', 'stroke-width': 2, 'stroke-dasharray': '4 2' }));
+        const lblY = Math.min(base - bh, ey) - 4;
+        stage.appendChild(el('text', { x: cx, y: Math.max(lblY, top - 2), 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, String(obs[c.key])));
+        stage.appendChild(el('text', { x: cx, y: base + 12, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, c.label));
+      });
+    }
+
+    function render() {
+      const p = PARENTS[cross];
+      stage.replaceChildren();
+      const INK = '#4b4b55';
+      // Parents.
+      stage.appendChild(el('text', { x: 8, y: 14, 'font-size': 10, fill: INK }, `Parents: mother ${p.mLabel} × father ${p.fLabel}`));
+      panel(26, `F1 (${n} flies): daughters and sons by eye colour`, f1, f1e);
+      panel(156, `F2 (${n} flies): F1 X⁺Xʷ female × F1 ${sym(p.mother[0])}Y male`, f2, f2e);
+      // legend
+      stage.appendChild(el('rect', { x: 8, y: 300, width: 10, height: 10, fill: '#c0392b' }));
+      stage.appendChild(el('text', { x: 22, y: 309, 'font-size': 9, fill: INK }, 'red-eyed (observed)'));
+      stage.appendChild(el('rect', { x: 120, y: 300, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1.5 }));
+      stage.appendChild(el('text', { x: 134, y: 309, 'font-size': 9, fill: INK }, 'white-eyed (observed)'));
+      stage.appendChild(el('line', { x1: 238, y1: 305, x2: 258, y2: 305, stroke: '#0e7c86', 'stroke-width': 2, 'stroke-dasharray': '4 2' }));
+      stage.appendChild(el('text', { x: 262, y: 309, 'font-size': 9, fill: INK }, 'expected'));
+
+      rows.replaceChildren();
+      CLASSES.forEach((c) => {
+        const tr = document.createElement('tr');
+        const cells = [c.long, (f1e[c.key] * n).toFixed(0), String(f1[c.key]), (f2e[c.key] * n).toFixed(0), String(f2[c.key])];
+        cells.forEach((t, i) => {
+          const td = document.createElement(i === 0 ? 'th' : 'td');
+          if (i === 0) td.setAttribute('scope', 'row');
+          td.textContent = t;
+          tr.appendChild(td);
+        });
+        rows.appendChild(tr);
+      });
+
+      const wf2 = f2.wf, wm2 = f2.wm;
+      if (cross === 'B') {
+        verdict.textContent =
+          `White mother, red father: every daughter gets her father’s X⁺ and is red, every son gets his only X from his mother and is white. ` +
+          `The mother’s phenotype goes to her sons and the father’s to his daughters (criss-cross). ` +
+          `F2 expects 1 : 1 : 1 : 1, about ${Math.round(n / 4)} in each class, white females included; this brood has ${wf2} white daughters and ${wm2} white sons.`;
+      } else {
+        verdict.textContent =
+          `In this idealised cross, red mother, white father: the mother gives only X⁺, so all F1 are red, daughters X⁺Xʷ and sons X⁺Y. ` +
+          `In the F2 the daughters all get X⁺ from their father and are red, while half the sons get their mother’s Xʷ: expect 3 red to 1 white, about ${Math.round(n / 4)} white, every one a male. ` +
+          `This brood has ${wm2} white sons and ${wf2} white daughters.`;
+      }
+    }
+
+    radios.forEach((r) => r.addEventListener('change', sample));
+    size.addEventListener('input', sample);
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', sample);
+    sample();
+  });
+</script>
+
+<style is:global>
+  .xrc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .xrc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .xrc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .xrc-row { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .xrc-row legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .xrc-row input[type="radio"] { accent-color: var(--ddp-color-accent); }
+  .xrc-tools { border: 0; padding: 0.2rem 0; align-items: center; justify-content: space-between; }
+  .xrc-size { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .xrc-size input { accent-color: var(--ddp-color-accent); min-width: 140px; }
+  .xrc-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .xrc-btn:focus-visible, .xrc-row input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .xrc-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .xrc-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .xrc-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .xrc-table caption { text-align: left; color: var(--ddp-color-muted); padding-bottom: 0.2rem; }
+  .xrc-table th, .xrc-table td { border-bottom: 1px solid var(--ddp-color-line); padding: 0.2rem 0.3rem; text-align: right; font-weight: 400; }
+  .xrc-table th:first-child, .xrc-table td:first-child { text-align: left; }
+  .xrc-table thead th { color: var(--ddp-color-muted); }
+  .xrc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .xrc-table th, .xrc-table td { padding: 0.2rem 0.15rem; } }
+</style>

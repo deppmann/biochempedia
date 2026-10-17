@@ -57,6 +57,42 @@ export const COURSES: Course[] = [
     ],
   },
   {
+    slug: 'genetics',
+    title: 'Genetics and Molecular Biology',
+    tier: 'core',
+    tagline: 'How traits are inherited, and how DNA stores, copies and uses the information.',
+    searchHint: 'Try “Mendel”, “lac operon”, “CRISPR”…',
+    blurb:
+      'A core course for biology majors and premedical students. It starts with Mendel and the logic of crosses, follows the gene onto chromosomes and into DNA, then shows how genes are copied, changed, expressed and controlled, how modern tools read and edit genomes, and how genetics works across populations and complex traits.',
+    /* Sequence set 2026-10-17 from a curriculum benchmark (six university courses, four textbooks). */
+    units: [
+      {
+        name: 'Inheritance',
+        slugs: ['mendels-peas', 'chromosomes-and-meiosis', 'probability-and-crosses', 'extending-mendel', 'pedigrees', 'sex-linkage-and-beyond', 'chromosome-changes'],
+      },
+      {
+        name: 'Mapping and gene function',
+        slugs: ['linkage-and-mapping', 'three-point-mapping', 'complementation-and-pathways', 'bacterial-and-phage-genetics'],
+      },
+      {
+        name: 'DNA: copying, changing, repairing',
+        slugs: ['dna-the-genetic-material', 'dna-replication', 'mutation', 'dna-repair-and-recombination'],
+      },
+      {
+        name: 'From gene to protein, and its control',
+        slugs: ['transcription', 'rna-processing', 'genetic-code-and-translation', 'lac-operon', 'eukaryotic-regulation', 'cancer-genetics'],
+      },
+      {
+        name: 'Tools and genomes',
+        slugs: ['recombinant-dna-and-pcr', 'sequencing-and-genomes', 'crispr-and-functional-genomics'],
+      },
+      {
+        name: 'Populations and complex traits',
+        slugs: ['population-genetics', 'complex-traits-and-gwas'],
+      },
+    ],
+  },
+  {
     slug: 'signaling',
     title: 'Cell Signaling',
     tier: 'elective',

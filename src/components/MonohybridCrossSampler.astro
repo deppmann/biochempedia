@@ -1,0 +1,206 @@
+---
+/**
+ * MonohybridCrossSampler — draw the seeds of a one-character pea cross at random and set the
+ * observed counts beside the expected ones. Three crosses, all from the mendels-peas lesson:
+ * an F1 hybrid selfed (Rr x Rr, 3/4 round), a test cross (Rr x rr, 1/2 round) and a round F2
+ * plant of unknown genotype crossed to rr (the plant is RR with probability 1/3 and Rr with
+ * probability 2/3, the lesson's 193 : 372 split; all round from RR, half round from Rr).
+ * Each seed is an independent draw with the cross's own odds. A strip below keeps the round
+ * fraction of every resample so the scatter around the rule is visible. Labelled bars and
+ * dots only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="mcs card" data-mcs>
+  <figcaption class="mcs-head">Cross sampler: how far do simulated seed counts stray from 3:1 and 1:1?<span class="mcs-chip">⚙ original · simulated · interactive</span></figcaption>
+
+  <svg class="mcs-svg" viewBox="0 0 360 274" role="img" aria-label="Bars of simulated and expected round and wrinkled seed counts for the chosen cross, and below them the round fraction of each resample against its expected value" data-plot></svg>
+
+  <div class="mcs-controls">
+    <label class="mcs-field"><span>Cross</span>
+      <select data-cross>
+        <option value="self">F1 hybrid selfed: Rr x Rr</option>
+        <option value="test">Test cross: Rr x rr</option>
+        <option value="f2">Round F2 plant x rr (genotype unknown)</option>
+      </select>
+    </label>
+    <label class="mcs-field"><span>Seeds sampled: <output data-nout>40</output></span>
+      <input type="range" data-n min="0" max="7" step="1" value="2" aria-valuetext="40 seeds" />
+    </label>
+    <button type="button" class="mcs-btn" data-resample>Resample</button>
+  </div>
+
+  <dl class="mcs-readout">
+    <div><dt>round : wrinkled, simulated</dt><dd data-r-obs>–</dd></div>
+    <div><dt>round : wrinkled, expected</dt><dd data-r-exp>–</dd></div>
+    <div><dt>resamples shown (latest 24 kept)</dt><dd data-r-k>–</dd></div>
+  </dl>
+
+  <p class="mcs-verdict" data-verdict role="status"></p>
+
+  <p class="mcs-foot">Rule to keep: each seed is an independent draw with the cross's own odds (3/4 round from Rr x Rr, 1/2 round from Rr x rr), so counts scatter around the expected values and only large sums settle near the ratio, assuming complete dominance, equal transmission of R and r, and equal survival.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#8a8a96', GRID = '#d9d9e0';
+  // 7,324 is Mendel's own total of seeds from his round-by-wrinkled hybrids.
+  const SIZES = [10, 20, 40, 80, 160, 320, 1000, 7324];
+  const MAXPTS = 24;
+  type Cross = 'self' | 'test' | 'f2';
+  type Pt = { round: number; n: number; exp: number; geno: 'RR' | 'Rr' | null };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmt = (x: number) => x.toLocaleString('en-US');
+  const ratioText = (a: number, b: number) => (b === 0 ? 'no wrinkled seeds' : (a / b).toFixed(2) + ' to 1');
+
+  document.querySelectorAll<HTMLElement>('[data-mcs]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const crossSel = root.querySelector<HTMLSelectElement>('[data-cross]')!;
+    const nIn = root.querySelector<HTMLInputElement>('[data-n]')!;
+    const nOut = root.querySelector<HTMLOutputElement>('[data-nout]')!;
+    const rObs = root.querySelector<HTMLElement>('[data-r-obs]')!;
+    const rExp = root.querySelector<HTMLElement>('[data-r-exp]')!;
+    const rK = root.querySelector<HTMLElement>('[data-r-k]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    let hist: Pt[] = [];
+
+    const cross = () => crossSel.value as Cross;
+    const size = () => SIZES[Number(nIn.value)];
+
+    function draw1(): Pt {
+      const n = size(), c = cross();
+      let geno: 'RR' | 'Rr' | null = null;
+      let p: number;
+      if (c === 'self') p = 0.75;
+      else if (c === 'test') p = 0.5;
+      else { geno = Math.random() < 1 / 3 ? 'RR' : 'Rr'; p = geno === 'RR' ? 1 : 0.5; }
+      let round = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < p) round++;
+      return { round, n, exp: n * p, geno };
+    }
+
+    function drawPlot() {
+      plot.replaceChildren();
+      const last = hist[hist.length - 1];
+      if (!last) return;
+      const { n, round, exp } = last;
+      const wr = n - round, expW = n - exp;
+      const base = 118, H = 78;
+      const h = (v: number) => (v / n) * H;
+      const groups: { x: number; label: string; o: number; e: number }[] = [
+        { x: 50, label: 'round', o: round, e: exp },
+        { x: 210, label: 'wrinkled', o: wr, e: expW },
+      ];
+      plot.appendChild(el('line', { x1: 20, y1: base, x2: 340, y2: base, stroke: INK, 'stroke-width': 1 }));
+      groups.forEach((g) => {
+        const ho = h(g.o), he = h(g.e);
+        plot.appendChild(el('rect', { x: g.x, y: base - ho, width: 40, height: Math.max(ho, 0.5), fill: TEAL }));
+        plot.appendChild(el('rect', { x: g.x + 50, y: base - he, width: 40, height: Math.max(he, 0.5), fill: '#fff', stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+        plot.appendChild(el('text', { x: g.x + 20, y: base - ho - 4, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: TEAL }, fmt(g.o)));
+        plot.appendChild(el('text', { x: g.x + 70, y: base - he - 4, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: ORANGE }, (Number.isInteger(g.e) ? fmt(g.e) : g.e.toFixed(1))));
+        plot.appendChild(el('text', { x: g.x + 45, y: base + 13, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, g.label));
+        plot.appendChild(el('text', { x: g.x + 20, y: base + 24, 'font-size': 9, 'text-anchor': 'middle', fill: TEAL }, 'simulated'));
+        plot.appendChild(el('text', { x: g.x + 70, y: base + 24, 'font-size': 9, 'text-anchor': 'middle', fill: ORANGE }, 'expected'));
+      });
+      // strip: round fraction of every resample
+      const sy0 = 150, sy1 = 236; // top (fraction 1) to bottom (fraction 0)
+      const sx0 = 52, sx1 = 346;
+      const fy = (f: number) => sy1 - f * (sy1 - sy0);
+      plot.appendChild(el('text', { x: 20, y: 140, 'font-size': 9, fill: INK }, 'round fraction in each of the last 24 resamples (latest on the right)'));
+      [0, 0.5, 0.75, 1].forEach((f) => {
+        plot.appendChild(el('line', { x1: sx0, y1: fy(f), x2: sx1, y2: fy(f), stroke: GRID, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: sx0 - 4, y: fy(f) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(f)));
+      });
+      const step = (sx1 - sx0) / MAXPTS;
+      hist.forEach((pt, i) => {
+        const x = sx0 + step * (i + 0.5);
+        plot.appendChild(el('line', { x1: x - 5, y1: fy(pt.exp / pt.n), x2: x + 5, y2: fy(pt.exp / pt.n), stroke: ORANGE, 'stroke-width': 2 }));
+        plot.appendChild(el('circle', { cx: x, cy: fy(pt.round / pt.n), r: i === hist.length - 1 ? 4 : 3, fill: TEAL, opacity: i === hist.length - 1 ? 1 : 0.6 }));
+      });
+      if (cross() === 'f2') plot.appendChild(el('text', { x: 20, y: 268, 'font-size': 9, fill: INK }, 'a new plant is drawn at each resample'));
+      plot.appendChild(el('circle', { cx: 30, cy: 250, r: 3, fill: TEAL }));
+      plot.appendChild(el('text', { x: 37, y: 253, 'font-size': 9, fill: INK }, 'simulated'));
+      plot.appendChild(el('line', { x1: 90, y1: 250, x2: 100, y2: 250, stroke: ORANGE, 'stroke-width': 2 }));
+      plot.appendChild(el('text', { x: 104, y: 253, 'font-size': 9, fill: INK }, 'expected for that resample'));
+    }
+
+    function say(pt: Pt): string {
+      const { n, round, geno } = pt;
+      const wr = n - round;
+      const c = cross();
+      const head = `${fmt(n)} simulated seeds: ${fmt(round)} round and ${fmt(wr)} wrinkled (${ratioText(round, wr)}). `;
+      let body = '';
+      if (c === 'self') {
+        body = 'An Rr x Rr cross gives 1/4 RR : 1/2 Rr : 1/4 rr, which shows as 3/4 round : 1/4 wrinkled, so the expected ratio is 3 to 1. ';
+      } else if (c === 'test') {
+        body = 'An Rr x rr cross gives 1/2 Rr (round) : 1/2 rr (wrinkled), so the expected ratio is 1 to 1. ';
+      } else if (geno === 'RR') {
+        body = 'This round F2 plant happened to be RR (a third of round F2 plants are). RR x rr gives all round Rr seeds. ';
+        if (n <= 20) body += `An Rr plant would also give all round with probability (1/2)^${n}, about 1 in ${Math.round(1 / Math.pow(0.5, n)).toLocaleString('en-US')}, so all-round is weaker evidence than a wrinkled seed. `;
+        else body += 'An Rr plant could also give all round, but with probability (1/2)^' + fmt(n) + ', which is below 1 in a million. ';
+      } else {
+        body = 'This round F2 plant happened to be Rr (two thirds of round F2 plants are). Rr x rr gives 1/2 round : 1/2 wrinkled, expected 1 to 1. ';
+        if (wr > 0) body += 'The wrinkled seeds prove the round parent carries r. ';
+        else body += `Every seed came out round, yet the plant is Rr: each seed has a 1/2 chance of being round, so this has probability (1/2)^${n}, ${n <= 30 ? 'about 1 in ' + Math.round(1 / Math.pow(0.5, n)).toLocaleString('en-US') : 'below 1 in a million'}. `;
+      }
+      let tail = '';
+      if (n === 7324 && c === 'self') tail = "Mendel's own totals from this many seeds were 5,474 round and 1,850 wrinkled, or 2.96 to 1.";
+      else if (n <= 20) tail = 'A sample this small can land far from the expected ratio, and Mendel held that a ratio should be estimated from the sum of many observations.';
+      else if (n >= 1000) tail = 'With this many seeds the simulated ratio tends to sit close to the expected one. Press Resample to see the counts differ each time, but by little.';
+      else tail = 'Press Resample: the same cross gives different counts each time, scattered around the expected values.';
+      return head + body + tail;
+    }
+
+    function render() {
+      const n = size();
+      nOut.textContent = fmt(n);
+      nIn.setAttribute('aria-valuetext', `${fmt(n)} seeds`);
+      const last = hist[hist.length - 1];
+      drawPlot();
+      if (!last) return;
+      rObs.textContent = `${fmt(last.round)} : ${fmt(last.n - last.round)}`;
+      const c = cross();
+      const expR = last.exp, expW = last.n - last.exp;
+      const f = (v: number) => (Number.isInteger(v) ? fmt(v) : v.toFixed(1));
+      rExp.textContent = `${f(expR)} : ${f(expW)}` + (c === 'f2' ? (last.geno === 'RR' ? ' (RR plant)' : ' (Rr plant)') : '');
+      rK.textContent = String(hist.length);
+      verdict.textContent = say(last);
+    }
+
+    function resample() {
+      hist.push(draw1());
+      if (hist.length > MAXPTS) hist.shift();
+      render();
+    }
+    function reset() { hist = []; resample(); }
+
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', resample);
+    crossSel.addEventListener('change', reset);
+    nIn.addEventListener('input', reset);
+    reset();
+  });
+</script>
+
+<style is:global>
+  .mcs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mcs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mcs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mcs-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mcs-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem 1rem; margin: var(--ddp-space-2) 0; }
+  .mcs-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mcs-field select { font-size: var(--ddp-text-xs); padding: 0.3rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); max-width: 100%; }
+  .mcs-field input[type="range"] { accent-color: var(--ddp-color-accent); width: 12rem; max-width: 100%; }
+  .mcs-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); font-weight: 700; padding: 0.4rem 0.8rem; cursor: pointer; }
+  .mcs-field select:focus-visible, .mcs-field input:focus-visible, .mcs-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mcs-readout { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); }
+  .mcs-readout dt { color: var(--ddp-color-muted); }
+  .mcs-readout dd { margin: 0; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); font-weight: 600; }
+  .mcs-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4em; }
+  .mcs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

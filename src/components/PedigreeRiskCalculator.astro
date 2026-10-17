@@ -1,0 +1,262 @@
+---
+/**
+ * PedigreeRiskCalculator — one small autosomal recessive pedigree (the lesson's cystic
+ * fibrosis worked problem). The learner picks the person asked about and whether the brother
+ * is affected, which is what makes the parents known carriers. The component then writes out
+ * the conditional-probability steps in fractions and draws random families from the same
+ * model, showing the observed fraction beside the expected one. Every rule is a statement of
+ * the pedigrees lesson (full penetrance, no new mutation, carrier frequency 1/25 as an
+ * assumption of the exercise). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="prc card" data-prc>
+  <figcaption class="prc-head">Pedigree risk calculator: carrier and recurrence odds<span class="prc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="prc-svg" viewBox="0 0 360 240" role="img" aria-label="A three-generation pedigree for an autosomal recessive disorder: two unaffected parents, a brother who may be affected, a sister, her partner and their child" data-stage></svg>
+
+  <div class="prc-controls">
+    <fieldset class="prc-fs">
+      <legend>Who are you asking about?</legend>
+      <label><input type="radio" name="prc-who" value="sister" checked /> II-2, the sister (unaffected)</label>
+      <label><input type="radio" name="prc-who" value="partner" /> II-3, her partner</label>
+      <label><input type="radio" name="prc-who" value="child" /> III-1, their first child</label>
+    </fieldset>
+    <fieldset class="prc-fs">
+      <legend>Her brother, II-1</legend>
+      <label><input type="radio" name="prc-bro" value="aff" checked /> is affected</label>
+      <label><input type="radio" name="prc-bro" value="un" /> is unaffected</label>
+    </fieldset>
+  </div>
+
+  <p class="prc-verdict" data-verdict role="status"></p>
+
+  <div class="prc-steps" data-stepsbox>
+    <div class="prc-steph">The steps, as the lesson writes them</div>
+    <ol class="prc-list" data-steps></ol>
+  </div>
+
+  <div class="prc-samp" data-samp>
+    <div class="prc-sampbar">
+      <span class="prc-steph">Random families from the same model</span>
+      <button type="button" class="prc-btn" data-resample>Resample</button>
+    </div>
+    <div class="prc-row"><span class="prc-lab">Expected</span><span class="prc-track"><span class="prc-fill prc-exp" data-bar-exp></span></span><span class="prc-num" data-num-exp></span></div>
+    <div class="prc-row"><span class="prc-lab">Observed</span><span class="prc-track"><span class="prc-fill prc-obs" data-bar-obs></span></span><span class="prc-num" data-num-obs></span></div>
+    <p class="prc-count" data-count></p>
+  </div>
+
+  <p class="prc-foot">Condition on what you know: knowing a sibling is unaffected removes one outcome and shrinks the denominator. These numbers assume full penetrance, no new mutation, correct relationships and a carrier frequency of 1/25; they are exercises in the logic, not risk figures for a real family.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Who = 'sister' | 'partner' | 'child';
+  type Frac = { n: number; d: number };
+
+  function gcd(a: number, b: number): number { return b === 0 ? a : gcd(b, a % b); }
+  function fr(n: number, d: number): Frac { const g = gcd(Math.abs(n), Math.abs(d)) || 1; return { n: n / g, d: d / g }; }
+  function mul(a: Frac, b: Frac): Frac { return fr(a.n * b.n, a.d * b.d); }
+  function s(f: Frac): string { return f.d === 1 ? String(f.n) : f.n + '/' + f.d; }
+  function dec(f: Frac): number { return f.n / f.d; }
+  function pct(x: number): string {
+    if (x >= 0.1) return (x * 100).toFixed(0) + '%';
+    if (x >= 0.01) return (x * 100).toFixed(1) + '%';
+    return (x * 100).toFixed(2) + '%';
+  }
+
+  const CARRIER = fr(1, 25); // the lesson's assumed carrier frequency for the exercise
+  const TWO_THIRDS = fr(2, 3);
+  const QUARTER = fr(1, 4);
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // One child of Aa x Aa: 0 = AA, 1 = Aa, 2 = aA, 3 = aa (each 1/4). Carrier = 1 or 2; affected = 3.
+  function childOfCarriers(): number { return Math.floor(Math.random() * 4); }
+  // An unaffected child of two carriers: draw again whenever aa comes up.
+  function unaffectedChildOfCarriers(): number { let k = 3; while (k === 3) k = childOfCarriers(); return k; }
+
+  document.querySelectorAll<HTMLElement>('[data-prc]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const steps = root.querySelector<HTMLElement>('[data-steps]')!;
+    const barExp = root.querySelector<HTMLElement>('[data-bar-exp]')!;
+    const barObs = root.querySelector<HTMLElement>('[data-bar-obs]')!;
+    const numExp = root.querySelector<HTMLElement>('[data-num-exp]')!;
+    const numObs = root.querySelector<HTMLElement>('[data-num-obs]')!;
+    const count = root.querySelector<HTMLElement>('[data-count]')!;
+    const radios = (name: string) => Array.from(root.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`));
+    const val = (name: string) => radios(name).find((r) => r.checked)!.value;
+
+    function draw(who: Who, affected: boolean) {
+      stage.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#8a8a96', ACC = '#0e7c86', DARK = '#2b2b33';
+      const sym = (shape: 'sq' | 'ci' | 'di', cx: number, cy: number, filled: boolean, id: string, picked: boolean) => {
+        const r = 11;
+        const common = { fill: filled ? DARK : '#fff', stroke: INK, 'stroke-width': 1.6 };
+        if (picked) stage.appendChild(el('circle', { cx, cy, r: 19, fill: 'none', stroke: ACC, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+        if (shape === 'sq') stage.appendChild(el('rect', { x: cx - r, y: cy - r, width: 2 * r, height: 2 * r, ...common }));
+        else if (shape === 'ci') stage.appendChild(el('circle', { cx, cy, r, ...common }));
+        else stage.appendChild(el('polygon', { points: `${cx},${cy - 14} ${cx + 14},${cy} ${cx},${cy + 14} ${cx - 14},${cy}`, ...common }));
+        stage.appendChild(el('text', { x: cx, y: cy + 29, 'font-size': 9, 'text-anchor': 'middle', fill: picked ? ACC : INK, 'font-weight': picked ? 700 : 400 }, id));
+      };
+      const line = (x1: number, y1: number, x2: number, y2: number) =>
+        stage.appendChild(el('line', { x1, y1, x2, y2, stroke: INK, 'stroke-width': 1.5 }));
+      // generation labels
+      stage.appendChild(el('text', { x: 8, y: 39, 'font-size': 9, fill: FAINT }, 'I'));
+      stage.appendChild(el('text', { x: 8, y: 129, 'font-size': 9, fill: FAINT }, 'II'));
+      stage.appendChild(el('text', { x: 8, y: 204, 'font-size': 9, fill: FAINT }, 'III'));
+      // lines: parents, sibship, partners, child
+      line(141, 35, 179, 35);
+      line(160, 35, 160, 85);
+      line(100, 85, 160, 85);
+      line(100, 85, 100, 114);
+      line(160, 85, 160, 114);
+      line(171, 125, 219, 125);
+      line(195, 125, 195, 176);
+      sym('sq', 130, 35, false, 'I-1', false);
+      sym('ci', 190, 35, false, 'I-2', false);
+      sym('sq', 100, 125, affected, 'II-1', false);
+      sym('ci', 160, 125, false, 'II-2', who === 'sister');
+      sym('sq', 230, 125, false, 'II-3', who === 'partner');
+      sym('di', 195, 190, false, 'III-1', who === 'child');
+      if (affected) {
+        stage.appendChild(el('text', { x: 160, y: 14, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'both parents are Aa (carriers)'));
+      }
+      stage.appendChild(el('text', { x: 256, y: 129, 'font-size': 9, fill: INK }, 'no family history'));
+      stage.appendChild(el('text', { x: 222, y: 194, 'font-size': 9, fill: FAINT }, 'diamond: sex or gender not specified'));
+      // key
+      stage.appendChild(el('rect', { x: 10, y: 222, width: 10, height: 10, fill: DARK, stroke: INK, 'stroke-width': 1 }));
+      stage.appendChild(el('text', { x: 25, y: 231, 'font-size': 9, fill: INK }, 'affected'));
+      stage.appendChild(el('rect', { x: 78, y: 222, width: 10, height: 10, fill: '#fff', stroke: INK, 'stroke-width': 1 }));
+      stage.appendChild(el('text', { x: 93, y: 231, 'font-size': 9, fill: INK }, 'unaffected'));
+      stage.appendChild(el('circle', { cx: 163, cy: 227, r: 6, fill: 'none', stroke: ACC, 'stroke-width': 1.6, 'stroke-dasharray': '3 2' }));
+      stage.appendChild(el('text', { x: 174, y: 231, 'font-size': 9, fill: INK }, 'person you are asking about'));
+    }
+
+    function render() {
+      const who = val('prc-who') as Who;
+      const affected = val('prc-bro') === 'aff';
+      draw(who, affected);
+
+      const stepsBox = root.querySelector<HTMLElement>('[data-stepsbox]')!;
+      const sampBox = root.querySelector<HTMLElement>('[data-samp]')!;
+      if (who !== 'partner' && !affected) {
+        verdict.textContent = 'Not determinable from this pedigree: the lesson gives a carrier probability for her only when her brother is affected.';
+        stepsBox.hidden = true; sampBox.hidden = true;
+        return;
+      }
+      stepsBox.hidden = false; sampBox.hidden = false;
+      const sis: Frac = TWO_THIRDS;
+      const lines: string[] = [];
+      let answer: Frac;
+      let status: string;
+      let expLabel: string;
+
+      if (who === 'sister') {
+        lines.push('Her parents are unaffected and have an affected child, II-1, so both are carriers, Aa.');
+        lines.push('Before her phenotype is known, Aa × Aa gives four equally likely outcomes: AA, Aa (A from the mother), aA (A from the father) and aa, each 1/4.');
+        lines.push('She is unaffected, so aa is impossible. Three equal outcomes remain and two are carriers: P(carrier | unaffected) = (1/2) / (1/4 + 1/2) = (1/2) / (3/4) = 2/3.');
+        lines.push('The value 1/2 is the carrier probability before you learn that she is unaffected. Her phenotype removed one of four outcomes.');
+        status = 'Her brother is affected, so her parents are both carriers. She is unaffected, which removes aa and leaves three outcomes with two carriers: her carrier probability is 2/3, not 1/2.';
+        answer = sis;
+        expLabel = 'carrier';
+      } else if (who === 'partner') {
+        lines.push('He has no family history, so nothing in the chart makes him more likely to be a carrier than anyone else in his population.');
+        lines.push('P(carrier) = 1/25, the exercise’s assumed carrier frequency (often quoted for people of northern European ancestry and lower in many other populations).');
+        answer = CARRIER;
+        expLabel = 'carrier';
+        status = 'He has no family history, so his carrier probability is the assumed frequency, 1/25, whatever happens in her family.';
+      } else {
+        lines.push('Her carrier probability: 2/3, from her affected brother and her own unaffected phenotype.');
+        lines.push('His carrier probability: 1/25.');
+        lines.push('A child is affected only if both parents are carriers and both pass a. For two carriers that has probability 1/4.');
+        answer = mul(mul(sis, CARRIER), QUARTER);
+        lines.push(`P(affected child) = ${s(sis)} × 1/25 × 1/4 = ${s(answer)}. Check: ${dec(sis).toFixed(3)} × 0.04 × 0.25 = ${dec(answer).toFixed(4)}.`);
+        expLabel = 'affected';
+        status = 'The first child is affected only if both parents carry and both pass a: 2/3 × 1/25 × 1/4 = 1/150, about 0.0067.';
+      }
+
+      verdict.textContent = status;
+      steps.replaceChildren();
+      lines.forEach((t) => { const li = document.createElement('li'); li.textContent = t; steps.appendChild(li); });
+
+      // sampling from the same model
+      let obs: number, total: number, text: string;
+      if (who === 'child') {
+        total = 20000;
+        let hits = 0;
+        for (let i = 0; i < total; i++) {
+          const sisterCarrier = (() => { const k = unaffectedChildOfCarriers(); return k === 1 || k === 2; })();
+          const partnerCarrier = Math.random() < dec(CARRIER);
+          if (sisterCarrier && partnerCarrier && Math.random() < 0.5 && Math.random() < 0.5) hits++;
+        }
+        obs = hits; text = `${total.toLocaleString()} random couples drawn like this one: ${hits} had an affected first child. Expected ${(total * dec(answer)).toFixed(1)}.`;
+        showSample(hits / total, total, text);
+      } else if (who === 'sister') {
+        total = 600;
+        let un = 0, car = 0;
+        for (let i = 0; i < total; i++) { const k = childOfCarriers(); if (k !== 3) { un++; if (k === 1 || k === 2) car++; } }
+        obs = un ? car / un : 0;
+        text = `${total} children of two carriers: ${un} were unaffected (expected 450), and ${car} of those ${un} were carriers.`;
+        showSample(obs, un, text);
+      } else {
+        total = 600;
+        let car = 0;
+        for (let i = 0; i < total; i++) if (Math.random() < dec(CARRIER)) car++;
+        text = `${total} unrelated people drawn at the assumed frequency: ${car} were carriers. Expected ${(total * dec(answer)).toFixed(0)}.`;
+        showSample(car / total, total, text);
+      }
+
+      function showSample(o: number, _n: number, t: string) {
+        const e = dec(answer);
+        const bar = (x: number) => Math.max(x * 100, 0.8).toFixed(2) + '%';
+        barExp.style.width = bar(e);
+        barObs.style.width = bar(o);
+        numExp.textContent = `${s(answer)} = ${pct(e)} ${expLabel}`;
+        numObs.textContent = `${pct(o)} ${expLabel}`;
+        count.textContent = t;
+      }
+    }
+
+    root.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach((r) => r.addEventListener('change', render));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .prc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .prc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .prc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .prc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .prc-controls { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--ddp-space-2); }
+  .prc-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .prc-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .prc-fs input { accent-color: var(--ddp-color-accent); }
+  .prc-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .prc-steph { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-weight: 600; }
+  .prc-list { margin: 0.2rem 0 var(--ddp-space-3); padding-left: 1.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; }
+  .prc-samp { border-top: 1px solid var(--ddp-color-line); padding-top: var(--ddp-space-2); }
+  .prc-sampbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem; margin-bottom: 0.3rem; }
+  .prc-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.25rem 0.6rem; cursor: pointer; }
+  .prc-btn:focus-visible, .prc-fs input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .prc-row { display: grid; grid-template-columns: 4.6rem 1fr 11rem; align-items: center; gap: 0.5rem; margin: 0.25rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .prc-lab { color: var(--ddp-color-muted); }
+  .prc-track { display: block; height: 12px; background: color-mix(in srgb, var(--ddp-color-line) 60%, transparent); border-radius: 3px; overflow: hidden; }
+  .prc-fill { display: block; height: 100%; min-width: 2px; border-radius: 3px; }
+  .prc-exp { background: #7a5ea8; }
+  .prc-obs { background: #0e7c86; }
+  .prc-count { margin: 0.3rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .prc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .prc-controls { grid-template-columns: 1fr; }
+    .prc-row { grid-template-columns: 4.2rem 1fr; }
+    .prc-num { grid-column: 1 / -1; }
+  }
+</style>
