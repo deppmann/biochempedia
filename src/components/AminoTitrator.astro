@@ -186,8 +186,16 @@ const { float = 'right', title = 'Try it: titration curve' } = Astro.props;
       pKas.forEach((k, i) => {
         svg.appendChild(el('line', { x1: L, y1: py(k), x2: R, y2: py(k), stroke: MUTE, 'stroke-width': 0.8, 'stroke-dasharray': '3 3', opacity: 0.7 }));
         svg.appendChild(el('circle', { cx: px(eqAt(k)), cy: py(k), r: 2.8, fill: TEAL }));
-        label(`pKa${i + 1} ${k.toFixed(2)}`, { x: R - 2, y: py(k) - 3, 'text-anchor': 'end', 'font-size': 8.5, fill: TEAL });
       });
+      // pKa labels: spread apart vertically so close pKa values never overlap
+      const GAP = 10;
+      const ord = pKas.map((k, i) => ({ k, i, y: py(k) - 3 })).sort((a, b) => a.y - b.y);
+      ord.forEach((o, j) => { if (j > 0 && o.y < ord[j - 1].y + GAP) o.y = ord[j - 1].y + GAP; });
+      for (let j = ord.length - 1; j >= 0; j--) {
+        const maxY = j === ord.length - 1 ? B - 3 : ord[j + 1].y - GAP;
+        if (ord[j].y > maxY) ord[j].y = maxY;
+      }
+      ord.forEach((o) => label(`pKa${o.i + 1} ${o.k.toFixed(2)}`, { x: R - 2, y: Math.max(T + 8, o.y), 'text-anchor': 'end', 'font-size': 8.5, fill: TEAL }));
 
       // the curve
       svg.appendChild(el('path', { d: curvePath(), fill: 'none', stroke: TEAL, 'stroke-width': 2.4 }));

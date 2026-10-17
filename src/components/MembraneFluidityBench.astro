@@ -159,7 +159,12 @@
       // Tm guide (or an arrow saying where it went, when it is off the chart)
       if (Tm >= TMIN && Tm <= TMAX) {
         plot.appendChild(el('line', { x1: xPix(Tm), y1: PY0, x2: xPix(Tm), y2: PY1, stroke: NAVY, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
-        txt(plot, xPix(Tm), PY0 - 6, `Tm ${Tm.toFixed(0)} °C`, 9.5, NAVY, { 'text-anchor': 'middle', 'font-weight': 700 });
+        // keep the label clear of the 'fluid' axis word (left) and inside the frame (right)
+        const tmLab = `Tm ${Tm.toFixed(0)} °C`;
+        const half = (tmLab.length * 0.55 * fs(9.5)) / 2;
+        const tx = xPix(Tm);
+        const lo = tx - half < PX0 + 4, hi = tx + half > 416;
+        txt(plot, lo ? PX0 + 4 : hi ? 416 : tx, PY0 - 6, tmLab, 9.5, NAVY, { 'text-anchor': lo ? 'start' : hi ? 'end' : 'middle', 'font-weight': 700 });
       } else {
         const left = Tm < TMIN;
         txt(plot, left ? PX0 + 4 : PX1, PY0 - 6, left ? `← Tm ${Tm.toFixed(0)} °C, off the chart` : `Tm ${Tm.toFixed(0)} °C, off the chart →`, 9.5, NAVY, { 'text-anchor': left ? 'start' : 'end', 'font-weight': 700 });

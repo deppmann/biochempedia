@@ -145,10 +145,10 @@
       plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
       for (const s of [0, 0.5, 1]) {
         if (s > 0) plot.appendChild(el('line', { x1: X0, y1: py(s), x2: X1, y2: py(s), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
-        txt(plot, X0 - 4, py(s) + 3, Math.round(s * 100) + '%', { 'text-anchor': 'end' });
+        txt(plot, X0 - 6, py(s) + (s === 0 ? 0 : 3), Math.round(s * 100) + '%', { 'text-anchor': 'end' });
       }
-      for (const a of [0, 0.5, 1]) txt(plot, px(a), Y1 + 12, a.toFixed(1), { 'text-anchor': 'middle' });
-      txt(plot, (X0 + X1) / 2, Y1 + 25, 'age (relative units)', { 'text-anchor': 'middle', 'font-size': 10 });
+      for (const a of [0, 0.5, 1]) txt(plot, px(a), Y1 + 15, a.toFixed(1), { 'text-anchor': 'middle' });
+      txt(plot, (X0 + X1) / 2, Y1 + 29, 'age (relative units)', { 'text-anchor': 'middle', 'font-size': 10 });
       txt(plot, X0 - 2, Y0 - 7, 'children with at least one tumor', { 'font-size': 10 });
       const path = (f: (a: number) => number) => {
         let d = '';
