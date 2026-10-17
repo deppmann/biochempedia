@@ -29,7 +29,7 @@
     </section>
 
     <section class="pc-col">
-      <svg class="pc-svg" viewBox="0 0 320 262" role="img" aria-label="Permeability coefficient on a log scale; each molecule you test adds a point in its own column" data-plot></svg>
+      <svg class="pc-svg" viewBox="0 0 320 290" role="img" aria-label="Permeability coefficient on a log scale; each molecule you test adds a point in its own column" data-plot></svg>
       <p class="pc-info">Each molecule you test lands in its own column, fastest on the left. Test them all and the cliff opens up: every gridline down is 100× slower.</p>
     </section>
   </div>
@@ -207,12 +207,13 @@
       txt(plot, PR, PT - 10, 'faster ↑', 8.5, INK, { 'text-anchor': 'end', opacity: 0.8 });
       if (!tested.size) txt(plot, (PL + PR) / 2, (PT + PB) / 2, 'test a molecule to add a point', 9.5, INK, { 'text-anchor': 'middle', opacity: 0.6 });
       const colW = (PR - PL - 16) / (SLOT.length - 1);
-      // categorical x axis: one slanted label per column, dark once that molecule is tested
+      // categorical x axis: one vertical label per column, dark once that molecule is tested
       plot.appendChild(el('line', { x1: PL, y1: PB + 2, x2: PR, y2: PB + 2, stroke: INK, 'stroke-width': 1 }));
       SLOT.forEach((id, i) => {
         const m = MOLECULES.find((mm) => mm.id === id)!;
         const x = PL + 8 + i * colW, on = tested.has(id);
-        txt(plot, x + 2, PB + 8 + fs(8) * 0.5, m.label, 8, on ? PRIMARY : '#9a9aa3', { 'text-anchor': 'end', transform: `rotate(-50 ${x + 2} ${PB + 8 + fs(8) * 0.5})`, 'font-weight': on ? 700 : 400 });
+        const lx = x + fs(8) * 0.35, ly = PB + 8;
+        txt(plot, lx, ly, m.label, 8, on ? PRIMARY : '#9a9aa3', { 'text-anchor': 'end', transform: `rotate(-90 ${lx} ${ly})`, 'font-weight': on ? 700 : 400 });
       });
       tested.forEach(({ mol, effLogP }) => {
         const x = PL + 8 + SLOT.indexOf(mol.id) * colW;
