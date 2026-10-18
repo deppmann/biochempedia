@@ -373,6 +373,7 @@ draft: false
 ---
 
 import ResolutionSamplingExplorer from '../../../components/ResolutionSamplingExplorer.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Two vesicles 150 nm apart, each filled with GFP, look like a single blob in the best ordinary light microscope, and enlarging the picture will never split them.** The reason is a property of light, and it sets what you can and cannot conclude from almost every image in cell biology. This lesson works out where the limit comes from, how big it is for a real objective, how other microscopes get past it, and how to read a fluorescence image without being fooled.
 
@@ -418,11 +419,15 @@ A widefield microscope illuminates the whole depth of the sample, so light from 
 
 **Electron microscopes** use a beam of electrons focused by magnetic lenses. At 100 kV an electron's wavelength is around 0.004 nm, yet the practical resolution in biological specimens is far coarser, limited by preparation, contrast and beam damage. Transmission EM (TEM) sends electrons through sections about 50 to 100 nm thick of fixed, dehydrated, plastic-embedded cells stained with heavy metals; it shows membranes and organelles, but each image is a two-dimensional projection of dead tissue. Scanning EM (SEM) rasters the beam over a coated surface and shows shape. Fixation can make structures that were never there. In **cryo-EM**, samples are frozen so fast that water becomes glass-like vitreous ice instead of crystals. Near-atomic cryo-EM structures come from averaging many images of purified particles, not from imaging a whole cell, although cryo-electron tomography of thinned frozen cells now shows molecules in place at lower resolution.
 
+<LessonFigure src="/figures/microscopy-and-images/tem-section-preparation.webp" width={1200} height={523} alt="AI-generated illustration: a four-step strip showing a cell being fixed, dehydrated and embedded in a plastic block, cut with a knife into a very thin section, and stained on a grid with an electron beam passing through it, with a dashed folded membrane pocket marked as a possible artifact." caption="For transmission EM, cells are chemically fixed, dehydrated, embedded in plastic, cut into sections about 50 to 100 nm thick and stained with heavy metals. The image is a two-dimensional projection of dead tissue, so a structure that fixation could have made must be checked with a second method." />
+
 **Super-resolution** light microscopes get around diffraction by controlling which molecules glow, not by repealing it.
 
 - **STED.** Hell and Wichmann proposed in 1994 to add a ring-shaped beam that forces excited dye molecules back to the dark state by stimulated emission, leaving only a small centre fluorescent. In 2000 Klar, Jakobs, Dyba, Egner and Hell reported a fluorescent spot about 90 to 110 nm across, with smaller gains in live yeast and E. coli.
 - **SIM.** Structured illumination records the sample under a series of striped patterns and computes an image; Gustafsson reported in 2000 a doubling of lateral resolution.
 - **PALM and STORM.** Published in 2006 by Betzig and colleagues (PALM), by Rust, Bates and Zhuang (STORM), and by Hess, Girirajan and Mason (FPALM), these switch on a sparse few fluorophores at a time, find the centre of each blur, and plot thousands of positions.
+
+<LessonFigure src="/figures/microscopy-and-images/sted-ring-beam.webp" width={1200} height={798} alt="AI-generated illustration: a top-down field of dye molecules with a large excitation spot, a ring-shaped depletion beam laid over its outer part, and a small bright gold centre where molecules are still free to glow; an inset compares the larger excitation-only spot with the smaller spot recorded with the ring beam." caption="STED adds a ring-shaped beam that forces excited dye molecules back to the dark state by stimulated emission, leaving only a small centre fluorescent. Diffraction still sets the size of the beams; the trick is controlling which molecules glow." />
 
 Locating one isolated molecule is not the same as resolving two. The centre of a single blur can be found to a few nanometres, and in the shot-noise limit the uncertainty falls as 1/√N for N detected photons. That is **localization precision**. Resolution also needs enough labelled molecules, a small enough label, and care with blinking, since one fluorescent protein that switches off and on can be counted several times. MINFLUX reported about 1 nm precision in 2017, but on DNA origami, not in a cell.
 

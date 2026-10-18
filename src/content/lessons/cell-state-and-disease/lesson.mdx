@@ -371,6 +371,7 @@ draft: false
 ---
 
 import BulkVersusComposition from '../../../components/BulkVersusComposition.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In middle-aged and elderly organ donors with healthy oesophagus, cells carrying a NOTCH1 mutation made up an estimated 12 to 80% of the lining.**
 
@@ -383,6 +384,8 @@ Every cell in a tissue carries the same genome. What makes a keratinocyte differ
 The steps are simple to state. You dissociate the tissue into single cells, usually with enzymes. Each cell's RNA is captured and copied into DNA tagged with a cell barcode, a short sequence shared by every molecule from that cell. In many methods each molecule also gets a unique molecular identifier, so copies made later can be collapsed back into one original molecule. The pooled DNA is sequenced (see [sequencing and genomes](/lessons/sequencing-and-genomes/)), and the reads are sorted by barcode and counted.
 
 The output is a count matrix: one row per gene, one column per cell, each entry the number of molecules (or reads) counted. Analysis then runs through quality control, normalization, choosing informative genes and reducing dimensions. Cells are linked to their most similar neighbours in a graph, and groups of tightly linked cells become clusters. Finally each cluster is annotated: given a name by comparing its genes with what is already known about expected expression profiles.
+
+<LessonFigure src="/figures/cell-state-and-disease/scrna-seq-pipeline.webp" width={1200} height={394} alt="AI-generated illustration: three steps of single-cell RNA sequencing. Tissue is separated into single cells, each cell's RNA molecules receive a shared cell barcode and individual molecular identifiers, and counts are arranged in a genes-by-cells grid whose cells group into named clusters." caption="Single-cell RNA-seq in three steps: separate the cells, tag every molecule with its cell's barcode, then count molecules into a genes-by-cells matrix that is clustered and annotated." />
 
 Think of it as a census taken by reading everyone's shopping list. You can sort people into groups by what they buy, but a list does not tell you who the person is.
 
@@ -426,6 +429,8 @@ Three kinds of evidence turn such a picture into a cause.
 
 **Lineage.** Mark a cell and every descendant. Weinreb, Klein, Camargo and colleagues gave mouse haematopoietic progenitors inherited DNA barcodes that are expressed as RNA, sequenced some cells early and followed their sisters' progeny. Sister cells shared fate biases that the RNA profiles had not detected. In tissues, the same logic uses inducible Cre recombinase to switch on a fluorescent reporter in a few cells (see [stem cells and tissue renewal](/lessons/stem-cells/)).
 
+<LessonFigure src="/figures/cell-state-and-disease/barcoded-sisters.webp" width={1200} height={723} alt="AI-generated illustration: a mouse blood progenitor with a gold barcode divides into two sisters. One sister is sequenced at once; the other is left to make progeny that all carry the same barcode, so the early profile can be matched to the clone's later fate." caption="Sisters share an inherited barcode. One is sequenced at once, the other is left to make progeny, and the barcode matches the early RNA profile to the clone's later fate." />
+
 **Perturbation.** Remove or block the candidate and see whether the outcome changes, then restore it (see [experiments that distinguish mechanisms](/lessons/experiments-that-distinguish/)).
 
 **Protein.** RNA does not measure protein. CITE-seq, described in 2017, reads DNA-tagged antibodies alongside RNA, so a surface marker can be measured in the same cell rather than inferred.
@@ -435,6 +440,8 @@ Three kinds of evidence turn such a picture into a cause.
 A renewing epithelium stays the same size only if cell gain matches cell loss. In mouse oesophagus, only basal progenitor cells divide. Each division can give two progenitors (PP), two differentiating daughters (DD) or one of each (PD), and in wild-type tissue these outcomes are balanced. Differentiating cells move upward and are shed.
 
 Crowding adds a second balance. In crowded MDCK sheets and in zebrafish epidermis, Eisenhoffer, Rosenblatt and colleagues saw epithelia squeeze out living cells (see [epithelia](/lessons/epithelia/)); most extruding cells lacked the apoptosis marker active caspase-3 (see [cell death](/lessons/cell-death/)). Knocking down the stretch-activated channel Piezo1 in zebrafish blocked this extrusion and produced masses of epidermal cells.
+
+<LessonFigure src="/figures/cell-state-and-disease/crowding-extrusion.webp" width={1200} height={679} alt="AI-generated illustration: a crowded epithelial sheet pushes one living cell out through its top surface; the cell lacks active caspase-3. An inset shows the stretch-activated channel Piezo1 knocked down, extrusion blocked, and a mass of cells piled on the sheet." caption="In crowded epithelia, living cells are squeezed out and most lack active caspase-3. Knocking down Piezo1 in zebrafish blocks extrusion and masses of epidermal cells form." />
 
 A mutant clone wins by tilting these balances. It need not divide faster (see [cell-cycle control](/lessons/cell-cycle-control/)). Notch signalling is linked to differentiation of squamous epithelial cells (see [Notch signalling](/lessons/notch-signaling/)). In mouse oesophagus, Abby and colleagues found in 2023 that Notch1-mutant clones expanded without a higher division rate. EdU tracking was consistent with more progenitor and fewer differentiating daughters per division, and wild-type neighbours at the clone edge differentiated faster.
 
