@@ -14,9 +14,10 @@ const hasVideo = pub(TALK_VIDEO.src) && pub(TALK_VIDEO.poster) && pub(TALK_VIDEO
 const items = [
   {
     id: 'finish',
-    kind: 'slider' as const,
+    kind: 'choice' as const,
     q: 'Twelve graduate students had a pre-work module due on Friday. It takes a careful student about 3 to 4 hours. By Thursday morning, how many of the twelve had finished it?',
-    min: 0, max: 12, answer: 2, unit: 'students',
+    options: ['2', '5', '8', '11'],
+    answer: 0,
     reveal:
       'Two of twelve had finished by Thursday morning. By Friday at 8:40 am, nine had, with three partly done. Most of the work happens the night before. Without a view of the pre-work, a teacher would not have known this until class began.',
     point: 'Making thinking visible before class means you can see who has done the work while there is still time to act on it.',
@@ -43,9 +44,10 @@ const items = [
   },
   {
     id: 'dynein',
-    kind: 'slider' as const,
+    kind: 'choice' as const,
     q: 'Before class, eight graduate students answered: "Does blocking dynein prove that TrkA is the cargo?" and wrote a reason. Predict how many said yes.',
-    min: 0, max: 8, answer: 2, unit: 'said yes',
+    options: ['0', '2', '4', '6'],
+    answer: 1,
     reveal:
       'Two said yes and six said no. The class opened on a slide showing exactly that split, built from their own anonymous answers. The slide is not there to say who is right. It shows the room where it disagrees, in its own words, and tells students in the first minute that the pre-work was read.',
     point: 'Show the room its own words.',
@@ -116,7 +118,6 @@ const items = [
     .td .td-opt input { margin-top: 0.3em; }
     .td .td-scale { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
     .td .td-scale .td-opt { margin: 0; flex: 1 1 5.5rem; justify-content: center; text-align: center; }
-    .td input[type=range] { width: 100%; min-height: 44px; accent-color: var(--ddp-color-accent); }
     .td .td-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-lg); }
     .td textarea { width: 100%; min-height: 6rem; padding: var(--ddp-space-3); font: inherit; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-bg); color: var(--ddp-color-ink); }
     .td .td-hint { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); margin: var(--ddp-space-1) 0 0; }
@@ -148,15 +149,14 @@ const items = [
 
   <script>
     type Item = {
-      id: string; kind: 'slider' | 'choice'; q: string;
-      min?: number; max?: number; answer: number; unit?: string;
-      options?: string[]; reveal: string; point: string;
+      id: string; kind: 'choice'; q: string;
+      answer: number; options: string[]; reveal: string; point: string;
     };
     type Rec = { pred: number; why: string; before: number; after?: number };
 
     const root = document.getElementById('td-app') as HTMLElement;
     const items: Item[] = JSON.parse(root.dataset.items || '[]');
-    const KEY = 'bp-teachers-demo-v1';
+    const KEY = 'bp-teachers-demo-v2';
     const MIN_WORDS = 10;
     const CONF = ['Guessing', 'Unsure', 'Maybe', 'Fairly sure', 'Certain'];
 
@@ -168,7 +168,7 @@ const items = [
 
     const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
     const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
-    const fmt = (it: Item, v: number) => (it.kind === 'choice' ? (it.options as string[])[v] : `${v} ${it.unit ?? ''}`.trim());
+    const fmt = (it: Item, v: number) => it.options[v];
 
     let idx = 0;
     // Resume at the first item with no final confidence.
@@ -188,18 +188,9 @@ const items = [
       const locked = !!r;
       const n = idx + 1;
       const pct = Math.round((idx / items.length) * 100);
-      let input = '';
-      if (it.kind === 'choice') {
-        input = `<fieldset><legend>Your prediction</legend>${(it.options as string[])
-          .map((o, i) => `<label class="td-opt"><input type="radio" name="pred" value="${i}" ${locked ? 'disabled' : ''} ${locked && r.pred === i ? 'checked' : ''}> ${esc(o)}</label>`)
-          .join('')}</fieldset>`;
-      } else {
-        const mid = locked ? r.pred : Math.round(((it.min as number) + (it.max as number)) / 2);
-        input = `<fieldset><legend>Your prediction</legend>
-          <label for="pred" class="td-hint">Move the slider to commit to a number (${it.min} to ${it.max}).</label>
-          <input id="pred" type="range" min="${it.min}" max="${it.max}" step="1" value="${mid}" ${locked ? 'disabled' : ''} aria-valuetext="${mid} ${it.unit ?? ''}">
-          <p class="td-val"><output id="predout" for="pred">${locked ? r.pred : mid}</output> ${esc(it.unit ?? '')}<span id="untouched" class="td-hint">${locked ? '' : ' (not set yet)'}</span></p></fieldset>`;
-      }
+      const input = `<fieldset><legend>Your prediction</legend>${it.options
+        .map((o, i) => `<label class="td-opt"><input type="radio" name="pred" value="${i}" ${locked ? 'disabled' : ''} ${locked && r.pred === i ? 'checked' : ''}> ${esc(o)}</label>`)
+        .join('')}</fieldset>`;
       root.innerHTML = `
         <div class="td-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${items.length}" aria-valuenow="${idx}" aria-label="Progress"><span style="width:${pct}%"></span></div>
         <section class="td-card" aria-labelledby="q-h">
@@ -221,28 +212,17 @@ const items = [
 
       const why = document.getElementById('why') as HTMLTextAreaElement;
       const lock = document.getElementById('lock') as HTMLButtonElement;
-      let touched = false;
-      const slider = document.getElementById('pred') as HTMLInputElement | null;
       const check = () => {
         const wc = words(why.value);
         (document.getElementById('wc') as HTMLElement).textContent = String(wc);
-        const hasPred = it.kind === 'choice' ? !!root.querySelector('input[name=pred]:checked') : touched;
+        const hasPred = !!root.querySelector('input[name=pred]:checked');
         const hasConf = !!root.querySelector('input[name=before]:checked');
         lock.disabled = !(hasPred && hasConf && wc >= MIN_WORDS);
       };
-      slider?.addEventListener('input', () => {
-        touched = true;
-        (document.getElementById('predout') as HTMLElement).textContent = slider.value;
-        (document.getElementById('untouched') as HTMLElement).textContent = '';
-        slider.setAttribute('aria-valuetext', `${slider.value} ${it.unit ?? ''}`);
-        check();
-      });
       root.querySelectorAll('input[type=radio]').forEach((e) => e.addEventListener('change', check));
       why.addEventListener('input', check);
       lock.addEventListener('click', () => {
-        const pred = it.kind === 'choice'
-          ? Number((root.querySelector('input[name=pred]:checked') as HTMLInputElement).value)
-          : Number((slider as HTMLInputElement).value);
+        const pred = Number((root.querySelector('input[name=pred]:checked') as HTMLInputElement).value);
         const before = Number((root.querySelector('input[name=before]:checked') as HTMLInputElement).value);
         recs[it.id] = { pred, why: why.value.trim(), before };
         save();
