@@ -45,6 +45,7 @@ const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
 const { Content } = await render(entry);
 const lesson = entry.data;
+const lessonFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
 
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
@@ -445,7 +446,7 @@ const lessonLd = {
 
     <dialog id="lb-sources" class="lightbox lock-scroll">
       <div class="lightbox-head"><span>Sources &amp; Integrity</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-      <div class="lightbox-body"><SourcesFooter lesson={lesson} /></div>
+      <div class="lightbox-body"><SourcesFooter lesson={lesson} figures={lessonFigures} /></div>
     </dialog>
 
     {lesson.explainLevels.map((lv) => (

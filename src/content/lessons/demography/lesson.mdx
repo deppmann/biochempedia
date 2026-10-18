@@ -356,6 +356,7 @@ draft: false
 ---
 
 import LifeTableBuilder from '../../../components/LifeTableBuilder.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Of 100 adult birds banded at a colony, 60 are seen there the next year. Does that mean 40 died?** Not necessarily. Some may be alive and unseen, and some may be breeding at another colony. Before you can say how fast a population grows, you need to know who survives and who reproduces at each age, and you need to know how good your counts are. This lesson builds that bookkeeping, the life table, and then asks where its numbers come from.
 
@@ -430,12 +431,16 @@ Age structure also carries **demographic momentum**. If fertility falls to repla
 
 **Cohort follow-up** gives the cleanest table but is slow: for a long-lived species, nobody lives long enough to watch one cohort die out. **Static tables** take a snapshot instead, ageing every individual alive, or every carcass, at one time and treating the age counts as one cohort. That works only if the population is stationary, with similar births and death rates for years. **Mark-recapture** follows marked animals that cannot be counted directly.
 
+<LessonFigure src="/figures/demography/cohort-vs-static-sampling.webp" width={1200} height={800} alt="AI-generated illustration: two halves compared. On the left, one group of four animals drawn at four successive moments, shrinking to one, with a time arrow. On the right, a single snapshot of animals of different sizes with a skeleton lying beside the largest, and a small inset showing those ages stacked as if they were one group." caption="A cohort follow-up watches one birth group over time. A static table takes a snapshot, ageing every individual alive or every carcass, and treats the counts as one cohort, which works only if the population is stationary." />
+
 Each method has known weak points:
 
 - **Censoring.** An animal still alive when the study ends, or lost to an accident, is right-censored: it counts as at risk for the time it was seen, never as a death. The 2016 primate tables, for example, removed half the censored animals from the number at risk in their interval.
 - **Few old individuals.** Small samples at old ages make gradual changes in mortality hard to detect, so the tail of any table is its least certain part.
 - **Pooled years.** Tables pooled across years, as the primate tables were, give average rates and hide good and bad years.
 - **Missing is not dead.** An animal not seen may be alive and missed, or alive and gone. Mark-recapture models estimate detection and **apparent survival** separately, but apparent survival is true survival multiplied by site fidelity. Permanent emigration pulls it below true survival, a problem that [spatial populations](/lessons/spatial-populations/) takes further.
+
+<LessonFigure src="/figures/demography/censoring-three-fates.webp" width={1200} height={800} alt="AI-generated illustration: a timeline of six equal blocks with a Study ends line, and three lanes, each a single animal. One gold bar ends in a cross (died), one reaches the study-end line and continues as a dashed arrow (still alive), one ends at an accident icon (lost). Only the first is marked as a death." caption="Censoring on one timeline: an animal that dies is a death. An animal still alive when the study ends, or lost to an accident, counts as at risk for the time it was seen and is never counted as a death." />
 
 The Hydra study shows how much conventions matter: its annual death probability near 0.006 holds for laboratory cohorts with catastrophic deaths censored. It is evidence against a universal rule of rising adult mortality, not evidence that Hydra are immortal.
 
