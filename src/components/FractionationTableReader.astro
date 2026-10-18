@@ -1,0 +1,225 @@
+---
+/**
+ * FractionationTableReader — read the lesson's made-up rat-liver fractionation table.
+ * The learner picks an enzyme (a row) and a fraction (a column); the component works out
+ * relative specific activity (% of activity / % of protein), enrichment and recovery with
+ * the lesson's own arithmetic, marks where each enzyme peaks, and shows which other
+ * enzymes are also enriched in the chosen fraction (enrichment is not purity). For enzyme
+ * X in fraction L a detergent switch reproduces the lesson's latency test (10% measurable
+ * in intact particles, 100% after detergent). Every number comes from the lesson's table
+ * or its latency example. Nothing is random. Original, self-contained vanilla-TS island.
+ */
+---
+
+<figure class="fr card" data-fractable>
+  <figcaption class="fr-head">Fractionation table reader: enrichment is not purity<span class="fr-tag">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="fr-set">
+    <legend>Enzyme (a row of the table)</legend>
+    <div class="fr-chips" data-enz></div>
+  </fieldset>
+  <fieldset class="fr-set">
+    <legend>Fraction (a column of the table)</legend>
+    <div class="fr-chips" data-frac></div>
+  </fieldset>
+
+  <svg class="fr-svg" viewBox="0 0 360 200" role="img" aria-label="Bars for each of the five fractions: percent of total protein and percent of the chosen enzyme's activity, with the relative specific activity under each" data-bars></svg>
+
+  <p class="fr-verdict" data-verdict role="status"></p>
+
+  <ul class="fr-work" data-work></ul>
+
+  <svg class="fr-svg" viewBox="0 0 360 140" role="img" aria-label="Relative specific activity of all four enzymes in the chosen fraction" data-rsa></svg>
+
+  <div class="fr-lat" data-lat hidden>
+    <label class="fr-detlabel"><input type="checkbox" data-det /> add detergent to open the particles</label>
+    <p class="fr-latcap">Lesson’s supposed example: share of X’s activity that can be measured in L</p>
+    <div class="fr-latbars" data-latbars></div>
+  </div>
+
+  <p class="fr-peaks-h">RSA = relative specific activity. Where each enzyme peaks (highest RSA)</p>
+  <ul class="fr-peaks" data-peaks></ul>
+
+  <p class="fr-foot">Rule to keep: relative specific activity = % of the enzyme’s activity in the fraction ÷ % of the protein in the fraction. A fraction rich in one marker can still carry another, so read several markers together. The numbers are the lesson’s made-up teaching data.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const FR = ['N', 'M', 'L', 'P', 'S'] as const;
+  const FRNAME: Record<string, string> = { N: 'nuclear', M: 'heavy mitochondrial', L: 'light mitochondrial', P: 'microsomal', S: 'soluble, the cytosol' };
+  const PROTEIN = [15, 20, 5, 20, 40];
+  const ENZ = [
+    { id: 'co', name: 'Cytochrome oxidase', short: 'cytochrome oxidase', mark: 'mitochondrial marker', color: '#c25e00', act: [10, 70, 15, 5, 0] },
+    { id: 'ap', name: 'Acid phosphatase', short: 'acid phosphatase', mark: 'lysosomal marker', color: '#0e7c86', act: [8, 25, 45, 12, 10] },
+    { id: 'g6', name: 'Glucose-6-phosphatase', short: 'glucose-6-phosphatase', mark: 'ER marker', color: '#7a5ea8', act: [10, 10, 10, 65, 5] },
+    { id: 'x', name: 'Unknown enzyme X', short: 'enzyme X', mark: 'unknown', color: '#8a6508', act: [9, 24, 44, 13, 10] },
+  ];
+  const INK = '#4b4b55';
+  function num(v: number): string {
+    let s = (Math.round(v * 1000) / 1000).toString();
+    if (!s.includes('.')) s += '.0';
+    return s;
+  }
+  const fold = (v: number) => (Number.isInteger(v) ? String(v) : num(v));
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const rsa = (e: number, f: number) => ENZ[e].act[f] / PROTEIN[f];
+  const peakOf = (e: number) => { let b = 0; for (let f = 1; f < 5; f++) if (rsa(e, f) > rsa(e, b)) b = f; return b; };
+
+  document.querySelectorAll<HTMLElement>('[data-fractable]').forEach((root) => {
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const enzBox = q<HTMLElement>('[data-enz]'), fracBox = q<HTMLElement>('[data-frac]');
+    const bars = q<SVGSVGElement>('[data-bars]'), rsaSvg = q<SVGSVGElement>('[data-rsa]');
+    const verdict = q<HTMLElement>('[data-verdict]'), work = q<HTMLElement>('[data-work]');
+    const lat = q<HTMLElement>('[data-lat]'), latBars = q<HTMLElement>('[data-latbars]');
+    const det = q<HTMLInputElement>('[data-det]'), peaks = q<HTMLElement>('[data-peaks]');
+    const uid = Math.random().toString(36).slice(2, 7);
+    let e = 1, f = 2;
+
+    function chip(box: HTMLElement, group: string, value: number, label: string, checked: boolean, onPick: () => void) {
+      const l = document.createElement('label');
+      l.className = 'fr-chip';
+      const i = document.createElement('input');
+      i.type = 'radio'; i.name = group + uid; i.value = String(value); i.checked = checked;
+      i.addEventListener('change', () => { if (i.checked) onPick(); });
+      const s = document.createElement('span');
+      s.textContent = label;
+      l.append(i, s);
+      box.appendChild(l);
+    }
+    ENZ.forEach((z, i) => chip(enzBox, 'enz', i, z.name, i === e, () => { e = i; render(); }));
+    FR.forEach((n, i) => chip(fracBox, 'frac', i, `${n} ${FRNAME[n]}`, i === f, () => { f = i; render(); }));
+    det.addEventListener('change', render);
+
+    function drawBars() {
+      bars.replaceChildren();
+      const z = ENZ[e], base = 148, k = 1.1;
+      bars.appendChild(el('rect', { x: 8, y: 4, width: 8, height: 8, fill: '#b9b9c4' }));
+      bars.appendChild(el('text', { x: 20, y: 12, 'font-size': 9, fill: INK }, '% of total protein'));
+      bars.appendChild(el('rect', { x: 130, y: 4, width: 8, height: 8, fill: z.color }));
+      bars.appendChild(el('text', { x: 142, y: 12, 'font-size': 9, fill: INK }, `% of total ${z.short}`));
+      const pk = peakOf(e);
+      FR.forEach((n, i) => {
+        const gx = 20 + i * 64;
+        if (i === f) bars.appendChild(el('rect', { x: gx - 4, y: 20, width: 60, height: 176, rx: 4, fill: '#e8f1f4', stroke: '#0e7c86', 'stroke-width': 1 }));
+        const ph = PROTEIN[i] * k, ah = z.act[i] * k;
+        bars.appendChild(el('rect', { x: gx, y: base - ph, width: 24, height: ph, fill: '#b9b9c4' }));
+        bars.appendChild(el('text', { x: gx + 12, y: base - ph - 3, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, String(PROTEIN[i])));
+        if (ah > 0) bars.appendChild(el('rect', { x: gx + 26, y: base - ah, width: 24, height: ah, fill: z.color }));
+        bars.appendChild(el('text', { x: gx + 38, y: base - ah - 3, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: z.color }, String(z.act[i])));
+        bars.appendChild(el('line', { x1: gx - 2, y1: base, x2: gx + 52, y2: base, stroke: '#8a8a96', 'stroke-width': 1 }));
+        bars.appendChild(el('text', { x: gx + 25, y: 163, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, n));
+        bars.appendChild(el('text', { x: gx + 25, y: 176, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, `RSA ${num(rsa(e, i))}`));
+        if (i === pk) bars.appendChild(el('text', { x: gx + 25, y: 190, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: z.color }, 'peak'));
+      });
+    }
+
+    function drawRsa() {
+      rsaSvg.replaceChildren();
+      const x0 = 142, u = 17;
+      rsaSvg.appendChild(el('text', { x: 6, y: 12, 'font-size': 9, 'font-weight': 700, fill: INK }, `Relative specific activity in fraction ${FR[f]}`));
+      ENZ.forEach((z, i) => {
+        const y = 24 + i * 24, v = rsa(i, f), sel = i === e;
+        rsaSvg.appendChild(el('text', { x: 6, y: y + 13, 'font-size': 9, 'font-weight': sel ? 700 : 400, fill: sel ? z.color : INK }, z.name));
+        const w = Math.max(v * u, v > 0 ? 1 : 0);
+        if (w > 0) rsaSvg.appendChild(el('rect', { x: x0, y, width: w, height: 18, fill: z.color, opacity: sel ? 1 : 0.55 }));
+        rsaSvg.appendChild(el('text', { x: Math.max(x0 + w + 4, x0 + u + 5), y: y + 13, 'font-size': 9, 'font-weight': sel ? 700 : 400, fill: INK }, num(v)));
+      });
+      rsaSvg.appendChild(el('line', { x1: x0 + u, y1: 20, x2: x0 + u, y2: 118, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      rsaSvg.appendChild(el('text', { x: x0 + u + 4, y: 132, 'font-size': 9, fill: INK }, '1.0 = same as the starting homogenate'));
+    }
+
+    function render() {
+      const z = ENZ[e], n = FR[f], a = z.act[f], p = PROTEIN[f], r = rsa(e, f), pk = peakOf(e);
+      drawBars(); drawRsa();
+
+      // working
+      const others = ENZ.map((o, i) => ({ o, i, r: rsa(i, f) })).filter((t) => t.i !== e && t.r > 1);
+      work.replaceChildren();
+      const li = (h: string) => { const x = document.createElement('li'); x.innerHTML = h; work.appendChild(x); };
+      li(`<strong>Relative specific activity</strong> (RSA) = ${a} ÷ ${p} = <strong>${num(r)}</strong>`);
+      li(`<strong>Enrichment</strong>: ${r > 1 ? `${fold(r)}-fold over the starting homogenate (a value above 1 is enriched)` : r === 0 ? 'none, the fraction holds no activity' : 'not enriched (the value is not above 1)'}`);
+      li(`<strong>Recovery</strong> = <strong>${a}%</strong> of all the ${z.short} activity is in fraction ${n}`);
+      li(others.length
+        ? `<strong>${r > 1 ? 'Also enriched' : 'Enriched'} in ${n}</strong>: ${others.map((t) => `${t.o.short} (${t.o.act[f]} ÷ ${p} = ${num(t.r)})`).join('; ')}`
+        : `<strong>Other enzymes enriched in ${n}</strong>: none of the other three`);
+
+      // latency block: only the lesson's example (enzyme X in intact L particles)
+      const latOn = e === 3 && f === 2;
+      lat.hidden = !latOn;
+      if (!latOn) det.checked = false;
+      latBars.replaceChildren();
+      if (latOn) {
+        const open = det.checked;
+        const row = (label: string, v: number, on: boolean) => {
+          const d = document.createElement('div');
+          d.className = 'fr-latrow' + (on ? ' is-on' : '');
+          d.innerHTML = `<span class="fr-latlab">${label}</span><span class="fr-lattrack"><span class="fr-latfill" style="width:${v}%"></span></span><span class="fr-latval">${v}%</span>`;
+          latBars.appendChild(d);
+        };
+        row('intact particles', 10, !open);
+        row('with detergent', 100, open);
+      }
+
+      // status
+      let s = `${z.short[0].toUpperCase() + z.short.slice(1)} in fraction ${n} (${FRNAME[n]}): ${a}% of its activity sits in ${p}% of the protein, so its relative specific activity is ${a} ÷ ${p} = ${num(r)}`;
+      s += r > 1 ? `, an enrichment of ${fold(r)}-fold. ` : r === 0 ? ': none of it is here. ' : ', so it is not enriched here. ';
+      s += f === pk ? `This is the fraction where ${z.short} peaks. ` : `${z.short[0].toUpperCase() + z.short.slice(1)} peaks in ${FR[pk]} (${num(rsa(e, pk))}), not here. `;
+      s += `Recovery here is ${a}%, so ${100 - a}% of it is elsewhere. `;
+      if (others.length) s += `Fraction ${n} is ${r > 1 ? 'also ' : ''}enriched in ${others.map((t) => t.o.short).join(', ').replace(/, ([^,]*)$/, ' and $1')}: enrichment is not purity. `;
+      else s += `No other marker is enriched in ${n}, but enrichment would still not be purity. `;
+      if (e === 3) s += 'Its whole profile follows acid phosphatase, not cytochrome oxidase, so it is provisionally lysosomal; a shared peak alone can come from two organelles that happen to sediment together. ';
+      if (latOn) s += det.checked
+        ? 'Suppose, as in the lesson, that detergent opens the particles and raises the measurable activity of X from 10% to 100%: 100% instead of 10%. X would then be 90% latent, so it sits behind a membrane, inside a particle, rather than stuck to the outside.'
+        : 'Suppose, as in the lesson, that in intact L particles only 10% of X’s activity can be measured. Add detergent to open them.';
+      verdict.textContent = s.trim();
+
+      // peaks list
+      peaks.replaceChildren();
+      ENZ.forEach((o, i) => {
+        const x = document.createElement('li');
+        const pf = peakOf(i);
+        x.className = i === e ? 'is-sel' : '';
+        x.innerHTML = `<span class="fr-dot" style="background:${o.color}"></span>${o.name} (${o.mark}): <strong>${FR[pf]}</strong>, ${num(rsa(i, pf))}`;
+        peaks.appendChild(x);
+      });
+    }
+    render();
+  });
+</script>
+
+<style is:global>
+  .fr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fr-tag { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fr-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-2); padding: 0.3rem 0.6rem 0.5rem; min-width: 0; }
+  .fr-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .fr-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  label.fr-chip { position: relative; font-family: inherit; display: inline-block; }
+  label.fr-chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  label.fr-chip span { display: block; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.28rem 0.55rem; }
+  label.fr-chip input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  label.fr-chip input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .fr-svg { display: block; width: 100%; max-width: 600px; margin: var(--ddp-space-3) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fr-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .fr-work, .fr-peaks { margin: 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.55; }
+  .fr-peaks { list-style: none; padding-left: 0; }
+  .fr-peaks li.is-sel { color: var(--ddp-color-primary); font-weight: 600; }
+  .fr-peaks-h { margin: var(--ddp-space-3) 0 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fr-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.4rem; vertical-align: baseline; }
+  .fr-lat { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.5rem 0.7rem; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fr-latcap { margin: 0 0 0.3rem; }
+  .fr-lat[hidden] { display: none; }
+  .fr-detlabel { display: block; margin-bottom: 0.4rem; }
+  .fr-detlabel input { accent-color: var(--ddp-color-accent); margin-right: 0.35rem; }
+  .fr-latrow { display: grid; grid-template-columns: 8.5em 1fr 3em; align-items: center; gap: 0.5rem; margin: 0.2rem 0; opacity: 0.55; }
+  .fr-latrow.is-on { opacity: 1; font-weight: 600; }
+  .fr-lattrack { display: block; height: 0.7rem; background: #e6e6ec; border-radius: 3px; overflow: hidden; }
+  .fr-latfill { display: block; height: 100%; background: #8a6508; }
+  .fr-latval { text-align: right; }
+  .fr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

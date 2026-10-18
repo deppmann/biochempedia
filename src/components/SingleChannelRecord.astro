@@ -1,0 +1,191 @@
+---
+/**
+ * SingleChannelRecord — read a one-channel patch-clamp record. A patch holds K+ channels
+ * at the lesson's worked numbers ([K+]in 140 mM, [K+]out 5 mM, 37 C, E_K = -89.1 mV,
+ * gamma = 20 pS). Two sliders: the clamp voltage sets the STEP HEIGHT i = gamma x (Vm - E_K),
+ * which shrinks to zero at E_K and flips direction beyond it; the open probability sets
+ * HOW LONG the channel sits open. Dwell times are drawn at random (Resample), so the
+ * measured fraction of time open sits beside the set P_o. The mean current of N channels
+ * is I = N x i x P_o. Does not set concentrations (that is the Nernst calculator).
+ * Time is in relative units: the lesson gives no dwell times, so the record is a sketch
+ * of the logic. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="scr card" data-scr>
+  <figcaption class="scr-head">Single-channel record: step height and open time<span class="scr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="scr-svg" viewBox="0 0 400 224" role="img" aria-label="Current trace of one K+ channel in a clamped patch: square steps between closed and open" data-plot></svg>
+
+  <div class="scr-controls">
+    <label class="scr-ctl" for="scr-vm">
+      <span>Clamp voltage Vm: <strong data-vmout></strong></span>
+      <input id="scr-vm" type="range" min="-120" max="20" step="1" value="-40" data-vm />
+    </label>
+    <label class="scr-ctl" for="scr-po">
+      <span>Open probability P<sub>o</sub> (set): <strong data-poout></strong></span>
+      <input id="scr-po" type="range" min="0" max="1" step="0.05" value="0.3" data-po />
+    </label>
+    <div class="scr-ctl scr-row">
+      <label for="scr-n">Channels in the patch for the mean current, N</label>
+      <input id="scr-n" class="scr-num" type="number" min="1" max="1000" step="1" value="100" data-n />
+      <button type="button" class="scr-btn" data-resample>Resample the record</button>
+    </div>
+  </div>
+
+  <dl class="scr-read">
+    <div><dt>Unitary current i = γ × (Vm − E<sub>K</sub>)</dt><dd data-i></dd></div>
+    <div><dt>Ions per second through the open channel</dt><dd data-ips></dd></div>
+    <div><dt>Direction of K<sup>+</sup> flow</dt><dd data-dir></dd></div>
+    <div><dt>Fraction of time open: measured here, set</dt><dd data-frac></dd></div>
+    <div><dt>Mean current, I = N × i × P<sub>o</sub>: expected, from this record</dt><dd data-mean></dd></div>
+  </dl>
+
+  <p class="scr-status" data-status role="status"></p>
+
+  <p class="scr-foot">The step height i comes from the driving force and sets which way ions move; the open probability P<sub>o</sub> is read from how long the channel stays open. In this sketch, P<sub>o</sub> is set separately from Vm; in a real voltage-gated channel Vm can change both. Assumes the lesson’s ohmic 20 pS K<sup>+</sup> channel; E<sub>K</sub> = −89.1 mV (140 mM in, 5 mM out, 37 °C). Dwell times are drawn at random. Time is in relative units, so this record is a sketch of the logic, not a prediction for a real channel.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const E_K = -89.1;      // mV, the lesson's worked value
+  const GAMMA = 20;       // pS
+  const E_CHARGE = 1.602e-19; // C
+  const T_END = 100;      // relative time units in the window
+  const CYCLE = 10;       // mean open + closed duration, relative units
+  const NDRAW = 600;
+  const Y_MIN = -1, Y_MAX = 2.5; // pA
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmt = (x: number, d: number) => x.toFixed(d).replace('-', '−');
+  function sci(x: number): string {
+    if (x === 0) return '0';
+    const e = Math.floor(Math.log10(Math.abs(x)));
+    const m = x / Math.pow(10, e);
+    return `${m.toFixed(1).replace('-', '−')} × 10^${e}`;
+  }
+  document.querySelectorAll<HTMLElement>('[data-scr]').forEach((root) => {
+    const q = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const vmIn = q<HTMLInputElement>('[data-vm]'), poIn = q<HTMLInputElement>('[data-po]'), nIn = q<HTMLInputElement>('[data-n]');
+    let draws: number[] = [];
+    function resample() { draws = Array.from({ length: NDRAW }, () => Math.random()); }
+    // Alternating dwell times (exponential), starting state drawn from P_o.
+    function segments(po: number): { t0: number; t1: number; open: boolean }[] {
+      if (po <= 0) return [{ t0: 0, t1: T_END, open: false }];
+      if (po >= 1) return [{ t0: 0, t1: T_END, open: true }];
+      const segs: { t0: number; t1: number; open: boolean }[] = [];
+      let t = 0, open = draws[0] < po, k = 1;
+      while (t < T_END && k < NDRAW) {
+        const mean = open ? CYCLE * po : CYCLE * (1 - po);
+        const d = -Math.log(1 - draws[k++] * 0.999999) * mean;
+        const t1 = Math.min(T_END, t + d);
+        segs.push({ t0: t, t1, open });
+        t = t1; open = !open;
+      }
+      if (t < T_END) segs.push({ t0: t, t1: T_END, open });
+      return segs;
+    }
+    const L = 54, R = 392, TOP = 14, BOT = 172;
+    const X = (t: number) => L + (t / T_END) * (R - L);
+    const Y = (i: number) => BOT - ((i - Y_MIN) / (Y_MAX - Y_MIN)) * (BOT - TOP);
+
+    function render() {
+      let vm = Number(vmIn.value);
+      if (Math.abs(vm - E_K) < 0.5) vm = E_K; // the slider moves in 1 mV steps; -89 is treated as E_K
+      const po = Number(poIn.value);
+      let n = Math.round(Number(nIn.value));
+      if (!(n >= 1)) n = 1;
+      if (n > 1000) n = 1000;
+      const i = (GAMMA * (vm - E_K)) / 1000; // pS x mV = fA; /1000 = pA
+      const ips = Math.abs(i * 1e-12) / E_CHARGE;
+      const segs = segments(po);
+      const openTime = segs.filter((s) => s.open).reduce((a, s) => a + (s.t1 - s.t0), 0);
+      const frac = openTime / T_END;
+      const zero = Math.abs(i) < 1e-9;
+
+      q('[data-vmout]').textContent = (vm === E_K ? `${fmt(vm, 1)} mV (= E_K)` : `${fmt(vm, 0)} mV`);
+      q('[data-poout]').textContent = fmt(po, 2);
+      q('[data-i]').textContent = `${fmt(i, 2)} pA   (20 pS × ${fmt(vm - E_K, 1)} mV)`;
+      q('[data-ips]').textContent = zero ? '0 (no net flow at E_K)' : `${sci(ips)} per second`;
+      q('[data-dir]').textContent = zero ? 'none: Vm = E_K' : (i > 0 ? 'outward (K+ leaves the cell)' : 'inward (K+ enters the cell)');
+      q('[data-frac]').textContent = `${fmt(frac, 2)} measured, ${fmt(po, 2)} set`;
+      q('[data-mean]').textContent = `${fmt(n * i * po, 2)} pA expected, ${fmt(n * i * frac, 2)} pA (N = ${n})`;
+
+      // ----- plot -----
+      plot.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#8a8a96', OUT = '#c25e00', IN = '#0e7c86';
+      const col = zero ? FAINT : (i > 0 ? OUT : IN);
+      for (const v of [-1, 0, 1, 2]) {
+        plot.appendChild(el('line', { x1: L, y1: Y(v), x2: R, y2: Y(v), stroke: v === 0 ? '#bdbdc6' : '#ececf1', 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: L - 5, y: Y(v) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, fmt(v, 0)));
+      }
+      plot.appendChild(el('text', { x: 10, y: (TOP + BOT) / 2, 'font-size': 9, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 10 ${(TOP + BOT) / 2})` }, 'current (pA), outward up'));
+      plot.appendChild(el('line', { x1: L, y1: BOT, x2: R, y2: BOT, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('text', { x: L, y: BOT + 12, 'font-size': 9, 'text-anchor': 'start', fill: INK }, '0'));
+      plot.appendChild(el('text', { x: R, y: BOT + 12, 'font-size': 9, 'text-anchor': 'end', fill: INK }, '100'));
+      plot.appendChild(el('text', { x: (L + R) / 2, y: BOT + 24, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'time (relative units)'));
+      // the step trace: closed = 0, open = i
+      let d = '';
+      segs.forEach((s, k) => {
+        const y = Y(s.open ? i : 0);
+        d += k === 0 ? `M${X(s.t0)} ${y}` : ` V${y}`;
+        d += ` H${X(s.t1)}`;
+      });
+      plot.appendChild(el('path', { d, fill: 'none', stroke: col, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }));
+      // E_K note and labels (halo keeps them readable over the trace)
+      const halo = { 'font-size': 9, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' } as Record<string, string | number>;
+      plot.appendChild(el('text', { ...halo, x: L + 4, y: Y(0) + 11, 'text-anchor': 'start', fill: INK }, 'closed: 0 pA'));
+      if (po > 0) plot.appendChild(el('text', { ...halo, x: R - 4, y: zero ? Y(0) - 5 : (i > 0 ? Y(i) - 5 : Y(i) + 12), 'text-anchor': 'end', fill: col }, zero ? 'open level = closed level' : `open: i = ${fmt(i, 2)} pA`));
+      // time open bar
+      const bw = (R - L) * Math.min(1, Math.max(0, frac));
+      plot.appendChild(el('text', { x: L, y: BOT + 40, 'font-size': 9, fill: INK }, 'time open'));
+      plot.appendChild(el('rect', { x: L + 52, y: BOT + 32, width: R - L - 52, height: 7, fill: '#ececf1' }));
+      plot.appendChild(el('rect', { x: L + 52, y: BOT + 32, width: (R - L - 52) * Math.min(1, Math.max(0, frac)), height: 7, fill: col === FAINT ? INK : col }));
+      plot.appendChild(el('line', { x1: L + 52 + (R - L - 52) * po, y1: BOT + 29, x2: L + 52 + (R - L - 52) * po, y2: BOT + 42, stroke: INK, 'stroke-width': 1.5 }));
+      void bw;
+
+      // ----- status -----
+      let s: string;
+      if (zero) {
+        s = `At Vm = E_K the driving force Vm − E_K is zero, so the open channel carries no current: the open level sits on the closed level. The channel still opens and closes (open ${fmt(frac, 2)} of the time here), but the steps have no height to read.`;
+      } else if (i > 0) {
+        s = `Vm is above E_K by ${fmt(vm - E_K, 1)} mV, so each opening is an outward step of ${fmt(i, 2)} pA: K+ leaves, about ${sci(ips)} ions per second. In this record the channel is open ${fmt(frac, 2)} of the time (set ${fmt(po, 2)}).`;
+      } else {
+        s = `Vm is below E_K by ${fmt(E_K - vm, 1)} mV, so the driving force favours influx and each opening is an inward step of ${fmt(Math.abs(i), 2)} pA: K+ enters, about ${sci(ips)} ions per second. In this record the channel is open ${fmt(frac, 2)} of the time (set ${fmt(po, 2)}).`;
+      }
+      if (po === 1) s = 'At P_o = 1 in this sketch the channel stays open throughout, so the record is a flat line at ' + fmt(i, 2) + ' pA (' + (zero ? 'zero at E_K' : i > 0 ? 'outward' : 'inward') + '), with no steps.';
+      else if (po === 0) s = 'With P_o = 0 the channel never opens, so the record is flat at 0 pA with no steps. If it did open, the step would be ' + fmt(i, 2) + ' pA (' + (zero ? 'zero at E_K' : i > 0 ? 'outward' : 'inward') + ').';
+      s += ' In this sketch, P_o is set separately from Vm; in a real voltage-gated channel Vm can change both.';
+      q('[data-status]').textContent = s;
+    }
+    q<HTMLButtonElement>('[data-resample]').addEventListener('click', () => { resample(); render(); });
+    ['input', 'change'].forEach((ev) => { vmIn.addEventListener(ev, render); poIn.addEventListener(ev, render); nIn.addEventListener(ev, render); });
+    resample();
+    render();
+  });
+</script>
+
+<style is:global>
+  .scr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .scr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .scr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .scr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .scr-controls { display: grid; gap: 0.6rem; margin-bottom: var(--ddp-space-3); }
+  .scr-ctl { display: grid; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .scr-ctl input[type="range"] { width: 100%; accent-color: var(--ddp-color-accent); }
+  .scr-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .scr-num { width: 5.5em; font-size: var(--ddp-text-xs); padding: 0.25rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; }
+  .scr-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .scr-btn:focus-visible, .scr-num:focus-visible, .scr-ctl input[type="range"]:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .scr-read { margin: 0 0 var(--ddp-space-2); display: grid; gap: 0.25rem; font-size: var(--ddp-text-xs); }
+  .scr-read > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.1rem 0.8rem; border-bottom: 1px solid var(--ddp-color-line); padding: 0.2rem 0; }
+  .scr-read dt { color: var(--ddp-color-muted); }
+  .scr-read dd { margin: 0; color: var(--ddp-color-primary); font-weight: 600; font-family: var(--ddp-font-mono); overflow-wrap: anywhere; }
+  .scr-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4em; }
+  .scr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

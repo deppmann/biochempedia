@@ -1,0 +1,474 @@
+---
+title: "Protein Quality Control and Organelle Turnover"
+slug: "quality-control-and-autophagy"
+course: "cell-biology"
+courseChapter: "Cell Biology · Unit 2: Membranes and compartments"
+order: 409
+summary: >-
+  A cell checks the proteins it makes and destroys the ones that fail, and it can take apart
+  whole organelles. This lesson follows a new protein through the folding checks of the
+  endoplasmic reticulum, the alarm that sounds when too many fail, and the two machines that
+  destroy what is rejected: the proteasome and the lysosome. Afterwards you can read an autophagy
+  flux experiment and decide which step a mutant or a drug has broken.
+hook: "A starving yeast cell eats pieces of itself. Why does a mutant that cannot do so die sooner?"
+
+estMinutes: 24
+objectives:
+  - "Explain how BiP, the calnexin and calreticulin cycle and UGGT hold a misfolded protein in the ER, and trace ER-associated degradation from ubiquitination to the proteasome."
+  - "Describe the three mammalian branches of the unfolded protein response (IRE1, PERK, ATF6), the single Ire1 branch of yeast, and why prolonged stress can kill a cell."
+  - "Compare the proteasome and lysosome routes, including macroautophagy, ER-phagy and PINK1 and Parkin mitophagy."
+  - "Calculate autophagic flux from LC3-II blots with and without a lysosomal inhibitor, and use the result to say whether a treatment changes induction or degradation."
+
+explainer:
+  src: "/explainers/quality-control-and-autophagy/explainer.mp4"
+  captions: "/explainers/quality-control-and-autophagy/explainer.vtt"
+  poster: "/explainers/quality-control-and-autophagy/poster.jpg"
+  title: "Count the Flux, Not the Dots"
+  durationSec: 171.5
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Yoshinori Ohsumi"
+    contribution: >-
+      With Miki Tsukada, screened yeast for mutants that fail to carry cytoplasm into the vacuole
+      during starvation, and found genes that fell into 15 complementation groups, the start of the
+      genetic map of autophagy.
+    profileSourceAnchor: "Tsukada & Ohsumi, FEBS Lett. 333:169-174 (1993); Ohsumi, Nobel Lecture in Physiology or Medicine (2016)."
+    quotes: []
+    story: >-
+      Ohsumi's approach rested on a visual trick. The yeast vacuole, the cell's equivalent of the
+      lysosome, destroys whatever reaches it, so delivery is hard to see. His laboratory used
+      strains that lack vacuolar proteinases. When those cells were starved of nitrogen, small
+      membrane-bound bodies built up inside the vacuole, where a light microscope could see them,
+      because nothing digested them. In 1993, with Miki Tsukada, he turned that into a screen. They
+      mutagenized a protease-deficient strain and looked, cell by cell, for mutants in which the
+      bodies failed to accumulate. The one found this way, apg1, lost viability faster than normal yeast during
+      nitrogen starvation, so the process was needed to survive it. Using loss of viability as the first test, they selected 75 more mutants, and complementation tests sorted
+      the mutants into 15 groups, each standing for at least one gene. Those genes, later renamed
+      ATG genes, gave the field names for the parts of the machine and a way to remove each one.
+      In 2016 Ohsumi received the Nobel Prize in Physiology or Medicine alone, for discoveries of
+      mechanisms for autophagy.
+  - name: "Peter Walter"
+    contribution: >-
+      With Jeffery Cox and Caroline Shamu, found that the yeast gene IRE1 encodes an ER membrane
+      kinase that carries the unfolded protein signal from the ER to the nucleus.
+    profileSourceAnchor: "Cox, Shamu & Walter, Cell 73:1197-1206 (1993); Cox & Walter, Cell 87:391-404 (1996)."
+    quotes: []
+    story: >-
+      By the early 1990s it was known that yeast and mammalian cells make more ER chaperones when
+      unfolded proteins pile up in the ER, but not how a signal in the ER lumen reaches genes in
+      the nucleus. Walter's laboratory at the University of California, San Francisco, attacked it
+      with genetics. Jeffery Cox and Caroline Shamu looked in yeast for mutants that could no longer
+      switch on chaperone genes when the ER was stressed.
+      In 1993 they reported that one gene, IRE1, encodes a kinase that spans
+      the ER membrane, with one end in the lumen and the other in the cytosol. Kazutoshi Mori and
+      colleagues, in Joseph Sambrook's laboratory, reported the same gene that year. Cox and Walter
+      went on to identify the transcription factor Hac1, whose mRNA, with Cecilia Sidrauski, they showed is spliced by an unusual route
+      outside the spliceosome. Later work from the laboratory showed that Ire1 itself cuts that
+      mRNA. The yeast pathway became the template for finding IRE1 and its target XBP1 in mammals.
+  - name: "Richard Youle"
+    contribution: >-
+      With Derek Narendra, Atsushi Tanaka and Der-Fen Suen, showed in cultured cells that Parkin
+      moves to mitochondria that have lost their membrane potential and promotes their removal by
+      autophagy.
+    profileSourceAnchor: "Narendra, Tanaka, Suen & Youle, J. Cell Biol. 183:795-803 (2008); Narendra et al., PLoS Biol. 8:e1000298 (2010)."
+    quotes: []
+    story: >-
+      Parkin is a ubiquitin ligase whose gene is mutated in an inherited form of Parkinson's
+      disease, but in 2008 it was not clear what it did in a cell. Youle's laboratory at the
+      National Institutes of Health tested whether it acts on damaged mitochondria. Derek Narendra
+      and colleagues expressed Parkin tagged with yellow fluorescent protein in HeLa cells, then
+      added CCCP, an uncoupler that collapses the mitochondrial membrane potential. Parkin left the
+      cytosol and gathered on the depolarized mitochondria. Endogenous Parkin did the same in HEK293
+      cells after one hour of CCCP. After 48 hours, electron micrographs of HeLa cells expressing
+      Parkin showed far fewer mitochondria, and fibroblasts lacking the autophagy gene Atg5 kept
+      their Parkin-marked mitochondria. In 2010 the laboratory reported that the kinase PINK1
+      builds up on depolarized mitochondria and is needed for Parkin to arrive. The work gave cell
+      biologists a reliable way to make cells destroy chosen mitochondria on demand, and a set of
+      steps to dissect.
+  - name: "Tom Rapoport"
+    contribution: >-
+      With Ryan Baldridge, rebuilt the first step of ER-associated degradation from purified yeast
+      proteins and found that self-ubiquitination of the ligase Hrd1 triggers movement of a
+      misfolded protein across the membrane.
+    profileSourceAnchor: "Baldridge & Rapoport, Cell 166:394-407 (2016)."
+    quotes: []
+    story: >-
+      Rapoport's laboratory at Harvard Medical School had spent years on the channel that carries
+      new proteins into the ER. ER-associated degradation posed the reverse problem: a misfolded
+      protein in the lumen has to come back out into the cytosol to meet the proteasome. Genetics
+      in yeast had named the parts, including the ubiquitin ligase Hrd1, but genetics alone could
+      not say which part forms the passage. Baldridge and Rapoport purified Hrd1 and a misfolded protein
+      anchored in the membrane, the model substrate CPY*, and placed them together in synthetic
+      lipid vesicles. A fluorescent label on the substrate's luminal domain could be quenched by an
+      antibody only if that domain reached the outside. When Hrd1 ubiquitinated itself, the
+      substrate crossed. In 2016 they proposed that Hrd1 forms a ubiquitin-gated channel, with the
+      ATPase Cdc48 completing extraction. Because the system was built from defined parts, each
+      requirement could be tested by leaving one part out, the logic that genetic screens can
+      suggest and only reconstitution can test.
+
+techniques:
+  - name: "Cycloheximide chase"
+    blurb: >-
+      Cycloheximide stops new protein synthesis, and samples taken over time are immunoblotted for
+      one protein. The rate at which its band fades gives its degradation rate, separate from its
+      rate of synthesis. A protein that stays stable in a mutant points to a block in its
+      destruction.
+  - name: "LC3-II turnover (flux) assay"
+    blurb: >-
+      LC3-II, the lipid-linked form of LC3 on autophagosome membranes, is measured by immunoblot
+      with and without a lysosomal inhibitor such as bafilomycin A1. The difference between the two
+      shows how much LC3-II the lysosome destroyed in that time, which a single steady-state
+      measurement cannot.
+  - name: "Mutant screen and complementation"
+    blurb: >-
+      Mutagenized cells are screened for a visible failure, such as no autophagic bodies in the
+      vacuole. Crossing mutants and asking which pairs restore the normal phenotype sorts them into
+      complementation groups, each standing for at least one gene.
+  - name: "Proteoliposome reconstitution"
+    blurb: >-
+      Purified membrane proteins are inserted into synthetic lipid vesicles, and the reaction is
+      run with defined parts. Leaving out one part at a time, or using an inactive version, shows
+      what each is required for in that minimal system.
+
+structures:
+  - label: "Ubiquitin — the tag read by the proteasome"
+    source: "rcsb"
+    id: "1UBQ"
+    note: "Human ubiquitin, X-ray crystal structure (Vijay-Kumar, Bugg & Cook, J. Mol. Biol., 1987)"
+    caption: >-
+      A small, compact protein of 76 residues. Find the lysine side chains on its surface; chains
+      of ubiquitin are built by linking one ubiquitin's tail to a lysine of the next.
+  - label: "20S proteasome core — a barrel with its blades inside"
+    source: "rcsb"
+    id: "1RYP"
+    note: "Saccharomyces cerevisiae 20S proteasome, X-ray crystal structure (Groll et al., Nature, 1997)"
+    caption: >-
+      Four stacked rings of seven subunits form a hollow cylinder. The active sites line the inner
+      chamber, so only an unfolded chain threaded through the narrow end can be cut.
+  - label: "p97/VCP — the ATPase that pulls ERAD substrates out of the membrane"
+    source: "rcsb"
+    id: "3CF1"
+    note: "Mammalian p97/VCP, X-ray crystal structure (Davies, Brunger & Weis, Structure, 2008)"
+    caption: >-
+      Six identical subunits form two stacked rings of ATPase domains around a central pore. The
+      mammalian enzyme is the counterpart of yeast Cdc48.
+  - label: "Bafilomycin A1 — the V-ATPase blocker used in flux assays"
+    source: "pubchem"
+    id: "6436223"
+    note: "Bafilomycin A1, a macrolide from Streptomyces, PubChem compound record"
+    caption: >-
+      A large macrolide ring. By blocking the V-ATPase it stops lysosomes from acidifying, so
+      lysosomal degradation, including that of LC3-II, halts.
+
+simulations:
+  - type: "local"
+    ref: "AutophagyFluxBlot"
+    title: "LC3-II flux: the same band, two stories"
+    caption: >-
+      Switch bafilomycin on and off for Control, Starved and Drug D, or set your own amounts, and watch the same LC3-II band mean induction or a block.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In the calnexin and calreticulin cycle, what does the enzyme UGGT do?"
+    choices:
+      - "It adds glucose back to a protein that is still not folded"
+      - "It removes mannose so that a protein is sent to the Golgi"
+      - "It trims the last glucose so that a folded protein can leave"
+      - "It attaches ubiquitin to a protein that has failed to fold"
+    answer: 0
+    rationale: >-
+      UGGT inspects glycoproteins released from calnexin and calreticulin and re-glucosylates the
+      ones that are still non-native, so they can bind the lectin chaperones again. Trimming the
+      last glucose is the job of glucosidase II, not UGGT. Attaching ubiquitin is done by an E3
+      ligase such as Hrd1 during ERAD. Mannose trimming is associated with sending a protein to
+      degradation, not with sending it to the Golgi.
+  - stem: "Which mammalian UPR sensor removes a 26-nucleotide intron from XBP1 mRNA?"
+    choices:
+      - "BiP, an ER lumen chaperone of the Hsp70 family"
+      - "ATF6, an ER membrane protein cut by Golgi proteases"
+      - "IRE1, an ER membrane kinase that is also an endoribonuclease"
+      - "PERK, an ER membrane kinase that phosphorylates eIF2α"
+    answer: 2
+    rationale: >-
+      IRE1 has a cytosolic RNase domain that cuts XBP1 mRNA, removing the 26-nucleotide intron so
+      the active factor XBP1s is made. PERK is a kinase whose target is eIF2α, not an mRNA. ATF6 is
+      itself cut by Site-1 and Site-2 proteases; it splices nothing. BiP binds unfolded proteins in
+      the lumen and has no RNase activity.
+  - stem: "When PERK phosphorylates eIF2α during ER stress, what happens to protein synthesis?"
+    choices:
+      - "Most translation is unchanged, while ATF4 mRNA is spliced"
+      - "Most translation slows, while ATF4 is translated preferentially"
+      - "Translation of all mRNAs rises, and ATF4 rises along with it"
+      - "Translation of all mRNAs stops, including the mRNA for ATF4"
+    answer: 1
+    rationale: >-
+      Phosphorylated eIF2α slows initiation on most mRNAs, which lowers the load of new proteins
+      entering the ER, while ATF4 mRNA is translated preferentially. Translation does not rise
+      overall; slowing it is the point. It does not stop completely, and ATF4 is the exception that
+      escapes. Splicing is the IRE1 branch acting on XBP1 mRNA, not something PERK does to ATF4.
+  - stem: "In macroautophagy, how does cytoplasmic cargo reach lysosomal hydrolases?"
+    choices:
+      - "Cargo is enclosed in a double-membrane vesicle that fuses with a lysosome"
+      - "Cargo is tagged with ubiquitin and unfolded by a barrel in the cytosol"
+      - "Cargo is taken up at the cell surface and sorted into an endosome"
+      - "Single proteins are threaded through a pore in the lysosome membrane"
+    answer: 0
+    rationale: >-
+      A growing membrane closes around cytoplasm to form an autophagosome with two membranes, and
+      its fusion with a lysosome delivers the inner vesicle and its contents for digestion.
+      Threading single proteins across the lysosome membrane describes a different, minor route
+      and cannot take whole organelles. A ubiquitin-tagged protein unfolded in a cytosolic barrel
+      describes the proteasome. Uptake at the cell surface is endocytosis, which brings material
+      from outside the cell.
+  - stem: "Mouse fibroblasts lacking IRE1α are treated with tunicamycin, which blocks N-glycosylation. Which result is expected?"
+    choices:
+      - "XBP1 mRNA is spliced normally by the PERK kinase"
+      - "BiP is induced only once tunicamycin is removed"
+      - "No UPR at all, since IRE1 is the only sensor in mammals"
+      - "ATF6 is still cleaved and BiP mRNA is still induced"
+    answer: 3
+    rationale: >-
+      Mammals have three UPR branches, and in IRE1α-null fibroblasts ATF6 was still cleaved and
+      tunicamycin still induced BiP mRNA, so the other branches carried on. A single sensor is the
+      yeast arrangement, not the mammalian one. PERK is a kinase and cannot splice XBP1 mRNA in
+      place of IRE1. BiP induction is a response to the stress while it lasts, not to its removal.
+
+mcatQuestions:
+  - stem: "A misfolded ER membrane protein is followed in yeast after cycloheximide is added. In wild-type cells the protein band falls by half every 20 minutes. In a strain lacking the ubiquitin ligase Hrd1, the band barely changes over 90 minutes. What fraction of the protein is left in wild-type cells at 60 minutes, and what does the mutant result show?"
+    choices:
+      - "One eighth is left; Hrd1 is needed to make the protein fold"
+      - "One third is left; Hrd1 is needed to synthesize the protein"
+      - "One eighth is left; Hrd1 is needed to degrade the protein"
+      - "One half is left; Hrd1 is needed to degrade the protein"
+    answer: 2
+    rationale: >-
+      Sixty minutes is three half-lives of 20 minutes, so one half times one half times one half
+      leaves one eighth, or 12.5%. Cycloheximide stops synthesis, so a band that stays constant in
+      the mutant means the protein is no longer destroyed, which points to a block in degradation.
+      One third divides the time by the half-life instead of halving three times, and synthesis is
+      not measured in a chase. One half is the amount after a single half-life. The folding answer
+      misreads a stable band as rescue; a chase measures disappearance, not shape.
+  - stem: "Cultured cells are blotted for LC3-II, normalized to actin, with and without bafilomycin A1 for the last two hours. Untreated cells: 1.0 without, 2.0 with. Cells given compound X: 4.0 without, 4.2 with. Assume the inhibitor is saturating. Which reading fits these data?"
+    choices:
+      - "X induces autophagy, since its LC3-II is four times higher"
+      - "X blocks autophagosome degradation, since its flux is 0.2"
+      - "X blocks autophagosome formation, since its LC3-II is high"
+      - "X induces autophagy, since its flux is 4.2 against 2.0"
+    answer: 1
+    rationale: >-
+      Flux is the LC3-II saved by the inhibitor: 2.0 minus 1.0 is 1.0 for untreated cells and 4.2
+      minus 4.0 is 0.2 for compound X, so X has raised LC3-II while cutting its destruction, the
+      pattern of a block at fusion or degradation. Four-fold more LC3-II at steady state could mean
+      more made or less destroyed, so it cannot show induction. Comparing the bafilomycin lanes
+      alone, 4.2 against 2.0, ignores the starting level. A block in formation would lower LC3-II,
+      not raise it.
+  - stem: "Mouse fibroblasts that express Parkin are treated with CCCP, which depolarizes mitochondria. In wild-type cells Parkin gathers on mitochondria and most mitochondria are gone a day later. In cells lacking Atg5, which cannot build autophagosomes, Parkin gathers on mitochondria as before, but the mitochondria remain. What do these results show?"
+    choices:
+      - "Parkin recruitment needs Atg5, and so does mitochondrial clearance"
+      - "Mitochondrial clearance needs neither Atg5 nor Parkin recruitment"
+      - "Parkin recruitment needs Atg5, but mitochondrial clearance does not"
+      - "Parkin recruitment does not need Atg5, but mitochondrial clearance does"
+    answer: 3
+    rationale: >-
+      Parkin still arrives on depolarized mitochondria without Atg5, so recruitment is upstream of
+      and independent of autophagosome building, while clearance fails, so it needs the autophagy
+      machinery. Recruitment cannot need Atg5, because it happened in cells lacking Atg5. Clearance
+      without Atg5 did not happen, ruling out the claim that clearance needs no Atg5. Nothing here
+      tests clearance without Parkin recruitment, and the Atg5 result already shows clearance has a
+      requirement.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      A cell makes lots of tiny machines, and some come out bent. Helpers inside the cell try to
+      straighten them, and if a machine stays bent, it is chopped up and the pieces are reused.
+      When too many come out bent, the cell slows down and makes more helpers. A cell can even
+      wrap up a whole worn-out part in a bag and send it to a stomach-like bubble to be digested.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Proteins that will be secreted or placed in membranes fold inside a compartment called the
+      endoplasmic reticulum. Helper proteins hold them while they fold and keep the ones that fail
+      from leaving. Failed proteins are pushed back out into the cell fluid, tagged with a small
+      protein called ubiquitin, and destroyed by the proteasome, a barrel-shaped protein shredder.
+      If misfolded proteins pile up, the ER sends an alarm that slows protein production and makes
+      more helpers; if the alarm goes on too long, the cell can die. Bigger things, such as worn-out
+      mitochondria, are wrapped in a double membrane and delivered to the lysosome, an acidic bag
+      of digestive enzymes. That process is called autophagy, meaning self-eating.
+  - level: "college"
+    label: "College"
+    text: >-
+      In the ER lumen BiP binds exposed hydrophobic segments, and the lectin chaperones calnexin and
+      calreticulin bind monoglucosylated N-glycans. Glucosidase II removes the last glucose, and UGGT
+      re-glucosylates non-native proteins so they rebind, holding them in the ER. Persistent misfolding
+      leads to ERAD: retrotranslocation, polyubiquitination by an ER membrane E3 such as Hrd1,
+      extraction by Cdc48 (p97/VCP in mammals) and degradation by the 26S proteasome. Accumulating
+      unfolded protein activates the UPR: IRE1 splices XBP1 mRNA (Hac1 mRNA in yeast, where Ire1 is
+      the only sensor), PERK phosphorylates eIF2α on Ser51 to slow translation while favouring ATF4,
+      and ATF6 is cleaved by S1P and S2P in the Golgi. Lysosomes, kept strongly acidic in mammalian cells
+      by the V-ATPase, receive cargo by macroautophagy, in which a double-membrane autophagosome
+      marked by LC3-II fuses with a lysosome. Receptors such as CCPG1 make autophagy selective for
+      ER, and PINK1 and Parkin mark depolarized mitochondria for mitophagy in cultured cells.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Quality control is a kinetic competition between folding, retention and degradation. The
+      glycan code gives the ER a readout of folding state: UGGT acts as the folding sensor, and in
+      HEK293 cells UGGT1 and UGGT2 prefer different endogenous substrates, so reglucosylation is not
+      a single interchangeable activity. For ERAD, reconstitution of yeast Hrd1 with a
+      membrane-anchored CPY* in proteoliposomes showed that Hrd1 autoubiquitination triggers
+      substrate movement across the bilayer, and suggests a ubiquitin-gated channel, with Cdc48
+      completing extraction. Measurement is the hard part in autophagy: LC3-II or puncta at steady
+      state cannot separate synthesis from turnover, so flux is inferred from the LC3-II saved by a
+      saturating lysosomal inhibitor, checked against a cargo readout such as p62 and tandem
+      fluorescent reporters. PINK1 and Parkin mitophagy is robust after uncoupler treatment of
+      cultured cells, often with overexpressed Parkin, yet in mito-QC reporter mice lacking Pink1,
+      basal mitophagy in the sampled tissues was largely preserved, with pancreatic islets the
+      exception.
+
+
+      Open question: how Ire1 detects unfolded proteins. Models include release of BiP from the
+      luminal domain and direct binding of unfolded chains, and in yeast Ire1 can also respond to
+      lipid bilayer stress without its luminal domain, with a different transcriptional output.
+      How these inputs are weighted in a given cell remains under study.
+
+anecdotes:
+  - title: "One sensor gone, and the alarm still rings"
+    source: "Lee et al., Genes & Development 16:452-466 (2002)."
+    text: >-
+      Because yeast has only one UPR sensor, it was tempting to treat IRE1 as the master switch in
+      mammals too. A 2002 study of mouse embryonic fibroblasts lacking IRE1α tested that. Without
+      IRE1α, the cells could not splice XBP1 mRNA, as expected. Yet ATF6 was still cleaved when ER
+      stress was applied, and tunicamycin still induced BiP mRNA. The mammalian response is built
+      from branches that overlap. Losing one changes the output; it does not silence the alarm.
+  - title: "Mice without PINK1 still recycle their mitochondria"
+    source: "McWilliams et al., Cell Metabolism 27:439-449 (2018)."
+    text: >-
+      The PINK1 and Parkin pathway was worked out mainly in cultured cells flooded with an uncoupler,
+      often with extra Parkin. In 2018 a group used mito-QC, a reporter in which mitochondria turn
+      red-only once they reach a lysosome, to watch basal mitophagy in mouse tissues. In mice lacking
+      Pink1 the red-only spots were largely preserved in the tissues sampled, with pancreatic islets
+      the exception. The finding did not overturn the cultured-cell work. It showed that cells in an
+      animal have more than one way to dispose of a mitochondrion.
+  - title: "A Nobel for a tag"
+    source: "The Nobel Prize in Chemistry 2004, NobelPrize.org."
+    text: >-
+      The ubiquitin tag that sends proteins to the proteasome was worked out largely in extracts of
+      rabbit reticulocytes, red-cell precursors that lack lysosomes, which made an ATP-dependent,
+      non-lysosomal route to protein breakdown easier to study. The 2004 Nobel Prize in Chemistry went
+      to Aaron Ciechanover, Avram Hershko and Irwin Rose for the discovery of ubiquitin-mediated
+      protein degradation. Twelve years later the Physiology or Medicine prize went to Yoshinori Ohsumi
+      alone for the other great route, autophagy.
+
+corpusTags:
+  - "er-quality-control"
+  - "calnexin-cycle"
+  - "erad"
+  - "unfolded-protein-response"
+  - "proteasome"
+  - "lysosome"
+  - "macroautophagy"
+  - "er-phagy"
+  - "mitophagy"
+  - "autophagic-flux"
+draft: false
+---
+
+import AutophagyFluxBlot from '../../../components/AutophagyFluxBlot.astro';
+
+**Starve a yeast cell of nitrogen and it starts to digest pieces of its own cytoplasm. A mutant that cannot do this loses viability faster than normal yeast during the starvation.**
+
+That mutant, *apg1*, came from a 1993 screen by Miki Tsukada and Yoshinori Ohsumi, and it points at an idea you will use throughout this lesson: a cell destroys parts of itself on purpose, and it needs to. Proteins misfold, and organelles wear out. This lesson follows a protein from the endoplasmic reticulum, where it is checked, to the two machines that destroy what fails, and then to the lysosome route that can take apart a whole organelle.
+
+## The idea: checkpoints for proteins
+
+Think of a factory with inspectors on the line. A part that fails inspection is held back and sent round again. If it keeps failing, it is scrapped. If too many parts fail at once, the factory slows the line and hires more inspectors.
+
+The endoplasmic reticulum (ER) runs this kind of line for secreted and membrane proteins (see [protein sorting](/lessons/protein-sorting/)). Its lumen, the space enclosed by the ER membrane, is a folding compartment. A protein that cannot reach its native shape is kept in the ER and later destroyed instead of being sent on to the Golgi. When unfolded proteins pile up, the cell answers with a signalling program, the unfolded protein response (UPR), that slows protein synthesis and makes more folding machinery.
+
+Two destruction routes back up the checkpoints. The proteasome, a barrel-shaped protease in the cytosol and nucleus, destroys single proteins that carry ubiquitin tags. The lysosome, an acidic compartment full of hydrolases, digests whatever is delivered to it, including membranes and whole organelles.
+
+## Folding in the ER and the unfolded protein response
+
+A new chain enters the ER lumen through the translocon. BiP, an Hsp70-family chaperone of the ER lumen, binds its exposed hydrophobic stretches and helps it fold. Many proteins entering the ER also receive an N-linked glycan, a branched sugar tree attached to asparagine, with three glucose residues at its tip. That sugar becomes a tag that reports folding.
+
+1. Glucosidases trim two of the glucoses, leaving one. Calnexin (membrane-bound) and calreticulin (soluble) are lectin chaperones, proteins that bind sugars, and they hold the monoglucosylated protein while it folds.
+2. Glucosidase II removes the last glucose, and the protein is released.
+3. UGGT, an enzyme that adds glucose back, inspects the released protein. If it is still non-native, UGGT re-glucosylates it and it can bind calnexin or calreticulin again. If it is folded, it can leave the ER.
+
+The cycle has been traced in detail for particular clients. In HEK293-derived cells, for example, it was followed for the IGF-1 receptor, and the two human UGGT enzymes turned out to prefer different substrates. A protein that cycles too long is diverted to ER-associated degradation (ERAD). In the standard account, trimming of mannose residues from its glycan helps mark it.
+
+ERAD moves a protein across a membrane in the wrong direction. The misfolded protein is carried from the lumen back to the cytosol (retrotranslocation), tagged with a ubiquitin chain by an E3 ligase in the ER membrane (Hrd1 in yeast), pulled out by the ATPase Cdc48 (p97, or VCP, in mammals) and handed to the proteasome. In 2016 Ryan Baldridge and Tom Rapoport put purified yeast Hrd1 and a membrane-anchored misfolded substrate into synthetic lipid vesicles. Hrd1 ubiquitinating itself triggered movement of the substrate across the membrane, and the results suggest that Hrd1 forms a ubiquitin-gated channel, with Cdc48 completing extraction. That is a reconstitution with yeast proteins; whether every ERAD substrate in every cell crosses this way is not settled.
+
+When misfolded proteins accumulate, sensors in the ER membrane notice. Budding yeast has one, Ire1, reported in 1993 by Jeffery Cox, Caroline Shamu and Peter Walter, and in parallel by Kazutoshi Mori and colleagues. Ire1 spans the ER membrane and carries a kinase and an RNase on its cytosolic side. Activated, it cuts an intron out of the mRNA for the transcription factor Hac1, by a route outside the spliceosome, and the spliced mRNA makes Hac1. Mammals have three branches:
+
+- **IRE1** removes a 26-nucleotide intron from *XBP1* mRNA (shown for mouse XBP1), which yields the active transcription factor XBP1s.
+- **PERK** phosphorylates the translation factor eIF2α on serine 51. That slows most translation, lowering the load entering the ER, while allowing preferential translation of ATF4 (the kinase side is in [stress signals](/lessons/stress-signals/)).
+- **ATF6** travels to the Golgi, where Site-1 and Site-2 proteases cut it and release a transcription factor.
+
+The branches overlap but can be separated. In mouse fibroblasts lacking IRE1α, ATF6 was still cleaved, and tunicamycin, a drug that blocks N-glycosylation, still induced BiP mRNA. One broken branch does not silence the response. If the stress is not relieved, the UPR can also drive cell death (see [cell death](/lessons/cell-death/)).
+
+## Two shredders: proteasome and lysosome
+
+The 26S proteasome is a hollow cylinder, the 20S core, capped by regulatory particles. Its proteolytic sites face inward, so only an unfolded chain threaded into the barrel is cut. The caps recognise ubiquitin chains, remove the ubiquitin for reuse, and use ATP to unfold the substrate and push it in. The tagging system itself is covered in [ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/), and the chemistry of protein breakdown in [protein turnover](/lessons/protein-turnover-amino-acid-catabolism/). The proteasome shreds single proteins, not large aggregates or whole mitochondria.
+
+The lysosome can. A V-ATPase pumps protons into its lumen and holds mammalian lysosomes at a strongly acidic pH (see [organelles as environments](/lessons/organelles-as-environments/)), where its hydrolases work best. Material reaches it from outside by endocytosis and from inside by autophagy.
+
+In macroautophagy, the main form, a cup-shaped membrane grows around a portion of cytoplasm and closes into an autophagosome, a vesicle bounded by two membranes. The autophagosome fuses with a lysosome, and the inner membrane and its contents are digested; the building blocks return to the cytosol. Starvation turns the process up through nutrient-sensing kinases such as mTOR (see [mTOR and AMPK](/lessons/mtor-and-ampk/)). Ohsumi's yeast genes, later renamed *ATG* genes, encode much of the machinery, including a system that attaches the protein LC3 (Atg8 in yeast) to the lipid phosphatidylethanolamine. Lipid-linked LC3, called LC3-II, coats autophagosome membranes, and the copies on the inner membrane are destroyed in the lysosome.
+
+## Eating organelles: autophagy and mitophagy
+
+Autophagy is not only bulk eating. In selective autophagy, receptors link a chosen cargo to the LC3 family. CCPG1 is a receptor for ER-phagy, the selective digestion of parts of the ER; it binds mammalian ATG8-family proteins and the autophagy protein FIP200 through distinct motifs. Mice with reduced Ccpg1 accumulate insoluble protein in the ER of pancreatic acinar cells.
+
+Mitophagy removes mitochondria. In 2008 Derek Narendra, Atsushi Tanaka, Der-Fen Suen and Richard Youle showed in cultured cells that Parkin, a ubiquitin ligase, moves to mitochondria that have lost their membrane potential. In 2010 the same laboratory reported that the kinase PINK1 is kept low on healthy, polarized mitochondria by voltage-dependent proteolysis and builds up on depolarized ones, where it was necessary and sufficient for Parkin recruitment in the cells tested. Parkin then ubiquitinates outer-membrane proteins, and the mitochondrion is engulfed.
+
+Two limits matter. These experiments used uncouplers such as CCCP, which depolarize every mitochondrion at once, and largely overexpressed Parkin. And in reporter mice lacking Pink1, basal mitophagy in the sampled tissues was mostly preserved, with pancreatic islets the exception. PINK1 and Parkin are a well-proven route for damaged mitochondria in culture, not the only route in an animal.
+
+How do you measure autophagy? Counting LC3 dots, or LC3-II on a blot, fails on its own. More autophagosomes could mean more are made or fewer are destroyed, just as a fuller sink could mean the tap is on harder or the drain is blocked.
+
+**Worked problem: autophagic flux.** In this made-up data set, cultured cells are immunoblotted for LC3-II, each band normalized to actin, with the control set to 1.0. Bafilomycin A1, which blocks the V-ATPase and so lysosomal degradation, is added for the last few hours. Assume it is saturating, so any extra LC3-II it reveals is LC3-II that would otherwise have been destroyed.
+
+| Condition | Without bafilomycin | With bafilomycin |
+|---|---|---|
+| Control | 1.0 | 2.0 |
+| Starved | 1.5 | 4.5 |
+| Drug D | 3.0 | 3.2 |
+
+> flux = LC3-II (with bafilomycin) − LC3-II (without bafilomycin)
+
+Step 1. Control: 2.0 − 1.0 = 1.0. Starved: 4.5 − 1.5 = 3.0. Drug D: 3.2 − 3.0 = 0.2.
+
+Step 2. Starvation triples flux (3.0 / 1.0 = 3): more autophagosomes are made and destroyed.
+
+Step 3. Drug D has the most LC3-II at steady state, 3.0, but a flux of only 0.2, one fifth of control. It blocks fusion or degradation, not induction. Read without bafilomycin, it would look like the strongest inducer.
+
+<AutophagyFluxBlot />
+
+Step 4. Confirm with cargo. p62, a receptor destroyed along with its cargo, should fall with starvation and rise with drug D. A tandem reporter, LC3 tagged with red and green fluorescent proteins, also helps: green fluorescence is quenched in the acidic lysosome, so normal flux gives red-only dots, while a block before fusion leaves dots that are both red and green.
+
+Real data need the same care. In HeLa cells exposed to CCCP for 48 hours, electron micrographs showed 0.62 mitochondrial profiles per µm² of cytoplasm without YFP-Parkin and 0.074 with it.
+
+> reduction = (0.62 − 0.074) / 0.62 = 0.546 / 0.62 = 0.881, so 88.1% lower
+
+That compares mean two-dimensional densities in two groups of cells at one time. It is not a rate. And in Atg5-null mouse fibroblasts, which cannot build autophagosomes, Parkin-marked mitochondria stayed.
+
+### Design problem
+
+A mutant yeast strain accumulates a misfolded ER membrane protein. Is ERAD blocked, or is the UPR broken? Design experiments that tell the two apart, and write down what each model predicts before you run them.
+
+<details>
+<summary>One way to do it</summary>
+
+If ERAD is blocked, the substrate is made normally but destroyed slowly, and the UPR should still work (it may even be switched on without added stress, because misfolded protein builds up). If the UPR is broken, the cell cannot raise its folding and degradation capacity, so the substrate may build up mainly under stress, and the alarm itself will be silent.
+
+1. **Cycloheximide chase.** Stop synthesis and blot for the substrate at 0, 30, 60 and 90 minutes. A stable band in unstressed cells points to an ERAD block. Near-normal decay that slows only under stress points to the UPR.
+2. **Ubiquitination.** Immunoprecipitate the substrate and blot for ubiquitin. No ubiquitin suggests the E3 step (Hrd1) is lost; ubiquitinated substrate stuck in membranes suggests a later step, such as extraction by Cdc48.
+3. **UPR reporter.** Treat with tunicamycin and measure *HAC1* mRNA splicing by RT-PCR, or a reporter driven by the UPR element. No splicing means the UPR is broken; normal splicing means it works.
+4. **Complementation and rescue.** Transform the mutant with plasmids carrying candidate genes such as *HRD1* or *IRE1*. The gene that restores normal degradation (or normal splicing) names the defect, and the rescue confirms that the mutation, not a second hit elsewhere, causes the phenotype.
+
+If the chase, the ubiquitin blot and the rescue all point to *HRD1*, and splicing is normal, ERAD is blocked. If splicing fails and *IRE1* rescues, the UPR is broken.
+
+</details>

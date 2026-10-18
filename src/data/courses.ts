@@ -93,6 +93,74 @@ export const COURSES: Course[] = [
     ],
   },
   {
+    slug: 'cell-biology',
+    title: 'Cell Biology',
+    tier: 'core',
+    tagline: 'How a eukaryotic cell is built, moves things around, divides and lives among other cells.',
+    searchHint: 'Try “Golgi”, “kinesin”, “mitosis”…',
+    blurb:
+      'A core course for biology majors and premedical students. It starts with how cells are measured and how experiments tell mechanisms apart, then follows membranes and compartments, the traffic of proteins and vesicles, the cytoskeleton and motors, the cell cycle, division and cell death, and ends with cells in tissues: adhesion, epithelia, stem cells and cell state.',
+    /* Sequence set 2026-10-17 from a curriculum benchmark (six university courses, four textbooks). */
+    units: [
+      {
+        name: 'Seeing and testing cells',
+        slugs: ['measured-eukaryotic-cell', 'microscopy-and-images', 'experiments-that-distinguish'],
+      },
+      {
+        name: 'Membranes and compartments',
+        slugs: ['membrane-organization-topology', 'membrane-transport', 'organelles-as-environments', 'protein-sorting', 'nuclear-transport', 'quality-control-and-autophagy', 'nuclear-architecture-condensates'],
+      },
+      {
+        name: 'Traffic and movement',
+        slugs: ['vesicle-traffic', 'secretory-pathway', 'endocytosis', 'cytoskeleton-dynamics', 'molecular-motors', 'migration-and-cilia'],
+      },
+      {
+        name: 'Division and cell loss',
+        slugs: ['cell-cycle-control', 'checkpoints', 'mitosis', 'cytokinesis', 'cell-death'],
+      },
+      {
+        name: 'Cells in tissues',
+        slugs: ['adhesion-and-ecm', 'epithelia', 'stem-cells', 'cell-state-and-disease', 'cellbio-experimental-design'],
+      },
+    ],
+  },
+  {
+    slug: 'ecology-evolution',
+    title: 'Ecology and Evolution',
+    tier: 'core',
+    tagline: 'How populations change over generations, and how organisms, populations and ecosystems work together.',
+    searchHint: 'Try “finches”, “phylogeny”, “Paine”…',
+    blurb:
+      'A core course for biology majors and premedical students. It starts with how evolutionary explanations are tested and how to read a tree, follows selection, drift, speciation and the history of life, then moves up the ecological scales: populations, species interactions, communities, ecosystems, and global change and conservation.',
+    /* Sequence set 2026-10-17 from a curriculum benchmark (C-ecoevo-benchmark). */
+    units: [
+      {
+        name: 'Evidence and evolutionary reasoning',
+        slugs: ['testing-evolutionary-explanations', 'reading-phylogenetic-trees', 'selection-in-ecological-context', 'drift-gene-flow-explanations'],
+      },
+      {
+        name: 'Genomes, development and diversification',
+        slugs: ['molecular-evolution', 'evolution-of-development', 'speciation', 'history-of-life', 'human-evolution', 'life-histories'],
+      },
+      {
+        name: 'Environments and populations',
+        slugs: ['climate-and-biomes', 'niches-and-distributions', 'demography', 'population-growth', 'spatial-populations'],
+      },
+      {
+        name: 'Interactions and communities',
+        slugs: ['competition', 'predation', 'mutualism-parasitism-coevolution', 'diversity-and-succession', 'island-biogeography'],
+      },
+      {
+        name: 'Ecosystem processes',
+        slugs: ['energy-flow', 'nutrient-cycling', 'biodiversity-ecosystem-function'],
+      },
+      {
+        name: 'Global change and decisions',
+        slugs: ['global-change', 'conservation', 'ecoevo-evidence-workshop'],
+      },
+    ],
+  },
+  {
     slug: 'signaling',
     title: 'Cell Signaling',
     tier: 'elective',

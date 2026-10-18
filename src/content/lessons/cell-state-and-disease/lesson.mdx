@@ -1,0 +1,456 @@
+---
+title: "Cell Identity, Cell State and Disease"
+slug: "cell-state-and-disease"
+course: "cell-biology"
+courseChapter: "Cell Biology · Unit 5: Cells in tissues"
+order: 425
+summary: >-
+  How do you tell what kinds of cells a tissue holds, and when has a tissue stopped holding its
+  balance? This lesson shows how single-cell RNA sequencing turns cells into a table of counts,
+  why a cluster can be a cell type, a passing state or an artifact, and how lineage tracing and
+  perturbation turn a description into a cause. It ends with normal tissue full of mutant clones
+  and the cell behaviours that decide which clones win. Afterwards you can separate a change in
+  composition from a change in regulation, and design an experiment that tells faster division
+  from altered daughter fate.
+hook: "Most of the lining of an older person's healthy oesophagus can carry a mutation found in cancer. Why is it still healthy?"
+
+estMinutes: 24
+objectives:
+  - "Explain how single-cell RNA-seq turns cells into a count matrix that is clustered and annotated, and define cell type (a stable identity) versus cell state (variation within it, such as cycling, stress or activation)."
+  - "Name the artifacts that create or erase clusters (sampling zeros, doublets, batch effects, dissociation stress, clustering resolution and circular marker testing) and calculate how a change in composition alone shifts a bulk measurement."
+  - "Treat a cluster or a pseudotime path as a hypothesis, and choose lineage tracing, perturbation or protein measurement (CITE-seq) to test it."
+  - "Connect loss of tissue homeostasis to cancer at the level of cells: mutant clones in normal tissue, fitness through altered daughter fates, crowding-driven extrusion and competition between neighbouring clones in mouse."
+
+explainer:
+  src: "/explainers/cell-state-and-disease/explainer.mp4"
+  captions: "/explainers/cell-state-and-disease/explainer.vtt"
+  poster: "/explainers/cell-state-and-disease/poster.jpg"
+  title: "Clones Win by Fate, Not Speed"
+  durationSec: 172.0
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Itay Tirosh"
+    contribution: >-
+      With Benjamin Izar and colleagues in the laboratories of Aviv Regev and Levi Garraway,
+      profiled single cells from human metastatic melanomas and showed that one tumour holds
+      several cell types and, among its malignant cells, distinct transcriptional states.
+    profileSourceAnchor: "Tirosh et al., Science 352:189-196 (2016), doi:10.1126/science.aad0501."
+    quotes: []
+    story: >-
+      A tumour sample ground up for sequencing gives one average. Tirosh, Izar and their
+      colleagues asked what that average was made of. They dissociated metastatic melanomas from
+      19 patients and sequenced the RNA of 4,645 individual cells. The cells sorted into malignant
+      cells and the tissue around them: immune cells, stromal cells and endothelial cells that
+      line blood vessels. The malignant cells were not uniform either. Within a tumour they
+      differed in programmes linked to the cell cycle, and the authors reported that tumours with
+      high levels of the transcription factor MITF also contained malignant cells with low MITF
+      and high levels of the kinase AXL. The profiles also suggested interactions between cell
+      types in the tumour's surroundings. A snapshot cannot show that a cell switches from one
+      state to another, or that one cell type acts on another; those need tracking or
+      perturbation. What the study made possible was to treat a tumour as a mixture of named
+      cell types and states, each of which could then be tested.
+  - name: "Iñigo Martincorena"
+    contribution: >-
+      With Philip Jones and colleagues, sequenced histologically normal human oesophagus and found
+      it crowded with positively selected mutant clones, including NOTCH1-mutant cells that formed
+      a large share of the epithelium in middle-aged and elderly donors.
+    profileSourceAnchor: "Martincorena et al., Science 362:911-917 (2018), doi:10.1126/science.aau3879."
+    quotes: []
+    story: >-
+      Cancer genomes are read from tumours, so the mutations in them are easy to mistake for the
+      cause of malignancy. Martincorena, Jones and their colleagues looked at the other side:
+      oesophageal lining that looked normal under the microscope, taken from nine deceased organ
+      donors aged 20 to 75. They sequenced many small pieces of epithelium deeply enough to find
+      mutations carried by small groups of cells, which marks clones descended from one mutant
+      cell. They found clones under positive selection carrying mutations in 14 cancer-associated
+      genes. In the middle-aged and elderly donors, NOTCH1-mutant cells made up an estimated 12 to
+      80% of the epithelium, and TP53-mutant cells an estimated 2 to 37%. NOTCH1 mutations were
+      more common in these normal samples than in oesophageal cancers. A cancer gene mutation, in
+      other words, did not make tissue malignant. The work moved the question from which
+      mutations a tissue carries to which clones expand, and why only a few ever become tumours.
+  - name: "Caleb Weinreb"
+    contribution: >-
+      With Alejo Rodriguez-Fraticelli, Fernando Camargo and Allon Klein, used expressed, inherited
+      DNA barcodes in mouse blood progenitors to link a cell's transcriptional state to the fates
+      of its clone, and found fate biases that RNA snapshots did not reveal.
+    profileSourceAnchor: "Weinreb et al., Science 367:eaaw3381 (2020), doi:10.1126/science.aaw3381."
+    quotes: []
+    story: >-
+      Sequencing a cell's RNA destroys the cell, so you never learn what that cell would have
+      become. Weinreb, Rodriguez-Fraticelli, Camargo and Klein worked around the problem with
+      heritable barcodes. They gave mouse haematopoietic stem and progenitor cells DNA barcodes
+      that are expressed as RNA and passed to every descendant. After the cells divided, some
+      were sequenced at once and their sisters were left to make progeny, in culture or after
+      transplantation, and those progeny were sequenced later. Because sisters share a barcode,
+      the early state of one cell could be matched to the later fate of its clone. Sister-cell
+      analysis revealed intrinsic fate biases that the RNA profiles had not detected, and fate
+      choice appeared earlier than the snapshot algorithms they benchmarked could detect. The
+      study gave the field a direct test for trajectory methods, and a warning that cells which
+      look alike by RNA can already differ in what they will become.
+  - name: "George Eisenhoffer"
+    contribution: >-
+      With Jody Rosenblatt and colleagues, showed that crowding makes epithelia squeeze out living
+      cells, and that the stretch-activated channel Piezo1 is needed for this extrusion in
+      developing zebrafish epidermis.
+    profileSourceAnchor: "Eisenhoffer et al., Nature 484:546-549 (2012), doi:10.1038/nature10999."
+    quotes: []
+    story: >-
+      An epithelium keeps a steady number of cells while some of them keep dividing, so cells
+      must leave. Eisenhoffer, Patrick Loftus and colleagues in Rosenblatt's laboratory asked
+      whether the leaving cells are already dead. They counted extruding cells stained for active
+      caspase-3, a marker of apoptosis. Most were negative: 80% of 46 extruding cells in human
+      colon sections, 88% of 160 in developing zebrafish epidermis and 67% of 300 in overgrown
+      cultures of MDCK dog kidney cells. To test crowding directly, they grew MDCK monolayers on a
+      stretched silicone sheet and released it. The crowded sheets extruded living cells. In
+      zebrafish, knocking down Piezo1 with a photo-cleavable morpholino prevented this extrusion,
+      and masses of epidermal cells formed. Those masses were not shown to be cancers. The work
+      gave a mechanical route by which a tissue can match cell loss to cell gain, and a way that
+      route could fail.
+
+techniques:
+  - name: "Single-cell RNA sequencing"
+    blurb: >-
+      Cells are separated, each cell's RNA is tagged with a cell barcode, and the pooled
+      molecules are sequenced and counted. The result is a matrix of counts, genes by cells,
+      which is clustered and annotated. It measures RNA captured from cells that survived
+      dissociation, not protein and not the cells left behind.
+  - name: "CITE-seq"
+    blurb: >-
+      Antibodies against surface proteins are tagged with DNA oligonucleotides that are read out
+      by sequencing alongside the cell's RNA. One experiment then gives protein and RNA for the
+      same cell, so an annotation does not have to infer surface protein from its RNA.
+  - name: "Inducible Cre lineage tracing"
+    blurb: >-
+      A drug switches on Cre recombinase in a few cells, which both deletes a floxed gene such as
+      Notch1 and turns on a reporter such as YFP. Every descendant stays labelled, so the size and
+      makeup of each clone can be followed over weeks.
+  - name: "EdU pulse and pulse-chase"
+    blurb: >-
+      EdU, a thymidine analogue, is built into DNA by cells in S phase and detected later by
+      click chemistry. A short pulse gives the fraction of cells in S phase; a pulse followed by
+      a chase shows where the labelled daughters end up, such as still basal or moved upward.
+
+structures:
+  - label: "Human NOTCH1 negative regulatory region — the receptor mutated in many normal oesophageal clones"
+    source: "rcsb"
+    id: "3ETO"
+    note: "X-ray structure; Gordon et al., Blood 2009."
+    caption: >-
+      The lock that hides the receptor's cleavage site until a ligand pulls on it. Many of the
+      NOTCH1 mutations in normal oesophagus are thought to inactivate the receptor, which links
+      this receptor to how daughter cells choose to stay basal or differentiate.
+  - label: "Mouse Piezo1 — the stretch-activated channel needed for crowding-induced extrusion in zebrafish"
+    source: "rcsb"
+    id: "6B3R"
+    note: "Cryo-EM structure; Guo and MacKinnon, eLife 2017."
+    caption: >-
+      Three curved blades around a central pore form a dome in the membrane. Look at the size of
+      the blades relative to the pore: they are thought to sense membrane tension.
+  - label: "Cre recombinase bound to loxP DNA — the enzyme behind inducible lineage tracing"
+    source: "rcsb"
+    id: "1CRX"
+    note: "X-ray structure of a recombination synapse; Guo, Gopaul and Van Duyne, Nature 1997."
+    caption: >-
+      Four Cre molecules hold two loxP sites side by side. Recombination between the sites
+      removes the DNA between them, which is how a stop sequence before a reporter is cut out.
+  - label: "Yellow fluorescent protein — the reporter that marks traced clones"
+    source: "rcsb"
+    id: "1YFP"
+    note: "X-ray structure; Wachter et al., Structure 1998."
+    caption: >-
+      A barrel of beta strands around a chromophore. A few substitutions near the chromophore
+      shift GFP's green emission to yellow.
+
+simulations:
+  - type: "local"
+    ref: "BulkVersusComposition"
+    title: "Composition or regulation?"
+    caption: >-
+      Set the fraction of T cells and the per-cell level of gene X in T and in other cells, and see whether a bulk change comes from composition, regulation or both.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In a single-cell RNA-seq data set, a well-known gene has a count of zero in a particular cell. What is the most defensible reading?"
+    choices:
+      - "No molecule of that RNA was captured and counted in that cell"
+      - "The gene is not expressed by any cell of that type in the tissue"
+      - "The gene is silenced in that cell by chromatin compaction"
+      - "The cell is a doublet and the gene was diluted below detection"
+    answer: 0
+    rationale: >-
+      Single-cell methods capture only a fraction of each cell's RNA, so sampling alone can give a
+      zero; the zero records a failure to count a molecule, not a measured absence. Silencing by
+      chromatin is a biological claim the count cannot make on its own. A doublet would add RNA
+      from two cells, not dilute one gene to zero. Concluding that no cell of the type expresses
+      the gene extends one cell's zero to a whole population, which is the error twice over.
+  - stem: "An analyst raises the clustering resolution and one cluster of T cells splits into two. One of the new clusters has high levels of RNAs for S-phase and mitosis genes. What is the best interpretation?"
+    choices:
+      - "The data contain two T-cell types that should get separate names"
+      - "The higher resolution has created clusters that have no biological basis"
+      - "Doublets of T cells with dividing epithelial cells formed the new cluster"
+      - "Cycling T cells formed a cluster; this is likely a state within one type"
+    answer: 3
+    rationale: >-
+      Cells of one type in different states can form separate clusters, and a cell-cycle
+      signature is a classic state. Naming two cell types assumes every cluster is a type, which
+      resolution and state both undermine. Calling the split meaningless ignores that the new
+      cluster carries a coherent, recognisable programme. Doublets with epithelial cells would
+      show epithelial genes as well as T-cell genes, which the stem does not describe.
+  - stem: "Which statement about pseudotime is correct?"
+    choices:
+      - "It orders different cells by expression along an inferred path"
+      - "It proves that cells at one end become cells at the other end"
+      - "It measures the hours since each cell left its last division"
+      - "It follows one living cell's RNA as the cell changes over time"
+    answer: 0
+    rationale: >-
+      Pseudotime places many different cells along a trajectory reconstructed from their
+      expression profiles; in Monocle it is distance along that path from its start. Sequencing
+      destroys each cell, so no living cell is followed. Pseudotime is not calibrated in hours. And
+      an ordering is a hypothesis about direction, which lineage tracing or barcoding must test,
+      not proof that one end gives rise to the other.
+  - stem: "A team wants to know whether a cluster of immune cells really carries the surface protein CD4 at the cell surface, but CD4 RNA counts are low and patchy. Which approach answers the question most directly?"
+    choices:
+      - "Impute the missing CD4 counts from cells with similar profiles"
+      - "Measure CD4 protein in the same cells with tagged antibodies"
+      - "Re-run the clustering at a higher resolution to sharpen CD4"
+      - "Sequence the cells more deeply to recover the CD4 transcripts"
+    answer: 1
+    rationale: >-
+      The question is about surface protein, and RNA does not measure protein; CITE-seq reads
+      oligonucleotide-tagged antibodies alongside RNA in the same cell. Changing clustering
+      resolution regroups cells without adding a measurement of CD4. Imputation fills zeros with
+      a guess from neighbours, which is still RNA and still an inference. Deeper sequencing might
+      recover more CD4 RNA, but RNA and surface protein need not agree.
+  - stem: "In mouse oesophagus, clones that lack Notch1 grow steadily larger than wild-type clones. A student concludes that the mutant cells must divide faster. Which observation would most directly refute that conclusion?"
+    choices:
+      - "Mutant clones also contain more differentiated suprabasal cells"
+      - "A short EdU pulse labels equal fractions of mutant and normal basal cells"
+      - "Normal cells next to mutant clones divide faster than distant cells"
+      - "Mutant clones keep expanding after the mouse is several months old"
+    answer: 1
+    rationale: >-
+      A short EdU pulse measures the fraction of basal cells in S phase; equal labelling in
+      mutant and wild-type clones argues against faster cycling, though S-phase length could also differ, which makes altered
+      daughter fate the leading explanation. More suprabasal cells in a mutant clone follows from a bigger clone and
+      says nothing about rate. Faster division of neighbouring normal cells concerns the
+      neighbours, not the mutant cells. Continued expansion with age shows that growth persists,
+      not why.
+
+mcatQuestions:
+  - stem: "In a made-up tissue, cell type A expresses gene G at 40 units per cell and all other cells express it at 10 units per cell. After an injury, the fraction of type A cells rises from 25% to 50%, while expression per cell does not change in any cell type. What fold change in G will a bulk measurement report?"
+    choices:
+      - "2.0-fold, because type A cells doubled in fraction"
+      - "1.0-fold, because no cell changed its expression"
+      - "4.0-fold, the ratio of type A to other-cell levels"
+      - "1.4-fold, from 17.5 to 25 units per average cell"
+    answer: 3
+    rationale: >-
+      Bulk signal is a weighted average: before, 0.25 x 40 + 0.75 x 10 = 10 + 7.5 = 17.5 units;
+      after, 0.50 x 40 + 0.50 x 10 = 20 + 5 = 25 units; 25 / 17.5 = 1.43. Reporting no change
+      confuses per-cell regulation with the population average. A two-fold change would hold
+      only if type A cells made all of the signal. The four-fold ratio compares the two cell
+      types, not the tissue before and after.
+  - stem: "Researchers grow kidney epithelial cells as a single sheet on a stretched silicone substrate, then release the stretch so the same cells occupy less area. They then count cells leaving the sheet and stain them for active caspase-3. Extrusion is more frequent than in unreleased control sheets, and in the crowded sheets most extruding cells are caspase-3 negative. Which conclusion is best supported?"
+    choices:
+      - "Releasing the stretch damages cells, which then die by necrosis"
+      - "Crowding first kills cells by apoptosis, and dead cells then leave"
+      - "Crowding can drive extrusion of cells that are not yet apoptotic"
+      - "Extrusion in crowded sheets requires prior activation of caspase-3"
+    answer: 2
+    rationale: >-
+      Extrusion rose after crowding, and most extruding cells lacked active caspase-3, so living
+      cells were being pushed out. Apoptosis first, then exit, predicts caspase-positive
+      extruding cells, the opposite of the data. A requirement for caspase-3 activation is
+      contradicted by the many caspase-negative cells. Necrosis from release damage is not
+      tested by the staining, and a control sheet that is released without crowding would be
+      needed to raise it.
+  - stem: "In a simple model of a progenitor pool, each division gives two progenitors (PP), one progenitor and one differentiating cell (PD), or two differentiating cells (DD). A mutation shifts the probabilities from 0.25, 0.50 and 0.25 to 0.30, 0.50 and 0.20, with no change in cycle time and no cell death. Starting from 1,000 progenitors, how many progenitors are expected after two synchronous rounds of division?"
+    choices:
+      - "1,200, because PP rose by 0.05 and DD fell by 0.05"
+      - "1,100, because each round adds 0.10 per cell once"
+      - "1,210, because each progenitor makes 1.1 on average"
+      - "1,000, because the PD probability did not change"
+    answer: 2
+    rationale: >-
+      Expected progenitors per division are m = 2 x p(PP) + p(PD) = 0.60 + 0.50 = 1.1, so two
+      rounds give 1,000 x 1.1 x 1.1 = 1,210. Keeping the count at 1,000 ignores the shift from DD
+      to PP. Adding 0.10 per cell only once counts one round of growth instead of compounding two.
+      Treating the 0.05 shifts as adding 200 cells confuses probability changes with the
+      expected number of progenitors produced.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Your body is made of many kinds of cells, like a town made of many kinds of workers.
+      Scientists can now listen to each cell one at a time to learn what job it does. But a cell
+      can be tired, busy or resting and still have the same job. Sometimes a few cells break a
+      rule and spread, and the cells around them can push them out or let them grow.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Every cell in your body has the same genes, but each kind of cell uses a different set. By
+      reading which genes each single cell is using, scientists sort cells into groups and name
+      them. A group might be a real kind of cell, a cell in a temporary condition such as
+      dividing, or a mistake in the measurement. Normal tissues also contain patches of cells
+      with mutations seen in cancer. Whether a patch grows depends on whether its cells keep
+      making more cells like themselves, and on how they compete with their neighbours.
+  - level: "college"
+    label: "College"
+    text: >-
+      Single-cell RNA-seq tags each cell's transcripts with a barcode and counts them, giving a
+      genes-by-cells matrix that is normalized, reduced and clustered on a nearest-neighbour
+      graph. Clusters are annotated with known markers. A cell type is a stable identity; a cell
+      state is variation within it, such as cycling, stress or activation, and states can split
+      a type into several clusters. Zeros, doublets, batch effects, dissociation stress and the
+      choice of resolution can all create or erase clusters. A cluster or pseudotime ordering is
+      a hypothesis, tested by lineage tracing, perturbation or protein measurement. In tissue,
+      homeostasis means balanced progenitor fates; mutant clones that tilt the balance toward
+      progenitors expand, as Notch1-mutant clones do in mouse oesophagus without dividing faster.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      For a progenitor whose divisions give PP, PD or DD outcomes, the expected number of
+      progenitor daughters per division is m = 2p(PP) + p(PD). Homeostasis requires m = 1; any
+      sustained tilt compounds geometrically per generation even at a fixed cycle time, so
+      clone fitness can come entirely from fate rather than rate. In mouse oesophagus, EdU
+      tracking was consistent with such a tilt in Notch1-mutant clones, and wild-type cells at
+      their margins differentiated and left the basal layer faster; once the mutant cells
+      occupied the epithelium their behaviour returned toward wild type. Spatial feedback, not a
+      fixed m, keeps real tissue near balance.
+
+      The descriptive side has its own inference problem. Barcoding experiments in mouse
+      haematopoietic progenitors found fate biases that were not visible in transcriptomes and
+      that arose earlier than snapshot algorithms detected. An open question is what, if not the
+      transcriptome, carries that bias: chromatin state, protein levels, position, or something
+      not yet measured.
+
+anecdotes:
+  - title: "Commoner in health than in cancer"
+    source: "Martincorena et al., Science 362:911-917 (2018)."
+    text: >-
+      When Martincorena, Jones and colleagues sequenced normal oesophagus from nine organ donors,
+      NOTCH1 mutations turned out to be more
+      prevalent in the normal samples than in oesophageal cancers, with NOTCH1-mutant cells
+      estimated at 12 to 80% of the epithelium in middle-aged and elderly donors. A gene that
+      shows up in tumours, then, need not be driving them. In this tissue a NOTCH1 mutation looked
+      more like a common feature of ageing epithelium than a step toward cancer.
+  - title: "Sisters remember what RNA forgets"
+    source: "Weinreb et al., Science 367:eaaw3381 (2020)."
+    text: >-
+      Weinreb and colleagues let barcoded mouse blood progenitors divide, sequenced one sister
+      and followed the other sister's offspring. Sisters tended to share fate biases, so the bias
+      was intrinsic to the clone. Yet the RNA profile of the sequenced sister did not fully
+      predict it. The experiment works only because sisters share an inherited barcode; it does
+      not sequence one living cell twice. Its lesson for anyone reading a trajectory plot is
+      that two cells with the same transcriptome need not have the same future.
+  - title: "Lesions lost without dying"
+    source: "Colom et al., Nature (2021), doi:10.1038/s41586-021-03965-7."
+    text: >-
+      In a mouse model of oesophageal carcinogenesis, Colom and colleagues studied early,
+      microscopic lesions that were lost from the epithelium. Inducing highly competitive clones in
+      the surrounding tissue increased the removal of early tumours, and drug inhibition of
+      clonal competition reduced their loss. The authors found no indication that extra death of
+      tumour cells explained the rapid loss. Their data support a model in which an early
+      lesion's survival depends on its fitness relative to the mutant tissue around it, a mouse
+      result and not a human treatment.
+
+corpusTags:
+  - "single-cell-rna-seq"
+  - "cell-type-and-state"
+  - "lineage-tracing"
+  - "clonal-competition"
+  - "tissue-homeostasis"
+  - "oesophagus"
+  - "notch1"
+  - "cell-extrusion"
+draft: false
+---
+
+import BulkVersusComposition from '../../../components/BulkVersusComposition.astro';
+
+**In middle-aged and elderly organ donors with healthy oesophagus, cells carrying a NOTCH1 mutation made up an estimated 12 to 80% of the lining.**
+
+NOTCH1 mutations also turn up in oesophageal cancers. Yet this tissue looked normal under the microscope, and in that 2018 study the mutations were more common in normal tissue than in tumours. So a cancer-associated mutation did not make the tissue malignant. To see why, you need two skills. First, telling what kinds of cells a tissue holds, and what condition each is in. Second, telling what a cell does from what it merely looks like. This lesson builds both, then returns to the oesophagus.
+
+## From a tissue to a count matrix
+
+Every cell in a tissue carries the same genome. What makes a keratinocyte differ from a macrophage is which genes it transcribes, a pattern held in place by transcription factors and chromatin (see [eukaryotic gene regulation](/lessons/eukaryotic-regulation/)). Single-cell RNA sequencing (scRNA-seq) reads that pattern one cell at a time.
+
+The steps are simple to state. You dissociate the tissue into single cells, usually with enzymes. Each cell's RNA is captured and copied into DNA tagged with a cell barcode, a short sequence shared by every molecule from that cell. In many methods each molecule also gets a unique molecular identifier, so copies made later can be collapsed back into one original molecule. The pooled DNA is sequenced (see [sequencing and genomes](/lessons/sequencing-and-genomes/)), and the reads are sorted by barcode and counted.
+
+The output is a count matrix: one row per gene, one column per cell, each entry the number of molecules (or reads) counted. Analysis then runs through quality control, normalization, choosing informative genes and reducing dimensions. Cells are linked to their most similar neighbours in a graph, and groups of tightly linked cells become clusters. Finally each cluster is annotated: given a name by comparing its genes with what is already known about expected expression profiles.
+
+Think of it as a census taken by reading everyone's shopping list. You can sort people into groups by what they buy, but a list does not tell you who the person is.
+
+## Type, state, or artifact?
+
+Two words matter here. A **cell type** is a stable identity, such as a basal keratinocyte or a T cell. A **cell state** is variation within that identity: cycling, stressed, activated, early or late in differentiation. A single cell type can vary a great deal in its global gene expression, and cells of one type in different states can land in separate clusters.
+
+So a cluster is an observation to explain, not a type by definition. Six things can create or erase one.
+
+- **Sampling zeros.** Only some of a cell's RNA molecules are captured, so a count of zero does not mean the gene is off.
+- **Doublets.** One barcode can label two cells, giving a hybrid profile that looks like a new type.
+- **Batch effects.** Samples handled on different days or by different hands can differ for technical reasons and cluster apart.
+- **Dissociation stress.** Breaking up a tissue can perturb cell state before the RNA is captured.
+- **Resolution.** A clustering parameter sets the scale. Turn it up and one type splits into states; turn it down and distinct types merge.
+- **Circular marker testing.** If you cluster on the expression data and then test the same data for genes that differ between clusters, the P values are inflated, because the clusters were drawn to differ. Markers also depend on what else is in the data set.
+
+The 2016 melanoma study of Tirosh and colleagues shows the payoff when this is done with care. Among 4,645 cells from 19 patients' tumours, malignant cells within one tumour differed in programmes associated with the cell cycle, a state rather than a separate cancer type.
+
+## Bulk averages hide composition
+
+Before single-cell methods, you ground up the tissue and measured RNA in bulk. That measurement is an average over every cell, weighted by how many of each kind there are. A change in the average can come from a change in composition with no change in regulation in any cell.
+
+Work it through with made-up numbers. A tissue holds cell type T, which expresses gene X at 50 units per cell, and other cells that express it at 5 units per cell. Before a treatment, T is 20% of cells. After it, T is 40%. Expression per cell does not change in either group.
+
+> **bulk signal = (fraction T x level in T) + (fraction other x level in other)**
+
+1. Bulk before = 0.20 x 50 + 0.80 x 5 = 10 + 4 = 14 units per average cell.
+2. Bulk after = 0.40 x 50 + 0.60 x 5 = 20 + 3 = 23 units per average cell.
+3. Fold change = 23 / 14 = 1.64. A bulk experiment would report gene X as up 1.6-fold, although no cell regulated it.
+4. Single-cell data would show the same expression inside each cluster and a changed proportion of clusters.
+
+<BulkVersusComposition />
+
+One caution cuts the other way. If dissociation loses fragile cells preferentially, the proportions in your single-cell data are themselves biased. A shift in cluster sizes between two conditions can come from a difference in how well each sample survived the enzymes.
+
+## From description to cause: lineage and perturbation
+
+Software such as Monocle can arrange cells along a path and give each a pseudotime, its distance along that inferred path from the start. It is tempting to read the path as a movie of one cell maturing. It is not. Sequencing destroys each cell, so pseudotime orders different cells that were caught at different points, and its direction is a guess.
+
+Three kinds of evidence turn such a picture into a cause.
+
+**Lineage.** Mark a cell and every descendant. Weinreb, Klein, Camargo and colleagues gave mouse haematopoietic progenitors inherited DNA barcodes that are expressed as RNA, sequenced some cells early and followed their sisters' progeny. Sister cells shared fate biases that the RNA profiles had not detected. In tissues, the same logic uses inducible Cre recombinase to switch on a fluorescent reporter in a few cells (see [stem cells and tissue renewal](/lessons/stem-cells/)).
+
+**Perturbation.** Remove or block the candidate and see whether the outcome changes, then restore it (see [experiments that distinguish mechanisms](/lessons/experiments-that-distinguish/)).
+
+**Protein.** RNA does not measure protein. CITE-seq, described in 2017, reads DNA-tagged antibodies alongside RNA, so a surface marker can be measured in the same cell rather than inferred.
+
+## Homeostasis lost: clones, competition and cancer
+
+A renewing epithelium stays the same size only if cell gain matches cell loss. In mouse oesophagus, only basal progenitor cells divide. Each division can give two progenitors (PP), two differentiating daughters (DD) or one of each (PD), and in wild-type tissue these outcomes are balanced. Differentiating cells move upward and are shed.
+
+Crowding adds a second balance. In crowded MDCK sheets and in zebrafish epidermis, Eisenhoffer, Rosenblatt and colleagues saw epithelia squeeze out living cells (see [epithelia](/lessons/epithelia/)); most extruding cells lacked the apoptosis marker active caspase-3 (see [cell death](/lessons/cell-death/)). Knocking down the stretch-activated channel Piezo1 in zebrafish blocked this extrusion and produced masses of epidermal cells.
+
+A mutant clone wins by tilting these balances. It need not divide faster (see [cell-cycle control](/lessons/cell-cycle-control/)). Notch signalling is linked to differentiation of squamous epithelial cells (see [Notch signalling](/lessons/notch-signaling/)). In mouse oesophagus, Abby and colleagues found in 2023 that Notch1-mutant clones expanded without a higher division rate. EdU tracking was consistent with more progenitor and fewer differentiating daughters per division, and wild-type neighbours at the clone edge differentiated faster.
+
+Neighbours also matter for tumours. In a mouse model of oesophageal carcinogenesis, Colom and colleagues found that early lesions are removed more often when the surrounding clones are highly competitive, and less often when competition is blocked with a drug. In a mouse carcinogenesis model, Abby and colleagues also found that deleting Notch1 reduced tumour growth and that a NOTCH1-blocking antibody reduced the size of established lesions. These are mouse results about mechanism, not human prevention data. Which genes push a clone toward cancer is covered in [cancer genetics](/lessons/cancer-genetics/) and [oncogenes](/lessons/oncogenes/).
+
+### Design problem
+
+Notch1-mutant clones take over mouse oesophageal epithelium. Did the mutant cells divide faster, or did their daughters differentiate less? Design the experiment, and say what each answer predicts.
+
+<details>
+<summary>One way to do it</summary>
+
+Induce sparse clones with inducible Cre that deletes Notch1 and turns on YFP, and induce wild-type YFP clones in control mice. Measure division rate with a one-hour EdU pulse: the fraction of EdU-positive basal cells inside mutant and wild-type clones. Measure fate with an EdU pulse followed by a chase: of the labelled daughters, what fraction are still basal and what fraction have moved suprabasal? Follow clone size distributions over time as well.
+
+If mutants cycle faster, the EdU pulse labels more mutant basal cells. If they bias fate, the pulse labels equal fractions but more labelled mutant daughters stay basal.
+
+A simple model shows why fate alone is enough. Expected progenitors per division are m = 2 x p(PP) + p(PD). Balanced outcomes of 0.25, 0.50 and 0.25 give m = 0.50 + 0.50 = 1.0. Biased outcomes of 0.35, 0.50 and 0.15 give m = 0.70 + 0.50 = 1.2. Starting from 100 progenitors with no death, three generations give 100 x 1.2 x 1.2 x 1.2 = 172.8 expected progenitors, with no change in cycle time. The published mouse result matched the fate answer: expansion without a higher division rate.
+
+</details>
