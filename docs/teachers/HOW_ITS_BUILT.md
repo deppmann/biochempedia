@@ -62,17 +62,9 @@ Here is what the repository actually recorded. Tokens are the units AI models ar
 
 For scale: the first 30 lessons took about 17 weeks (June 12 to October 10, 2026). The next 173 or so took about 8 days (October 11 to 18). The site now has 203 lessons in six courses. A grant request for $10,000 in July 2026 said $5,000 would buy three to five complete lessons. It was not selected, and the site was built anyway. The reason, from the project plan: a student's preparation should not depend on what the family can pay.
 
-### How the keys are kept
+### If you want to build with an AI model yourself
 
-An API key is a password that lets a program use a paid service. These are the rules, and what the repository actually does.
-
-- **Keys never go in the code or in the git history.** The ignore file lists `.env` and `.env.*` (except an example file) so they cannot be committed by accident. There is no `.env` file in the repository. A search of the tracked files for key-shaped strings found none.
-- **The website itself holds no keys.** It is a set of static pages. The reader's browser never receives a key and never calls a paid AI service.
-- **Narration keys are read at the moment they are needed, on one computer.** The audio script looks the key up by name from the author's own machine and sends it only to the narration provider. It never prints it or stores it elsewhere. A paid voice engine is only used when it is named on the command line, and each video has a hard cap of 4,000 paid characters.
-- **Cloudflare is signed in by a one-time browser login** (`wrangler login`), not by a password in a file. The upload script deliberately removes any old Cloudflare token from its environment so a stale one cannot be used by mistake. The video bucket is attached to the worker by a binding, not a key.
-- **Honest note.** On this setup the narration keys sit as plain text in the author's own computer settings, not in a password manager. That is acceptable for one person on one laptop, and it would not be for a team. A team should use a secrets manager or the secrets feature of its hosting provider.
-
-If you build something similar, the rule that matters: a key lives in the environment of the machine that needs it (or in a secrets store), is never committed, never appears in a web page, and is replaced immediately if it ever leaks.
+Start with the [Gemini API](https://ai.google.dev/gemini-api/docs). Its documentation walks through getting access and making a first request, and it has a free tier that is enough to try things out. Follow your district's rules on which AI tools may be used with student work.
 
 ### Do this on a teacher budget
 
