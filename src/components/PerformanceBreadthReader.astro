@@ -1,0 +1,203 @@
+---
+/**
+ * PerformanceBreadthReader — development rate D, survival S and combined performance
+ * P = D x S at the Distributions, Niches and Tolerances lesson's three invented
+ * temperatures (20, 25, 30 C), joined by straight lines and never extended past the
+ * tested range. A threshold slider sets "acceptable"; the crossings and breadth are
+ * read off by linear interpolation. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pbr card" data-pbr>
+  <figcaption class="pbr-head">Reading a tolerance interval from development and survival<span class="pbr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pbr-svg" viewBox="0 0 340 232" role="img" aria-label="Development rate D, survival S or combined performance P at 20, 25 and 30 degrees C, joined by straight lines, with the acceptable-performance threshold" data-plot></svg>
+
+  <div class="pbr-controls">
+    <fieldset class="pbr-fs">
+      <legend>Show</legend>
+      <label><input type="radio" name="pbr-show" value="P" checked /> P = D x S</label>
+      <label><input type="radio" name="pbr-show" value="D" /> D, development</label>
+      <label><input type="radio" name="pbr-show" value="S" /> S, survival</label>
+    </fieldset>
+    <label class="pbr-slabel"><span>Acceptable P is at least <em data-out="thr">0.50</em></span>
+      <input type="range" data-in="thr" min="0.05" max="0.8" step="0.01" value="0.5" />
+    </label>
+  </div>
+
+  <dl class="pbr-readout">
+    <div><dt>D x S = P at 20 / 25 / 30 °C</dt><dd data-r="p">0.40 / 0.60 / 0.16</dd></div>
+    <div><dt>Lower crossing</dt><dd data-r="lo">22.50 °C</dd></div>
+    <div><dt>Upper crossing</dt><dd data-r="hi">26.14 °C</dd></div>
+    <div><dt>Breadth</dt><dd data-r="br">3.64 °C</dd></div>
+  </dl>
+  <p class="pbr-why" data-why role="status"></p>
+  <p class="pbr-assume">In this sketch: invented data for a moth at three constant temperatures, D and S each scaled to their own maximum, straight lines between treatments, no extrapolation beyond 20 and 30 °C. P leaves out fecundity, so it is not lambda; a crossing is not a lethal limit or a range boundary.</p>
+  <p class="pbr-foot">Rule to keep: the tolerance interval is where the combined response stays above a threshold you chose, found by interpolation inside the tested range, and the two ends can be limited by different rates.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', PURPLE = '#7a4fa3', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const T = [20, 25, 30];
+  const D = [0.5, 1.0, 0.8];
+  const S = [0.8, 0.6, 0.2];
+  const P = D.map((d, i) => Math.round(d * S[i] * 1e6) / 1e6); // 0.40, 0.60, 0.16
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const f2 = (x: number) => x.toFixed(2);
+  const EPS = 1e-9;
+
+  /* Acceptable set of the piecewise-linear P on [20, 30]: returns the interval
+     [lo, hi] where P >= thr, flags for edges that are the tested limit, or null. */
+  function acceptable(thr: number) {
+    const ts: number[] = [];
+    for (let i = 0; i < 2; i++) {
+      const a = P[i], b = P[i + 1];
+      if (a >= thr - EPS) ts.push(T[i]);
+      if ((a - thr) * (b - thr) < -EPS * EPS && Math.abs(a - thr) > EPS && Math.abs(b - thr) > EPS) {
+        ts.push(T[i] + ((thr - a) / (b - a)) * (T[i + 1] - T[i]));
+      }
+    }
+    if (P[2] >= thr - EPS) ts.push(T[2]);
+    if (!ts.length) return null;
+    const lo = Math.min(...ts), hi = Math.max(...ts);
+    return { lo, hi, loEdge: lo <= T[0] + EPS && P[0] >= thr - EPS, hiEdge: hi >= T[2] - EPS && P[2] >= thr - EPS };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-pbr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const thrIn = root.querySelector<HTMLInputElement>('[data-in="thr"]')!;
+    const thrOut = root.querySelector<HTMLElement>('[data-out="thr"]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="pbr-show"]'));
+    const o = (k: string) => root.querySelector<HTMLElement>(`[data-r="${k}"]`)!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    const X0 = 46, X1 = 326, Y0 = 26, Y1 = 178, TMIN = 18, TMAX = 32;
+    const px = (t: number) => X0 + ((t - TMIN) / (TMAX - TMIN)) * (X1 - X0);
+    const py = (v: number) => Y1 - v * (Y1 - Y0);
+
+    function text(x: number, y: number, s: string, anchor: string, size = 9, fill = INK, weight = 400, halo = false) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+      if (halo) { t.setAttribute('stroke', '#fff'); t.setAttribute('stroke-width', '3'); t.setAttribute('paint-order', 'stroke'); }
+      t.textContent = s; plot.appendChild(t);
+    }
+
+    function render() {
+      const thr = parseFloat(thrIn.value);
+      const show = (radios.find((r) => r.checked)?.value ?? 'P') as 'P' | 'D' | 'S';
+      thrOut.textContent = f2(thr);
+      const series = show === 'P' ? P : show === 'D' ? D : S;
+      const color = show === 'P' ? ACCENT : show === 'D' ? ORANGE : PURPLE;
+      const acc = acceptable(thr);
+
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 0.5, 1]) {
+        if (v > 0) plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        text(X0 - 4, py(v) + 3, v.toFixed(1), 'end');
+      }
+      for (const t of T) {
+        plot.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(t), Y1 + 14, String(t), 'middle');
+      }
+      text((X0 + X1) / 2 + 20, Y1 + 42, 'rearing temperature (°C)', 'middle', 10);
+      const ylab = show === 'P' ? 'P = D x S (relative)' : show === 'D' ? 'D, development rate (relative)' : 'S, survival (relative)';
+      text(X0 - 2, Y0 - 12, ylab, 'start', 10);
+
+      if (show === 'P') {
+        text(X1, Y0 - 12, `threshold ${f2(thr)}`, 'end', 9, ORANGE, 700);
+        plot.appendChild(el('line', { x1: X0, y1: py(thr), x2: X1, y2: py(thr), stroke: ORANGE, 'stroke-width': 1.4, 'stroke-dasharray': '5 3' }));
+        if (acc) {
+          plot.appendChild(el('rect', { x: px(acc.lo), y: Y1 - 4, width: Math.max(px(acc.hi) - px(acc.lo), 2), height: 4, fill: ORANGE, opacity: 0.85 }));
+        }
+      }
+
+      // data line: only between the tested temperatures
+      const d = T.map((t, i) => (i ? 'L' : 'M') + px(t).toFixed(1) + ' ' + py(series[i]).toFixed(1)).join(' ');
+      plot.appendChild(el('path', { d, fill: 'none', stroke: color, 'stroke-width': 2.6 }));
+      T.forEach((t, i) => {
+        plot.appendChild(el('circle', { cx: px(t), cy: py(series[i]), r: 4.5, fill: color }));
+        const above = series[i] < 0.9;
+        text(px(t), py(series[i]) + (above ? -9 : 15), f2(series[i]), 'middle', 10, color, 700, true);
+      });
+
+      if (show === 'P' && acc) {
+        const marks: { t: number; edge: boolean }[] = [];
+        if (!acc.loEdge) marks.push({ t: acc.lo, edge: false });
+        if (!acc.hiEdge && (acc.hi - acc.lo > EPS || acc.loEdge)) marks.push({ t: acc.hi, edge: false });
+        if (acc.hi - acc.lo <= EPS && !acc.loEdge) marks.length = 1;
+        marks.forEach((m, i) => {
+          plot.appendChild(el('line', { x1: px(m.t), y1: py(thr), x2: px(m.t), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+          plot.appendChild(el('circle', { cx: px(m.t), cy: py(thr), r: 3.5, fill: '#fff', stroke: ORANGE, 'stroke-width': 2 }));
+          let anchor = 'middle';
+          if (marks.length === 2 && Math.abs(px(marks[0].t) - px(marks[1].t)) < 36) anchor = i === 0 ? 'end' : 'start';
+          text(px(m.t) + (anchor === 'end' ? 3 : anchor === 'start' ? -3 : 0), Y1 + 27, f2(m.t), anchor, 9, ORANGE, 700);
+        });
+      }
+
+      /* readouts */
+      o('p').textContent = P.map(f2).join(' / ');
+      let lo = '—', hi = '—', br = '—', msg: string;
+      const ends = 'Development limits the cold end (at 20 °C D is 0.50 but S is 0.80); survival limits the hot end (at 30 °C S is 0.20 but D is 0.80).';
+      if (!acc) {
+        lo = 'none'; hi = 'none'; br = 'no acceptable range';
+        msg = `No tested temperature reaches P ${f2(thr)}: the highest P is 0.60, at 25 °C. With a threshold above 0.60 this sketch finds no acceptable range, and it does not draw the curve beyond 20 and 30 °C to look for one.`;
+      } else if (acc.loEdge && acc.hiEdge) {
+        lo = '20 °C is already acceptable (tested edge)'; hi = '30 °C is already acceptable (tested edge)';
+        br = `10.00 °C, the whole tested range`;
+        msg = `P is at least ${f2(thr)} at 20, 25 and 30 °C (0.40, 0.60, 0.16), so the whole tested range is acceptable. The sketch does not extrapolate, so where the real edges lie is unknown; 10.00 °C is only the width of what was tested. P still leaves out fecundity, so it is not lambda.`;
+      } else if (acc.loEdge) {
+        lo = '20 °C is already acceptable (tested edge)'; hi = f2(acc.hi) + ' °C';
+        br = `at least ${f2(acc.hi - acc.lo)} °C (lower edge not found)`;
+        msg = `P at 20 °C is 0.40, already at least ${f2(thr)}, so the lower edge lies at or below 20 °C, outside what was tested, and cannot be read here. P falls through ${f2(thr)} at ${f2(acc.hi)} °C between 25 and 30 °C: 25 + (0.60 - ${f2(thr)})/(0.60 - 0.16) x 5. Survival limits the hot end (at 30 °C S is 0.20 but D is 0.80).`;
+      } else if (acc.hi - acc.lo <= EPS) {
+        lo = f2(acc.lo) + ' °C'; hi = f2(acc.hi) + ' °C'; br = '0.00 °C (one tested point) (a product of straight-line interpolation)';
+        msg = `P reaches ${f2(thr)} only at 25 °C, the best tested temperature, so the two crossings meet and the breadth is 0.00 °C. The true peak could lie between treatments.`;
+      } else {
+        lo = f2(acc.lo) + ' °C'; hi = f2(acc.hi) + ' °C'; br = f2(acc.hi - acc.lo) + ' °C';
+        const base = `P is at least ${f2(thr)} from ${f2(acc.lo)} to ${f2(acc.hi)} °C, a breadth of ${f2(acc.hi - acc.lo)} °C, by straight-line interpolation between treatments. `;
+        msg = base + ends;
+        if (Math.abs(thr - 0.5) < 1e-9) msg = base + 'This is the lesson’s worked problem at its 0.50 threshold. ' + ends;
+      }
+      if (show !== 'P') {
+        msg = show === 'D'
+          ? `Showing D alone: 0.50, 1.00, 0.80 at 20, 25, 30 °C. Development is slow at 20 °C and is still fairly fast (0.80) at 30 °C, so it is not what limits the hot end. Switch back to P to see the threshold. `
+          : `Showing S alone: 0.80, 0.60, 0.20 at 20, 25, 30 °C. Survival is high at 20 °C and has collapsed at 30 °C, so it limits the hot end. Switch back to P to see the threshold. `;
+        msg += `For P at the current threshold: ${acc ? (acc.loEdge || acc.hiEdge ? 'see the readouts' : 'acceptable from ' + f2(acc.lo) + ' to ' + f2(acc.hi) + ' °C') : 'no acceptable range'}.`;
+      }
+      o('lo').textContent = lo; o('hi').textContent = hi; o('br').textContent = br;
+      why.textContent = msg;
+    }
+    thrIn.addEventListener('input', render);
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .pbr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pbr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pbr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pbr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pbr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: start; }
+  .pbr-fs { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .pbr-fs legend { padding: 0; font-weight: 600; margin-bottom: 0.15rem; }
+  .pbr-fs label { display: flex; align-items: center; gap: 0.35rem; }
+  .pbr-fs input { accent-color: var(--ddp-color-accent); }
+  .pbr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .pbr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pbr-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .pbr-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pbr-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .pbr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pbr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .pbr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .pbr-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .pbr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .pbr-controls, .pbr-readout { grid-template-columns: 1fr; } }
+</style>

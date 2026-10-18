@@ -1,0 +1,191 @@
+---
+/**
+ * WatershedNitrogenBudget — the lesson's invented forested watershed as a box with labelled
+ * arrows. Deposition and fixation come in; stream export and denitrification go out; the
+ * soil organic N pool (4,500 kg N/ha) and mineralisation (90) loop inside the boundary.
+ * Sliders set deposition, fixation and stream export; a clear-cut toggle sets export to the
+ * lesson's invented 40. A checker re-sums the pools with mineralisation at half, one and
+ * two times its value to show the internal loop never changes the budget. Original,
+ * self-contained vanilla-TS island.
+ */
+---
+
+<figure class="wnb card" data-wnb>
+  <figcaption class="wnb-head">Watershed nitrogen budget — an invented forest, one year<span class="wnb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="wnb-svg" viewBox="0 0 340 264" role="img" aria-label="A watershed box. Deposition and fixation arrows enter at the top; stream export and denitrification arrows leave at the bottom; a soil organic nitrogen pool and a plant pool joined by a mineralisation arrow sit inside the box" data-plot></svg>
+
+  <div class="wnb-controls">
+    <label class="wnb-slabel"><span>Atmospheric deposition <em data-out="dep">8</em> kg N ha⁻¹ yr⁻¹</span>
+      <input type="range" data-in="dep" min="0" max="30" step="1" value="8" />
+    </label>
+    <label class="wnb-slabel"><span>Biological fixation <em data-out="fix">6</em> kg N ha⁻¹ yr⁻¹</span>
+      <input type="range" data-in="fix" min="0" max="20" step="1" value="6" />
+    </label>
+    <label class="wnb-slabel"><span>Stream export <em data-out="exp">3</em> kg N ha⁻¹ yr⁻¹</span>
+      <input type="range" data-in="exp" min="0" max="60" step="1" value="3" />
+    </label>
+    <label class="wnb-toggle"><input type="checkbox" data-cut /> <span>Clear-cut the forest and suppress regrowth (sets export to 40)</span></label>
+  </div>
+
+  <dl class="wnb-readout">
+    <div><dt>Inputs | outputs</dt><dd data-r-io>—</dd></div>
+    <div><dt>Change in stored N = inputs − outputs</dt><dd data-r-net>—</dd></div>
+    <div><dt>Soil pool residence time = stock / flux</dt><dd data-r-res>—</dd></div>
+    <div><dt>Mineralisation / external inputs</dt><dd data-r-ratio>—</dd></div>
+    <div class="wnb-check"><dt>Internal-loop check: mineralisation 45 | 90 | 180</dt><dd data-r-chk>—</dd></div>
+  </dl>
+  <p class="wnb-why" data-why role="status"></p>
+
+  <p class="wnb-assume"><strong>In this sketch:</strong> an invented watershed, boundary from canopy to bedrock; rates hold steady through the year; water, with its dissolved nitrogen, leaves only by the stream; denitrification is held at 2, the soil organic N pool at 4,500 and gross mineralisation at 90; all fluxes are kg N ha⁻¹ yr⁻¹. The 45 and 180 in the check are halved and doubled values, in this sketch. The sketch shows the logic of a budget, and the invented rise in export shows the direction of the Hubbard Brook result, not its size.</p>
+  <p class="wnb-foot">Keep the rule: change in stock = inputs − outputs for a stated boundary and interval. Mineralisation is an output of the soil pool and an input of the plant pool, so it cancels in the whole-watershed sum, even when it is the largest flux.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREEN = '#2e7d32';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const DENIT = 2, SOIL = 4500, MIN = 90, CUT_EXPORT = 40, DEFAULT_EXPORT = 3;
+  const fmt = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
+
+  // Sum the change in every pool; mineralisation leaves soil and enters plants, so it cancels.
+  function netByPools(dep: number, fix: number, exp: number, min: number): number {
+    const dSoil = -min;
+    const dPlant = min + dep + fix - exp - DENIT;
+    return dPlant + dSoil;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-wnb]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const outp = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const depIn = inp('dep'), fixIn = inp('fix'), expIn = inp('exp');
+    const cut = root.querySelector<HTMLInputElement>('[data-cut]')!;
+    const rIo = o('[data-r-io]'), rNet = o('[data-r-net]'), rRes = o('[data-r-res]'), rRatio = o('[data-r-ratio]'), rChk = o('[data-r-chk]'), why = o('[data-why]');
+    let savedExport = DEFAULT_EXPORT;
+
+    function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': 9, fill: INK, 'text-anchor': 'middle', ...opts });
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+    function arrow(x: number, y1: number, y2: number, v: number, color: string) {
+      const w = Math.min(10, 1.6 + v * 0.2);
+      const dir = y2 > y1 ? 1 : -1;
+      const head = 7 + w * 0.6;
+      plot.appendChild(el('line', { x1: x, y1, x2: x, y2: y2 - dir * head, stroke: color, 'stroke-width': w }));
+      const hw = 5 + w * 0.7;
+      plot.appendChild(el('polygon', { points: `${x - hw},${y2 - dir * head} ${x + hw},${y2 - dir * head} ${x},${y2}`, fill: color }));
+    }
+
+    function render() {
+      const dep = parseInt(depIn.value, 10), fix = parseInt(fixIn.value, 10), exp = parseInt(expIn.value, 10);
+      const isCut = exp === CUT_EXPORT && cut.checked;
+      outp('dep').textContent = String(dep);
+      outp('fix').textContent = String(fix);
+      outp('exp').textContent = String(exp);
+      const inputs = dep + fix, outputs = exp + DENIT;
+      const net = inputs - outputs;
+
+      plot.replaceChildren();
+      // boundary box
+      plot.appendChild(el('rect', { x: 14, y: 66, width: 312, height: 130, rx: 6, fill: '#f7fbfb', stroke: INK, 'stroke-width': 1.4, 'stroke-dasharray': '6 4' }));
+      text(24, 80, 'watershed boundary: canopy to bedrock', { 'text-anchor': 'start' });
+
+      // external arrows
+      arrow(90, 34, 66, dep, ACCENT);
+      text(90, 14, 'deposition');
+      text(90, 25, `${dep} kg N ha⁻¹ yr⁻¹`, { 'font-weight': 700, fill: ACCENT });
+      arrow(250, 34, 66, fix, ACCENT);
+      text(250, 14, 'fixation');
+      text(250, 25, `${fix} kg N ha⁻¹ yr⁻¹`, { 'font-weight': 700, fill: ACCENT });
+      arrow(90, 196, 228, exp, ORANGE);
+      text(90, 242, 'stream export');
+      text(90, 253, `${exp} kg N ha⁻¹ yr⁻¹`, { 'font-weight': 700, fill: ORANGE });
+      arrow(250, 196, 228, DENIT, ORANGE);
+      text(250, 242, 'denitrification');
+      text(250, 253, `${DENIT} kg N ha⁻¹ yr⁻¹`, { 'font-weight': 700, fill: ORANGE });
+
+      // internal pools and loop
+      plot.appendChild(el('rect', { x: 36, y: 96, width: 90, height: 64, rx: 4, fill: '#fff', stroke: GREEN, 'stroke-width': 1.4 }));
+      text(81, 122, 'soil organic N');
+      text(81, 135, '4,500 kg N ha⁻¹', { 'font-weight': 700, fill: GREEN });
+      plot.appendChild(el('rect', { x: 214, y: 96, width: 90, height: 64, rx: 4, fill: '#fff', stroke: GREEN, 'stroke-width': 1.4, 'stroke-dasharray': isCut ? '4 3' : '0' }));
+      text(259, isCut ? 118 : 122, isCut ? 'plants cut' : 'plant pool');
+      if (isCut) text(259, 131, 'uptake stops', { fill: ORANGE, 'font-weight': 700 });
+      const mc = GREEN;
+      plot.appendChild(el('line', { x1: 126, y1: 132, x2: 205, y2: 132, stroke: mc, 'stroke-width': 3 }));
+      plot.appendChild(el('polygon', { points: `205,126 214,132 205,138`, fill: mc }));
+      text(170, 110, 'mineralisation');
+      text(170, 121, `${MIN} (internal)`, { 'font-weight': 700, fill: GREEN });
+      text(170, 180, 'internal loop: stays inside the boundary');
+
+      // readouts
+      rIo.textContent = `${inputs} | ${outputs}`;
+      rNet.textContent = `${fmt(net)} kg N ha⁻¹ yr⁻¹`;
+      rRes.textContent = `${SOIL.toLocaleString('en-US')} / ${MIN} = ${SOIL / MIN} years`;
+      rRatio.textContent = inputs > 0 ? `${MIN} / ${inputs} = ${(MIN / inputs).toFixed(1)} times` : `${MIN} / 0: no external input`;
+      const chk = [MIN / 2, MIN, MIN * 2].map((m) => netByPools(dep, fix, exp, m));
+      const same = chk.every((c) => c === net);
+      rChk.textContent = `${chk.map(fmt).join(' | ')} ${same ? '(same net)' : '(differs)'}`;
+
+      const parts: string[] = [];
+      if (net > 0) parts.push(`Inputs ${inputs} minus outputs ${outputs} gives ${fmt(net)} kg N per hectare per year: the watershed is accumulating nitrogen${isCut ? '' : ', in wood and soil'}.`);
+      else if (net < 0) parts.push(`Inputs ${inputs} minus outputs ${outputs} gives ${fmt(net)} kg N per hectare per year: a net loss.`);
+      else parts.push(`Inputs ${inputs} equal outputs ${outputs}, so the change in stored nitrogen is 0 over the year.`);
+      if (isCut) parts.push('With the forest cut and regrowth suppressed, plant uptake stops but mineralisation and nitrification continue, and nitrate, a mobile anion that soil holds weakly, washes into the stream. The rise to 40 is invented and shows the direction of the Hubbard Brook result, not its size.');
+      if (isCut) parts.push(`Mineralisation, ${MIN}, continues, yet it is absent from the sum: the sum counts only what crosses the boundary.`);
+      else parts.push(inputs > 0
+        ? `Mineralisation, ${MIN}, is about ${(MIN / inputs).toFixed(1)} times the external inputs, yet it is absent from the sum: it leaves the soil pool and enters the plant pool.`
+        : `Mineralisation, ${MIN}, is the largest flux here, yet it is absent from the sum: the sum counts only what crosses the boundary.`);
+      why.textContent = parts.join(' ');
+    }
+
+    [depIn, fixIn].forEach((s) => s.addEventListener('input', render));
+    expIn.addEventListener('input', () => {
+      const v = parseInt(expIn.value, 10);
+      cut.checked = v === CUT_EXPORT && cut.checked ? true : false;
+      if (!cut.checked) savedExport = v;
+      render();
+    });
+    cut.addEventListener('change', () => {
+      if (cut.checked) {
+        savedExport = parseInt(expIn.value, 10);
+        expIn.value = String(CUT_EXPORT);
+      } else {
+        expIn.value = String(savedExport === CUT_EXPORT ? DEFAULT_EXPORT : savedExport);
+      }
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .wnb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .wnb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .wnb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .wnb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .wnb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .wnb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wnb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .wnb-slabel input { accent-color: var(--ddp-color-accent); }
+  .wnb-toggle { display: flex; align-items: flex-start; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wnb-toggle input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .wnb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .wnb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .wnb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .wnb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .wnb-check { grid-column: 1 / -1; }
+  .wnb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .wnb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .wnb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) {
+    .wnb-controls, .wnb-readout { grid-template-columns: 1fr; }
+  }
+</style>

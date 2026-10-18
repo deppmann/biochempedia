@@ -1,0 +1,330 @@
+---
+/**
+ * PhaseLagReader — reading a predator-prey phase lag. Two regular cycles (prey and
+ * predator) are drawn over 90 days as sketch curves. The learner sets the predator's delay,
+ * or loads the lesson's Run A, Run B or practice case, then drags three markers onto the
+ * peaks (two prey peaks for the period, one predator peak for the delay) and compares the
+ * lag they measure, delay / period, with the model's own value on a 0-to-1-cycle scale.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="plr card" data-plr>
+  <figcaption class="plr-head">Phase lag — read it from the peaks<span class="plr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="plr-svg" viewBox="0 0 340 200" role="img" aria-label="Two regular cycles over 90 days, prey and predator, with three draggable peak markers" data-cycles></svg>
+
+  <div class="plr-controls">
+    <label class="plr-slabel"><span>Predator delay <em data-out="delay">7.5</em> days</span>
+      <input type="range" data-in="delay" min="0" max="22.5" step="0.5" value="7.5" />
+    </label>
+    <div class="plr-presets" role="group" aria-label="Invented data sets from the lesson">
+      <button type="button" class="plr-btn" data-set="A" aria-pressed="true">Run A (delay 7.5 d)</button>
+      <button type="button" class="plr-btn" data-set="B" aria-pressed="false">Run B (delay 15 d)</button>
+      <button type="button" class="plr-btn" data-set="C" aria-pressed="false">Practice case (24-day cycle, delay 12 d)</button>
+    </div>
+  </div>
+  <p class="plr-hint">Drag the markers (or focus one and press the arrow keys; Page Up and Page Down move 5 days): <strong>P1</strong> and <strong>P2</strong> on two successive prey peaks, <strong>R</strong> on the predator peak just after P1.</p>
+
+  <svg class="plr-svg plr-scale" viewBox="0 0 340 102" role="img" aria-label="Phase-lag scale from 0 to 1 cycle with the model lag and your measured lag" data-scale></svg>
+  <p class="plr-legend"><span class="plr-key plr-key-m">▼</span> model lag &nbsp; <span class="plr-key plr-key-o">▲</span> your measured lag</p>
+
+  <div class="plr-readout">
+    <dl>
+      <dt>Model (expected)</dt>
+      <dd data-r-model></dd>
+    </dl>
+    <dl>
+      <dt>Your markers (observed)</dt>
+      <dd data-r-obs></dd>
+    </dl>
+  </div>
+
+  <p class="plr-why" data-why role="status"></p>
+
+  <p class="plr-assume"><strong>In this sketch:</strong> regular cycles, a fixed period within each run, abundance in relative units (not to scale), and curves drawn from the lag alone. Runs A and B and the practice case are invented numbers, not Yoshida’s data; in the real experiment the two treatments did not share a period. The two cases are named in words only, because the lesson gives no numeric ranges.</p>
+
+  <p class="plr-foot">Rule to keep: phase lag (cycles) = delay between peaks (days) / period (days), with each predator peak matched to the prey peak just before it. The lag alone does not prove that the prey evolved.</p>
+</figure>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg";
+  const TEAL = "#0e7c86", TEAL_D = "#0b5f67", ORANGE = "#c25e00", ORANGE_D = "#a04a00", INK = "#4b4b55", FAINT = "#b9b9c2";
+  const el = (name: string, attrs: Record<string, string | number>): SVGElement => {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  };
+  const fmt = (n: number) => String(Number(n.toFixed(2)));
+  let uid = 0;
+
+  type DataSet = { period: number; t0: number; delay: number };
+  const SETS: Record<string, DataSet> = {
+    A: { period: 30, t0: 10, delay: 7.5 },
+    B: { period: 30, t0: 10, delay: 15 },
+    C: { period: 24, t0: 6, delay: 12 },
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-plr]").forEach((root) => {
+    const id = "plr" + uid++;
+    const cyc = root.querySelector<SVGSVGElement>("[data-cycles]")!;
+    const scl = root.querySelector<SVGSVGElement>("[data-scale]")!;
+    const delayIn = root.querySelector<HTMLInputElement>("[data-in=delay]")!;
+    const delayOut = root.querySelector<HTMLElement>("[data-out=delay]")!;
+    const rModel = root.querySelector<HTMLElement>("[data-r-model]")!;
+    const rObs = root.querySelector<HTMLElement>("[data-r-obs]")!;
+    const why = root.querySelector<HTMLElement>("[data-why]")!;
+    const btns = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-set]"));
+
+    const TMAX = 90, X0 = 36, X1 = 326, YTOP = 58, YBOT = 142, YAX = 148;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const SX0 = 20, SX1 = 320;
+    const sx = (lag: number) => SX0 + lag * (SX1 - SX0);
+
+    let cur: DataSet = { ...SETS.A };
+    // marker positions in days: P1, P2 (prey peaks) and R (predator peak)
+    const mk = { P1: 10, P2: 40, R: 20 } as Record<string, number>;
+    const ROW: Record<string, number> = { P1: 12, P2: 27, R: 42 };
+    const LABEL: Record<string, string> = {
+      P1: "first prey peak marker",
+      P2: "second prey peak marker",
+      R: "predator peak marker",
+    };
+
+    const peaks = (offset: number) => {
+      const out: number[] = [];
+      for (let k = -4; k < 8; k++) {
+        const t = cur.t0 + offset + k * cur.period;
+        if (t >= 0 && t <= TMAX) out.push(t);
+      }
+      return out;
+    };
+    const near = (t: number, list: number[]) => list.some((p) => Math.abs(p - t) <= 1);
+
+    function curve(offset: number) {
+      let d = "";
+      for (let t = 0; t <= TMAX; t += 0.5) {
+        const a = 0.5 + 0.5 * Math.cos((2 * Math.PI * (t - cur.t0 - offset)) / cur.period);
+        const y = YBOT - a * (YBOT - YTOP);
+        d += (t === 0 ? "M" : "L") + px(t).toFixed(1) + " " + y.toFixed(1) + " ";
+      }
+      return d.trim();
+    }
+
+    function drawStatic() {
+      cyc.replaceChildren();
+      const txt = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+        const t = el("text", { x, y, "font-size": 9, fill: INK, ...extra });
+        t.textContent = s;
+        cyc.appendChild(t);
+      };
+      cyc.appendChild(el("line", { x1: X0, y1: YAX, x2: X1, y2: YAX, stroke: INK, "stroke-width": 1 }));
+      cyc.appendChild(el("line", { x1: X0, y1: YTOP - 6, x2: X0, y2: YAX, stroke: INK, "stroke-width": 1 }));
+      for (let t = 0; t <= TMAX; t += 10) {
+        cyc.appendChild(el("line", { x1: px(t), y1: YAX, x2: px(t), y2: YAX + 3, stroke: INK, "stroke-width": 1 }));
+        txt(px(t), YAX + 13, String(t), { "text-anchor": "middle" });
+      }
+      txt((X0 + X1) / 2, YAX + 26, "time (days)", { "text-anchor": "middle" });
+      txt(11, (YTOP + YBOT) / 2, "abundance (relative units)", { "text-anchor": "middle", transform: `rotate(-90 11 ${(YTOP + YBOT) / 2})` });
+      cyc.appendChild(el("path", { d: curve(0), fill: "none", stroke: TEAL, "stroke-width": 2.4 }));
+      cyc.appendChild(el("path", { d: curve(cur.delay), fill: "none", stroke: ORANGE, "stroke-width": 2.4, "stroke-dasharray": "6 3" }));
+      // legend
+      cyc.appendChild(el("line", { x1: X0, y1: 192, x2: X0 + 18, y2: 192, stroke: TEAL, "stroke-width": 2.4 }));
+      txt(X0 + 23, 195, "prey");
+      cyc.appendChild(el("line", { x1: X0 + 62, y1: 192, x2: X0 + 80, y2: 192, stroke: ORANGE, "stroke-width": 2.4, "stroke-dasharray": "6 3" }));
+      txt(X0 + 85, 195, "predator");
+      txt(X1, 195, "sketch, not to scale", { "text-anchor": "end" });
+      // markers
+      for (const key of ["P1", "P2", "R"]) {
+        const g = el("g", { class: "plr-mark", "data-mark": key, tabindex: 0, role: "slider", "aria-label": LABEL[key] + " (day)", "aria-valuemin": 0, "aria-valuemax": TMAX });
+        g.appendChild(el("line", { class: "plr-mline", y1: ROW[key] + 7, y2: YAX, stroke: key === "R" ? ORANGE_D : TEAL_D, "stroke-width": 1.2, "stroke-dasharray": "3 2" }));
+        g.appendChild(el("circle", { class: "plr-mdot", r: 7, cy: ROW[key], fill: key === "R" ? ORANGE_D : TEAL_D }));
+        const lt = el("text", { class: "plr-mtext", "text-anchor": "middle", y: ROW[key] + 3, "font-size": 9, "font-weight": 700, fill: "#fff" });
+        lt.textContent = key;
+        g.appendChild(lt);
+        g.appendChild(el("circle", { class: "plr-mhit", r: 11, cy: ROW[key], fill: "transparent" }));
+        cyc.appendChild(g);
+        wire(g, key);
+      }
+      placeMarkers();
+    }
+
+    function placeMarkers() {
+      cyc.querySelectorAll<SVGGElement>("[data-mark]").forEach((g) => {
+        const key = g.getAttribute("data-mark")!;
+        const x = px(mk[key]);
+        g.querySelectorAll("line").forEach((l) => { l.setAttribute("x1", String(x)); l.setAttribute("x2", String(x)); });
+        g.querySelectorAll("circle").forEach((c) => c.setAttribute("cx", String(x)));
+        g.querySelector("text")!.setAttribute("x", String(x));
+        g.setAttribute("aria-valuenow", String(mk[key]));
+        g.setAttribute("aria-valuetext", "day " + fmt(mk[key]));
+      });
+    }
+
+    function setMarker(key: string, t: number) {
+      mk[key] = Math.min(TMAX, Math.max(0, Math.round(t * 2) / 2));
+      placeMarkers();
+      report();
+    }
+
+    function wire(g: SVGElement, key: string) {
+      const dayAt = (ev: PointerEvent) => {
+        const r = cyc.getBoundingClientRect();
+        const x = ((ev.clientX - r.left) / r.width) * 340;
+        return ((x - X0) / (X1 - X0)) * TMAX;
+      };
+      let dragging = false;
+      g.addEventListener("pointerdown", (ev) => {
+        dragging = true;
+        (g as unknown as Element).setPointerCapture((ev as PointerEvent).pointerId);
+        (g as unknown as HTMLElement).focus?.();
+        ev.preventDefault();
+      });
+      g.addEventListener("pointermove", (ev) => { if (dragging) setMarker(key, dayAt(ev as PointerEvent)); });
+      const stop = () => { dragging = false; };
+      g.addEventListener("pointerup", stop);
+      g.addEventListener("pointercancel", stop);
+      g.addEventListener("keydown", (ev) => {
+        const e = ev as KeyboardEvent;
+        let step = 0;
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") step = 0.5;
+        else if (e.key === "ArrowLeft" || e.key === "ArrowDown") step = -0.5;
+        else if (e.key === "PageUp") step = 5;
+        else if (e.key === "PageDown") step = -5;
+        else if (e.key === "Home") { e.preventDefault(); setMarker(key, 0); return; }
+        else if (e.key === "End") { e.preventDefault(); setMarker(key, TMAX); return; }
+        if (step) { e.preventDefault(); setMarker(key, mk[key] + step); }
+      });
+    }
+
+    function drawScale(modelLag: number, obsLag: number | null) {
+      scl.replaceChildren();
+      const BY = 38, BH = 12;
+      scl.appendChild(el("rect", { x: SX0, y: BY, width: SX1 - SX0, height: BH, fill: "#eceff1", stroke: FAINT, "stroke-width": 1 }));
+      const t = (x: number, y: number, s: string, a = "middle", extra: Record<string, string | number> = {}) => {
+        const e = el("text", { x, y, "text-anchor": a, "font-size": 9, fill: INK, ...extra });
+        e.textContent = s;
+        scl.appendChild(e);
+      };
+      for (const v of [0, 0.25, 0.5, 0.75, 1]) {
+        scl.appendChild(el("line", { x1: sx(v), y1: BY + BH, x2: sx(v), y2: BY + BH + 3, stroke: INK, "stroke-width": 1 }));
+        t(sx(v), 69, v === 0 ? "0" : v === 1 ? "1 cycle" : String(v), v === 1 ? "end" : v === 0 ? "start" : "middle");
+      }
+      t(sx(0.25), 11, "about a quarter cycle");
+      t(sx(0.25), 23, "(single-clone runs)");
+      t(sx(0.5), 86, "largely out of step, near antiphase");
+      t(sx(0.5), 98, "(multiclonal runs)");
+      const tri = (x: number, down: boolean, color: string) => {
+        const pts = down ? `${x - 5},${BY - 9} ${x + 5},${BY - 9} ${x},${BY - 1}` : `${x - 5},${BY + BH + 9} ${x + 5},${BY + BH + 9} ${x},${BY + BH + 1}`;
+        scl.appendChild(el("polygon", { points: pts, fill: color }));
+      };
+      tri(sx(modelLag), true, TEAL_D);
+      if (obsLag !== null && obsLag >= 0 && obsLag <= 1) tri(sx(obsLag), false, ORANGE_D);
+    }
+
+    function report() {
+      const P = cur.period, d = cur.delay;
+      const lag = d / P;
+      delayOut.textContent = fmt(d);
+      rModel.textContent = `${fmt(d)} / ${fmt(P)} = ${lag.toFixed(2)} cycle`;
+
+      const p1 = mk.P1, p2 = mk.P2, r = mk.R;
+      const mPeriod = p2 - p1, mDelay = r - p1;
+      let obsLag: number | null = null;
+      let valid = true;
+      let obsText: string;
+      if (mPeriod <= 0) {
+        valid = false;
+        obsText = "Move P2 to the right of P1 to measure a period.";
+      } else if (mDelay < 0) {
+        valid = false;
+        obsText = "Move R to the right of P1 to measure a delay.";
+      } else {
+        obsLag = mDelay / mPeriod;
+        obsText = `(${fmt(r)} − ${fmt(p1)}) / (${fmt(p2)} − ${fmt(p1)}) = ${fmt(mDelay)} / ${fmt(mPeriod)} = ${obsLag.toFixed(2)} cycle`;
+        if (obsLag > 1) valid = false;
+      }
+      rObs.textContent = obsText;
+      drawScale(lag, valid ? obsLag : null);
+
+      // what the model shows
+      let model: string;
+      if (Math.abs(lag - 0.25) < 1e-9) {
+        model = `The predator peaks ${fmt(d)} days after the prey in a ${fmt(P)}-day cycle: ${lag.toFixed(2)} cycle, the classical quarter lag, as in the single-clone runs.`;
+      } else if (Math.abs(lag - 0.5) < 1e-9) {
+        model = `The predator peaks ${fmt(d)} days after the prey in a ${fmt(P)}-day cycle: ${lag.toFixed(2)} cycle, antiphase, with predator peaks at prey troughs, resembling the multiclonal runs. The lag alone does not prove that the prey evolved.`;
+      } else if (d === 0) {
+        model = `With no delay the two cycles peak together (lag 0 cycle). The lesson names only the quarter lag and antiphase, so this sketch does not classify it.`;
+      } else {
+        model = `The predator peaks ${fmt(d)} days after the prey in a ${fmt(P)}-day cycle: ${lag.toFixed(2)} cycle. That is neither the quarter lag nor antiphase, and the lesson gives no ranges, so this sketch does not classify it.`;
+      }
+
+      // what the markers show
+      let marks = "";
+      const onP1 = near(p1, peaks(0)), onP2 = near(p2, peaks(0)), onR = near(r, peaks(d));
+      if (!valid) {
+        marks = mPeriod > 0 && mDelay >= 0
+          ? " Your R is more than one period after P1; the lesson matches each predator peak with the prey peak just before it."
+          : " " + obsText;
+      } else if (!(onP1 && onP2 && onR)) {
+        const off = [!onP1 ? "P1" : "", !onP2 ? "P2" : "", !onR ? "R" : ""].filter(Boolean).join(", ");
+        marks = ` Not every marker is on a peak yet (check ${off}), so your reading is only as good as your placement.`;
+      } else if (Math.abs(mPeriod - P) > 1.5) {
+        marks = " P1 and P2 are on peaks but are not successive prey peaks; the period is the gap between successive peaks.";
+      } else {
+        marks = ` Your markers sit on the peaks and give ${obsLag!.toFixed(2)} cycle, the same as the model.`;
+      }
+      why.textContent = model + marks;
+    }
+
+    function applySet(key: string) {
+      cur = { ...SETS[key] };
+      delayIn.value = String(cur.delay);
+      btns.forEach((b) => b.setAttribute("aria-pressed", String(b.getAttribute("data-set") === key)));
+      drawStatic();
+      report();
+    }
+
+    delayIn.addEventListener("input", () => {
+      cur.delay = parseFloat(delayIn.value);
+      btns.forEach((b) => {
+        const s = SETS[b.getAttribute("data-set")!];
+        b.setAttribute("aria-pressed", String(s.period === cur.period && s.t0 === cur.t0 && s.delay === cur.delay));
+      });
+      drawStatic();
+      report();
+    });
+    btns.forEach((b) => b.addEventListener("click", () => applySet(b.getAttribute("data-set")!)));
+    drawStatic();
+    report();
+  });
+</script>
+
+<style is:global>
+  .plr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .plr .plr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .plr .plr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .plr .plr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: manipulation; }
+  .plr .plr-scale { margin-top: var(--ddp-space-2); }
+  .plr .plr-controls { display: grid; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .plr .plr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .plr .plr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .plr .plr-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .plr .plr-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .plr .plr-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; text-align: left; }
+  .plr .plr-btn[aria-pressed="true"] { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); color: var(--ddp-color-primary); font-weight: 600; }
+  .plr .plr-btn:focus-visible, .plr .plr-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .plr .plr-hint { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .plr .plr-mark { cursor: ew-resize; touch-action: none; outline: none; }
+  .plr .plr-mark:focus-visible .plr-mdot { stroke: #111; stroke-width: 2.5; }
+  .plr .plr-legend { margin: 0.2rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); text-align: center; }
+  .plr .plr-key-m { color: #0b5f67; }
+  .plr .plr-key-o { color: #a04a00; }
+  .plr .plr-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .plr .plr-readout dl { margin: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+  .plr .plr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .plr .plr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .plr .plr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .plr .plr-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .plr .plr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

@@ -1,0 +1,146 @@
+---
+/**
+ * CisTransAlleleTest — the F1 allele-ratio test of the evolution-of-development lesson.
+ * One hybrid nucleus holds the marine allele (M) and the Paxton allele (P) beside one shared
+ * pool of regulators. The learner picks a tissue (pelvic bud or jaw) and a hypothesis (a cis
+ * change in the Paxton allele, or a trans change in a regulator); the sketch shows the share
+ * of Pitx1 transcripts each hypothesis predicts beside the lesson's invented data
+ * (90:10 in pelvic bud, 50:50 in jaw). Labelled blocks and bars only; nothing is drawn as a
+ * molecule. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cta card" data-cta>
+  <figcaption class="cta-head">F1 allele test: cis or trans?<span class="cta-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cta-svg" viewBox="0 0 360 250" role="img" aria-label="An F1 hybrid nucleus holding a marine allele M and a Paxton allele P that share one pool of regulators, with bars of the predicted and the observed share of Pitx1 transcripts from each allele" data-stage></svg>
+
+  <div class="cta-controls">
+    <fieldset class="cta-set">
+      <legend>Tissue</legend>
+      <label><input type="radio" name="cta-tissue" value="pelvis" checked /> pelvic bud</label>
+      <label><input type="radio" name="cta-tissue" value="jaw" /> jaw</label>
+    </fieldset>
+    <fieldset class="cta-set">
+      <legend>Hypothesis</legend>
+      <label><input type="radio" name="cta-hyp" value="cis" checked /> cis change in the Paxton allele</label>
+      <label><input type="radio" name="cta-hyp" value="trans" /> trans change in a regulator</label>
+    </fieldset>
+  </div>
+
+  <p class="cta-verdict" data-verdict role="status"></p>
+
+  <p class="cta-assume">In this sketch: invented data from the lesson, one nucleus shared by both alleles, shares of transcripts in relative units, no other source of difference between the alleles. The lesson predicts only that a cis change gives unequal shares in the pelvic bud, so no size is predicted.</p>
+  <p class="cta-foot">Both alleles share one nucleus, so a difference built into one allele’s DNA lies in cis (that allele alone is down), while a change in a regulator would affect both alleles alike (trans). This is a sketch of the logic, not a measurement.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Tissue = 'pelvis' | 'jaw';
+  type Hyp = 'cis' | 'trans';
+  // Shares of Pitx1 transcripts (marine : Paxton), in percent.
+  // Data: the lesson's invented F1 values. Prediction: cis = Paxton allele itself less active in
+  // the pelvis only (size set to the invented 90:10 so the two can be compared); trans = both
+  // alleles share the regulators, so they are affected alike and stay 50:50.
+  const DATA: Record<Tissue, [number, number]> = { pelvis: [90, 10], jaw: [50, 50] };
+  // The lesson predicts only that cis in the pelvis gives unequal shares, so no numbers (null).
+  function predict(h: Hyp, t: Tissue): [number, number] | null {
+    if (h === 'cis' && t === 'pelvis') return null;
+    return [50, 50];
+  }
+  const TEAL = '#0e7c86', ORANGE = '#a84c00', INK = '#4b4b55', FAINT = '#8a8a96';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-cta]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const tissueIn = () => root.querySelector<HTMLInputElement>('input[name="cta-tissue"]:checked')!.value as Tissue;
+    const hypIn = () => root.querySelector<HTMLInputElement>('input[name="cta-hyp"]:checked')!.value as Hyp;
+
+    function bar(y: number, label: string, shares: [number, number] | null, tag: string) {
+      const x0 = 30, W = 300, H = 20;
+      stage.appendChild(el('text', { x: x0, y: y - 5, 'font-size': 10, 'font-weight': 700, fill: INK }, label));
+      stage.appendChild(el('text', { x: x0 + W, y: y - 5, 'font-size': 10, 'text-anchor': 'end', fill: INK }, tag));
+      if (!shares) {
+        stage.appendChild(el('rect', { x: x0, y, width: W, height: H, fill: '#eceff3', stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '5 3' }));
+        stage.appendChild(el('text', { x: x0 + W / 2, y: y + 14, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, '? : ?  shares unequal, size not predicted'));
+        return;
+      }
+      const wm = (W * shares[0]) / 100;
+      stage.appendChild(el('rect', { x: x0, y, width: wm, height: H, fill: TEAL }));
+      stage.appendChild(el('rect', { x: x0 + wm, y, width: W - wm, height: H, fill: ORANGE }));
+      stage.appendChild(el('rect', { x: x0, y, width: W, height: H, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      if (shares[0] >= 25) stage.appendChild(el('text', { x: x0 + wm / 2, y: y + 14, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'M ' + shares[0] + '%'));
+      if (shares[1] >= 25) stage.appendChild(el('text', { x: x0 + wm + (W - wm) / 2, y: y + 14, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'P ' + shares[1] + '%'));
+      if (shares[1] < 25) stage.appendChild(el('text', { x: x0 + W - 4, y: y + 14, 'font-size': 10, 'text-anchor': 'end', 'font-weight': 700, fill: '#fff' }, shares[1] + '%'));
+      if (shares[0] < 25) stage.appendChild(el('text', { x: x0 + 4, y: y + 14, 'font-size': 10, 'font-weight': 700, fill: '#fff' }, shares[0] + '%'));
+    }
+
+    function render() {
+      const t = tissueIn(), h = hypIn();
+      const pred = predict(h, t), data = DATA[t];
+      const match = pred ? pred[0] === data[0] && pred[1] === data[1] : data[0] !== data[1];
+      const cisHere = h === 'cis' && t === 'pelvis';
+      const transHere = h === 'trans';
+      stage.replaceChildren();
+      stage.setAttribute('aria-label', 'F1 hybrid nucleus, ' + (t === 'pelvis' ? 'pelvic bud' : 'jaw') + ': marine allele M and Paxton allele P share one pool of regulators. Hypothesis: ' + (h === 'cis' ? 'cis change in the Paxton allele' : 'trans change in a regulator') + '. Predicted shares: ' + (pred ? pred[0] + ' to ' + pred[1] : 'unequal, size not predicted') + '. Invented data: ' + data[0] + ' to ' + data[1] + '. ' + (match ? 'Prediction matches the data.' : 'Prediction does not match the data.'));
+
+      // nucleus
+      stage.appendChild(el('rect', { x: 10, y: 22, width: 340, height: 98, rx: 16, fill: '#f6f6f9', stroke: FAINT, 'stroke-width': 1.5 }));
+      stage.appendChild(el('text', { x: 18, y: 15, 'font-size': 10, fill: INK }, 'F1 hybrid nucleus, ' + (t === 'pelvis' ? 'pelvic bud' : 'jaw')));
+      // shared regulators pool
+      stage.appendChild(el('ellipse', { cx: 180, cy: 72, rx: 58, ry: 28, fill: transHere ? '#fbe9d6' : '#fff', stroke: transHere ? ORANGE : FAINT, 'stroke-width': transHere ? 2 : 1.2, 'stroke-dasharray': transHere ? '' : '4 3' }));
+      stage.appendChild(el('text', { x: 180, y: 68, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'shared regulators'));
+      stage.appendChild(el('text', { x: 180, y: 82, 'font-size': 9, 'text-anchor': 'middle', fill: transHere ? '#7a3800' : INK }, transHere ? 'one regulator changed' : 'one pool, both alleles'));
+      // allele blocks
+      stage.appendChild(el('rect', { x: 24, y: 52, width: 78, height: 40, rx: 6, fill: TEAL }));
+      stage.appendChild(el('text', { x: 63, y: 69, 'font-size': 11, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'M allele'));
+      stage.appendChild(el('text', { x: 63, y: 83, 'font-size': 9, 'text-anchor': 'middle', fill: '#fff' }, 'marine'));
+      stage.appendChild(el('rect', { x: 258, y: 52, width: 78, height: 40, rx: 6, fill: ORANGE, stroke: cisHere ? '#2a1400' : 'none', 'stroke-width': 3 }));
+      stage.appendChild(el('text', { x: 297, y: 69, 'font-size': 11, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'P allele'));
+      stage.appendChild(el('text', { x: 297, y: 83, 'font-size': 9, 'text-anchor': 'middle', fill: '#fff' }, 'Paxton'));
+      if (cisHere) stage.appendChild(el('text', { x: 297, y: 108, 'font-size': 9, 'text-anchor': 'middle', 'font-weight': 700, fill: '#7a3800' }, 'DNA changed'));
+      // arrows from pool to alleles (same pool reaches both)
+      for (const [x1, x2] of [[122, 104], [238, 256]]) {
+        stage.appendChild(el('line', { x1, y1: 72, x2, y2: 72, stroke: INK, 'stroke-width': 1.5 }));
+        stage.appendChild(el('polygon', { points: x1 < x2 ? `${x2},72 ${x2 - 6},68 ${x2 - 6},76` : `${x2},72 ${x2 + 6},68 ${x2 + 6},76`, fill: INK }));
+      }
+
+      // bars
+      stage.appendChild(el('text', { x: 30, y: 140, 'font-size': 10, fill: INK }, 'Share of Pitx1 transcripts from each allele (relative units)'));
+      bar(168, 'Predicted if ' + (h === 'cis' ? 'cis' : 'trans'), pred, h === 'cis' ? (t === 'pelvis' ? 'unequal' : 'equal') : 'equal');
+      bar(214, 'Data (invented, in the lesson)', data, data[0] === data[1] ? 'equal' : 'unequal');
+      stage.appendChild(el('text', { x: 330, y: 246, 'font-size': 10, 'text-anchor': 'end', 'font-weight': 700, fill: match ? TEAL : '#b3261e' }, match ? 'prediction matches the data' : 'prediction does not match the data'));
+
+      let v: string;
+      if (h === 'cis' && t === 'pelvis') v = 'Cis change, pelvic bud: the Paxton allele itself is less active, so the two alleles in one nucleus make unequal shares. The invented data are 90:10, unequal, which matches.';
+      else if (h === 'cis') v = 'Cis change, jaw: the lesson says the defect is specific to the pelvis, so the Paxton allele works normally here and the shares are equal. The invented data are 50:50, which matches; the trans prediction is also 50:50 here, so these data alone do not separate them.';
+      else if (t === 'pelvis') v = 'Trans change, pelvic bud: both alleles share the regulators, so both would be affected alike and the shares would stay 50:50. The invented data are 90:10, so a trans change does not match.';
+      else v = 'Trans change, jaw: both alleles are affected alike, so 50:50, which matches the jaw data. The cis prediction is also 50:50 here, so these data alone do not separate them.';
+      const all = ' Taken across both tissues, only the cis hypothesis matches both, which points to a cis-regulatory change at Pitx1 itself.';
+      verdict.textContent = v + (h === 'cis' ? all : '');
+    }
+    root.querySelectorAll('input').forEach((i) => i.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .cta { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cta-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cta-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cta-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cta-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .cta-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.4rem 0.7rem; display: grid; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cta-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .cta-set input { accent-color: var(--ddp-color-accent); }
+  .cta-set input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cta-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .cta-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cta-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cta-controls { grid-template-columns: 1fr; } }
+</style>

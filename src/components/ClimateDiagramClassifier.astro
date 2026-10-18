@@ -1,0 +1,165 @@
+---
+/**
+ * ClimateDiagramClassifier — the lesson's invented lowland station drawn as a
+ * Walter-Lieth diagram (10 degrees C level with 20 mm) and classified with the
+ * lesson's Köppen-Geiger steps. Two controls: one monthly temperature (same every
+ * month) and a multiplier applied to the lesson's twelve precipitation values.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cdc card" data-cdc>
+  <figcaption class="cdc-head">Climate diagram and class — an invented station<span class="cdc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cdc-svg" viewBox="0 0 340 246" role="img" aria-label="Walter-Lieth climate diagram: twelve monthly precipitation bars and a horizontal line at twice the monthly temperature" data-plot></svg>
+
+  <div class="cdc-controls">
+    <label class="cdc-slabel"><span>Monthly temperature, every month <em data-out="t">26</em> °C</span>
+      <input type="range" data-in="t" min="18" max="30" step="1" value="26" />
+    </label>
+    <label class="cdc-slabel"><span>Precipitation multiplier <em data-out="m">1.00</em> × the lesson’s values</span>
+      <input type="range" data-in="m" min="0.2" max="1.5" step="0.05" value="1" />
+    </label>
+  </div>
+
+  <dl class="cdc-readout">
+    <div><dt>Annual total</dt><dd data-r="total"></dd></div>
+    <div><dt>Half-years (Apr–Sep / Oct–Mar)</dt><dd data-r="halves"></dd></div>
+    <div><dt>Threshold 2T + 14 (neither half-year has 70%)</dt><dd data-r="thr"></dd></div>
+    <div><dt>Arid cut-off 10 × threshold</dt><dd data-r="cut"></dd></div>
+    <div><dt>Coldest month ≥ 18 °C?</dt><dd data-r="cold"></dd></div>
+    <div><dt>Driest month ≥ 60 mm?</dt><dd data-r="dry"></dd></div>
+  </dl>
+
+  <p class="cdc-why" data-why role="status"></p>
+
+  <p class="cdc-assume"><strong>In this sketch:</strong> an invented station, the same temperature in every month, the lesson’s twelve monthly means scaled by one multiplier, so the half-year shares stay 52.4% and 47.6% and the 2T + 14 threshold applies. The precipitation axis is linear from 0 to 300 mm in this sketch; Walter’s own diagrams compress it above 100 mm, and the dry-month line here (at most 60 mm) lies below that.</p>
+  <p class="cdc-foot">Rule to keep: test aridity first, then the coldest month, then the driest month; the Walter-Lieth dry months (bars below the 2T line) are a separate, rule-of-thumb reading.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const PRECIP = [140, 120, 150, 180, 200, 160, 140, 110, 90, 100, 130, 160];
+  const MON = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const fmt = (x: number, d = 0) => (Math.round(x * 10 ** d) / 10 ** d).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  document.querySelectorAll<HTMLElement>('[data-cdc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]')!;
+    const mIn = root.querySelector<HTMLInputElement>('[data-in="m"]')!;
+    const tOut = root.querySelector<HTMLElement>('[data-out="t"]')!;
+    const mOut = root.querySelector<HTMLElement>('[data-out="m"]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const r = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]')!;
+
+    const X0 = 40, X1 = 282, Y0 = 54, Y1 = 202, MAXMM = 300;
+    const py = (mm: number) => Y1 - (mm / MAXMM) * (Y1 - Y0);
+    const slot = (X1 - X0) / 12;
+
+    function render() {
+      const T = parseInt(tIn.value, 10);
+      const m = parseFloat(mIn.value);
+      const P = PRECIP.map((p) => Math.round(p * m * 1000) / 1000);
+      const total = P.reduce((a, b) => a + b, 0);
+      const warmHalf = P.slice(3, 9).reduce((a, b) => a + b, 0); // April to September
+      const coolHalf = total - warmHalf; // October to March
+      const level = 2 * T;
+      const thr = 2 * T + 14;
+      const cut = 10 * thr;
+      const driest = Math.min(...P);
+      const driestIdx = P.indexOf(driest);
+      const arid = total < cut;
+      const coldOk = T >= 18;
+      const dryOk = driest >= 60;
+      const dryMonths = P.filter((p) => p < level).length;
+      const onLine = P.filter((p) => p === level).length;
+
+      tOut.textContent = String(T);
+      mOut.textContent = m.toFixed(2);
+
+      plot.replaceChildren();
+      // legend, fixed place in the top margin
+      plot.appendChild(el('rect', { x: X0, y: 8, width: 10, height: 8, fill: ACCENT }));
+      const l1 = el('text', { x: X0 + 14, y: 15, 'font-size': 9, fill: INK }); l1.textContent = 'rain above the line'; plot.appendChild(l1);
+      plot.appendChild(el('rect', { x: X0 + 120, y: 8, width: 10, height: 8, fill: ORANGE }));
+      const l2 = el('text', { x: X0 + 134, y: 15, 'font-size': 9, fill: INK }); l2.textContent = 'below the line (dry)'; plot.appendChild(l2);
+      plot.appendChild(el('line', { x1: X0, y1: 29, x2: X0 + 10, y2: 29, stroke: INK, 'stroke-width': 2 }));
+      const l3 = el('text', { x: X0 + 14, y: 32, 'font-size': 9, fill: INK }); l3.textContent = 'temperature at the 2T level'; plot.appendChild(l3);
+
+      // axes and grid
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 100, 200, 300]) {
+        if (v > 0) plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: X0 - 4, y: py(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = String(v); plot.appendChild(t);
+      }
+      const yl = el('text', { x: 4, y: Y0 - 8, 'font-size': 9, fill: INK }); yl.textContent = 'precipitation (mm per month)'; plot.appendChild(yl);
+
+      // bars
+      P.forEach((p, i) => {
+        const dry = p < level, humid = p > level;
+        const bw = slot * 0.7;
+        const bx = X0 + i * slot + (slot - bw) / 2;
+        plot.appendChild(el('rect', { x: bx, y: py(p), width: bw, height: Y1 - py(p), fill: dry ? ORANGE : humid ? ACCENT : FAINT, opacity: 0.85 }));
+        const t = el('text', { x: bx + bw / 2, y: Y1 + 12, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); t.textContent = MON[i]; plot.appendChild(t);
+      });
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 28, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); xl.textContent = 'month, January to December'; plot.appendChild(xl);
+
+      // temperature line at 2T
+      plot.appendChild(el('line', { x1: X0, y1: py(level), x2: X1, y2: py(level), stroke: INK, 'stroke-width': 2 }));
+      const a = el('text', { x: X1 + 4, y: py(level) - 4, 'font-size': 9, 'font-weight': 700, fill: INK }); a.textContent = T + ' °C'; plot.appendChild(a);
+      const b = el('text', { x: X1 + 4, y: py(level) + 11, 'font-size': 9, fill: INK }); b.textContent = '= ' + level + ' mm'; plot.appendChild(b);
+
+      // readouts, in the lesson's order
+      r('total').textContent = fmt(total) + ' mm';
+      r('halves').textContent = fmt(warmHalf) + ' mm (' + fmt((warmHalf / total) * 100, 1) + '%) / ' + fmt(coolHalf) + ' mm (' + fmt((coolHalf / total) * 100, 1) + '%)';
+      r('thr').textContent = '2 × ' + T + ' + 14 = ' + thr;
+      r('cut').textContent = '10 × ' + thr + ' = ' + fmt(cut) + ' mm';
+      r('cold').textContent = 'coldest month ' + T + ' °C: ' + (coldOk ? 'yes' : 'no') + (arid ? ' (not used)' : '');
+      r('dry').textContent = 'driest month ' + fmt(driest, 1) + ' mm: ' + (dryOk ? 'yes' : 'no') + (arid ? ' (not used)' : '');
+
+      const wl = dryMonths === 0
+        ? 'On the Walter-Lieth reading no month falls below the ' + level + ' mm level, so there is no dry period.'
+        : 'On the Walter-Lieth reading ' + dryMonths + (dryMonths === 1 ? ' month falls' : ' months fall') + ' below the ' + level + ' mm level and ' + (dryMonths === 1 ? 'is' : 'are') + ' read as dry.' + (onLine ? ' A month exactly on the line counts as neither dry nor humid.' : '');
+      let kg: string;
+      if (arid) {
+        kg = 'Köppen-Geiger: aridity is tested first. ' + fmt(total) + ' mm is below the cut-off of ' + fmt(cut) + ' mm, so the station is arid (class B); the lesson’s later tests are not reached.';
+      } else if (!dryOk) {
+        kg = 'Köppen-Geiger: ' + fmt(total) + ' mm is above the cut-off of ' + fmt(cut) + ' mm, so not arid (not B). The coldest month, ' + T + ' °C, is at least 18 °C, so it is tropical (class A). The driest month, ' + MONTH_NAMES[driestIdx] + ' at ' + fmt(driest, 1) + ' mm, is below 60 mm, so it is not Af; the lesson’s rules stop there.';
+      } else {
+        kg = 'Köppen-Geiger: ' + fmt(total) + ' mm is above the cut-off of ' + fmt(cut) + ' mm, so not arid (not B). The coldest month, ' + T + ' °C, is at least 18 °C, so it is tropical (class A). The driest month, ' + MONTH_NAMES[driestIdx] + ' at ' + fmt(driest, 1) + ' mm, is at least 60 mm, so it is Af, tropical rainforest climate.';
+      }
+      why.textContent = wl + ' ' + kg;
+    }
+    [tIn, mIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .cdc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cdc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cdc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cdc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cdc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cdc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cdc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cdc-slabel input { accent-color: var(--ddp-color-accent); }
+  .cdc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cdc-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .cdc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cdc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cdc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .cdc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cdc-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .cdc-controls, .cdc-readout { grid-template-columns: 1fr; }
+  }
+</style>

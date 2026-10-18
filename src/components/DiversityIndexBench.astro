@@ -1,0 +1,172 @@
+---
+/**
+ * DiversityIndexBench — the worked problem of "Diversity, Disturbance and Succession".
+ * Four species, fully counted. Richness S, Shannon H (nats), Simpson lambda, 1 - lambda,
+ * exp H, 1/lambda and evenness E = (1/lambda)/S are computed from the counts. Shuffling the
+ * species labels changes no number. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="dib card" data-dib>
+  <figcaption class="dib-head">Diversity index bench: one count table, many numbers<span class="dib-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="dib-svg" viewBox="0 0 340 230" role="img" aria-label="Four bars showing the number of individuals counted for each of four species" data-plot></svg>
+
+  <div class="dib-presets">
+    <button type="button" class="dib-btn" data-preset="A">Sample A: 25, 25, 25, 25</button>
+    <button type="button" class="dib-btn" data-preset="B">Sample B: 40, 40, 10, 10</button>
+    <button type="button" class="dib-btn" data-shuffle>Shuffle labels</button>
+  </div>
+
+  <div class="dib-controls" data-sliders></div>
+
+  <dl class="dib-readout">
+    <div><dt>Richness S</dt><dd data-r="S">4</dd></div>
+    <div><dt>Shannon H (nats)</dt><dd data-r="H">1.386</dd></div>
+    <div><dt>Simpson λ</dt><dd data-r="L">0.25</dd></div>
+    <div><dt>Gini-Simpson 1 − λ</dt><dd data-r="G">0.75</dd></div>
+    <div><dt>exp H (species)</dt><dd data-r="EH">4.00</dd></div>
+    <div><dt>1/λ (species)</dt><dd data-r="IL">4.00</dd></div>
+    <div><dt>Evenness E = (1/λ)/S</dt><dd data-r="E">1.000</dd></div>
+    <div><dt>Individuals counted</dt><dd data-r="N">100</dd></div>
+  </dl>
+
+  <p class="dib-assume">In this sketch: every individual is counted (complete counts, no sampling error), four labelled species, H uses the natural logarithm, and "Simpson" here means λ = Σ p² with 1 − λ and 1/λ named separately.</p>
+  <p class="dib-why" data-why role="status"></p>
+
+  <p class="dib-foot">Rule to keep: richness ignores abundance, higher orders discount rare species, and no index tells you which species are present, so shuffling the labels changes nothing.</p>
+</figure>
+
+<script is:inline>
+  (function () {
+    var NS = 'http://www.w3.org/2000/svg';
+    var COLS = ['#0e7c86', '#e57200', '#6b5ca5', '#4b4b55'];
+    var INK = '#4b4b55', FAINT = '#b9b9c2';
+    function el(name, attrs) {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) e.setAttribute(k, String(attrs[k]));
+      return e;
+    }
+    document.querySelectorAll('[data-dib]').forEach(function (root) {
+      var plot = root.querySelector('[data-plot]');
+      var box = root.querySelector('[data-sliders]');
+      var why = root.querySelector('[data-why]');
+      var r = function (k) { return root.querySelector('[data-r="' + k + '"]'); };
+      var counts = [25, 25, 25, 25];
+      var labels = [1, 2, 3, 4]; // species number shown for each bar
+      var last = 'Sample A is loaded.';
+      var ins = [], outs = [];
+      for (var i = 0; i < 4; i++) {
+        (function (i) {
+          var lab = document.createElement('label');
+          lab.className = 'dib-slabel';
+          var sp = document.createElement('span');
+          var name = document.createElement('b');
+          var val = document.createElement('em');
+          sp.appendChild(name); sp.appendChild(document.createTextNode(' count ')); sp.appendChild(val);
+          var inp = document.createElement('input');
+          inp.type = 'range'; inp.min = '0'; inp.max = '100'; inp.step = '1'; inp.value = String(counts[i]);
+          lab.appendChild(sp); lab.appendChild(inp); box.appendChild(lab);
+          inp.addEventListener('input', function () { counts[i] = parseInt(inp.value, 10); last = ''; render(); });
+          ins.push(inp); outs.push({ name: name, val: val });
+        })(i);
+      }
+      var X0 = 40, X1 = 326, Y0 = 42, Y1 = 186;
+      var py = function (c) { return Y1 - (c / 100) * (Y1 - Y0); };
+      function f(x, d) { return x.toFixed(d); }
+      function render() {
+        var N = counts.reduce(function (a, b) { return a + b; }, 0);
+        var S = counts.filter(function (c) { return c > 0; }).length;
+        var H = 0, L = 0;
+        if (N > 0) counts.forEach(function (c) { if (c > 0) { var p = c / N; H -= p * Math.log(p); L += p * p; } });
+        if (H === 0) H = 0; // avoid -0
+        for (var i = 0; i < 4; i++) {
+          ins[i].value = String(counts[i]);
+          outs[i].name.textContent = 'Species ' + labels[i];
+          outs[i].val.textContent = String(counts[i]);
+        }
+        plot.replaceChildren();
+        plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+        [0, 50, 100].forEach(function (v) {
+          if (v > 0) plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+          var t = el('text', { x: X0 - 4, y: py(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = String(v); plot.appendChild(t);
+        });
+        var yl = el('text', { x: X0 - 2, y: 12, 'text-anchor': 'start', 'font-size': 10, fill: INK });
+        yl.textContent = 'individuals counted'; plot.appendChild(yl);
+        var bw = 46, gap = (X1 - X0 - 4 * bw) / 5;
+        for (var j = 0; j < 4; j++) {
+          var x = X0 + gap + j * (bw + gap), cx = x + bw / 2;
+          if (counts[j] > 0) plot.appendChild(el('rect', { x: x, y: py(counts[j]), width: bw, height: Y1 - py(counts[j]), fill: COLS[labels[j] - 1] }));
+          var ct = el('text', { x: cx, y: Math.max(py(counts[j]) - 4, 34), 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: INK });
+          ct.textContent = String(counts[j]); plot.appendChild(ct);
+          var lt = el('text', { x: cx, y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+          lt.textContent = 'Species ' + labels[j]; plot.appendChild(lt);
+          var pt = el('text', { x: cx, y: Y1 + 28, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+          pt.textContent = N > 0 ? 'p = ' + f(counts[j] / N, 2) : 'p = –'; plot.appendChild(pt);
+        }
+        r('S').textContent = String(S);
+        r('N').textContent = String(N);
+        if (N === 0) {
+          ['H', 'L', 'G', 'EH', 'IL', 'E'].forEach(function (k) { r(k).textContent = '–'; });
+          why.textContent = 'No individuals are counted, so there are no proportions and none of the abundance-based indices can be calculated. Add a count to one species.';
+          return;
+        }
+        r('H').textContent = f(H, 3);
+        r('L').textContent = f(L, 2);
+        r('G').textContent = f(1 - L, 2);
+        r('EH').textContent = f(Math.exp(H), 2);
+        r('IL').textContent = f(1 / L, 2);
+        r('E').textContent = f(1 / L / S, 3);
+        var msg = 'In this sketch, S = ' + S + ', H = ' + f(H, 3) + ' nats, λ = ' + f(L, 2) + ' (Simpson concentration), 1 − λ = ' + f(1 - L, 2) + ', exp H = ' + f(Math.exp(H), 2) + ' and 1/λ = ' + f(1 / L, 2) + ' effective species, so E = ' + f(1 / L / S, 3) + '. ';
+        if (S === 1) msg += 'Only one species is present, so p = 1, H = 0 and λ = 1: both effective numbers equal 1.';
+        else if (counts.filter(function (c) { return c > 0; }).every(function (c) { return c === counts.find(function (d) { return d > 0; }); })) msg += 'All present species are equally common, so both effective numbers equal S and E = 1.';
+        else msg += 'When the present species are unequal, both effective numbers fall below S, and, as in sample B, exp H is above 1/λ.';
+        msg += ' No index tells which species are present.';
+        if (last) msg = last + ' ' + msg;
+        why.textContent = msg;
+      }
+      root.querySelectorAll('[data-preset]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var k = b.getAttribute('data-preset');
+          counts = k === 'A' ? [25, 25, 25, 25] : [40, 40, 10, 10];
+          last = 'Sample ' + k + ' is loaded.';
+          render();
+        });
+      });
+      root.querySelector('[data-shuffle]').addEventListener('click', function () {
+        var before = labels.join('');
+        var tries = 0;
+        do {
+          for (var i = 3; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = labels[i]; labels[i] = labels[j]; labels[j] = t; }
+          tries++;
+        } while (labels.join('') === before && tries < 10);
+        last = 'Labels shuffled: every number is unchanged.';
+        render();
+      });
+      render();
+    });
+  })();
+</script>
+
+<style is:global>
+  .dib { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dib-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dib-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dib-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dib-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .dib-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.7rem; border: 1px solid var(--ddp-color-accent); background: #fff; color: var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .dib-btn:hover, .dib-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 10%, #fff); }
+  .dib-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; }
+  .dib-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dib-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .dib-slabel input { accent-color: var(--ddp-color-accent); }
+  .dib-readout { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .dib-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .dib-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dib-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .dib-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dib-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5em; }
+  .dib-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) { .dib-readout { grid-template-columns: 1fr 1fr; } .dib-controls { grid-template-columns: 1fr; } }
+</style>
