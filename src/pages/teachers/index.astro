@@ -1,0 +1,238 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PROMPTS, GUARD, TALK_VIDEO, COURSE_LINKS } from '../../data/teachers';
+import { courseHref } from '../../data/courses';
+
+// The talk video is built by a separate process. Render it only if the file is in the
+// repo at build time, so the page never points at a missing file (the asset checker
+// would fail the build) and never shows a broken player.
+const pub = (p: string) => existsSync(join(process.cwd(), 'public', p));
+const hasVideo = pub(TALK_VIDEO.src) && pub(TALK_VIDEO.poster) && pub(TALK_VIDEO.captions);
+---
+
+<BaseLayout
+  title="Resources for Teachers — Biochemistrypedia"
+  description="Free biology courses, copy-ready AI prompts, and a short guide for middle and high school life science teachers who want fast tools without losing slow thinking."
+>
+  <article class="wrap prose-col teachers" style="padding-top: var(--ddp-space-12)">
+    <p class="eyebrow">Resources for teachers</p>
+    <h1>Fast tools, slow thinking.</h1>
+
+    <p>
+      Biochemistrypedia is a set of free biology courses: short readings, films of the
+      experiments, simulations you can change, and questions with checked answers. You can use
+      any of it with your students. This page collects what I would hand a middle or high
+      school life science teacher who is wondering what to do with AI on Monday.
+    </p>
+
+    <aside class="slot" aria-label="Talk slides and recording">
+      <p class="slot-kicker">Placeholder</p>
+      <p>
+        <strong>Talk slides and recording: to be posted here after the talk.</strong>
+        &ldquo;Fast Tools, Slow Thinking&rdquo; is part of the UVA workshop
+        <em>Teaching Life Sciences in the Age of AI</em> on October&nbsp;24, 2026. Nothing is
+        posted until it has been given.
+      </p>
+      <!-- TODO(after Oct 24 2026): replace this box with links to the slides and the recording. -->
+    </aside>
+
+    <nav class="jump" aria-label="On this page">
+      <a href="#prompts">Prompts you can use</a>
+      <a href="#think">Things to think about</a>
+      <a href="#try">Try it yourself</a>
+      <a href="#courses">The courses</a>
+      <a href="#built">How it is built</a>
+    </nav>
+
+    <h2 id="prompts">Prompts you can use</h2>
+    <p>
+      Copy a prompt, fill in the [square brackets], and paste it into whichever AI tool your
+      district allows. Each one is built to protect slow thinking: students commit to a
+      reason before they see an answer, the AI is told to judge the reasoning rather than the
+      correctness, and it is told never to invent a source. Everything it writes is a draft
+      for you to check.
+    </p>
+    <p class="privacy" role="note">
+      <strong>Privacy first.</strong> Strip names and IDs before pasting anything a student
+      wrote, and use only tools your district has approved.
+    </p>
+
+    <ol class="prompts">
+      {PROMPTS.map((p, i) => (
+        <li class="prompt" data-prompt>
+          <h3 id={`p-${p.id}`}>{i + 1}. {p.title}</h3>
+          <p class="protects"><span>Protects:</span> {p.protects}</p>
+          {p.studentText && (
+            <p class="warn">Student writing goes in here. Remove every name and ID first.</p>
+          )}
+          <details>
+            <summary>Show the prompt</summary>
+            <pre tabindex="0" aria-labelledby={`p-${p.id}`}>{p.body}
+
+{GUARD}</pre>
+          </details>
+          <button type="button" class="copy" data-copy aria-describedby={`p-${p.id}`}>Copy prompt</button>
+          <span class="copied" role="status" aria-live="polite"></span>
+        </li>
+      ))}
+    </ol>
+
+    <h2 id="think">Things to think about</h2>
+
+    <h3>1. Be more ambitious</h3>
+    <p>
+      When you finish a goal, move up one level of abstraction. One lesson becomes a unit.
+      A standard question becomes a question that sends each student back to the exact section
+      they need. Tools that make drafting cheap are only worth it if the saved time goes into a
+      bigger question, not into the same lesson done faster. Production and distribution
+      get cheap. Checking that something is true does not, and checking is now the scarce part.
+    </p>
+
+    <h3>2. Make thinking visible before class</h3>
+    <p>
+      Have students predict, commit to a reason, and only then see the result, as pre-work.
+      The idea is not new: it is
+      <em>Just-in-Time Teaching</em> (Novak and colleagues, 1999) and formative assessment
+      (Black and Wiliam, 1998). What AI changes is that you can read what a whole room thought
+      before class starts: who did the work, where the room splits, and how each student reasons.
+      That also catches the student who talks a lot in class and sounds as if they know what is
+      going on, but did not do the work.
+    </p>
+
+    <h3>3. The real risk is lazy thinking</h3>
+    <p>
+      The danger is not that students cheat. It is that everyone, teachers included, lets the tool
+      do the part of thinking that matters. Design so it cannot.
+    </p>
+    <ul>
+      <li><strong>Grade the reasoning, not the correctness.</strong> A wrong answer argued well costs nothing; a right answer with no reason earns little.</li>
+      <li><strong>Require a written &ldquo;where I&rsquo;m stuck&rdquo; note</strong> (about 25 words) before a student is allowed to skip a step.</li>
+      <li><strong>Show the room its own words.</strong> Open class with anonymous quotes from the pre-work. Students learn in the first minute that it was read.</li>
+      <li><strong>Budget for it.</strong> In my room one predict, argue, reveal cycle takes 8 to 10 minutes, not 4.</li>
+    </ul>
+
+    <h3>4. AI drafts; humans check and send</h3>
+    <p>
+      I use AI to draft a short note to each student about what to focus on before class. I read
+      it, and I send it myself. That check matters. An AI-written summary once told me there was
+      &ldquo;no activity&rdquo; for a student who had in fact finished. Always compare a summary
+      with the raw answers. Prompt 10 above is built for that check.
+    </p>
+
+    <h3>5. Minors&rsquo; privacy</h3>
+    <ul>
+      <li>Student work is an education record. In the United States, FERPA governs who may see it, and COPPA limits what online services may collect from children under 13. Check what your district has approved before you paste anything.</li>
+      <li>Anonymize by default. Remove names, IDs and anything that identifies a student, and put the name back yourself afterward.</li>
+      <li>Do not record or store student voices. Text you can anonymize is safer than audio.</li>
+      <li>This is practical advice, not legal advice. Your district&rsquo;s technology office has the final word.</li>
+    </ul>
+
+    <h2 id="try">Try it yourself</h2>
+    <p>
+      The best way to understand predict-then-reveal pre-work is to do some. This short module
+      is about the talk itself and takes about five minutes. You predict, say why, see the real
+      answer, and see how the room compares. Nothing is sent anywhere.
+    </p>
+    <p><a class="btn" href="/teachers/demo">Try the demo as a student</a></p>
+
+    <h3>Watch the explainer</h3>
+    {hasVideo ? (
+      <figure class="film">
+        <video controls preload="none" playsinline poster={TALK_VIDEO.poster} width="1920" height="1080">
+          <source src={TALK_VIDEO.src} type="video/mp4" />
+          <track kind="captions" src={TALK_VIDEO.captions} srclang="en" label="English" />
+          Your browser cannot play this video. <a href={TALK_VIDEO.src}>Download the explainer (MP4)</a>.
+        </video>
+        <figcaption>Fast tools, slow thinking: a short explainer.</figcaption>
+      </figure>
+    ) : (
+      <div class="slot" role="note">
+        <p class="slot-kicker">Coming soon</p>
+        <p>A short explainer video for this talk will be embedded here.</p>
+      </div>
+    )}
+    {/* TODO: the file arrives at /explainers/teachers-fast-tools-slow-thinking/explainer.mp4
+        (+ poster.jpg + explainer.vtt). The player appears automatically on the next build. */}
+
+    <h2 id="courses">The courses</h2>
+    <p>
+      All of these are free and need no account. Lessons run from molecules to ecosystems, and
+      each ends with questions that come with an answer and an explanation. Take what is useful.
+    </p>
+    <ul class="courselist">
+      {COURSE_LINKS.map((c) => <li><a href={courseHref(c.slug)}>{c.label}</a></li>)}
+    </ul>
+    <p>These courses were written for college students, so read ahead before assigning.</p>
+
+    <h2 id="built">How it is built</h2>
+    <p>
+      The pipeline, the tools, what it cost, how the keys are kept safe, and what a teacher can
+      do on a small budget are in a plain-language supplement.
+    </p>
+    <p><a class="btn" href="/teachers/how-its-built">How it&rsquo;s built</a></p>
+
+    <p class="src-meta">
+      Questions or corrections: <a href="/contact">contact</a>. These pages use only facts that
+      come from the talk or from this site&rsquo;s own repository.
+    </p>
+  </article>
+
+  <style is:global>
+    .teachers .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .teachers .slot { margin: var(--ddp-space-5) 0; padding: var(--ddp-space-4) var(--ddp-space-5); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+    .teachers .slot p { margin: 0 0 var(--ddp-space-2); }
+    .teachers .slot p:last-child { margin-bottom: 0; }
+    .teachers .slot-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .teachers .jump { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-5) 0; font-size: var(--ddp-text-sm); }
+    .teachers .privacy { padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-secondary); background: var(--ddp-color-surface); }
+    .teachers ol.prompts { list-style: none; padding: 0; margin: var(--ddp-space-5) 0; display: grid; gap: var(--ddp-space-4); }
+    .teachers .prompt { padding: var(--ddp-space-4) var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+    .teachers .prompt h3 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-lg); }
+    .teachers .protects { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .teachers .protects span { font-family: var(--ddp-font-mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: var(--ddp-text-xs); color: var(--ddp-color-accent); }
+    .teachers .warn { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-caution, var(--ddp-color-ink)); }
+    .teachers .prompt summary { cursor: pointer; font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); min-height: 32px; }
+    .teachers .prompt pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: var(--ddp-space-3) 0; padding: var(--ddp-space-3) var(--ddp-space-4); background: var(--ddp-color-bg); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); line-height: 1.5; max-height: 26rem; overflow-y: auto; }
+    .teachers .copy, .teachers .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .teachers .copy:hover, .teachers .btn:hover { filter: brightness(1.1); }
+    .teachers .copied { margin-left: var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-verified); }
+    .teachers .courselist { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-5); list-style: none; padding: 0; }
+    .teachers .film { margin: var(--ddp-space-4) 0; max-width: 880px; }
+    .teachers .film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
+    .teachers .film figcaption { margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .teachers .src-meta { color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
+    .teachers :focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  </style>
+
+  <script>
+    // Copy buttons: the prompt text lives in the page, so copying works without any network.
+    document.querySelectorAll<HTMLElement>('[data-prompt]').forEach((card) => {
+      const btn = card.querySelector<HTMLButtonElement>('[data-copy]');
+      const pre = card.querySelector('pre');
+      const msg = card.querySelector<HTMLElement>('.copied');
+      if (!btn || !pre || !msg) return;
+      btn.addEventListener('click', async () => {
+        const text = pre.textContent ?? '';
+        let ok = false;
+        try {
+          await navigator.clipboard.writeText(text);
+          ok = true;
+        } catch {
+          // Fallback for browsers that block the clipboard API: select the text so the
+          // reader can copy it by hand.
+          const det = card.querySelector('details');
+          if (det) det.open = true;
+          const r = document.createRange();
+          r.selectNodeContents(pre);
+          const s = window.getSelection();
+          s?.removeAllRanges();
+          s?.addRange(r);
+        }
+        msg.textContent = ok ? 'Copied.' : 'Press Ctrl/Cmd+C to copy the selected text.';
+        setTimeout(() => (msg.textContent = ''), 3500);
+      });
+    });
+  </script>
+</BaseLayout>
