@@ -377,6 +377,7 @@ draft: false
 ---
 
 import CycleFractionsToDurations from '../../../components/CycleFractionsToDurations.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Fuse a cell that is copying its DNA with a cell that has not started yet, and the second nucleus begins copying early. Fuse it with a cell that has already finished, and that nucleus refuses.**
 
@@ -389,6 +390,8 @@ The cycle has four phases. G1 is the gap between mitosis and the start of DNA re
 The first measurement is DNA content. One C is the DNA of one haploid genome, so a diploid cell has 2C in G1 and 4C in G2 and M. Doubling the DNA does not double the ploidy: a G2 cell is still diploid, with each chromosome made of two sister chromatids. To read DNA content, fix the cells and stain them with propidium iodide, a dye that fluoresces when bound to nucleic acid, plus RNase, because the dye also binds RNA. A flow cytometer measures each cell's fluorescence one at a time and builds a histogram: a 2C peak, a 4C peak, and S-phase cells smeared between.
 
 The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains fix that. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S. An antibody to histone H3 phosphorylated on serine 10 marks condensed mitotic chromosomes. Saldivar and colleagues combined all three, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
+
+<LessonFigure src="/figures/cell-cycle-control/which-stain-sees-which-state.webp" width={1200} height={455} alt="AI-generated illustration: five cells labelled G0, G1, S, G2 and M, with brackets showing G0 and G1 share 2C DNA and G2 and M share 4C, a gold glow marking S-phase cells (EdU) and gold-outlined chromosomes marking mitosis (phospho-H3)." caption="DNA content alone cannot separate G0 from G1 or mitosis from G2. A short EdU pulse marks cells in S, and phosphorylated histone H3 marks condensed mitotic chromosomes." />
 
 ### Worked problem: fractions are not durations
 
@@ -440,6 +443,8 @@ The logic, as it is now taught:
 - **Wee1** adds an inhibitory phosphate to CDK1, holding the complex off while cyclin accumulates; the phosphatase **Cdc25** removes it (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
 - **CDK inhibitor proteins**, such as p21 and p27 in mammals, bind the complex and block it.
 - Two **ubiquitin ligases** destroy regulators: the SCF at several points, notably around G1/S, the APC/C in mitosis, where destroying cyclin B ends M phase ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)).
+
+<LessonFigure src="/figures/cell-cycle-control/cyclin-cdk-ring-map.webp" width={1200} height={747} alt="AI-generated illustration: a ring of four phases G1, S, G2 and M with a cyclin-CDK block pair at each stage and two ubiquitin ligases, SCF near G1/S and APC/C at the end of M." caption="Which cyclin-CDK pair acts where, in mammals. Cyclin levels rise and fall while CDK levels stay fairly even; the SCF acts at several points, notably around G1/S, and the APC/C ends M phase by destroying cyclin B." />
 
 Active CDK1 also activates Cdc25 and inhibits Wee1, two positive loops that make mitotic entry a switch ([signaling circuits](/lessons/signaling-circuits/)). In *Xenopus* egg extracts, entry needed about 32 to 40 nM of added nondegradable cyclin B, but an extract already in mitosis stayed there down to about 16 to 24 nM, and unreplicated DNA raised the entry threshold. Read the fusion results in this light: mitotic cytoplasm is full of active CDK1-cyclin B, enough to condense any nucleus it meets.
 

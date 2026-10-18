@@ -378,6 +378,7 @@ draft: false
 ---
 
 import AutophagyFluxBlot from '../../../components/AutophagyFluxBlot.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Starve a yeast cell of nitrogen and it starts to digest pieces of its own cytoplasm. A mutant that cannot do this loses viability faster than normal yeast during the starvation.**
 
@@ -403,6 +404,8 @@ The cycle has been traced in detail for particular clients. In HEK293-derived ce
 
 ERAD moves a protein across a membrane in the wrong direction. The misfolded protein is carried from the lumen back to the cytosol (retrotranslocation), tagged with a ubiquitin chain by an E3 ligase in the ER membrane (Hrd1 in yeast), pulled out by the ATPase Cdc48 (p97, or VCP, in mammals) and handed to the proteasome. In 2016 Ryan Baldridge and Tom Rapoport put purified yeast Hrd1 and a membrane-anchored misfolded substrate into synthetic lipid vesicles. Hrd1 ubiquitinating itself triggered movement of the substrate across the membrane, and the results suggest that Hrd1 forms a ubiquitin-gated channel, with Cdc48 completing extraction. That is a reconstitution with yeast proteins; whether every ERAD substrate in every cell crosses this way is not settled.
 
+<LessonFigure src="/figures/quality-control-and-autophagy/erad-route-hrd1-cdc48.webp" width={1200} height={790} alt="AI-generated illustration: an ER membrane with a misfolded protein moving from the lumen through a dashed, questioned Hrd1 block, pulled out by a Cdc48 ring and fed into a proteasome barrel, with a small inset of a lipid vesicle used in the reconstitution experiment." caption="In ERAD a misfolded protein is carried back out of the lumen, tagged with ubiquitin, pulled out by Cdc48 (p97) and handed to the proteasome. Hrd1 as a ubiquitin-gated channel is a proposal from a reconstitution with yeast proteins." />
+
 When misfolded proteins accumulate, sensors in the ER membrane notice. Budding yeast has one, Ire1, reported in 1993 by Jeffery Cox, Caroline Shamu and Peter Walter, and in parallel by Kazutoshi Mori and colleagues. Ire1 spans the ER membrane and carries a kinase and an RNase on its cytosolic side. Activated, it cuts an intron out of the mRNA for the transcription factor Hac1, by a route outside the spliceosome, and the spliced mRNA makes Hac1. Mammals have three branches:
 
 - **IRE1** removes a 26-nucleotide intron from *XBP1* mRNA (shown for mouse XBP1), which yields the active transcription factor XBP1s.
@@ -410,6 +413,8 @@ When misfolded proteins accumulate, sensors in the ER membrane notice. Budding y
 - **ATF6** travels to the Golgi, where Site-1 and Site-2 proteases cut it and release a transcription factor.
 
 The branches overlap but can be separated. In mouse fibroblasts lacking IRE1α, ATF6 was still cleaved, and tunicamycin, a drug that blocks N-glycosylation, still induced BiP mRNA. One broken branch does not silence the response. If the stress is not relieved, the UPR can also drive cell death (see [cell death](/lessons/cell-death/)).
+
+<LessonFigure src="/figures/quality-control-and-autophagy/upr-branches-yeast-and-mammal.webp" width={1200} height={791} alt="AI-generated illustration: an ER membrane with three sensors; IRE1 removes an intron from XBP1 mRNA, PERK phosphorylates eIF2alpha, and ATF6 travels to the Golgi to be cut, with a small inset of the single yeast sensor Ire1 acting on HAC1 mRNA." caption="Mammals have three branches of the unfolded protein response: IRE1 splices XBP1 mRNA, PERK phosphorylates eIF2α, and ATF6 is cut in the Golgi. Budding yeast has only Ire1, which acts on HAC1 mRNA." />
 
 ## Two shredders: proteasome and lysosome
 
@@ -426,6 +431,8 @@ Autophagy is not only bulk eating. In selective autophagy, receptors link a chos
 Mitophagy removes mitochondria. In 2008 Derek Narendra, Atsushi Tanaka, Der-Fen Suen and Richard Youle showed in cultured cells that Parkin, a ubiquitin ligase, moves to mitochondria that have lost their membrane potential. In 2010 the same laboratory reported that the kinase PINK1 is kept low on healthy, polarized mitochondria by voltage-dependent proteolysis and builds up on depolarized ones, where it was necessary and sufficient for Parkin recruitment in the cells tested. Parkin then ubiquitinates outer-membrane proteins, and the mitochondrion is engulfed.
 
 Two limits matter. These experiments used uncouplers such as CCCP, which depolarize every mitochondrion at once, and largely overexpressed Parkin. And in reporter mice lacking Pink1, basal mitophagy in the sampled tissues was mostly preserved, with pancreatic islets the exception. PINK1 and Parkin are a well-proven route for damaged mitochondria in culture, not the only route in an animal.
+
+<LessonFigure src="/figures/quality-control-and-autophagy/pink1-parkin-mitophagy-limits.webp" width={1200} height={722} alt="AI-generated illustration: two mitochondria side by side; on the healthy one PINK1 is cut into fragments and Parkin floats free, while on the depolarized one PINK1 builds up, Parkin arrives and ubiquitin tags the surface before a membrane cup engulfs it, with a questioned side arrow for other routes." caption="On a healthy mitochondrion PINK1 is kept low; on a depolarized one it builds up, Parkin arrives and ubiquitinates outer-membrane proteins, and the mitochondrion is engulfed. This is well proven in cultured cells, not the only route in an animal." />
 
 How do you measure autophagy? Counting LC3 dots, or LC3-II on a blot, fails on its own. More autophagosomes could mean more are made or fewer are destroyed, just as a fuller sink could mean the tap is on harder or the drain is blocked.
 

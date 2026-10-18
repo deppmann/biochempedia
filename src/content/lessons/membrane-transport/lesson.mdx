@@ -374,6 +374,7 @@ draft: false
 ---
 
 import SingleChannelRecord from '../../../components/SingleChannelRecord.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Hold a cell at −70 millivolts with 140 mM potassium inside and 5 mM outside, open potassium channels, and potassium leaves. Hold it at −100 millivolts and potassium comes in, against a 28-fold concentration difference.**
 
@@ -393,9 +394,13 @@ Membrane transport proteins fall into three groups by mechanism.
 
 **Carriers** (also called transporters) are ferries. A carrier binds its solute on one side, changes shape, and releases it on the other; at no moment is a pathway open to both sides. This is alternating access. Because each crossing needs a shape change, a carrier works far more slowly than a channel, and because it has a limited number of binding sites, its rate saturates as solute rises, like an enzyme with [Michaelis-Menten kinetics](/lessons/enzyme-kinetics/). A **uniporter** moves one solute, as GLUT1 moves glucose into red blood cells. A **symporter** moves two solutes the same way. An **antiporter** moves them opposite ways, as the Na+/Ca2+ exchanger brings sodium in and sends calcium out.
 
+<LessonFigure src="/figures/membrane-transport/channel-vs-carrier-access.webp" width={1200} height={541} alt="AI-generated illustration: three panels of a plasma membrane. In the first, an open channel has a pore running straight through it with ions in single file. In the second, a carrier's binding site is open only to the outside with one solute bound. In the third, the carrier has changed shape and its site is open only to the inside." caption="An open channel is one pathway joining both sides at once, so ions stream through. A carrier is never open to both sides: it binds its solute on one side, changes shape and releases it on the other, which is why it is slower and can saturate." />
+
 **Pumps** couple transport to a direct energy source, usually ATP hydrolysis, and so move ions uphill. This is primary active transport. The Na+/K+-ATPase in the plasma membrane of animal cells exports three Na+ and imports two K+ for each ATP it splits. It moves one net charge out per cycle, so it contributes a little to the voltage directly. Mostly it builds the sodium and potassium gradients that other proteins spend.
 
 Spending a gradient is **secondary active transport**. SGLT1 in intestinal cells is a symporter that brings glucose in with sodium. Sodium runs down its steep inward gradient, and that downhill run pays for glucose to go uphill. The pump never touches glucose, but block the pump and glucose uptake fails as the sodium gradient runs down. You will see SGLT1 again in [digestion](/lessons/digestion/), and the same logic with protons instead of sodium in [the proton-motive force](/lessons/proton-motive-force/).
+
+<LessonFigure src="/figures/membrane-transport/pump-pays-for-symporter.webp" width={1200} height={714} alt="AI-generated illustration: a cell membrane with the Na+/K+-ATPase on the left moving three Na+ out and two K+ in using one ATP, and on the right the transporter SGLT1 carrying one Na+ and one glucose into the cell down the sodium gradient." caption="The Na+/K+-ATPase spends ATP to keep sodium high outside. SGLT1 then lets sodium run downhill into the cell, and that downhill run pays for glucose to go uphill; the pump never touches the glucose." />
 
 Two cautions. A protein's family does not tell you its mechanism: CFTR, the chloride channel mutated in cystic fibrosis, belongs to the ABC family, most of whose members are ATP-driven transporters, yet it is a channel. And ligand-gated channels that act as receptors belong to [ion channels as receptors](/lessons/ion-channels-as-receptors/) in the signaling course.
 
@@ -446,6 +451,8 @@ From a one-channel record you read two numbers. The **unitary current**, i, is t
 <SingleChannelRecord />
 
 Orientation matters. In an **inside-out** patch, pulled off the cell, the cytoplasmic face meets the bath; in an **outside-out** patch, the outer face does. Applying a substance to the bath of each tells you which side it acts from. Bandwidth matters too: brief closures shorter than the recording can resolve vanish from the trace.
+
+<LessonFigure src="/figures/membrane-transport/patch-inside-out-vs-outside-out.webp" width={1200} height={443} alt="AI-generated illustration: three panels showing a glass pipette sealed to a patch of a cell's membrane, then an inside-out patch whose cytoplasmic face meets the bath, then an outside-out patch whose outer face meets the bath." caption="In an inside-out patch the cytoplasmic face meets the bath; in an outside-out patch the outer face does. Applying a substance to the bath of each shows which side it acts from." />
 
 Carriers are slower and are usually studied by **tracer flux**: add radioactive substrate, stop at timed points, wash and count. Three traps follow.
 
