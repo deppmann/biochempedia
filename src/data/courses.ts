@@ -35,25 +35,39 @@ export interface Course {
   units: Unit[];
 }
 
+/* Order is the suggested path: the core courses in the order a student should take
+   them (the homepage numbers them), then the electives. */
 export const COURSES: Course[] = [
   {
-    slug: 'biochemistry',
-    title: 'Biochemistry',
+    slug: 'cell-biology',
+    title: 'Cell Biology',
     tier: 'core',
-    tagline: 'The one-semester sequence: molecules, enzymes, membranes, metabolism.',
+    tagline: 'How a eukaryotic cell is built, moves things around, divides and lives among other cells.',
+    searchHint: 'Try “Golgi”, “kinesin”, “mitosis”…',
     blurb:
-      'Thirty lessons that follow a one-semester biochemistry course, from water and weak bonds to the integration of metabolism.',
-    /* Course units (approved 2026-08-13). */
+      'A core course for biology majors and premedical students. It starts with how cells are measured and how experiments tell mechanisms apart, then follows membranes and compartments, the traffic of proteins and vesicles, the cytoskeleton and motors, the cell cycle, division and cell death, and ends with cells in tissues: adhesion, epithelia, stem cells and cell state.',
+    /* Sequence set 2026-10-17 from a curriculum benchmark (six university courses, four textbooks). */
     units: [
-      { name: 'Foundations', slugs: ['vitalism', 'intro-biochemistry-cell-biology', 'water-weak-bonds'] },
-      { name: 'Proteins', slugs: ['amino-acids', 'protein-3d-structure', 'protein-purification-techniques'] },
-      { name: 'Enzymes & Binding', slugs: ['enzyme-action-basics', 'enzyme-kinetics', 'protein-binding-allostery'] },
-      { name: 'Sugars, Lipids & Membranes', slugs: ['carbohydrates', 'lipids', 'membrane-structure-function'] },
-      { name: 'Signaling & Digestion', slugs: ['signal-transduction', 'digestion'] },
-      { name: 'Central Metabolism', slugs: ['metabolism-basic-concepts', 'glycolysis', 'gluconeogenesis', 'citric-acid-cycle', 'pyruvate-dehydrogenase', 'oxidative-phosphorylation', 'proton-motive-force'] },
-      { name: 'Photosynthesis', slugs: ['light-reactions', 'calvin-cycle'] },
-      { name: 'Fuels, Fat & Nitrogen', slugs: ['pentose-phosphate-pathway', 'fatty-acid-degradation', 'fatty-acid-synthesis', 'lipid-synthesis', 'protein-turnover-amino-acid-catabolism'] },
-      { name: 'Supplements', slugs: ['nucleotide-metabolism', 'integration-of-metabolism'] },
+      {
+        name: 'Seeing and testing cells',
+        slugs: ['measured-eukaryotic-cell', 'microscopy-and-images', 'experiments-that-distinguish'],
+      },
+      {
+        name: 'Membranes and compartments',
+        slugs: ['membrane-organization-topology', 'membrane-transport', 'organelles-as-environments', 'protein-sorting', 'nuclear-transport', 'quality-control-and-autophagy', 'nuclear-architecture-condensates'],
+      },
+      {
+        name: 'Traffic and movement',
+        slugs: ['vesicle-traffic', 'secretory-pathway', 'endocytosis', 'cytoskeleton-dynamics', 'molecular-motors', 'migration-and-cilia'],
+      },
+      {
+        name: 'Division and cell loss',
+        slugs: ['cell-cycle-control', 'checkpoints', 'mitosis', 'cytokinesis', 'cell-death'],
+      },
+      {
+        name: 'Cells in tissues',
+        slugs: ['adhesion-and-ecm', 'epithelia', 'stem-cells', 'cell-state-and-disease', 'cellbio-experimental-design'],
+      },
     ],
   },
   {
@@ -93,38 +107,6 @@ export const COURSES: Course[] = [
     ],
   },
   {
-    slug: 'cell-biology',
-    title: 'Cell Biology',
-    tier: 'core',
-    tagline: 'How a eukaryotic cell is built, moves things around, divides and lives among other cells.',
-    searchHint: 'Try “Golgi”, “kinesin”, “mitosis”…',
-    blurb:
-      'A core course for biology majors and premedical students. It starts with how cells are measured and how experiments tell mechanisms apart, then follows membranes and compartments, the traffic of proteins and vesicles, the cytoskeleton and motors, the cell cycle, division and cell death, and ends with cells in tissues: adhesion, epithelia, stem cells and cell state.',
-    /* Sequence set 2026-10-17 from a curriculum benchmark (six university courses, four textbooks). */
-    units: [
-      {
-        name: 'Seeing and testing cells',
-        slugs: ['measured-eukaryotic-cell', 'microscopy-and-images', 'experiments-that-distinguish'],
-      },
-      {
-        name: 'Membranes and compartments',
-        slugs: ['membrane-organization-topology', 'membrane-transport', 'organelles-as-environments', 'protein-sorting', 'nuclear-transport', 'quality-control-and-autophagy', 'nuclear-architecture-condensates'],
-      },
-      {
-        name: 'Traffic and movement',
-        slugs: ['vesicle-traffic', 'secretory-pathway', 'endocytosis', 'cytoskeleton-dynamics', 'molecular-motors', 'migration-and-cilia'],
-      },
-      {
-        name: 'Division and cell loss',
-        slugs: ['cell-cycle-control', 'checkpoints', 'mitosis', 'cytokinesis', 'cell-death'],
-      },
-      {
-        name: 'Cells in tissues',
-        slugs: ['adhesion-and-ecm', 'epithelia', 'stem-cells', 'cell-state-and-disease', 'cellbio-experimental-design'],
-      },
-    ],
-  },
-  {
     slug: 'ecology-evolution',
     title: 'Ecology and Evolution',
     tier: 'core',
@@ -158,6 +140,26 @@ export const COURSES: Course[] = [
         name: 'Global change and decisions',
         slugs: ['global-change', 'conservation', 'ecoevo-evidence-workshop'],
       },
+    ],
+  },
+  {
+    slug: 'biochemistry',
+    title: 'Biochemistry',
+    tier: 'core',
+    tagline: 'The one-semester sequence: molecules, enzymes, membranes, metabolism.',
+    blurb:
+      'Thirty lessons that follow a one-semester biochemistry course, from water and weak bonds to the integration of metabolism.',
+    /* Course units (approved 2026-08-13). */
+    units: [
+      { name: 'Foundations', slugs: ['vitalism', 'intro-biochemistry-cell-biology', 'water-weak-bonds'] },
+      { name: 'Proteins', slugs: ['amino-acids', 'protein-3d-structure', 'protein-purification-techniques'] },
+      { name: 'Enzymes & Binding', slugs: ['enzyme-action-basics', 'enzyme-kinetics', 'protein-binding-allostery'] },
+      { name: 'Sugars, Lipids & Membranes', slugs: ['carbohydrates', 'lipids', 'membrane-structure-function'] },
+      { name: 'Signaling & Digestion', slugs: ['signal-transduction', 'digestion'] },
+      { name: 'Central Metabolism', slugs: ['metabolism-basic-concepts', 'glycolysis', 'gluconeogenesis', 'citric-acid-cycle', 'pyruvate-dehydrogenase', 'oxidative-phosphorylation', 'proton-motive-force'] },
+      { name: 'Photosynthesis', slugs: ['light-reactions', 'calvin-cycle'] },
+      { name: 'Fuels, Fat & Nitrogen', slugs: ['pentose-phosphate-pathway', 'fatty-acid-degradation', 'fatty-acid-synthesis', 'lipid-synthesis', 'protein-turnover-amino-acid-catabolism'] },
+      { name: 'Supplements', slugs: ['nucleotide-metabolism', 'integration-of-metabolism'] },
     ],
   },
   {
