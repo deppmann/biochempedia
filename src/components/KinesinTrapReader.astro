@@ -1,0 +1,193 @@
+---
+/**
+ * KinesinTrapReader — read the lesson's made-up optical-trap kinesin data. The learner sets
+ * the load (0 to the 6 pN stall force) and a time cursor, and reads the position trace in 8-nm
+ * steps, the velocity, steps per second, work per step (force x 8 nm) and efficiency against
+ * the lesson's assumed 50 kJ/mol per ATP. The lesson gives 800 nm/s at low load and zero at
+ * the 6 pN stall, and says speed fell "roughly in proportion to the load", so the straight line
+ * between them is labelled "in this sketch". Step times are drawn at random; the expected
+ * count is shown beside the observed one. Labelled axes only; nothing is drawn as a molecule.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ktr card" data-ktr>
+  <figcaption class="ktr-head">Kinesin in an optical trap: steps, force and efficiency<span class="ktr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ktr-svg" viewBox="0 0 360 230" role="img" aria-label="Position of the bead against time: a staircase of 8-nanometre steps and a dashed line for the expected position" data-plot></svg>
+
+  <div class="ktr-ctl">
+    <label class="ktr-lab" for="ktr-load">Load force: <output data-load-out></output></label>
+    <input id="ktr-load" type="range" min="0" max="6" step="0.1" value="0" data-load />
+  </div>
+  <div class="ktr-ctl">
+    <label class="ktr-lab" for="ktr-time">Time cursor: <output data-time-out></output></label>
+    <input id="ktr-time" type="range" min="0" max="0.5" step="0.01" value="0.5" data-time />
+  </div>
+  <div class="ktr-ctl">
+    <button type="button" class="ktr-btn" data-resample>Resample step times</button>
+  </div>
+
+  <dl class="ktr-read" data-read></dl>
+
+  <p class="ktr-verdict" data-verdict role="status"></p>
+
+  <p class="ktr-foot">Rule to keep: work per step is force times 8 nm, and efficiency is that work divided by the energy of one ATP (83 pN·nm from the assumed 50 kJ/mol). The numbers are the lesson’s made-up numbers. The lesson ties one ATP per step to near-zero load and works out efficiency only at stall, so efficiency at other loads holds only if each step costs one ATP. The straight force-velocity line and the random timing of steps are a sketch of the logic, not data.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  // The lesson's numbers.
+  const STEP = 8;          // nm per step
+  const V0 = 800;          // nm/s at low load (400 nm in 0.5 s)
+  const STALL = 6;         // pN (0.05 pN/nm x 120 nm)
+  const KAPPA = 0.05;      // pN/nm
+  const NA = 6.022e23;
+  const ATP_PN_NM = (50000 / NA) / 1e-21; // 83 pN·nm
+  const TMAX = 0.5;        // s
+  const YMAX = 700;        // nm, axis only
+  const NDRAW = 400;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  document.querySelectorAll<HTMLElement>('[data-ktr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const loadIn = root.querySelector<HTMLInputElement>('[data-load]')!;
+    const timeIn = root.querySelector<HTMLInputElement>('[data-time]')!;
+    const loadOut = root.querySelector<HTMLOutputElement>('[data-load-out]')!;
+    const timeOut = root.querySelector<HTMLOutputElement>('[data-time-out]')!;
+    const read = root.querySelector<HTMLElement>('[data-read]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    // Unit-rate waiting times: cumulative sums S_k; step k happens at S_k / (steps per second).
+    let cum: number[] = [];
+    let seed = 7;
+    function draw() {
+      const r = rng(seed);
+      let s = 0;
+      cum = [];
+      for (let i = 0; i < NDRAW; i++) { s += -Math.log(1 - r()); cum.push(s); }
+    }
+    const L = 46, R = 350, T = 12, B = 186;
+    const px = (t: number) => L + (t / TMAX) * (R - L);
+    const py = (y: number) => B - (Math.min(y, YMAX) / YMAX) * (B - T);
+    const fmt = (x: number, d = 0) => x.toFixed(d);
+
+    function render() {
+      const F = parseFloat(loadIn.value), t = parseFloat(timeIn.value);
+      const v = Math.max(0, V0 * (1 - F / STALL));         // nm/s, in this sketch
+      const rate = v / STEP;                                // steps per s
+      const stalled = F >= STALL - 1e-9;
+      const times = rate > 0 ? cum.map((c) => c / rate) : [];
+      let n = 0;
+      while (n < times.length && times[n] <= t + 1e-12) n++;
+      const expSteps = rate * t, expPos = v * t, obsPos = n * STEP;
+      const work = F * STEP;                                // pN·nm
+      const eff = work / ATP_PN_NM;
+      const xdist = F / KAPPA;                              // nm
+
+      loadOut.textContent = `${fmt(F, 1)} pN`;
+      timeOut.textContent = `${fmt(t, 2)} s`;
+      loadIn.setAttribute('aria-valuetext', `${fmt(F, 1)} piconewtons`);
+      timeIn.setAttribute('aria-valuetext', `${fmt(t, 2)} seconds`);
+
+      // plot
+      plot.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#c25e00';
+      for (let y = 0; y <= YMAX; y += 100) {
+        plot.appendChild(el('line', { x1: L, y1: py(y), x2: R, y2: py(y), stroke: '#e3e3ea', 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: L - 5, y: py(y) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(y)));
+      }
+      for (let i = 0; i <= 5; i++) {
+        const tt = i / 10;
+        plot.appendChild(el('line', { x1: px(tt), y1: B, x2: px(tt), y2: B + 4, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: px(tt), y: B + 15, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, tt.toFixed(1)));
+      }
+      plot.appendChild(el('line', { x1: L, y1: T, x2: L, y2: B, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: L, y1: B, x2: R, y2: B, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('text', { x: (L + R) / 2, y: 223, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'time (s)'));
+      plot.appendChild(el('text', { x: 10, y: (T + B) / 2, 'font-size': 9, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 10 ${(T + B) / 2})` }, 'position (nm)'));
+      // expected line (full window)
+      plot.appendChild(el('line', { x1: px(0), y1: py(0), x2: px(TMAX), y2: py(v * TMAX), stroke: ORANGE, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      // observed staircase up to the cursor
+      let d = `M ${px(0)} ${py(0)}`;
+      for (let k = 0; k < n; k++) d += ` H ${px(times[k])} V ${py((k + 1) * STEP)}`;
+      d += ` H ${px(t)}`;
+      plot.appendChild(el('path', { d, fill: 'none', stroke: TEAL, 'stroke-width': 1.8 }));
+      // cursor
+      plot.appendChild(el('line', { x1: px(t), y1: T, x2: px(t), y2: B, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      plot.appendChild(el('circle', { cx: px(t), cy: py(obsPos), r: 3.5, fill: TEAL }));
+      // legend
+      plot.appendChild(el('line', { x1: L + 8, y1: T + 10, x2: L + 26, y2: T + 10, stroke: TEAL, 'stroke-width': 1.8 }));
+      plot.appendChild(el('text', { x: L + 30, y: T + 13, 'font-size': 9, fill: INK }, 'observed (random step times)'));
+      plot.appendChild(el('line', { x1: L + 8, y1: T + 23, x2: L + 26, y2: T + 23, stroke: ORANGE, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('text', { x: L + 30, y: T + 26, 'font-size': 9, fill: INK }, 'expected (velocity x time)'));
+
+      // readouts
+      const rows: [string, string][] = [
+        ['Bead distance from trap centre (x = F / κ, κ = 0.05 pN/nm)', `${fmt(xdist)} nm`],
+        ['Velocity in this sketch (800 nm/s at low load, 0 at 6 pN)', `${fmt(v)} nm/s`],
+        ['Steps per second (velocity / 8 nm), expected', `${fmt(rate, 1)} per s`],
+        ['Steps by the cursor: observed | expected', `${n} | ${fmt(expSteps, 1)}`],
+        ['Position by the cursor: observed (8 nm × steps) | expected (v × t)', `${fmt(obsPos)} | ${fmt(expPos)} nm`],
+        ['Work per step (force × 8 nm)', `${fmt(work, 1)} pN·nm`],
+        ['Energy of one ATP, assuming 50 kJ/mol (÷ 6.022 × 10²³)', `${fmt(ATP_PN_NM)} pN·nm`],
+        ['Efficiency, if one ATP per step (work per step ÷ energy of one ATP)', `${fmt(eff * 100)}%`],
+      ];
+      read.replaceChildren();
+      for (const [k, val] of rows) {
+        const dt = document.createElement('dt'); dt.textContent = k;
+        const dd = document.createElement('dd'); dd.textContent = val;
+        read.append(dt, dd);
+      }
+
+      // status
+      let s: string;
+      if (stalled) {
+        s = `At 6 pN the bead sits ${fmt(xdist)} nm from the trap centre (F = 0.05 × 120) and the motor stalls: no net steps, so velocity is 0. Work per step is 6 × 8 = 48 pN·nm, and 48 / 83 is about 58%, the lesson’s efficiency at stall.`;
+      } else if (F === 0) {
+        s = `At low load the motor moves at 800 nm/s, so 100 steps per second of 8 nm. By ${fmt(t, 2)} s you see ${n} steps (${fmt(obsPos)} nm); the expected count is ${fmt(expSteps, 1)}. No force is applied, so the work per step is 0 and so is the efficiency.`;
+      } else {
+        s = `At ${fmt(F, 1)} pN, in this sketch (a straight line) the speed falls roughly in proportion to load, to ${fmt(v)} nm/s or ${fmt(rate, 1)} steps per second. By ${fmt(t, 2)} s you see ${n} steps, against ${fmt(expSteps, 1)} expected. Each step does ${fmt(F, 1)} × 8 = ${fmt(work, 1)} pN·nm, which would be ${fmt(eff * 100)}% of the 83 pN·nm in one ATP, if each step costs one ATP (the lesson ties that to near-zero load and works it out only at stall).`;
+      }
+      if (obsPos > YMAX) s += ' The observed position is off the top of the axis.';
+      if (t === 0) s += ' The cursor is at 0 s, so no steps have happened yet.';
+      verdict.textContent = s;
+    }
+    draw();
+    loadIn.addEventListener('input', render);
+    timeIn.addEventListener('input', render);
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => { seed = (seed * 1103515245 + 12345) >>> 0; draw(); render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ktr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ktr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ktr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ktr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ktr-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.8rem; margin: 0.35rem 0; }
+  .ktr-lab { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 11em; }
+  .ktr-lab output { font-weight: 700; color: var(--ddp-color-primary); }
+  .ktr-ctl input[type="range"] { flex: 1 1 10rem; min-width: 0; accent-color: var(--ddp-color-accent); }
+  .ktr-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .ktr-btn:focus-visible, .ktr-ctl input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ktr-read { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 1rem; margin: var(--ddp-space-3) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ktr-read dt { margin: 0; }
+  .ktr-read dd { margin: 0; font-weight: 700; color: var(--ddp-color-primary); text-align: right; font-variant-numeric: tabular-nums; }
+  .ktr-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .ktr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

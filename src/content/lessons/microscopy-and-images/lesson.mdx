@@ -1,0 +1,456 @@
+---
+title: "Microscopy and Quantitative Images"
+slug: "microscopy-and-images"
+course: "cell-biology"
+courseChapter: "Cell Biology · Unit 1: Seeing and testing cells"
+order: 402
+summary: >-
+  Why can an ordinary light microscope not separate two vesicles 150 nm apart, however much you
+  enlarge the picture? This lesson derives the diffraction limit, works the numbers for a real
+  objective, and compares confocal, electron and super-resolution microscopes by what each one
+  shows and what it costs. Afterwards you can compute a resolution and a pixel size, and read a
+  fluorescence image the way a careful reviewer would: asking what was labelled, which controls
+  were done, and what an overlap of two colours can and cannot mean.
+hook: "Two GFP-filled vesicles 150 nm apart look like one blob in the best ordinary light microscope. Zooming in will not split them. Why not?"
+
+estMinutes: 24
+objectives:
+  - "Define resolution as the smallest separation at which two point objects can be told apart, explain why diffraction sets it, and compute it with d = 0.61λ/NA (lateral) and dz ≈ 2λn/NA² (axial)."
+  - "Explain why magnification without resolution adds nothing, and apply the rule of at least two camera pixels per resolved distance."
+  - "Compare widefield, confocal, TEM, SEM, cryo-EM, STED, SIM and PALM/STORM by what each shows, what it costs, and its typical artifacts."
+  - "Judge a fluorescence image by its labelling controls, matched settings, saturation, background and noise, and state what colocalization can and cannot show."
+
+explainer:
+  src: "/explainers/microscopy-and-images/explainer.mp4"
+  captions: "/explainers/microscopy-and-images/explainer.vtt"
+  poster: "/explainers/microscopy-and-images/poster.jpg"
+  title: "Why Zooming Cannot Split Two Dots"
+  durationSec: 175.8
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Ernst Abbe"
+    contribution: >-
+      Published in 1873 a theory of image formation in the microscope, which tied the finest
+      detail a lens can render to the wavelength of light and to the cone of light the objective
+      collects.
+    profileSourceAnchor: "Abbe, Beiträge zur Theorie des Mikroskops und der mikroskopischen Wahrnehmung, Archiv für mikroskopische Anatomie 9 (1873); discussed in Latychevskaia, Applied Optics 58:3597 (2019)."
+    quotes: []
+    story: >-
+      Microscope makers in the nineteenth century worked to grind better lenses, and it was easy
+      to suppose that a good enough lens would show anything. Abbe, a
+      physicist in Jena who worked with the instrument maker Carl Zeiss, argued that this could not
+      be so. In his 1873 paper in Archiv für mikroskopische Anatomie he treated a specimen as
+      something that diffracts light, sending it off at angles that depend on how fine its detail
+      is. Only light the objective actually collects can rebuild that detail in the image. Finer
+      detail throws light at wider angles, so there is a spacing below which the light misses the
+      lens altogether. That spacing scales with the wavelength divided by the objective's
+      numerical aperture, the quantity that combines the collection angle with the refractive index
+      of the medium. Abbe's argument explained why immersion oil and wide-angle objectives help,
+      and why a bigger image alone does not. It also set the target that every super-resolution
+      method since the 1990s has had to find a way around.
+  - name: "Stefan Hell"
+    contribution: >-
+      Proposed with Jan Wichmann in 1994 that stimulated emission could switch off fluorescence
+      around the edge of a focused spot (STED), and with his colleagues demonstrated in 2000 a
+      fluorescent spot about 90 to 110 nm across.
+    profileSourceAnchor: "Hell & Wichmann, Optics Letters 19:780 (1994); Klar, Jakobs, Dyba, Egner & Hell, Proc. Natl. Acad. Sci. USA 97:8206-8210 (2000); Nobel Prize in Chemistry 2014, nobelprize.org."
+    quotes: []
+    story: >-
+      A focused laser spot cannot be made smaller than diffraction allows, but the region that
+      fluoresces can. That was the idea Hell and Jan Wichmann set out in Optics Letters in 1994.
+      Excite the dye with one beam, then hit it at once with a second, ring-shaped beam that forces
+      excited molecules back to the ground state by stimulated emission before they fluoresce. Only
+      molecules at the dark centre of the ring are left free to glow. In 2000 Thomas Klar, Stefan
+      Jakobs, Marcus Dyba, Alexander Egner and Hell reported the experiment in PNAS, using a 1.4-NA
+      oil objective. Their measured fluorescent spot was nearly spherical and about 90 to 110 nm
+      across. They also imaged live baker's yeast and E. coli, where the gain was smaller, which
+      they attributed largely to the mismatch in refractive index between the oil optics and the
+      watery cells. Following a first experimental demonstration by Klar and Hell in 1999, the paper showed that the diffraction limit could be got around in a working
+      fluorescence microscope, and Hell shared the 2014 Nobel Prize in Chemistry with Eric Betzig
+      and William E. Moerner.
+  - name: "Eric Betzig"
+    contribution: >-
+      With colleagues, introduced photoactivated localization microscopy (PALM) in 2006, building
+      an image from the measured positions of sparse subsets of fluorescent proteins switched on a
+      few at a time.
+    profileSourceAnchor: "Betzig, Patterson, Sougrat, Lindwasser, Olenych, Bonifacino, Davidson, Lippincott-Schwartz & Hess, Science 313:1642-1645 (2006); Nobel Prize in Chemistry 2014, nobelprize.org."
+    quotes: []
+    story: >-
+      A single glowing molecule still looks like a blur a couple of hundred nanometres wide, but
+      the centre of that blur can be found far more precisely than its width, provided no
+      neighbour is glowing at the same moment. The PALM paper, published in Science in 2006 by
+      Betzig and colleagues including Harald Hess and Jennifer Lippincott-Schwartz, used
+      photoactivatable fluorescent proteins to arrange exactly that. A weak pulse of violet light
+      switched on a sparse random few; the team located each one, bleached it, and repeated the
+      cycle many times. Plotting all the positions gave a picture whose detail came from the
+      positions, not from the width of the blur. They reported a localization precision of roughly
+      2 to 25 nm for single molecules, in thin sections of organelles such as lysosomes and
+      mitochondria and in fixed whole cells. In the same year Samuel Hess, Thanu Girirajan and
+      Michael Mason published a similar method, FPALM, and the Zhuang laboratory published STORM.
+      Betzig shared the 2014 Nobel Prize in Chemistry with Stefan Hell and William E. Moerner.
+  - name: "Xiaowei Zhuang"
+    contribution: >-
+      With Michael Rust and Mark Bates, introduced stochastic optical reconstruction microscopy
+      (STORM) in 2006 using switchable Cy3–Cy5 dye pairs, and tested it on a DNA ruler of known
+      length.
+    profileSourceAnchor: "Rust, Bates & Zhuang, Nature Methods 3:793-795 (2006); Xu, Zhong & Zhuang, Science 339:452-456 (2013)."
+    quotes: []
+    story: >-
+      A new microscope needs a test object whose answer is known in advance. In their 2006 paper in
+      Nature Methods, Michael Rust, Mark Bates and Zhuang built one out of DNA. They attached two
+      switchable dye pairs, each made of Cy3 and Cy5, to a double-stranded DNA molecule at points
+      46 nm apart along its length. Because DNA bends a little, they predicted that the average
+      straight-line distance between the two switches would be about 40 nm. Switching the dyes on
+      and off over many cycles and locating each one, they measured a mean separation of 41 nm,
+      with a spread of about 8 nm for each localization per cycle after drift correction. They
+      reported an imaging resolution of 20 nm, tied to the roughly 8 nm accuracy of locating a single switch. RecA-coated DNA was imaged separately as a structural demonstration. In 2013 Ke Xu, Guisheng Zhong and Zhuang used STORM on fixed cultured rat
+      hippocampal neurons and found rings of actin wrapped around the axon, repeating about every
+      180 to 190 nm and alternating with spectrin: a periodic structure hidden below the
+      diffraction limit.
+
+techniques:
+  - name: "Widefield and confocal fluorescence microscopy"
+    blurb: >-
+      A fluorescent label absorbs light of one colour and emits a longer wavelength, which is
+      filtered and recorded. Widefield imaging collects light from the whole depth of the sample;
+      a confocal pinhole rejects out-of-focus light, giving optical sections that can be stacked
+      into a three-dimensional image. Both remain limited by diffraction.
+  - name: "Indirect immunofluorescence with specificity controls"
+    blurb: >-
+      Cells are fixed and permeabilized, a primary antibody binds the target, and a fluorescent
+      secondary antibody binds the primary. The image means something only alongside controls: a
+      knockout or knockdown that loses the signal, a secondary-only sample, and single-label
+      samples to check bleed-through between channels.
+  - name: "Thin-section transmission electron microscopy"
+    blurb: >-
+      Cells are chemically fixed, dehydrated, embedded in plastic, cut into sections about 50 to
+      100 nm thick, and stained with heavy metals. The electron image is a two-dimensional
+      projection of membranes and organelles in dead, prepared tissue, so artifacts of fixation
+      must be ruled out.
+  - name: "Single-molecule localization microscopy (PALM, STORM)"
+    blurb: >-
+      Fluorophores are switched on a few at a time so that no two nearby ones glow together. Each
+      one's centre is located from its blurred image, and the positions from thousands of cycles
+      are plotted as the final picture. Precision improves with the number of photons collected.
+
+structures:
+  - label: "Green fluorescent protein (S65T) — the genetically encoded label behind most live-cell images"
+    source: "rcsb"
+    id: "1EMA"
+    note: "Aequorea victoria GFP, S65T variant, X-ray crystal structure (Ormö et al., Science, 1996)"
+    caption: >-
+      Eleven beta strands form a can, and the light-emitting group sits on a helix running down
+      its middle, sealed from water. That shell is why GFP can be fused to another protein and
+      still glow.
+  - label: "Wild-type green fluorescent protein — the same can, from a second group"
+    source: "rcsb"
+    id: "1GFL"
+    note: "Aequorea victoria GFP, X-ray crystal structure (Yang, Moss & Phillips, Nature Biotechnology, 1996)"
+    caption: >-
+      Compare it with the S65T structure: the barrel is the same, and the difference that makes
+      S65T brighter under blue light lies in the chromophore at the centre.
+  - label: "Fluorescein — a small dye that antibodies have carried into cells for decades"
+    source: "pubchem"
+    id: "16850"
+    note: "PubChem compound record for fluorescein"
+    caption: >-
+      A flat, three-ring system with many alternating double bonds absorbs blue light and emits
+      green. Coupled to an antibody, it marks where the antibody bound.
+  - label: "Glutaraldehyde — the fixative that holds proteins in place for electron microscopy"
+    source: "pubchem"
+    id: "3485"
+    note: "PubChem compound record for glutaraldehyde (pentanedial)"
+    caption: >-
+      Two aldehyde groups on a five-carbon chain can each react with an amine on a protein,
+      tying neighbouring proteins together. Adding it to formaldehyde fixation stopped an antibody
+      clustering artifact in one study of endothelial cells.
+
+simulations:
+  - type: "local"
+    ref: "ResolutionSamplingExplorer"
+    title: "Resolution and sampling"
+    caption: >-
+      Move two point sources, the wavelength, the NA and the camera pixel to see when d = 0.61λ/NA stops the pair from being resolved and when the two-pixel rule stops the camera from recording it.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In an ideal widefield fluorescence microscope, which two quantities set the smallest lateral separation at which two points can be resolved?"
+    choices:
+      - "The emission wavelength and the numerical aperture"
+      - "The specimen thickness and the stain concentration"
+      - "The laser power and the exposure time per frame"
+      - "The camera pixel size and the total magnification"
+    answer: 0
+    rationale: >-
+      The Rayleigh estimate d = 0.61λ/NA contains only the emission wavelength and the numerical
+      aperture, which together fix how wide each point's diffraction pattern is. Pixel size and
+      magnification change how the blur is recorded, not how wide it is. Laser power and exposure
+      change brightness and noise. Specimen thickness and stain concentration affect background
+      and contrast, but an ideal point is blurred to the same width regardless.
+  - stem: "What does the pinhole in a laser-scanning confocal microscope do?"
+    choices:
+      - "It shrinks the focused spot below the diffraction limit"
+      - "It blocks out-of-focus light to give a thin optical section"
+      - "It converts the fluorescence into a shorter wavelength"
+      - "It removes photon noise from the background of the image"
+    answer: 1
+    rationale: >-
+      The pinhole blocks light that comes from above and below the focal plane, so each scan is an
+      optical section and a stack of them gives a three-dimensional image. It does not beat
+      diffraction; a conventional confocal remains diffraction limited, with only a modest gain if
+      the pinhole is closed below one Airy unit at a cost in signal. It does not remove photon
+      noise, which comes from the counting of photons. It does not change the emitted wavelength.
+  - stem: "A student images GFP-labelled vesicles 150 nm apart with a widefield microscope whose ideal lateral resolution is about 227 nm, then enlarges the picture fourfold in software. What does the enlarged picture show?"
+    choices:
+      - "Two separate spots, because enlargement sharpens the edges"
+      - "One merged spot, because enlargement adds no new detail"
+      - "Two separate spots, because each pixel now covers less space"
+      - "No spot at all, because enlargement spreads out the signal"
+    answer: 1
+    rationale: >-
+      The two vesicles are closer than the resolution, so their blurred images overlap into one
+      spot when the light is recorded; enlarging the file only makes that spot bigger. Smaller
+      pixels after enlargement are interpolated from the same data and carry no new information.
+      Software enlargement does not sharpen anything optically. The signal is not lost, since the
+      total intensity of the spot is unchanged; it is only drawn over more screen pixels.
+  - stem: "A researcher compares protein levels in control and treated cells by mean fluorescence intensity. In the treated images many pixels in the brightest cells sit at the camera's maximum value. What is the problem?"
+    choices:
+      - "The camera added extra signal to every pixel above a threshold"
+      - "The treated cells must have bleached during acquisition"
+      - "The saturated pixels no longer report how much label is present"
+      - "The background was not subtracted from either image set"
+    answer: 2
+    rationale: >-
+      A pixel at the detector's maximum has stopped responding in proportion to the light, so any
+      amount of label above that level gives the same number and the treated mean is
+      underestimated. Bleaching lowers signal over time; it does not pin pixels at the maximum.
+      Background subtraction is a separate step and would not repair clipped values. The camera
+      does not add signal above a threshold; it simply cannot record more.
+  - stem: "In a PALM image of fixed cells expressing a membrane receptor fused to a photoswitchable protein, the researcher counts 1,200 localizations in a small patch and reports 1,200 receptors. What is the main reason this count may be too high?"
+    choices:
+      - "Two receptors closer than 200 nm are always counted as one"
+      - "Fixation always doubles the number of receptors in the membrane"
+      - "One fluorescent protein can blink and be localized many times"
+      - "Some fluorescent proteins never switch on during imaging"
+    answer: 2
+    rationale: >-
+      A photoswitchable protein can go dark and return, so the same molecule can produce several
+      localizations; Annibale and colleagues showed this for mEos2 in fixed HeLa cells and
+      corrected for it. Proteins that never switch on make the count too low, not too high. PALM
+      separates molecules closer than 200 nm because they glow at different times. Fixation can
+      move or cluster proteins, but it does not create new ones.
+
+mcatQuestions:
+  - stem: "A researcher images two fluorescent puncta in a fixed cell with a water-immersion objective of numerical aperture 1.20. The dye emits at 600 nm, and the true distance between the puncta is 280 nm. Assume an ideal widefield microscope and the Rayleigh criterion, d = 0.61λ/NA. Which conclusion is correct?"
+    choices:
+      - "The puncta are not resolved, because d is about 500 nm"
+      - "The puncta are resolved, because d is about 250 nm here"
+      - "The puncta are resolved, because 280 nm is above 200 nm"
+      - "The puncta are not resolved, because d is about 305 nm"
+    answer: 3
+    rationale: >-
+      d = 0.61 × 600 / 1.20 = 366 / 1.20 = 305 nm, which is larger than 280 nm, so the puncta are
+      not resolved. Comparing 280 nm with a fixed 200 nm limit ignores the wavelength and the
+      numerical aperture; the limit depends on both, and with red light and a water lens it is
+      well above 200 nm. About 250 nm is the Abbe spacing, λ/(2NA) = 600 / 2.40, a different
+      criterion from the Rayleigh one the question specifies. About 500 nm comes from dividing
+      the wavelength by the NA without the 0.61 factor (600 / 1.20).
+  - stem: "An antibody against protein P stains mitochondria in wild-type cultured cells. The same antibody, applied with identical imaging settings, gives the same mitochondrial staining in cells in which the gene for P has been deleted and P is undetectable on a western blot. Secondary antibody alone gives no signal. What is the best interpretation?"
+    choices:
+      - "Protein P is made from a second gene copy at the mitochondria"
+      - "Protein P moves to mitochondria only after the gene is deleted"
+      - "The secondary antibody binds mitochondria without the primary"
+      - "The antibody binds something other than P on mitochondria"
+    answer: 3
+    rationale: >-
+      A specific antibody should lose its signal when the target is gone; staining that survives
+      deletion of the gene, with P absent on the blot, must come from binding to something else.
+      A second gene copy is ruled out because the blot shows no P. The secondary antibody is ruled
+      out by the secondary-only control, which gave no signal. Relocation after deletion is
+      impossible because the deleted cells contain no P to relocate.
+  - stem: "In a localization microscope, the position of an isolated fluorescent molecule is found from its blurred image. In the shot-noise-limited case, the uncertainty in position scales as 1/√N, where N is the number of photons detected. With 400 detected photons the uncertainty is 10 nm. If a brighter dye yields 1,600 detected photons under the same conditions, what is the expected uncertainty?"
+    choices:
+      - "5 nm, because four times the photons halves the uncertainty"
+      - "10 nm, because the diffraction blur has the same width"
+      - "20 nm, because more photons make the blurred spot wider"
+      - "2.5 nm, because uncertainty falls in proportion to photons"
+    answer: 0
+    rationale: >-
+      Four times the photons divides the uncertainty by √4 = 2, so 10 nm becomes 5 nm. Dividing by
+      four (2.5 nm) treats the scaling as 1/N instead of 1/√N. Keeping 10 nm confuses the width of
+      the blur, which is unchanged, with how precisely its centre is found, which improves with
+      photons. More photons do not widen the spot; they make its shape better defined.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      When you look through a microscope, every tiny glowing dot looks like a small fuzzy ball,
+      not a sharp point. If two dots are very close, their fuzzy balls overlap and look like one.
+      Making the picture bigger just makes the fuzzy ball bigger. Scientists have clever tricks,
+      like making the dots light up one at a time, to tell close dots apart.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Light spreads out as it passes through a lens, so a microscope turns each point of a
+      specimen into a small blur. Two points closer than about the width of that blur merge into
+      one, and this distance is the microscope's resolution. It depends on the colour of the light
+      and on how wide a cone of light the lens can gather. For a good oil lens and green light it
+      is a little over 200 nm, smaller than a mitochondrion but larger than most proteins.
+      Enlarging the image cannot fix this. Electron microscopes use electrons, whose wavelength is
+      far shorter, and newer light microscopes switch dye molecules on and off to get around the
+      blur.
+  - level: "college"
+    label: "College"
+    text: >-
+      Diffraction turns each point into an Airy pattern, and two incoherent points are said to be
+      resolved (Rayleigh criterion) when one's centre falls on the other's first dark ring, at
+      d = 0.61λ/NA, where λ is the emission wavelength and NA = n sin θ. Axial resolution is
+      roughly 2λn/NA², several times worse. Cameras must sample with at least two pixels per d.
+      Confocal microscopy rejects out-of-focus light but is still diffraction limited. STED shrinks
+      the fluorescing region with a depletion beam, SIM recovers finer detail from patterned
+      illumination, and PALM/STORM localize sparse single molecules. Electron microscopy reaches
+      far finer detail in fixed or frozen specimens. Any fluorescence image needs specificity
+      controls, matched settings and unsaturated pixels, and colour overlap shows only proximity
+      within the resolution volume.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      The diffraction limit applies to the illumination and detection point-spread functions, not
+      to information in general. STED and related methods break it by making the fluorescent state
+      nonlinearly dependent on light intensity, so the effective spot narrows as depletion power
+      rises; localization methods break it by separating emitters in time, so each is fitted alone
+      with precision scaling roughly as s/√N, where s is the width of the point-spread function. Precision is not
+      resolution: resolving two emitters also needs dense enough labelling, label linkage error
+      small relative to the target, and correction for blinking and drift. MINFLUX reported about
+      1 nm localization precision on DNA origami in 2017, and later work reported 1 to 3 nm in
+      cells.
+
+      An open question is how to know that a reconstruction is faithful. A high resolution score (for example by Fourier ring correlation) may not reveal artifacts; tools such as SQUIRREL, which compare a reconstruction with a diffraction-limited reference of the same sample, exist because artifacts can hide in a good-looking image, and learned restoration methods such as CARE
+      raise the same problem in sharper form: how should a field validate pixels that were
+      predicted rather than measured?
+
+anecdotes:
+  - title: "The organelle that fixation made"
+    source: "Ebersold, Cordier & Lüthy, Archives of Microbiology (1981)"
+    text: >-
+      Electron micrographs of chemically fixed bacteria often showed folded pockets of membrane
+      called mesosomes, and many microbiologists treated them as a normal part of Gram-positive cells. Ebersold, Cordier and
+      Lüthy compared preparations of Bacillus cereus during septum formation, in vegetative and
+      sporulating cells. Conventional fixation gave the pocket-like invaginations. Cells that were
+      instead frozen rapidly and then freeze-substituted showed no mesosomes in ultrathin
+      sections. In this preparation, the structure depended on the fixation, which is why every
+      new structure in an electron micrograph needs to survive a second, independent method of
+      preservation.
+  - title: "A fixative that moved the protein it was meant to hold"
+    source: "Stanly et al., Biology Open (2016)"
+    text: >-
+      Stanly and colleagues labelled the receptor LYVE-1, overexpressed from a lentiviral vector, in primary human dermal lymphatic endothelial
+      cells after fixation with paraformaldehyde. The secondary antibody pulled the receptors into
+      clusters, because enough of them could still move in the fixed membrane, as FRAP
+      measurements showed. Adding glutaraldehyde to the fixative prevented the clustering. The
+      lesson they drew applies to their system and target, not to one recipe for all: fixation is
+      an experimental variable, and a punctate pattern can be made by the labelling itself.
+  - title: "A ruler made of DNA"
+    source: "Rust, Bates & Zhuang, Nature Methods 3:793-795 (2006)"
+    text: >-
+      To test STORM, Rust, Bates and Zhuang put two switchable dye pairs on DNA 46 nm apart along
+      the strand. They did not expect to measure 46 nm, because DNA flexes; their model predicted
+      an average straight-line separation of about 40 nm. They measured 41 nm. The agreement came
+      from comparing with the right expected value, and a contour length is not the same thing as
+      a distance in space.
+
+corpusTags:
+  - "microscopy"
+  - "diffraction-limit"
+  - "fluorescence-imaging"
+  - "super-resolution"
+  - "electron-microscopy"
+  - "image-quantification"
+draft: false
+---
+
+import ResolutionSamplingExplorer from '../../../components/ResolutionSamplingExplorer.astro';
+
+**Two vesicles 150 nm apart, each filled with GFP, look like a single blob in the best ordinary light microscope, and enlarging the picture will never split them.** The reason is a property of light, and it sets what you can and cannot conclude from almost every image in cell biology. This lesson works out where the limit comes from, how big it is for a real objective, how other microscopes get past it, and how to read a fluorescence image without being fooled.
+
+## The idea: light spreads, so points blur
+
+Think of printing dots with a rubber stamp that has a soft, round face. However small the true point you aim at, the mark is the size of the stamp. Two marks closer than about one stamp-width run together.
+
+A lens does the same thing to light. Light passing through the circular opening of an objective is diffracted, so the image of a single point is a bright disc with faint rings around it, called an Airy pattern. Two independent glowing points give two such patterns, and their intensities add. **Resolution** is the smallest separation at which two point objects can still be told apart. A common convention, the Rayleigh criterion, calls two points resolved when the centre of one pattern falls on the first dark ring of the other.
+
+Ernst Abbe set out the theory in 1873. Fine detail sends light off at wide angles, and only light the objective collects can rebuild that detail. So the limit depends on the wavelength and on the **numerical aperture** (NA), which measures how wide a cone of light the objective gathers:
+
+> NA = n × sin θ, where n is the refractive index of the medium between lens and sample and θ is the half-angle of the collected cone
+
+Air has n = 1.00, so a dry objective cannot reach NA 1. Immersion oil has n ≈ 1.515, which is why the best objectives are oil lenses with NA near 1.4.
+
+In fluorescence microscopy, the label absorbs light of one colour and emits a longer wavelength, and it is the **emission** wavelength that sets the blur. You will often read that "the light limit is 200 nm". That number means nothing until you say which wavelength, which NA, which direction (side to side or along the optical axis) and which criterion.
+
+## Computing resolution and sampling
+
+For an ideal widefield fluorescence microscope, the lateral and axial estimates are:
+
+> d = 0.61 × λ / NA (lateral, Rayleigh criterion)
+>
+> dz ≈ 2 × λ × n / NA² (axial, an approximate estimate)
+
+Here is a worked problem. Take an ideal widefield microscope imaging GFP-like fluorescence at λ = 520 nm through an oil objective with NA 1.40 and immersion index n = 1.515. The camera records 100 nm of specimen per pixel. These are ideal-model numbers chosen for the exercise, not a measured point-spread function; a real instrument with aberrations or a thick sample will do worse.
+
+**Step 1, lateral resolution.** d = 0.61 × 520 / 1.40 = 317.2 / 1.40 = 226.6 nm, about 0.23 µm.
+
+**Step 2, sampling.** A camera has to record the blur finely enough to show the dip between two points. A common introductory rule is at least two pixels per resolved distance. Here 226.6 / 100 = 2.27 pixels, which just meets the rule. With 150 nm pixels you would have 1.5 pixels per d, and the camera, not the optics, would limit what you see.
+
+**Step 3, a weaker objective.** Keep λ = 520 nm but use NA 1.00: d = 317.2 / 1.00 = 317.2 nm. Losing 0.4 in NA costs about 90 nm of resolution.
+
+**Step 4, axial resolution.** dz ≈ 2 × 520 × 1.515 / 1.40² = 1575.6 / 1.96 = 804 nm. That is about 3.5 times worse than the lateral figure. The blurred image of a point is an elongated football, long along the optical axis.
+
+**Step 5, the vesicles.** Two GFP-labelled vesicles 150 nm apart are closer than 226.6 nm, so this microscope records one merged spot. Enlarging the image afterwards spreads that spot over more screen pixels but adds no information. Magnification without resolution is empty magnification.
+
+<ResolutionSamplingExplorer />
+
+## Seeing more: confocal, electrons and super-resolution
+
+A widefield microscope illuminates the whole depth of the sample, so light from above and below focus adds haze, which is worst in thick, densely labelled specimens. A **confocal** microscope scans a focused spot and places a pinhole in front of the detector that blocks most out-of-focus light. Each scan is an optical section, and a stack of sections can be rebuilt into a three-dimensional cell, which is how many organelle volumes in [the previous lesson](/lessons/measured-eukaryotic-cell/) were measured. A confocal is still diffraction limited. Closing the pinhole below one Airy unit buys a little resolution at a real cost in signal.
+
+**Electron microscopes** use a beam of electrons focused by magnetic lenses. At 100 kV an electron's wavelength is around 0.004 nm, yet the practical resolution in biological specimens is far coarser, limited by preparation, contrast and beam damage. Transmission EM (TEM) sends electrons through sections about 50 to 100 nm thick of fixed, dehydrated, plastic-embedded cells stained with heavy metals; it shows membranes and organelles, but each image is a two-dimensional projection of dead tissue. Scanning EM (SEM) rasters the beam over a coated surface and shows shape. Fixation can make structures that were never there. In **cryo-EM**, samples are frozen so fast that water becomes glass-like vitreous ice instead of crystals. Near-atomic cryo-EM structures come from averaging many images of purified particles, not from imaging a whole cell, although cryo-electron tomography of thinned frozen cells now shows molecules in place at lower resolution.
+
+**Super-resolution** light microscopes get around diffraction by controlling which molecules glow, not by repealing it.
+
+- **STED.** Hell and Wichmann proposed in 1994 to add a ring-shaped beam that forces excited dye molecules back to the dark state by stimulated emission, leaving only a small centre fluorescent. In 2000 Klar, Jakobs, Dyba, Egner and Hell reported a fluorescent spot about 90 to 110 nm across, with smaller gains in live yeast and E. coli.
+- **SIM.** Structured illumination records the sample under a series of striped patterns and computes an image; Gustafsson reported in 2000 a doubling of lateral resolution.
+- **PALM and STORM.** Published in 2006 by Betzig and colleagues (PALM), by Rust, Bates and Zhuang (STORM), and by Hess, Girirajan and Mason (FPALM), these switch on a sparse few fluorophores at a time, find the centre of each blur, and plot thousands of positions.
+
+Locating one isolated molecule is not the same as resolving two. The centre of a single blur can be found to a few nanometres, and in the shot-noise limit the uncertainty falls as 1/√N for N detected photons. That is **localization precision**. Resolution also needs enough labelled molecules, a small enough label, and care with blinking, since one fluorescent protein that switches off and on can be counted several times. MINFLUX reported about 1 nm precision in 2017, but on DNA origami, not in a cell.
+
+The 2014 Nobel Prize in Chemistry went to Eric Betzig, Stefan Hell and William E. Moerner. No one person invented super-resolution.
+
+## Reading an image like a skeptic
+
+A beautiful image is a measurement, and it needs the same scrutiny as a number in a table. Ask these questions in order.
+
+**What is labelled, and how do we know?** An antibody (see [the purification lesson](/lessons/protein-purification-techniques/)) can bind the wrong protein. The strongest test of specificity is genetic: the signal should disappear in cells lacking the target. A secondary-only sample checks the secondary antibody. A genetic tag such as GFP, covered in [the signalling course](/lessons/hacking-the-cell/) along with biosensors in [detecting a signal](/lessons/detecting-a-signal/), avoids antibodies but can itself change where a protein goes. Fixation can move proteins too: in primary human lymphatic endothelial cells made to overexpress the receptor, secondary antibodies clustered the receptor LYVE-1 after formaldehyde fixation until glutaraldehyde was added. The long argument over what Golgi's silver stain showed in nerve tissue, told in [the neuron doctrine](/lessons/neuron-doctrine/), was an argument about what a stain reveals.
+
+**Are the channels clean?** Image single-label samples in every channel to measure bleed-through, where one dye's light leaks into another's filter.
+
+**Can intensities be compared?** Only if every condition was acquired with identical settings, and no pixel of interest sits at the detector's maximum. A saturated pixel no longer reports how much label is there. Subtract background before measuring, but remember that subtraction removes the average background, not its photon noise.
+
+**What does overlap mean?** Two colours in the same pixel are within one resolution volume of each other, about 230 nm laterally and 800 nm axially in the worked example. A volume that size can hold thousands of proteins in a typical cell (an order-of-magnitude estimate). Colocalization shows proximity; binding needs a biochemical test or a far finer one.
+
+### Design problem
+
+A paper shows that an antibody to protein P stains mitochondria, and a yellow overlap with a mitochondrial marker is offered as proof that P binds the marker. What would you require before accepting either claim?
+
+<details>
+<summary>One way to do it</summary>
+
+Split it into two claims. First, that the stain is P. Ask for cells with P knocked out or knocked down, imaged with identical settings: the mitochondrial signal should vanish or drop in step with the protein on a blot. Ask for a secondary-only control and an independent way to place P, such as a tagged version of P checked for function, or biochemical fractionation showing P in the mitochondrial fraction.
+
+Second, that P and the marker are near each other. Ask for single-label samples to rule out bleed-through, multicolour beads to check that the channels are registered, and raw images with no saturated pixels so that any overlap coefficient is computed on real intensities.
+
+Even if all of this passes, overlap within about 200 nm laterally, and several hundred nanometres axially, shows only that both proteins are in the same small region of the same organelle. Binding needs a direct test: co-immunoprecipitation, binding of purified proteins, or a method that reports molecular proximity, followed by mutations that break the interaction and abolish the result.
+
+</details>

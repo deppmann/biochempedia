@@ -1,0 +1,242 @@
+---
+/**
+ * AnnexinPiQuadrants — read an annexin V / propidium iodide quadrant plot and compute the
+ * caspase-dependent share of drug-induced death, with the cell-death lesson's own made-up
+ * Jurkat data (10,000 cells per sample). The learner chooses the sample; the plot shows one
+ * dot per cell in the four quadrants. "Resample" redraws all three samples at random from the
+ * lesson's proportions, so the observed counts (and the share computed from them) scatter
+ * around the expected ones, which are shown beside them. Dot positions inside a quadrant are
+ * random and carry no information; only the counts do. Every rule is a statement of the
+ * lesson; nothing is drawn as a molecular structure.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="apq card" data-apq>
+  <figcaption class="apq-head">Annexin V and PI quadrants: what share of the death needs caspases?<span class="apq-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="apq-pick">
+    <legend>Sample (10,000 Jurkat cells each)</legend>
+    <label><input type="radio" name="apq-sample" value="0" checked /> untreated</label>
+    <label><input type="radio" name="apq-sample" value="1" /> drug, 6 h</label>
+    <label><input type="radio" name="apq-sample" value="2" /> drug + pan-caspase inhibitor, 6 h</label>
+  </fieldset>
+
+  <svg class="apq-svg" viewBox="0 0 360 250" role="img" aria-label="Flow cytometry quadrant plot: annexin V on the horizontal axis, propidium iodide on the vertical axis, one dot per cell" data-plot></svg>
+
+  <div class="apq-row">
+    <button type="button" class="apq-btn" data-resample>Resample</button>
+    <span class="apq-src" data-src></span>
+  </div>
+
+  <table class="apq-table">
+    <caption>Quadrant counts: the lesson’s expected counts beside what is on the plot</caption>
+    <thead><tr><th scope="col">Quadrant, and what it usually means</th><th scope="col" class="apq-n">Expected</th><th scope="col" class="apq-n">Observed</th><th scope="col" class="apq-n">Share</th></tr></thead>
+    <tbody data-rows></tbody>
+  </table>
+
+  <div class="apq-calc" data-calc></div>
+
+  <p class="apq-verdict" data-verdict role="status"></p>
+
+  <p class="apq-foot">Annexin V and PI at one time point cannot tell late apoptosis from necrosis, and the caspase-dependent share is the drug’s excess annexin-positive points minus those left with the inhibitor, divided by the drug’s excess; it assumes the inhibitor does not affect the cells on its own and that the untreated sample is the baseline for every condition; this is the lesson’s made-up data, dots sit at random inside each quadrant, and only the counts carry information.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const N = 10000;
+  // Quadrant order is the lesson's: AnnV−PI−, AnnV+PI−, AnnV+PI+, AnnV−PI+.
+  const QUADS = [
+    { tag: 'AnnV−PI−', color: '#5f6f86', mean: 'neither marker: PS not reachable, membrane holds' },
+    { tag: 'AnnV+PI−', color: '#0e7c86', mean: 'clearest apoptotic signal: PS out, membrane holds' },
+    { tag: 'AnnV+PI+', color: '#b5471b', mean: 'late apoptotic (secondary necrosis) or necrotic from the start; one time point cannot tell' },
+    { tag: 'AnnV−PI+', color: '#7a5ea8', mean: 'membrane leaky, whatever made it so' },
+  ];
+  const SAMPLES = [
+    { name: 'Untreated', counts: [9300, 400, 200, 100] },
+    { name: 'Drug, 6 hours', counts: [5800, 2900, 1000, 300] },
+    { name: 'Drug plus a pan-caspase inhibitor, 6 hours', counts: [8600, 600, 500, 300] },
+  ];
+  // Plot box inside the 360 x 250 viewBox.
+  const PX0 = 44, PX1 = 348, PY0 = 12, PY1 = 212;
+  const MX = (PX0 + PX1) / 2, MY = (PY0 + PY1) / 2;
+  // Quadrant rectangles: [x0, y0, x1, y1]
+  const RECT: number[][] = [
+    [PX0, MY, MX, PY1], // AnnV−PI−  lower left
+    [MX, MY, PX1, PY1], // AnnV+PI−  lower right
+    [MX, PY0, PX1, MY], // AnnV+PI+  upper right
+    [PX0, PY0, MX, MY], // AnnV−PI+  upper left
+  ];
+  const BAND = 26; // space at the top of each quadrant for its label
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmtN = (n: number) => n.toLocaleString('en-US');
+  // one decimal, trailing .0 dropped
+  const fmt = (x: number) => { const s = x.toFixed(1); return s.endsWith('.0') ? s.slice(0, -2) : s; };
+  const gauss = () => Math.min(1, Math.max(0, 0.5 + ((Math.random() + Math.random() + Math.random()) / 3 - 0.5) * 1.7));
+
+  function draw(p: number[]): number[] {
+    const c = [0, 0, 0, 0];
+    const cum = [p[0], p[0] + p[1], p[0] + p[1] + p[2]];
+    for (let i = 0; i < N; i++) {
+      const r = Math.random() * N;
+      c[r < cum[0] ? 0 : r < cum[1] ? 1 : r < cum[2] ? 2 : 3]++;
+    }
+    return c;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-apq]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const rowsEl = root.querySelector<HTMLElement>('[data-rows]')!;
+    const calc = root.querySelector<HTMLElement>('[data-calc]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const src = root.querySelector<HTMLElement>('[data-src]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="apq-sample"]'));
+    // Start from the lesson's counts exactly; Resample replaces them with random draws.
+    let obs: number[][] = SAMPLES.map((s) => [...s.counts]);
+    let nDraw = 0;
+    let sel = 0;
+
+    const annPos = (c: number[]) => c[1] + c[2];
+    const pct = (n: number) => (n / N) * 100;
+
+    function drawPlot(c: number[]) {
+      plot.replaceChildren();
+      const INK = '#4b4b55';
+      // quadrant shading and dots
+      QUADS.forEach((q, i) => {
+        const [x0, y0, x1, y1] = RECT[i];
+        plot.appendChild(el('rect', { x: x0, y: y0, width: x1 - x0, height: y1 - y0, fill: q.color, opacity: 0.06 }));
+        let d = '';
+        const top = y0 + BAND, bot = y1 - 3, left = x0 + 3, right = x1 - 3;
+        for (let k = 0; k < c[i]; k++) {
+          const x = left + gauss() * (right - left);
+          const y = top + gauss() * (bot - top);
+          d += `M${x.toFixed(1)} ${y.toFixed(1)}h.1`;
+        }
+        plot.appendChild(el('path', { d, stroke: q.color, 'stroke-width': 1.5, 'stroke-linecap': 'round', fill: 'none', opacity: 0.5 }));
+      });
+      // gates and frame
+      plot.appendChild(el('rect', { x: PX0, y: PY0, width: PX1 - PX0, height: PY1 - PY0, fill: 'none', stroke: '#8a8a96', 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: MX, y1: PY0, x2: MX, y2: PY1, stroke: '#8a8a96', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      plot.appendChild(el('line', { x1: PX0, y1: MY, x2: PX1, y2: MY, stroke: '#8a8a96', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      // quadrant labels with counts (halo keeps them readable over dots)
+      QUADS.forEach((q, i) => {
+        const [x0, y0] = RECT[i];
+        const halo = { 'paint-order': 'stroke', stroke: '#fff', 'stroke-width': 3, 'stroke-linejoin': 'round' };
+        plot.appendChild(el('text', { x: x0 + 5, y: y0 + 11, 'font-size': 10, 'font-weight': 700, fill: q.color, ...halo }, q.tag));
+        plot.appendChild(el('text', { x: x0 + 5, y: y0 + 22, 'font-size': 9, fill: INK, ...halo }, `${fmtN(c[i])} · ${fmt(pct(c[i]))}%`));
+      });
+      // axes
+      plot.appendChild(el('text', { x: (PX0 + MX) / 2, y: 225, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'annexin V −'));
+      plot.appendChild(el('text', { x: (MX + PX1) / 2, y: 225, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'annexin V +'));
+      plot.appendChild(el('text', { x: (PX0 + PX1) / 2, y: 241, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, 'annexin V signal, relative units'));
+      plot.appendChild(el('text', { x: PX0 - 4, y: (PY0 + MY) / 2 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'PI +'));
+      plot.appendChild(el('text', { x: PX0 - 4, y: (MY + PY1) / 2 + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, 'PI −'));
+      plot.appendChild(el('text', { x: 10, y: (PY0 + PY1) / 2, 'font-size': 9, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 10 ${(PY0 + PY1) / 2})` }, 'PI signal, relative units'));
+    }
+
+    function drawTable(c: number[]) {
+      const exp = SAMPLES[sel].counts;
+      let h = '';
+      QUADS.forEach((q, i) => {
+        h += `<tr><th scope="row"><span class="apq-tag" style="color:${q.color}">${q.tag}</span><span class="apq-mean">${q.mean}</span></th><td class="apq-n">${fmtN(exp[i])}</td><td class="apq-n">${fmtN(c[i])}</td><td class="apq-n">${fmt(pct(c[i]))}%</td></tr>`;
+      });
+      const tot = c.reduce((a, b) => a + b, 0);
+      h += `<tr class="apq-tot"><th scope="row">Total (every cell counted once)</th><td class="apq-n">${fmtN(N)}</td><td class="apq-n">${fmtN(tot)}</td><td class="apq-n">100%</td></tr>`;
+      rowsEl.innerHTML = h;
+    }
+
+    // Caspase-dependent share from one set of three samples.
+    function share(sets: number[][]) {
+      const u = pct(annPos(sets[0])), d = pct(annPos(sets[1])), i = pct(annPos(sets[2]));
+      const exD = d - u, exI = i - u;
+      return { u, d, i, exD, exI, s: exD > 0 ? (exD - exI) / exD : NaN };
+    }
+    const asPct = (s: number) => (Number.isFinite(s) ? `${s.toFixed(2)}, about ${Math.round(s * 100)}%` : 'not defined');
+
+    function drawCalc() {
+      const o = share(obs);
+      const e = share(SAMPLES.map((s) => s.counts));
+      const names = ['Untreated', 'Drug', 'Drug + inhibitor'];
+      let h = '<table class="apq-table apq-calctab"><caption>The lesson’s arithmetic on the three samples, assuming the inhibitor does not affect the cells on its own and that the untreated sample is the baseline for every condition</caption><thead><tr><th scope="col">Step</th><th scope="col">Expected</th><th scope="col">Observed</th></tr></thead><tbody>';
+      const oa = obs.map(annPos), ea = SAMPLES.map((s) => annPos(s.counts));
+      [0, 1, 2].forEach((k) => {
+        h += `<tr${k === sel ? ' class="apq-on"' : ''}><th scope="row">Annexin-positive, ${names[k]}</th><td>${fmtN(ea[k])} = ${fmt(pct(ea[k]))}%</td><td>${fmtN(oa[k])} = ${fmt(pct(oa[k]))}%</td></tr>`;
+      });
+      h += `<tr><th scope="row">Drug-induced excess</th><td>${fmt(e.d)} − ${fmt(e.u)} = ${fmt(e.exD)} points</td><td>${fmt(o.d)} − ${fmt(o.u)} = ${fmt(o.exD)} points</td></tr>`;
+      h += `<tr><th scope="row">Excess left with the inhibitor</th><td>${fmt(e.i)} − ${fmt(e.u)} = ${fmt(e.exI)} points</td><td>${fmt(o.i)} − ${fmt(o.u)} = ${fmt(o.exI)} points</td></tr>`;
+      h += `<tr class="apq-share"><th scope="row">Caspase-dependent share = (drug excess − inhibitor excess) / drug excess</th><td>(${fmt(e.exD)} − ${fmt(e.exI)}) / ${fmt(e.exD)} = ${asPct(e.s)}</td><td>(${fmt(o.exD)} − ${fmt(o.exI)}) / ${fmt(o.exD)} = ${asPct(o.s)}</td></tr>`;
+      h += '</tbody></table>';
+      // asPct already contains a percent sign in its words; strip the doubled one
+      calc.innerHTML = h.replace(/%%/g, '%');
+    }
+
+    function say(c: number[]) {
+      const exp = SAMPLES[sel].counts;
+      const o = share(obs), e = share(SAMPLES.map((s) => s.counts));
+      const ap = annPos(c);
+      let v = '';
+      if (sel === 0) {
+        v = `Untreated: ${fmtN(c[0])} of ${fmtN(N)} cells carry neither marker, and ${fmtN(ap)} (${fmt(pct(ap))}%) are annexin-positive. This sample is the baseline that is subtracted from every other one.`;
+      } else if (sel === 1) {
+        v = `Drug, 6 hours: ${fmtN(c[1])} cells are AnnV+PI−, the clearest apoptotic signal because PS is out and the membrane still holds. The ${fmtN(c[2])} AnnV+PI+ cells could be late apoptotic cells in secondary necrosis or cells that died by necrosis from the start, and one time point cannot tell them apart. Annexin-positive in all: ${fmt(pct(ap))}%, an excess of ${fmt(o.exD)} points over untreated (${fmt(e.exD)} expected).`;
+      } else {
+        v = `Drug plus inhibitor: annexin-positive cells fall to ${fmt(pct(ap))}% from ${fmt(o.d)}% with the drug alone, leaving an excess of ${fmt(o.exI)} points over untreated (${fmt(e.exI)} expected). The caspase-dependent share of the induced death comes out at ${asPct(o.s)} (expected ${asPct(e.s)}). The points that remain are caspase-independent death or incomplete inhibition, and the data cannot decide between them.`;
+      }
+      v = v.replace(/%%/g, '%');
+      verdict.textContent = v;
+    }
+
+    function render() {
+      const c = obs[sel];
+      drawPlot(c);
+      drawTable(c);
+      drawCalc();
+      say(c);
+      src.textContent = nDraw === 0
+        ? 'Showing the lesson’s counts exactly. Resample draws 10,000 cells per sample at random from those proportions.'
+        : `Random draw ${nDraw}: counts scatter around the expected ones, and so does the share computed from them.`;
+    }
+
+    radios.forEach((r) => r.addEventListener('change', () => { if (r.checked) { sel = Number(r.value); render(); } }));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => {
+      obs = SAMPLES.map((s) => draw(s.counts));
+      nDraw++;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .apq { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .apq-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .apq-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .apq-pick { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .apq-pick legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .apq-pick input { accent-color: var(--ddp-color-accent); }
+  .apq-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .apq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 var(--ddp-space-3); }
+  .apq-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; cursor: pointer; }
+  .apq-btn:focus-visible, .apq-pick input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .apq-src { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); flex: 1 1 14em; }
+  .apq-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: 0 0 var(--ddp-space-3); }
+  .apq-table caption { text-align: left; color: var(--ddp-color-muted); padding-bottom: 0.25rem; }
+  .apq-table th, .apq-table td { border-top: 1px solid var(--ddp-color-line); padding: 0.25rem 0.35rem; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  .apq-table thead th { border-top: 0; color: var(--ddp-color-muted); font-weight: 400; }
+  .apq-table tbody th { font-weight: 400; }
+  .apq-table .apq-n { white-space: nowrap; overflow-wrap: normal; }
+  .apq-tag { display: block; font-weight: 700; }
+  .apq-mean { display: block; color: var(--ddp-color-muted); }
+  .apq-tot th, .apq-tot td { font-weight: 600; }
+  .apq-on th, .apq-on td { background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); }
+  .apq-share th, .apq-share td { font-weight: 600; color: var(--ddp-color-primary); }
+  .apq-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .apq-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

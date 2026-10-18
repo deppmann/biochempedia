@@ -1,0 +1,173 @@
+---
+/**
+ * NeutralDriftCrypts — the Stem Cells lesson's illustrative neutral-drift model as a
+ * sampled experiment. 100 of 1,000 crypts carry one labelled stem cell at day 2; each crypt
+ * holds N equivalent stem cells that replace one another at random. A time slider replays
+ * the random replacement rule in all 100 labelled crypts; Resample draws a new set. Observed
+ * counts sit beside the lesson's expected values (fixation 1/N, so 100/N fully labelled
+ * crypts; labelled cells conserved on average, 100). Time is in "replacement events in this
+ * sketch", not days. Self-contained vanilla-TS Astro component. Original.
+ */
+---
+
+<figure class="ndc card" data-ndc>
+  <figcaption class="ndc-head">Neutral drift in 100 labelled crypts — watch clones fix or vanish<span class="ndc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ndc-svg" viewBox="0 0 340 250" role="img" aria-label="Twenty of the hundred labelled crypts drawn as rows of stem cells, labelled cells in teal, and a strip of all hundred crypts showing which clones were lost, are partial, or fill the crypt" data-plot></svg>
+
+  <p class="ndc-key">
+    <span><i class="ndc-sw ndc-sw-lab"></i>labelled stem cell</span>
+    <span><i class="ndc-sw ndc-sw-un"></i>unlabelled stem cell</span>
+    <span><i class="ndc-sw ndc-sw-lost"></i>clone lost</span>
+    <span><i class="ndc-sw ndc-sw-part"></i>clone survives, crypt mixed</span>
+    <span><i class="ndc-sw ndc-sw-full"></i>crypt fully labelled</span>
+  </p>
+
+  <div class="ndc-controls">
+    <label class="ndc-slabel"><span>Equivalent stem cells per crypt, N = <em data-out="n">5</em></span>
+      <input type="range" data-in="n" min="2" max="14" step="1" value="5" />
+    </label>
+    <label class="ndc-slabel"><span>Time: <em data-out="t">0</em> replacement events per crypt (in this sketch)</span>
+      <input type="range" data-in="t" min="0" max="600" step="1" value="0" />
+    </label>
+    <button type="button" class="ndc-btn" data-resample>Resample (new random draw)</button>
+  </div>
+
+  <table class="ndc-table">
+    <thead><tr><th scope="col">Of the 100 labelled crypts</th><th scope="col">Observed now</th><th scope="col">Expected</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Clones surviving</th><td data-o-surv></td><td data-e-surv></td></tr>
+      <tr><th scope="row">Mean size of a surviving clone</th><td data-o-mean></td><td data-e-mean></td></tr>
+      <tr><th scope="row">Fully labelled crypts</th><td data-o-full></td><td data-e-full></td></tr>
+      <tr><th scope="row">Labelled stem cells in total</th><td data-o-cells></td><td data-e-cells></td></tr>
+    </tbody>
+  </table>
+  <p class="ndc-why" data-why role="status"></p>
+
+  <p class="ndc-foot">Rule to keep: with N equivalent stem cells, a labelled clone takes over its crypt with probability 1/N, so 100 labelled crypts give about 100/N fully labelled ones, and labelled stem cells are conserved on average (100). In this sketch each event replaces one randomly chosen stem cell with a copy of a randomly chosen one, and the time axis is in events, not days. N here is an effective number for the model, which the lesson puts below the roughly 14 Lgr5-high cells counted per crypt (the slider runs up to 14). The numbers are round and illustrative, as in the lesson.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', INK = '#4b4b55', GREY = '#c9c9d1', PART = '#8fcbd0';
+  const TMAX = 600, CRYPTS = 100, SHOWN = 20;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const pop = (x: number) => { let c = 0; while (x) { c += x & 1; x >>= 1; } return c; };
+  document.querySelectorAll<HTMLElement>('[data-ndc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const nIn = q('[data-in="n"]'), tIn = q('[data-in="t"]');
+    const nOut = o('[data-out="n"]'), tOut = o('[data-out="t"]');
+    const why = o('[data-why]');
+    let N = 5;
+    let states: Uint16Array[] = []; // per crypt, bitmask of labelled cells at each event
+
+    function simulate() {
+      states = [];
+      for (let c = 0; c < CRYPTS; c++) {
+        const s = new Uint16Array(TMAX + 1);
+        let m = 1; // one labelled cell (cell 0) at day 2
+        s[0] = m;
+        for (let t = 1; t <= TMAX; t++) {
+          if (m !== 0 && m !== (1 << N) - 1) {
+            const dies = Math.floor(Math.random() * N), copies = Math.floor(Math.random() * N);
+            const lab = (m >> copies) & 1;
+            m = lab ? (m | (1 << dies)) : (m & ~(1 << dies));
+          }
+          s[t] = m;
+        }
+        states.push(s);
+      }
+    }
+    function f1(x: number) { return Number.isInteger(x) ? String(x) : x.toFixed(1); }
+    function draw(t: number) {
+      plot.replaceChildren();
+      const full = (1 << N) - 1;
+      plot.appendChild(el('text', { x: 6, y: 12, 'font-size': 10, 'font-weight': 700, fill: INK }, `First ${SHOWN} of the 100 labelled crypts (one row each, ${N} stem cells)`));
+      const cw = Math.min(13, Math.floor(118 / N)), gap = N > 9 ? 1 : 2;
+      for (let c = 0; c < SHOWN; c++) {
+        const col = c < 10 ? 0 : 1, row = c % 10;
+        const x0 = 6 + col * 170, y0 = 20 + row * 15;
+        plot.appendChild(el('text', { x: x0, y: y0 + 9, 'font-size': 9, fill: INK }, String(c + 1)));
+        const m = states[c][t];
+        for (let k = 0; k < N; k++) {
+          plot.appendChild(el('rect', { x: x0 + 18 + k * (cw + gap), y: y0, width: cw, height: 11, rx: 2, fill: (m >> k) & 1 ? ACCENT : GREY }));
+        }
+      }
+      plot.appendChild(el('text', { x: 6, y: 186, 'font-size': 10, 'font-weight': 700, fill: INK }, 'All 100 labelled crypts, one box each'));
+      for (let c = 0; c < CRYPTS; c++) {
+        const m = states[c][t];
+        const fill = m === 0 ? '#fff' : m === full ? ACCENT : PART;
+        const x = 6 + (c % 50) * 6.6, y = 194 + Math.floor(c / 50) * 14;
+        plot.appendChild(el('rect', { x, y, width: 5.4, height: 11, fill, stroke: m === 0 ? INK : fill, 'stroke-width': 0.6 }));
+      }
+      plot.appendChild(el('text', { x: 6, y: 236, 'font-size': 9, fill: INK }, `time = ${t} events (in this sketch); crypts 1 to 50 above, 51 to 100 below`));
+    }
+    function render() {
+      const t = Number(tIn.value);
+      nOut.textContent = String(N); tOut.textContent = String(t);
+      const full = (1 << N) - 1;
+      let surv = 0, fixed = 0, cells = 0;
+      for (let c = 0; c < CRYPTS; c++) {
+        const m = states[c][t];
+        if (m !== 0) { surv++; cells += pop(m); if (m === full) fixed++; }
+      }
+      const lost = CRYPTS - surv, mixed = surv - fixed;
+      draw(t);
+      o('[data-o-surv]').textContent = `${surv} of 100`;
+      o('[data-e-surv]').textContent = `falls toward ${f1(100 / N)} (100 ÷ N)`;
+      o('[data-o-mean]').textContent = surv ? `${cells} ÷ ${surv} = ${f1(cells / surv)} cells` : 'none survive';
+      o('[data-e-mean]').textContent = `rises toward ${N} (a full crypt)`;
+      o('[data-o-full]').textContent = String(fixed);
+      o('[data-e-full]').textContent = `${f1(100 / N)} in the end (100 × 1/${N})`;
+      o('[data-o-cells]').textContent = String(cells);
+      o('[data-e-cells]').textContent = '100 on average';
+      let s: string;
+      if (t === 0) {
+        s = `Day 2: each of the 100 labelled crypts holds one labelled stem cell among its ${N}, so 100 labelled cells in all. Move the time slider to let the stem cells replace one another at random.`;
+      } else if (mixed === 0) {
+        s = `Every clone has now either taken over its crypt or been lost: ${fixed} crypts are fully labelled and ${lost} clones are gone. The expected number of fully labelled crypts is 100 × 1/${N} = ${f1(100 / N)}; any difference from that is chance. Resample to see the spread.`;
+      } else {
+        s = `${surv} ${surv === 1 ? 'clone survives' : 'clones survive'} and ${lost} ${lost === 1 ? 'has' : 'have'} been lost by chance. The ${cells} labelled cells are shared among the survivors, a mean of ${f1(cells / surv)} each${lost > 0 ? ', so surviving clones grow because others vanish' : ''}. ${mixed} crypts are still mixed and ${fixed} are fully labelled.`;
+      }
+      if (N === 14) s += ' N = 14 is roughly the number of Lgr5-high cells counted per crypt; the lesson’s effective number is smaller than that. At N = 14, 100 ÷ 14 is about 7 crypts expected to end fully labelled.';
+      why.textContent = s;
+    }
+    function resample() { simulate(); render(); }
+    nIn.addEventListener('input', () => { N = Number(nIn.value); resample(); });
+    tIn.addEventListener('input', render);
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', resample);
+    resample();
+  });
+</script>
+
+<style is:global>
+  .ndc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ndc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ndc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ndc-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ndc-key { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ndc-sw { display: inline-block; width: 0.8em; height: 0.8em; margin-right: 0.3em; border-radius: 2px; vertical-align: -0.05em; border: 1px solid transparent; }
+  .ndc-sw-lab, .ndc-sw-full { background: #0e7c86; }
+  .ndc-sw-un { background: #c9c9d1; }
+  .ndc-sw-lost { background: #fff; border-color: #4b4b55; }
+  .ndc-sw-part { background: #8fcbd0; }
+  .ndc-controls { display: grid; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .ndc-slabel { display: grid; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ndc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-primary); }
+  .ndc-slabel input { width: 100%; accent-color: var(--ddp-color-accent); }
+  .ndc-btn { justify-self: start; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .ndc-btn:focus-visible, .ndc-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ndc-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: 0 0 var(--ddp-space-2); }
+  .ndc-table th, .ndc-table td { text-align: left; padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; font-weight: 400; }
+  .ndc-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .ndc-table tbody th { color: var(--ddp-color-primary); }
+  .ndc-why { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .ndc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

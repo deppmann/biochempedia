@@ -1,0 +1,199 @@
+---
+/**
+ * TeerCalculator — the worked TEER problem from the epithelia lesson. Readings for the
+ * monolayer and the blank insert plus the insert area go through the lesson's three steps
+ * (subtract the blank, multiply by area, compare), beside a sketch of the sheet as resistors:
+ * through cells and between cells, with a filter-and-fluid resistor in series. A toggle swaps the
+ * control monolayer for the claudin-2 monolayer. Original; self-contained vanilla-TS island.
+ */
+---
+
+<figure class="tc card" data-teer>
+  <figcaption class="tc-head">TEER calculator — blank, area, fold change<span class="tc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="tc-svg" viewBox="0 0 340 250" role="img" aria-label="A sketch of an epithelial sheet as resistors, through cells and between cells, in series with the filter, above bars splitting each raw reading into blank and cell resistance" data-plot></svg>
+
+  <div class="tc-controls">
+    <label class="tc-check"><input type="checkbox" data-in="claudin" /> <span>Edit the claudin-2 monolayer (off: control)</span></label>
+    <label class="tc-slabel"><span data-lab-reading>Control monolayer reading (ohm)</span>
+      <input type="number" data-in="reading" min="0" max="1000" step="1" value="250" inputmode="decimal" />
+    </label>
+    <label class="tc-slabel"><span>Blank insert reading (ohm)</span>
+      <input type="number" data-in="blank" min="0" max="1000" step="1" value="120" inputmode="decimal" />
+    </label>
+    <label class="tc-slabel"><span>Insert area (cm²)</span>
+      <input type="number" data-in="area" min="0.05" max="5" step="0.01" value="1.12" inputmode="decimal" />
+    </label>
+  </div>
+
+  <ol class="tc-steps">
+    <li><strong>Subtract the blank.</strong>
+      <span data-s1c></span><span data-s1x></span></li>
+    <li><strong>Multiply by area.</strong>
+      <span data-s2c></span><span data-s2x></span></li>
+    <li><strong>Compare.</strong>
+      <span data-s3></span></li>
+  </ol>
+
+  <p class="tc-why" data-why role="status"></p>
+
+  <p class="tc-foot">TEER (ohm·cm²) = (R monolayer − R blank) × area of insert. Never divide by area. The numbers are made up, and TEER says how easily ions carry current, not which ion, or whether sugars or proteins leak too. The resistor picture is a sketch of the logic, not to scale.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREY = '#8d8d99';
+  const CTRL_DEFAULT = 250, CLAUD_DEFAULT = 126;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const fmt = (n: number) => String(Number(n.toFixed(2)));
+  // vertical zigzag resistor from y0 to y1 with n teeth, with lead wires top and bottom
+  function zig(x: number, y0: number, y1: number, amp: number, n: number): string {
+    const lead = 6, a = y0 + lead, b = y1 - lead;
+    let d = 'M' + x + ' ' + y0 + ' L' + x + ' ' + a;
+    const step = (b - a) / (n * 2);
+    for (let i = 0; i < n * 2; i++) {
+      const dx = i % 2 === 0 ? amp : -amp;
+      d += ' L' + (x + dx) + ' ' + (a + step * (i + 0.5));
+    }
+    d += ' L' + x + ' ' + b + ' L' + x + ' ' + y1;
+    return d;
+  }
+  document.querySelectorAll<HTMLElement>('[data-teer]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const claudIn = inp('[data-in="claudin"]'), readIn = inp('[data-in="reading"]');
+    const blankIn = inp('[data-in="blank"]'), areaIn = inp('[data-in="area"]');
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const lab = o('[data-lab-reading]'), why = o('[data-why]');
+    const s1c = o('[data-s1c]'), s1x = o('[data-s1x]'), s2c = o('[data-s2c]'), s2x = o('[data-s2x]'), s3 = o('[data-s3]');
+
+    let ctrl = CTRL_DEFAULT, claud = CLAUD_DEFAULT;
+    let blank = 120, area = 1.12;
+
+    function num(i: HTMLInputElement, fallback: number, lo: number, hi: number): number {
+      const v = parseFloat(i.value);
+      if (!isFinite(v)) return fallback;
+      return Math.min(hi, Math.max(lo, v));
+    }
+    function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, extra));
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+    function render() {
+      const useClaud = claudIn.checked;
+      const cOhm = ctrl - blank, kOhm = claud - blank;     // step 1
+      const cT = cOhm * area, kT = kOhm * area;              // step 2
+      const fold = cT > 0 && kT > 0 ? cT / kT : NaN;        // step 3
+
+      lab.textContent = (useClaud ? 'Claudin-2 monolayer' : 'Control monolayer') + ' reading (ohm)';
+
+      s1c.textContent = 'Control: ' + fmt(ctrl) + ' − ' + fmt(blank) + ' = ' + fmt(cOhm) + ' ohm';
+      s1x.textContent = 'Claudin-2: ' + fmt(claud) + ' − ' + fmt(blank) + ' = ' + fmt(kOhm) + ' ohm';
+      s2c.textContent = 'Control: ' + fmt(cOhm) + ' × ' + fmt(area) + ' = ' + fmt(cT) + ' ohm·cm²';
+      s2x.textContent = 'Claudin-2: ' + fmt(kOhm) + ' × ' + fmt(area) + ' = ' + fmt(kT) + ' ohm·cm²';
+      s3.textContent = isNaN(fold)
+        ? 'No fold change can be formed: one monolayer reads at or below the blank, so nothing is left after subtraction.'
+        : fold > 1
+          ? fmt(cT) + ' / ' + fmt(kT) + ' = ' + fold.toFixed(1) + '-fold drop'
+          : fmt(cT) + ' / ' + fmt(kT) + ' = ' + fold.toFixed(1) + ': the claudin-2 sheet is not lower than the control, so there is no drop to report.';
+
+      plot.replaceChildren();
+      // ---- resistor sketch ----
+      const TOP = 30, BOT = 112;
+      txt(8, TOP - 3, 'top'); txt(8, BOT + 11, 'bottom');
+      txt(100, 14, 'through cell', { 'text-anchor': 'middle' });
+      txt(170, 14, 'between cells', { 'text-anchor': 'middle' });
+      txt(240, 14, 'through cell', { 'text-anchor': 'middle' });
+      [[50, 100], [190, 100]].forEach(([x, w]) => {
+        plot.appendChild(el('rect', { x, y: TOP + 6, width: w, height: BOT - TOP - 12, rx: 8, fill: '#f3f7f8', stroke: FAINT, 'stroke-width': 1 }));
+      });
+      plot.appendChild(el('line', { x1: 40, y1: TOP, x2: 300, y2: TOP, stroke: INK, 'stroke-width': 1.4 }));
+      plot.appendChild(el('line', { x1: 40, y1: BOT, x2: 300, y2: BOT, stroke: INK, 'stroke-width': 1.4 }));
+      plot.appendChild(el('path', { d: zig(100, TOP, BOT, 8, 4), fill: 'none', stroke: INK, 'stroke-width': 1.6 }));
+      plot.appendChild(el('path', { d: zig(240, TOP, BOT, 8, 4), fill: 'none', stroke: INK, 'stroke-width': 1.6 }));
+      if (useClaud) {
+        plot.appendChild(el('path', { d: zig(170, TOP, BOT, 8, 1), fill: 'none', stroke: ORANGE, 'stroke-width': 3 }));
+        txt(180, 72, 'claudin-2', { fill: ORANGE, 'font-weight': 700 });
+      } else {
+        plot.appendChild(el('path', { d: zig(170, TOP, BOT, 8, 6), fill: 'none', stroke: ACCENT, 'stroke-width': 1.6 }));
+        txt(180, 72, 'tight', { fill: ACCENT, 'font-weight': 700 });
+      }
+      // blank in series
+      plot.appendChild(el('path', { d: 'M170 ' + BOT + ' L170 118 ' + zig(170, 118, 146, 7, 2).replace(/^M\d+ 118 /, ''), fill: 'none', stroke: GREY, 'stroke-width': 1.6 }));
+      txt(184, 136, 'filter + fluid (the blank)', { fill: GREY });
+
+      // ---- stacked bars: blank part + cells part ----
+      const rows: Array<[string, number, boolean]> = [['control', ctrl, !useClaud], ['claudin-2', claud, useClaud]];
+      const mx = Math.max(ctrl, claud, blank, 1);
+      const BX = 84, BW = 190, sc = BW / mx;
+      rows.forEach(([name, r, active], i) => {
+        const y = 164 + i * 28;
+        const bl = Math.min(r, blank) * sc;
+        const cell = Math.max(0, r - blank) * sc;
+        txt(8, y + 12, name, { 'font-weight': active ? 700 : 400, fill: active ? ACCENT : INK });
+        plot.appendChild(el('rect', { x: BX, y, width: Math.max(bl, 0), height: 18, fill: FAINT }));
+        plot.appendChild(el('rect', { x: BX + bl, y, width: cell, height: 18, fill: active ? ORANGE : '#f2b27a' }));
+        plot.appendChild(el('rect', { x: BX - 0.5, y: y - 0.5, width: Math.max(r * sc, 0) + 1, height: 19, fill: 'none', stroke: active ? ACCENT : 'none', 'stroke-width': 1.5 }));
+        txt(280, y + 12, Number(r.toFixed(1)) + ' ohm');
+      });
+      plot.appendChild(el('rect', { x: BX, y: 224, width: 10, height: 9, fill: FAINT }));
+      txt(98, 232, 'blank');
+      plot.appendChild(el('rect', { x: 140, y: 224, width: 10, height: 9, fill: ORANGE }));
+      txt(154, 232, 'cells’ own resistance');
+
+      // ---- status ----
+      const aOhm = useClaud ? kOhm : cOhm, aT = useClaud ? kT : cT, aR = useClaud ? claud : ctrl;
+      const who = useClaud ? 'claudin-2' : 'control';
+      let msg: string;
+      if (aOhm <= 0) {
+        msg = 'The ' + who + ' monolayer reads ' + fmt(aR) + ' ohm, at or below the blank of ' + fmt(blank) + ' ohm. Subtracting the filter and fluid leaves no resistance to attribute to the cells, so the area step and the comparison have nothing to work with.';
+      } else if (!useClaud) {
+        msg = 'Control: ' + fmt(aR) + ' − ' + fmt(blank) + ' = ' + fmt(aOhm) + ' ohm, then × ' + fmt(area) + ' cm² = ' + fmt(aT) + ' ohm·cm². The filter and fluid add resistance of their own, so the blank comes off first; a larger sheet has more paths side by side, so multiplying by area corrects for that.';
+      } else if (isNaN(fold)) {
+        msg = 'Claudin-2: ' + fmt(aR) + ' − ' + fmt(blank) + ' = ' + fmt(aOhm) + ' ohm, then × ' + fmt(area) + ' cm² = ' + fmt(aT) + ' ohm·cm². The control reading is at or below the blank, so there is no fold change to form.';
+      } else {
+        msg = 'Claudin-2: ' + fmt(aR) + ' − ' + fmt(blank) + ' = ' + fmt(aOhm) + ' ohm, then × ' + fmt(area) + ' cm² = ' + fmt(aT) + ' ohm·cm². ' + (fold > 1
+          ? 'Against the control that is a ' + fold.toFixed(1) + '-fold drop' + (fold > 20 ? ', above the twentyfold fall that Furuse and colleagues reported for dog claudin-2 in MDCK I cells (these readings are made up). ' : '. ')
+          : 'The claudin-2 sheet is not lower than the control, so there is no drop to report. ') +
+          'The sketch shows the junction path as the one claudin-2 makes leakier; this measurement alone does not test the pore idea.';
+      }
+      why.textContent = msg;
+    }
+
+    claudIn.addEventListener('change', () => {
+      readIn.value = String(claudIn.checked ? claud : ctrl);
+      render();
+    });
+    readIn.addEventListener('input', () => {
+      const v = num(readIn, claudIn.checked ? claud : ctrl, 0, 1000);
+      if (claudIn.checked) claud = v; else ctrl = v;
+      render();
+    });
+    blankIn.addEventListener('input', () => { blank = num(blankIn, blank, 0, 1000); render(); });
+    areaIn.addEventListener('input', () => { area = num(areaIn, area, 0.05, 5); render(); });
+    render();
+  });
+</script>
+
+<style>
+  .tc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .tc-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tc-check input { accent-color: var(--ddp-color-accent); }
+  .tc-slabel { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tc-slabel:first-of-type { grid-column: 1 / -1; }
+  .tc-slabel input { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); padding: 0.25rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 4px; width: 100%; max-width: 12rem; box-sizing: border-box; }
+  .tc-steps { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3) var(--ddp-space-2) 1.6rem; background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tc-steps li { margin: 0.2rem 0; }
+  .tc-steps li span { display: block; font-size: 0.85em; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); overflow-wrap: anywhere; }
+  .tc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .tc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

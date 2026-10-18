@@ -1,0 +1,235 @@
+---
+/**
+ * AutophagyFluxBlot — a mock LC3-II immunoblot built on the made-up data set of the
+ * quality-control-and-autophagy lesson (Control 1.0 / 2.0, Starved 1.5 / 4.5, Drug D 3.0 / 3.2,
+ * each band normalized to actin, bafilomycin A1 assumed saturating). The learner chooses a
+ * condition, adds or leaves out bafilomycin, and reads flux = LC3-II (with) - LC3-II (without).
+ * "Your own" lets two sliders (relative units) make a new condition.
+ * Sketch rule: with a saturating inhibitor, all LC3-II made in the window is kept, so the
+ * "with" band equals the amount made (F), and the "without" band is what the lysosome
+ * left standing, F x (1 - share destroyed). That reproduces every number in the lesson's table.
+ * Bands are drawn as grey rectangles; no molecules. Self-contained, no random sampling.
+ */
+---
+
+<figure class="afb card" data-afb>
+  <figcaption class="afb-head">LC3-II flux blot: the same band, two stories<span class="afb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="afb-svg" viewBox="0 0 360 310" role="img" aria-label="A mock immunoblot of LC3-II and actin for one condition, with and without bafilomycin A1, above a bar chart of LC3-II for each condition" data-stage></svg>
+
+  <fieldset class="afb-box">
+    <legend>Condition (made-up data set)</legend>
+    <label><input type="radio" name="afb-cond" value="control" data-cond checked /> Control</label>
+    <label><input type="radio" name="afb-cond" value="starved" data-cond /> Starved</label>
+    <label><input type="radio" name="afb-cond" value="drugd" data-cond /> Drug D</label>
+    <label><input type="radio" name="afb-cond" value="own" data-cond /> Your own</label>
+  </fieldset>
+
+  <div class="afb-row">
+    <label><input type="checkbox" data-baf /> add bafilomycin A1 (saturating) for the last few hours</label>
+  </div>
+
+  <div class="afb-sliders">
+    <label class="afb-sl">LC3-II made in the window (= the + baf band)
+      <span class="afb-sr"><input type="range" min="0.5" max="6" step="0.1" value="2" data-form /><output data-formout>2.0</output></span>
+      <span class="afb-unit">relative units</span>
+    </label>
+    <label class="afb-sl">Share of newly made LC3-II destroyed (in this sketch)
+      <span class="afb-sr"><input type="range" min="0" max="100" step="1" value="50" data-deg /><output data-degout>50</output></span>
+      <span class="afb-unit">percent</span>
+    </label>
+  </div>
+
+  <p class="afb-read" data-readout></p>
+  <p class="afb-verdict" data-verdict role="status"></p>
+
+  <p class="afb-foot">Keep this rule: a high LC3-II band on its own can mean more made or less destroyed, so only the LC3-II saved by bafilomycin, the flux, shows which. In this sketch the inhibitor is assumed saturating, the numbers are made up, and the ‘without’ band is simply the made amount × (1 − share destroyed); the 1.25× and 0.75× cut-offs for ‘up’ and ‘down’ are arbitrary, so the picture shows the logic, not a real blot.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Cond = 'control' | 'starved' | 'drugd' | 'own';
+  // F = LC3-II with bafilomycin (all that was made), D = share destroyed. flux = F x D.
+  const DATA: Record<Exclude<Cond, 'own'>, { name: string; without: number; withb: number }> = {
+    control: { name: 'Control', without: 1.0, withb: 2.0 },
+    starved: { name: 'Starved', without: 1.5, withb: 4.5 },
+    drugd: { name: 'Drug D', without: 3.0, withb: 3.2 },
+  };
+  const REF_FLUX = 1.0; // control: 2.0 - 1.0
+  const REF_STEADY = 1.0;
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const f1 = (x: number) => (Math.round(x * 10) / 10).toFixed(1);
+
+  document.querySelectorAll<HTMLElement>('[data-afb]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]')!;
+    const baf = root.querySelector<HTMLInputElement>('[data-baf]')!;
+    const form = root.querySelector<HTMLInputElement>('[data-form]')!;
+    const deg = root.querySelector<HTMLInputElement>('[data-deg]')!;
+    const formOut = root.querySelector<HTMLOutputElement>('[data-formout]')!;
+    const degOut = root.querySelector<HTMLOutputElement>('[data-degout]')!;
+    const readout = root.querySelector<HTMLElement>('[data-readout]')!;
+    const verdict = root.querySelector<HTMLElement>('[data-verdict]')!;
+    const conds = Array.from(root.querySelectorAll<HTMLInputElement>('[data-cond]'));
+    let cond: Cond = 'control';
+    let own = { withb: 2.0, without: 1.0 };
+
+    function values(c: Cond) {
+      const v = c === 'own' ? own : DATA[c];
+      return { without: v.without, withb: v.withb, flux: v.withb - v.without };
+    }
+    function setSliders(c: Exclude<Cond, 'own'>) {
+      const v = DATA[c];
+      form.value = String(v.withb);
+      deg.value = String(Math.round(((v.withb - v.without) / v.withb) * 100));
+    }
+    function syncOutputs() {
+      formOut.textContent = f1(Number(form.value));
+      degOut.textContent = String(Number(deg.value));
+    }
+    function fromSliders() {
+      const F = Number(form.value), D = Number(deg.value) / 100;
+      own = { withb: F, without: Math.round(F * (1 - D) * 10) / 10 };
+    }
+
+    const INK = '#4b4b55', FAINT = '#8a8a96';
+    function band(x: number, y: number, v: number, label: string) {
+      // intensity: darkness scales with the value, up to 6 relative units
+      const op = Math.max(0.1, Math.min(1, v / 6));
+      stage.appendChild(el('rect', { x, y, width: 70, height: 14, rx: 3, fill: '#2b2b33', opacity: op.toFixed(2) }));
+      stage.appendChild(el('text', { x: x + 35, y: y + 28, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, label));
+    }
+    function draw(on: boolean) {
+      stage.replaceChildren();
+      const V = values(cond);
+      // ---- blot panel
+      stage.appendChild(el('text', { x: 8, y: 14, 'font-size': 10, 'font-weight': 700, fill: INK }, 'Blot: ' + (cond === 'own' ? 'Your own' : DATA[cond].name)));
+      stage.appendChild(el('rect', { x: 64, y: 22, width: 288, height: 92, rx: 4, fill: '#f4f4f7', stroke: '#d9d9e0' }));
+      const xs = [100, 220];
+      stage.appendChild(el('text', { x: xs[0] + 35, y: 36, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'no baf'));
+      stage.appendChild(el('text', { x: xs[1] + 35, y: 36, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: on ? '#0e7c86' : FAINT }, '+ baf'));
+      stage.appendChild(el('text', { x: 58, y: 58, 'font-size': 10, 'text-anchor': 'end', fill: INK }, 'LC3-II'));
+      stage.appendChild(el('text', { x: 58, y: 92, 'font-size': 10, 'text-anchor': 'end', fill: INK }, 'actin'));
+      // LC3-II row
+      band(xs[0], 44, V.without, f1(V.without));
+      if (on) band(xs[1], 44, V.withb, f1(V.withb));
+      else {
+        stage.appendChild(el('rect', { x: xs[1], y: 44, width: 70, height: 14, rx: 3, fill: 'none', stroke: FAINT, 'stroke-dasharray': '3 3' }));
+        stage.appendChild(el('text', { x: xs[1] + 35, y: 72, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'lane not run'));
+      }
+      // actin row: equal loading
+      stage.appendChild(el('rect', { x: xs[0], y: 82, width: 70, height: 14, rx: 3, fill: '#2b2b33', opacity: 0.55 }));
+      if (on) stage.appendChild(el('rect', { x: xs[1], y: 82, width: 70, height: 14, rx: 3, fill: '#2b2b33', opacity: 0.55 }));
+      stage.appendChild(el('text', { x: xs[0] + 35, y: 108, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, '1.0 (loading)'));
+      if (on) stage.appendChild(el('text', { x: xs[1] + 35, y: 108, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, '1.0 (loading)'));
+
+      // ---- bar chart panel
+      stage.appendChild(el('text', { x: 8, y: 138, 'font-size': 10, 'font-weight': 700, fill: INK }, 'LC3-II, normalized to actin (control without baf = 1.0)'));
+      const base = 272, scale = 17; // px per unit, 6 units = 102 px
+      stage.appendChild(el('line', { x1: 8, y1: base, x2: 352, y2: base, stroke: '#9a9aa6', 'stroke-width': 1 }));
+      const groups: Cond[] = ['control', 'starved', 'drugd', 'own'];
+      groups.forEach((g, i) => {
+        if (g === 'own' && cond !== 'own') return;
+        const gx = 12 + i * 86;
+        const v = values(g);
+        if (g === cond) stage.appendChild(el('rect', { x: gx - 2, y: 148, width: 82, height: 152, rx: 4, fill: '#0e7c86', opacity: 0.08 }));
+        const bw = 28;
+        const h0 = v.without * scale;
+        stage.appendChild(el('rect', { x: gx + 6, y: base - h0, width: bw, height: Math.max(0.5, h0), fill: '#8a8fa8' }));
+        stage.appendChild(el('text', { x: gx + 6 + bw / 2, y: base - h0 - 3, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, f1(v.without)));
+        if (on) {
+          const h1 = v.withb * scale;
+          stage.appendChild(el('rect', { x: gx + 6 + bw + 4, y: base - h1, width: bw, height: Math.max(0.5, h1), fill: '#0e7c86' }));
+          stage.appendChild(el('text', { x: gx + 6 + bw + 4 + bw / 2, y: base - h1 - 3, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, f1(v.withb)));
+        }
+        stage.appendChild(el('text', { x: gx + 40, y: base + 13, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': g === cond ? 700 : 400, fill: INK }, g === 'own' ? 'Your own' : DATA[g].name));
+        stage.appendChild(el('text', { x: gx + 40, y: base + 27, 'font-size': 9, 'text-anchor': 'middle', fill: on ? '#0e7c86' : FAINT }, on ? 'flux ' + f1(v.flux) : 'flux: ?'));
+      });
+      // legend (top right of the chart, clear of the bars' tallest value label)
+      stage.appendChild(el('rect', { x: 264, y: 146, width: 9, height: 9, fill: '#8a8fa8' }));
+      stage.appendChild(el('text', { x: 276, y: 154, 'font-size': 9, fill: INK }, 'no baf'));
+      if (on) {
+        stage.appendChild(el('rect', { x: 306, y: 146, width: 9, height: 9, fill: '#0e7c86' }));
+        stage.appendChild(el('text', { x: 318, y: 154, 'font-size': 9, fill: INK }, '+ baf'));
+      }
+    }
+    function statusText(on: boolean): string {
+      const V = values(cond);
+      const steady = V.without / REF_STEADY;
+      const look = steady >= 1.25 ? 'higher than control' : steady <= 0.75 ? 'lower than control' : 'about the same as control';
+      if (!on) {
+        let s = `Without bafilomycin you see only the steady-state band: ${f1(V.without)}, ${look}. `;
+        s += 'That one number cannot say whether more LC3-II is made or less is destroyed, like a fuller sink that could mean the tap is on harder or the drain is blocked.';
+        if (steady >= 1.25) s += ' Read this way, it would look like an inducer. Add bafilomycin to find out.';
+        else s += ' Add bafilomycin to measure flux.';
+        return s;
+      }
+      const r = V.flux / REF_FLUX;
+      let s = `Flux = ${f1(V.withb)} − ${f1(V.without)} = ${f1(V.flux)}, which is ${r.toFixed(1)} times the control flux. `;
+      if (r >= 1.25) {
+        s += 'More autophagosomes are made and destroyed: flux is up, which supports induction.';
+      } else if (r <= 0.75) {
+        s += 'Less LC3-II is being destroyed than in control.';
+        if (steady >= 1.25) s += ' LC3-II at steady state is high, but flux is low: this is the pattern of a block at fusion or degradation, not induction.';
+      } else {
+        s += 'Flux is about the same as control, so autophagy is running at about the control rate.';
+        if (steady >= 1.25) s += '';
+      }
+      return s;
+    }
+    function render() {
+      const on = baf.checked;
+      const V = values(cond);
+      draw(on);
+      readout.textContent = on
+        ? `Without baf ${f1(V.without)} · with baf ${f1(V.withb)} · flux = ${f1(V.withb)} − ${f1(V.without)} = ${f1(V.flux)}`
+        : `Without baf ${f1(V.without)} · flux cannot be calculated from one lane`;
+      verdict.textContent = statusText(on);
+    }
+
+    conds.forEach((c) => c.addEventListener('change', () => {
+      if (!c.checked) return;
+      cond = c.value as Cond;
+      if (cond === 'own') fromSliders(); else setSliders(cond);
+      syncOutputs();
+      render();
+    }));
+    baf.addEventListener('change', render);
+    [form, deg].forEach((s) => s.addEventListener('input', () => {
+      fromSliders();
+      cond = 'own';
+      conds.forEach((c) => { c.checked = c.value === 'own'; });
+      syncOutputs();
+      render();
+    }));
+    setSliders('control');
+    syncOutputs();
+    render();
+  });
+</script>
+
+<style is:global>
+  .afb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .afb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .afb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .afb-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .afb-box { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afb-box legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .afb input[type="radio"], .afb input[type="checkbox"], .afb input[type="range"] { accent-color: var(--ddp-color-accent); }
+  .afb-row { margin: 0.4rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afb-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.2rem; margin: 0.4rem 0; }
+  .afb-sl { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afb-sr { display: flex; align-items: center; gap: 0.5rem; }
+  .afb-sr input { flex: 1; min-width: 0; }
+  .afb-sr output { min-width: 2.4em; text-align: right; font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .afb-unit { color: var(--ddp-color-muted); }
+  .afb input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .afb-read { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .afb-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 5em; }
+  .afb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .afb-sliders { grid-template-columns: 1fr; } }
+</style>

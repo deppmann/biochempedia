@@ -1,0 +1,231 @@
+---
+/**
+ * ReplicateSuperPlot — the made-up EdU data of the experimental-design lesson, drawn as a
+ * SuperPlot. Three independent runs, one control and one treated dish each, 200 cells scored
+ * per dish. A toggle switches the analysis between "pool all cells" (600 cells per condition
+ * treated as independent) and "one value per run" (each run's two dishes paired, N = 3).
+ * Resample redraws every dish's cells from that dish's percentage, so the observed counts
+ * wobble around the table's expected counts; the arithmetic is the lesson's, recomputed on
+ * the draw. Labelled dots and numbers only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="rsp card" data-rsp>
+  <figcaption class="rsp-head">Replicates: cells or runs?<span class="rsp-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rsp-svg" viewBox="0 0 360 308" role="img" aria-label="A SuperPlot of percent EdU-positive cells for control and treated dishes in three runs: small dots are cells, large dots are means" data-plot></svg>
+
+  <div class="rsp-row">
+    <fieldset class="rsp-mode">
+      <legend>Analysis</legend>
+      <label><input type="radio" name="rsp-mode" value="pool" data-mode /> pool all cells</label>
+      <label><input type="radio" name="rsp-mode" value="run" data-mode checked /> one value per run</label>
+    </fieldset>
+    <div class="rsp-btns">
+      <button type="button" class="rsp-btn" data-resample>Resample cells</button>
+      <button type="button" class="rsp-btn" data-reset>Back to the lesson’s table</button>
+    </div>
+  </div>
+
+  <p class="rsp-verdict" data-status role="status"></p>
+
+  <table class="rsp-table">
+    <caption class="rsp-cap" data-cap></caption>
+    <thead><tr><th scope="col">Quantity</th><th scope="col">Lesson’s table (expected)</th><th scope="col" data-obs-h>This draw (observed)</th></tr></thead>
+    <tbody data-body></tbody>
+  </table>
+
+  <p class="rsp-foot">N is the number of independent runs, not the number of cells. The data are invented for teaching; Resample redraws each dish’s cells from its percentage, so observed counts wobble around the expected ones. This is a sketch of the logic, not a result.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const CELLS = 200;
+  const RUN_COL = ['#0e7c86', '#e57200', '#7a5ea8'];
+  const INK = '#4b4b55', FAINT = '#8a8a96', LINE = '#d9d9e0';
+  // The lesson's table: EdU-positive cells out of 200 (20, 25, 15 % control; 34, 27, 28 % treated).
+  const TABLE: [number, number][] = [[40, 68], [50, 54], [30, 56]];
+  const T95 = 4.303; // t, 2 degrees of freedom, as the lesson uses
+  const f1 = (x: number) => (Math.round(x * 10) / 10).toFixed(1).replace('-', '−');
+  const f2 = (x: number) => (Math.round(x * 100) / 100).toFixed(2).replace('-', '−');
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function stats(c: [number, number][]) {
+    const pc = c.map((r) => (r[0] / CELLS) * 100), pt = c.map((r) => (r[1] / CELLS) * 100);
+    const diff = pc.map((_, i) => pt[i] - pc[i]);
+    const n = diff.length;
+    const mean = diff.reduce((a, b) => a + b, 0) / n;
+    const ss = diff.reduce((a, d) => a + (d - mean) * (d - mean), 0);
+    const sd = Math.sqrt(ss / (n - 1)), se = sd / Math.sqrt(n);
+    const t = se > 0 ? mean / se : NaN;
+    const p = se > 0 ? 1 - Math.abs(t) / Math.sqrt(2 + t * t) : NaN; // exact two-sided p for 2 d.f.
+    const totC = c.reduce((a, r) => a + r[0], 0), totT = c.reduce((a, r) => a + r[1], 0);
+    const N = CELLS * n;
+    const qc = totC / N, qt = totT / N;
+    const poolSe = Math.sqrt((qc * (1 - qc)) / N + (qt * (1 - qt)) / N) * 100;
+    const poolDiff = (qt - qc) * 100;
+    return { pc, pt, diff, mean, sd, se, t, p, lo: mean - T95 * se, hi: mean + T95 * se, qc: qc * 100, qt: qt * 100, poolDiff, poolSe, z: poolDiff / poolSe, N };
+  }
+  const fp = (p: number) => (isNaN(p) ? '—' : p < 0.001 ? '< 0.001' : f2(p));
+
+  document.querySelectorAll<HTMLElement>('[data-rsp]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const body = root.querySelector<HTMLElement>('[data-body]')!;
+    const cap = root.querySelector<HTMLElement>('[data-cap]')!;
+    const modeIn = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mode]'));
+    // Fixed random position of each cell inside its dish's cluster, kept across resamples.
+    const jx: number[][][] = [0, 1, 2].map(() => [0, 1].map(() => Array.from({ length: CELLS }, () => Math.random() * 2 - 1)));
+    const jy: number[][][] = [0, 1, 2].map(() => [0, 1].map(() => Array.from({ length: CELLS }, () => Math.random())));
+    let counts: [number, number][] = TABLE.map((r) => [r[0], r[1]] as [number, number]);
+    let resampled = false;
+    // cell state: true = EdU+
+    let cells: boolean[][][] = [];
+    function fillCells() {
+      cells = counts.map((r) => r.map((k) => Array.from({ length: CELLS }, (_, i) => i < k)));
+    }
+    function resample() {
+      counts = TABLE.map((r) => r.map((k) => {
+        let s = 0;
+        for (let i = 0; i < CELLS; i++) if (Math.random() < k / CELLS) s++;
+        return s;
+      }) as [number, number]);
+      // keep the dots honest: place the positives at random cells of the dish
+      cells = counts.map((r) => r.map((k) => {
+        const a = Array.from({ length: CELLS }, (_, i) => i < k);
+        for (let i = CELLS - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+        return a;
+      }));
+      resampled = true;
+    }
+    const mode = () => (modeIn.find((m) => m.checked)?.value ?? 'run');
+    const Y = (p: number) => 232 - p * 1.8;
+    const GX = [100, 250], OFF = [-36, 0, 36];
+
+    function draw(m: string, s: ReturnType<typeof stats>) {
+      plot.replaceChildren();
+      plot.appendChild(el('text', { x: 6, y: 14, 'font-size': 10, fill: INK }, '% EdU+ cells'));
+      for (const v of [0, 50, 100]) {
+        plot.appendChild(el('line', { x1: 40, y1: Y(v), x2: 296, y2: Y(v), stroke: LINE, 'stroke-width': 1 }));
+        plot.appendChild(el('text', { x: 34, y: Y(v) + 3, 'font-size': 9, 'text-anchor': 'end', fill: INK }, String(v)));
+      }
+      // small dots: one per cell, EdU+ above the 100 line, EdU− below the 0 line
+      const frag = document.createDocumentFragment();
+      for (let r = 0; r < 3; r++) for (let d = 0; d < 2; d++) {
+        const cx = GX[d] + (m === 'run' ? OFF[r] : 0);
+        for (let i = 0; i < CELLS; i++) {
+          const pos = cells[r][d][i];
+          const x = cx + jx[r][d][i] * (m === 'run' ? 13 : 40);
+          const y = pos ? Y(100) - 5 - jy[r][d][i] * 14 : Y(0) + 5 + jy[r][d][i] * 14;
+          frag.appendChild(el('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 1.3, fill: m === 'run' ? RUN_COL[r] : FAINT, opacity: 0.6 }));
+        }
+      }
+      plot.appendChild(frag);
+      if (m === 'run') {
+        for (let r = 0; r < 3; r++) {
+          plot.appendChild(el('line', { x1: GX[0] + OFF[r], y1: Y(s.pc[r]), x2: GX[1] + OFF[r], y2: Y(s.pt[r]), stroke: RUN_COL[r], 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        }
+        for (let r = 0; r < 3; r++) for (let d = 0; d < 2; d++) {
+          const v = d === 0 ? s.pc[r] : s.pt[r];
+          plot.appendChild(el('circle', { cx: GX[d] + OFF[r], cy: Y(v), r: 5.5, fill: RUN_COL[r], stroke: '#fff', 'stroke-width': 1.5 }));
+          plot.appendChild(el('text', { x: GX[d] + OFF[r], y: Y(v) - 9, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, f1(v)));
+        }
+      } else {
+        for (let d = 0; d < 2; d++) {
+          const v = d === 0 ? s.qc : s.qt;
+          plot.appendChild(el('circle', { cx: GX[d], cy: Y(v), r: 6.5, fill: '#2a2a33', stroke: '#fff', 'stroke-width': 1.5 }));
+          plot.appendChild(el('text', { x: GX[d], y: Y(v) - 10, 'font-size': 9, 'text-anchor': 'middle', fill: INK }, f1(v)));
+        }
+      }
+      plot.appendChild(el('text', { x: GX[0], y: 264, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'Control'));
+      plot.appendChild(el('text', { x: GX[1], y: 264, 'font-size': 10, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'Treated'));
+      // legend
+      if (m === 'run') {
+        for (let r = 0; r < 3; r++) {
+          plot.appendChild(el('circle', { cx: 308, cy: 80 + r * 16, r: 4.5, fill: RUN_COL[r] }));
+          plot.appendChild(el('text', { x: 317, y: 83 + r * 16, 'font-size': 9, fill: INK }, `run ${r + 1}`));
+        }
+      } else {
+        plot.appendChild(el('circle', { cx: 308, cy: 80, r: 4.5, fill: '#2a2a33' }));
+        plot.appendChild(el('text', { x: 317, y: 83, 'font-size': 9, fill: INK }, 'pooled'));
+      }
+      plot.appendChild(el('text', { x: 8, y: 278, 'font-size': 9, fill: INK }, 'small dot = one cell (EdU+ above, EdU− below);'));
+      plot.appendChild(el('text', { x: 8, y: 288, 'font-size': 9, fill: INK }, 'position within a cluster is arbitrary'));
+      plot.appendChild(el('text', { x: 8, y: 298, 'font-size': 9, fill: INK }, m === 'run' ? 'large dot = one dish’s % (a run’s mean); dashed line = a run’s pair' : 'large dot = all 600 cells of the condition pooled'));
+    }
+
+    function row(q: string, a: string, b: string) {
+      return `<tr><th scope="row">${q}</th><td>${a}</td><td>${b}</td></tr>`;
+    }
+    function render() {
+      const m = mode();
+      const e = stats(TABLE), o = stats(counts);
+      draw(m, o);
+      const dishE = TABLE.map((r) => `${r[0]} / ${r[1]}`).join(', ');
+      const dishO = counts.map((r) => `${r[0]} / ${r[1]}`).join(', ');
+      root.querySelector<HTMLElement>('[data-obs-h]')!.textContent = resampled ? 'This draw (observed)' : 'This draw (same as the table)';
+      let rows = row('EdU+ cells per dish of 200 (control / treated, runs 1–3)', dishE, dishO);
+      let msg: string;
+      if (m === 'pool') {
+        cap.textContent = 'Pooling every cell as if independent';
+        rows += row('Cells counted per condition', '600', '600');
+        rows += row('Control, % EdU+', f1(e.qc), f1(o.qc));
+        rows += row('Treated, % EdU+', f1(e.qt), f1(o.qt));
+        rows += row('Difference, points', f1(e.poolDiff), f1(o.poolDiff));
+        rows += row('SE treating cells as independent, points', f1(e.poolSe), f1(o.poolSe));
+        rows += row('z', f1(e.z), f1(o.z));
+        msg = `Pooling treats all 600 cells in each condition as independent, so the standard error is ${f1(o.poolSe)} points and z is ${f1(o.z)}. It looks decisive here. But the cells of a dish share one dish, so this is pseudoreplication: the experimental unit is the dish, and N is 3 runs, not 600 cells.`;
+      } else {
+        cap.textContent = 'Each run’s two dishes paired; N = 3 runs';
+        rows += row('N per condition', '3 runs', '3 runs');
+        rows += row('Paired differences, points', e.diff.map(f1).join(', '), o.diff.map(f1).join(', '));
+        rows += row('Mean difference, points', f2(e.mean), f2(o.mean));
+        rows += row('SD of the differences', f2(e.sd), f2(o.sd));
+        rows += row('SE = SD / √3', f2(e.se), f2(o.se));
+        rows += row('t (2 degrees of freedom)', f2(e.t), f2(o.t));
+        rows += row('Two-sided p', fp(e.p), fp(o.p));
+        rows += row('95% interval, points', `${f1(e.lo)} to ${f1(e.hi)}`, `${f1(o.lo)} to ${f1(o.hi)}`);
+        const low = o.diff.indexOf(Math.min(...o.diff)) + 1;
+        const verdict = o.lo <= 0 && o.hi >= 0
+          ? 'The interval includes zero, so, as in the lesson’s table, the effect is suggestive, not shown; and a p this size does not show “no effect”.'
+          : 'The interval does not include zero.';
+        msg = `One value per run: each run pairs its own two dishes, so N is 3 runs. Mean difference ${f2(o.mean)} points, SE ${f2(o.se)}, p ${fp(o.p)}, 95% interval ${f1(o.lo)} to ${f1(o.hi)}. ${verdict} The run with the smallest difference (run ${low}) is the one to look at${resampled ? '' : ', as run 2 does in the lesson’s table'}. Scoring more cells per dish would not help, because the uncertainty comes from run-to-run variation; more independent runs would.`;
+      }
+      if (resampled) msg += ' Resample redrew the cells of each dish, so the observed counts differ a little from the table’s expected ones.';
+      body.innerHTML = rows;
+      status.textContent = msg;
+    }
+    fillCells();
+    modeIn.forEach((i) => i.addEventListener('change', render));
+    root.querySelector<HTMLButtonElement>('[data-resample]')!.addEventListener('click', () => { resample(); render(); });
+    root.querySelector<HTMLButtonElement>('[data-reset]')!.addEventListener('click', () => {
+      counts = TABLE.map((r) => [r[0], r[1]] as [number, number]); resampled = false; fillCells(); render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .rsp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rsp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rsp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rsp-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rsp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem; margin: 0.35rem 0; }
+  .rsp-mode { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rsp-mode legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .rsp-mode input { accent-color: var(--ddp-color-accent); }
+  .rsp-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .rsp-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .rsp-btn:focus-visible, .rsp-mode input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rsp-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .rsp-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0 0; }
+  .rsp-cap { text-align: left; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding-bottom: 0.25rem; }
+  .rsp-table th, .rsp-table td { text-align: left; padding: 0.2rem 0.4rem; border-top: 1px solid var(--ddp-color-line); vertical-align: top; font-weight: 400; }
+  .rsp-table thead th { font-weight: 600; color: var(--ddp-color-muted); border-top: 0; }
+  .rsp-table td { font-variant-numeric: tabular-nums; }
+  .rsp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

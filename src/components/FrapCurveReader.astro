@@ -1,0 +1,230 @@
+---
+/**
+ * FrapCurveReader — read a FRAP recovery curve the way the Membrane Organization lesson does.
+ * Worked problem: spot radius w = 2.0 µm, Fi = 100, F0 = 20. Sliders set the mobile fraction
+ * and the half-time; a time cursor reads F(t). The lesson's arithmetic is shown beside the
+ * reading, and a toggle marks the half-time taken from the right level (half of the
+ * recoverable increment) or the wrong one (half of the prebleach value). The curve shape is
+ * a sketch (a single exponential through the chosen half-time); the lesson gives no formula
+ * for it. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="frc card" data-frc>
+  <figcaption class="frc-head">FRAP curve reader — mobile fraction, half-time, D<span class="frc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="frc-svg" viewBox="0 0 340 230" role="img" aria-label="A fluorescence recovery curve after photobleaching, with a draggable time cursor and marks for half recovery" data-plot></svg>
+
+  <ul class="frc-key" aria-label="Plot key">
+    <li><span class="frc-sw frc-sw-curve"></span>recovery curve (shape: in this sketch)</li>
+    <li><span class="frc-sw frc-sw-right"></span>half of the recoverable increment</li>
+    <li><span class="frc-sw frc-sw-wrong"></span>half of the prebleach value</li>
+    <li><span class="frc-sw frc-sw-cur"></span>time cursor</li>
+  </ul>
+
+  <div class="frc-controls">
+    <label class="frc-slabel"><span>Mobile fraction <em data-out="mf">0.75</em></span>
+      <input type="range" data-in="mf" min="0.1" max="1" step="0.05" value="0.75" />
+    </label>
+    <label class="frc-slabel"><span>Half-time t<sub>½</sub> <em data-out="th">4.0</em> s</span>
+      <input type="range" data-in="th" min="1" max="8" step="0.5" value="4" />
+    </label>
+    <label class="frc-slabel frc-wide"><span>Time cursor <em data-out="t">4.0</em> s</span>
+      <input type="range" data-in="t" min="0" max="20" step="0.5" value="4" />
+    </label>
+    <fieldset class="frc-fs frc-wide">
+      <legend>Take t<sub>½</sub> from the level that is…</legend>
+      <label><input type="radio" name="frc-mode" value="right" checked data-in="mode" /> half of the recoverable increment</label>
+      <label><input type="radio" name="frc-mode" value="wrong" data-in="mode" /> half of the prebleach value</label>
+    </fieldset>
+  </div>
+
+  <dl class="frc-readout">
+    <div class="frc-wide"><dt>At the cursor</dt><dd data-r-cur></dd></div>
+    <div><dt>Mobile fraction</dt><dd data-r-mf></dd></div>
+    <div><dt>Immobile fraction</dt><dd data-r-im></dd></div>
+    <div><dt>Right level</dt><dd data-r-right></dd></div>
+    <div><dt>Wrong level</dt><dd data-r-wrong></dd></div>
+    <div class="frc-wide"><dt>t<sub>½</sub> read from the chosen level</dt><dd data-r-th></dd></div>
+    <div class="frc-wide"><dt>Diffusion coefficient (w = 2.0 µm)</dt><dd data-r-d></dd></div>
+  </dl>
+
+  <p class="frc-why" data-why role="status"></p>
+
+  <p class="frc-foot">Rule to keep: mobile fraction = (F∞ − F0)/(Fi − F0), and the half-time is the time to half of the recoverable increment, not to half of the prebleach value. D ≈ 0.224 w²/t½ assumes an instantaneous, uniform bleach, a flat membrane, a large unbleached reservoir and two-dimensional diffusion alone. The curve is a sketch of the logic, not a fit.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', DARK = '#1f2937';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-frc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (n: string) => root.querySelector<HTMLInputElement>(`input[data-in="${n}"]`)!;
+    const mfIn = inp('mf'), thIn = inp('th'), tIn = inp('t');
+    const modes = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-in="mode"]'));
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const mfOut = o('[data-out="mf"]'), thOut = o('[data-out="th"]'), tOut = o('[data-out="t"]');
+    const rCur = o('[data-r-cur]'), rMf = o('[data-r-mf]'), rIm = o('[data-r-im]');
+    const rRight = o('[data-r-right]'), rWrong = o('[data-r-wrong]'), rTh = o('[data-r-th]'), rD = o('[data-r-d]');
+    const why = o('[data-why]');
+
+    const FI = 100, F0 = 20, W = 2.0, TMAX = 20;
+    const X0 = 36, X1 = 300, Y0 = 16, Y1 = 192;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (f: number) => Y1 - (f / 110) * (Y1 - Y0);
+    const fmt = (v: number, d = 1) => v.toFixed(d);
+
+    let mf = 0.75, th = 4, tc = 4, mode = 'right';
+    const F = (t: number) => F0 + mf * (FI - F0) * (1 - Math.pow(2, -t / th)); // sketch: single exponential through t½
+
+    // time at which the sketch curve reaches level L (null if never reached)
+    function timeAt(L: number): number | null {
+      const g = (L - F0) / (mf * (FI - F0));
+      if (g <= 0 || g >= 1) return null;
+      return -th * Math.log2(1 - g);
+    }
+
+    function render() {
+      const finf = F0 + mf * (FI - F0);
+      const rightL = F0 + (finf - F0) / 2;
+      const wrongL = FI / 2;
+      const tRight = timeAt(rightL); // equals th by construction
+      const tWrong = timeAt(wrongL);
+
+      mfOut.textContent = fmt(mf, 2); thOut.textContent = fmt(th, 1); tOut.textContent = fmt(tc, 1);
+
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      // reference levels
+      const ref = (f: number, label: string, side: 'l' | 'r') => {
+        plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const t = el('text', side === 'l'
+          ? { x: X0 - 4, y: py(f) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }
+          : { x: X1 + 4, y: py(f) + 3, 'text-anchor': 'start', 'font-size': 9, fill: INK });
+        t.textContent = label; plot.appendChild(t);
+      };
+      ref(FI, 'Fi', 'l'); ref(F0, 'F0', 'l'); ref(finf, 'F∞', 'r');
+      for (const t of [0, 5, 10, 15, 20]) {
+        plot.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const tx = el('text', { x: px(t), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK }); tx.textContent = String(t); plot.appendChild(tx);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 28, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = 'time after the bleach (s)'; plot.appendChild(xl);
+      const yl = el('text', { x: X0 - 2, y: Y0 - 5, 'text-anchor': 'start', 'font-size': 10, fill: INK }); yl.textContent = 'fluorescence in the spot (corrected)'; plot.appendChild(yl);
+
+      // marks for the two candidate half-levels
+      const mark = (L: number, t: number | null, color: string) => {
+        if (t === null || t > TMAX) return;
+        plot.appendChild(el('line', { x1: X0, y1: py(L), x2: px(t), y2: py(L), stroke: color, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('line', { x1: px(t), y1: py(L), x2: px(t), y2: Y1, stroke: color, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('circle', { cx: px(t), cy: py(L), r: 4, fill: color }));
+      };
+      if (mode === 'right') { mark(wrongL, tWrong, ORANGE); mark(rightL, tRight, ACCENT); }
+      else { mark(rightL, tRight, ACCENT); mark(wrongL, tWrong, ORANGE); }
+
+      // curve
+      let d = '';
+      for (let i = 0; i <= 100; i++) {
+        const t = (i / 100) * TMAX;
+        d += (i === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(F(t)).toFixed(1) + ' ';
+      }
+      plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // cursor
+      plot.appendChild(el('line', { x1: px(tc), y1: Y0, x2: px(tc), y2: Y1, stroke: DARK, 'stroke-width': 1.5 }));
+      plot.appendChild(el('circle', { cx: px(tc), cy: py(F(tc)), r: 4.5, fill: '#fff', stroke: DARK, 'stroke-width': 2 }));
+
+      // readouts
+      const fc = F(tc);
+      rCur.textContent = `t = ${fmt(tc, 1)} s, F = ${fmt(fc, 1)} (the bleached spot has regained ${fmt(fc - F0, 1)} of the ${FI - F0} it lost)`;
+      rMf.textContent = `(F∞ − F0)/(Fi − F0) = (${fmt(finf, 0)} − ${F0})/(${FI} − ${F0}) = ${fmt(finf - F0, 0)}/${FI - F0} = ${fmt(mf, 2)}`;
+      rIm.textContent = `1 − ${fmt(mf, 2)} = ${fmt(1 - mf, 2)}`;
+      rRight.textContent = `F0 + (F∞ − F0)/2 = ${F0} + ${fmt(finf - F0, 0)}/2 = ${fmt(rightL, 0)}`;
+      rWrong.textContent = `Fi/2 = ${fmt(wrongL, 0)}`;
+      const useT = mode === 'right' ? tRight : tWrong;
+      const useL = mode === 'right' ? rightL : wrongL;
+      if (useT === null) {
+        rTh.textContent = `level ${fmt(useL, 0)} is never reached: the plateau F∞ = ${fmt(finf, 0)} is not above it`;
+        rD.textContent = 'not defined';
+      } else {
+        rTh.textContent = `curve reaches ${fmt(useL, 0)} at ${fmt(useT, 1)} s` + (mode === 'wrong' ? ' (in this sketch)' : '');
+        const dd = (0.224 * W * W) / useT;
+        rD.textContent = `0.224 × (${fmt(W, 1)} µm)² / ${fmt(useT, 1)} s = ${fmt(0.224 * W * W, 2)}/${fmt(useT, 1)} = ${fmt(dd, 2)} µm²/s` + (mode === 'wrong' ? ' (in this sketch)' : '');
+      }
+
+      // plain-language status
+      const coincide = tWrong !== null && Math.abs(wrongL - rightL) < 0.01;
+      let msg: string;
+      if (mode === 'right') {
+        msg = `Only the bleached part can recover, so the mobile fraction is ${fmt(mf, 2)} and the plateau sits at ${fmt(finf, 0)}, at or below the prebleach ${FI}. Half of the recoverable increment is level ${fmt(rightL, 0)}, reached at t½ = ${fmt(th, 1)} s, which gives D ≈ ${fmt((0.224 * W * W) / th, 2)} µm²/s for this model.`;
+        if (coincide) msg += ' Here half of the prebleach value happens to be the same level, a coincidence of these numbers: change the mobile fraction to pull them apart.';
+      } else if (coincide) {
+        msg = `With these numbers half of the prebleach value (${fmt(wrongL, 0)}) is the same level as half of the recoverable increment, so the two readings agree by coincidence. Change the mobile fraction to see them separate; the lesson’s rule is still the recoverable increment.`;
+      } else if (tWrong === null) {
+        msg = `Half of the prebleach value is ${fmt(wrongL, 0)}, but the plateau is only ${fmt(finf, 0)}, so the curve never gets there and no half-time can be read. The error ignores that only the bleached part recovers; the right level is ${fmt(rightL, 0)}.`;
+      } else {
+        msg = `This is the error to avoid: half of the prebleach value is ${fmt(wrongL, 0)}, read at ${fmt(tWrong, 1)} s, but the right half-time is ${fmt(th, 1)} s at level ${fmt(rightL, 0)}. The wrong reading changes D to ${fmt((0.224 * W * W) / tWrong, 2)} µm²/s instead of ${fmt((0.224 * W * W) / th, 2)} (read off this sketch’s curve, not a lesson value).`;
+        if (tWrong > TMAX) msg += ' The wrong mark falls beyond the 20 s on this axis.';
+      }
+      why.textContent = msg;
+    }
+
+    function read() {
+      mf = parseFloat(mfIn.value); th = parseFloat(thIn.value); tc = parseFloat(tIn.value);
+      mode = modes.find((m) => m.checked)?.value ?? 'right';
+      render();
+    }
+    [mfIn, thIn, tIn, ...modes].forEach((s) => s.addEventListener('input', read));
+    modes.forEach((s) => s.addEventListener('change', read));
+
+    // drag the cursor on the plot
+    let dragging = false;
+    const moveTo = (ev: PointerEvent) => {
+      const r = plot.getBoundingClientRect();
+      const x = ((ev.clientX - r.left) / r.width) * 340;
+      const t = Math.round(((x - X0) / (X1 - X0)) * TMAX * 2) / 2;
+      tIn.value = String(Math.max(0, Math.min(TMAX, t)));
+      read();
+    };
+    plot.addEventListener('pointerdown', (ev) => { dragging = true; plot.setPointerCapture(ev.pointerId); moveTo(ev); });
+    plot.addEventListener('pointermove', (ev) => { if (dragging) moveTo(ev); });
+    plot.addEventListener('pointerup', () => { dragging = false; });
+    plot.addEventListener('pointercancel', () => { dragging = false; });
+    read();
+  });
+</script>
+
+<style>
+  .frc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .frc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .frc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .frc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; touch-action: pan-y; cursor: ew-resize; }
+  .frc-key { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .frc-key li { display: flex; align-items: center; gap: 0.35rem; }
+  .frc-sw { display: inline-block; width: 16px; height: 0; border-top: 3px solid; }
+  .frc-sw-curve { border-color: #0e7c86; }
+  .frc-sw-right { border-top: 2px dashed #0e7c86; }
+  .frc-sw-wrong { border-top: 2px dashed #e57200; }
+  .frc-sw-cur { border-color: #1f2937; }
+  .frc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .frc-wide { grid-column: 1 / -1; }
+  .frc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .frc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .frc-slabel input { accent-color: var(--ddp-color-accent); }
+  .frc-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+  .frc-fs legend { padding: 0 0.3rem; }
+  .frc-fs label { display: flex; align-items: center; gap: 0.35rem; }
+  .frc-fs input { accent-color: var(--ddp-color-accent); }
+  .frc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .frc-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .frc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .frc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .frc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .frc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .frc-controls, .frc-readout { grid-template-columns: 1fr; } }
+</style>

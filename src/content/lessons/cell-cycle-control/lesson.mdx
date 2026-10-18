@@ -1,0 +1,463 @@
+---
+title: "Cell-Cycle States and Control Logic"
+slug: "cell-cycle-control"
+course: "cell-biology"
+courseChapter: "Cell Biology · Unit 4: Division and cell loss"
+order: 417
+summary: >-
+  How does a cell know which phase of its cycle it is in, and what moves it to the next one? This
+  lesson measures the phases with DNA content, EdU and a mitotic marker, shows why the fraction of
+  cells in a phase is not the length of that phase, and follows the fusion, frog, yeast and
+  marine-embryo experiments that converged on one engine: a kinase whose partner rises and falls.
+  Afterwards you can turn a flow-cytometry histogram into phase durations and read a cell-cycle
+  mutant's phenotype without confusing where it stops with when it acted.
+hook: "Fuse a cell that is copying its DNA with one that has finished. Why does the finished nucleus refuse to copy again?"
+
+estMinutes: 24
+objectives:
+  - "Describe G1, S, G2, M and G0, and identify them by DNA content (2C and 4C in a diploid cell), EdU incorporation and phosphorylated histone H3, saying which states a DNA histogram alone cannot separate."
+  - "Calculate phase durations from phase fractions in an exponentially growing culture, and explain why multiplying a fraction by the doubling time gives the wrong answer."
+  - "Explain cyclin-CDK logic: cyclins rise and fall, CDKs are the kinases, Wee1 and Cdc25 set an inhibitory phosphate, CDK inhibitors bind, and the SCF and APC/C ubiquitin ligases destroy regulators."
+  - "Interpret cell-fusion, cytoplasm-transfer and temperature-sensitive mutant experiments, including the difference between an execution point and an arrest point."
+
+explainer:
+  src: "/explainers/cell-cycle-control/explainer.mp4"
+  captions: "/explainers/cell-cycle-control/explainer.vtt"
+  poster: "/explainers/cell-cycle-control/poster.jpg"
+  title: "A Kinase Whose Partner Rises and Falls"
+  durationSec: 161.6
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Leland Hartwell"
+    contribution: >-
+      With Joseph Culotti and Brian Reid, isolated temperature-sensitive cell-division-cycle (cdc)
+      mutants of budding yeast and used time-lapse microscopy to separate when a gene acts from
+      where a mutant cell stops.
+    profileSourceAnchor: "Hartwell, Culotti & Reid, Proc. Natl. Acad. Sci. USA 66:352 (1970); Hartwell, Mortimer, Culotti & Culotti, Genetics 74:267 (1973)."
+    quotes: []
+    story: >-
+      Hartwell's laboratory at the University of Washington chose baker's yeast, Saccharomyces
+      cerevisiae, because its bud reports the stage of the cycle: no bud in G1, a small bud as DNA
+      is copied, a large bud by mitosis. The group collected temperature-sensitive mutants, which
+      grow at a low temperature and fail at a higher one, and kept those that stopped with one
+      uniform shape. In the 1970 paper with Joseph Culotti and Brian Reid, they followed single cells
+      by time-lapse photomicroscopy after the temperature shift. That let them define two points
+      for each gene: the execution point, when its function is normally performed, and the
+      termination point, where cells collect when it is not. One mutant kept budding and dividing
+      its nucleus though its cells never separated, so steps of the cycle could come apart. By
+      1973 the collection held 148 mutants in 32 complementation groups. One gene, CDC28, became
+      the handle on Start, the point in G1 where a yeast cell commits to dividing. Hartwell shared
+      the 2001 Nobel Prize with Tim Hunt and Paul Nurse.
+  - name: "Paul Nurse"
+    contribution: >-
+      Found fission-yeast mutants that divide at a smaller size than normal, showed that the gene cdc2
+      controls both commitment in G1 and entry into mitosis, and with David Beach and Barbara
+      Durkacz found that budding-yeast CDC28 does the same job as fission-yeast cdc2.
+    profileSourceAnchor: "Nurse, Nature 256:547 (1975); Beach, Durkacz & Nurse, Nature 300:706 (1982); Lee & Nurse, Nature 327:31 (1987); Nurse, Nobel Lecture (2001)."
+    quotes: []
+    story: >-
+      Fission yeast, Schizosaccharomyces pombe, grows as a rod and divides in the middle, so the
+      length of a cell tells you how far through its cycle it is. In 1975, working in the
+      Department of Zoology in Edinburgh, Nurse described a temperature-sensitive strain that
+      divided at a smaller size than wild type. A mutant that blocks division shows a gene is
+      needed; one that brings division forward shows a gene sets its timing. Most later small-size
+      mutants mapped to a gene named wee1, and one mapped to cdc2, whose other mutant alleles block
+      mitosis. With Yvonne Bissett he concluded in 1981 that cdc2 is needed both in G1 and in G2.
+      In 1982, with David Beach and Barbara Durkacz, he found that budding-yeast DNA carrying CDC28
+      rescued a fission-yeast cdc2 mutant, though the two yeasts are distant relatives. In 1987,
+      with Melanie Lee, a human cDNA rescued the same mutant. They concluded that elements of
+      cell-cycle control were likely conserved from yeast to humans.
+  - name: "Tim Hunt"
+    contribution: >-
+      With Evans, Rosenthal, Youngblom and Distel, found in sea-urchin embryos a
+      protein made through each cycle and destroyed at each division, and named it cyclin.
+    profileSourceAnchor: "Evans, Rosenthal, Youngblom, Distel & Hunt, Cell 33:389 (1983); Pines & Hunt, EMBO J. (1987); Hunt, Nobel Lecture (2001)."
+    quotes: []
+    story: >-
+      Fertilized sea-urchin eggs divide quickly, and in Arbacia punctulata the early divisions
+      need continuous protein synthesis, programmed by messenger RNAs the mother stored in the
+      egg. Hunt and his co-authors labelled the newly made proteins and followed them through the
+      first divisions. One built up through each cycle and vanished
+      at each division, and the 1983 paper reported similar proteins in eggs of another sea urchin,
+      Lytechinus pictus, and in oocytes of the surf clam Spisula solidissima. The name cyclin
+      described the behaviour. The paper did not show what cyclin does, and a protein that
+      disappears at division could be a result of division rather than a cause. Tests followed.
+      In 1987 Jonathan Pines and Hunt injected synthetic sea-urchin cyclin mRNA into Xenopus
+      oocytes, and the oocytes matured. In 1990 Hunt was among the authors who found B-type
+      cyclins in purified frog MPF, tying his oscillating protein to the frog activity and to the
+      yeast kinase.
+  - name: "Yoshio Masui"
+    contribution: >-
+      With Clement Markert, showed that cytoplasm from frog oocytes treated with progesterone
+      makes untreated oocytes mature when injected, and called the activity maturation-promoting
+      factor.
+    profileSourceAnchor: "Masui & Markert, J. Exp. Zool. 177:129 (1971); Smith & Ecker, Dev. Biol. 25:232 (1971)."
+    quotes: []
+    story: >-
+      A frog oocyte waits in the prophase of its first meiotic division until a hormone,
+      progesterone, tells it to resume. Masui and Markert, at Yale University, worked with oocytes
+      of the leopard frog Rana pipiens stripped of their follicle cells. They took cytoplasm from
+      oocytes treated with progesterone and injected it into untreated ones, and the recipients
+      matured. In Rana the activity was already in the donor cytoplasm before the nucleus broke down. Removing the donor's nucleus did not stop the
+      activity from forming. They named it maturation-promoting factor, or MPF. L. Dennis Smith
+      and Richard Ecker reported cytoplasmic transfer of maturation in Rana pipiens in the same
+      year. What they had was an activity in a mixture, measured by its effect. In 1988 highly
+      purified MPF from Xenopus eggs was shown to contain the frog relative of yeast Cdc2.
+
+techniques:
+  - name: "DNA-content flow cytometry with EdU and phospho-H3"
+    blurb: >-
+      Fixed cells are stained with a DNA dye (propidium iodide plus RNase, or DAPI) and passed one
+      at a time past a laser, giving a histogram with a 2C and a 4C peak. A short EdU pulse marks
+      cells in S phase, and an antibody to histone H3 phosphorylated on serine 10 marks mitotic
+      cells, separating states that DNA content alone lumps together.
+  - name: "Temperature-sensitive mutants and shift experiments"
+    blurb: >-
+      A mutant protein works at a permissive temperature and fails at a restrictive one. Shifting
+      a growing culture and following single cells shows where cells stop (the arrest or
+      termination point) and, from which cells finish their cycle first, when the gene was needed
+      (the execution point).
+  - name: "Cell fusion and cytoplasm transfer"
+    blurb: >-
+      Two cells in different phases are fused so their nuclei share one cytoplasm, or cytoplasm
+      from one cell is injected into another. Each nucleus is scored separately for DNA synthesis
+      or chromosome condensation. The result shows a transferable activity and whether a nucleus
+      can respond to it, not the molecule responsible.
+  - name: "Cycling egg extracts"
+    blurb: >-
+      Crushed Xenopus eggs give a cytoplasm that runs through repeated cycles in a tube. Messenger
+      RNA can be destroyed and added back, and cyclin added at known concentrations, so the cause
+      of entry into and exit from mitosis can be tested directly.
+
+structures:
+  - label: "CDK2 bound to cyclin A — how a cyclin switches on a kinase"
+    source: "rcsb"
+    id: "1FIN"
+    note: "Human cyclin A–CDK2 complex with ATP, X-ray crystal structure (Jeffrey et al., Nature, 1995)"
+    caption: >-
+      The cyclin is a bundle of helices pressed against one side of the kinase. Look at where it
+      touches: it shifts a helix and a loop of CDK2 that, in the kinase alone, block the active
+      site.
+  - label: "p27 wrapped around cyclin A–CDK2 — a CDK inhibitor that binds"
+    source: "rcsb"
+    id: "1JSU"
+    note: "Fragment of human p27Kip1 bound to cyclin A–CDK2, X-ray crystal structure (Russo et al., Nature, 1996)"
+    caption: >-
+      The inhibitor is an extended chain that lies across both proteins and reaches into the
+      kinase's catalytic cleft, so it blocks the complex by binding, without any chemistry.
+  - label: "CDK1 with cyclin B — the core of MPF"
+    source: "rcsb"
+    id: "4YC3"
+    note: "Human CDK1–cyclin B1 with the small subunit CKS2, X-ray crystal structure (Brown et al., Nature Communications, 2015)"
+    caption: >-
+      This is the mitotic pair that frog MPF turned out to contain. Compare it with cyclin A–CDK2:
+      the fold is the same, which is why the family could be recognised across yeast, clams, frogs
+      and humans.
+
+simulations:
+  - type: "local"
+    ref: "CycleFractionsToDurations"
+    title: "Fractions are not durations"
+    caption: >-
+      Set the 2C, 4C and phospho-H3 fractions and the doubling time, and compare fraction x T with the formula's phase lengths.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "A diploid human cell has finished S phase and is in G2. What are its DNA content and its ploidy?"
+    choices:
+      - "2C DNA, and the cell is now haploid"
+      - "4C DNA, and the cell is still diploid"
+      - "4C DNA, and the cell is now tetraploid"
+      - "2C DNA, and the cell is still diploid"
+    answer: 1
+    rationale: >-
+      Replication doubles the DNA from 2C to 4C, but each chromosome is now two sister chromatids
+      held together, so the number of chromosome sets is unchanged and the cell is still diploid.
+      Calling it tetraploid confuses doubling DNA with doubling chromosome sets. A 2C diploid cell
+      is a G1 cell, which has not replicated yet. A 2C haploid cell does not arise in a somatic
+      cycle; halving the sets happens in meiosis.
+  - stem: "Which statement correctly describes the two partners in a cyclin-CDK complex?"
+    choices:
+      - "The CDK is the kinase, and the cyclin level rises and falls"
+      - "The CDK level rises and falls, and the cyclin level stays even"
+      - "The cyclin is the kinase, and the CDK is its regulatory partner"
+      - "Both partners are kinases that phosphorylate each other in turn"
+    answer: 0
+    rationale: >-
+      The CDK carries the catalytic site and is inactive alone; the cyclin is a regulatory subunit
+      whose level rises through part of the cycle and falls when it is destroyed, switching the
+      kinase on and off. Making the cyclin the kinase reverses the roles; cyclins have no kinase
+      domain. The partners do not phosphorylate each other in turn; only the CDK is a kinase. In
+      most cycles CDK levels stay fairly even and it is the cyclins that oscillate, which is how
+      cyclin was found.
+  - stem: "A fission-yeast strain lacks Wee1, the kinase that puts an inhibitory phosphate on Cdc2. Compared with wild type, what do you expect?"
+    choices:
+      - "Cells divide larger, because Cdc25 has no phosphate to remove"
+      - "Cells copy their DNA twice, because S phase repeats itself"
+      - "Cells arrest in G2, because Cdc2 can never be switched on"
+      - "Cells divide smaller, because Cdc2 is switched on earlier"
+    answer: 3
+    rationale: >-
+      Wee1 holds Cdc2 off by phosphorylating it; without the brake, Cdc2-cyclin B becomes active
+      before the cell has grown to its usual size, so cells enter mitosis early and divide small,
+      the phenotype that named wee1. An arrest in G2 is what loss of the activator, Cdc2 or Cdc25,
+      would give. Larger cells would follow from slower activation, not from losing the
+      inhibitory kinase. Repeated S phase is a failure of once-per-cycle replication control,
+      not the expected result of an early mitosis.
+  - stem: "In a culture doubling every 24 h, 55% of cells are in G1. A student multiplies 0.55 by 24 h and says G1 lasts 13.2 h. What is wrong?"
+    choices:
+      - "The estimate is too short, because cells in G1 are often quiescent"
+      - "The estimate is too short, because mitotic cells are counted twice"
+      - "The estimate is too long, because young cells are overrepresented"
+      - "Nothing, because a fraction of cells always equals a fraction of time"
+    answer: 2
+    rationale: >-
+      Each division turns one old cell into two newborn cells, so a growing culture holds twice
+      as many cells at the start of the cycle as at the end, and early phases take up a larger
+      share of the cells than of the time; the age-distribution model gives about 11.1 h. Equating
+      the two fractions is true only for a population that is not growing. Quiescent cells would
+      inflate the 2C peak and make the naive estimate even longer, not shorter. Mitotic cells are
+      not counted twice; each cell is one event in the cytometer.
+  - stem: "A budding-yeast temperature-sensitive mutant arrests with large buds and an undivided nucleus. After a shift to the restrictive temperature, cells that were already in S phase also arrest with large buds in the same cycle. What can you conclude about when the gene acts?"
+    choices:
+      - "It acts at mitosis, because that is where the cells collect"
+      - "It acts in G1 only, because large buds form after the G1 step"
+      - "It has no fixed time, because the arrest shape is the same"
+      - "It may act at or after S phase, though cells stop at mitosis"
+    answer: 3
+    rationale: >-
+      Cells that had passed the gene's execution point when shifted would finish this cycle and
+      stop in the next one. These cells stop in the current cycle although they were already in S,
+      so the function was still needed at or after that time, and the arrest at mitosis is simply
+      where the missing work is first noticed. Reading the arrest stage as the time of action is
+      the error the execution point was defined to avoid. Placing it in G1 only would require
+      S-phase cells to escape into the next cycle, which they did not. A uniform arrest shape is
+      what defines a cdc mutant; it does not mean the gene lacks a time of action.
+
+mcatQuestions:
+  - stem: "An asynchronous culture of a diploid cell line doubles every 20 h with no cell death and no resting cells. DNA-content flow cytometry places 50% of cells in the 2C peak. For such a culture, the time t a cell takes to pass the first fraction F of the population ordered by age is t = -T log2(1 - F/2), where T is the doubling time. How long does G1 last?"
+    choices:
+      - "About 8.3 h"
+      - "About 10 h"
+      - "About 20 h"
+      - "About 5 h"
+    answer: 0
+    rationale: >-
+      With F = 0.5, 1 - F/2 = 0.75 and log2(0.75) = -0.415, so t = 20 x 0.415 = 8.3 h. Ten hours
+      is the naive product of fraction and doubling time, which ignores that a growing culture
+      holds twice as many newborn as dividing cells. Twenty hours comes from using 1 - F in place
+      of 1 - F/2, which gives log2(0.5) = -1. Five hours multiplies F/2 by the doubling time,
+      dropping the logarithm altogether.
+  - stem: "Cultured mammalian cells are synchronised in S phase or in G2, and S-phase cells are given a nuclear label before fusion. In S-plus-G2 fused cells, a pulse of radioactive thymidine labels the S nucleus but not the G2 nucleus. In S-plus-G1 fused cells, both nuclei incorporate thymidine. Which conclusion do these results best support?"
+    choices:
+      - "Thymidine cannot reach a second nucleus within one fused cell"
+      - "The G2 nucleus imports no thymidine because fusion damaged it"
+      - "A G2 nucleus cannot respond to a signal a G1 nucleus answers"
+      - "S-phase cytoplasm lacks any activity that can drive DNA replication"
+    answer: 2
+    rationale: >-
+      The G1 nucleus begins replication in S-phase cytoplasm, so the cytoplasm carries an
+      activity that drives replication and thymidine does reach a second nucleus; the G2 nucleus,
+      in the same shared cytoplasm, does not respond, so the difference lies in the nucleus,
+      which has already replicated. Saying the cytoplasm lacks any activity contradicts the G1
+      result. The claim that thymidine cannot reach a second nucleus is ruled out by the labelled
+      G1 nucleus. Fusion damage would need a control such as G2-plus-G2 fusions to test, and it
+      would not explain why only G2 nuclei fail.
+  - stem: "In cycling Xenopus egg extracts with protein synthesis blocked, a nondegradable cyclin B was added at known concentrations. Interphase extracts entered mitosis only when it was above about 32 to 40 nM; extracts already in mitosis stayed there until it fell below about 16 to 24 nM. Two extracts are each brought to 28 nM, one from interphase and one from mitosis. What happens?"
+    choices:
+      - "Each settles halfway, with partial chromosome condensation"
+      - "Each stays in its previous state, because the switch has memory"
+      - "Both return to interphase, because 28 nM is below entry"
+      - "Both enter mitosis, because 28 nM is above the exit threshold"
+    answer: 1
+    rationale: >-
+      Between the exit and entry thresholds both states are stable, so the interphase extract
+      stays in interphase (28 nM is below entry) and the mitotic extract stays in mitosis (28 nM is
+      above exit); the outcome depends on history, the mark of a bistable switch. Sending both into
+      mitosis applies only the exit threshold, and returning both to interphase applies only the
+      entry threshold. A halfway state is what a graded response would give; the feedback in the
+      CDK1 switch makes the response all or none.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      A cell grows, copies its instruction book, checks the copy, and then splits in two. A
+      special engine inside decides when to go to the next step. The engine has a motor and a key.
+      The cell makes a new key each time around and breaks it at the end, so the engine cannot run
+      the same step twice.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      The cell cycle has four phases: G1 (growth), S (copying DNA), G2 (getting ready) and M
+      (mitosis, when the copies are pulled apart). You can tell which phase a cell is in by how
+      much DNA it has: twice as much after S as before. What moves a cell along is a set of
+      enzymes called CDKs, which switch other proteins on by adding phosphate. A CDK works only
+      when a partner called a cyclin is attached. The cell builds up cyclin, the CDK switches on,
+      and then the cell destroys the cyclin so the CDK switches off and the cycle can start again.
+  - level: "college"
+    label: "College"
+    text: >-
+      A diploid cell has 2C DNA in G1 and 4C in G2 and M; propidium iodide or DAPI staining
+      resolves those peaks, EdU marks S and phospho-histone H3 (Ser10) marks mitosis. Progress is
+      driven by cyclin-dependent kinases, which are inactive alone and are switched on by cyclins
+      whose levels oscillate. In mammals cyclin D-CDK4/6 acts in G1, cyclin E-CDK2 at the G1/S
+      transition, cyclin A-CDK2 in S, and cyclins A and B with CDK1 in G2 and M. Wee1
+      phosphorylates CDK1 on an inhibitory tyrosine and Cdc25 removes it; CDK inhibitors such as
+      p21 and p27 bind and block; the SCF and the APC/C ubiquitin ligases mark regulators for the
+      proteasome, and APC/C destruction of cyclin B ends mitosis. The logic came from yeast cdc
+      mutants, cell fusion, frog-oocyte cytoplasm transfer and sea-urchin cyclin, which met in
+      1988 to 1990 when frog MPF proved to be Cdc2 with cyclin B.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Mitotic entry behaves as a bistable, hysteretic switch. Active CDK1-cyclin B activates its
+      own activator, Cdc25, and inhibits its inhibitor, Wee1, two positive loops that make the
+      transition all or none. In Xenopus cycling extracts with nondegradable human cyclin B, Sha
+      and colleagues (2003) measured an entry threshold of about 32 to 40 nM and an exit threshold
+      of about 16 to 24 nM, and unreplicated DNA raised the entry threshold, a link between the
+      replication checkpoint and the switch's set point. Commitment in G1 has a similar character
+      in human MCF10A cells: Cappell and colleagues (2018) described a double-negative loop
+      between EMI1 and APC/C-CDH1, and EMI1 knockdown abolished the hysteresis of APC/C-CDH1
+      inactivation.
+
+
+      Phase-duration estimates from snapshots assume a steady exponential age distribution, fixed
+      phase lengths and no exit or death; real lines show broad cycle-time distributions and
+      variable G0 entry, and markers such as Ki67 turn out to be graded rather than binary in
+      cultured human lines. An open question is how much of the classical order of events is
+      enforced by dedicated checkpoint signals and how much falls out of the thresholds of a
+      single rising CDK activity, as fission-yeast cells driven by one fused cyclin-CDK
+      have suggested.
+
+anecdotes:
+  - title: "Two yeasts, one gene, then a human one"
+    source: "Beach, Durkacz & Nurse, Nature 300:706 (1982); Lee & Nurse, Nature 327:31 (1987)."
+    text: >-
+      Budding yeast and fission yeast are both called yeast, but they are distant relatives, and
+      their cell-cycle genes were named in separate collections. In 1982 David Beach, Barbara
+      Durkacz and Paul Nurse put pieces of budding-yeast DNA into a fission-yeast cdc2 mutant and
+      found a piece, carrying CDC28, that let it divide. Five years later Melanie Lee and Nurse ran
+      the same rescue with human cDNA and recovered a human gene that did the job. The authors
+      wrote only that elements of control were likely conserved. The CDK family followed.
+  - title: "The frog was Rana, not Xenopus"
+    source: "Masui & Markert, J. Exp. Zool. 177:129 (1971); Lohka, Hayes & Maller, Proc. Natl. Acad. Sci. USA 85:3009 (1988)."
+    text: >-
+      Textbooks often draw MPF in Xenopus, the African clawed frog of most later work. The 1971
+      transfer experiments of Masui and Markert, and of Smith and Ecker, used the leopard frog
+      Rana pipiens, and they moved an activity, not a protein. A highly purified preparation came
+      seventeen years later, from unfertilized Xenopus eggs. Lohka, Hayes and Maller followed
+      the activity with a cell-free assay through more than 3000-fold purification, and two
+      proteins near 32 and 45 kDa tracked the most active fractions. Those turned out to be Cdc2
+      and cyclin B.
+  - title: "A cyclin that could not be destroyed"
+    source: "Murray & Kirschner, Nature 339:275 (1989); Murray, Solomon & Kirschner, Nature 339:280 (1989)."
+    text: >-
+      A protein that disappears at division might be a cause or a by-product. Andrew Murray and
+      Marc Kirschner tested it in frog egg extracts that cycle in a tube. Destroying the extract's
+      own messenger RNA stopped it in interphase, and adding cyclin mRNA back restored repeated
+      cycles. In a companion paper with Michael Solomon, they made a cyclin that the cell could
+      not destroy. The extract went into mitosis, MPF stayed active, and it did not come out.
+      Making cyclin drives entry; destroying it permits exit.
+
+corpusTags:
+  - "cell-cycle"
+  - "cyclin-cdk"
+  - "flow-cytometry"
+  - "edu-labeling"
+  - "cdc-mutants"
+  - "maturation-promoting-factor"
+  - "cell-fusion"
+  - "wee1-cdc25"
+  - "apc-c"
+  - "bistable-switch"
+draft: false
+---
+
+import CycleFractionsToDurations from '../../../components/CycleFractionsToDurations.astro';
+
+**Fuse a cell that is copying its DNA with a cell that has not started yet, and the second nucleus begins copying early. Fuse it with a cell that has already finished, and that nucleus refuses.**
+
+Something in the cytoplasm says "copy now", and something in the nucleus remembers whether it already has. This lesson measures those states, then follows the fusion, frog and yeast experiments to the engine behind them: a kinase whose partner rises and falls.
+
+## Phases, and how you count them
+
+The cycle has four phases. G1 is the gap between mitosis and the start of DNA replication. In S phase the genome is copied (the mechanics belong to [DNA replication](/lessons/dna-replication/)). G2 is the gap after copying and before mitosis. In M phase, mitosis sorts the duplicated chromosomes into two nuclei, and cytokinesis, the split of the cell itself, usually follows. Mammalian cells can also leave G1 for G0, a resting state they enter when conditions change and can leave again.
+
+The first measurement is DNA content. One C is the DNA of one haploid genome, so a diploid cell has 2C in G1 and 4C in G2 and M. Doubling the DNA does not double the ploidy: a G2 cell is still diploid, with each chromosome made of two sister chromatids. To read DNA content, fix the cells and stain them with propidium iodide, a dye that fluoresces when bound to nucleic acid, plus RNase, because the dye also binds RNA. A flow cytometer measures each cell's fluorescence one at a time and builds a histogram: a 2C peak, a 4C peak, and S-phase cells smeared between.
+
+The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains fix that. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S. An antibody to histone H3 phosphorylated on serine 10 marks condensed mitotic chromosomes. Saldivar and colleagues combined all three, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
+
+### Worked problem: fractions are not durations
+
+The numbers here are illustrative. Suppose an asynchronous culture of a diploid human cell line doubles every 24 h, every cell is cycling, and none die. Of 10,000 cells, 5,500 fall in the 2C peak, 2,000 in the 4C peak and 2,500 between. A 30-minute EdU pulse labels 25% of cells, which agrees that the cells between the peaks are in S. And 3% are phospho-H3 positive; assume the stain marks only mitotic cells.
+
+**Step 1.** Fractions: G1 0.55, S 0.25, G2 plus M 0.20, of which M is 0.03.
+
+**Step 2.** The tempting move is to multiply by 24 h: 13.2, 6.0 and 4.8 h. That is wrong. Each division turns one old cell into two newborn ones, so a growing culture always holds twice as many cells just born as cells about to divide. Early phases are overrepresented.
+
+**Step 3.** For a culture in steady exponential growth, the time a cell takes to pass the first fraction F of the population, ordered by age, is
+
+> t = -T × log2(1 - F/2), where T is the doubling time
+
+- End of G1 (F = 0.55): t = -24 × log2(0.725) = 24 × 0.464 = 11.13 h.
+- End of S (F = 0.80): t = -24 × log2(0.600) = 17.69 h, so S lasts about 6.55 h (working from unrounded values).
+- Start of M (F = 0.97): t = -24 × log2(0.515) = 22.98 h. M lasts 24 - 22.98 = 1.02 h, and G2 lasts 22.98 - 17.69 = 5.29 h.
+
+Check: 11.13 + 6.55 + 5.29 + 1.02 = 23.99 h, 24 h within rounding. The naive estimate made G1 two hours too long and G2 plus M (6.31 h) one and a half hours too short. The model assumes identical phase lengths in every cell and no resting or dying cells, so treat these as estimates.
+
+<CycleFractionsToDurations />
+
+## Asking the cell: fusion and cytoplasm transfer
+
+In 1970 Rao and Johnson fused cultured HeLa cells taken from different phases, so that two nuclei shared one cytoplasm. As later reviews describe the results, a G1 nucleus in a cell fused with an S-phase cell started replicating early, while a G2 nucleus in the same situation did not. Two conclusions follow. S-phase cytoplasm carries an activity that can start replication. And a nucleus that has already replicated cannot respond until it has been through mitosis, which is how DNA gets copied once per cycle and no more. (The molecular basis, licensing of replication origins in G1, belongs to [DNA replication](/lessons/dna-replication/).)
+
+Fusing a mitotic cell with an interphase cell had a different outcome: the interphase nucleus condensed its chromosomes prematurely (Johnson and Rao, 1970), and how the chromosomes looked depended on the phase of that nucleus. Mitotic cytoplasm is dominant.
+
+A frog experiment pointed the same way. A frog oocyte waits in prophase of its first meiotic division until progesterone tells it to resume. In 1971 Yoshio Masui and Clement Markert took cytoplasm from progesterone-treated oocytes of the leopard frog *Rana pipiens* and injected it into untreated oocytes, which then matured. Removing the donor's nucleus did not prevent the activity. They called it maturation-promoting factor (MPF). Smith and Ecker reported a similar transfer in the same year. The activity was later found in mitotic cells too.
+
+Both kinds of experiment reveal an activity, not a molecule.
+
+## Asking the genes: cdc mutants in two yeasts
+
+In 1970 Leland Hartwell, Joseph Culotti and Brian Reid described temperature-sensitive mutants of budding yeast, *Saccharomyces cerevisiae*, that grow at a low temperature and stop at a higher one, each with a uniform shape. They called them cdc, for cell division cycle. The bud reports the stage: none in G1, small in S, large by mitosis.
+
+Their key idea was to separate two times. A car that runs out of fuel stops where the tank ran dry, not at the station you drove past. The **execution point** is when a gene's function is normally performed. The **termination point**, or arrest point, is where cells collect when it is not. Shift a growing culture to the restrictive temperature and follow single cells: cells already past the execution point finish this cycle and stop in the next, while cells not yet past it stop in this one. The fraction that finishes tells you where the execution point lies. In the 1970 paper, the *cdc-3* mutant kept budding and dividing its nucleus while its cells failed to separate, so steps of the cycle can come apart. One warning: their budding-yeast *cdc-2*, which stopped at mitosis, is not the fission-yeast *cdc2* below. The budding-yeast gene that matters here is *CDC28*, needed at Start, the commitment point in G1.
+
+Paul Nurse used fission yeast, *Schizosaccharomyces pombe*, a rod that divides in the middle, so length tells you its age. In 1975 he described a mutant that divided at a smaller size than normal. The mutation changed when division happened, not whether. Most later small-cell mutants mapped to a gene named *wee1*; one mapped to *cdc2*, whose other alleles block mitosis. So *cdc2* behaves as an accelerator and *wee1* as a brake. By 1981 Nurse and Yvonne Bissett concluded that *cdc2* acts both in G1 and in G2. In 1982 David Beach, Barbara Durkacz and Nurse found that budding-yeast DNA carrying *CDC28* rescued a fission-yeast *cdc2* mutant: two distant yeasts, one job.
+
+## Cyclins meet Cdc2: one engine
+
+In 1983 Tim Hunt's group followed new proteins in dividing embryos of the sea urchin *Arbacia punctulata*. One built up through each cycle and was destroyed at each division; they named it cyclin and saw similar proteins in another sea urchin and a clam. Disappearing at division is a correlation. Tests came next. Clam cyclin A mRNA injected into *Xenopus* oocytes made them resume meiosis (Swenson, Farrell and Ruderman, 1986). In *Xenopus* egg extracts that cycle in a tube, destroying the messenger RNA stopped the cycles in interphase and adding back cyclin mRNA restored them, while a cyclin that could not be destroyed held the extract in mitosis (Murray and Kirschner, with Solomon, 1989).
+
+The lines met in 1988. Lohka, Hayes and Maller purified MPF from *Xenopus* eggs, and antibodies to fission-yeast Cdc2 recognised its 32 kDa protein (Gautier and colleagues), and Dunphy and colleagues reached Cdc2 by a separate route; in 1990 the other component proved to be cyclin B. MPF is Cdc2, now called CDK1, bound to cyclin B.
+
+The logic, as it is now taught:
+
+- **CDKs** (cyclin-dependent kinases) are the catalytic subunits, inactive alone. **Cyclins** are regulatory subunits that switch them on and steer them to targets; cyclin levels rise and fall while CDK levels stay fairly even. In mammals, cyclin D with CDK4 or CDK6 acts in G1, cyclin E with CDK2 at the G1/S transition, cyclin A with CDK2 in S, and cyclins A and B with CDK1 in G2 and M. Growth-factor signals reach cyclin D (see [Ras to MAPK](/lessons/ras-to-mapk/)), and the Rb brake it releases is in [cancer genetics](/lessons/cancer-genetics/).
+- **Wee1** adds an inhibitory phosphate to CDK1, holding the complex off while cyclin accumulates; the phosphatase **Cdc25** removes it (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
+- **CDK inhibitor proteins**, such as p21 and p27 in mammals, bind the complex and block it.
+- Two **ubiquitin ligases** destroy regulators: the SCF at several points, notably around G1/S, the APC/C in mitosis, where destroying cyclin B ends M phase ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)).
+
+Active CDK1 also activates Cdc25 and inhibits Wee1, two positive loops that make mitotic entry a switch ([signaling circuits](/lessons/signaling-circuits/)). In *Xenopus* egg extracts, entry needed about 32 to 40 nM of added nondegradable cyclin B, but an extract already in mitosis stayed there down to about 16 to 24 nM, and unreplicated DNA raised the entry threshold. Read the fusion results in this light: mitotic cytoplasm is full of active CDK1-cyclin B, enough to condense any nucleus it meets.
+
+### Design problem
+
+Using cell fusion, design experiments to ask whether S-phase cytoplasm can drive replication in another nucleus, and why a G2 nucleus might not respond.
+
+<details>
+<summary>One way to do it</summary>
+
+Synchronise cultured mammalian cells in G1, S and G2 and confirm each population by DNA content. Pre-label one partner before fusing, for example with a nuclear dye or a long label in the S cells, so that every nucleus in a fused cell can be identified.
+
+Fuse S with G1, and S with G2. Give a short pulse of a DNA precursor (radioactive thymidine or EdU) and score each nucleus separately. Expected result, as in Rao and Johnson's 1970 work: G1 nuclei start replicating early, G2 nuclei do not.
+
+Controls: same-phase fusions (G1 with G1, G2 with G2), which show the fusion itself does not start or block replication, and unfused neighbours on the same slide.
+
+Interpretation: S cytoplasm carries a replication-starting activity, and a nucleus that has replicated cannot answer it again before mitosis. A third pairing, mitotic with interphase, should give premature chromosome condensation, with an appearance that depends on the phase of the interphase nucleus.
+
+Limit: fusion identifies an activity and a nuclear competence, not the molecules. Naming them needs biochemistry or genetics.
+
+</details>
