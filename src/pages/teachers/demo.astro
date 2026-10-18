@@ -1,0 +1,313 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TALK_VIDEO } from '../../data/teachers';
+
+const pub = (p: string) => existsSync(join(process.cwd(), 'public', p));
+const hasVideo = pub(TALK_VIDEO.src) && pub(TALK_VIDEO.poster) && pub(TALK_VIDEO.captions);
+
+/*
+ * Every fact below is from the talk brief (Fast Tools, Slow Thinking, 24 Oct 2026).
+ * "Class" facts are from a 12-student graduate course; no student is named or identifiable.
+ */
+const items = [
+  {
+    id: 'finish',
+    kind: 'choice' as const,
+    q: 'Twelve graduate students had a pre-work module due on Friday. It takes a careful student about 3 to 4 hours. By Thursday morning, how many of the twelve had finished it?',
+    options: ['2', '5', '8', '11'],
+    answer: 0,
+    reveal:
+      'Two of twelve had finished by Thursday morning. By Friday at 8:40 am, nine had, with three partly done. Most of the work happens the night before. Without a view of the pre-work, a teacher would not have known this until class began.',
+    point: 'Making thinking visible before class means you can see who has done the work while there is still time to act on it.',
+  },
+  {
+    id: 'factcheck',
+    kind: 'choice' as const,
+    q: 'An AI fact-checker with web access went through 44 AI-drafted lessons before any human expert reviewed them. It checked more than 3,000 claims. How many did it find flat wrong?',
+    options: ['About 5', '49', 'About 500', 'About 1,500'],
+    answer: 1,
+    reveal:
+      '49 claims were wrong. In the same pass, 453 were imprecise, 287 could not be verified, and 841 edits were made. A small share wrong sounds reassuring until you ask which 49. The bottleneck is not drafting. It is expert review, about 1 to 2 hours per lesson.',
+    point: 'AI drafts; humans check. A fluent paragraph is not evidence that it is right.',
+  },
+  {
+    id: 'speed',
+    kind: 'choice' as const,
+    q: 'The first 30 lessons of this site took about 17 weeks, built from 20 years of lectures. How long did the next 173 or so take?',
+    options: ['About 17 weeks again', 'About 8 weeks', 'About 3 weeks', 'About 8 days'],
+    answer: 3,
+    reveal:
+      'About 8 days (October 11 to 18). The site now has 203 lessons in six courses. What got fast was production. What stayed slow was verification: someone who knows the subject still has to read each one.',
+    point: 'When production gets cheap, aim higher. Move up a level of abstraction instead of doing the same thing faster.',
+  },
+  {
+    id: 'dynein',
+    kind: 'choice' as const,
+    q: 'Before class, eight graduate students answered: "Does blocking dynein prove that TrkA is the cargo?" and wrote a reason. Predict how many said yes.',
+    options: ['0', '2', '4', '6'],
+    answer: 1,
+    reveal:
+      'Two said yes and six said no. The class opened on a slide showing exactly that split, built from their own anonymous answers. The slide is not there to say who is right. It shows the room where it disagrees, in its own words, and tells students in the first minute that the pre-work was read.',
+    point: 'Show the room its own words.',
+  },
+  {
+    id: 'cycle',
+    kind: 'choice' as const,
+    q: 'In a live class, one full cycle of predict, argue, reveal on a single question. How long did it really take?',
+    options: ['About 2 minutes', 'About 4 minutes', '8 to 10 minutes', 'About 20 minutes'],
+    answer: 2,
+    reveal:
+      'It took 8 to 10 minutes in the room. The plan had said 4. Slow thinking is slow. The honest design choice is fewer questions, each one given room, not the same number done faster.',
+    point: 'Budget real time for thinking, or the tool will quietly buy you speed at the cost of the learning.',
+  },
+];
+---
+
+<BaseLayout
+  title="Try it as a student — Biochemistrypedia"
+  description="A five-minute predict-then-reveal module for teachers: commit to a prediction and a reason, see the real answer, and see how the room compares."
+>
+  <article class="wrap prose-col td" style="padding-top: var(--ddp-space-12)">
+    <p class="td-eyebrow"><a href="/teachers">Resources for teachers</a> / try it yourself</p>
+    <h1>Predict first. Then see.</h1>
+    <p>
+      This is what pre-work feels like to a student. For each of five questions you commit to a
+      prediction, say why in a sentence or two, and rate your confidence, <em>before</em> you see
+      anything. Then the real answer appears and you rate your confidence again. It takes about
+      five minutes. Nothing leaves your browser, and no account is needed.
+    </p>
+
+    <noscript><p class="td-note">This module needs JavaScript to run in your browser. The questions and answers are all on this page, but the commit-then-reveal order cannot be enforced without it.</p></noscript>
+
+    <div id="td-app" class="td-app" data-items={JSON.stringify(items)} aria-live="polite">
+      <p class="td-note">Loading the module&hellip;</p>
+    </div>
+
+    {hasVideo ? (
+      <figure class="td-film">
+        <video controls preload="none" playsinline poster={TALK_VIDEO.poster} width="1920" height="1080">
+          <source src={TALK_VIDEO.src} type="video/mp4" />
+          <track kind="captions" src={TALK_VIDEO.captions} srclang="en" label="English" />
+          Your browser cannot play this video. <a href={TALK_VIDEO.src}>Download the explainer (MP4)</a>.
+        </video>
+        <figcaption>The talk explainer.</figcaption>
+      </figure>
+    ) : (
+      <div class="td-note td-slot" role="note">
+        <strong>Coming soon:</strong> a short explainer video of this talk will be embedded here.
+      </div>
+    )}
+    {/* Slot for the explainer: /explainers/teachers-fast-tools-slow-thinking/explainer.mp4 */}
+
+    <p><a href="/teachers">&larr; Back to resources for teachers</a></p>
+  </article>
+
+  <style is:global>
+    .td .td-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .td .td-note { padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); }
+    .td .td-slot { margin: var(--ddp-space-6) 0; }
+    .td .td-card { margin: var(--ddp-space-5) 0; padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+    .td .td-step { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin: 0 0 var(--ddp-space-2); }
+    .td .td-q { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); margin: 0 0 var(--ddp-space-4); }
+    .td fieldset { border: 0; padding: 0; margin: 0 0 var(--ddp-space-4); min-inline-size: 0; }
+    .td legend { font-weight: 600; padding: 0; margin-bottom: var(--ddp-space-2); }
+    .td .td-opt { display: flex; gap: var(--ddp-space-3); align-items: flex-start; padding: var(--ddp-space-2) var(--ddp-space-3); min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); margin-bottom: var(--ddp-space-2); cursor: pointer; background: var(--ddp-color-bg); }
+    .td .td-opt:has(input:checked) { border-color: var(--ddp-color-accent); background: var(--ddp-color-accent-soft); }
+    .td .td-opt input { margin-top: 0.3em; }
+    .td .td-scale { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    .td .td-scale .td-opt { margin: 0; flex: 1 1 5.5rem; justify-content: center; text-align: center; }
+    .td .td-val { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-lg); }
+    .td textarea { width: 100%; min-height: 6rem; padding: var(--ddp-space-3); font: inherit; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); background: var(--ddp-color-bg); color: var(--ddp-color-ink); }
+    .td .td-hint { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); margin: var(--ddp-space-1) 0 0; }
+    .td .td-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.2em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .td .td-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+    .td .td-btn.alt { background: transparent; color: var(--ddp-color-accent); }
+    .td .td-reveal { margin-top: var(--ddp-space-4); padding: var(--ddp-space-4); border-left: 4px solid var(--ddp-color-verified); background: var(--ddp-color-verified-soft); border-radius: var(--ddp-radius-sm); }
+    .td .td-reveal h3 { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-base); }
+    .td .td-answer { font-weight: 700; }
+    .td .td-point { font-style: italic; }
+    .td .td-room { width: 100%; border-collapse: collapse; margin: var(--ddp-space-4) 0; font-size: var(--ddp-text-sm); }
+    .td .td-room th, .td .td-room td { text-align: left; vertical-align: top; padding: var(--ddp-space-2) var(--ddp-space-3); border-bottom: 1px solid var(--ddp-color-line); }
+    .td .td-room th { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .td .td-tick { font-weight: 700; }
+    .td .td-why { color: var(--ddp-color-ink-soft); font-style: italic; }
+    .td .td-progress { height: 6px; background: var(--ddp-color-line); border-radius: 999px; overflow: hidden; margin: var(--ddp-space-4) 0; }
+    .td .td-progress > span { display: block; height: 100%; background: var(--ddp-color-accent); transition: width 0.2s; }
+    .td .td-film { margin: var(--ddp-space-6) 0; max-width: 880px; }
+    .td .td-film video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
+    .td :focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    @media (max-width: 600px) {
+      .td .td-card { padding: var(--ddp-space-4); }
+      .td .td-room thead { display: none; }
+      .td .td-room tr { display: block; padding: var(--ddp-space-2) 0; border-bottom: 1px solid var(--ddp-color-line); }
+      .td .td-room td { display: block; border: 0; padding: var(--ddp-space-1) 0; }
+      .td .td-room td::before { content: attr(data-label) ": "; font-weight: 600; }
+    }
+  </style>
+
+  <script>
+    type Item = {
+      id: string; kind: 'choice'; q: string;
+      answer: number; options: string[]; reveal: string; point: string;
+    };
+    type Rec = { pred: number; why: string; before: number; after?: number };
+
+    const root = document.getElementById('td-app') as HTMLElement;
+    const items: Item[] = JSON.parse(root.dataset.items || '[]');
+    const KEY = 'bp-teachers-demo-v2';
+    const MIN_WORDS = 10;
+    const CONF = ['Guessing', 'Unsure', 'Maybe', 'Fairly sure', 'Certain'];
+
+    // Answers live in memory; localStorage is only a convenience so a reload resumes.
+    // Every access is wrapped: it can throw or come back empty (private windows, blocked storage).
+    let recs: Record<string, Rec> = {};
+    try { recs = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch { recs = {}; }
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify(recs)); } catch { /* ignore */ } };
+
+    const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+    const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+    const fmt = (it: Item, v: number) => it.options[v];
+
+    let idx = 0;
+    // Resume at the first item with no final confidence.
+    const firstOpen = items.findIndex((it) => recs[it.id]?.after === undefined);
+    idx = firstOpen === -1 ? items.length : firstOpen;
+
+    function scale(name: string, legend: string, sel?: number) {
+      return `<fieldset><legend>${legend}</legend><div class="td-scale">${CONF.map(
+        (c, i) => `<label class="td-opt"><input type="radio" name="${name}" value="${i}" ${sel === i ? 'checked' : ''}> ${c}</label>`,
+      ).join('')}</div></fieldset>`;
+    }
+
+    function render() {
+      if (idx >= items.length) return renderRoom();
+      const it = items[idx];
+      const r = recs[it.id];
+      const locked = !!r;
+      const n = idx + 1;
+      const pct = Math.round((idx / items.length) * 100);
+      const input = `<fieldset><legend>Your prediction</legend>${it.options
+        .map((o, i) => `<label class="td-opt"><input type="radio" name="pred" value="${i}" ${locked ? 'disabled' : ''} ${locked && r.pred === i ? 'checked' : ''}> ${esc(o)}</label>`)
+        .join('')}</fieldset>`;
+      root.innerHTML = `
+        <div class="td-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${items.length}" aria-valuenow="${idx}" aria-label="Progress"><span style="width:${pct}%"></span></div>
+        <section class="td-card" aria-labelledby="q-h">
+          <p class="td-step">Question ${n} of ${items.length}</p>
+          <h2 class="td-q" id="q-h" tabindex="-1">${esc(it.q)}</h2>
+          ${input}
+          <div>
+            <label for="why"><strong>Why? One or two sentences.</strong></label>
+            <textarea id="why" ${locked ? 'disabled' : ''} aria-describedby="why-hint">${locked ? esc(r.why) : ''}</textarea>
+            <p class="td-hint" id="why-hint"><span id="wc">0</span> of ${MIN_WORDS} words needed. You must commit your reason before the answer is shown.</p>
+          </div>
+          ${scale('before', 'How confident are you, before you see the answer?', locked ? r.before : undefined).replace('<fieldset>', locked ? '<fieldset disabled>' : '<fieldset>')}
+          ${locked ? '' : '<button class="td-btn" id="lock" type="button" disabled>Lock in my prediction</button>'}
+          <div id="reveal" ${locked ? '' : 'hidden'}></div>
+        </section>`;
+      const q = document.getElementById('q-h') as HTMLElement;
+      q.focus({ preventScroll: false });
+      if (locked) return showReveal(it, r);
+
+      const why = document.getElementById('why') as HTMLTextAreaElement;
+      const lock = document.getElementById('lock') as HTMLButtonElement;
+      const check = () => {
+        const wc = words(why.value);
+        (document.getElementById('wc') as HTMLElement).textContent = String(wc);
+        const hasPred = !!root.querySelector('input[name=pred]:checked');
+        const hasConf = !!root.querySelector('input[name=before]:checked');
+        lock.disabled = !(hasPred && hasConf && wc >= MIN_WORDS);
+      };
+      root.querySelectorAll('input[type=radio]').forEach((e) => e.addEventListener('change', check));
+      why.addEventListener('input', check);
+      lock.addEventListener('click', () => {
+        const pred = Number((root.querySelector('input[name=pred]:checked') as HTMLInputElement).value);
+        const before = Number((root.querySelector('input[name=before]:checked') as HTMLInputElement).value);
+        recs[it.id] = { pred, why: why.value.trim(), before };
+        save();
+        render();
+      });
+    }
+
+    function showReveal(it: Item, r: Rec) {
+      const box = document.getElementById('reveal') as HTMLElement;
+      box.hidden = false;
+      const right = r.pred === it.answer;
+      const done = r.after !== undefined;
+      box.innerHTML = `
+        <div class="td-reveal" role="region" aria-label="Answer">
+          <h3>The real answer</h3>
+          <p class="td-answer">${esc(fmt(it, it.answer))}</p>
+          <p>You predicted <strong>${esc(fmt(it, r.pred))}</strong>. ${
+            right
+              ? 'That matches. Check whether your reason matches too.'
+              : 'That is not the real number, and that is fine. The reason you wrote is what we care about.'
+          }</p>
+          <p>${esc(it.reveal)}</p>
+          <p class="td-point">${esc(it.point)}</p>
+        </div>
+        <div style="margin-top: var(--ddp-space-4)">
+          ${scale('after', 'How confident are you now?', r.after).replace('<fieldset>', done ? '<fieldset disabled>' : '<fieldset>')}
+          <button class="td-btn" id="next" type="button" ${done ? '' : 'disabled'}>${idx + 1 === items.length ? 'See the room' : 'Next question'}</button>
+        </div>`;
+      const next = document.getElementById('next') as HTMLButtonElement;
+      box.querySelectorAll('input[name=after]').forEach((e) =>
+        e.addEventListener('change', () => {
+          r.after = Number((e as HTMLInputElement).value);
+          save();
+          next.disabled = false;
+        }),
+      );
+      next.addEventListener('click', () => { idx += 1; render(); });
+      if (!done) (document.getElementById('reveal') as HTMLElement).scrollIntoView({ block: 'nearest' });
+    }
+
+    function renderRoom() {
+      const rows = items
+        .map((it, i) => {
+          const r = recs[it.id];
+          const ok = r && r.pred === it.answer;
+          const shift = r && r.after !== undefined ? `${CONF[r.before]} &rarr; ${CONF[r.after]}` : '';
+          return `<tr>
+            <td data-label="Question">${i + 1}. ${esc(it.q.split('.')[0].split('?')[0])}&hellip;</td>
+            <td data-label="You predicted">${r ? esc(fmt(it, r.pred)) : '-'} <span class="td-tick">${ok ? '(matched)' : ''}</span><br><span class="td-why">&ldquo;${r ? esc(r.why) : ''}&rdquo;</span></td>
+            <td data-label="Reality">${esc(fmt(it, it.answer))}</td>
+            <td data-label="Your confidence">${shift}</td>
+          </tr>`;
+        })
+        .join('');
+      const hit = items.filter((it) => recs[it.id]?.pred === it.answer).length;
+      root.innerHTML = `
+        <section class="td-card" aria-labelledby="room-h">
+          <p class="td-step">The room</p>
+          <h2 class="td-q" id="room-h" tabindex="-1">Your answers next to what really happened</h2>
+          <p>You matched the real answer on ${hit} of ${items.length}. Look at the table, then read your own reasons.</p>
+          <table class="td-room"><thead><tr><th scope="col">Question</th><th scope="col">You predicted</th><th scope="col">Reality</th><th scope="col">Your confidence</th></tr></thead><tbody>${rows}</tbody></table>
+          <h3>Why this grades reasoning, not correctness</h3>
+          <p>
+            A score out of five would tell you almost nothing about how you think. Your reasons do.
+            A teacher who reads them before class can see who did the work, where the room splits, and
+            which misconception is in the air, and can open class on the room&rsquo;s own words. A
+            wrong answer argued well costs nothing; it is where the learning happens. A right answer
+            with no reason can be a lucky guess, and a student who sounds sure in class may not have
+            done the work at all. Grade the reasoning and you grade the thing that cannot be handed to a tool.
+          </p>
+          <p>
+            Notice also what you did: you committed before you saw anything, and you said how sure you
+            were. A big drop or jump in confidence after the reveal is the most interesting thing in the table.
+          </p>
+          <p><button class="td-btn alt" id="again" type="button">Start over</button> <a class="td-btn" href="/teachers">Back to resources for teachers</a></p>
+        </section>`;
+      (document.getElementById('room-h') as HTMLElement).focus();
+      document.getElementById('again')?.addEventListener('click', () => {
+        recs = {};
+        try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+        idx = 0;
+        render();
+      });
+    }
+
+    render();
+  </script>
+</BaseLayout>

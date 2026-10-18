@@ -13,6 +13,7 @@ export async function GET(context: APIContext): Promise<Response> {
   const courses = [...new Set(lessons.map((l) => l.data.course))];
   const paths = [
     '/', '/about', '/fun', '/play', '/contact', '/search/',
+    '/teachers', '/teachers/demo', '/teachers/how-its-built',
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
   ];
