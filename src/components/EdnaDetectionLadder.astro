@@ -1,0 +1,152 @@
+---
+/**
+ * EdnaDetectionLadder — the three nested stages of an eDNA survey (qPCR runs, extractions,
+ * water samples) and what an all-negative result means. Uses the Integrative Evidence Workshop
+ * lesson's own rules: A = 1 - (1-delta)^runs, B = 1 - (1-gamma*A)^extractions, q = theta*B,
+ * miss = (1-q)^samples, posterior = prior*miss / [(1-prior) + prior*miss]. Original.
+ */
+---
+
+<figure class="edl card" data-edl>
+  <figcaption class="edl-head">eDNA detection ladder — from negatives to a decision<span class="edl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="edl-svg" viewBox="0 0 340 262" role="img" aria-label="Chance of detecting, given DNA reaches each stage (A, B), then per sample (q)" data-plot></svg>
+
+  <div class="edl-controls">
+    <label class="edl-slabel"><span>qPCR runs per extraction <em data-out="runs">5</em></span>
+      <input type="range" data-in="runs" min="1" max="8" step="1" value="5" />
+    </label>
+    <label class="edl-slabel"><span>Extractions per sample <em data-out="ext">2</em></span>
+      <input type="range" data-in="ext" min="1" max="4" step="1" value="2" />
+    </label>
+    <label class="edl-slabel"><span>Independent water samples <em data-out="samp">2</em></span>
+      <input type="range" data-in="samp" min="1" max="5" step="1" value="2" />
+    </label>
+    <label class="edl-slabel"><span>Prior occupancy <em data-out="prior">0.20</em></span>
+      <input type="range" data-in="prior" min="0.05" max="0.5" step="0.01" value="0.2" />
+    </label>
+  </div>
+
+  <dl class="edl-readout">
+    <div><dt>Chance all samples miss an occupied pond</dt><dd data-r-miss>0.342</dd></div>
+    <div><dt>Chance an all-negative pond is occupied</dt><dd data-r-post>7.9%</dd></div>
+    <div><dt>Lowest possible with perfect lab work</dt><dd data-r-floor>9.1%</dd></div>
+    <div><dt>Assumed rule: stop only at 5% or below</dt><dd data-r-verdict>Sample again</dd></div>
+  </dl>
+  <p class="edl-why" data-why role="status"></p>
+
+  <p class="edl-assume">In this sketch: gamma = 0.49, delta = 0.38 and theta = 0.60 are illustrative values, there are no false positives, occupancy is fixed during sampling the stages are independent, and the 5% rule, theta = 0.60 and the prior are choices.</p>
+  <p class="edl-foot">Extra qPCR wells share one sample, so they cannot push detection above theta; only another independent water sample attacks the missing share.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#b85600', INK = '#4b4b55', FAINT = '#d4d4da';
+  const DELTA = 0.38, GAMMA = 0.49, THETA = 0.6, THRESH = 0.05;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const f3 = (x: number) => x.toFixed(3);
+  const pct = (x: number) => (x * 100).toFixed(1) + '%';
+  const pctP = (x: number) => (x * 100).toFixed(Math.abs(x - 0.05) < 0.1 ? 2 : 1) + '%';
+  document.querySelectorAll<HTMLElement>('[data-edl]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const runsIn = q('[data-in="runs"]'), extIn = q('[data-in="ext"]'), sampIn = q('[data-in="samp"]'), priorIn = q('[data-in="prior"]');
+    const runsOut = o('[data-out="runs"]'), extOut = o('[data-out="ext"]'), sampOut = o('[data-out="samp"]'), priorOut = o('[data-out="prior"]');
+    const rMiss = o('[data-r-miss]'), rPost = o('[data-r-post]'), rFloor = o('[data-r-floor]'), rVerdict = o('[data-r-verdict]'), why = o('[data-why]');
+
+    const X0 = 12, X1 = 328, W = X1 - X0;
+    function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, opts));
+      t.textContent = s; plot.appendChild(t);
+    }
+    function bar(y: number, label: string, val: number, scale: number, color: string, valText: string, marker?: { v: number; label: string }) {
+      text(X0, y, label);
+      text(X1, y, valText, { 'text-anchor': 'end', 'font-weight': 700, fill: color });
+      plot.appendChild(el('rect', { x: X0, y: y + 5, width: W, height: 10, fill: '#f1f1f4', rx: 2 }));
+      plot.appendChild(el('rect', { x: X0, y: y + 5, width: Math.max(1, (val / scale) * W), height: 10, fill: color, rx: 2 }));
+      if (marker) {
+        const mx = X0 + (marker.v / scale) * W;
+        plot.appendChild(el('line', { x1: mx, y1: y + 2, x2: mx, y2: y + 18, stroke: INK, 'stroke-width': 1.4, 'stroke-dasharray': '2 1' }));
+        text(mx - 3, y + 28, marker.label, { 'text-anchor': 'end', 'font-size': 9 });
+      }
+    }
+    function render() {
+      const runs = parseInt(runsIn.value, 10), ext = parseInt(extIn.value, 10), n = parseInt(sampIn.value, 10);
+      const prior = parseFloat(priorIn.value);
+      runsOut.textContent = String(runs); extOut.textContent = String(ext); sampOut.textContent = String(n); priorOut.textContent = prior.toFixed(2);
+
+      const A = 1 - Math.pow(1 - DELTA, runs);
+      const B = 1 - Math.pow(1 - GAMMA * A, ext);
+      const qs = THETA * B;
+      const miss = Math.pow(1 - qs, n);
+      const post = (prior * miss) / ((1 - prior) + prior * miss);
+      const floorMiss = Math.pow(1 - THETA, n);
+      const floorPost = (prior * floorMiss) / ((1 - prior) + prior * floorMiss);
+      const stop = post <= THRESH;
+
+      // Samples needed (same rule, same runs and extractions), searched up to 30.
+      let need = 0;
+      for (let k = 1; k <= 30; k++) {
+        const m = Math.pow(1 - qs, k);
+        if ((prior * m) / ((1 - prior) + prior * m) <= THRESH) { need = k; break; }
+      }
+
+      plot.replaceChildren();
+      text(X0, 9, 'Chance of detecting, given DNA reaches each stage (A, B),', { 'font-weight': 700, 'font-size': 9.5 });
+      text(X0, 21, 'then per sample (q)', { 'font-weight': 700, 'font-size': 9.5 });
+      bar(34, 'Stage 1: ' + runs + ' qPCR run' + (runs > 1 ? 's' : '') + ' on one extraction (A)', A, 1, ACCENT, f3(A));
+      bar(70, 'Stage 2: ' + ext + ' extraction' + (ext > 1 ? 's' : '') + ' of one sample (B)', B, 1, ACCENT, f3(B));
+      bar(106, 'Stage 3: one water sample (q = theta × B)', qs, 1, ACCENT, f3(qs), { v: THETA, label: 'ceiling theta 0.60' });
+      bar(150, 'All ' + n + ' sample' + (n > 1 ? 's' : '') + ' (1 − miss)', 1 - miss, 1, ACCENT, f3(1 - miss));
+      plot.appendChild(el('line', { x1: X0, y1: 182, x2: X1, y2: 182, stroke: FAINT, 'stroke-width': 1 }));
+      text(X0, 198, 'If every sample is negative: chance the pond is occupied', { 'font-weight': 700 });
+      bar(216, 'Posterior (scale 0 to 50%)', post, 0.5, stop ? ACCENT : ORANGE, pctP(post), { v: THRESH, label: '5% rule' });
+
+
+      rMiss.textContent = f3(miss);
+      rPost.textContent = pctP(post);
+      rFloor.textContent = pctP(floorPost);
+      rVerdict.textContent = stop ? 'Stop' : 'Sample again';
+      rVerdict.style.color = stop ? 'var(--ddp-color-primary)' : ORANGE;
+
+      let s = `One extraction detects with 0.49 × ${f3(A)} = ${f3(GAMMA * A)}; with ${ext} of them B = ${f3(B)}. One sample then detects with q = 0.60 × ${f3(B)} = ${f3(qs)}, so ${n > 1 ? n + ' negative samples happen' : 'a negative sample happens'} at an occupied pond with probability ${f3(1 - qs)}${n > 1 ? '^' + n : ''} = ${f3(miss)}. `;
+      s += `In this sketch, with a prior of ${prior.toFixed(2)}, the chance the pond is still occupied is ${pctP(post)}, `;
+      if (stop) s += 'at or below the 5% line, so this rule says stop. ';
+      else s += 'above the 5% line, so this rule says sample again. ';
+      if (!stop) {
+        s += need > 0 ? `In this sketch, ${need} independent samples would reach 5% or below. ` : 'In this sketch, more than 30 independent samples would be needed to reach 5% or below. ';
+        if (floorPost > THRESH) s += `In this sketch, even perfect lab work with ${n} sample${n > 1 ? 's' : ''} could only reach ${pctP(floorPost)}: more wells cannot fix this, another sample can.`;
+        else s += 'Here better lab work could still help, but only up to the ceiling theta.';
+      } else {
+        s += 'The 0.60, the prior and the 5% are choices, and gamma and delta come from one species in one region, so the decision can change if any of them does.';
+      }
+      why.textContent = s;
+    }
+    [runsIn, extIn, sampIn, priorIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .edl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .edl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .edl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .edl-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .edl-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .edl-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .edl-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .edl-slabel input { accent-color: var(--ddp-color-accent); }
+  .edl-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .edl-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .edl-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .edl-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .edl-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .edl-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .edl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .edl-controls { grid-template-columns: 1fr; } }
+</style>

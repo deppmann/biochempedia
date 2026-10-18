@@ -1,0 +1,340 @@
+---
+/**
+ * PredatorPreyOrbit — the Lotka-Volterra predator-prey phase plane from the Predation
+ * lesson. Two zero-growth lines (isoclines) cross at the equilibrium (N*, P*); the four
+ * quadrants carry arrows; the closed orbit through the chosen start is drawn from the
+ * equations; an inset shows both populations against time so the predator peak can be
+ * seen following the prey peak. Fixed: r = 1, a = 0.01, e = 0.1. Self-contained
+ * vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="po card" data-predorbit>
+  <figcaption class="po-head">Predator–prey orbit — isoclines, quadrants and the lag<span class="po-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="po-svg" viewBox="0 0 360 292" role="img" aria-label="Phase plane of predators against prey with two zero-growth lines, quadrant arrows and a closed orbit" data-plane></svg>
+
+  <ul class="po-legend" aria-label="Key to the phase plane">
+    <li><i class="po-sw po-sw-iso-n"></i>prey isocline: P = r/a</li>
+    <li><i class="po-sw po-sw-iso-p"></i>predator isocline: N = m/(ea)</li>
+    <li><i class="po-sw po-sw-orbit"></i>orbit through the start</li>
+    <li><i class="po-dot po-dot-start"></i>start</li>
+    <li><i class="po-dot po-dot-eq"></i>equilibrium (N*, P*)</li>
+  </ul>
+
+  <div class="po-controls">
+    <label class="po-slabel"><span>Start prey N <em data-out="n0">400</em></span>
+      <input type="range" data-in="n0" min="50" max="1000" step="10" value="400" />
+    </label>
+    <label class="po-slabel"><span>Start predators P <em data-out="p0">50</em></span>
+      <input type="range" data-in="p0" min="10" max="200" step="10" value="50" />
+    </label>
+    <label class="po-slabel"><span>Predator death rate m <em data-out="m">0.5</em> per day</span>
+      <input type="range" data-in="m" min="0.2" max="1" step="0.1" value="0.5" />
+    </label>
+  </div>
+
+  <div class="po-arith" data-arith></div>
+
+  <dl class="po-readout">
+    <div><dt>Equilibrium N* = m/(ea)</dt><dd data-r-nstar>500</dd></div>
+    <div><dt>Equilibrium P* = r/a</dt><dd data-r-pstar>100</dd></div>
+    <div><dt>Period of this orbit, in this sketch (integrated from the equations)</dt><dd data-r-period>—</dd></div>
+    <div><dt>Near-equilibrium period 2π/√(rm)</dt><dd data-r-approx>—</dd></div>
+  </dl>
+
+  <svg class="po-svg po-svg-ts" viewBox="0 0 360 150" role="img" aria-label="Prey and predator numbers against time, each scaled to its own peak" data-series></svg>
+  <ul class="po-legend po-legend-ts" aria-label="Key to the time series">
+    <li><i class="po-sw po-sw-prey"></i>prey N</li>
+    <li><i class="po-sw po-sw-pred"></i>predators P</li>
+    <li><i class="po-dot po-dot-prey"></i>prey peak</li>
+    <li><i class="po-dot po-dot-pred"></i>predator peak</li>
+  </ul>
+
+  <p class="po-why" data-why role="status">Pick a start to see its orbit.</p>
+  <p class="po-assume">In this sketch: prey grow exponentially without predators (no self-limitation), each predator’s intake rises in proportion to prey numbers with no handling time, the populations are well mixed with no age structure, and r = 1 per day, a = 0.01 per predator per day and e = 0.1 predators per prey eaten stay fixed, and the model is continuous, so values below 1 are not real individuals. Units on the plot are individuals and days from the lesson’s illustration, not data on any real species.</p>
+  <p class="po-foot">The rule to keep: in the classical model every start sits on its own closed, neutral orbit, so the start sets the amplitude, and predators peak after prey.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', DARK = '#1f1f29';
+  const R = 1, A = 0.01, E = 0.1;
+  const MINUS = '−';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const fmt = (x: number, d = 1) => {
+    const s = Math.abs(x) < 5e-9 ? '0' : parseFloat(x.toFixed(d)).toString();
+    return s.startsWith('-') ? MINUS + s.slice(1) : s;
+  };
+  const sgn = (x: number) => (x > 0 ? "+" : x < 0 ? MINUS : "") + fmt(Math.abs(x), 2);
+  const rnd6 = (x: number) => Math.round(x * 1e6) / 1e6;
+  function niceMax(raw: number): { max: number; step: number } {
+    const mags = [1, 2, 2.5, 5];
+    for (let p = 0; p < 7; p++) {
+      for (const k of mags) {
+        const step = k * Math.pow(10, p);
+        if (raw / step <= 5) return { max: Math.ceil(raw / step) * step, step };
+      }
+    }
+    return { max: raw, step: raw / 5 };
+  }
+  function rhs(N: number, P: number, m: number): [number, number] {
+    return [R * N - A * N * P, E * A * N * P - m * P];
+  }
+  // Integrate the equations (RK4) for two periods; the period is the time for the state to
+  // wind once round the equilibrium.
+  function simulate(N0: number, P0: number, m: number) {
+    const Ns = m / (E * A), Ps = R / A;
+    const ts = [0], Ns_ = [N0], Ps_ = [P0];
+    let N = N0, P = P0, t = 0, ang = 0, T = 0;
+    const dt = 0.01;
+    let prev = Math.atan2(Math.log(P / Ps), Math.log(N / Ns));
+    for (let i = 0; i < 100000; i++) {
+      const k1 = rhs(N, P, m);
+      const k2 = rhs(N + dt / 2 * k1[0], P + dt / 2 * k1[1], m);
+      const k3 = rhs(N + dt / 2 * k2[0], P + dt / 2 * k2[1], m);
+      const k4 = rhs(N + dt * k3[0], P + dt * k3[1], m);
+      N += dt / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
+      P += dt / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+      t += dt;
+      const c = Math.atan2(Math.log(P / Ps), Math.log(N / Ns));
+      let d = c - prev;
+      while (d > Math.PI) d -= 2 * Math.PI;
+      while (d < -Math.PI) d += 2 * Math.PI;
+      ang += d; prev = c;
+      ts.push(t); Ns_.push(N); Ps_.push(P);
+      if (!T && Math.abs(ang) >= 2 * Math.PI) T = t;
+      if (T && t >= 2 * T) break;
+    }
+    return { t: ts, N: Ns_, P: Ps_, T };
+  }
+  function firstPeak(y: number[], from: number): number {
+    for (let i = Math.max(from, 1); i < y.length - 1; i++) if (y[i] > y[i - 1] && y[i] >= y[i + 1]) return i;
+    return -1;
+  }
+  function arrow(parent: SVGElement, x: number, y: number, dx: number, dy: number, color: string, w: number) {
+    const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+    const x2 = x + dx, y2 = y + dy;
+    parent.appendChild(el('line', { x1: x, y1: y, x2: x2 - ux * 3, y2: y2 - uy * 3, stroke: color, 'stroke-width': w }));
+    const hx = x2 - ux * 7, hy = y2 - uy * 7;
+    parent.appendChild(el('path', { d: `M${x2} ${y2} L${hx - uy * 3.5} ${hy + ux * 3.5} L${hx + uy * 3.5} ${hy - ux * 3.5} Z`, fill: color }));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-predorbit]').forEach((root) => {
+    const plane = root.querySelector<SVGSVGElement>('[data-plane]')!;
+    const series = root.querySelector<SVGSVGElement>('[data-series]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const n0In = q('[data-in="n0"]'), p0In = q('[data-in="p0"]'), mIn = q('[data-in="m"]');
+    const n0Out = o('[data-out="n0"]'), p0Out = o('[data-out="p0"]'), mOut = o('[data-out="m"]');
+    const arith = o('[data-arith]'), why = o('[data-why]');
+    const rN = o('[data-r-nstar]'), rP = o('[data-r-pstar]'), rPer = o('[data-r-period]'), rApp = o('[data-r-approx]');
+
+    const X0 = 48, X1 = 346, Y0 = 20, Y1 = 246;
+
+    function render() {
+      const N0 = parseInt(n0In.value, 10), P0 = parseInt(p0In.value, 10);
+      const m = Math.round(parseFloat(mIn.value) * 10) / 10;
+      n0Out.textContent = String(N0); p0Out.textContent = String(P0); mOut.textContent = m.toFixed(1);
+      const Ns = rnd6(m / (E * A)), Ps = rnd6(R / A);
+      const atEq = N0 === Ns && P0 === Ps;
+      const sim = atEq ? null : simulate(N0, P0, m);
+
+      // rates at the start, in the lesson's arithmetic
+      const births = R * N0, eaten = rnd6(A * N0 * P0), made = rnd6(E * eaten), deaths = rnd6(m * P0);
+      const dN = rnd6(births - eaten), dP = rnd6(made - deaths);
+      arith.innerHTML =
+        `<p><strong>Prey at the start.</strong> Births rN = ${fmt(R)} × ${N0} = ${fmt(births, 2)}; eaten aNP = ${fmt(A, 3)} × ${N0} × ${P0} = ${fmt(eaten, 2)}; so dN/dt = ${fmt(births, 2)} ${MINUS} ${fmt(eaten, 2)} = <b>${sgn(dN)}</b> prey per day.</p>` +
+        `<p><strong>Predators at the start.</strong> Production eaNP = ${fmt(E, 3)} × ${fmt(eaten, 2)} = ${fmt(made, 2)}; deaths mP = ${fmt(m, 2)} × ${P0} = ${fmt(deaths, 2)}; so dP/dt = ${fmt(made, 2)} ${MINUS} ${fmt(deaths, 2)} = <b>${sgn(dP)}</b> predators per day.</p>`;
+
+      rN.textContent = fmt(Ns, 0) + ' prey';
+      rP.textContent = fmt(Ps, 0) + ' predators';
+      const approxT = 2 * Math.PI / Math.sqrt(R * m);
+      rApp.textContent = fmt(approxT, 2) + ' days';
+      rPer.textContent = atEq ? 'none (no cycle)' : sim && sim.T ? fmt(sim.T, 1) + ' days' : '—';
+
+      // ---------- phase plane ----------
+      let maxN = Math.max(N0, Ns), maxP = Math.max(P0, Ps);
+      if (sim) { maxN = Math.max(maxN, ...sim.N); maxP = Math.max(maxP, ...sim.P); }
+      const ax = niceMax(Math.max(maxN * 1.04, Ns * 1.6)), ay = niceMax(Math.max(maxP * 1.04, Ps * 1.6));
+      const px = (n: number) => X0 + (n / ax.max) * (X1 - X0);
+      const py = (p: number) => Y1 - (p / ay.max) * (Y1 - Y0);
+
+      plane.replaceChildren();
+      // quadrant shading for the start
+      const qxL = N0 < Ns, qxR = N0 > Ns, qyB = P0 < Ps, qyT = P0 > Ps;
+      if ((qxL || qxR) && (qyB || qyT)) {
+        const rx = qxL ? X0 : px(Ns), rw = qxL ? px(Ns) - X0 : X1 - px(Ns);
+        const ry = qyT ? Y0 : py(Ps), rh = qyT ? py(Ps) - Y0 : Y1 - py(Ps);
+        plane.appendChild(el('rect', { x: rx, y: ry, width: rw, height: rh, fill: ACCENT, opacity: 0.08 }));
+      }
+      // axes and ticks
+      plane.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plane.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (let v = 0; v <= ax.max + 1e-9; v += ax.step) {
+        plane.appendChild(el('line', { x1: px(v), y1: Y1, x2: px(v), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(v), y: Y1 + 14, 'text-anchor': v === 0 ? 'start' : v + ax.step > ax.max + 1e-9 ? 'end' : 'middle', 'font-size': 9, fill: INK }); t.textContent = fmt(v, 1); plane.appendChild(t);
+      }
+      for (let v = 0; v <= ay.max + 1e-9; v += ay.step) {
+        plane.appendChild(el('line', { x1: X0 - 3, y1: py(v), x2: X0, y2: py(v), stroke: INK, 'stroke-width': 1 }));
+        if (v > 0) { const t = el('text', { x: X0 - 5, y: py(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = fmt(v, 1); plane.appendChild(t); }
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 31, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); xl.textContent = 'prey N (individuals)'; plane.appendChild(xl);
+      const yl = el('text', { x: X0 - 36, y: 11, 'text-anchor': 'start', 'font-size': 10, fill: INK }); yl.textContent = 'predators P (individuals)'; plane.appendChild(yl);
+
+      // isoclines
+      plane.appendChild(el('line', { x1: X0, y1: py(Ps), x2: X1, y2: py(Ps), stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
+      plane.appendChild(el('line', { x1: px(Ns), y1: Y0, x2: px(Ns), y2: Y1, stroke: ORANGE, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
+
+      // quadrant arrows (centre of each quadrant) and corner statements
+      const cxL = (X0 + px(Ns)) / 2, cxR = (px(Ns) + X1) / 2, cyT = (Y0 + py(Ps)) / 2, cyB = (py(Ps) + Y1) / 2;
+      const quads = [
+        { cx: cxL, cy: cyT, preyUp: false, predUp: false, ax: X0 + 4, ay: Y0 + 11, anchor: 'start' },
+        { cx: cxR, cy: cyT, preyUp: false, predUp: true, ax: X1 - 4, ay: Y0 + 11, anchor: 'end' },
+        { cx: cxL, cy: cyB, preyUp: true, predUp: false, ax: X0 + 4, ay: Y1 - 16, anchor: 'start' },
+        { cx: cxR, cy: cyB, preyUp: true, predUp: true, ax: X1 - 4, ay: Y1 - 16, anchor: 'end' },
+      ];
+      for (const qd of quads) {
+        const dx = qd.preyUp ? 11 : -11, dy = qd.predUp ? -11 : 11;
+        arrow(plane, qd.cx - dx / 2, qd.cy - dy / 2, dx, dy, '#8a8a96', 1.6);
+        const qw = qd.cx < px(Ns) ? px(Ns) - X0 : X1 - px(Ns);
+        const qh = qd.cy < py(Ps) ? py(Ps) - Y0 : Y1 - py(Ps);
+        if (qw < 70 || qh < 26) continue;
+        const bw = 72, bx = qd.anchor === 'start' ? qd.ax - 2 : qd.ax - bw + 2;
+        plane.appendChild(el('rect', { x: bx, y: qd.ay - 9, width: bw, height: 24, fill: '#fff', opacity: 0.85 }));
+        const l1 = el('text', { x: qd.ax, y: qd.ay, 'text-anchor': qd.anchor, 'font-size': 9, fill: INK }); l1.textContent = qd.preyUp ? 'prey rise' : 'prey fall'; plane.appendChild(l1);
+        const l2 = el('text', { x: qd.ax, y: qd.ay + 11.5, 'text-anchor': qd.anchor, 'font-size': 9, fill: INK }); l2.textContent = qd.predUp ? 'predators rise' : 'predators fall'; plane.appendChild(l2);
+      }
+
+      // orbit
+      if (sim) {
+        let d = '';
+        let n = 0;
+        for (let i = 0; i < sim.t.length; i++) {
+          if (sim.T && sim.t[i] > sim.T) break;
+          d += (n === 0 ? 'M' : 'L') + px(sim.N[i]).toFixed(1) + ' ' + py(sim.P[i]).toFixed(1) + ' ';
+          n++;
+        }
+        d += 'Z';
+        plane.appendChild(el('path', { d, fill: 'none', stroke: DARK, 'stroke-width': 2.2, 'stroke-linejoin': 'round' }));
+        // direction arrow just after the start
+        const k = Math.min(sim.t.length - 1, 12);
+        const ux = px(sim.N[k]) - px(sim.N[0]), uy = py(sim.P[k]) - py(sim.P[0]);
+        const ul = Math.hypot(ux, uy);
+        if (ul > 0.5) arrow(plane, px(sim.N[0]), py(sim.P[0]), (ux / ul) * 17, (uy / ul) * 17, DARK, 2.2);
+      }
+      plane.appendChild(el('circle', { cx: px(N0), cy: py(P0), r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.2 }));
+      const eqm = el('path', { d: `M${px(Ns)} ${py(Ps) - 5} L${px(Ns) + 5} ${py(Ps)} L${px(Ns)} ${py(Ps) + 5} L${px(Ns) - 5} ${py(Ps)} Z`, fill: '#fff', stroke: DARK, 'stroke-width': 1.6 });
+      plane.appendChild(eqm);
+
+      // ---------- time series ----------
+      series.replaceChildren();
+      const TX0 = 40, TX1 = 346, TY0 = 12, TY1 = 112;
+      series.appendChild(el('line', { x1: TX0, y1: TY0, x2: TX0, y2: TY1, stroke: INK, 'stroke-width': 1 }));
+      series.appendChild(el('line', { x1: TX0, y1: TY1, x2: TX1, y2: TY1, stroke: INK, 'stroke-width': 1 }));
+      let tmax = 2 * approxT;
+      if (sim && sim.T) tmax = sim.t[sim.t.length - 1];
+      const tx = (t: number) => TX0 + (t / tmax) * (TX1 - TX0);
+      const ty = (v: number) => TY1 - v * (TY1 - TY0 - 4);
+      for (const v of [0, 1]) {
+        series.appendChild(el('line', { x1: TX0 - 3, y1: ty(v), x2: TX0, y2: ty(v), stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: TX0 - 5, y: ty(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }); t.textContent = String(v); series.appendChild(t);
+      }
+      const tstep = niceMax(tmax);
+      for (let v = 0; v <= tmax + 1e-9; v += tstep.step) {
+        series.appendChild(el('line', { x1: tx(v), y1: TY1, x2: tx(v), y2: TY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: tx(v), y: TY1 + 14, 'text-anchor': v === 0 ? 'start' : 'middle', 'font-size': 9, fill: INK }); t.textContent = fmt(v, 1); series.appendChild(t);
+      }
+      const tl = el('text', { x: (TX0 + TX1) / 2, y: TY1 + 28, 'text-anchor': 'middle', 'font-size': 10, fill: INK }); tl.textContent = 'time (days)'; series.appendChild(tl);
+      const yl2 = el('text', { x: 4, y: 9, 'text-anchor': 'start', 'font-size': 9, fill: INK }); yl2.textContent = 'each curve relative to its own peak'; series.appendChild(yl2);
+
+      let peakText = '';
+      let lagText = '';
+      if (sim && sim.T) {
+        const mN = Math.max(...sim.N), mP = Math.max(...sim.P);
+        const path = (arr: number[], mx: number) => {
+          let d = '';
+          const stride = Math.max(1, Math.floor(arr.length / 320));
+          for (let i = 0; i < arr.length; i += stride) d += (i === 0 ? 'M' : 'L') + tx(sim.t[i]).toFixed(1) + ' ' + ty(arr[i] / mx).toFixed(1) + ' ';
+          return d;
+        };
+        series.appendChild(el('path', { d: path(sim.N, mN), fill: 'none', stroke: ACCENT, 'stroke-width': 2.2 }));
+        series.appendChild(el('path', { d: path(sim.P, mP), fill: 'none', stroke: ORANGE, 'stroke-width': 2.2 }));
+        const iN = firstPeak(sim.N, 0);
+        const iP = iN >= 0 ? firstPeak(sim.P, iN) : -1;
+        if (iN >= 0 && iP >= 0) {
+          const tN = sim.t[iN], tP = sim.t[iP];
+          for (const [tt, vv, c] of [[tN, sim.N[iN] / mN, ACCENT], [tP, sim.P[iP] / mP, ORANGE]] as [number, number, string][]) {
+            series.appendChild(el('line', { x1: tx(tt), y1: ty(vv), x2: tx(tt), y2: TY1, stroke: c, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+            series.appendChild(el('circle', { cx: tx(tt), cy: ty(vv), r: 4, fill: c, stroke: '#fff', 'stroke-width': 1 }));
+          }
+          peakText = `A prey peak of about ${fmt(sim.N[iN], 0)} comes at day ${fmt(tN, 1)}; the next predator peak, about ${fmt(sim.P[iP], 0)}, comes at day ${fmt(tP, 1)}, which is ${fmt(Math.round(tP * 10) / 10 - Math.round(tN * 10) / 10, 1)} days later.`;
+          lagText = 'lag';
+        }
+      } else {
+        series.appendChild(el('line', { x1: TX0, y1: ty(1), x2: TX1, y2: ty(1), stroke: ACCENT, 'stroke-width': 2.2 }));
+        series.appendChild(el('line', { x1: TX0, y1: ty(1) + 3, x2: TX1, y2: ty(1) + 3, stroke: ORANGE, 'stroke-width': 2.2, 'stroke-dasharray': '6 3' }));
+      }
+
+      // ---------- status ----------
+      const preyDir = P0 < Ps ? 'rise' : P0 > Ps ? 'fall' : 'stay level';
+      const predDir = N0 > Ns ? 'rise' : N0 < Ns ? 'fall' : 'stay level';
+      let s: string;
+      if (atEq) {
+        s = `Start at the equilibrium (${fmt(Ns, 0)} prey, ${fmt(Ps, 0)} predators): prey births ${fmt(births, 2)} equal prey eaten ${fmt(eaten, 2)}, and predator production ${fmt(made, 2)} equals deaths ${fmt(deaths, 2)}, so both rates are zero and the numbers stay put. In this sketch there is no cycle until the start is moved off this point.`;
+      } else {
+        const preyWhy = P0 < Ps ? `Predators are below P* = ${fmt(Ps, 0)}, so prey births outrun losses and prey rise.`
+          : P0 > Ps ? `Predators are above P* = ${fmt(Ps, 0)}, so losses outrun prey births and prey fall.`
+          : `Predators sit exactly at P* = ${fmt(Ps, 0)}, so prey births equal losses and prey stop changing for the moment.`;
+        const predWhy = N0 < Ns ? `Prey are below N* = ${fmt(Ns, 0)}, so each predator eats too little to replace itself and predators fall.`
+          : N0 > Ns ? `Prey are above N* = ${fmt(Ns, 0)}, so each predator eats more than enough to replace itself and predators rise.`
+          : `Prey sit exactly at N* = ${fmt(Ns, 0)}, so predator production equals deaths and predators stop changing for the moment.`;
+        s = `In this sketch prey ${preyDir} and predators ${predDir} from this start. ${predWhy} ${preyWhy} ${peakText}`.trim();
+        s += ` This start sits on its own closed orbit, so the amplitude is set by where it starts.`;
+      }
+      if (!atEq && lagText === '') s += '';
+      why.textContent = s;
+    }
+    [n0In, p0In, mIn].forEach((x) => x.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .po { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .po-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .po-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .po-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .po-svg-ts { margin-top: var(--ddp-space-3); }
+  .po-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; margin: var(--ddp-space-2) 0 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .po-legend li { display: inline-flex; align-items: center; gap: 0.35rem; margin: 0; }
+  .po-sw { display: inline-block; width: 18px; height: 0; border-top: 3px dashed var(--ddp-color-muted); }
+  .po-sw-iso-n { border-top-color: #0e7c86; }
+  .po-sw-iso-p { border-top-color: #e57200; }
+  .po-sw-orbit { border-top: 3px solid #1f1f29; }
+  .po-sw-prey { border-top: 3px solid #0e7c86; }
+  .po-sw-pred { border-top: 3px solid #e57200; }
+  .po-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .po-dot-start { background: #e57200; }
+  .po-dot-eq { background: #fff; border: 2px solid #1f1f29; border-radius: 2px; transform: rotate(45deg); width: 9px; height: 9px; }
+  .po-dot-prey { background: #0e7c86; }
+  .po-dot-pred { background: #e57200; }
+  .po-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .po-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .po-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .po-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .po-arith { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .po-arith p { margin: 0 0 0.3rem; }
+  .po-arith p:last-child { margin: 0; }
+  .po-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .po-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .po-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .po-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .po-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .po-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .po-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

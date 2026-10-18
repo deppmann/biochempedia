@@ -1,0 +1,420 @@
+---
+title: "Integrative Evidence Workshop"
+slug: "ecoevo-evidence-workshop"
+course: "ecology-evolution"
+courseChapter: "Ecology and Evolution · Unit 6: Global change and decisions"
+order: 526
+summary: >-
+  If a survey for a rare species finds no trace of its DNA in a pond, how sure can you be that the
+  species is not there? This workshop reads an environmental DNA (eDNA) dataset the way a careful
+  analyst would: it separates the stages at which DNA can be missed, turns a string of negatives
+  into a probability of occupancy, and makes a stop-or-continue decision with every assumption on
+  the table. It then asks how to make that analysis reproducible and who has the authority to
+  decide how the data are used.
+hook: "Twenty negative PCR wells from one pond. Is the newt gone?"
+
+estMinutes: 26
+objectives:
+  - "Interpret eDNA detections and non-detections, naming the nested stages where DNA can be missed (sample, extraction, PCR run) and the sources of false positives and of downstream transport."
+  - "Calculate the probability that an all-negative site is still occupied from stated detection probabilities and a prior, and defend a stop-or-continue decision against a stated threshold."
+  - "Explain why field samples and PCR replicates are different kinds of replication, and plan a reproducible analysis with raw data, a data dictionary, scripts, versions and seeds."
+  - "Apply the CARE principles alongside FAIR to decide how data about a place and its people may be accessed and reused."
+
+explainer:
+  src: "/explainers/ecoevo-evidence-workshop/explainer.mp4"
+  captions: "/explainers/ecoevo-evidence-workshop/explainer.vtt"
+  poster: "/explainers/ecoevo-evidence-workshop/poster.jpg"
+  title: "Wells Share One Scoop of Water"
+  durationSec: 181.5
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Kristy Deiner and Florian Altermatt"
+    contribution: >-
+      Sampled a Swiss river below its source lake and showed that DNA of two lake-dwelling
+      invertebrates could be detected kilometres downstream, so a river eDNA positive can reflect
+      organisms upstream of the sampling point.
+    profileSourceAnchor: "Deiner & Altermatt, Transport distance of invertebrate environmental DNA in a natural river, PLoS ONE 9:e88786 (2014)."
+    quotes: []
+    story: >-
+      Deiner and Altermatt chose a simple natural experiment. Lake Greifensee in Switzerland
+      drains into the river Glatt, and two invertebrates that live in the lake, the water flea
+      Daphnia longispina and the freshwater mussel Unio tumidus, were their targets. They took
+      water at eleven river locations downstream of the lake and tested it with standard PCR,
+      confirming amplified products with Sanger sequencing. Daphnia DNA turned up at every
+      sampled river location, including the furthest, 12.3 km downstream. Mussel DNA was not
+      detected beyond 9.1 km. The design was a field transport study rather than a manipulation,
+      and the authors did not sequence every Daphnia positive, so the distances are what was
+      observed in one river system, not a maximum for eDNA in general. What the work made
+      possible was a clearer reading of river surveys: a water sample from flowing water
+      integrates DNA from upstream, and anyone mapping a species from river eDNA has to ask
+      where the DNA came from as well as whether it is there.
+  - name: "Amy J. Davis"
+    contribution: >-
+      With colleagues, tested wild pig eDNA at central Texas water bodies already known to be
+      occupied, and fitted a model that splits detection into availability in a water sample,
+      capture in an extraction and amplification in a qPCR run.
+    profileSourceAnchor: "Davis et al., Accounting for observation processes across multiple levels of uncertainty improves inference of species distributions and guides adaptive sampling of environmental DNA, Ecology and Evolution (2018), doi:10.1002/ece3.4552."
+    quotes: []
+    story: >-
+      Most eDNA surveys cannot tell a true absence from a miss, because nobody knows which sites
+      are really occupied. Davis and colleagues removed that unknown. They chose four sites in
+      each of three kinds of water body in central Texas, and used cameras and pig signs to
+      confirm that wild pigs (Sus scrofa) were using every site in their analysis. In September
+      and October 2016 they collected ten water samples per water body and ran them through
+      extraction and qPCR. Their multiscale occupancy model then estimated each stage separately.
+      Without inhibitor removal, the probability that an extraction captured DNA present in a
+      sample was estimated at 0.49 (standard error 0.07), and the probability that one qPCR run
+      amplified captured DNA at 0.38 (standard error 0.04). DNA availability varied with month,
+      pH and water-body type, and pooled samples underestimated occupancy at these known-occupied
+      sites. The work made it possible to see where a survey loses its signal, and so where extra
+      effort buys the most.
+  - name: "Andrew Buxton"
+    contribution: >-
+      With Eleni Matechou, Jim Griffin and colleagues, compared two eDNA occupancy models on
+      great crested newt surveys of 2,958 English ponds and used simulations to ask how to
+      split effort between field samples and qPCR replicates.
+    profileSourceAnchor: "Buxton et al., Optimising sampling and analysis protocols in environmental DNA studies, Scientific Reports (2021), doi:10.1038/s41598-021-91166-7."
+    quotes: []
+    story: >-
+      Great crested newts (Triturus cristatus) are surveyed in England on a large scale, and eDNA
+      is one of the methods used. Buxton and colleagues took pond surveys from 2019: 2,958 ponds,
+      each represented by one water sample made by pooling twenty pond-edge subsamples, and each
+      sample analysed with twelve qPCR replicates. They fitted two published models to the same
+      data. One estimated overall occupancy at 0.26, the other at 0.47. Because the true
+      occupancy of those ponds was unknown, the comparison had no ground truth to check against, though the authors judged that the model ignoring false positives overestimated occupancy; it showed that the assumptions built into a model can move the answer a long way.
+      Their simulations found that replicating both field collection and laboratory analysis
+      reduced bias and narrowed credible intervals, and for their simulation inputs they proposed
+      two field samples with four to six qPCR replicates each as a compromise. The work made it
+      possible to design surveys around the stage where information is lost, instead of adding
+      PCR wells by habit.
+  - name: "Stephanie Russo Carroll and Maui Hudson"
+    contribution: >-
+      Co-organized the 2018 workshop that drafted the CARE principles for Indigenous data
+      governance, published in 2020, and with colleagues set out in 2021 how CARE can be put into
+      practice alongside FAIR.
+    profileSourceAnchor: "Carroll et al., The CARE Principles for Indigenous Data Governance, Data Science Journal 19:43 (2020); Carroll et al., Operationalizing the CARE and FAIR Principles for Indigenous data futures, Scientific Data (2021), doi:10.1038/s41597-021-00892-0."
+    quotes: []
+    story: >-
+      By the late 2010s the FAIR principles had given researchers a shared language for making
+      data findable, accessible, interoperable and reusable. They said much less about who should
+      decide how data about a people, their lands and their waters are used. On 8 November 2018,
+      at a workshop in Gaborone, Botswana, held during International Data Week, participants
+      drafted principles for Indigenous data governance; Carroll and Hudson were among its
+      organizers. The result, published in the Data Science Journal in 2020 by Carroll and many
+      co-authors, named four principles: Collective Benefit, Authority to Control, Responsibility
+      and Ethics. A 2021 paper in Scientific Data, with Carroll at the University of Arizona and
+      Hudson at Te Kotahi Research Institute, University of Waikato, among its authors, described
+      CARE as a complement to FAIR and made clear that it covers scientific data as well as
+      traditional knowledge. The work was collective, and what it made possible was a way to ask
+      governance questions with the same care researchers already gave to metadata.
+
+techniques:
+  - name: "Environmental DNA sampling with qPCR"
+    blurb: >-
+      Water is collected, filtered or precipitated, and DNA is extracted; a species-specific qPCR
+      assay is then run several times per extraction. A run either amplifies or does not, and the
+      pattern of runs, extractions and samples is the raw evidence of whether the species' DNA was
+      there.
+  - name: "Multiscale occupancy modelling"
+    blurb: >-
+      A statistical model that treats occupancy as a hidden state and estimates, from the pattern
+      of replicates, the probability of detection at each nested stage (DNA in the sample,
+      captured in an extraction, amplified in a run). It turns a set of negatives into a
+      probability that the site is still occupied.
+  - name: "Independent validation of occupancy"
+    blurb: >-
+      Cameras, field signs or direct surveys establish which sites are occupied by another route,
+      so detection probabilities can be estimated at sites whose true state is known, as in the
+      wild pig trial in central Texas.
+  - name: "Negative controls and sequence confirmation"
+    blurb: >-
+      Field blanks, extraction blanks and PCR no-template controls are carried through the
+      workflow to reveal contamination, and amplified products are sequenced to confirm that the
+      signal comes from the target species and not a relative or a contaminant.
+
+structures: []
+
+simulations:
+  - type: "local"
+    ref: "EdnaDetectionLadder"
+    title: "When can an all-negative pond be called empty?"
+    caption: >-
+      Change runs, extractions, samples and prior to see why only another independent water sample, not more qPCR wells, moves an all-negative pond below the 5% line.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In an eDNA survey, what is a false negative?"
+    choices:
+      - "The species or its DNA is present but the survey does not detect it"
+      - "A sample that could not be analysed because PCR inhibitors were present"
+      - "The target DNA is detected although the species is absent from the site"
+      - "A negative control amplifies, so the whole PCR plate must be repeated"
+    answer: 0
+    rationale: >-
+      A false negative is a miss: the organism or its DNA is present and the survey reports
+      nothing. Detecting DNA when the species is absent is the opposite error, a false positive.
+      An amplifying negative control signals contamination, which is a route to false positives,
+      not a false negative itself. An inhibited sample is an inconclusive result; it should be
+      recorded separately from a true non-detection rather than counted as one.
+  - stem: "Deiner and Altermatt detected Daphnia longispina DNA 12.3 km down the river Glatt from Lake Greifensee, where the species lives. What does a river eDNA positive at one site most directly show?"
+    choices:
+      - "A resident population of the species occurs at that sampling site"
+      - "Target DNA is in the water there, possibly carried from upstream"
+      - "DNA of any species travels about 12 km before it degrades"
+      - "The species has dispersed downstream within the last two days"
+    answer: 1
+    rationale: >-
+      A positive shows that target DNA was in the water at the sampling point; in flowing water
+      it can come from organisms upstream, as the lake-dwelling Daphnia showed. Treating it as a
+      resident population ignores transport. Reading it as recent dispersal of animals confuses
+      moved DNA with moved organisms, and the two-day figure in that option comes from Welsh stream mesocosms (Seymour and colleagues), not from this river study. The
+      12.3 km figure was the furthest location sampled for one species in one river, not a
+      general transport distance.
+  - stem: "A pond is represented by one water sample made from 20 pooled subsamples from around the pond, and that sample is run in 12 qPCR wells. How many independent field samples does the pond have?"
+    choices:
+      - "Thirty-two, because subsamples and wells each add evidence"
+      - "Twenty, because each subsample came from a different place"
+      - "One, because the subsamples were combined before extraction"
+      - "Twelve, because each qPCR well is a separate test of the pond"
+    answer: 2
+    rationale: >-
+      Pooling combines the twenty subsamples into one water sample before extraction, so the
+      pond has one field sample, as in the English newt surveys. Counting the twelve wells treats
+      laboratory replicates as if each drew new water from the pond. Counting twenty subsamples
+      ignores that pooling erased their separate identities. Adding subsamples and wells mixes
+      two levels of the hierarchy and inflates the evidence.
+  - stem: "Using gamma = 0.49 per extraction and delta = 0.38 per qPCR run, what is the probability that DNA present in a water sample is detected by one extraction analysed in five qPCR wells?"
+    choices:
+      - "0.19, the product of gamma and delta"
+      - "0.38, the chance that any one run amplifies"
+      - "0.91, the chance that five runs amplify"
+      - "0.45, gamma times the five-run probability"
+    answer: 3
+    rationale: >-
+      Five runs amplify captured DNA with probability 1 - 0.62^5 = 0.908, and the DNA must first
+      be captured, so 0.49 x 0.908 = 0.445. Multiplying gamma by a single delta gives the chance
+      for one well only. The 0.91 figure leaves out the capture step and so overstates detection.
+      The single-run value of 0.38 ignores both the capture step and the extra four runs.
+  - stem: "A team has a fixed budget. At an occupied pond, DNA is in a water sample with probability 0.60, and lab detection given DNA in the sample is already 0.95; pooling more subsamples into one sample would leave the 0.60 unchanged. Which change most reduces the chance of missing the pond?"
+    choices:
+      - "Report the result as a naive fraction of positive qPCR wells"
+      - "Run each extraction in twelve qPCR wells instead of five wells"
+      - "Take a second, independent water sample on a separate visit"
+      - "Pool forty subsamples into the single water sample"
+    answer: 2
+    rationale: >-
+      With one sample, the miss probability is 1 - 0.60 x 0.95 = 0.43, and almost all of it
+      comes from DNA being absent from the sample. A second independent sample brings it to about
+      0.43^2 = 0.185. More wells can only push lab detection from 0.95 toward 1, which lowers the
+      miss to no less than 0.40. Pooling more subsamples still yields one sample and, in the pig
+      trial, pooling the ten samples from a site underestimated occupancy. A naive fraction of positive wells is a summary,
+      not a way to detect more.
+
+mcatQuestions:
+  - stem: "Researchers add DNA from three species to outdoor stream mesocosms in upland Wales and measure it by qPCR in water and biofilm over time. More than 90% of the signal is lost within three hours, and the DNA is nondetectable within two days. Degradation is faster in the more acidic mesocosms. Which conclusion is best supported?"
+    choices:
+      - "Low pH alone caused the faster loss, independent of every other catchment factor"
+      - "Temperature has no effect on how long eDNA persists in natural waters"
+      - "eDNA in any stream disappears two days after the organism leaves the site"
+      - "eDNA persistence depended on the setting, with faster loss in acidic water here"
+    answer: 3
+    rationale: >-
+      The data show persistence varying with environment across these mesocosms, with faster
+      loss in acidic conditions, which is the scoped conclusion. A fixed two-day lifetime for all
+      streams generalizes one three-species experiment. pH varied along a natural gradient with
+      other catchment differences, so an isolated causal effect of acidity was not established.
+      No temperature effect was seen over a narrow, cool range, which says nothing about
+      temperature in warmer or more variable waters.
+  - stem: "An eDNA model uses three water samples per pond. At an occupied pond, each sample detects the species with probability 0.415. The prior probability of occupancy is 0.20, and false positives are assumed absent. All three samples are negative. What is the posterior probability that the pond is occupied?"
+    choices:
+      - "About 0.05, after weighting the misses by the prior"
+      - "About 0.20, the miss chance over three samples"
+      - "About 0.04, the chance an occupied pond gives three misses"
+      - "About 0.13, the value after a single negative"
+    answer: 0
+    rationale: >-
+      Three misses at an occupied pond have probability 0.585^3 = 0.200. Bayes' rule gives
+      0.20 x 0.200 / (0.80 + 0.20 x 0.200) = 0.040 / 0.840 = 0.048, about 0.05. The value 0.13 is
+      the posterior after one negative sample, 0.20 x 0.585 / (0.80 + 0.117), and leaves out the
+      other two. The value 0.04 is the joint
+      probability of being occupied and giving three misses, before dividing by the total chance
+      of three negatives. The value 0.200 is the probability of three misses if the pond is
+      occupied, not the probability of occupancy given the misses.
+  - stem: "A river survey detects an endangered mussel's eDNA at one site 5 km below a lake where the mussel is known to live. The field blank and the PCR negative controls are clean. A manager asks whether the mussel lives at the site. Which next step best tests that question?"
+    choices:
+      - "Report the site as occupied, because the controls were all clean"
+      - "Sample upstream and in tributaries, then search the site directly"
+      - "Discard the positive as contamination, because mussels live upstream"
+      - "Run the positive extract in twenty more qPCR wells to confirm it"
+    answer: 1
+    rationale: >-
+      The open question is where the DNA came from. Sampling above the site and in tributaries,
+      with repeated independent samples and a direct search, separates transport from a local
+      population. More wells from the same extract test the lab step, not the source of the
+      DNA. Clean controls argue against contamination but not against transport from the lake,
+      so they do not establish residency. Discarding the positive throws away a real detection
+      that the clean controls support.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Animals leave tiny bits of themselves in water, like crumbs. Scientists can scoop up water
+      and look for those crumbs. If they find crumbs, an animal was nearby, but the water may have
+      carried them from far away. If they find none, the animal might still be there, because
+      crumbs are easy to miss, so they look several times before they decide.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Environmental DNA, or eDNA, is DNA that organisms shed into water or soil. A survey takes
+      water samples, extracts DNA and uses PCR to test for one species. Each step can miss: the
+      sample may hold no DNA, the extraction may not capture it, and a PCR run may not amplify
+      it. So a set of negatives lowers the chance that the species is present but does not make
+      it zero. Multiplying the chance of missing at each step tells you how many samples you need
+      before you can be fairly confident a site is empty.
+  - level: "college"
+    label: "College"
+    text: >-
+      eDNA detection is a nested observation process: at an occupied site, DNA is available in a
+      water sample with probability theta, captured by an extraction with probability gamma, and
+      amplified by a qPCR run with probability delta. Assuming conditional independence and no
+      false positives, per-sample detection is q = theta x (1 - (1 - gamma x A)^k), where A is the
+      chance that the runs on one extraction amplify and k is extractions per sample. The
+      probability of missing an occupied site with n samples is (1 - q)^n, and Bayes' rule
+      combines that with a prior to give the probability the site is still occupied. Because
+      laboratory replicates share one sample, they cannot push detection above theta; only
+      independent field samples can.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Hierarchical occupancy models estimate theta, gamma and delta jointly from replicate
+      structure, and they rest on assumptions a real survey can break: closure during sampling,
+      independence among samples given occupancy, constant parameters across sites and visits,
+      and either no false positives or a false-positive rate that is identifiable. Davis and
+      colleagues estimated gamma = 0.49 (SE 0.07) and delta = 0.38 (SE 0.04) for wild pig DNA in
+      central Texas, at sites whose occupancy was confirmed independently, and found availability
+      varied with month, pH and water-body type. Buxton and colleagues fitted two models to 2,958
+      English newt ponds and obtained overall occupancy of 0.26 and 0.47, with no ground truth to
+      check against (they judged the model ignoring false positives to overestimate), and noted that false-positive parameters can need calibration or
+      informative priors to be identified.
+
+      An open question is how to transfer detection parameters between species, waters and
+      seasons. A stop rule built on borrowed point estimates ignores their uncertainty and their
+      covariates; propagating parameter uncertainty through the posterior, and testing whether
+      decisions change, is the honest next step for any management use.
+
+anecdotes:
+  - title: "Known pigs, missed DNA"
+    source: "Davis et al., Ecology and Evolution (2018), doi:10.1002/ece3.4552."
+    text: >-
+      The central Texas wild pig trial was built so that every site in the analysis was known to
+      be occupied, confirmed by cameras and pig signs. That made every negative a miss by
+      definition. Even so, the model estimated that an extraction captured DNA present in a sample
+      only about half the time (0.49) and a single qPCR run amplified it 38% of the time. Pooling samples made things worse:
+      pooled data underestimated occupancy at sites where pigs were certainly present. The
+      laboratory negative controls never amplified, so there was no sign of contamination in the lab.
+  - title: "Seen in the pond, absent from the tube"
+    source: "Buxton et al., Scientific Reports (2021), doi:10.1038/s41598-021-91166-7."
+    text: >-
+      Among the English great crested newt surveys analysed by Buxton and colleagues were ponds
+      where newts had been confirmed by direct observation, 53 of the 2,958 sites. Thirteen percent of the samples from
+      those ponds showed no amplification at all. A negative eDNA result, even one built on
+      twelve qPCR replicates, is a probability statement about a site, and these samples are a
+      reminder that the newts do not stop existing when the tube stays flat.
+
+corpusTags:
+  - "environmental-dna"
+  - "occupancy-modelling"
+  - "detection-probability"
+  - "bayesian-inference"
+  - "reproducibility"
+  - "care-principles"
+  - "fair-data"
+draft: false
+---
+
+import EdnaDetectionLadder from '../../../components/EdnaDetectionLadder.astro';
+
+**At the 53 English ponds in a large eDNA survey where great crested newts had been seen directly, 13% of the eDNA water samples showed no amplification at all.** The newts were there. Their DNA was not found. So when a survey of a pond you care about comes back with every test negative, what have you actually learned, and is it enough to stop looking?
+
+This workshop puts together tools from across the course. You will read a detection dataset, turn negatives into a probability, decide what to do next, make the analysis something another person can rerun, and ask who decides how the data are used. The organism-level ideas of occupancy and detection come from [spatial populations](/lessons/spatial-populations/); the decision setting comes from [conservation](/lessons/conservation/) and [global change](/lessons/global-change/).
+
+## What eDNA detects and what it misses
+
+**Environmental DNA (eDNA)** is DNA that organisms shed into their surroundings, collected from water, soil or air and identified to species. In a targeted survey, you filter water, extract the DNA and run a quantitative PCR (qPCR) assay designed for one species. PCR and qPCR are taught in [recombinant DNA and PCR](/lessons/recombinant-dna-and-pcr/), and sequencing in [sequencing and genomes](/lessons/sequencing-and-genomes/); here all you need is that each qPCR run either amplifies the target or does not.
+
+A site is **occupied** if the species uses it during the survey. A detection is a molecular signal, and it can be wrong in two directions. A **false negative** is a miss: the organism or its DNA is present and nothing amplifies. A **false positive** is a report of the target when it is absent, and contamination of a sample or a reagent is one route to it. That is why blanks and negative controls travel through the whole workflow, and why positives are often sequenced to confirm the species.
+
+Think of the survey as a series of nets, each with holes. DNA must be in the water you scoop, the extraction must capture it, and the PCR run must amplify it. Each net can let the signal slip through. A positive can also mislead about place. In the river Glatt below Lake Greifensee, Switzerland, Kristy Deiner and Florian Altermatt (2014) detected the lake-dwelling water flea *Daphnia longispina* at every one of their sampled river locations, as far as 12.3 km downstream, but did not detect the mussel *Unio tumidus* beyond 9.1 km. In flowing water, a sample can carry DNA from upstream.
+
+DNA also decays. In upland Welsh stream mesocosms, DNA from three species fell by more than 90% within three hours and was nondetectable within two days, faster in acidic water (Seymour and colleagues, 2018). That is one experimental system, and it gives no universal eDNA lifetime.
+
+## Detection probability and an all-negative site
+
+Here is a made-up dataset for practice. Four ponds, two water samples each, two extractions per sample, five qPCR runs per extraction. Each string is the five runs of one extraction; 1 means amplification.
+
+| Pond | Sample 1 (extraction 1 / 2) | Sample 2 (extraction 1 / 2) |
+|---|---|---|
+| S1 | 10000 / 00000 | 00000 / 00000 |
+| S2 | 00000 / 00000 | 00000 / 00000 |
+| S3 | 00000 / 00000 | 00000 / 00000 |
+| S4 | 11100 / 00000 | 11000 / 00000 |
+
+Two of four ponds show amplification, so the naive positive fraction is 0.50. That is a count of detections, not an estimate of occupancy, because some of S2 and S3 may be occupied and missed.
+
+**Worked problem.** How likely is it that S2 is occupied? You need a model and its assumptions. Assume no false positives, occupancy fixed during sampling, and each stage independent given the stage above it. Borrow, purely as illustrative values, two estimates from the wild pig study in central Texas by Amy Davis and colleagues (2018): **gamma** = 0.49, the chance an extraction captures DNA that is in the sample, and **delta** = 0.38, the chance one qPCR run amplifies captured DNA. Then assign two choices of our own: **theta** = 0.60, the chance DNA is in a water sample at an occupied pond, and a prior occupancy of 0.20. None of these can be estimated from four ponds.
+
+1. *PCR stage.* One run misses with probability 1 - 0.38 = 0.62. All five miss with 0.62^5 = 0.092, so A = 1 - 0.092 = 0.908.
+2. *Extraction stage.* One extraction detects with 0.49 x 0.908 = 0.445, and misses with 0.555. Both miss with 0.555^2 = 0.308, so B = 0.692.
+3. *Sample stage.* Per-sample detection q = 0.60 x 0.692 = 0.415, so a sample misses with 0.585.
+4. *Two samples.* Both miss at an occupied pond with 0.585^2 = 0.342.
+5. *Bayes' rule.* With no false positives, an empty pond always gives negatives. The multiplication of independent chances is the product rule from [probability and crosses](/lessons/probability-and-crosses/).
+
+> **P(occupied | all negative) = prior x m / [(1 - prior) + prior x m]**
+
+Here m = 0.342: 0.20 x 0.342 / (0.80 + 0.068) = 0.068 / 0.868 = 0.079, about 7.9%.
+
+6. *Decide.* If the team's rule is to stop only when the probability of occupancy falls to 5% or below, 7.9% says sample again. A third negative sample gives 0.585^3 = 0.200, and 0.040 / 0.840 = 0.048, about 4.8%, just under the line.
+
+Notice what these numbers depend on. The 0.60, the 0.20 and the 5% are choices. Gamma and delta come from one species, one region and one autumn, and each has a standard error. Change any of them and the decision can change.
+
+<EdnaDetectionLadder />
+
+## Sampling design: field replicates versus PCR replicates
+
+Why not run more wells instead? Because wells share a sample. If the scoop held no DNA, no number of runs will find it. In the model above, even perfect lab work gives q no higher than theta = 0.60. One sample can then bring the posterior no lower than 0.20 x 0.40 / (0.80 + 0.08) = 0.091, above the threshold. Only another independent sample attacks that 40%.
+
+Treating wells as independent field samples is **pseudoreplication**, counting repeated measurements of one unit as if they were separate units. If you pretended the 20 wells at S2 were 20 independent tries, each detecting with 0.60 x 0.49 x 0.38 = 0.112, you would get a miss probability of 0.888^20 = 0.094 and a posterior of 2.3%. You would stop, on an error in the model rather than evidence. Pooling has the same trap: in the English newt surveys analysed by Andrew Buxton and colleagues (2021), twenty subsamples from around the pond were combined into one water sample per pond, which is one field sample. In the Texas pig trial, pooled samples underestimated occupancy at sites known to be occupied.
+
+Buxton's simulations found that replicating both field collection and lab analysis reduced bias and narrowed credible intervals. The same study shows how much the model matters: two published models fitted to the same 2,958 ponds surveyed in 2019 gave overall occupancy of 0.26 and 0.47, and the true answer was unknown.
+
+### Design problem
+
+A river survey detects an endangered mussel's eDNA at one site 5 km below a lake where the mussel lives. Does the mussel occur at the site? Design the follow-up.
+
+<details>
+<summary>One way to do it</summary>
+
+Start from what a positive can mean: a local population, DNA carried down from the lake, or contamination. In the Glatt below Lake Greifensee, DNA of the lake mussel *Unio tumidus* was detected downstream of the lake, though not beyond 9.1 km, so a positive 5 km below a source lake is consistent with transport in at least one river.
+
+1. *Rule out contamination.* Carry field blanks, extraction blanks and PCR negatives through every batch, and sequence positives to confirm the species.
+2. *Test transport.* Sample a transect from the lake outlet down past the site, plus each tributary entering between them. A local population predicts a signal that rises or persists at and below the site; transport alone predicts a signal that fades with distance from the lake.
+3. *Replicate in the field.* Take several independent water samples per site on separate dates, not more wells from one sample, and record flow and pH.
+4. *Model and confirm.* Fit an occupancy model with stated assumptions, then search the site directly with a method suited to mussels.
+5. *Agree access first.* Settle with whoever governs the river and the data how results will be shared.
+
+</details>
+
+## Reproducible analysis and the decision
+
+A stop-or-continue call is only as trustworthy as the path from raw data to number. Keep the raw file untouched and work on copies. Write a **data dictionary** that defines every column: site, date, sample, extraction, PCR replicate, control, treatment, covariates. Record a non-detection differently from a missing, inhibited or inconclusive run, because an inhibited well is not a negative.
+
+Sandve and colleagues (2013) set out rules for computational work that apply directly: replace manual editing with scripts, archive the exact versions of the programs used, record every parameter and input, and record random seeds whenever an analysis uses randomness. FAIR (findable, accessible, interoperable, reusable) adds provenance and a clear licence. Then rerun the whole thing from the raw file and check you get 7.9% again, with theta, the prior and the threshold written next to it.
+
+## Whose data? CARE and FAIR
+
+Surveys happen on someone's land and water. FAIR is about making data usable by machines and people, and it permits authentication and authorization; it does not mean open to all. The **CARE principles** for Indigenous data governance add the question of who decides. They were drafted at a workshop in Gaborone, Botswana, on 8 November 2018 and published in 2020: **Collective Benefit** (data should bring benefits to Indigenous Peoples), **Authority to Control** (Indigenous Peoples determine governance protocols for their data), **Responsibility** (respectful relationships with the people the data come from) and **Ethics** (their rights and wellbeing are central across the data's life). A 2021 paper describes CARE as a complement to FAIR that covers scientific data as well as traditional knowledge.
+
+This workshop uses no real community dataset, and it claims no permission. If you merged eDNA results with observations from a community, you would first identify the rights holders, the intended benefit and the permitted purpose, and get their protocols rather than treating a downloadable file as permission. Technical access and the authority to reuse are separate questions.

@@ -1,0 +1,378 @@
+---
+/**
+ * TreeRotationReader — the rooted tree (lamprey, (shark, (trout, (frog, human)))) of the
+ * reading-phylogenetic-trees lesson. The learner rotates a node (the page changes, nothing
+ * reported does), picks two tips to find their most recent common ancestor, and maps a
+ * character onto the branches by parsimony (jaws, or the made-up character X as mapping a, b
+ * or c). Every readout is computed from the tree's clades and the mapping, never from where
+ * a tip is drawn. Labelled lines, circles and squares only. Self-contained vanilla-TS island.
+ * Original.
+ */
+---
+
+<figure class="trr card" data-trr>
+  <figcaption class="trr-head">Tree reader: rotate a node, find an ancestor, map a character<span class="trr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="trr-svg" viewBox="0 0 360 200" role="img" aria-label="A rooted tree of lamprey, shark, trout, frog and human with internal nodes R, J, B and T" data-stage></svg>
+
+  <div class="trr-row">
+    <label class="trr-lab">Node
+      <select data-node>
+        <option value="R">R (root)</option>
+        <option value="J">J</option>
+        <option value="B">B</option>
+        <option value="T" selected>T</option>
+      </select>
+    </label>
+    <button type="button" class="trr-btn" data-rotate>Rotate this node</button>
+  </div>
+  <div class="trr-row">
+    <label class="trr-lab">Tip 1
+      <select data-tipa>
+        <option value="lamprey">lamprey</option>
+        <option value="shark">shark</option>
+        <option value="trout" selected>trout</option>
+        <option value="frog">frog</option>
+        <option value="human">human</option>
+      </select>
+    </label>
+    <label class="trr-lab">Tip 2
+      <select data-tipb>
+        <option value="lamprey">lamprey</option>
+        <option value="shark">shark</option>
+        <option value="trout">trout</option>
+        <option value="frog">frog</option>
+        <option value="human" selected>human</option>
+      </select>
+    </label>
+  </div>
+  <div class="trr-row">
+    <label class="trr-lab">Character
+      <select data-char>
+        <option value="jaws">Jaws (present in shark, trout, frog, human)</option>
+        <option value="Xa">X, mapping (a): gain, then loss in frog</option>
+        <option value="Xb">X, mapping (b): two separate gains</option>
+        <option value="Xc">X, mapping (c): gain at the base, two losses</option>
+      </select>
+    </label>
+  </div>
+
+  <p class="trr-verdict" data-verdict role="status"></p>
+
+  <dl class="trr-read" data-read></dl>
+
+  <p class="trr-assume">In this sketch: parsimony only, with the outgroup (lamprey) state taken as ancestral; tip states for X are made up; branch lengths mean nothing; bootstrap values are the lesson’s two example numbers.</p>
+  <p class="trr-selfcheck" data-selfcheck></p>
+  <p class="trr-foot">Find the most recent common ancestor; do not read relatedness from how the tips are drawn. Rotating a node, tip order and node counts change nothing, and a bootstrap value is a percentage of replicate trees, not a probability that the clade is true. This is a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg";
+  type Kids = Record<string, string[]>;
+  type States = Record<string, number>;
+  const TIPS = ["lamprey", "shark", "trout", "frog", "human"];
+  const NODES = ["R", "J", "B", "T"];
+  const KIDS0: Kids = { R: ["lamprey", "J"], J: ["shark", "B"], B: ["trout", "T"], T: ["frog", "human"] };
+  const PARENT: Record<string, string> = {};
+  for (const p of NODES) for (const c of KIDS0[p]) PARENT[c] = p;
+  const XPOS: Record<string, number> = { R: 30, J: 85, B: 140, T: 195 };
+  const TIPX = 248;
+  // Bootstrap values the lesson supposes for two clades: (frog, human) = T, (trout, (frog, human)) = B.
+  const SUPPORT: Record<string, number> = { T: 98, B: 72 };
+
+  type Ch = { key: string; label: string; tips: States; inner: States; name: string; tipWord: [string, string] };
+  const JAWS_TIPS: States = { lamprey: 0, shark: 1, trout: 1, frog: 1, human: 1 };
+  const X_TIPS: States = { lamprey: 0, shark: 0, trout: 1, frog: 0, human: 1 };
+  const CHARS: Ch[] = [
+    { key: "jaws", label: "Jaws", name: "jaws", tips: JAWS_TIPS, inner: { R: 0, J: 1, B: 1, T: 1 }, tipWord: ["absent", "present"] },
+    { key: "Xa", label: "X (a)", name: "character X", tips: X_TIPS, inner: { R: 0, J: 0, B: 1, T: 1 }, tipWord: ["state 0", "state 1"] },
+    { key: "Xb", label: "X (b)", name: "character X", tips: X_TIPS, inner: { R: 0, J: 0, B: 0, T: 0 }, tipWord: ["state 0", "state 1"] },
+    { key: "Xc", label: "X (c)", name: "character X", tips: X_TIPS, inner: { R: 0, J: 1, B: 1, T: 1 }, tipWord: ["state 0", "state 1"] },
+  ];
+
+  // ---- pure functions: everything reported comes from the clades, never from the drawing ----
+  function applyFlips(flips: Record<string, boolean>): Kids {
+    const k: Kids = {};
+    for (const n of NODES) k[n] = flips[n] ? [...KIDS0[n]].reverse() : [...KIDS0[n]];
+    return k;
+  }
+  function leavesOf(kids: Kids, id: string): string[] {
+    if (!kids[id]) return [id];
+    return kids[id].flatMap((c) => leavesOf(kids, c));
+  }
+  function mrca(kids: Kids, a: string, b: string): string {
+    let best = "", size = 99;
+    for (const n of NODES) {
+      const L = leavesOf(kids, n);
+      if (L.includes(a) && L.includes(b) && L.length < size) { best = n; size = L.length; }
+    }
+    return best;
+  }
+  function below(kids: Kids, n: string): string[] {
+    return NODES.filter((m) => m !== n && leavesOf(kids, n).length > leavesOf(kids, m).length && leavesOf(kids, m).every((t) => leavesOf(kids, n).includes(t)));
+  }
+  function fullStates(ch: Ch, inner: States): States {
+    return { ...ch.tips, ...inner };
+  }
+  function changesOf(st: States): { child: string; kind: "gain" | "loss" }[] {
+    const out: { child: string; kind: "gain" | "loss" }[] = [];
+    for (const c of Object.keys(PARENT)) if (st[PARENT[c]] !== st[c]) out.push({ child: c, kind: st[c] === 1 ? "gain" : "loss" });
+    return out;
+  }
+  // Number of separate gains that the state-1 tips descend from.
+  function origins(st: States): string[] {
+    const set = new Set<string>();
+    for (const t of TIPS) if (st[t] === 1) {
+      let c = t;
+      while (PARENT[c] && st[PARENT[c]] === 1) c = PARENT[c];
+      set.add(c);
+    }
+    return [...set];
+  }
+  // Try every assignment of 0/1 to J, B and T with R fixed to the outgroup state.
+  function search(ch: Ch) {
+    const all: { inner: States; cost: number; homol: boolean }[] = [];
+    for (let m = 0; m < 8; m++) {
+      const inner: States = { R: ch.tips.lamprey, J: m & 1, B: (m >> 1) & 1, T: (m >> 2) & 1 };
+      const st = fullStates(ch, inner);
+      all.push({ inner, cost: changesOf(st).length, homol: origins(st).length === 1 });
+    }
+    const min = Math.min(...all.map((a) => a.cost));
+    return { min, optimal: all.filter((a) => a.cost === min) };
+  }
+  function branchName(c: string): string {
+    return TIPS.includes(c) ? `the branch to ${c}` : `the branch from ${PARENT[c]} to ${c}`;
+  }
+  function listJoin(a: string[]): string {
+    return a.length <= 1 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+  }
+  function cladeSig(kids: Kids): string {
+    return NODES.map((n) => n + ":" + leavesOf(kids, n).slice().sort().join("+")).join("|");
+  }
+  function readoutsSig(kids: Kids): string {
+    const parts: string[] = [cladeSig(kids)];
+    for (const a of TIPS) for (const b of TIPS) if (a < b) parts.push(a + b + mrca(kids, a, b));
+    for (const ch of CHARS) {
+      const st = fullStates(ch, ch.inner);
+      parts.push(ch.key + changesOf(st).length + (origins(st).length === 1 ? "H" : "C"));
+    }
+    return parts.join(";");
+  }
+
+  // ---- built-in checker ----
+  function selfCheck(): { ok: boolean; n: number; fail: string } {
+    let n = 0; const fails: string[] = [];
+    const t = (cond: boolean, msg: string) => { n++; if (!cond) fails.push(msg); };
+    const base = applyFlips({});
+    const baseSig = readoutsSig(base);
+    for (let m = 0; m < 16; m++) {
+      const fl: Record<string, boolean> = {};
+      NODES.forEach((nd, i) => { fl[nd] = !!((m >> i) & 1); });
+      t(readoutsSig(applyFlips(fl)) === baseSig, "rotation " + m + " changed a readout");
+    }
+    t(mrca(base, "trout", "human") === "B", "trout-human not B");
+    t(mrca(base, "trout", "shark") === "J", "trout-shark not J");
+    t(mrca(base, "frog", "human") === "T", "frog-human not T");
+    t(mrca(base, "lamprey", "human") === "R", "lamprey-human not R");
+    const cost = (k: string) => changesOf(fullStates(CHARS.find((c) => c.key === k)!, CHARS.find((c) => c.key === k)!.inner)).length;
+    t(cost("jaws") === 1, "jaws not 1");
+    t(cost("Xa") === 2, "X(a) not 2");
+    t(cost("Xb") === 2, "X(b) not 2");
+    t(cost("Xc") === 3, "X(c) not 3");
+    const sj = search(CHARS[0]), sx = search(CHARS[1]);
+    t(sj.min === 1 && sj.optimal.length === 1, "jaws minimum not unique 1");
+    t(sx.min === 2 && sx.optimal.length === 2, "X minimum not a two-way tie at 2");
+    t(sx.optimal.some((o) => o.homol) && sx.optimal.some((o) => !o.homol), "tie is not homology versus convergence");
+    return { ok: fails.length === 0, n, fail: fails.join("; ") };
+  }
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-trr]").forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>("[data-stage]")!;
+    const selNode = root.querySelector<HTMLSelectElement>("[data-node]")!;
+    const selA = root.querySelector<HTMLSelectElement>("[data-tipa]")!;
+    const selB = root.querySelector<HTMLSelectElement>("[data-tipb]")!;
+    const selCh = root.querySelector<HTMLSelectElement>("[data-char]")!;
+    const verdict = root.querySelector<HTMLElement>("[data-verdict]")!;
+    const read = root.querySelector<HTMLElement>("[data-read]")!;
+    const scEl = root.querySelector<HTMLElement>("[data-selfcheck]")!;
+
+    const flips: Record<string, boolean> = {};
+    let rotations = 0;
+    let lastRot = "";
+
+    const INK = "#4b4b55", FAINT = "#8a8a96", ACC = "#e57200", TEAL = "#0e7c86", RED = "#b3261e";
+
+    function layout(kids: Kids) {
+      const y: Record<string, number> = {};
+      const order: string[] = [];
+      (function walk(id: string) {
+        if (!kids[id]) { order.push(id); return; }
+        kids[id].forEach(walk);
+      })("R");
+      order.forEach((t, i) => { y[t] = 26 + i * 34; });
+      (function fill(id: string): number {
+        if (!kids[id]) return y[id];
+        const ys = kids[id].map(fill);
+        y[id] = ys.reduce((a, b) => a + b, 0) / ys.length;
+        return y[id];
+      })("R");
+      return { y, order };
+    }
+
+    function draw(kids: Kids, ch: Ch, a: string, b: string, m: string | null) {
+      const { y } = layout(kids);
+      const st = fullStates(ch, ch.inner);
+      const onPath = new Set<string>();
+      if (m) for (const t of [a, b]) {
+        let c = t;
+        while (c !== m) { onPath.add(c); c = PARENT[c]; }
+      }
+      const posX = (id: string) => (XPOS[id] !== undefined ? XPOS[id] : TIPX);
+      stage.replaceChildren();
+      // branches
+      for (const c of Object.keys(PARENT)) {
+        const p = PARENT[c];
+        const hot = onPath.has(c);
+        stage.appendChild(el("path", { d: `M${XPOS[p]} ${y[p]} V${y[c]} H${posX(c)}`, fill: "none", stroke: hot ? ACC : INK, "stroke-width": hot ? 3 : 1.5, "stroke-linejoin": "round" }));
+      }
+      // changes on branches
+      for (const ev of changesOf(st)) {
+        const p = PARENT[ev.child];
+        const mx = (XPOS[p] + posX(ev.child)) / 2, my = y[ev.child];
+        const col = ev.kind === "gain" ? TEAL : RED;
+        stage.appendChild(el("circle", { cx: mx, cy: my, r: 7.5, fill: col, stroke: "#fff", "stroke-width": 1.5 }));
+        stage.appendChild(el("text", { x: mx, y: my + 4, "font-size": 12, "font-weight": 700, "text-anchor": "middle", fill: "#fff" }, ev.kind === "gain" ? "+" : "−"));
+      }
+      // tips
+      for (const t of TIPS) {
+        const sel = t === a || t === b;
+        const on = st[t] === 1;
+        stage.appendChild(el("rect", { x: TIPX, y: y[t] - 7, width: 14, height: 14, rx: 3, fill: on ? TEAL : "#fff", stroke: on ? TEAL : FAINT, "stroke-width": 1.2 }));
+        stage.appendChild(el("text", { x: TIPX + 7, y: y[t] + 4, "font-size": 10, "font-weight": 700, "text-anchor": "middle", fill: on ? "#fff" : INK }, String(st[t])));
+        stage.appendChild(el("text", { x: TIPX + 22, y: y[t] + 4, "font-size": 11, "font-weight": sel ? 700 : 400, fill: sel ? ACC : INK }, t));
+      }
+      // nodes
+      for (const n of NODES) {
+        const isM = n === m, isSel = n === selNode.value;
+        if (isSel) stage.appendChild(el("circle", { cx: XPOS[n], cy: y[n], r: 13, fill: "none", stroke: INK, "stroke-width": 1.2, "stroke-dasharray": "3 2" }));
+        stage.appendChild(el("circle", { cx: XPOS[n], cy: y[n], r: 8.5, fill: isM ? ACC : "#fff", stroke: isM ? ACC : INK, "stroke-width": 1.5 }));
+        stage.appendChild(el("text", { x: XPOS[n], y: y[n] + 3.5, "font-size": 10, "font-weight": 700, "text-anchor": "middle", fill: isM ? "#fff" : INK }, n));
+      }
+      // legend, fixed place
+      stage.appendChild(el("circle", { cx: 14, cy: 188, r: 6, fill: TEAL }));
+      stage.appendChild(el("text", { x: 14, y: 192, "font-size": 11, "font-weight": 700, "text-anchor": "middle", fill: "#fff" }, "+"));
+      stage.appendChild(el("text", { x: 24, y: 192, "font-size": 10, fill: INK }, "gain"));
+      stage.appendChild(el("circle", { cx: 66, cy: 188, r: 6, fill: RED }));
+      stage.appendChild(el("text", { x: 66, y: 192, "font-size": 11, "font-weight": 700, "text-anchor": "middle", fill: "#fff" }, "−"));
+      stage.appendChild(el("text", { x: 76, y: 192, "font-size": 10, fill: INK }, "loss"));
+      stage.appendChild(el("text", { x: 118, y: 192, "font-size": 10, fill: INK }, ch.key === "jaws" ? "jaws: absent = 0, present = 1" : "character X: tip state 0 or 1"));
+    }
+
+    function render() {
+      const kids = applyFlips(flips);
+      const ch = CHARS.find((c) => c.key === selCh.value)!;
+      const a = selA.value, b = selB.value;
+      const same = a === b;
+      const m = same ? null : mrca(kids, a, b);
+      draw(kids, ch, a, b, m);
+      stage.setAttribute("aria-label", `Rooted tree, tips top to bottom: ${layout(kids).order.join(", ")}. ${m ? `${a} and ${b} meet at node ${m}.` : ""}`);
+
+      const st = fullStates(ch, ch.inner);
+      const evs = changesOf(st);
+      const cost = evs.length;
+      const src = origins(st);
+      const homol = src.length === 1;
+      const s = search(ch);
+      const optHomol = s.optimal.filter((o) => o.homol).length, optConv = s.optimal.length - optHomol;
+      const tipsOn = TIPS.filter((t) => st[t] === 1);
+
+      // readouts
+      const mrcaTxt = m ? `node ${m}` : "choose two different tips";
+      const changeTxt = `${cost} change${cost === 1 ? "" : "s"}: ` + evs.map((e) => `${e.kind} on ${branchName(e.child)}`).join("; ");
+      const callTxt = homol
+        ? (cost > s.min ? `homology by the one-origin definition (this mapping is not the most parsimonious): ${listJoin(tipsOn)} descend from one gain, on ${branchName(src[0])}` : `homology under this mapping: ${listJoin(tipsOn)} descend from one gain, on ${branchName(src[0])}`)
+        : `convergence under this mapping: ${src.length} separate gains, on ${listJoin(src.map(branchName))}`;
+      let parsTxt: string;
+      if (cost > s.min) parsTxt = `fewest possible is ${s.min}; this mapping uses ${cost}, so parsimony prefers a different mapping`;
+      else if (optHomol > 0 && optConv > 0) parsTxt = `fewest possible is ${s.min}, reached by ${s.optimal.length} mappings, one homology and one convergence: parsimony alone cannot choose between them`;
+      else parsTxt = `fewest possible is ${s.min}, reached by ${s.optimal.length === 1 ? "this one mapping only" : s.optimal.length + " mappings"}`;
+      let supTxt = "not given in the lesson for this node";
+      if (m && SUPPORT[m] !== undefined) supTxt = `In the lesson’s supposed example, the clade at node ${m} has bootstrap ${SUPPORT[m]}: it appeared in ${SUPPORT[m]}% of replicate trees, which is not a ${SUPPORT[m]}% probability that it is true`;
+      else if (!m) supTxt = "choose two different tips";
+      const order = layout(kids).order;
+      const rotTxt = `${rotations} so far. Top to bottom the tips now read ${order.join(", ")}, which means nothing. Clades: ${NODES.filter((n) => n !== "R").map((n) => `${n} = ${leavesOf(kids, n).slice().sort().join("+")}`).join("; ")}, same members as at the start`;
+
+      read.innerHTML = "";
+      const rows: [string, string][] = [
+        ["Most recent common ancestor", mrcaTxt],
+        ["Changes needed", changeTxt],
+        ["Homology or convergence", callTxt],
+        ["Parsimony", parsTxt],
+        ["Bootstrap support", supTxt],
+        ["Rotations", rotTxt],
+      ];
+      for (const [k, v] of rows) {
+        const dt = document.createElement("dt"); dt.textContent = k;
+        const dd = document.createElement("dd"); dd.textContent = v;
+        read.appendChild(dt); read.appendChild(dd);
+      }
+
+      // status
+      let v = "";
+      if (lastRot) v += lastRot + " ";
+      if (same) v += "Pick two different tips to find their most recent common ancestor. ";
+      else if (m) {
+        const bl = below(kids, m);
+        v += `${a} and ${b} meet at node ${m}, the latest node from which both descend. `;
+        v += bl.length ? `Node ${m} is ancestral to ${listJoin(bl)}, so it is older than ${bl.length === 1 ? "that node" : "those nodes"}. ` : `No other node on this tree lies below ${m}. `;
+      }
+      if (ch.key === "jaws") v += "Jaws are absent in lamprey and present in the other four. Taking the outgroup’s state, absence, as ancestral, one gain on the branch from R to J explains all five tips: 1 change, so jaws in shark and human are homologous under this mapping.";
+      else if (ch.key === "Xa") v += "Character X is made up. Mapping (a): a gain on the branch from J to B gives state 1 to trout, frog and human, then a loss on the branch to frog: 2 changes, and X in trout and human is homologous here.";
+      else if (ch.key === "Xb") v += "Character X is made up. Mapping (b): a separate gain on the branch to trout and another on the branch to human: 2 changes, and X in trout and human is convergent here. It ties with mapping (a), so parsimony alone cannot tell homology from convergence; more evidence is needed, such as the developmental or genetic basis of X, fossils with intermediate states, or more taxa.";
+      else v += "Character X is made up. Mapping (c): a gain on the branch from R to J, then losses in shark and in frog: 3 changes, one more than the minimum of 2.";
+      verdict.textContent = v.trim();
+    }
+
+    selNode.addEventListener("change", () => { lastRot = ""; render(); });
+    root.querySelector<HTMLButtonElement>("[data-rotate]")!.addEventListener("click", () => {
+      const n = selNode.value;
+      flips[n] = !flips[n];
+      rotations++;
+      const [c1, c2] = KIDS0[n].map((c) => (TIPS.includes(c) ? c : "the clade under " + c));
+      lastRot = `Rotated node ${n}: its two branches (${c1} and ${c2}) swap places on the page. Every clade has the same members, so the common ancestor, the change count and the homology call are unchanged.`;
+      render();
+    });
+    [selA, selB, selCh].forEach((s) => s.addEventListener("change", () => { lastRot = ""; render(); }));
+
+    const sc = selfCheck();
+    scEl.textContent = sc.ok
+      ? `Checker: ${sc.n} checks pass. All 16 rotation states give identical readouts; trout and human meet at B, trout and shark at J; jaws cost 1, X costs 2, 2 and 3; mappings (a) and (b) tie.`
+      : `Checker FAILED: ${sc.fail}`;
+    render();
+  });
+</script>
+
+<style is:global>
+  .trr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .trr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .trr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .trr-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .trr-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.4rem 0.8rem; margin: 0.35rem 0; }
+  .trr-lab { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); max-width: 100%; }
+  .trr-lab select { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding: 0.25rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; max-width: 100%; }
+  .trr-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .trr-btn:focus-visible, .trr-lab select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .trr-verdict { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .trr-read { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .trr-read dt { font-weight: 700; color: var(--ddp-color-muted); margin-top: 0.4rem; }
+  .trr-read dd { margin: 0; overflow-wrap: anywhere; }
+  .trr-assume, .trr-selfcheck { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .trr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
