@@ -3,8 +3,10 @@ import type { Lesson } from '../schema';
 
 interface Props {
   lesson: Lesson;
+  /** AI-generated illustrations placed in the lesson body (<LessonFigure>), read from the MDX. */
+  figures?: { src: string; alt: string }[];
 }
-const { lesson } = Astro.props;
+const { lesson, figures = [] } = Astro.props;
 
 const rcsb = lesson.structures.filter((s) => s.source === 'rcsb');
 const pubchem = lesson.structures.filter((s) => s.source === 'pubchem');
@@ -185,7 +187,26 @@ const pubchemNote = idEcho('CID');
 
     <div class="src-block">
       <h3>Images &amp; figures</h3>
-      {lesson.images.length === 0 && slideCount === 0 && portraitCount === 0 ? (
+      {figures.length > 0 && (
+        <>
+          <p class="src-meta">
+            {figures.length} illustration{figures.length === 1 ? '' : 's'} in this lesson
+            {figures.length === 1 ? ' is' : ' are'} <span class="ai-flag">AI-generated</span>: drawn by an image
+            model from a written spec, then checked by a separate AI judge against the spec and the lesson
+            text. None shows a chemical structure or data.
+          </p>
+          <ul>
+            {figures.map((f) => <li><span class="src-meta">{f.alt.replace(/^AI-generated illustration:\s*/, '')}</span></li>)}
+          </ul>
+        </>
+      )}
+      {lesson.images.length === 0 && figures.length > 0 ? (
+        <p class="src-meta">
+          {slideCount > 0 && `Its ${slideCount} lecture slides are listed above with their credits. `}
+          {portraitCount > 0 && `Its ${portraitCount} scientist portrait${portraitCount === 1 ? ' is an' : 's are'} AI-generated illustration${portraitCount === 1 ? '' : 's'}, disclosed under Scientist profiles & quotes. `}
+          Every 3D structure is rendered live from an accession ID, and every plot is drawn from its equation in the browser.
+        </p>
+      ) : lesson.images.length === 0 && slideCount === 0 && portraitCount === 0 ? (
         <p class="src-meta">
           This lesson carries <strong>no raster figures</strong>. Every structure is
           rendered live from RCSB&nbsp;PDB or PubChem, and every plot is drawn from
