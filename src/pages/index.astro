@@ -33,45 +33,34 @@ const cards = COURSES.map((c) => {
   };
 }).filter((k) => k.lessons > 0);
 const tiers = [
-  { key: 'core', title: 'Core courses', note: 'The foundation subjects: the ones a first degree in biology is built on, and the ones the MCAT tests.' },
+  { key: 'core', title: 'Core courses', note: 'The foundation subjects: the ones a first degree in biology is built on, and the ones the MCAT tests. The numbers are a suggested order; each course also stands on its own.' },
   { key: 'elective', title: 'Electives', note: 'One subject taken further, for students who have the core behind them.' },
 ].map((t) => ({ ...t, cards: cards.filter((k) => k.c.tier === t.key) })).filter((t) => t.cards.length > 0);
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 ---
 
 <BaseLayout
-  title="Biochemistrypedia — free interactive courses in biochemistry and cell biology"
-  description="Free interactive courses in biochemistry and cell biology, for the students who'd rather understand it than survive it. Real molecules loaded live, simulations you move, short films of the experiments, verified answers, and the scientists who found it."
+  title="Biochemistrypedia — free biology courses, from molecules to ecosystems"
+  description="Free biology courses from molecules to ecosystems. Each lesson pairs a short reading with a film of the experiment behind it, a simulation you can change, and questions with checked answers."
 >
   <section class="hero wrap">
-    <p class="eyebrow">
-      <span>Biochemistrypedia · the Deppmann Lab</span>
-      <span class="rule" aria-hidden="true"></span>
-    </p>
 
-    <h1>You understand biology once you can <em>turn it over in your hands.</em></h1>
+    <h1>Biology from molecules to ecosystems. <em>Free, for anyone.</em></h1>
 
     <div class="goldrule" aria-hidden="true"></div>
 
     <p class="lede">
-      Most students meet biology as a wall of terms to get past before the exam,
-      and never reach the part where it's astonishing. These are free courses
-      where you change something and watch the cell answer back, until you walk
-      away understanding <em>why</em> a thing happens, not just remembering
-      <em>that</em> it does. Hemoglobin stops being four letters on a slide and
-      becomes a real protein you can rotate yourself. A signaling pathway stops
-      being a chart of arrows and becomes an experiment somebody ran, and you can
-      watch it.
+      Each lesson pairs a short reading with a film of the experiment behind it,
+      a simulation you can change, and questions with checked answers. Start at
+      the beginning or wherever you're stuck.
     </p>
 
-    <p class="tagline">For students who'd rather understand it than survive it.</p>
-
-    {/* The primary action is the catalog one anchor away; the first core
-        course and the arcade sit beside it. */}
+    {/* The primary action is the catalog one anchor away; the first course
+        on the suggested path and the arcade sit beside it. */}
     <p class="hero-cta">
       <a class="cta" href="#courses">Browse the courses ↓</a>
       <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
-      <a class="cta-ghost" href={courseHref('biochemistry')}>Start with Biochemistry →</a>
+      <a class="cta-ghost" href={courseHref('cell-biology')}>Start with Cell Biology →</a>
     </p>
   </section>
 
@@ -87,12 +76,12 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
         <h2 class="tier-h" id={`tier-${t.key}`}>{t.title}</h2>
         <p class="tier-note">{t.note}</p>
         <ul class="course-list">
-          {t.cards.map((k) => (
+          {t.cards.map((k, i) => (
             <li>
               <a href={courseHref(k.c.slug)} class="course-card">
                 <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /></span>
                 <span class="cc-body">
-                  <span class="cc-kicker">{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}</span>
+                  <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}</span>
                   <span class="cc-title">{k.c.title}</span>
                   <span class="cc-tag">{k.c.tagline}</span>
                   <span class="cc-units">{k.unitNames.join(' · ')}</span>
@@ -233,22 +222,6 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       .goldrule { margin: var(--ddp-space-4) 0; }
       .hero-cta { margin-top: var(--ddp-space-4); }
     }
-    .eyebrow {
-      display: flex;
-      align-items: center;
-      gap: var(--ddp-space-4);
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--ddp-color-caution);
-      margin: 0 0 var(--ddp-space-4);
-    }
-    .eyebrow .rule {
-      flex: 1;
-      height: 1px;
-      background: var(--ddp-color-line);
-    }
     .hero h1 {
       font-family: var(--ddp-font-serif);
       font-weight: 500;
@@ -279,13 +252,6 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
     .lede em {
       font-style: italic;
       color: var(--ddp-color-ink);
-    }
-    .tagline {
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-sm);
-      letter-spacing: 0.04em;
-      color: var(--ddp-color-caution);
-      margin: var(--ddp-space-4) 0 0;
     }
     .hero-cta {
       display: flex;
@@ -436,6 +402,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       transform-origin: top;
       transition: transform 0.22s ease;
     }
+    .cc-step { color: var(--ddp-color-caution); font-weight: 600; }
     .course-card:hover { transform: translateY(-3px); box-shadow: var(--ddp-shadow); text-decoration: none; }
     .course-card:hover::before { transform: scaleY(1); }
     .cc-ico { flex: none; line-height: 0; margin-top: 2px; }
@@ -462,24 +429,19 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       from { transform: scaleX(0); }
       to { transform: scaleX(1); }
     }
-    .hero .eyebrow,
     .hero h1,
     .hero .lede,
-    .hero .tagline,
     .register {
       animation: riseIn 0.5s ease both;
     }
     .hero h1 { animation-delay: 0.05s; }
     .hero .lede { animation-delay: 0.12s; }
-    .hero .tagline { animation-delay: 0.18s; }
     .register { animation-delay: 0.24s; }
     .goldrule { animation: drawRule 0.5s ease 0.1s both; }
 
     @media (prefers-reduced-motion: reduce) {
-      .hero .eyebrow,
       .hero h1,
       .hero .lede,
-      .hero .tagline,
       .register,
       .goldrule { animation: none !important; }
       .goldrule { transform: none; }
