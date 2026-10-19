@@ -1,0 +1,160 @@
+---
+/**
+ * MethodPopout — plays a method film in place when a reader clicks a method link in a lesson.
+ *
+ * Method links (a.method-link[data-method], made at build time by rehype-method-links and
+ * by the lesson's "Method films" row) are ordinary links to /methods/<slug>/. With JavaScript,
+ * a plain click opens this <dialog> instead: the film with captions, or, for a method whose
+ * film is not made yet, its one-line description. A modal <dialog> keeps focus inside it,
+ * closes on Esc, and returns focus to the link. Modified clicks (new tab) are left alone.
+ */
+import { allMethodsFor, filmLength } from '../data/methods';
+
+interface Props { lesson: string }
+const { lesson } = Astro.props;
+const data = Object.fromEntries(
+  allMethodsFor(lesson).map((m) => [
+    m.slug,
+    {
+      name: m.name,
+      summary: m.summary,
+      href: `/methods/${m.slug}/`,
+      film: m.film ? { src: m.film.src, captions: m.film.captions, poster: m.film.poster, title: m.film.title, len: filmLength(m.film.durationSec) } : null,
+    },
+  ]),
+);
+---
+
+{Object.keys(data).length > 0 && (
+  <>
+    <script type="application/json" id="method-pop-data" set:html={JSON.stringify(data)} />
+    <dialog class="mpop" id="method-pop" aria-labelledby="mpop-name">
+      <div class="mpop-head">
+        <p class="mpop-kicker">Method</p>
+        <h2 class="mpop-name" id="mpop-name"></h2>
+        <button type="button" class="mpop-close" aria-label="Close" data-mpop-close>×</button>
+      </div>
+      <div class="mpop-stage" data-mpop-stage></div>
+      <p class="mpop-sum" data-mpop-sum></p>
+      <p class="mpop-foot"><a data-mpop-more href="/methods/">Open the method page →</a></p>
+    </dialog>
+  </>
+)}
+
+<script>
+  const dlg = document.getElementById('method-pop') as HTMLDialogElement | null;
+  const raw = document.getElementById('method-pop-data');
+  if (dlg && raw && typeof dlg.showModal === 'function') {
+    type Film = { src: string; captions: string; poster: string; title: string; len: string };
+    type Entry = { name: string; summary: string; href: string; film: Film | null };
+    const data: Record<string, Entry> = JSON.parse(raw.textContent || '{}');
+    const stage = dlg.querySelector('[data-mpop-stage]') as HTMLElement;
+    const name = dlg.querySelector('#mpop-name') as HTMLElement;
+    const sum = dlg.querySelector('[data-mpop-sum]') as HTMLElement;
+    const more = dlg.querySelector('[data-mpop-more]') as HTMLAnchorElement;
+
+    let opener: HTMLElement | null = null;
+    const open = (d: Entry) => {
+      name.textContent = d.name;
+      more.href = d.href;
+      stage.replaceChildren();
+      if (d.film) {
+        const v = document.createElement('video');
+        v.controls = true;
+        v.playsInline = true;
+        v.preload = 'metadata';
+        v.poster = d.film.poster;
+        v.width = 1920;
+        v.height = 1080;
+        const s = document.createElement('source');
+        s.src = d.film.src;
+        s.type = 'video/mp4';
+        const t = document.createElement('track');
+        t.kind = 'captions';
+        t.src = d.film.captions;
+        t.srclang = 'en';
+        t.label = 'English';
+        t.default = true;
+        v.append(s, t);
+        const cap = document.createElement('p');
+        cap.className = 'mpop-film';
+        cap.textContent = `${d.film.title} · ${d.film.len}`;
+        stage.append(v, cap);
+        sum.textContent = d.summary;
+      } else {
+        const p = document.createElement('p');
+        p.className = 'mpop-soon';
+        p.textContent = 'The film for this method is in production.';
+        stage.append(p);
+        sum.textContent = d.summary;
+      }
+      dlg.showModal();
+      (dlg.querySelector('[data-mpop-close]') as HTMLElement).focus();
+    };
+
+    document.addEventListener('click', (e) => {
+      const a = (e.target as Element).closest?.('a.method-link[data-method]') as HTMLAnchorElement | null;
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const d = data[a.dataset.method || ''];
+      if (!d) return;
+      e.preventDefault();
+      opener = a;
+      open(d);
+    });
+    dlg.addEventListener('click', (e) => {
+      // A click on the backdrop lands on the dialog itself, outside its content box.
+      if (e.target === dlg) dlg.close();
+      if ((e.target as Element).closest('[data-mpop-close]')) dlg.close();
+    });
+    // Stop the film when the player closes, by whatever route.
+    dlg.addEventListener('close', () => {
+      stage.replaceChildren();
+      opener?.focus();
+      opener = null;
+    });
+  }
+</script>
+
+<style is:global>
+  a.method-link {
+    color: inherit;
+    text-decoration: underline dotted;
+    text-decoration-color: var(--ddp-color-accent);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+  }
+  a.method-link:hover, a.method-link:focus-visible { color: var(--ddp-color-accent); text-decoration-style: solid; }
+
+  .mpop {
+    margin: auto;
+    width: min(920px, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    padding: 0;
+    border: 1px solid var(--ddp-color-border, #d6d3cc);
+    border-radius: 14px;
+    background: var(--ddp-color-surface);
+    color: var(--ddp-color-ink);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    overflow: auto;
+  }
+  .mpop::backdrop { background: rgba(10, 12, 18, 0.62); }
+  .mpop-head { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 0 var(--ddp-space-3); padding: var(--ddp-space-4) var(--ddp-space-5) var(--ddp-space-3); }
+  .mpop-kicker { grid-column: 1; margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ddp-color-accent); }
+  .mpop-name { grid-column: 1; margin: 0.15rem 0 0; font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-xl); line-height: 1.2; color: var(--ddp-color-primary); }
+  .mpop-close { grid-column: 2; grid-row: 1 / span 2; width: 44px; height: 44px; border: 1px solid var(--ddp-color-border, #d6d3cc); border-radius: 999px; background: transparent; color: var(--ddp-color-ink); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+  .mpop-close:hover, .mpop-close:focus-visible { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .mpop-stage { padding: 0 var(--ddp-space-5); }
+  .mpop-stage video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #0f1117; border-radius: 10px; }
+  .mpop-film { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-serif); color: var(--ddp-color-primary); }
+  .mpop-soon { margin: 0; padding: var(--ddp-space-4); border: 1px dashed var(--ddp-color-border, #d6d3cc); border-radius: 10px; color: var(--ddp-color-muted); }
+  .mpop-sum { margin: var(--ddp-space-3) var(--ddp-space-5) 0; max-width: 70ch; line-height: 1.55; color: var(--ddp-color-ink-soft); }
+  .mpop-foot { margin: var(--ddp-space-3) var(--ddp-space-5) var(--ddp-space-5); }
+  .mpop-foot a { font-weight: 600; }
+
+  /* Phones: a full-width sheet from the bottom of the screen. */
+  @media (max-width: 640px) {
+    .mpop { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 14px 14px 0 0; border-bottom: 0; }
+    .mpop-head, .mpop-stage { padding-inline: var(--ddp-space-4); }
+    .mpop-sum, .mpop-foot { margin-inline: var(--ddp-space-4); }
+  }
+</style>

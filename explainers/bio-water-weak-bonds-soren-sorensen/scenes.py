@@ -410,7 +410,7 @@ class S04Peak(ProfileScene):
         dlab = T("defeated", 24, RED).next_to(defeat, UP, buff=0.12)
         self.at("defeated")
         self.play(GrowArrow(defeat), FadeIn(dlab), run_time=0.5)
-        self.at("Victor Henri")
+        self.at("Victor")
         self.play(pop(henri), run_time=0.5)
 
         # --- earlier results were leaky

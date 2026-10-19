@@ -12,6 +12,7 @@ No molecular structure is drawn anywhere: chips, blobs, bars, beakers and arrows
 """
 import json
 import math
+import re
 import random
 from pathlib import Path
 
@@ -32,13 +33,29 @@ class VS(NarratedScene):
     SID = None
     ANCH = []
 
+    def _anchor_time(self, ph, fallback):
+        """End time of `ph` in the spoken words (audio/words.json), so anchors follow re-voiced audio."""
+        wp = HERE / "audio" / "words.json"
+        if not wp.exists():
+            return fallback
+        norm = lambda w: re.sub(r"[^a-z0-9']", "", w.lower())
+        words = [(w[1], norm(w[2])) for w in json.loads(wp.read_text()).get(self.SID, []) if norm(w[2])]
+        toks = [norm(x) for x in ph.split() if norm(x)]
+        for i in range(len(words) - len(toks) + 1):
+            if [w[1] for w in words[i:i + len(toks)]] == toks:
+                return float(words[i + len(toks) - 1][0])
+        print(f"[anchor] {self.SID}: {ph!r} not in words.json, interpolating")
+        return None
+
     def _map(self):
         text = TEXTS[self.SID]
         pts = [(0, 0.0)]
         for ph, t in self.ANCH:
             i = text.find(ph)
             assert i >= 0, (self.SID, ph)
-            pts.append((i + len(ph), t))
+            at = self._anchor_time(ph, t)
+            if at is not None:
+                pts.append((i + len(ph), at))
         pts.append((len(text), DUR[self.SID]))
         pts.sort()
         return text, np.array([p[0] for p in pts], float), np.array([p[1] for p in pts], float)
@@ -440,8 +457,8 @@ class S05Buchner(VS):
         jlab = T("clear golden juice", 26, GOLD).move_to([2.4, -1.85, 0])
         nocell = VGroup(Circle(radius=0.2, color=GREEN, stroke_width=3),
                         VGroup(Line(UL, DR), Line(UR, DL)).scale(0.22).set_color(RED).set_stroke(width=5))
-        nocell_t = T("no intact\ncells", 26, GREEN, line_spacing=0.7)
-        nocell_g = VGroup(nocell, nocell_t).arrange(RIGHT, buff=0.2).move_to([5.45, 0.5, 0])
+        nocell_t = T("almost no\nintact cells", 26, GREEN, line_spacing=0.7)
+        nocell_g = VGroup(nocell, nocell_t).arrange(RIGHT, buff=0.2).move_to([5.2, 0.5, 0])
 
         self.wait(0.3)
         self.play(FadeIn(yeast, shift=RIGHT * 0.15), FadeIn(sand, shift=RIGHT * 0.15), run_time=1.0)
@@ -450,7 +467,7 @@ class S05Buchner(VS):
         self.at("pressed out")
         self.play(GrowArrow(a3), FadeIn(bk, shift=LEFT * 0.2), run_time=1.0)
         self.play(FadeIn(jlab, shift=UP * 0.1), run_time=0.7)
-        self.at("with no intact cells")
+        self.at("with almost no intact cells")
         self.play(FadeIn(nocell_g, shift=LEFT * 0.15), run_time=0.9)
 
         self.at("He added sugar")
@@ -476,7 +493,7 @@ class S05Buchner(VS):
                   Create(a_v), run_time=0.9)
 
         # two controls
-        self.at("Büchner ran two controls")
+        self.at("Buchner ran two controls")
         self.play(FadeOut(VGroup(vit, a_v, co2, jlab)), run_time=0.5)
         ctitle = T("two controls", 32, YELLOW).move_to([0, 1.75, 0])
         bk2 = bk.copy()
@@ -590,8 +607,8 @@ class S06Course(VS):
         self.at("Kühne named")
         kn = T("named by Kühne", 26, YELLOW).move_to([3.6, -1.9, 0])
         self.play(FadeIn(kn, shift=UP * 0.1), run_time=0.7)
-        self.at("Büchner freed")
-        bn = T("freed by Büchner", 26, YELLOW).move_to([0.1, -0.65, 0])
+        self.at("Buchner freed")
+        bn = T("freed by Buchner", 26, YELLOW).move_to([0.1, -0.65, 0])
         self.play(enz.animate.move_to([0.1, 0.1, 0]), FadeOut(kn), FadeIn(bn), run_time=1.5)
         self.at("ordinary proteins")
         prot = T("ordinary proteins", 36, TEAL).move_to([0, -1.5, 0])

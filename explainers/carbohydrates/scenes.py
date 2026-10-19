@@ -246,7 +246,7 @@ class S02Ring(BP):
         self.at("and a ketone", 0.3)
         self.play(FadeIn(r2[0]), FadeIn(r2[1]), FadeIn(r2[2]), run_time=0.9)
         self.play(GrowArrow(r2[3]), FadeIn(r2[4], shift=RIGHT * 0.2), run_time=0.9)
-        self.at("In a hexose", 0.2)
+        self.at("In an aldohexose", 0.2)
         self.play(FadeOut(VGroup(r1, r2)), run_time=0.6)
 
         # c. the ring closes
@@ -541,7 +541,7 @@ class S05Glycogen(BP):
             g = block(0.22).move_to(e.get_center() + d * 0.25)
             peel.append((g, d))
         self.add(*[g for g, _ in peel])
-        many = T("thousands of enzymes\nat once", 30, PURPLE, line_spacing=0.8).move_to([4.2, -3.0, 0])
+        many = T("many enzymes\nat once", 30, PURPLE, line_spacing=0.8).move_to([4.2, -3.0, 0])
         self.play(FadeIn(many), *[g.animate.shift(d * 0.9).set_opacity(0) for g, d in peel], run_time=1.6)
         self.wait(self.until("Branching is parallel", 0.4))
 

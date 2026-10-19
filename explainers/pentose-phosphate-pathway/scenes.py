@@ -310,10 +310,9 @@ class S03Shield(SpokenScene):
         ros = ros_star(0.7).move_to([-4.2, 0.8, 0])
         self.at("Reactive oxygen species")
         self.play(FadeIn(ros, scale=0.6), run_time=0.7)
-        self.at("super energetic")
-        orb = VGroup(*[edot(ros[0].get_center() + 1.05 * np.array([np.cos(a), np.sin(a), 0]), 0.075)
-                       for a in np.linspace(0, TAU, 7)[:-1]])
-        elab = T("energetic electrons", 22, TEXT).move_to([-4.2, -0.55, 0])
+        self.at("unpaired electron")
+        orb = VGroup(edot(ros[0].get_center() + 1.05 * np.array([1.0, 0.0, 0]), 0.075))
+        elab = T("an unpaired electron", 22, TEXT).move_to([-4.2, -0.55, 0])
         self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in orb], lag_ratio=0.1), FadeIn(elab), run_time=0.9)
         self.play(Rotate(orb, angle=TAU / 4, about_point=ros[0].get_center()), run_time=0.9)
 
@@ -439,10 +438,10 @@ class S04Carbons(SpokenScene):
         self.at("carbon bookkeeping")
         sub = T("carbon bookkeeping", 28, TEXT).move_to([0, 2.5, 0])
         self.play(FadeIn(sub, shift=UP * 0.1), run_time=0.6)
-        self.at("two enzymes", nth=0)
+        self.at("by two", nth=0)
         tkc = met("transketolase", 28, GREY, min_w=2.8).move_to([-2.2, 0.9, 0])
         tac = met("transaldolase", 28, GREY, min_w=2.8).move_to([2.2, 0.9, 0])
-        self.at("transketolase", nth=0)
+        self.at("enzymes—transketolase", nth=0)
         self.play(FadeIn(tkc, shift=DOWN * 0.1), run_time=0.5)
         self.at("transaldolase", nth=0)
         self.play(FadeIn(tac, shift=DOWN * 0.1), run_time=0.5)
@@ -467,9 +466,9 @@ class S04Carbons(SpokenScene):
 
         # row 1: transketolase  C5 + C5 -> C3 + C7
         L1, R1, ar1, lb1 = make_row(2.1, (5, 5), (3, 7), "transketolase")
-        self.at("transketolase", nth=1)
+        self.at("transketolase", nth=0)
         self.play(FadeIn(L1, shift=RIGHT * 0.2), GrowArrow(ar1), FadeIn(lb1), run_time=0.9)
-        self.at("three carbon and a seven")
+        self.at("3 carbon and a 7")
         self.play(TransformFromCopy(L1[0], R1[0]), FadeIn(R1[1]), TransformFromCopy(L1[2], R1[2]), run_time=1.1)
 
         # row 2: transaldolase  C3 + C7 -> C6 + C4
@@ -477,16 +476,16 @@ class S04Carbons(SpokenScene):
         self.at("transaldolase", nth=1)
         self.play(TransformFromCopy(R1[0], L2[0]), FadeIn(L2[1]), TransformFromCopy(R1[2], L2[2]),
                   GrowArrow(ar2), FadeIn(lb2), run_time=1.2)
-        self.at("a six and a four")
+        self.at("a 6 and a 4")
         self.play(TransformFromCopy(L2[0], R2[0]), FadeIn(R2[1]), TransformFromCopy(L2[2], R2[2]), run_time=1.1)
 
         # row 3: transketolase  C4 + C5 -> C6 + C3
         L3, R3, ar3, lb3 = make_row(-0.6, (4, 5), (6, 3), "transketolase")
-        self.at("transketolase", nth=2)
+        self.at("transketolase", nth=1)
         self.play(GrowArrow(ar3), FadeIn(lb3), run_time=0.6)
-        self.at("a four and a five")
+        self.at("a 4 and a 5")
         self.play(TransformFromCopy(R2[2], L3[0]), FadeIn(L3[1]), FadeIn(L3[2], shift=DOWN * 0.3), run_time=1.0)
-        self.at("into a six and a three")
+        self.at("into a 6 and a 3")
         self.play(TransformFromCopy(L3[0], R3[0]), FadeIn(R3[1]), TransformFromCopy(L3[2], R3[2]), run_time=1.1)
 
         # ---- the sum ---------------------------------------------------------------------------------
@@ -502,12 +501,12 @@ class S04Carbons(SpokenScene):
         sl = VGroup(cbar(5, U2), cbar(5, U2), cbar(5, U2)).arrange(RIGHT, buff=0.2).move_to([-3.4, -2.05, 0])
         sar = darr([-0.85, -2.05, 0], [0.15, -2.05, 0], GREY, 4)
         sr = VGroup(cbar(6, U2), cbar(6, U2), cbar(3, U2)).arrange(RIGHT, buff=0.2).move_to([3.4, -2.05, 0])
-        self.at("Three five carbon sugars")
+        self.at("Three 5 carbon sugars")
         self.play(TransformFromCopy(L1[0], sl[0]), TransformFromCopy(L1[2], sl[1]), TransformFromCopy(L3[2], sl[2]),
                   GrowArrow(sar), FadeOut(cancel), run_time=1.3)
-        self.at("two six carbon sugars")
+        self.at("two 6 carbon sugars")
         self.play(TransformFromCopy(R2[0], sr[0]), TransformFromCopy(R3[0], sr[1]), run_time=1.0)
-        self.at("one three carbon sugar")
+        self.at("one 3 carbon sugar")
         self.play(TransformFromCopy(R3[2], sr[2]), run_time=0.9)
         cl = M("3 × 5 = 15 C", 24, GREY).move_to([-3.4, -2.85, 0])
         cr = M("2 × 6 + 3 = 15 C", 24, GREY).move_to([3.4, -2.85, 0])

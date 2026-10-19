@@ -94,7 +94,9 @@ Sarah, generated from the presenter notes); where a lesson has no narrated slide
 new narration is written from the lesson's prose in the same voice. The Cell Signaling
 course's films are narrated instead by a Gemini text-to-speech voice (Charon), reading narration
 written from each lesson's fact-checked text, or by the narrator of the instructor's graduate
-modules where a film is cut from those; each lesson's `explainer.narration` line says which. The animation
+modules where a film is cut from those. Biochemistry films that repeated a line corrected in the
+2026 fact-check were re-voiced whole in that Gemini voice, reading the corrected slide narration or
+profile story. Each lesson's `explainer.narration` line says which voice a film uses. The animation
 is drawn **in code by an AI** (Manim, authored by Claude), so:
 - It is a **schematic**: labelled boxes, arrows, timelines and plots computed from
   their equations. It never draws a molecular structure; rule 1 still holds.

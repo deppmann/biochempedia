@@ -10,6 +10,7 @@ import QuizBlock from '../../components/QuizBlock.astro';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
+import MethodPopout from '../../components/MethodPopout.astro';
 import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
@@ -198,13 +199,15 @@ const lessonLd = {
                 <p class="method-films-h">Method films <a href="/methods/">· the methods library</a></p>
                 <ul>
                   {methods.map((m) => (
-                    <li><a href={methodHref(m.slug)}><span aria-hidden="true">▶</span> {m.name} <em>{filmLength(m.film!.durationSec)}</em></a></li>
+                    <li><a class="method-link" data-method={m.slug} href={methodHref(m.slug)}><span aria-hidden="true">▶</span> {m.name} <em>{filmLength(m.film!.durationSec)}</em></a></li>
                   ))}
                 </ul>
               </div>
             )}
           </section>
         )}
+
+        <MethodPopout lesson={entry.data.slug} />
 
         <FinishLine slug={entry.data.slug} qCount={qCount} prev={prevNav} next={nextNav} allHref={courseHref(course.slug)} />
       </div>
