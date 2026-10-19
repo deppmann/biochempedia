@@ -366,6 +366,7 @@ draft: false
 ---
 
 import PcrCyclePlotter from '../../../components/PcrCyclePlotter.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1985 a team at Cetus Corporation reported raising the number of copies of one short stretch of the human beta-globin gene about 220,000-fold, in a tube, with no living cell involved.**
 
@@ -376,6 +377,8 @@ Before then, the usual way to get many copies of one piece of DNA was to cut it 
 Bacteria are attacked by phages, viruses that inject their DNA. Many bacteria defend themselves with a restriction enzyme, which cuts DNA at one short sequence, paired with a methylase that marks the same sequence in the cell's own DNA so that it is spared. Unmarked phage DNA gets cut.
 
 The restriction enzymes used in the laboratory are type II enzymes. Each recognizes a defined sequence, in many cases a palindrome of four to eight base pairs, and cuts at a fixed position in or near it. Palindrome here means the site reads the same 5' to 3' on both strands. EcoRI, from E. coli, recognizes 5'-GAATTC-3' and cuts each strand between the G and the A. The two cuts are four bases apart, so each end carries a single-stranded 5' overhang reading AATT. Any EcoRI end can pair with any other EcoRI end through those four bases, which is why such ends are called sticky, or cohesive. Other enzymes, such as SmaI at CCCGGG, cut both strands at the same point and leave blunt ends.
+
+<LessonFigure src="/figures/recombinant-dna-and-pcr/sticky-ends-and-ligase.webp" width={1200} height={430} alt="AI-generated illustration: a three-step strip. EcoRI cuts a double rail of beads at two points four beads apart, leaving staggered ends. Two such ends from different pieces pair through short single-stranded overhangs. DNA ligase then seals the join into one continuous double rail." caption="EcoRI cuts each strand four bases apart, leaving a single-stranded 5' overhang, so any EcoRI end can pair with any other. DNA ligase then makes the join permanent." />
 
 Think of a jigsaw cutter that always cuts the same tab shape: any two pieces cut by it fit, but only loosely. DNA ligase makes the join permanent by forming the missing phosphodiester bond between a 3'-OH and a 5'-phosphate on each strand. T4 DNA ligase can also join blunt ends in vitro.
 
@@ -390,6 +393,8 @@ In 1973 Stanley Cohen, Annie Chang, Herbert Boyer and Robert Helling joined rest
 Getting the plasmid in is **transformation**: uptake of naked DNA by a bacterial cell. Cells are made competent with cold calcium chloride or by electroporation, and only a fraction take up a plasmid. Bacterial transformation is a different process from transfection, which is putting DNA into animal cells, and from oncogenic transformation, which is a cell becoming cancer-like.
 
 Now the two questions every cloning experiment must keep apart. **Selection** asks whether a cell has a plasmid: on ampicillin, cells without one die. But a vector that closed up without an insert also confers resistance. **Screening** asks which plasmid it is. In blue-white screening the cloning site sits inside lacZ-alpha, a short piece of the beta-galactosidase gene from the [lac operon](/lessons/lac-operon/). The host strain makes the rest of the enzyme, and the two pieces together are active. Active enzyme turns the colorless substrate X-gal blue. An insert in the cloning site breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert. The final checks are a restriction digest or colony PCR, then sequencing across both junctions. Even then a correct plasmid need not express its insert; that needs a promoter and the other parts of an expression construct (see [hacking the cell](/lessons/hacking-the-cell/)).
+
+<LessonFigure src="/figures/recombinant-dna-and-pcr/blue-white-screening.webp" width={1200} height={839} alt="AI-generated illustration: two plasmid rings. The left ring has an origin of replication, an ampicillin resistance block and an intact lacZ-alpha block, and gives a blue colony. The right ring has an insert splitting lacZ-alpha and gives a white colony. A small inset shows an ampicillin plate with blue and white colonies." caption="A vector closed without an insert keeps lacZ-alpha intact and makes blue colonies on X-gal. An insert in the cloning site breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert." />
 
 ## PCR: copying one region a billion times
 

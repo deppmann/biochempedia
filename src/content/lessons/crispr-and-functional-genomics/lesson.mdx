@@ -361,6 +361,7 @@ draft: false
 ---
 
 import CrisprRepairOutcome from '../../../components/CrisprRepairOutcome.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A screen in flies that started with no gene names at all recovered 15 loci controlling the pattern of a larva's segments. A CRISPR experiment starts from the opposite end: you name the gene first, and then find out whether the cell cares.** Both are genetics. Which direction you run decides what you are able to find, and it decides which way you can be fooled.
 
@@ -378,11 +379,15 @@ Reverse genetics starts from a chosen gene and asks what changing its sequence o
 
 The gentler route is RNA interference, which lowers how much protein a gene makes without touching the gene. In 1998 Fire, Mello and colleagues injected RNA into C. elegans and found that double-stranded RNA produced substantially stronger, specific interference than either single strand, and that the small effective amount suggested a catalytic or amplifying step. A companion study found evidence that the effect was post-transcriptional, targeting endogenous mRNA, with no evidence of any change in primary DNA sequence. By 2001, 21-nucleotide siRNA duplexes were suppressing expression in cultured human HEK293 and HeLa cells. The mechanism belongs to [eukaryotic regulation](/lessons/eukaryotic-regulation/); what matters here is the bookkeeping. Knockdown reduces output and leaves the gene intact; knockout alters the DNA.
 
+<LessonFigure src="/figures/crispr-and-functional-genomics/knockdown-vs-knockout.webp" width={1200} height={405} alt="AI-generated illustration: two panels from gene to protein. In knockdown the DNA is intact but a double-stranded RNA sits on the mRNA and less protein is made. In knockout the DNA itself is altered and the protein is not made." caption="A knockdown lowers the protein made from a gene that is still intact; a knockout changes the DNA. They need different controls, and an indel is not a guarantee of lost function." />
+
 That difference sets the controls. A knockdown needs a measurement of the perturbation itself, by immunoblotting or immunofluorescence for the target protein, two non-overlapping reagents against the same gene, and a rescue with a transgene made refractory to the reagent. Even a successful rescue does not formally exclude a phenotype that also requires an off-target effect. A knockout needs its own checks, because an indel is not a guarantee of lost function.
 
 ## CRISPR came from a bacterial immune system
 
 In 2005 Mojica and colleagues noticed that some CRISPR spacers, the variable sequences between the repeats, matched transmissible genetic elements, which implied a relationship to immunity against foreign DNA. In 2007 Barrangou and colleagues tested that in Streptococcus thermophilus: phage challenge added phage-derived spacers, and engineering the array by adding or removing particular spacers changed resistance, with specificity tracking spacer-phage sequence similarity. In 2011 the Charpentier laboratory found tracrRNA and showed that mature crRNA in the native Streptococcus pyogenes system is made with RNase III and the Cas protein Csn1. The natural guide is two RNAs.
+
+<LessonFigure src="/figures/crispr-and-functional-genomics/crispr-array-spacers.webp" width={1200} height={736} alt="AI-generated illustration: a bacterial CRISPR array drawn as alternating repeat and spacer blocks, one spacer linked by a dashed line to a matching piece of a phage; below, the same array after phage challenge with one extra phage-derived spacer." caption="A CRISPR array alternates repeats with variable spacers, and some spacers match phage sequence. After phage challenge the array gains phage-derived spacers." />
 
 In 2012 the Jinek study fused those two into one chimeric RNA and showed that purified Cas9 cut DNA wherever the RNA specified. A separate 2012 study from Siksnys and colleagues, with Barrangou and Horvath, showed Streptococcus thermophilus Cas9 cleaving DNA in vitro, and that the RuvC and HNH active sites nick opposite strands. Both were biochemistry with purified components. Editing inside cells came in 2013, when Cong and colleagues and Mali and colleagues independently directed Cas9 to endogenous loci in cultured human and mouse cells. The 2012 papers did not edit a genome.
 

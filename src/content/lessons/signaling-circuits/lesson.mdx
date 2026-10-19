@@ -363,6 +363,7 @@ draft: false
 ---
 
 import CascadeAmplifier from '../../../components/CascadeAmplifier.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current flowing through that cell by about one picoamp (a trillionth of an ampere). A single rhodopsin molecule cannot carry a picoamp, so how does the cell register it?**
 
@@ -388,6 +389,8 @@ His lectures also borrow a picture from process control: water, malt and hops fl
 A rod cell in the dark leaks, like a tap left running. Ion channels in the membrane of its outer segment are held open by cGMP, a small signaling molecule, and ions flow through them all the time. That flow is the dark current, about 20 picoamps. A photon does not add current. It briefly reduces one that is already running.
 
 Here is the chain. A photon is absorbed by one molecule of rhodopsin, the light-sensitive protein of the rod, and flips it into an active shape. Active rhodopsin switches on many molecules of transducin, a G protein that can act only after it binds GTP. Each active transducin switches on phosphodiesterase (PDE), an enzyme that destroys cGMP. The cGMP level falls, some channels close, and the current dips by about one picoamp, a few percent of the dark current. Denis Baylor, Trevor Lamb and King-Wai Yau recorded that dip from a single toad rod in 1979.
+
+<LessonFigure src="/figures/signaling-circuits/rod-photon-chain.webp" width={1200} height={799} alt="AI-generated illustration: a chain of rhodopsin hit by a photon, then transducin, then PDE, then falling cGMP; an inset compares a membrane in the dark with all channels open to one after the photon with some channels closed." caption="One photon flips one rhodopsin, which switches on many transducin, each of which switches on PDE. PDE destroys cGMP, so some channels that cGMP held open close and the dark current dips." />
 
 Gain is multiplication. A step is catalytic when one active molecule keeps switching on new copies of the next component while it stays active, and one-to-one when it handles a single partner. In the rod, rhodopsin to transducin and PDE to cGMP are catalytic, and the step between them multiplies nothing. Leskov and colleagues measured the first as a rate: one active rhodopsin switches on transducin, and through it the phosphodiesterase, at 120 to 150 molecules per second.
 
@@ -444,11 +447,15 @@ Thirty-five is a different kind of object. Ferrell and Machleder proposed that a
 
 That is why the pooled curve misled. Eggs differ in where their thresholds lie, so at a middling dose some have flipped and others have not, and a homogenate reports the fraction that flipped as though every egg had responded partway.
 
+<LessonFigure src="/figures/signaling-circuits/pooled-vs-single-egg.webp" width={1200} height={790} alt="AI-generated illustration: two rows of four eggs. In the first every egg is half filled with gold; in the second two are fully gold and two are empty. Both give the same middling reading when pooled in a tube, and a strip below shows one egg per gel lane." caption="Pooling eggs in one tube gives the same middling reading for two different stories. Read one egg at a time, some were fully on and the rest fully off." />
+
 ## Adaptation: returning to rest while the signal is still on
 
 A bacterium that smells something worth swimming toward stops tumbling and runs straight. After a while, with the attractant still there, it tumbles at its former rate again. It must, because to register a climb in concentration the cell has to forget the level it has reached. That return is adaptation.
 
 The receptor controls CheA, which hands a phosphate to CheY, and phosphorylated CheY drives tumbling. A second loop resets the receptor: the enzyme CheR hangs methyl groups on it, the enzyme CheB takes them off, and the pair keeps adding or stripping until the receptor's output is back where it rests. The methylation level is a running total of the gap between current output and resting output, and it stops changing only when the gap is exactly zero. Engineers call this integral feedback. A shower knob you keep turning until the water feels right works the same way: your speed sets how long you take, and "right" sets where you stop.
+
+<LessonFigure src="/figures/signaling-circuits/chemotaxis-reset-loop.webp" width={1200} height={558} alt="AI-generated illustration: a membrane receptor passes a phosphate from CheA to CheY, which drives tumbling at the flagellum; an inset shows CheR adding methyl groups to the receptor and CheB removing them to reset it." caption="The receptor controls CheA, which passes a phosphate to CheY, and phosphorylated CheY drives tumbling. A second loop, CheR adding methyl groups and CheB removing them, keeps adjusting the receptor until its output is back at rest." />
 
 Ordinary enzymology says that doubling an enzyme shifts the outcome. If the stopping point is set by the zero, though, a cell with more or less enzyme should still return exactly to the tumbling rate it had before the attractant. Only that resting rate, and the time the return takes, should change with the enzyme level. Barkai and Leibler derived that on paper in 1997. On 14 January 1999, Alon, Surette, Barkai and Leibler tested it by making *E. coli* carry different amounts of one circuit protein at a time, then adding attractant. Adaptation time and steady-state behavior varied strongly with protein concentration. The precision of adaptation did not.
 
