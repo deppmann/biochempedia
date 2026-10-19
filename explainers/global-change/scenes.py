@@ -387,7 +387,7 @@ class S06Detection(SpokenScene):
         self.play(Indicate(sp, color=ORANGE, scale_factor=1.3), run_time=0.7)
         self.at("not proof that climate acted alone")
         self.play(FadeIn(w), GrowArrow(aw), run_time=0.8)
-        tag = T("2,798 elevational shifts", 24, GREY).move_to([3.9, -2.4, 0])
+        tag = T("1,464 elevational shifts", 24, GREY).move_to([3.9, -2.4, 0])
         self.play(FadeIn(tag), run_time=0.3)
 
         att = VGroup(T("Attribution", 30, YELLOW, weight=BOLD), T("a cause, alternatives tested", 24, TEXT)).arrange(DOWN, buff=0.12)

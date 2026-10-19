@@ -312,7 +312,7 @@ class S05Controls(SpokenScene):
         self.play(FadeIn(sites_in, scale=0.5), FadeIn(sites_out, scale=0.5), FadeIn(same, shift=LEFT * 0.2), run_time=0.9)
 
         crosses = VGroup(*[Cross(s, stroke_color=RED, stroke_width=6, scale_factor=1.3) for s in list(sites_in) + list(sites_out)])
-        why = VGroup(T("all fail:", 30, RED, weight=BOLD), T("handling or a bad year", 28, RED)).arrange(DOWN, buff=0.12).move_to([4.2, 0.3, 0])
+        why = VGroup(T("all fail:", 30, RED, weight=BOLD), T("likely handling or a bad year", 28, RED)).arrange(DOWN, buff=0.12).move_to([4.2, 0.3, 0])
         self.at("fail too")
         self.play(*[Create(c) for c in crosses], FadeIn(why), run_time=1.0)
 
