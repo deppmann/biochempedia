@@ -1,0 +1,204 @@
+---
+/**
+ * TwoFlashRemainder — the two-flash test of the direction-selectivity lesson. A two-input
+ * detector (subunits A and B, a delay, a combining block) is probed with each flash alone,
+ * the pair, and the remainder (paired minus the sum of the singles). Suppression of the null
+ * order (Barlow-Levick scheme), enhancement of the preferred order (Hassenstein-Reichardt
+ * scheme) and both leave different remainders. A sketch in relative units. Original.
+ */
+---
+
+<figure class="tfr card" data-tfr>
+  <figcaption class="tfr-head">Two-flash test — suppression or enhancement?<span class="tfr-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="tfr-svg" viewBox="0 0 340 322" role="img" aria-label="A two-input direction detector with subunits A and B, a delay and a combining block, above bars for flash A alone, flash B alone, their sum, the paired response and the remainder" data-plot></svg>
+
+  <div class="tfr-controls">
+    <fieldset class="tfr-set">
+      <legend>Mechanism</legend>
+      <label><input type="radio" name="tfr-mech" value="sup" checked /> Null-direction suppression (Barlow-Levick scheme)</label>
+      <label><input type="radio" name="tfr-mech" value="enh" /> Preferred-direction enhancement (Hassenstein-Reichardt scheme)</label>
+      <label><input type="radio" name="tfr-mech" value="both" /> Both (enhancement and suppression together, as reported in fly T4 and T5 terminals)</label>
+    </fieldset>
+    <fieldset class="tfr-set">
+      <legend>Flash order</legend>
+      <label><input type="radio" name="tfr-ord" value="pref" checked /> Preferred order: A then B</label>
+      <label><input type="radio" name="tfr-ord" value="null" /> Null order: B then A</label>
+    </fieldset>
+    <label class="tfr-slabel"><span>Strength of the delayed signal, k <em data-out="k">0.50</em> <small>(relative units; 0 = none, 1 = strongest)</small></span>
+      <input type="range" data-in="k" min="0" max="1" step="0.05" value="0.5" />
+    </label>
+  </div>
+
+  <dl class="tfr-readout">
+    <div><dt>Sum of the two single flashes</dt><dd data-r-sum>1 + 1 = 2.00</dd></div>
+    <div><dt>Paired response (this order)</dt><dd data-r-paired>2.00</dd></div>
+    <div><dt>Remainder = paired − sum (this order)</dt><dd data-r-rem>0.00</dd></div>
+    <div><dt>Remainder, preferred order (A then B)</dt><dd data-r-pref>0.00</dd></div>
+    <div><dt>Remainder, null order (B then A)</dt><dd data-r-null>0.00</dd></div>
+    <div><dt>Reading of the two orders</dt><dd data-r-read>no remainder</dd></div>
+  </dl>
+
+  <p class="tfr-why" data-why role="status">Each flash alone counts 1, so the sum is 2.</p>
+  <p class="tfr-assume">In this sketch: single flashes add linearly, one fixed delay, a delayed veto or boost that shifts the paired response by k (the unaffected order is set to exactly the sum), relative units, no real interval or speed. Barlow and Levick’s preferred order gave about the sum or a little more. Which side carries the delayed signal is a labelling choice of this sketch; the lesson says only “one side”. The bars are computed from the rules, not recordings. The sketch does not say which cells make a negative remainder (Barlow and Levick state what the mechanism must do, not which cells), and the fly and mouse circuits reach a similar algorithm by convergent computation, not homology.</p>
+  <p class="tfr-foot">Rule to keep: measure each flash alone, add them, and subtract that sum from the paired response. A positive remainder in one order is enhancement, a negative remainder in the other order is suppression.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', NEG = '#b3261e', INK = '#4b4b55', FAINT = '#b9b9c2', ORANGE = '#e57200', GREY = '#8a8a96';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, extra));
+    t.textContent = s;
+    return t;
+  }
+  type Mech = 'sup' | 'enh' | 'both';
+  function rem(mech: Mech, order: 'pref' | 'null', k: number): number {
+    if (mech === 'sup') return order === 'null' ? -k : 0;
+    if (mech === 'enh') return order === 'pref' ? k : 0;
+    return order === 'pref' ? k : -k;
+  }
+  const f2 = (v: number) => (v > 0.0001 ? '+' : v < -0.0001 ? '−' : '') + Math.abs(v).toFixed(2);
+  const f2u = (v: number) => v.toFixed(2);
+
+  document.querySelectorAll<HTMLElement>('[data-tfr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const kIn = root.querySelector<HTMLInputElement>('[data-in="k"]');
+    const kOut = root.querySelector<HTMLElement>('[data-out="k"]');
+    const rSum = root.querySelector<HTMLElement>('[data-r-sum]');
+    const rPaired = root.querySelector<HTMLElement>('[data-r-paired]');
+    const rRem = root.querySelector<HTMLElement>('[data-r-rem]');
+    const rPref = root.querySelector<HTMLElement>('[data-r-pref]');
+    const rNull = root.querySelector<HTMLElement>('[data-r-null]');
+    const rRead = root.querySelector<HTMLElement>('[data-r-read]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !kIn || !kOut || !rSum || !rPaired || !rRem || !rPref || !rNull || !rRead || !why) return;
+    const mechs = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="tfr-mech"]'));
+    const ords = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="tfr-ord"]'));
+
+    // bar geometry: value v in [-1, 3] maps to x
+    const XZ = 165, UNIT = 45;
+    const bx = (v: number) => XZ + v * UNIT;
+
+    function render() {
+      const mech = (mechs.find((r) => r.checked)?.value ?? 'sup') as Mech;
+      const order = (ords.find((r) => r.checked)?.value ?? 'pref') as 'pref' | 'null';
+      const k = parseFloat(kIn!.value);
+      const sum = 2;
+      const r = rem(mech, order, k);
+      const paired = sum + r;
+      const rp = rem(mech, 'pref', k), rn = rem(mech, 'null', k);
+      kOut!.textContent = k.toFixed(2);
+
+      plot!.replaceChildren();
+      // ---- circuit diagram ----
+      const first = order === 'pref' ? 'A' : 'B';
+      const useA = mech === 'enh' || mech === 'both'; // delayed boost on the A path
+      const useB = mech === 'sup' || mech === 'both'; // delayed veto on the B path
+      const line = (pts: string, on: boolean) => plot!.appendChild(el('polyline', { points: pts, fill: 'none', stroke: on ? INK : FAINT, 'stroke-width': 1.6 }));
+      line('88,29 250,29 250,44', true);
+      line('88,89 250,89 250,74', true);
+      line('285,59 330,59', true);
+      const block = (x: number, y: number, w: number, h: number, label: string, hl: boolean, dashed = false) => {
+        plot!.appendChild(el('rect', { x, y, width: w, height: h, rx: 4, fill: hl ? '#e3f2f3' : '#fff', stroke: hl ? ACCENT : INK, 'stroke-width': hl ? 2 : 1.2, 'stroke-dasharray': dashed ? '3 3' : '0' }));
+        plot!.appendChild(txt(x + w / 2, y + h / 2 + 3.5, label, { 'text-anchor': 'middle', 'font-size': 10, 'font-weight': hl ? 700 : 400 }));
+      };
+      block(8, 15, 80, 28, 'A · flash ' + (first === 'A' ? '1st' : '2nd'), first === 'A');
+      block(8, 75, 80, 28, 'B · flash ' + (first === 'B' ? '1st' : '2nd'), first === 'B');
+      block(110, 17, 60, 24, useA ? 'delay' : 'unused', false, !useA);
+      block(110, 77, 60, 24, useB ? 'delay' : 'unused', false, !useB);
+      block(215, 44, 70, 30, 'combine', false);
+      plot!.appendChild(txt(190, 26, useA ? 'delayed boost ×' : '', { 'font-size': 9, 'text-anchor': 'start' }));
+      plot!.appendChild(txt(190, 98, useB ? 'delayed veto ⊣' : '', { 'font-size': 9, 'text-anchor': 'start' }));
+      plot!.appendChild(txt(308, 52, 'out', { 'font-size': 9, 'text-anchor': 'middle' }));
+
+      // ---- bars ----
+      const rows: { label: string; v: number; col: string; sub?: string }[] = [
+        { label: 'A alone', v: 1, col: GREY },
+        { label: 'B alone', v: 1, col: GREY },
+        { label: 'sum, A + B', v: sum, col: INK },
+        { label: 'paired (' + (order === 'pref' ? 'A then B' : 'B then A') + ')', v: paired, col: ACCENT },
+        { label: 'remainder', v: r, col: r < -0.0001 ? NEG : ACCENT },
+      ];
+      const Y0 = 134, RH = 30;
+      plot!.appendChild(el('line', { x1: XZ, y1: Y0 - 4, x2: XZ, y2: Y0 + RH * rows.length - 2, stroke: INK, 'stroke-width': 1 }));
+      rows.forEach((row, i) => {
+        const y = Y0 + i * RH;
+        plot!.appendChild(txt(8, y + 14, row.label, { 'font-size': 10 }));
+        const x0 = Math.min(bx(0), bx(row.v)), w = Math.abs(bx(row.v) - bx(0));
+        if (w > 0.4) plot!.appendChild(el('rect', { x: x0, y: y + 3, width: w, height: 16, fill: row.col }));
+        const label = i === 4 ? f2(row.v) : f2u(row.v);
+        plot!.appendChild(txt(334, y + 15, label, { 'text-anchor': 'end', 'font-size': 10, 'font-weight': 700 }));
+      });
+      // marker: where the sum falls on the paired row
+      const my = Y0 + 3 * RH;
+      plot!.appendChild(el('line', { x1: bx(sum), y1: my + 1, x2: bx(sum), y2: my + 21, stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '3 2' }));
+      // axis ticks
+      const ay = Y0 + RH * rows.length + 2;
+      for (const v of [-1, 0, 1, 2, 3]) {
+        plot!.appendChild(el('line', { x1: bx(v), y1: ay - 4, x2: bx(v), y2: ay, stroke: INK, 'stroke-width': 1 }));
+        plot!.appendChild(txt(bx(v), ay + 11, String(v), { 'text-anchor': 'middle', 'font-size': 9 }));
+      }
+      plot!.appendChild(txt(8, ay + 26, 'response, relative units (each flash alone = 1); orange dash = the sum', { 'font-size': 9 }));
+
+      // ---- readouts ----
+      rSum!.textContent = '1 + 1 = ' + f2u(sum);
+      rPaired!.textContent = f2u(paired);
+      rRem!.textContent = f2u(paired) + ' − ' + f2u(sum) + ' = ' + f2(r);
+      rPref!.textContent = f2(rp);
+      rNull!.textContent = f2(rn);
+      const enh = rp > 0.0001, sup = rn < -0.0001;
+      rRead!.textContent = enh && sup ? 'enhancement and suppression' : enh ? 'enhancement only' : sup ? 'suppression only' : 'no remainder in either order';
+
+      // ---- status ----
+      const ordName = order === 'pref' ? 'preferred order (A then B)' : 'null order (B then A)';
+      let s: string;
+      if (k < 0.0001) {
+        s = 'In this sketch the delayed signal has strength 0, so the paired response equals the sum in both orders: the remainder is 0, so the two orders give the same response, and this sketch shows no direction difference.';
+      } else if (mech === 'sup') {
+        s = order === 'null'
+          ? `In this sketch with null-direction suppression, the ${ordName} gives a paired response of ${f2u(paired)} against a sum of ${f2u(sum)}, a remainder of ${f2(r)}. A negative remainder in the null order is suppression; the preferred order gives a remainder of 0.`
+          : `In this sketch with null-direction suppression, the ${ordName} gives the sum, ${f2u(paired)}, so the remainder is 0. The test needs the null order too: switch the order to see the negative remainder.`;
+      } else if (mech === 'enh') {
+        s = order === 'pref'
+          ? `In this sketch with preferred-direction enhancement, the ${ordName} gives a paired response of ${f2u(paired)} against a sum of ${f2u(sum)}, a remainder of ${f2(r)}. A positive remainder in the preferred order is enhancement; the null order gives a remainder of 0.`
+          : `In this sketch with preferred-direction enhancement, the ${ordName} gives the sum, ${f2u(paired)}, so the remainder is 0. The test needs the preferred order too: switch the order to see the positive remainder.`;
+      } else {
+        s = `In this sketch with both mechanisms, the ${ordName} gives a paired response of ${f2u(paired)} against a sum of ${f2u(sum)}, a remainder of ${f2(r)}. Across the two orders the remainders are ${f2(rp)} and ${f2(rn)}: enhancement in one order and suppression in the other, as Haag, Mishra and Borst reported in fly T4 and T5 terminals (the equal sizes here are an assumption of this sketch).`;
+      }
+      why!.textContent = s;
+    }
+    [...mechs, ...ords].forEach((x) => x.addEventListener('change', render));
+    kIn.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .tfr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tfr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tfr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tfr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tfr-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .tfr-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tfr-set legend { font-weight: 600; padding: 0 0.3rem; }
+  .tfr-set label { display: flex; align-items: flex-start; gap: 0.4rem; }
+  .tfr-set input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .tfr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tfr-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .tfr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .tfr-slabel input { accent-color: var(--ddp-color-accent); }
+  .tfr-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .tfr-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .tfr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tfr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .tfr-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .tfr-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .tfr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .tfr-readout { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,414 @@
+---
+title: "The Hair Cell's Transduction Channel"
+slug: "hair-cell-transduction-channel"
+course: "sensory-systems"
+courseChapter: "Sensory Systems · Unit 6: Hearing and balance"
+order: 822
+summary: >-
+  When can a protein be called the hair cell's mechanotransduction channel, and not merely a gene
+  that hair cells need? This lesson ranks the evidence for TMC1 and TMC2 against that standard,
+  from knockout and rescue to a mutation that changes permeation, chemical accessibility,
+  purified protein and a worm cryo-EM structure, then asks what the partner proteins TMIE,
+  LHFPL5 and CIB2 do to the current you measure. Afterwards you can compute a conductance from a
+  recording, say what each experiment cannot show, and design the missing control.
+hook: "A gene is required for hearing, and its protein sits at the right place. What else must be shown before it counts as the channel?"
+
+estMinutes: 24
+objectives:
+  - "State the criteria for calling a protein the hair-cell mechanotransduction channel and rank the TMC1/TMC2 experiments against them."
+  - "Compute a unitary conductance from a current, a holding potential and a reversal potential, and explain why it must be quoted with its ionic conditions."
+  - "Explain why the transduction complex, not one protein, sets the measured current, citing TMIE, LHFPL5 and CIB2."
+  - "Distinguish fast from slow adaptation as time scales and describe the unsettled calcium question."
+
+explainer:
+  src: "/explainers/hair-cell-transduction-channel/explainer.mp4"
+  captions: "/explainers/hair-cell-transduction-channel/explainer.vtt"
+  poster: "/explainers/hair-cell-transduction-channel/poster.jpg"
+  title: "What Counts as Proof of a Channel"
+  durationSec: 184.7
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Kiyoto Kurima"
+    contribution: >-
+      With colleagues, linked mutations in human TMC1 to dominant deafness (DFNA36) and to
+      recessive deafness (DFNB7/B11), giving the field a gene years before it had a function.
+    profileSourceAnchor: "Kurima and colleagues, Nature Genetics (2002), the paper reporting human TMC1 mutations in dominant DFNA36 and recessive DFNB7/B11 deafness."
+    quotes: []
+    story: >-
+      Several inherited forms of deafness were known only as positions on a chromosome. Kurima and colleagues worked through human families with
+      hearing loss, found the gene in that interval, and reported in Nature Genetics in 2002 that
+      mutations in TMC1 produce a dominant form of deafness, called DFNA36, in one family and a
+      recessive form, DFNB7/B11, in eleven others. The gene's product was a membrane protein of unknown
+      function. That is the whole result, and it matters for what came after: a human pedigree
+      says that the gene is needed for hearing, not what the protein does. The paper made TMC1 a
+      candidate. Years of work in mice, in cultured hair cells and in purified protein were then
+      needed to ask whether the candidate was the channel itself, a part of it, or something the
+      channel depends on.
+  - name: "Yoshiyuki Kawashima"
+    contribution: >-
+      First author of the 2011 study, with colleagues including Jeffrey Holt and Andrew Griffith, that
+      showed neonatal mouse hair cells lacking both Tmc1 and Tmc2 have no conventional
+      mechanotransduction current, and that either gene restores it.
+    profileSourceAnchor: "Kawashima and colleagues, Journal of Clinical Investigation (2011), the Tmc1/Tmc2 double-null and rescue study in mouse hair cells."
+    quotes: []
+    story: >-
+      Early postnatal hair cells in Tmc1 mutant mice can still show currents, so the gene's role in
+      transduction stayed ambiguous. Kawashima and colleagues removed both Tmc1 and
+      its relative Tmc2 and recorded from neonatal mouse hair cells in the utricle and the
+      cochlea. The cells had no conventional transduction current. The group then put either TMC1
+      or TMC2 back into double-null cultures, and transduction returned. Two points follow. First,
+      the two genes can substitute for one another, which explained why the single knockout hid
+      the effect: Tmc2 is expressed only transiently in the early postnatal cochlea. Second, the
+      experiment shows a requirement and a rescue, which is evidence that the proteins sit in the
+      pathway, not proof that they are its pore. The study gave later groups a clean background, the
+      double-null cell, in which to test altered or tagged versions of the protein.
+  - name: "Bifeng Pan"
+    contribution: >-
+      Collected the inner-hair-cell recordings in the 2013 Beethoven study and was the first-listed author of
+      the 2018 cysteine-accessibility study, both of which tested TMC1 by changing its sequence and
+      measuring permeation.
+    profileSourceAnchor: "Pan and colleagues, Neuron (2013) and Neuron (2018); the 2013 author-contribution statement."
+    quotes: []
+    story: >-
+      A deletion removes a protein; it cannot tell you whether the protein forms the pore. Pan and
+      colleagues asked a sharper question in two papers. In 2013 they recorded from neonatal mouse
+      inner hair cells carrying the Beethoven allele of Tmc1, which swaps lysine for methionine at
+      residue 412, with Tmc2 removed so that only the mutant TMC1 was left. The currents showed
+      reduced calcium permeability and smaller unitary currents. In 2018 the group delivered TMC1
+      with engineered cysteines into double-null hair cells, then applied a cysteine-modifying
+      reagent to cells that were already carrying current. The reagent changed permeation. Together
+      these papers tie the sequence of TMC1 to the ions that pass, which a knockout cannot do, and
+      they are why many in the field read TMC1 as pore-forming.
+  - name: "Hanbin Jeong and Sarah Clark"
+    contribution: >-
+      Equal first authors, with Eric Gouaux and colleagues, of the 2022 cryo-EM structure of a native
+      TMC-1 complex purified from the nematode C. elegans.
+    profileSourceAnchor: "Jeong, Clark and colleagues, Nature (2022), cryo-EM structure of the native C. elegans TMC-1 complex; the paper's equal-contribution statement."
+    quotes: []
+    story: >-
+      A structure of the native mammalian complex was not available. Jeong and Clark, who are
+      credited as equal contributors, worked instead with the worm. They grew worms in bulk, tagged
+      the native TMC-1 complex, purified it, and solved it by cryo-EM. The main assembly held two
+      copies each of TMC-1, a calcium-binding protein called CALM-1, and TMIE, and each TMC-1
+      protomer had ten membrane-spanning helices. The paper also showed a model of the human
+      complex built from the worm structure; that is a prediction, not a measurement. The structure
+      gave the field a template for where partners sit and a reason to think the complex is an
+      assembly of several proteins rather than one.
+
+techniques:
+  - name: "Whole-cell and single-channel recording with bundle stimulation"
+    blurb: >-
+      A pipette records current from a hair cell held at a set voltage while a stiff probe or a fluid
+      jet moves the hair bundle. Comparing genotypes tests requirement, and the size of single
+      events combined with the driving force gives conductance.
+  - name: "Substituted-cysteine accessibility mapping"
+    blurb: >-
+      An amino acid is replaced by a cysteine, and a membrane-impermeant reagent that reacts with
+      cysteines in water is applied to a cell that already has current. A change in permeation after
+      the reagent suggests that the residue lines a water-accessible path.
+  - name: "Proteoliposome reconstitution"
+    blurb: >-
+      A purified protein is inserted into artificial lipid vesicles and recorded by patch clamp. If
+      pressure opens it, mechanical gating does not need the rest of the hair cell, though the lipid
+      and the species of protein still matter.
+  - name: "Cryo-electron microscopy"
+    blurb: >-
+      Thousands of images of frozen, purified complexes are combined into a three-dimensional map.
+      It reveals which proteins sit together and how many copies there are, but not what force the
+      complex feels in a living bundle.
+
+structures:
+  - label: "Expanded-state C. elegans TMC-1 complex — the architecture behind this lesson"
+    source: "rcsb"
+    id: "7USW"
+    note: "Cryo-EM model deposited with Jeong, Clark and colleagues, Nature 2022; expanded conformation of the worm TMC-1 complex."
+    caption: >-
+      Look for the two TMC-1 protomers, each with ten transmembrane helices, and the CALM-1 and TMIE
+      subunits beside them. This is the worm complex, not a mammalian one.
+
+simulations:
+  - type: "local"
+    ref: "UnitaryConductanceEnsemble"
+    title: "From one channel to an ensemble current"
+    caption: >-
+      Compute a conductance from one recorded point, then watch a made-up ensemble of N channels at open probability P_open give the expected and the simulated current.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In neonatal mouse hair cells lacking both Tmc1 and Tmc2, conventional transduction is absent, and putting back either gene restores it. What does this design establish?"
+    choices:
+      - "That one of them is needed, and either can supply it"
+      - "That TMC1 and TMC2 each form the pore by themselves"
+      - "That the rescued current has normal permeation"
+      - "That tip links are not needed in cells with rescue"
+    answer: 0
+    rationale: >-
+      Loss of the current in the double null shows that the genes are required, and recovery with
+      either one shows that they can substitute for each other in the hair-cell environment. It does
+      not show that either protein forms the pore alone, because a required trafficking or coupling
+      factor would behave the same way. Nothing in the design bears on tip links, and a rescued current
+      could still have altered selectivity, which this experiment does not measure.
+  - stem: "Mouse inner hair cells carrying the Beethoven allele of Tmc1, with Tmc2 removed, show reduced calcium permeability. Why is this more informative about the pore than a deletion?"
+    choices:
+      - "It shows that deafness in mice resembles human deafness"
+      - "It shows that calcium is the only ion that enters the cell"
+      - "It shows that a sequence change alters which ions pass"
+      - "It shows that the allele removes all channels from the bundle"
+    answer: 2
+    rationale: >-
+      A single amino acid change that alters permeation links the protein's sequence to the channel's
+      ion selectivity, which absence of the protein cannot do. The allele does not remove channels,
+      since currents were still recorded. Calcium is one permeant ion among several, so reduced
+      calcium permeability says nothing about calcium being the only entrant. Similarity of mouse and
+      human deafness is a separate question that the permeation recordings do not address.
+  - stem: "Cysteine-modifying reagent is applied to hair cells that already carry a TMC1 current, and the permeation properties change within seconds. What alternative does this design rule out best?"
+    choices:
+      - "That the current needs partner proteins in the hair bundle"
+      - "That the engineered cysteine sits in a lipid-facing helix of the protein"
+      - "That a change in delivery or trafficking explains the effect"
+      - "That the rescued cell lacks any tip link"
+    answer: 2
+    rationale: >-
+      Because the current already exists when the reagent is added, a change in permeation cannot be
+      blamed on altered synthesis or delivery of the protein, which weakens the developmental and
+      trafficking explanation. Partners may still be present in a cultured, rescued cell, so the
+      experiment does not exclude their role. A reagent that reacts in water suggests an accessible
+      residue, not a lipid-facing one. The experiment says nothing directly about whether tip links
+      are present.
+  - stem: "Turtle TMC1 and budgerigar TMC2 are purified from insect cells, placed in liposomes, and opened by pressure. What is the main limit on reading this as a mammalian hair-cell result?"
+    choices:
+      - "Pressure is never used to gate channels in vesicles"
+      - "Insect cells cannot make a folded membrane protein"
+      - "Liposomes cannot carry any ionic current at all"
+      - "The proteins are non-mammalian and lack native partners"
+    answer: 3
+    rationale: >-
+      The study used turtle and budgerigar proteins in an artificial membrane, so it supports intrinsic
+      mechanical responsiveness in a reduced system but not the composition or force coupling of the
+      mammalian complex. Pressure and liposome patch clamp are standard methods, so those are not
+      the limit, and insect cells are an ordinary host for membrane protein production.
+  - stem: "A review states that fast adaptation is carried by one molecule and slow adaptation by another. Which correction best fits the lesson?"
+    choices:
+      - "Adaptation has been shown to need Myo1c in every cell"
+      - "Fast and slow label kinetics, not separate molecules"
+      - "Adaptation always requires calcium entry into the bundle"
+      - "Only the cochlea shows any kind of adaptation"
+    answer: 1
+    rationale: >-
+      In the cited mammalian work, fast adaptation runs on roughly millisecond or faster scales and
+      slow adaptation on roughly ten milliseconds or more, and the labels do not identify molecules. The answer
+      that names Myo1c as universal is wrong: selective Myo1c inhibition blocked adaptation in mouse
+      utricular cells, but cochlear slow adaptation did not require Myo1c activity in later work. The
+      calcium claim is disputed. Vestibular hair cells adapt too.
+
+mcatQuestions:
+  - stem: "A made-up inner-hair-cell recording gives a single-channel current of -17 pA at a holding potential of -82 mV. Take the reversal potential as +3 mV and assume a linear current-voltage relation. What is the unitary conductance?"
+    choices:
+      - "About 210 pS"
+      - "About 170 pS"
+      - "About 20 pS"
+      - "About 200 pS"
+    answer: 3
+    rationale: >-
+      The driving force is -82 minus +3, which is -85 mV, so the conductance is 17 pA divided by 85
+      mV, or 0.20 nS, which is 200 pS. The value near 170 pS divides by 100 mV, ignoring the reversal
+      potential. The value near 210 pS divides by roughly 80 mV, which comes from using the holding potential
+      alone (82 mV) or from adding the reversal potential to the holding potential instead of
+      subtracting it (79 mV). The value near 20 pS comes from a slip of a factor of ten in units.
+  - stem: "In mouse outer hair cells at P3, when TMC2 is the TMC protein prominent in the bundle, a deafness-linked Tmie mutation lowers the unitary conductance and changes ion selectivity. What is the best interpretation?"
+    choices:
+      - "TMIE shapes pore properties without being shown to be it"
+      - "TMIE is the pore and TMC2 serves only as an anchor"
+      - "TMIE acts only on the tip links and not the pore"
+      - "TMIE is irrelevant because TMC2 is still present here"
+    answer: 0
+    rationale: >-
+      A partner can change conductance and selectivity of a channel it does not form, for example by
+      shaping the lipid or the pore entrance, so the data show that TMIE is part of what sets the
+      measured current. Calling TMIE the pore goes beyond a mutation effect, and calling it irrelevant
+      ignores the changed conductance. An effect on tip links would not change unitary conductance in
+      TMC2-carried currents.
+  - stem: "One laboratory stimulates rat hair cells with a stiff probe and finds fast adaptation that persists when calcium entry is prevented. Another stimulates mouse hair cells with a fluid jet and concludes that calcium drives adaptation. Which new experiment would best narrow the disagreement?"
+    choices:
+      - "Record only from vestibular hair cells in both species"
+      - "Apply both stimuli in one preparation, tracking bundle motion"
+      - "Test whether deafness genes alter the whole current"
+      - "Repeat each experiment later in the same laboratory again"
+    answer: 1
+    rationale: >-
+      The two studies differ in species, stimulus type and how bundle motion was controlled, and force
+      and displacement steps can give different adaptation time courses. Applying both stimuli to the
+      same preparation while measuring motion separates those factors. Repeating each study cannot
+      reveal which difference matters. Switching to vestibular cells adds a new variable, and a
+      deafness-gene test addresses channel composition, not the dispute over calcium.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Your ear has tiny hairs that bend when sound comes in. Bending opens little doors that let
+      electricity in, and that is how you hear. Scientists found a protein that might be the door.
+      To be sure, they had to show that taking it out stops the door working, that changing it
+      changes who can get through, and that it still opens when it is alone in a bubble.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Hair cells in the inner ear turn movement into an electrical signal using ion channels that
+      open when the hair bundle is pushed. Finding which protein forms that channel took years,
+      because showing that a protein is needed is not the same as showing that it makes the pore.
+      Researchers removed the TMC genes and lost the signal, put the genes back and regained it,
+      changed one amino acid and altered which ions flow, and finally purified the protein and saw it
+      respond to pressure. Partner proteins also change how the channel behaves.
+  - level: "college"
+    label: "College"
+    text: >-
+      Calling a protein the hair-cell mechanotransduction channel needs localization at the lower
+      end of the tip link, loss of the current when the gene is removed, rescue, a mutation that
+      changes permeation, acute accessibility of engineered residues in cells that already carry
+      current, and activity after purification. TMC1 and TMC2 meet these in stages: Kawashima and
+      colleagues showed requirement and rescue in neonatal mouse cells, Pan and colleagues showed
+      altered permeation with the Beethoven allele and then cysteine accessibility, and Jia and
+      colleagues showed pressure-gated activity of turtle TMC1 and budgerigar TMC2 in liposomes. The
+      native complex also includes TMIE, LHFPL5 and CIB2, and each of them changes what you measure.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      The evidence ladder is requirement (double-null neonatal mouse hair cells), replaceability
+      (rescue with either gene), sequence dependence of permeation (Beethoven p.M412K, which lowered
+      calcium permeability and unitary current with Tmc2 absent), acute accessibility of D569C-type
+      cysteines to MTSET in cells with a pre-existing current (time constant 191 ms in that
+      preparation), and reduced-system activity of non-mammalian proteins in liposomes. The 2022
+      worm structure gives two copies each of TMC-1, CALM-1 and TMIE with ten helices per TMC-1, and
+      the human version is a model. Conductance depends on partners (TMIE, LHFPL5) and on the ions
+      used, so a conductance quoted without calcium is incomplete. Open questions include how the
+      lipid and tip link couple force to the pore, why antibody and tag methods disagree on TMC1 and TMC2
+      localization in Cib2-mutant cells, and whether the calcium dependence of fast adaptation differs by
+      stimulus mechanics or species.
+
+anecdotes:
+  - title: "The Beethoven mouse and the composer"
+    source: "Vreugde and colleagues, Nature Genetics (2002); Pan and colleagues, Neuron (2013)."
+    text: >-
+      The Beethoven mouse is a mouse line with a missense mutation in Tmc1, described in 2002 as a
+      model of dominant progressive hearing loss. In the 2013 recordings it supplied the residue 412
+      substitution, from methionine to lysine, that changed permeation. The name is a label for the
+      line. It carries no information about the composer or the cause of his hearing loss, and the numbering belongs to the mouse protein. The lesson of the line is a method
+      point: a mutation that changes what ions pass is a different kind of evidence from a mutation
+      that deletes the protein.
+  - title: "Two answers about calcium"
+    source: "Peng, Effertz and Ricci, Neuron (2013); Corns, Johnson, Kros and Marcotti, PNAS (2014)."
+    text: >-
+      In 2013 a laboratory using rat hair cells and a stiff probe reported that fast adaptation could
+      persist without calcium entry. In 2014 another group, using mouse hair cells and a fluid jet,
+      concluded that calcium entry drives adaptation. That paper said its findings contradicted the
+      earlier one and suggested that a rigid probe can produce an artifactual, calcium-independent
+      current decay when the bundle is not optimally positioned. The two studies differed in species, in stimulus type and in how bundle motion
+      was handled, and later work (Caprara and colleagues, 2019, rat cochlear hair cells) showed that force steps and displacement
+      steps give different adaptation. The disagreement is a standing example of a result that depends on the method.
+  - title: "A worm helps with a mouse problem"
+    source: "Jeong, Clark and colleagues, Nature (2022)."
+    text: >-
+      The 2022 paper purified a tagged native TMC-1 complex
+      from bulk-grown C. elegans and solved it by cryo-EM. The choice gave a native assembly with its
+      partners, at the cost of a different animal. The human complex in the paper was a
+      computational model built on the worm structure, and the authors presented it that way.
+
+corpusTags:
+  - "hair-cell"
+  - "mechanotransduction"
+  - "tmc1"
+  - "cryo-em"
+  - "hearing"
+draft: true
+---
+
+import UnitaryConductanceEnsemble from '../../../components/UnitaryConductanceEnsemble.astro';
+
+**A hair cell fails to hear when a gene is missing, and the gene's protein sits in the right place. Is that enough to call the protein the channel?** It is not, and the history of TMC1 shows how much more is asked.
+
+[Hearing and balance](/lessons/hearing-and-balance/) covers tip links, the gating spring and the driving force, and gives TMC1 one sentence as a pore component. Here we start where that sentence stops: what each experiment proved, what it left open, and why the answer is a complex of proteins rather than one. The gating logic of channels is in [ion channels as receptors](/lessons/ion-channels-as-receptors/), and earlier in this course [mechanotransduction channels](/lessons/mechanotransduction-channels/) compare candidates across senses.
+
+## The idea: what would count as proof of a channel
+
+A protein can be required for a current without forming the pore. A trafficking factor, an anchor or a lipid-modifying enzyme could all be needed, and deleting any of them would silence the cell. The field therefore asks for a ladder of evidence, and each rung rules out a different alternative.
+
+- **Localization.** The protein sits at the lower end of the tip link, where the channel is thought to be.
+- **Requirement.** The conventional current disappears when the gene is removed.
+- **Rescue.** Putting the gene back restores the current, in cells of the mutant genotype.
+- **Permeation.** A change in the protein's sequence changes which ions pass, not only how much current flows.
+- **Acute accessibility.** A reagent applied to a cell that already carries current alters permeation through an engineered residue. This excludes a story in which the mutation merely changed how the protein was made or delivered.
+- **Purified activity.** The isolated protein, in a membrane with no hair cell around it, responds to force.
+
+No single paper climbs every rung, and the rungs differ in species and preparation. Keep that in view through the rest of the lesson. Also note what "the channel" means. Even a complete ladder says that the protein forms or lines the pore. It does not say how force from the tip link reaches it.
+
+## Requirement and rescue, then permeation
+
+Kurima and colleagues (2002) linked human TMC1 mutations to dominant deafness (DFNA36) and to recessive deafness (DFNB7/B11). That was a human pedigree result: the gene matters for hearing. It said nothing about function.
+
+The first functional rung came from mice. Kawashima and colleagues (2011) recorded from neonatal mouse hair cells, utricular cells at P1 to P8 and cochlear outer hair cells at P2 to P4 (base) and P5 to P7 (apex), in excised tissue. Cells lacking both Tmc1 and Tmc2 had no conventional transduction current. In double-null cultures, expressing either TMC1 or TMC2 restored it. Tmc2 is expressed only transiently in the early postnatal cochlea, which is why a Tmc1 single mutant can still show early currents. This is requirement and replaceability in neonatal mouse hair cells. It does not separate a pore from a factor the pore needs.
+
+The next step changed the protein instead of removing it. The Beethoven allele of Tmc1 substitutes lysine for methionine at residue 412 in the mouse protein (Vreugde and colleagues, 2002, described the line as a model of dominant progressive hearing loss). Pan and colleagues (2013) recorded from excised neonatal mouse inner hair cells with Tmc2 removed, so that only mutant TMC1 was left. Calcium permeability was reduced, and single-channel currents were smaller than in cells with one wild-type Tmc1 allele and no Tmc2. Hair cells carrying Tmc2 without functional Tmc1 showed large single-channel currents. The authors proposed that mixed assemblies of TMC subunits could explain some of the unitary-current differences; that was an interpretation, not a subunit count.
+
+Two cautions. Beethoven is a mouse allele and the residue number is the mouse protein's, so nothing here is a diagnosis of the composer. And permeation can be altered by changing a partner, so this rung is strong but not conclusive.
+
+## Accessibility and reconstitution
+
+Pan and colleagues (2018) built the acute-accessibility test. They delivered Tmc1 constructs carrying single cysteine substitutions into Tmc1/Tmc2 double-null mouse hair cells with a viral vector at P1, excised the cochleae at P5 to P7 and cultured them for a further 3 to 13 days. They then added a membrane-impermeant cysteine-reactive reagent to cells that were already carrying current. Such reagents react with cysteine side chains in water. The reagent changed the permeation properties of the TMC1-mediated current, and for a D569C construct, the fastest-reacting of the cysteine constructs tested, the current was inhibited with a time constant of 191 +/- 62 ms (n = 7, 2 mM reagent); other constructs reacted far more slowly, up to about 17 s. Because the current existed before the reagent was added, a change cannot be explained by altered synthesis or delivery. The authors called this compelling evidence that TMC1 is a pore-forming component. The cells were still cultured hair cells with their native partners, and no purified mammalian TMC1 was tested alone.
+
+Jia and colleagues (2020) asked what happens without the hair cell. They produced truncated turtle TMC1 and budgerigar TMC2 constructs in insect cells, purified them, put them in liposomes, and found that applied pressure activated channel activity. This supports intrinsic mechanical responsiveness in a reduced system. The proteins were not mammalian, and it was not a native complex.
+
+In 2025 two groups addressed a question left over from the older literature: can TMC1 and TMC2 make a mechanically gated current in a non-hair-cell host? Fu and colleagues reported mechanically activated currents from wild-type human TMC1 and TMC2 in cultured cells after a genome-wide CRISPR interference screen identified a way to raise surface expression. Chen and colleagues obtained mechanosensitive activity from full-length mouse TMC1 and TMC2 expressed in PIEZO1-knockout HEK293T cells after adding a lipidation tag, and TMIE raised the channel activity in that assay. These are recent, heterologous results with assisted targeting. They strengthen the case for the pore, and they leave the native force coupling open. (The [CRISPR lesson](/lessons/crispr-and-functional-genomics/) covers screens of this kind.)
+
+Other mechanically activated currents do not automatically count. A PIEZO2-associated reverse-polarity current in neonatal mouse outer hair cells (Wu and colleagues) is distinct from conventional tip-link transduction, and mouse TMEM63A and TMEM63B, but not TMEM63C, gave stretch-activated currents in HEK cells (Murthy and colleagues, 2018) without any test of native hair-cell necessity or rescue.
+
+## A complex, not a protein: TMIE, LHFPL5, CIB2 and a worm structure
+
+Jeong and Clark and colleagues (2022) purified a tagged native TMC-1 complex from bulk-grown C. elegans and solved it by cryo-EM. The main assembly held two copies each of TMC-1, CALM-1 and TMIE, and each TMC-1 protomer had ten transmembrane helices. CALM-1 is a worm calcium-binding protein; it is not a resolved mammalian CIB2. The human complex in the paper was a homology model built on the worm structure. See the structure listed with this lesson (7USW) and treat it as a worm structure.
+
+Partners change what you measure:
+
+- **TMIE.** In mouse cochlear outer hair cells, TMC1 and TMC2 did not support transduction without TMIE (Cunningham and colleagues, 2020, P3 explants). Deafness-linked Tmie mutations lowered unitary current and changed calcium permeability in P3 outer hair cells, an age at which TMC2 is the TMC protein prominent in the bundle, and charged residues in the cytoplasmic end of TMIE bound phospholipids including PIP2.
+- **LHFPL5 (TMHS).** It binds the tip-link protein PCDH15, and the neonatal Tmhs-null cochlea showed reduced transducer conductance (Xiong and colleagues, 2012).
+- **CIB2.** Mouse hair cells without functional CIB2 had no detectable normal-polarity transduction at P4 to P7, and CIB2 interacted with TMC1 and TMC2 in biochemical assays (Giese and colleagues, 2017). Later, CIB3 expression rescued Cib2-null cochlear cells, and a co-crystal showed CIB3 bound to a TMC1 intracellular fragment (Liang and colleagues, 2021).
+
+The localization evidence conflicts. Giese and colleagues used antibodies and did not detect mislocalization of TMC1 or TMC2 in Cib2 mutants. Liang and colleagues used endogenous epitope-tagged TMC1 and TMC2 and could not detect them in stereocilia of Cib2-null cells. Which method to trust is open.
+
+**Worked problem: a conductance from a real recording.** Beurg and colleagues (2006) recorded from rat inner hair cells (P6 to P11, excised organ of Corti, low-frequency position, 1.5 mM external calcium). The mean unitary current was 15.0 +/- 1.6 pA (SD, n = 7) at -84 mV, at room temperature (19 to 22 C). Take the reversal potential as +3 mV and assume a linear current-voltage relation.
+
+- (a) The driving force is -84 - (+3) = -87 mV. Conductance g = i / (V - E_rev) = (-15.0 pA) / (-87 mV) = 0.172 nS, or about 172 pS.
+- (b) For a made-up ensemble of 100 identical, independent channels at open probability 0.20: I = N x i x P_open = 100 x (-15.0 pA) x 0.20 = -300 pA, an inward current of 300 pA. The count and probability are teaching assumptions, not measurements.
+- (c) The same paper estimated about 260 pS for inner hair cells, which differs because that estimate was made at 0.02 mM calcium, not 1.5 mM. Calcium is thought to impede passage of monovalent cations, so a conductance without its ionic conditions is not a complete number.
+
+<UnitaryConductanceEnsemble />
+
+> **g = i / (V - E_rev), and the whole ensemble current is I = N x i x P_open**
+
+There is no single hair-cell conductance. In the low-calcium estimates of Beurg and colleagues (2006), outer hair cells rose from 145 to 210 pS between sampled low- and mid-frequency positions in the rat cochlea, whereas inner hair cells were about 260 pS at both. Beurg and colleagues (2018) found a conductance gradient in outer hair cells of Tmc2-null mice (P3 to P7), so TMC2 is not needed to produce a gradient, and they proposed that varying numbers of cooperating channels per complex contribute. Neonatal gradients do not give the composition of the adult complex.
+
+## Adaptation: two time scales, one unsettled calcium story
+
+During a maintained deflection, the transduction current declines and the activation curve shifts. This is adaptation, and it has a fast and a slow phase. Fast and slow name kinetics, not molecules. In the 2020 work the fast phase ran at about a millisecond or faster and the slow phase at about ten milliseconds.
+
+In mouse inner hair cells (P6 to P9 in the cells of that figure, fluid jet, -81 mV, room temperature 22 to 24 C, n = 6, mean +/- SEM), Corns and colleagues (2014) reported time constants of 0.82 +/- 0.31 ms (fast) and 11.4 +/- 4.3 ms (slow) and concluded that calcium entry drives adaptation. Peng, Effertz and Ricci (2013) stimulated rat hair cells (P6 to P10), mainly with a stiff probe and with fluid-jet controls, and found fast adaptation that persisted without calcium entry. The two studies differ in species, stimulus and handling of bundle motion. Caprara and colleagues (2019) showed that step-like force and step-like displacement stimuli give different manifestations of adaptation in rat outer hair cells, so stimulus mechanics could contribute to the disagreement. The authors presented this as reconciling the data in favour of calcium-independent fast adaptation; the lesson leaves the question open.
+
+The slow phase has its own dispute. Selective inhibition of an engineered Myo1c blocked adaptation in mouse utricular hair cells (Holt and colleagues). In 2020, Caprara, Mecca and Peng compared hair-bundle creep with slow adaptation in several preparations and found them uncorrelated; cochlear slow adaptation did not require Myo1c activity, and the Myo1c result differed between cochlear and vestibular cells. That challenges the classic motor model of slow adaptation. It does not rule out every function of myosin.
+
+### Design problem
+
+A laboratory reports mechanically gated current from a new candidate protein in a cultured cell line. Design the experiments that would let the field call it the hair-cell transduction channel, and say what each cannot show.
+
+<details>
+<summary>One way to do it</summary>
+
+1. **Localize it.** Tag the endogenous protein, or use a validated antibody with a knockout control, and look at the lower end of the tip link. Cannot show: that it conducts. Antibodies and tags have already given conflicting answers for where TMC1 and TMC2 sit in Cib2-mutant hair cells.
+2. **Remove it in hair cells that still have working Tmc1 or Tmc2.** Ask whether conventional transduction is lost, controlling for genotype and age. Cannot show: that it is the pore, since a trafficking factor would give the same result. A single knockout can also be hidden by a related gene.
+3. **Rescue.** Re-express the protein in those cells and ask whether the current returns. Cannot show: pore identity, but it is stronger than a deafness phenotype because it shows function can be restored.
+4. **Change permeation.** Introduce a point mutation and measure ion selectivity and unitary current. Cannot show: direct pore lining, because a partner could also change permeation.
+5. **Test acute accessibility.** Substitute cysteines, rescue to obtain current, then apply a reagent to cells that already carry current. Cannot show: behaviour of the protein alone, because native partners are still present.
+6. **Purify and reconstitute.** Record activity from the protein in liposomes. Cannot show: the native complex or its force coupling, and the species and lipid matter.
+
+Also check that the current is conventional tip-link transduction and not a PIEZO2-associated current, which has reverse polarity in neonatal mouse outer hair cells.
+
+</details>

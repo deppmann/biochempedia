@@ -1,0 +1,212 @@
+---
+/**
+ * PhotostimTrainDuty — the stimulus arithmetic of the optogenetic worked problem in
+ * "From Glomeruli to Piriform Cortex". A computed light-pulse train (one square pulse starting
+ * each period) and a zoomed view of one period, with period, pulse count, off-time, duty cycle,
+ * light-on time and the duration x duty check. Stimulus quantities only; no neural response is
+ * modelled. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ptd card" data-ptd>
+  <figcaption class="ptd-head">Light-pulse train: period, pulses, duty cycle<span class="ptd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ptd-svg" viewBox="0 0 340 222" role="img" aria-label="A computed train of square light pulses over the chosen duration, and a zoomed view of one period showing light-on and off time" data-plot></svg>
+
+  <div class="ptd-controls">
+    <label class="ptd-slabel"><span>Pulse frequency <em data-out="f">20</em> Hz</span>
+      <input type="range" data-in="f" min="1" max="40" step="1" value="20" />
+    </label>
+    <label class="ptd-slabel"><span>Pulse width <em data-out="w">25</em> ms</span>
+      <input type="range" data-in="w" min="1" max="50" step="1" value="25" />
+    </label>
+    <label class="ptd-slabel"><span>Train duration <em data-out="d">3</em> s <small>(our assumption)</small></span>
+      <input type="range" data-in="d" min="1" max="5" step="1" value="3" />
+    </label>
+  </div>
+
+  <dl class="ptd-readout">
+    <div><dt>Period = 1/f</dt><dd data-r="period"></dd></div>
+    <div><dt>Pulses = f × duration</dt><dd data-r="count"></dd></div>
+    <div><dt>Off-time per period</dt><dd data-r="off"></dd></div>
+    <div><dt>Duty cycle = on ÷ period</dt><dd data-r="duty"></dd></div>
+    <div><dt>Total light-on time</dt><dd data-r="lighton"></dd></div>
+    <div><dt>Check: duration × duty</dt><dd data-r="check"></dd></div>
+  </dl>
+
+  <div class="ptd-why" data-why role="status"></div>
+
+  <p class="ptd-assume"><strong>In this sketch:</strong> square light pulses, one pulse starting each period, stimulus quantities only, no neural response modelled. The drawing is computed from the three settings and is not a recording.</p>
+  <p class="ptd-foot">Rule to keep: duty cycle = pulse width ÷ period, and light-on time = pulses × width = duration × duty. These are stimulus quantities, not spike counts.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+    t.textContent = s;
+    return t;
+  }
+  /** number with at most `dp` decimals, trailing zeros trimmed (but keeping `min` decimals) */
+  function fmt(n: number, dp = 2, min = 0): string {
+    let s = n.toFixed(dp);
+    if (s.indexOf('.') >= 0) {
+      const keep = s.indexOf('.') + 1 + min;
+      while (s.length > keep && s.endsWith('0')) s = s.slice(0, -1);
+      if (s.endsWith('.')) s = s.slice(0, -1);
+    }
+    return s;
+  }
+  function commas(n: number): string {
+    const s = fmt(n, 1);
+    const [i, f] = s.split('.');
+    return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f ? '.' + f : '');
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ptd]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const fIn = root.querySelector<HTMLInputElement>('[data-in="f"]');
+    const wIn = root.querySelector<HTMLInputElement>('[data-in="w"]');
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
+    const fOut = root.querySelector<HTMLElement>('[data-out="f"]');
+    const wOut = root.querySelector<HTMLElement>('[data-out="w"]');
+    const dOut = root.querySelector<HTMLElement>('[data-out="d"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const r: Record<string, HTMLElement | null> = {};
+    ['period', 'count', 'off', 'duty', 'lighton', 'check'].forEach((k) => { r[k] = root.querySelector<HTMLElement>(`[data-r="${k}"]`); });
+    if (!plot || !fIn || !wIn || !dIn || !fOut || !wOut || !dOut || !why) return;
+    for (const k in r) if (!r[k]) return;
+    const setR = (k: string, s: string) => { const e = r[k]; if (e) e.textContent = s; };
+
+    const X0 = 20, X1 = 324, W = X1 - X0;
+
+    function render() {
+      const f = parseInt(fIn!.value, 10);
+      const wReq = parseInt(wIn!.value, 10);
+      const d = parseFloat(dIn!.value);
+      fOut!.textContent = String(f);
+      wOut!.textContent = String(wReq);
+      wOut!.textContent = wReq >= 1000 / f ? `${wReq} (used: ${Math.ceil(1000 / f) - 1})` : String(wReq);
+      dOut!.textContent = fmt(d, 1);
+
+      const T = 1000 / f; // ms
+      const wMax = Math.ceil(T) - 1; // largest whole-ms width strictly below the period
+      const clamped = wReq >= T;
+      const w = clamped ? wMax : wReq;
+      const count = f * d;
+      const off = T - w;
+      const duty = w / T;
+      const lightMs = count * w;
+      const checkS = d * duty;
+      const dutyStr = fmt(duty, 3, 2);
+
+      // ---------- plot ----------
+      plot!.replaceChildren();
+      plot!.appendChild(txt(X0, 12, `Whole train: 0 to ${fmt(d, 1)} s (light on = filled block)`, { 'font-weight': 700 }));
+      const LY0 = 20, LY1 = 50;
+      plot!.appendChild(el('rect', { x: X0, y: LY0, width: W, height: LY1 - LY0, fill: '#fff', stroke: FAINT, 'stroke-width': 1 }));
+      const totalMs = d * 1000;
+      const sx = (ms: number) => X0 + (ms / totalMs) * W;
+      let path = '';
+      for (let k = 0; k * T < totalMs - 1e-9; k++) {
+        const a = k * T, b = Math.min(a + w, totalMs);
+        const xa = sx(a), xb = Math.max(sx(b), xa + 0.5);
+        path += `M${xa.toFixed(2)} ${LY0}H${xb.toFixed(2)}V${LY1}H${xa.toFixed(2)}Z`;
+      }
+      plot!.appendChild(el('path', { d: path, fill: ACCENT }));
+      // time ticks at whole seconds, plus the end of the train
+      const ticks: number[] = [];
+      for (let s = 0; s <= d + 1e-9; s += 1) ticks.push(s);
+      if (Math.abs(ticks[ticks.length - 1] - d) > 1e-9) ticks.push(d);
+      ticks.forEach((s, i) => {
+        const x = X0 + (s / d) * W;
+        plot!.appendChild(el('line', { x1: x, y1: LY1, x2: x, y2: LY1 + 4, stroke: INK, 'stroke-width': 1 }));
+        const anchor = i === 0 ? 'start' : i === ticks.length - 1 ? 'end' : 'middle';
+        plot!.appendChild(txt(x, LY1 + 15, `${fmt(s, 1)} s`, { 'text-anchor': anchor }));
+      });
+
+      // ---------- zoom of one period ----------
+      plot!.appendChild(txt(X0, 92, `One period, zoomed: 0 to ${fmt(T, 2)} ms`, { 'font-weight': 700 }));
+      const ZY0 = 102, ZY1 = 132;
+      const px = (ms: number) => X0 + (ms / T) * W;
+      plot!.appendChild(el('rect', { x: X0, y: ZY0, width: W, height: ZY1 - ZY0, fill: '#fff', stroke: FAINT, 'stroke-width': 1 }));
+      plot!.appendChild(el('rect', { x: X0, y: ZY0, width: Math.max(px(w) - X0, 0.5), height: ZY1 - ZY0, fill: ACCENT }));
+      plot!.appendChild(el('line', { x1: X0, y1: ZY1, x2: X0, y2: ZY1 + 4, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X1, y1: ZY1, x2: X1, y2: ZY1 + 4, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(txt(X0, ZY1 + 15, '0 ms', { 'text-anchor': 'start' }));
+      plot!.appendChild(txt(X1, ZY1 + 15, `${fmt(T, 2)} ms: next pulse starts`, { 'text-anchor': 'end' }));
+      plot!.appendChild(txt(X0, ZY1 + 33, `on ${w} ms`, { 'text-anchor': 'start', fill: ACCENT, 'font-weight': 700 }));
+      plot!.appendChild(txt(X1, ZY1 + 33, `off ${fmt(off, 2)} ms`, { 'text-anchor': 'end', fill: ORANGE, 'font-weight': 700 }));
+      // period bracket
+      const BY = ZY1 + 46;
+      plot!.appendChild(el('line', { x1: X0, y1: BY, x2: X1, y2: BY, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: BY - 3, x2: X0, y2: BY + 3, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X1, y1: BY - 3, x2: X1, y2: BY + 3, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(txt((X0 + X1) / 2, BY + 14, `period = 1/${f} s = ${fmt(T, 2)} ms`, { 'text-anchor': 'middle' }));
+
+      // ---------- readouts ----------
+      setR('period', `1/${f} s = ${fmt(T, 2)} ms`);
+      setR('count', `${fmt(f, 0)} s⁻¹ × ${fmt(d, 1)} s = ${fmt(count, 1)} pulses`);
+      setR('off', `${fmt(T, 2)} − ${w} = ${fmt(off, 2)} ms`);
+      setR('duty', `${w}/${fmt(T, 2)} = ${dutyStr}`);
+      setR('lighton', `${fmt(count, 1)} × ${w} ms = ${commas(lightMs)} ms = ${fmt(lightMs / 1000, 3)} s`);
+      setR('check', `${fmt(d, 1)} s × ${dutyStr} = ${fmt(checkS, 3)} s`);
+
+      // ---------- status ----------
+      const isLesson = f === 20 && w === 25 && !clamped && d === 3;
+      const isLessonSetting = f === 20 && w === 25 && !clamped;
+      const parts: string[] = [];
+      if (clamped) {
+        parts.push(`A requested pulse width of ${wReq} ms would reach the period of ${fmt(T, 2)} ms, leaving no off-time, so the light would be continuous. The sketch holds the width to ${w} ms, the longest whole-millisecond pulse shorter than the period.`);
+      }
+      parts.push(`The drawing shows ${fmt(count, 1)} light pulses of ${w} ms, one starting every ${fmt(T, 2)} ms for ${fmt(d, 1)} s, so the light is on for a fraction ${dutyStr} of the time: ${fmt(lightMs / 1000, 3)} s in all.`);
+      if (isLesson) {
+        parts.push('These are the lesson’s worked-problem numbers: the aversive-conditioning photostimulus is given as 20 Hz pulses of 25 ms, and the 3 s duration is our assumption.');
+      } else if (isLessonSetting) {
+        parts.push(`20 Hz pulses of 25 ms are the lesson’s aversive-conditioning photostimulus; the ${fmt(d, 1)} s duration is our assumption (the worked problem uses 3 s).`);
+      } else {
+        parts.push('Settings other than 20 Hz and 25 ms are not the protocol of Choi and colleagues (2011); the lesson gives only 20 Hz pulses of 25 ms for the aversive-conditioning photostimulus.');
+      }
+      const main = document.createElement('p');
+      main.className = 'ptd-why-main';
+      main.textContent = parts.join(' ');
+      const refuse = document.createElement('ul');
+      refuse.className = 'ptd-refuse';
+      [
+        'The pulse count is a count of light pulses, not of spikes: the lesson says these quantities do not show that neurons fired that many spikes.',
+        'Nothing here shows that the activated ensemble is a natural odour representation, or that the mice smelled anything; the authors withheld that claim.',
+      ].forEach((s) => { const li = document.createElement('li'); li.textContent = s; refuse.appendChild(li); });
+      why!.replaceChildren(main, refuse);
+    }
+
+    [fIn, wIn, dIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .ptd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ptd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ptd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ptd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ptd-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ptd-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ptd-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .ptd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ptd-slabel input { accent-color: var(--ddp-color-accent); }
+  .ptd-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ptd-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .ptd-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ptd-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ptd-why { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .ptd-why p { margin: 0 0 0.4rem; }
+  .ptd-refuse { margin: 0; padding-left: 1.1rem; }
+  .ptd-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ptd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

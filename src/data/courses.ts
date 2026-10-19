@@ -346,6 +346,50 @@ export const COURSES: Course[] = [
       },
     ],
   },
+  {
+    slug: 'sensory-systems',
+    title: 'Sensory Systems',
+    tier: 'advanced',
+    tagline: 'How touch, pain, itch, the body, sight, sound, smell and taste are sensed, read through current research.',
+    searchHint: 'Try “Piezo2”, “Merkel cell”, “TMC1”…',
+    blurb:
+      'An advanced elective that follows the Neuroscience course. It starts where the textbook account of each sense ends: the genetically defined cell types of the skin, retina, ear, nose and gut, the channels that turn force, heat and chemicals into current, and the circuits that first read them. It covers touch and its receptors in depth, temperature, pain and itch, proprioception and sensing the body from inside, vision, hearing and balance, smell and taste, and ends with how the senses are combined, predicted and restored by prostheses.',
+    /* Sequence set 2026-10-19 (starting plan approved by Chris; docs/expansion/SENSORY_AUDIT.md). */
+    units: [
+      {
+        name: 'Transduction and sensory cell types',
+        slugs: ['transduction-strategies', 'mechanotransduction-channels', 'sensory-neuron-atlas'],
+      },
+      {
+        name: 'Touch',
+        slugs: ['ltmr-classes', 'merkel-cells', 'vibration-corpuscles', 'hairy-skin-and-affective-touch', 'dorsal-horn-touch', 'touch-in-autism-models'],
+      },
+      {
+        name: 'Temperature, pain and itch',
+        slugs: ['thermosensation', 'nociceptors-and-sodium-channels', 'spinal-pain-circuits', 'itch', 'chronic-pain'],
+      },
+      {
+        name: 'Proprioception and interoception',
+        slugs: ['proprioception', 'vagal-sensory-neurons'],
+      },
+      {
+        name: 'Vision',
+        slugs: ['retinal-cell-types', 'direction-selectivity', 'iprgcs', 'photoreceptor-adaptation-and-degeneration'],
+      },
+      {
+        name: 'Hearing and balance',
+        slugs: ['hair-cell-transduction-channel', 'cochlear-amplifier', 'hearing-loss-and-repair', 'vestibular-system'],
+      },
+      {
+        name: 'Smell and taste',
+        slugs: ['olfactory-receptor-choice', 'olfactory-bulb-and-cortex', 'taste-coding'],
+      },
+      {
+        name: 'Integration and repair',
+        slugs: ['multisensory-and-prediction', 'sensory-prostheses'],
+      },
+    ],
+  },
 ];
 
 /** The course a lesson belongs to. An unknown slug falls back to a bare course

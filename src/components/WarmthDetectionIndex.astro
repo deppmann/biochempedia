@@ -1,0 +1,241 @@
+---
+/**
+ * WarmthDetectionIndex — the lesson's constructed go/no-go session (100 warming trials, 100 catch
+ * trials, 32 °C baseline). Licks on each trial type give H and F; d′ = z(H) − z(F). Resample draws
+ * one session at the chosen rates so observed sits beside expected. Original sketch.
+ */
+---
+
+<figure class="wdi card" data-wdi>
+  <figcaption class="wdi-head">Detection sensitivity d′ from hits and false alarms<span class="wdi-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="wdi-svg" viewBox="0 0 340 262" role="img" aria-label="Two bars show licks out of 100 on warming trials and on catch trials; below them an axis of z-scores marks z of the false-alarm rate and z of the hit rate, and the distance between them is d prime" data-plot></svg>
+
+  <div class="wdi-controls">
+    <label class="wdi-slabel"><span>Licks on warming trials <em data-out="h">80</em> of 100</span>
+      <input type="range" data-in="h" min="0" max="100" step="1" value="80" />
+    </label>
+    <label class="wdi-slabel"><span>Licks on catch trials <em data-out="f">20</em> of 100</span>
+      <input type="range" data-in="f" min="0" max="100" step="1" value="20" />
+    </label>
+    <div class="wdi-jump" role="group" aria-label="Cases from the lesson">
+      <button type="button" class="wdi-btn" data-case="80,20">Worked case 80 / 20</button>
+      <button type="button" class="wdi-btn" data-case="70,10">Practice case 70 / 10</button>
+      <button type="button" class="wdi-btn" data-case="80,80">Licking: 80 / 80</button>
+    </div>
+    <button type="button" class="wdi-btn wdi-resample" data-resample>Resample one session of 100 + 100 trials</button>
+  </div>
+
+  <table class="wdi-table">
+    <thead>
+      <tr><th scope="col">Step</th><th scope="col">Expected (from the sliders)</th><th scope="col">Drawn (simulated session)</th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Licks, warming / catch</th><td data-e-k></td><td data-o-k></td></tr>
+      <tr><th scope="row">H, hit rate</th><td data-e-h></td><td data-o-h></td></tr>
+      <tr><th scope="row">F, false-alarm rate</th><td data-e-f></td><td data-o-f></td></tr>
+      <tr><th scope="row">z(H)</th><td data-e-zh></td><td data-o-zh></td></tr>
+      <tr><th scope="row">z(F)</th><td data-e-zf></td><td data-o-zf></td></tr>
+      <tr><th scope="row">d′ = z(H) − z(F), dimensionless</th><td data-e-d></td><td data-o-d></td></tr>
+    </tbody>
+  </table>
+
+  <p class="wdi-why" data-why role="status"></p>
+
+  <p class="wdi-foot">In this sketch: independent trials at fixed lick rates, an equal-variance normal model, a head-fixed mouse reporting with licks from a 32 °C baseline; the session is constructed, not published data. A rate of 0 or 100 licks is moved to 0.5 or 99.5 licks in 100 so that z is finite; the formula itself is undefined there, and that convention is this sketch’s, not the lesson’s. Rule to keep: d′ is a sensitivity index, not a temperature and not the hit rate.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55';
+  const N = 100;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  // inverse standard-normal CDF (Acklam's rational approximation, one Halley refinement)
+  function erfc(x: number): number {
+    const z = Math.abs(x), t = 1 / (1 + 0.5 * z);
+    const r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+    return x >= 0 ? r : 2 - r;
+  }
+  const Phi = (x: number) => 0.5 * erfc(-x / Math.SQRT2);
+  function zinv(p: number): number {
+    const a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.38357751867269e2, -3.066479806614716e1, 2.506628277459239];
+    const b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1];
+    const c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+    const d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416];
+    let x: number;
+    if (p < 0.02425) { const q = Math.sqrt(-2 * Math.log(p)); x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+    else if (p > 1 - 0.02425) { const q = Math.sqrt(-2 * Math.log(1 - p)); x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+    else { const q = p - 0.5, r = q * q; x = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1); }
+    const e = Phi(x) - p, u = e * Math.sqrt(2 * Math.PI) * Math.exp(x * x / 2);
+    return x - u / (1 + x * u / 2);
+  }
+  // licks out of 100 -> rate; 0 and 100 are moved to 0.5/100 and 99.5/100
+  function rate(k: number): { r: number; clamped: boolean } {
+    if (k <= 0) return { r: 0.5 / N, clamped: true };
+    if (k >= N) return { r: 1 - 0.5 / N, clamped: true };
+    return { r: k / N, clamped: false };
+  }
+  type Res = { kh: number; kf: number; H: number; F: number; zh: number; zf: number; d: number; ch: boolean; cf: boolean };
+  function analyse(kh: number, kf: number): Res {
+    const h = rate(kh), f = rate(kf);
+    const zh = zinv(h.r), zf = zinv(f.r);
+    return { kh, kf, H: h.r, F: f.r, zh, zf, d: zh - zf, ch: h.clamped, cf: f.clamped };
+  }
+  function binom(n: number, p: number): number {
+    let k = 0;
+    for (let i = 0; i < n; i++) if (Math.random() < p) k++;
+    return k;
+  }
+  const f4 = (x: number) => (Math.abs(x) < 0.00005 ? 0 : x).toFixed(4);
+  const fr = (x: number) => (x === 0.005 || x === 0.995 ? x.toFixed(3) : x.toFixed(2));
+  const f2 = (x: number) => (Math.abs(x) < 0.005 ? 0 : x).toFixed(2);
+
+  document.querySelectorAll<HTMLElement>('[data-wdi]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const hIn = root.querySelector<HTMLInputElement>('[data-in="h"]');
+    const fIn = root.querySelector<HTMLInputElement>('[data-in="f"]');
+    const hOut = root.querySelector<HTMLElement>('[data-out="h"]');
+    const fOut = root.querySelector<HTMLElement>('[data-out="f"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const resample = root.querySelector<HTMLButtonElement>('[data-resample]');
+    const cases = root.querySelectorAll<HTMLButtonElement>('[data-case]');
+    const q = (s: string) => root.querySelector<HTMLElement>(s);
+    const cells = {
+      ek: q('[data-e-k]'), eh: q('[data-e-h]'), ef: q('[data-e-f]'), ezh: q('[data-e-zh]'), ezf: q('[data-e-zf]'), ed: q('[data-e-d]'),
+      ok: q('[data-o-k]'), oh: q('[data-o-h]'), of: q('[data-o-f]'), ozh: q('[data-o-zh]'), ozf: q('[data-o-zf]'), od: q('[data-o-d]'),
+    };
+    if (!plot || !hIn || !fIn || !hOut || !fOut || !why || !resample) return;
+    for (const k of Object.keys(cells) as (keyof typeof cells)[]) if (!cells[k]) return;
+    const C = cells as Record<keyof typeof cells, HTMLElement>;
+
+    let obs: { kh: number; kf: number } | null = null; // observed licks from the last resample
+
+    function text(x: number, y: number, str: string, o: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, o));
+      t.textContent = str;
+      plot!.appendChild(t);
+    }
+    const clampX = (x: number, half: number) => Math.max(half + 2, Math.min(338 - half, x));
+
+    function fill(col: 'e' | 'o', r: Res) {
+      const g = (k: string) => C[(col + k) as keyof typeof C];
+      g('k').textContent = r.kh + ' / ' + r.kf;
+      g('h').textContent = fr(r.H) + (r.ch ? ' (clamped from ' + r.kh + '/100)' : '');
+      g('f').textContent = fr(r.F) + (r.cf ? ' (clamped from ' + r.kf + '/100)' : '');
+      g('zh').textContent = f4(r.zh);
+      g('zf').textContent = f4(r.zf);
+      g('d').textContent = f2(r.d);
+    }
+
+    function render() {
+      const kh = parseInt(hIn!.value, 10), kf = parseInt(fIn!.value, 10);
+      hOut!.textContent = String(kh);
+      fOut!.textContent = String(kf);
+      const e = analyse(kh, kf);
+      fill('e', e);
+      let o: Res | null = null;
+      if (obs) { o = analyse(obs.kh, obs.kf); fill('o', o); }
+      else for (const k of ['k', 'h', 'f', 'zh', 'zf', 'd']) C[('o' + k) as keyof typeof C].textContent = 'press Resample';
+
+      plot!.replaceChildren();
+      // bars
+      const BY0 = 104, BH = 76; // baseline y, height for 100 licks
+      const by = (k: number) => BY0 - (k / N) * BH;
+      plot!.appendChild(el('line', { x1: 30, y1: BY0, x2: 330, y2: BY0, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: 30, y1: by(100), x2: 30, y2: BY0, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0, 50, 100]) {
+        plot!.appendChild(el('line', { x1: 27, y1: by(t), x2: 30, y2: by(t), stroke: INK, 'stroke-width': 1 }));
+        text(25, by(t) + 3, String(t), { 'text-anchor': 'end' });
+      }
+      text(30, 12, 'licks out of 100 trials', {});
+      const bars: [number, number, string, string, number | null][] = [
+        [62, kh, TEAL, 'warming trials', obs ? obs.kh : null],
+        [200, kf, ORANGE, 'catch trials', obs ? obs.kf : null],
+      ];
+      for (const [x, k, col, lab, ok] of bars) {
+        plot!.appendChild(el('rect', { x, y: by(k), width: 36, height: BY0 - by(k), fill: col, 'fill-opacity': 0.8 }));
+        if (ok !== null) {
+          plot!.appendChild(el('rect', { x: x + 40, y: by(ok), width: 24, height: BY0 - by(ok), fill: 'none', stroke: col, 'stroke-width': 1.6, 'stroke-dasharray': '3 2' }));
+        }
+        text(x + 32, BY0 + 12, lab, { 'text-anchor': 'middle', 'font-weight': 700, fill: col });
+        text(x + 32, BY0 + 23, 'expected ' + k + (ok !== null ? ' · drawn ' + ok : ''), { 'text-anchor': 'middle', fill: col });
+      }
+      // z axis
+      const ZX0 = 40, ZX1 = 300, ZMIN = -3, ZMAX = 3, AY = 206;
+      const zx = (z: number) => ZX0 + ((Math.max(ZMIN, Math.min(ZMAX, z)) - ZMIN) / (ZMAX - ZMIN)) * (ZX1 - ZX0);
+      plot!.appendChild(el('line', { x1: ZX0, y1: AY, x2: ZX1, y2: AY, stroke: INK, 'stroke-width': 1 }));
+      for (let z = ZMIN; z <= ZMAX; z++) {
+        plot!.appendChild(el('line', { x1: zx(z), y1: AY, x2: zx(z), y2: AY + 3, stroke: INK, 'stroke-width': 1 }));
+        text(zx(z), AY + 12, String(z), { 'text-anchor': 'middle' });
+      }
+      text((ZX0 + ZX1) / 2, AY + 24, 'z-score (standard-normal units)', { 'text-anchor': 'middle' });
+      text(30, 150, 'd′ = ' + f2(e.d) + '  (dimensionless; the distance from z(F) to z(H))', { 'font-weight': 700, fill: INK });
+      // bracket between z(F) and z(H)
+      const xf = zx(e.zf), xh = zx(e.zh);
+      plot!.appendChild(el('line', { x1: xf, y1: AY - 8, x2: xh, y2: AY - 8, stroke: INK, 'stroke-width': 2.4 }));
+      plot!.appendChild(el('line', { x1: xf, y1: AY, x2: xf, y2: AY - 22, stroke: ORANGE, 'stroke-width': 2 }));
+      plot!.appendChild(el('line', { x1: xh, y1: AY, x2: xh, y2: AY - 22, stroke: TEAL, 'stroke-width': 2 }));
+      plot!.appendChild(el('circle', { cx: xf, cy: AY, r: 4, fill: ORANGE }));
+      plot!.appendChild(el('circle', { cx: xh, cy: AY, r: 4, fill: TEAL }));
+      // labels: z(H) above its marker, z(F) in the row above that, so close markers never share a row
+      text(clampX(xh, 38), AY - 38, 'z(H) = ' + f4(e.zh), { 'text-anchor': 'middle', fill: TEAL, 'font-weight': 700 });
+      text(clampX(xf, 38), AY - 26, 'z(F) = ' + f4(e.zf), { 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 });
+
+      // status
+      let s: string;
+      const same = kh === kf;
+      if (same) {
+        s = 'In this sketch the mouse licks on ' + kh + ' of 100 warming trials and ' + kf + ' of 100 catch trials, so H = F and d′ = 0: licks do not differ between warming and catch trials, so nothing is detected in this sketch (the lesson’s 80/80 case: licking rather than detecting).';
+      } else if (kh < kf) {
+        s = 'Licks on ' + kh + ' warming and ' + kf + ' catch trials give a negative d′ (' + f2(e.d) + ') in this sketch: fewer licks when the plate warms than when it does not. The lesson does not discuss that case.';
+      } else {
+        s = 'In this sketch H = ' + fr(e.H) + ' and F = ' + fr(e.F) + ' give z(H) = ' + f4(e.zh) + ', z(F) = ' + f4(e.zf) + ' and d′ = ' + f2(e.d) + '. This is a sensitivity index, not a temperature: ' + f2(e.d) + ' is not ' + f2(e.d) + ' °C, and nothing about step size enters the formula.';
+      }
+      if (e.ch || e.cf) s += ' A rate of ' + (e.ch ? '0 or 100 on warming trials' : '') + (e.ch && e.cf ? ' and ' : '') + (e.cf ? '0 or 100 on catch trials' : '') + ' is moved to the nearest attainable rate (' + fr(e.ch ? e.H : e.F) + (e.ch && e.cf ? ' and ' + fr(e.F) : '') + ') so that z is finite; the formula itself is undefined there, and this clamp is the sketch’s convention.';
+      if (o) s += ' The drawn session (' + o.kh + ' and ' + o.kf + ' licks) gives d′ = ' + f2(o.d) + ' against ' + f2(e.d) + ' expected; a simulated session differs from the expected value by chance.';
+      s += ' Constructed session, not published data.';
+      why!.textContent = s;
+    }
+
+    hIn.addEventListener('input', () => { obs = null; render(); });
+    fIn.addEventListener('input', () => { obs = null; render(); });
+    cases.forEach((b) => b.addEventListener('click', () => {
+      const [a, c] = (b.dataset.case ?? '80,20').split(',');
+      hIn.value = a; fIn.value = c; obs = null; render();
+    }));
+    resample.addEventListener('click', () => {
+      const kh = parseInt(hIn.value, 10), kf = parseInt(fIn.value, 10);
+      obs = { kh: binom(N, kh / N), kf: binom(N, kf / N) };
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .wdi { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .wdi-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .wdi-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .wdi-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .wdi-controls { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .wdi-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wdi-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .wdi-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .wdi-jump { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .wdi-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .wdi-btn:hover { border-color: var(--ddp-color-accent); }
+  .wdi-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .wdi-resample { align-self: flex-start; color: var(--ddp-color-primary); font-weight: 600; }
+  .wdi-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .wdi-table th, .wdi-table td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); vertical-align: top; }
+  .wdi-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .wdi-table tbody th { font-weight: 400; }
+  .wdi-table td { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .wdi-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 8em; }
+  .wdi-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

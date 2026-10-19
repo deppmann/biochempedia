@@ -1,0 +1,285 @@
+---
+/**
+ * PotencyShiftReader — the itch lesson's deliberately simple occupancy model R(C) = C / (EC50 + C)
+ * for chloroquine at mouse MrgprA3 (EC50 27.55 µM) and human MRGPRX1 (EC50 297.68 µM), both from the
+ * lesson's transfected HEK293 calcium assays, plus the lesson's made-up practice pair (EC50 40 and
+ * 400 µM). A concentration cursor reads R off both curves. Original sketch; no random draws.
+ */
+---
+
+<figure class="psr card" data-psr>
+  <figcaption class="psr-head">Same concentration, different response<span class="psr-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="psr-set">
+    <legend class="psr-legend">Curves to show</legend>
+    <label class="psr-radio"><input type="radio" name="psr-mode" value="cq" checked /> Chloroquine at mouse MrgprA3 and human MRGPRX1 (lesson values)</label>
+    <label class="psr-radio"><input type="radio" name="psr-mode" value="prac" /> Made-up practice pair: receptors X and Y, EC50 40 and 400 µM</label>
+  </fieldset>
+
+  <svg class="psr-svg" viewBox="0 0 340 232" role="img" aria-label="Two saturating response curves, R equals C over EC50 plus C, plotted against concentration on a log axis from 1 to 3000 micromolar. The curve with the lower EC50 rises first. A vertical cursor reads the response of each curve." data-plot></svg>
+
+  <div class="psr-key" data-key></div>
+
+  <div class="psr-controls">
+    <label class="psr-slabel"><span>Concentration cursor, in this sketch: <em data-out="c">30</em> µM (log steps, 1 to 3000)</span>
+      <input type="range" data-in="c" min="0" max="3.4771" step="0.001" value="1.4771" aria-label="Concentration in micromolar, log scale" />
+    </label>
+    <div class="psr-jump" role="group" aria-label="Concentrations from the lesson">
+      <button type="button" class="psr-btn" data-c="30" data-for="cq">30 µM (worked case)</button>
+      <button type="button" class="psr-btn" data-c="27.55" data-for="cq">27.55 µM (mouse EC50)</button>
+      <button type="button" class="psr-btn" data-c="297.68" data-for="cq">297.68 µM (human EC50)</button>
+      <button type="button" class="psr-btn" data-c="40" data-for="prac" hidden>40 µM (practice case; X’s EC50)</button>
+      <button type="button" class="psr-btn" data-c="400" data-for="prac" hidden>400 µM (Y’s EC50)</button>
+    </div>
+    <div class="psr-toggles">
+      <label class="psr-check"><input type="checkbox" data-ec50 checked /> mark each curve’s own EC50 (R = 0.50)</label>
+      <label class="psr-check"><input type="checkbox" data-ratio /> show the ratio arithmetic</label>
+    </div>
+  </div>
+
+  <div class="psr-read">
+    <div class="psr-card" data-card="a"></div>
+    <div class="psr-card" data-card="b"></div>
+  </div>
+  <div class="psr-fold" data-fold></div>
+
+  <p class="psr-why" data-why role="status"></p>
+
+  <p class="psr-foot">In this sketch: one site, unit Hill slope, zero baseline, matched maxima of 1, no desensitization. Curves use the central EC50 estimates; ± is the SEM. Rule to keep: EC50 here is functional potency in a transfected cell, not binding affinity, neuronal firing or perceived itch, and a shared ligand does not make two receptors interchangeable.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', GRID = '#d9dce1';
+  const CMAX = 3000;
+  const LMAX = Math.log10(CMAX);
+
+  type Rec = { name: string; short: string; ec: number; sem: number | null; col: string; shape: 'c' | 's' };
+  type Mode = { key: string; a: Rec; b: Rec; start: number; scope: string };
+  const MODES: Record<string, Mode> = {
+    cq: {
+      key: 'cq',
+      a: { name: 'mouse MrgprA3', short: 'mouse', ec: 27.55, sem: 2.03, col: TEAL, shape: 'c' },
+      b: { name: 'human MRGPRX1', short: 'human', ec: 297.68, sem: 2.10, col: ORANGE, shape: 's' },
+      start: 30,
+      scope: 'chloroquine, transfected HEK293 calcium assays (Liu and colleagues, Cell, 2009)',
+    },
+    prac: {
+      key: 'prac',
+      a: { name: 'receptor X (made up)', short: 'X', ec: 40, sem: null, col: TEAL, shape: 'c' },
+      b: { name: 'receptor Y (made up)', short: 'Y', ec: 400, sem: null, col: ORANGE, shape: 's' },
+      start: 40,
+      scope: 'a made-up ligand in a made-up calcium assay',
+    },
+  };
+
+  const R = (c: number, ec: number) => c / (ec + c);
+  const sig3 = (x: number) => Number(x.toPrecision(3)).toString();
+  const nc = (x: number) => Number(x.toFixed(2)).toString();
+  const r3 = (x: number) => x.toPrecision(3);
+  const n2 = (x: number) => Number(x.toFixed(2)).toString();
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-psr]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const slider = root.querySelector<HTMLInputElement>('[data-in="c"]');
+    const cOut = root.querySelector<HTMLElement>('[data-out="c"]');
+    const ecBox = root.querySelector<HTMLInputElement>('[data-ec50]');
+    const ratioBox = root.querySelector<HTMLInputElement>('[data-ratio]');
+    const cardA = root.querySelector<HTMLElement>('[data-card="a"]');
+    const cardB = root.querySelector<HTMLElement>('[data-card="b"]');
+    const fold = root.querySelector<HTMLElement>('[data-fold]');
+    const key = root.querySelector<HTMLElement>('[data-key]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="psr-mode"]');
+    const jumps = root.querySelectorAll<HTMLButtonElement>('[data-c]');
+    if (!plot || !slider || !cOut || !ecBox || !ratioBox || !cardA || !cardB || !fold || !key || !why || radios.length < 2) return;
+
+    let mode: Mode = MODES.cq;
+    let C = 30;
+
+    const PX0 = 46, PX1 = 326, PY0 = 22, PY1 = 188;
+    const xOf = (c: number) => PX0 + (Math.log10(c) / LMAX) * (PX1 - PX0);
+    const yOf = (r: number) => PY1 - r * (PY1 - PY0);
+
+    function text(x: number, y: number, str: string, o: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, o));
+      t.textContent = str;
+      plot!.appendChild(t);
+      return t;
+    }
+    function marker(r: Rec, x: number, y: number, big: boolean) {
+      const s = big ? 4.5 : 3.5;
+      if (r.shape === 'c') plot!.appendChild(el('circle', { cx: x, cy: y, r: s, fill: r.col, stroke: '#fff', 'stroke-width': 1 }));
+      else plot!.appendChild(el('rect', { x: x - s, y: y - s, width: 2 * s, height: 2 * s, fill: r.col, stroke: '#fff', 'stroke-width': 1 }));
+    }
+    const halo = { stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' };
+
+    function curve(r: Rec) {
+      let d = '';
+      for (let i = 0; i <= 160; i++) {
+        const c = Math.pow(10, (i / 160) * LMAX);
+        d += (i ? 'L' : 'M') + xOf(c).toFixed(1) + ' ' + yOf(R(c, r.ec)).toFixed(1);
+      }
+      plot!.appendChild(el('path', { d, fill: 'none', stroke: r.col, 'stroke-width': 2.4, 'stroke-dasharray': r.shape === 's' ? '7 3' : 'none' }));
+    }
+
+    function card(host: HTMLElement, r: Rec) {
+      const val = R(C, r.ec);
+      const den = n2(r.ec + C);
+      const ecTxt = n2(r.ec) + (r.sem !== null ? ' ± ' + n2(r.sem) : '');
+      host.style.borderColor = r.col;
+      host.replaceChildren();
+      const h = document.createElement('div');
+      h.className = 'psr-ch';
+      h.style.color = r.col;
+      h.textContent = (r.shape === 'c' ? '● ' : '■ ') + r.name;
+      const e = document.createElement('div');
+      e.textContent = 'EC50 ' + ecTxt + ' µM' + (r.sem !== null ? ' (mean ± SEM)' : '');
+      const a = document.createElement('div');
+      a.className = 'psr-arith';
+      a.textContent = 'R = ' + nc(C) + ' / (' + n2(r.ec) + ' + ' + nc(C) + ') = ' + nc(C) + ' / ' + den + ' = ' + r3(val);
+      host.append(h, e, a);
+    }
+
+    function render() {
+      const A = mode.a, B = mode.b;
+      cOut!.textContent = nc(C);
+      slider!.setAttribute('aria-valuetext', nc(C) + ' micromolar');
+      const ra = R(C, A.ec), rb = R(C, B.ec);
+      const ratio = B.ec / A.ec;
+      const showEc = ecBox!.checked, showRatio = ratioBox!.checked;
+
+      plot!.replaceChildren();
+      // grid and axes
+      for (const v of [0, 0.5, 1]) {
+        plot!.appendChild(el('line', { x1: PX0, y1: yOf(v), x2: PX1, y2: yOf(v), stroke: GRID, 'stroke-width': 1 }));
+        text(PX0 - 4, yOf(v) + 3, v === 0.5 ? '0.5' : String(v), { 'text-anchor': 'end' });
+      }
+      for (const c of [1, 10, 100, 1000, 3000]) {
+        plot!.appendChild(el('line', { x1: xOf(c), y1: PY0, x2: xOf(c), y2: PY1, stroke: GRID, 'stroke-width': 1 }));
+        text(xOf(c), PY1 + 12, String(c), { 'text-anchor': c === 1 ? 'start' : c === 3000 ? 'end' : 'middle' });
+      }
+      plot!.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      text((PX0 + PX1) / 2, 226, 'applied concentration C, µM (log scale)', { 'text-anchor': 'middle' });
+      const yt = text(11, (PY0 + PY1) / 2, 'response R (max = 1)', { 'text-anchor': 'middle' });
+      yt.setAttribute('transform', 'rotate(-90 11 ' + (PY0 + PY1) / 2 + ')');
+
+      // EC50 marks
+      if (showEc) {
+        plot!.appendChild(el('line', { x1: PX0, y1: yOf(0.5), x2: PX1, y2: yOf(0.5), stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+        for (const r of [A, B]) {
+          plot!.appendChild(el('line', { x1: xOf(r.ec), y1: yOf(0.5), x2: xOf(r.ec), y2: PY1, stroke: r.col, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+        }
+      }
+      curve(A);
+      curve(B);
+      if (showEc) {
+        for (const r of [A, B]) marker(r, xOf(r.ec), yOf(0.5), true);
+        text(xOf(A.ec) - 6, yOf(0.5) - 7, A.short + ' EC50 ' + n2(A.ec) + ' µM', Object.assign({ 'text-anchor': 'end', fill: A.col, 'font-weight': 700 }, halo));
+        text(xOf(B.ec), yOf(0.5) + 17, B.short + ' EC50 ' + n2(B.ec) + ' µM', Object.assign({ 'text-anchor': 'middle', fill: B.col, 'font-weight': 700 }, halo));
+      }
+
+      // cursor
+      const cx = xOf(C);
+      plot!.appendChild(el('line', { x1: cx, y1: PY0, x2: cx, y2: PY1, stroke: INK, 'stroke-width': 1.4 }));
+      marker(A, cx, yOf(ra), true);
+      marker(B, cx, yOf(rb), true);
+      text(Math.max(72, Math.min(PX1 - 20, cx)), 12, 'C = ' + nc(C) + ' µM', { 'text-anchor': 'middle', 'font-weight': 700 });
+
+      // key (legend)
+      key!.replaceChildren();
+      for (const r of [A, B]) {
+        const s = document.createElement('span');
+        s.className = 'psr-keyi';
+        s.style.color = r.col;
+        s.textContent = (r.shape === 'c' ? '● solid line  ' : '■ dashed line  ') + r.name;
+        key!.appendChild(s);
+      }
+
+      // readout cards
+      card(cardA!, A);
+      card(cardB!, B);
+      const cEq = C * ratio;
+      fold!.replaceChildren();
+      const f1 = document.createElement('div');
+      f1.textContent = 'In this sketch, equal response needs ' + n2(ratio) + '-fold more concentration at ' + B.short + ' than at ' + A.short + ': at R = ' + r3(ra) + ' for ' + A.short + ' (C = ' + nc(C) + ' µM), ' + B.short + ' needs ' + sig3(cEq) + ' µM' + (cEq > CMAX ? ' (off this axis)' : '') + '.';
+      fold!.appendChild(f1);
+      if (showRatio) {
+        const f2 = document.createElement('div');
+        f2.className = 'psr-arith';
+        f2.textContent = 'Ratio of EC50 values: ' + n2(B.ec) + ' / ' + n2(A.ec) + ' = ' + n2(ratio) + (mode.key === 'cq' ? ' (about eleven times less potent at the human receptor in this assay)' : '');
+        fold!.appendChild(f2);
+      }
+
+      // status
+      let s = 'In this sketch, at C = ' + nc(C) + ' µM (' + mode.scope + '), R = ' + r3(ra) + ' for ' + A.name + ' and R = ' + r3(rb) + ' for ' + B.name + '. ';
+      if (ra > rb) s += 'The ' + A.short + ' curve is higher at every concentration because it has the lower EC50; the same concentration gives the ' + B.short + ' receptor less of the response. ';
+      if (showEc) s += 'Each curve passes through R = 0.50 at its own EC50, where C / (EC50 + C) = 1/2. ';
+      if (mode.key === 'cq') {
+        s += 'Limits: the unit slope, zero baseline and matched maxima are this sketch’s assumptions and not fitted values. EC50 here is functional potency in a transfected cell, not binding affinity, neuronal firing or perceived itch. MrgprA3 and MRGPRX1 are different genes, so a shared ligand does not make the two receptors interchangeable, and nothing here shows that people carry a MrgprA3 lineage.';
+      } else {
+        s += 'Limits: this pair is the lesson’s made-up exercise, not chloroquine data; unit slope, zero baseline and a maximum of 1 are assumed, and EC50 is functional potency in an assay, not binding affinity or firing.';
+      }
+      why!.textContent = s;
+    }
+
+    function setC(c: number) {
+      C = Math.min(CMAX, Math.max(1, c));
+      slider!.value = String(Math.log10(C));
+      render();
+    }
+    function setMode(k: string) {
+      mode = MODES[k] ?? MODES.cq;
+      jumps.forEach((b) => { b.hidden = b.dataset.for !== mode.key; });
+      setC(mode.start);
+    }
+
+    slider.addEventListener('input', () => {
+      const v = parseFloat(slider.value);
+      C = Math.min(CMAX, Math.max(1, Number(Math.pow(10, v).toPrecision(3))));
+      render();
+    });
+    jumps.forEach((b) => b.addEventListener('click', () => setC(parseFloat(b.dataset.c ?? '30'))));
+    ecBox.addEventListener('change', render);
+    ratioBox.addEventListener('change', render);
+    radios.forEach((r) => r.addEventListener('change', () => { if (r.checked) setMode(r.value); }));
+    setMode('cq');
+  });
+</script>
+
+<style is:global>
+  .psr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .psr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .psr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .psr-set { border: 0; margin: 0 0 var(--ddp-space-2); padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+  .psr-legend { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-muted); padding: 0; margin-bottom: 0.15rem; }
+  .psr-radio, .psr-check { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; gap: 0.4rem; align-items: baseline; }
+  .psr-radio input, .psr-check input { accent-color: var(--ddp-color-accent); }
+  .psr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .psr-key { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; justify-content: center; margin-top: var(--ddp-space-2); font-size: var(--ddp-text-xs); font-weight: 600; }
+  .psr-controls { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .psr-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .psr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .psr-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .psr-jump, .psr-toggles { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .psr-toggles { flex-direction: column; gap: 0.2rem; }
+  .psr-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .psr-btn[hidden] { display: none; }
+  .psr-btn:hover { border-color: var(--ddp-color-accent); }
+  .psr-btn:focus-visible, .psr-slabel input:focus-visible, .psr-radio input:focus-visible, .psr-check input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .psr-read { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .psr-card { border: 2px solid var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; overflow-wrap: anywhere; }
+  .psr-ch { font-weight: 700; }
+  .psr-arith { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .psr-fold { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; margin: var(--ddp-space-2) 0; }
+  .psr-why { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 14em; }
+  .psr-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .psr-read { grid-template-columns: 1fr; } .psr-why { min-height: 20em; } }
+</style>

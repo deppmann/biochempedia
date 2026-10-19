@@ -1,0 +1,215 @@
+---
+/**
+ * SomaInactivationClock — the worked problem of the proprioception lesson. A computed
+ * single-exponential decay of a rapidly adapting mechanically activated current,
+ * fraction remaining = exp(-t/tau), with the reported tau = 5.6 ms (Pvalb-labelled adult
+ * mouse DRG cell bodies in culture) and its ± 0.33. Beside it, kept apart, the fixed
+ * sample count 23 of 25. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sic card" data-sic>
+  <figcaption class="sic-head">Reading the soma current as a decay curve<span class="sic-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="sic-grid">
+    <div class="sic-left">
+      <svg class="sic-svg" viewBox="0 0 340 230" role="img" aria-label="Computed single-exponential decay of the fraction of peak current remaining against time after the peak, with a cursor at the chosen time" data-plot></svg>
+    </div>
+    <div class="sic-right">
+      <svg class="sic-svg sic-dots" viewBox="0 0 170 230" role="img" aria-label="A fixed sample of 25 labelled neurons, 23 filled to show those with a rapidly adapting current" data-dots></svg>
+    </div>
+  </div>
+
+  <div class="sic-controls">
+    <label class="sic-slabel"><span>Elapsed time after the peak, t <em data-out="t">10.0</em> ms</span>
+      <input type="range" data-in="t" min="0" max="30" step="0.1" value="10" />
+    </label>
+    <fieldset class="sic-fs">
+      <legend>Time constant τ (a computed curve; the 5.6 ms is reported, the other two are what-ifs)</legend>
+      <label><input type="radio" name="sic-tau" value="5.6" checked /> 5.6 ms, the reported value</label>
+      <label><input type="radio" name="sic-tau" value="5.27" /> 5.27 ms (what-if: 5.6 minus 0.33)</label>
+      <label><input type="radio" name="sic-tau" value="5.93" /> 5.93 ms (what-if: 5.6 plus 0.33)</label>
+      <small>The ± 0.33 is the paper’s, its statistic not stated in the lesson.</small>
+    </fieldset>
+  </div>
+
+  <dl class="sic-readout">
+    <div><dt>Fraction of peak remaining</dt><dd data-r-frac>0.168</dd></div>
+    <div><dt>As a percent of the peak</dt><dd data-r-pct>about 17%</dd></div>
+    <div class="sic-wide"><dt>Arithmetic</dt><dd data-r-arith>exp(−10.0/5.6) = exp(−1.786) = 0.168</dd></div>
+  </dl>
+
+  <p class="sic-assume">In this sketch: one exponential from the peak, τ from Pvalb-labelled adult mouse DRG cell bodies in culture (Woo and colleagues, 2015), no rise phase, no spikes, no ending.</p>
+  <p class="sic-why" data-why role="status"></p>
+
+  <p class="sic-foot">Rule to keep: fraction remaining = exp(−t/τ), and it is a current in cultured cell bodies under indentation, not a spindle afferent firing spikes. The 25 dots are a count in one sample, not part of the curve.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(attrs: Record<string, string | number>, s: string): SVGElement {
+    const t = el('text', attrs);
+    t.textContent = s;
+    return t;
+  }
+  document.querySelectorAll<HTMLElement>('[data-sic]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const dots = root.querySelector<SVGSVGElement>('[data-dots]');
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]');
+    const tOut = root.querySelector<HTMLElement>('[data-out="t"]');
+    const rFrac = root.querySelector<HTMLElement>('[data-r-frac]');
+    const rPct = root.querySelector<HTMLElement>('[data-r-pct]');
+    const rArith = root.querySelector<HTMLElement>('[data-r-arith]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="sic-tau"]'));
+    if (!plot || !dots || !tIn || !tOut || !rFrac || !rPct || !rArith || !why || radios.length === 0) return;
+
+    const X0 = 44, X1 = 326, Y0 = 28, Y1 = 186, TMAX = 30;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (f: number) => Y1 - f * (Y1 - Y0);
+
+    function pctText(f: number): string {
+      const p = f * 100;
+      if (p >= 99.95) return '100%';
+      if (p < 1) return 'about ' + p.toFixed(1) + '%';
+      return 'about ' + Math.round(p) + '%';
+    }
+
+    // The fixed sample: 23 of 25, drawn once and never touched by the controls.
+    (function drawDots() {
+      dots.appendChild(txt({ x: 85, y: 18, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: INK }, 'Fixed sample count'));
+      const R = 9, GX = 24, GY = 24, OX = 85 - 2 * GX, OY = 56;
+      for (let i = 0; i < 25; i++) {
+        const cx = OX + (i % 5) * GX, cy = OY + Math.floor(i / 5) * GY;
+        const filled = i < 23;
+        dots.appendChild(el('circle', { cx, cy, r: R, fill: filled ? ACCENT : '#fff', stroke: ACCENT, 'stroke-width': 1.5 }));
+      }
+      dots.appendChild(txt({ x: 85, y: 186, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, '23 of 25 labelled neurons'));
+      dots.appendChild(txt({ x: 85, y: 200, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'had a rapidly adapting'));
+      dots.appendChild(txt({ x: 85, y: 214, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'current: 23/25 = 0.92'));
+    })();
+
+    function currentTau(): number {
+      const r = radios.find((x) => x.checked);
+      return r ? parseFloat(r.value) : 5.6;
+    }
+
+    function render() {
+      const t = parseFloat(tIn!.value);
+      const tau = currentTau();
+      const x = t / tau;
+      const y = Math.exp(-x);
+      tOut!.textContent = t.toFixed(1);
+
+      plot!.replaceChildren();
+      // axes
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const f of [0, 0.5, 1]) {
+        plot!.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        plot!.appendChild(txt({ x: X0 - 4, y: py(f) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }, f === 0 ? '0' : f === 1 ? '1' : '0.5'));
+      }
+      for (const tk of [0, 5, 10, 15, 20, 25, 30]) {
+        plot!.appendChild(el('line', { x1: px(tk), y1: Y1, x2: px(tk), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot!.appendChild(txt({ x: px(tk), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, String(tk)));
+      }
+      plot!.appendChild(txt({ x: (X0 + X1) / 2, y: Y1 + 30, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'time after the peak (ms)'));
+      plot!.appendChild(txt({ x: 4, y: 10, 'text-anchor': 'start', 'font-size': 10, fill: INK }, 'current remaining (peak = 1)'));
+
+      // dotted marks at one and two time constants
+      [1, 2].forEach((k) => {
+        const tk = k * tau;
+        const fk = Math.exp(-k);
+        plot!.appendChild(el('line', { x1: px(tk), y1: py(fk), x2: px(tk), y2: Y1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '1.5 3' }));
+        plot!.appendChild(el('line', { x1: X0, y1: py(fk), x2: px(tk), y2: py(fk), stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '1.5 3' }));
+        plot!.appendChild(el('circle', { cx: px(tk), cy: py(fk), r: 2.5, fill: INK }));
+        plot!.appendChild(txt({ x: px(tk), y: Y1 - 5 - (k === 1 ? 0 : 0), 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: INK, 'paint-order': 'stroke', stroke: '#fff', 'stroke-width': 3 }, k === 1 ? 'τ' : '2τ'));
+      });
+
+      // decay curve
+      let d = '';
+      for (let i = 0; i <= 150; i++) {
+        const ti = (i / 150) * TMAX;
+        d += (i === 0 ? 'M' : 'L') + px(ti).toFixed(1) + ' ' + py(Math.exp(-ti / tau)).toFixed(1) + ' ';
+      }
+      plot!.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // cursor
+      plot!.appendChild(el('line', { x1: px(t), y1: Y0 - 6, x2: px(t), y2: Y1, stroke: ORANGE, 'stroke-width': 1.5 }));
+      plot!.appendChild(el('circle', { cx: px(t), cy: py(y), r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+
+      // legend, upper right, clear of the curve
+      const LX = 190, LY = 40;
+      plot!.appendChild(el('line', { x1: LX, y1: LY, x2: LX + 16, y2: LY, stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot!.appendChild(txt({ x: LX + 20, y: LY + 3, 'font-size': 9, fill: INK }, 'exp(−t/τ), computed'));
+      plot!.appendChild(el('line', { x1: LX, y1: LY + 14, x2: LX + 16, y2: LY + 14, stroke: ORANGE, 'stroke-width': 2 }));
+      plot!.appendChild(txt({ x: LX + 20, y: LY + 17, 'font-size': 9, fill: INK }, 'your elapsed time t'));
+      plot!.appendChild(el('line', { x1: LX, y1: LY + 28, x2: LX + 16, y2: LY + 28, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '1.5 3' }));
+      plot!.appendChild(txt({ x: LX + 20, y: LY + 31, 'font-size': 9, fill: INK }, 'one and two τ'));
+
+      // readouts
+      rFrac!.textContent = y.toFixed(3);
+      rPct!.textContent = pctText(y);
+      rArith!.textContent = `exp(−${t.toFixed(1)}/${tau}) = exp(−${x.toFixed(3)}) = ${y.toFixed(3)}`;
+
+      // status
+      let s: string;
+      if (t === 0) {
+        s = `At the peak (t = 0) the whole current is left: exp(0) = 1. In this sketch the curve then falls by a single exponential with τ = ${tau} ms.`;
+      } else if (Math.abs(t - tau) < 0.005) {
+        s = `After one time constant (${tau} ms) the sketch has ${y.toFixed(3)} of the peak left, about ${Math.round(y * 100)}%.`;
+      } else if (Math.abs(t - 2 * tau) < 0.005) {
+        s = `After two time constants (${(2 * tau).toFixed(1)} ms) the sketch has ${y.toFixed(3)} of the peak left, about ${Math.round(y * 100)}%.`;
+      } else {
+        s = `${t.toFixed(1)} ms after the peak, this computed curve has ${y.toFixed(3)} of the peak left (${pctText(y)}), taking τ = ${tau} ms.`;
+      }
+      if (tau !== 5.6) {
+        const y56 = Math.exp(-t / 5.6);
+        s += ` With the reported 5.6 ms it would be ${y56.toFixed(3)}; the ± 0.33 is the paper’s, its statistic not stated in the lesson.`;
+      }
+      s += ' The current was recorded in cultured adult mouse cell bodies under indentation, so this is not how a spindle afferent adapts when it fires spikes; the single exponential is the lesson’s assumption, not the paper’s; and 0.92 is 23 of this sample of 25, not a decay fraction and not 92% of proprioceptors, since parvalbumin labels other neurons too.';
+      why!.textContent = s;
+    }
+
+    tIn.addEventListener('input', render);
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .sic { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sic-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sic-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sic-grid { display: grid; grid-template-columns: 2fr 1fr; gap: var(--ddp-space-3); align-items: start; }
+  .sic-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sic-dots { background: color-mix(in srgb, var(--ddp-color-accent) 4%, #fff); }
+  .sic-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .sic-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sic-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .sic-slabel input { accent-color: var(--ddp-color-accent); }
+  .sic-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+  .sic-fs legend { padding: 0 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .sic-fs input { accent-color: var(--ddp-color-accent); }
+  .sic-fs small { font-size: inherit; color: var(--ddp-color-muted); }
+  .sic-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .sic-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .sic-readout .sic-wide { grid-column: 1 / -1; }
+  .sic-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sic-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .sic-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sic-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .sic-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .sic-grid { grid-template-columns: 1fr; }
+    .sic-dots { max-width: 240px; margin: 0 auto; }
+    .sic-controls { grid-template-columns: 1fr; }
+    .sic-readout { grid-template-columns: 1fr; }
+  }
+</style>
