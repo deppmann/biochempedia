@@ -1,0 +1,239 @@
+---
+/**
+ * SegmentConstantVolume — Animal Body Plans companion. One earthworm segment as a
+ * cylinder of incompressible fluid at constant volume, V = pi x r^2 x L, between two
+ * neighbours. Circular or longitudinal muscles set the diameter or the length of the
+ * middle segment, the other follows. A cavity switch contrasts septa (Lumbricus
+ * terrestris) with one shared cavity (as in a nematode), where nothing is computed.
+ * Every number follows from the lesson's worked problem. Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="scv card" data-scv>
+  <figcaption class="scv-head">Segment at constant volume: circular and longitudinal muscles<span class="scv-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="scv-svg" viewBox="0 0 360 216" role="img" aria-label="Side view of three earthworm segments drawn as labelled rectangles, separated by septa; the middle segment changes diameter and length at constant volume" data-svg></svg>
+
+  <div class="scv-controls">
+    <fieldset class="scv-fs">
+      <legend>Which muscles contract</legend>
+      <label><input type="radio" name={`scv-m-${uid}`} value="circ" checked /> circular muscles</label>
+      <label><input type="radio" name={`scv-m-${uid}`} value="long" /> longitudinal muscles</label>
+    </fieldset>
+    <fieldset class="scv-fs">
+      <legend>Body cavity</legend>
+      <label><input type="radio" name={`scv-c-${uid}`} value="sealed" checked /> segments sealed by septa (<em>Lumbricus terrestris</em>)</label>
+      <label><input type="radio" name={`scv-c-${uid}`} value="shared" /> one shared cavity (as in a nematode)</label>
+    </fieldset>
+    <label class="scv-slabel"><span data-slabel>Middle segment diameter <em data-sval>4.0 mm</em></span>
+      <input type="range" data-slider min="3" max="4" step="0.1" value="4" />
+    </label>
+  </div>
+
+  <dl class="scv-readout">
+    <div><dt>Volume (constant while sealed)</dt><dd data-r-v></dd></div>
+    <div><dt>Cross-section</dt><dd data-r-a></dd></div>
+    <div><dt data-r-xl>Length</dt><dd data-r-x></dd></div>
+    <div><dt data-r-fl>Length factor</dt><dd data-r-f></dd></div>
+  </dl>
+
+  <p class="scv-why" data-why role="status"></p>
+
+  <p class="scv-assume">In this sketch: each segment is treated as sealed by septa (textbooks describe segments as largely independent), a cylinder of incompressible fluid at constant volume; illustrative sizes, not a measured worm; not to scale.</p>
+  <p class="scv-foot">Rule to keep: in a sealed segment V = π r² L stays constant, so L is proportional to 1/r²: narrowing by a factor k lengthens by k².</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55';
+  const PI = Math.PI;
+  const D0 = 4.0, L0 = 2.0;                 // lesson: 4.0 mm diameter, 2.0 mm long
+  const V = PI * (D0 / 2) * (D0 / 2) * L0;  // 8 pi, about 25.1 mm3
+  const S = 28, CX = 180, CY = 108;         // px per mm, drawing centre
+  const f1 = (n: number) => n.toFixed(1);
+  const f2 = (n: number) => n.toFixed(2);
+  const t2 = (n: number) => n.toFixed(2).replace(/0$/, '');
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(svg: SVGSVGElement, x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+    const t = el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, opts));
+    t.textContent = s;
+    svg.appendChild(t);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-scv]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const slider = root.querySelector<HTMLInputElement>('[data-slider]');
+    const slabel = root.querySelector<HTMLElement>('[data-slabel]');
+    const rV = root.querySelector<HTMLElement>('[data-r-v]');
+    const rA = root.querySelector<HTMLElement>('[data-r-a]');
+    const rXl = root.querySelector<HTMLElement>('[data-r-xl]');
+    const rX = root.querySelector<HTMLElement>('[data-r-x]');
+    const rFl = root.querySelector<HTMLElement>('[data-r-fl]');
+    const rF = root.querySelector<HTMLElement>('[data-r-f]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const muscleRadios = root.querySelectorAll<HTMLInputElement>('input[name^="scv-m-"]');
+    const cavRadios = root.querySelectorAll<HTMLInputElement>('input[name^="scv-c-"]');
+    if (!svg || !slider || !slabel || !rV || !rA || !rXl || !rX || !rFl || !rF || !why) return;
+
+    const muscle = () => (Array.from(muscleRadios).find((r) => r.checked)?.value ?? 'circ');
+    const cavity = () => (Array.from(cavRadios).find((r) => r.checked)?.value ?? 'sealed');
+
+    function configureSlider() {
+      if (!slider) return;
+      if (muscle() === 'circ') { slider.min = '3'; slider.max = '4'; slider.step = '0.1'; }
+      else { slider.min = '1.5'; slider.max = '2'; slider.step = '0.05'; }
+      slider.value = slider.max; // start shape: 4.0 mm wide, 2.0 mm long
+    }
+
+    function draw(dm: number, lm: number, sealed: boolean, circ: boolean, changed: boolean) {
+      if (!svg) return;
+      svg.replaceChildren();
+      const base = el('rect', { x: 0, y: 0, width: 360, height: 216, fill: '#fff' });
+      svg.appendChild(base);
+      if (!sealed) {
+        const w = 6 * S, h = D0 * S, x = CX - w / 2, y = CY - h / 2;
+        svg.appendChild(el('rect', { x, y, width: w, height: h, fill: '#e6f3f4', stroke: ACCENT, 'stroke-width': 2 }));
+        txt(svg, CX, 26, 'one shared cavity (no septa)', { 'font-weight': 700 });
+        txt(svg, CX, CY - 8, 'a squeeze anywhere', {});
+        txt(svg, CX, CY + 6, 'raises pressure along', {});
+        txt(svg, CX, CY + 20, 'the whole cavity', {});
+        for (const dx of [-60, 0, 60]) {
+          svg.appendChild(el('path', { d: `M${CX + dx} ${y - 10} l0 8 m-3 -3 l3 3 l3 -3`, fill: 'none', stroke: ORANGE, 'stroke-width': 1.4 }));
+        }
+        txt(svg, CX, y + h + 18, 'nothing is computed in this state', { fill: INK });
+        return;
+      }
+      const wn = L0 * S, hn = D0 * S;       // neighbours stay short and fat
+      const wm = lm * S, hm = dm * S;
+      const total = wn + wm + wn, x0 = CX - total / 2;
+      const xm = x0 + wn, xr = xm + wm;
+      // neighbours
+      svg.appendChild(el('rect', { x: x0, y: CY - hn / 2, width: wn, height: hn, fill: '#eef0f3', stroke: INK, 'stroke-width': 1.5 }));
+      svg.appendChild(el('rect', { x: xr, y: CY - hn / 2, width: wn, height: hn, fill: '#eef0f3', stroke: INK, 'stroke-width': 1.5 }));
+      // middle segment
+      svg.appendChild(el('rect', { x: xm, y: CY - hm / 2, width: wm, height: hm, fill: '#e6f3f4', stroke: ACCENT, 'stroke-width': 2.2 }));
+      // muscle hatch on the middle segment: rings (circular) or lines along the length (longitudinal)
+      if (circ) {
+        for (let x = xm + 8; x < xr - 4; x += 10) svg.appendChild(el('line', { x1: x, y1: CY - hm / 2, x2: x, y2: CY + hm / 2, stroke: ORANGE, 'stroke-width': 1, opacity: 0.6 }));
+      } else {
+        for (const fy of [-0.3, 0, 0.3]) svg.appendChild(el('line', { x1: xm, y1: CY + fy * hm, x2: xr, y2: CY + fy * hm, stroke: ORANGE, 'stroke-width': 1, opacity: 0.6 }));
+      }
+      // septa
+      const sh = Math.max(hn, hm) + 10;
+      for (const sx of [xm, xr]) svg.appendChild(el('line', { x1: sx, y1: CY - sh / 2, x2: sx, y2: CY + sh / 2, stroke: INK, 'stroke-width': 3 }));
+      // setae under the left neighbour
+      for (let i = 0; i < 4; i++) {
+        const bx = x0 + 8 + i * 13;
+        svg.appendChild(el('line', { x1: bx, y1: CY + hn / 2, x2: bx - 3, y2: CY + hn / 2 + 11, stroke: INK, 'stroke-width': 1.3 }));
+      }
+      // labels
+      txt(svg, xm + wm / 2, 14, 'middle segment', { 'font-weight': 700, fill: ACCENT });
+      txt(svg, x0 + wn / 2, 29, 'neighbour');
+      txt(svg, xr + wn / 2, 29, 'neighbour');
+      txt(svg, xm, CY + sh / 2 + 12, 'septum');
+      txt(svg, 8, 206, 'left neighbour: short, fat, anchored by setae (drawn so, not measured)', { 'text-anchor': 'start' });
+      void changed;
+    }
+
+    function render() {
+      if (!slider || !slabel || !rV || !rA || !rXl || !rX || !rFl || !rF || !why || !svg) return;
+      const circ = muscle() === 'circ';
+      const sealed = cavity() === 'sealed';
+      const val = parseFloat(slider.value);
+      slider.disabled = !sealed;
+      slider.setAttribute('aria-label', circ ? 'Middle segment diameter in millimetres' : 'Middle segment length in millimetres');
+      const vTxt = 'π × 2.0² × 2.0 = 8π ≈ ' + f1(V) + ' mm³';
+
+      if (!sealed) {
+        slabel.innerHTML = (circ ? 'Middle segment diameter' : 'Middle segment length') + ' <em>not used here</em>';
+        rV.textContent = 'not computed';
+        rA.textContent = 'not computed';
+        rXl.textContent = circ ? 'Length' : 'Diameter';
+        rX.textContent = 'not computed';
+        rFl.textContent = circ ? 'Length factor' : 'Diameter factor';
+        rF.textContent = 'not computed';
+        draw(D0, L0, false, circ, false);
+        why.textContent = (circ
+          ? 'A nematode has no circular muscle layer; imagine the squeeze applied from outside. A squeeze anywhere raises pressure along the whole cavity. '
+          : 'A squeeze anywhere raises pressure along the whole cavity. ')
+          + 'There is no sealed compartment that can lengthen on its own the way an earthworm segment does, so one region cannot lengthen alone. C. elegans moves instead by bending, using longitudinal muscles against its pressurized body and cuticle.';
+        return;
+      }
+
+      let dm: number, lm: number;
+      if (circ) {
+        dm = val;
+        const r = dm / 2;
+        const area = PI * r * r;
+        lm = V / area;
+        slabel.innerHTML = 'Middle segment diameter (circular muscles) <em>' + f1(dm) + ' mm</em>';
+        rV.textContent = vTxt;
+        rA.textContent = 'π × ' + t2(r) + '² = ' + f2(r * r) + 'π ≈ ' + f2(area) + ' mm²   (r = ' + f2(r) + ' mm)';
+        rXl.textContent = 'Length';
+        rX.textContent = 'L = ' + f1(V) + ' / ' + f2(area) + ' = ' + f2(lm) + ' mm';
+        rFl.textContent = 'Length factor';
+        rF.textContent = f2(lm / L0) + ' times longer = (' + f1(D0) + ' / ' + f1(dm) + ')² = ' + f2((D0 / dm) * (D0 / dm));
+        if (dm >= D0 - 1e-9) {
+          why.textContent = 'At rest the middle segment is 4.0 mm wide and 2.0 mm long, sealed by septa, with V ≈ 25.1 mm³. Slide the diameter down to see circular muscles narrow it.';
+        } else {
+          why.textContent = 'Circular muscles narrow the middle segment to ' + f1(dm) + ' mm. In this sketch, sealed by septa, its incompressible fluid has nowhere to go, so the segment lengthens to ' + f2(lm) + ' mm. The neighbours stay short and fat, one anchored to the soil by setae, and waves of this alternation push the worm forward.';
+        }
+      } else {
+        lm = val;
+        const r2 = V / (PI * lm);
+        const r = Math.sqrt(r2);
+        dm = 2 * r;
+        slabel.innerHTML = 'Middle segment length (longitudinal muscles) <em>' + t2(lm) + ' mm</em>';
+        rV.textContent = vTxt;
+        rA.textContent = 'π × ' + f2(r2) + ' ≈ ' + f1(PI * r2) + ' mm²   (r² = ' + f1(V) + ' / (π × ' + t2(lm) + ') = ' + f2(r2) + ' mm²)';
+        rXl.textContent = 'Diameter';
+        rX.textContent = 'r = ' + f2(r) + ' mm, diameter ≈ ' + f1(dm) + ' mm';
+        rFl.textContent = 'Diameter factor';
+        rF.textContent = f2(dm / D0) + ' times wider';
+        if (lm >= L0 - 1e-9) {
+          why.textContent = 'At rest the middle segment is 4.0 mm wide and 2.0 mm long, sealed by septa, with V ≈ 25.1 mm³. Slide the length down to see longitudinal muscles shorten it.';
+        } else {
+          why.textContent = 'Longitudinal muscles shorten the middle segment to ' + t2(lm) + ' mm. In this sketch, sealed by septa, its incompressible fluid must go somewhere, so the diameter grows to about ' + f1(dm) + ' mm. The neighbours stay short and fat, one anchored to the soil by setae, and waves of this alternation push the worm forward.';
+        }
+      }
+      draw(dm, lm, true, circ, true);
+    }
+
+    muscleRadios.forEach((r) => r.addEventListener('change', () => { configureSlider(); render(); }));
+    cavRadios.forEach((r) => r.addEventListener('change', render));
+    slider.addEventListener('input', render);
+    configureSlider();
+    render();
+  });
+</script>
+
+<style>
+  .scv { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .scv-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .scv-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .scv-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .scv-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .scv-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .scv-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .scv-fs input { accent-color: var(--ddp-color-accent); }
+  .scv-slabel { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .scv-slabel :global(em) { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .scv-slabel input { accent-color: var(--ddp-color-accent); }
+  .scv-slabel input:disabled { opacity: 0.35; cursor: not-allowed; }
+  .scv-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .scv-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .scv-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .scv-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .scv-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .scv-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .scv-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .scv-controls, .scv-readout { grid-template-columns: 1fr; }
+  }
+</style>

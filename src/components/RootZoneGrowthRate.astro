@@ -1,0 +1,199 @@
+---
+/**
+ * RootZoneGrowthRate — the lesson's worked problem as a sketch. One cortical cell file of a
+ * root tip, drawn as labelled zone blocks (division, elongation, maturation), with the lesson's
+ * steady-state relation: root growth rate = rate of new cells per file x final cell length.
+ * Controls: cell production per file, final cell length, and a switch that blocks elongation
+ * (cells keep the 15 micrometres they have on leaving the meristem). Original.
+ */
+---
+
+<figure class="rzg card" data-rootzone>
+  <figcaption class="rzg-head">Root growth = cells made x final cell length<span class="rzg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rzg-svg" viewBox="0 0 340 196" role="img" aria-label="Schematic of one cortical cell file in a root tip: root cap, zone of division, zone of elongation and zone of maturation, with cells lengthening from the meristem to their final length" data-plot></svg>
+
+  <div class="rzg-controls">
+    <label class="rzg-slabel"><span>Cell production per file <em data-out="f">1</em> cells per h</span>
+      <input type="range" data-in="f" min="0.25" max="2" step="0.25" value="1" />
+    </label>
+    <label class="rzg-slabel"><span>Final cell length <em data-out="l">300</em> µm</span>
+      <input type="range" data-in="l" min="15" max="400" step="5" value="300" />
+    </label>
+    <label class="rzg-check"><input type="checkbox" data-in="block" /> <span>Block elongation (division unchanged)</span></label>
+  </div>
+
+  <dl class="rzg-readout">
+    <div><dt>Growth per hour</dt><dd data-r-h>300 µm per h</dd></div>
+    <div><dt>Growth per day</dt><dd data-r-d>7.2 mm per day</dd></div>
+  </dl>
+  <p class="rzg-math" data-math></p>
+  <p class="rzg-why" data-why role="status"></p>
+
+  <p class="rzg-foot">In this sketch: illustrative numbers, not a measured species; steady state; every cell file alike; zones not to scale. Primary growth is division plus elongation, and growth = rate of new cells per file x final cell length.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', ORANGE = '#e57200';
+  const C_CAP = '#ece6d6', C_DIV = '#cfe9ea', C_ELO = '#fbe0c4', C_MAT = '#e1daf0';
+  const LEAVE = 15, REF = 300; // micrometres: length on leaving the meristem; lesson's normal final length
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const num = (x: number) => {
+    const s = Number(x.toFixed(3));
+    return s.toLocaleString('en-US', { maximumFractionDigits: 3 });
+  };
+  document.querySelectorAll<HTMLElement>('[data-rootzone]').forEach((root) => {
+    const plotQ = root.querySelector<SVGSVGElement>('[data-plot]');
+    const fInQ = root.querySelector<HTMLInputElement>('[data-in="f"]');
+    const lInQ = root.querySelector<HTMLInputElement>('[data-in="l"]');
+    const bInQ = root.querySelector<HTMLInputElement>('[data-in="block"]');
+    const fOutQ = root.querySelector<HTMLElement>('[data-out="f"]');
+    const lOutQ = root.querySelector<HTMLElement>('[data-out="l"]');
+    const rHQ = root.querySelector<HTMLElement>('[data-r-h]');
+    const rDQ = root.querySelector<HTMLElement>('[data-r-d]');
+    const mathQ = root.querySelector<HTMLElement>('[data-math]');
+    const whyQ = root.querySelector<HTMLElement>('[data-why]');
+    if (!plotQ || !fInQ || !lInQ || !bInQ || !fOutQ || !lOutQ || !rHQ || !rDQ || !mathQ || !whyQ) return;
+    const plot = plotQ;
+    const fIn = fInQ;
+    const lIn = lInQ;
+    const bIn = bInQ;
+    const fOut = fOutQ;
+    const lOut = lOutQ;
+    const rH = rHQ;
+    const rD = rDQ;
+    const math = mathQ;
+    const why = whyQ;
+
+    const text = (x: number, y: number, s: string, anchor = 'start', size = 9, extra: Record<string, string | number> = {}) => {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill: INK, ...extra });
+      t.textContent = s;
+      plot.appendChild(t);
+    };
+
+    function draw(L: number) {
+      plot.replaceChildren();
+      const CY = 62, CH = 30, X0 = 14;
+      const cw = (len: number) => 8 + ((len - LEAVE) / 385) * 32; // schematic cell width, not to scale
+      const wf0 = cw(L);
+      const k = Math.max(1, Math.round(96 / wf0));
+      const wf = 96 / k;
+      text(X0, 14, 'One cortical cell file (schematic)', 'start', 10, { 'font-weight': 600 });
+
+      // root cap
+      let x = X0;
+      plot.appendChild(el('rect', { x, y: CY - 4, width: 44, height: CH + 8, rx: 12, fill: C_CAP, stroke: INK, 'stroke-width': 1 }));
+      text(x + 22, CY + CH / 2 + 3, 'root cap', 'middle', 9);
+      x += 44;
+
+      const bandY = 36, bandH = 16;
+      const band = (bx: number, bw: number, fill: string, label: string) => {
+        plot.appendChild(el('rect', { x: bx, y: bandY, width: bw, height: bandH, fill, stroke: INK, 'stroke-width': 0.8 }));
+        if (label && label.length * 5 + 4 <= bw) text(bx + bw / 2, bandY + 11, label, 'middle', 9);
+      };
+      const cell = (cx: number, w: number, fill: string) =>
+        plot.appendChild(el('rect', { x: cx, y: CY, width: w, height: CH, fill, stroke: INK, 'stroke-width': 1 }));
+
+      // zone of division: 6 small cells
+      const dStart = x;
+      for (let i = 0; i < 6; i++) { cell(x, 8, C_DIV); x += 8; }
+      band(dStart, x - dStart, C_DIV, 'division');
+      // zone of elongation: 4 cells lengthening toward the final width
+      const eStart = x;
+      let lastCellX = 0, lastCellW = 0;
+      for (let i = 0; i < 4; i++) { const w = 8 + (wf - 8) * ((i + 1) / 5); cell(x, w, C_ELO); x += w; }
+      band(eStart, x - eStart, C_ELO, 'elongation');
+      // zone of maturation: k cells at the final width
+      const mStart = x;
+      for (let i = 0; i < k; i++) { cell(x, wf, C_MAT); lastCellX = x; lastCellW = wf; x += wf; }
+      band(mStart, x - mStart, C_MAT, 'maturation');
+
+      // dimension marks under the file
+      const dimY = CY + CH + 8;
+      const bracket = (bx: number, bw: number) => {
+        plot.appendChild(el('path', { d: `M${bx} ${dimY - 3} L${bx} ${dimY} L${bx + bw} ${dimY} L${bx + bw} ${dimY - 3}`, fill: 'none', stroke: ORANGE, 'stroke-width': 1.4 }));
+      };
+      bracket(dStart + 40, 8);
+      text(dStart + 26, dimY + 14, 'leaves the meristem: 15 µm', 'start', 9, { fill: ORANGE });
+      bracket(lastCellX, lastCellW);
+      text(Math.min(324, lastCellX + lastCellW), dimY + 28, `final length: ${num(L)} µm`, 'end', 9, { fill: ORANGE });
+
+      // order of events arrow
+      const ay = 138;
+      plot.appendChild(el('line', { x1: X0 + 44, y1: ay, x2: x - 6, y2: ay, stroke: INK, 'stroke-width': 1.2 }));
+      plot.appendChild(el('polygon', { points: `${x},${ay} ${x - 7},${ay - 3.5} ${x - 7},${ay + 3.5}`, fill: INK }));
+      text((X0 + 44 + x) / 2, ay + 13, 'divide, then elongate, then mature', 'middle', 9);
+
+      // legend
+      const ly = 176;
+      const items: [string, string, number][] = [[C_DIV, 'zone of division', 14], [C_ELO, 'zone of elongation', 118], [C_MAT, 'zone of maturation', 236]];
+      for (const [fill, lab, lx] of items) {
+        plot.appendChild(el('rect', { x: lx, y: ly - 8, width: 10, height: 10, fill, stroke: INK, 'stroke-width': 0.8 }));
+        text(lx + 14, ly + 1, lab, 'start', 9);
+      }
+      text(326, 14, 'not to scale', 'end', 9, { fill: INK });
+    }
+
+    function render() {
+      const blocked = bIn.checked;
+      const F = parseFloat(fIn.value);
+      const Lslider = parseInt(lIn.value, 10);
+      const L = blocked ? LEAVE : Lslider;
+      lIn.disabled = blocked;
+      fOut.textContent = num(F);
+      lOut.textContent = blocked ? '15 (blocked)' : String(Lslider);
+      draw(L);
+
+      const perH = F * L;            // micrometres per hour
+      const perDayUm = perH * 24;    // micrometres per day
+      const perDayMm = perDayUm / 1000;
+      rH.textContent = `${num(perH)} µm per h`;
+      rD.textContent = `${num(perDayMm)} mm per day`;
+      math.textContent = `${num(F)} cell${F === 1 ? '' : 's'} per h x ${num(L)} µm = ${num(perH)} µm per h; x 24 h = ${num(perDayUm)} µm = ${num(perDayMm)} mm per day.`;
+
+      const lead = 'Primary growth is division plus elongation, not mitosis alone. ';
+      let msg: string;
+      if (blocked) {
+        msg = lead + `With elongation blocked and division left alone, cells stay ${LEAVE} µm: ${num(F)} x ${LEAVE} = ${num(perH)} µm per h (${num(perDayMm)} mm per day). That is one twentieth of the ${REF} µm case at the same division rate, so elongation supplies most of the length.`;
+      } else if (F === 0.5 && L === REF) {
+        msg = lead + `Halving division with normal elongation: ${num(F)} x ${REF} = ${num(perH)} µm per h, ${num(perDayMm)} mm per day. Fewer cells are made, so the root grows more slowly.`;
+      } else if (F === 1 && L === REF) {
+        msg = lead + `One cell per hour leaves the meristem at ${LEAVE} µm and matures at ${REF} µm: 1 x ${REF} = ${REF} µm per h, 7.2 mm per day.`;
+      } else if (L < REF) {
+        msg = lead + `Cells here mature at ${num(L)} µm instead of ${REF} µm, so the same number of new cells adds less length: ${num(F)} x ${num(L)} = ${num(perH)} µm per h, ${num(perDayMm)} mm per day.`;
+      } else {
+        msg = lead + `Growth rate = cells made per hour x final cell length = ${num(F)} x ${num(L)} = ${num(perH)} µm per h, ${num(perDayMm)} mm per day. Changing either factor changes the rate.`;
+      }
+      why.textContent = msg + ' (In this sketch, illustrative numbers.)';
+    }
+    [fIn, lIn, bIn].forEach((c) => c.addEventListener('input', render));
+    bIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .rzg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rzg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rzg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rzg-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rzg-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .rzg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rzg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rzg-slabel input { accent-color: var(--ddp-color-accent); }
+  .rzg-check { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rzg-check input { accent-color: var(--ddp-color-accent); }
+  .rzg-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rzg-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .rzg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rzg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .rzg-math { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .rzg-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5.5em; }
+  .rzg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .rzg-controls { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,233 @@
+---
+/**
+ * StarlingCapillaryBalance — the Starling forces along one capillary. Net pressure =
+ * (P_c − P_i) − (π_c − π_i), outward positive, with P_i = 0 and π_i = 3 mmHg fixed and
+ * capillary pressure falling linearly between the arterial and venous ends (an assumption;
+ * the lesson gives only the ends). A view switch shows the classic textbook arithmetic or
+ * the revised reading of the same numbers (arrows after the crossing greyed, no new numbers).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="scb card" data-scb>
+  <figcaption class="scb-head">Starling forces along a capillary<span class="scb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="scb-svg" viewBox="0 0 340 332" role="img" aria-label="A capillary drawn as a horizontal tube from arterial end to venous end, with outward and inward arrows sized by net pressure, and a plot of net pressure along its length" data-plot></svg>
+
+  <div class="scb-controls">
+    <label class="scb-slabel"><span>Capillary pressure, arterial end <em data-out="pa">35</em> mmHg</span>
+      <input type="range" data-in="pa" min="20" max="45" step="1" value="35" />
+    </label>
+    <label class="scb-slabel"><span>Capillary pressure, venous end <em data-out="pv">15</em> mmHg</span>
+      <input type="range" data-in="pv" min="5" max="30" step="1" value="15" />
+    </label>
+    <label class="scb-slabel"><span>Plasma oncotic pressure <em data-out="pi">25</em> mmHg</span>
+      <input type="range" data-in="pi" min="15" max="30" step="1" value="25" />
+    </label>
+    <fieldset class="scb-view">
+      <legend>View</legend>
+      <label><input type="radio" name="scb-view" value="classic" checked /> classic textbook model</label>
+      <label><input type="radio" name="scb-view" value="revised" /> revised view</label>
+    </fieldset>
+  </div>
+
+  <dl class="scb-readout">
+    <div><dt>Oncotic difference (π<sub>c</sub> − π<sub>i</sub>, with π<sub>i</sub> = 3)</dt><dd data-r-onc></dd></div>
+    <div><dt>Net, arterial end (P<sub>c</sub> − 0) − difference</dt><dd data-r-a></dd></div>
+    <div><dt>Net, venous end</dt><dd data-r-v></dd></div>
+    <div><dt>Net crosses zero at</dt><dd data-r-x></dd></div>
+  </dl>
+  <p class="scb-why" data-why role="status"></p>
+
+  <p class="scb-assume">In this sketch: illustrative adult human numbers, reflection coefficient 1, interstitial pressure 0, interstitial oncotic pressure 3 mmHg, capillary pressure falling linearly between the two ends (an assumption; the lesson gives only the ends).</p>
+  <p class="scb-foot">Net pressure = (P<sub>c</sub> − P<sub>i</sub>) − (π<sub>c</sub> − π<sub>i</sub>), outward positive. The classic arithmetic is a teaching model, not a measured steady state.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREY = '#9a9aa4';
+  const PI_I = 3, P_I = 0;
+  const MINUS = '−';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, anchor: string, size = 10, fill = INK, weight = 400): SVGElement {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  const sgn = (v: number) => (v > 0 ? '+' + v : v < 0 ? MINUS + Math.abs(v) : '0');
+  const num = (v: number) => (v < 0 ? MINUS + Math.abs(v) : String(v));
+  const pct = (f: number) => String(Math.round(f * 1000) / 10);
+
+  document.querySelectorAll<HTMLElement>('[data-scb]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const paIn = root.querySelector<HTMLInputElement>('[data-in="pa"]');
+    const pvIn = root.querySelector<HTMLInputElement>('[data-in="pv"]');
+    const piIn = root.querySelector<HTMLInputElement>('[data-in="pi"]');
+    const paOut = root.querySelector<HTMLElement>('[data-out="pa"]');
+    const pvOut = root.querySelector<HTMLElement>('[data-out="pv"]');
+    const piOut = root.querySelector<HTMLElement>('[data-out="pi"]');
+    const rOnc = root.querySelector<HTMLElement>('[data-r-onc]');
+    const rA = root.querySelector<HTMLElement>('[data-r-a]');
+    const rV = root.querySelector<HTMLElement>('[data-r-v]');
+    const rX = root.querySelector<HTMLElement>('[data-r-x]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="scb-view"]');
+    if (!plot || !paIn || !pvIn || !piIn || !paOut || !pvOut || !piOut || !rOnc || !rA || !rV || !rX || !why) return;
+    // unique radio group per instance
+    const gid = 'scb-view-' + Math.random().toString(36).slice(2, 8);
+    radios.forEach((r) => r.setAttribute('name', gid));
+
+    // geometry (viewBox 340 x 332)
+    const TX0 = 30, TX1 = 310, TY0 = 108, TY1 = 134; // tube
+    const N = 10, MAXLEN = 64, SCALE = MAXLEN / 35;
+    const PX0 = 50, PX1 = 322, PY0 = 190, PY1 = 292, NMAX = 35; // plot box
+    const px = (f: number) => PX0 + f * (PX1 - PX0);
+    const py = (v: number) => (PY0 + PY1) / 2 - (v / NMAX) * ((PY1 - PY0) / 2);
+
+    function render() {
+      // keep the venous end at or below the arterial end
+      let pa = parseInt(paIn!.value, 10);
+      pvIn!.max = String(Math.min(30, pa));
+      let pv = parseInt(pvIn!.value, 10);
+      if (pv > pa) { pv = pa; pvIn!.value = String(pv); }
+      const pOnc = parseInt(piIn!.value, 10);
+      const view = Array.from(radios).find((r) => r.checked)?.value === 'revised' ? 'revised' : 'classic';
+      const D = pOnc - PI_I; // oncotic difference
+      const netAt = (f: number) => (pa + (pv - pa) * f - P_I) - D;
+      const nA = pa - P_I - D, nV = pv - P_I - D;
+      paOut!.textContent = String(pa); pvOut!.textContent = String(pv); piOut!.textContent = String(pOnc);
+
+      // zero crossing along the length
+      let cross: number | null = null;
+      if (pa > pv && nA >= 0 && nV <= 0) cross = (pa - D) / (pa - pv);
+
+      // readouts with arithmetic
+      rOnc!.textContent = `${pOnc} ${MINUS} ${PI_I} = ${D} mmHg`;
+      rA!.textContent = `${pa} ${MINUS} ${D} = ${sgn(nA)} mmHg (${nA > 0 ? 'outward' : nA < 0 ? 'inward' : 'balanced'})`;
+      rV!.textContent = `${pv} ${MINUS} ${D} = ${sgn(nV)} mmHg (${nV > 0 ? 'outward' : nV < 0 ? 'inward' : 'balanced'})`;
+      if (cross !== null) rX!.textContent = `(${pa} ${MINUS} ${D}) / (${pa} ${MINUS} ${pv}) = ${pct(cross)}% of the length`;
+      else if (pa === pv) rX!.textContent = `no crossing: pressure is the same at both ends, so net stays ${sgn(nA)} mmHg`;
+      else if (nV > 0) rX!.textContent = 'no crossing: outward along the whole length';
+      else rX!.textContent = 'no crossing: inward along the whole length';
+
+      // ---- drawing ----
+      plot!.replaceChildren();
+      const revised = view === 'revised';
+      // interstitial zone label and legend
+      plot!.appendChild(txt(TX0, 14, 'Interstitial fluid: Pᵢ = 0, πᵢ = 3 mmHg (fixed)', 'start', 10));
+      plot!.appendChild(el('line', { x1: TX0, y1: 20, x2: TX1, y2: 20, stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '2 3' }));
+      // arrows
+      for (let i = 0; i < N; i++) {
+        const f = (i + 0.5) / N;
+        const v = netAt(f);
+        const x = TX0 + f * (TX1 - TX0);
+        const len = Math.abs(v) * SCALE;
+        const inward = v < 0;
+        const col = inward ? (revised ? GREY : ORANGE) : ACCENT;
+        const attrs: Record<string, string | number> = { stroke: col, 'stroke-width': 2.6, 'stroke-linecap': 'round' };
+        if (inward && revised) attrs['stroke-dasharray'] = '3 3';
+        if (len < 1.5) { plot!.appendChild(el('circle', { cx: x, cy: TY0 - 2, r: 2, fill: GREY })); continue; }
+        const yWall = TY0 - 2, yFar = yWall - len;
+        const yTail = inward ? yFar : yWall, yHead = inward ? yWall : yFar;
+        plot!.appendChild(el('line', { x1: x, y1: yTail, x2: x, y2: yHead + (inward ? -3 : 3), ...attrs }));
+        const d = inward ? 1 : -1; // head direction (down = +y for inward)
+        const head = el('path', { d: `M${x - 4} ${yHead - d * 6} L${x} ${yHead} L${x + 4} ${yHead - d * 6} Z`, fill: col, stroke: col, 'stroke-width': 1, 'stroke-linejoin': 'round' });
+        if (inward && revised) head.setAttribute('opacity', '0.7');
+        plot!.appendChild(head);
+      }
+      // tube
+      plot!.appendChild(el('rect', { x: TX0, y: TY0, width: TX1 - TX0, height: TY1 - TY0, rx: 4, fill: '#fbe9e7', stroke: INK, 'stroke-width': 1.2 }));
+      plot!.appendChild(el('line', { x1: TX0 + 70, y1: (TY0 + TY1) / 2, x2: TX1 - 70, y2: (TY0 + TY1) / 2, stroke: INK, 'stroke-width': 1.4 }));
+      plot!.appendChild(el('path', { d: `M${TX1 - 76} ${(TY0 + TY1) / 2 - 4} L${TX1 - 68} ${(TY0 + TY1) / 2} L${TX1 - 76} ${(TY0 + TY1) / 2 + 4} Z`, fill: INK }));
+      // flow label sits below the tube so it never meets the arrows
+      plot!.appendChild(txt((TX0 + TX1) / 2, TY1 + 13, 'capillary: blood flow →', 'middle', 10));
+      plot!.appendChild(txt(TX0, TY1 + 27, `arterial end: Pᶜ ${pa}`, 'start', 10, INK, 700));
+      plot!.appendChild(txt(TX1, TY1 + 27, `venous end: Pᶜ ${pv}`, 'end', 10, INK, 700));
+      // crossing marker on the tube
+      if (cross !== null) {
+        const cx = TX0 + cross * (TX1 - TX0);
+        plot!.appendChild(el('line', { x1: cx, y1: TY0 - 6, x2: cx, y2: TY1 + 4, stroke: '#222', 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      }
+      // legend for arrows
+      plot!.appendChild(txt(TX0, 28, revised ? 'inward arrows greyed: sustained inward flow' : 'up = outward (filtration); down = inward (reabsorption)', 'start', 9));
+      if (revised) plot!.appendChild(txt(TX0, 41, 'lacks support in most tissues', 'start', 9));
+
+      // ---- plot ----
+      plot!.appendChild(txt(PX0 - 40, 178, 'Net pressure along the capillary (mmHg, outward +)', 'start', 10, INK, 700));
+      plot!.appendChild(el('line', { x1: PX0, y1: PY0 - 4, x2: PX0, y2: PY1 + 4, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: PX0, y1: py(0), x2: PX1, y2: py(0), stroke: INK, 'stroke-width': 1 }));
+      for (const v of [30, 0, -30]) {
+        plot!.appendChild(el('line', { x1: PX0 - 3, y1: py(v), x2: PX0, y2: py(v), stroke: INK }));
+        if (v !== 0) plot!.appendChild(el('line', { x1: PX0, y1: py(v), x2: PX1, y2: py(v), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        plot!.appendChild(txt(PX0 - 6, py(v) + 3, v > 0 ? '+' + v : num(v), 'end', 9));
+      }
+      for (const f of [0, 0.5, 1]) {
+        plot!.appendChild(el('line', { x1: px(f), y1: PY1 + 4, x2: px(f), y2: PY1 + 8, stroke: INK }));
+        plot!.appendChild(txt(px(f), PY1 + 19, pct(f) === '0' ? '0%' : pct(f) + '%', f === 0 ? 'start' : f === 1 ? 'end' : 'middle', 9));
+      }
+      plot!.appendChild(txt((PX0 + PX1) / 2, PY1 + 33, 'distance along capillary (arterial to venous, % of length)', 'middle', 9));
+      // curve (straight line: linear pressure drop is an assumption of the sketch)
+      const seg = (f0: number, f1: number, col: string, dash: boolean) => {
+        const a: Record<string, string | number> = { x1: px(f0), y1: py(netAt(f0)), x2: px(f1), y2: py(netAt(f1)), stroke: col, 'stroke-width': 2.6, 'stroke-linecap': 'round' };
+        if (dash) a['stroke-dasharray'] = '4 3';
+        plot!.appendChild(el('line', a));
+      };
+      const inwardCol = revised ? GREY : ORANGE;
+      if (cross !== null) { seg(0, cross, ACCENT, false); seg(cross, 1, inwardCol, revised); }
+      else if (nA + nV > 0 || (nA >= 0 && nV >= 0)) seg(0, 1, ACCENT, false);
+      else seg(0, 1, inwardCol, revised);
+      if (cross !== null) {
+        plot!.appendChild(el('circle', { cx: px(cross), cy: py(0), r: 4, fill: '#222' }));
+        const left = cross > 0.3;
+        plot!.appendChild(txt(px(cross) + (left ? -7 : 7), py(0) - 8, `zero at ${pct(cross)}% (in this sketch)`, left ? 'end' : 'start', 9, '#222', 700));
+      }
+      plot!.appendChild(txt(PX1, PY0 + 6, 'classic arithmetic' + (revised ? ' (not computed again)' : ''), 'end', 9, GREY));
+
+      // ---- status ----
+      let s: string;
+      if (!revised) {
+        if (pa > pv && nV === 0) s = `Classic textbook model, in this sketch: net pressure is outward and falls to 0 mmHg at the venous end, so it never turns inward.`;
+        else if (pa > pv && nA === 0) s = `Classic textbook model, in this sketch: net pressure is 0 mmHg at the arterial end and inward after that.`;
+        else if (cross !== null) s = `Classic textbook model, in this sketch: net pressure is outward from the arterial end (${sgn(nA)} mmHg) and turns inward after ${pct(cross)}% of the length (${sgn(nV)} mmHg at the venous end).`;
+        else if (pa === pv) s = `Classic textbook model, in this sketch: pressure is the same at both ends, so net pressure is ${sgn(nA)} mmHg along the whole length.`;
+        else if (nV > 0) s = `Classic textbook model, in this sketch: capillary pressure stays above the oncotic difference of ${D} mmHg, so net pressure is outward along the whole length and no stretch reverses.`;
+        else s = `Classic textbook model, in this sketch: capillary pressure stays below the oncotic difference of ${D} mmHg, so net pressure is inward along the whole length.`;
+        s += ' This is a teaching model, not a measured steady state. Separately from these human numbers: in frog mesentery, Landis found filtration roughly proportional to pressure, near zero close to the oncotic pressure of frog plasma.';
+      } else {
+        const grey = nV < 0 ? (cross !== null ? 'The arrows after the crossing are greyed' : 'All arrows are greyed') : 'No arrow is greyed here, because the arithmetic gives no inward stretch';
+        s = `Revised view, same numbers and none computed again: ${grey}. Sustained reabsorption at the venous end lacks reproducible experimental support as a general account (Levick and Michel 2010; Woodcock and Michel 2021). The oncotic pressure that matters lies just beneath the glycocalyx. On this view most tissues filter slowly along their length, absorption after a fall in pressure is brief, and lymph returns the fluid. Some beds, where an epithelium supplies fluid, absorb steadily.`;
+      }
+      why!.textContent = s;
+    }
+    [paIn, pvIn, piIn].forEach((x) => x.addEventListener('input', render));
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .scb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .scb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .scb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .scb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .scb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .scb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .scb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .scb-slabel input { accent-color: var(--ddp-color-accent); }
+  .scb-view { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.2rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.15rem; }
+  .scb-view legend { padding: 0 0.3rem; font-weight: 600; }
+  .scb-view label { display: flex; align-items: center; gap: 0.35rem; }
+  .scb-view input { accent-color: var(--ddp-color-accent); }
+  .scb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .scb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .scb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .scb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .scb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .scb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .scb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .scb-controls, .scb-readout { grid-template-columns: 1fr; } }
+</style>

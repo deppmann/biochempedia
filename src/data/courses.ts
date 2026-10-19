@@ -44,6 +44,43 @@ export interface Course {
    should take them (the homepage numbers the core courses). */
 export const COURSES: Course[] = [
   {
+    slug: 'organismal-biology',
+    title: 'Organismal Biology',
+    tier: 'foundation',
+    mcat: true,
+    tagline: 'How animals and plants are built and how their organs keep them alive.',
+    searchHint: 'Try “nephron”, “hemoglobin”, “auxin”…',
+    blurb:
+      'An introductory course for first- and second-year students. It starts with the problems every organism has to solve and the diversity of ways life solves them, then takes the animal body one system at a time (control, circulation, breathing, digestion, salt and water, immunity, muscle, reproduction and development) and ends with how plants grow, move water and sugar, feed, sense and reproduce.',
+    /* Sequence set 2026-10-19, modelled on UVA BIOL 2200 without the laboratory. */
+    units: [
+      {
+        name: 'Organisms and their diversity',
+        slugs: ['organism-problems', 'size-and-scaling', 'microbes-protists-fungi', 'animal-body-plans', 'plant-diversity-life-cycles'],
+      },
+      {
+        name: 'Control and constancy',
+        slugs: ['tissues-and-homeostasis', 'nervous-control', 'endocrine-system', 'thermoregulation'],
+      },
+      {
+        name: 'Supply and exchange',
+        slugs: ['circulation-and-heart', 'blood-and-vessels', 'gas-exchange', 'oxygen-transport', 'digestive-systems'],
+      },
+      {
+        name: 'Water, salts and wastes',
+        slugs: ['osmoregulation', 'kidney'],
+      },
+      {
+        name: 'Defense, movement and reproduction',
+        slugs: ['innate-immunity', 'adaptive-immunity', 'muscle-and-movement', 'animal-reproduction', 'animal-development'],
+      },
+      {
+        name: 'How plants work',
+        slugs: ['plant-body-and-growth', 'plant-transport', 'plant-nutrition', 'plant-signals', 'plant-reproduction'],
+      },
+    ],
+  },
+  {
     slug: 'cell-biology',
     title: 'Cell Biology',
     tier: 'core',

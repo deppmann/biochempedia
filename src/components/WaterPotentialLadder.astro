@@ -1,0 +1,220 @@
+---
+/**
+ * WaterPotentialLadder — a water-potential ladder from soil to air along the lesson's path
+ * (soil, root, xylem upward, leaf, air through the stomata). Each block sits at its total
+ * water potential in MPa. Only the lesson's rules are used: water moves toward lower total
+ * water potential; Psi = Psi_s + Psi_p + Psi_g; Psi_g about 0.01 MPa per metre of height;
+ * air Psi = (RT / molar volume of water) x ln(RH), about 135 MPa x ln(RH) at 20 degrees C.
+ * Root -0.6 MPa and leaf -1.5 MPa are the lesson's illustrative values. Self-contained
+ * vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="wpl card" data-wpladder>
+  <figcaption class="wpl-head">Water potential from soil to air<span class="wpl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="wpl-svg" viewBox="0 0 340 300" role="img" aria-label="Schematic ladder of total water potential in megapascals: soil, root, xylem carrying water and minerals upward, leaf, and air reached through the stomata. The air block sits below a broken axis because its value is far lower than the others." data-plot></svg>
+
+  <div class="wpl-controls">
+    <label class="wpl-slabel"><span>Relative humidity of the air at 20 °C <em data-out="rh">50</em>%</span>
+      <input type="range" data-in="rh" min="10" max="95" step="1" value="50" />
+    </label>
+    <label class="wpl-slabel"><span>Soil water potential <em data-out="soil">−0.3</em> MPa</span>
+      <input type="range" data-in="soil" min="-1" max="0" step="0.05" value="-0.3" />
+    </label>
+    <label class="wpl-slabel"><span>Height of the leaf above the root <em data-out="h">30</em> m</span>
+      <input type="range" data-in="h" min="0" max="60" step="1" value="30" />
+    </label>
+  </div>
+
+  <dl class="wpl-readout">
+    <div><dt>Air (from relative humidity)</dt><dd data-r-air></dd></div>
+    <div><dt>Extra tension to hold a still column</dt><dd data-r-grav></dd></div>
+    <div><dt>Leaf total (illustrative value)</dt><dd data-r-leaf></dd></div>
+    <div><dt>Soil to root</dt><dd data-r-s1></dd></div>
+    <div><dt>Root to leaf</dt><dd data-r-s2></dd></div>
+    <div><dt>Leaf to air</dt><dd data-r-s3></dd></div>
+    <div><dt>Downhill all the way?</dt><dd data-r-all></dd></div>
+  </dl>
+  <p class="wpl-why" data-why role="status"></p>
+
+  <p class="wpl-assume">In this sketch: illustrative values, not a measured plant; 20 °C; steady flow; gravity about 0.01 MPa per m. The root (−0.6 MPa) and the leaf (−1.5 MPa) are the lesson’s illustrative values; the slider ranges are chosen for the sketch (the lesson cites air at 50 to 80% relative humidity). Blocks and arrows are a schematic of the route, not anatomy.</p>
+  <p class="wpl-foot">Rule to keep: water always moves toward lower total water potential. Evaporation powers the pull, and cohesion passes it down continuous xylem columns; the plant does not pump the water up.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#2f2f38', BLOCK = '#eef3f6', EDGE = '#6b7a86', FAINT = '#c9ced3';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const MINUS = '−';
+  // exact arithmetic in hundredths of a MPa for the soil, root, leaf and gravity terms
+  const fmt2 = (c: number) => (c < 0 ? MINUS : '') + (Math.abs(c) / 100).toFixed(2);
+  const fmtT = (c: number) => {
+    let s = (Math.abs(c) / 100).toFixed(2);
+    if (s.endsWith('0')) s = s.slice(0, -1);
+    return (c < 0 ? MINUS : '') + s;
+  };
+  const ROOT = -60, LEAF0 = -150; // lesson's illustrative values, hundredths of a MPa
+
+  document.querySelectorAll<HTMLElement>('[data-wpladder]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const rhIn = root.querySelector<HTMLInputElement>('[data-in="rh"]');
+    const soilIn = root.querySelector<HTMLInputElement>('[data-in="soil"]');
+    const hIn = root.querySelector<HTMLInputElement>('[data-in="h"]');
+    const rhOut = root.querySelector<HTMLElement>('[data-out="rh"]');
+    const soilOut = root.querySelector<HTMLElement>('[data-out="soil"]');
+    const hOut = root.querySelector<HTMLElement>('[data-out="h"]');
+    const rAir = root.querySelector<HTMLElement>('[data-r-air]');
+    const rGrav = root.querySelector<HTMLElement>('[data-r-grav]');
+    const rLeaf = root.querySelector<HTMLElement>('[data-r-leaf]');
+    const rS1 = root.querySelector<HTMLElement>('[data-r-s1]');
+    const rS2 = root.querySelector<HTMLElement>('[data-r-s2]');
+    const rS3 = root.querySelector<HTMLElement>('[data-r-s3]');
+    const rAll = root.querySelector<HTMLElement>('[data-r-all]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !rhIn || !soilIn || !hIn || !rhOut || !soilOut || !hOut || !rAir || !rGrav || !rLeaf || !rS1 || !rS2 || !rS3 || !rAll || !why) return;
+
+    const Y0 = 44, S = 100; // y of 0 MPa; px per MPa
+    const py = (c: number) => Y0 - (c / 100) * S;
+    const BH = 28, AX = 40;
+
+    function text(x: number, y: number, t: string, anchor = 'middle', size = 9, weight = 400, fill = INK) {
+      const e = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill });
+      e.textContent = t;
+      plot!.appendChild(e);
+    }
+    function box(x: number, w: number, cy: number, h: number, lines: string[], stroke = EDGE) {
+      plot!.appendChild(el('rect', { x, y: cy - h / 2, width: w, height: h, rx: 5, fill: BLOCK, stroke, 'stroke-width': 1.2 }));
+      const step = 11, y0 = cy - ((lines.length - 1) * step) / 2 + 3;
+      lines.forEach((t, i) => text(x + w / 2, y0 + i * step, t, 'middle', 9, i === 0 ? 700 : 400));
+    }
+    function arrow(x1: number, y1: number, x2: number, y2: number, ok: boolean) {
+      const col = ok ? TEAL : ORANGE;
+      const a = Math.atan2(y2 - y1, x2 - x1), L = 7, W = 3.5;
+      const bx = x2 - Math.cos(a) * L, by = y2 - Math.sin(a) * L;
+      plot!.appendChild(el('line', { x1, y1, x2: bx, y2: by, stroke: col, 'stroke-width': 2, ...(ok ? {} : { 'stroke-dasharray': '4 3' }) }));
+      const px = -Math.sin(a) * W, pyy = Math.cos(a) * W;
+      plot!.appendChild(el('polygon', { points: `${x2},${y2} ${bx + px},${by + pyy} ${bx - px},${by - pyy}`, fill: col }));
+    }
+    const dec = (x: number) => (Math.abs(x) >= 10 ? x.toFixed(0) : x.toFixed(1)).replace('-', MINUS);
+    const dec2 = (x: number) => (Math.abs(x) >= 10 ? x.toFixed(1) : x.toFixed(2)).replace('-', MINUS);
+
+    function render() {
+      const rh = parseInt(rhIn!.value, 10);
+      const soil = Math.round(parseFloat(soilIn!.value) * 100);
+      const h = parseInt(hIn!.value, 10);
+      const grav = h; // hundredths of a MPa: 0.01 MPa per m x h m
+      const leaf = LEAF0; // the lesson's illustrative leaf total; gravity is shown separately
+      const lnRH = Math.log(rh / 100);
+      const airRaw = 135 * lnRH;
+      const airR = parseFloat(dec(airRaw).replace(MINUS, '-')); // value as displayed, MPa
+      const air = airR * 100; // hundredths
+
+      rhOut!.textContent = String(rh);
+      soilOut!.textContent = fmtT(soil);
+      hOut!.textContent = String(h);
+
+      const lnTxt = (Math.abs(lnRH) >= 0.1 ? lnRH.toFixed(2) : lnRH.toFixed(4)).replace('-', MINUS);
+      rAir!.textContent = `135 × ln(${(rh / 100).toFixed(2)}) = 135 × (${lnTxt}), about ${dec(airRaw)} MPa`;
+      rGrav!.textContent = `about 0.01 MPa per m × ${h} m = ${fmt2(grav)} MPa`;
+      rLeaf!.textContent = `${fmt2(leaf)} MPa`;
+
+      type Step = { from: string; to: string; a: number; b: number; diff: number; ok: boolean; eq: boolean };
+      const mk = (from: string, to: string, a: number, b: number): Step => ({ from, to, a, b, diff: b - a, ok: b < a, eq: b === a });
+      const s1 = mk('soil', 'root', soil, ROOT);
+      const s2 = mk('root', 'leaf', ROOT, leaf);
+      const s3 = mk('leaf', 'air', leaf, air);
+      s3.ok = airRaw * 100 < leaf; s3.eq = airRaw * 100 === leaf;
+      const line = (s: Step, big: boolean) => {
+        const d = big ? dec2(s.diff / 100) : fmt2(s.diff);
+        const bv = big ? dec(s.b / 100) : fmt2(s.b);
+        const av = big ? dec(s.a / 100) : fmt2(s.a);
+        const A = s.from === 'leaf' ? fmt2(s.a) : av, B = s.to === 'air' ? bv : fmt2(s.b);
+        return `${B} − (${A}) = ${d} MPa ${s.eq ? '(equal: no net movement)' : s.ok ? '(downhill)' : '(uphill: not a drop)'}`;
+      };
+      rS1!.textContent = line(s1, false);
+      rS2!.textContent = line(s2, false);
+      rS3!.textContent = line(s3, true);
+      const allOk = s1.ok && s2.ok && s3.ok;
+      rAll!.textContent = allOk
+        ? `Yes: ${fmtT(soil)} > ${fmtT(ROOT)} > ${fmtT(leaf)} > ${dec(airR)} MPa`
+        : 'No: at least one step is not a drop in total water potential';
+
+      // ---- drawing ----
+      plot!.replaceChildren();
+      text(4, 12, 'Total water potential (MPa)', 'start', 9, 700);
+      plot!.appendChild(el('line', { x1: AX, y1: 22, x2: AX, y2: 212, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0, -50, -100, -150]) {
+        plot!.appendChild(el('line', { x1: AX - 3, y1: py(t), x2: 330, y2: py(t), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        text(AX - 5, py(t) + 3, t === 0 ? '0' : MINUS + (Math.abs(t) / 100).toFixed(1), 'end', 9);
+      }
+      // broken axis
+      plot!.appendChild(el('line', { x1: AX, y1: 212, x2: AX, y2: 232, stroke: '#fff', 'stroke-width': 3 }));
+      plot!.appendChild(el('line', { x1: AX - 6, y1: 215, x2: AX + 6, y2: 211, stroke: INK, 'stroke-width': 1.2 }));
+      plot!.appendChild(el('line', { x1: AX - 6, y1: 224, x2: AX + 6, y2: 220, stroke: INK, 'stroke-width': 1.2 }));
+      plot!.appendChild(el('line', { x1: AX, y1: 224, x2: AX, y2: 292, stroke: INK, 'stroke-width': 1 }));
+      text(AX + 8, 226, 'axis break: the scale changes below this line', 'start', 9, 400, EDGE);
+      plot!.appendChild(el('line', { x1: AX + 4, y1: 232, x2: 330, y2: 232, stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+
+      const SX = 48, RX = 118, XX = 188, XW = 66, LX = 272, BW = 54;
+      const cs = py(soil), cr = py(ROOT), cl = py(leaf), cx = (cr + cl) / 2, ca = 266;
+      box(SX, BW, cs, BH, ['Soil', fmtT(soil)]);
+      box(RX, BW, cr, BH, ['Root', fmtT(ROOT)]);
+      box(XX, XW, cx, 42, ['Xylem ↑', 'water and', 'minerals up']);
+      box(LX, BW, cl, BH, ['Leaf', fmtT(leaf)]);
+      box(LX, BW, ca, BH, ['Air', dec(airR)]);
+      arrow(SX + BW, cs, RX, cr, s1.ok);
+      arrow(RX + BW, cr, XX, cx, true);
+      arrow(XX + XW, cx, LX, cl, true);
+      arrow(LX + BW / 2, cl + BH / 2, LX + BW / 2, ca - BH / 2, s3.ok);
+      text(LX + BW / 2 - 6, 248, 'through stomata', 'end', 9, 400, s3.ok ? TEAL : ORANGE);
+
+      // ---- status ----
+      let s: string;
+      if (allOk) {
+        const steps = [s1, s2, s3];
+        const big = steps.reduce((m, x) => (-x.diff > -m.diff ? x : m));
+        s = `Every step runs downhill in this sketch: soil ${fmtT(soil)}, root ${fmtT(ROOT)}, leaf ${fmtT(leaf)}, air ${dec(airR)} MPa. Water moves toward lower total water potential, and the biggest drop is ${big.from} to ${big.to}. `;
+      } else {
+        const bad = [s1, s2, s3].filter((x) => !x.ok);
+        s = bad.map((x) => x.eq
+          ? `${x.from[0].toUpperCase() + x.from.slice(1)} and ${x.to} are equal, so in this sketch there is no net movement from ${x.from} into ${x.to}. `
+          : `In this sketch the ${x.from} (${x.from === 'air' ? dec(x.a / 100) : fmtT(x.a)} MPa) is below the ${x.to} (${x.to === 'air' ? dec(x.b / 100) : fmtT(x.b)} MPa), so water would not move from ${x.from} into ${x.to}, because water moves toward lower total water potential. `
+        ).join('');
+      }
+      s += h > 0
+        ? `At ${h} m, about 0.01 × ${h} = ${fmt2(grav)} MPa of extra tension holds a still column up against gravity, before any flow. `
+        : 'At 0 m no extra tension is needed to hold a still column. ';
+      s += 'Evaporation powers flow in the xylem and cohesion transmits the pull down continuous xylem columns; the plant does not pump water up. Xylem carries water and minerals up.';
+      why!.textContent = s;
+    }
+
+    [rhIn, soilIn, hIn].forEach((i) => i.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .wpl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .wpl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .wpl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .wpl-svg { display: block; width: 100%; max-width: 460px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .wpl-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .wpl-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wpl-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .wpl-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .wpl-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .wpl-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .wpl-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .wpl-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .wpl-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .wpl-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-style: italic; }
+  .wpl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 700px) {
+    .wpl-controls { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>

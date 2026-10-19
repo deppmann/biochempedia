@@ -1,0 +1,295 @@
+---
+/**
+ * DoubleFertilizationKernels — a maize ovule drawn as labelled blocks receiving two sperm
+ * from one pollen tube, and an ear of 400 kernels coloured by endosperm genotype.
+ * Rules are those of the plant-reproduction lesson's worked problem (Zea mays, 2n = 20):
+ * egg and both polar nuclei descend from one megaspore, so the central cell is YY when
+ * the egg is Y and yy when it is y; one sperm + egg = embryo, the other sperm + central
+ * cell = endosperm; yellow (Y) fully dominant (an assumption). Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+---
+
+<figure class="dfk card" data-dfk>
+  <figcaption class="dfk-head">Double fertilization and kernel colour in maize<span class="dfk-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="dfk-svg" viewBox="0 0 340 306" role="img" aria-label="Schematic of a maize ovule: a pollen tube delivers two sperm, one to the egg and one to the central cell, giving embryo and endosperm, inside seed coat and fruit wall" data-ovule></svg>
+  <p class="dfk-legend">Letters in <span class="dfk-m">teal</span> are copies from the seed parent (maternal); letters in <span class="dfk-p">orange</span> are copies from the pollen parent (paternal). In this sketch, both polar nuclei and the egg descend from one megaspore (as in maize), and both sperm of one grain carry the same allele. Showing the kernel you select on the ear below.</p>
+
+  <div class="dfk-controls">
+    <label class="dfk-field">Seed parent (the mother plant that bears the ear)
+      <select data-seed><option value="YY">YY</option><option value="Yy" selected>Yy</option><option value="yy">yy</option></select>
+    </label>
+    <label class="dfk-field">Pollen parent
+      <select data-pollen><option value="YY">YY</option><option value="Yy" selected>Yy</option><option value="yy">yy</option></select>
+    </label>
+    <label class="dfk-check"><input type="checkbox" data-nums checked /> show chromosome numbers</label>
+    <button type="button" class="dfk-btn" data-resample>Resample: draw a new ear</button>
+  </div>
+
+  <svg class="dfk-ear" viewBox="0 0 340 224" tabindex="0" role="group" aria-label="Ear of 400 kernels, yellow or white. Use the arrow keys to select a kernel." data-ear></svg>
+  <p class="dfk-legend"><span class="dfk-sw dfk-sw-y"></span> yellow kernel <span class="dfk-sw dfk-sw-w"></span> white kernel <span class="dfk-sw dfk-sw-s"></span> selected kernel (click it, or use the arrow keys). Kernels drawn as a grid of dots.</p>
+
+  <table class="dfk-table" data-table>
+    <thead><tr><th scope="col">Endosperm (central cell + sperm)</th><th scope="col">Kernel colour</th><th scope="col">Expected of 400</th><th scope="col">Simulated</th></tr></thead>
+    <tbody data-tbody></tbody>
+  </table>
+
+  <p class="dfk-verdict" data-status role="status"></p>
+  <p class="dfk-assume">In this sketch: one gene, with yellow (Y) fully dominant over white (y), though in real maize the yellow deepens with each extra Y copy; every ovule is fertilized; kernels are independent; counts on the ear are random draws made by this sketch, not data; expected counts assume random fertilization and equal kernel survival. Zea mays, 2n = 20.</p>
+  <p class="dfk-foot">Rule to keep: endosperm = 2 maternal sets + 1 paternal set; embryo = 1 maternal set + 1 paternal set. Seed coat and fruit wall are the mother plant’s own tissue and never take the pollen’s genotype.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Allele = 'Y' | 'y';
+  type Kernel = { e: Allele; s: Allele };
+  const N = 400, COLS = 25;
+  const MAT = '#0b6a73', PAT = '#a64400', INK = '#2b2b33', FAINT = '#4b4b55';
+  const CLASSES: { c: Allele; s: Allele }[] = [
+    { c: 'Y', s: 'Y' }, { c: 'Y', s: 'y' }, { c: 'y', s: 'Y' }, { c: 'y', s: 'y' },
+  ];
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('DoubleFertilizationKernels: missing ' + sel);
+    return e;
+  }
+  // coloured genotype text: parts are [letters, maternal?]
+  function geno(svg: SVGElement, x: number, y: number, size: number, parts: [string, boolean][], tail = ''): void {
+    const t = el('text', { x, y, 'font-size': size, 'font-weight': 700, 'text-anchor': 'middle', fill: INK });
+    for (const [s, m] of parts) t.appendChild(el('tspan', { fill: m ? MAT : PAT }, s));
+    if (tail) t.appendChild(el('tspan', { 'font-weight': 400, fill: FAINT, 'font-size': 10 }, tail));
+    svg.appendChild(t);
+  }
+  function arrow(svg: SVGElement, x1: number, y1: number, x2: number, y2: number): void {
+    svg.appendChild(el('line', { x1, y1, x2, y2, stroke: FAINT, 'stroke-width': 1.5 }));
+    const a = Math.atan2(y2 - y1, x2 - x1), h = 5;
+    const p1 = [x2 - h * Math.cos(a - 0.5), y2 - h * Math.sin(a - 0.5)];
+    const p2 = [x2 - h * Math.cos(a + 0.5), y2 - h * Math.sin(a + 0.5)];
+    svg.appendChild(el('polygon', { points: `${x2},${y2} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`, fill: FAINT }));
+  }
+  function fracText(p: number): string {
+    return p === 1 ? '1 (all)' : p === 0 ? '0' : p === 0.75 ? '3/4' : p === 0.5 ? '1/2' : String(p);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-dfk]').forEach((root) => {
+    const ovule = need<SVGSVGElement>(root, '[data-ovule]');
+    const ear = need<SVGSVGElement>(root, '[data-ear]');
+    const seedSel = need<HTMLSelectElement>(root, '[data-seed]');
+    const pollenSel = need<HTMLSelectElement>(root, '[data-pollen]');
+    const numsBox = need<HTMLInputElement>(root, '[data-nums]');
+    const resample = need<HTMLButtonElement>(root, '[data-resample]');
+    const tbody = need<HTMLElement>(root, '[data-tbody]');
+    const status = need<HTMLElement>(root, '[data-status]');
+
+    let kernels: Kernel[] = [];
+    let sel = 0;
+
+    const parentAlleles = (g: string): Allele[] => [g[0] as Allele, g[1] as Allele];
+    const pickOne = (a: Allele[]): Allele => a[Math.random() < 0.5 ? 0 : 1];
+    const fracY = (g: string, a: Allele) => parentAlleles(g).filter((x) => x === a).length / 2;
+    const isYellow = (k: Kernel) => k.e === 'Y' || k.s === 'Y';
+    const sortG = (a: Allele, b: Allele) => (a === 'y' && b === 'Y' ? [b, a] : [a, b]);
+
+    function newEar() {
+      const sp = parentAlleles(seedSel.value), pp = parentAlleles(pollenSel.value);
+      kernels = [];
+      for (let i = 0; i < N; i++) kernels.push({ e: pickOne(sp), s: pickOne(pp) });
+      sel = 0;
+    }
+
+    function block(x: number, y: number, w: number, h: number, name: string, fill: string, lines: [string, boolean][] | null, num: string | null): void {
+      ovule.appendChild(el('rect', { x, y, width: w, height: h, rx: 4, fill, stroke: FAINT, 'stroke-width': 1.2 }));
+      ovule.appendChild(el('text', { x: x + w / 2, y: y + 13, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, name));
+      if (lines) geno(ovule, x + w / 2, y + 29, 12, lines);
+      if (num) ovule.appendChild(el('text', { x: x + w / 2, y: y + h - 7, 'font-size': 10, 'text-anchor': 'middle', fill: FAINT }, num));
+    }
+
+    function drawOvule() {
+      const k = kernels[sel];
+      const showN = numsBox.checked;
+      const seed = seedSel.value;
+      const yellow = isYellow(k);
+      ovule.replaceChildren();
+      // maternal tissues: fruit wall and seed coat carry the seed parent's own genotype
+      ovule.appendChild(el('rect', { x: 2, y: 2, width: 336, height: 302, rx: 6, fill: '#f6efe6', stroke: '#b9a58a' }));
+      const fw = el('text', { x: 12, y: 296, 'font-size': 10, fill: INK });
+      fw.appendChild(el('tspan', {}, 'fruit wall (from the ovary wall), mother’s own tissue: '));
+      fw.appendChild(el('tspan', { 'font-weight': 700, fill: MAT }, seed));
+      if (showN) fw.appendChild(el('tspan', {}, ' · 20'));
+      ovule.appendChild(fw);
+      ovule.appendChild(el('rect', { x: 10, y: 22, width: 320, height: 252, rx: 5, fill: '#e9e1f0', stroke: '#8f7fa6' }));
+      const sc = el('text', { x: 18, y: 268, 'font-size': 10, fill: INK });
+      sc.appendChild(el('tspan', {}, 'seed coat (from the integuments): '));
+      sc.appendChild(el('tspan', { 'font-weight': 700, fill: MAT }, seed));
+      if (showN) sc.appendChild(el('tspan', {}, ' · 20'));
+      ovule.appendChild(sc);
+      // embryo sac
+      ovule.appendChild(el('rect', { x: 20, y: 34, width: 300, height: 218, rx: 5, fill: '#fff', stroke: FAINT }));
+      ovule.appendChild(el('text', { x: 26, y: 48, 'font-size': 10, fill: FAINT }, 'embryo sac'));
+      // pollen tube into a synergid
+      ovule.appendChild(el('rect', { x: 162, y: 4, width: 16, height: 30, fill: '#fde7c8', stroke: PAT }));
+      ovule.appendChild(el('text', { x: 184, y: 17, 'font-size': 10, fill: INK }, 'pollen tube'));
+      arrow(ovule, 170, 24, 170, 40);
+      ovule.appendChild(el('rect', { x: 130, y: 40, width: 80, height: 22, rx: 4, fill: '#f1f1f4', stroke: FAINT }));
+      ovule.appendChild(el('text', { x: 170, y: 55, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'synergid'));
+      // two sperm
+      arrow(ovule, 150, 62, 94, 78);
+      arrow(ovule, 190, 62, 236, 78);
+      for (const [cx, n] of [[94, 1], [236, 2]] as [number, number][]) {
+        ovule.appendChild(el('rect', { x: cx - 50, y: 78, width: 100, height: 28, rx: 14, fill: '#fde7c8', stroke: PAT }));
+        ovule.appendChild(el('text', { x: cx, y: 90, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, 'sperm ' + n));
+        geno(ovule, cx, 102, 11, [[k.s, false]], showN ? ' · 10' : '');
+      }
+      arrow(ovule, 94, 106, 94, 122);
+      arrow(ovule, 236, 106, 236, 122);
+      // egg and central cell
+      block(34, 122, 120, 58, 'egg', '#e3f1f3', [[k.e, true]], showN ? '10' : null);
+      ovule.appendChild(el('circle', { cx: 142, cy: 140, r: 4, fill: MAT }));
+      block(166, 122, 140, 58, 'central cell', '#e3f1f3', null, showN ? '10 + 10 = 20' : null);
+      geno(ovule, 236, 151, 12, [[k.e, true], [k.e, true]], ' polar nuclei');
+      ovule.appendChild(el('circle', { cx: 294, cy: 138, r: 4, fill: MAT }));
+      ovule.appendChild(el('circle', { cx: 294, cy: 152, r: 4, fill: MAT }));
+      arrow(ovule, 94, 180, 94, 196);
+      arrow(ovule, 236, 180, 236, 196);
+      // products
+      const embryo: [string, boolean][] = k.e === 'y' && k.s === 'Y' ? [[k.s, false], [k.e, true]] : [[k.e, true], [k.s, false]];
+      block(34, 196, 120, 52, 'zygote → embryo', '#fff', embryo, showN ? '10 + 10 = 20' : null);
+      block(166, 196, 140, 52, 'endosperm', yellow ? '#fbe27a' : '#fff', [[k.e, true], [k.e, true], [k.s, false]], showN ? '20 + 10 = 30' : null);
+    }
+
+    function drawEar() {
+      ear.replaceChildren();
+      const dx = (340 - 16) / COLS, dy = 13;
+      kernels.forEach((k, i) => {
+        const c = el('circle', {
+          cx: 8 + dx * (i % COLS) + dx / 2, cy: 8 + dy * Math.floor(i / COLS) + dy / 2, r: 5,
+          fill: isYellow(k) ? '#f2c230' : '#ffffff', stroke: isYellow(k) ? '#a67c00' : '#8a8a96', 'stroke-width': 1, 'data-i': i,
+        });
+        ear.appendChild(c);
+      });
+      const i = sel;
+      ear.appendChild(el('circle', {
+        cx: 8 + dx * (i % COLS) + dx / 2, cy: 8 + dy * Math.floor(i / COLS) + dy / 2, r: 7.5,
+        fill: 'none', stroke: '#111', 'stroke-width': 2, 'pointer-events': 'none',
+      }));
+    }
+
+    function drawTable(): { yel: number; whi: number; expY: number; p: number } {
+      const seed = seedSel.value, pol = pollenSel.value;
+      const obs: Record<string, number> = { YYY: 0, YYy: 0, yyY: 0, yyy: 0 };
+      kernels.forEach((k) => { obs[k.e + k.e + k.s]++; });
+      tbody.replaceChildren();
+      let expYel = 0, obsYel = 0, obsWhi = 0;
+      for (const cl of CLASSES) {
+        const key = cl.c + cl.c + cl.s;
+        const p = fracY(seed, cl.c) * fracY(pol, cl.s);
+        const ex = p * N, yel = cl.c === 'Y' || cl.s === 'Y';
+        if (yel) { expYel += ex; obsYel += obs[key]; } else obsWhi += obs[key];
+        const tr = document.createElement('tr');
+        if (ex === 0) tr.className = 'dfk-zero';
+        [key, yel ? 'yellow' : 'white', String(ex), String(obs[key])].forEach((t) => {
+          const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+      const tr = document.createElement('tr');
+      tr.className = 'dfk-total';
+      const pY = expYel / N;
+      [`All kernels: ${fracText(pY)} yellow`, 'yellow / white', `${expYel} / ${N - expYel}`, `${obsYel} / ${obsWhi}`].forEach((t) => {
+        const td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+      root.dataset.yellow = String(obsYel);
+      root.dataset.white = String(obsWhi);
+      root.dataset.expectedYellow = String(expYel);
+      return { yel: obsYel, whi: obsWhi, expY: expYel, p: pY };
+    }
+
+    function say(t: { yel: number; whi: number; expY: number; p: number }) {
+      const seed = seedSel.value, pol = pollenSel.value, k = kernels[sel];
+      const showN = numsBox.checked;
+      const [a, b] = sortG(k.e, k.s);
+      const emb = a + b;
+      const endo = k.e + k.e + k.s;
+      const parts: string[] = [];
+      parts.push(`Seed parent ${seed} × pollen parent ${pol}: expected yellow ${fracText(t.p)} of ${N} = ${t.expY}; this simulated ear has ${t.yel} yellow and ${t.whi} white.`);
+      parts.push(`Kernel ${sel + 1}: the egg is ${k.e}, so the central cell is ${k.e}${k.e}; the sperm is ${k.s}. The embryo is ${emb}${showN ? ' (20 chromosomes)' : ''} and the endosperm is ${endo}${showN ? ' (30 chromosomes)' : ''}, so this kernel is ${isYellow(k) ? 'yellow, because its endosperm carries a Y (Y assumed fully dominant)' : 'white, because its endosperm is yyy'}. The seed coat and fruit wall stay ${seed}, the mother plant’s own tissue.`);
+      if (seed === 'yy' && pol === 'YY') parts.push('A yy plant pollinated by YY pollen: every embryo is Yy and every endosperm yyY, so the kernels are yellow on a plant whose selfed kernels would be white. Kernel colour comes from the endosperm, a product of fertilization; this is called xenia.');
+      else if (seed === 'yy' && pol === 'Yy') parts.push('On this yy plant the kernels whose sperm carries Y are yellow, though its selfed kernels would be white (xenia); those whose sperm carries y are white.');
+      else if (seed === 'yy') parts.push('No Y anywhere in this cross, so every endosperm is yyy and every kernel is white.');
+      else if (seed === 'Yy' && pol === 'Yy') parts.push('Yy × Yy (as when a heterozygote is selfed): the endosperm is YYY, YYy, yyY or yyy, each 1/4, and only yyy is white.');
+      else if (seed === 'YY') parts.push('The central cell is always YY, so every endosperm carries Y and every kernel is yellow.');
+      else if (pol === 'YY') parts.push('Every sperm carries Y, so every kernel is yellow.');
+      else parts.push('A kernel is white only when its endosperm is yyy: a y egg (so a yy central cell) and a y sperm.');
+      status.replaceChildren();
+      const p1 = document.createElement('span'); p1.textContent = parts.join(' ');
+      const br = document.createElement('span'); br.className = 'dfk-fixed';
+      br.textContent = 'Pollination only delivers pollen to a stigma; fertilization is the later fusion of each sperm with a female cell inside the ovule. Endosperm is triploid (3n) in maize, Arabidopsis and most flowering plants, not in all: in water lilies it is diploid.';
+      status.appendChild(p1); status.appendChild(document.createElement('br')); status.appendChild(br);
+    }
+
+    function refresh() {
+      drawOvule();
+      drawEar();
+      say(drawTable());
+    }
+    function fresh() { newEar(); refresh(); }
+
+    seedSel.addEventListener('change', fresh);
+    pollenSel.addEventListener('change', fresh);
+    resample.addEventListener('click', fresh);
+    numsBox.addEventListener('change', refresh);
+    ear.addEventListener('click', (ev) => {
+      const t = ev.target as Element | null;
+      const i = t && t.getAttribute('data-i');
+      if (i !== null && i !== undefined) { sel = Number(i); refresh(); }
+    });
+    ear.addEventListener('keydown', (ev) => {
+      const d: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -COLS, ArrowDown: COLS };
+      let n = sel;
+      if (ev.key in d) n = sel + d[ev.key];
+      else if (ev.key === 'Home') n = 0;
+      else if (ev.key === 'End') n = N - 1;
+      else return;
+      ev.preventDefault();
+      if (n >= 0 && n < N && n !== sel) { sel = n; refresh(); }
+    });
+    fresh();
+  });
+</script>
+
+<style is:global>
+  .dfk { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dfk-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dfk-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dfk-svg, .dfk-ear { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dfk-ear:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dfk-ear circle { cursor: pointer; }
+  .dfk-legend { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dfk-m { color: #0b6a73; font-weight: 700; } .dfk-p { color: #a64400; font-weight: 700; }
+  .dfk-sw { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; vertical-align: -0.1em; margin-left: 0.5em; }
+  .dfk-sw-y { background: #f2c230; border: 1px solid #a67c00; } .dfk-sw-w { background: #fff; border: 1px solid #8a8a96; } .dfk-sw-s { border: 2px solid #111; }
+  .dfk-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.6rem 1rem; margin: var(--ddp-space-3) 0; }
+  .dfk-field { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dfk-field select { font-size: var(--ddp-text-sm); padding: 0.2rem 0.4rem; }
+  .dfk-check { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dfk-check input { accent-color: var(--ddp-color-accent); }
+  .dfk-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .dfk-btn:focus-visible, .dfk-field select:focus-visible, .dfk-check input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dfk-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .dfk-table th, .dfk-table td { border-bottom: 1px solid var(--ddp-color-line); padding: 0.2rem 0.35rem; text-align: left; }
+  .dfk-table th { color: var(--ddp-color-muted); font-weight: 600; }
+  .dfk-zero { color: var(--ddp-color-muted); } .dfk-total td { font-weight: 700; }
+  .dfk-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .dfk-fixed { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dfk-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dfk-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
