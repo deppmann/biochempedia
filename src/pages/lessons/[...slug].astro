@@ -12,6 +12,7 @@ import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
 import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
+import { methodsFor, methodHref, filmLength } from '../../data/methods';
 import { LESSON_GAMES, gameHref, unitReviewFor, unitReviewHref } from '../../data/lesson-games';
 
 export async function getStaticPaths() {
@@ -47,6 +48,8 @@ const { Content } = await render(entry);
 const lesson = entry.data;
 const lessonFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
+// Method films from the shared library that this lesson teaches or relies on.
+const methods = methodsFor(entry.data.slug);
 
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const localSims = lesson.simulations.filter((s) => s.type === 'local');
@@ -149,6 +152,9 @@ const lessonLd = {
         {ex && (
           <li><a href="#explainer">▶ Explainer <em>{exLen}</em></a></li>
         )}
+        {methods.length > 0 && (
+          <li><a href="#methods">🔬 Methods <em>{methods.length}</em></a></li>
+        )}
         {lesson.lectureSlides.length > 0 && (
           <li><button type="button" data-open="lb-slides">🖼 Slides <em>{lesson.lectureSlides.length}</em></button></li>
         )}
@@ -177,14 +183,26 @@ const lessonLd = {
       <div class="lesson-main">
         <div class="prose-col"><Content /></div>
 
-        {lesson.techniques.length > 0 && (
-          <section class="tech-panel">
+        {(lesson.techniques.length > 0 || methods.length > 0) && (
+          <section class="tech-panel" id="methods">
             <h2>How we measure it</h2>
-            <div class="tech-grid">
-              {lesson.techniques.map((t) => (
-                <div class="tech card orient-pad"><h3>{t.name}</h3><p>{t.blurb}</p></div>
-              ))}
-            </div>
+            {lesson.techniques.length > 0 && (
+              <div class="tech-grid">
+                {lesson.techniques.map((t) => (
+                  <div class="tech card orient-pad"><h3>{t.name}</h3><p>{t.blurb}</p></div>
+                ))}
+              </div>
+            )}
+            {methods.length > 0 && (
+              <div class="method-films">
+                <p class="method-films-h">Method films <a href="/methods/">· the methods library</a></p>
+                <ul>
+                  {methods.map((m) => (
+                    <li><a href={methodHref(m.slug)}><span aria-hidden="true">▶</span> {m.name} <em>{filmLength(m.film!.durationSec)}</em></a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
         )}
 
@@ -712,6 +730,13 @@ const lessonLd = {
     .tech { padding: var(--ddp-space-4) var(--ddp-space-5); }
     .tech h3 { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-base); }
     .tech p { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .method-films { margin-top: var(--ddp-space-4); }
+    .method-films-h { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .method-films-h a { color: var(--ddp-color-muted); text-transform: none; letter-spacing: 0; }
+    .method-films ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    .method-films li a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 40px; padding: 0.3rem 0.9rem; border-radius: 999px; border: 1px solid var(--ddp-color-border, #d6d3cc); background: var(--ddp-color-surface); text-decoration: none; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+    .method-films li a:hover { border-color: var(--ddp-color-accent); }
+    .method-films em { font-style: normal; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
 
     /* Sticky resource rail */
     .rail {
