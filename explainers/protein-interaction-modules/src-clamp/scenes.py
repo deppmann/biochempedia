@@ -180,11 +180,11 @@ class S01Parts(Film):
         self.play(FadeIn(R["kd"], scale=0.9), run_time=0.5)
         self.at("short tail")
         self.play(FadeIn(R["tl"], scale=0.9), run_time=0.45)
-        self.at("tail ends")
+        self.at("tail holds")
         yn = R["yn"]
         yl = T("tyrosine 527", 26, ORANGE).next_to(yn, DOWN, buff=0.45)
         yl.move_to([min(yl.get_center()[0], 4.6), yl.get_center()[1], 0])
-        cn = T("chicken numbering", 22, GREY).next_to(yl, DOWN, buff=0.12)
+        cn = T("six from the end, chicken numbering", 22, GREY).next_to(yl, DOWN, buff=0.12)
         ar = Arrow(yl.get_top() + UP * 0.02, yn.get_bottom(), buff=0.05, color=ORANGE, stroke_width=4, tip_length=0.15)
         self.play(FadeIn(yn, scale=0.5), FadeIn(yl), GrowArrow(ar), run_time=0.6)
         self.play(FadeIn(cn), run_time=0.4)

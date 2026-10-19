@@ -370,7 +370,7 @@ export const COURSES: Course[] = [
       },
       {
         name: 'Proprioception and interoception',
-        slugs: ['proprioception', 'vagal-sensory-neurons', 'gut-brain-sensing'],
+        slugs: ['proprioception', 'vagal-sensory-neurons'],
       },
       {
         name: 'Vision',
