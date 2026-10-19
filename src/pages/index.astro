@@ -33,8 +33,10 @@ const cards = COURSES.map((c) => {
   };
 }).filter((k) => k.lessons > 0);
 const tiers = [
-  { key: 'core', title: 'Core courses', note: 'The foundation subjects: the ones a first degree in biology is built on, and the ones the MCAT tests. The numbers are a suggested order; each course also stands on its own.' },
+  { key: 'foundation', title: 'Foundations', note: 'Intro courses for the first two years: biology, chemistry, statistics and physics.' },
+  { key: 'core', title: 'Core courses', note: 'The three subjects every biology degree requires. The numbers are a suggested order; each course also stands on its own.' },
   { key: 'elective', title: 'Electives', note: 'One subject taken further, for students who have the core behind them.' },
+  { key: 'advanced', title: 'Advanced electives', note: 'Upper-level courses that go all the way to current research.' },
 ].map((t) => ({ ...t, cards: cards.filter((k) => k.c.tier === t.key) })).filter((t) => t.cards.length > 0);
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 ---
@@ -81,7 +83,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
               <a href={courseHref(k.c.slug)} class="course-card">
                 <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /></span>
                 <span class="cc-body">
-                  <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}</span>
+                  <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}{k.c.mcat && <span class="cc-mcat" title="Covers material the MCAT tests">MCAT</span>}</span>
                   <span class="cc-title">{k.c.title}</span>
                   <span class="cc-tag">{k.c.tagline}</span>
                   <span class="cc-units">{k.unitNames.join(' · ')}</span>
@@ -403,6 +405,14 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       transition: transform 0.22s ease;
     }
     .cc-step { color: var(--ddp-color-caution); font-weight: 600; }
+    .cc-mcat {
+      margin-left: var(--ddp-space-2);
+      padding: 0.05em 0.5em;
+      border: 1px solid var(--ddp-color-line);
+      border-radius: 999px;
+      color: var(--ddp-color-ink-soft);
+      letter-spacing: 0.08em;
+    }
     .course-card:hover { transform: translateY(-3px); box-shadow: var(--ddp-shadow); text-decoration: none; }
     .course-card:hover::before { transform: scaleY(1); }
     .cc-ico { flex: none; line-height: 0; margin-top: 2px; }

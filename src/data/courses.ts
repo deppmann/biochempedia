@@ -23,9 +23,14 @@ export interface Unit {
 export interface Course {
   slug: string;
   title: string;
-  /** Core courses are the foundation subjects (the ones entrance exams test);
-   *  electives build on them. The homepage lists the two groups separately. */
-  tier: 'core' | 'elective';
+  /** Where the course sits in a biology degree; the homepage lists each tier separately.
+   *  foundation: intro courses for the first two years (1000-2000 level).
+   *  core: the 3000-level courses every biology major takes.
+   *  elective: 3000-level subjects taken further.
+   *  advanced: 4000-level and above, built around current research. */
+  tier: 'foundation' | 'core' | 'elective' | 'advanced';
+  /** True when the course covers material the MCAT tests; shown as a tag on the homepage card. */
+  mcat?: boolean;
   /** One line under the title on the course page and on the homepage card. */
   tagline: string;
   /** A short paragraph for the course page. */
@@ -35,13 +40,14 @@ export interface Course {
   units: Unit[];
 }
 
-/* Order is the suggested path: the core courses in the order a student should take
-   them (the homepage numbers them), then the electives. */
+/* Order is the suggested path: within each tier, courses appear in the order a student
+   should take them (the homepage numbers the core courses). */
 export const COURSES: Course[] = [
   {
     slug: 'cell-biology',
     title: 'Cell Biology',
     tier: 'core',
+    mcat: true,
     tagline: 'How a eukaryotic cell is built, moves things around, divides and lives among other cells.',
     searchHint: 'Try “Golgi”, “kinesin”, “mitosis”…',
     blurb:
@@ -74,6 +80,7 @@ export const COURSES: Course[] = [
     slug: 'genetics',
     title: 'Genetics and Molecular Biology',
     tier: 'core',
+    mcat: true,
     tagline: 'How traits are inherited, and how DNA stores, copies and uses the information.',
     searchHint: 'Try “Mendel”, “lac operon”, “CRISPR”…',
     blurb:
@@ -145,7 +152,8 @@ export const COURSES: Course[] = [
   {
     slug: 'biochemistry',
     title: 'Biochemistry',
-    tier: 'core',
+    tier: 'elective',
+    mcat: true,
     tagline: 'The one-semester sequence: molecules, enzymes, membranes, metabolism.',
     blurb:
       'Thirty lessons that follow a one-semester biochemistry course, from water and weak bonds to the integration of metabolism.',
@@ -165,7 +173,8 @@ export const COURSES: Course[] = [
   {
     slug: 'neuroscience',
     title: 'Neuroscience',
-    tier: 'core',
+    tier: 'elective',
+    mcat: true,
     tagline: 'How neurons signal, and how circuits of them sense, move, regulate the body, feel, remember and decide.',
     searchHint: 'Try “action potential”, “retina”, “basal ganglia”…',
     blurb:
@@ -205,7 +214,7 @@ export const COURSES: Course[] = [
   {
     slug: 'signaling',
     title: 'Cell Signaling',
-    tier: 'elective',
+    tier: 'advanced',
     tagline: 'How a cell hears a message and decides what to do next.',
     blurb:
       'An elective that follows the biochemistry course. It starts with the parts every pathway is built from, then takes the pathways one family at a time.',
@@ -247,7 +256,7 @@ export const COURSES: Course[] = [
   {
     slug: 'developmental-neuroscience',
     title: 'Developmental Neuroscience',
-    tier: 'elective',
+    tier: 'advanced',
     tagline: 'How a nervous system builds itself, one local decision at a time.',
     searchHint: 'Try “netrin”, “Reelin”, “NGF”…',
     blurb:
