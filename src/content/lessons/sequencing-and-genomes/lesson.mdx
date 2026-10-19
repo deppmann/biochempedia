@@ -375,6 +375,7 @@ draft: false
 ---
 
 import CoverageAndRepeatsSampler from '../../../components/CoverageAndRepeatsSampler.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Two drafts of the human genome were published in February 2001. The first assembly in which every human chromosome but one ran from end to end without a gap was published in 2022.**
 
@@ -394,9 +395,13 @@ Sanger reads are accurate, but each reaction reads one region, commonly up to ab
 
 Short-read sequencing reads hundreds of millions of fragments in parallel. Genomic DNA is broken into fragments a few hundred bases long and fitted with adapters. In the method David Bentley and colleagues described in 2008, which became the Illumina platform, each fragment is copied in place on a glass flow cell into a **cluster** of identical copies. Then the polymerase adds one nucleotide per cycle. Each nucleotide carries a dye and a **reversible terminator**, a removable block on the 3' end. The machine images every cluster, reads the colour, then cleaves off the dye and the block to regenerate the 3' hydroxyl for the next cycle.
 
+<LessonFigure src="/figures/sequencing-and-genomes/sequencing-by-synthesis-cycle.webp" width={1200} height={631} alt="AI-generated illustration: a cluster of identical DNA copies on a glass flow cell shown in three steps: a nucleotide with a dye and a terminator block is added, the cluster is imaged and its colour read, and the dye and block are cleaved off so the cycle can repeat." caption="In short-read sequencing by synthesis, each fragment is copied into a cluster on a glass flow cell. One nucleotide with a dye and a reversible terminator is added per cycle, the cluster is imaged, and the dye and block are cleaved off to free the 3' hydroxyl for the next cycle." />
+
 This is not Sanger run in parallel. Sanger stops chains for good and reads lengths; sequencing by synthesis pauses every chain at each base and reads colours, cycle by cycle. Each fragment is often read from both ends, a **paired-end** read, so you know two short sequences and roughly how far apart they lie. Reads are short (35 bases from each end in the 2008 human genome; commonly 100 to 150 now), and the errors in the study of one such instrument were mostly substitutions.
 
 Long-read methods read single molecules. In PacBio instruments one polymerase sits at the bottom of a tiny well and copies a circular template, with the dye on the nucleotide's terminal phosphate so it is released as the base joins; going round the circle many times gives **HiFi** reads, in a 2019 study of one human genome averaging 13.5 kilobases at 99.8% accuracy, with leftover errors mostly small insertions or deletions in runs of one base. In Oxford Nanopore instruments a strand passes through a protein pore and software decodes the changing ionic current into bases; a 2018 study of human DNA reported ultra-long libraries in which half the sequence lay in reads longer than 100 kilobases. The trade-off is plain: short reads give many accurate bases per run but cannot span long repeats; long reads span them.
+
+<LessonFigure src="/figures/sequencing-and-genomes/two-long-read-methods.webp" width={1200} height={658} alt="AI-generated illustration: on the left a single polymerase at the bottom of a tiny well copying a circular template, releasing a dye as each base joins; on the right a single strand threading through a protein pore in a membrane, with software decoding the current." caption="Long-read methods read single molecules. In PacBio one polymerase at the bottom of a tiny well copies a circular template, going round many times; in Oxford Nanopore a strand passes through a protein pore and software decodes the changing ionic current into bases." />
 
 ## Coverage and assembly: the repeat problem
 
