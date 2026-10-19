@@ -17,7 +17,7 @@ estMinutes: 24
 objectives:
   - "Describe a topographic map using the retina-to-tectum projection, and compare three ways an axon could know where to go: individual labels, gradients and neighbours."
   - "Interpret Sperry's eye-rotation experiments in adult newts and explain what chemoaffinity proposed and what it argued against."
-  - "Explain how opposing gradients of EphA receptors in the retina and ephrin-A ligands in the target sort axons along one axis, using the stripe assay, the 1995 cloning papers and the ephrin-A2/A5 double knockout."
+  - "Explain how opposing gradients of EphA receptors in the retina and ephrin-A ligands in the target sort axons along one axis, using the stripe assay, the 1995 Cell papers and the ephrin-A2/A5 double knockout."
   - "Use the EphA3 knock-in experiment to distinguish absolute from relative reading of a gradient, and say where gradients stop being enough."
 
 explainer:
@@ -133,7 +133,7 @@ techniques:
       patch terminates in the tectum or superior colliculus.
   - name: "Knock-in and knockout mice"
     blurb: >-
-      A knockout removes a gene. A knock-in places a chosen coding sequence under the control of
+      A knockout removes a gene. A knock-in inserts a chosen sequence at a targeted gene; this one placed a coding sequence under the control of
       another gene, so it is made only where that gene is active. Here a knock-in gave half of the
       ganglion cells extra EphA3 while their neighbours kept normal levels.
 
@@ -309,7 +309,7 @@ explainLevels:
       ephrin-A2 and ephrin-A5 are graded low anterior to high posterior in the target. Forward
       signalling through EphA on the growth cone is repulsive, so axons with high receptor stop
       at low ligand. The stripe assay showed temporal axons avoiding posterior membranes, the
-      ligands were cloned in 1995, and the ephrin-A2/A5 double knockout mouse showed they are
+      ligands were cloned in 1994 and 1995, and the ephrin-A2/A5 double knockout mouse showed they are
       required, since its map loses much of its anterior-posterior order. The Isl2-EphA3 knock-in
       showed that an axon's position depends on its EphA signalling relative to its neighbours,
       which implies competition among axons. EphB receptors and ephrin-B ligands contribute to
@@ -323,7 +323,7 @@ explainLevels:
       in the tectum, high anteriorly, and ephrin-A reverse signalling in axons has been proposed
       to supply a posterior push. Competition supplies the rest: the knock-in data, fitted by the
       relative signalling model of Reber, Burrola and Lemke (2004), behave as if each axon's
-      endpoint depends on the difference between its net EphA signal and that of the axons
+      endpoint depends on the ratio of its net EphA signal to that of the axons
       around it, so the map is a solution that all axons reach together. Interstitial branching
       complicates the picture, because in chick and mouse the map forms by overshoot and
       topographically biased branching, not by growth cones stopping at the right place.
@@ -383,7 +383,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Turn an adult newt's eye upside down in its socket, cut the optic nerve, and let it regrow. When the newt can see again and you hold a lure above its head, it turns its head downward. It keeps making that mistake for as long as anyone watched.**
 
-The newt is not blind and not confused. Its vision has come back in perfect order, only rotated, as if the image had been flipped before it reached the brain. That tells you something about how the wiring was rebuilt. The regrowing axons did not connect at random and then get sorted out by use. Each one went back to the place it had come from, even though that place now gave the wrong answer. So the question for this lesson is the one Chris Deppmann asks his class: **"How does a neuron know its position and know where to go?"**
+The newt is not blind and not confused. Its vision has come back in perfect order, only rotated, as if the image had been flipped before it reached the brain. That tells you something about how the wiring was rebuilt. The regrowing axons did not connect at random and then get sorted out by use. Each one went back to its original target in the brain, even though that target now gave the wrong answer. So the question for this lesson is the one Chris Deppmann asks his class: **"How does a neuron know its position and know where to go?"**
 
 ## The idea: an axon finds its place in a map
 
@@ -419,11 +419,11 @@ Eph receptors are the largest family of receptor tyrosine kinases ([that lesson]
 
 Along the anterior-posterior axis the logic is a pair of opposite slopes. Temporal axons carry the most EphA, so a little ephrin-A repels them, and they stop in the anterior target. Nasal axons carry little EphA, tolerate more ephrin, and travel into the posterior target. The gradients fit the map; proving them necessary took a mouse.
 
-In 2000 David Feldheim, Jonas Frisén, John Flanagan and colleagues removed the genes for ephrin-A2 and ephrin-A5. With either gene gone, the map in the superior colliculus was moderately abnormal; even mice with one working copy of each gene had a defect. With both gone, axons from one small patch of retina ended at several places scattered along the axis. Chris gives his class this map with a prompt: **"Here's a retinotectal map from an ephrin-A knockout mouse. What went wrong in the projection pattern? What does this tell you about how gradients encode position?"** The careful answer is that the map loses much of its anterior-posterior order, but not all of it: termination zones are ectopic and multiple, the projection still reaches the colliculus, and some order remains. The defect grows as ligand is lowered, which says that the amount of ephrin, not merely its presence, carries position. The other axis uses the other class. EphB receptors, high in ventral retina, and ephrin-B ligands, high in the medial target, help sort axons along it. (Ephrin-B also acts at the optic chiasm, in [that lesson](/lessons/crossing-the-midline/).)
+In 2000 David Feldheim, Jonas Frisén, John Flanagan and colleagues removed the genes for ephrin-A2 and ephrin-A5. With either gene gone, the map in the superior colliculus was moderately abnormal; even mice with one working copy of each gene had a defect. With both gone, axons from one small patch of retina ended at several places scattered along the axis. Professor Deppmann gives his class this map with a prompt: **"Here's a retinotectal map from an ephrin-A knockout mouse. What went wrong in the projection pattern? What does this tell you about how gradients encode position?"** The careful answer is that the map loses much of its anterior-posterior order, but not all of it: termination zones are ectopic and multiple, the projection still reaches the colliculus, and some order remains. The defect grows as ligand is lowered, which says that the amount of ephrin, not merely its presence, carries position. The other axis relies mainly on the other class, though ephrin-A2/A5 loss disturbs it too. EphB receptors, high in ventral retina, and ephrin-B ligands, high in the medial target, help sort axons along it. (Ephrin-B also acts at the optic chiasm, in [that lesson](/lessons/crossing-the-midline/).)
 
 ## Big Question 2: How do local rules create global order?
 
-A repulsive gradient read against a fixed threshold has a problem. The same receptor level could be high in one animal and low in another, and every axon is repelled, so something must spread them out. Arthur Brown, Greg Lemke and colleagues tested how the gradient is read in 2000. They put the coding sequence of EphA3, which mouse ganglion cells do not normally make, under the control of the gene *Isl2*, active in about half of the ganglion cells and scattered across the retina. At every retinal position, some cells now carried extra EphA and their neighbours did not.
+A repulsive gradient read against a fixed threshold has a problem. The same receptor level could rank high among one animal's axons and low among another's, and since every axon is repelled, something must spread them out. Arthur Brown, Greg Lemke and colleagues tested how the gradient is read in 2000. They put the coding sequence of EphA3, which mouse ganglion cells do not normally make, under the control of the gene *Isl2*, active in about half of the ganglion cells and scattered across the retina. At every retinal position, some cells now carried extra EphA and their neighbours did not.
 
 ### Design problem
 
@@ -432,9 +432,9 @@ In this knock-in mouse, a random half of the retinal ganglion cells carry extra 
 <details>
 <summary>One way to do it</summary>
 
-Absolute reading: each axon stops where the ephrin level matches its own receptor level. The knock-in cells, with more receptor, stop sooner, so they shift anteriorly. The wild-type cells have the same receptor levels as in a normal mouse and meet the same ephrin gradient, so they end exactly where they normally would. You predict one normal map with a second, anteriorly shifted map laid over its front part.
+Absolute reading: each axon stops where the ephrin level crosses the repulsion threshold set by its own receptor level. The knock-in cells, with more receptor, stop sooner, so they shift anteriorly. The wild-type cells have the same receptor levels as in a normal mouse and meet the same ephrin gradient, so they end exactly where they normally would. You predict one normal map with a second, anteriorly shifted map laid over its front part.
 
-Relative reading: what matters is an axon's EphA signal compared with that of the others. Every knock-in cell now outranks the wild-type cells from the same region, so the knock-in cells take the anterior part of the colliculus, compressed into it in their own order, and the wild-type cells are pushed into the posterior part. You predict two interleaved maps, each covering only part of the target, with the wild-type map displaced posteriorly.
+Relative reading: what matters is an axon's EphA signal compared with that of the others. Every knock-in cell now outranks the wild-type cells from the same region, so the knock-in cells take the anterior part of the colliculus, compressed into it in their own order, and the wild-type cells are pushed into the posterior part. You predict two maps, each covering only part of the target, with the wild-type map displaced posteriorly.
 
 The second is what Brown and colleagues saw: two orderly maps, with the knock-in population anterior and its wild-type neighbours posterior, and both together filling the colliculus. Wild-type cells ending somewhere new is the observation the absolute model cannot explain.
 
