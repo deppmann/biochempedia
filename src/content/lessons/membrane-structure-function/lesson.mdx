@@ -45,7 +45,7 @@ scientists:
       MacKinnon gave up a tenured Harvard professorship, moved to Rockefeller in 1996,
       and taught himself crystallography — a field channel biophysicists had sworn was
       impossible for a membrane protein. He wanted to settle a fifty-year argument
-      about how a cell counts ions. Human channels would not crystallize, so he chose
+      about how a cell selects ions. Human channels would not crystallize, so he chose
       KcsA, a bacterial potassium channel from Streptomyces lividans. The filter's
       signature sequence Thr-Val-Gly-Tyr-Gly turns its carbonyl oxygens inward so that
       potassium sheds its cage of water and the oxygens slip into water's place as if
@@ -79,7 +79,7 @@ techniques:
       Bleach a spot on a fluorescently labeled membrane, then watch it refill. How fast
       it recovers gives the lateral diffusion coefficient; how much never recovers gives
       the immobile, anchored fraction. A 50% recovery means roughly half the labeled
-      molecules are tethered to the cytoskeleton.
+      molecules are immobile, often tethered to the cytoskeleton.
   - name: "Detergent vs. salt extraction"
     blurb: >-
       The operational test for integral versus peripheral membrane proteins. Peripheral
@@ -94,7 +94,7 @@ techniques:
     blurb: >-
       Crystallizing a membrane protein (notoriously hard) and solving its atomic
       structure by X-ray diffraction. The KcsA structure settled a fifty-year argument
-      about how a channel counts ions by showing the carbonyl-oxygen geometry of the
+      about how a channel selects ions by showing the carbonyl-oxygen geometry of the
       selectivity filter directly.
 
 structures:
@@ -220,10 +220,10 @@ practiceQuestions:
       - "the presence of double bonds"
     answer: 2
     rationale: >-
-      Tryptophan carries charged groups that bring a large desolvation penalty (roughly
-      40 to 80 kJ/mol to strip the hydration shell), so it is essentially blocked despite
-      its near-identical ring. The pair is built to isolate charge from size: molecular
-      weight and ring size are nearly matched, and double bonds are not the variable
+      Tryptophan carries charged groups that bring a large desolvation penalty (stripping the
+      hydration shell from charged groups is very costly), so it is essentially blocked despite
+      its near-identical ring. The pair is built to isolate charge from size: the ring is
+      shared, the weight difference is too modest to explain orders of magnitude, and double bonds are not the variable
       being tested.
   - stem: "A cell membrane contains saturated lipids, cis-unsaturated lipids, and trans-unsaturated lipids. Which lipid would pack most like a fully saturated lipid and therefore raise the membrane's melting temperature?"
     choices:
@@ -267,7 +267,7 @@ practiceQuestions:
       depend on the pump.
 
 mcatQuestions:
-  - stem: "A potassium channel selects K⁺ over the smaller Na⁺ ion by roughly 10,000 to 1. The selectivity filter presents 8 backbone carbonyl oxygens at each coordination site. The most accurate explanation for why Na⁺ is rejected is that:"
+  - stem: "A potassium channel selects K⁺ over the smaller Na⁺ ion by roughly 10,000 to 1. The selectivity filter presents 8 oxygens, mostly backbone carbonyls, at each coordination site. The most accurate explanation for why Na⁺ is rejected is that:"
     choices:
       - "Na⁺ is too large to fit through the narrow filter"
       - "Na⁺ is repelled by a fixed negative charge unique to the filter"
@@ -302,7 +302,7 @@ mcatQuestions:
       - "a protein-trafficking defect: the channel is largely absent from the membrane"
     answer: 3
     rationale: >-
-      ΔF508 causes misfolding and ER-associated degradation, so the channel never reaches
+      ΔF508 causes misfolding and ER-associated degradation, so the channel rarely reaches
       the surface; the defect is one of folding and trafficking, making CFTR a missing
       channel rather than a broken one at the membrane. It is not stuck open and not
       overactive (it is absent), and the mutation does not convert CFTR's function. This is
@@ -518,7 +518,7 @@ anecdotes:
       plastic bag does not. The difference is what holds each one together. A bag is
       covalently bonded plastic, a fixed object that tears and stays torn. A membrane is
       held by noncovalent forces, lipids drawn together by the hydrophobic effect, so when
-      you breach it the lipids simply flow back around the gap and reseal. Self-healing
+      you breach it the lipids flow back around the gap and reseal, and a living cell speeds the repair by fusing vesicles at the wound. Self-healing
       falls out of the very physics that builds the membrane in the first place.
   - title: "A millisecond versus four months"
     source: "CH12 lecture notes — water crosses about 10 billion times faster than sodium."
@@ -544,7 +544,7 @@ anecdotes:
     source: "CH12 lecture notes — 'A folk remedy from 1785 taught us how transporters work, before we knew they existed.'"
     text: >-
       William Withering heard that an old woman in Shropshire treated swelling with a brew
-      that included foxglove. He studied it carefully in 1785 and ran what many call the
+      that included foxglove. He studied it carefully for ten years, published in 1785, and ran what many call the
       first scientific drug trial. The active compound, digitalis, jams the
       sodium-potassium pump; sodium backs up, the calcium exchanger stalls, calcium piles
       up, and the heart beats harder. A folk remedy taught us how a transporter works
@@ -569,13 +569,13 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 ## One protein, one disease
 
-Cystic fibrosis comes down to a single protein in the wrong place. The gene is CFTR, which encodes a chloride channel that should sit in the membranes of cells lining the lungs and gut. In the most common mutation, ΔF508, one phenylalanine is deleted, the protein misfolds, and it is destroyed in the endoplasmic reticulum before it ever reaches the surface. The channel is not broken at the membrane. It never arrives. Everything downstream — the thick mucus, the chronic infections, the shortened life — follows from that one missing protein.
+Most cystic fibrosis comes down to a single protein in the wrong place. The gene is CFTR, which encodes a chloride channel that should sit in the membranes of cells lining the lungs and gut. In the most common mutation, ΔF508, one phenylalanine is deleted, the protein misfolds, and most of it is destroyed in the endoplasmic reticulum before it reaches the surface. The main defect is not a broken channel at the membrane. Most of it never arrives, and the little that does opens poorly. Everything downstream — the thick mucus, the chronic infections, the shortened life — follows from that one missing protein.
 
 That is the throughline of this chapter, because it forces a useful question. To understand why one absent channel can reorganize an entire physiology, you first have to understand what a membrane is and what it does.
 
 Physically, a membrane is thin and self-organizing. It runs about 7 nanometers thick (roughly 70 Angstroms): two leaflets, one lipid thick in each, with the tails meeting in the middle. For scale, a ribosome is about 25 nm across, so a membrane is roughly a quarter of that. It always forms closed compartments with no free edges, and if you puncture it, it reseals, because noncovalent forces hold it together rather than covalent bonds.
 
-Functionally, four properties matter. The membrane is asymmetric: the outer leaflet differs from the inner one. Phosphatidylserine, for instance, stays on the inside until a cell dies, when flipping it outward becomes an "eat me" signal for the immune system. The membrane is fluid, its lipids drifting laterally. It is selectively permeable, letting oxygen through while blocking sodium. And it is electrically polarized, the inside sitting around 60 to 70 millivolts negative relative to the outside. A sheet of plastic would have none of these.
+Functionally, four properties matter. The membrane is asymmetric: the outer leaflet differs from the inner one. Phosphatidylserine, for instance, stays on the inside of a resting cell; when a cell dies, flipping it outward becomes an "eat me" signal for the immune system. The membrane is fluid, its lipids drifting laterally. It is selectively permeable, letting oxygen through while blocking sodium. And it is electrically polarized, the inside sitting around 60 to 70 millivolts negative relative to the outside. A sheet of plastic would have none of these.
 
 ## A membrane that builds itself
 
@@ -583,11 +583,11 @@ Phospholipids form bilayers spontaneously, and the energy comes from water, not 
 
 This self-assembly is also useful. Liposomes carry drugs. Load a water-soluble drug in the aqueous core, a fat-soluble one in the bilayer, and you have a delivery vehicle. Doxil packages the chemotherapy drug doxorubicin in liposomes and spares the heart much of its toxicity. The COVID-19 mRNA vaccines used lipid nanoparticles to protect fragile mRNA long enough to deliver it.
 
-The same physics that builds the membrane makes it nearly impermeable to ions, and the reason is desolvation. An ion in water wears a tight shell of water molecules. To cross the oily membrane core it would have to shed that shell, and stripping water off an ion costs roughly 40 to 80 kJ/mol. What blocks the ion is its charge, not its size: it travels wrapped in water it must leave behind. Consider indole and tryptophan: nearly the same aromatic ring, but tryptophan carries charged groups and crosses orders of magnitude more slowly. The ring crosses fine; the charge is the toll.
+The same physics that builds the membrane makes it nearly impermeable to ions, and the reason is desolvation. An ion in water wears a tight shell of water molecules. To cross the oily membrane core it would have to shed that shell, and stripping water off an ion costs hundreds of kJ/mol (about 330 for K⁺ and 400 for Na⁺). What blocks the ion is its charge, not its size: it travels wrapped in water it must leave behind. Consider indole and tryptophan: nearly the same aromatic ring, but tryptophan carries charged groups and crosses orders of magnitude more slowly. The ring crosses fine; the charge is the toll.
 
 Stack everything up and permeability spans about twelve orders of magnitude. Water crosses a membrane roughly 10 billion times faster than sodium does. The order runs gases, then water, then small polar molecules, then ions far at the bottom.
 
-Water has one official exception. Aquaporins are channels that pass about 3 billion (3 × 10⁹) water molecules per second through a pore just 2.8 Angstroms wide, single file. The remarkable part is what they keep out. Protons normally race through water by hopping along hydrogen bonds, but an asparagine in the pore breaks that chain, and a positively charged arginine repels any proton that gets close. The channel passes water in a torrent and still excludes the proton. In the kidney, aquaporin-2 is switched on by the hormone vasopressin; when that regulation fails, the kidneys cannot concentrate urine and a person can pass up to about 20 liters of dilute urine a day, the condition called diabetes insipidus.
+Water also has a dedicated channel. Aquaporins are channels that pass about 3 billion (3 × 10⁹) water molecules per second through a pore just 2.8 Angstroms wide, single file. The remarkable part is what they keep out. Protons normally race through water by hopping along hydrogen bonds, but an asparagine in the pore breaks that chain, and a positively charged arginine repels any proton that gets close. The channel passes water in a torrent and still excludes the proton. In the kidney, aquaporin-2 is switched on by the hormone vasopressin; when that regulation fails, the kidneys cannot concentrate urine and a person can pass up to about 20 liters of dilute urine a day, the condition called diabetes insipidus.
 
 Test the permeability ranking yourself below. Send different molecules at the bilayer and watch each one land on a log-scale plot; the gap that opens between small neutral molecules and ions is the desolvation toll.
 
@@ -614,9 +614,9 @@ One clinically loaded example: the enzyme COX-1 sits embedded in the membrane an
 
 ## What stays put, what moves
 
-Membrane proteins and lipids move, and FRAP lets us watch them do it. Fluorescence recovery after photobleaching means exactly what it says: tag the membrane with fluorescent dye, bleach a small spot dark with a laser, and watch unbleached molecules diffuse back in. How fast the spot recovers gives the diffusion coefficient. How completely it recovers tells you the mobile fraction; if recovery stalls at 50%, half the labeled molecules are anchored to the cytoskeleton and cannot move.
+Membrane proteins and lipids move, and FRAP lets us watch them do it. Fluorescence recovery after photobleaching means exactly what it says: tag the membrane with fluorescent dye, bleach a small spot dark with a laser, and watch unbleached molecules diffuse back in. How fast the spot recovers gives the diffusion coefficient. How completely it recovers tells you the mobile fraction; if recovery stalls at 50%, half the labeled molecules cannot move, often because they are anchored to the cytoskeleton.
 
-<LessonFigure src="/figures/membrane-structure-function/frap-bleach-and-recover.webp" width={1200} height={676} alt="AI-generated illustration: three frames of a membrane patch with fluorescent dots, a laser bleaching a circle, and the circle filling back in with dots; an inset shows a circle that stays half dark because some dots are tethered to a cytoskeleton rod." caption="In FRAP a laser bleaches a small spot of labeled membrane and unbleached molecules diffuse back in. If recovery stalls partway, the molecules that never returned are anchored to the cytoskeleton." />
+<LessonFigure src="/figures/membrane-structure-function/frap-bleach-and-recover.webp" width={1200} height={676} alt="AI-generated illustration: three frames of a membrane patch with fluorescent dots, a laser bleaching a circle, and the circle filling back in with dots; an inset shows a circle that stays half dark because some dots are tethered to a cytoskeleton rod." caption="In FRAP a laser bleaches a small spot of labeled membrane and unbleached molecules diffuse back in. If recovery stalls partway, the molecules that never returned are immobile, often because they are anchored to the cytoskeleton." />
 
 The two kinds of motion are not equal. Lateral diffusion is fast: a lipid can travel the length of a bacterium in about a second. Transverse motion, a lipid flipping from one leaflet to the other, is glacially slow, because the polar head would have to cross the oily core; it happens at a useful rate only with a dedicated enzyme called a flippase. That asymmetry of rates is what preserves the membrane's chemical asymmetry. Phosphatidylserine stays inside precisely because flip-flop almost never happens on its own.
 
@@ -634,7 +634,7 @@ The pump's gradients also set the membrane's voltage. Each ion has an equilibriu
 
 <NernstCalculator />
 
-Pull on this thread and a folk remedy appears: digitalis, from the foxglove plant, inhibits the Na⁺-K⁺ ATPase. Sodium then backs up inside the heart cell, the Na⁺/Ca²⁺ exchanger slows, calcium accumulates, and each heartbeat hits harder — a treatment for failing hearts, with a narrow therapeutic window, since too much triggers calcium-overload arrhythmias. (The remedy reached medicine through William Withering, who studied an old woman's foxglove brew in 1785; that story is in the margins.)
+Pull on this thread and a folk remedy appears: digitalis, from the foxglove plant, inhibits the Na⁺-K⁺ ATPase. Sodium then backs up inside the heart cell, the Na⁺/Ca²⁺ exchanger slows, calcium accumulates, and each heartbeat hits harder — a treatment for failing hearts, with a narrow therapeutic window, since too much triggers calcium-overload arrhythmias. (The remedy reached medicine through William Withering, who studied an old woman's foxglove brew and published his account in 1785; that story is in the margins.)
 
 CFTR belongs to a family that explains a lot of this machinery. ABC transporters share an architecture: two transmembrane domains that form the path across, and two nucleotide-binding domains that act as the ATP-powered engine. When ATP binds, the two engine domains clamp together and flip the protein from inward-facing to outward-facing. P-glycoprotein is the family's promiscuous pump, throwing structurally diverse drugs out of cancer cells. Tumors that overexpress it become multidrug-resistant, evolving a pump that ejects chemotherapy before it can work. CFTR is the family's odd member: it has the same domains, but it works as a chloride channel, and ATP binding gates its pore open. ΔF508 wrecks the folding of that protein, so in most patients the problem is a channel that never arrives at the surface. The drug Trikafta, approved in 2019, combines two correctors (elexacaftor and tezacaftor) that help the protein fold and reach the surface with a potentiator (ivacaftor) that keeps it open once it gets there. It is projected to add decades of expected survival in cystic fibrosis — precision medicine aimed at the protein-level consequence of a mutation.
 
@@ -646,4 +646,4 @@ The most elegant problem in this whole chapter is how a potassium channel reject
 
 That raises one more puzzle. If the filter binds K⁺ tightly enough to be that selective, why does K⁺ ever leave? The answer is crowding. Multiple K⁺ ions sit in the filter at once and repel each other electrostatically, so the entry of one ion shoves the next one out, like a Newton's cradle converting entry energy directly into exit energy. K⁺ moves at near the diffusion limit, around 10⁸ ions per second, selective and fast at the same time. Roderick MacKinnon solved this structure and won the 2003 Nobel Prize in Chemistry for it.
 
-The action potential is where all of this comes together: voltage-gated sodium and potassium channels firing in sequence, the Na⁺-K⁺ pump resetting the gradients, a ball-and-chain plug swinging in to inactivate the sodium channel, and a refractory period that keeps the signal traveling in one direction. The region the impulse just passed cannot fire again yet, so the signal does not run backward. The membrane — the impermeable sheet that builds itself for free — turns out to be the substrate on which a nerve fires.
+The action potential is where all of this comes together: voltage-gated sodium and potassium channels firing in sequence, the Na⁺-K⁺ pump resetting the gradients, an inactivation gate swinging shut to inactivate the sodium channel, and a refractory period that keeps the signal traveling in one direction. The region the impulse just passed cannot fire again yet, so the signal does not run backward. The membrane — the impermeable sheet that builds itself for free — turns out to be the substrate on which a nerve fires.

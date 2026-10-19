@@ -168,12 +168,12 @@ techniques:
   - name: "Peptide mass fingerprinting"
     blurb: >-
       Cut a protein with trypsin into a predictable set of peptides, measure their
-      masses by MALDI-TOF, and match that list against the in-silico digest of every
+      masses by MALDI-TOF, and match that list against the in-silico (computer-predicted) digest of every
       protein in a database. The pattern of peptide masses identifies the protein
       the way a fingerprint identifies a person.
 
 structures:
-  - label: "Lactate dehydrogenase, mid-reaction with its NADH coenzyme"
+  - label: "Lactate dehydrogenase, bound to its NADH coenzyme and a substrate mimic"
     source: "rcsb"
     id: "4OKN"
     note: "EC 1.1.1.27 · ternary complex (NADH + oxalate) · the assay enzyme"
@@ -217,7 +217,7 @@ structures:
     id: "1STP"
     note: "streptavidin + biotin · Kd ≈ 10⁻¹⁴ M"
     caption: >-
-      The strongest non-covalent pair known. That near-unbreakable affinity is what
+      One of the strongest non-covalent pairs known. That near-unbreakable affinity is what
       makes biotin–streptavidin so useful for capture and for ELISA detection.
   - label: "Glutathione S-transferase — the purification-tag workhorse"
     source: "rcsb"
@@ -319,10 +319,10 @@ practiceQuestions:
     answer: 1
     rationale: >-
       Fold-purification = final specific activity ÷ initial specific activity =
-      4,800 ÷ 12 = 400-fold. The 40-fold option divides the final value by an
+      4,800 ÷ 12 = 400-fold. The 120-fold option divides the final value by an
       intermediate step rather than the starting one; the 4,800-fold option mistakes
-      the final specific activity itself for the fold; the 120-fold option is
-      unrelated. Specific activity is the success metric because it reports the
+      the final specific activity itself for the fold; the 40-fold option mistakes an
+      intermediate specific activity for the fold. Specific activity is the success metric because it reports the
       proportion of target in total protein, independent of how much sample remains.
 
   - stem: "A protein mixture is loaded onto a gel-filtration (size-exclusion) column. Which protein elutes FIRST?"
@@ -403,7 +403,7 @@ mcatQuestions:
       reports total protein, not turnover, and 260 nm is not a specific
       NADH/NAD⁺ discriminator.
 
-  - stem: "A clinical lab screens serum for HIV with an ELISA, then runs a western blot on positives. What makes the western blot a useful CONFIRMATORY test after the ELISA screen?"
+  - stem: "In the classic HIV testing algorithm, a clinical lab screened serum with an ELISA, then ran a western blot on positives. What made the western blot a useful CONFIRMATORY test after the ELISA screen?"
     choices:
       - "It quantifies antibody concentration more precisely than ELISA"
       - "It uses no antibodies and therefore avoids cross-reactivity"
@@ -449,7 +449,7 @@ lectureSlides:
     reviewedBy: "C. Deppmann (lecture author)"
     notes: >-
       Three numbers run every purification. Specific activity is enzyme units
-      divided by total protein — the fraction of your sample that is the target, and
+      divided by total protein — a measure of how much of your sample is the target, and
       it must rise at every good step. Fold-purification is the final specific
       activity divided by the starting one. Percent yield is how much of your
       original activity you kept. Picture a beaker of mixed marbles: the same number
@@ -462,7 +462,7 @@ lectureSlides:
     credit: "Original — C. Deppmann (lecture)"
     reviewedBy: "C. Deppmann (lecture author)"
     notes: >-
-      Four physical properties, four columns. Solubility: salting out with ammonium
+      Four physical properties, four separation methods. Solubility: salting out with ammonium
       sulfate drops proteins out of solution at different salt concentrations. Size:
       gel filtration, where — counterintuitively — the large proteins exit first.
       Charge: ion exchange, where opposite charges stick to the beads. Binding
@@ -511,7 +511,7 @@ lectureSlides:
   - src: "/slides/protein-purification-techniques/reading-sds-page.png"
     audio: "/slides/protein-purification-techniques/audio/reading-sds-page.mp3"
     title: "How to read an SDS-PAGE gel"
-    alt: "An SDS-PAGE interpretation guide: a stylized gel with a ladder and five lanes, paired with rules — fewer bands means purer, band position gives molecular weight, intensity reflects amount, a single band means pure."
+    alt: "An SDS-PAGE interpretation guide: a stylized gel with a ladder and five lanes, paired with rules — fewer bands means purer, band position gives molecular weight, intensity reflects amount, a single band suggests a pure sample."
     source: "CH05 (Chapter 6) Protein Techniques · slide 27"
     credit: "Original — C. Deppmann (lecture)"
     reviewedBy: "C. Deppmann (lecture author)"
@@ -751,7 +751,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Many of the clinical tests you will order as a physician run on the techniques
 in this chapter.** The pregnancy test detects a hormone with an antibody. The
-troponin test that confirms a heart attack does the same. The classic
+troponin test that helps confirm a heart attack does the same. The classic
 confirmatory HIV test was a western blot. Strip away the brand names and the
 plastic cartridges, and what remains is a small set of methods for finding one
 protein in a crowd, pulling it out clean, and proving its identity. It starts
@@ -805,7 +805,7 @@ It is the part students most often get backward.
 
 The third is **charge**. An ion-exchange column carries fixed charges on its beads,
 and opposite charges stick. The rule comes from comparing the buffer pH with the
-protein's pI. At a pH below its pI, a protein is net positive and binds a negative
+protein's pI, the pH at which its net charge is zero. At a pH below its pI, a protein is net positive and binds a negative
 (cation-exchange) resin; at a pH above its pI, it is net negative and binds a
 positive (anion-exchange) resin. Raise the salt or
 shift the pH and the protein lets go.
@@ -877,7 +877,7 @@ signal, and the method stalls past roughly fifty residues. The modern answer is
 the heavier ones arrive later, weighing them to a fraction of a dalton. Cut your
 protein with trypsin, weigh the pieces, and match the mass list against a database
 — a peptide mass fingerprint. Push further with tandem MS, fragmenting one peptide
-and reading sequence directly from the spacing between peaks. Frederick Sanger
+and reading sequence directly from the spacing between peaks, since each gap matches the mass of one amino acid. Frederick Sanger
 spent twelve years reading the 51 amino acids of insulin by hand; today mass
 spectrometry can identify a 500-residue protein from its peptides in minutes.
 
@@ -889,6 +889,6 @@ still intact? The purification table answers the first four at a glance: activit
 says the protein is there, specific activity tracks purity and whether each step
 helped, and yield says how much you kept. The gel answers the fifth, one band at
 the right size. Mass spectrometry and Edman degradation answer the question the
-table cannot: which protein, exactly, read off one peptide mass or one residue at
+table cannot: exactly which protein it is. They read it off one peptide mass or one residue at
 a time. Find it, enrich it, prove it. That is
 protein biochemistry, and now it is a few hours of work instead of twelve years.
