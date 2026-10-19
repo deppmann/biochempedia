@@ -16,7 +16,7 @@ estMinutes: 22
 objectives:
   - "Use circuit words (gain, negative and positive feedback, feed-forward, adaptation, switch-like response, robustness, insulation, cross-talk) to describe a pathway."
   - "Compute the gain of a cascade as a product of its steps and state what amplification costs."
-  - "Explain how negative feedback sets how long a signal lasts and how positive feedback makes a decision that does not reverse."
+  - "Explain how negative feedback sets how long a signal lasts and how positive feedback can make a decision that does not reverse."
   - "Explain adaptation using one real example."
 
 explainer:
@@ -134,7 +134,7 @@ structures:
     note: "Canagarajah et al., Cell 90:859 (1997); rat ERK2 phosphorylated on threonine and tyrosine."
     caption: >-
       Find the phosphothreonine and phosphotyrosine in the activation loop, one residue apart.
-      Each tag alone leaves the enzyme off; both are needed.
+      Each tag alone leaves the enzyme mostly off; both are needed.
   - label: "CheY — receives the phosphate in bacterial chemotaxis"
     source: "rcsb"
     id: "3CHY"
@@ -186,11 +186,11 @@ practiceQuestions:
       - "A long chain of catalytic steps that gives the pathway a very high gain"
     answer: 1
     rationale: >-
-      Activity that rises and then falls while the ligand is still present means something the
+      Activity that rises and then falls while the ligand is still present most likely means something the
       pathway makes is turning the pathway down after a delay, which is negative feedback. A
       positive loop would hold the kinase on or make it more complete, not switch it off. High
       gain makes the peak larger but gives no way to end the signal. Insulation limits which
-      targets are reached and has no effect on how long the kinase stays active.
+      targets are reached; on its own it does not make activity fall while the ligand is still there.
   - stem: "Pooled extracts from groups of frog oocytes show MAP kinase activation rising smoothly with progesterone dose. Which experiment can tell whether each oocyte responds in a graded way or all-or-none?"
     choices:
       - "Switch to a more sensitive antibody for the pooled extract"
@@ -313,7 +313,7 @@ explainLevels:
       three-tier MAPK cascade with two-site ERK activation gives a calculated n of about 4 to 5
       (a span of roughly 2.4 to 3), whereas the n of at least 35 measured in single oocytes (a
       span near 1.13) requires the positive feedback loop, which also supplies hysteresis. In
-      chemotaxis, if methylation integrates activity error, the adapted output returns to its pre-stimulus value at any CheR and CheB levels, while adaptation time and the pre-stimulus steady-state output itself vary strongly with them, as Barkai and Leibler predicted and Alon and colleagues found.
+      chemotaxis, if methylation integrates activity error, the adapted output returns to its pre-stimulus value across wide ranges of CheR and CheB levels, while adaptation time and the pre-stimulus steady-state output itself vary strongly with them, as Barkai and Leibler predicted and Alon and colleagues found.
 
       Open question: exact adaptation protects one output number while leaving others free to
       vary. Which outputs of eukaryotic pathways are protected in this way, and what
@@ -365,7 +365,7 @@ draft: false
 import CascadeAmplifier from '../../../components/CascadeAmplifier.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current flowing through that cell by about one picoamp (a trillionth of an ampere). A single molecule cannot carry a picoamp, so how does the cell register it?**
+**One photon, absorbed by one rhodopsin molecule in a rod cell, changes the current flowing through that cell by about one picoamp (a trillionth of an ampere). A single rhodopsin molecule cannot carry a picoamp, so how does the cell register it?**
 
 The answer is arithmetic, and the arithmetic comes with a bill.
 
@@ -435,13 +435,13 @@ Cells use this design: ERK drives production of DUSP-family phosphatases that re
 
 A pooled curve cannot tell two stories apart: every egg responds a little more at each dose, or some fraction is fully on and the rest fully off. Read one egg at a time, the second was true. Ferrell and Machleder put a number on the steepness on 8 May 1998: a Hill coefficient of at least 35. The Hill coefficient n measures how abruptly a response turns on, and hemoglobin binding oxygen, with n of about 3, is the textbook case.
 
-> **response = dose^n / (K^n + dose^n)**
+> **response = dose^n / (K^n + dose^n)**, where K is the dose that gives half the maximal response
 >
 > **dose at 90% of maximum ÷ dose at 10% of maximum = 81^(1/n)**
 
 Going from 10 to 90 percent takes an 81-fold rise in dose when n = 1, about 4.3-fold when n = 3, and about 1.13-fold when n = 35.
 
-Where does that steepness come from? ERK, a MAP kinase, turns on only after it receives two phosphates, a threonine and a tyrosine one residue apart, both installed by the enzyme above it, MEK. One tag leaves it off. Requiring two modifications turns a proportional response into a threshold, and stacking the three tiers of the relay multiplies the steepness. On 17 September 1996, Chi-Ying Huang and Ferrell published a calculation, confirmed by measurements in oocyte extracts, that gave the cascade a Hill coefficient of about 4 to 5.
+Where does that steepness come from? ERK, a MAP kinase, turns on only after it receives two phosphates, a threonine and a tyrosine one residue apart, both installed by the enzyme above it, MEK. One tag leaves it mostly off. Requiring two modifications turns a proportional response into a threshold, and stacking the three tiers of the relay multiplies the steepness. On 17 September 1996, Chi-Ying Huang and Ferrell published a calculation, confirmed by measurements in oocyte extracts, that gave the cascade a Hill coefficient of about 4 to 5.
 
 Thirty-five is a different kind of object. Ferrell and Machleder proposed that a positive feedback loop in which the cascade is embedded adds the rest, so an egg that has begun to switch on drives itself the remaining distance. Steepness alone is still reversible, since the output follows the dose back down. Positive feedback adds memory: later work from the same laboratory (Xiong and Ferrell, 2003) showed that an oocyte that has committed to maturing stays matured after the hormone is removed.
 
