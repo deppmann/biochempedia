@@ -1,0 +1,427 @@
+---
+title: "Plasticity, Networks and Consolidation"
+slug: "memory-consolidation"
+course: "neuroscience"
+courseChapter: "Neuroscience · Unit 6: Cognition and learning"
+order: 623
+summary: >-
+  How does a change at synapses become a memory that lasts and can be recalled from a fragment?
+  This lesson reads place-cell and grid-cell maps from the rat, follows replay and sharp-wave
+  ripples from correlation to perturbation, and separates sufficiency from necessity in mouse
+  engram experiments. Afterwards you can read a rate map and an autocorrelogram, say what a
+  replay or engram result does and does not show, and run a small Hebbian network by hand to
+  see pattern completion.
+hook: "Shine light on cells tagged during learning in a mouse's hippocampus and it freezes as if afraid. Has anyone found where the memory is stored?"
+
+estMinutes: 25
+objectives:
+  - "Read a place-cell rate map and a grid-cell spatial autocorrelogram from the rat, and say what spatially selective firing does and does not show about how the brain represents space."
+  - "Distinguish synaptic from systems consolidation, and arrange the replay evidence from correlation (Wilson and McNaughton 1994; Diba and Buzsáki 2007) to perturbation (Girardeau and colleagues 2009; Fernández-Ruiz and colleagues 2019)."
+  - "Separate sufficiency, necessity and natural recall in mouse engram experiments (Liu 2012, Kitamura 2017, Roy 2022), and name the control each claim needs."
+  - "Run a four-unit Hopfield network by hand to show pattern completion and an energy decrease, and relate it to the CA3 NMDA-receptor deletion experiment of Nakazawa and colleagues (2002)."
+
+explainer:
+  src: "/explainers/memory-consolidation/explainer.mp4"
+  captions: "/explainers/memory-consolidation/explainer.vtt"
+  poster: "/explainers/memory-consolidation/poster.jpg"
+  title: "Sufficient Is Not Necessary"
+  durationSec: 165.5
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "John O'Keefe"
+    contribution: >-
+      With Jonathan Dostrovsky, reported in 1971 that single units in the rat hippocampus fired
+      when the animal was at particular places on a testing platform, the first description of
+      what became known as place cells.
+    profileSourceAnchor: "O'Keefe & Dostrovsky, Brain Res. 34:171–175 (1971); O'Keefe & Nadel, The Hippocampus as a Cognitive Map (Oxford University Press, 1978); O'Keefe, Nobel Lecture, 7 December 2014."
+    quotes: []
+    story: >-
+      In 1971 John O'Keefe and Jonathan Dostrovsky, at University College London, published a
+      short preliminary report in Brain Research. They had recorded single units in the
+      hippocampus of freely moving rats while varying where the animal was on a platform, which way
+      it faced. A small set of the units fired selectively
+      when the rat was in one part of the platform, often with a preferred orientation. The paper
+      was brief and its sample small, but it already proposed that the hippocampus provides a
+      cognitive, or spatial, map of the environment. In 1978 O'Keefe and Lynn Nadel developed that
+      proposal into a full theory in a book, The Hippocampus as a Cognitive Map. The idea was debated for
+      years, and the later grid-cell work in entorhinal cortex gave it a partner system. O'Keefe
+      shared the 2014 Nobel Prize in Physiology or Medicine with May-Britt Moser and Edvard Moser.
+      The work made space a variable you could read from single neurons in a behaving animal.
+  - name: "May-Britt Moser and Edvard Moser"
+    contribution: >-
+      With Torkel Hafting, Marianne Fyhn and Sturla Molden, described grid cells in rat medial
+      entorhinal cortex in 2005: cells whose firing fields form a triangular lattice across the
+      whole environment.
+    profileSourceAnchor: "Hafting, Fyhn, Molden, Moser & Moser, Nature 436:801–806 (2005); M.-B. Moser and E. I. Moser, Nobel Lectures, 7 December 2014."
+    quotes: []
+    story: >-
+      Place cells needed an input that knew where the animal was, and the Mosers' laboratory at
+      the Norwegian University of Science and Technology in Trondheim looked upstream, in the
+      medial entorhinal cortex. In the 2005 Nature paper, with Torkel Hafting, Marianne Fyhn and
+      Sturla Molden as co-authors, rats foraged in enclosures large enough to show more than one
+      firing field per cell. Cells in the dorsocaudal medial entorhinal cortex fired at many
+      places, and the places formed a lattice of roughly equilateral triangles. Neighbouring cells
+      shared the orientation of their grids but differed in where the vertices fell, their phase,
+      and grid spacing increased from dorsal to ventral. The grids persisted when external
+      landmarks were removed, which the authors read as consistent with a contribution from path
+      integration, keeping track of position from one's own movement. The team shared credit in
+      the author list, and the Mosers shared the 2014 Nobel Prize with John O'Keefe. The work
+      gave the spatial map a metric that could be measured and modelled.
+  - name: "Matthew Wilson"
+    contribution: >-
+      With Bruce McNaughton, showed in 1994 that rat hippocampal cells that fired together during
+      a spatial task were more likely to fire together in the slow-wave sleep that followed than
+      in the sleep before.
+    profileSourceAnchor: "Wilson & McNaughton, Science 265:676–679 (1994); Foster & Wilson, Nature 440:680–683 (2006)."
+    quotes: []
+    story: >-
+      Recording one hippocampal cell at a time tells you about place fields; it cannot tell you
+      whether a group of cells carries an experience forward. Matthew Wilson and Bruce McNaughton
+      recorded many hippocampal cells at once in freely moving rats, three animals in the 1994
+      study. They compared the correlations between pairs of cells in three epochs: slow-wave
+      sleep before a spatial task, the task itself, and slow-wave sleep afterwards. Pairs that
+      co-fired during the task were more likely to co-fire in the sleep after it than in the sleep
+      before. Cells that were silent in the task showed no such increase. The measure was pairwise
+      co-firing, not a decoded route, and it was a correlation, not a test of memory. Later work,
+      including Wilson's laboratory with David Foster in 2006, reported ordered sequences replayed
+      in awake rats, some in reverse. The 1994 paper made sleep a time when experience could be
+      read back out of the hippocampus.
+  - name: "Susumu Tonegawa"
+    contribution: >-
+      His laboratory tagged cells active during mouse fear learning and showed that driving them
+      with light was sufficient to evoke freezing (Liu and colleagues 2012), then that a
+      prefrontal engram forms at learning but is needed for natural recall only later (Kitamura
+      and colleagues 2017).
+    profileSourceAnchor: "Liu et al., Nature 484:381–385 (2012); Kitamura et al., Science 356:73–78 (2017); Roy et al., Nat. Commun. 13:1799 (2022)."
+    quotes: []
+    story: >-
+      Tonegawa received the 1987 Nobel Prize for the genetics of antibody diversity and later
+      turned his laboratory at MIT to memory. In the 2012 Nature paper led by Xu Liu and Steve
+      Ramirez, the group used c-fos, a gene switched on in recently active neurons, to drive
+      channelrhodopsin-2 into dentate-gyrus cells that were active while mice were fear conditioned in a
+      context. Days later, light delivered to those cells made the mice freeze in a different box.
+      Cells tagged in a context without shock did not do this, and mice expressing a fluorescent
+      protein without the opsin did not freeze to light. The authors wrote that sufficiency does
+      not establish necessity. In 2017 Kitamura and colleagues found prefrontal engram cells
+      tagged at learning that were needed for natural recall on day 12 but not day 2, and in 2022
+      Roy and colleagues mapped a candidate engram spread across many brain regions. The work gave
+      the old word engram an experimental definition that others can test and dispute.
+
+techniques:
+  - name: "Extracellular unit recording with position tracking"
+    blurb: >-
+      Electrodes in the hippocampus or entorhinal cortex pick up the spikes of several cells while
+      a camera tracks the animal. Dividing spikes by time spent in each spatial bin gives a rate
+      map, and correlating that map with shifted copies of itself gives an autocorrelogram that
+      shows any repeating pattern.
+  - name: "Closed-loop LFP detection and stimulation"
+    blurb: >-
+      A computer watches the local field potential for a ripple and triggers a stimulus within
+      milliseconds, either to cut the event short or, with an opsin, to prolong it. A control
+      group gets the same stimuli at a random delay, so the effect can be pinned to the timing.
+  - name: "Activity-dependent tagging with optogenetics"
+    blurb: >-
+      A promoter from an activity-induced gene such as c-fos, gated by a drug-controlled window,
+      puts an opsin into the cells that were active during learning. Light then drives or silences
+      just those cells, which tests whether they are sufficient or necessary for a behaviour in
+      that preparation.
+
+structures: []
+
+simulations:
+  - type: "local"
+    ref: "HopfieldPatternCompletion"
+    title: "Pattern completion"
+    caption: >-
+      Set a four-unit cue, update units one at a time, and watch the fields, overlap and energy take the network to the stored pattern or its inverse; teaching values, not hippocampal measurements.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "In the 2005 grid-cell study of rat medial entorhinal cortex, what is arranged as a lattice of roughly equilateral triangles?"
+    choices:
+      - "The axon terminals that grid cells make in the dentate"
+      - "The firing fields in one cell's rate map of the enclosure"
+      - "The cell bodies of the grid cells in entorhinal layer II"
+      - "The place fields of all CA1 cells when pooled together"
+    answer: 1
+    rationale: >-
+      The lattice is in the rate map: one grid cell fires at many places in the enclosure, and
+      those places form triangles. The idea that the cell bodies themselves sit in a honeycomb
+      confuses a map of firing with anatomy. Pooled CA1 place fields cover the space but have no
+      regular lattice, and place cells typically have one or a few fields. Nothing in the study
+      measured where grid-cell axons end, so a terminal lattice is invented.
+  - stem: "Which statement best separates synaptic consolidation from systems consolidation?"
+    choices:
+      - "Synaptic consolidation happens in sleep; systems happens awake"
+      - "Synaptic consolidation needs genes; systems needs no new protein"
+      - "Synaptic acts on synapses over hours; systems reorganizes circuits"
+      - "Synaptic consolidation is in hippocampus; systems in cortex only"
+    answer: 2
+    rationale: >-
+      Synaptic or cellular consolidation stabilizes plasticity at synapses within hours of
+      learning, while systems consolidation is the slower reorganization of the brain systems that
+      support a memory. Sleep and waking both contain events relevant to each, so a sleep versus
+      waking split is wrong. Both kinds involve hippocampus and cortex, and the claim that the
+      cortex alone eventually holds a memory is one side of a debate, not a definition. Nothing
+      shows that systems consolidation needs no protein synthesis.
+  - stem: "A four-unit Hopfield network stores x = (1, 1, −1, −1) with w_ij = x_i x_j / 4, w_ii = 0 and zero thresholds. It starts at the cue (1, 1, 1, −1). What is the field on unit 3, and what does unit 3 become?"
+    choices:
+      - "Field −1/4, so unit 3 flips to −1"
+      - "Field −3/4, so unit 3 flips to −1"
+      - "Field +1/4, so unit 3 stays at +1"
+      - "Field +3/4, so unit 3 stays at +1"
+    answer: 1
+    rationale: >-
+      Row 3 of W is (−1/4, −1/4, 0, +1/4). The field is (−1/4)(1) + (−1/4)(1) + (1/4)(−1) = −3/4,
+      negative, so unit 3 flips to −1 and the stored pattern is restored. A field of +3/4 comes
+      from reversing the sign of every weight. A field of −1/4 comes from taking unit 4 as +1
+      instead of −1. A field of +1/4 mixes both slips, and with a positive field the unit would
+      wrongly stay at +1.
+  - stem: "Liu and colleagues (2012) tagged dentate-gyrus cells active during mouse contextual fear conditioning with channelrhodopsin-2. Blue light later made the mice freeze in a different box. What does this result show on its own?"
+    choices:
+      - "The memory is stored only in the dentate gyrus and nowhere else"
+      - "Any dentate cells driven at 20 Hz will make the mice freeze"
+      - "Activating the tagged cells is enough to drive the fear behavior"
+      - "The tagged cells are necessary for natural recall of the fear"
+    answer: 2
+    rationale: >-
+      Driving the tagged ensemble and getting freezing shows sufficiency: activating those cells
+      is enough to produce the behaviour in this preparation. Necessity needs the opposite
+      manipulation, silencing the cells during natural recall, which this result does not include.
+      It says nothing about other regions, and later work found engram cells in many. Cells tagged
+      in a context without shock did not evoke freezing, so it is not true that any driven dentate
+      cells will do.
+  - stem: "Mice lacking NMDA receptors only in CA3 pyramidal cells learned to find a hidden platform in a water maze as well as controls. Which further result would best indicate a defect in pattern completion?"
+    choices:
+      - "Slower swimming both with and without the room cues present"
+      - "Normal search whether all of the cues or a few cues remain"
+      - "Slower learning of the platform with every room cue present"
+      - "Poorer search when most of the room cues have been removed"
+    answer: 3
+    rationale: >-
+      Pattern completion is retrieval of a whole memory from a partial cue, so the telling result
+      is normal search with the full cue set and poorer search when only a fraction of the cues
+      remain, which is what Nakazawa and colleagues found. Slower learning with every cue present
+      would be a learning deficit and contradicts the stem. Slower swimming is a motor or
+      motivational effect that would affect both conditions. Normal search with few cues would
+      show that completion is intact.
+
+mcatQuestions:
+  - stem: "In a made-up recording from rat CA1, pairs of place cells with overlapping fields had a mean spike-count correlation of 0.02 in sleep before a track session, 0.30 during the session, and 0.10 in sleep after it. Pairs that were silent on the track had 0.02 in both sleep epochs. Which conclusion do these data best support?"
+    choices:
+      - "Co-firing seen on the track partly recurs in the sleep that follows"
+      - "Sleep after the task raises the co-firing of all cell pairs alike"
+      - "Post-task replay is required for the rat to remember the track"
+      - "Cells that co-fire in sleep will form new place fields the next day"
+    answer: 0
+    rationale: >-
+      Correlation among task-active pairs rose from 0.02 before to 0.10 after the session, a part
+      of the 0.30 seen on the track, while task-silent pairs did not change. That supports
+      experience-related co-firing recurring in later sleep. Requirement for memory needs a
+      perturbation such as ripple disruption, and no memory was measured. Nothing here tracks new
+      place fields on a later day. The silent pairs stayed at 0.02, so sleep did not raise all
+      pairs alike.
+  - stem: "Mice learn a context-shock association. Prefrontal cells active at learning are tagged with an inhibitory opsin. In made-up data, at day 2 light-off mice freeze 60% of the time in the context and light-on mice 58%; at day 12, light-off 55% and light-on 20%. By what fraction does silencing reduce freezing at day 12, and what does the pattern suggest?"
+    choices:
+      - "About 3% lower at day 2; the cells only form after the second day"
+      - "About 35% lower at day 12; needed for recent and remote recall"
+      - "About 64% lower at day 12; the prefrontal cells hold it all alone"
+      - "About 64% lower at day 12; needed for remote, not recent, recall"
+    answer: 3
+    rationale: >-
+      The reduction at day 12 is (55 − 20)/55 = 0.64, about 64%, while at day 2 it is (60 −
+      58)/60, about 3%, so the tagged cells are needed for natural recall at the remote time but
+      not the recent one, as Kitamura and colleagues found. Thirty-five is the difference in
+      percentage points, not the fractional reduction, and recent recall was spared. The cells were
+      tagged at learning, so they existed on day 2. Silencing one region cannot show that it holds
+      the memory alone.
+  - stem: "Rats are trained on a spatial memory task. In post-training sleep, one group receives a brief stimulus within milliseconds of each detected sharp-wave ripple, which cuts the ripple short. A control group receives the same number of stimuli at a random delay after ripples. Only the first group performs worse the next day. Which conclusion is best justified?"
+    choices:
+      - "Activity tied to ripples, not stimulation as such, aids memory"
+      - "Each ripple carries one specific route that the memory requires"
+      - "Sleep itself, not any event within sleep, is needed for memory"
+      - "Commissural stimulation damages hippocampal cells and synapses"
+    answer: 0
+    rationale: >-
+      The delayed control received the same stimulation and was not impaired, so the deficit
+      depends on hitting the ripples, which points to ripple-linked activity. Damage from
+      stimulation would have impaired the delayed group too. Disrupting ripples removes all
+      ripple-associated activity, not one decoded route, so the experiment cannot assign the effect
+      to a particular sequence. Both groups slept, so sleep in general is not what differed.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Some brain cells light up when an animal is in one spot, like a pin on a map. After the
+      animal explores, those cells play the trip back while it rests. If scientists interrupt the
+      replay, the animal remembers less. And a group of linked cells can fill in a whole memory from
+      a small hint, the way a few notes bring back a song.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      In rats, place cells in the hippocampus fire when the animal is in a particular location, and
+      grid cells in a nearby area fire at many places that form a triangular pattern. After
+      learning, cells that fired together keep firing together during sleep and rest, and in
+      experiments, cutting off the brief bursts in which this happens impairs memory. In mice,
+      scientists can tag the cells that were active during learning and turn them on with light;
+      the mouse then acts as if it remembers. That shows the cells are enough to trigger the
+      behaviour, not that the memory lives only there.
+  - level: "college"
+    label: "College"
+    text: >-
+      Synaptic consolidation stabilizes plasticity within hours; systems consolidation reorganizes
+      the circuits that support a memory over days or longer. Rat place cells and grid cells give a
+      readable code for space. Post-task slow-wave sleep shows increased co-firing of task-active
+      pairs (Wilson and McNaughton 1994), and awake rats replay sequences forward and in reverse
+      during sharp-wave ripples. Perturbations make the link causal in the tested tasks: cutting
+      ripples short impairs spatial memory, prolonging them improves maze working memory. In mouse
+      contextual fear, light activation of c-fos-tagged dentate cells is sufficient to evoke
+      freezing, prefrontal engram cells form at learning but were needed for recall on day 12 and not day 2,
+      and the engram appears distributed. Recurrent CA3 networks are modelled as attractors that
+      complete patterns, and CA3 NMDA-receptor deletion spares recall with full cues but impairs it
+      with partial cues.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      A Hopfield network with Hebbian weights w_ij proportional to the sum over patterns of
+      x_i x_j, symmetric coupling and asynchronous updates descends an energy function to a local
+      minimum, so stored patterns and their inverses are attractors; capacity is limited, and at
+      high load stored states drift to spurious minima. CA3's recurrent collaterals and the
+      Nakazawa deletion make it the favoured site for such completion, but the computation is
+      inferred from a behavioural deficit, not observed. Replay data move from correlation (pairwise co-firing in three rats) to closed-loop
+      perturbation, but ripple disruption removes every ripple-linked event at once. Engram
+      experiments in mice establish sufficiency, conditional necessity at specific delays, and a
+      distributed candidate set (117 of 247 regions by one index), all for contextual fear over
+      days. Open question: does systems consolidation transfer, copy or transform a memory, and do
+      the standard model, multiple-trace theory and transformation accounts make predictions that a
+      single experiment on remote episodic recall in a rodent can actually separate?
+
+anecdotes:
+  - title: "The map was proposed in 1971, argued in 1978"
+    source: "O'Keefe & Dostrovsky, Brain Res. 34:171–175 (1971); O'Keefe & Nadel, The Hippocampus as a Cognitive Map (Oxford University Press, 1978)."
+    text: >-
+      The 1971 paper that introduced place-selective units in the rat hippocampus was a short
+      preliminary report of a small number of cells, published in Brain Research. Its title
+      called the hippocampus a spatial map, and its opening paragraph spoke of a cognitive, or
+      spatial, map. The full theory was argued at book length in O'Keefe and Lynn Nadel's The
+      Hippocampus as a Cognitive Map, published in 1978. Many retellings collapse the two into one discovery, but a careful history keeps them
+      apart: a handful of recordings first, an argued framework later.
+  - title: "A light schedule, not a natural rhythm"
+    source: "Liu et al., Nature 484:381–385 (2012)."
+    text: >-
+      In the 2012 mouse experiment, the tagged dentate-gyrus cells were driven with 473 nm blue
+      light in 15 ms pulses at 20 Hz. Those numbers describe the intervention, chosen to drive
+      channelrhodopsin-2 reliably, and not the firing pattern of the cells during natural recall.
+      The controls carried the argument: fear-conditioned mice expressing a fluorescent protein
+      without the opsin did not freeze to light, and cells tagged in a context without shock did not
+      evoke fear freezing. A light pattern that works tells you the cells can drive behaviour, not
+      how they normally do it.
+  - title: "Hebb did not write the slogan"
+    source: "Hebb, The Organization of Behavior (Wiley, 1949)."
+    text: >-
+      "Cells that fire together wire together" is often credited to Donald Hebb. In his 1949 book
+      Hebb proposed, in longer and more careful words, that when one cell repeatedly takes part in
+      firing another, some growth or metabolic change makes the first more effective at driving the
+      second. The rhyming slogan is a later paraphrase. The difference matters: Hebb's rule is
+      about one cell helping to cause another's firing, which is a statement about timing and
+      causation, not mere co-activity.
+
+corpusTags:
+  - "memory-consolidation"
+  - "place-cells"
+  - "grid-cells"
+  - "replay"
+  - "sharp-wave-ripples"
+  - "engram"
+  - "pattern-completion"
+  - "hopfield-network"
+draft: false
+---
+
+import HopfieldPatternCompletion from '../../../components/HopfieldPatternCompletion.astro';
+
+**Shine blue light on cells tagged during learning in a mouse's dentate gyrus and the mouse freezes, as it did when it learned to fear a box it is no longer in.** Headlines said the memory had been found. To decide what was found, you need three kinds of evidence: cells whose firing tracks an experience, signs that the experience is replayed after it ends, and manipulations that make a memory appear or disappear. This lesson takes them in that order, then builds a small network that recalls a whole pattern from part of it.
+
+## Cells that know where the animal is
+
+In 1971 John O'Keefe and Jonathan Dostrovsky reported, in a short preliminary paper in Brain Research, single units in the hippocampus of freely moving rats that fired when the animal was in a particular part of a platform, often facing a particular way. These became **place cells**: hippocampal neurons that fire when the animal is in one region of an environment, the cell's **place field**. The paper already framed the findings as support for a hippocampal cognitive, or spatial, map; O'Keefe and Lynn Nadel developed that into a full theory in their 1978 book.
+
+You read a place cell from a **rate map**. Track the rat with a camera, divide the floor into bins, and for each bin divide the spikes by the seconds spent there. One hot spot on a cool floor is a place field.
+
+In 2005 Torkel Hafting, Marianne Fyhn, Sturla Molden, May-Britt Moser and Edvard Moser recorded upstream, in the dorsocaudal medial entorhinal cortex of the rat. These **grid cells** fired at many places, and the places formed a lattice of roughly equilateral triangles. To test the regularity they used a **spatial autocorrelogram**: correlate the rate map with copies of itself shifted in every direction. A triangular lattice gives six peaks around the centre, at angles that are multiples of 60 degrees. Neighbouring grid cells shared an orientation but differed in **phase**, where the vertices fell, and grid spacing increased from dorsal to ventral. In the first large-enclosure sample, spacing ran from about 39 to 73 cm across cells. The grids persisted without external landmarks, which the authors took as consistent with **path integration**, keeping track of position from one's own movement.
+
+Two cautions. The lattice is in the rate map, not in the tissue: grid cells are not laid out in a honeycomb. And a cell that fires in one place is a correlation between firing and position. It does not show that the cell encodes only position, or that the animal uses it to navigate. O'Keefe and both Mosers shared the 2014 Nobel Prize in Physiology or Medicine.
+
+## Making a memory last
+
+**Consolidation** is the transformation of a temporary, labile memory into a more stable form. It comes at two scales. **Synaptic consolidation** includes the processes that stabilize synaptic plasticity within hours of learning: the late, protein-synthesis-dependent phase of LTP you met in [synaptic plasticity](/lessons/synaptic-plasticity/), with the gene expression behind it in [signaling to the nucleus](/lessons/signaling-to-the-nucleus/). **Systems consolidation** is the gradual reorganization of the brain systems that support a memory, over days to years.
+
+What that reorganization is remains debated. The standard model holds that the hippocampus is needed for a time and the cortex eventually supports the memory alone, which fits patients whose hippocampal damage spares older memories more than recent ones ([memory systems](/lessons/memory-systems/)). Multiple-trace and transformation accounts hold that detailed episodic memories keep needing the hippocampus, while a more schematic version comes to rest in cortex. A memory does not simply move from one box to another. (New dentate granule cells, and the open question of whether adult humans make them, belong to [adult neurogenesis](/lessons/adult-neurogenesis/).)
+
+## Replay and ripples: correlation, then perturbation
+
+If the hippocampus teaches the cortex, it has to repeat experience after it happens. Matthew Wilson and Bruce McNaughton recorded many hippocampal cells at once in three rats, in slow-wave sleep before a spatial task, during the task, and in sleep afterwards. Cells that co-fired during the task were more likely to co-fire in the sleep after it than in the sleep before. Cells silent during the task showed no such increase. This was pairwise co-firing, not a decoded route.
+
+Later work decoded order. In rats running on a track, Kamran Diba and György Buzsáki in 2007 found place-cell sequences replayed in reverse during pauses at the end of runs, and forward sequences before runs; Foster and Wilson had reported reverse replay in awake rats a year earlier. Much replay rides on **sharp-wave ripples**, brief bursts of fast oscillation in the CA1 local field potential. Replay in both directions was reported in awake rats (Diba and Buzsaki 2007).
+
+All of this is correlation. The causal step came from cutting ripples short. Gabrielle Girardeau and colleagues in 2009 detected ripples online in rats during sleep after training on a hippocampus-dependent spatial task and triggered a stimulus that ended each one; rats given the same stimuli at a delay served as controls. Selective elimination of the ripples impaired performance. In 2019 Antonio Fernández-Ruiz and colleagues went the other way in awake rats: closed-loop optogenetic stimulation for 100 ms after detected ripples prolonged them, and maze working-memory performance improved. The comparison was control light delivered at random delays of 400 to 1000 ms after ripples, and the authors distinguish prolonging spontaneous ripples from inducing them at random. Note what disruption removes: every ripple-linked event, not one sequence.
+
+## Engrams: sufficiency and necessity
+
+An **engram** is the physical change a learning experience leaves. Kitamura and colleagues define engram cells as cells activated by learning that undergo lasting change and can be reactivated by part of the original stimulus.
+
+Liu and colleagues (2012) in Tonegawa's laboratory used the promoter of c-fos, an immediate early gene turned on in recently active neurons, to put channelrhodopsin-2 into dentate-gyrus cells active while mice learned fear conditioning, a tone paired with shock in a chamber; the authors judged the engram likely contextual. Mice were off doxycycline for one or two days before training and back on it afterwards, which restricted tagging (the tools are in [hacking the cell](/lessons/hacking-the-cell/)). Light on those cells evoked freezing in a different context. Two controls made it specific: cells tagged in a neutral context did not evoke fear freezing, and conditioned mice expressing EYFP without the opsin did not freeze to light. The authors themselves noted that sufficiency is not necessity.
+
+Necessity needs silencing during natural recall. Kitamura and colleagues (2017) tagged prefrontal cells during learning, so the cortical engram formed at once, not after transfer. Inhibiting them disrupted natural-cue recall on day 12 but not day 2, and their dendritic-spine density was higher on day 12. Dentate engram cells, meanwhile, became less reactivated by natural cues by day 15 yet could still drive recall by light. Roy and colleagues (2022) mapped learning-activated cells across 247 mouse brain regions and flagged 117 as likely engram candidates; reactivating several ensembles together gave more recall than one. All of this is mouse contextual fear over days, not human memories over years.
+
+## Completing a pattern
+
+How could a fragment recall a whole? The CA3 region of the hippocampus has dense recurrent connections between its pyramidal cells, so it is often modelled as an **attractor network**, in which a stored pattern is a stable state the activity falls into. John Hopfield's 1982 network makes this concrete. Units are +1 or −1, weights are set by Hebb's idea that co-active units strengthen their link, and units update one at a time.
+
+**Worked problem.** These values are teaching choices, not hippocampal measurements. Store x = (1, 1, −1, −1) in four units:
+
+> **w_ij = x_i × x_j / 4 for i ≠ j; w_ii = 0; s_i = sign(sum over j of w_ij × s_j)**
+
+Thresholds are zero, and a unit keeps its old value if its field is exactly zero.
+
+*Step 1: the weights.* Unit 1's row is (0, +1/4, −1/4, −1/4): units 1 and 2 agree, units 1 and 3, 1 and 4 disagree.
+
+*Step 2: a corrupted cue.* Start at s = (−1, 1, −1, −1), unit 1 wrong. Its field is
+
+> h_1 = (1/4)(1) + (−1/4)(−1) + (−1/4)(−1) = 3/4
+
+Positive, so s_1 becomes +1 and the state is (1, 1, −1, −1), the stored pattern.
+
+*Step 3: is it stable?* At the stored pattern each field is x_i × 3/4, so the fields are (3/4, 3/4, −3/4, −3/4). Every sign matches its unit, so nothing changes.
+
+*Step 4: the energy.* With E = −(1/2) × sum of w_ij × s_i × s_j, this network gives
+
+> E = −[(overlap)² − 4] / 8, where overlap = sum of x_i × s_i
+
+The cue has overlap 2, so E = −(4 − 4)/8 = 0. The pattern has overlap 4, so E = −(16 − 4)/8 = −1.5. The update moved the state downhill.
+
+<HopfieldPatternCompletion />
+
+The inverted pattern (−1, −1, 1, 1) is also stable, and as more patterns are stored, recall degrades into spurious mixtures. Capacity is limited.
+
+Nakazawa and colleagues (2002) tested CA3 in mice lacking NMDA receptors only in CA3 pyramidal cells (the receptor's coincidence detection is in [ion channels as receptors](/lessons/ion-channels-as-receptors/)). The mice learned a water-maze platform and recalled it normally with all the room cues, but were impaired when only a fraction of the cues remained. That is the deficit an attractor model predicts. How to record such ensembles across the brain is the subject of [large-scale neuroscience](/lessons/large-scale-neuroscience/).
+
+### Design problem
+
+Light activation of dentate-gyrus cells tagged during fear conditioning makes mice freeze in a new box. A headline says scientists found where a memory is stored. Design the experiments that would test that headline, and say what each control rules out.
+
+<details>
+<summary>One way to do it</summary>
+
+Start from what is already shown: sufficiency, with specificity. Liu's neutral-context tags and EYFP-only mice did not freeze, so light, heating and tagging alone are excluded.
+
+Test necessity next. Tag the same cells with an inhibitory opsin and silence them while the mouse is returned to the conditioning box, the natural cue. Include a fluorophore-only group given the same light. If freezing falls only in the opsin group, the cells are needed for natural recall at that time.
+
+Vary the time and the cue. Test at a recent and a remote delay; Kitamura's prefrontal engram was needed on day 12 and not day 2. Test partial cues, which engram cells are defined to respond to. Silence other regions too, since Roy's map points to a distributed complex: "where the memory is" may have more than one answer.
+
+Finally, "stored" needs a measured change in the tagged cells, such as Kitamura's higher spine density or stronger synapses onto them, and a demonstration that blocking that change blocks the memory. Every result stays bounded to mouse contextual fear over days. [Designing a circuit experiment](/lessons/circuit-experiment-design/) takes these controls further.
+
+</details>

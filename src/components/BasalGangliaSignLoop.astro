@@ -1,0 +1,207 @@
+---
+/**
+ * BasalGangliaSignLoop — the cortex-basal ganglia-thalamus loop as a chain of plus and
+ * minus signs. Every arrow carries the sign the lesson gives it (excitatory +1, inhibitory
+ * -1) and every box shows only the direction of change from normal that the classic rate
+ * model predicts (up, down, no change; a question mark where two routes pull opposite ways).
+ * Controls: dopamine (normal or depleted), loss of indirect-pathway (D2, enkephalin) striatal
+ * neurons, and inactivation of the subthalamic nucleus. The readout multiplies the signs along
+ * the direct and indirect routes. Signs and directions only, no magnitudes; after Albin, Young
+ * and Penney (1989) and DeLong (1990). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="bgs card" data-bgs>
+  <figcaption class="bgs-head">Basal ganglia loop: multiply the signs<span class="bgs-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="bgs-svg" viewBox="0 0 360 330" role="img" aria-label="A loop of boxes: cortex, striatal D1 direct and D2 indirect neurons, GPe, STN, GPi, thalamus and back to cortex, with dopamine from SNc onto both striatal groups. Each arrow is marked plus or minus and each box shows its direction of change from normal." data-stage></svg>
+
+  <p class="bgs-key"><strong>+</strong> excitatory link, <strong>−</strong> inhibitory link. Each box shows its change from normal: ▲ up, ▼ down, ● no change, ? the two routes pull in opposite directions. Dashed box: removed in this state (cells lost, not a change in rate).</p>
+
+  <fieldset class="bgs-ctl">
+    <legend>Change the circuit</legend>
+    <label><input type="checkbox" data-in="da" /> Dopamine depleted (SNc dopamine neurons lost)</label>
+    <label><input type="checkbox" data-in="d2" /> Indirect-pathway (D2, enkephalin) striatal neurons lost: an early-Huntington-like change</label>
+    <label><input type="checkbox" data-in="stn" /> STN inactivated</label>
+  </fieldset>
+
+  <p class="bgs-status" data-status role="status"></p>
+
+  <div class="bgs-routes" data-routes></div>
+
+  <p class="bgs-limits"><strong>In this sketch:</strong> signs and directions only, no magnitudes. Direct and indirect neurons are both active around the start of an action in mice, so the pathways do not simply alternate; the hyperdirect cortex-to-STN route is not drawn; pattern and synchrony change as well as rate; and the model gives no account of rest tremor or of deep brain stimulation.</p>
+
+  <p class="bgs-foot">Rule to keep: give each excitatory link +1 and each inhibitory link −1 and multiply along a route. In this sketch signs and directions only, no magnitudes, after Albin, Young and Penney (1989) and DeLong (1990).</p>
+</figure>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg";
+  type Dir = -1 | 0 | 1 | "?";
+  const INK = "#4b4b55";
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const neg = (d: Dir): Dir => (d === "?" ? "?" : d === 0 ? 0 : ((-d) as Dir));
+  function comb(...ds: Dir[]): Dir {
+    if (ds.includes("?")) return "?";
+    const up = ds.includes(1), down = ds.includes(-1);
+    if (up && down) return "?";
+    return up ? 1 : down ? -1 : 0;
+  }
+
+  type State = {
+    snc: Dir; d1: Dir; d2: Dir; gpe: Dir; stn: Dir; gpi: Dir; thal: Dir; ctx: Dir;
+    directEffect: Dir; indirectEffect: Dir;
+    da: boolean; d2lost: boolean; stnOff: boolean;
+  };
+  // Qualitative rate model: each box follows from the signs of its inputs.
+  function solve(da: boolean, d2lost: boolean, stnOff: boolean): State {
+    const snc: Dir = da ? -1 : 0;
+    const d1: Dir = snc; // dopamine excites D1 neurons (+)
+    const d2: Dir = d2lost ? -1 : neg(snc); // dopamine inhibits D2 neurons (-); lost cells are down
+    const gpe = neg(d2);
+    const stn: Dir = stnOff ? -1 : neg(gpe);
+    const gpi = comb(neg(d1), stn);
+    const thal = neg(gpi);
+    // Route readout: where each route is changed, times the signs that follow.
+    const directEffect: Dir = d1; // (-1)(-1)(+1) = +1 after the D1 neurons
+    const indirectEffect: Dir = stnOff ? 1 : neg(d2); // after D2: (-1)(-1)(+1)(-1)(+1) = -1; after STN: (+1)(-1)(+1) = -1
+    return { snc, d1, d2, gpe, stn, gpi, thal, ctx: thal, directEffect, indirectEffect, da, d2lost, stnOff };
+  }
+
+  const WORD: Record<string, string> = { "1": "▲ up", "-1": "▼ down", "0": "● no change", "?": "? opposed" };
+  const PLAIN: Record<string, string> = { "1": "up", "-1": "down", "0": "no change", "?": "no direction (opposed)" };
+  const FILL: Record<string, string> = { "1": "#fde6cf", "-1": "#d9ebf5", "0": "#f3f3f6", "?": "#ebe2f6" };
+  const EDGE: Record<string, string> = { "1": "#b45309", "-1": "#1f6a8f", "0": "#8a8a96", "?": "#6d4fa3" };
+
+  function status(s: State): string {
+    const { da, d2lost, stnOff } = s;
+    const dirs = `Directions from normal: GPe ${PLAIN[String(s.gpe)]}, STN ${PLAIN[String(s.stn)]}, GPi ${PLAIN[String(s.gpi)]}, thalamus ${PLAIN[String(s.thal)]}.`;
+    if (!da && !d2lost && !stnOff) {
+      return "Normal in this sketch: GPi and SNr output neurons are GABAergic and fire tonically, holding the motor thalamus under steady inhibition like a foot resting on a brake. The direct route multiplies to +1 and the indirect route to −1. Nothing is changed from normal.";
+    }
+    if (da && !d2lost && !stnOff) {
+      return "Dopamine depleted: the direct route weakens and the indirect route strengthens, so GPe is more inhibited, STN is released, and GPi fires more. The thalamus is held down harder, which is the rate model’s prediction of akinesia, movement hard to start. Both changes push the same way because dopamine excites the +1 direct route and inhibits the −1 indirect route. This is a prediction of the classic model, not a measured law.";
+    }
+    if (!da && d2lost && !stnOff) {
+      return "Early loss of indirect-pathway (D2, enkephalin) striatal neurons, the relative loss Reiner and colleagues (1988) reported in post-mortem tissue from 17 patients with Huntington’s disease, who found the projection to GPe more affected than the projection to GPi in early and middle stages: GPe is released, STN is more inhibited, GPi gets less excitation and fires less, and the thalamus is released. That is thought to contribute to chorea, the brief irregular involuntary movements of early disease. The cause in Huntington’s disease is an expanded CAG repeat, not a primary loss of dopamine.";
+    }
+    if (da && !d2lost && stnOff) {
+      return "Dopamine depleted and STN inactivated (Bergman and colleagues lesioned it): STN no longer excites GPi, so the model predicts GPi output falls from the dopamine-depleted state, and the rate model predicts that silencing STN should help. Bergman, Wichmann and DeLong (1990) lesioned STN in MPTP-treated monkeys and reported improvement of the parkinsonian signs in the limbs opposite the lesion. Measured from normal, the direct route still pulls GPi up while the silent STN pulls it down, so the GPi and thalamus boxes show ?. A lesion result does not explain deep brain stimulation.";
+    }
+    return `The rate model gives only a direction here. The lesson does not work through this combination, so the sketch makes no clinical claim. ${dirs}${[s.gpe, s.stn, s.gpi, s.thal].includes("?") ? " A ? means two routes pull in opposite directions and this sketch has no magnitudes to settle it." : ""}`;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-bgs]").forEach((root, rootIndex) => {
+    const stage = root.querySelector<SVGSVGElement>("[data-stage]")!;
+    const statusEl = root.querySelector<HTMLElement>("[data-status]")!;
+    const routesEl = root.querySelector<HTMLElement>("[data-routes]")!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const mid = `bgs-arrow-${rootIndex}`;
+
+    function box(cx: number, cy: number, w: number, name: string, d: Dir, label: string, dashed: boolean) {
+      const k = String(d);
+      stage.appendChild(el("rect", { x: cx - w / 2, y: cy - 19, width: w, height: 38, rx: 6, fill: FILL[k], stroke: EDGE[k], "stroke-width": 1.6, "stroke-dasharray": dashed ? "4 3" : "0" }));
+      stage.appendChild(el("text", { x: cx, y: cy - 4, "font-size": 10, "font-weight": 700, "text-anchor": "middle", fill: INK }, name));
+      stage.appendChild(el("text", { x: cx, y: cy + 11, "font-size": 10, "text-anchor": "middle", fill: EDGE[k], "font-weight": 600 }, label));
+    }
+    function edge(d: string, sign: "+" | "-", bx: number, by: number, dashed = false) {
+      stage.appendChild(el("path", { d, fill: "none", stroke: INK, "stroke-width": 1.5, "stroke-dasharray": dashed ? "4 3" : "0", "marker-end": `url(#${mid})` }));
+      stage.appendChild(el("circle", { cx: bx, cy: by, r: 8, fill: sign === "+" ? "#0e7c86" : "#a33a3a" }));
+      stage.appendChild(el("text", { x: bx, y: by + 4, "font-size": 12, "font-weight": 700, "text-anchor": "middle", fill: "#fff" }, sign === "+" ? "+" : "−"));
+    }
+
+    function render() {
+      const s = solve(inp("da").checked, inp("d2").checked, inp("stn").checked);
+      stage.replaceChildren();
+      const defs = el("defs", {});
+      const marker = el("marker", { id: mid, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 6, markerHeight: 6, orient: "auto-start-reverse" });
+      marker.appendChild(el("path", { d: "M0,0 L10,5 L0,10 z", fill: INK }));
+      defs.appendChild(marker);
+      stage.appendChild(defs);
+
+      // arrows first so boxes sit on top
+      edge("M135,47 L80,81", "+", 107, 64);
+      edge("M195,47 L270,81", "+", 232, 64);
+      edge("M100,119 L100,240 L123,240", "-", 100, 180);
+      edge("M285,119 L285,151", "-", 285, 135);
+      edge("M285,189 L285,221", "-", 285, 205);
+      edge("M235,240 L207,240", "+", 221, 224);
+      edge("M165,221 L165,189", "-", 181, 205);
+      edge("M165,151 L165,47", "+", 165, 99);
+      edge("M105,300 L10,300 L10,100 L20,100", "+", 10, 200, true);
+      edge("M225,300 L346,300 L346,100 L335,100", "-", 346, 200, true);
+
+      const lab = (d: Dir) => WORD[String(d)];
+      box(165, 28, 130, "Cortex (loop drive)", s.ctx, lab(s.ctx), false);
+      box(70, 100, 100, "D1 direct", s.d1, lab(s.d1), false);
+      box(285, 100, 100, "D2 indirect", s.d2, s.d2lost ? "▼ cells lost" : lab(s.d2), s.d2lost);
+      box(165, 170, 84, "Thalamus", s.thal, lab(s.thal), false);
+      box(285, 170, 100, "GPe", s.gpe, lab(s.gpe), false);
+      box(165, 240, 84, "GPi / SNr", s.gpi, lab(s.gpi), false);
+      box(285, 240, 100, "STN", s.stn, s.stnOff ? "▼ down (off)" : lab(s.stn), s.stnOff);
+      box(165, 300, 120, "SNc dopamine", s.snc, lab(s.snc), false);
+
+      statusEl.textContent = status(s);
+
+      // Route readout: the lesson's arithmetic, with what changed on each route.
+      const push = (d: Dir) => (d === "?" ? "no direction" : d === 1 ? "up" : d === -1 ? "down" : "no push");
+      const directNote = s.d1 === -1 ? "D1 neurons lose dopamine’s excitation, so the route is weakened" : "no change from normal";
+      let indirectNote = "no change from normal";
+      if (s.stnOff && s.d2lost) indirectNote = "D2 neurons lost, and the route is cut at STN, which is held silent (the route’s −1 product no longer applies once it is cut)";
+      else if (s.stnOff) indirectNote = "the route is cut at STN, which is held silent (the route’s −1 product no longer applies once it is cut)";
+      else if (s.d2lost) indirectNote = "D2 neurons lost";
+      else if (s.da) indirectNote = "D2 neurons lose dopamine’s inhibition, so the route is strengthened";
+      routesEl.replaceChildren();
+      const rows: [string, string, string, string, Dir][] = [
+        ["Direct", "cortex→striatum (+1) × striatum→GPi (−1) × GPi→thalamus (−1) × thalamus→cortex (+1) = +1", directNote, "", s.directEffect],
+        ["Indirect", "cortex→striatum (+1) × striatum→GPe (−1) × GPe→STN (−1) × STN→GPi (+1) × GPi→thalamus (−1) × thalamus→cortex (+1) = −1", indirectNote, "", s.indirectEffect],
+      ];
+      rows.forEach(([name, sum, note, , eff]) => {
+        const d = document.createElement("div");
+        d.className = "bgs-route";
+        const h = document.createElement("strong");
+        h.textContent = `${name} route`;
+        const p1 = document.createElement("span");
+        p1.className = "bgs-sum";
+        p1.textContent = sum;
+        const p2 = document.createElement("span");
+        p2.className = "bgs-now";
+        p2.textContent = `Now: ${note}; it pushes cortical drive ${push(eff)}.`;
+        d.append(h, p1, p2);
+        routesEl.appendChild(d);
+      });
+      const net = document.createElement("div");
+      net.className = "bgs-route bgs-net";
+      net.textContent = `Both routes together: thalamus ${PLAIN[String(s.thal)]} from normal${s.thal === "?" ? ", because one route pushes drive up and the other down" : ""}.`;
+      routesEl.appendChild(net);
+    }
+    ["da", "d2", "stn"].forEach((k) => inp(k).addEventListener("change", render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .bgs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bgs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bgs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bgs-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bgs-key { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bgs-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: grid; gap: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bgs-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .bgs-ctl label { display: flex; gap: 0.45rem; align-items: flex-start; }
+  .bgs-ctl input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; flex: none; }
+  .bgs-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .bgs-routes { display: grid; gap: 0.4rem; margin: var(--ddp-space-2) 0; }
+  .bgs-route { display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.6rem; line-height: 1.45; }
+  .bgs-route strong { color: var(--ddp-color-primary); }
+  .bgs-sum { font-family: var(--ddp-font-mono); overflow-wrap: anywhere; }
+  .bgs-net { font-weight: 600; color: var(--ddp-color-primary); }
+  .bgs-limits { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bgs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .bgs-ctl input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+</style>

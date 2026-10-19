@@ -1,0 +1,209 @@
+---
+/**
+ * TransporterOccupancyCurve — fractional occupancy of the human serotonin transporter
+ * (SERT) by paroxetine, f = L / (KD + L), with the lesson's KD of 0.08 nM (Coleman, Green
+ * and Gouaux, wild-type human SERT in HEK293 membranes). A log or linear concentration
+ * axis, a drug-concentration slider and a target occupancy that solves L = f x KD / (1 - f).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="toc card" data-toc>
+  <figcaption class="toc-head">How much transporter does a drug occupy?<span class="toc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="toc-svg" viewBox="0 0 340 240" role="img" aria-label="Occupancy of SERT by paroxetine (reported KD 0.08 nM), f equals L over KD plus L, plotted against drug concentration in nanomolar on a log or a linear axis" data-plot></svg>
+
+  <div class="toc-controls">
+    <label class="toc-slabel"><span>Drug concentration L: <em data-out="l">0.08 nM</em> <small>(log slider)</small></span>
+      <input type="range" data-in="l" min="-3" max="2" step="0.01" value="-1.1" />
+    </label>
+    <label class="toc-slabel"><span>Target occupancy: <em data-out="t">90.0%</em></span>
+      <input type="range" data-in="t" min="50" max="99.9" step="0.1" value="90" />
+    </label>
+    <fieldset class="toc-axis">
+      <legend>Concentration axis</legend>
+      <label><input type="radio" name="toc-axis" value="log" checked /> log</label>
+      <label><input type="radio" name="toc-axis" value="lin" /> linear</label>
+    </fieldset>
+    <button type="button" class="toc-btn" data-go>Set L to the target’s concentration</button>
+  </div>
+
+  <dl class="toc-readout">
+    <div><dt>Occupancy at your L</dt><dd data-r="f">50.0%</dd></div>
+    <div><dt>L needed for the target</dt><dd data-r="lt">0.72 nM</dd></div>
+    <div><dt>times the L for 90% (above 90% only)</dt><dd data-r="ratio">1.00</dd></div>
+  </dl>
+
+  <p class="toc-why" data-why role="status"></p>
+
+  <p class="toc-assume">In this sketch: one class of site, equilibrium, free drug equal to added drug; paroxetine at wild-type human SERT in HEK293 membranes, reported KD = 0.08 nM (Coleman, Green and Gouaux, 2016).</p>
+  <p class="toc-foot">Occupancy f = L / (KD + L) climbs steeply at first and flattens at the top, so filling the last sites takes far more drug than filling the first.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const KD = 0.08; // nM, from the lesson
+  const L90 = (0.9 * KD) / (1 - 0.9); // 0.72 nM
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const occ = (L: number) => L / (KD + L);
+  const fmt = (x: number) => (x >= 100 ? x.toFixed(0) : String(parseFloat(x.toPrecision(3))));
+  const pct = (f: number) => (f * 100 >= 99 ? (f * 100).toFixed(2) : (f * 100).toFixed(1)) + '%';
+
+  document.querySelectorAll<HTMLElement>('[data-toc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const lIn = root.querySelector<HTMLInputElement>('[data-in="l"]')!;
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]')!;
+    const lOut = root.querySelector<HTMLElement>('[data-out="l"]')!;
+    const tOut = root.querySelector<HTMLElement>('[data-out="t"]')!;
+    const rF = root.querySelector<HTMLElement>('[data-r="f"]')!;
+    const rLt = root.querySelector<HTMLElement>('[data-r="lt"]')!;
+    const rRatio = root.querySelector<HTMLElement>('[data-r="ratio"]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+    const goBtn = root.querySelector<HTMLButtonElement>('[data-go]')!;
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type=radio]'));
+
+    const X0 = 46, X1 = 326, Y0 = 22, Y1 = 192, W = X1 - X0;
+    let L = KD; // exact current concentration, nM
+    const isLog = () => radios.find((r) => r.checked)!.value === 'log';
+    const px = (c: number) => (isLog() ? X0 + ((Math.log10(c) + 3) / 5) * W : X0 + (c / 100) * W);
+    const py = (f: number) => Y1 - f * (Y1 - Y0);
+    const text = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+      const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+      t.textContent = s;
+      return t;
+    };
+
+    function draw() {
+      const log = isLog();
+      const Lt = (parseFloat(tIn.value) / 100 * KD) / (1 - parseFloat(tIn.value) / 100);
+      const ft = parseFloat(tIn.value) / 100;
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const f of [0, 0.25, 0.5, 0.75, 0.9, 0.99]) {
+        if (f > 0) plot.appendChild(el('line', { x1: X0, y1: py(f), x2: X1, y2: py(f), stroke: FAINT, 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(text(X0 - 4, py(f) + 3, Math.round(f * 100) + '%', { 'text-anchor': 'end' }));
+      }
+      const ticks = log ? [0.001, 0.01, 0.1, 1, 10, 100] : [0, 20, 40, 60, 80, 100];
+      for (const c of ticks) {
+        const x = log ? px(c) : X0 + (c / 100) * W;
+        plot.appendChild(el('line', { x1: x, y1: Y1, x2: x, y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(text(x, Y1 + 14, String(c), { 'text-anchor': 'middle' }));
+      }
+      plot.appendChild(text((X0 + X1) / 2, Y1 + 29, 'free paroxetine L (nM, ' + (log ? 'log' : 'linear') + ' axis)', { 'text-anchor': 'middle', 'font-size': 10 }));
+      plot.appendChild(text(X0 - 2, Y0 - 8, 'fraction of SERT sites occupied, f', { 'font-size': 10 }));
+
+      let d = '';
+      const N = 240;
+      for (let i = 0; i <= N; i++) {
+        const c = log ? Math.pow(10, -3 + (5 * i) / N) : (100 * i) / N;
+        d += (i === 0 ? 'M' : 'L') + px(Math.max(c, 1e-9)).toFixed(1) + ' ' + py(occ(c)).toFixed(1) + ' ';
+      }
+      plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // KD marker
+      plot.appendChild(el('circle', { cx: px(KD), cy: py(0.5), r: 3.5, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }));
+      // markers with drop lines
+      const mark = (c: number, f: number, col: string, shape: 'dot' | 'ring') => {
+        plot.appendChild(el('line', { x1: px(c), y1: py(f), x2: px(c), y2: Y1, stroke: col, 'stroke-width': 1.1, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('line', { x1: X0, y1: py(f), x2: px(c), y2: py(f), stroke: col, 'stroke-width': 1.1, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('circle', shape === 'dot'
+          ? { cx: px(c), cy: py(f), r: 4.5, fill: col }
+          : { cx: px(c), cy: py(f), r: 6, fill: 'none', stroke: col, 'stroke-width': 2 }));
+      };
+      mark(Lt, ft, ORANGE, 'ring');
+      mark(L, occ(L), ACCENT, 'dot');
+
+      // legend, lower right, on a white backing
+      const LX = 160, LY = 118;
+      plot.appendChild(el('rect', { x: LX - 6, y: LY - 11, width: 166, height: 62, fill: '#fff', 'fill-opacity': 0.92, stroke: FAINT, 'stroke-width': 0.6 }));
+      plot.appendChild(el('circle', { cx: LX + 4, cy: LY - 2, r: 4.5, fill: ACCENT }));
+      plot.appendChild(text(LX + 14, LY + 1, 'your L'));
+      plot.appendChild(el('circle', { cx: LX + 4, cy: LY + 12, r: 5, fill: 'none', stroke: ORANGE, 'stroke-width': 2 }));
+      plot.appendChild(text(LX + 14, LY + 15, 'L for the target occupancy'));
+      plot.appendChild(el('circle', { cx: LX + 4, cy: LY + 26, r: 3.5, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }));
+      plot.appendChild(text(LX + 14, LY + 29, 'reported KD, half filled'));
+      plot.appendChild(text(LX - 1, LY + 43, 'f = L / (KD + L)', { 'font-weight': 700 }));
+    }
+
+    function update() {
+      const log = isLog();
+      const ft = parseFloat(tIn.value) / 100;
+      const Lt = (ft * KD) / (1 - ft);
+      const f = occ(L);
+      lOut.textContent = fmt(L) + ' nM';
+      tOut.textContent = (ft * 100).toFixed(1) + '%';
+      rF.textContent = pct(f);
+      rLt.textContent = fmt(Lt) + ' nM';
+      const ratio = Lt / L90;
+      rRatio.textContent = ft > 0.9 ? '× ' + fmt(ratio) : '—';
+      draw();
+
+      const nearKD = Math.abs(L - KD) / KD < 0.005;
+      let s1: string;
+      if (nearKD) s1 = `L equals KD (0.08 nM), so half the transporters are occupied, which is what KD means.`;
+      else if (f < 0.05) s1 = `At L = ${fmt(L)} nM, far below KD, only ${pct(f)} of the sites are occupied; in this sketch, here occupancy rises almost in proportion to L.`;
+      else if (f < 0.9) s1 = `At L = ${fmt(L)} nM, ${pct(f)} of the transporters are occupied (f = L / (KD + L) = ${fmt(L)} / ${fmt(KD + L)}).`;
+      else s1 = `At L = ${fmt(L)} nM, ${pct(f)} are occupied, and the curve has flattened: much more drug adds only a few more sites.`;
+      let s2: string;
+      if (ft > 0.9) {
+        s2 = Math.abs(ft - 0.99) < 1e-9
+          ? ` A target of 99% needs ${fmt(Lt)} nM, 11 times the ${fmt(L90)} nM for 90%, all to fill the last 9% of sites.`
+          : ` A target of ${(ft * 100).toFixed(1)}% needs ${fmt(Lt)} nM, ${fmt(ratio)} times the ${fmt(L90)} nM for 90%, to fill the last ${((ft - 0.9) * 100).toFixed(1)}% of sites.`;
+      } else if (Math.abs(ft - 0.5) < 1e-9) s2 = ` A target of 50% needs L = KD = 0.08 nM.`;
+      else s2 = ` A target of ${(ft * 100).toFixed(1)}% needs ${fmt(Lt)} nM (L = f × KD / (1 − f)).`;
+      const s3 = log ? '' : ' In this sketch, on the linear axis most of the rise is squeezed against the left edge and the top looks flat.';
+      why.textContent = s1 + s2 + s3 + ' Limits: occupancy of SERT in membranes is not efficacy, not a change in synaptic serotonin, and not a dose for a person; blocking SERT does not show that depression is caused by low serotonin.';
+    }
+
+    lIn.addEventListener('input', () => {
+      const v = parseFloat(lIn.value);
+      const kdLog = Math.log10(KD);
+      if (Math.abs(v - kdLog) <= 0.0035) L = KD;
+      else L = Math.pow(10, v);
+      update();
+    });
+    tIn.addEventListener('input', update);
+    radios.forEach((r) => r.addEventListener('change', update));
+    goBtn.addEventListener('click', () => {
+      const ft = parseFloat(tIn.value) / 100;
+      L = (ft * KD) / (1 - ft);
+      lIn.value = String(Math.min(2, Math.max(-3, Math.round(Math.log10(L) * 100) / 100)));
+      update();
+    });
+    update();
+  });
+</script>
+
+<style>
+  .toc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .toc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .toc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .toc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .toc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .toc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .toc-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .toc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .toc-slabel input { accent-color: var(--ddp-color-accent); }
+  .toc-axis { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .toc-axis legend { padding: 0; margin-bottom: 0.15rem; }
+  .toc-axis label { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .toc-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; text-align: left; }
+  .toc-btn:hover, .toc-btn:focus-visible { border-color: var(--ddp-color-accent); }
+  .toc-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .toc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .toc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .toc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .toc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .toc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .toc-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .toc-controls { grid-template-columns: 1fr; }
+    .toc-readout { grid-template-columns: 1fr; }
+  }
+</style>

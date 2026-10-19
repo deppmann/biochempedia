@@ -1,0 +1,241 @@
+---
+/**
+ * CochlearPlaceMap — places two tones on an uncoiled 35 mm basilar membrane with
+ * Greenwood's human frequency-place function, f = 165.4 x (10^(2.1x) - 0.88), solved as
+ * x = log10(f/165.4 + 0.88)/2.1, x being the fraction of length from the apex. Shows the
+ * lesson's worked steps for each tone, the separation in mm, and that an octave does not
+ * span a constant distance. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cpm card" data-cochlearplace>
+  <figcaption class="cpm-head">Placing a tone on the cochlea<span class="cpm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cpm-svg" viewBox="0 0 360 276" role="img" aria-label="An uncoiled basilar membrane, assumed 35 millimetres long, base on the left and apex on the right, with a sketched travelling-wave envelope peaking at the place of each of two tones, and scales in millimetres from the base and from the apex" data-plot></svg>
+
+  <div class="cpm-controls">
+    <label class="cpm-slabel"><span>Tone A <em data-out="a">1,000 Hz</em></span>
+      <input type="range" data-in="a" min="1.302" max="4.302" step="0.002" value="3" />
+    </label>
+    <label class="cpm-slabel"><span>Tone B <em data-out="b">4,000 Hz</em></span>
+      <input type="range" data-in="b" min="1.302" max="4.302" step="0.002" value="3.602" />
+    </label>
+  </div>
+  <p class="cpm-note">In this sketch the sliders are logarithmic in frequency, about 20 Hz to 20 kHz, the span of the Greenwood function as used here.</p>
+
+  <div class="cpm-steps">
+    <div class="cpm-step cpm-a">
+      <h4 data-h="a">A</h4>
+      <p data-s1="a"></p>
+      <p data-s2="a"></p>
+      <p data-s3="a"></p>
+    </div>
+    <div class="cpm-step cpm-b">
+      <h4 data-h="b">B</h4>
+      <p data-s1="b"></p>
+      <p data-s2="b"></p>
+      <p data-s3="b"></p>
+    </div>
+  </div>
+
+  <dl class="cpm-readout">
+    <div><dt>Higher tone</dt><dd data-r-high></dd></div>
+    <div><dt>Distance apart on the membrane</dt><dd data-r-sep></dd></div>
+    <div><dt>Frequency ratio</dt><dd data-r-ratio></dd></div>
+    <div><dt>One octave up from A, from B (mm)</dt><dd data-r-oct></dd></div>
+  </dl>
+
+  <p class="cpm-why" data-why role="status"></p>
+
+  <p class="cpm-foot">In this sketch: the human Greenwood map, a 35 mm cochlea, peak place only; envelopes are not to scale. The rule to keep: x is measured from the apex, so the distance from the base is 35 mm minus the distance from the apex, and the higher tone peaks nearer the base.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const A_COL = '#0e7c86', B_COL = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const LEN = 35; // mm, the lesson's assumption
+  const FMIN = 20, FMAX = 20000;
+  const X_BASE = 20, X_APEX = 340, PX_MM = (X_APEX - X_BASE) / LEN;
+  const MEM_Y = 140;
+  const hw = (p: number) => 3 + ((p - X_BASE) / (X_APEX - X_BASE)) * 11; // drawn half-width: narrow at base, wide at apex
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const txt = (attrs: Record<string, string | number>, s: string) => { const t = el('text', attrs); t.textContent = s; return t; };
+  const r3 = (v: number) => Math.round(v * 1000) / 1000;
+  const fmtHz = (f: number) => (f >= 1000 ? f.toLocaleString('en-US') : String(f)) + ' Hz';
+  // Greenwood, solved for x; clamped so x is never negative.
+  function steps(f: number) {
+    const q = f / 165.4, p = q + 0.88, lg = Math.log10(p);
+    const x = Math.max(0, lg / 2.1);
+    const xr = r3(x);
+    const fromApex = xr * LEN, fromBase = LEN - fromApex;
+    return { q, p, lg, x, xr, fromApex, fromBase };
+  }
+  const sloped = (v: number) => {
+    // slider holds log10(f); frequency is kept to three significant figures and inside the slider range
+    const f = Number(Math.pow(10, v).toPrecision(3));
+    return Math.min(FMAX, Math.max(FMIN, f));
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-cochlearplace]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inA = root.querySelector<HTMLInputElement>('[data-in="a"]')!;
+    const inB = root.querySelector<HTMLInputElement>('[data-in="b"]')!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const outA = o('[data-out="a"]'), outB = o('[data-out="b"]');
+    const why = o('[data-why]');
+    const rHigh = o('[data-r-high]'), rSep = o('[data-r-sep]'), rRatio = o('[data-r-ratio]'), rOct = o('[data-r-oct]');
+
+    function envelope(pk: number, col: string, dashed: boolean) {
+      const top = (p: number) => MEM_Y - hw(p) - 1;
+      const H = 58, drop = 30;
+      const rise = Math.max(pk - X_BASE, 1);
+      let d = '';
+      const pts: [number, number][] = [];
+      for (let p = X_BASE; p <= X_APEX + 0.01; p += 2) {
+        let a: number;
+        if (p <= pk) { const u = (p - X_BASE) / rise; a = 0.1 + 0.9 * Math.pow(u, 3); }
+        else { const dd = p - pk; a = dd < drop ? 0.5 * (1 + Math.cos(Math.PI * dd / drop)) : 0; }
+        pts.push([p, top(p) - a * H]);
+      }
+      // make sure the peak itself is a vertex
+      pts.push([pk, top(pk) - H]);
+      pts.sort((a, b) => a[0] - b[0]);
+      d = 'M' + pts[0][0] + ' ' + top(pts[0][0]).toFixed(1) + ' ';
+      for (const [p, y] of pts) d += 'L' + p.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+      const last = pts[pts.length - 1][0];
+      d += 'L' + last.toFixed(1) + ' ' + top(last).toFixed(1) + ' ';
+      for (let i = pts.length - 1; i >= 0; i--) d += 'L' + pts[i][0].toFixed(1) + ' ' + top(pts[i][0]).toFixed(1) + ' ';
+      return el('path', { d: d + 'Z', fill: dashed ? 'none' : col, 'fill-opacity': 0.18, stroke: col, 'stroke-width': 2, 'stroke-dasharray': dashed ? '5 3' : '0' });
+    }
+
+    function render() {
+      const fA = sloped(parseFloat(inA.value)), fB = sloped(parseFloat(inB.value));
+      outA.textContent = fmtHz(fA); outB.textContent = fmtHz(fB);
+      const sA = steps(fA), sB = steps(fB);
+      const pxOf = (s: { fromBase: number }) => X_BASE + s.fromBase * PX_MM;
+      const pA = pxOf(sA), pB = pxOf(sB);
+
+      plot.replaceChildren();
+      plot.appendChild(txt({ x: 4, y: 13, 'font-size': 10, 'font-weight': 700, fill: INK }, 'Basilar membrane, uncoiled (35 mm assumed)'));
+      // membrane
+      const top: string[] = [], bot: string[] = [];
+      for (let p = X_BASE; p <= X_APEX; p += 4) { top.push(p + ',' + (MEM_Y - hw(p)).toFixed(1)); bot.unshift(p + ',' + (MEM_Y + hw(p)).toFixed(1)); }
+      plot.appendChild(el('polygon', { points: top.concat(bot).join(' '), fill: '#e4e7ec', stroke: INK, 'stroke-width': 1 }));
+      // envelopes
+      plot.appendChild(envelope(pA, A_COL, false));
+      plot.appendChild(envelope(pB, B_COL, sA.xr === sB.xr));
+      // peak lines, labels and ruler markers
+      const rows: [string, number, number, string, number][] = [['A', pA, fA, A_COL, 31], ['B', pB, fB, B_COL, 45]];
+      for (const [name, p, f, col, ly] of rows) {
+        plot.appendChild(el('line', { x1: p, y1: 52, x2: p, y2: MEM_Y - hw(p) - 1 - 58, stroke: col, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+        const lab = name + '  ' + fmtHz(f);
+        const cx = Math.min(324, Math.max(36, p));
+        plot.appendChild(txt({ x: cx, y: ly, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: col }, lab));
+        plot.appendChild(el('circle', { cx: p, cy: MEM_Y, r: 3.5, fill: col, stroke: '#fff', 'stroke-width': 1 }));
+      }
+      // end labels
+      plot.appendChild(txt({ x: X_BASE, y: 168, 'font-size': 10, 'font-weight': 700, fill: INK }, 'BASE'));
+      plot.appendChild(txt({ x: X_BASE, y: 180, 'font-size': 10, fill: INK }, 'narrow, stiff; sound enters'));
+      plot.appendChild(txt({ x: X_APEX, y: 168, 'text-anchor': 'end', 'font-size': 10, 'font-weight': 700, fill: INK }, 'APEX'));
+      plot.appendChild(txt({ x: X_APEX, y: 180, 'text-anchor': 'end', 'font-size': 10, fill: INK }, 'wide, compliant'));
+      // rulers
+      const ruler = (y: number, fromBase: boolean, title: string) => {
+        plot.appendChild(el('line', { x1: X_BASE, y1: y, x2: X_APEX, y2: y, stroke: INK, 'stroke-width': 1 }));
+        for (let mm = 0; mm <= LEN; mm += 5) {
+          const p = fromBase ? X_BASE + mm * PX_MM : X_APEX - mm * PX_MM;
+          plot.appendChild(el('line', { x1: p, y1: y, x2: p, y2: y + 3, stroke: INK, 'stroke-width': 1 }));
+          plot.appendChild(txt({ x: p, y: y + 13, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, String(mm)));
+        }
+        plot.appendChild(txt({ x: (X_BASE + X_APEX) / 2, y: y + 25, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, title));
+      };
+      ruler(202, true, 'mm from the base');
+      ruler(246, false, 'mm from the apex');
+      for (const [p, col] of [[pA, A_COL], [pB, B_COL]] as [number, string][]) {
+        plot.appendChild(el('circle', { cx: p, cy: 202, r: 3.5, fill: col, stroke: '#fff', 'stroke-width': 1 }));
+        plot.appendChild(el('circle', { cx: p, cy: 246, r: 3.5, fill: col, stroke: '#fff', 'stroke-width': 1 }));
+      }
+
+      // worked steps, in the lesson's arithmetic
+      const show = (k: string, name: string, f: number, s: ReturnType<typeof steps>) => {
+        o(`[data-h="${k}"]`).textContent = `${name} · ${fmtHz(f)}`;
+        o(`[data-s1="${k}"]`).textContent = `${f} / 165.4 = ${s.q.toFixed(3)}; + 0.88 = ${s.p.toFixed(3)}`;
+        o(`[data-s2="${k}"]`).textContent = `log10 = ${s.lg.toFixed(3)}; ÷ 2.1 gives x = ${s.xr.toFixed(3)}`;
+        o(`[data-s3="${k}"]`).textContent = `${s.xr.toFixed(3)} × 35 = ${s.fromApex.toFixed(1)} mm from the apex; 35 − ${s.fromApex.toFixed(1)} = ${s.fromBase.toFixed(1)} mm from the base`;
+      };
+      show('a', 'A', fA, sA); show('b', 'B', fB, sB);
+
+      const same = sA.xr === sB.xr && fA === fB;
+      const hi = fA >= fB ? 'A' : 'B';
+      const hiF = Math.max(fA, fB);
+      const hiS = fA >= fB ? sA : sB, loS = fA >= fB ? sB : sA;
+      const apA = Number(sA.fromApex.toFixed(1)), apB = Number(sB.fromApex.toFixed(1));
+      const sep = Math.abs(apB - apA);
+      const octs = Math.log2(Math.max(fA, fB) / Math.min(fA, fB));
+      if (same) {
+        rHigh.textContent = 'none: A = B';
+        rSep.textContent = '0.0 mm (same place)';
+        rRatio.textContent = '1.00× = 0.00 octaves';
+      } else {
+        rHigh.textContent = sep > 0 ? `${hi} (${fmtHz(hiF)}), nearer the base` : `${hi} (${fmtHz(hiF)}); same place at this precision`;
+        const big = Math.max(apA, apB), small = Math.min(apA, apB);
+        rSep.textContent = `${big.toFixed(1)} − ${small.toFixed(1)} = ${sep.toFixed(1)} mm`;
+        rRatio.textContent = `${(hiF / Math.min(fA, fB)).toFixed(2)}× = ${octs.toFixed(2)} octaves`;
+      }
+      const octSpan = (f: number, s: ReturnType<typeof steps>) => {
+        if (f * 2 > FMAX) return 'n/a (above 20 kHz)';
+        return (Math.abs(steps(f * 2).xr - s.xr) * LEN).toFixed(2);
+      };
+      const oA = octSpan(fA, sA), oB = octSpan(fB, sB);
+      rOct.textContent = `${oA}, ${oB}`;
+
+      // status
+      let s: string;
+      if (same) {
+        s = `In this sketch, both tones are ${fmtHz(fA)} and peak at the same place, ${sA.fromApex.toFixed(1)} mm from the apex (${sA.fromBase.toFixed(1)} mm from the base), so the separation is zero.`;
+      } else {
+        s = `In this sketch, ${hi} (${fmtHz(hiF)}) peaks ${hiS.fromBase.toFixed(1)} mm from the base${sep > 0 ? ', nearer the base than ' : ', the same place as '}${hi === 'A' ? 'B' : 'A'} (${fmtHz(Math.min(fA, fB))}, ${loS.fromBase.toFixed(1)} mm from the base); they sit ${sep.toFixed(1)} mm apart.`;
+      }
+      const low = [sA, sB].some((v) => v.xr < 0.02), high = [sA, sB].some((v) => v.xr > 0.97);
+      if (low) s += ' A tone this low peaks near the apex end (x close to 0).';
+      if (high) s += ' A very high tone peaks close to the base, where high frequencies peak.';
+      const o1 = Number(oA), o2 = Number(oB);
+      if (!isNaN(o1) && !isNaN(o2) && Math.abs(o1 - o2) > 0.04) s += ` An octave above A spans ${oA} mm but above B ${oB} mm, so equal frequency ratios do not take equal distances.`;
+      s += ' The envelope width is drawn, not computed: a living ear’s peaks are far sharper than von Békésy’s broad ones because outer hair cells amplify.';
+      why.textContent = s;
+    }
+    [inA, inB].forEach((i) => i.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .cpm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cpm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cpm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cpm-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cpm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-1); }
+  .cpm-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cpm-slabel em { font-style: normal; font-weight: 700; font-family: var(--ddp-font-mono); }
+  .cpm-slabel input { accent-color: var(--ddp-color-accent); }
+  .cpm-note { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cpm-steps { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .cpm-step { padding: var(--ddp-space-2) var(--ddp-space-3); border-radius: 6px; border-left: 3px solid var(--ddp-color-line); background: color-mix(in srgb, var(--ddp-color-accent) 6%, transparent); }
+  .cpm-a { border-left-color: #0e7c86; }
+  .cpm-b { border-left-color: #e57200; }
+  .cpm-step h4 { margin: 0 0 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); }
+  .cpm-step p { margin: 0 0 0.2rem; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.4; overflow-wrap: anywhere; }
+  .cpm-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cpm-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .cpm-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cpm-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cpm-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .cpm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .cpm-steps, .cpm-readout { grid-template-columns: 1fr; }
+  }
+</style>

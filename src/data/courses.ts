@@ -163,6 +163,46 @@ export const COURSES: Course[] = [
     ],
   },
   {
+    slug: 'neuroscience',
+    title: 'Neuroscience',
+    tier: 'core',
+    tagline: 'How neurons signal, and how circuits of them sense, move, regulate the body, feel, remember and decide.',
+    searchHint: 'Try “action potential”, “retina”, “basal ganglia”…',
+    blurb:
+      'A core course for biology majors and premedical students. It starts with the map of the nervous system and how neurons signal, then synapses and plasticity, the senses, movement, homeostasis and emotion, memory and cognition, and ends with neurodegeneration and how modern experiments test what a circuit does. How the brain is built is taught in Developmental Neuroscience.',
+    /* Sequence approved by Chris 2026-10-18: benchmark C-neuro-benchmark (26) plus transmitter systems and neurodegeneration. */
+    units: [
+      {
+        name: 'Neurons and their signals',
+        slugs: ['nervous-system-map', 'neurons-and-glia-at-work', 'resting-membrane-passive', 'action-potential'],
+      },
+      {
+        name: 'Synapses and plasticity',
+        slugs: ['synaptic-transmission', 'transmitter-systems', 'synaptic-integration', 'synaptic-plasticity'],
+      },
+      {
+        name: 'Sensory systems',
+        slugs: ['sensory-coding', 'retina', 'visual-cortex', 'hearing-and-balance', 'touch-and-pain', 'smell-and-taste'],
+      },
+      {
+        name: 'Motor systems',
+        slugs: ['motor-units-reflexes', 'basal-ganglia', 'cerebellum'],
+      },
+      {
+        name: 'Homeostasis and affect',
+        slugs: ['hypothalamus-autonomic', 'motivation-and-reward', 'emotion-and-stress', 'sleep-and-rhythms'],
+      },
+      {
+        name: 'Cognition and learning',
+        slugs: ['memory-systems', 'memory-consolidation', 'language', 'attention-and-decisions'],
+      },
+      {
+        name: 'Evidence and disease',
+        slugs: ['neurodegeneration', 'large-scale-neuroscience', 'circuit-experiment-design'],
+      },
+    ],
+  },
+  {
     slug: 'signaling',
     title: 'Cell Signaling',
     tier: 'elective',

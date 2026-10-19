@@ -1,0 +1,226 @@
+---
+/**
+ * PrismThrowAdaptation — the lesson's worked problem as a sketch. A made-up thrower
+ * (the task follows Martin and colleagues, 1996) wears prisms that shift the view to
+ * the right, so the first throw lands E0 cm right of the target. Each correction removes a
+ * fixed fraction k of the remaining error: error after n corrections = E0 x (1 - k)^n.
+ * The learned correction, E0 - error, is still applied when the prisms come off, so the
+ * first throw in an unshifted world lands that far to the left: the after-effect.
+ * Original. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="pta card" data-pta>
+  <figcaption class="pta-head">Prism throwing — error, correction and after-effect<span class="pta-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pta-svg" viewBox="0 0 340 332" role="img" aria-label="Top: a target seen from above with the landing points of throws, right of target positive. Bottom: the error after each correction, then the first throw after the prisms come off." data-plot></svg>
+
+  <div class="pta-presets">
+    <button type="button" class="pta-btn" data-preset="worked">Worked thrower (k = 0.30)</button>
+    <button type="button" class="pta-btn" data-preset="patient">Illustrative patient (k = 0.05)</button>
+  </div>
+
+  <div class="pta-controls">
+    <label class="pta-slabel"><span>Fraction corrected per throw, k <em data-out="k">0.30</em></span>
+      <input type="range" data-in="k" min="0" max="0.6" step="0.01" value="0.3" />
+    </label>
+    <label class="pta-slabel"><span>Corrections made, n (throw 1 is n = 0) <em data-out="n">7</em></span>
+      <input type="range" data-in="n" min="0" max="20" step="1" value="7" />
+    </label>
+    <label class="pta-slabel"><span>Prism shift, E<sub>0</sub> <em data-out="e0">20</em> cm</span>
+      <input type="range" data-in="e0" min="10" max="30" step="1" value="20" />
+    </label>
+  </div>
+
+  <dl class="pta-readout">
+    <div><dt>Error after n corrections, E<sub>0</sub> × (1 − k)<sup>n</sup></dt><dd data-r-err></dd></div>
+    <div><dt>Corrections needed to get below 2 cm</dt><dd data-r-need></dd></div>
+    <div><dt>Learned correction, E<sub>0</sub> − error</dt><dd data-r-learned></dd></div>
+    <div><dt>After-effect: first throw, prisms off (unshifted world)</dt><dd data-r-after></dd></div>
+  </dl>
+  <p class="pta-list" data-r-list></p>
+  <p class="pta-why" data-why role="status"></p>
+
+  <p class="pta-assume">In this sketch: a made-up thrower, a fixed fraction k of the remaining error corrected per throw, nothing else changing. Right of the target is positive (the thrower’s right).</p>
+  <p class="pta-foot">Rule to keep: the miss shrinks by the same fraction each correction, so slow learning shows twice, in a large error that remains and in a small after-effect; the after-effect shows that the motor command itself was recalibrated. This is a made-up thrower in the design of Martin and colleagues (1996), not a model of any synapse.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, anchor: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': 9, fill: INK, ...extra });
+    t.textContent = s;
+    return t;
+  }
+  const f1 = (v: number) => v.toFixed(1);
+  const f2 = (v: number) => v.toFixed(2);
+  const e3 = (v: number) => (v >= 1 ? v.toPrecision(3) : v.toFixed(2)); // 3 significant figures, as the lesson rounds
+  const side = (v: number) => (v >= 0 ? '' : '−') + Math.abs(v).toFixed(1);
+
+  document.querySelectorAll<HTMLElement>('[data-pta]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const q = (s: string) => root.querySelector<HTMLInputElement>(s)!;
+    const o = (s: string) => root.querySelector<HTMLElement>(s)!;
+    const kIn = q('[data-in="k"]'), nIn = q('[data-in="n"]'), e0In = q('[data-in="e0"]');
+    const kOut = o('[data-out="k"]'), nOut = o('[data-out="n"]'), e0Out = o('[data-out="e0"]');
+    const rErr = o('[data-r-err]'), rNeed = o('[data-r-need]'), rLearned = o('[data-r-learned]'), rAfter = o('[data-r-after]');
+    const rList = o('[data-r-list]'), why = o('[data-why]');
+
+    // top strip: landing points, -30..+30 cm
+    const SC = 5, CX = 170, AY = 56; // 5 px per cm, axis y
+    const sx = (c: number) => CX + SC * c;
+    // bottom plot
+    const PX0 = 40, PX1 = 300, PY0 = 134, PY1 = 296, YMAX = 34;
+    const py = (c: number) => PY0 + ((YMAX - c) / (2 * YMAX)) * (PY1 - PY0);
+    const px = (j: number) => PX0 + 8 + (j / 21) * (PX1 - PX0 - 16);
+
+    function render() {
+      const k = parseFloat(kIn.value), n = parseInt(nIn.value, 10), E0 = parseFloat(e0In.value);
+      kOut.textContent = f2(k); nOut.textContent = String(n); e0Out.textContent = String(E0);
+      const err = (j: number) => E0 * Math.pow(1 - k, j);
+      const En = err(n);
+      const learned = E0 - En;          // leftward
+      const after = -learned;           // landing position, prisms off (right +)
+
+      plot.replaceChildren();
+
+      // ---- top: target seen from above ----
+      plot.appendChild(txt(20, 12, 'Landing points, seen from above (cm, right of target +)', 'start', { 'font-size': 10 }));
+      plot.appendChild(el('line', { x1: sx(-30), y1: AY, x2: sx(30), y2: AY, stroke: INK, 'stroke-width': 1 }));
+      for (let c = -30; c <= 30; c += 10) {
+        plot.appendChild(el('line', { x1: sx(c), y1: AY, x2: sx(c), y2: AY + 12, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt(sx(c), AY + 19, (c > 0 ? '+' : c < 0 ? '−' : '') + Math.abs(c), 'middle'));
+      }
+      plot.appendChild(el('circle', { cx: sx(0), cy: AY, r: 11, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
+      plot.appendChild(el('circle', { cx: sx(0), cy: AY, r: 6.5, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
+      plot.appendChild(el('circle', { cx: sx(0), cy: AY, r: 2.2, fill: INK }));
+      plot.appendChild(txt(sx(0), 28, 'target', 'middle'));
+      // all landing points under the prisms
+      for (let j = 0; j <= n; j++) {
+        plot.appendChild(el('circle', { cx: sx(err(j)), cy: AY, r: 4, fill: ACCENT, 'fill-opacity': j === n ? 0.95 : 0.45, stroke: '#fff', 'stroke-width': 0.8 }));
+      }
+      plot.appendChild(el('circle', { cx: sx(after), cy: AY, r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 0.8 }));
+      // labels on separate rows so they cannot collide
+      const clampX = (x: number, half: number) => Math.min(Math.max(x, 4 + half), 336 - half);
+      if (n === 0) {
+        plot.appendChild(txt(clampX(sx(E0), 52), 40, 'first throw (n = 0)', 'middle', { fill: ACCENT, 'font-weight': 700 }));
+      } else {
+        plot.appendChild(txt(clampX(sx(E0), 26), 40, 'first throw', 'middle', { fill: ACCENT, 'font-weight': 700 }));
+        plot.appendChild(txt(clampX(sx(En), 50), 90, 'after ' + n + ' correction' + (n === 1 ? '' : 's'), 'middle', { fill: ACCENT, 'font-weight': 700 }));
+      }
+      plot.appendChild(txt(clampX(sx(after), 40), 103, 'prisms off', 'middle', { fill: ORANGE, 'font-weight': 700 }));
+
+      // ---- bottom: error vs corrections ----
+      plot.appendChild(txt(20, 120, 'Error after n corrections, then the first throw with prisms off', 'start', { 'font-size': 10 }));
+      plot.appendChild(el('rect', { x: PX0, y: py(2), width: PX1 - PX0, height: py(-2) - py(2), fill: ACCENT, 'fill-opacity': 0.08 }));
+      plot.appendChild(el('line', { x1: PX0, y1: PY0, x2: PX0, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: PY1, x2: PX1, y2: PY1, stroke: INK, 'stroke-width': 1 }));
+      for (const c of [-30, -20, -10, 0, 10, 20, 30]) {
+        plot.appendChild(el('line', { x1: PX0 - 3, y1: py(c), x2: PX0, y2: py(c), stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('line', { x1: PX0, y1: py(c), x2: PX1, y2: py(c), stroke: c === 0 ? INK : FAINT, 'stroke-width': c === 0 ? 1 : 0.6, 'stroke-dasharray': c === 0 ? '' : '2 3' }));
+        plot.appendChild(txt(PX0 - 5, py(c) + 3, (c > 0 ? '+' : c < 0 ? '−' : '') + Math.abs(c), 'end'));
+      }
+      plot.appendChild(txt(PX1 + 4, py(2) + 3, '±2 cm', 'start'));
+      for (const j of [0, 5, 10, 15, 20]) {
+        plot.appendChild(el('line', { x1: px(j), y1: PY1, x2: px(j), y2: PY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt(px(j), PY1 + 13, String(j), 'middle'));
+      }
+      plot.appendChild(txt((PX0 + PX1) / 2, PY1 + 27, 'corrections made, n', 'middle'));
+      const yl = txt(11, (PY0 + PY1) / 2, 'landing error (cm)', 'middle');
+      yl.setAttribute('transform', `rotate(-90 11 ${(PY0 + PY1) / 2})`);
+      plot.appendChild(yl);
+      // curve + dots
+      let d = '';
+      for (let j = 0; j <= n; j++) d += (j === 0 ? 'M' : 'L') + px(j).toFixed(1) + ' ' + py(err(j)).toFixed(1) + ' ';
+      if (n > 0) plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2 }));
+      for (let j = 0; j <= n; j++) plot.appendChild(el('circle', { cx: px(j), cy: py(err(j)), r: 3.2, fill: ACCENT, stroke: '#fff', 'stroke-width': 0.8 }));
+      // dashed step to the after-effect throw
+      plot.appendChild(el('line', { x1: px(n), y1: py(En), x2: px(n + 1), y2: py(after), stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: px(n + 1), cy: py(after), r: 4, fill: ORANGE, stroke: '#fff', 'stroke-width': 0.8 }));
+      const ex = Math.min(px(n), PX1 - 14);
+      plot.appendChild(txt(ex, py(En) - 7, f1(En), 'middle', { fill: ACCENT, 'font-weight': 700 }));
+      const ax = Math.min(px(n + 1), PX1 - 26);
+      plot.appendChild(txt(ax, py(after) + (after > -26 ? 14 : -8), n === 0 ? '0.0 off' : side(after) + ' off', 'middle', { fill: ORANGE, 'font-weight': 700 }));
+
+      // ---- readouts ----
+      rErr.textContent = e3(En) + ' cm right';
+      let nstar = 0;
+      if (k > 0) { while (E0 * Math.pow(1 - k, nstar) >= 2 && nstar < 100000) nstar++; }
+      if (k === 0) {
+        rNeed.textContent = 'never (k = 0)';
+      } else {
+        const qv = Math.log(2 / E0) / Math.log(1 - k);
+        rNeed.textContent = `n > ln ${f2(2 / E0)} / ln ${f2(1 - k)} = ${f2(qv)}, so ${nstar}`;
+      }
+      rLearned.textContent = f2(learned) + ' cm leftward';
+      rAfter.textContent = learned < 0.05 ? '0.0 cm (none)' : `about ${f1(learned)} cm to the left`;
+      if (n === 0) {
+        rList.textContent = 'Error after each correction: none made yet.';
+      } else {
+        const parts: string[] = [];
+        for (let j = 1; j <= n; j++) parts.push(`${j}: ${e3(err(j))}`);
+        rList.textContent = 'Error after each correction (cm): ' + parts.join(' · ');
+      }
+
+      // ---- status ----
+      const isPatient = Math.abs(k - 0.05) < 1e-9 && n === 7 && E0 === 20;
+      let s: string;
+      if (n === 0) {
+        s = `No correction has been made, so the first throw lands ${E0} cm right of the target. Nothing has been learned, so taking the prisms off gives no after-effect: the first throw lands on target.`;
+      } else if (k === 0) {
+        s = `In this sketch k = 0, so no part of the error is corrected: the throws keep landing ${E0} cm right, nothing is learned, and with the prisms off the first throw lands on target (no after-effect).`;
+      } else {
+        s = `In this sketch ${n} correction${n === 1 ? '' : 's'} at k = ${f2(k)} leave ${e3(En)} cm of error to the right (${E0} × ${f2(1 - k)}^${n}). The learned correction of ${f2(learned)} cm leftward is still applied when the prisms come off, so the first throw lands about ${f1(learned)} cm to the left: the after-effect, which shows the motor command itself was recalibrated.`;
+        if (En >= 2) {
+          s += ` Learning is incomplete here, and it shows twice: ${e3(En)} cm of error remains (still above 2 cm; ${nstar} corrections would be needed) and the after-effect is only ${f1(learned)} cm, against ${E0} cm if the whole error had been corrected.`;
+        } else {
+          s += ` The error is below 2 cm (${nstar} corrections were needed).`;
+        }
+        if (isPatient) s = 'The lesson’s illustrative patient: ' + s;
+      }
+      why.textContent = s;
+    }
+
+    [kIn, nIn, e0In].forEach((s) => s.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        kIn.value = b.dataset.preset === 'patient' ? '0.05' : '0.3';
+        nIn.value = '7';
+        e0In.value = '20';
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .pta { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pta-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pta-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pta-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pta-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 0; }
+  .pta-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.65rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .pta-btn:hover, .pta-btn:focus-visible { border-color: var(--ddp-color-accent); outline: 2px solid color-mix(in srgb, var(--ddp-color-accent) 40%, transparent); outline-offset: 1px; }
+  .pta-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .pta-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pta-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pta-slabel input { accent-color: var(--ddp-color-accent); }
+  .pta-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pta-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .pta-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pta-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .pta-list { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); line-height: 1.5; overflow-wrap: anywhere; }
+  .pta-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .pta-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pta-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .pta-controls, .pta-readout { grid-template-columns: 1fr; }
+  }
+</style>
