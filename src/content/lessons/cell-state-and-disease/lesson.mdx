@@ -40,7 +40,7 @@ scientists:
     quotes: []
     story: >-
       A tumour sample ground up for sequencing gives one average. Tirosh, Izar and their
-      colleagues asked what that average was made of. They dissociated metastatic melanomas from
+      colleagues asked what that average was made of. They dissociated mostly metastatic melanomas from
       19 patients and sequenced the RNA of 4,645 individual cells. The cells sorted into malignant
       cells and the tissue around them: immune cells, stromal cells and endothelial cells that
       line blood vessels. The malignant cells were not uniform either. Within a tumour they
@@ -123,7 +123,7 @@ techniques:
       same cell, so an annotation does not have to infer surface protein from its RNA.
   - name: "Inducible Cre lineage tracing"
     blurb: >-
-      A drug switches on Cre recombinase in a few cells, which both deletes a floxed gene such as
+      A drug switches on Cre recombinase in a few cells, which both deletes a floxed gene (one flanked by loxP sites) such as
       Notch1 and turns on a reporter such as YFP. Every descendant stays labelled, so the size and
       makeup of each clone can be followed over weeks.
   - name: "EdU pulse and pulse-chase"
@@ -153,7 +153,7 @@ structures:
     id: "1CRX"
     note: "X-ray structure of a recombination synapse; Guo, Gopaul and Van Duyne, Nature 1997."
     caption: >-
-      Four Cre molecules hold two loxP sites side by side. Recombination between the sites
+      Four Cre molecules hold two loxP sites side by side. Recombination between sites in the same orientation
       removes the DNA between them, which is how a stop sequence before a reporter is cut out.
   - label: "Yellow fluorescent protein — the reporter that marks traced clones"
     source: "rcsb"
@@ -261,7 +261,7 @@ mcatQuestions:
       - "Extrusion in crowded sheets requires prior activation of caspase-3"
     answer: 2
     rationale: >-
-      Extrusion rose after crowding, and most extruding cells lacked active caspase-3, so living
+      Extrusion rose after crowding, and most extruding cells lacked active caspase-3, so cells not yet apoptotic
       cells were being pushed out. Apoptosis first, then exit, predicts caspase-positive
       extruding cells, the opposite of the data. A requirement for caspase-3 activation is
       contradicted by the many caspase-negative cells. Necrosis from release damage is not
@@ -379,7 +379,7 @@ NOTCH1 mutations also turn up in oesophageal cancers. Yet this tissue looked nor
 
 ## From a tissue to a count matrix
 
-Every cell in a tissue carries the same genome. What makes a keratinocyte differ from a macrophage is which genes it transcribes, a pattern held in place by transcription factors and chromatin (see [eukaryotic gene regulation](/lessons/eukaryotic-regulation/)). Single-cell RNA sequencing (scRNA-seq) reads that pattern one cell at a time.
+Every cell in a tissue carries essentially the same genome. What makes a keratinocyte differ from a macrophage is which genes it transcribes, a pattern held in place by transcription factors and chromatin (see [eukaryotic gene regulation](/lessons/eukaryotic-regulation/)). Single-cell RNA sequencing (scRNA-seq) reads that pattern one cell at a time.
 
 The steps are simple to state. You dissociate the tissue into single cells, usually with enzymes. Each cell's RNA is captured and copied into DNA tagged with a cell barcode, a short sequence shared by every molecule from that cell. In many methods each molecule also gets a unique molecular identifier, so copies made later can be collapsed back into one original molecule. The pooled DNA is sequenced (see [sequencing and genomes](/lessons/sequencing-and-genomes/)), and the reads are sorted by barcode and counted.
 
@@ -400,7 +400,7 @@ So a cluster is an observation to explain, not a type by definition. Six things 
 - **Batch effects.** Samples handled on different days or by different hands can differ for technical reasons and cluster apart.
 - **Dissociation stress.** Breaking up a tissue can perturb cell state before the RNA is captured.
 - **Resolution.** A clustering parameter sets the scale. Turn it up and one type splits into states; turn it down and distinct types merge.
-- **Circular marker testing.** If you cluster on the expression data and then test the same data for genes that differ between clusters, the P values are inflated, because the clusters were drawn to differ. Markers also depend on what else is in the data set.
+- **Circular marker testing.** If you cluster on the expression data and then test the same data for genes that differ between clusters, the P values are too small, because the clusters were drawn to differ. Markers also depend on what else is in the data set.
 
 The 2016 melanoma study of Tirosh and colleagues shows the payoff when this is done with care. Among 4,645 cells from 19 patients' tumours, malignant cells within one tumour differed in programmes associated with the cell cycle, a state rather than a separate cancer type.
 

@@ -32,7 +32,7 @@
 
   <p class="ktr-verdict" data-verdict role="status"></p>
 
-  <p class="ktr-foot">Rule to keep: work per step is force times 8 nm, and efficiency is that work divided by the energy of one ATP (83 pN·nm from the assumed 50 kJ/mol). The numbers are the lesson’s made-up numbers. The lesson ties one ATP per step to near-zero load and works out efficiency only at stall, so efficiency at other loads holds only if each step costs one ATP. The straight force-velocity line and the random timing of steps are a sketch of the logic, not data.</p>
+  <p class="ktr-foot">Rule to keep: work per step is force times 8 nm, and efficiency is that work divided by the energy of one ATP (83 pN·nm from the assumed 50 kJ/mol). The numbers are the lesson’s made-up numbers. The lesson ties one ATP per step to near-zero load and works out efficiency only near stall, so efficiency at other loads holds only if each step costs one ATP. The straight force-velocity line and the random timing of steps are a sketch of the logic, not data.</p>
 </figure>
 
 <script>
@@ -156,11 +156,11 @@
       // status
       let s: string;
       if (stalled) {
-        s = `At 6 pN the bead sits ${fmt(xdist)} nm from the trap centre (F = 0.05 × 120) and the motor stalls: no net steps, so velocity is 0. Work per step is 6 × 8 = 48 pN·nm, and 48 / 83 is about 58%, the lesson’s efficiency at stall.`;
+        s = `At 6 pN the bead sits ${fmt(xdist)} nm from the trap centre (F = 0.05 × 120) and the motor stalls: no net steps, so velocity is 0. Work per step is 6 × 8 = 48 pN·nm, and 48 / 83 is about 58%, the lesson’s efficiency near stall.`;
       } else if (F === 0) {
         s = `At low load the motor moves at 800 nm/s, so 100 steps per second of 8 nm. By ${fmt(t, 2)} s you see ${n} steps (${fmt(obsPos)} nm); the expected count is ${fmt(expSteps, 1)}. No force is applied, so the work per step is 0 and so is the efficiency.`;
       } else {
-        s = `At ${fmt(F, 1)} pN, in this sketch (a straight line) the speed falls roughly in proportion to load, to ${fmt(v)} nm/s or ${fmt(rate, 1)} steps per second. By ${fmt(t, 2)} s you see ${n} steps, against ${fmt(expSteps, 1)} expected. Each step does ${fmt(F, 1)} × 8 = ${fmt(work, 1)} pN·nm, which would be ${fmt(eff * 100)}% of the 83 pN·nm in one ATP, if each step costs one ATP (the lesson ties that to near-zero load and works it out only at stall).`;
+        s = `At ${fmt(F, 1)} pN, in this sketch (a straight line) the speed falls roughly in proportion to load, to ${fmt(v)} nm/s or ${fmt(rate, 1)} steps per second. By ${fmt(t, 2)} s you see ${n} steps, against ${fmt(expSteps, 1)} expected. Each step does ${fmt(F, 1)} × 8 = ${fmt(work, 1)} pN·nm, which would be ${fmt(eff * 100)}% of the 83 pN·nm in one ATP, if each step costs one ATP (the lesson ties that to near-zero load and works it out only near stall).`;
       }
       if (obsPos > YMAX) s += ' The observed position is off the top of the axis.';
       if (t === 0) s += ' The cursor is at 0 s, so no steps have happened yet.';

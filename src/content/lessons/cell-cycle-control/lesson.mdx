@@ -38,8 +38,8 @@ scientists:
     profileSourceAnchor: "Hartwell, Culotti & Reid, Proc. Natl. Acad. Sci. USA 66:352 (1970); Hartwell, Mortimer, Culotti & Culotti, Genetics 74:267 (1973)."
     quotes: []
     story: >-
-      Hartwell's laboratory at the University of Washington chose baker's yeast, Saccharomyces
-      cerevisiae, because its bud reports the stage of the cycle: no bud in G1, a small bud as DNA
+      Hartwell chose baker's yeast, Saccharomyces
+      cerevisiae, at UC Irvine; at the University of Washington his laboratory used its bud, which reports the stage of the cycle: no bud in G1, a small bud as DNA
       is copied, a large bud by mitosis. The group collected temperature-sensitive mutants, which
       grow at a low temperature and fail at a higher one, and kept those that stopped with one
       uniform shape. In the 1970 paper with Joseph Culotti and Brian Reid, they followed single cells
@@ -176,7 +176,7 @@ practiceQuestions:
       Replication doubles the DNA from 2C to 4C, but each chromosome is now two sister chromatids
       held together, so the number of chromosome sets is unchanged and the cell is still diploid.
       Calling it tetraploid confuses doubling DNA with doubling chromosome sets. A 2C diploid cell
-      is a G1 cell, which has not replicated yet. A 2C haploid cell does not arise in a somatic
+      is a G1 (or G0) cell, which has not replicated yet. A 2C haploid cell does not arise in a somatic
       cycle; halving the sets happens in meiosis.
   - stem: "Which statement correctly describes the two partners in a cyclin-CDK complex?"
     choices:
@@ -292,7 +292,7 @@ explainLevels:
     label: "High school"
     text: >-
       The cell cycle has four phases: G1 (growth), S (copying DNA), G2 (getting ready) and M
-      (mitosis, when the copies are pulled apart). You can tell which phase a cell is in by how
+      (mitosis, when the copies are pulled apart). You can tell whether a cell has copied its DNA yet by how
       much DNA it has: twice as much after S as before. What moves a cell along is a set of
       enzymes called CDKs, which switch other proteins on by adding phosphate. A CDK works only
       when a partner called a cyclin is attached. The cell builds up cyclin, the CDK switches on,
@@ -389,7 +389,7 @@ The cycle has four phases. G1 is the gap between mitosis and the start of DNA re
 
 The first measurement is DNA content. One C is the DNA of one haploid genome, so a diploid cell has 2C in G1 and 4C in G2 and M. Doubling the DNA does not double the ploidy: a G2 cell is still diploid, with each chromosome made of two sister chromatids. To read DNA content, fix the cells and stain them with propidium iodide, a dye that fluoresces when bound to nucleic acid, plus RNase, because the dye also binds RNA. A flow cytometer measures each cell's fluorescence one at a time and builds a histogram: a 2C peak, a 4C peak, and S-phase cells smeared between.
 
-The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains fix that. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S. An antibody to histone H3 phosphorylated on serine 10 marks condensed mitotic chromosomes. Saldivar and colleagues combined all three, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
+The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains fix the second; G0 still needs its own marker, such as Ki67. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S. An antibody to histone H3 phosphorylated on serine 10 marks condensed mitotic chromosomes. Saldivar and colleagues combined all three, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
 
 <LessonFigure src="/figures/cell-cycle-control/which-stain-sees-which-state.webp" width={1200} height={455} alt="AI-generated illustration: five cells labelled G0, G1, S, G2 and M, with brackets showing G0 and G1 share 2C DNA and G2 and M share 4C, a gold glow marking S-phase cells (EdU) and gold-outlined chromosomes marking mitosis (phospho-H3)." caption="DNA content alone cannot separate G0 from G1 or mitosis from G2. A short EdU pulse marks cells in S, and phosphorylated histone H3 marks condensed mitotic chromosomes." />
 
@@ -442,7 +442,7 @@ The logic, as it is now taught:
 - **CDKs** (cyclin-dependent kinases) are the catalytic subunits, inactive alone. **Cyclins** are regulatory subunits that switch them on and steer them to targets; cyclin levels rise and fall while CDK levels stay fairly even. In mammals, cyclin D with CDK4 or CDK6 acts in G1, cyclin E with CDK2 at the G1/S transition, cyclin A with CDK2 in S, and cyclins A and B with CDK1 in G2 and M. Growth-factor signals reach cyclin D (see [Ras to MAPK](/lessons/ras-to-mapk/)), and the Rb brake it releases is in [cancer genetics](/lessons/cancer-genetics/).
 - **Wee1** adds an inhibitory phosphate to CDK1, holding the complex off while cyclin accumulates; the phosphatase **Cdc25** removes it (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
 - **CDK inhibitor proteins**, such as p21 and p27 in mammals, bind the complex and block it.
-- Two **ubiquitin ligases** destroy regulators: the SCF at several points, notably around G1/S, the APC/C in mitosis, where destroying cyclin B ends M phase ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)).
+- Two **ubiquitin ligases** destroy regulators: the SCF at several points, notably around G1/S, and the APC/C in mitosis, where destroying cyclin B ends M phase ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)).
 
 <LessonFigure src="/figures/cell-cycle-control/cyclin-cdk-ring-map.webp" width={1200} height={747} alt="AI-generated illustration: a ring of four phases G1, S, G2 and M with a cyclin-CDK block pair at each stage and two ubiquitin ligases, SCF near G1/S and APC/C at the end of M." caption="Which cyclin-CDK pair acts where, in mammals. Cyclin levels rise and fall while CDK levels stay fairly even; the SCF acts at several points, notably around G1/S, and the APC/C ends M phase by destroying cyclin B." />
 
@@ -459,7 +459,7 @@ Synchronise cultured mammalian cells in G1, S and G2 and confirm each population
 
 Fuse S with G1, and S with G2. Give a short pulse of a DNA precursor (radioactive thymidine or EdU) and score each nucleus separately. Expected result, as in Rao and Johnson's 1970 work: G1 nuclei start replicating early, G2 nuclei do not.
 
-Controls: same-phase fusions (G1 with G1, G2 with G2), which show the fusion itself does not start or block replication, and unfused neighbours on the same slide.
+Controls: same-phase fusions (G1 with G1, G2 with G2), which test whether the fusion itself starts or blocks replication, and unfused neighbours on the same slide.
 
 Interpretation: S cytoplasm carries a replication-starting activity, and a nucleus that has replicated cannot answer it again before mitosis. A third pairing, mitotic with interphase, should give premature chromosome condensation, with an appearance that depends on the phase of the interphase nucleus.
 
