@@ -117,7 +117,7 @@ techniques:
     blurb: >-
       Deliver a double-stranded or small interfering RNA against a target transcript, then
       measure how much target protein is left by immunoblotting or immunofluorescence. The
-      specificity test is a rescue with a transgene made refractory to the RNAi reagent, plus a
+      specificity test is a rescue with a transgene engineered to resist the RNAi reagent, plus a
       second, non-overlapping reagent against the same gene.
   - name: "Amplicon sequencing of edited alleles"
     blurb: >-
@@ -381,7 +381,7 @@ The gentler route is RNA interference, which lowers how much protein a gene make
 
 <LessonFigure src="/figures/crispr-and-functional-genomics/knockdown-vs-knockout.webp" width={1200} height={405} alt="AI-generated illustration: two panels from gene to protein. In knockdown the DNA is intact but a double-stranded RNA sits on the mRNA and less protein is made. In knockout the DNA itself is altered and the protein is not made." caption="A knockdown lowers the protein made from a gene that is still intact; a knockout changes the DNA. They need different controls, and an indel is not a guarantee of lost function." />
 
-That difference sets the controls. A knockdown needs a measurement of the perturbation itself, by immunoblotting or immunofluorescence for the target protein, two non-overlapping reagents against the same gene, and a rescue with a transgene made refractory to the reagent. Even a successful rescue does not formally exclude a phenotype that also requires an off-target effect. A knockout needs its own checks, because an indel is not a guarantee of lost function.
+That difference sets the controls. A knockdown needs a measurement of the perturbation itself, by immunoblotting or immunofluorescence for the target protein, two non-overlapping reagents against the same gene, and a rescue with a transgene engineered to resist the reagent. Even a successful rescue does not formally exclude a phenotype that also requires an off-target effect. A knockout needs its own checks, because an indel is not a guarantee of lost function.
 
 ## CRISPR came from a bacterial immune system
 
@@ -397,7 +397,7 @@ For Streptococcus pyogenes Cas9 the targeting rule is short. The guide's target-
 
 The cut is where your control ends. A double-strand break can enter non-homologous end joining, which needs no template, or homology-directed repair from a template you supply, which is more efficient in dividing cells. End joining is often described as error-prone, and it does produce insertions and deletions, but in a study of paired cuts at 71 sites in mouse and human cells about 50% of end-joining events had been joined accurately. Outcomes are also not random: a survey of more than 40,000 guides on synthetic targets found repair spectra that depended reproducibly on local sequence and on cell line. The repair pathways themselves are [DNA repair and recombination](/lessons/dna-repair-and-recombination/).
 
-So cut, mutated allele and functional knockout are three states, and only the third is a genetic result. Here is the arithmetic. You cut exon 2 of a gene in a diploid line with one guide, and sequencing of alleles in the pool gives: unedited 10%, minus 1 bp 35%, plus 1 bp 25%, minus 3 bp 15%, minus 6 bp 5%, minus 7 bp 10%.
+So cut, mutated allele and functional knockout are three states, and only the third is a genetic result, a loss of the gene's function. Here is the arithmetic. You cut exon 2 of a gene in a diploid line with one guide, and sequencing of alleles in the pool gives: unedited 10%, minus 1 bp 35%, plus 1 bp 25%, minus 3 bp 15%, minus 6 bp 5%, minus 7 bp 10%.
 
 <CrisprRepairOutcome />
 
@@ -422,7 +422,7 @@ On the knockdown side, repeat it with two or more independent, non-overlapping s
 
 On the knockout side, genotype the clone properly. Sequence both alleles separately rather than a pooled amplicon, and look for an in-frame indel that leaves a partially functional product; add a long-range assay, since a short amplicon can look clean while a large deletion sits outside it. Blot for the protein, including with an antibody to a region downstream of the cut, to rule out a truncated product or re-initiation. Make and test several independent clones with different guides, because one clone is an n of 1 with its own history.
 
-Then test compensation. A mutant line can upregulate related genes in a way an acute knockdown does not, as reported for zebrafish morphants compared with mutants. Measure paralogue expression in the knockout clone, and ask whether acute degradation of X protein in that same clone's parent reproduces the knockdown phenotype.
+Then test compensation. A mutant line can upregulate related genes in a way an acute knockdown does not, as reported for zebrafish morphants compared with mutants. Measure paralogue expression in the knockout clone, and ask whether acute degradation of X protein in that clone's parental cell line reproduces the knockdown phenotype.
 
 </details>
 
@@ -432,4 +432,4 @@ A somatic edit changes cells in one person. A germline edit in an embryo can be 
 
 The published guidance draws the line at reproduction rather than at embryos. The 2021 ISSCR guidelines placed reproductive heritable genome editing in a prohibited category because the methods were not sufficiently safe or efficient, allowed non-reproductive human embryo editing research under robust review and oversight, and required meaningful public engagement before any clinical heritable application. The same year, WHO recommendations emphasized oversight, registries, and equitable access to the benefits of genome editing. Those are questions about consent, access and who speaks for future generations, and no efficiency measurement answers them.
 
-Somatic editing has reached the clinic. In the first reported patients, a person's own CD34-positive blood stem cells were edited at the BCL11A erythroid enhancer and returned after myeloablation, and fetal haemoglobin rose in both; that approach has since been approved for sickle cell disease and transfusion-dependent beta thalassaemia. It is a transplant procedure with an editing step inside it, and nothing here is clinical advice. For the sequencing and library methods these screens depend on, see [recombinant DNA and PCR](/lessons/recombinant-dna-and-pcr/) and [sequencing and genomes](/lessons/sequencing-and-genomes/).
+Somatic editing has reached the clinic. In the first reported patients, a person's own CD34-positive blood stem cells were edited at the BCL11A erythroid enhancer and returned after myeloablation, which clears the patient's existing bone marrow, and fetal haemoglobin rose in both; that approach has since been approved for sickle cell disease and transfusion-dependent beta thalassaemia. It is a transplant procedure with an editing step inside it, and nothing here is clinical advice. For the sequencing and library methods these screens depend on, see [recombinant DNA and PCR](/lessons/recombinant-dna-and-pcr/) and [sequencing and genomes](/lessons/sequencing-and-genomes/).
