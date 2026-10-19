@@ -44,7 +44,7 @@ scientists:
       used mice lacking the death gene Bax, whose sympathetic neurons survive with or without NGF.
       Comparing ganglia from Bax-null mice with ganglia from mice lacking both Bax and NGF let
       them list genes that depend on NGF in the living animal. One was TrkA, the NGF receptor
-      itself: NGF was necessary and sufficient for its expression. Others were BDNF and NT-4,
+      itself: NGF raised its expression, and without NGF it fell. Others were BDNF and NT-4,
       neurotrophins that can kill through the receptor p75. With the computational neuroscientists
       Stefan Mihalas and Ernst Niebur, the group built a model in which positive feedback amplifies
       small differences and punishment speeds the split, then tested its predictions in mutant
@@ -159,10 +159,10 @@ practiceQuestions:
       - "Bax, the gene that executes the death program"
     answer: 0
     rationale: >-
-      TrkA is correct: NGF was necessary and sufficient for TrkA expression, so a neuron that
+      TrkA is correct: NGF raised TrkA expression and TrkA fell without it, so a neuron that
       receives NGF makes more of the receptor that detects NGF, which is positive feedback. Bax is
       the death gene removed to keep neurons alive; it is not the feedback target. p75 mediates
-      punishment, and the NGF-dependent genes in that arm were BDNF and NT-4, not p75. NGF is made
+      punishment, and although p75 also fell without NGF, it receives the BDNF and NT-4 that strong neurons make rather than raising a neuron's own NGF sensitivity. NGF is made
       by the target tissue, not by the competing neurons, so it cannot feed back on itself here.
   - stem: "Why was a Bax-null background needed to find NGF-dependent genes in sympathetic ganglia in vivo?"
     choices:
@@ -253,8 +253,7 @@ mcatQuestions:
       - "Paralysis makes motor neurons independent of any target"
     answer: 1
     rationale: >-
-      A common interpretation is that paralysed muscle allows more nerve branching and synapses, or
-      produces more of the factors motor neurons need, so more neurons find support. Curare blocks
+      A common interpretation is that paralysed muscle allows more nerve branching and synapses, so more neurons find support. Curare blocks
       acetylcholine receptors on muscle; nothing shows it acts as a survival factor on motor
       neurons. Paralysis does not free motor neurons from their targets; the result is read as a
       change in what the target offers. Chick motor neurons do not depend on NGF, so blocking NGF
@@ -278,8 +277,8 @@ explainLevels:
   - level: "college"
     label: "College"
     text: >-
-      In mouse sympathetic neurons, target-derived NGF signals through TrkA, and NGF is necessary
-      and sufficient for TrkA expression, so NGF raises the cell's own sensitivity to NGF. This
+      In mouse sympathetic neurons, target-derived NGF signals through TrkA, and NGF raises TrkA
+      expression, so NGF raises the cell's own sensitivity to NGF. This
       positive feedback turns small differences in early NGF uptake into a bimodal outcome:
       neurons pass through naive, sensitization and competitive advantage stages before selection.
       Strongly supported neurons also express BDNF and NT-4, which act through the TNF-receptor
@@ -292,7 +291,7 @@ explainLevels:
       The 2008 model combines two loops: a positive loop in which NGF-TrkA signaling raises TrkA
       and the duration of its own signal, and a lateral inhibitory loop in which BDNF and NT-4 from
       high-TrkA neurons act on p75 in low-TrkA neurons. In simulations with a fixed NGF supply,
-      feedback separates the population into winners and losers, and punishment speeds that separation. Three predictions were tested in the superior cervical ganglion:
+      feedback on both TrkA level and signal duration (either alone fails) separates the population into winners and losers, and punishment speeds that separation. Three predictions were tested in the superior cervical ganglion:
       TrkA differs among competing neurons, low-TrkA neurons carry high p75 death signaling, and
       p75 loss delays rather than prevents neuron loss. Later work implicated Coronin-1 in
       prolonging NGF-TrkA signaling from endosomes.
@@ -338,7 +337,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 Earlier in this unit you met the neurotrophic hypothesis in the form Chris Deppmann teaches it: "Neurons compete for a limiting amount of neurotrophic factor for survival." Targets such as the eye, the salivary gland and the heart release nerve growth factor (NGF). Sympathetic neurons, which live in small clusters of nerve cells called ganglia, send axons to those targets. Neurons that get enough NGF live; those that do not die through the pro-death gene *Bax*. See [that lesson](/lessons/neurotrophic-hypothesis/) for the evidence.
 
-The hypothesis says there is a contest. It does not say how the contest is decided. This lesson follows one answer, worked out in the sympathetic neurons of the mouse superior cervical ganglion, a ganglion in the neck that supplies the head. Keep that scope in mind: this is one cell type in one species.
+The hypothesis says there is a contest. It does not say how the contest is decided. This lesson follows one answer, worked out in the sympathetic neurons of the mouse superior cervical ganglion, a ganglion in the neck that supplies the head. Keep that scope in mind: this is one cell type, studied in mice and in cultured rat neurons.
 
 ## The Competition Model: a limited supply means a contest
 
@@ -369,7 +368,7 @@ The lab called this "NGF Transcriptional Regulation of NGF Sensitivity" and desc
 3. **Competitive Advantage.** It raises TrkA and the proteins downstream of it.
 4. **Selection.** It wins the supply, and neighbours that stayed behind lose.
 
-NGF also controls how long its own signal lasts. With the computational neuroscientists Stefan Mihalas and Ernst Niebur, the group simulated neurons competing for fixed NGF under three rules: no feedback, feedback on TrkA level, and feedback on signal duration. Feedback separated the neurons into a winning and a losing group.
+NGF also controls how long its own signal lasts. With the computational neuroscientists Stefan Mihalas and Ernst Niebur, the group simulated neurons competing for fixed NGF under three rules: no feedback, feedback on TrkA level, and feedback on signal duration. Only with both kinds of feedback did the neurons separate into a winning and a losing group; with either one alone, competition failed.
 
 How does NGF lengthen its signal? Much NGF signaling travels from axon tip to cell body inside endosomes (the subject of [that lesson](/lessons/retrograde-signal/)). In 2014 Deppmann's laboratory, with Dong Suo as first author, reported that NGF induces Coronin-1, a protein that associates with these signaling endosomes, prolongs their signaling, and is required for normal competition in the mouse. It is one mechanism; there may be others.
 
@@ -410,7 +409,7 @@ Now a result that seemed to point the other way. In 1979 Robert Pittman and Rona
 
 Why was that a contradiction? If activity helps an axon win, as it does in many later forms of refinement, then silencing the connection should increase death. Instead it saved neurons.
 
-The usual explanations are interpretations, so hold them loosely. Paralysed muscle may allow more nerve branching and more synapses, giving each motor neuron more access to trophic support. Inactive muscle may also make more of the factors motor neurons need. Note that chick motor neurons do not depend on NGF. They draw on several factors at once, which Oppenheim called "an embarrassment of riches."
+The usual explanations are interpretations, so hold them loosely. Paralysed muscle may allow more nerve branching and more synapses, giving each motor neuron more access to trophic support. An older idea, that inactive muscle makes more of the factors motor neurons need, was not supported when extracts of paralysed muscle were tested. Note that chick motor neurons do not depend on NGF. They draw on several factors at once, which Oppenheim called "an embarrassment of riches."
 
 In other systems, activity helps a winner. Active synapses can release more BDNF, which layers activity-dependent refinement on top of trophic competition. In mouse sympathetic neurons, axon pruning uses the same BDNF and p75 punishment logic you met above (see [that lesson](/lessons/axon-pruning/)). The two kinds of result need not conflict: activity in the muscle and activity in the competing neurons are different variables.
 
