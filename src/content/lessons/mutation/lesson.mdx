@@ -130,7 +130,7 @@ techniques:
       mutagen in bacteria.
   - name: "Mutation accumulation with whole-genome sequencing"
     blurb: >-
-      Pass lines through repeated single-cell bottlenecks so that selection barely acts, then
+      Pass separate lines through repeated single-cell bottlenecks (each round restarted from one cell) so that selection barely acts, then
       sequence the genomes and count the changes. It measures mutation across the whole genome
       instead of at one selectable gene.
 
@@ -425,7 +425,7 @@ Salvador Luria and Max Delbrück saw that the two ideas predict different patter
 
 They compared many independent cultures with repeated samples from a single large culture, which measures plating noise alone. The independent cultures scattered far beyond sampling error, and they concluded that, in their system, resistance arose independently of the virus. Later work has shown that mutation rates can change with a cell's condition (pulses of mutagenesis after alkylation damage have been seen in single *E. coli* cells), and the debate over stress and mutation continues. None of it reverses the 1943 result for phage resistance.
 
-**Worked problem.** Ten independent 0.2 mL cultures and one bulk culture of *E. coli* each grow to about 2 x 10^8 cells per culture volume. Each independent culture, and ten 0.2 mL samples of the bulk culture, are plated on T1. Assume every mutant survives plating and is counted, mutants grow like the parent, no mutations arise after plating, and the number of divisions in a culture roughly equals its final cell number.
+**Worked problem.** Ten independent 0.2 mL cultures and one bulk culture of *E. coli* each grow to about 2 x 10^8 cells per 0.2 mL. Each independent culture, and ten 0.2 mL samples of the bulk culture, are plated on T1. Assume every mutant survives plating and is counted, mutants grow like the parent, no mutations arise after plating, and the number of divisions in a culture roughly equals its final cell number.
 
 Independent cultures: 0, 0, 1, 0, 3, 0, 0, 52, 2, 2. Bulk samples: 4, 8, 6, 3, 9, 5, 7, 6, 8, 4.
 
@@ -438,7 +438,7 @@ Independent cultures: 0, 0, 1, 0, 3, 0, 0, 52, 2, 2. Bulk samples: 4, 8, 6, 3, 9
 >
 > **rate = m / divisions = 0.69 / (2 x 10^8) = 3.5 x 10^-9 per cell per division**
 
-Now compare **mutant frequency**, the fraction of cells that are mutant. In the jackpot culture it is 52 / (2 x 10^8) = 2.6 x 10^-7, about 75 times the rate, from what was probably a single early event. Frequency counts cells; rate counts events per division. Confuse them and one lucky culture looks like a mutator.
+Now compare **mutant frequency**, the fraction of cells that are mutant. In the jackpot culture it is 52 / (2 x 10^8) = 2.6 x 10^-7, about 75 times the rate, from what was probably a single early event. Frequency counts cells; rate counts events per division. Confuse them and one lucky culture looks like a mutator, a strain with an elevated mutation rate.
 
 <FluctuationTestSimulator />
 
@@ -454,7 +454,7 @@ Matching positions point back to particular spots on the master. The Lederbergs 
 
 **Spontaneous** mutations arise from the cell's own chemistry and copying, with no applied mutagen.
 
-- **Replication errors.** DNA polymerase sometimes inserts the wrong base (see [DNA replication](/lessons/dna-replication/)). Rare alternative forms of the bases, called tautomers, were proposed as one cause of mispairing; that model is historical and now hedged.
+- **Replication errors.** DNA polymerase sometimes inserts the wrong base (see [DNA replication](/lessons/dna-replication/)). Rare alternative forms of the bases, called tautomers, were proposed as one cause of mispairing; that model is historical and now treated with caution.
 - **Deamination.** Cytosine loses its amino group and becomes uracil, which repair enzymes recognize as foreign. 5-Methylcytosine deaminates to thymine, a normal base, so the G:T mismatch is harder to resolve correctly and CpG sites, where cytosines are often methylated in vertebrates, are hot spots for C:G to T:A transitions. The chemistry is in [nucleotide metabolism](/lessons/nucleotide-metabolism/).
 - **Depurination.** The bond between a purine and its sugar breaks, leaving a site with no base to copy.
 - **Slippage.** In runs of repeated bases, the new strand can loop out or slip back during copying, adding or removing repeat units.
