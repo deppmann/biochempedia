@@ -1,0 +1,212 @@
+---
+/**
+ * WaterForCarbonLeaves — the worked problem of "What an Organism Has to Do". Two schematic
+ * leaf blocks, each with a bar for carbon gained, a bar for water lost and a bar for
+ * water-use efficiency = carbon gained / water lost. Leaf A is fixed at the lesson's
+ * 20 umol CO2 and 5 mmol H2O per m2 per s; leaf B (fewer stomata) is set by the learner.
+ * A switch (water scarce / water plentiful, carbon limits growth) picks which comparison
+ * the status line reads out. Original. Self-contained vanilla-TS Astro island.
+ */
+---
+
+<figure class="wl card" data-wl>
+  <figcaption class="wl-head">Water for carbon: two leaves<span class="wl-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="wl-svg" viewBox="0 0 340 252" role="img" aria-label="Two schematic leaf blocks side by side, each with a bar for carbon gained, a bar for water lost and a bar for water-use efficiency" data-plot></svg>
+  <p class="wl-scales">Bar scales: carbon gained 0 to 20 umol CO<sub>2</sub> per m<sup>2</sup> per s; water lost 0 to 5 mmol H<sub>2</sub>O per m<sup>2</sup> per s; efficiency 0 to 20 umol CO<sub>2</sub> per mmol H<sub>2</sub>O. Arrow widths follow the rates (schematic). The outline marks the bar the chosen condition is about, on the leaf that is ahead; none if tied.</p>
+
+  <div class="wl-controls">
+    <label class="wl-slabel"><span>Leaf B assimilation <em data-out="a">16</em> umol CO<sub>2</sub> per m<sup>2</sup> per s</span>
+      <input type="range" data-in="a" min="8" max="20" step="1" value="16" />
+    </label>
+    <label class="wl-slabel"><span>Leaf B transpiration <em data-out="e">3.0</em> mmol H<sub>2</sub>O per m<sup>2</sup> per s</span>
+      <input type="range" data-in="e" min="1" max="5" step="0.5" value="3" />
+    </label>
+    <label class="wl-slabel"><span>Day length <em data-out="h">10</em> h</span>
+      <input type="range" data-in="h" min="1" max="14" step="1" value="10" />
+    </label>
+    <fieldset class="wl-switch">
+      <legend>Condition</legend>
+      <label><input type="radio" name="wl-cond" value="scarce" checked /> water scarce</label>
+      <label><input type="radio" name="wl-cond" value="plentiful" /> water plentiful, carbon limits growth</label>
+    </fieldset>
+  </div>
+
+  <p class="wl-why" data-why role="status" aria-live="polite"></p>
+
+  <dl class="wl-math" data-math></dl>
+
+  <p class="wl-assume">In this sketch: illustrative numbers, not barley data; constant rates; same light and temperature for both leaves; 18 g of water per mol.</p>
+  <p class="wl-foot">Water-use efficiency = carbon gained / water lost. In the lesson’s example neither leaf is better everywhere; which is better depends on whether water is scarce or carbon limits growth.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', CARBON = '#0e7c86', WATER = '#3b82c4', EFF = '#7a5ea8', ORANGE = '#e57200';
+  const A_ASSIM = 20, A_TRANSP = 5, G_PER_MOL = 18;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, s: string, attrs: Record<string, string | number>) {
+    const t = el('text', attrs);
+    t.textContent = s;
+    parent.appendChild(t);
+  }
+  // 0.8 -> "0.8", 1 -> "1.0", 0.85 -> "0.85"
+  const ratio = (x: number) => x.toFixed(2).replace(/0$/, '');
+  const num = (x: number, d: number) => x.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: d });
+  const sgn = (x: number) => (x > 1e-9 ? 1 : x < -1e-9 ? -1 : 0);
+
+  document.querySelectorAll<HTMLElement>('[data-wl]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const aIn = root.querySelector<HTMLInputElement>('[data-in="a"]');
+    const eIn = root.querySelector<HTMLInputElement>('[data-in="e"]');
+    const hIn = root.querySelector<HTMLInputElement>('[data-in="h"]');
+    const aOut = root.querySelector<HTMLElement>('[data-out="a"]');
+    const eOut = root.querySelector<HTMLElement>('[data-out="e"]');
+    const hOut = root.querySelector<HTMLElement>('[data-out="h"]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const math = root.querySelector<HTMLElement>('[data-math]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="wl-cond"]'));
+    if (!plot || !aIn || !eIn || !hIn || !aOut || !eOut || !hOut || !why || !math || radios.length === 0) return;
+
+    const BASE = 204, MAXH = 94; // bar baseline and full-scale height in the SVG
+    const SCALE = { c: 20, w: 5, e: 20 };
+
+    function bar(g: SVGElement, cx: number, value: number, full: number, color: string, label: string, valueText: string, highlight: boolean) {
+      const h = Math.max(1, (Math.min(value, full) / full) * MAXH);
+      g.appendChild(el('rect', { x: cx - 14, y: BASE - h, width: 28, height: h, fill: color, stroke: highlight ? ORANGE : 'none', 'stroke-width': highlight ? 3 : 0 }));
+      txt(g, valueText, { x: cx, y: BASE - h - 4, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: INK });
+      const parts = label.split('|');
+      parts.forEach((p, i) => txt(g, p, { x: cx, y: BASE + 12 + i * 11, 'text-anchor': 'middle', 'font-size': 9, fill: INK }));
+    }
+
+    function leaf(g: SVGElement, x0: number, title: string, sub: string, a: number, e: number, hiC: boolean, hiE: boolean) {
+      g.appendChild(el('rect', { x: x0, y: 4, width: 156, height: 244, rx: 12, fill: '#eef6ee', stroke: '#8fb58f', 'stroke-width': 1.2 }));
+      txt(g, title, { x: x0 + 78, y: 20, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: INK });
+      txt(g, sub, { x: x0 + 78, y: 33, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+      // gas arrows: carbon dioxide in (down), water vapour out (up); width follows the rate
+      const cw = 2 + (a / SCALE.c) * 6, ww = 2 + (e / SCALE.w) * 6;
+      const cx1 = x0 + 36, cx2 = x0 + 120;
+      g.appendChild(el('line', { x1: cx1, y1: 40, x2: cx1, y2: 72, stroke: CARBON, 'stroke-width': cw }));
+      g.appendChild(el('polygon', { points: `${cx1 - cw - 3},72 ${cx1 + cw + 3},72 ${cx1},82`, fill: CARBON }));
+      g.appendChild(el('line', { x1: cx2, y1: 50, x2: cx2, y2: 82, stroke: WATER, 'stroke-width': ww }));
+      g.appendChild(el('polygon', { points: `${cx2 - ww - 3},50 ${cx2 + ww + 3},50 ${cx2},40`, fill: WATER }));
+      txt(g, 'CO₂ in', { x: cx1 + 14, y: 62, 'text-anchor': 'start', 'font-size': 9, fill: INK });
+      txt(g, 'H₂O out', { x: cx2 - 14, y: 74, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+      // bars
+      g.appendChild(el('line', { x1: x0 + 10, y1: BASE, x2: x0 + 146, y2: BASE, stroke: INK, 'stroke-width': 1 }));
+      bar(g, x0 + 32, a, SCALE.c, CARBON, 'carbon|gained', num(a, 1), hiC);
+      bar(g, x0 + 78, e, SCALE.w, WATER, 'water|lost', num(e, 1), false);
+      bar(g, x0 + 124, a / e, SCALE.e, EFF, 'efficiency|(C / H₂O)', num(a / e, 1), hiE);
+    }
+
+    function render() {
+      let aB = Math.min(A_ASSIM, Math.max(8, parseInt(aIn!.value, 10)));
+      let eB = Math.min(A_TRANSP, Math.max(1, parseFloat(eIn!.value)));
+      if (isNaN(aB)) aB = 16;
+      if (isNaN(eB)) eB = 3;
+      let hrs = parseInt(hIn!.value, 10);
+      if (isNaN(hrs)) hrs = 10;
+      const scarce = (radios.find((r) => r.checked)?.value ?? 'scarce') === 'scarce';
+
+      aOut!.textContent = String(aB);
+      eOut!.textContent = eB.toFixed(1);
+      hOut!.textContent = String(hrs);
+
+      const wueA = A_ASSIM / A_TRANSP; // 4.0
+      const wueB = aB / eB;
+      // comparisons by cross-multiplication so ties are exact: B more efficient when aB * 5 > 20 * eB
+      const effCmp = sgn(aB * A_TRANSP - A_ASSIM * eB); // +1: B more efficient
+      const carbCmp = sgn(A_ASSIM - aB); // +1: A gains more carbon
+      const identical = aB === A_ASSIM && eB === A_TRANSP;
+
+      // drawing: the bar that counts under the switch is outlined on the leaf that is ahead
+      const hiCarbA = !scarce && carbCmp > 0;
+      const hiCarbB = !scarce && carbCmp < 0; // cannot happen (B never exceeds A), kept for symmetry
+      const hiEffA = scarce && effCmp < 0;
+      const hiEffB = scarce && effCmp > 0;
+      plot!.replaceChildren();
+      leaf(plot!, 6, 'Leaf A', 'fixed (the lesson’s leaf A)', A_ASSIM, A_TRANSP, hiCarbA, hiEffA);
+      leaf(plot!, 178, 'Leaf B', aB === 16 && eB === 3 ? 'fewer stomata than A' : 'set by you', aB, eB, hiCarbB, hiEffB);
+
+      // status line, in the lesson's words
+      let head: string;
+      let line: string;
+      if (identical) {
+        head = 'In this sketch leaf B has leaf A’s rates, so the two leaves are identical: the same carbon gained, the same water lost, the same efficiency.';
+        line = '';
+      } else if (effCmp > 0 && carbCmp > 0) {
+        head = 'Neither leaf is better everywhere.';
+        line = scarce
+          ? 'When water is scarce, leaf B keeps more of it for each unit of carbon gained.'
+          : 'When water is plentiful and carbon limits growth, leaf A gains more.';
+      } else if (effCmp > 0) {
+        head = 'Leaf B has the higher efficiency, and both leaves gain the same carbon.';
+        line = scarce
+          ? 'When water is scarce, leaf B keeps more of it for each unit of carbon gained.'
+          : 'When water is plentiful and carbon limits growth, the two leaves gain the same carbon.';
+      } else if (effCmp === 0) {
+        head = 'The two leaves have the same efficiency, but leaf A gains more carbon.';
+        line = scarce
+          ? 'When water is scarce, the two leaves keep the same water for each unit of carbon gained.'
+          : 'When water is plentiful and carbon limits growth, leaf A gains more.';
+      } else {
+        head = 'In this sketch leaf A has both the higher efficiency and the higher assimilation.';
+        line = scarce
+          ? 'When water is scarce, leaf A keeps more of it for each unit of carbon gained.'
+          : 'When water is plentiful and carbon limits growth, leaf A gains more.';
+      }
+      why!.textContent = line ? head + ' ' + line : head;
+
+      // the lesson's arithmetic, with the numbers the sliders give
+      const carbR = aB / A_ASSIM, waterR = eB / A_TRANSP;
+      const less = (r: number) => (Math.abs(1 - r) < 1e-9 ? 'same as A' : num(Math.round((1 - r) * 100), 0) + '% less');
+      const secs = hrs * 3600;
+      const day = (rate: number) => {
+        const mmol = rate * secs, mol = mmol / 1000, g = mol * G_PER_MOL;
+        return `${num(rate, 1)} x ${num(secs, 0)} = ${num(mmol, 1)} mmol = ${num(mol, 2)} mol H₂O per m², and ${num(mol, 2)} x ${G_PER_MOL} = ${num(g, 1)} g (about ${(g / 1000).toFixed(2)} kg)`;
+      };
+      const row = (dt: string, dd: string) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`;
+      math!.innerHTML =
+        row('Efficiency, leaf A', `${A_ASSIM} / ${A_TRANSP} = ${wueA.toFixed(1)} umol CO₂ per mmol H₂O`) +
+        row('Efficiency, leaf B', `${aB} / ${num(eB, 1)} = ${wueB.toFixed(1)} umol CO₂ per mmol H₂O`) +
+        row('Carbon gained, B vs A', `${aB} / ${A_ASSIM} = ${ratio(carbR)} of A’s carbon (${less(carbR)})`) +
+        row('Water lost, B vs A', `${num(eB, 1)} / ${A_TRANSP} = ${ratio(waterR)} of A’s water (${less(waterR)})`) +
+        row('Efficiency ratio', `${wueB.toFixed(2)} / ${wueA.toFixed(1)} = ${(wueB / wueA).toFixed(2)}`) +
+        row(`Over ${hrs} h (${num(secs, 0)} s), leaf A loses`, day(A_TRANSP)) +
+        row(`Over ${hrs} h (${num(secs, 0)} s), leaf B loses`, day(eB));
+    }
+
+    [aIn, eIn, hIn].forEach((s) => s.addEventListener('input', render));
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .wl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .wl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .wl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .wl-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .wl-scales { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .wl-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .wl-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wl-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .wl-slabel input { accent-color: var(--ddp-color-accent); }
+  .wl-switch { margin: 0; padding: 0.2rem 0.6rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; }
+  .wl-switch legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .wl-switch label { display: flex; align-items: flex-start; gap: 0.35rem; }
+  .wl-switch input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .wl-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .wl-math { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .wl-math div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .wl-math dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .wl-math dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .wl-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .wl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) { .wl-controls { grid-template-columns: 1fr; } }
+</style>

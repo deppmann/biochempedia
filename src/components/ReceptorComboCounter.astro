@@ -1,0 +1,221 @@
+---
+/**
+ * ReceptorComboCounter — combinatorial diversity of one antibody. Rows of segment tiles
+ * (heavy V, D, J; kappa V, J; lambda V, J); sliders set the heavy-chain counts, a selector
+ * chooses which light chains are used, and "Make a cell" draws one random combination.
+ * receptors = (V x D x J for heavy) x (V x J for light). Original, self-contained.
+ */
+---
+
+<figure class="rcc card" data-rcc>
+  <figcaption class="rcc-head">Receptor combinations — counting one antibody<span class="rcc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rcc-svg" viewBox="0 0 340 196" role="img" aria-label="Rows of gene-segment tiles for a heavy chain (V, D, J) and for kappa and lambda light chains (V, J). After a cell is made, one tile in each row it used is highlighted." data-plot></svg>
+
+  <div class="rcc-controls">
+    <label class="rcc-slabel"><span>Heavy-chain V segments <em data-out="v">40</em></span>
+      <input type="range" data-in="v" min="10" max="60" step="1" value="40" />
+    </label>
+    <label class="rcc-slabel"><span>Heavy-chain D segments <em data-out="d">23</em></span>
+      <input type="range" data-in="d" min="5" max="30" step="1" value="23" />
+    </label>
+    <label class="rcc-slabel"><span>Heavy-chain J segments <em data-out="j">6</em></span>
+      <input type="range" data-in="j" min="2" max="9" step="1" value="6" />
+    </label>
+  </div>
+  <p class="rcc-fixed">Fixed in this sketch: humans have both light chains, kappa 40 V x 5 J = 200 and lambda 30 V x 4 J = 120.</p>
+
+  <div class="rcc-btnrow">
+    <button type="button" class="rcc-btn" data-make>Make a cell</button>
+  </div>
+
+  <dl class="rcc-readout">
+    <div><dt>Heavy combinations (V x D x J)</dt><dd data-r="heavy">5,520</dd></div>
+    <div><dt>Light combinations</dt><dd data-r="light">320</dd></div>
+    <div><dt>Pairings (heavy x light)</dt><dd data-r="pairs">1,766,400</dd></div>
+    <div><dt>Segments used in total</dt><dd data-r="segs">148</dd></div>
+  </dl>
+  <p class="rcc-eq" data-eq>receptors = 5,520 x 320 = 1,766,400 (about 1.8 million)</p>
+
+  <dl class="rcc-readout rcc-readout-cell">
+    <div><dt>Latest cell’s receptor</dt><dd data-r="cell">No cell made yet</dd></div>
+    <div><dt>Cells made</dt><dd data-r="count">0</dd></div>
+    <div><dt>Same receptor in two cells, in this sketch (junctional variation ignored): drawn</dt><dd data-r="obs">0</dd></div>
+    <div><dt>Same receptor in two cells, in this sketch (junctional variation ignored): expected</dt><dd data-r="exp">0</dd></div>
+  </dl>
+
+  <p class="rcc-why" data-why role="status"></p>
+
+  <p class="rcc-assume"><strong>In this sketch:</strong> every combination is functional and equally likely, any heavy chain pairs with any light chain, and junctional variation is ignored.</p>
+  <p class="rcc-foot">Each B cell assembles its antibody from gene segments before it meets any antigen.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#d4d4da';
+  const KV = 40, KJ = 5, LV = 30, LJ = 4;
+  const fmt = (n: number) => n.toLocaleString('en-US');
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  type Cell = { hv: number; hd: number; hj: number; chain: 'kappa' | 'lambda'; lv: number; lj: number };
+
+  document.querySelectorAll<HTMLElement>('[data-rcc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const vIn = root.querySelector<HTMLInputElement>('[data-in="v"]');
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
+    const jIn = root.querySelector<HTMLInputElement>('[data-in="j"]');
+    const makeBtn = root.querySelector<HTMLButtonElement>('[data-make]');
+        const why = root.querySelector<HTMLElement>('[data-why]');
+    const eq = root.querySelector<HTMLElement>('[data-eq]');
+    if (!plot || !vIn || !dIn || !jIn || !makeBtn || !why || !eq) return;
+    const out = (k: string) => root.querySelector<HTMLElement>('[data-out="' + k + '"]');
+    const rr = (k: string) => root.querySelector<HTMLElement>('[data-r="' + k + '"]');
+    const outV = out('v'), outD = out('d'), outJ = out('j');
+    const rHeavy = rr('heavy'), rLight = rr('light'), rPairs = rr('pairs'), rSegs = rr('segs');
+    const rCell = rr('cell'), rCount = rr('count'), rObs = rr('obs'), rExp = rr('exp');
+    if (!outV || !outD || !outJ || !rHeavy || !rLight || !rPairs || !rSegs || !rCell || !rCount || !rObs || !rExp) return;
+
+    let cells: Cell[] = [];
+    const keyOf = (c: Cell) => [c.hv, c.hd, c.hj, c.chain, c.lv, c.lj].join('-');
+    const rnd = (n: number) => 1 + Math.floor(Math.random() * n);
+
+    function state() {
+      const v = parseInt(vIn!.value, 10), d = parseInt(dIn!.value, 10), j = parseInt(jIn!.value, 10);
+      const light = 'both' as 'both' | 'kappa' | 'lambda';
+      const heavy = v * d * j;
+      const kappa = KV * KJ, lambda = LV * LJ;
+      const lightN = light === 'kappa' ? kappa : light === 'lambda' ? lambda : kappa + lambda;
+      const lightSegs = light === 'kappa' ? KV + KJ : light === 'lambda' ? LV + LJ : KV + KJ + LV + LJ;
+      return { v, d, j, light, heavy, kappa, lambda, lightN, pairs: heavy * lightN, segs: v + d + j + lightSegs };
+    }
+
+    function draw(s: ReturnType<typeof state>) {
+      plot!.replaceChildren();
+      const last = cells.length ? cells[cells.length - 1] : null;
+      const rows: { label: string; n: number; hi: number; used: boolean }[] = [
+        { label: 'Heavy V', n: s.v, hi: last ? last.hv : 0, used: true },
+        { label: 'Heavy D', n: s.d, hi: last ? last.hd : 0, used: true },
+        { label: 'Heavy J', n: s.j, hi: last ? last.hj : 0, used: true },
+        { label: 'Kappa V', n: KV, hi: last && last.chain === 'kappa' ? last.lv : 0, used: s.light !== 'lambda' },
+        { label: 'Kappa J', n: KJ, hi: last && last.chain === 'kappa' ? last.lj : 0, used: s.light !== 'lambda' },
+        { label: 'Lambda V', n: LV, hi: last && last.chain === 'lambda' ? last.lv : 0, used: s.light !== 'kappa' },
+        { label: 'Lambda J', n: LJ, hi: last && last.chain === 'lambda' ? last.lj : 0, used: s.light !== 'kappa' },
+      ];
+      const X0 = 100, X1 = 334, TOP = 8, STEP = 26, TH = 14;
+      rows.forEach((r, i) => {
+        const y = TOP + i * STEP;
+        const t = el('text', { x: 4, y: y + 11, 'font-size': 10, fill: r.used ? INK : '#8a8a94' });
+        t.textContent = r.label + ' (' + r.n + ')';
+        plot!.appendChild(t);
+        if (!r.used) {
+          plot!.appendChild(el('rect', { x: X0, y: y + 3, width: X1 - X0, height: 8, fill: '#f1f1f4', stroke: FAINT, 'stroke-width': 0.6 }));
+          const u = el('text', { x: X1 - 4, y: y + 10, 'text-anchor': 'end', 'font-size': 9, fill: '#8a8a94' });
+          u.textContent = 'not used';
+          plot!.appendChild(u);
+          return;
+        }
+        const w = (X1 - X0) / r.n;
+        const gap = w > 8 ? 1.5 : 0.7;
+        for (let k = 1; k <= r.n; k++) {
+          const on = k === r.hi;
+          plot!.appendChild(el('rect', { x: (X0 + (k - 1) * w).toFixed(2), y: on ? y - 1 : y + 1, width: Math.max(w - gap, 1).toFixed(2), height: on ? TH + 2 : TH - 2, fill: on ? ORANGE : ACCENT, opacity: on ? 1 : 0.35, stroke: on ? '#9a4a00' : 'none', 'stroke-width': on ? 1 : 0 }));
+        }
+        if (r.hi > 0) {
+          const lab = r.label.split(' ')[1] + String(r.hi);
+          const cx = X0 + (r.hi - 0.5) * w;
+          const tx = Math.min(Math.max(cx, X0 + 12), X1 - 12);
+          const t2 = el('text', { x: tx.toFixed(1), y: y + TH + 8, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: ORANGE });
+          t2.textContent = lab;
+          plot!.appendChild(t2);
+        }
+      });
+    }
+
+    function pairsExpected(k: number, n: number) {
+      return (k * (k - 1)) / 2 / n;
+    }
+
+    function render() {
+      const s = state();
+      outV!.textContent = String(s.v); outD!.textContent = String(s.d); outJ!.textContent = String(s.j);
+      rHeavy!.textContent = fmt(s.v) + ' x ' + s.d + ' x ' + s.j + ' = ' + fmt(s.heavy);
+      rLight!.textContent = s.light === 'both' ? '200 + 120 = 320' : s.light === 'kappa' ? 'kappa 200' : 'lambda 120';
+      rPairs!.textContent = fmt(s.pairs);
+      rSegs!.textContent = String(s.segs);
+      const approx = s.pairs >= 1e6 ? ' (about ' + (s.pairs / 1e6).toFixed(1) + ' million)' : '';
+      eq!.textContent = 'receptors = ' + fmt(s.heavy) + ' x ' + fmt(s.lightN) + ' = ' + fmt(s.pairs) + approx;
+
+      const k = cells.length;
+      const seen = new Map<string, number>();
+      let obs = 0;
+      cells.forEach((c) => { const key = keyOf(c); const m = seen.get(key) || 0; obs += m; seen.set(key, m + 1); });
+      rCount!.textContent = String(k);
+      rObs!.textContent = String(obs);
+      const e = pairsExpected(k, s.pairs);
+      rExp!.textContent = e === 0 ? '0' : e < 0.001 ? e.toExponential(1) : e.toFixed(3);
+      const last = k ? cells[k - 1] : null;
+      let cellTxt = 'No cell made yet';
+      if (last) {
+        cellTxt = 'heavy V' + last.hv + ' D' + last.hd + ' J' + last.hj + ' + ' + last.chain + ' V' + last.lv + ' J' + last.lj;
+      }
+      rCell!.textContent = cellTxt;
+      root.setAttribute('data-cell', last ? [last.hv, last.hd, last.hj, last.chain, last.lv, last.lj].join(',') : '');
+      draw(s);
+
+      const lightName = s.light === 'both' ? 'kappa and lambda light chains (200 + 120 = 320 combinations)' : s.light === 'kappa' ? 'kappa light chains only (200 combinations)' : 'lambda light chains only (120 combinations)';
+      let msg = 'With ' + s.v + ' V, ' + s.d + ' D and ' + s.j + ' J heavy-chain segments (' + fmt(s.heavy) + ' heavy combinations) and ' + lightName + ', in this sketch pairing gives ' + fmt(s.pairs) + ' receptors from ' + s.segs + ' segments. ';
+      if (last) {
+        msg += 'The highlighted tiles are the one combination this cell drew; it assembled them itself, with no antigen present. With ' + k + ' cell' + (k === 1 ? '' : 's') + ' made, ' + obs + ' pairs with the same receptor were drawn against ' + (e < 0.001 && e > 0 ? e.toExponential(1) : e.toFixed(3)) + ' expected, in this sketch. ';
+      } else {
+        msg += 'Press Make a cell to see one B cell draw one heavy V, D and J and one light-chain V and J (kappa or lambda). ';
+      }
+      msg += 'The lesson’s illustrative human counts are 40 V, 23 D and 6 J (the real numbers differ between people and sources); other slider settings are what-ifs. Junctional variation multiplies the total many times over and is not counted here. After activation, B cells (not T cells) refine their receptors by somatic hypermutation. Fit is not perfect one-to-one matching.';
+      why!.textContent = msg;
+    }
+
+    function makeCell() {
+      const s = state();
+      const useKappa = s.light === 'kappa' ? true : s.light === 'lambda' ? false : Math.random() < s.kappa / (s.kappa + s.lambda);
+      const c: Cell = {
+        hv: rnd(s.v), hd: rnd(s.d), hj: rnd(s.j),
+        chain: useKappa ? 'kappa' : 'lambda',
+        lv: rnd(useKappa ? KV : LV), lj: rnd(useKappa ? KJ : LJ),
+      };
+      cells.push(c);
+      render();
+    }
+
+    [vIn, dIn, jIn].forEach((c) => c.addEventListener('input', () => { cells = []; render(); }));
+    makeBtn.addEventListener('click', makeCell);
+    render();
+  });
+</script>
+
+<style>
+  .rcc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rcc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rcc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rcc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rcc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .rcc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rcc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rcc-slabel input { accent-color: var(--ddp-color-accent); }
+  .rcc-slabel select { font: inherit; padding: 0.25rem; }
+  .rcc-fixed { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rcc-btnrow { display: flex; gap: var(--ddp-space-2); flex-wrap: wrap; margin: var(--ddp-space-2) 0; }
+  .rcc-btn { font: inherit; font-size: var(--ddp-text-sm); padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .rcc-btn-alt { background: transparent; color: var(--ddp-color-accent); }
+  .rcc-btn:focus-visible { outline: 2px solid var(--ddp-color-primary); outline-offset: 2px; }
+  .rcc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rcc-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .rcc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rcc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .rcc-eq { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); }
+  .rcc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .rcc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rcc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .rcc-controls, .rcc-readout { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,370 @@
+---
+/**
+ * HomeostaticLoopStepper — the five parts of a homeostatic loop (regulated variable, set
+ * point, sensor, integrator, effector) drawn as labelled boxes beside a plot of the
+ * variable against time. Three loops: core temperature in an adult human (negative
+ * feedback), the textbook human labour model (positive feedback) and an egg in hot air
+ * (no controller). Every label and rule is a statement of the tissues-and-homeostasis
+ * lesson. The time course is invented, in relative units: one variable, and no gains,
+ * delays or feedforward are modelled. Nothing is drawn as anatomy. Original.
+ */
+---
+
+<figure class="hls card" data-hls>
+  <figcaption class="hls-head">Homeostatic loop stepper: sweating, shivering and the set point<span class="hls-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="hls-figs">
+    <svg class="hls-svg" viewBox="0 0 316 252" role="img" aria-label="The parts of the loop as five labelled boxes with arrows" data-diagram></svg>
+    <svg class="hls-svg" viewBox="0 0 340 250" role="img" aria-label="Plot of the variable against time in relative units, with the set point and the normal range" data-plot></svg>
+  </div>
+
+  <div class="hls-ctl">
+    <label class="hls-field"><span>Loop</span>
+      <select data-in="loop">
+        <option value="temp">Core temperature, adult human (negative feedback)</option>
+        <option value="labour">Human labour model (positive feedback)</option>
+        <option value="egg">No controller: an egg in hot air</option>
+      </select>
+    </label>
+    <label class="hls-field"><span>Disturbance <small data-dist-note>(temperature loop)</small></span>
+      <select data-in="dist">
+        <option value="hot">Air hotter</option>
+        <option value="cool">Air cooler</option>
+        <option value="none">Air unchanged</option>
+      </select>
+    </label>
+    <label class="hls-field"><span>Set point <small>(temperature loop only)</small></span>
+      <select data-in="sp">
+        <option value="usual">Usual</option>
+        <option value="raised">Raised, as in fever</option>
+      </select>
+    </label>
+    <div class="hls-btns">
+      <button type="button" class="hls-btn hls-run" data-run>Run</button>
+      <button type="button" class="hls-btn" data-step>Step</button>
+      <button type="button" class="hls-btn" data-reset>Back to start</button>
+    </div>
+  </div>
+
+  <p class="hls-cap" data-blagden hidden>Blagden’s heated room, as he reported it: air near 200 degrees F, a thermometer under his tongue read 98 degrees, about a degree above his usual. These are his reported figures, not output of this sketch.</p>
+
+  <div class="hls-status" role="status">
+    <p class="hls-now" data-now></p>
+    <p class="hls-rules" data-rules></p>
+  </div>
+
+  <p class="hls-assume">In this sketch: relative units; the controller (acts only past a threshold, then removes a fixed fraction of the deviation), the push of the air, the egg’s warming rate and the labour growth rate are all invented, not from the lesson; one variable, no delays or feedforward.</p>
+  <p class="hls-foot">Rule to keep: negative feedback opposes a deviation in either direction, so sweating and shivering are both negative feedback, while positive feedback amplifies a change until something outside the loop ends it.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Loop = 'temp' | 'labour' | 'egg';
+  type Dist = 'hot' | 'cool' | 'none';
+  type Sp = 'usual' | 'raised';
+  interface St { loop: Loop; dist: Dist; sp: Sp }
+  interface Series { x: number[]; ref: number[]; eff: number[] }
+
+  // Invented, relative-unit constants for the sketch.
+  const N = 60, T0 = 6, BIRTH = 46;
+  const BASE = 50, RAISED = 62, HALF = 6, PUSH = 1.6, THR = 2, GAIN = 0.5;
+  const EGG0 = 35, AIR = 80;
+  const VMIN = 10, VMAX = 90;
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#c25e00', BLUE = '#2f6f8f';
+
+  function simulate(s: St): Series {
+    const x: number[] = [], ref: number[] = [], eff: number[] = [];
+    if (s.loop === 'egg') {
+      let v = EGG0;
+      for (let t = 0; t <= N; t++) { x.push(v); ref.push(NaN); eff.push(0); v += 0.09 * (AIR - v); }
+      return { x, ref, eff };
+    }
+    if (s.loop === 'labour') {
+      for (let t = 0; t <= BIRTH; t++) { x.push(20 + 2 * (Math.pow(1.075, t) - 1)); ref.push(NaN); eff.push(0); }
+      return { x, ref, eff };
+    }
+    let v = BASE, e = 0;
+    for (let t = 0; t <= N; t++) {
+      const r = t >= T0 && s.sp === 'raised' ? RAISED : BASE;
+      const push = t >= T0 ? (s.dist === 'hot' ? PUSH : s.dist === 'cool' ? -PUSH : 0) : 0;
+      const dev = v - r;
+      const target = Math.abs(dev) > THR ? 1 : 0;
+      e += Math.max(-0.25, Math.min(0.25, target - e));
+      x.push(v); ref.push(r); eff.push(dev >= 0 ? e : -e);
+      v = v + push - e * GAIN * dev;
+    }
+    return { x, ref, eff };
+  }
+
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('HomeostaticLoopStepper: missing ' + sel);
+    return e;
+  }
+  function svg(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  let uid = 0;
+  document.querySelectorAll<HTMLElement>('[data-hls]').forEach((root) => {
+    const diagram = must<SVGSVGElement>(root, '[data-diagram]');
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const selLoop = must<HTMLSelectElement>(root, '[data-in="loop"]');
+    const selDist = must<HTMLSelectElement>(root, '[data-in="dist"]');
+    const selSp = must<HTMLSelectElement>(root, '[data-in="sp"]');
+    const btnRun = must<HTMLButtonElement>(root, '[data-run]');
+    const btnStep = must<HTMLButtonElement>(root, '[data-step]');
+    const btnReset = must<HTMLButtonElement>(root, '[data-reset]');
+    const nowEl = must<HTMLElement>(root, '[data-now]');
+    const rulesEl = must<HTMLElement>(root, '[data-rules]');
+    const capEl = must<HTMLElement>(root, '[data-blagden]');
+    const distNote = must<HTMLElement>(root, '[data-dist-note]');
+    const markerId = 'hls-arr-' + (uid++);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let savedDist: Dist = 'hot';
+    let ser: Series;
+    let idx = 0, last = 0;
+    let timer: number | undefined;
+
+    function state(): St {
+      return { loop: selLoop.value as Loop, dist: selDist.value as Dist, sp: selSp.value as Sp };
+    }
+    function stop() { if (timer !== undefined) { window.clearInterval(timer); timer = undefined; } }
+    function playing() { return timer !== undefined; }
+
+    function applyEnabled() {
+      const s = state();
+      selSp.disabled = s.loop !== 'temp';
+      selDist.disabled = s.loop !== 'temp';
+      if (s.loop === 'egg') { selDist.value = 'hot'; distNote.textContent = '(the egg is in hot air)'; }
+      else if (s.loop === 'labour') { distNote.textContent = '(temperature loop only)'; }
+      else { distNote.textContent = '(temperature loop)'; }
+      if (s.loop !== 'temp') selSp.value = 'usual';
+      for (const o of Array.from(selDist.options)) o.disabled = s.loop === 'egg' && o.value !== 'hot';
+    }
+
+    // ---------- diagram ----------
+    function box(x: number, y: number, title: string, lines: string[], o: { fill?: string; stroke?: string; dash?: boolean } = {}) {
+      const w = 130, h = 62;
+      diagram.appendChild(svg('rect', { x, y, width: w, height: h, rx: 6, fill: o.fill || '#fff', stroke: o.stroke || FAINT, 'stroke-width': 1.4, 'stroke-dasharray': o.dash ? '4 3' : '0' }));
+      diagram.appendChild(svg('text', { x: x + 6, y: y + 14, 'font-size': 10, 'font-weight': 700, fill: INK }, title));
+      lines.forEach((l, i) => diagram.appendChild(svg('text', { x: x + 6, y: y + 28 + i * 12, 'font-size': 9, fill: INK }, l)));
+    }
+    function arrow(d: string, dash = false) {
+      diagram.appendChild(svg('path', { d, fill: 'none', stroke: INK, 'stroke-width': 1.4, 'marker-end': `url(#${markerId})`, 'stroke-dasharray': dash ? '3 3' : '0' }));
+    }
+    function drawDiagram(s: St, i: number) {
+      diagram.replaceChildren();
+      const defs = svg('defs', {});
+      const mk = svg('marker', { id: markerId, viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      mk.appendChild(svg('path', { d: 'M0 0 L8 4 L0 8 z', fill: INK }));
+      defs.appendChild(mk);
+      diagram.appendChild(defs);
+      const L = 22, R = 176, R1 = 6, R2 = 92, R3 = 178;
+      const e = ser.eff[i] || 0, act = Math.abs(e) > 0.05;
+      if (s.loop === 'temp') {
+        const sweat = e > 0;
+        const tint = { fill: '#e1f1f2', stroke: TEAL };
+        box(L, R1, '1 regulated variable', ['core temperature', 'in an adult human']);
+        box(L, R2, '2 set point', ['reference value:', ser.ref[i] === RAISED ? 'raised, as in a fever' : 'usual value']);
+        box(R, R1, '3 sensor', ['temperature-sensitive', 'nerve cells in the skin', 'and in the brain'], act ? tint : {});
+        box(R, R2, '4 integrator', ['temperature-regulating', 'region of the', 'hypothalamus'], act ? tint : {});
+        const eff = !act
+          ? ['sweat glands if it rises,', 'skeletal muscles shiver', 'if it falls']
+          : sweat ? ['sweat glands act:', 'evaporation of sweat', 'removes heat'] : ['skeletal muscles shiver,', 'releasing heat as they', 'use ATP'];
+        box(R, R3, '5 effector', eff, act ? (sweat ? { fill: '#fdebd9', stroke: ORANGE } : { fill: '#e3eef5', stroke: BLUE }) : {});
+        arrow(`M${L + 130} ${R1 + 31} H${R}`);
+        arrow(`M${R + 65} ${R1 + 62} V${R2}`);
+        arrow(`M${L + 130} ${R2 + 31} H${R}`);
+        arrow(`M${R + 65} ${R2 + 62} V${R3}`);
+        arrow(`M${R} ${R3 + 31} H10 V${R1 + 31} H${L}`);
+        diagram.appendChild(svg('text', { x: L, y: 228, 'font-size': 10, 'font-weight': 700, fill: TEAL }, 'negative feedback'));
+        diagram.appendChild(svg('text', { x: L, y: 241, 'font-size': 9, fill: INK }, 'opposes the deviation'));
+      } else if (s.loop === 'labour') {
+        box(L, R1, 'stretch of the cervix', ['in the textbook model', 'of human labour']);
+        box(R, R1, 'oxytocin release', ['promoted by the stretch']);
+        box(R, R2, 'uterine contractions', ['strengthened by oxytocin;', 'they stretch the cervix', 'further']);
+        const born = i >= BIRTH;
+        box(R, R3, 'the birth', ['an event outside the loop;', 'it ends the loop'], born ? { fill: '#f3eefa', stroke: '#7a5ea8', dash: true } : { dash: true });
+        arrow(`M${L + 130} ${R1 + 31} H${R}`);
+        arrow(`M${R + 65} ${R1 + 62} V${R2}`);
+        arrow(`M${R} ${R2 + 31} H${L + 65} V${R1 + 62}`);
+        diagram.appendChild(svg('text', { x: L, y: 205, 'font-size': 10, 'font-weight': 700, fill: '#7a5ea8' }, 'positive feedback'));
+        diagram.appendChild(svg('text', { x: L, y: 218, 'font-size': 9, fill: INK }, 'each response amplifies'));
+        diagram.appendChild(svg('text', { x: L, y: 230, 'font-size': 9, fill: INK }, 'the change'));
+      } else {
+        box(L, R1, '1 regulated variable', ['egg temperature', 'in hot air']);
+        box(L, R2, '2 set point', ['none in this sketch'], { dash: true });
+        box(R, R1, '3 sensor', ['none in this sketch'], { dash: true });
+        box(R, R2, '4 integrator', ['none in this sketch'], { dash: true });
+        box(R, R3, '5 effector', ['none in this sketch'], { dash: true });
+        diagram.appendChild(svg('text', { x: L, y: 228, 'font-size': 10, 'font-weight': 700, fill: INK }, 'no controller'));
+        diagram.appendChild(svg('text', { x: L, y: 241, 'font-size': 9, fill: INK }, 'no feedback of either sign'));
+      }
+    }
+
+    // ---------- plot ----------
+    const PL = 40, PR = 262, PT = 16, PB = 190;
+    const X = (t: number) => PL + (t / N) * (PR - PL);
+    const Y = (v: number) => PB - ((v - VMIN) / (VMAX - VMIN)) * (PB - PT);
+    function drawPlot(s: St, i: number) {
+      plot.replaceChildren();
+      const T = (x: number, y: number, txt: string, extra: Record<string, string | number> = {}) =>
+        plot.appendChild(svg('text', Object.assign({ x, y, 'font-size': 10, fill: INK }, extra), txt));
+      if (s.loop === 'temp') {
+        const rr = ser.ref[N];
+        // normal range band and set point, which step at the change
+        plot.appendChild(svg('rect', { x: PL, y: Y(BASE + HALF), width: X(T0) - PL, height: Y(BASE - HALF) - Y(BASE + HALF), fill: TEAL, opacity: 0.14 }));
+        plot.appendChild(svg('rect', { x: X(T0), y: Y(rr + HALF), width: PR - X(T0), height: Y(rr - HALF) - Y(rr + HALF), fill: TEAL, opacity: 0.14 }));
+        plot.appendChild(svg('path', { d: `M${PL} ${Y(BASE)} H${X(T0)} V${Y(rr)} H${PR}`, fill: 'none', stroke: TEAL, 'stroke-width': 1.4 }));
+        T(PR + 5, Y(rr) + 3, 'set point', { fill: TEAL });
+        T(PR + 5, Y(rr - HALF) + 3, 'normal range', { fill: TEAL });
+        if (rr !== BASE) {
+          plot.appendChild(svg('line', { x1: X(T0), y1: Y(BASE), x2: PR, y2: Y(BASE), stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+          T(PR + 5, Y(BASE) + 3, 'usual set point', { fill: FAINT });
+        }
+        const ev: string[] = [];
+        if (s.sp === 'raised') ev.push('set point raised');
+        if (s.dist === 'hot') ev.push('air gets hotter');
+        if (s.dist === 'cool') ev.push('air gets cooler');
+        if (ev.length) {
+          plot.appendChild(svg('line', { x1: X(T0), y1: PT, x2: X(T0), y2: PB, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+          ev.forEach((l, k) => T(X(T0) + 4, PT + 10 + k * 11, l, { fill: INK }));
+        }
+      } else if (s.loop === 'egg') {
+        plot.appendChild(svg('line', { x1: PL, y1: Y(AIR), x2: PR, y2: Y(AIR), stroke: ORANGE, 'stroke-width': 1.4, 'stroke-dasharray': '5 3' }));
+        T(PR + 5, Y(AIR) + 3, 'air (hot)', { fill: ORANGE });
+        T(PR + 5, Y(EGG0) + 3, 'no set point', { fill: FAINT });
+      } else if (i >= BIRTH) {
+        plot.appendChild(svg('line', { x1: X(BIRTH), y1: PT, x2: X(BIRTH), y2: PB, stroke: '#7a5ea8', 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+        T(X(BIRTH) - 4, PT + 10, 'the birth, an outside', { 'text-anchor': 'end', fill: '#7a5ea8' });
+        T(X(BIRTH) - 4, PT + 21, 'event, ends the loop', { 'text-anchor': 'end', fill: '#7a5ea8' });
+      }
+      // axes
+      plot.appendChild(svg('path', { d: `M${PL} ${PT} V${PB} H${PR}`, fill: 'none', stroke: INK, 'stroke-width': 1.2 }));
+      const ylab = s.loop === 'labour' ? 'stretch (relative units)' : 'temperature (relative units)';
+      const yl = svg('text', { x: 14, y: (PT + PB) / 2, 'font-size': 10, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 14 ${(PT + PB) / 2})` }, ylab);
+      plot.appendChild(yl);
+      T((PL + PR) / 2, PB + 22, 'time (relative units)', { 'text-anchor': 'middle' });
+      // trace
+      const pts: string[] = [];
+      for (let t = 0; t <= i; t++) pts.push(`${X(t).toFixed(1)},${Y(ser.x[t]).toFixed(1)}`);
+      const col = s.loop === 'labour' ? '#7a5ea8' : s.loop === 'egg' ? ORANGE : (ser.eff[i] > 0.05 ? ORANGE : ser.eff[i] < -0.05 ? BLUE : INK);
+      plot.appendChild(svg('polyline', { points: pts.join(' '), fill: 'none', stroke: INK, 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      plot.appendChild(svg('circle', { cx: X(i), cy: Y(ser.x[i]), r: 4, fill: col, stroke: '#fff', 'stroke-width': 1.2 }));
+    }
+
+    // ---------- status ----------
+    const R_TEMP = 'Negative does not mean “makes it smaller”: sweating when temperature rises and shivering when it falls are both negative feedback, because each response opposes the deviation. Homeostasis defends a range, and the set point can move (in a fever it rises); “normal is exactly 37 degrees C” is wrong, because the value depends on where and when you measure.';
+    const R_LABOUR = 'Positive feedback amplifies a change until something outside the loop ends it, where negative feedback opposes it. Treat this as a model of human labour: mice that lack oxytocin entirely gave birth without obvious problems, though they could not let down milk, so the loop as drawn does not carry over to every mammal.';
+    const R_EGG = 'With no controller there is no feedback of either sign: the variable simply follows the disturbance. Switch to the temperature loop to see a sensor, an integrator and effectors hold it near the set point.';
+
+    function describe(s: St, i: number): { now: string; rules: string } {
+      const atEnd = i >= last;
+      if (s.loop === 'egg') {
+        let now: string;
+        if (i === 0) now = 'In this sketch the egg has no controller: no sensor, no integrator and no effector, so nothing in it opposes the heat of the air around it.';
+        else if (!atEnd) now = 'In hot air the egg’s temperature climbs toward the air’s.';
+        else now = 'The egg has heated until its temperature matches the air’s. In Blagden’s heated room a living person’s temperature stayed near his usual (see the temperature loop).';
+        return { now, rules: R_EGG };
+      }
+      if (s.loop === 'labour') {
+        let now: string;
+        if (i === 0) now = 'In the textbook model of human labour, stretch of the cervix promotes release of oxytocin, which strengthens contractions of the uterus, which stretches the cervix further.';
+        else if (i < BIRTH) now = 'Each trip round the loop amplifies the change, so the trace keeps growing: positive feedback.';
+        else now = 'The birth, an event outside the loop, ends it.';
+        return { now, rules: R_LABOUR };
+      }
+      const e = ser.eff[i], act = Math.abs(e) > 0.05, dev = ser.x[i] - ser.ref[i];
+      const raised = s.sp === 'raised';
+      const sensors = 'the sensors (temperature-sensitive nerve cells in the skin and in the brain) report it, the integrator (a temperature-regulating region of the hypothalamus) compares it with the set point';
+      let now: string;
+      if (i < T0) now = 'Core temperature of an adult human starts inside the normal range, at its usual value. Nothing has changed yet.';
+      else if (act && e > 0) now = `Core temperature is above the set point${s.dist === 'hot' ? ', pushed up by the hotter air' : ''}: ${sensors}, and the effectors, sweat glands, act, because evaporation of sweat from the skin removes heat.`;
+      else if (act && raised) now = `The set point has been raised, as in a fever. A person at a usual body temperature is now below it, so they feel cold and shiver: skeletal muscles release heat as they use ATP, and the variable climbs toward the new level${s.dist === 'cool' ? ', while the cooler air pulls it down' : ''}.`;
+      else if (act) now = `Core temperature is below the set point${s.dist === 'cool' ? ', pulled down by the cooler air' : ''}: ${sensors}, and the effectors, skeletal muscles, shiver and release heat as they use ATP.`;
+      else if (s.dist === 'none' && !raised) now = 'Nothing is pushing on the variable: core temperature stays at the set point and the effectors stay idle. There is no deviation for the loop to oppose.';
+      else now = 'Core temperature is inside the normal range, close to the set point, and the effectors are idle.';
+      if (atEnd && i >= T0 && (s.dist !== 'none' || raised)) {
+        const where = dev > 1 ? 'a little above' : dev < -1 ? 'a little below' : 'at';
+        now += ` At the end the variable sits ${where} the set point and inside the normal range${act ? ', with the effectors still working against the disturbance' : ''}.`;
+      }
+      return { now, rules: R_TEMP };
+    }
+
+    function setText(el: HTMLElement, txt: string) { if (el.textContent !== txt) el.textContent = txt; }
+    function render() {
+      const s = state();
+      drawDiagram(s, idx);
+      drawPlot(s, idx);
+      const d = describe(s, idx);
+      setText(nowEl, d.now);
+      setText(rulesEl, d.rules);
+      capEl.hidden = !(s.loop === 'temp' && s.dist === 'hot' && s.sp === 'usual');
+      btnRun.textContent = playing() ? 'Pause' : (idx >= last ? 'Run again' : 'Run');
+    }
+    function build(replay: boolean) {
+      stop();
+      applyEnabled();
+      const s = state();
+      ser = simulate(s);
+      last = ser.x.length - 1;
+      idx = 0;
+      render();
+      if (replay) { if (reduce) { idx = last; render(); } else play(); }
+    }
+    function play() {
+      stop();
+      if (idx >= last) idx = 0;
+      timer = window.setInterval(() => {
+        if (idx < last) idx++;
+        if (idx >= last) stop();
+        render();
+      }, 90);
+      render();
+    }
+
+    selLoop.addEventListener('change', () => {
+      if (selLoop.value === 'temp') selDist.value = savedDist;
+      build(true);
+    });
+    selDist.addEventListener('change', () => { if (selLoop.value === 'temp') savedDist = selDist.value as Dist; build(true); });
+    selSp.addEventListener('change', () => build(true));
+    btnRun.addEventListener('click', () => { if (playing()) { stop(); render(); } else if (reduce) { idx = last; render(); } else play(); });
+    btnStep.addEventListener('click', () => { stop(); idx = Math.min(last, idx + 3); render(); });
+    btnReset.addEventListener('click', () => { stop(); idx = 0; render(); });
+
+    // Start on the finished default run so the figure reads at a glance.
+    build(false);
+    idx = last;
+    render();
+  });
+</script>
+
+<style is:global>
+  .hls { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hls-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hls-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hls-figs { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  .hls-svg { display: block; flex: 1 1 280px; min-width: 0; width: 100%; max-width: 600px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hls-ctl { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.5rem 0.9rem; align-items: end; }
+  .hls-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 0; }
+  .hls-field small { color: var(--ddp-color-muted); }
+  .hls-field select { width: 100%; min-width: 0; font-size: var(--ddp-text-xs); padding: 0.3rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; color: var(--ddp-color-ink-soft); }
+  .hls-field select:disabled { opacity: 0.55; }
+  .hls-btns { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .hls-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.35rem 0.65rem; cursor: pointer; }
+  .hls-run { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; }
+  .hls-btn:focus-visible, .hls-field select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hls-cap { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); font-style: italic; }
+  .hls-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .hls-status p { margin: 0 0 0.45rem; }
+  .hls-status p:last-child { margin-bottom: 0; }
+  .hls-rules { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hls-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hls-foot { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

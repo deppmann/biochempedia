@@ -11,5 +11,7 @@ import { ICONS as EE1 } from './ecoevo1';
 import { ICONS as EE2 } from './ecoevo2';
 import { ICONS as NC1 } from './neuro1';
 import { ICONS as NC2 } from './neuro2';
+import { ICONS as OB1 } from './organismal1';
+import { ICONS as OB2 } from './organismal2';
 
-export const LESSON_ICONS: Record<string, IconArt> = { ...GENETICS, ...DN1, ...DN2, ...DN3, ...CB1, ...CB2, ...EE1, ...EE2, ...NC1, ...NC2 };
+export const LESSON_ICONS: Record<string, IconArt> = { ...GENETICS, ...DN1, ...DN2, ...DN3, ...CB1, ...CB2, ...EE1, ...EE2, ...NC1, ...NC2, ...OB1, ...OB2 };

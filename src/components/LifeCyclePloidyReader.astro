@@ -1,0 +1,440 @@
+---
+/**
+ * LifeCyclePloidyReader — read a land-plant life cycle as labelled boxes and arrows.
+ * The learner picks a plant (moss, homosporous fern, pine, flowering plant), sees which body is
+ * the one you see, and labels every box n or 2n. Meiosis and fertilization are the only two
+ * arrows that change the chromosome number; the label of each box is derived from that rule by
+ * walking the loop, not typed in. A "test me" switch hides the n and 2n labels so the learner
+ * tags each box; a 2n slider turns the labels into chromosome counts. Every rule is a statement
+ * of the plant-diversity-life-cycles lesson. Schematic blocks and arrows only. Original.
+ */
+---
+
+<figure class="lcp card" data-lcp>
+  <figcaption class="lcp-head">Life-cycle wheel: label every box n or 2n<span class="lcp-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="lcp-controls">
+    <fieldset class="lcp-fs">
+      <legend>Plant</legend>
+      <label><input type="radio" value="moss" checked /> Moss</label>
+      <label><input type="radio" value="fern" /> Homosporous fern</label>
+      <label><input type="radio" value="pine" /> Pine</label>
+      <label><input type="radio" value="flower" /> Flowering plant (Arabidopsis)</label>
+    </fieldset>
+    <label class="lcp-test"><input type="checkbox" data-test /> Test me: hide the n and 2n labels</label>
+    <div class="lcp-slide">
+      <label>Diploid number 2n = <output data-nout>24</output>
+        <input type="range" min="4" max="40" step="2" value="24" data-n />
+      </label>
+      <p class="lcp-note">Invented numbers for the sketch. Real Arabidopsis thaliana has 2n = 10.</p>
+    </div>
+  </div>
+
+  <svg class="lcp-svg" viewBox="0 0 360 316" role="img" aria-label="A life cycle drawn as five labelled boxes joined by arrows: sporophyte, spores, gametophyte, eggs and sperm, zygote, and back to the sporophyte" data-stage></svg>
+
+  <p class="lcp-status" role="status" data-status></p>
+
+  <fieldset class="lcp-tags" data-tags hidden>
+    <legend>Tag each box</legend>
+    <div data-tagrows></div>
+  </fieldset>
+
+  <div class="lcp-block" data-counts></div>
+  <div class="lcp-block" data-extra></div>
+
+  <p class="lcp-assume" data-assume>In this sketch: a schematic cycle, not to scale; chromosome numbers are invented examples.</p>
+  <p class="lcp-foot">Keep the rule: find meiosis and fertilization first, because they are the only two places the chromosome number changes, and plant meiosis makes spores, not gametes. Moss, fern, pine, flower is a teaching order, not a line of descent.</p>
+</figure>
+
+<script>
+  type Lvl = "n" | "2n";
+  type Sid = "spor" | "spore" | "gam" | "gamete" | "zyg";
+  type PlantKey = "moss" | "fern" | "pine" | "flower";
+  type Plant = {
+    name: string;
+    species: string;
+    seen: Sid;
+    titles: Record<Sid, string>;
+    lines: Record<Sid, string[]>;
+    seenLine: string;
+  };
+
+  const SIDS: Sid[] = ["spor", "spore", "gam", "gamete", "zyg"];
+  const RULE =
+    "The rule: every stage from meiosis to fertilization is n, every stage from fertilization to meiosis is 2n, mitosis never changes the label, and plant meiosis makes spores, not gametes.";
+  const REASON: Record<Sid, string> = {
+    spor: "The sporophyte grows from the zygote by mitosis, so it stays 2n.",
+    spore: "Meiosis in the sporophyte halves the number, so spores are n.",
+    gam: "A spore divides by mitosis into the gametophyte, and mitosis never changes the label, so it is n.",
+    gamete: "The gametophyte makes eggs and sperm by mitosis, so they stay n. Plant meiosis makes spores, not gametes.",
+    zyg: "Fertilization fuses two n cells, so the zygote is 2n.",
+  };
+
+  // The cycle as the lesson states it. Labels are derived by walking this loop from the zygote.
+  type Step = { stage: Sid } | { ev: "meiosis" | "mitosis" | "fertilization" };
+  const CYCLE: Step[] = [
+    { stage: "zyg" },
+    { ev: "mitosis" },
+    { stage: "spor" },
+    { ev: "meiosis" },
+    { stage: "spore" },
+    { ev: "mitosis" },
+    { stage: "gam" },
+    { ev: "mitosis" },
+    { stage: "gamete" },
+    { ev: "fertilization" },
+  ];
+  function truth(): Record<Sid, Lvl> {
+    const out: Record<Sid, Lvl> = { spor: "2n", spore: "n", gam: "n", gamete: "n", zyg: "2n" };
+    let cur: Lvl = "2n"; // just after fertilization
+    for (const s of CYCLE) {
+      if ("stage" in s) out[s.stage] = cur;
+      else if (s.ev === "meiosis") cur = "n";
+      else if (s.ev === "fertilization") cur = "2n";
+    }
+    return out;
+  }
+  const TRUTH = truth();
+
+  const PLANTS: Record<PlantKey, Plant> = {
+    moss: {
+      name: "Moss",
+      species: "Physcomitrium patens (long called Physcomitrella patens) or the haircap moss Polytrichum",
+      seen: "gam",
+      titles: { spor: "Sporophyte", spore: "Spores", gam: "Gametophyte", gamete: "Eggs and sperm", zyg: "Zygote" },
+      lines: {
+        spor: ["stalk and capsule", "attached, depends", "largely on the shoot"],
+        spore: ["made by meiosis", "in the capsule"],
+        gam: ["leafy green shoot", "(the green cushion)"],
+        gamete: ["a sperm swims through", "a film of rain or dew"],
+        zyg: ["grows into the", "stalk and capsule"],
+      },
+      seenLine:
+        "In the moss (Physcomitrium patens or the haircap moss Polytrichum) the leafy green shoot you see is the gametophyte (n). The stalk and capsule are the sporophyte (2n): it stays attached and depends largely on the gametophyte for nutrients. The calyptra, the cap over the young capsule, comes from the gametophyte, not the capsule.",
+    },
+    fern: {
+      name: "Homosporous fern",
+      species: "Ceratopteris richardii",
+      seen: "spor",
+      titles: { spor: "Sporophyte", spore: "Spores", gam: "Gametophyte", gamete: "Eggs and sperm", zyg: "Zygote" },
+      lines: {
+        spor: ["frond", "(vascular: xylem", "and phloem)"],
+        spore: ["one kind (homosporous)", "made by meiosis in", "sporangia under fronds"],
+        gam: ["prothallus: small, flat,", "lives on its own"],
+        gamete: ["sperm swim in a film", "of water to the egg"],
+        zyg: ["grows into a", "young frond"],
+      },
+      seenLine:
+        "In a homosporous fern such as Ceratopteris richardii the frond you see is the sporophyte (2n). Sporangia under the fronds release haploid spores made by meiosis. A spore grows into the prothallus, a small, flat gametophyte (n) that lives on its own and photosynthesizes.",
+    },
+    pine: {
+      name: "Pine",
+      species: "pine",
+      seen: "spor",
+      titles: { spor: "Sporophyte", spore: "Spores", gam: "Gametophytes", gamete: "Eggs and sperm", zyg: "Zygote" },
+      lines: {
+        spor: ["the pine tree", "its cones make two", "kinds of spores"],
+        spore: ["microspores (pollen", "cones); megaspores", "(ovules): 4, 1 lives"],
+        gam: ["pollen grain: male,", "few cells, not sperm", "female: in the ovule"],
+        gamete: ["a pollen tube delivers", "sperm to an egg", "without outside water"],
+        zyg: ["becomes the embryo", "(the new sporophyte)"],
+      },
+      seenLine:
+        "In pine the tree you see is the sporophyte (2n). A pollen grain is a male gametophyte of a few cells, not a sperm; the female gametophyte grows in the ovule from the one megaspore of four that survives. Wind carries pollen to the ovule, and a pollen tube delivers sperm to an egg without outside water.",
+    },
+    flower: {
+      name: "Flowering plant",
+      species: "Arabidopsis thaliana",
+      seen: "spor",
+      titles: { spor: "Sporophyte", spore: "Spores", gam: "Gametophytes", gamete: "Eggs and sperm", zyg: "Zygote" },
+      lines: {
+        spor: ["the green plant", "(Arabidopsis thaliana)"],
+        spore: ["mother cell gives 4", "megaspores; 3", "degenerate, 1 survives"],
+        gam: ["pollen grain (male)", "embryo sac (female,", "inside the ovule)"],
+        gamete: ["one sperm fertilizes", "the egg; the other", "fuses with central cell"],
+        zyg: ["grows into the", "embryo"],
+      },
+      seenLine:
+        "In Arabidopsis thaliana the green plant you see is the sporophyte (2n). The pollen grain is the male gametophyte, and the embryo sac inside the ovule is the female gametophyte.",
+    },
+  };
+
+  const BOX: Record<Sid, { x: number; y: number }> = {
+    spor: { x: 120, y: 8 },
+    spore: { x: 232, y: 100 },
+    gam: { x: 208, y: 236 },
+    gamete: { x: 32, y: 236 },
+    zyg: { x: 8, y: 100 },
+  };
+  const BW = 120, BH = 72;
+  const INK = "#1f1f2b", SOFT = "#33333f", GREY = "#8a8a96", ARROW = "#4b4b55", EVENT = "#b45309";
+  const COL: Record<Lvl, { text: string; tint: string }> = {
+    n: { text: "#0b6a73", tint: "#e1f2f3" },
+    "2n": { text: "#5f3f96", tint: "#efe8f8" },
+  };
+  const BAD = "#b3261e";
+
+  function line(x1: number, y1: number, x2: number, y2: number, ev: boolean): string {
+    const c = ev ? EVENT : ARROW;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${ev ? 2.6 : 1.6}" marker-end="url(#${ev ? "lcp-ahe" : "lcp-ah"})"/>`;
+  }
+  function txt(x: number, y: number, size: number, fill: string, s: string, opts: { anchor?: string; weight?: number } = {}): string {
+    return `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${opts.anchor || "start"}"${opts.weight ? ` font-weight="${opts.weight}"` : ""}>${s}</text>`;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-lcp]").forEach((root, idx) => {
+    const q = <T extends Element>(sel: string): T | null => root.querySelector<T>(sel);
+    const stageN = q<SVGSVGElement>("[data-stage]");
+    const statusN = q<HTMLElement>("[data-status]");
+    const tagsBoxN = q<HTMLElement>("[data-tags]");
+    const tagRowsN = q<HTMLElement>("[data-tagrows]");
+    const countsN = q<HTMLElement>("[data-counts]");
+    const extraN = q<HTMLElement>("[data-extra]");
+    const testElN = q<HTMLInputElement>("[data-test]");
+    const nElN = q<HTMLInputElement>("[data-n]");
+    const assumeN = q<HTMLElement>("[data-assume]");
+    const nOutN = q<HTMLElement>("[data-nout]");
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+    if (!stageN || !statusN || !tagsBoxN || !tagRowsN || !countsN || !extraN || !testElN || !nElN || !nOutN || radios.length === 0) return;
+    const stage: SVGSVGElement = stageN;
+    const status: HTMLElement = statusN;
+    const tagsBox: HTMLElement = tagsBoxN;
+    const tagRows: HTMLElement = tagRowsN;
+    const counts: HTMLElement = countsN;
+    const extra: HTMLElement = extraN;
+    const testEl: HTMLInputElement = testElN;
+    const nEl: HTMLInputElement = nElN;
+    const nOut: HTMLElement = nOutN;
+    radios.forEach((r) => { r.name = `lcp-plant-${idx}`; });
+
+    let key: PlantKey = "moss";
+    let tags: Partial<Record<Sid, Lvl>> = {};
+    let message = "";
+
+    const test = () => testEl.checked;
+    const N = () => Number(nEl.value);
+    const solved = () => SIDS.every((s) => tags[s] === TRUTH[s]);
+    const lvlCount = (l: Lvl) => (l === "2n" ? N() : N() / 2);
+
+    function drawStage() {
+      const P = PLANTS[key];
+      const t = test();
+      let svg = `<defs>
+        <marker id="lcp-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${ARROW}"/></marker>
+        <marker id="lcp-ahe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${EVENT}"/></marker>
+      </defs>`;
+      // arrows
+      svg += line(240, 44, 292, 98, true);
+      svg += line(300, 172, 281, 234, false);
+      svg += line(206, 272, 154, 272, false);
+      svg += line(80, 234, 68, 174, true);
+      svg += line(70, 98, 118, 50, false);
+      // arrow labels
+      svg += txt(284, 58, 10, EVENT, "meiosis", { weight: 700 });
+      if (!t) svg += txt(284, 69, 9, EVENT, "2n to n");
+      svg += txt(298, 206, 9, ARROW, "mitosis");
+      svg += txt(180, 265, 9, ARROW, "mitosis", { anchor: "middle" });
+      svg += txt(88, 202, 10, EVENT, "fertilization", { weight: 700 });
+      if (!t) svg += txt(88, 213, 9, EVENT, "n + n to 2n");
+      svg += txt(80, 70, 9, ARROW, "mitosis", { anchor: "end" });
+      // centre note
+      const centre = t
+        ? ["Number changes", "only at meiosis", "and fertilization.", "Mitosis never", "changes it."]
+        : ["Number changes", "only at meiosis", "(2n to n) and", "fertilization", "(n to 2n).", "Mitosis never does."];
+      centre.forEach((l, i) => { svg += txt(180, 124 + i * 11, 9, SOFT, l, { anchor: "middle" }); });
+      // boxes
+      for (const s of SIDS) {
+        const { x, y } = BOX[s];
+        const shown: Lvl | "" = t ? (tags[s] ?? "") : TRUTH[s];
+        const wrong = t && shown !== "" && shown !== TRUTH[s];
+        const stroke = wrong ? BAD : shown ? COL[shown as Lvl].text : GREY;
+        const fill = wrong ? "#fdecea" : shown ? COL[shown as Lvl].tint : "#ffffff";
+        const seen = P.seen === s;
+        svg += `<rect x="${x}" y="${y}" width="${BW}" height="${BH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="${seen ? 3.2 : 1.4}"${t && !shown ? ' stroke-dasharray="4 3"' : ""}/>`;
+        svg += txt(x + 8, y + 14, 10, INK, P.titles[s], { weight: 700 });
+        P.lines[s].forEach((l, i) => { svg += txt(x + 8, y + 27 + i * 10.5, 9, SOFT, l); });
+        const tagText = shown === "" ? "?" : shown;
+        svg += txt(x + 8, y + 66, 13, wrong ? BAD : shown ? COL[shown as Lvl].text : GREY, tagText, { weight: 700 });
+        if (seen) svg += txt(x + BW - 6, y + 66, 9, INK, "conspicuous body", { anchor: "end", weight: 700 });
+      }
+      stage.innerHTML = svg;
+    }
+
+    function buildTagRows() {
+      const P = PLANTS[key];
+      tagRows.replaceChildren();
+      SIDS.forEach((s) => {
+        const row = document.createElement("div");
+        row.className = "lcp-trow";
+        row.setAttribute("role", "group");
+        row.setAttribute("aria-label", `Tag the ${P.titles[s]} box`);
+        const lab = document.createElement("span");
+        lab.className = "lcp-tname";
+        lab.textContent = P.titles[s];
+        row.appendChild(lab);
+        (["n", "2n"] as Lvl[]).forEach((l) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "lcp-tbtn";
+          b.textContent = l;
+          b.dataset.sid = s;
+          b.dataset.lvl = l;
+          b.addEventListener("click", () => {
+            tags[s] = l;
+            if (l === TRUTH[s]) {
+              message = solved() ? `All five boxes are tagged correctly. ${P.seenLine}` : `Correct: ${P.titles[s]} is ${l}. ${REASON[s]}`;
+            } else {
+              message = `Not ${l}. ${REASON[s]} ${RULE}`;
+            }
+            render();
+          });
+          row.appendChild(b);
+        });
+        const res = document.createElement("span");
+        res.className = "lcp-tres";
+        res.dataset.res = s;
+        row.appendChild(res);
+        tagRows.appendChild(row);
+      });
+    }
+
+    function updateTagRows() {
+      tagRows.querySelectorAll<HTMLButtonElement>(".lcp-tbtn").forEach((b) => {
+        const s = b.dataset.sid as Sid;
+        b.setAttribute("aria-pressed", tags[s] === b.dataset.lvl ? "true" : "false");
+      });
+      tagRows.querySelectorAll<HTMLElement>("[data-res]").forEach((r) => {
+        const s = r.dataset.res as Sid;
+        const v = tags[s];
+        r.textContent = v === undefined ? "" : v === TRUTH[s] ? "correct" : "not this one";
+        r.className = "lcp-tres" + (v === undefined ? "" : v === TRUTH[s] ? " lcp-ok" : " lcp-no");
+      });
+    }
+
+    function countsHtml(): string {
+      const P = PLANTS[key];
+      const n2 = N(), n1 = n2 / 2;
+      let h = `<p class="lcp-h">Chromosome counts when 2n = ${n2} (invented; n = ${n2} / 2 = ${n1})</p><ul class="lcp-list">`;
+      h += `<li><strong>${P.titles.spor}</strong>: 2n = ${n2}</li>`;
+      h += `<li><strong>${P.titles.spore}</strong> (by meiosis): n = ${n2} / 2 = ${n1}</li>`;
+      h += `<li><strong>${P.titles.gam}</strong> (spore divides by mitosis): n = ${n1}</li>`;
+      h += `<li><strong>${P.titles.gamete}</strong> (by mitosis): n = ${n1}</li>`;
+      h += `<li><strong>${P.titles.zyg}</strong> (fertilization): ${n1} + ${n1} = ${n2}, which is 2n</li>`;
+      if (key === "flower") {
+        h += `<li><strong>Central cell after polar fusion (Arabidopsis)</strong>: ${n1} + ${n1} = ${n2}</li>`;
+        h += `<li><strong>Primary endosperm nucleus</strong>: ${n2} + ${n1} = ${n2 + n1}, which is 3n (Arabidopsis and most flowering plants)</li>`;
+      }
+      h += "</ul>";
+      if (key === "flower") {
+        h += `<p class="lcp-eq"><strong>endosperm = central cell (n + n) + one sperm (n) = 3n</strong> in Arabidopsis and most flowering plants, not all.</p>`;
+        if (n2 === 10) h += `<p class="lcp-small">2n = 10 is the real count for Arabidopsis thaliana: egg 5, zygote 10, central cell 10, primary endosperm nucleus 15.</p>`;
+      }
+      return h;
+    }
+
+    function extraHtml(unlocked: boolean): string {
+      if (key === "moss") {
+        return `<p class="lcp-h">Moss</p><p class="lcp-small">The calyptra, the cap over the young capsule, comes from the gametophyte, not the capsule. The capsule belongs to the sporophyte.</p>`;
+      }
+      if (key === "pine") {
+        const v = (l: Lvl) => (unlocked ? `${l} = ${lvlCount(l)}` : "tag the boxes to see");
+        return `<p class="lcp-h">A pine seed holds three kinds of tissue (invented counts)</p><ul class="lcp-list">
+          <li><strong>Seed coat</strong>: from the parent sporophyte, ${unlocked ? "2n" : "?"} (${v("2n")} chromosomes)</li>
+          <li><strong>Food store</strong>: the female gametophyte, ${unlocked ? "n" : "?"} (${v("n")} chromosomes)</li>
+          <li><strong>Embryo</strong>: the new sporophyte, ${unlocked ? "2n" : "?"} (${v("2n")} chromosomes)</li></ul>`;
+      }
+      if (key === "flower") {
+        return `<p class="lcp-h">One Arabidopsis-type embryo sac, then five ovules</p><ul class="lcp-list">
+          <li>A megaspore mother cell undergoes meiosis: 4 megaspores, 3 degenerate, 1 survives.</li>
+          <li>Three rounds of nuclear mitosis: 2 x 2 x 2 = 8 nuclei.</li>
+          <li>Walls form 7 cells: an egg, 2 synergids, 3 antipodal cells and one large central cell with 2 polar nuclei.</li></ul>
+          <p class="lcp-check"><strong>Five ovules, one mother cell each:</strong> 20 megaspores, 15 degenerate, 5 survive, 40 nuclei, 35 cells. Check: 15 + 5 = 20, and 40 nuclei exceed 35 cells by 5, one extra nucleus per central cell.</p>`;
+      }
+      return "";
+    }
+
+    function render() {
+      const P = PLANTS[key];
+      const t = test();
+      const n2 = N();
+      nOut.textContent = String(n2);
+      if (assumeN) assumeN.textContent = key === "flower" ? "In this sketch: normal development, no losses beyond the three megaspores that degenerate; a schematic cycle, not to scale; chromosome numbers are invented examples." : "In this sketch: a schematic cycle, not to scale; chromosome numbers are invented examples.";
+      tagsBox.hidden = !t;
+      drawStage();
+      updateTagRows();
+      const unlocked = !t || solved();
+
+      // status line
+      if (!t) {
+        const extraN = key === "flower" && n2 === 10 ? "the real count for Arabidopsis thaliana" : "an invented number";
+        let s = `${P.seenLine} With 2n = ${n2} (${extraN}), n = ${n2 / 2}: spores, gametophyte and eggs and sperm are n, and the zygote and sporophyte are 2n.`;
+        if (key === "flower") s += ` The primary endosperm nucleus is ${n2 + n2 / 2}, which is 3n, in Arabidopsis and most flowering plants, not all.`;
+        status.textContent = s;
+      } else if (message) {
+        status.textContent = message;
+      } else {
+        status.textContent = `Test mode, ${P.name.toLowerCase()}: tag each box n or 2n. Find meiosis and fertilization first; they are the only two places the chromosome number changes.`;
+      }
+
+      // counts: hidden while testing until all five boxes are right
+      if (unlocked) {
+        counts.hidden = false;
+        counts.innerHTML = countsHtml();
+      } else {
+        counts.hidden = false;
+        counts.innerHTML = `<p class="lcp-small">The chromosome counts for 2n = ${n2} appear when all five boxes are tagged correctly.</p>`;
+      }
+      const ex = extraHtml(unlocked);
+      extra.hidden = ex === "";
+      extra.innerHTML = ex;
+    }
+
+    function reset() {
+      tags = {};
+      message = "";
+      buildTagRows();
+      render();
+    }
+
+    radios.forEach((r) => r.addEventListener("change", () => {
+      if (r.checked) { key = r.value as PlantKey; reset(); }
+    }));
+    testEl.addEventListener("change", reset);
+    nEl.addEventListener("input", render);
+    nEl.addEventListener("change", render);
+    reset();
+  });
+</script>
+
+<style is:global>
+  .lcp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lcp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lcp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lcp-controls { display: grid; gap: 0.5rem; margin-bottom: var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lcp-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.7rem 0.4rem; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; }
+  .lcp-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .lcp-controls input[type="radio"], .lcp-controls input[type="checkbox"], .lcp-controls input[type="range"] { accent-color: var(--ddp-color-accent); }
+  .lcp-slide label { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .lcp-slide input[type="range"] { flex: 1 1 10rem; min-width: 9rem; }
+  .lcp-note { margin: 0.2rem 0 0; color: var(--ddp-color-muted); }
+  .lcp-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lcp-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .lcp-tags { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-2) 0; padding: 0.3rem 0.7rem 0.5rem; }
+  .lcp-tags[hidden] { display: none; }
+  .lcp-tags legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .lcp-trow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.3rem 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lcp-tname { min-width: 8.5em; font-weight: 600; }
+  .lcp-tbtn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); font-weight: 700; padding: 0.25rem 0.8rem; cursor: pointer; }
+  .lcp-tbtn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; }
+  .lcp-tbtn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .lcp-tres { min-width: 5.5em; }
+  .lcp-ok { color: #0b6a73; font-weight: 600; }
+  .lcp-no { color: #b3261e; font-weight: 600; }
+  .lcp-block { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; line-height: 1.5; }
+  .lcp-block[hidden] { display: none; }
+  .lcp-h { margin: 0 0 0.2rem; font-weight: 600; color: var(--ddp-color-primary); }
+  .lcp-list { margin: 0; padding-left: 1.1rem; }
+  .lcp-small, .lcp-eq, .lcp-check { margin: 0.3rem 0 0; }
+  .lcp-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .lcp-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

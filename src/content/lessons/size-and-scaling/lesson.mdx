@@ -1,0 +1,403 @@
+---
+title: "Size, Scale and Surface"
+slug: "size-and-scaling"
+course: "organismal-biology"
+courseChapter: "Organismal Biology · Unit 1: Organisms and their diversity"
+order: 702
+summary: >-
+  Why can a flatworm get by with no lungs and no heart while a mouse cannot? This lesson works
+  through the geometry of size: how the ratio of surface to volume falls as a body grows, why
+  diffusion is fast over micrometres and hopeless over centimetres, and how metabolic rate scales
+  with body mass. Afterwards you can calculate a surface-area-to-volume ratio and a diffusion
+  time, predict total and per-kilogram metabolic rates from a power law, and say what a fitted
+  scaling exponent does and does not tell you.
+hook: "A 70 kg human burns far more energy than a 30 g mouse, yet each kilogram of mouse burns about seven times more. Why?"
+
+estMinutes: 24
+objectives:
+  - "Calculate surface area, volume and their ratio (in units of per length) for cubes or spheres of two sizes, and explain why the ratio falls as size rises."
+  - "Use t = L^2 / 2D to show that diffusion time grows with the square of distance, and explain why diffusion alone serves only short distances unless bulk flow carries material most of the way."
+  - "Use metabolic rate = a x M^b to predict total and mass-specific rates for two body sizes, and explain why the exponent b differs among groups and states and why its cause is still debated."
+  - "Identify flattening, folding, branching and bulk flow as recurring answers to the surface problem, with an animal and a plant example of each."
+
+scientists:
+  - name: "Max Rubner"
+    contribution: >-
+      Compared the heat production of resting dogs of different sizes and found that total heat
+      rose less steeply than body mass, while heat per unit of body surface stayed roughly
+      constant, the pattern later called the surface law.
+    profileSourceAnchor: "Rubner, Ueber den Einfluss der Körpergrösse auf Stoff- und Kraftwechsel, Zeitschrift für Biologie 19:535-562 (1883)."
+    quotes: []
+    story: >-
+      Rubner worked on a question that sounds simple: does every gram of an animal cost the same
+      to run? If it did, a dog ten times heavier than another should produce ten times as much
+      heat each day. Dogs suit the question because one species spans a wide range of body sizes,
+      so size can be compared without also changing the kind of animal. He kept the dogs at rest
+      and estimated how much heat
+      each produced in a day. Total heat rose with size, but much less steeply than mass. The
+      small dogs produced more heat per kilogram than the large ones. When he divided heat by
+      each dog's estimated body surface instead of by its mass, the values came out roughly
+      equal. Since surface grows about as mass to the power 2/3 in animals of similar shape, this
+      gave a scaling rule with a definite exponent that later workers could test against other
+      species.
+  - name: "Max Kleiber"
+    dates: "1893–1976"
+    contribution: >-
+      Compiled resting metabolic rates for animals from rats to steers and fitted them with a
+      power of body mass near 3/4 rather than 2/3, the relation now called Kleiber's rule, which
+      is a debated empirical fit rather than a law.
+    profileSourceAnchor: "Kleiber, Body size and metabolism, Hilgardia 6:315-353 (1932); UC Davis Library Archives and Special Collections, Kleiber, Max (1893-1976), Papers."
+    quotes: []
+    story: >-
+      Kleiber was Professor of Animal Physiology at the University of California, Davis, from
+      1929 to 1960, according to the university's archival description of his papers. The question
+      matters for animal husbandry, because how much feed an animal needs depends on how much
+      energy it spends at rest. In his 1932 paper in Hilgardia he gathered resting metabolic rates for animals
+      that ranged from rats to steers and asked which power of body mass described them best.
+      On a graph of the logarithm of metabolic rate against the logarithm of mass, the points
+      fell close to a straight line, and its slope was near 3/4, steeper than Rubner's 2/3. The
+      result gave animal scientists a way to compare the energy needs of animals of very different
+      sizes on one scale. It also started a long argument, still open, about whether 3/4 is a
+      real regularity, an artefact of which animals were chosen, or one value among many.
+  - name: "Craig R. White and Roger S. Seymour"
+    contribution: >-
+      Reanalysed mammalian basal metabolic rates while accounting for differences in body
+      temperature, digestive state and phylogeny, and reported an exponent close to 2/3 rather than 3/4.
+    profileSourceAnchor: "White and Seymour, Mammalian basal metabolic rate is proportional to body mass^2/3, Proceedings of the National Academy of Sciences USA 100:4046-4049 (2003)."
+    quotes: []
+    story: >-
+      By the end of the twentieth century the 3/4 exponent had become a fixture of textbooks, and
+      in 1997 a group of physicists and ecologists proposed that it arose from the branching
+      geometry of supply networks such as blood vessels. White and Seymour, physiologists working
+      in Australia, went back to the data. A basal metabolic rate is meant to be measured in an
+      adult animal at rest, not digesting a meal, and in a thermoneutral environment, one where it
+      spends no extra energy on warming or cooling itself. Many published values did not meet
+      those conditions, and large mammals tend to differ from small ones in body temperature and
+      in how long they stay in a digestive state. When White and Seymour restricted and corrected
+      the data for these factors, the fitted exponent for mammals came out close to 2/3. Their
+      paper did not settle the question. It showed that the exponent depends on how the data are
+      chosen, which is why later work now reports exponents group by group.
+
+techniques:
+  - name: "Respirometry and indirect calorimetry"
+    blurb: >-
+      Measure how fast an animal consumes oxygen (or produces carbon dioxide) while it rests in a
+      chamber, then convert the gas exchange into a rate of energy use. Done under standard
+      conditions (adult, at rest, fasted, thermoneutral), it gives a basal metabolic rate that can
+      be compared across species.
+  - name: "Comparative regression on log-log axes, ordinary and phylogenetic"
+    blurb: >-
+      Plot the logarithm of metabolic rate against the logarithm of body mass for many species and
+      fit a straight line; its slope is the exponent b. Ordinary least squares treats each species
+      as independent, while phylogenetic regression allows for the fact that related species
+      resemble each other, and the two can give different slopes.
+  - name: "X-ray microcomputed tomography of leaves"
+    blurb: >-
+      Scan a small leaf disc with X-rays from many angles and rebuild it as a three-dimensional
+      image. From the image you can measure the internal air spaces and the area of mesophyll cell
+      surface exposed to them, per unit of leaf area.
+
+structures: []
+
+simulations:
+  - type: "local"
+    ref: "MetabolicPowerLaw"
+    title: "Metabolic rate and body mass"
+    caption: >-
+      Move two body masses and the exponent b along the lesson's fitted mammal line, 70 x M^b kcal per day, and watch the ratio of totals and the ratio of rates per kilogram change.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "An ideal cube-shaped cell with sides of 10 um has a surface-area-to-volume ratio of 0.6 per um. If each side doubles to 20 um, what happens to that ratio?"
+    choices:
+      - "It falls to 0.075 per um"
+      - "It doubles to 1.2 per um"
+      - "It stays at 0.6 per um"
+      - "It halves to 0.3 per um"
+    answer: 3
+    rationale: >-
+      For a cube the ratio is 6/s, so doubling s halves it: 2,400 um2 of area over 8,000 um3 of
+      volume is 0.3 per um. Doubling the ratio would follow if area grew faster than volume, which
+      reverses the real relation. Staying the same treats area and volume as growing in step, but
+      area rises fourfold and volume eightfold. Dividing by eight applies the volume factor to the
+      whole ratio and forgets that area also grew.
+  - stem: "In a free one-dimensional diffusion model, a small solute takes about 0.05 s to diffuse a typical distance of 10 um. About how long does it take to diffuse 100 um under the same conditions?"
+    choices:
+      - "About 5 s, 100 times as long"
+      - "About 0.05 s, the same time"
+      - "About 0.5 s, ten times as long"
+      - "About 0.005 s, a tenth as long"
+    answer: 0
+    rationale: >-
+      In this model t = L^2 / 2D, so time grows with the square of distance: ten times the
+      distance takes a hundred times as long, 0.05 x 100 = 5 s. Ten times as long assumes time is
+      proportional to distance, as it would be for an object moving at a steady speed. The same
+      time ignores distance altogether. A tenth as long reverses the relation, as if longer
+      distances were covered faster.
+  - stem: "Using a single power law with b = 0.75 for both, how does the metabolic rate per kilogram of a 30 g mouse compare with that of a 70 kg adult human at rest?"
+    choices:
+      - "The two rates per kilogram are about equal"
+      - "The mouse's rate per kilogram is several times higher"
+      - "The human's rate per kilogram is several times higher"
+      - "The mouse's rate per kilogram is thousands of times higher"
+    answer: 1
+    rationale: >-
+      Rate per kilogram scales as M^(b - 1), here M^-0.25, so it falls as mass rises; with a
+      mass ratio near 2,333 the mouse's per-kilogram rate comes out about 7 times the human's.
+      Equal rates per kilogram would require b = 1, the simple proportionality Rubner's dogs ruled
+      out. A higher human rate per kilogram confuses total rate, which is higher in the human,
+      with rate per kilogram. Thousands of times uses the mass ratio itself and forgets the
+      quarter-power.
+  - stem: "In the finest airways deep in a mammalian lung, how does oxygen mainly move toward the gas-exchange surface?"
+    choices:
+      - "By pumping out from the capillary blood nearby"
+      - "By diffusion down a concentration difference"
+      - "By bulk airflow driven by each breath"
+      - "By active transport through the airway cells"
+    answer: 1
+    rationale: >-
+      In the mammalian airway tree, breathing moves air by bulk flow through the larger branches,
+      and in the peripheral branches transport shifts toward diffusion. Bulk airflow describes the
+      larger airways, not the last stretch, and bulk flow never removes the need for diffusion at
+      the exchange surface. Oxygen crosses by diffusion, not active transport. Blood carries oxygen
+      away from the lung surface, not toward the air spaces.
+  - stem: "A microCT study reports 21.3 mm2 of exposed mesophyll surface per mm2 of leaf area in barley. A student writes that this is the barley leaf's surface-area-to-volume ratio. What is wrong with that?"
+    choices:
+      - "The leaf value is a ratio of two volumes in a leaf"
+      - "The leaf value should be in units of per mm"
+      - "The leaf value is area per area, with no units"
+      - "The leaf value is volume per area, in units of mm"
+    answer: 2
+    rationale: >-
+      The mesophyll measure divides one area (internal cell surface) by another (leaf area), so the
+      units cancel and it tells you how many times the leaf's outer area is repeated inside it.
+      A surface-area-to-volume ratio divides area by volume and has units of per length, as in
+      0.6 per um for a 10 um cube. Calling it per mm treats the two measures as the same kind.
+      Volume per area and volume per volume describe quantities the study did not report here.
+
+mcatQuestions:
+  - stem: "A researcher models three spherical cells of radius 5, 10 and 20 um and measures the rate at which a nutrient enters each across its surface, per unit of cell volume. The value falls by half with each doubling of radius. Using the geometry of a sphere, what is the surface-area-to-volume ratio of the 20 um cell?"
+    choices:
+      - "0.15 um, from r divided by 3"
+      - "0.3 per um, half the 10 um value"
+      - "0.15 per um, from 3 divided by r"
+      - "0.6 per um, as for the 5 um cell"
+    answer: 2
+    rationale: >-
+      For a sphere, area 4 pi r^2 divided by volume 4/3 pi r^3 gives 3/r, so at r = 20 um the
+      ratio is 0.15 per um, matching the halving with each doubling. The value 0.3 per um belongs
+      to the 10 um cell, so choosing it mixes up which radius is which. The value 0.6 per um is the
+      5 um cell's ratio and would mean size made no difference. The answer 0.15 um has the right number but the wrong unit,
+      a length instead of per length, and r divided by 3 would give 6.7 um, not 0.15.
+  - stem: "Two species of related mammals are measured by respirometry at rest and fasted, under thermoneutral conditions. The larger species is 81 times heavier, and across the group basal metabolic rate fits a power law with b = 0.75 and the same coefficient a. What does the model predict for the larger species?"
+    choices:
+      - "81 times the total rate, the same rate per kg"
+      - "9 times the total rate, one ninth the rate per kg"
+      - "27 times the total rate, three times the rate per kg"
+      - "27 times the total rate, one third the rate per kg"
+    answer: 3
+    rationale: >-
+      The ratio of total rates is (81)^0.75 = 27, and the ratio of rates per kilogram is
+      81^-0.25 = 1/3, which also equals 27/81. Eighty-one times the total rate assumes b = 1, every
+      kilogram costing the same. Nine times the total rate uses b = 0.5, a square root, which is
+      not the exponent given. Three times the rate per kilogram has the direction reversed: the
+      larger animal spends less per kilogram, not more.
+  - stem: "A team fits log basal metabolic rate against log body mass for 30 mammal species. Ordinary least squares gives a slope of 0.72. A phylogenetic regression on the same data, allowing for the relatedness of the species, gives 0.67. What is the best conclusion?"
+    choices:
+      - "Shared ancestry affects the estimate of the exponent"
+      - "The true exponent is 3/4, so the second fit is wrong"
+      - "Body mass has no effect on metabolic rate here"
+      - "Phylogeny changes body mass, so neither fit is valid"
+    answer: 0
+    rationale: >-
+      Related species resemble each other, so they are not independent data points, and allowing
+      for that changed the fitted slope; the estimate of b depends on the method as well as the
+      data. Calling 3/4 the true value assumes a law the data do not establish, and neither slope
+      is 3/4 here. A slope near 0.7 means rate rises strongly with mass, so mass clearly matters.
+      Phylogeny does not change an animal's mass; it changes how the species should be weighted in
+      the fit.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Everything a living thing needs has to come in through its outside. A tiny creature has
+      lots of outside compared with its inside, so food and air can reach every part. A big
+      creature has much more inside for each bit of outside, so it needs tubes, pumps and folds
+      to carry things deep inside. Big animals also burn less energy for each pound of body.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      When a shape gets bigger without changing form, its surface area grows with the square of
+      its length and its volume with the cube, so the surface available per unit of volume falls.
+      Materials such as oxygen enter across surfaces, often by diffusion, and diffusion is quick
+      over a few micrometres but takes hours over a centimetre. Large organisms therefore have
+      flattened shapes, folded surfaces such as lungs and the inside of leaves, branching tubes,
+      and bulk flow of blood, air or sap. Metabolic rate also rises less steeply than body mass,
+      so a mouse uses much more energy per kilogram than a human.
+  - level: "college"
+    label: "College"
+    text: >-
+      For geometrically similar bodies, area scales as L^2 and volume as L^3, so the
+      surface-area-to-volume ratio falls as 1/L (6/s for a cube, 3/r for a sphere). Diffusion time
+      in a simple one-dimensional model is t = L^2 / 2D; with D near 1,000 um2 per s for a small
+      solute in water, 10 um takes 0.05 s and 1 cm about 14 hours. Organisms extend exchange
+      surfaces by flattening (planarians, leaf laminae), folding (alveoli, lobed mesophyll),
+      branching (airways, leaf veins) and bulk flow (circulation, ventilation, cytoplasmic
+      streaming in Chara), always with diffusion over the last short step. Metabolic rate is
+      described empirically by R = a M^b, with b below 1, so the mass-specific rate a M^(b - 1)
+      falls with size. Kleiber's widely used b = 3/4 is a fit to mammals and birds; other
+      analyses find values nearer 2/3, and b differs among taxa and states.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Write R = a M^b and take logarithms: log R = log a + b log M, so b is a slope and log a an
+      intercept, and an absolute prediction needs both. Rubner's dogs fitted a surface-law exponent
+      near 2/3; Kleiber's 1932 compilation, from rats to steers, gave a value near
+      3/4; White and Seymour (2003) recovered a mammalian exponent near 2/3 after controlling for
+      body temperature and digestive state; Griebeler and Werner (2016), comparing ordinary and
+      phylogenetic regression across 17 mammalian orders, found no single exponent for all the
+      groups, and most best-supported models included phylogeny. Across eukaryotes as a whole,
+      Hatton and colleagues (2019) estimated a pooled exponent of 0.96, a reminder that
+      between-group and within-group slopes answer different questions. The Péclet number,
+      Pe = UL/D, says when bulk flow beats diffusion: Chara streaming at up to about 100 um per s
+      over 1 mm gives Pe near 100. The open question is mechanistic: does b reflect the geometry
+      of supply networks, as the 1997 network model of West, Brown and Enquist proposed, surface
+      heat loss, the mix of tissues of different metabolic intensity, or no single cause at all?
+
+anecdotes:
+  - title: "Haldane on being the right size"
+    source: "J. B. S. Haldane, On Being the Right Size, Harper's Magazine (1926), reprinted in his collection Possible Worlds."
+    text: >-
+      The geneticist and essayist J. B. S. Haldane, not to be confused with his father, the
+      respiratory physiologist J. S. Haldane, wrote a short essay in 1926 called On Being the Right
+      Size. Its argument is the one in this lesson. Because area and volume scale differently, an
+      animal cannot simply be enlarged or shrunk and keep working. A larger animal needs
+      proportionally thicker supports, and its internal surfaces, such as lungs and gut, have to be
+      folded or extended to keep pace with its volume. Haldane used this to argue that size and
+      form are tied together, so a change in one brings a change in the other.
+  - title: "A bacterium you can see without a microscope"
+    source: "Volland et al., A centimeter-long bacterium with DNA contained in metabolically active, membrane-bound organelles, Science 376:1453-1458 (2022); abstract."
+    text: >-
+      Most bacteria are a few micrometres long, and the surface problem is usually given as the
+      reason. In 2022 Jean-Marie Volland and colleagues described Candidatus Thiomargarita
+      magnifica, a bacterium whose cells averaged more than 9,000 um long, close to a centimetre.
+      The paper's title reports DNA held in membrane-bound compartments inside the cell. The
+      abstract is the evidence used here, so the details of how such a cell is organized are left
+      out. The lesson it carries is that a size limit set by diffusion is conditional: it depends
+      on shape and on how material is arranged inside, and a single cell can break the usual rule.
+  - title: "A cell that stirs itself"
+    source: "Goldstein and van de Meent, A physical perspective on cytoplasmic streaming, Interface Focus 5:20150030 (2015)."
+    text: >-
+      The freshwater alga Chara grows giant internodal cells, each long enough to see with the
+      naked eye. Diffusion alone would take hours to move a small molecule from one end of such a
+      cell to the other. Instead, molecular motors near the cell periphery drive the fluid inside
+      in a steady circulation at speeds up to about 100 um per s. Raymond Goldstein and Jan-Willem
+      van de Meent, reviewing the physics, use the Péclet number to compare this flow with
+      diffusion. In a single cell, the same answer appears that animals use with blood and plants
+      with sap: move the fluid in bulk.
+
+corpusTags:
+  - "surface-area-to-volume"
+  - "diffusion"
+  - "allometry"
+  - "metabolic-scaling"
+  - "kleiber"
+  - "bulk-flow"
+  - "comparative-physiology"
+draft: true
+---
+
+import MetabolicPowerLaw from '../../../components/MetabolicPowerLaw.astro';
+
+**A widely used fit predicts that a 30 g mouse at rest burns roughly 5 kilocalories a day, and a 70 kg adult human about 1,700. The human is more than 2,000 times heavier but burns only about 340 times as much.** Each kilogram of mouse spends about seven times more energy than each kilogram of human. To see why, and why the mouse has lungs and a heart while a flatworm needs neither, you have to look at what happens to surfaces when bodies get bigger.
+
+Everything a cell or a body takes in or gives out crosses a surface. Oxygen enters, carbon dioxide and heat leave. This lesson builds on [what an organism has to do](/lessons/organism-problems/) and asks how size changes the job.
+
+## A bigger cube has less skin per unit of inside
+
+The **surface-area-to-volume ratio** is a body's outer area divided by the volume it encloses. Model a cell as an ideal cube of side s. Its surface area is 6s² (six square faces) and its volume is s³, so
+
+> **surface area / volume = 6s² / s³ = 6/s**
+
+For a sphere of radius r the same reasoning gives 4πr² / (4/3 πr³) = 3/r. Either way, the ratio falls as size rises. It also has units: area divided by volume is per unit length.
+
+**Worked problem, part 1.** These cubes are illustrative, not measured cells.
+
+1. *Side 10 um.* Area = 6 x 10² = 600 um². Volume = 10³ = 1,000 um³. Ratio = 600 / 1,000 = 0.6 per um.
+2. *Side 20 um.* Area = 6 x 20² = 2,400 um². Volume = 20³ = 8,000 um³. Ratio = 2,400 / 8,000 = 0.3 per um.
+3. *Compare.* Doubling the side multiplies area by 4 and volume by 8, so the ratio halves. Check with 6/s: 6/10 = 0.6 and 6/20 = 0.3.
+
+The bigger cube has more surface in total and less surface for each cubic micrometre that needs supplying. If oxygen use scales with volume and oxygen entry with area, there is a size at which entry can no longer keep up. For real cell sizes and shapes, see [the measured eukaryotic cell](/lessons/measured-eukaryotic-cell/).
+
+## Diffusion: fast over micrometres, hopeless over centimetres
+
+**Diffusion** is the net spread of molecules from where they are more concentrated to where they are less, driven by their random motion. How fast it spreads is set by the **diffusion coefficient**, D. For a small molecule in water, D is about 1,000 um² per s. How molecules cross membranes is covered in [membrane transport](/lessons/membrane-transport/); here the question is distance.
+
+In a simple model of free diffusion along one direction, the mean squared distance a molecule travels is 2Dt. Rearranged, the typical time to cover a distance L is
+
+> **t = L² / 2D**
+
+**Worked problem, part 2.** Take D = 1,000 um² per s, a small solute in water.
+
+1. *L = 5 um* (half the 10 um cube). t = 25 / 2,000 = 0.0125 s.
+2. *L = 10 um* (half the 20 um cube). t = 100 / 2,000 = 0.05 s, four times as long for twice the distance.
+3. *L = 1 cm = 10,000 um.* t = 100,000,000 / 2,000 = 50,000 s, about 14 hours.
+
+Because time grows with distance squared, diffusion that is effectively instant across a cell becomes useless across a finger's width. Treat these as rough estimates: the formula gives a typical spread along one coordinate, not the time to fill a cell or the first moment a molecule arrives.
+
+That is why size without some other transport is limited. Many flatworms, such as freshwater planarians, have flattened bodies, and oxygen reaches their tissues by diffusion across the body surface. A flat body keeps every cell close to the outside. A mouse-sized animal built like a sphere could not be supplied that way.
+
+## Four answers in two kingdoms
+
+Animals and plants face the same geometry, and the same four solutions turn up in both.
+
+**Flattening.** The planarian is one example. The blade, or **lamina**, of a typical eudicot leaf is another: a wide, thin sheet in which no cell is far from the surface.
+
+**Folding.** The mammalian lung packs a large exchange surface into the chest by folding it into a very large number of small air sacs, the alveoli. How much exchange is possible depends on that area divided by the thickness of the barrier. Leaves fold inward too. Their **mesophyll**, the photosynthetic tissue inside the leaf, is full of air spaces. Using X-ray microCT, Mathers and colleagues (2018) measured 21.3 mm² of exposed mesophyll surface per mm² of leaf area in barley and 15.5 in rice. That number has no units, because it is area divided by area: it says the inside surface is about twenty times the outside. Do not mix it with the cube's ratio in per um.
+
+**Branching.** The airways of the mammalian lung divide again and again, about 23 times in the standard textbook model of the adult human, from the trachea to the smallest airways. In a typical eudicot leaf, vascular tissue branches from the midrib into finer and finer veins, and the xylem in them brings water and minerals to the leaf. Branching shortens the last distance that diffusion has to cover.
+
+**Bulk flow.** **Bulk flow** moves a whole fluid, and everything in it, by a pressure difference or by motors. Breathing, blood circulation and the movement of sap in phloem are all bulk flow; you will meet them in [gas exchange](/lessons/gas-exchange/), [circulation](/lessons/circulation-and-heart/) and [plant transport](/lessons/plant-transport/). It even happens inside single cells. In the giant cells of the alga Chara, motors drive the cytoplasm round at up to about 100 um per s.
+
+None of these removes diffusion. In the mammalian lung, transport shifts from bulk airflow toward diffusion in the finest branches, and oxygen crosses the alveolar wall into the blood by diffusion, not by active transport. Bulk flow carries material most of the way; diffusion still does the last few micrometres.
+
+These limits are conditional, not absolute. Volland and colleagues (2022) described a bacterium, Candidatus Thiomargarita magnifica, whose cells averaged more than 9,000 um long, which shows that shape and internal arrangement can push a single cell far beyond the usual size.
+
+## Body mass and metabolism: Rubner, Kleiber and the debate
+
+**Metabolic rate** is the rate at which an organism uses energy. **Basal metabolic rate** is that rate in an adult **endotherm**, an animal that keeps itself warm with its own heat (mammals and birds), measured at rest, fasted, and at a temperature where it spends nothing extra on heating or cooling. **Allometry** is the study of how a trait changes with body size when it does not change in simple proportion.
+
+In 1883 Max Rubner asked whether every gram costs the same. He studied resting dogs of different sizes and estimated each dog's heat production. If cost were proportional to mass, a dog ten times heavier would make ten times the heat. It did not. Total heat rose less steeply than mass, and small dogs produced more heat per kilogram. Heat per unit of body surface came out roughly constant across his dogs, the "surface law", with an exponent near 2/3. That ruled out simple proportionality in these dogs. It did not show that surface heat loss is the cause in other animals.
+
+In 1932 Max Kleiber fitted resting rates for animals from rats to steers and found an exponent near 3/4. Both are written as a power law:
+
+> **metabolic rate = a x M^b**   and   **rate per kg = a x M^(b - 1)**
+
+Here M is body mass, a is a constant for the group, and b is the exponent, the slope of log rate against log mass. If b is below 1, rate per kilogram falls as animals get bigger.
+
+**Worked problem, part 3.** Use the widely quoted mammal fit, basal metabolic rate of about 70 x M^0.75 kilocalories per day with M in kilograms. It is an empirical fit, and the exponent is debated.
+
+1. *30 g mouse, M = 0.03 kg.* 0.03^0.75 = 0.072, so rate = 70 x 0.072, about 5.0 kcal per day, or about 168 kcal per kg per day.
+2. *70 kg adult human.* 70^0.75 = 24.2, so rate = 70 x 24.2, about 1,690 kcal per day, or about 24 kcal per kg per day.
+3. *Compare.* The human's total is about 1,690 / 5.0, roughly 336 times the mouse's, and the mouse's rate per kilogram is about 168 / 24, roughly 7 times the human's.
+4. *Change b.* With b = 2/3, the ratio of rates per kilogram becomes (70 / 0.03)^(1/3) = 2,333^(1/3), about 13. The exponent alone nearly doubles the predicted difference.
+
+Treat 3/4 as a fit, not a law. White and Seymour (2003) found a mammalian exponent near 2/3 once body temperature and digestive state were controlled. Griebeler and Werner (2016), comparing ordinary and phylogenetic regression across 17 mammalian orders, found no single exponent for all the groups. The exponent depends on the group, the state (basal, field or maximal), temperature and method, and no explanation of it is settled. How metabolic rate connects to body temperature comes next, in [thermoregulation](/lessons/thermoregulation/).
+
+<MetabolicPowerLaw />
+
+### Design problem
+
+You are given illustrative data. Plotting log basal metabolic rate against log body mass gives a slope of 0.70 for 40 rodent species and 0.68 for 40 bird species. Pooling those species with shrews and whales gives a slope of 0.76. A classmate says the pooled slope confirms that metabolic rate is set by the branching geometry of blood vessels, as one well-known network model (West, Brown and Enquist, 1997) proposes. What does each slope tell you, and what would you say to your classmate?
+
+<details>
+<summary>One way to do it</summary>
+
+Each slope is an estimate of b for that set of animals. Within rodents, a 100-fold rise in mass predicts about 100^0.70, roughly 25 times the total rate; within birds, about 100^0.68, roughly 23 times. The pooled slope is a different quantity. Adding shrews and whales stretches the mass range, and if the groups differ in their constant a, the line through all of them can be steeper or shallower than the line within any one group. At 0.76, a 100-fold rise predicts about 33 times the rate.
+
+Before trusting any of the three, ask how the rates were measured (basal, field or maximal), at what temperature, and with what regression. Related species are not independent points, so a phylogenetic regression may give a different slope from an ordinary one; see [reading phylogenetic trees](/lessons/reading-phylogenetic-trees/).
+
+To your classmate: a slope near 3/4 is consistent with the network model, but it is also consistent with other explanations, and the within-group slopes here are nearer 2/3. A fitted number cannot confirm a mechanism. Testing one would need a prediction that rival explanations do not share, checked in data collected under the same conditions.
+
+</details>

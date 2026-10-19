@@ -1,0 +1,222 @@
+---
+/**
+ * KillVsDoublingRace — the innate-immunity race between microbial doubling and killing.
+ * N after n intervals = N0 x [2 x (1 - k)]^n, one interval = one 20-minute doubling time,
+ * drawn on a log axis against the no-defense curve. Expected values only (no chance).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="kd card" data-killrace>
+  <figcaption class="kd-head">Killing against doubling — the first four hours<span class="kd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="kd-svg" viewBox="0 0 340 250" role="img" aria-label="Log-scale plot of the expected number of bacteria against time over four hours, with and without a defense that kills a fixed fraction per 20-minute interval" data-plot></svg>
+
+  <div class="kd-controls">
+    <label class="kd-slabel"><span>Fraction killed per 20-minute interval, k <em data-out="k">75%</em></span>
+      <input type="range" data-in="k" min="0" max="95" step="5" value="75" />
+    </label>
+    <label class="kd-slabel"><span>Elapsed time <em data-out="t">4 h</em></span>
+      <input type="range" data-in="t" min="0" max="12" step="1" value="12" />
+    </label>
+    <fieldset class="kd-n0">
+      <legend>Starting bacteria, N<sub>0</sub></legend>
+      <label><input type="radio" name="kd-n0" value="10" data-n0 /> 10</label>
+      <label><input type="radio" name="kd-n0" value="100" data-n0 checked /> 100</label>
+      <label><input type="radio" name="kd-n0" value="1000" data-n0 /> 1,000</label>
+    </fieldset>
+  </div>
+
+  <dl class="kd-readout">
+    <div><dt>Intervals elapsed, n = time ÷ 20 min</dt><dd data-r-n>12</dd></div>
+    <div><dt>Multiplier per interval, 2 × (1 − k)</dt><dd data-r-m>2 × 0.25 = 0.5</dd></div>
+    <div class="kd-wide"><dt>Expected bacteria, N = N<sub>0</sub> × [2 × (1 − k)]<sup>n</sup></dt><dd data-r-N>—</dd></div>
+    <div class="kd-wide"><dt>With no defense, N = N<sub>0</sub> × 2<sup>n</sup></dt><dd data-r-free>—</dd></div>
+  </dl>
+  <p class="kd-why" data-why role="status">—</p>
+  <p class="kd-assume">In this sketch: illustrative numbers, not a measured infection; constant rates, a well-mixed wound, and expected values with no chance.</p>
+
+  <p class="kd-foot">The population shrinks only if 2 × (1 − k) is below 1, so the fraction killed must exceed 50% per doubling time.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const SUP: Record<string, string> = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  const sup = (n: number) => String(n).split('').map((c) => SUP[c] ?? c).join('');
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const comma = (x: number) => x.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  // Number text: sig figs by size; very small values in powers of ten.
+  function fmt(x: number): string {
+    if (x >= 100) return comma(x);
+    if (x >= 1) return String(Number(x.toPrecision(3)));
+    if (x >= 0.001) return String(Number(x.toPrecision(2)));
+    const e = Math.floor(Math.log10(x));
+    return (x / Math.pow(10, e)).toFixed(2) + ' × 10' + sup(e);
+  }
+  const isExact = (x: number) => Math.abs(x - Math.round(x)) < 1e-9;
+  const eq = (x: number) => (isExact(x) ? ' = ' : ' ≈ ');
+  function timeText(i: number): string {
+    const m = i * 20, h = Math.floor(m / 60), r = m % 60;
+    if (m === 0) return '0 min';
+    if (h === 0) return r + ' min';
+    return r === 0 ? h + ' h' : h + ' h ' + r + ' min';
+  }
+
+  function must<T>(x: T | null): T {
+    if (x === null) throw new Error('KillVsDoublingRace: missing element');
+    return x;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-killrace]').forEach((root) => {
+    const plot = must(root.querySelector<SVGSVGElement>('[data-plot]'));
+    const kIn = must(root.querySelector<HTMLInputElement>('[data-in="k"]'));
+    const tIn = must(root.querySelector<HTMLInputElement>('[data-in="t"]'));
+    const kOut = must(root.querySelector<HTMLElement>('[data-out="k"]'));
+    const tOut = must(root.querySelector<HTMLElement>('[data-out="t"]'));
+    const rN = must(root.querySelector<HTMLElement>('[data-r-n]'));
+    const rM = must(root.querySelector<HTMLElement>('[data-r-m]'));
+    const rBig = must(root.querySelector<HTMLElement>('[data-r-N]'));
+    const rFree = must(root.querySelector<HTMLElement>('[data-r-free]'));
+    const why = must(root.querySelector<HTMLElement>('[data-why]'));
+    const n0s = Array.from(root.querySelectorAll<HTMLInputElement>('[data-n0]'));
+
+    if (n0s.length === 0) return;
+
+    const X0 = 44, X1 = 296, Y0 = 14, Y1 = 196, LMIN = -3, LMAX = 7, NMAX = 12;
+    const px = (n: number) => X0 + (n / NMAX) * (X1 - X0);
+    const py = (lg: number) => Y1 - ((lg - LMIN) / (LMAX - LMIN)) * (Y1 - Y0);
+    // Straight line in log space (N = N0 m^n is linear in n on a log axis), clipped to the plot.
+    function line(lg0: number, slope: number, nEnd: number): string {
+      let a = 0, b = nEnd;
+      const at = (n: number) => lg0 + slope * n;
+      if (slope < 0 && at(b) < LMIN) b = (LMIN - lg0) / slope;
+      if (slope > 0 && at(b) > LMAX) b = (LMAX - lg0) / slope;
+      if (b < a) b = a;
+      return 'M' + px(a).toFixed(1) + ' ' + py(at(a)).toFixed(1) + ' L' + px(b).toFixed(1) + ' ' + py(at(b)).toFixed(1);
+    }
+    function render() {
+      const kp = parseInt(kIn.value, 10);
+      const n = parseInt(tIn.value, 10);
+      const checked = n0s.find((r) => r.checked);
+      const N0 = checked ? parseInt(checked.value, 10) : 100;
+      const m = (2 * (100 - kp)) / 100;
+      const kf = kp / 100;
+      const lgN0 = Math.log10(N0), lgM = Math.log10(m);
+      const N = N0 * Math.pow(m, n);
+      const free = N0 * Math.pow(2, n);
+      const factor = Math.pow(m, n);
+
+      kOut.textContent = kp + '%';
+      tOut.textContent = timeText(n) + ' (' + n + ' interval' + (n === 1 ? '' : 's') + ')';
+      rN.textContent = n + ' (' + timeText(n) + ' ÷ 20 min)';
+      rM.textContent = '2 × (1 − ' + kf.toFixed(2) + ') = 2 × ' + (1 - kf).toFixed(2) + ' = ' + String(Number(m.toFixed(2)));
+
+      // Arithmetic lines, in the lesson's form.
+      let arith = N0 + ' × ' + String(Number(m.toFixed(2))) + sup(n) + ' = ' + N0 + ' × ' + fmt(factor);
+      if (m < 1 && n > 0) arith = N0 + ' × ' + String(Number(m.toFixed(2))) + sup(n) + ' = ' + N0 + ' ÷ ' + fmt(1 / factor);
+      if (n === 0) arith = N0 + ' × ' + String(Number(m.toFixed(2))) + '⁰ = ' + N0 + ' × 1';
+      rBig.textContent = arith + eq(N) + fmt(N) + ' bacteria';
+      rFree.textContent = N0 + ' × 2' + sup(n) + ' = ' + N0 + ' × ' + comma(Math.pow(2, n)) + eq(free) + fmt(free) + ' bacteria';
+
+      // ---- plot ----
+      plot.replaceChildren();
+      for (let d = LMIN; d <= LMAX; d++) {
+        plot.appendChild(el('line', { x1: X0, y1: py(d), x2: X1, y2: py(d), stroke: '#ececf0', 'stroke-width': 0.7 }));
+        if ((d - LMIN) % 2 === 0) {
+          const t = el('text', { x: X0 - 4, y: py(d) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK });
+          t.textContent = '10' + sup(d); plot.appendChild(t);
+        }
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (let h = 0; h <= 4; h++) {
+        plot.appendChild(el('line', { x1: px(h * 3), y1: Y1, x2: px(h * 3), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(h * 3), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+        t.textContent = h + ' h'; plot.appendChild(t);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: Y1 + 28, 'text-anchor': 'middle', 'font-size': 10, fill: INK });
+      xl.textContent = 'time since entry (tick = 1 h = 3 intervals)'; plot.appendChild(xl);
+      const yl = el('text', { x: X0 - 2, y: Y0 - 3, 'text-anchor': 'start', 'font-size': 10, fill: INK });
+      yl.textContent = 'expected bacteria (log scale)'; plot.appendChild(yl);
+
+      // starting-number line = the k = 50% case (multiplier 1)
+      plot.appendChild(el('line', { x1: X0, y1: py(lgN0), x2: X1, y2: py(lgN0), stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      const th = el('text', { x: X1 + 4, y: py(lgN0) + 3, 'font-size': 9, 'font-weight': 700, fill: ORANGE });
+      th.textContent = 'k = 50%'; plot.appendChild(th);
+
+      // no defense (faint, full four hours), then the chosen k up to the elapsed time
+      plot.appendChild(el('path', { d: line(lgN0, Math.log10(2), NMAX), fill: 'none', stroke: FAINT, 'stroke-width': 1.6 }));
+      if (n > 0) plot.appendChild(el('path', { d: line(lgN0, lgM, n), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot.appendChild(el('line', { x1: px(n), y1: Y0, x2: px(n), y2: Y1, stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '2 3' }));
+      const lgNow = Math.max(LMIN, Math.min(LMAX, lgN0 + lgM * n));
+      plot.appendChild(el('circle', { cx: px(n), cy: py(lgNow), r: 4, fill: ACCENT }));
+
+      // legend, top-left
+      const LX = X0 + 8, LY = Y0 + 10;
+      const items: Array<[string, string, string, string]> = [
+        [ACCENT, '2.6', '', 'your k'],
+        [FAINT, '1.6', '', 'no defense (k = 0)'],
+        [ORANGE, '1.2', '4 3', 'starting number N₀'],
+      ];
+      plot.appendChild(el('rect', { x: LX - 4, y: LY - 9, width: 108, height: 42, fill: '#fff', 'fill-opacity': 0.92, stroke: '#ececf0', 'stroke-width': 0.7 }));
+      items.forEach((it, i) => {
+        const y = LY + i * 12;
+        const a: Record<string, string | number> = { x1: LX, y1: y, x2: LX + 16, y2: y, stroke: it[0], 'stroke-width': it[1] };
+        if (it[2]) a['stroke-dasharray'] = it[2];
+        plot.appendChild(el('line', a));
+        const t = el('text', { x: LX + 20, y: y + 3, 'font-size': 9, fill: INK }); t.textContent = it[3]; plot.appendChild(t);
+      });
+
+      // ---- status ----
+      const rule = ' The population shrinks only if 2 × (1 − k) is below 1, so k must exceed 50% per doubling time. A primary adaptive response takes days, so these first hours belong to innate defenses.';
+      let lead: string;
+      if (n === 0) {
+        lead = 'At time 0 no interval has passed, so N = N0 = ' + N0 + ' whatever k is.';
+      } else if (kp === 0) {
+        lead = 'With no defense the bacteria double every 20 minutes, so after ' + timeText(n) + ' (' + n + ' doubling' + (n === 1 ? '' : 's') + ') the expected number is ' + fmt(N) + '.';
+      } else if (m < 1 && N < 1) {
+        lead = 'Killing ' + kp + '% per interval beats doubling (multiplier ' + String(Number(m.toFixed(2))) + '), and the expected number is ' + fmt(N) + ': the expected number is below one bacterium (the lesson reads 0.024 for 100 bacteria at 4 h as cleared); in this sketch, with no chance, that is an average, not a count.';
+      } else if (m < 1) {
+        lead = 'Killing ' + kp + '% per interval beats doubling (multiplier ' + String(Number(m.toFixed(2))) + ' is below 1), so the expected number has fallen from ' + N0 + ' to ' + fmt(N) + ' after ' + timeText(n) + '.';
+      } else if (kp === 50) {
+        lead = 'At k = 50% the multiplier is exactly 1: killing just cancels doubling and the expected number holds at ' + N0 + '.';
+      } else {
+        lead = 'Killing ' + kp + '% per interval is not enough (multiplier ' + String(Number(m.toFixed(2))) + ' is above 1), so the expected number is still growing, ' + fmt(N) + ' after ' + timeText(n) + ', slower than the ' + fmt(free) + ' with no defense.';
+      }
+      if (lgN0 + lgM * n < LMIN) lead += ' (The curve has left the bottom of the plot; the readout gives the value.)';
+      why.textContent = lead + rule;
+    }
+    [kIn, tIn].forEach((s) => s.addEventListener('input', render));
+    n0s.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .kd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .kd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .kd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .kd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .kd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .kd-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .kd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .kd-slabel input { accent-color: var(--ddp-color-accent); }
+  .kd-n0 { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; align-items: center; border: 0; padding: 0; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .kd-n0 legend { padding: 0; margin-right: 0.5rem; float: left; }
+  .kd-n0 label { display: inline-flex; gap: 0.3rem; align-items: center; }
+  .kd-n0 input { accent-color: var(--ddp-color-accent); }
+  .kd-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .kd-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .kd-wide { grid-column: 1 / -1; }
+  .kd-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .kd-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .kd-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .kd-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .kd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .kd-controls, .kd-readout { grid-template-columns: 1fr; } }
+</style>

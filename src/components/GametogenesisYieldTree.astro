@@ -1,0 +1,222 @@
+---
+/**
+ * GametogenesisYieldTree — Animal Reproduction companion. The division tree for one
+ * human primary spermatocyte (four spermatids, then sperm by spermiogenesis) or one
+ * human primary oocyte (one egg and two or three polar bodies), with the chromosome
+ * number in each cell, beside the totals for a batch of primary cells. Every number
+ * follows from the lesson's worked problem (120 x 4 = 480; 480 x 0.75 = 360). Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="gyt card" data-gyt>
+  <figcaption class="gyt-head">Gamete yield: one meiosis, two sexes<span class="gyt-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="gyt-svg" viewBox="0 0 360 262" role="img" aria-label="Division tree of one human primary spermatocyte or primary oocyte drawn as labelled circles and arrows, with the chromosome number in each cell" data-svg></svg>
+
+  <div class="gyt-controls">
+    <fieldset class="gyt-fs">
+      <legend>Process</legend>
+      <label><input type="radio" name={`gyt-p-${uid}`} value="sperm" checked /> spermatogenesis</label>
+      <label><input type="radio" name={`gyt-p-${uid}`} value="egg" /> oogenesis</label>
+    </fieldset>
+    <fieldset class="gyt-fs" data-pb-fs>
+      <legend>First polar body divides again (oogenesis only)</legend>
+      <label><input type="radio" name={`gyt-b-${uid}`} value="yes" checked disabled data-pb /> yes</label>
+      <label><input type="radio" name={`gyt-b-${uid}`} value="no" disabled data-pb /> no</label>
+    </fieldset>
+    <label class="gyt-slabel"><span>Primary cells in the batch <em data-out="n">120</em></span>
+      <input type="range" data-in="n" min="1" max="200" step="1" value="120" />
+    </label>
+    <label class="gyt-slabel"><span>Hypothetical survival, spermatid to sperm <em data-out="s">75%</em> <small>(spermatogenesis only)</small></span>
+      <input type="range" data-in="s" min="0" max="100" step="1" value="75" />
+    </label>
+  </div>
+
+  <dl class="gyt-readout" data-readout></dl>
+
+  <p class="gyt-why" data-why role="status"></p>
+
+  <p class="gyt-assume">In this sketch: invented inputs; adult human; schematic cells, not to scale. The sperm count is of cells in the testis, not a semen sample. The oocyte count is idealized, because in humans meiosis II finishes only on fertilization.</p>
+  <p class="gyt-foot">Rule to keep: the halving from 46 to 23 is the same in both sexes; the yield per meiosis is four against one.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const DIP = '#d6eef0', HAP = '#fdebd6', PB = '#ececf0';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-gyt]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const readout = root.querySelector<HTMLElement>('[data-readout]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const nIn = root.querySelector<HTMLInputElement>('[data-in="n"]');
+    const sIn = root.querySelector<HTMLInputElement>('[data-in="s"]');
+    const nOut = root.querySelector<HTMLElement>('[data-out="n"]');
+    const sOut = root.querySelector<HTMLElement>('[data-out="s"]');
+    const pFs = root.querySelector<HTMLFieldSetElement>('[data-pb-fs]');
+    if (!svg || !readout || !why || !nIn || !sIn || !nOut || !sOut || !pFs) return;
+    const readoutEl: HTMLElement = readout;
+    const whyEl: HTMLElement = why;
+    const processRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type=radio]:not([data-pb])'));
+    const pbRadios = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-pb]'));
+    const markerId = 'gyt-arrow-' + Math.random().toString(36).slice(2, 8);
+
+    function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, opts));
+      t.textContent = s;
+      svg!.appendChild(t);
+    }
+    function cell(x: number, y: number, r: number, num: string, fill: string, dashed = false) {
+      svg!.appendChild(el('circle', { cx: x, cy: y, r, fill, stroke: ACCENT, 'stroke-width': 1.6, 'stroke-dasharray': dashed ? '3 2' : 'none' }));
+      if (num) txt(x, y + 3.5, num, { 'font-size': 10, 'font-weight': 700, fill: '#1f2937' });
+    }
+    function arrow(x1: number, y1: number, x2: number, y2: number, dashed = false) {
+      svg!.appendChild(el('line', { x1, y1, x2, y2, stroke: dashed ? FAINT : INK, 'stroke-width': 1.3, 'stroke-dasharray': dashed ? '3 2' : 'none', 'marker-end': `url(#${markerId})` }));
+    }
+    function step(y: number, lines: string[]) {
+      lines.forEach((l, i) => txt(4, y + i * 11, l, { 'text-anchor': 'start', fill: ORANGE, 'font-weight': 700 }));
+    }
+    function frame(h: number) {
+      svg!.setAttribute('viewBox', `0 0 360 ${h}`);
+      svg!.replaceChildren();
+      const defs = el('defs', {});
+      const m = el('marker', { id: markerId, viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+      m.appendChild(el('path', { d: 'M0 0 L8 4 L0 8 z', fill: INK }));
+      defs.appendChild(m);
+      svg!.appendChild(defs);
+    }
+
+    function drawSperm() {
+      frame(300);
+      const xs = [105, 165, 235, 295];
+      cell(200, 24, 15, '46', DIP);
+      txt(200, 50, 'primary spermatocyte', { 'font-weight': 600 });
+      step(80, ['meiosis I']);
+      arrow(192, 56, 143, 80); arrow(208, 56, 257, 80);
+      cell(135, 96, 15, '23', HAP); cell(265, 96, 15, '23', HAP);
+      txt(200, 122, '2 secondary spermatocytes', { 'font-weight': 600 });
+      step(152, ['meiosis II']);
+      arrow(128, 128, 108, 152); arrow(142, 128, 162, 152); arrow(258, 128, 238, 152); arrow(272, 128, 292, 152);
+      xs.forEach((x) => cell(x, 168, 13, '23', HAP));
+      txt(200, 192, '4 spermatids', { 'font-weight': 600 });
+      step(226, ['spermiogenesis']);
+      xs.forEach((x) => arrow(x, 198, x, 226));
+      xs.forEach((x) => cell(x, 240, 11, '', '#ffffff'));
+      txt(200, 262, '4 sperm if all survive', { 'font-weight': 600 });
+      txt(200, 274, '(each surviving spermatid remodeled)');
+      txt(200, 292, 'one primary spermatocyte: 4 spermatids', { fill: ACCENT, 'font-weight': 700 });
+    }
+
+    function drawEgg(pbDivides: boolean) {
+      frame(244);
+      cell(150, 24, 15, '46', DIP);
+      txt(172, 21, 'primary oocyte', { 'font-weight': 600, 'text-anchor': 'start' });
+      txt(172, 32, 'arrested in prophase I', { 'text-anchor': 'start' });
+      step(84, ['meiosis I']);
+      arrow(147, 40, 142, 76);
+      arrow(163, 36, 288, 93);
+      cell(140, 100, 22, '23', HAP);
+      txt(140, 131, 'secondary oocyte', { 'font-weight': 600 });
+      txt(140, 142, 'released arrested in metaphase II');
+      cell(295, 100, 9, '', PB);
+      txt(295, 121, 'first polar body', { 'font-weight': 600 });
+      step(176, ['meiosis II', 'only if', 'fertilized']);
+      arrow(128, 148, 108, 168, true); arrow(150, 148, 182, 168, true);
+      cell(100, 190, 20, '23', HAP, true);
+      txt(100, 218, 'egg', { 'font-weight': 600 });
+      cell(190, 186, 9, '', PB, true);
+      txt(190, 207, 'second polar body', { 'font-weight': 600 });
+      if (pbDivides) {
+        arrow(295, 127, 268, 174, true); arrow(295, 127, 325, 174, true);
+        cell(265, 186, 9, '', PB, true); cell(325, 186, 9, '', PB, true);
+        txt(265, 207, 'polar body', { 'font-weight': 600 }); txt(325, 207, 'polar body', { 'font-weight': 600 });
+        txt(295, 219, 'from the first polar body', { 'font-style': 'italic' });
+      }
+      txt(180, 240, 'one primary oocyte: 1 egg + ' + (pbDivides ? '3' : '2') + ' polar bodies', { fill: ACCENT, 'font-weight': 700 });
+    }
+
+    function row(label: string, value: string) {
+      const d = document.createElement('div');
+      const dt = document.createElement('dt'); dt.textContent = label;
+      const dd = document.createElement('dd'); dd.textContent = value;
+      d.appendChild(dt); d.appendChild(dd); readoutEl.appendChild(d);
+    }
+
+    function render() {
+      const isSperm = (processRadios.find((r) => r.checked)?.value ?? 'sperm') === 'sperm';
+      const pbDivides = (pbRadios.find((r) => r.checked)?.value ?? 'yes') === 'yes';
+      const n = parseInt(nIn!.value, 10);
+      const s = parseInt(sIn!.value, 10);
+      nOut!.textContent = String(n);
+      sOut!.textContent = s + '%';
+      sIn!.disabled = !isSperm;
+      pbRadios.forEach((r) => { r.disabled = isSperm; });
+      pFs!.classList.toggle('gyt-off', isSperm);
+      sIn!.closest('label')?.classList.toggle('gyt-off', !isSperm);
+      readoutEl.replaceChildren();
+
+      if (isSperm) {
+        drawSperm();
+        const sec = n * 2, sd = n * 4;
+        const sperm = Math.round(sd * s / 100);
+        const lost = sd - sperm;
+        row('Primary spermatocytes (46 each)', String(n));
+        row('Secondary spermatocytes (23 each)', `${n} x 2 = ${sec}`);
+        row('Spermatids (23 each)', `${n} x 4 = ${sd}`);
+        const exactNow = (sd * s) % 100 === 0;
+        row(`Sperm (${s}% of spermatids survive)`, exactNow ? `${sd} x ${(s / 100).toFixed(2)} = ${sperm}` : `${sd} x ${(s / 100).toFixed(2)} = ${(sd * s / 100).toFixed(1)}, about ${sperm} whole cell${sperm === 1 ? '' : 's'}`);
+        row('Spermatids lost', `${sd} - ${sperm} = ${lost}`);
+        row('Check: sperm + lost = spermatids', `${sperm} + ${lost} = ${sperm + lost}`);
+        const exact = (sd * s) % 100 === 0;
+        whyEl.textContent = `Spermatogenesis: ${n} human primary spermatocyte${n === 1 ? '' : 's'} (46 chromosomes${n === 1 ? '' : ' each'}) ${n === 1 ? 'completes' : 'complete'} meiosis I and meiosis II and ${n === 1 ? 'gives' : 'give'} ${sec} secondary spermatocytes (23 each), then ${sd} spermatids (23 each), four per primary cell. Spermiogenesis remodels each spermatid into a sperm. With a hypothetical ${s}% surviving, ${sperm} sperm form and ${lost} spermatids are lost${exact ? '' : ' (rounded to whole cells)'}. This counts cells in the testis, not a semen sample.`;
+      } else {
+        drawEgg(pbDivides);
+        const per = pbDivides ? 3 : 2;
+        row('Primary oocytes (46 each)', String(n));
+        row('Eggs (23 each)', `${n} x 1 = ${n}`);
+        row('Polar bodies per egg', `${per}`);
+        row('Polar bodies in all', `${n} x ${per} = ${n * per}`);
+        row('Yield per meiosis', 'oogenesis 1 egg; spermatogenesis 4 spermatids');
+        row('Chromosomes: primary oocyte to egg', '46 to 23');
+        whyEl.textContent = `Oogenesis: ${n} human primary oocyte${n === 1 ? '' : 's'} (46 chromosomes${n === 1 ? '' : ' each'}, arrested in prophase I) ${n === 1 ? 'gives' : 'give'} ${n} egg${n === 1 ? '' : 's'} (23${n === 1 ? '' : ' each'}), with ${per} polar bodies${n === 1 ? '' : ' per egg'}, because here the first polar body ${pbDivides ? 'divides again' : 'does not divide again'} (it may or may not). The division is unequal: nearly all the cytoplasm goes to the secondary oocyte. The count is idealized: in humans the secondary oocyte is released arrested in metaphase II and finishes meiosis II only if fertilized.`;
+      }
+    }
+
+    root.querySelectorAll<HTMLInputElement>('input').forEach((i) => i.addEventListener('input', render));
+    root.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach((i) => i.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .gyt { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gyt-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gyt-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gyt-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gyt-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gyt-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .gyt-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .gyt-fs input { accent-color: var(--ddp-color-accent); }
+  .gyt-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .gyt-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .gyt-slabel :global(em) { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gyt-slabel input { accent-color: var(--ddp-color-accent); }
+  .gyt-off { opacity: 0.55; }
+  .gyt-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gyt-readout :global(div) { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .gyt-readout :global(dt) { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gyt-readout :global(dd) { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .gyt-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .gyt-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gyt-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .gyt-controls, .gyt-readout { grid-template-columns: 1fr; }
+  }
+</style>
