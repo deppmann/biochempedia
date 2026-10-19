@@ -142,7 +142,7 @@ structures:
     note: "Aequorea victoria GFP, S65T variant, X-ray crystal structure (Ormö et al., Science, 1996)"
     caption: >-
       Eleven beta strands form a can, and the light-emitting group sits on a helix running down
-      its middle, sealed from water. That shell is why GFP can be fused to another protein and
+      its middle, shielded from the surrounding solvent. That shell is why GFP can be fused to another protein and
       still glow.
   - label: "Wild-type green fluorescent protein — the same can, from a second group"
     source: "rcsb"
@@ -348,8 +348,8 @@ anecdotes:
     source: "Stanly et al., Biology Open (2016)"
     text: >-
       Stanly and colleagues labelled the receptor LYVE-1, overexpressed from a lentiviral vector, in primary human dermal lymphatic endothelial
-      cells after fixation with paraformaldehyde. The secondary antibody pulled the receptors into
-      clusters, because enough of them could still move in the fixed membrane, as FRAP
+      cells with a primary antibody, then fixed them with paraformaldehyde before adding a fluorescent secondary antibody. The secondary antibody pulled the receptors into
+      clusters, because enough of them could still move in the fixed membrane, as FRAP (fluorescence recovery after photobleaching)
       measurements showed. Adding glutaraldehyde to the fixative prevented the clustering. The
       lesson they drew applies to their system and target, not to one recipe for all: fixation is
       an experimental variable, and a punctate pattern can be made by the labelling itself.
@@ -415,7 +415,7 @@ Here is a worked problem. Take an ideal widefield microscope imaging GFP-like fl
 
 ## Seeing more: confocal, electrons and super-resolution
 
-A widefield microscope illuminates the whole depth of the sample, so light from above and below focus adds haze, which is worst in thick, densely labelled specimens. A **confocal** microscope scans a focused spot and places a pinhole in front of the detector that blocks most out-of-focus light. Each scan is an optical section, and a stack of sections can be rebuilt into a three-dimensional cell, which is how many organelle volumes in [the previous lesson](/lessons/measured-eukaryotic-cell/) were measured. A confocal is still diffraction limited. Closing the pinhole below one Airy unit buys a little resolution at a real cost in signal.
+A widefield microscope illuminates the whole depth of the sample, so light from above and below focus adds haze, which is worst in thick, densely labelled specimens. A **confocal** microscope scans a focused spot and places a pinhole in front of the detector that blocks most out-of-focus light. Each scan is an optical section, and a stack of sections can be rebuilt into a three-dimensional cell, which is how many organelle volumes in [the previous lesson](/lessons/measured-eukaryotic-cell/) were measured. A confocal is still diffraction limited. Closing the pinhole below one Airy unit (a pinhole as wide as the central disc of the Airy pattern) buys a little resolution at a real cost in signal.
 
 **Electron microscopes** use a beam of electrons focused by magnetic lenses. At 100 kV an electron's wavelength is around 0.004 nm, yet the practical resolution in biological specimens is far coarser, limited by preparation, contrast and beam damage. Transmission EM (TEM) sends electrons through sections about 50 to 100 nm thick of fixed, dehydrated, plastic-embedded cells stained with heavy metals; it shows membranes and organelles, but each image is a two-dimensional projection of dead tissue. Scanning EM (SEM) rasters the beam over a coated surface and shows shape. Fixation can make structures that were never there. In **cryo-EM**, samples are frozen so fast that water becomes glass-like vitreous ice instead of crystals. Near-atomic cryo-EM structures come from averaging many images of purified particles, not from imaging a whole cell, although cryo-electron tomography of thinned frozen cells now shows molecules in place at lower resolution.
 
@@ -443,7 +443,7 @@ A beautiful image is a measurement, and it needs the same scrutiny as a number i
 
 **Can intensities be compared?** Only if every condition was acquired with identical settings, and no pixel of interest sits at the detector's maximum. A saturated pixel no longer reports how much label is there. Subtract background before measuring, but remember that subtraction removes the average background, not its photon noise.
 
-**What does overlap mean?** Two colours in the same pixel are within one resolution volume of each other, about 230 nm laterally and 800 nm axially in the worked example. A volume that size can hold thousands of proteins in a typical cell (an order-of-magnitude estimate). Colocalization shows proximity; binding needs a biochemical test or a far finer one.
+**What does overlap mean?** Two colours in the same pixel are at best within one resolution volume of each other (widefield haze can add label from farther away), about 230 nm laterally and 800 nm axially in the worked example. A volume that size can hold thousands of proteins in a typical cell (an order-of-magnitude estimate). Colocalization shows proximity; binding needs a biochemical test or a far finer one.
 
 ### Design problem
 
@@ -454,7 +454,7 @@ A paper shows that an antibody to protein P stains mitochondria, and a yellow ov
 
 Split it into two claims. First, that the stain is P. Ask for cells with P knocked out or knocked down, imaged with identical settings: the mitochondrial signal should vanish or drop in step with the protein on a blot. Ask for a secondary-only control and an independent way to place P, such as a tagged version of P checked for function, or biochemical fractionation showing P in the mitochondrial fraction.
 
-Second, that P and the marker are near each other. Ask for single-label samples to rule out bleed-through, multicolour beads to check that the channels are registered, and raw images with no saturated pixels so that any overlap coefficient is computed on real intensities.
+Second, that P and the marker are near each other. Ask for single-label samples to rule out bleed-through, multicolour beads to check that the channels are aligned (registered) with each other, and raw images with no saturated pixels so that any overlap coefficient is computed on real intensities.
 
 Even if all of this passes, overlap within about 200 nm laterally, and several hundred nanometres axially, shows only that both proteins are in the same small region of the same organelle. Binding needs a direct test: co-immunoprecipitation, binding of purified proteins, or a method that reports molecular proximity, followed by mutations that break the interaction and abolish the result.
 
