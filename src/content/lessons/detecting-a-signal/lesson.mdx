@@ -395,6 +395,7 @@ films:
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Fasting blood holds insulin at a few tens of picomolar: about one insulin molecule for every trillion molecules of water, with the blood protein albumin outnumbering it roughly ten million to one.** Every pathway in this course rests on someone measuring a thing that scarce, or picking one modified protein out of the thousands in a cell. This lesson is about how that is done and how much each kind of result is allowed to prove.
 
@@ -420,6 +421,8 @@ A cell extract holds thousands of different proteins. Prof. Deppmann asks his st
 
 **Immunoprecipitation** fishes. Here the extract is not heated. An antibody fixed to beads pulls its protein out of the mixture, and partners bound to that protein come out with it. Blot the catch for a suspected partner and you learn that the two were in one complex.
 
+<LessonFigure src="/figures/detecting-a-signal/immunoprecipitation-fishing.webp" width={1200} height={623} alt="AI-generated illustration: three steps. Beads coated with Y-shaped antibodies drop into a tube of mixed proteins; an antibody catches the gold protein with its partner still attached; the bead is lifted out carrying both while the other proteins stay behind." caption="Immunoprecipitation uses an extract that has not been heated. An antibody fixed to beads pulls its protein out of the mixture, and a partner bound to that protein comes out with it." />
+
 Among what he calls "other ways to detect phosphorylation events" is the tool behind much of this course's evidence: the phosphospecific antibody. It is raised against a short piece of a protein with a phosphate on one residue, and chosen so that it binds only when the phosphate is present. A blot with it reads one site, from cells, minutes after a signal arrives. Blot the same samples with an antibody to the whole protein as well, or you cannot tell more phosphate from more protein.
 
 An antibody has limits. It answers the question you built it for, so it cannot find a site nobody suspected. It reports that a band got darker, not what fraction of the molecules carry the phosphate. It can bind the wrong protein, which is why a careful blot includes a sample in which the protein or the phosphate is missing. And a blot averages millions of cells; watching one living cell takes the reporters of the next lesson.
@@ -433,6 +436,8 @@ Mass spectrometry finds it by weighing. Cut the protein into peptides with tryps
 > **mass of a phosphopeptide = mass of the peptide + about 80 daltons for each phosphate**
 
 In tandem mass spectrometry (MS/MS) the instrument then selects one peptide, breaks it along its backbone and weighs the fragments. The fragments spell out the sequence, and the ones carrying the extra 80 daltons show which residue holds the phosphate. No antibody is needed and no site has to be known in advance. Once the rare phosphopeptides have been enriched, one experiment on a whole extract can report thousands of sites. A site that is not reported may still exist, because some peptides are never detected.
+
+<LessonFigure src="/figures/detecting-a-signal/weigh-the-phosphopeptide.webp" width={1200} height={480} alt="AI-generated illustration: three numbered steps. A protein is cut by trypsin into peptides; a phosphopeptide of six beads outweighs the same peptide without a phosphate; the peptide is broken into pieces and only the piece holding the gold phosphate is heavier, placing it on one residue." caption="Cut the protein with trypsin, weigh a peptide, then break it and weigh the fragments. A phosphate adds about 80 daltons, so the fragment that is heavier shows which residue holds it." />
 
 ### A worked case: BATF
 
@@ -468,5 +473,7 @@ The control is the same extract with the normal kinase in place of the mutant. I
 Most kinase inhibitors work by plugging the ATP pocket, and about five hundred kinases share that pocket. Staurosporine, a natural product, binds most of the kinases it has been tested against. In 2000 Philip Cohen's group in Dundee took compounds sold as selective inhibitors of named kinases and tested each against a panel of purified kinases. Apart from rapamycin and PD 184352, even the most selective inhibited at least one other kinase. Jenny Bain led further rounds in 2003 and 2007. The 2007 paper judged many widely used compounds too non-specific for any conclusion except one: ruling a kinase out. In 2008 Mazen Karaman, Patrick Zarrinkar and colleagues at the company Ambit Biosciences measured thirty-eight inhibitors against 317 kinases and concluded that "small assay panels do not provide a robust measure of selectivity."
 
 So an inhibitor result has a direction. If a dose that shuts off kinase X leaves the response intact, the activity of X is not needed. If the response stops, X or any other target of the compound may be the cause. To pin it on X, use two inhibitors of unlike structure, which are unlikely to share their other targets. Better, express a mutant of X that the drug cannot bind: if the response returns while every other target stays blocked, the drug was acting through X. Then add genetics, a knockout or a knockdown, which goes wrong in different ways.
+
+<LessonFigure src="/figures/detecting-a-signal/drug-resistant-mutant-rescue.webp" width={1200} height={796} alt="AI-generated illustration: two panels with the same drug. With normal kinase X, the drug sits on X and on another target and the response stops. With a drug-resistant mutant of X, the drug cannot bind X, the other target stays blocked, and the response returns." caption="A mutant of X that the drug cannot bind tests the drug's effect. If the response returns while the other targets stay blocked, the drug was acting through X." />
 
 Two words organise all of this. A step is **necessary** if removing it removes the response: the knockout, the controlled inhibitor, the site changed to alanine. A step is **sufficient** if turning it on by itself produces the response without the signal: a kinase that is always active, or a site changed to aspartate. A step can be one without being the other. Every method has its own way of misleading you, so a claim earns belief when two methods that fail differently agree.

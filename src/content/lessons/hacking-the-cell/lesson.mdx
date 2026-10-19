@@ -398,6 +398,7 @@ films:
 ---
 
 import LessonFilm from '../../../components/LessonFilm.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A gene copied out of a jellyfish and put into gut bacteria in 1992 made the bacteria glow green, with nothing else from the jellyfish.** A cell that builds its own light can be watched while it is alive. The tools that followed let you see a signal as it happens or start one on command, and a set of genetic methods puts either kind into one cell type in a mouse.
 
@@ -426,6 +427,8 @@ To make the light depend on a signal, join GFP to a detector you have already me
 - **A calcium reporter.** In the GCaMP family, GFP's original ends are joined and new ends are cut beside the light-emitting group. Calmodulin (from the calcium lesson) is attached to one new end and a peptide that it grips to the other. When calcium rises, calmodulin wraps around the peptide and plugs the gap in the barrel, which shuts water out from the light-emitting group, and the GFP brightens.
 - **A kinase reporter.** Put a peptide that the kinase phosphorylates, and a domain that binds the phosphorylated peptide (an SH2 domain, for a tyrosine kinase), between a cyan and a yellow fluorescent protein. Phosphorylation folds the chain. Two fluorescent proteins within a few nanometers pass energy from one to the other without a photon (FRET), so the balance of cyan and yellow light changes as the kinase works.
 
+<LessonFigure src="/figures/hacking-the-cell/gcamp-calcium-reporter.webp" width={1200} height={641} alt="AI-generated illustration: two panels of a calcium reporter. With low calcium, a GFP barrel has an open gap with water reaching its light-emitting spot and glows faintly; with high calcium, calmodulin wraps a peptide and plugs the gap, and the barrel glows brightly." caption="In a GCaMP calcium reporter, calcium makes calmodulin wrap its peptide and plug a gap in the GFP barrel, which keeps water off the light-emitting group so the protein brightens." />
+
 A reporter also takes part in what it reports. A calcium reporter soaks up some calcium and lets go slowly, so a fast train of spikes can blur into one slow rise.
 
 ## An actuator: light in, current out
@@ -444,6 +447,8 @@ Opsins are sorted by what light does through them:
 
 A virus can carry the gene into one brain region, though it has room for only a short promoter, and light arrives through an optical fiber.
 
+<LessonFigure src="/figures/hacking-the-cell/three-opsin-actuators.webp" width={1200} height={728} alt="AI-generated illustration: three neurons side by side, each lit from above: blue light opens a channelrhodopsin pore and cations enter so the neuron switches on; yellow light drives chloride in through halorhodopsin so it switches off; green light activates an OptoXR that starts another receptor's pathway." caption="Opsins are sorted by what light does through them: blue light opens a cation channel and switches the neuron on, yellow light drives chloride in and switches it off, and green light starts another receptor's pathway." />
+
 A drug can do the job of light. In chemogenetics the cell gets an engineered G-protein-coupled receptor that ignores its natural ligand and responds to a synthetic drug, so only cells with the receptor react. A channel from the lesson on ion channels works too: put the TRPV1 gene into one neuron type of a mouse whose own TRPV1 gene has been knocked out, and capsaicin opens a cation channel in those neurons alone (Güler and colleagues, 2012).
 
 ## How can we make a green animal?
@@ -451,6 +456,8 @@ A drug can do the job of light. In chemogenetics the cell gets an engineered G-p
 Start with a **transgene**: DNA built from a promoter (the stretch that sets where and when a gene is read) and a coding sequence. Injected into a fertilized mouse egg, it sometimes joins a chromosome at a random place and is inherited from then on. In 1982 Palmiter and colleagues did this with a metallothionein promoter joined to a growth hormone gene, and the mice grew much larger than their littermates. Use a promoter active in every cell and the coding sequence for GFP, and you have a green mouse.
 
 To change one chosen gene you work in **embryonic stem cells**, cells from an early embryo that can still become any tissue. Give them DNA that matches the target gene on both sides of your change, and in a few cells the matching stretches swap your version into the gene's own place. Destroying the gene this way is a **knock-out**; writing something new into it, such as GFP, is a **knock-in**. Drugs select the rare correct cells (ganciclovir kills cells that took the DNA up at a random site). The chosen cells, from a strain with a brown "agouti" coat, are injected into an early embryo of a black strain. The pup is a chimera, a patchwork of both, and if the stem cells formed its sperm or eggs, its agouti offspring can carry the change.
+
+<LessonFigure src="/figures/hacking-the-cell/knockout-knockin-chimera.webp" width={1200} height={575} alt="AI-generated illustration: four steps from a gene change in embryonic stem cells, to injecting those brown-strain cells into a black-strain embryo, to a patchwork chimera pup, to a brown offspring that carries the change; a small inset contrasts knock-out and knock-in." caption="Mouse embryonic stem cells with the changed gene are injected into an early embryo of a black strain. The chimera pup is a patchwork, and if the stem cells formed its sperm or eggs, agouti offspring can carry the change." />
 
 "How do you get expression in 2 different neuron types?" The tool is **Cre and lox**. Cre is an enzyme from a bacterial virus that cuts and rejoins DNA at a 34-base-pair site called loxP. Put two loxP sites around part of a gene, pointing the same way, and Cre removes what lies between them. Make Cre from a promoter that is active in one cell type, and the gene is lost there and nowhere else. To switch a gene on, put a stop signal between two loxP sites in front of it. Where Cre is made the stop is cut out, and the gene is read from then on in that cell and all its descendants, which is how cell lineages are traced. With several fluorescent proteins for Cre to pick among at random, neighboring cells take different colors. For the second neuron type, add a second enzyme of the same kind with its own sites (Flp, from yeast): Cre switches on one gene in one type and Flp another gene in the other.
 
