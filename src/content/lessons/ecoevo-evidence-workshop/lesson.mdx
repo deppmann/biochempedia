@@ -132,7 +132,7 @@ techniques:
     blurb: >-
       Field blanks, extraction blanks and PCR no-template controls are carried through the
       workflow to reveal contamination, and amplified products are sequenced to confirm that the
-      signal comes from the target species and not a relative or a contaminant.
+      signal comes from the target species and not a relative or an off-target product.
 
 structures: []
 
@@ -141,7 +141,7 @@ simulations:
     ref: "EdnaDetectionLadder"
     title: "When can an all-negative pond be called empty?"
     caption: >-
-      Change runs, extractions, samples and prior to see why only another independent water sample, not more qPCR wells, moves an all-negative pond below the 5% line.
+      Change runs, extractions, samples and prior to see why more qPCR wells alone cannot move an all-negative pond below the 5% line, while another independent water sample can.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -189,11 +189,11 @@ practiceQuestions:
     choices:
       - "0.19, the product of gamma and delta"
       - "0.38, the chance that any one run amplifies"
-      - "0.91, the chance that five runs amplify"
+      - "0.91, the chance that at least one of five runs amplifies"
       - "0.45, gamma times the five-run probability"
     answer: 3
     rationale: >-
-      Five runs amplify captured DNA with probability 1 - 0.62^5 = 0.908, and the DNA must first
+      At least one of five runs amplifies captured DNA with probability 1 - 0.62^5 = 0.908, and the DNA must first
       be captured, so 0.49 x 0.908 = 0.445. Multiplying gamma by a single delta gives the chance
       for one well only. The 0.91 figure leaves out the capture step and so overstates detection.
       The single-run value of 0.38 ignores both the capture step and the extra four runs.
@@ -227,7 +227,7 @@ mcatQuestions:
       other catchment differences, so an isolated causal effect of acidity was not established.
       No temperature effect was seen over a narrow, cool range, which says nothing about
       temperature in warmer or more variable waters.
-  - stem: "An eDNA model uses three water samples per pond. At an occupied pond, each sample detects the species with probability 0.415. The prior probability of occupancy is 0.20, and false positives are assumed absent. All three samples are negative. What is the posterior probability that the pond is occupied?"
+  - stem: "An eDNA model uses three water samples per pond. At an occupied pond, each sample independently detects the species with probability 0.415. The prior probability of occupancy is 0.20, and false positives are assumed absent. All three samples are negative. What is the posterior probability that the pond is occupied?"
     choices:
       - "About 0.05, after weighting the misses by the prior"
       - "About 0.20, the miss chance over three samples"
@@ -272,7 +272,7 @@ explainLevels:
       water samples, extracts DNA and uses PCR to test for one species. Each step can miss: the
       sample may hold no DNA, the extraction may not capture it, and a PCR run may not amplify
       it. So a set of negatives lowers the chance that the species is present but does not make
-      it zero. Multiplying the chance of missing at each step tells you how many samples you need
+      it zero. Combining the chances at each step, then multiplying the chance of missing across samples, tells you how many samples you need
       before you can be fairly confident a site is empty.
   - level: "college"
     label: "College"
@@ -281,7 +281,7 @@ explainLevels:
       water sample with probability theta, captured by an extraction with probability gamma, and
       amplified by a qPCR run with probability delta. Assuming conditional independence and no
       false positives, per-sample detection is q = theta x (1 - (1 - gamma x A)^k), where A is the
-      chance that the runs on one extraction amplify and k is extractions per sample. The
+      chance that at least one run on an extraction amplifies, and k is the number of extractions per sample. The
       probability of missing an occupied site with n samples is (1 - q)^n, and Bayes' rule
       combines that with a prior to give the probability the site is still occupied. Because
       laboratory replicates share one sample, they cannot push detection above theta; only
@@ -291,7 +291,7 @@ explainLevels:
     text: >-
       Hierarchical occupancy models estimate theta, gamma and delta jointly from replicate
       structure, and they rest on assumptions a real survey can break: closure during sampling,
-      independence among samples given occupancy, constant parameters across sites and visits,
+      independence among samples given occupancy, parameters constant across sites and visits or explained by covariates,
       and either no false positives or a false-positive rate that is identifiable. Davis and
       colleagues estimated gamma = 0.49 (SE 0.07) and delta = 0.38 (SE 0.04) for wild pig DNA in
       central Texas, at sites whose occupancy was confirmed independently, and found availability
@@ -403,7 +403,7 @@ A river survey detects an endangered mussel's eDNA at one site 5 km below a lake
 Start from what a positive can mean: a local population, DNA carried down from the lake, or contamination. In the Glatt below Lake Greifensee, DNA of the lake mussel *Unio tumidus* was detected downstream of the lake, though not beyond 9.1 km, so a positive 5 km below a source lake is consistent with transport in at least one river.
 
 1. *Rule out contamination.* Carry field blanks, extraction blanks and PCR negatives through every batch, and sequence positives to confirm the species.
-2. *Test transport.* Sample a transect from the lake outlet down past the site, plus each tributary entering between them. A local population predicts a signal that rises or persists at and below the site; transport alone predicts a signal that fades with distance from the lake.
+2. *Test transport.* Sample a transect from the lake outlet down past the site, plus each tributary entering between them. A local population predicts a signal that rises or persists at and below the site; transport alone predicts no rise at the site, and often a signal that fades with distance from the lake.
 3. *Replicate in the field.* Take several independent water samples per site on separate dates, not more wells from one sample, and record flow and pH.
 4. *Model and confirm.* Fit an occupancy model with stated assumptions, then search the site directly with a method suited to mussels.
 5. *Agree access first.* Settle with whoever governs the river and the data how results will be shared.
