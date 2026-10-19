@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { CATEGORY_LABELS, filmLength, listedMethods, methodHref, type MethodCategory } from '../../data/methods';
+import { CATEGORY_LABELS, METHODS, filmLength, listedMethods, methodHref, type MethodCategory } from '../../data/methods';
 
 /* The methods library: every experimental method taught on the site, one film each,
    grouped by what it works on. A card counts only the published lessons that use it. */
@@ -10,6 +10,7 @@ const methods = listedMethods().map((m) => ({ m, n: m.lessons.filter((s) => publ
 const groups = (Object.keys(CATEGORY_LABELS) as MethodCategory[])
   .map((cat) => ({ cat, items: methods.filter(({ m }) => m.category === cat).sort((a, b) => a.m.name.localeCompare(b.m.name)) }))
   .filter((g) => g.items.length > 0);
+const coming = METHODS.filter((m) => !m.film).sort((a, b) => a.name.localeCompare(b.name));
 ---
 
 <BaseLayout title="Methods library — Biochemistrypedia" description="One short narrated film for every experimental method the courses teach: what it solves, how it works, how to read the result, and what it made possible.">
@@ -21,7 +22,7 @@ const groups = (Object.keys(CATEGORY_LABELS) as MethodCategory[])
       the problem it solves, how it works, how to read what it gives you, what can go wrong, and what it
       made possible. The same film appears in every lesson that uses the method.
     </p>
-    <p class="count">{methods.length} methods</p>
+    <p class="count">{methods.length} films{coming.length > 0 && ` · ${coming.length} more in production`}</p>
   </section>
 
   <nav class="wrap cat-nav" aria-label="Jump to a group">
@@ -46,7 +47,21 @@ const groups = (Object.keys(CATEGORY_LABELS) as MethodCategory[])
     </section>
   ))}
 
+  {coming.length > 0 && (
+    <section class="wrap cat" id="coming" aria-labelledby="coming-h">
+      <h2 id="coming-h">Films in production</h2>
+      <p class="coming-note">These methods have a page with the lessons that use them; each gets its film soon.</p>
+      <ul class="coming">
+        {coming.map((m) => <li><a href={methodHref(m.slug)}>{m.name}</a></li>)}
+      </ul>
+    </section>
+  )}
+
   <style>
+    .coming-note { margin: 0 0 var(--ddp-space-3); color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
+    .coming { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    .coming a { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 999px; border: 1px dashed var(--ddp-color-border, #d6d3cc); text-decoration: none; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); }
+    .coming a:hover { border-color: var(--ddp-color-accent); }
     .methods-hero { padding-block: var(--ddp-space-8) var(--ddp-space-4); display: flex; flex-direction: column; gap: var(--ddp-space-3); }
     .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0; }
     .eyebrow a { color: inherit; text-underline-offset: 3px; }
