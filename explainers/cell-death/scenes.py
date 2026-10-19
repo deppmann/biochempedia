@@ -364,7 +364,7 @@ class S06Time(SpokenScene):
         self.play(FadeOut(pi_note), Create(t2), d.animate.move_to(p2), run_time=0.9)
         necro = cell_dot(GREY, "?").move_to(dot_pos("TR", dy=-0.65))
         nl = dot_legend(GREY, "necrosis\nfrom the start", 0.4)
-        self.at("tell the two deaths")
+        self.at("cannot settle")
         self.play(FadeIn(necro, scale=1.4), FadeIn(nl), run_time=0.6)
         r1 = T("One marker,", 30, TEXT, font=TITLE_FONT)
         r2 = T("one event.", 30, TEXT, font=TITLE_FONT)

@@ -320,11 +320,10 @@ corpusTags:
   - "connectomics"
   - "primate-retina"
   - "mouse-vs-primate"
-draft: false
+draft: true
 ---
 
 import ArborCoverageCounter from '../../../components/ArborCoverageCounter.astro';
-import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Four careful censuses of mouse retinal ganglion cells gave "at least 32", "at least 35", 42 and 46. Each was done well, and the numbers disagree.** This lesson asks what each method was counting, and why the answer to "how many kinds?" depends on the question put to the cell.
 
@@ -333,8 +332,6 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 ## What makes a type a type, not a cluster
 
 Three kinds of evidence can define a ganglion cell type. A **functional** type is a group of cells with the same light response. An **anatomical** type shares a dendritic shape and the depth in the inner plexiform layer (IPL, where bipolar, amacrine and ganglion cell processes meet) at which that shape sits. A **molecular** type shares an expression profile, and a **cluster** is the group an algorithm draws around such profiles. The usual standard for calling a group a type asks for agreement among them, plus a **mosaic**: cells of the type space themselves so that their dendritic territories tile the retina.
-
-<LessonFigure src="/figures/retinal-cell-types/ganglion-cell-three-evidences.webp" width={1200} height={786} alt="AI-generated illustration: a flat schematic of the retina in horizontal layers with the inner surface on top and photoreceptors at the bottom. One gold ganglion cell has an axon running along the top fibre layer and dendrites spread in a single sublayer of the inner plexiform layer, with a depth bracket. An inset shows three evidences, light response, shape and depth, and expression profile, pointing to a gold Type tile." caption="A ganglion cell type can be defined by its light response, by its dendritic shape and the depth in the inner plexiform layer at which that shape sits, and by its expression profile. The usual standard asks for agreement among them, plus a mosaic. The axon of each ganglion cell joins the optic nerve." />
 
 A cluster is separable expression, not yet a function. [The sensory neuron atlas](/lessons/sensory-neuron-atlas/) met the same problem in the dorsal root ganglion, and the answer is the same here. A transcriptomic or anatomical cluster becomes a type when response, shape and expression are tied to one another and, ideally, when genetic access lets you label or manipulate it.
 
@@ -353,8 +350,6 @@ Also keep in mind the **coverage factor**, the average number of dendritic arbor
 **Same-cell recording.** Goetz and colleagues (2022) recorded light-evoked spikes in the cell-attached configuration from 1,859 ganglion cells in isolated mouse retina (4 to 12 weeks old), and sorted them into 42 functional types. In subsets they also collected the cell for RNA (a Patch-seq variant) or recovered its morphology. Their 42 types were estimated to cover 89% of the ganglion cell population. The same-cell alignment showed that the map between function and RNA is not always one to one: three sustained ON direction-selective types aligned with a single cluster, C10.
 
 So the four numbers (at least 32, 42, 46, and the anatomical count below) are not rival answers to one question. Each reflects a method, a preparation and a resolution. Imaging sees what responds differently under its stimuli, sequencing sees what is expressed differently under its clustering settings, and the most trustworthy types are the ones that more than one method finds.
-
-<LessonFigure src="/figures/retinal-cell-types/three-censuses-three-questions.webp" width={1200} height={675} alt="AI-generated illustration: a three-step strip with the same gold ganglion cell seen through three instruments: a microscope over isolated retina for calcium imaging, cells each captured in a droplet with a barcode bead for sequencing, and a glass pipette on one cell recording spikes. A sage displaced amacrine cell sits among the imaged cells." caption="Imaging, sequencing and same-cell recording each count ganglion cells with a different instrument. Imaging sees what responds differently under its stimuli, sequencing sees what is expressed differently under its clustering settings, and recording follows spikes cell by cell, so the counts 32, 46 and 42 are not rival answers to one question." />
 
 ## Counting by anatomy: dense reconstruction and the mosaic argument
 
@@ -379,8 +374,6 @@ Read this with its limits. The percentages are of sampled cells from the macaque
 ## Two channels in detail: local change and an asymmetric arbor
 
 **W3 cells.** In the mouse line that makes W3 cells fluorescent, Zhang and colleagues recorded from isolated retina. A W3 cell pools rectified excitation from ON and OFF bipolar pathways, which means it is excited by local change of either sign. Motion in the distant surround recruits presynaptic suppression of that excitation and postsynaptic inhibition, so a W3 cell responds to a small object moving against a still background and falls quiet when the whole scene moves. Older recordings in isolated salamander and rabbit retina (Ölveczky, Baccus and Meister, 2003) had already found a subset of ganglion cells that preferred differential motion of centre and surround, and proposed wide-field amacrine cells as the source of suppression by global motion. Zhang's group concluded that W3 corresponds to the rabbit local edge detector, which does not make every object-motion cell in every species a W3 cell. The authors proposed that W3 cells may act as alarm neurons for overhead predators. The experiments establish selectivity and circuit properties ex vivo; no behavioural test of necessity was done.
-
-<LessonFigure src="/figures/retinal-cell-types/w3-local-change-circuit.webp" width={1200} height={800} alt="AI-generated illustration: two copies of a small circuit. ON and OFF bipolar pathways feed one W3 ganglion cell. On the left a small dot moves on a still background, surround suppression is weak and the W3 cell responds. On the right the whole scene moves, surround suppression is strong on both the excitation and the W3 cell, and the cell falls quiet." caption="A W3 cell pools excitation from ON and OFF bipolar pathways. Motion in the distant surround recruits presynaptic suppression of that excitation and postsynaptic inhibition, so the cell responds to a small object moving against a still background and falls quiet when the whole scene moves. These properties were shown in isolated mouse retina; the alarm-neuron role is a proposal." />
 
 **JAM-B cells.** Kim and colleagues (2008) used a JAM-B-CreER mouse line to mark a class of OFF ganglion cells. CreER is a recombinase switched on by tamoxifen, so a reporter then labels cells that expressed the marker. A few hundred ganglion cells per retina were marked, at least 90% of them expressing JAM-B, so the line is enriched for the class and not perfectly pure. About 85% of the labelled cells had markedly asymmetric dendritic arbors, and in isolated retina the recorded cells preferred movement from soma toward dendrites. The same preference is described as upward motion in the visual field. Keep the frames apart: the lens inverts the image, so what is "up" in the world runs in the opposite sense across the retina, and a statement about the preferred direction needs its frame.
 

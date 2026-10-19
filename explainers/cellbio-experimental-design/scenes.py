@@ -314,7 +314,7 @@ class S04Right(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S05More(SpokenScene):
-    """interval spans a small decrease to a large increase; p about 0.13 is not no effect; more cells do not help, more runs do."""
+    """interval spans a small decrease to a large increase; p about 0.13 is not no effect; more cells help only a little, more runs do."""
 
     def construct(self):
         stage = axis_stage()
@@ -341,14 +341,14 @@ class S05More(SpokenScene):
         ne = VGroup(M("≠", 34, TEXT), T("no effect", 30, TEXT)).arrange(RIGHT, buff=0.25).move_to([2.2, 2.5, 0])
         self.at("does not show")
         self.play(FadeIn(ne, shift=LEFT * 0.1), run_time=0.5)
-        # ---- more cells per dish do not help ------------------------------------------------------
+        # ---- more cells per dish help only a little --------------------------------------------------
         fade = [sug, dec, inc, a1, a2, p, ne]
         dx, dy = -3.3, 2.2
         pts = grid_pts(40, 14, 0.07, (dx, dy))
         dish = dish_box(3.3, 1.35, (dx, dy), GREY)
         cells = cell_dots(pts, BLUE, 0.022, 0.8)
         lab = T("2,000 cells per dish", 26, BLUE).move_to([dx, 3.25, 0])
-        nh = chip("would not help", RED, size=28).move_to([1.6, 2.2, 0])
+        nh = chip("helps only a little", RED, size=28).move_to([1.6, 2.2, 0])
         self.at("Scoring")
         self.play(*[FadeOut(x) for x in fade + [ml, ci, e1, e2]], FadeIn(dish), FadeIn(cells), FadeIn(lab), run_time=0.9)
         self.play(FadeIn(nh, shift=LEFT * 0.1), run_time=0.5)

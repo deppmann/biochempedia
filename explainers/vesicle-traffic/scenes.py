@@ -223,7 +223,7 @@ class S02Coat(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S03Address(SpokenScene):
-    """coat falls off; Rab-GDP lifted off the membrane by GDI; GEF loads GTP; Rab-GTP lights up; tethers catch the vesicle."""
+    """coated vesicle (coat can stay on to the Golgi); Rab-GDP lifted off the membrane by GDI; GEF loads GTP; Rab-GTP lights up; tethers catch the vesicle."""
 
     def construct(self):
         bar = RoundedRectangle(corner_radius=0.12, width=0.36, height=6.0, stroke_color=GREY, stroke_width=3,
@@ -233,10 +233,6 @@ class S03Address(SpokenScene):
         ring = DashedVMobject(Circle(radius=1.3, stroke_color=BLUE, stroke_width=9, stroke_opacity=0.8),
                               num_dashes=18, dashed_ratio=0.72).move_to(ves)
         self.add(ves, ring)
-        self.at("is shed")
-        self.play(*[p.animate.shift((p.get_center() - ves.get_center()) / 1.3 * 1.0).set_opacity(0)
-                    for p in ring.submobjects], run_time=1.0)
-        self.remove(ring)
         self.at("needs an address")
         self.play(FadeIn(bar), FadeIn(tm), run_time=0.8)
 
@@ -285,7 +281,7 @@ class S03Address(SpokenScene):
         tl = T("tether", 28, TEAL).move_to([1.4, ry + 0.75, 0])
         self.play(FadeIn(tl), run_time=0.3)
         self.at("capture the vesicle")
-        self.play(ves.animate.move_to([end_x - 1.0, ry, 0]), run_time=1.5)
+        self.play(VGroup(ves, ring).animate.move_to([end_x - 1.0, ry, 0]), run_time=1.5)
         hook = Dot([end_x, ry, 0], radius=0.17, color=TEAL)
         self.play(FadeIn(hook, scale=2), run_time=0.3)
         self.finish()

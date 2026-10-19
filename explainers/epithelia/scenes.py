@@ -158,7 +158,7 @@ class S03Seal(SpokenScene):
         self.play(FadeIn(left), FadeIn(right), run_time=0.8)
         bars = VGroup(*[Rectangle(width=gw, height=h, stroke_width=0, fill_color=GREY, fill_opacity=0.8).move_to([0, y, 0])
                         for y, h in ((-0.35, 0.4), (-1.4, 0.25), (-2.4, 0.25))])
-        self.at("stacked in a fixed order")
+        self.at("stacked in a characteristic order")
         self.play(LaggedStart(*[GrowFromCenter(b) for b in bars], lag_ratio=0.4), run_time=1.6)
         self.at("the most apical")
         tj_lbl = T("tight junction", 30, RED).move_to([0.8, -0.35, 0], aligned_edge=LEFT)

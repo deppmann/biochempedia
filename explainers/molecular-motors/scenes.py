@@ -396,7 +396,7 @@ class S05Work(SpokenScene):
                         fill_opacity=0.35).move_to([X0 + 48 * s / 2, -0.85, 0])
         v_w = M("48 pN·nm", 28, ORANGE).next_to(b_w, RIGHT, buff=0.15)
         res = M("48 / 83 ≈ 58%", 52).move_to([X0 + 3.2, -2.45, 0])
-        self.at("At stall")
+        self.at("Near stall")
         self.play(FadeIn(t_w), GrowFromEdge(b_w, LEFT), run_time=0.8)
         self.play(FadeIn(v_w), run_time=0.3)
         self.at("about 58")
