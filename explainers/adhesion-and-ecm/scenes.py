@@ -334,7 +334,7 @@ class S03Integrin(SpokenScene):
         self.at("beta subunit")
         self.play(Indicate(d["beta"], color=PURPLE, scale_factor=1.15), run_time=0.7)
         eq = M("18 α + 8 β → 24 integrins", 32, PURPLE).move_to([0, 2.0, 0])
-        self.at("Vertebrates have")
+        self.at("Mammals have")
         self.play(FadeIn(eq, shift=UP * 0.15), run_time=0.6)
         self.at("Many")
         self.play(FadeOut(eq), run_time=0.4)

@@ -422,12 +422,12 @@ class S06Test(SpokenScene):
         r_mini = pair(np.array([rx - 1.7, -0.15, 0]), k=0.0, slide=0.0, L=3.4, ties=(), anchor=False, top=RED, bot=RED)
         self.at("slide apart")
         self.play(FadeIn(left_h, shift=DOWN * 0.1), FadeIn(l_mini), run_time=0.7)
-        l_res = chip("the motors work", GREEN, 30).move_to([lx, -1.25, 0])
+        l_res = chip("some motors work", GREEN, 30).move_to([lx, -1.25, 0])
         self.at("motors work")
         self.play(FadeIn(l_res, shift=DOWN * 0.1), run_time=0.5)
         l_why = T("fault is in regulating the motors\nor turning sliding into bending", 25, TEXT,
                   line_spacing=0.85).move_to([lx, -2.35, 0])
-        self.at("Then the fault")
+        self.at("If they are")
         self.play(FadeIn(l_why), run_time=0.6)
         l_where = T("radial spokes, central pair,\nnexin-dynein regulatory complex", 25, GREY,
                     line_spacing=0.85).move_to([lx, -3.25, 0])
