@@ -1,0 +1,220 @@
+---
+/**
+ * ResidualCurrentCurve — the lesson's worked problem as a movable cursor on a log plot.
+ * The fitted 1:1 model I(C) = Imax / (1 + C/Kd), drawn as the remaining fraction of the
+ * fitted maximal current, with the two fitted Kd values (0.38 nM at 37 °C, 0.072 nM at
+ * 21 °C; recombinant human Nav1.8 with the beta-3 subunit in CHO cells). Optional inversion:
+ * pick a remaining fraction f and read C = (1/f - 1) x Kd. Original.
+ */
+---
+
+<figure class="rcc card" data-rcc>
+  <figcaption class="rcc-head">Residual current from a fitted curve<span class="rcc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rcc-svg" viewBox="0 0 340 236" role="img" aria-label="Log-concentration plot of the fitted 1:1 model: remaining fraction of the fitted maximal Nav1.8 current against concentration in the recording bath, with a movable cursor" data-plot></svg>
+
+  <div class="rcc-controls">
+    <label class="rcc-slabel"><span>Concentration in the recording bath <em data-out="conc">10 nM</em></span>
+      <input type="range" data-in="conc" min="-40" max="60" step="1" value="20" />
+    </label>
+    <fieldset class="rcc-temp">
+      <legend>Rig temperature (sets K<sub>d</sub>)</legend>
+      <label><input type="radio" name="rcc-temp" data-in="temp" value="37" checked /> 37 °C (K<sub>d</sub> 0.38 nM)</label>
+      <label><input type="radio" name="rcc-temp" data-in="temp" value="21" /> 21 °C (K<sub>d</sub> 0.072 nM)</label>
+    </fieldset>
+    <label class="rcc-check"><input type="checkbox" data-in="solve" /> Solve for a target remaining fraction</label>
+    <label class="rcc-slabel"><span>Target remaining fraction</span>
+      <select data-in="target" disabled>
+        <option value="0.5">50%</option>
+        <option value="0.25">25%</option>
+        <option value="0.1" selected>10%</option>
+        <option value="0.05">5%</option>
+        <option value="0.01">1% (99% inhibition)</option>
+      </select>
+    </label>
+  </div>
+
+  <dl class="rcc-readout">
+    <div><dt>Remaining fraction</dt><dd data-r-frac>3.66%</dd></div>
+    <div><dt>Percent inhibition</dt><dd data-r-inh>96.34%</dd></div>
+    <div><dt>Bath concentration</dt><dd data-r-conc>10 nM</dd></div>
+    <div><dt>K<sub>d</sub> at this temperature</dt><dd data-r-kd>0.38 nM</dd></div>
+  </dl>
+  <p class="rcc-math" data-math></p>
+  <p class="rcc-why" data-why role="status"></p>
+  <p class="rcc-ceiling">Ceiling from the lesson: in dissociated adult human dorsal root ganglion neurons at 37 °C, suzetrigine generally reduced but did not eliminate repetitive firing (a different preparation from the recombinant fit above). A channel-current calculation is not neuronal silence, and a bath concentration is not a dose.</p>
+
+  <p class="rcc-foot">In this sketch: a 1:1 fit to a recombinant current (human Nav1.8 with the beta-3 subunit in CHO cells), plotted as ratios to the fitted maximum, so the fitted amplitude cancels. Nothing here is a recording from a neuron. Rule to keep: residual current is Kd/(Kd + C), and it is not neuronal silence.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const KD: Record<string, number> = { '37': 0.38, '21': 0.072 };
+  function must<T>(e: T | null, what: string): T {
+    if (!e) throw new Error('ResidualCurrentCurve: missing ' + what);
+    return e;
+  }
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  // number to n significant figures without trailing zeros or exponent
+  function sig(x: number, n: number): string {
+    if (x === 0) return '0';
+    const digits = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x))));
+    return String(Number(x.toFixed(Math.min(digits, 12))));
+  }
+  function pct(f: number): string {
+    const p = f * 100;
+    return (p < 10 ? p.toPrecision(3) : p.toFixed(1)) + '%';
+  }
+  document.querySelectorAll<HTMLElement>('[data-rcc]').forEach((root) => {
+    const plot = must(root.querySelector<SVGSVGElement>('[data-plot]'), 'plot');
+    const concIn = must(root.querySelector<HTMLInputElement>('[data-in="conc"]'), 'conc');
+    const solveIn = must(root.querySelector<HTMLInputElement>('[data-in="solve"]'), 'solve');
+    const targetIn = must(root.querySelector<HTMLSelectElement>('[data-in="target"]'), 'target');
+    const tempIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="temp"]'));
+    const concOut = must(root.querySelector<HTMLElement>('[data-out="conc"]'), 'conc out');
+    const rFrac = must(root.querySelector<HTMLElement>('[data-r-frac]'), 'frac');
+    const rInh = must(root.querySelector<HTMLElement>('[data-r-inh]'), 'inh');
+    const rConc = must(root.querySelector<HTMLElement>('[data-r-conc]'), 'conc readout');
+    const rKd = must(root.querySelector<HTMLElement>('[data-r-kd]'), 'kd');
+    const math = must(root.querySelector<HTMLElement>('[data-math]'), 'math');
+    const why = must(root.querySelector<HTMLElement>('[data-why]'), 'why');
+
+    const X0 = 46, X1 = 326, Y0 = 36, Y1 = 188, LMIN = -2, LMAX = 3;
+    const px = (lc: number) => X0 + ((lc - LMIN) / (LMAX - LMIN)) * (X1 - X0);
+    const py = (f: number) => Y1 - f * (Y1 - Y0);
+    const frac = (c: number, kd: number) => 1 / (1 + c / kd);
+    function curve(kd: number) {
+      let d = '';
+      for (let lc = LMIN; lc <= LMAX + 1e-9; lc += 0.05) {
+        d += (lc === LMIN ? 'M' : 'L') + px(lc).toFixed(1) + ' ' + py(frac(Math.pow(10, lc), kd)).toFixed(1) + ' ';
+      }
+      return d.trim();
+    }
+    function text(x: number, y: number, s: string, anchor: string, size: number, fill: string, weight?: number) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill });
+      if (weight) t.setAttribute('font-weight', String(weight));
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+    function render() {
+      const temp = tempIns.find((r) => r.checked)?.value === '21' ? '21' : '37';
+      const other = temp === '37' ? '21' : '37';
+      const kd = KD[temp], kdOther = KD[other];
+      const solving = solveIn.checked;
+      targetIn.disabled = !solving;
+      concIn.disabled = solving;
+
+      let c: number;
+      let f: number;
+      let k = 0; // the (1/f - 1) multiplier in solve mode
+      if (solving) {
+        f = parseFloat(targetIn.value);
+        k = Math.round((1 / f - 1) * 1e6) / 1e6;
+        c = k * kd;
+      } else {
+        c = Number(Math.pow(10, parseInt(concIn.value, 10) / 20).toPrecision(3));
+        f = frac(c, kd);
+      }
+      const cPlot = Math.min(Math.max(c, 0.01), 1000);
+      const lc = Math.log10(cPlot);
+      if (!solving) concOut.textContent = sig(c, 3) + ' nM';
+      else concOut.textContent = sig(c, 4) + ' nM (solved)';
+
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const r of [0, 0.25, 0.5, 0.75, 1]) {
+        if (r > 0) plot.appendChild(el('line', { x1: X0, y1: py(r), x2: X1, y2: py(r), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        text(X0 - 4, py(r) + 3, Math.round(r * 100) + '%', 'end', 9, INK);
+      }
+      for (const l of [-2, -1, 0, 1, 2, 3]) {
+        plot.appendChild(el('line', { x1: px(l), y1: Y1, x2: px(l), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(l), Y1 + 14, sig(Math.pow(10, l), 3), 'middle', 9, INK);
+      }
+      text((X0 + X1) / 2, Y1 + 30, 'concentration in the recording bath (nM, log scale)', 'middle', 10, INK);
+      text(X0 - 36, 12, 'remaining fraction of the fitted maximal current', 'start', 10, INK);
+
+      // other temperature as a dashed reference, selected one solid
+      plot.appendChild(el('path', { d: curve(kdOther), fill: 'none', stroke: FAINT, 'stroke-width': 1.8, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: curve(kd), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // K_d marker (50% remaining)
+      const lkd = Math.log10(kd);
+      plot.appendChild(el('line', { x1: px(lkd), y1: py(0.5), x2: px(lkd), y2: Y0 - 2, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      text(Math.min(Math.max(px(lkd), X0 + 30), X1 - 30), Y0 - 6, 'Kd ' + sig(kd, 3) + ' nM: 50%', 'middle', 9, INK);
+
+      // legend (top right, curve is low there)
+      const LX = X1 - 92, LY = Y0 + 12;
+      plot.appendChild(el('line', { x1: LX, y1: LY, x2: LX + 16, y2: LY, stroke: ACCENT, 'stroke-width': 2.6 }));
+      text(LX + 20, LY + 3, temp + ' °C (selected)', 'start', 9, INK);
+      plot.appendChild(el('line', { x1: LX, y1: LY + 13, x2: LX + 16, y2: LY + 13, stroke: FAINT, 'stroke-width': 1.8, 'stroke-dasharray': '4 3' }));
+      text(LX + 20, LY + 16, other + ' °C (fit)', 'start', 9, INK);
+
+      // cursor
+      plot.appendChild(el('line', { x1: px(lc), y1: Y1, x2: px(lc), y2: py(frac(cPlot, kd)), stroke: ORANGE, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('line', { x1: X0, y1: py(frac(cPlot, kd)), x2: px(lc), y2: py(frac(cPlot, kd)), stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: px(lc), cy: py(frac(cPlot, kd)), r: 4.5, fill: ORANGE }));
+      const left = px(lc) > X1 - 70;
+      const ly = Math.min(Math.max(py(frac(cPlot, kd)) - 8, Y0 + 30), Y1 - 8);
+      text(left ? px(lc) - 8 : px(lc) + 8, ly, pct(f) + ' left', left ? 'end' : 'start', 10, ORANGE, 700);
+
+      // readouts
+      rFrac.textContent = pct(f);
+      rInh.textContent = ((1 - f) * 100).toFixed(2) + '%';
+      rConc.textContent = sig(c, 4) + ' nM';
+      rKd.textContent = sig(kd, 3) + ' nM';
+
+      const kdS = sig(kd, 3), cS = sig(c, 4);
+      if (solving) {
+        math.textContent = `C = (1/f − 1) × Kd = (1/${sig(f, 3)} − 1) × ${kdS} = ${sig(k, 6)} × ${kdS} = ${cS} nM`;
+        why.textContent = `In this sketch, a remaining fraction of ${pct(f)} of the fitted maximum needs ${cS} nM in the bath at ${temp} °C. That is a concentration in a recording bath for a recombinant current, not a dose.`;
+      } else {
+        const denom = 1 + c / kd;
+        const dS = sig(denom, denom >= 10 ? 3 : 4);
+        math.textContent = `f = Kd/(Kd + C) = ${kdS}/(${kdS} + ${sig(c, 3)}) = ${sig(f, 3)}. Check: 1 + C/Kd = ${dS}, and 1/${dS} = ${sig(1 / denom, 3)}.`;
+        const rel = Math.abs(Math.log10(c / kd)) < 0.011
+          ? ' At C = Kd the model leaves 50%.'
+          : '';
+        why.textContent = `In this sketch, ${sig(c, 3)} nM in the bath leaves ${pct(f)} of the fitted maximal current at ${temp} °C (${((1 - f) * 100).toFixed(2)}% inhibition of a recombinant current).${rel}`;
+      }
+      const ratio = KD['37'] / KD['21'];
+      why.textContent += temp === '21'
+        ? ` The 21 °C fit has Kd = 0.072 nM instead of 0.38 nM, a change of more than fivefold (×${ratio.toFixed(1)}): the temperature of the rig changes the number.`
+        : ' Switch to 21 °C to see Kd change by more than fivefold: the temperature of the rig changes the number.';
+      if (c < 0.01 - 1e-12 || c > 1000 + 1e-9) why.textContent += ' This value lies outside the plotted range.';
+    }
+    [concIn, solveIn, targetIn, ...tempIns].forEach((s) => s.addEventListener('input', render));
+    tempIns.forEach((s) => s.addEventListener('change', render));
+    solveIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .rcc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rcc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rcc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rcc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rcc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: start; }
+  .rcc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rcc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .rcc-slabel input { accent-color: var(--ddp-color-accent); }
+  .rcc-slabel select { font: inherit; font-size: var(--ddp-text-xs); padding: 0.2rem; max-width: 100%; }
+  .rcc-temp { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.2rem 0.5rem 0.35rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; }
+  .rcc-temp legend { padding: 0 0.25rem; }
+  .rcc-temp input, .rcc-check input { accent-color: var(--ddp-color-accent); }
+  .rcc-check { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; gap: 0.35rem; align-items: center; }
+  .rcc-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .rcc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .rcc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .rcc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .rcc-math { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); overflow-wrap: anywhere; }
+  .rcc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .rcc-ceiling { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-accent); padding-left: 0.55rem; }
+  .rcc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

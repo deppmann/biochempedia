@@ -1,0 +1,179 @@
+---
+/**
+ * ConditionalOverlapSizer — two overlapping area-proportional circles (G, cells responsive to
+ * glucose; S, cells responsive to duodenal distension) redrawn from two conditional percentages.
+ * The lesson's algebra is I = aG = bS, so S/G = a/b. Original; a sketch of the logic.
+ */
+---
+
+<figure class="cos card" data-cos>
+  <figcaption class="cos-head">Two conditional percentages fix a size ratio<span class="cos-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cos-svg" viewBox="0 0 340 210" role="img" aria-label="Two overlapping circles whose areas stand for the glucose-responsive and distension-responsive cell counts in relative units" data-plot></svg>
+
+  <div class="cos-controls">
+    <label class="cos-slabel"><span>a: % of glucose-responsive cells that also respond to distension (I/G) <em data-out="a">42.2</em>%</span>
+      <input type="range" data-in="a" min="5" max="95" step="0.1" value="42.2" />
+    </label>
+    <label class="cos-slabel"><span>b: % of distension-responsive cells that also respond to glucose (I/S) <em data-out="b">31.0</em>%</span>
+      <input type="range" data-in="b" min="5" max="95" step="0.1" value="31" />
+    </label>
+    <button type="button" class="cos-btn" data-reset>Use the published values (42.2 and 31.0)</button>
+  </div>
+
+  <div class="cos-readout" data-readout>
+    <div class="cos-line"><span class="cos-k">Overlap</span><span class="cos-v">I = a × G = b × S</span></div>
+    <div class="cos-line"><span class="cos-k">Ratio</span><span class="cos-v" data-r-ratio>S / G = a / b</span></div>
+    <div class="cos-line"><span class="cos-k">Reading</span><span class="cos-v" data-r-read></span></div>
+  </div>
+
+  <p class="cos-why" data-why role="status"></p>
+
+  <p class="cos-assume"><strong>In this sketch:</strong> circle areas stand for counts of responsive cells in relative units; the lesson gives no absolute cell numbers for this comparison, so none are drawn, and the whole picture is rescaled to fit the frame. Only 42.2 and 31.0 are the published values (Ran and colleagues, 2022, anaesthetized mice); every other setting is an exercise, not data.</p>
+
+  <p class="cos-note"><strong>A separate experiment, not merged with this one:</strong> in the six-mouse data set, 1,018 of 1,133 responsive neurons answered to only one tested organ (1,018 / 1,133 = 89.8%), so 115 neurons (10.2%) responded to more than one organ.</p>
+
+  <p class="cos-foot">Keep the rule: two conditional percentages that share one overlap fix the ratio of the two populations, S / G = a / b, without any cell counts. The ratio holds for cells responsive to the stimuli in that experiment, in anaesthetized mice; overlap is not a shared input and not a cause, and nothing here extends to all NTS neurons or to awake humans.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const G_COL = '#0e7c86', S_COL = '#e57200', I_COL = '#5b2d8c', INK = '#4b4b55';
+  const PUB_A = 422, PUB_B = 310; // tenths of a percent
+  let uid = 0;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  // area of the lens where two circles (radii r1, r2) at centre distance d overlap
+  function lens(r1: number, r2: number, d: number): number {
+    if (d >= r1 + r2) return 0;
+    const m = Math.min(r1, r2);
+    if (d <= Math.abs(r1 - r2)) return Math.PI * m * m;
+    const a1 = Math.acos((d * d + r1 * r1 - r2 * r2) / (2 * d * r1));
+    const a2 = Math.acos((d * d + r2 * r2 - r1 * r1) / (2 * d * r2));
+    const k = 0.5 * Math.sqrt((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2));
+    return r1 * r1 * a1 + r2 * r2 * a2 - k;
+  }
+  document.querySelectorAll<HTMLElement>('[data-cos]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const aIn = root.querySelector<HTMLInputElement>('[data-in="a"]');
+    const bIn = root.querySelector<HTMLInputElement>('[data-in="b"]');
+    const aOut = root.querySelector<HTMLElement>('[data-out="a"]');
+    const bOut = root.querySelector<HTMLElement>('[data-out="b"]');
+    const reset = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const rRatio = root.querySelector<HTMLElement>('[data-r-ratio]');
+    const rRead = root.querySelector<HTMLElement>('[data-r-read]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !aIn || !bIn || !aOut || !bOut || !reset || !rRatio || !rRead || !why) return;
+    const clipId = 'cos-clip-' + (uid++);
+
+    function render() {
+      if (!plot || !aIn || !bIn || !aOut || !bOut || !rRatio || !rRead || !why) return;
+      const a10 = Math.round(parseFloat(aIn.value) * 10);
+      const b10 = Math.round(parseFloat(bIn.value) * 10);
+      const a = a10 / 1000, b = b10 / 1000; // fractions
+      aOut.textContent = (a10 / 10).toFixed(1);
+      bOut.textContent = (b10 / 10).toFixed(1);
+
+      // relative units: G = 1, I = a, S = a / b
+      const G = 1, I = a * G, S = I / b;
+      const rG = Math.sqrt(G / Math.PI), rS = Math.sqrt(S / Math.PI);
+      let lo = Math.abs(rG - rS), hi = rG + rS; // lens area falls as d rises
+      for (let i = 0; i < 60; i++) {
+        const mid = (lo + hi) / 2;
+        if (lens(rG, rS, mid) > I) lo = mid; else hi = mid;
+      }
+      const d = (lo + hi) / 2;
+      const left = Math.min(-rG, d - rS), right = Math.max(rG, d + rS);
+      const sc = Math.min(300 / (right - left), 130 / (2 * Math.max(rG, rS)));
+      const x0 = 170 - ((left + right) / 2) * sc; // G centre
+      const cy = 112;
+      const gx = x0, sx = x0 + d * sc;
+
+      plot.replaceChildren();
+      const defs = el('defs', {});
+      const clip = el('clipPath', { id: clipId });
+      clip.appendChild(el('circle', { cx: gx, cy, r: rG * sc }));
+      defs.appendChild(clip);
+      plot.appendChild(defs);
+      plot.appendChild(el('circle', { cx: gx, cy, r: rG * sc, fill: G_COL, 'fill-opacity': 0.4, stroke: G_COL, 'stroke-width': 2 }));
+      plot.appendChild(el('circle', { cx: sx, cy, r: rS * sc, fill: S_COL, 'fill-opacity': 0.4, stroke: S_COL, 'stroke-width': 2 }));
+      plot.appendChild(el('circle', { cx: sx, cy, r: rS * sc, fill: I_COL, 'fill-opacity': 0.55, 'clip-path': 'url(#' + clipId + ')' }));
+
+      // legend row (fixed positions)
+      const leg: Array<[number, string, string]> = [
+        [4, G_COL, 'G glucose-responsive'],
+        [118, S_COL, 'S distension-responsive'],
+        [246, I_COL, 'I responds to both'],
+      ];
+      for (const [x, col, txt] of leg) {
+        plot.appendChild(el('rect', { x, y: 8, width: 10, height: 10, fill: col, 'fill-opacity': 0.7 }));
+        const t = el('text', { x: x + 14, y: 17, 'font-size': 9, fill: INK });
+        t.textContent = txt;
+        plot.appendChild(t);
+      }
+      const foot = el('text', { x: 170, y: 200, 'text-anchor': 'middle', 'font-size': 9, fill: INK });
+      foot.textContent = 'areas in relative units, not to scale';
+      plot.appendChild(foot);
+
+      // readouts
+      const ratio = a / b;
+      const ratioTxt = ratio.toFixed(2);
+      const published = a10 === PUB_A && b10 === PUB_B;
+      rRatio.textContent = 'S / G = a / b = ' + (a10 / 1000).toFixed(3) + ' / ' + (b10 / 1000).toFixed(3) + ' = ' + ratioTxt + (published ? ' (approximate)' : '');
+      let pct: string;
+      if (a10 === b10) {
+        pct = 'the two populations are equal (S / G = 1.00)';
+      } else if (Math.abs(ratio - 1) < 0.005) {
+        pct = 'the stretch population is about equal to the glucose-responsive population';
+      } else if (a10 > b10) {
+        pct = 'the stretch population is ' + ((ratio - 1) * 100).toFixed(0) + '% larger than the glucose-responsive population';
+      } else {
+        pct = 'the stretch population is ' + ((1 - ratio) * 100).toFixed(0) + '% smaller than the glucose-responsive population';
+      }
+      rRead.textContent = published ? 'the stretch population is about 36% larger than the glucose-responsive population (approximate: the published percentages are rounded)' : pct;
+
+      const caveat = ' Overlap is cells that responded to both; it is not a shared input and not a cause.';
+      if (published) {
+        why.textContent = 'Published values from Ran and colleagues (2022; anaesthetized mice, caudal NTS): I = 0.422 G = 0.310 S, so S / G = 0.422 / 0.310 = 1.36. The stretch population is about 36 percent larger, which gives the smaller conditional fraction. The published percentages are rounded, so 1.36 is approximate.' + caveat;
+      } else if (a10 === b10) {
+        why.textContent = 'Exercise, not data: equal percentages mean the same overlap is the same fraction of each population, so the two populations are equal in size and the circles match.' + caveat;
+      } else if (a10 > b10) {
+        why.textContent = 'Exercise, not data: a is larger than b, so the same overlap is a bigger share of G than of S. That makes S the larger population, by a factor of a / b = ' + ratioTxt + ' here, and it gives the smaller conditional fraction.' + caveat;
+      } else {
+        why.textContent = 'Exercise, not data: a is smaller than b, so the same overlap is a smaller share of G than of S. That makes S the smaller population, by a factor of a / b = ' + ratioTxt + ' here.' + caveat;
+      }
+    }
+    aIn.addEventListener('input', render);
+    bIn.addEventListener('input', render);
+    reset.addEventListener('click', () => {
+      aIn.value = String(PUB_A / 10);
+      bIn.value = String(PUB_B / 10);
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .cos { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cos-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cos-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cos-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cos-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: start; }
+  .cos-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cos-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cos-slabel input { accent-color: var(--ddp-color-accent); }
+  .cos-btn { grid-column: 1 / -1; justify-self: start; font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.7rem; border: 1px solid var(--ddp-color-accent); border-radius: 6px; background: #fff; color: var(--ddp-color-accent); cursor: pointer; }
+  .cos-btn:hover, .cos-btn:focus-visible { background: color-mix(in srgb, var(--ddp-color-accent) 10%, #fff); }
+  .cos-readout { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; display: flex; flex-direction: column; gap: 0.25rem; }
+  .cos-line { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.5rem; font-size: var(--ddp-text-xs); }
+  .cos-k { color: var(--ddp-color-muted); }
+  .cos-v { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cos-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5em; }
+  .cos-assume, .cos-note { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .cos-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) { .cos-controls { grid-template-columns: 1fr; } }
+</style>

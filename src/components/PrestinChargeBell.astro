@@ -1,0 +1,238 @@
+---
+/**
+ * PrestinChargeBell — the two-state reading of a nonlinear-capacitance (NLC) curve from the
+ * Cochlear Amplifier lesson. Two stacked plots against membrane voltage: occupancy of the
+ * contracted state f(V) = 1 / (1 + exp(-z (V - Vh) / (kT/e))) and normalized NLC = 4 f (1 - f),
+ * with Vh = -112 mV, z = 0.70 and kT/e = 25.42 mV (295 K), the values of the lesson's worked
+ * problem (gerbil prestin, induced HEK cell line, room temperature, Butan and colleagues, 2022).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="pcb card" data-prestinbell>
+  <figcaption class="pcb-head">Prestin charge bell — occupancy and nonlinear capacitance<span class="pcb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="pcb-svg" viewBox="0 0 340 300" role="img" aria-label="Two stacked plots against membrane voltage. Top: occupancy of the contracted state, a rising S-shaped curve. Bottom: normalized nonlinear capacitance, a bell that peaks at the half-activation voltage. A cursor marks the chosen voltage." data-plot></svg>
+
+  <div class="pcb-controls">
+    <label class="pcb-slabel"><span>Membrane voltage V <em data-out="v">−62</em> mV</span>
+      <input type="range" data-in="v" min="-250" max="50" step="1" value="-62" />
+    </label>
+    <label class="pcb-slabel"><span>Effective valence z <em data-out="z">0.70</em> <small data-zflag>(the fit)</small></span>
+      <input type="range" data-in="z" min="0.3" max="1.4" step="0.01" value="0.7" />
+    </label>
+    <div class="pcb-btnrow">
+      <button type="button" class="pcb-btn" data-mirror>Mirror point</button>
+      <span class="pcb-note">(available up to +26 mV)</span>
+      <button type="button" class="pcb-btn pcb-btn-quiet" data-reset>Reset to the worked problem</button>
+    </div>
+  </div>
+
+  <p class="pcb-key">Hollow orange circles mark the mirror voltage, the same distance on the other side of Vh.</p>
+
+  <dl class="pcb-readout">
+    <div><dt>V − Vh</dt><dd data-r="dv">+50 mV</dd></div>
+    <div><dt>Exponent −z(V − Vh)/(kT/e)</dt><dd data-r="ex">−1.377</dd></div>
+    <div><dt>Occupancy f (contracted)</dt><dd data-r="f">0.798</dd></div>
+    <div><dt>Change in f from Vh (0.5)</dt><dd data-r="rise">+0.298</dd></div>
+    <div><dt>NLC as a fraction of peak</dt><dd data-r="nlc">0.644</dd></div>
+  </dl>
+  <p class="pcb-math" data-math></p>
+
+  <p class="pcb-why" data-why role="status"></p>
+
+  <p class="pcb-assume"><strong>In this sketch:</strong> two-state equilibrium, no linear capacitance, no kinetics, kT/e = 25.42 mV (295 K). Vh = −112 mV and z = 0.70 are the values fitted to gerbil prestin in an induced HEK cell line at room temperature (Butan and colleagues, 2022). The curves are computed from the lesson’s equation, not recorded.</p>
+
+  <p class="pcb-foot">Keep this rule: the bell reports how the protein’s charge responds to voltage in a cell line. It does not say how much force or power a hair cell produces.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const VH = -112, Z_FIT = 0.7, KT = 25.42, VMIN = -250, VMAX = 50;
+  const M = (n: number) => (n < 0 ? '−' : '') + Math.abs(n).toString();
+  const signed = (n: number, d: number) => { const a = Math.abs(n).toFixed(d); return Number(a) === 0 ? a : (n < 0 ? '−' : '+') + a; };
+  const fOf = (v: number, z: number) => 1 / (1 + Math.exp(-z * (v - VH) / KT));
+  const nlcOf = (f: number) => 4 * f * (1 - f);
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-prestinbell]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const vIn = root.querySelector<HTMLInputElement>('[data-in="v"]');
+    const zIn = root.querySelector<HTMLInputElement>('[data-in="z"]');
+    const vOut = root.querySelector<HTMLElement>('[data-out="v"]');
+    const zOut = root.querySelector<HTMLElement>('[data-out="z"]');
+    const zFlag = root.querySelector<HTMLElement>('[data-zflag]');
+    const mirrorBtn = root.querySelector<HTMLButtonElement>('[data-mirror]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const rDv = root.querySelector<HTMLElement>('[data-r="dv"]');
+    const rEx = root.querySelector<HTMLElement>('[data-r="ex"]');
+    const rF = root.querySelector<HTMLElement>('[data-r="f"]');
+    const rRise = root.querySelector<HTMLElement>('[data-r="rise"]');
+    const rNlc = root.querySelector<HTMLElement>('[data-r="nlc"]');
+    const math = root.querySelector<HTMLElement>('[data-math]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !vIn || !zIn || !vOut || !zOut || !zFlag || !mirrorBtn || !resetBtn || !rDv || !rEx || !rF || !rRise || !rNlc || !math || !why) return;
+
+    const X0 = 40, X1 = 326;
+    const FY0 = 34, FY1 = 120;   // top plot: f from 1 (top) to 0 (bottom)
+    const NY0 = 176, NY1 = 262;  // bottom plot: NLC from 1 to 0
+    const px = (v: number) => X0 + ((v - VMIN) / (VMAX - VMIN)) * (X1 - X0);
+    const pf = (f: number) => FY1 - f * (FY1 - FY0);
+    const pn = (n: number) => NY1 - n * (NY1 - NY0);
+    function curve(z: number, which: 'f' | 'n') {
+      let d = '';
+      for (let v = VMIN; v <= VMAX; v += 2) {
+        const f = fOf(v, z);
+        const y = which === 'f' ? pf(f) : pn(nlcOf(f));
+        d += (v === VMIN ? 'M' : 'L') + px(v).toFixed(1) + ' ' + y.toFixed(1) + ' ';
+      }
+      return d.trim();
+    }
+    function text(x: number, y: number, s: string, anchor: string, size = 9, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill: INK, ...extra });
+      t.textContent = s;
+      plot!.appendChild(t);
+    }
+    function axes(y0: number, y1: number, ticks: number[], label: string) {
+      plot!.appendChild(el('line', { x1: X0, y1: y0, x2: X0, y2: y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: y1, x2: X1, y2: y1, stroke: INK, 'stroke-width': 1 }));
+      for (const t of ticks) {
+        const y = y1 - t * (y1 - y0);
+        plot!.appendChild(el('line', { x1: X0, y1: y, x2: X1, y2: y, stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        text(X0 - 4, y + 3, String(t), 'end');
+      }
+      text(X0, y0 - 8, label, 'start', 10);
+    }
+
+    function setV(v: number) {
+      vIn!.value = String(Math.max(VMIN, Math.min(VMAX, Math.round(v))));
+      render();
+    }
+
+    function render() {
+      const v = parseInt(vIn!.value, 10);
+      const z = parseFloat(zIn!.value);
+      const isFit = Math.abs(z - Z_FIT) < 0.0005;
+      const dv = v - VH;
+      const ex = -z * dv / KT;
+      const f = fOf(v, z);
+      const nlc = nlcOf(f);
+      const mv = 2 * VH - v;                       // same distance on the other side of Vh
+      const mirrorOk = mv >= VMIN && mv <= VMAX;
+
+      vOut!.textContent = M(v);
+      zOut!.textContent = z.toFixed(2);
+      zFlag!.textContent = isFit ? '(the fit)' : '(not the fit)';
+      mirrorBtn!.disabled = !mirrorOk;
+      mirrorBtn!.title = mirrorOk ? 'Jump to ' + M(mv) + ' mV' : 'The mirror voltage is outside the plotted range';
+
+      rDv!.textContent = signed(dv, 0) + ' mV';
+      rEx!.textContent = signed(ex, 3);
+      rF!.textContent = f.toFixed(3);
+      rRise!.textContent = signed(f - 0.5, 3);
+      rNlc!.textContent = nlc.toFixed(3);
+      math!.textContent = 'e^(' + signed(ex, 3).replace('+', '') + ') = ' + Math.exp(ex).toFixed(4) +
+        '  →  f = 1 / (1 + ' + Math.exp(ex).toFixed(4) + ') = ' + f.toFixed(3) +
+        ';  NLC = 4 × ' + f.toFixed(3) + ' × ' + (1 - f).toFixed(3) + ' = ' + nlc.toFixed(3);
+
+      plot!.replaceChildren();
+      axes(FY0, FY1, [0, 0.5, 1], 'Occupancy f of the contracted state');
+      axes(NY0, NY1, [0, 0.5, 1], 'Normalized NLC = 4f(1 − f)');
+      for (const t of [-250, -200, -150, -100, -50, 0, 50]) {
+        plot!.appendChild(el('line', { x1: px(t), y1: NY1, x2: px(t), y2: NY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(t), NY1 + 14, M(t), 'middle');
+      }
+      text((X0 + X1) / 2, NY1 + 28, 'membrane voltage V (mV)', 'middle', 10);
+
+      // Vh marker through both plots
+      for (const [a, b] of [[FY0, FY1], [NY0, NY1]]) {
+        plot!.appendChild(el('line', { x1: px(VH), y1: a, x2: px(VH), y2: b, stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '5 3' }));
+      }
+      text(px(VH), FY1 + 12, 'Vh = −112 mV', 'middle', 9);
+
+      // reference curves when z is not the fit
+      if (!isFit) {
+        plot!.appendChild(el('path', { d: curve(Z_FIT, 'f'), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+        plot!.appendChild(el('path', { d: curve(Z_FIT, 'n'), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+        text(X1, FY1 + 30, 'dashed: z = 0.70 (fit); other z hypothetical', 'end');
+      }
+      plot!.appendChild(el('path', { d: curve(z, 'f'), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot!.appendChild(el('path', { d: curve(z, 'n'), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+
+      // mirror marker (hollow) and cursor
+      if (mirrorOk && mv !== v) {
+        const mf = fOf(mv, z);
+        plot!.appendChild(el('circle', { cx: px(mv), cy: pf(mf), r: 4, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.6 }));
+        plot!.appendChild(el('circle', { cx: px(mv), cy: pn(nlcOf(mf)), r: 4, fill: '#fff', stroke: ORANGE, 'stroke-width': 1.6 }));
+      }
+      for (const [a, b] of [[FY0, FY1], [NY0, NY1]]) {
+        plot!.appendChild(el('line', { x1: px(v), y1: a, x2: px(v), y2: b, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      }
+      plot!.appendChild(el('circle', { cx: px(v), cy: pf(f), r: 4.5, fill: ORANGE }));
+      plot!.appendChild(el('circle', { cx: px(v), cy: pn(nlc), r: 4.5, fill: ORANGE }));
+
+      // status
+      const prep = 'for gerbil prestin in an induced HEK cell line at room temperature';
+      let s: string;
+      if (dv === 0) {
+        s = 'At Vh the exponent is zero, so f = 0.5 and the normalized NLC = 4 × 0.5 × 0.5 = 1, the peak of the bell. This is the half-activation voltage of the model';
+      } else if (nlc < 0.05) {
+        s = 'Far from Vh the occupancy is close to ' + (dv > 0 ? '1' : '0') + ' and the normalized NLC is ' + nlc.toFixed(3) + ': almost all of the model protein sits in one state, so the capacitance bell is near zero';
+      } else if (dv > 0) {
+        s = 'Depolarized from Vh by ' + dv + ' mV, the occupancy of the contracted state has risen by ' + (f - 0.5).toFixed(3) + ' to ' + f.toFixed(3) + ', and the NLC has fallen to ' + nlc.toFixed(3) + ' of the peak. Depolarization shifts prestin toward the contracted state, the state associated with outer hair cell shortening; it is not the same thing as shortening';
+      } else {
+        s = 'Hyperpolarized from Vh by ' + (-dv) + ' mV, the occupancy of the contracted state has fallen by ' + (0.5 - f).toFixed(3) + ' to ' + f.toFixed(3) + ', and the NLC is ' + nlc.toFixed(3) + ' of the peak. The model protein is shifted toward the other state';
+      }
+      s += isFit
+        ? ' (Vh and z as fitted ' + prep + ').'
+        : '. With z = ' + z.toFixed(2) + ' (a hypothetical value in this sketch, not the fit; the fit is 0.70) a higher z gives a narrower bell and a lower z a wider one, and the peak stays at Vh.';
+      s += ' The curve is charge movement, not force, power or a hair-cell stroke; z is an effective charge, not a count of transported chloride ions; the 200 square angstrom figure compares two structures and is not a measured movement.';
+      why!.textContent = s;
+    }
+
+    vIn.addEventListener('input', render);
+    zIn.addEventListener('input', render);
+    mirrorBtn.addEventListener('click', () => {
+      const mv = 2 * VH - parseInt(vIn.value, 10);
+      if (mv >= VMIN && mv <= VMAX) setV(mv);
+    });
+    resetBtn.addEventListener('click', () => {
+      zIn.value = String(Z_FIT);
+      setV(-62);
+    });
+    render();
+  });
+</script>
+
+<style>
+  .pcb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .pcb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .pcb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .pcb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .pcb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: start; }
+  .pcb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pcb-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .pcb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .pcb-slabel input { accent-color: var(--ddp-color-accent); }
+  .pcb-btnrow { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .pcb-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.35rem 0.8rem; border-radius: 6px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; cursor: pointer; }
+  .pcb-btn-quiet { background: transparent; color: var(--ddp-color-accent); }
+  .pcb-note, .pcb-key { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pcb-note { align-self: center; }
+  .pcb-key { margin: var(--ddp-space-2) 0 0; }
+  .pcb-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .pcb-btn:focus-visible { outline: 2px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .pcb-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .pcb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .pcb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .pcb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .pcb-math { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  .pcb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .pcb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .pcb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .pcb-controls { grid-template-columns: 1fr; } }
+</style>

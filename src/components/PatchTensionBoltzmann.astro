@@ -1,0 +1,238 @@
+---
+/**
+ * PatchTensionBoltzmann: from patch pressure to membrane tension (T = R x Δp / 2)
+ * to a predicted normalized current from the published Boltzmann fit. The fit
+ * parameters belong to one protocol only; the other T50 values are shown as
+ * separate protocols and are never substituted into this curve. Original.
+ */
+---
+
+<figure class="ptb card" data-ptb>
+  <figcaption class="ptb-head">Patch radius, pressure, tension and predicted current<span class="ptb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="ptb-controls">
+    <label class="ptb-slabel"><span>Patch radius R <em data-out="r">2.0</em> µm</span>
+      <input type="range" data-in="r" min="1" max="3" step="0.1" value="2" />
+    </label>
+    <label class="ptb-slabel"><span>Pressure difference Δp (magnitude) <em data-out="dp">2000</em> Pa</span>
+      <input type="range" data-in="dp" min="0" max="4000" step="100" value="2000" />
+    </label>
+  </div>
+
+  <fieldset class="ptb-proto">
+    <legend>Which recorded protocol does the T<sub>50</sub> come from?</legend>
+    <label><input type="radio" name="ptb-proto" value="clamp" checked /> Pressure-clamp fit: T<sub>50</sub> = 2.7 ± 0.1 mN/m</label>
+    <label><input type="radio" name="ptb-proto" value="pre" /> Separate prepulse protocol, after a 5 s +5 mmHg prepulse: T<sub>50</sub> = 1.4 ± 0.1 mN/m</label>
+    <label><input type="radio" name="ptb-proto" value="nopre" /> Separate prepulse protocol, without a prepulse: T<sub>50</sub> = 2.2 ± 0.1 mN/m</label>
+  </fieldset>
+
+  <div class="ptb-panels">
+    <svg class="ptb-svg" viewBox="0 0 300 250" role="img" aria-label="Schematic of a cell-attached patch drawn as a spherical cap of the chosen radius, with the tension computed from radius and pressure difference" data-patch></svg>
+    <svg class="ptb-svg" viewBox="0 0 340 250" role="img" aria-label="Boltzmann fit of normalized current against membrane tension from 0 to 6 millinewtons per metre, with a dot at the computed tension" data-plot></svg>
+  </div>
+
+  <p class="ptb-warn" data-warn hidden>Mixing protocols: the fit drawn here belongs to the pressure-clamp protocol (T<sub>50</sub> = 2.7 mN/m). Putting a T<sub>50</sub> from the separate prepulse protocol into it combines two protocols and gives a number that means nothing, so no prediction is printed.</p>
+
+  <dl class="ptb-readout">
+    <div><dt>Tension T = R × Δp / 2</dt><dd data-r-t>2.0 mN/m</dd></div>
+    <div><dt>(T<sub>50</sub> − T) / k</dt><dd data-r-x>0.875</dd></div>
+    <div><dt>e<sup>(T50 − T)/k</sup></dt><dd data-r-e>2.40</dd></div>
+    <div><dt>I/I<sub>max</sub> (normalized current)</dt><dd data-r-i>0.294 (about 29%)</dd></div>
+  </dl>
+  <p class="ptb-range" data-range></p>
+
+  <p class="ptb-why" data-why role="status"></p>
+
+  <p class="ptb-scope"><strong>In this sketch:</strong> a spherical cap, the Young–Laplace relation T = R × Δp / 2, and the published fit held fixed (T<sub>50</sub> = 2.7 ± 0.1 mN/m, k = 0.8 ± 0.1 mN/m); the radius and pressure are illustrative round numbers, and the patch is drawn schematically. The fit is for mouse Piezo1 in human HEK293t cells, room temperature, cell-attached; the measured range of the fit is not given; a normalized current, not a fraction of channels or of neurons.</p>
+
+  <p class="ptb-foot">Convert pressure to tension with the measured radius, read the current off the fit of the same protocol, and never carry a T<sub>50</sub> from one protocol into another.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const K = 0.8, T50_CLAMP = 2.7;
+  const PROTO: Record<string, { t50: number; label: string }> = {
+    clamp: { t50: 2.7, label: 'pressure-clamp fit' },
+    pre: { t50: 1.4, label: 'prepulse protocol (with a prepulse)' },
+    nopre: { t50: 2.2, label: 'prepulse protocol (without a prepulse)' },
+  };
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(attrs: Record<string, string | number>, s: string): SVGElement {
+    const t = el('text', attrs);
+    t.textContent = s;
+    return t;
+  }
+  const boltz = (t: number, t50: number, k: number) => 1 / (1 + Math.exp((t50 - t) / k));
+
+  document.querySelectorAll<HTMLElement>('[data-ptb]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const rIn = q<HTMLInputElement>('[data-in="r"]');
+    const dpIn = q<HTMLInputElement>('[data-in="dp"]');
+    const rOut = q<HTMLElement>('[data-out="r"]');
+    const dpOut = q<HTMLElement>('[data-out="dp"]');
+    const patch = q<SVGSVGElement>('[data-patch]');
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const warn = q<HTMLElement>('[data-warn]');
+    const rT = q<HTMLElement>('[data-r-t]');
+    const rX = q<HTMLElement>('[data-r-x]');
+    const rE = q<HTMLElement>('[data-r-e]');
+    const rI = q<HTMLElement>('[data-r-i]');
+    const range = q<HTMLElement>('[data-range]');
+    const why = q<HTMLElement>('[data-why]');
+    const radios = root.querySelectorAll<HTMLInputElement>('input[name="ptb-proto"]');
+    if (!rIn || !dpIn || !rOut || !dpOut || !patch || !plot || !warn || !rT || !rX || !rE || !rI || !range || !why) return;
+
+    // right panel geometry
+    const X0 = 48, X1 = 326, Y0 = 34, Y1 = 196, TMAX = 6;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (i: number) => Y1 - i * (Y1 - Y0);
+
+    function drawPatch(R: number, dp: number, T: number) {
+      patch!.replaceChildren();
+      const cx = 150, base = 176, S = 20; // 1 µm = 20 px
+      const r = R * S;
+      patch!.appendChild(txt({ x: 10, y: 16, 'font-size': 10, fill: INK }, 'Patch radius R = ' + R.toFixed(1) + ' µm'));
+      patch!.appendChild(txt({ x: 10, y: 30, 'font-size': 10, fill: INK }, 'Pressure difference Δp = ' + dp + ' Pa'));
+      // pipette walls and the patch (a spherical cap, drawn as a half-circle)
+      patch!.appendChild(el('line', { x1: cx - r, y1: base, x2: cx - r, y2: 194, stroke: INK, 'stroke-width': 2 }));
+      patch!.appendChild(el('line', { x1: cx + r, y1: base, x2: cx + r, y2: 194, stroke: INK, 'stroke-width': 2 }));
+      patch!.appendChild(el('path', { d: `M ${cx - r} ${base} A ${r} ${r} 0 0 1 ${cx + r} ${base}`, fill: 'rgba(14,124,134,0.10)', stroke: ACCENT, 'stroke-width': 3 }));
+      patch!.appendChild(txt({ x: cx, y: 205, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, 'pipette and cap shape schematic'));
+      patch!.appendChild(txt({ x: cx, y: 216, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, '(hemisphere assumed); only R is to scale'));
+      // radius line
+      patch!.appendChild(el('line', { x1: cx, y1: base, x2: cx, y2: base - r, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      patch!.appendChild(el('circle', { cx, cy: base, r: 2.5, fill: ORANGE }));
+      // scale bar
+      patch!.appendChild(el('line', { x1: 14, y1: 150, x2: 14 + S, y2: 150, stroke: INK, 'stroke-width': 2 }));
+      patch!.appendChild(txt({ x: 14, y: 164, 'font-size': 9, fill: INK }, '1 µm'));
+      // tension arrows along the membrane at each edge, length scaled to T (sketch)
+      const len = 6 + (T / TMAX) * 26;
+      for (const s of [-1, 1]) {
+        const ex = cx + s * r, ey = base;
+        patch!.appendChild(el('line', { x1: ex, y1: ey - 3, x2: ex + s * 0, y2: ey - 3 - len, stroke: ORANGE, 'stroke-width': 2 }));
+        patch!.appendChild(el('path', { d: `M ${ex - 4} ${ey - 3 - len + 6} L ${ex} ${ey - 3 - len} L ${ex + 4} ${ey - 3 - len + 6}`, fill: 'none', stroke: ORANGE, 'stroke-width': 2 }));
+      }
+      patch!.appendChild(txt({ x: 150, y: 232, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, `T = (${R.toFixed(1)} µm)(${dp} Pa)/2 = ${T.toFixed(2)} mN/m`));
+      patch!.appendChild(txt({ x: 150, y: 245, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, 'arrow length: relative tension, sketch'));
+    }
+
+    function drawPlot(T: number, mode: string, predicted: number | null) {
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 0.5, 1]) {
+        plot!.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot!.appendChild(txt({ x: X0 - 4, y: py(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }, v.toFixed(1)));
+      }
+      for (let t = 0; t <= TMAX; t++) {
+        plot!.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot!.appendChild(txt({ x: px(t), y: Y1 + 14, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, String(t)));
+      }
+      plot!.appendChild(txt({ x: (X0 + X1) / 2, y: Y1 + 30, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'membrane tension T (mN/m)'));
+      plot!.appendChild(txt({ x: X0 - 36, y: 21, 'text-anchor': 'start', 'font-size': 10, fill: INK }, 'I/Imax (normalized current)'));
+      // the published fit, held fixed
+      let d = '';
+      for (let i = 0; i <= 120; i++) {
+        const t = (i / 120) * TMAX;
+        d += (i === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(boltz(t, T50_CLAMP, K)).toFixed(1) + ' ';
+      }
+      plot!.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      plot!.appendChild(txt({ x: X1 - 2, y: py(0.12), 'text-anchor': 'end', 'font-size': 9, fill: INK }, 'curve: pressure-clamp fit,'));
+      plot!.appendChild(txt({ x: X1 - 2, y: py(0.12) + 11, 'text-anchor': 'end', 'font-size': 9, fill: INK }, 'T50 2.7, k 0.8, held fixed'));
+      if (mode === 'clamp') {
+        plot!.appendChild(el('line', { x1: px(T50_CLAMP), y1: py(0.5), x2: px(T50_CLAMP), y2: Y1, stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot!.appendChild(txt({ x: px(T50_CLAMP), y: 8, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: INK }, 'T50 = 2.7'));
+        plot!.appendChild(el('line', { x1: px(T50_CLAMP), y1: 11, x2: px(T50_CLAMP), y2: py(0.5), stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '1 3' }));
+      } else {
+        const t50 = PROTO[mode].t50;
+        plot!.appendChild(el('line', { x1: px(t50), y1: 11, x2: px(t50), y2: Y1, stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot!.appendChild(txt({ x: px(t50), y: 8, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 700, fill: INK }, `T50 = ${t50.toFixed(1)} (other protocol)`));
+      }
+      // the computed tension
+      if (predicted !== null) {
+        plot!.appendChild(el('line', { x1: px(T), y1: py(predicted), x2: px(T), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot!.appendChild(el('circle', { cx: px(T), cy: py(predicted), r: 5, fill: ORANGE }));
+      } else {
+        plot!.appendChild(el('circle', { cx: px(T), cy: Y1, r: 5, fill: '#fff', stroke: ORANGE, 'stroke-width': 2 }));
+      }
+    }
+
+    function render() {
+      const R = parseFloat(rIn!.value);
+      const dp = parseInt(dpIn!.value, 10);
+      let mode = 'clamp';
+      radios.forEach((r) => { if (r.checked) mode = r.value; });
+      const T = (R * dp) / 2000; // (R in µm x 1e-6) x dp / 2, in N/m, x 1000 for mN/m
+      rOut!.textContent = R.toFixed(1);
+      dpOut!.textContent = String(dp);
+      rT!.textContent = T.toFixed(2) + ' mN/m';
+      drawPatch(R, dp, T);
+      const tStr = T.toFixed(2);
+
+      if (mode !== 'clamp') {
+        warn!.hidden = false;
+        rX!.textContent = 'not computed';
+        rE!.textContent = 'not computed';
+        rI!.textContent = 'no prediction';
+        range!.textContent = '';
+        drawPlot(T, mode, null);
+        why!.textContent = `Warning: the T50 of ${PROTO[mode].t50.toFixed(1)} mN/m belongs to the ${PROTO[mode].label}, a separate protocol from the fit drawn here. Putting it into the pressure-clamp fit mixes two protocols and the number means nothing, so no current is predicted. The tension itself, ${tStr} mN/m from the radius and pressure, still follows from T = R × Δp / 2.`;
+        return;
+      }
+
+      warn!.hidden = true;
+      const x = (T50_CLAMP - T) / K;
+      const e = Math.exp(x);
+      const I = 1 / (1 + e);
+      drawPlot(T, 'clamp', I);
+      rX!.textContent = x.toFixed(3);
+      rE!.textContent = e.toFixed(2);
+      rI!.textContent = `${I.toFixed(3)} (about ${Math.round(I * 100)}%)`;
+      // spread if each fitted value moved by its stated ± 0.1
+      const vals: number[] = [];
+      for (const dt of [-0.1, 0.1]) for (const dk of [-0.1, 0.1]) vals.push(boltz(T, T50_CLAMP + dt, K + dk));
+      const lo = Math.min(...vals), hi = Math.max(...vals);
+      range!.textContent = `In this sketch, shifting T50 and k each by their stated ± 0.1 mN/m (a simple shift, not a confidence interval) would move this between about ${Math.round(lo * 100)}% and ${Math.round(hi * 100)}%.`;
+      let rel: string;
+      if (Math.abs(T - T50_CLAMP) < 1e-9) rel = 'The tension equals T50, so the fit gives I/Imax = 0.50.';
+      else if (T < T50_CLAMP) rel = 'The tension sits below T50, so the fit gives less than half.';
+      else rel = 'The tension sits above T50, so the fit gives more than half.';
+      why!.textContent = `In this sketch, R = ${R.toFixed(1)} µm and Δp = ${dp} Pa give T = ${tStr} mN/m. ${rel} With T50 = 2.7 and k = 0.8, (2.7 − ${tStr})/0.8 = ${x.toFixed(3)}, e raised to that is ${e.toFixed(2)}, and I/Imax = ${I.toFixed(3)}, about ${Math.round(I * 100)}% of the fitted plateau: a normalized current, not a fraction of channels or of neurons, for mouse Piezo1 in HEK293t cells at room temperature, cell-attached.`;
+    }
+
+    [rIn, dpIn].forEach((s) => s.addEventListener('input', render));
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .ptb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ptb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ptb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ptb-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin-bottom: var(--ddp-space-2); }
+  .ptb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ptb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ptb-slabel input { accent-color: var(--ddp-color-accent); }
+  .ptb-proto { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-3); padding: var(--ddp-space-2) var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ptb-proto legend { padding: 0 0.3rem; font-weight: 600; }
+  .ptb-proto label { display: block; margin: 0.15rem 0; }
+  .ptb-proto input { accent-color: var(--ddp-color-accent); margin-right: 0.35rem; }
+  .ptb-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--ddp-space-3); align-items: start; }
+  .ptb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ptb-warn { margin: var(--ddp-space-3) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); font-size: var(--ddp-text-xs); line-height: 1.5; color: var(--ddp-color-ink-soft); border: 1px solid #e57200; border-left-width: 4px; border-radius: 6px; background: color-mix(in srgb, #e57200 8%, transparent); }
+  .ptb-warn[hidden] { display: none; }
+  .ptb-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ptb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ptb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ptb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .ptb-range { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-height: 1.4em; }
+  .ptb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .ptb-scope { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ptb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
