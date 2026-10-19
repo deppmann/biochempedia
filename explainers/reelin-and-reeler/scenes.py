@@ -238,7 +238,7 @@ class S03Inverted(SpokenScene):
         self.play(FadeIn(nosplit, shift=UP * 0.2), Indicate(r1, color=RED, scale_factor=1.1), run_time=0.7)
         bar1 = Line([cxr - 2.1, 1.74, 0], [cxr + 2.1, 1.74, 0], color=RED, stroke_width=7)
         bar2 = Line([cxr - 2.1, 0.64, 0], [cxr + 2.1, 0.64, 0], color=RED, stroke_width=7)
-        self.at("stops beneath")
+        self.at("stop beneath")
         self.play(Create(bar1), run_time=0.4)
         self.play(Create(bar2), run_time=0.4)
 

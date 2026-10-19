@@ -205,7 +205,7 @@ class S03Takeover(SpokenScene):
         c2 = chip("winner", TEXT, size=26).move_to([3.4, -3.2, 0])
         ar = Arrow(c1.get_right(), c2.get_left(), buff=0.12, color=GREY, stroke_width=5)
         x = Cross(VGroup(ar), stroke_color=RED, stroke_width=7).scale(0.8)
-        self.at("could not be predicted")
+        self.at("could not be reliably")
         self.play(FadeIn(c1), run_time=0.4)
         self.play(FadeIn(c2), GrowArrow(ar), run_time=0.5)
         self.play(Create(x), run_time=0.5)

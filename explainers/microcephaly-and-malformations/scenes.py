@@ -420,7 +420,7 @@ class S05Place(SpokenScene):
         self.play(Indicate(mts, color=TEAL, scale_factor=1.05), run_time=0.8)
 
         # --- the boy -----------------------------------------------------------------------------
-        self.at("A male has one X")
+        self.at("A male has")
         self.play(FadeOut(VGroup(bigneuron, mts, dcs, lab_dc, lab_mt)), run_time=0.6)
         pan = panel(-2.5, 5.0, "male")
         xbig = T("X", 110, RED, weight=BOLD).move_to([3.7, 1.0, 0])

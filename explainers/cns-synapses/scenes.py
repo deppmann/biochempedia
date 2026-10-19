@@ -279,18 +279,18 @@ class S06Rule(SpokenScene):
     """Function, not formation; many organizers overlap; one in a dish tests only itself; the rule."""
 
     def construct(self):
-        nx = chip("neurexin", BLUE, size=30)
+        nx = chip("alpha-neurexin", BLUE, size=30)
         nl = chip("neuroligin", YELLOW, size=30)
         pair = VGroup(nx, nl).arrange(DOWN, buff=0.35).move_to([-5.0, 0, 0])
         head = T("synapse", 28, GREY).move_to([3.4, 2.5, 0])
         fn = chip("function and maturation", GREEN, size=30).move_to([3.4, 1.4, 0])
-        fm = chip("formation", GREY, size=30).move_to([3.4, -1.4, 0])
+        fm = chip("forming most synapses", GREY, size=30).move_to([3.4, -1.4, 0])
         a1 = arr([-3.6, 0.3, 0], [fn.get_left()[0] - 0.05, 1.4, 0], GREEN)
         a2 = arr([-3.6, -0.3, 0], [fm.get_left()[0] - 0.05, -1.4, 0], GREY)
         self.play(FadeIn(pair, shift=RIGHT * 0.2), run_time=0.7)
         self.at("normal synapse function")
         self.play(FadeIn(head), GrowArrow(a1), FadeIn(fn), run_time=0.9)
-        self.at("not for synapse formation")
+        self.at("not for forming most")
         self.play(GrowArrow(a2), FadeIn(fm), run_time=0.7)
         x = Cross(Square(0.5), stroke_color=RED, stroke_width=7).move_to(a2.point_from_proportion(0.55))
         self.play(Create(x), run_time=0.5)

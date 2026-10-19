@@ -355,7 +355,7 @@ class S04Olig(SpokenScene):
         d1 = DashedVMobject(Circle(radius=0.4, color=GREY, stroke_width=3), num_dashes=14).move_to([0.3, -1.05, 0])
         d2 = DashedVMobject(Circle(radius=0.4, color=GREY, stroke_width=3), num_dashes=14).move_to([4.6, -1.05, 0])
         self.at("no spinal motor neurons")
-        l1 = T("no motor neurons", 26, RED).move_to([0.3, -0.05, 0])
+        l1 = T("almost no motor neurons", 26, RED).move_to([0.3, -0.05, 0])
         self.play(FadeIn(d1), Create(Cross(d1, stroke_color=RED, stroke_width=5)), FadeIn(l1), run_time=0.8)
         self.at("no spinal oligodendrocytes")
         l2 = VGroup(T("no oligodendrocytes", 24, RED)).move_to([4.5, -0.05, 0])
