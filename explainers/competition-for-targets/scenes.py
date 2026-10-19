@@ -216,7 +216,7 @@ class S03Stages(SpokenScene):
         self.at("In simulations with a fixed")
         sch = T("schematic, not data", 24, GOLD).move_to(P(3.9, -3.1))
         self.play(FadeIn(axes), FadeIn(supply), FadeIn(sch), run_time=0.9)
-        self.at("feedback split the neurons")
+        self.at("split the neurons")
         self.play(LaggedStart(*[Create(c, rate_func=linear) for c in curves], lag_ratio=0.0), run_time=1.9, rate_func=linear)
         self.at("winners and losers")
         self.play(*[curves[i].animate.set_stroke(GREEN, width=5) for i in wins],

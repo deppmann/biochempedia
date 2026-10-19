@@ -344,7 +344,7 @@ class S05Gene(SpokenScene):
 
         self.at("sites")
         self.play(*[m.animate.set_opacity(1) for m in (gl.l1, gl.l2, gr.l1, gr.l2)], run_time=0.5)
-        fl = T("floxed: works normally", 28, TEXT).move_to([0, -3.4, 0])
+        fl = T("floxed: designed to work normally", 28, TEXT).move_to([0, -3.4, 0])
         self.at("allele is called")
         self.play(FadeIn(fl, shift=UP * 0.1), run_time=0.5)
 

@@ -277,7 +277,7 @@ class S05Gap(SpokenScene):
         neck = Rectangle(width=0.3, height=0.34, stroke_width=0, fill_color=PURPLE, fill_opacity=0.9).move_to([px, ym, 0])
         pl = T("Plexin-B1", 28, PURPLE).move_to([px - 1.05, ym - 0.7, 0])
         frame_box = DashedVMobject(Rectangle(width=12.4, height=4.1, stroke_color=GREY, stroke_width=2.5), num_dashes=80).move_to([0, 0.35, 0])
-        bs = T("separate example, best-studied case: Plexin-B1", 24, GREY).move_to([0.0, 2.95, 0])
+        bs = T("separate example, first case studied: Plexin-B1", 24, GREY).move_to([0.0, 2.95, 0])
         self.play(FadeIn(frame_box), FadeIn(bs), FadeOut(n), FadeOut(bridge), FadeOut(p.body), FadeOut(p.lab), FadeOut(p.neck),
                   ReplacementTransform(mem, newmem), ReplacementTransform(p.tail, newtail), FadeIn(neck), FadeIn(pl),
                   run_time=1.0)
@@ -294,11 +294,11 @@ class S05Gap(SpokenScene):
         self.play(Create(bar), Create(tee), FadeOut(gtp), rras[0].animate.set_stroke(GREY).set_fill(GREY, 0.16),
                   rras[1].animate.set_color(GREY), run_time=0.8)
         # reset R-Ras so the story reads in order: it is the target
-        self.at("the target is")
-        rras2 = chip("R-Ras", GREY, size=30).move_to(rras)
+        self.at("reported target")
+        rras2 = chip("R-Ras / Rap", GREY, size=30).move_to(rras)
         self.play(FadeTransform(rras, rras2), run_time=0.5)
         rras = rras2
-        self.at("helps hold")
+        self.at("help hold")
         adh = chip("integrin adhesion", ORANGE, size=30).move_to([4.1, -0.2, 0])
         link = Arrow(rras.get_right() + RIGHT * 0.05, adh.get_left() + LEFT * 0.05, buff=0.05, color=GREY, stroke_width=5)
         self.play(GrowArrow(link), FadeIn(adh, shift=LEFT * 0.2), run_time=0.7)

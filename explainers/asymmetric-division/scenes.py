@@ -230,7 +230,7 @@ class S05Tests(SpokenScene):
         self.play(GrowArrow(aD), bl.animate.set_stroke(TEAL).set_fill(TEAL, 0.55), run_time=0.7)
         self.at("take the outer fate")
         self.play(fate(L, ORANGE), fate(R, ORANGE), run_time=0.7)
-        self.at("hair and socket cells")
+        self.at("outer support cells")
         ca, cb = fate_chip("out", -DX), fate_chip("out", DX)
         self.play(FadeIn(ca, shift=UP * 0.1), FadeIn(cb, shift=UP * 0.1), run_time=0.5)
         self.at("give Numb to both")

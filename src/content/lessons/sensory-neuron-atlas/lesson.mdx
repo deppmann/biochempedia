@@ -332,11 +332,10 @@ corpusTags:
   - "nerve-injury"
   - "cross-species-comparison"
   - "spatial-transcriptomics"
-draft: false
+draft: true
 ---
 
 import DriverLineSpecificity from '../../../components/DriverLineSpecificity.astro';
-import LessonFigure from '../../../components/LessonFigure.astro';
 
 **One mouse data set split the sensory neurons of the dorsal root ganglion into eleven kinds. A larger one, three years later, found seventeen. A 2024 merger of 31 data sets from six species settled on eighteen.** None of the three counts is wrong, and none is final. This lesson asks what an atlas count measures, and what more it takes before a cluster of transcriptomes deserves to be called a cell type.
 
@@ -358,8 +357,6 @@ Keep the fibre labels apart from the clusters. Among low-threshold mechanorecept
 
 A cluster becomes a functional type only when something other than its RNA ties it to a job. The usual route is genetic access. A **Cre driver** expresses Cre recombinase from a marker gene's locus, so a reporter marks cells that expressed the marker at some time; **CreER** is switched on by tamoxifen, so the experimenter chooses the window ([tools for development](/lessons/tools-for-development/) covers the genetics). An **intersectional** strategy requires two recombinases, Cre and Flp, so that only cells that expressed both markers are labelled.
 
-<LessonFigure src="/figures/sensory-neuron-atlas/intersectional-both-markers.webp" width={1200} height={563} alt="AI-generated illustration: three panels, each a three-by-three grid of round cells. In the first some cells are coloured slate for the Cre marker, in the second some are sage for the Flp marker, and in the third only the two cells that are in both are gold. A plus and an equals sign link the panels." caption="An intersectional strategy needs both Cre and Flp, so only cells that expressed both markers are labelled. The grid is a made-up illustration of the logic, not data." />
-
 Every line has two separate quality numbers.
 
 > **specificity = labelled and marker-positive cells / all labelled cells**
@@ -370,8 +367,6 @@ In a made-up validation, a line labels 200 neurons, 180 of which express the mar
 <DriverLineSpecificity />
 
 Timing is part of the definition. With TrkC-CreER intersected with a Ret reporter (Ret-f(CFP)), Bai and colleagues (2015) found that 3 mg tamoxifen at E12.5 labelled Merkel-associated Aβ SA1 endings, while 0.1 mg at P5 favoured Aβ field-LTMR circumferential endings. Age and dose both differed, so this is not an age-only comparison, but the same driver gave two populations. A CreER label records expression history, not a fixed identity.
-
-<LessonFigure src="/figures/sensory-neuron-atlas/creer-timing-two-populations.webp" width={1200} height={800} alt="AI-generated illustration: two stacked panels under the header TrkC-CreER with a Ret reporter. Top, tamoxifen given at E12.5 at 3 mg labels a gold Merkel cell-neurite complex in the epidermis. Bottom, tamoxifen given at P5 at 0.1 mg labels gold circumferential endings wrapped around a hair follicle." caption="The same TrkC-CreER driver, given 3 mg of tamoxifen at E12.5 or 0.1 mg at P5, labelled different Aβ endings: Merkel-associated SA1 endings in the first case, field-LTMR circumferential endings in the second. Age and dose both differed. A CreER label records expression history, not a fixed identity." />
 
 The mouse DRG toolkit of Qi, Iskols, Sharma, Ginty and colleagues (2024) gathered such lines for the main subtypes: Th2A-CreER for C-LTMRs, TrkB-CreER for Aδ-LTMRs, Ret-CreER for Aβ rapidly adapting LTMRs, and new knock-ins such as Trpm8-T2a-FlpO. An intersection of Smr2-Cre with Calca-FlpE restricted labelling to an SMR2- and CGRP-positive population with free endings. The team then imaged calcium in the L4 DRG of anaesthetized young mice while indenting the skin with forces from 1 to 75 mN, heating it or cooling it. The authors reported that several genetically defined groups were not uniform: within a named subtype, members varied in mechanical and thermal tuning. A type, on this evidence, can contain graded physiology.
 
@@ -384,8 +379,6 @@ DRG neurons arise from the neural crest ([the neural crest](/lessons/neural-cres
 Does the target help cut? NGF from targets keeps TrkA-expressing neurons alive ([Trk and p75](/lessons/trk-and-p75/)). An Ngf knockout alone would therefore lose cells, and any change in the survivors could be selection rather than altered identity. Deleting Bax, which the neurons need to die by apoptosis, removes that confound. At P0, Ngf-null;Bax-null DRGs had fewer transcriptionally distinct populations than Bax-null controls. NGF contributes to subtype specialization; the experiment does not show that NGF alone sets every fate, and it is a mouse developmental result.
 
 Identity can also be taken apart. Renthal and colleagues (2020) injured peripheral nerves in mice, mostly males aged 8 to 12 weeks, and sequenced single DRG nuclei. Injury suppressed the expression that marks each subtype. Over a time course associated with axons regrowing to their targets, identity re-emerged, and Atf3 was required for the full injury reprogramming. "Associated with" is the right verb: the timing fits reinnervation, but timing alone does not prove that reinnervation restores identity, and an apparent recovery could also come from which neurons survived or were sampled. Lineage tracing of injured neurons is what separates those readings, and the study used reporters for this: the share of neurons labelled by an Atf3 injury reporter was unchanged from one week to two months, which argues against selective death, and Mrgprd reporter tracing fit retained identity.
-
-<LessonFigure src="/figures/sensory-neuron-atlas/injury-state-not-type.webp" width={1200} height={484} alt="AI-generated illustration: a three-step strip of one sensory neuron. Uninjured, with three subtype marker badges and a continuous axon to the skin. Injured, with the axon cut, the badges faded and a gold Atf3 badge. Axon regrows, with the badges restored and a dashed arrow with a question mark linking regrowth and recovery." caption="After peripheral nerve injury in mice, the expression that marks each subtype was suppressed and an Atf3 injury state appeared; over a time course associated with axons regrowing, identity re-emerged. The timing fits reinnervation but does not by itself prove it, and an Atf3-rich cluster is a state existing neurons can leave, not a new type." />
 
 The lesson for atlases is direct. Tissue from an injured, inflamed or diseased ganglion will contain states. An Atf3-rich cluster is a condition that existing neurons enter and can leave, not a new permanent type, a point that matters for [chronic pain](/lessons/chronic-pain/).
 
