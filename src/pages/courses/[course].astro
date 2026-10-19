@@ -21,7 +21,7 @@ const { course, lessons } = Astro.props;
 const units = unitsFor(course, lessons);
 const drafts = lessons.filter((l) => l.data.draft).length;
 const first = units[0]?.entries[0]?.l;
-const tierLabel = course.tier === 'core' ? 'core course' : 'elective';
+const tierLabel = { foundation: 'foundation course', core: 'core course', elective: 'elective', advanced: 'advanced elective' }[course.tier];
 ---
 
 <BaseLayout title={`${course.title} — Biochemistrypedia`} description={course.blurb}>
