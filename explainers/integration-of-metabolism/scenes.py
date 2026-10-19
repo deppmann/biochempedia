@@ -428,7 +428,7 @@ ROW = 0.15   # vertical position of the main row in S04 / S05
 
 
 class S04BrainProblem(SpokenScene):
-    """Brain needs 120 g glucose; fatty acids bound to albumin are kept out; so muscle protein pays."""
+    """Brain needs 120 g glucose; fatty acids reach it but are barely burned; so muscle protein pays."""
 
     def construct(self):
         strip = make_strip(active=(3,))
@@ -436,8 +436,8 @@ class S04BrainProblem(SpokenScene):
         brain = brain_chip(ROW)
         line = Arrow([-5.9, ROW, 0], [WALL_X - 0.15, ROW, 0], color=GREY, stroke_width=3, buff=0, tip_length=0.18)
         blood = T("blood", 24, GREY).move_to([-5.2, ROW + 0.45, 0])
-        wl = wall(ROW - 0.5, ROW + 0.5)
-        wl_lab = T("barrier", 22, GREY).move_to([WALL_X, ROW - 0.75, 0])
+        wl = wall(ROW - 1.9, ROW + 0.5)
+        wl_lab = T("blood-brain barrier", 22, GREY).move_to([WALL_X - 1.4, ROW - 2.05, 0])
 
         self.play(FadeIn(strip), run_time=0.6)
         self.at("the brain")
@@ -457,24 +457,20 @@ class S04BrainProblem(SpokenScene):
                   run_time=2.6)
         self.play(*[FadeOut(d, scale=0.4) for d in dots], run_time=0.2)
 
-        # fatty acids + albumin
+        # fatty acids reach the brain, but brain mitochondria barely burn them
         self.at("long chain fatty acids")
         ffa = solid(chip("fatty acid", TEAL_FA, size=24)).move_to([-5.0, ROW, 0])
         self.play(FadeIn(ffa, shift=RIGHT * 0.2), run_time=0.4)
-        self.play(ffa.animate.move_to([-1.8, ROW, 0]), run_time=1.5, rate_func=linear)
-        self.at("bound to albumin")
-        alb = solid(chip("albumin", GREY, size=22)).next_to(ffa, UP, buff=0.08)
-        self.play(FadeIn(alb, shift=DOWN * 0.1), run_time=0.4)
-        self.play(ffa.animate.shift(RIGHT * 3.5), alb.animate.shift(RIGHT * 3.5), run_time=1.2, rate_func=linear)
-        self.at("largely kept out")
-        x = xmark([WALL_X, ROW, 0], 0.22)
-        keep = T("kept out", 26, RED).move_to([2.0, ROW - 0.85, 0])
-        self.play(Create(x), FadeIn(keep), ffa.animate.shift(LEFT * 1.4), alb.animate.shift(LEFT * 1.4),
-                  run_time=0.8)
+        self.play(ffa.animate.move_to([1.7, ROW, 0]), run_time=1.5, rate_func=linear)
+        self.at("do reach brain")
+        self.play(ffa.animate.move_to([BRAIN_X, ROW - 1.35, 0]), run_time=1.2, rate_func=smooth)
+        self.at("little capacity")
+        keep = T("barely burned", 26, RED).move_to([BRAIN_X, ROW - 2.05, 0])
+        self.play(FadeIn(keep), ffa.animate.set_opacity(0.4), run_time=0.8)
 
         # glucose-only option: the muscle pays
         self.at("If glucose were the only option")
-        self.play(*[FadeOut(m) for m in (line, blood, wl, wl_lab, x, keep, ffa, alb)], run_time=0.8)
+        self.play(*[FadeOut(m) for m in (line, blood, wl, wl_lab, keep, ffa)], run_time=0.8)
         self.at("the body would make")
         liver_box = RoundedRectangle(corner_radius=0.16, width=2.9, height=1.3, stroke_color=PINK, stroke_width=3.5,
                                      fill_color=PINK, fill_opacity=0.14)

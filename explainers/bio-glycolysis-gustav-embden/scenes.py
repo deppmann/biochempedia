@@ -8,7 +8,7 @@ readable size.
 
 COLOR MAP (one color per concept, whole video)
   GOLD   = Embden: his name/dates, his standard, his scheme, "the first correct map"
-  YELLOW = years (twenty years, 1932, 1933)
+  YELLOW = years (twenty years, early 1933, 1933)
   RED    = the consensus and what stood in the way: methylglyoxal theory, Neuberg and his grip,
            "contamination", the blocked route, the Nazis' harm
   BLUE   = what Embden found: the three-carbon molecule, phosphoglyceric acid, pyruvic acid
@@ -162,7 +162,7 @@ class S01Methylglyoxal(ProfileScene):
         self.at("an enforcer")
         self.play(pop(enf), run_time=0.45)
         neu = lab("Carl Neuberg", RED, 30).move_to([-0.5, -1.75, 0])
-        self.at("Neuberg defended")
+        self.at("Neuburg defended")
         self.play(ReplacementTransform(enf, neu), run_time=0.5)
         a2 = arrow([-0.5, -1.15, 0], [-0.5, -0.55, 0], RED, 4, 0.4)
         defended = T("defended it", 26, RED).next_to(a2, RIGHT, buff=0.15)
@@ -258,8 +258,8 @@ class S02Frankfurt(ProfileScene):
 class S03Map(ProfileScene):
     def construct(self):
         self.add_inset()
-        yr = M("1932", 48, YELLOW).move_to([PANEL_C, 2.8, 0])
-        self.at("In 1932")
+        yr = M("early 1933", 48, YELLOW).move_to([PANEL_C, 2.8, 0])
+        self.at("In early")
         self.play(Write(yr), run_time=0.6)
 
         concl = T("his conclusion", 26, GOLD).move_to([PANEL_C, 2.0, 0])
@@ -392,7 +392,7 @@ class S04Legacy(ProfileScene):
         self.play(FadeIn(n1, shift=UP * 0.1), Create(ul), run_time=0.5)
         self.at("Meyerhof")
         self.play(FadeIn(VGroup(d1, n2), shift=UP * 0.1), run_time=0.4)
-        self.at("Parnas")
+        self.at("Parnass")
         self.play(FadeIn(VGroup(d2, n3), shift=UP * 0.1), run_time=0.4)
         self.finish()
 

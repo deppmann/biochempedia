@@ -163,7 +163,7 @@ class S01Switch(SpokenScene):
         pb = pbadge().move_to(prot.get_corner(UR) + [0.05, 0.05, 0])
         phos = bchip("phosphatase", RED, 26).move_to([-3.4, -2.2, 0])
         lbl_l = T("remove phosphates", 24, GREY).move_to([-3.4, -3.2, 0])
-        self.at("through phosphatuses")
+        self.at("through phosphatases")
         self.play(FadeIn(prot), FadeIn(pb), FadeIn(phos, shift=UP * 0.2), run_time=0.7)
         self.at("remove phosphates")
         self.play(phos.animate.move_to([-3.4, -1.35, 0]), run_time=0.4)
@@ -237,7 +237,7 @@ class S02Five(SpokenScene):
     """the five-part pipeline across the membrane, plus the sixth: active termination."""
 
     def construct(self):
-        head = T("The same logic in every pathway", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
+        head = T("The same logic in membrane-receptor pathways", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
         self.play(Write(head), run_time=1.4)
         mem = membrane_h(0.55)
         out_lbl = T("outside the cell", 24, GREY).move_to([4.7, 1.3, 0])
@@ -321,11 +321,11 @@ class S03First(SpokenScene):
         row = VGroup(*[chip(n, YELLOW, 28) for n in names]).arrange(RIGHT, buff=0.3).move_to([0, 2.2, 0])
         self.at("First messengers are")
         self.play(FadeOut(q), FadeIn(label, shift=DOWN * 0.15), run_time=0.6)
-        self.at("the extracellular signals")
+        self.at("are the extracellular")
         sub = T("the extracellular signals", 26, GREY)
         sub.next_to(label, RIGHT, buff=0.25)
         self.play(FadeIn(sub), run_time=0.5)
-        self.at("hormones")
+        self.at("signals—hormones")
         self.play(FadeIn(row[0], shift=DOWN * 0.15), run_time=0.4)
         self.at("neurotransmitters")
         self.play(FadeIn(row[1], shift=DOWN * 0.15), run_time=0.4)

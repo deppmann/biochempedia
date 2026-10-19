@@ -9,7 +9,7 @@ COLOR MAP (one color per concept, whole video)
   GOLD   = Rose himself: name, dates, portrait frame, the line he drew
   TEAL   = the amino acids (tiles in the alphabet grid, the diet, the mixture)
   GREEN  = threonine, the one that was found
-  RED    = what was missing or went wrong: the empty slot, wasting, the sulfurous taste, what broke a human
+  RED    = what was missing or went wrong: the empty slot, wasting, what broke a human
   YELLOW = years and "decades later" (1935; histidine added later)
   PLACE (lavender) = places and institutions: the Illinois lab, the fractionation works
   CREAM  = casein / milk protein
@@ -366,31 +366,26 @@ class S03Students(ProfileScene):
         people = VGroup(*[person(TEXT) for _ in range(4)]).arrange(RIGHT, buff=0.35).move_to([3.5, 1.3, 0])
         self.play(LaggedStart(*[pop(p) for p in people], lag_ratio=0.2), run_time=0.9)
 
-        # masking the taste
-        self.at("masking", lead=0.1)
-        mixc = lab("amino acid mixture", TEAL, 28).move_to([1.0, -0.3, 0])
-        self.play(pop(mixc), run_time=0.5)
-        self.at("sulphurous", lead=0.1)
-        sulf = T("sulfurous taste", 28, RED).move_to([1.0, 0.55, 0])
-        waves = VGroup(*[Arc(radius=0.2, start_angle=PI / 2, angle=-PI, color=RED, stroke_width=3)
-                         .move_to([mixc.get_center()[0] - 1.0 + 0.5 * i, 0.55, 0]).rotate(PI / 2) for i in range(5)])
-        self.play(FadeIn(sulf, shift=UP * 0.1), run_time=0.5)
+        # the diet: purified amino acids, one peppermint candy
+        self.at("bland diet", lead=0.1)
+        mixc = lab("purified amino acids", TEAL, 28).move_to([1.0, -0.3, 0])
+        bland = T("a bland diet", 28, GREY).move_to([1.0, 0.55, 0])
+        self.play(FadeIn(bland, shift=UP * 0.1), pop(mixc), run_time=0.5)
         self.at("peppermint", lead=0.15)
         candy = VGroup(Circle(radius=0.42, stroke_color=PINK, stroke_width=4, fill_color=mix(PINK, 0.5), fill_opacity=1))
         stripes = VGroup(*[Line([-hw, d - 0.12, 0], [hw, d + 0.12, 0], color=TEXT, stroke_width=4)
                            for d, hw in ((-0.2, 0.24), (0.0, 0.34), (0.2, 0.24))])
         stripes.set_opacity(0.7)
-        candy_g = VGroup(candy[0], stripes).move_to([4.6, -1.5, 0])
-        cl = T("peppermint candy", 28, PINK).next_to(candy_g, DOWN, buff=0.15)
+        candy_g = VGroup(candy[0], stripes).move_to([4.6, -0.3, 0])
+        cl = VGroup(T("peppermint", 26, PINK), T("liver-extract candy", 26, PINK)).arrange(DOWN, buff=0.08)
+        cl.next_to(candy_g, DOWN, buff=0.15)
         self.play(FadeIn(candy_g, scale=0.6), FadeIn(cl, shift=UP * 0.1), run_time=0.6)
         self.at("candy", lead=0.15)
-        masked = T("masked", 28, PINK).move_to([mixc.get_right()[0] + 0.55, -1.15, 0])
-        self.play(candy_g.animate.move_to([mixc.get_right()[0] + 0.55, -0.3, 0]), FadeOut(cl), FadeIn(masked),
-                  sulf.animate.set_opacity(0.3), run_time=0.6)
+        self.play(Indicate(candy_g, color=PINK, scale_factor=1.1), run_time=0.6)
 
         # pulling out one at a time
         self.at("pulling", lead=0.2)
-        self.play(FadeOut(VGroup(mixc, sulf, candy_g, masked)), run_time=0.4)
+        self.play(FadeOut(VGroup(mixc, bland, candy_g, cl)), run_time=0.4)
         pos = grid_pos([PANEL_C, -0.45], 0.62)
         tiles = [tile(TEAL, 0.5).move_to(p) for p in pos]
         self.play(LaggedStart(*[FadeIn(t, scale=0.6) for t in tiles], lag_ratio=0.02), run_time=0.5)

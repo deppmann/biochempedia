@@ -12,7 +12,7 @@ COLOR MAP (one color per concept, whole video)
   TEAL   = places and institutions (Prague, United States, Buffalo, Washington University)
   RED    = obstacles and harm (the director's order, the salary gap, nepotism rules, broken enzyme, disease)
   BLUE   = enzymes (phosphorylase, debranching enzyme, the missing enzyme)
-  GREEN  = glucose and glycogen ("free glucose", wrong-shaped glycogen)
+  GREEN  = glucose and glycogen ("free glucose", glycogen storage disease)
   AMBER  = the discarded supernatant fraction
   GREY   = structure, labels, Carl's salary bar
 """
@@ -278,7 +278,10 @@ class S03Discovery(BioScene):
                      stroke_width=3, max_tip_length_to_length_ratio=0.3)
         self.play(FadeIn(lab_ph), GrowArrow(ptr2), Indicate(pellet, color=BLUE, scale_factor=1.05), run_time=0.9)
 
-        self.at("They found the debranching")
+        larner = T("Gerty and Joseph Larner", 24, GOLD).move_to([3.7, -0.45, 0])
+        self.at("Joseph Larner")
+        self.play(FadeIn(larner, shift=UP * 0.1), run_time=0.4)
+        self.at("found the de")
         deb = self.chip_at("debranching enzyme", BLUE, 3.7, 0.15, 30)
         a3 = Arrow([tx + tw / 2 + 0.15, 0.15, 0], deb.get_left() + LEFT * 0.08, buff=0, color=GOLD, stroke_width=5,
                    max_tip_length_to_length_ratio=0.3)
@@ -287,7 +290,7 @@ class S03Discovery(BioScene):
 
         # --- the chromatography spot
         self.at("and Gertie understood", lead=0.5)
-        self.play(FadeOut(Group(tube, pellet, sup, sup_lbl, ptr1, lab_ph, ptr2, deb, a3)), *self.focus("right"), run_time=0.35)
+        self.play(FadeOut(Group(tube, pellet, sup, sup_lbl, ptr1, lab_ph, ptr2, deb, a3, larner)), *self.focus("right"), run_time=0.35)
         strip = Rectangle(width=1.3, height=3.0, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12)
         strip.move_to([-0.8, 1.0, 0])
         spot = Circle(radius=0.2, color=GREEN, stroke_width=0, fill_color=GREEN, fill_opacity=0.9).move_to([-0.8, 0.45, 0])
@@ -321,8 +324,8 @@ class S03Discovery(BioScene):
 class S04Disease(BioScene):
     def construct(self):
         self.add_column("right")
-        self.at("matching the wrong")
-        gly = self.chip_at("wrong-shaped glycogen", GREEN, CX, 2.8, 28)
+        self.at("matching the glycogen")
+        gly = self.chip_at("glycogen storage disease", GREEN, CX, 2.8, 28)
         self.play(FadeIn(gly, shift=DOWN * 0.1), run_time=0.6)
         self.at("in sick children")
         kids = T("in sick children", 26, GREY).move_to([CX, 2.05, 0])
@@ -367,7 +370,7 @@ class S05Nobel(BioScene):
         yr = M("1947", 60, YELLOW).move_to([CX + 1.2, 2.55, 0])
         self.play(Write(yr), run_time=0.6)
 
-        self.at("Carl said")
+        self.at("Carle said")
         said = T("Carl, at the banquet", 28, GREY).move_to([CX, 1.3, 0])
         self.play(FadeIn(said, shift=UP * 0.1), *self.focus("left"), run_time=0.5)
         self.at("including his wife")
