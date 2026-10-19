@@ -371,8 +371,8 @@ class S05Dated(SpokenScene):
         self.at("Dated genomes should")
         self.play(Indicate(ust_b, color=ORANGE, scale_factor=1.06), run_time=0.9)
 
-        self.at("no such change")
-        note = chip("old structure: no such change with age", PURPLE, size=28).move_to([0, 0.1, 0])
+        self.at("a slight change")
+        note = chip("old structure: only a slight change with age", PURPLE, size=28).move_to([0, 0.1, 0])
         self.play(FadeIn(note, shift=UP * 0.1), run_time=0.7)
 
         self.at("From the lengths")
