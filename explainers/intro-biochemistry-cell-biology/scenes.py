@@ -81,9 +81,9 @@ class S01Floorplans(Scn):
         self.at(0.06)
         self.play(FadeIn(dots), FadeIn(big), FadeIn(l1, shift=UP * 0.1), run_time=self.beat(0.05))
 
-        # 0.17  no internal membranes, no true nucleus
+        # 0.17  few or no internal membranes, no true nucleus
         self.at(0.17)
-        l2 = T("no internal membranes, no true nucleus", 24, color=GREY).move_to([cxL, -2.1, 0])
+        l2 = T("few or no internal membranes,\nno true nucleus", 24, color=GREY, line_spacing=0.8).move_to([cxL, -2.1, 0])
         self.play(FadeIn(l2), run_time=self.beat(0.05))
 
         # 0.33  eukaryote: a building of walled offices

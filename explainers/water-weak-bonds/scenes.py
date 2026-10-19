@@ -335,7 +335,7 @@ class S02Entropy(Base):
                   run_time=1.2)
         self.add(bar)
         self.play(FadeIn(axis), FadeIn(blab), FadeIn(head), run_time=0.8)
-        self.cue("freeze into ordered cages")
+        self.cue("pushed into more ordered")
         for c in cage:
             unjiggle(c)
         self.play(LaggedStart(*[c.animate.move_to(rp).rotate(((ang - c.ang + PI / 2) % PI) - PI / 2)
@@ -693,8 +693,11 @@ class S04Membranes(Base):
         self.play(FadeIn(win), FadeIn(wout), FadeIn(bl, shift=LEFT * 0.1), run_time=0.4)
 
         # G: water does it
-        self.cue("No enzyme", lead=0.1)
-        enz = chip("enzyme", GREY, 30).move_to(np.array([-4.9, 2.6, 0]))
+        self.cue("Enzymes make", lead=0.1)
+        mk = T("enzymes make the lipids", 24, GREY).move_to(np.array([-4.4, 3.3, 0]))
+        self.play(FadeIn(mk, shift=DOWN * 0.1), run_time=0.4)
+        self.cue("no enzyme zips", lead=0.1)
+        enz = chip("enzyme zipper", GREY, 30).move_to(np.array([-4.6, 2.6, 0]))
         x1 = Line(enz.get_left() + LEFT * 0.1, enz.get_right() + RIGHT * 0.1, color=TEXT, stroke_width=5)
         self.play(FadeIn(enz), run_time=0.4)
         self.play(Create(x1), run_time=0.4)

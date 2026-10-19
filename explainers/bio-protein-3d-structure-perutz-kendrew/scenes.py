@@ -10,7 +10,7 @@ narration is about.
 COLOR MAP (one color per concept, whole video)
   GOLD    = time: dates, the 22 years, the Nobel, the portrait frame, "the sausage model"
   BLUE    = hemoglobin (Perutz's one molecule)
-  PURPLE  = myoglobin (Kendrew's first run)
+  PURPLE  = myoglobin (Kendrew's first 3D structure)
   YELLOW  = method and tools: crystals, mercury and silver, the sheets of clear plastic
   TEAL    = the electron density: contours, the rod that rose out of the sheets, missing information
   RED     = what went wrong or was unexpected: no computer screen, no symmetry, surprise, "a mess"
@@ -316,9 +316,9 @@ class S02Trick(ProfileScene):
         self.at("missing information")
         self.play(FadeIn(miss, shift=UP * 0.1), run_time=0.5)
 
-        # Kendrew ran it first, on myoglobin
-        ran = T("Kendrew ran it first", 30, TEXT).move_to([-0.3, -3.0, 0])
-        self.at("Kendrew ran it")
+        # Kendrew carried it into three dimensions first, on myoglobin
+        ran = T("Kendrew: first in 3D", 30, TEXT).move_to([-0.3, -3.0, 0])
+        self.at("Kendrew carried it")
         self.play(*self.focus("right"), FadeIn(ran, shift=UP * 0.1), run_time=0.5)
         myo = lab("myoglobin", PURPLE, 30).move_to([3.9, -3.0, 0])
         arrow = Arrow(ran.get_right() + RIGHT * 0.12, myo.get_left() + LEFT * 0.12, color=PURPLE, stroke_width=4,
