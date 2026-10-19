@@ -9,7 +9,7 @@ COLOR MAP (one color per concept, whole video)
   ORANGE = the response (mating)
   GREEN  = switched on / activated link
   GOLD   = a phosphate (the round "P" badge)
-  RED    = ruled out (no phosphate, no mating, "nowhere near")
+  RED    = ruled out (no phosphate, no mating, "steered away")
   GREY   = other cascades, proteins that are not named kinases of the story, labels
 
 No molecular structures: kinases are labelled pills, the scaffold is a bar, a region of the scaffold is a
@@ -314,8 +314,8 @@ class S04Buys(SpokenScene):
                   run_time=0.8)
 
         dry = ghost_chip("drying-out kinase", 24).move_to([4.8, yd2, 0])
-        gap = dimline(0.9, dry.get_left()[0] - 0.15, yd2, "nowhere near")
-        self.at("nowhere near")
+        gap = dimline(0.9, dry.get_left()[0] - 0.15, yd2, "steered away")
+        self.at("steered away")
         self.play(Create(gap[0]), FadeIn(gap[1]), FadeIn(gap[2], shift=DOWN * 0.1), FadeIn(dry, shift=LEFT * 0.15),
                   run_time=0.9)
 

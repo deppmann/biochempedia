@@ -196,7 +196,7 @@ class S03Fates(Film):
         spare = bchip("spare copy", BLUE, 32).move_to([3.2, 0.5, 0])
         self.play(FadeIn(orig), FadeIn(spare), run_time=0.5)
         head = T("three fates", 34, TEXT, weight=BOLD).move_to([0, 2.7, 0])
-        self.at("three possible fates")
+        self.at("three main fates")
         self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.5)
         h1 = T("Fate 1: loss", 34, RED, weight=BOLD).move_to([0, 2.7, 0])
         self.at("the common one")

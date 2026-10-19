@@ -114,7 +114,7 @@ class S01Sieve(SpokenScene):
         ch = channel()
         o, i, sc = sides()
         self.play(FadeIn(ch), FadeIn(o), FadeIn(i), FadeIn(sc), run_time=1.0)
-        self.at("hundred million")
+        self.at("million potassium")
         kchip = chip("K+  up to about 100 million a second", TEAL, size=24).move_to([2.7, 2.4, 0])
         ks = [kion(CX + dx, 3.1) for dx in (0, 0, 0, 0, 0, 0)]
         runs = [Succession(FadeIn(k, run_time=0.15), k.animate(run_time=1.5, rate_func=linear).move_to([CX, -3.2, 0]),
@@ -226,7 +226,7 @@ class S04Sodium(SpokenScene):
         c2 = chip("gaps: it cannot touch every oxygen", RED, size=22).move_to([1.8, 1.3, 0])
         self.play(*[Create(g) for g in gl], FadeIn(c2, shift=LEFT * 0.2), run_time=0.9)
         self.at("held too stiffly")
-        c3 = chip("filter held stiff, does not close in", PURPLE, size=22).move_to([1.8, 0.2, 0])
+        c3 = chip("1998 account: filter held stiff", PURPLE, size=22).move_to([1.8, 0.2, 0])
         self.play(FadeIn(c3, shift=LEFT * 0.2), run_time=0.8)
         self.at("leaving water costs")
         na = naion(CX, 2.9)
