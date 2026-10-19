@@ -252,7 +252,7 @@ mcatQuestions:
       classes. Complete linkage in both sexes is ruled out by the 18% recombinants from females.
       Loci on different chromosomes would assort independently in males and give four equal
       classes, not two.
-  - stem: "Three separate two-point test crosses in one species give these recombination frequencies: A to B, 12%; B to C, 15%; A to C, 24%. B lies between A and C. Assume that A to C falls short of 12% + 15% because a crossover in each interval restores the parental A and C combination, and that each such double crossover is missed once in the A to C count but appears in both interval counts. What percentage of gametes carried a double crossover?"
+  - stem: "Three separate two-point test crosses in one species give these recombination frequencies: A to B, 12%; B to C, 15%; A to C, 24%. B lies between A and C. Assume that A to C falls short of 12% + 15% because a crossover in each interval restores the parental A and C combination, and that each such double crossover is absent from the A to C count but counted once in each interval count. What percentage of gametes carried a double crossover?"
     choices:
       - "3.0% of the gametes"
       - "27% of the gametes"
@@ -382,7 +382,7 @@ draft: false
 import RecombinationDistanceSampler from '../../../components/RecombinationDistanceSampler.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Test-cross 1,000 fruit flies that carry two mutations, and Mendel's law of independent assortment predicts that 500 will show one grandparent's combination of traits or the other's. You count 830.**
+**Test-cross fruit flies that carry two mutations and score 1,000 offspring. Mendel's law of independent assortment predicts that 500 will show one grandparent's combination of traits or the other's. You count 830.**
 
 Something is holding those alleles together. The independent assortment of [Mendel's peas](/lessons/mendels-peas/), and the free multiplying of [probability and crosses](/lessons/probability-and-crosses/), work for genes on different chromosomes. For genes on one chromosome they fail, and the way they fail lets you measure where the genes are.
 
@@ -405,7 +405,7 @@ An early clear case came from sweet peas. In 1905 William Bateson, Edith Saunder
 
 Morgan's argument rested on meiosis. In prophase I each chromosome has already copied itself into two **sister chromatids**, and the two partner chromosomes (**homologues**) pair, so four chromatids lie side by side (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). **Crossing over** is the reciprocal exchange of matching segments between **non-sister** chromatids, one from each homologue. Where it has happened the chromatids stay crossed, and the cross-shaped contact is a **chiasma**. Morgan drew on F. A. Janssens, who in 1909 had proposed from such figures that partner chromosomes exchange parts.
 
-Picture two ribbons laid together, one red and one white, cut at the same place and swapped. A spot near the cut ends up on a new background; a spot far from it keeps its old one. Two loci are separated only when a crossover falls between them, so the farther apart they lie, the more often they are separated.
+Picture two ribbons laid together, one red and one white, cut at the same place and swapped. Everything on one side of the cut now sits on the other color; everything on the other side keeps its own. Two loci are separated only when a crossover falls between them, so the farther apart they lie, the more often they are separated.
 
 Follow one crossover between A and B in an A B / a b cell. Of the four chromatids, the two that did not take part stay A B and a b. The two that did become A b and a B. One crossover gives two parental and two recombinant products. Because the exchange is reciprocal, the two recombinant classes should be about equal in a test cross, as should the two parental classes. That is a check on your data: a large difference within a pair suggests that one genotype survives less well.
 
@@ -464,13 +464,13 @@ You isolate a new recessive mutation in Drosophila, dumpy-like (dl), and suspect
 <details>
 <summary>One way to do it</summary>
 
-**Build a heterozygote in known phase.** Cross dl/dl flies to m/m flies. Every F1 fly is dl + / + m, in repulsion, and you know the phase because you made it.
+**Build a heterozygote in known phase.** Cross dl/dl flies to m/m flies. Every F1 fly is dl + / + m (+ is the wild-type allele), in repulsion, and you know the phase because you made it.
 
 **Use females.** Drosophila males make no crossover gametes, so an F1 male would give only parental classes whatever the distance. Test-cross F1 females to dl m / dl m males. If no double-mutant stock exists yet, you first recover a dl m recombinant chromosome from the progeny of F1 females.
 
 **Score enough flies.** Several hundred progeny at least, more if the loci may be close, since a short interval yields few recombinants. Score all four classes.
 
-**Test linkage without being fooled by survival.** Check each locus alone for 1:1 (dl versus +, m versus +). A deficit of dumpy-like flies, for instance, would distort the four classes even if the loci were unlinked. Then test the association between the loci in the 2 x 2 table of counts, a chi-square with one degree of freedom, which is not inflated by unequal survival at one locus.
+**Test linkage without being fooled by survival.** Check each locus alone for 1:1 (dl versus +, m versus +). A deficit of dumpy-like flies, for instance, would distort the four classes even if the loci were unlinked. Then arrange the four classes in a 2 x 2 table (dl versus + against m versus +) and test the association between the loci with a one-degree-of-freedom chi-square, which is not inflated by unequal survival at one locus.
 
 **Calculate.** Here the recombinants are wild type and dl m. RF = (wild type + dl m) / total, and the distance in cM is 100 x RF, corrected with a mapping function if RF is large.
 
