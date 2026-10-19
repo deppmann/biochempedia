@@ -1,0 +1,157 @@
+---
+/**
+ * MachBandEdgeRow — twelve receptors across a light step, with the lesson's feedforward
+ * lateral-inhibition rule: output = own excitation − k × (left + right neighbour). The row
+ * continues past both ends. Shows the dip on the dim side and the overshoot on the bright
+ * side. Made-up units; a feedforward simplification of the recurrent Hartline–Ratliff
+ * model of the Limulus eye, without thresholds. Original, self-contained.
+ */
+---
+
+<figure class="mbe card" data-mbe>
+  <figcaption class="mbe-head">Lateral inhibition at a light step<span class="mbe-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="mbe-svg" viewBox="0 0 360 214" role="img" aria-label="Twelve receptors across a light step: input bars above, output bars below after each receptor subtracts a share of its two neighbours" data-plot></svg>
+
+  <div class="mbe-controls">
+    <label class="mbe-slabel"><span>Inhibition weight k <em data-out="k">0.20</em></span>
+      <input type="range" data-in="k" min="0" max="0.25" step="0.05" value="0.2" />
+    </label>
+    <label class="mbe-slabel"><span>Bright level <em data-out="b">20</em> <small>(dim fixed at 10)</small></span>
+      <input type="range" data-in="b" min="10" max="30" step="1" value="20" />
+    </label>
+  </div>
+
+  <dl class="mbe-readout">
+    <div><dt>Interior dim</dt><dd data-r="id">6</dd></div>
+    <div><dt>Dim at the edge</dt><dd data-r="de">4</dd></div>
+    <div><dt>Bright at the edge</dt><dd data-r="be">14</dd></div>
+    <div><dt>Interior bright</dt><dd data-r="ib">12</dd></div>
+    <div class="mbe-wide"><dt>Plateau difference (interior bright − interior dim)</dt><dd data-r="pl">6</dd></div>
+    <div class="mbe-wide"><dt>Across-edge difference (bright edge − dim edge)</dt><dd data-r="ae">10</dd></div>
+  </dl>
+  <p class="mbe-math" data-math></p>
+  <p class="mbe-why" data-why role="status"></p>
+  <p class="mbe-assume">In this sketch: k and the bright level are made-up values (the lesson uses k = 0.2, bright 20); each output = own excitation − k × (left + right neighbour), computed from the inputs (feedforward), no thresholds, row continuing past both ends, made-up units. Not the vertebrate retina.</p>
+  <p class="mbe-foot">This sketch is a feedforward simplification of the recurrent Hartline–Ratliff model of the Limulus eye, without thresholds; made-up units. Rule to keep: output = own excitation − k × (left neighbour + right neighbour).</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', GREY = '#8a8a96';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const fmt = (x: number) => {
+    const r = Math.round(x * 100) / 100;
+    return String(r === 0 ? 0 : r);
+  };
+  document.querySelectorAll<HTMLElement>('[data-mbe]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const kIn = root.querySelector<HTMLInputElement>('[data-in="k"]')!;
+    const bIn = root.querySelector<HTMLInputElement>('[data-in="b"]')!;
+    const kOut = root.querySelector<HTMLElement>('[data-out="k"]')!;
+    const bOut = root.querySelector<HTMLElement>('[data-out="b"]')!;
+    const rd = (n: string) => root.querySelector<HTMLElement>(`[data-r="${n}"]`)!;
+    const math = root.querySelector<HTMLElement>('[data-math]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    const N = 12, DIM = 10, X0 = 26, CW = 26, SC = 56 / 30;
+    const IN_BASE = 82, OUT_BASE = 178;
+    const cx = (i: number) => X0 + i * CW; // left edge of receptor i
+
+    function render() {
+      const k = Math.round(parseFloat(kIn.value) * 100) / 100;
+      const B = parseInt(bIn.value, 10);
+      kOut.textContent = k.toFixed(2);
+      bOut.textContent = String(B);
+      const inp: number[] = [];
+      for (let i = 0; i < N; i++) inp.push(i < 6 ? DIM : B);
+      const at = (i: number) => (i < 0 ? DIM : i >= N ? B : inp[i]); // row continues past both ends
+      const out = inp.map((v, i) => Math.round((v - k * (at(i - 1) + at(i + 1))) * 1e9) / 1e9);
+      const iDim = out[2], dEdge = out[5], bEdge = out[6], iBr = out[9];
+      const plateau = iBr - iDim, across = bEdge - dEdge;
+
+      plot.replaceChildren();
+      const t = (x: number, y: number, s: string, extra: Record<string, string | number> = {}) => {
+        const e = el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, extra));
+        e.textContent = s; plot.appendChild(e);
+      };
+      t(X0, 12, 'Input (excitation)', { 'font-weight': 700 });
+      t(X0, 104, 'Output (after inhibition by the two neighbours)', { 'font-weight': 700 });
+      plot.appendChild(el('line', { x1: X0 - 14, y1: IN_BASE, x2: X0 + N * CW + 14, y2: IN_BASE, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0 - 14, y1: OUT_BASE, x2: X0 + N * CW + 14, y2: OUT_BASE, stroke: INK, 'stroke-width': 1 }));
+      // ghost ends: the row continues
+      t(X0 - 12, IN_BASE - 4, '…', { 'font-size': 12 }); t(X0 + N * CW + 2, IN_BASE - 4, '…', { 'font-size': 12 });
+      t(X0 - 12, OUT_BASE - 4, '…', { 'font-size': 12 }); t(X0 + N * CW + 2, OUT_BASE - 4, '…', { 'font-size': 12 });
+      // step marker
+      const sx = cx(6);
+      plot.appendChild(el('line', { x1: sx, y1: 16, x2: sx, y2: 196, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      // plateau reference lines in output
+      const ly = (v: number) => OUT_BASE - Math.max(v, 0) * SC;
+      plot.appendChild(el('line', { x1: cx(0), y1: ly(iDim), x2: cx(6), y2: ly(iDim), stroke: GREY, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('line', { x1: cx(6), y1: ly(iBr), x2: cx(12), y2: ly(iBr), stroke: GREY, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+
+      const key = new Set([2, 5, 6, 9]);
+      for (let i = 0; i < N; i++) {
+        const edge = i === 5 || i === 6;
+        const hi = inp[i] * SC;
+        plot.appendChild(el('rect', { x: cx(i) + 3, y: IN_BASE - hi, width: CW - 6, height: hi, fill: GREY, opacity: i < 6 ? 0.55 : 0.85 }));
+        const oh = Math.max(out[i], 0) * SC;
+        plot.appendChild(el('rect', { x: cx(i) + 3, y: OUT_BASE - oh, width: CW - 6, height: oh, fill: edge ? ORANGE : ACCENT }));
+        if (key.has(i)) {
+          t(cx(i) + CW / 2, IN_BASE - hi - 3, fmt(inp[i]), { 'text-anchor': 'middle' });
+          t(cx(i) + CW / 2, OUT_BASE - oh - 3, fmt(out[i]), { 'text-anchor': 'middle', 'font-weight': 700 });
+        }
+        t(cx(i) + CW / 2, OUT_BASE + 11, String(i + 1), { 'text-anchor': 'middle', fill: GREY });
+      }
+      t(X0 + N * CW / 2, 210, 'receptor number', { 'text-anchor': 'middle' });
+
+      rd('id').textContent = fmt(iDim);
+      rd('de').textContent = fmt(dEdge);
+      rd('be').textContent = fmt(bEdge);
+      rd('ib').textContent = fmt(iBr);
+      rd('pl').textContent = fmt(plateau);
+      rd('ae').textContent = fmt(across);
+      const ks = k.toFixed(2);
+      math.textContent = `Dim at the edge: ${DIM} − ${ks} × (${DIM} + ${B}) = ${fmt(dEdge)}. Bright at the edge: ${B} − ${ks} × (${DIM} + ${B}) = ${fmt(bEdge)}.`;
+
+      let s: string;
+      if (B === DIM) {
+        s = `Every receptor receives ${DIM}, so there is no edge and the output is flat at ${fmt(iDim)} (${DIM} − ${ks} × ${2 * DIM}). With no step in the input, inhibition by neighbours changes the level but makes no dip or overshoot.`;
+      } else if (k === 0) {
+        s = `With k = 0 nothing is subtracted, so the output equals the input: the step stays a step, with no dip and no overshoot.`;
+      } else {
+        s = `The dim edge receptor dips to ${fmt(dEdge)}, below the dim plateau of ${fmt(iDim)}, and the bright edge receptor overshoots to ${fmt(bEdge)}, above the bright plateau of ${fmt(iBr)}. The plateaus differ by ${fmt(plateau)}, but across the edge the difference is ${fmt(across)}. At k = 0.2 and bright 20 this is the kind of edge exaggeration the lesson compares, as an analogy, with the Mach bands people see at the ends of a luminance ramp; other settings are sketch values only.`;
+        if (dEdge === 0) s += ' Here the dim edge receptor’s inhibition cancels its excitation, so its output is 0 in this sketch.';
+      }
+      why.textContent = s;
+    }
+    [kIn, bIn].forEach((x) => x.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .mbe { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mbe-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mbe-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mbe-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mbe-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .mbe-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mbe-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .mbe-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .mbe-slabel input { accent-color: var(--ddp-color-accent); }
+  .mbe-readout { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mbe-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .mbe-readout .mbe-wide { grid-column: span 2; }
+  .mbe-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mbe-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .mbe-math { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mbe-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .mbe-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mbe-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .mbe-readout { grid-template-columns: 1fr 1fr; } .mbe-readout .mbe-wide { grid-column: span 2; } .mbe-controls { grid-template-columns: 1fr; } }
+</style>

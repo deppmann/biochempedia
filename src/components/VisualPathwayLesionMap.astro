@@ -1,0 +1,469 @@
+---
+/**
+ * VisualPathwayLesionMap — a schematic of the human visual pathway seen from above.
+ * The learner picks a lesion site (optic nerve, chiasm centre, optic tract, Meyer's loop,
+ * parietal radiation, V1) and a side. The sketch follows the visual-cortex lesson's rules and
+ * nothing else: only nasal-retina fibres cross at the chiasm; each tract carries the opposite
+ * hemifield from both eyes; the lens inverts the image (temporal field on nasal retina, upper
+ * field on lower retina); upper-field fibres run in Meyer's loop and end below the calcarine
+ * sulcus, lower-field fibres run through the parietal lobe and end above it. The defect is
+ * computed by tracing each retinal quarter along the pathway; a checker re-derives every
+ * lesion from the lesson's field-level list and compares. Complete lesions only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="vl card" data-vlm>
+  <figcaption class="vl-head">Visual pathway lesion map: where is the lesion?<span class="vl-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="vl-controls">
+    <fieldset class="vl-fs">
+      <legend>Lesion site</legend>
+      <div class="vl-opts" data-sites></div>
+    </fieldset>
+    <fieldset class="vl-fs vl-side">
+      <legend>Side (the patient’s)</legend>
+      <div class="vl-opts" data-sides></div>
+    </fieldset>
+  </div>
+
+  <p class="vl-status" data-status role="status"></p>
+  <dl class="vl-read">
+    <dt>Field defect</dt><dd data-defect></dd>
+    <dt>Retinal parts whose signal is lost</dt><dd data-retina></dd>
+  </dl>
+
+  <p class="vl-legend">
+    <span><i class="vl-sw vl-sw-nasal"></i>fibres from the nasal half of a retina</span>
+    <span><i class="vl-sw vl-sw-temporal"></i>fibres from the temporal half</span>
+    <span><i class="vl-sw vl-sw-lost"></i>dashed grey: output lost</span>
+    <span><i class="vl-sw vl-sw-pink"></i>pink V1 half: none of its input arrives (in this sketch)</span>
+  </p>
+
+  <svg class="vl-svg" viewBox="0 0 400 366" role="img" aria-label="Schematic of the visual pathway seen from above, nose at the top: two eyes, optic nerves, chiasm, optic tracts, lateral geniculate nuclei, optic radiations and primary visual cortex. The patient’s left is on the viewer’s left." data-path></svg>
+  <svg class="vl-svg" viewBox="0 0 400 160" role="img" aria-label="The visual field of each eye as the patient sees it, with the lost parts shaded" data-fields></svg>
+  <p class="vl-cap">Lower panel: each eye’s field as the patient sees it, the patient’s left on the viewer’s left. Hatched = lost.</p>
+
+  <div class="vl-row">
+    <button type="button" class="vl-btn" data-check>Check all 11 lesions against the lesson’s list as transcribed here</button>
+    <span class="vl-check" data-checkout></span>
+  </div>
+
+  <p class="vl-assume"><strong>In this sketch:</strong> a schematic seen from above, not an anatomical section; complete lesions only; human anatomy as the lesson gives it; each lost field part is drawn whole; the stacked boxes are a schematic of above and below the calcarine sulcus, not to scale.</p>
+  <p class="vl-foot">Rule to keep: only nasal-retina fibres cross, so a lesion before the chiasm costs one eye its field, at the chiasm centre both temporal fields, and behind it the opposite half or quarter of the field in both eyes. Partial lesions give partial defects, close matching between the eyes and sparing of central vision are tendencies only, and this is anatomical reasoning, not clinical advice.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Eye = 'L' | 'R';
+  type Half = 'nasal' | 'temporal';
+  type Vert = 'upper' | 'lower';
+  type Side = 'left' | 'right';
+  type Site = 'nerve' | 'chiasm' | 'tract' | 'meyer' | 'parietal' | 'v1';
+  type Q = { eye: Eye; half: Half; vert: Vert }; // a quarter of a retina; vert is the retina's own up or down
+
+  const SITES: { id: Site; label: string }[] = [
+    { id: 'nerve', label: 'optic nerve' },
+    { id: 'chiasm', label: 'chiasm, centre' },
+    { id: 'tract', label: 'optic tract' },
+    { id: 'meyer', label: 'Meyer’s loop' },
+    { id: 'parietal', label: 'parietal radiation' },
+    { id: 'v1', label: 'V1' },
+  ];
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86', ORANGE = '#e57200', RED = '#b3261e', LOSTC = '#9a9aa6', RAD = '#3b4a8c';
+
+  // ---- the lesson's rules, as a trace of each retinal quarter along the pathway ----
+  const eyeName = (e: Eye) => (e === 'L' ? 'left' : 'right');
+  const sideEye = (s: Side): Eye => (s === 'left' ? 'L' : 'R');
+  const opp = (s: Side): Side => (s === 'left' ? 'right' : 'left');
+  const QS: Q[] = [];
+  for (const eye of ['L', 'R'] as Eye[]) for (const half of ['nasal', 'temporal'] as Half[]) for (const vert of ['upper', 'lower'] as Vert[]) QS.push({ eye, half, vert });
+  // chiasm: only nasal fibres cross; temporal fibres stay on their own side
+  const tractSide = (q: Q): Side => (q.half === 'nasal' ? opp(eyeName(q.eye) as Side) : (eyeName(q.eye) as Side));
+  function isLost(q: Q, site: Site, side: Side): boolean {
+    const ts = tractSide(q);
+    switch (site) {
+      case 'nerve': return eyeName(q.eye) === side;
+      case 'chiasm': return q.half === 'nasal';
+      case 'tract': case 'v1': return ts === side;
+      case 'meyer': return ts === side && q.vert === 'lower'; // upper field falls on lower retina
+      case 'parietal': return ts === side && q.vert === 'upper'; // lower field falls on upper retina
+    }
+  }
+  // the lens inverts: nasal retina sees the temporal field, lower retina sees the upper field
+  function fieldKey(q: Q): string {
+    const temporalSide: Side = q.eye === 'L' ? 'left' : 'right';
+    const h: Side = q.half === 'nasal' ? temporalSide : opp(temporalSide);
+    const v: Vert = q.vert === 'lower' ? 'upper' : 'lower';
+    return `${q.eye}:${h}:${v}`;
+  }
+  function lostFields(site: Site, side: Side): Set<string> {
+    const s = new Set<string>();
+    for (const q of QS) if (isLost(q, site, side)) s.add(fieldKey(q));
+    return s;
+  }
+  // the lesson's list, written at the level of the field (independent of the trace above)
+  function expectedFields(site: Site, side: Side): Set<string> {
+    const s = new Set<string>();
+    const eyes: Eye[] = ['L', 'R'];
+    const hs: Side[] = ['left', 'right'];
+    const vs: Vert[] = ['upper', 'lower'];
+    if (site === 'nerve') for (const h of hs) for (const v of vs) s.add(`${sideEye(side)}:${h}:${v}`);
+    if (site === 'chiasm') for (const e of eyes) for (const v of vs) s.add(`${e}:${e === 'L' ? 'left' : 'right'}:${v}`);
+    if (site === 'tract' || site === 'v1') for (const e of eyes) for (const v of vs) s.add(`${e}:${opp(side)}:${v}`);
+    if (site === 'meyer') for (const e of eyes) s.add(`${e}:${opp(side)}:upper`);
+    if (site === 'parietal') for (const e of eyes) s.add(`${e}:${opp(side)}:lower`);
+    return s;
+  }
+  const sameSet = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every((x) => b.has(x));
+
+  function retinaText(site: Site, side: Side): string {
+    const parts: string[] = [];
+    for (const eye of ['L', 'R'] as Eye[]) {
+      const mine = QS.filter((q) => q.eye === eye && isLost(q, site, side));
+      if (mine.length === 0) continue;
+      if (mine.length === 4) { parts.push(`all of the ${eyeName(eye)} retina (nasal and temporal halves)`); continue; }
+      for (const half of ['nasal', 'temporal'] as Half[]) {
+        const hq = mine.filter((q) => q.half === half);
+        if (hq.length === 2) parts.push(`the ${half} half of the ${eyeName(eye)} retina`);
+        else if (hq.length === 1) parts.push(`the ${hq[0].vert} ${half} part of the ${eyeName(eye)} retina`);
+      }
+    }
+    return parts.join('; ');
+  }
+  function defectName(site: Site, side: Side): string {
+    const o = opp(side);
+    switch (site) {
+      case 'nerve': return `Loss of the whole field of the ${side} eye (the eye on the same side), the other eye untouched.`;
+      case 'chiasm': return 'Bitemporal hemianopia: the temporal half of the field is lost in both eyes.';
+      case 'tract': case 'v1': return `${o[0].toUpperCase() + o.slice(1)} homonymous hemianopia: the ${o} half of the field is lost in both eyes.`;
+      case 'meyer': return `Upper ${o} quadrantanopia: the upper ${o} quarter of the field is lost in both eyes.`;
+      case 'parietal': return `Lower ${o} quadrantanopia: the lower ${o} quarter of the field is lost in both eyes.`;
+    }
+  }
+  function statusText(site: Site, side: Side): string {
+    const o = opp(side);
+    const cap = (t: string) => t[0].toUpperCase() + t.slice(1);
+    switch (site) {
+      case 'nerve':
+        return `In this sketch, a complete lesion of the ${side} optic nerve, before the chiasm, cuts off all of the ${side} retina, so the whole field of the ${side} eye is lost. The other eye keeps its field.`;
+      case 'chiasm':
+        return `In this sketch, a lesion at the centre of the chiasm cuts the crossing fibres, and only fibres from the nasal half of each retina cross. The lens inverts the image, so the temporal field falls on the nasal retina: both temporal fields are lost, a bitemporal hemianopia. Temporal-retina fibres stay on their own side and are not cut.`;
+      case 'tract':
+        return `In this sketch, a complete lesion of the ${side} optic tract. Each tract carries the contralateral hemifield from both eyes, and the ${side} tract carries everything to the ${o} of the point of gaze, so the ${o} half of the field is lost in both eyes: a ${o} homonymous hemianopia (the same side of the field in each eye). The same defect would follow from a complete lesion of the ${side} LGN, the ${side} optic radiation or ${side} V1.`;
+      case 'v1':
+        return `In this sketch, a complete lesion of ${side} V1 removes the ${o} half of the field in both eyes, the same ${o} homonymous hemianopia as a ${side} tract lesion: the ${side} hemisphere serves the ${o} half of the world, seen by both eyes, not the ${o} eye.`;
+      case 'meyer':
+        return `In this sketch, a complete lesion of the ${side} Meyer’s loop, the radiation fibres for the upper field that sweep forward through the temporal lobe and end below the calcarine sulcus. The ${side} side carries the ${o} field and the lens inverts the image, so the upper ${o} quarter, which falls on the lower retina, is lost in both eyes: an upper ${o} quadrantanopia. An upper quarter defect on the opposite side of this kind is reported after temporal-lobe surgery. Cortex below the ${side} calcarine sulcus, where these fibres end, fits the same defect.`;
+      case 'parietal':
+        return `In this sketch, a complete lesion of the ${side} parietal radiation, the fibres for the lower field that run through the parietal lobe and end above the calcarine sulcus. The ${side} side carries the ${o} field and the lens inverts the image, so the lower ${o} quarter, which falls on the upper retina, is lost in both eyes: a lower quarter defect, a quadrantanopia.`;
+    }
+  }
+
+  // ---- drawing ----
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const mx = (x: number) => 360 - x; // mirror the left side to the right
+  const pts = (a: number[][], right: boolean) => a.map(([x, y]) => `${right ? mx(x) : x},${y}`).join(' ');
+
+  // fibre paths from the retina, drawn for the left-eye set and mirrored for the right
+  // key = `${eye}-${half}`; endpoints in the tract on the side given by the lesson's crossing
+  const FIBRES: Record<string, number[][]> = {
+    'L-temporal': [[77, 70], [96, 100], [160, 137], [150, 157], [126, 215]],
+    'L-nasal': [[113, 70], [120, 100], [172, 131], [192, 152], [222, 215]],
+  };
+  function fibrePoints(key: string): string {
+    const [eye, half] = key.split('-');
+    return pts(FIBRES[`L-${half}`], eye === 'R');
+  }
+
+  const MERYER_D = 'M118 235 C 20 240, 10 310, 90 318';
+  const PARIETAL_D = 'M138 235 C 140 255, 132 262, 132 280';
+  function mirrorPath(d: string): string {
+    // numbers alternate x y after each command letter; mirror every x
+    return d.replace(/([MC])\s*([-\d.,\s]+)/g, (_m, c, nums) => {
+      const n = nums.trim().split(/[\s,]+/).map(Number);
+      const out: number[] = [];
+      for (let i = 0; i < n.length; i += 2) out.push(mx(n[i]), n[i + 1]);
+      return `${c} ${out.join(' ')} `;
+    }).replace(/\s+/g, ' ');
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-vlm]').forEach((root, idx) => {
+    const pathSvg = root.querySelector<SVGSVGElement>('[data-path]')!;
+    const fieldSvg = root.querySelector<SVGSVGElement>('[data-fields]')!;
+    const sitesEl = root.querySelector<HTMLElement>('[data-sites]')!;
+    const sidesEl = root.querySelector<HTMLElement>('[data-sides]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const defect = root.querySelector<HTMLElement>('[data-defect]')!;
+    const retina = root.querySelector<HTMLElement>('[data-retina]')!;
+    const checkBtn = root.querySelector<HTMLButtonElement>('[data-check]')!;
+    const checkOut = root.querySelector<HTMLElement>('[data-checkout]')!;
+    let site: Site = 'nerve';
+    let side: Side = 'left';
+
+    // radio groups (native, keyboard-operable)
+    SITES.forEach((s, i) => {
+      const lab = document.createElement('label');
+      lab.className = 'vl-opt';
+      lab.innerHTML = `<input type="radio" name="vl-site-${idx}" value="${s.id}"${i === 0 ? ' checked' : ''} /> <span>${s.label}</span>`;
+      sitesEl.appendChild(lab);
+    });
+    (['left', 'right'] as Side[]).forEach((s, i) => {
+      const lab = document.createElement('label');
+      lab.className = 'vl-opt';
+      lab.innerHTML = `<input type="radio" name="vl-side-${idx}" value="${s}"${i === 0 ? ' checked' : ''} /> <span>${s}</span>`;
+      sidesEl.appendChild(lab);
+    });
+
+    // ---- static pathway drawing ----
+    const g = el('g', { transform: 'translate(20,0)' });
+    pathSvg.appendChild(g);
+    const T = (x: number, y: number, t: string, anchor = 'middle', extra: Record<string, string | number> = {}) =>
+      g.appendChild(el('text', { x, y, 'font-size': 9, 'text-anchor': anchor, fill: INK, ...extra }, t));
+    T(-16, 10, 'patient’s left', 'start', { 'font-weight': 700 });
+    T(180, 10, 'front (nose)', 'middle');
+    T(376, 10, 'patient’s right', 'end', { 'font-weight': 700 });
+    T(180, 361, 'back of the head', 'middle', { fill: FAINT });
+
+    // eyes and retinal halves
+    const EYEC: Record<Eye, number> = { L: 95, R: 265 };
+    for (const eye of ['L', 'R'] as Eye[]) {
+      const cx = EYEC[eye];
+      g.appendChild(el('circle', { cx, cy: 52, r: 26, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
+      T(cx, 50, `${eyeName(eye)} eye`, 'middle');
+      // nasal arc is on the nose side of the back of the eye
+      const nasalD = eye === 'L' ? `M${cx} 78 A26 26 0 0 0 ${cx + 26} 52` : `M${cx - 26} 52 A26 26 0 0 0 ${cx} 78`;
+      const tempD = eye === 'L' ? `M${cx - 26} 52 A26 26 0 0 0 ${cx} 78` : `M${cx} 78 A26 26 0 0 0 ${cx + 26} 52`;
+      g.appendChild(el('path', { d: nasalD, fill: 'none', stroke: ORANGE, 'stroke-width': 5 }));
+      g.appendChild(el('path', { d: tempD, fill: 'none', stroke: TEAL, 'stroke-width': 5 }));
+    }
+    // labels of structures
+    T(-16, 108, 'optic nerve', 'start');
+    T(376, 108, 'optic nerve', 'end');
+    T(180, 172, 'chiasm', 'middle');
+    T(118, 194, 'optic tract', 'end');
+    T(242, 194, 'optic tract', 'start');
+    T(-16, 244, 'Meyer’s loop', 'start', { 'font-weight': 700 });
+    T(-16, 255, '(upper field)', 'start');
+    T(376, 244, 'Meyer’s loop', 'end', { 'font-weight': 700 });
+    T(376, 255, '(upper field)', 'end');
+    T(180, 251, 'parietal', 'middle', { 'font-weight': 700 });
+    T(180, 262, 'radiation', 'middle', { 'font-weight': 700 });
+    T(180, 273, '(lower field)', 'middle');
+
+    // fibres
+    const fibreEls: Record<string, SVGElement> = {};
+    const fibreDefs: [string, string, string][] = [
+      ['L-temporal', fibrePoints('L-temporal'), TEAL],
+      ['L-nasal', fibrePoints('L-nasal'), ORANGE],
+      ['R-nasal', fibrePoints('R-nasal'), ORANGE],
+      ['R-temporal', fibrePoints('R-temporal'), TEAL],
+    ];
+    for (const [k, p, c] of fibreDefs) {
+      const pl = el('polyline', { points: p, fill: 'none', stroke: c, 'stroke-width': 2.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
+      g.appendChild(pl);
+      fibreEls[k] = pl;
+    }
+    // LGN
+    for (const s of ['left', 'right'] as Side[]) {
+      const x = s === 'left' ? 108 : 208;
+      g.appendChild(el('rect', { x, y: 215, width: 44, height: 20, rx: 5, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
+      T(x + 22, 228, 'LGN', 'middle', { 'font-weight': 700 });
+    }
+    // radiations
+    const radEls: Record<string, SVGElement> = {};
+    for (const s of ['left', 'right'] as Side[]) {
+      const m = el('path', { d: s === 'left' ? MERYER_D : mirrorPath(MERYER_D), fill: 'none', stroke: RAD, 'stroke-width': 2.6, 'stroke-linecap': 'round' });
+      const p = el('path', { d: s === 'left' ? PARIETAL_D : mirrorPath(PARIETAL_D), fill: 'none', stroke: RAD, 'stroke-width': 2.6, 'stroke-linecap': 'round' });
+      g.appendChild(m); g.appendChild(p);
+      radEls[`${s}-meyer`] = m; radEls[`${s}-parietal`] = p;
+    }
+    // V1 boxes, split at the calcarine sulcus
+    const v1Top: Record<string, SVGElement> = {}, v1Bot: Record<string, SVGElement> = {};
+    for (const s of ['left', 'right'] as Side[]) {
+      const x = s === 'left' ? 90 : 190;
+      const top = el('rect', { x, y: 280, width: 80, height: 25, fill: '#fff', stroke: INK, 'stroke-width': 1.2 });
+      const bot = el('rect', { x, y: 305, width: 80, height: 25, fill: '#fff', stroke: INK, 'stroke-width': 1.2 });
+      g.appendChild(top); g.appendChild(bot);
+      v1Top[s] = top; v1Bot[s] = bot;
+      g.appendChild(el('line', { x1: x, y1: 305, x2: x + 80, y2: 305, stroke: '#7a5ea8', 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      T(x + 40, 296, 'above sulcus', 'middle');
+      T(x + 40, 321, 'below sulcus', 'middle');
+      T(x + 40, 342, `${s} V1`, 'middle', { 'font-weight': 700 });
+    }
+    // lesion marker layer (redrawn)
+    const markLayer = el('g', {});
+    g.appendChild(markLayer);
+
+    // ---- static field drawing ----
+    const defs = el('defs', {});
+    const pat = el('pattern', { id: `vl-hatch-${idx}`, width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' });
+    pat.appendChild(el('rect', { width: 6, height: 6, fill: '#f6d3d0' }));
+    pat.appendChild(el('line', { x1: 0, y1: 0, x2: 0, y2: 6, stroke: RED, 'stroke-width': 1.4 }));
+    defs.appendChild(pat);
+    fieldSvg.appendChild(defs);
+    const R = 48, CY = 84;
+    const FCX: Record<Eye, number> = { L: 110, R: 290 };
+    const fieldEls: Record<string, SVGElement> = {};
+    for (const eye of ['L', 'R'] as Eye[]) {
+      const cx = FCX[eye];
+      fieldSvg.appendChild(el('text', { x: cx, y: 16, 'font-size': 10, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, `${eyeName(eye)} eye’s field`));
+      const quad: Record<string, string> = {
+        'left:upper': `M${cx} ${CY} L${cx} ${CY - R} A${R} ${R} 0 0 0 ${cx - R} ${CY} Z`,
+        'right:upper': `M${cx} ${CY} L${cx + R} ${CY} A${R} ${R} 0 0 0 ${cx} ${CY - R} Z`,
+        'left:lower': `M${cx} ${CY} L${cx - R} ${CY} A${R} ${R} 0 0 0 ${cx} ${CY + R} Z`,
+        'right:lower': `M${cx} ${CY} L${cx} ${CY + R} A${R} ${R} 0 0 0 ${cx + R} ${CY} Z`,
+      };
+      for (const k in quad) {
+        const p = el('path', { d: quad[k], fill: '#fff', stroke: INK, 'stroke-width': 1 });
+        fieldSvg.appendChild(p);
+        fieldEls[`${eye}:${k}`] = p;
+      }
+      fieldSvg.appendChild(el('circle', { cx, cy: CY, r: 2.5, fill: INK }));
+      const halfLab = (h: Side) => {
+        const temporalSide: Side = eye === 'L' ? 'left' : 'right';
+        return h === temporalSide ? 'temporal' : 'nasal';
+      };
+      for (const h of ['left', 'right'] as Side[]) {
+        fieldSvg.appendChild(el('text', { x: cx + (h === 'left' ? -25 : 25), y: CY - 5, 'font-size': 9, 'text-anchor': 'middle', fill: INK, stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' }, halfLab(h)));
+      }
+      fieldSvg.appendChild(el('text', { x: cx, y: CY - R - 4, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'upper'));
+      fieldSvg.appendChild(el('text', { x: cx, y: CY + R + 12, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, 'lower'));
+      fieldSvg.appendChild(el('text', { x: cx - R - 4, y: CY + 3, 'font-size': 9, 'text-anchor': 'end', fill: FAINT }, 'left'));
+      fieldSvg.appendChild(el('text', { x: cx + R + 4, y: CY + 3, 'font-size': 9, 'text-anchor': 'start', fill: FAINT }, 'right'));
+    }
+
+    // ---- state -> picture ----
+    function markerAt(x: number, y: number, right: boolean) {
+      const X = right ? mx(x) : x;
+      markLayer.appendChild(el('circle', { cx: X, cy: y, r: 8, fill: RED, stroke: '#fff', 'stroke-width': 1.5 }));
+      markLayer.appendChild(el('line', { x1: X - 3.5, y1: y - 3.5, x2: X + 3.5, y2: y + 3.5, stroke: '#fff', 'stroke-width': 2 }));
+      markLayer.appendChild(el('line', { x1: X - 3.5, y1: y + 3.5, x2: X + 3.5, y2: y - 3.5, stroke: '#fff', 'stroke-width': 2 }));
+    }
+    function setLost(e: SVGElement, lostFlag: boolean, base: string) {
+      if (lostFlag) { e.setAttribute('stroke', LOSTC); e.setAttribute('stroke-dasharray', '5 4'); e.setAttribute('opacity', '0.9'); }
+      else { e.setAttribute('stroke', base); e.removeAttribute('stroke-dasharray'); e.setAttribute('opacity', '1'); }
+    }
+    function render() {
+      const lf = lostFields(site, side);
+      // fibre bundles: dashed if every quarter of that retinal half is lost
+      const bundleLost = (eye: Eye, half: Half) => site !== 'v1' && QS.filter((q) => q.eye === eye && q.half === half).every((q) => isLost(q, site, side));
+      setLost(fibreEls['L-temporal'], bundleLost('L', 'temporal'), TEAL);
+      setLost(fibreEls['L-nasal'], bundleLost('L', 'nasal'), ORANGE);
+      setLost(fibreEls['R-nasal'], bundleLost('R', 'nasal'), ORANGE);
+      setLost(fibreEls['R-temporal'], bundleLost('R', 'temporal'), TEAL);
+      // radiations: no signal passes if the lesion is on or before them (V1 sits after them)
+      for (const s of ['left', 'right'] as Side[]) {
+        for (const kind of ['meyer', 'parietal'] as const) {
+          const vert: Vert = kind === 'meyer' ? 'lower' : 'upper';
+          const through = QS.filter((q) => tractSide(q) === s && q.vert === vert);
+          const none = site !== 'v1' && through.every((q) => isLost(q, site, side));
+          setLost(radEls[`${s}-${kind}`], none, RAD);
+          const inputLost = through.every((q) => isLost(q, site, side));
+          const box = kind === 'meyer' ? v1Bot[s] : v1Top[s];
+          box.setAttribute('fill', inputLost ? '#f6d3d0' : '#fff');
+        }
+      }
+      // marker
+      markLayer.replaceChildren();
+      const right = side === 'right';
+      if (site === 'nerve') markerAt(108, 100, right);
+      if (site === 'chiasm') markerAt(180, 142, false);
+      if (site === 'tract') markerAt(145, 185, right);
+      if (site === 'meyer') markerAt(37, 275, right);
+      if (site === 'parietal') markerAt(135, 258, right);
+      if (site === 'v1') {
+        const x = side === 'left' ? 90 : 190;
+        markLayer.appendChild(el('rect', { x, y: 280, width: 80, height: 50, fill: RED, 'fill-opacity': 0.18, stroke: RED, 'stroke-width': 2 }));
+        markerAt(130, 305, right);
+      }
+      // fields
+      for (const k in fieldEls) fieldEls[k].setAttribute('fill', lf.has(k) ? `url(#vl-hatch-${idx})` : '#fff');
+      // text
+      defect.textContent = defectName(site, side);
+      retina.textContent = retinaText(site, side) + '.';
+      status.textContent = statusText(site, side);
+      // side is not a choice at the chiasm centre
+      sidesEl.querySelectorAll<HTMLInputElement>('input').forEach((i) => { i.disabled = site === 'chiasm'; });
+      sidesEl.classList.toggle('vl-off', site === 'chiasm');
+      if (site === 'chiasm') status.textContent += ' (The side control is off: the centre of the chiasm has no side.)';
+    }
+
+    // ---- checker: every site on both sides against the lesson's list ----
+    function runCheck(): { ok: number; total: number; bad: string[] } {
+      const bad: string[] = [];
+      let ok = 0, total = 0;
+      const combos: [Site, Side][] = [['chiasm', 'left']];
+      for (const s of SITES) if (s.id !== 'chiasm') for (const sd of ['left', 'right'] as Side[]) combos.push([s.id, sd]);
+      for (const [st, sd] of combos) {
+        total++;
+        const got = lostFields(st, sd), want = expectedFields(st, sd);
+        if (sameSet(got, want)) ok++;
+        else bad.push(`${st} ${sd}: traced ${[...got].sort().join(' ')} but the lesson’s list gives ${[...want].sort().join(' ')}`);
+      }
+      // the four named cases of the lesson's design problem, with their retinal wording
+      const named: [Site, Side, string][] = [
+        ['nerve', 'left', 'all of the left retina (nasal and temporal halves)'],
+        ['chiasm', 'left', 'the nasal half of the left retina; the nasal half of the right retina'],
+        ['tract', 'left', 'the temporal half of the left retina; the nasal half of the right retina'],
+        ['meyer', 'left', 'the lower temporal part of the left retina; the lower nasal part of the right retina'],
+      ];
+      for (const [st, sd, txt] of named) { total++; if (retinaText(st, sd) === txt) ok++; else bad.push(`${st} ${sd}: retinal wording differs from the lesson`); }
+      return { ok, total, bad };
+    }
+    checkBtn.addEventListener('click', () => {
+      const r = runCheck();
+      checkOut.textContent = r.bad.length === 0
+        ? `All ${r.total} tests pass: 11 site-and-side lesions give exactly the field loss the lesson lists (no extra deficit), and the four retinal descriptions match (11 lesions + 4 wordings).`
+        : `${r.ok} of ${r.total} tests pass. ${r.bad.join(' | ')}`;
+    });
+
+    root.addEventListener('change', (ev) => {
+      const t = ev.target as HTMLInputElement;
+      if (t.name === `vl-site-${idx}`) site = t.value as Site;
+      if (t.name === `vl-side-${idx}`) side = t.value as Side;
+      checkOut.textContent = '';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .vl { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .vl-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .vl-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .vl-controls { display: grid; grid-template-columns: 2fr 1fr; gap: var(--ddp-space-2); }
+  .vl-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.45rem; min-width: 0; }
+  .vl-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .vl-opts { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; }
+  .vl-opt { display: inline-flex; align-items: center; gap: 0.3rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .vl-opt input { accent-color: var(--ddp-color-accent); }
+  .vl-opt input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .vl-off { opacity: 0.45; }
+  .vl .vl-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .vl .vl-read { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 0.8rem; margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vl .vl-read dt { color: var(--ddp-color-muted); }
+  .vl .vl-read dd { margin: 0; font-weight: 600; color: var(--ddp-color-primary); }
+  .vl .vl-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vl .vl-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .vl-sw { display: inline-block; width: 1.6rem; height: 0; border-top: 3px solid; }
+  .vl-sw-nasal { border-color: #e57200; }
+  .vl-sw-temporal { border-color: #0e7c86; }
+  .vl-sw-pink { border-color: #f6d3d0; border-top-width: 6px; }
+  .vl-sw-lost { border-top-style: dashed; border-color: #9a9aa6; }
+  .vl-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .vl .vl-cap { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .vl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: var(--ddp-space-2) 0; }
+  .vl-btn { border: 1px solid var(--ddp-color-line); border-radius: 5px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; cursor: pointer; }
+  .vl-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .vl .vl-check { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); flex: 1 1 14rem; }
+  .vl .vl-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .vl .vl-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .vl-controls { grid-template-columns: 1fr; } .vl-read { grid-template-columns: 1fr; } }
+</style>

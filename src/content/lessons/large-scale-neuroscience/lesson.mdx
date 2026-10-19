@@ -1,0 +1,460 @@
+---
+title: "Recording Many Neurons: Imaging, Arrays and Atlases"
+slug: "large-scale-neuroscience"
+course: "neuroscience"
+courseChapter: "Neuroscience · Unit 7: Evidence and disease"
+order: 627
+summary: >-
+  Modern neuroscience records thousands of neurons at once, sorts millions of cells into types
+  and traces the wiring of whole volumes of brain. This lesson asks what each of those
+  measurements actually reports: calcium imaging, high-density electrode arrays, transcriptomic
+  atlases and electron-microscopy connectomes. Afterwards you can compute a neuropil-corrected
+  ΔF/F0, count the real sample size in a recording dataset, and say what an atlas or a
+  connectome can and cannot tell you about a circuit.
+hook: "A probe with 960 recording sites does not record 960 neurons. What does it record?"
+
+estMinutes: 26
+objectives:
+  - "Explain what a GCaMP6 signal measures, compute ΔF/F0 with and without neuropil subtraction, and explain why inferring spikes from fluorescence needs calibration against an electrical recording in the same conditions."
+  - "Distinguish recording sites, simultaneously recorded channels and sorted units on a high-density probe such as Neuropixels, and explain why a sorted unit need not be one neuron."
+  - "Describe a recording dataset by units, trials, sessions and animals, compute a pooled and an animal-weighted firing rate, and identify pseudoreplication."
+  - "Explain what a transcriptomic atlas and a synaptic connectome add to recordings, and state the limits of each, including what a single-animal connectome cannot show."
+
+explainer:
+  src: "/explainers/large-scale-neuroscience/explainer.mp4"
+  captions: "/explainers/large-scale-neuroscience/explainer.vtt"
+  poster: "/explainers/large-scale-neuroscience/poster.jpg"
+  title: "Recorded Is Not Counted"
+  durationSec: 168.3
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
+scientists:
+  - name: "Karel Svoboda"
+    contribution: >-
+      With Loren Looger and colleagues at the Janelia Research Campus, engineered the GCaMP6
+      calcium sensors and calibrated them against simultaneous electrical recordings of spikes in
+      mouse visual cortex.
+    profileSourceAnchor: "Chen, Wardill, Sun et al., Nature 499:295–300 (2013); Nakai, Ohkura & Imoto, Nat. Biotechnol. 19:137–141 (2001)."
+    quotes: []
+    story: >-
+      GCaMP was first built in 2001 by Junichi Nakai, Masamichi Ohkura and Keiji Imoto, who
+      joined a circularly permuted green fluorescent protein to calmodulin and M13, a short
+      peptide that calmodulin grips once it has bound calcium. The first version was shown in cultured
+      cells and muscle cells, not yet in a living brain. At Janelia, a team
+      that included Svoboda and Loren Looger mutated the sensor, screened the variants in
+      cultured neurons, and took the best into mouse primary visual cortex. Their 2013 Nature
+      paper described three sensors, GCaMP6s, 6m and 6f, from slow and sensitive to fast. The
+      key test held a glass pipette against a layer 2/3 neuron to record its spikes while the
+      microscope recorded its fluorescence. Under their optimized conditions, GCaMP6s detected
+      99 ± 0.2% of isolated spikes at a 1% false-positive rate, in nine cells. That calibration
+      made it reasonable to image hundreds of identified neurons in behaving mice, and it also
+      set the benchmark that later studies tested under less favourable conditions.
+  - name: "Timothy Harris"
+    contribution: >-
+      Led, with a large team of collaborators, the development of the Neuropixels silicon probe,
+      which records extracellular spikes from hundreds of channels along one thin shank.
+    profileSourceAnchor: "Jun, Steinmetz, Siegle et al., Nature 551:232–236 (2017)."
+    quotes: []
+    story: >-
+      For decades an extracellular recording meant a few wires, each picking up a handful of
+      nearby cells. Silicon probes put many recording sites on one shank, but the wiring needed
+      to read them out limited how many could be used at once. Neuropixels was built with the
+      microelectronics institute imec and a consortium of laboratories that included Harris's
+      group at Janelia, the Allen Institute and University College London. The 2017 paper by
+      James Jun and colleagues described a shank about 10 mm long carrying 960 recording sites,
+      with electronics on the probe base that could address 384 of them at once and digitize the
+      action-potential band at 30 kHz. Two probes in an awake mouse recorded more than 700
+      well-isolated neurons at the same time across five brain structures. The probe made it
+      routine to record many regions in one animal, which surveys such as the Allen Institute's
+      visual-coding study then used to sample six cortical and two thalamic visual areas.
+  - name: "Hongkui Zeng"
+    contribution: >-
+      Led, at the Allen Institute for Brain Science, the transcriptomic and spatial atlas of cell
+      types across the whole adult mouse brain.
+    profileSourceAnchor: "Yao, van Velthoven, Kunst et al., Nature 624:317–332 (2023)."
+    quotes: []
+    story: >-
+      A census of cell types asks a plain question: what kinds of cells does a brain contain,
+      and where are they? Zeng's group at the Allen Institute had built such taxonomies first
+      for parts of the mouse cortex, by sequencing the RNA of single cells and grouping cells
+      whose gene expression matched. The 2023 atlas, led by Zizhen Yao with Zeng, scaled the
+      approach to the whole adult mouse brain. The team profiled around seven million cells, of
+      which about four million passed quality control, and sorted them into 5,322 clusters. A
+      second dataset measured a 500-gene panel by MERFISH, an imaging method that reads where
+      each transcript sits in a tissue section, in about 4.3 million cells from one male mouse
+      brain, so clusters could be placed back on the anatomy. The authors cautioned that not
+      every cluster may be a true cell type and that dissociating tissue probably loses some
+      large, fragile neurons. The atlas gave experimenters a shared molecular vocabulary and
+      genetic handles for targeting cells.
+  - name: "H. Sebastian Seung"
+    contribution: >-
+      With Mala Murthy at Princeton, led FlyWire, the proofread reconstruction of the neurons and
+      chemical synapses of the whole brain of one adult female fruit fly from electron-microscope images.
+    profileSourceAnchor: "Dorkenwald, Matsliah, Sterling et al., Nature 634:124–138 (2024); MICrONS Consortium, Nature 640:435–447 (2025)."
+    quotes: []
+    story: >-
+      Seung argued for years that the full wiring diagram of a nervous system, its connectome,
+      was worth measuring and could be computed from electron-microscope images if machines did
+      most of the tracing. FlyWire, which he led with Mala Murthy, applied that idea to an
+      existing serial-section electron-microscopy volume of an adult female Drosophila brain.
+      Automated segmentation proposed the shape of each neuron and the location of each synapse,
+      and a large community of proofreaders corrected the errors online. The 2024 paper by Sven
+      Dorkenwald and colleagues reported 139,255 neurons and 54.5 million chemical synapses among
+      them. It also stated its limits: no electrical synapses, and some connections made of only
+      a few synapses missed. Princeton, where Seung works, also aligned and segmented the electron-microscopy
+      volume for the MICrONS mouse visual-cortex project. The fly connectome let researchers
+      trace pathways from sensory neurons to descending neurons within one brain, and turn each route
+      into a hypothesis to test in living flies.
+
+techniques:
+  - name: "Two-photon calcium imaging"
+    blurb: >-
+      A genetically encoded sensor such as GCaMP is expressed in neurons, and a two-photon laser
+      scans the tissue to measure each cell's fluorescence over time. It reports calcium, which
+      rises after spikes, for hundreds or thousands of identified cells, but spike times must be
+      inferred through a calibrated model.
+  - name: "High-density extracellular recording and spike sorting"
+    blurb: >-
+      A silicon probe such as Neuropixels records voltage from hundreds of sites along a shank.
+      Spike-sorting software detects spikes and groups them into units by waveform and position,
+      giving millisecond timing across many brain regions, with each unit an inference rather
+      than a confirmed single neuron.
+  - name: "Single-cell RNA sequencing and spatial transcriptomics"
+    blurb: >-
+      Dissociated cells are sequenced one by one and clustered by gene expression; an imaging
+      method such as MERFISH then measures a chosen gene panel in intact sections to place the
+      clusters in the anatomy.
+  - name: "Serial-section electron microscopy connectomics"
+    blurb: >-
+      Tissue is cut into thousands of thin sections, each is imaged by electron microscope, and
+      software with human proofreading traces neurons and marks chemical synapses through the
+      stack. The result is a wiring diagram of one piece of tissue from one animal, with no
+      record of activity.
+
+structures:
+  - label: "GCaMP6m — the calcium sensor whose fluorescence is the signal"
+    source: "rcsb"
+    id: "3WLD"
+    note: "Monomeric GCaMP6m with bound calcium, X-ray crystal structure (Ding et al., Sci. China Life Sci., 2014)"
+    caption: >-
+      Find the green fluorescent protein barrel and the calmodulin domain wrapped around the M13
+      peptide. Calcium binding brings these parts together and changes the chromophore's
+      surroundings, which is why the barrel brightens.
+  - label: "Green fluorescent protein — the barrel GCaMP is built on"
+    source: "rcsb"
+    id: "1EMA"
+    note: "Aequorea victoria GFP, X-ray crystal structure (Ormö et al., Science, 1996)"
+    caption: >-
+      Eleven strands form a can with the light-emitting chromophore inside. GCaMP uses a
+      circularly permuted version, with new ends opened near the chromophore so that the sensing
+      domains can change its environment.
+  - label: "Calmodulin bound to the M13 peptide — the sensing half of GCaMP"
+    source: "rcsb"
+    id: "2BBM"
+    note: "Drosophila calmodulin with the M13 peptide from skeletal muscle myosin light-chain kinase, NMR structure (Ikura et al., Science, 1992)"
+    caption: >-
+      With calcium bound, calmodulin's two lobes clamp around the helical M13 peptide. In GCaMP
+      this clamping is what pulls on the fluorescent barrel.
+
+simulations:
+  - type: "local"
+    ref: "NestedSampleCounter"
+    title: "Which n?"
+    caption: >-
+      Switch the level of analysis on an invented nested dataset to see n fall from 24 unit-trials to 2 animals, and copy mouse A's units (hypothetically) to watch the pooled mean drift while the animal mean holds at 3.75.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
+
+practiceQuestions:
+  - stem: "GCaMP6 is built from a circularly permuted green fluorescent protein, calmodulin and the M13 peptide. Which statement describes how it reports activity?"
+    choices:
+      - "Calcium-bound calmodulin grips M13 and the barrel brightens"
+      - "Membrane voltage moves the barrel and alters its brightness"
+      - "Calcium cuts M13 away so that the barrel can fold and glow"
+      - "Calcium enters the barrel and binds the chromophore directly"
+    answer: 0
+    rationale: >-
+      Calcium binds calmodulin, calmodulin then wraps around M13, and the conformational change
+      alters the chromophore's surroundings so fluorescence rises. The chromophore itself is not
+      the calcium-binding site; calmodulin is. GCaMP responds to calcium, not to membrane
+      voltage, which is why its signal follows spikes indirectly and slowly. Nothing is cleaved:
+      the sensor is one folded protein whose brightness changes reversibly.
+  - stem: "A neuron's GCaMP fluorescence is 400 (arbitrary units) at baseline and 520 at the peak of a response. Ignoring neuropil, what is ΔF/F0?"
+    choices:
+      - "1.30, the peak divided by the baseline value"
+      - "0.23, the change divided by the peak value"
+      - "0.30, the change divided by the baseline value"
+      - "120, the raw change in fluorescence units"
+    answer: 2
+    rationale: >-
+      ΔF/F0 = (F − F0)/F0 = (520 − 400)/400 = 0.30, a fractional change with no units. Dividing
+      by the peak gives 120/520 = 0.23, which uses the wrong reference. The ratio 520/400 = 1.30
+      is F/F0, which is one more than ΔF/F0. The raw change of 120 depends on laser power and
+      expression level, which is why it is normalized by the baseline.
+  - stem: "The original Neuropixels probe carried 960 recording sites. How many channels could it record at once, and how is the number of neurons found?"
+    choices:
+      - "384 channels, so exactly 384 neurons for each probe"
+      - "384 channels, with neuron count found by spike sorting"
+      - "960 channels, with one neuron recorded at each site"
+      - "960 channels, so about 700 neurons for each probe"
+    answer: 1
+    rationale: >-
+      The 2017 probe could address 384 of its 960 sites at a time, and units come from spike
+      sorting, which may find more or fewer units than channels because one neuron appears on
+      several sites and one site picks up several neurons. Reading all 960 sites at once
+      overstates the electronics. Equating channels with neurons ignores sorting. The figure of
+      more than 700 well-isolated neurons came from two probes together, not one.
+  - stem: "A study records 300 units from three mice, gives a drug to all three, and tests the drug's effect on firing by treating each unit as an independent replicate (n = 300). What is the main problem?"
+    choices:
+      - "Units in one mouse are not independent of one another"
+      - "Sorted units are never true neurons, so the data are void"
+      - "The effect should first be shown in one unit in one mouse"
+      - "Three hundred units are too few for a statistical test"
+    answer: 0
+    rationale: >-
+      Units recorded in the same animal share its genotype, drug exposure, anaesthesia or state
+      and recording session, so they are dependent observations; treating them as independent is
+      pseudoreplication, and the true replication for a drug effect is three mice. Three hundred
+      would be a large n if the observations were independent, so the number of units is not the
+      issue. Sorting errors make units imperfect but do not void the data. A single unit cannot
+      show that an effect generalizes.
+  - stem: "In the FlyWire connectome, neuron A makes 50 chemical synapses onto neuron B. What does this anatomy, on its own, support?"
+    choices:
+      - "A and B are also joined to each other by gap junctions"
+      - "A drives B strongly every time that A fires a spike"
+      - "A has a chemical path by which it could influence B"
+      - "B fires a few milliseconds after A in the living fly"
+    answer: 2
+    rationale: >-
+      A connectome shows that a chemical synaptic path exists, which makes influence possible.
+      Strength depends on release probability, receptor type and the sign of the transmitter,
+      none of which a synapse count measures (FlyWire predicts transmitter identity from the images, but does not measure it), so strong driving is an assumption. FlyWire did
+      not map electrical synapses, so it cannot say whether gap junctions are present. Spike
+      timing is activity, and a connectome records no activity.
+
+mcatQuestions:
+  - stem: "In mouse visual cortex imaged with GCaMP6s, a researcher draws a region around a soma that reads 400 at baseline and 500 at the peak (arbitrary units). The ring of neuropil around it reads 250 at baseline and 300 at the peak. Using a neuropil factor r = 0.8, what is the corrected ΔF/F0?"
+    choices:
+      - "0.50, from using baseline neuropil at both times"
+      - "0.33, from subtracting the whole neuropil signal"
+      - "0.25, from the soma trace without any correction"
+      - "0.30, from subtracting 0.8 of the neuropil signal"
+    answer: 3
+    rationale: >-
+      Corrected F0 = 400 − 0.8 × 250 = 200 and corrected F = 500 − 0.8 × 300 = 260, so ΔF/F0 =
+      60/200 = 0.30. The uncorrected value, 100/400 = 0.25, lets the neuropil baseline inflate
+      F0. Subtracting all of the neuropil (r = 1) gives F0 = 150 and F = 200, so 50/150 = 0.33,
+      which assumes every neuropil photon reaches the soma region. Subtracting the baseline
+      neuropil at the peak too gives 300 − 200 over 200 = 0.50, which ignores that the neuropil
+      also brightened during the response.
+  - stem: "A lab records GCaMP6s fluorescence and cell-attached spikes at the same time from layer 2/3 neurons in mouse primary visual cortex. Imaged at high magnification and a high frame rate, a detector tuned to each neuron finds most isolated spikes at a 1% false-positive rate. When the same movies are downsampled to mimic a wide field of view at 30 frames per second, the same detector finds only a minority (about 16 to 43%, depending on the mouse line) at the same false-positive rate. What best explains the drop?"
+    choices:
+      - "Downsampling deleted spikes from the electrical spike record"
+      - "GCaMP6s stops binding calcium when frames come more slowly"
+      - "The neurons fired fewer spikes during the wide-field movies"
+      - "Fewer photons per cell hide single-spike transients in noise"
+    answer: 3
+    rationale: >-
+      A wider field spreads the same imaging time over more pixels, so each cell contributes
+      fewer photons and the small transient from one spike falls below the noise; this is the
+      interpretation Huang and colleagues gave for a result of this kind. The electrical record
+      is the unchanged ground truth, so no spikes were removed from it. Sensor chemistry does not
+      depend on how often the microscope samples. The movies are the same recordings degraded
+      after the fact, so the neurons fired the same spikes.
+  - stem: "In a made-up probe dataset, one session in mouse A yields three units firing 10, 10 and 10 spikes/s to a stimulus, and one session in mouse B yields one unit firing 2 spikes/s. A reviewer asks for a firing rate that weights each mouse equally, and for the sample size that supports a claim about mice in general."
+    choices:
+      - "8 spikes/s, with n = 2 mice"
+      - "6 spikes/s, with n = 2 mice"
+      - "6 spikes/s, with n = 4 units"
+      - "8 spikes/s, with n = 4 units"
+    answer: 1
+    rationale: >-
+      Mouse A averages 10 spikes/s and mouse B 2 spikes/s, so the animal-weighted mean is (10 +
+      2)/2 = 6 spikes/s, and a claim about mice rests on two mice. The pooled mean, 32/4 = 8
+      spikes/s, lets mouse A count three times because it gave more units. Pairing 6 spikes/s
+      with four units gets the mean right but counts dependent units as replicates. Pairing 8
+      spikes/s with two mice uses the right n but the unit-weighted mean the reviewer did not ask
+      for.
+
+explainLevels:
+  - level: "eli5"
+    label: "Like I'm five"
+    text: >-
+      Brain cells talk with tiny electric blips. Scientists can make the cells glow a little
+      brighter after each blip, or put a very thin needle full of tiny microphones into the
+      brain to hear thousands of cells at once. They can also make a giant list of all the kinds
+      of cells, and a map of which cells are wired to which. Each tool sees only part of the
+      story, so scientists put them together.
+  - level: "highschool"
+    label: "High school"
+    text: >-
+      Neuroscientists now record from many neurons at once. In calcium imaging, neurons make a
+      protein called GCaMP that glows brighter when calcium rises after a spike, and a microscope
+      films hundreds of cells. Electrode probes such as Neuropixels have hundreds of recording
+      sites along one thin shaft and catch spikes with millisecond timing. Cell atlases sort
+      millions of cells into types by the genes they use, and connectomes trace the synapses in
+      a piece of brain from electron-microscope images. Glow is not the same as a spike, a
+      recorded unit may not be one cell, a cluster may not be a real type, and a wiring map does
+      not show activity. Many cells from one animal still count as one animal.
+  - level: "college"
+    label: "College"
+    text: >-
+      GCaMP6 combines a circularly permuted GFP with calmodulin and the M13 peptide, so calcium
+      binding raises fluorescence. Activity is reported as ΔF/F0, usually after subtracting a
+      scaled neuropil signal (Huang and colleagues used r = 0.8 by default). Spike inference
+      needs calibration against cell-attached recordings: GCaMP6s detected 99% of isolated
+      spikes in optimized high-magnification recordings in mouse V1 (Chen 2013, nine cells),
+      but only a minority of single spikes under population-like conditions (about 16 to 43% with a tuned detector, often under 10% with blind inference; Huang 2021). Neuropixels probes
+      address 384 of 960 sites and sort spikes into units that may merge or split neurons. Units
+      and trials are nested in sessions and animals, and counting them as independent is
+      pseudoreplication. Atlases such as Yao 2023 (5,322 clusters) and connectomes such as
+      FlyWire (139,255 neurons, 54.5 million synapses) add cell identity and anatomy, not
+      activity or physiological strength.
+  - level: "grad"
+    label: "Graduate"
+    text: >-
+      Each large-scale method reports a transformed variable. Fluorescence is a nonlinear,
+      cell-specific and slow function of spiking: the action-potential-to-fluorescence transfer
+      differs between neurons, and photon budget, which falls as the field of view grows, sets
+      single-spike sensitivity. jGCaMP8 sensors are more linear than earlier GCaMPs, but no
+      generation removes the need for ground truth. Extracellular units carry sorting error,
+      and their yield depends on probe placement and quality metrics. Statistical inference
+      needs an estimand stated at the right level of the hierarchy (unit, session or animal)
+      and a model, such as subject-level summaries or mixed-effects models, that respects it.
+
+
+      Atlases and connectomes constrain hypotheses rather than test them. Transcriptomic
+      clusters depend on sampling and clustering choices, and dissociation biases recovery
+      against large neurons. A connectome is one animal at one time, with chemical synapses and
+      synapse counts, not weights, signs at every site or neuromodulatory influence. MICrONS
+      co-registered calcium imaging of around 75,000 neurons with an electron-microscopy
+      reconstruction of the same mouse visual cortex, joining function and structure in one
+      animal. An open question is how far structure predicts function: how well synapse counts
+      and connectivity rules, measured in one brain, predict the responses or the effects of
+      perturbing a circuit in another.
+
+anecdotes:
+  - title: "The cubic millimetre Crick thought impossible"
+    source: "Crick, Scientific American 241(3) (1979); MICrONS Consortium, Nature 640:435–447 (2025)."
+    text: >-
+      In 1979 Francis Crick wrote that it was no use asking for the impossible, and gave as his
+      example the exact wiring diagram of a cubic millimetre of brain together with the firing
+      of all its neurons. The MICrONS Consortium opened its 2025 paper with that sentence. Its
+      data came from one mouse: calcium imaging of visual cortex at Baylor College of Medicine,
+      then sectioning and electron microscopy of the same tissue at the Allen Institute over
+      about six months, then alignment and segmentation at Princeton. The reconstructed volume
+      was close to the cubic millimetre Crick named.
+  - title: "The same movie, made worse on purpose"
+    source: "Huang, Ledochowitsch, Knoblich et al., eLife 10:e51675 (2021)."
+    text: >-
+      To ask how well population imaging detects single spikes, Huang and colleagues
+      at the Allen Institute recorded cell-attached spikes and GCaMP6 fluorescence together in
+      transgenic mice, keeping 48 neurons in the final set. They first imaged a small field
+      centred on each soma at about 158 frames per second. Then they downsampled those movies
+      to mimic a 412 by 412 µm field at 30.3 frames per second, the kind used to image many cells
+      at once. With the spikes held fixed, a detector tuned to each neuron's known spike times caught only
+      about 16 to 43% of single spikes, and standard blind spike inference often caught fewer than
+      10%, with only a modest extra loss from the downsampling.
+
+corpusTags:
+  - "calcium-imaging"
+  - "gcamp"
+  - "neuropixels"
+  - "spike-sorting"
+  - "pseudoreplication"
+  - "cell-atlas"
+  - "connectome"
+  - "flywire"
+  - "microns"
+draft: false
+---
+
+import NestedSampleCounter from '../../../components/NestedSampleCounter.astro';
+
+**In one awake mouse, the MICrONS Consortium recorded calcium signals from around 75,000 neurons in visual cortex, then reconstructed the same tissue by electron microscopy: more than 200,000 cells and half a billion synapses.**
+
+That is a long way from one electrode in one cell. But every number in that sentence is a measurement of something other than what you might assume. A calcium signal is not a spike, a sorted unit is not certainly a neuron, 75,000 neurons are not 75,000 replicates, and a synapse in an electron micrograph is not a strength. This lesson takes each large-scale method in turn and asks what it actually reports.
+
+## A calcium signal is light that follows spikes at a distance
+
+When a neuron fires an [action potential](/lessons/action-potential/), voltage-gated calcium channels open and calcium in the cell body rises for a while after the spike. A genetically encoded sensor turns that rise into light. GCaMP is one protein made of three parts: a circularly permuted green fluorescent protein, whose ends have been reopened near the light-emitting chromophore; calmodulin, the calcium-binding protein you met in [calcium signaling](/lessons/calcium-signaling/); and M13, a short peptide that calmodulin grips once it has bound calcium. Calcium binding changes the conformation, and the barrel brightens. How the sensor is delivered, by virus or by a transgenic mouse line, belongs to [hacking the cell](/lessons/hacking-the-cell/), and how a two-photon microscope collects the light belongs to [microscopy and images](/lessons/microscopy-and-images/).
+
+So the signal is three steps from a spike: spike, calcium, fluorescence. Think of it as reading a kettle's steam to infer when the stove was switched on. Activity is reported as a fractional change from baseline:
+
+> **ΔF/F0 = (F − F0) / F0**
+
+There is a catch. Around each cell body lies **neuropil**, the dense tangle of axons, dendrites and glial processes, which also glows. Light from it leaks into any region you draw around a soma. The usual fix subtracts a scaled copy of the surrounding signal:
+
+> **F_corrected = F_soma − r × F_neuropil**
+
+**Worked problem.** These numbers are invented for practice. A soma region reads 500 at baseline and 620 at the peak (arbitrary units). The ring of neuropil around it reads 300 and 330.
+
+*Step 1: no correction.* ΔF/F0 = (620 − 500)/500 = 120/500 = 0.24.
+
+*Step 2: subtract neuropil.* Take r = 0.8, the default that Huang and colleagues (2021) used in mouse visual cortex. It is not a universal constant; they adjusted it for some cells. Then F0 = 500 − 0.8 × 300 = 500 − 240 = 260, and F = 620 − 0.8 × 330 = 620 − 264 = 356.
+
+*Step 3: recompute.* ΔF/F0 = (356 − 260)/260 = 96/260 = 0.37.
+
+The correction raised the response by half, because the dim neuropil had been inflating the baseline. Assumptions: r is the same at baseline and peak, and the neuropil ring samples the same contaminating light as the soma.
+
+How many spikes does a ΔF/F0 mean? Only a calibration against an electrical recording in the same conditions can say. Chen and colleagues (2013) recorded spikes with a loose-seal **cell-attached** pipette, which sits on the outside of one neuron and records its spikes without breaking in, while imaging the same cell. In layer 2/3 pyramidal neurons of mouse primary visual cortex, with virally expressed GCaMP6s and high-magnification imaging, they detected 99 ± 0.2% of isolated spikes at a 1% false-positive rate, in nine cells. Huang and colleagues (2021) did the same in transgenic GCaMP6s and GCaMP6f mice, then downsampled their movies to mimic population imaging. A detector tuned to each neuron's known spike times then caught only about 16 to 43% of single spikes on average, depending on the mouse line, and standard blind spike inference often caught fewer than 10%, even before downsampling. Downsampling mimics a larger field of view, which spreads the same imaging time over more pixels and so collects fewer photons from each neuron. The spike-to-fluorescence relation also differs from one neuron to the next. GCaMP6s decays slowly, the fast GCaMP6 variants trade sensitivity for speed, and the jGCaMP8 sensors (Zhang and colleagues, 2023) respond more linearly than earlier GCaMPs. None of them reports voltage, and a flat trace does not prove a silent cell.
+
+## Listening to many neurons: sites, channels and units
+
+An **extracellular** electrode sits outside cells and picks up the small voltage changes that nearby spikes cause in the surrounding fluid, unlike the intracellular recordings in [the resting membrane and passive signals](/lessons/resting-membrane-passive/). It loses the membrane potential but keeps millisecond timing.
+
+The original Neuropixels probe (Jun and colleagues, 2017) carried 960 recording sites on one shank but could address 384 of them at a time, and it digitized the action-potential band at 30 kHz, 30,000 voltage samples per second. That is a sampling rate, not a firing rate. With two probes in an awake mouse the team recorded more than 700 well-isolated neurons at once across five brain structures.
+
+Neurons are not read off sites. **Spike sorting** software detects spikes and groups them into **units** by the shape of each spike and the sites where it appears. One neuron shows up on several neighbouring sites; one site hears several neurons. A unit can merge two neurons or split one, and the Allen Institute's documentation for its Neuropixels survey warns that spikes from different neurons can be mixed in one unit, and it does not separate single-unit from multi-unit activity. Treat each unit as an inference with quality scores.
+
+The two methods trade against each other. Imaging tells you which cell, where, and often its genetic type, but it is slow and indirect. Probes give spike timing across many regions, as in the Allen survey of six cortical and two thalamic visual areas in mice (Siegle and colleagues, 2021), but the identity of each unit is uncertain. The codes these populations carry are the subject of [sensory coding](/lessons/sensory-coding/) and [the visual cortex](/lessons/visual-cortex/).
+
+## How many samples do you really have?
+
+Large datasets are nested: trials within units, units within sessions, sessions within animals. Observations inside one level share its conditions, so they are not independent. Counting them as if they were is **pseudoreplication** (Lazic, 2010). Lazic described averaging within each subject as one way to keep subjects as the units of analysis; hierarchical (mixed-effects) models are another.
+
+**Worked problem.** This dataset is invented. Two mice, A and B, each have two sessions. In each session the same stimulus is shown four times, and spikes are counted in a 0.25 s window per presentation. Each unit appears in one session only.
+
+- Mouse A, session 1: U1 (1, 2, 3, 2) and U2 (0, 0, 1, 1)
+- Mouse A, session 2: U3 (1, 1, 1, 1) and U4 (2, 2, 2, 2)
+- Mouse B, session 3: U5 (0, 1, 0, 1)
+- Mouse B, session 4: U6 (1, 0, 1, 0)
+
+*Step 1: count.* 6 units, 4 sessions, 2 animals, 6 × 4 = 24 unit-trials, but only 4 × 4 = 16 stimulus presentations, because units recorded together share the same presentations.
+
+*Step 2: rates.* Each unit is watched for 4 × 0.25 s = 1 s. U1 fired 1 + 2 + 3 + 2 = 8 spikes, so 8 spikes/s. The six rates are 8, 2, 4, 8, 2 and 2 spikes/s.
+
+*Step 3: pooled rate.* 26 spikes over 6 unit-seconds = 4.33 spikes/s.
+
+*Step 4: weight each animal equally.* Session 1 averages (8 + 2)/2 = 5 and session 2 averages (4 + 8)/2 = 6, so mouse A = 5.5 spikes/s. Sessions 3 and 4 each give 2, so mouse B = 2 spikes/s. The animal mean is (5.5 + 2)/2 = 3.75 spikes/s.
+
+The pooled rate is higher because mouse A supplied twice the units. For a claim about mice, n = 2, not 24. Report the hierarchy (animals, sessions, units, trials) and say which level your question is about.
+
+<NestedSampleCounter />
+
+## Atlases and connectomes: parts lists and wiring diagrams
+
+A **transcriptomic atlas** sorts cells by the RNA they express. Yao, Zeng and colleagues (2023) profiled around seven million cells from the adult mouse brain; about four million passed quality control and fell into 5,322 clusters. A spatial dataset of about 4.3 million cells, measured by MERFISH with a 500-gene panel in one male mouse brain, placed the clusters in the anatomy, and transcriptomic identity and location matched to a high degree. The sequencing itself is taught in [sequencing and genomes](/lessons/sequencing-and-genomes/). The authors cautioned that not every cluster may be a true cell type, and that dissociation probably depletes large, fragile neurons. A cluster is a molecular category, not a measured function.
+
+A **connectome** is a synapse-by-synapse wiring diagram. FlyWire (Dorkenwald and colleagues, 2024) reconstructed 139,255 neurons and 54.5 million chemical synapses from serial-section electron micrographs of one adult female Drosophila brain. A connection from neuron A to B is the set of A's synapses onto B. Electrical synapses are absent, and some connections of only a few synapses were missed. Some models built on it assume that strength is proportional to synapse count; that is an assumption, not a measurement.
+
+MICrONS (2025) joined function and structure in one animal: calcium imaging of excitatory neurons expressing GCaMP6s across primary and higher visual areas of one mouse, then an electron-microscopy reconstruction of the same volume. Responses and wiring can be compared cell by cell, but still in one mouse and one cubic millimetre.
+
+## What none shows alone
+
+Each method answers a different question. Imaging says which cells changed their calcium; probes say when units spiked; atlases say what molecular kinds of cells exist and where; connectomes say who could talk to whom. None is human, none is a complete brain map with activity and strengths, and none shows that a pathway is needed for a behaviour. That takes a manipulation, the subject of [designing a circuit experiment](/lessons/circuit-experiment-design/).
+
+### Design problem
+
+A lab images 400 neurons in mouse V1 in three mice with GCaMP6s at 30 frames per second over a wide field of view. It reports that 60% of the neurons "did not fire" to a visual stimulus, and cites the connectome of a different mouse showing few thalamic synapses onto those cell types. Critique the claims and redesign the study.
+
+<details>
+<summary>One way to do it</summary>
+
+*The imaging claim.* No fluorescence change is not the same as no spikes. Under wide-field, population-like conditions, single-spike detection with GCaMP6 was only a minority in Huang's calibration, often under 10% with blind spike inference. Calibrate in this preparation: record cell-attached spikes from a sample of neurons while imaging at the same field of view and frame rate, and report detection and false-positive rates. Or record the same area with a Neuropixels probe, which catches sparse spikes with millisecond timing.
+
+*The statistics.* The 400 neurons come from three mice, so n = 3 for any claim about mice. Report the fraction per mouse and add animals.
+
+*The anatomy.* The connectome is from one other animal, contains chemical synapses only, and counts synapses rather than measuring strength. Few synapses do not mean weak drive. Either register function and structure in the same tissue, imaging first and reconstructing afterward as MICrONS did, or test the input directly: stimulate the thalamic afferents, for example optogenetically, and record the V1 neurons' responses with calibrated imaging or a probe.
+
+</details>

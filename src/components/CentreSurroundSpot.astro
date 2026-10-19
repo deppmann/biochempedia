@@ -1,0 +1,185 @@
+---
+/**
+ * CentreSurroundSpot — a ganglion cell's centre-surround receptive field as a sketch.
+ * Rate = 20 + 40 × (fraction of centre area covered) − 15 × (fraction of surround area
+ * covered), the retina lesson's worked problem (20 spikes/s background, 60 for a spot on
+ * the centre, 5 for the surround alone) with area weighting as the sketch's assumption.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cs card" data-centresurround data-rate="20">
+  <figcaption class="cs-head">Centre and surround — one ganglion cell’s receptive field<span class="cs-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cs-svg" viewBox="0 0 340 230" role="img" aria-label="A receptive field drawn as a centre disc and a surround ring on grey, with a stimulus overlaid, beside a bar for the firing rate against the 20 spikes per second background" data-plot></svg>
+
+  <div class="cs-controls">
+    <fieldset class="cs-fs">
+      <legend>Cell type</legend>
+      <label><input type="radio" name="cs-cell" value="on" checked /> ON-centre (light stimuli)</label>
+      <label><input type="radio" name="cs-cell" value="off" /> OFF-centre (dark stimuli)</label>
+    </fieldset>
+    <fieldset class="cs-fs">
+      <legend>Stimulus shape</legend>
+      <label><input type="radio" name="cs-shape" value="spot" checked /> Spot (from the middle out to the radius)</label>
+      <label><input type="radio" name="cs-shape" value="annulus" /> Annulus (from the inner radius out to 2)</label>
+    </fieldset>
+    <label class="cs-slabel"><span data-lbl>Spot radius <em data-out="r">0.00</em> <small>(centre edge = 1, surround edge = 2)</small></span>
+      <input type="range" data-in="r" min="0" max="2" step="0.05" value="0" />
+    </label>
+  </div>
+
+  <dl class="cs-readout">
+    <div><dt>Centre covered</dt><dd data-r-c>0%</dd></div>
+    <div><dt>Surround covered</dt><dd data-r-s>0%</dd></div>
+    <div class="cs-wide"><dt>Rate in this sketch (made-up units)</dt><dd data-r-eq>20 + 40 × 0.00 − 15 × 0.00 = 20.0 spikes/s</dd></div>
+  </dl>
+  <p class="cs-why" data-why role="status"></p>
+  <p class="cs-assume">In this sketch: made-up rates, centre and surround effects add linearly, each scaled by the fraction of its area covered (an assumption of the sketch; the lesson gives only the fully covered values), OFF values mirrored. Radii are in arbitrary units and each region is weighted uniformly.</p>
+
+  <p class="cs-foot">The rule to keep: the centre and surround push in opposite directions and add, so a spot that fills only the centre drives the cell hardest, while light covering both drives it less. The cell reports contrast more than light level. Rates are made up, the sketch is not to scale.</p>
+</figure>
+
+<script>
+  (function () {
+    var NS = 'http://www.w3.org/2000/svg';
+    var ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+    var BASE = 20, GC = 40, GS = -15;
+    function el(name: string, attrs: Record<string, string | number>): SVGElement {
+      var e = document.createElementNS(NS, name);
+      for (var k in attrs) e.setAttribute(k, String(attrs[k]));
+      return e as SVGElement;
+    }
+    function pct(x: number) { return (x > 0 && x < 0.005) ? 'under 1%' : Math.round(x * 100) + '%'; }
+    function txt(attrs: Record<string, string | number>, s: string) { var t = el('text', attrs); t.textContent = s; return t; }
+    // fractions of the centre (radius 0 to 1) and surround (radius 1 to 2) areas covered
+    function fractions(shape: string, r: number) {
+      var cf, sf;
+      if (shape === 'spot') {
+        cf = Math.pow(Math.min(r, 1), 2);
+        sf = Math.max(0, Math.pow(Math.min(r, 2), 2) - 1) / 3;
+      } else {
+        cf = 1 - Math.pow(Math.min(r, 1), 2);
+        sf = (4 - Math.pow(Math.max(r, 1), 2)) / 3;
+      }
+      return { cf: cf, sf: sf };
+    }
+    document.querySelectorAll<HTMLElement>('[data-centresurround]').forEach(function (root: HTMLElement) {
+      var plot = root.querySelector('[data-plot]') as SVGSVGElement;
+      var rIn = root.querySelector('[data-in="r"]') as HTMLInputElement;
+      var rOut = root.querySelector('[data-out="r"]') as HTMLElement;
+      var lbl = root.querySelector('[data-lbl]') as HTMLElement;
+      var rc = root.querySelector('[data-r-c]') as HTMLElement, rs = root.querySelector('[data-r-s]') as HTMLElement;
+      var req = root.querySelector('[data-r-eq]') as HTMLElement, why = root.querySelector('[data-why]') as HTMLElement;
+      var cellRadios = root.querySelectorAll<HTMLInputElement>('input[name="cs-cell"]');
+      var shapeRadios = root.querySelectorAll<HTMLInputElement>('input[name="cs-shape"]');
+      function val(list: NodeListOf<HTMLInputElement>) { var v = 'on'; list.forEach(function (x: HTMLInputElement) { if (x.checked) v = x.value; }); return v; }
+
+      var CX = 92, CY = 100, U = 40;            // field centre and pixels per unit radius
+      var BY0 = 190, BY1 = 28, RMAX = 70;       // bar axis: y for 0 and for RMAX
+      function by(v: number) { return BY0 - (v / RMAX) * (BY0 - BY1); }
+
+      function render() {
+        var cell = val(cellRadios), shape = val(shapeRadios);
+        var r = Math.round(parseFloat(rIn.value) * 100) / 100;
+        var f = fractions(shape, r);
+        var rate = BASE + GC * f.cf + GS * f.sf;
+        var dark = cell === 'off';
+        var stimFill = dark ? '#1f1f24' : '#fff8d6';
+        var stimWord = dark ? 'dark' : 'light';
+        root.setAttribute('data-rate', rate.toFixed(2));
+        rOut.textContent = r.toFixed(2);
+        lbl.firstChild!.textContent = shape === 'spot' ? 'Spot radius ' : 'Annulus inner radius ';
+        rc.textContent = pct(f.cf);
+        rs.textContent = pct(f.sf);
+        req.textContent = '20 + 40 × ' + f.cf.toFixed(2) + ' − 15 × ' + f.sf.toFixed(2) + ' = ' + rate.toFixed(1) + ' spikes/s';
+
+        plot.replaceChildren();
+        // grey ground
+        plot.appendChild(el('rect', { x: 4, y: 12, width: 176, height: 176, fill: '#9a9aa2', stroke: FAINT, 'stroke-width': 1 }));
+        // stimulus
+        var rr = Math.max(0, Math.min(r, 2));
+        if (shape === 'spot') {
+          if (rr > 0) plot.appendChild(el('circle', { cx: CX, cy: CY, r: rr * U, fill: stimFill }));
+        } else if (rr < 2) {
+          var ro = 2 * U, ri = rr * U;
+          var d = 'M' + (CX - ro) + ' ' + CY + 'a' + ro + ' ' + ro + ' 0 1 0 ' + (2 * ro) + ' 0a' + ro + ' ' + ro + ' 0 1 0 ' + (-2 * ro) + ' 0Z';
+          if (ri > 0) d += 'M' + (CX - ri) + ' ' + CY + 'a' + ri + ' ' + ri + ' 0 1 0 ' + (2 * ri) + ' 0a' + ri + ' ' + ri + ' 0 1 0 ' + (-2 * ri) + ' 0Z';
+          plot.appendChild(el('path', { d: d, 'fill-rule': 'evenodd', fill: stimFill }));
+        }
+        // receptive field outlines: centre (orange) and surround edge (teal)
+        plot.appendChild(el('circle', { cx: CX, cy: CY, r: U, fill: 'none', stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+        plot.appendChild(el('circle', { cx: CX, cy: CY, r: 2 * U, fill: 'none', stroke: ACCENT, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+        // legend under the field
+        plot.appendChild(el('line', { x1: 8, y1: 202, x2: 24, y2: 202, stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+        plot.appendChild(txt({ x: 28, y: 205, 'font-size': 9, fill: INK }, 'centre (radius 0 to 1)'));
+        plot.appendChild(el('line', { x1: 8, y1: 216, x2: 24, y2: 216, stroke: ACCENT, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+        plot.appendChild(txt({ x: 28, y: 219, 'font-size': 9, fill: INK }, 'surround (radius 1 to 2)'));
+        plot.appendChild(txt({ x: 120, y: 205, 'font-size': 9, fill: INK }, 'stimulus: ' + stimWord));
+
+        // rate bar
+        plot.appendChild(txt({ x: 206, y: 14, 'font-size': 10, fill: INK }, 'firing rate (spikes/s)'));
+        plot.appendChild(el('line', { x1: 216, y1: by(0), x2: 216, y2: by(RMAX), stroke: INK, 'stroke-width': 1 }));
+        [0, 20, 40, 60].forEach(function (v: number) {
+          plot.appendChild(el('line', { x1: 213, y1: by(v), x2: 216, y2: by(v), stroke: INK, 'stroke-width': 1 }));
+          plot.appendChild(txt({ x: 210, y: by(v) + 3, 'text-anchor': 'end', 'font-size': 9, fill: INK }, String(v)));
+        });
+        var up = rate >= BASE;
+        var top = Math.min(by(rate), by(BASE)), h = Math.abs(by(rate) - by(BASE));
+        // bar from 0 to the rate, with the part beyond/below background tinted
+        plot.appendChild(el('rect', { x: 224, y: by(rate), width: 36, height: by(0) - by(rate), fill: up ? ACCENT : ORANGE, opacity: 0.85 }));
+        if (h > 0.5) plot.appendChild(el('rect', { x: 224, y: top, width: 36, height: h, fill: 'none', stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+        plot.appendChild(el('line', { x1: 216, y1: by(BASE), x2: 330, y2: by(BASE), stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+        plot.appendChild(txt({ x: 268, y: by(BASE) - 4, 'font-size': 9, fill: INK }, 'background 20'));
+        plot.appendChild(txt({ x: 242, y: by(rate) - 4 - (Math.abs(rate - BASE) < 3 ? 14 : 0), 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: INK }, rate.toFixed(1)));
+
+        // status
+        var who = dark ? 'OFF-centre cell with dark stimuli (the mirror image of the ON-centre cell)' : 'ON-centre cell with light stimuli';
+        var s;
+        var cOn = f.cf > 0.0001, sOn = f.sf > 0.0001;
+        var full = f.cf > 0.9999 && f.sf > 0.9999;
+        if (!cOn && !sOn) {
+          s = 'Nothing covers the field, so this ' + who + ' sits at its background rate of 20 spikes/s.';
+        } else if (full) {
+          s = 'The ' + stimWord + ' stimulus covers centre and surround: 20 + 40 − 15 = 45 spikes/s, less than the 60 for a spot on the centre alone. The cell reports contrast more than light level.';
+        } else if (cOn && !sOn) {
+          s = 'The ' + stimWord + ' stimulus covers ' + pct(f.cf) + ' of the centre and none of the surround: the centre effect of +40 is scaled by the area covered in this sketch' + (f.cf > 0.9999 ? ', 60 spikes/s for a spot filling the centre.' : '.');
+        } else if (!cOn && sOn) {
+          s = 'The ' + stimWord + ' stimulus covers ' + pct(f.sf) + ' of the surround and none of the centre: the surround effect of −15 is scaled by the area covered in this sketch' + (f.sf > 0.9999 ? ', 5 spikes/s for the surround alone.' : '.');
+        } else {
+          s = 'The ' + stimWord + ' stimulus covers ' + pct(f.cf) + ' of the centre (+40, scaled in this sketch) and ' + pct(f.sf) + ' of the surround (−15, scaled in this sketch), and the two add: ' + rate.toFixed(1) + ' spikes/s.' + (rate < 60 && f.cf > 0.9999 ? ' Spreading into the surround pulls the rate below the spot’s 60.' : '');
+        }
+        s += ' The centre comes from the bipolar cells directly beneath; the surround comes from lateral cells, horizontal-cell feedback (how it works in each species is still unsettled) and amacrine cells in the inner retina.';
+        why.textContent = s;
+      }
+      rIn.addEventListener('input', render);
+      cellRadios.forEach(function (x: HTMLInputElement) { x.addEventListener('change', render); });
+      shapeRadios.forEach(function (x: HTMLInputElement) { x.addEventListener('change', render); });
+      render();
+    });
+  })();
+</script>
+
+<style is:global>
+  .cs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cs-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cs-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cs-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.3rem 0.6rem; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .cs-fs legend { padding: 0 0.3rem; font-weight: 600; }
+  .cs-fs input { accent-color: var(--ddp-color-accent); }
+  .cs-slabel { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cs-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .cs-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cs-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .cs-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cs-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .cs-readout .cs-wide { grid-column: 1 / -1; }
+  .cs-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cs-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .cs-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .cs-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .cs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .cs-controls { grid-template-columns: 1fr; } }
+</style>

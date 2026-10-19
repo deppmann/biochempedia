@@ -1,0 +1,325 @@
+---
+/**
+ * SquidSpikeConductances — the 1952 Hodgkin–Huxley equations run for one isopotential patch of
+ * squid giant-axon membrane (rates for 6.3 °C). A computed membrane-potential trace, labelled as
+ * a model and not a recording, with g_Na and g_K traces beneath. Controls: stimulus pulse,
+ * a second pulse at an interval, g_Na remaining (as with tetrodotoxin) and g_K remaining (as with
+ * TEA). Every status sentence is a statement the lesson makes; every number shown is computed by
+ * the sketch itself. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ssc card" data-ssc>
+  <figcaption class="ssc-head">Squid axon spike — membrane potential and conductances<span class="ssc-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="ssc-assume">In this sketch: one isopotential patch of squid giant-axon membrane, no propagation, 1952 Hodgkin–Huxley equations at 6.3 °C (g<sub>Na,max</sub> 120, g<sub>K,max</sub> 36, leak 0.3 mS/cm², C<sub>m</sub> 1 µF/cm², E<sub>Na</sub> +50 mV, E<sub>K</sub> −77 mV, rest −65 mV). The leak reversal is set in each run so that rest sits at −65 mV. A blocker is modelled as a smaller g<sub>max</sub>. Outward current is positive (the 1952 papers used the opposite sign). There is no Na⁺/K⁺ pump. The 1 ms pulse shape, the 5 ms onset and the 30 µA/cm² range are this sketch’s own choices, not from the lesson.</p>
+
+  <ul class="ssc-legend" aria-label="Legend">
+    <li><span class="ssc-sw" style="background:#0e7c86"></span>V<sub>m</sub> (computed)</li>
+    <li><span class="ssc-sw" style="background:#e57200"></span>g<sub>Na</sub></li>
+    <li><span class="ssc-sw" style="background:#7a3fa0"></span>g<sub>K</sub></li>
+    <li><span class="ssc-sw ssc-sw-dash"></span>same stimulus, no blocker (shown when a blocker is set)</li>
+  </ul>
+
+  <svg class="ssc-svg" viewBox="0 0 340 294" role="img" aria-label="A computed membrane potential trace above computed sodium and potassium conductance traces, from a Hodgkin-Huxley model of squid axon membrane" data-plot></svg>
+
+  <div class="ssc-controls">
+    <label class="ssc-slabel"><span>Stimulus pulse, 1 ms: <em data-out="amp">12</em> µA/cm²</span>
+      <input type="range" data-in="amp" min="0" max="30" step="0.5" value="12" />
+    </label>
+    <label class="ssc-slabel"><span>Second pulse, same size, onset <em data-out="iv">off</em> after the first <small>(leftmost = off)</small></span>
+      <input type="range" data-in="iv" min="1" max="40" step="1" value="1" />
+    </label>
+    <label class="ssc-slabel"><span>g<sub>Na</sub> remaining (as with tetrodotoxin): <em data-out="ttx">100</em>%</span>
+      <input type="range" data-in="ttx" min="0" max="100" step="5" value="100" />
+    </label>
+    <label class="ssc-slabel"><span>g<sub>K</sub> remaining (as with TEA): <em data-out="tea">100</em>%</span>
+      <input type="range" data-in="tea" min="10" max="100" step="5" value="100" />
+    </label>
+  </div>
+
+  <dl class="ssc-readout">
+    <div><dt>Peak V<sub>m</sub> (model)</dt><dd data-r="peak">—</dd></div>
+    <div><dt>Lowest V<sub>m</sub> after the spike (model)</dt><dd data-r="low">—</dd></div>
+    <div><dt>Smallest 1 ms pulse that fires from rest (model)</dt><dd data-r="thr">—</dd></div>
+    <div><dt>Smallest second pulse that fires at this interval (model)</dt><dd data-r="thr2">—</dd></div>
+    <div><dt>Time above 0 mV (model) · no blocker, same stimulus</dt><dd data-r="width">—</dd></div>
+  </dl>
+
+  <p class="ssc-why" data-why role="status"></p>
+
+  <p class="ssc-foot">Rule to keep: in this sketch one isopotential patch, no propagation, squid values at 6.3 °C. The equations describe conductances, not how a gate works: m, h and n are formal variables, not proteins.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', PURPLE = '#7a3fa0', INK = '#4b4b55', FAINT = '#b9b9c2';
+
+  // ---- the 1952 Hodgkin–Huxley equations, modern sign convention (Vm = inside − outside, outward +) ----
+  const GNA = 120, GK = 36, GL = 0.3, ENA = 50, EK = -77, VR = -65; // mS/cm², mV
+  const T_END = 60, T0 = 5, DT = 0.02, STRIDE = 2; // ms
+  const ex = Math.exp;
+  const an = (V: number) => (Math.abs(V + 55) < 1e-6 ? 0.1 : (0.01 * (V + 55)) / (1 - ex(-(V + 55) / 10)));
+  const bn = (V: number) => 0.125 * ex(-(V + 65) / 80);
+  const am = (V: number) => (Math.abs(V + 40) < 1e-6 ? 1 : (0.1 * (V + 40)) / (1 - ex(-(V + 40) / 10)));
+  const bm = (V: number) => 4 * ex(-(V + 65) / 18);
+  const ah = (V: number) => 0.07 * ex(-(V + 65) / 20);
+  const bh = (V: number) => 1 / (1 + ex(-(V + 35) / 10));
+  const mInf = (V: number) => am(V) / (am(V) + bm(V));
+  const hInf = (V: number) => ah(V) / (ah(V) + bh(V));
+  const nInf = (V: number) => an(V) / (an(V) + bn(V));
+
+  type Run = { t: number[]; V: number[]; gna: number[]; gk: number[]; spikes: number[] };
+
+  // fna, fk: fraction of g_max remaining. amp, amp2 in µA/cm²; interval in ms (0 = no second pulse).
+  // stopAt: stop once this many spikes have been counted (used by the searches).
+  function run(fna: number, fk: number, amp: number, interval: number, amp2: number, stopAt = 99, tEnd = T_END): Run {
+    const gnaM = GNA * fna, gkM = GK * fk;
+    let m = mInf(VR), h = hInf(VR), n = nInf(VR), V = VR;
+    // leak reversal chosen so that the resting state (gates at their values for -65 mV) is an equilibrium at -65 mV
+    const EL = VR + (gnaM * m ** 3 * h * (VR - ENA) + gkM * n ** 4 * (VR - EK)) / GL;
+    const f = (v: number, mm: number, hh: number, nn: number, I: number) => [
+      I - gnaM * mm ** 3 * hh * (v - ENA) - gkM * nn ** 4 * (v - EK) - GL * (v - EL),
+      am(v) * (1 - mm) - bm(v) * mm,
+      ah(v) * (1 - hh) - bh(v) * hh,
+      an(v) * (1 - nn) - bn(v) * nn,
+    ];
+    const out: Run = { t: [], V: [], gna: [], gk: [], spikes: [] };
+    const N = Math.round(tEnd / DT);
+    let armed = true;
+    for (let i = 0; i <= N; i++) {
+      const t = i * DT;
+      let I = 0;
+      if (t >= T0 && t < T0 + 1) I = amp;
+      else if (interval > 0 && t >= T0 + interval && t < T0 + interval + 1) I = amp2;
+      if (i % STRIDE === 0) { out.t.push(t); out.V.push(V); out.gna.push(gnaM * m ** 3 * h); out.gk.push(gkM * n ** 4); }
+      if (armed && V > 0) { out.spikes.push(t); armed = false; if (out.spikes.length >= stopAt) break; }
+      if (!armed && V < -30) armed = true;
+      const k1 = f(V, m, h, n, I);
+      const k2 = f(V + (DT / 2) * k1[0], m + (DT / 2) * k1[1], h + (DT / 2) * k1[2], n + (DT / 2) * k1[3], I);
+      const k3 = f(V + (DT / 2) * k2[0], m + (DT / 2) * k2[1], h + (DT / 2) * k2[2], n + (DT / 2) * k2[3], I);
+      const k4 = f(V + DT * k3[0], m + DT * k3[1], h + DT * k3[2], n + DT * k3[3], I);
+      V += (DT / 6) * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
+      m += (DT / 6) * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+      h += (DT / 6) * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2]);
+      n += (DT / 6) * (k1[3] + 2 * k2[3] + 2 * k3[3] + k4[3]);
+    }
+    return out;
+  }
+
+  // smallest amplitude in (0, 30] for which fires(a) is true: coarse scan in 1 µA/cm² steps, then bisection.
+  // Returned rounded up to 0.1 so that a pulse at the returned value fires.
+  function smallest(fires: (a: number) => boolean): number | null {
+    let hi = -1;
+    for (let a = 1; a <= 30; a++) { if (fires(a)) { hi = a; break; } }
+    if (hi < 0) return null;
+    let lo = hi - 1;
+    for (let k = 0; k < 7; k++) { const mid = (lo + hi) / 2; if (fires(mid)) hi = mid; else lo = mid; }
+    return Math.ceil(hi * 10 - 1e-9) / 10;
+  }
+
+  // time the trace spends above 0 mV during its first excursion, by linear interpolation
+  function widthAbove0(r: Run): number | null {
+    let t1: number | null = null;
+    for (let i = 1; i < r.V.length; i++) {
+      if (t1 === null && r.V[i - 1] <= 0 && r.V[i] > 0) t1 = r.t[i - 1] + ((0 - r.V[i - 1]) / (r.V[i] - r.V[i - 1])) * (r.t[i] - r.t[i - 1]);
+      else if (t1 !== null && r.V[i - 1] > 0 && r.V[i] <= 0) return r.t[i - 1] + ((0 - r.V[i - 1]) / (r.V[i] - r.V[i - 1])) * (r.t[i] - r.t[i - 1]) - t1;
+    }
+    return null;
+  }
+
+  const minus = (s: string) => s.replace('-', '−');
+  const fmt = (v: number, d = 1) => minus(v.toFixed(d));
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ssc]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (k: string) => root.querySelector<HTMLInputElement>(`[data-in="${k}"]`)!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-out="${k}"]`)!;
+    const rd = (k: string) => root.querySelector<HTMLElement>(`[data-r="${k}"]`)!;
+    const ampIn = inp('amp'), ivIn = inp('iv'), ttxIn = inp('ttx'), teaIn = inp('tea');
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    // layout (viewBox 340 × 294)
+    const PX0 = 44, PX1 = 292, VT = 26, VB = 152, VMAX = 60, VMIN = -90;
+    const SY0 = 158, SY1 = 166; // stimulus strip
+    const GT = 186, GB = 262, GMAX = 40;
+    const px = (t: number) => PX0 + (t / T_END) * (PX1 - PX0);
+    const pv = (v: number) => VT + ((VMAX - Math.max(VMIN, Math.min(VMAX, v))) / (VMAX - VMIN)) * (VB - VT);
+    const pg = (g: number) => GB - (Math.min(GMAX, g) / GMAX) * (GB - GT);
+    const path = (xs: number[], ys: number[], py: (y: number) => number) => {
+      let d = '';
+      for (let i = 0; i < xs.length; i++) d += (i ? 'L' : 'M') + px(xs[i]).toFixed(1) + ' ' + py(ys[i]).toFixed(1) + ' ';
+      return d.trim();
+    };
+    const text = (x: number, y: number, s: string, anchor = 'start', size = 9, fill = INK, weight = 400) => {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+      t.textContent = s; plot.appendChild(t);
+    };
+
+    // cached searches
+    let thrKey = '', thrVal: number | null = null;
+    let thr2Key = '', thr2Val: number | null = null;
+
+    function render() {
+      const amp = parseFloat(ampIn.value);
+      const ivRaw = parseInt(ivIn.value, 10);
+      const iv = ivRaw <= 1 ? 0 : ivRaw; // 0 = second pulse off
+      const fna = parseInt(ttxIn.value, 10) / 100;
+      const fk = parseInt(teaIn.value, 10) / 100;
+      const drug = fna < 1 || fk < 1;
+      out('amp').textContent = amp.toFixed(1);
+      out('iv').textContent = iv ? `${iv} ms` : 'off';
+      out('ttx').textContent = String(Math.round(fna * 100));
+      out('tea').textContent = String(Math.round(fk * 100));
+
+      const r = run(fna, fk, amp, iv, amp);
+      const ctrl = drug ? run(1, 1, amp, iv, amp) : r;
+      const first = iv ? run(fna, fk, amp, 0, 0, 1, T_END) : r; // pulse 1 alone
+      const spiked = r.spikes.length;
+      const firstSpiked = first.spikes.length > 0;
+
+      // searches (cached)
+      const k1 = `${fna}|${fk}`;
+      if (k1 !== thrKey) { thrKey = k1; thrVal = smallest((a) => run(fna, fk, a, 0, 0, 1, 30).spikes.length > 0); }
+      let thr2: number | null = null, thr2Done = false;
+      if (iv && firstSpiked && T0 + iv > first.spikes[0]) {
+        const k2 = `${fna}|${fk}|${amp}|${iv}`;
+        if (k2 !== thr2Key) { thr2Key = k2; thr2Val = smallest((a) => run(fna, fk, amp, iv, a, 2).spikes.length >= 2); }
+        thr2 = thr2Val; thr2Done = true;
+      }
+
+      // ---- drawing ----
+      plot.replaceChildren();
+      text(PX0, 17, 'Vm (mV)', 'start', 10, INK, 700);
+      text(PX1, 17, 'computed: model, not a recording', 'end', 9, INK);
+      // reference lines
+      const ref = (v: number, label: string, dy: number) => {
+        plot.appendChild(el('line', { x1: PX0, y1: pv(v), x2: PX1, y2: pv(v), stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '3 3' }));
+        text(PX1 + 3, pv(v) + dy, label, 'start', 9, INK);
+      };
+      ref(ENA, 'E_Na +50', 3); ref(VR, 'rest −65', -1); ref(EK, 'E_K −77', 9);
+      // axes
+      plot.appendChild(el('line', { x1: PX0, y1: VT, x2: PX0, y2: VB, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: VB, x2: PX1, y2: VB, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, -50]) {
+        plot.appendChild(el('line', { x1: PX0 - 3, y1: pv(v), x2: PX0, y2: pv(v), stroke: INK, 'stroke-width': 1 }));
+        text(PX0 - 5, pv(v) + 3, minus(String(v)), 'end');
+      }
+      // stimulus strip
+      const bar = (t: number) => plot.appendChild(el('rect', { x: px(t), y: SY0, width: Math.max(2, px(t + 1) - px(t)), height: SY1 - SY0, fill: INK }));
+      bar(T0); if (iv) bar(T0 + iv);
+      text(PX1 + 3, SY1, 'pulses', 'start', 9, INK);
+      // conductance panel
+      text(PX0, GT - 6, 'g (mS/cm²)', 'start', 10, INK, 700);
+      plot.appendChild(el('line', { x1: PX0, y1: GT, x2: PX0, y2: GB, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: PX0, y1: GB, x2: PX1, y2: GB, stroke: INK, 'stroke-width': 1 }));
+      for (const g of [0, 20, 40]) {
+        plot.appendChild(el('line', { x1: PX0 - 3, y1: pg(g), x2: PX0, y2: pg(g), stroke: INK, 'stroke-width': 1 }));
+        text(PX0 - 5, pg(g) + 3, String(g), 'end');
+      }
+      for (let t = 0; t <= T_END; t += 10) {
+        plot.appendChild(el('line', { x1: px(t), y1: GB, x2: px(t), y2: GB + 3, stroke: INK, 'stroke-width': 1 }));
+        text(px(t), GB + 13, String(t), 'middle');
+      }
+      text((PX0 + PX1) / 2, GB + 26, 'time (ms)', 'middle', 10);
+      // traces
+      if (drug) plot.appendChild(el('path', { d: path(ctrl.t, ctrl.V, pv), fill: 'none', stroke: FAINT, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('path', { d: path(r.t, r.gk, pg), fill: 'none', stroke: PURPLE, 'stroke-width': 1.8 }));
+      plot.appendChild(el('path', { d: path(r.t, r.gna, pg), fill: 'none', stroke: ORANGE, 'stroke-width': 1.8 }));
+      plot.appendChild(el('path', { d: path(r.t, r.V, pv), fill: 'none', stroke: ACCENT, 'stroke-width': 2.4 }));
+
+      // ---- readouts ----
+      let peak = -Infinity, ipk = 0;
+      r.V.forEach((v, i) => { if (v > peak) { peak = v; ipk = i; } });
+      let low = Infinity;
+      if (spiked) for (let i = ipk; i < r.V.length; i++) low = Math.min(low, r.V[i]);
+      const peakTxt = spiked ? `${fmt(peak)} mV` : `no spike (reaches ${fmt(peak)} mV)`;
+      rd('peak').textContent = amp === 0 && !spiked ? 'no stimulus' : peakTxt;
+      rd('low').textContent = spiked ? `${fmt(low)} mV` : '—';
+      rd('thr').textContent = thrVal === null ? 'none up to 30 µA/cm²' : `${thrVal.toFixed(1)} µA/cm²`;
+      rd('thr2').textContent = !iv ? 'second pulse off' : !firstSpiked ? 'first pulse fires no spike' : !thr2Done ? 'second pulse arrives before the first spike' : thr2 === null ? 'none up to 30 µA/cm²' : `${thr2.toFixed(1)} µA/cm²`;
+      const w = spiked ? widthAbove0(r) : null, wc = ctrl.spikes.length ? widthAbove0(ctrl) : null;
+      rd('width').textContent = w === null ? '—' : drug ? `${w.toFixed(2)} ms · ${wc === null ? 'no spike without blocker' : wc.toFixed(2) + ' ms'}` : `${w.toFixed(2)} ms`;
+
+      // ---- status sentence ----
+      const parts: string[] = [];
+      if (amp === 0) {
+        parts.push("With no stimulus the patch stays at its resting potential, −65 mV in this sketch; nothing fires by itself.");
+      } else if (spiked === 0) {
+        if (fna === 0) {
+          parts.push("In this sketch, with g_Na at zero there is no spike, and rest stays at −65 mV by construction (the leak reversal is re-set). Separately, tetrodotoxin blocked the action potential of lobster giant axons while sparing the resting potential (Narahashi, Moore and Scott, 1964); this sketch uses squid values.");
+        } else {
+          parts.push("Below threshold a few sodium channels open, but outward potassium and leak current win, so V_m returns to rest.");
+          if (fna < 1) parts.push("With less g_Na remaining, a larger pulse is needed in this sketch (see the smallest pulse that fires).");
+          if (iv) parts.push("Neither pulse fires a spike.");
+        }
+      } else {
+        const lowTxt = low < VR - 0.5
+          ? ` g_K stays raised after the spike and pulls V_m toward E_K (−77 mV): V_m dips below rest, to ${fmt(low)} mV, the undershoot.`
+          : " In this run V_m does not dip below rest.";
+        const peakShort = peak < ENA ? ` V_m peaks at ${fmt(peak)} mV, short of E_Na (+50 mV), because h is already falling and n rising.` : "";
+        if (iv && !firstSpiked) {
+          parts.push("The first pulse alone fires no spike; a spike appears only after the second pulse is added.");
+        } else {
+          parts.push("Past threshold enough sodium channels open that inward current exceeds outward current, and each millivolt of rise opens more: the rising phase is regenerative.");
+        }
+        parts.push(peakShort.trim() + " Inactivation then shuts off the sodium current while potassium current drives V_m down." + lowTxt);
+        parts.push("This sketch has no Na⁺/K⁺ pump, yet it repolarizes.");
+        if (fk <= 0.3 && w !== null && wc !== null && w > wc * 1.1) {
+          parts.push(`With most g_K removed the spike broadens: ${w.toFixed(2)} ms above 0 mV against ${wc.toFixed(2)} ms with no blocker.`);
+        }
+      }
+      if (iv && firstSpiked && amp > 0) {
+        if (!thr2Done) {
+          parts.push("The second pulse arrives before the first spike has begun, so this is not a refractory test.");
+        } else if (spiked >= 2) {
+          parts.push(`The second pulse fires a second spike: enough sodium channels have recovered from inactivation (h has recovered). ${
+            thr2 !== null && thrVal !== null && thr2 > thrVal * 1.1
+              ? `At this interval the smallest pulse that fires is ${thr2.toFixed(1)} µA/cm², more than the ${thrVal.toFixed(1)} from rest: the relative refractory period, when a spike needs a stronger stimulus because some channels are still inactivated and g_K is still raised.`
+              : "At this interval it needs no more current than from rest."}`);
+        } else if (thr2 === null) {
+          parts.push("The second pulse fails: in this sketch it comes during what is the absolute refractory period (too few sodium channels are available): no pulse up to the slider’s maximum of 30 µA/cm² fires a second spike.");
+        } else {
+          parts.push(`The second pulse is too weak: in the relative refractory period a spike needs a stronger stimulus than at rest (${thr2.toFixed(1)} µA/cm² here against ${thrVal === null ? 'more than 30' : thrVal.toFixed(1)} from rest) because some sodium channels are still inactivated and g_K is still raised. Raise the stimulus to see it fire.`);
+        }
+      }
+      why.textContent = parts.join(" ").replace(/ {2,}/g, " ").trim();
+      plot.setAttribute('aria-label', `Computed membrane potential trace (model, not a recording) above computed g_Na and g_K traces. ${spiked ? spiked + (spiked > 1 ? ' spikes' : ' spike') + ', peak ' + fmt(peak) + ' mV.' : 'No spike.'}`);
+    }
+
+    [ampIn, ivIn, ttxIn, teaIn].forEach((s) => s.addEventListener('input', render));
+    render();
+  });
+</script>
+
+<style>
+  .ssc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ssc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ssc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ssc-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .ssc-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; list-style: none; margin: 0 0 var(--ddp-space-2); padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ssc-legend li { display: flex; align-items: center; gap: 0.35rem; margin: 0; }
+  .ssc-sw { display: inline-block; width: 16px; height: 3px; border-radius: 2px; flex: none; }
+  .ssc-sw-dash { background: repeating-linear-gradient(90deg, #b9b9c2 0 4px, transparent 4px 7px); height: 3px; }
+  .ssc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ssc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ssc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ssc-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .ssc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ssc-slabel input { accent-color: var(--ddp-color-accent); }
+  .ssc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ssc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ssc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ssc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ssc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .ssc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) {
+    .ssc-controls, .ssc-readout { grid-template-columns: 1fr; }
+  }
+</style>

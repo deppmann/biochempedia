@@ -1,0 +1,191 @@
+---
+/**
+ * FreeRunDriftActogram — an actogram-style raster of a free-running clock's daily marker.
+ * Idealized clock with a constant period P; light is a fixed net shift per day (advance +).
+ * Marker offset after n cycles = n x [(P - 24.00) x 60 - shift] min, wrapped onto a 24-h axis.
+ * Lesson values: Czeisler et al. 1999 mean 24.18 h (study mean; individuals vary).
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="frd card" data-frd>
+  <figcaption class="frd-head">Free-running drift — a 30-cycle actogram of one clock marker<span class="frd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="frd-svg" viewBox="0 0 340 300" role="img" aria-label="Raster with one row per internal cycle for 30 cycles. A tick in each row marks where an idealized clock's daily marker falls on a 24-hour axis; a dashed line marks the 24.00-hour day." data-plot></svg>
+
+  <div class="frd-controls">
+    <label class="frd-slabel"><span>Intrinsic period <em data-out="p">24.18</em> h</span>
+      <input type="range" data-in="p" min="23.5" max="24.7" step="0.01" value="24.18" />
+    </label>
+    <label class="frd-slabel"><span>Net light-driven shift per day (+ advance, − delay) <em data-out="s">0</em> min</span>
+      <input type="range" data-in="s" min="-45" max="45" step="0.1" value="0" />
+    </label>
+    <label class="frd-slabel frd-wide"><span>Cycle cursor (internal cycles completed) <em data-out="d">7</em></span>
+      <input type="range" data-in="d" min="0" max="30" step="1" value="7" />
+    </label>
+  </div>
+
+  <div class="frd-presets" role="group" aria-label="Set values from the lesson">
+    <button type="button" class="frd-btn" data-preset="lesson">Lesson values (24.18 h, no light, cycle 7)</button>
+    <button type="button" class="frd-btn" data-preset="hold">Shift that holds the marker at 24.00 h</button>
+    <button type="button" class="frd-btn" data-preset="zero">Cycle 0</button>
+  </div>
+
+  <dl class="frd-readout">
+    <div><dt>Excess per cycle (period − 24.00 h)</dt><dd data-r-ex>—</dd></div>
+    <div><dt>Net drift per day (excess − shift)</dt><dd data-r-net>—</dd></div>
+    <div><dt>Marker offset at the cursor</dt><dd data-r-off>—</dd></div>
+    <div><dt>Check: internal time against external time</dt><dd data-r-chk>—</dd></div>
+    <div><dt>To stay at 24.00 h this clock needs</dt><dd data-r-need>—</dd></div>
+  </dl>
+  <p class="frd-why" data-why role="status">—</p>
+  <p class="frd-assume">In this sketch: an idealized clock with a constant period, no time cues, starting in phase with a 24.00-h day; light is a fixed net shift per day, with no phase-response curve. The lesson names the timing of light but does not give it as a rule this sketch uses: in controlled human studies, bright light before the core-body-temperature minimum delayed the clock and light after it advanced it. 24.18 h is a study mean (Czeisler and colleagues, 1999, healthy young and older adults, controlled dim light); individuals vary.</p>
+
+  <p class="frd-foot">Offset after n cycles = n × (period − 24.00 h); with a 24.18-h period that is 10.8 min per cycle, 75.6 min after 7 cycles (7 × 24.18 = 169.26 h against 7 × 24.00 = 168.00 h), and an average net advance of 10.8 min per day holds the marker at 24.00 h.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#c9c9d1', BAND = '#fdf0dc';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, attrs: Record<string, string | number>, s: string) {
+    const t = el('text', attrs); t.textContent = s; parent.appendChild(t); return t;
+  }
+  document.querySelectorAll<HTMLElement>('[data-frd]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]')!;
+    const inp = (n: string) => root.querySelector<HTMLInputElement>('[data-in="' + n + '"]')!;
+    const out = (n: string) => root.querySelector<HTMLElement>('[data-out="' + n + '"]')!;
+    const pIn = inp('p'), sIn = inp('s'), dIn = inp('d');
+    const pOut = out('p'), sOut = out('s'), dOut = out('d');
+    const rEx = root.querySelector<HTMLElement>('[data-r-ex]')!;
+    const rNet = root.querySelector<HTMLElement>('[data-r-net]')!;
+    const rOff = root.querySelector<HTMLElement>('[data-r-off]')!;
+    const rChk = root.querySelector<HTMLElement>('[data-r-chk]')!;
+    const rNeed = root.querySelector<HTMLElement>('[data-r-need]')!;
+    const why = root.querySelector<HTMLElement>('[data-why]')!;
+
+    const trim = (x: number, d: number) => String(Number(x.toFixed(d)));
+    const sgn = (x: number, d: number) => (x > 0 ? '+' : x < 0 ? '−' : '') + trim(Math.abs(x), d);
+    const wrap24 = (h: number) => ((h % 24) + 24) % 24;
+
+    const X0 = 36, X1 = 326, Y0 = 34, RH = 7, NROW = 31;
+    const px = (h: number) => X0 + (h / 24) * (X1 - X0);
+    const py = (day: number) => Y0 + day * RH;
+    const YEND = Y0 + NROW * RH;
+
+    function draw(offHourPerDay: number, d: number) {
+      plot.replaceChildren();
+      txt(plot, { x: 4, y: 11, 'font-size': 9, fill: INK }, 'One row per internal cycle; tick = the clock’s daily marker');
+      txt(plot, { x: 4, y: 23, 'font-size': 9, fill: INK }, 'Dashed line = the 24.00-h day (start of cycle 0). Orange row = cursor.');
+      plot.appendChild(el('rect', { x: X0, y: py(d) - 1, width: X1 - X0, height: RH, fill: BAND }));
+      plot.appendChild(el('rect', { x: X0, y: Y0 - 1, width: X1 - X0, height: NROW * RH + 1, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+      for (const h of [6, 12, 18]) plot.appendChild(el('line', { x1: px(h), y1: Y0 - 1, x2: px(h), y2: YEND, stroke: FAINT, 'stroke-width': 0.8 }));
+      plot.appendChild(el('line', { x1: px(0), y1: Y0 - 1, x2: px(0), y2: YEND, stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      for (const h of [0, 6, 12, 18, 24]) {
+        plot.appendChild(el('line', { x1: px(h), y1: YEND, x2: px(h), y2: YEND + 3, stroke: INK, 'stroke-width': 1 }));
+        txt(plot, { x: px(h), y: YEND + 14, 'text-anchor': h === 0 ? 'start' : h === 24 ? 'end' : 'middle', 'font-size': 9, fill: INK }, String(h));
+      }
+      txt(plot, { x: (X0 + X1) / 2, y: YEND + 28, 'text-anchor': 'middle', 'font-size': 10, fill: INK }, 'marker position (hours after the 24.00-h day’s start)');
+      txt(plot, { x: (X0 + X1) / 2, y: YEND + 41, 'text-anchor': 'middle', 'font-size': 9, fill: INK }, 'rows: c = internal cycle number (c0 to c30)');
+      for (let day = 0; day <= 30; day += 5)
+        txt(plot, { x: X0 - 4, y: py(day) + 5, 'text-anchor': 'end', 'font-size': 9, fill: INK }, 'c' + day);
+      for (let day = 0; day < NROW; day++) {
+        const x = px(wrap24(day * offHourPerDay));
+        const past = day <= d;
+        plot.appendChild(el('rect', { x: x - 1.2, y: py(day), width: 2.4, height: RH - 2, fill: past ? (day === d ? ORANGE : ACCENT) : FAINT }));
+      }
+    }
+
+    function render() {
+      const P100 = Math.round(parseFloat(pIn.value) * 100);
+      const S10 = Math.round(parseFloat(sIn.value) * 10);
+      const d = parseInt(dIn.value, 10);
+      const P = P100 / 100;
+      const ex10 = (P100 - 2400) * 6;           // excess per cycle, tenths of a minute
+      const net10 = ex10 - S10;                 // net drift per day, tenths of a minute (later positive)
+      const off10 = d * net10;                  // offset at the cursor, tenths of a minute
+      const exMin = ex10 / 10, netMin = net10 / 10, offMin = off10 / 10, offH = off10 / 600;
+      const shift = S10 / 10;
+
+      pOut.textContent = P.toFixed(2); sOut.textContent = trim(shift, 1); dOut.textContent = String(d);
+      draw(net10 / 600, d);
+
+      const perDayWord = (m: number) => trim(Math.abs(m), 1) + ' min';
+      rEx.textContent = `${P.toFixed(2)} − 24.00 = ${sgn(P - 24, 2)} h = ${sgn(P - 24, 2)} × 60 = ${sgn(exMin, 1)} min per cycle`;
+      rNet.textContent = `${sgn(exMin, 1)} − (${sgn(shift, 1)}) = ${sgn(netMin, 1)} min per day (${net10 > 0 ? 'later' : net10 < 0 ? 'earlier' : 'no drift'})`;
+      rOff.textContent = `${d} × ${sgn(netMin, 1)} = ${sgn(offMin, 1)} min = ${sgn(offH, 2)} h` + (Math.abs(offH) >= 24 ? ` (wraps: drawn at ${trim(wrap24(offH), 2)} h)` : '');
+      if (S10 === 0) {
+        const intT = d * P, extT = d * 24;
+        rChk.textContent = `${d} × ${P.toFixed(2)} = ${intT.toFixed(2)} h; ${d} × 24.00 = ${extT.toFixed(2)} h; difference ${sgn(intT - extT, 2)} h`;
+      } else {
+        rChk.textContent = 'shown for no light (shift 0), as in the lesson’s check';
+      }
+      const needMin = exMin; // advance positive
+      rNeed.textContent = needMin === 0 ? 'no net shift (period is 24.00 h)' : `an average net ${needMin > 0 ? 'advance' : 'delay'} of ${perDayWord(needMin)} per day` + (needMin < 0 ? ' (by the same arithmetic; not worked in the lesson)' : '');
+
+      let s: string;
+      const later = net10 > 0;
+      if (net10 === 0) {
+        if (ex10 === 0) s = 'The period is exactly 24.00 h and there is no net shift, so the marker falls at the same clock time every day: no drift.';
+        else s = `The ${P.toFixed(2)}-h period would drift ${sgn(exMin, 1)} min a cycle, but the net light-driven ${shift > 0 ? 'advance' : 'delay'} of ${perDayWord(shift)} a day cancels it exactly, so the marker is held at 24.00 h and the rows line up.`;
+        if (d === 0) s += ' Cycle 0: the clock starts in phase with the 24-h day.';
+      } else if (d === 0) {
+        s = `Cycle 0: the clock starts in phase with the 24-h day, offset 0. From here the marker moves ${perDayWord(netMin)} ${later ? 'later' : 'earlier'} each cycle, so each row below shifts ${later ? 'right' : 'left'}.`;
+      } else {
+        const dirWord = later ? 'later' : 'earlier';
+        if (S10 === 0) {
+          s = `With a ${P.toFixed(2)}-h period and no time cues, the marker falls ${perDayWord(netMin)} ${dirWord} each cycle; after ${d} cycle${d === 1 ? '' : 's'} it is ${perDayWord(offMin)} ${dirWord} than on the 24-h day. `;
+          s += later ? 'A period above 24 h drifts later.' : 'By the same arithmetic, a period below 24 h would drift earlier and would need a net delay of ' + perDayWord(exMin) + ' a day (not worked in the lesson).';
+        } else if (ex10 === 0 || (ex10 > 0) !== (S10 > 0) || Math.abs(S10) > Math.abs(ex10)) {
+          if (ex10 !== 0 && (ex10 > 0) === (S10 > 0) && Math.abs(S10) > Math.abs(ex10)) s = `The net ${shift > 0 ? 'advance' : 'delay'} of ${perDayWord(shift)} a day is larger than the ${perDayWord(exMin)} excess, so it overcorrects: the marker drifts ${dirWord}, ${perDayWord(netMin)} a day. `;
+          else s = `The net ${shift > 0 ? 'advance' : 'delay'} of ${perDayWord(shift)} a day ${ex10 === 0 ? 'moves the marker away from' : 'adds to the drift away from'} 24.00 h: it drifts ${dirWord}, ${perDayWord(netMin)} a day. `;
+          s += `After ${d} cycles it is ${perDayWord(offMin)} ${dirWord} than on the 24-h day.`;
+        } else {
+          s = `The net ${shift > 0 ? 'advance' : 'delay'} of ${perDayWord(shift)} a day offsets part of the ${perDayWord(exMin)} excess, so the marker still drifts ${dirWord}, but only ${perDayWord(netMin)} a day; after ${d} cycles it is ${perDayWord(offMin)} ${dirWord}.`;
+        }
+        if (Math.abs(offH) >= 24) s += ' The offset has passed 24 h, so the tick wraps around the axis.';
+      }
+      s += ' The light shift here is a fixed net amount per day; the sketch does not model when in the cycle light falls.';
+      why.textContent = s;
+    }
+
+    [pIn, sIn, dIn].forEach((c) => c.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => b.addEventListener('click', () => {
+      const p = b.getAttribute('data-preset');
+      if (p === 'lesson') { pIn.value = '24.18'; sIn.value = '0'; dIn.value = '7'; }
+      else if (p === 'hold') {
+        const ex = Math.round((parseFloat(pIn.value) - 24) * 600) / 10;
+        sIn.value = String(Math.max(-45, Math.min(45, ex)));
+      } else dIn.value = '0';
+      render();
+    }));
+    render();
+  });
+</script>
+
+<style>
+  .frd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .frd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .frd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .frd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .frd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .frd-wide { grid-column: 1 / -1; }
+  .frd-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .frd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .frd-slabel input { accent-color: var(--ddp-color-accent); }
+  .frd-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) 0; }
+  .frd-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .frd-btn:hover, .frd-btn:focus-visible { border-color: var(--ddp-color-accent); outline: 2px solid var(--ddp-color-accent); outline-offset: 1px; }
+  .frd-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .frd-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .frd-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .frd-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .frd-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 8em; }
+  .frd-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .frd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .frd-controls { grid-template-columns: 1fr; } }
+</style>
