@@ -6,15 +6,19 @@ import '../../../styles/mcat.css';
 
 interface ReviewQuestion extends QuizItem {
   pathwayName: string;
+  lessonSlug?: string;
 }
 
 export function launchMCAT( shell: Shell, allPathways: Pathway[], req?: LaunchRequest): void {
   const title = 'MCAT Deep Review';
 
   const questions: ReviewQuestion[] = allPathways.flatMap(
-    (pathway) => pathway.quiz.filter((q) => q.mcat !== false)
-        .map((q) => ({...q, pathwayName: pathway.name,}))
-    ).slice(0, 5);
+  (pathway) => pathway.quiz.filter((q) => q.mcat !== false)
+      .map((q) => ({...q,
+        pathwayName: pathway.name,
+        lessonSlug: pathway.lessonSlug,
+      }))
+).slice(0, 5);
 
   let index = 0;
 
@@ -163,6 +167,14 @@ export function launchMCAT( shell: Shell, allPathways: Pathway[], req?: LaunchRe
         el('h2', null, correct ? 'Correct!' : 'Not quite!'),
         el('p.arc-teach-text', null, q.rationale)
       );
+      if (q.lessonSlug) {
+        const lessonLink =
+            el('a.arc-lesson-link',
+            {href: `/lessons/${encodeURIComponent(q.lessonSlug)}/`, target: '_blank', rel: 'noopener noreferrer',},
+            `Review ${q.pathwayName} →`
+            );
+        feedback.append(lessonLink);
+      }
 
       const next = el(
         'button.arc-btn.is-primary',

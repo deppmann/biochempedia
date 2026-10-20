@@ -31,6 +31,7 @@ interface GItem extends QuizItem {
   pid: string;
   level: Level;
   secs: number;
+  lessonSlug?: string;
 }
 
 function shuffledChoices(choices: string[], answer: number): { choices: string[]; answer: number } {
@@ -75,7 +76,7 @@ export function buildBank(pathways: Pathway[], scope: Scope): GItem[] {
       const q = x.items.pop();
       if (!q) continue;
       const level = levelOf(q);
-      pool.push({ ...q, stem: `[${x.p.name}] ${q.stem}`, pid: x.p.id, level, secs: secondsFor(q, level) });
+      pool.push({ ...q, stem: `[${x.p.name}] ${q.stem}`, pid: x.p.id, level, secs: secondsFor(q, level), lessonSlug: x.p.lessonSlug});
       if (pool.length >= ROUND) break;
     }
   }
@@ -215,7 +216,19 @@ export function launchGauntlet(shell: Shell, allPathways: Pathway[], unitId?: st
         const done = hearts <= 0 || idx + 1 >= total;
         const next = el('button.arc-btn.is-primary', { type: 'button' }, hearts <= 0 ? 'See results →' : idx + 1 >= total ? 'Finish →' : 'Next →');
         next.addEventListener('click', () => { sfx.select(); if (done) finish(); else { idx++; renderQ(); } });
-        why.append(el('p.arc-why-head', null, right ? '✓ Correct' : ci == null ? 'Out of time' : '✗ Not quite'), el('p.arc-teach-text', null, q.rationale), next);
+        why.append(el('p.arc-why-head', null, right ? '✓ Correct' : ci == null ? 'Out of time' : '✗ Not quite'), el('p.arc-teach-text', null, q.rationale));
+
+        const lesson = lessonFor(q.pid)
+        if (lesson) {
+          const lessonLink = el(
+            'a.arc-lesson-link',
+            {href: lesson.href, target: '_blank', rel: 'noopener noreferrer'},
+            `Review ${lesson.title} →`
+            );
+          why.append(lessonLink)
+        }
+        why.append(next)
+
         why.scrollIntoView?.({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
       }
 
