@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Ecology, EC.2 d and f, EC.7 c; Advanced Topics, BIOII.6 f"
   college: ["global-change", "conservation", "biodiversity-ecosystem-function"]
 
+explainer:
+  src: "/explainers/chesapeake-under-pressure/explainer.mp4"
+  captions: "/explainers/chesapeake-under-pressure/explainer.vtt"
+  poster: "/explainers/chesapeake-under-pressure/poster.jpg"
+  title: "Bacteria, Not Fertilizer, Use the Oxygen"
+  durationSec: 182.6
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -229,7 +238,7 @@ corpusTags:
   - "eutrophication"
   - "chesapeake-bay"
   - "human-impact"
-draft: true
+draft: false
 ---
 
 import WatershedFixDesigner from '../../../components/WatershedFixDesigner.astro';
@@ -238,6 +247,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Each summer, water near the bottom of the Chesapeake Bay’s deep channel typically holds too little oxygen for crabs and fish to stay. People call it a dead zone, and part of what feeds it washes in from farms, lawns, wastewater plants and even the air.**
 
@@ -287,7 +298,7 @@ Why the deep channel, and why summer? Oxygen enters water from the air and from 
 
 Picture the bottom water as a closed room full of breathers. The analogy breaks because storms can open the door: they mix the layers and bring new oxygen down.
 
-{/* DIAGRAM: side view of the Bay from a farm field to the deep channel, with 1 runoff carrying nutrients, 2 an algal bloom at the surface, 3 dead algae sinking, 4 bacteria decomposing them and using oxygen, 5 the fresh layer floating over salty bottom water, 6 a crab leaving the low-oxygen zone */}
+<ScaffoldFigure src="/figures/chesapeake-under-pressure/dead-zone-side-view.webp" width={1200} height={800} keyItems={["runoff", "algal bloom", "dead algae", "bacteria", "fresh river water", "hypoxia"]} given={[0, 1]} alt="AI-generated illustration: a side cut-away from a farm field to the Bay's deep channel. Runoff flows off the field, a thick green layer of algae covers the surface, dead algae sink, bacteria cover them on the bottom, a pale fresh layer floats over dark bottom water, and a blue crab swims out of the dark water. Six numbered circles mark the steps." caption="How extra nutrients lead to low-oxygen bottom water in summer. Name the six numbered parts in the order of the chain." />
 
 <Support min={2}>**Key idea:** extra nutrients feed algae, and bacteria decomposing the dead algae use up oxygen in bottom water that layering keeps from mixing.</Support>
 
@@ -322,6 +333,8 @@ In 2010, the U.S. Environmental Protection Agency set a limit on the nitrogen, p
 - Oyster reefs: Virginia has rebuilt reefs in the Lafayette, Lynnhaven and Piankatank rivers. Oysters filter particles from water and reefs shelter other animals, but reefs do not replace cutting nutrients.
 
 **Submerged aquatic vegetation** is underwater grass, usually rooted in shallow bottoms. It shelters young crabs and needs light. A 2018 study found that as nitrogen in Bay water fell, underwater grass regained about 17,000 hectares (roughly 42,000 acres).
+
+<LessonFigure src="/figures/chesapeake-under-pressure/watershed-fixes.webp" width={1200} height={800} alt="AI-generated illustration: a winter field covered with low green cover crops slopes to a stream lined by a strip of trees and shrubs whose roots grip the bank. An inset shows a shallow Bay bottom with an oyster reef and a bed of underwater grass where a young blue crab hides." caption="Three fixes you can see on the ground: cover crops and a forest buffer hold soil and nutrients on land, and oyster reefs and underwater grass give animals shelter, though reefs do not replace cutting nutrients." />
 
 Fixing a watershed is an engineering problem. **Criteria** are what a solution must achieve, such as cutting a set amount of nitrogen. **Constraints** are the limits it must work within, such as money, land and time. Nitrogen stored in soil can keep leaking out for years, so you build, measure, compare with a place that got no fix, and refine.
 
