@@ -3,20 +3,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
 import { courseHref } from '../../data/courses';
 import { feedbackUrl } from '../../lib/feedback';
-import { getCollection } from 'astro:content';
-
-// Standards map: each VDOE Biology standard and the lessons that teach it (BIO.1 runs through every lesson).
-const SOL: [string, string, string[]][] = [
-  ['BIO.2', 'Chemistry of life', ['water-and-life', 'macromolecules', 'enzymes-at-work', 'protein-synthesis', 'photosynthesis-energy-capture', 'respiration-and-atp']],
-  ['BIO.3', 'Cells', ['cell-theory-evidence', 'organelles-as-a-system', 'homeostasis-in-action', 'cell-cycle-and-mitosis', 'meiosis-and-variation', 'crossing-the-membrane', 'one-cell-or-many']],
-  ['BIO.4', 'Bacteria and viruses', ['living-or-not', 'how-microbes-multiply', 'microbes-in-ecosystems', 'germs-vaccines-antibiotics']],
-  ['BIO.5', 'Genetics and inheritance', ['dna-structure-and-copying', 'discovering-dna-structure', 'protein-synthesis', 'punnett-squares', 'beyond-dominance', 'meiosis-and-variation', 'genetic-engineering']],
-  ['BIO.6', 'Classification', ['building-a-tree-of-life', 'domains-and-kingdoms', 'classification-changes']],
-  ['BIO.7', 'Evolution', ['evidence-for-evolution', 'variation-and-survival', 'natural-selection-and-speciation']],
-  ['BIO.8', 'Ecosystems', ['carrying-capacity', 'energy-in-ecosystems', 'matter-cycles', 'succession-in-virginia', 'chesapeake-under-pressure']],
-];
-const lessons = await getCollection('lessons', (l) => l.data.course === 'high-school-biology');
-const titleOf = (slug: string) => lessons.find((l) => l.id === slug || l.id.startsWith(slug + '/'))?.data.title ?? slug;
 ---
 
 <BaseLayout
@@ -29,11 +15,6 @@ const titleOf = (slug: string) => lessons.find((l) => l.id === slug || l.id.star
     <p class="tb-lede">
       Thirty-three lessons that follow the Virginia Biology Standards of Learning, BIO.1 to BIO.8, with
       the science and engineering practices of BIO.1 worked into every lesson. Free, no account, no ads.
-    </p>
-    <p class="tb-status">
-      <strong>Status: first edition (October 2026).</strong> Complete coverage of BIO.1 to BIO.8, checked
-      against published sources by AI models from two companies, with classroom testing just beginning.
-      Updated continuously; teacher feedback is welcome on every page.
     </p>
     <p><a class="btn" href={courseHref('high-school-biology')}>Open the course</a></p>
 
@@ -87,23 +68,6 @@ const titleOf = (slug: string) => lessons.find((l) => l.id === slug || l.id.star
       <code>?supports=2</code> to a lesson's address.
     </p>
 
-    <h2>Standards map</h2>
-    <p>
-      BIO.1, the scientific and engineering practices, runs through every lesson: each one asks for a
-      prediction, an investigation plan, and a claim backed by evidence and reasoning from real data.
-    </p>
-    <table class="tb-sol">
-      <thead><tr><th>Standard</th><th>Lessons</th></tr></thead>
-      <tbody>
-        {SOL.map(([code, name, slugs]) => (
-          <tr>
-            <td><strong>{code}</strong><br /><span class="tb-sol-name">{name}</span></td>
-            <td>{slugs.map((slug, i) => (<>{i > 0 && ' · '}<a href={`/lessons/${slug}/`}>{titleOf(slug)}</a></>))}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-
     <h2>How it was made, and how you can help</h2>
     <p>
       The lessons, films, simulations and figures were drafted with AI from the VDOE instructional guide and
@@ -117,9 +81,8 @@ const titleOf = (slug: string) => lessons.find((l) => l.id === slug || l.id.star
       <a href={feedbackUrl('High school Biology: teacher note')}>send a general note</a>.
     </p>
     <p>
-      All 33 lessons are out, and they are free to use with your classes. This is an early edition, built
-      quickly so teachers could use it this year. Corrections go in within days, not at the next printing,
-      so it will keep getting better, and the more teachers tell us, the faster that happens.
+      Lessons are released a unit at a time, starting with Unit 1, the chemistry of life. They are free to
+      use with your classes.
     </p>
     <p><a href="/teachers">&larr; Back to resources for teachers</a></p>
   </article>
@@ -131,11 +94,6 @@ const titleOf = (slug: string) => lessons.find((l) => l.id === slug || l.id.star
     .tb li { margin-bottom: var(--ddp-space-2); }
     .tb-ladder { margin: var(--ddp-space-3) 0; }
     .tb .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font-weight: 600; text-decoration: none; }
-    .tb-status { border-left: 4px solid var(--ddp-color-accent); background: var(--ddp-color-accent-soft); padding: var(--ddp-space-3) var(--ddp-space-4); border-radius: 6px; }
-    .tb-sol { width: 100%; border-collapse: collapse; margin: var(--ddp-space-3) 0 var(--ddp-space-6); }
-    .tb-sol th, .tb-sol td { text-align: left; vertical-align: top; padding: var(--ddp-space-2) var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); line-height: 1.5; }
-    .tb-sol td:first-child { white-space: nowrap; }
-    .tb-sol-name { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
     .tb code { font-family: var(--ddp-font-mono); font-size: 0.92em; }
   </style>
 </BaseLayout>

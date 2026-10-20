@@ -1,4 +1,4 @@
-/* Card icons for the Genetics, Developmental Neuroscience, Cell Biology, Ecology and Evolution, Neuroscience, Organismal Biology and Sensory Systems lessons, drawn in
+/* Card icons for the Genetics, Developmental Neuroscience, Cell Biology, Ecology and Evolution, Neuroscience, Organismal Biology, Sensory Systems and high school Biology lessons, drawn in
    the same engraving hand as signaling-icons.ts (56 x 56, navy ink, gold accent). */
 import type { IconArt } from '../signaling-icons';
 import { ICONS as GENETICS } from './genetics';
@@ -15,5 +15,7 @@ import { ICONS as OB1 } from './organismal1';
 import { ICONS as OB2 } from './organismal2';
 import { ICONS as SS1 } from './sensory1';
 import { ICONS as SS2 } from './sensory2';
+import { ICONS as VB1 } from './vabio1';
+import { ICONS as VB2 } from './vabio2';
 
-export const LESSON_ICONS: Record<string, IconArt> = { ...GENETICS, ...DN1, ...DN2, ...DN3, ...CB1, ...CB2, ...EE1, ...EE2, ...NC1, ...NC2, ...OB1, ...OB2, ...SS1, ...SS2 };
+export const LESSON_ICONS: Record<string, IconArt> = { ...GENETICS, ...DN1, ...DN2, ...DN3, ...CB1, ...CB2, ...EE1, ...EE2, ...NC1, ...NC2, ...OB1, ...OB2, ...SS1, ...SS2, ...VB1, ...VB2 };
