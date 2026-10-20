@@ -1,0 +1,461 @@
+---
+/**
+ * MeiosisShuffler — a model cell with two or three chromosome pairs (orange = mother's
+ * chromosome, teal = father's). The learner chooses how each pair lines up, switches
+ * crossing over on or off, and steps through DNA copying, meiosis I and meiosis II,
+ * then counts the different sex cells. A side panel runs mitosis for comparison.
+ * Self-contained vanilla-TS Astro island. Original sketch; chromosomes are labelled
+ * bars, not to scale.
+ */
+---
+
+<figure class="msh card" data-msh>
+  <figcaption class="msh-head">Meiosis shuffler — two divisions, new mixes<span class="msh-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="msh-legend">
+    <span class="msh-key"><i class="msh-sw msh-sw-m"></i> mother’s chromosome</span>
+    <span class="msh-key"><i class="msh-sw msh-sw-f"></i> father’s chromosome</span>
+    <span class="msh-key">× piece swapped (crossing over)</span>
+    <span class="msh-key">bars not to scale</span>
+  </p>
+
+  <svg class="msh-svg" viewBox="0 0 360 270" role="img" aria-label="A model cell going through the two divisions of meiosis" data-svg></svg>
+  <p class="msh-why" role="status" data-why>Start.</p>
+
+  <div class="msh-actions">
+    <button type="button" class="msh-btn msh-btn-main" data-next>Step 1: copy the DNA</button>
+    <button type="button" class="msh-btn" data-all>Run all steps</button>
+    <button type="button" class="msh-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="msh-settings">
+    <fieldset class="msh-fs">
+      <legend>Chromosome pairs in the model cell</legend>
+      <label class="msh-opt"><input type="radio" value="2" data-n checked /><span>2 pairs</span></label>
+      <label class="msh-opt"><input type="radio" value="3" data-n /><span>3 pairs</span></label>
+    </fieldset>
+    <label class="msh-opt msh-opt-cross"><input type="checkbox" data-cross /><span>Crossing over: <b data-cross-out>off</b></span></label>
+  </div>
+
+  <fieldset class="msh-fs msh-lineup">
+    <legend>How each pair lines up (changing it after step 3 starts a new run)</legend>
+    <button type="button" class="msh-btn msh-line" data-line="0"></button>
+    <button type="button" class="msh-btn msh-line" data-line="1"></button>
+    <button type="button" class="msh-btn msh-line" data-line="2"></button>
+    <button type="button" class="msh-btn" data-shuffle>Shuffle the line-up (random)</button>
+  </fieldset>
+
+  <dl class="msh-readout">
+    <div><dt>Chromosomes in each new cell</dt><dd data-r-chrom></dd></div>
+    <div><dt>Different kinds of sex cell in this run</dt><dd data-r-run></dd></div>
+    <div><dt>Kinds found so far, crossing over off</dt><dd data-r-off></dd></div>
+    <div><dt>Kinds found so far, crossing over on</dt><dd data-r-on></dd></div>
+    <div><dt>Line-ups tried</dt><dd data-r-align></dd></div>
+  </dl>
+  <div class="msh-chips-wrap">
+    <div class="msh-chips-title" data-chips-title>Kinds found</div>
+    <div class="msh-chips" data-chips></div>
+  </div>
+
+  <div class="msh-side">
+    <div class="msh-side-head">Side panel: mitosis for comparison</div>
+    <svg class="msh-svg msh-svg-mit" viewBox="0 0 360 200" role="img" aria-label="A model cell going through mitosis" data-msvg></svg>
+    <p class="msh-why" role="status" data-mwhy>Mitosis.</p>
+    <div class="msh-actions">
+      <button type="button" class="msh-btn msh-btn-main" data-mrun>Run mitosis</button>
+    </div>
+    <dl class="msh-readout">
+      <div><dt>Cells made</dt><dd data-m-cells></dd></div>
+      <div><dt>Chromosomes in each cell</dt><dd data-m-chrom></dd></div>
+      <div><dt>Do the two cells match each other?</dt><dd data-m-match></dd></div>
+    </dl>
+  </div>
+
+  <p class="msh-assume">In this sketch: each pair swaps one matching piece when crossing over is on, and the computer picks by chance which copy goes to which cell in the second division. Real human cells have 23 pairs and about 22 to 28 crossovers per sperm.</p>
+  <p class="msh-foot">Rule to keep: meiosis copies the DNA once and divides twice, first separating the pairs and then the copies, so each sex cell gets one chromosome from each pair. Shuffling n pairs alone gives 2ⁿ combinations; crossing over adds more. Mitosis makes two cells that match the parent cell (a close match; rare copying mistakes can change DNA).</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Seg = 'M' | 'F';
+  type Chromatid = [Seg, Seg];
+  type Chrom = [Chromatid, Chromatid];
+  const COL: Record<Seg, string> = { M: '#e57200', F: '#0e7c86' };
+  const INK = '#4b4b55';
+  const LEN = [150, 110, 76];
+  const LEN_S = [90, 66, 46];
+  const LEN_P = [70, 52, 36];
+  const SUPS: Record<string, string> = { '2': '²', '3': '³' };
+  const sup = (n: number) => String(n).split('').map((c) => SUPS[c] ?? c).join('');
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('MeiosisShuffler: missing ' + sel);
+    return e;
+  }
+  function txt(parent: SVGElement, x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+    const t = el('text', { x, y, 'font-size': 12, fill: INK, ...opts });
+    t.textContent = s;
+    parent.appendChild(t);
+  }
+  const fresh = (s: Seg): Chrom => [[s, s], [s, s]];
+
+  document.querySelectorAll<HTMLElement>('[data-msh]').forEach((root, uid) => {
+    const svg = must<SVGSVGElement>(root, '[data-svg]');
+    const msvg = must<SVGSVGElement>(root, '[data-msvg]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const mwhy = must<HTMLElement>(root, '[data-mwhy]');
+    const nextBtn = must<HTMLButtonElement>(root, '[data-next]');
+    const allBtn = must<HTMLButtonElement>(root, '[data-all]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const shuffleBtn = must<HTMLButtonElement>(root, '[data-shuffle]');
+    const mrunBtn = must<HTMLButtonElement>(root, '[data-mrun]');
+    const crossIn = must<HTMLInputElement>(root, '[data-cross]');
+    const crossOut = must<HTMLElement>(root, '[data-cross-out]');
+    const nIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-n]'));
+    nIns.forEach((r) => { r.name = 'msh-n-' + uid; });
+    const lineBtns = [0, 1, 2].map((i) => must<HTMLButtonElement>(root, `[data-line="${i}"]`));
+    const rChrom = must<HTMLElement>(root, '[data-r-chrom]');
+    const rRun = must<HTMLElement>(root, '[data-r-run]');
+    const rOff = must<HTMLElement>(root, '[data-r-off]');
+    const rOn = must<HTMLElement>(root, '[data-r-on]');
+    const rAlign = must<HTMLElement>(root, '[data-r-align]');
+    const chips = must<HTMLElement>(root, '[data-chips]');
+    const chipsTitle = must<HTMLElement>(root, '[data-chips-title]');
+    const mCells = must<HTMLElement>(root, '[data-m-cells]');
+    const mChrom = must<HTMLElement>(root, '[data-m-chrom]');
+    const mMatch = must<HTMLElement>(root, '[data-m-match]');
+
+    let n = 2;
+    let cross = false;
+    let stage = 0;
+    let mitosis = false;
+    let up: Seg[] = ['M', 'M', 'M'];
+    let mc: Chrom[] = [];
+    let fc: Chrom[] = [];
+    let sw: number[] = [];
+    let cells: Chromatid[][] = [];
+    let off = new Set<string>();
+    let on = new Set<string>();
+    let aligns = new Set<string>();
+    let runs = 0;
+    let lastKinds = 0;
+
+    const rand2 = () => (Math.random() < 0.5 ? 0 : 1);
+    function build() {
+      mc = [fresh('M'), fresh('M'), fresh('M')];
+      fc = [fresh('F'), fresh('F'), fresh('F')];
+      stage = 0; sw = []; cells = [];
+    }
+    function chrom(i: number, side: 'up' | 'down'): Chrom {
+      const upIsM = up[i] === 'M';
+      const m = mc[i], f = fc[i];
+      if (side === 'up') return upIsM ? m : f;
+      return upIsM ? f : m;
+    }
+    const sigOf = (cell: Chromatid[]) => cell.map((c) => c[0] + c[1]).join('|');
+    function clearTally() { off = new Set(); on = new Set(); aligns = new Set(); runs = 0; lastKinds = 0; }
+
+    function step() {
+      if (stage === 4) { build(); return; }
+      stage++;
+      if (stage === 2 && cross) {
+        for (let i = 0; i < n; i++) {
+          const s = rand2();
+          sw[i] = s;
+          const A = chrom(i, 'up'), B = chrom(i, 'down');
+          const t = A[1][s];
+          A[1][s] = B[0][s];
+          B[0][s] = t;
+        }
+      }
+      if (stage === 4) {
+        cells = [[], [], [], []];
+        for (let i = 0; i < n; i++) {
+          [0, 1].forEach((side) => {
+            const ch = chrom(i, side === 0 ? 'up' : 'down');
+            const f = rand2();
+            cells[side * 2].push([ch[f][0], ch[f][1]]);
+            cells[side * 2 + 1].push([ch[1 - f][0], ch[1 - f][1]]);
+          });
+        }
+        const sigs = cells.map(sigOf);
+        const set = cross ? on : off;
+        sigs.forEach((s) => set.add(s));
+        aligns.add(up.slice(0, n).join(''));
+        runs++;
+        lastKinds = new Set(sigs).size;
+      }
+    }
+
+    // ---------- drawing ----------
+    function bar(g: SVGElement, x: number, y: number, w: number, h: number, segs: Chromatid) {
+      const half = w / 2;
+      g.appendChild(el('rect', { x, y, width: half, height: h, fill: COL[segs[0]], stroke: INK, 'stroke-width': 0.8 }));
+      g.appendChild(el('rect', { x: x + half, y, width: half, height: h, fill: COL[segs[1]], stroke: INK, 'stroke-width': 0.8 }));
+    }
+    function drawChrom(g: SVGElement, xc: number, cy: number, L: number, ch: Chrom, copied: boolean) {
+      const x = xc - L / 2;
+      if (copied) {
+        bar(g, x, cy - 6, L, 6, ch[0]);
+        bar(g, x, cy, L, 6, ch[1]);
+      } else {
+        bar(g, x, cy - 6, L, 12, ch[0]);
+      }
+    }
+    function cellBox(g: SVGElement, x: number, y: number, w: number, h: number) {
+      g.appendChild(el('rect', { x, y, width: w, height: h, rx: 14, fill: '#fafaf7', stroke: INK, 'stroke-width': 1.4 }));
+    }
+    const cap = () => {
+      const c = cross ? 'on' : 'off';
+      if (stage === 0) return `Start: 1 cell, ${n} pairs (${2 * n} chromosomes)`;
+      if (stage === 1) return 'DNA copied once: each chromosome has 2 copies';
+      if (stage === 2) return `Meiosis I: pairs line up (crossing over ${c})`;
+      if (stage === 3) return 'Meiosis I done: pairs pulled apart, 2 cells';
+      return 'Meiosis II done: copies separated, 4 cells';
+    };
+    function drawMeiosis() {
+      const h = 24 + n * 24 + 4;
+      const H = 28 + h * 2 + 8 + 8;
+      svg.setAttribute('viewBox', `0 0 360 ${H}`);
+      svg.replaceChildren();
+      txt(svg, 8, 18, cap(), { 'font-weight': 700 });
+      if (stage <= 2) {
+        const bh = 2 * h + 8;
+        cellBox(svg, 8, 28, 344, bh);
+        const pitch = (bh - 20) / n;
+        for (let i = 0; i < n; i++) {
+          const cy = 28 + 10 + pitch * (i + 0.5);
+          txt(svg, 18, cy + 4, `pair ${i + 1}`);
+          drawChrom(svg, 210, cy - 11, LEN[i], chrom(i, 'up'), stage >= 1);
+          drawChrom(svg, 210, cy + 11, LEN[i], chrom(i, 'down'), stage >= 1);
+          if (stage === 2 && cross && sw[i] !== undefined) {
+            const xm = 210 + (sw[i] === 0 ? -LEN[i] / 4 : LEN[i] / 4);
+            svg.appendChild(el('line', { x1: xm - 5, y1: cy - 4, x2: xm + 5, y2: cy + 4, stroke: '#1d1d24', 'stroke-width': 2 }));
+            svg.appendChild(el('line', { x1: xm - 5, y1: cy + 4, x2: xm + 5, y2: cy - 4, stroke: '#1d1d24', 'stroke-width': 2 }));
+          }
+        }
+      } else if (stage === 3) {
+        [0, 1].forEach((side) => {
+          const y = 28 + side * (h + 8);
+          cellBox(svg, 8, y, 344, h);
+          txt(svg, 18, y + 17, `${n} chromosomes, each in two copies`);
+          for (let i = 0; i < n; i++) {
+            drawChrom(svg, 200, y + 24 + i * 24 + 12, LEN[i], chrom(i, side === 0 ? 'up' : 'down'), true);
+          }
+        });
+      } else {
+        cells.forEach((cell, k) => {
+          const x = 8 + (k % 2) * 176;
+          const y = 28 + Math.floor(k / 2) * (h + 8);
+          cellBox(svg, x, y, 168, h);
+          txt(svg, x + 10, y + 17, `${n} chromosomes`);
+          cell.forEach((c, i) => {
+            bar(svg, x + 84 - LEN_S[i] / 2, y + 24 + i * 24 + 6, LEN_S[i], 12, c);
+          });
+        });
+      }
+      svg.setAttribute('aria-label', cap());
+    }
+
+    function drawMitosis() {
+      const ph = n * 24 + 16;
+      const total = ph * 2 + 8;
+      const H = 24 + total + 8;
+      msvg.setAttribute('viewBox', `0 0 360 ${H}`);
+      msvg.replaceChildren();
+      txt(msvg, 8, 16, mitosis ? 'Mitosis done: 2 cells, same as the parent' : `Start: 1 cell, ${n} pairs (${2 * n} chromosomes)`, { 'font-weight': 700 });
+      const parentY = 24 + (total - ph) / 2;
+      const drawCell = (x: number, y: number, w: number, label: string) => {
+        cellBox(msvg, x, y, w, ph);
+        txt(msvg, x + 10, y + 16, label);
+        for (let i = 0; i < n; i++) {
+          const cx = x + w / 2, cy = y + 24 + i * 24 + 12;
+          bar(msvg, cx - LEN_P[i] / 2, cy - 10, LEN_P[i], 8, ['M', 'M']);
+          bar(msvg, cx - LEN_P[i] / 2, cy + 1, LEN_P[i], 8, ['F', 'F']);
+        }
+      };
+      drawCell(8, parentY, 124, `${2 * n} chromosomes`);
+      if (mitosis) {
+        drawCell(236, 24, 116, `${2 * n} chromosomes`);
+        drawCell(236, 24 + ph + 8, 116, `${2 * n} chromosomes`);
+        const ym = 24 + total / 2;
+        msvg.appendChild(el('line', { x1: 140, y1: ym, x2: 226, y2: ym, stroke: INK, 'stroke-width': 1.6 }));
+        msvg.appendChild(el('polygon', { points: `226,${ym - 5} 234,${ym} 226,${ym + 5}`, fill: INK }));
+        txt(msvg, 183, ym - 10, 'DNA copied once', { 'text-anchor': 'middle' });
+        txt(msvg, 183, ym + 20, 'divided once', { 'text-anchor': 'middle' });
+      }
+      msvg.setAttribute('aria-label', mitosis ? 'Mitosis done: two cells, each the same as the parent cell' : 'One cell before mitosis');
+    }
+
+    // ---------- text ----------
+    function chipEl(sig: string): HTMLElement {
+      const c = document.createElement('span');
+      c.className = 'msh-chip-k';
+      c.setAttribute('role', 'img');
+      const names: string[] = [];
+      sig.split('|').forEach((p, i) => {
+        const g = document.createElement('span');
+        g.className = 'msh-chip-p';
+        for (const ch of p) {
+          const s = document.createElement('i');
+          s.style.background = COL[ch as Seg];
+          g.appendChild(s);
+        }
+        c.appendChild(g);
+        names.push(`pair ${i + 1}: ${p[0] === 'M' ? 'mother' : 'father'} then ${p[1] === 'M' ? 'mother' : 'father'}`);
+      });
+      c.setAttribute('aria-label', names.join('; '));
+      c.title = names.join('; ');
+      return c;
+    }
+    function statusText(): string {
+      if (stage === 0) return `Start: one cell with ${n} pairs, ${2 * n} chromosomes. Each pair has one chromosome from the mother and one from the father.`;
+      if (stage === 1) return 'The DNA is copied once. Each chromosome is now two sister chromatids joined together.';
+      if (stage === 2) return cross
+        ? 'Meiosis I: each pair lines up side by side, and matching pieces swap between its two chromosomes (marked ×).'
+        : 'Meiosis I: each pair lines up side by side. Crossing over is off, so no pieces swap.';
+      if (stage === 3) return `The first division pulls apart the two chromosomes of each pair. Two cells, each with ${n} chromosomes in two copies.`;
+      return `Meiosis II: the sister chromatids separate, with no DNA copying in between. Four cells, each with ${n} chromosomes.`;
+    }
+    const NEXT = ['Step 1: copy the DNA', 'Step 2: pairs line up (meiosis I)', 'Step 3: pull each pair apart (meiosis I)', 'Step 4: separate the copies (meiosis II)', 'Start a new run'];
+    function update() {
+      const N = Math.pow(2, n);
+      why.textContent = statusText();
+      nextBtn.textContent = NEXT[stage];
+      crossOut.textContent = cross ? 'on' : 'off';
+      lineBtns.forEach((b, i) => {
+        b.hidden = i >= n;
+        if (i < n) b.textContent = `Pair ${i + 1}: ${up[i] === 'M' ? 'mother’s' : 'father’s'} chromosome goes to the top cell`;
+      });
+      if (stage === 4) {
+        rChrom.textContent = `observed ${cells[0].length}, expected ${n} (one from each pair)`;
+        rRun.textContent = cross
+          ? `observed ${lastKinds}, expected 4 (every pair swaps once in this sketch)`
+          : `observed ${lastKinds}, expected 2 (two cells of each kind)`;
+      } else {
+        rChrom.textContent = 'finish both divisions to count';
+        rRun.textContent = 'finish both divisions to count';
+      }
+      rOff.textContent = `observed ${off.size}, expected at most 2${sup(n)} = ${N} (shuffling alone)`;
+      rOn.textContent = `observed ${on.size}; crossing over adds new mixes beyond the ${N}`;
+      rAlign.textContent = `observed ${aligns.size} of 2${sup(n)} = ${N} ways (${runs} ${runs === 1 ? 'run' : 'runs'} so far)`;
+      const set = cross ? on : off;
+      chipsTitle.textContent = `Kinds of sex cell found, crossing over ${cross ? 'on' : 'off'}: ${set.size}`;
+      chips.replaceChildren();
+      const list = Array.from(set);
+      list.slice(0, 32).forEach((s) => chips.appendChild(chipEl(s)));
+      if (list.length > 32) {
+        const more = document.createElement('span');
+        more.className = 'msh-more';
+        more.textContent = `and ${list.length - 32} more`;
+        chips.appendChild(more);
+      }
+      drawMeiosis();
+      updateMitosis();
+    }
+    function updateMitosis() {
+      if (!mitosis) {
+        mwhy.textContent = `Start: one cell with ${n} pairs, ${2 * n} chromosomes. Predict whether its two new cells will match, then run mitosis.`;
+        mCells.textContent = 'run mitosis to count';
+        mChrom.textContent = 'run mitosis to count';
+        mMatch.textContent = 'run mitosis to check';
+        mrunBtn.disabled = false;
+      } else {
+        // Daughters are built as copies of the parent cell; compare them for real.
+        const parent = Array.from({ length: n }, (_, i) => 'MM|FF' + i).join(',');
+        const d1 = parent, d2 = parent;
+        const count = 2 * n;
+        mwhy.textContent = `Mitosis: the DNA is copied once and the cell divides once. Two cells, each with ${count} chromosomes, matching the parent cell.`;
+        mCells.textContent = 'observed 2, expected 2 (one division)';
+        mChrom.textContent = `observed ${count}, expected ${count} (the same as the parent cell)`;
+        mMatch.textContent = d1 === d2 ? 'observed yes, expected yes (cells match the parent cell)' : 'no';
+        mrunBtn.disabled = true;
+      }
+      drawMitosis();
+    }
+
+    // ---------- events ----------
+    function restartRun() { build(); update(); }
+    nextBtn.addEventListener('click', () => { step(); update(); });
+    allBtn.addEventListener('click', () => {
+      if (stage === 4) build();
+      while (stage < 4) step();
+      update();
+    });
+    resetBtn.addEventListener('click', () => {
+      n = 2; cross = false; up = ['M', 'M', 'M'];
+      nIns.forEach((r) => { r.checked = r.value === '2'; });
+      crossIn.checked = false;
+      clearTally(); mitosis = false; build(); update();
+    });
+    shuffleBtn.addEventListener('click', () => {
+      if (stage >= 3) build();
+      up = [rand2() ? 'M' : 'F', rand2() ? 'M' : 'F', rand2() ? 'M' : 'F'];
+      update();
+    });
+    lineBtns.forEach((b, i) => b.addEventListener('click', () => {
+      if (stage >= 3) build();
+      up[i] = up[i] === 'M' ? 'F' : 'M';
+      update();
+    }));
+    nIns.forEach((r) => r.addEventListener('change', () => {
+      if (!r.checked) return;
+      n = parseInt(r.value, 10);
+      clearTally(); mitosis = false; build(); update();
+    }));
+    crossIn.addEventListener('change', () => {
+      cross = crossIn.checked;
+      restartRun();
+    });
+    mrunBtn.addEventListener('click', () => { mitosis = true; update(); });
+
+    build();
+    update();
+  });
+</script>
+
+<style is:global>
+  .msh { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .msh-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .msh-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .msh-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .msh-key { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .msh-sw { display: inline-block; width: 14px; height: 14px; border: 1px solid #4b4b55; }
+  .msh-sw-m { background: #e57200; }
+  .msh-sw-f { background: #0e7c86; }
+  .msh-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .msh-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .msh-actions { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .msh-btn { min-height: 44px; padding: 0.4rem 0.9rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); cursor: pointer; text-align: left; }
+  .msh-btn-main { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; text-align: center; }
+  .msh-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .msh-btn:focus-visible, .msh-opt input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .msh-settings { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-4); align-items: flex-end; margin: var(--ddp-space-2) 0; }
+  .msh-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.5rem; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); min-width: 0; }
+  .msh-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .msh-opt { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 44px; padding: 0 0.4rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .msh-opt input { width: 20px; height: 20px; accent-color: var(--ddp-color-accent); }
+  .msh-opt b { color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .msh-lineup { margin: var(--ddp-space-2) 0; flex-direction: column; align-items: stretch; }
+  .msh-lineup .msh-btn[hidden] { display: none; }
+  .msh-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .msh-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .msh-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .msh-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .msh-chips-title { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-bottom: 0.3rem; }
+  .msh-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .msh-chip-k { display: inline-flex; gap: 6px; padding: 3px 5px; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; }
+  .msh-chip-p { display: inline-flex; gap: 1px; }
+  .msh-chip-p i { display: block; width: 11px; height: 11px; border: 1px solid #4b4b55; }
+  .msh-more { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); align-self: center; }
+  .msh-side { margin-top: var(--ddp-space-4); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); }
+  .msh-side-head { font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-2); }
+  .msh-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .msh-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

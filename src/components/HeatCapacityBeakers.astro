@@ -1,0 +1,289 @@
+---
+/**
+ * HeatCapacityBeakers — two beakers on one heater, 100 g of water and 100 g of dry sand.
+ * The learner sets the heating time; the rise in each beaker is
+ *   rise = heat added / (mass x specific heat),
+ * the lesson's own equation (heat added = mass x specific heat x temperature change),
+ * with specific heat 4.184 J/g/degC for water and 0.8 for dry sand. A second slider turns the
+ * heater off and lets both beakers lose the same heat each minute (a stated sketch assumption).
+ * Labelled blocks, thermometers and plots only. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="hc card" data-heatcap>
+  <figcaption class="hc-head">Heating water and sand side by side<span class="hc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="hc-svg" viewBox="0 0 360 244" role="img" aria-label="Two beakers on one heater, one with 100 grams of water and one with 100 grams of dry sand, each with a thermometer" data-stage>
+    <rect x="10" y="174" width="330" height="18" fill="#d9d9de" stroke="#4b4b55" stroke-width="1"></rect>
+    <text x="175" y="187" text-anchor="middle" font-size="12" fill="#2b2b33" data-plate>heater off</text>
+
+    <!-- water beaker -->
+    <text x="66" y="14" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2b33">Water, 100 g</text>
+    <text x="66" y="31" text-anchor="middle" font-size="12" fill="#2b2b33" data-t-water>20.0 °C (+0.0)</text>
+    <rect x="17" y="100" width="76" height="71" fill="#bfe3f2"></rect>
+    <line x1="17" y1="100" x2="93" y2="100" stroke="#1f6fa8" stroke-width="2"></line>
+    <path d="M15 55 L15 172 L95 172 L95 55" fill="none" stroke="#4b4b55" stroke-width="2"></path>
+    <rect x="105" y="52" width="12" height="120" rx="6" fill="#fff" stroke="#4b4b55" stroke-width="1"></rect>
+    <rect x="107" y="170" width="8" height="2" fill="#c0392b" data-fill-water></rect>
+    <line x1="103" y1="154" x2="120" y2="154" stroke="#e57200" stroke-width="2" stroke-dasharray="3 2" data-ref-line></line>
+    <text x="123" y="158" font-size="12" fill="#b25400" data-ref-text>sand 1 min</text>
+    <text x="123" y="60" font-size="12" fill="#2b2b33">90</text>
+    <text x="123" y="170" font-size="12" fill="#2b2b33">20</text>
+
+    <!-- sand beaker -->
+    <text x="266" y="14" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2b33">Dry sand, 100 g</text>
+    <text x="266" y="31" text-anchor="middle" font-size="12" fill="#2b2b33" data-t-sand>20.0 °C (+0.0)</text>
+    <rect x="217" y="100" width="76" height="71" fill="#ecd9a8"></rect>
+    <g fill="#9a7416" opacity="0.7">
+      <circle cx="226" cy="112" r="1.6"></circle><circle cx="244" cy="108" r="1.6"></circle><circle cx="262" cy="115" r="1.6"></circle><circle cx="280" cy="109" r="1.6"></circle>
+      <circle cx="232" cy="128" r="1.6"></circle><circle cx="252" cy="131" r="1.6"></circle><circle cx="271" cy="126" r="1.6"></circle><circle cx="285" cy="134" r="1.6"></circle>
+      <circle cx="224" cy="146" r="1.6"></circle><circle cx="243" cy="149" r="1.6"></circle><circle cx="262" cy="144" r="1.6"></circle><circle cx="281" cy="152" r="1.6"></circle>
+      <circle cx="233" cy="163" r="1.6"></circle><circle cx="253" cy="165" r="1.6"></circle><circle cx="272" cy="161" r="1.6"></circle>
+    </g>
+    <line x1="217" y1="100" x2="293" y2="100" stroke="#9a7416" stroke-width="2"></line>
+    <path d="M215 55 L215 172 L295 172 L295 55" fill="none" stroke="#4b4b55" stroke-width="2"></path>
+    <rect x="305" y="52" width="12" height="120" rx="6" fill="#fff" stroke="#4b4b55" stroke-width="1"></rect>
+    <rect x="307" y="170" width="8" height="2" fill="#c0392b" data-fill-sand></rect>
+    <text x="323" y="60" font-size="12" fill="#2b2b33">90</text>
+    <text x="323" y="170" font-size="12" fill="#2b2b33">20</text>
+
+    <g data-arrows></g>
+    <text x="175" y="236" text-anchor="middle" font-size="12" fill="#2b2b33" data-flow>heater is off</text>
+  </svg>
+  <p class="hc-key">Thermometers read 20 to 90 °C. The dashed mark on the water thermometer shows the rise the sand showed after 1 minute: <strong data-key-rise>+10.5 °C</strong>.</p>
+
+  <div class="hc-controls">
+    <label class="hc-slabel"><span>Heating time <em data-out="heat">0 minutes</em></span>
+      <input type="range" data-in="heat" min="0" max="6" step="0.25" value="0" />
+    </label>
+    <label class="hc-slabel"><span>Then heater off, cooling for <em data-out="cool">0 minutes</em></span>
+      <input type="range" data-in="cool" min="0" max="6" step="0.25" value="0" />
+    </label>
+    <button type="button" class="hc-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="hc-why" data-why role="status">Both beakers start at 20 °C. Move the heating-time slider to switch the heater on.</p>
+
+  <div class="hc-cols">
+    <div class="hc-col hc-col-water">
+      <h4>Water</h4>
+      <p>specific heat: about 4.18 J per g per °C</p>
+      <p data-a-water-up>rise = heat added ÷ (mass × specific heat)</p>
+      <p data-a-water-down></p>
+    </div>
+    <div class="hc-col hc-col-sand">
+      <h4>Dry sand</h4>
+      <p>specific heat: about 0.8 J per g per °C</p>
+      <p data-a-sand-up>rise = heat added ÷ (mass × specific heat)</p>
+      <p data-a-sand-down></p>
+    </div>
+  </div>
+  <p class="hc-heat" data-heat-line>Heat added so far: 0 J.</p>
+
+  <p class="hc-plot-title">In this sketch: temperature of each beaker over time</p>
+  <svg class="hc-svg hc-plot" viewBox="0 0 360 220" role="img" aria-label="Line graph of the temperature of the water and the dry sand over time, in minutes" data-plot></svg>
+
+  <p class="hc-assume">In this sketch: 100 g of each material starts at 20 °C. The heater adds 836.8 joules each minute to each beaker, the same for both. After the heater is off, each beaker loses 836.8 joules each minute until it is back at 20 °C. The numbers are a model, not a measurement.</p>
+  <p class="hc-foot">Rule to keep: heat added = mass × specific heat × temperature change. The same heat makes a smaller temperature change in the material with the higher specific heat, so water warms and cools slowly. This picture is a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', WATER = '#1f6fa8', SAND = '#9a7416', ORANGE = '#e57200';
+  const MASS = 100, C_W = 4.184, C_S = 0.8, POWER = 836.8, T0 = 20, TMIN = 20, TMAX = 90;
+  const REF_RISE = POWER * 1 / (MASS * C_S); // sand's rise after 1 minute
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const f1 = (x: number) => x.toFixed(1);
+  const fm = (x: number) => String(Math.round(x * 100) / 100);
+  const fj = (x: number) => String(Math.round(x * 10) / 10);
+
+  document.querySelectorAll<HTMLElement>('[data-heatcap]').forEach((root) => {
+    const one = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const heatIn = one<HTMLInputElement>('[data-in="heat"]');
+    const coolIn = one<HTMLInputElement>('[data-in="cool"]');
+    const heatOut = one<HTMLElement>('[data-out="heat"]');
+    const coolOut = one<HTMLElement>('[data-out="cool"]');
+    const resetBtn = one<HTMLButtonElement>('[data-reset]');
+    const why = one<HTMLElement>('[data-why]');
+    const plot = one<SVGSVGElement>('[data-plot]');
+    const plate = one<SVGTextElement>('[data-plate]');
+    const flow = one<SVGTextElement>('[data-flow]');
+    const arrows = one<SVGGElement>('[data-arrows]');
+    const tWater = one<SVGTextElement>('[data-t-water]');
+    const tSand = one<SVGTextElement>('[data-t-sand]');
+    const fillWater = one<SVGRectElement>('[data-fill-water]');
+    const fillSand = one<SVGRectElement>('[data-fill-sand]');
+    const refLine = one<SVGLineElement>('[data-ref-line]');
+    const refText = one<SVGTextElement>('[data-ref-text]');
+    const keyRise = one<HTMLElement>('[data-key-rise]');
+    const aWu = one<HTMLElement>('[data-a-water-up]');
+    const aWd = one<HTMLElement>('[data-a-water-down]');
+    const aSu = one<HTMLElement>('[data-a-sand-up]');
+    const aSd = one<HTMLElement>('[data-a-sand-down]');
+    const heatLine = one<HTMLElement>('[data-heat-line]');
+    if (!heatIn || !coolIn || !heatOut || !coolOut || !resetBtn || !why || !plot || !plate || !flow || !arrows ||
+        !tWater || !tSand || !fillWater || !fillSand || !refLine || !refText || !keyRise || !aWu || !aWd || !aSu || !aSd || !heatLine) return;
+
+    // thermometer geometry (matches the markup): tube bottom y=172, height 120 for 20..90 degrees
+    const tubeY = (t: number) => 172 - ((Math.min(TMAX, Math.max(TMIN, t)) - TMIN) / (TMAX - TMIN)) * 120;
+    const refY = tubeY(T0 + REF_RISE);
+    refLine.setAttribute('y1', String(refY)); refLine.setAttribute('y2', String(refY));
+    refText.setAttribute("y", String(refY - 3));
+    keyRise.textContent = '+' + f1(REF_RISE) + ' °C';
+
+    // plot geometry
+    const X0 = 48, X1 = 340, Y0 = 40, Y1 = 176, TMAXX = 12;
+    const px = (t: number) => X0 + (t / TMAXX) * (X1 - X0);
+    const py = (T: number) => Y1 - ((Math.min(TMAX, Math.max(TMIN, T)) - TMIN) / (TMAX - TMIN)) * (Y1 - Y0);
+
+    // temperature of a beaker with specific heat c, heated H minutes, at time t (cooling after H)
+    function tempAt(c: number, H: number, t: number): number {
+      const peak = T0 + (POWER * H) / (MASS * c);
+      if (t <= H) return T0 + (POWER * t) / (MASS * c);
+      return Math.max(T0, peak - (POWER * (t - H)) / (MASS * c));
+    }
+
+    function drawArrows(kind: 'in' | 'out' | 'none') {
+      arrows!.replaceChildren();
+      if (kind === 'none') return;
+      for (const cx of [55, 255]) {
+        for (const dx of [-20, 0, 20]) {
+          const x = cx + dx;
+          if (kind === 'in') {
+            arrows!.appendChild(el('line', { x1: x, y1: 214, x2: x, y2: 204, stroke: ORANGE, 'stroke-width': 3 }));
+            arrows!.appendChild(el('polygon', { points: `${x},196 ${x - 6},206 ${x + 6},206`, fill: ORANGE }));
+          } else {
+            arrows!.appendChild(el('line', { x1: x, y1: 52, x2: x, y2: 46, stroke: WATER, 'stroke-width': 3 }));
+            arrows!.appendChild(el('polygon', { points: `${x},38 ${x - 6},46 ${x + 6},46`, fill: WATER }));
+          }
+        }
+      }
+    }
+
+    function drawPlot(H: number, tc: number) {
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const T of [20, 40, 60, 80]) {
+        if (T > 20) plot!.appendChild(el('line', { x1: X0, y1: py(T), x2: X1, y2: py(T), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        const t = el('text', { x: X0 - 5, y: py(T) + 4, 'text-anchor': 'end', 'font-size': 12, fill: INK }); t.textContent = String(T); plot!.appendChild(t);
+      }
+      for (let m = 0; m <= TMAXX; m += 2) {
+        plot!.appendChild(el('line', { x1: px(m), y1: Y1, x2: px(m), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(m), y: Y1 + 18, 'text-anchor': 'middle', 'font-size': 12, fill: INK }); t.textContent = String(m); plot!.appendChild(t);
+      }
+      const xl = el('text', { x: (X0 + X1) / 2, y: 214, 'text-anchor': 'middle', 'font-size': 12, fill: INK }); xl.textContent = 'time (minutes)'; plot!.appendChild(xl);
+      const yl = el('text', { x: 4, y: 14, 'text-anchor': 'start', 'font-size': 12, fill: INK }); yl.textContent = 'temperature (°C)'; plot!.appendChild(yl);
+      // legend (top-left, clear of the curves)
+      plot!.appendChild(el('line', { x1: X0 + 8, y1: 52, x2: X0 + 28, y2: 52, stroke: WATER, 'stroke-width': 3 }));
+      const l1 = el('text', { x: X0 + 33, y: 56, 'font-size': 12, fill: INK }); l1.textContent = 'Water'; plot!.appendChild(l1);
+      plot!.appendChild(el('line', { x1: X0 + 8, y1: 70, x2: X0 + 28, y2: 70, stroke: SAND, 'stroke-width': 3 }));
+      const l2 = el('text', { x: X0 + 33, y: 74, 'font-size': 12, fill: INK }); l2.textContent = 'Dry sand'; plot!.appendChild(l2);
+      if (H > 0 && tc > 0) {
+        plot!.appendChild(el('line', { x1: px(H), y1: Y0, x2: px(H), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 3' }));
+        const ho = el('text', { x: px(H) + 4, y: 34, 'font-size': 12, fill: '#b25400' }); ho.textContent = 'heater off'; plot!.appendChild(ho);
+      }
+      const end = H + tc;
+      for (const [c, col] of [[C_W, WATER], [C_S, SAND]] as Array<[number, string]>) {
+        let d = '';
+        const steps = 60;
+        for (let i = 0; i <= steps; i++) {
+          const t = (end * i) / steps;
+          d += (i === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(tempAt(c, H, t)).toFixed(1) + ' ';
+        }
+        if (end === 0) d = `M${px(0).toFixed(1)} ${py(T0).toFixed(1)} L${px(0).toFixed(1)} ${py(T0).toFixed(1)}`;
+        plot!.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: col, 'stroke-width': 2.8, 'stroke-linejoin': 'round' }));
+        plot!.appendChild(el('circle', { cx: px(end), cy: py(tempAt(c, H, end)), r: 5, fill: col, stroke: '#fff', 'stroke-width': 1.5 }));
+      }
+    }
+
+    function render() {
+      const H = parseFloat(heatIn!.value);
+      const tc = parseFloat(coolIn!.value);
+      heatOut!.textContent = fm(H) + (H === 1 ? ' minute' : ' minutes');
+      coolOut!.textContent = fm(tc) + (tc === 1 ? ' minute' : ' minutes');
+      const heatJ = POWER * H;
+      const coolJ = POWER * tc;
+      const riseW = heatJ / (MASS * C_W), riseS = heatJ / (MASS * C_S);
+      const fallWraw = coolJ / (MASS * C_W), fallSraw = coolJ / (MASS * C_S);
+      const fallW = Math.min(fallWraw, riseW), fallS = Math.min(fallSraw, riseS);
+      const nowW = T0 + riseW - fallW, nowS = T0 + riseS - fallS;
+      const heating = H > 0 && tc === 0;
+      const cooling = H > 0 && tc > 0;
+
+      // stage
+      tWater!.textContent = `${f1(nowW)} °C (+${f1(nowW - T0)})`;
+      tSand!.textContent = `${f1(nowS)} °C (+${f1(nowS - T0)})`;
+      const setFill = (r: SVGRectElement, T: number) => {
+        const y = tubeY(T);
+        r.setAttribute('y', String(Math.min(170, y))); r.setAttribute('height', String(Math.max(2, 172 - y)));
+      };
+      setFill(fillWater!, nowW); setFill(fillSand!, nowS);
+      plate!.textContent = heating ? 'heater on' : 'heater off';
+      const stillHot = nowW > T0 + 0.05 || nowS > T0 + 0.05;
+      drawArrows(cooling && stillHot ? 'out' : heating ? 'in' : 'none');
+      flow!.textContent = cooling && stillHot ? 'heat out: 836.8 J each minute' : heating ? 'heat in: 836.8 J each minute' : 'no heat is flowing in this state';
+
+      // arithmetic beside the readings
+      heatLine!.textContent = H === 0
+        ? 'Heat added so far: 0 J.'
+        : `Heat added: 836.8 J × ${fm(H)} min = ${fj(heatJ)} J, the same for both beakers.` + (cooling ? ` Heat lost: 836.8 J × ${fm(tc)} min = ${fj(coolJ)} J, the same for both.` : '');
+      aWu!.textContent = H === 0 ? 'rise = heat added ÷ (mass × specific heat)' : `rise: ${fj(heatJ)} ÷ (100 × 4.184) = ${f1(riseW)} °C`;
+      aSu!.textContent = H === 0 ? 'rise = heat added ÷ (mass × specific heat)' : `rise: ${fj(heatJ)} ÷ (100 × about 0.8) = about ${f1(riseS)} °C`;
+      aWd!.textContent = cooling ? `fall: ${fj(coolJ)} ÷ (100 × 4.184) = ${f1(fallWraw)} °C` + (fallWraw > riseW ? ', so it stops at 20 °C' : '') : '';
+      aSd!.textContent = cooling ? `fall: ${fj(coolJ)} ÷ (100 × about 0.8) = about ${f1(fallSraw)} °C` + (fallSraw > riseS ? ', so it stops at 20 °C' : '') : '';
+
+      drawPlot(H, tc);
+
+      // status sentence for every state
+      let msg: string;
+      if (H === 0) {
+        msg = tc > 0 ? 'The heater was never on, so both beakers are still at 20 °C. Move the heating-time slider first.' : 'Both beakers start at 20 °C. Move the heating-time slider to switch the heater on.';
+      } else if (cooling) {
+        if (nowW <= T0 + 0.05 && nowS <= T0 + 0.05) msg = `Heater off for ${fm(tc)} min. Both are back at 20 °C. In this sketch, sand fell more degrees each minute because its specific heat is lower.`;
+        else msg = `Heater off for ${fm(tc)} min. Same heat lost: water fell ${f1(fallW)} °C, sand fell ${f1(fallS)} °C. In this sketch, water’s temperature falls more slowly.`;
+      } else if (Math.abs(riseW - REF_RISE) <= 0.3) {
+        msg = `Water’s rise now matches the sand’s 1-minute rise. Water took ${fm(H)} min, about ${fm(H)} times as long.`;
+      } else {
+        msg = `Same heat for ${fm(H)} min: water rose ${f1(riseW)} °C, sand rose ${f1(riseS)} °C. Water takes more energy per gram for each degree.`;
+      }
+      why!.textContent = msg;
+    }
+
+    [heatIn, coolIn].forEach((s) => s.addEventListener('input', render));
+    resetBtn.addEventListener('click', () => { heatIn.value = '0'; coolIn.value = '0'; render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .hc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hc-key { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hc-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .hc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .hc-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .hc-btn { min-height: 44px; min-width: 88px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.25rem 0.9rem; cursor: pointer; justify-self: start; }
+  .hc-btn:focus-visible, .hc-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hc-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .hc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .hc-col { padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .hc-col h4 { margin: 0 0 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .hc-col p { margin: 0 0 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); font-family: var(--ddp-font-mono); line-height: 1.45; }
+  .hc-heat { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hc-plot-title { margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-primary); }
+  .hc-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .hc-controls { grid-template-columns: 1fr; }
+    .hc-cols { grid-template-columns: 1fr; }
+  }
+</style>

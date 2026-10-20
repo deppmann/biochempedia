@@ -1,0 +1,214 @@
+---
+/**
+ * EnzymeRateExplorer — a sketch of how temperature, pH and substrate amount change the rate of
+ * one enzyme reaction. Rate = (warmth speed-up) x (share still folded after the hottest
+ * temperature reached) x (pH match) x (share of active sites busy). Relative units only.
+ * Heat damage is kept for the whole run (the lesson: "often permanent"). Original, self-contained.
+ */
+---
+
+<figure class="erx card" data-erx>
+  <figcaption class="erx-head">Enzyme rate explorer<span class="erx-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="erx-svg" viewBox="0 0 360 250" role="img" aria-label="Sketch graph of relative enzyme rate against temperature" data-plot></svg>
+
+  <ul class="erx-key" aria-label="Graph key">
+    <li><span class="erx-sw erx-sw-fresh"></span>fresh enzyme at this pH and substrate</li>
+    <li data-key-dmg hidden><span class="erx-sw erx-sw-dmg"></span>this enzyme after the heating so far</li>
+    <li><span class="erx-dot"></span>rate now</li>
+  </ul>
+
+  <div class="erx-controls">
+    <label class="erx-slabel"><span>Temperature <em data-out="t">20</em> °C</span>
+      <input type="range" data-in="t" min="0" max="70" step="1" value="20" />
+    </label>
+    <label class="erx-slabel"><span>pH <em data-out="ph">7.0</em> <small>(7 is neutral)</small></span>
+      <input type="range" data-in="ph" min="0" max="14" step="0.5" value="7" />
+    </label>
+    <label class="erx-slabel"><span>Substrate <em data-out="s">128</em> <small>(relative units; each step doubles it)</small></span>
+      <input type="range" data-in="s" min="0" max="7" step="1" value="7" />
+    </label>
+  </div>
+  <div class="erx-btnrow"><button type="button" class="erx-btn" data-reset>Reset</button></div>
+
+  <dl class="erx-readout">
+    <div><dt>Rate now (relative units)</dt><dd data-r-rate>0</dd></div>
+    <div><dt>Enzyme still folded</dt><dd data-r-fold>100%</dd></div>
+    <div><dt>Active sites busy</dt><dd data-r-busy>0%</dd></div>
+    <div><dt>Doubling the substrate multiplies the rate by</dt><dd data-r-dbl>—</dd></div>
+  </dl>
+  <div class="erx-bar" aria-hidden="true"><span data-bar></span></div>
+
+  <p class="erx-why" data-why role="status">Slide the temperature and watch the rate.</p>
+
+  <p class="erx-assume">In this sketch: one enzyme with its best temperature at about 37 °C and best pH at 7. The curves show the usual pattern, not measured data for any real enzyme. Rates are relative units. The steepness of the curves, the 0 to 70 °C range, half the active sites busy at substrate 8, and the “still folded” and “busy” percentages are invented for the sketch. Time spent heated is not modelled.</p>
+  <p class="erx-foot">Rule to keep: heat speeds an enzyme up to its optimum and then denatures it; the wrong pH changes its charges; more substrate helps only until the active sites are full. Heat damage is often lasting, so this sketch makes it lasting; it does not model lasting damage from extreme pH, which the lesson says can also happen.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-erx]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const tIn = root.querySelector<HTMLInputElement>('[data-in="t"]');
+    const phIn = root.querySelector<HTMLInputElement>('[data-in="ph"]');
+    const sIn = root.querySelector<HTMLInputElement>('[data-in="s"]');
+    const tOut = root.querySelector<HTMLElement>('[data-out="t"]');
+    const phOut = root.querySelector<HTMLElement>('[data-out="ph"]');
+    const sOut = root.querySelector<HTMLElement>('[data-out="s"]');
+    const rRate = root.querySelector<HTMLElement>('[data-r-rate]');
+    const rFold = root.querySelector<HTMLElement>('[data-r-fold]');
+    const rBusy = root.querySelector<HTMLElement>('[data-r-busy]');
+    const rDbl = root.querySelector<HTMLElement>('[data-r-dbl]');
+    const bar = root.querySelector<HTMLElement>('[data-bar]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const keyDmg = root.querySelector<HTMLElement>('[data-key-dmg]');
+    const reset = root.querySelector<HTMLButtonElement>('[data-reset]');
+    if (!plot || !tIn || !phIn || !sIn || !tOut || !phOut || !sOut || !rRate || !rFold || !rBusy || !rDbl || !bar || !why || !keyDmg || !reset) return;
+
+    const X0 = 48, X1 = 346, Y0 = 26, Y1 = 196, TMAX = 70;
+    const px = (t: number) => X0 + (t / TMAX) * (X1 - X0);
+    const py = (r: number) => Y1 - (Math.min(r, 100) / 100) * (Y1 - Y0);
+
+    // Model (relative units). Warmer = faster; heat unfolds the enzyme above about 37 degrees C.
+    const warm = (t: number) => Math.pow(Math.max(t, 0) / 37, 1.5);
+    const rawF = (t: number) => 1 / (1 + Math.exp((t - 42.5) / 2.5));
+    const fold = (t: number) => Math.min(1, rawF(t) / rawF(37));
+    const phMatch = (ph: number) => Math.exp(-Math.pow((ph - 7) / 2.2, 2));
+    const KM = 8; // substrate level at which half the active sites are busy (sketch value)
+    const busy = (s: number) => s / (s + KM);
+    let top = 0;
+    for (let t = 0; t <= TMAX; t += 0.5) top = Math.max(top, warm(t) * fold(t));
+
+    let tMax = parseInt(tIn.value, 10); // hottest temperature reached since Reset
+
+    function curve(ph: number, s: number, damaged: boolean): string {
+      let d = '';
+      for (let t = 0; t <= TMAX; t += 1) {
+        const f = damaged ? fold(Math.max(t, tMax)) : fold(t);
+        const r = (warm(t) * f * phMatch(ph) * busy(s) / top) * 100;
+        d += (t === 0 ? 'M' : 'L') + px(t).toFixed(1) + ' ' + py(r).toFixed(1) + ' ';
+      }
+      return d.trim();
+    }
+    function txt(x: number, y: number, s: string, anchor: string, size = 12, weight = 400, fill = INK) {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill });
+      t.textContent = s;
+      plot!.appendChild(t);
+    }
+
+    function render() {
+      const t = parseInt(tIn!.value, 10);
+      const ph = parseFloat(phIn!.value);
+      const sIdx = parseInt(sIn!.value, 10);
+      const s = Math.pow(2, sIdx);
+      if (t > tMax) tMax = t;
+      const foldNow = fold(Math.max(t, tMax));
+      const rate = (warm(t) * foldNow * phMatch(ph) * busy(s) / top) * 100;
+      const halfRate = (warm(t) * foldNow * phMatch(ph) * busy(s / 2) / top) * 100;
+      const damaged = foldNow < 0.97 && tMax > t;
+
+      tOut!.textContent = String(t);
+      phOut!.textContent = ph.toFixed(1);
+      sOut!.textContent = String(s);
+      rRate!.textContent = rate.toFixed(0);
+      rFold!.textContent = foldNow < 0.01 ? 'under 1%' : Math.round(foldNow * 100) + '%';
+      rBusy!.textContent = Math.round(busy(s) * 100) + '%';
+      rDbl!.textContent = rate < 1 ? '—' : '×' + (rate / halfRate).toFixed(2);
+      bar!.style.width = Math.round(busy(s) * 100) + '%';
+      keyDmg!.hidden = !(foldNow < 0.97);
+
+      plot!.replaceChildren();
+      plot!.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot!.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const r of [0, 50, 100]) {
+        if (r > 0) plot!.appendChild(el('line', { x1: X0, y1: py(r), x2: X1, y2: py(r), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        txt(X0 - 5, py(r) + 4, String(r), 'end');
+      }
+      for (let k = 0; k <= TMAX; k += 10) {
+        plot!.appendChild(el('line', { x1: px(k), y1: Y1, x2: px(k), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        txt(px(k), Y1 + 18, String(k), 'middle');
+      }
+      txt((X0 + X1) / 2, Y1 + 38, 'temperature (°C)', 'middle');
+      txt(X0 - 2, Y0 - 10, 'rate (relative units)', 'start');
+      // the optimum, as a dotted guide
+      plot!.appendChild(el('line', { x1: px(37), y1: Y0, x2: px(37), y2: Y1, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '1 3' }));
+      txt(px(37) + 70, Y0 - 10, 'dotted line: 37 °C', 'middle');
+
+      plot!.appendChild(el('path', { d: curve(ph, s, false), fill: 'none', stroke: foldNow < 0.97 ? FAINT : ACCENT, 'stroke-width': foldNow < 0.97 ? 1.8 : 2.8, 'stroke-dasharray': foldNow < 0.97 ? '4 3' : '0' }));
+      if (foldNow < 0.97) plot!.appendChild(el('path', { d: curve(ph, s, true), fill: 'none', stroke: ACCENT, 'stroke-width': 2.8 }));
+      if (damaged) plot!.appendChild(el('line', { x1: px(t), y1: py(rate), x2: px(t), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot!.appendChild(el('circle', { cx: px(t), cy: py(rate), r: 6, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+
+      // Status: one short sentence each for temperature, pH and substrate.
+      const parts: string[] = [];
+      if (damaged) {
+        parts.push(`You heated it to ${tMax} °C earlier, so ${foldNow < 0.01 ? 'almost none' : 'only ' + Math.round(foldNow * 100) + '%'} of the enzyme keeps its folded shape. In this sketch, cooling does not bring it back.`);
+      } else if (t > 37) {
+        parts.push('In this sketch, above the optimum heat unfolds more of the enzyme, so fewer active sites fit the substrate and the rate falls.');
+      } else if (t === 37) {
+        parts.push('At about 37 °C, the best temperature in this sketch, heat is helping the enzyme most.');
+      } else if (t <= 5) {
+        parts.push('Cold molecules move slowly and bump into each other rarely, so the rate is low.');
+      } else {
+        parts.push('Warmer molecules move faster and bump into each other more often, so the rate rises toward the optimum.');
+      }
+      if (Math.abs(ph - 7) >= 2) {
+        parts.push('Away from this sketch enzyme’s best pH (7), the charges on the active site and substrate change, so they may no longer attract each other.');
+      }
+      if (busy(s) >= 0.85) {
+        parts.push('Nearly every active site is busy, so more substrate barely raises the rate. This is saturation.');
+      } else if (sIdx <= 3) {
+        parts.push('Substrate meets active sites more often as you add it, so the rate rises.');
+      } else {
+        parts.push('More active sites are busy now, so extra substrate raises the rate by less each time.');
+      }
+      why!.textContent = parts.join(' ');
+    }
+
+    [tIn, phIn, sIn].forEach((x) => x.addEventListener('input', render));
+    reset.addEventListener('click', () => {
+      tIn.value = '20'; phIn.value = '7'; sIn.value = '7';
+      tMax = 20;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .erx { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .erx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .erx-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .erx-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .erx-key { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .erx-key li[hidden] { display: none; }
+  .erx-sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid #0e7c86; vertical-align: middle; margin-right: 0.35rem; }
+  .erx-sw-dmg { border-top-style: solid; }
+  .erx-sw-fresh { border-top: 3px dashed #b9b9c2; }
+  .erx-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #e57200; vertical-align: middle; margin-right: 0.35rem; }
+  .erx-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .erx-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .erx-slabel small { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .erx-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .erx-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .erx-btnrow { margin: var(--ddp-space-2) 0; }
+  .erx-btn { min-height: 44px; min-width: 88px; padding: 0 1rem; font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); background: #fff; border: 1.5px solid var(--ddp-color-accent); border-radius: 6px; cursor: pointer; }
+  .erx-btn:hover { background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); }
+  .erx-btn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .erx-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .erx-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .erx-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .erx-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .erx-bar { height: 10px; background: #e6e6ea; border-radius: 5px; overflow: hidden; margin: 0 0 var(--ddp-space-2); }
+  .erx-bar span { display: block; height: 100%; width: 0; background: var(--ddp-color-accent); transition: width 0.15s; }
+  .erx-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .erx-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .erx-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .erx-readout { grid-template-columns: 1fr; } }
+</style>

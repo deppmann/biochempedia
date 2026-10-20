@@ -1,0 +1,498 @@
+---
+/**
+ * MitosisPhaseCounter — two panels for the lesson "The Cell Cycle and Mitosis".
+ * Panel 1 steps one schematic cell with two colour-coded pairs of chromosomes (4 chromosomes) through G1, S, G2,
+ * prophase, metaphase, anaphase, telophase and cytokinesis (animal furrow or plant cell plate).
+ * Panel 2 draws a field of onion root-tip cells by chance from the lesson's 36-cell counts (20, 10, 3, 2, 1),
+ * "counts" it, and turns the fractions into phase times (fraction x total cycle time), expected beside observed.
+ * Labelled schematic shapes only, in relative units where not given by the lesson. Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+---
+
+<figure class="mpc card" data-mpc>
+  <figcaption class="mpc-head">Mitosis stepper and phase counter<span class="mpc-chip">⚙ original · interactive</span></figcaption>
+
+  <section class="mpc-panel" aria-labelledby="mpc-h1">
+    <h4 class="mpc-h" id="mpc-h1">1. Step one cell through division</h4>
+
+    <div class="mpc-steps" role="group" aria-label="Choose a stage">
+      <div class="mpc-grp"><span class="mpc-glab">Interphase</span>
+        <div class="mpc-chips">
+          <button type="button" class="mpc-chipbtn" data-go="0">G1</button>
+          <button type="button" class="mpc-chipbtn" data-go="1">S</button>
+          <button type="button" class="mpc-chipbtn" data-go="2">G2</button>
+        </div>
+      </div>
+      <div class="mpc-grp"><span class="mpc-glab">M phase: mitosis (the nucleus divides)</span>
+        <div class="mpc-chips">
+          <button type="button" class="mpc-chipbtn" data-go="3">Prophase</button>
+          <button type="button" class="mpc-chipbtn" data-go="4">Metaphase</button>
+          <button type="button" class="mpc-chipbtn" data-go="5">Anaphase</button>
+          <button type="button" class="mpc-chipbtn" data-go="6">Telophase</button>
+        </div>
+      </div>
+      <div class="mpc-grp"><span class="mpc-glab">M phase: cytokinesis (the cytoplasm divides)</span>
+        <div class="mpc-chips">
+          <button type="button" class="mpc-chipbtn" data-go="7">Cytokinesis</button>
+        </div>
+      </div>
+    </div>
+
+    <svg class="mpc-svg" viewBox="0 0 340 250" role="img" aria-label="A schematic cell with two pairs of chromosomes" data-cell></svg>
+
+    <div class="mpc-row">
+      <button type="button" class="mpc-btn" data-back>◀ Back</button>
+      <button type="button" class="mpc-btn mpc-primary" data-next>Next step ▶</button>
+      <span class="mpc-seg" role="group" aria-label="Kind of cell">
+        <button type="button" class="mpc-btn" data-kind="animal" aria-pressed="true">Animal cell</button>
+        <button type="button" class="mpc-btn" data-kind="plant" aria-pressed="false">Plant cell</button>
+      </span>
+      <button type="button" class="mpc-btn" data-reset1>Reset</button>
+    </div>
+
+    <dl class="mpc-readout">
+      <div><dt>Stage</dt><dd data-r-stage>G1</dd></div>
+      <div><dt>Chromosomes</dt><dd data-r-chr>4</dd></div>
+      <div><dt>Copies in each chromosome</dt><dd data-r-copy>1</dd></div>
+      <div><dt>Cells</dt><dd data-r-cells>1</dd></div>
+    </dl>
+
+    <p class="mpc-why" data-why1 role="status"></p>
+    <p class="mpc-key"><span class="mpc-sw mpc-o"></span> orange = the long pair <span class="mpc-sw mpc-b"></span> blue = the short pair (2 chromosomes in each pair) <span class="mpc-dot"></span> dark dot = centromere <span class="mpc-thin"></span> thin lines = spindle fibers</p>
+    <p class="mpc-assume">In this sketch: one cell with two pairs of chromosomes, 4 in all. Shapes are schematic, not to scale, and each stage is drawn as a still picture, not a timing.</p>
+  </section>
+
+  <section class="mpc-panel" aria-labelledby="mpc-h2">
+    <h4 class="mpc-h" id="mpc-h2">2. Count a field of onion root-tip cells</h4>
+
+    <svg class="mpc-svg" viewBox="0 0 340 230" role="img" aria-label="A field of root-tip cells drawn as small squares, each showing its chromosomes" data-field></svg>
+    <p class="mpc-glyphkey">What to look for: round nucleus = interphase; two small X shapes = prophase; one bar across the middle = metaphase; two bars = anaphase; two dots = telophase.</p>
+
+    <div class="mpc-row">
+      <button type="button" class="mpc-btn mpc-primary" data-count>Count the cells</button>
+      <button type="button" class="mpc-btn" data-newfield>New field (resample)</button>
+      <button type="button" class="mpc-btn" data-reset2>Reset</button>
+    </div>
+    <div class="mpc-sliders">
+      <label class="mpc-slabel"><span>Cells in the field: <em data-out="n">36</em> <small>(the lesson’s photographs show 36)</small></span>
+        <input type="range" data-in="n" min="36" max="360" step="36" value="36" />
+      </label>
+      <label class="mpc-slabel"><span>Total time of one cycle: <em data-out="h">24</em> hours = <em data-out="m">1,440</em> minutes <small>(assumed)</small></span>
+        <input type="range" data-in="h" min="13.5" max="24" step="0.5" value="24" />
+      </label>
+    </div>
+
+    <table class="mpc-table">
+      <thead><tr><th scope="col">Phase</th><th scope="col">Counted</th><th scope="col">From lesson counts</th><th scope="col">Minutes</th><th scope="col">Minutes from lesson counts</th></tr></thead>
+      <tbody data-tbody></tbody>
+    </table>
+    <p class="mpc-arith" data-arith></p>
+    <p class="mpc-why" data-why2 role="status"></p>
+    <p class="mpc-assume">In this sketch the field is drawn by chance from the lesson’s counts of 36 onion root-tip cells (interphase 20, prophase 10, metaphase 3, anaphase 2, telophase 1; The Biology Project, University of Arizona). Those photographs may have been picked to show every stage, so a random field could differ. Cell shapes are schematic. The activity assumes a cycle of 24 hours. A 2018 study of published estimates for roots grown from onion bulbs reported about 13.5 to 23 hours, so 24 hours is a round assumption, not a measurement. A count is a snapshot of many cells at one moment; it does not follow one cell through time.</p>
+  </section>
+
+  <p class="mpc-foot">Rule to keep: a cell copies its DNA in S phase, then mitosis shares the chromosomes so each new cell gets a full set. If cells are caught at random moments, a longer phase holds more cells, so the fraction of cells in a phase times the total cycle time estimates that phase’s time.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', ACCENT = '#0e7c86';
+  const OR = ['#e57200', '#b85a00'], BL = ['#2a78c8', '#1a5aa0'];
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 12, fill: INK, 'text-anchor': 'middle' }, extra));
+    t.textContent = s;
+    return t;
+  }
+  const fmt = (v: number): string => {
+    const r = Math.round(v * 10) / 10;
+    const s = Number.isInteger(r) ? String(r) : r.toFixed(1);
+    const [a, b] = s.split('.');
+    return a.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (b ? '.' + b : '');
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-mpc]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('MitosisPhaseCounter: missing ' + s);
+      return e;
+    };
+    const cellSvg = q<SVGSVGElement>('[data-cell]');
+    const fieldSvg = q<SVGSVGElement>('[data-field]');
+    const backBtn = q<HTMLButtonElement>('[data-back]');
+    const nextBtn = q<HTMLButtonElement>('[data-next]');
+    const reset1 = q<HTMLButtonElement>('[data-reset1]');
+    const reset2 = q<HTMLButtonElement>('[data-reset2]');
+    const countBtn = q<HTMLButtonElement>('[data-count]');
+    const newBtn = q<HTMLButtonElement>('[data-newfield]');
+    const chipBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-go]'));
+    const kindBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-kind]'));
+    const rStage = q<HTMLElement>('[data-r-stage]');
+    const rChr = q<HTMLElement>('[data-r-chr]');
+    const rCopy = q<HTMLElement>('[data-r-copy]');
+    const rCells = q<HTMLElement>('[data-r-cells]');
+    const why1 = q<HTMLElement>('[data-why1]');
+    const why2 = q<HTMLElement>('[data-why2]');
+    const nIn = q<HTMLInputElement>('[data-in="n"]');
+    const hIn = q<HTMLInputElement>('[data-in="h"]');
+    const nOut = q<HTMLElement>('[data-out="n"]');
+    const hOut = q<HTMLElement>('[data-out="h"]');
+    const mOut = q<HTMLElement>('[data-out="m"]');
+    const tbody = q<HTMLElement>('[data-tbody]');
+    const arith = q<HTMLElement>('[data-arith]');
+
+    /* ---------------- Panel 1: the stepper ---------------- */
+    type Step = { name: string; chr: string; copy: string; cells: string; top: string; call: string; say: string };
+    const STEPS: Step[] = [
+      { name: 'G1', chr: '4', copy: '1', cells: '1', top: 'Interphase: G1', call: 'Chromosomes are spread out and hard to see',
+        say: 'Interphase, G1: the new cell grows, makes proteins and does its everyday work. Its 4 chromosomes are spread out and hard to see.' },
+      { name: 'S', chr: '4', copy: '1, then 2', cells: '1', top: 'Interphase: S', call: 'Each chromosome is being copied',
+        say: 'Interphase, S: the cell copies its DNA. By the end, each chromosome is two identical copies joined together.' },
+      { name: 'G2', chr: '4', copy: '2', cells: '1', top: 'Interphase: G2', call: 'Each chromosome is now two copies',
+        say: 'Interphase, G2: the cell makes the proteins it will need to move its chromosomes and gets ready to divide.' },
+      { name: 'Prophase', chr: '4', copy: '2', cells: '1', top: 'Prophase', call: 'Chromosomes coil up; the envelope breaks down',
+        say: 'Prophase: the chromosomes coil up and are thick enough to see. Spindle fibers form and the nuclear envelope breaks down.' },
+      { name: 'Metaphase', chr: '4', copy: '2', cells: '1', top: 'Metaphase', call: 'Chromosomes line up in a row across the middle',
+        say: 'Metaphase: spindle fibers line the chromosomes up in a single row across the middle. Predict what each chromosome does next.' },
+      { name: 'Anaphase', chr: '8 (4 at each end)', copy: '1', cells: '1', top: 'Anaphase', call: 'Sister chromatids are pulled to opposite ends',
+        say: 'Anaphase: the sister chromatids of each chromosome separate and are pulled to opposite ends. Each one is now its own chromosome.' },
+      { name: 'Telophase', chr: '4 in each nucleus', copy: '1', cells: '1 cell, 2 nuclei', top: 'Telophase', call: 'A new nuclear envelope forms around each set',
+        say: 'Telophase: a full set of chromosomes reaches each end. A new nuclear envelope forms around each set, and the chromosomes loosen again.' },
+      { name: 'Cytokinesis', chr: '4 in each new cell', copy: '1', cells: '2', top: 'Cytokinesis', call: '',
+        say: '' },
+    ];
+    let step = 0;
+    let kind: 'animal' | 'plant' = 'animal';
+
+    const CX = 170, CY = 125;
+    // Loose chromosome strands, drawn in nucleus-local coordinates (about -40..40).
+    const STRANDS = [
+      'M-32 -16 C-20 -30 -12 -2 2 -18 S 20 -26 28 -20',
+      'M-28 14 C-16 0 -6 28 8 12 S 22 6 30 10',
+      'M-14 -2 C-6 -10 0 6 8 -2',
+      'M-4 30 C2 22 8 36 18 28',
+    ];
+    const COLS = [OR[0], OR[1], BL[0], BL[1]];
+    const HL = [22, 22, 15, 15];
+    const METAY = [75, 143, 107, 175]; // rows for chromosomes 0..3 (orange, orange, blue, blue)
+
+    function strands(g: SVGElement, cx: number, cy: number, sc: number, copies: 'none' | 'dash' | 'solid') {
+      for (let i = 0; i < 4; i++) {
+        g.appendChild(el('path', { d: STRANDS[i], transform: `translate(${cx} ${cy}) scale(${sc})`, fill: 'none', stroke: COLS[i], 'stroke-width': 2.4, 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }));
+        if (copies !== 'none') {
+          g.appendChild(el('path', { d: STRANDS[i], transform: `translate(${cx} ${cy + 4.5 * sc}) scale(${sc})`, fill: 'none', stroke: COLS[i], 'stroke-width': 2.4, 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', 'stroke-dasharray': copies === 'dash' ? '4 3' : '0' }));
+        }
+      }
+    }
+    function xChrom(g: SVGElement, x: number, y: number, hl: number, ang: number, color: string) {
+      const gg = el('g', { transform: `rotate(${ang} ${x} ${y})` });
+      gg.appendChild(el('line', { x1: x - hl, y1: y - 7, x2: x + hl, y2: y + 7, stroke: color, 'stroke-width': 4.5, 'stroke-linecap': 'round' }));
+      gg.appendChild(el('line', { x1: x - hl, y1: y + 7, x2: x + hl, y2: y - 7, stroke: color, 'stroke-width': 4.5, 'stroke-linecap': 'round' }));
+      gg.appendChild(el('circle', { cx: x, cy: y, r: 2.6, fill: '#222' }));
+      g.appendChild(gg);
+    }
+    function vChrom(g: SVGElement, tip: number, y: number, dir: number, hl: number, color: string) {
+      g.appendChild(el('polyline', { points: `${tip + dir * hl},${y - 7} ${tip},${y} ${tip + dir * hl},${y + 7}`, fill: 'none', stroke: color, 'stroke-width': 4.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      g.appendChild(el('circle', { cx: tip, cy: y, r: 2.6, fill: '#222' }));
+    }
+    function outline(g: SVGElement) {
+      if (kind === 'animal') g.appendChild(el('ellipse', { cx: CX, cy: CY, rx: 128, ry: 80, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+      else g.appendChild(el('rect', { x: 42, y: 45, width: 256, height: 160, rx: 16, fill: '#fff', stroke: INK, 'stroke-width': 5 }));
+    }
+    function fibers(g: SVGElement, pairs: Array<[number, number, number, number]>) {
+      for (const [x1, y1, x2, y2] of pairs) g.appendChild(el('line', { x1, y1, x2, y2, stroke: '#8b8b95', 'stroke-width': 1 }));
+    }
+
+    function drawCell() {
+      const s = STEPS[step];
+      const g = el('g', {});
+      cellSvg.replaceChildren(g);
+      let top = s.top, call = s.call;
+      if (step === 7) {
+        // two new cells
+        if (kind === 'animal') {
+          g.appendChild(el('ellipse', { cx: 108, cy: CY, rx: 64, ry: 80, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+          g.appendChild(el('ellipse', { cx: 232, cy: CY, rx: 64, ry: 80, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+          call = 'A furrow pinches the cell in two';
+        } else {
+          g.appendChild(el('rect', { x: 42, y: 45, width: 256, height: 160, rx: 16, fill: '#fff', stroke: INK, 'stroke-width': 5 }));
+          g.appendChild(el('line', { x1: 170, y1: 47, x2: 170, y2: 203, stroke: ACCENT, 'stroke-width': 6 }));
+          call = 'A cell plate grows into a new wall';
+        }
+        for (const nx of [108, 232]) {
+          g.appendChild(el('circle', { cx: nx, cy: CY, r: 34, fill: '#fafbfc', stroke: INK, 'stroke-width': 1.5 }));
+          strands(g, nx, CY, 0.65, 'none');
+        }
+      } else {
+        outline(g);
+        if (step <= 2) {
+          g.appendChild(el('circle', { cx: CX, cy: CY, r: 50, fill: '#fafbfc', stroke: INK, 'stroke-width': 1.5 }));
+          strands(g, CX, CY, 1, step === 0 ? 'none' : step === 1 ? 'dash' : 'solid');
+        } else if (step === 3) {
+          g.appendChild(el('circle', { cx: CX, cy: CY, r: 58, fill: 'none', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }));
+          fibers(g, [[52, 125, 112, 108], [52, 125, 112, 125], [52, 125, 112, 142], [288, 125, 228, 108], [288, 125, 228, 125], [288, 125, 228, 142]]);
+          xChrom(g, 146, 100, 22, 35, OR[0]);
+          xChrom(g, 196, 152, 22, -30, OR[1]);
+          xChrom(g, 196, 100, 15, 70, BL[0]);
+          xChrom(g, 146, 152, 15, 110, BL[1]);
+        } else if (step === 4) {
+          const f: Array<[number, number, number, number]> = [];
+          for (let i = 0; i < 4; i++) { f.push([52, 125, CX, METAY[i]]); f.push([288, 125, CX, METAY[i]]); }
+          fibers(g, f);
+          for (let i = 0; i < 4; i++) xChrom(g, CX, METAY[i], HL[i], 0, COLS[i]);
+        } else if (step === 5) {
+          const f: Array<[number, number, number, number]> = [];
+          for (let i = 0; i < 4; i++) { f.push([52, 125, 108, METAY[i]]); f.push([288, 125, 232, METAY[i]]); }
+          fibers(g, f);
+          for (let i = 0; i < 4; i++) { vChrom(g, 108, METAY[i], 1, HL[i], COLS[i]); vChrom(g, 232, METAY[i], -1, HL[i], COLS[i]); }
+          g.appendChild(el('line', { x1: 152, y1: 125, x2: 128, y2: 125, stroke: INK, 'stroke-width': 2 }));
+          g.appendChild(el('polygon', { points: '124,125 132,120 132,130', fill: INK }));
+          g.appendChild(el('line', { x1: 188, y1: 125, x2: 212, y2: 125, stroke: INK, 'stroke-width': 2 }));
+          g.appendChild(el('polygon', { points: '216,125 208,120 208,130', fill: INK }));
+        } else if (step === 6) {
+          for (const nx of [95, 245]) {
+            g.appendChild(el('circle', { cx: nx, cy: CY, r: 40, fill: '#fafbfc', stroke: INK, 'stroke-width': 1.5 }));
+            strands(g, nx, CY, 0.75, 'none');
+          }
+        }
+      }
+      g.appendChild(txt(CX, 24, top, { 'font-size': 14, 'font-weight': 700 }));
+      g.appendChild(txt(CX, 238, call));
+      cellSvg.setAttribute('aria-label', `${top}. ${call}.`);
+    }
+
+    function showStep() {
+      const s = STEPS[step];
+      drawCell();
+      rStage.textContent = s.name;
+      rChr.textContent = s.chr;
+      rCopy.textContent = s.copy;
+      rCells.textContent = s.cells;
+      let say = s.say;
+      if (step === 7) {
+        say = kind === 'animal'
+          ? 'Cytokinesis in an animal cell: a ring at the middle pinches the membrane inward, making a furrow, until the cell splits in two. Each new cell has 4 chromosomes.'
+          : 'Cytokinesis in a plant cell: a cell plate forms across the middle and grows outward until it becomes a new wall. Each new cell has 4 chromosomes.';
+      } else if (kind === 'plant') {
+        say = 'Plant cell, with a stiff wall. ' + say;
+      }
+      why1.textContent = say;
+      chipBtns.forEach((b, i) => {
+        b.setAttribute('aria-pressed', String(i === step));
+        if (i === step) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+      });
+      kindBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
+      backBtn.disabled = step === 0;
+      nextBtn.disabled = step === STEPS.length - 1;
+    }
+    chipBtns.forEach((b) => b.addEventListener('click', () => { step = parseInt(b.dataset.go || '0', 10); showStep(); }));
+    backBtn.addEventListener('click', () => { if (step > 0) { step--; showStep(); } });
+    nextBtn.addEventListener('click', () => { if (step < STEPS.length - 1) { step++; showStep(); } });
+    kindBtns.forEach((b) => b.addEventListener('click', () => { kind = b.dataset.kind === 'plant' ? 'plant' : 'animal'; showStep(); }));
+    reset1.addEventListener('click', () => { step = 0; kind = 'animal'; showStep(); });
+
+    /* ---------------- Panel 2: the counter ---------------- */
+    const PH = ['Interphase', 'Prophase', 'Metaphase', 'Anaphase', 'Telophase'];
+    const LESSON = [20, 10, 3, 2, 1]; // the lesson's counts of 36 cells
+    const LTOT = 36;
+    const FILL = ['#dfe8ea', '#fde2c4', '#cfe3f7', '#e4d6f0', '#d3efd9'];
+    let N = 36, hours = 24;
+    let cells: number[] = [];
+    let counted = false;
+    let sel = 0;
+
+    function sample(): number {
+      let r = Math.random() * LTOT, acc = 0;
+      for (let i = 0; i < LESSON.length; i++) { acc += LESSON[i]; if (r < acc) return i; }
+      return 0;
+    }
+    function newField() {
+      cells = Array.from({ length: N }, sample);
+      counted = false;
+      sel = 0;
+    }
+    function tally(): number[] {
+      const c = [0, 0, 0, 0, 0];
+      for (const p of cells) c[p]++;
+      return c;
+    }
+
+    function drawField() {
+      fieldSvg.replaceChildren();
+      const cols = Math.ceil(Math.sqrt(N * 1.6));
+      const rows = Math.ceil(N / cols);
+      const pitch = Math.min(34, 320 / cols, 210 / rows);
+      const w = pitch * 0.9;
+      const x0 = (340 - cols * pitch) / 2, y0 = (230 - rows * pitch) / 2;
+      const lw = Math.max(1, pitch * 0.09);
+      for (let i = 0; i < N; i++) {
+        const p = cells[i];
+        const cx = x0 + (i % cols) * pitch + pitch / 2;
+        const cy = y0 + Math.floor(i / cols) * pitch + pitch / 2;
+        const g = el('g', { opacity: counted && sel !== p ? 0.35 : 1 });
+        g.appendChild(el('rect', { x: cx - w / 2, y: cy - w / 2, width: w, height: w, rx: w * 0.12, fill: counted ? FILL[p] : '#fff', stroke: counted && sel === p ? INK : '#8b8b95', 'stroke-width': counted && sel === p ? 1.6 : 0.8 }));
+        const ln = (x1: number, y1: number, x2: number, y2: number, wd: number) => g.appendChild(el('line', { x1: cx + x1 * w, y1: cy + y1 * w, x2: cx + x2 * w, y2: cy + y2 * w, stroke: INK, 'stroke-width': wd, 'stroke-linecap': 'round' }));
+        if (p === 0) g.appendChild(el('circle', { cx, cy, r: 0.25 * w, fill: '#c9d3d6', stroke: INK, 'stroke-width': 0.8 }));
+        else if (p === 1) {
+          for (const [ox, oy] of [[-0.17, -0.14], [0.17, 0.14]]) {
+            ln(ox - 0.1, oy - 0.1, ox + 0.1, oy + 0.1, lw);
+            ln(ox - 0.1, oy + 0.1, ox + 0.1, oy - 0.1, lw);
+          }
+        } else if (p === 2) ln(0, -0.3, 0, 0.3, lw * 1.8);
+        else if (p === 3) { ln(-0.25, -0.22, -0.25, 0.22, lw * 1.5); ln(0.25, -0.22, 0.25, 0.22, lw * 1.5); }
+        else { g.appendChild(el('circle', { cx: cx - 0.27 * w, cy, r: 0.13 * w, fill: INK })); g.appendChild(el('circle', { cx: cx + 0.27 * w, cy, r: 0.13 * w, fill: INK })); }
+        fieldSvg.appendChild(g);
+      }
+    }
+
+    // Whole minutes that add up exactly to the cycle total: round all rows but the last, which takes the remainder.
+    function wholeMins(fr: number[], M: number): number[] {
+      const out = fr.map((f) => Math.round(f * M));
+      const head = out.slice(0, 4).reduce((a, b) => a + b, 0);
+      out[4] = Math.round(M) - head;
+      return out;
+    }
+    function renderTable() {
+      const M = hours * 60;
+      const c = counted ? tally() : [0, 0, 0, 0, 0];
+      const obsM = wholeMins(c.map((v) => v / N), M);
+      const expM = wholeMins(LESSON.map((v) => v / LTOT), M);
+      tbody.replaceChildren();
+      for (let i = 0; i < 5; i++) {
+        const tr = document.createElement('tr');
+        if (counted && i === sel) tr.className = 'mpc-sel';
+        const th = document.createElement('th');
+        th.scope = 'row';
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mpc-rowbtn';
+        b.disabled = !counted;
+        b.setAttribute('aria-pressed', String(counted && i === sel));
+        const sw = document.createElement('span');
+        sw.className = 'mpc-swatch';
+        sw.style.background = FILL[i];
+        b.appendChild(sw);
+        b.appendChild(document.createTextNode(PH[i]));
+        b.addEventListener('click', () => { sel = i; update(); });
+        th.appendChild(b);
+        tr.appendChild(th);
+        const vals = counted
+          ? [String(c[i]), fmt((N * LESSON[i]) / LTOT), fmt(obsM[i]), fmt(expM[i])]
+          : ['–', '–', '–', '–'];
+        for (const v of vals) { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }
+        tbody.appendChild(tr);
+      }
+      const tr = document.createElement('tr');
+      tr.className = 'mpc-total';
+      const th = document.createElement('th');
+      th.scope = 'row';
+      th.textContent = 'All cells';
+      tr.appendChild(th);
+      const tv = counted ? [String(N), String(N), fmt(M), fmt(M)] : ['–', '–', '–', '–'];
+      for (const v of tv) { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }
+      tbody.appendChild(tr);
+    }
+
+    function update() {
+      const M = hours * 60;
+      nOut.textContent = String(N);
+      hOut.textContent = String(hours);
+      mOut.textContent = fmt(M);
+      countBtn.disabled = counted;
+      countBtn.textContent = counted ? 'Counted ✓' : 'Count the cells';
+      drawField();
+      renderTable();
+      fieldSvg.setAttribute('aria-label', counted ? `A field of ${N} root-tip cells, coloured by phase.` : `A field of ${N} root-tip cells, not yet counted.`);
+      if (!counted) {
+        arith.textContent = 'Press “Count the cells” to fill the table.';
+        why2.textContent = `Here are ${N} root-tip cells caught at one moment. Predict which phase holds the most cells, then press “Count the cells”.`;
+        return;
+      }
+      const c = tally();
+      const obsM = wholeMins(c.map((v) => v / N), M);
+      const expM = wholeMins(LESSON.map((v) => v / LTOT), M);
+      arith.textContent = `${PH[sel]}: ${c[sel]}/${N} × ${fmt(M)} min ≈ ${fmt(obsM[sel])} min (whole minutes). The lesson’s counts give ${LESSON[sel]}/${LTOT} × ${fmt(M)} min ≈ ${fmt(expM[sel])} min.`;
+      let top = 0;
+      for (let i = 1; i < 5; i++) if (c[i] > c[top]) top = i;
+      const mins = obsM[top];
+      why2.textContent = `${PH[top]} holds the most cells: ${c[top]} of ${N}. If cells are caught at random moments, a longer phase holds more cells, so about ${fmt(mins)} of the ${fmt(M)} minutes in this sketch are ${PH[top].toLowerCase()}. ` +
+        'Counts scatter around the expected values because each field is a chance sample. The estimate is only as good as the sample and the total time used.';
+    }
+
+    countBtn.addEventListener('click', () => {
+      if (counted) return;
+      counted = true;
+      const c = tally();
+      let top = 0;
+      for (let i = 1; i < 5; i++) if (c[i] > c[top]) top = i;
+      sel = top;
+      update();
+    });
+    newBtn.addEventListener('click', () => { newField(); update(); });
+    nIn.addEventListener('input', () => { N = parseInt(nIn.value, 10); newField(); update(); });
+    hIn.addEventListener('input', () => { hours = parseFloat(hIn.value); update(); });
+    reset2.addEventListener('click', () => {
+      N = 36; hours = 24; nIn.value = '36'; hIn.value = '24';
+      newField(); update();
+    });
+
+    showStep();
+    newField();
+    update();
+  });
+</script>
+
+<style is:global>
+  .mpc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mpc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mpc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mpc-panel { margin: 0 0 var(--ddp-space-5); padding-bottom: var(--ddp-space-4); border-bottom: 1px solid var(--ddp-color-line); }
+  .mpc-h { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .mpc-steps { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .mpc-glab { display: block; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin-bottom: 0.15rem; }
+  .mpc-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .mpc-chipbtn, .mpc-btn { min-height: 44px; min-width: 44px; padding: 0.3rem 0.8rem; font: inherit; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: #fff; border: 1.5px solid var(--ddp-color-line); border-radius: 8px; cursor: pointer; }
+  .mpc-chipbtn[aria-pressed="true"], .mpc-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .mpc-btn.mpc-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .mpc-btn:disabled { opacity: 0.45; cursor: default; }
+  .mpc-chipbtn:focus-visible, .mpc-btn:focus-visible, .mpc-rowbtn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .mpc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mpc-row { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .mpc-seg { display: inline-flex; gap: 0.25rem; }
+  .mpc-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mpc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .mpc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mpc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .mpc-why { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .mpc-key, .mpc-glyphkey, .mpc-assume, .mpc-arith { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .mpc-glyphkey { margin-top: var(--ddp-space-2); }
+  .mpc-arith { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .mpc-sw { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 2px; vertical-align: -0.1rem; margin-right: 0.15rem; }
+  .mpc-o { background: #e57200; }
+  .mpc-b { background: #2a78c8; margin-left: 0.4rem; }
+  .mpc-dot { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #222; margin: 0 0.15rem 0 0.4rem; }
+  .mpc-thin { display: inline-block; width: 1rem; border-top: 1px solid #8b8b95; margin: 0 0.15rem 0.2rem 0.4rem; }
+  .mpc-sliders { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .mpc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .mpc-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .mpc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .mpc-slabel input { accent-color: var(--ddp-color-accent); min-height: 32px; }
+  .mpc-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); }
+  .mpc-table th, .mpc-table td { padding: 0.25rem 0.35rem; border-bottom: 1px solid var(--ddp-color-line); text-align: right; font-family: var(--ddp-font-mono); color: var(--ddp-color-ink-soft); }
+  .mpc-table thead th { font-weight: 600; color: var(--ddp-color-muted); font-family: inherit; vertical-align: bottom; }
+  .mpc-table th:first-child { text-align: left; }
+  .mpc-table tbody th { font-weight: 400; font-family: inherit; }
+  .mpc-table .mpc-sel td, .mpc-table .mpc-sel th { background: color-mix(in srgb, var(--ddp-color-accent) 10%, transparent); font-weight: 700; }
+  .mpc-total th, .mpc-total td { font-weight: 700; }
+  .mpc-rowbtn { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0 0.3rem; font: inherit; font-size: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; text-align: left; }
+  .mpc-rowbtn:disabled { cursor: default; }
+  .mpc-swatch { display: inline-block; width: 0.8rem; height: 0.8rem; border: 1px solid #8b8b95; border-radius: 2px; }
+  .mpc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 640px) { .mpc-sliders { grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); } }
+</style>

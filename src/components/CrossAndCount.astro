@@ -1,0 +1,377 @@
+---
+/**
+ * CrossAndCount — pick the genotypes of two pea-plant parents (one gene, or two genes),
+ * read the Punnett square, then "plant" 10, 100 or 1,000 offspring by random draws and
+ * compare the observed counts with the predicted ratio. Every rule is a statement of the
+ * punnett-squares lesson: complete dominance, two alleles per gene, genes sort
+ * independently, every box of the square equally likely. Counts come from the computer's
+ * random draws, not from real plants. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cac card" data-crossandcount>
+  <figcaption class="cac-head">Cross and count: plant offspring of two pea plants<span class="cac-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cac-row" role="group" aria-label="How many genes">
+    <span class="cac-label">Genes</span>
+    <button type="button" class="cac-btn" data-mode="one" aria-pressed="true">One gene (flower color)</button>
+    <button type="button" class="cac-btn" data-mode="two" aria-pressed="false">Two genes (seed shape and color)</button>
+  </div>
+
+  <div class="cac-parents">
+    <fieldset class="cac-par">
+      <legend>Parent 1</legend>
+      <label class="cac-field"><span data-lab="p1a"></span><select data-sel="p1a"></select></label>
+      <label class="cac-field" data-second><span data-lab="p1b"></span><select data-sel="p1b"></select></label>
+    </fieldset>
+    <fieldset class="cac-par">
+      <legend>Parent 2</legend>
+      <label class="cac-field"><span data-lab="p2a"></span><select data-sel="p2a"></select></label>
+      <label class="cac-field" data-second><span data-lab="p2b"></span><select data-sel="p2b"></select></label>
+    </fieldset>
+  </div>
+
+  <svg class="cac-svg" viewBox="0 0 360 340" role="img" aria-label="Punnett square of the two parents" data-stage></svg>
+
+  <p class="cac-verdict" data-verdict role="status"></p>
+
+  <div class="cac-row" role="group" aria-label="Plant offspring">
+    <span class="cac-label">Plant</span>
+    <button type="button" class="cac-btn cac-plant" data-n="10">Plant 10</button>
+    <button type="button" class="cac-btn cac-plant" data-n="100">Plant 100</button>
+    <button type="button" class="cac-btn cac-plant" data-n="1000">Plant 1,000</button>
+    <button type="button" class="cac-btn" data-resample disabled>Resample</button>
+    <button type="button" class="cac-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="cac-rows" data-rows></div>
+
+  <div class="cac-hist" data-hist hidden>
+    <p class="cac-histhead" data-histhead></p>
+    <ul class="cac-chips" data-chips></ul>
+  </div>
+
+  <p class="cac-assume">In this sketch: complete dominance, two alleles per gene, genes sort independently, and every box of the square is equally likely. The offspring are random draws by the computer, not real plants.</p>
+  <p class="cac-foot">A Punnett square gives probabilities, not certainties, so real counts scatter around its ratios. Expected counts are what the ratio predicts, not a promise.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function gcd(a: number, b: number): number { return b === 0 ? a : gcd(b, a % b); }
+  function fmt(x: number): string { return String(Math.round(x * 10) / 10); }
+  function sortPair(a: string, b: string): string {
+    const aUp = a === a.toUpperCase();
+    const bUp = b === b.toUpperCase();
+    return !aUp && bUp ? b + a : a + b;
+  }
+  type Mode = 'one' | 'two';
+  type Cls = { name: string; fill: string };
+  const CLASSES: Record<Mode, Cls[]> = {
+    one: [
+      { name: 'purple', fill: '#d9c9ee' },
+      { name: 'white', fill: '#f2f2f2' },
+    ],
+    two: [
+      { name: 'round yellow', fill: '#f6e7a8' },
+      { name: 'round green', fill: '#cfe6b8' },
+      { name: 'wrinkled yellow', fill: '#efc9a0' },
+      { name: 'wrinkled green', fill: '#b9dede' },
+    ],
+  };
+  const GENES: Record<Mode, { key: string; label: string; opts: [string, string][] }[]> = {
+    one: [{ key: 'a', label: 'flower color gene (P purple, p white)', opts: [['PP', 'purple'], ['Pp', 'purple'], ['pp', 'white']] }],
+    two: [
+      { key: 'a', label: 'seed shape gene (R round, r wrinkled)', opts: [['RR', 'round'], ['Rr', 'round'], ['rr', 'wrinkled']] },
+      { key: 'b', label: 'seed color gene (Y yellow, y green)', opts: [['YY', 'yellow'], ['Yy', 'yellow'], ['yy', 'green']] },
+    ],
+  };
+  const DEFAULTS: Record<Mode, string[]> = { one: ['Pp', 'Pp'], two: ['Rr', 'Yy', 'Rr', 'Yy'] };
+
+  document.querySelectorAll<HTMLElement>('[data-crossandcount]').forEach((root) => {
+    const q = <T extends Element>(sel: string): T => {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('CrossAndCount: missing ' + sel);
+      return e;
+    };
+    const stage = q<SVGSVGElement>('[data-stage]');
+    const verdict = q<HTMLElement>('[data-verdict]');
+    const rowsEl = q<HTMLElement>('[data-rows]');
+    const histEl = q<HTMLElement>('[data-hist]');
+    const histHead = q<HTMLElement>('[data-histhead]');
+    const chips = q<HTMLElement>('[data-chips]');
+    const resample = q<HTMLButtonElement>('[data-resample]');
+    const sel = (k: string) => q<HTMLSelectElement>(`[data-sel="${k}"]`);
+    const lab = (k: string) => q<HTMLElement>(`[data-lab="${k}"]`);
+    const seconds = Array.from(root.querySelectorAll<HTMLElement>('[data-second]'));
+    const modeBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
+    const plantBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-n]'));
+
+    let mode: Mode = 'one';
+    let lastN = 0;
+    let boxCounts: number[] = [];
+    let classCounts: number[] = [];
+    let history: { n: number; count: number }[] = [];
+
+    function buildSelects() {
+      const genes = GENES[mode];
+      (['p1', 'p2'] as const).forEach((p, pi) => {
+        (['a', 'b'] as const).forEach((g, gi) => {
+          const s = sel(p + g);
+          s.replaceChildren();
+          const gene = genes[gi];
+          if (!gene) return;
+          lab(p + g).textContent = gene.label;
+          gene.opts.forEach(([v, ph]) => {
+            const o = document.createElement('option');
+            o.value = v; o.textContent = `${v} (${ph})`;
+            s.appendChild(o);
+          });
+          s.value = DEFAULTS[mode][pi * genes.length + gi] || gene.opts[0][0];
+        });
+      });
+      seconds.forEach((e) => { e.hidden = mode === 'one'; });
+    }
+
+    function model() {
+      const genes = GENES[mode];
+      const par = (p: 'p1' | 'p2') => genes.map((_, gi) => sel(p + (gi === 0 ? 'a' : 'b')).value);
+      const gam = (g: string[]): string[] => {
+        if (g.length === 1) return [g[0][0], g[0][1]];
+        const out: string[] = [];
+        for (const a of g[0]) for (const b of g[1]) out.push(a + b);
+        return out;
+      };
+      const g1 = par('p1'), g2 = par('p2');
+      const top = gam(g1), side = gam(g2);
+      const boxes: { geno: string; cls: number }[] = [];
+      side.forEach((s) => top.forEach((t) => {
+        if (mode === 'one') {
+          const geno = sortPair(t[0], s[0]);
+          boxes.push({ geno, cls: /[A-Z]/.test(geno) ? 0 : 1 });
+        } else {
+          const ga = sortPair(t[0], s[0]), gb = sortPair(t[1], s[1]);
+          boxes.push({ geno: ga + gb, cls: (/[A-Z]/.test(ga) ? 0 : 2) + (/[A-Z]/.test(gb) ? 0 : 1) });
+        }
+      }));
+      const nb = boxes.length;
+      const clsBoxes = CLASSES[mode].map((_, i) => boxes.filter((b) => b.cls === i).length);
+      return { g1, g2, top, side, boxes, nb, clsBoxes };
+    }
+
+    function ratioText(counts: number[], names: string[]): string {
+      const nz = counts.map((c, i) => ({ c, n: names[i] })).filter((x) => x.c > 0);
+      if (nz.length === 1) return `all ${nz[0].n}`;
+      const d = nz.reduce((acc, x) => gcd(acc, x.c), 0);
+      return nz.map((x) => `${x.c / d} ${x.n}`).join(' : ');
+    }
+
+    function tracked(clsBoxes: number[]): number {
+      const nz = clsBoxes.filter((c) => c > 0);
+      if (nz.length < 2) return -1;
+      const mn = Math.min(...nz);
+      let idx = -1;
+      clsBoxes.forEach((c, i) => { if (c === mn) idx = i; });
+      return idx;
+    }
+
+    function drawStage(m: ReturnType<typeof model>) {
+      stage.replaceChildren();
+      const INK = '#4b4b55';
+      const n = m.top.length;
+      const cell = n === 2 ? 84 : 58;
+      const gridW = n * cell;
+      const labW = 44;
+      const ox = (360 - (labW + gridW)) / 2 + labW;
+      const oy = 62;
+      const planted = classCounts.length > 0 && boxCounts.length === m.nb;
+      stage.appendChild(el('text', { x: 180, y: 16, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'Across the top: sex cells of parent 1'));
+      stage.appendChild(el('text', { x: 180, y: 32, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'Down the side: sex cells of parent 2'));
+      m.top.forEach((t, i) => {
+        stage.appendChild(el('text', { x: ox + i * cell + cell / 2, y: oy - 8, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, t));
+      });
+      m.side.forEach((s, j) => {
+        stage.appendChild(el('text', { x: ox - 7, y: oy + j * cell + cell / 2 + 4, 'font-size': 12, 'text-anchor': 'end', 'font-weight': 700, fill: INK }, s));
+      });
+      m.boxes.forEach((b, k) => {
+        const i = k % n, j = Math.floor(k / n);
+        const x = ox + i * cell, y = oy + j * cell;
+        stage.appendChild(el('rect', { x, y, width: cell, height: cell, fill: CLASSES[mode][b.cls].fill, stroke: '#6b6b76', 'stroke-width': 1 }));
+        stage.appendChild(el('text', { x: x + cell / 2, y: y + (planted ? cell / 2 - 2 : cell / 2 + 4), 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: '#23232b' }, b.geno));
+        if (planted) stage.appendChild(el('text', { x: x + cell / 2, y: y + cell / 2 + 15, 'font-size': 12, 'text-anchor': 'middle', fill: '#23232b' }, `×${boxCounts[k]}`));
+      });
+      const by = oy + n * cell + 20;
+      stage.appendChild(el('text', { x: 180, y: by, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, `Each box is one equally likely outcome: 1 in ${m.nb}.`));
+      if (planted) stage.appendChild(el('text', { x: 180, y: by + 17, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, '×n = offspring drawn from that box.'));
+      stage.setAttribute('aria-label', `Punnett square of ${m.g1.join('')} by ${m.g2.join('')}, ${m.nb} boxes`);
+    }
+
+    function drawRows(m: ReturnType<typeof model>) {
+      rowsEl.replaceChildren();
+      const cls = CLASSES[mode];
+      const planted = classCounts.length > 0;
+      cls.forEach((c, i) => {
+        const frac = m.clsBoxes[i] / m.nb;
+        const row = document.createElement('div');
+        row.className = 'cac-rowitem';
+        const name = document.createElement('div');
+        name.className = 'cac-name';
+        const sw = document.createElement('span');
+        sw.className = 'cac-sw'; sw.style.background = c.fill;
+        name.appendChild(sw);
+        name.appendChild(document.createTextNode(c.name));
+        row.appendChild(name);
+        const exp = document.createElement('div');
+        exp.className = 'cac-line';
+        exp.textContent = `Expected: ${m.clsBoxes[i]} of ${m.nb} boxes = ${fmt(frac * 100)}%` + (planted ? ` = ${fmt(frac * lastN)} of ${lastN}` : '');
+        row.appendChild(exp);
+        const obs = document.createElement('div');
+        obs.className = 'cac-line';
+        obs.textContent = planted ? `Observed: ${classCounts[i]} of ${lastN} = ${fmt((classCounts[i] / lastN) * 100)}%` : 'Observed: plant some offspring to see';
+        row.appendChild(obs);
+        const track = document.createElement('div');
+        track.className = 'cac-track';
+        track.setAttribute('aria-hidden', 'true');
+        const fill = document.createElement('div');
+        fill.className = 'cac-fill';
+        fill.style.width = planted ? `${(classCounts[i] / lastN) * 100}%` : '0%';
+        fill.style.background = '#0e7c86';
+        const tick = document.createElement('div');
+        tick.className = 'cac-tick';
+        tick.style.left = `${frac * 100}%`;
+        track.appendChild(fill); track.appendChild(tick);
+        row.appendChild(track);
+        rowsEl.appendChild(row);
+      });
+      const key = document.createElement('p');
+      key.className = 'cac-key';
+      key.textContent = 'Bar: filled = observed share, dark tick = expected share.';
+      rowsEl.appendChild(key);
+    }
+
+    function drawHist(m: ReturnType<typeof model>) {
+      const t = tracked(m.clsBoxes);
+      if (t < 0 || history.length === 0) { histEl.hidden = true; return; }
+      histEl.hidden = false;
+      const name = CLASSES[mode][t].name;
+      histHead.textContent = `Your batches, ${name} share (expected ${fmt((m.clsBoxes[t] / m.nb) * 100)}%):`;
+      chips.replaceChildren();
+      history.slice(-8).forEach((h) => {
+        const li = document.createElement('li');
+        li.textContent = `${h.n}: ${h.count} (${fmt((h.count / h.n) * 100)}%)`;
+        chips.appendChild(li);
+      });
+    }
+
+    function render() {
+      const m = model();
+      const names = CLASSES[mode].map((c) => c.name);
+      drawStage(m);
+      drawRows(m);
+      drawHist(m);
+      plantBtns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === lastN)));
+      resample.disabled = lastN === 0;
+      const cross = `${m.g1.join('')} × ${m.g2.join('')}`;
+      if (classCounts.length === 0) {
+        let s = `${cross}: `;
+        if (mode === 'one') {
+          const gt = ['PP', 'Pp', 'pp'];
+          const gc = gt.map((g) => m.boxes.filter((b) => b.geno === g).length);
+          const nzNames = gt.filter((_, i) => gc[i] > 0);
+          const nzCounts = gc.filter((c) => c > 0);
+          const d = nzCounts.reduce((a, c) => gcd(a, c), 0);
+          s += nzCounts.length === 1
+            ? `genotypes all ${nzNames[0]}, `
+            : `genotypes ${nzCounts.map((c, i) => `${c / d} ${nzNames[i]}`).join(' : ')}, `;
+        }
+        s += `phenotypes ${ratioText(m.clsBoxes, names)}. Pick how many to plant.`;
+        verdict.textContent = s;
+      } else {
+        const t = tracked(m.clsBoxes);
+        if (t < 0) {
+          const only = m.clsBoxes.findIndex((c) => c > 0);
+          verdict.textContent = `You planted ${lastN}. All are ${names[only]}, as every box of the square predicts.`;
+        } else {
+          const nm = names[t];
+          verdict.textContent = `You planted ${lastN}. ${nm.charAt(0).toUpperCase() + nm.slice(1)}: ${classCounts[t]} seen, ${fmt((m.clsBoxes[t] / m.nb) * lastN)} expected. Each plant was a random draw, so counts scatter.`;
+        }
+      }
+    }
+
+    function clearResults() { lastN = 0; boxCounts = []; classCounts = []; history = []; }
+
+    function plant(n: number) {
+      const m = model();
+      lastN = n;
+      boxCounts = m.boxes.map(() => 0);
+      classCounts = CLASSES[mode].map(() => 0);
+      for (let i = 0; i < n; i++) {
+        const k = Math.floor(Math.random() * m.nb);
+        boxCounts[k]++;
+        classCounts[m.boxes[k].cls]++;
+      }
+      const t = tracked(m.clsBoxes);
+      if (t >= 0) history.push({ n, count: classCounts[t] });
+      render();
+    }
+
+    function setMode(next: Mode) {
+      mode = next;
+      modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+      clearResults();
+      buildSelects();
+      render();
+    }
+
+    modeBtns.forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode === 'two' ? 'two' : 'one')));
+    plantBtns.forEach((b) => b.addEventListener('click', () => plant(Number(b.dataset.n))));
+    resample.addEventListener('click', () => { if (lastN > 0) plant(lastN); });
+    q<HTMLButtonElement>('[data-reset]').addEventListener('click', () => setMode('one'));
+    ['p1a', 'p1b', 'p2a', 'p2b'].forEach((k) => sel(k).addEventListener('change', () => { clearResults(); render(); }));
+
+    buildSelects();
+    render();
+  });
+</script>
+
+<style is:global>
+  .cac { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cac-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cac-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cac-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0; }
+  .cac-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 3.6em; }
+  .cac-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.8rem; cursor: pointer; }
+  .cac-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .cac-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .cac-btn:focus-visible, .cac-field select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cac-parents { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-3); margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .cac-par { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.7rem 0.6rem; margin: 0; min-width: 0; }
+  .cac-par legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .cac-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); margin-top: 0.35rem; }
+  .cac-field[hidden] { display: none; }
+  .cac-field select { min-height: 44px; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0 0.4rem; background: #fff; color: #23232b; max-width: 100%; }
+  .cac-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cac-verdict { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .cac-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0; }
+  .cac-rowitem { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.4rem 0.6rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cac-name { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: 0.2rem; }
+  .cac-sw { display: inline-block; width: 14px; height: 14px; border: 1px solid #6b6b76; border-radius: 3px; flex: none; }
+  .cac-line { line-height: 1.4; }
+  .cac-track { position: relative; height: 10px; background: #ececf0; border-radius: 3px; margin-top: 0.35rem; }
+  .cac-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+  .cac-tick { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; background: #23232b; }
+  .cac-key { grid-column: 1 / -1; margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cac-hist { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cac-hist[hidden] { display: none; }
+  .cac-histhead { margin: 0 0 0.3rem; }
+  .cac-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; list-style: none; margin: 0; padding: 0; }
+  .cac-chips li { border: 1px solid var(--ddp-color-line); border-radius: 12px; padding: 0.1rem 0.5rem; }
+  .cac-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cac-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cac-parents { grid-template-columns: 1fr; } }
+</style>
