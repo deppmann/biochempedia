@@ -1,0 +1,358 @@
+---
+/**
+ * ReplicationFork — unzip a short piece of DNA and copy it. The learner unzips the piece
+ * one step at a time, picks an open (old) strand, and drops free nucleotides across from
+ * each of its bases. Only the base that pairs (A with T, C with G) is accepted. A
+ * "mistake" button slips in a wrong base so the mismatch shows, and "Proofread" shows
+ * DNA polymerase removing it. At the end the two finished molecules, each one old strand
+ * and one new strand, are compared pair by pair with the original. Every rule is a
+ * statement of the dna-structure-and-copying lesson. Labelled blocks only; no molecules
+ * are drawn. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="rf card" data-replicationfork>
+  <figcaption class="rf-head">Replication fork: unzip and copy a piece of DNA<span class="rf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="rf-svg" viewBox="0 0 360 216" role="img" aria-label="A short piece of DNA drawn as two rows of labelled blocks" data-stage></svg>
+  <p class="rf-key">Solid block = old strand. Outlined block = new strand. Short line = a base pair. ✕ = a mismatch.</p>
+  <p class="rf-stats" data-stats></p>
+
+  <div class="rf-row">
+    <span class="rf-label" id="rf-l1">1. Unzip</span>
+    <button type="button" class="rf-btn rf-main" data-act="unzip" aria-describedby="rf-l1">Unzip one step</button>
+  </div>
+
+  <fieldset class="rf-row rf-pick">
+    <legend class="rf-label">2. Pick an open strand</legend>
+    <label class="rf-radio"><input type="radio" name="rf-strand" value="top" checked /> <span>Old top strand</span></label>
+    <label class="rf-radio"><input type="radio" name="rf-strand" value="bottom" /> <span>Old bottom strand</span></label>
+  </fieldset>
+
+  <div class="rf-row">
+    <span class="rf-label">3. Drop in a free nucleotide</span>
+    <div class="rf-nucs" data-nucs>
+      <button type="button" class="rf-nuc" data-nuc="A" aria-label="Add nucleotide A">A</button>
+      <button type="button" class="rf-nuc" data-nuc="T" aria-label="Add nucleotide T">T</button>
+      <button type="button" class="rf-nuc" data-nuc="C" aria-label="Add nucleotide C">C</button>
+      <button type="button" class="rf-nuc" data-nuc="G" aria-label="Add nucleotide G">G</button>
+    </div>
+  </div>
+
+  <div class="rf-row">
+    <span class="rf-label">Mistakes</span>
+    <button type="button" class="rf-btn rf-warn" data-act="mistake">Slip in a wrong base</button>
+    <button type="button" class="rf-btn" data-act="proofread">Proofread</button>
+  </div>
+
+  <div class="rf-row">
+    <span class="rf-label">Shortcuts</span>
+    <button type="button" class="rf-btn" data-act="rest">Copy the rest for me</button>
+    <button type="button" class="rf-btn" data-act="reset">Reset</button>
+  </div>
+
+  <p class="rf-status" data-status role="status"></p>
+  <div class="rf-result" data-result hidden></div>
+
+  <p class="rf-assume"><strong>In this sketch:</strong> 6 base pairs stand in for the roughly 6 billion a cell copies. Flat blocks stand for the twisted double helix. Both new strands are built left to right. Proofread always removes a wrong base.</p>
+  <p class="rf-foot">Rule to keep: A pairs with T and C pairs with G, so each old strand sets the order of its new partner. The copy is two identical molecules, each with one old strand and one new strand. In a cell, proofreading removes most wrong bases, and a textbook estimate is about one uncorrected mistake for every billion bases copied.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Base = 'A' | 'T' | 'C' | 'G';
+  type Slot = { base: Base; wrong: boolean } | null;
+  const PAIR: Record<Base, Base> = { A: 'T', T: 'A', C: 'G', G: 'C' };
+  const TOP: Base[] = ['A', 'T', 'G', 'C', 'C', 'A'];
+  const BOT: Base[] = TOP.map((b) => PAIR[b]);
+  const N = TOP.length;
+  const FILL: Record<Base, string> = { A: '#b3451f', T: '#1f6f8b', C: '#6a4c93', G: '#2e7d32' };
+  const TINT: Record<Base, string> = { A: '#f6dfd6', T: '#d6e8ef', C: '#e5ddf0', G: '#d9ecda' };
+  const INK = '#4b4b55', SOFT = '#6b6b76', RED = '#c62828', ACC = '#0e7c86';
+  const X0 = 78, PITCH = 46, BW = 40, BH = 28;
+  const Y_OPEN = { A: 34, B: 78, C: 138, D: 182 };
+  const Y_SHUT = { A: 100, D: 144 };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('ReplicationFork: missing ' + sel);
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-replicationfork]').forEach((root) => {
+    const stage = must<SVGSVGElement>(root, '[data-stage]');
+    const stats = must<HTMLElement>(root, '[data-stats]');
+    const status = must<HTMLElement>(root, '[data-status]');
+    const result = must<HTMLElement>(root, '[data-result]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="rf-strand"]'));
+
+    let u = 0; // number of base pairs unzipped, from the left
+    let nb: Slot[] = Array(N).fill(null); // new strand across from the old top strand
+    let nt: Slot[] = Array(N).fill(null); // new strand across from the old bottom strand
+    let mistakes = 0;
+    let msg = '';
+
+    const strand = (): 'top' | 'bottom' => (radios.find((r) => r.checked)?.value === 'bottom' ? 'bottom' : 'top');
+    const arr = (s: 'top' | 'bottom') => (s === 'top' ? nb : nt);
+    const tmpl = (s: 'top' | 'bottom') => (s === 'top' ? TOP : BOT);
+    const nextOpen = (s: 'top' | 'bottom'): number => {
+      const a = arr(s);
+      for (let i = 0; i < u; i++) if (!a[i]) return i;
+      return -1;
+    };
+    const placed = () => nb.filter(Boolean).length + nt.filter(Boolean).length;
+    const mismatches = () => nb.filter((s) => s && s.wrong).length + nt.filter((s) => s && s.wrong).length;
+    const complete = () => u === N && placed() === 2 * N;
+    const sideName = (s: 'top' | 'bottom') => (s === 'top' ? 'old top strand' : 'old bottom strand');
+
+    function block(x: number, y: number, base: Base, kind: 'old' | 'new', wrong: boolean) {
+      if (kind === 'old') {
+        stage.appendChild(el('rect', { x, y, width: BW, height: BH, rx: 5, fill: FILL[base] }));
+        stage.appendChild(el('text', { x: x + BW / 2, y: y + 19, 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, base));
+      } else {
+        stage.appendChild(el('rect', { x: x + 1, y: y + 1, width: BW - 2, height: BH - 2, rx: 5, fill: TINT[base], stroke: wrong ? RED : FILL[base], 'stroke-width': wrong ? 3 : 2, 'stroke-dasharray': wrong ? '5 3' : '0' }));
+        stage.appendChild(el('text', { x: x + BW / 2, y: y + 19, 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle', fill: wrong ? RED : INK }, base));
+      }
+    }
+    function bar(x: number, y: number) {
+      stage.appendChild(el('rect', { x: x - 3, y: y + BH / 2 - 3, width: BW + 6, height: 6, fill: '#d9d9e0' }));
+    }
+    function pairMark(x: number, y1: number, y2: number, wrong: boolean) {
+      const cx = x + BW / 2;
+      if (wrong) {
+        stage.appendChild(el('text', { x: cx, y: (y1 + y2) / 2 + 5, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: RED }, '✕'));
+      } else {
+        stage.appendChild(el('line', { x1: cx, y1, x2: cx, y2, stroke: SOFT, 'stroke-width': 2 }));
+      }
+    }
+    function slot(x: number, y: number, a: Slot[], i: number, tgt: boolean) {
+      const cell = a[i];
+      if (cell) { bar(x, y); block(x, y, cell.base, 'new', cell.wrong); return; }
+      stage.appendChild(el('rect', { x: x + 1, y: y + 1, width: BW - 2, height: BH - 2, rx: 5, fill: '#fff', stroke: tgt ? ACC : '#9a9aa6', 'stroke-width': tgt ? 2.5 : 1.5, 'stroke-dasharray': '4 3' }));
+      stage.appendChild(el('text', { x: x + BW / 2, y: y + 19, 'font-size': 14, 'text-anchor': 'middle', fill: SOFT }, '?'));
+    }
+
+    function drawStage() {
+      stage.replaceChildren();
+      const sel = strand();
+      const tB = sel === 'top' ? nextOpen('top') : -1;
+      const tT = sel === 'bottom' ? nextOpen('bottom') : -1;
+      const done = complete();
+      // fork marker
+      if (u > 0 && u < N) {
+        const bx = X0 + u * PITCH - 3;
+        stage.appendChild(el('line', { x1: bx, y1: 24, x2: bx, y2: 212, stroke: ACC, 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }));
+        const lx = Math.min(300, Math.max(52, bx));
+        stage.appendChild(el('text', { x: lx, y: 16, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: ACC }, 'unzipping point'));
+      }
+      // side labels
+      if (u === 0) {
+        stage.appendChild(el('text', { x: 4, y: 126, 'font-size': 12, fill: INK }, 'original'));
+        stage.appendChild(el('text', { x: 4, y: 142, 'font-size': 12, fill: INK }, 'DNA'));
+      } else if (done) {
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.A + 32, 'font-size': 12, 'font-weight': 700, fill: INK }, 'molecule 1'));
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.A + 48, 'font-size': 12, fill: INK }, 'old + new'));
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.C + 32, 'font-size': 12, 'font-weight': 700, fill: INK }, 'molecule 2'));
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.C + 48, 'font-size': 12, fill: INK }, 'old + new'));
+      } else {
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.A + 19, 'font-size': 12, fill: INK }, 'old strand'));
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.B + 19, 'font-size': 12, fill: INK }, 'new strand'));
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.C + 19, 'font-size': 12, fill: INK }, 'new strand'));
+        stage.appendChild(el('text', { x: 4, y: Y_OPEN.D + 19, 'font-size': 12, fill: INK }, 'old strand'));
+      }
+      for (let i = 0; i < N; i++) {
+        const x = X0 + i * PITCH;
+        const open = i < u;
+        const yA = open ? Y_OPEN.A : Y_SHUT.A;
+        const yD = open ? Y_OPEN.D : Y_SHUT.D;
+        bar(x, yA); bar(x, yD);
+        block(x, yA, TOP[i], 'old', false);
+        block(x, yD, BOT[i], 'old', false);
+        if (!open) { pairMark(x, yA + BH, yD, false); continue; }
+        slot(x, Y_OPEN.B, nb, i, i === tB);
+        slot(x, Y_OPEN.C, nt, i, i === tT);
+        if (nb[i]) pairMark(x, Y_OPEN.A + BH, Y_OPEN.B, nb[i]!.wrong);
+        if (nt[i]) pairMark(x, Y_OPEN.C + BH, Y_OPEN.D, nt[i]!.wrong);
+      }
+    }
+
+    function resultTable() {
+      const rows: { name: string; pair: (i: number) => [Base, Base] }[] = [
+        { name: 'Original', pair: (i) => [TOP[i], BOT[i]] },
+        { name: 'Molecule 1', pair: (i) => [TOP[i], nb[i]!.base] },
+        { name: 'Molecule 2', pair: (i) => [nt[i]!.base, BOT[i]] },
+      ];
+      let h = '<table class="rf-table"><caption>Each base pair, top base then bottom base. A tick means it matches the original.</caption><thead><tr><th scope="col"></th>';
+      for (let i = 0; i < N; i++) h += `<th scope="col">${i + 1}</th>`;
+      h += '</tr></thead><tbody>';
+      let same = 0;
+      rows.forEach((r, k) => {
+        let ok = true;
+        let cells = '';
+        for (let i = 0; i < N; i++) {
+          const [t, b] = r.pair(i);
+          const match = t === TOP[i] && b === BOT[i];
+          if (!match) ok = false;
+          cells += k === 0
+            ? `<td><span>${t}–${b}</span></td>`
+            : `<td class="${match ? 'rf-ok' : 'rf-bad'}"><span>${t}–${b}</span><span>${match ? '✓' : '✕'}</span></td>`;
+        }
+        if (k > 0 && ok) same++;
+        h += `<tr><th scope="row">${r.name}</th>${cells}</tr>`;
+      });
+      h += '</tbody></table>';
+      h += `<p class="rf-sum">Molecules with the same base order as the original: <strong>${same} of 2</strong>.</p>`;
+      return h;
+    }
+
+    function render() {
+      drawStage();
+      const m = mismatches();
+      const done = complete();
+      stats.textContent = `Pairs unzipped: ${u} of ${N} · New bases placed: ${placed()} of ${2 * N} · Mismatches: ${m}`;
+      stage.setAttribute('aria-label', `DNA piece of ${N} base pairs: ${u} unzipped, ${placed()} new bases placed, ${m} mismatches`);
+      let text = msg;
+      if (!text) {
+        text = u === 0
+          ? `This piece has ${N} base pairs. Predict the molecules you will end with, then press Unzip one step.`
+          : 'Pick an open strand. Before you drop in a nucleotide, say which base pairs with the blocked base.';
+      }
+      if (done) {
+        text += m === 0
+          ? ' Done: two DNA molecules. Each has one old strand and one new strand, and both have the same base order as the original.'
+          : ` Done, but ${m} pair${m === 1 ? ' is' : 's are'} mismatched, so that molecule no longer matches the original. Press Proofread.`;
+      }
+      status.textContent = text;
+      if (done) { result.hidden = false; result.innerHTML = resultTable(); }
+      else { result.hidden = true; result.innerHTML = ''; }
+    }
+
+    function say(s: string) { msg = s; render(); }
+
+    function unzip() {
+      if (u >= N) { say(`All ${N} pairs are already open. Pick a strand and add nucleotides.`); return; }
+      u++;
+      say(u < N
+        ? `An enzyme unzips the helix and breaks the hydrogen bonds between base pairs. The backbones stay whole. Open pairs: ${u} of ${N}.`
+        : `All ${N} pairs are open. Each old strand is now a template for a new partner strand.`);
+    }
+    function addBase(b: Base, forceWrong: boolean) {
+      const s = strand();
+      if (u === 0) { say('Unzip the helix first. There is no open strand to build on yet.'); return; }
+      const i = nextOpen(s);
+      if (i < 0) {
+        say(`Every open base on the ${sideName(s)} already has a partner. Unzip another step or pick the other strand.`);
+        return;
+      }
+      const t = tmpl(s)[i];
+      const need = PAIR[t];
+      const a = arr(s);
+      if (forceWrong) {
+        const wrongs = (['G', 'C', 'A', 'T'] as Base[]).filter((x) => x !== need);
+        const w = wrongs[mistakes % wrongs.length];
+        mistakes++;
+        a[i] = { base: w, wrong: true };
+        say(`A wrong base, ${w}, was slipped in across from ${t}. ${t} pairs only with ${need}, so this pair is a mismatch. Press Proofread to see what DNA polymerase does.`);
+        return;
+      }
+      if (b !== need) {
+        say(`${b} does not fit across from ${t}. A pairs with T and C pairs with G, so ${t} pairs only with ${need}. Try again.`);
+        return;
+      }
+      a[i] = { base: b, wrong: false };
+      say(`${b} pairs with ${t}. The free nucleotide joins the new strand across from the old ${t}. ${placed()} of ${2 * N} new bases are placed.`);
+    }
+    function proofread() {
+      for (let i = 0; i < N; i++) {
+        for (const s of ['top', 'bottom'] as const) {
+          const a = arr(s);
+          const c = a[i];
+          if (c && c.wrong) {
+            const t = tmpl(s)[i];
+            a[i] = null;
+            say(`Proofreading: DNA polymerase checks each new base and removes most wrong ones. It removed the wrong ${c.base}. That spot is open again, and ${t} pairs only with ${PAIR[t]}.`);
+            return;
+          }
+        }
+      }
+      say('No mismatch to proofread right now.');
+    }
+    function rest() {
+      u = N;
+      for (let i = 0; i < N; i++) {
+        if (!nb[i]) nb[i] = { base: PAIR[TOP[i]], wrong: false };
+        if (!nt[i]) nt[i] = { base: PAIR[BOT[i]], wrong: false };
+      }
+      say(`The rest was copied: every free nucleotide paired A with T or C with G.`);
+    }
+    function reset() {
+      u = 0; nb = Array(N).fill(null); nt = Array(N).fill(null); mistakes = 0;
+      const first = radios[0];
+      if (first) first.checked = true;
+      say('');
+    }
+
+    must<HTMLButtonElement>(root, '[data-act="unzip"]').addEventListener('click', unzip);
+    must<HTMLButtonElement>(root, '[data-act="mistake"]').addEventListener('click', () => addBase('A', true));
+    must<HTMLButtonElement>(root, '[data-act="proofread"]').addEventListener('click', proofread);
+    must<HTMLButtonElement>(root, '[data-act="rest"]').addEventListener('click', rest);
+    must<HTMLButtonElement>(root, '[data-act="reset"]').addEventListener('click', reset);
+    root.querySelectorAll<HTMLButtonElement>('[data-nuc]').forEach((b) => {
+      b.addEventListener('click', () => addBase(b.dataset.nuc as Base, false));
+    });
+    radios.forEach((r) => r.addEventListener('change', () => {
+      msg = '';
+      const s = strand();
+      if (u > 0) {
+        const i = nextOpen(s);
+        msg = i >= 0
+          ? `The ${sideName(s)} is picked. The next open base is ${tmpl(s)[i]}. Which base pairs with it?`
+          : `The ${sideName(s)} has no open base without a partner.`;
+      }
+      render();
+    }));
+    render();
+  });
+</script>
+
+<style is:global>
+  .rf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .rf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .rf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .rf-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .rf-key { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); text-align: center; }
+  .rf-stats { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); font-family: var(--ddp-font-mono); color: var(--ddp-color-muted); text-align: center; }
+  .rf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; margin: 0.45rem 0; border: 0; padding: 0; min-width: 0; }
+  .rf-label { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink-soft); min-width: 9.5em; padding: 0; }
+  .rf-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.35rem 0.8rem; cursor: pointer; }
+  .rf-main { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .rf-warn { border-color: #c62828; color: #c62828; }
+  .rf-nucs { display: flex; gap: 0.4rem; }
+  .rf-nuc { width: 52px; min-height: 44px; border: 0; border-radius: 6px; color: #fff; font-weight: 700; font-size: 1.15rem; cursor: pointer; }
+  .rf-nuc[data-nuc="A"] { background: #b3451f; }
+  .rf-nuc[data-nuc="T"] { background: #1f6f8b; }
+  .rf-nuc[data-nuc="C"] { background: #6a4c93; }
+  .rf-nuc[data-nuc="G"] { background: #2e7d32; }
+  .rf-radio { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 0 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .rf-radio input { accent-color: var(--ddp-color-accent); width: 18px; height: 18px; }
+  .rf-btn:focus-visible, .rf-nuc:focus-visible, .rf-radio:focus-within { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .rf-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3.6em; }
+  .rf-result { margin: var(--ddp-space-2) 0; }
+  .rf-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.8125rem; }
+  .rf-table caption { caption-side: top; text-align: left; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); padding-bottom: 0.3rem; }
+  .rf-table th, .rf-table td { border: 1px solid var(--ddp-color-line); padding: 0.2rem 0; text-align: center; }
+  .rf-table thead th:first-child, .rf-table tbody th { width: 5.8em; text-align: left; padding-left: 0.3rem; font-weight: 600; font-size: 0.75rem; }
+  .rf-table td span { display: block; line-height: 1.3; }
+  .rf-ok { color: #1b5e20; }
+  .rf-bad { color: #c62828; font-weight: 700; }
+  .rf-sum { margin: 0.4rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .rf-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .rf-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .rf-label { min-width: 100%; } .rf-table thead th:first-child, .rf-table tbody th { width: 4.6em; } }
+</style>

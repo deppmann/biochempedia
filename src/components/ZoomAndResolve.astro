@@ -1,0 +1,182 @@
+---
+/**
+ * ZoomAndResolve — a sketch of a microscope. A magnification slider and a switch for the
+ * tool (hand lens, light microscope, electron microscope) decide which of five objects
+ * (frog egg, cheek cell, bacterium, virus, ribosome) can be seen. Rule used: the tool must separate details finer than the object (resolution), and the
+ * enlarged image must be at least as big as the smallest detail the eye can resolve (0.1 mm;
+ * this second rule is the sketch’s own, not stated in the lesson).
+ * Making the image bigger never changes the tool's limit. Self-contained vanilla-TS island.
+ */
+---
+
+<figure class="zr card" data-zoomresolve>
+  <figcaption class="zr-head">Zoom and resolve — what can each tool show?<span class="zr-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="zr-tools" role="group" aria-label="Type of tool">
+    <button type="button" class="zr-tool" data-tool="hand" aria-pressed="true">Hand lens</button>
+    <button type="button" class="zr-tool" data-tool="light" aria-pressed="false">Light microscope</button>
+    <button type="button" class="zr-tool" data-tool="electron" aria-pressed="false">Electron microscope</button>
+  </div>
+
+  <label class="zr-slabel"><span>Magnification: <em data-out="mag">10</em> times</span>
+    <input type="range" data-in="mag" min="0" max="4" step="0.02" value="1" aria-label="Magnification, 1 to 10,000 times, log scale" />
+  </label>
+
+  <svg class="zr-svg" viewBox="0 0 360 330" role="img" aria-label="Size ruler and five objects on a slide: frog egg, cheek cell, bacterium, virus, ribosome" data-plot></svg>
+
+  <dl class="zr-readout">
+    <div><dt>Smallest detail this tool separates</dt><dd data-r-limit>about 0.1 mm</dd></div>
+    <div><dt>Smallest detail the eye separates</dt><dd>about 0.1 mm</dd></div>
+  </dl>
+  <p class="zr-why" data-why role="status"></p>
+  <button type="button" class="zr-reset" data-reset>Reset</button>
+
+  <p class="zr-assume">In this sketch: an object is seen only when (1) the tool separates details finer than the object and (2) the enlarged image is at least 0.1 mm, the eye’s limit (this rule is the sketch’s own; the lesson does not state it). Sizes use the small end of the lesson’s ranges (cheek cell 50 µm, bacterium 1 µm, ribosome 0.02 µm; frog egg is the African clawed frog, 1 mm). The lesson gives no limit for a hand lens, so it gets the eye’s 0.1 mm here. The lesson gives no virus size, so the virus is placed at an assumed 0.1 µm, between the two microscope limits. Electron limit: 0.002 µm (the coarse end of 1 to 2 nm). The limits are typical values; real ones vary with the instrument and the sample. The electron microscope needs a very thin, specially prepared sample. The 1 to 10,000 times range is part of the sketch; real hand lenses and light microscopes do not reach the top of it. The shapes are labelled sketches, not to scale.</p>
+  <p class="zr-foot">Making the image bigger does not change what a tool can resolve: a tool shows a structure only if its resolution is finer than the structure.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', WARN = '#9a4a00';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size: number, fill: string, anchor = 'start', weight = 400): SVGElement {
+    const t = el('text', { x, y, 'font-size': size, fill, 'text-anchor': anchor, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('ZoomAndResolve: missing ' + sel);
+    return e;
+  }
+  const EYE = 100; // micrometres: about 0.1 mm
+  type ToolKey = 'hand' | 'light' | 'electron';
+  const TOOLS: Record<ToolKey, { name: string; limit: number }> = {
+    hand: { name: 'hand lens', limit: EYE },
+    light: { name: 'light microscope', limit: 0.2 },
+    electron: { name: 'electron microscope', limit: 0.002 },
+  };
+  const OBJS = [
+    { name: 'Frog egg', size: 1000 },
+    { name: 'Cheek cell', size: 50 },
+    { name: 'Bacterium', size: 1 },
+    { name: 'Virus', size: 0.1 },
+    { name: 'Ribosome', size: 0.02 },
+  ];
+  const num = (v: number) => (v >= 10 ? Math.round(v).toLocaleString('en-US') : String(parseFloat(v.toPrecision(2))));
+  function len(um: number): string {
+    return um >= 1000 ? num(um / 1000) + ' mm' : num(um) + ' µm';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-zoomresolve]').forEach((root) => {
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const magIn = must<HTMLInputElement>(root, '[data-in="mag"]');
+    const magOut = must<HTMLElement>(root, '[data-out="mag"]');
+    const rLimit = must<HTMLElement>(root, '[data-r-limit]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const toolBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tool]'));
+    let tool: ToolKey = 'hand';
+
+    const X0 = 20, X1 = 340, LMIN = -3, LMAX = 3, AXY = 56;
+    const lx = (um: number) => X0 + ((Math.log10(um) - LMIN) / (LMAX - LMIN)) * (X1 - X0);
+
+    function render() {
+      const M = Math.round(Math.pow(10, parseFloat(magIn.value)));
+      const T = TOOLS[tool];
+      magOut.textContent = M.toLocaleString('en-US');
+      rLimit.textContent = tool === 'hand' ? 'about 0.1 mm (eye’s limit, assumed)' : tool === 'light' ? 'about 0.2 µm' : 'about 0.002 µm (2 nm)';
+      toolBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tool === tool)));
+
+      plot.replaceChildren();
+      plot.appendChild(txt(X0, 14, 'Size on a log scale', 12, INK, 'start', 700));
+      // shaded region below the tool's limit
+      plot.appendChild(el('rect', { x: X0, y: AXY - 12, width: Math.max(0, lx(T.limit) - X0), height: 24, fill: '#f0e4d6' }));
+      plot.appendChild(el('line', { x1: X0, y1: AXY, x2: X1, y2: AXY, stroke: INK, 'stroke-width': 1 }));
+      const ticks: [number, string][] = [[0.001, '1 nm'], [0.01, '10 nm'], [0.1, '0.1 µm'], [1, '1 µm'], [10, '10 µm'], [100, '100 µm'], [1000, '1 mm']];
+      ticks.forEach(([v, l]) => {
+        plot.appendChild(el('line', { x1: lx(v), y1: AXY + 12, x2: lx(v), y2: AXY + 17, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt(lx(v), AXY + 30, l, 11, INK, v === 0.001 ? 'start' : v === 1000 ? 'end' : 'middle'));
+      });
+      // limit line
+      const limX = lx(T.limit);
+      plot.appendChild(el('line', { x1: limX, y1: 26, x2: limX, y2: AXY + 14, stroke: ORANGE, 'stroke-width': 2 }));
+      const limLabel = 'limit ' + (T.limit >= 1 ? len(T.limit) : num(T.limit) + ' µm');
+      plot.appendChild(txt(limX + (limX > 200 ? -4 : 4), 36, limLabel, 12, WARN, limX > 200 ? 'end' : 'start', 700));
+
+      const seen: string[] = [], blurred: string[] = [], small: string[] = [];
+      OBJS.forEach((o, i) => {
+        const resolved = T.limit < o.size;
+        const big = o.size * M >= EYE - 1e-9;
+        const state = !resolved ? 'blurred' : big ? 'seen' : 'small';
+        (state === 'seen' ? seen : state === 'blurred' ? blurred : small).push(o.name.toLowerCase());
+        // ruler dot
+        const dx = lx(o.size);
+        plot.appendChild(el('circle', { cx: dx, cy: AXY, r: 8, fill: resolved ? ACCENT : '#fff', stroke: ACCENT, 'stroke-width': 1.5 }));
+        plot.appendChild(txt(dx, AXY + 4, String(i + 1), 11, resolved ? '#fff' : ACCENT, 'middle', 700));
+        // row
+        const y = 100 + i * 46, cy = y + 21, cx = 34;
+        plot.appendChild(el('line', { x1: 8, y1: y - 2, x2: 352, y2: y - 2, stroke: '#e6e6ec', 'stroke-width': 1 }));
+        const shape = (fill: string, stroke: string, extra: Record<string, string | number> = {}) => {
+          const a = { fill, stroke, 'stroke-width': 1.5, ...extra };
+          if (i === 0) plot.appendChild(el('circle', { cx, cy, r: 18, ...a }));
+          else if (i === 1) plot.appendChild(el('circle', { cx, cy, r: 14, ...a }));
+          else if (i === 2) plot.appendChild(el('rect', { x: cx - 16, y: cy - 7, width: 32, height: 14, rx: 7, ...a }));
+          else if (i === 3) plot.appendChild(el('polygon', { points: [0, 1, 2, 3, 4, 5].map((k) => (cx + 10 * Math.cos(Math.PI / 3 * k)).toFixed(1) + ',' + (cy + 10 * Math.sin(Math.PI / 3 * k)).toFixed(1)).join(' '), ...a }));
+          else plot.appendChild(el('circle', { cx, cy, r: 5, ...a }));
+        };
+        if (state === 'seen') shape('#d3ecee', ACCENT);
+        else if (state === 'small') shape('none', FAINT, { 'stroke-dasharray': '3 3' });
+        else {
+          [1, 1.5, 2].forEach((k, j) => {
+            const g = el('g', { opacity: [0.35, 0.2, 0.1][j], filter: 'none' });
+            const c = el('circle', { cx, cy, r: Math.min(20, (i === 0 ? 14 : i === 1 ? 10 : i === 2 ? 9 : i === 3 ? 7 : 4) * k + 3), fill: '#6b6b76' });
+            g.appendChild(c);
+            plot.appendChild(g);
+          });
+        }
+        plot.appendChild(txt(70, y + 16, (i + 1) + ' · ' + o.name + ' · ' + (i === 3 ? 'assumed ' : '') + len(o.size), 12, INK, 'start', 700));
+        const line2 = state === 'blurred' ? 'below the limit' : 'image ' + len(o.size * M) + (state === 'small' ? ' < 0.1 mm' : '');
+        plot.appendChild(txt(70, y + 33, line2, 12, INK));
+        plot.appendChild(txt(352, y + 25, state === 'seen' ? 'seen' : state === 'small' ? 'too small' : 'blurred', 12, state === 'seen' ? ACCENT : WARN, 'end', 700));
+      });
+
+      const parts = [tool === 'hand' ? 'In this sketch, with the eye’s limit assumed for a hand lens, it separates details about 100 µm apart.' : 'In this sketch the ' + T.name + ' separates details about ' + len(T.limit) + ' apart.'];
+      parts.push(seen.length ? 'Seen: ' + seen.join(', ') + '.' : 'Nothing is seen yet.');
+      if (blurred.length) parts.push('Blurred at any magnification: ' + blurred.join(', ') + '. A bigger image only makes the blur bigger.');
+      if (small.length) parts.push('Too small to see yet: ' + small.join(', ') + '. Turn the magnification up.');
+      why.textContent = parts.join(' ');
+    }
+
+    toolBtns.forEach((b) => b.addEventListener('click', () => { tool = (b.dataset.tool as ToolKey) ?? 'hand'; render(); }));
+    magIn.addEventListener('input', render);
+    resetBtn.addEventListener('click', () => { tool = 'hand'; magIn.value = '1'; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .zr { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .zr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .zr-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .zr-tools { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .zr-tool, .zr-reset { min-height: 44px; padding: 0 0.9rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .zr-tool[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .zr-tool:focus-visible, .zr-reset:focus-visible, .zr-slabel input:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .zr-slabel { display: flex; flex-direction: column; gap: 0.2rem; margin-bottom: var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .zr-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .zr-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; }
+  .zr-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .zr-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .zr-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .zr-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .zr-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .zr-why { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .zr-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .zr-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .zr-readout { grid-template-columns: 1fr; } }
+</style>

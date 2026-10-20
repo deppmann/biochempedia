@@ -193,6 +193,7 @@ Be realistic about what one teacher can maintain. Do not invent tools or product
 
 /** Courses with a published lesson, linked from the hub. Slugs verified against src/data/courses.ts. */
 export const COURSE_LINKS = [
+  { slug: 'high-school-biology', label: 'Biology (high school, Virginia SOL)' },
   { slug: 'biochemistry', label: 'Biochemistry' },
   { slug: 'cell-biology', label: 'Cell Biology' },
   { slug: 'genetics', label: 'Genetics and Molecular Biology' },

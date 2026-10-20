@@ -1,0 +1,204 @@
+---
+/**
+ * CellEnergyBudget — high school Biology, "Respiration and ATP". One idea: how much ATP a
+ * cell makes from each glucose depends on oxygen (about 30 with it, 2 without), and ATP per
+ * second also depends on how much glucose arrives. Original, self-contained, a sketch.
+ */
+---
+
+<figure class="ceb card" data-ceb>
+  <figcaption class="ceb-head">Cell energy budget<span class="ceb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="ceb-controls">
+    <div class="ceb-group">
+      <span class="ceb-lab" id="ceb-o2-lab">Oxygen</span>
+      <button type="button" class="ceb-btn ceb-on" data-o2 role="switch" aria-checked="true" aria-labelledby="ceb-o2-lab">Oxygen: on</button>
+    </div>
+    <div class="ceb-group">
+      <span class="ceb-lab" id="ceb-cell-lab">Cell type (matters when oxygen is off)</span>
+      <div class="ceb-row" role="group" aria-labelledby="ceb-cell-lab">
+        <button type="button" class="ceb-btn ceb-on" data-cell="muscle" aria-pressed="true">Muscle cell</button>
+        <button type="button" class="ceb-btn" data-cell="yeast" aria-pressed="false">Yeast cell</button>
+      </div>
+    </div>
+    <label class="ceb-group ceb-slider">
+      <span class="ceb-lab">Glucose supply: <em data-glu-out>3</em> glucose per second (sketch units)</span>
+      <input type="range" data-glu min="1" max="6" step="1" value="3" />
+    </label>
+    <button type="button" class="ceb-btn ceb-reset" data-reset>Reset</button>
+  </div>
+
+  <svg class="ceb-svg" viewBox="0 0 340 410" role="img" aria-label="A schematic cell with glucose going in and labelled bars for ATP per glucose, ATP per second and products" data-plot></svg>
+
+  <dl class="ceb-readout">
+    <div><dt>Glucose needed to make 60 ATP</dt><dd data-r-need>2</dd></div>
+    <div><dt>Oxygen used</dt><dd data-r-o2>6 per glucose</dd></div>
+  </dl>
+
+  <p class="ceb-why" data-why role="status"></p>
+
+  <p class="ceb-assume">In this sketch every glucose supplied is broken down, and the cell makes 30 ATP per glucose with oxygen (the lesson says about 30 to 32) or 2 without. Glucose per second is in sketch units, not a measurement. The sketch does not show speed per enzyme.</p>
+
+  <p class="ceb-foot">Rule to keep: ATP per glucose depends on oxygen (about 30 with it, 2 without); ATP per second also depends on how much glucose arrives.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#d4d4da', GREEN = '#3a7d44';
+  const FAST = 'The lesson says fermentation makes ATP faster for the same amount of enzyme; this sketch holds glucose supply fixed and does not show that.';
+  const YIELD_AERO = 30, YIELD_FERM = 2, MAX_GLU = 6, TARGET = 60;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', { x, y, 'font-size': 12, fill: INK, ...opts });
+    t.textContent = s;
+    return t;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ceb]').forEach((root) => {
+    function need<T extends Element>(sel: string): T {
+      const found = root.querySelector<T>(sel);
+      if (!found) throw new Error('CellEnergyBudget: missing ' + sel);
+      return found;
+    }
+    const plot = need<SVGSVGElement>('[data-plot]');
+    const o2Btn = need<HTMLButtonElement>('[data-o2]');
+    const cellBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-cell]'));
+    const gluIn = need<HTMLInputElement>('[data-glu]');
+    const gluOut = need<HTMLElement>('[data-glu-out]');
+    const resetBtn = need<HTMLButtonElement>('[data-reset]');
+    const rNeed = need<HTMLElement>('[data-r-need]');
+    const rO2 = need<HTMLElement>('[data-r-o2]');
+    const why = need<HTMLElement>('[data-why]');
+
+    let oxygen = true;
+    let cell: 'muscle' | 'yeast' = 'muscle';
+
+    function render() {
+      const glu = parseInt(gluIn.value, 10);
+      const yld = oxygen ? YIELD_AERO : YIELD_FERM;
+      const perSec = glu * yld;
+      const needGlu = TARGET / yld;
+
+      gluOut.textContent = String(glu);
+      o2Btn.textContent = oxygen ? 'Oxygen: on' : 'Oxygen: off';
+      o2Btn.setAttribute('aria-checked', String(oxygen));
+      o2Btn.classList.toggle('ceb-on', oxygen);
+      cellBtns.forEach((b) => {
+        const on = b.dataset.cell === cell;
+        b.classList.toggle('ceb-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+
+      // products: names and per-glucose counts only where the lesson's equation gives them
+      let p1 = '', p2 = '', outLabel = '', stage = '';
+      if (oxygen) {
+        p1 = `carbon dioxide: 6 per glucose, ${6 * glu} per second`;
+        p2 = `water: 6 per glucose, ${6 * glu} per second`;
+        outLabel = 'CO₂ + water';
+        stage = 'Aerobic respiration';
+      } else if (cell === 'muscle') {
+        p1 = 'lactate: made (amount per glucose not given)';
+        p2 = 'second product: none';
+        outLabel = 'lactate';
+        stage = 'Fermentation (cytoplasm)';
+      } else {
+        p1 = 'ethanol: made (amount per glucose not given)';
+        p2 = 'carbon dioxide: made (amount not given)';
+        outLabel = 'ethanol + CO₂';
+        stage = 'Fermentation (cytoplasm)';
+      }
+
+      plot.replaceChildren();
+
+      // cell sketch
+      plot.appendChild(text(10, 14, 'Cell (schematic sketch)', { 'font-weight': 700 }));
+      plot.appendChild(el('rect', { x: 10, y: 52, width: 320, height: 96, rx: 14, fill: '#f4fafb', stroke: ACCENT, 'stroke-width': 2 }));
+      plot.appendChild(text(20, 70, 'cytoplasm', { fill: INK }));
+      plot.appendChild(text(20, 90, stage, { 'font-weight': 700, fill: oxygen ? ACCENT : ORANGE }));
+      // glucose arrow in
+      plot.appendChild(el('line', { x1: 50, y1: 24, x2: 50, y2: 48, stroke: INK, 'stroke-width': 2 }));
+      plot.appendChild(el('polygon', { points: '44,46 56,46 50,54', fill: INK }));
+      plot.appendChild(text(60, 40, 'glucose in', { fill: INK }));
+      if (oxygen) {
+        plot.appendChild(el('rect', { x: 160, y: 80, width: 160, height: 58, rx: 10, fill: '#fff', stroke: ACCENT, 'stroke-width': 2 }));
+        plot.appendChild(text(240, 104, 'mitochondrion', { 'text-anchor': 'middle', 'font-weight': 700, fill: ACCENT }));
+        plot.appendChild(text(240, 124, 'most ATP made here', { 'text-anchor': 'middle' }));
+        plot.appendChild(el('line', { x1: 190, y1: 24, x2: 190, y2: 76, stroke: GREEN, 'stroke-width': 2 }));
+        plot.appendChild(el('polygon', { points: '184,74 196,74 190,82', fill: GREEN }));
+        plot.appendChild(text(200, 40, 'oxygen in', { fill: GREEN }));
+      } else {
+        plot.appendChild(text(20, 110, 'no oxygen, no mitochondrion step', { fill: INK }));
+      }
+      // arrows out
+      plot.appendChild(el('line', { x1: 60, y1: 148, x2: 60, y2: 172, stroke: ORANGE, 'stroke-width': 2 }));
+      plot.appendChild(el('polygon', { points: '54,170 66,170 60,178', fill: ORANGE }));
+      plot.appendChild(text(10, 194, 'ATP → cell work', { fill: ORANGE, 'font-weight': 700 }));
+      plot.appendChild(el('line', { x1: 250, y1: 148, x2: 250, y2: 172, stroke: INK, 'stroke-width': 2 }));
+      plot.appendChild(el('polygon', { points: '244,170 256,170 250,178', fill: INK }));
+      plot.appendChild(text(330, 194, outLabel, { 'text-anchor': 'end' }));
+
+      // bars
+      function bar(y: number, frac: number, color: string) {
+        plot.appendChild(el('rect', { x: 10, y, width: 320, height: 16, fill: '#eeeef1', stroke: FAINT }));
+        plot.appendChild(el('rect', { x: 10, y, width: Math.max(2, 320 * frac), height: 16, fill: color }));
+      }
+      plot.appendChild(text(10, 226, `ATP per glucose: ${oxygen ? 'about 30' : '2'}`, { 'font-weight': 700 }));
+      bar(232, yld / YIELD_AERO, ACCENT);
+      plot.appendChild(text(10, 272, `ATP per second: ${perSec} (${glu} glucose × ${yld})`, { 'font-weight': 700 }));
+      bar(278, perSec / (MAX_GLU * YIELD_AERO), ORANGE);
+      plot.appendChild(text(10, 318, 'Products (bar length = glucose supply only)', { 'font-weight': 700 }));
+      plot.appendChild(text(10, 338, p1));
+      bar(344, glu / MAX_GLU, GREEN);
+      plot.appendChild(text(10, 380, p2));
+      if (oxygen || cell === 'yeast') bar(384, glu / MAX_GLU, GREEN);
+
+      rNeed.textContent = `${TARGET} ÷ ${yld} = ${needGlu} glucose${oxygen ? ' (using the classroom value 30)' : ''}`;
+      rO2.textContent = oxygen ? `6 per glucose = ${6 * glu} per second` : 'none';
+
+      const base = `Here, ${glu} glucose per second at ${yld} ATP per glucose gives ${perSec} ATP per second.`;
+      if (oxygen) {
+        why.textContent = `In this sketch, oxygen is on, so the cell uses aerobic respiration. ${base} It releases carbon dioxide and water.`;
+      } else if (cell === 'muscle') {
+        why.textContent = `Oxygen is off, so the muscle cell uses fermentation. ${base} It makes lactate. ${FAST}`;
+      } else {
+        why.textContent = `Oxygen is off, so the yeast cell uses fermentation. ${base} It makes ethanol and carbon dioxide, which forms the bubbles in dough. ${FAST}`;
+      }
+    }
+
+    o2Btn.addEventListener('click', () => { oxygen = !oxygen; render(); });
+    cellBtns.forEach((b) => b.addEventListener('click', () => { cell = b.dataset.cell === 'yeast' ? 'yeast' : 'muscle'; render(); }));
+    gluIn.addEventListener('input', render);
+    resetBtn.addEventListener('click', () => { oxygen = true; cell = 'muscle'; gluIn.value = '3'; render(); });
+    render();
+  });
+</script>
+
+<style>
+  .ceb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ceb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ceb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ceb-controls { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3) var(--ddp-space-4); align-items: flex-end; margin-bottom: var(--ddp-space-3); }
+  .ceb-group { display: flex; flex-direction: column; gap: 0.25rem; }
+  .ceb-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .ceb-lab { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ceb-lab em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ceb-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 0.9rem; font: inherit; font-size: var(--ddp-text-sm); border: 2px solid var(--ddp-color-line); border-radius: 8px; background: #fff; color: var(--ddp-color-ink); cursor: pointer; }
+  .ceb-btn.ceb-on { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); font-weight: 700; }
+  .ceb-btn:focus-visible, .ceb-slider input:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ceb-slider { flex: 1 1 14rem; }
+  .ceb-slider input { accent-color: var(--ddp-color-accent); min-height: 44px; width: 100%; }
+  .ceb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ceb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ceb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ceb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ceb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .ceb-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); line-height: 1.5; min-height: 4.5em; }
+  .ceb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ceb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .ceb-readout { grid-template-columns: 1fr; } }
+</style>

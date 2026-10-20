@@ -1,0 +1,344 @@
+---
+/**
+ * DnaModelComparer — switch between four models of DNA (flat ladder, helix ribbon of blocks,
+ * base-letter string, chromosome view). For each, the learner ticks what they think the model can
+ * explain (base pairing, copying, how much information, packing), checks, and sees what it can
+ * and cannot explain and what it hides. Every statement comes from the lesson
+ * "How the DNA Model Was Built". Labelled blocks and outlines only; no atoms. Original.
+ */
+---
+
+<figure class="dnc card" data-dnacompare>
+  <figcaption class="dnc-head">Compare four models of DNA<span class="dnc-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="dnc-tabs" role="group" aria-label="Choose a model of DNA">
+    <button type="button" class="dnc-tab" data-model="0" aria-pressed="true">Flat ladder</button>
+    <button type="button" class="dnc-tab" data-model="1" aria-pressed="false">Helix ribbon</button>
+    <button type="button" class="dnc-tab" data-model="2" aria-pressed="false">Letter string</button>
+    <button type="button" class="dnc-tab" data-model="3" aria-pressed="false">Chromosome view</button>
+  </div>
+
+  <svg class="dnc-svg" viewBox="0 0 340 175" role="img" aria-label="A sketch of the chosen DNA model, drawn with labelled blocks and outlines" data-plot></svg>
+  <p class="dnc-good" data-good></p>
+
+  <fieldset class="dnc-boxes">
+    <legend>Step 1. Tick what you think this model can explain.</legend>
+    <label class="dnc-box"><input type="checkbox" data-q="0" /><span>Base pairing</span></label>
+    <label class="dnc-box"><input type="checkbox" data-q="1" /><span>Copying</span></label>
+    <label class="dnc-box"><input type="checkbox" data-q="2" /><span>How much information DNA holds</span></label>
+    <label class="dnc-box"><input type="checkbox" data-q="3" /><span>How DNA packs into a cell</span></label>
+  </fieldset>
+
+  <div class="dnc-actions">
+    <button type="button" class="dnc-btn dnc-primary" data-check>Step 2. Check my boxes</button>
+    <button type="button" class="dnc-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="dnc-result" data-result hidden>
+    <ul class="dnc-rows" data-rows></ul>
+    <p class="dnc-hides" data-hides></p>
+  </div>
+
+  <p class="dnc-status" role="status" data-status>Flat ladder: pick it, tick the boxes you think fit, then check.</p>
+
+  <table class="dnc-matrix" data-matrix>
+    <caption>All models side by side (a model fills in after you check it)</caption>
+    <thead>
+      <tr><th scope="col">Model</th><th scope="col">Pairing</th><th scope="col">Copying</th><th scope="col">Information</th><th scope="col">Packing</th></tr>
+    </thead>
+    <tbody data-matrix-body></tbody>
+  </table>
+
+  <p class="dnc-assume">In this sketch each model is judged only by what the lesson says it shows and leaves out. Blocks and letters are not to scale, and no atoms are drawn.</p>
+  <p class="dnc-foot">Rule to keep: every DNA model shows some features and hides others, so scientists pick the model that fits the question.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#3d3d46', TEAL = '#0e7c86', ORANGE = '#e57200', GREY = '#8d8d99';
+
+  type Verdict = 'yes' | 'partly' | 'no';
+  interface Model {
+    name: string;
+    good: string;
+    hides: string;
+    rows: [Verdict, string][]; // pairing, copying, information, packing
+  }
+  const QUESTIONS = ['Base pairing', 'Copying', 'How much information DNA holds', 'How DNA packs into a cell'];
+  const MODELS: Model[] = [
+    {
+      name: 'Flat ladder',
+      good: 'Good for showing which bases pair, and the two backbones.',
+      hides: 'It leaves out the twist, and all the atoms.',
+      rows: [
+        ['yes', 'It shows which bases pair: A with T and G with C.'],
+        ['yes', 'It shows the pairing rule, and that rule suggested how DNA could be copied: each strand fixes the order of its partner.'],
+        ['no', 'A few rungs cannot show how much DNA there is. A human genome has about 3 billion base pairs.'],
+        ['no', 'It leaves out the twist and shows no chromosome, which is DNA wound with proteins.'],
+      ],
+    },
+    {
+      name: 'Helix ribbon',
+      good: 'Good for showing how two strands coil around each other.',
+      hides: 'It leaves out individual atoms, and often the actual base order.',
+      rows: [
+        ['partly', 'The bases are inside, between the two strands. But the ribbon often does not show which base is which.'],
+        ['no', 'Copying depends on base order, because each strand fixes the order of its partner. The ribbon often hides that order.'],
+        ['no', 'It often hides the actual base order, so it does not show the information.'],
+        ['no', 'It shows two strands coiling around each other, not a chromosome wound with proteins.'],
+      ],
+    },
+    {
+      name: 'Letter string',
+      good: 'Good for showing the order of bases, for comparing DNA.',
+      hides: 'It leaves out shape, size and the partner strand.',
+      rows: [
+        ['no', 'It leaves out the partner strand, so no pairs are shown.'],
+        ['no', 'With no partner strand, it does not show how each strand fixes the order of its partner.'],
+        ['yes', 'It shows which bases are present and their order. That is why it is used to compare DNA between people.'],
+        ['no', 'It leaves out shape and size.'],
+      ],
+    },
+    {
+      name: 'Chromosome view',
+      good: 'Good for showing one long DNA molecule wound with proteins.',
+      hides: 'It cannot show base pairs or base order. DNA is only about 2 nanometers wide.',
+      rows: [
+        ['no', 'Base pairs are far too small to see here, because DNA is only about 2 nanometers wide.'],
+        ['no', 'No strands or bases are drawn, so it does not show how each strand fixes the order of its partner.'],
+        ['partly', 'It shows that DNA is one long molecule. A human genome has about 3 billion base pairs. It does not show the order of bases.'],
+        ['yes', 'A chromosome is one long DNA molecule wound with proteins.'],
+      ],
+    },
+  ];
+  const WORD: Record<Verdict, string> = { yes: 'Yes', partly: 'Partly', no: 'No' };
+  const SHORT: Record<Verdict, string> = { yes: '✔ yes', partly: '◐ partly', no: '✖ no' };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('DnaModelComparer: missing ' + sel);
+    return e;
+  }
+
+  let uid = 0;
+  document.querySelectorAll<HTMLElement>('[data-dnacompare]').forEach((root) => {
+    const id = ++uid;
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const good = must<HTMLElement>(root, '[data-good]');
+    const status = must<HTMLElement>(root, '[data-status]');
+    const result = must<HTMLElement>(root, '[data-result]');
+    const rowsUl = must<HTMLElement>(root, '[data-rows]');
+    const hidesP = must<HTMLElement>(root, '[data-hides]');
+    const matrixBody = must<HTMLElement>(root, '[data-matrix-body]');
+    const checkBtn = must<HTMLButtonElement>(root, '[data-check]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-model]'));
+    const boxes = Array.from(root.querySelectorAll<HTMLInputElement>('[data-q]'));
+
+    let current = 0;
+    const ticks: boolean[][] = MODELS.map(() => [false, false, false, false]);
+    const checked: boolean[] = MODELS.map(() => false);
+
+    function block(x: number, y: number, w: number, h: number, fill: string, stroke: string, label?: string, lsize = 14, lcolor = '#fff') {
+      plot.appendChild(el('rect', { x, y, width: w, height: h, rx: 3, fill, stroke, 'stroke-width': 1.2 }));
+      if (label) plot.appendChild(el('text', { x: x + w / 2, y: y + h / 2 + lsize * 0.35, 'text-anchor': 'middle', 'font-size': lsize, 'font-weight': 700, fill: lcolor }, label));
+    }
+    function label(x: number, y: number, t: string, anchor = 'middle', size = 12) {
+      plot.appendChild(el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill: INK }, t));
+    }
+
+    function drawLadder() {
+      const top = ['A', 'T', 'G', 'C'], bot = ['T', 'A', 'C', 'G'];
+      block(14, 28, 270, 9, '#e4e4ea', GREY);
+      block(14, 133, 270, 9, '#e4e4ea', GREY);
+      label(14, 20, 'backbone', 'start');
+      label(14, 160, 'backbone', 'start');
+      for (let i = 0; i < 4; i++) {
+        const x = 50 + i * 66;
+        block(x - 18, 40, 36, 28, TEAL, TEAL, top[i]);
+        block(x - 18, 102, 36, 28, ORANGE, ORANGE, bot[i]);
+        plot.appendChild(el('line', { x1: x, y1: 68, x2: x, y2: 102, stroke: INK, 'stroke-width': 1.5, 'stroke-dasharray': '3 3' }));
+      }
+      label(312, 82, 'A–T', 'middle');
+      label(312, 100, 'G–C', 'middle');
+    }
+    function drawHelix() {
+      plot.appendChild(el('rect', { x: 14, y: 8, width: 12, height: 12, fill: TEAL }));
+      label(30, 19, 'strand 1', 'start');
+      plot.appendChild(el('rect', { x: 110, y: 8, width: 12, height: 12, fill: ORANGE }));
+      label(126, 19, 'strand 2', 'start');
+      for (let i = 0; i < 10; i++) {
+        const x = 18 + i * 31;
+        const s = Math.sin(i * 0.75) * 36;
+        const y1 = 78 + s, y2 = 78 - s;
+        if (Math.abs(s) > 14) block(x + 8, 74, 8, 8, '#c6c6cf', GREY);
+        block(x, y1 - 7, 24, 14, TEAL, TEAL);
+        block(x, y2 - 7, 24, 14, ORANGE, ORANGE);
+      }
+      label(14, 150, 'small grey blocks: bases, inside the strands', 'start');
+      label(14, 168, 'the blocks sketch the coil; base order not shown', 'start');
+    }
+    function drawString() {
+      const letters = 'ATTGCCA'.split('');
+      label(170, 40, 'one strand, order of bases →', 'middle');
+      letters.forEach((c, i) => block(53 + i * 34, 56, 30, 38, TEAL, TEAL, c, 18));
+      label(30, 80, '…', 'middle', 16);
+      label(310, 80, '…', 'middle', 16);
+      label(170, 130, 'no partner strand, no shape, no size', 'middle');
+    }
+    function drawChromosome() {
+      const cid = 'dnc-clip-' + id;
+      const defs = el('defs', {});
+      const cp = el('clipPath', { id: cid });
+      cp.appendChild(el('rect', { x: 60, y: 54, width: 220, height: 56, rx: 28 }));
+      defs.appendChild(cp);
+      plot.appendChild(defs);
+      plot.appendChild(el('rect', { x: 60, y: 54, width: 220, height: 56, rx: 28, fill: '#f4fafb' }));
+      const g = el('g', { 'clip-path': 'url(#' + cid + ')' });
+      for (let x = 40; x < 300; x += 12) g.appendChild(el('line', { x1: x, y1: 110, x2: x + 22, y2: 54, stroke: TEAL, 'stroke-width': 3 }));
+      plot.appendChild(g);
+      plot.appendChild(el('rect', { x: 60, y: 54, width: 220, height: 56, rx: 28, fill: 'none', stroke: INK, 'stroke-width': 1.6 }));
+      label(170, 38, 'one chromosome (outline)', 'middle');
+      label(170, 134, 'one long DNA molecule wound with proteins', 'middle');
+      label(170, 156, 'base pairs are too small to show here', 'middle');
+    }
+    function draw() {
+      plot.replaceChildren();
+      [drawLadder, drawHelix, drawString, drawChromosome][current]();
+    }
+
+    function stateFor(m: number): Verdict[] { return MODELS[m].rows.map((r) => r[0]); }
+    function matches(m: number): { ok: number; clear: number; partly: number } {
+      let ok = 0, clear = 0, partly = 0;
+      stateFor(m).forEach((v, i) => {
+        if (v === 'partly') { partly++; return; }
+        clear++;
+        if ((v === 'yes') === ticks[m][i]) ok++;
+      });
+      return { ok, clear, partly };
+    }
+
+    function renderMatrix() {
+      matrixBody.replaceChildren();
+      MODELS.forEach((mod, m) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.scope = 'row';
+        th.textContent = mod.name;
+        tr.appendChild(th);
+        stateFor(m).forEach((v) => {
+          const td = document.createElement('td');
+          td.textContent = checked[m] ? SHORT[v] : '?';
+          if (checked[m]) td.className = 'dnc-' + v;
+          tr.appendChild(td);
+        });
+        matrixBody.appendChild(tr);
+      });
+    }
+
+    function statusText(): string {
+      const mod = MODELS[current];
+      if (!checked[current]) {
+        const n = ticks[current].filter(Boolean).length;
+        return n === 0
+          ? mod.name + ': tick the boxes you think this model can explain, then check.'
+          : mod.name + ': you ticked ' + n + ' of 4. Check your boxes to compare.';
+      }
+      const r = matches(current);
+      const tail = r.partly ? ' ' + r.partly + ' row is partly.' : '';
+      return mod.name + ': your boxes matched ' + r.ok + ' of ' + r.clear + ' clear rows.' + tail + ' Now try another model.';
+    }
+
+    function render() {
+      const mod = MODELS[current];
+      tabs.forEach((t, i) => t.setAttribute('aria-pressed', String(i === current)));
+      boxes.forEach((b, i) => { b.checked = ticks[current][i]; });
+      good.textContent = mod.good;
+      draw();
+      rowsUl.replaceChildren();
+      if (checked[current]) {
+        mod.rows.forEach(([v, why], i) => {
+          const li = document.createElement('li');
+          const q = document.createElement('strong');
+          q.textContent = QUESTIONS[i];
+          const chip = document.createElement('span');
+          chip.className = 'dnc-verdict dnc-' + v;
+          chip.textContent = 'Model: ' + WORD[v];
+          const mine = document.createElement('span');
+          mine.className = 'dnc-mine';
+          const yes = v === 'yes';
+          mine.textContent = 'You: ' + (ticks[current][i] ? 'ticked' : 'not ticked') + (v === 'partly' ? '' : (yes === ticks[current][i] ? ' · match' : ' · differs'));
+          const p = document.createElement('span');
+          p.className = 'dnc-why';
+          p.textContent = why;
+          li.append(q, chip, mine, p);
+          rowsUl.appendChild(li);
+        });
+        hidesP.textContent = 'What it hides: ' + mod.hides;
+        result.hidden = false;
+      } else {
+        hidesP.textContent = '';
+        result.hidden = true;
+      }
+      status.textContent = statusText();
+      renderMatrix();
+    }
+
+    tabs.forEach((t, i) => t.addEventListener('click', () => { current = i; render(); }));
+    boxes.forEach((b, i) => b.addEventListener('change', () => {
+      ticks[current][i] = b.checked;
+      checked[current] = false;
+      render();
+    }));
+    checkBtn.addEventListener('click', () => { checked[current] = true; render(); });
+    resetBtn.addEventListener('click', () => {
+      for (let m = 0; m < MODELS.length; m++) { ticks[m] = [false, false, false, false]; checked[m] = false; }
+      current = 0;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .dnc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dnc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dnc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dnc [hidden] { display: none !important; }
+  .dnc-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .dnc-tab, .dnc-btn { min-height: 44px; padding: 0.4rem 0.7rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .dnc-tab[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .dnc-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .dnc-tab:focus-visible, .dnc-btn:focus-visible, .dnc-box input:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .dnc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dnc-good { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .dnc-boxes { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-2) 0; padding: 0.3rem 0.7rem 0.5rem; }
+  .dnc-boxes legend { font-size: var(--ddp-text-sm); font-weight: 600; padding: 0 0.3rem; color: var(--ddp-color-primary); }
+  .dnc-box { display: flex; align-items: center; gap: 0.6rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .dnc-box input { width: 22px; height: 22px; accent-color: var(--ddp-color-accent); flex: none; }
+  .dnc-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: var(--ddp-space-2) 0; }
+  .dnc-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+  .dnc-rows li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6rem; padding: 0.5rem 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); }
+  .dnc-rows strong { color: var(--ddp-color-primary); flex-basis: 100%; }
+  .dnc-verdict { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; padding: 0.05rem 0.4rem; border-radius: 4px; background: #eef6f7; color: #0b5d65; }
+  .dnc-verdict.dnc-no { background: #fbeee6; color: #8a3d00; }
+  .dnc-verdict.dnc-partly { background: #f4f0dc; color: #6b5a00; }
+  .dnc-mine { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dnc-why { flex-basis: 100%; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); line-height: 1.5; }
+  .dnc-hides { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .dnc-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); font-size: var(--ddp-text-sm); line-height: 1.5; background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; color: var(--ddp-color-ink-soft); min-height: 3em; }
+  .dnc-matrix { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-xs); margin: var(--ddp-space-2) 0; table-layout: fixed; }
+  .dnc-matrix caption { text-align: left; color: var(--ddp-color-muted); padding-bottom: 0.3rem; }
+  .dnc-matrix th, .dnc-matrix td { border: 1px solid var(--ddp-color-line); padding: 0.3rem 0.35rem; text-align: left; word-wrap: break-word; overflow-wrap: anywhere; }
+  .dnc-matrix td.dnc-yes { color: #0b5d65; font-weight: 700; }
+  .dnc-matrix td.dnc-no { color: #8a3d00; }
+  .dnc-matrix td.dnc-partly { color: #6b5a00; }
+  .dnc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dnc-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DepthLadder from '../../components/DepthLadder.astro';
+import { courseHref } from '../../data/courses';
+import { feedbackUrl } from '../../lib/feedback';
+---
+
+<BaseLayout
+  title="High school Biology for teachers — Biochemistrypedia"
+  description="A free Virginia SOL Biology course for grades 9 and 10: what is in it, how the depth ladder and the supports switch work, and how to help audit the lessons."
+>
+  <article class="wrap prose-col tb" style="padding-top: var(--ddp-space-12)">
+    <p class="tb-eyebrow"><a href="/teachers">Resources for teachers</a> / high school Biology</p>
+    <h1>A free Biology course for Virginia classrooms</h1>
+    <p class="tb-lede">
+      Thirty-three lessons that follow the Virginia Biology Standards of Learning, BIO.1 to BIO.8, with
+      the science and engineering practices of BIO.1 worked into every lesson. Free, no account, no ads.
+    </p>
+    <p><a class="btn" href={courseHref('high-school-biology')}>Open the course</a></p>
+
+    <h2>What every lesson has</h2>
+    <p>Each lesson follows the 5E arc you already plan with, built so a student can do it alone online:</p>
+    <ul>
+      <li><strong>Engage.</strong> A phenomenon and an essential question, then a quick
+        "What do you think?" check made from the guide's common student ideas. Students commit to agree or
+        disagree before they read.</li>
+      <li><strong>Explore.</strong> A simulation with a few controls and a short "Try this" list: predict,
+        then test.</li>
+      <li><strong>Explain.</strong> The essential knowledge from the VDOE instructional guide, in plain
+        sentences, with the SOL vocabulary in bold and a short narrated film.</li>
+      <li><strong>Elaborate.</strong> Real data, much of it from Virginia: Chesapeake Bay buoys, seagrass
+        surveys, the blue crab winter dredge survey, Piedmont forests. Students make a claim and support it
+        with evidence and reasoning, then plan an investigation.</li>
+      <li><strong>Evaluate.</strong> A self-test whose wrong answers are the common student ideas, each
+        with an explanation.</li>
+    </ul>
+    <p>
+      Scope follows the guide's stated limits. Meiosis is taught as two divisions, with crossing over and
+      independent assortment placed in the first; the named sub-stages appear only as a preview. Crosses
+      stop at dihybrid, with incomplete dominance and codominance; there are no sex-linked or polygenic
+      crosses. Photosynthesis and respiration stop at inputs, outputs, organelles and ATP.
+    </p>
+
+    <h2>The depth ladder: where an idea sits</h2>
+    <div class="tb-ladder"><DepthLadder step={2} size="md" /></div>
+    <p>
+      Every lesson shows a four-step staircase: <strong>Life Science (grade 7)</strong>,
+      <strong>Biology</strong>, <strong>Biology II</strong>, <strong>College</strong>. One step down opens a
+      grade 7 review of the same idea, for a student who missed it. One step up previews where Virginia's
+      Biology II courses take it, and links the matching college lesson on this site, so a student who is
+      ready can keep going. The college lessons link back down the same way.
+    </p>
+
+    <h2>The supports switch: same task, more or less help</h2>
+    <p>
+      A switch at the top of each lesson sets how much support a student gets. It changes the support, never
+      the content or the task, the way the VDOE differentiated lesson plans do.
+    </p>
+    <ul>
+      <li><strong>Just the task.</strong> Unlabelled diagrams to label; no word bank.</li>
+      <li><strong>Some help</strong> (the default). Word banks and partly labelled diagrams.</li>
+      <li><strong>Most help.</strong> Adds sentence starters for claim, evidence and reasoning, fully
+        labelled diagrams, and a one-line key idea after each section.</li>
+    </ul>
+    <p>
+      It works with JavaScript turned off. With JavaScript, the page remembers a student's choice, and you can
+      link a whole class to one setting by adding <code>?supports=0</code>, <code>?supports=1</code> or
+      <code>?supports=2</code> to a lesson's address.
+    </p>
+
+    <h2>How it was made, and how you can help</h2>
+    <p>
+      The lessons, films, simulations and figures were drafted with AI from the VDOE instructional guide and
+      checked by other AI models against published sources, before any person read them. Every lesson lists
+      its sources. That is why we are asking teachers to audit them.
+    </p>
+    <p>
+      If you teach Biology, pick a lesson you know well and read it as you would a student's textbook. Is
+      anything wrong, unclear, too hard, too easy, or missing from the SOL? Every lesson page has a
+      "Report an error" link; it takes two minutes and goes straight to Chris. You can also
+      <a href={feedbackUrl('High school Biology: teacher note')}>send a general note</a>.
+    </p>
+    <p>
+      Lessons are released a unit at a time, starting with Unit 1, the chemistry of life. They are free to
+      use with your classes.
+    </p>
+    <p><a href="/teachers">&larr; Back to resources for teachers</a></p>
+  </article>
+
+  <style>
+    .tb-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .tb-lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); }
+    .tb ul { padding-left: 1.3rem; list-style: disc; }
+    .tb li { margin-bottom: var(--ddp-space-2); }
+    .tb-ladder { margin: var(--ddp-space-3) 0; }
+    .tb .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font-weight: 600; text-decoration: none; }
+    .tb code { font-family: var(--ddp-font-mono); font-size: 0.92em; }
+  </style>
+</BaseLayout>

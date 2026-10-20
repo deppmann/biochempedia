@@ -1,0 +1,248 @@
+---
+/**
+ * OsmosisChamber — a plant cell or a red blood cell in a solution whose saltiness the learner sets.
+ * Arrows show net water movement; the cell swells, holds or shrinks. A second control switches on a
+ * protein pump that moves a substance uphill and spends ATP, and an ATP switch shows that the pump
+ * stops without it. Everything is a labelled schematic sketch in relative units; the speeds are for
+ * display, not measured rates. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="oc card" data-osmosischamber>
+  <figcaption class="oc-head">Osmosis chamber: a cell in salt water<span class="oc-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="oc-row" role="group" aria-label="Kind of cell">
+    <span class="oc-lab">Cell:</span>
+    <button type="button" class="oc-btn" data-cell="rbc" aria-pressed="true">Red blood cell</button>
+    <button type="button" class="oc-btn" data-cell="plant" aria-pressed="false">Plant cell</button>
+  </div>
+
+  <svg class="oc-svg" viewBox="0 0 340 250" role="img" aria-label="A schematic cell in a chamber of salty water, with arrows for net water movement" data-svg></svg>
+
+  <label class="oc-slabel"><span>Saltiness outside the cell: <em data-out="salt">100</em> <small>(relative units; 100 = same as inside the cell)</small></span>
+    <input type="range" data-in="salt" min="0" max="200" step="5" value="100" />
+  </label>
+
+  <div class="oc-row" role="group" aria-label="Pump controls">
+    <button type="button" class="oc-btn" data-pump data-on="false">Pump: off</button>
+    <button type="button" class="oc-btn" data-atp data-on="true">ATP: available</button>
+    <button type="button" class="oc-btn oc-reset" data-reset>Reset</button>
+  </div>
+
+  <dl class="oc-readout">
+    <div><dt>Solution outside</dt><dd data-r-tonic>isotonic</dd></div>
+    <div><dt>Net water movement</dt><dd data-r-water>none</dd></div>
+    <div><dt>The cell</dt><dd data-r-cell>keeps its shape</dd></div>
+    <div><dt>Pump cycles (each spends ATP)</dt><dd data-r-cycles>0</dd></div>
+  </dl>
+  <p class="oc-ions" data-ions hidden></p>
+
+  <p class="oc-why" data-why role="status"></p>
+
+  <p class="oc-assume">In this sketch: the inside of the cell stays at 100; the dots, arrows, cell sizes and pump speed are for display; every number is in relative units, not a measurement. Dots show dissolved salt; blue arrows show net water movement.</p>
+  <p class="oc-foot">Rule to keep: water moves on balance toward the side with more dissolved solute, with no energy from the cell. A pump needs ATP to move a substance against its gradient.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', WATER = '#2a78c8', SALT = '#7a4fa3';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 12, fill: INK, 'text-anchor': 'middle' }, extra));
+    t.textContent = s;
+    return t;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-osmosischamber]').forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const saltIn = root.querySelector<HTMLInputElement>('[data-in="salt"]');
+    const saltOut = root.querySelector<HTMLElement>('[data-out="salt"]');
+    const pumpBtn = root.querySelector<HTMLButtonElement>('[data-pump]');
+    const atpBtn = root.querySelector<HTMLButtonElement>('[data-atp]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const cellBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-cell]'));
+    const rTonic = root.querySelector<HTMLElement>('[data-r-tonic]');
+    const rWater = root.querySelector<HTMLElement>('[data-r-water]');
+    const rCell = root.querySelector<HTMLElement>('[data-r-cell]');
+    const rCycles = root.querySelector<HTMLElement>('[data-r-cycles]');
+    const ions = root.querySelector<HTMLElement>('[data-ions]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const need = [svg, saltIn, saltOut, pumpBtn, atpBtn, resetBtn, rTonic, rWater, rCell, rCycles, ions, why];
+    if (need.some((n) => !n) || cellBtns.length < 2) return;
+    if (!svg || !saltIn || !saltOut || !pumpBtn || !atpBtn || !resetBtn || !rTonic || !rWater || !rCell || !rCycles || !ions || !why || cellBtns.length < 2) return;
+
+    const eTonic = rTonic as HTMLElement, eWater = rWater as HTMLElement, eCell = rCell as HTMLElement, eCycles = rCycles as HTMLElement, eIons = ions as HTMLElement;
+    let cell: 'rbc' | 'plant' = 'rbc';
+    let pumpOn = false;
+    let atpOn = true;
+    let cycles = 0;
+    let timer = 0;
+
+    const CX = 170, CY = 128;
+    const LEFT_X = [28, 50, 72], RIGHT_X = [312, 290, 268], ROWS = [70, 110, 150, 190];
+
+    function arrow(x1: number, x2: number, y: number, color: string, w: number) {
+      const dir = x2 > x1 ? 1 : -1;
+      svg!.appendChild(el('line', { x1, y1: y, x2: x2 - dir * 5, y2: y, stroke: color, 'stroke-width': w, 'stroke-linecap': 'round' }));
+      svg!.appendChild(el('polygon', { points: `${x2},${y} ${x2 - dir * 8},${y - 5} ${x2 - dir * 8},${y + 5}`, fill: color }));
+    }
+
+    function classify(out: number) {
+      const d = out - 100;
+      return d === 0 ? 'iso' : d < 0 ? 'hypo' : 'hyper';
+    }
+
+    function render() {
+      const out = parseInt(saltIn!.value, 10);
+      const d = out - 100;
+      const kind = classify(out);
+      saltOut!.textContent = String(out);
+      svg!.replaceChildren();
+
+      // chamber
+      svg!.appendChild(el('rect', { x: 10, y: 26, width: 320, height: 218, rx: 6, fill: ACCENT, 'fill-opacity': (0.04 + 0.14 * out / 200).toFixed(3), stroke: INK, 'stroke-width': 1.5 }));
+      svg!.appendChild(txt(170, 18, 'Solution outside: saltiness ' + out + ' (relative)'));
+
+      // salt dots outside: more dots = saltier
+      const nDots = Math.round(12 * out / 100);
+      for (let i = 0; i < nDots; i++) {
+        const side = i % 2, idx = Math.floor(i / 2);
+        const x = (side === 0 ? LEFT_X : RIGHT_X)[idx % 3];
+        const y = ROWS[Math.floor(idx / 3)];
+        svg!.appendChild(el('circle', { cx: x, cy: y, r: 4, fill: SALT }));
+      }
+
+      // cell size (display only)
+      const s = d < 0 ? 1 + 0.3 * (-d / 100) : 1 - 0.3 * (d / 100);
+      let bottom: number;
+      if (cell === 'rbc') {
+        const r = 40 * s;
+        svg!.appendChild(el('circle', { cx: CX, cy: CY, r, fill: '#fff', stroke: '#b3261e', 'stroke-width': 3 }));
+        bottom = CY + r;
+        svg!.appendChild(txt(170, 236, 'Red blood cell: no wall'));
+      } else {
+        svg!.appendChild(el('rect', { x: 120, y: 78, width: 100, height: 100, rx: 6, fill: 'none', stroke: INK, 'stroke-width': 5 }));
+        svg!.appendChild(txt(170, 70, 'cell wall'));
+        const half = d < 0 ? 47 : 44 * s;
+        svg!.appendChild(el('rect', { x: CX - half, y: CY - half, width: half * 2, height: half * 2, rx: 8, fill: '#fff', stroke: ACCENT, 'stroke-width': 3 }));
+        bottom = CY + half;
+        svg!.appendChild(txt(170, 236, 'Plant cell: wall outside the membrane'));
+      }
+      // inside dots (fixed at 100)
+      for (const dx of [-16, 0, 16]) for (const dy of [-18, -6, 6, 18]) svg!.appendChild(el('circle', { cx: CX + dx, cy: CY + dy, r: 3.5, fill: SALT }));
+
+      // water arrows
+      const color = WATER;
+      if (kind === 'iso') {
+        for (const [a, b] of [[88, 116], [252, 224]]) {
+          arrow(a, b, 120, FAINT, 2);
+          arrow(b, a, 138, FAINT, 2);
+        }
+        svg!.appendChild(txt(170, 48, 'net water: none (both ways, equal)'));
+      } else {
+        const k = Math.min(3, Math.ceil(Math.abs(d) / 35));
+        const ys = k === 1 ? [128] : k === 2 ? [116, 140] : [104, 128, 152];
+        for (const y of ys) {
+          if (kind === 'hypo') { arrow(88, 116, y, color, 3.5); arrow(252, 224, y, color, 3.5); }
+          else { arrow(116, 88, y, color, 3.5); arrow(224, 252, y, color, 3.5); }
+        }
+        svg!.appendChild(txt(170, 48, kind === 'hypo' ? 'net water: into the cell' : 'net water: out of the cell'));
+      }
+
+      // pump
+      const working = pumpOn && atpOn;
+      const pcol = !pumpOn ? FAINT : working ? ORANGE : INK;
+      svg!.appendChild(el('rect', { x: CX - 13, y: bottom - 8, width: 26, height: 16, rx: 3, fill: pcol, stroke: INK, 'stroke-width': 1 }));
+      if (pumpOn) {
+        svg!.appendChild(el('line', { x1: CX, y1: bottom + 10, x2: CX, y2: bottom + 17, stroke: working ? ORANGE : FAINT, 'stroke-width': 3, 'stroke-linecap': 'round' }));
+        svg!.appendChild(el('polygon', { points: `${CX},${bottom + 25} ${CX - 6},${bottom + 16} ${CX + 6},${bottom + 16}`, fill: working ? ORANGE : FAINT }));
+      }
+      svg!.appendChild(txt(170, 218, !pumpOn ? 'pump: off' : working ? 'pump: working, spends ATP (not to scale)' : 'pump: stopped, no ATP', { 'font-weight': 700 }));
+
+      // readouts
+      eTonic.textContent = kind === 'iso' ? 'isotonic' : kind === 'hypo' ? 'hypotonic (less salty)' : 'hypertonic (saltier)';
+      eWater.textContent = kind === 'iso' ? 'none (equal both ways)' : kind === 'hypo' ? 'into the cell' : 'out of the cell';
+      if (cell === 'rbc') eCell.textContent = kind === 'iso' ? 'keeps its shape' : kind === 'hypo' ? 'swells, may burst' : 'shrinks';
+      else eCell.textContent = kind === 'iso' ? 'less firm than in hypotonic' : kind === 'hypo' ? 'firm, pressing on its wall' : 'loses turgor';
+      eCycles.textContent = String(cycles);
+      if (cell === 'rbc' && cycles > 0) {
+        eIons.hidden = false;
+        eIons.textContent = `Expected from ${cycles} cycle${cycles === 1 ? '' : 's'} of the sodium-potassium pump: ${3 * cycles} sodium ions out, ${2 * cycles} potassium ions in.`;
+      } else eIons.hidden = true;
+
+      // status
+      let a: string;
+      if (kind === 'iso') {
+        a = cell === 'rbc'
+          ? 'In this sketch the outside is isotonic: water crosses both ways equally, so there is no net movement. The red blood cell keeps its shape.'
+          : 'In this sketch the outside is isotonic: water crosses both ways equally, so there is no net movement. The plant cell is less firm than in hypotonic.';
+      } else if (kind === 'hypo') {
+        a = cell === 'rbc'
+          ? 'In this sketch the outside is hypotonic: water moves into the cell on balance. The red blood cell swells and may burst.'
+          : 'In this sketch the outside is hypotonic: water moves in on balance. The plant cell stays firm, pressing on its wall.';
+      } else {
+        a = cell === 'rbc'
+          ? 'In this sketch the outside is hypertonic: water leaves the cell on balance. The red blood cell shrinks.'
+          : 'In this sketch the outside is hypertonic: water leaves the cell on balance. The plant cell loses turgor, and a plant would wilt.';
+      }
+      let b: string;
+      if (!pumpOn) b = atpOn ? 'The pump is off.' : 'The pump is off and no ATP is available.';
+      else if (working) b = 'The pump is on. Each cycle spends ATP to move a substance uphill, against its gradient.';
+      else b = 'No ATP is available. Without ATP, the pump stops.';
+      why!.textContent = `${a} ${b}`;
+
+      // buttons
+      cellBtns.forEach((bt) => bt.setAttribute('aria-pressed', String(bt.dataset.cell === cell)));
+      pumpBtn!.textContent = pumpOn ? 'Pump: on' : 'Pump: off';
+      pumpBtn!.dataset.on = String(pumpOn);
+      atpBtn!.textContent = atpOn ? 'ATP: available' : 'ATP: run out';
+      atpBtn!.dataset.on = String(atpOn);
+    }
+
+    function tick() {
+      if (pumpOn && atpOn) { cycles += 1; render(); }
+    }
+    function ensureTimer() {
+      if (!timer) timer = window.setInterval(tick, 900);
+    }
+
+    cellBtns.forEach((bt) => bt.addEventListener('click', () => { cell = bt.dataset.cell === 'plant' ? 'plant' : 'rbc'; cycles = 0; render(); }));
+    saltIn.addEventListener('input', render);
+    pumpBtn.addEventListener('click', () => { pumpOn = !pumpOn; if (pumpOn) ensureTimer(); render(); });
+    atpBtn.addEventListener('click', () => { atpOn = !atpOn; render(); });
+    resetBtn.addEventListener('click', () => {
+      cell = 'rbc'; pumpOn = false; atpOn = true; cycles = 0; saltIn.value = '100';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .oc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .oc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .oc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .oc-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .oc-lab { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); font-weight: 600; }
+  .oc-btn { min-height: 44px; padding: 0 var(--ddp-space-3); font: inherit; font-size: var(--ddp-text-sm); border: 1.5px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .oc-btn[aria-pressed="true"], .oc-btn[data-on="true"] { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); font-weight: 700; }
+  .oc-btn:focus-visible, .oc-slabel input:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .oc-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .oc-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); margin: var(--ddp-space-2) 0; }
+  .oc-slabel small { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .oc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .oc-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; }
+  .oc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .oc-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .oc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .oc-readout dd { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .oc-ions { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .oc-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .oc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .oc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .oc-readout { grid-template-columns: 1fr; } }
+</style>
