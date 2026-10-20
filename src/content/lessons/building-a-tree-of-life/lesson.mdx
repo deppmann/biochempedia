@@ -41,12 +41,18 @@ techniques:
   - name: "Comparing embryos"
     blurb: >-
       Preserved embryos at different stages are examined and compared, sometimes with stains that
-      show where a developmental signal is active. Shared early structures can reveal relationships
+      show where a signal that guides how the embryo develops is active. Shared early structures can reveal relationships
       that adult bodies hide.
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "CladogramBuilder"
+    title: "Build a cladogram"
+    caption: >-
+      Add one shared trait at a time to six animals, watch the others branch off, spin a branch point, then check the tree against a DNA panel.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is a shared derived characteristic?"
@@ -218,6 +224,8 @@ corpusTags:
 draft: true
 ---
 
+import CladogramBuilder from '../../../components/CladogramBuilder.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
@@ -237,7 +245,7 @@ At first glance, a whale and a tuna seem to belong together. A hippo spends its 
 
 In the simulation you start with six animals and a list of traits. You choose a trait, such as a backbone, and the animals that lack it branch off the tree first. Each trait you add splits the group again, until you have a full cladogram. A DNA panel then lets you check your tree against a different kind of evidence.
 
-{/* SIMULATION */}
+<CladogramBuilder />
 
 **Try this.**
 1. Predict which animal will branch off first when you add "backbone". Then add it and check.
@@ -255,7 +263,7 @@ In the simulation you start with six animals and a list of traits. You choose a 
 
 {/* DIAGRAM: forelimbs of a human, a bat and a whale side by side, with matching bones colored the same and numbered: 1 upper arm bone, 2 the two forearm bones, 3 wrist bones, 4 finger bones */}
 
-**Embryology** is the study of how organisms develop before birth or hatching. Embryos can share parts that the adults lose. Early fish, chick and human embryos all have a tail and a row of folds in the neck called pharyngeal arches, sometimes called "gill slits". In fish these arches go on to support gills. In humans they become parts of the jaw, ear and throat, and the tail shrinks away. Human embryos do not turn into fish first. They share early parts with other vertebrates, then follow their own path. Some old textbook drawings made embryos look more alike than they really are, so biologists now compare photographs of real embryos.
+**Embryology** is the study of how organisms develop before birth or hatching. Embryos can share parts that the adults lose. Early fish, chick and human embryos all have a tail and a row of folds in the neck called pharyngeal arches, with slits between them sometimes called "gill slits". In fish, several of these arches go on to support gills. In humans they become parts of the jaw, ear and throat, and the tail shrinks away. Human embryos do not turn into fish first. They share early parts with other vertebrates, then follow their own path. Some old textbook drawings made embryos look more alike than they really are, so biologists now compare photographs of real embryos.
 
 The **fossil record** is the collection of preserved remains and traces of past life, placed in time order by the rock layers they are found in. Fossils show what bodies looked like long ago, including groups that no longer exist.
 
@@ -269,7 +277,7 @@ Classification is also a nested list, from broad to specific: domain, kingdom, p
 
 A **cladogram** is a branching diagram that shows the order in which groups split from common ancestors. It is built from a **shared derived characteristic**, a trait that first appeared in one ancestor and was passed to its descendants. Hair is one: mammals share it, and fish and frogs do not. A trait that every animal in your sample has, such as a backbone in a group of vertebrates, cannot split that group.
 
-A **branch point**, or node, is where one line splits into two. Each branch point stands for the common ancestor of everything above it. To decide who is most closely related, find the branch point where two tips meet. The pair that meets at the most recent branch point is the closest.
+A **branch point**, or node, is where one line splits into two. Each branch point stands for the common ancestor of everything above it. To decide who is most closely related, trace the branches from two tips back to the branch point where they meet. The pair that meets at the most recent branch point is the closest.
 
 {/* DIAGRAM: a cladogram of lancelet, lamprey, tuna, salamander, turtle and leopard, with numbered parts: 1 the root, 2 a branch point labelled common ancestor, 3 a trait mark for jaws on a branch, 4 two tips that are sister groups, 5 a spun branch showing the same tree */}
 

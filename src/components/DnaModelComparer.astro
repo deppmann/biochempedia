@@ -49,7 +49,7 @@
     <tbody data-matrix-body></tbody>
   </table>
 
-  <p class="dnc-assume">In this sketch each model is judged only by what the lesson says it shows and leaves out. Blocks and letters are not to scale, and no atoms are drawn.</p>
+  <p class="dnc-assume">In this sketch each model is judged by what the lesson says each model shows and leaves out, plus our own reading. Blocks and letters are not to scale, and no atoms are drawn.</p>
   <p class="dnc-foot">Rule to keep: every DNA model shows some features and hides others, so scientists pick the model that fits the question.</p>
 </figure>
 
@@ -72,9 +72,9 @@
       hides: 'It leaves out the twist, and all the atoms.',
       rows: [
         ['yes', 'It shows which bases pair: A with T and G with C.'],
-        ['yes', 'It shows the pairing rule, and that rule suggested how DNA could be copied: each strand fixes the order of its partner.'],
+        ['partly', 'It shows the pairing rule, which suggested how DNA could be copied: each strand fixes the order of its partner. It does not show copying itself.'],
         ['no', 'A few rungs cannot show how much DNA there is. A human genome has about 3 billion base pairs.'],
-        ['no', 'It leaves out the twist and shows no chromosome, which is DNA wound with proteins.'],
+        ['no', 'It leaves out the twist and shows no chromosome, so it does not show how DNA is wound or packed.'],
       ],
     },
     {
@@ -82,9 +82,9 @@
       good: 'Good for showing how two strands coil around each other.',
       hides: 'It leaves out individual atoms, and often the actual base order.',
       rows: [
-        ['partly', 'The bases are inside, between the two strands. But the ribbon often does not show which base is which.'],
-        ['no', 'Copying depends on base order, because each strand fixes the order of its partner. The ribbon often hides that order.'],
-        ['no', 'It often hides the actual base order, so it does not show the information.'],
+        ['partly', 'The bases are inside, between the two strands. But the ribbon often does not show the base order.'],
+        ['partly', 'The base pairing rule suggested how DNA could be copied. Copying depends on base order, which the ribbon often hides.'],
+        ['partly', 'It often hides the actual base order, so it only partly shows the information.'],
         ['no', 'It shows two strands coiling around each other, not a chromosome wound with proteins.'],
       ],
     },
@@ -95,7 +95,7 @@
       rows: [
         ['no', 'It leaves out the partner strand, so no pairs are shown.'],
         ['no', 'With no partner strand, it does not show how each strand fixes the order of its partner.'],
-        ['yes', 'It shows which bases are present and their order. That is why it is used to compare DNA between people.'],
+        ['partly', 'It shows which bases are present and their order. That is why it is used to compare DNA between people. A few letters do not show how much DNA there is.'],
         ['no', 'It leaves out shape and size.'],
       ],
     },
@@ -106,8 +106,8 @@
       rows: [
         ['no', 'Base pairs are far too small to see here, because DNA is only about 2 nanometers wide.'],
         ['no', 'No strands or bases are drawn, so it does not show how each strand fixes the order of its partner.'],
-        ['partly', 'It shows that DNA is one long molecule. A human genome has about 3 billion base pairs. It does not show the order of bases.'],
-        ['yes', 'A chromosome is one long DNA molecule wound with proteins.'],
+        ['partly', 'It shows that DNA is one long molecule. One chromosome holds only part of a genome, which has about 3 billion base pairs. It does not show the order of bases.'],
+        ['partly', 'It shows DNA as one long molecule wound with proteins. The lesson does not say more about how it fits in a cell.'],
       ],
     },
   ];
@@ -260,6 +260,7 @@
       tabs.forEach((t, i) => t.setAttribute('aria-pressed', String(i === current)));
       boxes.forEach((b, i) => { b.checked = ticks[current][i]; });
       good.textContent = mod.good;
+      plot.setAttribute('aria-label', 'Sketch of the ' + mod.name.toLowerCase() + ' model of DNA, drawn with labelled blocks and outlines');
       draw();
       rowsUl.replaceChildren();
       if (checked[current]) {

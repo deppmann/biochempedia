@@ -60,7 +60,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "TreeRemodel"
+    title: "Remodel the tree of life"
+    caption: >-
+      Add RNA, membrane and gene evidence cards to the five-kingdom tree and see which groups move, and which card moved them.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Woese and Fox compared one kind of molecule across many organisms to find the Archaea. Which molecule was it?"
@@ -187,7 +193,7 @@ explainLevels:
     label: "Biology II"
     text: >-
       In the Biology II Genetics course you compare ways to define a species. The biological species
-      concept asks whether populations can interbreed. The morphological concept uses body form. The
+      concept asks whether populations can interbreed and produce fertile offspring. The morphological concept uses body form. The
       phylogenetic concept uses shared ancestry, often read from genetic makeup. Each fits some
       organisms better than others: bacteria do not interbreed in the usual way, so genetic makeup
       matters most for them. You also draw trees from shared derived traits. Newer genome studies
@@ -231,6 +237,8 @@ corpusTags:
 draft: true
 ---
 
+import TreeRemodel from '../../../components/TreeRemodel.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
@@ -248,7 +256,7 @@ import CER from '../../../components/CER.astro';
 
 You start with the five-kingdom tree many biologists used in the 1970s. Then you add evidence cards one at a time: an RNA comparison, a test of cell-membrane fats and a set of gene sequences. After each card, the tree redraws itself and a note says which evidence moved which group.
 
-{/* SIMULATION */}
+<TreeRemodel />
 
 **Try this.**
 1. Before you add any card, predict which kingdom you think will split first. Write your guess down, then add the RNA card.
@@ -264,7 +272,7 @@ You start with the five-kingdom tree many biologists used in the 1970s. Then you
 
 Biologists build these groups from several kinds of evidence:
 - **Structure:** body parts and cell parts, such as a nucleus or a cell wall.
-- **Embryology:** how an organism develops before birth or hatching. **Embryology** is the study of that early development.
+- **Embryology:** how an organism develops in its earliest stages, before birth, hatching or sprouting. **Embryology** is the study of that early development.
 - **Phylogeny:** the history of ancestors and descendants. A **phylogeny** is that family history, often drawn as a branching tree.
 - **DNA and RNA:** the order of the bases in an organism’s genes and other molecules.
 
@@ -279,7 +287,7 @@ The system has been rebuilt several times. Each date below is the year a scheme 
 | 1977 | Woese and Fox | RNA evidence for three major lines of descent |
 | 1990 | Woese, Kandler and Wheelis | Three domains placed above the kingdoms |
 
-Many US textbooks use six kingdoms: Archaebacteria, Eubacteria, Protista, Fungi, Plantae and Animalia. A **protist** is a eukaryote that is not a plant, animal or fungus. The SOL keeps Protista as a kingdom, and you will use it. Newer trees divide protists into many separate groups, because some protists are closer to animals or plants than to other protists.
+Many US textbooks use six kingdoms: Archaebacteria, Eubacteria, Protista, Fungi, Plantae and Animalia. A **protist** is a eukaryote that is not a plant, animal or fungus. Virginia’s Biology standards (the SOL) keep Protista as a kingdom, and you will use it. Newer trees divide protists into many separate groups, because some protists are closer to animals or plants than to other protists.
 
 {/* DIAGRAM: a timeline of classification schemes from 1735 to 1990, with numbered parts 1 two kingdoms, 2 Haeckel's three, 3 Whittaker's five, 4 six textbook kingdoms, 5 three domains */}
 
@@ -306,7 +314,7 @@ The tree is still being tested. Genome studies published in 2023 and 2025 placed
 
 DNA and protein comparisons have moved other groups too.
 
-- **Fungi and animals.** In 1993, a survey of 25 proteins strongly supported fungi being closer to animals than to plants. The sampled animals and fungi shared four insertions or deletions that plants lacked. This does not mean animals came from mushrooms. It means animals and fungi share a more recent common ancestor.
+- **Fungi and animals.** In 1993, a survey of 25 proteins strongly supported fungi being closer to animals than to plants. The sampled animals and fungi shared four insertions or deletions (added or missing stretches of amino acids) that plants lacked. This does not mean animals came from mushrooms. It means animals and fungi share a more recent common ancestor.
 - **Two African elephants.** In 2010, a study of 39,763 DNA bases from 375 places in the nuclear genome supported treating forest and savanna elephants as two species. The study had only one or two animals of each kind, so it could not settle every detail.
 - **Whales.** DNA comparisons placed whales among the even-toed hoofed mammals, with hippos as their closest living relatives. Some biologists use one group name, Cetartiodactyla, for them all, and others simply widen Artiodactyla to include whales.
 - **Protists.** Gene sequences split the old kingdom Protista into many groups that are not each other’s closest relatives.

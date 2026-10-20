@@ -25,6 +25,15 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.2 e; Genetics, GEN.4 a and c"
   college: ["cell-cycle-control", "mitosis", "cytokinesis"]
 
+explainer:
+  src: "/explainers/cell-cycle-and-mitosis/explainer.mp4"
+  captions: "/explainers/cell-cycle-and-mitosis/explainer.vtt"
+  poster: "/explainers/cell-cycle-and-mitosis/poster.jpg"
+  title: "Copy First, Then Divide"
+  durationSec: 162.5
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Tim Hunt"
     contribution: >-
@@ -44,7 +53,7 @@ scientists:
       biologists a map of the controls that go wrong when cells divide out of turn, as in cancer.
 
 techniques:
-  - name: "Counting fixed cells under a microscope"
+  - name: "Counting fixed (preserved) cells under a microscope"
     blurb: >-
       Root tips are stained so the chromosomes show up, then each cell is sorted by what its
       chromosomes look like. A count is a snapshot of many cells at one moment; it does not follow
@@ -238,7 +247,7 @@ corpusTags:
   - "cytokinesis"
   - "onion root tip"
   - "surface area to volume"
-draft: true
+draft: false
 ---
 
 import MitosisPhaseCounter from '../../../components/MitosisPhaseCounter.astro';
@@ -247,6 +256,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A small cut on your finger usually closes on its own in roughly a week or a little longer. Near the tip of an onion root, cells divide, and the root pushes deeper into the soil.** In both places the living thing is adding new cells. Why make more cells instead of letting each cell grow bigger? And when one cell becomes two, how does each new cell end up with a full set of instructions?
 
@@ -286,7 +297,7 @@ Why copy first? Picture two groups that each need the whole recipe book. Tearing
 
 M phase is division itself, in two parts. **Mitosis** is the division of the nucleus into two nuclei, each with a full set of chromosomes. **Cytokinesis** is the division of the cytoplasm, which splits one cell into two. Most of the time cytokinesis follows mitosis, and the result is two new cells with the same DNA as each other and as the cell they came from.
 
-{/* DIAGRAM: the cell cycle as a circle, with 1 G1, 2 S, 3 G2 making up interphase, then 4 mitosis and 5 cytokinesis together forming M phase */}
+<ScaffoldFigure src="/figures/cell-cycle-and-mitosis/cell-cycle-wheel.webp" width={1200} height={800} keyItems={["G1", "S", "G2", "mitosis", "cytokinesis"]} given={[0, 4]} alt="AI-generated illustration: a ring split into three broad green arcs and two narrow gold arcs running clockwise, each with a small cell icon: a small cell, a cell with doubled chromosomes, a larger cell, a cell with two nuclei, and a cell pinching into two. Five numbered circles mark the stages for the student to name." caption="The cell cycle: a long interphase and a short division, drawn so that interphase takes up most of the turn. Name the five numbered stages." />
 
 When the controls on the cycle fail, cells can keep dividing when they should not. That uncontrolled division is a key feature of cancer.
 
@@ -307,6 +318,8 @@ After S phase, a copied chromosome is made of two **sister chromatids**, the two
 
 Cytokinesis often starts during late anaphase or telophase, and it looks different in plants and animals. In an animal cell, a ring at the middle pinches the membrane inward, making a furrow that deepens until the cell splits in two. A plant cell has a stiff wall and cannot pinch. Instead, a **cell plate** forms across the middle of the cell and grows outward until it becomes a new wall between the two cells.
 
+<LessonFigure src="/figures/cell-cycle-and-mitosis/cytokinesis-animal-and-plant.webp" width={1200} height={676} alt="AI-generated illustration: two rows of three frames. An animal cell is pinched in the middle by a ring until it splits into two; a plant cell inside a stiff wall forms a plate in its middle that grows outward until it becomes a new wall." caption="Cytokinesis in two kinds of cell: a furrow pinches an animal cell in two, while a plant cell, held by its stiff wall, builds a cell plate that grows outward into a new wall." />
+
 <Support min={2}>**Key idea:** In mitosis the copied chromosomes coil up, line up in the middle, split into sister chromatids that move to opposite ends, and are wrapped in two new nuclei.</Support>
 
 ## Explain: why cells divide and stay small
@@ -316,7 +329,7 @@ Cells divide for several reasons:
 - **Growth.** A tree or a teenager grows mostly by adding cells.
 - **Repair.** Skin cells divide behind a wound to replace those that were lost.
 - **Replacement.** The lining of your gut and the outer layer of your skin are replaced over and over.
-- **Asexual reproduction.** A single-celled amoeba or yeast cell can make a new organism by dividing. Bacteria divide too, by a simpler process covered in [How Microbes Multiply](/lessons/how-microbes-multiply/).
+- **Asexual reproduction.** A single-celled amoeba or yeast cell can make a new organism by dividing. Bacteria divide too, by a simpler process covered in How Microbes Multiply.
 
 Why not grow bigger cells instead? Oxygen, food molecules and wastes all cross the cell membrane, which you study in [Crossing the Membrane](/lessons/crossing-the-membrane/). The **surface-area-to-volume ratio** compares how much outside surface a cell has with how much inside it has. Model a cell as a cube:
 
@@ -331,6 +344,8 @@ These come from geometry (area = 6 × side × side, volume = side × side × sid
 Real cells are not cubes, and long, thin or flat cells keep more surface. The model works best for comparing cells of similar shape.
 
 The onion root shows both ideas together. Near the tip, cells divide. Just behind that zone, the new cells grow longer, and that lengthening pushes the root through the soil. So a root grows by making new cells and by letting them stretch.
+
+<LessonFigure src="/figures/cell-cycle-and-mitosis/onion-root-tip-zones.webp" width={1200} height={800} alt="AI-generated illustration: an onion bulb with roots, and a zoomed section of one root tip with small square cells near the tip, some dividing, and longer, stretched cells just behind them." caption="Near the tip of an onion root, cells divide; just behind them, the new cells stretch. Both push the root deeper." />
 
 <Support min={2}>**Key idea:** Cells divide to grow, repair, replace and reproduce, and one reason they stay small is that a bigger cell has less surface for each unit of volume.</Support>
 
@@ -350,7 +365,7 @@ A stained root tip is a snapshot: every cell is caught at one moment of its cycl
 Source: The Biology Project, University of Arizona, onion root-tip cell cycle activity (page dated 1997, revised August 2004). The counts are of the 36 photographed onion (Allium cepa) root-tip cells on its completed answer page, which does not say when or at what temperature the roots were grown. The activity assumes one cycle takes 24 hours. A 2018 study that gathered published estimates for roots grown from onion bulbs reported values from about 13.5 to 23 hours, so 24 hours is a round assumption, not a measurement.
 
 1. Which phase holds the most cells? About what fraction of the cells is it?
-2. One cycle of 24 hours is 1,440 minutes. Estimate the time in metaphase as its fraction times 1,440 minutes. Then check that your five estimates add up to 1,440.
+2. One cycle of 24 hours is 1,440 minutes. Estimate the time in metaphase as its fraction times 1,440 minutes. Do the same for the other phases, then check that your five estimates add up to 1,440.
 3. The activity does not say how these photographs were picked, and they may have been chosen to show every stage. Would a field picked at random probably show more or fewer cells in interphase? How would that change your estimates?
 
 <CER

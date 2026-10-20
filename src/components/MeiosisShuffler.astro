@@ -38,7 +38,7 @@
   </div>
 
   <fieldset class="msh-fs msh-lineup">
-    <legend>How each pair lines up (changing it after step 3 starts a new run)</legend>
+    <legend>How each pair lines up (changing it after step 2 is done starts a new run)</legend>
     <button type="button" class="msh-btn msh-line" data-line="0"></button>
     <button type="button" class="msh-btn msh-line" data-line="1"></button>
     <button type="button" class="msh-btn msh-line" data-line="2"></button>
@@ -71,7 +71,7 @@
     </dl>
   </div>
 
-  <p class="msh-assume">In this sketch: each pair swaps one matching piece when crossing over is on, and the computer picks by chance which copy goes to which cell in the second division. Real human cells have 23 pairs and about 22 to 28 crossovers per sperm.</p>
+  <p class="msh-assume">In this sketch: the computer picks by chance which copy goes to which cell in the second division. (In women the divisions are uneven.) Studies of sperm count an average of about 22 to 28 crossovers per sperm, depending on the man; the sketch gives every pair exactly one swap.</p>
   <p class="msh-foot">Rule to keep: meiosis copies the DNA once and divides twice, first separating the pairs and then the copies, so each sex cell gets one chromosome from each pair. Shuffling n pairs alone gives 2ⁿ combinations; crossing over adds more. Mitosis makes two cells that match the parent cell (a close match; rare copying mistakes can change DNA).</p>
 </figure>
 
@@ -217,7 +217,7 @@
       if (stage === 1) return 'DNA copied once: each chromosome has 2 copies';
       if (stage === 2) return `Meiosis I: pairs line up (crossing over ${c})`;
       if (stage === 3) return 'Meiosis I done: pairs pulled apart, 2 cells';
-      return 'Meiosis II done: copies separated, 4 cells';
+      return 'Meiosis II done: copies separated, usually 4 cells';
     };
     function drawMeiosis() {
       const h = 24 + n * 24 + 4;
@@ -264,12 +264,12 @@
     }
 
     function drawMitosis() {
-      const ph = n * 24 + 16;
+      const ph = n * 24 + 28;
       const total = ph * 2 + 8;
       const H = 24 + total + 8;
       msvg.setAttribute('viewBox', `0 0 360 ${H}`);
       msvg.replaceChildren();
-      txt(msvg, 8, 16, mitosis ? 'Mitosis done: 2 cells, same as the parent' : `Start: 1 cell, ${n} pairs (${2 * n} chromosomes)`, { 'font-weight': 700 });
+      txt(msvg, 8, 16, mitosis ? 'Mitosis done: 2 cells matching the parent' : `Start: 1 cell, ${n} pairs (${2 * n} chromosomes)`, { 'font-weight': 700 });
       const parentY = 24 + (total - ph) / 2;
       const drawCell = (x: number, y: number, w: number, label: string) => {
         cellBox(msvg, x, y, w, ph);
@@ -290,7 +290,7 @@
         txt(msvg, 183, ym - 10, 'DNA copied once', { 'text-anchor': 'middle' });
         txt(msvg, 183, ym + 20, 'divided once', { 'text-anchor': 'middle' });
       }
-      msvg.setAttribute('aria-label', mitosis ? 'Mitosis done: two cells, each the same as the parent cell' : 'One cell before mitosis');
+      msvg.setAttribute('aria-label', mitosis ? 'Mitosis done: two cells closely matching the parent cell' : 'One cell before mitosis');
     }
 
     // ---------- text ----------
@@ -321,7 +321,7 @@
         ? 'Meiosis I: each pair lines up side by side, and matching pieces swap between its two chromosomes (marked ×).'
         : 'Meiosis I: each pair lines up side by side. Crossing over is off, so no pieces swap.';
       if (stage === 3) return `The first division pulls apart the two chromosomes of each pair. Two cells, each with ${n} chromosomes in two copies.`;
-      return `Meiosis II: the sister chromatids separate, with no DNA copying in between. Four cells, each with ${n} chromosomes.`;
+      return `Meiosis II: the sister chromatids separate, with no DNA copying in between. Usually four cells, each with ${n} chromosomes.`;
     }
     const NEXT = ['Step 1: copy the DNA', 'Step 2: pairs line up (meiosis I)', 'Step 3: pull each pair apart (meiosis I)', 'Step 4: separate the copies (meiosis II)', 'Start a new run'];
     function update() {
@@ -331,7 +331,8 @@
       crossOut.textContent = cross ? 'on' : 'off';
       lineBtns.forEach((b, i) => {
         b.hidden = i >= n;
-        if (i < n) b.textContent = `Pair ${i + 1}: ${up[i] === 'M' ? 'mother’s' : 'father’s'} chromosome goes to the top cell`;
+        if (i < n) b.textContent = `Pair ${i + 1}: ${up[i] === 'M' ? 'mother’s' : 'father’s'} chromosome goes to the top cell (click to swap)`;
+        if (i < n) b.setAttribute('aria-pressed', up[i] === 'M' ? 'false' : 'true');
       });
       if (stage === 4) {
         rChrom.textContent = `observed ${cells[0].length}, expected ${n} (one from each pair)`;
@@ -343,7 +344,7 @@
         rRun.textContent = 'finish both divisions to count';
       }
       rOff.textContent = `observed ${off.size}, expected at most 2${sup(n)} = ${N} (shuffling alone)`;
-      rOn.textContent = `observed ${on.size}; crossing over adds new mixes beyond the ${N}`;
+      rOn.textContent = `observed ${on.size}` + (on.size > N ? `, more than the ${N} from shuffling alone` : `; run more times to compare with the ${N} from shuffling alone`);
       rAlign.textContent = `observed ${aligns.size} of 2${sup(n)} = ${N} ways (${runs} ${runs === 1 ? 'run' : 'runs'} so far)`;
       const set = cross ? on : off;
       chipsTitle.textContent = `Kinds of sex cell found, crossing over ${cross ? 'on' : 'off'}: ${set.size}`;
@@ -371,10 +372,10 @@
         const parent = Array.from({ length: n }, (_, i) => 'MM|FF' + i).join(',');
         const d1 = parent, d2 = parent;
         const count = 2 * n;
-        mwhy.textContent = `Mitosis: the DNA is copied once and the cell divides once. Two cells, each with ${count} chromosomes, matching the parent cell.`;
+        mwhy.textContent = `Mitosis: the DNA is copied once and the cell divides once. Two cells, each with ${count} chromosomes, closely matching the parent cell.`;
         mCells.textContent = 'observed 2, expected 2 (one division)';
         mChrom.textContent = `observed ${count}, expected ${count} (the same as the parent cell)`;
-        mMatch.textContent = d1 === d2 ? 'observed yes, expected yes (cells match the parent cell)' : 'no';
+        mMatch.textContent = d1 === d2 ? 'observed yes in this sketch, expected yes (a close match to the parent cell)' : 'no';
         mrunBtn.disabled = true;
       }
       drawMitosis();
@@ -395,12 +396,12 @@
       clearTally(); mitosis = false; build(); update();
     });
     shuffleBtn.addEventListener('click', () => {
-      if (stage >= 3) build();
+      if (stage >= 2) build();
       up = [rand2() ? 'M' : 'F', rand2() ? 'M' : 'F', rand2() ? 'M' : 'F'];
       update();
     });
     lineBtns.forEach((b, i) => b.addEventListener('click', () => {
-      if (stage >= 3) build();
+      if (stage >= 2) build();
       up[i] = up[i] === 'M' ? 'F' : 'M';
       update();
     }));

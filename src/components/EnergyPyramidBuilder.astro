@@ -1,0 +1,230 @@
+---
+/**
+ * EnergyPyramidBuilder — a sketch of an energy pyramid for the Energy in Ecosystems lesson.
+ * Producers start with a made-up 100,000 kJ per square meter per year (the lesson's worked
+ * example). The learner sets the share passed up each step (5 to 20 percent) and the number
+ * of levels (2 to 5). Each level has energy = start x (share)^(level - 1). What is not passed
+ * on leaves as heat or stays in uneaten matter. A switch shows carbon returning through
+ * decomposers. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="epb card" data-epb>
+  <figcaption class="epb-head">Energy pyramid builder<span class="epb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="epb-svg" viewBox="0 0 300 380" role="img" aria-label="An energy pyramid with the energy at each level, the heat given off at each step, and an optional carbon loop through decomposers" data-plot></svg>
+
+  <div class="epb-controls">
+    <label class="epb-slabel"><span>Share passed up each step: <em data-out="pct">10</em> percent</span>
+      <input type="range" data-in="pct" min="5" max="20" step="1" value="10" />
+    </label>
+    <label class="epb-slabel"><span>Feeding levels, producers included: <em data-out="n">3</em></span>
+      <input type="range" data-in="n" min="2" max="5" step="1" value="3" />
+    </label>
+    <div class="epb-btns">
+      <button type="button" class="epb-btn" data-carbon role="switch" aria-checked="false">Carbon switch: off</button>
+      <button type="button" class="epb-btn epb-reset" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <dl class="epb-readout">
+    <div><dt>Captured by producers (level 1)</dt><dd data-r-cap></dd></div>
+    <div><dt>Top level reached</dt><dd data-r-top></dd></div>
+    <div><dt>Heat or uneaten, all steps added</dt><dd data-r-lost></dd></div>
+    <div><dt>Heat or uneaten + top level</dt><dd data-r-check></dd></div>
+  </dl>
+  <p class="epb-why" data-why role="status"></p>
+
+  <p class="epb-assume">In this sketch the producers start with 100,000 kJ per square meter per year (a made-up number), every step passes the same share, and bar widths are not to scale. Real measurements vary: the lesson reports about 13 and 21 percent for Cedar Bog Lake and about 6 percent as the average of a 2026 synthesis.</p>
+  <p class="epb-foot">Rule to keep: about 10 percent is a rough rule of thumb, not a fixed law. Energy flows one way, from sunlight to heat, and much is lost at each step, so each level has less. Matter such as carbon cycles and is used again.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', HEAT = '#d1590a', INK = '#33333b', CARBON = '#8a5a2b', SUN = '#f2b01e';
+  const FILLS = ['#217a83', '#3a929a', '#58aab1', '#7cc0c5', '#a6d6d9'];
+  const NAMES = ['producers', 'primary consumers', 'secondary consumers', 'tertiary consumers', 'higher consumers'];
+  const START = 100000;
+  const W = 300, BX0 = 24, BW = 156, CX = BX0 + BW / 2, PITCH = 64, TOP = 6, BARH = 26;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('EnergyPyramidBuilder: missing ' + sel);
+    return e;
+  }
+  const r3 = (x: number) => Math.round(x * 1000) / 1000;
+  const fmt = (x: number) => r3(x).toLocaleString('en-US', { maximumFractionDigits: 3 });
+
+  document.querySelectorAll<HTMLElement>('[data-epb]').forEach((root) => {
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const pctIn = must<HTMLInputElement>(root, '[data-in="pct"]');
+    const nIn = must<HTMLInputElement>(root, '[data-in="n"]');
+    const pctOut = must<HTMLElement>(root, '[data-out="pct"]');
+    const nOut = must<HTMLElement>(root, '[data-out="n"]');
+    const carbonBtn = must<HTMLButtonElement>(root, '[data-carbon]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const rCap = must<HTMLElement>(root, '[data-r-cap]');
+    const rTop = must<HTMLElement>(root, '[data-r-top]');
+    const rLost = must<HTMLElement>(root, '[data-r-lost]');
+    const rCheck = must<HTMLElement>(root, '[data-r-check]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    let carbon = false;
+
+    function text(x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 12, fill: INK }, opts));
+      t.textContent = s;
+      plot.appendChild(t);
+      return t;
+    }
+    function arrow(x1: number, y1: number, x2: number, y2: number, color: string, dash = '', w = 2) {
+      const a: Record<string, string | number> = { x1, y1, x2, y2, stroke: color, 'stroke-width': w };
+      if (dash) a['stroke-dasharray'] = dash;
+      plot.appendChild(el('line', a));
+      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len, uy = dy / len, px = -uy, py = ux;
+      const hx = x2 - ux * 7, hy = y2 - uy * 7;
+      plot.appendChild(el('polygon', { points: `${x2},${y2} ${hx + px * 3.5},${hy + py * 3.5} ${hx - px * 3.5},${hy - py * 3.5}`, fill: color }));
+    }
+
+    function render() {
+      const pct = parseInt(pctIn.value, 10);
+      const n = parseInt(nIn.value, 10);
+      pctOut.textContent = String(pct);
+      nOut.textContent = String(n);
+      carbonBtn.textContent = carbon ? 'Carbon switch: on' : 'Carbon switch: off';
+      carbonBtn.setAttribute('aria-checked', carbon ? 'true' : 'false');
+      carbonBtn.classList.toggle('epb-on', carbon);
+
+      const t = pct / 100;
+      const E: number[] = [];
+      for (let k = 0; k < n; k++) E.push(r3(START * Math.pow(t, k)));
+      const lostAt = (k: number) => r3(E[k] - E[k + 1]); // k = 0 .. n-2
+      let lost = 0;
+      for (let k = 0; k < n - 1; k++) lost += lostAt(k);
+      lost = r3(lost);
+      const top = E[n - 1];
+
+      const boxH = carbon ? 70 : 40;
+      const rowsBottom = TOP + n * PITCH; // end of last row (producers) incl. its label + gap
+      const boxY = rowsBottom + 8;
+      const H = boxY + boxH + 6;
+      plot.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      plot.replaceChildren();
+
+      const yOf = (level: number) => TOP + (n - 1 - level) * PITCH; // level 0 = producers (bottom)
+      for (let k = n - 1; k >= 0; k--) {
+        const y0 = yOf(k);
+        const frac = Math.min(1, Math.max(0.06, (Math.log10(Math.max(E[k], 0.1)) + 1) / 6));
+        const w = frac * BW;
+        plot.appendChild(el('rect', { x: CX - w / 2, y: y0, width: w, height: BARH, fill: FILLS[k], stroke: INK, 'stroke-width': 1 }));
+        text(BX0, y0 + BARH + 14, `Level ${k + 1} · ${NAMES[k]}`);
+        text(W - 4, y0 + BARH + 14, `${fmt(E[k])} kJ`, { 'text-anchor': 'end', 'font-weight': 700 });
+        if (k < n - 1) {
+          // energy not passed on leaves as heat or in uneaten matter
+          arrow(BX0 + BW + 4, y0 + 13, BX0 + BW + 18, y0 + 13, HEAT, '', 2);
+          text(BX0 + BW + 22, y0 + 9, 'heat/uneaten:', { fill: HEAT });
+          text(BX0 + BW + 22, y0 + 24, `${fmt(lostAt(k))} kJ`, { fill: HEAT, 'font-weight': 700 });
+        }
+        if (k < n - 1) {
+          // arrow up from level k (bottom) to level k+1 (above): drawn in the gap above this bar
+          const gy = y0 - 2;
+          arrow(CX, gy, CX, gy - 15, ACCENT, '', 2);
+          text(CX + 8, gy - 4, `${pct} percent passes up`, { fill: ACCENT });
+        }
+      }
+      // sunlight into producers
+      const py0 = yOf(0);
+      const sy = py0 + PITCH - 2;
+      plot.appendChild(el('circle', { cx: CX, cy: sy + 1, r: 3.5, fill: SUN, stroke: INK, 'stroke-width': 0.8 }));
+      arrow(CX, sy - 3, CX, sy - 15, SUN, '', 2.5);
+      text(CX + 8, sy - 4, 'sunlight captured', { fill: INK });
+
+      // decomposers band
+      plot.appendChild(el('rect', { x: 2, y: boxY, width: W - 4, height: boxH, fill: '#f6f2ea', stroke: CARBON, 'stroke-width': 1 }));
+      text(W / 2, boxY + 15, 'Decomposers', { 'text-anchor': 'middle', 'font-weight': 700 });
+      if (!carbon) {
+        text(W / 2, boxY + 31, 'dead matter and wastes', { 'text-anchor': 'middle' });
+      } else {
+        text(W / 2, boxY + 31, 'dashed: carbon in dead matter', { 'text-anchor': 'middle', fill: CARBON });
+        text(W / 2, boxY + 46, 'solid: carbon dioxide can be taken up again', { 'text-anchor': 'middle', fill: ACCENT });
+        text(W / 2, boxY + 61, 'Energy does not return', { 'text-anchor': 'middle', fill: HEAT });
+        // down lane: dead matter from every level to decomposers
+        const laneX = 14;
+        const topRow = yOf(n - 1) + 8;
+        plot.appendChild(el('line', { x1: laneX, y1: topRow, x2: laneX, y2: boxY - 8, stroke: CARBON, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+        arrow(laneX, boxY - 12, laneX, boxY, CARBON, '', 1.6);
+        for (let k = 0; k < n; k++) {
+          const y0 = yOf(k);
+          const frac = Math.min(1, Math.max(0.06, (Math.log10(Math.max(E[k], 0.1)) + 1) / 6));
+          const left = CX - (frac * BW) / 2;
+          plot.appendChild(el('line', { x1: left, y1: y0 + 7, x2: laneX, y2: y0 + 7, stroke: CARBON, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+        }
+        // return lane: carbon dioxide back to producers
+        const retX = 6, retY = py0 + 19;
+        const pf = Math.min(1, Math.max(0.06, (Math.log10(Math.max(E[0], 0.1)) + 1) / 6));
+        const pLeft = CX - (pf * BW) / 2;
+        plot.appendChild(el('line', { x1: retX, y1: boxY, x2: retX, y2: retY, stroke: ACCENT, 'stroke-width': 2 }));
+        arrow(retX, retY, pLeft, retY, ACCENT, '', 2);
+      }
+
+      // readouts
+      rCap.textContent = `${fmt(E[0])} kJ`;
+      const share = (top / START) * 100;
+      rTop.textContent = `${fmt(top)} kJ (${share >= 1 ? fmt(Math.round(share * 100) / 100) : share.toPrecision(3)} percent)`;
+      rLost.textContent = `${fmt(lost)} kJ`;
+      const ok = r3(lost + top) === r3(E[0]);
+      rCheck.textContent = `${fmt(r3(lost + top))} kJ ${ok ? '= level 1' : ''}`.trim();
+
+      // status
+      const s1 = `In this sketch, at ${pct} percent, ${fmt(top)} kJ per square meter per year reaches level ${n}, from ${fmt(E[0])} at level 1.`;
+      const s2 = 'At each step the rest leaves as heat or stays in uneaten or undigested matter. Energy is not destroyed.';
+      const s3 = carbon
+        ? ' Carbon is passed on or released, not lost: decomposers release carbon dioxide, which producers can take up again. Energy leaves as heat and does not return.'
+        : '';
+      const s4 = pct === 10
+        ? ' Ten percent is a rough rule of thumb, not a fixed law.'
+        : ' Real transfers vary from place to place, so this setting is one possible case.';
+      why.textContent = s1 + ' ' + s2 + s3 + s4;
+    }
+
+    pctIn.addEventListener('input', render);
+    nIn.addEventListener('input', render);
+    carbonBtn.addEventListener('click', () => { carbon = !carbon; render(); });
+    resetBtn.addEventListener('click', () => {
+      pctIn.value = '10';
+      nIn.value = '3';
+      carbon = false;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .epb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .epb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .epb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .epb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .epb-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .epb-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .epb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .epb-slabel input { accent-color: var(--ddp-color-accent); min-height: 44px; width: 100%; }
+  .epb-btns { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .epb-btn { min-height: 44px; min-width: 44px; padding: 0 var(--ddp-space-4); font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .epb-btn:hover { border-color: var(--ddp-color-accent); }
+  .epb-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .epb-btn.epb-on { background: var(--ddp-color-accent); color: #fff; border-color: var(--ddp-color-accent); }
+  .epb-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .epb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .epb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .epb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .epb-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5em; }
+  .epb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .epb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .epb-controls, .epb-readout { grid-template-columns: 1fr; } }
+</style>

@@ -25,11 +25,20 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.4 c-f; Genetics, GEN.5 a"
   college: ["mendels-peas", "probability-and-crosses"]
 
+explainer:
+  src: "/explainers/punnett-squares/explainer.mp4"
+  captions: "/explainers/punnett-squares/explainer.vtt"
+  poster: "/explainers/punnett-squares/poster.jpg"
+  title: "Where the White Was Hiding"
+  durationSec: 172.1
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Gregor Mendel"
     contribution: >-
       Crossed true-breeding garden pea varieties, counted thousands of offspring, and showed that
-      traits are passed on as separate units that sort into sex cells in predictable proportions,
+      traits are passed on as separate units that sort into sex cells by chance, giving offspring in predictable proportions,
       close to 3 to 1 for one trait and 9 to 3 to 3 to 1 for two.
     profileSourceAnchor: "Mendel, Versuche über Pflanzen-Hybriden, Verhandlungen des naturforschenden Vereines in Brünn 4:3-47 (1866); English translation, Experiments in Plant Hybridization, archived at www-archiv.fdm.uni-hamburg.de/b-online/e08_mend/mendel.htm."
     quotes: []
@@ -53,7 +62,7 @@ techniques:
     blurb: >-
       Each seed or plant is sorted into a category (round or wrinkled, purple or white) and the
       categories are counted. The proportion in each category is the count divided by the total
-      scored, which can then be compared with a predicted ratio.
+      scored. This proportion can then be compared with a predicted ratio.
   - name: "Test cross"
     blurb: >-
       A plant with the dominant trait is crossed with a plant that is homozygous recessive. If any
@@ -62,7 +71,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "CrossAndCount"
+    title: "Cross and count"
+    caption: >-
+      Choose two parent plants, draw the Punnett square, then let the simulation make random offspring and compare the counts with the square's prediction.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which statement best describes an organism’s phenotype?"
@@ -172,7 +187,7 @@ explainLevels:
       In Life Science you learned that genes come in different forms, and you get one from each
       parent. A dominant form shows even when only one copy is present. A recessive form shows only
       when both copies are recessive. Your genotype is the pair of forms you carry, and your
-      phenotype is the trait that shows. Each sex cell carries one form or the other, with a 50
+      phenotype is the trait that shows. A parent with two different forms makes sex cells that each carry one form or the other, with a 50
       percent chance of each. You used Punnett squares for one trait. Biology adds crosses for two
       traits at once and tests the predictions against Mendel’s real counts.
   - level: "highschool"
@@ -217,14 +232,14 @@ anecdotes:
       round seeds and only 2 wrinkled ones. Another produced 14 round and 15 wrinkled. Neither is
       anywhere near 3 to 1. Yet when he added up all 7,324 seeds from 253 plants, he had 5,474
       round and 1,850 wrinkled, about 2.96 to 1. One plant is a small sample, and small samples
-      swing widely. The ratio showed up only in the large total.
+      swing widely. The ratio showed up most clearly in the large total.
   - title: "Finding Mendel’s genes, about 160 years later"
     source: "Feng, Chen, Hofer and colleagues, Nature 642:980-989 (2025), doi 10.1038/s41586-025-08891-6."
     text: >-
       By the 2020s, scientists still had not found the DNA behind some of the pea traits Mendel
       studied. In 2025 a large team looked for the molecular basis of three of them. For one, a
       stem form called fasciated, they found the trait was associated with a missing piece of DNA
-      in a candidate gene, together with a second region of the genome, a genetic modifier. A simple one-letter-per-trait model can leave out part of the biology underneath.
+      in a candidate gene (a gene suspected of causing the trait), together with a second region of the genome that changes the trait, called a genetic modifier. A simple one-letter-per-trait model can leave out part of the biology underneath.
 
 corpusTags:
   - "mendelian inheritance"
@@ -232,6 +247,8 @@ corpusTags:
   - "probability"
 draft: true
 ---
+
+import CrossAndCount from '../../../components/CrossAndCount.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
@@ -252,7 +269,7 @@ The white seemed to vanish for a generation, then return. Mendel counted 224 whi
 
 In the simulation you pick the genotypes of two parent pea plants for one gene or for two genes. You see their Punnett square and the predicted ratio. Then you "plant" 10, 100 or 1,000 offspring, each chosen at random, and compare your counts with the prediction. All counts in the simulation are made by random draws, not by real plants.
 
-{/* SIMULATION */}
+<CrossAndCount />
 
 **Try this.**
 1. Cross two Pp plants. Before you plant, predict how many white plants you will get out of 10. Plant 10 and compare. Repeat three times.
@@ -307,7 +324,7 @@ Each box has a 1 in 4 chance, because 1/2 × 1/2 = 1/4.
 - Genotype ratio: 1 PP : 2 Pp : 1 pp, or 1:2:1.
 - Phenotype ratio: 3 purple : 1 white, or 3:1, because PP and Pp both look purple.
 
-A **dihybrid cross** follows two genes at once. Mendel studied plants that were heterozygous for seed shape (R round, r wrinkled) and seed color (Y yellow, y green). If the two genes sort into sex cells independently, an RrYy plant makes four kinds of sex cells, RY, Ry, rY and ry, each with a 1 in 4 chance. This is the **law of independent assortment**. It holds well for genes on different chromosomes.
+A **dihybrid cross** follows two genes at once. Mendel studied plants that were heterozygous for seed shape (R round, r wrinkled) and seed color (Y yellow, y green). If the two genes sort into sex cells independently, getting R or r does not affect whether a sex cell gets Y or y. An RrYy plant then makes four kinds of sex cells, RY, Ry, rY and ry, each with a 1 in 4 chance. This is the **law of independent assortment**. It holds well for genes on different chromosomes.
 
 | | RY | Ry | rY | ry |
 |---|---|---|---|---|

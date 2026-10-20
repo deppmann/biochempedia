@@ -1,0 +1,326 @@
+---
+/**
+ * ClassifyTheUnknown — a dichotomous-key walker. The learner picks a mystery organism
+ * (described only by observations), may change any answer, and walks the lesson's
+ * five-step key one question at a time. The key places the organism in a domain and
+ * kingdom and says why at every step. A cell with no nucleus is named only when the
+ * learner supplies sequence or wall/membrane chemistry evidence; looks alone stop the key.
+ * Every rule is a statement of the domains-and-kingdoms lesson. Cells are not drawn:
+ * the picture is a labelled flowchart of the lesson's key. Original.
+ */
+---
+
+<figure class="ctu card" data-ctu>
+  <figcaption class="ctu-head">Classify the unknown: walk a dichotomous key<span class="ctu-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ctu-svg" viewBox="0 0 360 280" role="img" aria-label="Flowchart of the five-step key from the lesson. Step 1 asks about a nucleus. No nucleus goes to step 2, evidence, and ends in archaebacteria, eubacteria or stop. A nucleus goes to step 3, the plant test, step 4, the fungus test, and step 5, animal or protist. The steps you have walked are highlighted.">
+    <g fill="none" stroke="#8a8a96" stroke-width="1.5">
+      <path d="M110 21 H56 V62" />
+      <path d="M250 21 H286 V62" />
+      <path d="M108 77 H116 V185" />
+      <path d="M116 121 H110" />
+      <path d="M116 153 H110" />
+      <path d="M116 185 H110" />
+      <path d="M214 77 H196" />
+      <path d="M214 129 H196" />
+      <path d="M214 174 H196" />
+      <path d="M214 210 H196" />
+      <path d="M286 92 V114" />
+      <path d="M286 144 V160" />
+      <path d="M286 224 V244" />
+    </g>
+    <text x="62" y="50" font-size="12" fill="#4b4b55">no</text>
+    <text x="292" y="50" font-size="12" fill="#4b4b55">yes</text>
+
+    <g class="ctu-n" data-node="s1"><rect x="110" y="6" width="140" height="30" rx="6" /><text x="180" y="26" text-anchor="middle" font-weight="700">1 Nucleus?</text></g>
+
+    <g class="ctu-n" data-node="s2"><rect x="4" y="62" width="104" height="30" rx="6" /><text x="56" y="82" text-anchor="middle" font-weight="700">2 Evidence?</text></g>
+    <g class="ctu-n ctu-res" data-node="r_arch"><rect x="4" y="108" width="104" height="26" rx="6" /><text x="56" y="126" text-anchor="middle">archaebacteria</text></g>
+    <g class="ctu-n ctu-res" data-node="r_bact"><rect x="4" y="140" width="104" height="26" rx="6" /><text x="56" y="158" text-anchor="middle">eubacteria</text></g>
+    <g class="ctu-n ctu-res" data-node="r_stop"><rect x="4" y="172" width="104" height="26" rx="6" /><text x="56" y="190" text-anchor="middle">stop: undecided</text></g>
+
+    <g class="ctu-n" data-node="s3"><rect x="214" y="62" width="144" height="30" rx="6" /><text x="286" y="82" text-anchor="middle" font-weight="700">3 Plant test</text></g>
+    <g class="ctu-n" data-node="s4"><rect x="214" y="114" width="144" height="30" rx="6" /><text x="286" y="134" text-anchor="middle" font-weight="700">4 Fungus test</text></g>
+    <g class="ctu-n" data-node="s5"><rect x="214" y="160" width="144" height="64" rx="6" /><text x="286" y="196" text-anchor="middle" font-weight="700">5 Animal or protist</text></g>
+
+    <g class="ctu-n ctu-res" data-node="r_plants"><rect x="124" y="62" width="72" height="30" rx="6" /><text x="160" y="82" text-anchor="middle">plants</text></g>
+    <g class="ctu-n ctu-res" data-node="r_fungi"><rect x="124" y="114" width="72" height="30" rx="6" /><text x="160" y="134" text-anchor="middle">fungi</text></g>
+    <g class="ctu-n ctu-res" data-node="r_animals"><rect x="124" y="160" width="72" height="28" rx="6" /><text x="160" y="179" text-anchor="middle">animals</text></g>
+    <g class="ctu-n ctu-res" data-node="r_protists"><rect x="124" y="196" width="72" height="28" rx="6" /><text x="160" y="215" text-anchor="middle">protists</text></g>
+    <g class="ctu-n ctu-res" data-node="r_nofit"><rect x="214" y="244" width="144" height="28" rx="6" /><text x="286" y="263" text-anchor="middle">no branch fits</text></g>
+  </svg>
+
+  <fieldset class="ctu-set">
+    <legend>1. Pick a mystery organism</legend>
+    <div class="ctu-pills" data-orgs></div>
+    <p class="ctu-obs" data-obs></p>
+  </fieldset>
+
+  <fieldset class="ctu-set">
+    <legend>2. The answers the key will use (with no nucleus, only the evidence row is used)</legend>
+    <div data-answers></div>
+  </fieldset>
+
+  <div class="ctu-actions">
+    <button type="button" class="ctu-btn ctu-go" data-next>Next step</button>
+    <button type="button" class="ctu-btn" data-all>Run all steps</button>
+    <button type="button" class="ctu-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="ctu-status" data-status role="status"></p>
+  <ol class="ctu-log" data-log></ol>
+  <p class="ctu-verdict" data-verdict></p>
+
+  <p class="ctu-assume">In this sketch the key is the five-step key from the lesson. Each mystery organism is a made-up, textbook-style description, not a measurement. The key here asks only whether there is a wall, not what it is made of.</p>
+  <p class="ctu-foot">Rule to keep: ask the nucleus question first. A cell with no nucleus can be placed in Archaea or Bacteria only with sequence or chemistry evidence. A key works only for the organisms and traits built into it.</p>
+</figure>
+
+<script>
+  type YN = 'yes' | 'no';
+  type Ev = 'none' | 'archaea' | 'bacteria';
+  type Ans = { nuc: YN; many: YN; wall: YN; own: YN; abs: YN; ev: Ev };
+  type Result = { node: string; domain: string; kingdom: string };
+  type Item = { node: string; q: string; a: string; text: string; result?: Result };
+
+  const Q = {
+    nuc: 'Does it have a nucleus?',
+    ev: 'What does sequence or wall and membrane chemistry say?',
+    many: 'Is it made of many cells?',
+    wall: 'Does it have a cell wall?',
+    own: 'Does it make its own food?',
+    abs: 'Does it absorb food it digested outside its cells?',
+    animal: 'Many cells, no wall, and food taken inside its body?',
+    single: 'Is it a single eukaryotic cell?',
+  };
+  const ORGS: { name: string; obs: string; ans: Ans }[] = [
+    { name: 'Mystery 1', obs: 'Green. Many cells with nuclei and cell walls. Makes its own food from light.', ans: { nuc: 'yes', many: 'yes', wall: 'yes', own: 'yes', abs: 'no', ev: 'none' } },
+    { name: 'Mystery 2', obs: 'Grows on dead wood. Many cells with nuclei and cell walls. Digests the wood outside its cells and absorbs the food.', ans: { nuc: 'yes', many: 'yes', wall: 'yes', own: 'no', abs: 'yes', ev: 'none' } },
+    { name: 'Mystery 3', obs: 'Lives in pond water. One cell with a nucleus and no cell wall. Takes in bacteria as food.', ans: { nuc: 'yes', many: 'no', wall: 'no', own: 'no', abs: 'no', ev: 'none' } },
+    { name: 'Mystery 4', obs: 'Many cells with nuclei and no cell walls. Takes food inside its body to digest it.', ans: { nuc: 'yes', many: 'yes', wall: 'no', own: 'no', abs: 'no', ev: 'none' } },
+    { name: 'Mystery 5', obs: 'One cell with no nucleus and a cell wall. Takes in small food molecules from around it.', ans: { nuc: 'no', many: 'no', wall: 'yes', own: 'no', abs: 'yes', ev: 'none' } },
+    { name: 'Mystery 6', obs: 'One cell with no nucleus and a cell wall. Can build food from carbon dioxide.', ans: { nuc: 'no', many: 'no', wall: 'yes', own: 'yes', abs: 'no', ev: 'none' } },
+    { name: 'Mystery 7', obs: 'Green, from a stream. One cell with a nucleus and no cell wall. Makes food from light and can also take in food particles.', ans: { nuc: 'yes', many: 'no', wall: 'no', own: 'yes', abs: 'no', ev: 'none' } },
+  ];
+  const YN_LABEL: Record<YN, string> = { yes: 'Yes', no: 'No' };
+  const EV_LABEL: Record<Ev, string> = { none: 'Nothing yet', archaea: 'Like Archaea', bacteria: 'Like Bacteria' };
+
+  function walk(a: Ans): Item[] {
+    const out: Item[] = [];
+    const yn = (v: YN) => YN_LABEL[v];
+    const push = (node: string, q: string, ans: string, text: string, result?: Result) => { out.push({ node, q, a: ans, text, result }); };
+
+    if (a.nuc === 'no') {
+      push('s1', Q.nuc, 'No', 'No nucleus: it is a prokaryote, so it is in Bacteria or Archaea. The key goes to step 2.');
+      if (a.ev === 'archaea') {
+        push('s2', Q.ev, EV_LABEL.archaea, 'The evidence is like Archaea: for example a wall with no peptidoglycan, typically ether-linked membrane lipids, or an archaeal RNA sequence.', { node: 'r_arch', domain: 'Archaea', kingdom: 'archaebacteria' });
+      } else if (a.ev === 'bacteria') {
+        push('s2', Q.ev, EV_LABEL.bacteria, 'The evidence is like Bacteria: usually a wall with peptidoglycan, typically ester-linked membrane lipids, or a bacterial RNA sequence.', { node: 'r_bact', domain: 'Bacteria', kingdom: 'eubacteria' });
+      } else {
+        push('s2', Q.ev, EV_LABEL.none, 'No evidence beyond looks. Bacteria and Archaea look alike under a light microscope, so the key stops: looks cannot decide.', { node: 'r_stop', domain: 'Bacteria or Archaea (undecided)', kingdom: 'undecided' });
+      }
+      return out;
+    }
+
+    push('s1', Q.nuc, 'Yes', 'A nucleus: its cells are eukaryotic, so it belongs to the domain Eukarya. The key goes to step 3.');
+    // Step 3: plant test
+    push('s3', Q.many, yn(a.many), a.many === 'yes' ? 'Many cells, so it could be a plant. Next: does it have a cell wall?' : 'One cell only, so it is not a plant. The key goes to step 4.');
+    if (a.many === 'yes') {
+      push('s3', Q.wall, yn(a.wall), a.wall === 'yes' ? 'A cell wall (plants have cellulose walls). Next: does it make its own food?' : 'No cell wall, so it is not a plant. The key goes to step 4.');
+      if (a.wall === 'yes') {
+        if (a.own === 'yes') {
+          push('s3', Q.own, 'Yes', 'Many cells, a cell wall, and it makes its own food: kingdom plants.', { node: 'r_plants', domain: 'Eukarya', kingdom: 'plants' });
+          return out;
+        }
+        push('s3', Q.own, 'No', 'It does not make its own food, so it is not a plant. The key goes to step 4.');
+      }
+    }
+    // Step 4: fungus test
+    push('s4', Q.wall, yn(a.wall), a.wall === 'yes' ? 'A cell wall; fungi have chitin walls. Next: does it absorb food it digested outside its cells?' : 'No cell wall, so it is not a fungus; fungi have chitin walls. The key goes to step 5.');
+    if (a.wall === 'yes') {
+      if (a.abs === 'yes') {
+        push('s4', Q.abs, 'Yes', 'A wall, and it digests food outside its cells and absorbs it: kingdom fungi. Fungi are decomposers.', { node: 'r_fungi', domain: 'Eukarya', kingdom: 'fungi' });
+        return out;
+      }
+      push('s4', Q.abs, 'No', 'It does not absorb food from outside, so it is not a fungus. The key goes to step 5.');
+    }
+    // Step 5: animal or protist
+    const animal = a.many === 'yes' && a.wall === 'no' && a.own === 'no' && a.abs === 'no';
+    if (animal) {
+      push('s5', Q.animal, 'Yes', 'Many cells, no walls, and it neither makes nor absorbs its food, so it takes food inside: kingdom animals.', { node: 'r_animals', domain: 'Eukarya', kingdom: 'animals' });
+      return out;
+    }
+    push('s5', Q.animal, 'No', 'That does not fit animals. Next: is it a single eukaryotic cell?');
+    if (a.many === 'no') {
+      push('s5', Q.single, 'Yes', 'A single eukaryotic cell that fits none of the other tests: kingdom protists.', { node: 'r_protists', domain: 'Eukarya', kingdom: 'protists' });
+    } else {
+      push('s5', Q.single, 'No', 'It has a nucleus and many cells but fits no branch. A key works only for the organisms and traits built into it.', { node: 'r_nofit', domain: 'Eukarya', kingdom: 'no branch of this key' });
+    }
+    return out;
+  }
+
+  let uid = 0;
+  document.querySelectorAll<HTMLElement>('[data-ctu]').forEach((root) => {
+    const need = <T extends Element>(sel: string): T => {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('ClassifyTheUnknown: missing ' + sel);
+      return e;
+    };
+    const orgsEl = need<HTMLElement>('[data-orgs]');
+    const obsEl = need<HTMLElement>('[data-obs]');
+    const answersEl = need<HTMLElement>('[data-answers]');
+    const statusEl = need<HTMLElement>('[data-status]');
+    const logEl = need<HTMLElement>('[data-log]');
+    const verdictEl = need<HTMLElement>('[data-verdict]');
+    const nextBtn = need<HTMLButtonElement>('[data-next]');
+    const allBtn = need<HTMLButtonElement>('[data-all]');
+    const resetBtn = need<HTMLButtonElement>('[data-reset]');
+    const nodes = root.querySelectorAll<SVGGElement>('[data-node]');
+    const id = ++uid;
+
+    let orgIdx = 0;
+    let ans: Ans = { ...ORGS[0].ans };
+    let revealed = 0;
+    let changed = false;
+
+    function pill(name: string, value: string, label: string, checked: boolean, onPick: () => void): HTMLElement {
+      const l = document.createElement('label');
+      l.className = 'ctu-pill';
+      const i = document.createElement('input');
+      i.type = 'radio'; i.name = name; i.value = value; i.checked = checked;
+      i.addEventListener('change', () => { if (i.checked) onPick(); });
+      const s = document.createElement('span');
+      s.textContent = label;
+      l.appendChild(i); l.appendChild(s);
+      return l;
+    }
+
+    function buildOrgs() {
+      orgsEl.replaceChildren();
+      ORGS.forEach((o, k) => {
+        orgsEl.appendChild(pill(`ctu-org-${id}`, String(k), o.name, k === orgIdx, () => {
+          orgIdx = k; ans = { ...o.ans }; revealed = 0; changed = false; buildAnswers(); render();
+        }));
+      });
+    }
+
+    function row(label: string, key: keyof Ans, opts: [string, string][]) {
+      const r = document.createElement('div');
+      r.className = 'ctu-row';
+      r.setAttribute('role', 'radiogroup');
+      const lab = document.createElement('span');
+      lab.className = 'ctu-q'; lab.textContent = label;
+      r.setAttribute('aria-label', label);
+      r.appendChild(lab);
+      const box = document.createElement('div');
+      box.className = 'ctu-pills';
+      opts.forEach(([v, t]) => {
+        box.appendChild(pill(`ctu-${key}-${id}`, v, t, ans[key] === v, () => {
+          (ans as Record<string, string>)[key] = v; revealed = 0; changed = true; render();
+        }));
+      });
+      r.appendChild(box);
+      return r;
+    }
+
+    function buildAnswers() {
+      answersEl.replaceChildren();
+      const yesno: [string, string][] = [['yes', 'Yes'], ['no', 'No']];
+      answersEl.appendChild(row(Q.nuc, 'nuc', yesno));
+      answersEl.appendChild(row(Q.many, 'many', yesno));
+      answersEl.appendChild(row(Q.wall, 'wall', yesno));
+      answersEl.appendChild(row(Q.own, 'own', yesno));
+      answersEl.appendChild(row('Does it absorb its food (digests it outside, then absorbs it)?', 'abs', yesno));
+      answersEl.appendChild(row('Evidence beyond looks (used only if there is no nucleus)', 'ev', [['none', 'Nothing yet'], ['archaea', 'Like Archaea'], ['bacteria', 'Like Bacteria']]));
+    }
+
+    function render() {
+      const items = walk(ans);
+      const shown = items.slice(0, revealed);
+      const done = revealed >= items.length;
+      obsEl.textContent = 'Observations: ' + ORGS[orgIdx].obs + (changed ? ' (You changed an answer.)' : '');
+
+      logEl.replaceChildren();
+      shown.forEach((it) => {
+        const li = document.createElement('li');
+        const b = document.createElement('strong');
+        b.textContent = it.q + ' ';
+        const sp = document.createElement('span');
+        sp.className = 'ctu-ans'; sp.textContent = it.a + '.';
+        li.appendChild(b); li.appendChild(sp);
+        const ex = document.createElement('div');
+        ex.className = 'ctu-ex'; ex.textContent = it.text;
+        li.appendChild(ex);
+        logEl.appendChild(li);
+      });
+
+      const on = new Set<string>();
+      shown.forEach((it) => on.add(it.node));
+      const last = items[items.length - 1];
+      if (done && last.result) on.add(last.result.node);
+      nodes.forEach((g) => { g.classList.toggle('ctu-on', on.has(g.dataset.node || '')); });
+
+      if (revealed === 0) {
+        statusEl.textContent = changed
+          ? 'You changed an answer. Predict where the key will end, then press Next step.'
+          : `${ORGS[orgIdx].name}: predict the first question the key will ask, then press Next step.`;
+        verdictEl.textContent = '';
+        verdictEl.hidden = true;
+      } else {
+        statusEl.textContent = shown[shown.length - 1].text;
+        if (done && last.result) {
+          verdictEl.hidden = false;
+          verdictEl.textContent = `Result: domain ${last.result.domain}; kingdom ${last.result.kingdom}.`;
+        } else { verdictEl.textContent = ''; verdictEl.hidden = true; }
+      }
+      nextBtn.disabled = done;
+      allBtn.disabled = done;
+    }
+
+    nextBtn.addEventListener('click', () => { revealed = Math.min(revealed + 1, walk(ans).length); render(); });
+    allBtn.addEventListener('click', () => { revealed = walk(ans).length; render(); });
+    resetBtn.addEventListener('click', () => {
+      ans = { ...ORGS[orgIdx].ans }; revealed = 0; changed = false; buildAnswers(); render();
+    });
+
+    buildOrgs();
+    buildAnswers();
+    render();
+  });
+</script>
+
+<style is:global>
+  .ctu { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ctu-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ctu-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ctu-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ctu-n rect { fill: #fff; stroke: #8a8a96; stroke-width: 1.5; }
+  .ctu-n text { fill: #2b2b33; font-size: 12px; }
+  .ctu-n.ctu-on rect { fill: #d6eef0; stroke: #0e7c86; stroke-width: 2; }
+  .ctu-n.ctu-res.ctu-on rect { fill: #0e7c86; }
+  .ctu-n.ctu-res.ctu-on text { fill: #fff; font-weight: 700; }
+  .ctu-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-2) 0; padding: 0.4rem 0.7rem 0.6rem; }
+  .ctu-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .ctu-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+  .ctu-pill { position: relative; display: inline-flex; }
+  .ctu-pill input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .ctu-pill span { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0.2rem 0.7rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: transparent; }
+  .ctu-pill input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ctu-pill input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ctu-obs { margin: 0.5rem 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .ctu-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.3rem 0.8rem; margin: 0.35rem 0; }
+  .ctu-q { flex: 1 1 14rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .ctu-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ctu-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.9rem; cursor: pointer; }
+  .ctu-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ctu-btn:disabled { opacity: 0.45; cursor: default; }
+  .ctu-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ctu-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .ctu-log { margin: 0 0 var(--ddp-space-2); padding-left: 1.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .ctu-log li { margin: 0.3rem 0; }
+  .ctu-ans { color: var(--ddp-color-accent); font-weight: 700; }
+  .ctu-ex { color: var(--ddp-color-muted); }
+  .ctu-verdict { margin: var(--ddp-space-2) 0; font-weight: 700; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .ctu-verdict[hidden] { display: none; }
+  .ctu-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ctu-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

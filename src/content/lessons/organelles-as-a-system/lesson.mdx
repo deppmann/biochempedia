@@ -26,12 +26,21 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.2 a"
   college: ["organelles-as-environments", "protein-sorting", "secretory-pathway"]
 
+explainer:
+  src: "/explainers/organelles-as-a-system/explainer.mp4"
+  captions: "/explainers/organelles-as-a-system/explainer.vtt"
+  poster: "/explainers/organelles-as-a-system/poster.jpg"
+  title: "One Protein, Many Cell Parts"
+  durationSec: 158.8
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "George E. Palade and James D. Jamieson"
     contribution: >-
       Used pulse-chase labelling in slices of guinea pig pancreas to show that newly made secretory
       proteins move in order from the rough ER to the Golgi to storage granules, and that this
-      the first step, from the rough ER to the Golgi, stops when the cell's energy supply is blocked.
+      first step, from the rough ER to the Golgi, stops when the cell's energy supply is blocked.
     profileSourceAnchor: "Jamieson and Palade, Intracellular transport of secretory proteins in the pancreatic exocrine cell, I and II, Journal of Cell Biology 34:577 and 34:597-615 (1967), doi 10.1083/jcb.34.2.577 and 10.1083/jcb.34.2.597; Jamieson and Palade, Intracellular transport of secretory proteins in the pancreatic exocrine cell, IV, Metabolic requirements, Journal of Cell Biology 39:589-603 (1968), doi 10.1083/jcb.39.3.589; Jamieson, A tribute to George E. Palade, Journal of Clinical Investigation 118:3517-3518 (2008), doi 10.1172/JCI37749."
     quotes: []
     story: >-
@@ -255,7 +264,7 @@ corpusTags:
   - "secretory pathway"
   - "insulin"
   - "prokaryotes and eukaryotes"
-draft: true
+draft: false
 ---
 
 import ProteinShippingRoute from '../../../components/ProteinShippingRoute.astro';
@@ -264,6 +273,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **After a meal, the sugar level in your blood rises, and small cells in your pancreas called beta cells release insulin, a protein hormone.** Each beta cell keeps insulin packed in tiny sacs, ready to send out. The instructions for insulin are stored in the cell's nucleus, but the hormone leaves at the cell's outer edge. How does it get from one to the other, and what do the other cell parts do while it travels?
 
@@ -307,19 +318,21 @@ An **organelle** is a structure inside a cell that does a particular job; most a
 
 Two cautions. Plant cells have mitochondria as well as chloroplasts. And not every plant cell has chloroplasts: a root cell underground is not green.
 
+<LessonFigure src="/figures/organelles-as-a-system/plant-and-animal-cell.webp" width={1200} height={800} alt="AI-generated illustration: a leaf plant cell and an animal cell side by side. The plant cell has a thick wall, a large central vacuole, green chloroplasts, mitochondria and a nucleus; the animal cell has a thin membrane, a nucleus, mitochondria and small lysosomes." caption="A typical leaf cell and a typical animal cell share most parts, including mitochondria. The plant cell adds a cell wall, a large central vacuole and, because it is green, chloroplasts." />
+
 <Support min={2}>**Key idea:** Each cell structure has a job; plant and animal cells share most of them, and plant cells add a cell wall, a large central vacuole and, in green cells, chloroplasts.</Support>
 
 ## Explain: following insulin through the cell
 
 A list of parts does not show how they work together. Follow insulin instead.
 
-1. **Nucleus.** The gene for insulin is a stretch of DNA. The cell copies it into messenger RNA, which leaves the nucleus. You can read how in [that lesson](/lessons/protein-synthesis/).
+1. **Nucleus.** The gene for insulin is a stretch of DNA. The cell copies it into messenger RNA, which leaves the nucleus. You can read how in that lesson.
 2. **Ribosome on the rough ER.** A ribosome reads the messenger RNA and builds a protein chain. The chain threads into the ER, where it folds. In a beta cell this chain is an insulin precursor, a longer protein that is cut into insulin later.
 3. **To the Golgi.** A **vesicle**, a small bubble of membrane that carries materials, buds off the ER and delivers the protein to the Golgi apparatus.
 4. **Golgi and storage.** The Golgi sorts the protein and packs it into new vesicles. Insulin is stored in these until it is needed.
 5. **Out through the membrane.** When blood sugar rises, more of these vesicles fuse with the cell membrane and release insulin outside the cell. Beta cells also release a smaller amount between meals.
 
-{/* DIAGRAM: a beta cell with the insulin route numbered: 1 nucleus with DNA and messenger RNA leaving, 2 ribosomes on rough ER, 3 transport vesicle, 4 Golgi apparatus packing storage vesicles, 5 vesicle fusing with the cell membrane, and mitochondria drawn beside the route with arrows of ATP to steps 2 to 5 */}
+<ScaffoldFigure src="/figures/organelles-as-a-system/insulin-route-beta-cell.webp" width={1200} height={800} keyItems={["nucleus", "rough ER", "vesicle", "Golgi apparatus", "cell membrane", "mitochondria"]} given={[0, 5]} alt="AI-generated illustration: an oval cell with a dashed gold route running left to right from a round nucleus, through stacked folded membranes dotted with small dots, a small vesicle and a stack of curved sacs, to a vesicle opening at the cell's outer edge; bean-shaped mitochondria below send small arrows up to the route. Six numbered circles mark parts for the student to name." caption="Insulin's route through a beta cell, from instructions in the nucleus to release at the outer edge, with mitochondria supplying energy along the way. Name the six numbered parts." />
 
 Building a protein chain and moving vesicles both use energy. **ATP** is a small molecule that carries energy in a form cell parts can use; [that lesson](/lessons/respiration-and-atp/) shows how mitochondria make it. In a 1968 experiment on pancreas cells, chemicals that blocked the mitochondria's ATP making also stopped proteins from moving from the rough ER to the Golgi.
 
@@ -339,6 +352,8 @@ A **prokaryotic** cell has no nucleus and none of the membrane-bound organelles 
 | Cell wall | Often | Plants and fungi, not animals |
 
 A single bacterium still carries out every life process with this simpler set of parts.
+
+<LessonFigure src="/figures/organelles-as-a-system/prokaryote-and-eukaryote.webp" width={1200} height={800} alt="AI-generated illustration: a small rod-shaped bacterium with loose DNA in an open region and scattered ribosomes beside a larger eukaryotic cell whose DNA sits inside a nucleus, with mitochondria and other organelles." caption="A bacterium keeps its DNA in an open region with no membrane around it; a eukaryotic cell keeps it inside a nucleus. Not drawn to scale." />
 
 Eukaryotic cells with different jobs hold different amounts of each organelle. In one study of mouse muscles, mitochondrial content differed nearly tenfold between muscle types. In one study, normal Arabidopsis leaf cells held 121 chloroplasts each.
 

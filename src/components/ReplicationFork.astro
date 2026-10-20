@@ -54,7 +54,7 @@
   <p class="rf-status" data-status role="status"></p>
   <div class="rf-result" data-result hidden></div>
 
-  <p class="rf-assume"><strong>In this sketch:</strong> 6 base pairs stand in for the roughly 6 billion a cell copies. Flat blocks stand for the twisted double helix. Both new strands are built left to right. Proofread always removes a wrong base.</p>
+  <p class="rf-assume"><strong>In this sketch:</strong> 6 base pairs stand in for the roughly 6 billion a cell copies. Flat blocks stand for the twisted double helix. Real DNA strands run in opposite directions and one new strand is built in short pieces; here both are filled in left to right to keep the sketch simple. Proofread always removes a wrong base.</p>
   <p class="rf-foot">Rule to keep: A pairs with T and C pairs with G, so each old strand sets the order of its new partner. The copy is two identical molecules, each with one old strand and one new strand. In a cell, proofreading removes most wrong bases, and a textbook estimate is about one uncorrected mistake for every billion bases copied.</p>
 </figure>
 
@@ -223,10 +223,11 @@
           ? `This piece has ${N} base pairs. Predict the molecules you will end with, then press Unzip one step.`
           : 'Pick an open strand. Before you drop in a nucleotide, say which base pairs with the blocked base.';
       }
+      const bad = (nb.some((s) => s && s.wrong) ? 1 : 0) + (nt.some((s) => s && s.wrong) ? 1 : 0);
       if (done) {
         text += m === 0
           ? ' Done: two DNA molecules. Each has one old strand and one new strand, and both have the same base order as the original.'
-          : ` Done, but ${m} pair${m === 1 ? ' is' : 's are'} mismatched, so that molecule no longer matches the original. Press Proofread.`;
+          : ` Done, but ${m} pair${m === 1 ? ' is' : 's are'} mismatched, so ${bad === 1 ? '1 molecule no longer matches' : 'both molecules no longer match'} the original. Press Proofread.`;
       }
       status.textContent = text;
       if (done) { result.hidden = false; result.innerHTML = resultTable(); }
@@ -289,7 +290,7 @@
         if (!nb[i]) nb[i] = { base: PAIR[TOP[i]], wrong: false };
         if (!nt[i]) nt[i] = { base: PAIR[BOT[i]], wrong: false };
       }
-      say(`The rest was copied: every free nucleotide paired A with T or C with G.`);
+      say(`The rest was copied: the remaining free nucleotides each paired A with T or C with G.`);
     }
     function reset() {
       u = 0; nb = Array(N).fill(null); nt = Array(N).fill(null); mistakes = 0;

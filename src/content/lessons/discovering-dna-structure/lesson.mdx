@@ -25,6 +25,15 @@ ladder:
   biology2: "Biology II: Genetics, GEN.7 b"
   college: ["sequencing-and-genomes", "dna-the-genetic-material"]
 
+explainer:
+  src: "/explainers/discovering-dna-structure/explainer.mp4"
+  captions: "/explainers/discovering-dna-structure/explainer.vtt"
+  poster: "/explainers/discovering-dna-structure/poster.jpg"
+  title: "Every DNA Model Leaves Something Out"
+  durationSec: 177.1
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Rosalind Franklin and Raymond Gosling"
     contribution: >-
@@ -79,7 +88,13 @@ structures:
     id: "1BNA"
     note: "PDB 1BNA · a 12-base-pair B-DNA double helix (Dickerson dodecamer)"
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "DnaModelComparer"
+    title: "Compare DNA models"
+    caption: >-
+      Switch between a flat ladder, a helix ribbon, a letter string and a chromosome view, and judge what each model shows and what it leaves out.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In the base-pairing rule of the double helix model, adenine (A) on one strand pairs with which base on the other strand?"
@@ -230,7 +245,7 @@ anecdotes:
     text: >-
       Before a whole human genome was finished, an international team published the sequence of
       one chromosome, human chromosome 22, in December 1999. They read the euchromatic part of the chromosome,
-      which holds its genes, about 33.4 million bases. The sequence was not one unbroken
+      which holds most of its genes, about 33.4 million bases. The sequence was not one unbroken
       string. It came in 12 long pieces with gaps between them. Even with gaps, the team
       showed that reading a whole human chromosome was possible, and the public project’s work on the rest of the genome
       followed the same mapped, piece-by-piece approach.
@@ -252,12 +267,14 @@ corpusTags:
 draft: true
 ---
 
+import DnaModelComparer from '../../../components/DnaModelComparer.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
 
-**The Human Genome Project spent about 13 years, from 1990 to 2003, reading the DNA of humans. By 2022, the estimated cost to sequence a human-sized genome had fallen to about 525 dollars.** Nobody has ever looked at DNA the way you look at a pencil. Everything we know about its shape and its letters comes from indirect evidence and from models. How was the model of DNA built, and what changed when scientists could read whole genomes?
+**The Human Genome Project spent about 13 years, from 1990 to 2003, reading the DNA of humans. By 2022, the estimated cost to sequence a human-sized genome had fallen to about 525 dollars.** Nobody has ever looked at DNA the way you look at a pencil. Most of what we know about its shape and its letters comes from indirect evidence and from models. How was the model of DNA built, and what changed when scientists could read whole genomes?
 
 <IdeaCheck items={[
   { idea: 'Watson and Crick discovered DNA.', answer: 'disagree', explain: 'DNA was identified by Friedrich Miescher in 1869, in material from the nuclei of white blood cells. In 1953 Watson and Crick proposed a model of how DNA is shaped. Their model used measurements that other scientists had already made, so it was the result of many people’s work.' },
@@ -269,7 +286,7 @@ import CER from '../../../components/CER.astro';
 
 In the simulation you switch between four models of DNA: a flat ladder, a twisted helix ribbon made of blocks, a string of base letters, and a chromosome view. For each model, you tick boxes to show what it can explain: base pairing, copying, how much information DNA holds, and how DNA packs into a cell. The simulation then shows what each model hides.
 
-{/* SIMULATION */}
+<DnaModelComparer />
 
 **Try this.**
 1. Before you open the ladder model, predict which of the four questions it can answer. Then check the boxes and compare.

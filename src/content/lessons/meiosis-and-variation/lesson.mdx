@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Genetics, GEN.4 a-c; Advanced Topics, BIOII.4 a and b"
   college: ["chromosomes-and-meiosis"]
 
+explainer:
+  src: "/explainers/meiosis-and-variation/explainer.mp4"
+  captions: "/explainers/meiosis-and-variation/explainer.vtt"
+  poster: "/explainers/meiosis-and-variation/poster.jpg"
+  title: "Meiosis Halves and Shuffles Chromosomes"
+  durationSec: 159.6
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -47,7 +56,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "MeiosisShuffler"
+    title: "Meiosis shuffler"
+    caption: >-
+      Line up two or three chromosome pairs, switch crossing over on or off, run both divisions and count how many kinds of sex cells you get, with mitosis alongside for comparison.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "A typical human skin cell has 46 chromosomes in 23 pairs. How many chromosomes does a typical human egg or sperm cell have?"
@@ -133,7 +148,7 @@ practiceQuestions:
       Sexual populations gained more only in the stressful environment, so the benefit of mixing genes
       showed up when conditions were harsh. Saying sex always helps ignores the 30 °C result, where
       it gave no overall advantage. Asexual yeast adapted less, not more, under stress. The two
-      environments gave different results, so temperature and salt did matter.
+      environments gave different results, so the hot, salty environment did matter.
   - stem: "One study of sperm from 20 donors found that each donor’s average was between 22.2 and 28.1 crossovers per sperm. Which conclusion do these numbers support best?"
     choices:
       - "Every sperm cell has exactly 26 crossovers in it"
@@ -155,7 +170,7 @@ explainLevels:
       In Life Science you learned that body cells divide by mitosis into two cells that are the same
       as the parent cell. Sex cells are made a different way, by meiosis. Each sex cell gets half of
       the parent’s genetic material. The chromosome pairs separate on their own, so each sex cell has
-      a 50 percent chance of carrying either allele of a gene. Asexual reproduction, with one parent,
+      a 50 percent chance of carrying either version when a parent has two different versions (alleles) of a gene. Asexual reproduction, with one parent,
       makes offspring that are genetically the same. Sexual reproduction, with two parents, makes
       offspring that vary. In Biology you see the two divisions of meiosis, count the combinations
       they can make, and add crossing over.
@@ -189,7 +204,7 @@ explainLevels:
       2n = 46 with 4C DNA after S phase, becomes haploid (n = 23, still 2C) after meiosis I, and ends
       at n, 1C. Segregation is the separation of homologs at anaphase I, and independent assortment
       is the random orientation of bivalents at metaphase I, which is where Mendel’s laws live in the
-      cell. Crossing over begins with programmed double-strand breaks and is repaired as crossovers
+      cell. Crossing over begins with programmed double-strand breaks and only some of them are repaired as crossovers
       at chiasmata, which also hold homologs together until anaphase I. The college lesson on
       chromosomes and meiosis covers this ploidy bookkeeping, the synaptonemal complex that zips
       homologs together, and the chromosome theory of inheritance that tied Mendel’s factors to
@@ -202,7 +217,7 @@ anecdotes:
       Baker’s yeast can reproduce without sex, or it can go through meiosis and mate. Two
       researchers grew populations that could do both and populations that could not, for about 300
       generations with 11 rounds of sex in the sexual lines. Some lived at a comfortable 30 °C. Others
-      lived at 37 °C with salt added. The populations were then grown against their ancestors to
+      lived at 37 °C with salt added. The populations were then grown mixed with their ancestors to
       measure fitness. Under stress, the sexual populations adapted more. At 30 °C, sex gave no
       overall advantage.
   - title: "Identical twins are almost identical"
@@ -222,6 +237,8 @@ corpusTags:
 draft: true
 ---
 
+import MeiosisShuffler from '../../../components/MeiosisShuffler.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
@@ -239,7 +256,7 @@ import CER from '../../../components/CER.astro';
 
 In the meiosis shuffler you run a model cell with two or three chromosome pairs. One chromosome of each pair is colored for the mother and one for the father. You choose how each pair lines up, switch crossing over on or off, run both divisions, and count the different sex cells. A side panel runs mitosis for comparison.
 
-{/* SIMULATION */}
+<MeiosisShuffler />
 
 **Try this.**
 1. Predict how many chromosomes each new cell will have after meiosis. Run both divisions and count.
@@ -264,7 +281,7 @@ The result is usually four cells, each with one chromosome from every pair. In a
 
 {/* DIAGRAM: one cell with two chromosome pairs (mother's color, father's color) through 1 DNA copying, 2 pairs lining up, 3 pairs separating in meiosis I, 4 copies separating in meiosis II, 5 four haploid cells */}
 
-**Fertilization** is when an egg and a sperm join. Their two sets of 23 make a diploid cell with 46 again. Because the sex cell gets either chromosome of a pair, it has a 50 percent chance of carrying either allele its parent has for a gene on that pair.
+**Fertilization** is when an egg and a sperm join. Their two sets of 23 make a diploid cell with 46 again. Because a sex cell gets only one chromosome from each pair, if a parent has two different alleles of a gene, each sex cell has a 50 percent chance of getting either one.
 
 <Support min={2}>**Key idea:** Meiosis copies the DNA once and divides twice, first separating the pairs and then the copies, so each sex cell gets one chromosome from each pair.</Support>
 
@@ -344,7 +361,7 @@ Does sexual reproduction help a population adapt to a harsh environment? Plan a 
 - **Question:** Do yeast populations that go through meiosis and mating adapt faster to a hot, salty environment than populations that cannot?
 - **Independent variable:** whether the population can reproduce sexually. Use a strain that can and a closely matched strain that cannot.
 - **Dependent variable:** fitness after many generations, measured by growing each evolved population mixed with its ancestor and seeing which one increases.
-- **Constants:** the same growth medium, number of generations, number of rounds of sex, and transfer schedule.
+- **Constants:** the same growth medium, number of generations, number and timing of starvation rounds that trigger meiosis and spore formation, and transfer schedule.
 - **Controls:** run both kinds of population in a comfortable environment too. If sex helps only in the harsh one, the benefit depends on the environment. Also keep frozen ancestors to compare against.
 - **Sample size and trials:** several separate populations of each kind in each environment, since one population can change by chance.
 - **Safety:** use lab yeast strains, wear goggles, handle heat and sterilizing equipment with your teacher, and follow the lab's rules for disposing of cultures.

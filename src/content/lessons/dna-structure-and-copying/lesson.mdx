@@ -7,7 +7,7 @@ order: 916
 summary: >-
   How can a cell copy about six billion base pairs of DNA and make almost no mistakes? You build
   DNA from its parts, unzip it and copy it in a simulation, then test the base-pairing rule
-  against real base counts from eight kinds of living things. Afterwards you can describe a
+  against real base counts from seven kinds of living things. Afterwards you can describe a
   nucleotide and the double helix, explain the steps of copying, and use base data to support
   the A with T, C with G rule.
 hook: "How does a cell copy nearly two metres of DNA, folded inside a nucleus far too small to see without a microscope, and get almost every letter right?"
@@ -36,7 +36,7 @@ techniques:
       scientists found that A matches T and G matches C.
   - name: "DNA sequencing"
     blurb: >-
-      A sequencing machine reads the order of bases along DNA, and computers join the short reads
+      A sequencing machine reads the order of bases along DNA, and computers join the short stretches it reads
       into whole chromosomes. Sequencing is how we know the size of the human genome and how much
       of it codes for protein.
 
@@ -46,7 +46,13 @@ structures:
     id: "1BNA"
     note: "PDB 1BNA · a 12-base-pair double helix of B-form DNA"
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "ReplicationFork"
+    title: "Copy a piece of DNA"
+    caption: >-
+      Unzip a short piece of DNA step by step, pair free nucleotides on each open strand, slip in a mistake and see whether proofreading catches it.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which three parts make up one DNA nucleotide?"
@@ -133,7 +139,7 @@ practiceQuestions:
       percent, split evenly between G and C, so G is 20 percent. Thirty percent confuses G with
       T. Seventy percent is everything except A. Twenty-five percent assumes every base must be a
       quarter of the total, which is a common mistake.
-  - stem: "A table of measured DNA gives sea urchin A 32.8, T 32.1, G 17.7, C 17.3 percent and a row labelled Myobacterium Tub. (a tubercle bacterium) A 15.1, T 14.6, G 34.9, C 35.4 percent. What do these numbers support?"
+  - stem: "A table of measured DNA gives sea urchin A 32.8, T 32.1, G 17.7, C 17.3 percent and E. coli A 24.7, T 23.6, G 26.0, C 25.7 percent. What do these numbers support?"
     choices:
       - "A pairs with G and T pairs with C in both of these species"
       - "Each base makes up about 25 percent of DNA in every species"
@@ -141,10 +147,11 @@ practiceQuestions:
       - "Bacteria follow the A with T rule, but animals do not"
     answer: 2
     rationale: >-
-      In both rows A is within one percentage point of T and G is close to C, which fits base
-      pairing. A plus T is about 65 percent in the sea urchin but about 30 percent in the
-      bacterium, so the mix depends on the species. No base is near 25 percent here. The animal
-      follows the rule as well as the bacterium does. A and G are far apart, so they do not pair.
+      In both rows A is within about one percentage point of T and G is close to C, which fits
+      base pairing. A plus T is about 65 percent in the sea urchin but about 48 percent in the
+      bacterium, so the mix depends on the species. The sea urchin has no base near 25 percent,
+      even though E. coli comes close. The animal follows the rule as well as the bacterium
+      does. In the sea urchin A and G are far apart, so they do not pair.
 
 mcatQuestions: []
 
@@ -198,7 +205,7 @@ anecdotes:
     text: >-
       The first human genome sequence, finished in the early 2000s, still had gaps in hard-to-read
       stretches of repeated bases. In 2022 the Telomere-to-Telomere team published a reference
-      sequence from one human cell line that was 3.055 billion base pairs long. It added nearly
+      sequence from one human cell line (a group of lab-grown human cells) that was 3.055 billion base pairs long. It added nearly
       200 million base pairs that earlier references had lacked, and it had no gaps in any
       chromosome except Y, which the paper did not report as gapless. The team combined two kinds of long-read sequencing machines to read
       across the repeats.
@@ -220,6 +227,8 @@ corpusTags:
 draft: true
 ---
 
+import ReplicationFork from '../../../components/ReplicationFork.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
@@ -230,14 +239,14 @@ import CER from '../../../components/CER.astro';
 <IdeaCheck items={[
   { idea: 'Only cells with a nucleus, like ours, have DNA. Bacteria do not.', answer: 'disagree', explain: 'Bacteria have DNA too. In a bacterium such as E. coli, the DNA sits in a region called the nucleoid, with no membrane around it. Microscopes and chemical tests find DNA in every kind of cell that grows and divides. A few specialized cells, such as mature human red blood cells, lose their nucleus as they mature.' },
   { idea: 'Chromosomes and genes are the same thing.', answer: 'disagree', explain: 'A chromosome is one very long DNA molecule wrapped with proteins. A gene is one region along that DNA. Scientists who read the order of bases along human chromosomes find that each chromosome carries many genes, often hundreds or more, with other DNA between them.' },
-  { idea: 'All of our DNA is genes that code for proteins.', answer: 'disagree', explain: 'When scientists read the whole human genome, only about 1 to 2 percent of it turned out to code for proteins. Some of the rest controls when and where genes are switched on. Some codes for RNA molecules that do jobs of their own. For much of it, nobody knows the job yet.' },
+  { idea: 'All of our DNA is genes that code for proteins.', answer: 'disagree', explain: 'When scientists read the whole human genome (all of a person’s DNA), only about 1 to 2 percent of it turned out to code for proteins. Some of the rest controls when and where genes are switched on. Some codes for RNA molecules that do jobs of their own. For much of it, nobody knows the job yet.' },
 ]} />
 
 ## Explore: unzip and copy a DNA molecule
 
 The simulation shows a short piece of DNA as two rows of labelled blocks, one block for each base. You unzip the two strands one step at a time and drop matching nucleotides into place on each open strand. A “mistake” button slips in a wrong base so you can watch what happens to it. At the end you see what has been built.
 
-{/* SIMULATION */}
+<ReplicationFork />
 
 **Try this.**
 1. Before you start, predict how many DNA molecules you will have at the end, and which strands each one will contain. Then copy the whole piece.
@@ -261,7 +270,7 @@ Two strands line up with their bases facing each other in the middle. A **hydrog
 
 The two strands also run in opposite directions, like two lanes of a road. Each strand has a distinct “head” end and “tail” end, and the strands lie head to tail.
 
-The order of the bases is the information. A **gene** is a region of DNA whose base order codes for a protein. A **chromosome** is one very long DNA molecule wrapped around proteins, and it carries many genes. Only about 1 to 2 percent of human DNA codes for proteins. Other stretches control genes, help hold chromosomes in shape, or have jobs nobody has found yet. The genetic code that turns base order into protein is almost the same in every living thing, which is why bacteria can be engineered to make some human proteins, such as insulin. [From DNA to protein](/lessons/protein-synthesis/) shows how that code is read.
+The order of the bases is the information. A **gene** is a region of DNA whose base order, in most genes, codes for a protein; a few genes code for RNA molecules that do jobs of their own. A **chromosome** is one very long DNA molecule wrapped around proteins, and it carries many genes. Only about 1 to 2 percent of human DNA codes for proteins. Other stretches control genes, help hold chromosomes in shape, or have jobs nobody has found yet. The genetic code that turns base order into protein is almost the same in every living thing, which is why bacteria can be engineered to make some human proteins, such as insulin. [From DNA to protein](/lessons/protein-synthesis/) shows how that code is read.
 
 Every cell that grows and divides carries DNA. In plants, animals and fungi most of it sits inside the nucleus, with small extra pieces in organelles such as mitochondria. Bacteria keep their DNA in a **nucleoid**, a region of the cell with no membrane around it.
 
@@ -278,7 +287,7 @@ Copying is done by enzymes. An **enzyme** is a protein that speeds up a chemical
 3. Another enzyme, DNA polymerase, joins the new nucleotides into a strand with covalent bonds.
 4. The result is two DNA molecules. Each has one old strand and one new strand, and both have the same base order as the original.
 
-Why only one direction? DNA polymerase can attach a new nucleotide only to one particular end of a growing strand, the tail end. So every new strand grows the same way, adding at its tail. The two templates point in opposite directions. One new strand can grow smoothly toward the unzipping point. The other must be built in short pieces, each started fresh, that another enzyme then joins.
+Why only one direction? DNA polymerase can attach a new nucleotide only to one particular end of a growing strand, the tail end. So every new strand grows the same way, adding at its tail. The two templates point in opposite directions. One new strand can grow smoothly toward the unzipping point. The other grows away from the unzipping point, so it must be built in short pieces, each started fresh as more template opens up. Another enzyme then joins the pieces.
 
 {/* DIAGRAM: a replication fork. Number: 1 the unzipping point, 2 an old strand used as a template, 3 a free nucleotide pairing with it, 4 a new strand growing at its tail end, 5 short pieces on the other side, 6 two finished molecules each with one old and one new strand */}
 
@@ -292,19 +301,18 @@ If A always pairs with T, a sample of double-stranded DNA should hold as much A 
 
 | Organism (label as printed) | A (% of bases) | T (% of bases) | G (% of bases) | C (% of bases) |
 |---|---|---|---|---|
-| Human | 30.9 | 29.4 | 19.9 | 19.8 |
-| Myobacterium Tub. (as printed; a tubercle bacterium, strain and year not given) | 15.1 | 14.6 | 34.9 | 35.4 |
-| Chicken | 28.8 | 29.2 | 20.5 | 21.5 |
+| Human | 29.3 | 30.0 | 20.7 | 20.0 |
+| Chicken | 28.0 | 28.4 | 22.0 | 21.6 |
 | Grasshopper | 29.3 | 29.3 | 20.5 | 20.7 |
 | Sea urchin | 32.8 | 32.1 | 17.7 | 17.3 |
 | Wheat | 27.3 | 27.1 | 22.7 | 22.8 |
 | Yeast | 31.3 | 32.9 | 18.7 | 17.1 |
 | E. coli | 24.7 | 23.6 | 26.0 | 25.7 |
 
-Source: a base-composition teaching table from a Stanford University statistics course (Stats366, “Seeing the structure and the surprises”), accessed in 2026. The page does not say which paper, year, tissue or strain each row came from, and other published Chargaff tables list somewhat different human and chicken values, so treat each row as an example. Rows are measured averages, so some do not add to exactly 100.
+Source: a representative sample of Chargaff’s 1952 data as reprinted in a review (Bansal, Current Science 85:1556-1563, 2003, Table 1) and in the Wikipedia table “Chargaff’s rules” that cites it. We could not open Chargaff’s original papers, so treat each row as an example. Rows are measured averages, so some do not add to exactly 100.
 
 1. In each row, how far apart are A and T? How far apart are G and C? Which row has the biggest gap?
-2. Add A and T for the human row and for the Myobacterium Tub. row. How different are they?
+2. Add A and T for the E. coli row and for the sea urchin row. How different are they?
 3. Does any organism have all four bases at 25 percent?
 
 <CER
@@ -312,7 +320,7 @@ Source: a base-composition teaching table from a Stanford University statistics 
   claim="The data ___ the base-pairing rule, because in every organism ___."
   evidence="In the ___ row, A is ___ % and T is ___ %, and G is ___ % and C is ___ %. A plus T ranges from ___ % in ___ to ___ % in ___."
   reasoning="If every A on one strand sits across from a T on the other, then ___. The mix of pairs can still differ between species because ___."
-  model="The data support the base-pairing rule. In every row, A is within about 1.6 percentage points of T, and G is within about 1.6 points of C. In humans, A is 30.9 % and T is 29.4 %; G is 19.9 % and C is 19.8 %. If every A sits across from a T, a double strand must hold equal amounts of the two. The total of A plus T still changes, from about 30 % in the Myobacterium Tub. row to about 65 % in the sea urchin, because the rule fixes the partners, not how many of each pair a species has. But this is one teaching table with unknown samples, and base counts cannot show the helix."
+  model="The data support the base-pairing rule. In every row, A is within about 1.6 percentage points of T, and G is within about 1.6 points of C. In humans, A is 29.3 % and T is 30.0 %; G is 20.7 % and C is 20.0 %. If every A sits across from a T, a double strand must hold equal amounts of the two. The total of A plus T still changes, from about 48 % in the E. coli row to about 65 % in the sea urchin, because the rule fixes the partners, not how many of each pair a species has. But this is one teaching table with unknown samples, and base counts cannot show the helix."
 />
 
 ### Design problem
@@ -330,7 +338,7 @@ Every cell in an animal’s body grows from one fertilized egg by copying DNA. P
 - Repeated trials and sample size: tissue from at least three chickens and three wheat plants, each measured twice, then a mean for each tissue and species.
 - Ethics and safety: use tissue from chickens already sold for food, so no animal is harmed for the study, and wear gloves around raw meat.
 
-If the two chicken tissues match within the size of the repeat-to-repeat differences, and wheat differs, the hypothesis is supported. A large difference between chicken tissues would point to a problem with the samples or the method before anything else.
+If the two chicken tissues differ from each other by no more than repeated measurements of the same sample differ, and wheat differs by more, the hypothesis is supported. A large difference between chicken tissues would point to a problem with the samples or the method before anything else.
 
 </details>
 

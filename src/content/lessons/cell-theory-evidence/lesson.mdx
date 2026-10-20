@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.2 a"
   college: ["measured-eukaryotic-cell", "microscopy-and-images"]
 
+explainer:
+  src: "/explainers/cell-theory-evidence/explainer.mp4"
+  captions: "/explainers/cell-theory-evidence/explainer.vtt"
+  poster: "/explainers/cell-theory-evidence/poster.jpg"
+  title: "Seeing Cells Took Better Tools"
+  durationSec: 168.7
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Robert Hooke"
     contribution: >-
@@ -108,7 +117,7 @@ practiceQuestions:
       A scientific theory is a well-tested explanation that ties together many lines of evidence,
       like the cell theory. Calling it a guess confuses the everyday meaning of theory with the
       scientific one. Theories can be revised when strong new evidence appears, so they are not
-      fixed forever. A testable prediction about one experiment comes from a hypothesis, not from a theory.
+      fixed forever. A testable prediction about one experiment is a hypothesis, which is much narrower than a theory.
   - stem: "A classmate says, “Every living thing is a plant or an animal, so every cell is a plant cell or an animal cell.” Which fact best shows that this is wrong?"
     choices:
       - "Viruses are cells, and they are smaller than bacteria are"
@@ -240,7 +249,7 @@ corpusTags:
   - "microscopy"
   - "resolution"
   - "nature of science"
-draft: true
+draft: false
 ---
 
 import ZoomAndResolve from '../../../components/ZoomAndResolve.astro';
@@ -249,8 +258,12 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 
 **In 1665, Robert Hooke cut an exceedingly thin slice of cork, put it under his microscope and saw rows of tiny walled boxes. He called them cells.** He was looking at the walls left after the cork's cells had died. About 175 years passed before scientists argued that plants and animals alike are built of cells. Why did it take so long, and what did better tools have to do with it?
+
+<LessonFigure src="/figures/cell-theory-evidence/hooke-cork-boxes.webp" width={1200} height={800} alt="AI-generated illustration: a piece of cork with an exceedingly thin slice being lifted off, and a magnified circular view of the slice showing rows of empty, walled boxes like a honeycomb." caption="Hooke's thin slice of cork showed rows of tiny walled boxes. They were the walls left after the cork's cells had died." />
 
 <IdeaCheck items={[
   { idea: 'All cells are basically the same shape and size.', answer: 'disagree', explain: 'Measurements under microscopes show huge differences. Many bacteria are about 1 to 2 micrometers long, a human cheek cell is about 50 to 60 micrometers across, and the yolk of an unfertilized chicken egg is a single cell you can hold. Shapes vary too, from flat sheets to long threads.' },
@@ -289,7 +302,7 @@ A **cell** is the smallest unit that can carry out all the processes of life. Th
 
 The same basic plan does not mean the same size or shape. Many bacteria are about 1 to 2 micrometers long. A human cheek cell is about 50 to 60 micrometers across. The yolk of an unfertilized chicken egg is one cell. A micrometer (µm) is one thousandth of a millimeter.
 
-Viruses are not made of cells ([that lesson](/lessons/living-or-not/)).
+Viruses are not made of cells (that lesson).
 
 <Support min={2}>**Key idea:** Every living thing is made of one or more cells, and every cell comes from another cell.</Support>
 
@@ -309,9 +322,11 @@ Each tool has its own limit:
 
 The light microscope's limit and the electron microscope's range are typical values for biological samples, and real values vary with the instrument and the sample. An **electron microscope** forms its image with a beam of electrons instead of light. Electrons have much shorter wavelengths than visible light, so they can separate much finer details. Ribosomes, the cell's protein builders, are about 0.02 to 0.03 µm across. That is far below the light microscope's limit, which is why they were seen clearly only with electron microscopes.
 
-{/* DIAGRAM: a size ladder from 1 mm down to 1 nm on a scale that shrinks by ten each step. Number: 1 frog egg, 2 cheek cell, 3 bacterium, 4 virus, 5 ribosome, 6 the limits of the eye, the light microscope and the electron microscope marked as lines */}
+<ScaffoldFigure src="/figures/cell-theory-evidence/size-ladder.webp" width={1200} height={800} keyItems={["frog egg", "cheek cell", "bacterium", "virus", "ribosome", "limit of the light microscope"]} given={[0, 1]} alt="AI-generated illustration: a ladder of seven equally spaced rungs, each a tenth of the one above, with small icons of a frog egg, a cheek cell, a bacterium, a virus and a ribosome placed down it, and three horizontal lines marking the limits of the eye, the light microscope (gold) and the electron microscope. Six numbered circles mark items for the student to name." caption="A size ladder in which each rung is ten times smaller than the one above; the icons mark where each object sits, not its drawn size. Name the six numbered items." />
 
 Resolution is not the only problem. Many cells are almost clear, so their inside parts are hard to see. A **stain** is a dye that sticks to some cell parts more than others. Stains added contrast, which let scientists see parts inside clear animal cells, such as the nucleus.
+
+<LessonFigure src="/figures/cell-theory-evidence/stain-adds-contrast.webp" width={1200} height={800} alt="AI-generated illustration: the same three cheek-type cells in a microscope field, first unstained and almost invisible, then stained so the cells are tinted and each nucleus shows as a dark oval." caption="Many cells are almost clear. A stain sticks to some parts more than others, so the nucleus stands out." />
 
 <Support min={2}>**Key idea:** A tool can show a structure only if its resolution is finer than the structure, and making the image bigger does not change that.</Support>
 
@@ -382,6 +397,6 @@ Hooke cut his cork slice exceedingly thin. Does the thickness of a slice change 
 
 ## Evaluate: check your thinking
 
-Hooke saw the walls of dead cork cells, one material from one plant. Building the cell theory took many comparisons of plants and animals, a corrected idea about how new cells form, and tools such as stains and electron microscopes that could resolve smaller parts. A theory built that way is a well-tested explanation, not a guess.
+Hooke saw the walls of dead cork cells, one material from one plant. Building the cell theory took many comparisons of plants and animals, a corrected idea about how new cells form, and tools such as stains, which added contrast, and electron microscopes, which could resolve smaller parts. A theory built that way is a well-tested explanation, not a guess.
 
 **Science practices you used:** making a prediction before testing, reading a data table and comparing values, telling a hypothesis from a theory and a law, using a model of resolution and naming its limits, and planning a fair test with repeated trials and safety steps.

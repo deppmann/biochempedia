@@ -1,0 +1,239 @@
+---
+/**
+ * WatershedFixDesigner — spend a fixed budget on five watershed fixes and see, in relative
+ * units, the nitrogen load, summer bottom-water oxygen and underwater grass. Real responses
+ * lag by years, so the picture can show "early years" or "many years later". Original sketch;
+ * every cost, cut and response is a relative sketch value, not a measurement.
+ */
+const BUDGET = 10;
+const FIXES = [
+  { id: 'buffer', name: 'Forest buffers', rate: 3, cap: 4, note: 'a strip of trees and shrubs by a stream' },
+  { id: 'cover', name: 'Cover crops', rate: 4, cap: 3, note: 'planted on fields in winter' },
+  { id: 'waste', name: 'Wastewater upgrades', rate: 3, cap: 10, note: 'plants remove more nitrogen' },
+  { id: 'pond', name: 'Stormwater ponds', rate: 2, cap: 4, note: 'the lesson names these but does not say what they remove; the rate is a placeholder' },
+  { id: 'reef', name: 'Oyster reefs', rate: 0, cap: 10, note: 'rebuild habitat' },
+];
+---
+
+<figure class="wfd card" data-wfd data-budget={BUDGET}>
+  <figcaption class="wfd-head">Watershed fix designer — spend a budget, read the Bay<span class="wfd-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="wfd-intro">Budget: <strong>{BUDGET} units</strong>. Drag a slider to spend on a fix, or press “All in”. Move several sliders to split the budget.</p>
+
+  <div class="wfd-fixes">
+    {FIXES.map((f) => (
+      <div class="wfd-fix">
+        <label class="wfd-slabel" for={`wfd-${f.id}`}>
+          <span class="wfd-fname">{f.name} <em data-out={f.id}>0</em> units</span>
+          <small>{f.rate > 0
+            ? (f.cap >= BUDGET
+              ? `cuts nitrogen ${f.rate} per unit, no limit within this budget${f.id === 'pond' ? '; ' + f.note : ''}`
+              : `cuts nitrogen ${f.rate} per unit, up to ${f.cap} units (then the land runs out)${f.id === 'pond' ? '; ' + f.note : ''}`)
+            : `cuts nitrogen 0 per unit; ${f.note}`}</small>
+        </label>
+        <div class="wfd-row">
+          <input id={`wfd-${f.id}`} type="range" min="0" max={BUDGET} step="0.5" value="0" data-in={f.id} data-rate={f.rate} data-cap={f.cap} data-name={f.name} />
+          <button type="button" class="wfd-btn wfd-allin" data-allin={f.id} aria-label={`Spend the whole budget on ${f.name}`}>All in</button>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="wfd-bar">
+    <span class="wfd-spent" data-spent>Spent 0 of {BUDGET} units</span>
+    <button type="button" class="wfd-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="wfd-time" role="group" aria-label="When to show the Bay">
+    <span class="wfd-tlabel">Show the Bay:</span>
+    <button type="button" class="wfd-btn wfd-tbtn" data-time="early" aria-pressed="true">Early years</button>
+    <button type="button" class="wfd-btn wfd-tbtn" data-time="late" aria-pressed="false">Many years later</button>
+  </div>
+
+  <svg class="wfd-svg" viewBox="0 0 340 222" role="img" aria-label="Side view sketch of the Bay: land and runoff on the left, shallow water with underwater grass and oyster reefs, and a deep channel with a low-oxygen zone" data-plot></svg>
+
+  <ul class="wfd-legend" aria-hidden="true">
+    <li><i class="wfd-sw wfd-sw-low"></i>low-oxygen bottom water</li>
+    <li><i class="wfd-sw wfd-sw-grass"></i>underwater grass</li>
+    <li><i class="wfd-sw wfd-sw-reef"></i>oyster reef</li>
+  </ul>
+
+  <table class="wfd-table">
+    <thead>
+      <tr><th scope="col">In this sketch (relative units)</th><th scope="col">Start</th><th scope="col">Early years</th><th scope="col">Many years later</th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Nitrogen load</th><td>100</td><td colspan="2" data-r-load>100</td></tr>
+      <tr><th scope="row">Low-oxygen bottom water, summer</th><td>100</td><td data-r-lowe>100</td><td data-r-lowl>100</td></tr>
+      <tr><th scope="row">Underwater grass</th><td>20</td><td data-r-grasse>20</td><td data-r-grassl>20</td></tr>
+    </tbody>
+  </table>
+
+  <p class="wfd-math" data-math>Load = 100 − 0 = 100</p>
+  <p class="wfd-why" data-why role="status">No money spent yet. The nitrogen load stays at 100, so the low-oxygen zone and the grass stay as they are.</p>
+
+  <p class="wfd-assume"><strong>In this sketch:</strong> costs, cuts and responses are made-up relative units that show the logic, not measurements of any real place. Land limits how much buffers and cover crops can take. Low-oxygen water falls in step with the nitrogen load. Grass starts at 20 and rises 2 for every 1 the load falls, up to 100. Early years show 40% of the final change. Warming and weather are left out.</p>
+  <p class="wfd-foot">Rule to keep: less nitrogen feeds fewer algae, so decomposers use less oxygen and more light reaches the grass, and real responses can lag by years.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T>(x: T | null): T { if (!x) throw new Error('WatershedFixDesigner: missing element'); return x; }
+  document.querySelectorAll<HTMLElement>('[data-wfd]').forEach((root) => {
+    const plot = need(root.querySelector<SVGSVGElement>('[data-plot]'));
+    const why = need(root.querySelector<HTMLElement>('[data-why]'));
+    const math = need(root.querySelector<HTMLElement>('[data-math]'));
+    const spentEl = need(root.querySelector<HTMLElement>('[data-spent]'));
+    const rLoad = need(root.querySelector<HTMLElement>('[data-r-load]'));
+    const rLowE = need(root.querySelector<HTMLElement>('[data-r-lowe]'));
+    const rLowL = need(root.querySelector<HTMLElement>('[data-r-lowl]'));
+    const rGrE = need(root.querySelector<HTMLElement>('[data-r-grasse]'));
+    const rGrL = need(root.querySelector<HTMLElement>('[data-r-grassl]'));
+    const resetBtn = need(root.querySelector<HTMLButtonElement>('[data-reset]'));
+    const budget = parseFloat(root.dataset.budget || '10');
+    const inputs = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-in]'));
+    const timeBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-time]'));
+    let mode: 'early' | 'late' = 'early';
+    const LAG = 0.4; // share of the final change seen in the early years (sketch value)
+    const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
+
+    const outOf = (inp: HTMLInputElement) => root.querySelector<HTMLElement>('[data-out="' + inp.dataset.in + '"]');
+    const spendOf = (inp: HTMLInputElement) => parseFloat(inp.value) || 0;
+
+    function draw(low: number, grass: number, reefs: number) {
+      plot.replaceChildren();
+      // land and runoff
+      plot.appendChild(el('rect', { x: 6, y: 62, width: 74, height: 100, fill: '#e8f0d8', stroke: INK, 'stroke-width': 1 }));
+      const t1 = el('text', { x: 43, y: 116, 'text-anchor': 'middle', 'font-size': 12, fill: INK }); t1.textContent = 'land'; plot.appendChild(t1);
+      const t2 = el('text', { x: 6, y: 52, 'text-anchor': 'start', 'font-size': 12, fill: INK }); t2.textContent = 'runoff →'; plot.appendChild(t2);
+      plot.appendChild(el('line', { x1: 80, y1: 88, x2: 98, y2: 88, stroke: INK, 'stroke-width': 1.6 }));
+      plot.appendChild(el('path', { d: 'M98 88 L92 84 M98 88 L92 92', stroke: INK, 'stroke-width': 1.6, fill: 'none' }));
+      // water box
+      plot.appendChild(el('rect', { x: 100, y: 40, width: 232, height: 150, fill: '#eaf4fb', stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('rect', { x: 100.5, y: 40.5, width: 231, height: 30, fill: '#cfe6f6' }));
+      const t3 = el('text', { x: 106, y: 60, 'text-anchor': 'start', 'font-size': 12, fill: INK }); t3.textContent = 'surface water'; plot.appendChild(t3);
+      // shallow shelf (ground)
+      plot.appendChild(el('rect', { x: 100.5, y: 150, width: 90, height: 39.5, fill: '#d9cdb4' }));
+      // low-oxygen zone in the deep channel, anchored to the right
+      const w = Math.max(0, Math.min(1, low / 100)) * 138;
+      if (w > 0.5) plot.appendChild(el('rect', { x: 331.5 - w, y: 140, width: w, height: 49.5, fill: '#e57200', 'fill-opacity': 0.45, stroke: '#b35400', 'stroke-width': 1 }));
+      // grass on the shallows: up to 6 plain bars
+      const nGrass = Math.round(Math.max(0, Math.min(100, grass)) / 100 * 6);
+      for (let i = 0; i < nGrass; i++) plot.appendChild(el('rect', { x: 106 + i * 9, y: 150 - 26, width: 5, height: 26, fill: '#2e8b57' }));
+      // reefs: up to 3 rounded blocks next to the grass
+      for (let i = 0; i < reefs; i++) plot.appendChild(el('rect', { x: 160 + i * 10, y: 138, width: 8, height: 12, rx: 2, fill: '#9a8f7a', stroke: INK, 'stroke-width': 0.8 }));
+      // labels below the box
+      const t4 = el('text', { x: 104, y: 208, 'text-anchor': 'start', 'font-size': 12, fill: INK }); t4.textContent = 'shallows'; plot.appendChild(t4);
+      const t5 = el('text', { x: 330, y: 208, 'text-anchor': 'end', 'font-size': 12, fill: INK }); t5.textContent = 'deep channel'; plot.appendChild(t5);
+      const t6 = el('text', { x: 330, y: 34, 'text-anchor': 'end', 'font-size': 12, fill: INK }); t6.textContent = mode === 'early' ? 'early years' : 'many years later'; plot.appendChild(t6);
+    }
+
+    function render() {
+      let spent = 0, cutTotal = 0;
+      const parts: number[] = [];
+      let reefSpend = 0, overCap: string[] = [];
+      let topCut = 0;
+      for (const inp of inputs) {
+        const s = spendOf(inp);
+        const rate = parseFloat(inp.dataset.rate || '0'), cap = parseFloat(inp.dataset.cap || '0');
+        const cut = rate * Math.min(s, cap);
+        spent += s; cutTotal += cut; parts.push(cut);
+        const o = outOf(inp); if (o) o.textContent = fmt(s);
+        inp.setAttribute('aria-valuetext', fmt(s) + ' units');
+        if (inp.dataset.in === 'reef') reefSpend = s;
+        if (rate > 0 && s > cap) overCap.push((inp.dataset.name || '').toLowerCase());
+        if (cut > topCut) topCut = cut;
+      }
+      const load = 100 - cutTotal;
+      const lowLate = load;
+      const lowEarly = 100 - LAG * (100 - load);
+      const grassLate = Math.min(100, 20 + 2 * (100 - load));
+      const grassEarly = 20 + LAG * (grassLate - 20);
+      spentEl.textContent = 'Spent ' + fmt(spent) + ' of ' + fmt(budget) + ' units';
+      math.textContent = 'Load = 100 − ' + (parts.some((p) => p > 0) ? '(' + parts.filter((p) => p > 0).map(fmt).join(' + ') + ')' : '0') + ' = ' + fmt(load);
+      rLoad.textContent = fmt(load);
+      rLowE.textContent = fmt(lowEarly); rLowL.textContent = fmt(lowLate);
+      rGrE.textContent = fmt(grassEarly); rGrL.textContent = fmt(grassLate);
+      const low = mode === 'early' ? lowEarly : lowLate;
+      const grass = mode === 'early' ? grassEarly : grassLate;
+      draw(low, grass, Math.min(3, Math.ceil(reefSpend / (budget / 3))));
+
+      let msg: string;
+      if (spent === 0) {
+        msg = 'No money spent yet. The nitrogen load stays at 100, so the low-oxygen zone and the grass stay as they are.';
+      } else if (cutTotal === 0) {
+        msg = 'Oyster reefs rebuild habitat. In this sketch they are set to cut no nitrogen, so the load stays at 100. Reefs do not replace cutting nutrients, and the lesson’s reef study did not test whether reefs shrink the dead zone.';
+      } else {
+        const when = mode === 'early' ? 'In the early years' : 'Many years later';
+        msg = 'The load falls from 100 to ' + fmt(load) + ' (relative units). ' + when + ', low-oxygen water is ' + fmt(low) + ' and grass is ' + fmt(grass) + '.';
+        if (mode === 'early') msg += ' Real responses lag by years.';
+        if (overCap.length) msg += ' Extra money on ' + overCap[0] + ' adds nothing: the land runs out.';
+        else if (spent >= budget - 0.01) msg += ' The budget is spent.';
+        else if (reefSpend > 0) msg += ' In this sketch, reef money adds habitat but no nitrogen cut.';
+      }
+      why.textContent = msg;
+    }
+
+    function clampTo(inp: HTMLInputElement) {
+      let others = 0;
+      for (const o of inputs) if (o !== inp) others += spendOf(o);
+      const room = Math.max(0, budget - others);
+      if (spendOf(inp) > room) inp.value = String(room);
+    }
+    inputs.forEach((inp) => inp.addEventListener('input', () => { clampTo(inp); render(); }));
+    root.querySelectorAll<HTMLButtonElement>('[data-allin]').forEach((b) => b.addEventListener('click', () => {
+      for (const inp of inputs) inp.value = inp.dataset.in === b.dataset.allin ? String(budget) : '0';
+      render();
+    }));
+    resetBtn.addEventListener('click', () => { inputs.forEach((i) => { i.value = '0'; }); render(); });
+    timeBtns.forEach((b) => b.addEventListener('click', () => {
+      mode = b.dataset.time === 'late' ? 'late' : 'early';
+      timeBtns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      render();
+    }));
+    render();
+  });
+</script>
+
+<style>
+  .wfd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .wfd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .wfd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .wfd-intro { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .wfd-fixes { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin-bottom: var(--ddp-space-2); }
+  @media (min-width: 700px) { .wfd-fixes { grid-template-columns: 1fr 1fr; } }
+  .wfd-fix { display: flex; flex-direction: column; gap: 0.15rem; }
+  .wfd-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .wfd-slabel small { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .wfd-fname em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .wfd-row { display: flex; align-items: center; gap: 0.5rem; }
+  .wfd-row input { flex: 1; min-width: 0; min-height: 44px; accent-color: var(--ddp-color-accent); }
+  .wfd-btn { min-height: 44px; min-width: 44px; padding: 0 0.8rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .wfd-btn:hover { border-color: var(--ddp-color-accent); }
+  .wfd-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .wfd-btn[aria-pressed="true"] { background: var(--ddp-color-accent); color: #fff; border-color: var(--ddp-color-accent); }
+  .wfd-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin: var(--ddp-space-2) 0; }
+  .wfd-spent { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .wfd-time { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: var(--ddp-space-3); }
+  .wfd-tlabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .wfd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .wfd-legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; list-style: none; padding: 0; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wfd-sw { display: inline-block; width: 12px; height: 12px; margin-right: 0.35rem; vertical-align: -1px; border: 1px solid #4b4b55; }
+  .wfd-sw-low { background: rgba(229, 114, 0, 0.45); }
+  .wfd-sw-grass { background: #2e8b57; }
+  .wfd-sw-reef { background: #9a8f7a; }
+  .wfd-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); }
+  .wfd-table th, .wfd-table td { padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); text-align: left; }
+  .wfd-table td { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); }
+  .wfd-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .wfd-math { margin: var(--ddp-space-2) 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .wfd-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .wfd-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .wfd-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

@@ -1,0 +1,363 @@
+---
+/**
+ * CladogramBuilder — build a cladogram one shared trait at a time. The learner adds traits
+ * from the lesson's table of six animals (lancelet as the outgroup); animals that lack a
+ * trait branch off below the group that has it. Branch points can be spun (the meaning does
+ * not change). A DNA panel shows made-up relative differences that follow the same order as
+ * the lesson's full tree and checks the learner's tree against them. A sketch of the logic.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cb card" data-cladogram>
+  <figcaption class="cb-head">Cladogram builder: add one trait at a time<span class="cb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cb-row">
+    <span class="cb-label" id="cb-traits-label">Add a trait</span>
+    <div class="cb-traits" role="group" aria-labelledby="cb-traits-label" data-traits></div>
+  </div>
+
+  <svg class="cb-svg" viewBox="0 0 540 250" role="img" aria-label="A cladogram of six animals, built from the traits you have added. The branch points are listed below the picture." data-stage></svg>
+
+  <div class="cb-row">
+    <span class="cb-label" id="cb-spin-label">Spin a branch point</span>
+    <div class="cb-spins" role="group" aria-labelledby="cb-spin-label" data-spins></div>
+  </div>
+
+  <ul class="cb-nodes" data-nodes></ul>
+
+  <div class="cb-row cb-actions">
+    <button type="button" class="cb-btn" data-dna aria-expanded="false" aria-controls="cb-dna-panel">Open the DNA panel</button>
+    <button type="button" class="cb-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="cb-dna" id="cb-dna-panel" data-panel hidden>
+    <label class="cb-ref">Compare every animal with
+      <select data-ref></select>
+    </label>
+    <div class="cb-bars" data-bars></div>
+    <p class="cb-verdict" data-dnaverdict></p>
+    <p class="cb-small">DNA differences here are made-up numbers in relative units, in this sketch. For a real scale, the lesson reports 1.23 mismatches per 100 aligned bases between one chimpanzee and human DNA (2005), about 12 per 1,000. Rule used in this sketch: the earlier two animals split, the bigger the number (10 per step).</p>
+  </div>
+
+  <p class="cb-status" data-status role="status"></p>
+
+  <p class="cb-assume">Assumptions in this sketch: trait scores come from the lesson’s teaching table (1 present, 0 absent). Lancelet is the outgroup, the animal everyone else is compared to. Branch lengths mean nothing. Before every trait is in, a branch point can have more than two branches (not yet split).</p>
+  <p class="cb-foot">Rule to keep: animals that share a derived trait stay together, each branch point stands for a common ancestor, and spinning branches around a branch point does not change the tree. This is a sketch of the logic.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ANIMALS = ['Lancelet', 'Lamprey', 'Tuna', 'Salamander', 'Turtle', 'Leopard'];
+  type Trait = { id: string; name: string; low: string; tree: string; has: number[] };
+  // Scores 1/0 exactly as in the lesson's table.
+  const TRAITS: Trait[] = [
+    { id: 'backbone', name: 'Backbone', low: 'backbone', tree: 'Backbone', has: [0, 1, 1, 1, 1, 1] },
+    { id: 'jaws', name: 'Jaws', low: 'jaws', tree: 'Jaws', has: [0, 0, 1, 1, 1, 1] },
+    { id: 'legs', name: 'Four walking legs', low: 'four walking legs', tree: 'Walking legs', has: [0, 0, 0, 1, 1, 1] },
+    { id: 'amnion', name: 'Amnion', low: 'amnion', tree: 'Amnion', has: [0, 0, 0, 0, 1, 1] },
+    { id: 'hair', name: 'Hair', low: 'hair', tree: 'Hair', has: [0, 0, 0, 0, 0, 1] },
+  ];
+  const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
+  const INK = '#4b4b55', TEAL = '#0e7c86', ORANGE = '#e57200', LINE = '#6b6b78';
+  const X0 = 24, STEP = 84, TIPX = 440, ROW = 40, TOP = 26;
+
+  type Tip = { kind: 'tip'; idx: number; traits: string[]; y: number };
+  type Nd = { kind: 'node'; key: string; members: number[]; kids: Item[]; traits: string[]; letter: string; depth: number; x: number; y: number };
+  type Item = Tip | Nd;
+  type Clade = { trait: string; set: number[] };
+
+  function svg(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const subset = (a: number[], b: number[]) => a.every((x) => b.includes(x));
+  function listJoin(names: string[]): string {
+    if (names.length <= 1) return names.join('');
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  }
+  // dna(i,j): made-up relative difference, larger when the two animals split from each other earlier.
+  function dna(i: number, j: number): number {
+    return 10 * (5 - Math.min(i, j));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-cladogram]').forEach((root) => {
+    function q<T extends Element>(sel: string): T {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('CladogramBuilder: missing ' + sel);
+      return e;
+    }
+    const traitsEl = q<HTMLElement>('[data-traits]');
+    const stage = q<SVGSVGElement>('[data-stage]');
+    const spinsEl = q<HTMLElement>('[data-spins]');
+    const nodesEl = q<HTMLElement>('[data-nodes]');
+    const dnaBtn = q<HTMLButtonElement>('[data-dna]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const panel = q<HTMLElement>('[data-panel]');
+    const refSel = q<HTMLSelectElement>('[data-ref]');
+    const bars = q<HTMLElement>('[data-bars]');
+    const dnaVerdict = q<HTMLElement>('[data-dnaverdict]');
+    const statusEl = q<HTMLElement>('[data-status]');
+
+    let added: string[] = [];
+    const spun = new Set<string>();
+    let dnaOpen = false;
+    let ref = 5;
+    let message = 'Six animals, no traits yet. Pick a trait to add. Animals that lack it branch off the tree.';
+
+    const traitBtns = new Map<string, HTMLButtonElement>();
+    TRAITS.forEach((t) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cb-btn cb-trait';
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => toggleTrait(t));
+      traitBtns.set(t.id, b);
+      traitsEl.appendChild(b);
+    });
+    const spinBtns: HTMLButtonElement[] = [];
+    'ABCDE'.split('').forEach((L) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cb-btn cb-spin';
+      b.textContent = 'Spin ' + L;
+      b.addEventListener('click', () => {
+        const nd = currentNodes.find((n) => n.letter === L);
+        if (nd) spin(nd);
+      });
+      spinBtns.push(b);
+      spinsEl.appendChild(b);
+    });
+    ANIMALS.forEach((a, i) => {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = a;
+      refSel.appendChild(o);
+    });
+    refSel.value = String(ref);
+
+    let currentNodes: Nd[] = [];
+
+    // ---- tree building -------------------------------------------------
+    function build(members: number[], traits: string[], clades: Clade[]): Nd {
+      const inner = clades.filter((c) => c.set.length < members.length && subset(c.set, members));
+      const maximal = inner.filter((c) => !inner.some((d) => d !== c && d.set.length > c.set.length && subset(c.set, d.set)));
+      const covered = new Set<number>();
+      maximal.forEach((c) => c.set.forEach((m) => covered.add(m)));
+      const kids: Item[] = [];
+      members.filter((m) => !covered.has(m)).forEach((m) => kids.push({ kind: 'tip', idx: m, traits: [], y: 0 }));
+      maximal.forEach((c) => {
+        if (c.set.length === 1) kids.push({ kind: 'tip', idx: c.set[0], traits: [c.trait], y: 0 });
+        else kids.push(build(c.set, [c.trait], inner));
+      });
+      return { kind: 'node', key: members.join('-'), members, kids, traits, letter: '', depth: 0, x: 0, y: 0 };
+    }
+    function assignLetters(n: Nd, depth: number, out: Nd[]) {
+      n.depth = depth;
+      n.x = X0 + depth * STEP;
+      n.letter = 'ABCDE'[out.length] || '?';
+      out.push(n);
+      n.kids.forEach((k) => { if (k.kind === 'node') assignLetters(k, depth + 1, out); });
+    }
+    function layout(n: Nd, row: { v: number }) {
+      if (spun.has(n.key)) n.kids = [...n.kids].reverse();
+      n.kids.forEach((k) => {
+        if (k.kind === 'tip') { k.y = TOP + row.v * ROW; row.v += 1; } else layout(k, row);
+      });
+      n.y = (n.kids[0].y + n.kids[n.kids.length - 1].y) / 2;
+    }
+    function ancestors(n: Nd, idx: number, path: Nd[]): Nd[] | null {
+      const here = [...path, n];
+      for (const k of n.kids) {
+        if (k.kind === 'tip') { if (k.idx === idx) return here; } else {
+          const r = ancestors(k, idx, here);
+          if (r) return r;
+        }
+      }
+      return null;
+    }
+    // depth of the most recent branch point shared by animals a and b (larger = more recent)
+    function meet(tree: Nd, a: number, b: number): Nd {
+      const pa = ancestors(tree, a, []) || [tree];
+      const pb = ancestors(tree, b, []) || [tree];
+      let k = 0;
+      while (k < pa.length && k < pb.length && pa[k] === pb[k]) k++;
+      return pa[Math.max(0, k - 1)];
+    }
+
+    // ---- drawing ---------------------------------------------------------
+    function drawItem(parent: Nd, k: Item) {
+      const kx = k.kind === 'tip' ? TIPX : k.x;
+      stage.appendChild(svg('line', { x1: parent.x, y1: k.y, x2: kx, y2: k.y, stroke: LINE, 'stroke-width': 2 }));
+      if (k.traits.length) {
+        const mx = (parent.x + kx) / 2;
+        const label = k.traits.map((id) => (TRAITS.find((t) => t.id === id) || TRAITS[0]).tree).join(' + ');
+        stage.appendChild(svg('rect', { x: mx - 2, y: k.y - 8, width: 4, height: 16, fill: ORANGE }));
+        stage.appendChild(svg('text', { x: mx, y: k.y - 12, 'font-size': 13, 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 }, label));
+      }
+      if (k.kind === 'tip') {
+        stage.appendChild(svg('circle', { cx: TIPX, cy: k.y, r: 4, fill: INK }));
+        stage.appendChild(svg('text', { x: TIPX + 10, y: k.y + 5, 'font-size': 14, fill: INK, 'font-weight': 600 }, ANIMALS[k.idx]));
+      }
+    }
+    function drawNode(n: Nd) {
+      const ys = n.kids.map((k) => k.y);
+      stage.appendChild(svg('line', { x1: n.x, y1: Math.min(...ys), x2: n.x, y2: Math.max(...ys), stroke: LINE, 'stroke-width': 2 }));
+      n.kids.forEach((k) => { drawItem(n, k); if (k.kind === 'node') drawNode(k); });
+      const g = svg('g', { class: 'cb-nodeg', 'aria-hidden': 'true' });
+      g.appendChild(svg('circle', { cx: n.x, cy: n.y, r: 11, fill: '#fff', stroke: TEAL, 'stroke-width': 2 }));
+      g.appendChild(svg('text', { x: n.x, y: n.y + 4.5, 'font-size': 13, 'text-anchor': 'middle', fill: TEAL, 'font-weight': 700 }, n.letter));
+      g.addEventListener('click', () => spin(n));
+      stage.appendChild(g);
+    }
+
+    // ---- actions -----------------------------------------------------------
+    function toggleTrait(t: Trait) {
+      if (added.includes(t.id)) {
+        added = added.filter((x) => x !== t.id);
+        message = `Removed ${t.low}. The animals it grouped are no longer split by it.`;
+      } else {
+        added.push(t.id);
+        const lacking = ANIMALS.filter((_, i) => t.has[i] === 0);
+        const n = t.has.filter((v) => v === 1).length;
+        const lack = lacking.length <= 3
+          ? `${listJoin(lacking)} ${lacking.length === 1 ? 'lacks it and branches' : 'lack it and branch'} off.`
+          : `${WORDS[lacking.length][0].toUpperCase() + WORDS[lacking.length].slice(1)} animals lack it and branch off.`;
+        const share = n === 1
+          ? `Only ${(ANIMALS[t.has.indexOf(1)]).toLowerCase()} has it.`
+          : `${WORDS[n][0].toUpperCase() + WORDS[n].slice(1)} animals share it.`;
+        message = `Added ${t.low}. ${lack} ${share}`;
+        if (added.length === TRAITS.length) message += ' All five traits are in. Try a different order: the finished tree is the same.';
+      }
+      if (dnaOpen) message = '';
+      render();
+    }
+    function spin(n: Nd) {
+      if (spun.has(n.key)) spun.delete(n.key); else spun.add(n.key);
+      message = `Spun branch point ${n.letter}. The tips changed order, but each branch point still has the same animals above it.`;
+      render();
+    }
+    dnaBtn.addEventListener('click', () => {
+      dnaOpen = !dnaOpen;
+      if (!dnaOpen) message = 'DNA panel closed. Your tree is unchanged.';
+      render();
+    });
+    refSel.addEventListener('change', () => { ref = Number(refSel.value) || 0; render(); });
+    resetBtn.addEventListener('click', () => {
+      added = [];
+      spun.clear();
+      dnaOpen = false;
+      ref = 5;
+      refSel.value = String(ref);
+      message = 'Reset. Six animals, no traits yet. Pick a trait to add.';
+      render();
+    });
+
+    // ---- render ------------------------------------------------------------
+    function render() {
+      const clades: Clade[] = TRAITS.filter((t) => added.includes(t.id)).map((t) => ({
+        trait: t.id,
+        set: ANIMALS.map((_, i) => i).filter((i) => t.has[i] === 1),
+      })).sort((a, b) => b.set.length - a.set.length);
+      const all = ANIMALS.map((_, i) => i);
+      const tree = build(all, [], clades);
+      currentNodes = [];
+      assignLetters(tree, 0, currentNodes);
+      layout(tree, { v: 0 });
+
+      TRAITS.forEach((t) => {
+        const b = traitBtns.get(t.id);
+        if (!b) return;
+        const on = added.includes(t.id);
+        b.setAttribute('aria-pressed', String(on));
+        b.textContent = (on ? '✓ ' : '+ ') + t.name;
+        b.classList.toggle('cb-on', on);
+      });
+      spinBtns.forEach((b) => {
+        const L = (b.textContent || '').slice(-1);
+        b.hidden = !currentNodes.some((n) => n.letter === L);
+      });
+
+      stage.replaceChildren();
+      drawNode(tree);
+
+      nodesEl.replaceChildren();
+      currentNodes.forEach((n) => {
+        const li = document.createElement('li');
+        const names = n.members.map((m) => ANIMALS[m]);
+        const who = names.length === ANIMALS.length ? 'all six animals' : listJoin(names.map((s) => s.toLowerCase()));
+        li.innerHTML = `<strong>${n.letter}</strong> is a common ancestor of ${who}${n.members.length > 1 && spun.has(n.key) ? ' (spun)' : ''}.`;
+        nodesEl.appendChild(li);
+      });
+
+      dnaBtn.textContent = dnaOpen ? 'Close the DNA panel' : 'Open the DNA panel';
+      dnaBtn.setAttribute('aria-expanded', String(dnaOpen));
+      panel.hidden = !dnaOpen;
+
+      let text = message;
+      if (dnaOpen) {
+        bars.replaceChildren();
+        let unresolved = 0;
+        const others = all.filter((i) => i !== ref);
+        const depthOf = (i: number) => meet(tree, ref, i).depth;
+        for (let a = 0; a < others.length; a++) {
+          for (let b = a + 1; b < others.length; b++) {
+            const dd = dna(ref, others[a]) - dna(ref, others[b]);
+            const td = depthOf(others[a]) - depthOf(others[b]); // positive: tree puts a closer
+            if (dd !== 0 && td === 0) unresolved++;
+          }
+        }
+        others.forEach((i) => {
+          const d = dna(ref, i);
+          const m = meet(tree, ref, i);
+          const row = document.createElement('div');
+          row.className = 'cb-bar';
+          row.innerHTML = `<span class="cb-bn">${ANIMALS[i]}</span><span class="cb-track"><span class="cb-fill" style="width:${(d / 50) * 100}%"></span></span><span class="cb-bv">${d} · meets at ${m.letter}</span>`;
+          bars.appendChild(row);
+        });
+        let v: string;
+        if (added.length === 0) v = 'Add some traits first. With no traits, the tree has no branch points to check against DNA.';
+        else if (unresolved > 0) v = 'In this sketch, the DNA numbers fit so far, but they separate some animals your tree has not split yet. Add more traits.';
+        else v = 'In this sketch, the made-up DNA numbers fit your tree: animals that meet at a more recent branch point have smaller numbers.';
+        dnaVerdict.textContent = v;
+        text = `DNA panel open, comparing with ${ANIMALS[ref].toLowerCase()}. Fewer differences usually mean a more recent common ancestor. ${v}`;
+      }
+      statusEl.textContent = text;
+    }
+    render();
+  });
+</script>
+
+<style is:global>
+  .cb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cb-svg { display: block; width: 100%; max-width: 640px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cb-nodeg { cursor: pointer; }
+  .cb-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0; }
+  .cb-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 7.5em; }
+  .cb-traits, .cb-spins { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .cb-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); font-weight: 600; padding: 0.3rem 0.8rem; cursor: pointer; }
+  .cb-btn[hidden] { display: none; }
+  .cb-trait.cb-on { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; }
+  .cb-btn:focus-visible, .cb-ref select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cb-actions { margin-top: var(--ddp-space-3); }
+  .cb-nodes { margin: var(--ddp-space-2) 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .cb-dna { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.6rem 0.8rem; margin: var(--ddp-space-2) 0; }
+  .cb-dna[hidden] { display: none; }
+  .cb-ref { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .cb-ref select { min-height: 44px; font-size: var(--ddp-text-sm); padding: 0 0.5rem; }
+  .cb-bars { margin: 0.5rem 0; display: grid; gap: 0.3rem; }
+  .cb-bar { display: grid; grid-template-columns: 6.5em 1fr auto; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cb-track { height: 14px; background: color-mix(in srgb, var(--ddp-color-line) 50%, transparent); border-radius: 3px; overflow: hidden; }
+  .cb-fill { display: block; height: 100%; background: var(--ddp-color-accent); }
+  .cb-bv { white-space: nowrap; }
+  .cb-verdict { margin: 0.4rem 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .cb-small { margin: 0.3rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cb-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .cb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cb-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .cb-bar { grid-template-columns: 5.6em 1fr; } .cb-bv { grid-column: 1 / -1; padding-left: 0.2rem; } }
+</style>
