@@ -11,6 +11,9 @@ import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
 import MethodPopout from '../../components/MethodPopout.astro';
+import LessonLadder from '../../components/LessonLadder.astro';
+import SupportsSwitch from '../../components/SupportsSwitch.astro';
+import DepthLadder from '../../components/DepthLadder.astro';
 import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
@@ -47,10 +50,17 @@ const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
 const { Content } = await render(entry);
 const lesson = entry.data;
-const lessonFigures = [...(entry.body ?? '').matchAll(/<LessonFigure\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
+const lessonFigures = [...(entry.body ?? '').matchAll(/<(?:LessonFigure|ScaffoldFigure)\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
 // Method films from the shared library that this lesson teaches or relies on.
 const methods = methodsFor(entry.data.slug);
+const isHighSchool = course.tier === 'highschool';
+// Reverse ladder links: a college lesson names the high school lessons that list it in
+// ladder.college. Published lessons only (plus drafts in `astro dev`, as elsewhere here).
+const hsReviews = isHighSchool ? [] : (await getCollection('lessons', ({ data }) =>
+  (import.meta.env.DEV || !data.draft) && courseOf(data.course).tier === 'highschool' && (data.ladder?.college ?? []).includes(entry.data.slug)))
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99))
+  .map((l) => ({ slug: l.data.slug, title: l.data.title }));
 
 const phetSims = lesson.simulations.filter((s) => s.type === 'phet');
 const localSims = lesson.simulations.filter((s) => s.type === 'local');
@@ -73,14 +83,14 @@ const rcsbThumb = (id: string) => `https://cdn.rcsb.org/images/structures/${id.t
 const pubchemThumb = (id: string) => `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${id}/PNG`;
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const structId = (s: { source: string; id: string }) => `lb-struct-${s.source}-${s.id}`.replace(/[^a-zA-Z0-9-]/g, '');
-const LEVEL_ICONS: Record<string, string> = { eli5: '🧸', highschool: '🎒', college: '🎓', grad: '🔬' };
+const LEVEL_ICONS: Record<string, string> = { eli5: '🧸', highschool: '🎒', college: '🎓', grad: '🔬', grade7: '🌱', bio2: '🧪' };
 const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
 const lessonLd = {
   '@context': 'https://schema.org',
   '@type': 'LearningResource',
   name: lesson.title,
   description: lesson.summary,
-  educationalLevel: 'undergraduate',
+  educationalLevel: isHighSchool ? 'high school' : 'undergraduate',
   learningResourceType: 'interactive lesson',
   inLanguage: 'en',
   about: lesson.courseChapter,
@@ -97,6 +107,12 @@ const lessonLd = {
         </p>
       )}
       <p class="eyebrow"><a class="eyebrow-course" href={courseHref(course.slug)}>{course.title}</a> · {lesson.courseChapter.replace(`${course.title} · `, '')}</p>
+      {hsReviews.length > 0 && (
+        <p class="hs-review">
+          <DepthLadder step={4} size="sm" />
+          <span>New to this? Review it at high school level: {hsReviews.map((r, i) => <>{i > 0 && ', '}<a href={`/lessons/${r.slug}/`}>{r.title}</a></>)}</span>
+        </p>
+      )}
       <h1>{lesson.title}</h1>
       <p class="summary">{lesson.summary}</p>
     </header>
@@ -126,6 +142,8 @@ const lessonLd = {
       </aside>
     )}
 
+    {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} />}
+
     {ex && (
       <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h">
         <figure class="explainer-fig">
@@ -152,6 +170,9 @@ const lessonLd = {
       <ul class="me-chips">
         {ex && (
           <li><a href="#explainer">▶ Explainer <em>{exLen}</em></a></li>
+        )}
+        {lesson.supports && (
+          <li><a href="#supports">Supports</a></li>
         )}
         {methods.length > 0 && (
           <li><a href="#methods">🔬 Methods <em>{methods.length}</em></a></li>
@@ -182,6 +203,7 @@ const lessonLd = {
           <main id="main"> landmark, and nesting a second one is invalid HTML
           that makes landmark navigation ambiguous for screen readers. */}
       <div class="lesson-main">
+        {lesson.supports && <div class="prose-col"><SupportsSwitch /></div>}
         <div class="prose-col"><Content /></div>
 
         {(lesson.techniques.length > 0 || methods.length > 0) && (
@@ -624,6 +646,11 @@ const lessonLd = {
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent);
       margin: 0 0 var(--ddp-space-2);
     }
+    .hs-review {
+      display: flex; align-items: center; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-3);
+      margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft);
+    }
+    .hs-review a { color: var(--ddp-color-accent); font-weight: 600; text-underline-offset: 3px; }
     .lesson-hero h1 { font-size: var(--ddp-text-3xl); max-width: 20ch; margin-bottom: var(--ddp-space-3); }
     .summary { max-width: 60ch; font-size: var(--ddp-text-lg); color: var(--ddp-color-ink-soft); }
 

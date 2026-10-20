@@ -1,0 +1,19 @@
+---
+/* =============================================================================
+   Support: wraps lesson content that shows only at some settings of the
+   supports switch (SupportsSwitch.astro holds the CSS that hides it).
+     <Support min={1}>  Some help and Most help
+     <Support min={2}>  Most help only
+     <Support max={0}>  Just the task only
+     <Support max={1}>  Just the task and Some help
+   min and max can be combined (min={1} max={1} is Some help only). With
+   neither, the content always shows.
+   ============================================================================ */
+interface Props {
+  min?: 1 | 2;
+  max?: 0 | 1;
+  class?: string;
+}
+const { min, max, class: extra } = Astro.props;
+---
+<div class:list={['support', min && `sup-min-${min}`, max !== undefined && `sup-max-${max}`, extra]}><slot /></div>

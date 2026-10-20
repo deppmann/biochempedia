@@ -1,0 +1,120 @@
+---
+/* =============================================================================
+   CER: a claim, evidence and reasoning box. Shows the task and three labelled
+   textareas. At Most help each textarea is preceded by its sentence frame
+   (the claim / evidence / reasoning props; "___" renders as a blank). A
+   <details> holds a model answer to compare with. Works without script; with
+   it, what the student types is saved in this browser per lesson (localStorage,
+   guarded so a blocked store simply means nothing is kept).
+   ============================================================================ */
+interface Props {
+  task: string;
+  /** Sentence frames shown at Most help. */
+  claim?: string;
+  evidence?: string;
+  reasoning?: string;
+  /** A model answer (paragraphs separated by a blank line). */
+  model?: string;
+  /** Storage and id key when a lesson has more than one CER; derived from the task if absent. */
+  id?: string;
+}
+const { task, claim, evidence, reasoning, model } = Astro.props;
+const hash = (s: string) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(36); };
+const uid = Astro.props.id ?? `cer${hash(task)}`;
+const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+const parts = (f: string) => f.split(/_{3,}/);
+const fields = [
+  { key: 'claim', label: 'Claim', hint: 'Your answer to the question, in one sentence.', frame: claim },
+  { key: 'evidence', label: 'Evidence', hint: 'The data that support your claim.', frame: evidence },
+  { key: 'reasoning', label: 'Reasoning', hint: 'Why the evidence supports the claim, using the science.', frame: reasoning },
+];
+---
+<div class="cer" data-cer={uid} role="group" aria-labelledby={`${uid}-h`}>
+  <p class="cer-kicker" id={`${uid}-h`}>Claim, evidence, reasoning</p>
+  <p class="cer-task">{task}</p>
+  {fields.map((f) => (
+    <div class="cer-field">
+      <label class="cer-label" for={`${uid}-${f.key}`}>{f.label} <span class="cer-hint">{f.hint}</span></label>
+      {f.frame && (
+        <p class="cer-frame sup-min-2">
+          <span class="cer-frame-h">Start with:</span> {parts(f.frame).map((p, i) => <>{i > 0 && <span class="cer-blank"><span class="visually-hidden">blank</span></span>}{p}</>)}
+        </p>
+      )}
+      <textarea id={`${uid}-${f.key}`} name={`${uid}-${f.key}`} data-cer-field={f.key} rows="3"></textarea>
+    </div>
+  ))}
+  {model && (
+    <details class="cer-model">
+      <summary>Compare with a model answer</summary>
+      <div class="cer-model-body">{paras(model).map((p) => <p>{p}</p>)}</div>
+    </details>
+  )}
+  <p class="cer-saved" data-cer-saved hidden>Saved in this browser only.</p>
+</div>
+
+<script>
+  // Keep each CER box's answers per lesson page. Every storage call is guarded:
+  // private windows and blocked site data throw, and then nothing is kept.
+  document.querySelectorAll<HTMLElement>('[data-cer]').forEach((box) => {
+    const key = 'bp-cer:' + window.location.pathname + ':' + box.dataset.cer;
+    let saved: Record<string, string> = {};
+    try { saved = JSON.parse(window.localStorage.getItem(key) || '{}') || {}; } catch { saved = {}; }
+    const areas = Array.from(box.querySelectorAll<HTMLTextAreaElement>('textarea[data-cer-field]'));
+    const note = box.querySelector<HTMLElement>('[data-cer-saved]');
+    areas.forEach((a) => {
+      const f = a.dataset.cerField!;
+      if (typeof saved[f] === 'string' && !a.value) a.value = saved[f];
+      a.addEventListener('input', () => {
+        const next: Record<string, string> = {};
+        areas.forEach((x) => { next[x.dataset.cerField!] = x.value; });
+        try {
+          window.localStorage.setItem(key, JSON.stringify(next));
+          if (note) note.hidden = false;
+        } catch { /* storage blocked */ }
+      });
+    });
+  });
+</script>
+
+<style>
+  .cer {
+    margin: var(--ddp-space-6) 0;
+    padding: var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line);
+    border-top: 3px solid var(--ddp-color-accent);
+    border-radius: var(--ddp-radius);
+    background: var(--ddp-color-surface);
+  }
+  .cer-kicker {
+    margin: 0 0 var(--ddp-space-1);
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent);
+  }
+  .cer-task { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-ink); line-height: 1.5; }
+  .cer-field { margin: 0 0 var(--ddp-space-3); }
+  .cer-label { display: block; margin: 0 0 var(--ddp-space-1); font-weight: 700; color: var(--ddp-color-primary); font-size: var(--ddp-text-sm); }
+  .cer-hint { font-weight: 400; color: var(--ddp-color-muted); }
+  .cer-frame {
+    margin: 0 0 var(--ddp-space-1);
+    padding: 0.3rem 0.6rem;
+    border-left: 3px solid var(--ddp-color-secondary);
+    background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface));
+    font-size: var(--ddp-text-sm); line-height: 1.7; color: var(--ddp-color-ink);
+  }
+  .cer-frame-h { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ddp-color-secondary-ink); }
+  .cer-blank { display: inline-block; width: 5.5em; height: 1em; margin: 0 0.2em; border-bottom: 2px solid var(--ddp-color-ink-soft); }
+  .cer textarea {
+    display: block; width: 100%; box-sizing: border-box; min-height: 5.5rem; resize: vertical;
+    padding: 0.55rem 0.7rem;
+    font: inherit; font-size: var(--ddp-text-base); line-height: 1.5;
+    color: var(--ddp-color-ink); background: var(--ddp-color-bg);
+    border: 1.5px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm);
+  }
+  .cer textarea:hover { border-color: color-mix(in srgb, var(--ddp-color-accent) 60%, var(--ddp-color-line)); }
+  .cer textarea:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 1px; border-color: var(--ddp-color-accent); }
+  .cer-model > summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-accent); }
+  .cer-model-body { padding: var(--ddp-space-2) var(--ddp-space-3); border-left: 3px solid var(--ddp-color-accent); }
+  .cer-model-body p { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); line-height: 1.6; color: var(--ddp-color-ink); }
+  .cer-model-body p:last-child { margin-bottom: 0; }
+  .cer-saved { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+</style>

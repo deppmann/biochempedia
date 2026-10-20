@@ -1,0 +1,128 @@
+---
+/* =============================================================================
+   ScaffoldFigure: a LessonFigure whose label key changes with the supports
+   switch (SupportsSwitch.astro). The image carries numbered callouts 1, 2, 3...
+   and keyItems[i] is the word for callout i+1.
+     Most help     every word in the key
+     Some help     the words at the indices in `given`; the rest are numbered
+                   blanks, with a word bank of the missing words
+     Just the task every entry a numbered blank
+   At Some help and Just the task, "Check your labels" reveals the full key.
+   The caption always shows. Same disclosure rules as LessonFigure: the alt text
+   must start "AI-generated illustration:" (scripts/check-figures.mjs).
+   ============================================================================ */
+interface Props {
+  /** /figures/<lesson slug>/<id>.webp */
+  src: string;
+  /** Must start "AI-generated illustration:" (check-figures guards it). */
+  alt: string;
+  caption: string;
+  /** Words for the numbered callouts drawn in the image, in order (1, 2, 3...). */
+  keyItems: string[];
+  /** 0-based indices of keyItems given away at Some help. */
+  given?: number[];
+  width?: number;
+  height?: number;
+}
+const { src, alt, caption, keyItems, given = [], width = 1200, height = 800 } = Astro.props;
+const shown = new Set(given);
+const missing = keyItems.filter((_, i) => !shown.has(i)).slice().sort((a, b) => a.localeCompare(b));
+---
+<figure class="scaffold-figure">
+  <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+  <figcaption>
+    {/* Most help: the full key. */}
+    <ol class="sfig-key sup-min-2" aria-label="Labels">
+      {keyItems.map((k) => <li>{k}</li>)}
+    </ol>
+    {/* Some help: some words given, the rest blanks, plus a bank of the missing words. */}
+    <div class="sup-min-1 sup-max-1">
+      <ol class="sfig-key" aria-label="Labels, some to fill in">
+        {keyItems.map((k, i) => shown.has(i)
+          ? <li>{k}</li>
+          : <li class="is-blank"><span class="sfig-blank"><span class="visually-hidden">blank</span></span></li>)}
+      </ol>
+      {missing.length > 0 && (
+        <p class="sfig-bank"><span class="sfig-bank-h">Word bank:</span> {missing.map((m, i) => <>{i > 0 && ', '}<span class="sfig-bank-term">{m}</span></>)}</p>
+      )}
+    </div>
+    {/* Just the task: every label a blank. */}
+    <ol class="sfig-key sup-max-0" aria-label="Labels to fill in">
+      {keyItems.map(() => <li class="is-blank"><span class="sfig-blank"><span class="visually-hidden">blank</span></span></li>)}
+    </ol>
+    <details class="sfig-check sup-max-1">
+      <summary>Check your labels</summary>
+      <ol class="sfig-key">{keyItems.map((k) => <li>{k}</li>)}</ol>
+    </details>
+    <span class="sfig-caption">{caption}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .scaffold-figure {
+    margin: 1.75rem 0;
+    max-width: 100%;
+  }
+  .scaffold-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    background: #fbf8f1;
+    border: 1px solid var(--ddp-color-line);
+  }
+  .scaffold-figure figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--ddp-color-ink-soft);
+  }
+  .sfig-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    margin: 0 0 0.45rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: fig;
+    color: var(--ddp-color-ink);
+  }
+  .sfig-key li {
+    counter-increment: fig;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .sfig-key li::before {
+    content: counter(fig);
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background: #1f2a44;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  @media (prefers-color-scheme: dark) {
+    .sfig-key li::before { background: var(--ddp-color-primary); color: var(--ddp-color-bg); }
+  }
+  .sfig-blank {
+    display: inline-block;
+    width: 5.5em;
+    height: 1em;
+    border-bottom: 2px solid var(--ddp-color-ink-soft);
+  }
+  .sfig-bank { margin: 0 0 0.45rem; color: var(--ddp-color-ink); }
+  .sfig-bank-h { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-accent); font-weight: 600; }
+  .sfig-bank-term { font-weight: 600; }
+  .sfig-check { margin: 0 0 0.45rem; }
+  .sfig-check > summary {
+    display: inline-flex; align-items: center; min-height: 44px; cursor: pointer;
+    font-weight: 600; color: var(--ddp-color-accent);
+  }
+  .sfig-check[open] > .sfig-key { margin-top: 0.1rem; }
+  .sfig-caption { display: block; }
+</style>

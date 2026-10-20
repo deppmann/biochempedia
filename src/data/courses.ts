@@ -24,11 +24,12 @@ export interface Course {
   slug: string;
   title: string;
   /** Where the course sits in a biology degree; the homepage lists each tier separately.
+   *  highschool: Virginia Standards of Learning courses for grades 7–12.
    *  foundation: intro courses for the first two years (1000-2000 level).
    *  core: the 3000-level courses every biology major takes.
    *  elective: 3000-level subjects taken further.
    *  advanced: 4000-level and above, built around current research. */
-  tier: 'foundation' | 'core' | 'elective' | 'advanced';
+  tier: 'highschool' | 'foundation' | 'core' | 'elective' | 'advanced';
   /** True when the course covers material the MCAT tests; shown as a tag on the homepage card. */
   mcat?: boolean;
   /** One line under the title on the course page and on the homepage card. */
@@ -43,6 +44,46 @@ export interface Course {
 /* Order is the suggested path: within each tier, courses appear in the order a student
    should take them (the homepage numbers the core courses). */
 export const COURSES: Course[] = [
+  {
+    slug: 'high-school-biology',
+    title: 'Biology',
+    tier: 'highschool',
+    mcat: false,
+    tagline: 'High school Biology, aligned to the Virginia Standards of Learning, with supports for every reader.',
+    searchHint: 'Try “osmosis”, “Punnett square”, “blue crab”…',
+    blurb:
+      'A complete high school Biology course for grades 9 and 10, built on the Virginia Biology Standards of Learning (BIO.1 to BIO.8). Every lesson opens with a phenomenon, runs a simulation, works with real data (much of it from Virginia and the Chesapeake Bay), and ends in claim, evidence and reasoning. A supports switch adds word banks, sentence frames and labelled diagrams without changing the task, and a depth ladder links each idea one step down to grade 7 Life Science and one step up to Biology II and college.',
+    units: [
+      {
+        name: 'The chemistry of life',
+        slugs: ['water-and-life', 'macromolecules', 'enzymes-at-work', 'photosynthesis-energy-capture', 'respiration-and-atp'],
+      },
+      {
+        name: 'Cells',
+        slugs: ['cell-theory-evidence', 'organelles-as-a-system', 'crossing-the-membrane', 'homeostasis-in-action', 'cell-cycle-and-mitosis', 'one-cell-or-many'],
+      },
+      {
+        name: 'Bacteria and viruses',
+        slugs: ['living-or-not', 'how-microbes-multiply', 'microbes-in-ecosystems', 'germs-vaccines-antibiotics'],
+      },
+      {
+        name: 'DNA and inheritance',
+        slugs: ['dna-structure-and-copying', 'discovering-dna-structure', 'protein-synthesis', 'meiosis-and-variation', 'punnett-squares', 'beyond-dominance', 'genetic-engineering'],
+      },
+      {
+        name: 'Classifying life',
+        slugs: ['building-a-tree-of-life', 'domains-and-kingdoms', 'classification-changes'],
+      },
+      {
+        name: 'Evolution',
+        slugs: ['evidence-for-evolution', 'variation-and-survival', 'natural-selection-and-speciation'],
+      },
+      {
+        name: 'Ecosystems',
+        slugs: ['carrying-capacity', 'energy-in-ecosystems', 'matter-cycles', 'succession-in-virginia', 'chesapeake-under-pressure'],
+      },
+    ],
+  },
   {
     slug: 'organismal-biology',
     title: 'Organismal Biology',
