@@ -1,0 +1,271 @@
+---
+/**
+ * TreeRemodel — start with the five-kingdom tree (Whittaker, 1969) and add three evidence
+ * cards one at a time: a ribosomal RNA comparison (Woese and Fox, 1977), cell-membrane fats,
+ * and gene (protein and DNA) sequences. Each card moves its own groups, the tree is redrawn,
+ * and a list says which evidence moved which group. Every rule is a statement of the
+ * classification-changes lesson; branch lengths are not to scale. Labelled lines and boxes only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="trm card" data-treeremodel>
+  <figcaption class="trm-head">Tree remodel: add evidence, watch the tree change<span class="trm-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="trm-svg" viewBox="0 0 360 330" role="img" aria-label="A branching tree of living groups that is redrawn each time an evidence card is added" data-stage></svg>
+
+  <div class="trm-cards" role="group" aria-label="Evidence cards">
+    <button type="button" class="trm-card" data-card="r" aria-pressed="false">
+      <span class="trm-card-top"><span class="trm-dot trm-r"></span><strong>RNA comparison</strong><span class="trm-state" data-state></span></span>
+      <span class="trm-card-body">Ribosomal RNA, which every cell has, compared across cells (Woese and Fox, 1977).</span>
+    </button>
+    <button type="button" class="trm-card" data-card="m" aria-pressed="false">
+      <span class="trm-card-top"><span class="trm-dot trm-m"></span><strong>Membrane fats</strong><span class="trm-state" data-state></span></span>
+      <span class="trm-card-body">Archaea differ from bacteria in their cell membranes.</span>
+    </button>
+    <button type="button" class="trm-card" data-card="g" aria-pressed="false">
+      <span class="trm-card-top"><span class="trm-dot trm-g"></span><strong>Gene sequences</strong><span class="trm-state" data-state></span></span>
+      <span class="trm-card-body">Protein and DNA sequences compared, such as 25 proteins in a 1993 survey.</span>
+    </button>
+  </div>
+  <div class="trm-row"><button type="button" class="trm-btn" data-reset>Reset</button></div>
+
+  <p class="trm-status" data-status role="status"></p>
+
+  <p class="trm-sub">Which evidence moved which group</p>
+  <ul class="trm-list" data-list></ul>
+
+  <p class="trm-foot">In this sketch each card moves its own groups, so the order of the cards does not change the finished tree, and branch lengths are not to scale. Rule to keep: the RNA card splits Monera, membrane fats add support to that split, and gene sequences move Fungi and Protista. The number of protist groups and where they attach are schematic; the lesson says only that Protista splits into many groups. The tree is still being tested, and scientists still use the three domain names.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Key = 'r' | 'm' | 'g';
+  type Ev = 'split' | 'g' | null;
+  type Node = { label?: string; kids?: Node[]; ev: Ev; x: number; y: number; h: number };
+  const COLOR = { r: '#0e7c86', m: '#7a5ea8', g: '#b34f00' };
+  const NAME: Record<Key, string> = { r: 'RNA comparison', m: 'Membrane fats', g: 'Gene sequences' };
+  const INK = '#4b4b55', FAINT = '#8a8a96';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const leaf = (label: string, ev: Ev = null): Node => ({ label, ev, x: 0, y: 0, h: 0 });
+  const group = (kids: Node[], ev: Ev = null, label?: string): Node => ({ label, kids, ev, x: 0, y: 0, h: 0 });
+
+  function build(on: Record<Key, boolean>): { root: Node; split: boolean } {
+    const split = on.r;
+    let euk: Node[];
+    if (on.g) {
+      euk = [
+        group([leaf('Plantae'), leaf('protist group', 'g')], 'g'),
+        group([leaf('protist group', 'g'), group([leaf('Animalia'), leaf('Fungi', 'g')], 'g')], 'g'),
+        leaf('protist group', 'g'),
+      ];
+    } else {
+      euk = [leaf('Protista'), leaf('Fungi'), leaf('Plantae'), leaf('Animalia')];
+    }
+    const root = split
+      ? group([leaf('Bacteria', 'split'), leaf('Archaea', 'split'), group(euk, 'split', 'Eukarya')])
+      : group([leaf('Monera'), ...euk]);
+    return { root, split };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-treeremodel]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]');
+    const statusEl = root.querySelector<HTMLElement>('[data-status]');
+    const listEl = root.querySelector<HTMLElement>('[data-list]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    if (!stage || !statusEl || !listEl || !resetBtn) return;
+    const cardBtns = {} as Record<Key, HTMLButtonElement>;
+    (['r', 'm', 'g'] as Key[]).forEach((k) => {
+      const b = root.querySelector<HTMLButtonElement>(`[data-card="${k}"]`);
+      if (b) cardBtns[k] = b;
+    });
+    if (!cardBtns.r || !cardBtns.m || !cardBtns.g) return;
+
+    const on: Record<Key, boolean> = { r: false, m: false, g: false };
+    let order: Key[] = [];
+    let lastAdded: Key | null = null;
+    let message = 'Five kingdoms, 1969. Predict which kingdom splits first, then add a card.';
+
+    function layout(n: Node, leaves: Node[]): number {
+      if (!n.kids) { n.h = 0; leaves.push(n); return 0; }
+      n.h = 1 + Math.max(...n.kids.map((c) => layout(c, leaves)));
+      return n.h;
+    }
+    function place(n: Node, leafX: number, step: number) {
+      n.x = leafX - n.h * step;
+      if (n.kids) { n.kids.forEach((c) => place(c, leafX, step)); n.y = (n.kids[0].y + n.kids[n.kids.length - 1].y) / 2; }
+    }
+    function edgeColor(ev: Ev): string {
+      if (ev === 'g') return COLOR.g;
+      if (ev === 'split') return on.r ? COLOR.r : COLOR.m;
+      return FAINT;
+    }
+    function isNew(ev: Ev): boolean {
+      if (!lastAdded) return false;
+      if (ev === 'g') return lastAdded === 'g';
+      if (ev === 'split') return lastAdded === 'r' || lastAdded === 'm';
+      return false;
+    }
+
+    function draw() {
+      if (!stage) return;
+      stage.replaceChildren();
+      const { root: tree, split } = build(on);
+      const leaves: Node[] = [];
+      layout(tree, leaves);
+      const LEAFX = 150, SP = 30, TOP = 46;
+      const step = Math.min(34, (LEAFX - 14) / tree.h);
+      leaves.forEach((l, i) => { l.y = TOP + i * SP; });
+      place(tree, LEAFX, step);
+      const count = order.length;
+      stage.appendChild(el('text', { x: 8, y: 18, 'font-size': 12, 'font-weight': 700, fill: INK },
+        count === 0 ? 'Five-kingdom tree, 1969' : `Your tree: ${count} card${count === 1 ? '' : 's'} added`));
+      stage.appendChild(el('text', { x: 352, y: 18, 'font-size': 10, 'text-anchor': 'end', fill: FAINT }, 'sketch, not to scale'));
+
+      const walk = (n: Node) => {
+        if (!n.kids) return;
+        const first = n.kids[0], last = n.kids[n.kids.length - 1];
+        stage.appendChild(el('line', { x1: n.x, y1: first.y, x2: n.x, y2: last.y, stroke: FAINT, 'stroke-width': 2, 'stroke-linecap': 'round' }));
+        n.kids.forEach((c) => {
+          const col = edgeColor(c.ev);
+          const cls = isNew(c.ev) ? 'trm-new' : '';
+          stage.appendChild(el('line', { x1: n.x, y1: c.y, x2: c.x, y2: c.y, stroke: col, 'stroke-width': c.ev ? 3.5 : 2, 'stroke-linecap': 'round', class: cls }));
+          walk(c);
+        });
+      };
+      walk(tree);
+      leaves.forEach((l) => {
+        const col = edgeColor(l.ev);
+        stage.appendChild(el('circle', { cx: l.x, cy: l.y, r: 4, fill: l.ev ? col : '#fff', stroke: col, 'stroke-width': 1.8, class: isNew(l.ev) ? 'trm-new' : '' }));
+        stage.appendChild(el('text', { x: l.x + 9, y: l.y + 4, 'font-size': 12, 'font-weight': l.ev ? 700 : 400, fill: INK }, l.label ?? ''));
+      });
+
+      if (split) {
+        const kids = tree.kids ?? [];
+        const spans: { name: string; a: number; b: number }[] = [];
+        const bac = kids[0], arc = kids[1], eu = kids[2];
+        const eLeaves: Node[] = [];
+        const collect = (n: Node) => { if (!n.kids) eLeaves.push(n); else n.kids.forEach(collect); };
+        collect(eu);
+        spans.push({ name: 'Bacteria', a: bac.y, b: bac.y });
+        spans.push({ name: 'Archaea', a: arc.y, b: arc.y });
+        spans.push({ name: 'Eukarya', a: eLeaves[0].y, b: eLeaves[eLeaves.length - 1].y });
+        spans.forEach((s) => {
+          stage.appendChild(el('path', { d: `M262 ${s.a - 11} L267 ${s.a - 11} L267 ${s.b + 11} L262 ${s.b + 11}`, fill: 'none', stroke: INK, 'stroke-width': 1.5 }));
+          const mid = (s.a + s.b) / 2;
+          stage.appendChild(el('text', { x: 273, y: mid - 4, 'font-size': 10, fill: FAINT }, 'domain'));
+          stage.appendChild(el('text', { x: 273, y: mid + 12, 'font-size': 12, 'font-weight': 700, fill: INK }, s.name));
+        });
+      }
+
+      // legend
+      const LY = 304;
+      const items: [number, string, string][] = [[8, COLOR.r, 'rRNA'], [66, COLOR.m, 'membrane fats'], [168, COLOR.g, 'gene sequences'], [276, FAINT, 'unchanged']];
+      items.forEach(([x, c, t]) => {
+        stage.appendChild(el('line', { x1: x, y1: LY, x2: x + 14, y2: LY, stroke: c, 'stroke-width': 3.5, 'stroke-linecap': 'round' }));
+        stage.appendChild(el('text', { x: x + 18, y: LY + 4, 'font-size': 10, fill: INK }, t));
+      });
+    }
+
+    function chips(keys: Key[]): string {
+      return keys.map((k) => `<span class="trm-pill" style="border-color:${COLOR[k]};color:${COLOR[k]}">${NAME[k]}</span>`).join(' ');
+    }
+    function renderList() {
+      if (!listEl) return;
+      const rows: { title: string; by: Key[]; note: string }[] = [
+        {
+          title: 'Monera splits into Bacteria and Archaea',
+          by: on.r ? (['r', 'm'] as Key[]).filter((k) => on[k]) : [],
+          note: 'Bacteria, Archaea and Eukarya are drawn as the three domains, proposed in 1990.',
+        },
+        {
+          title: 'Fungi move next to animals, not plants',
+          by: on.g ? ['g'] : [],
+          note: 'Animals and fungi share a more recent common ancestor. This does not mean animals came from mushrooms.',
+        },
+        {
+          title: 'Protista splits into many groups',
+          by: on.g ? ['g'] : [],
+          note: 'Some protist groups are closer to animals or plants than to other protists.',
+        },
+      ];
+      listEl.innerHTML = rows.map((r) => r.by.length
+        ? `<li class="trm-on"><strong>${r.title}</strong><br>Moved by: ${chips(r.by)}${r.by.length === 2 ? ' (two lines of evidence)' : ''}<br><span class="trm-note">${r.note}</span></li>`
+        : `<li><strong>${r.title}</strong><br><span class="trm-note">Not yet: no card on the tree supports this change.</span></li>`).join('');
+    }
+
+    function render() {
+      (['r', 'm', 'g'] as Key[]).forEach((k) => {
+        const b = cardBtns[k];
+        b.setAttribute('aria-pressed', on[k] ? 'true' : 'false');
+        b.classList.toggle('trm-card-on', on[k]);
+        const s = b.querySelector<HTMLElement>('[data-state]');
+        if (s) s.textContent = on[k] ? 'on · tap to remove' : 'off · tap to add';
+      });
+      draw();
+      renderList();
+      const all = on.r && on.m && on.g ? ' All three cards are on. The finished tree is the same in any order in this sketch.' : '';
+      statusEl!.textContent = message + all;
+    }
+
+    function toggle(k: Key) {
+      if (!on[k]) {
+        on[k] = true; order.push(k); lastAdded = k;
+        if (k === 'r') message = 'RNA card added. Methane-making microbes scored 0.51 with each other and 0.11 or 0.12 with E. coli, so Monera splits.' + (on.m ? ' Membrane fats give a second line of evidence.' : '');
+        else if (k === 'm') message = on.r ? 'Membrane card added. Archaea differ from bacteria in their membranes. This is a second line of evidence for the split.' : 'Membrane card added. Archaea differ from bacteria in their membranes. In this sketch the split appears only when the RNA card is on; membrane fats are a second line of evidence.';
+        else message = 'Gene card added. A 1993 survey of 25 proteins strongly supported fungi being closer to animals than to plants, and Protista breaks into many groups (three drawn).';
+      } else {
+        on[k] = false; order = order.filter((x) => x !== k); lastAdded = null;
+        if (k === 'r') message = on.m ? 'RNA card removed. In this sketch Monera is one group again; membrane fats alone do not split it.' : 'RNA card removed. Monera is one group again.';
+        else if (k === 'm') message = on.r ? 'Membrane card removed. The split stays, with one line of support: the RNA comparison.' : 'Membrane card removed. In this sketch Monera is one group again; membrane fats alone do not split it.';
+        else message = 'Gene card removed. Fungi stand alone again and Protista is one kingdom.';
+      }
+      if (order.length === 0) message += ' Five kingdoms again, as in 1969.';
+      render();
+    }
+
+    (['r', 'm', 'g'] as Key[]).forEach((k) => cardBtns[k].addEventListener('click', () => toggle(k)));
+    resetBtn.addEventListener('click', () => {
+      on.r = on.m = on.g = false; order = []; lastAdded = null;
+      message = 'Five kingdoms, 1969. Predict which kingdom splits first, then add a card.';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .trm { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .trm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .trm-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .trm-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .trm-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .trm-card { display: flex; flex-direction: column; gap: 0.25rem; text-align: left; min-height: 44px; padding: 0.5rem 0.6rem; border: 1.5px solid var(--ddp-color-line); border-radius: 8px; background: transparent; color: var(--ddp-color-ink-soft); font: inherit; font-size: var(--ddp-text-xs); cursor: pointer; }
+  .trm-card-on { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); }
+  .trm-card:focus-visible, .trm-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .trm-card-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; color: var(--ddp-color-primary); font-size: var(--ddp-text-sm); }
+  .trm-state { flex-basis: 100%; font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .trm-card-body { line-height: 1.4; }
+  .trm-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+  .trm-r { background: #0e7c86; } .trm-m { background: #7a5ea8; } .trm-g { background: #b34f00; }
+  .trm-row { margin: 0.5rem 0; display: flex; gap: 0.5rem; }
+  .trm-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 1rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); cursor: pointer; }
+  .trm-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3.2em; }
+  .trm-sub { margin: var(--ddp-space-3) 0 0.25rem; font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-muted); }
+  .trm-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .trm-list li { padding: 0.4rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .trm-list li.trm-on { border-left: 4px solid var(--ddp-color-accent); }
+  .trm-note { color: var(--ddp-color-muted); }
+  .trm-pill { display: inline-block; border: 1.5px solid; border-radius: 999px; padding: 0 0.5rem; font-weight: 600; }
+  .trm-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  .trm-new { animation: trm-pop 0.9s ease-out; }
+  @keyframes trm-pop { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .trm-new { animation: none; } }
+  @media (max-width: 520px) { .trm-cards { grid-template-columns: 1fr; } }
+</style>

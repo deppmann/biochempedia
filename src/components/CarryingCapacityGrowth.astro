@@ -1,0 +1,360 @@
+---
+/**
+ * CarryingCapacityGrowth — grow a model population with and without limits.
+ * Controls: starting population, growth rate, carrying capacity, unlimited or limited growth,
+ * and two disturbances (a cold winter, more predators). All numbers are relative units.
+ * A sketch of the lesson's logic, not a measurement. Self-contained Astro island. Original.
+ */
+---
+
+<figure class="ccg card" data-ccg>
+  <figcaption class="ccg-head">Population growth with and without limits<span class="ccg-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ccg-svg" viewBox="0 0 360 290" role="img" aria-label="Line graph of a model population against time steps, in relative units" data-plot></svg>
+
+  <ul class="ccg-legend" aria-label="Key to the graph">
+    <li><span class="ccg-key ccg-key-run"></span>your population</li>
+    <li data-ghostkey hidden><span class="ccg-key ccg-key-ghost"></span>before your last change</li>
+    <li><span class="ccg-key ccg-key-k"></span>carrying capacity <span data-kneeded></span></li>
+  </ul>
+
+  <div class="ccg-row" role="group" aria-label="Growth type">
+    <span class="ccg-label">Growth type</span>
+    <button type="button" class="ccg-btn ccg-mode" data-mode="unlimited" aria-pressed="true">Unlimited growth</button>
+    <button type="button" class="ccg-btn ccg-mode" data-mode="limited" aria-pressed="false">Limited growth</button>
+  </div>
+
+  <div class="ccg-sliders">
+    <label class="ccg-slabel"><span>Starting population <em data-out="start">10</em> <small>relative units</small></span>
+      <input type="range" data-in="start" min="5" max="100" step="5" value="10" />
+    </label>
+    <label class="ccg-slabel"><span>Growth rate (r) <em data-out="rate">0.30</em> <small>new individuals per individual, each step</small></span>
+      <input type="range" data-in="rate" min="0.1" max="0.6" step="0.05" value="0.3" />
+    </label>
+    <label class="ccg-slabel"><span>Carrying capacity <em data-out="cap">500</em> <small>relative units</small></span>
+      <input type="range" data-in="cap" min="200" max="1000" step="50" value="500" />
+    </label>
+  </div>
+
+  <div class="ccg-row">
+    <button type="button" class="ccg-btn ccg-go" data-run="20">Run 20 steps</button>
+    <button type="button" class="ccg-btn" data-run="1">Add 1 step</button>
+    <button type="button" class="ccg-btn" data-reset>Reset</button>
+  </div>
+  <div class="ccg-row" role="group" aria-label="Disturbances">
+    <span class="ccg-label">Add a disturbance</span>
+    <button type="button" class="ccg-btn" data-dist="cold">Cold winter</button>
+    <button type="button" class="ccg-btn" data-dist="pred">More predators</button>
+  </div>
+  <p class="ccg-hint">In this sketch, more predators lower the carrying capacity, so they work only with limited growth. Each disturbance adds one step, and three disturbances is the maximum.</p>
+
+  <dl class="ccg-readout">
+    <div><dt>Time step</dt><dd data-r-t>0</dd></div>
+    <div><dt>Population (relative units)</dt><dd data-r-n>10</dd></div>
+    <div><dt>Added in the last step</dt><dd data-r-gain>none yet</dd></div>
+    <div><dt>Carrying capacity now</dt><dd data-r-k>500</dd></div>
+  </dl>
+
+  <p class="ccg-why" data-why role="status"></p>
+
+  <p class="ccg-assume">Assumptions in this sketch: all numbers are relative units, not counts of any real animal. Each step adds the growth rate times the population. With limited growth, that gain shrinks to zero as the population reaches the carrying capacity. In this sketch a cold winter is a one-time loss: it removes 40% of the individuals present, before that step’s growth, and leaves the carrying capacity as set. The lesson says a hard freeze can also lower carrying capacity. More predators lower the carrying capacity by 25%. The 40% and 25% are invented sizes, in relative units. There is no chance in this sketch, so expected and observed are the same.</p>
+
+  <p class="ccg-foot">With plenty of resources a population grows in a J shape; as limits set in, the curve bends into an S shape that levels off near the carrying capacity, and that level can move when conditions change.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#9a9aa5', GRID = '#e3e3e8';
+  const MAXT = 60, COLD = 0.4, PRED = 0.25;
+  type Ev = { t: number; type: 'cold' | 'pred' };
+  let uid = 0;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function fmt(n: number): string {
+    return n >= 1e6 ? 'over 1,000,000' : Math.round(n).toLocaleString('en-US');
+  }
+  function niceMax(v: number): number {
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    for (const m of [1, 2, 2.5, 4, 5, 8, 10]) if (m * p >= v) return m * p;
+    return 10 * p;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ccg]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('CarryingCapacityGrowth: missing ' + s);
+      return e;
+    };
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const sStart = q<HTMLInputElement>('[data-in="start"]');
+    const sRate = q<HTMLInputElement>('[data-in="rate"]');
+    const sCap = q<HTMLInputElement>('[data-in="cap"]');
+    const oStart = q<HTMLElement>('[data-out="start"]');
+    const oRate = q<HTMLElement>('[data-out="rate"]');
+    const oCap = q<HTMLElement>('[data-out="cap"]');
+    const rT = q<HTMLElement>('[data-r-t]');
+    const rN = q<HTMLElement>('[data-r-n]');
+    const rGain = q<HTMLElement>('[data-r-gain]');
+    const rK = q<HTMLElement>('[data-r-k]');
+    const why = q<HTMLElement>('[data-why]');
+    const ghostKey = q<HTMLElement>('[data-ghostkey]');
+    const kNeeded = q<HTMLElement>('[data-kneeded]');
+    const bCold = q<HTMLButtonElement>('[data-dist="cold"]');
+    const bPred = q<HTMLButtonElement>('[data-dist="pred"]');
+    const bRun20 = q<HTMLButtonElement>('[data-run="20"]');
+    const bRun1 = q<HTMLButtonElement>('[data-run="1"]');
+    const bReset = q<HTMLButtonElement>('[data-reset]');
+    const modeBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-mode]'));
+    const clipId = 'ccg-clip-' + (uid++);
+
+    let mode: 'unlimited' | 'limited' = 'unlimited';
+    let T = 0;
+    let events: Ev[] = [];
+    let ghost: number[] | null = null;
+    let lastN: number[] = [];
+    let ghostHeld = false;
+
+    const X0 = 56, X1 = 346, Y0 = 56, Y1 = 236;
+
+    function capAt(i: number, k0: number): number {
+      let k = k0;
+      for (const e of events) if (e.type === 'pred' && e.t < i) k *= 1 - PRED;
+      return k;
+    }
+    function simulate() {
+      const s = parseInt(sStart.value, 10), r = parseFloat(sRate.value), k0 = parseInt(sCap.value, 10);
+      const N = [s];
+      const K = [capAt(0, k0)];
+      for (let i = 0; i < T; i++) {
+        const k = capAt(i + 1, k0);
+        let n = N[i];
+        for (const e of events) if (e.type === 'cold' && e.t === i) n *= 1 - COLD; // loss first, then growth
+        const nx = mode === 'unlimited' ? n + r * n : n + r * n * (1 - n / k);
+        N.push(Math.max(nx, 0));
+        K.push(k);
+      }
+      return { N, K, s, r, k0 };
+    }
+
+    function setMode(m: 'unlimited' | 'limited') {
+      mode = m;
+      modeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+    }
+
+    function render() {
+      const { N, K, s, r, k0 } = simulate();
+      lastN = N;
+      oStart.textContent = String(s);
+      oRate.textContent = r.toFixed(2);
+      oCap.textContent = String(k0);
+      const limited = mode === 'limited';
+      sCap.disabled = !limited;
+      kNeeded.textContent = limited ? '' : '(not used in unlimited growth)';
+      bPred.disabled = !limited || events.length >= 3 || T >= MAXT;
+      bCold.disabled = events.length >= 3 || T >= MAXT;
+      bRun20.disabled = T >= MAXT;
+      bRun20.textContent = MAXT - T >= 20 ? 'Run 20 steps' : T >= MAXT ? 'Run 20 steps' : `Run ${MAXT - T} steps`;
+      bRun1.disabled = T >= MAXT;
+      ghostKey.hidden = !ghost;
+
+      const D = Math.max(20, Math.ceil(T / 10) * 10);
+      const maxData = Math.max(...N, ...(ghost ?? [0]));
+      const yRaw = Math.max(1.2 * k0, Math.min(maxData * 1.05, 4 * k0));
+      const ymax = niceMax(yRaw);
+      const px = (i: number) => X0 + (i / D) * (X1 - X0);
+      const py = (v: number) => Y1 - (Math.min(v, ymax * 2) / ymax) * (Y1 - Y0);
+
+      plot.replaceChildren();
+      const defs = el('defs', {});
+      const cp = el('clipPath', { id: clipId });
+      cp.appendChild(el('rect', { x: X0, y: Y0 - 4, width: X1 - X0 + 6, height: Y1 - Y0 + 4 }));
+      defs.appendChild(cp);
+      plot.appendChild(defs);
+
+      // grid, ticks
+      for (const f of [0, 0.5, 1]) {
+        const y = py(ymax * f);
+        plot.appendChild(el('line', { x1: X0, y1: y, x2: X1, y2: y, stroke: GRID, 'stroke-width': 1 }));
+        const t = el('text', { x: X0 - 6, y: y + 4, 'font-size': 12, 'text-anchor': 'end', fill: INK });
+        t.textContent = fmt(ymax * f);
+        plot.appendChild(t);
+      }
+      const xs = D <= 20 ? 5 : 10;
+      for (let i = 0; i <= D; i += xs) {
+        plot.appendChild(el('line', { x1: px(i), y1: Y1, x2: px(i), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        const t = el('text', { x: px(i), y: Y1 + 18, 'font-size': 12, 'text-anchor': 'middle', fill: INK });
+        t.textContent = String(i);
+        plot.appendChild(t);
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 4, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      const xt = el('text', { x: (X0 + X1) / 2, y: 280, 'font-size': 12, 'text-anchor': 'middle', fill: INK });
+      xt.textContent = 'Time steps';
+      plot.appendChild(xt);
+      const yt = el('text', { x: 14, y: (Y0 + Y1) / 2, 'font-size': 12, 'text-anchor': 'middle', fill: INK, transform: `rotate(-90 14 ${(Y0 + Y1) / 2})` });
+      yt.textContent = 'Population, relative units';
+      plot.appendChild(yt);
+
+      const clipG = el('g', { 'clip-path': `url(#${clipId})` });
+      // carrying capacity (stepped line)
+      let kd = '';
+      K.forEach((k, i) => { kd += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(k).toFixed(1) + ' '; });
+      if (K.length === 1) kd = `M${px(0)} ${py(K[0]).toFixed(1)} L${px(D)} ${py(K[0]).toFixed(1)}`;
+      else kd += `L${px(D)} ${py(K[K.length - 1]).toFixed(1)}`;
+      clipG.appendChild(el('path', { d: kd.trim(), fill: 'none', stroke: ORANGE, 'stroke-width': 2, 'stroke-dasharray': '6 4', opacity: limited ? 1 : 0.45 }));
+      if (ghost && ghost.length > 1) {
+        let gd = '';
+        ghost.forEach((v, i) => { gd += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(v).toFixed(1) + ' '; });
+        clipG.appendChild(el('path', { d: gd.trim(), fill: 'none', stroke: FAINT, 'stroke-width': 2, 'stroke-dasharray': '3 3' }));
+      }
+      if (N.length > 1) {
+        let d = '';
+        N.forEach((v, i) => { d += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(v).toFixed(1) + ' '; });
+        clipG.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 3, 'stroke-linejoin': 'round' }));
+      }
+      plot.appendChild(clipG);
+      plot.appendChild(el('circle', { cx: px(T), cy: py(N[T]), r: 5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 }));
+
+      // disturbance markers
+      events.forEach((e, idx) => {
+        const x = px(Math.min(e.t + 1, T));
+        const row = idx % 3;
+        const ly = 16 + row * 14;
+        plot.appendChild(el('line', { x1: x, y1: ly + 3, x2: x, y2: Y1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+        const cx = Math.max(48, Math.min(x, 312));
+        const t = el('text', { x: cx, y: ly, 'font-size': 12, 'text-anchor': 'middle', fill: INK, 'font-weight': 700 });
+        t.textContent = e.type === 'cold' ? 'Cold winter' : 'More predators';
+        plot.appendChild(t);
+      });
+
+      // readouts
+      const nT = N[T];
+      const gain = T > 0 ? N[T] - N[T - 1] : null;
+      rT.textContent = String(T);
+      rN.textContent = fmt(nT);
+      rGain.textContent = gain === null ? 'none yet' : Math.abs(gain) < 0.5 ? '0' : (gain > 0 ? '+' : '−') + fmt(Math.abs(gain));
+      rK.textContent = limited ? fmt(K[T]) : 'not used';
+
+      // status
+      const out: string[] = [];
+      const clipped = maxData > ymax;
+      const last = events.filter((e) => e.t === T - 1);
+      const hasCold = events.some((e) => e.type === 'cold');
+      const hasPred = events.some((e) => e.type === 'pred');
+      const dPrev = T >= 2 ? N[T - 1] - N[T - 2] : 0;
+      if (T === 0) {
+        out.push(`In this sketch, the population starts at ${s} relative units.`);
+        out.push('Choose a growth type, then press Run 20 steps.');
+      } else if (last.length) {
+        for (const e of last) {
+          if (e.type === 'cold') out.push(`In this sketch, a cold winter removed ${COLD * 100}% of the individuals present that step, leaving ${fmt(nT)}.`);
+          else out.push(`In this sketch, more predators lowered the carrying capacity to ${fmt(K[T])}.`);
+        }
+        out.push('Add steps to watch how the population responds.');
+      } else if (limited && gain !== null && gain < 0 && nT > 1.05 * K[T]) {
+        out.push('In this sketch, the population is above the carrying capacity, so deaths outnumber births.');
+        out.push('The population declines.');
+      } else if (!limited) {
+        out.push(`In this sketch, with no limits, the population grew from ${s} to ${fmt(nT)} in ${T} steps.`);
+        out.push('The number added each step gets bigger. This is exponential growth, a J shape.');
+        if (hasCold) out.push('The cold winter removed some individuals, but with no limits the population grows again.');
+      } else if (Math.abs(nT - K[T]) <= 0.05 * K[T]) {
+        out.push(`In this sketch, the line has levelled off near the carrying capacity of ${fmt(K[T])}.`);
+        out.push('This is a steady state. The curve has an S shape.');
+        if (hasPred) out.push('More predators lowered the carrying capacity, so the population settled lower.');
+        else if (hasCold) out.push('The cold winter was a one-time loss in this sketch, so the population came back to the same level.');
+      } else if (T === 1) {
+        out.push(`In this sketch, the population grew from ${s} to ${fmt(nT)} in 1 step.`);
+        out.push('Add more steps to see the shape of the curve.');
+      } else if (gain !== null && gain > dPrev) {
+        out.push('In this sketch, numbers rise faster and faster while resources last.');
+        out.push('This is exponential growth, the start of the S shape.');
+      } else {
+        out.push('In this sketch, growth is slowing as the population gets closer to the carrying capacity.');
+        out.push('The number added each step gets smaller.');
+      }
+      if (clipped) out.push('The unlimited line has gone off the top of the graph.');
+      if (T >= MAXT) out.push('The graph is full at 60 steps. Press Reset to start again.');
+      why.textContent = out.join(' ');
+
+      plot.setAttribute('aria-label',
+        `Line graph of a model population against time steps, in relative units. ${mode === 'unlimited' ? 'Unlimited' : 'Limited'} growth. At step ${T} the population is ${fmt(nT)}.`);
+    }
+
+    function snapshot() {
+      if (ghostHeld || T === 0) return;
+      ghostHeld = true;
+      ghost = lastN.slice();
+    }
+    [sStart, sRate, sCap].forEach((sl) => {
+      sl.addEventListener('input', () => { snapshot(); render(); });
+      sl.addEventListener('change', () => { ghostHeld = false; });
+    });
+    modeBtns.forEach((b) => b.addEventListener('click', () => {
+      const m = b.dataset.mode === 'limited' ? 'limited' : 'unlimited';
+      if (m === mode) return;
+      ghostHeld = false;
+      if (T > 0) ghost = lastN.slice();
+      setMode(m);
+      render();
+    }));
+    [bRun20, bRun1].forEach((b) => b.addEventListener('click', () => {
+      const n = parseInt(b.dataset.run ?? '1', 10);
+      T = Math.min(MAXT, T + n);
+      ghost = null; ghostHeld = false;
+      render();
+    }));
+    [bCold, bPred].forEach((b) => b.addEventListener('click', () => {
+      if (T >= MAXT || events.length >= 3) return;
+      events.push({ t: T, type: b.dataset.dist === 'pred' ? 'pred' : 'cold' });
+      T += 1;
+      ghost = null; ghostHeld = false;
+      render();
+    }));
+    bReset.addEventListener('click', () => {
+      sStart.value = '10'; sRate.value = '0.3'; sCap.value = '500';
+      T = 0; events = []; ghost = null; ghostHeld = false;
+      setMode('unlimited');
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ccg { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ccg-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ccg-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ccg-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ccg-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: var(--ddp-space-2) 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ccg-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .ccg-legend [hidden] { display: none; }
+  .ccg-key { display: inline-block; width: 22px; height: 0; border-top: 3px solid var(--ddp-color-accent); }
+  .ccg-key-ghost { border-top: 2px dashed #9a9aa5; }
+  .ccg-key-k { border-top: 2px dashed #e57200; }
+  .ccg-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.45rem 0; }
+  .ccg-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 7.5em; }
+  .ccg-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.4rem 0.8rem; cursor: pointer; }
+  .ccg-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ccg-go { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); font-weight: 700; }
+  .ccg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .ccg-btn:focus-visible, .ccg-slabel input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ccg-sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ccg-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ccg-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .ccg-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ccg-slabel input { accent-color: var(--ddp-color-accent); min-height: 44px; width: 100%; }
+  .ccg-slabel input:disabled { opacity: 0.45; }
+  .ccg-hint { margin: 0.2rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ccg-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ccg-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ccg-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ccg-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .ccg-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .ccg-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ccg-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

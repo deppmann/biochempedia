@@ -1,0 +1,380 @@
+---
+/**
+ * GeneToProductBuilder — high school Biology, "Engineering Genes". The learner picks a
+ * restriction enzyme for the plasmid and one for the gene, joins the pieces with ligase,
+ * puts the plasmids into bacteria, selects with an antibiotic, and checks DNA sizes on a
+ * gel panel. Matching ends can be sealed by ligase; different enzymes leave ends that do
+ * not match. Chance steps (which plasmids take the gene, which bacteria take one up) are
+ * drawn at random with the expected value shown beside the observed one. A sketch of the
+ * logic with made-up sizes and rates, drawn only as labelled blocks. Original.
+ */
+---
+
+<figure class="gp card" data-gp>
+  <figcaption class="gp-head">Gene-to-product builder<span class="gp-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="gp-pick">
+    <fieldset class="gp-set" data-set="plasmid">
+      <legend>1. Cut the plasmid with</legend>
+      <label class="gp-opt"><input type="radio" value="A" checked /><span>Enzyme A</span></label>
+      <label class="gp-opt"><input type="radio" value="B" /><span>Enzyme B</span></label>
+    </fieldset>
+    <fieldset class="gp-set" data-set="gene">
+      <legend>Cut the gene out with</legend>
+      <label class="gp-opt"><input type="radio" value="A" checked /><span>Enzyme A</span></label>
+      <label class="gp-opt"><input type="radio" value="B" /><span>Enzyme B</span></label>
+    </fieldset>
+  </div>
+
+  <svg class="gp-svg" data-cut role="img" aria-label="The plasmid and the gene piece after cutting, and what ligase makes from them"></svg>
+
+  <div class="gp-actions">
+    <button type="button" class="gp-btn gp-main" data-next>Step 2: Join with ligase</button>
+    <button type="button" class="gp-btn" data-resample>Resample</button>
+    <button type="button" class="gp-btn" data-reset>Reset</button>
+  </div>
+  <p class="gp-status" data-status role="status"></p>
+
+  <div class="gp-plate" data-plate hidden>
+    <svg class="gp-svg" data-plate-svg role="img" aria-label="A plate of 100 bacteria, each drawn as a labelled block: some carry the gene, some an empty plasmid, some no plasmid"></svg>
+  </div>
+
+  <dl class="gp-read" data-read>
+    <div data-row="tube" hidden><dt>Plasmids carrying the gene (of 40)</dt><dd data-v="tube"></dd></div>
+    <div data-row="took" hidden><dt>Bacteria that took up a plasmid (of 100)</dt><dd data-v="took"></dd></div>
+    <div data-row="gene3" hidden><dt>Bacteria carrying the gene (of 100)</dt><dd data-v="gene3"></dd></div>
+    <div data-row="colonies" hidden><dt>Colonies after the antibiotic</dt><dd data-v="colonies"></dd></div>
+    <div data-row="gene4" hidden><dt>Colonies carrying the gene</dt><dd data-v="gene4"></dd></div>
+  </dl>
+
+  <div class="gp-gelbox">
+    <p class="gp-sub">Gel panel: pick the lanes to load</p>
+    <div class="gp-lanes">
+      <label class="gp-chk"><input type="checkbox" data-lane="plasmid" checked /><span>Plasmid, no gene (3,000)</span></label>
+      <label class="gp-chk"><input type="checkbox" data-lane="gene" checked /><span>Gene piece (700)</span></label>
+      <label class="gp-chk"><input type="checkbox" data-lane="tube" disabled /><span>Tube from step 2</span></label>
+    </div>
+    <svg class="gp-svg" data-gel role="img" aria-label="A gel with a ladder of known sizes and the lanes you loaded; shorter pieces travel farther from the wells"></svg>
+    <p class="gp-status" data-gelstatus role="status"></p>
+    <ul class="gp-list" data-reading></ul>
+  </div>
+
+  <p class="gp-assume">In this sketch: the sizes are made up (sizes in base pairs, gel distances not to scale). Each enzyme cuts at its own sequence, once in the plasmid and on each side of the gene. The tube holds 40 plasmids, and when the ends match each one has a 1 in 2 chance of taking the gene. 1 in 5 of 100 bacteria takes up a plasmid. The antibiotic stops every bacterium without one; on a real plate it leaves mostly those that took one up. Press Resample to redraw the chance steps.</p>
+  <p class="gp-foot">Rule to keep: one enzyme leaves matching ends that ligase can seal, the antibiotic finds bacteria that took up a plasmid, and only a check of the DNA shows which ones carry the gene.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', TEAL = '#0e7c86', COL_A = '#b5560a', COL_B = '#5b3fa8';
+  const PLAS = '#dfe6ee', FAINT = '#b9b9c2', DARK = '#2b2b33';
+  const LADDER = [500, 1000, 2000, 4000];
+  const PLASMID_BP = 3000, GENE_BP = 700;
+  const N_TUBE = 40, N_BACT = 100, P_GENE = 0.5, P_TAKE = 0.2;
+  type Enz = 'A' | 'B';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('GeneToProductBuilder: missing ' + sel);
+    return e;
+  }
+  function fmt(n: number): string {
+    const s = String(Math.round(n));
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  const enzColor = (e: Enz) => (e === 'A' ? COL_A : COL_B);
+
+  document.querySelectorAll<HTMLElement>('[data-gp]').forEach((root, idx) => {
+    const cutSvg = need<SVGSVGElement>(root, '[data-cut]');
+    const plateBox = need<HTMLElement>(root, '[data-plate]');
+    const plateSvg = need<SVGSVGElement>(root, '[data-plate-svg]');
+    const gelSvg = need<SVGSVGElement>(root, '[data-gel]');
+    const status = need<HTMLElement>(root, '[data-status]');
+    const gelStatus = need<HTMLElement>(root, '[data-gelstatus]');
+    const reading = need<HTMLElement>(root, '[data-reading]');
+    const nextBtn = need<HTMLButtonElement>(root, '[data-next]');
+    const resampleBtn = need<HTMLButtonElement>(root, '[data-resample]');
+    const resetBtn = need<HTMLButtonElement>(root, '[data-reset]');
+    const laneP = need<HTMLInputElement>(root, '[data-lane="plasmid"]');
+    const laneG = need<HTMLInputElement>(root, '[data-lane="gene"]');
+    const laneT = need<HTMLInputElement>(root, '[data-lane="tube"]');
+    const setP = need<HTMLElement>(root, '[data-set="plasmid"]');
+    const setG = need<HTMLElement>(root, '[data-set="gene"]');
+    const radiosP = Array.from(setP.querySelectorAll<HTMLInputElement>('input[type=radio]'));
+    const radiosG = Array.from(setG.querySelectorAll<HTMLInputElement>('input[type=radio]'));
+    radiosP.forEach((r) => { r.name = `gp${idx}-plasmid`; });
+    radiosG.forEach((r) => { r.name = `gp${idx}-gene`; });
+    const rows: Record<string, { row: HTMLElement; v: HTMLElement }> = {};
+    ['tube', 'took', 'gene3', 'colonies', 'gene4'].forEach((k) => {
+      rows[k] = { row: need<HTMLElement>(root, `[data-row="${k}"]`), v: need<HTMLElement>(root, `[data-v="${k}"]`) };
+    });
+
+    let stage = 1; // 1 cut, 2 joined, 3 in bacteria, 4 selected
+    let uL: number[] = [], uT: number[] = [], uP: number[] = [];
+    function redraw() {
+      uL = Array.from({ length: N_TUBE }, () => Math.random());
+      uT = Array.from({ length: N_BACT }, () => Math.random());
+      uP = Array.from({ length: N_BACT }, () => Math.random());
+    }
+    redraw();
+
+    const pEnz = (): Enz => (radiosP.find((r) => r.checked)?.value === 'B' ? 'B' : 'A');
+    const gEnz = (): Enz => (radiosG.find((r) => r.checked)?.value === 'B' ? 'B' : 'A');
+
+    function txt(svg: SVGElement, x: number, y: number, s: string, opts: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': 12, fill: INK, ...opts });
+      t.textContent = s;
+      svg.appendChild(t);
+    }
+    function block(svg: SVGElement, x: number, y: number, w: number, h: number, fill: string, caps?: [Enz, Enz]) {
+      svg.appendChild(el('rect', { x, y, width: w, height: h, rx: 3, fill, stroke: INK, 'stroke-width': 1 }));
+      if (caps) {
+        caps.forEach((c, i) => {
+          const cx = i === 0 ? x : x + w - 14;
+          svg.appendChild(el('rect', { x: cx, y, width: 14, height: h, rx: 3, fill: enzColor(c), stroke: INK, 'stroke-width': 1 }));
+          txt(svg, cx + 7, y + h - 6, c, { 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' });
+        });
+      }
+    }
+
+    function model() {
+      const p = pEnz(), g = gEnz();
+      const match = p === g;
+      const rec = uL.map((u) => match && u < P_GENE);
+      const nRec = rec.filter(Boolean).length;
+      const kinds: Array<'gene' | 'empty' | 'none'> = uT.map((u, j) => {
+        if (u >= P_TAKE) return 'none';
+        return rec[Math.floor(uP[j] * N_TUBE) % N_TUBE] ? 'gene' : 'empty';
+      });
+      const took = kinds.filter((k) => k !== 'none').length;
+      const gene3 = kinds.filter((k) => k === 'gene').length;
+      return { p, g, match, rec, nRec, kinds, took, gene3 };
+    }
+
+    function drawCut(m: ReturnType<typeof model>) {
+      const k = 0.07;
+      cutSvg.replaceChildren();
+      cutSvg.setAttribute('viewBox', stage >= 2 ? '0 0 360 266' : '0 0 360 116');
+      txt(cutSvg, 20, 16, `Plasmid, cut open by enzyme ${m.p}: 3,000 base pairs`);
+      block(cutSvg, 20, 24, PLASMID_BP * k, 22, PLAS, [m.p, m.p]);
+      txt(cutSvg, 20 + (PLASMID_BP * k) / 2, 40, 'plasmid', { 'text-anchor': 'middle' });
+      txt(cutSvg, 20, 70, `Gene piece, cut out by enzyme ${m.g}: 700 base pairs`);
+      block(cutSvg, 20, 78, GENE_BP * k, 22, '#cfe9ec', [m.g, m.g]);
+      if (stage < 2) return;
+      if (m.match) {
+        txt(cutSvg, 20, 124, 'Joined by ligase (the ends match):');
+        txt(cutSvg, 20, 140, 'recombinant plasmid, 3,700 base pairs');
+        const x0 = 20, half = 1500 * k, gw = GENE_BP * k;
+        cutSvg.appendChild(el('rect', { x: x0, y: 148, width: half, height: 22, fill: PLAS }));
+        cutSvg.appendChild(el('rect', { x: x0 + half, y: 148, width: gw, height: 22, fill: TEAL }));
+        cutSvg.appendChild(el('rect', { x: x0 + half + gw, y: 148, width: half, height: 22, fill: PLAS }));
+        cutSvg.appendChild(el('rect', { x: x0, y: 148, width: 2 * half + gw, height: 22, rx: 4, fill: 'none', stroke: INK, 'stroke-width': 1.5 }));
+        txt(cutSvg, x0 + half / 2, 164, 'plasmid', { 'text-anchor': 'middle' });
+        txt(cutSvg, x0 + half + gw / 2, 164, 'gene', { 'text-anchor': 'middle', fill: '#fff', 'font-weight': 700 });
+        txt(cutSvg, x0 + half + gw + half / 2, 164, 'plasmid', { 'text-anchor': 'middle' });
+      } else {
+        txt(cutSvg, 20, 124, `Ends ${m.p} and ${m.g} do not match, so ligase`);
+        txt(cutSvg, 20, 140, 'cannot join the gene. The plasmid closes up empty.');
+        cutSvg.appendChild(el('rect', { x: 20, y: 148, width: PLASMID_BP * k, height: 22, rx: 4, fill: PLAS, stroke: INK, 'stroke-width': 1.5 }));
+        txt(cutSvg, 20 + (PLASMID_BP * k) / 2, 164, 'closed plasmid, no gene', { 'text-anchor': 'middle' });
+      }
+      txt(cutSvg, 20, 196, `The ${N_TUBE} plasmids in the tube, one block each:`);
+      const order = [...m.rec].sort((a, b) => Number(b) - Number(a));
+      order.forEach((isGene, i) => {
+        cutSvg.appendChild(el('rect', { x: 20 + i * 8, y: 204, width: 7, height: 18, fill: isGene ? TEAL : '#fff', stroke: INK, 'stroke-width': 1 }));
+      });
+      const eTube = m.match ? N_TUBE * P_GENE : 0;
+      txt(cutSvg, 20, 242, `Teal: carries the gene, ${m.nRec} (expected ${eTube})`);
+      txt(cutSvg, 20, 258, `White: closed up empty, ${N_TUBE - m.nRec} (expected ${N_TUBE - eTube})`);
+    }
+
+    function cellMark(svg: SVGElement, x: number, y: number, kind: 'gene' | 'empty' | 'none', faded: boolean) {
+      svg.appendChild(el('rect', {
+        x, y, width: 20, height: 16, rx: 6, fill: '#fff',
+        stroke: kind === 'none' ? FAINT : INK, 'stroke-width': 1.2,
+        ...(faded ? { 'stroke-dasharray': '3 2', opacity: 0.35 } : {}),
+      }));
+      if (kind === 'gene') svg.appendChild(el('rect', { x: x + 5, y: y + 5, width: 10, height: 6, rx: 2, fill: TEAL }));
+      if (kind === 'empty') svg.appendChild(el('rect', { x: x + 5, y: y + 5, width: 10, height: 6, rx: 2, fill: 'none', stroke: INK, 'stroke-width': 1 }));
+    }
+
+    function drawPlate(m: ReturnType<typeof model>) {
+      plateSvg.replaceChildren();
+      const sel = stage >= 4;
+      plateSvg.setAttribute('viewBox', '0 0 360 256');
+      const colonies = m.took;
+      txt(plateSvg, 10, 16, sel ? `After the antibiotic: ${colonies} colonies grow` : 'Plate before the antibiotic: 100 bacteria', { 'font-weight': 700 });
+      m.kinds.forEach((kind, j) => {
+        const x = 10 + (j % 10) * 22, y = 30 + Math.floor(j / 10) * 22;
+        cellMark(plateSvg, x, y, kind, sel && kind === 'none');
+      });
+      const items: Array<['gene' | 'empty' | 'none', string, boolean]> = [
+        ['gene', 'carries gene', false],
+        ['empty', 'empty plasmid', false],
+        ['none', sel ? 'stopped' : 'no plasmid', sel],
+      ];
+      items.forEach(([kind, label, faded], i) => {
+        const y = 40 + i * 30;
+        cellMark(plateSvg, 240, y, kind, faded);
+        txt(plateSvg, 266, y + 12, label);
+      });
+    }
+
+    function setRow(key: string, show: boolean, text: string) {
+      rows[key].row.hidden = !show;
+      rows[key].v.textContent = text;
+    }
+
+    function drawGel(m: ReturnType<typeof model>) {
+      gelSvg.replaceChildren();
+      gelSvg.setAttribute('viewBox', '0 0 360 270');
+      const H = 190, Y0 = 40;
+      const yOf = (s: number) => Y0 + H * (1 - Math.log(s / 300) / Math.log(8000 / 300));
+      const centers = [100, 168, 236, 304];
+      gelSvg.appendChild(el('rect', { x: 66, y: 24, width: 272, height: 212, fill: '#f4f7fa', stroke: INK, 'stroke-width': 1 }));
+      txt(gelSvg, 66, 14, 'wells, negative (−) end');
+      LADDER.forEach((s) => {
+        const y = yOf(s);
+        gelSvg.appendChild(el('line', { x1: 66, y1: y, x2: 338, y2: y, stroke: FAINT, 'stroke-width': 0.8, 'stroke-dasharray': '3 3' }));
+        txt(gelSvg, 62, y + 4, fmt(s), { 'text-anchor': 'end', fill: INK });
+      });
+      const names = ['ladder', 'plasmid', 'gene', 'tube'];
+      const loaded = [true, laneP.checked, laneG.checked, laneT.checked && stage >= 2];
+      names.forEach((nm, i) => {
+        const c = centers[i];
+        gelSvg.appendChild(el('rect', { x: c - 22, y: 28, width: 44, height: 6, fill: loaded[i] ? DARK : 'none', stroke: INK, 'stroke-width': 1, ...(loaded[i] ? {} : { 'stroke-dasharray': '3 2' }) }));
+        txt(gelSvg, c, 252, nm, { 'text-anchor': 'middle' });
+      });
+      const band = (c: number, s: number, col: string) => {
+        gelSvg.appendChild(el('rect', { x: c - 22, y: yOf(s) - 2.5, width: 44, height: 5, fill: col }));
+      };
+      LADDER.forEach((s) => band(centers[0], s, '#7a7a85'));
+      const items: Array<{ lane: string; label: string; size: number }> = [];
+      if (loaded[1]) { band(centers[1], PLASMID_BP, DARK); items.push({ lane: 'plasmid lane', label: 'plasmid with no gene', size: PLASMID_BP }); }
+      if (loaded[2]) { band(centers[2], GENE_BP, DARK); items.push({ lane: 'gene lane', label: 'gene piece', size: GENE_BP }); }
+      const nEmpty = N_TUBE - m.nRec;
+      if (loaded[3]) {
+        if (nEmpty > 0) { band(centers[3], PLASMID_BP, DARK); items.push({ lane: 'tube lane', label: 'plasmid with no gene', size: PLASMID_BP }); }
+        if (m.nRec > 0) { band(centers[3], PLASMID_BP + GENE_BP, TEAL); items.push({ lane: 'tube lane', label: 'joined plasmid with the gene', size: PLASMID_BP + GENE_BP }); }
+      }
+      txt(gelSvg, 202, 268, 'positive (+) end', { 'text-anchor': 'middle' });
+
+      reading.replaceChildren();
+      const between = (s: number) => {
+        const lo = [...LADDER].filter((x) => x <= s).pop();
+        const hi = LADDER.find((x) => x > s);
+        if (lo === undefined) return `below the ${fmt(LADDER[0])} ladder band`;
+        if (hi === undefined) return `above the ${fmt(LADDER[LADDER.length - 1])} ladder band`;
+        return `between the ${fmt(lo)} and ${fmt(hi)} ladder bands`;
+      };
+      items.forEach((it) => {
+        const li = document.createElement('li');
+        li.textContent = `${it.lane[0].toUpperCase() + it.lane.slice(1)}: the ${it.label} (${fmt(it.size)} base pairs) sits ${between(it.size)}.`;
+        reading.appendChild(li);
+      });
+
+      let s = '';
+      if (loaded[3] && loaded[1] && m.nRec > 0 && nEmpty > 0) {
+        s = 'In this sketch the tube shows two bands. The 3,700 base pair joined plasmid sits nearer the wells than the 3,000 base pair plasmid with no gene.';
+      } else if (loaded[3] && m.nRec === 0) {
+        s = 'In this sketch the tube shows one band at 3,000 base pairs, the same as the plasmid with no gene. No plasmid carries the gene.';
+      } else if (loaded[3] && nEmpty === 0) {
+        s = 'In this sketch the tube shows one band at 3,700 base pairs, longer than the plasmid with no gene, so it sits nearer the wells.';
+      } else if (loaded[1] && loaded[2]) {
+        s = 'In this sketch the 700 base pair gene piece travelled farther than the 3,000 base pair plasmid. Shorter pieces slip through the gel faster.';
+      } else if (items.length === 0) {
+        s = 'Only the ladder is loaded. Load a lane to see where its band sits.';
+      } else {
+        s = 'DNA is pulled toward the positive end. In this sketch, longer pieces stay nearer the wells; shorter pieces travel farther.';
+      }
+      gelStatus.textContent = s + ' A gel shows size only; reading the DNA sequence would confirm the piece.';
+    }
+
+    function statusText(m: ReturnType<typeof model>): string {
+      const eGene = m.match ? N_BACT * P_TAKE * P_GENE : 0;
+      if (stage === 1) {
+        return m.match
+          ? `Both pieces are cut with enzyme ${m.p}, so their ends match. In this sketch, ligase can join the gene to the plasmid.`
+          : `The plasmid has enzyme ${m.p} ends and the gene has enzyme ${m.g} ends. These ends do not match, so ligase cannot join the gene to the plasmid.`;
+      }
+      if (stage === 2) {
+        return m.match
+          ? `In this sketch, ligase sealed matching ends: ${m.nRec} of ${N_TUBE} plasmids carry the gene (expected ${N_TUBE * P_GENE}). The rest closed up empty.`
+          : `Ends do not match, so ligase cannot join the gene. In this sketch, ${m.nRec} of ${N_TUBE} plasmids carry it (expected 0).`;
+      }
+      if (stage === 3) {
+        const tail = m.gene3 === 0 ? ' No bacterium carries the gene this time.' : '';
+        return `In this sketch, ${m.took} of ${N_BACT} bacteria took up a plasmid (expected ${N_BACT * P_TAKE}). Only ${m.gene3} carry the gene (expected ${eGene}).${tail}`;
+      }
+      if (m.took === 0) return 'In this sketch no bacterium took up a plasmid this time, so no colony grows. Press Resample.';
+      return `In this sketch the antibiotic leaves ${m.took} colonies. ${m.gene3} carry the gene (expected ${eGene} of ${N_BACT * P_TAKE}); the others carry an empty plasmid. Carrying the gene does not guarantee the cell makes its protein.`;
+    }
+
+    function render() {
+      const m = model();
+      drawCut(m);
+      plateBox.hidden = stage < 3;
+      if (stage >= 3) drawPlate(m);
+      const eGene = m.match ? N_BACT * P_TAKE * P_GENE : 0;
+      setRow('tube', stage >= 2, `${m.nRec} observed · ${m.match ? N_TUBE * P_GENE : 0} expected`);
+      setRow('took', stage >= 3, `${m.took} observed · ${N_BACT * P_TAKE} expected`);
+      setRow('gene3', stage >= 3, `${m.gene3} observed · ${eGene} expected`);
+      setRow('colonies', stage >= 4, `${m.took} observed · ${N_BACT * P_TAKE} expected`);
+      setRow('gene4', stage >= 4, `${m.gene3} of ${m.took} observed · ${eGene} of ${N_BACT * P_TAKE} expected`);
+      laneT.disabled = stage < 2;
+      if (stage < 2) laneT.checked = false;
+      drawGel(m);
+      status.textContent = statusText(m);
+      const labels = ['', 'Step 2: Join with ligase', 'Step 3: Put plasmids into bacteria', 'Step 4: Select with the antibiotic', 'All steps done'];
+      nextBtn.textContent = labels[stage];
+      nextBtn.disabled = stage >= 4;
+    }
+
+    nextBtn.addEventListener('click', () => { if (stage < 4) { stage += 1; if (stage === 2) laneT.checked = true; render(); } });
+    resampleBtn.addEventListener('click', () => { redraw(); render(); });
+    resetBtn.addEventListener('click', () => {
+      stage = 1; redraw();
+      radiosP.forEach((r) => { r.checked = r.value === 'A'; });
+      radiosG.forEach((r) => { r.checked = r.value === 'A'; });
+      laneP.checked = true; laneG.checked = true; laneT.checked = false;
+      render();
+    });
+    [...radiosP, ...radiosG].forEach((r) => r.addEventListener('change', () => { stage = 1; redraw(); render(); }));
+    [laneP, laneG, laneT].forEach((c) => c.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .gp { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gp [hidden] { display: none !important; }
+  .gp-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gp-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gp-pick { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  .gp-set { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.5rem; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .gp-set legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .gp-opt, .gp-chk { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .gp-opt input, .gp-chk input { accent-color: var(--ddp-color-accent); width: 20px; height: 20px; flex: none; }
+  .gp-svg { display: block; width: 100%; max-width: 440px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gp-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: var(--ddp-space-2) 0; }
+  .gp-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.4rem 0.9rem; cursor: pointer; }
+  .gp-btn.gp-main { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .gp-btn:disabled { opacity: 0.55; cursor: default; }
+  .gp-btn:focus-visible, .gp-opt input:focus-visible, .gp-chk input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .gp-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 3em; }
+  .gp-read { display: grid; grid-template-columns: 1fr; gap: 0.3rem; margin: var(--ddp-space-2) 0; }
+  .gp-read div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.2rem 1rem; padding: 0.3rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gp-read dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gp-read dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-primary); }
+  .gp-gelbox { margin-top: var(--ddp-space-3); border-top: 1px solid var(--ddp-color-line); padding-top: var(--ddp-space-3); }
+  .gp-sub { margin: 0 0 var(--ddp-space-2); font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .gp-lanes { display: flex; flex-wrap: wrap; gap: 0 1.2rem; margin-bottom: var(--ddp-space-2); }
+  .gp-list { margin: 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .gp-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .gp-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .gp-pick { grid-template-columns: 1fr; } }
+</style>

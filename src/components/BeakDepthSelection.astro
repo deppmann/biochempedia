@@ -1,0 +1,685 @@
+---
+/**
+ * BeakDepthSelection — two tabs. (1) A finch population with a spread of beak depths goes through
+ * generations on small soft seeds or large hard seeds; survivors breed; young inherit beak depth
+ * with some variation; histograms show the mean. (2) A river splits one population in two and the
+ * two sides change on their own until they can no longer interbreed.
+ * A sketch of the lesson's logic, not a measurement. Self-contained Astro island. Original.
+ */
+---
+
+<figure class="bds card" data-bds>
+  <figcaption class="bds-head">Selection on beak depth, and a river that splits a population<span class="bds-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="bds-tabs" role="tablist" aria-label="Choose a model">
+    <button type="button" class="bds-tab" role="tab" id="bds-tab-a" aria-controls="bds-panel-a" aria-selected="true" data-tab="a">1. Seeds and beak depth</button>
+    <button type="button" class="bds-tab" role="tab" id="bds-tab-b" aria-controls="bds-panel-b" aria-selected="false" tabindex="-1" data-tab="b">2. A river splits a population</button>
+  </div>
+
+  <!-- TAB 1 -->
+  <div class="bds-panel" role="tabpanel" id="bds-panel-a" aria-labelledby="bds-tab-a" data-panel="a">
+    <svg class="bds-svg" viewBox="0 0 360 250" role="img" aria-label="Histogram of beak depth in millimeters for the finches" data-hist></svg>
+    <ul class="bds-legend" aria-label="Key to the histogram">
+      <li><span class="bds-key bds-key-bar"></span>this generation (number of birds)</li>
+      <li><span class="bds-key bds-key-start"></span>generation 0, the start</li>
+      <li><span class="bds-key bds-key-now"></span>mean now</li>
+      <li><span class="bds-key bds-key-mean0"></span>mean at the start</li>
+      <li><span class="bds-key bds-key-surv"></span>chance of surviving (sketch rule, right axis)</li>
+    </ul>
+
+    <svg class="bds-svg bds-svg-trace" viewBox="0 0 360 190" role="img" aria-label="Mean beak depth against generation" data-trace></svg>
+    <ul class="bds-legend" aria-label="Key to the mean graph">
+      <li><span class="bds-dot bds-dot-soft"></span>generation sorted by small soft seeds</li>
+      <li><span class="bds-sq bds-sq-hard"></span>generation sorted by large hard seeds</li>
+    </ul>
+
+    <div class="bds-row" role="group" aria-label="Seed supply">
+      <span class="bds-label">Seed supply</span>
+      <button type="button" class="bds-btn" data-seed="soft" aria-pressed="true">Mostly small soft seeds</button>
+      <button type="button" class="bds-btn" data-seed="hard" aria-pressed="false">Only large hard seeds</button>
+    </div>
+    <div class="bds-row" role="group" aria-label="Starting population">
+      <span class="bds-label">Starting birds</span>
+      <button type="button" class="bds-btn" data-start="spread" aria-pressed="true">A spread of beak depths</button>
+      <button type="button" class="bds-btn" data-start="same" aria-pressed="false">All the same beak depth</button>
+    </div>
+    <div class="bds-row">
+      <button type="button" class="bds-btn bds-go" data-run="1">Run 1 generation</button>
+      <button type="button" class="bds-btn bds-go" data-run="5">Run 5 generations</button>
+      <button type="button" class="bds-btn" data-resample>Resample last generation</button>
+      <button type="button" class="bds-btn" data-reset="a">Reset</button>
+    </div>
+
+    <table class="bds-table" aria-label="Expected and observed values for the last generation">
+      <thead><tr><th scope="col">Last generation</th><th scope="col">Expected</th><th scope="col">Observed</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Birds that survive (of 200)</th><td data-a-es>–</td><td data-a-os>–</td></tr>
+        <tr><th scope="row">Mean beak depth of survivors (mm)</th><td data-a-em>–</td><td data-a-om>–</td></tr>
+        <tr><th scope="row">Mean beak depth of their young (mm)</th><td data-a-en>–</td><td data-a-on>–</td></tr>
+      </tbody>
+    </table>
+    <dl class="bds-readout">
+      <div><dt>Generation</dt><dd data-a-gen>0</dd></div>
+      <div><dt>Mean beak depth at the start (mm)</dt><dd data-a-m0>about 9.2</dd></div>
+      <div><dt>Mean beak depth now (mm)</dt><dd data-a-mnow>about 9.2</dd></div>
+    </dl>
+    <p class="bds-why" data-a-why role="status"></p>
+    <p class="bds-assume">Assumptions in this sketch: 200 finches. The starting mean beak depth, about 9.2 mm, is the lesson’s mean for adults before the drought (from a separate Open University summary); the spread of 0.8 mm is a sketch value. With large hard seeds, the chance of surviving rises with beak depth along an S-shaped curve that is not fitted to the lesson’s sample (survivors 9.67 mm, nonsurvivors 9.11 mm) (centred at 9.4 mm, a sketch value). With small soft seeds, every bird has the same chance, 50%. Survivors pair at random. Each young bird gets the average of its two parents plus a random amount, and the group is refilled to 200. The random amounts are sketch values. Expected values come from the rule; observed values come from the random draws.</p>
+  </div>
+
+  <!-- TAB 2 -->
+  <div class="bds-panel" role="tabpanel" id="bds-panel-b" aria-labelledby="bds-tab-b" data-panel="b" hidden>
+    <svg class="bds-svg" viewBox="0 0 360 140" role="img" aria-label="Two groups of one species on either side of a river" data-scene></svg>
+    <svg class="bds-svg bds-svg-trace" viewBox="0 0 360 230" role="img" aria-label="Trait of each group against generation, in relative units" data-plot></svg>
+    <ul class="bds-legend" aria-label="Key to the graph">
+      <li><span class="bds-key bds-key-left"></span>left group’s trait</li>
+      <li><span class="bds-key bds-key-right"></span>right group’s trait</li>
+      <li><span class="bds-key bds-key-gap"></span>gap between the groups</li>
+    </ul>
+
+    <div class="bds-row" role="group" aria-label="Conditions on the two sides">
+      <span class="bds-label">Conditions</span>
+      <button type="button" class="bds-btn" data-cond="same" aria-pressed="false">Same on both sides</button>
+      <button type="button" class="bds-btn" data-cond="diff" aria-pressed="true">Different on each side</button>
+    </div>
+    <div class="bds-row">
+      <button type="button" class="bds-btn bds-go" data-brun="10">Run 10 generations</button>
+      <button type="button" class="bds-btn" data-brun="1">Run 1 generation</button>
+      <button type="button" class="bds-btn" data-bridge>Take the river away</button>
+      <button type="button" class="bds-btn" data-bresample>Resample the chance changes</button>
+      <button type="button" class="bds-btn" data-reset="b">Reset</button>
+    </div>
+
+    <table class="bds-table" aria-label="Expected and observed gap between the groups">
+      <thead><tr><th scope="col">Now</th><th scope="col">Expected</th><th scope="col">Observed</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Gap between the groups (relative units)</th><td data-b-eg>0</td><td data-b-og>0</td></tr>
+        <tr><th scope="row">In this sketch, a cross between the sides gives fertile young</th><td>–</td><td data-b-oc>100%</td></tr>
+      </tbody>
+    </table>
+    <dl class="bds-readout">
+      <div><dt>Generation</dt><dd data-b-gen>0</dd></div>
+      <div><dt>River</dt><dd data-b-river>between the groups</dd></div>
+    </dl>
+    <p class="bds-why" data-b-why role="status"></p>
+    <p class="bds-assume">Assumptions in this sketch: all numbers are relative units, and time is counted in generations of the sketch, not years. Both groups start with the same trait. Each generation, each group’s trait changes by a random amount (different mutations and chance). With different conditions, each side also gets a steady push in its own direction, 0.6 relative units per generation, so the expected gap grows by 1.2 per generation. The chance that a cross between the sides gives fertile young falls in a straight line as the gap grows, and reaches zero at a gap of 24. Once the river is gone, this sketch follows only the mixing of the groups. The size of the steps is a sketch value, not a measurement of any real animal. Real speciation is usually slow; the number of generations here is a sketch value, not a prediction.</p>
+  </div>
+
+  <p class="bds-foot">Selection sorts inherited differences that are already there, so a trait that helps birds leave more young becomes more common; separated groups that change in different ways may stop being able to interbreed, but separation alone is not speciation.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#9a9aa5', GRID = '#e3e3e8', RIVER = '#bcd9ee';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(parent: SVGElement, s: string, attrs: Record<string, string | number>) {
+    const t = el('text', Object.assign({ 'font-size': 12, fill: INK }, attrs));
+    t.textContent = s;
+    parent.appendChild(t);
+  }
+  function gauss(): number {
+    let u = 0;
+    while (u === 0) u = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+  }
+  // inverse normal (Acklam), for a fixed, repeatable starting population
+  function nq(p: number): number {
+    const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+    const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+    const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+    const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+    const pl = 0.02425;
+    if (p < pl) {
+      const q = Math.sqrt(-2 * Math.log(p));
+      return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    }
+    if (p > 1 - pl) {
+      const q = Math.sqrt(-2 * Math.log(1 - p));
+      return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    }
+    const q = p - 0.5, r = q * q;
+    return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+  }
+  const mean = (a: number[]) => a.reduce((s, v) => s + v, 0) / a.length;
+  const f2 = (x: number) => x.toFixed(2);
+  const f1 = (x: number) => x.toFixed(1);
+  const sgn = (x: number) => (x < 0 ? '−' : '') + Math.abs(x).toFixed(1);
+
+  // ---------- tab 1 constants ----------
+  const NPOP = 200, M0 = 9.2, SD0 = 0.8, MID = 9.4, SCALE = 0.5, SOFT_P = 0.5, MUT = 0.05;
+  const BMIN = 6.5, BMAX = 13, BW = 0.5, NB = Math.round((BMAX - BMIN) / BW);
+  const maxCount = 200;
+  function pSurv(seed: string, d: number): number {
+    return seed === 'hard' ? 1 / (1 + Math.exp(-(d - MID) / SCALE)) : SOFT_P;
+  }
+  type Gen = { pop: number[]; es: number; os: number; em: number; om: number; on: number };
+
+  // ---------- tab 2 constants ----------
+  const PUSH = 0.6, DRIFT = 1.0, THR = 24, MAXG = 80;
+  type Step = { kind: 'grow' | 'mix'; diff: boolean; zl: number; zr: number };
+
+  document.querySelectorAll<HTMLElement>('[data-bds]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('BeakDepthSelection: missing ' + s);
+      return e;
+    };
+    const qa = <T extends Element>(s: string): T[] => Array.from(root.querySelectorAll<T>(s));
+
+    // tabs
+    const tabs = qa<HTMLButtonElement>('[data-tab]');
+    const panels = qa<HTMLElement>('[data-panel]');
+    function showTab(id: string, focus: boolean) {
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+      panels.forEach((p) => { p.hidden = p.dataset.panel !== id; });
+    }
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => showTab(t.dataset.tab ?? 'a', false));
+      t.addEventListener('keydown', (ev) => {
+        let n = -1;
+        if (ev.key === 'ArrowRight') n = (i + 1) % tabs.length;
+        else if (ev.key === 'ArrowLeft') n = (i + tabs.length - 1) % tabs.length;
+        else if (ev.key === 'Home') n = 0;
+        else if (ev.key === 'End') n = tabs.length - 1;
+        if (n >= 0) { ev.preventDefault(); showTab(tabs[n].dataset.tab ?? 'a', true); }
+      });
+    });
+
+    // ================= TAB 1 =================
+    const hist = q<SVGSVGElement>('[data-hist]');
+    const trace = q<SVGSVGElement>('[data-trace]');
+    const seedBtns = qa<HTMLButtonElement>('[data-seed]');
+    const startBtns = qa<HTMLButtonElement>('[data-start]');
+    const run1 = q<HTMLButtonElement>('[data-run="1"]');
+    const run5 = q<HTMLButtonElement>('[data-run="5"]');
+    const bResample = q<HTMLButtonElement>('[data-resample]');
+    const resetA = q<HTMLButtonElement>('[data-reset="a"]');
+    const aEs = q<HTMLElement>('[data-a-es]'), aOs = q<HTMLElement>('[data-a-os]');
+    const aEm = q<HTMLElement>('[data-a-em]'), aOm = q<HTMLElement>('[data-a-om]');
+    const aEn = q<HTMLElement>('[data-a-en]'), aOn = q<HTMLElement>('[data-a-on]');
+    const aGen = q<HTMLElement>('[data-a-gen]'), aM0 = q<HTMLElement>('[data-a-m0]'), aMnow = q<HTMLElement>('[data-a-mnow]');
+    const aWhy = q<HTMLElement>('[data-a-why]');
+
+    let seed = 'soft';
+    let startKind = 'spread';
+    let pop0: number[] = [];
+    let pop: number[] = [];
+    let parents: number[] = [];
+    let T = 0;
+    let means: number[] = [];
+    let seeds: string[] = [];
+    let last: Gen | null = null;
+    let runFrom = 0;
+    let runLen = 0;
+    let resampled = false;
+    const MAXT = 30;
+
+    function segSd(): number { return startKind === 'same' ? 0 : SD0 / Math.SQRT2; }
+    function makeStart(): number[] {
+      const a: number[] = [];
+      for (let i = 0; i < NPOP; i++) a.push(startKind === 'same' ? M0 : M0 + SD0 * nq((i + 0.5) / NPOP));
+      return a;
+    }
+    function oneGen(par: number[], sd: string): Gen | null {
+      const sv: number[] = [];
+      let es = 0, esd = 0;
+      for (const d of par) {
+        const p = pSurv(sd, d);
+        es += p; esd += p * d;
+        if (Math.random() < p) sv.push(d);
+      }
+      if (sv.length < 2) return null;
+      const next: number[] = [];
+      for (let i = 0; i < NPOP; i++) {
+        const x = sv[Math.floor(Math.random() * sv.length)];
+        const y = sv[Math.floor(Math.random() * sv.length)];
+        let d = (x + y) / 2 + gauss() * segSd() + gauss() * MUT;
+        d = Math.min(BMAX - 0.001, Math.max(BMIN, d));
+        next.push(d);
+      }
+      return { pop: next, es, os: sv.length, em: esd / es, om: mean(sv), on: mean(next) };
+    }
+    function resetA_() {
+      pop0 = makeStart();
+      pop = pop0.slice();
+      parents = [];
+      T = 0; means = [mean(pop)]; seeds = []; last = null; runFrom = M0; runLen = 0; resampled = false;
+    }
+    function advance(n: number) {
+      runFrom = mean(pop);
+      runLen = 0;
+      resampled = false;
+      for (let i = 0; i < n && T < MAXT; i++) {
+        const g = oneGen(pop, seed);
+        if (!g) break;
+        parents = pop;
+        pop = g.pop;
+        T++; runLen++;
+        means.push(mean(pop)); seeds.push(seed);
+        last = g;
+      }
+    }
+    function resample() {
+      if (T < 1 || !last) return;
+      const g = oneGen(parents, seeds[T - 1]);
+      if (!g) return;
+      pop = g.pop;
+      means[T] = mean(pop);
+      last = g;
+      resampled = true;
+      runFrom = mean(parents);
+      runLen = 1;
+    }
+
+    function bins(a: number[]): number[] {
+      const c = new Array<number>(NB).fill(0);
+      for (const d of a) {
+        const i = Math.min(NB - 1, Math.max(0, Math.floor((d - BMIN) / BW)));
+        c[i]++;
+      }
+      return c;
+    }
+    function niceTop(v: number): number {
+      for (const m of [20, 40, 60, 80, 100, 150, 200]) if (m >= v * 1.05) return m;
+      return maxCount;
+    }
+
+    function drawHist() {
+      hist.replaceChildren();
+      const X0 = 46, X1 = 318, Y0 = 16, Y1 = 188;
+      const cur = bins(pop), st = bins(pop0);
+      const top = niceTop(Math.max(...cur, ...st));
+      const px = (d: number) => X0 + ((d - BMIN) / (BMAX - BMIN)) * (X1 - X0);
+      const py = (v: number) => Y1 - (v / top) * (Y1 - Y0);
+      for (const f of [0, 0.5, 1]) {
+        const y = py(top * f);
+        hist.appendChild(el('line', { x1: X0, y1: y, x2: X1, y2: y, stroke: GRID, 'stroke-width': 1 }));
+        txt(hist, String(Math.round(top * f)), { x: X0 - 6, y: y + 4, 'text-anchor': 'end' });
+        txt(hist, Math.round(100 * f) + '%', { x: X1 + 5, y: y + 4, 'text-anchor': 'start', fill: ORANGE });
+      }
+      for (let i = 0; i < NB; i++) {
+        const x = px(BMIN + i * BW), w = px(BMIN + (i + 1) * BW) - x;
+        if (cur[i] > 0) hist.appendChild(el('rect', { x: x + 1, y: py(cur[i]), width: Math.max(1, w - 2), height: Y1 - py(cur[i]), fill: ACCENT, opacity: 0.8 }));
+      }
+      for (let i = 0; i < NB; i++) {
+        if (st[i] > 0 && T > 0) {
+          const x = px(BMIN + i * BW), w = px(BMIN + (i + 1) * BW) - x;
+          hist.appendChild(el('rect', { x: x + 1, y: py(st[i]), width: Math.max(1, w - 2), height: Y1 - py(st[i]), fill: 'none', stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+        }
+      }
+      // survival-chance curve (rule for the seeds now chosen)
+      let d = '';
+      for (let k = 0; k <= 60; k++) {
+        const dep = BMIN + (k / 60) * (BMAX - BMIN);
+        const y = Y1 - pSurv(seed, dep) * (Y1 - Y0);
+        d += (k === 0 ? 'M' : 'L') + px(dep).toFixed(1) + ' ' + y.toFixed(1) + ' ';
+      }
+      hist.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ORANGE, 'stroke-width': 2 }));
+      // means
+      const mNow = mean(pop);
+      hist.appendChild(el('line', { x1: px(M0), y1: Y0 - 6, x2: px(M0), y2: Y1, stroke: FAINT, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      hist.appendChild(el('line', { x1: px(mNow), y1: Y0 - 6, x2: px(mNow), y2: Y1, stroke: '#1f1f28', 'stroke-width': 2 }));
+      hist.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      hist.appendChild(el('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (let v = 7; v <= 13; v += 1) {
+        hist.appendChild(el('line', { x1: px(v), y1: Y1, x2: px(v), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        txt(hist, String(v), { x: px(v), y: Y1 + 18, 'text-anchor': 'middle' });
+      }
+      txt(hist, 'Beak depth (mm)', { x: (X0 + X1) / 2, y: 224, 'text-anchor': 'middle' });
+      txt(hist, 'Generation ' + T, { x: (X0 + X1) / 2, y: 242, 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(hist, 'Birds', { x: 12, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${(Y0 + Y1) / 2})` });
+      hist.setAttribute('aria-label',
+        `Histogram of beak depth in millimeters for generation ${T}. The mean is ${f2(mNow)} millimeters; it started at ${f2(M0)}.`);
+    }
+
+    function drawTrace() {
+      trace.replaceChildren();
+      const X0 = 46, X1 = 340, Y0 = 14, Y1 = 142;
+      const D = Math.max(10, Math.ceil(T / 5) * 5);
+      const lo0 = Math.min(...means, M0), hi0 = Math.max(...means, M0);
+      const lo = Math.floor(lo0 - 0.3), hi = Math.max(lo + 2, Math.ceil(hi0 + 0.3));
+      const px = (i: number) => X0 + (i / D) * (X1 - X0);
+      const py = (v: number) => Y1 - ((v - lo) / (hi - lo)) * (Y1 - Y0);
+      const step = hi - lo > 4 ? 2 : 1;
+      for (let v = lo; v <= hi; v += step) {
+        trace.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: GRID, 'stroke-width': 1 }));
+        txt(trace, String(v), { x: X0 - 6, y: py(v) + 4, 'text-anchor': 'end' });
+      }
+      const xs = D <= 10 ? 2 : 5;
+      for (let i = 0; i <= D; i += xs) {
+        trace.appendChild(el('line', { x1: px(i), y1: Y1, x2: px(i), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        txt(trace, String(i), { x: px(i), y: Y1 + 18, 'text-anchor': 'middle' });
+      }
+      trace.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      trace.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      txt(trace, 'Generation', { x: (X0 + X1) / 2, y: 184, 'text-anchor': 'middle' });
+      txt(trace, 'Mean depth (mm)', { x: 12, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${(Y0 + Y1) / 2})` });
+      trace.appendChild(el('line', { x1: X0, y1: py(M0), x2: X1, y2: py(M0), stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+      let dd = '';
+      means.forEach((m, i) => { dd += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(m).toFixed(1) + ' '; });
+      if (means.length > 1) trace.appendChild(el('path', { d: dd.trim(), fill: 'none', stroke: INK, 'stroke-width': 1.5 }));
+      means.forEach((m, i) => {
+        if (i === 0) trace.appendChild(el('circle', { cx: px(i), cy: py(m), r: 4.5, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        else if (seeds[i - 1] === 'hard') trace.appendChild(el('rect', { x: px(i) - 4.5, y: py(m) - 4.5, width: 9, height: 9, fill: ORANGE, stroke: '#fff', 'stroke-width': 1 }));
+        else trace.appendChild(el('circle', { cx: px(i), cy: py(m), r: 4.5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1 }));
+      });
+      trace.setAttribute('aria-label', `Mean beak depth against generation. It is ${f2(means[T])} millimeters at generation ${T}.`);
+    }
+
+    function statusA(): string {
+      const m = mean(pop);
+      const out: string[] = [];
+      const same = startKind === 'same';
+      const used = seeds[T - 1] ?? seed;
+      if (T === 0) {
+        if (same) out.push(`In this sketch, all 200 birds have the same beak depth, about 9.2 mm.`);
+        else out.push(`In this sketch, 200 birds have a spread of beak depths with a mean of about 9.2 mm.`);
+        out.push('Choose a seed supply, then run a generation.');
+        return out.join(' ');
+      }
+      const g = runLen === 1 ? 'the last generation' : `the last ${runLen} generations`;
+      if (resampled) out.push('You resampled: same parents, new random draws. Expected values stayed the same; observed values changed.');
+      if (same && sd(pop) < 0.2) {
+        out.push('In this sketch, the birds are almost all the same, so beak depth cannot sort who survives.');
+        out.push(`The mean stays near ${f2(m)} mm. Selection sorts variation that is already there; mutation makes new variation.`);
+      } else if (used === 'hard') {
+        out.push(`In this sketch, only large hard seeds are left. Birds with deeper beaks survive more often, and their young inherit deeper beaks.`);
+        out.push(`In ${g} the mean moved from ${f2(runFrom)} to ${f2(m)} mm.`);
+        if (same) out.push('Only a little variation from mutation was available to sort.');
+      } else {
+        out.push('In this sketch, small soft seeds give every bird the same chance, so beak depth does not change who survives.');
+        out.push(`In ${g} the mean went from ${f2(runFrom)} to ${f2(m)} mm; only chance moved it.`);
+        if (m - M0 > 0.3) out.push('Nothing here pushes it back. A change lasts unless the environment later favours something else.');
+      }
+      if (T >= MAXT) out.push('This sketch stops at 30 generations. Press Reset to start again.');
+      return out.join(' ');
+    }
+    function sd(a: number[]): number {
+      const mu = mean(a);
+      return Math.sqrt(a.reduce((s, v) => s + (v - mu) * (v - mu), 0) / a.length);
+    }
+
+    function renderA() {
+      seedBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.seed === seed)));
+      startBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.start === startKind)));
+      run1.disabled = T >= MAXT; run5.disabled = T >= MAXT;
+      bResample.disabled = T < 1;
+      const m = mean(pop);
+      aGen.textContent = String(T);
+      aM0.textContent = 'about 9.2';
+      aMnow.textContent = T === 0 ? 'about 9.2' : f2(m);
+      if (last) {
+        aEs.textContent = f1(last.es); aOs.textContent = String(last.os);
+        aEm.textContent = f2(last.em); aOm.textContent = f2(last.om);
+        aEn.textContent = f2(last.em); aOn.textContent = f2(last.on);
+      } else {
+        for (const e of [aEs, aOs, aEm, aOm, aEn, aOn]) e.textContent = '–';
+      }
+      drawHist();
+      drawTrace();
+      aWhy.textContent = statusA();
+    }
+
+    seedBtns.forEach((b) => b.addEventListener('click', () => {
+      seed = b.dataset.seed === 'hard' ? 'hard' : 'soft';
+      resampled = false;
+      renderA();
+    }));
+    startBtns.forEach((b) => b.addEventListener('click', () => {
+      startKind = b.dataset.start === 'same' ? 'same' : 'spread';
+      resetA_();
+      renderA();
+    }));
+    run1.addEventListener('click', () => { advance(1); renderA(); });
+    run5.addEventListener('click', () => { advance(5); renderA(); });
+    bResample.addEventListener('click', () => { resample(); renderA(); });
+    resetA.addEventListener('click', () => { seed = 'soft'; startKind = 'spread'; resetA_(); renderA(); });
+    resetA_();
+    renderA();
+
+    // ================= TAB 2 =================
+    const scene = q<SVGSVGElement>('[data-scene]');
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const condBtns = qa<HTMLButtonElement>('[data-cond]');
+    const bRun10 = q<HTMLButtonElement>('[data-brun="10"]');
+    const bRun1 = q<HTMLButtonElement>('[data-brun="1"]');
+    const bBridge = q<HTMLButtonElement>('[data-bridge]');
+    const bRes = q<HTMLButtonElement>('[data-bresample]');
+    const resetB = q<HTMLButtonElement>('[data-reset="b"]');
+    const bEg = q<HTMLElement>('[data-b-eg]'), bOg = q<HTMLElement>('[data-b-og]'), bOc = q<HTMLElement>('[data-b-oc]');
+    const bGen = q<HTMLElement>('[data-b-gen]'), bRiver = q<HTMLElement>('[data-b-river]');
+    const bWhy = q<HTMLElement>('[data-b-why]');
+
+    let cond = 'diff';
+    let steps: Step[] = [];
+    let riverGone = -1; // index of the first mixing step, or -1
+
+    function traj() {
+      const l = [0], r = [0];
+      let flag = -1;
+      let expGap = 0;
+      steps.forEach((s, i) => {
+        let a = l[i], b = r[i];
+        if (s.kind === 'grow') {
+          a += (s.diff ? -PUSH : 0) + s.zl * DRIFT;
+          b += (s.diff ? PUSH : 0) + s.zr * DRIFT;
+          if (s.diff) expGap += 2 * PUSH;
+        } else {
+          const gap = b - a;
+          const c = Math.max(0, 1 - Math.abs(gap) / THR);
+          a += (c * gap) / 2;
+          b -= (c * gap) / 2;
+        }
+        l.push(a); r.push(b);
+        if (flag < 0 && s.kind === 'grow' && Math.abs(b - a) >= THR) flag = i + 1;
+      });
+      return { l, r, flag, expGap };
+    }
+    function compat(gap: number): number { return Math.max(0, 1 - Math.abs(gap) / THR); }
+    function addSteps(n: number) {
+      for (let i = 0; i < n && steps.length < MAXG; i++) {
+        steps.push({ kind: riverGone >= 0 ? 'mix' : 'grow', diff: cond === 'diff', zl: gauss(), zr: gauss() });
+      }
+    }
+
+    function drawScene(l: number, r: number) {
+      scene.replaceChildren();
+      const gap = r - l, c = compat(gap);
+      const gone = riverGone >= 0;
+      // river
+      if (!gone) scene.appendChild(el('rect', { x: 150, y: 10, width: 60, height: 80, fill: RIVER, stroke: '#7aaed0', 'stroke-width': 1 }));
+      else scene.appendChild(el('rect', { x: 150, y: 10, width: 60, height: 80, fill: 'none', stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+      txt(scene, gone ? 'no river' : 'river', { x: 180, y: 54, 'text-anchor': 'middle', fill: gone ? INK : '#1b4d70', 'font-weight': 700 });
+      // groups
+      scene.appendChild(el('rect', { x: 8, y: 10, width: 132, height: 80, rx: 8, fill: '#e3f2f3', stroke: ACCENT, 'stroke-width': 2 }));
+      scene.appendChild(el('rect', { x: 220, y: 10, width: 132, height: 80, rx: 8, fill: '#fcebd9', stroke: ORANGE, 'stroke-width': 2 }));
+      txt(scene, 'Left group', { x: 74, y: 40, 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(scene, 'trait ' + sgn(l), { x: 74, y: 62, 'text-anchor': 'middle' });
+      txt(scene, 'Right group', { x: 286, y: 40, 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(scene, 'trait ' + sgn(r), { x: 286, y: 62, 'text-anchor': 'middle' });
+      // crossing arrow
+      const dash = c >= 0.999 ? '' : '5 4';
+      scene.appendChild(el('line', { x1: 130, y1: 78, x2: 230, y2: 78, stroke: c > 0 ? ACCENT : FAINT, 'stroke-width': 2.5, 'stroke-dasharray': dash, opacity: c > 0 ? 0.4 + 0.6 * c : 1 }));
+      scene.appendChild(el('polygon', { points: '230,78 222,73 222,83', fill: c > 0 ? ACCENT : FAINT, opacity: c > 0 ? 0.4 + 0.6 * c : 1 }));
+      scene.appendChild(el('polygon', { points: '130,78 138,73 138,83', fill: c > 0 ? ACCENT : FAINT, opacity: c > 0 ? 0.4 + 0.6 * c : 1 }));
+      if (c <= 0) {
+        scene.appendChild(el('line', { x1: 174, y1: 70, x2: 186, y2: 86, stroke: '#b3261e', 'stroke-width': 3 }));
+        scene.appendChild(el('line', { x1: 186, y1: 70, x2: 174, y2: 86, stroke: '#b3261e', 'stroke-width': 3 }));
+      }
+      txt(scene, 'Fertile young from a cross: ' + Math.round(c * 100) + '%', { x: 180, y: 118, 'text-anchor': 'middle', 'font-weight': 700 });
+    }
+
+    function drawPlot(t: { l: number[]; r: number[]; flag: number }) {
+      plot.replaceChildren();
+      const X0 = 50, X1 = 342, Y0 = 44, Y1 = 188;
+      const G = steps.length;
+      const D = Math.max(20, Math.ceil(G / 10) * 10);
+      const ext = Math.max(50, Math.ceil(Math.max(...t.l.map(Math.abs), ...t.r.map(Math.abs)) / 25) * 25);
+      const px = (i: number) => X0 + (i / D) * (X1 - X0);
+      const py = (v: number) => (Y0 + Y1) / 2 - (v / ext) * ((Y1 - Y0) / 2);
+      for (const v of [-ext, 0, ext]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: GRID, 'stroke-width': 1 }));
+        txt(plot, sgn(v).replace('.0', ''), { x: X0 - 6, y: py(v) + 4, 'text-anchor': 'end' });
+      }
+      const xs = D <= 20 ? 5 : 10;
+      for (let i = 0; i <= D; i += xs) {
+        plot.appendChild(el('line', { x1: px(i), y1: Y1, x2: px(i), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        txt(plot, String(i), { x: px(i), y: Y1 + 18, 'text-anchor': 'middle' });
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y0 - 6, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      txt(plot, 'Generation', { x: (X0 + X1) / 2, y: 222, 'text-anchor': 'middle' });
+      txt(plot, 'Trait, relative units', { x: 12, y: (Y0 + Y1) / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${(Y0 + Y1) / 2})` });
+      // gap band
+      if (G > 0) {
+        let top = '', bot = '';
+        for (let i = 0; i <= G; i++) {
+          top += `${px(i).toFixed(1)},${py(Math.max(t.l[i], t.r[i])).toFixed(1)} `;
+        }
+        for (let i = G; i >= 0; i--) {
+          bot += `${px(i).toFixed(1)},${py(Math.min(t.l[i], t.r[i])).toFixed(1)} `;
+        }
+        plot.appendChild(el('polygon', { points: (top + bot).trim(), fill: '#8a8a99', opacity: 0.18 }));
+      }
+      const path = (a: number[], col: string) => {
+        let d = '';
+        a.forEach((v, i) => { d += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(v).toFixed(1) + ' '; });
+        if (a.length === 1) d += `L${px(0) + 0.1} ${py(a[0])}`;
+        plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: col, 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
+      };
+      path(t.l, ACCENT);
+      path(t.r, ORANGE);
+      plot.appendChild(el('circle', { cx: px(G), cy: py(t.l[G]), r: 4.5, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 }));
+      plot.appendChild(el('circle', { cx: px(G), cy: py(t.r[G]), r: 4.5, fill: ORANGE, stroke: '#fff', 'stroke-width': 1.5 }));
+      const lab = (x: number, row: number, s: string) => {
+        const cx = Math.max(60, Math.min(x, 300));
+        plot.appendChild(el('line', { x1: x, y1: 12 + row * 15 + 3, x2: x, y2: Y1, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
+        txt(plot, s, { x: cx, y: 12 + row * 15, 'text-anchor': 'middle', 'font-weight': 700 });
+      };
+      if (riverGone >= 0) lab(px(riverGone), 0, 'river taken away');
+      if (t.flag >= 0) lab(px(t.flag), riverGone >= 0 ? 1 : 0, 'cannot interbreed');
+      plot.setAttribute('aria-label',
+        `Trait of each group against generation, in relative units. At generation ${G} the left group is at ${sgn(t.l[G])} and the right group at ${sgn(t.r[G])}.`);
+    }
+
+    function statusB(t: { l: number[]; r: number[]; flag: number; expGap: number }): string {
+      const G = steps.length;
+      const gap = Math.abs(t.r[G] - t.l[G]);
+      const c = compat(gap);
+      const out: string[] = [];
+      if (G === 0) {
+        return 'In this sketch, a river splits one population into two groups with the same trait. Choose the conditions, then run generations.';
+      }
+      if (riverGone >= 0) {
+        if (steps[G - 1].kind !== 'mix') {
+          out.push(c > 0
+            ? 'In this sketch, the river is gone and the groups can still interbreed, so they will mix. Run generations to see it.'
+            : 'In this sketch, the river is gone, but the groups can no longer interbreed and have fertile young. They stay two species.');
+        } else if (gap < 1) {
+          out.push('In this sketch, the groups could still interbreed, so with the river gone they mixed into one group again.');
+        } else if (c > 0) {
+          out.push(`In this sketch, the groups can still interbreed, so they mix and the gap shrinks to ${f1(gap)} units.`);
+        } else {
+          out.push('In this sketch, the groups cannot interbreed and have fertile young, so even without the river they stay apart.');
+        }
+        return out.join(' ');
+      }
+      if (steps[G - 1].diff) out.push('In this sketch, different traits are favoured on each side, and different mutations arise, so the groups change in different ways.');
+      else out.push('In this sketch, conditions are the same on both sides, so only chance changes each group.');
+      out.push(`The gap is ${f1(gap)} units; the conditions alone are expected to make it ${f1(t.expGap)}.`);
+      if (c <= 0) out.push('The groups can no longer interbreed and have fertile young: speciation has happened in this sketch.');
+      else if (c < 1) out.push(`A cross between the sides still gives fertile young ${Math.round(c * 100)}% of the time.`);
+      else out.push('The groups can still interbreed: separation alone is not speciation.');
+      if (G >= MAXG) out.push('This sketch stops at 80 generations. Press Reset to start again.');
+      return out.join(' ');
+    }
+
+    function renderB() {
+      condBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cond === cond)));
+      const t = traj();
+      const G = steps.length;
+      const gap = Math.abs(t.r[G] - t.l[G]);
+      const c = compat(gap);
+      const gone = riverGone >= 0;
+      const stuck = gone && c <= 0;
+      bRun10.disabled = G >= MAXG || stuck;
+      bRun1.disabled = G >= MAXG || stuck;
+      bBridge.disabled = gone || G < 1;
+      bRes.disabled = G < 1;
+      condBtns.forEach((b) => { b.disabled = gone; });
+      bGen.textContent = String(G);
+      bRiver.textContent = gone ? 'taken away' : 'between the groups';
+      bEg.textContent = gone ? 'not used' : f1(t.expGap);
+      bOg.textContent = f1(gap);
+      bOc.textContent = Math.round(c * 100) + '%';
+      drawScene(t.l[G], t.r[G]);
+      drawPlot(t);
+      bWhy.textContent = statusB(t);
+    }
+
+    condBtns.forEach((b) => b.addEventListener('click', () => { cond = b.dataset.cond === 'same' ? 'same' : 'diff'; renderB(); }));
+    bRun10.addEventListener('click', () => { addSteps(10); renderB(); });
+    bRun1.addEventListener('click', () => { addSteps(1); renderB(); });
+    bBridge.addEventListener('click', () => { if (riverGone < 0 && steps.length > 0) { riverGone = steps.length; } renderB(); });
+    bRes.addEventListener('click', () => {
+      steps.forEach((s) => { s.zl = gauss(); s.zr = gauss(); });
+      renderB();
+    });
+    resetB.addEventListener('click', () => { cond = 'diff'; steps = []; riverGone = -1; renderB(); });
+    renderB();
+  });
+</script>
+
+<style is:global>
+  .bds { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bds-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bds-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bds-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: var(--ddp-space-3); }
+  .bds-tab { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.4rem 0.8rem; cursor: pointer; }
+  .bds-tab[aria-selected="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .bds-panel[hidden] { display: none; }
+  .bds-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bds-svg-trace { margin-top: var(--ddp-space-3); }
+  .bds-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; margin: var(--ddp-space-2) 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bds-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .bds-key { display: inline-block; width: 22px; height: 0; border-top: 3px solid var(--ddp-color-accent); flex: none; }
+  .bds-key-bar { height: 10px; border-top: 0; background: #0e7c86; opacity: 0.8; }
+  .bds-key-start { border-top: 2px dashed #4b4b55; }
+  .bds-key-now { border-top: 3px solid #1f1f28; }
+  .bds-key-mean0 { border-top: 2px dashed #9a9aa5; }
+  .bds-key-surv { border-top: 3px solid #e57200; }
+  .bds-key-left { border-top: 3px solid #0e7c86; }
+  .bds-key-right { border-top: 3px solid #e57200; }
+  .bds-key-gap { height: 10px; border-top: 0; background: #8a8a99; opacity: 0.3; }
+  .bds-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0e7c86; flex: none; }
+  .bds-sq { display: inline-block; width: 10px; height: 10px; background: #e57200; flex: none; }
+  .bds-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.45rem 0; }
+  .bds-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); min-width: 7.5em; }
+  .bds-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.4rem 0.8rem; cursor: pointer; }
+  .bds-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .bds-go { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); font-weight: 700; }
+  .bds-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .bds-btn:focus-visible, .bds-tab:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .bds-table { width: 100%; border-collapse: collapse; margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bds-table th, .bds-table td { text-align: left; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--ddp-color-line); }
+  .bds-table thead th { color: var(--ddp-color-muted); font-weight: 600; }
+  .bds-table tbody th { font-weight: 400; }
+  .bds-table td { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-primary); white-space: nowrap; }
+  .bds-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .bds-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .bds-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bds-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .bds-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .bds-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .bds-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

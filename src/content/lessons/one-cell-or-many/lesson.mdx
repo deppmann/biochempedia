@@ -25,6 +25,15 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.2 c"
   college: ["epithelia", "stem-cells", "cell-state-and-disease"]
 
+explainer:
+  src: "/explainers/one-cell-or-many/explainer.mp4"
+  captions: "/explainers/one-cell-or-many/explainer.vtt"
+  poster: "/explainers/one-cell-or-many/poster.jpg"
+  title: "One Cell Does It All"
+  durationSec: 167.1
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -40,7 +49,7 @@ techniques:
       tail of live human sperm cells.
   - name: "Comparing plants that differ in one feature"
     blurb: >-
-      Scientists grow plant lines that differ in root hair length, check that the main roots are
+      Scientists grow plant lines (genetically different groups) that differ in root hair length, check that the main roots are
       the same size, and then test how well each line holds on to soil. A difference in results
       points to the root hairs.
 
@@ -102,7 +111,7 @@ practiceQuestions:
     rationale: >-
       A long, narrow extension adds a lot of surface in contact with soil, and water and minerals
       enter the root across that surface. Root hairs are underground and do not make food from
-      light. A root hair is part of one epidermal cell, not a tiny root with tissues. The shape
+      light. A root hair is part of one cell on the root surface, not a tiny root with tissues. The shape
       increases contact with soil water; it does not seal water in.
   - stem: "Mature human red blood cells have no nucleus. A student says this proves that every cell in your body has different DNA. What is the best response?"
     choices:
@@ -210,7 +219,7 @@ anecdotes:
     source: "Choi and Cho, Root hairs enhance Arabidopsis seedling survival upon soil disruption, Scientific Reports 9 (2019), doi 10.1038/s41598-019-47733-0."
     text: >-
       Root hairs are usually taught as a way to add surface for water. A 2019 study tested a second
-      job. Researchers compared five lines of the small plant Arabidopsis with different root hair
+      job. Researchers compared five lines (genetically different groups) of the small plant Arabidopsis with different root hair
       lengths, then poured water over seedlings in a tilted soil box to copy rainfall. In the longest-haired line, 76% of the seedlings stayed anchored
       after the water, and in a short-haired line, 15% did. The main roots were about the same size in every
       line, so root hair length is the likely reason.
@@ -220,7 +229,7 @@ corpusTags:
   - "cell specialization"
   - "levels of organization"
   - "gene expression"
-draft: true
+draft: false
 ---
 
 import DivisionOfLabour from '../../../components/DivisionOfLabour.astro';
@@ -229,6 +238,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Put a drop of pond water under a microscope and you may see a Paramecium, a single cell shaped like a slipper, swimming fast.** That one cell catches food, moves, pumps out extra water and splits in two to reproduce. Your body does the same kinds of jobs, but it shares them out among trillions of cells of many different kinds. How can one cell manage alone, and why are your cells so different from one another?
 
@@ -263,7 +274,7 @@ A Paramecium has no tissues or organs, yet its one cell does every job of a livi
 - **Removes extra water.** Pond water has fewer dissolved particles than the cell, so water keeps moving in by osmosis. A **contractile vacuole** is a sac that fills with this extra water and squeezes it out. You met osmosis in [that lesson](/lessons/crossing-the-membrane/).
 - **Reproduces.** It can split into two cells by **binary fission**, a way of reproducing without a partner in which one cell divides into two.
 
-{/* DIAGRAM: a Paramecium with numbered parts: 1 cilia on the surface, 2 oral groove, 3 food vacuole, 4 contractile vacuole, 5 macronucleus and micronucleus */}
+<ScaffoldFigure src="/figures/one-cell-or-many/paramecium-parts.webp" width={1200} height={800} keyItems={["cilia", "oral groove", "food vacuole", "contractile vacuole"]} given={[0, 2]} alt="AI-generated illustration: a slipper-shaped Paramecium fringed with short hairs, with a groove on its lower side, several small round sacs holding specks, a large central nucleus with a small one beside it, and a star-shaped sac near its rear end. Four numbered circles mark parts for the student to name." caption="One Paramecium cell swims, feeds, digests and pumps out extra water with structures of its own. Name the four numbered parts." />
 
 Some organisms sit in between. Volvox, a green alga, lives as a hollow ball of many cells. In Volvox carteri, most cells swim and make food, while a few large cells are set aside for reproduction. Colonies like this show a first step toward division of labor.
 
@@ -277,7 +288,11 @@ In a multicellular organism, cells share the work. A **specialized cell** is a c
 
 A 70-kilogram reference adult man holds about 30 to 36 trillion cells, according to two careful estimates (2016 and 2023); the 2023 model gave about 28 trillion for a reference woman and about 17 trillion for a 10-year-old child. Textbooks often say there are about 200 kinds of cells. A 2022 atlas that sorted cells by the genes they use counted more than 400 types in the tissues it sampled, so the true number depends on how finely you sort.
 
+<LessonFigure src="/figures/one-cell-or-many/levels-of-organization.webp" width={1200} height={480} alt="AI-generated illustration: a strip of five frames: one muscle cell, a patch of muscle tissue, a heart, a torso outline showing the heart and blood vessels, and a whole person." caption="Cell, tissue, organ, organ system, organism: each level is built from the one before it." />
+
 Each specialized cell's shape fits its job:
+
+<LessonFigure src="/figures/one-cell-or-many/five-specialized-cells.webp" width={1200} height={800} alt="AI-generated illustration: five specialized cells side by side: a neuron with a very long axon, a dented red blood cell bending into a narrow vessel, a long muscle cell with several nuclei, a root hair cell with a tube reaching into soil, and two guard cells around a leaf pore." caption="Five specialized cells, each with a shape that fits its job. They are not drawn to the same scale: an axon can reach about a metre, while a red blood cell is about 7 to 8 micrometres across." />
 
 | Cell | Structure | How it fits the job |
 |---|---|---|
@@ -285,11 +300,11 @@ Each specialized cell's shape fits its job:
 | Red blood cell | Small, flexible disc dented in the middle; no nucleus when mature | Large surface for oxygen to cross; bends to squeeze through narrow vessels |
 | Skeletal muscle cell | Very long cylinder with many nuclei | Packed with protein fibres that shorten together to pull on bone |
 | Root hair cell | Long tube growing out from the root surface | Adds surface touching the soil, where water and minerals enter |
-| Guard cell | Two curved cells around a pore in a leaf | Change shape to open and close the pore, letting gases in and out |
+| Guard cell | Two cells, often curved, around a pore in a leaf | Change shape to open and close the pore, letting gases in and out |
 
 {/* DIAGRAM: five specialized cells drawn side by side with a scale note: 1 neuron with long axon, 2 red blood cell seen from the side showing the dent, 3 skeletal muscle cell with several nuclei, 4 root hair cell with its tube into soil, 5 pair of guard cells around a leaf pore */}
 
-Think of a restaurant kitchen, where one cook chops, one grills and one washes dishes. The analogy breaks in one place: a specialized cell still does its own basic work, such as taking in food molecules and making ATP. A muscle cell cannot hand all of that to another cell.
+Think of a restaurant kitchen, where one cook chops, one grills and one washes dishes. The analogy breaks in one place: a specialized cell still does its own basic work, such as taking in food molecules and making ATP for energy. A muscle cell cannot hand all of that to another cell.
 
 <Support min={2}>**Key idea:** In a multicellular organism, specialized cells with shapes suited to their jobs are organized into tissues, organs and organ systems.</Support>
 
@@ -299,7 +314,7 @@ If your nerve cells and muscle cells look and work so differently, do they carry
 
 The difference is **gene expression**, the use of a gene's instructions to make a product such as a protein. Each kind of cell uses a different set of its genes. A muscle cell uses the genes for the proteins that shorten; a red blood cell in the making uses the genes for hemoglobin, the protein that carries oxygen. Many other genes stay unused in each cell.
 
-There are a few exceptions. A maturing red blood cell pushes out its nucleus, so a mature one has no DNA left. Egg and sperm cells carry half a set of DNA. You will learn how genes are read in [that lesson](/lessons/protein-synthesis/).
+There are a few exceptions. A maturing red blood cell pushes out its nucleus, so a mature one has no DNA left. Egg and sperm cells carry half a set of DNA. You will learn how genes are read in that lesson.
 
 <Support min={2}>**Key idea:** The cells of one organism carry the same DNA, but each kind of cell uses a different set of genes, which gives it its own structure and job.</Support>
 
@@ -311,7 +326,7 @@ The table collects real measurements of specialized cells from several published
 |---|---|---|---|
 | Human red blood cell | about 7 to 8 µm across | Dented disc; no nucleus when mature | Textbook description |
 | Long human axon | up to about 1 m long | Long extension of a nerve cell | Textbook description, spine-to-toe example |
-| Human oocyte (developing egg cell) | 115 ± 12.1 µm across (mean ± SD) | Large round cell | 1,563 oocytes from 75 patients, measured after lab maturation |
+| Human oocyte (developing egg cell) | 115 ± 12.1 µm across (mean ± standard deviation) | Large round cell | 1,563 oocytes from 75 patients, measured after lab maturation |
 | Human sperm head | 4.96 µm long (mean) | Head measured on its own | 10 men, live cells |
 | Human sperm tail | 38.22 µm long (mean) | Tail measured on its own | Same 10 men |
 | Human skeletal muscle cell | up to about 30 cm long | Long cylinder, many nuclei | Textbook, a long thigh muscle |
@@ -324,14 +339,14 @@ Sources: OpenStax Anatomy and Physiology 2e (2022) for red blood and muscle cell
 
 1. Convert the young root hair length to micrometres. How many times longer is the hair than it is wide?
 2. About how many times wider is the egg cell than a red blood cell?
-3. Can you add the sperm head and tail to get the whole cell's length? What part is missing?
+3. Can you add the sperm head and tail to get the whole cell's length? Explain using what the table says was measured.
 
 <CER
   task="Make a claim that answers the essential question: how does a specialized cell’s structure relate to its job? Use the table."
   claim="The data show that specialized cells ___."
   evidence="A young root hair is ___ µm long but only ___ µm wide, while a red blood cell is about ___ µm across."
   reasoning="This shape fits the job because ___."
-  model="Specialized cells have sizes and shapes that fit their jobs. A young Arabidopsis root hair is 0.49 mm, or 490 µm, long but only 9.9 µm wide, so it is about 50 times longer than wide. That long, thin tube adds surface touching the soil, where water enters. A red blood cell is only about 7 to 8 µm across and flexible, so it fits through narrow vessels. Some axons reach about a metre, long enough to carry a signal from the spine to the foot. Limits: the rows come from different studies, and the 50-times figure is a ratio of means, not a measurement of any one hair."
+  model="Specialized cells have sizes and shapes that fit their jobs. A young Arabidopsis root hair is 0.49 mm, or 490 µm, long but only 9.9 µm wide, so it is about 50 times longer than wide. That long, thin tube adds surface touching the soil, where water enters. A red blood cell is only about 7 to 8 µm across and flexible, so it fits through narrow vessels. Some axons reach about a metre, long enough to carry a signal from the spine to the foot. Limits: the rows come from different studies, and the 50-times figure comes from dividing the mean length by the mean width, not from measuring one hair."
 />
 
 ### Design problem
@@ -354,6 +369,6 @@ Do radish seedlings grown on drier paper towels grow longer root hairs than seed
 
 ## Evaluate: check your thinking
 
-A Paramecium survives alone because its one cell holds every structure it needs: cilia to swim, food vacuoles to digest, a contractile vacuole to pump out water and the ability to divide. Your body works differently. It shares those jobs among specialized cells whose shapes fit their work, all carrying the same DNA but using different genes.
+A Paramecium survives alone because its one cell holds every structure it needs: cilia to swim, food vacuoles to digest, a contractile vacuole to pump out water and the ability to divide. Your body works differently. It shares those jobs among specialized cells whose shapes fit their work, nearly all carrying the same DNA but using different genes.
 
 **Science practices you used:** using a model and naming its limits, reading a data table with means and spread, converting units and comparing sizes, and planning a fair test with enough repeated measurements.

@@ -45,7 +45,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "InheritancePatternSwitch"
+    title: "Switch the inheritance pattern"
+    caption: >-
+      Switch one cross between three inheritance patterns, grow 100 offspring against the expected counts, and shade a pedigree to test dominant and recessive models.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "A red snapdragon (RR) is crossed with a white snapdragon (WW), and every offspring has pink flowers. Which term best describes this pattern?"
@@ -170,7 +176,7 @@ explainLevels:
   - level: "bio2"
     label: "Biology II"
     text: >-
-      This lesson kept to two alleles and to genes on the 22 autosome pairs. Biology II goes
+      This lesson kept mostly to two-allele crosses, with a first look at the three ABO alleles, and to genes on the 22 autosome pairs. Biology II goes
       further. The ABO gene has three common alleles, so it becomes a full multiple-allele
       problem. Genes on the X chromosome give sex-linked patterns, with their own pedigree
       signatures and crosses. Genes close together on one chromosome are linked, and how often
@@ -195,7 +201,7 @@ anecdotes:
     text: >-
       Breeders have long known that a red Shorthorn and a white Shorthorn give roan calves. In
       1999, a team of geneticists asked which gene was behind it. They looked at a DNA marker in a
-      candidate gene called MGF in 143 cattle from several breeds. Solid-colored and white cattle
+      candidate gene called MGF in 143 cattle from several breeds. Cattle with a single coat color, including white,
       were homozygous, and roan cattle were heterozygous. The marker followed the coat color, and
       the team suggested that a change in MGF causes roan. A pattern breeders saw in the barn now
       had a place on a chromosome.
@@ -216,6 +222,8 @@ corpusTags:
 draft: true
 ---
 
+import InheritancePatternSwitch from '../../../components/InheritancePatternSwitch.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
@@ -235,7 +243,7 @@ In [Mendel and Punnett squares](/lessons/punnett-squares/), a dominant allele hi
 
 In the simulation you choose two parents and see their Punnett square. A switch sets the pattern: complete dominance, incomplete dominance or codominance. The genotypes stay the same, but the offspring’s colors can change. A second panel shows a family pedigree, where you shade the people who have a trait and test whether a dominant or a recessive model fits.
 
-{/* SIMULATION */}
+<InheritancePatternSwitch />
 
 **Try this.**
 1. Cross RR with WW in each of the three modes. Predict the offspring’s color first, then test.
