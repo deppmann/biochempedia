@@ -59,8 +59,8 @@
     <ul class="gp-list" data-reading></ul>
   </div>
 
-  <p class="gp-assume">In this sketch: the sizes are made up (sizes in base pairs, gel distances not to scale). Each enzyme cuts at its own sequence, once in the plasmid and on each side of the gene. The tube holds 40 plasmids, and when the ends match each one has a 1 in 2 chance of taking the gene. 1 in 5 of 100 bacteria takes up a plasmid. The antibiotic stops every bacterium without one; on a real plate it leaves mostly those that took one up. Press Resample to redraw the chance steps.</p>
-  <p class="gp-foot">Rule to keep: one enzyme leaves matching ends that ligase can seal, the antibiotic finds bacteria that took up a plasmid, and only a check of the DNA shows which ones carry the gene.</p>
+  <p class="gp-assume">In this sketch, the sizes, numbers and chances are made up (sizes in base pairs, gel distances not to scale). Each enzyme cuts at its own sequence, once in the plasmid and on each side of the gene. The tube holds 40 plasmids, and when the ends match each one has a 1 in 2 chance of taking the gene. 1 in 5 of 100 bacteria takes up a plasmid. The plasmid carries a gene for resistance to the antibiotic. The antibiotic stops every bacterium without a plasmid here; on a real plate it leaves mostly those that took one up. Press Resample to redraw the chance steps.</p>
+  <p class="gp-foot">Rule to keep: one enzyme leaves matching ends that ligase can seal, the antibiotic leaves mostly the bacteria that took up a plasmid, and a check of the DNA, such as a gel, helps show which ones carry the gene.</p>
 </figure>
 
 <script>
@@ -177,8 +177,8 @@
         txt(cutSvg, x0 + half + gw / 2, 164, 'gene', { 'text-anchor': 'middle', fill: '#fff', 'font-weight': 700 });
         txt(cutSvg, x0 + half + gw + half / 2, 164, 'plasmid', { 'text-anchor': 'middle' });
       } else {
-        txt(cutSvg, 20, 124, `Ends ${m.p} and ${m.g} do not match, so ligase`);
-        txt(cutSvg, 20, 140, 'cannot join the gene. The plasmid closes up empty.');
+        txt(cutSvg, 20, 124, 'In this sketch, ends from different enzymes do');
+        txt(cutSvg, 20, 140, 'not match, so ligase does not join the gene.');
         cutSvg.appendChild(el('rect', { x: 20, y: 148, width: PLASMID_BP * k, height: 22, rx: 4, fill: PLAS, stroke: INK, 'stroke-width': 1.5 }));
         txt(cutSvg, 20 + (PLASMID_BP * k) / 2, 164, 'closed plasmid, no gene', { 'text-anchor': 'middle' });
       }
@@ -207,7 +207,7 @@
       const sel = stage >= 4;
       plateSvg.setAttribute('viewBox', '0 0 360 256');
       const colonies = m.took;
-      txt(plateSvg, 10, 16, sel ? `After the antibiotic: ${colonies} colonies grow` : 'Plate before the antibiotic: 100 bacteria', { 'font-weight': 700 });
+      txt(plateSvg, 10, 16, sel ? `With the antibiotic: ${colonies} colonies` : 'Plate before the antibiotic: 100 bacteria', { 'font-weight': 700 });
       m.kinds.forEach((kind, j) => {
         const x = 10 + (j % 10) * 22, y = 30 + Math.floor(j / 10) * 22;
         cellMark(plateSvg, x, y, kind, sel && kind === 'none');
@@ -215,7 +215,7 @@
       const items: Array<['gene' | 'empty' | 'none', string, boolean]> = [
         ['gene', 'carries gene', false],
         ['empty', 'empty plasmid', false],
-        ['none', sel ? 'stopped' : 'no plasmid', sel],
+        ['none', sel ? 'mostly stopped' : 'no plasmid', sel],
       ];
       items.forEach(([kind, label, faded], i) => {
         const y = 40 + i * 30;
@@ -299,19 +299,19 @@
       if (stage === 1) {
         return m.match
           ? `Both pieces are cut with enzyme ${m.p}, so their ends match. In this sketch, ligase can join the gene to the plasmid.`
-          : `The plasmid has enzyme ${m.p} ends and the gene has enzyme ${m.g} ends. These ends do not match, so ligase cannot join the gene to the plasmid.`;
+          : `In this sketch, the ends from different enzymes do not match, so ligase does not join the gene to the plasmid.`;
       }
       if (stage === 2) {
         return m.match
           ? `In this sketch, ligase sealed matching ends: ${m.nRec} of ${N_TUBE} plasmids carry the gene (expected ${N_TUBE * P_GENE}). The rest closed up empty.`
-          : `Ends do not match, so ligase cannot join the gene. In this sketch, ${m.nRec} of ${N_TUBE} plasmids carry it (expected 0).`;
+          : `In this sketch, the ends from different enzymes do not match, so ligase does not join the gene: ${m.nRec} of ${N_TUBE} plasmids carry it (expected 0).`;
       }
       if (stage === 3) {
         const tail = m.gene3 === 0 ? ' No bacterium carries the gene this time.' : '';
         return `In this sketch, ${m.took} of ${N_BACT} bacteria took up a plasmid (expected ${N_BACT * P_TAKE}). Only ${m.gene3} carry the gene (expected ${eGene}).${tail}`;
       }
       if (m.took === 0) return 'In this sketch no bacterium took up a plasmid this time, so no colony grows. Press Resample.';
-      return `In this sketch the antibiotic leaves ${m.took} colonies. ${m.gene3} carry the gene (expected ${eGene} of ${N_BACT * P_TAKE}); the others carry an empty plasmid. Carrying the gene does not guarantee the cell makes its protein.`;
+      return `In this sketch the antibiotic leaves mostly bacteria with a plasmid: ${m.took} colonies. ${m.gene3} carry the gene (expected ${eGene} of ${N_BACT * P_TAKE}); the others carry an empty plasmid. Carrying the gene does not guarantee the cell makes its protein.`;
     }
 
     function render() {
@@ -332,6 +332,7 @@
       const labels = ['', 'Step 2: Join with ligase', 'Step 3: Put plasmids into bacteria', 'Step 4: Select with the antibiotic', 'All steps done'];
       nextBtn.textContent = labels[stage];
       nextBtn.disabled = stage >= 4;
+      resampleBtn.disabled = stage < 2;
     }
 
     nextBtn.addEventListener('click', () => { if (stage < 4) { stage += 1; if (stage === 2) laneT.checked = true; render(); } });

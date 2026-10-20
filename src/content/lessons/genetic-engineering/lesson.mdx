@@ -25,6 +25,15 @@ ladder:
   biology2: "Biology II: Genetics, GEN.7 a-c; Advanced Topics, BIOII.7 d"
   college: ["recombinant-dna-and-pcr", "crispr-and-functional-genomics"]
 
+explainer:
+  src: "/explainers/genetic-engineering/explainer.mp4"
+  captions: "/explainers/genetic-engineering/explainer.vtt"
+  poster: "/explainers/genetic-engineering/poster.jpg"
+  title: "Cut, Join, Copy a Gene"
+  durationSec: 174.3
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Jennifer Doudna and Emmanuelle Charpentier"
     contribution: >-
@@ -61,7 +70,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "GeneToProductBuilder"
+    title: "From gene to product"
+    caption: >-
+      Cut a plasmid and a gene with enzymes, join them with ligase, put them into bacteria, select with an antibiotic, and check DNA sizes on a gel in this sketch.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which statement best describes genetic engineering?"
@@ -233,13 +248,17 @@ corpusTags:
   - "CRISPR"
   - "biotechnology"
   - "ethics"
-draft: true
+draft: false
 ---
+
+import GeneToProductBuilder from '../../../components/GeneToProductBuilder.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **From the 1920s on, people with diabetes who needed insulin usually injected insulin taken from the pancreases of cattle and pigs. In 1982 the FDA approved human insulin made by bacteria.**
 
@@ -255,7 +274,7 @@ Bacteria do not have a human insulin gene. Today, human insulin products are mad
 
 In the gene-to-product builder, you pick a restriction enzyme to cut open a plasmid and to cut out a gene. You join the pieces with ligase, put the plasmids into bacteria, and then select the bacteria that took one up. A gel panel lets you check the sizes of your DNA pieces against a ladder of known sizes.
 
-{/* SIMULATION */}
+<GeneToProductBuilder />
 
 **Try this.**
 1. Cut the plasmid with one enzyme and the gene with a different enzyme. Predict whether ligase can join them, then test.
@@ -279,11 +298,13 @@ The tools work like an editing kit. A word-processing analogy helps: cut, paste 
 - **Gel electrophoresis** sorts DNA pieces by size. DNA carries a negative electric charge, so a current pulls it toward the positive end of a gel. Shorter pieces slip through the gel faster and travel farther.
 - **CRISPR** is a gene-editing tool taken from a bacterial defense system. A guide RNA matches one DNA sequence, and a protein called Cas9 cuts both strands there.
 
+<LessonFigure src="/figures/genetic-engineering/casgevy-edit-outside-body.webp" width={1200} height={676} alt="AI-generated illustration: four steps from left to right. A patient's blood stem cells are taken out into a bag, edited in a dish in a lab, the patient gets chemotherapy from a drip, and the edited cells are put back. An inset shows a protein block holding a short guide strand along a DNA ladder, with a cut across both sides of the ladder." caption="The first approved CRISPR treatment edits one kind of cell, a patient’s own blood stem cells, in a lab, and puts them back after chemotherapy. The guide RNA picks the spot; Cas9 cuts both strands there." />
+
 > ideal PCR: copies after n cycles = starting copies × 2 × 2 × ... (n times)
 
 For example, 1 copy after 10 ideal cycles gives 1,024 copies. Real reactions copy a bit less than perfectly.
 
-{/* DIAGRAM: a gel with numbered parts: 1 wells where DNA is loaded, 2 negative end, 3 positive end, 4 ladder of known sizes, 5 a short piece far from the wells, 6 a long piece near the wells */}
+<ScaffoldFigure src="/figures/genetic-engineering/gel-electrophoresis-parts.webp" width={1200} height={800} keyItems={["negative end", "wells", "ladder", "long piece", "short piece", "positive end"]} given={[1, 2]} alt="AI-generated illustration: a gel slab in a box seen from above, with a dark electrode at the top and a light electrode at the bottom, three wells along the top, a lane of four ladder bands, one band close to its well and one band near the far end. Six numbered circles point to the parts." caption="The parts of a gel: where DNA goes in, which way the current pulls it, and how far short and long pieces travel. Name the six numbered parts." />
 
 <Support min={2}>**Key idea:** Restriction enzymes cut, ligase joins, plasmids carry and copy, PCR copies one stretch, gels sort by size, and CRISPR cuts at one chosen sequence.</Support>
 
@@ -294,7 +315,7 @@ Here is the textbook path to insulin made by bacteria. It is a simplified model,
 1. Get DNA that codes for insulin. In an early experiment, reported in 1979, scientists made this DNA chemically, as two pieces, one for each of insulin’s two protein chains.
 2. Cut a plasmid open with a restriction enzyme. Cutting the gene with the same enzyme gives it matching sticky ends.
 3. Mix them so the ends pair, and seal them with ligase. Now you have recombinant DNA.
-4. Put the plasmids into bacteria. Only some bacteria take one up. The plasmid usually also carries a gene for resistance to an antibiotic, so growing the bacteria with that antibiotic leaves mostly the ones that took it.
+4. Put the plasmids into bacteria. Only some bacteria take one up. The plasmid usually also carries a gene for resistance to an antibiotic, so growing the bacteria with that antibiotic leaves mostly the ones that took up the plasmid.
 5. Grow the bacteria. As they divide, the plasmid is copied. If the gene is switched on, the bacteria make the insulin chains, which are collected and purified, and the two chains are then joined into insulin.
 
 Adding a gene does not guarantee the cell makes its protein, so scientists test for the product. You can follow how cells read a gene into a protein in [that lesson](/lessons/protein-synthesis/).
@@ -314,7 +335,7 @@ An organism whose DNA was changed this way is a **genetically modified organism*
 
 Each use raises questions that data alone cannot settle. People disagree, and that is part of the work.
 
-- **Safety:** Could an edit land in the wrong place? Could a crop affect insects it was not meant for? Can relying on one weed-killer select for resistant weeds, as in [that lesson](/lessons/natural-selection-and-speciation/)?
+- **Safety:** Could an edit land in the wrong place? Could a crop affect insects it was not meant for? Can relying on one weed-killer select for resistant weeds, as in that lesson?
 - **Equity:** Who can pay for a new treatment? Who can buy the seed?
 - **Limits:** Should anyone edit sperm, eggs or embryos, when future people cannot agree to the change?
 
@@ -370,6 +391,6 @@ You put an insulin plasmid into bacteria. Plan how to show that your bacteria to
 
 ## Evaluate: check your thinking
 
-Bacteria make human insulin because scientists joined insulin DNA into a plasmid with restriction enzymes and ligase. The bacteria copy that plasmid as they divide and read the gene to make the protein. The same tools now edit crops and blood stem cells, and each use is judged by its evidence and by people’s values.
+Bacteria make human insulin because scientists joined insulin DNA into a plasmid with restriction enzymes and ligase. The bacteria copy that plasmid as they divide and read the gene to make the protein. Related tools now change crops, CRISPR now edits blood stem cells, and each use is judged by its evidence and by people’s values.
 
 **Science practices you used:** predicting and testing with a model, reading a data table and calculating a change, planning controls, judging the reliability of a source, and weighing benefits, risks and ethics.

@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Genetics, GEN.2 b and GEN.3"
   college: ["transcription", "genetic-code-and-translation", "mutation"]
 
+explainer:
+  src: "/explainers/protein-synthesis/explainer.mp4"
+  captions: "/explainers/protein-synthesis/explainer.vtt"
+  poster: "/explainers/protein-synthesis/poster.jpg"
+  title: "How One Letter Changes a Protein"
+  durationSec: 188.2
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -46,7 +55,13 @@ structures:
     id: "2HBS"
     note: "PDB 2HBS · crystal structure of deoxy hemoglobin S"
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "TranscribeTranslate"
+    title: "Transcribe, translate, mutate"
+    caption: >-
+      Copy a short DNA template into mRNA, translate it with the lesson’s codon chart, then swap, add or remove one letter to see whether the chain is silent, changed, frameshifted or stopped early.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In a human cell, where does transcription happen, and what does it make?"
@@ -217,13 +232,17 @@ corpusTags:
   - "translation"
   - "genetic-code"
   - "mutation"
-draft: true
+draft: false
 ---
+
+import TranscribeTranslate from '../../../components/TranscribeTranslate.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In one gene for hemoglobin, the protein that carries oxygen in red blood cells, a single DNA letter can be different: GTG where most people have GAG on the coding strand. That one change can let red blood cells bend into stiff, curved sickle shapes.** A red blood cell is usually a soft, round disc that squeezes through tiny blood vessels. How can one letter, out of hundreds in the gene, change the shape of a whole cell?
 
@@ -237,7 +256,7 @@ import CER from '../../../components/CER.astro';
 
 The simulation shows a short DNA template strand as lettered blocks. You build the messenger RNA that pairs with it, then use a codon chart to turn every three letters into an amino acid. A mutate button swaps, adds or removes one letter and rebuilds the chain.
 
-{/* SIMULATION */}
+<TranscribeTranslate />
 
 **Try this.**
 1. Predict the mRNA letters for the first three DNA blocks, then build the mRNA and check.
@@ -265,7 +284,7 @@ Like DNA, RNA has direction: its two ends differ (biologists call them 5′ and 
 
 In cells with a nucleus, the mRNA leaves through pores in the nuclear membrane. Bacteria have no nucleus, so both stages happen in their cytoplasm.
 
-{/* DIAGRAM: a cell with a nucleus, showing protein synthesis. Number: 1 DNA staying in the nucleus, 2 a gene being copied into mRNA, 3 mRNA leaving through a nuclear pore, 4 a ribosome in the cytoplasm reading the mRNA, 5 the growing amino acid chain */}
+<ScaffoldFigure src="/figures/protein-synthesis/gene-to-protein-in-a-cell.webp" width={1200} height={800} keyItems={["DNA", "gene", "mRNA", "pores in the nuclear membrane", "ribosome", "chain of amino acids"]} given={[0, 4]} alt="AI-generated illustration: a cell whose round nucleus holds coiled DNA; at one gold stretch an enzyme copies a single strand that crosses the nucleus and leaves through a pore. In the cytoplasm a two-lobed ribosome sits on that strand with a chain of beads trailing from it. Six numbered circles mark the parts." caption="Protein synthesis in a cell with a nucleus: the gene is copied in the nucleus, the copy leaves through a pore, and a ribosome builds the chain outside. Name the six numbered parts." />
 
 <Support min={2}>**Key idea:** In transcription, one gene's DNA letters are copied into a single strand of messenger RNA, which carries the message out of the nucleus.</Support>
 
@@ -276,6 +295,8 @@ In cells with a nucleus, the mRNA leaves through pores in the nuclear membrane. 
 The ribosome reads the mRNA in groups of three bases. Each group of three is a **codon**, and each codon stands for one amino acid or for "stop." With four bases there are 4 × 4 × 4 = 64 possible codons. In the standard code, 61 of them stand for amino acids and three, UAA, UAG and UGA, are stop codons. The codon AUG stands for methionine and is the usual start codon, where reading begins.
 
 **Transfer RNA (tRNA)** is a small RNA that carries one amino acid and has a stretch of three bases, its anticodon, that pairs with a matching codon. As each tRNA pairs with its codon, the ribosome links its amino acid to the chain. At a stop codon no amino acid is added, and the chain is released. It folds into a shape that lets the protein do its job.
+
+<LessonFigure src="/figures/protein-synthesis/ribosome-reads-codons.webp" width={1200} height={800} alt="AI-generated illustration: a two-lobed ribosome sitting on an mRNA strand divided into groups of three blocks. Inside, a key-shaped tRNA fits three blocks against one codon and carries a bead that is joining a growing bead chain; another tRNA arrives. An inset shows the ribosome at a stop codon with no tRNA and the chain released." caption="Translation up close: the ribosome reads one codon at a time, each tRNA's anticodon pairs with a codon, and its amino acid joins the chain until a stop codon releases it." />
 
 Here is part of the codon chart.
 
@@ -314,7 +335,7 @@ An insertion or deletion of one base causes a **frameshift**, a shift in how the
 
 Now the opening puzzle. In the usual numbering of beta-globin, a hemoglobin chain, the sixth amino acid is glutamic acid, coded by GAG. (Some databases count the starting methionine and call it the seventh.) The coding strand is the DNA strand that matches the mRNA letter for letter, with T where the mRNA has U. In the sickle allele this strand reads GTG, so the mRNA codon is GUG and valine replaces glutamic acid. Glutamic acid carries an electric charge and valine does not. Hemoglobin with valine there can stick together into stiff rods, mostly when it is low on oxygen, and the rods bend the cell into a sickle.
 
-{/* DIAGRAM: the sickle cell change step by step. Number: 1 DNA codon GAG and GTG, 2 mRNA codon GAG and GUG, 3 amino acid Glu and Val in the chain, 4 normal hemoglobin staying separate, 5 sickle hemoglobin forming stiff rods, 6 round and sickle-shaped red blood cells */}
+<LessonFigure src="/figures/protein-synthesis/sickle-one-letter.webp" width={1200} height={676} alt="AI-generated illustration: two rows of four frames. In the top row a DNA codon, its mRNA codon, a six-bead chain and a round red blood cell with separate hemoglobin blobs. In the bottom row the middle letter of each codon is changed, the sixth bead is different, the hemoglobin has joined into stiff rods, and the cell is bent into a sickle." caption="One letter, followed all the way up: GAG to GTG puts valine in place of glutamic acid, and that hemoglobin can stick into stiff rods, mostly when it is low on oxygen, bending the cell into a sickle." />
 
 A person has two copies of this gene. With one sickle allele and one usual allele, a person has sickle cell trait and usually has no symptoms. Sickle cell disease happens when a person has a disease-causing change on both copies, and at least one of them is the sickle change.
 

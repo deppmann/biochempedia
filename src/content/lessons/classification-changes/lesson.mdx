@@ -25,6 +25,15 @@ ladder:
   biology2: "Biology II: Genetics, GEN.6 e"
   college: ["history-of-life", "molecular-evolution"]
 
+explainer:
+  src: "/explainers/classification-changes/explainer.mp4"
+  captions: "/explainers/classification-changes/explainer.vtt"
+  poster: "/explainers/classification-changes/poster.jpg"
+  title: "When New Evidence Moves the Groups"
+  durationSec: 175.0
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Carl Woese and George Fox"
     contribution: >-
@@ -234,7 +243,7 @@ corpusTags:
   - "three domains"
   - "ribosomal RNA"
   - "phylogeny"
-draft: true
+draft: false
 ---
 
 import TreeRemodel from '../../../components/TreeRemodel.astro';
@@ -243,6 +252,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Some microbes that make methane look just like bacteria under a microscope. In 1977, two scientists compared one molecule inside them and found that they belong to a separate branch of life.** For most of history, people sorted living things by what they could see. A microscope shows shape and size, but not ancestry. So how can a molecule overturn what our eyes tell us, and is it a problem when science changes its groups?
 
@@ -289,7 +300,7 @@ The system has been rebuilt several times. Each date below is the year a scheme 
 
 Many US textbooks use six kingdoms: Archaebacteria, Eubacteria, Protista, Fungi, Plantae and Animalia. A **protist** is a eukaryote that is not a plant, animal or fungus. Virginia’s Biology standards (the SOL) keep Protista as a kingdom, and you will use it. Newer trees divide protists into many separate groups, because some protists are closer to animals or plants than to other protists.
 
-{/* DIAGRAM: a timeline of classification schemes from 1735 to 1990, with numbered parts 1 two kingdoms, 2 Haeckel's three, 3 Whittaker's five, 4 six textbook kingdoms, 5 three domains */}
+<ScaffoldFigure src="/figures/classification-changes/classification-schemes-timeline.webp" width={1200} height={800} keyItems={["plants or animals", "Protista added", "Five kingdoms", "Three domains", "six kingdoms"]} given={[0, 3]} alt="AI-generated illustration: a time arrow with four stops of coloured blocks, growing from two blocks to three to five, and ending with six small blocks grouped under three wide bands. Five numbered circles point to the stops and to the bands and blocks at the end." caption="How the sorting system grew, from two kingdoms in 1735 to three domains in 1990, each change following a new kind of evidence. Name the five numbered schemes." />
 
 <Support min={2}>**Key idea:** Classification is built from evidence, so it has changed each time a new kind of evidence arrived.</Support>
 
@@ -298,6 +309,8 @@ Many US textbooks use six kingdoms: Archaebacteria, Eubacteria, Protista, Fungi,
 Every cell builds proteins on ribosomes. **Ribosomal RNA** (rRNA) is the RNA that forms much of a ribosome. Because every cell has it, rRNA can be compared across all cellular life. Its sequence changes slowly, so even very distant groups still share enough of it to compare. Shared does not mean identical: the small differences are the evidence.
 
 Woese and Fox cut rRNA into short pieces and listed the pieces from each organism. Then they scored how much two lists overlapped, from 0 (no overlap) to 1 (the same). Methane-making microbes scored high with each other and low with typical bacteria. In 1977 they read this as three major lines of descent.
+
+<LessonFigure src="/figures/classification-changes/rrna-comparison-method.webp" width={1200} height={676} alt="AI-generated illustration: four steps from left to right. Two methane-making cells and one typical bacterium each hold ribosomes; their rRNA is cut into short pieces, the pieces from each are listed in a column, and the two methane makers' lists share many pieces while a methane maker and the bacterium share few." caption="Woese and Fox cut each organism’s rRNA into pieces and scored how much two lists overlapped. Methane makers overlapped far more with each other than with typical bacteria." />
 
 In 1990, Woese, Otto Kandler and Mark Wheelis proposed the rank of domain, above kingdom, with three names:
 - **Bacteria:** the domain of familiar single-celled prokaryotes, such as *E. coli*.

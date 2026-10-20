@@ -51,7 +51,13 @@ structures:
     id: "977"
     note: "Molecular oxygen, PubChem CID 977"
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "WatershedFixDesigner"
+    title: "Design a watershed fix"
+    caption: >-
+      Spend a fixed budget on five watershed fixes and see, in relative units, the nitrogen load, summer oxygen and underwater grass in the Bay, and why real responses lag by years.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is eutrophication?"
@@ -216,7 +222,7 @@ anecdotes:
       conditions, and once as if nitrogen pollution had not been cut since 1985. In the no-cuts
       version, the yearly amount of water below 3 milligrams of oxygen per liter was about 50 to 120
       percent greater in 2016 and 2017, and 20 to 50 percent greater in the wet years 2018 and
-      2019. Warming cancelled roughly 6 to 34 percent of the gain. A model is not the real Bay, but
+      2019. Warming cancelled roughly 6 to 34 percent of the gain from the cuts. A model is not the real Bay, but
       it estimates what the cuts prevented.
 
 corpusTags:
@@ -225,6 +231,8 @@ corpusTags:
   - "human-impact"
 draft: true
 ---
+
+import WatershedFixDesigner from '../../../components/WatershedFixDesigner.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
@@ -245,7 +253,7 @@ No one pours in a chemical that soaks up oxygen. So how can fertilizer far up th
 
 You get a budget for a watershed that drains to the Bay and spend it on five fixes: forest buffers, cover crops, wastewater plant upgrades, oyster reefs and stormwater ponds. Each fix has a cost and a nitrogen effect. The simulation sketches the summer oxygen and seagrass response in relative units; real responses often lag by years.
 
-{/* SIMULATION */}
+<WatershedFixDesigner />
 
 **Try this.**
 1. Predict which single fix lowers nitrogen most for its cost. Spend the whole budget on it.
@@ -277,7 +285,7 @@ The fertilizer never takes oxygen itself; living things use it.
 
 Why the deep channel, and why summer? Oxygen enters water from the air and from photosynthesis in sunlit water. In summer, fresh river water floats on saltier, heavier seawater, and the layers mix poorly, so little new oxygen reaches the bottom. Warm water also holds less dissolved oxygen. Shallow, well-stirred water rarely runs as low.
 
-Picture the bottom water as a closed room full of breathers. The analogy breaks because storms can open the door.
+Picture the bottom water as a closed room full of breathers. The analogy breaks because storms can open the door: they mix the layers and bring new oxygen down.
 
 {/* DIAGRAM: side view of the Bay from a farm field to the deep channel, with 1 runoff carrying nutrients, 2 an algal bloom at the surface, 3 dead algae sinking, 4 bacteria decomposing them and using oxygen, 5 the fresh layer floating over salty bottom water, 6 a crab leaving the low-oxygen zone */}
 
@@ -313,7 +321,7 @@ In 2010, the U.S. Environmental Protection Agency set a limit on the nitrogen, p
 - Wastewater plant upgrades remove more nitrogen. A 2022 study linked large drops in city nutrient pollution to them, and found that nitrogen falling from the air declined across the watershed from 1985 to 2019.
 - Oyster reefs: Virginia has rebuilt reefs in the Lafayette, Lynnhaven and Piankatank rivers. Oysters filter particles from water and reefs shelter other animals, but reefs do not replace cutting nutrients.
 
-**Submerged aquatic vegetation** is underwater grass, usually rooted in shallow bottoms. It shelters young crabs and needs light. A 2018 study found that as nitrogen in Bay water fell, it regained about 17,000 hectares (roughly 42,000 acres).
+**Submerged aquatic vegetation** is underwater grass, usually rooted in shallow bottoms. It shelters young crabs and needs light. A 2018 study found that as nitrogen in Bay water fell, underwater grass regained about 17,000 hectares (roughly 42,000 acres).
 
 Fixing a watershed is an engineering problem. **Criteria** are what a solution must achieve, such as cutting a set amount of nitrogen. **Constraints** are the limits it must work within, such as money, land and time. Nitrogen stored in soil can keep leaking out for years, so you build, measure, compare with a place that got no fix, and refine.
 
@@ -333,7 +341,7 @@ Fixing a watershed is an engineering problem. **Criteria** are what a solution m
 | Underwater grass, areas mapped in both years | 2025 | 82,968 | acres | aerial mapping |
 | Lafayette River restored reefs beating oyster targets | 2022 | 2 of 3 | reefs surveyed | field survey |
 
-Hypoxic volumes are from the Virginia Institute of Marine Science (VIMS) Chesapeake Bay Environmental Forecast System historical table (read October 2026; a separate VIMS recent-years table gives different values for the same years, so compare only numbers from one table), a whole-Bay model of water below 2 mg/L added up day by day; 1 km³·day is one cubic kilometer of hypoxic water lasting one day. Nitrogen numbers are from the Chesapeake Bay Program’s 2026 progress release (whole-watershed model). Grass areas are from the VIMS 2025 preliminary survey. Reef results are NOAA Fisheries’ report of VIMS monitoring.
+Hypoxic volumes are from the Virginia Institute of Marine Science (VIMS) Chesapeake Bay Environmental Forecast System historical table (read October 2026). They come from a whole-Bay model of water below 2 mg/L added up day by day; 1 km³·day is one cubic kilometer of hypoxic water lasting one day. A separate VIMS recent-years table gives different values for the same years, so compare only numbers from one table. Nitrogen numbers are from the Chesapeake Bay Program’s 2026 progress release (whole-watershed model). Grass areas are from the VIMS 2025 preliminary survey. Reef results are NOAA Fisheries’ report of VIMS monitoring.
 
 1. How much did the modeled nitrogen load fall from 2009 to 2025? What percent of the 2009 load is that, and how much more must it fall to reach the goal?
 2. Nitrogen loads fell, yet 2024’s hypoxic volume was about two and a half times 2023’s. Name two other things that could explain this.

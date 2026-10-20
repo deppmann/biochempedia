@@ -259,7 +259,7 @@ corpusTags:
   - "antibiotic resistance"
   - "Semmelweis"
   - "measles"
-draft: true
+draft: false
 ---
 
 import VaccineAndResistance from '../../../components/VaccineAndResistance.astro';
@@ -268,6 +268,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In the 1840s, the big general hospital in Vienna had two maternity clinics. Year after year, a much larger share of mothers died of childbed fever in the First Clinic than in the Second.**
 
@@ -327,7 +329,7 @@ A wanted poster is one way to picture this, but the immune system does not look 
 
 Vaccines do not work perfectly in everyone: a small share of vaccinated people still get measles.
 
-{/* DIAGRAM: antibody level over time after a first and a second exposure, with 1 the first exposure, 2 the slow, small first rise, 3 memory cells remaining as antibody falls, 4 the second exposure, 5 the faster, taller second rise */}
+<LessonFigure src="/figures/germs-vaccines-antibiotics/memory-cells-strip.webp" width={1200} height={676} alt="AI-generated illustration: three frames showing vaccine pieces with antigen bumps meeting immune cells that make a few antibodies and leave a memory cell, then later only memory cells remaining, then a real pathogen with the same antigen met by memory cells and many antibodies." caption="A vaccine gives the immune system its first meeting with an antigen without the disease. The memory cells it leaves make the response to the real pathogen faster and larger." />
 
 <Support min={2}>**Key idea:** a vaccine shows the immune system an antigen safely, leaving memory cells that make a faster, larger response on the next exposure.</Support>
 
@@ -337,7 +339,9 @@ An **antibiotic** is a drug that kills bacteria or stops them from growing and d
 
 A virus has no cell wall and no ribosomes of its own. It uses the ribosomes of the cell it infects, as [Living or Not?](/lessons/living-or-not/) explains. So antibiotics do not treat colds, flu or other viral infections.
 
-**Antibiotic resistance** is the ability of some bacteria to survive a drug that kills others of their kind. It belongs to the bacteria, not to the person. In a large population of bacteria, a few may already carry a gene that lets them survive. An antibiotic kills or stops the sensitive ones, and the resistant ones are left to multiply. This is **natural selection**, the process in which individuals with a helpful trait survive and reproduce more, covered in [Variation and Survival](/lessons/variation-and-survival/). Resistant bacteria can also pass resistance genes to other bacteria.
+<ScaffoldFigure src="/figures/germs-vaccines-antibiotics/what-antibiotics-hit.webp" width={1200} height={800} keyItems={["cell wall", "bacterial ribosomes", "virus", "your cells"]} given={[0, 2]} alt="AI-generated illustration: on the left a rod-shaped bacterium with an outer wall and ribosomes, with gold block marks showing an antibiotic hitting the wall and the ribosomes; on the right one of your own cells, with only a thin membrane, its own ribosomes and tiny virus particles inside, and no gold marks. Four numbered circles mark parts for the student to name." caption="Antibiotics hit parts that bacteria have. A virus has no cell wall or ribosomes of its own and works inside your cells, so there is nothing there for the drug to hit." />
+
+**Antibiotic resistance** is the ability of some bacteria to survive a drug that kills others of their kind. It belongs to the bacteria, not to the person. In a large population of bacteria, a few may already carry a gene that lets them survive. An antibiotic kills or stops the sensitive ones, and the resistant ones are left to multiply. This is **natural selection**, the process in which individuals with a helpful trait survive and reproduce more, covered in Variation and Survival. Resistant bacteria can also pass resistance genes to other bacteria.
 
 Health agencies say misuse of antibiotics, such as using them for a cold, can add to resistance: the bacteria in the body meet the drug with no benefit, which favors resistant ones. How long a course should last is decided by doctors, and for some infections, studies have found that shorter courses work as well as longer ones. The simulation's "stop early" switch is a model of selection, not medical advice.
 

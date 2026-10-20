@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.4 c-f; Genetics, GEN.4 b and GEN.5 b"
   college: ["extending-mendel", "pedigrees", "chromosome-changes"]
 
+explainer:
+  src: "/explainers/beyond-dominance/explainer.mp4"
+  captions: "/explainers/beyond-dominance/explainer.vtt"
+  poster: "/explainers/beyond-dominance/poster.jpg"
+  title: "When No Allele Hides the Other"
+  durationSec: 169.9
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -219,7 +228,7 @@ corpusTags:
   - "codominance"
   - "pedigree"
   - "karyotype"
-draft: true
+draft: false
 ---
 
 import InheritancePatternSwitch from '../../../components/InheritancePatternSwitch.astro';
@@ -228,6 +237,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In the classic textbook example, cross a red snapdragon with a white snapdragon, and the offspring have pink flowers. Breed a red Shorthorn cow with a white Shorthorn bull, and the calf is roan: up close, its coat has red hairs and white hairs mixed side by side.**
 
@@ -274,6 +285,8 @@ Each genotype has its own color, so the ratios match. Red and white come back: t
 
 **Codominance** means both alleles show fully in the heterozygote. In Shorthorn cattle, RR is red, WW is white, and RW is roan. Each hair is red or white, and the two kinds grow side by side. A roan × roan cross gives 1 red : 2 roan : 1 white on average.
 
+<LessonFigure src="/figures/beyond-dominance/pink-snapdragon-roan-calf.webp" width={1200} height={800} alt="AI-generated illustration: on the left, a red snapdragon and a white snapdragon with a pink-flowered offspring; on the right, a red Shorthorn cow and a white bull with a roan calf, and a zoom on the calf's coat showing red hairs and white hairs growing side by side." caption="Two heterozygotes: the pink snapdragon is in between its parents, while the roan calf shows both, hair by hair. In both, the alleles stay separate." />
+
 Human ABO blood type is the best-known case. Red blood cells can carry an A marker, a B marker, both or neither. The gene has three common alleles, IA, IB and i. A gene with more than two alleles in a population has **multiple alleles**, though each person still carries only two.
 
 | Blood type | Genotypes in the usual model | Markers on red blood cells |
@@ -284,6 +297,8 @@ Human ABO blood type is the best-known case. Red blood cells can carry an A mark
 | O | ii | neither |
 
 IA and IB are codominant, and each is dominant to i.
+
+<LessonFigure src="/figures/beyond-dominance/abo-markers.webp" width={1200} height={676} alt="AI-generated illustration: four red blood cells. The first carries triangle-shaped A markers, the second square-shaped B markers, the third both kinds, and the fourth none." caption="ABO blood types as markers on red blood cells: type AB carries both, because the IA and IB alleles are codominant." />
 
 The environment can change a phenotype too. In many bigleaf hydrangeas, the same plant has bluer flowers in acidic soil and pinker flowers in less acidic soil.
 
@@ -307,7 +322,7 @@ To read a pedigree, test each model against every person. Two clues help, for ge
 
 These are clues, not proofs. A small family may fit both models.
 
-{/* DIAGRAM: a three-generation pedigree, with numbered parts: 1 square and circle symbols, 2 shaded affected people, 3 the partner line, 4 the line to the children, 5 generation numerals I to III, 6 two unshaded carrier parents with a shaded child */}
+<ScaffoldFigure src="/figures/beyond-dominance/pedigree-symbols.webp" width={1200} height={800} keyItems={["square", "circle", "horizontal line", "vertical line", "carrier", "shaded symbol"]} given={[0, 1]} alt="AI-generated illustration: a three-generation family chart of squares and circles joined by horizontal partner lines and vertical lines to children. In the bottom generation one circle is shaded; her parents are both unshaded. Six numbered circles mark the symbols and lines." caption="Reading a pedigree: the symbols, the lines that join partners and children, and a shaded child of two unshaded parents. Name the six numbered parts." />
 
 <Support min={2}>**Key idea:** A pedigree lets you test whether a dominant or a recessive model fits a family, and a shaded child of two unshaded parents points to a recessive trait.</Support>
 

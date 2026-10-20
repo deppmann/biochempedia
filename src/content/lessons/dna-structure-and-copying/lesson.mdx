@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Genetics, GEN.2 a"
   college: ["dna-the-genetic-material", "dna-replication"]
 
+explainer:
+  src: "/explainers/dna-structure-and-copying/explainer.mp4"
+  captions: "/explainers/dna-structure-and-copying/explainer.vtt"
+  poster: "/explainers/dna-structure-and-copying/poster.jpg"
+  title: "Base Pairing Lets DNA Copy Itself"
+  durationSec: 183.1
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -224,7 +233,7 @@ corpusTags:
   - "dna-replication"
   - "base-pairing"
   - "chromosomes"
-draft: true
+draft: false
 ---
 
 import ReplicationFork from '../../../components/ReplicationFork.astro';
@@ -233,6 +242,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A typical human cell with a nucleus holds nearly 2 metres of DNA, packed into a nucleus only about 0.005 to 0.010 millimetres across. Before a typical cell divides, it copies roughly 6 billion base pairs of that DNA and gets almost every one right.** Two metres is taller than most adults. How can a molecule that long fit in a space you cannot see without a microscope? And how can a cell copy it so accurately, again and again?
 
@@ -266,13 +277,15 @@ Two strands line up with their bases facing each other in the middle. A **hydrog
 
 **Base pairing** is the rule that A always pairs with T and C always pairs with G across the two strands. Picture a zipper whose teeth only close with the right partner. The analogy breaks because a zipper’s teeth carry no message, while the order of DNA’s bases does.
 
-{/* DIAGRAM: a short stretch of double helix untwisted into a ladder. Number: 1 sugar, 2 phosphate, 3 one base, 4 covalent bond along the backbone, 5 hydrogen bonds between an A-T pair, 6 the twisted double helix */}
+<ScaffoldFigure src="/figures/dna-structure-and-copying/dna-ladder-parts.webp" width={1200} height={800} keyItems={["sugar", "phosphate", "base", "covalent bond", "hydrogen bond", "double helix"]} given={[0, 5]} alt="AI-generated illustration: a short DNA ladder whose side rails alternate rounded sugar blocks and small phosphate tabs joined by short bars, with coloured base blocks meeting in the middle of each rung across dashed lines; on the right the ladder twists into a double helix. Six numbered circles point to a sugar, a phosphate, a base, a bond along the backbone, the bonds across a rung, and the twisted helix." caption="The parts of DNA: two backbones of sugar and phosphate, bases paired across the middle, and the whole ladder twisted into a double helix. Name the six numbered parts." />
 
 The two strands also run in opposite directions, like two lanes of a road. Each strand has a distinct “head” end and “tail” end, and the strands lie head to tail.
 
 The order of the bases is the information. A **gene** is a region of DNA whose base order, in most genes, codes for a protein; a few genes code for RNA molecules that do jobs of their own. A **chromosome** is one very long DNA molecule wrapped around proteins, and it carries many genes. Only about 1 to 2 percent of human DNA codes for proteins. Other stretches control genes, help hold chromosomes in shape, or have jobs nobody has found yet. The genetic code that turns base order into protein is almost the same in every living thing, which is why bacteria can be engineered to make some human proteins, such as insulin. [From DNA to protein](/lessons/protein-synthesis/) shows how that code is read.
 
 Every cell that grows and divides carries DNA. In plants, animals and fungi most of it sits inside the nucleus, with small extra pieces in organelles such as mitochondria. Bacteria keep their DNA in a **nucleoid**, a region of the cell with no membrane around it.
+
+<LessonFigure src="/figures/dna-structure-and-copying/chromosome-gene-nucleoid.webp" width={1200} height={676} alt="AI-generated illustration: a cell's nucleus, one chromosome drawn out of it as a thick rope, and a zoom showing the DNA wound around protein spools and unwound into a ladder with one gold stretch marking a gene. An inset shows a rod-shaped bacterium with its DNA loose in the middle and no membrane around it." caption="A chromosome is one long DNA molecule wound around proteins, and a gene is one stretch of it. Bacteria keep their DNA in a nucleoid with no membrane around it." />
 
 <Support min={2}>**Key idea:** DNA is two strands of nucleotides twisted into a double helix, with sugar-phosphate sides and A-T and C-G base pairs as the rungs.</Support>
 
@@ -289,7 +302,7 @@ Copying is done by enzymes. An **enzyme** is a protein that speeds up a chemical
 
 Why only one direction? DNA polymerase can attach a new nucleotide only to one particular end of a growing strand, the tail end. So every new strand grows the same way, adding at its tail. The two templates point in opposite directions. One new strand can grow smoothly toward the unzipping point. The other grows away from the unzipping point, so it must be built in short pieces, each started fresh as more template opens up. Another enzyme then joins the pieces.
 
-{/* DIAGRAM: a replication fork. Number: 1 the unzipping point, 2 an old strand used as a template, 3 a free nucleotide pairing with it, 4 a new strand growing at its tail end, 5 short pieces on the other side, 6 two finished molecules each with one old and one new strand */}
+<LessonFigure src="/figures/dna-structure-and-copying/replication-fork-one-direction.webp" width={1200} height={800} alt="AI-generated illustration: a DNA ladder opening into a Y at an enzyme. On the upper arm one gold new strand grows smoothly toward the opening; on the lower arm three short gold pieces grow away from it, with free nucleotides nearby. An inset shows two finished molecules, each with one old grey strand and one new gold strand." caption="Copying at the fork: new DNA can grow only at its tail end, so one new strand grows smoothly toward the unzipping point while the other is built in short pieces. Each finished molecule keeps one old strand." />
 
 How close to “almost perfect” is it? DNA polymerase checks each new base and removes most wrong ones, a step called proofreading. Repair enzymes catch many errors that slip past. A textbook estimate is about one uncorrected mistake for every billion bases copied. Across roughly 6 billion base pairs, that leaves roughly a handful to a dozen changes per copy. Those rare changes are mutations, and [mutations can change proteins](/lessons/protein-synthesis/).
 
