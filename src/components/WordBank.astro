@@ -1,0 +1,41 @@
+---
+/* =============================================================================
+   WordBank: a compact boxed list of terms for the task, shown at Some help and
+   Most help (hidden at Just the task). See SupportsSwitch.astro.
+   ============================================================================ */
+interface Props {
+  terms: string[];
+  /** Heading of the box. */
+  title?: string;
+}
+const { terms, title = 'Word bank' } = Astro.props;
+---
+<div class="word-bank sup-min-1" role="group" aria-label={title}>
+  <p class="wb-title" aria-hidden="true">{title}</p>
+  <ul class="wb-terms">{terms.map((t) => <li>{t}</li>)}</ul>
+</div>
+
+<style>
+  .word-bank {
+    margin: var(--ddp-space-4) 0;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px dashed color-mix(in srgb, var(--ddp-color-accent) 55%, var(--ddp-color-line));
+    border-radius: var(--ddp-radius-sm);
+    background: color-mix(in srgb, var(--ddp-color-accent) 6%, var(--ddp-color-surface));
+  }
+  .wb-title {
+    margin: 0 0 var(--ddp-space-2);
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent);
+  }
+  .wb-terms {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: var(--ddp-space-2);
+  }
+  .wb-terms li {
+    margin: 0; padding: 0.2em 0.7em;
+    font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink);
+    background: var(--ddp-color-surface);
+    border: 1px solid var(--ddp-color-line); border-radius: 999px;
+  }
+</style>

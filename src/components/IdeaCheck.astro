@@ -1,0 +1,98 @@
+---
+/* =============================================================================
+   IdeaCheck: the "What do you think?" opener, built from common student ideas.
+   Each statement has two radios, Agree and Disagree. Once either is chosen,
+   CSS (:has(input:checked)) reveals the explanation, prefixed with what
+   scientists think. No script. A browser without :has() gets the explanation
+   in a <details> instead.
+   ============================================================================ */
+interface Item {
+  idea: string;
+  /** What scientists say about the statement. */
+  answer: 'agree' | 'disagree';
+  explain: string;
+}
+interface Props {
+  items: Item[];
+  title?: string;
+  /** Makes the radio names unique when a page has more than one IdeaCheck; derived from the ideas if absent. */
+  id?: string;
+}
+const { items, title = 'What do you think? Decide before you read.' } = Astro.props;
+// A short stable id from the statements, so radio names are unique per page and the build is reproducible.
+const hash = (s: string) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(36); };
+const uid = Astro.props.id ?? `ic${hash(items.map((t) => t.idea).join('|'))}`;
+const prefix = (a: Item['answer']) => (a === 'agree' ? 'Scientists agree:' : 'Scientists disagree:');
+---
+<div class="idea-check" role="group" aria-labelledby={`${uid}-h`}>
+  <p class="ic-title" id={`${uid}-h`}>{title}</p>
+  <ol class="ic-list">
+    {items.map((it, i) => (
+      <li class="ic-item">
+        <fieldset class="ic-set">
+          <legend class="ic-idea">{it.idea}</legend>
+          <div class="ic-opts">
+            <label class="ic-opt"><input type="radio" name={`${uid}-${i}`} value="agree" /> Agree</label>
+            <label class="ic-opt"><input type="radio" name={`${uid}-${i}`} value="disagree" /> Disagree</label>
+          </div>
+        </fieldset>
+        <p class="ic-reveal"><strong>{prefix(it.answer)}</strong> {it.explain}</p>
+        <details class="ic-fallback">
+          <summary>What scientists think</summary>
+          <p><strong>{prefix(it.answer)}</strong> {it.explain}</p>
+        </details>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .idea-check {
+    margin: var(--ddp-space-6) 0;
+    padding: var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line);
+    border-top: 3px solid var(--ddp-color-secondary);
+    border-radius: var(--ddp-radius);
+    background: var(--ddp-color-surface);
+  }
+  .ic-title {
+    margin: 0 0 var(--ddp-space-3);
+    font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-lg);
+    color: var(--ddp-color-primary);
+  }
+  .ic-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-3); }
+  .ic-item {
+    margin: 0; padding: var(--ddp-space-3) 0 0;
+    border-top: 1px solid var(--ddp-color-line);
+  }
+  .ic-item:first-child { border-top: 0; padding-top: 0; }
+  .ic-set { margin: 0; padding: 0; border: 0; min-width: 0; }
+  .ic-idea { padding: 0; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-base); font-weight: 600; color: var(--ddp-color-ink); }
+  .ic-opts { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .ic-opt {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    min-height: 44px; min-width: 7.5rem; box-sizing: border-box; padding: 0.4rem 0.9rem;
+    border: 1.5px solid var(--ddp-color-line); border-radius: 999px;
+    background: var(--ddp-color-bg); cursor: pointer;
+    font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink);
+  }
+  .ic-opt:hover { border-color: var(--ddp-color-accent); }
+  .ic-opt input { margin: 0; width: 1.1rem; height: 1.1rem; accent-color: var(--ddp-color-accent); }
+  .ic-opt:has(input:checked) { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 10%, var(--ddp-color-surface)); }
+  .ic-opt:has(input:focus-visible) { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ic-reveal, .ic-fallback p {
+    margin: var(--ddp-space-2) 0 0;
+    padding: var(--ddp-space-2) var(--ddp-space-3);
+    border-left: 3px solid var(--ddp-color-accent);
+    background: color-mix(in srgb, var(--ddp-color-accent) 6%, var(--ddp-color-surface));
+    font-size: var(--ddp-text-sm); line-height: 1.55; color: var(--ddp-color-ink);
+  }
+  .ic-fallback > summary { display: inline-flex; align-items: center; min-height: 44px; cursor: pointer; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); }
+  /* Without :has(): only the <details> shows. With it: the explanation appears
+     once a choice is made, and the <details> goes away. */
+  .ic-reveal { display: none; }
+  @supports selector(:has(*)) {
+    .ic-fallback { display: none; }
+    .ic-item:has(input:checked) .ic-reveal { display: block; }
+  }
+</style>

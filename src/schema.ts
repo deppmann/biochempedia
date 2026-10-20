@@ -230,7 +230,9 @@ const lectureSlide = z.object({
 
 /** A multi-level explanation of the lesson's core idea ("explain it like I'm…"). */
 const explainLevel = z.object({
-  level: z.enum(['eli5', 'highschool', 'college', 'grad']),
+  /** grade7 and bio2 are the high school course's depth-ladder steps: the same idea
+   *  reviewed at Life Science (grade 7) level and previewed at Biology II level. */
+  level: z.enum(['eli5', 'highschool', 'college', 'grad', 'grade7', 'bio2']),
   label: z.string().min(1),
   text: z.string().min(1),
 });
@@ -315,6 +317,27 @@ export const lessonSchema = z.object({
 
   /** Optional fun stories / asides shown as sidebars, never in the main text. */
   anecdotes: z.array(anecdote).default([]),
+
+  /** High school lessons only: where the lesson sits on the depth ladder (grade 7 Life
+   *  Science, Biology, Biology II, college). Rendered as the "Where this lesson sits" card. */
+  ladder: z.object({
+    /** Virginia SOL codes this lesson teaches, e.g. ['BIO.2a']. */
+    sol: z.array(z.string().min(1)).min(1),
+    /** BIO.1 practices it uses, e.g. ['BIO.1c', 'BIO.1d']. */
+    practices: z.array(z.string()).default([]),
+    /** The essential question of the 5E lesson. */
+    essentialQuestion: z.string().min(1),
+    /** Life Science (grade 7) standard one step down, e.g. 'LS.4 a'; the review text is explainLevels 'grade7'. */
+    lifeScience: z.string().optional(),
+    /** Biology II standard one step up, e.g. 'Biology II: Advanced Topics, BIOII.3 d'; the preview text is explainLevels 'bio2'. */
+    biology2: z.string().optional(),
+    /** College lessons on this site that take the idea further (slugs). */
+    college: z.array(z.string()).default([]),
+  }).optional(),
+
+  /** The lesson body uses scaffolded supports (<Support>, <WordBank>, <SentenceFrames>,
+   *  <ScaffoldFigure>, <CER>), so the page shows the supports switch. */
+  supports: z.boolean().default(false),
 
   /** Reserved for the future RAG-grounded tutor. Not rendered yet. */
   corpusTags: z.array(z.string()).default([]),

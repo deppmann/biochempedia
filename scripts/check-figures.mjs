@@ -1,6 +1,7 @@
 /**
- * check-figures: every <LessonFigure> in a lesson must point at a file that exists under
- * public/, and its alt text must disclose that it is AI-generated (IMAGE_POLICY.md rule 8).
+ * check-figures: every <LessonFigure> and <ScaffoldFigure> in a lesson must point at a file
+ * that exists under public/, and its alt text must disclose that it is AI-generated
+ * (IMAGE_POLICY.md rule 8). A ScaffoldFigure must also carry its keyItems.
  */
 import { readdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -13,13 +14,14 @@ for (const dir of (await readdir(LESSONS, { withFileTypes: true })).filter((d) =
   const file = join(LESSONS, dir.name, 'lesson.mdx');
   if (!existsSync(file)) continue;
   const text = await readFile(file, 'utf8');
-  for (const m of text.matchAll(/<LessonFigure\s[\s\S]*?\/>/g)) {
+  for (const m of text.matchAll(/<(LessonFigure|ScaffoldFigure)\s[\s\S]*?\/>/g)) {
     count++;
     const src = /src="([^"]+)"/.exec(m[0])?.[1];
     const alt = /alt="([^"]+)"/.exec(m[0])?.[1];
     if (!src || !existsSync(join('public', src))) failures.push(`${dir.name}: figure file missing (${src})`);
     if (!alt || !alt.startsWith('AI-generated illustration:')) failures.push(`${dir.name}: alt must start "AI-generated illustration:" (${src})`);
     if (!/caption="[^"]+"/.test(m[0])) failures.push(`${dir.name}: figure has no caption (${src})`);
+    if (m[1] === 'ScaffoldFigure' && !/keyItems=\{\[/.test(m[0])) failures.push(`${dir.name}: ScaffoldFigure needs keyItems (${src})`);
   }
 }
 for (const f of failures) console.error(`✗ check-figures: ${f}`);

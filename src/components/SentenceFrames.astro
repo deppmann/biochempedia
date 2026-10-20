@@ -1,0 +1,44 @@
+---
+/* =============================================================================
+   SentenceFrames: a boxed list of sentence starters, shown at Most help only.
+   Each "___" in a frame renders as a visible blank. See SupportsSwitch.astro.
+   ============================================================================ */
+interface Props {
+  frames: string[];
+  /** Heading of the box. */
+  title?: string;
+}
+const { frames, title = 'Sentence starters' } = Astro.props;
+const parts = (f: string) => f.split(/_{3,}/);
+---
+<div class="sentence-frames sup-min-2" role="group" aria-label={title}>
+  <p class="sf-title" aria-hidden="true">{title}</p>
+  <ul class="sf-list">
+    {frames.map((f) => (
+      <li>{parts(f).map((p, i) => <>{i > 0 && <span class="sf-blank"><span class="visually-hidden">blank</span></span>}{p}</>)}</li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .sentence-frames {
+    margin: var(--ddp-space-4) 0;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px solid color-mix(in srgb, var(--ddp-color-secondary) 60%, var(--ddp-color-line));
+    border-left-width: 4px;
+    border-radius: var(--ddp-radius-sm);
+    background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface));
+  }
+  .sf-title {
+    margin: 0 0 var(--ddp-space-2);
+    font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-secondary-ink);
+  }
+  .sf-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+  .sf-list li { margin: 0; padding: 0; font-size: var(--ddp-text-base); line-height: 1.7; color: var(--ddp-color-ink); }
+  .sf-blank {
+    display: inline-block; width: 6.5em; height: 1em; margin: 0 0.25em;
+    vertical-align: baseline;
+    border-bottom: 2px solid var(--ddp-color-ink-soft);
+  }
+</style>

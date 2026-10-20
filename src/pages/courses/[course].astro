@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CourseUnits from '../../components/CourseUnits.astro';
 import SiteSearch from '../../components/SiteSearch.astro';
+import DepthLadder from '../../components/DepthLadder.astro';
 import { COURSES, unitsFor } from '../../data/courses';
 
 /* One page per course, all in the same card layout. A course gets a page only
@@ -21,12 +22,12 @@ const { course, lessons } = Astro.props;
 const units = unitsFor(course, lessons);
 const drafts = lessons.filter((l) => l.data.draft).length;
 const first = units[0]?.entries[0]?.l;
-const tierLabel = { foundation: 'foundation course', core: 'core course', elective: 'elective', advanced: 'advanced elective' }[course.tier];
+const tierLabel = { highschool: 'high school course', foundation: 'foundation course', core: 'core course', elective: 'elective', advanced: 'advanced elective' }[course.tier];
 ---
 
 <BaseLayout title={`${course.title} — Biochemistrypedia`} description={course.blurb}>
   <section class="wrap course-hero">
-    <p class="eyebrow"><a href="/#courses">All courses</a> · {tierLabel}</p>
+    <p class="eyebrow"><a href="/#courses">All courses</a> · {tierLabel}{course.tier === 'highschool' && <DepthLadder step={2} size="sm" class="eyebrow-ladder" />}</p>
     <h1>{course.title}</h1>
     <p class="lede">{course.blurb}</p>
     {drafts > 0 && (
@@ -53,6 +54,7 @@ const tierLabel = { foundation: 'foundation course', core: 'core course', electi
     .course-hero { padding-block: var(--ddp-space-8) var(--ddp-space-4); display: flex; flex-direction: column; gap: var(--ddp-space-3); }
     .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0; }
     .eyebrow a { color: inherit; text-underline-offset: 3px; }
+    .eyebrow :global(.eyebrow-ladder) { margin-left: var(--ddp-space-3); vertical-align: -0.35em; }
     h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
     .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 60ch; margin: 0; }
     .draft-banner { align-self: flex-start; margin: 0; padding: 0.3rem 0.7rem; border: 1px dashed var(--ddp-color-caution); border-radius: 6px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-size: var(--ddp-text-sm); }

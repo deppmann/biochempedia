@@ -67,6 +67,7 @@ const metaFor = (l: any) => {
               {/* Each figure is its own nowrap span, so a wrap falls between
                   items and never splits "6 / questions". */}
               <span class="lc-meta">
+                {l.data.ladder?.sol.map((c: string) => <span class="lc-sol">SOL {c}</span>)}
                 {metaFor(l).map((m, i) => <>{i > 0 && ' · '}<span>{m}</span></>)}
               </span>
             </span>
@@ -301,6 +302,13 @@ const metaFor = (l: any) => {
     color: var(--ddp-color-muted);
   }
   .lc-meta span { white-space: nowrap; }
+  .lc-meta .lc-sol {
+    display: inline-block; margin: 0 0.4rem 0.2rem 0; padding: 0 0.45rem;
+    font-weight: 600; color: var(--ddp-color-primary);
+    border: 1px solid color-mix(in srgb, var(--ddp-color-accent) 45%, var(--ddp-color-line));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ddp-color-accent) 8%, var(--ddp-color-surface));
+  }
   @media (prefers-reduced-motion: reduce) {
     .lesson-card, .lesson-card::before { transition: none; }
   }
