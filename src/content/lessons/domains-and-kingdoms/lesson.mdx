@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.5 e; Genetics, GEN.6 e"
   college: ["microbes-protists-fungi", "plant-diversity-life-cycles", "animal-body-plans"]
 
+explainer:
+  src: "/explainers/domains-and-kingdoms/explainer.mp4"
+  captions: "/explainers/domains-and-kingdoms/explainer.vtt"
+  poster: "/explainers/domains-and-kingdoms/poster.jpg"
+  title: "Sort Life by Asking the Right Questions"
+  durationSec: 165.2
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Carl R. Woese and George E. Fox"
     contribution: >-
@@ -247,7 +256,7 @@ corpusTags:
   - "six kingdoms"
   - "dichotomous key"
   - "binomial nomenclature"
-draft: true
+draft: false
 ---
 
 import ClassifyTheUnknown from '../../../components/ClassifyTheUnknown.astro';
@@ -256,6 +265,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Put a drop of water from a Virginia pond under a microscope and you may see a crowd: green algae, a creeping amoeba, tiny animals, and specks too small to make out.** Some of those specks may be bacteria, and the mud at the bottom of a pond can hold archaea. How would you sort living things you have never seen before? It takes asking the right questions in the right order.
 
@@ -288,7 +299,7 @@ The first question is about the nucleus. A **prokaryote** is a one-celled organi
 Bacteria and archaea look alike under a light microscope, but they differ in three ways:
 
 - **Nucleic acid sequences.** Their ribosomal RNA, a molecule every cell uses to build proteins, has a different sequence. In the 1970s, comparing it showed that methane-making microbes stood apart from typical bacteria. You compared sequences to build trees in [that lesson](/lessons/building-a-tree-of-life/).
-- **Cell membrane.** In typical archaea, the fat-like molecules of the membrane are held together by a different kind of chemical link than in bacteria and eukaryotes.
+- **Cell membrane.** In typical archaea, the fat-like molecules of the membrane are held together by a different kind of chemical link, called an ether link, than the ester link in bacteria and eukaryotes.
 - **Cell wall.** Most bacteria have a wall containing peptidoglycan, a mesh of sugars and short protein-like chains. Archaea walls have no peptidoglycan.
 
 | Trait | Bacteria | Archaea | Eukarya |
@@ -298,9 +309,9 @@ Bacteria and archaea look alike under a light microscope, but they differ in thr
 | Membrane lipid links (typical) | Ester links | Ether links | Ester links |
 | Cell wall | Most have one, with peptidoglycan | Many have one, never peptidoglycan | Plants and fungi have walls; animals do not |
 
-{/* DIAGRAM: a tree of life with three main branches, numbered 1 Bacteria, 2 Archaea, 3 Eukarya, 4 the shared root at the base, 5 a note that branch position shows relatedness, not rank */}
+<ScaffoldFigure src="/figures/domains-and-kingdoms/three-domains-tree.webp" width={1200} height={800} keyItems={["Bacteria", "Archaea", "Eukarya", "shared root"]} given={[2, 3]} alt="AI-generated illustration: a tree with one root that splits into three equal branches. At the tips are a rod-shaped cell with a meshed wall, a rounded cell with a plain wall, and a larger cell with a nucleus. Four numbered circles point to the three tips and the root." caption="Three domains, three branches of one tree: where a branch sits shows relatedness, not rank. Name the three domains and the part they all share." />
 
-Think of the domains as three branches of one tree, not three steps on a staircase. The analogy breaks because this tree cannot be seen; it is worked out from sequence comparisons and still tested.
+Think of the domains as three branches of one tree, not three steps on a staircase. The analogy breaks because, unlike a real tree, this one cannot be seen directly; it is worked out from sequence comparisons and still tested.
 
 <Support min={2}>**Key idea:** The three domains are separated by whether cells have a nucleus and, for the two prokaryote domains, by their RNA sequences, membrane lipids and cell walls.</Support>
 
@@ -319,12 +330,16 @@ A **kingdom** is the rank just below domain. The Virginia Biology standards use 
 
 The protist kingdom holds every eukaryote that is not a plant, animal or fungus. Many biologists no longer treat protists as one natural group, which you will see in [that lesson](/lessons/classification-changes/).
 
+<LessonFigure src="/figures/domains-and-kingdoms/six-kingdoms-plate.webp" width={1200} height={800} alt="AI-generated illustration: two microscope views, one of clumped round archaea cells and one of rod-shaped bacteria, beside drawings of a paramecium, oyster mushrooms on a log, a loblolly pine branch with a cone and a blue crab, each labelled with its kingdom and the trait that places it." caption="The six kingdoms, shown by organisms from this lesson's table and grouped by domain. Drawings are not to scale." />
+
 This course uses four plant divisions, a simplified list. Botanists often say phylum instead of division.
 
 - **Mosses** have no vascular tissue (tubes that carry water) and no seeds. They spread by spores.
 - **Ferns** have vascular tissue but no seeds. They also spread by spores.
 - **Conifers** have seeds in cones, as the loblolly pine does.
 - **Flowering plants** have flowers and seeds inside fruits, as Virginia’s state tree, the flowering dogwood, does.
+
+<LessonFigure src="/figures/domains-and-kingdoms/four-plant-divisions.webp" width={1200} height={800} alt="AI-generated illustration: four plants in a row, a moss cushion with spore capsules, a fern frond with spore dots underneath, a loblolly pine branch with a cone, and a flowering dogwood branch with white flowers and red fruits, each labelled with its division." caption="The four plant divisions this course uses: mosses and ferns spread by spores, conifers carry seeds in cones, and flowering plants hold seeds inside fruits." />
 
 <Support min={2}>**Key idea:** The six kingdoms differ in cell type, cell number, cell walls, tissues and how they get food, and plants divide further into mosses, ferns, conifers and flowering plants.</Support>
 
@@ -383,7 +398,7 @@ Yeast is a one-celled fungus. A classmate says yeast is a tiny plant. Plan a fai
 
 - **Independent variables:** sugar (sugar water or plain water) and light (a bright window or a dark cupboard), giving four groups.
 - **Dependent variable:** the height of foam, or the size of a balloon over each bottle, after 30 minutes. Foam and gas show that yeast is breaking down food.
-- **Constants:** amount of yeast, water volume and temperature, amount of sugar, bottle type and timing.
+- **Constants:** amount of yeast, water volume and temperature, amount of sugar in the sugar-water groups, bottle type and timing.
 - **Control:** plain water in the dark, where neither light nor food is supplied.
 - **Trials:** three or more bottles per group; report the mean.
 - **What results mean:** activity only with sugar points to a heterotroph. Activity only with light would point to an autotroph.
