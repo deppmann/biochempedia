@@ -25,6 +25,15 @@ ladder:
   biology2: "Biology II: Advanced Survey of Biology Topics, BIOII.5 c-f; Genetics, GEN.6; Ecology, EC.6 a and c"
   college: ["selection-in-ecological-context", "speciation", "drift-gene-flow-explanations"]
 
+explainer:
+  src: "/explainers/natural-selection-and-speciation/explainer.mp4"
+  captions: "/explainers/natural-selection-and-speciation/explainer.vtt"
+  poster: "/explainers/natural-selection-and-speciation/poster.jpg"
+  title: "Selection Sorts Differences That Already Exist"
+  durationSec: 174.4
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Peter and Rosemary Grant"
     contribution: >-
@@ -245,7 +254,7 @@ corpusTags:
   - "speciation"
   - "Darwin's finches"
   - "adaptation"
-draft: true
+draft: false
 ---
 
 import BeakDepthSelection from '../../../components/BeakDepthSelection.astro';
@@ -254,10 +263,14 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1977 a severe drought struck Daphne Major, a small island in the Galápagos, and most of its medium ground finches died. The birds that were left had, on average, deeper beaks than the birds that had lived there before.**
 
 Researchers had measured hundreds of these birds before the drought, and they knew which lived. So you can ask a real question: did the drought change the birds, or change which birds were left?
+
+<LessonFigure src="/figures/natural-selection-and-speciation/measuring-beak-depth.webp" width={1200} height={600} alt="AI-generated illustration: a medium ground finch held in a hand, with calipers measuring the height of its beak at the base and a band on its leg. An inset compares a shallower and a deeper beak." caption="Beak depth is the height of the beak at its base. Because each banded bird was measured before the drought, researchers could later check which measured birds survived." />
 
 <IdeaCheck items={[
   { idea: 'Survival of the fittest means the strongest animals survive.', answer: 'disagree', explain: 'To a biologist, fitness means how many offspring an individual leaves that survive to reproduce. Strength counts only when it leads to more young. On Daphne Major large birds, especially males with large beaks, survived best, and a deep beak helped crack the hard seeds left. A strong animal that leaves no young has a fitness of zero.' },
@@ -293,7 +306,7 @@ Where does variation come from? A **mutation** is a change in DNA, and it is the
 
 No bird's beak grew because of the drought. The birds that died were, on average, different from the birds that lived. Studies of parents and young showed that beak size is strongly inherited, so the next generation's beaks were deeper on average too. Over many generations, unequal survival like this leaves a population made up mostly of well-suited individuals, and the inherited change tends to last unless the environment later favours something else.
 
-{/* DIAGRAM: natural selection in four numbered steps for finches: 1 a population with a spread of beak depths, 2 a drought leaves mostly large hard seeds, 3 more deep-beaked birds survive and breed, 4 the next generation's beak-depth histogram shifted toward deeper beaks */}
+<ScaffoldFigure src="/figures/natural-selection-and-speciation/finch-drought-selection-steps.webp" width={1200} height={427} keyItems={["a spread of beak depths", "large, hard seeds", "deep-beaked birds survive and breed", "the next generation"]} given={[1]} alt="AI-generated illustration: four panels of medium ground finches. First, eight finches with shallow, medium and deep beaks; second, dry ground with large hard seeds; third, four survivors, mostly deep-beaked, one cracking a seed; fourth, eight young finches with more deep beaks. Four numbered circles point to the steps." caption="Natural selection in four steps, drawn as a simple model rather than real counts. Name each numbered step, and notice that no bird's beak changes during its life." />
 
 <Support min={2}>**Key idea:** Selection sorts inherited differences that already exist, so traits that help individuals leave more offspring become more common over generations.</Support>
 

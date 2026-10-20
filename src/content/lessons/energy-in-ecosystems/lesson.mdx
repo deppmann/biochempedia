@@ -26,6 +26,15 @@ ladder:
   biology2: "Biology II: Ecology, EC.3; Advanced Topics, BIOII.6 a-c"
   college: ["energy-flow"]
 
+explainer:
+  src: "/explainers/energy-in-ecosystems/explainer.mp4"
+  captions: "/explainers/energy-in-ecosystems/explainer.vtt"
+  poster: "/explainers/energy-in-ecosystems/poster.jpg"
+  title: "Sunlight In, Heat Out"
+  durationSec: 168.7
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Raymond Lindeman"
     contribution: >-
@@ -237,7 +246,7 @@ corpusTags:
   - "ecological pyramids"
   - "Chesapeake Bay"
   - "osprey"
-draft: true
+draft: false
 ---
 
 import EnergyPyramidBuilder from '../../../components/EnergyPyramidBuilder.astro';
@@ -246,6 +255,8 @@ import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Along the Chesapeake Bay, ospreys raise chicks in nests and carry fish home to their chicks. One important fish they bring is the Atlantic menhaden, a small oily fish that filters plankton out of the water.**
 
@@ -288,7 +299,7 @@ A **food chain** follows one feeding path. A **food web** links many food chains
 
 Menhaden filter both phytoplankton and zooplankton, tiny animals that drift in the water. Striped bass eat menhaden too. Because menhaden eat at two levels, the osprey is a secondary consumer on one path and a tertiary consumer on another. A web shows this; a single chain hides it. You will add bacteria and their recycling in [Matter Cycles](/lessons/matter-cycles/).
 
-{/* DIAGRAM: a Chesapeake Bay food web with arrows from food to eater, numbered 1 sunlight, 2 phytoplankton, 3 zooplankton, 4 Atlantic menhaden, 5 osprey and striped bass, 6 decomposers receiving dead matter from every level */}
+<ScaffoldFigure src="/figures/energy-in-ecosystems/bay-food-web.webp" width={1200} height={800} keyItems={["phytoplankton", "zooplankton", "Atlantic menhaden", "osprey", "striped bass", "decomposers"]} given={[3, 4]} alt="AI-generated illustration: a side view of Bay water. Sunlight shines on phytoplankton shown in a magnifier, arrows run to zooplankton and to small menhaden, and from menhaden to an osprey above the water and a striped bass below. Dashed arrows from every organism lead to bacteria on dead matter at the bottom. Six numbered circles mark the organisms." caption="A Chesapeake Bay food web: arrows run from food to eater, and dead matter from every level goes to decomposers. Name the six numbered parts." />
 
 <Support min={2}>**Key idea:** food web arrows point from food to eater, and an animal’s trophic level depends on which path you follow.</Support>
 
@@ -298,6 +309,8 @@ Phytoplankton store light energy in sugars by photosynthesis, which you met in [
 - Some is released as heat during **cellular respiration**, the process that releases energy from food, explained in [Respiration and ATP](/lessons/respiration-and-atp/).
 - Some is in parts that are not eaten or not digested. Much of that material ends up with decomposers.
 - Only the rest becomes new body tissue that the next level can eat.
+
+<LessonFigure src="/figures/energy-in-ecosystems/where-the-energy-goes.webp" width={1200} height={800} alt="AI-generated illustration: a magnified zooplankton eating phytoplankton. A wide gold band of food energy enters it and splits three ways: wavy heat arrows rising into the water, a waste pellet and uneaten scraps sinking to bacteria, and a narrow branch that becomes new body tissue." caption="Where the energy in food goes at one step, not to scale: much is released as heat, some is left uneaten or undigested for decomposers, and only the rest becomes new tissue." />
 
 As a rule of thumb, about 10 percent of the energy at one level ends up in the next. Real measurements are often higher or lower. A 2026 synthesis of 2,052 estimates from 122 studies found an average energy transfer of about 6 percent, lower on land than in the sea. The simulation lets you try 5 to 20 percent.
 
