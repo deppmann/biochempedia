@@ -189,6 +189,35 @@ Help me go up one level of abstraction. Suggest 5 more ambitious versions of the
 
 Be realistic about what one teacher can maintain. Do not invent tools or products; if you suggest software, describe the kind of tool rather than naming a product.`,
   },
+  {
+    id: 'tutor-asks-first',
+    title: 'A tutor that asks before it tells (for students to paste into their own AI)',
+    protects: 'The student does the thinking; the AI asks questions instead of handing over answers.',
+    body: `Copy this to your students. They paste it at the start of a chat with any AI tool before they ask for help.
+
+"I am a [grade] biology student working on: [topic or assignment]. Act as my tutor, not as an answer machine.
+1. Before you explain anything, ask me what I think the answer is and why.
+2. If I am wrong, do not give me the answer. Ask me one question that would help me see the problem, or point me to the idea I should look at again.
+3. Only give a full explanation after I have tried twice, and then ask me to explain it back in my own words.
+4. If I ask you to just do it for me, remind me of these rules.
+5. If you are not sure something is true, say so. Do not make up facts or sources."
+
+Adjust the topic line for each assignment. This does not stop a student from using AI another way; it gives them a better way to use it.`,
+  },
+  {
+    id: 'question-ledger',
+    title: 'Sort your students\' own questions into a curiosity list',
+    protects: 'Students\' questions become part of the course instead of disappearing.',
+    studentText: true,
+    body: `Below are questions my students asked this week about [topic], with names removed. Some are about the lesson; some go beyond it.
+
+[paste the anonymous questions, one per line]
+
+1. Group them: questions about the lesson itself; questions that connect to medicine, health or everyday life; questions that go deeper into the science; questions nobody can answer yet.
+2. For each group, pick the one question that would make the best 3-minute opener for my next class, and say why.
+3. For questions that go beyond what we teach, suggest where a student could look to explore it (describe the kind of source; do not invent specific titles or links).
+4. Do not answer the questions yourself. The point is for the class to work on them.`,
+  },
 ];
 
 /** Courses with a published lesson, linked from the hub. Slugs verified against src/data/courses.ts. */
