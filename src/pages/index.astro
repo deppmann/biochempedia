@@ -83,7 +83,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
           {t.cards.map((k, i) => (
             <li>
               <a href={courseHref(k.c.slug)} class="course-card">
-                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /><DepthLadder step={k.c.tier === 'highschool' ? 2 : 4} size="sm" class="cc-ladder" /></span>
+                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /><DepthLadder step={k.c.tier === 'highschool' ? (k.c.ladderStep ?? 2) : 4} size="sm" class="cc-ladder" /></span>
                 <span class="cc-body">
                   <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}{k.c.mcat && <span class="cc-mcat" title="Covers material the MCAT tests">MCAT</span>}</span>
                   <span class="cc-title">{k.c.title}</span>

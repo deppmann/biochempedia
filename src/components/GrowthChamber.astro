@@ -1,0 +1,361 @@
+---
+/**
+ * GrowthChamber — a plant in a clear growth chamber. Three dials (light, carbon dioxide,
+ * temperature) set one made-up rate of photosynthesis. Oxygen bubbles and a sugar (glucose)
+ * bar show the rate; a small graph traces the rate against the dial being moved, so the
+ * learner sees it climb, level off when another factor holds it back, and fall when too hot.
+ * Original. Self-contained, no libraries.
+ */
+---
+
+<figure class="gc card" data-growthchamber>
+  <figcaption class="gc-head">Grow a plant in a test chamber<span class="gc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="gc-svg" viewBox="0 0 320 214" role="img" aria-label="A clear growth chamber holding a plant made of one stem block and one leaf. Light arrows enter from the left, carbon dioxide arrows enter from the right, and oxygen bubbles rise from the leaf." data-chamber>
+    <defs>
+      <marker id="gc-ml" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#b87a00"></path></marker>
+      <marker id="gc-mc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0e7c86"></path></marker>
+    </defs>
+    <rect x="70" y="34" width="180" height="150" rx="8" fill="#f1f7ee" stroke="#4b4b55" stroke-width="1.5" data-tint></rect>
+    <text x="160" y="22" text-anchor="middle" font-size="12" fill="#4b4b55" data-temptag>temperature: warm</text>
+    <text x="160" y="204" text-anchor="middle" font-size="12" fill="#4b4b55">clear growth chamber</text>
+    <text x="78" y="52" text-anchor="start" font-size="12" fill="#4b4b55">oxygen bubbles</text>
+    <text x="34" y="24" text-anchor="middle" font-size="12" fill="#4b4b55">light</text>
+    <text x="285" y="24" text-anchor="middle" font-size="12" fill="#4b4b55">carbon</text>
+    <text x="285" y="38" text-anchor="middle" font-size="12" fill="#4b4b55">dioxide</text>
+    <rect x="140" y="152" width="60" height="26" fill="#d9c9a8" stroke="#4b4b55" stroke-width="1"></rect>
+    <text x="170" y="170" text-anchor="middle" font-size="12" fill="#4b4b55">pot</text>
+    <rect x="165" y="92" width="10" height="60" fill="#4c9a4c" stroke="#2f6b2f" stroke-width="1"></rect>
+    <text x="160" y="126" text-anchor="end" font-size="12" fill="#4b4b55">stem</text>
+    <ellipse cx="200" cy="96" rx="28" ry="12" transform="rotate(-18 200 96)" fill="#6cc070" stroke="#2f6b2f" stroke-width="1"></ellipse>
+    <text x="226" y="128" text-anchor="start" font-size="12" fill="#4b4b55">leaf</text>
+    <line x1="214" y1="122" x2="204" y2="104" stroke="#4b4b55" stroke-width="1"></line>
+    <g data-rays></g>
+    <g data-co2></g>
+    <g data-bubbles></g>
+  </svg>
+
+  <div class="gc-controls">
+    <label class="gc-slabel" for="gc-light"><span>Light <em data-out="light"></em></span>
+      <input id="gc-light" type="range" data-in="light" min="0" max="100" step="5" value="20" />
+    </label>
+    <label class="gc-slabel" for="gc-co2"><span>Carbon dioxide <em data-out="co2"></em></span>
+      <input id="gc-co2" type="range" data-in="co2" min="0" max="100" step="5" value="30" />
+    </label>
+    <label class="gc-slabel" for="gc-temp"><span>Temperature <em data-out="temp"></em></span>
+      <input id="gc-temp" type="range" data-in="temp" min="0" max="100" step="5" value="55" />
+    </label>
+  </div>
+
+  <div class="gc-readout">
+    <div class="gc-box">
+      <span class="gc-k">Oxygen bubbles counted</span>
+      <span class="gc-big" data-bubblecount>0</span>
+      <span class="gc-u">out of 10 (relative units)</span>
+    </div>
+    <div class="gc-box">
+      <span class="gc-k">Sugar (glucose) made per hour</span>
+      <div class="gc-bar" role="meter" aria-label="Sugar made per hour, relative units" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-meter><div class="gc-fill" data-fill></div></div>
+      <span class="gc-u"><b data-ratetext>0</b> out of 100 (relative units)</span>
+    </div>
+  </div>
+
+  <div class="gc-plotrow">
+    <div class="gc-pick" role="group" aria-label="Graph the rate against">
+      <span class="gc-k">Graph the rate against:</span>
+      <button type="button" class="gc-btn" data-pick="light" aria-pressed="true">Light</button>
+      <button type="button" class="gc-btn" data-pick="co2" aria-pressed="false">Carbon dioxide</button>
+      <button type="button" class="gc-btn" data-pick="temp" aria-pressed="false">Temperature</button>
+    </div>
+    <svg class="gc-svg" viewBox="0 0 320 200" role="img" aria-label="A graph of the rate of photosynthesis in this sketch against the dial you chose" data-plot></svg>
+    <p class="gc-cap">The line shows the rate as that one dial moves and the other two stay where you set them. The orange dot is your setting.</p>
+  </div>
+
+  <p class="gc-why" data-why role="status">Move a dial and watch the bubbles, the sugar bar and the graph.</p>
+  <div class="gc-actions"><button type="button" class="gc-btn gc-reset" data-reset>Reset</button></div>
+
+  <p class="gc-assume"><b>In this sketch</b> the curves are smooth and made up, water never runs short, the plant is one block with a leaf, and every number is in relative units. The ends of the temperature graph are made up. Look at the shape of each graph, not the exact numbers.</p>
+  <p class="gc-foot">Rule to keep: more light or more carbon dioxide speeds up photosynthesis only up to a point, then another factor holds it back, and too much heat slows it down.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  type Dial = 'light' | 'co2' | 'temp';
+  const DIALS: Dial[] = ['light', 'co2', 'temp'];
+  const DEFAULTS: Record<Dial, number> = { light: 20, co2: 30, temp: 55 };
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, s: string): T {
+    const e = root.querySelector<T>(s);
+    if (!e) throw new Error('GrowthChamber: missing ' + s);
+    return e;
+  }
+
+  // The made-up rate model, in relative units (0 to about 96).
+  const S = 6; // softness of the corner where one factor takes over from another
+  const lightCap = (L: number) => 100 * (1 - Math.exp(-L / 22));
+  const co2Cap = (C: number) => 100 * (1 - Math.exp(-C / 22));
+  const tempFactor = (T: number) => {
+    const d = T - 55;
+    const w = d < 0 ? 38 : 25;
+    return Math.exp(-Math.pow(Math.abs(d) / w, 3));
+  };
+  const softmin = (a: number, b: number) => -S * Math.log(Math.exp(-a / S) + Math.exp(-b / S));
+  function rateOf(L: number, C: number, T: number): number {
+    if (L <= 0 || C <= 0) return 0;
+    return Math.max(0, tempFactor(T) * softmin(lightCap(L), co2Cap(C)));
+  }
+
+  const lightWord = (v: number) => v === 0 ? 'dark' : v < 25 ? 'dim' : v < 60 ? 'medium' : v < 85 ? 'bright' : 'very bright';
+  const co2Word = (v: number) => v < 15 ? 'very low' : v < 40 ? 'low' : v < 65 ? 'medium' : v < 85 ? 'high' : 'very high';
+  const tempWord = (v: number) => v < 20 ? 'cold' : v < 40 ? 'cool' : v < 70 ? 'warm' : v < 85 ? 'hot' : 'very hot';
+  const NAMES: Record<Dial, string> = { light: 'light', co2: 'carbon dioxide', temp: 'temperature' };
+  const XLAB: Record<Dial, string[]> = {
+    light: ['dark', 'medium', 'very bright'],
+    co2: ['very low', 'medium', 'very high'],
+    temp: ['cold', 'warm', 'very hot'],
+  };
+
+  function tintFor(T: number): string {
+    const mix = (a: number[], b: number[], t: number) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+    const cold = [221, 236, 250], mid = [241, 247, 238], hot = [252, 224, 208];
+    const c = T < 55 ? mix(cold, mid, T / 55) : mix(mid, hot, Math.min(1, (T - 55) / 45));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-growthchamber]').forEach((root) => {
+    const inputs = {} as Record<Dial, HTMLInputElement>;
+    const outs = {} as Record<Dial, HTMLElement>;
+    for (const d of DIALS) {
+      inputs[d] = must<HTMLInputElement>(root, `[data-in="${d}"]`);
+      outs[d] = must<HTMLElement>(root, `[data-out="${d}"]`);
+    }
+    const tint = must<SVGElement>(root, '[data-tint]');
+    const tempTag = must<SVGElement>(root, '[data-temptag]');
+    const raysG = must<SVGElement>(root, '[data-rays]');
+    const co2G = must<SVGElement>(root, '[data-co2]');
+    const bubG = must<SVGElement>(root, '[data-bubbles]');
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const bubbleCount = must<HTMLElement>(root, '[data-bubblecount]');
+    const fill = must<HTMLElement>(root, '[data-fill]');
+    const meter = must<HTMLElement>(root, '[data-meter]');
+    const rateText = must<HTMLElement>(root, '[data-ratetext]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const picks = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-pick]'));
+
+    let plotDial: Dial = 'light';
+    let rate = 0;
+
+    const vals = () => ({ L: parseInt(inputs.light.value, 10), C: parseInt(inputs.co2.value, 10), T: parseInt(inputs.temp.value, 10) });
+
+    // Bubbles
+    const MAXB = 10;
+    const bubbles: SVGElement[] = [];
+    for (let i = 0; i < MAXB; i++) {
+      const c = el('circle', { cx: 190, cy: 80, r: 3.5, fill: '#ffffff', stroke: ACCENT, 'stroke-width': 1.2 });
+      c.setAttribute('visibility', 'hidden');
+      bubG.appendChild(c);
+      bubbles.push(c);
+    }
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let phase = 0, last = 0, shown = 0;
+    function placeBubbles() {
+      for (let i = 0; i < MAXB; i++) {
+        const b = bubbles[i];
+        if (i >= shown) { b.setAttribute('visibility', 'hidden'); continue; }
+        const f = reduce ? (i + 0.5) / MAXB : (phase + i / MAXB) % 1;
+        const y = 86 - f * 44;
+        const x = 178 + ((i * 11) % 30) + Math.sin((f + i) * 6) * 2.5;
+        b.setAttribute('cx', x.toFixed(1));
+        b.setAttribute('cy', y.toFixed(1));
+        b.setAttribute('visibility', 'visible');
+      }
+    }
+    function tick(ts: number) {
+      if (last) phase = (phase + ((ts - last) / 1000) * (0.12 + rate / 100 * 0.3)) % 1;
+      last = ts;
+      placeBubbles();
+      requestAnimationFrame(tick);
+    }
+
+    function drawArrows() {
+      const { L, C } = vals();
+      raysG.replaceChildren();
+      co2G.replaceChildren();
+      const nl = L === 0 ? 0 : Math.ceil(L / 20);
+      for (let i = 0; i < nl; i++) {
+        const y = 52 + i * 26;
+        raysG.appendChild(el('line', { x1: 8, y1: y - 12, x2: 62, y2: y + 6, stroke: '#b87a00', 'stroke-width': 2.5, 'marker-end': 'url(#gc-ml)' }));
+      }
+      const nc = C === 0 ? 0 : Math.ceil(C / 20);
+      for (let i = 0; i < nc; i++) {
+        const y = 62 + i * 24;
+        co2G.appendChild(el('line', { x1: 314, y1: y, x2: 258, y2: y, stroke: ACCENT, 'stroke-width': 2.5, 'marker-end': 'url(#gc-mc)' }));
+      }
+    }
+
+    // Plot
+    const X0 = 44, X1 = 304, Y0 = 30, Y1 = 156;
+    const px = (v: number) => X0 + (v / 100) * (X1 - X0);
+    const py = (r: number) => Y1 - (r / 100) * (Y1 - Y0);
+    function rateAt(d: Dial, v: number): number {
+      const { L, C, T } = vals();
+      return d === 'light' ? rateOf(v, C, T) : d === 'co2' ? rateOf(L, v, T) : rateOf(L, C, v);
+    }
+    function txt(x: number, y: number, s: string, anchor: string, bold = false, color = INK): SVGElement {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': 12, fill: color });
+      if (bold) t.setAttribute('font-weight', '700');
+      t.textContent = s;
+      return t;
+    }
+    function drawPlot() {
+      const cur = parseInt(inputs[plotDial].value, 10);
+      plot.replaceChildren();
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const r of [0, 50, 100]) {
+        if (r > 0) plot.appendChild(el('line', { x1: X0, y1: py(r), x2: X1, y2: py(r), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(txt(X0 - 5, py(r) + 4, String(r), 'end'));
+      }
+      const xl = XLAB[plotDial];
+      [0, 50, 100].forEach((v, i) => {
+        plot.appendChild(el('line', { x1: px(v), y1: Y1, x2: px(v), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt(px(v), Y1 + 18, xl[i], i === 0 ? 'start' : i === 2 ? 'end' : 'middle'));
+      });
+      plot.appendChild(txt(X0 + (X1 - X0) / 2, 194, NAMES[plotDial] + ' (relative units)', 'middle'));
+      plot.appendChild(txt(4, 11, 'rate (relative units)', 'start'));
+      let d = '';
+      let max = 0, maxAt = 0;
+      const pts: number[] = [];
+      for (let v = 0; v <= 100; v += 1) {
+        const r = rateAt(plotDial, v);
+        pts.push(r);
+        if (r > max) { max = r; maxAt = v; }
+        d += (v === 0 ? 'M' : 'L') + px(v).toFixed(1) + ' ' + py(r).toFixed(1) + ' ';
+      }
+      plot.appendChild(el('path', { d: d.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2.6 }));
+      // Marker: where the line levels off (light, carbon dioxide) or its highest point (temperature).
+      if (max > 10) {
+        if (plotDial === 'temp') {
+          const mx = Math.min(Math.max(px(maxAt), X0 + 45), X1 - 45);
+          plot.appendChild(txt(mx, Y1 - 6, 'highest rate', 'middle', true, '#8a4a00'));
+        } else {
+          let xp = 0;
+          while (xp < 100 && pts[xp] < 0.95 * max) xp++;
+          if (xp > 6 && xp < 92) {
+            plot.appendChild(el('line', { x1: px(xp), y1: py(max), x2: px(xp), y2: Y1, stroke: '#8a4a00', 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+            const right = px(xp) + 6 + 78 <= X1;
+            plot.appendChild(txt(right ? px(xp) + 6 : px(xp) - 6, Y1 - 6, 'levels off', right ? 'start' : 'end', true, '#8a4a00'));
+          }
+        }
+      }
+      plot.appendChild(el('line', { x1: px(cur), y1: py(rate), x2: px(cur), y2: Y1, stroke: ORANGE, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      plot.appendChild(el('circle', { cx: px(cur), cy: py(rate), r: 6, fill: ORANGE, stroke: '#ffffff', 'stroke-width': 1.5 }));
+    }
+
+    function statusText(): string {
+      const { L, C, T } = vals();
+      if (L === 0) return 'No light, so no sugar or oxygen is made in this sketch. In the blueberry leaf data, a leaf in the dark gave off carbon dioxide, because its cells still release energy from sugar.';
+      if (C === 0) return 'No carbon dioxide, so no sugar or oxygen is made in this sketch.';
+      const caps: Array<{ f: Dial; v: number }> = [
+        { f: 'light' as Dial, v: lightCap(L) },
+        { f: 'co2' as Dial, v: co2Cap(C) },
+        { f: 'temp' as Dial, v: 100 * tempFactor(T) },
+      ].sort((a, b) => a.v - b.v);
+      const lim = caps[0], next = caps[1];
+      let s: string;
+      if (lim.v > 92) {
+        s = 'Nothing holds the rate back much. It is near the top of this sketch.';
+      } else if (next.v - lim.v < 8) {
+        s = 'Two factors are close to holding the rate back. Changing just one helps only a little.';
+      } else if (lim.f === 'light') {
+        s = 'In this sketch, light is holding the rate back. More light should raise it.';
+      } else if (lim.f === 'co2') {
+        s = 'In this sketch, carbon dioxide is holding the rate back. More should raise the rate.';
+      } else if (T > 55) {
+        s = 'In this sketch, it is too hot. Too much heat slows photosynthesis, so the rate falls.';
+      } else {
+        s = 'In this sketch, low temperature holds the rate back. Warmth can speed photosynthesis up.';
+      }
+      if (plotDial !== 'temp' && lim.f !== plotDial && lim.v <= 92 && next.v - lim.v >= 8) {
+        const cur = parseInt(inputs[plotDial].value, 10);
+        const gain = rateAt(plotDial, Math.min(100, cur + 10)) - rate;
+        if (cur < 100 && gain < 1.5) s += ` More ${NAMES[plotDial]} now adds almost nothing, because another factor is the limit.`;
+      }
+      return s;
+    }
+
+    function render() {
+      const { L, C, T } = vals();
+      outs.light.textContent = `${L} · ${lightWord(L)}`;
+      outs.co2.textContent = `${C} · ${co2Word(C)}`;
+      outs.temp.textContent = `${T} · ${tempWord(T)}`;
+      rate = rateOf(L, C, T);
+      const r = Math.round(rate);
+      shown = Math.min(MAXB, Math.round(rate / 10));
+      bubbleCount.textContent = String(shown);
+      fill.style.width = r + '%';
+      meter.setAttribute('aria-valuenow', String(r));
+      rateText.textContent = String(r);
+      tint.setAttribute('fill', tintFor(T));
+      tempTag.textContent = 'temperature: ' + tempWord(T);
+      drawArrows();
+      placeBubbles();
+      drawPlot();
+      why.textContent = statusText();
+      picks.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pick === plotDial)));
+    }
+
+    DIALS.forEach((d) => {
+      inputs[d].addEventListener('input', () => { plotDial = d; render(); });
+    });
+    picks.forEach((b) => b.addEventListener('click', () => {
+      const p = b.dataset.pick;
+      if (p === 'light' || p === 'co2' || p === 'temp') { plotDial = p; render(); }
+    }));
+    resetBtn.addEventListener('click', () => {
+      DIALS.forEach((d) => { inputs[d].value = String(DEFAULTS[d]); });
+      plotDial = 'light';
+      render();
+      why.textContent = 'Back to the start. Move a dial and watch the bubbles, the sugar bar and the graph.';
+    });
+
+    render();
+    if (!reduce) requestAnimationFrame(tick);
+  });
+</script>
+
+<style is:global>
+  .gc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gc-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .gc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gc-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .gc-readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .gc-box { display: flex; flex-direction: column; gap: 0.2rem; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gc-k { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .gc-big { font-family: var(--ddp-font-mono); font-size: 2rem; line-height: 1.1; font-weight: 700; color: var(--ddp-color-primary); }
+  .gc-u { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gc-bar { height: 22px; border: 1px solid var(--ddp-color-line); border-radius: 4px; background: #fff; overflow: hidden; margin: 0.35rem 0; }
+  .gc-fill { height: 100%; width: 0; background: #e57200; transition: width 0.15s; }
+  .gc-plotrow { margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gc-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: var(--ddp-space-2); }
+  .gc-btn { min-height: 44px; padding: 0 0.9rem; font: inherit; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; cursor: pointer; }
+  .gc-btn[aria-pressed="true"] { background: var(--ddp-color-accent); color: #fff; border-color: var(--ddp-color-accent); font-weight: 700; }
+  .gc-btn:focus-visible, .gc-slabel input:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .gc-cap { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gc-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .gc-actions { margin: 0 0 var(--ddp-space-2); }
+  .gc-reset { color: var(--ddp-color-primary); font-weight: 600; }
+  .gc-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

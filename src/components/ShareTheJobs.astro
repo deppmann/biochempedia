@@ -1,0 +1,309 @@
+---
+/**
+ * ShareTheJobs — an organism has five life jobs. The learner picks how many cells it has
+ * (1, 10, 100, 1,000) and whether all cells are alike or split into jobs. Five bars show
+ * how well each job keeps up in this sketch; a zoom strip shows which levels of
+ * organization (cell, tissue, organ, organ system, organism) the body reaches.
+ * The bar rule and the level thresholds are made up for the sketch and said so on screen.
+ * Cells are drawn as labelled coloured blocks. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="stj card" data-sharejobs>
+  <figcaption class="stj-head">Share the jobs: cells, tissues and organisms<span class="stj-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="stj-group">
+    <legend>1. How many cells does the organism have?</legend>
+    <div class="stj-btns" data-counts></div>
+  </fieldset>
+  <fieldset class="stj-group">
+    <legend>2. Are the cells alike, or split into jobs?</legend>
+    <div class="stj-btns" data-modes></div>
+  </fieldset>
+
+  <p class="stj-size" data-size></p>
+
+  <svg class="stj-svg" viewBox="0 0 360 150" role="img" aria-label="The cells of the organism drawn as coloured blocks, not to scale" data-blocks></svg>
+  <ul class="stj-legend" data-legend></ul>
+
+  <div class="stj-bars" data-bars role="group" aria-label="How well each life job keeps up, in relative units"></div>
+
+  <p class="stj-why" data-why role="status"></p>
+
+  <div class="stj-strip-title">Zoom strip: the levels this body reaches</div>
+  <ol class="stj-strip" data-strip></ol>
+  <p class="stj-lvl" data-lvl></p>
+
+  <div class="stj-row"><button type="button" class="stj-btn" data-reset>Reset</button></div>
+
+  <p class="stj-assume">Made up for this sketch, not measured: the bars are relative units. A bigger body of alike cells strains gas exchange and getting food the most, and reproduction the least. Five or more cells can be split into five job groups. Tissues, organs and organ systems appear at 10, 100 and 1,000 cells when cells are split into jobs. Real organisms do not follow cell-count cut-offs: the lesson lists Trichoplax (about 320 cells, a rough estimate) and Volvox carteri (about 2,000 cells) with no organs. No real organism is a ball of alike cells that fails: Volvox carteri has about 2,000 cells and only 2 kinds. Blocks are not to scale; at 1,000 cells one block stands for 10 cells.</p>
+  <p class="stj-foot">Rule to keep: a bigger organism has more cells, and it tends to have more kinds of cells that share the work. This is a sketch of the logic, not a measurement of any real organism.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const COUNTS = [1, 10, 100, 1000];
+  type Mode = 'alike' | 'jobs';
+  const JOBS = [
+    { name: 'Moving', color: '#c2410c', letter: 'M', strain: 0.5 },
+    { name: 'Getting food', color: '#4c9a3f', letter: 'F', strain: 0.9 },
+    { name: 'Gas exchange', color: '#2f6f8f', letter: 'G', strain: 1.0 },
+    { name: 'Response', color: '#7a5ea8', letter: 'R', strain: 0.7 },
+    { name: 'Reproduction', color: '#b8860b', letter: 'P', strain: 0.3 },
+  ];
+  const ALIKE = '#8a8f9a';
+  const LEVELS = ['Cell', 'Tissue', 'Organ', 'Organ system', 'Organism'];
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const fmt = (n: number) => (n >= 1000 ? '1,000' : String(n));
+
+  document.querySelectorAll<HTMLElement>('[data-sharejobs]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const countsEl0 = q<HTMLElement>('[data-counts]');
+    const modesEl0 = q<HTMLElement>('[data-modes]');
+    const sizeEl0 = q<HTMLElement>('[data-size]');
+    const blocks0 = q<SVGSVGElement>('[data-blocks]');
+    const legend0 = q<HTMLElement>('[data-legend]');
+    const barsEl0 = q<HTMLElement>('[data-bars]');
+    const why0 = q<HTMLElement>('[data-why]');
+    const strip0 = q<HTMLElement>('[data-strip]');
+    const lvl0 = q<HTMLElement>('[data-lvl]');
+    const reset0 = q<HTMLButtonElement>('[data-reset]');
+    if (!countsEl0 || !modesEl0 || !sizeEl0 || !blocks0 || !legend0 || !barsEl0 || !why0 || !strip0 || !lvl0 || !reset0) return;
+    const countsEl = countsEl0;
+    const modesEl = modesEl0;
+    const sizeEl = sizeEl0;
+    const blocks = blocks0;
+    const legend = legend0;
+    const barsEl = barsEl0;
+    const why = why0;
+    const strip = strip0;
+    const lvl = lvl0;
+    const reset = reset0;
+
+    let n = 1;
+    let mode: Mode = 'alike';
+
+    const countBtns: HTMLButtonElement[] = [];
+    COUNTS.forEach((c) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'stj-btn';
+      b.textContent = c === 1 ? '1 cell' : fmt(c) + ' cells';
+      b.addEventListener('click', () => { n = c; render(); });
+      countsEl.appendChild(b); countBtns.push(b);
+    });
+    const modeBtns: { m: Mode; b: HTMLButtonElement }[] = [];
+    ([['alike', 'All cells alike'], ['jobs', 'Cells split into jobs']] as [Mode, string][]).forEach(([m, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'stj-btn';
+      b.textContent = label;
+      b.addEventListener('click', () => { mode = m; render(); });
+      modesEl.appendChild(b); modeBtns.push({ m, b });
+    });
+
+    const barFills: HTMLElement[] = [];
+    const barWords: HTMLElement[] = [];
+    JOBS.forEach((j) => {
+      const row = document.createElement('div'); row.className = 'stj-bar';
+      const lab = document.createElement('span'); lab.className = 'stj-bl';
+      const dot = document.createElement('i'); dot.className = 'stj-dot'; dot.style.background = j.color;
+      lab.appendChild(dot); lab.appendChild(document.createTextNode(j.name));
+      const track = document.createElement('div'); track.className = 'stj-track';
+      track.setAttribute('role', 'img');
+      const fill = document.createElement('i'); fill.style.background = j.color;
+      track.appendChild(fill);
+      const word = document.createElement('span'); word.className = 'stj-bw';
+      row.appendChild(lab); row.appendChild(track); row.appendChild(word);
+      barsEl.appendChild(row); barFills.push(fill); barWords.push(word);
+    });
+
+    // How well a job keeps up, 0 to 1, in relative units (made up for the sketch).
+    function keepUp(jobIdx: number): number {
+      if (n === 1 || mode === 'jobs') return 1;
+      const v = 1 - (JOBS[jobIdx].strain * Math.log10(n)) / 3 * 0.9;
+      return Math.max(0.05, v);
+    }
+    function wordFor(v: number): string {
+      if (v >= 0.85) return 'keeps up';
+      if (v >= 0.5) return 'slipping';
+      if (v >= 0.25) return 'behind';
+      return 'far behind';
+    }
+    function lit(): boolean[] {
+      if (n === 1) return [true, false, false, false, true];
+      if (mode === 'alike') return [true, false, false, false, true];
+      return [true, n >= 10, n >= 100, n >= 1000, true];
+    }
+
+    function drawBlocks() {
+      blocks.replaceChildren();
+      const shown = Math.min(n, 100);
+      let cols: number, size: number, gap: number;
+      if (shown === 1) { cols = 1; size = 56; gap = 0; }
+      else if (shown === 10) { cols = 5; size = 34; gap = 5; }
+      else { cols = 10; size = 9; gap = 2; }
+      const rows = Math.ceil(shown / cols);
+      const w = cols * size + (cols - 1) * gap, h = rows * size + (rows - 1) * gap;
+      const x0 = (360 - w) / 2, y0 = 20 + (110 - h) / 2;
+      const split = mode === 'jobs' && n > 1;
+      for (let i = 0; i < shown; i++) {
+        const r = Math.floor(i / cols), c = i % cols;
+        const x = x0 + c * (size + gap), y = y0 + r * (size + gap);
+        const j = split ? Math.floor((i * 5) / shown) : -1;
+        blocks.appendChild(el('rect', { x, y, width: size, height: size, rx: shown === 1 ? 10 : 3, fill: j >= 0 ? JOBS[j].color : ALIKE, stroke: '#2b2f3a', 'stroke-width': shown === 1 ? 2 : 1 }));
+        if (shown <= 10 && split) blocks.appendChild(el('text', { x: x + size / 2, y: y + size / 2 + 5, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: '#fff' }, JOBS[j].letter));
+      }
+      blocks.appendChild(el('text', { x: 180, y: 14, 'font-size': 12, 'text-anchor': 'middle', fill: '#4b4b55' }, n === 1 ? 'one cell, drawn as a block' : 'cells drawn as blocks, not to scale'));
+      if (n === 1000) blocks.appendChild(el('text', { x: 180, y: 146, 'font-size': 12, 'text-anchor': 'middle', fill: '#4b4b55' }, '1 block = 10 cells'));
+    }
+
+    function drawLegend() {
+      legend.replaceChildren();
+      const split = mode === 'jobs' && n > 1;
+      if (!split) {
+        const li = document.createElement('li');
+        const sw = document.createElement('i'); sw.className = 'stj-sw'; sw.style.background = ALIKE;
+        li.appendChild(sw);
+        li.appendChild(document.createTextNode(n === 1 ? 'This one cell does all five jobs' : 'Every cell is alike and tries all five jobs'));
+        legend.appendChild(li);
+        return;
+      }
+      JOBS.forEach((j) => {
+        const li = document.createElement('li');
+        const sw = document.createElement('i'); sw.className = 'stj-sw'; sw.style.background = j.color;
+        li.appendChild(sw);
+        li.appendChild(document.createTextNode(n <= 10 ? `${j.letter} = ${j.name}` : j.name));
+        legend.appendChild(li);
+      });
+    }
+
+    function icon(k: number, on: boolean): SVGSVGElement {
+      const s = document.createElementNS(NS, 'svg') as SVGSVGElement;
+      s.setAttribute('viewBox', '0 0 44 32'); s.setAttribute('class', 'stj-ico'); s.setAttribute('aria-hidden', 'true');
+      const col = (i: number) => (on ? JOBS[i].color : '#d4d7dd');
+      const b = (x: number, y: number, w: number, h: number, f: string) => s.appendChild(el('rect', { x, y, width: w, height: h, rx: 2, fill: f, stroke: on ? '#2b2f3a' : '#b0b4bc', 'stroke-width': 1 }));
+      if (k === 0) b(14, 6, 16, 20, col(2));
+      if (k === 1) { b(6, 8, 10, 16, col(2)); b(17, 8, 10, 16, col(2)); b(28, 8, 10, 16, col(2)); }
+      if (k === 2) { b(6, 8, 10, 16, col(2)); b(17, 8, 10, 16, col(0)); b(28, 8, 10, 16, col(3)); }
+      if (k === 3) {
+        b(3, 4, 12, 10, col(2)); b(16, 4, 12, 10, col(0)); b(29, 4, 12, 10, col(3));
+        b(9, 18, 12, 10, col(1)); b(23, 18, 12, 10, col(4));
+      }
+      if (k === 4) s.appendChild(el('ellipse', { cx: 22, cy: 16, rx: 18, ry: 12, fill: on ? '#e9edf2' : '#f3f4f6', stroke: on ? '#2b2f3a' : '#b0b4bc', 'stroke-width': 1.5 }));
+      return s;
+    }
+    function drawStrip() {
+      strip.replaceChildren();
+      const L = lit();
+      LEVELS.forEach((name, k) => {
+        const li = document.createElement('li');
+        li.className = 'stj-lv' + (L[k] ? ' on' : '');
+        li.appendChild(icon(k, L[k]));
+        const t = document.createElement('span'); t.className = 'stj-lvn';
+        t.textContent = `${k + 1}. ${name}`;
+        const s = document.createElement('span'); s.className = 'stj-lvs';
+        s.textContent = L[k] ? 'reached' : 'not reached';
+        li.appendChild(t); li.appendChild(s);
+        strip.appendChild(li);
+      });
+    }
+
+    function sentence(): string {
+      const nn = fmt(n);
+      if (n === 1) {
+        return mode === 'jobs'
+          ? 'In this sketch, one cell cannot be split into jobs, so it does them all.'
+          : 'In this sketch, one cell does all five jobs and keeps up, as the lesson says a Paramecium’s one cell does every life job.';
+      }
+      if (mode === 'jobs') {
+        return `In this sketch, ${nn} cells split into jobs keep up on all five jobs.`;
+      }
+      const vals = JOBS.map((_, i) => keepUp(i));
+      const order = vals.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
+      const worst = JOBS[order[0].i].name.toLowerCase();
+      const second = JOBS[order[1].i].name.toLowerCase();
+      const min = order[0].v;
+      if (min >= 0.85) return `In this sketch, ${nn} alike cells still keep up on all five jobs.`;
+      if (min >= 0.5) return `In this sketch, ${nn} alike cells begin to slip, most on ${worst}.`;
+      return `In this sketch, ${nn} alike cells fall behind most on ${worst} and ${second}.`;
+    }
+    function levelSentence(): string {
+      const nn = fmt(n);
+      if (n === 1) return 'In this sketch, the one cell is the whole organism. It has no tissues or organs.';
+      if (mode === 'alike') return `In this sketch, ${nn} alike cells each try all five jobs, so no group does one job and none is counted as a tissue.`;
+      if (n === 10) return 'In this sketch, each group of similar cells doing one job is a tissue.';
+      if (n === 100) return 'In this sketch, different tissues working together are counted as organs here.';
+      return 'In this sketch, organs working together are counted as organ systems here. The levels depend on each other.';
+    }
+
+    function render() {
+      countBtns.forEach((b, i) => { const on = COUNTS[i] === n; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      modeBtns.forEach(({ m, b }) => { const on = m === mode; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      sizeEl.textContent = n === 1
+        ? 'Organism size: 1 cell (unicellular)'
+        : `Organism size: ${fmt(n)} cells (multicellular)`;
+      drawBlocks();
+      drawLegend();
+      JOBS.forEach((j, i) => {
+        const v = keepUp(i);
+        barFills[i].style.width = Math.round(v * 100) + '%';
+        barWords[i].textContent = wordFor(v);
+        barWords[i].classList.toggle('low', v < 0.5);
+        const track = barFills[i].parentElement;
+        if (track) track.setAttribute('aria-label', `${j.name}: ${wordFor(v)}, in relative units`);
+      });
+      why.textContent = sentence();
+      drawStrip();
+      lvl.textContent = levelSentence();
+    }
+
+    reset.addEventListener('click', () => { n = 1; mode = 'alike'; render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .stj { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .stj-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .stj-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .stj-group { border: 0; padding: 0; margin: 0 auto var(--ddp-space-2); max-width: 560px; min-width: 0; }
+  .stj-group legend { padding: 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .stj-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .stj-btn { min-height: 44px; min-width: 44px; padding: 0 0.9rem; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .stj-btn:hover { border-color: var(--ddp-color-accent); }
+  .stj-btn.on { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .stj-btn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .stj-size { max-width: 560px; margin: var(--ddp-space-2) auto; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .stj-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .stj-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; max-width: 560px; margin: var(--ddp-space-2) auto; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .stj-legend li { display: flex; align-items: center; gap: 0.35rem; }
+  .stj-sw, .stj-dot { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #2b2f3a; flex: none; }
+  .stj-bars { display: grid; gap: var(--ddp-space-2); max-width: 560px; margin: var(--ddp-space-3) auto var(--ddp-space-2); }
+  .stj-bar { display: grid; grid-template-columns: 8.5rem 1fr 5.2rem; align-items: center; gap: var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .stj-bl { display: flex; align-items: center; gap: 0.35rem; }
+  .stj-track { height: 16px; background: #eceef0; border-radius: 8px; overflow: hidden; border: 1px solid var(--ddp-color-line); }
+  .stj-track i { display: block; height: 100%; width: 0; transition: width 0.2s; }
+  .stj-bw { font-weight: 700; color: var(--ddp-color-primary); }
+  .stj-bw.low { color: #b42318; }
+  .stj-why { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .stj-strip-title { max-width: 560px; margin: var(--ddp-space-3) auto 0.3rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); }
+  .stj-strip { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.3rem; max-width: 560px; margin: 0 auto; padding: 0; }
+  .stj-lv { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.15rem; padding: 0.35rem 0.15rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-muted); font-size: var(--ddp-text-xs); min-width: 0; }
+  .stj-lv.on { border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); }
+  .stj-ico { width: 44px; height: 32px; }
+  .stj-lvn { font-weight: 700; overflow-wrap: anywhere; }
+  .stj-lvs { font-size: 12px; }
+  .stj-lvl { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 3em; }
+  .stj-row { max-width: 560px; margin: var(--ddp-space-2) auto; }
+  .stj-assume { max-width: 560px; margin: var(--ddp-space-2) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .stj-foot { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .stj-bar { grid-template-columns: 7rem 1fr 4.6rem; }
+    .stj-strip { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>

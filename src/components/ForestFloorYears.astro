@@ -1,0 +1,256 @@
+---
+/**
+ * ForestFloorYears — a patch of forest floor run for five years. The learner picks how many
+ * decomposers live there (none, few, many), how warm and wet the seasons are (cold and dry,
+ * mild, warm and wet) and a human action (nothing, spray a soil poison, add compost). Three
+ * bar rows show, for each year, the height of the leaf-litter pile, the nutrients in the
+ * soil and the plant growth. Made-up rule, in relative units: plants take up a fixed share
+ * of the soil nutrients, drop it as leaves, and decomposers break down a share of the pile
+ * each year and return it to the soil as nutrients. One kind of leaf, decomposers as one
+ * group of icons, no molecules. A dashed outline shows the run before the last change.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ffy card" data-ffy>
+  <figcaption class="ffy-head">Forest floor over five years<span class="ffy-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="ffy-start">Start here: choose how many decomposers live in the soil, then change the season or the human action.</p>
+
+  <div class="ffy-controls">
+    <div class="ffy-group" role="group" aria-label="Amount of decomposers">
+      <span class="ffy-glabel">Decomposers</span>
+      <div class="ffy-btns">
+        <button type="button" class="ffy-btn" data-dec="none" aria-pressed="false">None</button>
+        <button type="button" class="ffy-btn" data-dec="few" aria-pressed="true">Few</button>
+        <button type="button" class="ffy-btn" data-dec="many" aria-pressed="false">Many</button>
+      </div>
+    </div>
+    <div class="ffy-group" role="group" aria-label="How warm and wet the seasons are">
+      <span class="ffy-glabel">Seasons</span>
+      <div class="ffy-btns">
+        <button type="button" class="ffy-btn" data-sea="cold" aria-pressed="false">Cold and dry</button>
+        <button type="button" class="ffy-btn" data-sea="mild" aria-pressed="true">Mild</button>
+        <button type="button" class="ffy-btn" data-sea="warm" aria-pressed="false">Warm and wet</button>
+      </div>
+    </div>
+    <div class="ffy-group" role="group" aria-label="Human action">
+      <span class="ffy-glabel">People</span>
+      <div class="ffy-btns">
+        <button type="button" class="ffy-btn" data-act="none" aria-pressed="true">Do nothing</button>
+        <button type="button" class="ffy-btn" data-act="poison" aria-pressed="false">Spray soil poison</button>
+        <button type="button" class="ffy-btn" data-act="compost" aria-pressed="false">Add compost</button>
+        <button type="button" class="ffy-btn ffy-reset" data-reset>Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <svg class="ffy-svg" viewBox="0 0 340 374" role="img" aria-label="Three rows of bars for years 1 to 5: leaf-litter pile height, nutrients in the soil and plant growth, with a row of decomposer icons above" data-scene></svg>
+
+  <p class="ffy-note"><span data-ghostnote hidden>Dashed outline: the run before your last change. </span>Bars use relative units, not to scale. The dashed line marks where the pile and the soil nutrients started.</p>
+
+  <p class="ffy-why" data-why role="status">In this sketch, the leaf pile and the plants change over five years.</p>
+
+  <p class="ffy-assume"><strong>Made up for this sketch:</strong> one kind of leaf; decomposers drawn as one group; none removes all of the breakdown and few is half of many; warm and wet is fastest, mild in between and cold and dry slowest, as an invented setting (real results can differ); the poison leaves a tenth; compost adds a little extra food once, in year 1; plants take up a fixed share of the soil nutrients each year and drop it as leaves; no carbon leaves as carbon dioxide. All rates and sizes are invented, in relative units.</p>
+
+  <p class="ffy-foot">Decomposers break down dead leaves and return nutrients to the soil, where plants use them again; with few decomposers, leaves pile up and plants may grow less. Warm, damp conditions often help decomposers, but it is not a simple rule.</p>
+</figure>
+
+<script>
+  type Dec = 'none' | 'few' | 'many';
+  type Sea = 'cold' | 'mild' | 'warm';
+  type Act = 'none' | 'poison' | 'compost';
+  interface State { dec: Dec; sea: Sea; act: Act; }
+  interface Result { pile: number[]; nut: number[]; grow: number[]; }
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', LINE = '#6b6b75';
+  const BROWN = '#8a6a3a', TEAL = '#0e7c86', GREEN = '#3f8f3f', RED = '#b3261e';
+
+  // Made-up relative rules (listed in the on-screen assumptions line).
+  const DEC_SHARE: Record<Dec, number> = { none: 0, few: 0.5, many: 1 };
+  const SEA_SPEED: Record<Sea, number> = { cold: 0.4, mild: 0.7, warm: 1 };
+  const BASE_BREAKDOWN = 0.6, UPTAKE = 0.4, POISON_LEFT = 0.1, COMPOST_FOOD = 10;
+  const PILE0 = 30, NUT0 = 60, YEARS = 5;
+  const PILE_MAX = 140, NUT_MAX = 125, GROW_MAX = 48;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function run(s: State): Result {
+    let f = BASE_BREAKDOWN * DEC_SHARE[s.dec] * SEA_SPEED[s.sea];
+    if (s.act === 'poison') f *= POISON_LEFT;
+    let pile = PILE0, nut = NUT0;
+    const r: Result = { pile: [], nut: [], grow: [] };
+    for (let y = 0; y < YEARS; y++) {
+      const up = UPTAKE * nut;                       // growth this year = nutrients taken up
+      const avail = pile + up + (s.act === 'compost' && y === 0 ? COMPOST_FOOD : 0);
+      const released = f * avail;                    // broken down and returned to the soil
+      pile = avail - released;
+      nut = nut - up + released;
+      r.pile.push(pile); r.nut.push(nut); r.grow.push(up);
+    }
+    return r;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-ffy]').forEach((root) => {
+    const scene = root.querySelector<SVGSVGElement>('[data-scene]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const ghostNote = root.querySelector<HTMLElement>('[data-ghostnote]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    if (!scene || !why || !ghostNote || !resetBtn) return;
+    const decBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-dec]')];
+    const seaBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-sea]')];
+    const actBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-act]')];
+
+    const START: State = { dec: 'few', sea: 'mild', act: 'none' };
+    let cur: State = { ...START };
+    let prev: Result | null = null;
+
+    const SEA_NAME: Record<Sea, string> = { cold: 'cold and dry', mild: 'mild', warm: 'warm and wet' };
+    const DEC_NAME: Record<Dec, string> = { none: 'None', few: 'Few', many: 'Many' };
+
+    function text(x: number, y: number, s: string, size: number, opts: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': size, fill: INK, ...opts });
+      t.textContent = s;
+      scene!.appendChild(t);
+    }
+
+    function sentence(res: Result, s: State): string {
+      const pr = res.pile[YEARS - 1] / PILE0;
+      const gr = res.grow[YEARS - 1] / res.grow[0];
+      const pt = pr > 1.2 ? 'grows' : pr < 0.8 ? 'shrinks' : 'stays about the same';
+      const gt = gr < 0.85 ? 'falls' : gr > 1.15 ? 'rises' : 'holds steady';
+      const out = [`In this sketch, the leaf pile ${pt} and plant growth ${gt}.`];
+      const causes: string[] = [];
+      if (s.dec === 'none') {
+        causes.push('In this sketch, no decomposers means no nutrients go back to the soil.');
+        if (s.act === 'poison') causes.push('In this sketch, the poison changes nothing, because there are no decomposers to kill.');
+        if (s.act === 'compost') causes.push('In this sketch, compost only adds to the pile, because no decomposers break it down.');
+        causes.push('In this sketch, seasons change nothing with no decomposers.');
+        return out.concat(causes.slice(0, 3)).join(' ');
+      } else {
+        if (s.act === 'poison') causes.push('In this sketch, the poison kills most decomposers, so few nutrients return to the soil.');
+        if (s.act === 'compost') causes.push('In this sketch, compost gives decomposers more to break down.');
+        if (s.sea === 'cold') causes.push('In this sketch, cold, dry seasons slow the decomposers, though real results can differ.');
+        if (s.sea === 'warm') causes.push('In this sketch, warm, damp seasons speed up decomposers, as in many places, but not always.');
+      }
+      if (causes.length === 0) {
+        causes.push(s.dec === 'few'
+          ? 'In this sketch, few decomposers break down only part of the pile each year.'
+          : 'In this sketch, many decomposers break down the leaves and return nutrients to the soil.');
+      }
+      return out.concat(causes.slice(0, 2)).join(' ');
+    }
+
+    function render() {
+      const res = run(cur);
+      scene!.replaceChildren();
+
+      // ---- top strip: decomposer icons, season, human action (schematic) ----
+      text(10, 16, 'Decomposers (one group)', 12, { 'font-weight': 700 });
+      const full = cur.dec === 'many' ? 8 : cur.dec === 'few' ? 4 : 0;
+      const alive = cur.act === 'poison' ? (cur.dec === 'many' ? 1 : 0) : full;
+      for (let i = 0; i < 8; i++) {
+        const cx = 18 + i * 20;
+        const filled = i < alive;
+        const dead = cur.act === 'poison' && i < full && i >= alive;
+        scene!.appendChild(el('circle', {
+          cx, cy: 38, r: 7,
+          fill: filled ? BROWN : dead ? '#e9d9d6' : '#fff',
+          stroke: filled ? BROWN : dead ? RED : FAINT,
+          'stroke-width': 1.5,
+          'stroke-dasharray': filled || dead ? '0' : '3 2',
+        }));
+        if (dead) scene!.appendChild(el('path', { d: `M${cx - 4} 34 L${cx + 4} 42 M${cx + 4} 34 L${cx - 4} 42`, stroke: RED, 'stroke-width': 1.5, fill: 'none' }));
+      }
+      text(10, 60, cur.dec === 'none' ? 'No decomposers' : `${DEC_NAME[cur.dec]} decomposers`, 12);
+      text(332, 16, 'Seasons', 12, { 'text-anchor': 'end', 'font-weight': 700 });
+      text(332, 32, SEA_NAME[cur.sea], 12, { 'text-anchor': 'end' });
+      if (cur.act === 'poison') text(332, 52, 'Soil poison sprayed', 12, { 'text-anchor': 'end', fill: RED, 'font-weight': 700 });
+      else if (cur.act === 'compost') text(332, 52, 'Compost added', 12, { 'text-anchor': 'end', fill: BROWN, 'font-weight': 700 });
+      else text(332, 52, 'No human action', 12, { 'text-anchor': 'end' });
+
+      // ---- three bar rows ----
+      const rows = [
+        { title: 'Leaf-litter pile height', vals: res.pile, old: prev ? prev.pile : null, max: PILE_MAX, color: BROWN, start: PILE0 },
+        { title: 'Nutrients in the soil', vals: res.nut, old: prev ? prev.nut : null, max: NUT_MAX, color: TEAL, start: NUT0 },
+        { title: 'Plant growth each year', vals: res.grow, old: prev ? prev.grow : null, max: GROW_MAX, color: GREEN, start: -1 },
+      ];
+      const PH = 62;
+      rows.forEach((row, ri) => {
+        const top = 72 + ri * 98;
+        const base = top + 22 + PH;
+        text(10, top + 12, row.title, 12, { 'font-weight': 700 });
+        scene!.appendChild(el('line', { x1: 14, y1: base, x2: 332, y2: base, stroke: LINE, 'stroke-width': 1 }));
+        const h = (v: number) => Math.min(v, row.max) / row.max * PH;
+        if (row.start >= 0) {
+          const ly = base - h(row.start);
+          scene!.appendChild(el('line', { x1: 14, y1: ly, x2: 332, y2: ly, stroke: LINE, 'stroke-width': 1, 'stroke-dasharray': '4 3' }));
+          text(334, ly - 3, 'start', 11, { 'text-anchor': 'end', stroke: '#fff', 'stroke-width': 3, 'paint-order': 'stroke' });
+        }
+        row.vals.forEach((v, i) => {
+          const cx = 50 + i * 60;
+          const bh = Math.max(1, h(v));
+          scene!.appendChild(el('rect', { x: cx - 15, y: base - bh, width: 30, height: bh, fill: row.color, opacity: 0.9, rx: 2 }));
+        });
+        if (row.old) {
+          row.old.forEach((v, i) => {
+            const cx = 50 + i * 60;
+            const bh = Math.max(1, h(v));
+            scene!.appendChild(el('rect', { x: cx - 15, y: base - bh, width: 30, height: bh, fill: 'none', stroke: INK, 'stroke-width': 1.6, 'stroke-dasharray': '4 3', rx: 2 }));
+          });
+        }
+        if (ri === rows.length - 1) {
+          for (let i = 0; i < YEARS; i++) text(50 + i * 60, base + 16, `Year ${i + 1}`, 12, { 'text-anchor': 'middle' });
+        }
+      });
+
+      ghostNote!.hidden = !prev;
+      why!.textContent = sentence(res, cur);
+
+      for (const b of decBtns) b.setAttribute('aria-pressed', String(b.dataset.dec === cur.dec));
+      for (const b of seaBtns) b.setAttribute('aria-pressed', String(b.dataset.sea === cur.sea));
+      for (const b of actBtns) b.setAttribute('aria-pressed', String(b.dataset.act === cur.act));
+    }
+
+    function change(next: State) {
+      if (next.dec === cur.dec && next.sea === cur.sea && next.act === cur.act) return;
+      prev = run(cur);
+      cur = next;
+      render();
+    }
+
+    decBtns.forEach((b) => b.addEventListener('click', () => change({ ...cur, dec: b.dataset.dec as Dec })));
+    seaBtns.forEach((b) => b.addEventListener('click', () => change({ ...cur, sea: b.dataset.sea as Sea })));
+    actBtns.forEach((b) => b.addEventListener('click', () => change({ ...cur, act: b.dataset.act as Act })));
+    resetBtn.addEventListener('click', () => { cur = { ...START }; prev = null; render(); });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ffy { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ffy-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ffy-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ffy-start { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .ffy-controls { display: grid; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .ffy-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); }
+  .ffy-glabel { min-width: 6.5rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); }
+  .ffy-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .ffy-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 0.9rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .ffy-btn:hover { border-color: var(--ddp-color-accent); }
+  .ffy-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .ffy-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ffy-reset { border-style: dashed; }
+  .ffy-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ffy-note { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ffy-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 7.5em; }
+  .ffy-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ffy-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) {
+    .ffy-glabel { min-width: 100%; }
+  }
+</style>
