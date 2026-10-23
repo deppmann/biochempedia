@@ -25,6 +25,15 @@ ladder:
   college: ["molecular-evolution", "history-of-life", "testing-evolutionary-explanations"]
   biology: ["evidence-for-evolution"]
 
+explainer:
+  src: "/explainers/evidence-for-change/explainer.mp4"
+  captions: "/explainers/evidence-for-change/explainer.vtt"
+  poster: "/explainers/evidence-for-change/poster.jpg"
+  title: "Three Kinds of Evidence Agree"
+  durationSec: 165.3
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -44,7 +53,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "EvidenceBoard"
+    title: "Evidence board"
+    caption: >-
+      Pick two living things and one kind of evidence, then place the pair on a drawn family tree to see which relatives join nearest the tips.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "A student says evolution is “just a theory.” What does the word theory mean in science?"
@@ -81,7 +96,7 @@ practiceQuestions:
     rationale: >-
       Humans and chimpanzees share a common ancestor that lived millions of years ago, and each
       group changed along its own branch. Humans did not come from chimpanzees, and chimpanzees did
-      not come from humans, because both kinds are alive today on separate branches. Their bones and
+      not come from humans, because each kind changed along its own branch from the shared ancestor. Their bones and
       DNA are very alike, so saying they are not related at all ignores the evidence.
   - stem: "A cat leg, a whale flipper and a bat wing each have one upper bone, two lower bones, wrist bones and finger bones. What does this best suggest?"
     choices:
@@ -128,8 +143,8 @@ practiceQuestions:
     answer: 0
     rationale: >-
       Fewer differences in the same protein usually mean a closer relative, and the rhesus monkey
-      differs at only 1 of 104 positions. The rattlesnake differs at the most positions, so it is the
-      most distant of these four. Living with people does not make dogs close relatives. Chicken wing
+      differs at only 1 of 104 positions. The rattlesnake differs at the most positions, so its protein is the
+      most different of these four. Living with people does not make dogs close relatives. Chicken wing
       bones do match ours, but the question asks about these protein data, and the chicken differs at 13.
   - stem: "In the real cytochrome c data, the horse protein differs from the human protein at 12 of 104 positions. At how many positions do the two proteins match?"
     choices:
@@ -213,6 +228,8 @@ corpusTags:
 draft: true
 ---
 
+import EvidenceBoard from '../../../components/EvidenceBoard.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
@@ -231,7 +248,7 @@ import CER from '../../../components/CER.astro';
 
 Pick two living things, such as a human and a bat. Then choose one kind of evidence: fossils, arm and leg bones, or DNA. Each choice shows you something different, and you can place the pair on a family tree.
 
-{/* SIMULATION */}
+<EvidenceBoard />
 
 **Try this.**
 1. Predict whether a whale’s flipper has the same bones as your arm. Choose whale and human, pick bones, and check.
@@ -275,7 +292,7 @@ Hold out your arm. It has one upper arm bone, two lower arm bones, wrist bones a
 
 Doing the same job is not enough. A butterfly wing and a bird wing both fly, but only the bird wing has bones. So scientists compare how parts are built, not what they do.
 
-DNA gives a second check. A **DNA sequence** is the order of the bases A, T, C and G along a piece of DNA. Each gene carries the code for a protein, as you saw in [DNA: The Code of Life](/lessons/dna-the-code-of-life/). Small changes in DNA happen and get passed on. Species that split from a common ancestor more recently have had less time to collect changes. So closer relatives usually have more similar DNA. DNA is also used to sort living things into groups, as in [Domains, Kingdoms and DNA](/lessons/domains-kingdoms-and-dna/).
+DNA gives a second check. A **DNA sequence** is the order of the bases A, T, C and G along a piece of DNA. Many genes carry the code for a protein, as you saw in [DNA: The Code of Life](/lessons/dna-the-code-of-life/). Small changes in DNA happen and get passed on. Species that split from a common ancestor more recently have had less time to collect changes. So closer relatives usually have more similar DNA. DNA is also used to sort living things into groups, as in [Domains, Kingdoms and DNA](/lessons/domains-kingdoms-and-dna/).
 
 <Support min={2}>**Key idea:** The same bones in different shapes, and similar DNA sequences, are strong signs that living things share a common ancestor.</Support>
 
@@ -333,7 +350,7 @@ Fossils form more often when remains are buried fast and when they are hard. Pla
 - **Trials:** five cups of each kind; find the mean mass change.
 - **Safety:** use clear covered cups, wear gloves, never taste anything, and let the teacher throw out anything mouldy. Wash your hands.
 
-If buried slices lose less mass, burial slowed decay in this model. Shells should barely change. This is a model, not real fossil formation, which takes thousands of years or more.
+If buried slices lose less mass and also look and smell less rotten, burial slowed decay in this model. Shells should barely change. This is a model, not real fossil formation, which takes thousands of years or more.
 
 </details>
 
