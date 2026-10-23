@@ -15,6 +15,8 @@ export async function GET(context: APIContext): Promise<Response> {
   const paths = [
     '/', '/about', '/fun', '/play', '/contact', '/search/',
     '/teachers', '/teachers/demo', '/teachers/how-its-built',
+    '/teachers/do-it-yourself', '/teachers/checklist', '/teachers/sources', '/teachers/talk/',
+    '/teachers/life-science', '/teachers/biology',
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),

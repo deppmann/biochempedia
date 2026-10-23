@@ -13,7 +13,7 @@ Every lesson goes through the same four steps, and the check is done by somethin
 
 ### What the checking found
 
-For the Cell Signaling course (44 lessons), the checker ruled on 3,468 claims. It found 49 wrong, 453 imprecise, and 287 it could not verify, and 841 edits were made. (In the talk this is rounded to "about 3,300 claims"; the repo's tally is 3,468.) A separate cross-check of the Genetics course produced 80 corrections, for example a figure for the share of DNA in trisomy 21 corrected from 1.5% to 0.8%.
+For the Cell Signaling course (44 lessons), the checker ruled on 3,468 claims. It found 49 wrong, 453 imprecise, and 287 it could not verify, and 841 edits were made. (The talk says 3,468 claims, the repo's tally.) A separate cross-check of the Genetics course produced 80 corrections, for example a figure for the share of DNA in trisomy 21 corrected from 1.5% to 0.8%.
 
 Earlier, on the first 11 Cell Signaling lessons, the checker found that most wrong claims came from the unpublished book the source packets drew on, not from the AI writer: a reversed anecdote, wrong dates, misattributed credit. No answer key was wrong in any of the 88 questions checked. Source: `docs/expansion/bakeoff-1/results.md`.
 
@@ -60,7 +60,9 @@ Here is what the repository actually recorded. Tokens are the units AI models ar
 | Cloudflare hosting in dollars | **Not measured** | |
 | The author's own time | **Not measured**, except expert review at about 1 to 2 hours per lesson | `PLAN.md` |
 
-For scale: the first 30 lessons took about 17 weeks (June 12 to October 10, 2026). The next 173 or so took about 8 days (October 11 to 18). The site now has 203 lessons in six courses. A grant request for $10,000 in July 2026 said $5,000 would buy three to five complete lessons. It was not selected, and the site was built anyway. The reason, from the project plan: a student's preparation should not depend on what the family can pay.
+For scale: the first 30 lessons took about 17 weeks (June 12 to October 10, 2026). The next 324 took 13 days (October 11 to 23). As of October 23, 2026 the site has 354 lessons, all live, in 11 courses, with 464 films (lesson explainers, scientist profile films and methods films). The newest course is grade 7 Life Science: 34 lessons in 8 units, following the Virginia Life Science Standards of Learning (LS.1 to LS.11), planned and released on October 23 (first commit 11:40 am, last lesson merged 6:34 pm ET). High school Biology, 33 lessons following BIO.1 to BIO.8, was released on October 20. Counts come from the repository's history and content on those dates. A grant request for $10,000 in July 2026 said $5,000 would buy three to five complete lessons. It was not selected, and the site was built anyway. The reason, from the project plan: a student's preparation should not depend on what the family can pay.
+
+What these numbers do not say: fast is not finished. Writing got cheap; checking did not. Every lesson still needs an expert's read, at about 1 to 2 hours each, and the grade 7 and Biology courses are first editions with classroom testing just beginning. Dollars per lesson were **not measured** (see the table above).
 
 ### If you want to build with an AI model yourself
 
@@ -71,7 +73,8 @@ Start with the [Gemini API](https://ai.google.dev/gemini-api/docs). Its document
 You do not need any of the above to get the benefit. The part that matters most for a classroom is the pre-work, and it costs close to nothing.
 
 - **Use free or district-approved tools.** Many AI tools have a free tier. The limits change often, so check the current terms, and use only what your district has approved for work involving students.
-- **Start with one unit, not a course.** A realistic first step: pick one standard; use the "predict-then-reveal" prompt on the Teachers page to draft about five items; check every item against your textbook yourself; give it to students as pre-work on a free form tool your district allows; read the answers; open class with the room's own anonymous words. The time this takes you was not measured. In class, expect one predict, argue, reveal cycle to take 8 to 10 minutes, not 4.
+- **Start with one unit, not a course.** A realistic first step: pick one standard; use the "predict-then-reveal" prompt on the [Teachers page](/teachers#prompts) to draft about five items; check every item against your textbook yourself; give it to students as pre-work on a free form tool your district allows; read the answers; open class with the room's own anonymous words. The time this takes you was not measured. In class, expect one predict, argue, reveal cycle to take 8 to 10 minutes, not 4.
 - **Check everything.** Whatever the tool drafts, you verify. An AI summary of one student's work once reported "no activity" for a student who had finished, which is why the human check comes before anything is sent.
 - **Privacy.** Student work is protected (FERPA in the United States, and COPPA for children under 13). Remove names and IDs before pasting anything a student wrote. Do not store student audio. When in doubt, ask your district's technology office. This page is not legal advice.
 - **You can also just use the finished courses.** They are free, need no account, and you may link to them.
+- **Step-by-step versions** of the pre-work and the other classroom ideas are in the [do-it-yourself guide](/teachers/do-it-yourself). Every number in the talk, with its source and year, is on the [sources page](/teachers/sources).

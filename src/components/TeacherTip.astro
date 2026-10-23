@@ -1,0 +1,27 @@
+---
+/**
+ * One tip in the /teachers/do-it-yourself guide: what it is, how long it takes, what you need,
+ * the steps (default slot, an <ol>), and one caution (named slot "caution").
+ */
+interface Props {
+  id: string;
+  n: number;
+  title: string;
+  what: string;
+  time: string;
+  need: string;
+}
+const { id, n, title, what, time, need } = Astro.props;
+---
+
+<section class="tip" aria-labelledby={id}>
+  <h2 id={id}><span class="tip-n" aria-hidden="true">{n}</span> {title}</h2>
+  <dl class="tip-meta">
+    <div><dt>What it is</dt><dd set:html={what} /></div>
+    <div><dt>How long</dt><dd set:html={time} /></div>
+    <div><dt>You need</dt><dd set:html={need} /></div>
+  </dl>
+  <h3 class="tip-h">How to do it</h3>
+  <slot />
+  <p class="caution"><strong>Watch for:</strong> <slot name="caution" /></p>
+</section>
