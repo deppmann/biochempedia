@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class slides</title>
+<!-- One viewer for every deck. The Worker serves it at /slides/<slug> and /slides/<slug>/, so the base
+     is set from the address: deck.json, assets/ and viewer.js all resolve under the deck's own folder. -->
+<script>document.write('<base href="' + location.pathname.replace(/\/?$/, "/") + '">');</script>
+<link rel="stylesheet" href="viewer.css">
+<style id="deck-css"></style>
+</head>
+<body>
+<div id="msg" class="msg">Loading the slides…</div>
+
+<!-- Audience view: the slide fills the window -->
+<div id="audience" hidden>
+  <div id="aud-stage" class="stagebox"></div>
+</div>
+
+<!-- Presenter view -->
+<div id="presenter" hidden>
+  <header class="pbar">
+    <div class="pstep"><b id="p-count"></b><span id="p-title"></span></div>
+    <div class="pright">
+      <button id="p-timer" class="pill" tabindex="-1" title="Click to reset the timer">0:00</button>
+      <span id="p-clock" class="pclock"></span>
+    </div>
+  </header>
+  <main class="pmain">
+    <section class="pleft">
+      <div id="cur-stage" class="stagebox inert"></div>
+      <div class="pctl">
+        <button id="p-prev" tabindex="-1">◂ Prev</button>
+        <button id="p-video" tabindex="-1" hidden>▶ Play on screen</button>
+        <span id="p-status" class="pstatus"></span>
+        <button id="p-next" tabindex="-1">Next ▸</button>
+      </div>
+    </section>
+    <aside class="pright-col">
+      <div class="plabel" id="p-next-label">Next</div>
+      <div id="next-stage" class="stagebox small inert"></div>
+      <div class="plabel">Notes</div>
+      <div id="p-notes" class="notes"></div>
+    </aside>
+  </main>
+</div>
+
+<div id="black" hidden></div>
+<div id="help" hidden>
+  <div class="helpbox">
+    <h2>Keys</h2>
+    <dl>
+      <dt>→ ↓ Space PgDn</dt><dd>next (or click the slide)</dd>
+      <dt>← ↑ PgUp</dt><dd>previous</dd>
+      <dt>Home / End</dt><dd>first / last</dd>
+      <dt>f</dt><dd>fullscreen</dd>
+      <dt>b</dt><dd>black the screen</dd>
+      <dt>v</dt><dd>play / pause the movie</dd>
+      <dt class="inst">p</dt><dd class="inst">open the presenter window</dd>
+      <dt>?</dt><dd>this help (Esc closes)</dd>
+    </dl>
+  </div>
+</div>
+<script src="viewer.js"></script>
+</body>
+</html>
