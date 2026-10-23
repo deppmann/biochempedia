@@ -1,0 +1,257 @@
+---
+/**
+ * SymbiosisPairs — two species, a bar for each population over 20 weeks. The learner sets
+ * how living together affects each species (helped, unaffected, harmed), or picks a real
+ * pair from the lesson (lichen fungus and alga, lichen on a tree, tick on a deer), runs
+ * the 20 weeks, predicts, then reads the name of the relationship. Both-harmed and the
+ * other combinations with no benefiting partner match none of the three kinds, and the
+ * sketch says so. Each effect is a fixed push up or down; no other species, no seasons.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="sy card" data-symbiosis>
+  <figcaption class="sy-head">Pair up two species: helped, unaffected or harmed<span class="sy-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="sy-svg" viewBox="0 0 400 296" role="img" aria-label="Two species shown as labelled shapes, with a bar chart of each population over 20 weeks" data-stage></svg>
+  <p class="sy-axis">Bar height = population size in relative units (not to scale). One thin bar for each week.</p>
+
+  <div class="sy-row">
+    <label class="sy-label" for="sy-preset">Real pair</label>
+    <select class="sy-select" id="sy-preset" data-preset>
+      <option value="">Choose your own</option>
+      <option value="lichen">Lichen fungus and alga</option>
+      <option value="tree">Lichen on a tree</option>
+      <option value="tick">Tick on a deer</option>
+    </select>
+  </div>
+
+  <fieldset class="sy-fs" data-fs="a">
+    <legend data-legend="a">Effect on species A</legend>
+    <label class="sy-opt"><input type="radio" name="sy-a" value="helped" /><span>▲ helped</span></label>
+    <label class="sy-opt"><input type="radio" name="sy-a" value="unaffected" checked /><span>= unaffected</span></label>
+    <label class="sy-opt"><input type="radio" name="sy-a" value="harmed" /><span>▼ harmed</span></label>
+  </fieldset>
+  <fieldset class="sy-fs" data-fs="b">
+    <legend data-legend="b">Effect on species B</legend>
+    <label class="sy-opt"><input type="radio" name="sy-b" value="helped" /><span>▲ helped</span></label>
+    <label class="sy-opt"><input type="radio" name="sy-b" value="unaffected" checked /><span>= unaffected</span></label>
+    <label class="sy-opt"><input type="radio" name="sy-b" value="harmed" /><span>▼ harmed</span></label>
+  </fieldset>
+
+  <div class="sy-row sy-run">
+    <button type="button" class="sy-btn sy-go" data-run>Run 20 weeks</button>
+    <label class="sy-label" for="sy-week">Week</label>
+    <input type="range" id="sy-week" class="sy-range" min="0" max="20" step="1" value="0" data-week />
+    <output class="sy-val" data-weekout for="sy-week">0 of 20</output>
+    <button type="button" class="sy-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="sy-note" data-note></p>
+  <div class="sy-status" data-status role="status"></div>
+
+  <p class="sy-assume">Assumptions made up in this sketch: both populations start at the same size; “helped” pushes a bar up and “harmed” pushes it down by the same fixed amount each week; “unaffected” leaves it level; no other species and no seasons.</p>
+  <p class="sy-foot">Keep this rule: sort a pair by what each partner gains or loses. All benefit is mutualism; one benefits and the other is unaffected is commensalism; one benefits and the other is harmed is parasitism.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Eff = 'helped' | 'unaffected' | 'harmed';
+  type Sp = { name: string; shape: 'rect' | 'ellipse'; fill: string; stroke: string };
+  type Pair = { a: Sp; b: Sp; ea: Eff; eb: Eff; note: string; parasite?: boolean };
+  const GA: Sp = { name: 'species A', shape: 'rect', fill: '#dff0f1', stroke: '#0e7c86' };
+  const GB: Sp = { name: 'species B', shape: 'ellipse', fill: '#fbe5cf', stroke: '#e57200' };
+  const PAIRS: Record<string, Pair> = {
+    lichen: {
+      a: { name: 'lichen fungus', shape: 'rect', fill: '#efe8d8', stroke: '#8a6d3b' },
+      b: { name: 'alga', shape: 'ellipse', fill: '#d4ecc9', stroke: '#3c8a3c' },
+      ea: 'helped', eb: 'helped',
+      note: 'In a lichen, the fungus gets food and the alga gets shelter and water. The bars are a made-up push in this sketch, not real counts.',
+    },
+    tree: {
+      a: { name: 'lichen', shape: 'rect', fill: '#dde3d3', stroke: '#6b7a5c' },
+      b: { name: 'tree', shape: 'rect', fill: '#e6d2b4', stroke: '#7a5a30' },
+      ea: 'helped', eb: 'unaffected',
+      note: 'A lichen on bark gets a place to live. The tree seems unaffected. Experts say ordinary lichens on bark almost always do not harm the tree. The bars are a made-up push in this sketch, not real counts.',
+    },
+    tick: {
+      a: { name: 'tick', shape: 'ellipse', fill: '#ecd2cb', stroke: '#7a3b2e' },
+      b: { name: 'deer', shape: 'rect', fill: '#ead7b8', stroke: '#8a6030' },
+      ea: 'helped', eb: 'harmed', parasite: true,
+      note: 'A blacklegged tick gets blood. The deer loses blood. The bars are a made-up push in this sketch, not counts of real ticks or deer.',
+    },
+  };
+  const WEEKS = 20, START = 50, PUSH = 2; // relative units, made up for the sketch
+  const INK = '#2b2b33', FAINT = '#6a6a76';
+  const COL_A = '#0e7c86', COL_B = '#e57200';
+  const SYM: Record<Eff, string> = { helped: '▲ helped', unaffected: '= unaffected', harmed: '▼ harmed' };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function size(e: Eff, week: number): number {
+    const d = e === 'helped' ? PUSH : e === 'harmed' ? -PUSH : 0;
+    return START + d * week;
+  }
+  function kindOf(ea: Eff, eb: Eff): 'mutualism' | 'commensalism' | 'parasitism' | null {
+    const helped = (ea === 'helped' ? 1 : 0) + (eb === 'helped' ? 1 : 0);
+    const harmed = (ea === 'harmed' ? 1 : 0) + (eb === 'harmed' ? 1 : 0);
+    if (helped === 2) return 'mutualism';
+    if (helped === 1 && harmed === 0) return 'commensalism';
+    if (helped === 1 && harmed === 1) return 'parasitism';
+    return null;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-symbiosis]').forEach((root) => {
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]');
+    const presetSel = root.querySelector<HTMLSelectElement>('[data-preset]');
+    const weekIn = root.querySelector<HTMLInputElement>('[data-week]');
+    const weekOut = root.querySelector<HTMLOutputElement>('[data-weekout]');
+    const runBtn = root.querySelector<HTMLButtonElement>('[data-run]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const noteEl = root.querySelector<HTMLElement>('[data-note]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    const legA = root.querySelector<HTMLElement>('[data-legend="a"]');
+    const legB = root.querySelector<HTMLElement>('[data-legend="b"]');
+    if (!stage || !presetSel || !weekIn || !weekOut || !runBtn || !resetBtn || !noteEl || !status || !legA || !legB) return;
+    const radios = (g: string) => Array.from(root.querySelectorAll<HTMLInputElement>(`input[name="sy-${g}"]`));
+    const getEff = (g: string): Eff => {
+      const r = radios(g).find((x) => x.checked);
+      return (r ? r.value : 'unaffected') as Eff;
+    };
+    const setEff = (g: string, v: Eff) => radios(g).forEach((x) => { x.checked = x.value === v; });
+
+    let pair: Pair | null = null;
+    let week = 0;
+    let timer: number | undefined;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function stop() {
+      if (timer !== undefined) { window.clearInterval(timer); timer = undefined; }
+      runBtn!.textContent = week >= WEEKS ? 'Run again' : week > 0 ? 'Resume' : 'Run 20 weeks';
+    }
+    function shape(sp: Sp, cx: number) {
+      const w = 124, h = 48, y = 12;
+      if (sp.shape === 'rect') stage!.appendChild(el('rect', { x: cx - w / 2, y, width: w, height: h, rx: 8, fill: sp.fill, stroke: sp.stroke, 'stroke-width': 2 }));
+      else stage!.appendChild(el('ellipse', { cx, cy: y + h / 2, rx: w / 2, ry: h / 2, fill: sp.fill, stroke: sp.stroke, 'stroke-width': 2 }));
+      stage!.appendChild(el('text', { x: cx, y: y + h / 2 + 4, 'font-size': 13, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, sp.name));
+    }
+    function draw(ea: Eff, eb: Eff) {
+      const a = pair ? pair.a : GA, b = pair ? pair.b : GB;
+      stage!.replaceChildren();
+      // the pair picture
+      stage!.appendChild(el('line', { x1: 98 + 62, y1: 36, x2: 302 - 62, y2: 36, stroke: FAINT, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      stage!.appendChild(el('text', { x: 200, y: 28, 'font-size': 12, 'text-anchor': 'middle', fill: FAINT }, 'together'));
+      shape(a, 98); shape(b, 302);
+      stage!.appendChild(el('text', { x: 98, y: 82, 'font-size': 13, 'font-weight': 700, 'text-anchor': 'middle', fill: ea === 'harmed' ? '#a33a2b' : INK }, SYM[ea]));
+      stage!.appendChild(el('text', { x: 302, y: 82, 'font-size': 13, 'font-weight': 700, 'text-anchor': 'middle', fill: eb === 'harmed' ? '#a33a2b' : INK }, SYM[eb]));
+      // population bars: one thin bar for each week up to the current week
+      const base = 262, top = 128, H = base - top; // 100 relative units = H px
+      const groups = [{ x0: 16, e: ea, col: COL_A, sp: a }, { x0: 216, e: eb, col: COL_B, sp: b }];
+      groups.forEach((g) => {
+        stage!.appendChild(el('text', { x: g.x0, y: 118, 'font-size': 13, 'font-weight': 700, fill: g.col }, g.sp.name + ' population'));
+        stage!.appendChild(el('line', { x1: g.x0 - 2, y1: base, x2: g.x0 + 21 * 8 + 1, y2: base, stroke: FAINT, 'stroke-width': 1 }));
+        // level of week 0, for comparison
+        const ys = base - (START / 100) * H;
+        stage!.appendChild(el('line', { x1: g.x0 - 2, y1: ys, x2: g.x0 + 21 * 8 + 1, y2: ys, stroke: '#b5b5bf', 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+        for (let w = 0; w <= week; w++) {
+          const v = size(g.e, w), hh = (v / 100) * H;
+          stage!.appendChild(el('rect', { x: g.x0 + w * 8, y: base - hh, width: 6, height: hh, fill: g.col, opacity: w === week ? 1 : 0.55 }));
+        }
+        [0, 10, 20].forEach((w) => stage!.appendChild(el('text', { x: g.x0 + w * 8 + 3, y: 278, 'font-size': 12, 'text-anchor': w === 0 ? 'start' : w === 20 ? 'end' : 'middle', fill: INK }, String(w))));
+        stage!.appendChild(el('text', { x: g.x0 + 84, y: 292, 'font-size': 12, 'text-anchor': 'middle', fill: FAINT }, 'week'));
+      });
+    }
+    function trend(e: Eff) { return e === 'helped' ? 'rising' : e === 'harmed' ? 'falling' : 'staying level'; }
+    function render() {
+      const ea = getEff('a'), eb = getEff('b');
+      const a = pair ? pair.a : GA, b = pair ? pair.b : GB;
+      legA!.textContent = `Effect on ${a.name}`;
+      legB!.textContent = `Effect on ${b.name}`;
+      weekIn!.value = String(week);
+      weekOut!.textContent = `${week} of ${WEEKS}`;
+      noteEl!.textContent = pair ? pair.note : '';
+      noteEl!.hidden = !pair;
+      draw(ea, eb);
+      const ps: string[] = [];
+      if (week === 0) {
+        ps.push('Choose an effect for each species, or pick a real pair.');
+        ps.push('Predict what the bars will do, then press Run.');
+      } else {
+        ps.push(`Week ${week} of ${WEEKS}. In this sketch, the ${a.name} bar is ${trend(ea)} and the ${b.name} bar is ${trend(eb)}.`);
+        if (week >= WEEKS) {
+          const k = kindOf(ea, eb);
+          if (k === 'mutualism') ps.push('This matches mutualism: all the partners benefit.');
+          else if (k === 'commensalism') ps.push('This matches commensalism: one partner benefits and the other is unaffected.');
+          else if (k === 'parasitism') ps.push(pair && pair.parasite
+            ? 'This matches parasitism: one partner benefits and the other is harmed. The tick is the parasite and the deer is its host.'
+            : 'This matches parasitism: one partner benefits and the other is harmed.');
+          else ps.push('Mismatch: this matches none of the three kinds of symbiosis. In this lesson, each of the three kinds has at least one partner that benefits.');
+        }
+      }
+      status!.replaceChildren();
+      ps.forEach((t) => { const p = document.createElement('p'); p.textContent = t; status!.appendChild(p); });
+    }
+    function changed() { stop(); week = 0; runBtn!.textContent = 'Run 20 weeks'; render(); }
+
+    ['a', 'b'].forEach((g) => radios(g).forEach((r) => r.addEventListener('change', () => {
+      pair = null; presetSel!.value = ''; changed();
+    })));
+    presetSel.addEventListener('change', () => {
+      const p = PAIRS[presetSel.value];
+      pair = p ? p : null;
+      if (p) { setEff('a', p.ea); setEff('b', p.eb); }
+      changed();
+    });
+    runBtn.addEventListener('click', () => {
+      if (timer !== undefined) { stop(); render(); return; }
+      if (week >= WEEKS) week = 0;
+      if (reduce) { week = WEEKS; stop(); render(); return; }
+      runBtn.textContent = 'Pause';
+      timer = window.setInterval(() => {
+        week += 1;
+        if (week >= WEEKS) { week = WEEKS; stop(); }
+        render();
+      }, 220);
+      week = Math.max(week, 0);
+    });
+    weekIn.addEventListener('input', () => { week = Math.min(WEEKS, Math.max(0, Number(weekIn.value) || 0)); stop(); render(); });
+    resetBtn.addEventListener('click', () => {
+      pair = null; presetSel.value = ''; setEff('a', 'unaffected'); setEff('b', 'unaffected'); changed();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .sy { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .sy-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .sy-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .sy-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .sy-axis { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); text-align: center; }
+  .sy-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
+  .sy-label { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sy-select { min-height: 44px; font-size: var(--ddp-text-sm); padding: 0.2rem 0.5rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); max-width: 100%; }
+  .sy-fs { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: var(--ddp-space-2) 0; padding: 0.3rem 0.6rem 0.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .sy-fs legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .sy-opt { position: relative; display: inline-flex; }
+  .sy-opt input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .sy-opt span { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.8rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: transparent; }
+  .sy-opt input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; }
+  .sy-opt input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .sy-run { margin-top: var(--ddp-space-3); }
+  .sy-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0 0.9rem; cursor: pointer; }
+  .sy-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 600; }
+  .sy-btn:focus-visible, .sy-range:focus-visible, .sy-select:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .sy-range { flex: 1 1 8rem; min-width: 7rem; min-height: 44px; accent-color: var(--ddp-color-accent); }
+  .sy-val { font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-width: 4.5em; }
+  .sy-note { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .sy-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .sy-status p { margin: 0 0 0.3rem; }
+  .sy-status p:last-child { margin-bottom: 0; }
+  .sy-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .sy-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

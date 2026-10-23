@@ -25,6 +25,15 @@ ladder:
   college: ["nutrient-cycling", "mutualism-parasitism-coevolution"]
   biology: ["microbes-in-ecosystems"]
 
+explainer:
+  src: "/explainers/living-together-symbiosis/explainer.mp4"
+  captions: "/explainers/living-together-symbiosis/explainer.vtt"
+  poster: "/explainers/living-together-symbiosis/poster.jpg"
+  title: "Living Together: Help, Harm, or Neither"
+  durationSec: 142.4
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -41,7 +50,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "SymbiosisPairs"
+    title: "Pair up two species"
+    caption: >-
+      Set how living together affects two species, watch their populations over 20 weeks, and name the kind of symbiosis.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is symbiosis?"
@@ -206,14 +221,18 @@ corpusTags:
   - "parasitism"
   - "lichens"
   - "mycorrhizal fungi"
-draft: true
+draft: false
 ---
+
+import SymbiosisPairs from '../../../components/SymbiosisPairs.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 
 **Look closely at a tree trunk or a rock in a Virginia park. Some of the gray-green crusty patches you see are lichens, and each lichen is a partnership of very different living things growing as one body.**
 
@@ -229,7 +248,7 @@ One partner is a fungus. The other is a tiny green alga or a cyanobacterium, a k
 
 In this simulation you see two species and a bar for each population over 20 weeks. You choose how living together affects each species: helped, unaffected or harmed. Then you watch the bars change and name the relationship. You can also pick a real pair, such as the fungus and alga in a lichen, a lichen on a tree, or a tick on a deer.
 
-{/* SIMULATION */}
+<SymbiosisPairs />
 
 **Try this.**
 1. Pick the lichen fungus and alga. Predict whether both bars will rise, then run it.
@@ -248,7 +267,7 @@ A **lichen** is a living thing made of a fungus and an alga or a cyanobacterium 
 - The lichen body, made mostly of the fungus, soaks up water from rain and from the air.
 - The alga or cyanobacterium makes sugar by photosynthesis. That food feeds both partners.
 
-{/* DIAGRAM: a cut-open lichen on tree bark, with 1 the fungus threads on the outside, 2 the layer of green alga cells, 3 an arrow of sugar from the alga to the fungus, 4 rain and water from the air soaking in, 5 the tree bark underneath */}
+<ScaffoldFigure src="/figures/living-together-symbiosis/lichen-cut-open-on-bark.webp" width={1200} height={800} keyItems={["rain and water from the air", "fungus threads", "green alga cells", "sugar", "tree bark"]} given={[1, 4]} alt="AI-generated illustration: a crusty lichen on a tree trunk, with a zoomed cut-open slab of it on bark. Rain and moist air fall on top; pale fungus threads form the outside and wrap around a layer of small green cells; a small arrow runs from a green cell to a thread; bark lies underneath. Five numbered circles mark parts for the student to name." caption="Inside a lichen, the fungus and the alga share one body: each gives the other something it needs. Name the five numbered parts." />
 
 This two-partner picture is a model. In 2016, scientists found yeast cells, another kind of fungus, living inside some lichens too. What the yeast does there is still being studied.
 
@@ -274,6 +293,8 @@ In parasitism, the **host** is the living thing that the other partner lives on 
 
 Look at the two lichen rows. The fungus and alga inside the lichen are one relationship. The lichen and the tree are a different one. Experts say ordinary lichens on bark almost always do not harm the tree.
 
+<LessonFigure src="/figures/living-together-symbiosis/three-kinds-of-symbiosis.webp" width={1200} height={800} alt="AI-generated illustration: three panels. Soybean roots with small bumps, one zoomed to show bacteria inside, both partners marked as benefiting; lichen patches on the bark of a healthy tree, the lichen benefiting and the tree unaffected; a blacklegged tick attached to a deer's skin, the tick benefiting and the deer harmed." caption="Three kinds of symbiosis from Virginia: soybeans and their root bacteria both benefit, a lichen on bark leaves the tree unaffected, and a tick harms the deer it feeds on." />
+
 The soybean bacteria turn nitrogen from the air into a form the plant can use. You met them in [Nitrogen for Life](/lessons/nitrogen-for-life/).
 
 Blacklegged ticks live in Virginia. A tick can hold onto its host and drink blood for several days. Some hosts get irritated skin around a bite.
@@ -295,6 +316,8 @@ That is how symbiosis supports the survival of different species. A lichen can g
 ## Elaborate: does a root fungus help a plant grow?
 
 Many plants grow with a fungus on their roots. The fungus brings minerals from the soil into the roots. The plant passes food it made to the fungus. Does the plant really grow more with this partner?
+
+<LessonFigure src="/figures/living-together-symbiosis/root-fungus-trade.webp" width={1200} height={800} alt="AI-generated illustration: a potted plant with its roots shown, and a zoomed root tip wrapped in fine fungus threads. One arrow carries minerals from the soil along the threads into the root; another carries food from the root out to the fungus." caption="A root fungus and its plant trade: the fungus brings minerals into the roots, and the plant passes food it made to the fungus." />
 
 | Water given (% of what the soil can hold) | Root fungus | Mean shoot dry mass (g per plant) |
 |---|---|---|

@@ -1,0 +1,378 @@
+---
+/**
+ * CrabCove — a cove of the Bay with one bar of blue crabs for each of ten years. The
+ * learner sets how much underwater grass young crabs can hide in, and, for any chosen
+ * years, a mild or harsh winter (or a random one) and the harvest level. A sketch of the
+ * lesson's rule: births and arrivals add to a population, deaths and departures take
+ * away. All numbers are made up for the sketch and are named in the assumptions line.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+const YEARS = Array.from({ length: 10 }, (_, i) => i + 1);
+---
+
+<figure class="cc card" data-cc>
+  <figcaption class="cc-head">Crab cove: ten years of blue crabs<span class="cc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cc-svg" viewBox="0 0 340 296" role="img" aria-label="Bar chart of the crab population in a cove for each of ten years, with the winter and the harvest of each year shown under the bars" data-plot></svg>
+
+  <ul class="cc-legend" aria-label="How to read the picture">
+    <li><span class="cc-key cc-key-bar"></span>Bar: crabs in the cove at the end of the year</li>
+    <li><span class="cc-key cc-key-harsh"></span>Blue column: a harsh winter</li>
+    <li><span class="cc-key cc-key-pot"></span>Square: a crab pot (1 is moderate harvest, 2 is heavy)</li>
+    <li data-key-random hidden><span class="cc-key cc-key-dot"></span>Dot: this winter was drawn at random</li>
+    <li data-key-exp hidden><span class="cc-key cc-key-exp"></span>Orange line: expected value (the average of many random draws)</li>
+  </ul>
+
+  <div class="cc-controls">
+    <div class="cc-group" role="group" aria-label="Underwater grass for young crabs">
+      <span class="cc-gl">1. Underwater grass for young crabs to hide in</span>
+      <div class="cc-row3">
+        <button type="button" class="cc-btn" data-grass="0" aria-pressed="false">Low</button>
+        <button type="button" class="cc-btn" data-grass="1" aria-pressed="true">Medium</button>
+        <button type="button" class="cc-btn" data-grass="2" aria-pressed="false">High</button>
+      </div>
+    </div>
+
+    <div class="cc-group" role="group" aria-label="Years to change">
+      <span class="cc-gl">2. Pick the years to change <em data-sel-out>All 10 years</em></span>
+      <div class="cc-row3">
+        <button type="button" class="cc-btn" data-preset="all" aria-pressed="true">All years</button>
+        <button type="button" class="cc-btn" data-preset="first" aria-pressed="false">Years 1–5</button>
+        <button type="button" class="cc-btn" data-preset="last" aria-pressed="false">Years 6–10</button>
+      </div>
+      <div class="cc-years">
+        {YEARS.map((y) => <button type="button" class="cc-btn cc-year" data-year={y - 1} aria-pressed="true" aria-label={`Year ${y}`}>{y}</button>)}
+      </div>
+    </div>
+
+    <div class="cc-group" role="group" aria-label="Winter in the chosen years">
+      <span class="cc-gl">3. Winter in those years</span>
+      <div class="cc-row3">
+        <button type="button" class="cc-btn" data-winter="mild" aria-pressed="true">Mild</button>
+        <button type="button" class="cc-btn" data-winter="harsh" aria-pressed="false">Harsh</button>
+        <button type="button" class="cc-btn" data-winter="random" aria-pressed="false">Random</button>
+      </div>
+    </div>
+
+    <div class="cc-group" role="group" aria-label="Harvest in the chosen years">
+      <span class="cc-gl">4. Harvest in those years</span>
+      <div class="cc-row3">
+        <button type="button" class="cc-btn" data-harvest="0" aria-pressed="true">None</button>
+        <button type="button" class="cc-btn" data-harvest="1" aria-pressed="false">Moderate</button>
+        <button type="button" class="cc-btn" data-harvest="2" aria-pressed="false">Heavy</button>
+      </div>
+    </div>
+
+    <div class="cc-actions">
+      <button type="button" class="cc-btn cc-act" data-resample disabled>Resample random winters</button>
+      <button type="button" class="cc-btn cc-act" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <p class="cc-why" data-why role="status" aria-live="polite"></p>
+
+  <p class="cc-assume">In this sketch, all the numbers are made up. The cove starts half full and holds 100 crabs at most. Each year new young crabs that survive are added: 25, 50 or 100 for every 100 crabs with low, medium or high grass. Crowding cuts this to nothing as the cove fills. The crowding rule is invented for this sketch. A mild winter then removes 15 of every 100 crabs and a harsh winter removes 50. Harvest then removes 0, 15 or 45 of every 100. A random winter is harsh 1 year in 3. There is one kind of crab, no ages, and no predators drawn.</p>
+
+  <p class="cc-foot">Rule to keep: a population grows when more crabs are added than are lost, and shrinks when more are lost than are added.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2', HARSH = '#d6e6f7', GREEN = '#2e8b57', WATER = '#eef6fb';
+  const N = 10, K = 100, START = 50;
+  const GRASS_R = [0.25, 0.5, 1.0];
+  const GRASS_NAME = ['low', 'medium', 'high'];
+  const SURVIVE = { mild: 0.85, harsh: 0.5 };
+  const TAKE = [0, 0.15, 0.45];
+  const HARV_NAME = ['no', 'moderate', 'heavy'];
+  const P_HARSH = 1 / 3;
+
+  type Mode = 'mild' | 'harsh' | 'random';
+  interface Yr { mode: Mode; drawHarsh: boolean; h: number }
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size: number, anchor: string, fill: string, weight?: string): SVGElement {
+    const t = el('text', { x, y, 'font-size': size, 'text-anchor': anchor, fill });
+    if (weight) t.setAttribute('font-weight', weight);
+    t.textContent = s;
+    return t;
+  }
+
+  // One year of the sketch: add young crabs, then winter, then harvest.
+  function step(p: number, grass: number, harsh: boolean, h: number): number {
+    const grown = p * (1 + GRASS_R[grass] * (1 - p / K));
+    return grown * (harsh ? SURVIVE.harsh : SURVIVE.mild) * (1 - TAKE[h]);
+  }
+  function run(grass: number, harshFlags: boolean[], yrs: Yr[]): number[] {
+    const out: number[] = [];
+    let p = START;
+    for (let i = 0; i < N; i++) { p = step(p, grass, harshFlags[i], yrs[i].h); out.push(p); }
+    return out;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-cc]').forEach((root) => {
+    function q<T extends Element>(sel: string): T {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('CrabCove: missing ' + sel);
+      return e;
+    }
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const why = q<HTMLElement>('[data-why]');
+    const selOut = q<HTMLElement>('[data-sel-out]');
+    const keyRandom = q<HTMLElement>('[data-key-random]');
+    const keyExp = q<HTMLElement>('[data-key-exp]');
+    const resampleBtn = q<HTMLButtonElement>('[data-resample]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const all = <T extends Element>(sel: string) => Array.from(root.querySelectorAll<T>(sel));
+    const grassBtns = all<HTMLButtonElement>('[data-grass]');
+    const presetBtns = all<HTMLButtonElement>('[data-preset]');
+    const yearBtns = all<HTMLButtonElement>('[data-year]');
+    const winterBtns = all<HTMLButtonElement>('[data-winter]');
+    const harvestBtns = all<HTMLButtonElement>('[data-harvest]');
+
+    let grass = 1;
+    let yrs: Yr[] = [];
+    let sel: boolean[] = [];
+    function resetState() {
+      grass = 1;
+      yrs = Array.from({ length: N }, () => ({ mode: 'mild' as Mode, drawHarsh: false, h: 0 }));
+      sel = Array.from({ length: N }, () => true);
+    }
+    resetState();
+
+    const harshNow = (y: Yr) => y.mode === 'harsh' || (y.mode === 'random' && y.drawHarsh);
+    const draw = () => Math.random() < P_HARSH;
+
+    // Expected value of every bar: average over all ways the random winters can fall.
+    function expected(): number[] {
+      const rnd: number[] = [];
+      yrs.forEach((y, i) => { if (y.mode === 'random') rnd.push(i); });
+      const sums: number[] = Array.from({ length: N }, () => 0);
+      const combos = 1 << rnd.length;
+      for (let m = 0; m < combos; m++) {
+        const flags = yrs.map((y) => y.mode === 'harsh');
+        let prob = 1;
+        rnd.forEach((yi, b) => {
+          const hs = ((m >> b) & 1) === 1;
+          flags[yi] = hs;
+          prob *= hs ? P_HARSH : 1 - P_HARSH;
+        });
+        const r = run(grass, flags, yrs);
+        for (let i = 0; i < N; i++) sums[i] += prob * r[i];
+      }
+      return sums;
+    }
+
+    const pressed = (b: HTMLElement, on: boolean) => b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const chosen = () => yrs.map((_, i) => i).filter((i) => sel[i]);
+
+    function statusText(pops: number[]): string {
+      const parts: string[] = [];
+      const harshYears = yrs.map((y, i) => (harshNow(y) ? i : -1)).filter((i) => i >= 0);
+      const anyHarvest = yrs.some((y) => y.h > 0);
+      const prev = (i: number) => (i === 0 ? START : pops[i - 1]);
+      const last = pops[N - 1];
+      const yearList = (a: number[]) => (a.length === 1 ? 'year ' + (a[0] + 1) : a.length <= 3 ? 'years ' + a.map((i) => i + 1).join(a.length === 2 ? ' and ' : ', ') : 'several years');
+      const winterWord = (a: number[]) => (a.length === 1 ? 'the harsh winter in ' : 'the harsh winters in ');
+
+      // Harvest cut after the crabs had fallen?
+      let cutAt = -1;
+      for (let k = 1; k < N; k++) {
+        if (yrs[k].h < yrs[k - 1].h && pops[k - 1] < START - 2) { cutAt = k; break; }
+      }
+      let result: string;
+      if (cutAt > 0) {
+        const lvl = HARV_NAME[yrs[cutAt - 1].h];
+        if (last > pops[cutAt - 1] + 1) result = `In this sketch, the crabs fell, with ${lvl} harvest in those years, then rose ${last < START / 2 ? 'slowly ' : ''}after the cut in year ${cutAt + 1}.`;
+        else result = `In this sketch, the crabs fell, with ${lvl} harvest in those years, and did not rise after the cut in year ${cutAt + 1}.`;
+        parts.push(result);
+        parts.push('Recovery takes time and is not certain.');
+      } else if (last < 5) {
+        parts.push('In this sketch, the crabs fall until very few are left.');
+      } else {
+        // A harsh winter that cut the bar, in a run that is not harsh every year.
+        let dip = -1;
+        if (harshYears.length > 0 && harshYears.length < N) {
+          for (const y of harshYears) { if (pops[y] < prev(y) - 1) { dip = y; break; } }
+        }
+        if (dip >= 0) {
+          const rose = pops.slice(dip + 1).some((v, j) => v > pops[dip + j] + 1);
+          const when = yearList(harshYears);
+          parts.push(rose
+            ? `In this sketch, ${winterWord(harshYears)}${when} cut the crabs, then they rose again.`
+            : `In this sketch, ${winterWord(harshYears)}${when} cut the crabs.`);
+        } else {
+          let up = 0, down = 0;
+          for (let i = 0; i < N; i++) { const d = pops[i] - prev(i); if (d > 1) up++; else if (d < -1) down++; }
+          const tail = Math.abs(pops[N - 1] - pops[N - 2]);
+          if (up > 0 && down === 0) parts.push(tail < 1.5 ? 'In this sketch, the crabs rise, then level off where the young added each year match the crabs lost.' : 'In this sketch, the crabs rise from year to year.');
+          else if (down > 0 && up === 0) parts.push(tail < 0.3 && !anyHarvest ? 'In this sketch, the crabs fall at first, then level off.' : 'In this sketch, the crabs fall from year to year.');
+          else if (up === 0 && down === 0) parts.push('In this sketch, the crabs stay about the same.');
+          else parts.push('In this sketch, the crabs go up and down from year to year.');
+        }
+      }
+      // One or two reasons, in the lesson’s own words.
+      const why: string[] = [];
+      if (harshYears.length > 0) why.push('More crabs die before spring in a very cold winter.');
+      if (anyHarvest) why.push('In this sketch, crabbers remove crabs in the harvest years, so fewer adults may be left to have young.');
+      if (grass === 0) why.push('With less grass, young crabs have fewer places to hide from big crabs.');
+      else if (grass === 2 && why.length < 2) why.push('Young crabs can hide in the grass from big crabs.');
+      if (why.length < 2 && parts.length < 2 && last >= 80) why.push('In this sketch, a fuller cove means more crabs share the same food and hiding places.');
+      parts.push(...why.slice(0, 2));
+      if (yrs.some((y) => y.mode === 'random')) parts.push('Bars show one draw of the winters. Press Resample to draw again.');
+      return parts.join(' ');
+    }
+
+    function render() {
+      const flags = yrs.map(harshNow);
+      const pops = run(grass, flags, yrs);
+      const anyRandom = yrs.some((y) => y.mode === 'random');
+      const exp = anyRandom ? expected() : pops;
+
+      // Controls
+      grassBtns.forEach((b) => pressed(b, Number(b.dataset.grass) === grass));
+      yearBtns.forEach((b) => pressed(b, sel[Number(b.dataset.year)]));
+      const nSel = sel.filter(Boolean).length;
+      const isAll = nSel === N;
+      const isFirst = sel.every((s, i) => s === (i < 5));
+      const isLast = sel.every((s, i) => s === (i >= 5));
+      presetBtns.forEach((b) => {
+        const p = b.dataset.preset;
+        pressed(b, (p === 'all' && isAll) || (p === 'first' && isFirst) || (p === 'last' && isLast));
+      });
+      selOut.textContent = isAll ? 'All 10 years' : nSel === 1 ? 'Year ' + (chosen()[0] + 1) : nSel + ' years chosen';
+      const ch = chosen().map((i) => yrs[i]);
+      winterBtns.forEach((b) => pressed(b, ch.length > 0 && ch.every((y) => y.mode === b.dataset.winter)));
+      harvestBtns.forEach((b) => pressed(b, ch.length > 0 && ch.every((y) => y.h === Number(b.dataset.harvest))));
+      resampleBtn.disabled = !anyRandom;
+      keyRandom.hidden = !anyRandom;
+      keyExp.hidden = !anyRandom;
+
+      // Plot
+      const X0 = 44, CW = 29.6, BW = 20, BY = 170, TY = 30, H = BY - TY;
+      const cx = (i: number) => X0 + CW * (i + 0.5);
+      const hy = (v: number) => BY - (Math.max(0, Math.min(K, v)) / K) * H;
+      plot.replaceChildren();
+      plot.appendChild(el('rect', { x: 0, y: 0, width: 340, height: 296, fill: '#fff' }));
+      // harsh-winter columns
+      flags.forEach((h, i) => { if (h) plot.appendChild(el('rect', { x: X0 + CW * i + 1, y: TY - 4, width: CW - 2, height: 196, fill: HARSH })); });
+      plot.appendChild(txt(X0, 12, 'Crabs in the cove (relative units, not to scale)', 11, 'start', INK, '600'));
+      // top limit and start line
+      plot.appendChild(el('line', { x1: X0, y1: TY, x2: X0 + CW * N, y2: TY, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      plot.appendChild(txt(X0 + CW * N, 25, 'cove is full here', 10, 'end', INK));
+      plot.appendChild(el('line', { x1: X0, y1: hy(START), x2: X0 + CW * N, y2: hy(START), stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+      plot.appendChild(txt(X0 - 4, hy(START) + 4, 'start', 10, 'end', INK));
+      // axes
+      plot.appendChild(el('line', { x1: X0, y1: TY, x2: X0, y2: BY, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: BY, x2: X0 + CW * N, y2: BY, stroke: INK, 'stroke-width': 1 }));
+      // bars
+      pops.forEach((v, i) => {
+        const top = hy(v);
+        plot.appendChild(el('rect', { x: cx(i) - BW / 2, y: top, width: BW, height: Math.max(1, BY - top), fill: ACCENT, rx: 2 }));
+      });
+      // expected ticks (only when there is a random winter at or before that year)
+      if (anyRandom) {
+        const firstRandom = yrs.findIndex((y) => y.mode === 'random');
+        exp.forEach((v, i) => {
+          if (i < firstRandom) return;
+          plot.appendChild(el('line', { x1: cx(i) - BW / 2 - 2, y1: hy(v), x2: cx(i) + BW / 2 + 2, y2: hy(v), stroke: ORANGE, 'stroke-width': 3 }));
+        });
+      }
+      // rows under the bars
+      plot.appendChild(txt(X0 - 4, 186, 'year', 10, 'end', INK));
+      plot.appendChild(txt(X0 - 4, 206, 'winter', 10, 'end', INK));
+      plot.appendChild(txt(X0 - 4, 221, 'harvest', 10, 'end', INK));
+      yrs.forEach((y, i) => {
+        plot.appendChild(txt(cx(i), 186, String(i + 1), 11, 'middle', INK, '700'));
+        if (y.mode === 'random') plot.appendChild(el('circle', { cx: cx(i), cy: 193, r: 2.5, fill: 'none', stroke: ORANGE, 'stroke-width': 1.4 }));
+        plot.appendChild(txt(cx(i), 206, harshNow(y) ? 'harsh' : 'mild', 10, 'middle', INK, harshNow(y) ? '700' : '400'));
+        const pots = y.h;
+        const w = 8, gap = 3, total = pots * w + (pots - 1) * gap;
+        for (let k = 0; k < pots; k++) {
+          plot.appendChild(el('rect', { x: cx(i) - total / 2 + k * (w + gap), y: 213, width: w, height: w, fill: 'none', stroke: INK, 'stroke-width': 1.5 }));
+        }
+        if (pots === 0) plot.appendChild(txt(cx(i), 221, '–', 10, 'middle', INK));
+      });
+      // grass strip: a schematic, blades more numerous and taller with more grass
+      plot.appendChild(el('rect', { x: 0, y: 234, width: 340, height: 62, fill: WATER }));
+      plot.appendChild(txt(8, 250, `Underwater grass: ${GRASS_NAME[grass]} (young crabs hide here)`, 10, 'start', INK, '600'));
+      const blades = [6, 11, 18][grass], bh = [12, 20, 30][grass];
+      for (let b = 0; b < blades; b++) {
+        const bx = 14 + ((340 - 28) * (b + 0.5)) / blades;
+        const lean = b % 2 === 0 ? 4 : -4;
+        plot.appendChild(el('path', { d: `M${bx.toFixed(1)} 294 Q${(bx + lean).toFixed(1)} ${294 - bh / 2} ${(bx + lean / 2).toFixed(1)} ${294 - bh}`, fill: 'none', stroke: GREEN, 'stroke-width': 2.2, 'stroke-linecap': 'round' }));
+      }
+      const settings = yrs.map((y, i) => `year ${i + 1}: ${harshNow(y) ? 'harsh' : 'mild'} winter, ${HARV_NAME[y.h]} harvest`).join('; ');
+      plot.setAttribute('aria-label', `Bar chart of the crab population in a cove over ten years, with ${GRASS_NAME[grass]} underwater grass. ${settings}.`);
+
+      why.textContent = statusText(pops);
+    }
+
+    // Wiring
+    grassBtns.forEach((b) => b.addEventListener('click', () => { grass = Number(b.dataset.grass); render(); }));
+    presetBtns.forEach((b) => b.addEventListener('click', () => {
+      const p = b.dataset.preset;
+      sel = sel.map((_, i) => (p === 'all' ? true : p === 'first' ? i < 5 : i >= 5));
+      render();
+    }));
+    yearBtns.forEach((b) => b.addEventListener('click', () => {
+      const i = Number(b.dataset.year);
+      if (sel.every(Boolean)) sel = sel.map((_, j) => j === i);
+      else sel[i] = !sel[i];
+      if (!sel.some(Boolean)) sel = sel.map(() => true);
+      render();
+    }));
+    winterBtns.forEach((b) => b.addEventListener('click', () => {
+      const m = b.dataset.winter as Mode;
+      chosen().forEach((i) => { yrs[i].mode = m; if (m === 'random') yrs[i].drawHarsh = draw(); });
+      render();
+    }));
+    harvestBtns.forEach((b) => b.addEventListener('click', () => {
+      const h = Number(b.dataset.harvest);
+      chosen().forEach((i) => { yrs[i].h = h; });
+      render();
+    }));
+    resampleBtn.addEventListener('click', () => {
+      yrs.forEach((y) => { if (y.mode === 'random') y.drawHarsh = draw(); });
+      render();
+    });
+    resetBtn.addEventListener('click', () => { resetState(); render(); });
+    render();
+  });
+</script>
+
+<style>
+  .cc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cc-legend { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; display: grid; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cc-legend li { display: flex; align-items: center; gap: 0.5rem; }
+  .cc-legend li[hidden] { display: none; }
+  .cc-key { flex: none; display: inline-block; width: 16px; height: 12px; box-sizing: border-box; }
+  .cc-key-bar { background: #0e7c86; border-radius: 2px; }
+  .cc-key-harsh { background: #d6e6f7; border: 1px solid #b9c9dc; }
+  .cc-key-pot { border: 1.5px solid #4b4b55; width: 10px; height: 10px; margin: 0 3px; }
+  .cc-key-dot { width: 8px; height: 8px; border: 1.5px solid #e57200; border-radius: 50%; margin: 0 4px; }
+  .cc-key-exp { height: 3px; background: #e57200; }
+  .cc-controls { display: grid; gap: var(--ddp-space-3); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .cc-group { display: flex; flex-direction: column; gap: 0.35rem; }
+  .cc-gl { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink-soft); }
+  .cc-gl em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); margin-left: 0.3rem; }
+  .cc-row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+  .cc-years { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.4rem; }
+  @media (min-width: 640px) { .cc-years { grid-template-columns: repeat(10, 1fr); } }
+  .cc-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.3rem 0.5rem; cursor: pointer; }
+  .cc-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .cc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .cc-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .cc-act[data-reset] { border-color: var(--ddp-color-secondary); }
+  .cc-why { margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-primary); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; min-height: 5em; }
+  .cc-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .cc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

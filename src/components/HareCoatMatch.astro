@@ -1,0 +1,363 @@
+---
+/**
+ * HareCoatMatch — a hillside from fall to spring with 100 snowshoe hares drawn as dots.
+ * The learner sets when the snow melts (early, normal, late), shifts the hares' color
+ * change earlier or later, and can switch on a warmer climate that shortens the snow
+ * season. Each week a hare's chance of surviving depends only on how different its coat
+ * is from the ground, using the lesson's Montana estimates (96, 92 and 89 percent for a
+ * difference of 0, 60 and 100 percentage points; straight lines between). Hares that stand
+ * out are ringed; a bar chart shows hares spotted (lost) each week, with the expected
+ * number as a tick, and a result panel appears when the season ends.
+ * Simplifies: predators see only color, all hares are otherwise identical, one season, no
+ * inheritance. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="hc card" data-harecoat>
+  <figcaption class="hc-head">Hare coat match: change when the snow melts<span class="hc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="hc-svg" viewBox="0 0 360 308" role="img" aria-label="A hillside with 100 hares drawn as dots, and below it a weekly chart of hares spotted by predators, the ground color and the average coat color" data-stage></svg>
+  <p class="hc-legend">Dot color = coat color. Orange ring = coat and ground differ by 60 points or more. ✕ = lost this week. Dashed circle = lost earlier. Chart: bars = this run, black ticks = expected.</p>
+
+  <p class="hc-status" data-status role="status"></p>
+
+  <div class="hc-controls">
+    <fieldset class="hc-set">
+      <legend>When does the snow melt?</legend>
+      <div class="hc-radios">
+        <label class="hc-radio"><input type="radio" name="hc-melt" value="0" /><span>Early</span></label>
+        <label class="hc-radio"><input type="radio" name="hc-melt" value="1" checked /><span>Normal</span></label>
+        <label class="hc-radio"><input type="radio" name="hc-melt" value="2" /><span>Late</span></label>
+      </div>
+    </fieldset>
+
+    <div class="hc-set">
+      <label class="hc-slabel" for="hc-shift"><span>When the hares change color: <strong data-out="shift">usual timing</strong></span></label>
+      <input id="hc-shift" type="range" data-in="shift" min="-3" max="3" step="1" value="0" aria-label="Shift of the hares’ color change, in weeks" />
+      <div class="hc-ends"><span>3 weeks earlier</span><span>3 weeks later</span></div>
+    </div>
+
+    <label class="hc-check"><input type="checkbox" data-in="warm" /><span>Warmer climate: a shorter snow season</span></label>
+
+    <div class="hc-set">
+      <label class="hc-slabel" for="hc-week"><span>Week to show: <strong data-out="week">week 1 of 22</strong></span></label>
+      <input id="hc-week" type="range" data-in="week" min="1" max="22" step="1" value="1" aria-label="Week to show" />
+    </div>
+
+    <div class="hc-btns">
+      <button type="button" class="hc-btn hc-primary" data-run>Run season</button>
+      <button type="button" class="hc-btn" data-resample>Resample</button>
+      <button type="button" class="hc-btn" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <div class="hc-result" data-result>
+    <p class="hc-wait" data-wait>Season’s end: press Run season, or drag the week slider to the last week, to see how many hares are alive.</p>
+    <div data-done hidden>
+      <table class="hc-table">
+        <caption>Hares out of 100 in this sketch</caption>
+        <thead><tr><th scope="col"></th><th scope="col">This run</th><th scope="col">Expected</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Alive at the end</th><td data-r="alive"></td><td data-r="alive-e"></td></tr>
+          <tr><th scope="row">Lost before the melt</th><td data-r="pre"></td><td data-r="pre-e"></td></tr>
+          <tr><th scope="row">Lost after the melt</th><td data-r="post"></td><td data-r="post-e"></td></tr>
+        </tbody>
+      </table>
+      <p class="hc-line" data-line-match></p>
+      <p class="hc-line" data-line-color></p>
+    </div>
+  </div>
+
+  <p class="hc-assume"><strong>Made up for this sketch:</strong> 100 hares; 22 weeks that are not real dates; snow arrives in week 6 and melts in week 12, 15 or 18; a warmer climate makes snow arrive one week later and melt one week sooner; a coat change takes 4 weeks; hares differ by up to 2 weeks either way; chances between the lesson’s three values are joined by straight lines; a hare that predators spot is lost; the color-change slider moves every hare’s fall and spring change together, by up to 3 weeks; a hare is ringed when its coat differs from the ground by 60 points or more (a threshold chosen for the sketch).</p>
+  <p class="hc-foot">In this sketch, the more a coat differs from the ground, the lower the chance of surviving a week. The lesson’s Montana estimates are 96 percent (matched), 92 percent (60 points different) and 89 percent (100 points different). The model shows only color, covers one season, and shows no inheritance or change over generations. They are model estimates from two Montana sites, not counts, and they do not show that coat color caused each death.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 22; // weeks in the sketch
+  const HARES = 100;
+  const COLS = 20;
+  const ARRIVE = 6;
+  const MELT = [12, 15, 18];
+  const FALL_START = 4; // normal timing: coat is half white in week 6 (snow arrives)
+  const SPRING_START = 13; // normal timing: coat is half brown in week 15 (normal melt)
+  const CHANGE = 4; // weeks a coat change takes
+  const STAND = 60; // lesson's "partly mismatched" row
+  const AX_MAX = 12;
+  const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
+  // Weekly survival from the lesson: 96 (0 points), 92 (60), 89 (100); straight lines between.
+  const surv = (d: number) => (d <= 60 ? 0.96 - (0.04 * d) / 60 : 0.92 - (0.03 * (d - 60)) / 40);
+  const BROWN = [123, 90, 60];
+  const coat = (h: number) => {
+    const t = h / 100;
+    return `rgb(${BROWN.map((c) => Math.round(c + (255 - c) * t)).join(',')})`;
+  };
+  const GROUND_BROWN = '#9a7b58';
+  const INK = '#33333b';
+  function lcg(seed: number) {
+    let s = seed >>> 0;
+    return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('HareCoatMatch: missing ' + sel);
+    return e;
+  }
+
+  type Hare = { x: number; y: number; off: number };
+  type Run = {
+    h: number[][]; d: number[][]; died: number[]; // died: week lost, 0 = alive at end
+    obsLost: number[]; expLost: number[]; expAlive: number; meltWeek: number; arrive: number;
+    ground: number[]; avgCoat: number[];
+    pre: number; post: number; preE: number; postE: number; whitePost: number; brownPost: number; alive: number;
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-harecoat]').forEach((root) => {
+    const stage = must<SVGSVGElement>(root, '[data-stage]');
+    const status = must<HTMLElement>(root, '[data-status]');
+    const shiftIn = must<HTMLInputElement>(root, '[data-in="shift"]');
+    const weekIn = must<HTMLInputElement>(root, '[data-in="week"]');
+    const warmIn = must<HTMLInputElement>(root, '[data-in="warm"]');
+    const shiftOut = must<HTMLElement>(root, '[data-out="shift"]');
+    const weekOut = must<HTMLElement>(root, '[data-out="week"]');
+    const runBtn = must<HTMLButtonElement>(root, '[data-run]');
+    const waitEl = must<HTMLElement>(root, '[data-wait]');
+    const doneEl = must<HTMLElement>(root, '[data-done]');
+    const lineMatch = must<HTMLElement>(root, '[data-line-match]');
+    const lineColor = must<HTMLElement>(root, '[data-line-color]');
+    const cell = (k: string) => must<HTMLElement>(root, `[data-r="${k}"]`);
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="hc-melt"]'));
+
+    // Fixed hillside layout and fixed coat-timing spread (up to 2 weeks either way, 20 hares each).
+    const layout = lcg(7);
+    const offs: number[] = [];
+    for (let i = 0; i < HARES; i++) offs.push([-2, -1, 0, 1, 2][i % 5]);
+    for (let i = HARES - 1; i > 0; i--) { const j = Math.floor(layout() * (i + 1)); [offs[i], offs[j]] = [offs[j], offs[i]]; }
+    const hares: Hare[] = offs.map((off, i) => {
+      const c = i % COLS, r = Math.floor(i / COLS);
+      return { x: 16 + c * 17.5 + (layout() - 0.5) * 4, y: 66 + r * 17 + (layout() - 0.5) * 4, off };
+    });
+
+    let seed = 12345;
+    let u: number[][] = [];
+    let run: Run;
+    let week = 1;
+    let timer = 0;
+
+    function drawLuck() {
+      const rnd = lcg(seed);
+      u = [];
+      for (let i = 0; i < HARES; i++) { u.push([]); for (let w = 0; w < W; w++) u[i].push(rnd()); }
+    }
+    function meltIndex(): number {
+      const r = radios.find((x) => x.checked);
+      return r ? Number(r.value) : 1;
+    }
+    function compute(): Run {
+      const warm = warmIn.checked;
+      const shift = Number(shiftIn.value);
+      const arrive = ARRIVE + (warm ? 1 : 0);
+      const meltWeek = MELT[meltIndex()] - (warm ? 1 : 0);
+      const h: number[][] = [], d: number[][] = [], died: number[] = [];
+      const obsLost = new Array(W + 1).fill(0), expLost = new Array(W + 1).fill(0);
+      const ground: number[] = [], avgCoat: number[] = new Array(W + 1).fill(0);
+      for (let w = 1; w <= W; w++) ground[w] = w >= arrive && w < meltWeek ? 100 : 0;
+      let pre = 0, post = 0, preE = 0, postE = 0, whitePost = 0, brownPost = 0, alive = 0, expAlive = 0;
+      for (let i = 0; i < HARES; i++) {
+        h.push([0]); d.push([0]); died.push(0);
+        let pAlive = 1, gone = false;
+        for (let w = 1; w <= W; w++) {
+          const o = hares[i].off + shift;
+          const fall = clamp((w - (FALL_START + o)) / CHANGE, 0, 1) * 100;
+          const spring = 100 - clamp((w - (SPRING_START + o)) / CHANGE, 0, 1) * 100;
+          const hw = Math.min(fall, spring);
+          const dw = Math.abs(hw - ground[w]);
+          h[i].push(hw); d[i].push(dw);
+          avgCoat[w] += hw / HARES;
+          const p = surv(dw);
+          const e = pAlive * (1 - p);
+          expLost[w] += e;
+          if (w < meltWeek) preE += e; else postE += e;
+          pAlive *= p;
+          if (!gone && u[i][w - 1] > p) {
+            gone = true; died[i] = w; obsLost[w] += 1;
+            if (w < meltWeek) pre += 1; else { post += 1; if (hw >= 50) whitePost += 1; else brownPost += 1; }
+          }
+        }
+        expAlive += pAlive;
+        if (!gone) alive += 1;
+      }
+      return { h, d, died, obsLost, expLost, expAlive, meltWeek, arrive, ground, avgCoat, pre, post, preE, postE, whitePost, brownPost, alive };
+    }
+
+    const X0 = 46, STEP = (352 - 46) / W;
+    const colX = (w: number) => X0 + (w - 1) * STEP;
+    function draw(w: number) {
+      stage.replaceChildren();
+      const snow = run.ground[w] === 100;
+      // sky and hill
+      stage.appendChild(el('rect', { x: 0, y: 0, width: 360, height: 152, fill: '#e3edf3' }));
+      stage.appendChild(el('path', { d: 'M0,46 Q180,20 360,46 L360,152 L0,152 Z', fill: snow ? '#ffffff' : GROUND_BROWN, stroke: '#7d8590', 'stroke-width': 1 }));
+      stage.appendChild(el('text', { x: 8, y: 16, 'font-size': 11, 'font-weight': 700, fill: INK }, `Week ${w}: ${snow ? 'snow on the ground' : 'bare ground'}`));
+      // hares
+      hares.forEach((hare, i) => {
+        const died = run.died[i];
+        if (died && died < w) {
+          stage.appendChild(el('circle', { cx: hare.x, cy: hare.y, r: 5, fill: 'none', stroke: '#8a8a96', 'stroke-width': 1, 'stroke-dasharray': '2 2', opacity: 0.8 }));
+          return;
+        }
+        const stands = run.d[i][w] >= STAND;
+        stage.appendChild(el('circle', { cx: hare.x, cy: hare.y, r: 5.5, fill: coat(run.h[i][w]), stroke: INK, 'stroke-width': 1 }));
+        if (stands) stage.appendChild(el('circle', { cx: hare.x, cy: hare.y, r: 8, fill: 'none', stroke: '#e57200', 'stroke-width': 2 }));
+        if (died === w) {
+          stage.appendChild(el('path', { d: `M${hare.x - 4},${hare.y - 4} L${hare.x + 4},${hare.y + 4} M${hare.x + 4},${hare.y - 4} L${hare.x - 4},${hare.y + 4}`, stroke: '#b3261e', 'stroke-width': 2, fill: 'none' }));
+        }
+      });
+      // chart
+      stage.appendChild(el('text', { x: 8, y: 164, 'font-size': 11, 'font-weight': 700, fill: INK }, 'Hares lost each week'));
+      const top = 176, base = 236, hh = base - top;
+      const yv = (v: number) => base - (clamp(v, 0, AX_MAX) / AX_MAX) * hh;
+      for (const v of [0, 6, 12]) {
+        stage.appendChild(el('line', { x1: X0, y1: yv(v), x2: 352, y2: yv(v), stroke: v === 0 ? '#8a8a96' : '#e1e1e7', 'stroke-width': 1 }));
+        stage.appendChild(el('text', { x: X0 - 5, y: yv(v) + 3.5, 'font-size': 10, 'text-anchor': 'end', fill: INK }, String(v)));
+      }
+      for (let k = 1; k <= w; k++) {
+        const bx = colX(k) + (STEP - 9) / 2;
+        const v = run.obsLost[k];
+        if (v > 0) stage.appendChild(el('rect', { x: bx, y: yv(v), width: 9, height: base - yv(v), fill: '#c2542a' }));
+        const ey = yv(run.expLost[k]);
+        stage.appendChild(el('line', { x1: bx - 1.5, y1: ey, x2: bx + 10.5, y2: ey, stroke: '#111', 'stroke-width': 2 }));
+      }
+      // strips
+      stage.appendChild(el('text', { x: X0 - 5, y: 254, 'font-size': 10, 'text-anchor': 'end', fill: INK }, 'ground'));
+      stage.appendChild(el('text', { x: X0 - 5, y: 270, 'font-size': 10, 'text-anchor': 'end', fill: INK }, 'avg coat'));
+      for (let k = 1; k <= W; k++) {
+        const bx = colX(k);
+        stage.appendChild(el('rect', { x: bx + 0.5, y: 244, width: STEP - 1, height: 12, fill: run.ground[k] === 100 ? '#ffffff' : GROUND_BROWN, stroke: '#8a8a96', 'stroke-width': 0.8 }));
+        stage.appendChild(el('rect', { x: bx + 0.5, y: 260, width: STEP - 1, height: 12, fill: coat(run.avgCoat[k]), stroke: '#8a8a96', 'stroke-width': 0.8 }));
+      }
+      stage.appendChild(el('rect', { x: colX(w), y: top - 2, width: STEP, height: 276 - top + 2, fill: 'none', stroke: INK, 'stroke-width': 1.5 }));
+      for (const k of [1, 5, 10, 15, 20, 22]) {
+        stage.appendChild(el('text', { x: colX(k) + STEP / 2, y: 288, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, String(k)));
+      }
+      stage.appendChild(el('text', { x: 352, y: 303, 'font-size': 10, 'text-anchor': 'end', fill: INK }, 'week of the sketch (not real dates)'));
+    }
+
+    const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+    function shiftLabel(s: number): string {
+      if (s === 0) return 'usual timing';
+      return `${Math.abs(s)} ${plural(Math.abs(s), 'week', 'weeks')} ${s < 0 ? 'earlier' : 'later'}`;
+    }
+    function render() {
+      shiftOut.textContent = shiftLabel(Number(shiftIn.value));
+      weekOut.textContent = `week ${week} of ${W}`;
+      weekIn.value = String(week);
+      draw(week);
+      let n = 0, stand = 0;
+      for (let i = 0; i < HARES; i++) {
+        if (run.died[i] === 0 || run.died[i] >= week) { n += 1; if (run.d[i][week] >= STAND) stand += 1; }
+      }
+      const gtxt = run.ground[week] === 100 ? 'snow covers the ground' : 'the ground is bare';
+      if (week === 1) status.textContent = `In this sketch, week 1: ${gtxt}. ${stand} of ${n} hares stand out. Press Run season.`;
+      else if (week < W) status.textContent = `In this sketch, week ${week}: ${gtxt}. ${stand === 0 ? 'No hare stands out' : `${stand} of ${n} ${plural(n, 'hare stands', 'hares stand')} out`}.`;
+      else status.textContent = `In this sketch, about ${Math.round(run.expAlive)} of ${HARES} hares would be alive after week ${W}. This run: ${run.alive}.`;
+      const end = week === W;
+      waitEl.hidden = end;
+      doneEl.hidden = !end;
+      if (end) {
+        cell('alive').textContent = String(run.alive);
+        cell('alive-e').textContent = `about ${Math.round(run.expAlive)}`;
+        cell('pre').textContent = String(run.pre);
+        cell('pre-e').textContent = `about ${Math.round(run.preE)}`;
+        cell('post').textContent = String(run.post);
+        cell('post-e').textContent = `about ${Math.round(run.postE)}`;
+        lineMatch.textContent = `In this sketch, if every coat matched the ground all season, about ${Math.round(HARES * Math.pow(0.96, W))} hares would be alive.`;
+        lineColor.textContent = run.post === 0
+          ? 'In this sketch, no hare was spotted after the melt in this run.'
+          : `In this sketch, of the ${run.post} ${plural(run.post, 'hare', 'hares')} lost after the melt, ${run.whitePost} ${plural(run.whitePost, 'was', 'were')} mostly white and ${run.brownPost} mostly brown.`;
+      }
+    }
+    function stop() {
+      if (timer) { window.clearInterval(timer); timer = 0; }
+      runBtn.textContent = 'Run season';
+    }
+    function recompute(resetWeek: boolean) {
+      stop();
+      run = compute();
+      if (resetWeek) week = 1;
+      render();
+    }
+    function play() {
+      if (timer) { stop(); return; }
+      if (week >= W) week = 1;
+      render();
+      runBtn.textContent = 'Pause';
+      timer = window.setInterval(() => {
+        if (week >= W) { stop(); return; }
+        week += 1;
+        render();
+        if (week >= W) stop();
+      }, 380);
+    }
+
+    radios.forEach((r) => r.addEventListener('change', () => recompute(true)));
+    shiftIn.addEventListener('input', () => recompute(true));
+    warmIn.addEventListener('change', () => recompute(true));
+    weekIn.addEventListener('input', () => { stop(); week = Number(weekIn.value); render(); });
+    runBtn.addEventListener('click', play);
+    must<HTMLButtonElement>(root, '[data-resample]').addEventListener('click', () => {
+      seed = (seed * 31 + 977) >>> 0; drawLuck(); recompute(true);
+    });
+    must<HTMLButtonElement>(root, '[data-reset]').addEventListener('click', () => {
+      seed = 12345; drawLuck();
+      radios.forEach((r) => { r.checked = r.value === '1'; });
+      shiftIn.value = '0'; warmIn.checked = false;
+      recompute(true);
+    });
+    drawLuck();
+    recompute(true);
+  });
+</script>
+
+<style is:global>
+  .hc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hc-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hc-legend { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hc-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .hc-controls { display: grid; gap: var(--ddp-space-3); margin: var(--ddp-space-3) 0; }
+  .hc-set { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .hc-set legend, .hc-slabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); padding: 0; margin-bottom: 0.25rem; display: block; }
+  .hc-slabel strong { color: var(--ddp-color-primary); }
+  .hc-set input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--ddp-color-accent); margin: 0; }
+  .hc-ends { display: flex; justify-content: space-between; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hc-radios { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .hc-radio { position: relative; flex: 1 1 5.5rem; }
+  .hc-radio input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .hc-radio span { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: transparent; }
+  .hc-radio input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .hc-radio input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hc-check { display: flex; align-items: center; gap: 0.6rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .hc-check input { width: 22px; height: 22px; accent-color: var(--ddp-color-accent); flex: none; }
+  .hc-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .hc-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 0.9rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); cursor: pointer; }
+  .hc-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .hc-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hc-result { margin: var(--ddp-space-3) 0; }
+  .hc-wait { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .hc-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .hc-table caption { text-align: left; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding-bottom: 0.25rem; }
+  .hc-table th, .hc-table td { padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); text-align: left; font-weight: 400; }
+  .hc-table thead th { font-weight: 700; color: var(--ddp-color-primary); }
+  .hc-table tbody th { color: var(--ddp-color-ink-soft); }
+  .hc-line { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .hc-assume { margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hc-foot { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

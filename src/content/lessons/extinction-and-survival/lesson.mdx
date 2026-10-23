@@ -46,7 +46,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "ChestnutForest"
+    title: "Send a change through a forest"
+    caption: >-
+      A 50-tree chestnut forest where you choose how much resistance the trees carry and which change arrives, then watch the population recover or fall to zero.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What does it mean when a species is extinct?"
@@ -133,7 +139,7 @@ practiceQuestions:
       do not show extinction everywhere, because sprouts still grew in the same canyon. Rooted trees
       cannot migrate away. Trees cannot try to adapt; their resistance is inherited. These are
       samples from one canyon, not a count of every tree.
-  - stem: "Researchers recorded chestnut sprouts 176 times in 20 person-hours of searching in 1977, and 42 times in 40 person-hours in 2021. About how many per person-hour is that for each year?"
+  - stem: "Researchers recorded chestnut sprouts 176 times in 20 person-hours of searching in 1977, and 42 times in 40 person-hours in 2021 (one person-hour is one person searching for one hour). About how many per person-hour is that for each year?"
     choices:
       - "About 8.8 in 1977 and 4.2 in 2021"
       - "About 1.05 in 1977 and 8.8 in 2021"
@@ -205,7 +211,7 @@ anecdotes:
       of William and Mary used USDA Forest Service plot data, collected from 2002 to 2012, to estimate
       how many live chestnut stems still grow in eastern forests. Their estimate was about 431
       million. About 84 percent of those stems were less than 2.5 cm wide at chest height, mostly
-      small sprouts in the forest understory.
+      small sprouts growing beneath the taller forest trees.
 
 corpusTags:
   - "extinction"
@@ -216,10 +222,14 @@ corpusTags:
 draft: true
 ---
 
+import ChestnutForest from '../../../components/ChestnutForest.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A hundred years ago, American chestnut trees were common in parts of Virginia’s Blue Ridge Mountains, and people ate their nuts. Then a fungus arrived from Asia, and by about 1950 it had killed billions of these trees.**
 
@@ -235,12 +245,13 @@ Small chestnut sprouts still grow from old roots in Virginia’s forests, then g
 
 In this model, a forest has 50 trees. Each tree has a hidden level of resistance to harm. You choose how much variation the forest has, which change arrives (a blight, habitat loss or a warmer climate), and how many years to run. Trees that survive make seedlings with their own resistance, and a line graph shows how many trees are left.
 
-{/* SIMULATION */}
+<ChestnutForest />
 
 **Try this.**
 1. Set low variation and send in the blight. Predict whether the forest will recover or fall to zero. Then run it.
 2. Keep the blight, but switch to high variation. Predict how the line will change, then test it.
-3. Predict whether three runs with the same settings give the same result. Then check.
+3. Keep the blight and high variation. Predict whether three runs with the same settings give the same result. Then check.
+4. Send in habitat loss with high variation. Predict whether more variation saves the forest, then explain what you see.
 
 ## Explain: survive, move or die
 
@@ -251,6 +262,8 @@ Every environment changes. When a change comes, the members of a population do n
 - Some survive and reproduce. Their offspring inherit their traits.
 - Some **migrate**, which means they move to a new place. A bird can fly away; a rooted tree cannot.
 - Some die.
+
+<LessonFigure src="/figures/extinction-and-survival/survive-migrate-or-die.webp" width={1200} height={676} alt="AI-generated illustration: a forest edge after a change. On the left a healthy tree stands with seedlings at its base. In the centre a small bird flies away while a rooted tree stays put. On the right stands a dead, leafless tree." caption="When the environment changes, some members of a population survive and reproduce, some migrate, and some die. A bird can fly away; a rooted tree cannot." />
 
 A species is **extinct** when no living members are left anywhere. **Extinction** is the dying out of a whole species. Vanishing from one forest is not extinction.
 
@@ -271,7 +284,7 @@ Four kinds of change put many species at risk today.
 
 The blight fungus reached North America on chestnut trees brought from Asia. It grows into the bark of an American chestnut and makes a sore called a canker. The canker can kill the whole trunk above the ground. The roots, safe in the soil, often live and send up new sprouts. Then the sprouts get infected and die back, a cycle that can go on for decades.
 
-{/* DIAGRAM: the chestnut blight cycle, numbered: 1 fungus gets into the bark of a chestnut trunk, 2 a canker spreads around the trunk, 3 the trunk above the canker dies, 4 the roots survive in the soil, 5 a new sprout grows and later gets infected */}
+<ScaffoldFigure src="/figures/extinction-and-survival/chestnut-blight-cycle.webp" width={1200} height={800} keyItems={["blight fungus", "dead trunk", "canker", "sprout", "roots"]} given={[3, 4]} alt="AI-generated illustration: a chestnut trunk with a cracked band of diseased bark partway up. Above the band the trunk and branches are bare and dead; below ground, living roots spread in the soil, and a young leafy sprout rises from the base. A zoomed circle shows fine fungus threads growing into a crack in the bark. Five numbered circles mark parts for the student to name." caption="The blight kills the chestnut trunk above the canker, but the roots live on and send up sprouts that get infected in turn. Name the five numbered parts." />
 
 <Support min={2}>**Key idea:** Habitat loss, pollution, climate change and invasive species can all challenge the survival of a population.</Support>
 
@@ -279,13 +292,13 @@ The blight fungus reached North America on chestnut trees brought from Asia. It 
 
 **Genetic variation** is the inherited differences among members of a population. **Resistance** is the ability to hold off a disease or other threat better than others can. When a new disease arrives, a population with more variation is more likely to have some members that resist it. Those members survive and pass their traits to their offspring.
 
-Variation does not promise survival. The helpful trait has to be there already. American chestnuts had very little resistance to this fungus, so almost all of the big trees died. Surviving chestnuts still carry plenty of genetic variation, but American chestnuts as a group resist the blight far less than Chinese chestnuts do. Chinese chestnut trees resist the blight much better.
+Variation does not promise survival. The helpful trait usually has to be there already. American chestnuts had very little resistance to this fungus, so almost all of the big trees died. Surviving chestnuts still carry plenty of genetic variation, but American chestnuts as a group resist the blight far less than Chinese chestnuts do.
 
-A few survivors do not make a species safe; they must also reproduce. In a very small population, chance can wipe out some variation.
+A few survivors do not make a species safe; they must also reproduce. In a very small population, a trait can disappear by chance if the few members that carry it die before they reproduce.
 
 At research farms in Meadowview, in southwest Virginia, scientists with The American Chestnut Foundation breed chestnuts. They cross American chestnuts with Chinese chestnuts. They test the young trees with blight and breed the most resistant ones again. This is artificial selection: people, not the environment, choose which trees breed. Some scientists have also tried adding one resistance gene to American chestnut trees.
 
-<Support min={2}>**Key idea:** A population with more genetic variation is more likely to have survivors that pass on a helpful trait, but only if that trait is already present.</Support>
+<Support min={2}>**Key idea:** A population with more genetic variation is more likely to have survivors that pass on a helpful trait, but usually only if that trait is already present.</Support>
 
 ## Elaborate: read the chestnut data
 
@@ -306,10 +319,10 @@ Canopy and sprout values: Karban and Karban, PLOS ONE (2024), for White Oak Cany
 | Chinese chestnut | 3.9 | 3.9 |
 | Hybrid, family D2 | 3.7 | 3.4 |
 
-These ratings come from Clark and colleagues, Forest Ecology and Management (2019). Young trees were planted in forests in 2009 and rated from 2013 to 2016. A score of 1 means the tree was assumed dead from blight, and 4 means no visible disease. The hybrid seedlings came from the Meadowview farms.
+These ratings come from Clark and colleagues, Forest Ecology and Management (2019). Young trees were planted in forests in 2009 and rated from 2013 to 2016. A score of 1 means the tree was assumed dead from blight, and 4 means no visible disease. The hybrid seedlings, bred from American and Chinese chestnuts, came from the Meadowview farms.
 
 1. How did the chestnut share of the canopy change from before 1930 to 1977?
-2. Divide each sprout count by its person-hours. Which year had fewer sprouts per hour of searching?
+2. One person-hour is one person searching for one hour. Divide each sprout count by its person-hours. Which year had fewer sprouts per hour of searching?
 3. At the Virginia site, how much higher was the hybrid’s rating than the American chestnut’s?
 
 <CER
@@ -317,7 +330,7 @@ These ratings come from Clark and colleagues, Forest Ecology and Management (201
   claim="The American chestnut nearly disappeared because ___, and ___ could help it survive."
   evidence="In White Oak Canyon, chestnut made up ___ percent of canopy trees before 1930 and ___ percent in 1977. At the Virginia test site, American chestnut rated ___ and the hybrid rated ___."
   reasoning="Trees with little resistance ___, so ___. Breeding can help because ___."
-  model="The American chestnut nearly disappeared from the canopy because an invasive fungus killed trees that had little resistance. In White Oak Canyon, chestnut made up 15.2 percent of canopy trees before 1930 and 0 percent in 1977 and 2021. Breeding for resistance could help: at the Virginia site, the hybrid family rated 3.4 and American chestnut 2.9 on a 1 to 4 scale. The data have limits. The canopy data come from one canyon, the ratings use only years 5 to 8 after planting, and in Virginia the American and hybrid ratings were not statistically different (at the North Carolina site they were: 2.5 and 3.7)."
+  model="The American chestnut nearly disappeared from the canopy because an invasive fungus killed trees that had little resistance. In White Oak Canyon, chestnut made up 15.2 percent of canopy trees before 1930 and 0 percent in 1977 and 2021. Breeding for resistance could help: at the Virginia site, the hybrid family rated 3.4 and American chestnut 2.9 on a 1 to 4 scale. The data have limits. The canopy data come from one canyon, the ratings use only years 5 to 8 after planting, and in Virginia the American and hybrid ratings were not clearly different in the data (at the North Carolina site they were: 2.5 and 3.7)."
 />
 
 ### Design problem

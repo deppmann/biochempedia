@@ -1,0 +1,243 @@
+---
+/**
+ * JamesRiverBoat — a side map of the James River, mountains to Bay mouth. A slider moves a
+ * sampling boat along eight stations and a season switch (summer or wet spring)
+ * slides the salty water down or up the river. A salinity bar and four organisms show
+ * what fits at the boat. Summer numbers are the lesson's own station means (Chesapeake Bay
+ * Program, June to August 2023, 1 meter below the surface); spring is a sketch with no
+ * printed numbers. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="jrb card" data-jrb>
+  <figcaption class="jrb-head">Take a boat down the James<span class="jrb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="jrb-svg" viewBox="0 0 640 360" role="img" aria-label="Side map of the James River with a sampling boat, a salinity bar and four organisms" data-svg></svg>
+
+  <div class="jrb-controls">
+    <label class="jrb-slabel" for="jrb-boat">
+      <span>Move the boat: <em data-stationname>TF5.5</em></span>
+      <input id="jrb-boat" type="range" min="0" max="7" step="1" value="0" data-boat aria-describedby="jrb-status" />
+      <small data-stationplace>Upper tidal James</small>
+    </label>
+    <fieldset class="jrb-season">
+      <legend>Season</legend>
+      <label class="jrb-opt"><input type="radio" name="jrb-season" value="summer" checked data-season /> <span>Summer (lesson table)</span></label>
+      <label class="jrb-opt"><input type="radio" name="jrb-season" value="spring" data-season /> <span>Wet spring</span></label>
+    </fieldset>
+    <button type="button" class="jrb-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="jrb-status" id="jrb-status" role="status" data-status></p>
+  <ul class="jrb-list" data-list></ul>
+
+  <p class="jrb-assume">Made up for this sketch: the river positions are not to scale; the spring setting moves the salty water one station down the river; wild celery fits under 1, widgeon grass from 1 to under 5 and eelgrass above 20 (the guide gives the oyster range). The summer numbers are the lesson’s means (Chesapeake Bay Program, June to August 2023, 1 meter below the surface). No tides, no depth layers.</p>
+  <p class="jrb-foot">The rule to keep: salinity, an abiotic factor, changes along the river, and each organism fits only where the salinity suits it. The organisms come from guides. Nobody counted them at these stations.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Station = { code: string; place: string; psu: number; x: number };
+  // Salinity means and places are the lesson's table (summer 2023). x is a made-up map position.
+  const ST: Station[] = [
+    { code: 'TF5.5', place: 'Upper tidal James', psu: 0.09, x: 70 },
+    { code: 'RET5.2', place: 'Swann’s Point', psu: 1.32, x: 142 },
+    { code: 'LE5.1', place: 'Near Red Buoy 36', psu: 4.53, x: 214 },
+    { code: 'LE5.2', place: 'Buoy C12-13', psu: 11.54, x: 286 },
+    { code: 'LE5.3', place: 'James River Bridge', psu: 15.39, x: 358 },
+    { code: 'LE5.4', place: 'Hampton Roads', psu: 20.67, x: 430 },
+    { code: 'CB8.1', place: 'Between the James mouth and Thimble Shoals', psu: 23.06, x: 502 },
+    { code: 'CB7.4', place: 'Chesapeake Bay Bridge-Tunnel', psu: 25.78, x: 574 },
+  ];
+  type Org = { id: string; name: string };
+  const ORGS: Org[] = [
+    { id: 'celery', name: 'Wild celery' },
+    { id: 'widgeon', name: 'Widgeon grass' },
+    { id: 'oyster', name: 'Eastern oyster' },
+    { id: 'eelgrass', name: 'Eelgrass' },
+  ];
+  type State = 'fits' | 'no' | 'dies';
+  type Season = 'summer' | 'spring';
+
+  // Sketch salinity: summer = the lesson's mean; spring = the salty water sits one station farther down.
+  function salinity(i: number, season: Season): number {
+    if (season === 'summer') return ST[i].psu;
+    return ST[Math.max(0, i - 1)].psu;
+  }
+  function stateOf(id: string, s: number): State {
+    if (id === 'celery') return s < 1 ? 'fits' : 'no';
+    if (id === 'widgeon') return s >= 1 && s < 5 ? 'fits' : 'no';
+    if (id === 'eelgrass') return s > 20 ? 'fits' : 'no';
+    if (s >= 10 && s <= 28) return 'fits';
+    if (s < 5) return 'dies';
+    return 'no';
+  }
+  function fitNames(s: number): string[] {
+    return ORGS.filter((o) => stateOf(o.id, s) === 'fits').map((o) => o.name.toLowerCase());
+  }
+  function oysterFirst(season: Season): number {
+    for (let i = 0; i < ST.length; i++) if (stateOf('oyster', salinity(i, season)) === 'fits') return i;
+    return -1;
+  }
+  function listNames(a: string[]): string {
+    if (a.length === 0) return 'none of the four';
+    if (a.length === 1) return a[0];
+    return a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+  }
+  function el(name: string, attrs: Record<string, string | number>, parent: Element, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k of Object.keys(attrs)) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    parent.appendChild(e);
+    return e;
+  }
+  function shade(s: number): string {
+    const t = Math.min(1, s / 35);
+    const l = 90 - t * 55;
+    return 'hsl(205, 70%, ' + l.toFixed(1) + '%)';
+  }
+
+  function init(root: HTMLElement): void {
+    const svg = root.querySelector<SVGSVGElement>('[data-svg]');
+    const boatIn = root.querySelector<HTMLInputElement>('[data-boat]');
+    const nameEl = root.querySelector<HTMLElement>('[data-stationname]');
+    const placeEl = root.querySelector<HTMLElement>('[data-stationplace]');
+    const statusEl = root.querySelector<HTMLElement>('[data-status]');
+    const listEl = root.querySelector<HTMLElement>('[data-list]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('[data-season]'));
+    if (!svg || !boatIn || !nameEl || !placeEl || !statusEl || !listEl || !resetBtn || radios.length === 0) return;
+
+    const BAR_X = 20, BAR_W = 600, MAXS = 35;
+    const sx = (s: number) => BAR_X + (Math.min(s, MAXS) / MAXS) * BAR_W;
+
+    // Static scene
+    el('path', { d: 'M0 130 L0 70 L40 40 L80 78 L120 56 L170 92 L260 104 L400 116 L520 122 L640 126 L640 130 Z', fill: '#e4ead9', stroke: '#8a9a78', 'stroke-width': 1.5 }, svg);
+    el('text', { x: 10, y: 24, 'font-size': 13, fill: '#33415c', 'font-weight': 700 }, svg, 'Mountains');
+    el('text', { x: 630, y: 24, 'font-size': 13, fill: '#33415c', 'font-weight': 700, 'text-anchor': 'end' }, svg, 'Bay mouth and ocean');
+    const segs: SVGElement[] = [];
+    ST.forEach((s, i) => {
+      const x0 = i === 0 ? 0 : (ST[i - 1].x + s.x) / 2;
+      const x1 = i === ST.length - 1 ? 640 : (s.x + ST[i + 1].x) / 2;
+      segs.push(el('rect', { x: x0, y: 130, width: x1 - x0, height: 34, fill: '#fff', stroke: '#fff', 'stroke-width': 0.5 }, svg));
+      el('circle', { cx: s.x, cy: 147, r: 3.5, fill: '#33415c' }, svg);
+      el('text', { x: s.x, y: 186, 'font-size': 12, fill: '#33415c', 'text-anchor': 'middle' }, svg, s.code);
+    });
+    el('rect', { x: 0, y: 130, width: 640, height: 34, fill: 'none', stroke: '#33415c', 'stroke-width': 1.2 }, svg);
+    // boat
+    const boat = el('g', {}, svg);
+    el('line', { x1: 0, y1: 86, x2: 0, y2: 112, stroke: '#33415c', 'stroke-width': 2 }, boat);
+    el('path', { d: 'M0 88 L16 108 L0 108 Z', fill: '#fff', stroke: '#33415c', 'stroke-width': 1.5 }, boat);
+    el('path', { d: 'M-22 112 L22 112 L14 128 L-14 128 Z', fill: '#c2410c', stroke: '#33415c', 'stroke-width': 1.5 }, boat);
+    el('text', { x: 0, y: 78, 'font-size': 12, fill: '#33415c', 'font-weight': 700, 'text-anchor': 'middle' }, boat, 'Boat');
+    // salinity bar
+    el('text', { x: 345, y: 262, 'font-size': 12, fill: '#33415c', 'font-weight': 700, 'text-anchor': 'middle' }, svg, 'Salinity at the boat');
+    const defs = el('defs', {}, svg);
+    const grad = el('linearGradient', { id: 'jrb-grad', x1: 0, x2: 1, y1: 0, y2: 0 }, defs);
+    for (let k = 0; k <= 7; k++) el('stop', { offset: k / 7, 'stop-color': shade((k / 7) * MAXS) }, grad);
+    el('rect', { x: BAR_X, y: 228, width: BAR_W, height: 16, fill: 'url(#jrb-grad)', stroke: '#33415c', 'stroke-width': 1 }, svg);
+    const mark = el('g', {}, svg);
+    el('path', { d: 'M0 227 L-7 214 L7 214 Z', fill: '#c2410c', stroke: '#33415c', 'stroke-width': 1 }, mark);
+    const markText = el('text', { x: 0, y: 210, 'font-size': 12, fill: '#33415c', 'font-weight': 700, 'text-anchor': 'middle' }, svg, '');
+    const ticks: Array<[number, string, string]> = [[0, '0 PSU', 'start'], [5, '5', 'middle'], [10, '10', 'middle'], [28, '28', 'middle'], [35, '35 PSU', 'end']];
+    for (const t of ticks) {
+      el('line', { x1: sx(t[0]), y1: 244, x2: sx(t[0]), y2: 249, stroke: '#33415c', 'stroke-width': 1 }, svg);
+      el('text', { x: sx(t[0]), y: 262, 'font-size': 12, fill: '#33415c', 'text-anchor': t[2] }, svg, t[1]);
+    }
+    el('rect', { x: sx(0), y: 268, width: sx(5) - sx(0), height: 6, fill: '#c0504d' }, svg);
+    el('rect', { x: sx(10), y: 268, width: sx(28) - sx(10), height: 6, fill: '#3d8b40' }, svg);
+    el('text', { x: sx(0), y: 290, 'font-size': 12, fill: '#33415c' }, svg, 'oysters can die');
+    el('text', { x: sx(10), y: 290, 'font-size': 12, fill: '#33415c' }, svg, 'oysters: good range (guide)');
+    // organism boxes
+    const boxes = ORGS.map((o, k) => {
+      const x = 10 + k * 155;
+      const g = el('g', {}, svg);
+      const r = el('rect', { x, y: 304, width: 150, height: 48, rx: 8, fill: '#fff', stroke: '#33415c', 'stroke-width': 1.5 }, g);
+      el('text', { x: x + 75, y: 324, 'font-size': 13, 'font-weight': 700, fill: '#33415c', 'text-anchor': 'middle' }, g, o.name);
+      const t = el('text', { x: x + 75, y: 343, 'font-size': 12, fill: '#33415c', 'text-anchor': 'middle' }, g, '');
+      return { g, r, t, o };
+    });
+
+    function draw(): void {
+      if (!svg || !boatIn || !nameEl || !placeEl || !statusEl || !listEl) return;
+      const season: Season = radios.find((r) => r.checked)?.value === 'spring' ? 'spring' : 'summer';
+      const i = Math.max(0, Math.min(ST.length - 1, parseInt(boatIn.value, 10) || 0));
+      const st = ST[i];
+      const s = salinity(i, season);
+      nameEl.textContent = st.code;
+      placeEl.textContent = st.place;
+      segs.forEach((seg, j) => seg.setAttribute('fill', shade(salinity(j, season))));
+      boat.setAttribute('transform', 'translate(' + st.x + ' 0)');
+      mark.setAttribute('transform', 'translate(' + sx(s).toFixed(1) + ' 0)');
+      // readout above the bar: the lesson's number in summer; none in spring
+      const label = season === 'summer' ? st.psu + ' PSU' : (i === 0 ? 'same as in summer' : 'lower than in summer');
+      markText.textContent = label;
+      const half = season === 'summer' ? 32 : 70;
+      markText.setAttribute('x', String(Math.max(BAR_X + half, Math.min(BAR_X + BAR_W - half, sx(s)))));
+      boxes.forEach((b) => {
+        const stt = stateOf(b.o.id, s);
+        b.r.setAttribute('fill', stt === 'fits' ? '#d6ecd2' : stt === 'dies' ? '#f6dcd8' : '#fff');
+        b.r.setAttribute('stroke-dasharray', stt === 'fits' ? '' : '5 4');
+        b.g.setAttribute('opacity', stt === 'fits' ? '1' : '0.55');
+        b.t.textContent = stt === 'fits' ? 'fits here' : stt === 'dies' ? 'can die here' : 'does not fit here';
+      });
+      svg.setAttribute('aria-label', 'Side map of the James River. The boat is at station ' + st.code + ', ' + st.place + '. Fitting organisms: ' + listNames(fitNames(s)) + '.');
+
+      // status (each sentence under 18 words)
+      const fits = fitNames(s);
+      const parts: string[] = [];
+      if (season === 'summer') {
+        parts.push('At ' + st.code + ' the summer 2023 mean was ' + st.psu + ' PSU.');
+      } else {
+        parts.push('Wet spring was not measured. In this sketch, the salty water sits farther down the river.');
+      }
+      parts.push('In this sketch, ' + (fits.length === 1 ? listNames(fits) + ' fits' : fits.length === 0 ? 'none of the four organisms fit' : listNames(fits) + ' fit') + ' here.');
+      if (stateOf('oyster', s) === 'dies') parts.push('Oysters can die if the water stays this low in salt for a long time.');
+      statusEl.textContent = parts.join(' ');
+
+      // both seasons at this spot, and where oysters first fit
+      const sumFit = fitNames(salinity(i, 'summer'));
+      const sprFit = fitNames(salinity(i, 'spring'));
+      const f1 = oysterFirst(season);
+      const f0 = oysterFirst('summer'), f2 = oysterFirst('spring');
+      listEl.innerHTML = '';
+      const add = (txt: string, on: boolean) => { const li = document.createElement('li'); li.textContent = txt; if (on) li.className = 'jrb-on'; listEl.appendChild(li); };
+      add('In this sketch, at ' + st.code + ' in summer: ' + listNames(sumFit) + '.', season === 'summer');
+      add('In this sketch, at ' + st.code + ' in wet spring: ' + listNames(sprFit) + '.', season === 'spring');
+      add('In this sketch, oysters first fit at ' + (f1 >= 0 ? ST[f1].code + ' (' + ST[f1].place + ')' : 'no station') + ' in this season.' + (f0 !== f2 ? ' The other season starts at ' + ST[season === 'summer' ? f2 : f0].code + '.' : ''), false);
+    }
+    boatIn.addEventListener('input', draw);
+    radios.forEach((r) => r.addEventListener('change', draw));
+    resetBtn.addEventListener('click', () => {
+      boatIn.value = '0';
+      radios.forEach((r) => { r.checked = r.value === 'summer'; });
+      draw();
+    });
+    draw();
+  }
+  document.querySelectorAll<HTMLElement>('[data-jrb]').forEach(init);
+</script>
+
+<style is:global>
+  .jrb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .jrb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .jrb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .jrb-svg { display: block; width: 100%; max-width: 640px; margin: 0 auto var(--ddp-space-3); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .jrb-controls { display: grid; grid-template-columns: 1fr auto auto; gap: var(--ddp-space-2) var(--ddp-space-4); align-items: end; margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .jrb-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .jrb-slabel small { color: var(--ddp-color-muted); font-size: inherit; }
+  .jrb-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .jrb-slabel input { accent-color: var(--ddp-color-accent); min-height: 44px; width: 100%; }
+  .jrb-season { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.2rem 0.6rem; display: flex; flex-direction: column; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .jrb-season legend { color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .jrb-opt { display: flex; align-items: center; gap: 0.4rem; min-height: 44px; cursor: pointer; }
+  .jrb-opt input { accent-color: var(--ddp-color-accent); width: 20px; height: 20px; }
+  .jrb-btn { min-height: 44px; min-width: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.25rem 0.9rem; cursor: pointer; }
+  .jrb-btn:focus-visible, .jrb-slabel input:focus-visible, .jrb-opt input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .jrb-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .jrb-list { margin: 0 0 var(--ddp-space-2); padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .jrb-list .jrb-on { font-weight: 700; color: var(--ddp-color-primary); }
+  .jrb-assume { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .jrb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 560px) { .jrb-controls { grid-template-columns: 1fr; } .jrb-btn { justify-self: start; } }
+</style>

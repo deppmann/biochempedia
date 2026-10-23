@@ -1,0 +1,508 @@
+---
+/**
+ * ChestnutForest — a forest of 50 trees drawn as simple tree icons, each with a hidden level
+ * of resistance (none, some or strong). The learner sets how much genetic variation the forest
+ * has (low or high), which change arrives (invasive blight, habitat loss or a warmer climate)
+ * and how many years to run. Each year the change hits, survivors make seedlings that copy the
+ * parent's resistance, and a line graph shows how many trees are left. A dashed line shows the
+ * average of many sketch runs beside the one run the learner sees, so the scatter of chance is
+ * visible, and "Resample" draws a fresh run.
+ * Simplifies: resistance is one trait with three levels, no migration, seeds spread only to the
+ * next place over, no new traits arise, and the forest has no other species. Every chance and
+ * size is made up for the sketch and is named in the assumptions line on screen.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cf card" data-chestnutforest>
+  <figcaption class="cf-head">Chestnut forest: send a change through 50 trees<span class="cf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="cf-svg" viewBox="0 0 360 200" role="img" aria-label="A forest of 50 trees in 5 rows of 10" data-forest></svg>
+  <p class="cf-legend" data-flegend>
+    <span class="cf-key"><i class="cf-sw cf-sw0"></i>none</span>
+    <span class="cf-key"><i class="cf-sw cf-sw1"></i>some</span>
+    <span class="cf-key"><i class="cf-sw cf-sw2"></i>strong resistance (shown after year 0)</span>
+    <span class="cf-key"><i class="cf-sw cf-swd"></i>died this year</span>
+    <span class="cf-key"><i class="cf-sw cf-swc"></i>cleared ground</span>
+    <span class="cf-key">small tree = new seedling</span>
+  </p>
+
+  <p class="cf-status" data-status role="status"></p>
+
+  <div class="cf-controls">
+    <fieldset class="cf-set">
+      <legend>Genetic variation in the forest</legend>
+      <div class="cf-radios">
+        <label class="cf-radio"><input type="radio" name="cf-var" value="low" checked /><span>Low variation</span></label>
+        <label class="cf-radio"><input type="radio" name="cf-var" value="high" /><span>High variation</span></label>
+      </div>
+      <p class="cf-note" data-varnote></p>
+    </fieldset>
+
+    <fieldset class="cf-set">
+      <legend>The change that arrives</legend>
+      <div class="cf-radios">
+        <label class="cf-radio"><input type="radio" name="cf-chg" value="blight" checked /><span>Invasive blight</span></label>
+        <label class="cf-radio"><input type="radio" name="cf-chg" value="habitat" /><span>Habitat loss</span></label>
+        <label class="cf-radio"><input type="radio" name="cf-chg" value="climate" /><span>Warmer climate</span></label>
+      </div>
+    </fieldset>
+
+    <div class="cf-set">
+      <label class="cf-slabel" for="cf-years"><span>Years to run: <strong data-out="years">10 years</strong></span></label>
+      <input id="cf-years" type="range" data-in="years" min="1" max="15" step="1" value="10" />
+      <div class="cf-ends"><span>1 year</span><span>15 years</span></div>
+    </div>
+
+    <div class="cf-btns">
+      <button type="button" class="cf-btn cf-primary" data-run>Run</button>
+      <button type="button" class="cf-btn" data-resample>Resample</button>
+      <button type="button" class="cf-btn" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <svg class="cf-svg" viewBox="0 0 360 190" role="img" aria-label="Line graph of the number of trees left in the forest in each year" data-graph></svg>
+  <p class="cf-legend" data-glegend>Solid line = trees in the run you see. Dashed line = average of many sketch runs with these settings.</p>
+
+  <div class="cf-set cf-scrub">
+    <label class="cf-slabel" for="cf-shown"><span>Year shown: <strong data-out="shown">year 0</strong></span></label>
+    <input id="cf-shown" type="range" data-in="shown" min="0" max="10" step="1" value="0" disabled />
+  </div>
+
+  <div class="cf-result" data-result></div>
+
+  <p class="cf-assume">Made up for this sketch (not measurements): resistance is one trait with three levels, none, some and strong. Low variation: 2 trees have some resistance. High variation: 12 have some and 6 have strong. A tree lives through one year of the blight with a chance of 2, 30 or 80 in 100 (none, some, strong), and through the warmer climate with 30, 70 or 95 in 100. Habitat loss clears one strip of 5 places a year, up to 10 strips, and cleared ground stays empty, whatever a tree’s resistance. Each empty place next to a survivor has a 50 in 100 chance of a seedling that copies that parent and counts as a tree at once. No migration, no new traits, no other species. The forest stands for the whole species.</p>
+  <p class="cf-foot">Rule to keep: a population with more genetic variation is more likely to have survivors that pass on a helpful trait, but only if that trait is already present. This is a sketch of the logic, not a prediction for real chestnuts.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ROWS = 5, COLS = 10, N = ROWS * COLS;
+  type Vari = 'low' | 'high';
+  type Change = 'blight' | 'habitat' | 'climate';
+  // chance (made up for the sketch) that a tree with resistance none / some / strong lives through one year
+  const SURVIVE: Record<'blight' | 'climate', number[]> = { blight: [0.02, 0.3, 0.8], climate: [0.3, 0.7, 0.95] };
+  const SEED_CHANCE = 0.5;
+  const START: Record<Vari, { some: number; strong: number }> = { low: { some: 2, strong: 0 }, high: { some: 12, strong: 6 } };
+  const NAME: Record<Change, string> = { blight: 'blight', habitat: 'habitat loss', climate: 'warmer climate' };
+  const SHADE = ['#b9dcb5', '#58a862', '#1b6638'];
+  const HIDDEN = '#6fb673';
+  const DEFAULTS = { vari: 'low' as Vari, change: 'blight' as Change, years: 10 };
+
+  type Snap = {
+    g: number[];          // resistance of each place after seedlings: -1 empty, else 0, 1, 2
+    died: boolean[];      // died this year
+    born: boolean[];      // seedling this year
+    cleared: boolean[];   // ground cleared (habitat loss)
+    start: number;        // trees at the start of the year
+    after: number;        // trees right after the change
+    expAfter: number;     // expected trees right after the change, from this run's start of year
+    end: number;          // trees at the end of the year
+  };
+
+  function mulberry(seed: number) {
+    let s = seed | 0;
+    return () => {
+      s = (s + 0x6d2b79f5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function simulate(vari: Vari, change: Change, years: number, rand: () => number): Snap[] {
+    const g: number[] = new Array(N).fill(0);
+    const order = Array.from({ length: N }, (_, i) => i);
+    for (let i = N - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    const st = START[vari];
+    order.slice(0, st.some).forEach((i) => { g[i] = 1; });
+    order.slice(st.some, st.some + st.strong).forEach((i) => { g[i] = 2; });
+    const cleared: boolean[] = new Array(N).fill(false);
+    const out: Snap[] = [{
+      g: g.slice(), died: new Array(N).fill(false), born: new Array(N).fill(false),
+      cleared: cleared.slice(), start: N, after: N, expAfter: N, end: N,
+    }];
+    for (let y = 1; y <= years; y++) {
+      const died: boolean[] = new Array(N).fill(false);
+      const born: boolean[] = new Array(N).fill(false);
+      const start = g.filter((v) => v >= 0).length;
+      let expAfter = 0;
+      if (change === 'habitat') {
+        const col = y - 1;
+        if (col < COLS) {
+          for (let r = 0; r < ROWS; r++) {
+            const i = r * COLS + col;
+            cleared[i] = true;
+            if (g[i] >= 0) { died[i] = true; g[i] = -1; }
+          }
+        }
+        expAfter = g.filter((v) => v >= 0).length;
+      } else {
+        const p = SURVIVE[change];
+        for (let i = 0; i < N; i++) {
+          if (g[i] < 0) continue;
+          expAfter += p[g[i]];
+          if (rand() >= p[g[i]]) { died[i] = true; g[i] = -1; }
+        }
+      }
+      const after = g.filter((v) => v >= 0).length;
+      const parents: number[] = [];
+      for (let i = 0; i < N; i++) if (g[i] >= 0) parents.push(i);
+      const next = g.slice();
+      for (let i = 0; i < N; i++) {
+        if (g[i] >= 0 || cleared[i]) continue;
+        const r = Math.floor(i / COLS), c = i % COLS;
+        const near = parents.filter((j) => Math.abs(Math.floor(j / COLS) - r) <= 1 && Math.abs((j % COLS) - c) <= 1);
+        if (near.length && rand() < SEED_CHANCE) {
+          next[i] = g[near[Math.floor(rand() * near.length)]];
+          born[i] = true;
+        }
+      }
+      for (let i = 0; i < N; i++) g[i] = next[i];
+      out.push({
+        g: g.slice(), died, born, cleared: cleared.slice(),
+        start, after, expAfter, end: g.filter((v) => v >= 0).length,
+      });
+    }
+    return out;
+  }
+
+  // average of many sketch runs (fixed seeds, so the dashed line is steady)
+  const avgCache = new Map<string, { mean: number[]; gone: number }>();
+  function average(vari: Vari, change: Change, years: number) {
+    const key = `${vari}|${change}|${years}`;
+    const hit = avgCache.get(key);
+    if (hit) return hit;
+    const RUNS = 300;
+    const mean: number[] = new Array(years + 1).fill(0);
+    let gone = 0;
+    for (let k = 0; k < RUNS; k++) {
+      const run = simulate(vari, change, years, mulberry(1000 + k));
+      run.forEach((s, i) => { mean[i] += s.end / RUNS; });
+      if (run[years].end === 0) gone++;
+    }
+    const res = { mean, gone: gone / RUNS };
+    avgCache.set(key, res);
+    return res;
+  }
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-chestnutforest]').forEach((root) => {
+    const forest = root.querySelector<SVGSVGElement>('[data-forest]');
+    const graph = root.querySelector<SVGSVGElement>('[data-graph]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    const result = root.querySelector<HTMLElement>('[data-result]');
+    const varNote = root.querySelector<HTMLElement>('[data-varnote]');
+    const yearsIn = root.querySelector<HTMLInputElement>('[data-in="years"]');
+    const shownIn = root.querySelector<HTMLInputElement>('[data-in="shown"]');
+    const yearsOut = root.querySelector<HTMLElement>('[data-out="years"]');
+    const shownOut = root.querySelector<HTMLElement>('[data-out="shown"]');
+    const runBtn = root.querySelector<HTMLButtonElement>('[data-run]');
+    const resampleBtn = root.querySelector<HTMLButtonElement>('[data-resample]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const varRadios = root.querySelectorAll<HTMLInputElement>('input[name="cf-var"]');
+    const chgRadios = root.querySelectorAll<HTMLInputElement>('input[name="cf-chg"]');
+    if (!forest || !graph || !status || !result || !varNote || !yearsIn || !shownIn || !yearsOut || !shownOut || !runBtn || !resampleBtn || !resetBtn) return;
+
+    let run: Snap[] | null = null;
+    let shown = 0;
+    let timer: number | null = null;
+
+    const getVari = (): Vari => (Array.from(varRadios).find((r) => r.checked)?.value === 'high' ? 'high' : 'low');
+    const getChange = (): Change => {
+      const v = Array.from(chgRadios).find((r) => r.checked)?.value;
+      return v === 'habitat' ? 'habitat' : v === 'climate' ? 'climate' : 'blight';
+    };
+    const getYears = () => Math.max(1, Math.min(15, parseInt(yearsIn.value, 10) || 10));
+
+    function stopTimer() {
+      if (timer !== null) { window.clearInterval(timer); timer = null; }
+    }
+
+    function drawForest() {
+      forest!.replaceChildren();
+      const INK = '#4b4b55';
+      const snap = run ? run[Math.min(shown, run.length - 1)] : null;
+      const y0 = 26, cw = 32, ch = 33, x0 = 20;
+      forest!.appendChild(el('text', { x: x0, y: 16, 'font-size': 12, 'font-weight': 700, fill: INK }, run ? `Year ${shown}` : 'Start'));
+      const cap = !run ? 'before any change' : shown === 0 ? 'before any change' : 'after the change and new seedlings';
+      forest!.appendChild(el('text', { x: x0 + COLS * cw, y: 16, 'font-size': 12, 'text-anchor': 'end', fill: INK }, cap));
+      const reveal = run !== null && shown >= 1;
+      for (let i = 0; i < N; i++) {
+        const r = Math.floor(i / COLS), c = i % COLS;
+        const x = x0 + c * cw, y = y0 + r * ch, cx = x + cw / 2;
+        const v = snap ? snap.g[i] : 0;
+        if (snap && snap.cleared[i]) {
+          forest!.appendChild(el('rect', { x: x + 2, y: y + 2, width: cw - 4, height: ch - 4, rx: 3, fill: '#e6d3b0', stroke: '#a88a56', 'stroke-width': 1 }));
+          forest!.appendChild(el('line', { x1: x + 6, y1: y + ch - 6, x2: x + cw - 6, y2: y + 6, stroke: '#a88a56', 'stroke-width': 1 }));
+          continue;
+        }
+        if (snap && snap.died[i] && v < 0) {
+          forest!.appendChild(el('circle', { cx, cy: y + 15, r: 9, fill: 'none', stroke: '#8a8a96', 'stroke-width': 1.5, 'stroke-dasharray': '3 2' }));
+          forest!.appendChild(el('line', { x1: cx - 4, y1: y + 11, x2: cx + 4, y2: y + 19, stroke: '#8a8a96', 'stroke-width': 1.5 }));
+          forest!.appendChild(el('line', { x1: cx + 4, y1: y + 11, x2: cx - 4, y2: y + 19, stroke: '#8a8a96', 'stroke-width': 1.5 }));
+          continue;
+        }
+        if (v < 0) {
+          forest!.appendChild(el('circle', { cx, cy: y + 24, r: 1.6, fill: '#c4c4cc' }));
+          continue;
+        }
+        const fill = reveal ? SHADE[v] : HIDDEN;
+        const seedling = snap !== null && snap.born[i];
+        if (seedling) {
+          forest!.appendChild(el('rect', { x: cx - 1.5, y: y + 24, width: 3, height: 6, fill: '#7a5a3a' }));
+          forest!.appendChild(el('circle', { cx, cy: y + 21, r: 5.5, fill, stroke: '#2f5e3a', 'stroke-width': 1 }));
+          if (reveal && v >= 1) forest!.appendChild(el('circle', { cx, cy: y + 21, r: 1.4, fill: '#fff' }));
+        } else {
+          forest!.appendChild(el('rect', { x: cx - 2, y: y + 22, width: 4, height: 9, fill: '#7a5a3a' }));
+          forest!.appendChild(el('circle', { cx, cy: y + 14, r: 10, fill, stroke: '#2f5e3a', 'stroke-width': 1 }));
+          if (reveal && v >= 1) {
+            if (v === 1) forest!.appendChild(el('circle', { cx, cy: y + 14, r: 2.2, fill: '#fff' }));
+            else {
+              forest!.appendChild(el('circle', { cx: cx - 3.5, cy: y + 14, r: 2.2, fill: '#fff' }));
+              forest!.appendChild(el('circle', { cx: cx + 3.5, cy: y + 14, r: 2.2, fill: '#fff' }));
+            }
+          }
+        }
+      }
+      const count = snap ? snap.g.filter((v) => v >= 0).length : N;
+      forest!.setAttribute('aria-label', `A forest of 50 places in 5 rows of 10. ${count} trees stand${run ? ` in year ${shown}` : ''}.`);
+    }
+
+    function drawGraph() {
+      graph!.replaceChildren();
+      const INK = '#4b4b55', FAINT = '#c4c4cc';
+      const px0 = 44, px1 = 344, py0 = 26, py1 = 146;
+      const years = run ? run.length - 1 : getYears();
+      const X = (t: number) => px0 + (years === 0 ? 0 : (t / years) * (px1 - px0));
+      const Y = (n: number) => py1 - (n / N) * (py1 - py0);
+      graph!.appendChild(el('text', { x: 4, y: 12, 'font-size': 12, fill: INK }, 'Trees'));
+      for (const n of [0, 25, 50]) {
+        graph!.appendChild(el('line', { x1: px0, y1: Y(n), x2: px1, y2: Y(n), stroke: n === 0 ? INK : FAINT, 'stroke-width': n === 0 ? 1.2 : 0.8 }));
+        graph!.appendChild(el('text', { x: px0 - 6, y: Y(n) + 4, 'font-size': 12, 'text-anchor': 'end', fill: INK }, String(n)));
+      }
+      graph!.appendChild(el('line', { x1: px0, y1: py0, x2: px0, y2: py1, stroke: INK, 'stroke-width': 1.2 }));
+      graph!.appendChild(el('text', { x: px0, y: py1 + 18, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, '0'));
+      graph!.appendChild(el('text', { x: px1, y: py1 + 18, 'font-size': 12, 'text-anchor': 'end', fill: INK }, String(years)));
+      graph!.appendChild(el('text', { x: (px0 + px1) / 2, y: py1 + 36, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'Years'));
+      const avg = average(getVari(), getChange(), years);
+      graph!.appendChild(el('polyline', {
+        points: avg.mean.map((m, t) => `${X(t).toFixed(1)},${Y(m).toFixed(1)}`).join(' '),
+        fill: 'none', stroke: '#2f6f8f', 'stroke-width': 2, 'stroke-dasharray': '5 4',
+      }));
+      if (run) {
+        const pts = run.slice(0, shown + 1).map((s, t) => `${X(t).toFixed(1)},${Y(s.end).toFixed(1)}`);
+        graph!.appendChild(el('polyline', { points: pts.join(' '), fill: 'none', stroke: '#1b3a2a', 'stroke-width': 2.5 }));
+        run.slice(0, shown + 1).forEach((s, t) => {
+          graph!.appendChild(el('circle', { cx: X(t), cy: Y(s.end), r: t === shown ? 4.5 : 2.5, fill: '#1b3a2a' }));
+        });
+      }
+      graph!.setAttribute('aria-label', run
+        ? `Line graph of trees left. In year ${shown} the run has ${run[shown].end} trees.`
+        : 'Line graph of the number of trees left. The dashed line is the average of many sketch runs. Press Run to draw a run.');
+    }
+
+    function statusText(): string {
+      const change = getChange();
+      const nm = NAME[change];
+      if (!run) {
+        return `Fifty trees stand in the forest. Each has a hidden level of resistance. Choose the settings, then press Run.`;
+      }
+      const s = run[shown];
+      const total = run.length - 1;
+      if (shown === 0) {
+        return `Before the change, 50 trees stand. In this sketch, ${getVari() === 'low' ? 'only 2' : '18'} of them carry some resistance.`;
+      }
+      let t: string;
+      if (shown > 1 && run[shown - 1].end === 0) {
+        return `In this sketch, year ${shown}: no trees are left. With no trees there are no seeds, and none can come in. A real species might still live elsewhere.`;
+      }
+      if (change === 'habitat') {
+        t = `In this sketch, year ${shown}: a strip of ground was cleared. Trees on it are gone, whatever their resistance.`;
+        if (s.end > 0) t += ` The forest has ${s.end} trees.`;
+      } else if (s.after === 0) {
+        t = `In this sketch, year ${shown}: no tree lived through the ${nm}.`;
+      } else {
+        t = `In this sketch, year ${shown}: ${s.after} of ${s.start} trees lived through the ${nm}. Survivors made seedlings with their own resistance. The forest has ${s.end} trees.`;
+      }
+      if (s.end === 0) {
+        t += ` No trees are left, and none can come in, so in this sketch the species is extinct. A real species might still live elsewhere.`;
+      } else if (shown === total && change !== 'habitat') {
+        const res = s.g.filter((v) => v >= 1).length;
+        t += res * 2 > s.end
+          ? ` In this sketch, most living trees now carry some resistance, inherited from survivors.`
+          : ` In this sketch, most living trees still have no resistance.`;
+      }
+      return t;
+    }
+
+    function drawResult() {
+      result!.replaceChildren();
+      if (!run || shown === 0) {
+        const p = document.createElement('p');
+        p.className = 'cf-wait';
+        p.textContent = run ? 'Move the year slider to read each year.' : 'Press Run. The table will compare this run with what the rules expect.';
+        result!.appendChild(p);
+        return;
+      }
+      const s = run[shown];
+      const avg = average(getVari(), getChange(), run.length - 1);
+      const tbl = document.createElement('table');
+      tbl.className = 'cf-table';
+      const cap = document.createElement('caption');
+      cap.textContent = `Year ${shown}: this run beside what the rules expect`;
+      tbl.appendChild(cap);
+      const head = document.createElement('thead');
+      head.innerHTML = '<tr><th scope="col">Trees</th><th scope="col">This run</th><th scope="col">Expected</th></tr>';
+      tbl.appendChild(head);
+      const body = document.createElement('tbody');
+      const row = (label: string, obs: string, exp: string) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.scope = 'row'; th.textContent = label;
+        const a = document.createElement('td'); a.textContent = obs;
+        const b = document.createElement('td'); b.textContent = exp;
+        tr.append(th, a, b);
+        body.appendChild(tr);
+      };
+      row('Right after the change', String(s.after), `about ${s.expAfter.toFixed(1)}`);
+      row('After new seedlings', String(s.end), `about ${avg.mean[shown].toFixed(1)}`);
+      tbl.appendChild(body);
+      result!.appendChild(tbl);
+      if (shown === run.length - 1) {
+        const p = document.createElement('p');
+        p.className = 'cf-line';
+        const g = avg.gone;
+        p.textContent = getChange() === 'habitat'
+          ? 'In this sketch, the same strips are cleared every time, so the ground is gone after 10 years whatever the trees’ resistance.'
+          : g >= 0.7
+            ? 'In this sketch, most runs with these settings end with no trees left. Press Resample to see another run.'
+            : g > 0
+              ? 'In this sketch, some runs with these settings end with no trees left. Press Resample to see another run.'
+              : 'In this sketch, no run with these settings ended with no trees left. Press Resample to see another run.';
+        result!.appendChild(p);
+      }
+      const note = document.createElement('p');
+      note.className = 'cf-wait';
+      note.textContent = 'Expected after the change comes from this run’s trees at the start of the year; expected after seedlings is the average of many sketch runs.';
+      result!.appendChild(note);
+    }
+
+    function render() {
+      yearsOut!.textContent = `${getYears()} ${getYears() === 1 ? 'year' : 'years'}`;
+      shownOut!.textContent = `year ${shown}`;
+      varNote!.textContent = getVari() === 'low'
+        ? 'Trees carrying some resistance: 2 of 50.'
+        : 'Trees carrying some resistance: 18 of 50.';
+      shownIn!.max = String(run ? run.length - 1 : getYears());
+      shownIn!.value = String(shown);
+      shownIn!.disabled = !run;
+      drawForest();
+      drawGraph();
+      status!.textContent = statusText();
+      drawResult();
+    }
+
+    function startRun(fresh: boolean) {
+      stopTimer();
+      if (fresh || !run) {
+        run = simulate(getVari(), getChange(), getYears(), mulberry((Math.random() * 4294967296) >>> 0));
+      }
+      shown = 0;
+      render();
+      const total = run.length - 1;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        shown = total;
+        render();
+        return;
+      }
+      timer = window.setInterval(() => {
+        if (!run || shown >= run.length - 1) { stopTimer(); return; }
+        shown++;
+        render();
+        if (shown >= run.length - 1) stopTimer();
+      }, 700);
+    }
+
+    function settingsChanged() {
+      stopTimer();
+      run = null;
+      shown = 0;
+      render();
+    }
+
+    varRadios.forEach((r) => r.addEventListener('change', settingsChanged));
+    chgRadios.forEach((r) => r.addEventListener('change', settingsChanged));
+    yearsIn.addEventListener('input', settingsChanged);
+    shownIn.addEventListener('input', () => {
+      stopTimer();
+      if (!run) return;
+      shown = Math.max(0, Math.min(run.length - 1, parseInt(shownIn.value, 10) || 0));
+      render();
+    });
+    runBtn.addEventListener('click', () => startRun(false));
+    resampleBtn.addEventListener('click', () => startRun(true));
+    resetBtn.addEventListener('click', () => {
+      stopTimer();
+      varRadios.forEach((r) => { r.checked = r.value === DEFAULTS.vari; });
+      chgRadios.forEach((r) => { r.checked = r.value === DEFAULTS.change; });
+      yearsIn.value = String(DEFAULTS.years);
+      run = null;
+      shown = 0;
+      render();
+    });
+
+    render();
+  });
+</script>
+
+<style is:global>
+  .cf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cf-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cf-legend { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; }
+  .cf-key { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .cf-sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid #2f5e3a; }
+  .cf-sw0 { background: #b9dcb5; }
+  .cf-sw1 { background: #58a862; }
+  .cf-sw2 { background: #1b6638; }
+  .cf-swd { background: #fff; border: 1.5px dashed #8a8a96; }
+  .cf-swc { background: #e6d3b0; border-color: #a88a56; border-radius: 2px; }
+  .cf-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 4.5em; }
+  .cf-controls { display: grid; gap: var(--ddp-space-3); margin: var(--ddp-space-3) 0; }
+  .cf-set { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .cf-set legend, .cf-slabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); padding: 0; margin-bottom: 0.25rem; display: block; }
+  .cf-slabel strong { color: var(--ddp-color-primary); }
+  .cf-set input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--ddp-color-accent); margin: 0; }
+  .cf-ends { display: flex; justify-content: space-between; gap: 0.5rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cf-note { margin: 0.3rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .cf-radios { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .cf-radio { position: relative; flex: 1 1 6.5rem; }
+  .cf-radio input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .cf-radio span { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: transparent; padding: 0 0.4rem; }
+  .cf-radio input:checked + span { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .cf-radio input:focus-visible + span { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cf-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .cf-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 0.9rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); cursor: pointer; }
+  .cf-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .cf-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cf-scrub { margin: var(--ddp-space-2) 0; }
+  .cf-result { margin: var(--ddp-space-3) 0; }
+  .cf-wait { margin: 0.4rem 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cf-table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .cf-table caption { text-align: left; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding-bottom: 0.25rem; }
+  .cf-table th, .cf-table td { padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--ddp-color-line); text-align: left; font-weight: 400; }
+  .cf-table thead th { font-weight: 700; color: var(--ddp-color-primary); }
+  .cf-line { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .cf-assume { margin: var(--ddp-space-3) 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cf-foot { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

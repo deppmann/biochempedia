@@ -26,6 +26,15 @@ ladder:
   college: ["diversity-and-succession"]
   biology: ["succession-in-virginia"]
 
+explainer:
+  src: "/explainers/land-and-water-ecosystems/explainer.mp4"
+  captions: "/explainers/land-and-water-ecosystems/explainer.vtt"
+  poster: "/explainers/land-and-water-ecosystems/poster.jpg"
+  title: "Nonliving Things Help Decide Who Lives Where"
+  durationSec: 152.5
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -41,7 +50,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "JamesRiverBoat"
+    title: "Take a boat down the James"
+    caption: >-
+      Slide a sampling boat down the James River from the mountains to the Bay mouth, switch between summer and a wet spring, and see which organisms fit the salinity at each spot.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which of these is an abiotic factor in a Virginia forest?"
@@ -199,14 +214,18 @@ corpusTags:
   - "Chesapeake Bay"
   - "James River"
   - "climate"
-draft: true
+draft: false
 ---
+
+import JamesRiverBoat from '../../../components/JamesRiverBoat.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 
 **The James River starts as fresh water in Virginia’s mountains. It empties into the salty Chesapeake Bay at Hampton Roads, near Norfolk.**
 
@@ -220,13 +239,13 @@ Along the way, river water mixes with salty water from the Bay. Wild oyster reef
 
 ## Explore: take a boat down the James
 
-In this simulation you see a side map of the James River, from the mountains to the mouth of the Bay. A slider moves a sampling boat along the river. A salinity bar shows how salty the water is at that spot, and the organisms that can live there appear or fade. A switch sets the season: a wet spring or a dry late summer.
+In this simulation you see a side map of the James River, from the mountains to the mouth of the Bay. A slider moves a sampling boat along the river. A salinity bar shows how salty the water is at that spot, and the organisms that can live there appear or fade. A switch sets the season: a wet spring or summer.
 
-{/* SIMULATION */}
+<JamesRiverBoat />
 
 **Try this.**
 1. Predict where along the river oysters first appear. Then move the boat downstream from the mountains and check.
-2. Predict what happens to the salty water in a wet spring. Does it move up the river or down? Switch seasons and test.
+2. In this sketch, does the salty water move up the river or down in a wet spring? Predict, then switch seasons and test.
 3. Park the boat mid-river. Predict which organisms live there in each season, then compare.
 
 ## Explain: the living and nonliving parts of an ecosystem
@@ -247,6 +266,8 @@ An **abiotic factor** is a nonliving part of an ecosystem. The main ones are:
 
 Soil is mixed. Its sand, clay and minerals are abiotic. The worms, fungi and bacteria living in it are biotic.
 
+<LessonFigure src="/figures/land-and-water-ecosystems/biotic-and-abiotic-in-a-forest.webp" width={1200} height={800} alt="AI-generated illustration: a shaded oak forest with sun rays blocked by the canopy, rain falling and a deer eating acorns, with labels marking each as living or nonliving, and a soil zoom showing sand, clay and minerals beside an earthworm, fungal threads and bacteria." caption="Every ecosystem has living and nonliving parts. Soil holds both: its sand and minerals are nonliving, and the worms, fungi and bacteria in it are alive." />
+
 Abiotic factors decide which organisms can survive in a place. Few plants can grow on a forest floor that gets little sunlight. Water and floating mud block light, so few plants grow on the floor of deep or muddy water.
 
 <Support min={2}>**Key idea:** Every ecosystem has living (biotic) and nonliving (abiotic) parts, and the nonliving parts help decide who can live there.</Support>
@@ -261,7 +282,7 @@ Temperature and precipitation (rain and snow) are the two main parts of climate.
 - Topography, the shape of the land. Mountains can make one side wet and the far side dry.
 - Human actions. Burning fossil fuels adds carbon dioxide to the air, and it traps heat.
 
-Climate, population sizes and the kinds of species all change over time, so ecosystems change too. You will see how living things fit their places in [Adaptations for Survival](/lessons/adaptations-for-survival/).
+Climate, population sizes and the kinds of species all change over time, so ecosystems change too. You will see how living things fit their places in Adaptations for Survival (a later lesson).
 
 <Support min={2}>**Key idea:** Earth’s tilt, along with latitude, elevation, the shape of the land and people, shapes the climate that an ecosystem lives with.</Support>
 
@@ -282,7 +303,7 @@ Scientists sort ecosystems into three broad groups. A forest, a mountain stream 
 | Water movement | Rain and runoff | Flows one way, downhill | Tides and river flow mix | Waves and currents |
 | Soil | Main source of nutrients | Rocks and gravel on the bottom | Mud on the bottom | Sand and mud far below |
 
-{/* DIAGRAM: a side view of the James River from the mountains to the Bay mouth, with salinity rising from left to right; number 1 mountain stream (fresh), 2 tidal fresh James near Richmond, 3 brackish middle estuary, 4 salty lower James and Hampton Roads, 5 Bay mouth and ocean */}
+<ScaffoldFigure src="/figures/land-and-water-ecosystems/four-kinds-of-ecosystem.webp" width={1200} height={800} keyItems={["terrestrial ecosystem", "freshwater ecosystem", "estuary", "marine ecosystem"]} given={[0, 3]} alt="AI-generated illustration: a landscape from left to right showing a forested hillside, a rocky mountain stream running through it, a wide shallow bay with marsh grass where the river meets the sea, and open ocean with waves, marked with four numbered circles." caption="Land, fresh water, the mixing zone and salt water lie side by side, each with its own surroundings." />
 
 <Support min={2}>**Key idea:** Land, freshwater and marine ecosystems differ in salt, light, temperature, water movement and soil, and an estuary is the mixing zone between fresh and salt water.</Support>
 

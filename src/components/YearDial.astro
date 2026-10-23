@@ -1,0 +1,427 @@
+---
+/**
+ * YearDial — a year dial for the lesson "Daily and Seasonal Rhythms". The learner slides a date
+ * through the year; day length and average temperature change with it (relative units), and a
+ * cherry tree, a groundhog and a monarch respond. A second slider makes spring 0 to 3 °C warmer.
+ * Made-up rules (named in the visible assumptions line): one fixed warmth line triggers bloom,
+ * one fixed day-length line is the only fall cue, the same every year, no weather swings.
+ * The bloom day is computed from the temperature curve; the no-extra-warmth bloom day is shown
+ * beside it. Self-contained vanilla-TS Astro island. Original. No molecules.
+ */
+---
+
+<figure class="yd card" data-yeardial>
+  <figcaption class="yd-head">Year dial: cherry tree, groundhog and monarch<span class="yd-chip">⚙ original · interactive</span></figcaption>
+
+  <p class="yd-start">Start here: drag the date slider from January to December and watch the three living things.</p>
+
+  <div class="yd-controls">
+    <label class="yd-slabel"><span>Date <em data-out="date">Jan 1</em></span>
+      <input type="range" data-in="date" min="1" max="365" step="1" value="1" aria-label="Date through the year" />
+    </label>
+    <label class="yd-slabel"><span>Warmer spring <em data-out="warm">+0 °C</em></span>
+      <input type="range" data-in="warm" min="0" max="3" step="0.5" value="0" aria-label="Warmer spring, 0 to 3 degrees Celsius" />
+    </label>
+    <div class="yd-btns">
+      <button type="button" class="yd-btn" data-jump>Go to bloom day</button>
+      <button type="button" class="yd-btn" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <div class="yd-top">
+    <div class="yd-dialbox">
+      <svg class="yd-svg yd-dial" viewBox="0 0 240 240" role="img" aria-label="A year dial. A pointer shows the date. The ring color shows average temperature." data-dial>
+        <g data-ring></g>
+        <g data-months></g>
+        <circle cx="120" cy="120" r="52" fill="#fff" stroke="#b9b9c2" stroke-width="1"></circle>
+        <line data-hand x1="120" y1="68" x2="120" y2="44" stroke="#2b2b33" stroke-width="3"></line>
+        <circle data-dot-bloom cx="120" cy="44" r="6" fill="#d6578a" stroke="#fff" stroke-width="1.5"></circle>
+        <circle data-dot-fall cx="120" cy="44" r="6" fill="#e57200" stroke="#fff" stroke-width="1.5"></circle>
+        <circle data-dot-now cx="120" cy="44" r="8" fill="#2b2b33" stroke="#fff" stroke-width="2"></circle>
+        <text data-dial-date x="120" y="119" text-anchor="middle" font-size="16" font-weight="700" fill="#2b2b33">Jan 1</text>
+        <text data-dial-day x="120" y="138" text-anchor="middle" font-size="12" fill="#4b4b55">day 1</text>
+      </svg>
+      <p class="yd-legend"><span class="yd-key yd-key-b"></span> bloom day <span class="yd-key yd-key-f"></span> fall cue day <span class="yd-key yd-key-n"></span> today. Ring color: blue is colder, orange is warmer.</p>
+    </div>
+
+    <div class="yd-envbox">
+      <svg class="yd-svg" viewBox="0 0 300 140" role="img" aria-label="Two bars: day length and average temperature, with a fall cue line and a warmth line" data-env>
+        <text x="10" y="16" font-size="12" fill="#4b4b55">Day length (relative units, not hours)</text>
+        <rect x="10" y="24" width="280" height="18" rx="3" fill="#eef0f3" stroke="#b9b9c2"></rect>
+        <rect data-bar-len x="10" y="24" width="0" height="18" rx="3" fill="#e0a41f"></rect>
+        <line data-cue-len x1="178" y1="20" x2="178" y2="46" stroke="#e57200" stroke-width="2.5" stroke-dasharray="4 2"></line>
+        <text data-cue-len-t x="178" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#b85c00">fall cue line</text>
+        <text x="10" y="86" font-size="12" fill="#4b4b55">Average temperature (relative units)</text>
+        <rect x="10" y="94" width="280" height="18" rx="3" fill="#eef0f3" stroke="#b9b9c2"></rect>
+        <rect data-bar-tmp x="10" y="94" width="0" height="18" rx="3" fill="#d9654a"></rect>
+        <line data-tick-tmp x1="10" y1="94" x2="10" y2="112" stroke="#2b2b33" stroke-width="2" visibility="hidden"></line>
+        <line data-warm-line x1="100" y1="90" x2="100" y2="116" stroke="#d6578a" stroke-width="2.5" stroke-dasharray="4 2"></line>
+        <text data-warm-line-t x="100" y="132" text-anchor="middle" font-size="12" font-weight="700" fill="#a83466">warmth line</text>
+      </svg>
+      <p class="yd-legend" data-tick-note hidden>Thin black tick: the temperature with no extra warmth.</p>
+      <dl class="yd-readout">
+        <div><dt>Bloom day in this sketch</dt><dd data-r-bloom>93</dd></div>
+        <div><dt>With no extra warmth</dt><dd data-r-base>93</dd></div>
+        <div><dt>Change</dt><dd data-r-diff>0 days</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="yd-panels">
+    <div class="yd-panel">
+      <svg class="yd-svg" viewBox="0 0 200 170" role="img" aria-label="A cherry tree that changes with the date" data-tree>
+        <line x1="10" y1="150" x2="190" y2="150" stroke="#8a7a62" stroke-width="2"></line>
+        <rect x="94" y="84" width="12" height="66" fill="#8a6a4a"></rect>
+        <g stroke="#8a6a4a" stroke-width="4" stroke-linecap="round">
+          <line x1="100" y1="90" x2="68" y2="52"></line>
+          <line x1="100" y1="90" x2="132" y2="52"></line>
+          <line x1="100" y1="104" x2="60" y2="84"></line>
+          <line x1="100" y1="104" x2="140" y2="84"></line>
+          <line x1="100" y1="84" x2="100" y2="38"></line>
+        </g>
+        <g data-g-buds fill="#6b4a2f">
+          <circle cx="68" cy="52" r="3.5"></circle><circle cx="132" cy="52" r="3.5"></circle>
+          <circle cx="60" cy="84" r="3.5"></circle><circle cx="140" cy="84" r="3.5"></circle>
+          <circle cx="100" cy="38" r="3.5"></circle><circle cx="82" cy="70" r="3"></circle><circle cx="118" cy="70" r="3"></circle>
+        </g>
+        <g data-g-open fill="#f4a9c6">
+          <circle cx="68" cy="52" r="6"></circle><circle cx="132" cy="52" r="6"></circle>
+          <circle cx="60" cy="84" r="6"></circle><circle cx="140" cy="84" r="6"></circle>
+          <circle cx="100" cy="38" r="6"></circle><circle cx="82" cy="70" r="5"></circle><circle cx="118" cy="70" r="5"></circle>
+        </g>
+        <ellipse data-g-crown cx="100" cy="62" rx="54" ry="40" fill="#f6b8cf" opacity="0"></ellipse>
+        <g data-g-fallen fill="#d9822b" opacity="0">
+          <ellipse cx="50" cy="146" rx="6" ry="3"></ellipse><ellipse cx="72" cy="147" rx="6" ry="3"></ellipse>
+          <ellipse cx="128" cy="146" rx="6" ry="3"></ellipse><ellipse cx="152" cy="147" rx="6" ry="3"></ellipse>
+          <ellipse cx="108" cy="148" rx="6" ry="3"></ellipse>
+        </g>
+        <text x="10" y="166" font-size="12" font-weight="700" fill="#4b4b55">Cherry tree</text>
+      </svg>
+      <p class="yd-pstate" data-tree-state>Dormant buds</p>
+    </div>
+
+    <div class="yd-panel">
+      <svg class="yd-svg" viewBox="0 0 200 170" role="img" aria-label="A groundhog and its body-temperature bar" data-hog>
+        <text x="10" y="16" font-size="12" fill="#4b4b55">Body temperature (relative units)</text>
+        <rect x="10" y="22" width="180" height="14" rx="3" fill="#eef0f3" stroke="#b9b9c2"></rect>
+        <rect data-bar-bt x="10" y="22" width="0" height="14" rx="3" fill="#d9654a"></rect>
+        <ellipse cx="100" cy="146" rx="82" ry="8" fill="#8a7a62" opacity="0.5"></ellipse>
+        <ellipse data-hog-body cx="96" cy="118" rx="42" ry="26" fill="#c28a54" stroke="#6b4a2f" stroke-width="1.5"></ellipse>
+        <circle data-hog-head cx="142" cy="108" r="16" fill="#c28a54" stroke="#6b4a2f" stroke-width="1.5"></circle>
+        <circle cx="136" cy="94" r="5" fill="#a9733f" stroke="#6b4a2f" stroke-width="1"></circle>
+        <circle data-hog-eye-open cx="147" cy="104" r="2.6" fill="#2b2b33"></circle>
+        <line data-hog-eye-shut x1="143" y1="105" x2="151" y2="105" stroke="#2b2b33" stroke-width="2" stroke-linecap="round" visibility="hidden"></line>
+        <circle cx="157" cy="110" r="2.6" fill="#2b2b33"></circle>
+        <ellipse cx="62" cy="140" rx="9" ry="5" fill="#a9733f" stroke="#6b4a2f" stroke-width="1"></ellipse>
+        <ellipse cx="116" cy="140" rx="9" ry="5" fill="#a9733f" stroke="#6b4a2f" stroke-width="1"></ellipse>
+        <text x="10" y="167" font-size="12" font-weight="700" fill="#4b4b55">Groundhog</text>
+      </svg>
+      <p class="yd-pstate" data-hog-state>Awake</p>
+    </div>
+
+    <div class="yd-panel">
+      <svg class="yd-svg" viewBox="0 0 200 170" role="img" aria-label="A monarch butterfly between Virginia in the north and the Mexico forests in the south" data-mon>
+        <line x1="166" y1="30" x2="166" y2="136" stroke="#b9b9c2" stroke-width="2" stroke-dasharray="3 4"></line>
+        <text x="148" y="34" text-anchor="end" font-size="12" fill="#4b4b55">North: Virginia</text>
+        <text x="148" y="140" text-anchor="end" font-size="12" fill="#4b4b55">South: Mexico</text>
+        <g data-mon-body>
+          <ellipse cx="156" cy="-4" rx="10" ry="7" fill="#e57200" stroke="#2b2b33" stroke-width="1.5"></ellipse>
+          <ellipse cx="176" cy="-4" rx="10" ry="7" fill="#e57200" stroke="#2b2b33" stroke-width="1.5"></ellipse>
+          <ellipse cx="166" cy="-2" rx="2.6" ry="9" fill="#2b2b33"></ellipse>
+        </g>
+        <polygon data-mon-arrow points="100,0 108,0 104,12" fill="#2b2b33" visibility="hidden"></polygon>
+        <text x="10" y="166" font-size="12" font-weight="700" fill="#4b4b55">Monarch</text>
+      </svg>
+      <p class="yd-pstate" data-mon-state>In the forest in Mexico</p>
+    </div>
+  </div>
+
+  <p class="yd-why" data-why role="status">In this sketch, drag the date slider to start the year.</p>
+
+  <p class="yd-assume"><strong>Assumptions made up for this sketch:</strong> one warmth line starts bloom, and with no extra warmth it falls on day 93 (about April 3, near the lesson’s decade averages). The same warmth line starts the groundhog’s warm-up and the monarch’s trip north. The size of the shift is not matched to the Tidal Basin record. One day-length line is the only fall cue. Every year is the same, with no weather swings. The delays, the spans of days and the short groundhog warm-ups every 20 days are invented. Bars are relative units, not hours or degrees.</p>
+
+  <p class="yd-foot">Rule to keep: cues such as day length and temperature start these seasonal responses, and a tree whose buds respond to warmth may bloom earlier in a warmer spring.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const MLEN = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  function dateOf(day: number): string {
+    let d = Math.round(day);
+    for (let m = 0; m < 12; m++) {
+      if (d <= MLEN[m]) return MONTHS[m] + ' ' + d;
+      d -= MLEN[m];
+    }
+    return 'Dec 31';
+  }
+  const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
+  const TAU = Math.PI * 2;
+
+  // --- Made-up model, in relative units ---
+  const BASE_BLOOM = 93;              // bloom day with no extra warmth (about April 3)
+  const lenOf = (d: number) => 0.5 + 0.5 * Math.cos(TAU * (d - 172) / 365);   // 0 to 1
+  const tempBase = (d: number) => 11.5 - 13.5 * Math.cos(TAU * (d - 20) / 365); // degrees C, invented curve
+  const springWeight = (d: number) => d <= 20 ? 0 : d < 40 ? (d - 20) / 20 : d <= 170 ? 1 : d < 200 ? (200 - d) / 30 : 0;
+  const tempOf = (d: number, warm: number) => tempBase(d) + warm * springWeight(d);
+  const tNorm = (t: number) => clamp((t + 3) / 32, 0, 1);
+  const THRESH = tempBase(BASE_BLOOM) - 1e-9;
+  const CUE_LEN = 0.6;
+  function bloomDay(warm: number): number {
+    for (let d = 1; d <= 200; d++) if (tempOf(d, warm) >= THRESH) return d;
+    return 200;
+  }
+  let FALL_CUE = 251;
+  for (let d = 173; d <= 365; d++) if (lenOf(d) < CUE_LEN) { FALL_CUE = d; break; }
+  const FLIGHT = 30, NORTH = 100, DROP = 30, HOG_DELAY = 30, HOG_RAMP = 10, OPEN_DAYS = 7, BLOOM_DAYS = 8;
+  const HOG_LOW = 0.15, HOG_WARMUP = 0.6;
+
+  function hogTemp(d: number, B: number): { v: number; warmup: boolean } {
+    const hs = FALL_CUE + HOG_DELAY;
+    if (d >= B + HOG_RAMP && d < hs) return { v: 1, warmup: false };
+    if (d >= B && d < B + HOG_RAMP) return { v: HOG_LOW + (1 - HOG_LOW) * (d - B) / HOG_RAMP, warmup: false };
+    if (d >= hs && d < hs + HOG_RAMP) return { v: 1 - (1 - HOG_LOW) * (d - hs) / HOG_RAMP, warmup: false };
+    if ((d + 7) % 20 < 3) return { v: HOG_WARMUP, warmup: true };
+    return { v: HOG_LOW, warmup: false };
+  }
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function mix(a: number[], b: number[], t: number): string {
+    return 'rgb(' + a.map((x, i) => Math.round(x + (b[i] - x) * t)).join(',') + ')';
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-yeardial]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const dateIn = q<HTMLInputElement>('[data-in="date"]');
+    const warmIn = q<HTMLInputElement>('[data-in="warm"]');
+    const dateOut = q<HTMLElement>('[data-out="date"]');
+    const warmOut = q<HTMLElement>('[data-out="warm"]');
+    const ring = q<SVGGElement>('[data-ring]');
+    const monthsG = q<SVGGElement>('[data-months]');
+    const hand = q<SVGLineElement>('[data-hand]');
+    const dotB = q<SVGCircleElement>('[data-dot-bloom]');
+    const dotF = q<SVGCircleElement>('[data-dot-fall]');
+    const dotN = q<SVGCircleElement>('[data-dot-now]');
+    const dDate = q<SVGTextElement>('[data-dial-date]');
+    const dDay = q<SVGTextElement>('[data-dial-day]');
+    const barLen = q<SVGRectElement>('[data-bar-len]');
+    const barTmp = q<SVGRectElement>('[data-bar-tmp]');
+    const cueLen = q<SVGLineElement>('[data-cue-len]');
+    const cueLenT = q<SVGTextElement>('[data-cue-len-t]');
+    const warmLine = q<SVGLineElement>('[data-warm-line]');
+    const warmLineT = q<SVGTextElement>('[data-warm-line-t]');
+    const tick = q<SVGLineElement>('[data-tick-tmp]');
+    const tickNote = q<HTMLElement>('[data-tick-note]');
+    const rBloom = q<HTMLElement>('[data-r-bloom]');
+    const rBase = q<HTMLElement>('[data-r-base]');
+    const rDiff = q<HTMLElement>('[data-r-diff]');
+    const gBuds = q<SVGGElement>('[data-g-buds]');
+    const gOpen = q<SVGGElement>('[data-g-open]');
+    const gCrown = q<SVGEllipseElement>('[data-g-crown]');
+    const gFallen = q<SVGGElement>('[data-g-fallen]');
+    const treeState = q<HTMLElement>('[data-tree-state]');
+    const hogState = q<HTMLElement>('[data-hog-state]');
+    const monState = q<HTMLElement>('[data-mon-state]');
+    const barBt = q<SVGRectElement>('[data-bar-bt]');
+    const hogBody = q<SVGEllipseElement>('[data-hog-body]');
+    const hogHead = q<SVGCircleElement>('[data-hog-head]');
+    const eyeOpen = q<SVGCircleElement>('[data-hog-eye-open]');
+    const eyeShut = q<SVGLineElement>('[data-hog-eye-shut]');
+    const monBody = q<SVGGElement>('[data-mon-body]');
+    const monArrow = q<SVGPolygonElement>('[data-mon-arrow]');
+    const why = q<HTMLElement>('[data-why]');
+    const jumpBtn = q<HTMLButtonElement>('[data-jump]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    if (!dateIn || !warmIn || !dateOut || !warmOut || !ring || !monthsG || !hand || !dotB || !dotF || !dotN || !dDate || !dDay ||
+        !barLen || !barTmp || !cueLen || !cueLenT || !warmLine || !warmLineT || !tick || !tickNote || !rBloom || !rBase || !rDiff ||
+        !gBuds || !gOpen || !gCrown || !gFallen || !treeState || !hogState || !monState || !barBt || !hogBody || !hogHead ||
+        !eyeOpen || !eyeShut || !monBody || !monArrow || !why || !jumpBtn || !resetBtn) return;
+
+    const CX = 120, CY = 120, RR = 76;
+    const ang = (d: number) => ((d - 1) / 365) * TAU;
+    const pt = (d: number, r: number) => ({ x: CX + r * Math.sin(ang(d)), y: CY - r * Math.cos(ang(d)) });
+
+    // static month labels
+    let start = 1;
+    for (let m = 0; m < 12; m++) {
+      const mid = start + MLEN[m] / 2;
+      const p = pt(mid, 104);
+      const t = el('text', { x: p.x.toFixed(1), y: (p.y + 4).toFixed(1), 'text-anchor': 'middle', 'font-size': 12, fill: '#4b4b55' });
+      t.textContent = MONTHS[m];
+      monthsG.appendChild(t);
+      start += MLEN[m];
+    }
+    // ring segments (36 segments of about 10 days)
+    const SEG = 36;
+    const segs: SVGElement[] = [];
+    for (let i = 0; i < SEG; i++) {
+      const d0 = 1 + (i * 365) / SEG, d1 = 1 + ((i + 1) * 365) / SEG;
+      const a = pt(d0, RR), b = pt(d1, RR);
+      const p = el('path', { d: `M${a.x.toFixed(2)} ${a.y.toFixed(2)} A${RR} ${RR} 0 0 1 ${b.x.toFixed(2)} ${b.y.toFixed(2)}`, fill: 'none', 'stroke-width': 16, 'stroke-linecap': 'butt' });
+      ring.appendChild(p);
+      segs.push(p);
+    }
+
+    const BAR_X = 10, BAR_W = 280;
+    cueLen.setAttribute('x1', String(BAR_X + BAR_W * CUE_LEN));
+    cueLen.setAttribute('x2', String(BAR_X + BAR_W * CUE_LEN));
+    cueLenT.setAttribute('x', String(BAR_X + BAR_W * CUE_LEN));
+    const wx = BAR_X + BAR_W * tNorm(THRESH);
+    warmLine.setAttribute('x1', String(wx)); warmLine.setAttribute('x2', String(wx)); warmLineT.setAttribute('x', String(wx));
+
+    function render() {
+      const d = parseInt(dateIn!.value, 10);
+      const warm = parseFloat(warmIn!.value);
+      const B = bloomDay(warm);
+      const L = lenOf(d), Tn = tempOf(d, warm);
+      const rising = lenOf(d + 1) > lenOf(d);
+
+      dateOut!.textContent = dateOf(d) + ' (day ' + d + ')';
+      warmOut!.textContent = '+' + warm.toFixed(1).replace('.0', '') + ' °C';
+
+      // ring colors
+      for (let i = 0; i < SEG; i++) {
+        const dm = 1 + ((i + 0.5) * 365) / SEG;
+        segs[i].setAttribute('stroke', mix([143, 184, 222], [240, 163, 90], clamp((tNorm(tempOf(dm, warm)) - 0.1) / 0.8, 0, 1)));
+      }
+      // pointer and dots
+      const pIn = pt(d, 52), pOut = pt(d, RR);
+      hand!.setAttribute('x1', pIn.x.toFixed(1)); hand!.setAttribute('y1', pIn.y.toFixed(1));
+      hand!.setAttribute('x2', pOut.x.toFixed(1)); hand!.setAttribute('y2', pOut.y.toFixed(1));
+      const pb = pt(B, RR), pf = pt(FALL_CUE, RR);
+      dotB!.setAttribute('cx', pb.x.toFixed(1)); dotB!.setAttribute('cy', pb.y.toFixed(1));
+      dotF!.setAttribute('cx', pf.x.toFixed(1)); dotF!.setAttribute('cy', pf.y.toFixed(1));
+      dotN!.setAttribute('cx', pOut.x.toFixed(1)); dotN!.setAttribute('cy', pOut.y.toFixed(1));
+      dDate!.textContent = dateOf(d);
+      dDay!.textContent = 'day ' + d;
+
+      // bars
+      barLen!.setAttribute('width', String(BAR_W * L));
+      barTmp!.setAttribute('width', String(BAR_W * tNorm(Tn)));
+      const showTick = warm > 0 && springWeight(d) > 0;
+      tick!.setAttribute('visibility', showTick ? 'visible' : 'hidden');
+      if (showTick) { const x = BAR_X + BAR_W * tNorm(tempBase(d)); tick!.setAttribute('x1', String(x)); tick!.setAttribute('x2', String(x)); }
+      tickNote!.hidden = !showTick;
+
+      // bloom readout
+      rBloom!.textContent = B + ' (' + dateOf(B) + ')';
+      rBase!.textContent = BASE_BLOOM + ' (' + dateOf(BASE_BLOOM) + ')';
+      const diff = BASE_BLOOM - B;
+      rDiff!.textContent = diff === 0 ? 'none' : diff + (diff === 1 ? ' day earlier' : ' days earlier');
+
+      // tree
+      const dropStart = FALL_CUE, bareDay = FALL_CUE + DROP;
+      let tree: string, fOpen = 0, crown = 0, crownFill = '#f6b8cf', fallen = 0, buds = 1;
+      if (d < B - OPEN_DAYS) { tree = 'Dormant buds'; }
+      else if (d < B) { tree = 'Buds opening'; fOpen = 1; buds = 0; }
+      else if (d < B + BLOOM_DAYS) { tree = d === B ? 'Peak bloom day' : 'In bloom'; crown = 1; buds = 0; }
+      else if (d < dropStart) { tree = 'Green leaves'; crown = 1; crownFill = '#5aa467'; buds = 0; }
+      else if (d < bareDay) { const f = (d - dropStart) / DROP; tree = 'Leaves dropping'; crown = 1 - f * 0.9; crownFill = '#d9822b'; fallen = f; buds = 0; }
+      else { tree = 'Bare, buds dormant'; fallen = 1; }
+      gBuds!.setAttribute('opacity', String(buds));
+      gOpen!.setAttribute('opacity', String(fOpen));
+      gCrown!.setAttribute('opacity', String(crown));
+      gCrown!.setAttribute('fill', crownFill);
+      gFallen!.setAttribute('opacity', String(fallen));
+      treeState!.textContent = tree;
+
+      // groundhog
+      const h = hogTemp(d, BASE_BLOOM);
+      barBt!.setAttribute('width', String(180 * h.v));
+      const fill = mix([127, 149, 181], [194, 138, 84], h.v);
+      hogBody!.setAttribute('fill', fill); hogHead!.setAttribute('fill', fill);
+      const asleep = h.v < 0.5;
+      eyeOpen!.setAttribute('visibility', asleep ? 'hidden' : 'visible');
+      eyeShut!.setAttribute('visibility', asleep ? 'visible' : 'hidden');
+      let hog: string;
+      if (h.warmup) hog = 'Short warm-up';
+      else if (h.v >= 0.999) hog = 'Awake';
+      else if (d >= BASE_BLOOM && d < BASE_BLOOM + HOG_RAMP) hog = 'Warming up';
+      else if (d >= FALL_CUE + HOG_DELAY && d < FALL_CUE + HOG_DELAY + HOG_RAMP) hog = 'Cooling down';
+      else hog = 'Hibernating';
+      hogState!.textContent = hog;
+
+      // monarch
+      let y: number, mon: string, dir = 0;
+      if (d < BASE_BLOOM) { y = 1; mon = 'In the forest in Mexico'; }
+      else if (d < BASE_BLOOM + NORTH) { y = 1 - (d - BASE_BLOOM) / NORTH; mon = 'Moving north over several generations (one icon stands for the whole population)'; dir = -1; }
+      else if (d < FALL_CUE) { y = 0; mon = 'In Virginia'; }
+      else if (d < FALL_CUE + FLIGHT) { y = (d - FALL_CUE) / FLIGHT; mon = 'Flying south'; dir = 1; }
+      else { y = 1; mon = 'In the forest in Mexico'; }
+      const my = 46 + y * 76;
+      monBody!.setAttribute('transform', `translate(0 ${my.toFixed(1)})`);
+      monArrow!.setAttribute('visibility', dir === 0 ? 'hidden' : 'visible');
+      if (dir !== 0) {
+        const ay = my + (dir === 1 ? 14 : -26);
+        monArrow!.setAttribute('points', dir === 1 ? `150,${ay} 164,${ay} 157,${ay + 14}` : `150,${ay + 14} 164,${ay + 14} 157,${ay}`);
+      }
+      monState!.textContent = mon;
+
+      // status sentences (each under 18 words)
+      const lenWord = rising ? 'longer' : 'shorter';
+      const tempWord = Tn >= THRESH ? 'above' : 'below';
+      let s = `In this sketch, on ${dateOf(d)} the days are getting ${lenWord} and the air is ${tempWord} the warmth line. `;
+      const bits: string[] = [];
+      if (tree === 'Peak bloom day') bits.push('The air has just reached the warmth line, so it is the bloom day.');
+      else if (tree === 'Buds opening') bits.push('The air is about to reach the warmth line, so the buds are opening.');
+      else if (tree === 'Leaves dropping') bits.push('As days get shorter, the leaves drop.');
+      else if (tree === 'Bare, buds dormant') bits.push('The buds are dormant and wait out winter.');
+      else if (tree === 'Dormant buds') bits.push('The buds are dormant. Warmth can start them opening once winter cold has passed.');
+      else if (tree === 'In bloom') bits.push('The tree is in bloom.');
+      else bits.push('The tree has green leaves.');
+      if (mon === 'Flying south') bits.push('The days passed the fall cue line, so the monarch is flying south.');
+      else if (d >= FALL_CUE - 10 && d < FALL_CUE) bits.push('The days are close to the fall cue line.');
+      if (hog === 'Cooling down') bits.push('The groundhog’s body temperature is falling.');
+      else if (hog === 'Hibernating') bits.push('The groundhog’s body temperature is low.');
+      else if (hog === 'Short warm-up') bits.push('The groundhog warms up for a short time, then cools down again.');
+      else if (hog === 'Warming up') bits.push('The air warmed, so the groundhog’s body temperature rises.');
+      if (warm > 0) bits.push(`With a spring ${warm.toFixed(1).replace('.0', '')} °C warmer, bloom day is ${B}, ${diff} ${diff === 1 ? 'day' : 'days'} earlier than ${BASE_BLOOM}.`);
+      why!.textContent = s + bits.join(' ');
+    }
+
+    dateIn.addEventListener('input', render);
+    warmIn.addEventListener('input', render);
+    jumpBtn.addEventListener('click', () => { dateIn.value = String(bloomDay(parseFloat(warmIn.value))); render(); });
+    resetBtn.addEventListener('click', () => { dateIn.value = '1'; warmIn.value = '0'; render(); });
+    render();
+    why.textContent = 'Drag the date slider to start the year. ' + why.textContent;
+  });
+</script>
+
+<style>
+  .yd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .yd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .yd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .yd-start { margin: 0 0 var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .yd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin-bottom: var(--ddp-space-3); }
+  .yd-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .yd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .yd-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .yd-btns { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .yd-btn { min-height: 44px; padding: 0 var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
+  .yd-btn:hover, .yd-btn:focus-visible { border-color: var(--ddp-color-accent); outline: 2px solid var(--ddp-color-accent); outline-offset: 1px; }
+  .yd-top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-3); align-items: start; }
+  .yd-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .yd-dial { max-width: 300px; margin: 0 auto; }
+  .yd-legend { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .yd-key { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; vertical-align: -0.05em; margin-right: 0.2em; }
+  .yd-key-b { background: #d6578a; }
+  .yd-key-f { background: #e57200; margin-left: 0.6em; }
+  .yd-key-n { background: #2b2b33; margin-left: 0.6em; }
+  .yd-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .yd-readout div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.2rem 0.6rem; }
+  .yd-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .yd-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .yd-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--ddp-space-3); margin-top: var(--ddp-space-3); }
+  .yd-pstate { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); text-align: center; min-height: 2.6em; }
+  .yd-why { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .yd-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .yd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 640px) {
+    .yd-controls, .yd-top { grid-template-columns: 1fr; }
+  }
+</style>

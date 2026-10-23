@@ -25,6 +25,15 @@ ladder:
   college: ["population-growth", "demography"]
   biology: ["carrying-capacity"]
 
+explainer:
+  src: "/explainers/habitat-and-niche/explainer.mp4"
+  captions: "/explainers/habitat-and-niche/explainer.vtt"
+  poster: "/explainers/habitat-and-niche/poster.jpg"
+  title: "Different Niches Let Many Kinds Share"
+  durationSec: 153.9
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Robert MacArthur"
     contribution: >-
@@ -54,7 +63,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "WarblerTree"
+    title: "Share a tree with five kinds of birds"
+    caption: >-
+      Set how many kinds of warblers share one spruce, whether they feed everywhere or keep to their own zones, and how many insects there are, then see which kinds fall short.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is an organism’s habitat?"
@@ -218,14 +233,18 @@ corpusTags:
   - "competition"
   - "biodiversity"
   - "warblers"
-draft: true
+draft: false
 ---
+
+import WarblerTree from '../../../components/WarblerTree.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Five kinds of small birds called warblers spend the summer in the same spruce forests of Maine and Vermont. All five eat mostly insects that they pick from the trees.**
 
@@ -241,14 +260,14 @@ In 1956 and 1957, a scientist named Robert MacArthur watched these birds and tim
 
 This simulation shows one spruce tree split into zones: top, middle and lower, and inner and outer branches. Insects are spread through the tree, and a bar shows how many insects each kind of bird eats per day. You set how many kinds of warblers there are, from 1 to 5, and whether they all feed everywhere or each keeps to its own zone. You can also lower the insect supply.
 
-{/* SIMULATION */}
+<WarblerTree />
 
 The model keeps things simple. Insects are spread evenly and come back at a fixed rate. The birds are the same except for where they feed, and there are no predators or migration.
 
 **Try this.**
 1. Set five kinds of birds that all feed everywhere. Predict whether every kind gets enough insects. Then test it.
 2. Now give each kind its own zone. Predict how the bars will change, and check.
-3. Lower the insect supply in both settings. Predict which setting has more birds falling short. Then test it.
+3. Set the insect supply to much lower in both settings. Predict which setting has more birds falling short. Then test it.
 
 ## Explain: a place to live and a way to live
 
@@ -268,6 +287,8 @@ Think of the habitat as an address and the niche as a job. The comparison breaks
 
 Take a Virginia oak forest. A gray squirrel and an earthworm both live there. They share a habitat. The squirrel eats acorns and nuts and buries some in the ground. Hawks and foxes hunt it. The earthworm eats dead leaves and bits of soil and helps break them down, as you saw in [Producers, Consumers and Decomposers](/lessons/producers-consumers-decomposers/). Their niches are very different.
 
+<LessonFigure src="/figures/habitat-and-niche/one-forest-two-niches.webp" width={1200} height={800} alt="AI-generated illustration: a cutaway of an oak forest. Above ground a gray squirrel holds an acorn beside a small hole while a hawk soars overhead and a fox watches from behind a log; below ground an earthworm pulls a dead leaf into its burrow. A gold bracket spans the whole scene." caption="One address, two jobs: the squirrel and the earthworm share the oak forest habitat but have very different niches." />
+
 <Support min={2}>**Key idea:** A habitat is where an organism lives, and a niche is its whole role there.</Support>
 
 ## Explain: a niche helps an organism survive
@@ -276,7 +297,7 @@ A **resource** is something a living thing needs and takes from its habitat, suc
 
 The amount of a resource can change a niche. When food is plentiful, an animal may feed in just a few favourite spots. When food runs short, it may have to search more places or eat other things. MacArthur saw Cape May warblers feed low in small trees during cold, wet, windy weather. Most of the time they stayed near the treetops.
 
-{/* DIAGRAM: A spruce tree split into zones, with numbered parts: 1 top band near the treetop, 2 middle band, 3 lower band, 4 bare inner branch base, 5 outer branch tips with new needles and buds */}
+<ScaffoldFigure src="/figures/habitat-and-niche/spruce-tree-zones.webp" width={1200} height={800} keyItems={["top band", "middle band", "lower band", "bare inner branch base", "outer branch tips"]} given={[0, 1]} alt="AI-generated illustration: a tall spruce tree with three pale shaded bands across its crown from the treetop down, numbered 1 to 3, and a circular zoom of one branch showing a bare base by the trunk and light-green new tips with buds at the far end, numbered 4 and 5." caption="MacArthur's zone map of a spruce: height bands measured down from the treetop, and the parts of each branch, from the trunk out to the new growth." />
 
 <Support min={2}>**Key idea:** A niche is how an organism gets the resources it needs, and it can shift when those resources change.</Support>
 

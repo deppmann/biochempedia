@@ -26,6 +26,15 @@ ladder:
   college: ["population-growth", "demography"]
   biology: ["carrying-capacity"]
 
+explainer:
+  src: "/explainers/populations-rise-and-fall/explainer.mp4"
+  captions: "/explainers/populations-rise-and-fall/explainer.vtt"
+  poster: "/explainers/populations-rise-and-fall/poster.jpg"
+  title: "Why Crab Numbers Rise and Fall"
+  durationSec: 155.1
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -45,7 +54,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "CrabCove"
+    title: "Run a crab cove for ten years"
+    caption: >-
+      Run a model crab cove for ten years, changing the underwater grass, the winters and the harvest, and watch the bars rise and fall.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which group is a population?"
@@ -199,16 +214,22 @@ corpusTags:
   - "overharvesting"
   - "blue crab"
   - "Chesapeake Bay"
-draft: true
+draft: false
 ---
+
+import CrabCove from '../../../components/CrabCove.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Every winter, survey teams from Maryland and Virginia tow metal dredges along the bottom of the Chesapeake Bay. They catch blue crabs that lie buried in the mud until spring.** From these catches, scientists estimate how many crabs live in the whole Bay. From the winter of 1991–1992 to the next winter, that estimate more than doubled. The Bay did not get bigger. So what changed?
+
+<LessonFigure src="/figures/populations-rise-and-fall/winter-dredge-survey.webp" width={1200} height={800} alt="AI-generated illustration: a small boat on winter Bay water tows a metal dredge along the muddy bottom. Crabs lie half buried in the mud ahead of it, and a few are caught in its mesh bag. A close-up shows one crab buried with only its eyes and shell showing." caption="Each winter, survey teams tow metal dredges along the Bay bottom to catch crabs buried in the mud, and scientists use the catches to estimate the whole population." />
 
 <IdeaCheck items={[
   { idea: 'The number of crabs in the Bay stays about the same from year to year.', answer: 'disagree', explain: 'The winter survey has run since about 1990. Its estimate has gone up and down many times. In one case it more than doubled between two winters in a row. Scientists see the same rise and fall in many other populations.' },
@@ -220,12 +241,12 @@ import CER from '../../../components/CER.astro';
 
 The simulation shows a cove of the Bay with a bar for the crab population in each of ten years. You choose how much underwater grass there is for young crabs to hide in. You choose mild or harsh winters, and you set the harvest to none, moderate or heavy.
 
-{/* SIMULATION */}
+<CrabCove />
 
 **Try this.**
 1. Set high grass, mild winters and no harvest. Predict the shape of the ten bars, then run it.
 2. Keep everything the same, but make year 4 a harsh winter. Predict what happens in year 5 and in the years after, then test it.
-3. Set heavy harvest for five years, then cut it to moderate. Predict whether the population recovers, and how fast, then run it.
+3. With medium grass, set heavy harvest for five years, then cut it to moderate. Predict whether the population recovers, and how fast, then run it.
 
 ## Explain: what makes a population grow or shrink
 
@@ -254,7 +275,7 @@ When there is less of a needed thing, more individuals need the same food or hid
 
 Changes can also move where a population lives. Lab tests suggest that cold limits how far north blue crabs can survive. So warmer winters could let crabs live farther north, though lab tests alone cannot show that the move has happened.
 
-{/* DIAGRAM: a shallow Bay cove in winter, with 1 young crabs hiding in shallow water and grass, 2 a large crab hunting, 3 thin ice for a cold winter, 4 a crab pot for harvest, 5 arrows showing crabs added by births and lost by deaths */}
+<ScaffoldFigure src="/figures/populations-rise-and-fall/winter-crab-cove.webp" width={1200} height={800} keyItems={["very cold winter", "young crabs", "big crabs", "harvest", "births", "deaths"]} given={[1, 2]} alt="AI-generated illustration: a side view of a shallow Bay cove in winter. Thin ice edges the shore, small crabs hide in underwater grass in the shallows, a large crab moves toward them from deeper water, and a crab pot sits on the bottom with a rope to a float. A small view shows a group of crabs with an arrow bringing new crabs in and an arrow carrying a dead crab out. Six numbered circles mark parts for the student to name." caption="Cold, hiding places, big crabs and harvest all limit the blue crab population, which grows by births and shrinks by deaths. Name the six numbered parts." />
 
 <Support min={2}>**Key idea:** A population grows or shrinks when living or nonliving parts of its environment change.</Support>
 
@@ -273,7 +294,9 @@ People cause changes too.
 - **Habitat destruction.** Stone walls and other hard shorelines can shrink the shallow water where young crabs hide.
 - **Overharvesting.** **Overharvesting** means people catch or collect a species faster than it can replace itself. Managers set catch limits on blue crabs and on menhaden, a small fish, to guard against this.
 
-When a change is large, an ecosystem can lose species. **Biodiversity** is the variety of living things in an area. When one population crashes, the animals that eat it and the things it eats can change too. Larger changes, such as dead zones and climate change, are in [Big Changes](/lessons/eutrophication-and-big-changes/).
+<LessonFigure src="/figures/populations-rise-and-fall/shallow-shore-versus-stone-wall.webp" width={1200} height={800} alt="AI-generated illustration: two side views of a Bay shore. On the left, land slopes gently into the water, leaving a wide band of shallow water with grass where small crabs hide. On the right, a stone wall drops straight into deep water, leaving only a thin strip of shallow water." caption="Stone walls and other hard shorelines can shrink the shallow water where young crabs hide." />
+
+When a change is large, an ecosystem can lose species. **Biodiversity** is the variety of living things in an area. When one population crashes, the animals that eat it and the things it eats can change too. Larger changes, such as dead zones and climate change, are in Big Changes (a later lesson).
 
 <Support min={2}>**Key idea:** Natural events and human actions can both make a population rise or fall.</Support>
 

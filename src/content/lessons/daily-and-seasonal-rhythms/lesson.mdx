@@ -26,6 +26,15 @@ ladder:
   college: ["tissues-and-homeostasis", "thermoregulation"]
   biology: ["homeostasis-in-action"]
 
+explainer:
+  src: "/explainers/daily-and-seasonal-rhythms/explainer.mp4"
+  captions: "/explainers/daily-and-seasonal-rhythms/explainer.vtt"
+  poster: "/explainers/daily-and-seasonal-rhythms/poster.jpg"
+  title: "How Living Things Keep Time"
+  durationSec: 149.3
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -45,7 +54,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "YearDial"
+    title: "Turn the year dial"
+    caption: >-
+      Slide the date through a year to see how day length and temperature line up with when a cherry tree blooms, a monarch flies south and a groundhog hibernates, then make spring warmer.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is a circadian rhythm?"
@@ -211,13 +226,16 @@ corpusTags:
   - "hibernation"
   - "migration"
   - "phenology"
-draft: true
+draft: false
 ---
+
+import YearDial from '../../../components/YearDial.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Every fall, many monarch butterflies fly south through Virginia toward forests in the mountains of central Mexico. Every spring, the cherry trees around the Tidal Basin in Washington, D.C., just across the Potomac River from Virginia, burst into bloom.**
 
@@ -233,12 +251,12 @@ People have written down the date of peak bloom for these trees every year since
 
 The simulation shows a year dial with a cherry tree, a groundhog and a monarch. As you slide the date through the year, day length and average temperature change. A second slider makes spring up to 3 °C warmer.
 
-{/* SIMULATION */}
+<YearDial />
 
 **Try this.**
 1. Predict the month when the monarch leaves. Then slide the date and see what changed just before.
 2. Predict when the groundhog’s body temperature bar will fall and when it will rise. Then test it.
-3. Predict whether a warmer spring moves the bloom day earlier or later. Set the warmer spring slider to 3 °C and compare the bloom day number.
+3. Predict whether a warmer spring moves the bloom day earlier or later. Set the warmer spring slider to 3 °C and compare the bloom day number. In this sketch the slider moves only the cherry tree.
 
 ## Explain: daily cycles and growing toward light and water
 
@@ -271,6 +289,8 @@ In a Virginia winter, days are short, nights are cold, and many foods are hard t
 
 Virginia’s **deciduous** trees, such as oaks and maples, drop their leaves each fall. As days get shorter, a layer of cells forms where each leaf stalk joins the twig. This layer weakens the joint, and the leaf falls. Without leaves, the tree loses less water in winter, when frozen soil makes water hard to get.
 
+<LessonFigure src="/figures/daily-and-seasonal-rhythms/how-a-leaf-falls.webp" width={1200} height={800} alt="AI-generated illustration: a maple twig in fall with turning leaves, one falling. A zoomed view shows a thin band of cells across the base of a leaf stalk where it joins the twig, with a crack starting along it. A small view shows the same kind of tree bare in winter on frozen ground." caption="As days get shorter, a layer of cells forms where each leaf stalk joins the twig, and the leaf falls. A bare tree loses less water while the soil is frozen." />
+
 | Season | Common cues (they differ by species) | Some responses |
 |---|---|---|
 | Fall | Shorter days, cooler air | Leaves drop, buds go dormant, monarchs fly south, groundhogs hibernate |
@@ -279,13 +299,15 @@ Virginia’s **deciduous** trees, such as oaks and maples, drop their leaves eac
 
 Buds of many trees need cold before warmth. In a 2018 experiment, young aspen trees got 10 weeks of short, 8-hour days, and their buds went dormant. Then the trees spent 5 weeks at 4 °C. Back in warm, long days, the buds swelled and green leaves came out.
 
+<LessonFigure src="/figures/daily-and-seasonal-rhythms/aspen-buds-need-cold.webp" width={1200} height={676} alt="AI-generated illustration: three steps with an aspen twig tip. First, short days and a closed, dormant bud. Second, cold, and the bud stays closed. Third, warm, long days, and the bud swells and opens with small green leaves." caption="In the aspen experiment, buds went dormant in short days, spent weeks in the cold, and only then opened when warm, long days returned." />
+
 Are these behaviors learned? Mostly not. An **instinct** is a behavior an animal inherits and can do without being taught. A monarch flying south has never made the trip before. In a lab study of ground squirrels, most were young animals hibernating for the first time, and genes explained much of when they started. Some animals do learn: young whooping cranes flew straighter routes when older cranes were in the group.
 
 <Support min={2}>**Key idea:** Cues such as day length and temperature start migration, hibernation, leaf drop and dormancy, and many of these responses are inherited instincts.</Support>
 
 ## Explain: when the long-term pattern shifts
 
-Some changes last for years. They can be natural, such as wildfires, floods and climate shifts. They can be caused by people, such as pollution, habitat destruction and overharvesting. Long-term changes can change how many organisms live in a place, where each species lives, and how a whole ecosystem fits together. As the climate has warmed, many land species now live farther toward the poles or higher up mountains than before. You will study these changes in [Populations Rise and Fall](/lessons/populations-rise-and-fall/) and [Big Changes](/lessons/eutrophication-and-big-changes/).
+Some changes last for years. They can be natural, such as wildfires, floods and climate shifts. They can be caused by people, such as pollution, habitat destruction and overharvesting. Long-term changes can change how many organisms live in a place, where each species lives, and how a whole ecosystem fits together. As the climate has warmed, many land species now live farther toward the poles or higher up mountains than before. You will study these changes in [Populations Rise and Fall](/lessons/populations-rise-and-fall/) and Big Changes (a later lesson).
 
 Timing can shift too. If winters and early springs warm, a tree whose buds respond to warmth may bloom earlier.
 
