@@ -25,6 +25,15 @@ ladder:
   college: ["population-growth", "demography"]
   biology: ["carrying-capacity"]
 
+explainer:
+  src: "/explainers/competition-and-cooperation/explainer.mp4"
+  captions: "/explainers/competition-and-cooperation/explainer.vtt"
+  poster: "/explainers/competition-and-cooperation/poster.jpg"
+  title: "Who Gets the Food? Who Shares It?"
+  durationSec: 166.4
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "G. F. Gause"
     contribution: >-
@@ -59,7 +68,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "TwoSpeciesTube"
+    title: "Share a tube of food"
+    caption: >-
+      A model test tube where one or two kinds of paramecium share food, with bars for 20 days showing how each kind grows alone, loses to a faster competitor on the same food, or persists on different food.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is a limiting factor?"
@@ -226,13 +241,17 @@ corpusTags:
   - "populations"
   - "paramecium"
   - "honeybee"
-draft: true
+draft: false
 ---
+
+import TwoSpeciesTube from '../../../components/TwoSpeciesTube.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1934 a scientist named G. F. Gause published his counts of two kinds of paramecium, tiny one-celled living things that swim in water. Each kind grew well alone in a tube with bacteria to eat, but when the two kinds shared a tube, one kind stayed common while the other shrank to a small number.** Meanwhile, in a beehive, tens of thousands of honeybees share food and work. So why do some living things struggle over food while others share it? And what decides how many of one kind can live in a place?
 
@@ -246,14 +265,14 @@ import CER from '../../../components/CER.astro';
 
 The simulation shows a model tube with two kinds of paramecium as colored dots. A bar graph tracks how many of each kind there are for 20 days. You choose how much food goes in each day, whether the second kind is added, and how much their foods overlap, meaning how much of the same food both kinds eat.
 
-{/* SIMULATION */}
+<TwoSpeciesTube />
 
 **Try this.**
 1. Grow one kind alone with a medium amount of food. Predict whether it will grow, and whether it will grow forever. Then run it.
 2. Turn on the second kind, with the same food. Predict which bars will change, and how. Then run it.
 3. Change the food overlap to "different food." Predict whether both kinds can stay in the tube. Then test it.
 
-The model keeps things simple. The food supply is steady, there are no predators, and the kind that wins is set to use food a little faster.
+The model keeps things simple. The food supply is steady, there are no predators, and the kind that wins is set to use food faster.
 
 ## Explain: competing for what you need
 
@@ -275,7 +294,7 @@ Competition is often quiet. Nobody has to fight. A bird that finds the seeds fir
 
 Plants compete too. They need light, water and minerals from the soil. A tall plant can shade a short one. Some plants grow taller, spread longer roots, or turn their leaves toward the light. How a plant responds depends on the plant and on its neighbors.
 
-{/* DIAGRAM: crowded plants competing, with numbered parts: 1 a tall plant shading a shorter one, 2 leaves turned toward the light, 3 roots of neighbors spreading into the same soil, 4 water and minerals in the soil */}
+<ScaffoldFigure src="/figures/competition-and-cooperation/crowded-plants-compete.webp" width={1200} height={800} keyItems={["a tall plant shading a shorter one", "leaves turned toward the light", "roots of neighbors spreading into the same soil", "water and minerals in the soil"]} given={[0, 1]} alt="AI-generated illustration: a cut-away garden bed with a tall plant shading a shorter neighbour, a third plant leaning its leaves toward the light, and below ground the roots of all three spreading into the same soil, which holds water droplets and mineral grains. Four numbered circles mark parts for the student to name." caption="Crowded plants compete without fighting: for light above the ground, and for water and minerals below it. Name the four numbered parts." />
 
 <Support min={2}>**Key idea:** Living things compete when they need the same limited resource, and often that means getting it first, not fighting.</Support>
 
@@ -286,6 +305,8 @@ Plants compete too. They need light, water and minerals from the soil. A tall pl
 - **Honeybees.** A colony can hold tens of thousands of bees. Worker bees do different jobs, such as caring for young, guarding the hive and collecting food. They also pass liquid food from one bee to another. The shares are not always equal.
 - **Wolves.** A pack hunts as a group and can catch large prey, such as elk. You can read more in [that lesson](/lessons/predators-and-prey/).
 - **Schools of fish.** Many small fish swim close together. A tight school can make it harder for a predator to catch any one fish.
+
+<LessonFigure src="/figures/competition-and-cooperation/three-ways-to-cooperate.webp" width={1200} height={800} alt="AI-generated illustration: three panels. Worker honeybees on comb pass a drop of liquid food, tend a larva and guard the entrance; a wolf pack runs together around an elk; a tight school of small fish swims close together as a larger fish approaches." caption="Members of one population can work together: honeybees share food and jobs, a wolf pack catches large prey, and a tight school makes any one fish harder to catch." />
 
 <Support min={2}>**Key idea:** Members of a population can cooperate to get food, stay safe and raise young.</Support>
 

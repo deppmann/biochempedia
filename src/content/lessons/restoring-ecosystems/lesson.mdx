@@ -45,7 +45,13 @@ structures:
     id: "280"
     note: "Carbon dioxide, PubChem CID 280"
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "EagleRecovery"
+    title: "Bring the eagles back"
+    caption: >-
+      A made-up sketch of bald eagle nests on a Bay shoreline, decade by decade, where you choose the pesticide ban year, the protected forest and a new pollution problem.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What does restoration mean in ecology?"
@@ -128,7 +134,7 @@ practiceQuestions:
       - "The count grew by 693 pairs, about 22 times as many"
     answer: 3
     rationale: >-
-      726 minus 33 is 693 more pairs, and 726 divided by 33 is 22, so the count grew about 22 times.
+      726 minus 33 is 693 more pairs, and 726 divided by 33 is 22, so 2011 had about 22 times as many pairs as 1977.
       The claim that a damaged population can never recover does not fit a count that rose this much.
       Twice 33 is only 66, far below 726. The survey counts breeding pairs at nests, not single
       eagles, so 726 is not the number of birds.
@@ -201,7 +207,7 @@ anecdotes:
     text: >-
       J. W. Grier studied wild bald eagles in northwestern Ontario, Canada. He counted the young each
       nesting area produced. In 1974, the average was 0.46 young per nesting area. By 1981, it was
-      1.12. He also tested eggs that never hatched. Eggs with more DDE came from areas that raised
+      1.12. He also tested eggs that never hatched for DDE, a chemical that forms when the pesticide DDT breaks down. Eggs with more DDE came from areas that raised
       fewer young. A study like this shows a link over time. It cannot test every other cause.
 
 corpusTags:
@@ -213,11 +219,14 @@ corpusTags:
 draft: true
 ---
 
+import EagleRecovery from '../../../components/EagleRecovery.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1977, a survey found only 33 pairs of bald eagles nesting in Virginia. In 2016, a larger search, which also used ground checks and volunteer reports, counted 1,070 pairs.**
 
@@ -233,12 +242,12 @@ Something had gone wrong for eagles, and then people changed what they did. Can 
 
 The simulation shows a Bay shoreline, with a bar of eagle nests for each decade from the 1950s to the 2020s. You choose the year a harmful pesticide is banned, or never ban it. You set how much shoreline forest is protected for nests, and you can switch on a new pollution problem.
 
-{/* SIMULATION */}
+<EagleRecovery />
 
 **Try this.**
 1. Predict how fast the nests come back if the pesticide is banned in 1972. Test it. Do the nests return right away?
 2. Keep the same ban year. Predict what more protected forest will do. Compare low and high.
-3. After the eagles recover, predict what a new pollution problem will do. Switch it on.
+3. With a 1972 ban, after the nests recover, predict what a new pollution problem will do. Switch it on.
 
 ## Explain: living and nonliving changes
 
@@ -254,7 +263,7 @@ You met habitat loss and invasive species in [People Change Habitats](/lessons/p
 |---|---|---|
 | Climate | Burn coal, oil and gas | Carbon dioxide builds up in the air and warms Earth |
 | Water supply | Pump water from streams and wells | Streams can carry less water |
-| Air quality | Release exhaust from cars and factories | Ozone near the ground can slow photosynthesis in sensitive trees, such as black cherry and tulip poplar |
+| Air quality | Release exhaust from cars and factories | The gas ozone near the ground can slow photosynthesis in sensitive trees, such as black cherry and tulip poplar |
 | Energy production | Run power plants | Some release carbon dioxide and gases that pollute the air; some return warmer water to rivers |
 | Ocean acidification | Add carbon dioxide to the air | The ocean absorbs it and becomes more acidic |
 | Waste management | Throw away, reuse or treat waste | Wastewater with extra nutrients can feed algae; reusing things saves energy |
@@ -277,6 +286,8 @@ A **pesticide** is a chemical used to kill pests, such as insects. DDT was once 
 
 DDT breaks down into a related chemical called DDE. DDE can make bird eggshells thin. Very thin bald eagle eggshells often broke while the parents sat on them. Other eggs failed to hatch. So few young eagles were raised.
 
+<LessonFigure src="/figures/restoring-ecosystems/thin-eggshells.webp" width={1200} height={800} alt="AI-generated illustration: a bald eagle sits on a large stick nest in a tree by a river. Two close views compare eggs: one with a thick shell and a chick inside, and one with a thin, cracked shell and no chick." caption="DDE, which forms when DDT breaks down, made bald eagle eggshells thin. Thin shells often broke while the parents sat on them, so few young eagles were raised." />
+
 DDT was not the only problem. People also destroyed eagle habitat, and some shot eagles illegally.
 
 Then people acted:
@@ -296,6 +307,8 @@ Recovery is a bit like savings that earn interest: new pairs raise young that be
 ## Explain: helping damaged places heal
 
 **Restoration** is helping a damaged ecosystem recover. Virginia scientists spread eelgrass seeds by hand in the coastal bays. The new plants made seeds that spread past the planted areas. A 2020 study reported 3,612 hectares of eelgrass.
+
+<LessonFigure src="/figures/restoring-ecosystems/eelgrass-from-seeds.webp" width={1200} height={429} alt="AI-generated illustration: three side views of a shallow bay. First, a person in a boat scatters eelgrass seeds over two marked plots. Second, short eelgrass grows in the plots. Third, eelgrass fills the plots and spreads beyond them into a wide meadow." caption="Restoration: scientists spread eelgrass seeds by hand in plots, and the new plants made seeds that spread past the planted areas." />
 
 Other Virginia projects build oyster reefs in rivers such as the Lafayette, keep strips of trees along streams and upgrade wastewater plants ([Big Changes](/lessons/eutrophication-and-big-changes/)).
 
@@ -326,7 +339,7 @@ Recovery has limits:
 | 2011 | 726 | 938 |
 | 2016 | 1,070 | not listed |
 
-Counts are from the Virginia bald eagle survey, flown each year from late winter into spring over the Bay’s tidal rivers and the lower Eastern Shore. Sources: a 2002 survey history by Watts and Byrd (1977), yearly reports of the Center for Conservation Biology at William and Mary and Virginia Commonwealth University (2003 to 2011), and the Center’s 2016 survey release. Each pair is a nest that two adults are using and keeping up, not every eagle. The area searched grew over the years, and by 2016 the count also used ground checks and volunteer reports from inland counties.
+Counts are from the Virginia bald eagle survey, flown each year from late winter into spring over the Bay’s tidal rivers and the lower Eastern Shore. Sources: a 2002 survey history by Watts and Byrd (1977), yearly reports of the Center for Conservation Biology at William and Mary and Virginia Commonwealth University (2003 to 2011), and the Center’s 2016 survey release. Each pair is two adults using and keeping up a nest. The survey does not count every eagle. The area searched grew over the years, and by 2016 the count also used ground checks and volunteer reports from inland counties.
 
 1. How many more pairs were counted in 2011 than in 1977?
 2. Find a year when the number of pairs went down. What happened the next year?
@@ -349,12 +362,12 @@ Does a strip of plants along a stream keep soil from washing into the water? Pla
 
 - **Question:** Does a strip of grass at the low end of a soil tray reduce the soil that washes off?
 - **Independent variable:** a strip of grass sod at the low end, or bare soil.
-- **Dependent variable:** the mass of soil in the runoff, in grams. Pour the runoff through a coffee filter, let the filter dry and weigh it.
+- **Dependent variable:** the mass of soil in the runoff, in grams. Weigh a dry coffee filter first. Pour the runoff through it, let the filter dry, weigh it again and subtract the filter's mass.
 - **Control:** trays of bare soil with no grass strip.
 - **Constants:** the same soil, tray size, slope, amount of water (500 mL) and pouring speed.
 - **Repeated trials:** three trays of each kind. Find the mean for each.
 - **Safety:** wear goggles and gloves, wipe up spills so no one slips, and wash your hands.
-- **Meaning:** less soil from grass trays supports the strip. Trays are a model, not a stream.
+- **Meaning:** less soil from grass trays supports the idea that the strip holds soil back. Trays are a model, not a stream.
 
 </details>
 

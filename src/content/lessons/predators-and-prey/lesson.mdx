@@ -25,6 +25,15 @@ ladder:
   college: ["population-growth", "demography"]
   biology: ["carrying-capacity"]
 
+explainer:
+  src: "/explainers/predators-and-prey/explainer.mp4"
+  captions: "/explainers/predators-and-prey/explainer.vtt"
+  poster: "/explainers/predators-and-prey/poster.jpg"
+  title: "Predators and Prey Change Each Other's Numbers"
+  durationSec: 147.4
+  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists: []
 
 techniques:
@@ -44,7 +53,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "IslandWolvesMoose"
+    title: "Island of wolves and moose"
+    caption: >-
+      Run a model island with wolves and moose: set the starting wolves, how fast moose have calves and a harsh winter, then watch both lines and the plant food over 40 years.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which of these is a population?"
@@ -211,14 +226,18 @@ corpusTags:
   - "food webs"
   - "social behavior"
   - "Isle Royale"
-draft: true
+draft: false
 ---
+
+import IslandWolvesMoose from '../../../components/IslandWolvesMoose.astro';
 
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Isle Royale is an island in Lake Superior where wolves hunt moose. In the winter of 2016, scientists counted only 2 wolves on the whole island, and they estimated 1,300 moose.**
 
@@ -234,10 +253,10 @@ Wolves eat moose. Moose eat young trees and other plants. Scientists have studie
 
 In this simulation you watch an island with two populations, moose and wolves. Bars show how many of each there are, and a line graph tracks them over 40 years. You set the starting number of wolves, how fast moose have calves, and whether a harsh winter strikes. A food meter shows how much plant food is left for the moose.
 
-{/* SIMULATION */}
+<IslandWolvesMoose />
 
 **Try this.**
-1. Start with 20 wolves. Predict which line will reach its high point first, the moose or the wolves. Then run it and watch the two lines.
+1. Set the starting wolves to 20 (a relative number in the model, not a count). Predict which line will reach its high point first, the moose or the wolves. Then run it and watch the two lines.
 2. Set the wolves to 0. Predict what will happen to the moose and to the food meter over 40 years. Then test it.
 3. Press the harsh winter button once. Predict how the moose line and then the wolf line will change in the next few years. Then check.
 
@@ -257,6 +276,8 @@ You met food chains in [Food Webs and Energy](/lessons/food-webs-and-energy/). A
 
 A **food web** links many food chains to show who eats whom in a community. Each arrow points from the food to the eater. It shows which way energy moves. When a wolf eats a moose, some of the energy stored in the moose passes to the wolf. Every animal gives off some of its energy as heat.
 
+<LessonFigure src="/figures/predators-and-prey/isle-royale-community-food-chain.webp" width={1200} height={800} alt="AI-generated illustration: on Isle Royale, arrows run from young balsam fir trees to a browsing moose and from the moose to two wolves. Wavy lines rise from the animals for heat, and a beaver and birds in the background stand for the rest of the community." caption="In the Isle Royale community, energy moves from balsam fir to moose to wolf, and every animal gives off some of its energy as heat." />
+
 Virginia has predators and prey too. In the Chesapeake Bay, ospreys dive for menhaden, a small fish.
 
 <Support min={2}>**Key idea:** A population is one species in one place, a community is all the populations living together, and a food web shows who eats whom.</Support>
@@ -272,7 +293,7 @@ Predators and prey affect each other's numbers. Here is the pattern scientists o
 
 So the predator numbers often rise and fall a little after the prey numbers. The predators usually run short of food before the last prey animal is caught.
 
-{/* DIAGRAM: a loop of four arrows showing the predator and prey cycle, with numbered parts: 1 many moose, 2 wolves increase, 3 fewer moose, 4 wolves decrease, and back to 1 */}
+<ScaffoldFigure src="/figures/predators-and-prey/wolf-moose-cycle-loop.webp" width={1200} height={1200} keyItems={["many moose", "wolves increase", "fewer moose", "wolves decrease"]} given={[0, 2]} alt="AI-generated illustration: four small snowy scenes of moose and wolves joined in a clockwise loop by curved arrows. Going round the loop, the scenes change between many moose and few, and between few wolves and many. Four numbered circles mark the scenes for the student to name." caption="Predators and prey change each other's numbers in a loop, and the wolves rise and fall a little after the moose. Name the four numbered steps." />
 
 Real populations are messier than this pattern. On Isle Royale, harsh winters, ticks, disease and the moose's plant food also change the counts. Scientists report that the island's wolf and moose numbers do not follow one simple pattern. Predators are one cause of change, not the only one.
 
@@ -287,6 +308,8 @@ Many animals live in groups. These social behaviors help them get what they need
 A **herd** is a group of plant-eating animals that live and move together. More eyes can spot danger, and adults can guard young. Muskoxen, large shaggy plant eaters of the far north, give one example. When several predators come near, adults can form a circle with their young inside. Moose mostly live alone, so they do not do this.
 
 A **pack** is a group of predators, such as wolves, that live and hunt together. On Isle Royale, wolves often hunt moose as a pack. Pack members share the prey they catch. They also help care for the pups, and, once the pups stop drinking their mother's milk, they feed them meat that they bring up from their own stomachs.
+
+<LessonFigure src="/figures/predators-and-prey/muskox-herd-and-wolf-pack.webp" width={1200} height={800} alt="AI-generated illustration: on the left, adult muskoxen stand in a ring facing outward with two calves inside while wolves approach. On the right, a wolf pack feeds together on a moose, and an adult wolf at a den lowers its head to feed two pups." caption="A herd can guard its young, and a pack hunts together, shares the prey and raises pups." />
 
 | Group | Who | How the group helps |
 |---|---|---|

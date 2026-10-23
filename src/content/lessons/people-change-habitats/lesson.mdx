@@ -45,7 +45,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "RiverInvader"
+    title: "Release a new fish into a model river"
+    caption: >-
+      A model Virginia river in relative units, not measurements: release blue catfish, take away shoreline habitat, or fish for blue catfish, and watch the other bars respond.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "What is an invasive species?"
@@ -57,8 +63,8 @@ practiceQuestions:
     answer: 3
     rationale: >-
       An invasive species is brought to a new place, spreads and harms native species, like blue
-      catfish in Virginia rivers. A species that has lived in a place for a long time is a native
-      species. A large predator in its own home area is not invasive there. A species with falling
+      catfish in Virginia rivers. A species that lives in a place naturally, without people bringing
+      it, is a native species; living there a long time is not enough. A large predator in its own home area is not invasive there. A species with falling
       numbers may be endangered, which is a different idea.
   - stem: "Which action is an example of habitat destruction?"
     choices:
@@ -81,7 +87,7 @@ practiceQuestions:
     answer: 1
     rationale: >-
       When two species use the same resource and it is in short supply, they compete. Competition
-      does not have to be a fight; one species can simply eat food the other needed. The stem is
+      does not have to be a fight; one species can simply eat food the other needed. The question is
       about sharing prey, not one catfish eating the other, so it is not predation. Cooperation
       would help both species, but sharing scarce food leaves less for each.
   - stem: "A town fills in a coastal marsh to build new homes. What will most likely happen to the crabs and birds that lived in that marsh?"
@@ -213,11 +219,15 @@ corpusTags:
 draft: true
 ---
 
+import RiverInvader from '../../../components/RiverInvader.astro';
+
 import IdeaCheck from '../../../components/IdeaCheck.astro';
 import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
+import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In the 1970s and 1980s, people put blue catfish into Virginia’s James, Rappahannock and York river systems. Today these big fish are common in parts of those rivers.**
 
@@ -233,12 +243,12 @@ Blue catfish are native to the Mississippi River basin and other waters outside 
 
 The simulation shows a Virginia river as four population bars: blue catfish, native white catfish, blue crabs and small fish. A food bar shows how much prey is available. You choose how many blue catfish to release, how much shoreline habitat is lost to building, and how hard people fish for blue catfish.
 
-{/* SIMULATION */}
+<RiverInvader />
 
 **Try this.**
 1. Predict what happens to the white catfish bar when you release many blue catfish. Then test it.
-2. Keep the blue catfish in. Predict how losing half the shoreline habitat changes the crabs and small fish. Test it.
-3. Predict whether heavy fishing for blue catfish brings the other bars back all the way, part of the way, or not at all. Test it.
+2. Keep the blue catfish released. Predict how losing half the shoreline habitat changes the crabs and small fish. Test it.
+3. Predict whether heavy fishing for blue catfish brings the other bars back all the way, part of the way, or not at all. Then play 20 years and check.
 
 ## Explain: people are part of ecosystems
 
@@ -264,9 +274,9 @@ A food web links species by who eats whom ([food webs](/lessons/food-webs-and-en
 
 People and ecosystems also affect each other through climate, water supply, air quality, energy production, ocean acidification and waste management. Ocean acidification means ocean water becoming more acidic as it takes in carbon dioxide from the air.
 
-Not all human impacts are negative. In Virginia’s coastal bays, people spread about 74.5 million eelgrass seeds. A 2020 study reported that 3,612 hectares of underwater grass grew back, and the total mass of fish there rose ([Helping Ecosystems Recover](/lessons/restoring-ecosystems/)).
+Not all human impacts are negative. In Virginia’s coastal bays, people spread about 74.5 million eelgrass seeds. A 2020 study reported that underwater grass grew back over an area of 3,612 hectares, and the total mass of fish there rose ([Helping Ecosystems Recover](/lessons/restoring-ecosystems/)).
 
-{/* DIAGRAM: a Virginia river edge after people arrive: 1 a marsh filled in for new homes, 2 a lawn and farm field with runoff flowing to the river, 3 a blue catfish, 4 a white catfish, 5 a blue crab and small fish that both catfish eat */}
+<ScaffoldFigure src="/figures/people-change-habitats/river-edge-after-people.webp" width={1200} height={800} keyItems={["habitat destruction", "pollution", "blue catfish", "white catfish", "blue crab"]} given={[2, 4]} alt="AI-generated illustration: a Virginia riverbank and the water below it. On the bank, marsh grass ends where dirt has been dumped for two new houses, and muddy water runs off a farm field and lawn into the river. Underwater, a large blue-grey catfish and a smaller pale catfish swim on either side of a blue crab and a few small fish on the bottom. Five numbered circles mark parts for the student to name." caption="People change a river by filling marshes, letting runoff reach the water and bringing in new fish. Name the five numbered parts." />
 
 <Support min={2}>**Key idea:** People depend on ecosystems, and land use, habitat destruction, pollution and invasive species can make populations rise or fall.</Support>
 
@@ -278,11 +288,13 @@ A **native species** is a species that lives in a place naturally, without peopl
 |---|---|---|
 | Native to Virginia’s Bay rivers (James, Rappahannock, York)? | No. Native to the Mississippi River basin and other waters | Yes |
 | How it got here | People stocked it: James and Rappahannock in the 1970s, York River system in 1985 | Already here |
-| What it eats | Plants and animals, including fish and sometimes blue crabs | Prey similar to blue catfish |
+| What it eats | Plants and animals, including fish and sometimes blue crabs | Prey similar to what blue catfish eat |
 
 Blue catfish can get very big. The U.S. Geological Survey lists the longest one at 165 cm. That is about as long as many adults are tall.
 
 **Competition** is when two or more species need the same resource, such as food or space, and there is not enough for all of them ([more on competition](/lessons/competition-and-cooperation/)). Competition does not need a fight. If blue catfish eat many of the small fish and crabs that white catfish also eat, less food is left for the white catfish. Scientists report that the two catfish eat similar prey, so they may compete.
+
+<LessonFigure src="/figures/people-change-habitats/competition-without-a-fight.webp" width={1200} height={800} alt="AI-generated illustration: two underwater views of the same river bottom. On the left, two pale white catfish swim near plenty of small fish and crabs. On the right, a much larger blue catfish swims beside the same two white catfish, and only a few small fish and one crab are left. No fish is fighting." caption="Competition does not need a fight. If blue catfish eat many of the small fish and crabs that white catfish also eat, less food is left for the white catfish." />
 
 A river’s food supply is a bit like a pizza at a party. If a new guest eats a lot, less is left for everyone else. The comparison breaks because a river’s food grows back, and its amount changes with the seasons.
 
@@ -294,7 +306,7 @@ Effects can spread. If blue catfish eat many blue crabs, fewer crabs may be left
 
 ## Elaborate: read the James River surveys
 
-Scientists from the Virginia Institute of Marine Science (VIMS) pull a net along the river bottom at many places and count the catfish caught. The catfish index uses the tows from September to November. From those counts they calculate a survey index. It tracks how common a fish is from year to year. It is not a count of every fish.
+Scientists from the Virginia Institute of Marine Science (VIMS) pull a net along the river bottom at many places and count the catfish caught. The catfish index uses the tows, or net pulls, from September to November. From those counts they calculate a survey index. It tracks how common a fish is from year to year. It is not a count of every fish.
 
 | Year | Blue catfish survey index | White catfish survey index |
 |---|---|---|
