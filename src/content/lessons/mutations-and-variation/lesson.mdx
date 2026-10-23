@@ -14,7 +14,7 @@ estMinutes: 40
 supports: true
 objectives:
   - "You will explain that members of a population share the same basic features but vary a little in each trait, and that many traits depend on both inheritance and the environment."
-  - "You will explain that a mutation is a change in the DNA sequence that can change a protein and can help, harm or have no effect; that copying mistakes, radiation or chemicals can cause mutations; and that only mutations in sex cells, not body cells, pass to offspring."
+  - "You will explain that a mutation is a change in the DNA sequence that can change a protein and can help, harm or have no effect. You will explain that copying mistakes, radiation or chemicals can cause mutations, and that only mutations in sex cells, not body cells, pass to offspring."
   - "You will read real data on how height varies among 12-year-olds and a table of real mutations and their effects, and make a claim, with evidence and reasoning, that variation arises by chance and may or may not help survival."
 
 ladder:
@@ -48,7 +48,7 @@ techniques:
       compare the DNA with a trait, such as earwax type, to find which DNA change goes with which trait.
   - name: "Growing bacteria in the lab"
     blurb: >-
-      Bacteria are grown in dishes or tubes with and without an antibiotic, and their growth is measured
+      Bacteria are grown in dishes or tubes with and without an antibiotic, a medicine that stops bacteria growing, and their growth is measured
       over time. This shows whether a DNA change helps them grow under each condition.
 
 structures: []
@@ -109,7 +109,7 @@ practiceQuestions:
       Skin cells are body cells. A mutation that stays in body cells is not passed to children; only
       mutations in sex cells can be. The idea that every mutation in your body is inherited is a common
       mistake. Whether a mutation helps has nothing to do with whether it is passed on. Sun on the
-      children's own skin would affect their own body cells, not inherit the father's change.
+      children's own skin would affect their own body cells. The children would not inherit the father's change.
   - stem: "Some bacteria carry a mutation that lets them grow even when an antibiotic is present. How does this mutation affect the bacteria?"
     choices:
       - "It has no effect, because bacteria have no DNA"
@@ -144,7 +144,7 @@ practiceQuestions:
     rationale: >-
       Subtract: 161.9 minus 137.3 is 24.6 cm, so the middle 90 percent of boys in this reference spread
       over about 24.6 cm. The value 12.3 is half of the right answer. The value 299.2 comes from adding the heights instead of subtracting. The value 149.3 is the 50th percentile height, not a difference between two heights.
-  - stem: "In this made-up example, a class grows 5 dishes of bacteria with no antibiotic, then adds the antibiotic. Resistant colonies per dish: 0, 0, 7, 0, 1. What best explains the different counts?"
+  - stem: "In this made-up example, a class grows 5 dishes of bacteria with no antibiotic, then adds the antibiotic. Resistant colonies (clumps of bacteria that grew with the drug) per dish: 0, 0, 7, 0, 1. What best explains the different counts?"
     choices:
       - "All mutations are harmful, so most dishes had none"
       - "Resistance mutations arose by chance before the drug"
@@ -152,7 +152,7 @@ practiceQuestions:
       - "Every dish got the same number of mutations at once"
     answer: 1
     rationale: >-
-      If resistance mutations arise by chance while the bacteria grow, some dishes get one early and many
+      If resistance mutations arise by chance while the bacteria grow, some dishes get one early that passes to many
       descendants, and others get none, which gives uneven counts like these. If the drug caused needed
       mutations, every dish would have about the same count. These mutations helped the bacteria, so
       they were not harmful. The counts differ, so the dishes did not get the same number.
@@ -229,6 +229,7 @@ import WordBank from '../../../components/WordBank.astro';
 import SentenceFrames from '../../../components/SentenceFrames.astro';
 import Support from '../../../components/Support.astro';
 import CER from '../../../components/CER.astro';
+import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 
 **Pick ten leaves from one white oak and lay them in a row. Every leaf has rounded lobes, but measure them with a ruler and you will almost surely find different lengths and shapes.** Your class is the same. Everyone has two hands and one nose, yet heights and hair differ. Where do these differences come from, and do they matter?
 
@@ -274,7 +275,7 @@ Mutations are **random**. Here, random means they happen by chance, not because 
 
 Where the mutation happens matters. **Body cells** are all the cells of the body except eggs and sperm, such as skin, muscle and bone cells. **Sex cells** are eggs and sperm. A mutation in a body cell stays in that person. A mutation in a sex cell can be passed to offspring.
 
-{/* DIAGRAM: a parent with a sunburned arm and a sex cell, and their child. Number: 1 skin cell with a mutation, 2 the mutation stays in the parent, 3 sex cell with a different mutation, 4 the child carries the sex-cell mutation in every cell */}
+<ScaffoldFigure src="/figures/mutations-and-variation/body-cell-vs-sex-cell-mutation.webp" width={1200} height={800} keyItems={["skin cell with a mutation", "the mutation stays in the parent", "sex cell with a different mutation", "the child carries the sex-cell mutation in every cell"]} given={[0]} alt="AI-generated illustration: a parent with a sunburned forearm and a child. A zoom of the forearm shows a patch of skin cells, two with a mark in the nucleus; a dashed arrow from that patch is blocked before it reaches the child. A solid arrow carries a sex cell with a different mark to the child, and a zoom beside the child shows that mark in every one of the child's cells. Four numbered pointers mark these parts." caption="Two mutations in one parent, and only one reaches the child. Name each numbered part." />
 
 <Support min={2}>**Key idea:** A mutation is a chance change in DNA, and only mutations in sex cells can be passed to offspring.</Support>
 
@@ -298,11 +299,11 @@ The variation that mutations create may or may not help an individual survive an
 | 90th | 159.0 | 160.8 |
 | 95th | 161.9 | 163.5 |
 
-Heights are for children just over 12 years old. They come from the CDC 2000 growth charts (file statage.csv). The CDC built them mostly from U.S. surveys taken from 1963 to 1994. A 25th percentile height means about 25 percent of children in the reference were that height or shorter. These are smoothed reference values, not seven real children.
+Heights are for children just over 12 years old. They come from the CDC 2000 growth charts (file statage.csv). The CDC built them mostly from U.S. surveys taken from 1963 to 1994. A 25th percentile height means about 25 percent of children in the reference were that height or shorter. These are reference values the CDC calculated from the surveys, not the heights of seven real children.
 
 | DNA change | Living thing | What it does | Effect |
 |---|---|---|---|
-| Keeps lactase, a milk-digesting protein, made in adults | People in East Africa (study 2007) | Adults can digest milk sugar | Helpful where people drink milk |
+| Keeps adults making lactase, a milk-digesting protein | People in East Africa (study 2007) | Adults can digest milk sugar | Helpful where people drink milk |
 | Change in a bacterial gene called rpoB | E. coli bacteria in a lab (2023) | Bacteria grow with the antibiotic rifampicin | Helpful to bacteria with the drug |
 | Loss of a protein needed for dark colour | Cane toads in captivity, gene-edited (2025) | Albino toads competed and fed worse | Harmful |
 | Change in a gene called ABCC11 | People (2006) | Dry earwax instead of wet | No survival effect shown |
@@ -333,7 +334,7 @@ Plan a study of how much white oak leaves vary. Do leaves from the sunny side of
 
 - **Question:** Are oak leaves from the sunny side of a tree longer or shorter than leaves from the shady side?
 - **Independent variable:** the side of the tree, sunny or shady.
-- **Dependent variable:** leaf length in centimetres, measured from the base of the blade to the tip.
+- **Dependent variable:** leaf length in centimetres, measured from where the flat part of the leaf meets the stalk to the tip.
 - **Constants:** one tree, leaves collected on the same day, the same ruler and the same start and end points.
 - **Control:** comparing the two sides of the same tree, so the tree's genes are the same.
 - **Repeated trials:** pick 20 leaves from low branches on each side, then repeat with a second tree.
