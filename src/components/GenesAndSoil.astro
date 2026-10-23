@@ -1,0 +1,259 @@
+---
+/**
+ * GenesAndSoil — a garden sketch of genes plus environment. Choose the parent plant's allele
+ * (a color allele, or a white allele that blocks color), slide the soil from acidic to less
+ * acidic, then change the parent (cut its stem, dye its petals) and grow its seeds. Flower color
+ * follows the lesson's soil table for the color allele and stays white for the white allele; the
+ * young carry the parent's allele and never the cut or the dye. Original. Self-contained.
+ */
+---
+
+<figure class="gs card" data-genesandsoil>
+  <figcaption class="gs-head">Grow a garden of genes and soil<span class="gs-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="gs-controls">
+    <div class="gs-ctl">
+      <span class="gs-lab" id="gs-allele-lab">1. The parent plant’s pair of alleles</span>
+      <div class="gs-seg" role="group" aria-labelledby="gs-allele-lab">
+        <button type="button" class="gs-btn gs-on" data-allele="color" aria-pressed="true">Two color alleles</button>
+        <button type="button" class="gs-btn" data-allele="white" aria-pressed="false">Two white alleles</button>
+      </div>
+    </div>
+    <label class="gs-ctl">
+      <span class="gs-lab">2. Soil pH: <em data-out="ph">5.0</em> <small>(lower = more acidic)</small></span>
+      <input type="range" data-in="ph" min="5" max="6.5" step="0.1" value="5" />
+      <span class="gs-ends"><span>acidic</span><span>less acidic</span></span>
+    </label>
+    <div class="gs-ctl">
+      <span class="gs-lab" id="gs-change-lab">3. Change the parent</span>
+      <div class="gs-seg" role="group" aria-labelledby="gs-change-lab">
+        <button type="button" class="gs-btn" data-change="cut" aria-pressed="false">Cut the stem</button>
+        <button type="button" class="gs-btn" data-change="dye" aria-pressed="false">Dye the petals</button>
+      </div>
+    </div>
+  </div>
+  <div class="gs-actions">
+    <button type="button" class="gs-btn gs-run" data-grow>Grow seeds</button>
+    <button type="button" class="gs-btn" data-reset>Reset</button>
+  </div>
+
+  <svg class="gs-svg" viewBox="0 0 340 300" role="img" aria-label="A parent plant on the left and six young plants grown from its seeds on the right, all in the same soil. A bar below shows the flower color for each soil pH." data-plot></svg>
+
+  <dl class="gs-readout">
+    <div><dt>Parent’s flowers</dt><dd data-r-parent>blue</dd></div>
+    <div><dt>Young plants’ flowers</dt><dd data-r-young>not grown yet</dd></div>
+    <div><dt>In this sketch, passed on from the parent’s change</dt><dd data-r-change>not grown yet</dd></div>
+  </dl>
+  <p class="gs-why" data-why role="status">Pick an allele and slide the soil. Then change the parent and press Grow seeds.</p>
+  <p class="gs-assume">Made up for this sketch: the soil moves in steps of 0.1 pH from 5.0 to 6.5. Blue is shown at 5.5 or lower, in between from 5.6 to 5.9, and pink from 6.0 up; the lesson’s table says “about”, so the edges here are our choice. Six young plants are drawn. Both parents have the same pair, so each young plant gets one allele from each. Nothing here is measured, and the picture is a sketch of the logic, not to scale.</p>
+  <p class="gs-foot">The genes set which colors are possible, and the soil helps decide which one appears. A cut or a dye changes the parent’s body, not the genes in its sex cells, so the young do not get it.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', GREEN = '#2e7d32', SOIL = '#8a5a2b', ORANGE = '#c25e00';
+  const COLORS: Record<string, { name: string; fill: string }> = {
+    blue: { name: 'blue', fill: '#6f8fe8' },
+    between: { name: 'in between', fill: '#a98bd9' },
+    pink: { name: 'pink', fill: '#f09bbf' },
+    white: { name: 'white', fill: '#ffffff' },
+  };
+  const DYE = '#f2c200';
+  const N_YOUNG = 6;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-genesandsoil]').forEach((root) => {
+    const q = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('GenesAndSoil: missing ' + s);
+      return e;
+    };
+    const plot = q<SVGSVGElement>('[data-plot]');
+    const phIn = q<HTMLInputElement>('[data-in="ph"]');
+    const phOut = q<HTMLElement>('[data-out="ph"]');
+    const rParent = q<HTMLElement>('[data-r-parent]');
+    const rYoung = q<HTMLElement>('[data-r-young]');
+    const rChange = q<HTMLElement>('[data-r-change]');
+    const why = q<HTMLElement>('[data-why]');
+    const alleleBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-allele]'));
+    const changeBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-change]'));
+    const growBtn = q<HTMLButtonElement>('[data-grow]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+
+    let allele = 'color';
+    let cut = false, dye = false;
+    let grown = false;
+    // The young are grown from a snapshot of the parent at the moment of "Grow seeds".
+    let seedChange = { cut: false, dye: false };
+
+    const colorKey = (a: string, ph10: number) => (a === 'white' ? 'white' : ph10 <= 55 ? 'blue' : ph10 <= 59 ? 'between' : 'pink');
+
+    function flower(cx: number, cy: number, r: number, fill: string) {
+      const g = el('g', {});
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2;
+        g.appendChild(el('circle', { cx: cx + Math.cos(a) * r * 0.55, cy: cy + Math.sin(a) * r * 0.55, r: r * 0.45, fill, stroke: INK, 'stroke-width': 1 }));
+      }
+      g.appendChild(el('circle', { cx, cy, r: r * 0.58, fill, stroke: 'none' }));
+      plot.appendChild(g);
+    }
+    function text(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': 12, fill: INK, ...extra });
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+
+    function render() {
+      const ph10 = Math.round(parseFloat(phIn.value) * 10);
+      phOut.textContent = (ph10 / 10).toFixed(1);
+      const key = colorKey(allele, ph10);
+      const parentFill = dye ? DYE : COLORS[key].fill;
+      const parentName = dye ? 'dyed yellow' : COLORS[key].name;
+      const pairWords = allele === 'white' ? 'two white alleles' : 'two color alleles';
+      const oneWord = allele === 'white' ? 'white' : 'color';
+
+      plot.replaceChildren();
+      // soil and ground for the back row
+      plot.appendChild(el('rect', { x: 0, y: 200, width: 340, height: 22, fill: SOIL }));
+      plot.appendChild(el('line', { x1: 168, y1: 140, x2: 336, y2: 140, stroke: SOIL, 'stroke-width': 4 }));
+
+      // headings
+      text(4, 18, 'Parent', { 'font-weight': 700 });
+      text(4, 34, 'has ' + pairWords);
+      text(160, 18, 'Young plants', { 'font-weight': 700 });
+      if (grown) {
+        text(160, 33, 'Both parents have the');
+        text(160, 48, 'same pair. Each young got');
+        text(160, 63, 'one ' + oneWord + ' allele from');
+        text(160, 78, 'each parent');
+      } else text(160, 34, 'grown from seeds');
+
+      // parent plant
+      plot.appendChild(el('line', { x1: 62, y1: 200, x2: 62, y2: 118, stroke: GREEN, 'stroke-width': 4 }));
+      plot.appendChild(el('ellipse', { cx: 44, cy: 168, rx: 13, ry: 6, fill: '#7bb87f', stroke: GREEN, transform: 'rotate(25 44 168)' }));
+      if (cut) {
+        plot.appendChild(el('line', { x1: 62, y1: 188, x2: 78, y2: 178, stroke: GREEN, 'stroke-width': 3 }));
+        plot.appendChild(el('line', { x1: 73, y1: 171, x2: 83, y2: 186, stroke: ORANGE, 'stroke-width': 3 }));
+        text(90, 180, 'cut stem', { fill: ORANGE, 'font-weight': 700 });
+      } else {
+        plot.appendChild(el('line', { x1: 62, y1: 188, x2: 96, y2: 166, stroke: GREEN, 'stroke-width': 3 }));
+        plot.appendChild(el('ellipse', { cx: 106, cy: 161, rx: 13, ry: 6, fill: '#7bb87f', stroke: GREEN, transform: 'rotate(-30 106 161)' }));
+      }
+      flower(62, 94, 28, parentFill);
+      if (dye) text(62, 58, 'dyed petals', { 'text-anchor': 'middle', fill: ORANGE, 'font-weight': 700 });
+
+      // arrow: only the alleles pass from parent to seeds
+      plot.appendChild(el('line', { x1: 112, y1: 70, x2: 150, y2: 70, stroke: INK, 'stroke-width': 1.6 }));
+      plot.appendChild(el('path', { d: 'M150 70 L143 65 L143 75 Z', fill: INK }));
+      text(131, 62, 'alleles', { 'text-anchor': 'middle' });
+
+      // young plants (or a prompt)
+      if (!grown) {
+        text(250, 115, 'Press Grow seeds', { 'text-anchor': 'middle', fill: INK });
+      } else {
+        const youngFill = COLORS[key].fill;
+        for (let i = 0; i < N_YOUNG; i++) {
+          const cx = 195 + (i % 3) * 55;
+          const ground = i < 3 ? 140 : 200;
+          plot.appendChild(el('line', { x1: cx, y1: ground, x2: cx, y2: ground - 30, stroke: GREEN, 'stroke-width': 3 }));
+          plot.appendChild(el('ellipse', { cx: cx - 9, cy: ground - 10, rx: 7, ry: 3.5, fill: '#7bb87f', stroke: GREEN, transform: `rotate(25 ${cx - 9} ${ground - 10})` }));
+          plot.appendChild(el('ellipse', { cx: cx + 9, cy: ground - 14, rx: 7, ry: 3.5, fill: '#7bb87f', stroke: GREEN, transform: `rotate(-25 ${cx + 9} ${ground - 14})` }));
+          flower(cx, ground - 42, 14, youngFill);
+        }
+      }
+
+      // pH to color bar (from the lesson's table), marker at the current soil
+      const bx0 = 20, bx1 = 320, by = 244, bh = 24;
+      const px = (p10: number) => bx0 + ((p10 - 50) / 15) * (bx1 - bx0);
+      const bands: [number, number, string, string][] = [[50, 55.5, '#c3d0f7', 'blue'], [55.5, 59.5, '#d9c9ee', 'in between'], [59.5, 65, '#f9cfe2', 'pink']];
+      text(20, 237, allele === 'white' ? 'pH bar: color-changing plants only' : 'Soil pH: lower means more acidic');
+      plot.setAttribute('aria-label', 'A parent plant on the left and six young plants grown from its seeds on the right, all in the same soil. A bar below shows the flower color for each soil pH' + (allele === 'white' ? ', for color-changing plants only; white-allele plants stay white.' : '.'));
+      const bar = el('g', { opacity: allele === 'white' ? 0.35 : 1 });
+      for (const [a, b, fill, label] of bands) {
+        bar.appendChild(el('rect', { x: px(a), y: by, width: px(b) - px(a), height: bh, fill, stroke: INK, 'stroke-width': 0.8 }));
+        const t = el('text', { x: (px(a) + px(b)) / 2, y: by + 16, 'font-size': 12, 'text-anchor': 'middle', fill: INK });
+        t.textContent = label;
+        bar.appendChild(t);
+      }
+      plot.appendChild(bar);
+      plot.appendChild(el('line', { x1: px(ph10), y1: by - 3, x2: px(ph10), y2: by + bh + 3, stroke: ORANGE, 'stroke-width': 3 }));
+      plot.appendChild(el('path', { d: `M${px(ph10)} ${by + bh + 3} l-6 9 l12 0 Z`, fill: ORANGE }));
+      for (const p10 of [50, 55, 60, 65]) text(px(p10), 294, (p10 / 10).toFixed(1), { 'text-anchor': p10 === 50 ? 'start' : p10 === 65 ? 'end' : 'middle' });
+
+      // readouts and status
+      rParent.textContent = parentName;
+      let sentence: string;
+      if (!grown) {
+        rYoung.textContent = 'not grown yet';
+        rChange.textContent = 'not grown yet';
+        if (cut || dye) {
+          const what = cut && dye ? 'a cut stem and dyed petals' : cut ? 'a cut stem' : 'dyed petals';
+          sentence = `In this sketch, the parent has ${what}. Now press Grow seeds.`;
+        } else if (allele === 'white') {
+          sentence = 'In this sketch, two white alleles block color, so the flowers stay white in any soil.';
+        } else {
+          sentence = `In this sketch, in soil at pH ${(ph10 / 10).toFixed(1)} the flowers are ${COLORS[key].name}.`;
+        }
+      } else {
+        rYoung.textContent = COLORS[key].name;
+        const parts: string[] = [];
+        if (seedChange.dye) parts.push('dye passed on: none of the ' + N_YOUNG + ' young drawn');
+        if (seedChange.cut) parts.push('cut stem passed on: none of the ' + N_YOUNG + ' young drawn');
+        rChange.textContent = parts.length ? parts.join('; ') : 'no change was made to the parent';
+        const c = COLORS[key].name;
+        if (seedChange.cut && seedChange.dye) sentence = `In this sketch, neither change passed on. The young have uncut stems and ${c} flowers.`;
+        else if (seedChange.dye) sentence = `In this sketch, the parent’s dye did not pass on. The young flowers are ${c}.`;
+        else if (seedChange.cut) sentence = `In this sketch, the cut stem did not pass on. The young stems are uncut.`;
+        else sentence = `In this sketch, the young get one allele from each parent, and both parents have the same pair. Flowers are ${c}.`;
+      }
+      why.textContent = sentence;
+
+      alleleBtns.forEach((b) => { const on = b.dataset.allele === allele; b.classList.toggle('gs-on', on); b.setAttribute('aria-pressed', String(on)); });
+      changeBtns.forEach((b) => { const on = b.dataset.change === 'cut' ? cut : dye; b.classList.toggle('gs-on', on); b.setAttribute('aria-pressed', String(on)); });
+    }
+
+    const edit = () => { grown = false; render(); };
+    alleleBtns.forEach((b) => b.addEventListener('click', () => { allele = b.dataset.allele === 'white' ? 'white' : 'color'; edit(); }));
+    changeBtns.forEach((b) => b.addEventListener('click', () => { if (b.dataset.change === 'cut') cut = !cut; else dye = !dye; edit(); }));
+    phIn.addEventListener('input', edit);
+    growBtn.addEventListener('click', () => { grown = true; seedChange = { cut, dye }; render(); });
+    resetBtn.addEventListener('click', () => {
+      allele = 'color'; cut = false; dye = false; grown = false; phIn.value = '5';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .gs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gs-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: 0 0 var(--ddp-space-2); }
+  .gs-ctl { display: flex; flex-direction: column; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); min-width: 0; }
+  .gs-lab { font-weight: 600; }
+  .gs-lab small { font-weight: 400; color: var(--ddp-color-muted); font-size: inherit; }
+  .gs-lab em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gs-ctl input[type="range"] { accent-color: var(--ddp-color-accent); min-height: 44px; width: 100%; margin: 0; }
+  .gs-ends { display: flex; justify-content: space-between; color: var(--ddp-color-muted); }
+  .gs-seg { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .gs-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .gs-btn { border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-xs); padding: 0.4rem 0.7rem; min-height: 44px; cursor: pointer; }
+  .gs-btn.gs-on { background: color-mix(in srgb, var(--ddp-color-accent) 14%, transparent); border-color: var(--ddp-color-accent); color: var(--ddp-color-primary); font-weight: 700; }
+  .gs-run { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .gs-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .gs-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gs-readout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gs-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .gs-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gs-readout dd { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; }
+  .gs-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 3em; }
+  .gs-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .gs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 620px) { .gs-controls, .gs-readout { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,439 @@
+---
+/**
+ * BayTankDay — a virtual tank of Bay water run through 24 hours. The learner sets the
+ * amount of plants and algae, the number of animals and the sky (sunny or cloudy), then
+ * runs one day and one night. Photosynthesis adds oxygen only in light and needs carbon
+ * dioxide; respiration (plants and animals alike) uses oxygen day and night and slows when
+ * oxygen is scarce. The oxygen line therefore rises in daylight when photosynthesis
+ * outpaces respiration and falls after dark. All amounts are relative units, not mg/L.
+ * No gas exchange with the air, constant temperature; plants and animals are blocks.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="bt card" data-baytank>
+  <figcaption class="bt-head">Bay tank: run a day and a night<span class="bt-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="bt-svg" viewBox="0 0 340 170" role="img" aria-label="A tank of Bay water with underwater plants and algae and animals, under a sunny, cloudy or dark sky" data-scene></svg>
+
+  <div class="bt-controls">
+    <label class="bt-slabel"><span>Plants and algae <em data-out="plants">3</em></span>
+      <input type="range" data-in="plants" min="1" max="5" step="1" value="3" />
+    </label>
+    <label class="bt-slabel"><span>Animals <em data-out="animals">2</em></span>
+      <input type="range" data-in="animals" min="0" max="5" step="1" value="2" />
+    </label>
+    <div class="bt-sky" role="group" aria-label="Sky">
+      <span class="bt-skylabel">Sky</span>
+      <button type="button" class="bt-btn bt-pill" data-sky="sunny" aria-pressed="true">Sunny</button>
+      <button type="button" class="bt-btn bt-pill" data-sky="cloudy" aria-pressed="false">Cloudy</button>
+    </div>
+  </div>
+
+  <div class="bt-actions">
+    <button type="button" class="bt-btn bt-run" data-run>Run 24 hours</button>
+    <button type="button" class="bt-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="bt-readouts">
+    <div class="bt-clock"><span class="bt-k">Clock</span><strong data-clock>6:00 a.m.</strong></div>
+    <div class="bt-bar">
+      <span class="bt-k">Oxygen</span>
+      <div class="bt-track" role="img" aria-label="Oxygen in the tank" data-o2-track><div class="bt-fill bt-fill-o2" data-o2-fill></div></div>
+      <strong data-o2-val>50</strong>
+    </div>
+    <div class="bt-bar">
+      <span class="bt-k">Carbon dioxide</span>
+      <div class="bt-track" role="img" aria-label="Carbon dioxide in the tank" data-co2-track><div class="bt-fill bt-fill-co2" data-co2-fill></div></div>
+      <strong data-co2-val>50</strong>
+    </div>
+    <div class="bt-rates">
+      <div><span class="bt-k">Photosynthesis adds</span><strong data-rate-p>0.0</strong> <small>units per hour</small></div>
+      <div><span class="bt-k">Respiration uses</span><strong data-rate-r>0.0</strong> <small>units per hour</small></div>
+    </div>
+  </div>
+
+  <svg class="bt-svg" viewBox="0 0 340 210" role="img" aria-label="Line plot of oxygen in this sketch over 24 hours, from 6 a.m. to 6 a.m. the next day" data-plot></svg>
+  <div class="bt-legend">
+    <span><i class="bt-sw bt-sw-now"></i> this run</span>
+    <span><i class="bt-sw bt-sw-prev"></i> previous run</span>
+  </div>
+
+  <dl class="bt-summary">
+    <div><dt>Highest oxygen</dt><dd data-hi>–</dd></div>
+    <div><dt>Lowest oxygen</dt><dd data-lo>–</dd></div>
+    <div><dt>Oxygen at the next dawn</dt><dd data-dawn>–</dd></div>
+  </dl>
+
+  <p class="bt-why" data-why role="status">Press Run 24 hours to start a day in the tank. Predict the oxygen line first.</p>
+
+  <p class="bt-assume">In this sketch: amounts are relative units, not mg/L. There is no gas exchange with the air, the temperature stays the same, daylight lasts from 6 a.m. to 6 p.m., and plants and animals are drawn as blocks. A cloudy sky lets through 60 out of 100 parts of the light, a plant block adds up to 3 units an hour and uses 0.4, an animal block uses 0.8, and a gas below 15 units slows its process (all made-up numbers for this sketch). Carbon dioxide is drawn as 100 minus oxygen (a sketch simplification). “Very low” here means under 20 units.</p>
+  <p class="bt-foot">Rule to keep: photosynthesis adds oxygen only in light, but respiration uses oxygen day and night. A real creek is bumpier, because tides, air and warm water also change oxygen.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', TEAL = '#0e7c86', GREEN = '#2f8f4e', ORANGE = '#e57200';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 12, fill: INK }, extra));
+    t.textContent = s;
+    return t;
+  }
+
+  // ---- the sketch's rules (relative units) ----
+  const DT = 0.25;                // hours per step
+  const N = 24 / DT;              // 96 steps; step 0 = 6:00 a.m.
+  const START = 50;               // oxygen at 6 a.m., of 100 (oxygen + carbon dioxide = 100)
+  const K_PHOTO = 3;              // oxygen added per hour per plant block at full light
+  const K_RESP_PLANT = 0.4;       // oxygen used per hour per plant block
+  const K_RESP_ANIMAL = 0.8;      // oxygen used per hour per animal block
+  const CLOUD = 0.6;              // share of the light that reaches the plants on a cloudy day
+  const SCARCE = 15;              // below this much of a gas, its process slows
+
+  const light = (t: number) => (t < 12 ? Math.sin((Math.PI * t) / 12) : 0);
+  function rates(t: number, o: number, plants: number, animals: number, cloudy: boolean) {
+    const co2 = 100 - o;
+    const p = plants * K_PHOTO * light(t) * (cloudy ? CLOUD : 1) * Math.min(1, co2 / SCARCE);
+    const r = (plants * K_RESP_PLANT + animals * K_RESP_ANIMAL) * Math.min(1, o / SCARCE);
+    return { p, r };
+  }
+  function simulate(plants: number, animals: number, cloudy: boolean): number[] {
+    const out = [START];
+    let o = START;
+    for (let i = 0; i < N; i++) {
+      const { p, r } = rates(i * DT, o, plants, animals, cloudy);
+      o = Math.max(0, Math.min(100, o + (p - r) * DT));
+      out.push(o);
+    }
+    return out;
+  }
+  function clock(t: number): string {
+    const m = Math.round(t * 60) % 1440;
+    const h24 = (6 * 60 + m) % 1440;
+    const h = Math.floor(h24 / 60), mm = h24 % 60;
+    const ap = h < 12 ? 'a.m.' : 'p.m.';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${String(mm).padStart(2, '0')} ${ap}`;
+  }
+  const fmt = (v: number) => String(Math.round(v));
+
+  document.querySelectorAll<HTMLElement>('[data-baytank]').forEach((root) => {
+    const one = <T extends Element>(s: string): T => {
+      const e = root.querySelector<T>(s);
+      if (!e) throw new Error('BayTankDay: missing ' + s);
+      return e;
+    };
+    const scene = one<SVGSVGElement>('[data-scene]');
+    const plot = one<SVGSVGElement>('[data-plot]');
+    const plantsIn = one<HTMLInputElement>('[data-in="plants"]');
+    const animalsIn = one<HTMLInputElement>('[data-in="animals"]');
+    const plantsOut = one<HTMLElement>('[data-out="plants"]');
+    const animalsOut = one<HTMLElement>('[data-out="animals"]');
+    const skyBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sky]'));
+    const runBtn = one<HTMLButtonElement>('[data-run]');
+    const resetBtn = one<HTMLButtonElement>('[data-reset]');
+    const clockEl = one<HTMLElement>('[data-clock]');
+    const o2Fill = one<HTMLElement>('[data-o2-fill]');
+    const co2Fill = one<HTMLElement>('[data-co2-fill]');
+    const o2Val = one<HTMLElement>('[data-o2-val]');
+    const co2Val = one<HTMLElement>('[data-co2-val]');
+    const o2Track = one<HTMLElement>('[data-o2-track]');
+    const co2Track = one<HTMLElement>('[data-co2-track]');
+    const rateP = one<HTMLElement>('[data-rate-p]');
+    const rateR = one<HTMLElement>('[data-rate-r]');
+    const hiEl = one<HTMLElement>('[data-hi]');
+    const loEl = one<HTMLElement>('[data-lo]');
+    const dawnEl = one<HTMLElement>('[data-dawn]');
+    const why = one<HTMLElement>('[data-why]');
+
+    let cloudy = false;
+    let idx = 0;                  // how many steps have been revealed (0 = not started)
+    let series: number[] = [];    // full series for the current settings
+    let prev: number[] | null = null; // last finished run, drawn dashed
+    let timer: number | undefined;
+    let running = false;
+    let finished = false;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const plants = () => parseInt(plantsIn.value, 10);
+    const animals = () => parseInt(animalsIn.value, 10);
+
+    // ---- plot geometry ----
+    const X0 = 44, X1 = 330, Y0 = 30, Y1 = 166;
+    const px = (t: number) => X0 + (t / 24) * (X1 - X0);
+    const py = (v: number) => Y1 - (v / 100) * (Y1 - Y0);
+    const path = (s: number[], upto: number) => {
+      let d = '';
+      for (let i = 0; i <= upto && i < s.length; i++) d += (i === 0 ? 'M' : 'L') + px(i * DT).toFixed(1) + ' ' + py(s[i]).toFixed(1) + ' ';
+      return d.trim();
+    };
+
+    function drawPlot() {
+      plot.replaceChildren();
+      // night shading (6 p.m. to 6 a.m.)
+      plot.appendChild(el('rect', { x: px(12), y: Y0, width: X1 - px(12), height: Y1 - Y0, fill: '#e4e8f0' }));
+      plot.appendChild(txt(px(6), Y0 + 15, 'daylight', { 'text-anchor': 'middle' }));
+      plot.appendChild(txt(px(18), Y0 + 15, 'night', { 'text-anchor': 'middle' }));
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 50, 100]) {
+        if (v) plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(txt(X0 - 5, py(v) + 4, String(v), { 'text-anchor': 'end' }));
+      }
+      const ticks: [number, string][] = [[0, '6 a.m.'], [6, 'noon'], [12, '6 p.m.'], [18, 'midnight'], [24, '6 a.m.']];
+      for (const [t, lab] of ticks) {
+        plot.appendChild(el('line', { x1: px(t), y1: Y1, x2: px(t), y2: Y1 + 4, stroke: INK, 'stroke-width': 1 }));
+        const anchor = t === 0 ? 'start' : t === 24 ? 'end' : 'middle';
+        const x = t === 0 ? px(t) - 6 : t === 24 ? px(t) + 6 : px(t);
+        plot.appendChild(txt(x, Y1 + 18, lab, { 'text-anchor': anchor }));
+      }
+      plot.appendChild(txt(X0 - 38, 14, 'Oxygen in this sketch (relative units)'));
+      plot.appendChild(txt((X0 + X1) / 2, Y1 + 38, 'time of day', { 'text-anchor': 'middle' }));
+      if (prev) plot.appendChild(el('path', { d: path(prev, N), fill: 'none', stroke: '#8a8a96', 'stroke-width': 2, 'stroke-dasharray': '5 4' }));
+      if (idx > 0 && series.length) {
+        plot.appendChild(el('path', { d: path(series, idx), fill: 'none', stroke: TEAL, 'stroke-width': 3 }));
+        const t = idx * DT, v = series[idx];
+        plot.appendChild(el('line', { x1: px(t), y1: Y0, x2: px(t), y2: Y1, stroke: ORANGE, 'stroke-width': 1, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('circle', { cx: px(t), cy: py(v), r: 4.5, fill: ORANGE }));
+      }
+    }
+
+    function drawScene() {
+      scene.replaceChildren();
+      const t = idx * DT;
+      const lt = light(t);
+      const dark = idx > 0 && lt <= 0 && t < 24;
+      scene.appendChild(el('rect', { x: 0, y: 0, width: 340, height: 40, fill: '#f1f7fb' }));
+      scene.appendChild(el('rect', { x: 0, y: 40, width: 340, height: 130, fill: '#cfe6f5' }));
+      scene.appendChild(el('line', { x1: 0, y1: 40, x2: 340, y2: 40, stroke: '#7fb0d0', 'stroke-width': 1.5 }));
+      if (dark) scene.appendChild(el('rect', { x: 0, y: 0, width: 340, height: 170, fill: '#0b1d3a', opacity: 0.28 }));
+      // sky symbol
+      let skyWord = 'sunny';
+      if (dark) {
+        skyWord = 'night';
+        scene.appendChild(el('circle', { cx: 22, cy: 20, r: 10, fill: '#dfe3ee', stroke: INK, 'stroke-width': 1 }));
+        scene.appendChild(el('circle', { cx: 27, cy: 17, r: 9, fill: '#b9c2d6' }));
+      } else if (cloudy) {
+        skyWord = 'cloudy';
+        scene.appendChild(el('ellipse', { cx: 18, cy: 23, rx: 13, ry: 8, fill: '#c9ced6', stroke: INK, 'stroke-width': 1 }));
+        scene.appendChild(el('ellipse', { cx: 28, cy: 18, rx: 11, ry: 8, fill: '#d9dde3', stroke: INK, 'stroke-width': 1 }));
+      } else {
+        scene.appendChild(el('circle', { cx: 22, cy: 20, r: 10, fill: '#f6c445', stroke: '#b8860b', 'stroke-width': 1.5 }));
+      }
+      scene.appendChild(txt(44, 25, 'Sky: ' + skyWord, { fill: '#1d2430' }));
+      scene.appendChild(txt(332, 25, clock(t), { 'text-anchor': 'end', 'font-weight': 700, fill: '#1d2430' }));
+      // labels and blocks
+      const np = plants(), na = animals();
+      scene.appendChild(txt(8, 62, 'Animals: ' + na, { fill: '#1d2430' }));
+      for (let i = 0; i < na; i++) {
+        const x = 10 + i * 40;
+        scene.appendChild(el('rect', { x, y: 70, width: 30, height: 20, rx: 6, fill: ORANGE, stroke: '#8a4400', 'stroke-width': 1.2 }));
+        scene.appendChild(el('polygon', { points: `${x + 30},80 ${x + 37},73 ${x + 37},87`, fill: ORANGE, stroke: '#8a4400', 'stroke-width': 1.2 }));
+      }
+      scene.appendChild(txt(8, 116, 'Plants and algae: ' + np, { fill: '#1d2430' }));
+      for (let i = 0; i < np; i++) {
+        const x = 10 + i * 40;
+        scene.appendChild(el('rect', { x, y: 126, width: 30, height: 38, fill: GREEN, stroke: '#1d5c33', 'stroke-width': 1.2 }));
+      }
+      // arrows, labelled: gas swaps right now
+      const { p, r } = rates(t, series[idx] ?? START, np, na, cloudy);
+      if (idx > 0 && p > 0.05) {
+        scene.appendChild(el('path', { d: 'M218 156 L218 112', stroke: TEAL, 'stroke-width': 2.5, fill: 'none' }));
+        scene.appendChild(el('polygon', { points: '212,118 218,106 224,118', fill: TEAL }));
+        scene.appendChild(txt(230, 130, 'oxygen added', { fill: '#1d2430' }));
+        scene.appendChild(txt(230, 144, 'by photosynthesis', { fill: '#1d2430' }));
+      }
+      if (idx > 0 && r > 0.05) {
+        scene.appendChild(el('path', { d: 'M224 84 L216 84', stroke: '#8a4400', 'stroke-width': 2.5, fill: 'none' }));
+        scene.appendChild(el('polygon', { points: '220,77 210,84 220,91', fill: '#8a4400' }));
+        scene.appendChild(txt(232, 72, 'oxygen used by', { fill: '#1d2430' }));
+        scene.appendChild(txt(232, 86, 'plants and animals', { fill: '#1d2430' }));
+        scene.appendChild(txt(232, 100, '(respiration)', { fill: '#1d2430' }));
+      }
+    }
+
+    function drawReadouts() {
+      const t = idx * DT;
+      const o = idx > 0 ? series[idx] : START;
+      clockEl.textContent = clock(t);
+      o2Fill.style.width = o.toFixed(1) + '%';
+      co2Fill.style.width = (100 - o).toFixed(1) + '%';
+      o2Val.textContent = fmt(o);
+      co2Val.textContent = fmt(100 - o);
+      o2Track.setAttribute('aria-label', 'Oxygen ' + fmt(o) + ' of 100 units');
+      co2Track.setAttribute('aria-label', 'Carbon dioxide ' + fmt(100 - o) + ' of 100 units');
+      if (idx > 0 && idx < N + 1) {
+        const rr = rates(t, o, plants(), animals(), cloudy);
+        rateP.textContent = rr.p.toFixed(1);
+        rateR.textContent = rr.r.toFixed(1);
+      } else {
+        rateP.textContent = '0.0';
+        rateR.textContent = '0.0';
+      }
+      if (idx > 0) {
+        let hi = 0, lo = 0;
+        for (let i = 0; i <= idx; i++) { if (series[i] > series[hi]) hi = i; if (series[i] < series[lo]) lo = i; }
+        hiEl.textContent = fmt(series[hi]) + ' at ' + clock(hi * DT);
+        loEl.textContent = fmt(series[lo]) + ' at ' + clock(lo * DT);
+        dawnEl.textContent = finished ? fmt(series[N]) + ' (started at ' + START + ')' : 'not yet';
+      } else {
+        hiEl.textContent = loEl.textContent = dawnEl.textContent = '–';
+      }
+    }
+
+    function status() {
+      if (idx === 0) {
+        why.textContent = prev
+          ? 'Change a setting, predict the new oxygen line, then run again. The dashed line is your last run.'
+          : 'Press Run 24 hours to start a day in the tank. Predict the oxygen line first.';
+        return;
+      }
+      const t = idx * DT, o = series[idx];
+      if (finished) {
+        const dawn = series[N];
+        let s = `The day is done. Oxygen at the next dawn is ${fmt(dawn)} units, from ${START} at the start.`;
+        if (dawn < SCARCE + 5) s += ' That is very low. In real water, very low oxygen over a large area can kill many animals.';
+        else if (dawn < START - 5) s += ' Oxygen fell more at night than it rose by day.';
+        else if (dawn > START + 5) s += ' Oxygen rose more by day than it fell at night.';
+        else s += ' Oxygen rose by day and fell at night, about evenly.';
+        if (cloudy) s += ' In this sketch, a cloudy sky means less light, so photosynthesis adds less oxygen.';
+        why.textContent = s;
+        return;
+      }
+      const { p, r } = rates(t, o, plants(), animals(), cloudy);
+      if (light(t) <= 0) {
+        why.textContent = 'It is dark, so photosynthesis stops. Respiration goes on, so oxygen falls.' + (o < SCARCE + 5 ? ' Oxygen is very low.' : '');
+      } else if (p > r) {
+        why.textContent = 'Light is on. In this sketch, photosynthesis adds oxygen faster than respiration uses it, so oxygen rises.';
+      } else {
+        why.textContent = 'Light is on, but respiration uses oxygen faster than photosynthesis adds it. Oxygen falls.';
+      }
+    }
+
+    function render() {
+      drawScene();
+      drawPlot();
+      drawReadouts();
+      status();
+      runBtn.textContent = running ? 'Running…' : finished ? 'Run again' : 'Run 24 hours';
+      runBtn.disabled = running;
+    }
+
+    function stop() {
+      if (timer !== undefined) { window.clearTimeout(timer); timer = undefined; }
+      running = false;
+    }
+    function clearRun() {
+      stop();
+      idx = 0;
+      finished = false;
+      series = [];
+    }
+    function tick() {
+      if (idx >= N) {
+        running = false; finished = true; prev = series.slice();
+        render();
+        return;
+      }
+      idx += 1;
+      render();
+      timer = window.setTimeout(tick, 45);
+    }
+    function run() {
+      clearRun();
+      series = simulate(plants(), animals(), cloudy);
+      if (reduce) {
+        idx = N; finished = true; prev = series.slice();
+        render();
+        return;
+      }
+      running = true;
+      idx = 1;
+      render();
+      timer = window.setTimeout(tick, 45);
+    }
+    function settingsChanged() {
+      plantsOut.textContent = plantsIn.value;
+      animalsOut.textContent = animalsIn.value;
+      clearRun();
+      render();
+    }
+    function setSky(c: boolean) {
+      cloudy = c;
+      skyBtns.forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.sky === 'cloudy') === c)));
+      clearRun();
+      render();
+    }
+
+    plantsIn.addEventListener('input', settingsChanged);
+    animalsIn.addEventListener('input', settingsChanged);
+    skyBtns.forEach((b) => b.addEventListener('click', () => setSky(b.dataset.sky === 'cloudy')));
+    runBtn.addEventListener('click', run);
+    resetBtn.addEventListener('click', () => {
+      plantsIn.value = '3';
+      animalsIn.value = '2';
+      prev = null;
+      cloudy = false;
+      skyBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sky === 'sunny')));
+      plantsOut.textContent = '3';
+      animalsOut.textContent = '2';
+      clearRun();
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .bt { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .bt-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .bt-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .bt-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .bt-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); align-items: end; }
+  .bt-slabel { display: flex; flex-direction: column; justify-content: center; gap: 0.1rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .bt-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .bt-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 28px; }
+  .bt-sky { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); }
+  .bt-skylabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .bt-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 1rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .bt-btn:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+  .bt-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .bt-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .bt-btn:disabled { opacity: 0.6; cursor: default; }
+  .bt-run { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .bt-actions { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0 var(--ddp-space-3); }
+  .bt-readouts { display: grid; gap: var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .bt-k { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bt-clock { display: flex; gap: var(--ddp-space-3); align-items: baseline; font-size: var(--ddp-text-sm); }
+  .bt-clock strong { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .bt-bar { display: grid; grid-template-columns: 8.5rem 1fr 2.5rem; gap: var(--ddp-space-2); align-items: center; font-size: var(--ddp-text-sm); }
+  .bt-bar strong { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); text-align: right; }
+  .bt-track { height: 16px; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 4px; overflow: hidden; }
+  .bt-fill { height: 100%; width: 50%; }
+  .bt-fill-o2 { background: #0e7c86; }
+  .bt-fill-co2 { background: #8a8a96; }
+  .bt-rates { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); font-size: var(--ddp-text-sm); }
+  .bt-rates > div { display: flex; flex-direction: column; }
+  .bt-rates strong { font-family: var(--ddp-font-mono); color: var(--ddp-color-primary); }
+  .bt-rates small { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bt-legend { display: flex; flex-wrap: wrap; gap: var(--ddp-space-4); justify-content: center; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .bt-sw { display: inline-block; width: 22px; vertical-align: middle; border-top: 3px solid #0e7c86; margin-right: 0.3rem; }
+  .bt-sw-prev { border-top: 2px dashed #8a8a96; }
+  .bt-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0; }
+  .bt-summary div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .bt-summary dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bt-summary dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .bt-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .bt-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .bt-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) {
+    .bt-controls { grid-template-columns: 1fr; }
+    .bt-bar { grid-template-columns: 6.5rem 1fr 2.5rem; }
+    .bt-summary { grid-template-columns: 1fr; }
+  }
+</style>

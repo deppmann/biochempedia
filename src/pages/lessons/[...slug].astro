@@ -58,7 +58,7 @@ const isHighSchool = course.tier === 'highschool';
 // Reverse ladder links: a college lesson names the high school lessons that list it in
 // ladder.college. Published lessons only (plus drafts in `astro dev`, as elsewhere here).
 const hsReviews = isHighSchool ? [] : (await getCollection('lessons', ({ data }) =>
-  (import.meta.env.DEV || !data.draft) && courseOf(data.course).tier === 'highschool' && (data.ladder?.college ?? []).includes(entry.data.slug)))
+  (import.meta.env.DEV || !data.draft) && courseOf(data.course).tier === 'highschool' && (courseOf(data.course).ladderStep ?? 2) === 2 && (data.ladder?.college ?? []).includes(entry.data.slug)))
   .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99))
   .map((l) => ({ slug: l.data.slug, title: l.data.title }));
 
@@ -90,7 +90,7 @@ const lessonLd = {
   '@type': 'LearningResource',
   name: lesson.title,
   description: lesson.summary,
-  educationalLevel: isHighSchool ? 'high school' : 'undergraduate',
+  educationalLevel: isHighSchool ? (course.ladderStep === 1 ? 'middle school' : 'high school') : 'undergraduate',
   learningResourceType: 'interactive lesson',
   inLanguage: 'en',
   about: lesson.courseChapter,
@@ -142,7 +142,7 @@ const lessonLd = {
       </aside>
     )}
 
-    {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} />}
+    {lesson.ladder && <LessonLadder ladder={lesson.ladder} explainLevels={lesson.explainLevels} step={course.ladderStep ?? 2} />}
 
     {ex && (
       <section class="wrap explainer" id="explainer" aria-labelledby="explainer-h">

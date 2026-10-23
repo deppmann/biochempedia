@@ -5,7 +5,10 @@
    Biology II, College). The step below and the step above open in place as
    native <details> (no script needed); the college row links to the lessons on
    this site that take the idea further. The review and preview texts are the
-   lesson's explainLevels 'grade7' and 'bio2'.
+   lesson's explainLevels 'grade7' and 'bio2'. A grade 7 lesson (step 1) shows
+   the Biology step as a preview (explainLevels 'highschool') with links to the
+   high school lessons in ladder.biology; a high school lesson links its grade 7
+   lessons (ladder.grade7) under the grade 7 review.
    ============================================================================ */
 import { getCollection } from 'astro:content';
 import DepthLadder from './DepthLadder.astro';
@@ -18,22 +21,29 @@ interface Props {
     lifeScience?: string;
     biology2?: string;
     college: string[];
+    grade7?: string[];
+    biology?: string[];
   };
   explainLevels: { level: string; label: string; text: string }[];
-  /** The step this lesson is on (2, Biology, for every lesson in the high school course). */
+  /** The step this lesson is on (1 for Life Science, 2 for Biology). */
   step?: 1 | 2 | 3 | 4;
 }
 const { ladder, explainLevels, step = 2 } = Astro.props;
 const paras = (t: string) => t.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
 const grade7 = explainLevels.find((l) => l.level === 'grade7');
 const bio2 = explainLevels.find((l) => l.level === 'bio2');
+const hsPreview = explainLevels.find((l) => l.level === 'highschool');
 // Only published lessons are linked; a slug that is missing or still a draft is skipped
 // (`astro dev` also links drafts, as the rest of the lesson page does).
-const published = await getCollection('lessons', ({ data }) => (import.meta.env.DEV || !data.draft) && ladder.college.includes(data.slug));
-const college = ladder.college
+const wanted = [...ladder.college, ...(ladder.grade7 ?? []), ...(ladder.biology ?? [])];
+const published = await getCollection('lessons', ({ data }) => (import.meta.env.DEV || !data.draft) && wanted.includes(data.slug));
+const linked = (slugs: string[] = []) => slugs
   .map((slug) => published.find((l) => l.data.slug === slug))
   .filter((l): l is NonNullable<typeof l> => Boolean(l))
   .map((l) => ({ slug: l.data.slug, title: l.data.title }));
+const college = linked(ladder.college);
+const grade7Lessons = linked(ladder.grade7);
+const biologyLessons = linked(ladder.biology);
 const here = (n: number) => n === step;
 ---
 <section class="wrap ladder-wrap" aria-labelledby="ladder-h">
@@ -52,23 +62,42 @@ const here = (n: number) => n === step;
       <li class:list={['ladder-step', { 'is-here': here(1) }]} aria-current={here(1) ? 'step' : undefined}>
         <p class="ls-name">
           <span class="ls-num" aria-hidden="true">1</span> Life Science (grade 7)
-          {ladder.lifeScience && <span class="ls-code">{ladder.lifeScience}</span>}
+          {here(1) ? <span class="ls-code">{ladder.sol.join(', ')}</span> : ladder.lifeScience && <span class="ls-code">{ladder.lifeScience}</span>}
           {here(1) && <span class="ls-here">You are here</span>}
         </p>
-        {grade7 && (
+        {here(1) ? <p class="ls-note">This lesson</p> : grade7 && (
           <details class="ls-details">
             <summary>Review it at grade 7 level</summary>
             <div class="ls-body">{paras(grade7.text).map((p) => <p>{p}</p>)}</div>
           </details>
         )}
+        {!here(1) && grade7Lessons.length > 0 && (
+          <ul class="ls-links">
+            {grade7Lessons.map((c) => (
+              <li><a href={`/lessons/${c.slug}/`}><span class="ls-link-title">{c.title}</span> <span class="ls-link-go">Go back to the grade 7 lesson →</span></a></li>
+            ))}
+          </ul>
+        )}
       </li>
       <li class:list={['ladder-step', { 'is-here': here(2) }]} aria-current={here(2) ? 'step' : undefined}>
         <p class="ls-name">
           <span class="ls-num" aria-hidden="true">2</span> Biology
-          <span class="ls-code">{ladder.sol.join(', ')}</span>
+          {here(2) && <span class="ls-code">{ladder.sol.join(', ')}</span>}
           {here(2) && <span class="ls-here">You are here</span>}
         </p>
-        <p class="ls-note">This lesson</p>
+        {here(2) ? <p class="ls-note">This lesson</p> : hsPreview && (
+          <details class="ls-details">
+            <summary>Preview it at high school level</summary>
+            <div class="ls-body">{paras(hsPreview.text).map((p) => <p>{p}</p>)}</div>
+          </details>
+        )}
+        {!here(2) && biologyLessons.length > 0 && (
+          <ul class="ls-links">
+            {biologyLessons.map((c) => (
+              <li><a href={`/lessons/${c.slug}/`}><span class="ls-link-title">{c.title}</span> <span class="ls-link-go">Go up to the Biology lesson →</span></a></li>
+            ))}
+          </ul>
+        )}
       </li>
       <li class:list={['ladder-step', { 'is-here': here(3) }]} aria-current={here(3) ? 'step' : undefined}>
         <p class="ls-name">

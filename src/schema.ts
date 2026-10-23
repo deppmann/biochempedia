@@ -230,8 +230,8 @@ const lectureSlide = z.object({
 
 /** A multi-level explanation of the lesson's core idea ("explain it like I'm…"). */
 const explainLevel = z.object({
-  /** grade7 and bio2 are the high school course's depth-ladder steps: the same idea
-   *  reviewed at Life Science (grade 7) level and previewed at Biology II level. */
+  /** grade7 and bio2 are depth-ladder steps: the same idea at Life Science (grade 7) level and
+   *  previewed at Biology II level. On a grade 7 lesson, 'highschool' is the Biology preview. */
   level: z.enum(['eli5', 'highschool', 'college', 'grad', 'grade7', 'bio2']),
   label: z.string().min(1),
   text: z.string().min(1),
@@ -333,6 +333,10 @@ export const lessonSchema = z.object({
     biology2: z.string().optional(),
     /** College lessons on this site that take the idea further (slugs). */
     college: z.array(z.string()).default([]),
+    /** High school lessons: the grade 7 Life Science lessons one step down (slugs). */
+    grade7: z.array(z.string()).default([]),
+    /** Grade 7 lessons: the high school Biology lessons one step up (slugs); the preview text is explainLevels 'highschool'. */
+    biology: z.array(z.string()).default([]),
   }).optional(),
 
   /** The lesson body uses scaffolded supports (<Support>, <WordBank>, <SentenceFrames>,

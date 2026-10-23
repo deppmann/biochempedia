@@ -1,0 +1,305 @@
+---
+/**
+ * DnaZoomEdit — zoom from a pea plant down to the bases of one gene, change a base,
+ * press "Read the gene", and see a made-up protein (a chain of beads) and a flower colour.
+ * Every rule that is a statement of the dna-the-code-of-life lesson: DNA is in the nucleus
+ * (most of it, in plants), a chromosome is DNA wound with proteins, a gene is a section of a
+ * chromosome, A pairs with T and C with G, a change in a gene can stop a protein working and
+ * the pea flower comes out white. The base-to-bead lookup, the working part and the six-base
+ * size are made up for the sketch and are stated on screen. Nothing is drawn as a molecule.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="dze card" data-dze>
+  <figcaption class="dze-head">Zoom into a gene and change a letter<span class="dze-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="dze-zoom">
+    <label class="dze-slabel" for="dze-zoom-input">
+      <span>Zoom</span>
+      <em data-zoomval>Step 1 of 6: pea plant</em>
+    </label>
+    <input id="dze-zoom-input" type="range" min="0" max="5" step="1" value="0" data-zoom />
+  </div>
+
+  <svg class="dze-svg" viewBox="0 0 400 240" role="img" aria-label="A labelled sketch of the zoom step you chose, from the whole plant down to the gene" data-stage></svg>
+
+  <div class="dze-ladder" data-ladder hidden>
+    <div class="dze-side">Side of the ladder: sugar and phosphate</div>
+    <div class="dze-grid" data-grid></div>
+    <div class="dze-side">Side of the ladder: sugar and phosphate</div>
+    <p class="dze-hint">Top row: the side this sketch reads. Two blocks joined in the middle make one rung, a base pair. Tap a block to change its letter.</p>
+  </div>
+
+  <div class="dze-row">
+    <button type="button" class="dze-btn dze-primary" data-read disabled>Read the gene</button>
+    <button type="button" class="dze-btn" data-reset>Reset</button>
+  </div>
+
+  <p class="dze-status" data-status role="status"></p>
+
+  <div class="dze-result">
+    <div class="dze-rtitle">What the gene makes in this sketch</div>
+    <svg class="dze-svg dze-rsvg" viewBox="0 0 400 130" role="img" aria-label="A protein drawn as a chain of six coloured beads, and the flower colour it gives" data-result></svg>
+    <p class="dze-stale" data-stale hidden>The protein shown was read from the code before your change. Zoom to the bases and press Read the gene.</p>
+    <ul class="dze-legend">
+      <li>Bead colour follows the top-row block: A red, T blue, C gold, G green.</li>
+      <li>A ring marks a bead in the working part. A dashed ring means that bead changed.</li>
+    </ul>
+  </div>
+
+  <p class="dze-assume">Made up for this sketch: the gene has 6 base pairs so it fits; one bead and one made-up colour for each top-row block; the working part is 2 beads; the number of chromosomes drawn; every shape is not to scale. A real cell reads the code in a different way, and a real protein does not look like a row of beads. You learn how in high school Biology.</p>
+  <p class="dze-foot">Rule to keep: the order of the bases is the code. A always pairs with T and C with G. A change in a gene can change a protein, and a change can stop a protein from working.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Base = 'A' | 'T' | 'C' | 'G';
+  const PAIR: Record<Base, Base> = { A: 'T', T: 'A', C: 'G', G: 'C' };
+  const NEXT: Record<Base, Base> = { A: 'T', T: 'C', C: 'G', G: 'A' };
+  const FILL: Record<Base, string> = { A: '#c0392b', T: '#2f6f8f', C: '#b8860b', G: '#2e7d32' };
+  const WORD: Record<Base, string> = { A: 'red', T: 'blue', C: 'gold', G: 'green' };
+  const ORIG: Base[] = ['A', 'C', 'G', 'T', 'G', 'A'];
+  const KEYS = [1, 3]; // the made-up working part: beads 2 and 4
+  const STEPS = ['pea plant', 'cell', 'nucleus', 'chromosome', 'gene', 'bases'];
+  const INK = '#4b4b55';
+  const PURPLE = '#7a5ea8';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-dze]').forEach((root) => {
+    const zoom = root.querySelector<HTMLInputElement>('[data-zoom]');
+    const zoomVal = root.querySelector<HTMLElement>('[data-zoomval]');
+    const stage = root.querySelector<SVGSVGElement>('[data-stage]');
+    const ladder = root.querySelector<HTMLElement>('[data-ladder]');
+    const grid = root.querySelector<HTMLElement>('[data-grid]');
+    const readBtn = root.querySelector<HTMLButtonElement>('[data-read]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset]');
+    const status = root.querySelector<HTMLElement>('[data-status]');
+    const result = root.querySelector<SVGSVGElement>('[data-result]');
+    const stale = root.querySelector<HTMLElement>('[data-stale]');
+    if (!zoom || !zoomVal || !stage || !ladder || !grid || !readBtn || !resetBtn || !status || !result || !stale) return;
+
+    let top: Base[] = ORIG.slice();
+    let readTop: Base[] = ORIG.slice();
+    let level = 0;
+
+    const worksFor = (seq: Base[]) => KEYS.every((i) => seq[i] === ORIG[i]);
+    const isStale = () => top.some((b, i) => b !== readTop[i]);
+
+    function drawStage() {
+      stage!.replaceChildren();
+      const purple = worksFor(readTop);
+      const flowerFill = purple ? PURPLE : '#ffffff';
+      const T = (x: number, y: number, s: string, anchor = 'middle', size = 12, weight = 400) =>
+        stage!.appendChild(el('text', { x, y, 'font-size': size, 'text-anchor': anchor, 'font-weight': weight, fill: INK }, s));
+      if (level === 0) {
+        stage!.appendChild(el('line', { x1: 60, y1: 212, x2: 340, y2: 212, stroke: '#9a9aa6', 'stroke-width': 2 }));
+        stage!.appendChild(el('line', { x1: 200, y1: 212, x2: 200, y2: 110, stroke: '#2e7d32', 'stroke-width': 5 }));
+        stage!.appendChild(el('ellipse', { cx: 165, cy: 168, rx: 30, ry: 12, fill: '#a5d6a7', stroke: '#2e7d32', 'stroke-width': 1.5, transform: 'rotate(-25 165 168)' }));
+        stage!.appendChild(el('ellipse', { cx: 235, cy: 180, rx: 30, ry: 12, fill: '#a5d6a7', stroke: '#2e7d32', 'stroke-width': 1.5, transform: 'rotate(25 235 180)' }));
+        stage!.appendChild(el('circle', { cx: 200, cy: 78, r: 36, fill: flowerFill, stroke: PURPLE, 'stroke-width': 3 }));
+        T(260, 70, 'flower', 'start', 12, 700);
+        T(260, 86, purple ? 'purple' : 'white', 'start');
+        T(200, 232, 'a whole pea plant');
+      } else if (level === 1) {
+        stage!.appendChild(el('rect', { x: 50, y: 30, width: 300, height: 180, rx: 22, fill: '#f3f7f1', stroke: '#2e7d32', 'stroke-width': 2.5 }));
+        stage!.appendChild(el('circle', { cx: 200, cy: 125, r: 48, fill: '#e8e4f3', stroke: PURPLE, 'stroke-width': 2.5 }));
+        T(200, 22, 'one cell of the plant', 'middle', 12, 700);
+        T(200, 129, 'nucleus', 'middle', 12, 700);
+        T(200, 232, 'the rest of the cell is outside the nucleus');
+      } else if (level === 2) {
+        stage!.appendChild(el('circle', { cx: 200, cy: 122, r: 88, fill: '#f6f3fb', stroke: PURPLE, 'stroke-width': 2.5 }));
+        [[138, 78], [146, 104], [138, 130], [146, 156]].forEach(([x, y]) => {
+          stage!.appendChild(el('rect', { x, y, width: 116, height: 16, rx: 8, fill: '#e0a96d', stroke: '#9a6a2f', 'stroke-width': 1.5 }));
+        });
+        T(200, 20, 'nucleus', 'middle', 12, 700);
+        T(200, 236, 'chromosomes (the number drawn is made up)');
+      } else if (level === 3) {
+        stage!.appendChild(el('rect', { x: 30, y: 95, width: 340, height: 50, rx: 25, fill: '#f1e3cf', stroke: '#9a6a2f', 'stroke-width': 2 }));
+        stage!.appendChild(el('rect', { x: 200, y: 95, width: 60, height: 50, fill: '#e08a2e', stroke: '#9a6a2f', 'stroke-width': 2 }));
+        [110, 160, 200, 260, 310].forEach((x) => stage!.appendChild(el('line', { x1: x, y1: 95, x2: x, y2: 145, stroke: '#9a6a2f', 'stroke-width': 1.5 })));
+        T(200, 70, 'one chromosome: DNA wound up tightly with proteins', 'middle', 12, 700);
+        T(230, 172, 'one gene', 'middle', 12, 700);
+        T(85, 172, 'other genes', 'middle');
+        T(335, 172, 'other genes', 'middle');
+        T(200, 214, 'one chromosome carries many genes');
+      } else {
+        stage!.appendChild(el('rect', { x: 30, y: 88, width: 340, height: 56, rx: 10, fill: '#e08a2e', stroke: '#9a6a2f', 'stroke-width': 2 }));
+        T(200, 123, top.join('  '), 'middle', 22, 700);
+        stage!.lastElementChild?.setAttribute('fill', '#1b1b22');
+        T(200, 64, 'a gene: a section of a chromosome', 'middle', 12, 700);
+        T(200, 176, 'it carries the code for a particular protein', 'middle');
+        T(200, 206, 'The letters are the order of the bases.', 'middle');
+        T(200, 226, 'Zoom in once more to see them as blocks.', 'middle');
+      }
+    }
+
+    function drawLadder() {
+      grid!.replaceChildren();
+      const bottom = top.map((b) => PAIR[b]);
+      const mk = (b: Base, i: number, side: 'top' | 'bottom') => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dze-tile';
+        btn.style.background = FILL[b];
+        btn.textContent = b;
+        const changed = (side === 'top' ? b !== ORIG[i] : b !== PAIR[ORIG[i]]);
+        if (changed) btn.classList.add('dze-changed');
+        btn.setAttribute('aria-label', `${side === 'top' ? 'Top' : 'Bottom'} side, block ${i + 1}: ${b}${changed ? ' (changed)' : ''}. Press to change it.`);
+        btn.addEventListener('click', () => tap(i, side));
+        return btn;
+      };
+      top.forEach((b, i) => grid!.appendChild(mk(b, i, 'top')));
+      top.forEach(() => {
+        const r = document.createElement('div');
+        r.className = 'dze-rung';
+        r.setAttribute('aria-hidden', 'true');
+        grid!.appendChild(r);
+      });
+      bottom.forEach((b, i) => grid!.appendChild(mk(b, i, 'bottom')));
+    }
+
+    function drawResult() {
+      result!.replaceChildren();
+      const g = el('g', { opacity: isStale() ? 0.4 : 1 });
+      const works = worksFor(readTop);
+      const X = (i: number) => 30 + i * 52;
+      g.appendChild(el('text', { x: 8, y: 14, 'font-size': 12, 'font-weight': 700, fill: INK }, 'protein'));
+      g.appendChild(el('line', { x1: X(0), y1: 62, x2: X(5), y2: 62, stroke: '#9a9aa6', 'stroke-width': 3 }));
+      readTop.forEach((b, i) => {
+        const key = KEYS.includes(i);
+        g.appendChild(el('text', { x: X(i), y: 32, 'font-size': 11, 'text-anchor': 'middle', fill: INK }, String(i + 1)));
+        g.appendChild(el('circle', { cx: X(i), cy: 62, r: 16, fill: FILL[b], stroke: '#fff', 'stroke-width': 2 }));
+        if (key) {
+          const broken = b !== ORIG[i];
+          g.appendChild(el('circle', { cx: X(i), cy: 62, r: 22, fill: 'none', stroke: broken ? '#b3261e' : INK, 'stroke-width': 2.5, 'stroke-dasharray': broken ? '4 3' : '0' }));
+        }
+        g.appendChild(el('text', { x: X(i), y: 102, 'font-size': 11, 'text-anchor': 'middle', fill: INK }, WORD[b]));
+      });
+      g.appendChild(el('circle', { cx: 350, cy: 56, r: 26, fill: works ? PURPLE : '#ffffff', stroke: PURPLE, 'stroke-width': 3 }));
+      g.appendChild(el('text', { x: 350, y: 100, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: INK }, 'flower'));
+      g.appendChild(el('text', { x: 350, y: 116, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, works ? 'purple' : 'white'));
+      result!.appendChild(g);
+      stale!.hidden = !isStale();
+    }
+
+    function levelText(): string {
+      switch (level) {
+        case 0: return worksFor(readTop) ? 'In this sketch, this pea plant has purple flowers. Where is its DNA? Zoom in to check.' : 'In this sketch, this pea plant has white flowers. Zoom in to find the gene behind that.';
+        case 1: return 'This is one cell of the plant. In plants, most DNA sits in the nucleus. Zoom in again.';
+        case 2: return 'The nucleus holds most of the cell’s DNA, wound up into chromosomes. In this sketch, four are drawn.';
+        case 3: return 'A chromosome is a strand of DNA wound up tightly with proteins. One chromosome carries many genes.';
+        case 4: return 'A gene is a section of a chromosome. It carries the code for a particular protein.';
+        default: return 'These are the bases of one gene. A pairs with T, and C pairs with G. Tap a block to change it.';
+      }
+    }
+
+    function setStatus(s: string) { status!.textContent = s; }
+
+    function render() {
+      zoomVal!.textContent = `Step ${level + 1} of 6: ${STEPS[level]}`;
+      zoom!.setAttribute('aria-valuetext', `Step ${level + 1} of 6: ${STEPS[level]}`);
+      const atBases = level === 5;
+      stage!.style.display = atBases ? 'none' : 'block';
+      ladder!.hidden = !atBases;
+      readBtn!.disabled = !atBases;
+      if (atBases) drawLadder(); else drawStage();
+      drawResult();
+    }
+
+    function tap(i: number, side: 'top' | 'bottom') {
+      if (side === 'top') top[i] = NEXT[top[i]];
+      else top[i] = PAIR[NEXT[PAIR[top[i]]]];
+      const now = top[i];
+      const partner = PAIR[now];
+      let s = `You changed block ${i + 1} on the ${side} side. In this sketch, its partner changed to match. `;
+      s += side === 'top' ? `Top is now ${now}, bottom is ${partner}. ` : `Bottom is now ${partner}, top is ${now}. `;
+      s += `${now === 'A' || now === 'T' ? 'A always pairs with T.' : 'C always pairs with G.'}`;
+      s += isStale() ? ' Press Read the gene to see the protein.' : ' The code matches what was last read.';
+      render();
+      setStatus(s);
+      // keep keyboard focus on the same tile after the grid is rebuilt
+      const tiles = grid!.querySelectorAll<HTMLButtonElement>('.dze-tile');
+      const idx = (side === 'top' ? 0 : top.length) + i;
+      if (tiles[idx]) tiles[idx].focus();
+    }
+
+    function read() {
+      readTop = top.slice();
+      const changed: string[] = [];
+      readTop.forEach((b, i) => { if (b !== ORIG[i]) changed.push(`bead ${i + 1} (${WORD[ORIG[i]]} to ${WORD[b]})`); });
+      let s: string;
+      if (!changed.length) {
+        s = 'In this sketch, the code is the starting code. The protein and the purple flower stay the same.';
+      } else if (worksFor(readTop)) {
+        s = `Changed: ${changed.join('; ')}. In this sketch, the working part is the same, so the protein still works and the flower stays purple. Whether a change stops a protein depends on the change; in this sketch only the ringed beads matter.`;
+      } else {
+        s = `Changed: ${changed.join('; ')}. In this sketch, the working part changed, so the protein stops working. The flower comes out white.`;
+      }
+      render();
+      setStatus(s);
+    }
+
+    zoom.addEventListener('input', () => {
+      level = Number(zoom.value);
+      render();
+      let s = levelText();
+      if (level === 5 && isStale()) s += ' Press Read the gene to see the protein.';
+      setStatus(s);
+    });
+    readBtn.addEventListener('click', read);
+    resetBtn.addEventListener('click', () => {
+      top = ORIG.slice();
+      readTop = ORIG.slice();
+      level = 0;
+      zoom.value = '0';
+      render();
+      setStatus('Reset. ' + levelText());
+    });
+
+    render();
+    setStatus(levelText());
+  });
+</script>
+
+<style is:global>
+  .dze { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .dze-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .dze-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .dze-zoom { display: grid; gap: 0.2rem; margin-bottom: var(--ddp-space-2); }
+  .dze-slabel { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .dze-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .dze-zoom input { width: 100%; min-height: 32px; accent-color: var(--ddp-color-accent); }
+  .dze-zoom input:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dze-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dze-svg[hidden], .dze-ladder[hidden], .dze-stale[hidden] { display: none; }
+  .dze-ladder { max-width: 560px; margin: var(--ddp-space-2) auto; padding: var(--ddp-space-2); background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .dze-side { text-align: center; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); background: #ece6d6; border-radius: 4px; padding: 0.3rem 0.4rem; }
+  .dze-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin: 4px 0; }
+  .dze-tile { min-height: 44px; min-width: 0; border: 3px solid transparent; border-radius: 6px; color: #fff; font: inherit; font-size: 1.25rem; font-weight: 700; cursor: pointer; }
+  .dze-tile:hover { filter: brightness(1.12); }
+  .dze-tile:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dze-tile.dze-changed { border-color: #1b1b22; }
+  .dze-rung { height: 14px; justify-self: center; width: 0; border-left: 3px solid #9a9aa6; }
+  .dze-hint { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .dze-row { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .dze-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 1rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .dze-btn:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+  .dze-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .dze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .dze-primary { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .dze-primary:disabled { background: #fff; border-color: var(--ddp-color-line); color: var(--ddp-color-ink-soft); font-weight: 400; }
+  .dze-status { margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 5.5em; }
+  .dze-result { margin: var(--ddp-space-2) 0; }
+  .dze-rtitle { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .dze-stale { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: #b3261e; }
+  .dze-legend { margin: var(--ddp-space-2) 0 0; padding-left: 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .dze-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .dze-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

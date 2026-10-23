@@ -1,0 +1,376 @@
+---
+/**
+ * MothsAndBirds — grade 7 Life Science sketch of natural selection in peppered moths.
+ * Pale and dark moths rest on sooty or clean bark. Birds eat more of the moths that stand
+ * out from the bark. Eaten moths have no young; survivors have young of their own colour.
+ * A line graph shows the percent of dark moths by generation, simulated (random) beside
+ * expected (the rule). The bark can be switched during a run. Original, self-contained.
+ */
+---
+
+<figure class="mb card" data-mothsbirds>
+  <figcaption class="mb-head">Birds and moths: natural selection in a sketch<span class="mb-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="mb-controls">
+    <div class="mb-group" role="group" aria-label="Bark">
+      <span class="mb-glabel">1. Bark (you can switch it during a run)</span>
+      <div class="mb-btns">
+        <button type="button" class="mb-btn" data-bark="sooty" aria-pressed="true">Sooty dark bark</button>
+        <button type="button" class="mb-btn" data-bark="clean" aria-pressed="false">Clean pale bark with lichen</button>
+      </div>
+    </div>
+    <div class="mb-group" role="group" aria-label="How sharp-eyed the birds are">
+      <span class="mb-glabel">2. How sharp-eyed the birds are</span>
+      <div class="mb-btns">
+        <button type="button" class="mb-btn" data-sharp="0" aria-pressed="false">Less sharp-eyed</button>
+        <button type="button" class="mb-btn" data-sharp="1" aria-pressed="true">Sharp-eyed</button>
+        <button type="button" class="mb-btn" data-sharp="2" aria-pressed="false">Very sharp-eyed</button>
+      </div>
+    </div>
+    <div class="mb-group" role="group" aria-label="Generations to run">
+      <span class="mb-glabel">3. Generations to run</span>
+      <div class="mb-btns">
+        <button type="button" class="mb-btn mb-num" data-gens="1" aria-pressed="false">1</button>
+        <button type="button" class="mb-btn mb-num" data-gens="10" aria-pressed="false">10</button>
+        <button type="button" class="mb-btn mb-num" data-gens="30" aria-pressed="true">30</button>
+      </div>
+    </div>
+    <div class="mb-actions">
+      <button type="button" class="mb-btn mb-go" data-run>Run 30 generations</button>
+      <button type="button" class="mb-btn" data-resample>Resample</button>
+      <button type="button" class="mb-btn" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <svg class="mb-svg" viewBox="0 0 360 204" role="img" aria-label="Moths on tree bark" data-scene></svg>
+  <p class="mb-pcap" data-pcap></p>
+  <p class="mb-legend"><span class="mb-sw mb-sw-dark"></span> dark moth <span class="mb-sw mb-sw-pale"></span> pale moth <span class="mb-sw mb-sw-eaten">×</span> crossed out = eaten by a bird</p>
+
+  <svg class="mb-svg" viewBox="0 0 360 232" role="img" aria-label="Line graph of percent dark moths by generation" data-plot></svg>
+  <p class="mb-legend"><span class="mb-ln mb-ln-obs"></span> simulated (random luck) <span class="mb-ln mb-ln-exp"></span> expected (the rule, no luck)</p>
+
+  <dl class="mb-readout">
+    <div><dt>Generation</dt><dd data-r-gen>0</dd></div>
+    <div><dt>Dark moths, simulated (young of this generation)</dt><dd data-r-obs>5 of 100</dd></div>
+    <div><dt>Dark moths, expected (young of this generation)</dt><dd data-r-exp>about 5 percent</dd></div>
+  </dl>
+
+  <p class="mb-why" data-why role="status"></p>
+
+  <p class="mb-assume"><strong>In this sketch</strong> (made up, not measurements): 100 moths in every generation, and 5 of them dark at the start. Colour is inherited, and young are the same colour as their parent, except that 1 baby moth in 100 is born the other colour by chance (the lesson says new variations appear by chance; it gives no rate, and it does not say this happens both ways). Birds are the only cause of death, and no moths arrive or leave. Chance of being eaten, for a moth that stands out / a moth that matches the bark: less sharp-eyed 20 / 5 percent, sharp-eyed 40 / 10 percent, very sharp-eyed 60 / 15 percent. The graph holds up to 90 generations.</p>
+  <p class="mb-foot">Rule to keep: birds find more of the moths that stand out from the bark, so the colour that matches the bark becomes more common over generations. No moth changes its colour.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', ACCENT = '#0e7c86', ORANGE = '#e57200';
+  const SOOT = '#3a342f', CLEAN = '#c9d3bd';
+  const N = 100, START_DARK = 5, MAXGEN = 90, U = 0.01; // U: chance a baby moth is born the other colour
+  // chance of being eaten: [moth that stands out, moth that matches the bark], by bird sharpness
+  const EAT: Array<[number, number]> = [[0.2, 0.05], [0.4, 0.1], [0.6, 0.15]];
+  type Bark = 'sooty' | 'clean';
+  type Step = { bark: Bark; sharp: number };
+  type Gen = { dark: number; colors: boolean[]; eaten: boolean[] };
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(attrs: Record<string, string | number>, s: string): SVGElement {
+    const t = el('text', attrs);
+    t.textContent = s;
+    return t;
+  }
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // the moth that "stands out" is the pale one on sooty bark and the dark one on clean bark
+  function eatChances(s: Step): { dark: number; pale: number } {
+    const [out, match] = EAT[s.sharp];
+    return s.bark === 'sooty' ? { dark: match, pale: out } : { dark: out, pale: match };
+  }
+  function simulate(hist: Step[], seed: number): Gen[] {
+    const r = rng(seed);
+    const gens: Gen[] = [];
+    let dark = START_DARK;
+    for (let i = 0; i <= hist.length; i++) {
+      const colors: boolean[] = [];
+      for (let m = 0; m < N; m++) colors.push(m < dark);
+      for (let m = N - 1; m > 0; m--) {
+        const j = Math.floor(r() * (m + 1));
+        const t = colors[m]; colors[m] = colors[j]; colors[j] = t;
+      }
+      const g: Gen = { dark, colors, eaten: [] };
+      if (i < hist.length) {
+        const ch = eatChances(hist[i]);
+        let sd = 0, sp = 0;
+        for (let m = 0; m < N; m++) {
+          const gone = r() < (colors[m] ? ch.dark : ch.pale);
+          g.eaten.push(gone);
+          if (!gone) { if (colors[m]) sd++; else sp++; }
+        }
+        const sel = sd + sp > 0 ? sd / (sd + sp) : 0;
+        const pd = sel * (1 - U) + (1 - sel) * U;
+        let next = 0;
+        for (let m = 0; m < N; m++) if (r() < pd) next++;
+        dark = next;
+      }
+      gens.push(g);
+    }
+    return gens;
+  }
+  function expected(hist: Step[]): number[] {
+    const out = [START_DARK / N];
+    let p = START_DARK / N;
+    for (const s of hist) {
+      const ch = eatChances(s);
+      const a = p * (1 - ch.dark), b = (1 - p) * (1 - ch.pale);
+      const sel = a + b > 0 ? a / (a + b) : p;
+      p = sel * (1 - U) + (1 - sel) * U;
+      out.push(p);
+    }
+    return out;
+  }
+
+  function pick<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('MothsAndBirds: missing ' + sel);
+    return e;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-mothsbirds]').forEach((root) => {
+    const scene = pick<SVGSVGElement>(root, '[data-scene]');
+    const plot = pick<SVGSVGElement>(root, '[data-plot]');
+    const pcap = pick<HTMLElement>(root, '[data-pcap]');
+    const why = pick<HTMLElement>(root, '[data-why]');
+    const rGen = pick<HTMLElement>(root, '[data-r-gen]');
+    const rObs = pick<HTMLElement>(root, '[data-r-obs]');
+    const rExp = pick<HTMLElement>(root, '[data-r-exp]');
+    const runBtn = pick<HTMLButtonElement>(root, '[data-run]');
+    const resampleBtn = pick<HTMLButtonElement>(root, '[data-resample]');
+    const resetBtn = pick<HTMLButtonElement>(root, '[data-reset]');
+    const barkBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-bark]'));
+    const sharpBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-sharp]'));
+    const gensBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-gens]'));
+
+    let bark: Bark = 'sooty';
+    let sharp = 1;
+    let gensToRun = 30;
+    let hist: Step[] = [];
+    let seed = 20240611;
+    let remaining = 0;
+    let timer: number | null = null;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const TICK = reduce ? 40 : 320;
+
+    const running = () => timer !== null;
+    function stop() {
+      if (timer !== null) { window.clearInterval(timer); timer = null; }
+      remaining = 0;
+    }
+
+    function drawScene(gens: Gen[]) {
+      const k = hist.length;
+      const gi = k === 0 ? 0 : k - 1;
+      const g = gens[gi];
+      const b: Bark = k === 0 ? bark : hist[gi].bark;
+      const sooty = b === 'sooty';
+      scene.replaceChildren();
+      scene.appendChild(el('rect', { x: 0, y: 0, width: 360, height: 204, fill: sooty ? SOOT : CLEAN }));
+      for (let i = 0; i < 12; i++) {
+        const x = 12 + i * 30;
+        scene.appendChild(el('line', { x1: x, y1: 0, x2: x + (i % 3) * 3 - 3, y2: 204, stroke: sooty ? '#171412' : '#9fae93', 'stroke-width': 1.2, opacity: 0.55 }));
+      }
+      if (!sooty) {
+        for (let i = 0; i < 14; i++) {
+          scene.appendChild(el('circle', { cx: 15 + ((i * 53) % 330), cy: 44 + ((i * 37) % 150), r: 6 + (i % 3) * 2, fill: '#e3ecd2', opacity: 0.7 }));
+        }
+      }
+      scene.appendChild(el('rect', { x: 4, y: 4, width: 244, height: 30, rx: 5, fill: '#fff', opacity: 0.92 }));
+      scene.appendChild(txt({ x: 12, y: 24, 'font-size': 13, 'font-weight': 700, fill: '#222' }, sooty ? 'Sooty dark bark' : 'Clean pale bark with lichen'));
+      scene.appendChild(el('rect', { x: 276, y: 4, width: 80, height: 40, rx: 5, fill: '#fff', opacity: 0.92 }));
+      const bird = el('g', { transform: 'translate(322,17)' });
+      bird.appendChild(el('ellipse', { cx: 2, cy: 4, rx: 13, ry: 8, fill: '#fff', stroke: '#555', 'stroke-width': 1.5 }));
+      bird.appendChild(el('circle', { cx: -11, cy: -2, r: 5, fill: '#fff', stroke: '#555', 'stroke-width': 1.5 }));
+      bird.appendChild(el('polygon', { points: '-16,-2 -23,0 -16,2', fill: '#e57200', stroke: '#555', 'stroke-width': 1 }));
+      scene.appendChild(bird);
+      scene.appendChild(txt({ x: 316, y: 39, 'text-anchor': 'middle', 'font-size': 11, fill: '#222' }, 'bird'));
+      const dashCol = sooty ? '#f4efe0' : '#333';
+      for (let m = 0; m < N; m++) {
+        const row = Math.floor(m / 10), col = m % 10;
+        const cx = 20 + col * 35.5 + (row % 2) * 6, cy = 56 + row * 15;
+        const dk = g.colors[m];
+        const gone = k > 0 && g.eaten[m];
+        if (gone) {
+          scene.appendChild(el('ellipse', { cx, cy, rx: 10, ry: 5.5, fill: 'none', stroke: dashCol, 'stroke-width': 1.2, 'stroke-dasharray': '2 2' }));
+          scene.appendChild(el('line', { x1: cx - 4, y1: cy - 4, x2: cx + 4, y2: cy + 4, stroke: dashCol, 'stroke-width': 1.4 }));
+          scene.appendChild(el('line', { x1: cx - 4, y1: cy + 4, x2: cx + 4, y2: cy - 4, stroke: dashCol, 'stroke-width': 1.4 }));
+        } else {
+          scene.appendChild(el('ellipse', { cx, cy, rx: 10, ry: 5.5, fill: dk ? '#1d1a18' : '#f1ead6', stroke: dk ? '#6a625a' : '#8a8470', 'stroke-width': 1 }));
+        }
+      }
+      scene.setAttribute('aria-label', k === 0
+        ? `Moths on ${sooty ? 'sooty dark' : 'clean pale'} bark, ${g.dark} of ${N} dark, before the birds hunt`
+        : `Generation ${gi} of moths on ${sooty ? 'sooty dark' : 'clean pale'} bark after the birds hunted, eaten moths crossed out`);
+      pcap.textContent = k === 0
+        ? `Generation 0, before the birds hunt: ${g.dark} of ${N} moths are dark.`
+        : `Moths of generation ${gi} after the birds hunted on ${sooty ? 'sooty' : 'clean'} bark. Crossed-out moths were eaten and have no young. Their young are generation ${k}.`;
+    }
+
+    function drawPlot(gens: Gen[], exp: number[]) {
+      const k = hist.length;
+      const xmax = Math.max(30, Math.ceil(k / 30) * 30);
+      const X0 = 46, X1 = 346, Y0 = 26, Y1 = 168;
+      const px = (g: number) => X0 + (g / xmax) * (X1 - X0);
+      const py = (pct: number) => Y1 - (pct / 100) * (Y1 - Y0);
+      plot.replaceChildren();
+      plot.appendChild(el('rect', { x: 0, y: 0, width: 360, height: 232, fill: '#fff' }));
+      plot.appendChild(txt({ x: X0, y: 14, 'font-size': 12, fill: INK }, 'percent of moths that are dark'));
+      for (const v of [0, 50, 100]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: FAINT, 'stroke-width': 0.7, 'stroke-dasharray': '2 3' }));
+        plot.appendChild(txt({ x: X0 - 5, y: py(v) + 4, 'text-anchor': 'end', 'font-size': 11, fill: INK }, String(v)));
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      // bark strip: which bark each generation faced
+      for (let i = 0; i < k; i++) {
+        plot.appendChild(el('rect', { x: px(i), y: Y1 + 9, width: Math.max(px(i + 1) - px(i), 1), height: 9, fill: hist[i].bark === 'sooty' ? SOOT : '#9fb48a', stroke: '#fff', 'stroke-width': 0.3 }));
+      }
+      plot.appendChild(txt({ x: X0 - 5, y: Y1 + 19, 'text-anchor': 'end', 'font-size': 11, fill: INK }, 'bark'));
+      for (let t = 0; t <= 3; t++) {
+        const gx = (xmax / 3) * t;
+        plot.appendChild(el('line', { x1: px(gx), y1: Y1, x2: px(gx), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(txt({ x: px(gx), y: Y1 + 32, 'text-anchor': 'middle', 'font-size': 11, fill: INK }, String(gx)));
+      }
+      plot.appendChild(txt({ x: (X0 + X1) / 2, y: Y1 + 52, 'text-anchor': 'middle', 'font-size': 12, fill: INK }, 'generation (in this sketch)'));
+      let de = '', dobs = '';
+      for (let i = 0; i <= k; i++) {
+        de += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(exp[i] * 100).toFixed(1) + ' ';
+        dobs += (i === 0 ? 'M' : 'L') + px(i).toFixed(1) + ' ' + py(gens[i].dark).toFixed(1) + ' ';
+      }
+      plot.appendChild(el('path', { d: de.trim(), fill: 'none', stroke: ACCENT, 'stroke-width': 2, 'stroke-dasharray': '5 3' }));
+      plot.appendChild(el('path', { d: dobs.trim(), fill: 'none', stroke: ORANGE, 'stroke-width': 2.4 }));
+      plot.appendChild(el('circle', { cx: px(k), cy: py(gens[k].dark), r: 4, fill: ORANGE }));
+      plot.setAttribute('aria-label', `Line graph of the percent of dark moths over ${k} generations in this sketch. Now ${gens[k].dark} of ${N} are dark; the rule expects about ${Math.round(exp[k] * 100)} percent.`);
+    }
+
+    function statusText(exp: number[]): string {
+      const k = hist.length;
+      const sharpWord = ['less sharp-eyed', 'sharp-eyed', 'very sharp-eyed'][sharp];
+      if (k === 0) {
+        return running()
+          ? 'In this sketch, the birds are hunting. Watch the line.'
+          : `In this sketch, ${START_DARK} of ${N} moths start dark. Pick the bark and the birds, then press Run.`;
+      }
+      const last = hist[k - 1];
+      const dExp = exp[k] - exp[k - 1];
+      let s: string;
+      if (Math.abs(dExp) < 0.003) {
+        s = last.bark === 'sooty'
+          ? 'In this sketch, almost all moths are dark now, so the dashed expected line is nearly flat.'
+          : 'In this sketch, almost all moths are pale now, so the dashed expected line is nearly flat.';
+      } else if (dExp > 0) {
+        s = 'In this sketch, pale moths stand out on sooty bark. Birds eat more of them, so dark moths become more common.';
+      } else {
+        s = 'In this sketch, dark moths stand out on clean bark. Birds eat more of them, so dark moths become less common.';
+      }
+      if (!running() && last.bark !== bark) {
+        s += ` Next generations will face ${bark === 'sooty' ? 'sooty' : 'clean'} bark.`;
+      } else if (last.sharp !== sharp && !running()) {
+        s += ` Next generations will face ${sharpWord} birds.`;
+      } else if (last.sharp === 0) {
+        s += ' In this sketch, with less sharp-eyed birds the change is slower than with sharp-eyed birds.';
+      } else if (last.sharp === 2) {
+        s += ' In this sketch, with very sharp-eyed birds the change is faster than with sharp-eyed birds.';
+      }
+      return s;
+    }
+
+    function render() {
+      const exp = expected(hist);
+      const gens = simulate(hist, seed);
+      const k = hist.length;
+      drawScene(gens);
+      drawPlot(gens, exp);
+      rGen.textContent = String(k);
+      rObs.textContent = `${gens[k].dark} of ${N}`;
+      rExp.textContent = `about ${Math.round(exp[k] * 100)} percent`;
+      why.textContent = statusText(exp);
+      barkBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bark === bark)));
+      sharpBtns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.sharp) === sharp)));
+      gensBtns.forEach((b) => {
+        b.setAttribute('aria-pressed', String(Number(b.dataset.gens) === gensToRun));
+        b.disabled = running();
+      });
+      const full = k >= MAXGEN;
+      runBtn.textContent = running() ? 'Pause' : (full ? 'Graph is full' : `Run ${Math.min(gensToRun, MAXGEN - k)} generation${Math.min(gensToRun, MAXGEN - k) === 1 ? '' : 's'}`);
+      runBtn.disabled = full && !running();
+      resampleBtn.disabled = k === 0;
+    }
+
+    function tick() {
+      if (remaining <= 0 || hist.length >= MAXGEN) { stop(); render(); return; }
+      hist.push({ bark, sharp });
+      remaining--;
+      if (remaining <= 0 || hist.length >= MAXGEN) stop();
+      render();
+    }
+
+    runBtn.addEventListener('click', () => {
+      if (running()) { stop(); render(); return; }
+      remaining = Math.min(gensToRun, MAXGEN - hist.length);
+      if (remaining <= 0) return;
+      if (gensToRun === 1) { tick(); return; }
+      timer = window.setInterval(tick, TICK);
+      render();
+    });
+    resampleBtn.addEventListener('click', () => { seed = (seed * 1664525 + 1013904223) >>> 0; render(); });
+    resetBtn.addEventListener('click', () => { stop(); hist = []; render(); });
+    barkBtns.forEach((b) => b.addEventListener('click', () => { bark = b.dataset.bark === 'clean' ? 'clean' : 'sooty'; render(); }));
+    sharpBtns.forEach((b) => b.addEventListener('click', () => { sharp = Number(b.dataset.sharp); render(); }));
+    gensBtns.forEach((b) => b.addEventListener('click', () => { if (!running()) { gensToRun = Number(b.dataset.gens); render(); } }));
+    render();
+  });
+</script>
+
+<style is:global>
+  .mb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .mb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .mb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .mb-controls { display: flex; flex-direction: column; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+  .mb-group { display: flex; flex-direction: column; gap: 0.25rem; }
+  .mb-glabel { font-size: var(--ddp-text-xs); font-weight: 600; color: var(--ddp-color-ink-soft); }
+  .mb-btns, .mb-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .mb-btn { min-height: 44px; padding: 0.35rem 0.8rem; font: inherit; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); background: #fff; border: 1.5px solid var(--ddp-color-line); border-radius: 8px; cursor: pointer; }
+  .mb-btn[aria-pressed="true"] { border-color: var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 12%, #fff); color: var(--ddp-color-primary); font-weight: 700; }
+  .mb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .mb-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .mb-num { min-width: 52px; }
+  .mb-go { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .mb-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .mb-pcap { margin: 0.4rem 0 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .mb-legend { margin: 0.2rem 0 var(--ddp-space-3); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; }
+  .mb-sw { display: inline-block; width: 18px; height: 11px; border-radius: 50%; border: 1px solid #8a8470; vertical-align: middle; }
+  .mb-sw-dark { background: #1d1a18; border-color: #6a625a; }
+  .mb-sw-pale { background: #f1ead6; }
+  .mb-sw-eaten { width: auto; height: auto; border: none; border-radius: 0; font-weight: 700; }
+  .mb-ln { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; }
+  .mb-ln-obs { border-color: #e57200; }
+  .mb-ln-exp { border-top-style: dashed; border-color: #0e7c86; }
+  .mb-readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .mb-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .mb-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .mb-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .mb-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .mb-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .mb-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) { .mb-readout { grid-template-columns: 1fr; } }
+</style>

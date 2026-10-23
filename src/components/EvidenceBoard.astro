@@ -1,0 +1,448 @@
+---
+/**
+ * EvidenceBoard — evidence-for-change lesson (grade 7 Life Science). The learner picks two
+ * living things, then one kind of evidence: fossils (both groups marked on a timeline bar of
+ * first appearance, from the lesson's table), front limb bones (block diagram, matching bones
+ * the same colour) or DNA (bars of the lesson's cytochrome c counts, out of 104 positions).
+ * "Place on the tree" adds the pair to a small branching diagram whose shape is fixed and
+ * drawn for the sketch, not calculated; closer relatives join nearer the tips.
+ * Only the lesson's numbers are printed (518, 205, 150, 104, 13, 0 and the 550 axis end).
+ * No random draws, so nothing to resample. No molecules are drawn: blocks, bars and lines only.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ef card" data-evidenceboard>
+  <figcaption class="ef-head">Evidence board: compare two living things<span class="ef-chip">⚙ original · interactive</span></figcaption>
+
+  <fieldset class="ef-group">
+    <legend>1. Pick two living things</legend>
+    <div class="ef-picks">
+      <label class="ef-sel"><span>First</span><select data-a></select></label>
+      <label class="ef-sel"><span>Second</span><select data-b></select></label>
+    </div>
+  </fieldset>
+  <fieldset class="ef-group">
+    <legend>2. Pick one kind of evidence</legend>
+    <div class="ef-btns" data-ev>
+      <button type="button" class="ef-btn" data-evb="fossils" aria-pressed="true">Fossils</button>
+      <button type="button" class="ef-btn" data-evb="bones" aria-pressed="false">Bones</button>
+      <button type="button" class="ef-btn" data-evb="dna" aria-pressed="false">DNA</button>
+    </div>
+  </fieldset>
+
+  <svg class="ef-svg" viewBox="0 0 360 190" role="img" aria-label="Evidence chart for the two living things you picked, drawn as simple marks, blocks and bars" data-board></svg>
+  <ul class="ef-key" data-legend hidden>
+    <li><span class="ef-sw" style="background:#0e7c86"></span>1 upper arm bone</li>
+    <li><span class="ef-sw" style="background:#e57200"></span>2 two lower arm bones</li>
+    <li><span class="ef-sw" style="background:#7a5ea8"></span>3 wrist bones</li>
+    <li><span class="ef-sw" style="background:#4b4b55"></span>4 finger bones</li>
+  </ul>
+  <p class="ef-cap" data-cap></p>
+
+  <p class="ef-status" data-status role="status"></p>
+
+  <div class="ef-btns ef-act">
+    <button type="button" class="ef-btn ef-go" data-place>Place on the tree</button>
+    <button type="button" class="ef-btn" data-reset>Reset</button>
+  </div>
+
+  <div class="ef-treebox">
+    <div class="ef-treetitle">Family tree (a drawn sketch)</div>
+    <svg class="ef-svg" viewBox="0 0 360 250" role="img" aria-label="A small family tree. Each pair you place joins at a branch point; closer relatives join nearer the tips on the right." data-tree></svg>
+    <p class="ef-cap" data-treenote aria-live="polite"></p>
+    <ul class="ef-pairs" data-pairs></ul>
+  </div>
+
+  <p class="ef-assume">Made up in this sketch: the bone sizes, the shape of the tree (cat, whale and bat share one branch point because the lesson does not put them in order; fish is drawn outermost), the limit of four pairs, and which table row each animal uses (human, chimpanzee, cat, whale and bat use mammal relatives; chicken uses bird-like dinosaurs; fish uses fish). The order of the other joins is not from the lesson. The fossil ages and the protein counts are the lesson’s table values.</p>
+  <p class="ef-foot">Keep this rule: scientists check fossils, bones and DNA together, and when they agree they are strong signs of a common ancestor. A join nearer the tips means a more recent common ancestor. This is a sketch of that logic, not a real tree.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#1d2230', SOFT = '#4b4b55', FAINT = '#6b6b76', LINE = '#c9ccd4';
+  const COL_A = '#0e7c86', COL_B = '#e57200';
+  const BONE_COL = ['#0e7c86', '#e57200', '#7a5ea8', '#4b4b55'];
+  type GroupId = 'fish' | 'mammal' | 'bird';
+  type Limb = { part: string; job: string | null; w: [number, number, number, number]; th: number };
+  type Org = { id: string; name: string; group: GroupId | null; limb: Limb | null; diff: number | null };
+  const GROUPS: Record<GroupId, { label: string; ex: string; age: number }> = {
+    fish: { label: 'fish', ex: 'Haikouichthys, China', age: 518 },
+    mammal: { label: 'mammal relatives', ex: 'Morganucodon teeth', age: 205 },
+    bird: { label: 'bird-like dinosaurs', ex: 'Archaeopteryx', age: 150 },
+  };
+  // Widths are upper arm, lower arm, wrist, finger blocks. Sizes are made up for the sketch.
+  const ORGS: Org[] = [
+    { id: 'human', name: 'human', group: 'mammal', limb: { part: 'arm', job: null, w: [80, 80, 30, 44], th: 36 }, diff: 0 },
+    { id: 'chimp', name: 'chimpanzee', group: 'mammal', limb: { part: 'arm', job: null, w: [82, 84, 30, 50], th: 36 }, diff: 0 },
+    { id: 'cat', name: 'cat', group: 'mammal', limb: { part: 'front leg', job: 'walking', w: [58, 62, 28, 42], th: 30 }, diff: null },
+    { id: 'whale', name: 'whale', group: 'mammal', limb: { part: 'flipper', job: 'swimming', w: [44, 44, 32, 96], th: 44 }, diff: null },
+    { id: 'bat', name: 'bat', group: 'mammal', limb: { part: 'wing', job: 'flying', w: [50, 80, 20, 130], th: 24 }, diff: null },
+    { id: 'chicken', name: 'chicken', group: 'bird', limb: { part: 'wing', job: null, w: [56, 58, 24, 54], th: 28 }, diff: 13 },
+    { id: 'fish', name: 'fish', group: 'fish', limb: null, diff: null },
+  ];
+  const byId = (id: string): Org => ORGS.find((o) => o.id === id) ?? ORGS[0];
+  // The tree: fixed and drawn. Tips top to bottom, then branch points from the tips back to the root.
+  const TIP_ORDER = ['human', 'chimp', 'cat', 'whale', 'bat', 'chicken', 'fish'];
+  const TIP_X = 268;
+  const tipY = (id: string) => 24 + TIP_ORDER.indexOf(id) * 28;
+  type Node = { id: string; x: number; parent: string | null; kids: string[] };
+  const NODES: Node[] = [
+    { id: 'R', x: 14, parent: null, kids: ['A'] },
+    { id: 'A', x: 60, parent: 'R', kids: ['B', 'fish'] },
+    { id: 'B', x: 112, parent: 'A', kids: ['C', 'chicken'] },
+    { id: 'C', x: 164, parent: 'B', kids: ['D', 'cat', 'whale', 'bat'] },
+    { id: 'D', x: 216, parent: 'C', kids: ['human', 'chimp'] },
+  ];
+  const nodeOf = (id: string): Node | undefined => NODES.find((n) => n.id === id);
+  const yOf = (id: string): number => {
+    const n = nodeOf(id);
+    if (!n) return tipY(id);
+    const ys = n.kids.map(yOf);
+    return ys.reduce((s, v) => s + v, 0) / ys.length;
+  };
+  const parentOfTip = (id: string): string => {
+    const n = NODES.find((m) => m.kids.includes(id));
+    return n ? n.id : 'R';
+  };
+  const chainOf = (tip: string): string[] => {
+    const out: string[] = [];
+    let cur: string | null = parentOfTip(tip);
+    while (cur) { out.push(cur); const nn: Node | undefined = nodeOf(cur); cur = nn ? nn.parent : null; }
+    return out;
+  };
+  const JOIN_WORDS: Record<string, string> = {
+    D: 'very near the tips',
+    C: 'a little back from the tips',
+    B: 'about halfway back from the tips',
+    A: 'farthest from the tips',
+  };
+  const MAX_PAIRS = 4;
+  const PAIR_COL = ['#0e7c86', '#e57200', '#7a5ea8', '#b8860b'];
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('EvidenceBoard: missing ' + sel);
+    return e;
+  }
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  
+  document.querySelectorAll<HTMLElement>('[data-evidenceboard]').forEach((root) => {
+    const board = must<SVGSVGElement>(root, '[data-board]');
+    const tree = must<SVGSVGElement>(root, '[data-tree]');
+    const selA = must<HTMLSelectElement>(root, '[data-a]');
+    const selB = must<HTMLSelectElement>(root, '[data-b]');
+    const statusEl = must<HTMLElement>(root, '[data-status]');
+    const capEl = must<HTMLElement>(root, '[data-cap]');
+    const legend = must<HTMLElement>(root, '[data-legend]');
+    const treeNote = must<HTMLElement>(root, '[data-treenote]');
+    const pairsEl = must<HTMLElement>(root, '[data-pairs]');
+    const evBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-evb]'));
+
+    type Ev = 'fossils' | 'bones' | 'dna';
+    type Placed = { a: string; b: string; node: string };
+    let evidence: Ev = 'fossils';
+    let placed: Placed[] = [];
+    let msg = '';
+
+    ORGS.forEach((o) => {
+      for (const s of [selA, selB]) {
+        const op = document.createElement('option');
+        op.value = o.id; op.textContent = cap(o.name);
+        s.appendChild(op);
+      }
+    });
+    selA.value = 'human'; selB.value = 'bat';
+
+    function syncOptions() {
+      for (const op of Array.from(selA.options)) op.disabled = op.value === selB.value;
+      for (const op of Array.from(selB.options)) op.disabled = op.value === selA.value;
+    }
+
+    /* ---------- evidence drawings ---------- */
+    function ageX(age: number) { return 316 - (age / 550) * 256; }
+    function labelBlock(x: number, y1: number, l1: string, l2: string, col: string, bold: boolean) {
+      const t1 = el('text', { x: 0, y: y1, 'font-size': 12, 'font-weight': bold ? 700 : 400, fill: col }, l1);
+      const t2 = el('text', { x: 0, y: y1 + 16, 'font-size': 12, fill: SOFT }, l2);
+      board.appendChild(t1); board.appendChild(t2);
+      const m = (t: SVGElement, s: string) => (t as unknown as SVGTextElement).getComputedTextLength() || s.length * 6.9;
+      const w = Math.max(m(t1, l1), m(t2, l2));
+      const x0 = Math.min(Math.max(x - w / 2, 6), 354 - w);
+      t1.setAttribute('x', String(x0)); t2.setAttribute('x', String(x0));
+    }
+    function drawFossils(a: Org, b: Org) {
+      board.setAttribute('viewBox', '0 0 360 190');
+      board.replaceChildren();
+      board.appendChild(el('rect', { x: 60, y: 92, width: 256, height: 18, rx: 3, fill: '#eceef2', stroke: LINE }));
+      board.appendChild(el('text', { x: 54, y: 106, 'font-size': 12, 'text-anchor': 'end', fill: SOFT }, '550'));
+      board.appendChild(el('text', { x: 322, y: 106, 'font-size': 12, fill: SOFT }, 'today'));
+      const slot = (o: Org, above: boolean, col: string, square: boolean) => {
+        const l1y = above ? 34 : 150;
+        if (!o.group) {
+          const t = cap(o.name) + ': no fossil row in the lesson’s table';
+          const tx = el('text', { x: 0, y: l1y + 8, 'font-size': 12, fill: FAINT }, t);
+          board.appendChild(tx);
+          const w = (tx as unknown as SVGTextElement).getComputedTextLength() || t.length * 6.9;
+          tx.setAttribute('x', String(Math.min(Math.max(180 - w / 2, 6), 354 - w)));
+          return;
+        }
+        const g = GROUPS[o.group];
+        const x = ageX(g.age);
+        if (above) {
+          board.appendChild(el('line', { x1: x, y1: 92, x2: x, y2: 62, stroke: col, 'stroke-width': 2 }));
+          board.appendChild(el('circle', { cx: x, cy: 92, r: 7, fill: col, stroke: '#fff', 'stroke-width': 1.5 }));
+        } else {
+          board.appendChild(el('line', { x1: x, y1: 110, x2: x, y2: 136, stroke: col, 'stroke-width': 2 }));
+          board.appendChild(el('rect', { x: x - 7, y: 103, width: 14, height: 14, fill: col, stroke: '#fff', 'stroke-width': 1.5 }));
+        }
+        labelBlock(x, l1y, o.name === g.label ? cap(o.name) : `${cap(o.name)}: ${g.label}`, `group example, about ${g.age} million years ago`, col, true);
+        void square;
+      };
+      slot(a, true, COL_A, false);
+      slot(b, false, COL_B, true);
+    }
+    function drawDna(a: Org, b: Org) {
+      board.setAttribute('viewBox', '0 0 360 130');
+      board.replaceChildren();
+      const X0 = 118, W = 222;
+      const row = (o: Org, y: number, col: string) => {
+        board.appendChild(el('text', { x: 8, y: y + 16, 'font-size': 12, 'font-weight': 700, fill: col }, cap(o.name)));
+        if (o.diff === null) {
+          board.appendChild(el('rect', { x: X0, y, width: W, height: 22, fill: '#fff', stroke: FAINT, 'stroke-dasharray': '4 3' }));
+          board.appendChild(el('text', { x: X0 + 8, y: y + 16, 'font-size': 12, fill: FAINT }, 'no count in the lesson'));
+          return;
+        }
+        board.appendChild(el('rect', { x: X0, y, width: W, height: 22, fill: '#fff', stroke: LINE }));
+        const bw = (o.diff / 104) * W;
+        if (bw > 0) board.appendChild(el('rect', { x: X0, y, width: bw, height: 22, fill: col }));
+        else board.appendChild(el('line', { x1: X0 + 1, y1: y, x2: X0 + 1, y2: y + 22, stroke: col, 'stroke-width': 3 }));
+        board.appendChild(el('text', { x: X0 + bw + 8, y: y + 16, 'font-size': 12, 'font-weight': 700, fill: INK }, `${o.diff} of 104`));
+      };
+      row(a, 24, COL_A);
+      row(b, 70, COL_B);
+      board.appendChild(el('text', { x: X0, y: 116, 'font-size': 12, fill: SOFT }, '0'));
+      board.appendChild(el('text', { x: X0 + W, y: 116, 'font-size': 12, 'text-anchor': 'end', fill: SOFT }, '104 positions'));
+    }
+    function drawBones(a: Org, b: Org) {
+      board.setAttribute('viewBox', '0 0 360 224');
+      board.replaceChildren();
+      const limbRow = (o: Org, top: number, col: string) => {
+        const lb = o.limb;
+        const title = lb ? `${cap(o.name)}: ${lb.part}${lb.job ? ', ' + lb.job : ''}` : cap(o.name);
+        board.appendChild(el('text', { x: 8, y: top + 16, 'font-size': 12, 'font-weight': 700, fill: col }, title));
+        const cy = top + 56;
+        if (!lb) {
+          board.appendChild(el('rect', { x: 12, y: cy - 26, width: 336, height: 52, fill: '#fff', stroke: FAINT, 'stroke-dasharray': '4 3' }));
+          board.appendChild(el('text', { x: 180, y: cy - 3, 'font-size': 12, 'text-anchor': 'middle', fill: FAINT }, 'The lesson compares no front limb'));
+          board.appendChild(el('text', { x: 180, y: cy + 13, 'font-size': 12, 'text-anchor': 'middle', fill: FAINT }, 'bones for this one.'));
+          return;
+        }
+        const gap = 4;
+        let x = 12;
+        const lowH = lb.th * 0.4;
+        const numY = cy + 22 + 15;
+        const num = (cx: number, n: number) => board.appendChild(el('text', { x: cx, y: numY, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, String(n)));
+        // 1 upper arm bone
+        board.appendChild(el('rect', { x, y: cy - lb.th / 2, width: lb.w[0], height: lb.th, rx: 4, fill: BONE_COL[0] }));
+        num(x + lb.w[0] / 2, 1); x += lb.w[0] + gap;
+        // 2 two lower arm bones
+        board.appendChild(el('rect', { x, y: cy - lowH - 1, width: lb.w[1], height: lowH, rx: 4, fill: BONE_COL[1] }));
+        board.appendChild(el('rect', { x, y: cy + 1, width: lb.w[1], height: lowH, rx: 4, fill: BONE_COL[1] }));
+        num(x + lb.w[1] / 2, 2); x += lb.w[1] + gap;
+        // 3 wrist bones
+        board.appendChild(el('rect', { x, y: cy - lb.th / 2, width: lb.w[2], height: lb.th, rx: 4, fill: BONE_COL[2] }));
+        num(x + lb.w[2] / 2, 3); x += lb.w[2] + gap;
+        // 4 finger bones
+        board.appendChild(el('rect', { x, y: cy - lb.th / 2, width: lb.w[3], height: lb.th, rx: 4, fill: BONE_COL[3] }));
+        num(x + lb.w[3] / 2, 4);
+      };
+      limbRow(a, 0, COL_A);
+      limbRow(b, 110, COL_B);
+    }
+
+    /* ---------- the sentences ---------- */
+    function fossilText(a: Org, b: Org): string {
+      const ga = a.group ? GROUPS[a.group] : null, gb = b.group ? GROUPS[b.group] : null;
+      if (!ga || !gb) return 'The lesson’s table has no fossil row for one of these.';
+      const tail = ' The table’s mark is for the group, not for this animal’s own fossils.';
+      const grp = (o: Org, g: string) => (o.name === g ? `The ${g} group` : `${cap(o.name)}’s group, ${g},`);
+      if (a.group === b.group) return `Their group, ${ga.label}, has an early example fossil about ${ga.age} million years ago in the table.` + tail;
+      return `${grp(a, ga.label)} has an early example fossil about ${ga.age} million years ago in the table. ${grp(b, gb.label)} has one about ${gb.age}. Groups show up at different times.` + tail;
+    }
+    function boneText(a: Org, b: Org): string {
+      if (!a.limb && !b.limb) return 'The lesson compares no front limb bones for either one, so this sketch draws none.';
+      if (!a.limb || !b.limb) {
+        const none = !a.limb ? a : b, has = !a.limb ? b : a;
+        return `The lesson compares no front limb bones for ${none.name}, so this sketch draws none. The ${has.name} ${has.limb ? has.limb.part : ''} is shown with bones 1, 2, 3 and 4.`;
+      }
+      const ja = a.limb.job, jb = b.limb.job;
+      const jobs = ja && jb && ja !== jb ? `Their jobs differ: ${ja} and ${jb}. The bones still match.` : 'Sizes here are not to scale.';
+      return `In this sketch, both limbs have bones 1, 2, 3 and 4 in the same order. ${jobs} A shared ancestor with these bones explains the match best.`;
+    }
+    function dnaText(a: Org, b: Org): string {
+      const hum = a.id === 'human' || b.id === 'human';
+      if (a.diff === null || b.diff === null) {
+        const none = a.diff === null ? a : b, has = a.diff === null ? b : a;
+        const tail = has.diff === null ? '' : hum && has.id === 'human' ? '' : ` ${cap(has.name)}: ${has.diff} of 104 positions differ from the human protein.`;
+        const lead = has.diff === null ? 'The lesson gives no count for either one, so this sketch draws no bars.' : `The lesson gives no count for ${none.name}, so this sketch draws no bar for it.`;
+        return lead + tail;
+      }
+      if (hum) {
+        const other = a.id === 'human' ? b : a;
+        if (other.id === 'human') return '';
+        return other.diff === 0
+          ? `The ${other.name} protein matches the human protein at all 104 positions. This is one gene, so it does not show that all their DNA is the same.`
+          : `The ${other.name} protein differs from the human protein at ${other.diff} of 104 positions. Fewer differences usually mean a closer relative.`;
+      }
+      if (a.diff === b.diff) return `Both differ from the human protein at ${a.diff} of 104 positions. This is one gene, so it does not show that all their DNA is the same.`;
+      const lo = a.diff < b.diff ? a : b, hi = lo === a ? b : a;
+      return `${cap(lo.name)}: ${lo.diff} of 104 positions differ from the human protein. ${cap(hi.name)}: ${hi.diff}. Fewer differences usually mean a closer relative to humans.`;
+    }
+
+    /* ---------- the tree ---------- */
+    function lca(a: string, b: string): string {
+      const cb = chainOf(b);
+      return chainOf(a).find((n) => cb.includes(n)) ?? 'A';
+    }
+    function drawTree() {
+      tree.replaceChildren();
+      const lastP = placed.length ? placed[placed.length - 1] : null;
+      const tipsAll = new Set<string>();
+      placed.forEach((p) => { tipsAll.add(p.a); tipsAll.add(p.b); });
+      const marked = new Set<string>();
+      const hot = new Set<string>();
+      tipsAll.forEach((t) => {
+        marked.add(t);
+        chainOf(t).forEach((n) => marked.add(n));
+      });
+      if (lastP) { [lastP.a, lastP.b].forEach((t) => { hot.add(t); chainOf(t).forEach((n) => hot.add(n)); }); }
+      const edge = (id: string, col: string, w: number) => {
+        const isTip = !nodeOf(id);
+        const parentId = isTip ? parentOfTip(id) : (nodeOf(id)?.parent ?? null);
+        if (!parentId) return;
+        const xc = isTip ? TIP_X : (nodeOf(id)?.x ?? 0);
+        const yc = yOf(id);
+        const xp = nodeOf(parentId)?.x ?? 14;
+        const yp = parentId === 'R' ? yOf('A') : yOf(parentId);
+        tree.appendChild(el('line', { x1: xp, y1: yc, x2: xc, y2: yc, stroke: col, 'stroke-width': w, 'stroke-linecap': 'round' }));
+        if (yp !== yc) tree.appendChild(el('line', { x1: xp, y1: yc, x2: xp, y2: yp, stroke: col, 'stroke-width': w, 'stroke-linecap': 'round' }));
+      };
+      marked.forEach((id) => { if (id !== 'R' && !hot.has(id)) edge(id, '#9aa0ad', 2); });
+      hot.forEach((id) => edge(id, COL_A, 3));
+      marked.forEach((id) => { if (id !== 'R' && !nodeOf(id)) tree.appendChild(el('circle', { cx: TIP_X, cy: tipY(id), r: 4, fill: hot.has(id) ? COL_A : '#9aa0ad' })); });
+      TIP_ORDER.forEach((id) => {
+        const on = tipsAll.has(id);
+        tree.appendChild(el('text', { x: 278, y: tipY(id) + 4, 'font-size': 12, 'font-weight': on ? 700 : 400, fill: on ? (hot.has(id) ? COL_A : INK) : FAINT }, cap(byId(id).name)));
+      });
+      const count: Record<string, number> = {};
+      placed.forEach((p, i) => {
+        const k = count[p.node] ?? 0; count[p.node] = k + 1;
+        const off = [0, 20, -20, 40][k] ?? 0;
+        const n = nodeOf(p.node);
+        const cx = n ? n.x : 48, cy = yOf(p.node) + off;
+        tree.appendChild(el('circle', { cx, cy, r: 10, fill: '#fff', stroke: PAIR_COL[i], 'stroke-width': 3 }));
+        tree.appendChild(el('text', { x: cx, y: cy + 4.5, 'font-size': 12, 'font-weight': 700, 'text-anchor': 'middle', fill: INK }, String(i + 1)));
+      });
+      if (!placed.length) {
+        tree.appendChild(el('text', { x: 14, y: 110, 'font-size': 12, fill: FAINT }, 'Predict first. Then press'));
+        tree.appendChild(el('text', { x: 14, y: 128, 'font-size': 12, fill: FAINT }, '“Place on the tree”.'));
+      }
+      pairsEl.replaceChildren();
+      placed.forEach((p, i) => {
+        const li = document.createElement('li');
+        const sw = document.createElement('span');
+        sw.className = 'ef-pn'; sw.style.borderColor = PAIR_COL[i]; sw.textContent = String(i + 1);
+        const tx = document.createElement('span');
+        tx.textContent = `${cap(byId(p.a).name)} and ${byId(p.b).name} join ${JOIN_WORDS[p.node] ?? ''}.`;
+        li.appendChild(sw); li.appendChild(tx);
+        pairsEl.appendChild(li);
+      });
+      treeNote.textContent = placed.length
+        ? 'Each numbered ring marks where that pair’s common ancestor sits in this sketch. The tree is drawn, not calculated.'
+        : 'Nothing is on the tree yet. The tree is drawn, not calculated.';
+    }
+
+    /* ---------- render ---------- */
+    function render() {
+      syncOptions();
+      const a = byId(selA.value), b = byId(selB.value);
+      evBtns.forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.evb === evidence)));
+      legend.hidden = evidence !== 'bones';
+      let text = '';
+      if (evidence === 'fossils') {
+        drawFossils(a, b);
+        text = fossilText(a, b);
+        const gs = Array.from(new Set([a, b].map((o) => o.group).filter((g): g is GroupId => g !== null)));
+        const ex = gs.map((g) => `${GROUPS[g].label}: ${GROUPS[g].ex}`);
+        capEl.textContent = 'The bar runs from 550 million years ago (left) to today (right). Each mark is the group’s example fossil from the lesson’s table' + (ex.length ? ` (${ex.join('; ')})` : '') + ', not the day a group began.';
+      } else if (evidence === 'bones') {
+        drawBones(a, b);
+        text = boneText(a, b);
+        capEl.textContent = 'Matching bones have the same colour and number. Front limbs: arm, front leg, wing or flipper. Drawn as blocks, not to scale.';
+      } else {
+        drawDna(a, b);
+        text = dnaText(a, b);
+        capEl.textContent = 'Each bar counts positions in the protein cytochrome c that differ from the human protein, out of 104. One gene’s protein is only a small sample, so it does not show that all the DNA is the same (UniProt, from the lesson’s table).';
+      }
+      statusEl.textContent = msg || text;
+      drawTree();
+    }
+    function place() {
+      const a = byId(selA.value), b = byId(selB.value);
+      if (placed.some((p) => (p.a === a.id && p.b === b.id) || (p.a === b.id && p.b === a.id))) { msg = 'That pair is already on the tree. Pick a different pair.'; render(); return; }
+      if (placed.length >= MAX_PAIRS) { msg = 'The tree holds four pairs in this sketch. Press Reset to start again.'; render(); return; }
+      const node = lca(a.id, b.id);
+      placed.push({ a: a.id, b: b.id, node });
+      msg = `In this sketch, ${a.name} and ${b.name} join ${JOIN_WORDS[node] ?? ''}. A join nearer the tips means a more recent common ancestor.`;
+      render();
+    }
+
+    selA.addEventListener('change', () => { msg = ''; render(); });
+    selB.addEventListener('change', () => { msg = ''; render(); });
+    evBtns.forEach((btn) => btn.addEventListener('click', () => { evidence = (btn.dataset.evb as Ev) || 'fossils'; msg = ''; render(); }));
+    must<HTMLButtonElement>(root, '[data-place]').addEventListener('click', place);
+    must<HTMLButtonElement>(root, '[data-reset]').addEventListener('click', () => {
+      selA.value = 'human'; selB.value = 'bat'; evidence = 'fossils'; placed = []; msg = ''; render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .ef { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ef-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ef-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ef-group { border: 0; padding: 0; margin: 0 auto var(--ddp-space-2); max-width: 560px; min-width: 0; }
+  .ef-group legend { padding: 0; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .ef-picks { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .ef-sel { display: flex; align-items: center; gap: 0.4rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .ef-sel select { min-height: 44px; min-width: 9.5em; padding: 0 0.6rem; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); }
+  .ef-sel select:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .ef-btns { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+  .ef-act { max-width: 560px; margin: var(--ddp-space-3) auto; }
+  .ef-btn { min-height: 44px; min-width: 44px; padding: 0 0.9rem; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-primary); cursor: pointer; }
+  .ef-btn:hover { border-color: var(--ddp-color-accent); }
+  .ef-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .ef-go { background: var(--ddp-color-primary); border-color: var(--ddp-color-primary); color: #fff; font-weight: 700; }
+  .ef-btn:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: 2px; }
+  .ef-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ef-key { list-style: none; max-width: 560px; margin: 0.4rem auto 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ef-key[hidden] { display: none; }
+  .ef-key li { margin: 0; display: flex; align-items: center; gap: 0.35rem; }
+  .ef-sw { width: 14px; height: 14px; border-radius: 3px; flex: none; display: inline-block; }
+  .ef-cap { max-width: 560px; margin: 0.6rem auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .ef-status { max-width: 560px; margin: var(--ddp-space-3) auto 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); line-height: 1.5; min-height: 4.5em; }
+  .ef-treebox { max-width: 560px; margin: var(--ddp-space-3) auto 0; }
+  .ef-treetitle { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); margin-bottom: 0.3rem; }
+  .ef-pairs { list-style: none; margin: 0.4rem 0 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ef-pairs li { display: flex; align-items: center; gap: 0.5rem; margin: 0.25rem 0; }
+  .ef-pn { width: 22px; height: 22px; border-radius: 50%; border: 3px solid; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--ddp-color-primary); flex: none; box-sizing: border-box; font-size: 11px; }
+  .ef-assume { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ef-foot { max-width: 560px; margin: var(--ddp-space-3) auto 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

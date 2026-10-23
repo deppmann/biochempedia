@@ -1,0 +1,353 @@
+---
+/**
+ * HealTheScrape — grade 7 Life Science, "How Cells Divide". Left panel: a strip of skin
+ * cells with a gap; a slider sets how long one cell cycle takes and Start lets every cell
+ * divide until the gap is full. Right panel: one cell with 4 chromosomes stepped through
+ * interphase and the four stages of mitosis, with a chromosome counter. A "skip the
+ * copying" switch shows what would go wrong (2 chromosomes in each daughter cell).
+ * A copied chromosome is ONE chromosome made of two joined identical copies, so the
+ * counter never reads 8. Every rule is a statement of the lesson; cells are labelled
+ * flat shapes. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="hts card" data-hts>
+  <figcaption class="hts-head">Heal the scrape: how cells divide<span class="hts-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="hts-panels">
+    <section class="hts-panel" aria-label="Skin cells filling a gap">
+      <h4 class="hts-h">1. Fill the gap</h4>
+      <svg class="hts-svg" viewBox="0 0 360 165" role="img" aria-label="A row of skin cells with a gap in the middle that fills up as the cells divide" data-strip></svg>
+      <dl class="hts-read">
+        <div><dt>Cells now</dt><dd data-out="cells">4</dd></div>
+        <div><dt>Gap spaces filled</dt><dd data-out="filled">0 of 12</dd></div>
+        <div><dt>Time so far</dt><dd data-out="time">0 time units</dd></div>
+      </dl>
+      <label class="hts-slabel"><span>One cell cycle takes <em data-out="cyc">5</em> time units</span>
+        <input type="range" min="2" max="10" step="1" value="5" data-in="cycle" />
+      </label>
+      <div class="hts-btns">
+        <button type="button" class="hts-btn hts-main" data-go>Start</button>
+      </div>
+      <p class="hts-status" role="status" data-status-l>A strip of skin cells with a gap. Press Start.</p>
+    </section>
+
+    <section class="hts-panel" aria-label="One cell stepped through the cell cycle">
+      <h4 class="hts-h">2. Follow one cell</h4>
+      <svg class="hts-svg" viewBox="0 0 300 252" role="img" aria-label="One cell with 4 chromosomes shown at the current stage of the cell cycle" data-cell></svg>
+      <div class="hts-count" aria-live="polite">
+        <div class="hts-big" data-out="big">4 chromosomes</div>
+        <div class="hts-sub" data-out="sub">not copied yet</div>
+      </div>
+      <label class="hts-check"><input type="checkbox" data-in="skip" /> <span>skip the copying</span></label>
+      <div class="hts-btns">
+        <button type="button" class="hts-btn hts-main" data-step>Next stage</button>
+      </div>
+      <p class="hts-status" role="status" data-status-r></p>
+    </section>
+  </div>
+
+  <div class="hts-btns hts-bottom"><button type="button" class="hts-btn" data-reset>Reset</button></div>
+
+  <p class="hts-assume">In this sketch, the strip starts with 4 cells, every cell divides at the same time, the gap has 12 spaces, and each cell divides twice. A model cell has 4 chromosomes instead of the 46 in most human body cells. Cells are flat shapes, and time units are not to scale. Interphase is drawn as the longer part of the cycle, because the lesson says it is usually the longest; the exact split is not to scale.</p>
+  <p class="hts-foot">Rule to keep: a cell copies its chromosomes first, then each daughter cell gets one copy of each, so it has the same number as the parent cell. A copied chromosome is still one chromosome. In a real scrape some cells also crawl into the gap.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const INK = '#4b4b55', FAINT = '#8a8a96', TEAL = '#0e7c86';
+  const COLORS = ['#0e7c86', '#e57200', '#7a5ea8', '#b8860b'];
+  const SLOTS = 16, GAP_FROM = 2, GAP_TO = 13, GAP_N = 12, START_CELLS = 4, CYCLES = 2;
+  const INTER = 0.75; // invented split: interphase is drawn as the longer part (the lesson says usually the longest); not to scale
+
+  document.querySelectorAll<HTMLElement>('[data-hts]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const strip = q<SVGSVGElement>('[data-strip]');
+    const cell = q<SVGSVGElement>('[data-cell]');
+    const out = (k: string) => q<HTMLElement>(`[data-out="${k}"]`);
+    const slider = q<HTMLInputElement>('[data-in="cycle"]');
+    const skipBox = q<HTMLInputElement>('[data-in="skip"]');
+    const goBtn = q<HTMLButtonElement>('[data-go]');
+    const stepBtn = q<HTMLButtonElement>('[data-step]');
+    const resetBtn = q<HTMLButtonElement>('[data-reset]');
+    const statusL = q<HTMLElement>('[data-status-l]');
+    const statusR = q<HTMLElement>('[data-status-r]');
+    const oCells = out('cells'), oFilled = out('filled'), oTime = out('time'), oCyc = out('cyc');
+    const oBig = out('big'), oSub = out('sub');
+    if (!strip || !cell || !slider || !skipBox || !goBtn || !stepBtn || !resetBtn || !statusL || !statusR || !oCells || !oFilled || !oTime || !oCyc || !oBig || !oSub) return;
+
+    /* ---------- left: the strip ---------- */
+    let P = 0;            // progress in cell cycles, 0..CYCLES
+    let running = false;
+    let last = 0;
+    let raf = 0;
+    let elapsed = 0;      // time units
+    const SEC_PER_UNIT = 0.5;
+
+    function cycleLen() { return Number(slider!.value); }
+
+    function drawStrip() {
+      const s = strip!;
+      s.replaceChildren();
+      const g = Math.min(Math.floor(P + 1e-9), CYCLES);
+      const p = g >= CYCLES ? 0 : P - g;
+      const n = 2 * Math.pow(2, g); // cells on each side
+      const W = 21.5, X0 = 8, Y = 38, H = 44;
+      const sx = (i: number) => X0 + i * W;
+      s.appendChild(el('text', { x: 8, y: 22, 'font-size': 13, 'font-weight': 700, fill: INK }, 'Skin cells, side view of a flat strip'));
+      // the gap outline
+      s.appendChild(el('rect', { x: sx(GAP_FROM), y: Y - 6, width: (GAP_TO - GAP_FROM + 1) * W, height: H + 12, rx: 4, fill: 'none', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+      const occ = new Set<number>();
+      for (let i = 0; i < n; i++) { occ.add(i); occ.add(SLOTS - 1 - i); }
+      for (let i = 0; i < SLOTS; i++) {
+        if (!occ.has(i)) continue;
+        const inGap = i >= GAP_FROM && i <= GAP_TO;
+        const x = sx(i) + 1;
+        s.appendChild(el('rect', { x, y: Y, width: W - 2, height: H, rx: 6, fill: inGap ? '#d3ecee' : '#e4e4ea', stroke: inGap ? TEAL : INK, 'stroke-width': 1.3 }));
+        s.appendChild(el('circle', { cx: x + (W - 2) / 2, cy: Y + H / 2, r: 4, fill: inGap ? TEAL : FAINT }));
+        if (running && g < CYCLES && p >= INTER) {
+          s.appendChild(el('line', { x1: x + (W - 2) / 2, y1: Y + 2, x2: x + (W - 2) / 2, y2: Y + H - 2, stroke: INK, 'stroke-width': 1.6, 'stroke-dasharray': '3 2' }));
+        }
+      }
+      // legend
+      s.appendChild(el('rect', { x: 8, y: 96, width: 12, height: 12, rx: 3, fill: '#e4e4ea', stroke: INK }));
+      s.appendChild(el('text', { x: 25, y: 107, 'font-size': 12, fill: INK }, 'cell outside the gap'));
+      s.appendChild(el('rect', { x: 180, y: 96, width: 12, height: 12, rx: 3, fill: '#d3ecee', stroke: TEAL }));
+      s.appendChild(el('text', { x: 197, y: 107, 'font-size': 12, fill: INK }, 'cell in the gap'));
+      // cycle bar
+      s.appendChild(el('text', { x: 8, y: 128, 'font-size': 12, fill: INK }, 'One cell cycle (not to scale)'));
+      const bx = 8, bw = 344, by = 134, bh = 18, iw = bw * INTER;
+      s.appendChild(el('rect', { x: bx, y: by, width: iw, height: bh, fill: '#3f7279' }));
+      s.appendChild(el('rect', { x: bx + iw, y: by, width: bw - iw, height: bh, fill: '#a0612a' }));
+      s.appendChild(el('text', { x: bx + iw / 2, y: by + 13, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'interphase'));
+      s.appendChild(el('text', { x: bx + iw + (bw - iw) / 2, y: by + 13, 'font-size': 12, 'text-anchor': 'middle', 'font-weight': 700, fill: '#fff' }, 'mitosis'));
+      if (running || (P > 0 && g < CYCLES)) {
+        const mx = bx + bw * p;
+        s.appendChild(el('path', { d: `M${mx} ${by + bh + 1} l-5 8 h10 z`, fill: INK }));
+      }
+    }
+
+    function statusLeft(): string {
+      const g = Math.min(Math.floor(P + 1e-9), CYCLES);
+      const T = cycleLen();
+      if (g >= CYCLES) return `In this sketch, the gap is full after ${CYCLES * T} time units: 16 cells.`;
+      if (!running && P === 0) return 'A strip of skin cells with a gap. Press Start.';
+      const p = P - g;
+      if (!running) return `Paused in cycle ${g + 1}. Press Resume to go on.`;
+      return p < INTER
+        ? `Cycle ${g + 1}, interphase: every cell grows and copies its chromosomes.`
+        : `Cycle ${g + 1}, mitosis: every cell divides into two daughter cells.`;
+    }
+
+    function renderLeft() {
+      const g = Math.min(Math.floor(P + 1e-9), CYCLES);
+      const cells = START_CELLS * Math.pow(2, g);
+      oCells!.textContent = String(cells);
+      oFilled!.textContent = `${cells - START_CELLS} of ${GAP_N}`;
+      const t = Math.round(elapsed * 10) / 10;
+      oTime!.textContent = `${t % 1 === 0 ? t : t.toFixed(1)} time units`;
+      oCyc!.textContent = String(cycleLen());
+      goBtn!.textContent = g >= CYCLES ? 'Start again' : running ? 'Pause' : P > 0 ? 'Resume' : 'Start';
+      statusL!.textContent = statusLeft();
+      drawStrip();
+    }
+
+    function tick(now: number) {
+      if (!running) return;
+      const dt = Math.min((now - last) / 1000, 0.5);
+      last = now;
+      const units = dt / SEC_PER_UNIT;
+      P += units / cycleLen();
+      elapsed += units;
+      if (P >= CYCLES) {
+        P = CYCLES;
+        elapsed = CYCLES * cycleLen();
+        running = false;
+      }
+      renderLeft();
+      if (running) raf = requestAnimationFrame(tick);
+    }
+
+    goBtn.addEventListener('click', () => {
+      if (P >= CYCLES) { P = 0; elapsed = 0; }
+      running = !running;
+      if (running) { last = performance.now(); raf = requestAnimationFrame(tick); }
+      else cancelAnimationFrame(raf);
+      renderLeft();
+    });
+    slider.addEventListener('input', () => {
+      // keep the time shown consistent with progress at the new cycle length
+      elapsed = P * cycleLen();
+      renderLeft();
+    });
+
+    /* ---------- right: one cell ---------- */
+    let step = 0; // 0 interphase, 1 copied, 2 prophase, 3 metaphase, 4 anaphase, 5 telophase, 6 daughters
+    const STAGE_NAMES = ['Interphase', 'Interphase', 'Prophase', 'Metaphase', 'Anaphase', 'Telophase', 'Two daughter cells'];
+    const NEXT_NAMES = ['copying', 'prophase', 'metaphase', 'anaphase', 'telophase', 'two daughter cells'];
+
+    // a chromosome: one bar, or two joined identical copies stacked
+    function chromo(g: SVGElement, x: number, y: number, color: string, paired: boolean, thick: boolean, rot: number) {
+      const L = thick ? 24 : 22, t = thick ? 6 : 2.5;
+      const grp = el('g', { transform: `rotate(${rot} ${x} ${y})` });
+      if (paired) {
+        const off = t / 2 + 1;
+        grp.appendChild(el('rect', { x: x - L / 2, y: y - off - t / 2, width: L, height: t, rx: t / 2, fill: color }));
+        grp.appendChild(el('rect', { x: x - L / 2, y: y + off - t / 2, width: L, height: t, rx: t / 2, fill: color }));
+        grp.appendChild(el('rect', { x: x - 3, y: y - off - t / 2, width: 6, height: 2 * off + t, rx: 1.5, fill: INK, opacity: 0.85 }));
+      } else {
+        grp.appendChild(el('rect', { x: x - L / 2, y: y - t / 2, width: L, height: t, rx: t / 2, fill: color }));
+      }
+      g.appendChild(grp);
+    }
+    function arrow(s: SVGElement, x: number, y1: number, y2: number) {
+      s.appendChild(el('line', { x1: x, y1, x2: x, y2, stroke: INK, 'stroke-width': 2 }));
+      const d = y2 > y1 ? -1 : 1;
+      s.appendChild(el('path', { d: `M${x} ${y2} l-5 ${8 * d} h10 z`, fill: INK }));
+    }
+
+    function drawCell(skip: boolean) {
+      const s = cell!;
+      s.replaceChildren();
+      const CX = 150, CY = 135;
+      s.appendChild(el('text', { x: 8, y: 20, 'font-size': 14, 'font-weight': 700, fill: INK }, STAGE_NAMES[step]));
+      const copied = !skip && step >= 1 && step <= 3;
+      const interPos: [number, number, number][] = [[130, 118, 30], [172, 124, -40], [134, 152, -20], [168, 154, 60]];
+      if (step <= 1) {
+        s.appendChild(el('ellipse', { cx: CX, cy: CY, rx: 85, ry: 85, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        s.appendChild(el('text', { x: CX, y: 68, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'parent cell'));
+        s.appendChild(el('circle', { cx: CX, cy: CY, r: 48, fill: 'none', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        s.appendChild(el('text', { x: CX, y: 203, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'nucleus'));
+        interPos.forEach(([x, y, r], i) => chromo(s, x, y, COLORS[i], copied, false, r));
+      } else if (step <= 3) {
+        s.appendChild(el('ellipse', { cx: CX, cy: CY, rx: 85, ry: 85, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        if (step === 2) interPos.forEach(([x, y, r], i) => chromo(s, x, y, COLORS[i], copied, true, r));
+        else {
+          s.appendChild(el('line', { x1: 80, y1: CY, x2: 220, y2: CY, stroke: FAINT, 'stroke-width': 1, 'stroke-dasharray': '3 3' }));
+          [96, 132, 168, 204].forEach((x, i) => chromo(s, x, CY, COLORS[i], copied, true, 0));
+        }
+      } else if (step === 4) {
+        s.appendChild(el('ellipse', { cx: CX, cy: CY, rx: 82, ry: 94, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        const top = skip ? [0, 1] : [0, 1, 2, 3], bot = skip ? [2, 3] : [0, 1, 2, 3];
+        const xs = (n: number) => (n === 4 ? [96, 132, 168, 204] : [132, 168]);
+        xs(top.length).forEach((x, k) => chromo(s, x, 84, COLORS[top[k]], false, true, 0));
+        xs(bot.length).forEach((x, k) => chromo(s, x, 186, COLORS[bot[k]], false, true, 0));
+        arrow(s, 40, 120, 60);
+        arrow(s, 260, 150, 210);
+      } else if (step === 5) {
+        s.appendChild(el('path', { d: 'M150 45 C225 45 225 115 168 135 C225 155 225 225 150 225 C75 225 75 155 132 135 C75 115 75 45 150 45 Z', fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+        const grp = skip ? [[132, 168], [132, 168]] : [[102, 134, 166, 198], [102, 134, 166, 198]];
+        const cols = skip ? [[0, 1], [2, 3]] : [[0, 1, 2, 3], [0, 1, 2, 3]];
+        [88, 182].forEach((y, r) => {
+          s.appendChild(el('ellipse', { cx: CX, cy: y, rx: 62, ry: 26, fill: 'none', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+          grp[r].forEach((x, k) => chromo(s, x, y, COLORS[cols[r][k]], false, true, 0));
+        });
+      } else {
+        const grp = skip ? [[132, 168], [132, 168]] : [[102, 134, 166, 198], [102, 134, 166, 198]];
+        const cols = skip ? [[0, 1], [2, 3]] : [[0, 1, 2, 3], [0, 1, 2, 3]];
+        [92, 190].forEach((y, r) => {
+          s.appendChild(el('ellipse', { cx: CX, cy: y, rx: 80, ry: 46, fill: '#fff', stroke: INK, 'stroke-width': 2 }));
+          s.appendChild(el('ellipse', { cx: CX, cy: y, rx: 62, ry: 24, fill: 'none', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+          s.appendChild(el('text', { x: CX, y: y - 30, 'font-size': 12, 'text-anchor': 'middle', fill: INK }, 'daughter cell'));
+          grp[r].forEach((x, k) => chromo(s, x, y, COLORS[cols[r][k]], false, true, 0));
+        });
+      }
+      if (copied) {
+        s.appendChild(el('text', { x: 8, y: 246, 'font-size': 12, fill: INK }, 'Two joined bars = one chromosome, copied'));
+      }
+    }
+
+    function counter(skip: boolean): [string, string] {
+      if (step === 0) return ['4 chromosomes', 'not copied yet'];
+      if (step <= 3) return skip
+        ? ['4 chromosomes', 'none copied: copying was skipped']
+        : ['4 chromosomes', 'each copied: two joined identical copies'];
+      if (step === 4) return skip
+        ? ['2 at each end', 'no copies, so the 4 are shared out']
+        : ['4 at each end', 'one copy of each chromosome goes to each end'];
+      if (step === 5) return skip ? ['2 at each end', 'two new nuclei form'] : ['4 at each end', 'two new nuclei form'];
+      return skip ? ['2 in each daughter cell', 'fewer than the parent cell’s 4'] : ['4 in each daughter cell', 'the same number as the parent cell'];
+    }
+    function statusRight(skip: boolean): string {
+      switch (step) {
+        case 0: return skip
+          ? 'Interphase: the cell grows. Copying is switched off in this sketch.'
+          : 'Interphase: the cell grows and copies its chromosomes. It has 4 chromosomes.';
+        case 1: return skip
+          ? 'Copying skipped. Each of the 4 chromosomes is a single copy.'
+          : 'Copying is done. Each chromosome is still one chromosome, made of two joined copies.';
+        case 2: return 'Prophase: the chromosomes coil up and get thick enough to see.';
+        case 3: return 'Metaphase: the chromosomes line up in a row across the middle.';
+        case 4: return skip
+          ? 'Anaphase: with no copies, the 4 chromosomes would be shared out, 2 to each end.'
+          : 'Anaphase: the two copies of each chromosome are pulled to opposite ends.';
+        case 5: return 'Telophase: two new nuclei form, and the cell pinches into two.';
+        default: return skip
+          ? 'In this sketch, each daughter cell would get only 2 chromosomes, fewer than the parent cell’s 4.'
+          : 'Each daughter cell has 4 chromosomes, the same as the parent cell.';
+      }
+    }
+    function renderRight() {
+      const skip = skipBox!.checked;
+      drawCell(skip);
+      const [big, sub] = counter(skip);
+      oBig!.textContent = big;
+      oSub!.textContent = sub;
+      statusR!.textContent = statusRight(skip);
+      if (step >= 6) { stepBtn!.disabled = true; stepBtn!.textContent = 'Done: press Reset to try again'; }
+      else {
+        stepBtn!.disabled = false;
+        stepBtn!.textContent = step === 0 ? (skip ? 'Next: skip the copying' : 'Next: copy the chromosomes') : 'Next: ' + NEXT_NAMES[step];
+      }
+    }
+    stepBtn.addEventListener('click', () => { if (step < 6) { step++; renderRight(); } });
+    skipBox.addEventListener('change', () => { step = 0; renderRight(); });
+
+    resetBtn.addEventListener('click', () => {
+      running = false; cancelAnimationFrame(raf);
+      P = 0; elapsed = 0; step = 0;
+      renderLeft(); renderRight();
+    });
+
+    renderLeft();
+    renderRight();
+  });
+</script>
+
+<style is:global>
+  .hts { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .hts-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .hts-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .hts-panels { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-4); }
+  .hts-panel { display: flex; flex-direction: column; gap: var(--ddp-space-2); min-width: 0; }
+  .hts-h { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .hts-svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .hts-read { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-2); margin: 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .hts-read div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .hts-read dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hts-read dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .hts-slabel { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .hts-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .hts-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 44px; margin: 0; }
+  .hts-count { padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .hts-big { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; color: var(--ddp-color-primary); }
+  .hts-sub { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .hts-check { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .hts-check input { width: 22px; height: 22px; accent-color: var(--ddp-color-accent); }
+  .hts-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .hts-bottom { margin-top: var(--ddp-space-3); }
+  .hts-btn { min-height: 44px; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); padding: 0.4rem 0.9rem; cursor: pointer; }
+  .hts-main { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .hts-btn:disabled { opacity: 0.6; cursor: default; }
+  .hts-btn:focus-visible, .hts-slabel input:focus-visible, .hts-check input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .hts-status { margin: 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3.6em; }
+  .hts-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .hts-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 720px) { .hts-panels { grid-template-columns: 1fr; } }
+</style>

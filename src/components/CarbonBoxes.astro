@@ -1,0 +1,568 @@
+---
+/**
+ * CarbonBoxes — a carbon box model. Four boxes (air, plants and animals, soil, ocean) hold
+ * counters that stand for carbon. Made-up monthly rules move counters along numbered arrows:
+ * 1 photosynthesis, 2 respiration, 3 decomposition, 4 combustion, 5 the ocean. The learner runs
+ * the months, sets how much fossil fuel is burned (4 levels) and cuts or plants trees. A line
+ * graph shows the air box over the years, with a dashed line for the normal forest and no
+ * burning. A side panel shows water moving from the soil, through the trees and into the air
+ * (transpiration), which depends on leaves. No real amounts are shown: counters and relative
+ * units only. One leaf-dropping Northern Hemisphere forest stands for all land plants.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="cbx card" data-cbx>
+  <figcaption class="cbx-head">Carbon boxes: air, life, soil and ocean<span class="cbx-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="cbx-controls">
+    <div class="cbx-time" role="group" aria-label="Months">
+      <button type="button" class="cbx-btn cbx-primary" data-run aria-pressed="false">Run the months</button>
+      <button type="button" class="cbx-btn" data-step>+1 month</button>
+      <button type="button" class="cbx-btn" data-fast>Run 10 years</button>
+      <button type="button" class="cbx-btn" data-reset>Reset</button>
+    </div>
+    <label class="cbx-slabel"><span>Fossil fuel burning: <em data-out="burn">None</em></span>
+      <input type="range" data-in="burn" min="0" max="3" step="1" value="0" aria-valuetext="None" />
+    </label>
+    <div class="cbx-forest" role="group" aria-label="Forest">
+      <span class="cbx-flabel">Forest</span>
+      <button type="button" class="cbx-btn" data-forest="cut" aria-pressed="false">Cut trees down</button>
+      <button type="button" class="cbx-btn" data-forest="normal" aria-pressed="true">Normal forest</button>
+      <button type="button" class="cbx-btn" data-forest="plant" aria-pressed="false">Plant more trees</button>
+    </div>
+  </div>
+
+  <svg class="cbx-svg" viewBox="0 0 340 428" role="img" aria-label="Four boxes hold carbon counters: air, plants and animals, soil and ocean. Numbered arrows show photosynthesis, respiration, decomposition, combustion and the ocean trading with the air." data-boxes></svg>
+
+  <ol class="cbx-legend" aria-label="What the numbered arrows mean">
+    <li><b>1</b> Photosynthesis: carbon goes from the air into plants.</li>
+    <li><b>2</b> Respiration: carbon goes from plants and animals to the air.</li>
+    <li><b>3</b> Decomposition: dead things and wastes go to the soil, and decomposers return carbon to the air.</li>
+    <li><b>4</b> Combustion: burning fuel puts old carbon from underground into the air.</li>
+    <li><b>5</b> Ocean: it takes in some carbon from the air and gives some back.</li>
+  </ol>
+
+  <p class="cbx-why" data-why role="status">Press “Run the months”. Counters stand for carbon moving between four boxes.</p>
+
+  <div class="cbx-plot-title">Carbon in the air box over the years (relative units, not real amounts)</div>
+  <svg class="cbx-svg" viewBox="0 0 340 214" role="img" aria-label="Line graph of the carbon in the air box over the years, with a dashed line for a normal forest and no burning" data-plot></svg>
+
+  <dl class="cbx-readout">
+    <div><dt>In this sketch, over the last 12 months the air box was fullest at the</dt><dd data-r-full>Run a full year to see</dd></div>
+    <div><dt>In this sketch, over the last 12 months the air box was emptiest at the</dt><dd data-r-empty>Run a full year to see</dd></div>
+    <div class="cbx-wide"><dt>In this sketch, this year’s average air carbon, compared with last year’s, is</dt><dd data-r-trend>Run two years to see</dd></div>
+  </dl>
+
+  <div class="cbx-plot-title">Water side panel: soil, trees and air</div>
+  <svg class="cbx-svg" viewBox="0 0 340 176" role="img" aria-label="Water moves from the soil up the trees and into the air as water vapor from the leaves" data-water></svg>
+  <p class="cbx-why cbx-water" data-water-why>In this sketch, leaves are off. Very little water vapor leaves the trees.</p>
+
+  <p class="cbx-assume">In this sketch, one forest that drops its leaves in fall stands for the land plants of the Northern Hemisphere, where the lesson says most land plants are. One counter is one made-up chunk of carbon. Box sizes, the monthly rates, how much water vapor trees release in each month, the April-to-October window when leaves are out, the ocean’s share, the three burning levels, cutting to about 60 percent of the trees and planting up to about 140 percent are all made up. The yearly swing is drawn much bigger than the real one: the lesson’s data swing about 6 ppm out of more than 420 ppm. Carbon in rocks, and water shortage changing how much carbon plants take in, are left out.</p>
+  <p class="cbx-foot">Rule to keep: photosynthesis takes carbon out of the air, and respiration, decomposition and combustion put it back, so the air box empties in the northern summer, fills in winter, and climbs when burning adds old carbon faster than plants and the ocean take it up.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#33333b';
+  const C_PHOTO = '#2f8f4e', C_RESP = '#e57200', C_DECOMP = '#8a5a2b', C_BURN = '#c0392b', C_OCEAN = '#0e6fa8', C_WATER = '#2b7bba', C_MAIN = '#0e7c86', C_REF = '#6b6b75';
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const SEASONS = ['Northern winter', 'Northern winter', 'Northern spring', 'Northern spring', 'Northern spring', 'Northern summer', 'Northern summer', 'Northern summer', 'Northern fall', 'Northern fall', 'Northern fall', 'Northern winter'];
+  const BURN_WORDS = ['None', 'A little', 'Some', 'A lot'];
+  const BURN_RATE = [0, 0.1, 0.2, 0.3]; // made-up counters per month
+  // made-up monthly rules (per month, per counter in the box)
+  const K_RESP = 0.015, K_LITTER = 0.015, K_DECOMP = 0.015, K_OCEAN = 0.012, K_GROW = 0.03;
+  const STEPS_PER_MONTH = 8; // integration steps; time is an integer count of these
+  const DT = 1 / STEPS_PER_MONTH;
+  const GROW_START = 3, GROW_LEN = 7; // leaves out from about April to October (made up)
+  const SHAPE_MEAN = (2 * GROW_LEN / Math.PI) / 12;
+  let P_MAX = ((K_RESP + K_LITTER) * 40) / SHAPE_MEAN; // first guess; calibrated below so the plants box repeats each year
+  const CUT_FRAC = 0.6, PLANT_FRAC = 1.4;
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('CarbonBoxes: missing ' + sel);
+    return e;
+  }
+  function textEl(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 12, fill: INK }, extra));
+    t.textContent = s;
+    return t;
+  }
+  // leaf season: 0 outside April to October, a smooth hump inside
+  function shapeAt(tm: number): number {
+    const x = ((tm % 12) + 12) % 12;
+    return x >= GROW_START && x <= GROW_START + GROW_LEN ? Math.sin(Math.PI * (x - GROW_START) / GROW_LEN) : 0;
+  }
+
+  interface Sim {
+    A: number; B: number; S: number; O: number;
+    n: number;
+    burn: number; target: number;
+    f: { photo: number; resp: number; litter: number; decomp: number; toOcean: number; fromOcean: number; burn: number };
+    ends: number[];
+    hist: { t: number; a: number }[];
+  }
+  function newSim(a: number, b: number, s: number, o: number, n: number): Sim {
+    return { A: a, B: b, S: s, O: o, n, burn: 0, target: 0, f: { photo: 0, resp: 0, litter: 0, decomp: 0, toOcean: 0, fromOcean: 0, burn: 0 }, ends: [], hist: [] };
+  }
+  function advance(sim: Sim, normalB: number) {
+    const tm = sim.n / STEPS_PER_MONTH;
+    const sh = shapeAt(tm);
+    const p = P_MAX * sh * (sim.B / normalB);
+    const g = sim.target > sim.B ? K_GROW * (sim.target - sim.B) * sh : 0;
+    const r = K_RESP * sim.B, l = K_LITTER * sim.B, d = K_DECOMP * sim.S;
+    const oa = K_OCEAN * sim.A, ob = K_OCEAN * sim.O;
+    const bu = sim.burn;
+    sim.A += DT * (-p - g + r + d - oa + ob + bu);
+    sim.B += DT * (p + g - r - l);
+    sim.S += DT * (l - d);
+    sim.O += DT * (oa - ob);
+    sim.f = { photo: p + g, resp: r, litter: l, decomp: d, toOcean: oa, fromOcean: ob, burn: bu };
+    sim.n += 1;
+  }
+
+  // Bisection: choose P_MAX so the plants box (40 counters) is back at 40 after 12 months.
+  (function calibrate() {
+    let lo = P_MAX * 0.5, hi = P_MAX * 1.5;
+    for (let k = 0; k < 60; k++) {
+      const mid = (lo + hi) / 2;
+      P_MAX = mid;
+      const t = newSim(40, 40, 40, 40, 0);
+      t.target = 40;
+      for (let i = 0; i < 12 * STEPS_PER_MONTH; i++) advance(t, 40);
+      if (t.B < 40) lo = mid; else hi = mid;
+    }
+    P_MAX = (lo + hi) / 2;
+  })();
+
+  document.querySelectorAll<HTMLElement>('[data-cbx]').forEach((root) => {
+    const boxes = must<SVGSVGElement>(root, '[data-boxes]');
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const water = must<SVGSVGElement>(root, '[data-water]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const waterWhy = must<HTMLElement>(root, '[data-water-why]');
+    const burnIn = must<HTMLInputElement>(root, '[data-in="burn"]');
+    const burnOut = must<HTMLElement>(root, '[data-out="burn"]');
+    const runBtn = must<HTMLButtonElement>(root, '[data-run]');
+    const stepBtn = must<HTMLButtonElement>(root, '[data-step]');
+    const fastBtn = must<HTMLButtonElement>(root, '[data-fast]');
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+    const forestBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-forest]'));
+    const rFull = must<HTMLElement>(root, '[data-r-full]');
+    const rEmpty = must<HTMLElement>(root, '[data-r-empty]');
+    const rTrend = must<HTMLElement>(root, '[data-r-trend]');
+
+    // ---- spin-up: run 60 plain years so the first January already sits on the repeating yearly cycle ----
+    let w = newSim(40, 40, 40, 40, 0);
+    w.target = 40;
+    for (let i = 0; i < 60 * 12 * STEPS_PER_MONTH; i++) advance(w, 40);
+    const INIT = { A: w.A, B: w.B, S: w.S, O: w.O };
+    const NORMAL_B = 40;
+
+    let main = newSim(INIT.A, INIT.B, INIT.S, INIT.O, 0);
+    let ref = newSim(INIT.A, INIT.B, INIT.S, INIT.O, 0);
+    main.target = NORMAL_B; ref.target = NORMAL_B;
+    let forest = 'normal';
+    let prevForest = 'normal';
+    let last = 'start';
+    let timer: number | null = null;
+    let fastUntil = -1; // step count at which a fast run stops, or -1
+
+    // ---- build the box scene once ----
+    interface Box { slots: SVGElement[]; get: () => number }
+    const dotLayers: { box: Box; hold: SVGElement }[] = [];
+    const arrows: Record<string, SVGElement> = {};
+    const markers: Record<string, string> = {};
+    let monthText: SVGElement, seasonText: SVGElement, yearText: SVGElement, leafText: SVGElement;
+
+    function arrowMarker(defs: SVGElement, id: string, color: string) {
+      const mk = el('marker', { id, viewBox: '0 0 12 12', refX: 11, refY: 6, markerWidth: 14, markerHeight: 14, markerUnits: 'userSpaceOnUse', orient: 'auto' });
+      mk.appendChild(el('path', { d: 'M0 0 L12 6 L0 12 Z', fill: color }));
+      defs.appendChild(mk);
+      markers[color] = 'url(#' + id + ')';
+    }
+    function badge(parent: SVGElement, x: number, y: number, n: string) {
+      parent.appendChild(el('circle', { cx: x, cy: y, r: 9, fill: '#fff', stroke: INK, 'stroke-width': 1.2 }));
+      parent.appendChild(textEl(x, y + 4.2, n, { 'text-anchor': 'middle', 'font-weight': 700 }));
+    }
+    function makeBox(parent: SVGElement, x: number, y: number, wd: number, ht: number, title: string, fill: string,
+      x0: number, yBottom: number, rows: number, cols: number, get: () => number) {
+      parent.appendChild(el('rect', { x, y, width: wd, height: ht, rx: 6, fill, stroke: INK, 'stroke-width': 1.4 }));
+      parent.appendChild(textEl(x + 8, y + 18, title, { 'font-weight': 700 }));
+      const hold = el('g', {});
+      const slots: SVGElement[] = [];
+      for (let i = 0; i < rows * cols; i++) {
+        const c = Math.floor(i / rows), r = i % rows;
+        const dot = el('circle', { cx: x0 + c * 10, cy: yBottom - r * 10, r: 3.6, fill: INK, display: 'none' });
+        hold.appendChild(dot);
+        slots.push(dot);
+      }
+      parent.appendChild(hold);
+      dotLayers.push({ box: { slots, get }, hold });
+    }
+    function arrow(key: string, color: string, d: string, parent: SVGElement) {
+      const p = el('path', { d, fill: 'none', stroke: color, 'stroke-width': 3, 'stroke-linejoin': 'round' });
+      parent.appendChild(p);
+      arrows[key] = p;
+    }
+
+    function buildBoxes() {
+      boxes.replaceChildren();
+      const defs = el('defs', {});
+      [C_PHOTO, C_RESP, C_DECOMP, C_BURN, C_OCEAN].forEach((c, i) => arrowMarker(defs, 'cbx-mk' + i, c));
+      boxes.appendChild(defs);
+
+      // fuel tag
+      boxes.appendChild(el('rect', { x: 10, y: 4, width: 320, height: 24, rx: 6, fill: '#f3e3df', stroke: INK, 'stroke-width': 1.2 }));
+      boxes.appendChild(textEl(170, 20.5, 'Fuel underground: coal, oil, natural gas', { 'text-anchor': 'middle' }));
+
+      makeBox(boxes, 10, 58, 320, 84, 'Air', '#eaf3f8', 24, 134, 5, 30, () => main.A);
+      makeBox(boxes, 10, 200, 150, 92, 'Plants and animals', '#e8f3e6', 20, 283, 5, 14, () => main.B);
+      makeBox(boxes, 10, 330, 150, 92, 'Soil', '#f1e9df', 20, 413, 5, 14, () => main.S);
+      makeBox(boxes, 180, 200, 150, 92, 'Ocean', '#e1eef7', 190, 283, 5, 14, () => main.O);
+
+      // arrows: drawn on top of the boxes' edges only in the gaps
+      arrow('burn', C_BURN, 'M170 30 V57', boxes);
+      arrow('photo', C_PHOTO, 'M45 144 V199', boxes);
+      arrow('resp', C_RESP, 'M125 199 V144', boxes);
+      arrow('litter', C_DECOMP, 'M85 294 V329', boxes);
+      arrow('decomp', C_DECOMP, 'M161 376 H170 V144', boxes);
+      arrow('toOcean', C_OCEAN, 'M220 144 V199', boxes);
+      arrow('fromOcean', C_OCEAN, 'M290 199 V144', boxes);
+      badge(boxes, 200, 43, '4');
+      badge(boxes, 66, 171, '1');
+      badge(boxes, 146, 171, '2');
+      badge(boxes, 106, 311, '3');
+      badge(boxes, 170, 171, '3');
+      badge(boxes, 241, 171, '5');
+      badge(boxes, 311, 171, '5');
+
+      // month panel
+      boxes.appendChild(el('rect', { x: 180, y: 330, width: 150, height: 92, rx: 6, fill: '#fff', stroke: INK, 'stroke-width': 1.4, 'stroke-dasharray': '4 3' }));
+      monthText = textEl(255, 356, 'January', { 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 700 });
+      seasonText = textEl(255, 375, 'Northern winter', { 'text-anchor': 'middle' });
+      yearText = textEl(255, 393, 'Year 1', { 'text-anchor': 'middle' });
+      leafText = textEl(255, 411, 'Leaves: none', { 'text-anchor': 'middle' });
+      [monthText, seasonText, yearText, leafText].forEach((t) => boxes.appendChild(t));
+    }
+
+    function styleArrow(key: string, color: string, flux: number, markerIdx: number) {
+      const p = arrows[key];
+      if (flux < 0.02) {
+        p.setAttribute('stroke', '#9a9aa3');
+        p.setAttribute('stroke-width', '1.5');
+        p.setAttribute('stroke-dasharray', '3 4');
+        p.setAttribute('opacity', '0.55');
+        p.removeAttribute('marker-end');
+      } else {
+        p.setAttribute('stroke', color);
+        p.setAttribute('stroke-width', (1.5 + 7 * Math.sqrt(Math.min(flux, 4) / 4)).toFixed(2));
+        p.removeAttribute('stroke-dasharray');
+        p.setAttribute('opacity', '1');
+        p.setAttribute('marker-end', 'url(#cbx-mk' + markerIdx + ')');
+      }
+    }
+
+    function renderBoxes() {
+      dotLayers.forEach(({ box }) => {
+        const n = Math.max(0, Math.min(box.slots.length, Math.round(box.get())));
+        for (let i = 0; i < box.slots.length; i++) box.slots[i].setAttribute('display', i < n ? 'inline' : 'none');
+      });
+      const f = main.f;
+      styleArrow('photo', C_PHOTO, f.photo, 0);
+      styleArrow('resp', C_RESP, f.resp, 1);
+      styleArrow('litter', C_DECOMP, f.litter, 2);
+      styleArrow('decomp', C_DECOMP, f.decomp, 2);
+      styleArrow('burn', C_BURN, f.burn, 3);
+      styleArrow('toOcean', C_OCEAN, f.toOcean, 4);
+      styleArrow('fromOcean', C_OCEAN, f.fromOcean, 4);
+      const tm = main.n / STEPS_PER_MONTH;
+      const m = Math.floor(tm) % 12;
+      const sh = shapeAt(tm);
+      monthText.textContent = MONTHS[m];
+      seasonText.textContent = SEASONS[m];
+      yearText.textContent = 'Year ' + (Math.floor(tm / 12) + 1);
+      leafText.textContent = sh > 0.45 ? 'Leaves: out' : sh > 0.05 ? 'Leaves: few' : 'Leaves: none';
+    }
+
+    function renderPlot() {
+      plot.replaceChildren();
+      const X0 = 38, X1 = 332, Y0 = 34, Y1 = 164;
+      const tm = main.n / STEPS_PER_MONTH;
+      const ws = Math.max(0, tm - 120);
+      const vis = (h: { t: number; a: number }[]) => h.filter((p) => p.t >= ws - 0.001);
+      const pm = vis(main.hist), pr = vis(ref.hist);
+      let lo = INIT.A - 10, hi = INIT.A + 30;
+      pm.concat(pr).forEach((p) => { if (p.a - 2 < lo) lo = p.a - 2; if (p.a + 3 > hi) hi = p.a + 3; });
+      const px = (t: number) => X0 + ((t - ws) / 120) * (X1 - X0);
+      const py = (a: number) => Y1 - ((a - lo) / (hi - lo)) * (Y1 - Y0);
+
+      plot.appendChild(el('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, fill: '#fff', stroke: '#c9c9d0', 'stroke-width': 1 }));
+      // January lines and year numbers
+      for (let k = Math.ceil(ws / 12); k * 12 <= ws + 120 + 0.001; k++) {
+        const x = px(k * 12);
+        plot.appendChild(el('line', { x1: x, y1: Y0, x2: x, y2: Y1, stroke: '#e3e3e8', 'stroke-width': 1 }));
+        if (x <= X1 - 20) plot.appendChild(textEl(x + 3, Y1 + 16, String(k + 1)));
+      }
+      plot.appendChild(textEl(2, Y0 + 10, 'more'));
+      plot.appendChild(textEl(2, Y1 - 2, 'less'));
+      plot.appendChild(textEl((X0 + X1) / 2, 204, 'Year (made-up sketch time)', { 'text-anchor': 'middle' }));
+      // legend
+      plot.appendChild(el('line', { x1: 40, y1: 17, x2: 62, y2: 17, stroke: C_MAIN, 'stroke-width': 3 }));
+      plot.appendChild(textEl(66, 21, 'this run'));
+      plot.appendChild(el('line', { x1: 130, y1: 17, x2: 152, y2: 17, stroke: C_REF, 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(textEl(156, 21, 'normal forest, no burning'));
+
+      const toPath = (pts: { t: number; a: number }[]) => pts.map((p, i) => (i ? 'L' : 'M') + px(p.t).toFixed(1) + ' ' + Math.max(Y0, Math.min(Y1, py(p.a))).toFixed(1)).join(' ');
+      if (pr.length > 1) plot.appendChild(el('path', { d: toPath(pr), fill: 'none', stroke: C_REF, 'stroke-width': 2, 'stroke-dasharray': '4 3', 'stroke-linejoin': 'round' }));
+      if (pm.length > 1) plot.appendChild(el('path', { d: toPath(pm), fill: 'none', stroke: C_MAIN, 'stroke-width': 3, 'stroke-linejoin': 'round' }));
+      const endP = pm[pm.length - 1];
+      if (endP) plot.appendChild(el('circle', { cx: px(endP.t), cy: Math.max(Y0, Math.min(Y1, py(endP.a))), r: 4.5, fill: C_MAIN, stroke: '#fff', 'stroke-width': 1.5 }));
+    }
+
+    function renderWater() {
+      water.replaceChildren();
+      const defs = el('defs', {});
+      const mk = el('marker', { id: 'cbx-mkw', viewBox: '0 0 12 12', refX: 11, refY: 6, markerWidth: 14, markerHeight: 14, markerUnits: 'userSpaceOnUse', orient: 'auto' });
+      mk.appendChild(el('path', { d: 'M0 0 L12 6 L0 12 Z', fill: C_WATER }));
+      defs.appendChild(mk);
+      water.appendChild(defs);
+      const tm = main.n / STEPS_PER_MONTH;
+      const sh = shapeAt(tm);
+      const n = Math.max(1, Math.min(5, Math.round(3 * main.B / NORMAL_B)));
+      const leafy = sh > 0.05;
+      water.appendChild(el('rect', { x: 10, y: 6, width: 320, height: 70, rx: 6, fill: '#eaf3f8', stroke: INK, 'stroke-width': 1.2 }));
+      water.appendChild(textEl(18, 24, 'Air', { 'font-weight': 700 }));
+      water.appendChild(textEl(50, 24, leafy ? 'transpiration: water vapor leaves the leaves' : 'no leaves: little water vapor leaves'));
+      water.appendChild(el('rect', { x: 10, y: 140, width: 320, height: 28, rx: 4, fill: '#f1e9df', stroke: INK, 'stroke-width': 1.2 }));
+      water.appendChild(textEl(18, 158, 'Soil: roots take in water'));
+      for (let k = 0; k < 4; k++) water.appendChild(el('circle', { cx: 268 + k * 16, cy: 154, r: 4, fill: '#8dc0e6', stroke: C_WATER, 'stroke-width': 1 }));
+      for (let i = 0; i < n; i++) {
+        const cx = (340 * (i + 1)) / (n + 1);
+        water.appendChild(el('rect', { x: cx - 4, y: 116, width: 8, height: 24, fill: '#a9835a', stroke: INK, 'stroke-width': 1 }));
+        water.appendChild(el('ellipse', { cx, cy: 100, rx: 22, ry: 17, fill: leafy ? '#6aa84f' : 'none', 'fill-opacity': leafy ? (0.3 + 0.6 * sh).toFixed(2) : 0, stroke: leafy ? INK : '#8a8a93', 'stroke-width': 1.3, 'stroke-dasharray': leafy ? '' : '4 3' }));
+        const wv = leafy ? 1.5 + 5 * sh : 1.5;
+        // water up the stem
+        const up = el('path', { d: `M${cx + 12} 139 V118`, fill: 'none', stroke: leafy ? C_WATER : '#9a9aa3', 'stroke-width': wv.toFixed(2), 'stroke-linejoin': 'round' });
+        if (leafy) up.setAttribute('marker-end', 'url(#cbx-mkw)'); else { up.setAttribute('stroke-dasharray', '3 4'); up.setAttribute('opacity', '0.6'); }
+        water.appendChild(up);
+        // vapor out of the leaves
+        const out = el('path', { d: `M${cx} 80 V40`, fill: 'none', stroke: leafy ? C_WATER : '#9a9aa3', 'stroke-width': wv.toFixed(2), 'stroke-linejoin': 'round' });
+        if (leafy) out.setAttribute('marker-end', 'url(#cbx-mkw)'); else { out.setAttribute('stroke-dasharray', '3 4'); out.setAttribute('opacity', '0.6'); }
+        water.appendChild(out);
+      }
+      let s: string;
+      if (sh > 0.45) s = 'In this sketch, leaves are out. Water moves from the soil, up the trees and into the air. Photosynthesis uses this water together with carbon dioxide.';
+      else if (sh > 0.05) s = 'In this sketch, only some leaves are out, so less water vapor leaves the trees.';
+      else s = 'In this sketch, the trees have no leaves, so only a little water vapor leaves them.';
+      if (n <= 2) s += ' With fewer trees, less water vapor goes into the air.';
+      else if (n >= 4) s += ' With more trees, more water vapor goes into the air.';
+      waterWhy.textContent = s;
+    }
+
+    function monthName(k: number) { return MONTHS[((k % 12) + 12) % 12]; }
+
+    function readouts() {
+      const e = main.ends;
+      if (e.length >= 12) {
+        const base = e.length - 12;
+        let imax = 0, imin = 0;
+        for (let i = 1; i < 12; i++) {
+          if (e[base + i] > e[base + imax]) imax = i;
+          if (e[base + i] < e[base + imin]) imin = i;
+        }
+        rFull.textContent = 'end of ' + monthName(base + imax);
+        rEmpty.textContent = 'end of ' + monthName(base + imin);
+      } else {
+        rFull.textContent = 'Run a full year to see';
+        rEmpty.textContent = 'Run a full year to see';
+      }
+      if (e.length >= 24) {
+        const avg = (a: number, b: number) => { let s = 0; for (let i = a; i < b; i++) s += e[i]; return s / (b - a); };
+        const d = avg(e.length - 12, e.length) - avg(e.length - 24, e.length - 12);
+        rTrend.textContent = d > 0.7 ? 'higher' : d < -0.7 ? 'lower' : 'about the same';
+      } else {
+        rTrend.textContent = 'Run two years to see';
+      }
+    }
+
+    function statusText() {
+      const tm = main.n / STEPS_PER_MONTH;
+      const f = main.f;
+      const parts: string[] = [];
+      if (main.n === 0 && last === 'start') {
+        why.textContent = 'Press “Run the months”. Counters stand for carbon moving between four boxes.';
+        return;
+      }
+      const sh = shapeAt(tm);
+      const loss = f.resp + f.decomp;
+      if (sh <= 0.05) parts.push('In this sketch, leaves are off, but respiration and decomposition go on, so the air box fills.');
+      else if (f.photo > loss * 1.15) parts.push('In this sketch, photosynthesis is bigger than respiration and decomposition, so the air box empties.');
+      else if (f.photo < loss * 0.85) parts.push('In this sketch, respiration and decomposition are bigger than photosynthesis, so the air box fills.');
+      else parts.push('In this sketch, photosynthesis is about as big as respiration and decomposition, so the air box changes little.');
+      if (main.burn > 0) parts.push('Burning fuel adds old carbon from underground to the air.');
+      const e = main.ends;
+      if (last === 'burn') {
+        if (main.burn === 0) parts.push('Burning is off, so no old carbon is added.');
+        else if (e.length < 24) parts.push('Run more years to see what the line does.');
+      }
+      if (last === 'forest') {
+        if (forest === 'cut') parts.push('In this sketch, cut trees become dead wood in the soil box. Decomposers return its carbon to the air and soil. Fewer leaves also means less photosynthesis. Extra dead wood also raises decomposition for a few years.');
+        else if (forest === 'plant') parts.push('In this sketch, new trees take in carbon as they grow, so there is more photosynthesis.');
+        else if (prevForest === 'plant') parts.push('The forest is back to normal size.');
+        else parts.push('The forest is set to its normal size. Cut trees regrow slowly.');
+      }
+      if (e.length >= 24) {
+        const avg = (a: number, b: number) => { let s = 0; for (let i = a; i < b; i++) s += e[i]; return s / (b - a); };
+        const d = avg(e.length - 12, e.length) - avg(e.length - 24, e.length - 12);
+        if (d > 0.7) {
+          parts.push('In this sketch, this year’s average is higher than last year’s.');
+          if (main.burn > 0) parts.push('Burning adds carbon faster than plants and the ocean take it up.');
+        } else if (d < -0.7) parts.push('In this sketch, this year’s average is lower than last year’s.');
+        else parts.push('In this sketch, this year’s average is about the same as last year’s.');
+      }
+      if (dotLayers.some(({ box }) => box.get() > box.slots.length)) parts.push('A box holds more counters than fit, so the picture shows it full.');
+      why.textContent = parts.join(' ');
+    }
+
+    function record() {
+      if (main.n % 2 === 0) {
+        const t = main.n / STEPS_PER_MONTH;
+        main.hist.push({ t, a: main.A });
+        ref.hist.push({ t, a: ref.A });
+        const keep = t - 126;
+        while (main.hist.length && main.hist[0].t < keep) main.hist.shift();
+        while (ref.hist.length && ref.hist[0].t < keep) ref.hist.shift();
+      }
+      if (main.n % STEPS_PER_MONTH === 0 && main.n > 0) {
+        main.ends.push(main.A);
+        ref.ends.push(ref.A);
+      }
+    }
+    function stepOnce() {
+      main.burn = BURN_RATE[parseInt(burnIn.value, 10) || 0];
+      ref.burn = 0;
+      advance(main, NORMAL_B);
+      advance(ref, NORMAL_B);
+      record();
+    }
+    function render() {
+      renderBoxes();
+      renderPlot();
+      renderWater();
+      readouts();
+      statusText();
+      const bi = parseInt(burnIn.value, 10) || 0;
+      burnOut.textContent = BURN_WORDS[bi];
+      burnIn.setAttribute('aria-valuetext', BURN_WORDS[bi]);
+      forestBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.forest === forest)));
+      const running = timer !== null;
+      runBtn.textContent = running ? 'Pause' : 'Run the months';
+      runBtn.setAttribute('aria-pressed', String(running));
+    }
+
+    function stop() {
+      if (timer !== null) { window.clearInterval(timer); timer = null; }
+      fastUntil = -1;
+    }
+    function start(fast: boolean) {
+      stop();
+      if (fast) fastUntil = main.n + 120 * STEPS_PER_MONTH;
+      const perSecond = fast ? 14 : 1.2; // months per second
+      const TICK = 50;
+      let carry = 0;
+      timer = window.setInterval(() => {
+        carry += (perSecond * STEPS_PER_MONTH * TICK) / 1000;
+        const todo = Math.floor(carry);
+        carry -= todo;
+        for (let i = 0; i < todo; i++) {
+          stepOnce();
+          if (fastUntil >= 0 && main.n >= fastUntil) { stop(); break; }
+        }
+        render();
+      }, TICK);
+      render();
+    }
+
+    function setForest(kind: string) {
+      prevForest = forest;
+      forest = kind;
+      const frac = kind === 'cut' ? CUT_FRAC : kind === 'plant' ? PLANT_FRAC : 1;
+      main.target = NORMAL_B * frac;
+      if (main.B > main.target) { // trees come down: the extra carbon is now dead wood in the soil box
+        const extra = main.B - main.target;
+        main.B -= extra;
+        main.S += extra;
+      }
+    }
+    function reset() {
+      stop();
+      main = newSim(INIT.A, INIT.B, INIT.S, INIT.O, 0);
+      ref = newSim(INIT.A, INIT.B, INIT.S, INIT.O, 0);
+      main.target = NORMAL_B; ref.target = NORMAL_B;
+      forest = 'normal';
+      burnIn.value = '0';
+      last = 'start';
+      render();
+    }
+
+    runBtn.addEventListener('click', () => { last = last === 'start' ? 'run' : last; if (timer !== null) { stop(); render(); } else start(false); });
+    stepBtn.addEventListener('click', () => { stop(); if (last === 'start') last = 'run'; for (let i = 0; i < STEPS_PER_MONTH; i++) stepOnce(); render(); });
+    fastBtn.addEventListener('click', () => { if (last === 'start') last = 'run'; start(true); });
+    resetBtn.addEventListener('click', reset);
+    burnIn.addEventListener('input', () => { last = 'burn'; main.burn = BURN_RATE[parseInt(burnIn.value, 10) || 0]; render(); });
+    forestBtns.forEach((b) => b.addEventListener('click', () => { last = 'forest'; setForest(b.dataset.forest ?? 'normal'); render(); }));
+
+    buildBoxes();
+    // first frame: fluxes for January at time 0
+    {
+      const probe = newSim(INIT.A, INIT.B, INIT.S, INIT.O, 0);
+      probe.target = NORMAL_B;
+      advance(probe, NORMAL_B);
+      main.f = probe.f; ref.f = probe.f;
+      main.hist.push({ t: 0, a: main.A });
+      ref.hist.push({ t: 0, a: ref.A });
+    }
+    render();
+  });
+</script>
+
+<style is:global>
+  .cbx { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .cbx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .cbx-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .cbx-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .cbx-controls { display: grid; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .cbx-time, .cbx-forest { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); }
+  .cbx-flabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .cbx-slabel { display: flex; flex-direction: column; justify-content: center; gap: 0.1rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .cbx-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .cbx-slabel input { accent-color: var(--ddp-color-accent); width: 100%; max-width: 320px; min-height: 28px; }
+  .cbx-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 1rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .cbx-btn:hover { border-color: var(--ddp-color-accent); }
+  .cbx-btn:focus-visible, .cbx-slabel input:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .cbx-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .cbx-primary { font-weight: 700; }
+  .cbx-legend { list-style: none; margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); display: grid; gap: 0.25rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); background: color-mix(in srgb, var(--ddp-color-accent) 6%, transparent); border-radius: 6px; }
+  .cbx-legend li { margin: 0; line-height: 1.4; }
+  .cbx-legend b { display: inline-block; min-width: 1.4em; text-align: center; margin-right: 0.3em; border: 1px solid var(--ddp-color-ink-soft); border-radius: 50%; color: var(--ddp-color-primary); }
+  .cbx-plot-title { margin-top: var(--ddp-space-3); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .cbx-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .cbx-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .cbx-wide { grid-column: 1 / -1; }
+  .cbx-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cbx-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .cbx-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .cbx-water { min-height: 4.5em; }
+  .cbx-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .cbx-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) {
+    .cbx-readout { grid-template-columns: 1fr; }
+  }
+</style>

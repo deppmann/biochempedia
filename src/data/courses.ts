@@ -32,6 +32,9 @@ export interface Course {
   tier: 'highschool' | 'foundation' | 'core' | 'elective' | 'advanced';
   /** True when the course covers material the MCAT tests; shown as a tag on the homepage card. */
   mcat?: boolean;
+  /** Grades 7–12 courses only: the step the course sits on in the depth ladder
+   *  (1 Life Science, grade 7; 2 Biology). Defaults to 2. */
+  ladderStep?: 1 | 2;
   /** One line under the title on the course page and on the homepage card. */
   tagline: string;
   /** A short paragraph for the course page. */
@@ -44,6 +47,27 @@ export interface Course {
 /* Order is the suggested path: within each tier, courses appear in the order a student
    should take them (the homepage numbers the core courses). */
 export const COURSES: Course[] = [
+  {
+    slug: 'life-science',
+    title: 'Life Science',
+    tier: 'highschool',
+    ladderStep: 1,
+    mcat: false,
+    tagline: 'Grade 7 Life Science, aligned to the Virginia Standards of Learning, with supports for every reader.',
+    searchHint: 'Try “osmosis”, “food web”, “Punnett square”…',
+    blurb:
+      'A complete grade 7 Life Science course built on the Virginia Life Science Standards of Learning (LS.1 to LS.11). Every lesson opens with something you can see, runs a simulation, works with real data (much of it from Virginia and the Chesapeake Bay), and ends in claim, evidence and reasoning. A supports switch adds word banks, sentence frames and labelled diagrams without changing the task, and a depth ladder links each idea one step up to the matching high school Biology lesson.',
+    units: [
+      { name: 'Cells', slugs: ['cells-everywhere', 'inside-a-cell', 'plant-and-animal-cells', 'cells-divide', 'diffusion-and-osmosis'] },
+      { name: 'Organizing and classifying life', slugs: ['levels-of-organization', 'sorting-living-things', 'domains-kingdoms-and-dna'] },
+      { name: 'Energy for life', slugs: ['photosynthesis-feeds-the-world', 'releasing-energy-from-food', 'photosynthesis-and-respiration-partners'] },
+      { name: 'Matter and energy in ecosystems', slugs: ['food-webs-and-energy', 'producers-consumers-decomposers', 'carbon-and-water-cycles', 'nitrogen-for-life'] },
+      { name: 'Living together', slugs: ['predators-and-prey', 'competition-and-cooperation', 'living-together-symbiosis', 'habitat-and-niche', 'land-and-water-ecosystems', 'adaptations-for-survival'] },
+      { name: 'Changing ecosystems', slugs: ['daily-and-seasonal-rhythms', 'populations-rise-and-fall', 'eutrophication-and-big-changes', 'people-change-habitats', 'restoring-ecosystems'] },
+      { name: 'Heredity', slugs: ['dna-the-code-of-life', 'reproduction-and-meiosis', 'predicting-traits', 'inherited-or-acquired'] },
+      { name: 'Change over time', slugs: ['mutations-and-variation', 'natural-selection-in-action', 'evidence-for-change', 'extinction-and-survival'] },
+    ],
+  },
   {
     slug: 'high-school-biology',
     title: 'Biology',

@@ -1,0 +1,241 @@
+---
+/**
+ * EnergyPyramidSteps — an energy pyramid for a Bay food chain. The learner sets the energy
+ * the producers capture (made-up units per square meter per year), the percent passed up at
+ * each step (5 to 20, starting at 10) and the number of levels (3 or 4). Each level holds
+ * the producers' energy times (percent/100) to the power of the steps up. Bars are drawn to
+ * scale, red arrows show heat leaving every level, and a counter shows how many ospreys the
+ * top bar could feed at a made-up 1 unit each. Every step passes the same percent, each level
+ * is one bar, no decomposer branch. Organisms are schematic icons. Self-contained vanilla-TS
+ * Astro island. Original.
+ */
+---
+
+<figure class="eps card" data-eps>
+  <figcaption class="eps-head">Energy pyramid builder<span class="eps-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="eps-controls">
+    <label class="eps-slabel"><span>Energy the producers capture <em data-out="sun">10,000</em> units</span>
+      <input type="range" data-in="sun" min="2000" max="20000" step="2000" value="10000" />
+    </label>
+    <label class="eps-slabel"><span>Percent passed up at each step <em data-out="pct">10</em> percent</span>
+      <input type="range" data-in="pct" min="5" max="20" step="1" value="10" />
+    </label>
+    <div class="eps-levels" role="group" aria-label="Number of levels">
+      <span class="eps-levlabel">Levels</span>
+      <button type="button" class="eps-btn" data-levels="3" aria-pressed="false">3 levels</button>
+      <button type="button" class="eps-btn" data-levels="4" aria-pressed="true">4 levels</button>
+      <button type="button" class="eps-btn" data-reset>Reset</button>
+    </div>
+  </div>
+
+  <svg class="eps-svg" viewBox="0 0 340 300" role="img" aria-label="An energy pyramid of stacked bars, one per level, with red heat arrows leaving each level" data-scene></svg>
+
+  <dl class="eps-readout">
+    <div><dt>Ospreys the top bar could feed</dt><dd class="eps-big" data-r-count>10</dd></div>
+    <div><dt>Share of the producers’ energy at the top</dt><dd data-r-share>0.1 percent</dd></div>
+    <div class="eps-wide"><dt>The arithmetic (units per square meter per year)</dt><dd data-r-math>10,000 × 0.10 × 0.10 × 0.10 = 10</dd></div>
+  </dl>
+
+  <p class="eps-why" data-why role="status">Each step passes 10 percent up.</p>
+
+  <p class="eps-assume">In this sketch, every step passes the same percent, each level is one bar and decomposers are not drawn. Amounts are made-up units, and 1 unit feeds 1 osprey (also made up; the count is rounded down to whole ospreys). Wide bars are drawn to scale; any bar under 3 pixels is drawn 3 pixels wide so you can see it, so very thin bars look equal but are not. Red arrows show that much of the energy leaves as heat (all the same size, not to scale); in real food chains some energy not passed up also goes to decomposers.</p>
+  <p class="eps-foot">Rule to keep: each step passes only about one-tenth up, and much of the rest is given off as heat, so the top level has the least energy. Energy limits top predators but gives no exact count.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#33333b', HEAT = '#c0392b';
+  const FILLS = ['#2f8f4e', '#6aa84f', '#0e7c86', '#e57200'];
+  const MAXSUN = 20000;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('EnergyPyramidSteps: missing ' + sel);
+    return e;
+  }
+  function fmt(x: number): string {
+    if (x >= 100) return Math.round(x).toLocaleString('en-US');
+    return String(parseFloat(x.toPrecision(3)));
+  }
+  // Simple labelled icons, drawn inside a 24 x 14 box at (x, y).
+  function icon(kind: string, x: number, y: number): SVGElement {
+    const g = el('g', { transform: `translate(${x} ${y})`, fill: 'none', stroke: INK, 'stroke-width': 1.4, 'aria-hidden': 'true' });
+    if (kind === 'phyto') {
+      g.appendChild(el('circle', { cx: 5, cy: 7, r: 3.5 }));
+      g.appendChild(el('circle', { cx: 13, cy: 4, r: 3 }));
+      g.appendChild(el('circle', { cx: 18, cy: 10, r: 3.5 }));
+    } else if (kind === 'zoo') {
+      g.appendChild(el('ellipse', { cx: 12, cy: 7, rx: 8, ry: 4.5 }));
+      g.appendChild(el('path', { d: 'M7 11 L5 14 M12 11.5 L12 14 M17 11 L19 14' }));
+    } else if (kind === 'fish') {
+      g.appendChild(el('ellipse', { cx: 9, cy: 7, rx: 8, ry: 4.5 }));
+      g.appendChild(el('path', { d: 'M17 7 L23 2 L23 12 Z' }));
+    } else {
+      g.appendChild(el('path', { d: 'M1 9 Q6 0 12 6 Q18 0 23 9 Q18 5 12 11 Q6 5 1 9 Z' }));
+    }
+    return g;
+  }
+  function textEl(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+    const t = el('text', Object.assign({ x, y, 'font-size': 12, fill: INK }, extra));
+    t.textContent = s;
+    return t;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-eps]').forEach((root) => {
+    const scene = must<SVGSVGElement>(root, '[data-scene]');
+    const sunIn = must<HTMLInputElement>(root, '[data-in="sun"]');
+    const pctIn = must<HTMLInputElement>(root, '[data-in="pct"]');
+    const sunOut = must<HTMLElement>(root, '[data-out="sun"]');
+    const pctOut = must<HTMLElement>(root, '[data-out="pct"]');
+    const rCount = must<HTMLElement>(root, '[data-r-count]');
+    const rShare = must<HTMLElement>(root, '[data-r-share]');
+    const rMath = must<HTMLElement>(root, '[data-r-math]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const levelBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-levels]'));
+    const resetBtn = must<HTMLButtonElement>(root, '[data-reset]');
+
+    let levels = 4;
+    let last = 'start';
+
+    function names(n: number): { name: string; icon: string }[] {
+      if (n === 3) return [
+        { name: 'Producers: phytoplankton', icon: 'phyto' },
+        { name: 'First-order consumers: menhaden', icon: 'fish' },
+        { name: 'Second-order consumers: ospreys', icon: 'bird' },
+      ];
+      return [
+        { name: 'Producers: phytoplankton', icon: 'phyto' },
+        { name: 'First-order consumers: zooplankton', icon: 'zoo' },
+        { name: 'Second-order consumers: menhaden', icon: 'fish' },
+        { name: 'Third-order consumers: ospreys', icon: 'bird' },
+      ];
+    }
+
+    function render() {
+      const sun = parseInt(sunIn.value, 10);
+      const pct = parseInt(pctIn.value, 10);
+      const f = pct / 100;
+      sunOut.textContent = sun.toLocaleString('en-US');
+      pctOut.textContent = String(pct);
+      levelBtns.forEach((b) => b.setAttribute('aria-pressed', String(parseInt(b.dataset.levels ?? '0', 10) === levels)));
+
+      const vals: number[] = [];
+      for (let i = 0; i < levels; i++) vals.push(sun * Math.pow(f, i));
+      const top = vals[levels - 1];
+      const share = Math.pow(f, levels - 1) * 100;
+      const exact = top / 1; // made up: 1 unit feeds 1 osprey
+      const count = Math.floor(exact + 1e-9);
+
+      // ---- scene ----
+      const ROW = 58, Y0 = 26, ICONROW = Y0 + levels * ROW + 6;
+      const H = ICONROW + 52;
+      scene.setAttribute('viewBox', `0 0 340 ${H}`);
+      scene.replaceChildren();
+      const defs = el('defs', {});
+      const mk = el('marker', { id: 'eps-arrow', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto' });
+      mk.appendChild(el('path', { d: 'M0 0 L10 5 L0 10 Z', fill: HEAT }));
+      defs.appendChild(mk);
+      scene.appendChild(defs);
+      scene.appendChild(textEl(10, 15, 'Made-up units per square meter per year', { 'font-size': 12, 'font-weight': 700 }));
+
+      const nm = names(levels);
+      for (let i = 0; i < levels; i++) {
+        const rowTop = Y0 + (levels - 1 - i) * ROW; // producers at the bottom
+        const w = Math.max(3, (vals[i] / MAXSUN) * 250);
+        const cx = 135;
+        scene.appendChild(icon(nm[i].icon, 10, rowTop + 2));
+        scene.appendChild(textEl(40, rowTop + 13, nm[i].name + ': ' + fmt(vals[i]), { 'font-weight': 700 }));
+        scene.appendChild(el('rect', { x: cx - w / 2, y: rowTop + 20, width: w, height: 22, fill: FILLS[i], stroke: INK, 'stroke-width': 1 }));
+        // red heat arrow leaves this level
+        scene.appendChild(textEl(296, rowTop + 32, 'heat', { 'text-anchor': 'middle', fill: HEAT, 'font-weight': 700 }));
+        scene.appendChild(el('line', { x1: 272, y1: rowTop + 38, x2: 322, y2: rowTop + 38, stroke: HEAT, 'stroke-width': 3, 'marker-end': 'url(#eps-arrow)' }));
+      }
+
+      // osprey counter icons
+      scene.appendChild(textEl(10, ICONROW + 12, 'Ospreys the top bar could feed', { 'font-weight': 700 }));
+      const shown = Math.min(count, 8);
+      for (let k = 0; k < shown; k++) scene.appendChild(icon('bird', 10 + k * 27, ICONROW + 22));
+      if (count > shown) scene.appendChild(textEl(10 + shown * 27 + 2, ICONROW + 34, '+' + (count - shown).toLocaleString('en-US') + ' more'));
+      if (count === 0) scene.appendChild(textEl(10, ICONROW + 36, 'less than 1 osprey'));
+
+      // ---- readouts ----
+      rCount.textContent = count.toLocaleString('en-US');
+      rShare.textContent = fmt(share) + ' percent';
+      const factor = f.toFixed(2);
+      const steps = Array.from({ length: levels - 1 }, () => factor).join(' × ');
+      rMath.textContent = `${sun.toLocaleString('en-US')} × ${steps} = ${fmt(top)}`;
+
+      // ---- status ----
+      const parts: string[] = [];
+      parts.push(`Each step passes ${pct} percent up.`);
+      parts.push(`The top bar has ${fmt(top)} of ${sun.toLocaleString('en-US')} units, or ${fmt(share)} percent.`);
+      parts.push(count >= 1
+        ? `That could feed ${count} ${count === 1 ? 'osprey' : 'ospreys'} at 1 made-up unit each.`
+        : 'That is less than the 1 made-up unit one osprey is given.');
+      if (last === 'pct') {
+        if (pct < 10) parts.push('Less is passed up, so the bars shrink faster.');
+        else if (pct > 10) parts.push('More is passed up, so the bars shrink more slowly.');
+        else parts.push('This matches the lesson’s rough rule of one-tenth.');
+        if (pct !== 10) parts.push('Real steps vary: at Silver Springs they were 5.5 to 16.2 percent (Odum, 1957).');
+      } else if (last === 'sun') {
+        parts.push(`Every bar changes by the same factor, so the top bar is still ${fmt(share)} percent of the producers.`);
+      } else if (last === 'levels') {
+        parts.push(levels === 3
+          ? 'In this chain, menhaden eat phytoplankton directly, so the osprey is a second-order consumer.'
+          : 'In this chain, zooplankton are between the plankton and menhaden, so the osprey is a third-order consumer.');
+      }
+      why.textContent = parts.join(' ');
+    }
+
+    sunIn.addEventListener('input', () => { last = 'sun'; render(); });
+    pctIn.addEventListener('input', () => { last = 'pct'; render(); });
+    levelBtns.forEach((b) => b.addEventListener('click', () => {
+      levels = parseInt(b.dataset.levels ?? '4', 10) === 3 ? 3 : 4;
+      last = 'levels';
+      render();
+    }));
+    resetBtn.addEventListener('click', () => {
+      sunIn.value = '10000';
+      pctIn.value = '10';
+      levels = 4;
+      last = 'start';
+      render();
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .eps { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .eps-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .eps-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .eps-svg { display: block; width: 100%; max-width: 560px; margin: var(--ddp-space-2) auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .eps-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-2) 0; align-items: end; }
+  .eps-slabel { display: flex; flex-direction: column; justify-content: center; gap: 0.1rem; min-height: 44px; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .eps-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .eps-slabel input { accent-color: var(--ddp-color-accent); width: 100%; min-height: 28px; }
+  .eps-levels { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-2); }
+  .eps-levlabel { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .eps-btn { min-height: 44px; min-width: 44px; padding: 0.4rem 1rem; font: inherit; font-size: var(--ddp-text-sm); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: #fff; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .eps-btn:hover { border-color: var(--ddp-color-accent); }
+  .eps-btn:focus-visible { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .eps-btn[aria-pressed="true"] { background: var(--ddp-color-accent); border-color: var(--ddp-color-accent); color: #fff; font-weight: 700; }
+  .eps-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .eps-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .eps-wide { grid-column: 1 / -1; }
+  .eps-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .eps-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; }
+  .eps-readout dd.eps-big { font-size: 1.6rem; line-height: 1.2; }
+  .eps-why { margin: 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .eps-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .eps-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 480px) {
+    .eps-controls { grid-template-columns: 1fr; }
+    .eps-readout { grid-template-columns: 1fr; }
+  }
+</style>
