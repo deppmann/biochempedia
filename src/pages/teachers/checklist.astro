@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COMMITMENTS } from '../../data/teachers';
+---
+
+<BaseLayout
+  title="What I'd ask of any AI in a classroom: checklist — Biochemistrypedia"
+  description="A one-page printable checklist of five questions to ask about any AI tool before it reaches your students, from the talk Fast Tools, Slow Thinking."
+>
+  <article class="wrap cl" style="padding-top: var(--ddp-space-8)">
+    <p class="cl-eyebrow cl-screen"><a href="/teachers">Resources for teachers</a> / checklist</p>
+    <div class="cl-screen cl-actions">
+      <button type="button" class="cl-btn" id="cl-print">Print this page</button>
+      <span>It fits on one page.</span>
+    </div>
+
+    <div class="sheet">
+      <header class="cl-head">
+        <p class="cl-kicker">Fast tools for us. Slow thinking for them.</p>
+        <h1>What I&rsquo;d ask of any AI in a classroom</h1>
+        <p class="cl-lede">
+          If a vendor, your district, or I show you an AI tool for your classroom, ask these five
+          questions. Tick what you can confirm; write down what you cannot.
+        </p>
+        <p class="cl-fields">
+          <span>Tool: <i></i></span>
+          <span>Date: <i></i></span>
+          <span>Checked by: <i></i></span>
+        </p>
+      </header>
+
+      <ol class="cl-list">
+        {COMMITMENTS.map((c, i) => (
+          <li>
+            <span class="box" aria-hidden="true"></span>
+            <div>
+              <p class="lead"><span class="n">{i + 1}.</span> <strong>{c.lead}</strong>{c.rest && <>{' '}{c.rest}</>}</p>
+              <p class="look"><span>Look for:</span> {c.look}</p>
+              <p class="notes"><span>Notes:</span> <i></i></p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <footer class="cl-foot">
+        <p>
+          <strong>Before any student work goes near a tool:</strong> district-approved tools only;
+          remove names and IDs (FERPA); extra care under age 13 (COPPA); no student voice recordings.
+          This is practical advice, not legal advice.
+        </p>
+        <p>
+          From the talk &ldquo;Fast Tools, Slow Thinking,&rdquo; Christopher Deppmann, UVA, October 24, 2026.
+          More at biochemistrypedia.com/teachers
+        </p>
+      </footer>
+    </div>
+  </article>
+
+  <style is:global>
+    .cl { max-width: 780px; }
+    .cl .cl-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .cl .cl-actions { display: flex; align-items: center; gap: var(--ddp-space-3); margin: var(--ddp-space-3) 0 var(--ddp-space-5); font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .cl .cl-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .cl :focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+
+    .cl .sheet { background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); padding: var(--ddp-space-6); }
+    .cl .cl-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); margin: 0 0 var(--ddp-space-1); }
+    .cl h1 { font-size: var(--ddp-text-2xl); line-height: 1.1; margin: 0 0 var(--ddp-space-2); }
+    .cl .cl-lede { margin: 0 0 var(--ddp-space-3); }
+    .cl .cl-fields { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-5); margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-sm); }
+    .cl .cl-fields span { display: inline-flex; align-items: flex-end; gap: 0.4em; flex: 1 1 10rem; }
+    .cl .cl-fields i, .cl .notes i { flex: 1; border-bottom: 1px solid var(--ddp-color-ink-soft); min-width: 4rem; height: 1.2em; display: inline-block; }
+    .cl ol.cl-list { list-style: none; padding: 0; margin: 0; }
+    .cl ol.cl-list li { display: grid; grid-template-columns: 1.6rem 1fr; gap: var(--ddp-space-3); padding: var(--ddp-space-3) 0; border-top: 1px solid var(--ddp-color-line); }
+    .cl .box { width: 1.3rem; height: 1.3rem; border: 2px solid var(--ddp-color-ink); border-radius: 3px; margin-top: 0.15rem; }
+    .cl .lead { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-lg); font-family: var(--ddp-font-serif); }
+    .cl .lead .n { font-family: var(--ddp-font-mono); font-size: 0.8em; color: var(--ddp-color-muted); }
+    .cl .look { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); }
+    .cl .look span, .cl .notes span { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .cl .notes { display: flex; align-items: flex-end; gap: 0.5em; margin: 0; font-size: var(--ddp-text-sm); }
+    .cl .cl-foot { border-top: 2px solid var(--ddp-color-ink); margin-top: var(--ddp-space-2); padding-top: var(--ddp-space-3); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .cl .cl-foot p { margin: 0 0 var(--ddp-space-2); }
+
+    @media (max-width: 640px) { .cl .sheet { padding: var(--ddp-space-4); } }
+
+    /* Print: one letter page, no site chrome. */
+    @page { size: letter; margin: 0.5in; }
+    @media print {
+      html, body { background: #fff !important; color: #000 !important; }
+      .skip-link, .site-header, body > footer, .cl-screen { display: none !important; }
+      main { padding: 0 !important; }
+      .cl { max-width: none; padding: 0 !important; margin: 0 !important; }
+      .cl .sheet { border: 0; padding: 0; background: #fff; border-radius: 0; }
+      .cl h1 { font-size: 20pt; }
+      .cl .cl-kicker { font-size: 8pt; }
+      .cl .cl-lede, .cl .cl-fields { font-size: 10pt; }
+      .cl .cl-lede { margin-bottom: 6pt; }
+      .cl .cl-fields { margin-bottom: 6pt; }
+      .cl ol.cl-list li { padding: 7pt 0; break-inside: avoid; }
+      .cl .lead { font-size: 12pt; }
+      .cl .look { font-size: 9.5pt; margin-bottom: 4pt; }
+      .cl .notes { font-size: 9pt; }
+      .cl .cl-foot { font-size: 8.5pt; color: #000; }
+      .cl a { color: inherit; text-decoration: none; }
+    }
+  </style>
+
+  <script>
+    document.getElementById('cl-print')?.addEventListener('click', () => window.print());
+  </script>
+</BaseLayout>

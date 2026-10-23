@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SOURCE_GROUPS, HOW_LABEL } from '../../data/teacher-sources';
+import type { How } from '../../data/teacher-sources';
+
+const HOWS = Object.keys(HOW_LABEL) as How[];
+---
+
+<BaseLayout
+  title="Sources for the talk Fast Tools, Slow Thinking — Biochemistrypedia"
+  description="Every number in the talk Fast Tools, Slow Thinking, with its source, its year, and how well it was checked, grouped by slide."
+>
+  <article class="wrap src" style="padding-top: var(--ddp-space-12)">
+    <div class="prose-col">
+      <p class="eyebrow"><a href="/teachers">Resources for teachers</a> / sources</p>
+      <h1>Sources</h1>
+      <p>
+        Every number in the talk &ldquo;Fast Tools, Slow Thinking&rdquo; and on these pages, with where it
+        comes from and what year. They are grouped by slide, in the order of the talk. If you find a number
+        that is not here, <a href="/contact">tell us</a>.
+      </p>
+      <p>The last column says how well a number was checked:</p>
+      <ul class="legend">
+        {HOWS.map((h) => <li><span class={`how how-${h}`}>{HOW_LABEL[h]}</span></li>)}
+      </ul>
+      <p>
+        Numbers marked &ldquo;my own data&rdquo; come from my own records. The class numbers (finishing times,
+        the rater, the questions) are from one graduate course of 12 students: they show what happened in
+        one small class, not what would happen in yours. Found a mistake?
+        <a href="/contact">Tell us</a> and we will fix it in public.
+      </p>
+      <nav aria-label="Slides">
+        <ul class="toc">
+          {SOURCE_GROUPS.map((g) => <li><a href={`#${g.id}`}>{g.title}</a></li>)}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="groups">
+      {SOURCE_GROUPS.map((g) => (
+        <section class="group" aria-labelledby={g.id}>
+          <h2 id={g.id}>{g.title}</h2>
+          {g.none && <p class="none">{g.none}</p>}
+          {g.rows.length > 0 && (
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Number</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">Year</th>
+                  <th scope="col">How checked</th>
+                </tr>
+              </thead>
+              <tbody>
+                {g.rows.map((r) => (
+                  <tr>
+                    <td data-label="Number">{r.claim}{r.note && <span class="rownote">{r.note}</span>}</td>
+                    <td data-label="Source">{r.source}</td>
+                    <td data-label="Year">{r.year}</td>
+                    <td data-label="How checked"><span class={`how how-${r.how}`}>{HOW_LABEL[r.how]}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      ))}
+    </div>
+
+    <div class="prose-col">
+      <p><a href="/teachers">&larr; Back to resources for teachers</a></p>
+    </div>
+  </article>
+
+  <style is:global>
+    .src .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .src ul.legend { list-style: none; padding: 0; display: grid; gap: var(--ddp-space-2); margin: 0 0 var(--ddp-space-4); }
+    .src ul.toc { columns: 2; column-gap: var(--ddp-space-6); padding-left: 1.2rem; list-style: disc; font-size: var(--ddp-text-sm); }
+    .src ul.toc li { margin-bottom: var(--ddp-space-1); break-inside: avoid; }
+    .src .how { display: inline-block; font-size: var(--ddp-text-xs); line-height: 1.35; padding: 0.15em 0.6em; border-radius: 999px; border: 1px solid var(--ddp-color-line); background: var(--ddp-color-surface); color: var(--ddp-color-ink-soft); }
+    .src .how-primary { border-color: var(--ddp-color-verified); color: var(--ddp-color-verified); }
+    .src .how-secondary { border-color: var(--ddp-color-secondary); color: var(--ddp-color-secondary-ink); }
+    .src .groups { margin-top: var(--ddp-space-8); max-width: 960px; }
+    .src .group { margin-bottom: var(--ddp-space-8); }
+    .src .group h2 { font-size: var(--ddp-text-xl); margin: 0 0 var(--ddp-space-2); scroll-margin-top: var(--ddp-space-4); }
+    .src .none { color: var(--ddp-color-muted); margin: 0; }
+    .src table { width: 100%; border-collapse: collapse; font-size: var(--ddp-text-sm); }
+    .src th, .src td { text-align: left; vertical-align: top; padding: var(--ddp-space-2) var(--ddp-space-3); border-bottom: 1px solid var(--ddp-color-line); }
+    .src th { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .src td:first-child { width: 38%; }
+    .src td:nth-child(3) { white-space: nowrap; }
+    .src .rownote { display: block; margin-top: var(--ddp-space-1); color: var(--ddp-color-muted); font-style: italic; }
+    .src :focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    @media (max-width: 720px) {
+      .src ul.toc { columns: 1; }
+      .src thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+      .src table, .src tbody, .src tr, .src td { display: block; width: auto; }
+      .src tr { padding: var(--ddp-space-2) 0; border-bottom: 1px solid var(--ddp-color-line); }
+      .src td { border: 0; padding: var(--ddp-space-1) 0; }
+      .src td:first-child { width: auto; font-size: var(--ddp-text-base); }
+      .src td::before { content: attr(data-label) ": "; font-weight: 600; }
+      .src td:first-child::before { content: none; }
+    }
+  </style>
+</BaseLayout>

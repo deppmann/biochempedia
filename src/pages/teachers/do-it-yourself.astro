@@ -1,0 +1,282 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TeacherTip from '../../components/TeacherTip.astro';
+import { feedbackUrl } from '../../lib/feedback';
+
+const TIPS = [
+  ['one-question', 'Start with one question'],
+  ['read-the-room', 'Read the room in fifteen minutes'],
+  ['open-with-their-words', 'Open class with their words'],
+  ['where-they-are', 'Meet students where they are'],
+  ['check-every-claim', 'Make materials with AI, then check every claim'],
+  ['your-tutor', 'Keep any AI tutor yours'],
+  ['grade-reasoning', 'Grade so the test can’t take over'],
+  ['curiosity', 'Protect curiosity'],
+  ['save-time', 'Save your own time where it’s safe'],
+  ['privacy', 'Privacy checklist'],
+];
+---
+
+<BaseLayout
+  title="Do it yourself: a practical guide for teachers — Biochemistrypedia"
+  description="Ten things a middle or high school life science teacher can try with free or district-approved tools: pre-work, reading a room, meeting students where they are, checking what AI makes, and protecting privacy."
+>
+  <article class="wrap diy" style="padding-top: var(--ddp-space-12)">
+    <div class="prose-col">
+      <p class="eyebrow"><a href="/teachers">Resources for teachers</a> / do it yourself</p>
+      <h1>Do it yourself</h1>
+      <p>
+        This is opt-in help, written as &ldquo;here&rsquo;s how.&rdquo; Ten things you can try with
+        free or district-approved tools. Each one says what it is, how long it takes, what you need,
+        the steps, and the one thing I would watch for. Pick one. Nobody needs to do all ten.
+      </p>
+      <p class="note" role="note">
+        <strong>About the times.</strong> They are my estimates for a first try, not measured, except
+        where I say so. The one number I did measure is in the second half of tip 3: one predict, argue,
+        reveal cycle took 8 to 10 minutes in my class.
+      </p>
+      <p class="note" role="note">
+        <strong>Before you paste anything a student wrote,</strong> read tip 10, and use only tools
+        your district has approved.
+      </p>
+      <nav aria-label="The ten tips">
+        <ol class="toc">
+          {TIPS.map(([id, t]) => <li><a href={`#${id}`}>{t}</a></li>)}
+        </ol>
+      </nav>
+    </div>
+
+    <div class="prose-col">
+      <TeacherTip
+        id="one-question"
+        n={1}
+        title="Start with one question"
+        what="A predict-and-explain item that students answer before class: pick an answer, then say why."
+        time="5 to 10 minutes to set up."
+        need="Google Forms, or your LMS quiz tool: whichever your district allows."
+      >
+        <ol>
+          <li>Pick one idea students often get wrong. If you are not sure which, the &ldquo;<a href="/teachers#p-misconception-check">Draft a misconception check</a>&rdquo; prompt lists candidates.</li>
+          <li>Write a short scenario a student can read in under a minute, then a multiple-choice question with 3 or 4 choices. Make each wrong choice a real misconception. The &ldquo;<a href="/teachers#p-predict-reveal">Predict-then-reveal</a>&rdquo; prompt will draft these; check every item against your textbook before you use it.</li>
+          <li>Add a second, required question: &ldquo;Why did you choose that? One or two sentences.&rdquo;</li>
+          <li>Turn off instant feedback if your tool has that option, so the answer is not shown before students have committed.</li>
+          <li>Tell students how it is graded: credit for a real reason, not for being right. A wrong answer argued well costs nothing.</li>
+          <li>Open the answers the next day and look at them before you teach (the next tip).</li>
+        </ol>
+        <Fragment slot="caution">A required &ldquo;why&rdquo; box invites filler like &ldquo;I just guessed.&rdquo; Say out loud that guessing is fine and the reason is the point, and set a minimum, such as a full sentence.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="read-the-room"
+        n={2}
+        title="Read the room in fifteen minutes"
+        what="Turn a class&rsquo;s answers from tip 1 into a short summary of where the room splits."
+        time="About fifteen minutes."
+        need="The exported responses, a district-approved AI tool, and the &ldquo;where you split&rdquo; prompt."
+      >
+        <ol>
+          <li>Export the responses to a spreadsheet.</li>
+          <li><strong>Delete names, IDs and email columns.</strong> Also scan the answers themselves: students sometimes sign their own writing.</li>
+          <li>Paste the question and the anonymous answers into the &ldquo;<a href="/teachers#p-where-you-split">where you split</a>&rdquo; prompt, in a tool your district has approved.</li>
+          <li>Read the summary. Then <strong>check every claim in it against the raw answers</strong>: count each group yourself, and look at the quotes it chose. An AI summary of one of my students once said there was &ldquo;no activity&rdquo; for a student who had finished. The &ldquo;<a href="/teachers#p-check-summary">check an AI summary</a>&rdquo; prompt can help with this step, but you are still the one who decides.</li>
+          <li>Write down the one split that matters most: the place where two reasonable groups disagree.</li>
+        </ol>
+        <Fragment slot="caution">With fewer than about 8 answers the picture is thin, and the AI should say so. Do not act on a pattern you cannot see in the raw answers.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="open-with-their-words"
+        n={3}
+        title="Open class with their words"
+        what="A one-slide opener that shows the class its own thinking in the first minute."
+        time="A few minutes to make the slide. Then 8 to 10 minutes of class time for one predict, argue, reveal cycle: that number I measured in my own class, where I had planned 4."
+        need="One slide, and the split from tip 2."
+      >
+        <ol>
+          <li>Put the question on the slide.</li>
+          <li>Add the split in plain numbers. Mine was &ldquo;2 say yes, 6 say no.&rdquo;</li>
+          <li>Add three anonymous quotes, copied exactly as students wrote them. Take one from each side of the split and one that surprised you.</li>
+          <li>In class, ask students to commit again with a show of hands. Let the two groups argue with each other, then reveal the answer.</li>
+          <li>Close the loop: say which reasons were strong, and why.</li>
+        </ol>
+        <Fragment slot="caution">Students recognize their own words. In a small class, paraphrase instead of quoting, drop anything identifying, and do not pick the same student every time. Plan fewer questions than you think, because each cycle takes longer than it looks.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="where-they-are"
+        n={4}
+        title="Meet students where they are"
+        what="Give students the same idea at different depths, and the same task with different amounts of help."
+        time="An evening for a first try (my estimate)."
+        need="A district-approved AI tool, the two prompts below, and, if you want ready-made versions, this site."
+      >
+        <ol>
+          <li>Write the same idea at three levels with the &ldquo;<a href="/teachers#p-three-levels">One idea at three levels</a>&rdquo; prompt (grade 7, Biology, college). Read all three: the science must be the same, and only the depth should change.</li>
+          <li>Add supports <em>without changing the task</em> with the &ldquo;<a href="/teachers#p-supports">Supports without changing the task</a>&rdquo; prompt: a word bank, sentence frames, and a list of diagram labels students place themselves. Remove anything that gives away the answer.</li>
+          <li>Add a short check, three questions at most, and decide in advance where each result sends a student: a review lesson if they missed it, a stretch lesson if they did not.</li>
+          <li>To skip the writing, use the site. Every high school Biology lesson has a depth ladder (grade 7 Life Science, Biology, Biology II, College) with links up and down, and a supports switch: just the task, some help, most help.</li>
+          <li>Send a whole class to one setting by adding <code>?supports=0</code>, <code>?supports=1</code> or <code>?supports=2</code> to a lesson&rsquo;s address, for example <a href="/lessons/water-and-life/?supports=2"><code>/lessons/water-and-life/?supports=2</code></a>. The setting lasts for that visit.</li>
+        </ol>
+        <Fragment slot="caution">Moving a student up or down should be private and ordinary, not a label. The site&rsquo;s ladder is a first step: it does not yet check students as they go or tell you who is falling behind.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="check-every-claim"
+        n={5}
+        title="Make materials with AI, then check every claim"
+        what="Use AI to draft a reading, worksheet or lesson, then verify it before students see it."
+        time="Drafting is quick. Checking is the real work: plan more time for the check than for the draft (my estimate)."
+        need="A district-approved AI tool, a primary source (your textbook, the Virginia guidance document, a journal), and the fact-check prompt."
+      >
+        <ol>
+          <li>Draft with AI. Tell it what is in scope and what it must not invent.</li>
+          <li>Paste the draft into the &ldquo;<a href="/teachers#p-fact-check">Fact-check a generated passage</a>&rdquo; prompt. It splits the passage into claims and labels each one.</li>
+          <li>Check every claim that is not &ldquo;well established&rdquo; against a primary source yourself. Start with the three claims the prompt tells you to check first.</li>
+          <li>If you can, get a second check from a model made by a different company, and compare. On this site, a second opinion from a different company&rsquo;s model found 80 more corrections in the Genetics course.</li>
+          <li>Keep a short change log: the date, what changed, and why.</li>
+          <li>Invite students to report errors, and fix them in the open. Every page on this site has an anonymous &ldquo;report an error&rdquo; form.</li>
+        </ol>
+        <p class="exp">
+          What we saw: in one course, an AI fact-checker with web access read 3,468 claims. It found
+          49 wrong, 453 imprecise and 287 it could not verify, and 841 edits followed. As we improved
+          the process, wrong claims fell from about 4 per lesson in the first batch to under 1.
+        </p>
+        <Fragment slot="caution">A fluent paragraph is not evidence that it is right. A checker can be wrong too, and it cannot tell you which of two defensible answers you want. On this site, a person with expertise still reads every lesson, and that takes about 1 to 2 hours each.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="your-tutor"
+        n={6}
+        title="Keep any AI tutor yours"
+        what="If you use an AI tutor with students, keep it under your control, with every exchange visible to you."
+        time="An hour to test a tool properly (my estimate)."
+        need="The tool, your district&rsquo;s approval, and the printable <a href='/teachers/checklist'>checklist</a>."
+      >
+        <ol>
+          <li>Prefer tools where you can see every exchange your students have with it, as a transcript, not only a summary.</li>
+          <li>Ask for the tutor&rsquo;s rules in writing. Look for: it asks for the student&rsquo;s prediction and reason before it explains, and it never hands over the answer.</li>
+          <li>Test it yourself as a student. Type &ldquo;just tell me the answer.&rdquo; Try to talk it out of its rules.</li>
+          <li>Run it with a few students first, and read a day of their transcripts before you widen it.</li>
+          <li>Do not give students accounts on tools your district has not approved. For students under 13, COPPA applies; check with your district&rsquo;s technology office.</li>
+        </ol>
+        <Fragment slot="caution">Guardrails matter. In one 2025 study, students given an unguarded GPT-4 did better on practice (up 48%) and then worse on the exam once it was taken away (down 17%); a tutor that would not hand over the answer did not show that harm. That evidence is short-term and not yet replicated. I have not built a teacher-visible tutor myself yet; this is what I would look for.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="grade-reasoning"
+        n={7}
+        title="Grade so the test can’t take over"
+        what="Spread the grade across many small looks at student thinking, so no one number is worth gaming."
+        time="A rubric takes an evening; the habit takes a few weeks to settle (my estimate)."
+        need="A rubric that scores reasoning (a prompt is provided) and a way to see how work was written, such as version history."
+      >
+        <ol>
+          <li><strong>Many small, low-stakes checks.</strong> A few questions often beat one big test. If nothing is worth gaming, less gets gamed.</li>
+          <li><strong>Second chances.</strong> Let students revise after feedback and grade the better version.</li>
+          <li><strong>Grade the reasoning trail,</strong> not only the answer. The &ldquo;<a href="/teachers#p-reasoning-rubric">rubric that grades reasoning</a>&rdquo; prompt gives the same credit to a wrong prediction with a careful reason as to a right one.</li>
+          <li><strong>Short oral check-ins</strong> with the few students who need them. The &ldquo;<a href="/teachers#p-oral-check">Two or three questions to ask a student out loud</a>&rdquo; prompt drafts them from a student&rsquo;s own reasoning.</li>
+          <li><strong>Version history</strong> for written work (Google Docs and similar tools keep one). When something looks off, look at how the piece was built.</li>
+        </ol>
+        <p>
+          The organizers&rsquo; assessment resources from the workshop&rsquo;s afternoon session are the
+          right next step: start with the participant-generated resources folder and the prompt library
+          under &ldquo;From the workshop&rdquo; on the <a href="/teachers#workshop">main page</a>.
+        </p>
+        <Fragment slot="caution">AI-text detectors are not proof of anything. One study found they flagged 61% of TOEFL essays, written by non-native English speakers, as AI-written. A conversation tells you more.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="curiosity"
+        n={8}
+        title="Protect curiosity"
+        what="Collect students&rsquo; own questions, answer one in class, and give them real audiences."
+        time="A few minutes per class, plus about ten minutes a week to sort (my estimate)."
+        need="One question box on your pre-work or exit card, and the question-ledger prompt."
+      >
+        <ol>
+          <li>Add one optional question to your pre-work or exit card: &ldquo;What are you still wondering?&rdquo; Keep it anonymous.</li>
+          <li>Paste the questions, names removed, into the &ldquo;<a href="/teachers#p-question-ledger">curiosity list</a>&rdquo; prompt.</li>
+          <li>Answer one at the start of class, or better, let the class work on it for three minutes. Give the others a pointer on where to look.</li>
+          <li>Give credit for exploring, not only for answering.</li>
+          <li>Give them real audiences. More than 500 UVA students wrote scientist profiles with AI deep research and then checked every claim against sources. Together they wrote <a href="https://deppmannlab.com/book" target="_blank" rel="noopener noreferrer"><em>The Molecule Hunters</em><span class="sr-only"> (opens in a new tab)</span></a>, which is free. Your class can do a short version: write a profile of a scientist with AI help, then fact-check it.</li>
+          <li>Two more exercises the book supports: fact-check a real published chapter and compare with the book&rsquo;s <a href="https://deppmannlab.com/book/fact-check" target="_blank" rel="noopener noreferrer">live fact-check page<span class="sr-only"> (opens in a new tab)</span></a>; or read how an experiment was set up in a profile and predict the result before reading on.</li>
+        </ol>
+        <Fragment slot="caution">In my class, four of twelve students asked most of the questions, so the quiet ones need a way in too. An anonymous box helps, and so does asking everyone for one question rather than inviting questions.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="save-time"
+        n={9}
+        title="Save your own time where it’s safe"
+        what="Use AI for the first draft of things you will read and edit anyway."
+        time="Varies. Teachers who use AI every week report saving about 5.9 hours a week, mostly on preparation (Gallup and the Walton Family Foundation, 2025)."
+        need="A district-approved tool, and the habit of reading everything before it reaches a student."
+      >
+        <ol>
+          <li>Good first jobs: a first draft of practice items, differentiated versions (tip 4), a rubric (tip 7), re-leveling a reading you already trust.</li>
+          <li>Ask for drafts, and say what is out of bounds. The prompts on the <a href="/teachers#prompts">main page</a> already do that.</li>
+          <li>Edit and check what it gives you. You are the author.</li>
+          <li>Spend part of the time you save on something bigger. The &ldquo;<a href="/teachers#p-level-up">Move up a level of abstraction</a>&rdquo; prompt is built for that.</li>
+        </ol>
+        <Fragment slot="caution">Never let AI grade or decide alone. AI reads; you decide.</Fragment>
+      </TeacherTip>
+
+      <TeacherTip
+        id="privacy"
+        n={10}
+        title="Privacy checklist"
+        what="A short list to run before any student work goes near an AI tool."
+        time="A couple of minutes each time."
+        need="Your district&rsquo;s list of approved tools, and its technology office when you are unsure."
+      >
+        <ul class="checks">
+          <li><strong>Education records.</strong> Student work is an education record. In the United States, FERPA governs who may see it.</li>
+          <li><strong>Under 13.</strong> COPPA limits what online services may collect from children under 13. Grade 7 is where this begins to matter.</li>
+          <li><strong>Anonymize by default.</strong> Remove names, IDs, email addresses and anything that identifies a student. Put the name back yourself afterward.</li>
+          <li><strong>No student voice recordings.</strong> Text you can anonymize is safer than audio.</li>
+          <li><strong>District-approved tools only</strong> for anything involving students.</li>
+          <li><strong>You send it.</strong> AI drafts; a person checks and sends.</li>
+        </ul>
+        <Fragment slot="caution">This is practical advice, not legal advice. Your district&rsquo;s technology office has the final word.</Fragment>
+      </TeacherTip>
+
+      <h2 id="tell-us" class="end">Questions or ideas?</h2>
+      <p>
+        <a class="btn" href={feedbackUrl('Teachers: do it yourself')}>Tell us</a>
+        <a class="btn alt" href="/teachers">&larr; Back to resources for teachers</a>
+      </p>
+      <p class="small">Every number on this page is listed with its source on <a href="/teachers/sources">the sources page</a>.</p>
+    </div>
+  </article>
+
+  <style is:global>
+    .diy .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .diy .small { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+    .diy .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .diy .note { padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 3px solid var(--ddp-color-secondary); background: var(--ddp-color-surface); }
+    .diy ol.toc { columns: 2; column-gap: var(--ddp-space-6); padding-left: 1.4em; }
+    .diy ol.toc li { margin-bottom: var(--ddp-space-1); break-inside: avoid; }
+    .diy .tip { margin: var(--ddp-space-12) 0 0; padding-top: var(--ddp-space-4); border-top: 2px solid var(--ddp-color-line); }
+    .diy .tip h2 { margin-top: 0; }
+    .diy .tip-n { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; margin-right: 0.3em; border-radius: 50%; background: var(--ddp-color-accent); color: #fff; font-family: var(--ddp-font-mono); font-size: 0.7em; vertical-align: 0.1em; }
+    .diy .tip-meta { margin: var(--ddp-space-3) 0 var(--ddp-space-4); display: grid; gap: var(--ddp-space-2); }
+    .diy .tip-meta > div { display: grid; grid-template-columns: 7rem 1fr; gap: var(--ddp-space-3); padding: var(--ddp-space-2) var(--ddp-space-3); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); }
+    .diy .tip-meta dt { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-muted); padding-top: 0.25em; }
+    .diy .tip-meta dd { margin: 0; }
+    .diy .tip-h { margin: var(--ddp-space-4) 0 var(--ddp-space-2); font-size: var(--ddp-text-base); font-family: var(--ddp-font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ddp-color-muted); }
+    .diy .tip ol, .diy .tip ul.checks { padding-left: 1.4em; margin: 0 0 var(--ddp-space-4); }
+    .diy .tip ol { list-style: decimal; }
+    .diy .tip ul.checks { list-style: disc; }
+    .diy .tip li { margin-bottom: var(--ddp-space-2); padding-left: 0.2em; }
+    .diy .caution { padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-secondary); background: var(--ddp-color-surface); border-radius: var(--ddp-radius-sm); }
+    .diy .exp { padding: var(--ddp-space-3) var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm); }
+    .diy .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; border-radius: 999px; border: 1px solid var(--ddp-color-accent); background: var(--ddp-color-accent); color: #fff; font: inherit; font-weight: 600; text-decoration: none; margin: 0 var(--ddp-space-2) var(--ddp-space-2) 0; }
+    .diy .btn.alt { background: transparent; color: var(--ddp-color-accent); }
+    .diy :focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    .diy h2.end { margin-top: var(--ddp-space-12); }
+    @media (max-width: 640px) {
+      .diy ol.toc { columns: 1; }
+      .diy .tip-meta > div { grid-template-columns: 1fr; gap: var(--ddp-space-1); }
+    }
+  </style>
+</BaseLayout>
