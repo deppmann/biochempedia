@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { PROMPTS, GUARD, TALK, COMMITMENTS, SHIFTS, MOVES, WORKSHOP_LINKS, COURSE_LINKS } from '../../data/teachers';
+import { PROMPTS, GUARD, TALK, COMMITMENTS, SHIFTS, MOVES, RISKS, WORKSHOP_LINKS, COURSE_LINKS } from '../../data/teachers';
 import { courseHref } from '../../data/courses';
 import { feedbackUrl } from '../../lib/feedback';
 
@@ -32,8 +32,10 @@ const n = (slug: string) => perCourse.get(slug) ?? 0;
       <nav class="jump" aria-label="On this page">
         <a href="#talk">The talk</a>
         <a href="#landed">Where I&rsquo;ve landed</a>
+        <a href="#problem">The problem</a>
         <a href="#ask">What I&rsquo;d ask of any AI</a>
         <a href="#going">Where this is going</a>
+        <a href="#risks">Risks</a>
         <a href="#diy">Do it yourself</a>
         <a href="#courses">Courses</a>
         <a href="#prompts">Prompts</a>
@@ -105,6 +107,26 @@ const n = (slug: string) => perCourse.get(slug) ?? 0;
         </section>
       </div>
 
+      <h2 id="problem">The problem</h2>
+      <figure class="ladder">
+        <svg class="ladder-svg" viewBox="0 0 320 200" role="img" aria-labelledby="ladder-t" xmlns="http://www.w3.org/2000/svg"><title id="ladder-t">A bell curve of students standing on a ladder laid flat. The left tail, lower rungs, is rust; the middle is grey; the right tail, higher rungs, is teal.</title><defs><clipPath id="lzhL"><rect x="0" y="0" width="112" height="200"/></clipPath><clipPath id="lzhM"><rect x="112" y="0" width="96" height="200"/></clipPath><clipPath id="lzhR"><rect x="208" y="0" width="112" height="200"/></clipPath></defs><path d="M10 150 L10 149.4 L13 149.2 L16 149.0 L19 148.8 L22 148.6 L25 148.3 L28 147.9 L31 147.5 L34 147.0 L37 146.4 L40 145.7 L43 145.0 L46 144.1 L49 143.0 L52 141.9 L55 140.5 L58 139.0 L61 137.4 L64 135.5 L67 133.4 L70 131.1 L73 128.6 L76 125.8 L79 122.8 L82 119.6 L85 116.1 L88 112.4 L91 108.4 L94 104.3 L97 99.9 L100 95.3 L103 90.6 L106 85.7 L109 80.8 L112 75.7 L115 70.7 L118 65.6 L121 60.6 L124 55.8 L127 51.0 L130 46.5 L133 42.3 L136 38.3 L139 34.7 L142 31.4 L145 28.6 L148 26.3 L151 24.4 L154 23.1 L157 22.3 L160 22.0 L163 22.3 L166 23.1 L169 24.4 L172 26.3 L175 28.6 L178 31.4 L181 34.7 L184 38.3 L187 42.3 L190 46.5 L193 51.0 L196 55.8 L199 60.6 L202 65.6 L205 70.7 L208 75.7 L211 80.8 L214 85.7 L217 90.6 L220 95.3 L223 99.9 L226 104.3 L229 108.4 L232 112.4 L235 116.1 L238 119.6 L241 122.8 L244 125.8 L247 128.6 L250 131.1 L253 133.4 L256 135.5 L259 137.4 L262 139.0 L265 140.5 L268 141.9 L271 143.0 L274 144.1 L277 145.0 L280 145.7 L283 146.4 L286 147.0 L289 147.5 L292 147.9 L295 148.3 L298 148.6 L301 148.8 L304 149.0 L307 149.2 L310 149.4 L310 150 Z" fill="#B4472F" opacity="0.92" clip-path="url(#lzhL)"/><path d="M10 150 L10 149.4 L13 149.2 L16 149.0 L19 148.8 L22 148.6 L25 148.3 L28 147.9 L31 147.5 L34 147.0 L37 146.4 L40 145.7 L43 145.0 L46 144.1 L49 143.0 L52 141.9 L55 140.5 L58 139.0 L61 137.4 L64 135.5 L67 133.4 L70 131.1 L73 128.6 L76 125.8 L79 122.8 L82 119.6 L85 116.1 L88 112.4 L91 108.4 L94 104.3 L97 99.9 L100 95.3 L103 90.6 L106 85.7 L109 80.8 L112 75.7 L115 70.7 L118 65.6 L121 60.6 L124 55.8 L127 51.0 L130 46.5 L133 42.3 L136 38.3 L139 34.7 L142 31.4 L145 28.6 L148 26.3 L151 24.4 L154 23.1 L157 22.3 L160 22.0 L163 22.3 L166 23.1 L169 24.4 L172 26.3 L175 28.6 L178 31.4 L181 34.7 L184 38.3 L187 42.3 L190 46.5 L193 51.0 L196 55.8 L199 60.6 L202 65.6 L205 70.7 L208 75.7 L211 80.8 L214 85.7 L217 90.6 L220 95.3 L223 99.9 L226 104.3 L229 108.4 L232 112.4 L235 116.1 L238 119.6 L241 122.8 L244 125.8 L247 128.6 L250 131.1 L253 133.4 L256 135.5 L259 137.4 L262 139.0 L265 140.5 L268 141.9 L271 143.0 L274 144.1 L277 145.0 L280 145.7 L283 146.4 L286 147.0 L289 147.5 L292 147.9 L295 148.3 L298 148.6 L301 148.8 L304 149.0 L307 149.2 L310 149.4 L310 150 Z" fill="#8F96A5" opacity="0.92" clip-path="url(#lzhM)"/><path d="M10 150 L10 149.4 L13 149.2 L16 149.0 L19 148.8 L22 148.6 L25 148.3 L28 147.9 L31 147.5 L34 147.0 L37 146.4 L40 145.7 L43 145.0 L46 144.1 L49 143.0 L52 141.9 L55 140.5 L58 139.0 L61 137.4 L64 135.5 L67 133.4 L70 131.1 L73 128.6 L76 125.8 L79 122.8 L82 119.6 L85 116.1 L88 112.4 L91 108.4 L94 104.3 L97 99.9 L100 95.3 L103 90.6 L106 85.7 L109 80.8 L112 75.7 L115 70.7 L118 65.6 L121 60.6 L124 55.8 L127 51.0 L130 46.5 L133 42.3 L136 38.3 L139 34.7 L142 31.4 L145 28.6 L148 26.3 L151 24.4 L154 23.1 L157 22.3 L160 22.0 L163 22.3 L166 23.1 L169 24.4 L172 26.3 L175 28.6 L178 31.4 L181 34.7 L184 38.3 L187 42.3 L190 46.5 L193 51.0 L196 55.8 L199 60.6 L202 65.6 L205 70.7 L208 75.7 L211 80.8 L214 85.7 L217 90.6 L220 95.3 L223 99.9 L226 104.3 L229 108.4 L232 112.4 L235 116.1 L238 119.6 L241 122.8 L244 125.8 L247 128.6 L250 131.1 L253 133.4 L256 135.5 L259 137.4 L262 139.0 L265 140.5 L268 141.9 L271 143.0 L274 144.1 L277 145.0 L280 145.7 L283 146.4 L286 147.0 L289 147.5 L292 147.9 L295 148.3 L298 148.6 L301 148.8 L304 149.0 L307 149.2 L310 149.4 L310 150 Z" fill="#23756B" opacity="0.92" clip-path="url(#lzhR)"/><line x1="6" y1="160" x2="314" y2="160" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><line x1="6" y1="190" x2="314" y2="190" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><line x1="22" y1="160" x2="22" y2="190" stroke="#B4472F" stroke-width="6" stroke-linecap="round"/><line x1="50" y1="160" x2="50" y2="190" stroke="#B4472F" stroke-width="6" stroke-linecap="round"/><line x1="78" y1="160" x2="78" y2="190" stroke="#B4472F" stroke-width="6" stroke-linecap="round"/><line x1="106" y1="160" x2="106" y2="190" stroke="#B4472F" stroke-width="6" stroke-linecap="round"/><line x1="134" y1="160" x2="134" y2="190" stroke="#8F96A5" stroke-width="6" stroke-linecap="round"/><line x1="162" y1="160" x2="162" y2="190" stroke="#8F96A5" stroke-width="6" stroke-linecap="round"/><line x1="190" y1="160" x2="190" y2="190" stroke="#8F96A5" stroke-width="6" stroke-linecap="round"/><line x1="218" y1="160" x2="218" y2="190" stroke="#23756B" stroke-width="6" stroke-linecap="round"/><line x1="246" y1="160" x2="246" y2="190" stroke="#23756B" stroke-width="6" stroke-linecap="round"/><line x1="274" y1="160" x2="274" y2="190" stroke="#23756B" stroke-width="6" stroke-linecap="round"/><line x1="302" y1="160" x2="302" y2="190" stroke="#23756B" stroke-width="6" stroke-linecap="round"/></svg>
+        <figcaption>
+          <span class="l">Left tail: needs more help to reach the standard</span>
+          <span class="m">Middle: where the lesson is aimed</span>
+          <span class="r">Right tail: ready to go much further</span>
+        </figcaption>
+      </figure>
+      <p>
+        Every class spans a ladder. Students arrive on very different rungs, and we teach to the
+        middle, because that is what one teacher&rsquo;s attention and a single test can handle.
+      </p>
+      <p>
+        That leaves two tails. The left tail needs more help to reach the standard. The right tail
+        is ready to go much further. Reaching the whole ladder is an attention problem, and
+        it is the one the rest of this page tries to answer: fast tools can carry the volume, so
+        your attention goes where it is needed, and the slow thinking stays with the students.
+      </p>
+
       <h2 id="ask">What I&rsquo;d ask of any AI in a classroom</h2>
       <p>
         If someone shows you an AI tool for your classroom, whether it&rsquo;s a vendor, your
@@ -128,7 +150,8 @@ const n = (slug: string) => perCourse.get(slug) ?? 0;
 
       <h2 id="going">Where this is going</h2>
       <p>
-        Five shifts that I think will look obvious in ten years. For each, <strong>now</strong> is
+        Five shifts, each one about reaching the whole ladder. I think they will look obvious in ten
+        years. For each, <strong>now</strong> is
         what is happening and <strong>next</strong> is where I think it goes. Where the next part is
         not built, I say so.
       </p>
@@ -167,6 +190,24 @@ const n = (slug: string) => perCourse.get(slug) ?? 0;
         Honestly: state tests and the MCAT are not going away soon. But if understanding is what we
         look at every day, the test becomes a by-product. That is my hope, not something I have
         proved.
+      </p>
+
+      <h2 id="risks">Honest about the risks</h2>
+      <p>It can go wrong, sometimes quietly. Seven ways I worry about:</p>
+      <ul class="risks">
+        {RISKS.map((r) => <li><strong>{r.lead}</strong> {r.rest}</li>)}
+      </ul>
+      <p class="rule"><strong>AI reads. You decide.</strong></p>
+      <h3 id="exam-lesson">One lesson from my own exams</h3>
+      <p>
+        This spring I had AI help write exam questions for about 735 biochemistry students. After
+        each exam, students could ask for a question to be reviewed: 28 requests after the first
+        exam, 44 after the second and 41 after the third. Two questions were credited to everyone,
+        because the wording was ambiguous. I then added a red-team review of the questions and
+        banned &ldquo;All of the above.&rdquo; Models are getting better at clean wording and the
+        right level, but they are not there yet, so a person reads every question. Details are under
+        <a href="/teachers/sources#grading">the sources</a>; a tip is in the
+        <a href="/teachers/do-it-yourself#check-every-claim">guide</a>.
       </p>
 
       <h2 id="diy">Do it yourself</h2>
@@ -334,6 +375,14 @@ const n = (slug: string) => perCourse.get(slug) ?? 0;
     .teachers .side.slow .tag, .teachers .shift.slow .tag { color: var(--ddp-color-accent); }
     @media (prefers-color-scheme: dark) { .teachers .side.fast .tag, .teachers .shift.fast .tag { color: #e9b44c; } }
 
+    .teachers .ladder { margin: var(--ddp-space-5) 0; }
+    .teachers .ladder svg { display: block; width: 100%; max-width: 520px; height: auto; color: var(--ddp-color-ink, currentColor); }
+    .teachers .ladder figcaption { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ddp-space-3); max-width: 520px; margin-top: var(--ddp-space-2); font-size: var(--ddp-text-sm); }
+    .teachers .ladder figcaption .l { border-top: 4px solid #B4472F; padding-top: 4px; }
+    .teachers .ladder figcaption .m { border-top: 4px solid #8F96A5; padding-top: 4px; }
+    .teachers .ladder figcaption .r { border-top: 4px solid #23756B; padding-top: 4px; }
+    .teachers ul.risks li { margin-bottom: var(--ddp-space-2); }
+    .teachers p.rule { font-size: var(--ddp-text-lg); }
     .teachers ol.commit { padding-left: 1.4em; }
     .teachers ol.commit li { margin-bottom: var(--ddp-space-2); }
 

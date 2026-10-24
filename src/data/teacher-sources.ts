@@ -51,7 +51,7 @@ export const SOURCE_GROUPS: SourceGroup[] = [
     id: 'teens',
     title: 'Teens and AI',
     rows: [
-      { claim: '54% of US teens used an AI chatbot for schoolwork (fall 2025)', source: 'Pew Research Center, teens and AI', year: '2026 (survey fall 2025)', how: 'primary', note: 'The vote choices in the talk (about 15%, about 35%, more than half) were guesses to vote on, not findings.' },
+      { claim: '54% of US teens used an AI chatbot for schoolwork (fall 2025)', source: 'Pew Research Center, teens and AI', year: '2026 (survey fall 2025)', how: 'primary', },
       { claim: 'About 1 in 10 teens (10%) do all or most of their schoolwork with a chatbot; 21% some; 23% a little', source: 'Pew Research Center, teens and AI (same report)', year: '2026', how: 'primary' },
     ],
   },
@@ -62,7 +62,6 @@ export const SOURCE_GROUPS: SourceGroup[] = [
     rows: [
       { claim: 'Teachers work about 49 hours a week, around 10 over contract', source: 'RAND, State of the American Teacher', year: '2025', how: 'secondary' },
       { claim: 'Teachers spend about $895 of their own money a year', source: 'AdoptAClassroom, teacher survey (covers the 2024–25 school year)', year: '2025', how: 'primary' },
-      { claim: '68% of teachers use AI detectors on student work', source: 'Center for Democracy & Technology, survey of teachers', year: '2023–24', how: 'secondary' },
       { claim: '22.6% of US students were chronically absent', source: 'AEI and Chalkbeat reporting on chronic absence (2024–25 school year)', year: '2026', how: 'primary' },
     ],
   },
@@ -129,11 +128,13 @@ export const SOURCE_GROUPS: SourceGroup[] = [
     ],
   },
   {
-    id: 'rater',
-    title: 'Predict: where they ranked',
+    id: 'grading',
+    title: 'AI-written exams can be ambiguous',
     rows: [
-      { claim: 'An AI rater’s depth scores tracked answer length (correlation 0.74). The student with the most time on the module ranked second from the bottom of 12', source: COURSE, year: '2026', how: 'own', note: 'My own rater, one course. A warning, not a finding, and not shown for K-12. "Time" is the sum of gaps under 45 minutes between a student’s saved answers, a rough measure.' },
-      { claim: 'AI-text detectors flagged 61% of TOEFL essays (written by non-native English speakers) as AI-written', source: 'Liang et al., Patterns', year: '2023', how: 'secondary' },
+      { claim: 'Spring 2026 Biochemistry: about 735 students per exam, with a question-review request form after each exam', source: 'My own course records (Biochemistry assessments, spring 2026), no student identifiers', year: '2026', how: 'own', note: 'One course. It shows what happened there, not what would happen in yours.' },
+      { claim: 'Review requests per exam: 28 (Exam 1, from 21 students), 44 (Exam 2, from 31 students), 41 (Exam 3, from 30 students)', source: 'My own course records, spring 2026', year: '2026', how: 'own' },
+      { claim: 'Two questions were credited to every student: an ambiguous transport question (SGLT1 and GLUT1) on Exam 2, and an "All of the above" question that changed meaning after answer shuffling on Exam 3 (22 of that exam’s 41 requests were about it)', source: 'My own course records, spring 2026', year: '2026', how: 'own' },
+      { claim: 'What changed afterward: a red-team review of AI-written questions (answer-length cues, leakage between questions), then "All of the above" banned and distractor lengths balanced from Exam 4', source: 'My own course practice, spring 2026', year: '2026', how: 'own' },
     ],
   },
   {
@@ -145,33 +146,7 @@ export const SOURCE_GROUPS: SourceGroup[] = [
   },
   {
     id: 'shift1',
-    title: 'Shift 1: The answer is free. The trail is the evidence.',
-    rows: [
-      { claim: 'Blue-book sales up 80% at Berkeley over two academic years', source: 'Wall Street Journal report on blue-book sales, as repeated in news coverage (May 2025). I did not see the original article', year: '2025', how: 'secondary' },
-      { claim: 'Detectors flagged 61% of TOEFL essays as AI-written', source: 'Liang et al., Patterns', year: '2023', how: 'secondary' },
-      { claim: '22% of answers were revised after the reveal', source: COURSE, year: '2026', how: 'own' },
-    ],
-  },
-  {
-    id: 'shift2',
-    title: 'Shift 2: Your students’ AI reads the lesson before they do.',
-    rows: [
-      { claim: 'Unguarded GPT-4: practice scores up 48%, later exam scores down 17%', source: 'Bastani et al., Proceedings of the National Academy of Sciences', year: '2025', how: 'secondary' },
-      { claim: 'A guarded tutor did not show that harm; a Harvard tutor with guardrails doubled gains on two lessons', source: 'Kestin et al., Scientific Reports', year: '2025', how: 'primary', note: 'All AI-tutor evidence is short-term and not yet replicated.' },
-    ],
-  },
-  {
-    id: 'shift3',
-    title: 'Shift 3: Materials are easy now. Your attention is the scarce thing.',
-    rows: [
-      { claim: 'Teachers who use AI every week save about 5.9 hours a week, mostly on preparation', source: 'Gallup and the Walton Family Foundation, teachers and AI', year: '2025', how: 'primary' },
-      { claim: 'Just-in-Time Teaching, 1999', source: 'Novak et al., Just-in-Time Teaching', year: '1999', how: 'history' },
-    ],
-  },
-  { id: 'overview', title: 'One idea. Every level.', none: 'A 40-second film with no numbers. It shows one idea at six levels, from toddler to research lab.', rows: [] },
-  {
-    id: 'shift4',
-    title: 'Shift 4: Meet every student where they are.',
+    title: 'Shift 1: Meet every student where they are.',
     rows: [
       { claim: 'Adaptive software that taught each student at their own level raised math scores 0.36 standard deviations and Hindi 0.22 after about 4.5 months (Mindspark, Delhi). The authors describe "very wide variation in student learning levels within a single grade"', source: 'Muralidharan, Singh and Ganimian, American Economic Review (NBER working paper w22923, abstract)', year: '2019', how: 'primary' },
       { claim: 'Teaching at the Right Level is a "Great Buy"', source: 'Smart Buys report, Global Education Evidence Advisory Panel', year: '2023', how: 'secondary' },
@@ -180,13 +155,38 @@ export const SOURCE_GROUPS: SourceGroup[] = [
     ],
   },
   {
-    id: 'shift5',
-    title: 'Shift 5: Their questions become the curriculum.',
+    id: 'shift2',
+    title: 'Shift 2: Let curiosity lead the right tail.',
     rows: [
       { claim: 'Interest in science falls from about age 9 to 17', source: 'Gottfried et al.', year: '2001', how: 'secondary' },
       { claim: 'Curiosity questions: about 2.4 per two hours in kindergarten, about 0.5 in grade 5', source: 'Engel', year: '2011', how: 'secondary' },
     ],
   },
+  {
+    id: 'shift3',
+    title: 'Shift 3: AI carries the volume, so your attention goes where it’s needed.',
+    rows: [
+      { claim: 'Teachers who use AI every week save about 5.9 hours a week, mostly on preparation', source: 'Gallup and the Walton Family Foundation, teachers and AI', year: '2025', how: 'primary' },
+      { claim: 'Just-in-Time Teaching, 1999', source: 'Novak et al., Just-in-Time Teaching', year: '1999', how: 'history' },
+    ],
+  },
+  {
+    id: 'shift4',
+    title: 'Shift 4: A tutor the school owns, so you can see the thinking.',
+    rows: [
+      { claim: 'Unguarded GPT-4: practice scores up 48%, later exam scores down 17%', source: 'Bastani et al., Proceedings of the National Academy of Sciences', year: '2025', how: 'secondary' },
+      { claim: 'A guarded tutor did not show that harm; a Harvard tutor with guardrails doubled gains on two lessons', source: 'Kestin et al., Scientific Reports', year: '2025', how: 'primary', note: 'All AI-tutor evidence is short-term and not yet replicated.' },
+    ],
+  },
+  {
+    id: 'shift5',
+    title: 'Shift 5: How they got there counts more than the answer.',
+    rows: [
+      { claim: 'Chegg’s revenue fell from $617.6 million to $376.9 million in one year, down 39% (also under “The answer just became free”)', source: 'Chegg, Form 10-K for fiscal 2025', year: '2025', how: 'primary' },
+      { claim: '22% of answers were revised after the reveal', source: COURSE, year: '2026', how: 'own' },
+    ],
+  },
+  { id: 'overview', title: 'One idea. Every level.', none: 'A 40-second film with no numbers. It shows one idea at six levels, from toddler to research lab.', rows: [] },
   {
     id: 'goodhart',
     title: 'When a measure becomes a target',
@@ -211,6 +211,7 @@ export const SOURCE_GROUPS: SourceGroup[] = [
     id: 'pages',
     title: 'Other numbers on the /teachers pages',
     rows: [
+      { claim: 'AI-text detectors flagged 61% of TOEFL essays (written by non-native English speakers) as AI-written (do-it-yourself guide, tip 4)', source: 'Liang et al., Patterns', year: '2023', how: 'secondary' },
       { claim: 'A $10,000 grant request (July 2026) said $5,000 would buy three to five complete lessons. It was not selected, and the site was built anyway', source: 'AI Catalyst grant request, July 2026', year: '2026', how: 'own' },
       { claim: 'Model scores, token counts and narration costs in \u201cHow it\u2019s built\u201d', source: 'The project files named next to each figure on that page', year: '2026', how: 'own' },
       { claim: 'Fact-check numbers in the do-it-yourself guide and in \u201cHow it\u2019s built\u201d (3,468 claims, 49 wrong, 453 imprecise, 287 unverifiable, 841 edits; about 4 wrong per lesson at first, under 1 later)', source: FACTCHECK, year: '2026', how: 'own' },
