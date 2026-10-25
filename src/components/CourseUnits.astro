@@ -56,13 +56,13 @@ const metaFor = (l: any) => {
     <ul class="lesson-list">
       {u.entries.map(({ l, n }) => (
         <li>
-          <a href={`/lessons/${l.data.slug}/`} class="lesson-card">
+          <a href={`/lessons/${l.data.slug}/`} class="lesson-card" data-lesson-card={l.data.slug}>
             <span class="lc-order" aria-hidden="true">{n}</span>
             <span class="lc-ico"><LessonIcon slug={l.data.slug} /></span>
             <span class="lc-body">
               {/* The course name is the page's title; a chapter label that repeats it is trimmed. */}
               <span class="lc-chapter">{l.data.courseChapter.replace(`${course.title} · `, '')}</span>
-              <span class="lc-title">{l.data.title}{l.data.draft && <span class="lc-draft">draft</span>}</span>
+              <span class="lc-title">{l.data.title}{l.data.draft && <span class="lc-draft">draft</span>}<span class="lc-done" data-done-badge hidden>✓ done</span></span>
               <span class={`lc-summary${l.data.hook ? ' is-hook' : ''}`}>{hookFor(l)}</span>
               {/* Each figure is its own nowrap span, so a wrap falls between
                   items and never splits "6 / questions". */}
@@ -84,6 +84,19 @@ const metaFor = (l: any) => {
 ))}
 
 <script>
+  import { load, onChange } from '../lib/progress';
+
+  // Done ticks from this device's progress (src/lib/progress.ts); hidden without it.
+  onChange(() => {
+    const lessons = load().lessons;
+    document.querySelectorAll<HTMLElement>('[data-lesson-card]').forEach((card) => {
+      const badge = card.querySelector<HTMLElement>('[data-done-badge]');
+      if (badge) badge.hidden = !lessons[card.getAttribute('data-lesson-card')!]?.d;
+    });
+  });
+</script>
+
+<script>
   // Unit filter. "All" restores everything; a unit chip shows only that unit.
   const filter = document.querySelector('.unit-filter');
   if (filter) {
@@ -100,6 +113,8 @@ const metaFor = (l: any) => {
 </script>
 
 <style>
+  .lc-done { margin-left: 0.5em; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; color: var(--ddp-color-verified); white-space: nowrap; }
+  .lc-done[hidden] { display: none; }
   .unit-play {
     display: flex;
     align-items: center;

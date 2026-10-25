@@ -1,11 +1,17 @@
 ---
 import type { Question } from '../schema';
+import type { Anchor } from '../lib/quiz-anchors';
+import { itemId } from '../lib/progress';
 
 interface Props {
   practice: Question[];
   mcat: Question[];
+  /** The lesson, so answers can be remembered on this device (src/lib/progress.ts). */
+  slug: string;
+  /** The section that teaches each question, practice then MCAT order (null = no clear match). */
+  anchors?: (Anchor | null)[];
 }
-const { practice, mcat } = Astro.props;
+const { practice, mcat, slug, anchors = [] } = Astro.props;
 
 // One ordered sequence for the stepper; MCAT items keep their badge.
 const items = [
@@ -15,7 +21,7 @@ const items = [
 const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 ---
 
-<section class="quiz card" data-quiz aria-label="Self-test">
+<section class="quiz card" data-quiz data-lesson={slug} aria-label="Self-test">
   {/* aria-live so Prev/Next announces which question is showing; the score
       changes in the same tick as the verdict, so it stays out of the live
       region to avoid double-speaking. */}
@@ -27,7 +33,7 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
   <div class="quiz-stage">
     {items.map((it, i) => (
-      <article class="q" data-question data-answer={it.q.answer} hidden={i !== 0}>
+      <article class="q" data-question data-answer={it.q.answer} data-item={itemId(slug, it.q.stem)} hidden={i !== 0}>
         {it.badge && <span class="quiz-badge">{it.badge}</span>}
         <p class="q-stem">{it.q.stem}</p>
         <ul class="q-choices">
@@ -46,6 +52,12 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
         <div class="q-feedback" role="status" hidden>
           <p class="q-verdict" data-verdict></p>
           <p class="q-rationale"><strong>Why:</strong> {it.q.rationale}</p>
+          {anchors[i] && (
+            <p class="q-reread" data-reread hidden>
+              Read this again: <a href={`#${anchors[i]!.id}`} data-reread-link>{anchors[i]!.text}</a>.
+              It comes back for review tomorrow.
+            </p>
+          )}
         </div>
       </article>
     ))}
@@ -59,7 +71,10 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 </section>
 
 <script>
+  import { recordFirstTry, setDone } from '../lib/progress';
+
   document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((root) => {
+    const slug = root.getAttribute('data-lesson') ?? '';
     const questions = Array.from(root.querySelectorAll<HTMLElement>('[data-question]'));
     const total = questions.length;
     const qnum = root.querySelector('[data-qnum]');
@@ -112,12 +127,28 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
           verdict.textContent = right ? '✓ Correct' : '✗ Not quite';
           verdict.className = 'q-verdict ' + (right ? 'is-correct' : 'is-wrong');
           feedback.hidden = false;
+          const reread = q.querySelector<HTMLElement>('[data-reread]');
           if (firstTry) {
             answered.add(q);
             if (right) correct++;
+            // Remembered on this device only: a first-try miss joins the review queue.
+            recordFirstTry(q.getAttribute('data-item')!, slug, right);
+            if (reread) reread.hidden = right;
+            if (answered.size === total) setDone(slug, true);
             refresh();
           }
         });
+      });
+    });
+
+    // The quiz sits in a dialog: close it before jumping to the section.
+    root.querySelectorAll<HTMLAnchorElement>('[data-reread-link]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        root.closest('dialog')?.close();
+        const target = document.getElementById(a.getAttribute('href')!.slice(1));
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', a.getAttribute('href'));
       });
     });
 
@@ -133,6 +164,8 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
         });
         const fb = q.querySelector<HTMLElement>('.q-feedback');
         if (fb) fb.hidden = true;
+        const rr = q.querySelector<HTMLElement>('[data-reread]');
+        if (rr) rr.hidden = true;
       });
       show(0);
     });
@@ -250,6 +283,11 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
     margin: 0;
     color: var(--ddp-color-ink-soft);
   }
+  .q-reread {
+    margin: var(--ddp-space-2) 0 0;
+    color: var(--ddp-color-ink-soft);
+  }
+  .q-reread a { color: var(--ddp-color-accent); font-weight: 600; }
   .quiz-nav {
     display: flex;
     align-items: center;

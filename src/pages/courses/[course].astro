@@ -35,8 +35,9 @@ const tierLabel = { highschool: course.ladderStep === 1 ? 'middle school course'
         {drafts} of {lessons.length} lessons here are drafts. They are visible only in local preview and have not been reviewed by a person.
       </p>
     )}
+    <p class="course-progress" data-course-progress hidden></p>
     <p class="hero-cta">
-      {first && <a class="cta" href={`/lessons/${first.data.slug}/`}>Start with lesson 1 →</a>}
+      {first && <a class="cta" href={`/lessons/${first.data.slug}/`} data-start-cta>Start with lesson 1 →</a>}
       {course.slug === 'biochemistry' && <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>}
     </p>
   </section>
@@ -50,7 +51,37 @@ const tierLabel = { highschool: course.ladderStep === 1 ? 'middle school course'
     <CourseUnits course={course} lessons={lessons} />
   </section>
 
+  <script>
+    import { load, onChange } from '../../lib/progress';
+
+    // "You've finished X of Y" and a Continue button, from this device's progress.
+    const line = document.querySelector<HTMLElement>('[data-course-progress]');
+    const cta = document.querySelector<HTMLAnchorElement>('[data-start-cta]');
+    const cards = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-lesson-card]'));
+    const startText = cta?.textContent ?? '';
+    const startHref = cta?.getAttribute('href') ?? '';
+    onChange(() => {
+      const lessons = load().lessons;
+      const done = cards.filter((c) => lessons[c.getAttribute('data-lesson-card')!]?.d).length;
+      const started = cards.some((c) => lessons[c.getAttribute('data-lesson-card')!]);
+      if (line) {
+        line.hidden = !started;
+        line.textContent = `You've finished ${done} of ${cards.length} lessons on this device.`;
+      }
+      const next = cards.find((c) => !lessons[c.getAttribute('data-lesson-card')!]?.d);
+      if (cta && started && next) {
+        cta.href = next.getAttribute('href')!;
+        cta.textContent = `Continue: ${next.querySelector('.lc-title')?.firstChild?.textContent ?? 'next lesson'} →`;
+      } else if (cta) {
+        cta.href = startHref;
+        cta.textContent = startText;
+      }
+    });
+  </script>
+
   <style>
+    .course-progress { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-verified); }
+    .course-progress[hidden] { display: none; }
     .course-hero { padding-block: var(--ddp-space-8) var(--ddp-space-4); display: flex; flex-direction: column; gap: var(--ddp-space-3); }
     .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0; }
     .eyebrow a { color: inherit; text-underline-offset: 3px; }
