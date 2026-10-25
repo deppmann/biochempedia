@@ -1,10 +1,12 @@
 // Biochemistrypedia edge worker.
 //
 // Everything is served as static assets from dist/ exactly as before; this script
-// runs FIRST only for media paths (see run_worker_first in wrangler.jsonc). It adds
+// runs FIRST only for media paths and /api/* (see run_worker_first in wrangler.jsonc). It adds
 // HTTP byte-range support, which the static-asset server does not provide: Safari
 // (macOS and iOS) refuses to play <video>, and is unreliable with <audio>, unless
 // the server answers "Range: bytes=…" with 206 Partial Content.
+import { handleApi } from './api.js';
+
 const MEDIA_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
 
 const TYPES = { mp4: 'video/mp4', vtt: 'text/vtt; charset=utf-8', jpg: 'image/jpeg', png: 'image/png', mp3: 'audio/mpeg', m4a: 'audio/mp4', webm: 'video/webm' };
@@ -45,6 +47,8 @@ async function fromBucket(request, env) {
 
 export default {
   async fetch(request, env) {
+    // Teacher classes API (worker/api.js). Everything else below is the media path.
+    if (new URL(request.url).pathname.startsWith('/api/')) return handleApi(request, env);
     if (request.method === 'GET' || request.method === 'HEAD') {
       const hit = await fromBucket(request, env);
       if (hit) return hit;

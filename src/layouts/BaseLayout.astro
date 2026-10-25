@@ -11,8 +11,10 @@ interface Props {
   ogType?: string;
   /** Optional page-specific JSON-LD (e.g. a LearningResource for a lesson). */
   jsonLd?: Record<string, unknown>;
+  /** Keep the page out of search results (account and class pages). */
+  noindex?: boolean;
 }
-const { title, description, ogType = 'website', jsonLd } = Astro.props;
+const { title, description, ogType = 'website', jsonLd, noindex = false } = Astro.props;
 const year = 2026;
 const SITE_NAME = 'Biochemistrypedia';
 const DEFAULT_DESC =
@@ -53,6 +55,7 @@ const websiteLd = {
     <title>{title}</title>
     <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={title} />

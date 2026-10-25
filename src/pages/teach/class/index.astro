@@ -1,0 +1,380 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { COURSES, unitsFor } from '../../../data/courses';
+import '../../../styles/teach.css';
+
+// Every published lesson, grouped by course and unit, for the lesson picker and for
+// titles in the brief. The class id comes from the query string (?id=), read in the browser.
+const lessons = await getCollection('lessons', ({ data }) => !data.draft);
+const catalog = COURSES
+  .map((c) => ({ c, mine: lessons.filter((l) => l.data.course === c.slug) }))
+  .filter((x) => x.mine.length > 0)
+  .map(({ c, mine }) => ({
+    slug: c.slug,
+    title: c.title,
+    units: unitsFor(c, mine).map((u) => ({ name: u.name, lessons: u.entries.map(({ l, n }) => ({ slug: l.data.slug, title: l.data.title, n })) })),
+  }));
+const MODES = [
+  ['open', 'Open: anyone with the code joins with a nickname'],
+  ['approve', 'Approve: students wait until you let them in'],
+  ['roster', 'Roster: you make the list and hand out student codes'],
+  ['locked', 'Locked: nobody new can join'],
+];
+---
+
+<BaseLayout title="Class — Biochemistrypedia" description="Your class." noindex>
+  <article class="wrap tc" data-class data-catalog={JSON.stringify(catalog)}>
+    <p class="tc-eyebrow"><a href="/teach/classes/">My classes</a></p>
+    <h1 data-name>Class</h1>
+    <p class="tc-row" style="margin-top: var(--ddp-space-3)">
+      <span>Class code <span class="tc-code" data-code></span></span>
+      <span class="tc-muted">Students go to <strong data-join-url></strong></span>
+    </p>
+    <p class="tc-note" data-pending-note hidden></p>
+
+    <div class="tc-tabs tc-noprint" role="tablist">
+      <button class="tc-tab" role="tab" data-tab="brief" aria-selected="true">Morning brief</button>
+      <button class="tc-tab" role="tab" data-tab="assign" aria-selected="false">Assign lessons</button>
+      <button class="tc-tab" role="tab" data-tab="students" aria-selected="false">Students</button>
+      <button class="tc-tab" role="tab" data-tab="settings" aria-selected="false">Settings</button>
+    </div>
+
+    <!-- Brief -->
+    <section data-pane="brief">
+      <p class="tc-muted" data-brief-when></p>
+      <h2 style="margin-top: var(--ddp-space-4)">Who needs you</h2>
+      <ul data-needs></ul>
+      <p class="tc-muted" data-needs-none hidden>Nobody is flagged: no overdue lessons, no low first-try scores, no stuck notes.</p>
+      <div data-lessons></div>
+      <p class="tc-muted" data-brief-empty hidden>Nothing to show yet. Assign a lesson, give students the class code, and their work shows up here.</p>
+    </section>
+
+    <!-- Assign -->
+    <section data-pane="assign" hidden>
+      <p class="tc-muted">Tick the lessons you want students to do. A due date is optional; it's how the brief knows who is behind.</p>
+      <label class="tc-row" style="font-weight:600">Show lessons from
+        <select data-course-pick></select>
+      </label>
+      <p class="tc-muted" data-assigned-elsewhere hidden></p>
+      <div class="tc-units" data-units style="margin-top: var(--ddp-space-4)"></div>
+      <div class="tc-sticky tc-row">
+        <button class="tc-btn" type="button" data-save-assign>Save assignments</button>
+        <span class="tc-muted" data-assign-count></span>
+        <span class="tc-ok" data-assign-msg role="status"></span>
+      </div>
+    </section>
+
+    <!-- Students -->
+    <section data-pane="students" hidden>
+      <div class="tc-scroll"><table class="tc-table">
+        <thead><tr><th>Nickname</th><th>Status</th><th>Joined</th><th>Last seen</th><th></th></tr></thead>
+        <tbody data-roster></tbody>
+      </table></div>
+      <p class="tc-muted" data-roster-empty hidden>No students yet. Give them the class code.</p>
+      <div class="tc-card tc-noprint" data-code-show hidden style="margin-top: var(--ddp-space-4)"></div>
+      <h2>Add students yourself</h2>
+      <p class="tc-muted">One nickname per line. Each student gets a code to join with; print the list and hand them out. This works in any join mode, and is the best choice for younger students.</p>
+      <form class="tc-form" data-roster-form>
+        <textarea name="names" rows="6" placeholder={'Ava R\nBen\nCarlos M'}></textarea>
+        <button class="tc-btn" type="submit">Make codes</button>
+        <p class="tc-error" data-roster-err role="alert"></p>
+      </form>
+      <div data-made hidden style="margin-top: var(--ddp-space-4)">
+        <p class="tc-note good">Codes are shown only now. Print or copy them before you leave this page.</p>
+        <div class="tc-scroll"><table class="tc-table"><thead><tr><th>Nickname</th><th>Student code</th></tr></thead><tbody data-made-rows></tbody></table></div>
+        <p class="tc-muted" data-made-how></p>
+        <button class="tc-btn ghost tc-noprint" type="button" onclick="window.print()">Print</button>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section data-pane="settings" hidden>
+      <form class="tc-form" data-settings>
+        <label>Class name<input type="text" name="name" maxlength="60" required /></label>
+        <label>How students join<select name="joinMode">{MODES.map(([v, l]) => <option value={v}>{l}</option>)}</select></label>
+        <button class="tc-btn" type="submit">Save</button>
+        <p class="tc-ok" data-set-msg role="status"></p>
+      </form>
+      <h2>Class code</h2>
+      <p class="tc-muted">Make a new code if the old one got shared too widely. Students already in the class stay in.</p>
+      <button class="tc-btn ghost" type="button" data-new-code>Make a new class code</button>
+      <h2>Delete this class</h2>
+      <p class="tc-muted">Deletes the class, its students and all their answers, for good.</p>
+      <button class="tc-btn danger" type="button" data-delete>Delete class</button>
+    </section>
+  </article>
+
+  <script>
+    import { api } from '../../../lib/classroom';
+
+    type Catalog = { slug: string; title: string; units: { name: string; lessons: { slug: string; title: string; n: number }[] }[] }[];
+    interface Brief {
+      class: { id: string; name: string; code: string; course: string; joinMode: string };
+      students: { id: number; nickname: string; status: string; joined: number; lastSeen: number | null }[];
+      assignments: { slug: string; due: string | null }[];
+      lessons: Record<string, { started: number; done: number; notStarted: string[]; ideas: { item: string; idea: string; answer: string; agree: number; disagree: number }[]; quiz: { item: string; n: number; correct: number }[]; cers: { student: string; task: string; claim: string; evidence: string; reasoning: string; at: number }[]; stuck: { student: string; text: string; at: number }[] }>;
+      needs: { student: string; reasons: string[] }[];
+    }
+    interface QuizFile { items: { id: string; stem: string; choices: string[]; answer: number; anchor: { id: string; text: string } | null }[] }
+
+    const root = document.querySelector<HTMLElement>('[data-class]')!;
+    const catalog: Catalog = JSON.parse(root.dataset.catalog!);
+    const lessonInfo = new Map<string, { title: string; course: string }>();
+    for (const c of catalog) for (const u of c.units) for (const l of u.lessons) lessonInfo.set(l.slug, { title: l.title, course: c.title });
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    // Tiny element builder. `style` may be a CSS string; everything else is set as a property.
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] => {
+      const { style, ...rest } = props;
+      const e = Object.assign(document.createElement(tag), rest);
+      if (typeof style === 'string') e.setAttribute('style', style);
+      e.append(...kids);
+      return e;
+    };
+    const fmtDate = (t: number | null) => (t ? new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—');
+    const fmtDue = (d: string | null) => (d ? new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : 'no due date');
+    let brief: Brief;
+
+    // ---- tabs ----
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+    const show = (k: string) => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === k)));
+      root.querySelectorAll<HTMLElement>('[data-pane]').forEach((p) => (p.hidden = p.dataset.pane !== k));
+      history.replaceState(null, '', `?id=${id}&tab=${k}`);
+    };
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab!)));
+
+    async function load() {
+      const r = await api<Brief>(`/api/classes/${encodeURIComponent(id)}/brief`);
+      if (r.status === 401) { location.replace('/teach/'); return; }
+      if (!r.ok) { $('[data-name]').textContent = r.data.error || 'Could not load this class.'; return; }
+      brief = r.data;
+      const c = brief.class;
+      document.title = `${c.name} — Biochemistrypedia`;
+      $('[data-name]').textContent = c.name;
+      $('[data-code]').textContent = c.code;
+      $('[data-join-url]').textContent = `${location.host}/join/?code=${c.code}`;
+      const pending = brief.students.filter((s) => s.status === 'pending').length;
+      $('[data-pending-note]').hidden = !pending;
+      $('[data-pending-note]').textContent = `${pending} ${pending === 1 ? 'student is' : 'students are'} waiting to join. See the Students tab.`;
+      renderBrief();
+      renderAssign();
+      renderRoster();
+      const f = $<HTMLFormElement>('[data-settings]');
+      (f.elements.namedItem('name') as HTMLInputElement).value = c.name;
+      (f.elements.namedItem('joinMode') as HTMLSelectElement).value = c.joinMode;
+    }
+
+    // ---- brief ----
+    const quizCache = new Map<string, Promise<QuizFile | null>>();
+    const quizFor = (slug: string) => {
+      if (!quizCache.has(slug)) quizCache.set(slug, fetch(`/quiz/${slug}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+      return quizCache.get(slug)!;
+    };
+
+    function renderBrief() {
+      $('[data-brief-when]').textContent = `As of ${new Date().toLocaleString(undefined, { weekday: 'long', hour: 'numeric', minute: '2-digit' })}. Reload for the latest.`;
+      const needs = $('[data-needs]');
+      needs.textContent = '';
+      for (const n of brief.needs) needs.append(el('li', {}, el('strong', { textContent: n.student }), ` · ${n.reasons.join('; ')}`));
+      $('[data-needs-none]').hidden = brief.needs.length > 0;
+
+      const box = $('[data-lessons]');
+      box.textContent = '';
+      const active = brief.students.filter((s) => s.status === 'active').length;
+      const order = [...brief.assignments.map((a) => a.slug), ...Object.keys(brief.lessons).filter((s) => !brief.assignments.some((a) => a.slug === s))];
+      $('[data-brief-empty]').hidden = order.length > 0;
+      const today = new Date().toISOString().slice(0, 10);
+      // Open the lesson due next; failing that, the first one students have started.
+      const openSlug = brief.assignments.find((a) => a.due && a.due >= today)?.slug
+        ?? order.find((s) => (brief.lessons[s]?.started ?? 0) > 0) ?? order[0];
+      for (const slug of order) {
+        const L = brief.lessons[slug] ?? { started: 0, done: 0, notStarted: [], ideas: [], quiz: [], cers: [], stuck: [] };
+        const a = brief.assignments.find((x) => x.slug === slug);
+        const info = lessonInfo.get(slug);
+        const det = el('details', { className: 'tc-lesson tc-card', open: slug === openSlug });
+        const sum = el('summary', {}, `${info?.title ?? slug}`);
+        sum.append(el('span', { className: 'tc-muted', textContent: ` · ${a ? fmtDue(a.due) : 'not assigned'} · ${L.done} of ${active} done, ${L.started} started` }));
+        det.append(sum);
+        const links = el('p', { className: 'tc-row tc-noprint' },
+          el('a', { href: `/lessons/${slug}/`, textContent: 'Open the lesson', target: '_blank' }),
+          el('a', { href: `/teach/room/?id=${id}&lesson=${slug}`, textContent: 'Room view for class →', target: '_blank' }));
+        det.append(links);
+        if (L.notStarted.length && a) det.append(el('p', { className: 'tc-muted', textContent: `Not started: ${L.notStarted.join(', ')}` }));
+
+        if (L.ideas.length) {
+          det.append(el('h3', { textContent: 'Opening question: where the class split' }));
+          for (const it of L.ideas) {
+            const n = it.agree + it.disagree;
+            const wrong = it.answer === 'agree' ? it.disagree : it.agree;
+            const bar = el('div', { className: 'tc-bar' });
+            bar.append(el('span', { className: 'agree' }), el('span', { className: 'disagree' }));
+            (bar.children[0] as HTMLElement).style.width = `${(it.agree / Math.max(n, 1)) * 100}%`;
+            (bar.children[1] as HTMLElement).style.width = `${(it.disagree / Math.max(n, 1)) * 100}%`;
+            det.append(el('div', { style: 'margin: .6rem 0' },
+              el('p', { style: 'margin:0 0 .25rem' }, it.idea || `Statement ${it.item}`),
+              bar,
+              el('p', { className: 'tc-legend', style: 'margin:.2rem 0 0' },
+                `${it.agree} agree · ${it.disagree} disagree · scientists ${it.answer} · ${wrong} of ${n} held the common idea`)));
+          }
+        }
+
+        if (L.quiz.length) {
+          det.append(el('h3', { textContent: 'Quiz: most missed on the first try' }));
+          const list = el('ol', { style: 'padding-left:1.2rem' });
+          det.append(list);
+          quizFor(slug).then((qf) => {
+            // Questions whose wording changed since students answered no longer match; skip them.
+            for (const q of L.quiz.filter((x) => qf?.items.some((i) => i.id === x.item)).slice(0, 5)) {
+              const item = qf?.items.find((x) => x.id === q.item);
+              const li = el('li', { style: 'margin-bottom:.5rem' });
+              const pct = Math.round((q.correct / q.n) * 100);
+              li.append(el('span', { className: `tc-pill ${pct < 50 ? 'warn' : pct >= 80 ? 'good' : ''}`, textContent: `${q.correct}/${q.n} right` }), ' ', item?.stem ?? '');
+              if (item?.anchor) li.append(' ', el('a', { href: `/lessons/${slug}/#${item.anchor.id}`, target: '_blank', textContent: `Reteach: ${item.anchor.text}` }));
+              list.append(li);
+            }
+          });
+        }
+
+        if (L.cers.length) {
+          det.append(el('h3', { textContent: `Written answers sent to you (${L.cers.length})` }));
+          for (const c of L.cers) {
+            const q = el('div', { className: 'tc-quote' });
+            q.append(el('b', { textContent: c.student }));
+            for (const [k, v] of [['Claim', c.claim], ['Evidence', c.evidence], ['Reasoning', c.reasoning]]) if (v) q.append(el('p', { style: 'margin:.3rem 0 0' }, el('em', { textContent: `${k}: ` }), v));
+            det.append(q);
+          }
+        }
+
+        if (L.stuck.length) {
+          det.append(el('h3', { textContent: `Stuck notes (${L.stuck.length})` }));
+          for (const s of L.stuck) det.append(el('div', { className: 'tc-quote' }, el('b', { textContent: s.student }), el('p', { style: 'margin:.3rem 0 0', textContent: s.text })));
+        }
+        if (!L.ideas.length && !L.quiz.length && !L.cers.length && !L.stuck.length) det.append(el('p', { className: 'tc-muted', textContent: 'No answers yet.' }));
+        box.append(det);
+      }
+    }
+
+    // ---- assign ----
+    const chosen = new Map<string, string | null>();
+    let pickCourse = '';
+    function renderAssign() {
+      chosen.clear();
+      for (const a of brief.assignments) chosen.set(a.slug, a.due);
+      const sel = $<HTMLSelectElement>('[data-course-pick]');
+      if (!sel.options.length) {
+        for (const c of catalog) sel.append(el('option', { value: c.slug, textContent: c.title }));
+        sel.addEventListener('change', () => { pickCourse = sel.value; drawUnits(); });
+      }
+      pickCourse = pickCourse || brief.class.course;
+      sel.value = pickCourse;
+      drawUnits();
+    }
+    function drawUnits() {
+      const c = catalog.find((x) => x.slug === pickCourse) ?? catalog[0];
+      const box = $('[data-units]');
+      box.textContent = '';
+      for (const u of c.units) {
+        const div = el('div', { className: 'tc-unit' }, el('h3', { textContent: u.name }));
+        for (const l of u.lessons) {
+          const row = el('div', { className: 'tc-assign-row' });
+          const cb = el('input', { type: 'checkbox', checked: chosen.has(l.slug), id: `as-${l.slug}` });
+          const lab = el('label', { htmlFor: `as-${l.slug}`, textContent: `${l.n}. ${l.title}` });
+          const due = el('input', { type: 'date', value: chosen.get(l.slug) ?? '', disabled: !chosen.has(l.slug), title: 'Due date (optional)' });
+          cb.addEventListener('change', () => { if (cb.checked) chosen.set(l.slug, due.value || null); else chosen.delete(l.slug); due.disabled = !cb.checked; count(); });
+          due.addEventListener('change', () => { if (cb.checked) chosen.set(l.slug, due.value || null); });
+          row.append(cb, lab, due);
+          div.append(row);
+        }
+        box.append(div);
+      }
+      count();
+    }
+    function count() {
+      $('[data-assign-count]').textContent = `${chosen.size} ${chosen.size === 1 ? 'lesson' : 'lessons'} assigned`;
+      const here = new Set(catalog.find((x) => x.slug === pickCourse)?.units.flatMap((u) => u.lessons.map((l) => l.slug)));
+      const other = [...chosen.keys()].filter((s) => !here.has(s));
+      $('[data-assigned-elsewhere]').hidden = !other.length;
+      $('[data-assigned-elsewhere]').textContent = `Also assigned from other courses: ${other.map((s) => lessonInfo.get(s)?.title ?? s).join(', ')}`;
+    }
+    $('[data-save-assign]').addEventListener('click', async () => {
+      const r = await api(`/api/classes/${id}/assignments`, { assignments: [...chosen].map(([slug, due]) => ({ slug, due })) }, 'PUT');
+      $('[data-assign-msg]').textContent = r.ok ? 'Saved.' : r.data.error || 'Could not save.';
+      if (r.ok) load();
+    });
+
+    // ---- students ----
+    function renderRoster() {
+      const tb = $('[data-roster]');
+      tb.textContent = '';
+      $('[data-roster-empty]').hidden = brief.students.length > 0;
+      for (const s of brief.students) {
+        const tr = el('tr');
+        const status = s.status === 'pending' ? el('span', { className: 'tc-pill warn', textContent: 'waiting' }) : el('span', { className: 'tc-pill good', textContent: 'in' });
+        const actions = el('td', { className: 'tc-row tc-noprint' });
+        if (s.status === 'pending') {
+          const ok = el('button', { type: 'button', className: 'tc-btn small', textContent: 'Let in' });
+          ok.addEventListener('click', async () => { await api(`/api/classes/${id}/students/${s.id}/approve`, {}); load(); });
+          actions.append(ok);
+        }
+        const code = el('button', { type: 'button', className: 'tc-btn small ghost', textContent: 'New code' });
+        code.addEventListener('click', async () => {
+          if (!confirm(`Make a new student code for ${s.nickname}? Their old code stops working and they are signed out on their devices.`)) return;
+          const r = await api<{ code: string }>(`/api/classes/${id}/students/${s.id}/code`, {});
+          if (!r.ok) return;
+          const box = $('[data-code-show]');
+          box.hidden = false;
+          box.textContent = '';
+          box.append(`New student code for ${s.nickname}: `, el('span', { className: 'tc-code small', textContent: r.data.code }), ` (they join at ${location.host}/join/ with class code ${brief.class.code}, then "I have a student code").`);
+        });
+        const rm = el('button', { type: 'button', className: 'tc-btn small danger', textContent: 'Remove' });
+        rm.addEventListener('click', async () => {
+          if (!confirm(`Remove ${s.nickname} and delete their answers?`)) return;
+          await api(`/api/classes/${id}/students/${s.id}`, undefined, 'DELETE');
+          load();
+        });
+        actions.append(code, rm);
+        tr.append(el('td', { textContent: s.nickname }), el('td', {}, status), el('td', { textContent: fmtDate(s.joined) }), el('td', { textContent: fmtDate(s.lastSeen) }), actions);
+        tb.append(tr);
+      }
+    }
+    $('[data-roster-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const names = ((e.target as HTMLFormElement).names.value as string).split('\n').map((s) => s.trim()).filter(Boolean);
+      if (!names.length) return;
+      const r = await api<{ made: { nickname: string; code: string }[]; skipped: string[] }>(`/api/classes/${id}/roster`, { nicknames: names });
+      $('[data-roster-err]').textContent = r.ok ? (r.data.skipped.length ? `Already in the class, skipped: ${r.data.skipped.join(', ')}` : '') : r.data.error || 'Could not add.';
+      if (!r.ok) return;
+      const rows = $('[data-made-rows]');
+      rows.textContent = '';
+      for (const m of r.data.made) rows.append(el('tr', {}, el('td', { textContent: m.nickname }), el('td', {}, el('span', { className: 'tc-code small', textContent: m.code }))));
+      $('[data-made-how]').textContent = `Students go to ${location.host}/join/, type class code ${brief.class.code}, then choose "I have a student code".`;
+      $('[data-made]').hidden = r.data.made.length === 0;
+      (e.target as HTMLFormElement).reset();
+      load();
+    });
+
+    // ---- settings ----
+    $('[data-settings]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      const r = await api(`/api/classes/${id}`, v, 'PATCH');
+      $('[data-set-msg]').textContent = r.ok ? 'Saved.' : r.data.error || 'Could not save.';
+      if (r.ok) load();
+    });
+    $('[data-new-code]').addEventListener('click', async () => {
+      if (!confirm('Make a new class code? The old one stops working for new students.')) return;
+      await api(`/api/classes/${id}/new-code`, {});
+      load();
+    });
+    $('[data-delete]').addEventListener('click', async () => {
+      if (!confirm('Delete this class, its students and all their answers for good?')) return;
+      const r = await api(`/api/classes/${id}`, undefined, 'DELETE');
+      if (r.ok) location.href = '/teach/classes/';
+    });
+
+    show(new URLSearchParams(location.search).get('tab') || 'brief');
+    load();
+  </script>
+</BaseLayout>

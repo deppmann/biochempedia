@@ -1,4 +1,5 @@
 import type { APIContext } from 'astro';
+import { PATHS } from '../data/paths';
 import { getCollection } from 'astro:content';
 import { METHODS } from '../data/methods';
 
@@ -17,6 +18,8 @@ export async function GET(context: APIContext): Promise<Response> {
     '/teachers', '/teachers/demo', '/teachers/how-its-built',
     '/teachers/do-it-yourself', '/teachers/checklist', '/teachers/sources', '/teachers/talk/',
     '/teachers/life-science', '/teachers/biology',
+    '/teach/', '/teach/privacy/', '/join/',
+    '/paths/', ...PATHS.map((p) => `/paths/${p.id}/`),
     ...courses.map((c) => `/courses/${c}/`),
     ...lessons.map((l) => `/lessons/${l.data.slug}/`),
     '/methods/', ...METHODS.map((m) => `/methods/${m.slug}/`),

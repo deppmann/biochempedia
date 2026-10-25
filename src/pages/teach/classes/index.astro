@@ -1,0 +1,123 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { COURSES } from '../../../data/courses';
+import '../../../styles/teach.css';
+
+const lessons = await getCollection('lessons', ({ data }) => !data.draft);
+const courses = COURSES.filter((c) => lessons.some((l) => l.data.course === c.slug)).map((c) => ({ slug: c.slug, title: c.title }));
+const MODES = [
+  ['open', 'Open: anyone with the code joins with a nickname'],
+  ['approve', 'Approve: students wait until you let them in'],
+  ['roster', 'Roster: you make the list and hand out student codes'],
+  ['locked', 'Locked: nobody new can join'],
+];
+---
+
+<BaseLayout title="My classes — Biochemistrypedia" description="Your classes." noindex>
+  <article class="wrap tc" data-classes data-courses={JSON.stringify(courses)}>
+    <p class="tc-eyebrow"><a href="/teach/">Classes</a> · <span data-who></span></p>
+    <h1>My classes</h1>
+
+    <p class="tc-note" data-verify hidden style="margin-top: var(--ddp-space-4)">
+      Please confirm your email: we sent you a link. Students can join your classes once it's confirmed.
+      <button type="button" class="tc-btn small ghost" data-resend>Send it again</button> <span data-resend-msg class="tc-muted"></span>
+    </p>
+    <p class="tc-muted" data-loading>Loading…</p>
+
+    <ul class="tc-grid" data-list style="list-style:none; padding:0; margin-top: var(--ddp-space-6)"></ul>
+    <p class="tc-muted" data-empty hidden>No classes yet. Make your first one below.</p>
+
+    <h2>New class</h2>
+    <form class="tc-form" data-new>
+      <label>Class name<input type="text" name="name" maxlength="60" required placeholder="e.g. Biology, period 3" /></label>
+      <label>Course<select name="course" required>
+        {courses.map((c) => <option value={c.slug} selected={c.slug === 'high-school-biology'}>{c.title}</option>)}
+      </select></label>
+      <label>How students join<select name="joinMode">
+        {MODES.map(([v, l]) => <option value={v}>{l}</option>)}
+      </select></label>
+      <button class="tc-btn" type="submit">Create class</button>
+      <p class="tc-error" data-err role="alert"></p>
+    </form>
+
+    <h2>Account</h2>
+    <div class="tc-row">
+      <button type="button" class="tc-btn ghost" data-logout>Sign out</button>
+      <a href="/teach/privacy/">Privacy and classroom rules</a>
+    </div>
+    <details style="margin-top: var(--ddp-space-5)">
+      <summary>Delete my account</summary>
+      <form class="tc-form" data-delete style="margin-top: var(--ddp-space-3)">
+        <p class="tc-muted" style="margin:0">This deletes your account, every class, every student and every answer, at once and for good.</p>
+        <label>Password<input type="password" name="password" autocomplete="current-password" required /></label>
+        <button class="tc-btn danger" type="submit">Delete everything</button>
+        <p class="tc-error" data-del-err role="alert"></p>
+      </form>
+    </details>
+  </article>
+
+  <script>
+    import { api } from '../../../lib/classroom';
+
+    interface Cls { id: string; name: string; course: string; code: string; joinMode: string; students: number; pending: number; assignments: number }
+    const root = document.querySelector<HTMLElement>('[data-classes]')!;
+    const courses: { slug: string; title: string }[] = JSON.parse(root.dataset.courses!);
+    const titleOf = (s: string) => courses.find((c) => c.slug === s)?.title ?? s;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+
+    async function load() {
+      const r = await api<{ name: string; email: string; verified: boolean; mailOn: boolean; classes: Cls[] }>('/api/teacher/me');
+      if (r.status === 401) { location.replace('/teach/'); return; }
+      $('[data-loading]').hidden = true;
+      if (!r.ok) { $('[data-loading]').hidden = false; $('[data-loading]').textContent = r.data.error || 'Could not load.'; return; }
+      $('[data-who]').textContent = `${r.data.name} (${r.data.email})`;
+      $('[data-verify]').hidden = !r.data.mailOn || r.data.verified;
+      const list = $('[data-list]');
+      list.textContent = '';
+      $('[data-empty]').hidden = r.data.classes.length > 0;
+      for (const c of r.data.classes) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'tc-card';
+        a.href = `/teach/class/?id=${c.id}`;
+        a.style.cssText = 'display:flex;flex-direction:column;gap:.4rem;text-decoration:none;color:inherit;height:100%;box-sizing:border-box';
+        const h = document.createElement('strong');
+        h.textContent = c.name;
+        h.style.cssText = 'font-size:1.15rem;color:var(--ddp-color-primary)';
+        const course = document.createElement('span');
+        course.className = 'tc-muted';
+        course.textContent = titleOf(c.course);
+        const code = document.createElement('span');
+        code.innerHTML = 'Class code <span class="tc-code small"></span>';
+        code.querySelector('span')!.textContent = c.code;
+        const meta = document.createElement('span');
+        meta.className = 'tc-muted';
+        meta.textContent = `${c.students} ${c.students === 1 ? 'student' : 'students'} · ${c.assignments} assigned${c.pending ? ` · ${c.pending} waiting to join` : ''}`;
+        a.append(h, course, code, meta);
+        li.append(a);
+        list.append(li);
+      }
+    }
+    load();
+
+    $('[data-new]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      const r = await api<{ id: string }>('/api/classes', v);
+      if (r.ok) location.href = `/teach/class/?id=${r.data.id}&tab=assign`;
+      else $('[data-err]').textContent = r.data.error || 'Could not create the class.';
+    });
+    $('[data-resend]').addEventListener('click', async () => {
+      const r = await api<{ ok: boolean }>('/api/teacher/resend-verify', {});
+      $('[data-resend-msg]').textContent = r.ok && r.data.ok ? 'Sent.' : r.data.error || 'Could not send.';
+    });
+    $('[data-logout]').addEventListener('click', async () => { await api('/api/teacher/logout', {}); location.href = '/teach/'; });
+    $('[data-delete]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!confirm('Delete your account and all class data for good?')) return;
+      const r = await api('/api/teacher/delete', { password: (e.target as HTMLFormElement).password.value });
+      if (r.ok) location.href = '/teach/'; else $('[data-del-err]').textContent = r.data.error || 'Could not delete.';
+    });
+  </script>
+</BaseLayout>
