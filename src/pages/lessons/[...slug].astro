@@ -7,6 +7,7 @@ import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
 import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
+import { anchorsFor } from '../../lib/quiz-anchors';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
@@ -48,7 +49,7 @@ const nextNav = navOf(allLessons[lessonIdx + 1]);
 const games = LESSON_GAMES[entry.data.slug] ?? [];
 const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const lesson = entry.data;
 const lessonFigures = [...(entry.body ?? '').matchAll(/<(?:LessonFigure|ScaffoldFigure)\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
@@ -68,6 +69,7 @@ const localSims = lesson.simulations.filter((s) => s.type === 'local');
 const localSimNames = localSims.map((s) => s.title.split('(')[0].trim());
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
+const quizAnchors = hasQuiz ? anchorsFor(entry.body ?? '', headings, [...lesson.practiceQuestions, ...lesson.mcatQuestions]) : [];
 const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
 // Slides without a recording, counted separately so no count calls a silent
 // slide "narrated".
@@ -483,7 +485,7 @@ const lessonLd = {
     {hasQuiz && (
       <dialog id="lb-quiz" class="lightbox lock-scroll">
         <div class="lightbox-head"><span>Test yourself</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-        <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} /></div>
+        <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} slug={lesson.slug} anchors={quizAnchors} /></div>
       </dialog>
     )}
 

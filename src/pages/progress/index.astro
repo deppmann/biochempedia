@@ -1,0 +1,188 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { COURSES, courseHref } from '../../data/courses';
+import { PATHS } from '../../data/paths';
+
+const lessons = (await getCollection('lessons', ({ data }) => !data.draft))
+  .sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+const courses = COURSES
+  .map((c) => ({ c, mine: lessons.filter((l) => l.data.course === c.slug) }))
+  .filter((x) => x.mine.length > 0);
+// Lesson titles for "continue where you left off", keyed by slug.
+const titles = Object.fromEntries(lessons.map((l) => [l.data.slug, l.data.title]));
+const pathNames = Object.fromEntries(PATHS.map((p) => [p.id, p.label]));
+---
+
+<BaseLayout
+  title="Your progress — Biochemistrypedia"
+  description="Lessons you have finished, questions waiting for review, and your chosen path. Saved only in this browser; no account."
+>
+  <article class="wrap prog" data-titles={JSON.stringify(titles)} data-paths={JSON.stringify(pathNames)}>
+    <p class="eyebrow">Your progress</p>
+    <h1>Where you are</h1>
+    <p class="lede">
+      Saved only in this browser, on this device. Nobody else can see it, and there is no account.
+      Clearing your browser's site data erases it, so export a copy if it matters to you.
+    </p>
+
+    <noscript><p class="warn">This page needs JavaScript to read your saved progress.</p></noscript>
+    <p class="warn" data-blocked hidden>
+      This browser is not letting the site save anything (a private window or strict privacy
+      settings). Lessons still work; your progress just won't be remembered.
+    </p>
+
+    <section class="cards">
+      <div class="card">
+        <p class="k">Your path</p>
+        <p class="big" data-path-name>None chosen yet</p>
+        <p><a href="/paths/" data-path-link>Choose a path →</a></p>
+      </div>
+      <div class="card">
+        <p class="k">Review queue</p>
+        <p class="big"><span data-due>0</span> due now</p>
+        <p class="small" data-due-later></p>
+        <p><a class="btn" href="/review/" data-review-btn>Start reviewing →</a></p>
+      </div>
+      <div class="card">
+        <p class="k">Pick up where you left off</p>
+        <p class="big" data-last>Nothing yet</p>
+        <p class="small"><span data-done-total>0</span> lessons done · <span data-answered>0</span> questions answered</p>
+      </div>
+    </section>
+
+    <h2>Courses</h2>
+    <ul class="courses">
+      {courses.map(({ c, mine }) => (
+        <li class="course" data-course data-slugs={mine.map((l) => l.data.slug).join(' ')}>
+          <a href={courseHref(c.slug)} class="c-title">{c.title}</a>
+          <span class="c-bar"><span class="c-fill" data-fill></span></span>
+          <span class="c-count" data-count>0 of {mine.length}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2>Your data</h2>
+    <p class="small">
+      Export saves a small file you can import on another device or keep as a backup. Import replaces
+      what this browser has now.
+    </p>
+    <p class="data-row">
+      <button type="button" class="btn-ghost" data-export>Export progress</button>
+      <label class="btn-ghost file">Import a file<input type="file" accept="application/json,.json" data-import /></label>
+      <button type="button" class="btn-ghost danger" data-clear>Clear everything</button>
+      <span class="small" data-msg role="status"></span>
+    </p>
+  </article>
+
+  <script>
+    import { load, dueNow, queued, exportText, importText, clearAll, onChange, STORAGE_KEY } from '../../lib/progress';
+
+    const root = document.querySelector<HTMLElement>('.prog')!;
+    const titles: Record<string, string> = JSON.parse(root.getAttribute('data-titles')!);
+    const pathNames: Record<string, string> = JSON.parse(root.getAttribute('data-paths')!);
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel);
+    const msg = $('[data-msg]');
+
+    try { window.localStorage.setItem(STORAGE_KEY + ':test', '1'); window.localStorage.removeItem(STORAGE_KEY + ':test'); }
+    catch { const b = $('[data-blocked]'); if (b) b.hidden = false; }
+
+    const fmtDay = (t: number) => new Date(t).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+    onChange(() => {
+      const p = load();
+      const name = $('[data-path-name]');
+      const link = $<HTMLAnchorElement>('[data-path-link]');
+      if (name) name.textContent = p.path && pathNames[p.path] ? pathNames[p.path] : 'None chosen yet';
+      if (link) {
+        link.href = p.path && pathNames[p.path] ? `/paths/${p.path}/` : '/paths/';
+        link.textContent = p.path && pathNames[p.path] ? 'Open your path →' : 'Choose a path →';
+      }
+
+      const due = dueNow(p);
+      const later = queued(p).filter(([, it]) => it.due! > Date.now());
+      $('[data-due]')!.textContent = String(due.length);
+      const dl = $('[data-due-later]');
+      if (dl) dl.textContent = later.length ? `${later.length} more coming up, next on ${fmtDay(later[0][1].due!)}.` : due.length ? '' : 'Questions you miss in a quiz come back here after 1, 3, 7 and 21 days.';
+      const rb = $<HTMLAnchorElement>('[data-review-btn]');
+      if (rb) rb.textContent = due.length ? 'Start reviewing →' : later.length ? 'Review early →' : 'Open the review page →';
+
+      const last = $('[data-last]');
+      if (last) {
+        last.textContent = '';
+        if (p.last && titles[p.last]) {
+          const a = document.createElement('a');
+          a.href = `/lessons/${p.last}/`;
+          a.textContent = `${titles[p.last]} →`;
+          last.append(a);
+        } else last.textContent = 'Nothing yet';
+      }
+      $('[data-done-total]')!.textContent = String(Object.values(p.lessons).filter((l) => l.d).length);
+      $('[data-answered]')!.textContent = String(Object.values(p.items).reduce((n, it) => n + it.n, 0));
+
+      root.querySelectorAll<HTMLElement>('[data-course]').forEach((row) => {
+        const slugs = row.getAttribute('data-slugs')!.split(' ');
+        const done = slugs.filter((s) => p.lessons[s]?.d).length;
+        const fill = row.querySelector<HTMLElement>('[data-fill]');
+        if (fill) fill.style.width = `${(done / slugs.length) * 100}%`;
+        row.querySelector('[data-count]')!.textContent = `${done} of ${slugs.length}`;
+        row.classList.toggle('is-started', slugs.some((s) => p.lessons[s]));
+      });
+    });
+
+    $('[data-export]')?.addEventListener('click', () => {
+      const blob = new Blob([exportText()], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `biochemistrypedia-progress-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      if (msg) msg.textContent = 'Exported.';
+    });
+    $<HTMLInputElement>('[data-import]')?.addEventListener('change', async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const ok = importText(await file.text());
+      if (msg) msg.textContent = ok ? 'Imported.' : 'That file is not a progress export from this site.';
+      (e.target as HTMLInputElement).value = '';
+    });
+    $('[data-clear]')?.addEventListener('click', () => {
+      if (!window.confirm('Clear all progress saved in this browser? This cannot be undone unless you exported a copy.')) return;
+      clearAll();
+      if (msg) msg.textContent = 'Cleared.';
+    });
+  </script>
+
+  <style>
+    .prog { padding-block: var(--ddp-space-12); }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0 0 var(--ddp-space-2); }
+    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    h2 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-xl, 1.4rem); margin: var(--ddp-space-10, 2.5rem) 0 var(--ddp-space-3); }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: var(--ddp-space-3) 0 0; }
+    .warn { margin: var(--ddp-space-4) 0 0; padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-caution); background: var(--ddp-color-caution-soft); border-radius: 6px; max-width: 62ch; }
+    .warn[hidden] { display: none; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: var(--ddp-space-4); margin-top: var(--ddp-space-8); }
+    .card { padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .card p { margin: 0; }
+    .card :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
+    .k { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .big { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl, 1.4rem); color: var(--ddp-color-primary); line-height: 1.25; }
+    .small { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .btn { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; margin-top: var(--ddp-space-2); padding: 0.4em 1.1em; border-radius: 999px; background: var(--ddp-color-primary); color: var(--ddp-color-surface) !important; text-decoration: none; }
+    .courses { list-style: none; padding: 0; margin: 0; max-width: 760px; }
+    .course { display: grid; grid-template-columns: minmax(0, 14rem) 1fr auto; align-items: center; gap: var(--ddp-space-4); padding: var(--ddp-space-3) 0; border-top: 1px solid var(--ddp-color-line); }
+    .c-title { color: var(--ddp-color-ink); font-weight: 600; text-decoration: none; }
+    .c-title:hover { text-decoration: underline; }
+    .course:not(.is-started) .c-title { color: var(--ddp-color-ink-soft); font-weight: 400; }
+    .c-bar { height: 8px; border-radius: 4px; background: var(--ddp-color-line); overflow: hidden; }
+    .c-fill { display: block; height: 100%; width: 0; background: var(--ddp-color-verified); }
+    .c-count { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); white-space: nowrap; }
+    .data-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); }
+    .btn-ghost { display: inline-flex; align-items: center; min-height: 44px; padding: 0.4em 1.1em; font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; border-radius: 999px; border: 1.5px solid var(--ddp-color-line); background: var(--ddp-color-surface); color: var(--ddp-color-ink); }
+    .btn-ghost:hover { border-color: var(--ddp-color-accent); }
+    .btn-ghost.danger:hover { border-color: #c0392b; color: #c0392b; }
+    .file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .file:focus-within { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+    @media (max-width: 560px) { .course { grid-template-columns: 1fr auto; } .c-bar { grid-column: 1 / -1; grid-row: 2; } }
+  </style>
+</BaseLayout>

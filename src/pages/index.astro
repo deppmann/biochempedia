@@ -64,7 +64,14 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
     <p class="hero-cta">
       <a class="cta" href="#courses">Browse the courses ↓</a>
       <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
-      <a class="cta-ghost" href={courseHref('cell-biology')}>Start with Cell Biology →</a>
+      <a class="cta-ghost" href="/paths/">Choose your path →</a>
+    </p>
+
+    {/* Filled from this device's saved progress (src/lib/progress.ts); stays
+        hidden for a first visit, without JavaScript, or when storage is blocked. */}
+    <p class="resume" data-resume hidden>
+      <span data-resume-text></span>
+      <a href="/progress/" class="resume-link">Your progress →</a>
     </p>
   </section>
 
@@ -194,6 +201,34 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
     </a>
   </section>
 
+  <script>
+    import { load, dueNow, onChange } from '../lib/progress';
+    import { PATHS } from '../data/paths';
+
+    const box = document.querySelector<HTMLElement>('[data-resume]');
+    const text = document.querySelector<HTMLElement>('[data-resume-text]');
+    onChange(() => {
+      if (!box || !text) return;
+      const p = load();
+      const due = dueNow(p).length;
+      const path = PATHS.find((x) => x.id === p.path);
+      text.textContent = '';
+      if (!p.last && !path && !due) { box.hidden = true; return; }
+      box.hidden = false;
+      let links = 0;
+      const add = (label: string, href: string) => {
+        const a = document.createElement('a');
+        a.href = href; a.textContent = label;
+        if (links++) text.append(' · ');
+        text.append(a);
+      };
+      text.append('Welcome back. ');
+      if (p.last) add('Continue your last lesson', `/lessons/${p.last}/`);
+      if (due) add(`${due} ${due === 1 ? 'question' : 'questions'} to review`, '/review/');
+      if (path) add(`Your path: ${path.label}`, `/paths/${path.id}/`);
+    });
+  </script>
+
   <style>
     .funbar { padding: 0 var(--ddp-space-6) var(--ddp-space-16); }
     .playbar { padding-bottom: var(--ddp-space-4); }
@@ -257,6 +292,9 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       font-style: italic;
       color: var(--ddp-color-ink);
     }
+    .resume { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: baseline; }
+    .resume[hidden] { display: none; }
+    .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
     .hero-cta {
       display: flex;
       flex-wrap: wrap;

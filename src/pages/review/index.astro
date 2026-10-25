@@ -1,0 +1,212 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Review — Biochemistrypedia"
+  description="Questions you missed come back after 1, 3, 7 and 21 days until they stick. Saved only in this browser."
+>
+  <article class="wrap rv" data-rv>
+    <p class="rv-eyebrow"><a href="/progress/">Your progress</a> · Review</p>
+    <h1 class="rv-h1">Review</h1>
+    <p class="rv-lede">
+      Questions you missed in a lesson quiz come back here after 1 day, then 3, 7 and 21 days each
+      time you get them right. A miss starts the clock over.
+    </p>
+
+    <noscript><p class="rv-note">The review queue needs JavaScript.</p></noscript>
+    <p class="rv-note" data-rv-status role="status">Loading your queue…</p>
+
+    <section class="rv-card" data-rv-card hidden>
+      <p class="rv-meta"><span data-rv-count></span> · <a data-rv-lesson href="#"></a><span class="rv-mcat" data-rv-mcat hidden>MCAT-style · original</span></p>
+      <p class="rv-stem" data-rv-stem></p>
+      <ul class="rv-choices" data-rv-choices></ul>
+      <div class="rv-feedback" data-rv-feedback hidden role="status">
+        <p class="rv-verdict" data-rv-verdict></p>
+        <p class="rv-why"><strong>Why:</strong> <span data-rv-why></span></p>
+        <p class="rv-why" data-rv-section hidden>Read the section: <a data-rv-section-link href="#"></a></p>
+        <p class="rv-schedule" data-rv-schedule></p>
+        <button type="button" class="rv-next" data-rv-next>Next question →</button>
+      </div>
+    </section>
+
+    <section class="rv-done" data-rv-done hidden>
+      <p class="rv-big" data-rv-summary></p>
+      <p class="rv-actions" data-rv-actions>
+        <button type="button" class="rv-next" data-rv-early hidden>Review early</button>
+        <a href="/progress/">Your progress →</a>
+        <a href="/paths/">Paths →</a>
+      </p>
+    </section>
+  </article>
+
+  <script>
+    import { load, dueNow, queued, recordReview, INTERVALS, type ItemState } from '../../lib/progress';
+
+    interface Item { id: string; mcat: boolean; stem: string; choices: string[]; answer: number; rationale: string; anchor: { id: string; text: string } | null }
+    interface QuizFile { slug: string; title: string; course: string; items: Item[] }
+
+    const SESSION = 20;
+    const root = document.querySelector<HTMLElement>('[data-rv]')!;
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const status = $('[data-rv-status]');
+    const card = $('[data-rv-card]');
+    const done = $('[data-rv-done]');
+    const letters = 'ABCDEF';
+    const files = new Map<string, QuizFile | null>();
+
+    async function fileFor(slug: string) {
+      if (!files.has(slug)) {
+        try {
+          const r = await fetch(`/quiz/${slug}.json`);
+          files.set(slug, r.ok ? await r.json() : null);
+        } catch { files.set(slug, null); }
+      }
+      return files.get(slug)!;
+    }
+
+    let queue: { id: string; it: ItemState; q: Item; f: QuizFile }[] = [];
+    let pos = 0;
+    let right = 0;
+
+    async function build(entries: [string, ItemState][]) {
+      const picked = entries.slice(0, SESSION);
+      await Promise.all([...new Set(picked.map(([, it]) => it.l))].map(fileFor));
+      // A question whose wording changed since it was missed no longer matches; skip it.
+      queue = picked.flatMap(([id, it]) => {
+        const f = files.get(it.l);
+        const q = f?.items.find((x) => x.id === id);
+        return f && q ? [{ id, it, q, f }] : [];
+      });
+      pos = 0; right = 0;
+    }
+
+    function show() {
+      const cur = queue[pos];
+      if (!cur) return finish();
+      status.hidden = true; done.hidden = true; card.hidden = false;
+      $('[data-rv-count]').textContent = `Question ${pos + 1} of ${queue.length}`;
+      const lesson = $<HTMLAnchorElement>('[data-rv-lesson]');
+      lesson.href = `/lessons/${cur.f.slug}/`;
+      lesson.textContent = `${cur.f.course}: ${cur.f.title}`;
+      $('[data-rv-mcat]').hidden = !cur.q.mcat;
+      $('[data-rv-stem]').textContent = cur.q.stem;
+      const list = $('[data-rv-choices]');
+      list.textContent = '';
+      $('[data-rv-feedback]').hidden = true;
+      cur.q.choices.forEach((c, i) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rv-choice';
+        const l = document.createElement('span');
+        l.className = 'rv-letter';
+        l.textContent = letters[i];
+        const t = document.createElement('span');
+        t.textContent = c;
+        b.append(l, t);
+        b.addEventListener('click', () => answer(i));
+        li.append(b);
+        list.append(li);
+      });
+      (list.querySelector('button') as HTMLButtonElement | null)?.focus();
+    }
+
+    function answer(pick: number) {
+      const cur = queue[pos];
+      const buttons = Array.from($('[data-rv-choices]').querySelectorAll<HTMLButtonElement>('button'));
+      if (buttons.some((b) => b.disabled)) return;
+      const ok = pick === cur.q.answer;
+      buttons.forEach((b, i) => {
+        b.disabled = true;
+        if (i === cur.q.answer) b.classList.add('is-correct');
+        if (i === pick && !ok) b.classList.add('is-wrong');
+      });
+      recordReview(cur.id, cur.f.slug, ok);
+      if (ok) right++;
+      const verdict = $('[data-rv-verdict]');
+      verdict.textContent = ok ? '✓ Correct' : '✗ Not quite';
+      verdict.className = `rv-verdict ${ok ? 'is-correct' : 'is-wrong'}`;
+      $('[data-rv-why]').textContent = cur.q.rationale;
+      const sec = $('[data-rv-section]');
+      sec.hidden = !cur.q.anchor;
+      if (cur.q.anchor) {
+        const a = $<HTMLAnchorElement>('[data-rv-section-link]');
+        a.href = `/lessons/${cur.f.slug}/#${cur.q.anchor.id}`;
+        a.textContent = cur.q.anchor.text;
+      }
+      const after = load().items[cur.id];
+      $('[data-rv-schedule]').textContent = !after?.due
+        ? 'Mastered: it leaves the queue.'
+        : `Back in ${INTERVALS[after.s ?? 0]} ${INTERVALS[after.s ?? 0] === 1 ? 'day' : 'days'}.`;
+      $('[data-rv-feedback]').hidden = false;
+      $<HTMLButtonElement>('[data-rv-next]').textContent = pos + 1 < queue.length ? 'Next question →' : 'Finish →';
+      $<HTMLButtonElement>('[data-rv-next]').focus();
+    }
+
+    function finish() {
+      card.hidden = true; status.hidden = true; done.hidden = false;
+      const p = load();
+      const upcoming = queued(p);
+      const early = $<HTMLButtonElement>('[data-rv-early]');
+      const summary = $('[data-rv-summary]');
+      if (queue.length) {
+        summary.textContent = `You reviewed ${queue.length} ${queue.length === 1 ? 'question' : 'questions'} and got ${right} right.`;
+      } else if (upcoming.length) {
+        const next = new Date(upcoming[0][1].due!).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+        summary.textContent = `Nothing is due right now. ${upcoming.length} ${upcoming.length === 1 ? 'question is' : 'questions are'} coming up, the next on ${next}.`;
+      } else {
+        summary.textContent = 'Your queue is empty. Take a lesson quiz: anything you miss on the first try comes back here.';
+      }
+      const dueAgain = dueNow(p).length;
+      early.hidden = !(dueAgain || upcoming.length);
+      early.textContent = dueAgain ? `Keep going (${dueAgain} due)` : 'Review early';
+    }
+
+    $<HTMLButtonElement>('[data-rv-next]').addEventListener('click', () => { pos++; show(); });
+    $<HTMLButtonElement>('[data-rv-early]').addEventListener('click', async () => {
+      const p = load();
+      const due = dueNow(p);
+      await build(due.length ? due : queued(p));
+      show();
+    });
+
+    (async () => {
+      await build(dueNow(load()));
+      if (queue.length) show(); else finish();
+    })();
+  </script>
+
+  <style is:global>
+    .rv { padding-block: var(--ddp-space-12); max-width: 760px; }
+    .rv .rv-eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0 0 var(--ddp-space-2); }
+    .rv .rv-eyebrow a { color: inherit; text-underline-offset: 3px; }
+    .rv .rv-h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .rv .rv-lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); margin: var(--ddp-space-3) 0 var(--ddp-space-6); }
+    .rv .rv-note { color: var(--ddp-color-muted); }
+    .rv [hidden] { display: none !important; }
+    .rv .rv-card, .rv .rv-done { padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+    .rv .rv-meta { margin: 0 0 var(--ddp-space-3); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .rv .rv-meta a { color: var(--ddp-color-accent); }
+    .rv .rv-mcat { margin-left: var(--ddp-space-2); font-weight: 600; color: var(--ddp-color-secondary-ink); background: #fdeede; border-radius: 999px; padding: 0.1em 0.6em; }
+    .rv .rv-stem { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-base); line-height: 1.55; }
+    .rv .rv-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .rv .rv-choice { width: 100%; display: flex; gap: var(--ddp-space-3); align-items: flex-start; text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
+    .rv .rv-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+    .rv .rv-choice:disabled { cursor: default; }
+    .rv .rv-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); flex: none; }
+    .rv .rv-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
+    .rv .rv-choice.is-wrong { border-color: #c0392b; background: #fcebe9; }
+    .rv .rv-feedback { margin-top: var(--ddp-space-4); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); }
+    .rv .rv-feedback p { margin: 0 0 var(--ddp-space-2); color: var(--ddp-color-ink-soft); }
+    .rv .rv-feedback a { color: var(--ddp-color-accent); font-weight: 600; }
+    .rv .rv-verdict { font-weight: 700; }
+    .rv .rv-verdict.is-correct { color: var(--ddp-color-verified); }
+    .rv .rv-verdict.is-wrong { color: #c0392b; }
+    .rv .rv-schedule { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted) !important; }
+    .rv .rv-next { min-height: 44px; margin-top: var(--ddp-space-2); padding: 0.4em 1.2em; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; border: 0; background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+    .rv .rv-big { margin: 0 0 var(--ddp-space-4); font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl, 1.4rem); color: var(--ddp-color-primary); line-height: 1.35; }
+    .rv .rv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-4); margin: 0; }
+    .rv .rv-actions a { color: var(--ddp-color-accent); font-weight: 600; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PATHS } from '../../data/paths';
+import { COURSES } from '../../data/courses';
+
+const titleOf = (slug: string) => COURSES.find((c) => c.slug === slug)?.title ?? slug;
+---
+
+<BaseLayout
+  title="Choose your path — Biochemistrypedia"
+  description="Pick what you are here for: the MCAT, a biology major, learning for its own sake, grades 7 to 12, or teaching. Each path puts the free courses in a sensible order."
+>
+  <article class="wrap paths">
+    <p class="eyebrow">Choose your path</p>
+    <h1>What are you here for?</h1>
+    <p class="lede">
+      Every course is free and open to everyone. A path just puts them in a sensible order for what
+      you want to do. You can change it any time, and it is saved only on this device. No account.
+    </p>
+
+    <ul class="path-grid">
+      {PATHS.map((p) => (
+        <li>
+          <a class="path-card" href={`/paths/${p.id}/`} data-path-card={p.id}>
+            <span class="pc-mine" data-mine hidden>Your path</span>
+            <span class="pc-label">{p.label}</span>
+            <span class="pc-who">{p.who}</span>
+            <span class="pc-courses">{p.steps.filter((s) => !s.optional).map((s) => titleOf(s.course)).join(' → ')}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="aside">Already on your way? <a href="/progress/">See your progress and review queue →</a></p>
+  </article>
+
+  <script>
+    import { load, onChange } from '../../lib/progress';
+    onChange(() => {
+      const mine = load().path;
+      document.querySelectorAll<HTMLElement>('[data-path-card]').forEach((card) => {
+        const tag = card.querySelector<HTMLElement>('[data-mine]');
+        if (tag) tag.hidden = card.getAttribute('data-path-card') !== mine;
+        card.classList.toggle('is-mine', card.getAttribute('data-path-card') === mine);
+      });
+    });
+  </script>
+
+  <style>
+    .paths { padding-block: var(--ddp-space-12); }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-caution); margin: 0 0 var(--ddp-space-2); }
+    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: var(--ddp-space-3) 0 0; }
+    .path-grid { list-style: none; padding: 0; margin: var(--ddp-space-8) 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--ddp-space-4); }
+    .path-card { position: relative; display: flex; flex-direction: column; gap: var(--ddp-space-2); height: 100%; box-sizing: border-box; padding: var(--ddp-space-5); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); text-decoration: none; transition: border-color 0.14s, transform 0.14s, box-shadow 0.14s; }
+    .path-card:hover { border-color: var(--ddp-color-accent); transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .path-card.is-mine { border: 2px solid var(--ddp-color-verified); }
+    .pc-mine { align-self: flex-start; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ddp-color-verified); }
+    .pc-mine[hidden] { display: none; }
+    .pc-label { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-xl, 1.4rem); color: var(--ddp-color-primary); line-height: 1.2; }
+    .pc-who { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .pc-courses { margin-top: auto; padding-top: var(--ddp-space-3); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); line-height: 1.6; color: var(--ddp-color-muted); }
+    .aside { margin: var(--ddp-space-8) 0 0; color: var(--ddp-color-ink-soft); }
+    .aside a { color: var(--ddp-color-accent); }
+    @media (prefers-reduced-motion: reduce) { .path-card { transition: none; } }
+  </style>
+</BaseLayout>
