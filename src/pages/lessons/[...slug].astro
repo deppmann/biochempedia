@@ -7,6 +7,7 @@ import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
 import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
+import ClassBar from '../../components/ClassBar.astro';
 import { anchorsFor } from '../../lib/quiz-anchors';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
@@ -103,6 +104,7 @@ const lessonLd = {
 <BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
   <article id="top">
     <header class="lesson-hero wrap">
+      <ClassBar slug={lesson.slug} />
       {lesson.draft && (
         <p class="draft-banner" role="note">
           Draft. Visible only in local preview, and not yet reviewed by a person.

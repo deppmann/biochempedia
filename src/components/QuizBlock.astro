@@ -72,6 +72,7 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 <script>
   import { recordFirstTry, setDone } from '../lib/progress';
+  import { report } from '../lib/classroom';
 
   document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((root) => {
     const slug = root.getAttribute('data-lesson') ?? '';
@@ -133,6 +134,8 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
             if (right) correct++;
             // Remembered on this device only: a first-try miss joins the review queue.
             recordFirstTry(q.getAttribute('data-item')!, slug, right);
+            // For a student in a teacher's class (no-op otherwise): the first try only.
+            report(slug, 'quiz', { item: q.getAttribute('data-item'), pick, correct: right });
             if (reread) reread.hidden = right;
             if (answered.size === total) setDone(slug, true);
             refresh();

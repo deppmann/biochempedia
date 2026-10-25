@@ -113,6 +113,7 @@ export const PATHS: LearningPath[] = [
       { course: 'organismal-biology', why: 'An introductory college course, for advanced students.', optional: true },
     ],
     extras: [
+      { label: 'Make a class: codes, assignments and a morning brief', href: '/teach/' },
       { label: 'Resources for teachers', href: '/teachers/' },
       { label: 'High school Biology for teachers', href: '/teachers/biology/' },
       { label: 'Life Science for teachers', href: '/teachers/life-science/' },

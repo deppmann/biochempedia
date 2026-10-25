@@ -4,7 +4,8 @@
    Each statement has two radios, Agree and Disagree. Once either is chosen,
    CSS (:has(input:checked)) reveals the explanation, prefixed with what
    scientists think. No script. A browser without :has() gets the explanation
-   in a <details> instead.
+   in a <details> instead. The only script reports picks for students in a
+   teacher's class (src/lib/classroom.ts); without it nothing changes.
    ============================================================================ */
 interface Item {
   idea: string;
@@ -29,7 +30,7 @@ const prefix = (a: Item['answer']) => (a === 'agree' ? 'Scientists agree:' : 'Sc
   <ol class="ic-list">
     {items.map((it, i) => (
       <li class="ic-item">
-        <fieldset class="ic-set">
+        <fieldset class="ic-set" data-ic-item={`${uid}-${i}`} data-ic-idea={it.idea} data-ic-answer={it.answer}>
           <legend class="ic-idea">{it.idea}</legend>
           <div class="ic-opts">
             <label class="ic-opt"><input type="radio" name={`${uid}-${i}`} value="agree" /> Agree</label>
@@ -45,6 +46,23 @@ const prefix = (a: Item['answer']) => (a === 'agree' ? 'Scientists agree:' : 'Sc
     ))}
   </ol>
 </div>
+
+<script>
+  import { report } from '../lib/classroom';
+
+  // For a student in a teacher's class (no-op otherwise): the first pick on each
+  // statement goes to the class, so the teacher sees where the room splits.
+  const slug = /^\/lessons\/([^/]+)/.exec(window.location.pathname)?.[1];
+  if (slug) document.querySelectorAll<HTMLFieldSetElement>('[data-ic-item]').forEach((set) => {
+    let sent = false;
+    set.addEventListener('change', (e) => {
+      const pick = (e.target as HTMLInputElement).value;
+      if (sent || (pick !== 'agree' && pick !== 'disagree')) return;
+      sent = true;
+      report(slug, 'idea', { item: set.dataset.icItem, pick, idea: set.dataset.icIdea, answer: set.dataset.icAnswer, correct: pick === set.dataset.icAnswer });
+    });
+  });
+</script>
 
 <style>
   .idea-check {
