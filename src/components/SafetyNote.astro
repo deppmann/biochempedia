@@ -1,0 +1,47 @@
+---
+/* =============================================================================
+   SafetyNote: the safety box in an Ages 5–10 activity (Biology Together).
+   The slot holds a short markdown list; the first line should say plainly how
+   closely a grown-up supervises. Every activity has one, placed before the
+   steps, and it prints with the page.
+   ============================================================================ */
+interface Props {
+  title?: string;
+}
+const { title = 'Safety' } = Astro.props;
+---
+<aside class="safety-note" role="note" aria-label={title}>
+  <p class="safety-h"><span aria-hidden="true" class="safety-ico">!</span>{title}</p>
+  <div class="safety-body"><slot /></div>
+</aside>
+
+<style>
+  .safety-note {
+    margin: var(--ddp-space-4) 0 var(--ddp-space-6);
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-caution);
+    border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-caution-soft);
+  }
+  .safety-h {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 var(--ddp-space-1);
+    font-weight: 700;
+  }
+  .safety-ico {
+    display: inline-grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--ddp-color-caution);
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1;
+  }
+  .safety-body :global(ul) { margin: 0; padding-left: 1.2rem; }
+  .safety-body :global(li) { margin-bottom: 0.25rem; }
+  .safety-body :global(p) { margin: 0.25rem 0; }
+</style>

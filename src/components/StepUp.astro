@@ -1,0 +1,47 @@
+---
+/* =============================================================================
+   StepUp: the "one step up" link at the end of an Ages 5–10 activity (Biology
+   Together): the grade 7 Life Science lesson(s) that take the same idea
+   further, for an older child or a curious grown-up. Only published lessons
+   are linked (`astro dev` also links drafts, as the lesson page does); with
+   none, it renders nothing.
+     <StepUp slugs={frontmatter.activity.stepUp} />
+   ============================================================================ */
+import { getCollection } from 'astro:content';
+
+interface Props {
+  slugs: string[];
+}
+const { slugs = [] } = Astro.props;
+const found = await getCollection('lessons', ({ data }) => (import.meta.env.DEV || !data.draft) && slugs.includes(data.slug));
+const links = slugs
+  .map((s) => found.find((l) => l.data.slug === s))
+  .filter((l): l is NonNullable<typeof l> => Boolean(l))
+  .map((l) => ({ slug: l.data.slug, title: l.data.title, hook: (l.data as { hook?: string }).hook }));
+---
+{links.length > 0 && (
+  <aside class="step-up" aria-labelledby="step-up-h">
+    <h2 id="step-up-h" class="step-up-h">One step up the ladder</h2>
+    <p class="step-up-intro">The same idea in grade 7 Life Science, for an older child or a curious grown-up:</p>
+    <ul>
+      {links.map((l) => (
+        <li><a href={`/lessons/${l.slug}/`}>{l.title}</a>{l.hook && <span class="step-up-hook"> · {l.hook}</span>}</li>
+      ))}
+    </ul>
+  </aside>
+)}
+
+<style>
+  .step-up {
+    margin: var(--ddp-space-6) 0 var(--ddp-space-4);
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-accent-soft);
+  }
+  .step-up-h { margin: 0 0 var(--ddp-space-1); font-size: var(--ddp-text-lg); }
+  .step-up-intro { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  .step-up ul { margin: 0; padding-left: 1.2rem; }
+  .step-up li { margin-bottom: 0.3rem; }
+  .step-up-hook { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+  @media print { .step-up { display: none; } }
+</style>

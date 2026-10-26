@@ -1,0 +1,47 @@
+---
+/* =============================================================================
+   KidIdeas: "What children often think" in an Ages 5–10 activity (Biology
+   Together). Each item pairs an idea a child commonly says with a gentle way
+   for the grown-up to answer: usually a question or a quick test, not a
+   correction.
+     <KidIdeas items={[{ say: '...', respond: '...' }]} />
+   ============================================================================ */
+interface Props {
+  items: { say: string; respond: string }[];
+}
+const { items } = Astro.props;
+---
+<ul class="kid-ideas">
+  {items.map((it) => (
+    <li class="kid-idea">
+      <p class="kid-say"><span class="kid-lab">A child might say</span> “{it.say}”</p>
+      <p class="kid-respond"><span class="kid-lab">You could try</span> {it.respond}</p>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .kid-ideas {
+    display: grid;
+    gap: var(--ddp-space-3);
+    margin: var(--ddp-space-3) 0 var(--ddp-space-6);
+    padding: 0;
+    list-style: none;
+  }
+  .kid-idea {
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-surface);
+  }
+  .kid-idea p { margin: 0; line-height: 1.5; }
+  .kid-say { font-style: italic; margin-bottom: 0.4rem !important; }
+  .kid-lab {
+    display: block;
+    font-style: normal;
+    font-size: var(--ddp-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ddp-color-muted);
+  }
+</style>
