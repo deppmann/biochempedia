@@ -52,3 +52,50 @@ export function report(lesson: string, kind: AnswerKind, fields: Record<string, 
     body: JSON.stringify({ lesson, kind, ...fields }),
   }).then((r) => { if (r.status === 401) setEnrolled(null); }).catch(() => { /* offline: skip */ });
 }
+
+// ---- AI feedback and teacher notes (only for a student in a class) ------------------
+export interface StudentMe { nickname: string; className: string; teacherName: string; pending: boolean; ai?: boolean; assignments: { slug: string; due: string | null }[]; done: string[]; stuck?: string }
+export interface FeedbackItem { id: number; lesson: string; kind: string; item: string; text: string; source: 'ai' | 'teacher'; at: number }
+
+let meCache: Promise<StudentMe | null> | null = null;
+/** The student's class view, fetched once per page (null when not in a class). */
+export function studentMe(lesson?: string): Promise<StudentMe | null> {
+  if (!enrolled()) return Promise.resolve(null);
+  meCache ??= api<StudentMe>(`/api/student/me${lesson ? `?lesson=${encodeURIComponent(lesson)}` : ''}`).then((r) => {
+    if (r.status === 401) setEnrolled(null);
+    return r.ok ? r.data : null;
+  });
+  return meCache;
+}
+
+let fbCache: Promise<FeedbackItem[]> | null = null;
+/** Released feedback and teacher notes for this lesson. */
+export function lessonFeedback(lesson: string): Promise<FeedbackItem[]> {
+  if (!enrolled()) return Promise.resolve([]);
+  fbCache ??= api<{ feedback: FeedbackItem[] }>(`/api/student/feedback?lesson=${encodeURIComponent(lesson)}`).then((r) => (r.ok ? r.data.feedback : []));
+  return fbCache;
+}
+
+/** Ask for AI feedback on a written answer. */
+export async function askFeedback(lesson: string, item: string, fields: Record<string, string>) {
+  return api<{ status: 'released' | 'held'; text?: string }>('/api/student/feedback', { lesson, item, ...fields });
+}
+
+/** Fill a feedback box (static element) with one piece of feedback. */
+export function showFeedback(box: HTMLElement, text: string, source: 'ai' | 'teacher' | 'held') {
+  box.hidden = false;
+  box.textContent = '';
+  const head = document.createElement('p');
+  head.className = 'fb-head';
+  head.textContent = source === 'held' ? 'Sent. Your teacher will read your answer and the feedback, then send it to you.'
+    : source === 'teacher' ? 'Feedback from your teacher' : 'AI feedback (your teacher can see it)';
+  box.append(head);
+  if (source !== 'held') {
+    for (const para of text.split(/\n{2,}/)) {
+      const p = document.createElement('p');
+      p.className = 'fb-text';
+      p.textContent = para;
+      box.append(p);
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeMethodLinks from './src/lib/rehype-method-links.mjs';
+import rehypeDesignAnswer from './src/lib/rehype-design-answer.mjs';
 import { METHODS } from './src/data/methods.ts';
 
 // Biochemistrypedia — static-first Astro site. Islands only where interactive
@@ -16,7 +17,7 @@ import { METHODS } from './src/data/methods.ts';
 export default defineConfig({
   site: 'https://biochemistrypedia.com',
   // Method names in lesson prose link to the methods library (first mention per section).
-  integrations: [mdx({ rehypePlugins: [[rehypeMethodLinks, { methods: METHODS }]] })],
+  integrations: [mdx({ rehypePlugins: [[rehypeMethodLinks, { methods: METHODS }], rehypeDesignAnswer] })],
   vite: {
     plugins: [tailwindcss()],
   },

@@ -1,0 +1,71 @@
+---
+/**
+ * Behaviour and styles for the answer boxes under each "Design problem"
+ * (inserted at build time by src/lib/rehype-design-answer.mjs). Anyone's answer is
+ * kept in this browser. A student in a teacher's class can send it to the teacher;
+ * if the class has AI feedback on, sending also asks for feedback, which shows
+ * right away or after the teacher's review, as the teacher chose.
+ */
+---
+
+<script>
+  import { enrolled, report, studentMe, lessonFeedback, askFeedback, showFeedback } from '../lib/classroom';
+
+  const slug = /^\/lessons\/([^/]+)/.exec(window.location.pathname)?.[1];
+  const boxes = Array.from(document.querySelectorAll<HTMLElement>('[data-design-item]'));
+  if (slug && boxes.length) {
+    for (const box of boxes) {
+      const item = box.dataset.designItem!;
+      const ta = box.querySelector<HTMLTextAreaElement>('[data-da-text]')!;
+      const saved = box.querySelector<HTMLElement>('[data-da-saved]')!;
+      const send = box.querySelector<HTMLButtonElement>('[data-da-send]')!;
+      const note = box.querySelector<HTMLElement>('[data-da-note]')!;
+      const fb = box.querySelector<HTMLElement>('[data-da-feedback]')!;
+      const key = `bp-design:${slug}:${item}`;
+      try { ta.value = window.localStorage.getItem(key) ?? ''; } catch { /* storage blocked */ }
+      ta.addEventListener('input', () => {
+        try { window.localStorage.setItem(key, ta.value); saved.hidden = false; } catch { /* storage blocked */ }
+      });
+
+      if (!enrolled()) continue;
+      studentMe(slug).then((me) => {
+        if (!me || me.pending) return;
+        send.hidden = false;
+        send.textContent = me.ai ? 'Send to my teacher and get feedback' : 'Send to my teacher';
+        send.addEventListener('click', async () => {
+          const text = ta.value.trim();
+          if (text.length < 15) { note.textContent = 'Write a little more first.'; return; }
+          report(slug, 'cer', { item, task: 'Design problem', text });
+          if (!me.ai) { note.textContent = 'Sent. You can edit it and send again.'; return; }
+          send.disabled = true;
+          note.textContent = 'Getting feedback…';
+          const r = await askFeedback(slug, item, { text });
+          send.disabled = false;
+          note.textContent = r.ok ? '' : r.data.error || 'Feedback is not available right now. Your answer was still sent.';
+          if (r.ok) showFeedback(fb, r.data.text ?? '', r.data.status === 'held' ? 'held' : 'ai');
+        });
+      });
+      lessonFeedback(slug).then((list) => {
+        const mine = list.find((f) => f.item === item && f.kind === 'design');
+        if (mine) showFeedback(fb, mine.text, mine.source);
+      });
+    }
+  }
+</script>
+
+<style is:global>
+  .design-answer { margin: var(--ddp-space-4) 0; padding: var(--ddp-space-4); border: 1px dashed var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); }
+  .design-answer .da-label { display: block; margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-ink-soft); }
+  .design-answer .da-text { width: 100%; box-sizing: border-box; font: inherit; font-size: var(--ddp-text-sm); padding: var(--ddp-space-2) var(--ddp-space-3); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-bg); color: var(--ddp-color-ink); resize: vertical; }
+  .design-answer .da-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); }
+  .design-answer .da-saved { color: var(--ddp-color-muted); }
+  .design-answer .da-send { min-height: 40px; padding: 0.35em 1em; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; border: 0; background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+  .design-answer .da-send:disabled { opacity: 0.6; cursor: default; }
+  .design-answer .da-note { color: var(--ddp-color-verified); }
+  .design-answer [hidden] { display: none !important; }
+  /* Feedback boxes (design answers and CER boxes share these). */
+  .da-feedback, .cer-feedback { margin-top: var(--ddp-space-3); padding: var(--ddp-space-3) var(--ddp-space-4); border-left: 4px solid var(--ddp-color-accent); background: color-mix(in srgb, var(--ddp-color-accent) 7%, var(--ddp-color-surface)); border-radius: 6px; font-size: var(--ddp-text-sm); }
+  .da-feedback[hidden], .cer-feedback[hidden] { display: none; }
+  .da-feedback .fb-head, .cer-feedback .fb-head { margin: 0 0 var(--ddp-space-1, .25rem); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ddp-color-muted); }
+  .da-feedback .fb-text, .cer-feedback .fb-text { margin: var(--ddp-space-2) 0 0; line-height: 1.55; color: var(--ddp-color-ink); }
+</style>

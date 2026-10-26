@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { COURSES } from '../../../data/courses';
+import PRICES from '../../../data/model-prices.json';
 import '../../../styles/teach.css';
 
 const lessons = await getCollection('lessons', ({ data }) => !data.draft);
@@ -57,6 +58,28 @@ const MODES = [
       <button class="tc-btn" type="submit">Create class</button>
       <p class="tc-error" data-err role="alert"></p>
     </form>
+
+    <h2 id="ai">AI feedback keys</h2>
+    <p class="tc-muted" style="max-width:68ch">
+      AI feedback on students' written answers is optional and off until you turn it on for a class. It runs on
+      <strong>your own API key</strong>, so the provider bills you directly; the site never pays for it or marks it up.
+      Use a <strong>paid-tier</strong> key: some free tiers let the provider use prompts for training, which isn't acceptable
+      for student work. Students' nicknames are never sent, only the question, the worked answer and the student's answer.
+    </p>
+    <p class="tc-note" data-ai-off hidden>AI feedback isn't switched on for the site yet.</p>
+    <ul data-keys style="padding-left:1.1rem"></ul>
+    <form class="tc-form" data-key-form>
+      <label>Provider<select name="provider">
+        <option value="gemini">Google (Gemini)</option>
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT)</option>
+      </select></label>
+      <label>API key<input type="password" name="key" autocomplete="off" spellcheck="false" required /></label>
+      <button class="tc-btn" type="submit">Save key</button>
+      <p class="tc-muted" style="margin:0">Stored encrypted. We show only its last four characters. Remove it any time.</p>
+      <p class="tc-error" data-key-err role="alert"></p>
+    </form>
+    <p class="tc-muted">Prices change; ours were checked {PRICES.checked} against each provider's pricing page.</p>
 
     <h2>Account</h2>
     <div class="tc-row">
@@ -153,6 +176,41 @@ const MODES = [
       $('[data-group-pick]').hidden = !r.data.groups.some((g) => g.status === 'active');
     }
     loadGroups();
+
+    // AI keys
+    const NAMES: Record<string, string> = { gemini: 'Google (Gemini)', anthropic: 'Anthropic (Claude)', openai: 'OpenAI (GPT)' };
+    async function loadKeys() {
+      const r = await api<{ available: boolean; keys: { provider: string; last4: string; created: number }[] }>('/api/ai/status');
+      if (!r.ok) return;
+      $('[data-ai-off]').hidden = r.data.available;
+      $('[data-key-form]').hidden = !r.data.available;
+      const ul = $('[data-keys]');
+      ul.textContent = '';
+      for (const k of r.data.keys) {
+        const li = document.createElement('li');
+        li.textContent = `${NAMES[k.provider] ?? k.provider}: key ending ${k.last4} `;
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'tc-btn small ghost';
+        rm.textContent = 'Remove';
+        rm.addEventListener('click', async () => {
+          if (!confirm('Remove this key? AI feedback turns off in classes that use it.')) return;
+          await api(`/api/ai/keys/${k.provider}`, undefined, 'DELETE');
+          loadKeys();
+        });
+        li.append(rm);
+        ul.append(li);
+      }
+    }
+    loadKeys();
+    $('[data-key-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const v = Object.fromEntries(new FormData(f).entries()) as Record<string, string>;
+      const r = await api(`/api/ai/keys/${v.provider}`, { key: v.key }, 'PUT');
+      $('[data-key-err]').textContent = r.ok ? '' : r.data.error || 'Could not save the key.';
+      if (r.ok) { f.reset(); loadKeys(); }
+    });
 
     $('[data-new-group]').addEventListener('submit', async (e) => {
       e.preventDefault();

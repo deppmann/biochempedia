@@ -19,6 +19,7 @@ import {
 } from './auth.js';
 import { DAY, JOIN_MODES, SLUG, json, fail, clean, body, sameOrigin, clientKey, allow, mailOn, sendMail } from './util.js';
 import { handleGroups } from './groups.js';
+import { handleAi, handleClassAi, briefAi, studentAiOn, PROVIDERS, MODEL_RE } from './feedback.js';
 
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
@@ -63,6 +64,8 @@ async function purgeStale(db) {
 
 async function deleteClass(db, id) {
   await db.batch([
+    db.prepare('DELETE FROM feedback WHERE class_id=?').bind(id),
+    db.prepare('DELETE FROM ai_calls WHERE class_id=?').bind(id),
     db.prepare('DELETE FROM answers WHERE student_id IN (SELECT id FROM students WHERE class_id=?)').bind(id),
     db.prepare('DELETE FROM student_sessions WHERE student_id IN (SELECT id FROM students WHERE class_id=?)').bind(id),
     db.prepare('DELETE FROM students WHERE class_id=?').bind(id),
@@ -116,9 +119,9 @@ async function buildBrief(db, cls) {
     }
     const cers = mine.filter((r) => r.kind === 'cer').map((r) => {
       let v = {}; try { v = JSON.parse(r.value || '{}'); } catch { /* ignore */ }
-      return { student: nick[r.student_id], item: r.item, task: v.task || '', claim: v.claim || '', evidence: v.evidence || '', reasoning: v.reasoning || '', at: r.updated_at };
+      return { student: nick[r.student_id], studentId: r.student_id, item: r.item, task: v.task || '', claim: v.claim || '', evidence: v.evidence || '', reasoning: v.reasoning || '', text: v.text || '', at: r.updated_at };
     });
-    const stuck = mine.filter((r) => r.kind === 'stuck' && r.value).map((r) => ({ student: nick[r.student_id], text: r.value, at: r.updated_at }));
+    const stuck = mine.filter((r) => r.kind === 'stuck' && r.value).map((r) => ({ student: nick[r.student_id], studentId: r.student_id, text: r.value, at: r.updated_at }));
     lessons[slug] = {
       started: started.length, done: done.length,
       notStarted: active.filter((s) => !started.includes(s.id)).map((s) => s.nickname),
@@ -161,6 +164,9 @@ export async function handleApi(request, env) {
     // Groups: /api/g/<slug> (public) and /api/groups/* (worker/groups.js).
     const grouped = await handleGroups(request, env, db, path, method, url);
     if (grouped) return grouped;
+    // AI feedback: teacher keys and student feedback (worker/feedback.js).
+    const aiRes = await handleAi(request, env, db, path, method, url);
+    if (aiRes) return aiRes;
 
     // ---------- teacher account ----------
     if (path === '/api/teacher/signup' && method === 'POST') {
@@ -205,7 +211,7 @@ export async function handleApi(request, env) {
       await purgeStale(db).catch(() => {});
       const classes = (await db.prepare(
         `SELECT c.id, c.name, c.course, c.code, c.join_mode AS joinMode, c.created_at AS created,
-                c.group_id AS groupId, c.shared_with_group AS shared,
+                c.group_id AS groupId, c.shared_with_group AS shared, c.ai_enabled AS aiEnabled,
                 (SELECT COUNT(*) FROM students s WHERE s.class_id=c.id AND s.status='active') AS students,
                 (SELECT COUNT(*) FROM students s WHERE s.class_id=c.id AND s.status='pending') AS pending,
                 (SELECT COUNT(*) FROM assignments a WHERE a.class_id=c.id) AS assignments
@@ -294,6 +300,8 @@ export async function handleApi(request, env) {
       await db.prepare('DELETE FROM group_members WHERE teacher_id=?').bind(t.id).run();
       await db.batch([
         db.prepare('DELETE FROM teacher_sessions WHERE teacher_id=?').bind(t.id),
+        db.prepare('DELETE FROM teacher_ai_keys WHERE teacher_id=?').bind(t.id),
+        db.prepare('DELETE FROM ai_calls WHERE teacher_id=?').bind(t.id),
         db.prepare('DELETE FROM email_tokens WHERE teacher_id=?').bind(t.id),
         db.prepare('DELETE FROM teachers WHERE id=?').bind(t.id),
       ]);
@@ -340,12 +348,14 @@ export async function handleApi(request, env) {
           const shared = await db.prepare(
             `SELECT c.* FROM classes c JOIN group_members gm ON gm.group_id=c.group_id
               WHERE c.id=? AND c.shared_with_group=1 AND gm.teacher_id=? AND gm.role='admin' AND gm.status='active'`).bind(m[1], t.id).first();
-          if (shared) return json({ ...(await buildBrief(db, shared)), viewer: 'group-admin' });
+          if (shared) return json({ ...(await buildBrief(db, shared)), feedback: (await briefAi(env, db, shared)).feedback, viewer: 'group-admin' });
         }
         return fail(404, 'No such class.');
       }
 
-      if (sub === 'brief' && method === 'GET') return json({ ...(await buildBrief(db, cls)), viewer: 'owner' });
+      if (sub === 'brief' && method === 'GET') return json({ ...(await buildBrief(db, cls)), ...(await briefAi(env, db, cls)), viewer: 'owner' });
+      const aiClass = await handleClassAi(request, env, db, cls, sub, method);
+      if (aiClass) return aiClass;
 
       if (sub === '' && method === 'PATCH') {
         const b = await body(request);
@@ -359,7 +369,17 @@ export async function handleApi(request, env) {
           if (groupId && !(await db.prepare("SELECT 1 FROM group_members WHERE group_id=? AND teacher_id=? AND status='active'").bind(groupId, t.id).first())) return fail(400, 'You are not in that group.');
         }
         const shared = groupId && (b?.shared !== undefined ? !!b.shared : !!cls.shared_with_group) ? 1 : 0;
-        await db.prepare('UPDATE classes SET name=?, join_mode=?, course=?, group_id=?, shared_with_group=? WHERE id=?').bind(name, mode, course, groupId, shared, cls.id).run();
+        // AI feedback settings (off by default; the teacher's own key pays).
+        const aiProvider = b?.aiProvider !== undefined ? (PROVIDERS.includes(b.aiProvider) ? b.aiProvider : null) : cls.ai_provider;
+        const aiModel = b?.aiModel !== undefined ? (MODEL_RE.test(String(b.aiModel)) ? String(b.aiModel) : null) : cls.ai_model;
+        const aiMode = b?.aiMode === 'show' ? 'show' : b?.aiMode === 'hold' ? 'hold' : cls.ai_mode;
+        const aiCap = b?.aiCapCents !== undefined ? Math.max(0, Math.min(100_000, Math.round(Number(b.aiCapCents) || 0))) : cls.ai_cap_cents;
+        let aiEnabled = b?.aiEnabled !== undefined ? (b.aiEnabled ? 1 : 0) : cls.ai_enabled;
+        if (aiEnabled && (!aiProvider || !aiModel || !(await db.prepare('SELECT 1 FROM teacher_ai_keys WHERE teacher_id=? AND provider=?').bind(t.id, aiProvider).first()))) {
+          return fail(400, 'Add an API key for that provider and pick a model before turning AI feedback on.');
+        }
+        await db.prepare('UPDATE classes SET name=?, join_mode=?, course=?, group_id=?, shared_with_group=?, ai_enabled=?, ai_provider=?, ai_model=?, ai_mode=?, ai_cap_cents=? WHERE id=?')
+          .bind(name, mode, course, groupId, shared, aiEnabled, aiProvider, aiModel, aiMode, aiCap, cls.id).run();
         return json({ ok: true });
       }
       if (sub === 'new-code' && method === 'POST') {
@@ -420,6 +440,7 @@ export async function handleApi(request, env) {
         }
         if (!m[2] && method === 'DELETE') {
           await db.batch([
+            db.prepare('DELETE FROM feedback WHERE student_id=?').bind(st.id),
             db.prepare('DELETE FROM answers WHERE student_id=?').bind(st.id),
             db.prepare('DELETE FROM student_sessions WHERE student_id=?').bind(st.id),
             db.prepare('DELETE FROM students WHERE id=?').bind(st.id),
@@ -479,6 +500,7 @@ export async function handleApi(request, env) {
       await db.prepare('UPDATE students SET last_seen_at=? WHERE id=?').bind(Date.now(), s.id).run();
       const slug = url.searchParams.get('lesson');
       const view = await studentView(db, s);
+      view.ai = s.status === 'active' ? await studentAiOn(env, db, s.class_id) : false;
       if (slug && SLUG.test(slug)) {
         const st = await db.prepare("SELECT value FROM answers WHERE student_id=? AND lesson_slug=? AND kind='stuck'").bind(s.id, slug).first();
         view.stuck = st?.value || '';
@@ -500,7 +522,8 @@ export async function handleApi(request, env) {
       let value = null;
       if (kind === 'quiz') value = String(Number(b?.pick) || 0);
       if (kind === 'idea') value = JSON.stringify({ pick: b?.pick === 'agree' ? 'agree' : 'disagree', idea: clean(b?.idea, 400), answer: b?.answer === 'agree' ? 'agree' : 'disagree' });
-      if (kind === 'cer') value = JSON.stringify({ task: clean(b?.task, 600), claim: clean(b?.claim, 1500), evidence: clean(b?.evidence, 1500), reasoning: clean(b?.reasoning, 1500) });
+      // Written answers: claim-evidence-reasoning boxes, or a design-problem answer (text).
+      if (kind === 'cer') value = JSON.stringify({ task: clean(b?.task, 600), claim: clean(b?.claim, 1500), evidence: clean(b?.evidence, 1500), reasoning: clean(b?.reasoning, 1500), text: clean(b?.text, 4000) });
       if (kind === 'stuck') value = clean(b?.text, 1000);
       if (kind === 'done') value = b?.done === false ? null : '1';
       const correct = kind === 'quiz' || kind === 'idea' ? (b?.correct ? 1 : 0) : null;

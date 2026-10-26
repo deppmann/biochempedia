@@ -6,13 +6,12 @@ import type { APIRoute } from 'astro';
 import { getCollection, render } from 'astro:content';
 import { itemId } from '../../lib/progress';
 import { anchorsFor } from '../../lib/quiz-anchors';
+import { openItems } from '../../lib/open-items';
 import { courseOf } from '../../data/courses';
 
 export async function getStaticPaths() {
   const lessons = await getCollection('lessons', ({ data }) => !data.draft);
-  return lessons
-    .filter((l) => l.data.practiceQuestions.length + l.data.mcatQuestions.length > 0)
-    .map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
+  return lessons.map((entry) => ({ params: { slug: entry.data.slug }, props: { entry } }));
 }
 
 export const GET: APIRoute = async ({ props }) => {
@@ -24,6 +23,9 @@ export const GET: APIRoute = async ({ props }) => {
     slug: entry.data.slug,
     title: entry.data.title,
     course: courseOf(entry.data.course).title,
+    // Grade level for AI feedback wording: 7 (grade 7), 10 (high school) or 13 (college).
+    grade: courseOf(entry.data.course).tier === 'highschool' ? (courseOf(entry.data.course).ladderStep === 1 ? 7 : 10) : 13,
+    open: openItems(entry.body ?? ''),
     items: qs.map((q, i) => ({
       id: itemId(entry.data.slug, q.stem),
       mcat: i >= entry.data.practiceQuestions.length,

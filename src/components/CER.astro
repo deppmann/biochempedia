@@ -55,10 +55,11 @@ const fields = [
     <button type="button" class="cer-send-btn" data-cer-send-btn>Send to my teacher</button>
     <span class="cer-send-note" data-cer-send-note role="status"></span>
   </p>
+  <div class="cer-feedback" data-cer-feedback hidden></div>
 </div>
 
 <script>
-  import { enrolled, report } from '../lib/classroom';
+  import { enrolled, report, studentMe, lessonFeedback, askFeedback, showFeedback } from '../lib/classroom';
 
   // A student in a teacher's class can send the answer; they can edit and send again.
   document.querySelectorAll<HTMLElement>('[data-cer]').forEach((box) => {
@@ -69,12 +70,30 @@ const fields = [
     const sync = () => { if (row) row.hidden = !enrolled() || !slug; };
     sync();
     window.addEventListener('bp-class', sync);
-    btn?.addEventListener('click', () => {
+    const fb = box.querySelector<HTMLElement>('[data-cer-feedback]');
+    let aiOn = false;
+    if (slug && enrolled()) {
+      studentMe(slug).then((me) => {
+        aiOn = !!me?.ai && !me.pending;
+        if (btn && aiOn) btn.textContent = 'Send to my teacher and get feedback';
+      });
+      lessonFeedback(slug).then((list) => {
+        const mine = list.find((f) => f.item === box.dataset.cer && f.kind === 'cer');
+        if (mine && fb) showFeedback(fb, mine.text, mine.source);
+      });
+    }
+    btn?.addEventListener('click', async () => {
       const v: Record<string, string> = {};
       box.querySelectorAll<HTMLTextAreaElement>('textarea[data-cer-field]').forEach((a) => { v[a.dataset.cerField!] = a.value; });
       if (!Object.values(v).some((x) => x.trim())) { if (note) note.textContent = 'Write something first.'; return; }
       report(slug!, 'cer', { item: box.dataset.cer, task: box.dataset.cerTask, ...v });
-      if (note) note.textContent = 'Sent. You can edit it and send again.';
+      if (!aiOn) { if (note) note.textContent = 'Sent. You can edit it and send again.'; return; }
+      btn.disabled = true;
+      if (note) note.textContent = 'Getting feedback…';
+      const r = await askFeedback(slug!, box.dataset.cer!, v);
+      btn.disabled = false;
+      if (note) note.textContent = r.ok ? '' : r.data.error || 'Feedback is not available right now. Your answer was still sent.';
+      if (r.ok && fb) showFeedback(fb, r.data.text ?? '', r.data.status === 'held' ? 'held' : 'ai');
     });
   });
 
