@@ -52,7 +52,7 @@ export const PATHS: LearningPath[] = [
         ],
       },
     ],
-    extras: [{ label: 'Play the Metabolism Arcade', href: '/play' }],
+    extras: [{ label: 'MCAT practice: passages with data, a diagnostic and topic practice', href: '/mcat/' }, { label: 'Play the Metabolism Arcade', href: '/play' }],
   },
   {
     id: 'major',
