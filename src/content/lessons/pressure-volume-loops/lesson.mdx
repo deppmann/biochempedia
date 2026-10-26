@@ -20,6 +20,15 @@ objectives:
   - "Use the end-systolic pressure-volume relation (slope Ees, intercept V0), the end-diastolic pressure-volume relation and effective arterial elastance (Ea) to predict how a change in preload, afterload or contractility moves the loop, and calculate stroke volume from Ea and Ees in a stated model ventricle."
   - "Explain why ejection fraction is not a measure of contractility, and use loops to compare heart failure with reduced and with preserved ejection fraction, chronic mitral regurgitation and aortic stenosis as mechanisms, naming the canine and human preparations the evidence comes from."
 
+explainer:
+  src: "/explainers/pressure-volume-loops/explainer.mp4"
+  captions: "/explainers/pressure-volume-loops/explainer.vtt"
+  poster: "/explainers/pressure-volume-loops/poster.jpg"
+  title: "Where the Two Lines Meet"
+  durationSec: 173.3
+  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "Carl J. Wiggers"
     dates: "1883–1963"
@@ -203,7 +212,7 @@ mcatQuestions:
       ejecting beat 0.079 mL counts stroke work alone, the expectation the experiment ruled out.
       Giving the ejecting beat 0.079 mL while crediting the isovolumic beat in full applies PVA to
       one beat and stroke work to the other. A value of 0.090 mL uses the right PVA but drops the
-      intercept, the basal oxygen use that a beating heart spends regardless of load.
+      intercept, the oxygen use that does not depend on PVA (basal metabolism plus the cost of activating the muscle), which a beating heart spends regardless of load.
   - stem: "A conductance catheter in an anaesthetized dog reads end-diastolic and end-systolic volumes of 150 and 80 mL. Afterwards, a saline bolus shows that parallel conductance adds a constant 30 mL to every reading, and the gain is otherwise correct. How do the uncorrected stroke volume and ejection fraction compare with the corrected values?"
     choices:
       - "SV reads high; EF is correct at 58 percent"
@@ -342,11 +351,11 @@ A valve opens when the pressure behind it exceeds the pressure ahead and shuts w
 
 The 80 mmHg is the aorta's diastolic pressure, not the ventricle's. During ejection, ventricular and aortic pressure rise together to about 120 mmHg. The worked model below rounds end-systolic pressure up to 120 mmHg for simple numbers; echo-Doppler studies estimate it as about 0.9 times systolic pressure.
 
-Taken from aortic closure to mitral closure, diastole has three parts: isovolumic relaxation, early filling and atrial contraction. In one illustrative subject, the ventricle held about 80 percent of its end-diastolic volume by the end of early filling and atrial contraction added the last 20 percent.
+Taken from aortic closure to mitral closure, diastole has three main parts: isovolumic relaxation, early filling and atrial contraction (some texts add a slow-filling phase, diastasis, between the last two). In one illustrative subject, the ventricle held about 80 percent of its end-diastolic volume by the end of early filling and atrial contraction added the last 20 percent.
 
 The ECG's P wave comes just before atrial contraction, the QRS complex just before mitral closure, and the T wave around the end of ejection ([cardiac electrophysiology and the ECG](/lessons/cardiac-electrophysiology-ecg/)).  S3 falls in rapid early filling; S4, when present, with atrial contraction. 
 
-{/* DIAGRAM: Wiggers diagram: aortic, LV and LA pressure, LV volume, sounds, ECG, valve events */}
+{/* DIAGRAM: Wiggers diagram: aortic, LV and LA pressure */}
 
 ## Fold time away and the beat becomes a loop
 
@@ -374,23 +383,22 @@ The loop's top left corner lies on the **end-systolic pressure-volume relation (
 
 > **Pes = Ees x (ESV - V0)**
 
-**Ees**, the end-systolic elastance, is the slope (mmHg per mL) and **V0** the volume intercept; over the physiological range the line is approximately linear. Ees is a relatively load-independent index of **contractility**, the strength of contraction at a given fibre length. It rises with positive inotropes and sympathetic activation and falls with ischaemia and infarction, but geometry and passive stiffness affect it too. The ESPVR is the chamber analogue of the muscle length-tension relation in [skeletal muscle mechanics](/lessons/skeletal-muscle-mechanics/).
-
-The bottom of the loop lies on the **end-diastolic pressure-volume relation (EDPVR)**, the passive filling curve of a balloon that gets harder to inflate as it fills. It is non-linear; its slope indexes chamber stiffness, and the inverse is **compliance**, volume change per unit pressure. Relaxation speed is summarized by **tau**, the time constant of the isovolumic pressure fall: about 20 to 40 ms in invasive human recordings and about 60 to 100 ms when relaxation is impaired, depending on how tau is fitted.
+**Ees**, the end-systolic elastance, is the slope (mmHg per mL) and **V0** the volume intercept; over the physiological range the line is approximately linear. Ees is a relatively load-independent index of **contractility**, the strength of contraction at a given fibre length. It rises with positive inotropes and sympathetic activation and falls with ischaemia and infarction, but geometry and passive stiffness affect it too.
+Once relaxation is complete, the bottom of the loop lies on the **end-diastolic pressure-volume relation (EDPVR)**, the passive filling curve. It is non-linear; its slope indexes chamber stiffness, and the inverse is **compliance**, volume change per unit pressure. Relaxation speed is summarized by **tau**, the time constant of the isovolumic pressure fall: about 20 to 40 ms in invasive human recordings and about 60 to 100 ms when relaxation is impaired, depending on how tau is fitted.
 
 Suga, Sagawa and Shoukas reported in 1973 that the instantaneous pressure-volume ratio of the canine left ventricle did not depend on load, and by 1977 Sagawa and colleagues described the end-systolic ratio in isolated canine ventricles as relatively insensitive to loading, so that end-systolic points of differently loaded beats fall on one near-linear line. In a living heart, a brief **inferior vena caval occlusion** lowers filling over a few beats, and the corners of the shrinking loops trace both lines. That needs volume beat by beat, which Baan and colleagues supplied in 1984 with an eight-electrode **conductance catheter**, used in dogs and patients. Tissue around the cavity adds a **parallel conductance**, found by briefly changing blood conductivity with a bolus (hypertonic saline in modern practice; Baan used cold glucose solution in patients).
 
 **The classic experiment.** What sets the oxygen cost of a beat? Khalafbeigui, Suga and Sagawa (American Journal of Physiology, 1979) used 13 excised dog hearts, each cross-circulated by a support dog that supplied the coronary blood. A volume servo pump set the load, beats were isovolumic or ejecting, and oxygen consumption per beat was measured.
 
-The naive guess is external work, the loop area. They tested the **pressure-volume area (PVA)**, stroke work plus the end-systolic **potential energy**, the roughly triangular region between the ESPVR, the EDPVR and the loop's left side. Oxygen use per beat correlated linearly with PVA (mean r = 0.92):
+They tested the **pressure-volume area (PVA)**, stroke work plus the end-systolic **potential energy**, the roughly triangular region between the ESPVR, the EDPVR and the loop's left side. Oxygen use per beat correlated linearly with PVA (mean r = 0.92):
 
 > **MVO2 (mL O2 per beat) ≈ 1.5 x 10^-5 x PVA (mmHg mL per beat) + 0.019**
 
-The intercept is probably basal oxygen use. Ruled in: an isovolumic beat, which does no external work, still costs oxygen in proportion to its PVA. Ruled out: stroke work alone as the cost. Not shown: that the line holds when contractility changes (the authors noted a new inotropic state shifts it), or anything in intact humans.
+The intercept is oxygen use that does not depend on PVA. It includes basal metabolism and the cost of exciting and activating the muscle: in later canine experiments, epinephrine or calcium raised it by more than 50 percent while basal metabolism stayed unchanged. Ruled in: an isovolumic beat, which does no external work, still costs oxygen in proportion to its PVA. Ruled out: stroke work alone as the cost. Not shown: that the line holds when contractility changes (the authors noted a new inotropic state shifts it), or anything in intact humans.
 
 *Worked problem, part 2.* For the part 1 loop with V0 = 5 mL, treating potential energy as a triangle, 0.5 x (45 - 5) mL x 120 mmHg = 2,400 mmHg mL, so PVA = 10,400 mmHg mL. The dog fit, used only to show its form, gives 1.5 x 10^-5 x 10,400 + 0.019 = 0.175 mL O2 per beat; that is not a human prediction.
 
-{/* DIAGRAM: PV loop with ESPVR, EDPVR, Ea line, stroke work and potential energy */}
+{/* DIAGRAM: PV loop with ESPVR, EDPVR, Ea line */}
 
 ## Preload, afterload and contractility each move a different corner
 
@@ -409,7 +417,7 @@ Same model, with Ees 3.0 mmHg per mL, V0 5 mL and Ea 1.5 mmHg per mL. Assume a l
 - *Preload up.* EDV rises to 140 mL: SV = 135 / 1.5 = 90 mL; Pes = 135 mmHg; ESV = 50 mL; EF = 64.3 percent.
 - *Contractility up.* Ees rises to 4.5: SV = 120 / 1.333 = 90 mL; Pes = 135 mmHg; ESV = 35 mL; EF = 72 percent.
 
-Higher afterload raised ESV and lowered stroke volume, and EF fell with contractility unchanged. Higher preload slid the end-systolic corner up the same ESPVR: stroke volume rose by 10 mL, less than the 15 mL rise in EDV, because Pes rose too; only at fixed Pes would it rise by the full 15 mL. Higher contractility steepened the ESPVR and lowered ESV. Sympathetic nerves raise Ees ([blood pressure regulation](/lessons/blood-pressure-regulation/)) through cyclic AMP inside the cell ([cAMP and PKA](/lessons/camp-and-pka/)).
+Higher afterload raised ESV and lowered stroke volume, and EF fell with contractility unchanged. Higher preload slid the end-systolic corner up the same ESPVR: stroke volume rose by 10 mL, less than the 15 mL rise in EDV, because Pes rose too; only at fixed Pes would it rise by the full 15 mL. Sympathetic nerves raise Ees ([blood pressure regulation](/lessons/blood-pressure-regulation/)) through cyclic AMP inside the cell ([cAMP and PKA](/lessons/camp-and-pka/)).
 
 <PressureVolumeLoop />
 
@@ -423,9 +431,9 @@ In **heart failure with preserved EF**, catheter studies found the diastolic rel
 
 **The modern experiment.** Is the problem with a normal EF a stiff chamber? Westermann and colleagues (Circulation, 2008) recorded conductance-catheter loops in 70 people with heart failure and normal EF and 20 without heart-failure symptoms, at baseline, during isometric handgrip (raising afterload) and during atrial pacing at 120 beats per min. Diastolic stiffness was raised at baseline; with pacing, stroke volume fell and the loops shifted left; with handgrip, end-diastolic pressures rose more. Ruled in: a stiff chamber that does not fill more at a higher rate or load. Not shown: cause, that lowering stiffness would help (the authors' hypothesis), or that systolic and vascular changes found in other groups are absent.
 
-**Valves.** In **aortic stenosis** the valve adds to afterload and raises Ea/Ees: the loop's top domes upward, EDV stays near normal and ESV is larger. In **mitral stenosis** preload falls and pulmonary venous pressure rises, while the ESPVR and active relaxation are preserved.
+**Valves.** In **aortic stenosis** the valve adds to afterload and raises Ea/Ees: the loop's top domes upward, EDV stays near normal and ESV is larger. In **mitral stenosis** preload falls and pulmonary venous pressure rises, while the ESPVR is usually preserved (relaxation can be slowed too).
 
-**Pathophysiology: chronic mitral regurgitation.** A leaking mitral valve gives the systolic ventricle two outlets, the aorta and the low-pressure left atrium. Ejection into the atrium starts before the aortic valve opens, so isovolumic contraction shortens and the loop's right side leans left. Loop width becomes total stroke volume, forward plus regurgitant. The low-pressure outlet lowers effective afterload, so ESV is small, and left atrial pressure rises, with a large v wave (the atrial pressure rise during ventricular systole) when the atrium is stiff or the leak is sudden, while a large, compliant atrium can keep it small. Over time the chamber dilates and the EDPVR and loops shift right; by the Frank-Starling mechanism the large EDV keeps total stroke volume high, so EF can stay normal or supernormal while the myocardium is damaged and forward output is normal or reduced. The end-systolic corners still lie on the ESPVR, so Ees remains a valid contractility index where EF is not.
+**Pathophysiology: chronic mitral regurgitation.** A leaking mitral valve gives the systolic ventricle two outlets, the aorta and the low-pressure left atrium. Ejection into the atrium starts before the aortic valve opens, so isovolumic contraction shortens and the loop's right side leans left. The low-pressure outlet lowers effective afterload, so ESV is small, and left atrial pressure rises, with a large v wave (the atrial pressure rise during ventricular systole) when the atrium is stiff or the leak is sudden, while a large, compliant atrium can keep it small. Over time the chamber dilates and the EDPVR and loops shift right; by the Frank-Starling mechanism the large EDV keeps total stroke volume high, so EF can stay normal or supernormal while the myocardium is damaged and forward output is normal or reduced. The end-systolic corners still lie on the ESPVR, so Ees remains a valid contractility index where EF is not.
 
 ### Design problem
 
@@ -442,7 +450,7 @@ Afterload reduction alone raises EF (part 3 run backwards), so EF cannot separat
 4. *Give vehicle, then drug,* repeating loops and occlusions after each.
 5. *Separate the effects:* Ea = Pes / SV for afterload, Ees and V0 for contractility. A shift of V0 alone can mimic a change in slope.
 
-If the end-systolic points before and after the drug lie on one ESPVR while Ea falls, the EF rise is all afterload. A steeper ESPVR after drug than after vehicle would support the claim.
+If the end-systolic points before and after the drug lie on one ESPVR while Ea falls, the EF rise reflects loading, not contractility (afterload, plus any change in EDV). A steeper ESPVR after drug than after vehicle would support the claim.
 
 Limits: anaesthesia, open or closed chest, one species, and an Ees that also responds to geometry and passive stiffness.
 
