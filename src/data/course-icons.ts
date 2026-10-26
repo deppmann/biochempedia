@@ -10,6 +10,7 @@ import { COURSE as CELLBIO_COURSE } from './lesson-icons/cellbio1';
 import { COURSE as ECOEVO_COURSE } from './lesson-icons/ecoevo1';
 import { COURSE as NEURO_COURSE } from './lesson-icons/neuro1';
 import { COURSE as ORGANISMAL_COURSE } from './lesson-icons/organismal1';
+import { COURSE as PHYSIOLOGY_COURSE } from './lesson-icons/physio1';
 import { COURSE as SENSORY_COURSE } from './lesson-icons/sensory1';
 import { COURSE as VABIO_COURSE } from './lesson-icons/vabio1';
 import { COURSE as LIFESCI_COURSE } from './lesson-icons/lifesci1';
@@ -22,6 +23,7 @@ export const COURSE_ICONS: Record<string, IconArt> = {
   ...ECOEVO_COURSE,
   ...NEURO_COURSE,
   ...ORGANISMAL_COURSE,
+  ...PHYSIOLOGY_COURSE,
   ...SENSORY_COURSE,
   ...VABIO_COURSE,
   ...LIFESCI_COURSE,

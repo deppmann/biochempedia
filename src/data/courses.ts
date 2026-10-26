@@ -314,6 +314,59 @@ export const COURSES: Course[] = [
     ],
   },
   {
+    slug: 'physiology',
+    title: 'Physiology',
+    tier: 'elective',
+    mcat: true,
+    tagline: 'How the human body’s organ systems work, measured: pressures, flows, volumes and the experiments behind them.',
+    searchHint: 'Try “pressure-volume loop”, “dead space”, “anion gap”…',
+    blurb:
+      'A 3000-level course in human and mammalian physiology for biology majors and premedical students. It takes each organ system the way physiologists study it, with numbers and with the classic and modern experiments that settled how it works: body fluids and control, muscle, the heart and circulation, breathing, the kidney and acid-base balance, the endocrine glands, digestion, lymphoid organs and skin, reproduction, and exercise as the whole body at work. Every lesson has a worked problem, a simulation and original MCAT-style questions. The first look at each system, compared across animals, is in Organismal Biology.',
+    /* Sequence set 2026-10-26 from an audit of the organ systems the MCAT outline lists, open university syllabi, and the site's other courses. */
+    units: [
+      {
+        name: 'The internal environment and its control',
+        slugs: ['body-fluid-compartments', 'endocrine-axes-and-testing'],
+      },
+      {
+        name: 'Muscle',
+        slugs: ['skeletal-muscle-mechanics', 'smooth-muscle'],
+      },
+      {
+        name: 'The heart and circulation',
+        slugs: ['cardiac-electrophysiology-ecg', 'pressure-volume-loops', 'cardiac-output-venous-return', 'resistance-compliance-local-flow', 'capillary-exchange-and-lymph', 'blood-pressure-regulation', 'blood-cells-and-hemostasis'],
+      },
+      {
+        name: 'Breathing',
+        slugs: ['lung-mechanics-surfactant', 'ventilation-perfusion', 'control-of-breathing'],
+      },
+      {
+        name: 'Kidney, fluids and acid-base',
+        slugs: ['glomerular-filtration', 'tubular-transport-diuretics', 'water-sodium-potassium', 'acid-base-balance'],
+      },
+      {
+        name: 'Endocrine systems',
+        slugs: ['thyroid-hormone', 'adrenal-glands', 'insulin-glucagon-glucose', 'calcium-phosphate-bone'],
+      },
+      {
+        name: 'Digestion and absorption',
+        slugs: ['gut-motility-secretion', 'absorption-and-liver'],
+      },
+      {
+        name: 'Defense, skin and temperature',
+        slugs: ['lymphoid-organs-immune-traffic', 'skin-and-human-heat'],
+      },
+      {
+        name: 'Reproduction',
+        slugs: ['sexual-differentiation-testis', 'ovarian-cycle-fertility', 'pregnancy-birth-lactation'],
+      },
+      {
+        name: 'Integration',
+        slugs: ['exercise-physiology'],
+      },
+    ],
+  },
+  {
     slug: 'signaling',
     title: 'Cell Signaling',
     tier: 'advanced',

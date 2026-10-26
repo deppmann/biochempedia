@@ -1,0 +1,288 @@
+---
+/**
+ * ThyroidAxisLocator — "Where is the fault?" A rule-based locator for the hypothalamic-
+ * pituitary-thyroid axis. The learner picks a state (normal, Graves disease, primary thyroid
+ * failure, pituitary TSH failure, compensated iodine deficiency, thyroiditis in its thyrotoxic phase, toxic adenoma)
+ * and reads direction cards for TSH, free T4 and T3, with the faulty block outlined on a
+ * labelled block diagram. A second control shows the radioiodine uptake pattern as a
+ * schematic gland; a third applies the lesson's worked problem (TBG doubled, intact feedback)
+ * to a normal axis: total T4 80 -> 140 nmol per L, free T4 and TSH unchanged. The rules are the
+ * lesson's prediction table and its uptake list; there are no numbers on the hormone axes.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="tal card" data-tal>
+  <figcaption class="tal-head">Where is the fault? Reading TSH, free T4, T3 and uptake<span class="tal-chip">⚙ original · interactive</span></figcaption>
+
+  <div class="tal-controls">
+    <label class="tal-field"><span class="tal-lab">State of the axis (untreated, in humans)</span>
+      <select data-in="state">
+        <option value="normal">Normal</option>
+        <option value="graves">Graves disease (TSH-receptor antibody)</option>
+        <option value="primary">Primary thyroid failure (primary hypothyroidism)</option>
+        <option value="pituitary">Pituitary TSH failure (secondary hypothyroidism)</option>
+        <option value="iodine">Compensated iodine deficiency</option>
+        <option value="thyroiditis">Thyroiditis (thyrotoxic phase)</option>
+        <option value="adenoma">Toxic adenoma</option>
+      </select>
+    </label>
+    <label class="tal-check"><input type="checkbox" data-in="scan" /> <span>Show the radioiodine uptake scan</span></label>
+    <label class="tal-check"><input type="checkbox" data-in="tbg" /> <span>TBG doubled (the worked problem; it assumes intact feedback, so it is offered for a normal axis)</span></label>
+  </div>
+
+  <svg class="tal-svg" viewBox="0 0 360 272" role="img" aria-label="Block diagram of the axis: hypothalamus sends TRH to the anterior pituitary, which sends TSH to the thyroid gland, which releases T4 and T3 into blood, with feedback from blood to the pituitary and hypothalamus. The block where the selected state places the fault is outlined. A second panel is a schematic gland showing the radioiodine uptake pattern when the scan is shown." data-stage></svg>
+
+  <div class="tal-cards">
+    <div class="tal-card" data-card="tsh"><span class="tal-cname">TSH</span><span class="tal-arrow" data-arrow="tsh" aria-hidden="true"></span><span class="tal-word" data-word="tsh"></span></div>
+    <div class="tal-card" data-card="ft4"><span class="tal-cname">Free T4</span><span class="tal-arrow" data-arrow="ft4" aria-hidden="true"></span><span class="tal-word" data-word="ft4"></span></div>
+    <div class="tal-card" data-card="t3"><span class="tal-cname">T3</span><span class="tal-arrow" data-arrow="t3" aria-hidden="true"></span><span class="tal-word" data-word="t3"></span></div>
+    <div class="tal-card tal-total" data-card="tt4" hidden><span class="tal-cname">Total T4</span><span class="tal-arrow" data-arrow="tt4" aria-hidden="true"></span><span class="tal-word" data-word="tt4"></span></div>
+  </div>
+
+  <p class="tal-why" data-why role="status"></p>
+
+  <p class="tal-assume">In this sketch: the arrows are directions only, taken from the lesson’s table for untreated people, and carry no numbers. The only numbers are the lesson’s made-up worked problem (an adult at steady state with a total T4 of 80 nmol per L, 99.97 percent protein-bound, TBG carrying 75 percent of bound T4, unchanged carrier affinities). The dark scan panel, its brightness shades, the equal gland sizes and the outlined block are drawing choices made up for this sketch, and the scan shows a pattern, not a measurement.</p>
+
+  <p class="tal-foot">The rule to keep: read TSH and free T4 as a pair. Low hormone with high TSH points to the gland; low hormone with TSH not high suggests the pituitary or hypothalamus; high hormone with suppressed TSH is thyrotoxicosis, and the uptake scan, read with the hormone pattern and never alone, tells high synthesis from leakage. In the worked problem, total T4 rose with the binding protein; free T4 is the level feedback defends.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const PANEL = '#1b2030', BRIGHT = '#ffd166', DIM = '#5a5f70';
+
+  type Dir = '↑' | '↓' | '→' | '↑ or →' | '↓ or →' | '→ or ↑' | '→ or ↓';
+  type Lobe = 'bright' | 'faint' | 'outline';
+  type StateKey = 'normal' | 'graves' | 'primary' | 'pituitary' | 'iodine' | 'thyroiditis' | 'adenoma';
+  type Reading = { g: Dir; w: string };
+  type Uptake = { lobes: Lobe; nodule: boolean; dashed?: boolean; label: string[]; sentence: string };
+  type St = {
+    fault: 'none' | 'pituitary' | 'thyroid';
+    tag: string;
+    tsh: Reading; ft4: Reading; t3: Reading;
+    uptake: Uptake;
+    text: string;
+  };
+
+  const NOPAT = 'The lesson gives no uptake pattern for this state.';
+  const STATES: Record<StateKey, St> = {
+    normal: {
+      fault: 'none', tag: '',
+      tsh: { g: '→', w: 'normal' }, ft4: { g: '→', w: 'normal' }, t3: { g: '→', w: 'normal' },
+      uptake: { lobes: 'outline', nodule: false, label: ['no pattern given', 'in the lesson'], sentence: 'The lesson gives no single normal uptake range, because it depends on tracer, timing, laboratory and local iodine intake.' },
+      text: 'In this sketch, a normal axis: TSH, free T4 and T3 are all normal and no block is outlined as the fault.',
+    },
+    graves: {
+      fault: 'thyroid', tag: 'TSH-receptor antibody',
+      tsh: { g: '↓', w: 'suppressed' }, ft4: { g: '↑', w: 'high' }, t3: { g: '↑', w: 'high, sometimes rising before free T4' },
+      uptake: { lobes: 'bright', nodule: false, label: ['high, even across', 'both lobes'], sentence: 'Uptake is high and even across both lobes.' },
+      text: 'In this sketch, Graves disease: autoantibodies bind and activate the TSH receptor, so free T4 and T3 are high (T3 sometimes first) and TSH is suppressed, yet stimulation continues because it never depended on TSH.',
+    },
+    primary: {
+      fault: 'thyroid', tag: 'gland failing',
+      tsh: { g: '↑', w: 'high' }, ft4: { g: '↓', w: 'low' }, t3: { g: '→', w: 'can stay normal; may fall when severe' },
+      uptake: { lobes: 'outline', nodule: false, label: ['no pattern given', 'in the lesson'], sentence: NOPAT },
+      text: 'In this sketch, primary hypothyroidism: hormone is low and TSH is high, which means the gland is failing and the pituitary is responding. T3 can stay normal and may fall when the failure is severe.',
+    },
+    pituitary: {
+      fault: 'pituitary', tag: 'TSH output too low',
+      tsh: { g: '↓ or →', w: 'low or inappropriately normal' }, ft4: { g: '↓', w: 'low' }, t3: { g: '↓ or →', w: 'often low or low-normal; not used to define it' },
+      uptake: { lobes: 'outline', nodule: false, label: ['no pattern given', 'in the lesson'], sentence: NOPAT },
+      text: 'In this sketch, secondary hypothyroidism, for example with the thyrotropes destroyed by a tumour (the lesson’s practice question): free T4 is low but TSH is low or inappropriately normal, because it should be high when free T4 is low. Low hormone with TSH not high suggests a problem at the pituitary or hypothalamus.',
+    },
+    iodine: {
+      fault: 'thyroid', tag: 'short of iodine',
+      tsh: { g: '→ or ↑', w: 'normal or high' }, ft4: { g: '→ or ↓', w: 'normal or low' }, t3: { g: '→ or ↑', w: 'normal or high' },
+      uptake: { lobes: 'bright', nodule: false, dashed: true, label: ['high', '(pattern across the gland', 'not described)'], sentence: 'Uptake is high, with little stable iodide competing with the tracer; the lesson does not describe the pattern across the gland.' },
+      text: 'In this sketch, compensated iodine deficiency: TSH is normal or high, free T4 normal or low, and T3 normal or high, so T3 can be preserved. The lesson cites one iodine-deficient New Guinea population with a higher mean serum T3 than an American comparison group, and notes that a shortage severe enough eventually lowers output.',
+    },
+    thyroiditis: {
+      fault: 'thyroid', tag: 'follicles leaking',
+      tsh: { g: '↓', w: 'suppressed' }, ft4: { g: '↑', w: 'high' }, t3: { g: '↑ or →', w: 'high or high-normal; raised less than T4' },
+      uptake: { lobes: 'faint', nodule: false, label: ['low or absent'], sentence: 'Uptake is low or absent.' },
+      text: 'In this sketch, thyroiditis in its early thyrotoxic phase: hormone is high and TSH suppressed, but uptake is low, because hormone is leaking from damaged follicles, not being made from new iodide.',
+    },
+    adenoma: {
+      fault: 'thyroid', tag: 'one autonomous nodule',
+      tsh: { g: '↓', w: 'suppressed' }, ft4: { g: '↑', w: 'high' }, t3: { g: '↑', w: 'high' },
+      uptake: { lobes: 'faint', nodule: true, label: ['one bright nodule,', 'rest faint'], sentence: 'Uptake is one bright nodule with the rest of the gland faint, because TSH is suppressed.' },
+      text: 'In this sketch, toxic adenoma: free T4 and T3 are high and TSH is suppressed.',
+    },
+  };
+
+  const TBG_TEXT = 'In this sketch, with TBG doubled and feedback intact, the extra TBG first takes up hormone, free T4 dips and TSH rises, and the gland releases more T4 until free T4 returns to the level feedback defends. At that free T4 the TBG-bound T4 is 0.75 × 80 = 60 nmol per L, doubled to 120, and the other carriers still hold 0.25 × 80 = 20, so total T4 is 140 nmol per L, 1.75 times before, while free T4 (80 × 0.0003 = 0.024 nmol per L, 24 pmol per L) and TSH end where they started. T4-driven changes take about a month to settle, so an early measurement can mislead.';
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function txt(x: number, y: number, s: string, opts: Record<string, string | number> = {}): SVGElement {
+    return el('text', Object.assign({ x, y, 'font-size': 9, fill: INK }, opts), s);
+  }
+  function arrow(svg: SVGSVGElement, x1: number, y1: number, x2: number, y2: number, color: string, dashed = false) {
+    const a: Record<string, string | number> = { x1, y1, x2, y2, stroke: color, 'stroke-width': 1.6 };
+    if (dashed) a['stroke-dasharray'] = '4 3';
+    svg.appendChild(el('line', a));
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len, px = -uy, py = ux;
+    const bx = x2 - ux * 7, by = y2 - uy * 7;
+    svg.appendChild(el('polygon', { points: `${x2},${y2} ${bx + px * 3.5},${by + py * 3.5} ${bx - px * 3.5},${by - py * 3.5}`, fill: color }));
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-tal]').forEach((root) => {
+    const q = <T extends Element>(s: string): T | null => root.querySelector<T>(s);
+    const stage = q<SVGSVGElement>('[data-stage]');
+    const sel = q<HTMLSelectElement>('[data-in="state"]');
+    const scanIn = q<HTMLInputElement>('[data-in="scan"]');
+    const tbgIn = q<HTMLInputElement>('[data-in="tbg"]');
+    const why = q<HTMLElement>('[data-why]');
+    const tsh = { a: q<HTMLElement>('[data-arrow="tsh"]'), w: q<HTMLElement>('[data-word="tsh"]') };
+    const ft4 = { a: q<HTMLElement>('[data-arrow="ft4"]'), w: q<HTMLElement>('[data-word="ft4"]') };
+    const t3 = { a: q<HTMLElement>('[data-arrow="t3"]'), w: q<HTMLElement>('[data-word="t3"]') };
+    const tt4 = { a: q<HTMLElement>('[data-arrow="tt4"]'), w: q<HTMLElement>('[data-word="tt4"]'), card: q<HTMLElement>('[data-card="tt4"]') };
+    if (!stage || !sel || !scanIn || !tbgIn || !why || !tsh.a || !tsh.w || !ft4.a || !ft4.w || !t3.a || !t3.w || !tt4.a || !tt4.w || !tt4.card) return;
+
+    const setCard = (c: { a: HTMLElement | null; w: HTMLElement | null }, r: Reading) => {
+      if (!c.a || !c.w) return;
+      c.a.replaceChildren();
+      r.g.split(' ').forEach((part) => {
+        const sp = document.createElement('span');
+        sp.className = part === 'or' ? 'tal-or' : 'tal-glyph';
+        sp.textContent = part;
+        c.a!.appendChild(sp);
+      });
+      c.a.setAttribute('data-glyph', r.g);
+      c.a.dataset.dir = r.g.startsWith('↑') ? 'up' : r.g.startsWith('↓') ? 'down' : 'flat';
+      c.w.textContent = r.w;
+    };
+
+    function drawStage(st: St, showScan: boolean) {
+      const svg = stage!;
+      svg.replaceChildren();
+      svg.appendChild(txt(6, 13, 'Axis (labelled blocks, schematic)', { 'font-weight': 700 }));
+      svg.appendChild(txt(214, 13, 'Uptake scan (schematic)', { 'font-weight': 700 }));
+
+      const X = 6, W = 134;
+      const block = (y: number, h: number, l1: string, l2: string | null, faulty: boolean) => {
+        svg.appendChild(el('rect', { x: X, y, width: W, height: h, rx: 5, fill: faulty ? '#fff3e6' : '#f4f6f8', stroke: faulty ? ORANGE : INK, 'stroke-width': faulty ? 3 : 1.2 }));
+        const cx = X + W / 2;
+        if (l2 === null) {
+          svg.appendChild(txt(cx, y + h / 2 + 3.5, l1, { 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700 }));
+        } else {
+          svg.appendChild(txt(cx, y + 15, l1, { 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700 }));
+          svg.appendChild(txt(cx, y + 29, l2, { 'text-anchor': 'middle', fill: faulty ? '#b45500' : INK, 'font-weight': faulty ? 700 : 400 }));
+        }
+      };
+      block(24, 26, 'Hypothalamus', null, false);
+      block(86, 38, 'Anterior pituitary', st.fault === 'pituitary' ? st.tag : '(thyrotropes)', st.fault === 'pituitary');
+      block(160, 38, 'Thyroid gland', st.fault === 'thyroid' ? st.tag : '(follicular cells)', st.fault === 'thyroid');
+      // blood bar
+      svg.appendChild(el('rect', { x: X, y: 230, width: W, height: 22, rx: 4, fill: '#fdecea', stroke: INK, 'stroke-width': 1.2 }));
+      svg.appendChild(txt(X + W / 2, 244, 'Blood: free T4, T3', { 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700 }));
+      // forward arrows
+      const mx = X + W / 2;
+      arrow(svg, mx, 50, mx, 86, INK);
+      svg.appendChild(txt(mx + 8, 71, 'TRH', { 'font-weight': 700 }));
+      arrow(svg, mx, 124, mx, 160, INK);
+      svg.appendChild(txt(mx + 8, 145, 'TSH', { 'font-weight': 700 }));
+      arrow(svg, mx, 198, mx, 230, INK);
+      svg.appendChild(txt(mx + 8, 217, 'T4 and T3', { 'font-weight': 700 }));
+      // feedback loop (dashed)
+      const fx = 152;
+      svg.appendChild(el('line', { x1: X + W, y1: 241, x2: fx, y2: 241, stroke: TEAL, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      svg.appendChild(el('line', { x1: fx, y1: 241, x2: fx, y2: 37, stroke: TEAL, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' }));
+      arrow(svg, fx, 105, X + W, 105, TEAL, true);
+      arrow(svg, fx, 37, X + W, 37, TEAL, true);
+      svg.appendChild(txt(fx + 6, 168, 'feedback', { fill: TEAL, 'font-weight': 700 }));
+      svg.appendChild(txt(fx + 6, 180, '(inhibits)', { fill: TEAL }));
+
+      // uptake panel
+      const PX = 214, PY = 22, PW = 140, PH = 112;
+      if (!showScan) {
+        svg.appendChild(el('rect', { x: PX, y: PY, width: PW, height: PH, rx: 6, fill: 'none', stroke: FAINT, 'stroke-width': 1.2, 'stroke-dasharray': '4 3' }));
+        svg.appendChild(txt(PX + PW / 2, PY + 52, 'scan hidden', { 'text-anchor': 'middle', 'font-size': 10 }));
+        svg.appendChild(txt(PX + PW / 2, PY + 66, 'tick the box to show it', { 'text-anchor': 'middle' }));
+      } else {
+        const u = st.uptake;
+        svg.appendChild(el('rect', { x: PX, y: PY, width: PW, height: PH, rx: 6, fill: PANEL }));
+        const fill = u.lobes === 'bright' ? BRIGHT : u.lobes === 'faint' ? DIM : 'none';
+        const stroke = u.lobes === 'outline' ? '#9aa0b4' : u.dashed ? '#ffffff' : 'none';
+        const dash = u.lobes === 'outline' || u.dashed ? '4 3' : '0';
+        const common = { fill, stroke, 'stroke-width': 1.4, 'stroke-dasharray': dash };
+        svg.appendChild(el('ellipse', Object.assign({ cx: PX + 38, cy: PY + 56, rx: 26, ry: 34 }, common)));
+        svg.appendChild(el('ellipse', Object.assign({ cx: PX + 102, cy: PY + 56, rx: 26, ry: 34 }, common)));
+        if (u.lobes !== 'outline') svg.appendChild(el('rect', Object.assign({ x: PX + 52, y: PY + 49, width: 36, height: 14, rx: 4 }, common)));
+        if (u.nodule) svg.appendChild(el('circle', { cx: PX + 108, cy: PY + 66, r: 11, fill: BRIGHT }));
+        u.label.forEach((s, i) => svg.appendChild(txt(PX, PY + PH + 14 + i * 12, s, { 'font-weight': i === 0 ? 700 : 400 })));
+        const ly = PY + PH + 14 + u.label.length * 12 + 10;
+        svg.appendChild(txt(PX, ly, 'brighter = more tracer', { fill: INK }));
+        svg.appendChild(txt(PX, ly + 12, 'trapped (a drawing choice)', { fill: INK }));
+      }
+
+      // legend
+      svg.appendChild(txt(6, 267, st.fault === 'none' ? 'No block outlined: no fault in this state.' : 'Orange outline: where this sketch places the fault.', { fill: st.fault === 'none' ? INK : '#b45500', 'font-weight': 700 }));
+    }
+
+    function render() {
+      const key = (sel!.value in STATES ? sel!.value : 'normal') as StateKey;
+      const st = STATES[key];
+      const normal = key === 'normal';
+      if (!normal) tbgIn!.checked = false;
+      tbgIn!.disabled = !normal;
+      const tbg = normal && tbgIn!.checked;
+      const scan = scanIn!.checked;
+
+      setCard(tsh, st.tsh);
+      setCard(ft4, st.ft4);
+      setCard(t3, tbg ? { g: '→', w: 'free T3 normal; total T3 high' } : st.t3);
+      tt4.card!.hidden = !tbg;
+      if (tbg) setCard(tt4, { g: '↑', w: 'from 80 to 140 nmol per L, 1.75 times' });
+
+      drawStage(st, scan);
+
+      let msg = st.text;
+      if (scan) msg += ' ' + st.uptake.sentence;
+      if (!normal && st.fault !== 'none') msg += ' This sketch outlines the ' + (st.fault === 'pituitary' ? 'anterior pituitary' : 'thyroid gland') + ' as the fault' + (st.fault === 'pituitary' ? ' (the lesson says pituitary or hypothalamus).' : '.');
+      if (tbg) msg = TBG_TEXT + ' ' + 'TSH and free T4 are unchanged from the normal axis, so the TSH and free T4 cards show no change.';
+      why!.textContent = msg;
+      root.dataset.state = key;
+      root.dataset.tbg = tbg ? '1' : '0';
+      root.dataset.scan = scan ? '1' : '0';
+    }
+
+    sel.addEventListener('change', render);
+    scanIn.addEventListener('change', render);
+    tbgIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .tal { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .tal-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .tal-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .tal-controls { display: flex; flex-direction: column; gap: var(--ddp-space-2); margin-bottom: var(--ddp-space-3); }
+  .tal-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tal-lab { color: var(--ddp-color-muted); }
+  .tal-field select { font: inherit; font-size: var(--ddp-text-sm); padding: 0.3rem 0.4rem; border: 1px solid var(--ddp-color-line); border-radius: 5px; background: #fff; color: var(--ddp-color-ink-soft); max-width: 100%; }
+  .tal-check { display: flex; align-items: flex-start; gap: 0.45rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .tal-check input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .tal-check input:disabled + span { color: var(--ddp-color-muted); }
+  .tal-field select:focus-visible, .tal-check input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .tal-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .tal-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--ddp-space-2); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .tal-card { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "name name" "arrow word"; align-items: center; column-gap: 0.6rem; row-gap: 0.1rem; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .tal-card[hidden] { display: none; }
+  .tal-cname { grid-area: name; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .tal-arrow { grid-area: arrow; font-family: var(--ddp-font-mono); font-size: 1.15rem; font-weight: 700; line-height: 1.2; color: var(--ddp-color-primary); white-space: nowrap; }
+  .tal-or { font-family: inherit; font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); margin: 0 0.3rem; }
+  .tal-arrow[data-dir="up"] { color: #b45500; }
+  .tal-arrow[data-dir="down"] { color: var(--ddp-color-accent); }
+  .tal-word { grid-area: word; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.35; }
+  .tal .tal-why { margin: var(--ddp-space-2) 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .tal .tal-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .tal .tal-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>
