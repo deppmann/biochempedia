@@ -19,6 +19,15 @@ objectives:
   - "Explain the steps of entry into a node (L-selectin tethering, chemokine activation of integrins, LFA-1 binding ICAM-1 and ICAM-2) and of exit (S1P1, and its removal by CD69), and how antigen arrives by lymph conduits and migrating dendritic cells, from mouse knockouts and chimeras."
   - "Predict how a node that drains a site of immune challenge enlarges and holds lymphocytes, from the shutdown of exit by CD69 and S1P1 downregulation, and how a change in entry or exit rates moves the recirculating pool between blood, nodes and spleen."
 
+explainer:
+  src: "/explainers/lymphoid-organs-immune-traffic/explainer.mp4"
+  captions: "/explainers/lymphoid-organs-immune-traffic/explainer.vtt"
+  poster: "/explainers/lymphoid-organs-immune-traffic/poster.jpg"
+  title: "Cells Go Around, Exit Sets the Stay"
+  durationSec: 176.6
+  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  aiGenerated: true
+
 scientists:
   - name: "James L. Gowans"
     contribution: >-
@@ -268,7 +277,7 @@ explainLevels:
       Lymphocytes are made in the bone marrow and the thymus, the primary lymphoid organs. The
       lymph nodes, spleen and patches of tissue in the gut wall are secondary organs, where
       mature lymphocytes wait to meet something they recognise. Lymphocytes do not settle in one
-      node. They leave the blood through special venules in a node, spend hours there, exit in
+      node. They leave the blood through small, specialised blood vessels in a node, spend hours there, exit in
       lymph, and return to the blood through the thoracic duct. In rats, draining the thoracic
       duct for days steadily lowered the number of lymphocytes in the lymph, and giving the cells
       back by vein restored it, which showed that the same cells go around a loop.
@@ -294,7 +303,7 @@ explainLevels:
       law). In the Ganusov and Auerbach (2014) fit to 51Cr-labelled thoracic duct lymphocytes in
       rats, the spleen has k = 0.056 and e = 0.007 per min (residence 144 min) and subcutaneous
       nodes k = 0.026 with two series sub-compartments each exiting at 0.0034 per min (593 min).
-      The listed entry rates sum to about 2.34 per min, most of it into lung and liver vessels,
+      The model's entry rates sum to about 2.34 per min, most of it into lung and liver vessels,
       giving about 26 s per pass in blood. Exit is controlled: S1P1 on the lymphocyte is needed
       to leave the thymus and nodes in mice (Matloubian and colleagues, 2004), and CD69 drives
       S1P1 internalization and degradation, holding activated cells in a node. In mice, naive
@@ -329,7 +338,7 @@ corpusTags:
   - "high-endothelial-venules"
   - "s1p1-egress"
   - "compartment-models"
-draft: true
+draft: false
 ---
 
 import LymphocyteRecirculation from '../../../components/LymphocyteRecirculation.astro';
@@ -380,7 +389,7 @@ Ganusov and Auerbach (2014) fitted a compartment model to data from chromium-51-
 
 > **mean residence time = 1 / exit rate constant**
 >
-> **number held at steady state = entry rate x mean residence time (Little's law)**
+> **number held at steady state = cells entering per unit time x mean residence time (Little's law)**
 
 (a) Spleen: entry from blood 0.056 per min, exit 0.007 per min. Mean residence = 1 / 0.007 per min = 142.9 min, about 143 min or 2.4 h. The fitted table gives 144 min (115 to 173).
 
@@ -415,6 +424,6 @@ A day later, expose one peripheral node to violet light under anaesthesia. Trans
 
 Controls: equal time-zero counts show both populations entered equally, so later differences reflect exit; illuminating cells and checking their viability tests whether the light harms them; counting red cells in blood and in an unexposed node shows where leavers go.
 
-Interpretation: for first-order exit, cells left = N0 x exp(-k t). For normal cells, ln(10,000 / 3,700) = 0.99 over 12 h, so k is about 0.083 per h and mean residence about 12 h; the 6 h and 24 h points fit (10,000 x exp(-0.5) = 6,070; 10,000 x exp(-2) = 1,350). For S1P1-deficient cells, ln(10,000 / 9,100) = 0.094 over 24 h, about 0.004 per h, or roughly 250 h: exit is nearly abolished, and the small loss could be cell death. Limits: one species and one node type, a few red cells may re-enter from blood, and the result shows S1P1 is needed for exit, not that it alone sets the normal residence time.
+Interpretation: for first-order exit, cells remaining in the node = N0 x exp(-k t). For normal cells, ln(10,000 / 3,700) = 0.99 over 12 h, so k is about 0.083 per h and mean residence about 12 h; the 6 h and 24 h points fit (10,000 x exp(-0.5) = 6,070; 10,000 x exp(-2) = 1,350). For S1P1-deficient cells, ln(10,000 / 9,100) = 0.094 over 24 h, about 0.004 per h, or roughly 250 h: exit is nearly abolished, and the small loss could be cell death. Limits: one species and one node type, a few red cells may re-enter from blood, and the result shows S1P1 is needed for exit, not that it alone sets the normal residence time.
 
 </details>

@@ -19,6 +19,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     <section class="rv-card" data-rv-card hidden>
       <p class="rv-meta"><span data-rv-count></span> · <a data-rv-lesson href="#"></a><span class="rv-mcat" data-rv-mcat hidden>MCAT-style · original</span></p>
+      <details class="rv-passage" data-rv-passage hidden open>
+        <summary>Passage</summary>
+        <div data-rv-passage-body></div>
+        <p class="rv-passage-link"><a data-rv-passage-link href="/mcat/">Open the full set, with its figures →</a></p>
+      </details>
       <p class="rv-stem" data-rv-stem></p>
       <ul class="rv-choices" data-rv-choices></ul>
       <div class="rv-feedback" data-rv-feedback hidden role="status">
@@ -43,8 +48,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <script>
     import { load, dueNow, queued, recordReview, INTERVALS, type ItemState } from '../../lib/progress';
 
-    interface Item { id: string; mcat: boolean; stem: string; choices: string[]; answer: number; rationale: string; anchor: { id: string; text: string } | null }
-    interface QuizFile { slug: string; title: string; course: string; items: Item[] }
+    interface Item { id: string; mcat: boolean; stem: string; choices: string[]; answer: number; rationale: string; anchor: { id: string; text: string } | null; lessonSlug?: string }
+    interface QuizFile { slug: string; title: string; course: string; items: Item[]; passage?: string[]; setUrl?: string }
 
     const SESSION = 20;
     const root = document.querySelector<HTMLElement>('[data-rv]')!;
@@ -87,9 +92,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       status.hidden = true; done.hidden = true; card.hidden = false;
       $('[data-rv-count]').textContent = `Question ${pos + 1} of ${queue.length}`;
       const lesson = $<HTMLAnchorElement>('[data-rv-lesson]');
-      lesson.href = `/lessons/${cur.f.slug}/`;
+      lesson.href = cur.f.setUrl ?? `/lessons/${cur.f.slug}/`;
       lesson.textContent = `${cur.f.course}: ${cur.f.title}`;
       $('[data-rv-mcat]').hidden = !cur.q.mcat;
+      // A passage-set question comes back with its passage (figures stay on the set page).
+      const pw = $('[data-rv-passage]');
+      pw.hidden = !cur.f.passage;
+      if (cur.f.passage) {
+        const body = $('[data-rv-passage-body]');
+        body.textContent = '';
+        for (const para of cur.f.passage) { const p = document.createElement('p'); p.textContent = para; body.append(p); }
+        $<HTMLAnchorElement>('[data-rv-passage-link]').href = cur.f.setUrl ?? '/mcat/';
+      }
       $('[data-rv-stem]').textContent = cur.q.stem;
       const list = $('[data-rv-choices]');
       list.textContent = '';
@@ -132,7 +146,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       sec.hidden = !cur.q.anchor;
       if (cur.q.anchor) {
         const a = $<HTMLAnchorElement>('[data-rv-section-link]');
-        a.href = `/lessons/${cur.f.slug}/#${cur.q.anchor.id}`;
+        a.href = `/lessons/${cur.q.lessonSlug ?? cur.f.slug}/#${cur.q.anchor.id}`;
         a.textContent = cur.q.anchor.text;
       }
       const after = load().items[cur.id];
@@ -189,6 +203,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .rv .rv-meta { margin: 0 0 var(--ddp-space-3); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
     .rv .rv-meta a { color: var(--ddp-color-accent); }
     .rv .rv-mcat { margin-left: var(--ddp-space-2); font-weight: 600; color: var(--ddp-color-secondary-ink); background: #fdeede; border-radius: 999px; padding: 0.1em 0.6em; }
+    .rv .rv-passage { margin: 0 0 var(--ddp-space-4); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-bg); font-size: var(--ddp-text-sm); line-height: 1.55; }
+    .rv .rv-passage summary { cursor: pointer; font-weight: 600; }
+    .rv .rv-passage-link a { color: var(--ddp-color-accent); }
     .rv .rv-stem { margin: 0 0 var(--ddp-space-4); font-size: var(--ddp-text-base); line-height: 1.55; }
     .rv .rv-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
     .rv .rv-choice { width: 100%; display: flex; gap: var(--ddp-space-3); align-items: flex-start; text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
