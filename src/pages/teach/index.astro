@@ -69,7 +69,7 @@ import '../../styles/teach.css';
       <p>If you forget your password, this code lets you set a new one. We show it only once.</p>
       <p class="tc-code" data-recovery-code></p>
       <p class="tc-muted" data-verify-note></p>
-      <a class="tc-btn" href="/teach/classes/">I saved it. Go to my classes →</a>
+      <a class="tc-btn" href="/teach/classes/">I saved it. Continue →</a>
     </section>
   </article>
 
@@ -77,6 +77,10 @@ import '../../styles/teach.css';
     import { api } from '../../lib/classroom';
 
     const root = document.querySelector<HTMLElement>('[data-teach]')!;
+    // Where to go after signing in: an invite or school page that sent the teacher here.
+    const nextRaw = new URLSearchParams(location.search).get('next') || '';
+    const next = /^\/(teach|g)\/[\w\-/?=&%.]*$/.test(nextRaw) ? nextRaw : '/teach/classes/';
+    if (next !== '/teach/classes/') root.querySelector<HTMLAnchorElement>('[data-recovery] a.tc-btn')!.href = next;
     const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tab]'));
     const panes = Array.from(root.querySelectorAll<HTMLElement>('[data-pane]'));
     const show = (k: string) => {
@@ -87,7 +91,7 @@ import '../../styles/teach.css';
     if (location.hash === '#signup') show('up');
 
     // Already signed in? Go straight to the classes.
-    api('/api/teacher/me').then((r) => { if (r.ok) location.replace('/teach/classes/'); });
+    api('/api/teacher/me').then((r) => { if (r.ok) location.replace(next); });
 
     const form = (sel: string) => root.querySelector<HTMLFormElement>(sel)!;
     const vals = (f: HTMLFormElement) => Object.fromEntries(new FormData(f).entries()) as Record<string, string>;
@@ -96,7 +100,7 @@ import '../../styles/teach.css';
     form('[data-pane=in]').addEventListener('submit', async (e) => {
       e.preventDefault();
       const r = await api('/api/teacher/login', vals(e.target as HTMLFormElement));
-      if (r.ok) location.href = '/teach/classes/'; else err(e.target as HTMLElement, r.data.error || 'Could not sign in.');
+      if (r.ok) location.href = next; else err(e.target as HTMLElement, r.data.error || 'Could not sign in.');
     });
 
     form('[data-pane=up]').addEventListener('submit', async (e) => {

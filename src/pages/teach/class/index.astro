@@ -32,6 +32,7 @@ const MODES = [
       <span class="tc-muted">Students go to <strong data-join-url></strong></span>
     </p>
     <p class="tc-note" data-pending-note hidden></p>
+    <p class="tc-note good" data-viewer-note hidden>Shared with your group. You can read this class's brief; only its teacher can change anything.</p>
 
     <div class="tc-tabs tc-noprint" role="tablist">
       <button class="tc-tab" role="tab" data-tab="brief" aria-selected="true">Morning brief</button>
@@ -93,6 +94,9 @@ const MODES = [
       <form class="tc-form" data-settings>
         <label>Class name<input type="text" name="name" maxlength="60" required /></label>
         <label>How students join<select name="joinMode">{MODES.map(([v, l]) => <option value={v}>{l}</option>)}</select></label>
+        <label>Group<select name="groupId"><option value="">No group</option></select></label>
+        <label class="tc-check"><input type="checkbox" name="shared" />
+          <span>Share this class's brief with the group's admins (read only). Otherwise they see only its name and counts.</span></label>
         <button class="tc-btn" type="submit">Save</button>
         <p class="tc-ok" data-set-msg role="status"></p>
       </form>
@@ -110,7 +114,8 @@ const MODES = [
 
     type Catalog = { slug: string; title: string; units: { name: string; lessons: { slug: string; title: string; n: number }[] }[] }[];
     interface Brief {
-      class: { id: string; name: string; code: string; course: string; joinMode: string };
+      class: { id: string; name: string; code: string; course: string; joinMode: string; groupId: string | null; shared: boolean };
+      viewer: 'owner' | 'group-admin';
       students: { id: number; nickname: string; status: string; joined: number; lastSeen: number | null }[];
       assignments: { slug: string; due: string | null }[];
       lessons: Record<string, { started: number; done: number; notStarted: string[]; ideas: { item: string; idea: string; answer: string; agree: number; disagree: number }[]; quiz: { item: string; n: number; correct: number }[]; cers: { student: string; task: string; claim: string; evidence: string; reasoning: string; at: number }[]; stuck: { student: string; text: string; at: number }[] }>;
@@ -159,11 +164,22 @@ const MODES = [
       $('[data-pending-note]').hidden = !pending;
       $('[data-pending-note]').textContent = `${pending} ${pending === 1 ? 'student is' : 'students are'} waiting to join. See the Students tab.`;
       renderBrief();
+      // A group admin reading a shared class: brief only, nothing to change.
+      const viewer = brief.viewer === 'group-admin';
+      $('[data-viewer-note]').hidden = !viewer;
+      tabs.forEach((t) => { if (t.dataset.tab !== 'brief') t.hidden = viewer; });
+      if (viewer) { show('brief'); return; }
       renderAssign();
       renderRoster();
       const f = $<HTMLFormElement>('[data-settings]');
       (f.elements.namedItem('name') as HTMLInputElement).value = c.name;
       (f.elements.namedItem('joinMode') as HTMLSelectElement).value = c.joinMode;
+      const gsel = f.elements.namedItem('groupId') as HTMLSelectElement;
+      const gr = await api<{ groups: { id: string; name: string; status: string }[] }>('/api/groups/mine');
+      gsel.querySelectorAll('option:not([value=""])').forEach((o) => o.remove());
+      for (const g of (gr.ok ? gr.data.groups : []).filter((x) => x.status === 'active')) gsel.append(el('option', { value: g.id, textContent: g.name }));
+      gsel.value = c.groupId ?? '';
+      (f.elements.namedItem('shared') as HTMLInputElement).checked = c.shared;
     }
 
     // ---- brief ----
@@ -358,7 +374,8 @@ const MODES = [
     // ---- settings ----
     $('[data-settings]').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const v = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      const f = e.target as HTMLFormElement;
+      const v = { ...Object.fromEntries(new FormData(f).entries()), shared: (f.elements.namedItem('shared') as HTMLInputElement).checked };
       const r = await api(`/api/classes/${id}`, v, 'PATCH');
       $('[data-set-msg]').textContent = r.ok ? 'Saved.' : r.data.error || 'Could not save.';
       if (r.ok) load();
