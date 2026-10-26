@@ -22,7 +22,7 @@ const { course, lessons } = Astro.props;
 const units = unitsFor(course, lessons);
 const drafts = lessons.filter((l) => l.data.draft).length;
 const first = units[0]?.entries[0]?.l;
-const tierLabel = { highschool: course.ladderStep === 1 ? 'middle school course' : 'high school course', foundation: 'foundation course', core: 'core course', elective: 'elective', advanced: 'advanced elective' }[course.tier];
+const tierLabel = { families: 'activities for ages 5–10', highschool: course.ladderStep === 1 ? 'middle school course' : 'high school course', foundation: 'foundation course', core: 'core course', elective: 'elective', advanced: 'advanced elective' }[course.tier];
 ---
 
 <BaseLayout title={`${course.title} — Biochemistrypedia`} description={course.blurb}>
@@ -37,7 +37,7 @@ const tierLabel = { highschool: course.ladderStep === 1 ? 'middle school course'
     )}
     <p class="course-progress" data-course-progress hidden></p>
     <p class="hero-cta">
-      {first && <a class="cta" href={`/lessons/${first.data.slug}/`} data-start-cta>Start with lesson 1 →</a>}
+      {first && <a class="cta" href={`/lessons/${first.data.slug}/`} data-start-cta>{course.tier === 'families' ? 'Start with activity 1 →' : 'Start with lesson 1 →'}</a>}
       {course.slug === 'biochemistry' && <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>}
     </p>
   </section>
