@@ -17,66 +17,14 @@ import {
   cookie, readCookie, normalizeEmail, validEmail, TEACHER_COOKIE, STUDENT_COOKIE,
   TEACHER_SESSION_DAYS, STUDENT_SESSION_DAYS, MIN_PASSWORD_LENGTH,
 } from './auth.js';
+import { DAY, JOIN_MODES, SLUG, json, fail, clean, body, sameOrigin, clientKey, allow, mailOn, sendMail } from './util.js';
+import { handleGroups } from './groups.js';
 
-const DAY = 86_400_000;
-const JOIN_MODES = ['open', 'approve', 'roster', 'locked'];
 const KINDS = ['quiz', 'idea', 'cer', 'done', 'stuck'];
 const MAX_STUDENTS = 200;
 const MAX_CLASSES = 40;
 const RETENTION_DAYS = 400;   // a class with no activity for this long is deleted
-
-const json = (body, status = 200, headers = {}) =>
-  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...headers } });
-const fail = (status, error, extra = {}) => json({ error, ...extra }, status);
-
-const clean = (s, max) => String(s ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
-const SLUG = /^[a-z0-9][a-z0-9-]{0,80}$/;
 const NICK = /^[\p{L}\p{N} .'\-]{1,24}$/u;
-
-async function body(request) {
-  try { return await request.json(); } catch { return null; }
-}
-
-/** Same-origin JSON only, for anything that changes state. */
-function sameOrigin(request) {
-  const origin = request.headers.get('Origin');
-  const host = new URL(request.url).origin;
-  return (!origin || origin === host) && (request.headers.get('Content-Type') || '').startsWith('application/json');
-}
-
-async function clientKey(request) {
-  return sha256Hex(request.headers.get('CF-Connecting-IP') || 'local');
-}
-
-/** Fixed-window counter. Returns true while under `limit` per `windowMs`. */
-async function allow(db, key, limit, windowMs) {
-  const now = Date.now();
-  // Now and then, drop counters older than a day (the privacy page promises it).
-  if (Math.random() < 0.02) await db.prepare('DELETE FROM rate_limits WHERE window_start < ?').bind(now - DAY).run();
-  const row = await db.prepare('SELECT count, window_start FROM rate_limits WHERE key=?').bind(key).first();
-  if (!row || now - row.window_start > windowMs) {
-    await db.prepare('INSERT OR REPLACE INTO rate_limits (key, count, window_start) VALUES (?,1,?)').bind(key, now).run();
-    return true;
-  }
-  if (row.count >= limit) return false;
-  await db.prepare('UPDATE rate_limits SET count=count+1 WHERE key=?').bind(key).run();
-  return true;
-}
-
-// ---- email (Resend). Without RESEND_API_KEY the flows fall back to recovery codes. ----
-const mailOn = (env) => !!env.RESEND_API_KEY;
-
-async function sendMail(env, to, subject, text) {
-  if (!mailOn(env)) return false;
-  try {
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: env.MAIL_FROM || 'Biochemistrypedia <classes@biochemistrypedia.com>', to: [to], subject, text }),
-    });
-    return r.ok;
-  } catch { return false; }
-}
 
 async function emailLink(env, db, request, teacherId, email, purpose) {
   const token = randomToken();
@@ -194,7 +142,7 @@ async function buildBrief(db, cls) {
   }
 
   return {
-    class: { id: cls.id, name: cls.name, code: cls.code, course: cls.course, joinMode: cls.join_mode },
+    class: { id: cls.id, name: cls.name, code: cls.code, course: cls.course, joinMode: cls.join_mode, groupId: cls.group_id ?? null, shared: !!cls.shared_with_group },
     students: students.map((s) => ({ id: s.id, nickname: s.nickname, status: s.status, joined: s.created_at, lastSeen: s.last_seen_at })),
     assignments, lessons, needs,
   };
@@ -210,6 +158,10 @@ export async function handleApi(request, env) {
   if (method !== 'GET' && !sameOrigin(request)) return fail(403, 'Bad request origin.');
 
   try {
+    // Groups: /api/g/<slug> (public) and /api/groups/* (worker/groups.js).
+    const grouped = await handleGroups(request, env, db, path, method, url);
+    if (grouped) return grouped;
+
     // ---------- teacher account ----------
     if (path === '/api/teacher/signup' && method === 'POST') {
       if (!(await allow(db, 'signup:' + (await clientKey(request)), 5, 3600_000))) return fail(429, 'Too many sign-ups from here. Try again in an hour.');
@@ -253,6 +205,7 @@ export async function handleApi(request, env) {
       await purgeStale(db).catch(() => {});
       const classes = (await db.prepare(
         `SELECT c.id, c.name, c.course, c.code, c.join_mode AS joinMode, c.created_at AS created,
+                c.group_id AS groupId, c.shared_with_group AS shared,
                 (SELECT COUNT(*) FROM students s WHERE s.class_id=c.id AND s.status='active') AS students,
                 (SELECT COUNT(*) FROM students s WHERE s.class_id=c.id AND s.status='pending') AS pending,
                 (SELECT COUNT(*) FROM assignments a WHERE a.class_id=c.id) AS assignments
@@ -324,6 +277,21 @@ export async function handleApi(request, env) {
       if (!(await verifyPassword(String(b?.password || ''), row.password_hash))) return fail(403, 'Password did not match.');
       const classes = (await db.prepare('SELECT id FROM classes WHERE teacher_id=?').bind(t.id).all()).results || [];
       for (const c of classes) await deleteClass(db, c.id);
+      // Groups where this teacher is the only admin: hand them to the longest-standing member,
+      // or delete the group if nobody else is in it.
+      const solo = (await db.prepare(
+        `SELECT gm.group_id FROM group_members gm WHERE gm.teacher_id=? AND gm.role='admin'
+           AND (SELECT COUNT(*) FROM group_members x WHERE x.group_id=gm.group_id AND x.role='admin' AND x.status='active') = 1`).bind(t.id).all()).results || [];
+      for (const { group_id } of solo) {
+        const heir = await db.prepare("SELECT teacher_id FROM group_members WHERE group_id=? AND teacher_id<>? AND status='active' ORDER BY joined_at LIMIT 1").bind(group_id, t.id).first();
+        if (heir) await db.prepare("UPDATE group_members SET role='admin' WHERE group_id=? AND teacher_id=?").bind(group_id, heir.teacher_id).run();
+        else await db.batch([
+          db.prepare('DELETE FROM group_invites WHERE group_id=?').bind(group_id),
+          db.prepare('DELETE FROM group_members WHERE group_id=?').bind(group_id),
+          db.prepare('DELETE FROM groups WHERE id=?').bind(group_id),
+        ]);
+      }
+      await db.prepare('DELETE FROM group_members WHERE teacher_id=?').bind(t.id).run();
       await db.batch([
         db.prepare('DELETE FROM teacher_sessions WHERE teacher_id=?').bind(t.id),
         db.prepare('DELETE FROM email_tokens WHERE teacher_id=?').bind(t.id),
@@ -345,9 +313,18 @@ export async function handleApi(request, env) {
       if (n.n >= MAX_CLASSES) return fail(400, `You can have up to ${MAX_CLASSES} classes.`);
       const id = randomToken(6);
       const now = Date.now();
-      const mode = JOIN_MODES.includes(b?.joinMode) ? b.joinMode : 'open';
-      await db.prepare('INSERT INTO classes (id, teacher_id, name, course, code, join_mode, created_at, last_activity_at) VALUES (?,?,?,?,?,?,?,?)')
-        .bind(id, t.id, name, course, await newClassCode(db), mode, now, now).run();
+      // Optionally inside one of the teacher's groups, which supplies the default join mode.
+      let groupId = null;
+      let groupMode = null;
+      if (b?.groupId) {
+        const gm = await db.prepare("SELECT g.id, g.default_join_mode FROM group_members m JOIN groups g ON g.id=m.group_id WHERE m.group_id=? AND m.teacher_id=? AND m.status='active'").bind(String(b.groupId), t.id).first();
+        if (!gm) return fail(400, 'You are not in that group.');
+        groupId = gm.id;
+        groupMode = gm.default_join_mode;
+      }
+      const mode = JOIN_MODES.includes(b?.joinMode) ? b.joinMode : groupMode ?? 'open';
+      await db.prepare('INSERT INTO classes (id, teacher_id, name, course, code, join_mode, created_at, last_activity_at, group_id) VALUES (?,?,?,?,?,?,?,?,?)')
+        .bind(id, t.id, name, course, await newClassCode(db), mode, now, now, groupId).run();
       return json({ ok: true, id }, 201);
     }
 
@@ -355,11 +332,20 @@ export async function handleApi(request, env) {
     if (m) {
       const t = await getTeacher(db, request);
       if (!t) return fail(401, 'Not signed in.');
-      const cls = await ownClass(db, t, m[1]);
-      if (!cls) return fail(404, 'No such class.');
       const sub = m[2] || '';
+      const cls = await ownClass(db, t, m[1]);
+      if (!cls) {
+        // A group admin may read (never change) the brief of a class its teacher shared with the group.
+        if (sub === 'brief' && method === 'GET' && /^[A-Za-z0-9]{6,20}$/.test(m[1])) {
+          const shared = await db.prepare(
+            `SELECT c.* FROM classes c JOIN group_members gm ON gm.group_id=c.group_id
+              WHERE c.id=? AND c.shared_with_group=1 AND gm.teacher_id=? AND gm.role='admin' AND gm.status='active'`).bind(m[1], t.id).first();
+          if (shared) return json({ ...(await buildBrief(db, shared)), viewer: 'group-admin' });
+        }
+        return fail(404, 'No such class.');
+      }
 
-      if (sub === 'brief' && method === 'GET') return json(await buildBrief(db, cls));
+      if (sub === 'brief' && method === 'GET') return json({ ...(await buildBrief(db, cls)), viewer: 'owner' });
 
       if (sub === '' && method === 'PATCH') {
         const b = await body(request);
@@ -367,7 +353,13 @@ export async function handleApi(request, env) {
         const mode = JOIN_MODES.includes(b?.joinMode) ? b.joinMode : cls.join_mode;
         const course = b?.course !== undefined && SLUG.test(String(b.course)) ? String(b.course) : cls.course;
         if (!name) return fail(400, 'The class needs a name.');
-        await db.prepare('UPDATE classes SET name=?, join_mode=?, course=? WHERE id=?').bind(name, mode, course, cls.id).run();
+        let groupId = cls.group_id;
+        if (b?.groupId !== undefined) {
+          groupId = b.groupId ? String(b.groupId) : null;
+          if (groupId && !(await db.prepare("SELECT 1 FROM group_members WHERE group_id=? AND teacher_id=? AND status='active'").bind(groupId, t.id).first())) return fail(400, 'You are not in that group.');
+        }
+        const shared = groupId && (b?.shared !== undefined ? !!b.shared : !!cls.shared_with_group) ? 1 : 0;
+        await db.prepare('UPDATE classes SET name=?, join_mode=?, course=?, group_id=?, shared_with_group=? WHERE id=?').bind(name, mode, course, groupId, shared, cls.id).run();
         return json({ ok: true });
       }
       if (sub === 'new-code' && method === 'POST') {

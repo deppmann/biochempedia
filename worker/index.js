@@ -48,7 +48,13 @@ async function fromBucket(request, env) {
 export default {
   async fetch(request, env) {
     // Teacher classes API (worker/api.js). Everything else below is the media path.
-    if (new URL(request.url).pathname.startsWith('/api/')) return handleApi(request, env);
+    const { pathname } = new URL(request.url);
+    if (pathname.startsWith('/api/')) return handleApi(request, env);
+    // Group pages: every /g/<slug>/ is the one static page /g/, which reads the slug itself.
+    if (/^\/g(\/[a-z0-9-]+)?\/?$/.test(pathname)) {
+      if (!pathname.endsWith('/')) return Response.redirect(new URL(pathname + '/', request.url), 301);
+      return env.ASSETS.fetch(new Request(new URL('/g/', request.url), request));
+    }
     if (request.method === 'GET' || request.method === 'HEAD') {
       const hit = await fromBucket(request, env);
       if (hit) return hit;

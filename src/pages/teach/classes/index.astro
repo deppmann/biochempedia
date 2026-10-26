@@ -28,13 +28,30 @@ const MODES = [
     <ul class="tc-grid" data-list style="list-style:none; padding:0; margin-top: var(--ddp-space-6)"></ul>
     <p class="tc-muted" data-empty hidden>No classes yet. Make your first one below.</p>
 
+    <h2>Groups</h2>
+    <p class="tc-muted">A group is your school, department or district: its own page, its own admins, and a shared list of classes.</p>
+    <ul class="tc-grid" data-groups style="list-style:none; padding:0"></ul>
+    <details style="margin-top: var(--ddp-space-4)">
+      <summary>Make a group</summary>
+      <form class="tc-form" data-new-group style="margin-top: var(--ddp-space-3)">
+        <label>Group name<input type="text" name="name" maxlength="80" required placeholder="e.g. Albemarle High School Science" /></label>
+        <label>Page address: biochemistrypedia.com/g/<input type="text" name="slug" maxlength="40" required placeholder="albemarle-science" /></label>
+        <label>Only teachers with this email domain may join (optional)<input type="text" name="emailDomain" maxlength="190" placeholder="school.k12.va.us" /></label>
+        <label>About (shown on the page, optional)<textarea name="about" rows="2" maxlength="600"></textarea></label>
+        <button class="tc-btn" type="submit">Make the group</button>
+        <p class="tc-error" data-group-err role="alert"></p>
+      </form>
+    </details>
+    <p class="tc-muted">Joining your school's group? Use the invitation link a colleague sent, or ask to join on the school's page.</p>
+
     <h2>New class</h2>
     <form class="tc-form" data-new>
       <label>Class name<input type="text" name="name" maxlength="60" required placeholder="e.g. Biology, period 3" /></label>
       <label>Course<select name="course" required>
         {courses.map((c) => <option value={c.slug} selected={c.slug === 'high-school-biology'}>{c.title}</option>)}
       </select></label>
-      <label>How students join<select name="joinMode">
+      <label data-group-pick hidden>Group<select name="groupId"><option value="">No group</option></select></label>
+      <label>How students join<select name="joinMode" onchange="this.dataset.touched='1'">
         {MODES.map(([v, l]) => <option value={v}>{l}</option>)}
       </select></label>
       <button class="tc-btn" type="submit">Create class</button>
@@ -101,9 +118,62 @@ const MODES = [
     }
     load();
 
-    $('[data-new]').addEventListener('submit', async (e) => {
+    // Groups I'm in, and the group picker for a new class.
+    interface Grp { id: string; slug: string; name: string; role: string; status: string; members: number; pending: number; classes: number }
+    async function loadGroups() {
+      const r = await api<{ groups: Grp[] }>('/api/groups/mine');
+      if (!r.ok) return;
+      const list = $('[data-groups]');
+      list.textContent = '';
+      const sel = root.querySelector<HTMLSelectElement>('[name=groupId]')!;
+      sel.querySelectorAll('option:not([value=""])').forEach((o) => o.remove());
+      for (const g of r.data.groups) {
+        const li = document.createElement('li');
+        const a = document.createElement(g.status === 'active' ? 'a' : 'div');
+        a.className = 'tc-card';
+        if (a instanceof HTMLAnchorElement) a.href = `/teach/group/?id=${g.id}`;
+        a.style.cssText = 'display:flex;flex-direction:column;gap:.3rem;text-decoration:none;color:inherit';
+        const h = document.createElement('strong');
+        h.textContent = g.name;
+        h.style.cssText = 'color:var(--ddp-color-primary)';
+        const meta = document.createElement('span');
+        meta.className = 'tc-muted';
+        meta.textContent = g.status === 'pending'
+          ? 'Waiting for an admin to let you in'
+          : `${g.role === 'admin' ? 'Admin' : 'Member'} · ${g.members} teachers · ${g.classes} classes${g.role === 'admin' && g.pending ? ` · ${g.pending} asking to join` : ''}`;
+        a.append(h, meta);
+        li.append(a);
+        list.append(li);
+        if (g.status === 'active') {
+          const o = document.createElement('option');
+          o.value = g.id; o.textContent = g.name;
+          sel.append(o);
+        }
+      }
+      $('[data-group-pick]').hidden = !r.data.groups.some((g) => g.status === 'active');
+    }
+    loadGroups();
+
+    $('[data-new-group]').addEventListener('submit', async (e) => {
       e.preventDefault();
       const v = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      const r = await api<{ id: string }>('/api/groups', v);
+      if (r.ok) location.href = `/teach/group/?id=${r.data.id}`;
+      else $('[data-group-err]').textContent = r.data.error || 'Could not make the group.';
+    });
+    // Suggest an address from the name.
+    root.querySelector<HTMLInputElement>('[data-new-group] [name=name]')!.addEventListener('input', (e) => {
+      const slug = root.querySelector<HTMLInputElement>('[data-new-group] [name=slug]')!;
+      if (slug.dataset.touched) return;
+      slug.value = (e.target as HTMLInputElement).value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+    });
+    root.querySelector<HTMLInputElement>('[data-new-group] [name=slug]')!.addEventListener('input', (e) => { (e.target as HTMLElement).dataset.touched = '1'; });
+
+    $('[data-new]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v: Record<string, FormDataEntryValue> = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      if (!v.groupId) delete v.groupId;
+      else if (!root.querySelector<HTMLSelectElement>('[name=joinMode]')!.dataset.touched) delete v.joinMode;
       const r = await api<{ id: string }>('/api/classes', v);
       if (r.ok) location.href = `/teach/class/?id=${r.data.id}&tab=assign`;
       else $('[data-err]').textContent = r.data.error || 'Could not create the class.';
