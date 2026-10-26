@@ -1,0 +1,196 @@
+---
+/**
+ * MyogenicArteriole — holding flow with the fourth power. An idealized rigid tube with
+ * Poiseuille flow: Q / Q1 = (ΔP / 60) × (r / 100)^4 and R / R1 = (100 / r)^4, baseline
+ * ΔP = 60 mmHg and r = 100 micrometres (the lesson's made-up but convenient numbers).
+ * Two sliders (pressure difference, radius) and a toggle that overrides the radius with the
+ * value that holds baseline flow, r = 100 × (60 / ΔP)^(1/4). A cross-section of the lumen is
+ * drawn to scale against the baseline circle. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="ma card" data-ma>
+  <figcaption class="ma-head">Holding flow with the fourth power<span class="ma-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="ma-svg" viewBox="0 0 340 334" role="img" aria-label="A cross-section of an arteriole lumen drawn to scale against a dashed baseline circle of radius 100 micrometres, with bars for flow and resistance relative to baseline" data-plot></svg>
+
+  <div class="ma-controls">
+    <label class="ma-slabel"><span>Pressure difference across the arteriole, ΔP <em data-out="dp">80</em> mmHg <small>(baseline 60)</small></span>
+      <input type="range" data-in="dp" min="40" max="120" step="1" value="80" />
+    </label>
+    <label class="ma-slabel"><span>Radius, r <em data-out="r">105</em> micrometres <small data-r-note>(baseline 100)</small></span>
+      <input type="range" data-in="r" min="60" max="120" step="1" value="105" />
+    </label>
+    <label class="ma-toggle"><input type="checkbox" data-in="myo" /> <span>radius that holds baseline flow (the lesson’s what-if)</span></label>
+  </div>
+
+  <dl class="ma-readout">
+    <div><dt>Flow relative to baseline, Q / Q₁</dt><dd data-r-q></dd></div>
+    <div><dt>Resistance relative to baseline, R / R₁</dt><dd data-r-res></dd></div>
+    <div><dt>Change in radius from 100 micrometres</dt><dd data-r-chg></dd></div>
+  </dl>
+  <p class="ma-why" data-why role="status"></p>
+
+  <p class="ma-assume">In this sketch: idealized rigid tube with Poiseuille flow. The tube has fixed length and viscosity, steady laminar flow of a Newtonian fluid, and downstream and outside pressures held fixed, so the pressure difference is the only driver; blood and arterioles both violate these assumptions, so the numbers are a sketch of the logic, not a prediction for a real vessel. The baselines (60 mmHg, 100 micrometres) are the lesson’s made-up but convenient numbers; the slider ranges are made up for the sketch; the toggle simply sets whatever radius keeps flow at baseline.</p>
+  <p class="ma-foot">Rule to keep: flow scales with the fourth power of radius, so a small change in radius can cancel a large change in pressure. Holding flow while the difference rises from 60 to 120 mmHg takes only a 16 percent fall in radius.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const MINUS = '−';
+  const DP0 = 60, R0 = 100;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, anchor: string, size = 10, fill = INK, weight = 400): SVGElement {
+    const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, fill, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  const sg = (v: number) => (v < 0 ? MINUS + Math.abs(v) : String(v));
+  const p3 = (v: number) => v.toPrecision(3);
+  const p4 = (v: number) => v.toPrecision(4);
+  const fmtR = (r: number) => (Math.abs(r - Math.round(r)) < 0.05 ? String(Math.round(r)) : r.toFixed(1));
+  // percent to at most one decimal, trailing .0 removed
+  const pc1 = (v: number) => { const s = Math.abs(v).toFixed(1); return s.endsWith('.0') ? s.slice(0, -2) : s; };
+
+  document.querySelectorAll<HTMLElement>('[data-ma]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const dpIn = root.querySelector<HTMLInputElement>('[data-in="dp"]');
+    const rIn = root.querySelector<HTMLInputElement>('[data-in="r"]');
+    const myoIn = root.querySelector<HTMLInputElement>('[data-in="myo"]');
+    const dpOut = root.querySelector<HTMLElement>('[data-out="dp"]');
+    const rOut = root.querySelector<HTMLElement>('[data-out="r"]');
+    const rNote = root.querySelector<HTMLElement>('[data-r-note]');
+    const rQ = root.querySelector<HTMLElement>('[data-r-q]');
+    const rRes = root.querySelector<HTMLElement>('[data-r-res]');
+    const rChg = root.querySelector<HTMLElement>('[data-r-chg]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    if (!plot || !dpIn || !rIn || !myoIn || !dpOut || !rOut || !rNote || !rQ || !rRes || !rChg || !why) return;
+
+    let manualR = parseInt(rIn.value, 10); // the learner's own radius, kept while the toggle overrides it
+
+    // geometry (viewBox 340 x 334)
+    const CX = 100, CY = 100, SC = 0.7; // lumen cross-section: 0.7 px per micrometre
+    const BX0 = 20, BX1 = 320, BMAX = 8; // bars: relative units 0 to 8
+    const bx = (v: number) => BX0 + (Math.min(v, BMAX) / BMAX) * (BX1 - BX0);
+
+    function render() {
+      const dp = parseInt(dpIn!.value, 10);
+      const myo = myoIn!.checked;
+      const holdR = R0 * Math.pow(DP0 / dp, 0.25);
+      const r = myo ? holdR : manualR;
+      rIn!.disabled = myo;
+      rIn!.value = myo ? String(Math.round(holdR)) : String(manualR);
+
+      const dpRatio = dp / DP0, rRatio = r / R0;
+      const r4 = Math.pow(rRatio, 4);
+      const Q = dpRatio * r4;
+      const Res = 1 / r4;
+      const chg = (r - R0) / R0 * 100; // percent
+      const chgRound = Math.round(chg * 10) / 10;
+      const flat = Math.abs(chg) < 0.05;
+
+      dpOut!.textContent = String(dp);
+      rOut!.textContent = fmtR(r);
+      rNote!.textContent = myo ? '(set by the toggle, shown rounded)' : '(baseline 100)';
+
+      // ---- readouts with the lesson's arithmetic ----
+      rQ!.textContent = `(${dp} / ${DP0}) × (${fmtR(r)} / ${R0})⁴ = ${p4(dpRatio)} × ${p4(r4)} = ${p3(Q)}` + (myo ? ' (radius shown rounded)' : '');
+      rRes!.textContent = `(${R0} / ${fmtR(r)})⁴ = ${p3(Res)}`;
+      rChg!.textContent = flat ? '0%, no change' : `${chgRound > 0 ? '+' : MINUS}${pc1(chg)}% (${chg > 0 ? 'wider' : 'narrower'})`;
+
+      // ---- drawing ----
+      plot!.replaceChildren();
+      // cross-section: current lumen, then dashed baseline on top
+      plot!.appendChild(el('circle', { cx: CX, cy: CY, r: (r * SC).toFixed(2), fill: ACCENT, 'fill-opacity': 0.22, stroke: ACCENT, 'stroke-width': 2.4 }));
+      plot!.appendChild(el('circle', { cx: CX, cy: CY, r: R0 * SC, fill: 'none', stroke: INK, 'stroke-width': 1.3, 'stroke-dasharray': '4 3' }));
+      plot!.appendChild(txt(CX, CY + 4, 'lumen', 'middle', 10, INK, 600));
+      plot!.appendChild(txt(CX, 202, 'lumen cross-section, drawn to scale', 'middle', 10, INK));
+
+      // right-hand column: legend and radius numbers
+      plot!.appendChild(el('line', { x1: 198, y1: 24, x2: 214, y2: 24, stroke: ACCENT, 'stroke-width': 2.4 }));
+      plot!.appendChild(txt(218, 27, 'radius now', 'start', 10));
+      plot!.appendChild(el('line', { x1: 198, y1: 42, x2: 214, y2: 42, stroke: INK, 'stroke-width': 1.3, 'stroke-dasharray': '4 3' }));
+      plot!.appendChild(txt(218, 45, 'baseline, 100 µm', 'start', 10));
+      plot!.appendChild(txt(198, 84, 'radius', 'start', 10));
+      plot!.appendChild(txt(198, 106, `${fmtR(r)} µm`, 'start', 18, ACCENT, 700));
+      plot!.appendChild(txt(198, 134, 'change from baseline', 'start', 10));
+      plot!.appendChild(txt(198, 156, flat ? '0%' : `${chgRound > 0 ? '+' : MINUS}${pc1(chg)}%`, 'start', 18, ORANGE, 700));
+      plot!.appendChild(txt(198, 174, flat ? 'unchanged' : chg > 0 ? 'wider than baseline' : 'narrower than baseline', 'start', 10));
+
+      // bars
+      const bars: [string, number, number, string][] = [
+        [`Flow, Q / Q₁ = ${p3(Q)}`, 228, Q, ACCENT],
+        [`Resistance, R / R₁ = ${p3(Res)}`, 272, Res, ORANGE],
+      ];
+      for (const [label, y, v, col] of bars) {
+        plot!.appendChild(txt(BX0, y - 6, label, 'start', 11, INK, 700));
+        plot!.appendChild(el('rect', { x: BX0, y, width: (bx(v) - BX0).toFixed(1), height: 16, fill: col, 'fill-opacity': 0.75 }));
+        plot!.appendChild(el('line', { x1: bx(1), y1: y - 3, x2: bx(1), y2: y + 19, stroke: INK, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
+      }
+      plot!.appendChild(el('line', { x1: BX0, y1: 298, x2: BX1, y2: 298, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0, 1, 2, 4, 8]) {
+        plot!.appendChild(el('line', { x1: bx(t), y1: 298, x2: bx(t), y2: 302, stroke: INK, 'stroke-width': 1 }));
+        plot!.appendChild(txt(bx(t), 313, String(t), 'middle', 9));
+      }
+      plot!.appendChild(txt((BX0 + BX1) / 2, 328, 'relative to baseline (1.00 = dashed line), linear scale', 'middle', 10));
+
+      // ---- status (every sentence reports a model result, so each starts "In this sketch,") ----
+      const radiusPhrase = flat ? 'the radius is unchanged' : `the radius is ${pc1(chg)}% ${chg > 0 ? 'wider' : 'narrower'}`;
+      const qPct = (Number(Q.toPrecision(3)) - 1) * 100; // from the 3-figure flow shown, as in the lesson
+      let msg: string;
+      if (myo) {
+        if (dp === DP0) {
+          msg = 'In this sketch, the pressure difference is at its baseline, so holding flow at baseline needs no change in radius, and flow and resistance stay at 1.00.';
+        } else {
+          msg = `In this sketch, with the toggle on, the radius is set to ${R0} × (${DP0} / ${dp})^(1/4) = ${fmtR(holdR)} micrometres (rounded), ${pc1(chg)}% ${chg > 0 ? 'wider' : 'narrower'} than baseline; flow stays at 1.00 times baseline while resistance ${dp > DP0 ? 'rises' : 'falls'} to ${p3(Res)} times baseline, the same factor as the pressure difference.`;
+        }
+      } else if (dp === DP0 && flat) {
+        msg = 'In this sketch, pressure difference and radius are both at baseline, so flow and resistance are both 1.00 times baseline.';
+      } else {
+        const pdesc = dp === DP0 ? 'the pressure difference is at baseline' : `the pressure difference is ${p3(dpRatio)} times baseline`;
+        let flowDesc: string;
+        if (Math.abs(Q - 1) < 0.0005) flowDesc = 'flow is at baseline';
+        else flowDesc = `flow is ${p3(Q)} times baseline (${pc1(qPct)}% ${Q > 1 ? 'above' : 'below'})`;
+        msg = `In this sketch, ${pdesc} and ${radiusPhrase}, so ${flowDesc} and resistance is ${p3(Res)} times baseline.`;
+        if (dp !== DP0) {
+          if (Math.abs(r - holdR) < 0.05) msg += ' This radius is the one that holds flow at baseline.';
+          else msg += ` ${fmtR(holdR)} micrometres would hold flow at baseline; this radius is ${r > holdR ? 'wider' : 'narrower'} than that, so flow is ${r > holdR ? 'above' : 'below'} baseline.`;
+        }
+        if (dp === 80 && r === 105) msg += ' This is the lesson’s passive-vessel case, distended by 5 percent.';
+        if (dp === 80 && r === 90) msg += ' This is the lesson’s overshoot case.';
+      }
+      why!.textContent = msg;
+    }
+    rIn.addEventListener('input', () => { if (!myoIn.checked) manualR = parseInt(rIn.value, 10); });
+    [rIn, dpIn, myoIn].forEach((s) => s.addEventListener('input', render));
+    myoIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style>
+  .ma { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .ma-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .ma-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .ma-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .ma-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .ma-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .ma-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .ma-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .ma-slabel input { accent-color: var(--ddp-color-accent); }
+  .ma-toggle { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .ma-toggle input { accent-color: var(--ddp-color-accent); width: 1.1rem; height: 1.1rem; }
+  .ma-readout { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .ma-readout div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .ma-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .ma-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .ma-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .ma-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .ma-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .ma-controls { grid-template-columns: 1fr; } }
+</style>

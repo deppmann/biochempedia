@@ -1,0 +1,248 @@
+---
+/**
+ * FluidShiftCompartments — "Where does the litre go?" Conservation of effective osmoles decides
+ * how a retained load splits between cells (ICF) and extracellular fluid (ISF + plasma) in a
+ * closed body at equilibrium. Rule (the lesson's worked problem): start at 300 mOsm per kg;
+ * C = (300·TBW + Osm_added) / (TBW + V). A solute that stays outside cells (NaCl): ICF_final =
+ * ICF·300/C and ECF_final = TBW + V − ICF_final. A solute treated as entering all body water (urea, in this sketch):
+ * every compartment grows in proportion to its share of TBW. Plasma sodium after a NaCl load by
+ * sodium balance, (140 × ECF_before + osmoles added / 2) / ECF_after; for urea, the sketch estimate
+ * 140 × effective osmolality / 300. Self-contained vanilla-TS Astro island. Original.
+ */
+const uid = Math.random().toString(36).slice(2, 8);
+---
+
+<figure class="fsc card" data-fsc>
+  <figcaption class="fsc-head">Where does the litre go? Compartments after a retained load<span class="fsc-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="fsc-svg" viewBox="0 0 340 228" role="img" aria-label="Paired horizontal bars for intracellular fluid, interstitial fluid and plasma, before and after a retained load, with the change in litres written under each pair" data-plot></svg>
+
+  <div class="fsc-controls">
+    <label class="fsc-slabel"><span>Volume retained <em data-out="vol">1.00</em> L</span>
+      <input type="range" data-in="vol" min="0" max="3" step="0.05" value="1" />
+    </label>
+
+    <div class="fsc-slabel">
+      <label for={`fsc-osm-${uid}`}><span>Osmolarity of the retained fluid <em data-out="osm">0</em> mOsm per L</span></label>
+      <input id={`fsc-osm-${uid}`} type="range" data-in="osm" min="0" max="900" step="10" value="0" />
+      <span class="fsc-marks">Marks:
+        <button type="button" class="fsc-mark" data-osm="0">water, 0</button>
+        <button type="button" class="fsc-mark" data-osm="300">isotonic, 300</button>
+        <button type="button" class="fsc-mark" data-osm="900">900 (model value)</button>
+      </span>
+    </div>
+
+    <fieldset class="fsc-body">
+      <legend>Body water (a 70-kg body)</legend>
+      <label class="fsc-slabel"><span>Water, fraction of the 70-kg body mass <em data-out="frac">0.60</em></span>
+        <input type="range" data-in="frac" min="0.45" max="0.75" step="0.01" value="0.6" />
+      </label>
+      <span class="fsc-tbw" data-tbw></span>
+    </fieldset>
+
+    <fieldset class="fsc-mode">
+      <legend>Where the solute goes, in this sketch</legend>
+      <label><input type="radio" name={`fsc-mode-${uid}`} value="nacl" checked /> solute stays outside cells (NaCl)</label>
+      <label><input type="radio" name={`fsc-mode-${uid}`} value="urea" /> in this sketch, solute enters all water (urea)</label>
+    </fieldset>
+  </div>
+
+  <dl class="fsc-readout">
+    <div><dt>ECF (ISF + plasma), before → after</dt><dd data-r-ecf></dd></div>
+    <div><dt>Final osmolality, all solutes (mOsm per kg)</dt><dd data-r-osm></dd></div>
+    <div><dt>Tonicity, effective osmolality (mOsm per kg)</dt><dd data-r-ton></dd></div>
+    <div><dt>Plasma sodium estimate (mmol per L)</dt><dd data-r-na></dd></div>
+  </dl>
+  <p class="fsc-why" data-why role="status"></p>
+
+  <p class="fsc-assume">In this sketch (all of this is made up for the sketch unless the lesson gives it): start at 300 mOsm per kg, the lesson’s rounded value (measured adult values are about 275 to 295), with plasma sodium 140 mmol per L; a 70-kg body, so total body water is the water fraction × 70 kg (60 percent gives the textbook 42 L; the 0.45 and 0.75 figures are the lesson’s textbook estimates for old age and infants); cells hold about two-thirds of body water; the ECF is about three-quarters ISF and one-quarter plasma (3:1), an added assumption that is also used to split any ECF gain; urea is treated as equilibrating across all water (the lesson works no urea load); 900 mOsm per L is a model value; ideal behaviour, 1 kg of water = 1 L; plasma sodium after a sodium chloride load is found by sodium balance, (140 × ECF before + sodium added) / ECF after, with sodium added = osmoles added / 2 (sodium chloride gives two osmoles per mole), and with urea it is a sketch estimate, 140 × effective osmolality / 300.</p>
+  <p class="fsc-closed">Closed model at equilibrium: no excretion, and cells gain or lose no solute (no cell solute adaptation).</p>
+
+  <p class="fsc-foot">Rule to keep: water crosses cell membranes freely, so each compartment ends up holding water in proportion to its effective osmoles. Only a solute that stays outside cells changes how a load divides between cells and ECF.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ISFC = '#5a7bc4', PLASMA = '#e57200', INK = '#4b4b55', BEFORE = '#d3d5dc';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('FluidShiftCompartments: missing ' + sel);
+    return e;
+  }
+  const f2 = (x: number) => x.toFixed(2);
+  const f1 = (x: number) => x.toFixed(1);
+  const dtxt = (d: number) => (Math.abs(d) < 0.005 ? 'no change' : (d > 0 ? '+' : '−') + Math.abs(d).toFixed(2) + ' L');
+
+  document.querySelectorAll<HTMLElement>('[data-fsc]').forEach((root) => {
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const volIn = must<HTMLInputElement>(root, '[data-in="vol"]');
+    const osmIn = must<HTMLInputElement>(root, '[data-in="osm"]');
+    const fracIn = must<HTMLInputElement>(root, '[data-in="frac"]');
+    const volOut = must<HTMLElement>(root, '[data-out="vol"]');
+    const osmOut = must<HTMLElement>(root, '[data-out="osm"]');
+    const fracOut = must<HTMLElement>(root, '[data-out="frac"]');
+    const tbwOut = must<HTMLElement>(root, '[data-tbw]');
+    const rEcf = must<HTMLElement>(root, '[data-r-ecf]');
+    const rOsm = must<HTMLElement>(root, '[data-r-osm]');
+    const rTon = must<HTMLElement>(root, '[data-r-ton]');
+    const rNa = must<HTMLElement>(root, '[data-r-na]');
+    const why = must<HTMLElement>(root, '[data-why]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+
+    const BX0 = 64, BW = 162, RX = 232; // bar region and right-hand value column (viewBox units)
+    const ROW0 = 6, ROWH = 52;
+
+    function text(x: number, y: number, s: string, size: number, fill: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': size, fill }, extra));
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+
+    function render() {
+      const V = parseFloat(volIn.value);
+      const osm = parseInt(osmIn.value, 10);
+      const mass = 70;
+      const frac = parseFloat(fracIn.value);
+      const urea = radios.some((r) => r.checked && r.value === 'urea');
+
+      const tbw = mass * frac;
+      const icf = (2 / 3) * tbw, ecf = tbw / 3;
+      const isf = 0.75 * ecf, pl = 0.25 * ecf;
+
+      // closed model: effective-osmole conservation
+      const osmAdded = osm * V;
+      const C = (300 * tbw + osmAdded) / (tbw + V);            // final osmolality, all solutes
+      let icf1: number, ecf1: number, Ceff: number;
+      if (urea && osm > 0) {
+        icf1 = icf * (tbw + V) / tbw;                            // proportional to share of body water
+        ecf1 = tbw + V - icf1;
+        Ceff = 300 * tbw / (tbw + V);                            // urea is not an effective solute
+      } else {
+        icf1 = icf * 300 / C;
+        ecf1 = tbw + V - icf1;
+        Ceff = C;
+      }
+      const dI = icf1 - icf, dE = ecf1 - ecf, dP = dE / 4, dS = dE - dP;
+      const isf1 = isf + dS, pl1 = pl + dP;
+      const na = urea && osm > 0 ? 140 * Ceff / 300 : (140 * ecf + osmAdded / 2) / ecf1;
+      const naWord = na > 140.05 ? 'rises to' : (na < 139.95 ? 'falls to' : 'stays near');
+
+      volOut.textContent = f2(V);
+      osmOut.textContent = String(osm);
+      fracOut.textContent = f2(frac);
+      tbwOut.textContent = `Total body water ${f2(frac)} × ${mass} kg = ${f1(tbw)} L: ICF ${f1(icf)} L, ECF ${f1(ecf)} L.`;
+
+      // ---- plot ----
+      plot.replaceChildren();
+      const maxv = Math.max(icf, icf1);
+      const nice = Math.max(5, Math.ceil(maxv / 5) * 5);
+      const x = (v: number) => BX0 + (v / nice) * BW;
+      const rows = [
+        { name: 'ICF', sub: 'in cells', b: icf, a: icf1, d: dI, col: ACCENT },
+        { name: 'ISF', sub: 'bathes cells', b: isf, a: isf1, d: dS, col: ISFC },
+        { name: 'Plasma', sub: 'of blood', b: pl, a: pl1, d: dP, col: PLASMA },
+      ];
+      rows.forEach((r, i) => {
+        const y0 = ROW0 + i * ROWH;
+        text(4, y0 + 11, r.name, 10, INK, { 'font-weight': 700 });
+        text(4, y0 + 23, r.sub, 9, INK);
+        plot.appendChild(el('rect', { x: BX0, y: y0, width: Math.max(0.5, x(r.b) - BX0), height: 12, fill: BEFORE }));
+        plot.appendChild(el('rect', { x: BX0, y: y0 + 15, width: Math.max(0.5, x(r.a) - BX0), height: 12, fill: r.col }));
+        plot.appendChild(el('line', { x1: x(r.b), y1: y0 - 2, x2: x(r.b), y2: y0 + 29, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+        text(RX, y0 + 10, `before ${f2(r.b)} L`, 9, INK);
+        text(RX, y0 + 25, `after ${f2(r.a)} L`, 9, INK, { 'font-weight': 700 });
+        text(BX0, y0 + 40, dtxt(r.d), 9, r.d >= 0.005 ? ACCENT : (r.d <= -0.005 ? PLASMA : INK), { 'font-weight': 700 });
+      });
+      // axis
+      const AY = ROW0 + 3 * ROWH + 2;
+      plot.appendChild(el('line', { x1: BX0, y1: AY, x2: BX0 + BW, y2: AY, stroke: INK, 'stroke-width': 1 }));
+      [0, nice / 2, nice].forEach((v) => {
+        plot.appendChild(el('line', { x1: x(v), y1: AY, x2: x(v), y2: AY + 3, stroke: INK, 'stroke-width': 1 }));
+        text(x(v), AY + 13, String(v), 9, INK, { 'text-anchor': 'middle' });
+      });
+      text(RX + 8, AY + 13, 'litres', 9, INK);
+      // legend
+      const LY = AY + 28;
+      plot.appendChild(el('rect', { x: 4, y: LY - 8, width: 12, height: 9, fill: BEFORE }));
+      text(20, LY, 'before', 9, INK);
+      plot.appendChild(el('line', { x1: 78, y1: LY - 10, x2: 78, y2: LY + 2, stroke: INK, 'stroke-width': 1, 'stroke-dasharray': '2 2' }));
+      text(84, LY, 'level before', 9, INK);
+      [ACCENT, ISFC, PLASMA].forEach((c, k) => plot.appendChild(el('rect', { x: 4 + k * 5, y: LY + 6, width: 5, height: 9, fill: c })));
+      text(24, LY + 14, 'after (colour by compartment)', 9, INK);
+
+      // ---- readouts ----
+      rEcf.textContent = `${f2(ecf)} → ${f2(ecf1)} L`;
+      rOsm.textContent = `300.0 → ${f1(C)}`;
+      rTon.textContent = `300.0 → ${f1(Ceff)}`;
+      rNa.textContent = `140.0 → ${f1(na)}`;
+
+      // ---- status line: one sentence set per reachable state ----
+      const total = `Cells plus ECF now hold ${f2(icf1 + ecf1)} L.`;
+      let s: string;
+      const none = '(the solute choice matters only when solute is added)';
+      const tiny = Math.abs(dI) < 0.005;
+      if (V < 0.005) {
+        s = `In this sketch, nothing is retained, so every compartment stays at its starting volume, osmolality stays at 300 mOsm per kg and plasma sodium at 140 mmol per L ${none}.`;
+      } else if (osm === 0) {
+        s = `In this sketch, ${f2(V)} L of solute-free water spreads through all body water ${none}; as in the textbook model, about two-thirds goes to cells (ICF: ${dtxt(dI)}) and about one-third to ECF (ECF: ${dtxt(dE)}, of which plasma gains only ${f2(dP)} L). Final osmolality falls to ${f1(C)} mOsm per kg and the plasma sodium estimate to ${f1(na)} mmol per L. ${total}`;
+      } else if (urea) {
+        s = `In this sketch, urea crosses most cell membranes, so it is treated as entering all body water along with the water; its osmoles count toward osmolality without moving water out of cells. Osmolality ends at ${f1(C)} and tonicity at ${f1(Ceff)} mOsm per kg, and each compartment gains in proportion to its share of body water (ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)}), the same split as solute-free water. The plasma sodium estimate is ${f1(na)} mmol per L. ${total}`;
+      } else if (osm === 300) {
+        s = `In this sketch, a load at the body’s own 300 mOsm per kg adds osmoles in proportion to its water, so osmolality stays at 300.0 mOsm per kg, ICF does not change and all ${f2(V)} L stays outside cells (ECF: ${dtxt(dE)}, split 3:1 ISF to plasma by assumption). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L, because the load adds ${f1(osm / 2)} mmol of sodium per litre. ${total}`;
+      } else if (tiny) {
+        s = `In this sketch, this sodium chloride load is so close to 300 mOsm per kg that the change in ICF is under 0.005 L (ICF: no change, ECF: ${dtxt(dE)}); final osmolality is ${f1(C)} mOsm per kg and the plasma sodium estimate by sodium balance ${f1(na)} mmol per L. ${total}`;
+      } else if (osm < 300) {
+        s = `In this sketch, the sodium chloride load is less concentrated than the body’s 300 mOsm per kg, so final osmolality falls to ${f1(C)} mOsm per kg and water enters cells until osmolality is equal again: ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)} (less than the ${f2(V)} L retained). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L. ${total}`;
+      } else {
+        s = `In this sketch, the added sodium chloride stays outside cells and raises extracellular osmolality, so final osmolality rises to ${f1(C)} mOsm per kg and water leaves cells until osmolality is equal again: ICF: ${dtxt(dI)}, ECF: ${dtxt(dE)} (more than the ${f2(V)} L retained). By sodium balance the plasma sodium estimate ${naWord} ${f1(na)} mmol per L. Splitting the ECF gain between plasma and ISF needs an added assumption, 3:1 here. ${total}`;
+      }
+      why.textContent = s;
+    }
+
+    [volIn, osmIn, fracIn].forEach((c) => c.addEventListener('input', render));
+    radios.forEach((r) => r.addEventListener('change', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-osm]').forEach((b) => {
+      b.addEventListener('click', () => {
+        osmIn.value = b.dataset.osm ?? '0';
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style is:global>
+  .fsc { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .fsc-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .fsc-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .fsc-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .fsc-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .fsc-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fsc-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .fsc-slabel input[type="range"] { accent-color: var(--ddp-color-accent); width: 100%; }
+  .fsc-marks { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.15rem; }
+  .fsc-mark { font: inherit; font-size: var(--ddp-text-xs); padding: 0.1rem 0.5rem; border: 1px solid var(--ddp-color-line); border-radius: 999px; background: transparent; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .fsc-mark:hover, .fsc-mark:focus-visible { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .fsc-body, .fsc-mode { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.35rem 0.6rem 0.5rem; margin: 0; min-width: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .fsc-body { display: grid; gap: var(--ddp-space-2); }
+  .fsc-body legend, .fsc-mode legend { padding: 0 0.3rem; font-weight: 600; }
+  .fsc-mode { display: flex; flex-direction: column; gap: 0.25rem; }
+  .fsc-mode label { display: flex; gap: 0.4rem; align-items: baseline; }
+  .fsc-mode input { accent-color: var(--ddp-color-accent); }
+  .fsc-tbw { color: var(--ddp-color-muted); font-size: var(--ddp-text-xs); }
+  .fsc-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .fsc-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .fsc-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .fsc-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .fsc-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .fsc-assume, .fsc-closed { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .fsc-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 640px) {
+    .fsc-controls { grid-template-columns: 1fr 1fr; }
+  }
+</style>
