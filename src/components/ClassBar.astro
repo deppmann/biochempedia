@@ -15,6 +15,7 @@ const { slug } = Astro.props;
     <span data-cb-text></span>
     <a href="/join/" class="cb-link">My class →</a>
   </p>
+  <div class="cb-notes" data-cb-notes hidden></div>
   <details class="cb-stuck" data-cb-stuck hidden>
     <summary>Stuck? Tell your teacher where</summary>
     <label class="cb-label" for={`cb-stuck-${slug}`}>What part doesn't make sense yet? Your teacher reads these before class.</label>
@@ -24,7 +25,7 @@ const { slug } = Astro.props;
 </aside>
 
 <script>
-  import { enrolled, setEnrolled, api, report } from '../lib/classroom';
+  import { enrolled, setEnrolled, api, report, lessonFeedback } from '../lib/classroom';
 
   document.querySelectorAll<HTMLElement>('[data-classbar]').forEach(async (bar) => {
     const slug = bar.dataset.classbar!;
@@ -42,6 +43,20 @@ const { slug } = Astro.props;
     bar.hidden = false;
     const stuck = bar.querySelector<HTMLDetailsElement>('[data-cb-stuck]')!;
     if (d.pending) return;
+    // Notes the teacher wrote about this lesson (free, no AI), newest first.
+    lessonFeedback(slug).then((list) => {
+      const notes = list.filter((f) => f.kind === 'note' || f.kind === 'stuck');
+      const box = bar.querySelector<HTMLElement>('[data-cb-notes]')!;
+      box.hidden = !notes.length;
+      for (const n of notes) {
+        const p = document.createElement('p');
+        p.className = 'cb-note-item';
+        const b = document.createElement('strong');
+        b.textContent = `${d.teacherName}: `;
+        p.append(b, n.text);
+        box.append(p);
+      }
+    });
     stuck.hidden = false;
     const ta = bar.querySelector<HTMLTextAreaElement>('[data-cb-stuck-text]')!;
     const note = bar.querySelector<HTMLElement>('[data-cb-stuck-note]')!;
@@ -60,6 +75,9 @@ const { slug } = Astro.props;
   .cb-line { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: var(--ddp-space-2) var(--ddp-space-3); margin: 0; color: var(--ddp-color-ink); }
   .cb-dot { width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--ddp-color-verified); }
   .cb-link { color: var(--ddp-color-accent); font-weight: 600; white-space: nowrap; }
+  .cb-notes { margin-top: var(--ddp-space-2); }
+  .cb-notes[hidden] { display: none; }
+  .cb-notes :global(.cb-note-item) { margin: var(--ddp-space-1, .25rem) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: var(--ddp-color-surface); border-radius: 6px; line-height: 1.5; }
   .cb-stuck { margin-top: var(--ddp-space-2); }
   .cb-stuck[hidden] { display: none; }
   .cb-stuck summary { cursor: pointer; color: var(--ddp-color-accent); font-weight: 600; }

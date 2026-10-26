@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { COURSES, unitsFor } from '../../../data/courses';
+import PRICES from '../../../data/model-prices.json';
 import '../../../styles/teach.css';
 
 // Every published lesson, grouped by course and unit, for the lesson picker and for
@@ -24,7 +25,7 @@ const MODES = [
 ---
 
 <BaseLayout title="Class — Biochemistrypedia" description="Your class." noindex>
-  <article class="wrap tc" data-class data-catalog={JSON.stringify(catalog)}>
+  <article class="wrap tc" data-class data-catalog={JSON.stringify(catalog)} data-prices={JSON.stringify(PRICES)}>
     <p class="tc-eyebrow"><a href="/teach/classes/">My classes</a></p>
     <h1 data-name>Class</h1>
     <p class="tc-row" style="margin-top: var(--ddp-space-3)">
@@ -44,6 +45,11 @@ const MODES = [
     <!-- Brief -->
     <section data-pane="brief">
       <p class="tc-muted" data-brief-when></p>
+      <section class="tc-card" data-review hidden style="margin-top: var(--ddp-space-4); border-color: var(--ddp-color-accent)">
+        <h2 style="margin-top:0">AI feedback waiting for you</h2>
+        <p class="tc-muted">Students don't see these until you release them. Edit anything you like first.</p>
+        <div data-review-list></div>
+      </section>
       <h2 style="margin-top: var(--ddp-space-4)">Who needs you</h2>
       <ul data-needs></ul>
       <p class="tc-muted" data-needs-none hidden>Nobody is flagged: no overdue lessons, no low first-try scores, no stuck notes.</p>
@@ -100,6 +106,27 @@ const MODES = [
         <button class="tc-btn" type="submit">Save</button>
         <p class="tc-ok" data-set-msg role="status"></p>
       </form>
+      <h2>AI feedback</h2>
+      <p class="tc-muted" style="max-width:68ch">Optional. When it's on, a student who sends a written answer gets short feedback that points to a strength, the biggest gap, and a question to think about, without giving the answer away. It runs on your own API key, so your provider bills you directly.</p>
+      <p class="tc-note" data-ai-unavailable hidden></p>
+      <form class="tc-form" data-ai-form>
+        <label class="tc-check"><input type="checkbox" name="aiEnabled" /> <span>Turn on AI feedback for this class</span></label>
+        <label>Provider (from your saved keys)<select name="aiProvider"></select></label>
+        <label>Model<select name="aiModelPick"></select></label>
+        <label data-ai-other hidden>Model name, exactly as the provider writes it<input type="text" name="aiModelOther" maxlength="80" /></label>
+        <fieldset style="border:0;padding:0;margin:0">
+          <legend style="font-size:var(--ddp-text-sm);font-weight:600;margin-bottom:.3rem">When students see AI feedback</legend>
+          <label class="tc-check"><input type="radio" name="aiMode" value="hold" /> <span>After I review it (I can edit or discard it first)</span></label>
+          <label class="tc-check"><input type="radio" name="aiMode" value="show" /> <span>Right away (I can still read every exchange)</span></label>
+        </fieldset>
+        <label>Monthly spending limit for this class, in US dollars<input type="number" name="aiCap" min="0" max="1000" step="0.5" /></label>
+        <p class="tc-note good" data-ai-estimate style="margin:0"></p>
+        <p class="tc-muted" data-ai-spent style="margin:0"></p>
+        <button class="tc-btn" type="submit">Save AI settings</button>
+        <p class="tc-ok" data-ai-msg role="status"></p>
+        <p class="tc-error" data-ai-err role="alert"></p>
+      </form>
+
       <h2>Class code</h2>
       <p class="tc-muted">Make a new code if the old one got shared too widely. Students already in the class stay in.</p>
       <button class="tc-btn ghost" type="button" data-new-code>Make a new class code</button>
@@ -116,9 +143,11 @@ const MODES = [
     interface Brief {
       class: { id: string; name: string; code: string; course: string; joinMode: string; groupId: string | null; shared: boolean };
       viewer: 'owner' | 'group-admin';
+      ai?: { available: boolean; enabled: boolean; provider: string | null; model: string | null; mode: string; capCents: number; spentMicro: number; hasKey: boolean };
+      feedback?: { id: number; lesson: string; kind: string; item: string; answer: string; draft: string | null; final: string | null; status: string; source: string; at: number; studentId: number; student: string; seenAt: number | null }[];
       students: { id: number; nickname: string; status: string; joined: number; lastSeen: number | null }[];
       assignments: { slug: string; due: string | null }[];
-      lessons: Record<string, { started: number; done: number; notStarted: string[]; ideas: { item: string; idea: string; answer: string; agree: number; disagree: number }[]; quiz: { item: string; n: number; correct: number }[]; cers: { student: string; task: string; claim: string; evidence: string; reasoning: string; at: number }[]; stuck: { student: string; text: string; at: number }[] }>;
+      lessons: Record<string, { started: number; done: number; notStarted: string[]; ideas: { item: string; idea: string; answer: string; agree: number; disagree: number }[]; quiz: { item: string; n: number; correct: number }[]; cers: { student: string; studentId: number; item: string; task: string; claim: string; evidence: string; reasoning: string; text: string; at: number }[]; stuck: { student: string; studentId: number; text: string; at: number }[] }>;
       needs: { student: string; reasons: string[] }[];
     }
     interface QuizFile { items: { id: string; stem: string; choices: string[]; answer: number; anchor: { id: string; text: string } | null }[] }
@@ -164,6 +193,7 @@ const MODES = [
       $('[data-pending-note]').hidden = !pending;
       $('[data-pending-note]').textContent = `${pending} ${pending === 1 ? 'student is' : 'students are'} waiting to join. See the Students tab.`;
       renderBrief();
+      renderReview();
       // A group admin reading a shared class: brief only, nothing to change.
       const viewer = brief.viewer === 'group-admin';
       $('[data-viewer-note]').hidden = !viewer;
@@ -171,6 +201,7 @@ const MODES = [
       if (viewer) { show('brief'); return; }
       renderAssign();
       renderRoster();
+      renderAi();
       const f = $<HTMLFormElement>('[data-settings]');
       (f.elements.namedItem('name') as HTMLInputElement).value = c.name;
       (f.elements.namedItem('joinMode') as HTMLSelectElement).value = c.joinMode;
@@ -255,21 +286,176 @@ const MODES = [
 
         if (L.cers.length) {
           det.append(el('h3', { textContent: `Written answers sent to you (${L.cers.length})` }));
-          for (const c of L.cers) {
-            const q = el('div', { className: 'tc-quote' });
-            q.append(el('b', { textContent: c.student }));
-            for (const [k, v] of [['Claim', c.claim], ['Evidence', c.evidence], ['Reasoning', c.reasoning]]) if (v) q.append(el('p', { style: 'margin:.3rem 0 0' }, el('em', { textContent: `${k}: ` }), v));
-            det.append(q);
+          // One group per task (each claim-evidence-reasoning box or design problem).
+          const items = [...new Set(L.cers.map((c) => c.item))];
+          for (const it of items) {
+            const group = L.cers.filter((c) => c.item === it);
+            const label = it.startsWith('design-') ? `Design problem ${it.slice(7)}` : 'Claim, evidence, reasoning';
+            const head = el('p', { className: 'tc-row', style: 'margin:.8rem 0 .2rem' }, el('strong', { textContent: `${label} · ${group.length}` }));
+            if (aiReady() && owner() && group.length >= 2) head.append(summaryButton(slug, it, det));
+            det.append(head);
+            for (const c of group) {
+              const q = el('div', { className: 'tc-quote' });
+              q.append(el('b', { textContent: c.student }));
+              for (const [k, v] of [['Claim', c.claim], ['Evidence', c.evidence], ['Reasoning', c.reasoning], ['Answer', c.text]]) if (v) q.append(el('p', { style: 'margin:.3rem 0 0' }, el('em', { textContent: `${k}: ` }), v));
+              const f = (brief.feedback ?? []).find((x) => x.studentId === c.studentId && x.lesson === slug && x.item === it);
+              if (f) q.append(el('p', { className: 'tc-legend', style: 'margin:.4rem 0 0' },
+                `AI feedback: ${f.status === 'held' ? 'waiting for your review (above)' : `released${f.seenAt ? ', seen' : ''}`} · `, el('span', { textContent: (f.final ?? f.draft ?? '').slice(0, 220) })));
+              det.append(q);
+            }
           }
         }
 
         if (L.stuck.length) {
           det.append(el('h3', { textContent: `Stuck notes (${L.stuck.length})` }));
-          for (const s of L.stuck) det.append(el('div', { className: 'tc-quote' }, el('b', { textContent: s.student }), el('p', { style: 'margin:.3rem 0 0', textContent: s.text })));
+          for (const s of L.stuck) {
+            const q = el('div', { className: 'tc-quote' }, el('b', { textContent: s.student }), el('p', { style: 'margin:.3rem 0 0', textContent: s.text }));
+            const sentNotes = (brief.feedback ?? []).filter((x) => x.studentId === s.studentId && x.lesson === slug && x.source === 'teacher');
+            for (const n of sentNotes) q.append(el('p', { className: 'tc-legend', style: 'margin:.3rem 0 0', textContent: `You replied: ${n.final}` }));
+            if (owner()) q.append(replyForm(slug, s.studentId));
+            det.append(q);
+          }
         }
         if (!L.ideas.length && !L.quiz.length && !L.cers.length && !L.stuck.length) det.append(el('p', { className: 'tc-muted', textContent: 'No answers yet.' }));
         box.append(det);
       }
+    }
+
+    // ---- AI helpers (brief) ----
+    const owner = () => brief.viewer === 'owner';
+    const aiReady = () => !!brief.ai?.available && !!brief.ai?.enabled && !!brief.ai?.hasKey;
+    function summaryButton(slug: string, item: string, det: HTMLElement) {
+      const b = el('button', { type: 'button', className: 'tc-btn small ghost', textContent: 'Summarize with AI' });
+      b.addEventListener('click', async () => {
+        b.disabled = true; b.textContent = 'Summarizing…';
+        const r = await api<{ text: string }>(`/api/classes/${id}/ai/summary`, { lesson: slug, item });
+        b.disabled = false; b.textContent = 'Summarize with AI';
+        const out = el('div', { className: 'tc-note good', style: 'white-space:pre-wrap;margin:.4rem 0' });
+        out.textContent = r.ok ? r.data.text : r.data.error || 'Could not summarize.';
+        b.closest('p')!.after(out);
+      });
+      return b;
+    }
+    function replyForm(slug: string, studentId: number) {
+      const wrap = el('details', { style: 'margin-top:.4rem' });
+      wrap.append(el('summary', { textContent: 'Reply' }));
+      const ta = el('textarea', { rows: 3, style: 'width:100%;margin-top:.4rem' });
+      const row = el('p', { className: 'tc-row', style: 'margin:.4rem 0 0' });
+      const send = el('button', { type: 'button', className: 'tc-btn small', textContent: 'Send to student' });
+      const msg = el('span', { className: 'tc-ok' });
+      if (aiReady()) {
+        const draft = el('button', { type: 'button', className: 'tc-btn small ghost', textContent: 'Draft with AI' });
+        draft.addEventListener('click', async () => {
+          draft.disabled = true; msg.textContent = 'Drafting…';
+          const r = await api<{ text: string }>(`/api/classes/${id}/ai/reply`, { lesson: slug, studentId });
+          draft.disabled = false;
+          msg.textContent = r.ok ? 'Draft ready: edit it, then send.' : r.data.error || 'Could not draft.';
+          if (r.ok) ta.value = r.data.text;
+        });
+        row.append(draft);
+      }
+      send.addEventListener('click', async () => {
+        if (!ta.value.trim()) { msg.textContent = 'Write a reply first.'; return; }
+        const r = await api(`/api/classes/${id}/notes`, { studentId, lesson: slug, text: ta.value, kind: 'stuck' });
+        msg.textContent = r.ok ? 'Sent. The student sees it in the lesson.' : r.data.error || 'Could not send.';
+        if (r.ok) load();
+      });
+      row.append(send, msg);
+      wrap.append(ta, row);
+      return wrap;
+    }
+    function renderReview() {
+      const held = (brief.feedback ?? []).filter((f) => f.status === 'held');
+      $('[data-review]').hidden = !held.length || !owner();
+      const list = $('[data-review-list]');
+      list.textContent = '';
+      for (const f of held) {
+        const card = el('div', { className: 'tc-quote' });
+        card.append(el('p', { style: 'margin:0' }, el('b', { textContent: f.student }), ` · ${lessonInfo.get(f.lesson)?.title ?? f.lesson} · ${f.item.startsWith('design-') ? 'design problem' : 'claim, evidence, reasoning'}`));
+        const ans = el('details', { style: 'margin:.3rem 0' }, el('summary', { textContent: 'Their answer' }));
+        ans.append(el('p', { style: 'white-space:pre-wrap;margin:.3rem 0 0', textContent: f.answer }));
+        const ta = el('textarea', { rows: 5, style: 'width:100%' });
+        ta.value = f.draft ?? '';
+        const row = el('p', { className: 'tc-row', style: 'margin:.4rem 0 0' });
+        const rel = el('button', { type: 'button', className: 'tc-btn small', textContent: 'Release to student' });
+        const dis = el('button', { type: 'button', className: 'tc-btn small danger', textContent: 'Discard' });
+        rel.addEventListener('click', async () => { const r = await api(`/api/classes/${id}/feedback/${f.id}`, { action: 'release', text: ta.value }); if (r.ok) load(); });
+        dis.addEventListener('click', async () => { const r = await api(`/api/classes/${id}/feedback/${f.id}`, { action: 'discard' }); if (r.ok) load(); });
+        row.append(rel, dis);
+        card.append(ans, ta, row);
+        list.append(card);
+      }
+    }
+
+    // ---- AI settings ----
+    const prices: { models: { provider: string; model: string; label: string; in: number; out: number; note?: string }[]; estimate: { feedback_in: number; feedback_out: number } } = JSON.parse(root.dataset.prices!);
+    let keys: string[] = [];
+    async function renderAi() {
+      const ai = brief.ai!;
+      const st = await api<{ available: boolean; keys: { provider: string }[] }>('/api/ai/status');
+      keys = st.ok ? st.data.keys.map((k) => k.provider) : [];
+      const un = $('[data-ai-unavailable]');
+      const form = $<HTMLFormElement>('[data-ai-form]');
+      un.hidden = ai.available && keys.length > 0;
+      un.textContent = '';
+      if (!ai.available) un.textContent = "AI feedback isn't switched on for the site yet.";
+      else if (!keys.length) { un.append('Add an API key first, under '); un.append(el('a', { href: '/teach/classes/#ai', textContent: 'AI feedback keys on My classes' }), '.'); }
+      form.hidden = !ai.available || !keys.length;
+      const NAMES: Record<string, string> = { gemini: 'Google (Gemini)', anthropic: 'Anthropic (Claude)', openai: 'OpenAI (GPT)' };
+      const ps = form.elements.namedItem('aiProvider') as HTMLSelectElement;
+      ps.textContent = '';
+      for (const k of keys) ps.append(el('option', { value: k, textContent: NAMES[k] ?? k }));
+      ps.value = ai.provider && keys.includes(ai.provider) ? ai.provider : keys[0] ?? '';
+      fillModels(ai.model);
+      (form.elements.namedItem('aiEnabled') as HTMLInputElement).checked = ai.enabled;
+      form.querySelectorAll<HTMLInputElement>('[name=aiMode]').forEach((r) => (r.checked = r.value === (ai.mode || 'hold')));
+      (form.elements.namedItem('aiCap') as HTMLInputElement).value = String((ai.capCents ?? 500) / 100);
+      $('[data-ai-spent]').textContent = `Spent this month in this class: $${(ai.spentMicro / 1e6).toFixed(2)} of $${((ai.capCents ?? 500) / 100).toFixed(2)}.`;
+      estimate();
+    }
+    function fillModels(current: string | null) {
+      const form = $<HTMLFormElement>('[data-ai-form]');
+      const provider = (form.elements.namedItem('aiProvider') as HTMLSelectElement).value;
+      const ms = form.elements.namedItem('aiModelPick') as HTMLSelectElement;
+      ms.textContent = '';
+      for (const m of prices.models.filter((x) => x.provider === provider)) ms.append(el('option', { value: m.model, textContent: m.label }));
+      ms.append(el('option', { value: '__other', textContent: 'Another model…' }));
+      const known = prices.models.some((x) => x.provider === provider && x.model === current);
+      ms.value = current ? (known ? current : '__other') : ms.options[0]?.value ?? '';
+      (form.elements.namedItem('aiModelOther') as HTMLInputElement).value = current && !known ? current : '';
+      $('[data-ai-other]').hidden = ms.value !== '__other';
+    }
+    function estimate() {
+      const form = $<HTMLFormElement>('[data-ai-form]');
+      const provider = (form.elements.namedItem('aiProvider') as HTMLSelectElement).value;
+      const model = (form.elements.namedItem('aiModelPick') as HTMLSelectElement).value;
+      const m = prices.models.find((x) => x.provider === provider && x.model === model);
+      const out = $('[data-ai-estimate]');
+      if (!m) { out.textContent = 'No estimate for a model that is not on our price list: check its price with the provider. It counts against your limit at a high rate to be safe.'; return; }
+      const per = (prices.estimate.feedback_in * m.in + prices.estimate.feedback_out * m.out) / 1e6;
+      const students = Math.max(brief.students.filter((s) => s.status === 'active').length, 25);
+      const perLesson = per * students * 2;
+      out.textContent = `About $${per < 0.01 ? per.toFixed(4) : per.toFixed(3)} per feedback reply. For ${students} students sending two answers per lesson: about $${perLesson.toFixed(2)} per lesson, or $${(perLesson * 8).toFixed(2)} for eight lessons a month. Estimates; your provider's bill is what counts.${m.note ? ` ${m.note}` : ''}`;
+    }
+    {
+      const form = $<HTMLFormElement>('[data-ai-form]');
+      (form.elements.namedItem('aiProvider') as HTMLSelectElement).addEventListener('change', () => { fillModels(null); estimate(); });
+      (form.elements.namedItem('aiModelPick') as HTMLSelectElement).addEventListener('change', () => { $('[data-ai-other]').hidden = (form.elements.namedItem('aiModelPick') as HTMLSelectElement).value !== '__other'; estimate(); });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pick = (form.elements.namedItem('aiModelPick') as HTMLSelectElement).value;
+        const model = pick === '__other' ? (form.elements.namedItem('aiModelOther') as HTMLInputElement).value.trim() : pick;
+        const mode = form.querySelector<HTMLInputElement>('[name=aiMode]:checked')?.value ?? 'hold';
+        const r = await api(`/api/classes/${id}`, {
+          aiEnabled: (form.elements.namedItem('aiEnabled') as HTMLInputElement).checked,
+          aiProvider: (form.elements.namedItem('aiProvider') as HTMLSelectElement).value,
+          aiModel: model, aiMode: mode,
+          aiCapCents: Math.round(Number((form.elements.namedItem('aiCap') as HTMLInputElement).value) * 100),
+        }, 'PATCH');
+        $('[data-ai-msg]').textContent = r.ok ? 'Saved.' : '';
+        $('[data-ai-err]').textContent = r.ok ? '' : r.data.error || 'Could not save.';
+        if (r.ok) load();
+      });
     }
 
     // ---- assign ----
