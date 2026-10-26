@@ -14,6 +14,7 @@ import { COURSE as PHYSIOLOGY_COURSE } from './lesson-icons/physio1';
 import { COURSE as SENSORY_COURSE } from './lesson-icons/sensory1';
 import { COURSE as VABIO_COURSE } from './lesson-icons/vabio1';
 import { COURSE as LIFESCI_COURSE } from './lesson-icons/lifesci1';
+import { COURSE as TOGETHER_COURSE } from './lesson-icons/together1';
 
 const GF = 'style="fill:var(--ddp-color-secondary)"';
 const GS = 'style="stroke:var(--ddp-color-secondary)" fill="none" stroke-width="1.75" stroke-linecap="round"';
@@ -27,6 +28,7 @@ export const COURSE_ICONS: Record<string, IconArt> = {
   ...SENSORY_COURSE,
   ...VABIO_COURSE,
   ...LIFESCI_COURSE,
+  ...TOGETHER_COURSE,
   'course:genetics': {
     label: "A pea pod cut open on three plain peas and one gold one, Mendel's 3 to 1",
     ink: `<g transform="rotate(-38 28 28)">

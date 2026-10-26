@@ -1,0 +1,191 @@
+---
+/**
+ * LungComplianceSurfactant — "Two alveoli, one airway". One idea: whether a small
+ * alveolus empties into a large one depends on how surface tension changes with
+ * area. Each alveolus is one free spherical air-liquid surface, P = 2T/r (the
+ * lesson's Laplace relation, static, 1 cmH2O = 98.07 Pa). Controls: the two radii
+ * and a three-way lining toggle (70 mN per m, 20 mN per m, or a made-up rule in
+ * which tension falls with area). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="lcs card" data-lcs>
+  <figcaption class="lcs-head">Two alveoli, one airway<span class="lcs-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="lcs-svg" viewBox="0 0 340 290" role="img" aria-label="Two spherical alveoli, a small one on the left and a large one on the right, joined by one airway, with surface tension and Laplace pressure for each and an arrow for the direction gas would move from higher to lower pressure" data-plot></svg>
+
+  <div class="lcs-controls">
+    <label class="lcs-slabel"><span>Small-alveolus radius <em data-out="rs">50 µm</em></span>
+      <input type="range" data-in="rs" min="25" max="100" step="5" value="50" aria-describedby="lcs-assume" />
+    </label>
+    <label class="lcs-slabel"><span>Large-alveolus radius <em data-out="rl">100 µm</em></span>
+      <input type="range" data-in="rl" min="50" max="150" step="5" value="100" aria-describedby="lcs-assume" />
+    </label>
+    <fieldset class="lcs-fs">
+      <legend>Lining</legend>
+      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="none" data-in="lining" /> No surfactant <small>(70 mN per m)</small></label>
+      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="fixed" data-in="lining" /> Fixed tension <small>(20 mN per m)</small></label>
+      <label class="lcs-radio"><input type="radio" name="lcs-lining" value="area" data-in="lining" checked /> Tension falls with area <small>(made-up rule)</small></label>
+    </fieldset>
+  </div>
+
+  <p class="lcs-why" data-why role="status">In this sketch, the status appears here.</p>
+
+  <p class="lcs-assume" id="lcs-assume">In this sketch: each alveolus is one free spherical air-liquid surface, static, so P = 2T/r (the lesson’s relation for one surface), with 1 cmH₂O = 98.07 Pa. The values 70 and 20 mN per m are the lesson’s illustrative tensions. The rule T = 20 mN per m × (r / 100 µm)², is made up for the sketch; it gives the lesson’s made-up 5 mN per m at 50 µm. The radius ranges are chosen for the sketch, and the small alveolus is never set larger than the large one (the other slider moves along).</p>
+  <p class="lcs-tether">Real alveoli are tethered polyhedra: neighbours share walls, so one alveolus cannot shrink alone like a free bubble. The spheres are a simplification. Drawing: circle size is to scale with radius, and a thicker outline means higher tension.</p>
+  <p class="lcs-foot">Keep this: at equal tension the smaller alveolus has the higher pressure and would empty into the larger one; whether a film prevents that depends on how steeply tension changes with area.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', FAINT = '#b9b9c2';
+  const PA_PER_CMH2O = 98.07;       // lesson: 1 cmH2O = 98.07 Pa
+  const T_CAP = 70;                 // mN per m, the lesson's no-surfactant tension
+  const SCALE = 0.45;               // drawing px per micrometre of radius
+  const CY = 130;                   // circle centre y in the viewBox
+  const XS = 85, XL = 255;          // circle centres
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('LungComplianceSurfactant: missing ' + sel);
+    return e;
+  }
+  const fmtInt = (n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const fmtT = (n: number) => String(parseFloat(n.toFixed(2)));
+  const fmtCm = (pa: number) => (pa / PA_PER_CMH2O).toFixed(1);
+
+  type Lining = 'none' | 'fixed' | 'area';
+  // Tension in mN per m for a radius in micrometres.
+  function tension(mode: Lining, rUm: number): number {
+    if (mode === 'none') return 70;
+    if (mode === 'fixed') return 20;
+    return Math.min(T_CAP, 20 * Math.pow(rUm / 100, 2));
+  }
+  // Laplace pressure P = 2T/r in Pa; T in mN per m, r in micrometres.
+  const laplace = (tMN: number, rUm: number) => (2 * (tMN / 1000)) / (rUm * 1e-6);
+
+  document.querySelectorAll<HTMLElement>('[data-lcs]').forEach((root) => {
+    const plot = need<SVGSVGElement>(root, '[data-plot]');
+    const rsIn = need<HTMLInputElement>(root, '[data-in="rs"]');
+    const rlIn = need<HTMLInputElement>(root, '[data-in="rl"]');
+    const rsOut = need<HTMLElement>(root, '[data-out="rs"]');
+    const rlOut = need<HTMLElement>(root, '[data-out="rl"]');
+    const why = need<HTMLElement>(root, '[data-why]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[data-in="lining"]'));
+    if (radios.length !== 3) throw new Error('LungComplianceSurfactant: missing lining radios');
+
+    function lining(): Lining {
+      const c = radios.find((r) => r.checked);
+      return (c ? c.value : 'area') as Lining;
+    }
+    function text(x: number, y: number, s: string, size: number, weight: number, fill: string, anchor = 'middle'): SVGElement {
+      const t = el('text', { x, y, 'text-anchor': anchor, 'font-size': size, 'font-weight': weight, fill });
+      t.textContent = s;
+      return t;
+    }
+
+    function render(): void {
+      const mode = lining();
+      const rs = parseInt(rsIn.value, 10);
+      const rl = parseInt(rlIn.value, 10);
+      rsOut.textContent = rs + ' µm';
+      rlOut.textContent = rl + ' µm';
+      const ts = tension(mode, rs), tl = tension(mode, rl);
+      const ps = laplace(ts, rs), pl = laplace(tl, rl);
+      const equal = Math.abs(ps - pl) < 0.5;
+      const sHigher = !equal && ps > pl;
+
+      plot.replaceChildren();
+
+      // Airway: a horizontal bar with a stem down to each alveolus.
+      const topS = CY - rs * SCALE, topL = CY - rl * SCALE;
+      plot.appendChild(el('rect', { x: XS - 3, y: 44, width: XL - XS + 6, height: 14, rx: 3, fill: '#eef3f5', stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('rect', { x: XS - 3, y: 58, width: 6, height: topS - 58, fill: '#eef3f5', stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('rect', { x: XL - 3, y: 58, width: 6, height: Math.max(0, topL - 58), fill: '#eef3f5', stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(text((XS + XL) / 2, 54.5, 'one airway', 10, 400, INK));
+
+      // Alveoli: size to scale, outline thickness shows tension, orange = higher pressure.
+      const draw = (cx: number, r: number, t: number, higher: boolean) => {
+        const w = 1 + (t / 70) * 5;
+        plot.appendChild(el('circle', { cx, cy: CY, r: r * SCALE, fill: higher ? '#fdeedd' : '#e6f3f4', stroke: higher ? ORANGE : ACCENT, 'stroke-width': w.toFixed(2) }));
+      };
+      draw(XS, rs, ts, sHigher);
+      draw(XL, rl, tl, !equal && !sHigher);
+
+      // Arrow: the direction gas would move, from higher to lower pressure.
+      const AY = 32;
+      if (equal) {
+        plot.appendChild(el('line', { x1: 125, y1: AY, x2: 215, y2: AY, stroke: FAINT, 'stroke-width': 3, 'stroke-dasharray': '5 4' }));
+        plot.appendChild(text(170, 14, 'no net movement (equal pressure)', 10, 400, INK));
+      } else {
+        const fromX = sHigher ? 125 : 215, toX = sHigher ? 215 : 125, dir = sHigher ? 1 : -1;
+        plot.appendChild(el('line', { x1: fromX, y1: AY, x2: toX - dir * 8, y2: AY, stroke: ORANGE, 'stroke-width': 3 }));
+        plot.appendChild(el('polygon', { points: `${toX},${AY} ${toX - dir * 12},${AY - 6} ${toX - dir * 12},${AY + 6}`, fill: ORANGE }));
+        plot.appendChild(text(170, 14, mode === 'area' ? 'gas would move (higher to lower pressure, in this made-up rule)' : 'gas would move (higher to lower pressure)', 10, 400, INK));
+      }
+
+      // Readouts under each alveolus.
+      const col = (cx: number, name: string, r: number, t: number, p: number, tag: string) => {
+        plot.appendChild(text(cx, 216, name, 11, 700, INK));
+        plot.appendChild(text(cx, 230, 'r = ' + r + ' µm', 10, 400, INK));
+        plot.appendChild(text(cx, 243, 'T = ' + fmtT(t) + ' mN per m', 10, 400, INK));
+        plot.appendChild(text(cx, 256, 'P = ' + fmtInt(p) + ' Pa', 10, 700, INK));
+        plot.appendChild(text(cx, 269, '= ' + fmtCm(p) + ' cmH₂O', 10, 700, INK));
+        plot.appendChild(text(cx, 283, tag, 10, 700, tag === 'higher pressure' ? ORANGE : INK));
+      };
+      col(XS, 'Small alveolus', rs, ts, ps, equal ? 'equal pressure' : sHigher ? 'higher pressure' : 'lower pressure');
+      col(XL, 'Large alveolus', rl, tl, pl, equal ? 'equal pressure' : sHigher ? 'lower pressure' : 'higher pressure');
+
+      // Status sentence for this state.
+      const sp = `${fmtInt(ps)} Pa or ${fmtCm(ps)} cmH₂O`, lp = `${fmtInt(pl)} Pa or ${fmtCm(pl)} cmH₂O`;
+      let s: string;
+      if (equal) {
+        s = `In this sketch, the two alveoli have the same radius and the same tension (${fmtT(ts)} mN per m), so the same pressure, ${sp}, and gas would not move between them.`;
+      } else if (mode === 'area') {
+        const worked = rs === 50 && rl === 100;
+        s = `In this sketch, tension is lower in the small alveolus (${fmtT(ts)} against ${fmtT(tl)} mN per m), so its pressure, ${sp}, is below the large alveolus’s ${lp}.${worked ? ' These are the values of the lesson’s made-up worked-problem case.' : ''} The small alveolus does not empty into the large one. In this made-up rule the large alveolus has the higher pressure, so the arrow points the other way; that comes from how steeply the rule lets tension change with area, not from a measurement, and the lesson does not say what gas does next. Tethered real alveoli are not free bubbles.`;
+      } else {
+        s = `In this sketch, both surfaces have the same tension (${fmtT(ts)} mN per m), so P = 2T/r is higher in the small alveolus (${sp}) than in the large one (${lp}), and gas would move from the small alveolus into the large one: at equal tension the small alveolus would empty into the large one.${mode === 'fixed' ? ' Lower tension lowers both pressures, but the small alveolus stays the higher.' : ''}`;
+      }
+      why.textContent = s;
+    }
+
+    // Keep the small alveolus no larger than the large one by moving the other slider along.
+    rsIn.addEventListener('input', () => {
+      if (parseInt(rsIn.value, 10) > parseInt(rlIn.value, 10)) rlIn.value = rsIn.value;
+      render();
+    });
+    rlIn.addEventListener('input', () => {
+      if (parseInt(rlIn.value, 10) < parseInt(rsIn.value, 10)) rsIn.value = rlIn.value;
+      render();
+    });
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style>
+  .lcs { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .lcs-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .lcs-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .lcs-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .lcs-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .lcs-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lcs-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .lcs-slabel input { accent-color: var(--ddp-color-accent); }
+  .lcs-fs { grid-column: 1 / -1; border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: var(--ddp-space-2) var(--ddp-space-3); margin: 0; display: flex; flex-wrap: wrap; gap: 0.3rem var(--ddp-space-4); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .lcs-fs legend { padding: 0 0.3rem; font-weight: 600; }
+  .lcs-radio { display: inline-flex; align-items: baseline; gap: 0.3rem; cursor: pointer; }
+  .lcs-radio small { font-size: inherit; color: var(--ddp-color-muted); }
+  .lcs-radio input { accent-color: var(--ddp-color-accent); }
+  .lcs-why { margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 5.5em; }
+  .lcs-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .lcs-tether { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .lcs-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .lcs-controls { grid-template-columns: 1fr; } }
+</style>

@@ -111,7 +111,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "PressureVolumeLoop"
+    title: "Where the end-systolic corner falls"
+    caption: >-
+      Loop builder: set EDV, Ea and Ees and see where the end-systolic corner falls, with SV, ESV, EF, Pes, CO and stroke work computed from the lesson's worked-problem equations.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "On a Wiggers diagram of the adult human left heart at rest, the first heart sound (S1) is aligned with which event?"
@@ -314,8 +320,10 @@ corpusTags:
   - "pressure-volume-area"
   - "ejection-fraction"
   - "heart-failure"
-draft: true
+draft: false
 ---
+
+import PressureVolumeLoop from '../../../components/PressureVolumeLoop.astro';
 
 **Plot the pressure inside your left ventricle against its volume, and each heartbeat draws a closed loop: four corners, four valve events, and an enclosed area equal to the work of the beat.** Filling, arterial load and contraction strength each change its shape in a predictable way, and the predictions show why ejection fraction is a poor measure of contractility. The four phases and the stroke-volume arithmetic are in [circulation and the heart](/lessons/circulation-and-heart/); here they get numbers.
 
@@ -403,7 +411,7 @@ Same model, with Ees 3.0 mmHg per mL, V0 5 mL and Ea 1.5 mmHg per mL. Assume a l
 
 Higher afterload raised ESV and lowered stroke volume, and EF fell with contractility unchanged. Higher preload slid the end-systolic corner up the same ESPVR: stroke volume rose by 10 mL, less than the 15 mL rise in EDV, because Pes rose too; only at fixed Pes would it rise by the full 15 mL. Higher contractility steepened the ESPVR and lowered ESV. Sympathetic nerves raise Ees ([blood pressure regulation](/lessons/blood-pressure-regulation/)) through cyclic AMP inside the cell ([cAMP and PKA](/lessons/camp-and-pka/)).
 
-{/* SIMULATION */}
+<PressureVolumeLoop />
 
 ## When the loop changes shape: failure and valve disease
 

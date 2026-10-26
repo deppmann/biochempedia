@@ -24,12 +24,13 @@ export interface Course {
   slug: string;
   title: string;
   /** Where the course sits in a biology degree; the homepage lists each tier separately.
+   *  families: hands-on activities for ages 5–10, written for the parent or K–5 teacher (Virginia K–4 SOL).
    *  highschool: Virginia Standards of Learning courses for grades 7–12.
    *  foundation: intro courses for the first two years (1000-2000 level).
    *  core: the 3000-level courses every biology major takes.
    *  elective: 3000-level subjects taken further.
    *  advanced: 4000-level and above, built around current research. */
-  tier: 'highschool' | 'foundation' | 'core' | 'elective' | 'advanced';
+  tier: 'families' | 'highschool' | 'foundation' | 'core' | 'elective' | 'advanced';
   /** True when the course covers material the MCAT tests; shown as a tag on the homepage card. */
   mcat?: boolean;
   /** Grades 7–12 courses only: the step the course sits on in the depth ladder
@@ -47,6 +48,26 @@ export interface Course {
 /* Order is the suggested path: within each tier, courses appear in the order a student
    should take them (the homepage numbers the core courses). */
 export const COURSES: Course[] = [
+  {
+    slug: 'biology-together',
+    title: 'Biology Together',
+    tier: 'families',
+    mcat: false,
+    tagline: 'Hands-on biology activities for ages 5–10, written for parents and K–5 teachers.',
+    searchHint: 'Try “seeds”, “camouflage”, “earthworms”…',
+    blurb:
+      'Thirty short activities a parent or teacher can run with children aged 5 to 10, using cheap things from around the house. The page is for the grown-up; the child does the activity away from the screen. Each one gives the big idea in plain words, the steps, questions that get a child to predict before they look, what children often think and how to answer, safety notes, an easier and a harder version, and an observation sheet to print. They follow the life science strand of Virginia’s kindergarten to grade 4 science standards, and each links one step up to the matching grade 7 Life Science lesson where there is one.',
+    units: [
+      { name: 'Alive and growing', slugs: ['alive-or-not', 'wake-up-a-seed', 'like-parent-not-the-same'] },
+      { name: 'Our senses', slugs: ['mystery-feely-bag', 'smell-detectives', 'listening-walk'] },
+      { name: 'What plants need and how they work', slugs: ['what-plants-need', 'plant-parts-we-eat', 'thirsty-celery', 'leaf-detectives'] },
+      { name: 'Flowers, seeds and life cycles', slugs: ['flower-take-apart', 'bean-to-bean', 'seeds-on-the-move', 'mealworm-metamorphosis'] },
+      { name: 'Animal bodies, homes and adaptations', slugs: ['fur-feathers-scales', 'beak-buffet', 'blubber-glove', 'camouflage-hunt', 'backyard-habitat-hunt', 'fossil-prints'] },
+      { name: 'Food chains, soil and decomposers', slugs: ['food-chain-web', 'rot-detectives', 'soil-shake', 'earthworm-choices'] },
+      { name: 'Seasons and living things', slugs: ['adopt-a-tree', 'sleep-or-travel', 'hidden-leaf-colors'] },
+      { name: 'Virginia and Chesapeake nature', slugs: ['watershed-in-a-pan', 'roots-hold-the-soil', 'creek-critters'] },
+    ],
+  },
   {
     slug: 'life-science',
     title: 'Life Science',

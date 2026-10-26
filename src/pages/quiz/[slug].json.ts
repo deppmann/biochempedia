@@ -23,8 +23,9 @@ export const GET: APIRoute = async ({ props }) => {
     slug: entry.data.slug,
     title: entry.data.title,
     course: courseOf(entry.data.course).title,
-    // Grade level for AI feedback wording: 7 (grade 7), 10 (high school) or 13 (college).
-    grade: courseOf(entry.data.course).tier === 'highschool' ? (courseOf(entry.data.course).ladderStep === 1 ? 7 : 10) : 13,
+    // Grade level for AI feedback wording: 7 (grade 7), 10 (high school) or 13 (college). The ages 5–10
+    // activities are read by the parent or teacher, so their feedback is worded for an adult reader at grade 7.
+    grade: courseOf(entry.data.course).tier === 'families' ? 7 : courseOf(entry.data.course).tier === 'highschool' ? (courseOf(entry.data.course).ladderStep === 1 ? 7 : 10) : 13,
     open: openItems(entry.body ?? ''),
     items: qs.map((q, i) => ({
       id: itemId(entry.data.slug, q.stem),

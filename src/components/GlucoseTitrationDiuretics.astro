@@ -1,0 +1,268 @@
+---
+/**
+ * GlucoseTitrationDiuretics — the glucose titration curve of the Tubular Transport lesson.
+ * Filtered load = GFR x plasma glucose (mg/dL converted to mg/mL by dividing by 100);
+ * sharp saturation: reabsorption = the smaller of filtered load and Tm, excretion = load - reabsorption,
+ * threshold = Tm / GFR. Splay toggle: an illustrative Michaelis-type curve of the filtered load,
+ * with a made-up half-saturation constant, shows glucose appearing earlier. Self-contained
+ * vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="gtd card" data-gtd>
+  <figcaption class="gtd-head">Glucose titration curve — saturation and splay<span class="gtd-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="gtd-svg" viewBox="0 0 340 228" role="img" aria-label="Plot of filtered glucose load, reabsorption and excretion in milligrams per minute against plasma glucose from 0 to 600 milligrams per decilitre, with a marker where excretion leaves zero" data-plot></svg>
+
+  <ul class="gtd-legend" aria-label="Plot key">
+    <li><span class="gtd-sw gtd-sw-load"></span>filtered load</li>
+    <li><span class="gtd-sw gtd-sw-reab"></span>reabsorption</li>
+    <li><span class="gtd-sw gtd-sw-exc"></span>excretion</li>
+    <li data-ghostkey hidden><span class="gtd-sw gtd-sw-ghost"></span>sharp model, for comparison (hollow marker: its threshold)</li>
+  </ul>
+
+  <div class="gtd-controls">
+    <label class="gtd-slabel"><span>Plasma glucose <em data-out="p">400</em> mg/dL</span>
+      <input type="range" data-in="p" min="0" max="600" step="10" value="400" />
+    </label>
+    <label class="gtd-slabel"><span>GFR <em data-out="gfr">125</em> mL/min</span>
+      <input type="range" data-in="gfr" min="60" max="180" step="5" value="125" />
+    </label>
+    <label class="gtd-slabel"><span>Tm for glucose <em data-out="tm">350</em> mg/min</span>
+      <input type="range" data-in="tm" min="100" max="400" step="10" value="350" />
+    </label>
+    <fieldset class="gtd-mode">
+      <legend>Carrier model</legend>
+      <label><input type="radio" name="gtd-mode" data-mode value="sharp" checked /> Sharp saturation (no splay)</label>
+      <label><input type="radio" name="gtd-mode" data-mode value="splay" /> Splay (illustrative rounded curve)</label>
+    </fieldset>
+  </div>
+  <p class="gtd-resetrow"><button type="button" class="gtd-reset" data-reset>Reset to the lesson’s worked-problem values</button></p>
+
+  <dl class="gtd-readout">
+    <div><dt>Filtered load</dt><dd data-r-load></dd></div>
+    <div><dt>Reabsorption</dt><dd data-r-reab></dd></div>
+    <div><dt>Excretion</dt><dd data-r-exc></dd></div>
+    <div><dt data-r-thr-label>Threshold</dt><dd data-r-thr></dd></div>
+  </dl>
+
+  <p class="gtd-why" data-why role="status"></p>
+
+  <p class="gtd-assume">In this sketch: steady state at each glucose level, adult human at rest, glucose freely filtered and not secreted, GFR constant. The starting values (GFR 125 mL/min, Tm 350 mg/min) are the lesson’s round illustrative values, not measurements. The slider ranges, the marker’s definition and the rounded curve’s half-saturation constant (100 mg/min) are made up for the sketch; the rounded curve (reabsorption = Tm × load ÷ (100 + load), never more than the load) is an illustrative shape, not a fit to data. The corner where the rounded curve leaves the load line is an artifact of this sketch’s formula.</p>
+
+  <p class="gtd-foot">In the sharp model, glucose appears in urine once the load passes what the carriers can take back. Rule to keep: filtered load = GFR × plasma glucose; the marker sits at Tm ÷ GFR, so in this sketch it moves right when GFR falls or Tm rises and left when GFR rises or Tm falls. That figure is an idealized upper estimate, not the measured onset; the rounded curve leaves zero earlier, as real curves do.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const INK = '#4b4b55', FAINT = '#b9b9c2', GRID = '#e3e3e8';
+  const C_LOAD = '#5a5a66', C_REAB = '#0e7c86', C_EXC = '#e57200', C_MARK = '#a84f00';
+  const K_HALF = 100; // illustrative half-saturation constant of the rounded curve, mg/min
+  const P_MAX = 600, Y_MAX = 1100;
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  const f1 = (n: number) => { const r = Math.round(n * 10) / 10; return Number.isInteger(r) ? String(r) : r.toFixed(1); };
+  const f2 = (n: number) => n.toFixed(2);
+
+  function must<T extends Element>(e: T | null, sel: string): T {
+    if (!e) throw new Error('GlucoseTitrationDiuretics: missing ' + sel);
+    return e;
+  }
+  document.querySelectorAll<HTMLElement>('[data-gtd]').forEach((root) => {
+    const plot = must(root.querySelector<SVGSVGElement>('[data-plot]'), '[data-plot]');
+    const pIn = must(root.querySelector<HTMLInputElement>('[data-in="p"]'), '[data-in="p"]');
+    const gIn = must(root.querySelector<HTMLInputElement>('[data-in="gfr"]'), '[data-in="gfr"]');
+    const tIn = must(root.querySelector<HTMLInputElement>('[data-in="tm"]'), '[data-in="tm"]');
+    const pOut = must(root.querySelector<HTMLElement>('[data-out="p"]'), '[data-out="p"]');
+    const gOut = must(root.querySelector<HTMLElement>('[data-out="gfr"]'), '[data-out="gfr"]');
+    const tOut = must(root.querySelector<HTMLElement>('[data-out="tm"]'), '[data-out="tm"]');
+    const rLoad = must(root.querySelector<HTMLElement>('[data-r-load]'), '[data-r-load]');
+    const rReab = must(root.querySelector<HTMLElement>('[data-r-reab]'), '[data-r-reab]');
+    const rExc = must(root.querySelector<HTMLElement>('[data-r-exc]'), '[data-r-exc]');
+    const rThr = must(root.querySelector<HTMLElement>('[data-r-thr]'), '[data-r-thr]');
+    const rThrLabel = must(root.querySelector<HTMLElement>('[data-r-thr-label]'), '[data-r-thr-label]');
+    const why = must(root.querySelector<HTMLElement>('[data-why]'), '[data-why]');
+    const ghostKey = must(root.querySelector<HTMLElement>('[data-ghostkey]'), '[data-ghostkey]');
+    const resetBtn = must(root.querySelector<HTMLButtonElement>('[data-reset]'), '[data-reset]');
+    const modeIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-mode]'));
+    if (modeIns.length !== 2) return;
+
+    const X0 = 50, X1 = 328, Y0 = 30, Y1 = 186;
+    const px = (p: number) => X0 + (p / P_MAX) * (X1 - X0);
+    const py = (v: number) => Y1 - (v / Y_MAX) * (Y1 - Y0);
+
+    // The model. L = GFR x P, with P in mg/mL (mg/dL divided by 100).
+    const load = (gfr: number, p: number) => gfr * (p / 100);
+    function reab(l: number, tm: number, splay: boolean): number {
+      if (!splay) return Math.min(l, tm);
+      return Math.min(l, (tm * l) / (K_HALF + l));
+    }
+    // Plasma glucose (mg/dL) where excretion first rises above zero.
+    const thrSharp = (gfr: number, tm: number) => (tm / gfr) * 100;
+    const thrSplay = (gfr: number, tm: number) => (Math.max(0, tm - K_HALF) / gfr) * 100;
+
+    function path(gfr: number, tm: number, splay: boolean, kind: 'load' | 'reab' | 'exc'): string {
+      const ps: number[] = [];
+      for (let p = 0; p <= P_MAX; p += 2) ps.push(p);
+      const t = splay ? thrSplay(gfr, tm) : thrSharp(gfr, tm);
+      if (t > 0 && t < P_MAX) ps.push(t);
+      ps.sort((a, b) => a - b);
+      let d = '';
+      ps.forEach((p, i) => {
+        const l = load(gfr, p), r = reab(l, tm, splay);
+        const v = kind === 'load' ? l : kind === 'reab' ? r : Math.max(0, l - r);
+        d += (i === 0 ? 'M' : 'L') + px(p).toFixed(1) + ' ' + py(v).toFixed(1) + ' ';
+      });
+      return d.trim();
+    }
+    function text(x: number, y: number, s: string, extra: Record<string, string | number> = {}): SVGElement {
+      const t = el('text', { x, y, 'font-size': 9, fill: INK, ...extra });
+      t.textContent = s;
+      return t;
+    }
+
+    function render() {
+      const p = parseInt(pIn.value, 10);
+      const gfr = parseInt(gIn.value, 10);
+      const tm = parseInt(tIn.value, 10);
+      const splay = modeIns.find((m) => m.checked)?.value === 'splay';
+      pOut.textContent = String(p); gOut.textContent = String(gfr); tOut.textContent = String(tm);
+      ghostKey.hidden = !splay;
+
+      const ts = thrSharp(gfr, tm), tr = thrSplay(gfr, tm);
+      const thr = splay ? tr : ts;
+      const l = load(gfr, p);
+      const r = reab(l, tm, splay);
+      const rr = Math.round(r * 10) / 10;
+      const er = Math.round((l - rr) * 10) / 10;
+
+      plot.replaceChildren();
+      // grid, axes, ticks
+      for (const v of [250, 500, 750, 1000]) {
+        plot.appendChild(el('line', { x1: X0, y1: py(v), x2: X1, y2: py(v), stroke: GRID, 'stroke-width': 0.8 }));
+      }
+      for (const v of [0, 250, 500, 750, 1000]) {
+        plot.appendChild(text(X0 - 4, py(v) + 3, String(v), { 'text-anchor': 'end' }));
+      }
+      plot.appendChild(el('line', { x1: X0, y1: Y0, x2: X0, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      plot.appendChild(el('line', { x1: X0, y1: Y1, x2: X1, y2: Y1, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [0, 100, 200, 300, 400, 500, 600]) {
+        plot.appendChild(el('line', { x1: px(v), y1: Y1, x2: px(v), y2: Y1 + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(text(px(v), Y1 + 13, String(v), { 'text-anchor': 'middle' }));
+      }
+      plot.appendChild(text((X0 + X1) / 2, Y1 + 28, 'plasma glucose (mg/dL)', { 'text-anchor': 'middle', 'font-size': 10 }));
+      plot.appendChild(text(12, (Y0 + Y1) / 2, 'glucose (mg/min)', { 'text-anchor': 'middle', 'font-size': 10, transform: `rotate(-90 12 ${(Y0 + Y1) / 2})` }));
+
+      // ghost = the sharp model, shown only when the rounded curve is on
+      if (splay) {
+        plot.appendChild(el('path', { d: path(gfr, tm, false, 'reab'), fill: 'none', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        plot.appendChild(el('path', { d: path(gfr, tm, false, 'exc'), fill: 'none', stroke: FAINT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
+        if (ts <= P_MAX) plot.appendChild(el('circle', { cx: px(ts), cy: Y1, r: 3.6, fill: '#fff', stroke: INK, 'stroke-width': 1.4 }));
+      }
+      // the three lines
+      plot.appendChild(el('path', { d: path(gfr, tm, splay, 'load'), fill: 'none', stroke: C_LOAD, 'stroke-width': 2 }));
+      plot.appendChild(el('path', { d: path(gfr, tm, splay, 'reab'), fill: 'none', stroke: C_REAB, 'stroke-width': 2.6 }));
+      plot.appendChild(el('path', { d: path(gfr, tm, splay, 'exc'), fill: 'none', stroke: C_EXC, 'stroke-width': 2.6 }));
+
+      // threshold marker: where excretion leaves zero
+      let label: string;
+      if (thr <= 0) label = 'excretion above zero from the first mg/dL';
+      else if (thr > P_MAX) label = `excretion leaves zero at ${Math.round(thr)} mg/dL (beyond this plot) →`;
+      else label = `excretion leaves zero: ${Math.round(thr)} mg/dL`;
+      const mx = Math.min(Math.max(thr, 0), P_MAX);
+      if (thr <= P_MAX) {
+        plot.appendChild(el('line', { x1: px(mx), y1: Y0 - 4, x2: px(mx), y2: Y1, stroke: C_MARK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot.appendChild(el('circle', { cx: px(mx), cy: Y1, r: 4.2, fill: C_MARK }));
+      }
+      const anchor = px(mx) < X0 + 95 ? 'start' : px(mx) > X1 - 95 || thr > P_MAX ? 'end' : 'middle';
+      const lx = thr > P_MAX ? X1 : anchor === 'start' ? Math.max(px(mx) - 2, X0) : px(mx);
+      plot.appendChild(text(lx, Y0 - 12, label, { 'text-anchor': anchor, 'font-weight': 700, fill: C_MARK }));
+
+      // cursor at the chosen plasma glucose
+      plot.appendChild(el('line', { x1: px(p), y1: Y0, x2: px(p), y2: Y1, stroke: INK, 'stroke-width': 0.8, 'stroke-dasharray': '1 3' }));
+      const dots: [number, string][] = [[l, C_LOAD], [r, C_REAB], [Math.max(0, l - r), C_EXC]];
+      dots.forEach(([v, c]) => plot.appendChild(el('circle', { cx: px(p), cy: py(v), r: 3.6, fill: c, stroke: '#fff', 'stroke-width': 1 })));
+
+      // readouts with the lesson's arithmetic
+      rLoad.textContent = `${gfr} mL/min × ${f2(p / 100)} mg/mL = ${f1(l)} mg/min`;
+      if (!splay) {
+        rReab.textContent = `smaller of ${f1(l)} and ${tm} = ${f1(rr)} mg/min`;
+        rThrLabel.textContent = 'Threshold, Tm ÷ GFR';
+        rThr.textContent = `${tm} ÷ ${gfr} = ${f2(tm / gfr)} mg/mL = ${Math.round(ts)} mg/dL`;
+      } else {
+        const capped = l <= tm - K_HALF || tm <= 0;
+        rReab.textContent = capped
+          ? `all of the load = ${f1(rr)} mg/min`
+          : `${tm} × ${f1(l)} ÷ (${K_HALF} + ${f1(l)}) = ${f1(rr)} mg/min`;
+        rThrLabel.textContent = 'Marker, rounded curve';
+        rThr.textContent = tr <= 0
+          ? `0 mg/dL (sharp model: ${Math.round(ts)} mg/dL)`
+          : `(${tm} − ${K_HALF}) ÷ ${gfr} = ${f2((tm - K_HALF) / gfr)} mg/mL = ${Math.round(tr)} mg/dL (sharp model: ${Math.round(ts)} mg/dL)`;
+      }
+      rExc.textContent = `${f1(l)} − ${f1(rr)} = ${f1(er)} mg/min`;
+
+      // status sentence, true for the current state only
+      const gap = Math.round(ts - tr);
+      let s: string;
+      if (!splay) {
+        s = l <= tm
+          ? `In this sketch, at ${p} mg/dL the filtered load is ${f1(l)} mg/min, at or below Tm (${tm} mg/min), so reabsorption equals the load and no glucose is excreted. Excretion leaves zero at ${Math.round(ts)} mg/dL.`
+          : `In this sketch, at ${p} mg/dL the filtered load (${f1(l)} mg/min) exceeds Tm (${tm} mg/min), so reabsorption stays at Tm and the remaining ${f1(er)} mg/min is excreted. Excretion left zero at ${Math.round(ts)} mg/dL.`;
+      } else if (tr <= 0) {
+        s = `In this sketch, with the rounded curve and Tm at ${tm} mg/min, reabsorption stays below the filtered load at every plasma glucose above 0, so at ${p} mg/dL ${f1(l)} mg/min is filtered, ${f1(rr)} mg/min is reabsorbed and ${f1(er)} mg/min is excreted. The sharp model would leave zero at ${Math.round(ts)} mg/dL.`;
+      } else if (l <= tm - K_HALF) {
+        s = `In this sketch, at ${p} mg/dL the rounded curve still reabsorbs the whole filtered load (${f1(l)} mg/min), so no glucose is excreted. Excretion leaves zero at ${Math.round(tr)} mg/dL, ${gap} mg/dL below the sharp model’s ${Math.round(ts)} mg/dL.`;
+      } else {
+        s = `In this sketch, at ${p} mg/dL the rounded curve reabsorbs ${f1(rr)} mg/min, short of Tm (${tm} mg/min), so ${f1(er)} mg/min is excreted. The lesson gives two reasons real uptake rounds near saturation, nephron differences and finite carrier affinity; this one curve stands in for both. Excretion left zero at ${Math.round(tr)} mg/dL, ${gap} mg/dL below the sharp model’s ${Math.round(ts)} mg/dL.`;
+      }
+      why.textContent = s;
+    }
+
+    [pIn, gIn, tIn].forEach((x) => x.addEventListener('input', render));
+    modeIns.forEach((m) => m.addEventListener('change', render));
+    resetBtn.addEventListener('click', () => {
+      pIn.value = '400'; gIn.value = '125'; tIn.value = '350';
+      modeIns[0].checked = true; modeIns[1].checked = false;
+      render();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .gtd { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .gtd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .gtd-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .gtd-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .gtd-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gtd-legend li[hidden] { display: none; }
+  .gtd-sw { display: inline-block; width: 1.4rem; height: 0; border-top: 3px solid; margin-right: 0.35rem; vertical-align: middle; }
+  .gtd-sw-load { border-color: #5a5a66; }
+  .gtd-sw-reab { border-color: #0e7c86; }
+  .gtd-sw-exc { border-color: #e57200; }
+  .gtd-sw-ghost { border-color: #b9b9c2; border-top-style: dashed; }
+  .gtd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .gtd-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gtd-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .gtd-slabel input { accent-color: var(--ddp-color-accent); }
+  .gtd-mode { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .gtd-mode legend { padding: 0; margin-bottom: 0.1rem; }
+  .gtd-mode label { display: flex; align-items: flex-start; gap: 0.35rem; }
+  .gtd-mode input { accent-color: var(--ddp-color-accent); margin-top: 0.15rem; }
+  .gtd-resetrow { margin: 0 0 var(--ddp-space-2); }
+  .gtd-reset { font: inherit; font-size: var(--ddp-text-xs); padding: 0.25rem 0.6rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: transparent; color: var(--ddp-color-ink-soft); cursor: pointer; }
+  .gtd-reset:hover { border-color: var(--ddp-color-accent); color: var(--ddp-color-accent); }
+  .gtd-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .gtd-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .gtd-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .gtd-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .gtd-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 4.5em; }
+  .gtd-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .gtd-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .gtd-controls, .gtd-readout { grid-template-columns: 1fr; }
+  }
+</style>

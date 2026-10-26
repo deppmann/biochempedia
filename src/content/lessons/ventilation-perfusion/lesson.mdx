@@ -132,7 +132,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "VentilationPerfusionMatch"
+    title: "Alveolar gas and the A-a difference"
+    caption: >-
+      Set alveolar ventilation, inspired oxygen fraction, respiratory quotient and a measured arterial PO2 to see the alveolar gas equation give alveolar PO2 and the A-a difference, with halved ventilation reproducing step 7 of the worked problem.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which description fits a dead-space unit of the lung?"
@@ -323,8 +329,10 @@ corpusTags:
   - "shunt"
   - "hypoxic-pulmonary-vasoconstriction"
   - "respiratory-physiology"
-draft: true
+draft: false
 ---
+
+import VentilationPerfusionMatch from '../../../components/VentilationPerfusionMatch.astro';
 
 **A resting adult moves roughly 6 litres of air and 5 litres of blood through the lungs every minute, and neither number tells you what the blood leaves with.** What settles that is whether air and blood arrive at the same places in the same proportion. [Gas exchange and breathing](/lessons/gas-exchange/) gave partial pressure, Fick's law and minute against alveolar ventilation; [lung mechanics and surfactant](/lessons/lung-mechanics-surfactant/) gave the pressures that move the air. Here you put numbers on the matching.
 
@@ -354,7 +362,7 @@ No sample of alveolar gas serves as the mean, so alveolar PO2 is computed. Oxyge
 
 Each term carries an assumption: a steady state, a value for R assumed rather than measured, an inspired oxygen fraction near that of air, and arterial PCO2 standing in for alveolar PCO2. At sea level on air, with PB 760 mmHg and arterial PCO2 40 mmHg, it returns about 100 mmHg. Comparing arterial blood with a calculated "ideal" alveolar value goes back to Riley and Cournand's 1949 analysis.
 
-{/* SIMULATION */}
+<VentilationPerfusionMatch />
 
 Partial pressure is not content. Dalton's law gives each gas its share of the total pressure; Henry's law says how much dissolves at that pressure. About 0.003 mL of oxygen dissolves per dL of blood per mmHg, so 100 mmHg dissolves only 0.3 mL per dL, which is why nearly all of it rides on hemoglobin ([oxygen transport](/lessons/oxygen-transport/), with [protein binding and allostery](/lessons/protein-binding-allostery/) for the sigmoid curve). Carbon dioxide is roughly twenty times more soluble, and moves its load on a few mmHg.
 
@@ -374,7 +382,7 @@ In systemic beds, low oxygen dilates arterioles and brings more blood ([resistan
 
 Von Euler and Liljestrand's 1946 preparation was an anaesthetized cat with the chest opened, ventilated by pump with gas mixtures of chosen composition, with pulmonary arterial pressure recorded. If the lung vessels behaved like systemic ones, hypoxia should have lowered that pressure; if the response ran through nerves, cutting them should have abolished it. Ventilation with 10.5 percent oxygen strongly raised the pressure and pure oxygen lowered it slightly, and the rise survived cutting the vagi and removing the stellate ganglia. They concluded it was due in part to a direct constrictive action of hypoxia on the vessels. Keep that hedge: a pressure is not a resistance unless flow and outflow pressure are known, and whole-lung hypoxia cannot test regional matching.
 
-In outline, hypoxia inhibits an outward potassium current in pulmonary artery smooth muscle, depolarizing the cell and opening voltage-gated calcium channels ([smooth muscle](/lessons/smooth-muscle/)). The sensor upstream of that step is still described in reviews as hypothesized, with mitochondria the leading candidate. In 2017 Sommer, Weissmann and colleagues reported that isolated ventilated, buffer-perfused lungs from mice lacking the cytochrome c oxidase subunit isoform Cox4i2 showed no acute constriction to hypoxia while constricting normally to potassium chloride, and that chronic hypoxic pulmonary hypertension was unaffected. One species, one isoform, buffer rather than blood: the response does little in healthy lungs and matters when ventilation becomes regionally uneven. Release of the same hypoxic constriction is one contributor to the fall in pulmonary vascular resistance as the lungs aerate at birth ([pregnancy, birth and lactation](/lessons/pregnancy-birth-lactation/)).
+In outline, hypoxia inhibits an outward potassium current in pulmonary artery smooth muscle, depolarizing the cell and opening voltage-gated calcium channels ([smooth muscle](/lessons/smooth-muscle/)). The sensor upstream of that step is still described in reviews as hypothesized, with mitochondria the leading candidate. In 2017 Sommer, Weissmann and colleagues reported that isolated ventilated, buffer-perfused lungs from mice lacking the cytochrome c oxidase subunit isoform Cox4i2 showed no acute constriction to hypoxia while constricting normally to potassium chloride, and that chronic hypoxic pulmonary hypertension was unaffected. One species, one isoform, buffer rather than blood: the response does little in healthy lungs and matters when ventilation becomes regionally uneven. Release of the same hypoxic constriction is one contributor to the fall in pulmonary vascular resistance as the lungs aerate at birth (pregnancy, birth and lactation).
 
 ## Six mechanisms, and what the numbers separate
 
@@ -396,7 +404,7 @@ Step 9 is why the oxygen response separates mechanisms. A low-ratio unit is stil
 
 Now predict directions. Suppose some units' airways narrow so their ventilation falls while perfusion continues, and others lose capillaries so perfusion falls while ventilation continues. The low-ratio units pull arterial PO2 down and widen the A-a difference; the high-ratio units add wasted ventilation, so dead-space fraction rises. Arterial PCO2 often stays near normal, because the controller raises total ventilation to defend it at the price of more work of breathing. Blunt the hypoxic constriction and flow returns to the poorly ventilated units, so arterial PO2 falls further.
 
-Diffusion limitation is the mechanism these numbers do not reach. A red cell spends about 0.75 s in a pulmonary capillary at rest and roughly 0.25 s suffices for equilibration, so oxygen transfer in healthy lungs at rest is limited by blood flow rather than by the barrier, though oxygen can become diffusion limited when transit is shortened; carbon monoxide, whose partial pressure in blood stays near zero, is the diffusion-limited case. In healthy people, signs of diffusion limitation are reported mainly in heavy exercise ([exercise physiology](/lessons/exercise-physiology/)). What arterial PCO2 does to pH belongs to [acid-base balance](/lessons/acid-base-balance/).
+Diffusion limitation is the mechanism these numbers do not reach. A red cell spends about 0.75 s in a pulmonary capillary at rest and roughly 0.25 s suffices for equilibration, so oxygen transfer in healthy lungs at rest is limited by blood flow rather than by the barrier, though oxygen can become diffusion limited when transit is shortened; carbon monoxide, whose partial pressure in blood stays near zero, is the diffusion-limited case. In healthy people, signs of diffusion limitation are reported mainly in heavy exercise (exercise physiology). What arterial PCO2 does to pH belongs to [acid-base balance](/lessons/acid-base-balance/).
 
 ### Design problem
 

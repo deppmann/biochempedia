@@ -136,7 +136,13 @@ structures:
       A purine base (adenine) joined to ribose. Berne measured its breakdown products, inosine and
       hypoxanthine, in coronary effluent, and proposed that adenosine itself carries the message.
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "ResistanceNetwork"
+    title: "Two beds in parallel"
+    caption: >-
+      Dilate or constrict the muscle arterioles, change cardiac output and constrict the other beds, and watch TPR, MAP, the flow to each bed and the pressure drop along the muscle bed change in a lumped, no-reflex sketch.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In direct micropressure recordings from anesthetized cat tenuissimus muscle (Fronek and Zweifach 1975), which vessels were identified as the principal source of resistance?"
@@ -358,8 +364,10 @@ corpusTags:
   - "pericytes"
   - "skeletal-muscle-blood-flow"
   - "skin-blood-flow"
-draft: true
+draft: false
 ---
+
+import ResistanceNetwork from '../../../components/ResistanceNetwork.astro';
 
 **In the skeletal muscle of an anesthetized cat, only about 15 percent of arterial pressure is spent crossing the capillary bed, although capillaries are its narrowest vessels.** So where does the pressure go, and how does each tissue set its share of the cardiac output? Poiseuille's law and a first resistance calculation are in [blood and vessels](/lessons/blood-and-vessels/).
 
@@ -387,7 +395,7 @@ The organs are fed side by side from the aorta and drain side by side into the v
 
 Every added or widened parallel path lowers the total. So if a large muscle mass dilates and nothing constricts elsewhere, TPR falls and, unless cardiac output rises enough, so does MAP. When sympathetic restraint is lost, as in autonomic failure, pressure falls during large-muscle exercise. The reflexes that normally prevent this are in [regulating arterial pressure](/lessons/blood-pressure-regulation/).
 
-{/* SIMULATION */}
+<ResistanceNetwork />
 
 ### Worked problem: one muscle bed inside the whole circulation
 
@@ -396,8 +404,8 @@ Made-up round numbers, adult human at rest, steady state: heart rate 75 per min,
 1. *Whole circuit.* CO = 75 per min x 0.080 L = 6.0 L per min. Pulse pressure (PP) = 120 - 80 = 40 mmHg. MAP = 80 + 40/3 = 93.3 mmHg. TPR = (93.3 - 3) / 6.0 = 15.05, about 15 mmHg min per L or 1,200 dyn s cm^-5.
 2. *Series.* Muscle bed: arteries 4, arterioles 24, capillaries 6, venules and veins 6 mmHg min per L, total 40. All other beds together: 24. Check: 1/40 + 1/24 = 0.0250 + 0.0417 = 0.0667, so R = 15.0. (The split suits the arithmetic; resting human muscle takes a smaller share of output.)
 3. *Drops.* With 90 mmHg of driving pressure (rounded), muscle flow = 90 / 40 = 2.25 L per min and the rest 90 / 24 = 3.75; sum 6.0. In muscle: arteries 2.25 x 4 = 9 mmHg, arterioles 54 mmHg (60 percent), capillaries 13.5 mmHg (15 percent, close to the cat value), veins 13.5 mmHg. Total 90.
-4. *Radius.* Halving arteriolar resistance (24 to 12) needs the radius up by the fourth root of 2, 1.19, about 19 percent. Halving the radius would raise it 16-fold.
-5. *Exercise.* Dilation of arterioles and feeding arteries plus recruitment of more capillaries lower the muscle bed to 8. Then 1/8 + 1/24 = 0.1667, so TPR = 6.0. At unchanged output, MAP = 6.0 x 6.0 + 3 = 39 mmHg; to hold 93 mmHg, output must reach 90 / 6.0 = 15 L per min, or other beds must constrict ([exercise](/lessons/exercise-physiology/) puts the two together).
+4. *Radius.* Halving arteriolar resistance (24 to 12) needs the radius up by the fourth root of 2, 1.19, about 19 percent. Halving the radius would raise resistance 16-fold.
+5. *Exercise.* Dilation of arterioles and feeding arteries plus recruitment of more capillaries lower the muscle bed to 8. Then 1/8 + 1/24 = 0.1667, so TPR = 6.0. At unchanged output, MAP = 6.0 x 6.0 + 3 = 39 mmHg; to hold 93 mmHg, output must reach 90 / 6.0 = 15 L per min, or other beds must constrict (exercise puts the two together).
 6. *Compliance.* C = SV / PP = 80 mL / 40 mmHg = 2.0 mL per mmHg (next section). Halve it at the same stroke volume and MAP: PP = 80 mmHg, DBP = 93.3 - 80/3 = 66.7 mmHg, SBP = 66.7 + 80 = 146.7 mmHg. So 120/80 becomes about 147/67: systolic and pulse pressure up, diastolic down, mean unchanged. Real stiffening also adds wave reflection and usually raises MAP.
 
 ## Compliance turns a pulsing pump into steadier flow
@@ -445,7 +453,7 @@ Raise demand at normal oxygen supply (pacing or a positive inotrope), and separa
 
 **Heart.** At rest the left ventricle extracts 60 to 80 percent of delivered oxygen, so more oxygen use is met mainly by more flow. Systole compresses vessels inside the muscle, so left ventricular inflow rises in diastole.
 
-Add a fixed narrowing upstream of a bed (mechanism only). It is a resistance in series that climbs steeply as its radius falls; blood speeds through it, and past a tight narrowing the flow is disturbed and Poiseuille fails. Distal pressure falls, the downstream arterioles autoregulate by dilating, and resting flow stays near normal. The cost is reserve: once those vessels reach the lower limit, flow follows pressure and cannot rise with demand, and the inner layers of the left ventricle, fed mainly in diastole, fare worst. Net: stenosis resistance up, distal pressure and arteriolar resistance down, resting flow about unchanged, maximal flow down.
+Add a fixed narrowing upstream of a bed. It is a resistance in series that climbs steeply as its radius falls; blood speeds through it, and past a tight narrowing the flow is disturbed and Poiseuille fails. Distal pressure falls, the downstream arterioles autoregulate by dilating, and resting flow stays near normal. The cost is reserve: once those vessels reach the lower limit, flow follows pressure and cannot rise with demand, and the inner layers of the left ventricle, fed mainly in diastole, fare worst. Net: stenosis resistance up, distal pressure and arteriolar resistance down, resting flow about unchanged, maximal flow down.
 
 **Brain.** Lassen's 1959 curve, often taught as constant flow from 60 to 150 mmHg, was extrapolated from a cross-sectional comparison of 376 people in 7 publications; a 2021 review argues that flow is held relatively stable, not constant, and that the range is no true plateau. Cerebral vessels are also very sensitive to arterial PCO2: a rise dilates them, a fall constricts them.
 
@@ -453,8 +461,8 @@ The modern experiment asks which segment controls brain flow. Hall and colleague
 
 {/* DIAGRAM: mouse cortex under a two-photon objective: arteriole with ring smooth-muscle cells, capillaries with thin-strand pericytes */}
 
-**Skeletal muscle.** In human studies no single dilator explains much more than 20 to 30 percent of exercise hyperemia, and working muscle blunts sympathetic constriction (**functional sympatholysis**, a contested term). Quadriceps perfusion in knee-extensor exercise reached about 2.5 L per kg per min (Andersen and Saltin 1985); [exercise](/lessons/exercise-physiology/) follows the redistribution.
+**Skeletal muscle.** In human studies no single dilator explains much more than 20 to 30 percent of exercise hyperemia, and working muscle blunts sympathetic constriction (**functional sympatholysis**, a contested term). Quadriceps perfusion in knee-extensor exercise reached about 2.5 L per kg per min (Andersen and Saltin 1985); exercise follows the redistribution.
 
-**Skin.** Skin flow follows body temperature more than skin metabolism. In human whole-body heating it can reach 6 to 8 L per min, 80 to 90 percent of the dilation coming from a sympathetic active vasodilator system ([skin and human heat](/lessons/skin-and-human-heat/)).
+**Skin.** Skin flow follows body temperature more than skin metabolism. In human whole-body heating it can reach 6 to 8 L per min, 80 to 90 percent of the dilation coming from a sympathetic active vasodilator system (skin and human heat).
 
 Keep one contrast straight: hypoxia dilates systemic arterioles but constricts pulmonary arterioles ([ventilation and perfusion](/lessons/ventilation-perfusion/)).

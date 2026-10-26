@@ -126,7 +126,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "LungComplianceSurfactant"
+    title: "Two alveoli, one airway"
+    caption: >-
+      Set two alveolar radii and a lining, and see how Laplace pressure and the direction of gas movement change when tension is fixed or falls with area.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "Which of these lung volumes or capacities cannot be measured with a spirometer alone?"
@@ -328,8 +334,10 @@ corpusTags:
   - "spirometry"
   - "airway-resistance"
   - "respiratory-distress-syndrome"
-draft: true
+draft: false
 ---
+
+import LungComplianceSurfactant from '../../../components/LungComplianceSurfactant.astro';
 
 **Fill an excised lung with saline instead of air and it takes far less pressure to inflate it to the same volume.** The tissue is the same both times; the saline removes the air-liquid surface lining every alveolus. [Gas exchange and breathing](/lessons/gas-exchange/) gave the first look at surfactant and compliance; here they get numbers.
 
@@ -383,7 +391,7 @@ A soap bubble has two surfaces and needs 4T/r; an alveolus has one. The sphere s
 
 Answer: about 14 cmH2O without surfactant, about 4 with it; tension that falls with area removes the small-into-large problem.
 
-{/* SIMULATION */}
+<LungComplianceSurfactant />
 
 The small-into-large emptying, or "Laplace instability", is a result of theory and of films in vitro; whether a film prevents it depends on how steeply tension changes with area (the dilatational modulus). Real alveoli are also tethered: in Wilson and Bachofen's structural model, alveolar walls are platforms for surface tension, and neighbours share walls, so one alveolus cannot shrink alone like a free bubble.
 
@@ -397,7 +405,7 @@ Surfactant is about 90 percent lipid, mainly phospholipid, and 10 percent protei
 
 **The classic experiment.** Hyaline membrane disease (HMD) is the lung pathology of respiratory distress syndrome in newborns, most often preterm ones. Mary Ellen Avery saw Clements's balance in December 1957. In their 1959 paper, she and Jere Mead put extracts of lungs from infants who had died, with or without HMD, on a surface balance and recorded tension as the film was compressed. If HMD lungs lacked the lining, their extracts should not reach low tension. In the paper's table the mean lowest tension reached on compression was about 30 dynes per cm in extracts from nine infants with HMD and about 8 in extracts from infants over about 1,200 g who died of other causes; extracts from smaller infants who died of other causes also stayed high, about 26, so immaturity and disease were entangled. The authors concluded that HMD is associated with absence or late appearance of a substance that lets the lung surface reach low tension at low volume. That ruled in an association. Post-mortem, injured lungs left open whether the deficiency followed from the disease or from death.
 
-Evidence on cause came later. Nebulized DPPC alone showed no clear benefit in 1960s trials; in the early 1970s Enhorning and Robertson found that preterm rabbits given natural surfactant survived longer than expected; and in 1980 Fujiwara and colleagues reported improved oxygenation in ten preterm infants given a modified bovine surfactant, with no untreated controls. Liggins and Howie's 1972 trial showed that antenatal glucocorticoid treatment can speed fetal lung maturation ([pregnancy, birth and lactation](/lessons/pregnancy-birth-lactation/)).
+Evidence on cause came later. Nebulized DPPC alone showed no clear benefit in 1960s trials; in the early 1970s Enhorning and Robertson found that preterm rabbits given natural surfactant survived longer than expected; and in 1980 Fujiwara and colleagues reported improved oxygenation in ten preterm infants given a modified bovine surfactant, with no untreated controls. Liggins and Howie's 1972 trial showed that antenatal glucocorticoid treatment can speed fetal lung maturation (pregnancy, birth and lactation).
 
 **The modern experiment.** If surfactant needs correct packaging as well as its proteins, a packaging defect should cause deficiency even at term. After an SP-B mutation in infants (1994) and SP-B knockout mice (1995) tied the protein to survival, Shulenin, Nogee, Whitsett, Dean and colleagues in 2004 sequenced ABCA3, an ATP-binding cassette transporter gene, in 21 infants born at or near term with severe neonatal surfactant deficiency of unknown cause. Mutations turned up in 16 (76 percent), and the authors reported abnormal lamellar bodies in lung tissue from four. A transporter needed for normal lamellar bodies is needed for surfactant function in humans, even near term. The study does not show what ABCA3 carries, how each mutation acts, or that preterm respiratory distress is genetic. Later, in adult mice whose SP-B could be switched off, high surface tension injured the alveolar epithelium before edema formed.
 
@@ -409,7 +417,7 @@ Inspired air reaches the alveoli at 37 degrees C, saturated with water vapour (4
 
 **Airway resistance** is the pressure difference per unit flow. Poiseuille's fourth-power rule assumes steady laminar flow in a rigid tube ([blood and vessels](/lessons/blood-and-vessels/)), and airways are deformable. Small airways are so numerous, in parallel, that in health only a small share of airway resistance lies in them: one review puts bronchioles and alveolar ducts at about 2 percent, and classic measurements put all airways under 2 mm in diameter at roughly 10 to 20 percent. Most sits in larger airways.
 
-In forced expiration, positive pleural pressure squeezes the deformable airways as well as the alveoli, so beyond some effort flow stops rising: **dynamic compression**. Breathing costs elastic work (part 1) and resistive work, and the central drive picks a tidal volume and rate that tend to minimise the total ([control of breathing](/lessons/control-of-breathing/); for respiratory muscles competing with the legs for blood, [exercise physiology](/lessons/exercise-physiology/)).
+In forced expiration, positive pleural pressure squeezes the deformable airways as well as the alveoli, so beyond some effort flow stops rising: **dynamic compression**. Breathing costs elastic work (part 1) and resistive work, and the central drive picks a tidal volume and rate that tend to minimise the total ([control of breathing](/lessons/control-of-breathing/); for respiratory muscles competing with the legs for blood, exercise physiology).
 
 An **obstructive** pattern lowers FEV1 more than FVC, so FEV1/FVC falls. A **restrictive** pattern lowers TLC; FEV1 and FVC fall together and the ratio is normal or high. Both are judged against reference limits for age, sex and height, and a low FVC alone does not prove restriction: it goes with a low TLC less than half the time.
 
