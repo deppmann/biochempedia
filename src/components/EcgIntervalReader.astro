@@ -1,0 +1,307 @@
+---
+/**
+ * EcgIntervalReader — "Pacemaker slope and heart rate". One idea: in a pacemaker cell the rate is set by
+ * how long the diastolic ramp takes to climb from the maximal diastolic potential to threshold. The
+ * lesson's own simple description is used: cycle length = (threshold - MDP) / slope of phase 4 +
+ * action potential duration. The 400 ms action potential, the -60 / -40 mV / 0.05 mV per ms example and
+ * the doubling of the slope are the lesson's made-up example; the slider ranges, the vagal factor 0.8
+ * and the 10 mV shift are invented for the sketch. Rate = 60,000 ms per min / cycle length; the tick
+ * strip is drawn at the lesson's 25 mm per s (1 small square = 0.04 s). Not an ionic model.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="eir card" data-eir>
+  <figcaption class="eir-head">Pacemaker slope and heart rate<span class="eir-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="eir-svg" viewBox="0 0 340 232" role="img" aria-label="A schematic pacemaker potential over two seconds with a matching R-R tick strip" data-plot></svg>
+
+  <ul class="eir-legend" aria-label="Key to the plot">
+    <li><span class="eir-sw eir-sw-ramp"></span>diastolic ramp (phase 4)</li>
+    <li><span class="eir-sw eir-sw-ap"></span>action potential (shape and height schematic)</li>
+    <li><span class="eir-sw eir-sw-thr"></span>threshold</li>
+    <li><span class="eir-sw eir-sw-mdp"></span>maximal diastolic potential (MDP)</li>
+    <li><span class="eir-sw eir-sw-tick"></span>one tick per beat</li>
+    <li><span class="eir-sw eir-sw-ref"></span>the lesson’s made-up example (cycle 800 ms)</li>
+  </ul>
+
+  <div class="eir-controls">
+    <label class="eir-slabel"><span>Slope of phase 4 diastolic depolarisation <em data-out="slope">0.05</em> mV per ms</span>
+      <input type="range" data-in="slope" min="0.02" max="0.12" step="0.005" value="0.05" />
+    </label>
+    <label class="eir-slabel"><span>Maximal diastolic potential <em data-out="mdp">−60</em> mV</span>
+      <input type="range" data-in="mdp" min="-75" max="-55" step="1" value="-60" />
+    </label>
+    <label class="eir-slabel"><span>Threshold <em data-out="thr">−40</em> mV</span>
+      <input type="range" data-in="thr" min="-45" max="-35" step="1" value="-40" />
+    </label>
+    <fieldset class="eir-modes">
+      <legend>Autonomic input</legend>
+      <label><input type="radio" name="eir-mode" value="none" checked /> none</label>
+      <label><input type="radio" name="eir-mode" value="sym" /> sympathetic (slope × 2)</label>
+      <label><input type="radio" name="eir-mode" value="vagal" /> vagal (slope × 0.8, MDP 10 mV more negative)</label>
+    </fieldset>
+  </div>
+
+  <dl class="eir-readout">
+    <div><dt>Values used in the rule</dt><dd data-r="used"></dd></div>
+    <div><dt>Ramp time = (threshold − MDP) / slope</dt><dd data-r="ramp"></dd></div>
+    <div><dt>Action potential duration (fixed in this sketch)</dt><dd data-r="apd">400 ms</dd></div>
+    <div><dt>Cycle length = ramp time + action potential</dt><dd data-r="cycle"></dd></div>
+    <div><dt>Rate = 60,000 ms per min / cycle length</dt><dd data-r="rate"></dd></div>
+    <div><dt>R-R on paper at 25 mm per s (1 small square = 0.04 s, 1 large = 0.20 s)</dt><dd data-r="paper"></dd></div>
+    <div><dt>Check from the paper: 1,500 / small squares, 300 / large squares</dt><dd data-r="check"></dd></div>
+  </dl>
+  <p class="eir-why" data-why role="status"></p>
+
+  <p class="eir-frog">Hutter and Trautwein’s numbers are frog values: they recorded from sinus venosus fibres of the isolated frog heart, where vagal stimulation moved the mean maximal diastolic potential from about −55 to −65 mV (largest shift 23 mV) and suppressed the ramp, and sympathetic stimulation steepened the ramp with the threshold unchanged. They are not mammalian sinoatrial values, and the sliders here are not fitted to them.</p>
+
+  <p class="eir-assume">Illustrative sketch, not an ionic model and not a measurement. In this sketch (made up for the sketch unless the lesson gives it): one pacemaker cell; the lesson’s simple description, cycle length = (threshold − maximal diastolic potential) / slope of phase 4 + action potential duration, with a straight ramp; a fixed 400 ms action potential, and the lesson’s made-up example of −60 mV, −40 mV and 0.05 mV per ms, are the lesson’s; the sympathetic doubling of the slope is the lesson’s made-up doubling, but the vagal factor 0.8, the 10 mV shift and all slider ranges are invented; threshold is taken as unchanged by autonomic input (as Hutter and Trautwein found for sympathetic stimulation in the frog; the lesson does not say for vagal); the spike’s height and shape are drawn schematically; the window starts at the end of an action potential; every firing gives one beat of a regular rhythm, so R-R equals the cycle length.</p>
+
+  <p class="eir-foot">Rule to keep: cycle length = (threshold − maximal diastolic potential) / slope of phase 4 + action potential duration, and rate = 60,000 ms per min / cycle length; a steeper ramp shortens the cycle, a more negative maximal diastolic potential or a less negative threshold lengthens it.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', ORANGE = '#e57200', INK = '#4b4b55', GREY = '#8d8d98', PURPLE = '#6a4c93';
+
+  function must<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('EcgIntervalReader: missing ' + sel);
+    return e;
+  }
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  // number to d decimals, trailing zeros dropped, typographic minus
+  const fmt = (x: number, d = 1) => {
+    const s = Math.abs(x).toFixed(d);
+    const t = s.indexOf('.') >= 0 ? s.replace(/0+$/, '').replace(/\.$/, '') : s;
+    return (x < 0 && Number(t) !== 0 ? '−' : '') + t;
+  };
+  const fmtInt = (x: number) => Math.round(x).toLocaleString('en-US');
+
+  // the lesson's made-up example and the fixed action potential
+  const APD = 400;
+  const REF = { mdp: -60, thr: -40, slope: 0.05 };
+  const REF_CYCLE = (REF.thr - REF.mdp) / REF.slope + APD; // 800 ms
+  const SYM_FACTOR = 2, VAGAL_FACTOR = 0.8, VAGAL_SHIFT = 10;
+  const WINDOW = 2000; // ms drawn, = 50 mm at 25 mm per s
+  const PEAK = 10; // schematic spike height, mV
+
+  type Mode = 'none' | 'sym' | 'vagal';
+  type Params = { slope: number; mdp: number; thr: number };
+  const r4 = (x: number) => Math.round(x * 1e4) / 1e4;
+
+  function effective(p: Params, mode: Mode): Params {
+    if (mode === 'sym') return { slope: r4(p.slope * SYM_FACTOR), mdp: p.mdp, thr: p.thr };
+    if (mode === 'vagal') return { slope: r4(p.slope * VAGAL_FACTOR), mdp: p.mdp - VAGAL_SHIFT, thr: p.thr };
+    return { ...p };
+  }
+  function solve(p: Params) {
+    const ramp = Math.round((p.thr - p.mdp) / p.slope); // ms
+    const cycle = ramp + APD;
+    const rate = 60000 / cycle;
+    return { ramp, cycle, rate, small: cycle / 40, large: cycle / 200 };
+  }
+  const rateTxt = (r: number) => (Math.abs(r - Math.round(r)) < 0.05 ? String(Math.round(r)) : r.toFixed(1));
+
+  document.querySelectorAll<HTMLElement>('[data-eir]').forEach((root) => {
+    const plot = must<SVGSVGElement>(root, '[data-plot]');
+    const slopeIn = must<HTMLInputElement>(root, '[data-in="slope"]');
+    const mdpIn = must<HTMLInputElement>(root, '[data-in="mdp"]');
+    const thrIn = must<HTMLInputElement>(root, '[data-in="thr"]');
+    const slopeOut = must<HTMLElement>(root, '[data-out="slope"]');
+    const mdpOut = must<HTMLElement>(root, '[data-out="mdp"]');
+    const thrOut = must<HTMLElement>(root, '[data-out="thr"]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[name="eir-mode"]'));
+    const why = must<HTMLElement>(root, '[data-why]');
+    const rd = (k: string) => must<HTMLElement>(root, `[data-r="${k}"]`);
+    const rUsed = rd('used'), rRamp = rd('ramp'), rCycle = rd('cycle'), rRate = rd('rate'), rPaper = rd('paper'), rCheck = rd('check');
+
+    // geometry (viewBox units)
+    const X0 = 66, X1 = 328, Y0 = 20, Y1 = 140, VMIN = -90, VMAX = 20;
+    const SY0 = 166, SY1 = 192; // tick strip
+    const px = (t: number) => X0 + (t / WINDOW) * (X1 - X0);
+    const py = (v: number) => Y1 - ((v - VMIN) / (VMAX - VMIN)) * (Y1 - Y0);
+
+    function text(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', { x, y, 'font-size': 10, fill: INK, ...extra });
+      t.textContent = s;
+      plot.appendChild(t);
+    }
+
+    // schematic action potential, tau ms after threshold, fixed 400 ms
+    function apV(tau: number, mdp: number, thr: number): number {
+      if (tau <= 60) return thr + (PEAK - thr) * Math.sin((Math.PI / 2) * (tau / 60));
+      const u = Math.min(1, (tau - 60) / (APD - 60));
+      return PEAK + (mdp - PEAK) * ((1 - Math.cos(Math.PI * u)) / 2);
+    }
+
+    function mode(): Mode {
+      const c = radios.find((r) => r.checked);
+      return c && (c.value === 'sym' || c.value === 'vagal') ? c.value : 'none';
+    }
+
+    function render() {
+      const base: Params = { slope: Math.round(parseFloat(slopeIn.value) * 1000) / 1000, mdp: parseInt(mdpIn.value, 10), thr: parseInt(thrIn.value, 10) };
+      const m = mode();
+      const eff = effective(base, m);
+      const sol = solve(eff);
+      const sol0 = solve(base); // same sliders, no autonomic change
+
+      slopeOut.textContent = fmt(base.slope, 3);
+      mdpOut.textContent = fmt(base.mdp, 0);
+      thrOut.textContent = fmt(base.thr, 0);
+
+      // beats in the window: threshold crossings at ramp + k * cycle
+      const beats: number[] = [];
+      for (let t = sol.ramp; t <= WINDOW; t += sol.cycle) beats.push(t);
+
+      plot.replaceChildren();
+      // frame and ECG-paper style grid
+      plot.appendChild(el('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, fill: '#fff', stroke: INK, 'stroke-width': 1 }));
+      for (let k = 1; k < 10; k++) {
+        const x = px(k * 200);
+        plot.appendChild(el('line', { x1: x, y1: Y0, x2: x, y2: Y1, stroke: '#e6e6ec', 'stroke-width': 0.8 }));
+      }
+      plot.appendChild(el('rect', { x: X0, y: SY0, width: X1 - X0, height: SY1 - SY0, fill: '#fff', stroke: INK, 'stroke-width': 1 }));
+      for (let k = 1; k < 50; k++) {
+        const x = px(k * 40);
+        const major = k % 5 === 0;
+        plot.appendChild(el('line', { x1: x, y1: SY0, x2: x, y2: SY1, stroke: major ? '#cfcfd9' : '#ececf1', 'stroke-width': major ? 0.9 : 0.6 }));
+      }
+
+      // title and axis labels
+      text(X0, 11, 'membrane potential (mV), schematic', { 'font-weight': 700 });
+      // threshold and MDP lines, labels in the left margin (threshold above its line, MDP below its line)
+      const yThr = py(eff.thr), yMdp = py(eff.mdp);
+      plot.appendChild(el('line', { x1: X0, y1: yThr, x2: X1, y2: yThr, stroke: ORANGE, 'stroke-width': 1.1, 'stroke-dasharray': '4 3' }));
+      plot.appendChild(el('line', { x1: X0, y1: yMdp, x2: X1, y2: yMdp, stroke: PURPLE, 'stroke-width': 1.1, 'stroke-dasharray': '4 3' }));
+      text(X0 - 4, yThr - 2, 'thresh. ' + fmt(eff.thr, 0), { 'text-anchor': 'end', fill: ORANGE, 'font-weight': 700 });
+      text(X0 - 4, yMdp + 10, 'MDP ' + fmt(eff.mdp, 0), { 'text-anchor': 'end', fill: PURPLE, 'font-weight': 700 });
+
+      // the lesson's made-up example, as grey marks under the strip
+      for (let t = (REF.thr - REF.mdp) / REF.slope; t <= WINDOW; t += REF_CYCLE) {
+        const x = px(t);
+        plot.appendChild(el('polygon', { points: `${x - 3},${SY1 + 7} ${x + 3},${SY1 + 7} ${x},${SY1 + 1}`, fill: GREY }));
+      }
+
+      // trace, one cycle at a time: ramp (teal) then action potential (dark)
+      const clipT = (t: number) => Math.min(t, WINDOW);
+      let rampD = '', apD = '';
+      for (let k = 0; k * sol.cycle < WINDOW; k++) {
+        const t0 = k * sol.cycle, tThr = t0 + sol.ramp, tEnd = t0 + sol.cycle;
+        // ramp: straight from MDP up to threshold (or to the window edge)
+        const tr = clipT(tThr);
+        const vEnd = eff.mdp + eff.slope * (tr - t0);
+        rampD += `M${px(t0).toFixed(1)} ${py(eff.mdp).toFixed(1)}L${px(tr).toFixed(1)} ${py(vEnd).toFixed(1)}`;
+        if (tThr < WINDOW) {
+          let d = `M${px(tThr).toFixed(1)} ${py(eff.thr).toFixed(1)}`;
+          const last = clipT(tEnd);
+          for (let t = tThr + 5; t < last; t += 5) d += `L${px(t).toFixed(1)} ${py(apV(t - tThr, eff.mdp, eff.thr)).toFixed(1)}`;
+          d += `L${px(last).toFixed(1)} ${py(apV(last - tThr, eff.mdp, eff.thr)).toFixed(1)}`;
+          apD += d;
+        }
+      }
+      plot.appendChild(el('path', { d: rampD, fill: 'none', stroke: ACCENT, 'stroke-width': 2.6, 'stroke-linecap': 'round' }));
+      plot.appendChild(el('path', { d: apD, fill: 'none', stroke: INK, 'stroke-width': 1.8, 'stroke-linejoin': 'round' }));
+
+      // beats: guide from the threshold crossing down to the tick strip, and the tick
+      for (const t of beats) {
+        const x = px(t);
+        plot.appendChild(el('line', { x1: x, y1: yThr, x2: x, y2: SY0, stroke: ORANGE, 'stroke-width': 0.8, 'stroke-dasharray': '1.5 2.5' }));
+        plot.appendChild(el('circle', { cx: x, cy: yThr, r: 3, fill: ORANGE }));
+        plot.appendChild(el('line', { x1: x, y1: SY0 + 2, x2: x, y2: SY1 - 2, stroke: ORANGE, 'stroke-width': 2.6 }));
+      }
+      text(X0 - 4, (SY0 + SY1) / 2 + 3, 'R-R ticks', { 'text-anchor': 'end' });
+
+      // R-R bracket between the first two ticks
+      if (beats.length >= 2) {
+        const xa = px(beats[0]), xb = px(beats[1]), yb = SY0 - 5;
+        plot.appendChild(el('line', { x1: xa, y1: yb, x2: xb, y2: yb, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('line', { x1: xa, y1: yb - 3, x2: xa, y2: yb + 3, stroke: INK, 'stroke-width': 1 }));
+        plot.appendChild(el('line', { x1: xb, y1: yb - 3, x2: xb, y2: yb + 3, stroke: INK, 'stroke-width': 1 }));
+        const cx = Math.max(X0 + 36, Math.min(X1 - 36, (xa + xb) / 2));
+        text(cx, yb - 5, 'R-R ' + fmtInt(sol.cycle) + ' ms', { 'text-anchor': 'middle', 'font-weight': 700 });
+      }
+
+      // time axis
+      for (const s of [0, 0.4, 0.8, 1.2, 1.6, 2.0]) {
+        const x = px(s * 1000);
+        plot.appendChild(el('line', { x1: x, y1: SY1, x2: x, y2: SY1 + 3, stroke: INK, 'stroke-width': 1 }));
+        text(Math.max(X0 + 6, Math.min(X1 - 6, x)), 214, s === 0 ? '0' : s.toFixed(1), { 'text-anchor': 'middle' });
+      }
+      text((X0 + X1) / 2, 227, 'time (s), 25 mm per s', { 'text-anchor': 'middle' });
+
+      plot.setAttribute('aria-label', `A schematic pacemaker potential over two seconds with a matching R-R tick strip. In this sketch the cycle length is ${fmtInt(sol.cycle)} ms and the rate is ${rateTxt(sol.rate)} per min.`);
+
+      // readouts, with the lesson's arithmetic
+      rUsed.textContent = `slope ${fmt(eff.slope, 3)} mV per ms · MDP ${fmt(eff.mdp, 0)} mV · threshold ${fmt(eff.thr, 0)} mV`;
+      rRamp.textContent = `(${fmt(eff.thr, 0)} − (${fmt(eff.mdp, 0)})) / ${fmt(eff.slope, 3)} = ${fmtInt(sol.ramp)} ms`;
+      rCycle.textContent = `${fmtInt(sol.ramp)} + 400 = ${fmtInt(sol.cycle)} ms`;
+      rRate.textContent = `60,000 / ${fmtInt(sol.cycle)} = ${rateTxt(sol.rate)} per min`;
+      rPaper.textContent = `${fmt(sol.small, 3)} small squares = ${fmt(sol.large, 3)} large squares`;
+      rCheck.textContent = `1,500 / ${fmt(sol.small, 3)} = ${rateTxt(1500 / sol.small)}; 300 / ${fmt(sol.large, 3)} = ${rateTxt(300 / sol.large)} per min`;
+
+      // status sentences, rebuilt from the current state every time
+      const s: string[] = [];
+      s.push(`In this sketch, the ramp from ${fmt(eff.mdp, 0)} to ${fmt(eff.thr, 0)} mV at ${fmt(eff.slope, 3)} mV per ms takes ${fmtInt(sol.ramp)} ms; adding the 400 ms action potential gives a cycle length of ${fmtInt(sol.cycle)} ms, which is ${rateTxt(sol.rate)} per min.`);
+      if (m === 'none') {
+        s.push('No autonomic input is applied. In this sketch, a steeper ramp covers the same climb sooner, while a more negative maximal diastolic potential or a less negative threshold lengthens the climb.');
+      } else if (m === 'sym') {
+        s.push(`In this sketch, sympathetic input is set to double the slope (a made-up doubling), from ${fmt(base.slope, 3)} to ${fmt(eff.slope, 3)} mV per ms, so the climb takes ${fmtInt(sol.ramp)} ms instead of ${fmtInt(sol0.ramp)} ms and the rate rises from ${rateTxt(sol0.rate)} to ${rateTxt(sol.rate)} per min. As described above, noradrenaline at beta-adrenergic receptors raises cyclic AMP, which increases If and steepens phase 4.`);
+      } else {
+        s.push(`In this sketch, vagal input flattens the slope, from ${fmt(base.slope, 3)} to ${fmt(eff.slope, 3)} mV per ms, and moves the maximal diastolic potential from ${fmt(base.mdp, 0)} to ${fmt(eff.mdp, 0)} mV, so the climb takes ${fmtInt(sol.ramp)} ms instead of ${fmtInt(sol0.ramp)} ms and the rate falls from ${rateTxt(sol0.rate)} to ${rateTxt(sol.rate)} per min. As described above, acetylcholine at muscarinic M2 receptors lowers cyclic AMP and If, and also opens a G-protein-gated potassium channel that makes the maximal diastolic potential more negative.`);
+      }
+      if (beats.length === 0) {
+        s.push(`In this sketch, the ramp has not reached threshold by 2 s, so no beat is drawn; R-R is read from the cycle length of ${fmtInt(sol.cycle)} ms.`);
+      } else if (beats.length === 1) {
+        s.push(`In this sketch, only one beat falls in the 2 s shown, so R-R is read from the cycle length of ${fmtInt(sol.cycle)} ms, not from the strip.`);
+      }
+      why.textContent = s.join(' ');
+    }
+
+    [slopeIn, mdpIn, thrIn].forEach((x) => x.addEventListener('input', render));
+    radios.forEach((r) => r.addEventListener('change', render));
+    render();
+  });
+</script>
+
+<style is:global>
+  .eir { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .eir-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .eir-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .eir-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .eir-legend { list-style: none; margin: var(--ddp-space-2) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.15rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .eir-legend li { display: flex; align-items: center; gap: 0.35rem; margin: 0; padding: 0; font-size: var(--ddp-text-xs); line-height: 1.35; }
+  .eir-sw { display: inline-block; width: 1.4rem; height: 0; border-top: 3px solid var(--ddp-color-accent); flex: none; }
+  .eir-sw-ramp { border-top: 3px solid #0e7c86; }
+  .eir-sw-ap { border-top: 2px solid #4b4b55; }
+  .eir-sw-thr { border-top: 2px dashed #e57200; }
+  .eir-sw-mdp { border-top: 2px dashed #6a4c93; }
+  .eir-sw-tick { border-top: 0; width: 0.2rem; height: 0.9rem; background: #e57200; margin: 0 0.6rem; }
+  .eir-sw-ref { border-top: 0; width: 0; height: 0; border-left: 0.3rem solid transparent; border-right: 0.3rem solid transparent; border-bottom: 0.55rem solid #8d8d98; margin: 0 0.45rem; }
+  .eir-controls { display: grid; grid-template-columns: 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .eir-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .eir-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .eir-slabel input[type="range"] { accent-color: var(--ddp-color-accent); width: 100%; }
+  .eir-modes { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0; padding: 0.3rem 0.6rem 0.4rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .eir-modes legend { font-size: var(--ddp-text-xs); font-weight: 600; padding: 0 0.3rem; color: var(--ddp-color-ink-soft); }
+  .eir-modes label { display: flex; gap: 0.4rem; align-items: baseline; }
+  .eir-modes input { accent-color: var(--ddp-color-accent); }
+  .eir-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .eir-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .eir-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .eir-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .eir .eir-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 9em; }
+  .eir .eir-frog { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.45; }
+  .eir .eir-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .eir .eir-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (min-width: 640px) {
+    .eir-controls { grid-template-columns: 1fr 1fr; }
+    .eir-modes { grid-column: 1 / -1; }
+  }
+</style>

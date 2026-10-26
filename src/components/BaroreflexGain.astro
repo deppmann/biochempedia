@@ -1,0 +1,228 @@
+---
+/**
+ * BaroreflexGain — "Fast reflex, slow kidney". One idea: the baroreflex shrinks a
+ * disturbance to D/(1 + G), and the kidney's curve decides where pressure ends up.
+ * Three bars on one pressure scale: first seconds with the reflex off (95 + D), minutes
+ * with the reflex on (95 + D/(1 + G)), and days (85 + curve shift + intake/10, which
+ * does not depend on D or G). All numbers are the lesson's own illustrative values for
+ * worked problem parts A, B and C(i). Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="brx card" data-brx>
+  <figcaption class="brx-head">Fast reflex, slow kidney: gain and the renal curve<span class="brx-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="brx-svg" viewBox="0 0 340 246" role="img" aria-label="Three horizontal bars of mean arterial pressure" data-plot></svg>
+
+  <div class="brx-controls">
+    <label class="brx-slabel"><span>Disturbance D, open-loop rise in MAP <em data-out="d">20</em> mmHg</span>
+      <input type="range" data-in="d" min="0" max="30" step="1" value="20" />
+    </label>
+    <label class="brx-slabel"><span>Baroreflex gain G <em data-out="g">2</em></span>
+      <input type="range" data-in="g" min="0" max="4" step="0.5" value="2" />
+    </label>
+    <label class="brx-slabel"><span>Renal curve shift <em data-out="s">0</em> mmHg <small>(+ right, higher pressure; − left)</small></span>
+      <input type="range" data-in="s" min="-20" max="20" step="1" value="0" />
+    </label>
+    <label class="brx-slabel"><span>Sodium intake <em data-out="i">150</em> mEq/day</span>
+      <input type="range" data-in="i" min="50" max="250" step="10" value="150" />
+    </label>
+  </div>
+
+  <div class="brx-presets">
+    <button type="button" class="brx-btn" data-preset="ab">Lesson parts A and B values</button>
+    <button type="button" class="brx-btn" data-preset="c">Lesson part C(i): shift +10</button>
+  </div>
+
+  <dl class="brx-readout">
+    <div><dt>Remaining error = D / (1 + G)</dt><dd data-r-err></dd></div>
+    <div><dt>Correction = D − remaining error</dt><dd data-r-corr></dd></div>
+    <div><dt>Gain = correction / remaining error</dt><dd data-r-gain></dd></div>
+    <div><dt>Kidney: excretion = 10 mEq/day per mmHg × (MAP − intercept) = intake</dt><dd data-r-kid></dd></div>
+  </dl>
+
+  <div class="brx-why" data-why role="status"></div>
+
+  <p class="brx-assume"><strong>In this sketch:</strong> an illustrative model, not fitted to data, for an adult human at rest in steady state with linear relations and a step rise in total peripheral resistance as the disturbance. The lesson’s own illustrative numbers are the fast baseline of 95 mmHg (part A) and the renal slope of 10 mEq/day per mmHg with an intercept of 85 mmHg (part B). Made up for the sketch: the slider ranges and extending the straight lines beyond the worked values. The lesson gives the fast bars and the kidney bar as separate illustrations (baseline 95 mmHg against a kidney equilibrium of 100 mmHg at an intake of 150), so compare how they move, not their offsets. Baroreceptor resetting is left out.</p>
+
+  <p class="brx-foot">A reflex of gain G shrinks a disturbance to D / (1 + G) but never to zero, while the pressure the kidney settles at is where excretion equals intake, so it moves only when the curve or the intake moves.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const TEAL = '#0e7c86', NAVY = '#1f3a5f', GREY = '#4b4b55', INK = '#2d2d2d', ORANGE = '#c2570c';
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function txt(x: number, y: number, s: string, size: number, fill: string, anchor = 'start', weight = 400): SVGElement {
+    const t = el('text', { x, y, 'font-size': size, fill, 'text-anchor': anchor, 'font-weight': weight });
+    t.textContent = s;
+    return t;
+  }
+  const fmt2 = (x: number) => String(parseFloat(x.toFixed(2)));
+  const fmt = (x: number) => (Math.abs(x - Math.round(x)) < 0.005 ? String(Math.round(x)) : x.toFixed(1));
+  const signed = (x: number) => (x < 0 ? '− ' + Math.abs(x) : '+ ' + x);
+
+  document.querySelectorAll<HTMLElement>('[data-brx]').forEach((root) => {
+    const plot = root.querySelector<SVGSVGElement>('[data-plot]');
+    const why = root.querySelector<HTMLElement>('[data-why]');
+    const rErr = root.querySelector<HTMLElement>('[data-r-err]');
+    const rCorr = root.querySelector<HTMLElement>('[data-r-corr]');
+    const rGain = root.querySelector<HTMLElement>('[data-r-gain]');
+    const rKid = root.querySelector<HTMLElement>('[data-r-kid]');
+    const dIn = root.querySelector<HTMLInputElement>('[data-in="d"]');
+    const gIn = root.querySelector<HTMLInputElement>('[data-in="g"]');
+    const sIn = root.querySelector<HTMLInputElement>('[data-in="s"]');
+    const iIn = root.querySelector<HTMLInputElement>('[data-in="i"]');
+    const dOut = root.querySelector<HTMLElement>('[data-out="d"]');
+    const gOut = root.querySelector<HTMLElement>('[data-out="g"]');
+    const sOut = root.querySelector<HTMLElement>('[data-out="s"]');
+    const iOut = root.querySelector<HTMLElement>('[data-out="i"]');
+    if (!plot || !why || !rErr || !rCorr || !rGain || !rKid || !dIn || !gIn || !sIn || !iIn || !dOut || !gOut || !sOut || !iOut) return;
+
+    const BASE = 95;       // part A baseline, mmHg
+    const SLOPE = 10;      // part B, mEq/day per mmHg
+    const INTERCEPT = 85;  // part B, mmHg
+    const X0 = 20, PXPER = 3.4, VMIN = 60, VMAX = 140;
+    const px = (v: number) => X0 + (v - VMIN) * PXPER;
+
+    function render() {
+      const D = parseInt(dIn!.value, 10);
+      const G = parseFloat(gIn!.value);
+      const S = parseInt(sIn!.value, 10);
+      const I = parseInt(iIn!.value, 10);
+      dOut!.textContent = String(D);
+      gOut!.textContent = fmt(G);
+      sOut!.textContent = (S > 0 ? '+' : S < 0 ? '−' : '') + Math.abs(S);
+      iOut!.textContent = String(I);
+
+      const open = BASE + D;
+      const err = D / (1 + G);
+      const closed = BASE + err;
+      const corr = D - err;
+      const icpt = INTERCEPT + S;
+      const kid = icpt + I / SLOPE;
+
+      // readouts, with the lesson's arithmetic and units
+      rErr!.textContent = `${D} / (1 + ${fmt(G)}) = ${fmt2(err)} mmHg`;
+      rCorr!.textContent = `${D} − ${fmt2(err)} = ${fmt2(corr)} mmHg`;
+      rGain!.textContent = D === 0 ? 'no error to correct, so no ratio' : `${fmt2(corr)} / ${fmt2(err)} = ${(corr / err).toFixed(1)}`;
+      rKid!.textContent = `${I} = 10 × (MAP − ${icpt}), so MAP = ${fmt(kid)} mmHg`;
+
+      // plot
+      plot!.replaceChildren();
+      const rows = [
+        { title: 'Reflex cut (open loop)', formula: `95 + ${D}`, val: open, color: GREY, y: 24, inside: true },
+        { title: 'Reflex intact (fast loop, steady state)', formula: `95 + ${D}/(1 + ${fmt(G)})`, val: closed, color: TEAL, y: 76, inside: true },
+        { title: 'Days, kidney (pressure natriuresis)', formula: `85 ${signed(S)} + ${I}/10`, val: kid, color: NAVY, y: 142, inside: false },
+      ];
+      plot!.appendChild(el('line', { x1: X0, y1: 20, x2: X0, y2: 172, stroke: INK, 'stroke-width': 1 }));
+      for (const r of rows) {
+        const ty = r.inside ? r.y - 6 : r.y - 17;
+        plot!.appendChild(txt(X0, ty, r.title, 10.5, INK, 'start', 700));
+        plot!.appendChild(txt(334, ty, r.formula, 9.5, GREY, 'end'));
+        if (!r.inside) plot!.appendChild(txt(X0, r.y - 6, 'separate illustration (part B)', 9, GREY));
+        const w = Math.max(1, px(r.val) - X0);
+        plot!.appendChild(el('rect', { x: X0, y: r.y, width: w, height: 20, fill: r.color }));
+        if (r.inside) {
+          plot!.appendChild(txt(X0 + 5, r.y + 14, `${fmt2(r.val)} mmHg`, 10, '#ffffff', 'start', 700));
+        } else {
+          plot!.appendChild(txt(X0 + w + 5, r.y + 14, `${fmt2(r.val)} mmHg`, 10, INK, 'start', 700));
+        }
+      }
+      // what the reflex removed, as a dashed outline at the end of the reflex-intact bar
+      const showGhost = D > 0 && G > 0;
+      if (showGhost) {
+        plot!.appendChild(el('rect', { x: px(closed), y: 76, width: px(open) - px(closed), height: 20, fill: 'none', stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      }
+      // part A baseline
+      for (const [ya, yb] of [[22, 46], [74, 98]]) plot!.appendChild(el('line', { x1: px(BASE), y1: ya, x2: px(BASE), y2: yb, stroke: ORANGE, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
+      // axis
+      plot!.appendChild(el('line', { x1: X0, y1: 172, x2: px(VMAX), y2: 172, stroke: INK, 'stroke-width': 1 }));
+      for (const v of [60, 80, 100, 120, 140]) {
+        plot!.appendChild(el('line', { x1: px(v), y1: 172, x2: px(v), y2: 176, stroke: INK, 'stroke-width': 1 }));
+        plot!.appendChild(txt(px(v), 187, String(v), 9, INK, 'middle'));
+      }
+      plot!.appendChild(txt(X0, 202, 'mean arterial pressure, mmHg (bars start at 60)', 10, INK, 'start'));
+      // legend
+      plot!.appendChild(el('line', { x1: X0, y1: 217, x2: X0 + 18, y2: 217, stroke: ORANGE, 'stroke-width': 1.3, 'stroke-dasharray': '3 2' }));
+      plot!.appendChild(txt(X0 + 24, 220, 'part A baseline, 95 mmHg (top two bars)', 9.5, INK));
+      if (showGhost) {
+        plot!.appendChild(el('rect', { x: X0, y: 226, width: 18, height: 9, fill: 'none', stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        plot!.appendChild(txt(X0 + 24, 234, 'removed by the reflex (the correction)', 9.5, INK));
+      }
+      plot!.setAttribute('aria-label', `Three bars of mean arterial pressure in mmHg: reflex cut (open loop) ${fmt2(open)}, reflex intact (fast loop, steady state) ${fmt2(closed)}, days, kidney (pressure natriuresis) ${fmt2(kid)}. The days bar is a separate illustration.`);
+
+      // status sentences: each follows from the sliders and the lesson's equations
+      let fast: string;
+      if (D === 0) {
+        fast = 'In this sketch, with no disturbance the reflex has nothing to correct, and both fast bars sit at the 95 mmHg baseline.';
+      } else if (G === 0) {
+        fast = `In this sketch, with a gain of 0 the reflex is gone: none of the ${D} mmHg disturbance is removed, the whole ${D} mmHg stands, and the reflex-intact bar equals the reflex-cut bar at ${fmt(open)} mmHg.`;
+      } else {
+        const pct = Math.round((G / (1 + G)) * 100);
+        fast = `In this sketch, with the reflex cut a ${D} mmHg open-loop rise would take pressure to ${fmt(open)} mmHg. With the reflex intact (afferent firing up, vagal output up, sympathetic output down, as the lesson describes for a pressure rise) a gain of ${fmt(G)} removes about ${pct} percent of it, ${fmt2(corr)} mmHg, and leaves ${fmt2(err)} mmHg, never all of it.`;
+      }
+      let slow = `In this sketch the days bar is the pressure at which sodium excretion equals intake, ${fmt(kid)} mmHg, and it does not depend on D or G: for a given curve and intake the kidney changes volume while any error remains, so the steady-state error is zero (the lesson’s infinite-gain argument).`;
+      if (S === 0 && I === 150) {
+        slow += ' This is the lesson’s part B: 100 mmHg.';
+      }
+      const parts: string[] = [fast, slow];
+      if (I > 150) {
+        parts.push(`In this sketch a higher intake on this fixed-slope curve raises the equilibrium (the lesson’s unshifted curve gives 110 mmHg at 250 mEq/day). The lesson adds that when the system works normally, angiotensin II and aldosterone fall on a high intake and steepen pressure natriuresis, so balance is kept with little pressure change; this sketch leaves that out.`);
+      } else if (I < 150) {
+        parts.push('In this sketch a lower intake on this fixed-slope curve lowers the equilibrium, because less excretion is needed to balance it.');
+      }
+      if (S > 0) {
+        parts.push(`Shifting the curve ${S} mmHg to the right raises the equilibrium by ${S} mmHg at the same intake and keeps it raised${S === 10 && I === 150 ? ' (the lesson’s part C(i): 110 mmHg)' : ''}; the lesson says that in every form of human and experimental hypertension studied so far the curve is shifted to higher pressures.`);
+      } else if (S < 0) {
+        parts.push(`Shifting the curve ${Math.abs(S)} mmHg to the left lowers the equilibrium by ${Math.abs(S)} mmHg at the same intake; the lesson makes the point for a sustained fall in pressure at unchanged intake: it would require some change in how the kidney handles sodium.`);
+      }
+      why!.replaceChildren();
+      for (const p of parts) {
+        const e = document.createElement('p');
+        e.textContent = p;
+        why!.appendChild(e);
+      }
+    }
+
+    [dIn, gIn, sIn, iIn].forEach((s) => s.addEventListener('input', render));
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) => {
+      b.addEventListener('click', () => {
+        dIn!.value = '20'; gIn!.value = '2'; iIn!.value = '150';
+        sIn!.value = b.dataset.preset === 'c' ? '10' : '0';
+        render();
+      });
+    });
+    render();
+  });
+</script>
+
+<style>
+  .brx { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .brx-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .brx-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .brx-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .brx-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .brx-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .brx-slabel small { font-size: inherit; color: var(--ddp-color-muted); }
+  .brx-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .brx-slabel input { accent-color: var(--ddp-color-accent); width: 100%; }
+  .brx-presets { display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; }
+  .brx-btn { font: inherit; font-size: var(--ddp-text-xs); padding: 0.3rem 0.65rem; border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-surface); color: var(--ddp-color-ink); cursor: pointer; }
+  .brx-btn:hover { border-color: var(--ddp-color-accent); }
+  .brx-btn:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .brx-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .brx-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .brx-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .brx-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-primary); font-weight: 700; overflow-wrap: anywhere; }
+  .brx-why { font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; }
+  .brx-why :global(p) { margin: 0 0 0.4rem; font-size: inherit; color: inherit; line-height: inherit; }
+  .brx-assume { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .brx-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) {
+    .brx-controls, .brx-readout { grid-template-columns: 1fr; }
+  }
+</style>

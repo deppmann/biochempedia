@@ -51,12 +51,12 @@ scientists:
     story: >-
       Histologists had argued for years, from the position and shape of interstitial cells of
       Cajal, that these cells might be the gut's pacemakers, but anatomy alone could not show it.
-      Huizinga and his colleagues, including the anatomist Lars Thuneberg, took the question to
+      Huizinga and his colleagues, including Lars Thuneberg, took the question to
       mutant mice. In animals with mutations at the W locus, which encodes the Kit receptor, they
       found that the network of ICC around Auerbach's plexus, the myenteric plexus between the two
       muscle layers, was missing, and that the intestine lacked its pacemaker activity. Their
       report appeared in Nature in 1995, shortly after the Reno group's paper on W/Wv mice in the
-      Journal of Physiology. Two laboratories, working with different mutants and methods, had
+      Journal of Physiology. Two laboratories, working independently, had
       reached the same answer, which made it far harder to dismiss as an artefact of one
       preparation. Neither study identified the current that drives the rhythm, and both studied
       mice. What they made possible was a cell-centred view of gut motility, in which disorders of
@@ -71,7 +71,7 @@ scientists:
       In 1905 John Edkins proposed that the antrum releases a hormone that drives acid secretion,
       a story told in the Organismal Biology lesson on digestive systems.
       For decades the idea was doubted, in part because crude tissue extracts could contain
-      histamine, itself a strong stimulant of acid. The way to settle it was to purify the active
+      histamine, itself a strong stimulant of acid. Simon Komarov's histamine-free concentrate, reported in 1942, then showed the hormone was real, and the next step was to purify the active
       substance and show what it was. Gregory and Tracy, working at the University of Liverpool,
       extracted antral mucosa from hogs and purified two closely related peptides, each seventeen
       amino acids long, which they named gastrin I and gastrin II. With the chemical structure
@@ -107,16 +107,22 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "GastricAcidPhases"
+    title: "Can the pump afford it?"
+    caption: >-
+      Set the luminal pH, cytosolic pH, protons per ATP and ATP energy, and see whether one ATP can pay for each pump cycle and where 2 H+ per ATP stops being affordable.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In mouse small-intestinal muscle, which cells generate the electrical slow waves that time phasic contractions?"
     choices:
-      - "Circular smooth muscle cells coupled by gap junctions"
       - "Interstitial cells of Cajal in the myenteric region"
-      - "Motor neurons of the myenteric plexus firing in bursts"
       - "Enteroendocrine cells releasing motilin into the wall"
-    answer: 1
+      - "Motor neurons of the myenteric plexus firing in bursts"
+      - "Circular smooth muscle cells coupled by gap junctions"
+    answer: 0
     rationale: >-
       Interstitial cells of Cajal is correct: isolated ICC are rhythmic while isolated smooth
       muscle cells typically are not, and W/Wv mice with few myenteric ICC lack slow waves. Smooth
@@ -127,11 +133,11 @@ practiceQuestions:
       hours, not seconds, and the hormone acts on the migrating motor complex.
   - stem: "A recording from human antral muscle shows slow waves at 3 per minute. During one minute no contraction occurs, and during the next minute three strong contractions occur. What best explains the difference?"
     choices:
-      - "The slow-wave frequency rose during the second minute"
-      - "The slow waves became action potentials in the second minute"
       - "Smooth muscle generated its own rhythm in the second minute"
       - "Neural or hormonal input raised slow-wave coupling to contraction"
-    answer: 3
+      - "The slow waves became action potentials in the second minute"
+      - "The slow-wave frequency rose during the second minute"
+    answer: 1
     rationale: >-
       Raised coupling is correct: the slow-wave rhythm sets when contractions can occur, and nerves
       and hormones set whether each wave brings the muscle past threshold, so the same 3 per minute
@@ -141,27 +147,27 @@ practiceQuestions:
       Smooth muscle cells do not typically generate this rhythm on their own.
   - stem: "In fasted human volunteers given synthetic gastrin (G17), the acid response was abolished when H2 histamine receptors were blocked. Which pathway does this support as the main route by which gastrin raises acid in humans?"
     choices:
+      - "Gastrin inhibits somatostatin release from D cells in the corpus"
       - "Gastrin releases histamine from ECL cells, which acts on parietal cells"
       - "Gastrin binds parietal CCK2 receptors and raises cAMP inside them"
       - "Gastrin releases acetylcholine from vagal fibres onto parietal cells"
-      - "Gastrin inhibits somatostatin release from D cells in the corpus"
-    answer: 0
+    answer: 1
     rationale: >-
       The ECL route is correct: abolishing the response with an H2 block means histamine was
       required, and in the human stomach gastrin is thought to act mainly by releasing histamine
       from enterochromaffin-like cells, with a direct parietal effect probably minor. Parietal
       CCK2 receptors exist but are Gq-coupled and act through Ca2+, not cAMP, and a direct route
-      would not depend on H2 receptors. A route through acetylcholine alone would survive an H2 block;
-      in the same study muscarinic block reduced the response by more than 70 percent, which fits
-      cholinergic tone supporting the response rather than carrying it. Inhibiting
+      would be expected to survive an H2 block, although the authors read their data as gastrin acting together with histamine and acetylcholine. A route through acetylcholine alone would also survive an H2 block;
+      in the same study muscarinic block cut the response to the lower gastrin dose by about 73 percent, which fits
+      acetylcholine being a needed partner of the histamine step rather than the carrier of the response. Inhibiting
       somatostatin would raise acid through other cells, but it would not explain why an H2 block
       abolishes the whole response.
   - stem: "A balloon in the rectum of a healthy adult volunteer is inflated. What happens at the internal anal sphincter, and by what route?"
     choices:
-      - "It contracts, a smooth-muscle response carried by pudendal motor fibres"
-      - "It relaxes, a skeletal-muscle response under voluntary pudendal control"
-      - "It relaxes, a smooth-muscle response carried by an intrinsic enteric reflex"
       - "It contracts, a skeletal-muscle response carried by a sacral spinal reflex"
+      - "It contracts, a smooth-muscle response carried by pudendal motor fibres"
+      - "It relaxes, a smooth-muscle response carried by an intrinsic enteric reflex"
+      - "It relaxes, a skeletal-muscle response under voluntary pudendal control"
     answer: 2
     rationale: >-
       Relaxation by an intrinsic reflex is correct: rectal distension relaxes the internal anal
@@ -174,10 +180,10 @@ practiceQuestions:
   - stem: "Human saliva is made in two steps, by acinar cells and then by the ducts that carry it. Compared with saliva collected at a low flow rate, saliva collected at a high flow rate is most likely to be:"
     choices:
       - "more hypotonic, because the ducts absorb more Na+ and Cl-"
-      - "closer to plasma tonicity, because ducts have less time to act"
       - "hypertonic, because the ducts add water faster than they add salt"
       - "isotonic, because the acinar cells stop secreting any chloride"
-    answer: 1
+      - "closer to plasma tonicity, because ducts have less time to act"
+    answer: 3
     rationale: >-
       Closer to plasma tonicity is correct: acinar fluid starts near isotonic, and the ducts, which
       are poorly permeable to water, reabsorb Na+ and Cl- and add K+ and HCO3-; at high flow each
@@ -190,11 +196,11 @@ practiceQuestions:
 mcatQuestions:
   - stem: "A model of the gastric H,K-ATPase treats each cycle as moving n protons from the cytosol (pH 7.0) to the lumen in electroneutral exchange for K+; ignore the K+ gradient. At 310 K, 2.303RT is 5.94 kJ per mol per pH unit, and hydrolysis of one ATP in the cell releases about 55 kJ per mol (an illustrative value). At a luminal pH of 2.0, which statement is correct?"
     choices:
-      - "Moving 2 H+ costs about 24 kJ, so 2 H+ per ATP is affordable"
-      - "Moving 1 H+ costs about 59 kJ, so no cycle is affordable at all"
       - "Moving 2 H+ costs about 59 kJ, so only 1 H+ per ATP is affordable"
+      - "Moving 1 H+ costs about 59 kJ, so no cycle is affordable at all"
       - "Moving 1 H+ costs about 12 kJ, so 4 H+ per ATP would be affordable"
-    answer: 2
+      - "Moving 2 H+ costs about 24 kJ, so 2 H+ per ATP is affordable"
+    answer: 0
     rationale: >-
       Only one proton per ATP is affordable: the gradient is 7.0 - 2.0 = 5 pH units, so one proton
       costs 5.94 x 5 = 29.7 kJ per mol and two cost 59.4 kJ, more than the 55 kJ one ATP releases.
@@ -205,11 +211,11 @@ mcatQuestions:
       119 kJ.
   - stem: "In gastric emptying scintigraphy in healthy adults, a labelled high-calorie liquid meal has 50 percent remaining at 2 h, and water has 50 percent remaining at about 10 min. Assume, for this problem only, that each empties as a single exponential. About what fraction of each remains in the stomach at 1 h?"
     choices:
-      - "About 71 percent of the meal and about 2 percent of the water"
+      - "About 25 percent of the meal and about 50 percent of the water"
       - "About 50 percent of the meal and about 17 percent of the water"
       - "About 75 percent of the meal and none of the water at all"
-      - "About 25 percent of the meal and about 50 percent of the water"
-    answer: 0
+      - "About 71 percent of the meal and about 2 percent of the water"
+    answer: 3
     rationale: >-
       For an exponential, the fraction left is 0.5 raised to (time / half-time): for the meal 0.5
       to the power 0.5 = 0.71, and for the water 0.5 to the power 6 = 0.016, about 2 percent. Fifty
@@ -220,10 +226,10 @@ mcatQuestions:
   - stem: "Mice lacking the CCK-B (gastrin) receptor were compared with wild-type littermates for basal gastric pH and plasma gastrin. Separately, consider animals carrying a gastrin-secreting tumour (gastrinoma) whose output does not respond to luminal pH. Predict both variables in each case, relative to normal animals."
     choices:
       - "Knockout: pH lower, gastrin lower; tumour: pH higher, gastrin higher"
-      - "Knockout: pH higher, gastrin lower; tumour: pH lower, gastrin higher"
       - "Knockout: pH lower, gastrin higher; tumour: pH higher, gastrin higher"
       - "Knockout: pH higher, gastrin higher; tumour: pH lower, gastrin higher"
-    answer: 3
+      - "Knockout: pH higher, gastrin lower; tumour: pH lower, gastrin higher"
+    answer: 2
     rationale: >-
       In the knockout gastrin cannot drive acid, so acid falls and pH rises (3.2 to 5.2 in the
       published mice); with less acid, antral D cells release less somatostatin and G cells release
@@ -259,7 +265,7 @@ explainLevels:
       the Ca2+-activated Cl- channel ANO1; the depolarization spreads passively into electrically
       coupled smooth muscle, and contraction occurs only when enteric neurons and hormones bring
       the plateau past threshold. Enteric reflexes give oral contraction and anal relaxation, and
-      fasting brings the migrating motor complex, whose phase III front is neural and paced by
+      fasting brings the migrating motor complex, whose phase III front is neural and coincides with the cyclic rise of
       motilin. The parietal H,K-ATPase, moved from tubulovesicles to the canaliculus on
       stimulation, exchanges H+ for K+ electroneutrally and is driven by acetylcholine (M3, Ca2+),
       histamine (H2, cAMP) and gastrin, which in humans acts mainly by releasing ECL-cell histamine.
@@ -287,18 +293,18 @@ anecdotes:
       Santiago Ramon y Cajal drew the branched cells between the gut's muscle layers that now carry
       his name. A 2014 review reports that he noted how closely they lie against nerve varicosities
       and suggested they were a kind of primitive peripheral neuron, relaying motor neurons to
-      muscle. They are not neurons; they are mesenchymal cells related to smooth muscle. The
+      muscle. They are not neurons; they are mesenchymal cells of mesodermal origin, not neural crest. The
       suggestion still captured something real, since some ICC sit between nerve endings and muscle
-      and are thought to take part in neural transmission as well as pacing.
+      and are thought by some to take part in neural transmission as well as pacing, a role still debated.
   - title: "No motilin in a mouse"
     source: "Huang and colleagues, Proceedings of the National Academy of Sciences (2025), doi 10.1073/pnas.2424363122; Miyano and colleagues, PLoS ONE 8:e64777 (2013)."
     text: >-
-      Much of gut physiology is done in mice, but not motilin. A 2025 genome study reports that in
+      Much of gut physiology is done in mice, but not motilin. A 2025 paper on motilin in the house musk shrew notes that in
       rodents both the motilin gene and the motilin receptor gene survive only as pseudogenes,
       broken copies that make no working protein. Work on motilin and the fasting motor complex
       therefore uses humans, dogs and smaller animals that keep the genes, such as the house musk
       shrew, Suncus murinus. In conscious shrews, motilin brought on phase III-like contractions
-      even after the vagus nerves were cut, while ghrelin's effect needed them.
+      even after the vagus nerves were cut, while ghrelin's boost to phase II contractions did not occur without them.
   - title: "A hormone named for the wrong job"
     source: "Wolfe, Boylan and Chin, Endocrine Reviews (2025), doi 10.1210/endrev/bnaf006."
     text: >-
@@ -322,6 +328,8 @@ corpusTags:
   - "gastrin"
 draft: true
 ---
+
+import GastricAcidPhases from '../../../components/GastricAcidPhases.astro';
 
 **Mice born without one chloride channel, ANO1, have the pacemaker cells of a normal gut and no gut rhythm.** Your gut contracts on a clock it keeps itself, under nerves in its own wall, and your stomach makes acid near pH 1 beside cells at pH 7. The first look at the gut, Pavlov's sham-fed dogs and the first hormone table are in [digestive systems](/lessons/digestive-systems/); here they get cells, receptors and numbers.
 
@@ -361,11 +369,11 @@ Fasting brings the **migrating motor complex (MMC)**, a cycle interrupted by fee
 
 At rest the parietal cell keeps its **H,K-ATPase** in cytoplasmic tubulovesicles. Stimulation moves the pumps into the membrane of the secretory canaliculus, a deep fold of the apical surface. Each cycle exchanges cytoplasmic H+ for luminal K+ using ATP, electroneutrally; K+ returns to the lumen through apical channels and Cl- exits with it, so HCl accumulates. The H+ comes from carbonic anhydrase, and the matching HCO3- leaves across the basolateral membrane in exchange for Cl-, the alkaline tide of [acid-base balance](/lessons/acid-base-balance/). The canaliculus of a stimulated cell reaches about pH 1.
 
-Acetylcholine acts on Gq-coupled M3 receptors and gastrin on Gq-coupled CCK2 receptors, both raising Ca2+; histamine acts on Gs-coupled H2 receptors and raises cAMP ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/); [cAMP and PKA](/lessons/camp-and-pka/)). The H2 receptor is James Black's story ([drugs against a part](/lessons/drugs-against-a-part/)). In humans, gastrin probably acts mainly by releasing histamine from **enterochromaffin-like (ECL) cells** beside the parietal cells. In fasted men given synthetic gastrin, the acid response was reported to fall by more than 70 percent with muscarinic block and to be abolished by H2 block.
+Acetylcholine acts on Gq-coupled M3 receptors and gastrin on Gq-coupled CCK2 receptors, both raising Ca2+; histamine acts on Gs-coupled H2 receptors and raises cAMP ([GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/); [cAMP and PKA](/lessons/camp-and-pka/)). The H2 receptor is James Black's story ([drugs against a part](/lessons/drugs-against-a-part/)). In humans, gastrin probably acts mainly by releasing histamine from **enterochromaffin-like (ECL) cells** beside the parietal cells. In 14 healthy fasted volunteers (11 men, 3 women) given synthetic gastrin, H2 block completely blocked the acid response, and muscarinic block cut the response to the lower gastrin dose by about 73 percent; the authors concluded that histamine and cholinergic mechanisms are both essential and argued against a significant direct effect of gastrin alone (Zimmerhackl and colleagues, 1993).
 
 {/* DIAGRAM: parietal cell beside ECL cell: canalicular H,K-ATPase, K+ and Cl- channels; basolateral Cl-/HCO3- exchanger, carbonic anhydrase; H2, M3, CCK2 receptors; histamine from ECL cell */}
 
-The phases follow the meal. The **cephalic phase**, from sight, smell and chewing, is vagal ([digestive systems](/lessons/digestive-systems/)). In the **gastric phase**, digested peptides and amino acids act through GRP-containing neurons to release gastrin, and distension excites vagal reflexes. The **intestinal phase** is mostly a brake: acid in the antrum releases somatostatin from D cells, which restrains G cells, and in the duodenum secretin, and CCK acting at CCK1 receptors (probably via somatostatin), inhibit acid. The lining survives because a mucus gel holds secreted bicarbonate against the surface, keeping it far less acidic than the lumen; prostaglandins support that secretion, and tight junctions limit H+ back-diffusion ([epithelia](/lessons/epithelia/)).
+The phases follow the meal. The **cephalic phase**, from sight, smell and chewing, is vagal ([digestive systems](/lessons/digestive-systems/)). In the **gastric phase**, digested peptides and amino acids act through GRP-containing neurons to release gastrin, and distension excites vagal reflexes. Acid in the antrum releases somatostatin from D cells, which restrains G cells, a feedback inside the gastric phase. The **intestinal phase** is mostly a brake: in the duodenum secretin, and CCK acting at CCK1 receptors (probably via somatostatin), inhibit acid. The lining survives because a mucus gel holds secreted bicarbonate against the surface, keeping it far less acidic than the lumen; prostaglandins support that secretion, and tight junctions limit H+ back-diffusion ([epithelia](/lessons/epithelia/)).
 
 ### Worked problem: what does it cost to make pH 1?
 
@@ -382,13 +390,13 @@ In this illustrative example, stimulated parietal cells secrete 1.0 L of juice a
 
 The measured stoichiometry, 2 H+ per ATP at pH 6.1 and 1 below pH 3, fits this budget; the sources record the ratio, not this reason.
 
-{/* SIMULATION */}
+<GastricAcidPhases />
 
-**Pathophysiology: reading gastrin against acid.** In CCK-B receptor knockout mice, basal gastric pH rose from 3.2 to 5.2 and plasma gastrin was about 10-fold higher: less acid, less somatostatin brake, more gastrin. Atrophic gastritis, with parietal cells lost, gives the same pattern in humans. A **gastrinoma**, a neuroendocrine tumour releasing gastrin that acid cannot suppress, reverses one arrow: gastrin high, basal acid output and parietal cell mass raised several-fold, and gastric and duodenal pH low enough to inactivate pancreatic lipase. Gastrin is high in both while acid moves in opposite directions, so reading the two together separates feedback from an autonomous source.
+**Pathophysiology: reading gastrin against acid.** In CCK-B receptor knockout mice, basal gastric pH rose from 3.2 to 5.2 and plasma gastrin was about 10-fold higher: the mutants had fewer parietal and ECL cells, fewer antral somatostatin cells and more gastrin cells: less acid, less somatostatin brake, more gastrin. Atrophic gastritis, with parietal cells lost, gives the same pattern in humans. A **gastrinoma**, a neuroendocrine tumour releasing gastrin that acid cannot suppress, reverses one arrow: gastrin high, basal acid output and parietal cell mass raised, and gastric and duodenal pH low enough to inactivate pancreatic lipase. Gastrin is high in both while acid moves in opposite directions, so reading the two together separates feedback from an autonomous source.
 
 ## Neutralize, emulsify, and the hormone ledger
 
-Acid entering the duodenum releases secretin, which drives pancreatic duct cells to secrete bicarbonate-rich fluid: in humans the juice reaches 140 to 150 mM HCO3- under secretin, about 7-fold over plasma, by a route that depends on CFTR. Mouse and rat juice reach only about 50 and 70 mM, so rodents are poor models of ductal bicarbonate. CCK and acetylcholine drive acinar enzyme secretion, CCK contracts the gallbladder, and secretin also drives bicarbonate from bile-duct cells; bile and absorption are in [absorption and the liver](/lessons/absorption-and-liver/).
+Acid entering the duodenum releases secretin, which drives pancreatic duct cells to secrete bicarbonate-rich fluid: in humans the juice reaches 140 to 150 mM HCO3- under secretin, about 6- to 7-fold over plasma, by a route that depends on CFTR. Mouse and rat juice reach only about 50 and 70 mM, so rodents are poor models of ductal bicarbonate. CCK and acetylcholine drive acinar enzyme secretion, CCK contracts the gallbladder, and secretin also drives bicarbonate from bile-duct cells; bile and absorption are in [absorption and the liver](/lessons/absorption-and-liver/).
 
 | Hormone | Cell and site | Stimulus | One action here |
 |---|---|---|---|
@@ -397,7 +405,7 @@ Acid entering the duodenum releases secretin, which drives pancreatic duct cells
 | CCK | I cells, duodenum | Fatty acids and digested protein | Gallbladder contraction |
 | GIP | K cells, upper small intestine | Glucose and fat | Glucose-dependent insulin release |
 | GLP-1 | L cells, mostly ileum and colon | Nutrients in the gut | Slows gastric emptying |
-| Motilin | Mo cells, upper small intestine | Cyclic release in fasting | Starts MMC phase III |
+| Motilin | Mo cells, upper small intestine | Cyclic release in fasting | Can induce antral MMC phase III |
 | Ghrelin | X/A-like cells, corpus | Fasting; suppressed by a meal | Speeds emptying in fasting |
 
 The incretin actions of GIP and GLP-1 belong to [insulin, glucagon and blood glucose](/lessons/insulin-glucagon-glucose/), and these cells as sensors to [gut-brain sensing](/lessons/gut-brain-sensing/).

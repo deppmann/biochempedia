@@ -107,7 +107,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "AcidBaseCompensation"
+    title: "The open buffer"
+    caption: >-
+      Add the same 10 mmol/L of strong acid to a made-up plasma sample open to CO2 or sealed from it, and watch the bicarbonate-to-dissolved-CO2 ratio, and so pH, move much further when the CO2 cannot leave.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In the clinical form of the Henderson-Hasselbalch equation for human plasma at 37 C, what does the pK of 6.1 describe?"
@@ -313,8 +319,10 @@ corpusTags:
   - "intercalated-cells"
   - "anion-gap"
   - "respiratory-compensation"
-draft: true
+draft: false
 ---
+
+import AcidBaseCompensation from '../../../components/AcidBaseCompensation.astro';
 
 **Adult human arterial plasma at rest holds about 24 millimoles of bicarbonate per litre and about 40 nanomoles of free hydrogen ions per litre.** Metabolism in a US adult on a typical diet adds roughly 50 mEq of non-volatile acid a day, yet pH stays near 7.40, held on three clocks: buffers in seconds, lungs in minutes, kidneys over days. [Water, pH and weak bonds](/lessons/water-weak-bonds/) gave you pH = pKa + log([A-]/[HA]), and [the kidney](/lessons/kidney/) the nephron; here both get numbers.
 
@@ -330,7 +338,7 @@ The 0.03 is the solubility of CO2 in plasma, in mmol/L per mmHg. The 6.1 is an a
 
 Now the puzzle. A pK of 6.1 sits 1.3 units below 7.40, and in a closed container the pair buffers no better than any other weak acid pair. Its power comes from being open to CO2: added acid turns bicarbonate into CO2, the lungs remove it, and the denominator does not climb. Add 10 mmol/L of strong acid to a made-up plasma with no other buffers. Sealed in a syringe, bicarbonate falls to 14 and dissolved CO2 rises to 11.2 mmol/L, so pH falls to about 6.20. With pCO2 held at 40 mmHg, dissolved CO2 stays at 1.2 and pH falls only to about 7.17. Alveolar ventilation holds that denominator ([ventilation and perfusion](/lessons/ventilation-perfusion/)).
 
-{/* SIMULATION */}
+<AcidBaseCompensation />
 
 Uncatalysed interconversion of CO2 and bicarbonate takes over a minute in vitro, while blood spends about one second in a pulmonary capillary; carbonic anhydrase closes that gap.
 
@@ -342,15 +350,15 @@ Follow an acute load of non-volatile acid. Outside cells, bicarbonate takes up p
 
 {/* DIAGRAM: red cell in a systemic capillary: CO2 in, carbonic anhydrase, HCO3- out on AE1 as Cl- enters, H+ on hemoglobin */}
 
-Intracellular buffering only limits how far and how fast intracellular pH moves; returning it to its set point takes acid-base transporters ([membrane transport](/lessons/membrane-transport/)). In cultured neonatal mouse calvariae (skull bones) in vitro, acute metabolic acidosis led bone to take up hydrogen ions into its mineral phase ([calcium, phosphate and bone](/lessons/calcium-phosphate-bone/)).
+Intracellular buffering only limits how far and how fast intracellular pH moves; returning it to its set point takes acid-base transporters ([membrane transport](/lessons/membrane-transport/)). In cultured neonatal mouse calvariae (skull bones) in vitro, acute metabolic acidosis led bone to take up hydrogen ions into its mineral phase (calcium, phosphate and bone).
 
-Buffering is not removal. Every proton a buffer holds is still in the body, and every bicarbonate consumed is gone until the kidney makes another. In a study of 1,082 US adults aged 50 to 74, mean net endogenous acid production from 24-hour urine was about 47 to 48 mEq per day (interquartile range about 36 to 64); ketoacids add to such loads ([insulin, glucagon and glucose](/lessons/insulin-glucagon-glucose/)). Whether lactate formation itself releases protons in working muscle is contested, and [exercise physiology](/lessons/exercise-physiology/) takes up that debate.
+Buffering is not removal. Every proton a buffer holds is still in the body, and every bicarbonate consumed is gone until the kidney makes another. In a study of 1,082 US adults aged 50 to 74, mean net endogenous acid production from 24-hour urine was about 47 to 48 mEq per day (interquartile range about 36 to 64); ketoacids add to such loads (insulin, glucagon and glucose). Whether lactate formation itself releases protons in working muscle is contested, and exercise physiology takes up that debate.
 
 ## The proximal tubule gets the bicarbonate back
 
 Human kidneys make about 160 to 170 L of ultrafiltrate a day ([glomerular filtration](/lessons/glomerular-filtration/)). At 24 mmol/L, 165 L carries about 4,000 mmol of bicarbonate, roughly eighty times the day's non-volatile acid; losing 3 percent would cost more base than that acid consumes. The proximal tubule takes back 60 to 70 percent of filtered water and NaCl and a greater proportion of the NaHCO3.
 
-Reclaiming is indirect. Apical NHE3 exchanges Na+ in for H+ out, and a V-type H+-ATPase secretes more H+. In the lumen, carbonic anhydrase IV, anchored on the luminal membrane, turns H+ and filtered HCO3- into CO2 and water, fast enough for fluid that touches the cells for under a second. CO2 enters the cell, cytosolic carbonic anhydrase II rehydrates it, the H+ is secreted again, and the HCO3- leaves across the basolateral membrane on the Na+-dependent cotransporter NBCe1. One bicarbonate vanishes from the lumen and one appears in the blood; no new base is made. The segment table and carbonic anhydrase inhibition as a probe are in [tubular transport and diuretics](/lessons/tubular-transport-diuretics/).
+Reclaiming is indirect. Apical NHE3 exchanges Na+ in for H+ out, and a V-type H+-ATPase secretes more H+. In the lumen, carbonic anhydrase IV, anchored on the luminal membrane, turns H+ and filtered HCO3- into CO2 and water, fast enough for fluid that touches the cells for under a second. CO2 enters the cell, cytosolic carbonic anhydrase II rehydrates it, the H+ is secreted again, and the HCO3- leaves across the basolateral membrane on the Na+-dependent cotransporter NBCe1. One bicarbonate vanishes from the lumen and one appears in the blood; no new base is made. The segment table and carbonic anhydrase inhibition as a probe are in tubular transport and diuretics.
 
 {/* DIAGRAM: proximal tubule cell, lumen to interstitium: apical NHE3 and V-type pump, luminal carbonic anhydrase IV, CO2 entering, cytosolic carbonic anhydrase II, basolateral NBCe1 */}
 
@@ -372,13 +380,13 @@ In the collecting duct, **type-A intercalated cells** pump H+ into the lumen thr
 
 The textbook account was diffusion and trapping: NH3 crosses membranes freely and is trapped as NH4+ in acid fluid, so deleting an ammonia transporter should matter little. Sophie Biver and colleagues (2008) acid-loaded Rhcg knockout mice beside wild-type controls and microperfused their collecting ducts. The knockouts could not acidify urine normally because ammonium excretion was impaired, and their ducts showed reduced apical NH3 permeability and impaired transepithelial NH3 transport. Protein-mediated transport is required in the mouse collecting duct. It did not show whether Rhcg carries NH3 or NH4+, says nothing about humans, and, tested under acid loading, does not show what sets baseline excretion.
 
-The human counterpart is the pump's B1 subunit, whose gene Karet and colleagues found mutated in families with distal renal tubular acidosis and hearing loss. Predict the chain. Apical H+ pumping falls, so the duct builds a smaller gradient and urine pH stays higher; less phosphate is titrated and less ammonium held in the lumen, so net acid excretion, new bicarbonate, plasma bicarbonate and pH fall. Rising: retained acid buffered elsewhere, bone included; ventilation, so pCO2 falls; and plasma chloride, replacing lost bicarbonate, so the anion gap is unchanged. In carbonic anhydrase II deficiency, by contrast, the acidosis is proximal, distal or combined, so proximal reclamation can fail as well.
+A human counterpart to the mouse knockout is the pump's B1 subunit, whose gene Karet and colleagues found mutated in families with distal renal tubular acidosis and hearing loss. Predict the chain. Apical H+ pumping falls, so the duct builds a smaller gradient and urine pH stays higher; less phosphate is titrated and less ammonium held in the lumen, so net acid excretion, new bicarbonate, plasma bicarbonate and pH fall. Rising: retained acid buffered elsewhere, bone included; ventilation, so pCO2 falls; and plasma chloride, replacing lost bicarbonate, so the anion gap is unchanged. In carbonic anhydrase II deficiency, by contrast, the acidosis is proximal, distal or combined, so proximal reclamation can fail as well.
 
 ## Reading the numbers, and what the rules are worth
 
 **Worked problem.** In this made-up example for human plasma at 37 C, take pK 6.1, solubility 0.03 and steady state, and compare against bicarbonate 24 mmol/L, pCO2 40 mmHg, pH 7.40 and albumin 4.0 g/dL. The sample: pCO2 27 mmHg, HCO3- 12, Na+ 140 and Cl- 104 mmol/L, albumin 2.0 g/dL.
 
-1. Dissolved CO2 = 0.03 x 27 = 0.81 mmol/L; 12 / 0.81 = 14.8; pH = 6.1 + 1.17 = 7.27. [H+] = 10^(9 - 7.27) = about 54 nmol/L, against 40 at pH 7.40.
+1. Dissolved CO2 = 0.03 x 27 = 0.81 mmol/L; 12 / 0.81 = 14.8; pH = 6.1 + 1.17 = 7.27. [H+] = 10^-7.27 mol/L, which is 10^(9 - 7.27) = about 54 nmol/L, against 40 at pH 7.40.
 2. pH is low with a low bicarbonate. A primary rise in pCO2 would raise bicarbonate, so non-volatile acid moved first, and the low pCO2 is moving pH back toward 7.40.
 3. An empirical fit gives expected pCO2 = 1.5 x 12 + 8 = 26 mmHg; the measured 27 lies within the scatter one review attaches to it. A pCO2 of 36 would mean ventilation below the fit, pointing to a second, respiratory process.
 4. Anion gap = [Na+] - [Cl-] - [HCO3-] = 140 - 104 - 12 = 24 mmol/L. An acid whose anion the panel does not measure, such as a ketoacid or lactate, consumes bicarbonate and leaves its anion, so the gap rises; base lost directly is replaced by chloride, leaving the gap unchanged.

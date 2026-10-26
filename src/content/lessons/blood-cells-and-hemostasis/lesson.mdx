@@ -132,7 +132,13 @@ techniques:
 
 structures: []
 
-simulations: []
+simulations:
+  - type: "local"
+    ref: "HematocritClotting"
+    title: "One block, one lifespan"
+    caption: >-
+      Block a fraction of platelets irreversibly or reversibly and watch function return only as fast as new cells arrive, then swap in 120-day red cells to see the same rule on a longer clock.
+    attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
   - stem: "In the adult mammalian kidney, which cells make most of the erythropoietin released when blood oxygen content falls?"
@@ -338,8 +344,10 @@ corpusTags:
   - "hemophilia"
   - "factor-xii"
 
-draft: true
+draft: false
 ---
+
+import HematocritClotting from '../../../components/HematocritClotting.astro';
 
 **An endurance athlete can have a lower hematocrit than an untrained friend and more red cells.** This lesson follows red cells from kidney signal to iron recycling, then how platelets and plasma proteins stop a leak without clotting the whole circulation.
 
@@ -349,9 +357,9 @@ Blood's components are in [blood vessels, blood and lymph](/lessons/blood-and-ve
 
 > **hematocrit = red cell volume / (red cell volume + plasma volume)**
 
-Made-up round numbers for an untrained adult: 2.2 L of red cells and 2.8 L of plasma give 2.2 / 5.0 = 44 percent. Let training raise red cell volume 10 percent, to 2.42 L, and plasma volume 20 percent, to 3.36 L. Hematocrit falls to 2.42 / 5.78 = 42 percent, with more red cells. Reviews describe this pattern in trained athletes, so "sports anemia" is not anemia. Pregnancy also expands plasma more than red cells ([pregnancy, birth and lactation](/lessons/pregnancy-birth-lactation/)). In the first days at altitude the change runs the other way: diuresis shrinks plasma, and hematocrit rises with no new cells ([control of breathing](/lessons/control-of-breathing/)).
+Made-up round numbers for an untrained adult: 2.2 L of red cells and 2.8 L of plasma give 2.2 / 5.0 = 44 percent. Let training raise red cell volume 10 percent, to 2.42 L, and plasma volume 20 percent, to 3.36 L. Hematocrit falls to 2.42 / 5.78 = 42 percent, with more red cells. Reviews describe this pattern in trained athletes, so "sports anemia" is not anemia. Pregnancy also expands plasma more than red cells (pregnancy, birth and lactation). In the first days at altitude the change runs the other way: diuresis shrinks plasma, and hematocrit rises with no new cells ([control of breathing](/lessons/control-of-breathing/)).
 
-A concentration cannot give a mass; that needs plasma volume by indicator dilution ([body fluid compartments](/lessons/body-fluid-compartments/)) or hemoglobin mass by carbon monoxide rebreathing ([exercise physiology](/lessons/exercise-physiology/)).
+A concentration cannot give a mass; that needs plasma volume by indicator dilution ([body fluid compartments](/lessons/body-fluid-compartments/)) or hemoglobin mass by carbon monoxide rebreathing (exercise physiology).
 
 Hemoglobin carries about 1.34 mL of oxygen per g ([oxygen transport](/lessons/oxygen-transport/)), but red cells also thicken blood: in vitro, viscosity rises with hematocrit (one review reports a linear rise from 20 to 60 percent at low shear). Red cell deformability offsets part of that cost in microvessels. Oxygen delivery is flow times content, and a high hematocrit raises content while tending to lower flow.
 
@@ -367,7 +375,7 @@ In lowlanders exposed to hypoxia, plasma EPO activity peaks at about 48 hours, t
 
 ## Red cells wear out and their iron comes back
 
-Human red cells circulate about 120 days on average, but survival varies: in a biotin-labelling study of six people without diabetes, the mean age of circulating red cells ranged from 38 to 60 days, which for cells that all live the same time would mean lifespans of roughly 76 to 120 days. Aged cells are removed by macrophages, mainly in the **red pulp** of the spleen and in the liver; how red pulp macrophages choose which cells to take is not settled. Heme yields iron and bilirubin ([absorption and the liver](/lessons/absorption-and-liver/)).
+Human red cells circulate about 120 days on average, but survival varies: in a biotin-labelling study of six people without diabetes, the mean age of circulating red cells ranged from 38 to 60 days, which for cells that all live the same time would mean lifespans of roughly 76 to 120 days. Aged cells are removed by macrophages, mainly in the **red pulp** of the spleen and in the liver; how red pulp macrophages choose which cells to take is not settled. Heme yields iron and bilirubin (absorption and the liver).
 
 The iron leaves through **ferroportin**, the only known cellular iron exporter, and returns to the marrow on plasma transferrin; duodenal enterocytes export absorbed iron the same way. **Hepcidin**, a 25-amino-acid liver peptide secreted when iron stores rise and in inflammation, binds ferroportin. In cultured cells this drives ferroportin's internalization and degradation, and structural work shows hepcidin also occludes the exporter's central cavity. Too much hepcidin traps iron in macrophages (low plasma iron, the anemia of inflammation); too little lets iron flood in (overload).
 
@@ -408,7 +416,7 @@ Vane's 1971 finding that aspirin blocks prostaglandin synthesis is in [fatty aci
 
 A platelet has no nucleus and makes little protein, so the block lasts the platelet's life, and function returns only as new platelets arrive.
 
-{/* SIMULATION */}
+<HematocritClotting />
 
 Each drug class blocks one step. Aspirin acetylates COX-1. Clopidogrel's active metabolite binds P2Y12 covalently and irreversibly. Heparin, through a specific pentasaccharide, accelerates antithrombin about 1000-fold. Warfarin inhibits vitamin K epoxide reductase, so new factors II, VII, IX and X lack the gamma-carboxylation that lets them bind calcium; the full effect waits days while existing factors are cleared. Direct factor Xa and thrombin inhibitors occupy their enzyme's active site.
 
