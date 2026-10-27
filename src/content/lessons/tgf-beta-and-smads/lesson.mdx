@@ -8,7 +8,7 @@ summary: >-
   TGF-β was purified as a factor that makes cells grow like tumour cells, and then it was found to
   stop healthy cells from dividing. This lesson follows its short relay from two receptor kinases
   through a Smad to a gene, and asks why the same signal gives different answers in different
-  cells. Afterwards you can trace the phosphate from receptor to Smad, sort the family into its
+  cells. Afterwards you can trace the phosphorylation steps from receptor to Smad, sort the family into its
   TGF-β and BMP branches, and explain the pathway's brakes and its opposite roles in early and
   late cancer.
 hook: "Why does the protein that tells healthy cells to stop dividing end up helping late tumours?"
@@ -107,15 +107,15 @@ techniques:
       receptor needs the other in order to bind ligand.
   - name: "Kinase-dead receptor mutants"
     blurb: >-
-      Changing the lysine that a kinase uses to hold ATP gives a receptor that still folds, pairs
-      and binds ligand but cannot transfer phosphate. Asking which receptor becomes
+      Changing the lysine that a kinase uses to hold ATP gives a receptor that usually still folds,
+      pairs and binds ligand but cannot transfer phosphate; experimenters check that it does. Asking which receptor becomes
       phosphorylated when one partner or the other is kinase-dead shows the direction of the
       relay.
   - name: "Genetic screens in flies and worms"
     blurb: >-
       Animals are mutated at random and kept if their defects resemble the loss of a known
       signal, such as small worms or flies with defects like those of dpp mutants. The genes
-      found this way belong to the pathway whether or not anyone knows their biochemistry.
+      found this way are strong candidates for the pathway before anyone knows their biochemistry.
       Screens of this kind supplied Mad and the sma genes.
 
 structures:
@@ -172,7 +172,7 @@ practiceQuestions:
       phosphorylating a receptor is wrong because TGF-β is not an enzyme; it only assembles the
       complex. Type I phosphorylating type II runs the relay backwards, since type I is inactive
       until type II acts on it. Type I phosphorylating its own tyrosines describes a receptor
-      tyrosine kinase such as the EGF receptor, and these receptors are serine/threonine kinases.
+      tyrosine kinase such as the EGF receptor; these receptors relay the signal as serine/threonine kinases, even though they can also put phosphate on some tyrosines.
   - stem: "A cell is treated with a bone morphogenetic protein (BMP). Which Smad would you expect the receptor to phosphorylate at its tail?"
     choices:
       - "Smad4"
@@ -194,7 +194,7 @@ practiceQuestions:
       - "Each cell type builds its type I receptor around a different kinase fold"
     answer: 1
     rationale: >-
-      Smads read a short DNA sequence weakly and bind firmly only beside partner transcription
+      Smads read a short DNA sequence weakly and usually bind firmly only beside partner transcription
       factors, and each cell type makes its own partners and keeps its own genes open. A
       different tail serine is wrong because the receptor phosphorylates the same two serines at
       the end of the tail in every cell. A different set of genes is wrong because the cells of
@@ -288,8 +288,8 @@ mcatQuestions:
       Smad2 is phosphorylated and reaches the nucleus in the tumour line, and the cells still
       respond to TGF-β by moving, so the relay works and the fault lies after Smad activation, in
       the arm that switches on arrest genes such as p15. A dead type II kinase is wrong because
-      then type I would never be activated and Smad2 would not be phosphorylated. A faulty GS
-      domain is wrong for the same reason, since type I could not be switched on. Missing tail
+      then type I would never be activated and Smad2 would not be phosphorylated. A GS domain
+      that could not be phosphorylated is wrong for the same reason, since type I could not be switched on. Missing tail
       serines are wrong because those are the residues that were phosphorylated in the experiment.
 
 explainLevels:
@@ -340,10 +340,10 @@ explainLevels:
       R-Smads to one Smad4 in the Smad2 and Smad4 crystal structure.
 
       The Smad3 and Smad4 MH1 domains contact a four-base-pair element (GTCT, or AGAC on the
-      other strand) through a β-hairpin in the major groove, a weak grip on a site too common for selectivity, and the predominant form of Smad2, long thought not to
+      other strand) through a β-hairpin in the major groove, and all MH1 domains also read five-base GC-rich motifs (GGC(GC)|(CG)) that the BMP Smads favour; a weak grip on a site too common for selectivity, and the predominant form of Smad2, long thought not to
       bind DNA, binds it only when its extra E3 insert shifts conformation. Selectivity comes from partner factors (the FoxO proteins at the p15 and
       p21 genes are one example) and from which chromatin is open. Smad7 and the HECT-type
-      ligases Smurf1 and Smurf2 end the signal, and the Smad linker is phosphorylated by other
+      ligases Smurf1 and Smurf2 help end the signal (although Smurf2 also degrades the co-repressor SnoN, so its net effect depends on the substrate), and the Smad linker is phosphorylated by other
       kinases, which lets other pathways tune the output. An open question is whether a tumour's
       position on the path from suppressor to promoter can be read from its Smad target genes
       well enough to say when blocking TGF-β will help a patient and when it will harm.
@@ -355,8 +355,8 @@ anecdotes:
       In 1980 Anita Roberts used acid and ethanol to extract transforming activity from virally
       and chemically transformed cells, the kind of source that the name transforming growth
       factor pointed to. Her next paper ran the same kind of extraction on tissues from healthy
-      adult mice. They scored positive too, and a little epidermal growth factor in the dish
-      strengthened the effect. The title reports it plainly: "New class of transforming growth
+      adult mice. They scored positive too, but only with a little epidermal growth factor in
+      the dish to help. The title reports it plainly: "New class of transforming growth
       factors potentiated by epidermal growth factor: isolation from non-neoplastic tissues." A
       factor named for cancer was a product of normal organs.
   - title: "A name from a worm and a fly"
@@ -411,7 +411,7 @@ Around 1980 the laboratory test for a cancer-like cell was a dish of soft agar. 
 
 <LessonFigure src="/figures/tgf-beta-and-smads/soft-agar-test.webp" width={1200} height={737} alt="AI-generated illustration: a cross-section of a dish of soft agar. A normal fibroblast floats alone, while a transformed cell has grown into a small colony. Insets show a normal fibroblast dividing on a surface and a normal cell forming a clump near gold dots of a released factor." caption="The 1980 test for a cancer-like cell was growth in soft agar. A normal fibroblast needs a surface to divide, while a transformed cell grows into a colony suspended in the gel. Cells transformed by a sarcoma virus released something that made normal cells pass the test, and it was called a transforming growth factor." />
 
-At the National Cancer Institute, Anita Roberts and Michael Sporn set out to purify it. In 1980 Roberts extracted the activity from cells transformed by a virus or by chemicals. In 1981 the same kind of extraction pulled an activity strengthened by epidermal growth factor (EGF), which the authors called a new class of transforming growth factors, out of tissues of healthy adult mice, among them kidney, liver, heart and brain. Normal organs were making the "cancer" factor.
+At the National Cancer Institute, Anita Roberts and Michael Sporn set out to purify it. In 1980 Roberts extracted the activity from cells transformed by a virus or by chemicals. In 1981 the same kind of extraction pulled an activity that needed help from epidermal growth factor (EGF), which the authors called a new class of transforming growth factors, out of tissues of healthy adult mice, among them kidney, liver, heart and brain. Normal organs were making the "cancer" factor. In 1983 the same group showed that the original transforming activity was two proteins: TGF-α, a relative of EGF, and TGF-β, which made normal cells form large colonies in soft agar only when EGF or TGF-α was also present.
 
 Then the protein was caught doing the opposite job. In 1984 Tucker, Shipley, Moses and Holley reported that a growth inhibitor from kidney epithelial cells (the cells that line surfaces such as skin and gut) was closely related to TGF-β. In 1985 Roberts, Sporn and colleagues called their purified protein "a bifunctional regulator of cellular growth": it raised colonies in one assay and held cells back in another, depending on the cell and the conditions.
 
@@ -423,7 +423,7 @@ The insulin and EGF receptors from the receptor field guide are tyrosine kinases
 
 TGF-β itself is a dimer, two chains joined by a disulfide bond. Here is what it does:
 
-1. The dimer binds two type II receptors. The type II kinase is active before any ligand arrives, and it stays active.
+1. The dimer binds two type II receptors. (TGF-β2 binds type II weakly and gets help from a co-receptor, betaglycan.) The type II kinase is active before any ligand arrives, and it stays active.
 2. The ligand and type II together recruit two type I receptors, so four receptor chains surround one ligand.
 3. Type II phosphorylates type I on a stretch just inside the membrane called the GS domain, named for its glycines and serines.
 4. The type I kinase, now active, phosphorylates the next protein in line, a Smad.
@@ -432,7 +432,7 @@ TGF-β itself is a dimer, two chains joined by a disulfide bond. Here is what it
 
 Think of type II as a lit match and type I as a fuse. The ligand's only job is to hold the match to the fuse.
 
-Jeffrey Wrana and Liliana Attisano worked this out in Joan Massagué's laboratory between 1992 and 1994. First they showed that the type II receptor binds TGF-β but cannot signal without type I, and that type I cannot bind TGF-β without type II. Then they showed that the phosphate travels one way, from the kinase that never turns off to the kinase that cannot start alone.
+Jeffrey Wrana and Liliana Attisano worked this out in Joan Massagué's laboratory between 1992 and 1994. First they showed that the type II receptor binds TGF-β but cannot signal without type I, and that type I cannot bind TGF-β without type II. Then they showed that phosphorylation runs one way, from the kinase that never turns off to the kinase that cannot start alone.
 
 What keeps the fuse from lighting by accident? In a resting type I receptor the unphosphorylated GS domain holds the kinase in an inactive shape, and a small protein called FKBP12 sits on top of it. Phosphorylation by type II ends that arrangement and turns the GS domain into a docking site for Smads.
 
@@ -458,9 +458,9 @@ The BMP branch does much of its work in shaping the embryo, which belongs to the
 
 ## Same signal, different answers
 
-The MH1 domains of Smad3 and Smad4 read a DNA sequence only four base pairs long, and they hold it weakly. A sequence that short turns up by chance about once every 256 base pairs (4 × 4 × 4 × 4), which means millions of sites in a human genome. A Smad complex alone cannot pick out a gene.
+The MH1 domains of Smad3 and Smad4 read very short DNA sequences, such as the four base pairs GTCT, and they hold them weakly. (Smads also read short GC-rich sequences, which the BMP branch favours.) A sequence that short turns up by chance about once every 256 base pairs (4 × 4 × 4 × 4), which means millions of sites in a human genome. A Smad complex alone cannot pick out a gene.
 
-It picks a gene with help. Smads bind firmly only next to partner transcription factors that read their own sequences nearby. Each cell type makes its own set of partners and keeps its own set of genes open for reading. The Smad complex carries one message, "TGF-β is here." The partners decide what that means in this cell.
+It picks a gene with help. Smads usually bind firmly only next to partner transcription factors that read their own sequences nearby. Each cell type makes its own set of partners and keeps its own set of genes open for reading. The Smad complex carries one message, "TGF-β is here." The partners decide what that means in this cell.
 
 In many healthy epithelial cells it means "stop dividing." Smad3 and Smad4, with their partners, switch on the genes for p15 and p21, two proteins that inhibit the cyclin-dependent kinases (the enzymes that push a cell through its division cycle). They also switch off the gene for Myc, a transcription factor that drives growth. In a fibroblast the same pathway switches on collagen genes, which is why TGF-β drives wound repair and, in excess, scarring.
 
@@ -489,7 +489,7 @@ A signal this strong has to be kept off most of the time.
 
 **The ligand is stored locked.** TGF-β is secreted still wrapped in the front portion of its own precursor chain, which has been cut off but stays bound and covers the surfaces that receptors need. This latent complex is usually tethered to the extracellular matrix, the protein mesh between cells. Active TGF-β is released locally, for example when a cell's integrins (adhesion receptors) pull on the wrapper or a protease cuts it.
 
-<LessonFigure src="/figures/tgf-beta-and-smads/latent-tgf-beta-release.webp" width={1200} height={800} alt="AI-generated illustration: a gold TGF-β dimer enclosed in a slate wrapper tethered to a fibre mesh. Two insets show how the wrapper opens: a cell's integrin pulling it open, or a protease cutting it, leaving the gold dimer exposed." caption="TGF-β is secreted wrapped in the front portion of its own precursor and tethered to the extracellular matrix. It is released locally when a cell's integrins pull on the wrapper or a protease cuts it." />
+<LessonFigure src="/figures/tgf-beta-and-smads/latent-tgf-beta-release.webp" width={1200} height={800} alt="AI-generated illustration: a gold TGF-β dimer enclosed in a slate wrapper tethered to a fibre mesh. Two insets show how the wrapper opens: a cell's integrin pulling it open, or a protease cutting it, leaving the gold dimer exposed." caption="TGF-β is secreted wrapped in the front portion of its own precursor and is usually tethered to the extracellular matrix. It is released locally when a cell's integrins pull on the wrapper or a protease cuts it." />
 
 **The signal makes its own inhibitor.** One of the genes that Smads switch on encodes Smad7, which binds the active type I receptor and keeps R-Smads away from it. This is negative feedback, as in the signaling circuits lesson. Smad6 does a similar job, with a preference for the BMP branch.
 
@@ -499,4 +499,4 @@ A signal this strong has to be kept off most of the time.
 
 **Muscle size.** Myostatin, a TGF-β relative made by muscle, tells muscle to stop growing. Mice made without the gene in Se-Jin Lee's laboratory in 1997 have muscles two to three times the normal weight.
 
-**Bone in the wrong place.** In fibrodysplasia ossificans progressiva, muscle and connective tissue progressively turn to bone. Nearly all patients with the classic form carry the same change of one amino acid, histidine for arginine at position 206, in a BMP type I receptor called ACVR1, as the laboratory of Eileen Shore and Frederick Kaplan reported in 2006. The change sits in the GS domain, the part of the receptor that keeps the kinase off until type II phosphorylates it.
+**Bone in the wrong place.** In fibrodysplasia ossificans progressiva, bone progressively forms in muscle and connective tissue. Nearly all patients with the classic form carry the same change of one amino acid, histidine for arginine at position 206, in a BMP type I receptor called ACVR1, as the laboratory of Eileen Shore and Frederick Kaplan reported in 2006. The change sits in the GS domain, the part of the receptor that keeps the kinase off until type II phosphorylates it.
