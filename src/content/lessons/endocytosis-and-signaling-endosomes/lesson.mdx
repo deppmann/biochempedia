@@ -31,8 +31,8 @@ explainer:
 scientists:
   - name: "Suzanne Pfeffer"
     contribution: >-
-      Worked out, with Rab9, how a lipid-tailed Rab is kept soluble by GDI between jobs and how
-      it is released onto a membrane as GDP is exchanged for GTP.
+      Worked out, with Rab9, how a lipid-tailed Rab held by GDI in the cytosol is released onto
+      its membrane, with GDP exchanged for GTP, and found a membrane factor that frees Rabs from GDI.
     profileSourceAnchor: "Soldati, Shapiro, Dirac-Svejstrup & Pfeffer, Nature 369:76 (1994); Dirac-Svejstrup, Sumizawa & Pfeffer, EMBO J. 16:465 (1997)."
     quotes: []
     story: >-
@@ -47,7 +47,7 @@ scientists:
       from GDI. These steps are part of the answer to how one soluble chaperone can serve dozens
       of Rabs while each still lands on its own membrane. The work also prepared the ground for a
       later finding: the Parkinson's disease kinase LRRK2 adds a phosphate to several Rabs, and in
-      2018 Pfeffer's laboratory showed that this stops cells from building a primary cilium.
+      2018 Pfeffer's laboratory showed that phosphorylated Rab10 makes cells less able to build a primary cilium.
   - name: "Michael Brown and Joseph Goldstein"
     contribution: >-
       Found the LDL receptor and showed that it carries LDL into the cell through coated pits,
@@ -97,7 +97,8 @@ techniques:
     blurb: >-
       A dynamin with lysine 44 changed to alanine is defective in binding and hydrolyzing GTP. Expressed in cells, it blocks
       the pinching-off of coated pits. Comparing a response with and without the mutant shows
-      which parts of a signal need the receptor to be taken in.
+      which parts of a signal depend on dynamin. Because dynamin has other effects, other ways of
+      blocking uptake are needed to show that a response needs the receptor to be taken in.
   - name: "Two-color live imaging of Rab proteins"
     blurb: >-
       Two Rabs are fused to fluorescent proteins of different colors and made in the same cell.
@@ -202,8 +203,8 @@ practiceQuestions:
       LDL lets go of its receptor only when the endosome is acidic. Without acid the receptors are
       not emptied, so they cannot come back to the surface free to carry another particle, and
       uptake runs down. Binding at the surface happens at neutral pH and is not affected. Clathrin
-      and dynamin work in the cytosol, whose pH the drug does not change, and the stem says that
-      receptors still enter pits.
+      and dynamin work on the cytosolic side of the membrane, not inside the endosome, and the stem
+      says that receptors still enter pits.
   - stem: "A cell makes a Rab5 mutant that binds GTP but cannot hydrolyze it. Using what you know about GTPase switches, what is the most likely result?"
     choices:
       - "Early endosomes lose Rab5 and mature too quickly"
@@ -233,7 +234,7 @@ mcatQuestions:
       one pass only. About 40% comes from subtracting 20 percentage points three times, which
       treats a constant fraction as a constant amount. About 20% is the share lost on each pass,
       not the share that remains.
-  - stem: "HeLa cells are made to express a dynamin mutant defective in GTP binding and hydrolysis and are compared with control cells after EGF is added. In the mutant cells the EGF receptor stays at the surface and stays phosphorylated on tyrosine for longer than in control cells. Phosphorylation of the MAP kinase ERK, however, reaches only about half the control level. Which conclusion do these data best support?"
+  - stem: "HeLa cells are made to express a dynamin mutant defective in GTP binding and hydrolysis and are compared with control cells after EGF is added. In the mutant cells the EGF receptor stays at the surface and stays phosphorylated on tyrosine for longer than in control cells. Phosphorylation of the MAP kinase ERK, however, is lower than in control cells. Which conclusion do these data best support?"
     choices:
       - "Endocytosis serves only to end the signal"
       - "ERK activation needs only surface receptors"
@@ -242,8 +243,9 @@ mcatQuestions:
     answer: 3
     rationale: >-
       The receptor is bound, active and held at the surface, yet ERK is activated less, so full
-      activation of ERK seems to need the receptor to be taken into the cell. EGF binding cannot
-      depend on dynamin, because the receptor is phosphorylated, and that requires bound EGF. If
+      activation of ERK seems to need the receptor to be taken into the cell. The data do not
+      show that EGF binding needs dynamin: the receptor is phosphorylated, and that requires
+      bound EGF. If
       endocytosis served only to end the signal, blocking it would raise every output, and ERK
       fell. If surface receptors were enough, ERK would be at or above the control level when
       more active receptors stay at the surface.
@@ -348,7 +350,7 @@ anecdotes:
       mutant forms cause an inherited form of Parkinson's disease, adds a phosphate to a subset
       of Rab proteins. The phosphate sits in a part of the Rab that changes shape with GTP, and a
       phosphorylated Rab binds GDI poorly. In 2018 Suzanne Pfeffer's laboratory reported what this
-      does to a cell: phosphorylated Rab10 blocks the building of the primary cilium, the antenna
+      does to a cell: phosphorylated Rab10 interferes with the building of the primary cilium, the antenna
       a cell uses to receive Hedgehog signals. A disease kinase was acting through the proteins
       that label membranes.
 
@@ -378,7 +380,7 @@ films:
 import LessonFilm from '../../../components/LessonFilm.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A macrophage takes in about 3 percent of its surface membrane every minute. It swallows the equivalent of its whole surface about every half hour, and it does not shrink.** The membrane must come back as fast as it goes in, and every receptor sitting in that membrane makes the trip too. So for any receptor you have met in this course, ask where it goes once it is inside the cell, and what the trip does to its signal.
+**A macrophage takes in about 3 percent of its surface membrane every minute. It swallows the equivalent of its whole surface about every half hour, and it does not shrink.** The membrane must come back as fast as it goes in, and the receptors sitting in that membrane make the trip too, some often and some rarely. So for any receptor you have met in this course, ask where it goes once it is inside the cell, and what the trip does to its signal.
 
 ## What's endocytosis used for?
 
@@ -388,13 +390,13 @@ The first is food. Cholesterol travels in the blood packed into particles of low
 
 The second is membrane upkeep. Secretion adds membrane to the surface and endocytosis takes it back, and worn membrane proteins are pulled in for disposal.
 
-The third is why this lesson sits in a signaling course. For a signal, endocytosis can mean two things. It can end the signal, by taking the receptor off the surface and destroying it. Or it can move the signal, by carrying an active receptor to a new platform inside the cell, where it keeps signaling or signals differently. Which one happens is decided after the receptor is in.
+The third is why this lesson sits in a signaling course. For a signal, endocytosis can mean two things. It can end the signal, by taking the receptor off the surface and destroying it. Or it can move the signal, by carrying an active receptor to a new platform inside the cell, where it keeps signaling or signals differently. Which one happens is decided mostly after the receptor is in.
 
 ## It all starts with endocytosis: a coat, then a cut
 
 <LessonFilm film={frontmatter.films[0]} />
 
-The best understood way in is the clathrin-coated pit. Clathrin is a protein shaped like a three-legged pinwheel, and many copies lock together into a curved cage on the inner face of the membrane. Clathrin touches neither the membrane nor the cargo. Adaptor proteins do that. The main adaptor at the plasma membrane, AP2, holds the lipid PIP2 (an address from the lesson on lipid anchors), short sequences in receptor tails, and clathrin. So a receptor enters a pit because its cytoplasmic tail carries a sequence that an adaptor can read.
+The best understood way in is the clathrin-coated pit. Clathrin is a protein shaped like a three-legged pinwheel, and many copies lock together into a curved cage on the inner face of the membrane. Clathrin touches neither the membrane nor the cargo. Adaptor proteins do that. The main adaptor at the plasma membrane, AP2, holds the lipid PIP2 (an address from the lesson on lipid anchors), short sequences in receptor tails, and clathrin. So a receptor enters a pit when its cytoplasmic tail carries a sequence that an adaptor can read, or when it binds a protein, such as arrestin, that links it to the coat.
 
 Brown and Goldstein met the proof in a patient known as J.D. This patient's LDL receptors could bind LDL but stayed scattered over the surface instead of gathering in pits, and the cells could not take LDL in. The fault was later traced to one tyrosine in the receptor's tail, replaced by cysteine.
 
@@ -402,19 +404,19 @@ A pit deepens until it hangs from the surface by a thin neck. Dynamin, a large G
 
 There are other doors. Caveolae are small flask-shaped pits built around a protein called caveolin, macropinocytosis gulps large volumes of fluid, and several more routes that need no clathrin have been described and are less well mapped.
 
-**A receptor's signaling defines which internalization pathway it takes.** The best studied case is the EGF receptor. In HeLa cells, Sara Sigismund, Pier Paolo Di Fiore and their colleagues reported that at low doses of EGF the receptor enters almost entirely through coated pits and is mostly recycled. At high doses the receptor also becomes tagged with ubiquitin, and a share of it enters by a route without clathrin and is mostly destroyed. Treat that as a result in one cell line, since other laboratories find clathrin carrying most of the receptor at high doses too. The modest version is safe: how hard a receptor is signaling can change how it enters and where it ends up.
+**A receptor's signaling can influence which internalization pathway it takes.** The best studied case is the EGF receptor. In HeLa cells, Sara Sigismund, Pier Paolo Di Fiore and their colleagues reported that at low doses of EGF the receptor enters almost entirely through coated pits and is mostly recycled. At high doses the receptor also becomes tagged with ubiquitin, and a share of it enters by a route without clathrin and is mostly destroyed. Treat that as a result in one cell line, since other laboratories find clathrin carrying most of the receptor at high doses too. The modest version is safe: how hard a receptor is signaling can change how it enters and where it ends up.
 
 ## The early endosome is a sorting station
 
-The early endosome is the first stop for almost all endocytosed cargo. It lies near the plasma membrane, and it sorts cargo into separate patches of its own membrane that set the cargo's fate: back to the surface, or on to the lysosome to be destroyed.
+The early endosome is the first stop for almost all endocytosed cargo. It lies near the plasma membrane, and it sorts cargo into separate patches of its own membrane that set the cargo's fate: back to the surface, back to the Golgi, or on to the lysosome to be destroyed.
 
 Two physical features do much of the sorting. One is acid. A proton pump in the endosome membrane holds the inside at about pH 6 to 6.5, and at that pH many ligands let go. LDL falls off its receptor, and iron falls off transferrin. The other is shape. An early endosome has a round body with thin tubes growing out of it. A tube is nearly all membrane and almost no volume, so membrane proteins spread into the tubes while dissolved contents stay in the body. The tubes pinch off and go back to the surface, so a receptor with no other instruction mostly goes back too.
 
 There is a fast way back, taking a few minutes, straight from tubes rich in the protein Rab4. There is a slow way, taking tens of minutes, that passes through a second compartment and uses Rab4 and Rab11. An LDL receptor makes the round trip about every ten minutes, again and again.
 
-**Rab proteins define and drive the maturation state.** Rabs are small GTPase switches of the kind in the lesson on GTPase switches: on with GTP, off with GDP, flipped by GEFs and GAPs. Human cells have more than sixty, and each marks one compartment or one step of traffic. Rab5 marks the early endosome. In its GTP form it sits on the membrane and recruits effectors, proteins that bind only the on state, which tether incoming vesicles and help them fuse.
+**Rab proteins define and drive the maturation state.** Rabs are small GTPase switches of the kind in the lesson on GTPase switches: on with GTP, off with GDP, flipped by GEFs and GAPs. Human cells have more than sixty, and most mark a particular compartment, a domain within one, or a step of traffic. Rab5 marks the early endosome. In its GTP form it sits on the membrane and recruits effectors, proteins that bind only the on state, which tether incoming vesicles and help them fuse.
 
-How does a Rab find its membrane? Each Rab carries geranylgeranyl groups, 20-carbon lipids, on its tail, and a greasy tail would stick to any membrane it met. Suzanne Pfeffer's laboratory worked on this with Rab9. A protein called GDI wraps the GDP-bound Rab and hides the tail, so the Rab stays dissolved in the cytosol. Her group found an activity on endosome membranes, a displacement factor, that frees the Rab from GDI, and showed that GDP is exchanged for GTP as the Rab lands. GDI does not pull off the GTP form, so the Rab stays put until a GAP switches it off.
+How does a Rab find its membrane? Most Rabs carry one or two geranylgeranyl groups, 20-carbon lipids, on their tail, and a greasy tail would stick to any membrane it met. Suzanne Pfeffer's laboratory worked on this with Rab9. A protein called GDI wraps the GDP-bound Rab and hides the tail, so the Rab stays dissolved in the cytosol. Her group found an activity on endosome membranes, a displacement factor, that frees the Rab from GDI, and showed that GDP is exchanged for GTP once the Rab reaches the membrane. Later work points to the Rab's own GEF as a main part of the address: a Rab is switched on, and so held, on the membrane where its GEF sits. GDI does not pull off the GTP form, so the Rab stays put until a GAP switches it off.
 
 <LessonFigure src="/figures/endocytosis-and-signaling-endosomes/rab-switch-and-gdi.webp" width={1200} height={591} alt="AI-generated illustration: a loop showing a GDP-bound Rab held in the cytosol by GDI, freed at an endosome membrane by a displacement factor, switched to GTP and bound by an effector, then switched off by a GAP." caption="A Rab is a GTPase switch with a greasy tail. GDI hides the tail of the GDP form in the cytosol, a factor on the endosome membrane frees it as GDP is exchanged for GTP, and it stays put, recruiting effectors, until a GAP switches it off." />
 
@@ -424,9 +426,9 @@ A receptor leaves the default route when it carries a tag, and the tag is one yo
 
 What is the purpose of MVEs? Think about which way the receptor faces. On the outer membrane of an endosome, the receptor's tail still points into the cytosol and can still reach its partners. On an internal vesicle, the tail is sealed inside and cannot reach the cytosol at all. That step ends the signal before anything is destroyed. It also puts the whole receptor where the lysosome's enzymes can reach it.
 
-Meanwhile the compartment itself changes. Marino Zerial's laboratory filmed single endosomes in living cells and saw Rab5 leave as Rab7 arrived, which they called Rab conversion. With Rab7 come new effectors, stronger acid (about pH 5.5 in late endosomes) and a growing load of internal vesicles. Their membrane is rich in an unusual lipid, lysobisphosphatidic acid, which has not been detected in early endosomes. The late endosome then fuses with a lysosome, a bag of digestive enzymes at about pH 4.5 to 5, and the receptor is broken down.
+Meanwhile the compartment itself changes. Marino Zerial's laboratory filmed single endosomes in living cells and saw Rab5 leave as Rab7 arrived, which they called Rab conversion. With Rab7 come new effectors, stronger acid (about pH 5.5 in late endosomes) and a growing load of internal vesicles. Their internal vesicles are rich in an unusual lipid, lysobisphosphatidic acid, which is scarce in early endosomes. The late endosome then fuses with a lysosome, a bag of digestive enzymes at about pH 4.5 to 5, and the receptor is broken down.
 
-<LessonFigure src="/figures/endocytosis-and-signaling-endosomes/endosome-maturation.webp" width={1200} height={508} alt="AI-generated illustration: a three-stage strip of an early endosome marked Rab5, a maturing endosome swapping Rab5 for Rab7 with vesicles forming inside, and a late endosome fusing with a lysosome where the receptor is broken down." caption="An endosome keeps its membrane but changes its identity: Rab5 leaves and Rab7 arrives, the inside grows more acid and fills with internal vesicles, and the late endosome finally fuses with a lysosome." />
+<LessonFigure src="/figures/endocytosis-and-signaling-endosomes/endosome-maturation.webp" width={1200} height={508} alt="AI-generated illustration: a three-stage strip of an early endosome marked Rab5, a maturing endosome swapping Rab5 for Rab7 with vesicles forming inside, and a late endosome fusing with a lysosome where the receptor is broken down." caption="An endosome stays the same compartment but changes its identity: Rab5 leaves and Rab7 arrives, the inside grows more acid and fills with internal vesicles, and the late endosome finally fuses with a lysosome." />
 
 ### Design problem
 
