@@ -9,7 +9,7 @@ summary: >-
   seventeen in 2018 and eighteen harmonized subtypes across six species in 2024. This lesson asks
   when a transcriptomic cluster is a cell type and when it is a state, a resolution or an artefact
   of the preparation. You will follow genetic access from a cluster to a driver line, see how
-  identity is built in development and erased by injury, and learn to read mouse and human atlases
+  identity is built in development and suppressed by injury, and learn to read mouse and human atlases
   without letting a marker or a cluster count say more than it measured.
 hook: "One mouse data set found eleven kinds of touch, pain and itch neuron; a later one found seventeen. Which number is right?"
 
@@ -17,7 +17,7 @@ estMinutes: 24
 objectives:
   - "Trace how single-cell sequencing reclassified mouse DRG neurons, from Usoskin et al. (2015) to Zeisel et al. (2018) and the harmonized atlas of Bhuiyan et al. (2024), and say why the count depends on the data set."
   - "Explain how a transcriptomic cluster becomes a functional type through genetic access and physiology, and compute the specificity and efficiency of a driver line as separate quantities."
-  - "Describe how DRG subtype identity emerges in mouse development (Sharma et al., 2020) and how peripheral nerve injury suppresses it and regeneration restores it (Renthal et al., 2020)."
+  - "Describe how DRG subtype identity emerges in mouse development (Sharma et al., 2020) and how peripheral nerve injury suppresses it and how it returns over the time course of regeneration (Renthal et al., 2020)."
   - "Compare mouse and human DRG atlases, read a spatial transcriptomic data set without mistaking cluster labels for cell proportions, and judge whether a proposed human-only class is real."
 
 explainer:
@@ -48,7 +48,7 @@ scientists:
       peptidergic, and one TH for the tyrosine hydroxylase class that matches the C-fibre
       low-threshold mechanoreceptors. Some classes suggested a function, such as NP3, which the paper linked to itch. The paper is cited in the
       2015 issue, though it appeared online in 2014. What it made possible was a
-      transcript-level parts list that every later DRG atlas compared itself against.
+      transcript-level parts list that many later DRG atlases compared themselves against.
   - name: "Nikhil Sharma and David Ginty"
     contribution: >-
       Jointly conceived the 2020 Nature study that followed mouse DRG neurons from embryonic day
@@ -66,27 +66,27 @@ scientists:
       compared P0 ganglia from mice lacking both Ngf and Bax with ganglia lacking Bax alone. Bax
       deletion keeps neurons alive that would otherwise die without NGF, so a difference reflects
       identity rather than survival. The double mutants had fewer transcriptionally distinct
-      populations. In 2025 the authors published an author correction to the paper. The work made subtype identity a developmental process that can be
+      populations. In 2025 the authors corrected a duplicated image in one extended data figure. The work made subtype identity a developmental process that can be
       perturbed and measured.
   - name: "Lijun Qi"
     contribution: >-
       First author, with Michael Iskols, Nikhil Sharma, David Ginty and colleagues, of the 2024
       Cell paper that built a mouse DRG genetic toolkit and used it to image identified sensory
       neuron subtypes responding to skin stimulation in vivo.
-    profileSourceAnchor: "Qi, Iskols, Shi, Reddy, Walker, Lezgiyeva et al. (Ginty laboratory), 'A mouse DRG genetic toolkit reveals morphological and physiological diversity of somatosensory neuron subtypes', Cell (2024), doi 10.1016/j.cell.2024.02.006."
+    profileSourceAnchor: "Qi, Iskols, Shi, Reddy, Walker, Lezgiyeva et al. (Ginty and Sharma laboratories), 'A mouse DRG genetic toolkit reveals morphological and physiological diversity of somatosensory neuron subtypes', Cell (2024), doi 10.1016/j.cell.2024.02.006."
     quotes: []
     story: >-
       A cluster in an atlas is a list of genes. To ask what the cells do, you need a way to mark
-      them in a living animal. The 2024 Cell paper on which Lijun Qi is first author, from David
-      Ginty's laboratory, set out to provide that for the main mouse DRG subtypes. It drew on
+      them in a living animal. The 2024 Cell paper on which Lijun Qi is first author, from the laboratories of
+      David Ginty and Nikhil Sharma, set out to provide that for the main mouse DRG subtypes. It drew on
       recombinase lines keyed to marker genes from the transcriptomic data: Th2A-CreER for
       C-fibre low-threshold mechanoreceptors, TrkB-CreER for Aδ ones, Ret-CreER for Aβ rapidly
       adapting ones, an intersection of Smr2-Cre with Calca-FlpE for one peptidergic population
       with free endings, and new knock-ins such as Trpm8-T2a-FlpO. The team followed labelled
       endings in the skin, then imaged calcium in the L4 ganglion of anaesthetized
-      young mice while touching, heating or cooling the skin. The authors reported that several
-      genetically defined groups were not uniform: their members varied in mechanical and
-      thermal tuning. The toolkit turned atlas clusters into populations that can be labelled,
+      young mice while touching, heating or cooling the skin. The authors reported that each
+      genetically defined subtype had its own threshold and range of responses, and that together
+      the subtypes tiled the range of forces and temperatures tested. The toolkit turned atlas clusters into populations that can be labelled,
       imaged and manipulated one at a time.
   - name: "William Renthal"
     contribution: >-
@@ -117,7 +117,7 @@ techniques:
       groups appear.
   - name: "Cre, CreER and Cre/Flp intersectional genetics"
     blurb: >-
-      A recombinase expressed from a marker gene's locus switches on a reporter or an actuator in
+      A recombinase expressed under a marker gene's regulatory sequences switches on a reporter or an actuator in
       cells that expressed that marker at some time; CreER adds a tamoxifen-timed window, and
       requiring both Cre and Flp restricts the label to cells that expressed two markers. Each
       line is validated by its specificity and its efficiency.
@@ -219,8 +219,9 @@ mcatQuestions:
       - "90% of the neurons are nociceptors, from 4,500 of 5,000"
     answer: 0
     rationale: >-
-      The fraction of retained spots in nociceptor clusters is 1,200 / 4,500 = 26.7%, and because a
-      spot mixes RNA from a neuron and its neighbours, even this is not a pure cell count. Four of
+      The fraction of retained spots in nociceptor clusters is 1,200 / 4,500 = 26.7%, and even this is an
+      estimate from sampled spots, not a direct count of neurons: a spot also picks up RNA from
+      neighbouring cells, and one neuron can fall under more than one spot. Four of
       ten is a fraction of cluster labels and ignores that clusters differ in size. Dividing by
       5,000 uses spots that were filtered out before clustering. The ratio 4,500 / 5,000 is a
       filtering statistic that says nothing about cell type.
@@ -280,8 +281,8 @@ explainLevels:
       when a driver line keyed to its marker genes, validated for specificity and efficiency,
       lets physiology be measured, as in the in vivo DRG calcium imaging of Qi et al. (2024).
       Identity emerges in development from broad transcription factor expression that narrows,
-      with NGF contributing (Sharma et al., 2020), and peripheral injury suppresses it until
-      regeneration (Renthal et al., 2020).
+      with NGF contributing (Sharma et al., 2020), and peripheral injury suppresses it, with identity returning over the
+      time course of regeneration (Renthal et al., 2020).
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -292,14 +293,17 @@ explainLevels:
       harmonized atlas of Bhuiyan et al. (2024) includes, among its eighteen groups, an Atf3 group defined by injury-induced transcription factors, which reads as a state rather than a type. Genetic access carries its own scope: CreER labels reflect
       expression at the time of induction, as the TrkC-CreER example shows, and intersectional
       Cre/Flp strategies narrow labelling to cells that expressed two markers. Qi et al. (2024)
-      reported heterogeneous mechanical and thermal tuning inside several genetically defined
-      groups, imaged with a calcium signal that tracks spike rate only roughly.
+      reported that each genetically defined subtype had a distinct threshold and response range,
+      so that together the subtypes tile mechanical and thermal stimulus space; the imaging used a
+      calcium signal that tracks spike rate only roughly.
 
       The open question is how far mouse categories carry to humans. Human nuclear and spatial
       atlases show broad TAC1 and CALCA expression across nociceptor clusters, and a gene such as
       TAFA4 can mark different cell types in mouse and human. Nguyen et al. (2021) reported human
-      classes without clear mouse equivalents, while the 2024 integration found none that were
-      human-specific. Settling it needs matched preparations, tissue validation and, ideally,
+      classes without clear mouse equivalents, and Yu et al. (2024), sequencing single human DRG
+      somata in depth, reported likely human-specific types. The 2024 integration found no
+      human-specific clusters, but an integration built to align data sets is a weak test for
+      clusters that exist in only one species. Settling it needs matched preparations, tissue validation and, ideally,
       same-cell physiology in human ganglia, for example by Patch-seq.
 
 anecdotes:
@@ -317,9 +321,10 @@ anecdotes:
     source: "Sharma et al., Nature 577:392–398 (2020); author correction, Nature (2025), doi 10.1038/s41586-025-09817-y."
     text: >-
       Papers change after publication. In 2025 the authors of the 2020 Nature study on how mouse
-      DRG identity emerges published a correction. A reader using
-      the paper to teach or to plan an experiment should read the correction notice and use the
-      corrected version. The habit generalizes. Before you build on an atlas or a figure, check for
+      DRG identity emerges published a correction: in one extended data panel, the Trpm8 images
+      for two spinal levels had been identical, and the duplicate was replaced. The correction
+      concerns one figure panel, not the timepoints or the Ngf;Bax comparison taught here. A reader
+      using the paper should still read the notice and use the corrected version. The habit generalizes. Before you build on an atlas or a figure, check for
       corrections, updated data releases and later reanalyses, because the version you first
       downloaded may not be the current one.
 
@@ -348,7 +353,7 @@ The dorsal root ganglion (DRG) holds the cell bodies of the neurons that innerva
 
 Zeisel and colleagues (2018) then profiled roughly half a million cells across the mouse nervous system and arranged them in a hierarchical taxonomy. Within peripheral sensory neurons they resolved eight peptidergic, six non-peptidergic and three neurofilament types: seventeen. The half million is the whole census, not a count of DRG neurons.
 
-Think of a map. A country-level map and a county-level map of the same land are both correct; they differ in resolution. Broad classes (peptidergic, non-peptidergic, neurofilament) and fine subtypes sit at different levels of one tree. More cells, deeper sequencing or a finer clustering setting will split branches; a different preparation can also hide or reveal one.
+Think of a map. A country-level map and a county-level map of the same land are both correct; they differ in resolution. Broad classes (peptidergic, non-peptidergic, neurofilament) and fine subtypes sit at different levels of one tree. More cells, deeper sequencing or a finer clustering setting can split branches; a different preparation can also hide or reveal one.
 
 Bhuiyan, Renthal and colleagues (2024) integrated 31 DRG and trigeminal ganglion data sets from six mammalian species (human, mouse, rat, guinea pig and two macaque species) into a single reference with eighteen DRG and fifteen trigeminal neuronal subtypes. The authors stressed that preparation, sequencing depth and analysis change how many subtypes are resolved. One of their eighteen groups is defined by injury-induced transcription factors, the Atf3 group, which is a warning that an atlas can mix types with states. They also cautioned that one molecular subtype can behave differently at different innervation targets.
 
@@ -356,7 +361,7 @@ Keep the fibre labels apart from the clusters. Among low-threshold mechanorecept
 
 ## From a cluster to a driver line
 
-A cluster becomes a functional type only when something other than its RNA ties it to a job. The usual route is genetic access. A **Cre driver** expresses Cre recombinase from a marker gene's locus, so a reporter marks cells that expressed the marker at some time; **CreER** is switched on by tamoxifen, so the experimenter chooses the window ([tools for development](/lessons/tools-for-development/) covers the genetics). An **intersectional** strategy requires two recombinases, Cre and Flp, so that only cells that expressed both markers are labelled.
+A cluster becomes a functional type only when something other than its RNA ties it to a job. The usual route is genetic access. A **Cre driver** expresses Cre recombinase under a marker gene's regulatory sequences, either knocked into the gene's own locus or carried on a transgene, so a reporter marks cells that expressed the marker at some time; **CreER** is switched on by tamoxifen, so the experimenter chooses the window ([tools for development](/lessons/tools-for-development/) covers the genetics). An **intersectional** strategy requires two recombinases, Cre and Flp, so that only cells that expressed both markers are labelled.
 
 <LessonFigure src="/figures/sensory-neuron-atlas/intersectional-both-markers.webp" width={1200} height={563} alt="AI-generated illustration: three panels, each a three-by-three grid of round cells. In the first some cells are coloured slate for the Cre marker, in the second some are sage for the Flp marker, and in the third only the two cells that are in both are gold. A plus and an equals sign link the panels." caption="An intersectional strategy needs both Cre and Flp, so only cells that expressed both markers are labelled. The grid is a made-up illustration of the logic, not data." />
 
@@ -373,9 +378,9 @@ Timing is part of the definition. With TrkC-CreER intersected with a Ret reporte
 
 <LessonFigure src="/figures/sensory-neuron-atlas/creer-timing-two-populations.webp" width={1200} height={800} alt="AI-generated illustration: two stacked panels under the header TrkC-CreER with a Ret reporter. Top, tamoxifen given at E12.5 at 3 mg labels a gold Merkel cell-neurite complex in the epidermis. Bottom, tamoxifen given at P5 at 0.1 mg labels gold circumferential endings wrapped around a hair follicle." caption="The same TrkC-CreER driver, given 3 mg of tamoxifen at E12.5 or 0.1 mg at P5, labelled different Aβ endings: Merkel-associated SA1 endings in the first case, field-LTMR circumferential endings in the second. Age and dose both differed. A CreER label records expression history, not a fixed identity." />
 
-The mouse DRG toolkit of Qi, Iskols, Sharma, Ginty and colleagues (2024) gathered such lines for the main subtypes: Th2A-CreER for C-LTMRs, TrkB-CreER for Aδ-LTMRs, Ret-CreER for Aβ rapidly adapting LTMRs, and new knock-ins such as Trpm8-T2a-FlpO. An intersection of Smr2-Cre with Calca-FlpE restricted labelling to an SMR2- and CGRP-positive population with free endings. The team then imaged calcium in the L4 DRG of anaesthetized young mice while indenting the skin with forces from 1 to 75 mN, heating it or cooling it. The authors reported that several genetically defined groups were not uniform: within a named subtype, members varied in mechanical and thermal tuning. A type, on this evidence, can contain graded physiology.
+The mouse DRG toolkit of Qi, Iskols, Sharma, Ginty and colleagues (2024) gathered such lines for the main subtypes: Th2A-CreER for C-LTMRs, TrkB-CreER for Aδ-LTMRs, Ret-CreER for Aβ rapidly adapting LTMRs, and new knock-ins such as Trpm8-T2a-FlpO. An intersection of Smr2-Cre with Calca-FlpE restricted labelling to an SMR2- and CGRP-positive population with free endings. The team then imaged calcium in the L4 DRG of anaesthetized young mice while indenting the skin with forces from 1 to 75 mN, heating it or cooling it. The authors reported that each genetically defined subtype had its own threshold and range of responses to mechanical or thermal stimuli. Together the subtypes tiled the range of forces and temperatures tested, so more subtypes were recruited as a stimulus grew stronger. Some variety remained inside a group: TRPM8 neurons, for example, showed three kinds of cooling response. On this evidence, the transcriptomic subtypes were also physiologically distinct.
 
-Read such imaging with its limits. In adult mouse DRG imaged in vivo under urethane, the GCaMP6 signal had a typical rise of about 200 ms and a decay time constant of about 700 ms (Chisholm and colleagues, 2018). Single action potentials were detected in most cases, but spikes closer together than those times summate, so a single transient does not give a spike count and its amplitude tracks firing rate only roughly. The firmest bridge between RNA and function is a measurement in the same cell. **Patch-seq** records a neuron with a patch electrode, then aspirates its contents for sequencing, so that physiology and gene expression come from the same cell; Cadwell and colleagues (2016) demonstrated it in mouse neocortex, not DRG.
+Read such imaging with its limits. In adult mouse DRG imaged in vivo under urethane, the GCaMP6 signal had a typical rise of about 200 ms and a decay time constant of about 700 ms (Chisholm and colleagues, 2018). Single action potentials were detected in most cases, but spikes closer together than those times summate, so a single transient does not give a spike count and its amplitude tracks firing rate only roughly. The firmest bridge between RNA and function is a measurement in the same cell. **Patch-seq** records a neuron with a patch electrode, then aspirates its contents for sequencing, so that physiology and gene expression come from the same cell; Cadwell and colleagues (2016) demonstrated it in mouse neocortex, and Parpaite and colleagues (2021) applied it to mouse DRG neurons, matching types of mechanically activated current to transcriptomic populations.
 
 ## How identity is built, and how injury takes it apart
 
@@ -400,26 +405,26 @@ Spatial data keep anatomy but add a trap. Tavares-Ferreira and colleagues (2022)
 1. Retention = 3,952 / 4,356 = 0.9073, or 90.73%.
 2. Check: 4,356 × 0.9073 = 3,952.2, which rounds to 3,952.
 3. C-nociceptor fraction of cluster labels = 5 / 12 = 0.4167, or 41.67%.
-4. Is either the fraction of human DRG neurons that are C nociceptors? No. The first is a filtering statistic. The second counts labels and ignores that clusters differ in size. Even per-cluster spot counts would not be cell counts, because a 55 µm spot over a neuron also captures RNA from satellite glia and neighbours.
+4. Is either the fraction of human DRG neurons that are C nociceptors? No. The first is a filtering statistic. The second counts labels and ignores that clusters differ in size. Per-cluster spot counts come closer, because each kept spot was chosen to overlap a single neuron. They still estimate only the neurons sampled in those sections: a spot also picks up RNA from satellite glia and neighbours, which can affect which cluster it joins, and a few neurons fell under more than one spot.
 
 The same study found TAC1 and CALCA, the genes for substance P and CGRP, broadly expressed across its human nociceptor clusters, so the authors suggest the mouse split into peptidergic and non-peptidergic nociceptors may not carry over as a clean binary. Jung and colleagues (2023) compared mouse, guinea pig, macaque and human DRG with one workflow. Tafa4 was found mainly in mouse C-LTMRs, but human TAFA4 was strongest in NTRK2- and SCN5A-positive Aδ-LTMRs, confirmed by in situ hybridization. A mouse mechanism tied to a marker needs a human check of which cells carry that marker. [Nociceptors and sodium channels](/lessons/nociceptors-and-sodium-channels/) meets the same problem with drug targets.
 
-So what is a type? A working answer: a molecular group that recurs across data sets and is anchored by at least one independent measure (ending, physiology, target or behaviour after manipulation), read with its state and its resolution in mind. Graded physiology can remain inside it.
+So what is a type? A working answer: a molecular group that recurs across data sets and is anchored by at least one independent measure (ending, physiology, target or behaviour after manipulation), read with its state and its resolution in mind. Some variety of response can remain inside it.
 
 ### Design problem
 
-Nguyen and colleagues (2021) reported human DRG classes with no clear mouse equivalent, using single-nucleus sequencing. The 2024 harmonized integration of 31 data sets found no human-specific neuronal clusters. Design the work that would decide whether one proposed human-only class is real.
+Nguyen and colleagues (2021) reported human DRG classes with no clear mouse equivalent, using single-nucleus sequencing. Yu and colleagues (2024), using deep sequencing of single human DRG somata, also reported likely human-specific types. The 2024 harmonized integration of 31 data sets found no human-specific neuronal clusters, though an integration is built to align data sets and can merge real differences. Design the work that would decide whether one proposed human-only class is real.
 
 <details>
 <summary>One way to do it</summary>
 
 Start with the known confound. Nguyen and colleagues noted that whole-cell sequencing of mouse DRG had found a Trpa1-rich group that a compared mouse nuclear data set missed, so a mismatch between species may partly reflect what each method captures.
 
-1. Match the preparation. Compare human nuclei with mouse nuclei (and, where possible, human whole cells with mouse whole cells), at similar sequencing depth and with the same clustering pipeline and resolution. If the class finds a mouse partner once the methods match, it was a method difference.
+1. Match the preparation. Compare human nuclei with mouse nuclei (and, where possible, human whole cells with mouse whole cells), at similar sequencing depth and with the same clustering pipeline and resolution. If the class finds a mouse partner once the methods match, a method difference becomes the likely explanation, but check that the integration step has not simply forced the two species together.
 2. Test robustness. Check that the class appears in several donors, not one, and survives reclustering at a few resolutions and integration methods. A class carried by one donor or one setting is fragile.
 3. Validate in tissue. Pick two or three markers that define the class and do multiplex in situ hybridization on human DRG sections, counting single neurons that coexpress them and measuring their soma size. Do the same with the orthologous genes in mouse DRG. A coexpressing population present in human sections and absent from mouse ones supports a real difference in expression.
 4. Tie it to function. Expression alone does not make a functional type. Record from human DRG neurons in culture or by Patch-seq, or use microneurography data where an afferent class can be matched, and ask whether cells with the marker profile share a physiology.
 
-Expected outcomes: if the class disappears when methods are matched, it was an artefact; if it survives matching and tissue validation but has no distinct physiology, it is a real molecular difference of unknown function; only all four together would make it a functional human-mouse difference, and calling it human-specific would also need comparison with other species such as macaque.
+Expected outcomes: if the class disappears when methods are matched, and the matching did not rely on an integration that could merge real differences, it was probably an artefact; if it survives matching and tissue validation but has no distinct physiology, it is a real molecular difference of unknown function; only all four together would make it a functional human-mouse difference, and calling it human-specific would also need comparison with other species such as macaque.
 
 </details>
