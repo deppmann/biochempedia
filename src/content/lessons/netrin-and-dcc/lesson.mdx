@@ -9,8 +9,8 @@ summary: >-
   away from it. This lesson follows how it was found (a dish assay with rat spinal cord, a
   purification from embryonic chick brain, and worm genetics), how its receptors DCC and UNC5
   decide between attraction and repulsion, and how the growth cone's own cAMP can flip the answer.
-  Afterwards you can predict how a growth cone will respond to netrin from the receptors it carries
-  and its internal state, and say what it takes to read a shallow gradient.
+  Afterwards you can make a first prediction of how a growth cone will respond to netrin from the
+  receptors it carries and its internal state, and say what it takes to read a shallow gradient.
 hook: "The same protein pulls one axon toward the midline and pushes another away. What decides?"
 
 estMinutes: 24
@@ -64,10 +64,10 @@ scientists:
       route, and mesodermal cells as they migrated around the body, between the ventral and
       dorsal sides, in mutants of three of these genes. In unc-6 mutants, migrations in both
       directions went wrong. In unc-5 mutants, mainly movement away from the ventral side failed;
-      in unc-40 mutants, mainly movement toward it. The logic was a diagram before any protein was
-      known: one cue, read by two pathways for two directions. In 1992 Naoaki Ishii, William
+      in unc-40 mutants, mainly movement toward it. The genetics sorted the migrations into two pathways that
+      both needed unc-6, though the 1990 paper itself proposed two opposing gradients. In 1992 Naoaki Ishii, William
       Wadsworth and colleagues working with Culotti and Hedgecock found that UNC-6 is a protein related to laminin. When netrin was purified from chick brain two years later and
-      matched UNC-6, the worm's diagram predicted what the vertebrate receptors would be.
+      matched UNC-6, the worm genes pointed to where the vertebrate receptors might be found.
   - name: "Mu-ming Poo"
     contribution: >-
       His laboratory developed the repeated-pulse growth cone turning assay and, with Guo-li Ming, Hong-jun
@@ -176,20 +176,19 @@ practiceQuestions:
       ventral UNC-6 source. unc-5 mutants have the opposite problem, losing mainly movement away.
       Losing unc-6 removes the cue, so migrations in both directions fail. lin-12 encodes a Notch
       receptor that settles cell fates between neighbours and is not part of the netrin pathway.
-  - stem: "A commissural neuron that carries DCC and grows toward a netrin source is engineered to also make an UNC5 receptor. Nothing else changes. What is the most likely result in a netrin gradient?"
+  - stem: "Worm touch neurons normally send their axons along the body or toward the ventral side, and do not make UNC-5. They are engineered to make UNC-5. Nothing else changes. What is the most likely result?"
     choices:
-      - "Its growth cone turns away from the netrin source"
-      - "Its growth cone collapses and the axon retracts"
-      - "Its growth cone ignores netrin and grows straight"
-      - "Its growth cone turns toward the source faster"
+      - "Their axons grow dorsally, away from the ventral UNC-6"
+      - "Their growth cones collapse and the axons retract"
+      - "Their axons ignore UNC-6 and keep their normal course"
+      - "Their axons grow ventrally toward UNC-6 faster"
     answer: 0
     rationale: >-
-      DCC alone mediates attraction, and DCC together with UNC5 mediates repulsion, so adding UNC5
-      should turn the growth cone away; the same was seen when UNC-5 was forced into worm touch
-      neurons. Faster attraction would follow only if
-      UNC5 added to DCC's pull, which it does not. Ignoring netrin would need the loss of DCC, which
-      is still there. Collapse and retraction is a response to some contact repellents, not the
-      predicted result of a steering change in a gradient.
+      Hamelin and colleagues did this experiment in 1993. With UNC-5 the touch-neuron axons grew
+      dorsally, away from the ventral UNC-6, and the new course still needed UNC-6. UNC-5 adds a
+      response away from the cue; it did not strengthen the pull toward it. The axons did not ignore
+      the cue, since their new course depended on UNC-6. They did not collapse and retract either;
+      they kept growing, on a new route.
   - stem: "In frog spinal growth cones, netrin-1 caused attraction, and netrin-1 with a PKA inhibitor caused repulsion. Which further result showed that both responses ran through the same receptor?"
     choices:
       - "An antibody to DCC blocked both attraction and the repulsion"
@@ -276,8 +275,8 @@ explainLevels:
       In an embryo, a nerve cell grows a long fibre, the axon, tipped by a moving, sensing end
       called the growth cone. Netrin is a protein made near the midline of the developing spinal
       cord. The growth cone reads it through receptors on its surface. Cells that carry the
-      receptor DCC turn toward netrin; cells that carry DCC together with a second receptor,
-      UNC5, turn away from it. Even with the same receptor, the answer can flip: in frog nerve
+      receptor DCC usually turn toward netrin; cells that also carry a second receptor, UNC5,
+      usually turn away from it, though other conditions can change the answer. Even with the same receptor, the answer can flip: in frog nerve
       cells grown in a dish, lowering a messenger molecule inside the growth cone, cyclic AMP,
       made cells that normally turned toward netrin turn away instead.
   - level: "college"
@@ -295,15 +294,14 @@ explainLevels:
   - level: "grad"
     label: "Graduate"
     text: >-
-      Netrin-1 has separate binding sites for receptor fibronectin domains, which structures
+      Netrin-1 has separate receptor-binding sites, which structures
       suggest lets one netrin bridge different receptors, such as DCC and UNC5, and so encode
       opposite outputs in the composition of the receptor complex. A second layer is cytosolic:
       in Xenopus spinal growth cones the ratio of cAMP to cGMP sets the direction of netrin-1
-      turns, reportedly by regulating calcium channels, with DCC-UNC5 repulsion needing cGMP
-      signalling. Reading the gradient is the third problem. For steady diffusion from a point
+      turns, reportedly by regulating calcium channels. Reading the gradient is the third problem. For steady diffusion from a point
       source, the fractional difference across a growth cone of width w at distance r is about
       w/r, so a 10 micrometre growth cone a millimetre away sees about 1 percent. Assays with
-      controlled gradients report that axons are extremely sensitive, but only
+      controlled gradients of nerve growth factor report that sensory axons are extremely sensitive, but only
       over a limited concentration range, and frog growth cones desensitize and resensitize in a
       rising background of netrin.
 
@@ -359,13 +357,13 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Put a scrap of floor plate from an embryonic rat spinal cord in a gel near a scrap of dorsal spinal cord, and axons grow out of the dorsal scrap toward the floor plate, though the two never touch.**
 
-The floor plate is a strip of cells along the ventral midline of the embryonic spinal cord. Commissural neurons sit in the dorsal spinal cord, and their axons grow ventrally to the floor plate and cross it to the other side. The gel result says the floor plate gives off something that travels. This lesson asks what that something is, how the growth cone (the moving, sensing tip of a growing axon; see [the lesson on the growth cone](/lessons/growth-cone/)) reads it, and why the same molecule can pull one axon in and push another away.
+The floor plate is a strip of cells along the ventral midline of the embryonic spinal cord. Many commissural neurons sit in the dorsal spinal cord, and their axons grow ventrally to the floor plate and cross it to the other side. The gel result says the floor plate gives off something that travels. This lesson asks what that something is, how the growth cone (the moving, sensing tip of a growing axon; see [the lesson on the growth cone](/lessons/growth-cone/)) reads it, and why the same molecule can pull one axon in and push another away.
 
 ## Classic Experiment: Floor Plate Chemoattraction
 
 In 1988 Marc Tessier-Lavigne, Marysia Placzek, Andrew Lumsden, Jane Dodd and Thomas Jessell embedded pieces of rat embryonic spinal cord in a three-dimensional gel of collagen. On its own, an explant of dorsal spinal cord sent out few or no axons. With a floor plate explant nearby, bundles of commissural axons grew out of the dorsal explant toward the floor plate. Because the explants were apart, the effect had to cross the gel. A cue that acts this way is a chemoattractant, and steering by it is chemotropism.
 
-<LessonFigure src="/figures/netrin-and-dcc/floor-plate-gel-assay.webp" width={1200} height={713} alt="AI-generated illustration: two collagen-gel dishes seen from above. A dorsal spinal cord explant alone sends axons out in all directions; with a floor plate explant nearby but not touching, bundles of axons curve across the gel toward it." caption="Dorsal spinal cord explants in collagen gel send axons out in no preferred direction on their own, but with a floor plate explant nearby, commissural axon bundles grow toward it though the two never touch." />
+<LessonFigure src="/figures/netrin-and-dcc/floor-plate-gel-assay.webp" width={1200} height={713} alt="AI-generated illustration: two collagen-gel dishes seen from above. A dorsal spinal cord explant alone sends out few or no axons; with a floor plate explant nearby but not touching, bundles of axons curve across the gel toward it." caption="Dorsal spinal cord explants in collagen gel send out few or no commissural axons on their own, but with a floor plate explant nearby, commissural axon bundles grow toward it though the two never touch." />
 
 That fits one of the four classes of cue you met in [the lesson on guidance cues and pioneers](/lessons/guidance-cues-and-pioneers/): long-range attraction. It does not tell you what the molecule is. Picture smelling bread from down the street. You know there is a bakery, and you know which way to walk, but not the recipe.
 
@@ -381,9 +379,11 @@ The worm had got there first. In 1990 Edward Hedgecock, Joseph Culotti and David
 
 ## The receptors: one cue, two answers
 
-UNC-5 was identified in 1992 as a transmembrane protein, and in 1993 Michel Hamelin and colleagues in Culotti's laboratory forced worm touch neurons to make it. These neurons do not normally carry UNC-5 and do not grow dorsally. With UNC-5 their axons grew dorsally, away from the ventral UNC-6, and this still needed UNC-6. Changing the receptor reversed the answer to an unchanged cue.
+UNC-5 was identified in 1992 as a transmembrane protein, and in 1993 Michel Hamelin and colleagues in Culotti's laboratory forced worm touch neurons to make it. These neurons do not normally carry UNC-5 and do not grow dorsally. With UNC-5 their axons grew dorsally, away from the ventral UNC-6, and this still needed UNC-6. Changing the receptor changed the answer to an unchanged cue.
 
 UNC-40 turned out to resemble a human protein with an odd name: DCC, for Deleted in Colorectal Cancer. The gene had been found in 1990 on a stretch of chromosome 18 often lost in colorectal tumours and studied as a candidate tumour suppressor (see [the lesson on oncogenes](/lessons/oncogenes/)). In 1996 Kazuko Keino-Masu, Masayuki Masu and colleagues in Tessier-Lavigne's laboratory showed that in rat embryos DCC is on commissural axons, that netrin-1 binds cultured cells displaying DCC, and that an antibody to DCC selectively blocks netrin-evoked outgrowth from spinal explants. In the same journal issue, Shirley Chan and colleagues showed that worm UNC-40 is needed in the moving cells themselves.
+
+The mouse confirmed both partners. Mice lacking netrin-1 (Serafini and colleagues, 1996) had misrouted spinal commissural axons and lacked several forebrain commissures, and mice lacking Dcc (Fazeli and colleagues, 1997) had similar defects. Repulsion has a vertebrate example too: in 1995 Susan Colamarino and Tessier-Lavigne found that netrin-1 repels trochlear motor axons, which grow away from the floor plate, in explant cultures. In the netrin-1 mutant, though, trochlear axons were largely normal, so other repellents also guide them.
 
 Other systems point the same way. The fly Unc5 receptor is a repulsive netrin receptor (Keleman and Dickson, Neuron 2001), and a 2014 crystal structure showed that one netrin can bind DCC at two sites, a DCC-specific one and a second, generic one, and that UNC5A can take DCC's place at the generic site, which the authors proposed switches the response from attraction to repulsion (Finci and colleagues). A 1999 frog-neuron paper that had reported this switch with chimeric receptors (Hong and colleagues) was retracted in 2023, so this lesson does not rely on it. The working rule is that DCC alone attracts and UNC5 receptors add repulsion, but DCC-family receptors also take part in some repulsion, and netrin has other receptors and partners in some tissues, so treat the rule as a starting point.
 
@@ -393,7 +393,7 @@ Receptors are one layer. The growth cone's internal state is a second. In the tu
 
 Calcium is part of the readout. In 2003 Makoto Nishiyama and colleagues reported that the ratio of cAMP to cGMP in these growth cones sets the direction of the netrin-1 turn by changing the activity of L-type calcium channels (see [the lesson on calcium signaling](/lessons/calcium-signaling/)).
 
-The eye shows why a flip might be useful. Retinal axons run along the inner surface of the retina to the optic nerve head, the exit, where netrin-1 is concentrated, and netrin attracts them there. In 1999 Vivian Höpker and colleagues found that laminin-1 turns netrin's attraction into repulsion in frog retinal growth cones, and that laminin-1 lowers their cAMP. Laminin-1 lies on the retinal surface. Their model: where laminin and netrin overlap, netrin repels, and this pushes axons down into the exit, where there is netrin without laminin. In this model, netrin is attractive at one point and repellent at the next, with cAMP deciding.
+The eye shows why a flip might be useful. Retinal axons run along the inner surface of the retina to the optic nerve head, the exit, where netrin-1 is concentrated. In mice lacking netrin-1 or DCC the axons still reach the optic nerve head but fail to leave through it, so netrin acts locally there. In 1999 Vivian Höpker and colleagues found that laminin-1 turns netrin's attraction into repulsion in frog retinal growth cones, and that laminin-1 lowers their cAMP. Laminin-1 lies on the retinal surface. Their model: where laminin and netrin overlap, netrin repels, and this pushes axons down into the exit, where there is netrin without laminin. In this model, netrin is attractive at one point and repellent at the next, with cAMP deciding.
 
 ## Long-Range vs Short-Range Cues
 
@@ -401,7 +401,7 @@ A growth cone steering in a gradient compares the cue on one side with the cue o
 
 > **fractional difference ≈ w / r** (for C = k / r; w = growth cone width, r = distance)
 
-A 10 micrometre growth cone 100 micrometres away sees about a 10 percent difference. A millimetre away it sees 1 percent. Receptor binding is also noisy, because ligand molecules arrive and leave at random, so one snapshot of occupied receptors on each side cannot be trusted. Yet in 2004 Rosoff and colleagues, with gradients they could control, found that axons are extremely sensitive to gradients, but only within a narrow range of concentrations. In 2002 Ming and colleagues found part of the answer in frog growth cones: in a steadily rising background of netrin-1 they lost sensitivity and then regained it. A detector that resets its baseline can keep reading a gradient as it climbs it.
+A 10 micrometre growth cone 100 micrometres away sees about a 10 percent difference. A millimetre away it sees 1 percent. Receptor binding is also noisy, because ligand molecules arrive and leave at random, so one snapshot of occupied receptors on each side cannot be trusted. Yet in 2004 Rosoff and colleagues, with gradients of nerve growth factor they could control, found that sensory axons are extremely sensitive to gradients, but only within a narrow range of concentrations. In 2002 Ming and colleagues found part of the answer in frog growth cones: in a steadily rising background of netrin-1 they lost sensitivity and then regained it. A detector that resets its baseline can keep reading a gradient as it climbs it.
 
 ### Design problem
 

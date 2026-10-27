@@ -7,7 +7,7 @@ order: 232
 summary: >-
   A target makes too little NGF to keep every neuron that reaches it alive, so neurons compete.
   This lesson asks how the winners are chosen, using work in mouse sympathetic neurons: NGF
-  raises a neuron's own sensitivity to NGF, and well-supported neurons release BDNF and NT-4
+  raises a neuron's own sensitivity to NGF, and, in the proposed model, well-supported neurons make BDNF and NT-4
   that push weakly supported neighbours toward death through p75. Afterwards you can predict the
   result of removing the feedback or the punishment, and explain why blocking muscle activity
   saves chick motor neurons.
@@ -75,7 +75,7 @@ scientists:
       With Robert Pittman, showed that blocking neuromuscular transmission with curare during the
       period of naturally occurring motor neuron death reduces that death in the chick embryo; later
       reviewed the scale of developmental neuron death and the many survival factors for motor neurons.
-    profileSourceAnchor: "Pittman & Oppenheim, J. Comp. Neurol. 187:425 (1979); Oppenheim, Annu. Rev. Neurosci. 14:453 (1991); Oppenheim, Neuron 17:195 (1996)."
+    profileSourceAnchor: "Pittman & Oppenheim, Nature 271:364 (1978); Pittman & Oppenheim, J. Comp. Neurol. 187:425 (1979); Oppenheim, Annu. Rev. Neurosci. 14:453 (1991); Oppenheim, Neuron 17:195 (1996)."
     quotes: []
     story: >-
       Oppenheim was a student of Viktor Hamburger, whose counts in the chick had shown that many
@@ -87,8 +87,8 @@ scientists:
       simple "active connections win" rule predicts. That result set a puzzle the field has worked
       on since. Oppenheim's 1991 review in the Annual Review of Neuroscience reviewed cell death in the developing nervous system and is widely cited for the statement that roughly
       half of the neurons in many developing populations die. His 1996 commentary called motor
-      neuron survival factors "an embarrassment of riches", because no single factor supports
-      them all.
+      neuron survival factors "an embarrassment of riches", because so many different factors
+      could keep at least some motor neurons alive.
 
 techniques:
   - name: "Bax-null background for comparing genotypes"
@@ -103,8 +103,8 @@ techniques:
       hybridization, immunostaining or culture with and without NGF.
   - name: "Computational modelling of competition"
     blurb: >-
-      Neurons and their receptor levels are written as equations and simulated competing for a
-      fixed NGF supply. Turning feedback or punishment on and off in the model shows which
+      Neurons and their receptor levels are written as equations and simulated competing for
+      NGF that the target makes at a constant rate. Turning feedback or punishment on and off in the model shows which
       features are needed for a clean, fast selection, and yields predictions for mutant mice.
   - name: "Pharmacological paralysis of the chick embryo"
     blurb: >-
@@ -139,7 +139,7 @@ structures:
     id: "6000"
     note: "Tubocurarine, PubChem compound record"
     caption: >-
-      A rigid molecule with two positively charged nitrogens that sits in the acetylcholine site of
+      A bulky molecule with two positively charged nitrogens that sits in the acetylcholine site of
       the muscle receptor without opening it, so the muscle stops responding to its nerve.
 
 simulations:
@@ -147,7 +147,7 @@ simulations:
     ref: "TrkAFeedbackCompetition"
     title: "TrkA feedback: how a small lead becomes a win"
     caption: >-
-      Set how strongly NGF raises TrkA and watch a small early difference in NGF access grow into winners and losers, or stay small when feedback is off.
+      Set how strongly NGF raises TrkA and watch a small early difference in NGF access grow into winners and losers, or stay small when feedback is off. This toy model tracks TrkA level only; in the published model, signal duration also had to depend on NGF for competition to work.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -162,7 +162,7 @@ practiceQuestions:
       TrkA is correct: NGF raised TrkA expression and TrkA fell without it, so a neuron that
       receives NGF makes more of the receptor that detects NGF, which is positive feedback. Bax is
       the death gene removed to keep neurons alive; it is not the feedback target. p75 mediates
-      punishment, and although p75 also fell without NGF, it receives the BDNF and NT-4 that strong neurons make rather than raising a neuron's own NGF sensitivity. NGF is made
+      punishment, and although p75 also fell without NGF, in this model its job is to receive the BDNF and NT-4 that strong neurons make, not to carry the feedback loop (p75 can also enhance TrkA responses to NGF, but that is not the loop tested here). NGF is made
       by the target tissue, not by the competing neurons, so it cannot feed back on itself here.
   - stem: "Why was a Bax-null background needed to find NGF-dependent genes in sympathetic ganglia in vivo?"
     choices:
@@ -190,13 +190,13 @@ practiceQuestions:
       on weakly supported neighbours. The target releases NGF, a survival signal through TrkA, not a
       killing one. Weak neurons do die through Bax, but the punishment signal is defined as coming
       from strong neighbours, not from the dying cell itself. Glia and Notch play no part in this
-      model; Notch is a contact signal for fate choices, not for trophic competition.
+      model; Notch is a contact signal best known for fate choices, and it is not part of this model.
   - stem: "A researcher argues that the first sympathetic axon to reach a target simply takes all the NGF. Which observation fits the competition model better than this first-come, first-served rule?"
     choices:
       - "Bax-null neurons survive whether or not NGF is present"
       - "Extra NGF given to the embryo makes more neurons survive"
       - "Neurons in mice lacking NGF die even without competition"
-      - "NGF exposure raises TrkA, so early gains grow over time"
+      - "NGF raises TrkA and prolongs its signal, so gains grow"
     answer: 3
     rationale: >-
       If receiving NGF raises TrkA and prolongs NGF signaling, the outcome depends on how a neuron's
@@ -230,7 +230,7 @@ mcatQuestions:
       falling TrkA means a deprived neuron responds less to whatever NGF it later meets. A figure
       near 2.5 percent per hour comes from dividing by the wrong interval, and a fall in receptor
       lowers sensitivity rather than raising it. A figure near 0.6 percent per hour understates the
-      drop, and any steady fall shows that TrkA depends on NGF. A figure near 5 percent per hour is
+      drop, and a steady fall after NGF removal fits NGF dependence, though a culture kept in NGF is the control that tests it. A figure near 5 percent per hour is
       far too fast, and the neurons are Bax-null, so they are not dying.
   - stem: "In a hypothetical study, superior cervical ganglion neurons are counted in wild-type and p75-null mice. Wild-type: 30,000 at birth, 18,000 at postnatal day 7, 18,000 at day 21. p75-null: 30,000 at birth, 25,000 at day 7, 19,000 at day 21. Which conclusion do the data best support?"
     choices:
@@ -241,10 +241,10 @@ mcatQuestions:
     answer: 1
     rationale: >-
       Both genotypes end near the same number, but the p75-null ganglion loses neurons more slowly
-      (5,000 versus 12,000 by day 7), so p75 hastens death without being needed for it. If NGF used
-      p75 to keep neurons alive, its loss would increase death, not slow it. A requirement of p75
+      (5,000 versus 12,000 by day 7), so p75 hastens death without being needed for it. If p75 were the main
+      receptor NGF used to keep neurons alive, its loss would increase death, not slow it. A requirement of p75
       for loss is ruled out because the p75-null ganglion still loses 11,000 neurons by day 21. The
-      counts at birth are equal, so p75 does not change how many neurons are generated.
+      counts at birth are equal, so the data give no sign that p75 changes neuron number before the death period.
   - stem: "Chick embryos are treated with curare during the period of normal motor neuron death, and lumbar motor neurons are counted afterwards. Treated embryos have more surviving motor neurons than controls. Which interpretation is most consistent with this result and with the trophic hypothesis?"
     choices:
       - "Curare blocks NGF, the main motor neuron survival factor"
@@ -254,8 +254,8 @@ mcatQuestions:
     answer: 1
     rationale: >-
       A common interpretation is that paralysed muscle allows more nerve branching and synapses, so more neurons find support. Curare blocks
-      acetylcholine receptors on muscle; nothing shows it acts as a survival factor on motor
-      neurons. Paralysis does not free motor neurons from their targets; the result is read as a
+      acetylcholine receptors on muscle, and most evidence places its rescue there, at the neuromuscular junction.
+      Some studies reported direct effects on motor neurons, but that is a minority reading, not the standard one. Paralysis does not free motor neurons from their targets; the result is read as a
       change in what the target offers. Chick motor neurons do not depend on NGF, so blocking NGF
       cannot explain the result.
 
@@ -271,14 +271,14 @@ explainLevels:
     text: >-
       Sympathetic neurons need a protein called NGF, made by the organs they connect to, and the
       organs make too little for all of them. The neurons that win are not simply the first to
-      arrive. Getting some NGF makes a neuron build more NGF receptors, so a small lead becomes a
+      arrive. Getting some NGF makes a neuron build more NGF receptors and keep its NGF signal on longer, so a small lead becomes a
       big one. Winning neurons also release other proteins that push losing neighbours to die
-      sooner. This is how the right number of neurons ends up matched to each organ.
+      sooner. In this model, that is how the number of sympathetic neurons comes to match each organ.
   - level: "college"
     label: "College"
     text: >-
       In mouse sympathetic neurons, target-derived NGF signals through TrkA, and NGF raises TrkA
-      expression, so NGF raises the cell's own sensitivity to NGF. This
+      expression and prolongs TrkA signaling, so NGF raises the cell's own sensitivity to NGF. This
       positive feedback turns small differences in early NGF uptake into a bimodal outcome:
       neurons pass through naive, sensitization and competitive advantage stages before selection.
       Strongly supported neurons also express BDNF and NT-4, which act through the TNF-receptor
@@ -290,7 +290,7 @@ explainLevels:
     text: >-
       The 2008 model combines two loops: a positive loop in which NGF-TrkA signaling raises TrkA
       and the duration of its own signal, and a lateral inhibitory loop in which BDNF and NT-4 from
-      high-TrkA neurons act on p75 in low-TrkA neurons. In simulations with a fixed NGF supply,
+      high-TrkA neurons act on p75 in low-TrkA neurons. In simulations with a constant rate of NGF production,
       feedback on both TrkA level and signal duration (either alone fails) separates the population into winners and losers, and punishment speeds that separation. Three predictions were tested in the superior cervical ganglion:
       TrkA differs among competing neurons, low-TrkA neurons carry high p75 death signaling, and
       p75 loss delays rather than prevents neuron loss. Later work implicated Coronin-1 in
@@ -303,7 +303,7 @@ explainLevels:
 
 anecdotes:
   - title: "The paralysed embryos that kept their neurons"
-    source: "Pittman & Oppenheim, J. Comp. Neurol. 187:425 (1979)"
+    source: "Pittman & Oppenheim, Nature 271:364 (1978); J. Comp. Neurol. 187:425 (1979)"
     text: >-
       If muscles feed the motor neurons that reach them, you might expect a paralysed embryo to
       lose more of its motor neurons. Pittman and Oppenheim treated chick embryos with curare
@@ -316,8 +316,8 @@ anecdotes:
     text: >-
       Motor neurons do not run on NGF. By the mid-1990s, many proteins had been shown to keep at
       least some motor neurons alive, and Oppenheim's commentary in Neuron called them "an
-      embarrassment of riches". Removing any one of them rarely removes the whole population,
-      because several factors act on overlapping subsets. The lesson for this course: which factor
+      embarrassment of riches". Removing any one of them removes only some motor neurons,
+      often a particular subtype, because different motor neuron groups depend on different factors. The lesson for this course: which factor
       a population competes for is something you measure in that population, not something you
       assume from another one.
 
@@ -349,7 +349,7 @@ That is the job of positive feedback. In the Cell Signaling course you saw that 
 
 > **change in TrkA = basal synthesis + k × (NGF signal) − decay × TrkA, where NGF signal rises with both NGF and TrkA**
 
-If TrkA, the receptor tyrosine kinase that binds NGF (see [that lesson](/lessons/receptor-tyrosine-kinases/)), rises with its own signal, a neuron with a little more TrkA collects more NGF, makes more TrkA, and pulls further ahead.
+If TrkA, the receptor tyrosine kinase that binds NGF (see [that lesson](/lessons/receptor-tyrosine-kinases/)), rises with its own signal, a neuron with a little more TrkA collects more NGF, makes more TrkA, and pulls further ahead. This caricature tracks TrkA level only. In the published model that was not enough: NGF also had to lengthen its own signal, as the next section shows.
 
 <TrkAFeedbackCompetition />
 
@@ -357,18 +357,18 @@ If TrkA, the receptor tyrosine kinase that binds NGF (see [that lesson](/lessons
 
 To find what NGF does to a neuron in a living animal, Deppmann, Ginty and colleagues needed ganglia that lack NGF yet still have neurons. Without NGF the neurons die, so they used mice lacking *Bax*. In a *Bax*-null mouse, sympathetic neurons survive with or without NGF. Comparing ganglia from *Bax*-null mice with ganglia from mice lacking both *Bax* and *NGF* gave a list of "NGF Dependent Genes": transcription factors, synaptic genes, genes for metabolism and cell size, and genes for axon growth.
 
-<LessonFigure src="/figures/competition-for-targets/bax-null-ngf-null-design.webp" width={1200} height={643} alt="AI-generated illustration: three ganglion clusters with axons to a target. In a normal cluster most neurons are dying; with Bax removed all neurons survive even when NGF is also removed; comparing the last two gives a list of NGF Dependent Genes." caption="Without Bax, sympathetic neurons survive with or without NGF. Comparing Bax-null ganglia with Bax and NGF double-null ganglia gave a list of NGF-dependent genes." />
+<LessonFigure src="/figures/competition-for-targets/bax-null-ngf-null-design.webp" width={1200} height={643} alt="AI-generated illustration: three ganglion clusters with axons to a target. In a normal cluster some neurons are dying; with Bax removed all neurons survive even when NGF is also removed; comparing the last two gives a list of NGF Dependent Genes." caption="Without Bax, sympathetic neurons survive with or without NGF. Comparing Bax-null ganglia with Bax and NGF double-null ganglia gave a list of NGF-dependent genes." />
 
-One gene on the list was the receptor itself. "NGF is Necessary and Sufficient for TrkA Expression": in newborn ganglia and in dissociated cultures, TrkA fell without NGF and rose with it. Neurons deprived of NGF also lowered TrkA over 12 to 48 hours and signalled less efficiently, measured by phosphorylated MAPK and AKT, two kinases downstream of TrkA.
+One gene on the list was the receptor itself. A lecture slide puts it strongly, "NGF is Necessary and Sufficient for TrkA Expression." What the data show is that NGF raises and maintains TrkA: in newborn ganglia and in dissociated cultures, TrkA fell without NGF and rose with it. In culture, TrkA and its downstream signaling, measured by phosphorylated ERK (a MAPK) and AKT, two kinases downstream of TrkA, were greatly reduced after 24 or 48 hours without NGF. Neurons deprived for only 12 hours could still sustain signaling when NGF returned.
 
 The lab called this "NGF Transcriptional Regulation of NGF Sensitivity" and described four stages:
 
 1. **Naive.** A young neuron responds poorly to NGF.
 2. **Sensitization.** A neuron that receives enough NGF crosses a threshold.
-3. **Competitive Advantage.** It raises TrkA and the proteins downstream of it.
+3. **Competitive Advantage.** It raises TrkA and strengthens the signaling downstream of it.
 4. **Selection.** It wins the supply, and neighbours that stayed behind lose.
 
-NGF also controls how long its own signal lasts. With the computational neuroscientists Stefan Mihalas and Ernst Niebur, the group simulated neurons competing for fixed NGF under three rules: no feedback, feedback on TrkA level, and feedback on signal duration. Only with both kinds of feedback did the neurons separate into a winning and a losing group; with either one alone, competition failed.
+NGF also controls how long its own signal lasts. With the computational neuroscientists Stefan Mihalas and Ernst Niebur, the group simulated neurons competing for NGF that the target makes at a constant rate. They compared four conditions: no feedback, feedback on TrkA level alone, feedback on signal duration alone, and feedback on both. Only with both kinds of feedback did the neurons separate into a winning and a losing group; with either one alone, competition failed.
 
 How does NGF lengthen its signal? Much NGF signaling travels from axon tip to cell body inside endosomes (the subject of [that lesson](/lessons/retrograde-signal/)). In 2014 Deppmann's laboratory, with Dong Suo as first author, reported that NGF induces Coronin-1, a protein that associates with these signaling endosomes, prolongs their signaling, and is required for normal competition in the mouse. It is one mechanism; there may be others.
 
@@ -376,7 +376,7 @@ How does NGF lengthen its signal? Much NGF signaling travels from axon tip to ce
 
 Feedback explains how a winner pulls ahead. Does it need help? In his lectures Deppmann lists the qualities a punishment signal should have. It should come from strongly supported neurons, kill weak ones, spare strong ones, and start only after TrkA has risen.
 
-The candidates were already on the list of NGF-dependent genes. Strongly supported sympathetic neurons make BDNF and NT-4, two other neurotrophins. Sympathetic neurons carry little of their receptor TrkB, but they do carry p75, a member of the tumour necrosis factor receptor family (see [that lesson](/lessons/death-receptors-bcl2-caspases/) and [the course's lesson on the receptors](/lessons/trk-and-p75/)). In this setting, p75 can promote death. A neuron rich in TrkA is protected; a neuron poor in TrkA is not.
+The candidates were already on the list of NGF-dependent genes. Strongly supported sympathetic neurons make BDNF and NT-4, two other neurotrophins. Sympathetic neurons carry little of their receptor TrkB, but they do carry p75, a member of the tumour necrosis factor receptor family (see [that lesson](/lessons/death-receptors-bcl2-caspases/) and [the course's lesson on the receptors](/lessons/trk-and-p75/)). In this setting, p75 can promote death. A neuron with strong NGF-TrkA signaling is protected; one with weak signaling is not.
 
 The lab tested three predictions in mouse superior cervical ganglia:
 
@@ -397,22 +397,22 @@ If punishment through p75 is part of competition, what happens to sympathetic ne
 
 Start with what p75 does in the model. It hastens the death of neurons that are already losing. It does not hand out NGF, and it is not needed for a starved neuron to die, since that runs through TrkA loss and *Bax*.
 
-So remove p75 and the winners still take the limited NGF, and the losers still die of trophic deprivation, only more slowly without the extra push. Your sketch should show both curves starting at similar numbers before birth. The wild-type curve falls steeply in the first postnatal days. The p75-null curve falls more slowly but has more neurons than wild-type in the first days after birth and reaches a similar final number.
+So remove p75 and the winners still take the limited NGF, and the losers still die of trophic deprivation, only more slowly without the extra push. Your sketch should show both curves starting at similar numbers before birth. The wild-type curve falls steeply in the first postnatal days. The p75-null curve falls more slowly, so it has more neurons than wild-type in the first days after birth. In the 2008 study it reached the wild-type number by six months, although an earlier study counted an excess that lasted into adulthood.
 
-To test it, count neurons in serial sections of the superior cervical ganglion at several ages in both genotypes. A curve that never falls would argue that p75 is required for death. A curve that falls just as fast would argue that punishment plays no part.
+To test it, count neurons in serial sections of the superior cervical ganglion at several ages in both genotypes. A curve that never falls would argue that p75 is required for death. A curve that falls just as fast would fail to support a role for punishment through p75.
 
 </details>
 
 ## Activity Modulates Trophic Support
 
-Now a result that seemed to point the other way. In 1979 Robert Pittman and Ronald Oppenheim treated chick embryos with curare, a drug that blocks the acetylcholine receptors of muscle, during the period of motor neuron death. The muscles stopped responding to their nerves, and fewer motor neurons died.
+Now a result that seemed to point the other way. In work published in 1978 and 1979, Robert Pittman and Ronald Oppenheim treated chick embryos with curare, a drug that blocks the acetylcholine receptors of muscle, during the period of motor neuron death. The muscles stopped responding to their nerves, and fewer motor neurons died.
 
 Why was that a contradiction? If activity helps an axon win, as it does in many later forms of refinement, then silencing the connection should increase death. Instead it saved neurons.
 
 The usual explanations are interpretations, so hold them loosely. Paralysed muscle may allow more nerve branching and more synapses, giving each motor neuron more access to trophic support. An older idea, that inactive muscle makes more of the factors motor neurons need, was not supported when extracts of paralysed muscle were tested. Note that chick motor neurons do not depend on NGF. They draw on several factors at once, which Oppenheim called "an embarrassment of riches."
 
-In other systems, activity helps a winner. Active synapses can release more BDNF, which layers activity-dependent refinement on top of trophic competition. In mouse sympathetic neurons, axon pruning uses the same BDNF and p75 punishment logic you met above (see [that lesson](/lessons/axon-pruning/)). The two kinds of result need not conflict: activity in the muscle and activity in the competing neurons are different variables.
+In other systems, activity helps a winner. Active synapses can release more BDNF, which layers activity-dependent refinement on top of trophic competition. In rodent sympathetic neurons, axon pruning uses a similar BDNF and p75 punishment logic, acting on losing axons rather than on cell bodies (see [that lesson](/lessons/axon-pruning/)). The two kinds of result need not conflict: activity in the muscle and activity in the competing neurons are different variables.
 
 ## Systems matching: NGF also sets how much a target gets
 
-"How is the developing circuit tuned?" Survival is one answer. Deppmann calls the broader task "Systems matching": each target gets a fitting number of neurons, amount of innervation, synapses and dendrite shapes. NGF acts on several of these. In mice lacking both *Bax* and *NGF*, neurons survive, but sympathetic axons fail to fill some targets at birth, such as the salivary glands and, partly, the heart: "NGF Controls Final Target Innervation." In his teaching he puts it informally: losing axons "get more aggressive as they find a pot of NGF." So the same factor that picks which neurons live also shapes how densely the survivors cover their target.
+"How is the developing circuit tuned?" Survival is one answer. Deppmann calls the broader task "Systems matching": each target gets a fitting number of neurons, amount of innervation, synapses and dendrite shapes. NGF acts on several of these. In mice lacking both *Bax* and *NGF*, neurons survive, but sympathetic innervation at birth is missing from some targets, such as the salivary glands, and greatly reduced in others, such as the heart, while a few, such as the trachea, are near normal: "NGF Controls Final Target Innervation." In his teaching he puts it informally: losing axons "get more aggressive as they find a pot of NGF." So the same factor that picks which neurons live also shapes how densely the survivors cover their target.
