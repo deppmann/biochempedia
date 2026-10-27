@@ -10,7 +10,7 @@ summary: >-
   recording and electron microscopy, contrasts mouse with macaque, and looks at two specialised
   channels in detail. Afterwards you can say what each kind of measurement can and cannot decide
   about a cell type, and work out coverage and composition from published numbers.
-hook: "Four careful censuses of mouse ganglion cells gave 32, 35, 42 and 46. Who is right?"
+hook: "Four careful censuses of mouse ganglion cells gave 32, 35, 42 and 46. What was each one counting?"
 
 estMinutes: 24
 objectives:
@@ -55,13 +55,13 @@ scientists:
       A transcriptome is a cell's list of expressed genes, and a droplet method lets you read
       thousands of transcriptomes in one run. Tran and colleagues applied it to ganglion cells of adult mice
       at postnatal day 56. They enriched the cells by flow sorting, then sequenced 35,699
-      high-quality transcriptomes. The cells fell into 45 clusters, and subdividing one of them
+      high-quality transcriptomes. The cells fell into 45 clusters, and splitting one that held two known direction-selective types
       brought the atlas to 46 types. Types ranged from 0.15% to 8.4% of the profiled cells, and
       for most clusters a combination of two marker genes gave a unique molecular identity. The
-      same approach was then taken to the macaque. Peng and colleagues profiled approximately
+      same group had already applied it to the macaque, in a study published earlier in 2019. Peng and colleagues profiled approximately
       165,000 cells from the fovea and the periphery of adult male macaques aged three to nine
       years, and found 16 foveal and 18 peripheral ganglion cell clusters. Their comparison with
-      a postnatal day 5 mouse atlas (Rheaume and colleagues, 2018) found divergence between the two species, so a mouse type could not simply
+      a postnatal day 5 mouse atlas (Rheaume and colleagues, 2018) found that ganglion cell types, unlike bipolar and amacrine types, diverged between the two species. A later 17-species atlas (Hahn and colleagues, 2023) matched midget and parasol cells to rare mouse alpha cells, but a mouse type still could not simply
       be renamed as a primate one.
 
   - name: "Gregory Schwartz"
@@ -78,7 +78,7 @@ scientists:
       configuration from 1,859 ganglion cells and sorted them into 42 functional types. For subsets
       of cells they also recovered the dendritic shape, or collected the cell afterwards for RNA
       sequencing in a Patch-seq variant, and obtained 103 high-quality transcriptomes. They
-      estimated that the 42 types covered 89% of the ganglion cell population. The alignment
+      estimated that the 42 types matched 89% of the types in the Eyewire anatomical catalogue. The alignment
       showed that the match between a functional type and an RNA cluster is not always one to one:
       three sustained ON direction-selective types mapped onto a single cluster, C10.
 
@@ -96,8 +96,8 @@ scientists:
       shaved away repeatedly, and combined manual tracing with machine-learning segmentation to
       reconstruct 950 neurons and their mutual contacts. The authors cautioned that not every
       contact is a synapse. In 2018 Bae, Mu, Kim, Turner and colleagues, with the EyeWirers listed
-      among the authors, did the same job in a different way. They imaged calcium signals in one
-      retinal patch, then reconstructed the same cells by electron microscopy, so each arbor could
+      among the authors, approached the job from the other side. They used an existing data set (e2198, from Briggman and colleagues, 2011) in which calcium signals had been imaged in one
+      retinal patch and the same tissue then imaged by electron microscopy. They reconstructed those cells, so each arbor could
       be set beside its own light response. That pairing is what let anatomical clusters be tested
       against physiology.
 
@@ -150,16 +150,16 @@ practiceQuestions:
   - stem: "Tran and colleagues' atlas of adult mouse ganglion cells began with 45 clusters and ended with 46 types. What does that change show?"
     choices:
       - "Adding a second mouse strain raised the count, so strain differences created the extra type"
-      - "Subdividing one cluster raised the count, so the number depends on how finely the data are split"
+      - "Splitting one cluster into two known types raised the count, so clustering alone can miss real types"
       - "Dropping one marker gene raised the count, so the marker was hiding an unrelated cell type"
       - "Injury to the optic nerve raised the count, so damaged cells formed an additional type"
     answer: 1
     rationale: >-
-      The authors subdivided one of their 45 initial clusters, which gave 46 types in a P56 atlas of
-      uninjured cells. That makes the number a product of resolution as well as biology. No second
+      One of the 45 clusters held two direction-selective types already known from function, and the authors split it with a semi-supervised analysis, which gave 46 types in a P56 atlas of
+      uninjured cells. Expression clustering alone had under-resolved two known types, so the count depends on prior knowledge as well as on the data. No second
       strain was added to make the extra type, the atlas profiled uninjured cells, and the change
       did not come from removing a marker gene.
-  - stem: "In the Goetz data, three functionally distinct sustained ON direction-selective types aligned to one RNA cluster, C10. Which design would best test whether they are three types?"
+  - stem: "In the Goetz data, three sustained ON direction-selective types that differ in preferred direction aligned to one RNA cluster, C10. Which design would best test whether they are three types?"
     choices:
       - "Re-run the clustering with a lower resolution setting until the three types merge into one cluster"
       - "Record each cell's response, then collect its RNA and shape, and test for a separate mosaic"
@@ -168,7 +168,7 @@ practiceQuestions:
     answer: 1
     rationale: >-
       A same-cell measurement ties response, shape and RNA to one cell, and a mosaic test asks whether
-      each candidate type tiles the retina on its own. Lowering resolution would only hide the
+      each candidate type forms its own regular mosaic. Lowering resolution would only hide the
       question by forcing the merge. A gene count says nothing about response or mosaic. Comparing
       across data sets leaves the match between cells open to the same errors that made the
       question hard.
@@ -193,8 +193,8 @@ practiceQuestions:
     answer: 0
     rationale: >-
       Adding the two percentages gives about 96% of this foveal macaque sample, leaving about 4% for
-      all other clusters. The study did not measure people, so the figures cannot be quoted for
-      humans. The mouse and macaque taxonomies diverged, so mouse types cannot be relabelled by key.
+      all other clusters. The foveal percentages were measured in macaques, and the study's human data did not measure them, so the figures cannot be quoted for
+      humans. Some mouse types do have primate counterparts (midget and parasol cells match rare mouse alpha cells), but those cells differ in size and frequency, and foveal percentages say nothing about which mouse type is which, so mouse types cannot be renamed from these data.
       The percentages come from the fovea, and the periphery was profiled separately with its own clusters.
 
 mcatQuestions:
@@ -208,7 +208,7 @@ mcatQuestions:
     rationale: >-
       Convert first: 20,000 µm² is 0.02 mm², so 200 cells/mm² times 0.02 mm² is 4. The 0.4 comes from a decimal slip the other way (0.002 mm²). The value 40 comes from a decimal slip in the conversion, and 4,000,000 comes from
       multiplying without converting units. A coverage of 4 means arbors overlap, which fits a
-      single type whose cells tile the retina with overlapping dendrites.
+      single type whose regularly spaced cells have overlapping dendrites.
   - stem: "A laboratory records light responses from 90 mouse ganglion cells and finds three response classes. RNA from the same cells falls into one cluster at default settings. At a finer clustering resolution the cluster splits into three, and each part matches one response class. What is the best reading?"
     choices:
       - "The first clustering was wrong, because a cluster that splits cannot have been a real group of cells"
@@ -258,14 +258,14 @@ explainLevels:
     label: "College"
     text: >-
       A retinal ganglion cell type is a group of cells that share a light response, a dendritic
-      shape and a molecular signature, and that tile the retina in a mosaic. Different
+      shape and a molecular signature, and whose cells are spaced in a regular mosaic across the retina. Different
       measurements resolve this differently. Two-photon imaging of the ganglion cell layer gave at
       least 32 functional types (Baden 2016), droplet RNA sequencing gave 46 (Tran 2019), same-cell
       recording gave 42 functional types (Goetz 2022), and electron microscopy gave 47 anatomical
       clusters with a supported lower bound of 35 types (Bae 2018). A transcriptomic cluster is not
       automatically a functional type: three sustained ON direction-selective types aligned to one
       RNA cluster. In adult macaque, midget and parasol clusters dominate the fovea, and the
-      mouse and macaque taxonomies diverge (Peng 2019).
+      mouse and macaque ganglion cell taxonomies diverge (Peng 2019), although midget and parasol cells have rare mouse counterparts among alpha cells (Hahn 2023).
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -309,7 +309,7 @@ anecdotes:
       foveal ganglion cells and parasol clusters 11%. These are percentages of profiled cells from
       dissected fovea in adult male macaques, and the periphery, which the authors profiled
       separately, has a different list of clusters. When the group compared the macaque types with
-      mouse types, they found divergence. The fovea therefore gives an example of a regional
+      mouse types, the ganglion cell types diverged, although later work found rare mouse counterparts of midget and parasol cells. The fovea therefore gives an example of a regional
       composition that no single mouse census would predict.
 
 corpusTags:
@@ -326,13 +326,13 @@ draft: false
 import ArborCoverageCounter from '../../../components/ArborCoverageCounter.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Four careful censuses of mouse retinal ganglion cells gave "at least 32", "at least 35", 42 and 46. Each was done well, and the numbers disagree.** This lesson asks what each method was counting, and why the answer to "how many kinds?" depends on the question put to the cell.
+**Four careful censuses of mouse retinal ganglion cells gave "at least 32", "at least 35", 42 and 46. Each was done well, and the numbers differ.** Two of them are lower bounds, and the authors read the studies as converging on about 45 types. This lesson asks what each method was counting, and why the answer to "how many kinds?" depends on the question put to the cell.
 
-[The retina](/lessons/retina/) followed the signal from photoreceptor to ganglion cell and built ON and OFF centre-surround fields; [sensory coding](/lessons/sensory-coding/) weighed labelled lines against population codes. Here we start at the output layer. Ganglion cell axons make the optic nerve, so every feature the brain receives has been computed by one of these cells, and [the visual cortex](/lessons/visual-cortex/) can only work with what the channels deliver.
+[The retina](/lessons/retina/) followed the signal from photoreceptor to ganglion cell and built ON and OFF centre-surround fields; [sensory coding](/lessons/sensory-coding/) weighed labelled lines against population codes. Here we start at the output layer. Ganglion cell axons make the optic nerve, so every signal the brain receives from the eye has passed through these cells, and [the visual cortex](/lessons/visual-cortex/) can only work with what the channels deliver.
 
 ## What makes a type a type, not a cluster
 
-Three kinds of evidence can define a ganglion cell type. A **functional** type is a group of cells with the same light response. An **anatomical** type shares a dendritic shape and the depth in the inner plexiform layer (IPL, where bipolar, amacrine and ganglion cell processes meet) at which that shape sits. A **molecular** type shares an expression profile, and a **cluster** is the group an algorithm draws around such profiles. The usual standard for calling a group a type asks for agreement among them, plus a **mosaic**: cells of the type space themselves so that their dendritic territories tile the retina.
+Three kinds of evidence can define a ganglion cell type. A **functional** type is a group of cells with the same light response. An **anatomical** type shares a dendritic shape and the depth in the inner plexiform layer (IPL, where bipolar, amacrine and ganglion cell processes meet) at which that shape sits. A **molecular** type shares an expression profile, and a **cluster** is the group an algorithm draws around such profiles. The usual standard for calling a group a type asks for agreement among them, plus a **mosaic**: cells of the type are spaced regularly across the retina. A mosaic describes the spacing of cell bodies; the dendrites of one type can still overlap a lot. Some real types are only weakly regular, so a mosaic is strong support, not a strict rule.
 
 <LessonFigure src="/figures/retinal-cell-types/ganglion-cell-three-evidences.webp" width={1200} height={786} alt="AI-generated illustration: a flat schematic of the retina in horizontal layers with the inner surface on top and photoreceptors at the bottom. One gold ganglion cell has an axon running along the top fibre layer and dendrites spread in a single sublayer of the inner plexiform layer, with a depth bracket. An inset shows three evidences, light response, shape and depth, and expression profile, pointing to a gold Type tile." caption="A ganglion cell type can be defined by its light response, by its dendritic shape and the depth in the inner plexiform layer at which that shape sits, and by its expression profile. The usual standard asks for agreement among them, plus a mosaic. The axon of each ganglion cell joins the optic nerve." />
 
@@ -342,15 +342,15 @@ Also keep in mind the **coverage factor**, the average number of dendritic arbor
 
 > **coverage factor = cell density (cells/mm²) × mean dendritic field area (mm²)**
 
-## Three censuses that disagree, and why
+## Three censuses that differ, and why
 
 **Imaging.** Baden and colleagues (2016) used two-photon calcium imaging of the ganglion cell layer in isolated ventral retina from mice aged four to eight weeks. The data set held 11,210 cells, not 11,210 ganglion cells: the layer also holds displaced amacrine cells, and 14 groups of them were separated from the ganglion cell groups. The study distinguished a minimum of 32 functional types (four of the 32 groups came from clusters the authors labelled uncertain) and concluded that some unusually abundant types probably hide further subdivisions. The imaging was acquired at 7.8 Hz, so it follows a response profile, not individual spikes.
 
-**Sequencing.** Tran and colleagues (2019) used [droplet single-cell RNA sequencing](/lessons/sequencing-and-genomes/), in which each dissociated cell is captured in its own droplet with a barcode. They profiled 35,699 high-quality ganglion cell transcriptomes from adult mice (postnatal day 56), flow-sorted from uninjured retina. There were 45 initial clusters, and subdividing one gave 46 types. Types ranged from 0.15% to 8.4% of the cells profiled, and most clusters needed a combination of two marker genes for a unique identity.
+**Sequencing.** Tran and colleagues (2019) used [droplet single-cell RNA sequencing](/lessons/sequencing-and-genomes/), in which each dissociated cell is captured in its own droplet with a barcode. They profiled 35,699 high-quality ganglion cell transcriptomes from adult mice (postnatal day 56), flow-sorted from uninjured retina. There were 45 clusters. One of them held two known direction-selective types (ON-OFF cells preferring ventral or dorsal motion) that no marker had separated, and the authors split it with a semi-supervised analysis, giving 46 types. Types ranged from 0.15% to 8.4% of the cells profiled, and most clusters needed a combination of two marker genes for a unique identity.
 
 *Worked problem, rare types.* How many cells does a 0.15% type contribute? 0.0015 × 35,699 = 53.5, so about 54 cells. The largest type, 8.4%, gives 0.084 × 35,699 = 2,998.7, about 3,000 cells. The smallest type therefore rests on roughly fifty cells, and a different depth or clustering setting could merge it or split it.
 
-**Same-cell recording.** Goetz and colleagues (2022) recorded light-evoked spikes in the cell-attached configuration from 1,859 ganglion cells in isolated mouse retina (4 to 12 weeks old), and sorted them into 42 functional types. In subsets they also collected the cell for RNA (a Patch-seq variant) or recovered its morphology. Their 42 types were estimated to cover 89% of the ganglion cell population. The same-cell alignment showed that the map between function and RNA is not always one to one: three sustained ON direction-selective types aligned with a single cluster, C10.
+**Same-cell recording.** Goetz and colleagues (2022) recorded light-evoked spikes in the cell-attached configuration from 1,859 ganglion cells in isolated mouse retina (4 to 12 weeks old), and sorted them into 42 functional types. In subsets they also collected the cell for RNA (a Patch-seq variant) or recovered its morphology. They estimated that their 42 types matched 89% of the types in the Eyewire anatomical catalogue (Bae 2018), which is a share of types, not of all ganglion cells. The same-cell alignment showed that the map between function and RNA is not always one to one: three sustained ON direction-selective types, which differ in preferred direction, aligned with a single cluster, C10.
 
 So the four numbers (at least 32, 42, 46, and the anatomical count below) are not rival answers to one question. Each reflects a method, a preparation and a resolution. Imaging sees what responds differently under its stimuli, sequencing sees what is expressed differently under its clustering settings, and the most trustworthy types are the ones that more than one method finds.
 
@@ -360,17 +360,17 @@ So the four numbers (at least 32, 42, 46, and the anatomical count below) are no
 
 Helmstaedter and colleagues (2013) used serial block-face electron microscopy, in which the face of a tissue block is imaged and shaved away repeatedly, with manual tracing and machine-learning segmentation, to reconstruct 950 neurons and their mutual contacts in the mouse IPL. The authors cautioned that not all contacts are synapses, so a contact map proposes partners and does not prove them. Yan and colleagues (2020) then sequenced 32,523 amacrine cells from mice at postnatal days 18 to 19 and reached 63 putative amacrine types, which they treated as a lower limit. Amacrine cells are among the partners of ganglion cells, so this repertoire is part of the circuit behind each channel.
 
-Bae and colleagues (2018) paired anatomy with physiology. In one ex vivo mouse retinal patch (called e2198; the animal's age was not recovered), they extracted calcium signals for 326 cells and kept 381 reconstructed ganglion cell arbors. These formed 47 anatomical clusters, and the union of internally validated clusters and securely known types set a lower bound of 35 types. Forty-seven is a count of clusters, and 35 is the number they could support. Within the patch, cells arborising in the inner margin of the IPL had on average more sustained responses.
+Bae and colleagues (2018) paired anatomy with physiology. In one ex vivo mouse retinal patch (called e2198), they extracted calcium signals for 326 cells and kept 381 reconstructed ganglion cell arbors. These formed 47 anatomical clusters, and the union of internally validated clusters and securely known types set a lower bound of 35 types. Forty-seven is a count of clusters, and 35 is the number they could support. Within the patch, cells arborising in the inner margin of the IPL had on average more sustained responses.
 
-Their **density-conservation hypothesis** says that the aggregate dendritic density of a type (its total dendrite per unit area of retina) should be about uniform across the retina, even though cell density and arbor size vary across the retina. The coverage factor below is a related measure that counts arbors and not total dendrite, and either can serve as a quantitative check on a proposed type.
+Their **density-conservation hypothesis** says that the aggregate dendritic density of a type (its total dendrite per unit area of retina) should be about uniform across the retina, even though cell density and arbor size vary across the retina. The coverage factor below is a related measure that counts arbors and not total dendrite. Bae and colleagues proposed density conservation to replace the older demand that a type's arbors tile with little overlap, and warned that coverage alone can mislead; an unusually high coverage factor can be a sign that two types have been merged.
 
-*Worked problem, coverage.* Zhang and colleagues (2012) reported, for the W3 type in mouse retina (a transgenic line in which W3 cells are fluorescent), a peak density of 440 cells/mm² in ventral retina and a mean dendritic field area of 10,300 ± 500 µm² (n = 25). Step 1: convert units. 10,300 µm² × 10⁻⁶ mm²/µm² = 0.0103 mm². Step 2: multiply. 440 cells/mm² × 0.0103 mm² = 4.53. About 4.5 arbors cover an average point. This does not by itself show that several types were mixed together: aggregate density can be conserved while individual arbors overlap. The figure also pairs a regional peak density with a mean area, so treat it as an estimate.
+*Worked problem, coverage.* Zhang and colleagues (2012) reported, for the W3 type in mouse retina (cells made fluorescent in the TYW3 transgenic line; later work showed this line labels several types, and the brightly labelled local-change cell is now called W3B), a peak density of 440 cells/mm² in ventral retina and a mean dendritic field area of 10,300 ± 500 µm² (n = 25). Step 1: convert units. 10,300 µm² × 10⁻⁶ mm²/µm² = 0.0103 mm². Step 2: multiply. 440 cells/mm² × 0.0103 mm² = 4.53. About 4.5 arbors cover an average point. This does not by itself show that several types were mixed together: aggregate density can be conserved while individual arbors overlap. The figure also pairs a regional peak density with a mean area, so treat it as an estimate.
 
 <ArborCoverageCounter />
 
 ## Mouse is not macaque: regional composition in primate retina
 
-Peng and colleagues (2019) profiled approximately 165,000 cells from the fovea and the periphery of adult male macaques (*Macaca fascicularis*, aged three to nine years), and found 16 foveal and 18 peripheral ganglion cell clusters. They checked the identities of the midget and parasol clusters with fluorescent in situ hybridization and viral labelling of cell shape. Midget clusters accounted for about 85% of sampled foveal ganglion cells and parasol clusters for 11%. When the group compared macaque and mouse, the two taxonomies diverged.
+Peng and colleagues (2019) profiled approximately 165,000 cells from the fovea and the periphery of adult male macaques (*Macaca fascicularis*, aged three to nine years), and found 16 foveal and 18 peripheral ganglion cell clusters. They checked the identities of the midget and parasol clusters with fluorescent in situ hybridization and viral labelling of cell shape. Midget clusters accounted for about 85% of sampled foveal ganglion cells and parasol clusters for 11%. When the group compared macaque and mouse, bipolar and amacrine types matched closely, but ganglion cell types diverged, and midget and parasol cells were taken to be primate specialities. A later atlas of 17 species (Hahn and colleagues, 2023) found their mouse counterparts: midget cells correspond to sustained alpha cells, which make up about 2% of mouse ganglion cells, and parasol cells to transient alpha cells. ON direction-selective cells and melanopsin cells are also conserved. A shared ancestry does not mean a shared size, frequency or job.
 
 *Worked problem, composition.* In the foveal sample, midget plus parasol is 85% + 11% = 96%, leaving about 4% for every other cluster. In a made-up sample of 5,000 foveal cells that would be 0.04 × 5,000 = 200 cells. The 4% says how much of the sample is left over, not how many types share it.
 
@@ -378,27 +378,27 @@ Read this with its limits. The percentages are of sampled cells from the macaque
 
 ## Two channels in detail: local change and an asymmetric arbor
 
-**W3 cells.** In the mouse line that makes W3 cells fluorescent, Zhang and colleagues recorded from isolated retina. A W3 cell pools rectified excitation from ON and OFF bipolar pathways, which means it is excited by local change of either sign. Motion in the distant surround recruits presynaptic suppression of that excitation and postsynaptic inhibition, so a W3 cell responds to a small object moving against a still background and falls quiet when the whole scene moves. Older recordings in isolated salamander and rabbit retina (Ölveczky, Baccus and Meister, 2003) had already found a subset of ganglion cells that preferred differential motion of centre and surround, and proposed wide-field amacrine cells as the source of suppression by global motion. Zhang's group concluded that W3 corresponds to the rabbit local edge detector, which does not make every object-motion cell in every species a W3 cell. The authors proposed that W3 cells may act as alarm neurons for overhead predators. The experiments establish selectivity and circuit properties ex vivo; no behavioural test of necessity was done.
+**W3 cells.** In the mouse line that makes W3 cells fluorescent, Zhang and colleagues recorded from isolated retina. A W3 cell pools rectified excitation from ON and OFF pathways, which means it is excited by local change of either sign. Later work found that much of this excitation reaches the cell indirectly, through an excitatory amacrine cell (the VG3 amacrine cell), and not straight from bipolar cells (Krishnaswamy and colleagues, 2015). Motion in the distant surround recruits presynaptic suppression of that excitation and postsynaptic inhibition, so a W3 cell responds to a small object moving against a still background and falls quiet when the whole scene moves. Older recordings in isolated salamander and rabbit retina (Ölveczky, Baccus and Meister, 2003) had already found a subset of ganglion cells that preferred differential motion of centre and surround, and proposed wide-field amacrine cells as the source of suppression by global motion. Zhang's group concluded that W3 corresponds to the rabbit local edge detector, which does not make every object-motion cell in every species a W3 cell. The authors proposed that W3 cells may act as alarm neurons for overhead predators. The experiments establish selectivity and circuit properties ex vivo; no behavioural test of necessity was done.
 
 <LessonFigure src="/figures/retinal-cell-types/w3-local-change-circuit.webp" width={1200} height={800} alt="AI-generated illustration: two copies of a small circuit. ON and OFF bipolar pathways feed one W3 ganglion cell. On the left a small dot moves on a still background, surround suppression is weak and the W3 cell responds. On the right the whole scene moves, surround suppression is strong on both the excitation and the W3 cell, and the cell falls quiet." caption="A W3 cell pools excitation from ON and OFF bipolar pathways. Motion in the distant surround recruits presynaptic suppression of that excitation and postsynaptic inhibition, so the cell responds to a small object moving against a still background and falls quiet when the whole scene moves. These properties were shown in isolated mouse retina; the alarm-neuron role is a proposal." />
 
-**JAM-B cells.** Kim and colleagues (2008) used a JAM-B-CreER mouse line to mark a class of OFF ganglion cells. CreER is a recombinase switched on by tamoxifen, so a reporter then labels cells that expressed the marker. A few hundred ganglion cells per retina were marked, at least 90% of them expressing JAM-B, so the line is enriched for the class and not perfectly pure. About 85% of the labelled cells had markedly asymmetric dendritic arbors, and in isolated retina the recorded cells preferred movement from soma toward dendrites. The same preference is described as upward motion in the visual field. Keep the frames apart: the lens inverts the image, so what is "up" in the world runs in the opposite sense across the retina, and a statement about the preferred direction needs its frame.
+**JAM-B cells.** Kim and colleagues (2008) used a JAM-B-CreER mouse line to mark a class of OFF ganglion cells. CreER is a recombinase switched on by tamoxifen, so a reporter then labels cells that expressed the marker. A few hundred ganglion cells per retina were marked, at least 90% of them expressing JAM-B, so the line is strongly enriched for the class but may not be pure. About 85% of the labelled cells had markedly asymmetric dendritic arbors, and in isolated retina these asymmetric cells preferred movement from soma toward dendrites, while symmetric cells in ventral retina showed no clear preferred direction. The same preference is described as upward motion in the visual field. Keep the frames apart: the lens inverts the image, so what is "up" in the world runs in the opposite sense across the retina, and a statement about the preferred direction needs its frame.
 
-**What a parallel-channel output means.** The optic nerve is not a camera cable. It carries dozens of filtered versions of the scene, each assembled by a distinct circuit before any spike leaves the eye. W3 reports local change, JAM-B reports one direction, and others report contrast, colour or light level. A feature that no channel carries is gone before the brain has a chance. How the direction-selective circuits are built is the subject of [the next lesson](/lessons/direction-selectivity/), non-image-forming channels appear in [melanopsin cells](/lessons/iprgcs/), and [photoreceptor adaptation and degeneration](/lessons/photoreceptor-adaptation-and-degeneration/) asks what changes when the input fails. Developmental lessons on [spontaneous activity](/lessons/spontaneous-activity/) and [topographic maps](/lessons/topographic-maps/) cover how the output layer is wired, and [microscopy and images](/lessons/microscopy-and-images/) covers the reconstruction methods.
+**What a parallel-channel output means.** The optic nerve is not a camera cable. It carries dozens of filtered versions of the scene, each assembled by a distinct circuit before any spike leaves the eye. W3 reports local change, JAM-B reports one direction (and, in later work, a UV-green colour contrast), and others report contrast, colour or light level. Information that no channel carries is gone before the brain has a chance, though the brain can build new features by combining channels. How the direction-selective circuits are built is the subject of [the next lesson](/lessons/direction-selectivity/), non-image-forming channels appear in [melanopsin cells](/lessons/iprgcs/), and [photoreceptor adaptation and degeneration](/lessons/photoreceptor-adaptation-and-degeneration/) asks what changes when the input fails. Developmental lessons on [spontaneous activity](/lessons/spontaneous-activity/) and [topographic maps](/lessons/topographic-maps/) cover how the output layer is wired, and [microscopy and images](/lessons/microscopy-and-images/) covers the reconstruction methods.
 
 ### Design problem
 
-In the Goetz data, three functionally distinct sustained ON direction-selective types mapped onto one transcriptomic cluster (C10). Does the retina have three types here, or one? Say what each measurement can decide, and propose an experiment.
+In the Goetz data, three sustained ON direction-selective types, told apart by their preferred direction of motion, mapped onto one transcriptomic cluster (C10). Does the retina have three types here, or one? Say what each measurement can decide, and propose an experiment.
 
 <details>
 <summary>One way to do it</summary>
 
-Start with what each measurement is. A cluster is separable expression, and its number depends on sequencing depth and clustering settings. A functional type is a response plus a mosaic, so sharing one cluster does not make the three the same.
+Start with what each measurement is. A cluster is separable expression, and its number depends on sequencing depth and clustering settings. A functional type is a shared response pattern, and a separate mosaic is independent evidence for it, so sharing one cluster does not make the three the same.
 
-The data as given support three functional types that are not separated by RNA at this resolution. They do not yet say there are three cell types, and they do not say there is one.
+The data as given support three functional types that are not separated by RNA at this resolution. Goetz and colleagues separated them by preferred direction, as is usual for direction-selective cells, and treat them as three types. RNA at this resolution simply does not split them, as happened with two direction-selective types in the Tran atlas.
 
-A better experiment avoids comparing data sets. Record the light response of a cell, then recover its RNA and shape from that same cell. If the three response classes still share their expression, test whether each one has its own mosaic, with its own regular spacing and coverage. Ask for genetic access to one of the three, say a driver line that labels one class, so the class can be marked and manipulated. If a finer clustering later splits C10 into three along function, that supports three types. If cells of the three classes interleave in one mosaic, one type with several response modes is the better description.
+A better experiment avoids comparing data sets. Record the light response of a cell, then recover its RNA and shape from that same cell. If the three response classes still share their expression, test whether each one has its own mosaic, with its own regular spacing and coverage. Ask for genetic access to one of the three, say a driver line that labels one class, so the class can be marked and manipulated. If a finer clustering later splits C10 into three along function, that supports three types. If the three classes together form one regular mosaic and none forms its own, that points toward one type with several response modes, though spatial tests alone cannot settle it.
 
-None of this transfers to human retina: the data are from isolated mouse retina.
+These measurements come from isolated mouse retina, so they cannot be assigned to human cells directly, although some ganglion cell types, such as the ON direction-selective cells, have conserved counterparts in primates.
 
 </details>

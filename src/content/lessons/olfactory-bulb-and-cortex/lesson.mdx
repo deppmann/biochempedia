@@ -10,7 +10,7 @@ summary: >-
   bulb circuits to piriform cortex, and asks what each stage keeps, adds and loses. Afterwards you
   can read sister-cell data, say what an artificial cortical ensemble does and does not show, and
   design controls for representational drift.
-hook: "Two mitral cells share one glomerulus and fire at the same average rate, yet disagree about when. What does the cortex do with that disagreement?"
+hook: "Two output cells share one glomerulus and have correlated average responses to odours, yet disagree about when. What does the cortex do with that disagreement?"
 
 estMinutes: 24
 objectives:
@@ -43,8 +43,8 @@ scientists:
       2011. They made channelrhodopsin-expressing ensembles in awake mice and paired their
       activation with a reward or a shock, and the mice acquired opposite learned behaviours. In
       2021 Schoonover, Ohashi, Axel and Fink recorded single piriform units across weeks and found
-      that the responses to an odour did not stay put. Taken together the three papers replaced a
-      fixed address for each odour with a code that is distributed, can be taught, and moves. They
+      that the responses to an odour did not stay put. Taken together the three papers added strong
+      evidence that the piriform odour code is distributed, can be taught, and moves. They
       also left the open question of what a reader of such a code would have to do.
   - name: "Sandeep Robert Datta"
     contribution: >-
@@ -130,7 +130,7 @@ practiceQuestions:
     choices:
       - "Sister cells matched in both rate and timing, so they behave as copies of one input line"
       - "Sister cells differed in both rate and timing, so a shared glomerulus gives no shared sensory input"
-      - "Sister cells matched in mean rate but differed in timing against respiration, so rate alone misses information"
+      - "Sister cells had correlated mean-rate responses but differed in timing against respiration, so rate alone misses information"
       - "Sister cells differed in mean rate but matched in timing, so rate carries the glomerular identity"
     answer: 2
     rationale: >-
@@ -150,8 +150,8 @@ practiceQuestions:
       The glomerular axons spread through piriform cortex with no apparent spatial preference but formed
       spatially stereotyped patches in the cortical amygdala, so the dispersal belongs to a target and not to
       the whole bulb. The reversed pattern swaps the two targets. The all-diffuse choice would make the cortical
-      amygdala result disappear. The all-patchy choice would predict a piriform map, which is the arrangement
-      the piriform imaging and tracing did not find.
+      amygdala result disappear. The all-patchy choice would predict a patchy piriform map, which the 2009
+      imaging and 2011 single-glomerulus tracing did not find.
   - stem: "In awake mice, channelrhodopsin was expressed in a subset of layer 2/3 piriform neurons, and light activation of the ensemble was paired with a reward in one group and a shock in another. Which conclusion does this design support?"
     choices:
       - "Piriform activity is required for every odour-guided behaviour that mice can show"
@@ -213,7 +213,7 @@ mcatQuestions:
       - "The cells must receive input from different glomeruli, because their timing differs for odour B"
     answer: 0
     rationale: >-
-      The counts are nearly proportional, so rate carries the same information in both cells, while the phase of
+      The counts are nearly proportional, so the two cells' rates vary in step across these odours, while the phase of
       peak firing differs for one odour, so timing could carry extra information. The redundant-copies choice
       ignores the timing difference. The different-glomeruli choice contradicts the stated shared parent glomerulus.
       The granule-cell choice names a mechanism that this data set cannot identify, since timing differences do
@@ -243,8 +243,8 @@ explainLevels:
     label: "High school"
     text: >-
       Smell signals go from the nose to the olfactory bulb, where each kind of receptor sends its
-      signals to a few fixed spots called glomeruli (in mice, two per bulb). Neurons that share a glomerulus can fire at the same
-      average rate but at different moments in each breath, so timing may carry extra information.
+      signals to a few fixed spots called glomeruli (in mice, usually two per bulb). Neurons that share a glomerulus can have similar
+      average rate responses but fire at different moments in each breath, so timing may carry extra information.
       In the next stop, piriform cortex, an odour switches on neurons scattered across the tissue
       rather than a neat patch. The pattern still reflects which chemicals are alike. In mice the
       pattern for the same odour also shifts over weeks.
@@ -269,7 +269,7 @@ explainLevels:
       and stereotyped cortical amygdala projections, and two-photon imaging in 8 to 16 week male
       mice under imposed 8 Hz sniffing shows chemical relationships represented in bulb boutons and
       sharpened in piriform, with the geometry shifting toward bulb-like structure when associative
-      transmission was attenuated. Optogenetically imposed ensembles as small as 300 neurons supported
+      transmission was attenuated. Optogenetically imposed ensembles of about 300 channelrhodopsin-expressing neurons weakly supported
       learned appetitive or aversive responses, and single-unit responses drifted so that a day-1
       classifier approached chance by 32 days, with daily exposure slowing drift. Open question: what
       readout stays stable on top of a population that moves, and does behaviour drift with the code?
@@ -290,7 +290,7 @@ anecdotes:
     text: >-
       In awake mice, activating ensembles of channelrhodopsin-expressing piriform neurons with light
       was paired with a reward or a shock, and the animals learned opposite responses. The authors
-      reported that ensembles of as few as 300 neurons supported a learned response, and that mice
+      reported that ensembles of as few as about 300 channelrhodopsin-expressing neurons supported a learned response, and that mice
       could learn to tell separate activated subpopulations apart. They also withheld the
       conclusion that their artificial network reproduced natural odour processing. The number is
       the smallest effective ensemble tested in this artificial experiment, not a count of the neurons in a natural odour
@@ -318,41 +318,41 @@ draft: false
 import PhotostimTrainDuty from '../../../components/PhotostimTrainDuty.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Two mitral cells that take their input from the same glomerulus can fire at the same average rate and still disagree about when in the breathing cycle they fire.** If that is true, a glomerulus is a shared address and not a shared message.
+**Two output cells that take their input from the same glomerulus can have correlated average responses to odours and still disagree about when in the breathing cycle they fire.** If that is true, a glomerulus is a shared address and not a shared message.
 
 [Smell and taste](/lessons/smell-and-taste/) ended with receptor neurons converging on glomeruli and the bulb projecting to piriform cortex. This lesson starts at the glomerulus and goes forward, nearly all of it in mice. The question at each stage is what the circuit keeps of the receptor map, what it adds, and what it gives up. How the receptor choice and the axon wiring arise is in [olfactory receptor choice](/lessons/olfactory-receptor-choice/), [partners, layers and self-avoidance](/lessons/partners-layers-self-avoidance/) and [topographic maps](/lessons/topographic-maps/).
 
 ## Sisters that share an input, and inhibition in the bulb
 
-**Mitral and tufted cells** are the principal output neurons of the mouse main olfactory bulb. Each sends a primary dendrite into one glomerulus. Cells that send theirs into the same glomerulus are **sister cells**. Around and beneath them sit interneurons: **periglomerular cells**, GABAergic cells that work in the glomerular layer, and **granule cells**, which lack axons and contact the lateral dendrites of mitral and tufted cells.
+**Mitral and tufted cells** are the principal output neurons of the mouse main olfactory bulb. Each sends a primary dendrite into one glomerulus. Cells that send theirs into the same glomerulus are **sister cells**. The two types are parallel channels, not copies. In mice, tufted cells respond with shorter latency over a wider range of odour concentrations and project mainly to anterior olfactory cortex, while mitral cells project to all olfactory cortical areas (Igarashi and colleagues, 2012), and the two lock to opposite phases of the sniff cycle (Fukunaga and colleagues, 2012). Around and beneath them sit interneurons: **periglomerular cells**, GABAergic cells that work in the glomerular layer, and **granule cells**, which lack axons and contact the lateral dendrites of mitral and tufted cells.
 
-The key contact is a **reciprocal dendrodendritic synapse**, one dendrite signalling to another and back. A mitral or tufted dendrite releases glutamate onto the interneuron, and the interneuron releases GABA onto the same dendrite. A reviewer of the rodent literature (Burton, 2017) summarized the consequences: the loop can inhibit the cell that excited it (recurrent inhibition), and because one interneuron touches many output cells, it can inhibit neighbours that share it (lateral inhibition). The principle is the lateral inhibition of [sensory coding](/lessons/sensory-coding/), built from dendrites. The same review concluded that granule cells alone do not account for all odour-evoked inhibition of mitral and tufted cells, so do not treat granule cells as the whole story.
+The key contact is a **reciprocal dendrodendritic synapse**, one dendrite signalling to another and back. A mitral or tufted dendrite releases glutamate onto the interneuron, and the interneuron releases GABA onto the same dendrite. A reviewer of the rodent literature (Burton, 2017) summarized the consequences: the loop can inhibit the cell that excited it (recurrent inhibition), and because one interneuron touches many output cells, it can inhibit neighbours that share it (lateral inhibition). This resembles the lateral inhibition of [sensory coding](/lessons/sensory-coding/), built from dendrites, but the bulb is not a retina. Recordings in rats found that each mitral cell is influenced by a handful of spatially scattered glomeruli, not a centre-surround field of neighbours (Fantana and colleagues, 2008), and glomerular-layer circuits also spread inhibition across the bulb and set its gain (Banerjee and colleagues, 2015). The same review concluded that granule cells alone do not account for all odour-evoked inhibition of mitral and tufted cells, so do not treat granule cells as the whole story.
 
-<LessonFigure src="/figures/olfactory-bulb-and-cortex/bulb-sister-cell-circuit.webp" width={1200} height={800} alt="AI-generated illustration: a flat bulb schematic with two glomeruli. Two sister cells send dendrites into the gold glomerulus, a third into the other; a periglomerular cell sits beside the gold glomerulus, and a granule cell with no axon touches overlapping lateral dendrites. An inset shows glutamate going from an output dendrite to an interneuron dendrite and GABA coming back." caption="Mitral and tufted cells that send their primary dendrite into the same glomerulus are sister cells. Interneurons contact their lateral dendrites through reciprocal dendrodendritic synapses, which allow recurrent and lateral inhibition; granule cells alone do not account for all of the inhibition." />
+<LessonFigure src="/figures/olfactory-bulb-and-cortex/bulb-sister-cell-circuit.webp" width={1200} height={800} alt="AI-generated illustration: a flat bulb schematic with two glomeruli. Two sister cells send dendrites into the gold glomerulus, a third into the other; a periglomerular cell sits beside the gold glomerulus, and a granule cell with no axon touches overlapping lateral dendrites. An inset shows glutamate going from an output dendrite to an interneuron dendrite and GABA coming back." caption="Mitral and tufted cells that send their primary dendrite into the same glomerulus are sister cells. Granule cells contact their lateral dendrites, and periglomerular cells their tufts inside the glomerulus, through reciprocal dendrodendritic synapses, which allow recurrent and lateral inhibition; granule cells alone do not account for all of the inhibition." />
 
 Does a shared glomerulus give sisters a shared code? Dhawale and colleagues (2010) tested this in adult mice, 60 to 400 days old, anaesthetized with ketamine and xylazine. They used a light-based method to find which recorded mitral and tufted cells received input from one parent glomerulus, so sisters were defined by their input and not by how they responded to odours. They then recorded the cells during odour presentation.
 
 Two summaries of the same spikes gave two answers. Counting mean spikes, sister responses were correlated. Looking at spike timing relative to the respiration cycle, odours changed the timing of sisters differently. Rate made them look alike, and timing did not. Both statements belong to the result, and neither is a retreat from the other.
 
-Two cautions. Timing differences do not tell you which synapses produced them, so the experiment does not show that granule-cell inhibition did. And the preparation is anaesthetized, so the same measurement in an awake, sniffing mouse is a separate question.
+Three cautions. Timing differences do not tell you which synapses produced them, so the experiment does not show that granule-cell inhibition did. The sisters were recorded as mitral/tufted units without separating the two types, and the types fire at different sniff phases, so some timing differences may reflect cell type. And the preparation is anaesthetized. In awake mice, sister cells of one genetically identified glomerulus, M72, gave temporally diverse excitatory and inhibitory responses to most of its ligands, and stereotyped early responses only to its strongest ligand (Arneodo and colleagues, 2018), so sisters can differ in more than timing.
 
 ## A cortex with no map, and what it still represents
 
 Mitral and tufted axons reach piriform cortex without a thalamic relay. Stettler and Axel (2009) imaged odour responses in mouse piriform cortex in vivo and found that an odour activated a **dispersed** ensemble, neurons scattered across the area and not gathered in a patch, and that individual neurons had discontinuous receptive fields. Their result is not a statement that piriform carries no chemical information. It says that the arrangement is not a map of the kind seen in [topographic maps](/lessons/topographic-maps/).
 
-Sosulski and colleagues (2011) asked whether the dispersal begins in the wiring. They electroporated a dextran tracer into a single glomerulus of an adult mouse, waited five days, and imaged the labelled output axons in fixed, flattened cortex and in excised amygdala. In piriform cortex the axons projected diffusely with no apparent spatial preference. In the cortical amygdala the same experiment gave spatially stereotyped patches. So "the bulb projects at random" is wrong in the way that matters: dispersal belongs to one target. Diffuse axons also leave open how individual synapses are chosen, because a tracer image is not a connectivity matrix.
+Sosulski and colleagues (2011) asked whether the dispersal begins in the wiring. They electroporated a dextran tracer into a single glomerulus of an adult mouse, waited five days, and imaged the labelled output axons in fixed, flattened cortex and in excised amygdala. In piriform cortex the axons projected diffusely with no apparent spatial preference. In the cortical amygdala the same experiment gave spatially stereotyped patches. So "the bulb projects at random" is wrong in the way that matters: dispersal belongs to one target. Diffuse axons also leave open how individual synapses are chosen, because a tracer image is not a connectivity matrix. Later, barcoded sequencing of the projections of thousands of single bulb neurons (Chen and colleagues, 2022) found that the wiring is not random after all: bulb neurons aimed at one anterior-posterior position in piriform also project to matched targets outside it. That is spatial structure in routing, not a map of odour chemistry.
 
 <LessonFigure src="/figures/olfactory-bulb-and-cortex/single-glomerulus-tracer-test.webp" width={1200} height={380} alt="AI-generated illustration: a three-step strip. A pipette delivers tracer into one gold glomerulus in a row; a box reads five days; two tissue rectangles show gold labelled axons scattered evenly in piriform cortex and gathered into separate patches in cortical amygdala." caption="Sosulski and colleagues put a tracer into one glomerulus of an adult mouse and imaged the labelled axons five days later. In piriform cortex they spread diffusely; in the cortical amygdala they formed stereotyped patches. The dots are schematic." />
 
-If the anatomy is diffuse, is chemistry lost? Pashkovski and colleagues (2020) imaged piriform layer 2/3 neurons and bulb axon boutons, the terminals of mitral and tufted cells, in male mice 8 to 16 weeks old. The mice were semi-paralysed and ventilated, in a state the authors called wakefulness on EEG criteria, with an imposed 8 Hz sniff cycle, and cortical neurons were tested with three panels of 22 odours (the bulb-bouton comparison used one of them, called the tiled panel). Both bulb inputs and piriform populations had correlated activity that tracked chemical relationships between odours. The piriform populations clustered related odours more strongly than the bulb inputs did. When the authors attenuated transmission through the cortex's own associational connections with a genetically targeted silencing tool, the cortical relationships became more like the bulb's. Passive odour experience could also reshape them.
+If the anatomy is diffuse, is chemistry lost? Pashkovski and colleagues (2020) imaged piriform layer 2/3 neurons and bulb axon boutons, the terminals of mitral and tufted cells, in male mice 8 to 16 weeks old. The mice were semi-paralysed and ventilated, in a state the authors called wakefulness on EEG criteria, with an imposed 8 Hz sniff cycle, and cortical neurons were tested with three panels of 22 odours (the bulb-bouton comparison used one of them, called the tiled panel). Both bulb inputs and piriform populations had correlated activity that tracked chemical relationships between odours. The piriform populations clustered related odours more strongly than the bulb inputs did. When the authors blocked synaptic output from piriform neurons with a genetically targeted silencing tool, which attenuates the cortex's own associational network, the cortical relationships became more like the bulb's. Piriform also sends feedback to the bulb and connects to other olfactory areas, so this shows that piriform network activity is needed for the change, not that local connections alone produce it. Passive odour experience could also reshape them.
 
 This is a different kind of map. A spatial map says that similar odours are active in nearby places. A representational geometry says that similar odours evoke similar population patterns wherever the cells sit. The 2020 imaging did not freely sample odours, and fluorescence is not a full record of spikes.
 
 ## Ensembles that mean something because they were paired
 
-If an odour is an ensemble, what happens if you create one without an odour? Choi and colleagues (2011) expressed channelrhodopsin in subsets of layer 2/3 piriform neurons in awake mice and activated them with light. Pairing the activation with a reward produced one learned behaviour, and pairing it with a shock produced the opposite. Ensembles of as few as 300 neurons could drive a learned response, weakly (flight in about 30 percent of aversive-task trials at about 300 cells and about 95 percent above 500), and mice could learn to discriminate different activated subpopulations. (For optogenetic tools, see [hacking the cell](/lessons/hacking-the-cell/); for learned associations, [synaptic plasticity](/lessons/synaptic-plasticity/) and [memory consolidation](/lessons/memory-consolidation/).)
+If an odour is an ensemble, what happens if you create one without an odour? Choi and colleagues (2011) expressed channelrhodopsin in subsets of layer 2/3 piriform neurons in awake mice and activated them with light. Pairing the activation with a reward produced one learned behaviour, and pairing it with a shock produced the opposite. Ensembles of as few as about 300 channelrhodopsin-expressing neurons could drive a learned response, weakly (flight in about 30 percent of aversive-task trials at about 300 cells and about 95 percent above 500), and mice could learn to discriminate different activated subpopulations. (For optogenetic tools, see [hacking the cell](/lessons/hacking-the-cell/); for learned associations, [synaptic plasticity](/lessons/synaptic-plasticity/) and [memory consolidation](/lessons/memory-consolidation/).)
 
-What this shows is that arbitrary piriform activity can acquire learned behavioural meaning, which is sufficiency for an association. It does not show that the mice smelled something, and the authors withheld the claim that their artificial network reproduced natural odour processing. The figure of 300 is the smallest effective ensemble tested here, with a weaker response than larger ensembles, and not the size of a natural odour representation.
+What this shows is that arbitrary piriform activity can acquire learned behavioural meaning, which is sufficiency for an association. It does not show that the mice smelled something, and the authors withheld the claim that their artificial network reproduced natural odour processing. The figure of 300 counts cells that expressed channelrhodopsin, and only about 40 percent of such cells showed an activity marker after light, so the number of neurons actually driven is uncertain. It is the smallest effective ensemble tested here, with a weaker response than larger ensembles, and not the size of a natural odour representation.
 
 **Worked problem, part a: the stimulus.** The aversive-conditioning photostimulus used 20 Hz pulses of 25 ms each. Suppose, as an exercise, a train lasts 3 s with one pulse starting each period. The 3 s is our assumption.
 
@@ -382,9 +382,9 @@ A classifier trained on day 1 piriform responses decodes odours well on day 1 an
 
 *Is the recording stable?* Check that the same units are tracked: compare waveform shape, isolation quality and baseline firing across days, and repeat with a subset that is clearly the same cells.
 
-*Is the failure about the decoder?* Train a new decoder on each day and compare it with the frozen day-1 decoder. If daily decoders work and the frozen one fails, odour information is present every day while the mapping changed. If daily decoders also fail late, the recording itself has probably lost information.
+*Is the failure about the decoder?* Train a new decoder on each day and compare it with the frozen day-1 decoder. If daily decoders work and the frozen one fails, odour information is present every day while the mapping changed. If daily decoders also fail late, the odour information is lost or hidden, so check recording quality, odour delivery and the animal's state before reading anything into it.
 
-*Does behaviour drift too?* Test the animal's discrimination of the same odours on the same days. If behaviour holds steady while the decoder fails, a downstream reader is coping with the change.
+*Does behaviour drift too?* Test the animal's discrimination of the same odours on the same days. If behaviour holds steady while the decoder fails, the behaviour tolerates the change, though this does not say which cells or readout keep it stable.
 
 *What controls drift?* Compare animals with daily exposure, with fear conditioning and with neither, as the paper did, and ask which factor changes the rate.
 
@@ -404,7 +404,7 @@ A different route to odour structure skips the brain. Lee, Mayhew and colleagues
 
 The map did not predict suprathreshold intensity as concentration varied, and the roughly 500,000-molecule picture plots predictions.
 
-In people, smell loss has been studied from the epithelium to the clinic. Early in the pandemic Brann and colleagues (2020) found the ACE2 entry gene in non-neuronal olfactory cells and localized ACE2 protein to sustentacular cells in mouse dorsal epithelium, not in sensory neurons, which suggested non-neuronal mechanisms. Khan and colleagues (2021) examined adult postmortem tissue from people who had died with COVID-19 and found sustentacular cells to be the main olfactory mucosal target, with no evidence of infection of sensory neurons or the bulb parenchyma in their samples. They allowed that mechanisms may differ between people. Do not say the virus infects olfactory neurons and travels into the brain.
+In people, smell loss has been studied from the epithelium to the clinic. Early in the pandemic Brann and colleagues (2020) found the ACE2 entry gene in non-neuronal olfactory cells and localized ACE2 protein to sustentacular cells in mouse dorsal epithelium, not in sensory neurons, which suggested non-neuronal mechanisms. Khan and colleagues (2021) examined adult postmortem tissue from people who had died with COVID-19 and found sustentacular cells to be the main olfactory mucosal target, with no evidence of infection of sensory neurons or the bulb parenchyma in their samples. They allowed that mechanisms may differ between people. Do not teach infection of olfactory neurons and spread along their axons into the brain as the usual route; current evidence suggests neuronal infection is rare.
 
 Smell test scores also predict disease in cohorts. In the Health ABC study of 2,462 community-dwelling people aged 70 to 79 at enrolment, the lowest tertile of a smell identification test had a Parkinson disease hazard ratio of 4.8 against the highest tertile (95% CI 2.0 to 11.2, from only 42 incident cases; Chen and colleagues, 2017). In a North Manhattan cohort, lower smell scores were associated with later Alzheimer dementia (Devanand and colleagues, 2015). These are associations, not diagnoses, and smell loss has other causes such as chronic rhinosinusitis.
 
