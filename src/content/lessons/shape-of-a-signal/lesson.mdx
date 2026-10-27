@@ -38,17 +38,17 @@ scientists:
     quotes: []
     story: >-
       Michael Rosen's laboratory at UT Southwestern and Ronald Vale's at UCSF rebuilt the front
-      end of a T cell's response from twelve purified proteins on a patch of artificial membrane:
+      end of a T cell's response from twelve purified components on a patch of artificial membrane:
       the tail of the antigen receptor, kinases, adaptors and the machinery that builds actin
       filaments. No cell was present. When a kinase put phosphate on the receptor tail, as happens
-      when a T cell is activated, the other proteins left the solution and gathered into
+      when a T cell is activated, the membrane-bound adaptor LAT and its binding partners gathered into
       liquid-like clusters that could be seen in the microscope. The clusters sorted their
       contents. They were enriched in kinases and excluded phosphatases, and actin filaments
       assembled faster with them. The work appeared in Science in 2016. Three years later David
       McSwiggen, Mustafa Mir, Xavier Darzacq and Robert Tjian at Berkeley argued that the usual
       evidence for such droplets inside living cells cannot tell a liquid from proteins binding
       and leaving a fixed scaffold. Together the two papers made place a part of a signal that
-      can be built and tested, and they set the standard of proof for claiming it in a cell.
+      can be built and tested, and they showed why a claim of droplets in a cell needs more than one kind of evidence.
 
   - name: "Michael Elowitz"
     contribution: >-
@@ -58,8 +58,8 @@ scientists:
     profileSourceAnchor: "Elowitz & Leibler, Nature 403:335–338 (2000); Gardner, Cantor & Collins, Nature 403:339–342 (2000)."
     quotes: []
     story: >-
-      Michael Elowitz, then a Princeton graduate student working with Stanislas Leibler, spent years putting three
-      genes that had never worked together onto one plasmid in the bacterium E. coli. LacI, TetR
+      Michael Elowitz, then a Princeton graduate student working with Stanislas Leibler, put three
+      repressor genes that are not part of any natural clock onto one plasmid in the bacterium E. coli. LacI, TetR
       and the lambda phage protein cI are each a plain off-switch for a gene. He wired each one to
       silence the gene for the next, which closed the three into a ring, and he added a green
       fluorescent protein as a readout. Because a protein takes time to make, each order to switch
@@ -207,10 +207,10 @@ practiceQuestions:
       - "Positive feedback that acts after a delay"
     answer: 2
     rationale: >-
-      Negative feedback that acts after a delay corrects too late, so activity overshoots in each
+      Negative feedback that acts after a delay corrects too late, so if the feedback is strong enough activity overshoots in each
       direction and oscillates, as NF-κB does with IκBα and as the three-repressor ring does in E. coli. Negative feedback
       without delay brings activity to a steady level. Positive feedback, with or without a delay,
-      pushes activity further in the direction it is already going and gives a switch that stays
+      pushes activity further in the direction it is already going and can give a switch that stays
       on, which is a different behaviour from a repeating pulse.
   - stem: "A cell is treated with a peptide that releases PKA from its anchoring proteins. Total PKA and the rise in cAMP after hormone are unchanged, yet one membrane channel is no longer phosphorylated. What is the best explanation?"
     choices:
@@ -304,11 +304,11 @@ explainLevels:
     label: "Graduate"
     text: >-
       Temporal decoding depends on the kinetics of the decoder relative to the signal. A detector
-      of persistence needs a delayed, labile intermediate whose stability depends on the input.
+      of persistence can use a delayed, labile intermediate whose stability depends on the input.
       c-Fos has phosphorylation sites for ERK and RSK near its C-terminus and a docking motif for
       ERK, so sustained ERK stabilises it and transient ERK does not; this was shown in
       fibroblasts and extended to several other immediate early gene products. A frequency decoder
-      needs fast activation and slow decay. In CaMKII the decay is slowed by autophosphorylation
+      can use fast activation and slow decay. In CaMKII the decay is slowed by autophosphorylation
       of threonine 286 (alpha isoform) between neighbouring subunits, which requires calmodulin on both and makes
       autonomous activity depend on spike rate in vitro. In lymphocytes NFAT needs frequent or
       sustained calcium because it is exported within minutes, while NF-κB persists in the nucleus for many minutes. Later optogenetic work in HeLa cells argues that NFAT sums total calcium load more than it reads frequency (Hannanta-Anan & Chow 2016). In the NF-κB module, IκBα supplies the delayed negative feedback and IκBβ
@@ -400,7 +400,7 @@ Reading the last three takes a **decoder**: a downstream part whose own timing o
 
 ## How long: a part that arrives late can time a signal
 
-[The lesson on Ras and MAPK](/lessons/ras-to-mapk/) gave you the PC12 result. Epidermal growth factor (EGF) switches ERK on briefly, and the cell divides. Nerve growth factor (NGF) keeps ERK on much longer, and the cell stops dividing and grows processes. The length is what counts. PC12 cells engineered to carry extra EGF receptors keep ERK active for longer when they meet EGF, and they differentiate.
+[The lesson on Ras and MAPK](/lessons/ras-to-mapk/) gave you the PC12 result. Epidermal growth factor (EGF) switches ERK on briefly, and the cell divides. Nerve growth factor (NGF) keeps ERK on much longer, and the cell stops dividing and grows processes. The length matters, and it comes from wiring: in PC12 cells NGF adds a positive feedback loop to the pathway that EGF does not, and that loop keeps ERK on. PC12 cells engineered to carry extra EGF receptors keep ERK active for longer when they meet EGF, and they differentiate.
 
 A cell has no stopwatch. What it can do is compare the signal with a delayed product of that same signal.
 
@@ -416,7 +416,7 @@ Leon Murphy, John Blenis and their colleagues showed this for c-Fos in fibroblas
 
 <LessonFilm film={frontmatter.films[0]} />
 
-[Calcium signaling](/lessons/calcium-signaling/) showed you that calcium often rises in brief spikes. In many cell types a stronger stimulus gives more frequent spikes of about the same height. To read that, a cell needs a part that switches on fast and off slowly.
+[Calcium signaling](/lessons/calcium-signaling/) showed you that calcium often rises in brief spikes. In many cell types a stronger stimulus gives more frequent spikes of about the same height. One way to read that is with a part that switches on fast and off slowly.
 
 Picture a bucket with a small hole, topped up by one cup of water at each spike. Fill it rarely and it drains between cups. Fill it often and the level climbs. For a decoder that loses its activity with a fixed half-time:
 
@@ -426,9 +426,9 @@ With a half-time of 20 seconds, spikes a minute apart leave one eighth of the ac
 
 One such part is calcium/calmodulin-dependent kinase II (CaMKII), an assembly of twelve kinase subunits. Calcium-bound calmodulin switches a subunit on. An active subunit can then phosphorylate its neighbour, but only while the neighbour also holds calmodulin, and a phosphorylated subunit stays active after calcium has gone. Fast spikes catch more neighbours loaded at the same moment. In 1998 Paul De Koninck and Howard Schulman gave CaMKII fixed to a surface timed pulses of calcium and calmodulin and found that this calcium-independent activity rose with the pulse rate. That is a test-tube result.
 
-Transcription factors can be sorted by the same rule. In 1998 Ricardo Dolmetsch, Keli Xu and Richard Lewis imposed calcium spikes of chosen spacing on a line of human T cells. Closely spaced spikes activated three transcription factors, NFAT and NF-κB among them. Widely spaced spikes activated only NF-κB. A likely reason is how fast each one switches off. NFAT leaves the nucleus within minutes once calcium falls. In B cells, NF-κB was found to stay in the nucleus for more than 16 minutes after a brief calcium spike.
+Transcription factors can be sorted by the same rule. In 1998 Ricardo Dolmetsch, Keli Xu and Richard Lewis imposed calcium spikes of chosen spacing on a line of human T cells. Closely spaced spikes activated three transcription factors, NFAT and NF-κB among them. Widely spaced spikes activated only NF-κB. A likely reason is how fast each one switches off. NFAT leaves the nucleus within minutes once calcium falls. In B cells, NF-κB stayed in the nucleus long after a brief calcium spike had ended.
 
-Medicine uses this. The brain releases gonadotropin-releasing hormone (GnRH) in pulses. In 1978 Ernst Knobil's laboratory showed, in monkeys that could not make their own GnRH, that one pulse an hour restored the pituitary's release of its two reproductive hormones, and that the same hormone given continuously shut the release down. Leuprolide is a synthetic relative of GnRH given as a slow-release dose, so that its level stays steady. After a first surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer. A drug can change the shape of a signal as well as its size.
+Medicine uses this. The brain releases gonadotropin-releasing hormone (GnRH) in pulses. In 1978 Ernst Knobil's laboratory showed, in rhesus monkeys whose hypothalamic lesions had cut off their own GnRH supply, that one pulse an hour restored the pituitary's release of its two reproductive hormones, and that the same hormone given continuously shut the release down. Leuprolide is a synthetic relative of GnRH given as a slow-release dose, so that its level stays steady. After a first surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer. A drug can change the shape of a signal as well as its size.
 
 ### Design problem
 
@@ -437,7 +437,7 @@ Two hormones raise calcium in the same cell. The first must switch on gene A and
 <details>
 <summary>One way to do it</summary>
 
-Spike rate alone will not do it. In the T-cell experiment, fast spikes switched on everything that slow spikes did, and more. To get two answers that exclude each other, make the signals differ in length and in height together.
+With decoders that switch on fast and off slowly, spike rate alone will not do it. In the T-cell experiment, fast spikes switched on everything that slow spikes did, and more. To get two answers that exclude each other, make the signals differ in length and in height together.
 
 Let hormone 1 give one tall, brief spike. Let hormone 2 give a low plateau that lasts.
 
@@ -457,7 +457,7 @@ NF-κB sits in such a loop. One of the genes it switches on encodes its own inhi
 
 <LessonFigure src="/figures/shape-of-a-signal/nfkb-ikba-delay-loop.webp" width={1200} height={792} alt="AI-generated illustration: a cell with a nucleus showing a four-step loop. The inhibitor IκB is destroyed so NF-κB is free, NF-κB enters the nucleus and switches on the IκBα gene after a delay, and new IκBα carries NF-κB back out, after which the round can repeat. A small inset marks IκBα driving the oscillation and two other IκB proteins damping it." caption="NF-κB switches on the gene for its own inhibitor. New IκBα is made after a delay and carries NF-κB back out of the nucleus, and if the stimulus is still present the round can repeat. Hoffmann and colleagues concluded that IκBα drives the oscillation and the other two IκB proteins damp it." />
 
-p53 and MDM2 also form a negative feedback loop, and [stress signals](/lessons/stress-signals/) covered what Galit Lahav's films of single cells, made in Uri Alon's laboratory, showed in 2004: p53 arrives in pulses of about the same size, and a larger dose of radiation gives more pulses on average. The MDM2 loop does not explain them alone: a 2008 study from Lahav's laboratory found that the pulses are driven by repeated restarts from the upstream kinases ATM and Chk2, and that a second feedback loop, through Wip1, keeps them uniform. Her laboratory later used nutlin-3, a small molecule that blocks MDM2, on a planned schedule to hold p53 steady at the height of one pulse. At moderate radiation doses, cells left to pulse recovered and returned to dividing. Cells held steady often stopped dividing for good.
+p53 and MDM2 also form a negative feedback loop, and [stress signals](/lessons/stress-signals/) covered what Galit Lahav's films of single cells, made in Uri Alon's laboratory, showed in 2004: p53 arrives in pulses of about the same size, and a larger dose of radiation gives more pulses on average. The MDM2 loop does not explain them alone: a 2008 study from Lahav's laboratory found that the pulses are driven by repeated restarts from the upstream kinases ATM and Chk2, and that a second feedback loop, through Wip1, keeps them uniform. Her laboratory later used nutlin-3, a small molecule that blocks MDM2, on a planned schedule to hold p53 steady at the height of one pulse. In the human cancer cells they studied, cells left to pulse after a moderate radiation dose recovered and returned to dividing. Cells held steady often stopped dividing for good.
 
 Is a ring of negative feedback with a delay enough to make a clock? Michael Elowitz and Stanislas Leibler tested that by building one. In the bacterium *E. coli* they wired three repressors, proteins that switch a gene off, into a ring, each silencing the gene for the next. Each protein takes time to make, so every order to switch off lands late and the three chase one another around the ring. A green fluorescent readout rose and fell with a period of hours in at least 40 percent of the single cells filmed. The clock was noisy, and it ran.
 
@@ -465,7 +465,7 @@ Is a ring of negative feedback with a delay enough to make a clock? Michael Elow
 
 A message can also depend on its address. In [cAMP and PKA](/lessons/camp-and-pka/) and [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/) you met A-kinase anchoring proteins, which hold PKA beside particular targets. A local rise in cAMP then reaches the PKA parked nearby and may never reach PKA parked elsewhere. A receptor can likewise signal from the cell surface and again from an endosome after it has been taken inside, which is the subject of the next lesson.
 
-A cell can also make a place on demand. In 2016 the laboratories of Michael Rosen and Ronald Vale put twelve purified proteins from the start of T-cell signalling, the pathway in [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/), on an artificial membrane with no cell present. When a kinase phosphorylated the receptor tail, the downstream proteins gathered into clusters that behaved like liquid droplets. What holds such droplets together is a large number of weak contacts between repeated binding sites of the kind you met in [protein interaction modules](/lessons/protein-interaction-modules/). The droplets also sorted what entered them. Kinases were concentrated and phosphatases were kept out, which favours a signal that stays on inside.
+A cell can also make a place on demand. In 2016 the laboratories of Michael Rosen and Ronald Vale put twelve purified components from the start of T-cell signalling, the pathway in [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/), on an artificial membrane with no cell present. When a kinase phosphorylated the receptor tail, the downstream proteins gathered into clusters that behaved like liquid droplets. What holds such droplets together is a large number of weak contacts between repeated binding sites of the kind you met in [protein interaction modules](/lessons/protein-interaction-modules/). The droplets also sorted what entered them. Kinases were concentrated and phosphatases were kept out, which favours a signal that stays on inside.
 
 <LessonFigure src="/figures/shape-of-a-signal/tcell-droplets-on-a-slide.webp" width={1200} height={639} alt="AI-generated illustration: a flat membrane on a glass slide with a receptor tail carrying a phosphate and a kinase, and a soft droplet of clustered downstream proteins with the kinase inside and two phosphatases kept outside. A dashed inset shows a living cell with a bright spot and a question mark." caption="On an artificial membrane with no cell present, downstream T-cell signalling proteins gathered into clusters that behaved like liquid droplets, concentrating kinases and keeping phosphatases out. That was shown on a glass slide; whether a bright spot in a living cell is a separate liquid is still argued." />
 
