@@ -339,6 +339,24 @@ export const lessonSchema = z.object({
     biology: z.array(z.string()).default([]),
   }).optional(),
 
+  /** Ages 5–10 activities only (families tier): the at-a-glance facts an adult needs before starting,
+   *  rendered by <ActivityCard activity={frontmatter.activity} /> at the top of the body. */
+  activity: z.object({
+    /** Hands-on time with the child, in minutes. */
+    minutes: z.number().int().min(5).max(60),
+    /** Any waiting or follow-up beyond the hands-on time, in words ("then a 2-minute look each day for a week"). */
+    followUp: z.string().optional(),
+    setting: z.enum(['indoors', 'outdoors', 'either']),
+    /** How closely the adult must supervise, in plain words. */
+    adult: z.string().min(1),
+    /** What you need: cheap household items, one per line. */
+    materials: z.array(z.string().min(1)).min(1),
+    /** Virginia 2018 Science SOL codes this activity serves, e.g. ['K.6 a', '2.5 a']. */
+    sol: z.array(z.string().regex(/^(K|[1-4])\.\d+( [a-d])?$/, 'A K–4 SOL code such as "K.6 a" or "3.5 b".')).min(1),
+    /** Grade 7 Life Science lessons one step up the ladder (slugs). */
+    stepUp: z.array(z.string()).default([]),
+  }).optional(),
+
   /** The lesson body uses scaffolded supports (<Support>, <WordBank>, <SentenceFrames>,
    *  <ScaffoldFigure>, <CER>), so the page shows the supports switch. */
   supports: z.boolean().default(false),

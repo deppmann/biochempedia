@@ -1,0 +1,237 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { COURSES } from '../../../data/courses';
+import '../../../styles/teach.css';
+
+const courseTitles = Object.fromEntries(COURSES.map((c) => [c.slug, c.title]));
+const MODES = [
+  ['open', 'Open: anyone with the code joins with a nickname'],
+  ['approve', 'Approve: students wait until the teacher lets them in'],
+  ['roster', 'Roster: the teacher makes the list and hands out codes'],
+  ['locked', 'Locked: nobody new can join'],
+];
+---
+
+<BaseLayout title="Group — Biochemistrypedia" description="Your group." noindex>
+  <article class="wrap tc" data-group data-courses={JSON.stringify(courseTitles)}>
+    <p class="tc-eyebrow"><a href="/teach/classes/">My classes</a> · Group</p>
+    <h1 data-name>Group</h1>
+    <p class="tc-row" style="margin-top: var(--ddp-space-3)">
+      <span class="tc-muted">Public page: <a data-public target="_blank"></a></span>
+      <span class="tc-pill" data-role></span>
+    </p>
+    <p class="tc-note" data-pending hidden></p>
+
+    <div class="tc-tabs" role="tablist">
+      <button class="tc-tab" role="tab" data-tab="members" aria-selected="true">Teachers</button>
+      <button class="tc-tab" role="tab" data-tab="classes" aria-selected="false">Classes</button>
+      <button class="tc-tab admin-only" role="tab" data-tab="invites" aria-selected="false">Invite</button>
+      <button class="tc-tab admin-only" role="tab" data-tab="settings" aria-selected="false">Settings</button>
+    </div>
+
+    <section data-pane="members">
+      <div class="tc-scroll"><table class="tc-table">
+        <thead><tr><th>Name</th><th class="admin-only">Email</th><th>Role</th><th>Joined</th><th class="admin-only"></th></tr></thead>
+        <tbody data-members></tbody>
+      </table></div>
+      <p style="margin-top: var(--ddp-space-6)"><button type="button" class="tc-btn ghost" data-leave>Leave this group</button></p>
+    </section>
+
+    <section data-pane="classes" hidden>
+      <p class="tc-muted" data-classes-help></p>
+      <div class="tc-scroll"><table class="tc-table">
+        <thead><tr><th>Class</th><th>Teacher</th><th>Course</th><th>Students</th><th>Assigned</th><th>Brief</th></tr></thead>
+        <tbody data-classes></tbody>
+      </table></div>
+      <p class="tc-muted" data-classes-none hidden>No classes in this group yet. A teacher adds a class to the group in the class's Settings.</p>
+    </section>
+
+    <section data-pane="invites" hidden>
+      <p class="tc-muted">An invitation link lets a teacher join without waiting for approval. Links work for 14 days: up to 50 teachers, or 3 for an admin link.</p>
+      <form class="tc-form" data-invite-form>
+        <label>Invite as<select name="role"><option value="teacher">Teacher</option><option value="admin">Admin</option></select></label>
+        <label>Note for yourself (optional)<input type="text" name="note" maxlength="120" placeholder="e.g. Science department, fall" /></label>
+        <label data-emails-label>Email it to (optional, one per line)<textarea name="emails" rows="3" placeholder="colleague@school.k12.va.us"></textarea></label>
+        <p class="tc-muted" data-mail-off hidden style="margin:0">Email isn't switched on for the site yet, so copy the link and send it yourself.</p>
+        <button class="tc-btn" type="submit">Make an invitation link</button>
+        <p class="tc-error" data-inv-err role="alert"></p>
+      </form>
+      <div class="tc-card" data-inv-result hidden style="margin-top: var(--ddp-space-4)">
+        <p style="margin-top:0">Invitation link:</p>
+        <p><input type="text" readonly data-inv-link style="width:100%" /></p>
+        <p class="tc-row"><button type="button" class="tc-btn small ghost" data-copy>Copy</button><span class="tc-ok" data-inv-msg></span></p>
+      </div>
+      <h2>Open invitations</h2>
+      <div class="tc-scroll"><table class="tc-table">
+        <thead><tr><th>Note</th><th>Role</th><th>Used</th><th>Expires</th><th></th></tr></thead>
+        <tbody data-invites></tbody>
+      </table></div>
+    </section>
+
+    <section data-pane="settings" hidden>
+      <form class="tc-form" data-settings>
+        <label>Group name<input type="text" name="name" maxlength="80" required /></label>
+        <label>Page address: biochemistrypedia.com/g/<input type="text" name="slug" maxlength="40" required pattern="[a-z0-9][a-z0-9\-]{1,38}[a-z0-9]" /></label>
+        <label>About (shown on the public page)<textarea name="about" rows="3" maxlength="600"></textarea></label>
+        <label>Only teachers with this email domain may join (optional)<input type="text" name="emailDomain" maxlength="190" placeholder="school.k12.va.us" /></label>
+        <p class="tc-muted" data-domain-note style="margin:0"></p>
+        <label>Default for new classes in the group<select name="defaultJoinMode">{MODES.map(([v, l]) => <option value={v}>{l}</option>)}</select></label>
+        <button class="tc-btn" type="submit">Save</button>
+        <p class="tc-ok" data-set-msg role="status"></p>
+        <p class="tc-error" data-set-err role="alert"></p>
+      </form>
+      <h2>Delete this group</h2>
+      <p class="tc-muted">Deletes the group, its page and its invitations. Classes are not deleted: they stay with their teachers.</p>
+      <button type="button" class="tc-btn danger" data-delete>Delete group</button>
+    </section>
+  </article>
+
+  <script>
+    import { api } from '../../../lib/classroom';
+
+    interface Member { id: number; name: string; email?: string; role: string; status: string; joined: number }
+    interface Group {
+      id: string; slug: string; name: string; about: string; emailDomain: string; defaultJoinMode: string; role: string; me: number; mailOn: boolean;
+      members: Member[]; classes: { id: string; name: string; course: string; shared: number; teacher: string; teacherId: number; students: number; assignments: number }[];
+      invites?: { id: string; role: string; note: string; uses: number; maxUses: number; expires: number }[];
+    }
+    const root = document.querySelector<HTMLElement>('[data-group]')!;
+    const courses: Record<string, string> = JSON.parse(root.dataset.courses!);
+    const id = new URLSearchParams(location.search).get('id') || '';
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] => {
+      const e = Object.assign(document.createElement(tag), props);
+      e.append(...kids);
+      return e;
+    };
+    const day = (t: number) => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    let g: Group;
+
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+    const show = (k: string) => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === k)));
+      root.querySelectorAll<HTMLElement>('[data-pane]').forEach((p) => (p.hidden = p.dataset.pane !== k));
+    };
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab!)));
+
+    async function act(path: string, body: unknown, method?: string) {
+      const r = await api(path, body, method);
+      if (!r.ok) alert(r.data.error || 'That did not work.');
+      await load();
+      return r;
+    }
+
+    async function load() {
+      const r = await api<Group>(`/api/groups/${encodeURIComponent(id)}`);
+      if (r.status === 401) { location.replace(`/teach/?next=${encodeURIComponent(location.pathname + location.search)}`); return; }
+      if (!r.ok) { $('[data-name]').textContent = r.data.error || 'Could not load this group.'; return; }
+      g = r.data;
+      const admin = g.role === 'admin';
+      document.title = `${g.name} — Biochemistrypedia`;
+      $('[data-name]').textContent = g.name;
+      const pub = $<HTMLAnchorElement>('[data-public]');
+      pub.href = `/g/${g.slug}/`;
+      pub.textContent = `${location.host}/g/${g.slug}/`;
+      $('[data-role]').textContent = admin ? 'You are an admin' : 'You are a member';
+      root.querySelectorAll<HTMLElement>('.admin-only').forEach((e) => (e.hidden = !admin));
+      const pending = g.members.filter((m) => m.status === 'pending');
+      $('[data-pending]').hidden = !admin || !pending.length;
+      $('[data-pending]').textContent = `${pending.length} ${pending.length === 1 ? 'teacher is' : 'teachers are'} asking to join. Approve or remove them below.`;
+
+      const tb = $('[data-members]');
+      tb.textContent = '';
+      for (const m of g.members) {
+        const actions = el('td', { className: 'tc-row', hidden: !admin });
+        const btn = (label: string, action: string, cls = 'ghost') => {
+          const b = el('button', { type: 'button', className: `tc-btn small ${cls}`, textContent: label });
+          b.addEventListener('click', () => {
+            if (action === 'remove' && !confirm(`Remove ${m.name} from the group? Their classes leave the group too.`)) return;
+            act(`/api/groups/${id}/members/${m.id}`, { action });
+          });
+          return b;
+        };
+        if (admin && m.id !== g.me) {
+          if (m.status === 'pending') actions.append(btn('Approve', 'approve', ''));
+          else actions.append(m.role === 'admin' ? btn('Make teacher', 'make-teacher') : btn('Make admin', 'make-admin'));
+          actions.append(btn(m.status === 'pending' ? 'Decline' : 'Remove', 'remove', 'danger'));
+        }
+        const role = m.status === 'pending' ? el('span', { className: 'tc-pill warn', textContent: 'asking to join' }) : el('span', { className: `tc-pill ${m.role === 'admin' ? 'good' : ''}`, textContent: m.role });
+        tb.append(el('tr', {}, el('td', { textContent: m.id === g.me ? `${m.name} (you)` : m.name }), el('td', { textContent: m.email ?? '', hidden: !admin }), el('td', {}, role), el('td', { textContent: day(m.joined) }), actions));
+      }
+
+      $('[data-classes-help]').textContent = admin
+        ? 'Every class in the group. You can open a class\'s brief only if its teacher has shared it with the group.'
+        : 'Your classes in this group. Only the group\'s admins see the whole list.';
+      const cb = $('[data-classes]');
+      cb.textContent = '';
+      $('[data-classes-none]').hidden = g.classes.length > 0;
+      for (const c of g.classes) {
+        const brief = c.shared || c.teacherId === g.me
+          ? el('a', { href: `/teach/class/?id=${c.id}`, textContent: 'Open' })
+          : el('span', { className: 'tc-muted', textContent: 'not shared' });
+        cb.append(el('tr', {}, el('td', { textContent: c.name }), el('td', { textContent: c.teacher }), el('td', { textContent: courses[c.course] ?? c.course }),
+          el('td', { textContent: String(c.students) }), el('td', { textContent: String(c.assignments) }), el('td', {}, brief)));
+      }
+
+      if (admin) {
+        $('[data-mail-off]').hidden = g.mailOn;
+        $('[data-emails-label]').hidden = !g.mailOn;
+        const ib = $('[data-invites]');
+        ib.textContent = '';
+        for (const i of g.invites ?? []) {
+          const rv = el('button', { type: 'button', className: 'tc-btn small danger', textContent: 'Withdraw' });
+          rv.addEventListener('click', () => act(`/api/groups/${id}/invites/${i.id}`, undefined, 'DELETE'));
+          ib.append(el('tr', {}, el('td', { textContent: i.note || '—' }), el('td', { textContent: i.role }), el('td', { textContent: `${i.uses} of ${i.maxUses}` }), el('td', { textContent: day(i.expires) }), el('td', {}, rv)));
+        }
+        const f = $<HTMLFormElement>('[data-settings]');
+        (f.elements.namedItem('name') as HTMLInputElement).value = g.name;
+        (f.elements.namedItem('slug') as HTMLInputElement).value = g.slug;
+        (f.elements.namedItem('about') as HTMLTextAreaElement).value = g.about;
+        (f.elements.namedItem('emailDomain') as HTMLInputElement).value = g.emailDomain;
+        (f.elements.namedItem('defaultJoinMode') as HTMLSelectElement).value = g.defaultJoinMode;
+        $('[data-domain-note]').textContent = g.mailOn
+          ? 'Only confirmed email addresses count.'
+          : 'Email addresses can\'t be confirmed until the site\'s email is switched on, so treat this as a filter, not proof.';
+      }
+    }
+
+    $('[data-invite-form]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const v = Object.fromEntries(new FormData(f).entries()) as Record<string, string>;
+      const emails = (v.emails || '').split(/[\s,;]+/).filter(Boolean);
+      const r = await api<{ link: string; sent: number; mailOn: boolean }>(`/api/groups/${id}/invites`, { role: v.role, note: v.note, emails });
+      $('[data-inv-err]').textContent = r.ok ? '' : r.data.error || 'Could not make the link.';
+      if (!r.ok) return;
+      $('[data-inv-result]').hidden = false;
+      $<HTMLInputElement>('[data-inv-link]').value = r.data.link;
+      $('[data-inv-msg]').textContent = emails.length ? (r.data.sent ? `Emailed to ${r.data.sent}.` : 'The emails did not go out; copy the link instead.') : '';
+      f.reset();
+      load();
+    });
+    $('[data-copy]').addEventListener('click', async () => {
+      const inp = $<HTMLInputElement>('[data-inv-link]');
+      try { await navigator.clipboard.writeText(inp.value); $('[data-inv-msg]').textContent = 'Copied.'; } catch { inp.select(); }
+    });
+    $('[data-settings]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(new FormData(e.target as HTMLFormElement).entries());
+      const r = await api(`/api/groups/${id}`, v, 'PATCH');
+      $('[data-set-msg]').textContent = r.ok ? 'Saved.' : '';
+      $('[data-set-err]').textContent = r.ok ? '' : r.data.error || 'Could not save.';
+      if (r.ok) load();
+    });
+    $('[data-delete]').addEventListener('click', async () => {
+      if (!confirm('Delete this group and its page? Classes stay with their teachers.')) return;
+      const r = await api(`/api/groups/${id}`, undefined, 'DELETE');
+      if (r.ok) location.href = '/teach/classes/';
+    });
+    $('[data-leave]').addEventListener('click', async () => {
+      if (!confirm('Leave this group? Your classes leave it too.')) return;
+      const r = await api(`/api/groups/${id}/leave`, {});
+      if (r.ok) location.href = '/teach/classes/'; else alert(r.data.error || 'Could not leave.');
+    });
+
+    load();
+  </script>
+</BaseLayout>

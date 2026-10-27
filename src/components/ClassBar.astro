@@ -1,0 +1,89 @@
+---
+/**
+ * Class bar: shown at the top of a lesson only to a student who joined a teacher's
+ * class on this device (src/lib/classroom.ts). Says which class is receiving their
+ * answers, whether this lesson is assigned, and offers a stuck note. Everyone else
+ * never sees it and the page makes no request.
+ */
+interface Props { slug: string }
+const { slug } = Astro.props;
+---
+
+<aside class="classbar" data-classbar={slug} hidden aria-label="Your class">
+  <p class="cb-line">
+    <span class="cb-dot" aria-hidden="true"></span>
+    <span data-cb-text></span>
+    <a href="/join/" class="cb-link">My class →</a>
+  </p>
+  <div class="cb-notes" data-cb-notes hidden></div>
+  <details class="cb-stuck" data-cb-stuck hidden>
+    <summary>Stuck? Tell your teacher where</summary>
+    <label class="cb-label" for={`cb-stuck-${slug}`}>What part doesn't make sense yet? Your teacher reads these before class.</label>
+    <textarea id={`cb-stuck-${slug}`} rows="3" maxlength="1000" data-cb-stuck-text></textarea>
+    <p class="cb-row"><button type="button" class="cb-btn" data-cb-stuck-send>Send</button><span class="cb-note" data-cb-stuck-note role="status"></span></p>
+  </details>
+</aside>
+
+<script>
+  import { enrolled, setEnrolled, api, report, lessonFeedback } from '../lib/classroom';
+
+  document.querySelectorAll<HTMLElement>('[data-classbar]').forEach(async (bar) => {
+    const slug = bar.dataset.classbar!;
+    if (!enrolled()) return;
+    const r = await api<{ nickname: string; className: string; teacherName: string; pending: boolean; assignments: { slug: string; due: string | null }[]; done: string[]; stuck?: string }>(`/api/student/me?lesson=${encodeURIComponent(slug)}`);
+    if (r.status === 401) { setEnrolled(null); return; }
+    if (!r.ok) return;
+    const d = r.data;
+    const text = bar.querySelector<HTMLElement>('[data-cb-text]')!;
+    const a = d.assignments.find((x) => x.slug === slug);
+    const due = a?.due ? `, due ${new Date(a.due + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}` : '';
+    text.textContent = d.pending
+      ? `You asked to join ${d.className} as ${d.nickname}. Your teacher hasn't let you in yet, so nothing is being sent.`
+      : `${d.className}: your answers go to ${d.teacherName} as ${d.nickname}.${a ? ` This lesson is assigned${due}.` : ''}`;
+    bar.hidden = false;
+    const stuck = bar.querySelector<HTMLDetailsElement>('[data-cb-stuck]')!;
+    if (d.pending) return;
+    // Notes the teacher wrote about this lesson (free, no AI), newest first.
+    lessonFeedback(slug).then((list) => {
+      const notes = list.filter((f) => f.kind === 'note' || f.kind === 'stuck');
+      const box = bar.querySelector<HTMLElement>('[data-cb-notes]')!;
+      box.hidden = !notes.length;
+      for (const n of notes) {
+        const p = document.createElement('p');
+        p.className = 'cb-note-item';
+        const b = document.createElement('strong');
+        b.textContent = `${d.teacherName}: `;
+        p.append(b, n.text);
+        box.append(p);
+      }
+    });
+    stuck.hidden = false;
+    const ta = bar.querySelector<HTMLTextAreaElement>('[data-cb-stuck-text]')!;
+    const note = bar.querySelector<HTMLElement>('[data-cb-stuck-note]')!;
+    if (d.stuck) { ta.value = d.stuck; stuck.open = false; note.textContent = 'Sent earlier. You can change it.'; }
+    bar.querySelector('[data-cb-stuck-send]')!.addEventListener('click', () => {
+      if (!ta.value.trim()) { note.textContent = 'Write a sentence or two first.'; return; }
+      report(slug, 'stuck', { text: ta.value });
+      note.textContent = 'Sent to your teacher.';
+    });
+  });
+</script>
+
+<style>
+  .classbar { margin: 0 0 var(--ddp-space-5); padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid color-mix(in srgb, var(--ddp-color-verified) 45%, var(--ddp-color-line)); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-verified-soft); font-size: var(--ddp-text-sm); }
+  .classbar[hidden] { display: none; }
+  .cb-line { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: var(--ddp-space-2) var(--ddp-space-3); margin: 0; color: var(--ddp-color-ink); }
+  .cb-dot { width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--ddp-color-verified); }
+  .cb-link { color: var(--ddp-color-accent); font-weight: 600; white-space: nowrap; }
+  .cb-notes { margin-top: var(--ddp-space-2); }
+  .cb-notes[hidden] { display: none; }
+  .cb-notes :global(.cb-note-item) { margin: var(--ddp-space-1, .25rem) 0 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: var(--ddp-color-surface); border-radius: 6px; line-height: 1.5; }
+  .cb-stuck { margin-top: var(--ddp-space-2); }
+  .cb-stuck[hidden] { display: none; }
+  .cb-stuck summary { cursor: pointer; color: var(--ddp-color-accent); font-weight: 600; }
+  .cb-label { display: block; margin: var(--ddp-space-2) 0; color: var(--ddp-color-ink-soft); }
+  .cb-stuck textarea { width: 100%; box-sizing: border-box; font: inherit; padding: var(--ddp-space-2); border: 1px solid var(--ddp-color-line); border-radius: 6px; background: var(--ddp-color-surface); }
+  .cb-row { display: flex; align-items: center; gap: var(--ddp-space-3); margin: var(--ddp-space-2) 0 0; }
+  .cb-btn { min-height: 40px; padding: 0.3em 1em; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; border: 0; background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+  .cb-note { color: var(--ddp-color-verified); }
+</style>

@@ -22,8 +22,17 @@ const more = games.slice(1);
 const review = unitReviewFor(slug);
 ---
 
-<section class="finish" aria-labelledby="finish-h">
+<section class="finish" aria-labelledby="finish-h" data-finish={slug}>
   <h2 class="fl-label" id="finish-h"><span>Finish line</span></h2>
+  {/* Progress is remembered on this device only (src/lib/progress.ts). Without
+      JavaScript or storage the row stays hidden and nothing else changes. */}
+  <div class="fl-done" data-done-row hidden>
+    <button type="button" class="fl-done-btn" data-done-btn aria-pressed="false">
+      <span class="fl-done-box" aria-hidden="true"></span>
+      <span data-done-label>Mark this lesson done</span>
+    </button>
+    <span class="fl-done-note">Saved on this device. <a href="/progress/">Your progress →</a></span>
+  </div>
   <div class="fl-grid">
     {qCount > 0 && (
       <div class="fl-card fl-test">
@@ -80,8 +89,54 @@ const review = unitReviewFor(slug);
   )}
 </section>
 
+<script>
+  import { load, markVisited, setDone, onChange } from '../lib/progress';
+  import { report } from '../lib/classroom';
+
+  document.querySelectorAll<HTMLElement>('[data-finish]').forEach((root) => {
+    const slug = root.getAttribute('data-finish')!;
+    const row = root.querySelector<HTMLElement>('[data-done-row]');
+    const btn = root.querySelector<HTMLButtonElement>('[data-done-btn]');
+    const label = root.querySelector<HTMLElement>('[data-done-label]');
+    markVisited(slug);
+    if (!row || !btn || !label) return;
+    row.hidden = false;
+    onChange(() => {
+      const done = !!load().lessons[slug]?.d;
+      btn.setAttribute('aria-pressed', String(done));
+      label.textContent = done ? 'Done. Click to undo' : 'Mark this lesson done';
+    });
+    btn.addEventListener('click', () => {
+      const done = btn.getAttribute('aria-pressed') !== 'true';
+      setDone(slug, done);
+      report(slug, 'done', { done });
+    });
+  });
+</script>
+
 <style>
   .finish { margin-top: var(--ddp-space-12); }
+  .fl-done {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3);
+    margin: 0 0 var(--ddp-space-4);
+  }
+  .fl-done[hidden] { display: none; }
+  .fl-done-btn {
+    display: inline-flex; align-items: center; gap: 0.6em; min-height: 44px; padding: 0.45em 1em;
+    font: inherit; font-size: var(--ddp-text-sm); font-weight: 600; cursor: pointer;
+    color: var(--ddp-color-ink); background: var(--ddp-color-surface);
+    border: 1.5px solid var(--ddp-color-line); border-radius: 999px;
+  }
+  .fl-done-btn:hover { border-color: var(--ddp-color-verified); }
+  .fl-done-box {
+    width: 1.1em; height: 1.1em; border-radius: 4px; border: 2px solid var(--ddp-color-muted);
+    display: inline-grid; place-items: center; flex: none;
+  }
+  .fl-done-btn[aria-pressed='true'] { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
+  .fl-done-btn[aria-pressed='true'] .fl-done-box { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified); }
+  .fl-done-btn[aria-pressed='true'] .fl-done-box::after { content: '✓'; color: #fff; font-size: 0.8em; font-weight: 700; line-height: 1; }
+  .fl-done-note { font-size: var(--ddp-text-sm); color: var(--ddp-color-muted); }
+  .fl-done-note a { color: var(--ddp-color-accent); }
   .fl-label {
     display: flex; align-items: center; gap: var(--ddp-space-3);
     margin: 0 0 var(--ddp-space-4);

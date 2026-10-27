@@ -7,6 +7,9 @@ import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
 import SpotifyEmbed from '../../components/SpotifyEmbed.astro';
 import LectureSlides from '../../components/LectureSlides.astro';
 import QuizBlock from '../../components/QuizBlock.astro';
+import ClassBar from '../../components/ClassBar.astro';
+import DesignAnswer from '../../components/DesignAnswer.astro';
+import { anchorsFor } from '../../lib/quiz-anchors';
 import SourcesFooter from '../../components/SourcesFooter.astro';
 import AnecdoteAnimation from '../../components/AnecdoteAnimation.astro';
 import FinishLine from '../../components/FinishLine.astro';
@@ -48,7 +51,7 @@ const nextNav = navOf(allLessons[lessonIdx + 1]);
 const games = LESSON_GAMES[entry.data.slug] ?? [];
 const unitReview = unitReviewFor(entry.data.slug);
 const GAME_CODES: Record<string, string> = { ledger: 'LR', autopsy: 'MA', wire: 'WC', foundry: 'FF', mixing: 'MB', gauntlet: 'MG' };
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const lesson = entry.data;
 const lessonFigures = [...(entry.body ?? '').matchAll(/<(?:LessonFigure|ScaffoldFigure)\s[^>]*?src="([^"]+)"[^>]*?alt="([^"]+)"/g)].map((m) => ({ src: m[1], alt: m[2] }));
 const course = courseOf(lesson.course);
@@ -68,6 +71,7 @@ const localSims = lesson.simulations.filter((s) => s.type === 'local');
 const localSimNames = localSims.map((s) => s.title.split('(')[0].trim());
 const hasQuiz = lesson.practiceQuestions.length > 0 || lesson.mcatQuestions.length > 0;
 const qCount = lesson.practiceQuestions.length + lesson.mcatQuestions.length;
+const quizAnchors = hasQuiz ? anchorsFor(entry.body ?? '', headings, [...lesson.practiceQuestions, ...lesson.mcatQuestions]) : [];
 const narratedSlides = lesson.lectureSlides.filter((s) => s.audio).length;
 // Slides without a recording, counted separately so no count calls a silent
 // slide "narrated".
@@ -90,8 +94,8 @@ const lessonLd = {
   '@type': 'LearningResource',
   name: lesson.title,
   description: lesson.summary,
-  educationalLevel: isHighSchool ? (course.ladderStep === 1 ? 'middle school' : 'high school') : 'undergraduate',
-  learningResourceType: 'interactive lesson',
+  educationalLevel: course.tier === 'families' ? 'primary school (ages 5 to 10), for parents and teachers' : isHighSchool ? (course.ladderStep === 1 ? 'middle school' : 'high school') : 'undergraduate',
+  learningResourceType: course.tier === 'families' ? 'hands-on activity guide' : 'interactive lesson',
   inLanguage: 'en',
   about: lesson.courseChapter,
   isPartOf: { '@type': 'Course', name: course.slug === 'biochemistry' ? 'Biochemistrypedia' : course.title, provider: { '@type': 'Person', name: 'Christopher Deppmann' } },
@@ -101,6 +105,8 @@ const lessonLd = {
 <BaseLayout title={`${lesson.title} — Biochemistrypedia`} description={lesson.summary} ogType="article" jsonLd={lessonLd}>
   <article id="top">
     <header class="lesson-hero wrap">
+      <ClassBar slug={lesson.slug} />
+      <DesignAnswer />
       {lesson.draft && (
         <p class="draft-banner" role="note">
           Draft. Visible only in local preview, and not yet reviewed by a person.
@@ -483,7 +489,7 @@ const lessonLd = {
     {hasQuiz && (
       <dialog id="lb-quiz" class="lightbox lock-scroll">
         <div class="lightbox-head"><span>Test yourself</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-        <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} /></div>
+        <div class="lightbox-body"><QuizBlock practice={lesson.practiceQuestions} mcat={lesson.mcatQuestions} slug={lesson.slug} anchors={quizAnchors} /></div>
       </dialog>
     )}
 

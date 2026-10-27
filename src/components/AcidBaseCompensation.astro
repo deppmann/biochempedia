@@ -1,0 +1,271 @@
+---
+/**
+ * AcidBaseCompensation — "The open buffer". One idea: pH follows the ratio of bicarbonate to
+ * dissolved CO2, and only a system open to CO2 can change the denominator. A one-compartment
+ * plasma sketch: pH = 6.1 + log10(HCO3- / (0.03 x pCO2)), [H+] = 10^(9 - pH) nmol/L, and a
+ * mass balance for a non-volatile acid load. Open: the load removes that much bicarbonate and
+ * the gas phase holds pCO2, so dissolved CO2 is unchanged. Closed: total CO2 in the sample is
+ * held, so the same amount of dissolved CO2 is added. Controls: pCO2, bicarbonate, open or
+ * closed, acid load. Self-contained vanilla-TS Astro island. Original.
+ */
+---
+
+<figure class="obf card" data-obf>
+  <figcaption class="obf-head">The open buffer — same acid, open or closed<span class="obf-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="obf-svg" viewBox="0 0 340 230" role="img" aria-label="A labelled schematic of a plasma sample receiving an acid load, either open to a gas phase that holds pCO2 or sealed, above log-scale bars of bicarbonate and dissolved CO2 in mmol per litre before and after the load" data-plot></svg>
+
+  <div class="obf-controls">
+    <label class="obf-slabel"><span>pCO<sub>2</sub> before the load <em data-out="pco2">40</em> mmHg</span>
+      <input type="range" data-in="pco2" min="20" max="80" step="1" value="40" />
+    </label>
+    <label class="obf-slabel"><span>Bicarbonate before the load <em data-out="hco3">24</em> mmol/L</span>
+      <input type="range" data-in="hco3" min="5" max="40" step="1" value="24" />
+    </label>
+    <label class="obf-slabel"><span>Non-volatile acid load <em data-out="load">10</em> mmol/L</span>
+      <input type="range" data-in="load" min="0" max="20" step="1" value="10" />
+    </label>
+    <fieldset class="obf-mode">
+      <legend>The sample is</legend>
+      <label class="obf-radio"><input type="radio" name="obf-mode-0" value="open" data-in="mode" checked /> <span>open to CO<sub>2</sub></span></label>
+      <label class="obf-radio"><input type="radio" name="obf-mode-0" value="closed" data-in="mode" /> <span>closed to CO<sub>2</sub></span></label>
+    </fieldset>
+  </div>
+
+  <dl class="obf-readout">
+    <div><dt>pH</dt><dd><b data-v="ph"></b><span data-a="ph"></span></dd></div>
+    <div><dt>[H⁺], nmol/L</dt><dd><b data-v="h"></b><span data-a="h"></span></dd></div>
+    <div><dt>HCO₃⁻ to dissolved CO₂ ratio</dt><dd><b data-v="ratio"></b><span data-a="ratio"></span></dd></div>
+    <div><dt>Bicarbonate, mmol/L</dt><dd><b data-v="b"></b><span data-a="b"></span></dd></div>
+    <div><dt>Dissolved CO₂, mmol/L</dt><dd><b data-v="d"></b><span data-a="d"></span></dd></div>
+    <div><dt>pCO₂ (dissolved CO₂ ÷ 0.03), mmHg</dt><dd><b data-v="p"></b><span data-a="p"></span></dd></div>
+    <div class="obf-wide"><dt>Same load, the other way</dt><dd><b data-v="other"></b><span data-a="other"></span></dd></div>
+  </dl>
+  <p class="obf-arith" data-arith></p>
+  <p class="obf-why" data-why role="status"></p>
+
+  <p class="obf-assume">In this sketch: one made-up compartment of human plasma at 37 C with no hemoglobin, protein, phosphate, cell or bone buffering and no renal response, so it shows direction and rough size and no more. pH = 6.1 + log10(HCO₃⁻ / (0.03 × pCO₂)) with the lesson’s pK of 6.1 and CO₂ solubility of 0.03 mmol/L per mmHg, and [H⁺] = 10^(9 − pH) nmol/L. The acid load takes bicarbonate away mmol for mmol. Open: the gas phase holds pCO₂, so dissolved CO₂ stays where it was. Closed: total CO₂ in the sample (bicarbonate plus dissolved CO₂) stays constant, so dissolved CO₂ rises by the amount of bicarbonate lost. Made up for the sketch: the slider ranges, the starting values you choose, and a floor of 1 mmol/L of bicarbonate (the logarithm fails at zero), so a load is capped at 1 mmol/L below the starting bicarbonate. The equation is applied across the whole slider range without checking that plasma could sit there, and the sketch gives no interpretation, classification or reference range.</p>
+  <p class="obf-foot">Rule to keep: pH follows the ratio of bicarbonate to dissolved CO₂, not either number alone; added acid lowers the numerator either way, but only a system open to CO₂ keeps the denominator from climbing.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const ACCENT = '#0e7c86', CO2C = '#b85a00', INK = '#4b4b55', DARK = '#2b2b33';
+  const PK = 6.1, SOL = 0.03, FLOOR = 1;
+  const SUB2 = '₂', SUB3 = '₃', MINUSUP = '⁻', MINUS = '−', DOT = '·';
+
+  function el(name: string, attrs: Record<string, string | number>): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+  function need<T extends Element>(root: ParentNode, sel: string): T {
+    const e = root.querySelector<T>(sel);
+    if (!e) throw new Error('AcidBaseCompensation: missing ' + sel);
+    return e;
+  }
+  const f0 = (x: number) => x.toFixed(0);
+  const f1 = (x: number) => x.toFixed(1);
+  const f2 = (x: number) => x.toFixed(2);
+  const sl = (l: number) => (l < 0 ? MINUS : '') + f2(Math.abs(l));
+  const sumLog = (l: number) => (l < 0 ? '6.1 ' + MINUS + ' ' + f2(-l) : '6.1 + ' + f2(l));
+  const num = (x: number) => (Math.abs(x - Math.round(x)) < 0.005 ? f0(x) : f1(x));
+  const hfmt = (h: number) => (h >= 10 ? f0(h) : h >= 1 ? f1(h) : f2(h));
+  const rfmt = (r: number) => (r < 1 ? f2(r) : r < 100 ? f1(r) : f0(r));
+  const r2 = (x: number) => Math.round(x * 100) / 100;
+
+  type State = { b: number; d: number; p: number; ph: number; h: number; ratio: number };
+  function calc(b: number, d: number): State {
+    const ratio = b / d;
+    const ph = PK + Math.log10(ratio);
+    return { b, d, p: d / SOL, ph, ratio, h: Math.pow(10, 9 - ph) };
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-obf]').forEach((root) => {
+    const plot = need<SVGSVGElement>(root, '[data-plot]');
+    const inp = (n: string) => need<HTMLInputElement>(root, `[data-in="${n}"]`);
+    const pcoIn = inp('pco2'), hcoIn = inp('hco3'), loadIn = inp('load');
+    const modeIns = Array.from(root.querySelectorAll<HTMLInputElement>('[data-in="mode"]'));
+    const out = (n: string) => need<HTMLElement>(root, `[data-out="${n}"]`);
+    const pcoOut = out('pco2'), hcoOut = out('hco3'), loadOut = out('load');
+    const v = (n: string) => need<HTMLElement>(root, `[data-v="${n}"]`);
+    const a = (n: string) => need<HTMLElement>(root, `[data-a="${n}"]`);
+    const arith = need<HTMLElement>(root, '[data-arith]');
+    const why = need<HTMLElement>(root, '[data-why]');
+
+    // log axis, mmol/L
+    const X0 = 76, X1 = 332, VMIN = 0.2, VMAX = 50;
+    const dec = Math.log10(VMAX / VMIN);
+    const bx = (val: number) => X0 + (Math.log10(val / VMIN) / dec) * (X1 - X0);
+
+    function txt(x: number, y: number, s: string, extra: Record<string, string | number> = {}) {
+      const t = el('text', Object.assign({ x, y, 'font-size': 9.5, fill: INK }, extra));
+      t.textContent = s;
+      plot.appendChild(t);
+      return t;
+    }
+
+    function bars(y: number, st: State, ghost: State | null, solid: boolean) {
+      const H = 11;
+      const yB = y, yD = y + 15;
+      const tag = (yy: number, s: string) => txt(4, yy + 9, s, { fill: INK });
+      tag(yB, 'HCO' + SUB3 + MINUSUP);
+      tag(yD, 'dissolved CO' + SUB2);
+      const fillB = solid ? ACCENT : '#7fb7bc', fillD = solid ? CO2C : '#d9a06b';
+      plot.appendChild(el('rect', { x: X0, y: yB, width: Math.max(1, bx(st.b) - X0), height: H, fill: fillB }));
+      plot.appendChild(el('rect', { x: X0, y: yD, width: Math.max(1, bx(st.d) - X0), height: H, fill: fillD }));
+      txt(X0 + 4, yB + 9, num(st.b), { fill: solid ? '#fff' : DARK, 'font-weight': 700 });
+      txt(X0 + 4, yD + 9, st.d < 10 ? f2(st.d) : num(st.d), { fill: solid ? '#fff' : DARK, 'font-weight': 700 });
+      // bracket: its length is log10 of the ratio, which is pH minus 6.1
+      const xa = bx(Math.min(st.b, st.d)), xb = bx(Math.max(st.b, st.d));
+      plot.appendChild(el('line', { x1: xa, y1: yB + H + 2, x2: xb, y2: yB + H + 2, stroke: DARK, 'stroke-width': 1.6 }));
+      if (ghost) {
+        const g = el('rect', { x: X0, y: yD, width: Math.max(1, bx(ghost.d) - X0), height: H, fill: 'none', stroke: DARK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' });
+        plot.appendChild(g);
+      }
+    }
+
+    function render() {
+      const p0 = parseInt(pcoIn.value, 10);
+      const b0 = parseInt(hcoIn.value, 10);
+      const L = parseInt(loadIn.value, 10);
+      const closed = modeIns.some((m) => m.checked && m.value === 'closed');
+      pcoOut.textContent = String(p0);
+      hcoOut.textContent = String(b0);
+      loadOut.textContent = String(L);
+
+      const cap = Math.max(0, b0 - FLOOR);
+      const applied = Math.min(L, cap);
+      const capped = applied < L;
+      const d0 = SOL * p0;
+      const before = calc(b0, d0);
+      const open = calc(b0 - applied, d0);
+      const sealed = calc(b0 - applied, d0 + applied);
+      const now = closed ? sealed : open;
+      const other = closed ? open : sealed;
+
+      // ---- SVG ----
+      plot.replaceChildren();
+      // schematic: acid, sample, gas phase or wall
+      if (applied > 0) {
+        txt(4, 25, '+' + num(applied) + ' mmol/L', { 'font-weight': 700 });
+        txt(4, 36, 'acid');
+        plot.appendChild(el('line', { x1: 66, y1: 26, x2: 92, y2: 26, stroke: INK, 'stroke-width': 1.8 }));
+        plot.appendChild(el('path', { d: 'M92 21 L99 26 L92 31 Z', fill: INK }));
+      } else {
+        txt(4, 30, 'no acid added');
+      }
+      plot.appendChild(el('rect', { x: 100, y: 8, width: 98, height: 36, rx: 4, fill: '#eef7f8', stroke: ACCENT, 'stroke-width': 1.4 }));
+      txt(149, 24, 'plasma sample', { 'text-anchor': 'middle', 'font-weight': 700 });
+      txt(149, 36, 'one compartment', { 'text-anchor': 'middle', 'font-size': 9 });
+      if (!closed) {
+        plot.appendChild(el('line', { x1: 206, y1: 26, x2: 232, y2: 26, stroke: INK, 'stroke-width': 1.8, 'stroke-dasharray': '4 2' }));
+        plot.appendChild(el('path', { d: 'M200 26 L207 21 L207 31 Z', fill: INK }));
+        plot.appendChild(el('path', { d: 'M238 26 L231 21 L231 31 Z', fill: INK }));
+        plot.appendChild(el('rect', { x: 240, y: 8, width: 94, height: 36, rx: 4, fill: '#fafafa', stroke: INK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+        txt(287, 24, 'gas phase', { 'text-anchor': 'middle', 'font-weight': 700 });
+        txt(287, 36, 'pCO' + SUB2 + ' held at ' + p0, { 'text-anchor': 'middle', 'font-size': 9 });
+      } else {
+        plot.appendChild(el('rect', { x: 198, y: 6, width: 7, height: 40, fill: DARK }));
+        txt(214, 24, 'sealed', { 'font-weight': 700 });
+        txt(214, 36, 'CO' + SUB2 + ' stays in');
+      }
+
+      // bars, before and after
+      txt(4, 64, 'Before the load', { 'font-weight': 700 });
+      bars(69, before, null, false);
+      txt(4, 108, 'ratio ' + rfmt(before.ratio) + '  ' + DOT + '  log₁₀ ' + sl(Math.log10(before.ratio)) + '  ' + DOT + '  pH ' + sumLog(Math.log10(before.ratio)) + ' = ' + f2(before.ph));
+
+      txt(4, 128, 'After the load, ' + (closed ? 'closed to CO' + SUB2 : 'open to CO' + SUB2), { 'font-weight': 700 });
+      bars(133, now, other, true);
+      txt(4, 172, 'ratio ' + rfmt(now.ratio) + '  ' + DOT + '  log₁₀ ' + sl(Math.log10(now.ratio)) + '  ' + DOT + '  pH ' + sumLog(Math.log10(now.ratio)) + ' = ' + f2(now.ph));
+
+      // axis
+      plot.appendChild(el('line', { x1: X0, y1: 180, x2: X1, y2: 180, stroke: INK, 'stroke-width': 1 }));
+      for (const t of [0.5, 1, 2, 5, 10, 20, 40]) {
+        plot.appendChild(el('line', { x1: bx(t), y1: 180, x2: bx(t), y2: 184, stroke: INK, 'stroke-width': 1 }));
+        txt(bx(t), 194, String(t), { 'text-anchor': 'middle', 'font-size': 9 });
+      }
+      txt((X0 + X1) / 2, 206, 'mmol/L, log scale (a bracket’s length is log₁₀ of the ratio)', { 'text-anchor': 'middle' });
+      // legend
+      plot.appendChild(el('rect', { x: 4, y: 214, width: 16, height: 9, fill: 'none', stroke: DARK, 'stroke-width': 1.2, 'stroke-dasharray': '3 2' }));
+      txt(25, 222, 'dashed outline: dissolved CO' + SUB2 + ' if the same load were ' + (closed ? 'open' : 'closed'), { 'font-size': 9 });
+
+      // ---- readouts ----
+      v('ph').textContent = f2(now.ph);
+      a('ph').textContent = ' (was ' + f2(before.ph) + ')';
+      v('h').textContent = hfmt(now.h);
+      a('h').textContent = ' (was ' + hfmt(before.h) + ')';
+      v('ratio').textContent = rfmt(now.ratio);
+      a('ratio').textContent = ' (was ' + rfmt(before.ratio) + ')';
+      v('b').textContent = num(now.b);
+      a('b').textContent = ' (was ' + num(before.b) + ')';
+      v('d').textContent = f2(now.d);
+      a('d').textContent = ' (was ' + f2(before.d) + ')';
+      v('p').textContent = f0(now.p);
+      a('p').textContent = ' (was ' + f0(before.p) + ')';
+      v('other').textContent = 'pH ' + f2(other.ph);
+      a('other').textContent = closed ? ' open, dissolved CO₂ ' + f2(other.d) : ' closed, dissolved CO₂ ' + f2(other.d);
+
+      arith.textContent = 'pH = 6.1 + log₁₀(' + num(now.b) + ' ÷ ' + f2(now.d) + ') = ' + sumLog(Math.log10(now.ratio)) + ' = ' + f2(now.ph)
+        + '   ' + DOT + '   [H⁺] = 10^(9 ' + MINUS + ' ' + f2(now.ph) + ') = ' + hfmt(now.h) + ' nmol/L';
+
+      // ---- status ----
+      const phB = f2(before.ph), phN = f2(now.ph);
+      let s: string;
+      if (applied === 0) {
+        s = 'In this sketch, with no acid added the open and the closed sample are the same: bicarbonate ' + num(b0) + ' mmol/L over dissolved CO₂ ' + f2(d0)
+          + ' mmol/L (0.03 × ' + p0 + ' mmHg) is a ratio of ' + rfmt(before.ratio) + ', so pH = ' + phB + '. Add acid to see them part.';
+        
+      } else {
+        const gap = r2(open.ph) - r2(sealed.ph);
+        const gapTxt = gap < 0.005 ? 'about the same' : f2(gap) + ' units ' + (closed ? 'higher' : 'lower');
+        if (!closed) {
+          s = 'In this sketch the sample is open: ' + num(applied) + ' mmol/L of acid turns that much bicarbonate into CO₂, the gas phase takes the CO₂ formed and holds pCO₂ at ' + p0
+            + ' mmHg, so dissolved CO₂ stays at ' + f2(d0) + ' while bicarbonate falls from ' + num(b0) + ' to ' + num(open.b) + ', and pH falls from ' + phB + ' to ' + phN
+            + '. Closed, the same load would give pH ' + f2(sealed.ph) + (gap < 0.005 ? ', about the same.' : ', ' + f2(gap) + ' units lower.');
+        } else {
+          s = 'In this sketch the sample is closed: ' + num(applied) + ' mmol/L of acid turns that much bicarbonate into CO₂ that cannot leave, so bicarbonate falls from ' + num(b0) + ' to ' + num(sealed.b)
+            + ', dissolved CO₂ rises from ' + f2(d0) + ' to ' + f2(sealed.d) + ' (the pCO₂ it corresponds to rises from ' + p0 + ' to ' + f0(sealed.p) + ' mmHg), and pH falls from ' + phB + ' to ' + phN
+            + '. Open, the same load would leave dissolved CO₂ at ' + f2(d0) + ' and give pH ' + f2(open.ph) + (gap < 0.005 ? ', about the same.' : ', ' + gapTxt + '.');
+        }
+        if (capped) s += ' Your load of ' + L + ' mmol/L is capped at ' + num(cap) + ' mmol/L in this sketch, 1 mmol/L below the starting bicarbonate.';
+      }
+      if (r2(now.ph) < 6.2) s += ' Below the lowest pH the lesson works (6.20); this sketch only extends the equation here.';
+      why.textContent = s;
+    }
+
+    [pcoIn, hcoIn, loadIn, ...modeIns].forEach((c) => {
+      c.addEventListener('input', render);
+      c.addEventListener('change', render);
+    });
+    render();
+  });
+</script>
+
+<style>
+  .obf { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .obf-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .obf-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .obf-svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .obf-controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2) var(--ddp-space-4); margin: var(--ddp-space-3) 0 var(--ddp-space-2); }
+  .obf-slabel { display: flex; flex-direction: column; gap: 0.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .obf-slabel em { font-style: normal; font-weight: 700; color: var(--ddp-color-accent); font-family: var(--ddp-font-mono); }
+  .obf-slabel input { accent-color: var(--ddp-color-accent); }
+  .obf-mode { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .obf-mode legend { padding: 0; margin-bottom: 0.15rem; }
+  .obf-radio { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  .obf-radio input { accent-color: var(--ddp-color-accent); margin: 0; }
+  .obf-readout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ddp-space-2); margin: var(--ddp-space-2) 0; padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; }
+  .obf-readout div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .obf-wide { grid-column: 1 / -1; }
+  .obf-readout dt { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .obf-readout dd { margin: 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); }
+  .obf-readout dd b { font-weight: 700; }
+  .obf-readout dd span { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); font-weight: 400; }
+  .obf-arith { margin: 0 0 var(--ddp-space-2); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
+  .obf-why { margin: 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); line-height: 1.5; min-height: 6em; }
+  .obf-assume { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.45; }
+  .obf-foot { margin: var(--ddp-space-3) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+  @media (max-width: 520px) { .obf-controls { grid-template-columns: 1fr; } }
+</style>

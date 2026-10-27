@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { discreteItems, CATEGORY } from '../../lib/mcat';
+
+// Which lessons hold MCAT-style questions on each topic; the questions themselves are
+// fetched from each lesson's /quiz/<slug>.json when a practice round starts.
+const items = await discreteItems();
+const index: Record<string, string[]> = {};
+for (const d of items) (index[d.topic] ??= []).includes(d.slug) || index[d.topic].push(d.slug);
+const topics = Object.keys(index).sort();
+const names = Object.fromEntries(topics.map((t) => [t, CATEGORY[t] ?? t]));
+---
+
+<BaseLayout title="MCAT topic practice — Biochemistrypedia" description="Ten original MCAT-style questions at a time from one topic, each linked to the lesson that teaches it.">
+  <article class="wrap tc mpr" data-mpr data-index={JSON.stringify(index)} data-names={JSON.stringify(names)}>
+    <p class="tc-eyebrow"><a href="/mcat/">MCAT practice</a> · Topic practice</p>
+    <h1>Topic practice</h1>
+    <p class="tc-lede">Pick a topic for ten questions. These are the stand-alone kind; for passages with data, use the <a href="/mcat/">passage sets</a>.</p>
+    <p class="tc-row" style="margin-top: var(--ddp-space-4)">
+      <label>Topic <select data-topic>{topics.map((t) => <option value={t}>{t} · {names[t]}</option>)}</select></label>
+      <button type="button" class="tc-btn" data-start>Start ten questions</button>
+    </p>
+    <p class="tc-muted" data-status role="status"></p>
+    <div data-round></div>
+  </article>
+
+  <script>
+    import { recordFirstTry } from '../../lib/progress';
+
+    interface Item { id: string; mcat: boolean; stem: string; choices: string[]; answer: number; rationale: string; anchor: { id: string; text: string } | null }
+    const root = document.querySelector<HTMLElement>('[data-mpr]')!;
+    const index: Record<string, string[]> = JSON.parse(root.dataset.index!);
+    const sel = root.querySelector<HTMLSelectElement>('[data-topic]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const round = root.querySelector<HTMLElement>('[data-round]')!;
+    const want = new URLSearchParams(location.search).get('topic');
+    if (want && index[want]) sel.value = want;
+    const shuffle = <T,>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+
+    async function start() {
+      round.textContent = '';
+      status.textContent = 'Loading…';
+      const slugs = shuffle([...index[sel.value]]).slice(0, 8);
+      const files = await Promise.all(slugs.map((s) => fetch(`/quiz/${s}.json`).then((r) => r.json()).catch(() => null)));
+      const pool = files.flatMap((f) => (f ? f.items.filter((i: Item) => i.mcat).map((i: Item) => ({ ...i, slug: f.slug, title: f.title })) : []));
+      const picked = shuffle(pool).slice(0, 10);
+      status.textContent = `${picked.length} questions. Answer each, then read why.`;
+      let right = 0, done = 0;
+      picked.forEach((q, n) => {
+        const box = el('div', 'mq');
+        box.append(el('p', 'mq-stem', `${n + 1}. ${q.stem}`));
+        const ul = el('ul', 'mq-choices');
+        const fb = el('div', 'mq-feedback');
+        fb.hidden = true;
+        q.choices.forEach((c: string, ci: number) => {
+          const li = el('li');
+          const b = el('button', 'mq-choice');
+          b.type = 'button';
+          b.append(el('span', 'mq-letter', 'ABCD'[ci]), el('span', '', c));
+          b.addEventListener('click', () => {
+            if (box.dataset.locked) return;
+            box.dataset.locked = '1';
+            const ok = ci === q.answer;
+            ul.querySelectorAll('button').forEach((x, xi) => { (x as HTMLButtonElement).disabled = true; if (xi === q.answer) x.classList.add('is-correct'); if (xi === ci && !ok) x.classList.add('is-wrong'); });
+            recordFirstTry(q.id, q.slug, ok);
+            fb.hidden = false;
+            fb.append(el('p', `mq-verdict ${ok ? 'is-correct' : 'is-wrong'}`, ok ? '✓ Correct' : `✗ Not quite. The answer is ${'ABCD'[q.answer]}.`), el('p', '', q.rationale));
+            const a = el('a', '', q.anchor ? `Review: ${q.anchor.text} →` : `Review: ${q.title} →`) as HTMLAnchorElement;
+            a.href = `/lessons/${q.slug}/${q.anchor ? `#${q.anchor.id}` : ''}`;
+            fb.append(el('p', 'mq-meta'));
+            fb.lastElementChild!.append(a);
+            done++; if (ok) right++;
+            if (done === picked.length) status.textContent = `${right} of ${picked.length} right. Misses are in your review queue.`;
+          });
+          li.append(b);
+          ul.append(li);
+        });
+        box.append(ul, fb);
+        round.append(box);
+      });
+    }
+    root.querySelector('[data-start]')!.addEventListener('click', start);
+    if (want) start();
+  </script>
+
+  <style is:global>
+    @import '../../styles/teach.css';
+    .mpr .mq { margin: var(--ddp-space-6) 0; max-width: 760px; }
+    .mpr .mq-stem { line-height: 1.55; margin: 0 0 var(--ddp-space-3); }
+    .mpr .mq-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ddp-space-2); }
+    .mpr .mq-choice { width: 100%; display: flex; gap: var(--ddp-space-3); text-align: left; padding: var(--ddp-space-3) var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm, 8px); background: var(--ddp-color-surface); color: var(--ddp-color-ink); font: inherit; font-size: var(--ddp-text-sm); cursor: pointer; }
+    .mpr .mq-choice:hover:not(:disabled) { border-color: var(--ddp-color-accent); }
+    .mpr .mq-letter { font-family: var(--ddp-font-mono); font-weight: 700; color: var(--ddp-color-muted); }
+    .mpr .mq-choice.is-correct { border-color: var(--ddp-color-verified); background: var(--ddp-color-verified-soft); }
+    .mpr .mq-choice.is-wrong { border-color: #c0392b; background: #fcebe9; }
+    .mpr .mq-feedback { margin-top: var(--ddp-space-3); padding-top: var(--ddp-space-3); border-top: 1px dashed var(--ddp-color-line); font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .mpr .mq-verdict { font-weight: 700; }
+    .mpr .mq-verdict.is-correct { color: var(--ddp-color-verified); }
+    .mpr .mq-verdict.is-wrong { color: #c0392b; }
+    .mpr .mq-meta a { color: var(--ddp-color-accent); font-weight: 600; }
+  </style>
+</BaseLayout>

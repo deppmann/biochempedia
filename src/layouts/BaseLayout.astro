@@ -11,8 +11,10 @@ interface Props {
   ogType?: string;
   /** Optional page-specific JSON-LD (e.g. a LearningResource for a lesson). */
   jsonLd?: Record<string, unknown>;
+  /** Keep the page out of search results (account and class pages). */
+  noindex?: boolean;
 }
-const { title, description, ogType = 'website', jsonLd } = Astro.props;
+const { title, description, ogType = 'website', jsonLd, noindex = false } = Astro.props;
 const year = 2026;
 const SITE_NAME = 'Biochemistrypedia';
 const DEFAULT_DESC =
@@ -53,6 +55,7 @@ const websiteLd = {
     <title>{title}</title>
     <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={title} />
@@ -91,7 +94,7 @@ const websiteLd = {
     <a href="#main" class="skip-link">Skip to content</a>
     <header class="site-header">
       <nav class="wrap">
-        <a href="/" class="brand">
+        <a href="/" class="brand" aria-label="Biochemistrypedia home">
           <span class="brand-mark">⬡</span>
           <span class="brand-name">Biochemistrypedia</span>
         </a>
@@ -99,7 +102,11 @@ const websiteLd = {
         <a href="/search/" class="nav-search" aria-label="Search the lessons">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 L21 21" /></svg>
         </a>
-        <a href="/play" class="nav-play">▶&nbsp;Play</a>
+        <a href="/progress/" class="nav-progress" aria-label="Your progress" title="Your progress">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M8.2 12.3 L11 15 L16 9.5" /></svg>
+          <span class="nav-progress-dot" data-nav-due hidden></span>
+        </a>
+        <a href="/play" class="nav-play" aria-label="Play the arcade">▶<span class="nav-play-word">&nbsp;Play</span></a>
         <LabMenu />
       </nav>
     </header>
@@ -245,6 +252,14 @@ const websiteLd = {
         color: var(--ddp-color-accent);
       }
       .nav-search:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+      .nav-search + .nav-progress, .nav-progress + .nav-play { margin-left: 0; }
+      .nav-progress {
+        position: relative; display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 999px; color: var(--ddp-color-accent); flex: none;
+      }
+      .nav-progress:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+      .nav-progress-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--ddp-color-caution); }
+      .nav-progress-dot[hidden] { display: none; }
       .nav-search + .nav-play { margin-left: 0; }
       .nav-play:hover { background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 36%, transparent); }
       :global(.nav-play + .labmenu) { margin-left: 0; }
@@ -275,11 +290,30 @@ const websiteLd = {
           display: none;
         }
         .site-header nav { gap: var(--ddp-space-3); }
+        /* Room for the progress icon beside search on a phone. */
+        .nav-search, .nav-progress { width: 30px; height: 30px; }
+        .nav-search + .nav-progress { margin-left: calc(var(--ddp-space-1, 0.25rem) - var(--ddp-space-3)); }
+        .nav-play { padding: 0.2em 0.6em; }
+      }
+      /* Phones: the header used to run off the right edge (4px at 375, 56px at 320). */
+      @media (max-width: 480px) {
+        .nav-play-word { display: none; }
       }
       @media (max-width: 400px) {
+        .site-header nav { gap: var(--ddp-space-2); }
+        .nav-search + .nav-progress { margin-left: 0; }
         .brand { font-size: var(--ddp-text-base); }
         .nav-link { font-size: 0.66rem; }
       }
+      @media (max-width: 350px) {
+        .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+      }
     </style>
+    <script>
+      import { load, dueNow, onChange } from '../lib/progress';
+      // A small dot on the header's progress link when review questions are due.
+      const dot = document.querySelector<HTMLElement>('[data-nav-due]');
+      if (dot) onChange(() => { dot.hidden = dueNow(load()).length === 0; });
+    </script>
   </body>
 </html>

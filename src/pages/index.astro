@@ -34,6 +34,7 @@ const cards = COURSES.map((c) => {
   };
 }).filter((k) => k.lessons > 0);
 const tiers = [
+  { key: 'families', title: 'Ages 5–10 · for parents and teachers', note: 'Hands-on activities a grown-up runs with children, away from the screen. Aligned to Virginia’s kindergarten to grade 4 science standards.' },
   { key: 'highschool', title: 'Grades 7–12', note: 'Courses for middle and high school, aligned to the Virginia Standards of Learning.' },
   { key: 'foundation', title: 'Foundations', note: 'Intro courses for the first two years: biology, chemistry, statistics and physics.' },
   { key: 'core', title: 'Core courses', note: 'The three subjects every biology degree requires. The numbers are a suggested order; each course also stands on its own.' },
@@ -64,7 +65,14 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
     <p class="hero-cta">
       <a class="cta" href="#courses">Browse the courses ↓</a>
       <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
-      <a class="cta-ghost" href={courseHref('cell-biology')}>Start with Cell Biology →</a>
+      <a class="cta-ghost" href="/paths/">Choose your path →</a>
+    </p>
+
+    {/* Filled from this device's saved progress (src/lib/progress.ts); stays
+        hidden for a first visit, without JavaScript, or when storage is blocked. */}
+    <p class="resume" data-resume hidden>
+      <span data-resume-text></span>
+      <a href="/progress/" class="resume-link">Your progress →</a>
     </p>
   </section>
 
@@ -83,9 +91,9 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
           {t.cards.map((k, i) => (
             <li>
               <a href={courseHref(k.c.slug)} class="course-card">
-                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /><DepthLadder step={k.c.tier === 'highschool' ? (k.c.ladderStep ?? 2) : 4} size="sm" class="cc-ladder" /></span>
+                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} />{k.c.tier !== 'families' && <DepthLadder step={k.c.tier === 'highschool' ? (k.c.ladderStep ?? 2) : 4} size="sm" class="cc-ladder" />}</span>
                 <span class="cc-body">
-                  <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {plural(k.lessons, 'lesson', 'lessons')}{k.c.mcat && <span class="cc-mcat" title="Covers material the MCAT tests">MCAT</span>}</span>
+                  <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {k.c.tier === 'families' ? plural(k.lessons, 'activity', 'activities') : plural(k.lessons, 'lesson', 'lessons')}{k.c.mcat && <span class="cc-mcat" title="Covers material the MCAT tests">MCAT</span>}</span>
                   <span class="cc-title">{k.c.title}</span>
                   <span class="cc-tag">{k.c.tagline}</span>
                   <span class="cc-units">{k.unitNames.join(' · ')}</span>
@@ -194,6 +202,34 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
     </a>
   </section>
 
+  <script>
+    import { load, dueNow, onChange } from '../lib/progress';
+    import { PATHS } from '../data/paths';
+
+    const box = document.querySelector<HTMLElement>('[data-resume]');
+    const text = document.querySelector<HTMLElement>('[data-resume-text]');
+    onChange(() => {
+      if (!box || !text) return;
+      const p = load();
+      const due = dueNow(p).length;
+      const path = PATHS.find((x) => x.id === p.path);
+      text.textContent = '';
+      if (!p.last && !path && !due) { box.hidden = true; return; }
+      box.hidden = false;
+      let links = 0;
+      const add = (label: string, href: string) => {
+        const a = document.createElement('a');
+        a.href = href; a.textContent = label;
+        if (links++) text.append(' · ');
+        text.append(a);
+      };
+      text.append('Welcome back. ');
+      if (p.last) add('Continue your last lesson', `/lessons/${p.last}/`);
+      if (due) add(`${due} ${due === 1 ? 'question' : 'questions'} to review`, '/review/');
+      if (path) add(`Your path: ${path.label}`, `/paths/${path.id}/`);
+    });
+  </script>
+
   <style>
     .funbar { padding: 0 var(--ddp-space-6) var(--ddp-space-16); }
     .playbar { padding-bottom: var(--ddp-space-4); }
@@ -257,6 +293,9 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       font-style: italic;
       color: var(--ddp-color-ink);
     }
+    .resume { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: baseline; }
+    .resume[hidden] { display: none; }
+    .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
     .hero-cta {
       display: flex;
       flex-wrap: wrap;

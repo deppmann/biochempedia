@@ -1,0 +1,314 @@
+---
+/**
+ * AdrenalEnzymeBlock — block one enzyme of the adrenal steroid pathway and read the loop.
+ * The pathway is drawn as labelled boxes in words (no structures). Each box and each
+ * readout carries an arrow (up, down, unchanged, or unsettled) relative to a healthy adult.
+ * One idea: an enzyme block lowers what lies after it and piles up what lies before it, and
+ * if cortisol falls with ACTH feedback intact, ACTH rises and drives the cortisol and androgen branches harder.
+ * Rules are those of the adrenal-glands lesson (its pathway text, its disorder table and its
+ * 11-beta-hydroxylase item); anything the lesson does not decide is marked unsettled.
+ * Self-contained vanilla-TS Astro island. Original.
+ */
+const uid = 'aeb' + Math.random().toString(36).slice(2, 7);
+---
+
+<figure class="aeb card" data-aeb>
+  <figcaption class="aeb-head">Block an enzyme, read the loop<span class="aeb-chip">⚙ original · interactive</span></figcaption>
+
+  <svg class="aeb-svg" viewBox="0 0 360 304" role="img" aria-label="Boxes for the adrenal steroid pathway in words, from cholesterol to aldosterone, cortisol and the adrenal androgens, each with an arrow showing whether it rises, falls or is unchanged" data-stage></svg>
+
+  <div class="aeb-legend" aria-hidden="true">
+    <span><i class="aeb-ra" data-dir="up"></i> up</span>
+    <span><i class="aeb-ra" data-dir="down"></i> down</span>
+    <span><i class="aeb-ra" data-dir="same"></i> unchanged</span>
+    <span><i class="aeb-ra" data-dir="mixed">?</i> unsettled</span>
+    <span>all compared with a healthy adult</span>
+  </div>
+
+  <div class="aeb-reads" data-reads>
+    <div class="aeb-r"><span class="aeb-rl">ACTH</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="acth"></i><span data-rt="acth">unchanged</span></span></div>
+    <div class="aeb-r"><span class="aeb-rl">renin</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="renin"></i><span data-rt="renin">unchanged</span></span></div>
+    <div class="aeb-r"><span class="aeb-rl">mineralocorticoid activity (aldosterone plus DOC)</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="mr"></i><span data-rt="mr">unchanged</span></span></div>
+    <div class="aeb-r"><span class="aeb-rl">plasma potassium</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="k"></i><span data-rt="k">unchanged</span></span></div>
+    <div class="aeb-r"><span class="aeb-rl">blood pressure (through the mineralocorticoid route)</span><span class="aeb-rv"><i class="aeb-ra" data-dir="same" data-r="bp"></i><span data-rt="bp">unchanged</span></span></div>
+  </div>
+
+  <fieldset class="aeb-ctl">
+    <legend>Block one enzyme</legend>
+    <label><input type="radio" name={uid} value="none" checked /> none blocked</label>
+    <label><input type="radio" name={uid} value="h21" /> block 21-hydroxylase</label>
+    <label><input type="radio" name={uid} value="h11" /> block 11-beta-hydroxylase</label>
+  </fieldset>
+  <fieldset class="aeb-ctl">
+    <legend>The loop</legend>
+    <label><input type="checkbox" data-in="fb" checked /> ACTH feedback switch on (off: ACTH ignores cortisol)</label>
+    <label><input type="checkbox" data-in="sup" /> cortisol supplied from outside</label>
+  </fieldset>
+
+  <p class="aeb-status" data-status role="status"></p>
+
+  <p class="aeb-assume">In this sketch: arrows compare each item with a healthy adult and carry no numbers; one enzyme is blocked at a time; a block lowers its product and everything after it and piles up only its own substrate; ACTH raises or lowers the boxes from pregnenolone to the androgens but not DOC, corticosterone or aldosterone; with the feedback switch off, ACTH ignores cortisol (a switch in the sketch, not a disease or lesion); supplied cortisol with feedback intact lowers ACTH; and blood pressure is shown through the mineralocorticoid route only (cortisol itself also supports pressure, which is left out). These rules are made up to sketch the lesson’s logic. They are not measurements, and cases vary.</p>
+
+  <p class="aeb-foot">A block lowers what comes after it and piles up what comes before it. If cortisol falls with feedback intact, ACTH rises and drives the cortisol and androgen branches harder, and mineralocorticoid activity (aldosterone plus DOC) sets the direction of renin, potassium and pressure.</p>
+</figure>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  type Dir = 'up' | 'down' | 'same' | 'mixed';
+  type Blk = 'none' | 'h21' | 'h11';
+  type Id = 'preg' | 'prog' | 'ohp' | 'dcort' | 'cort' | 'doc' | 'cstn' | 'aldo' | 'andro';
+
+  const COL = { up: '#b3261e', down: '#1f5fa8', same: '#6b6b76', mixed: '#a86a00' };
+  const FILL = { up: '#fdecea', down: '#e7f0fb', same: '#f4f4f6', mixed: '#fff4de' };
+  const INK = '#33333c', FAINT = '#6b6b76';
+  const W = 108, H = 32;
+  const XL = 2, XM = 126, XR = 250;
+  const ROW = [2, 50, 98, 156, 204, 252];
+
+  interface Box { id: Id | 'chol'; lines: string[]; x: number; y: number }
+  const BOXES: Box[] = [
+    { id: 'chol', lines: ['cholesterol'], x: XM, y: ROW[0] },
+    { id: 'preg', lines: ['pregnenolone'], x: XM, y: ROW[1] },
+    { id: 'prog', lines: ['progesterone'], x: XM, y: ROW[2] },
+    { id: 'doc', lines: ['DOC'], x: XL, y: ROW[3] },
+    { id: 'cstn', lines: ['corticosterone'], x: XL, y: ROW[4] },
+    { id: 'aldo', lines: ['aldosterone'], x: XL, y: ROW[5] },
+    { id: 'ohp', lines: ['17-hydroxy-', 'progesterone'], x: XM, y: ROW[3] },
+    { id: 'dcort', lines: ['11-deoxy-', 'cortisol'], x: XM, y: ROW[4] },
+    { id: 'cort', lines: ['cortisol'], x: XM, y: ROW[5] },
+    { id: 'andro', lines: ['DHEA and', 'androstenedione'], x: XR, y: ROW[3] },
+  ];
+  const NAME: Record<Id, string> = {
+    preg: 'pregnenolone', prog: 'progesterone', doc: 'DOC', cstn: 'corticosterone', aldo: 'aldosterone',
+    ohp: '17-hydroxyprogesterone', dcort: '11-deoxycortisol', cort: 'cortisol', andro: 'DHEA and androstenedione',
+  };
+  const WORD: Record<Dir, string> = { up: 'up', down: 'down', same: 'unchanged', mixed: 'unsettled' };
+
+  function el(name: string, attrs: Record<string, string | number>, text?: string): SVGElement {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function dirOf(effects: number[]): Dir {
+    const hasUp = effects.some((v) => v > 0), hasDown = effects.some((v) => v < 0);
+    if (hasUp && hasDown) return 'mixed';
+    return hasUp ? 'up' : hasDown ? 'down' : 'same';
+  }
+  function flip(d: Dir): Dir { return d === 'up' ? 'down' : d === 'down' ? 'up' : d; }
+
+  // The whole model. a = the effect of ACTH on the ACTH-driven boxes.
+  function model(blk: Blk, fb: boolean, sup: boolean) {
+    const a = fb ? (sup ? -1 : blk !== 'none' ? 1 : 0) : 0;
+    const sub21 = blk === 'h21' ? 1 : 0;
+    const box: Record<Id, Dir> = {
+      preg: dirOf([a]),
+      prog: dirOf([a, sub21]),
+      ohp: dirOf([a, sub21]),
+      dcort: blk === 'h21' ? 'down' : blk === 'h11' ? dirOf([1, a]) : dirOf([a]),
+      cort: blk !== 'none' ? 'down' : dirOf([a]),
+      doc: blk === 'h21' ? 'down' : blk === 'h11' ? 'up' : 'same',
+      cstn: blk !== 'none' ? 'down' : 'same',
+      aldo: blk !== 'none' ? 'down' : 'same',
+      andro: blk === 'h21' ? dirOf([1, a]) : dirOf([a]),
+    };
+    const acth: Dir = a > 0 ? 'up' : a < 0 ? 'down' : 'same';
+    const mrHigh = box.doc === 'up' || box.aldo === 'up';
+    const mrLow = box.doc === 'down' && box.aldo === 'down';
+    const mr: Dir = mrHigh ? 'up' : mrLow ? 'down' : 'same';
+    return { box, acth, mr, renin: flip(mr), k: flip(mr), bp: mr };
+  }
+
+  function status(blk: Blk, fb: boolean, sup: boolean, m: ReturnType<typeof model>): string {
+    const t = statusCore(blk, fb, sup, m);
+    return sup ? t + ' In this sketch, the cortisol box shows the adrenal’s own output, not the cortisol supplied.' : t;
+  }
+  function statusCore(blk: Blk, fb: boolean, sup: boolean, m: ReturnType<typeof model>): string {
+    const s: string[] = [];
+    if (blk === 'none' && !sup) {
+      s.push('In this sketch, with no enzyme blocked and no cortisol supplied, every box and every readout sits at the healthy adult reference, so no arrow moves.');
+      if (!fb) s.push('In this sketch, switching feedback off changes nothing yet, because nothing is moving cortisol.');
+      return s.join(' ');
+    }
+    if (blk === 'h21') s.push('In this sketch, the 21-hydroxylase block stops progesterone becoming DOC and 17-hydroxyprogesterone becoming 11-deoxycortisol, so DOC, corticosterone, aldosterone, 11-deoxycortisol and cortisol fall, while the block itself pushes progesterone and 17-hydroxyprogesterone up and 17-hydroxyprogesterone is diverted into androgens.');
+    if (blk === 'h11') s.push('In this sketch, the 11-beta-hydroxylase block stops 11-deoxycortisol becoming cortisol, and DOC becoming corticosterone in the cortisol-making zone, so cortisol falls and 11-deoxycortisol and DOC pile up; aldosterone is low in this form (the lesson’s table) as renin falls.');
+    if (fb && sup) {
+      s.push('In this sketch, cortisol supplied with feedback intact lowers ACTH, which pulls the ACTH-driven boxes down. ACTH stimulates aldosterone less, and that effect fades with continuous exposure, so this sketch leaves DOC, corticosterone and aldosterone unmoved.');
+      const mixed = (Object.keys(m.box) as Id[]).filter((i) => m.box[i] === 'mixed').map((i) => NAME[i]);
+      if (mixed.length) s.push('In this sketch, ' + mixed.join(', ') + (mixed.length > 1 ? ' are' : ' is') + ' pulled down by the lower ACTH and pushed up by the block, and the lesson gives no rule for which wins, so ' + (mixed.length > 1 ? 'they are' : 'it is') + ' marked ? (unsettled).');
+    } else if (fb && blk !== 'none') {
+      s.push('In this sketch, low cortisol with feedback intact raises ACTH, which drives pregnenolone, the precursors on the cortisol and androgen routes, and the androgen branch harder.');
+    } else if (!fb && blk === 'none') {
+      s.push('In this sketch, with the feedback switch off ACTH ignores the supplied cortisol, so nothing moves.');
+      return s.join(' ');
+    } else if (!fb) {
+      s.push('In this sketch, with the feedback switch off ACTH does not respond to cortisol' + (sup ? ', so the supplied cortisol leaves it unchanged' : ', so it stays unchanged') + ' and only the block’s own effects show.');
+    }
+    if (blk === 'h21') s.push('In this sketch, DOC and aldosterone are both low, so mineralocorticoid activity is low: renin rises, plasma potassium rises and blood pressure falls through that route, the picture of the classic salt-wasting form.');
+    if (blk === 'h11') s.push('In this sketch, DOC piles up and acts as a mineralocorticoid, so mineralocorticoid activity is high even though aldosterone is low: renin falls, plasma potassium tends to fall and blood pressure is up in many cases, not all.');
+    if (blk === 'none' && sup) {
+      s.push('In this sketch, the readouts for renin, potassium and pressure stay unchanged (through the mineralocorticoid route; cortisol’s own effect on pressure is left out), because angiotensin II and potassium, not ACTH, are the main controls of aldosterone.');
+    }
+    return s.join(' ');
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-aeb]').forEach((root) => {
+    function q<T extends Element>(sel: string): T {
+      const e = root.querySelector<T>(sel);
+      if (!e) throw new Error('AdrenalEnzymeBlock: missing ' + sel);
+      return e;
+    }
+    const stage = q<SVGSVGElement>('[data-stage]');
+    const statusEl = q<HTMLElement>('[data-status]');
+    const fbIn = q<HTMLInputElement>('[data-in="fb"]');
+    const supIn = q<HTMLInputElement>('[data-in="sup"]');
+    const radios = Array.from(root.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+
+    function blockNow(): Blk {
+      const r = radios.find((x) => x.checked);
+      return r && (r.value === 'h21' || r.value === 'h11') ? r.value : 'none';
+    }
+
+    function arrow(pts: [number, number][], color: string) {
+      for (let i = 0; i < pts.length - 1; i++) {
+        const last = i === pts.length - 2;
+        const [x1, y1] = pts[i], [x2, y2] = pts[i + 1];
+        const dx = Math.sign(x2 - x1), dy = Math.sign(y2 - y1);
+        const ex = last ? x2 - dx * 5 : x2, ey = last ? y2 - dy * 5 : y2;
+        stage.appendChild(el('line', { x1, y1, x2: ex, y2: ey, stroke: color, 'stroke-width': 1.6 }));
+        if (last) {
+          const head = dx === 0
+            ? `${x2},${y2} ${x2 - 3.5},${y2 - dy * 6} ${x2 + 3.5},${y2 - dy * 6}`
+            : `${x2},${y2} ${x2 - dx * 6},${y2 - 3.5} ${x2 - dx * 6},${y2 + 3.5}`;
+          stage.appendChild(el('polygon', { points: head, fill: color }));
+        }
+      }
+    }
+    function blockMark(x: number, y: number, label: string) {
+      const g = el('g', {});
+      g.appendChild(el('title', {}, label));
+      g.appendChild(el('circle', { cx: x, cy: y, r: 6.5, fill: '#b3261e', stroke: '#fff', 'stroke-width': 1.2 }));
+      g.appendChild(el('line', { x1: x - 3, y1: y - 3, x2: x + 3, y2: y + 3, stroke: '#fff', 'stroke-width': 1.8 }));
+      g.appendChild(el('line', { x1: x - 3, y1: y + 3, x2: x + 3, y2: y - 3, stroke: '#fff', 'stroke-width': 1.8 }));
+      stage.appendChild(g);
+    }
+    function glyph(g: Element, d: Dir, cx: number, cy: number) {
+      if (d === 'up') g.appendChild(el('polygon', { points: `${cx},${cy - 6} ${cx - 6},${cy + 5} ${cx + 6},${cy + 5}`, fill: COL.up }));
+      else if (d === 'down') g.appendChild(el('polygon', { points: `${cx},${cy + 6} ${cx - 6},${cy - 5} ${cx + 6},${cy - 5}`, fill: COL.down }));
+      else if (d === 'same') g.appendChild(el('circle', { cx, cy, r: 4, fill: COL.same }));
+      else g.appendChild(el('text', { x: cx, y: cy + 5, 'font-size': 14, 'font-weight': 700, 'text-anchor': 'middle', fill: COL.mixed }, '?'));
+    }
+
+    function draw(blk: Blk, sup: boolean, m: ReturnType<typeof model>) {
+      stage.replaceChildren();
+      const own = (b: Box): string[] => (b.id === 'cort' && sup ? ['adrenal’s own', 'cortisol'] : b.lines);
+      const AR = '#8a8a96';
+      // arrows between boxes
+      arrow([[180, ROW[0] + H], [180, ROW[1]]], AR);
+      arrow([[180, ROW[1] + H], [180, ROW[2]]], AR);
+      arrow([[XM, ROW[2] + H / 2], [56, ROW[2] + H / 2], [56, ROW[3]]], AR);           // progesterone to DOC
+      arrow([[180, ROW[2] + H], [180, ROW[3]]], AR);                              // progesterone to 17-OHP
+      arrow([[56, ROW[3] + H], [56, ROW[4]]], AR);                                // DOC to corticosterone
+      arrow([[56, ROW[4] + H], [56, ROW[5]]], AR);                                // corticosterone to aldosterone
+      arrow([[180, ROW[3] + H], [180, ROW[4]]], AR);                              // 17-OHP to 11-deoxycortisol
+      arrow([[180, ROW[4] + H], [180, ROW[5]]], AR);                              // 11-deoxycortisol to cortisol
+      arrow([[XM + W, ROW[3] + H / 2], [XR, ROW[3] + H / 2]], AR);                      // 17-OHP to androgens
+      // enzyme labels
+      const lab = (x: number, y: number, t: string, anchor: string) => stage.appendChild(el('text', { x, y, 'font-size': 9, 'text-anchor': anchor, fill: FAINT }, t));
+      lab(190, ROW[1] - 5, 'CYP11A1, the slow step', 'start');
+      lab(120, ROW[2] + H / 2 - 4, '21-hydroxylase', 'end');
+      lab(172, ROW[3] - 9, '17-alpha-hydroxylase', 'end');
+      lab(304, ROW[3] - 4, '17,20-lyase', 'middle');
+      lab(190, ROW[4] - 5, '21-hydroxylase', 'start');
+      lab(190, ROW[5] - 5, '11-beta-hydroxylase', 'start');
+      // block markers
+      if (blk === 'h21') {
+        blockMark(56, ROW[3] - 13, '21-hydroxylase blocked: progesterone to DOC');
+        blockMark(180, ROW[4] - 8, '21-hydroxylase blocked: 17-hydroxyprogesterone to 11-deoxycortisol');
+      }
+      if (blk === 'h11') {
+        blockMark(56, ROW[4] - 8, '11-beta-hydroxylase blocked: DOC to corticosterone');
+        blockMark(180, ROW[5] - 8, '11-beta-hydroxylase blocked: 11-deoxycortisol to cortisol');
+      }
+      // boxes
+      for (const b of BOXES) {
+        const g = el('g', {});
+        const bid = b.id;
+        const isChol = bid === 'chol';
+        const d: Dir = bid === 'chol' ? 'same' : m.box[bid];
+        g.appendChild(el('title', {}, bid === 'chol' ? 'cholesterol: the start of the pathway, not tracked in this sketch' : `${bid === 'cort' && sup ? 'the adrenal’s own cortisol' : NAME[bid]}: ${WORD[d]}`));
+        g.appendChild(el('rect', { x: b.x, y: b.y, width: W, height: H, rx: 5, fill: isChol ? '#fff' : FILL[d], stroke: isChol ? '#8a8a96' : COL[d], 'stroke-width': 1.3, 'stroke-dasharray': isChol ? '3 2' : '' }));
+        const tx = b.x + (W - 22) / 2 + 2;
+        const lines = own(b);
+        if (lines.length === 1) g.appendChild(el('text', { x: isChol ? b.x + W / 2 : tx, y: b.y + 20, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, lines[0]));
+        else lines.forEach((t, i) => g.appendChild(el('text', { x: tx, y: b.y + 13 + i * 13, 'font-size': 10, 'text-anchor': 'middle', fill: INK }, t)));
+        if (!isChol) glyph(g, d, b.x + W - 12, b.y + H / 2);
+        stage.appendChild(g);
+      }
+      // cortisol supplied tag
+      if (sup) {
+        const g = el('g', {});
+        g.appendChild(el('title', {}, 'cortisol supplied from outside'));
+        g.appendChild(el('rect', { x: XR, y: ROW[5], width: W, height: H, rx: 5, fill: '#fff', stroke: '#0e7c86', 'stroke-width': 1.3, 'stroke-dasharray': '4 2' }));
+        g.appendChild(el('text', { x: XR + W / 2, y: ROW[5] + 13, 'font-size': 10, 'text-anchor': 'middle', fill: '#0e7c86' }, 'cortisol supplied'));
+        g.appendChild(el('text', { x: XR + W / 2, y: ROW[5] + 26, 'font-size': 10, 'text-anchor': 'middle', fill: '#0e7c86' }, 'from outside'));
+        stage.appendChild(g);
+        arrow([[XR, ROW[5] + H / 2], [XM + W, ROW[5] + H / 2]], '#0e7c86');
+      }
+      // zone labels
+      const zone = (x: number, t: string) => stage.appendChild(el('text', { x, y: 298, 'font-size': 9, 'text-anchor': 'middle', fill: FAINT }, t));
+      zone(56, 'glomerulosa route');
+      zone(180, 'fasciculata route');
+      zone(304, 'reticularis route');
+    }
+
+    function setRead(key: string, d: Dir) {
+      const a = q<HTMLElement>(`[data-r="${key}"]`);
+      a.dataset.dir = d;
+      let w = WORD[d];
+      if (key === 'k' && d === 'down') w = 'down or normal';
+      if (key === 'bp' && d === 'up') w = 'up in many';
+      q<HTMLElement>(`[data-rt="${key}"]`).textContent = w;
+    }
+
+    function render() {
+      const blk = blockNow(), fb = fbIn.checked, sup = supIn.checked;
+      const m = model(blk, fb, sup);
+      draw(blk, sup, m);
+      setRead('acth', m.acth);
+      setRead('renin', m.renin);
+      setRead('mr', m.mr);
+      setRead('k', m.k);
+      setRead('bp', m.bp);
+      statusEl.textContent = status(blk, fb, sup, m);
+    }
+    radios.forEach((r) => r.addEventListener('change', render));
+    fbIn.addEventListener('change', render);
+    supIn.addEventListener('change', render);
+    render();
+  });
+</script>
+
+<style is:global>
+  .aeb { padding: var(--ddp-space-3) var(--ddp-space-4) var(--ddp-space-4); margin: var(--ddp-space-5) 0; }
+  .aeb-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.3rem; font-weight: 600; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); margin-bottom: var(--ddp-space-3); }
+  .aeb-chip { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 400; color: var(--ddp-color-muted); }
+  .aeb-svg { display: block; width: 100%; max-width: 600px; margin: 0 auto var(--ddp-space-2); height: auto; background: #fff; border: 1px solid var(--ddp-color-line); border-radius: 6px; }
+  .aeb-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); margin: 0 0 var(--ddp-space-3); }
+  .aeb-ra { display: inline-block; width: 13px; height: 13px; vertical-align: -2px; margin-right: 0.2rem; font-style: normal; font-weight: 700; text-align: center; line-height: 13px; font-size: 13px; }
+  .aeb-ra[data-dir="up"] { background: #b3261e; clip-path: polygon(50% 0, 0 100%, 100% 100%); }
+  .aeb-ra[data-dir="down"] { background: #1f5fa8; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .aeb-ra[data-dir="same"] { background: #6b6b76; border-radius: 50%; transform: scale(0.7); }
+  .aeb-ra[data-dir="mixed"] { color: #a86a00; }
+  .aeb-reads { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.4rem; margin: 0 0 var(--ddp-space-3); }
+  .aeb-r { border: 1px solid var(--ddp-color-line); border-radius: 6px; padding: 0.3rem 0.5rem; display: flex; flex-direction: column; gap: 0.15rem; }
+  .aeb-rl { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+  .aeb-rv { font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .aeb-ctl { border: 1px solid var(--ddp-color-line); border-radius: 6px; margin: 0 0 var(--ddp-space-2); padding: 0.4rem 0.7rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); }
+  .aeb-ctl legend { font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); padding: 0 0.3rem; }
+  .aeb-ctl input { accent-color: var(--ddp-color-accent); }
+  .aeb-ctl input:focus-visible { outline: 2px solid var(--ddp-color-accent); outline-offset: 2px; }
+  .aeb-status { margin: var(--ddp-space-3) 0 var(--ddp-space-2); padding: var(--ddp-space-2) var(--ddp-space-3); background: color-mix(in srgb, var(--ddp-color-accent) 8%, transparent); border-radius: 6px; font-size: var(--ddp-text-sm); color: var(--ddp-color-primary); min-height: 3em; }
+  .aeb-assume { margin: 0 0 var(--ddp-space-2); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); line-height: 1.5; }
+  .aeb-foot { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); color: var(--ddp-color-ink-soft); border-left: 3px solid var(--ddp-color-secondary); padding-left: 0.55rem; }
+</style>

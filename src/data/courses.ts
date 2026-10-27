@@ -24,12 +24,13 @@ export interface Course {
   slug: string;
   title: string;
   /** Where the course sits in a biology degree; the homepage lists each tier separately.
+   *  families: hands-on activities for ages 5–10, written for the parent or K–5 teacher (Virginia K–4 SOL).
    *  highschool: Virginia Standards of Learning courses for grades 7–12.
    *  foundation: intro courses for the first two years (1000-2000 level).
    *  core: the 3000-level courses every biology major takes.
    *  elective: 3000-level subjects taken further.
    *  advanced: 4000-level and above, built around current research. */
-  tier: 'highschool' | 'foundation' | 'core' | 'elective' | 'advanced';
+  tier: 'families' | 'highschool' | 'foundation' | 'core' | 'elective' | 'advanced';
   /** True when the course covers material the MCAT tests; shown as a tag on the homepage card. */
   mcat?: boolean;
   /** Grades 7–12 courses only: the step the course sits on in the depth ladder
@@ -47,6 +48,26 @@ export interface Course {
 /* Order is the suggested path: within each tier, courses appear in the order a student
    should take them (the homepage numbers the core courses). */
 export const COURSES: Course[] = [
+  {
+    slug: 'biology-together',
+    title: 'Biology Together',
+    tier: 'families',
+    mcat: false,
+    tagline: 'Hands-on biology activities for ages 5–10, written for parents and K–5 teachers.',
+    searchHint: 'Try “seeds”, “camouflage”, “earthworms”…',
+    blurb:
+      'Thirty short activities a parent or teacher can run with children aged 5 to 10, using cheap things from around the house. The page is for the grown-up; the child does the activity away from the screen. Each one gives the big idea in plain words, the steps, questions that get a child to predict before they look, what children often think and how to answer, safety notes, an easier and a harder version, and an observation sheet to print. They follow the life science strand of Virginia’s kindergarten to grade 4 science standards, and each links one step up to the matching grade 7 Life Science lesson where there is one.',
+    units: [
+      { name: 'Alive and growing', slugs: ['alive-or-not', 'wake-up-a-seed', 'like-parent-not-the-same'] },
+      { name: 'Our senses', slugs: ['mystery-feely-bag', 'smell-detectives', 'listening-walk'] },
+      { name: 'What plants need and how they work', slugs: ['what-plants-need', 'plant-parts-we-eat', 'thirsty-celery', 'leaf-detectives'] },
+      { name: 'Flowers, seeds and life cycles', slugs: ['flower-take-apart', 'bean-to-bean', 'seeds-on-the-move', 'mealworm-metamorphosis'] },
+      { name: 'Animal bodies, homes and adaptations', slugs: ['fur-feathers-scales', 'beak-buffet', 'blubber-glove', 'camouflage-hunt', 'backyard-habitat-hunt', 'fossil-prints'] },
+      { name: 'Food chains, soil and decomposers', slugs: ['food-chain-web', 'rot-detectives', 'soil-shake', 'earthworm-choices'] },
+      { name: 'Seasons and living things', slugs: ['adopt-a-tree', 'sleep-or-travel', 'hidden-leaf-colors'] },
+      { name: 'Virginia and Chesapeake nature', slugs: ['watershed-in-a-pan', 'roots-hold-the-soil', 'creek-critters'] },
+    ],
+  },
   {
     slug: 'life-science',
     title: 'Life Science',
@@ -310,6 +331,59 @@ export const COURSES: Course[] = [
       {
         name: 'Evidence and disease',
         slugs: ['neurodegeneration', 'large-scale-neuroscience', 'circuit-experiment-design'],
+      },
+    ],
+  },
+  {
+    slug: 'physiology',
+    title: 'Physiology',
+    tier: 'elective',
+    mcat: true,
+    tagline: 'How the human body’s organ systems work, measured: pressures, flows, volumes and the experiments behind them.',
+    searchHint: 'Try “pressure-volume loop”, “dead space”, “anion gap”…',
+    blurb:
+      'A 3000-level course in human and mammalian physiology for biology majors and premedical students. It takes each organ system the way physiologists study it, with numbers and with the classic and modern experiments that settled how it works: body fluids and control, muscle, the heart and circulation, breathing, the kidney and acid-base balance, the endocrine glands, digestion, lymphoid organs and skin, reproduction, and exercise as the whole body at work. Every lesson has a worked problem, a simulation and original MCAT-style questions. The first look at each system, compared across animals, is in Organismal Biology.',
+    /* Sequence set 2026-10-26 from an audit of the organ systems the MCAT outline lists, open university syllabi, and the site's other courses. */
+    units: [
+      {
+        name: 'The internal environment and its control',
+        slugs: ['body-fluid-compartments', 'endocrine-axes-and-testing'],
+      },
+      {
+        name: 'Muscle',
+        slugs: ['skeletal-muscle-mechanics', 'smooth-muscle'],
+      },
+      {
+        name: 'The heart and circulation',
+        slugs: ['cardiac-electrophysiology-ecg', 'pressure-volume-loops', 'cardiac-output-venous-return', 'resistance-compliance-local-flow', 'capillary-exchange-and-lymph', 'blood-pressure-regulation', 'blood-cells-and-hemostasis'],
+      },
+      {
+        name: 'Breathing',
+        slugs: ['lung-mechanics-surfactant', 'ventilation-perfusion', 'control-of-breathing'],
+      },
+      {
+        name: 'Kidney, fluids and acid-base',
+        slugs: ['glomerular-filtration', 'tubular-transport-diuretics', 'water-sodium-potassium', 'acid-base-balance'],
+      },
+      {
+        name: 'Endocrine systems',
+        slugs: ['thyroid-hormone', 'adrenal-glands', 'insulin-glucagon-glucose', 'calcium-phosphate-bone'],
+      },
+      {
+        name: 'Digestion and absorption',
+        slugs: ['gut-motility-secretion', 'absorption-and-liver'],
+      },
+      {
+        name: 'Defense, skin and temperature',
+        slugs: ['lymphoid-organs-immune-traffic', 'skin-and-human-heat'],
+      },
+      {
+        name: 'Reproduction',
+        slugs: ['sexual-differentiation-testis', 'ovarian-cycle-fertility', 'pregnancy-birth-lactation'],
+      },
+      {
+        name: 'Integration',
+        slugs: ['exercise-physiology'],
       },
     ],
   },

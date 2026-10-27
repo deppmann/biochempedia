@@ -1,0 +1,149 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/teach.css';
+
+// Lesson titles, so the student's assignment list can name each lesson.
+const titles = Object.fromEntries((await getCollection('lessons', ({ data }) => !data.draft)).map((l) => [l.data.slug, l.data.title]));
+---
+
+<BaseLayout title="Join your class — Biochemistrypedia" description="Join your teacher's class with the class code. A nickname is all you need: no email and no password.">
+  <article class="wrap tc" data-join data-titles={JSON.stringify(titles)}>
+    <p class="tc-eyebrow">For students</p>
+    <h1>Join your class</h1>
+    <p class="tc-lede">Your teacher gives you a class code. You don't need an email or a password.</p>
+
+    <noscript><p class="tc-note">Joining a class needs JavaScript.</p></noscript>
+
+    <section class="tc-card" data-already hidden style="margin-top: var(--ddp-space-6)">
+      <p data-already-text></p>
+      <p data-already-code hidden class="tc-note good"></p>
+      <h2 data-assigned-h hidden style="margin-top: var(--ddp-space-4)">Your lessons</h2>
+      <ul class="tc-assigned" data-assigned></ul>
+      <div class="tc-row">
+        <a class="tc-btn" href="/progress/">Your progress</a>
+        <button type="button" class="tc-btn ghost" data-leave>Leave this class on this device</button>
+      </div>
+      <p class="tc-muted">Leaving only signs this device out. Your teacher keeps your answers, and you can come back with your student code.</p>
+    </section>
+
+    <form class="tc-form" data-step1 style="margin-top: var(--ddp-space-6)">
+      <label>Class code<input type="text" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" required placeholder="e.g. K7MQ2P" /></label>
+      <button class="tc-btn" type="submit">Next</button>
+      <p class="tc-error" data-err1 role="alert"></p>
+    </form>
+
+    <section data-step2 hidden style="margin-top: var(--ddp-space-6)">
+      <p><strong data-cls-name></strong> <span class="tc-muted" data-cls-teacher></span></p>
+      <form class="tc-form" data-nick-form>
+        <label>Your nickname<input type="text" name="nickname" maxlength="24" autocomplete="off" required placeholder="A nickname or first name" /></label>
+        <p class="tc-muted" style="margin:0">Please don't use your full name. Your teacher will see this name next to your answers.</p>
+        <button class="tc-btn" type="submit">Join</button>
+        <p class="tc-error" data-err2 role="alert"></p>
+      </form>
+      <details data-code-details style="margin-top: var(--ddp-space-5)">
+        <summary>I have a student code</summary>
+        <form class="tc-form" data-code-form style="margin-top: var(--ddp-space-3)">
+          <label>Student code<input type="text" name="studentCode" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" required /></label>
+          <button class="tc-btn" type="submit">Join</button>
+          <p class="tc-error" data-err3 role="alert"></p>
+        </form>
+      </details>
+    </section>
+
+    <p class="tc-muted" style="margin-top: var(--ddp-space-8)">
+      What gets saved: your nickname and what you do in assigned lessons (quiz first tries, agree or disagree picks,
+      answers you choose to send, and notes about where you're stuck). Only your teacher sees it.
+      <a href="/teach/privacy/">Privacy details</a>.
+    </p>
+  </article>
+
+  <script>
+    import { api, enrolled, setEnrolled } from '../../lib/classroom';
+
+    type View = { className: string; nickname: string; teacherName: string; pending: boolean; studentCode?: string | null; assignments?: { slug: string; due: string | null }[]; done?: string[] };
+    const root = document.querySelector<HTMLElement>('[data-join]')!;
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const titles: Record<string, string> = JSON.parse(root.dataset.titles!);
+    let code = new URLSearchParams(location.search).get('code') || '';
+
+    function showAlready(v: View) {
+      root.querySelector('h1')!.textContent = 'Your class';
+      $('[data-step1]').hidden = true;
+      $('[data-step2]').hidden = true;
+      $('[data-already]').hidden = false;
+      $('[data-already-text]').textContent = v.pending
+        ? `You asked to join ${v.className} as ${v.nickname}. Your teacher needs to let you in.`
+        : `You're in ${v.className} as ${v.nickname}. Open any lesson your teacher assigned; your answers go to ${v.teacherName}.`;
+      const list = $('[data-assigned]');
+      list.textContent = '';
+      const items = v.pending ? [] : (v.assignments ?? []).filter((a) => titles[a.slug]);
+      $('[data-assigned-h]').hidden = !items.length;
+      const today = new Date().toISOString().slice(0, 10);
+      for (const a of items) {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = `/lessons/${a.slug}/`;
+        link.textContent = titles[a.slug];
+        const meta = document.createElement('span');
+        const done = v.done?.includes(a.slug);
+        meta.className = `tc-pill ${done ? 'good' : a.due && a.due < today ? 'warn' : ''}`;
+        meta.textContent = done ? 'done' : a.due ? `due ${new Date(a.due + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}` : 'assigned';
+        li.append(link, ' ', meta);
+        list.append(li);
+      }
+      const sc = $('[data-already-code]');
+      if (v.studentCode) {
+        sc.hidden = false;
+        sc.textContent = '';
+        sc.append('Your student code is ');
+        const b = document.createElement('strong');
+        b.className = 'tc-code small';
+        b.textContent = v.studentCode;
+        sc.append(b, '. Write it down: you need it to get back in on another device.');
+      }
+    }
+
+    (async () => {
+      if (enrolled()) {
+        const r = await api<View>('/api/student/me');
+        if (r.ok) { showAlready(r.data); return; }
+        if (r.status === 401) setEnrolled(null);
+      }
+      if (code) { (root.querySelector('[name=code]') as HTMLInputElement).value = code; }
+    })();
+
+    $('[data-step1]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      code = (root.querySelector('[name=code]') as HTMLInputElement).value;
+      const r = await api<{ className: string; teacher: string; joinMode: string }>('/api/join/lookup', { code });
+      $('[data-err1]').textContent = r.ok ? '' : r.data.error || 'Something went wrong.';
+      if (!r.ok) return;
+      $('[data-cls-name]').textContent = r.data.className;
+      $('[data-cls-teacher]').textContent = `with ${r.data.teacher}`;
+      $('[data-step1]').hidden = true;
+      $('[data-step2]').hidden = false;
+      const roster = r.data.joinMode === 'roster';
+      $('[data-nick-form]').hidden = roster || r.data.joinMode === 'locked';
+      const det = $<HTMLDetailsElement>('[data-code-details]');
+      if (roster || r.data.joinMode === 'locked') det.open = true;
+      if (r.data.joinMode === 'locked') $('[data-err3]').textContent = 'This class is not taking new students. If you already joined, use your student code.';
+    });
+
+    async function join(payload: Record<string, string>, err: string) {
+      const r = await api<View>('/api/join', { code, ...payload });
+      $(err).textContent = r.ok ? '' : r.data.error || 'Something went wrong.';
+      if (!r.ok) return;
+      setEnrolled({ className: r.data.className, nickname: r.data.nickname, teacherName: r.data.teacherName });
+      showAlready(r.data);
+    }
+    $('[data-nick-form]').addEventListener('submit', (e) => { e.preventDefault(); join({ nickname: (root.querySelector('[name=nickname]') as HTMLInputElement).value }, '[data-err2]'); });
+    $('[data-code-form]').addEventListener('submit', (e) => { e.preventDefault(); join({ studentCode: (root.querySelector('[name=studentCode]') as HTMLInputElement).value }, '[data-err3]'); });
+    $('[data-leave]').addEventListener('click', async () => {
+      if (!confirm('Sign this device out of the class? You can come back with your student code.')) return;
+      await api('/api/student/leave', {});
+      setEnrolled(null);
+      location.reload();
+    });
+  </script>
+</BaseLayout>

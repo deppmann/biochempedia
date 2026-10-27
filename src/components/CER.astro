@@ -29,7 +29,7 @@ const fields = [
   { key: 'reasoning', label: 'Reasoning', hint: 'Why the evidence supports the claim, using the science.', frame: reasoning },
 ];
 ---
-<div class="cer" data-cer={uid} role="group" aria-labelledby={`${uid}-h`}>
+<div class="cer" data-cer={uid} data-cer-task={task} role="group" aria-labelledby={`${uid}-h`}>
   <p class="cer-kicker" id={`${uid}-h`}>Claim, evidence, reasoning</p>
   <p class="cer-task">{task}</p>
   {fields.map((f) => (
@@ -50,9 +50,53 @@ const fields = [
     </details>
   )}
   <p class="cer-saved" data-cer-saved hidden>Saved in this browser only.</p>
+  {/* Shown only to a student who joined a teacher's class on this device. */}
+  <p class="cer-send" data-cer-send hidden>
+    <button type="button" class="cer-send-btn" data-cer-send-btn>Send to my teacher</button>
+    <span class="cer-send-note" data-cer-send-note role="status"></span>
+  </p>
+  <div class="cer-feedback" data-cer-feedback hidden></div>
 </div>
 
 <script>
+  import { enrolled, report, studentMe, lessonFeedback, askFeedback, showFeedback } from '../lib/classroom';
+
+  // A student in a teacher's class can send the answer; they can edit and send again.
+  document.querySelectorAll<HTMLElement>('[data-cer]').forEach((box) => {
+    const row = box.querySelector<HTMLElement>('[data-cer-send]');
+    const btn = box.querySelector<HTMLButtonElement>('[data-cer-send-btn]');
+    const note = box.querySelector<HTMLElement>('[data-cer-send-note]');
+    const slug = /^\/lessons\/([^/]+)/.exec(window.location.pathname)?.[1];
+    const sync = () => { if (row) row.hidden = !enrolled() || !slug; };
+    sync();
+    window.addEventListener('bp-class', sync);
+    const fb = box.querySelector<HTMLElement>('[data-cer-feedback]');
+    let aiOn = false;
+    if (slug && enrolled()) {
+      studentMe(slug).then((me) => {
+        aiOn = !!me?.ai && !me.pending;
+        if (btn && aiOn) btn.textContent = 'Send to my teacher and get feedback';
+      });
+      lessonFeedback(slug).then((list) => {
+        const mine = list.find((f) => f.item === box.dataset.cer && f.kind === 'cer');
+        if (mine && fb) showFeedback(fb, mine.text, mine.source);
+      });
+    }
+    btn?.addEventListener('click', async () => {
+      const v: Record<string, string> = {};
+      box.querySelectorAll<HTMLTextAreaElement>('textarea[data-cer-field]').forEach((a) => { v[a.dataset.cerField!] = a.value; });
+      if (!Object.values(v).some((x) => x.trim())) { if (note) note.textContent = 'Write something first.'; return; }
+      report(slug!, 'cer', { item: box.dataset.cer, task: box.dataset.cerTask, ...v });
+      if (!aiOn) { if (note) note.textContent = 'Sent. You can edit it and send again.'; return; }
+      btn.disabled = true;
+      if (note) note.textContent = 'Getting feedback…';
+      const r = await askFeedback(slug!, box.dataset.cer!, v);
+      btn.disabled = false;
+      if (note) note.textContent = r.ok ? '' : r.data.error || 'Feedback is not available right now. Your answer was still sent.';
+      if (r.ok && fb) showFeedback(fb, r.data.text ?? '', r.data.status === 'held' ? 'held' : 'ai');
+    });
+  });
+
   // Keep each CER box's answers per lesson page. Every storage call is guarded:
   // private windows and blocked site data throw, and then nothing is kept.
   document.querySelectorAll<HTMLElement>('[data-cer]').forEach((box) => {
@@ -77,6 +121,10 @@ const fields = [
 </script>
 
 <style>
+  .cer-send { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ddp-space-3); margin: var(--ddp-space-3) 0 0; }
+  .cer-send[hidden] { display: none; }
+  .cer-send-btn { min-height: 44px; padding: 0.4em 1.1em; font: inherit; font-weight: 700; cursor: pointer; border-radius: 999px; border: 0; background: var(--ddp-color-primary); color: var(--ddp-color-surface); }
+  .cer-send-note { font-size: var(--ddp-text-sm); color: var(--ddp-color-verified); }
   .cer {
     margin: var(--ddp-space-6) 0;
     padding: var(--ddp-space-4);

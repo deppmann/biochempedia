@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/teach.css';
+---
+
+<BaseLayout title="Confirm your email — Biochemistrypedia" description="Confirm the email address for your teacher account." noindex>
+  <article class="wrap tc" data-verify>
+    <p class="tc-eyebrow"><a href="/teach/">Classes</a></p>
+    <h1>Confirm your email</h1>
+    <p class="tc-lede" data-msg role="status">Checking your link…</p>
+    <p><a class="tc-btn" href="/teach/classes/">Go to my classes →</a></p>
+  </article>
+  <script>
+    import { api } from '../../../lib/classroom';
+    const msg = document.querySelector('[data-msg]')!;
+    const token = new URLSearchParams(location.search).get('t') || '';
+    api('/api/teacher/verify', { token }).then((r) => {
+      msg.textContent = r.ok ? 'Thanks. Your email is confirmed.' : r.data.error || 'That link did not work.';
+    });
+  </script>
+</BaseLayout>

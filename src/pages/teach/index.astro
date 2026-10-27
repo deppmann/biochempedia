@@ -1,0 +1,141 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/teach.css';
+---
+
+<BaseLayout title="Classes for teachers — Biochemistrypedia" description="Free classes for teachers: give students a code, assign lessons, and read a morning brief of how they reasoned. Students use nicknames only.">
+  <article class="wrap tc" data-teach>
+    <p class="tc-eyebrow"><a href="/teachers/">Resources for teachers</a> · Classes</p>
+    <h1>See how your students are thinking, before class</h1>
+    <p class="tc-lede">
+      Make a class, give students its code, and assign lessons. Each morning you get a brief:
+      who finished, where the class split on the opening question, which quiz items most missed on
+      the first try, the written answers students sent you, and who left a note saying they're stuck.
+      Free, and it uses no AI.
+    </p>
+
+    <ul class="tc-muted" style="max-width:64ch">
+      <li>Students join with the class code and a nickname: no email, no real name, no password.</li>
+      <li>You choose how they get in: open code, your approval, a roster you make, or locked.</li>
+      <li>Delete a student, a class or your whole account at any time. Classes inactive for over a year are deleted.</li>
+    </ul>
+
+    <noscript><p class="tc-note">Teacher accounts need JavaScript.</p></noscript>
+
+    <div class="tc-tabs" role="tablist" data-tabs>
+      <button class="tc-tab" role="tab" aria-selected="true" data-tab="in">Sign in</button>
+      <button class="tc-tab" role="tab" aria-selected="false" data-tab="up">Create a teacher account</button>
+      <button class="tc-tab" role="tab" aria-selected="false" data-tab="forgot">Forgot password</button>
+    </div>
+
+    <form class="tc-form" data-pane="in">
+      <label>Email<input type="email" name="email" autocomplete="username" required /></label>
+      <label>Password<input type="password" name="password" autocomplete="current-password" required /></label>
+      <button class="tc-btn" type="submit">Sign in</button>
+      <p class="tc-error" data-err role="alert"></p>
+    </form>
+
+    <form class="tc-form" data-pane="up" hidden>
+      <label>Your name, as students know you<input type="text" name="name" maxlength="60" required placeholder="e.g. Ms. Rivera" /></label>
+      <label>Email<input type="email" name="email" autocomplete="username" required /></label>
+      <label>Password (at least 10 characters)<input type="password" name="password" autocomplete="new-password" minlength="10" required /></label>
+      <label class="tc-check"><input type="checkbox" name="agree" required />
+        <span>I'm a teacher, tutor or parent running a class. I'll ask students to use nicknames, not full names, and I'll follow my school's rules for online tools.
+        <a href="/teach/privacy/" target="_blank">Privacy and classroom rules</a>.</span></label>
+      <button class="tc-btn" type="submit">Create account</button>
+      <p class="tc-error" data-err role="alert"></p>
+    </form>
+
+    <div data-pane="forgot" hidden>
+      <form class="tc-form" data-forgot-email>
+        <p class="tc-muted" style="margin:0">We'll email you a link to choose a new password.</p>
+        <label>Email<input type="email" name="email" autocomplete="username" required /></label>
+        <button class="tc-btn" type="submit">Email me a link</button>
+        <p class="tc-ok" data-ok role="status"></p>
+        <p class="tc-error" data-err role="alert"></p>
+      </form>
+      <form class="tc-form" data-forgot-code style="margin-top: var(--ddp-space-6)">
+        <p class="tc-muted" style="margin:0">Or use the recovery code you saved when you signed up.</p>
+        <label>Email<input type="email" name="email" autocomplete="username" required /></label>
+        <label>Recovery code<input type="text" name="recoveryCode" autocomplete="off" required placeholder="XXXX-XXXX-XXXX" /></label>
+        <label>New password<input type="password" name="password" autocomplete="new-password" minlength="10" required /></label>
+        <button class="tc-btn" type="submit">Set new password</button>
+        <p class="tc-error" data-err role="alert"></p>
+      </form>
+    </div>
+
+    <section class="tc-card" data-recovery hidden style="margin-top: var(--ddp-space-6); max-width: 560px">
+      <h2 style="margin-top:0">Save your recovery code</h2>
+      <p>If you forget your password, this code lets you set a new one. We show it only once.</p>
+      <p class="tc-code" data-recovery-code></p>
+      <p class="tc-muted" data-verify-note></p>
+      <a class="tc-btn" href="/teach/classes/">I saved it. Continue →</a>
+    </section>
+  </article>
+
+  <script>
+    import { api } from '../../lib/classroom';
+
+    const root = document.querySelector<HTMLElement>('[data-teach]')!;
+    // Where to go after signing in: an invite or school page that sent the teacher here.
+    const nextRaw = new URLSearchParams(location.search).get('next') || '';
+    const next = /^\/(teach|g)\/[\w\-/?=&%.]*$/.test(nextRaw) ? nextRaw : '/teach/classes/';
+    if (next !== '/teach/classes/') root.querySelector<HTMLAnchorElement>('[data-recovery] a.tc-btn')!.href = next;
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+    const panes = Array.from(root.querySelectorAll<HTMLElement>('[data-pane]'));
+    const show = (k: string) => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === k)));
+      panes.forEach((p) => (p.hidden = p.dataset.pane !== k));
+    };
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab!)));
+    if (location.hash === '#signup') show('up');
+
+    // Already signed in? Go straight to the classes.
+    api('/api/teacher/me').then((r) => { if (r.ok) location.replace(next); });
+
+    const form = (sel: string) => root.querySelector<HTMLFormElement>(sel)!;
+    const vals = (f: HTMLFormElement) => Object.fromEntries(new FormData(f).entries()) as Record<string, string>;
+    const err = (f: HTMLElement, msg: string) => { f.querySelector('[data-err]')!.textContent = msg; };
+
+    form('[data-pane=in]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const r = await api('/api/teacher/login', vals(e.target as HTMLFormElement));
+      if (r.ok) location.href = next; else err(e.target as HTMLElement, r.data.error || 'Could not sign in.');
+    });
+
+    form('[data-pane=up]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = vals(e.target as HTMLFormElement);
+      const r = await api<{ recoveryCode: string; verificationSent: boolean; mailOn: boolean }>('/api/teacher/signup', { ...v, agree: !!v.agree });
+      if (!r.ok) { err(e.target as HTMLElement, r.data.error || 'Could not create the account.'); return; }
+      root.querySelector<HTMLElement>('[data-tabs]')!.hidden = true;
+      panes.forEach((p) => (p.hidden = true));
+      root.querySelector<HTMLElement>('[data-recovery]')!.hidden = false;
+      root.querySelector('[data-recovery-code]')!.textContent = r.data.recoveryCode;
+      root.querySelector('[data-verify-note]')!.textContent = r.data.verificationSent
+        ? 'We also emailed you a link to confirm your address.'
+        : '';
+    });
+
+    form('[data-forgot-email]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const r = await api<{ mailOn: boolean }>('/api/teacher/forgot', vals(f));
+      if (!r.ok) { err(f, r.data.error || 'Something went wrong.'); return; }
+      f.querySelector('[data-ok]')!.textContent = r.data.mailOn
+        ? 'If that email has an account, a link is on its way. Check your spam folder too.'
+        : 'Email links are not switched on yet. Use your recovery code below.';
+    });
+
+    form('[data-forgot-code]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const r = await api<{ recoveryCode: string }>('/api/teacher/reset', vals(e.target as HTMLFormElement));
+      if (!r.ok) { err(e.target as HTMLElement, r.data.error || 'Could not reset.'); return; }
+      root.querySelector<HTMLElement>('[data-tabs]')!.hidden = true;
+      panes.forEach((p) => (p.hidden = true));
+      root.querySelector<HTMLElement>('[data-recovery]')!.hidden = false;
+      root.querySelector('[data-recovery-code]')!.textContent = r.data.recoveryCode;
+      root.querySelector('[data-verify-note]')!.textContent = 'Your password is changed and your old recovery code no longer works. This is your new one.';
+    });
+  </script>
+</BaseLayout>
