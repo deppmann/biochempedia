@@ -83,7 +83,7 @@ def curve_mob(x0, y0, w, h, f, color=TEAL, sw=6, n=140, dashed=False):
 
 class S00Title(TitleCard):
     LESSON = "Sensitive periods in behavior"
-    TITLE = "Windows are tides, not doors"
+    TITLE = "Windows need not be doors"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -349,9 +349,9 @@ class S04Language(SpokenScene):
         step = VMobject(stroke_color=RED, stroke_width=6).set_points_as_corners(
             [[px(3), py(0.93) + 0.12, 0], [px(puberty), py(0.93) + 0.12, 0], [px(puberty), py(0.3), 0], [px(39), py(0.3), 0]])
         step = DashedVMobject(step, num_dashes=44)
-        self.at("graded decline")
+        self.at("That does")
         self.play(Indicate(trend, color=TEAL, scale_factor=1.0), run_time=0.8)
-        self.at("not a door")
+        self.at("door shutting")
         self.play(Create(step), run_time=0.8)
         xx = cross([px(puberty), py(0.6), 0], RED, 0.3, 9)
         self.play(Create(xx), run_time=0.3)
@@ -492,11 +492,11 @@ class S06Rule(SpokenScene):
         self.at("suggests")
         self.play(Indicate(tut, color=YELLOW, scale_factor=1.1), run_time=0.8)
 
-        g = chip("genes: set when it can learn", GREY, 24).move_to([-3.0, -2.7, 0])
-        e = chip("experience: what is learned", YELLOW, 24).move_to([3.2, -2.7, 0])
+        g = chip("genes: build the circuit", GREY, 24).move_to([-3.0, -2.7, 0])
+        e = chip("experience: what and when", YELLOW, 24).move_to([3.2, -2.7, 0])
         self.at("Genes build the circuit")
         self.play(FadeIn(g, shift=UP * 0.1), run_time=0.6)
-        self.at("Experience supplies")
+        self.at("and experience")
         self.play(FadeIn(e, shift=UP * 0.1), run_time=0.6)
 
         self.at("Keep this rule")
@@ -523,4 +523,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Most behavioral windows are tides, not doors."
+    LINE = "Most windows here are tides, not doors."

@@ -78,9 +78,9 @@ class S01Skin(SpokenScene):
         self.play(FadeIn(skin), FadeIn(skin_l), run_time=0.6)
         self.play(GrowArrow(a1), FadeIn(qbox), FadeIn(qm), run_time=0.7)
 
-        self.at("grew folded tissue")
+        self.at("grew")
         tis = blob(1.8, [3.3, 0.4, 0])
-        tis_l = T("folded tissue in a dish", 28).move_to([3.3, -2.0, 0])
+        tis_l = T("brain-like tissue in a dish", 28).move_to([3.3, -2.0, 0])
         self.play(FadeOut(qbox), FadeOut(qm), FadeIn(tis, scale=0.8), run_time=0.8)
         self.play(FadeIn(tis_l), run_time=0.4)
 
@@ -341,7 +341,7 @@ class S05Limits(SpokenScene):
         self.play(Create(vx), run_time=0.7)
         self.at("center of a large")
         core = Circle(radius=0.5, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.55).move_to(disc)
-        cl = T("center dies", 28, RED).move_to([cx + 1.4, cy - 0.45, 0])
+        cl = T("center often dies", 28, RED).move_to([cx + 1.4, cy - 0.45, 0])
         self.play(GrowFromCenter(core), FadeIn(cl), run_time=0.9)
 
         # panel 2: subtypes blur

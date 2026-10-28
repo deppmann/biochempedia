@@ -46,9 +46,9 @@ def ep_group(d, with_labels=False):
     return g
 
 
-def axon_labels(d, size=26):
-    a = T("axon", size, BLUE).next_to(d["shA"].get_start(), UP, buff=0.12)
-    b = T("axon", size, ORANGE).next_to(d["shB"].get_start(), UP, buff=0.12)
+def axon_labels(d, size=26, text="axon", color_b=ORANGE):
+    a = T(text, size, BLUE).next_to(d["shA"].get_start(), UP, buff=0.12)
+    b = T(text, size, color_b).next_to(d["shB"].get_start(), UP, buff=0.12)
     return a, b
 
 
@@ -66,7 +66,7 @@ def pdot(x, y=None):
 
 class S00Title(TitleCard):
     LESSON = "Synapse elimination"
-    TITLE = "The less active input is removed"
+    TITLE = "Less active inputs tend to lose"
 
 
 # ----------------------------------------------------------------------------------------------
@@ -101,8 +101,8 @@ class S01Question(SpokenScene):
         extra = [bead(xs[i], yt, BLUE, d["sp"] * 0.84) for i in (3, 4, 5)]
         self.play(*[FadeOut(m, shift=RIGHT * 0.3) for m in bgrp], ReplacementTransform(tag, adult),
                   Transform(d["lineA"], fullA), *[FadeIn(e) for e in extra], run_time=1.0)
-        n2 = chip("two weeks later: one input", TEXT, size=26).move_to([0, -3.2, 0])
-        self.at("Two weeks later")
+        n2 = chip("two to three weeks: one input", TEXT, size=26).move_to([0, -3.2, 0])
+        self.at("fiber listens")
         self.play(ReplacementTransform(adult, n2), run_time=0.5)
         q1 = T("?", 80, YELLOW, weight=BOLD).move_to([d["xs"][1], 1.4, 0])
         q2 = T("?", 80, YELLOW, weight=BOLD).move_to([d["xs"][4], 1.4, 0])
@@ -234,7 +234,7 @@ class S04Activity(SpokenScene):
         blocks = VGroup(inhib([xs[0] - 0.4, 1.55, 0], [xs[0] + 0.4, 1.55, 0]),
                         inhib([xs[5] - 0.4, 1.55, 0], [xs[5] + 0.4, 1.55, 0]))
         slow = chip("elimination: slower", RED, size=30).move_to([0, -3.2, 0])
-        fast = chip("elimination: faster", GREEN, size=30).move_to([0, -3.2, 0])
+        fast = chip("sometimes faster", GREEN, size=30).move_to([0, -3.2, 0])
         self.at("blocking nerve impulses")
         a, b = pdot(xs[0], d["ytop"]), pdot(xs[5], d["ytop"])
         self.add(a, b)
@@ -242,7 +242,7 @@ class S04Activity(SpokenScene):
         self.play(Create(blocks[0]), Create(blocks[1]), FadeOut(a), FadeOut(b), run_time=0.4)
         self.at("slows elimination")
         self.play(FadeIn(slow, shift=UP * 0.2), run_time=0.5)
-        self.at("Stimulating the muscle")
+        self.at("at once They could")
         self.play(FadeOut(blocks), ReplacementTransform(slow, fast), d["muscle"].animate.set_stroke(YELLOW),
                   run_time=0.5)
         volley(4, 0.3)
@@ -263,6 +263,9 @@ class S04Activity(SpokenScene):
 def panels():
     L = build_ep(-3.35, 4, 1.3, -0.35, 2, 2.3, mh=1.8, label=False)
     R = build_ep(3.35, 4, 1.3, -0.35, 2, 2.3, mh=1.8, label=False)
+    for d in (L, R):
+        for branch in [d["lineB"], d["shB"], *d["bead"][2:]]:
+            branch.set_color(BLUE)
     return L, R
 
 
@@ -276,7 +279,7 @@ class S05Test(SpokenScene):
         L, R = panels()
         self.add(ep_group(L), ep_group(R))
         for d in (L, R):
-            for lbl in axon_labels(d, 22):
+            for lbl in axon_labels(d, 22, text="branch", color_b=BLUE):
                 self.add(lbl)
         tl = T("one patch blocked", 28, TEXT).move_to([-3.35, 3.3, 0])
         tr = T("whole junction blocked", 28, TEXT).move_to([3.35, 3.3, 0])
@@ -309,7 +312,7 @@ class S06Rule(SpokenScene):
         self.add(grp)
         labs = []
         for d in (L, R):
-            for lbl in axon_labels(d, 22):
+            for lbl in axon_labels(d, 22, text="branch", color_b=BLUE):
                 labs.append(lbl)
                 self.add(lbl)
         tl = T("one patch blocked", 28, TEXT).move_to([-3.35, 3.3, 0])
@@ -339,7 +342,7 @@ class S06Rule(SpokenScene):
         self.play(Create(ar1), Create(ar2), run_time=0.8)
         self.at("one junction")
         self.play(Indicate(VGroup(ar1, ar2), color=RED, scale_factor=1.1), run_time=0.8)
-        rule = Text("A synapse is lost when it is\nless active than its neighbor.", font=TITLE_FONT, font_size=40,
+        rule = Text("A less active synapse\nis more likely to go.", font=TITLE_FONT, font_size=40,
                     color=TEXT, line_spacing=0.9)
         rule.move_to([0, 0.2, 0])
         self.at("Keep this rule")
@@ -350,4 +353,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A synapse is lost when it is less active than its neighbor."
+    LINE = "A less active synapse is more likely to go."

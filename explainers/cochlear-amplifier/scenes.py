@@ -186,13 +186,13 @@ class S02Fast(SpokenScene):
         br = BraceBetweenPoints(ax.c2p(0, -1.3), ax.c2p(1, -1.3), direction=DOWN, color=WHITE)
         brl = T("one cycle = 50 µs", 24, TEXT).next_to(br, DOWN, buff=0.1)
         self.play(GrowFromCenter(br), FadeIn(brl), run_time=0.6)
-        self.at("adds energy")
-        chem = chip("chemical step each cycle", GREY, size=24).move_to([3.75, -0.3, 0])
+        self.at("Prestin responds")
+        chem = chip("ATP hydrolysis", GREY, size=24).move_to([3.75, -0.3, 0])
         self.play(FadeIn(chem), run_time=0.5)
         cross = Cross(chem, stroke_color=RED, stroke_width=4)
-        self.at("cannot wait")
+        self.at("without burning")
         self.play(Create(cross), run_time=0.5)
-        self.at("responds to voltage")
+        self.at("Membrane filtering")
         link = Line([mx - 0.25, bottom - 0.9, 0], pc.get_right(), color=YELLOW, stroke_width=5)
         link2 = Line([mx, bottom, 0], [mx, bottom - 0.9, 0], color=YELLOW, stroke_width=5)
         res = T("responds to voltage directly", 24, YELLOW).move_to([2.3, -3.0, 0])
@@ -336,7 +336,7 @@ class S05Limits(SpokenScene):
 
         # right: two purified protein schematics
         self.at("purified protein")
-        pt = T("purified protein held by a ligand", 22, GREY).move_to([3.0, 3.35, 0])
+        pt = T("purified protein in chosen conditions", 22, GREY).move_to([3.0, 3.35, 0])
 
         def membrane_with(width, y, color, name):
             mem = Rectangle(width=4.6, height=0.28, stroke_width=0, fill_color=GREY, fill_opacity=0.4)
@@ -393,7 +393,7 @@ class S06Rule(SpokenScene):
         for x, ic, head, col, claim in [
             (-4.2, icon_sound(), "returning sound", TEAL, "supports a cochlear source"),
             (0.0, icon_bell(), "capacitance curve", GREEN, "reports charge movement"),
-            (4.2, icon_struct(), "structures", BLUE, "map states a ligand holds"),
+            (4.2, icon_struct(), "structures", BLUE, "show chosen preparation conditions"),
         ]:
             box = RoundedRectangle(corner_radius=0.2, width=3.8, height=4.0, stroke_color=col, stroke_width=3,
                                    fill_color=col, fill_opacity=0.07).move_to([x, 0.2, 0])

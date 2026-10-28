@@ -232,7 +232,7 @@ class S02Attract(SpokenScene):
         self.play(FadeOut(VGroup(tag, ptr)), run_time=0.3)
         trail = run(self, [cone, dcc], PATH_TOWARD, 2.4, rate=smooth_rate)
         self.at("That is attraction")
-        ban = banner("DCC: attraction", GREEN)
+        ban = banner("DCC: usually attracts", GREEN)
         self.play(FadeIn(ban, shift=DOWN * 0.15), run_time=0.5)
 
         self.at("In the worm")
@@ -263,7 +263,7 @@ class S03Repel(SpokenScene):
         self.at("turns away from")
         self.play(FadeOut(VGroup(tag, ptr)), run_time=0.3)
         trail = run(self, [cone, dcc, unc], PATH_AWAY, 3.4, rate=smooth_rate)
-        ban = banner("DCC + UNC5: repulsion", RED)
+        ban = banner("DCC + UNC5: usually repels", RED)
         self.play(FadeIn(ban, shift=DOWN * 0.15), run_time=0.5)
 
         self.at("did not change")
@@ -285,7 +285,7 @@ class S04Inside(SpokenScene):
         self.add(cone, dcc)
         self.wait(0.8)
 
-        self.at("inner state")
+        self.at("interstate")
         ds = dots(START)
         self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in ds], lag_ratio=0.12), run_time=1.0)
         self.play(Indicate(ds, color=ORANGE, scale_factor=1.3), run_time=0.8)
@@ -360,16 +360,16 @@ class S05Flip(SpokenScene):
         self.play(FadeIn(nA), FadeIn(nB), run_time=0.4)
 
         # ---- the lesson of it ---------------------------------------------------------------
-        self.at("So the receptor stayed")
+        self.at("Both turns")
         self.play(FadeOut(Group(*self.mobjects)), run_time=0.5)
         ic = VGroup(body(np.array([-4.3, 0.0, 0]), 1.2), cups(np.array([-4.3, 0.0, 0]), DCC_A, TEAL, 1.2))
-        recep = T("same receptor: DCC", 30, TEAL).move_to([-4.3, -1.7, 0])
+        recep = T("both turns need DCC", 30, TEAL).move_to([-4.3, -1.7, 0])
         self.play(FadeIn(ic), FadeIn(recep), run_time=0.5)
-        self.at("The cell's cyclic")
+        self.at("Blocking cyclic")
         camp = bchip("cAMP level", ORANGE, size=40).move_to([-0.3, 0.0, 0])
         a1 = Arrow([-2.9, 0, 0], camp.get_left() + LEFT * 0.05, buff=0.05, color=GREY, stroke_width=6)
         self.play(GrowArrow(a1), FadeIn(camp), run_time=0.6)
-        self.at("chose the direction")
+        self.at("the direction")
         hi = Arrow(camp.get_right() + RIGHT * 0.1, [3.0, 1.5, 0], buff=0.05, color=GREEN, stroke_width=8)
         lo = Arrow(camp.get_right() + RIGHT * 0.1, [3.0, -1.5, 0], buff=0.05, color=RED, stroke_width=8)
         hl = T("signal on: toward", 28, GREEN).next_to(hi.get_end(), RIGHT, buff=0.15)
@@ -410,11 +410,11 @@ class S06Rule(SpokenScene):
         div = Line([0, 3.4, 0], [0, -2.9, 0], color=GREY, stroke_width=2)
         self.play(FadeIn(h1, shift=DOWN * 0.15), FadeIn(h2, shift=DOWN * 0.15), Create(div), run_time=0.9)
 
-        self.at("alone attracts")
-        r1 = row(-3.1, 1.65, "d", None, True, "DCC alone: toward netrin", GREEN)
+        self.at("usually attracts")
+        r1 = row(-3.1, 1.65, "d", None, True, "DCC: usually toward netrin", GREEN)
         self.play(FadeIn(r1, shift=UP * 0.15), run_time=0.8)
         self.at("add repulsion")
-        r2 = row(-3.1, -1.15, "du", None, False, "DCC with UNC5: away", RED)
+        r2 = row(-3.1, -1.15, "du", None, False, "DCC with UNC5: usually away", RED)
         self.play(FadeIn(r2, shift=UP * 0.15), run_time=0.8)
 
         self.at("what is its")
@@ -430,7 +430,7 @@ class S06Rule(SpokenScene):
 
         self.at("does not decide")
         self.play(FadeOut(sp), run_time=0.4)
-        self.at("receptors and the inner")
+        self.at("receptors and the interstate")
         self.play(Indicate(h1, color=TEAL, scale_factor=1.15), Indicate(h2, color=ORANGE, scale_factor=1.15),
                   run_time=1.2)
         self.finish()

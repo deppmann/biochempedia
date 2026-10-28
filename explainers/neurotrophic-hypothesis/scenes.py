@@ -309,7 +309,7 @@ class S05Excess(SpokenScene):
         self.at("mark dividing cells")
         self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.6)
         sl13 = slot([NX, 2.85, 0], 0.17)
-        nn = T("no new neuron", 26, GREY).move_to([NX + 2.1, 2.85, 0])
+        nn = T("survival adds none", 26, GREY).move_to([NX + 2.1, 2.85, 0])
         self.at("No new neurons")
         self.play(FadeOut(row), FadeIn(sl13), FadeIn(nn), run_time=0.7)
         same = T("same type of neuron", 26, GREY).move_to([0, -3.3, 0])
@@ -365,4 +365,4 @@ class S06Ceiling(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A survival factor cannot add neurons never made."
+    LINE = "Survival alone cannot add neurons never made."

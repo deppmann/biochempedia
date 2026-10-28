@@ -235,7 +235,7 @@ class S01Puzzle(Film):
         self.play(FadeIn(mem), FadeIn(out), FadeIn(cyt), run_time=0.4)
         self.play(FadeIn(R, shift=UP * 0.2), run_time=0.5)
 
-        self.at("inner face")
+        self.at("interface")
         self.play(FadeIn(face, shift=RIGHT * 0.1), Indicate(mem, color=TEXT, scale_factor=1.0), run_time=0.7)
         self.play(pop(R, 1.05), run_time=0.5)
 
@@ -517,7 +517,7 @@ class S05Switch(Film):
                        Line(pg.centre + [-0.55 * k, 0.3 * k, 0], pg.centre + [0.55 * k, -0.3 * k, 0], color=RED, stroke_width=7))
         self.at("remove it")
         self.play(Create(cross), run_time=0.4)
-        self.at("drops off")
+        self.at("loosens")
         self.play(K.animate.shift(DOWN * 0.3), FadeOut(lines), run_time=0.6)
         self.at("In")
         self.play(FadeOut(cross), K.animate.shift(UP * 0.3), FadeIn(lines), FadeOut(fK), FadeOut(lys), FadeOut(lead),
@@ -553,8 +553,8 @@ class S05Switch(Film):
         self.at("weakens")
         self.play(FadeOut(lines), run_time=0.5)
         K.body.set_stroke(RED, 4)
-        self.at("is released")
-        rel = T("released", 30, RED, weight=BOLD).move_to([K.body.get_right()[0] + 0.5 + 0.8, K.body.get_center()[1] - (high - low), 0])
+        self.at("internal membranes")
+        rel = T("leaves", 30, RED, weight=BOLD).move_to([K.body.get_right()[0] + 0.5 + 0.8, K.body.get_center()[1] - (high - low), 0])
         self.play(FadeOut(weaker), K.animate.shift(DOWN * (high - low)), FadeIn(rel, shift=LEFT * 0.1), run_time=1.1)
         sw = bchip("farnesyl-electrostatic switch", TEXT, 30).move_to([3.4, 0.7, 0])
         self.at("This is called")
@@ -634,7 +634,7 @@ class S06Palmitate(Film):
         # the rule, acted out on the same protein
         r1 = T("one chain visits", 36, ORANGE, weight=BOLD)
         r2 = T("a second signal holds", 36, GREEN, weight=BOLD)
-        r3 = T("removing it releases", 36, RED, weight=BOLD)
+        r3 = T("removing it loosens", 36, RED, weight=BOLD)
         VGroup(r1, r2, r3).arrange(DOWN, aligned_edge=LEFT, buff=0.6).move_to([3.0, 0.3, 0])
         rise = high - low
         self.at("one chain visits")
@@ -658,4 +658,4 @@ class S06Palmitate(Film):
 
 
 class S07End(EndCard):
-    LINE = "One chain visits. A second signal holds. Removing it releases the protein."
+    LINE = "One chain visits. A second signal holds. Removing it loosens the grip."

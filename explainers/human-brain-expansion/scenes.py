@@ -131,15 +131,15 @@ class S02Unit(SpokenScene):
 
         p0, f0 = unit_parts(UX[0])
         unit_l = T("one unit", 24, BLUE).move_to([UX[0], -3.2, 0])
-        self.at("Neurons born at one spot")
+        self.at("Young neurons")
         self.play(FadeIn(p0, scale=0.6), FadeIn(unit_l), run_time=0.5)
         dots = [dot(UX[0], -2.4, YELLOW) for _ in STACK_Y]
-        self.at("climb the same")
+        self.at("climb radial")
         self.play(Create(f0), run_time=0.5)
         self.play(LaggedStart(*[Succession(FadeIn(d, scale=0.5, run_time=0.1),
                                            d.animate.move_to([UX[0], y, 0]).set_run_time(0.5))
                                 for d, y in zip(dots, STACK_Y)], lag_ratio=0.3), run_time=1.6)
-        self.at("stack into a column")
+        self.at("glial fibers")
         col0 = column_rect(UX[0])
         self.play(Create(col0), run_time=0.6)
 
@@ -213,7 +213,7 @@ class S03Arithmetic(SpokenScene):
         self.play(FadeTransform(cur, nxt), FadeIn(two), run_time=0.8)
         cur = nxt
 
-        self.at("asymmetric division")
+        self.at("they switch")
         cr = founders(RX, 1)
         crd = cr[1]
         self.play(Create(vr), FadeIn(t_r), FadeIn(cr, shift=UP * 0.15), run_time=0.8)
@@ -225,7 +225,7 @@ class S03Arithmetic(SpokenScene):
         self.play(FadeIn(sl1, shift=DOWN * 0.15), FadeIn(lab1), run_time=0.6)
 
         # reset the symmetric panel and run three rounds
-        self.at("three more symmetric rounds")
+        self.at("simple model")
         self.play(FadeOut(cur), FadeOut(two), FadeOut(sl1), FadeOut(lab1), run_time=0.4)
         cur = founders(LX, 1)
         self.play(FadeIn(cur), run_time=0.3)
@@ -248,8 +248,8 @@ class S03Arithmetic(SpokenScene):
                         fill_opacity=1).move_to([RX, top + 0.1, 0])
         lab3 = M("+3 neurons", 28, PURPLE).move_to([RX, 2.05, 0])
         self.play(FadeIn(sl3, shift=DOWN * 0.15), FadeIn(lab3), run_time=0.7)
-        self.at("a few percent more")
-        res_r = T("a few percent more", 28, PURPLE).move_to([RX, -3.05, 0])
+        self.at("small by comparison")
+        res_r = T("small by comparison", 28, PURPLE).move_to([RX, -3.05, 0])
         self.play(FadeIn(res_r, shift=UP * 0.1), run_time=0.7)
         self.finish()
 
@@ -326,7 +326,7 @@ class S04Mouse(SpokenScene):
         self.play(Transform(rdots, more), Indicate(rdots, color=BLUE, scale_factor=1.1), run_time=1.0)
         big = blob(2.7, 2.1, 0.0, 3.4, cy)
         bigdots = ring_dots(3.4, cy, 2.7, 2.1, 16)
-        self.at("large brains")
+        self.at("Their cortex")
         self.play(Transform(right, big), Transform(rdots, bigdots), run_time=1.1)
         fold = blob(2.7, 2.1, 0.07, 3.4, cy)
         self.at("buckled into folds")
@@ -371,7 +371,7 @@ class S05Orgs(SpokenScene):
         self.play(FadeIn(o_l), run_time=0.4)
         fibres = [Line([x, 0.26, 0], [tx, 2.75, 0], color=PINK, stroke_width=3).set_opacity(0.8)
                   for x, tx in zip(xs, tops)]
-        self.at("keep a long fiber")
+        self.at("long fiber")
         self.play(*[Create(f) for f in fibres], run_time=1.0)
         cross = VGroup(Line([-3.4, -1.85, 0], [-2.6, -1.35, 0], color=RED, stroke_width=5),
                        Line([-3.4, -1.35, 0], [-2.6, -1.85, 0], color=RED, stroke_width=5))
@@ -463,16 +463,16 @@ class S06Genes(SpokenScene):
         self.at("one gene made the human cortex")
         self.play(Indicate(VGroup(txt, no), color=RED, scale_factor=1.04), run_time=0.8)
 
-        self.at("Keep the rule")
+        self.at("Keep the idea")
         self.play(FadeOut(VGroup(head, dash, txt, no, *[m for tr in built for m in tr])), run_time=0.6)
-        rule = T("To gain area, change the founder phase", 38, GOLD, font=TITLE_FONT).move_to([0, 2.2, 0])
+        rule = T("More founders can give more area", 38, GOLD, font=TITLE_FONT).move_to([0, 2.2, 0])
         self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.6)
         vv = bar(-5.5, 5.5, -2.6, GREY)
         f = founders(0, 1, span=10).move_to([0, -0.5, 0])
-        self.at("To gain area")
+        self.at("A longer")
         self.play(Create(vv), FadeIn(f), run_time=0.5)
         cur = f
-        self.at("change the founder phase")
+        self.at("founder phase")
         for n in (2, 4, 8):
             nxt = founders(0, n, span=10.4).move_to([0, -0.5, 0])
             self.play(FadeTransform(cur, nxt), run_time=0.4)
@@ -481,4 +481,4 @@ class S06Genes(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "To gain area, change the founder phase."
+    LINE = "More founders can give more area."
