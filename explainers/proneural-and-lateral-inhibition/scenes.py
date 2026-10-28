@@ -224,7 +224,7 @@ class S02Proneural(SpokenScene):
         self.play(FadeIn(A.label), FadeIn(B.label), FadeIn(A.nuc), FadeIn(B.nuc), FadeIn(A.tracks), FadeIn(B.tracks), run_time=0.6)
         self.add(*A.dyn, *B.dyn)
         A.body.set_stroke(GREY, 4, opacity=1).set_fill(GREY, 0.08)
-        self.at("genes encode")
+        self.at("genes and code")
         self.play(FadeIn(lg["proneural"], shift=UP * 0.15), *A.to(pro=0.5), *B.to(pro=0.5), run_time=1.0)
         self.at("casting call")
         self.play(A.body.animate.set_stroke(GREEN, 5), B.body.animate.set_stroke(GREEN, 5), run_time=0.6)
@@ -356,7 +356,7 @@ class S05Tip(SpokenScene):
         sim = simulate(0.54, 0.50)
         t1 = self.t_of("neural precursor") - 0.4 - self.elapsed()
         run_sim(self, A, B, sim, max(2.0, t1))
-        self.at("neural precursor")
+        self.at("precursor")
         pre = chip("neural precursor", GREEN, size=22, pad=0.12).move_to([AX, -2.55, 0])
         self.play(FadeOut(note), *A.win(), *B.lose(), FadeIn(pre, shift=UP * 0.15), run_time=0.8)
         self.at("matter of chance")
@@ -413,4 +413,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Fate depends on how a cell's signaling compares with its neighbours."
+    LINE = "In fly mosaics, fate followed relative Notch signaling."

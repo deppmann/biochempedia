@@ -598,7 +598,7 @@ class S05Two(Film):
         self.play(FadeIn(thr, shift=UP * 0.1), Create(lead1), run_time=0.6)
         self.at("activation loop")
         self.play(p1.animate(path_arc=0.5).move_to(tip1), run_time=0.7)
-        self.at("must set")
+        self.at("needs a phosphate")
         self.play(pop(p1, 1.5), run_time=0.7)
 
         # mTORC2 puts a second phosphate near the tail
@@ -679,7 +679,7 @@ class S06Rule(Film):
         t_c = tick(F.p(0.9, -0.95), 0.22)
         self.at("Each is a")
         self.play(LaggedStart(Create(t_a), Create(t_b), Create(t_c), lag_ratio=0.45), run_time=1.4)
-        self.at("on only where")
+        self.at("on mainly where")
         self.play(*glow(*lb, s=1.3), run_time=0.8)
 
         # reset to a new question: no insulin. The membrane stays; everything else is rebuilt wider.
@@ -742,7 +742,7 @@ class S06Rule(Film):
         right.remove(anchor)
         self.add(anchor)
         self.play(FadeOut(anchor), FadeOut(anc_lbl), run_time=0.4)
-        self.at("main job of")
+        self.at("first puts")
         self.play(FadeIn(VGroup(stem, head)), FadeIn(badge, scale=0.4), FadeIn(lab), run_time=0.6)
         self.play(Transform(right.cup, closed), run_time=0.4)
         self.at("right place")
@@ -751,4 +751,4 @@ class S06Rule(Film):
 
 
 class S07End(EndCard):
-    LINE = "The main job of PIP3: put Akt in the right place."
+    LINE = "PIP3 puts Akt in place and opens it."

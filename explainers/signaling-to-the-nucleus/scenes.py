@@ -279,7 +279,7 @@ class Film(SpokenScene):
 
 class S00Title(TitleCard):
     LESSON = "Signaling to the Nucleus"
-    TITLE = "One phosphate flips a waiting factor"
+    TITLE = "One phosphate changes a waiting factor"
 
 
 def glow_gene(nuc, s=1.1):
@@ -383,7 +383,7 @@ class S02Waiting(Film):
         self.at("is slow")
         self.play(FadeIn(slow), Rotate(ck.hand, -TAU, about_point=ck.c), run_time=0.9)
         xs = strike(more)
-        self.at("most pathways")
+        self.at("gene responses")
         self.play(Create(xs), FadeOut(ck), FadeOut(slow), run_time=0.4)
         made = T("already made", 32, TEAL).move_to([CX, -0.95, 0])
         self.at("already made")
@@ -561,14 +561,14 @@ class S05Meet(Film):
         cm = sig("calmodulin").move_to([-0.6, STRIP, 0])
         self.at("messenger calcium")
         self.play(FadeIn(ca, shift=DOWN * 0.15), run_time=0.5)
-        self.at("binds calmodulin")
+        self.at("and calmodulin")
         self.play(FadeIn(cm, shift=LEFT * 0.15), run_time=0.5)
         pairbox = SurroundingRectangle(VGroup(ca, cm), color=YELLOW, buff=0.08, corner_radius=0.2, stroke_width=3)
-        self.at("the pair")
+        self.at("upstream kinase")
         self.play(Create(pairbox), run_time=0.5)
         cam = kin("CaMKIV", [CX, 0.9, 0])
         a_pc = arr([CX, pairbox.get_bottom()[1], 0], cam.get_top() + UP * 0.02, YELLOW, w=5)
-        self.at("switches on")
+        self.at("switch on")
         self.play(GrowArrow(a_pc), FadeIn(cam, scale=0.8), run_time=0.6)
         nl = T("largely in the nucleus", 26, GREY).move_to([2.4, 0.9, 0])
         self.at("found largely")
@@ -604,7 +604,7 @@ class S05Meet(Film):
         erk = kin("ERK", [2.9, STRIP, 0])
         a1 = dashed_arrow([4.3, gf.get_bottom()[1] - 0.02, 0], erk.get_top() + RIGHT * 0.3 + UP * 0.02, YELLOW, w=5, dash=0.12)
         a2 = arr(erk.get_bottom() + DOWN * 0.02, kk.get_top() + UP * 0.02, PURPLE, w=4, tip=0.16)
-        self.at("switches on", nth=1)
+        self.at("switches on")
         self.play(FadeIn(erk, scale=0.8), Create(a1[0]), FadeIn(a1[1]), GrowArrow(a2), run_time=0.7)
         self.outro(FadeOut(Group(*self.mobjects)))
 
@@ -644,10 +644,9 @@ class S06Rule(Film):
         self.at("already in place")
         self.play(FadeIn(place, shift=RIGHT * 0.1), *glow(*c.lobes, *c.labels, s=1.05), run_time=0.7)
 
-        # the handle goes on, the gene switches on, the ribosomes stay stopped
-        pbs = [pbadge().move_to(t) for t in TIPS]
+        # recap the signal response with the ribosomes stopped, without implying phosphate alone is sufficient
         self.at("That is why")
-        self.play(FadeIn(pbs[0], scale=0.5), FadeIn(pbs[1], scale=0.5), run_time=0.4)
+        self.play(*glow(*c.lobes, *c.labels, s=1.05), run_time=0.4)
         ga = gene_arrow()
         self.at("did not matter")
         self.play(nuc.gene.animate.set_fill(GREEN), GrowArrow(ga), *glow(drug, rib[2], s=1.12), run_time=0.7)
@@ -656,13 +655,13 @@ class S06Rule(Film):
         made = T("already made", 32, TEAL).move_to([1.6, -1.0, 0])
         self.at("is already made")
         self.play(FadeOut(place), FadeIn(made, shift=DOWN * 0.1), *glow(*c.lobes, *c.labels, s=1.05), run_time=0.7)
-        self.at("only has to")
+        self.at("the signal")
         self.play(Indicate(a_g, color=TEXT, scale_factor=1.0), Indicate(a_c, color=TEXT, scale_factor=1.0),
                   Indicate(a_a, color=TEXT, scale_factor=1.0), run_time=0.7)
-        self.at("flip")
-        self.play(*[pop(p, 1.6) for p in pbs], run_time=0.8)
+        self.at("changes what")
+        self.play(*glow(*c.lobes, *c.labels, s=1.12), run_time=0.8)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The factor is already made; the signal only flips the switch."
+    LINE = "The factor is already made; the signal changes what it does."

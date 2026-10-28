@@ -149,7 +149,7 @@ class S02Two(SpokenScene):
         early = T("early", 30, GREY).move_to([-3.7, -2.1, 0])
         late = T("later", 30, GREY).move_to([3.7, -2.1, 0])
         tl = arr([-1.3, 0, 0], [1.3, 0, 0], GREY)
-        self.at("In chick spinal ganglia")
+        self.at("In chix spinal ganglia")
         self.play(FadeOut(VGroup(slotsL, slotsR, dL, dR, tL, tR)), FadeIn(head), run_time=0.8)
         self.play(LaggedStart(*[FadeIn(d, scale=0.5) for d in nA], lag_ratio=0.05), FadeIn(early), run_time=1.0)
         self.at("formed and grew")
@@ -257,7 +257,7 @@ class S04Trka(SpokenScene):
         span = self.t_of("Neurons are made") - 0.4 - self.elapsed()
         self.play(Create(rise_m), run_time=max(1.6, span), rate_func=linear)
         end = rise[-1]
-        self.at("Neurons are made")
+        self.at("neurons are")
         self.play(Indicate(rise_m, color=BLUE, scale_factor=1.0), run_time=0.8)
         tick = Line([end[0], o[1] - 0.12, 0], [end[0], o[1] + 0.12, 0], color=TEXT, stroke_width=4)
         tl = M("E15.5", 26, TEXT).move_to([end[0], o[1] - 0.45, 0])
@@ -309,7 +309,7 @@ class S05Excess(SpokenScene):
         self.at("mark dividing cells")
         self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.6)
         sl13 = slot([NX, 2.85, 0], 0.17)
-        nn = T("no new neuron", 26, GREY).move_to([NX + 2.1, 2.85, 0])
+        nn = T("survival adds none", 26, GREY).move_to([NX + 2.1, 2.85, 0])
         self.at("No new neurons")
         self.play(FadeOut(row), FadeIn(sl13), FadeIn(nn), run_time=0.7)
         same = T("same type of neuron", 26, GREY).move_to([0, -3.3, 0])
@@ -365,4 +365,4 @@ class S06Ceiling(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A survival factor cannot add neurons never made."
+    LINE = "Survival alone cannot add neurons never made."

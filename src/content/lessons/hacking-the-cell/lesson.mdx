@@ -26,7 +26,7 @@ explainer:
   poster: "/explainers/hacking-the-cell/poster.jpg"
   title: "Tools Behind a Stop, Chosen by Cre"
   durationSec: 149.4
-  narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
   aiGenerated: true
 
 scientists:
@@ -387,7 +387,7 @@ films:
     poster: "/explainers/hacking-the-cell/actuator-poster.jpg"
     title: "Light In, Current Out"
     durationSec: 101.3
-    narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
+    narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
     aiGenerated: true
 ---
 
@@ -421,7 +421,7 @@ To make the light depend on a signal, join GFP to a detector you have already me
 - **A calcium reporter.** In the GCaMP family, GFP's original ends are joined and new ends are cut beside the light-emitting group. Calmodulin (from the calcium lesson) is attached to one new end and a peptide that it grips to the other. When calcium rises, calmodulin wraps around the peptide and plugs the gap in the barrel, which shuts water out from the light-emitting group, and the GFP brightens.
 - **A kinase reporter.** Put a peptide that the kinase phosphorylates, and a domain that binds the phosphorylated peptide (an SH2 domain, for a tyrosine kinase), between a cyan and a yellow fluorescent protein. Phosphorylation folds the chain. Two fluorescent proteins within a few nanometers pass energy from one to the other without a photon (FRET), so the balance of cyan and yellow light changes as the kinase works.
 
-<LessonFigure src="/figures/hacking-the-cell/gcamp-calcium-reporter.webp" width={1200} height={641} alt="AI-generated illustration: two panels of a calcium reporter. With low calcium, a GFP barrel has an open gap with water reaching its light-emitting spot and glows faintly; with high calcium, calmodulin wraps a peptide and plugs the gap, and the barrel glows brightly." caption="In a GCaMP calcium reporter, calcium makes calmodulin wrap its peptide and plug a gap in the GFP barrel, which keeps water off the light-emitting group so the protein brightens." />
+<LessonFigure src="/figures/hacking-the-cell/gcamp-calcium-reporter.webp" width={1200} height={800} alt="AI-generated illustration: two panels of a calcium reporter. With low calcium, a GFP barrel has an open gap with water reaching its light-emitting spot and glows faintly; with high calcium, calmodulin wraps a peptide and plugs the gap, and the barrel glows brightly." caption="In a GCaMP calcium reporter, calcium makes calmodulin wrap its peptide and plug a gap in the GFP barrel, which keeps water off the light-emitting group so the protein brightens." />
 
 A reporter also takes part in what it reports. A calcium reporter soaks up some of the calcium it measures, and its own binding and shape changes are slow, so a fast train of spikes can blur into one slow rise.
 
@@ -441,7 +441,6 @@ Opsins are sorted by what light does through them:
 
 A virus can carry the gene into one brain region, though the AAV vectors used most have room for only a short promoter, and light arrives through an optical fiber.
 
-<LessonFigure src="/figures/hacking-the-cell/three-opsin-actuators.webp" width={1200} height={728} alt="AI-generated illustration: three neurons side by side, each lit from above: blue light opens a channelrhodopsin pore and cations enter so the neuron switches on; yellow light drives chloride in through halorhodopsin so its firing is suppressed; green light activates an OptoXR that starts another receptor's pathway." caption="Opsins are sorted by what light does through them: blue light opens a cation channel and switches the neuron on, yellow light drives chloride in and suppresses its firing, and green light starts another receptor's pathway." />
 
 A drug can do the job of light. In one chemogenetic approach the cell gets an engineered G-protein-coupled receptor, called a DREADD, that barely answers its natural ligand and answers a synthetic drug instead, so in the main only cells with the receptor react. The drug still needs a control of its own: clozapine-N-oxide, the one used most, turns into clozapine in the body, and clozapine acts on the animal's own receptors. A channel from the lesson on ion channels works too: put the TRPV1 gene into one neuron type of a mouse whose own TRPV1 gene has been knocked out, and capsaicin opens a cation channel in those neurons alone (Güler and colleagues, 2012).
 
@@ -451,7 +450,7 @@ Start with a **transgene**: DNA built from a promoter (the stretch that sets whe
 
 To change one chosen gene you work in **embryonic stem cells**, cells from an early embryo that can still become any tissue. Give them DNA that matches the target gene on both sides of your change, and in a few cells the matching stretches swap your version into the gene's own place. Destroying the gene this way is a **knock-out**; writing something new into it, such as GFP, is a **knock-in**. Drugs select the rare correct cells (random insertions keep an added herpes thymidine-kinase gene, and ganciclovir kills the cells that keep it). The chosen cells, from a strain with a brown "agouti" coat, are injected into an early embryo of a black strain. The pup is a chimera, a patchwork of both, and if the stem cells formed its sperm or eggs, its agouti offspring can carry the change.
 
-<LessonFigure src="/figures/hacking-the-cell/knockout-knockin-chimera.webp" width={1200} height={575} alt="AI-generated illustration: four steps from a gene change in embryonic stem cells, to injecting those brown-strain cells into a black-strain embryo, to a patchwork chimera pup, to a brown offspring that carries the change; a small inset contrasts knock-out and knock-in." caption="Mouse embryonic stem cells with the changed gene are injected into an early embryo of a black strain. The chimera pup is a patchwork, and if the stem cells formed its sperm or eggs, agouti offspring can carry the change." />
+<LessonFigure src="/figures/hacking-the-cell/knockout-knockin-chimera.webp" width={1200} height={575} alt="AI-generated illustration: selected gene-targeted agouti-strain ES cells are injected into the cavity of a black-strain blastocyst. A black-and-agouti chimera pup develops. After the adult chimera is bred with a black-strain mate, agouti offspring may inherit the change if donor cells contributed to the germ line; genotyping is needed to confirm the targeted allele." caption="Selected gene-targeted mouse ES cells from an agouti strain are injected into a black-strain blastocyst. The resulting chimera contains both cell lineages. After breeding, agouti offspring may carry the change if donor ES cells contributed to sperm or eggs; genotyping confirms inheritance of the targeted allele." />
 
 "How do you get expression in 2 different neuron types?" The tool is **Cre and lox**. Cre is an enzyme from a bacterial virus that cuts and rejoins DNA at a 34-base-pair site called loxP. Put two loxP sites around part of a gene, pointing the same way, and Cre removes what lies between them. Make Cre from a promoter that is active in one cell type, and the gene is lost there and, in the main, nowhere else. Every Cre line has to be checked with a reporter, because brief expression during development or in the germ line can cut the DNA in other cells too. To switch a gene on, put a stop signal between two loxP sites in front of it. Where Cre is made the stop is cut out, and the cut is permanent, so that cell and its descendants read the gene wherever the reporter's own promoter is active, which is how cell lineages are traced. With several fluorescent proteins for Cre to pick among at random, neighboring cells take different colors. For the second neuron type, add a second enzyme of the same kind with its own sites (Flp, from yeast): Cre switches on one gene in one type and Flp another gene in the other.
 

@@ -301,20 +301,20 @@ class S04Family(SpokenScene):
 
         c2, e2 = build(2)
         c3, e3 = build(3)
-        self.at("every one of its")
+        self.at("reporter stays red")
         self.play(*[Create(e) for e in e2], *[FadeIn(c, scale=0.6) for c in c2], run_time=0.4)
         self.play(*[Create(e) for e in e3], *[FadeIn(c, scale=0.6) for c in c3], run_time=0.5)
 
         brace = Brace(VGroup(*c3), direction=RIGHT, color=GREEN, buff=0.15)
-        lab = T("every descendant\nglows", 28, GREEN, line_spacing=0.8).next_to(brace, RIGHT, buff=0.2)
-        self.at("descendants from then on")
+        lab = T("descendants inherit\nthe edit", 28, GREEN, line_spacing=0.8).next_to(brace, RIGHT, buff=0.2)
+        self.at("promoter is active")
         self.play(GrowFromCenter(brace), FadeIn(lab), run_time=0.8)
 
         perm = T("permanent", 36, TEXT, weight=BOLD).move_to([4.7, -2.1, 0])
         self.at("marking is permanent")
         self.play(FadeIn(perm, shift=UP * 0.15), run_time=0.5)
-        lt = T("lineage tracing", 34, GREEN, font=TITLE_FONT).move_to([4.7, -3.0, 0])
-        self.at("lineage tracing")
+        lt = T("fate mapping", 34, GREEN, font=TITLE_FONT).move_to([4.7, -3.0, 0])
+        self.at("fate map")
         self.play(FadeIn(lt, shift=UP * 0.15), run_time=0.6)
         self.finish()
 
@@ -354,7 +354,7 @@ class S05Gene(SpokenScene):
         self.play(FadeIn(cre, scale=0.6), ReplacementTransform(fl, pro), run_time=0.7)
 
         nocre = T("no Cre: gene intact", 24, GREY).move_to(CR + np.array([0, 1.9, 0]))
-        self.at("deleted there alone")
+        self.at("mostly there")
         self.play(gl.mid.animate.set_stroke(RED).set_fill(RED, 0.5), FadeOut(impl), run_time=0.3)
         self.play(FadeOut(gl.mid, shift=UP * 1.0), gl.l2.animate.set_opacity(0), FadeIn(nocre), run_time=0.8)
 

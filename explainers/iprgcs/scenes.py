@@ -69,7 +69,7 @@ class S00Title(TitleCard):
 
 # ---------------------------------------------------------------------------------------------
 class S01Seeing(SpokenScene):
-    """mouse with no working rods or cones tells stripes from grey -> which cells? -> the ipRGC with melanopsin."""
+    """no working rods or cones, yet the clock shifts and the pupil narrows: non-image-forming -> which cells? -> the ipRGC with melanopsin."""
 
     def construct(self):
         y = -1.0
@@ -93,20 +93,34 @@ class S01Seeing(SpokenScene):
         x1 = cross([-5.0, y, 0])
         self.play(Create(x1), rc.animate.set_stroke(opacity=0.35).set_fill(opacity=0.05), run_time=0.6)
 
-        self.at("tell a striped")
-        st = screen_striped(3.0, 2.3)
-        gr = screen_grey(5.2, 2.3)
-        st_l = T("stripes", 22, TEXT).next_to(st, DOWN, buff=0.15)
-        gr_l = T("grey", 22, TEXT).next_to(gr, DOWN, buff=0.15)
-        tell = T("mouse tells them apart", 24, TEXT).move_to([4.1, 0.85, 0])
-        self.play(FadeIn(st), FadeIn(gr), FadeIn(st_l), FadeIn(gr_l), run_time=0.7)
-        self.play(FadeIn(tell, shift=UP * 0.1), run_time=0.5)
+        self.at("still responds")
+        hd = T("no rods or cones, yet light still works", 24, TEXT).move_to([3.6, 3.4, 0])
+        self.play(FadeIn(hd), run_time=0.5)
 
-        self.at("lacking rod and cone")
-        head = T("In mice lacking rod and cone signalling", 26, GREY).move_to([-2.6, 3.0, 0])
-        self.play(FadeIn(head), run_time=0.5)
+        self.at("body clock")
+        ck = Circle(radius=0.55, stroke_color=YELLOW, stroke_width=4).move_to([2.6, 2.4, 0])
+        hands = VGroup(Line(ck.get_center(), ck.get_center() + [0, 0.38, 0], color=YELLOW, stroke_width=4),
+                       Line(ck.get_center(), ck.get_center() + [0.28, -0.12, 0], color=YELLOW, stroke_width=4))
+        ck_l = T("body clock shifts", 22, TEXT).next_to(ck, DOWN, buff=0.15)
+        self.play(Create(ck), Create(hands), FadeIn(ck_l), run_time=0.7)
+        self.play(Rotate(hands[1], angle=-PI / 2, about_point=ck.get_center()), run_time=0.6)
 
-        self.at("which cells are doing")
+        self.at("pupils still narrow")
+        eye = Ellipse(width=1.5, height=0.85, stroke_color=GREY, stroke_width=4).move_to([5.2, 2.4, 0])
+        iris = Circle(radius=0.36, stroke_width=0, fill_color=GREY, fill_opacity=0.6).move_to(eye)
+        pup = Circle(radius=0.24, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(eye)
+        eye_l = T("pupil narrows", 22, TEXT).next_to(eye, DOWN, buff=0.15)
+        self.play(FadeIn(eye), FadeIn(iris), FadeIn(pup), FadeIn(eye_l), run_time=0.6)
+        self.play(pup.animate.scale(0.45), run_time=0.6)
+
+        self.at("These are")
+        nif = chip("non-image-forming", YELLOW, size=24).move_to([3.9, 0.55, 0])
+        self.play(FadeIn(nif, shift=UP * 0.1), run_time=0.5)
+        self.at("how bright")
+        nif2 = T("how bright, not what is there", 22, YELLOW).next_to(nif, DOWN, buff=0.12)
+        self.play(FadeIn(nif2), run_time=0.5)
+
+        self.at("which cells detect")
         q = T("?", 64, YELLOW, weight=BOLD).move_to([1.4, 0.55, 0])
         self.play(FadeIn(q, scale=1.4), run_time=0.5)
 
@@ -166,9 +180,12 @@ class S02Twojobs(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S03Grating(SpokenScene):
-    """first result: grating vs grey discriminated; labelled cells reach the dLGN; 0.16 vs 0.55 cycles per degree."""
+    """harder question, pattern vision: grating vs grey discriminated; labelled cells reach the dLGN; 0.16 vs 0.55 cycles per degree."""
 
     def construct(self):
+        pv = T("pattern vision?", 30, YELLOW, weight=BOLD).move_to([3.6, 3.1, 0])
+        self.play(FadeIn(pv), run_time=0.5)
+        self.at("Mice lacking rod")
         head = T("In mice lacking rod and cone signalling", 24, GREY).move_to([-3.4, 3.1, 0])
         self.play(FadeIn(head), run_time=0.5)
         st = screen_striped(-5.0, 1.9)
@@ -203,10 +220,10 @@ class S03Grating(SpokenScene):
         l2 = T("wild type", 22, GREY).move_to([5.1, base - 0.45, 0])
         unit = T("cycles per degree", 24, GREY).move_to([3.9, 2.4, 0])
         self.play(Create(axis), FadeIn(unit), FadeIn(l1), FadeIn(l2), run_time=0.6)
-        self.at("Those mice managed")
+        self.at("Those mice")
         v1 = M("0.16", 28, BLUE).next_to(b1, UP, buff=0.12)
         self.play(GrowFromEdge(b1, DOWN), FadeIn(v1), run_time=0.7)
-        self.at("Wild type mice managed")
+        self.at("Wild type mice")
         v2 = M("0.55", 28, GREY).next_to(b2, UP, buff=0.12)
         self.play(GrowFromEdge(b2, DOWN), FadeIn(v2), run_time=0.9)
         self.finish()

@@ -339,7 +339,7 @@ class S02Pocket(SpokenScene):
 
         self.at("coupled receptor")
         self.play(Indicate(sil, color=TEXT, scale_factor=1.03), run_time=0.8)
-        self.at("or GPCR")
+        self.at("Its chain")
         self.play(Indicate(gp, color=TEXT, scale_factor=1.25), run_time=0.8)
 
         rec = zoom(receptor())
@@ -361,7 +361,7 @@ class S02Pocket(SpokenScene):
 
         self.at("binds in a pocket")
         self.play(lig.animate.shift(dock - lig.dot.get_center()), FadeOut(gp), run_time=1.3)
-        self.at("a little outside")
+        self.at("favors")
         self.play(LaggedStart(*[Indicate(rec[i][1], color=TEXT, scale_factor=1.05) for i in (1, 2, 3, 4, 5)], lag_ratio=0.12),
                   run_time=0.9)
 
@@ -499,11 +499,11 @@ class S04Heart(SpokenScene):
         ch0, ch1 = channel(False), channel(True)
         ch_lbl = T("potassium\nchannel", 22, TEAL, line_spacing=0.8).move_to([5.45, 2.6, 0])
         tb = T("textbook picture", 24, GREY).move_to([5.0, -2.9, 0])
-        self.at("binds a potassium channel")
+        self.at("beta gamma")
         self.play(FadeIn(tb), run_time=0.4)
         self.play(FadeOut(tag_b), FadeOut(qb), FadeOut(db), FadeIn(ch0), FadeIn(ch_lbl),
                   *shift_all(bg, np.array([5.45 - FB[0], -1.25 - FB[1], 0])), run_time=1.2)
-        self.at("opens it")
+        self.at("potassium channel")
         self.play(*[Transform(a, b) for a, b in zip(ch0, ch1)], run_time=0.8)
 
         # potassium streams out through the gap, for as long as the scene runs
@@ -520,7 +520,7 @@ class S04Heart(SpokenScene):
         for d in ions:
             d.set_opacity(0)
             self.add(d)
-        self.at("Potassium flows out")
+        self.at("potassium leaves")
         for d in ions:
             d.add_updater(mover)
         self.wait(0.6)
@@ -530,10 +530,17 @@ class S04Heart(SpokenScene):
         thr_l = T("firing threshold", 22, GREY).move_to([1.95, -1.5, 0])
         mark = Line([-1.1, -1.95, 0], [0.3, -1.95, 0], color=TEXT, stroke_width=7)
         mark_l = T("membrane potential", 22, TEXT).move_to([1.95, -1.95, 0])
-        self.at("membrane potential")
+        self.at("moving the voltage")
         self.play(FadeIn(cd), Create(thr), FadeIn(thr_l), Create(mark), FadeIn(mark_l), run_time=0.8)
-        self.at("away from the firing")
+        self.at("away from threshold")
         self.play(mark.animate.shift(DOWN * 0.85), mark_l.animate.shift(DOWN * 0.85), run_time=1.3)
+
+        camp = T("cAMP ↓", 22, PINK).move_to([-4.0, -3.05, 0])
+        current = T("pacemaker current ↓", 22, TEXT).move_to([-4.0, -3.5, 0])
+        self.at("Alpha lowers")
+        self.play(*glow(ga[2], gi_lbl, s=1.08, color=TEXT), FadeIn(camp), run_time=0.7)
+        self.at("pacemaker current")
+        self.play(FadeIn(current), run_time=0.6)
 
         out = T("heart slows", 32, TEXT, weight=BOLD).move_to([-4.2, 2.65, 0])
         tk = ticks(-4.2, 2.2, 0.13)
@@ -642,7 +649,7 @@ class S06Rule(SpokenScene):
         fade = [C.ach, L["a_in"], R["a_in"], L["a_out"], R["a_out"], L["out"], R["out"], L["glyph"], R["glyph"], L["name"], R["name"]]
         self.at("keep this rule")
         self.play(*[m.animate.set_opacity(0.3) for m in fade], run_time=0.7)
-        self.at("decide the answer")
+        self.at("decide")
         self.play(*[g for s in (-1, 1) for g in (chip_glow(new[s][0], 1.15, TEXT) + chip_glow(new[s][2], 1.15, TEXT))], run_time=1.0)
         x1 = strike(C.ach)
         self.at("not the signal")
@@ -651,4 +658,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "The receptor and its G protein decide the answer, not the signal."
+    LINE = "The receptor, G protein and downstream proteins decide, not the signal."

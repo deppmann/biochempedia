@@ -169,7 +169,7 @@ def fade_cap(text, y=3.4, x=2.5, size=28, color=TEXT):
 # ------------------------------------------------------------------ scenes
 class S00Title(TitleCard):
     LESSON = "Ocular dominance and the critical period"
-    TITLE = "The more active eye wins"
+    TITLE = "The eyes compete for cortex"
 
 
 class S01Kitten(SpokenScene):
@@ -399,8 +399,8 @@ class S05Window(SpokenScene):
         lab = chip("critical or sensitive period", GOLD, size=28).move_to([px(7.5), 2.65, 0])
         self.at("critical period or")
         self.play(FadeIn(zone), FadeIn(lab, shift=DOWN * 0.1), run_time=0.9)
-        lab2 = chip("real windows fall in between", GOLD, size=28).move_to([px(7.5), 2.65, 0])
-        self.at("Real windows")
+        lab2 = chip("critical: experience essential", GOLD, size=28).move_to([px(7.5), 2.65, 0])
+        self.at("Sensitive periods")
         self.play(FadeOut(lab), FadeIn(lab2), run_time=0.6)
         self.finish()
 
@@ -419,7 +419,7 @@ class S06Patch(SpokenScene):
         thinA = arr([-3.6, 1.5, 0], [-1.35, 0.8, 0], BLUE, 3).set_opacity(0.5)
         thickB = arr([-3.6, -1.5, 0], [-1.35, -0.8, 0], YELLOW, 13)
         self.play(Transform(st.aA, thinA), Transform(st.aB, thickB), run_time=1.0)
-        gl = chip("glasses alone", RED, size=26).move_to([-2.6, -3.1, 0])
+        gl = chip("glasses: no quick fix", RED, size=26).move_to([-2.6, -3.1, 0])
         cross = VGroup(Line([-0.2, -0.2, 0], [0.2, 0.2, 0], color=RED, stroke_width=5),
                        Line([-0.2, 0.2, 0], [0.2, -0.2, 0], color=RED, stroke_width=5)).move_to([-4.35, -3.1, 0])
         self.at("Glasses alone")
@@ -433,17 +433,17 @@ class S06Patch(SpokenScene):
         self.play(FadeOut(gl), FadeOut(cross), FadeIn(patch, scale=1.3), run_time=0.7)
         newA = arr([-3.6, 1.5, 0], [-1.35, 0.8, 0], BLUE, 13)
         newB = arr([-3.6, -1.5, 0], [-1.35, -0.8, 0], YELLOW, 3).set_opacity(0.5)
-        act = chip("more active", BLUE, size=26).move_to([-2.45, 2.55, 0])
-        self.at("more active one")
+        act = chip("useful images", BLUE, size=26).move_to([-2.45, 2.55, 0])
+        self.at("useful images")
         self.play(Transform(st.aA, newA), Transform(st.aB, newB), FadeIn(act, shift=DOWN * 0.1), run_time=1.2)
         yc = chip("works best in young children", GOLD, size=26).move_to([2.5, -3.1, 0])
         self.at("young children")
         self.play(FadeIn(yc, shift=UP * 0.1), run_time=0.6)
-        rule = T("the more active eye wins", 36, TEXT, font=TITLE_FONT).move_to([2.5, 3.42, 0])
+        rule = T("the eyes compete for cortex", 36, TEXT, font=TITLE_FONT).move_to([2.5, 3.42, 0])
         self.at("Keep the rule")
         self.play(FadeIn(rule, shift=DOWN * 0.1), run_time=0.8)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The more active eye wins, most easily when young."
+    LINE = "The eyes compete for cortex, most easily when young."

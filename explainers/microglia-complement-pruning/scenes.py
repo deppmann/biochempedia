@@ -217,13 +217,13 @@ class S03Tag(SpokenScene):
         self.play(small.animate.shift(UP * 0.7 + RIGHT * 0.5).set_opacity(0), GrowArrow(a3), FadeIn(c3b), run_time=0.8)
         self.at("big piece")
         self.play(Indicate(c3b, color=YELLOW, scale_factor=1.15), run_time=0.6)
-        self.at("fixes to the nearest surface")
+        self.at("nearby surface")
         tags = tag_dots(BC, 1.7, 10, a0=0.3, rad=0.14)
         self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in tags], lag_ratio=0.12), FadeOut(mark), run_time=1.1)
         self.at("trimmed")
         self.play(GrowArrow(a4), FadeIn(ic), run_time=0.5)
         self.play(Indicate(ic, color=YELLOW, scale_factor=1.15), *[Indicate(d, color=TEXT, scale_factor=1.5) for d in tags], run_time=0.7)
-        self.at("many small synaptic contacts")
+        self.at("developing synapses")
         cons = VGroup(); tg = VGroup()
         RC2 = RC
         for k, a in enumerate((25, 60, 95, 130, 230, 265, 300, 335)):
@@ -265,7 +265,7 @@ class S04Eater(SpokenScene):
         self.at("binds")
         self.play(reach.animate.put_start_and_end_on(MC + P(1.1, 0.0), P(2.0, 0.3)),
                   caps.animate.shift(P(0.9, 0)), run_time=0.8)
-        self.at("engulfs whatever it coats")
+        self.at("promotes engulfment")
         lys = Circle(radius=0.75, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.25).move_to(MC + P(-0.1, 0.0))
         ll = T("lysosome", 26, GREY).move_to(MC + P(0.9, -1.55))
         self.play(FadeIn(lys), FadeIn(ll), FadeOut(rl), run_time=0.5)

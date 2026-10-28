@@ -454,11 +454,11 @@ class S03Pair(Film):
         self.add(mem, chL, chR, jL, jR, cyt)
         self.play(cyt.animate.become(on_chains(L, sig(L, "cytokine"))), run_time=1.0)
 
-        self.at("sets two receptor")
+        self.at("sets receptor chains")
         d = L.x_out - L.x_in
         self.play(chL.animate.shift(RIGHT * d), jL.animate.shift(RIGHT * d),
                   chR.animate.shift(LEFT * d), jR.animate.shift(LEFT * d), run_time=1.1)
-        self.at("and so two")
+        self.at("and so they're")
         self.play(*jglow(jL, 1.06), *jglow(jR, 1.06), run_time=0.7)
         pos = T("in position", 28, GREY).next_to(jR[1], RIGHT, buff=0.35)
         self.at("in position")
@@ -591,12 +591,12 @@ class S05Grip(Film):
         self.play(sA.animate.shift(DOWN * (L.docked(-1)[1] - L.pair_y)), sB.animate.shift(DOWN * (L.docked(1)[1] - L.pair_y)), run_time=0.7)
         # turn to face each other
         gap = 0.4 * L.k
-        self.at("It holds")
+        self.at("loose pairs")
         self.play(spin_move(sA, -PI / 2, L.pair(-1) + LEFT * gap), spin_move(sB, PI / 2, L.pair(1) + RIGHT * gap), run_time=1.0)
-        self.at("of a partner")
+        self.at("this grip")
         self.play(sA.animate.shift(RIGHT * gap), sB.animate.shift(LEFT * gap), run_time=0.5)
         self.play(Indicate(sA.cup, color=TEXT, scale_factor=1.25), pop(sB.p, 1.3), run_time=0.6)      # grip one
-        self.at("the partner does")
+        self.at("each domain")
         self.play(Indicate(sB.cup, color=TEXT, scale_factor=1.25), pop(sA.p, 1.3), run_time=0.7)      # grip two
 
         two = T("two grips", 30, PINK, weight=BOLD).next_to([L.pair(1)[0] + 0.55 * L.k, L.pair_y, 0], RIGHT, buff=0.45)
@@ -653,7 +653,7 @@ class S06Gene(Film):
         X = -4.2
         rc = bchip("receptor complex", BLUE, 24).move_to([X, 1.15, 0])
         gn = bchip("gene", GREEN, 24).move_to([X, -1.35, 0])
-        st = bchip("one protein: STAT", TEAL, 24).move_to([X, -0.1, 0])
+        st = bchip("STAT relay", TEAL, 24).move_to([X, -0.1, 0])
         track = DashedLine(rc.get_bottom(), gn.get_top(), color=GREY, stroke_width=4, dash_length=0.1)
         self.at("count the proteins")
         self.play(FadeIn(rc[0]), FadeIn(gn[0]), Create(track), run_time=0.6)
@@ -679,7 +679,7 @@ class S06Gene(Film):
         self.at("no chain of")
         self.play(FadeIn(ks), FadeIn(ka), run_time=0.35)
         self.play(Create(x2), run_time=0.3)
-        self.at("That is why")
+        self.at("already waiting")
         self.play(FadeOut(VGroup(sm, x1, ks, ka, x2)), run_time=0.4)
         ck = clock([4.1, 0.1, 0])
         mins = T("minutes", 24, GREY).move_to([4.1, -0.7, 0])
@@ -688,7 +688,7 @@ class S06Gene(Film):
         self.play(Rotate(ck.hand, -TAU / 5, about_point=ck.c), run_time=0.6)
 
         # the rule
-        self.at("one protein")
+        self.at("keep this rule")
         self.play(*glow(sA.body, sB.body, sA.label, sB.label, s=1.08), *glow(st[1], st[2], s=1.08), run_time=0.55)
         self.at("with one phosphate")
         self.play(pop(sA.p, 1.6), pop(sB.p, 1.6), run_time=0.7)
@@ -701,4 +701,4 @@ class S06Gene(Film):
 
 
 class S07End(EndCard):
-    LINE = "One protein, with one phosphate, carries the signal from receptor to gene."
+    LINE = "A Stat, with one phosphate, carries the signal from receptor to gene."

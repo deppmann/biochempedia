@@ -263,7 +263,7 @@ class S01Waste(SpokenScene):
         # one drop followed from the tap to the drain: soon after it is made
         tr = disc(0.17).move_to([tank.nozzle_x, tank.tap_y - 0.4, 0])
         tr.set_stroke(GOLD, 4)
-        self.at("soon after")
+        self.at("free copies")
         self.add(tr)
         self.play(tr.animate.move_to([tank.nozzle_x, tank.floor + 0.35, 0]), run_time=0.7, rate_func=rush_into)
         self.play(tr.animate.move_to([tank.R + 0.2, tank.floor + 0.25, 0]), run_time=0.45, rate_func=linear)
@@ -619,13 +619,13 @@ class S05Tcf(SpokenScene):
         gene = RoundedRectangle(corner_radius=0.15, width=3.4, height=0.6, stroke_color=GREY, stroke_width=3,
                                 fill_color=GREY, fill_opacity=0.3).move_to([3.5, DNA_Y, 0])
         gene_lbl = T("target genes", 26, GREY).move_to([3.5, DNA_Y - 0.58, 0])
-        self.at("sits on the DNA")
+        self.at("binds the DNA")
         self.play(Indicate(dna, color=TEXT, scale_factor=1.0), tcf.animate.shift(DOWN * 0.07), run_time=0.8)
         self.at("target genes")
         self.play(FadeIn(gene), FadeIn(gene_lbl, shift=UP * 0.1), run_time=0.6)
 
         sig = ghost("signal", YELLOW, 26).move_to([4.7, -2.5, 0])
-        self.at("whether or not")
+        self.at("before a signal")
         self.play(FadeIn(sig, shift=DOWN * 0.1), Indicate(tcf[1:], color=ORANGE, scale_factor=1.08), run_time=0.7)
         self.play(FadeOut(sig), run_time=0.55)
         self.play(FadeIn(sig), run_time=0.55)
@@ -642,13 +642,13 @@ class S05Tcf(SpokenScene):
 
         # beta-catenin arrives, takes Groucho's place, and brings in the transcription proteins
         bcat = bchip("β-catenin", BETA, 36).move_to([-3.4, TOP_Y - 0.2, 0])
-        self.at("that builds up")
+        self.at("simple model")
         self.play(Indicate(pile, color=BETA, scale_factor=1.05), run_time=0.6)
         self.at("enters the nucleus")
         rise = [d.animate(run_time=0.9).move_to([-3.4 + 0.12 * (i - 2.5), TOP_Y - 0.2, 0]).set_opacity(0.0)
                 for i, d in enumerate(list(pile)[:6])]
         self.play(LaggedStart(*rise, lag_ratio=0.1), FadeIn(bcat, scale=0.6), run_time=1.2)
-        self.at("displaces")
+        self.at("pushes Groucho off")
         self.play(bcat.animate.move_to([0.2, TOP_Y, 0]),
                   gro.animate.shift(UP * 0.7 + LEFT * 2.6).set_opacity(0),
                   FadeOut(glink), run_time=0.8)

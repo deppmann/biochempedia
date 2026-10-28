@@ -216,7 +216,7 @@ class S03P75(SpokenScene):
         self.at("tumor necrosis factor")
         fam = chip("TNF receptor family", VIOLET, size=24).move_to([4.2, 1.9, 0])
         self.play(FadeIn(fam, shift=LEFT * 0.2), run_time=0.5)
-        self.at("death receptor Fas")
+        self.at("death receptor FASS")
         fas = chip("Fas", VIOLET, size=24).move_to([4.2, 1.0, 0])
         ln = Line(fam.get_bottom(), fas.get_top(), color=VIOLET, stroke_width=3)
         self.play(FadeIn(fas, shift=UP * 0.1), Create(ln), run_time=0.5)
@@ -265,18 +265,18 @@ class S04Cut(SpokenScene):
         self.at("is called")
         nm = lab("proNGF", BLUE, C[0], CY - 1.15, 30)
         self.play(FadeIn(nm, shift=UP * 0.1), run_time=0.4)
-        self.at("accepted view")
-        guess = chip("trimmed inside the cell?", GREY, size=24).move_to([C[0], -3.15, 0])
+        self.at("Cells can trim")
+        guess = chip("always trimmed inside?", GREY, size=24).move_to([C[0], -3.15, 0])
         self.play(FadeIn(guess, shift=UP * 0.1), run_time=0.5)
         self.at("secrete")
         x = cross(guess.get_center())
         self.play(Create(x), run_time=0.3)
         self.play(FadeOut(guess), FadeOut(x), FadeOut(pdl), FadeOut(pa),
                   VGroup(d, nm).animate.shift(RIGHT * 6.6), run_time=1.0)
-        self.at("outside the cell")
+        self.at("Outside")
         out = lab("outside the cell", GREY, 3.2, -2.6, 26)
         self.play(FadeIn(out), run_time=0.4)
-        self.at("plasmin")
+        self.at("plasmon")
         cx = d.bodies[0].get_center()[0]
         tl_l, tl_r = tails[0], tails[1]
         pc = chip("plasmin", GOLD, size=26).move_to([cx - 0.2, 3.0, 0])
@@ -354,7 +354,7 @@ class S05Outcome(SpokenScene):
         ok = chip("survives", GREEN, size=28).move_to([cR - 1.9, -3.2, 0])
         oa = arr([cR - 1.9, -1.95, 0], [cR - 1.9, -2.85, 0], GREEN)
         self.play(FadeIn(bL), FadeIn(bR), FadeIn(oa), FadeIn(ok, shift=UP * 0.1), run_time=0.6)
-        self.at("cultured cells")
+        self.at("Another group")
         sc = lab("shown in cultured cells and rodent injury models", GREY, 0, 3.45, 22)
         self.play(ReplacementTransform(head, sc), run_time=0.5)
         self.finish()
@@ -365,7 +365,7 @@ class S06Rule(SpokenScene):
     def construct(self):
         X = (-4.2, 0.0, 4.2)
         nums = VGroup(*[M(str(i + 1), 44, GREY).move_to([x, 2.9, 0]) for i, x in enumerate(X)])
-        self.at("Three things decide")
+        self.at("Three things")
         self.play(FadeIn(nums, lag_ratio=0.3), run_time=0.8)
         # column 1
         self.at("Was the factor cut")
@@ -414,4 +414,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Cut or uncut, and which receptors: together set what the factor says."
+    LINE = "Cut or uncut, and which receptors: together help set what the factor says."

@@ -312,10 +312,10 @@ class S05Brakes(SpokenScene):
 
         # a window that simply faded
         faded = T("faded", 28, GREY).move_to(wl)
-        self.at("simply faded")
+        self.at("need")
         self.play(win.animate.set_fill(opacity=0.08).set_stroke(opacity=0.3), ReplacementTransform(wl, faded), run_time=1.2)
-        cr = Cross(Circle(radius=0.4), stroke_color=RED, stroke_width=8).move_to([0, WB + HT + 0.9, 0])
-        self.at("could open it again")
+        cr = T("machinery remains", 24, GREY).move_to([0, WB + HT + 0.9, 0])
+        self.at("machinery")
         self.play(Create(cr), run_time=0.5)
         self.at("held shut by")
         wl = T("window", 28, TEXT).move_to([0, WB + HT / 2, 0])
@@ -410,7 +410,7 @@ class S06State(SpokenScene):
                                    fill_color=GREEN, fill_opacity=0.55).move_to([(xc + xb) / 2, 2.85, 0])
             g1 = DashedLine([xc, yt, 0], [xc, 2.55, 0], color=GREEN, stroke_width=3)
             g2 = DashedLine([xb, oy, 0], [xb, 2.55, 0], color=RED, stroke_width=3)
-            bk = bchip("brakes", RED, 24).move_to([xb, oy + 0.75, 0])
+            bk = bchip("inhibition\n+ brakes", RED, 22).move_to([xb, oy + 0.75, 0])
             return VGroup(curve, dot, win, g1, g2, bk)
 
         axes = VGroup(Line([ox, oy, 0], [5.6, oy, 0], color=GREY, stroke_width=3),
@@ -428,7 +428,7 @@ class S06State(SpokenScene):
         wlab = T("window", 24, TEXT).move_to(A[2])
         self.play(GrowFromEdge(A[2], LEFT), Create(A[3]), run_time=0.6)
         self.play(FadeIn(wlab), run_time=0.3)
-        self.at("are added")
+        self.at("breaks")
         self.play(Create(A[4]), FadeIn(A[5]), run_time=0.8)
         self.at("does not shift the cortex")
         self.wait(0.05)

@@ -144,7 +144,7 @@ class S01Cut(SpokenScene):
         self.add(distalB, dtipB)
         nB.tr[0].set_value(6.0)
         self.play(FadeOut(distalB), FadeOut(dtipB), run_time=0.5)
-        self.at("the old axon simply regrows")
+        self.at("old axon regrows")
         self.play(nB.tr[0].animate.set_value(10.3), FadeOut(cutB), run_time=1.8)
         q = T("What decides which process is the axon?", 34, TEXT, font=TITLE_FONT).move_to([0.6, -2.5, 0])
         self.at("What decides")
@@ -174,14 +174,14 @@ class S02Race(SpokenScene):
         lab = T("axon", 28, YELLOW).move_to(n.point(0, 5.0) + UP * 0.6 + LEFT * 0.2)
         self.play(FadeIn(lab), run_time=0.3)
         # the ten-micrometre gap
-        self.at("tends to win once")
+        self.at("axon cuts")
         y2 = BASE_Y + 2.3 * ch.s
         y1 = BASE_Y + 5.0 * ch.s
         x = BAR_X0 + 0.55
         ref = DashedLine([BAR_X0 - 0.2, y2, 0], [BAR_X0 + 0.65, y2, 0], color=GREY, stroke_width=3)
         gap = DoubleArrow([BAR_X0 + 0.5, y2, 0], [BAR_X0 + 0.5, y1, 0], color=TEXT, stroke_width=4, buff=0,
                           tip_length=0.18)
-        gl = T("about 10 µm longer", 28, TEXT).next_to(gap, RIGHT, buff=0.2).shift(UP * 0.35)
+        gl = T("10 µm lead (after cuts)", 28, TEXT).next_to(gap, RIGHT, buff=0.2).shift(UP * 0.35)
         self.play(Create(ref), GrowFromCenter(gap), FadeIn(gl), run_time=0.8)
         race = T("a race", 48, GOLD, font=TITLE_FONT).move_to([4.0, 1.5, 0])
         self.at("behaves like a race")
@@ -313,7 +313,7 @@ class S04Tip(SpokenScene):
 
 
 class S05Hold(SpokenScene):
-    """mature neuron: AIS on ankyrin G; MAP2 kept out of axon; lower ankyrin G -> segment dissolves, MAP2 enters, axon looks like a dendrite."""
+    """mature neuron: AIS on ankyrin G; MAP2 kept out of axon; lower ankyrin G -> segment dissolves, MAP2 enters the proximal axon, which looks like a dendrite; distal axon stays yellow."""
 
     def construct(self):
         n = mature()
@@ -348,30 +348,30 @@ class S05Hold(SpokenScene):
         self.play(ais.animate.set_color(RED).set_opacity(0.5), run_time=0.4)
         self.play(FadeOut(ais), FadeOut(ais_lbl), run_time=0.5)
         # MAP2 enters axon
-        self.at("spreads into the axon")
-        newd = VGroup(*[Dot(n.point(0, 0.9 + 0.62 * k) + np.array([0, (-1) ** k * 0.14, 0]), radius=0.07,
-                            color=BLUE).set_stroke(TEXT, 1.5) for k in range(14)])
+        self.at("spreads into")
+        proximal_end = 2.95
+        newd = VGroup(*[Dot(n.point(0, 0.9 + 0.32 * k) + np.array([0, (-1) ** k * 0.14, 0]), radius=0.07,
+                            color=BLUE).set_stroke(TEXT, 1.5) for k in range(7)])
         self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in newd], lag_ratio=0.1), run_time=2.0)
         self.at("begins to look like a dendrite")
         spines = VGroup()
-        for k in range(1, 12):
-            p = n.point(0, 0.8 + 0.8 * k)
+        for k in range(1, 6):
+            p = n.point(0, 0.8 + 0.4 * k)
             s = 1 if k % 2 else -1
             spines.add(Line(p, p + UP * 0.32 * s, color=BLUE, stroke_width=4))
-        self.play(*n.recolor(0, BLUE), FadeIn(spines), run_time=1.2)
-        lab = T("looks like a dendrite", 30, BLUE).move_to([3.2, -2.35, 0])
+        proximal = Line(n.point(0, SOMA_R), n.point(0, proximal_end), color=BLUE, stroke_width=11)
+        self.play(Create(proximal), FadeIn(spines), run_time=1.2)
+        lab = T("near the body: looks like a dendrite", 24, BLUE).move_to([3.2, -2.35, 0])
         self.play(FadeIn(lab), run_time=0.4)
         self.finish()
 
 
 class S06Rule(SpokenScene):
-    """short stump: level bars, a dendrite wins. long stump: stump bar already tallest, regrows."""
+    """short stump: little stable axon left, a dendrite can take over. long stump: old axon regrows."""
 
     def construct(self):
         # case A: short stump (1.0 long), four dendrites alike
         nA = mature()
-        cols = [YELLOW, BLUE, BLUE, BLUE, BLUE]
-        chA = Chart(nA, cols, s=0.3)
         lblA = hdr("Short stump: under 35 µm", RED)
         self.add(nA.group)
         self.at("Now return to the cut")
@@ -383,22 +383,20 @@ class S06Rule(SpokenScene):
         self.add(distal, dtip)
         nA.tr[0].set_value(1.2)
         self.at("stump shorter than")
-        self.play(FadeOut(distal), FadeOut(dtip), FadeIn(chA.group), run_time=0.8)
-        nobody = T("no process clearly ahead", 30, GREY).move_to([3.9, 1.0, 0])
-        self.at("no process is clearly ahead")
+        self.play(FadeOut(distal), FadeOut(dtip), run_time=0.8)
+        nobody = T("little stable axon left", 30, GREY).move_to([3.9, 1.0, 0])
+        self.at("little stable axon")
         self.play(FadeIn(nobody), run_time=0.5)
         self.at("like the first race again")
         self.play(FadeOut(cut), FadeOut(nobody), run_time=0.4)
         self.at("a dendrite can win it")
-        self.play(nA.tr[1].animate.set_value(6.3), *nA.recolor(1, YELLOW), *nA.recolor(0, BLUE), chA.bars[0].animate.set_color(BLUE), chA.bars[1].animate.set_color(YELLOW),
+        self.play(nA.tr[1].animate.set_value(6.3), *nA.recolor(1, YELLOW), *nA.recolor(0, BLUE),
                   run_time=1.9)
         # case B: reset everything in one animation
         nB = mature()
-        chB = Chart(nB, cols, s=0.3)
         lblB = hdr("Long stump: over 35 µm", RED)
         self.at("Leave a longer stump")
-        self.play(FadeOut(nA.group), FadeOut(chA.group), FadeOut(lblA), FadeIn(nB.group), FadeIn(lblB),
-                  FadeIn(chB.group), run_time=0.6)
+        self.play(FadeOut(nA.group), FadeOut(lblA), FadeIn(nB.group), FadeIn(lblB), run_time=0.6)
         cutp = nB.point(0, 5.2)
         cutB = cutmark(cutp)
         distalB = Line(cutp, nB.point(0, 10.3), color=YELLOW, stroke_width=11)
@@ -411,7 +409,7 @@ class S06Rule(SpokenScene):
         self.play(nB.tr[0].animate.set_value(10.3), FadeOut(cutB), run_time=1.6)
         self.at("Keep this rule")
         rule = T("An axon is a state the cell holds", 38, GOLD, font=TITLE_FONT).move_to([1.9, -1.2, 0])
-        self.play(FadeOut(lblB), FadeOut(chB.group), FadeIn(rule, shift=UP * 0.15), run_time=0.8)
+        self.play(FadeOut(lblB), FadeIn(rule, shift=UP * 0.15), run_time=0.8)
         self.at("that state can pass to another process")
         sub = T("lose enough of the axon, and the state can pass on", 28, TEXT).next_to(rule, DOWN, buff=0.35)
         self.play(FadeIn(sub), run_time=0.6)

@@ -87,7 +87,7 @@ class S01Kidney(SpokenScene):
         self.play(FadeIn(c, scale=0.95), FadeIn(cl), run_time=0.7)
         self.at("one neuronal protein")
         self.play(LaggedStart(*[GrowFromEdge(s, DOWN) for s in st], lag_ratio=0.2), run_time=0.9)
-        self.at("protein called")
+        self.at("called neuroligen")
         self.play(FadeIn(nl, shift=UP * 0.1), run_time=0.5)
         self.at("axons that touch it")
         self.play(GrowFromEdge(ax, LEFT), FadeIn(axl), run_time=1.4)
@@ -166,7 +166,7 @@ class S03Block(SpokenScene):
         fl = T("soluble neurexin", 28, BLUE).move_to([0, -3.2, 0])
         self.at("add soluble")
         self.play(LaggedStart(*[FadeIn(f, scale=0.5) for f in free], lag_ratio=0.15), FadeIn(fl), run_time=0.9)
-        self.at("first so the axon's")
+        self.at("first so the axons")
         self.play(*[free[i].animate.move_to([XS[i], 0.55, 0]) for i in range(4)],
                   ns.animate.shift(UP * 0.3).set_opacity(0.3), run_time=1.3)
         self.at("cannot reach")
@@ -324,4 +324,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Sufficient in a dish is not required in the animal."
+    LINE = "Sufficient in a dish is not the same as required."

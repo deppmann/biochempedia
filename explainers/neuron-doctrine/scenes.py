@@ -203,18 +203,18 @@ class S03Camps(SpokenScene):
         self.play(FadeIn(pl), FadeIn(pr), Create(mid), FadeIn(spot), run_time=1.0)
 
         hg = chip("Golgi: joined", ORANGE, 28).move_to(cl + [0, 2.95, 0])
-        self.at("Golgi saw no visible join")
+        self.at("Golgi read")
         self.play(FadeIn(hg, shift=DOWN * 0.1), run_time=0.5)
         bridge = Line(cl + [-0.17, 0, 0], cl + [0.17, 0, 0], color=ORANGE, stroke_width=10)
-        fine = label("too fine to see", ORANGE, 26).move_to(cl + [0, -2.35, 0])
-        self.at("too fine to see")
+        fine = label("read as joined", ORANGE, 26).move_to(cl + [0, -2.35, 0])
+        self.at("continuous net")
         self.play(Create(bridge), FadeIn(fine), run_time=0.8)
         ax = chip("a network of axon branches", ORANGE, 24).move_to(cl + [0, -3.1, 0])
-        self.at("axon branches")
+        self.at("His network")
         self.play(FadeIn(ax, shift=UP * 0.1), run_time=0.6)
 
         hc = chip("Cajal: separate", GREEN, 28).move_to(cr + [0, 2.95, 0])
-        self.at("Cajal found")
+        self.at("Kajal found")
         self.play(FadeIn(hc, shift=DOWN * 0.1), run_time=0.5)
         gapm = VGroup(Line(cr + [-0.15, -0.6, 0], cr + [-0.15, 0.6, 0], color=GREEN, stroke_width=6),
                       Line(cr + [0.15, -0.6, 0], cr + [0.15, 0.6, 0], color=GREEN, stroke_width=6))
@@ -286,7 +286,7 @@ class S05Gap(SpokenScene):
         L, R, el, er = cell_pair(gap, h=4.9, yc=0.1, w=5.4)
         lab_l = label("neuron one", BLUE, 24).move_to([-3.6, 2.95, 0])
         lab_r = label("neuron two", YELLOW, 24).move_to([3.6, 2.95, 0])
-        self.at("one real exception")
+        self.at("add a qualification")
         self.play(FadeIn(L), FadeIn(R), Create(el), Create(er), run_time=1.2)
 
         ys = [1.3, 0.1, -1.1]
@@ -343,7 +343,7 @@ class S06Rule(SpokenScene):
         lab_r = label("neuron two", YELLOW, 24).move_to([3.6, 2.95, 0])
         self.add(L, R, el, er, chans, lab_l, lab_r)
 
-        net = chip("Golgi's network", ORANGE, 30).move_to([0, -3.05, 0])
+        net = chip("Vertebrate net", ORANGE, 30).move_to([0, -3.05, 0])
         self.at("network")
         self.play(FadeIn(net, shift=UP * 0.1), run_time=0.5)
         self.at("does not exist")
@@ -367,4 +367,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Each neuron keeps its own membrane, however closely it touches."
+    LINE = "In vertebrates, each neuron keeps its own membrane."

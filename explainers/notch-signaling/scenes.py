@@ -225,7 +225,7 @@ class S01Message(SpokenScene):
 
         # they meet only where the cells touch
         grp = VGroup(S["rbody"], S["rmem"], S["stub"], S["far"], S["seam"], S["inner"], S["site"], *S["pills"], lbl_rc, lbl_rec)
-        self.at("can meet only")
+        self.at("usually meet")
         self.play(grp.animate.shift(LEFT * SLIDE), run_time=0.9)
         ring = RoundedRectangle(corner_radius=0.2, width=1.3, height=1.0, stroke_color=TEXT, stroke_width=3).move_to([X0, 0.5, 0])
         self.at("where cells touch")
@@ -412,9 +412,9 @@ class S04Gene(SpokenScene):
         nicd = bchip("NICD", YELLOW, 36).move_to([-3.9, -0.55, 0])
         self.at("enters the nucleus")
         self.play(ReplacementTransform(VGroup(inner, nicd_lbl), nicd), run_time=1.2)
-        self.at("where a protein")
+        self.at("where")
         self.play(Create(dna), FadeIn(gene), run_time=0.6)
-        self.at("already sits")
+        self.at("binds")
         self.play(FadeIn(csl, shift=DOWN * 0.3), run_time=0.5)
         self.at("target genes")
         self.play(FadeIn(gene_lbl), run_time=0.4)
@@ -428,7 +428,7 @@ class S04Gene(SpokenScene):
         self.play(FadeIn(corep, shift=DOWN * 0.3), run_time=0.5)
 
         # NICD binds CSL and pushes the co-repressors off; Mastermind arrives
-        self.at("binds")
+        self.at("binds", nth=1)
         self.play(nicd.animate.move_to([-3.0, -0.55, 0]), run_time=0.5)
         self.at("displaces the")
         self.play(FadeOut(corep, shift=RIGHT * 3.0 + UP * 0.6), nicd.animate.move_to([-1.3, -0.55, 0]), run_time=0.9)
@@ -538,7 +538,7 @@ class S06Count(SpokenScene):
             m.set_z_index(1)
 
         c1_lbl = T("pulled\nand cut", 24, TEXT, line_spacing=0.8).move_to([-5.4, -0.1, 0])
-        c2_lbl = T("inner\nparts", 24, YELLOW, line_spacing=0.8).move_to([-5.4, -1.75, 0])
+        c2_lbl = T("parts\nmade", 24, YELLOW, line_spacing=0.8).move_to([-5.4, -1.75, 0])
 
         def num(n, color, y):
             return M(str(n), 48, color).move_to([-5.4, y, 0])
@@ -577,7 +577,7 @@ class S06Count(SpokenScene):
 
         touch = DoubleArrow([4.75, 0.95, 0], [4.75, 2.8, 0], color=TEXT, stroke_width=4, tip_length=0.18, buff=0)
         touch_lbl = T("cells\ntouch", 24, TEXT, line_spacing=0.8).move_to([5.65, 1.9, 0])
-        self.at("A cell hears")
+        self.at("A cell mostly")
         self.play(GrowArrow(touch), FadeIn(touch_lbl), run_time=0.7)
 
         # the rule
@@ -595,7 +595,7 @@ class S06Count(SpokenScene):
         a3 = arr(c_inn.get_bottom(), c_msg.get_top(), YELLOW)
         self.at("one receptor", lead=0.8)
         self.play(*[FadeOut(m) for m in rest], run_time=0.4)
-        self.at("one receptor")
+        self.at("receptor")
         self.play(FadeIn(c_rec, shift=UP * 0.15), run_time=0.5)
         self.at("pulled and cut", nth=1)
         self.play(GrowArrow(a1), FadeIn(c_cut, shift=UP * 0.15), run_time=0.5)

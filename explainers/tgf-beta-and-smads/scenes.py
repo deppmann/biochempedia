@@ -183,7 +183,7 @@ class S01Question(SpokenScene):
         self.at("Scientists purified")
         self.play(FadeIn(prot, shift=DOWN * 0.3), run_time=0.5)
 
-        tag1 = T("grows like a tumour cell", 28).move_to([-4.3, 2.6, 0])
+        tag1 = T("grows with EGF", 28).move_to([-4.3, 2.6, 0])
         a1 = arr([-1.3, 2.6, 0], [-2.0, 2.6, 0], GREY, 4, 0.18)
         self.at("grow like")
         self.play(FadeIn(tag1, shift=RIGHT * 0.2), GrowArrow(a1), run_time=0.5)
@@ -500,9 +500,9 @@ class S05Partners(SpokenScene):
         lg = legs(0)
         self.play(Create(lg), run_time=0.3)
 
-        four = T("4 base pairs", 26, TEXT).move_to([0, DNA_Y - 0.75, 0])
+        four = T("a few base pairs", 26, TEXT).move_to([0, DNA_Y - 0.75, 0])
         hit = ticks[9]
-        self.at("four base pairs")
+        self.at("few base pairs")
         self.play(FadeIn(four), hit.animate.set_color(TEXT).set_stroke(width=9), run_time=0.5)
 
         # weak: the complex slides about
@@ -540,16 +540,16 @@ class S05Partners(SpokenScene):
         self.at("epithelial cells")
         self.play(FadeIn(cell, shift=DOWN * 0.15), run_time=0.5)
         cluster = VGroup(tr, pa, pb_, lg)
-        self.at("partners turn on")
+        self.at("the partners")
         self.play(cluster.animate.shift(RIGHT * CLX), run_time=0.6)
         # re-draw the legs: the complex reaches both genes, the partners stand on their own sites
         newlg = legs(CLX, True, (-2.1 + CLX, 2.1 + CLX), (G1X, G2X))
         self.play(Transform(lg, newlg), run_time=0.2)
         lab1 = T("p15", 28, GREEN, weight=BOLD).move_to([G1X, DNA_Y - 0.5, 0])
         lab2 = T("p21", 28, GREEN, weight=BOLD).move_to([G2X, DNA_Y - 0.5, 0])
-        self.at("p15")
+        self.at("turn on")
         self.play(FadeIn(lab1), g1.animate.set_fill(GREEN), run_time=0.5)
-        self.at("p21")
+        self.at("and the cell")
         self.play(FadeIn(lab2), g2.animate.set_fill(GREEN), run_time=0.5)
         stop = T("stops dividing", 30, RED, weight=BOLD).move_to([CLX, 2.15, 0])
         self.at("stops dividing")
@@ -617,7 +617,7 @@ class S06Rule(SpokenScene):
 
         self.at("one way")
         one = arr([-5.4, -1.0, 0], [2.4, -1.0, 0], GOLD, 8, 0.3)
-        ow = T("the phosphate runs one way", 30, GOLD).move_to([-1.5, -1.65, 0])
+        ow = T("the steps run one way", 30, GOLD).move_to([-1.5, -1.65, 0])
         self.play(GrowArrow(one), FadeIn(ow), run_time=0.8)
 
         a3 = arr(cs.get_right(), cg.get_left(), GREY, 6, 0.24)

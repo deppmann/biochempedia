@@ -15,7 +15,7 @@ COLOR MAP (one color per concept, whole video)
 
 Anatomy rules kept: neurons are simple cells; the spinal cord is one labelled schematic box (dorsal horn),
 no crossing pathway, no body, no brain. Every claim is a mouse claim from the lesson; no number is drawn
-that the lesson does not give (the only numbers on screen are "about 70 percent" and "adult").
+that the lesson does not give (the only number on screen is "about 70 percent").
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -117,7 +117,7 @@ class S02Ablation(SpokenScene):
     """remove the MrgprA3 neurons: scratching falls, pain assays unchanged; the cheek assay"""
 
     def construct(self):
-        head = T("in adult mice", 24, GREY).move_to([0, 3.35, 0])
+        head = T("in mice", 24, GREY).move_to([0, 3.35, 0])
         ns = neuron_row(6, BLUE, -2.6, 2.6, 2.1)
         lab = T("neurons marked by MrgprA3", 28, BLUE).move_to([0, 3.35, 0])
         head.move_to([-5.0, 3.35, 0])
@@ -133,7 +133,7 @@ class S02Ablation(SpokenScene):
         a2 = arr([-2.4, -1.8, 0], [-0.7, -1.8, 0])
         r2 = bchip("wiping", ORANGE, 32).move_to([1.3, -1.8, 0])
         self.play(FadeIn(r1a), GrowArrow(a1), FadeIn(r1), FadeIn(r2a), GrowArrow(a2), FadeIn(r2), run_time=1.0)
-        self.at("Scratching to itch substances fell")
+        self.at("Scratching fell")
         xs = VGroup(*[cross(n[2], RED, 5) for n in ns])
         self.play(Create(xs), *[n.animate.set_opacity(0.3) for n in ns], run_time=1.0)
         fell = Arrow([4.2, 0.5, 0], [4.2, -0.5, 0], buff=0, color=RED, stroke_width=7, tip_length=0.25)
@@ -204,8 +204,8 @@ class S04Relay(SpokenScene):
     def construct(self):
         frame = RoundedRectangle(corner_radius=0.3, width=12.4, height=6.7, stroke_color=GREY, stroke_width=3,
                                  fill_color=GREY, fill_opacity=0.06).move_to([0, 0.0, 0])
-        ft = T("mouse spinal cord, dorsal horn: schematic", 24, GREY).move_to([0, 3.0, 0])
-        self.at("spinal cord")
+        ft = T("Nppb from sensory neurons, rest in dorsal horn: schematic", 20, GREY).move_to([0, 3.0, 0])
+        self.at("One mouse")
         self.play(FadeIn(frame), FadeIn(ft), run_time=0.8)
         y = 0.9
         xs = [-4.7, -1.6, 1.6, 4.7]
@@ -216,7 +216,7 @@ class S04Relay(SpokenScene):
         a12 = arr([xs[0] + 1.0, y, 0], [xs[1] - 1.2, y, 0], GREY)
         a23 = arr([xs[1] + 1.2, y, 0], [xs[2] - 0.8, y, 0], GREY)
         a34 = arr([xs[2] + 0.8, y, 0], [xs[3] - 1.2, y, 0], GREY)
-        self.at("place a peptide relay")
+        self.at("relay starts")
         self.play(*[FadeIn(n, scale=0.9) for n in (n1, n2, n3, n4)], *[FadeIn(a) for a in (a12, a23, a34)], run_time=1.0)
         res = bchip("scratching to itch agents", GREEN, 28).move_to([0, -2.4, 0])
         self.play(FadeIn(res), run_time=0.5)
@@ -243,7 +243,7 @@ class S04Relay(SpokenScene):
         note2 = T("still evokes scratching", 26, GREEN).move_to([0, -1.2, 0])
         self.play(FadeIn(giv2), pulse(n3), FadeIn(note2), run_time=1.0)
         # order
-        self.at("order that fits")
+        self.at("root fits")
         self.play(FadeOut(giv2), FadeOut(note2), FadeOut(rm), FadeOut(x2), run_time=0.6)
         self.play(LaggedStart(*[Indicate(a, color=TEXT, scale_factor=1.25) for a in (a12, a23, a34)], lag_ratio=0.5), run_time=2.4)
         self.at("Direct contacts")

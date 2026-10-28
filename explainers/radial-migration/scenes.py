@@ -155,7 +155,7 @@ class S01Question(SpokenScene):
 
         vent = bar(-3.3)
         vent_l = T("ventricle", 26, GREY).move_to([4.3, -3.3, 0])
-        self.at("born beside")
+        self.at("born near")
         self.play(Create(vent), FadeIn(vent_l, shift=LEFT * 0.15), run_time=0.8)
 
         outer = bar(3.3)
@@ -469,7 +469,7 @@ class S06Break(SpokenScene):
         rs = ring(cells[1].P(0, cells[1].v("soma")), RED, r=0.6)
         self.play(FadeIn(l_r), FadeIn(rs, scale=1.6), run_time=0.7)
         self.play(FadeOut(rs), run_time=0.4)
-        self.at("regulates dynein")
+        self.at("regulates dinein")
         self.play(Indicate(l_t, color=PURPLE, scale_factor=1.12), run_time=0.8)
         note = VGroup(T("one lost copy:", 26, GREY), T("lissencephaly,", 26, GREY), T("a cortex with", 26, GREY),
                       T("reduced folding", 26, GREY)).arrange(DOWN, buff=0.18).move_to([xs[2], 0.3, 0])

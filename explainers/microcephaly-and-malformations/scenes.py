@@ -166,7 +166,7 @@ class S02Jobs(SpokenScene):
         self.at("to its layer")
         self.play(n.animate.move_to([nx, 1.75, 0]), FadeOut(lab_n), run_time=1.6, rate_func=smooth)
 
-        self.at("two ways")
+        self.at("ways to go")
         c1 = chip("Too few neurons made", BLUE, 30).move_to([3.7, 1.0, 0])
         c2 = chip("Made, but stalled", YELLOW, 30).move_to([3.7, -0.8, 0])
         self.play(FadeIn(c1, shift=LEFT * 0.2), FadeIn(c2, shift=LEFT * 0.2), run_time=0.7)
@@ -246,7 +246,7 @@ class S03Number(SpokenScene):
         # microcephaly + spindle
         self.at("Primary microcephaly")
         tag = chip("primary microcephaly", RED, 28).move_to([4.2, 2.9, 0])
-        norm = T("layers broadly normal", 26, GREY).move_to([4.2, 2.1, 0])
+        norm = T("layers usually normal", 26, GREY).move_to([4.2, 2.1, 0])
         self.play(FadeIn(tag, shift=DOWN * 0.15), run_time=0.5)
         self.at("broadly normal")
         self.play(FadeIn(norm), run_time=0.4)
@@ -408,7 +408,7 @@ class S05Place(SpokenScene):
         bigneuron = VGroup(proc, body, nuc)
         self.play(FadeIn(bigneuron, shift=UP * 0.2), run_time=0.7)
         mts = VGroup(*[Line([cxn + dx, -1.3, 0], [cxn + dx, 2.8, 0], color=TEAL, stroke_width=4) for dx in (-0.22, 0, 0.22)])
-        self.at("double cortin")
+        self.at("double cordon")
         dcs = VGroup(*[Dot([cxn + dx, y, 0], radius=0.07, color=PURPLE) for dx in (-0.22, 0.22) for y in (-0.6, 0.3, 1.2, 2.1)])
         lab_dc = lab_right("doublecortin", PURPLE, -0.6, 1.2, [cxn + 0.5, 1.2, 0], 30)
         self.play(Create(mts), run_time=0.5)

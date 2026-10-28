@@ -130,13 +130,13 @@ class S01Question(SpokenScene):
         self.at("That reset is called")
         self.play(FadeIn(ad, shift=UP * 0.1), run_time=0.5)
 
-        self.at("two calcium sensors")
+        self.at("calcium sensors")
         c1 = bchip("GCAPs", PURPLE, 26).move_to([-1.8, 1.3, 0])
         c2 = bchip("recoverin", PURPLE, 26).move_to([-1.8, 0.2, 0])
         l1 = Line(cone.get_right() + LEFT * 0.3 + UP * 0.9, c1.get_left(), color=PURPLE, stroke_width=3)
         l2 = Line(cone.get_right() + LEFT * 0.2 + DOWN * 0.1, c2.get_left(), color=PURPLE, stroke_width=3)
         self.play(FadeIn(c1, shift=LEFT * 0.2), FadeIn(c2, shift=LEFT * 0.2), Create(l1), Create(l2), run_time=0.9)
-        self.at("Delete both")
+        self.at("Delete them")
         x1, x2 = cross(c1), cross(c2)
         self.play(Create(x1), Create(x2), run_time=0.7)
         self.at("still adapts")
@@ -185,7 +185,7 @@ class S02Loop(SpokenScene):
         self.at("Light closes channels")
         self.play(*[GrowArrow(a) for a in arrows], FadeIn(lt), run_time=0.5)
         self.play(*[x for c in chans for x in recolor(c, GREY, 0.05)], *[d.animate.set_opacity(0) for d in in_dots], run_time=0.5)
-        self.at("stops entering")
+        self.at("entry falls")
         self.play(*[FadeOut(d) for d in out_dots], run_time=0.8)
 
         # the pump keeps removing calcium
@@ -317,7 +317,7 @@ class S04Curve(SpokenScene):
 
         asy = DashedLine(ax.c2p(4.9, -n_asym(4.9, CTRL)), ax.c2p(6, -n_asym(6, CTRL)), color=BLUE, stroke_width=3)
         sl = T("slope −n", 24, BLUE).move_to(ax.c2p(5.5, -0.35))
-        self.at("n is the slope")
+        self.at("sets the slope")
         self.play(Create(asy), FadeIn(sl), run_time=0.9)
 
         # legend
