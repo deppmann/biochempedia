@@ -333,7 +333,7 @@ class S02Partners(SpokenScene):
 
 # =============================================================================================
 class S03Borrowed(SpokenScene):
-    """the kinase is borrowed: Lck rides on a co-receptor that grips MHC; it phosphorylates both tyrosines."""
+    """Lck is membrane-anchored; a share rides on a co-receptor that grips MHC; it phosphorylates both tyrosines."""
 
     def construct(self):
         st = stage_base()
@@ -348,16 +348,16 @@ class S03Borrowed(SpokenScene):
 
         base, hook = hook_pieces()
         co_lbl = T("co-receptor", 26, GREY).move_to([X_CO - 0.3 - 0.95, 1.75, 0])
-        self.at("borrowed from")
-        self.play(GrowFromEdge(base, DOWN), run_time=0.7)
-        self.play(FadeIn(co_lbl), run_time=0.4)
+        lck = bchip("Lck", ORANGE, 30).move_to([X_CO, -1.05, 0])
+        membrane_anchor = Line([X_CO, YT - 0.16, 0], [X_CO, -0.65, 0], color=ORANGE, stroke_width=7)
+        self.at("already in")
+        self.play(ReplacementTransform(qk, lck), Create(membrane_anchor), run_time=1.1)
         self.at("grips the display")
-        self.play(Create(hook), run_time=1.2)
+        self.play(GrowFromEdge(base, DOWN), FadeIn(co_lbl), Create(hook), run_time=1.2)
 
         co_tail = Line([X_CO, YT - 0.6, 0], [X_CO, -0.65, 0], color=GREY, stroke_width=7)
-        lck = bchip("Lck", ORANGE, 30).move_to([X_CO, -1.05, 0])
         self.at("A share of")
-        self.play(ReplacementTransform(qk, lck), Create(co_tail), run_time=1.3, path_arc=1.2)
+        self.play(ReplacementTransform(membrane_anchor, co_tail), Indicate(lck, color=ORANGE), run_time=1.3)
         self.at("beside the")
         tether = always_redraw(lambda: Line([X_CO, -0.65, 0], lck.get_left() + [0.12, 0.15, 0], color=GREY, stroke_width=6))
         self.add(tether)
@@ -442,7 +442,7 @@ class S04Reader(SpokenScene):
 
 # =============================================================================================
 class S05Branches(SpokenScene):
-    """ZAP-70 opens, phosphorylates LAT, and three branches leave LAT and meet on a gene."""
+    """Lck switches on docked ZAP-70, which phosphorylates LAT; three branches leave LAT and meet on a gene."""
 
     def construct(self):
         bm, bt, bys, bps = big_base()
@@ -452,7 +452,7 @@ class S05Branches(SpokenScene):
         tight = T("two phosphates: tight binding", 30, GREEN).move_to([0, -2.6, 0])
         self.add(bm, bt, bys, bps, z.parts, sh_l, sh_r, tight)
 
-        self.at("Docking opens")
+        self.at("Docking lets")
         self.play(FadeOut(tight), *z.set_color(GREEN), run_time=0.7)
 
         # ZAP-70 and LAT meet in the middle, then slide left to make room for the branches
@@ -464,10 +464,10 @@ class S05Branches(SpokenScene):
         self.play(FadeOut(VGroup(bm, bt, bys, bps, sh_l, sh_r, *z.legs, *z.cups)),
                   ReplacementTransform(z.bar, chip_z), FadeIn(lat, shift=RIGHT * 0.2), FadeIn(lat_lbl), run_time=1.1)
         p = pbadge(0.26, 22).move_to(chip_z.get_right() + [0.35, 0.3, 0])
-        self.at("LAT")
+        self.at("a scaffold")
         self.play(FadeIn(p, scale=0.5), run_time=0.2)
         self.play(p.animate.move_to(lat.get_left() + [0.0, 0.3, 0]), run_time=0.6)
-        self.at("scaffold")
+        self.at("membrane")
         self.play(Indicate(lat, color=TEXT, scale_factor=1.05), run_time=0.7)
 
         left = VGroup(chip_z, lat, lat_lbl, p)
@@ -585,4 +585,4 @@ class S06Two(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A T cell needs two phosphates and two signals."
+    LINE = "A fresh T cell needs two phosphates and two signals."
