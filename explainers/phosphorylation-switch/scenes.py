@@ -502,7 +502,7 @@ class S05Balance(SpokenScene):
         lvl2 = VGroup(T("share carrying", 24, GREY), T("a phosphate", 24, GREY)).arrange(DOWN, buff=0.08).move_to([5.0, -0.2, 0])
 
         self.add(T_.tank, *T_.copies, *T_.shown())
-        self.at("phosphatases")
+        self.at("phosphatuses")
         self.play(FadeIn(T_.pho, shift=UP * 0.15), run_time=0.5)
         tap = T("tap", 24, GREY).move_to([TC[0] + 0.55, 2.2, 0])
         drain = T("drain", 24, GREY).move_to([TC[0] + 0.65, -2.2, 0])

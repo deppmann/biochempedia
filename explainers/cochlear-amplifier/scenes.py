@@ -186,7 +186,7 @@ class S02Fast(SpokenScene):
         br = BraceBetweenPoints(ax.c2p(0, -1.3), ax.c2p(1, -1.3), direction=DOWN, color=WHITE)
         brl = T("one cycle = 50 µs", 24, TEXT).next_to(br, DOWN, buff=0.1)
         self.play(GrowFromCenter(br), FadeIn(brl), run_time=0.6)
-        self.at("Prestin responds")
+        self.at("Preston responds")
         chem = chip("ATP hydrolysis", GREY, size=24).move_to([3.75, -0.3, 0])
         self.play(FadeIn(chem), run_time=0.5)
         cross = Cross(chem, stroke_color=RED, stroke_width=4)

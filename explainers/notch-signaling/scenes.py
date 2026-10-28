@@ -595,7 +595,7 @@ class S06Count(SpokenScene):
         a3 = arr(c_inn.get_bottom(), c_msg.get_top(), YELLOW)
         self.at("one receptor", lead=0.8)
         self.play(*[FadeOut(m) for m in rest], run_time=0.4)
-        self.at("one receptor")
+        self.at("receptor")
         self.play(FadeIn(c_rec, shift=UP * 0.15), run_time=0.5)
         self.at("pulled and cut", nth=1)
         self.play(GrowArrow(a1), FadeIn(c_cut, shift=UP * 0.15), run_time=0.5)
