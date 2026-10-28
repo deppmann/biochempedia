@@ -368,7 +368,7 @@ class S05Mutants(SpokenScene):
                   FadeOut(wide), FadeOut(cap3), run_time=0.9)
         self.at("Clusters return")
         self.play(LaggedStart(*[FadeIn(c, scale=0.4) for c in back], lag_ratio=0.08), FadeIn(cap4), run_time=1.4)
-        self.at("MuSK program")
+        self.at("Muski program")
         self.play(FadeIn(mp, shift=DOWN * 0.15), run_time=0.5)
         self.finish()
 
@@ -392,7 +392,7 @@ class S06Rule(SpokenScene):
         # hypothesis: agrin starts clusters
         ghost = cluster(0, -1.1, 3.0, color=GREY).set_opacity(0.0)
         hyp = arr([-3.6, -0.4, 0], [-1.7, -0.9, 0], AGRIN)
-        hl = T("start?", 30, AGRIN).move_to([-2.5, 0.35, 0])
+        hl = T("needed?", 30, AGRIN).move_to([-2.5, 0.35, 0])
         self.at("start clusters")
         self.play(FadeOut(lab), FadeOut(sa), *undim(ag), GrowArrow(hyp), FadeIn(hl), run_time=0.7)
         hx = cross(VGroup(hyp), RED).move_to(hyp.get_center())

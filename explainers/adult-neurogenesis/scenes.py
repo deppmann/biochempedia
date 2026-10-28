@@ -236,7 +236,7 @@ class S04Frozen(SpokenScene):
         self.at("Now think about a neuron")
         self.play(FadeIn(n, scale=0.7), FadeIn(nl), FadeIn(dna), run_time=0.8)
 
-        stop = bchip("no more DNA copying", GREY, 26).move_to([-1.2, -1.75, 0])
+        stop = bchip("normally no DNA copying", GREY, 26).move_to([-1.2, -1.75, 0])
         self.at("stopped dividing")
         self.play(FadeIn(stop), run_time=0.5)
 
@@ -290,15 +290,21 @@ class S04Frozen(SpokenScene):
 # ---------------------------------------------------------------------------------------------
 class S05Hippocampus(SpokenScene):
     def construct(self):
-        title = T("the hippocampus: dentate gyrus (schematic)", 32, PURPLE).move_to([0, 3.2, 0])
-        g, dots = dg_arc(2.9, PURPLE, 18, 0.17)
-        g.move_to([-3.3, -0.1, 0])
+        title = T("the hippocampus (schematic)", 32, PURPLE).move_to([0, 3.2, 0])
+        # Whole-hippocampus schematic: the rings refer to all hippocampal neurons.
+        outline = Ellipse(width=5.2, height=3.8, stroke_color=PURPLE, stroke_width=8,
+                          fill_color=PURPLE, fill_opacity=0.12)
+        dots = VGroup(*[Dot([x, y, 0], radius=0.17, color=BLUE)
+                        for y, count in [(1.0, 5), (0.0, 8), (-1.0, 5)]
+                        for x in np.linspace(-2.0 if y == 0 else -1.6,
+                                             2.0 if y == 0 else 1.6, count)])
+        g = VGroup(outline, dots).move_to([-3.3, -0.1, 0])
         self.at("What about the hippocampus")
         self.play(FadeIn(title), FadeIn(g), run_time=1.0)
         self.at("one third")
         third = [dots[i] for i in range(0, 18, 3)]
         rings = VGroup(*[Circle(radius=0.3, stroke_color=ORANGE, stroke_width=5).move_to(d) for d in third])
-        est = VGroup(T("carbon-14 estimate, 2013", 32, ORANGE), T("about one third\nsubject to exchange", 32, TEXT, line_spacing=0.8)
+        est = VGroup(T("carbon-14 estimate, 2013", 32, ORANGE), T("about one third of\nhippocampal neurons", 32, TEXT, line_spacing=0.8)
                      ).arrange(DOWN, buff=0.25, aligned_edge=LEFT).move_to([3.4, 0.9, 0])
         self.play(LaggedStart(*[Create(r) for r in rings], lag_ratio=0.15), FadeIn(est[0]), run_time=1.0)
         self.play(FadeIn(est[1]), run_time=0.4)
@@ -381,13 +387,13 @@ class S06Method(SpokenScene):
         self.at("turnover model")
         self.play(FadeIn(mm, shift=DOWN * 0.1), FadeIn(as2), run_time=0.7)
 
-        self.at("does not yet settle it")
+        self.at("Newer studies lean")
         self.play(*[FadeOut(m) for m in (head, sd, c1l, c1a, lost, d2, r2, q2, mm, as2)],
                   *[FadeOut(m) for pair in cards for m in pair], run_time=0.7)
         g, dots = dg_arc(2.3, PURPLE, 18, 0.15)
         g.move_to([-3.4, 0.9, 0])
         q = T("?", 160, YELLOW, weight=BOLD).move_to([3.4, 0.9, 0])
-        st = T("the evidence does not yet settle it", 34, TEXT).move_to([0, -1.7, 0])
+        st = T("newer work leans toward yes; rate unsettled", 34, TEXT).move_to([0, -1.7, 0])
         self.play(FadeIn(g), FadeIn(q, scale=0.6), FadeIn(st), run_time=0.8)
         self.at("what a study can show")
         rule = T("Ask what a study can show, and what it cannot.", 34, GOLD).move_to([0, -3.0, 0])

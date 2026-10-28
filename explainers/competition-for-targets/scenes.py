@@ -206,14 +206,14 @@ class S03Stages(SpokenScene):
         wins = [i for i in range(n) if final[i] > 1.0]
         loss = [i for i in range(n) if final[i] <= 1.0]
         hero = wins[0]
-        supply = chip("fixed NGF supply", YELLOW, 24).move_to(P(0, 3.0))
+        supply = chip("steady NGF output", YELLOW, 24).move_to(P(0, 3.0))
         names = [("young", "naive", BLUE), ("sens", "sensitization", YELLOW), ("adv", "competitive advantage", PURPLE),
                  ("sel", "selection", GREEN)]
         grey_chips = VGroup(*[chip(t, GREY, 22, 0.16, 0.06) for _, t, _ in names]).arrange(RIGHT, buff=0.22)
         fit(grey_chips, 12.4)
         grey_chips.move_to(P(0, 3.0))
 
-        self.at("In simulations with a fixed")
+        self.at("In simulations")
         sch = T("schematic, not data", 24, GOLD).move_to(P(3.9, -3.1))
         self.play(FadeIn(axes), FadeIn(supply), FadeIn(sch), run_time=0.9)
         self.at("split the neurons")
@@ -279,7 +279,7 @@ class S04Punish(SpokenScene):
         self.at("These act through")
         self.play(FadeIn(rec), FadeIn(rl), run_time=0.5)
         self.play(GrowArrow(arrow), run_time=0.8)
-        self.at("weakly supported neighbors")
+        self.at("weakly supported")
         self.play(FadeIn(sl), run_time=0.5)
         self.at("can promote death")
         self.play(Indicate(rec, color=TEAL, scale_factor=1.5), to_state(L, RED, 0.3), run_time=1.1)
@@ -342,9 +342,9 @@ class S05Faster(SpokenScene):
         a_ = DoubleArrow(fw(t_w), fn(t_n), buff=0.05, color=GOLD, stroke_width=5, tip_length=0.2)
         dl = T("delayed, not prevented", 26, TEXT).move_to(P(2.9, 1.3))
         self.play(GrowFromCenter(a_), FadeIn(dl), run_time=1.0)
-        self.at("similar level")
+        self.at("control level")
         dash = DashedLine(fw(2.0) + P(-3.0, 0), fw(2.0), color=GREY, stroke_width=3)
-        sim_l = T("similar final level", 24, GREY).move_to(fw(2.0) + P(-1.4, 0.75))
+        sim_l = T("matched in that study", 24, GREY).move_to(fw(2.0) + P(-1.4, 0.75))
         self.play(Create(dash), FadeIn(sim_l), run_time=0.9)
         self.at("The losers still die")
         ld = T("losers still die: too little NGF", 26, RED).move_to(P(1.2, -1.5))
@@ -370,7 +370,7 @@ class S06Rule(SpokenScene):
         self.play(Indicate(bodies, color=BLUE, scale_factor=1.15), run_time=1.2)
         self.at("A small early lead")
         self.play(*[Indicate(bars[i], color=GOLD, scale_factor=1.15) for i in wins], run_time=1.0)
-        self.at("the lead grows")
+        self.at("signal length")
         self.play(*[Transform(bars[i], vbar(xs[i], BASE, 2.7)) for i in wins],
                   *[Transform(bars[i], vbar(xs[i], BASE, 0.7)) for i in range(6) if i not in wins],
                   *[to_state(bodies[i], GREEN, 0.9) for i in wins], run_time=1.6)
@@ -383,7 +383,7 @@ class S06Rule(SpokenScene):
         self.at("the split comes faster")
         self.play(*[to_state(bodies[i], RED, 0.35) for i in range(6) if i not in wins],
                   *[Transform(bars[i], vbar(xs[i], BASE, 0.2)) for i in range(6) if i not in wins], run_time=1.0)
-        tag = T("one cell type, one species: the mouse sympathetic neuron", 26, TEXT).move_to(P(0, 2.7))
+        tag = T("one cell type: sympathetic neurons, mice and rat cultures", 26, TEXT).move_to(P(0, 2.7))
         self.at("one cell type")
         self.play(FadeIn(tag), run_time=0.8)
         self.at("Remember the rule")

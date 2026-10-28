@@ -430,7 +430,7 @@ class S02Catch(Film):
         dx = (-0.5 - RAFA[0]) * k
         self.at("Binding")
         self.play(rA.animate.shift(LEFT * dx), FadeOut(fs), FadeOut(cyto), run_time=1.3)
-        self.at("pull it open")
+        self.at("there it opens")
         self.play(Rotate(rA.lid, PI, about_point=rA.body.get_left()), run_time=0.8)
         rA.lid.become(raf(V, *RAFA, open_=True)[1])
         self.play(*glow(r.body, rA.lid[1], s=1.08, color=GREEN), run_time=0.5)
@@ -585,7 +585,7 @@ class S04Feedback(Film):
         self.play(Create(g_arrow), run_time=0.8)
         self.play(FadeIn(g_tip), gene[1].animate.set_stroke(GREEN).set_fill(GREEN, 0.2), gene[2].animate.set_color(GREEN), run_time=0.4)
         ph_ghost = ghost_chip("phosphatase", 28, RED).move_to(V.p(-0.9, -2.15))
-        self.at("phosphatases")
+        self.at("phosphatuses")
         self.play(FadeIn(ph_ghost, shift=RIGHT * 0.2), run_time=0.6)
         pointer = DashedLine(ph_ghost.get_right() + RIGHT * 0.05, [erk.sites[1][0] - 0.35, ph_ghost.get_center()[1], 0],
                              color=RED, stroke_width=4, dash_length=0.12)
@@ -659,7 +659,7 @@ class S05Clock(Film):
         e2 = Line([X_END, YB, 0], [X_END, YB + H, 0], color=RED, stroke_width=6)
         self.at("different lengths")
         self.play(GrowFromEdge(w1, LEFT), GrowFromEdge(w2, LEFT), run_time=1.5)
-        self.at("closes the window")
+        self.at("of time")
         self.play(Create(e1), Create(e2), run_time=0.6)
 
         # EGF: a pulse that rises and falls back within about an hour
@@ -745,13 +745,13 @@ class S06Test(Film):
         self.play(GrowArrow(link), run_time=0.4)
         self.play(Create(trace), run_time=1.0, rate_func=linear)
         self.play(FadeIn(tip), run_time=0.15)
-        self.at("without end")
+        self.at("which")
         self.play(*glow(trace, s=1.0, color=TEXT), run_time=0.6)
 
         # it looks to the cell like a long NGF signal
         ghost = DashedVMobject(plateau_curve(PX0, PXE, PYB, PH - 0.5, YELLOW, 0.12, 2.6), num_dashes=70).set_color(YELLOW)
         ngf_l = T("a long NGF signal", 24, YELLOW).move_to([1.8, PYB + PH - 0.05, 0])
-        self.at("cannot tell apart")
+        self.at("duration reader")
         self.play(Create(ghost), FadeIn(ngf_l), run_time=1.0)
 
         # the 1994 result: fibres, with no NGF

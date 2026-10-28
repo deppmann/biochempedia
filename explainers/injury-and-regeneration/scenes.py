@@ -120,7 +120,7 @@ class S01Cut(SpokenScene):
         self.play(*do_cut(na), Create(cm), run_time=0.6)
         self.play(FadeIn(stump), run_time=0.4)
         self.at("looks normal")
-        day = T("about 1 day: looks normal", 26, GREY).move_to([2.6, A + 0.85, 0])
+        day = T("about 36 hours: looks normal", 26, GREY).move_to([2.6, A + 0.85, 0])
         self.play(FadeIn(day, shift=DOWN * 0.1), run_time=0.5)
         self.at("falls to pieces")
         bd = beads(-0.62, 6.18, A, 0.4, 8)
@@ -387,7 +387,7 @@ class S06Rule(SpokenScene):
         # new case: clear the old answer first
         sdel = bchip("Sarm1 deleted", RED, 26).move_to([1.6, -0.1, 0])
         sbar = inhib([1.6, 0.4, 0], [1.6, cy - 0.65, 0])
-        self.at("Delete")
+        self.at("deletes")
         self.play(FadeOut(VGroup(wl, wa, wnote, whole, okl)),
                   *undim(chips[1]), arrs[0].animate.set_opacity(1.0),
                   FadeIn(sdel, shift=UP * 0.15), run_time=0.7)
@@ -395,12 +395,12 @@ class S06Rule(SpokenScene):
         xs_ = VGroup(Line(chips[2].get_corner(UL), chips[2].get_corner(DR), color=RED, stroke_width=6),
                      Line(chips[2].get_corner(DL), chips[2].get_corner(UR), color=RED, stroke_width=6))
         self.play(Create(xs_), run_time=0.5)
-        self.at("survive too")
+        self.at("survive two")
         whole2 = tube(-2.4, 2.4, res_y, 0.45)
         okl2 = T("stump intact", 26, BLUE).move_to([4.2, res_y, 0])
         self.play(FadeIn(whole2), FadeIn(okl2), run_time=0.8)
 
-        self.at("is not starving")
+        self.at("The stump")
         box = Brace(VGroup(*chips), UP, color=GOLD, buff=0.2)
         pl = T("a program", 30, GOLD, weight=BOLD).next_to(box, UP, buff=0.12)
         self.play(Create(box), FadeIn(pl), run_time=0.8)
@@ -410,4 +410,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "The stump is not starving. It is running a program."
+    LINE = "Losing its supply sets off a program in the stump."

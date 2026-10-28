@@ -30,7 +30,7 @@ from pathlib import Path
 
 import yaml
 
-REPO = Path.home() / "biochempedia"
+REPO = Path(__file__).resolve().parents[2]   # this checkout (was ~/biochempedia, which breaks in worktrees)
 FFMPEG = "/Users/deppmann/miniconda3/bin/ffmpeg"
 SARAH = "EXAVITQu4vr4xnSDxMaL"
 TTS_CHAR_CAP = 4000   # hard cap per video on paid narration characters

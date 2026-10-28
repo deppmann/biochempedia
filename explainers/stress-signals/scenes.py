@@ -529,7 +529,7 @@ NUC_TOP, NUC_BOT, DNA5 = -1.95, -3.5, -3.05
 
 
 class S05Chemicals(SpokenScene):
-    """the same design for chemicals: Keap1 holds NRF2 and hands it to a ligase; a reactive chemical stops that."""
+    """Keap1 grips NRF2 as part of a tagging ligase; a reactive chemical stops tagging."""
 
     def construct(self):
         chem = bchip("reactive chemical", ORANGE, 24).move_to([-4.7, -1.45, 0])
@@ -565,21 +565,25 @@ class S05Chemicals(SpokenScene):
         self.play(FadeOut(link), FadeOut(swl), FadeIn(gl), FadeIn(p2, scale=0.6), run_time=0.5)
         self.play(p2.animate.move_to([CX5, Q5, 0]), run_time=0.6)
 
-        # Keap1 catches it
+        # Keap1 grips it as part of the ubiquitin ligase
         ref = pill("Nrf2", S5, w=2.1, center=(CX5, A5))
         kc = claw("Keap1", ref)
         set_jaws(kc, 0.55)
         kc.shift(LEFT * 1.4)
-        self.at("protein called")
+        self.at("constantly")
         self.play(FadeIn(kc, shift=RIGHT * 0.5), run_time=0.5)
         self.play(kc.animate.shift(RIGHT * 1.4), run_time=0.6)
-        self.at("catches it")
+        self.at("grips it")
         self.play(*jaw_anims(kc, -0.55), run_time=0.45)
 
-        # ... and presents it to a ubiquitin ligase for destruction
-        lig = destroyer("ubiquitin\nligase", RED, 22, center=LIG, w=2.4, h=1.4)
-        self.at("presents it")
+        # the ligase tags Nrf2; the proteasome destroys the tagged protein
+        lig = destroyer("proteasome", RED, 22, center=LIG, w=2.4, h=1.4)
+        self.at("ubiquitin ligase")
         self.play(FadeIn(lig), run_time=0.5)
+        tag = ubtag(1.1).move_to(p1.body.get_top() + UP * 0.2)
+        self.at("tags it")
+        self.play(FadeIn(tag, scale=0.6), run_time=0.4)
+        p1.add(tag)
         self.at("for destruction")
         self.play(*jaw_anims(kc, 0.4), run_time=0.3)
         self.play(AnimationGroup(
@@ -596,15 +600,11 @@ class S05Chemicals(SpokenScene):
                   Wiggle(kc, scale_value=1.04, rotation_angle=0.02 * TAU), run_time=0.7)
         self.play(ReplacementTransform(chem, mark), run_time=0.4)
 
-        # Keap1 keeps its grip but can no longer pass Nrf2 on: the hand-off is crossed out
-        a_from = np.array([CX5 + 1.5, A5 + 0.05, 0])
-        a_to = np.array([lig.get_left()[0] - 0.05, LIG[1] - 0.2, 0])
-        dead = arr(a_from, a_to, GREY, w=5)
-        mid = (a_from + a_to) / 2
-        cross = VGroup(Line(mid + np.array([-0.3, -0.3, 0]), mid + np.array([0.3, 0.3, 0]), color=RED, stroke_width=9),
-                       Line(mid + np.array([-0.3, 0.3, 0]), mid + np.array([0.3, -0.3, 0]), color=RED, stroke_width=9))
-        self.at("cannot present")
-        self.play(GrowArrow(dead), run_time=0.4)
+        # Keap1 keeps its grip, but tagging stops: cross out a Ub badge on Nrf2
+        blocked_tag = ubtag(1.1).move_to(p2.body.get_top() + UP * 0.2)
+        cross = strike(blocked_tag)
+        self.at("tagging stops")
+        self.play(FadeIn(blocked_tag, scale=0.6), run_time=0.4)
         self.play(Create(cross), run_time=0.3)
 
         # so a newly made Nrf2 finds Keap1 occupied, and goes on to the nucleus
@@ -612,7 +612,7 @@ class S05Chemicals(SpokenScene):
         pts = [(CX5, GENE5 - 0.55), (CX5, 1.8), (1.9, 1.45), (1.9, -1.1), (CX5, -1.5), (CX5, -2.5)]
         path = VMobject().set_points_smoothly([np.array([x, y, 0]) for x, y in pts])
         self.at("so new")
-        self.play(FadeOut(dead), FadeOut(cross), FadeIn(p3, scale=0.6), run_time=0.3)
+        self.play(FadeIn(p3, scale=0.6), run_time=0.3)
         self.play(MoveAlongPath(p3, path), run_time=2.0, rate_func=smooth)
         self.at("nucleus")
         self.play(gene_on(ngene, GREEN), ngl.animate.set_color(GREEN), run_time=0.6)

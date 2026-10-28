@@ -66,7 +66,7 @@ class S01Disagree(SpokenScene):
         self.play(FadeIn(chips[2], shift=DOWN * 0.3), run_time=0.5)
         self.at("and 46", lead=0.0)
         self.play(FadeIn(chips[3], shift=DOWN * 0.3), run_time=0.5)
-        self.at("Yet the numbers")
+        self.at("Two are lower")
         self.play(*[Indicate(c, color=RED, scale_factor=1.08) for c in chips], run_time=0.9)
         cell = gcell(BLUE, 1.3).move_to([-2.4, -2.4, 0])
         nerve = RoundedRectangle(corner_radius=0.15, width=4.0, height=0.5, stroke_color=GREY, stroke_width=3,
@@ -108,7 +108,7 @@ class S02Imaging(SpokenScene):
         self.play(*[d.animate.scale(1.5) for d in dots], run_time=0.2)
         self.play(*[d.animate.scale(1 / 1.5) for d in dots], run_time=0.2)
         cnt = VGroup(M("11,210", 44, YELLOW), T("cells", 28, YELLOW)).arrange(RIGHT, buff=0.25).move_to([4.4, 1.8, 0])
-        self.at("data set")
+        self.at("dataset")
         self.play(FadeIn(cnt, shift=LEFT * 0.3), run_time=0.6)
         reds = [dots[i] for i in sorted(red_idx)]
         rlab = T("displaced amacrine cells", 26, RED).move_to([4.4, 0.6, 0])
@@ -166,14 +166,14 @@ class S03Sequencing(SpokenScene):
         p = b.get_center()
         a = Circle(radius=0.17, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.3).move_to(p + LEFT * 0.16)
         c2 = Circle(radius=0.17, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.3).move_to(p + RIGHT * 0.16)
-        self.at("Subdividing one")
+        self.at("Splitting one")
         self.play(Indicate(b, color=YELLOW, scale_factor=1.4), run_time=0.6)
         self.play(ReplacementTransform(b, VGroup(a, c2)), run_time=0.6)
         self.play(a.animate.shift(LEFT * 0.12), c2.animate.shift(RIGHT * 0.12), run_time=0.4)
         newcnt = VGroup(M("46", 54, TEAL), T("types", 30, TEAL)).arrange(RIGHT, buff=0.25).move_to(cnt)
         self.play(ReplacementTransform(cnt, newcnt), run_time=0.5)
-        fine = T("the count depends on\nhow finely the data are split", 26, TEXT).move_to([4.0, 0.8, 0])
-        self.at("how finely")
+        fine = T("clustering alone missed\ntwo known types", 26, TEXT).move_to([4.0, 0.8, 0])
+        self.at("So clustering")
         self.play(FadeIn(fine), run_time=0.6)
         sm = blobs[smallest]
         ring = Circle(radius=0.28, stroke_color=GOLD, stroke_width=4).move_to(sm)
@@ -225,8 +225,8 @@ class S04Samecell(SpokenScene):
         fill = Rectangle(width=9.0 * 0.89, height=0.7, stroke_width=0, fill_color=ORANGE, fill_opacity=0.5)
         fill.align_to(frame, LEFT).align_to(frame, UP)
         pct = M("89%", 36, ORANGE).move_to(fill)
-        cov = T("estimated share of the ganglion cell population covered by the 42 types", 24, GREY).move_to([0, -2.4, 0])
-        self.at("estimated to cover")
+        cov = T("estimated share of anatomical catalogue types matched by the 42 types", 24, GREY).move_to([0, -2.4, 0])
+        self.at("an estimated")
         self.play(Create(frame), FadeIn(cov), run_time=0.5)
         self.play(GrowFromEdge(fill, LEFT), FadeIn(pct), run_time=1.0)
         self.at("not always one to one")
@@ -306,20 +306,27 @@ class S06Rule(SpokenScene):
         self.play(*[Create(l) for l in ls], run_time=0.7)
         self.play(FadeIn(ring, scale=0.6), FadeIn(tl), run_time=0.6)
         self.bring_to_back_lines = None
-        # mosaic: hexagon tiling
-        hexes = VGroup()
-        s = 0.5
-        for q in range(-2, 3):
-            for r in range(-2, 3):
-                x = s * np.sqrt(3) * (q + r / 2)
-                y = s * 1.5 * r
-                if abs(x) < 2.0 and abs(y) < 1.6:
-                    h = RegularPolygon(6, radius=s * 0.98, start_angle=PI / 2, stroke_color=GREEN, stroke_width=3,
-                                       fill_color=GREEN, fill_opacity=0.2).move_to([x + 3.6, y - 0.3, 0])
-                    hexes.add(h)
-        mlab = T("mosaic: territories tile the retina", 26, GREEN).move_to([3.6, -2.7, 0])
+        # Mosaic: evenly spaced cell bodies with overlapping dendritic arbors.
+        mosaic = VGroup()
+        spacing = 0.85
+        for row in range(-1, 2):
+            for col in range(-2, 3):
+                center = np.array([3.6 + col * spacing + (row % 2) * spacing / 2,
+                                   -0.3 + row * spacing * np.sqrt(3) / 2, 0])
+                arbor = VGroup()
+                for angle in np.linspace(0, TAU, 6, endpoint=False):
+                    direction = np.array([np.cos(angle), np.sin(angle), 0])
+                    junction = center + 0.38 * direction
+                    arbor.add(Line(center, junction, color=GREEN, stroke_width=2))
+                    for offset in (-0.4, 0.4):
+                        tip = junction + 0.28 * np.array([np.cos(angle + offset),
+                                                        np.sin(angle + offset), 0])
+                        arbor.add(Line(junction, tip, color=GREEN, stroke_width=2))
+                body = Dot(center, radius=0.10, color=GREEN)
+                mosaic.add(VGroup(arbor, body))
+        mlab = T("mosaic: cell bodies are spaced", 26, GREEN).move_to([3.6, -2.7, 0])
         self.at("mosaic")
-        self.play(LaggedStart(*[FadeIn(h, scale=0.7) for h in hexes], lag_ratio=0.05), FadeIn(mlab), run_time=1.5)
+        self.play(LaggedStart(*[FadeIn(cell, scale=0.7) for cell in mosaic], lag_ratio=0.05), FadeIn(mlab), run_time=1.5)
         gen = chip("genetic access", GREY, 28).move_to([3.6, 2.5, 0])
         gen[0].set_stroke(opacity=0.8)
         self.at("genetic access")
