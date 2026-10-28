@@ -486,7 +486,7 @@ class S03Lid(Film):
         self.play(co.animate.shift(DOWN * 1.7), run_time=0.9)
         self.play(*glow(rec.groove_line, co.peg.cap, s=1.03, color=TEXT), run_time=0.5)
 
-        self.at("whole message")
+        self.at("message gets through")
         self.play(*glow(rec.groove_line, rec.lid.edge, co.peg.cap, s=1.04, color=TEXT), run_time=0.8)
 
         # zoom out (WIDE): the receptor stands on the DNA with the co-activator still in the groove
@@ -670,7 +670,7 @@ class S06Rule(Film):
         v1 = T("blocks estrogen", 26, RED, weight=BOLD).move_to([cols[0], 2.4, 0])
         v3 = T("imitates estrogen", 26, GREEN, weight=BOLD).move_to([cols[1], 2.4, 0])
 
-        self.at("blocks the action")
+        self.at("blocks estrogen")
         self.play(FadeIn(t1, shift=DOWN * 0.1), FadeIn(v1, shift=DOWN * 0.1), run_time=0.7)
         self.at("imitates")
         self.play(FadeIn(t3, shift=DOWN * 0.1), FadeIn(v3, shift=DOWN * 0.1), run_time=0.7)

@@ -166,7 +166,7 @@ class S02Origin(SpokenScene):
         # dye
         patch = Circle(radius=0.5, stroke_width=0, fill_color=YELLOW, fill_opacity=0.5).move_to(EMI + [0.2, 0, 0])
         dye_l = T("dye", 24, YELLOW).move_to([-4.5, 0.85, 0])
-        self.at("dye placed there")
+        self.at("dye placed their")
         self.play(FadeIn(patch, scale=0.4), FadeIn(dye_l), run_time=0.6)
         starts = [[-4.4, -0.7, 0], [-4.2, -1.0, 0], [-4.4, -1.3, 0]]
         lab = VGroup(*[cell(stroke=YELLOW).move_to(p) for p in starts])
@@ -220,7 +220,7 @@ class S03Streams(SpokenScene):
         cells = stream_cells()
         for c in cells:
             set_vis(c, 0)
-        self.at("Inside the cortex")
+        self.at("in the cortex")
         self.play(FadeOut(harrow), FadeOut(inter), FadeIn(ls), run_time=0.8)
         self.add(*cells)
         sup = T("superficial stream", 22, ORANGE).move_to([4.6, LANE_TOP, 0])
@@ -310,7 +310,7 @@ class S04Chemokine(SpokenScene):
         dA = dots_in(-3.3, -2.0, -0.2, 16)
         lA = T("chemokine below", 24, TEAL).move_to([-3.3, -2.75, 0])
         self.play(FadeIn(chA), FadeIn(cA), FadeIn(dA, scale=0.3), FadeIn(lA), run_time=0.9)
-        self.at("moved toward it")
+        self.at("move toward it")
         self.play(LaggedStart(*[c.animate.move_to([c.get_center()[0], -0.6 - 0.25 * i, 0]) for i, c in enumerate(cA)],
                               lag_ratio=0.12), run_time=1.0)
         chB = chamber(3.3)

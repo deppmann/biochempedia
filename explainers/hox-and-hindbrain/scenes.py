@@ -328,7 +328,7 @@ class S05Code(SpokenScene):
         self.at("its own mix")
         new = [pat_tag(i) for i in range(7)]
         self.play(LaggedStart(*[Transform(tags[i], new[i]) for i in range(7)], lag_ratio=0.15), run_time=1.6)
-        addr = T("a different mix in each: its address", 30, PURPLE, weight=BOLD).move_to([0, -3.3, 0])
+        addr = T("a different mix in each, with segment genes", 30, PURPLE, weight=BOLD).move_to([0, -3.3, 0])
         self.at("its address")
         self.play(FadeIn(addr, shift=UP * 0.1), Indicate(tags, color=PURPLE, scale_factor=1.05), run_time=0.9)
 
