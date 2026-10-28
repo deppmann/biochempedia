@@ -429,7 +429,7 @@ class S05Switch(SpokenScene):
         self.play(FadeIn(wlab), FadeIn(lab_l), FadeIn(lab_r), run_time=0.5)
 
         # the border cell falls to one side
-        self.at("falls to one side")
+        self.at("border cell settles")
         path_x = lambda s: wx0 - 1.0 * s
         self.play(ball.animate.move_to([wx0 - 1.45 * 0.97, wy0 - 1.3 + 0.17 + 0.05, 0]), run_time=1.1, rate_func=smooth)
         self.play(cells[B_BORDER].animate.set_stroke(BLUE).set_fill(BLUE, 0.55), run_time=0.7)
@@ -469,7 +469,7 @@ class S06Stripes(SpokenScene):
         self.at("ventral stripes")
         self.play(FadeIn(fp), FadeIn(fpl), run_time=0.5)
         self.play(FadeIn(dors), FadeIn(dl), LaggedStart(*[FadeIn(s, scale=0.92) for s in stripes], lag_ratio=0.15), run_time=1.3)
-        for nm, l in zip(["p0", "p1", "p2", "pmn", "p3"], lbls):
+        for nm, l in zip(["P0", "P1", "P2", "PMN", "P3"], lbls):
             self.at(nm)
             self.play(FadeIn(l, shift=RIGHT * 0.15), run_time=0.4)
 
