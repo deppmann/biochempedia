@@ -120,6 +120,13 @@ const lessonLd = {
         </p>
       )}
       <h1>{lesson.title}</h1>
+      {lesson.underReview.length > 0 && (
+        <details class="under-review">
+          <summary><span class="under-review-tag">Under review</span> Parts of this lesson are still being checked.</summary>
+          <ul>{lesson.underReview.map((r) => <li>{r}</li>)}</ul>
+          <p>The text stays up while the check is done. If you spot a problem, <a href={feedbackUrl(lesson.title)} target="_blank" rel="noopener">report it</a>.</p>
+        </details>
+      )}
       <p class="summary">{lesson.summary}</p>
     </header>
 
@@ -644,6 +651,12 @@ const lessonLd = {
   </script>
 
   <style>
+    .under-review { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .under-review > summary { cursor: pointer; list-style: none; }
+    .under-review > summary::-webkit-details-marker { display: none; }
+    .under-review-tag { display: inline-block; margin-right: 0.4rem; padding: 0.1rem 0.5rem; border: 1px dashed var(--ddp-color-caution); border-radius: 999px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.06em; text-transform: uppercase; }
+    .under-review ul { margin: var(--ddp-space-2) 0; padding-left: 1.2rem; }
+    .under-review p { margin: 0; }
     .draft-banner { display: inline-block; margin: 0 0 var(--ddp-space-3); padding: 0.3rem 0.7rem; border: 1px dashed var(--ddp-color-caution); border-radius: 6px; background: var(--ddp-color-caution-soft); color: var(--color-navy); font-size: var(--ddp-text-sm); }
     .lesson-hero { padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6); }
     .eyebrow-course { color: inherit; text-underline-offset: 3px; }
