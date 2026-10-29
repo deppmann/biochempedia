@@ -367,6 +367,10 @@ export const lessonSchema = z.object({
   /** Optional ordering hint for the lesson index. */
   order: z.number().optional(),
   draft: z.boolean().default(false),
+  /** Parts of a published lesson that are still being checked by Chris. Each entry is one
+   *  short reader-facing sentence; a non-empty list shows an "Under review" tag under the
+   *  title. Remove an entry once the check is done (log the item in REVIEW_LATER.md). */
+  underReview: z.array(z.string()).default([]),
 });
 
 export type Lesson = z.infer<typeof lessonSchema>;
