@@ -1,0 +1,207 @@
+---
+/* =============================================================================
+   FigureZoom: the picture inside LessonFigure and ScaffoldFigure, made
+   tap-to-enlarge. The numbered callouts in a 1200 px illustration shrink to
+   about 0.29x on a phone column and become unreadable, so the image is wrapped
+   in a link to the full-size file and, when JavaScript runs, that link opens a
+   full-screen modal <dialog> showing the image at its natural size. The dialog
+   scrolls (pan) and the page can be pinch-zoomed on a phone; Esc or the close
+   button shuts it and focus returns to the link.
+
+   Without JavaScript (or without <dialog> support) the link just opens the
+   image file in a new tab, so nothing depends on the script.
+
+   The dialog's <img> is lazy, and a closed <dialog> is display:none, so the
+   second copy is not fetched until someone opens it.
+   ============================================================================ */
+interface Props {
+  /** /figures/<lesson slug>/<id>.webp */
+  src: string;
+  /** Passed through unchanged; check-figures requires the "AI-generated illustration:" prefix. */
+  alt: string;
+  width?: number;
+  height?: number;
+}
+const { src, alt, width = 1200, height = 800 } = Astro.props;
+---
+<div class="fig-zoom-wrap">
+  <a class="fig-zoom" href={src} target="_blank" rel="noopener" data-fig-zoom>
+    <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+    <span class="fig-hint">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+        <circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6" />
+      </svg>
+      Tap to enlarge
+    </span>
+  </a>
+  <dialog class="fig-dialog" aria-label="Enlarged figure">
+    <button type="button" class="fig-dialog-close" data-fig-close autofocus aria-label="Close enlarged figure">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+    <div class="fig-dialog-pan" tabindex="0" role="region" aria-label="Enlarged figure. Scroll to pan, pinch to zoom.">
+      <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+    </div>
+  </dialog>
+</div>
+
+<script>
+  /* One delegated listener serves every figure on the page, however many there are. */
+  let opener: HTMLElement | null = null;
+  let htmlOverflow = '';
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as Element | null;
+    if (!target || !target.closest) return;
+
+    // Open: an unmodified primary click on the figure link.
+    const link = target.closest('a[data-fig-zoom]') as HTMLAnchorElement | null;
+    if (link) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const dlg = link.closest('.fig-zoom-wrap')?.querySelector('dialog.fig-dialog') as HTMLDialogElement | null;
+      if (!dlg || typeof dlg.showModal !== 'function') return; // fall back to the plain link
+      e.preventDefault();
+      opener = link;
+      htmlOverflow = document.documentElement.style.overflow;
+      document.documentElement.style.overflow = 'hidden';
+      dlg.showModal();
+      return;
+    }
+
+    // Close: the button, or a tap on the empty margin around a small image.
+    const dlg = target.closest('dialog.fig-dialog') as HTMLDialogElement | null;
+    if (dlg && (target.closest('[data-fig-close]') || target === dlg || target.classList.contains('fig-dialog-pan'))) {
+      dlg.close();
+    }
+  });
+
+  // The close event does not bubble, so listen in the capture phase. This runs for Esc, the
+  // button and the backdrop alike.
+  document.addEventListener('close', (e) => {
+    const t = e.target as Element | null;
+    if (!t || !t.classList || !t.classList.contains('fig-dialog')) return;
+    document.documentElement.style.overflow = htmlOverflow;
+    opener?.focus({ preventScroll: true });
+    opener = null;
+  }, true);
+</script>
+
+<style>
+  .fig-zoom-wrap {
+    display: block;
+  }
+  .fig-zoom {
+    position: relative;
+    display: block;
+    border-radius: 8px;
+    cursor: zoom-in;
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fig-zoom:focus-visible {
+    outline: 2px solid var(--ddp-color-accent);
+    outline-offset: 3px;
+  }
+  .fig-zoom > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    background: #fbf8f1;
+    border: 1px solid var(--ddp-color-line);
+  }
+
+  /* "Tap to enlarge": a one-line cue under the image (not over it, which would hide callouts),
+     narrow screens only. It sits inside the link, so it is part of the tap target. */
+  .fig-hint {
+    display: none;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    min-height: 1.75rem;
+    padding-top: 0.3rem;
+    color: var(--ddp-color-ink-soft);
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+  }
+  @media (max-width: 48em) {
+    .fig-hint { display: flex; }
+  }
+
+  /* Full-screen viewer. A modal <dialog> is shown in the top layer, so it needs no z-index. */
+  .fig-dialog {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    background: var(--ddp-color-bg);
+    color: var(--ddp-color-ink);
+    overflow: hidden;
+  }
+  .fig-dialog[open] {
+    display: flex;
+  }
+  .fig-dialog::backdrop {
+    background: var(--ddp-color-bg);
+  }
+  .fig-dialog-pan {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
+    padding: 4rem 0.75rem 0.75rem;
+    padding-top: calc(4rem + env(safe-area-inset-top, 0px));
+    cursor: default;
+  }
+  .fig-dialog-pan:focus-visible {
+    outline: 2px solid var(--ddp-color-accent);
+    outline-offset: -4px;
+  }
+  /* Natural size: no max-width, no scaling. margin:auto centers a small image and, unlike
+     justify-content:center, never clips the left or top edge of a large one. */
+  .fig-dialog-pan > img {
+    flex: none;
+    display: block;
+    margin: auto;
+    width: auto;
+    height: auto;
+    max-width: none;
+    border-radius: 8px;
+    background: #fbf8f1;
+    border: 1px solid var(--ddp-color-line);
+  }
+  .fig-dialog-close {
+    position: fixed;
+    top: max(0.75rem, env(safe-area-inset-top, 0px));
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    z-index: 1;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 50%;
+    background: var(--ddp-color-surface);
+    color: var(--ddp-color-ink);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+  .fig-dialog-close:hover,
+  .fig-dialog-close:focus-visible {
+    border-color: var(--ddp-color-accent);
+    color: var(--ddp-color-accent);
+  }
+  .fig-dialog-close:focus-visible {
+    outline: 2px solid var(--ddp-color-accent);
+    outline-offset: 2px;
+  }
+</style>

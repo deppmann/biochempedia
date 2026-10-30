@@ -7,6 +7,8 @@
    in a visible tag under the figure, and in the lesson's Sources & Integrity panel. Never a chemical structure,
    never a data graph.
    ============================================================================ */
+import FigureZoom from './FigureZoom.astro';
+
 interface Props {
   /** /figures/<lesson slug>/<id>.webp */
   src: string;
@@ -22,7 +24,7 @@ interface Props {
 const { src, alt, caption, keyItems = [], width = 1200, height = 800 } = Astro.props;
 ---
 <figure class="lesson-figure">
-  <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+  <FigureZoom src={src} alt={alt} width={width} height={height} />
   <figcaption>
     {keyItems.length > 0 && (
       <ol class="figure-key">{keyItems.map((k) => <li>{k}</li>)}</ol>
@@ -36,14 +38,6 @@ const { src, alt, caption, keyItems = [], width = 1200, height = 800 } = Astro.p
   .lesson-figure {
     margin: 1.75rem 0;
     max-width: 100%;
-  }
-  .lesson-figure img {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    background: #fbf8f1;
-    border: 1px solid var(--ddp-color-line);
   }
   .lesson-figure figcaption {
     margin-top: 0.5rem;
