@@ -27,7 +27,7 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
 
 <BaseLayout title={`${course.title} — Biochemistrypedia`} description={course.blurb}>
   <section class="wrap course-hero">
-    <p class="eyebrow"><a href="/#courses">All courses</a> · {tierLabel}{course.tier === 'highschool' && <DepthLadder step={course.ladderStep ?? 2} size="sm" class="eyebrow-ladder" />}</p>
+    <p class="eyebrow"><a href="/courses/">All courses</a> · {tierLabel}{course.tier === 'highschool' && <DepthLadder step={course.ladderStep ?? 2} size="sm" class="eyebrow-ladder" />}</p>
     <h1>{course.title}</h1>
     <p class="lede">{course.blurb}</p>
     {drafts > 0 && (
@@ -45,6 +45,69 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
   <section class="wrap course-search">
     <SiteSearch scope={course.slug} label={`Search ${course.title}`} placeholder={course.searchHint} />
   </section>
+
+  {course.slug === 'biochemistry' && (
+    <section class="wrap bio-extras" aria-label="More in this course">
+      <div class="register">
+        <div class="chip">
+          <span class="chip-ico">
+            <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+              <g stroke="currentColor" stroke-width="1.5">
+                <ellipse cx="24" cy="24" rx="19" ry="6.5" />
+                <ellipse cx="24" cy="24" rx="19" ry="6.5" transform="rotate(60 24 24)" />
+                <ellipse cx="24" cy="24" rx="19" ry="6.5" transform="rotate(120 24 24)" />
+                <circle cx="24" cy="24" r="4.5" />
+              </g>
+              <circle cx="24" cy="24" r="2.4" style="fill:var(--ddp-color-secondary)" />
+            </svg>
+          </span>
+          <p class="chip-lab">Real molecules</p>
+          <p class="chip-sub">Loaded live from a public database by ID.</p>
+        </div>
+        <div class="chip">
+          <span class="chip-ico">
+            <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
+              <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 14 C20 11 14.5 11 9 13 V36 C14.5 34 20 34 24 37" />
+                <path d="M24 14 C28 11 33.5 11 39 13 V36 C33.5 34 28 34 24 37" />
+                <line x1="24" y1="14" x2="24" y2="37" />
+                <line x1="12.5" y1="19.5" x2="20" y2="19.5" />
+                <line x1="12.5" y1="23.5" x2="19" y2="23.5" />
+                <circle cx="32" cy="22" r="3" />
+                <path d="M28.5 30 C28.5 26.4 35.5 26.4 35.5 30" />
+              </g>
+            </svg>
+          </span>
+          <p class="chip-lab">Scientist stories</p>
+          <p class="chip-sub">The people behind the molecules, from The Molecule Hunters.</p>
+        </div>
+      </div>
+      <a href="/play" class="funbar-link">
+        <span class="funbar-text">
+          <strong>Metabolism Arcade</strong>
+          <span>Play the pathways: wire the cell, diagnose a broken enzyme, run the regulators through a fast and a sprint, and drill for the MCAT.</span>
+        </span>
+        <span class="funbar-arrow" aria-hidden="true">→</span>
+      </a>
+      <a href="/fun" class="funbar-link">
+        <span class="funbar-text">
+          <strong>The Fun Stuff</strong>
+          <span>Trading cards, memes, songs and a podcast, made by students in my biochemistry course (BIOL 3030).</span>
+        </span>
+        <span class="funbar-arrow" aria-hidden="true">→</span>
+      </a>
+      <details class="scope">
+        <summary>How the chapters were chosen</summary>
+        <p>
+          The chapters here are the chapters of Prof. Deppmann’s one-semester biochemistry course, start to
+          finish. Three sit outside it. An interlude on alchemy and vitalism opens the sequence, because the
+          question of what makes living matter different from the rest is where the field starts. Two
+          supplements close it: nucleotide metabolism, and a survey that puts the whole of metabolism back
+          together. None of the three is on the syllabus. They are here for anyone who wants to keep going.
+        </p>
+      </details>
+    </section>
+  )}
 
   <section class="wrap lessons" id="lessons">
     <p class="sec-label">{units.length} units · {lessons.length === 1 ? 'one lesson' : `${lessons.length} lessons`}</p>
@@ -95,8 +158,23 @@ const tierLabel = { families: 'activities for ages 5–10', highschool: course.l
     .cta-play { display: inline-flex; align-items: center; min-height: 44px; padding: 0.55em 1.3em; border-radius: 999px; font-weight: 700; text-decoration: none; color: var(--ddp-color-ink); background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 28%, var(--ddp-color-surface)); border: 1.5px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 70%, transparent); transition: transform 0.14s ease, box-shadow 0.14s ease; }
     .cta-play:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
     .course-search { padding-block: var(--ddp-space-4) 0; }
+    .bio-extras { padding-block: var(--ddp-space-6) 0; display: flex; flex-direction: column; gap: var(--ddp-space-4); }
+    .register { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--ddp-color-line); border-top: 1px solid var(--ddp-color-line); border-bottom: 1px solid var(--ddp-color-line); }
+    @media (max-width: 480px) { .register { grid-template-columns: 1fr; } }
+    .chip { background: var(--ddp-color-bg); padding: var(--ddp-space-6) var(--ddp-space-4); }
+    .chip-ico { display: block; line-height: 0; color: var(--ddp-color-accent); }
+    .chip-lab { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin: var(--ddp-space-3) 0 var(--ddp-space-1); }
+    .chip-sub { font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-muted); margin: 0; }
+    .funbar-link { display: flex; align-items: center; gap: var(--ddp-space-4); justify-content: space-between; padding: var(--ddp-space-6); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); text-decoration: none; color: inherit; transition: transform 0.14s ease, box-shadow 0.14s ease; }
+    .funbar-link:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .funbar-text { display: flex; flex-direction: column; gap: 0.15rem; }
+    .funbar-text strong { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
+    .funbar-text span { color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
+    .funbar-arrow { font-size: 1.5rem; color: var(--ddp-color-secondary); flex: none; }
+    .scope summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--ddp-color-accent); }
+    .scope p { max-width: 62ch; color: var(--ddp-color-ink-soft); line-height: 1.6; margin: 0 0 var(--ddp-space-4); }
     .lessons { padding-bottom: var(--ddp-space-12); }
     .sec-label { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); margin: var(--ddp-space-8) 0 var(--ddp-space-4); }
-    @media (prefers-reduced-motion: reduce) { .cta, .cta-play { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .cta, .cta-play, .funbar-link { transition: none; } }
   </style>
 </BaseLayout>

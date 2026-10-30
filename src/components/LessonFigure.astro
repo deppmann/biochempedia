@@ -3,8 +3,8 @@
    LessonFigure: one AI-generated illustration placed beside the paragraph it
    serves (IMAGE_POLICY.md rule 8). Drawn by an image model from a written
    spec, then checked by a separate model judge against the spec and the
-   lesson text. Disclosed in the alt text ("AI-generated illustration: ...")
-   and in the lesson's Sources & Integrity panel. Never a chemical structure,
+   lesson text. Disclosed in the alt text ("AI-generated illustration: ..."),
+   in a visible tag under the figure, and in the lesson's Sources & Integrity panel. Never a chemical structure,
    never a data graph.
    ============================================================================ */
 interface Props {
@@ -28,6 +28,7 @@ const { src, alt, caption, keyItems = [], width = 1200, height = 800 } = Astro.p
       <ol class="figure-key">{keyItems.map((k) => <li>{k}</li>)}</ol>
     )}
     {caption}
+    <span class="fig-ai">AI-generated illustration</span>
   </figcaption>
 </figure>
 
@@ -48,6 +49,19 @@ const { src, alt, caption, keyItems = [], width = 1200, height = 800 } = Astro.p
     margin-top: 0.5rem;
     font-size: 0.9rem;
     line-height: 1.45;
+    color: var(--ddp-color-ink-soft);
+  }
+  /* Visible disclosure, so a sighted reader sees what the alt text already says. */
+  .fig-ai {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05em 0.55em;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
     color: var(--ddp-color-ink-soft);
   }
   .figure-key {

@@ -92,6 +92,20 @@ export const PATHS: LearningPath[] = [
     ],
   },
   {
+    id: 'edge',
+    label: 'Reach the edge of research',
+    title: 'Reaching the edge of research',
+    who: 'Advanced students, graduate students, researchers in a neighboring field',
+    blurb: 'The three courses built around current research. Most lessons end near what is still unknown, with the experiments and papers behind it.',
+    steps: [
+      { course: 'cell-biology', why: 'The cell, so the signaling makes sense.', optional: true },
+      { course: 'signaling', why: 'How cells send, read and act on signals, up to current research.' },
+      { course: 'developmental-neuroscience', why: 'How a nervous system builds itself, and what is still open.' },
+      { course: 'sensory-systems', why: 'Touch, sight, sound, smell and taste, with the open questions.' },
+    ],
+    extras: [{ label: 'The methods library: how scientists find things out', href: '/methods/' }],
+  },
+  {
     id: 'school',
     label: 'I’m in grades 7 to 12',
     title: 'Middle and high school',

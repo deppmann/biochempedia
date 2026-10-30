@@ -1,0 +1,192 @@
+---
+/**
+ * The header menu: the site's own pages first, then the extras that are not lessons.
+ *
+ * On a wide screen the four main links (Courses, Paths, Teachers, About) also sit in
+ * the header bar, so they are hidden from this list there (`.sitemenu-main`). On a
+ * phone the bar has no room for them, so this menu is how a reader reaches them.
+ * It used to be labelled "More from the Deppmann Lab", which framed the whole site as
+ * a lab side project. The lab link now lives in the footer.
+ *
+ * A button with aria-expanded, not a native <details>: a <details> still needs JS for
+ * outside-click and Escape, and its open/close semantics are not what a menu button
+ * should announce.
+ */
+interface Item { label: string; href: string; note?: string; external?: boolean; main?: boolean; }
+
+const items: Item[] = [
+  { label: 'Courses', href: '/courses/', note: 'Every course, from first steps to research', main: true },
+  { label: 'Paths', href: '/paths/', note: 'An order to follow for your goal', main: true },
+  { label: 'Teachers', href: '/teachers/', note: 'Free for your classes', main: true },
+  { label: 'About', href: '/about/', note: 'How it is made and checked', main: true },
+  { label: 'Methods library', href: '/methods/', note: 'One short film for every method the courses teach' },
+  { label: 'Metabolism Arcade', href: '/play', note: 'Six games for learning the pathways' },
+  { label: 'The Fun Stuff', href: '/fun', note: 'Trading cards, memes, songs, by BIOL 3030 students' },
+  { label: 'We Are Biochemistry', href: 'https://deppmannlab.com/podcast', note: 'A podcast', external: true },
+  { label: 'The Molecule Hunters', href: 'https://deppmannlab.com/book', note: 'The book behind the scientist profiles, free to read', external: true },
+];
+---
+
+<div class="sitemenu" data-sitemenu>
+  <button
+    type="button"
+    class="sitemenu-btn"
+    id="sitemenu-btn"
+    aria-expanded="false"
+    aria-controls="sitemenu-list"
+  >
+    {/* Wide screens say "More" (the main links are in the bar); phones say "Menu",
+        because on a phone this is where the main links are. */}
+    <span class="sitemenu-label-full">More</span>
+    <span class="sitemenu-label-short">Menu</span>
+    <span class="sitemenu-caret" aria-hidden="true">▾</span>
+  </button>
+
+  <ul class="sitemenu-list" id="sitemenu-list" aria-labelledby="sitemenu-btn" hidden>
+    {items.map((it) => (
+      <li class={it.main ? 'sitemenu-main' : undefined}>
+        <a
+          href={it.href}
+          {...(it.external ? { target: '_blank', rel: 'noopener' } : {})}
+        >
+          <span class="sitemenu-item-label">
+            {it.label}{it.external && <span class="sitemenu-ext" aria-hidden="true"> ↗</span>}
+          </span>
+          {it.note && <span class="sitemenu-item-note">{it.note}</span>}
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-sitemenu]');
+  const btn = document.getElementById('sitemenu-btn');
+  const list = document.getElementById('sitemenu-list');
+
+  if (root && btn && list) {
+    const setOpen = (open: boolean) => {
+      btn.setAttribute('aria-expanded', String(open));
+      list.hidden = !open;
+      root.classList.toggle('is-open', open);
+    };
+
+    btn.addEventListener('click', () => {
+      setOpen(btn.getAttribute('aria-expanded') !== 'true');
+    });
+
+    // Escape closes and hands focus back to the button, so a keyboard user is
+    // never dropped somewhere they did not ask to be.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target as Node)) setOpen(false);
+    });
+
+    // Tabbing past the last item should close it rather than leave an orphaned
+    // panel open behind the rest of the page.
+    root.addEventListener('focusout', () => {
+      requestAnimationFrame(() => {
+        if (!root.contains(document.activeElement)) setOpen(false);
+      });
+    });
+  }
+</script>
+
+<style>
+  .sitemenu { position: relative; margin-left: auto; }
+
+  .sitemenu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    /* Matches .nav-link so the header reads as one system. */
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ddp-color-accent);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.4em 0.7em;
+    cursor: pointer;
+    white-space: nowrap;
+    /* 44px minimum: on a phone this button is the only route to the lab site,
+       the podcast and the student galleries. Padding alone left it at 29px. */
+    min-height: 44px;
+  }
+  .sitemenu-btn:hover { border-color: var(--ddp-color-line); }
+  .sitemenu-btn:focus-visible {
+    outline: 2px solid var(--ddp-color-accent);
+    outline-offset: 2px;
+  }
+  .sitemenu-caret { transition: transform 0.15s ease; font-size: 0.9em; }
+  .sitemenu.is-open .sitemenu-caret { transform: rotate(180deg); }
+  .sitemenu.is-open .sitemenu-btn { border-color: var(--ddp-color-line); }
+
+  .sitemenu-label-short { display: none; }
+
+  .sitemenu-list {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    z-index: 60;
+    margin: 0;
+    padding: var(--ddp-space-2);
+    list-style: none;
+    min-width: 15rem;
+    max-width: min(20rem, calc(100vw - var(--ddp-space-6)));
+    background: var(--ddp-color-surface);
+    border: 1px solid var(--ddp-color-line);
+    border-radius: var(--ddp-radius);
+    box-shadow: 0 12px 32px rgba(20, 22, 30, 0.16);
+  }
+  .sitemenu-list[hidden] { display: none; }
+
+  .sitemenu-list a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    /* 44px min target — this is the only route to these pages on a phone. */
+    min-height: 44px;
+    justify-content: center;
+    padding: var(--ddp-space-2) var(--ddp-space-3);
+    border-radius: var(--ddp-radius-sm);
+    text-decoration: none;
+    color: var(--ddp-color-ink);
+  }
+  .sitemenu-list a:hover,
+  .sitemenu-list a:focus-visible {
+    /* A tint of the page ink over the panel surface, so it darkens in light
+       mode and lightens in dark mode. The old fixed cream fallback put light
+       dark-mode text on a cream box and made the item unreadable. */
+    background: color-mix(in srgb, var(--ddp-color-ink) 7%, var(--ddp-color-surface));
+    text-decoration: none;
+  }
+  .sitemenu-item-label { font-size: var(--ddp-text-sm); font-weight: 600; }
+  .sitemenu-item-note {
+    font-size: var(--ddp-text-xs);
+    color: var(--ddp-color-muted);
+    line-height: 1.35;
+  }
+  .sitemenu-ext { color: var(--ddp-color-muted); font-weight: 400; }
+
+  /* Wide: the main links are in the header bar, so only "More" and the extras show. */
+  @media (min-width: 901px) {
+    .sitemenu-main { display: none; }
+  }
+  /* Phone and tablet: the bar has no room for the main links; the button says "Menu". */
+  @media (max-width: 900px) {
+    .sitemenu-label-full { display: none; }
+    .sitemenu-label-short { display: inline; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sitemenu-caret { transition: none; }
+  }
+</style>
