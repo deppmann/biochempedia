@@ -5,9 +5,9 @@ course: "neuroscience"
 courseChapter: "Neuroscience · Unit 3: Sensory systems"
 order: 614
 summary: >-
-  Smell and taste both detect chemicals, yet they code them in opposite ways. Smell uses a large
+  Smell and taste both detect chemicals, yet they code them in very different ways. Smell uses a large
   family of receptors, one per neuron, and reads an odour from the pattern of receptors it
-  activates; taste uses a handful of receptor types in cells dedicated to one quality each.
+  activates; taste uses a handful of receptor types in cells that, in mice, are largely dedicated to one quality each.
   Afterwards you can read a receptor-by-odorant matrix, trace each taste quality to its cell and
   channel, and say what a cell-restricted rescue experiment does and does not show.
 hook: "One mouse olfactory neuron, one receptor gene out of about a thousand. One bitter cell, one job. Why do the two chemical senses code so differently?"
@@ -73,8 +73,8 @@ scientists:
   - name: "Charles Zuker"
     contribution: >-
       With Nicholas Ryba's laboratory, identified mammalian sweet, umami and bitter receptors and
-      showed in mice that taste quality follows the cell that is activated, using knockouts with
-      cell-restricted rescue.
+      showed in mice, with knockouts, cell-restricted rescue and receptors moved into new cells,
+      that the response to a tastant follows the cell that is activated.
     profileSourceAnchor: "Nelson et al., Cell 106:381–390 (2001); Zhang et al., Cell 112:293–301 (2003)."
     quotes: []
     story: >-
@@ -87,7 +87,8 @@ scientists:
       found that responses to the tested sweet, amino-acid and bitter stimuli were gone, while
       sour and salty responses remained. They then restored PLCβ2 only in cells that express bitter
       receptors. Bitter responses returned; sweet and amino-acid responses did not. The shared
-      cascade carried whichever quality its cell was wired to report. Rescue in a defined cell type
+      cascade worked only for the taste of the cells it was restored in, so sweet and bitter run in
+      separate cells. Rescue in a defined cell type
       became a standard way to ask which cells a taste needs.
   - name: "Emily Liman"
     contribution: >-
@@ -124,7 +125,8 @@ techniques:
     blurb: >-
       A gene is deleted from the whole animal, then restored only in one cell type with that
       cell's promoter. If the function returns, that cell type is enough to carry it in that
-      assay; if a related function does not return, it needs other cells.
+      assay; if a related function does not return while the rescued one does, it
+      probably needs other cells.
   - name: "Gustatory nerve recording"
     blurb: >-
       Electrodes on the chorda tympani or glossopharyngeal nerve record the summed activity of taste
@@ -228,8 +230,8 @@ practiceQuestions:
       - "Each neuron switched to expressing a second receptor gene"
     answer: 0
     rationale: >-
-      Each glomerulus collects from one receptor type, so a new glomerulus means a new receptor
-      type responding: receptors with lower affinity reach threshold only at higher concentration,
+      Each glomerulus collects mainly from one receptor type, so a new glomerulus most likely means a
+      new receptor type responding: receptors with lower affinity reach threshold only at higher concentration,
       as Malnic and colleagues found. Mature neurons keep one receptor, so switching genes is
       wrong. The molecule is unchanged by dilution. Axons do not rewire within seconds of a
       stimulus.
@@ -257,9 +259,10 @@ mcatQuestions:
     rationale: >-
       Zhang and colleagues found that rescue in T2R cells restored bitter responses without sweet
       or amino-acid responses, so the shared enzyme reports whatever its cell is wired for.
-      Recovery of all three would mean the rescue reached sweet and umami cells too. Sweet
-      returning would contradict the rescue's restriction to bitter cells. No recovery would mean
-      the transgene failed, not that PLCβ2 works only in sweet cells.
+      Recovery of all three would most likely mean the rescue reached sweet and umami cells too.
+      Sweet returning would contradict the simple prediction for a rescue restricted to bitter cells.
+      No recovery would point to a transgene that failed to work, not to PLCβ2 working only in sweet
+      cells.
   - stem: "Otop1-null mice and wild-type mice are compared. In mutants, gustatory nerve responses to HCl and citric acid are greatly reduced. In two-bottle tests the mutants still avoid both acid solutions. Which conclusion is best supported?"
     choices:
       - "Avoiding acid can use pathways outside OTOP1-based sour taste"
@@ -297,15 +300,16 @@ explainLevels:
     text: >-
       Odorant receptors are a large GPCR family. In the mouse, most mature olfactory sensory
       neurons express one receptor gene from one allele, and axons expressing the same receptor
-      converge on about two glomeruli per bulb. Receptors are broadly and overlappingly tuned, so
+      converge on about two glomeruli per bulb. Receptor tuning overlaps, with some receptors narrowly and some broadly tuned, so
       odour identity is a combinatorial code across glomeruli, and concentration can change it by
       recruiting low-affinity receptors. Transduction runs through Golf, adenylyl cyclase 3, cAMP
       and CNG channels, amplified by a calcium-activated chloride current. In taste buds, type II
       cells express T1R2/T1R3 (sweet), T1R1/T1R3 (umami) or T2Rs (bitter); all signal through
       PLCβ2, IP3R3 and calcium-gated TRPM5, then release ATP through CALHM1/3 channels. Type III
       cells detect acid through the proton channel OTOP1 and release serotonin from vesicles. In
-      mice, low salt is detected through ENaC. Cell-restricted rescue of PLCβ2 shows that quality
-      follows the cell type at the periphery.
+      mice, low salt is detected through ENaC. Cell-restricted rescue of PLCβ2 shows that bitter runs in
+      separate cells from sweet and umami, and moving receptors between cells supports the view that
+      quality follows the cell type at the periphery.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -319,8 +323,9 @@ explainLevels:
       a person can tell apart remains a separate behavioural question.
 
 
-      Taste keeps quality-dedicated cells at the periphery. PLCβ2 rescue in T2R cells and ectopic
-      OTOP1 in sweet cells both fit cell identity setting quality in mice. The shared machinery is
+      Taste keeps quality-dedicated cells at the periphery. PLCβ2 rescue in T2R cells, and a bitter receptor in sweet
+      cells driving attraction rather than aversion, both fit cell identity setting quality in mice;
+      ectopic OTOP1 shows that sweet cells can be given acid sensitivity. The shared machinery is
       less tidy than once taught: TRPM4 contributes alongside TRPM5, and in the mouse, high salt
       recruits sour and bitter cells while ENaC cells use a calcium-independent route to a CALHM1/3
       channel synapse. Open: how human salt taste is transduced, and whether candidate qualities
@@ -373,7 +378,7 @@ import OdorantPatternMatrix from '../../../components/OdorantPatternMatrix.astro
 
 **Most mature olfactory neurons in a mouse express one odorant-receptor gene at high abundance, chosen from roughly a thousand, and transcribe it from only one of its two copies.**
 
-Smell and taste both turn chemicals into spikes, yet they solve the coding problem in opposite ways. The nose has a huge receptor family and reads an odour from the pattern of receptors it activates. The tongue has a few receptor types in cells that each report one quality. This lesson takes each in turn and then asks what experiments tell the two strategies apart.
+Smell and taste both turn chemicals into spikes, yet they solve the coding problem in very different ways. The nose has a huge receptor family and reads an odour from the pattern of receptors it activates. The tongue has a few receptor types in cells that, in mice, mostly report one quality each. This lesson takes each in turn and then asks what experiments tell the two strategies apart.
 
 ## One neuron, one receptor, two glomeruli
 
@@ -415,7 +420,7 @@ Two cautions. The 2^N figure is the capacity of a toy model, not a count of smel
 
 Taste starts in **taste buds**, clusters of specialized epithelial cells, not neurons, on the tongue and palate. Afferent fibres of cranial nerves VII, IX and X carry their signals to the nucleus of the solitary tract in the medulla, which relays through the thalamus (in rodents by way of the pontine parabrachial nucleus) to gustatory cortex in the insula. The textbook map with sweet at the tip and bitter at the back is discredited: taste buds across the tongue detect every quality, with modest regional differences in sensitivity.
 
-The five qualities taught for mammals are sweet, sour, bitter, salty and umami. They use three kinds of cell.
+The five qualities taught for mammals are sweet, sour, bitter, salty and umami. Most of the work is done by three kinds of cell, and in mice low salt is detected by a further group of ENaC-expressing cells whose place among the three is still debated.
 
 **Type I cells** have glial-like supporting properties.
 
@@ -427,13 +432,13 @@ Sweet, umami and bitter cells share the steps after the receptor: PLCβ2 makes I
 
 **Type III cells** detect sour and form conventional synapses, releasing amine transmitters such as serotonin by calcium-dependent exocytosis. Their acid sensor is **OTOP1**, a proton-selective channel identified by Tu and colleagues in 2018. In Otop1-null mice, gustatory nerve responses to acids were severely and selectively reduced (Teng and colleagues, 2019). PKD2L1, long used to mark sour cells, is not the primary sour receptor.
 
-**Salty** is the least settled. In mice, deleting the ENaCα subunit of the epithelial sodium channel from taste cells abolished responses to low sodium concentrations and their block by amiloride (Chandrashekar and colleagues, 2010). High salt, which mice avoid, also recruited sour and bitter cells while the ENaC pathway stayed active (Oka and colleagues, 2013). How human salt taste is transduced is unsettled. Fat and kokumi are candidate qualities, not established ones, and much of what people call flavour is smell from food in the mouth reaching the nose from behind (retronasal smell).
+**Salty** is the least settled. In mice, deleting the ENaCα subunit of the epithelial sodium channel from taste cells abolished responses to low sodium concentrations and their block by amiloride (Chandrashekar and colleagues, 2010). High salt, which mice avoid, also recruited sour and bitter cells while the ENaC pathway stayed active (Oka and colleagues, 2013). How human salt taste is transduced is unsettled. Fat is a candidate quality, not an established one; kokumi, a sense of richness that enhances other tastes, is usually not counted as a quality of its own, and much of what people call flavour is smell from food in the mouth reaching the nose from behind (retronasal smell).
 
 ## Two answers to one coding problem
 
-Smell meets an open-ended world of molecules with a large, overlapping receptor array: quality is read from a pattern. Taste mostly answers a few questions (eat it or reject it, and what it contains) with cells dedicated to each quality: quality is read from which cell fires, a **labeled line** at the periphery.
+Smell meets an open-ended world of molecules with a large, overlapping receptor array: quality is read from a pattern. Taste mostly answers a few questions (eat it or reject it, and what it contains) with cells dedicated to each quality: quality is read mainly from which cell fires, a **labeled line** at the periphery. That is the leading view from mouse genetics, but some taste cells and taste neurons respond to several qualities, so whether taste is coded by labeled lines or by patterns across fibres is still argued.
 
-The strongest evidence that the cell, not the receptor or the cascade, sets taste quality comes from mouse genetics. Zhang and colleagues (2003) removed PLCβ2 and lost the tested sweet, amino-acid and bitter responses, while sour and salty were spared. Restoring PLCβ2 only in bitter-receptor cells brought back bitter responses without sweet or amino-acid responses. Zhang and colleagues (2019) went the other way: putting OTOP1 into sweet cells made those cells respond to sour stimuli.
+The strongest evidence that the cell, not the receptor or the cascade, sets taste quality comes from mouse genetics. Zhang and colleagues (2003) removed PLCβ2 and lost the tested sweet, amino-acid and bitter responses, while sour and salty were spared. Restoring PLCβ2 only in bitter-receptor cells brought back bitter responses without sweet or amino-acid responses. Mueller and colleagues (2005) put a bitter receptor into sweet cells, and the mice became attracted to its bitter ligand. Zhang and colleagues (2019) showed that putting OTOP1 into sweet cells made those cells respond to sour stimuli, a result about the cells, not about what the mice tasted.
 
 Keep the scope. These are mouse experiments on the periphery; they do not show one exclusive wire for each human percept, and high salt shows that one stimulus can recruit two cell types.
 

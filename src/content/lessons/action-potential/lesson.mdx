@@ -16,7 +16,7 @@ hook: "At the peak of a squid axon's impulse the inside turns positive. What let
 
 estMinutes: 26
 objectives:
-  - "Read a voltage-clamp record: set aside the capacitive transient, then use sodium substitution and reversal potentials to assign the early inward current to Na+ and the delayed outward current to K+."
+  - "Read a voltage-clamp record: set aside the capacitive transient, then use sodium substitution and reversal potentials to assign the early inward current to Na+, and say what further evidence assigned the delayed outward current to K+."
   - "Calculate ionic currents with I = g × (Vm − E) and use the conductance model (g_Na = g_Na,max m³h, g_K = g_K,max n⁴) to explain the spike's rise, fall and undershoot, and say why the 1952 equations describe rather than prove a molecular mechanism."
   - "Explain threshold as regenerative sodium feedback rather than a fixed voltage, distinguish absolute from relative refractoriness, and explain why an impulse travels one way."
   - "Explain how myelin and axon diameter raise conduction velocity, and predict the effects of tetrodotoxin, TEA and focal demyelination on a recording."
@@ -81,18 +81,18 @@ scientists:
     profileSourceAnchor: "Bostock & Sears, J. Physiol. 280:273–301 (1978)."
     quotes: []
     story: >-
-      A myelinated axon fires at its nodes, so the textbook expectation was simple: strip the
-      myelin from an internode and the current from the last node leaks away before it reaches
-      the next, and conduction fails. Hugh Bostock and Tom Sears tested this where it could be
-      seen. They produced segmental demyelination in the ventral roots of rats and recorded from
+      A myelinated axon fires at its nodes, so stripping the myelin from an internode was
+      expected to leave the next node short of current. Earlier recordings had shown block in
+      some fibres and slow, delayed jumps from node to node in others. Hugh Bostock and Tom Sears
+      asked whether the bare internode itself could carry the impulse. They produced segmental demyelination in the ventral roots of rats and recorded from
       single fibres while the roots were perfused, using a method that measures the current
       flowing along the fibre at many points, so they could map where inward current, the sign of
       active membrane, appeared. In some demyelinated fibres the inward current did not stay at
       the old nodes. It moved smoothly along the bare internode, as it does along an unmyelinated
       axon, at 1.1 to 2.3 m/s. Their 1978 paper in the Journal of Physiology showed that
       internodal axon membrane could become excitable and carry continuous conduction. The result
-      made demyelination a problem with more than one outcome: block in some fibres, slow
-      conduction in others, and a mechanism that recovery could use.
+      added a third outcome to block and delayed saltation: continuous conduction, a mechanism
+      that recovery could use.
 
 techniques:
   - name: "Voltage clamp"
@@ -104,7 +104,7 @@ techniques:
   - name: "Ion substitution and channel blockers"
     blurb: >-
       Replacing an ion in the bathing solution (sodium with choline, for example) or adding a
-      blocker such as tetrodotoxin or tetraethylammonium removes one current while you repeat
+      blocker such as tetrodotoxin or tetraethylammonium changes one current while you repeat
       the same clamp steps. A component that reverses or disappears, while the others stay, is
       assigned to that ion or channel.
   - name: "Two-site stimulation and longitudinal current recording"
@@ -149,8 +149,8 @@ practiceQuestions:
     answer: 0
     rationale: >-
       Capacitive current equals Cm × dV/dt, so it flows only while the clamp is changing the
-      voltage and vanishes once the voltage is steady. The sodium current comes after this
-      transient and needs the step to be held. Potassium current is the delayed component, not
+      voltage and vanishes once the voltage is steady. The sodium current develops after this
+      transient, as sodium channels open with a short delay. Potassium current is the delayed component, not
       the first. Leak current flows for as long as the voltage is held, so it cannot explain a
       brief surge that dies away.
   - stem: "In the squid axon, replacing most external Na+ with choline reverses the early current of a voltage-clamp step but barely changes the delayed outward current. What does this establish?"
@@ -163,8 +163,8 @@ practiceQuestions:
     rationale: >-
       Lowering external sodium moves E_Na below the clamp voltage, so the early current reverses,
       while a current that ignores the change does not depend on sodium. Choline was chosen
-      because the membrane passes it poorly, so it carries neither current. If one channel type
-      carried both, the two currents would change together. A capacitive transient does not
+      because the membrane passes it poorly, so it carries neither current. Ion substitution alone does not prove
+      separate channels; selective blockers such as TEA and TTX later showed that. A capacitive transient does not
       depend on which ions are outside, so its reversal could not come from changing sodium.
   - stem: "In the Hodgkin-Huxley model of the squid axon, E_Na is +50 mV, yet the action potential peaks below that. Why?"
     choices:
@@ -174,8 +174,9 @@ practiceQuestions:
       - "Sodium channels shut as soon as the inside becomes positive at all"
     answer: 2
     rationale: >-
-      As the voltage rises, h is already falling and n rising, so sodium conductance is shrinking
-      and potassium conductance growing before Vm can reach E_Na. The model has no pump and still
+      At the peak the net ionic current is zero, so Vm settles where sodium current is balanced by
+      potassium and leak current. Those outward currents never vanish, and as the voltage rises h
+      is already falling and n rising, so the balance point stays short of E_Na. The model has no pump and still
       peaks and repolarizes, so the pump cannot be the reason. Sodium channels do not close at
       zero millivolts; the model's sodium conductance stays large well above zero. At the peak
       dV/dt is zero, so the capacitive current is zero there and cannot cancel anything.
@@ -329,8 +330,7 @@ anecdotes:
       minus outside and outward current is positive. In the original convention the model's
       sodium reversal sits at −115 mV and potassium at +12 mV, which become +50 and −77 mV once
       rest is placed at −65 mV and the sign is flipped. Mixing the original rate equations with
-      modern voltages gives nonsense, and many students' first simulation fails for exactly this
-      reason.
+      modern voltages gives nonsense, so check the convention before you code.
 
 corpusTags:
   - "action-potential"
@@ -361,7 +361,7 @@ Step the clamp from rest to a depolarized level and the record has two parts. Fi
 
 ## Two currents, two ions
 
-A waveform does not say which ion carries it. Hodgkin and Huxley used two tests. In **ion substitution**, they replaced most of the sodium in the sea water with choline, a cation the membrane passes poorly: the early current reversed, while the delayed outward current was little affected. The **reversal potential**, the voltage at which a current changes sign, moved for the early current with external sodium as expected for a current carried by sodium. So the early current was assigned to Na+, and the sodium-independent delayed current to K+.
+A waveform does not say which ion carries it. Hodgkin and Huxley used two tests. In **ion substitution**, they replaced most of the sodium in the sea water with choline, a cation the membrane passes poorly: the early current reversed, while the delayed outward current was little affected. The **reversal potential**, the voltage at which a current changes sign, moved for the early current with external sodium as expected for a current carried by sodium. So the early current was assigned to Na+. Sodium independence alone could not name the carrier of the delayed current; it was assigned to K+ on other evidence, including tracer measurements of potassium leaving stimulated axons.
 
 Every current here obeys one rule, met in [the resting membrane and passive signals](/lessons/resting-membrane-passive/):
 
@@ -399,7 +399,7 @@ Each variable runs from 0 to 1 and relaxes toward a voltage-dependent value with
 
 These are formal variables, not proposed proteins: the powers were chosen to fit the S-shaped onset of the currents, and the equations describe conductances without proving how a gate works. Voltage sensors and inactivation machinery were found later in channel proteins; see [ion channels as receptors](/lessons/ion-channels-as-receptors/).
 
-Now let the model run unclamped. Past threshold, m climbs, Na+ flows in, and Vm rises toward E_Na, which raises m further: the **rising phase**. Vm peaks short of +50 mV because h is already falling and n rising. Inactivation then shuts off the sodium current while potassium current drives Vm down: the **falling phase**. Because n falls slowly, g_K stays raised and pulls Vm toward E_K at −77 mV, below rest: the **undershoot**.
+Now let the model run unclamped. Past threshold, m climbs, Na+ flows in, and Vm rises toward E_Na, which raises m further: the **rising phase**. Vm peaks short of +50 mV because potassium and leak current still flow outward, and because h is already falling and n rising. Inactivation then shuts off the sodium current while potassium current drives Vm down: the **falling phase**. Because n falls slowly, g_K stays raised and pulls Vm toward E_K at −77 mV, below rest: the **undershoot**.
 
 The model has no Na+/K+ pump, yet it repolarizes; the pump restores gradients over many spikes.
 
@@ -419,11 +419,11 @@ Inactivation is not deactivation. Repolarize early in a step and the sodium curr
 
 An impulse travels because its inward current spreads along the axon's core and brings the next stretch of membrane to threshold. How far that current reaches is set by the **length constant**, the distance over which a steady voltage change decays to about 37% of its starting size.
 
-A wider axon has lower internal resistance, so current spreads farther; in unmyelinated axons velocity rises roughly with the square root of diameter. **Myelin**, glial membrane wrapped around the axon ([myelination](/lessons/myelination/) covers how it is made), raises the resistance and lowers the capacitance of each **internode**, the wrapped stretch between gaps, so less current leaks and less charge is needed. At the gaps, the **nodes of Ranvier**, sodium channels regenerate the spike. Huxley and Robert Stämpfli found evidence for this **saltatory conduction** in single frog fibres in 1949. The impulse does not leap: each node drives current to the next, which fires in turn. Nor is the internode sealed: in rat cortical axons, recordings, electron microscopy and cable models support a conductive pathway beneath the myelin (Cohen and colleagues, 2020). In myelinated fibres velocity rises roughly in proportion to diameter. In mammalian nerves, conduction velocities run from about 0.6 m/s in the smallest fibres to about 115 m/s in the largest myelinated ones (Gasser), with exact values depending on species and temperature.
+A wider axon has lower internal resistance, so current spreads farther; in unmyelinated axons velocity rises roughly with the square root of diameter. **Myelin**, glial membrane wrapped around the axon ([myelination](/lessons/myelination/) covers how it is made), raises the resistance and lowers the capacitance of each **internode**, the wrapped stretch between gaps, so less current leaks and less charge is needed. At the gaps, the **nodes of Ranvier**, sodium channels regenerate the spike. Huxley and Robert Stämpfli found evidence for this **saltatory conduction** in single frog fibres in 1949. The impulse does not leap: each node drives current to the next, which fires in turn. Nor is the internode sealed: in rat cortical axons, recordings, electron microscopy and cable models support a conductive pathway beneath the myelin (Cohen and colleagues, 2020). In myelinated fibres velocity rises roughly in proportion to diameter. In mammalian peripheral nerves, conduction velocities run from about 0.6 to 2 m/s in unmyelinated C fibres to about 70 to 120 m/s in the largest myelinated ones, with exact values depending on species and temperature.
 
 The squid is not every neuron. In rabbit nodes recorded at 14 °C, potassium current is almost entirely absent and leak accounts for repolarization after the brief sodium current (Chiu, Ritchie and colleagues, 1979). Tetraethylammonium (TEA) can abolish the delayed potassium current of frog nodes (dissociation constant near 0.4 mM; Hille, 1967). **Tetrodotoxin** (TTX) blocked the action potential of lobster giant axons while sparing the resting potential (Narahashi, Moore and Scott, 1964), with an apparent dissociation constant of about 1 nM at frog nodes (Hille, 1968).
 
-**Demyelination** strips the sheath from an internode. In rabbit sciatic fibres, acute demyelination raised internodal leak conductance and capacitance (Chiu and Schwarz, 1987), so current reaches the next node late or too weak: conduction slows or blocks. It does not always block. Bostock and Sears (1978) found continuous conduction along bare internodes of rat ventral roots at 1.1 to 2.3 m/s. Multiple sclerosis damages central myelin and Guillain-Barré syndrome peripheral nerve; [neurodegeneration](/lessons/neurodegeneration/) covers disease, and [synaptic transmission](/lessons/synaptic-transmission/) picks up the impulse at the terminal.
+**Demyelination** strips the sheath from an internode. The bare axon has more membrane to charge and leaks more current, and loosening the myelin at rabbit nodes uncovers potassium channels in the paranodal axon that the sheath normally covers (Chiu and Ritchie, 1980). So current reaches the next node late or too weak: conduction slows or blocks. It does not always block. Acutely demyelinated rabbit internodes developed sodium and potassium currents of their own (Chiu and Schwarz, 1987), and Bostock and Sears (1978) found continuous conduction along bare internodes of rat ventral roots at 1.1 to 2.3 m/s. Multiple sclerosis damages central myelin and Guillain-Barré syndrome peripheral nerve; [neurodegeneration](/lessons/neurodegeneration/) covers disease, and [synaptic transmission](/lessons/synaptic-transmission/) picks up the impulse at the terminal.
 
 ### Design problem
 

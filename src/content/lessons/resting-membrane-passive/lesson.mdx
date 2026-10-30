@@ -40,8 +40,8 @@ scientists:
     quotes: []
     story: >-
       By the early 1940s physiologists knew that a membrane separating two salt solutions
-      carries a voltage, and that the voltage depends on which ions can cross. What was missing
-      was a way to compute it when several ions cross at once, each with its own ease of passage.
+      carries a voltage, and that the voltage depends on which ions can cross. Nernst and Planck
+      had described ions diffusing under an electric field, but there was no simple formula for a membrane that several ions cross at once, each with its own ease of passage.
       Goldman built a theory for that case. He treated each ion as diffusing through the membrane
       and being pushed by the electric field inside it, and he made one simplifying assumption:
       that the field is the same at every depth in the membrane, a constant field. He then tested
@@ -88,9 +88,11 @@ scientists:
       made patch recordings directly from the dendrites of layer 5 pyramidal neurons, alongside
       the same measurements in adult rat cortex. In paired recordings they injected current
       steps at one site and measured the voltage at another. Distal inputs were attenuated more
-      strongly on their way to the soma in the human cells, and dendritic input resistance rose
-      more steeply with distance from the soma. Specific capacitance was near 0.9 µF/cm² in both
-      species, so a lower capacitance could not explain the difference. A 2021 follow-up across
+      strongly on their way to the soma in the human cells, and distal human dendrites had about twice the input resistance of distal rat dendrites. In rat, input
+      resistance fell with distance from the soma; in human it rose only gently. Specific capacitance was near 0.9 µF/cm² in both
+      species, so a lower capacitance could not explain the difference. Instead the human dendrites
+      had lower densities of ion channels, including HCN channels, which raised their input resistance,
+      and their greater length added to the attenuation. A 2021 follow-up across
       ten mammalian species found that human layer 5 neurons had lower potassium and HCN
       conductances than size-based rules predicted. The work made it possible to test, rather
       than assume, whether rodent cable parameters describe human neurons.
@@ -164,7 +166,7 @@ practiceQuestions:
     rationale: >-
       The resting potential is the zero-net-current voltage of several leaks weighted by
       permeability, so a small sodium permeability pulls Vm up from EK toward ENa. The pump is
-      electrogenic but adds only a small direct component; mainly it keeps the gradients. If K+
+      electrogenic, and its direct contribution is usually small though it varies between cells; mainly it keeps the gradients. If K+
       channels were all closed the cell would not sit near EK at all. Rest cannot be equilibrium
       for both Na+ and K+, since their equilibrium potentials are about 150 mV apart.
   - stem: "A compact, passive neuron has an input resistance of 200 MΩ and a capacitance of 100 pF. A small current step begins at time zero. How far toward its final value has the voltage moved 20 ms later?"
@@ -270,8 +272,8 @@ explainLevels:
       Each ion's current is I = g × (Vm − E_ion), with outward current positive. At rest the sum
       of these currents is zero, not each one, so the resting potential is a steady state given by
       the GHK voltage equation, in which each ion's concentrations are weighted by its relative
-      permeability; the Na+/K+ pump maintains the gradients and adds a small electrogenic
-      component. Electrically, the membrane is a capacitor in parallel with leak resistance: a
+      permeability; the Na+/K+ pump maintains the gradients and adds an electrogenic
+      component that is usually small but varies between cells. Electrically, the membrane is a capacitor in parallel with leak resistance: a
       current step changes Vm along I × Rin × (1 − e^(−t/τ)), with τ = Rin × C. Along a uniform
       passive cable a steady deflection decays as e^(−x/λ), with λ = √(rm/ri), so λ grows with
       membrane resistance and with the square root of diameter.
@@ -367,7 +369,7 @@ A real membrane passes several ions, so it sits between their equilibrium potent
 
 > **Vm = (RT/F) × ln[(PK[K]o + PNa[Na]o + PCl[Cl]i) / (PK[K]i + PNa[Na]i + PCl[Cl]o)]**
 
-Chloride's inside concentration goes on top because its charge is negative. The equation comes from Goldman's 1943 constant-field theory, which assumes a uniform electric field through the membrane, and it gives the voltage at which total current is zero: a steady state kept up by the pump, not an equilibrium.
+Chloride's inside concentration goes on top because its charge is negative. The equation comes from Goldman's 1943 constant-field theory, which assumes a uniform electric field through the membrane, and it gives the voltage at which the passive ionic currents sum to zero: a steady state kept up by the pump, not an equilibrium. The pump's own current, left out of the equation, can shift the real resting potential somewhat more negative.
 
 **Worked problem, part 2.** Take RT/F = 26.72 mV (37 °C), PK = 1, PNa = 0.04, PCl = 0, and the concentrations above.
 
@@ -425,11 +427,11 @@ Here rm is the membrane resistance of a unit length of cable (Ω·cm) and ri its
 
 In human temporal-lobe cortex resected from epilepsy patients, Beaulieu-Laroche and colleagues (2018) found that distal inputs to layer 5 pyramidal neurons were attenuated more on the way to the soma than in rat layer 5 neurons: a result for those cells, not all human neurons.
 
-**Worked problem, part 5.** Instead of changing PNa, double the uniform leak conductance, so membrane resistance halves, with C and geometry unchanged. Rin falls to 50 MΩ, so τ = 50 MΩ × 200 pF = 10 ms. Because λ scales with √rm, λ = 0.5 / √2 = 0.354 mm. The leakier cell is faster, but its signals reach less far, and the step now gives only −5 mV. Whether rest moves depends on the added leak's reversal potential.
+**Worked problem, part 5.** Instead of changing PNa, double the uniform leak conductance, so membrane resistance halves, with C and geometry unchanged. For the compact cell of part 3, Rin falls to 50 MΩ, so τ = 50 MΩ × 200 pF = 10 ms. Because λ scales with √rm, λ = 0.5 / √2 = 0.354 mm. The leakier cell is faster, but its signals reach less far, and in the compact cell the step now gives only −5 mV (in a long cable, input resistance falls only by a factor of √2). Whether rest moves depends on the added leak's reversal potential.
 
 ## Reading a current-clamp trace
 
-One current step gives three numbers: Rin = ΔV / I, τ (the time to 63%), and C = τ / Rin. Small hyperpolarizing steps, which stay away from threshold, plotted as steady ΔV against I give Rin as the slope; a straight line says the membrane is passive over that range.
+For a compact passive cell, one current step gives three numbers: Rin = ΔV / I, τ (the time to 63%), and C = τ / Rin. Small hyperpolarizing steps, which stay away from threshold, plotted as steady ΔV against I give Rin as the slope; a straight line means Rin is constant over that range, which fits a passive membrane but does not prove it.
 
 Check the trace against the model. A pure RC response rises smoothly to a plateau. If the voltage overshoots and sags back during a hyperpolarizing step, a conductance is turning on with voltage, often the HCN current. If the voltage-current plot bends, Rin depends on voltage. Either way a single RC fit will mislead you.
 
@@ -446,6 +448,6 @@ Before the drug, Rin = 5 mV / 50 pA = 100 MΩ and C = 20 ms / 100 MΩ = 200 pF. 
 
 Capacitance, and so membrane area, did not change; τ rose only because Rin did. Resting conductance fell from 10 nS to 6.25 nS, so the drug closed about 3.75 nS. Closing a conductance moves rest away from its reversal potential, and rest depolarized, so the closed conductance reversed below rest: a K+ leak is the likeliest candidate. If that leak was uniform over the dendrites, λ would rise by √1.6, about 1.26 times.
 
-To test it, voltage-clamp the cell and subtract currents recorded at several voltages with and without the drug. A K+ leak should give a drug-sensitive current that is linear, reverses near EK, and shifts its reversal when external K+ is raised. If that current bends with voltage, or the drug removed a sag seen in the control trace, the target is more likely a voltage-gated conductance such as HCN than a passive leak, though a leak can also curve slightly when ion concentrations differ on the two sides of the membrane.
+To test it, voltage-clamp the cell and subtract currents recorded at several voltages with and without the drug. A K+ leak should give a drug-sensitive current that reverses near EK, shifts its reversal when external K+ is raised, and appears without delay after each voltage step. Its current-voltage curve need not be straight: with far more K+ inside than outside, even a passive K+ pore passes outward current more easily than inward current. If instead the drug-sensitive current turns on slowly after a voltage step, the target is a voltage-gated conductance. A lost sag would point to HCN channels, but HCN current reverses above rest, so blocking it alone would hyperpolarize the cell rather than depolarize it.
 
 </details>

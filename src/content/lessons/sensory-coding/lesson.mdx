@@ -184,8 +184,8 @@ practiceQuestions:
       adapting afferent, which reports change rather than steady pressure. A slowly adapting
       afferent would keep firing during the hold, so it fits the opposite pattern. Nothing in a
       gentle press implies tissue damage, so a pain fibre is the wrong class. Running out of
-      transmitter would not explain the renewed burst at removal; adaptation is a property of how
-      the ending responds, not exhaustion.
+      transmitter would not explain the renewed burst at removal; this pattern reflects how the
+      ending responds to change, not exhaustion.
   - stem: "With low noise that is the same at every angle, a neuron's tuning curve gives 60, 55, 30 and 10 spikes/s at 0, 10, 20 and 30 degrees. Where should a 2-degree change in angle be easiest to detect from its firing?"
     choices:
       - "Between 20 and 30 degrees, the lowest firing"
@@ -210,9 +210,9 @@ practiceQuestions:
     rationale: >-
       With two choices a guess is right half the time, so 50% correct is chance, and the
       threshold in this design is usually set halfway between chance and perfect, at 75%. Calling
-      50% the threshold borrows the convention for detection tasks, where threshold is the level
+      50% the threshold borrows the convention for yes/no detection tasks, where threshold is the level
       detected on half of the trials; that is the second misreading too, since chance performance
-      shows no detection at all. Lapses are occasional stimulus-independent errors that pull
+      gives no evidence that she can tell the two intervals apart. Lapses are occasional stimulus-independent errors that pull
       performance down at large differences, not a fixed half of trials.
   - stem: "Six receptors in a row receive excitation 5, 5, 5, 15, 15, 15 (arbitrary units). Each output equals its own excitation minus 0.2 times the excitation of each adjacent neighbour, and the row continues beyond both ends. What is the output of the first bright receptor, at the edge?"
     choices:
@@ -283,8 +283,8 @@ explainLevels:
     text: >-
       A sensory receptor converts a stimulus, such as pressure or light, into a change in
       membrane voltage called a receptor potential, and its size grows with the stimulus. That
-      voltage sets how often action potentials fire along a sensory nerve, so stronger stimuli
-      give higher firing rates. Each receptor responds only to stimuli in its own patch of skin
+      voltage sets, directly or through other cells, how often action potentials fire along a
+      sensory nerve, so a stronger stimulus changes the firing rate, usually raising it. A touch or visual receptor responds only to stimuli in its own patch of skin
       or of the visual world, its receptive field. Some receptors keep firing while a stimulus
       lasts, others only when it changes. Neighbouring receptors can suppress one another, which
       makes edges stand out.
@@ -324,8 +324,8 @@ anecdotes:
     source: "Adrian & Zotterman, J. Physiol. (1926), 'The impulses produced by sensory nerve-endings', Part 2; Adrian, Nobel Lecture (1932)."
     text: >-
       To hear one sensory ending, Adrian and Zotterman had to make sure only one was active. They
-      cut successive strips from a frog muscle until the record showed impulses of a
-      single size, the sign of a single active fibre. Then they loaded the muscle with weights.
+      cut successive strips from a frog muscle until the record showed a single,
+      regular series of impulses, which they took as the sign of one active ending. Then they loaded the muscle with weights.
       The impulses never grew; their frequency did, and during a maintained stretch it declined.
       Those two observations, intensity carried by frequency and a response that fades under a
       constant stimulus, remain the first two facts taught about sensory coding.
@@ -367,7 +367,7 @@ import MachBandEdgeRow from '../../../components/MachBandEdgeRow.astro';
 
 **In 1926 Edgar Adrian and Yngve Zotterman recorded the impulses from one stretch receptor in a frog muscle and found that a heavier load did not make the impulses bigger, only more frequent.**
 
-Every sense you have ends in that same currency. A fingertip ending, a rod in the retina, a taste cell and an olfactory neuron all produce graded voltages, and the afferent neurons they drive send trains of spikes that look alike. So how does a train of identical spikes say what touched you, where, and how hard? This lesson builds the answer from recordings: transduction, receptive fields, tuning, lateral inhibition and the old argument between labelled lines and populations.
+Every sense you have ends in that same currency. A fingertip ending, a rod in the retina, a taste cell and an olfactory neuron all produce graded voltages, and the afferent neurons that carry their signals to the brain send trains of spikes that look alike. In vision those spiking cells are retinal ganglion cells, reached through bipolar cells rather than driven by the rods directly. So how does a train of identical spikes say what touched you, where, and how hard? This lesson builds the answer from recordings: transduction, receptive fields, tuning, lateral inhibition and the old argument between labelled lines and populations.
 
 ## The idea: a stimulus becomes a graded voltage, then a rate
 
@@ -375,11 +375,11 @@ Every sense you have ends in that same currency. A fingertip ending, a rod in th
 
 The machinery differs by sense. In touch, force opens mechanically activated channels in the ending of the sensory neuron itself. In mice, Ranade and colleagues (Nature, 2014) deleted the channel Piezo2 from adult sensory neurons and Merkel cells, skin cells that contact some touch endings, and the animals lost much of their touch sensation. That result is about touch. Vertebrate photoreceptors use a receptor protein and a cGMP cascade, and light hyperpolarizes them; smell and taste also use receptor proteins. The cascades belong to [senses and cGMP](/lessons/senses-and-cgmp/); here we follow what the voltage does next.
 
-Where the ending is part of the afferent neuron, the receptor potential depolarizes the spike-initiating zone, and the larger it is, the faster the neuron fires [action potentials](/lessons/action-potential/). Where the receptor is a separate cell, as in photoreceptors and taste cells, it changes transmitter release onto the afferent instead. Either way, intensity reaches the brain mostly as a **firing rate**, which is what Adrian and Zotterman saw.
+Where the ending is part of the afferent neuron, the receptor potential depolarizes the spike-initiating zone, and the larger it is, the faster the neuron fires [action potentials](/lessons/action-potential/). Where the receptor is a separate cell, it changes transmitter release instead. Taste cells release onto the afferent fibres. Photoreceptors release onto bipolar cells, and the retinal circuit passes the signal on to ganglion cells, whose spikes leave the eye. Either way, intensity reaches the brain mostly as a **firing rate**, which is what Adrian and Zotterman saw. A stronger stimulus also recruits more afferents, so the number of active fibres carries intensity too.
 
 ## Which cells, which stimuli: receptive fields and adaptation
 
-A **receptive field** is the region of the sensory surface, a patch of skin or of the visual field, where a stimulus can change a given cell's activity. A fingertip afferent has a small one; an afferent from the back has a much larger one, which is one reason your fingertip resolves finer detail.
+A **receptive field** is the region of the sensory surface, a patch of skin or of the visual field, where a stimulus can change a given cell's activity. Many fingertip afferents, such as those contacting Merkel cells, have small ones; afferents of the same kind on the back have much larger ones, which is one reason your fingertip resolves finer detail. Receptor type matters too: a Pacinian afferent's field can cover much of the hand.
 
 Receptors also differ in time. **Rapidly adapting** endings fire at the start of a maintained stimulus and then fall quiet; many fire again when it is removed. They report change: a Pacinian corpuscle in the skin signals vibration. **Slowly adapting** endings keep firing for as long as the stimulus lasts, as Merkel-cell afferents do during steady indentation, so they report the stimulus itself. Not every receptor stops firing under a constant stimulus. Adaptation as a general circuit motif is taken up in [signaling circuits](/lessons/signaling-circuits/).
 
@@ -397,7 +397,7 @@ You might expect a neuron to be most useful at its peak. For fine discrimination
 
 *Step 3: the reading.* A small change near 22 degrees moves the rate about twice as much as the same change near the peak, so it is easier to detect. Butts and Goldman (PLoS Biology, 2006) showed this in low-noise models of fine discrimination, and also that as variability grows the best-encoded stimulus can move back toward the peak. The answer depends on noise and task.
 
-Behaviour has its own curve. A **psychometric function** plots the proportion of correct responses against stimulus level. In a **two-alternative forced-choice** (2AFC) task the observer must pick which of two options held the stimulus, so guessing gives 50% correct. That makes 50% chance, not threshold, and the usual threshold sits halfway between chance and perfect, at 75%. (The 50% convention belongs to simple detection, where threshold is the level detected on half the trials.)
+Behaviour has its own curve. A **psychometric function** plots an observer's performance against stimulus level; in the tasks here, that is the proportion of correct responses. In a **two-alternative forced-choice** (2AFC) task the observer must pick which of two options held the stimulus, so guessing gives 50% correct. That makes 50% chance, not threshold, and the usual threshold sits halfway between chance and perfect, at 75%. (A 50% convention comes from yes/no detection tasks, where threshold is often taken as the level reported on half the trials, a measure that also depends on how willing the observer is to say yes.)
 
 **Worked problem 2, a psychometric function.** Take a model 2AFC observer judging an angular difference x, with chosen, not measured, parameters (midpoint 2 degrees, spread 1 degree, no lapses):
 
@@ -435,7 +435,7 @@ The plateaus differ by 6 units (12 against 6), but across the edge the differenc
 
 ## Labelled lines or populations
 
-In a **labelled line**, a fibre's activity means one thing, say "sweet", however it was activated. In a **population code**, quality is read from the pattern across many fibres. Taste researchers still argue between the two (Ohla and colleagues, Chemical Senses, 2019).
+In a **labelled line**, a fibre's activity means one thing, say "sweet", however it was activated. In a **population code**, quality is read from the pattern across many fibres. Taste researchers still argue between the two (Ohla and colleagues, Chemical Senses, 2019). At the level of taste cells the evidence favours dedicated lines: in mice, sweet, umami, bitter and sour are detected by separate cell types with their own receptors, and making sweet cells express a receptor for a synthetic opiate made mice attracted to that drug (Zhao and colleagues, Cell, 2003). The argument is mainly about the afferent fibres and the brain.
 
 Smell leans toward populations at the receptor level. In olfactory sensory neurons, Malnic, Hirono, Sato and Buck (Cell, 1999) found that one receptor recognizes several odorants and one odorant is recognized by several receptors, so an odorant is coded by a combination. How neurons expressing the same receptor are wired to the same targets in the olfactory bulb is a developmental question, covered in [partners, layers and self-avoidance](/lessons/partners-layers-self-avoidance/).
 
@@ -452,6 +452,6 @@ Start with the counts. 28 of 101 is 28%, and 79 of 155 is 51%, but they come fro
 
 Next, scope. Broad peripheral tuning says what the ganglion sends, not how the brain decodes it. A decoder could still read a narrowly tuned subset, or the combination.
 
-Then test it causally. Silence or remove one receptor class, or one molecularly defined group of afferents, and measure behaviour at low and high concentrations. If labelled lines carry quality, losing the "sweet" class should remove sweet responses at both concentrations; if quality is read from patterns, the loss should depend on concentration and blur discrimination among tastes. The result is a scoped counterexample to strict, concentration-invariant labelled lines in mouse geniculate neurons, not a refutation of every labelled-line model.
+Then test it causally. Silence or remove one receptor class, or one molecularly defined group of afferents, and measure behaviour at low and high concentrations. If a dedicated "sweet" line carries quality, losing it should remove sweet responses at both concentrations and leave the other tastes intact. A pattern decoder could also lose sweet when its main input is gone, so a loss of sweet alone does not separate the models. The more telling measure is discrimination among the remaining tastes at low and high concentrations: a pattern code that uses those fibres should blur these discriminations too, most where tuning is broad. The result is a scoped counterexample to strict, concentration-invariant labelled lines in mouse geniculate neurons, not a refutation of every labelled-line model.
 
 </details>

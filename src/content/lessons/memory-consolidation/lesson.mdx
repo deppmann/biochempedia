@@ -57,7 +57,7 @@ scientists:
     profileSourceAnchor: "Hafting, Fyhn, Molden, Moser & Moser, Nature 436:801–806 (2005); M.-B. Moser and E. I. Moser, Nobel Lectures, 7 December 2014."
     quotes: []
     story: >-
-      Place cells needed an input that knew where the animal was, and the Mosers' laboratory at
+      The Mosers' laboratory at
       the Norwegian University of Science and Technology in Trondheim looked upstream, in the
       medial entorhinal cortex. In the 2005 Nature paper, with Torkel Hafting, Marianne Fyhn and
       Sturla Molden as co-authors, rats foraged in enclosures large enough to show more than one
@@ -86,7 +86,7 @@ scientists:
       before. Cells that were silent in the task showed no such increase. The measure was pairwise
       co-firing, not a decoded route, and it was a correlation, not a test of memory. Later work,
       including Wilson's laboratory with David Foster in 2006, reported ordered sequences replayed
-      in awake rats, some in reverse. The 1994 paper made sleep a time when experience could be
+      in awake rats, played in reverse order at the end of a run. The 1994 paper made sleep a time when experience could be
       read back out of the hippocampus.
   - name: "Susumu Tonegawa"
     contribution: >-
@@ -124,7 +124,7 @@ techniques:
   - name: "Activity-dependent tagging with optogenetics"
     blurb: >-
       A promoter from an activity-induced gene such as c-fos, gated by a drug-controlled window,
-      puts an opsin into the cells that were active during learning. Light then drives or silences
+      puts an opsin mostly into cells that were active during learning, with some background labelling of cells active at other times in the window. Light then drives or silences
       just those cells, which tests whether they are sufficient or necessary for a behaviour in
       that preparation.
 
@@ -206,7 +206,7 @@ practiceQuestions:
       remain, which is what Nakazawa and colleagues found. Slower learning with every cue present
       would be a learning deficit and contradicts the stem. Slower swimming is a motor or
       motivational effect that would affect both conditions. Normal search with few cues would
-      show that completion is intact.
+      give no evidence of a completion deficit in this task.
 
 mcatQuestions:
   - stem: "In a made-up recording from rat CA1, pairs of place cells with overlapping fields had a mean spike-count correlation of 0.02 in sleep before a track session, 0.30 during the session, and 0.10 in sleep after it. Pairs that were silent on the track had 0.02 in both sleep epochs. Which conclusion do these data best support?"
@@ -242,13 +242,13 @@ mcatQuestions:
       - "Activity tied to ripples, not stimulation as such, aids memory"
       - "Each ripple carries one specific route that the memory requires"
       - "Sleep itself, not any event within sleep, is needed for memory"
-      - "Commissural stimulation damages hippocampal cells and synapses"
+      - "The stimulation itself damages hippocampal cells and synapses"
     answer: 0
     rationale: >-
       The delayed control received the same stimulation and was not impaired, so the deficit
       depends on hitting the ripples, which points to ripple-linked activity. Damage from
-      stimulation would have impaired the delayed group too. Disrupting ripples removes all
-      ripple-associated activity, not one decoded route, so the experiment cannot assign the effect
+      stimulation would have impaired the delayed group too. Disrupting ripples interrupts
+      ripple-associated activity in general, not one decoded route, so the experiment cannot assign the effect
       to a particular sequence. Both groups slept, so sleep in general is not what differed.
 
 explainLevels:
@@ -287,12 +287,12 @@ explainLevels:
     label: "Graduate"
     text: >-
       A Hopfield network with Hebbian weights w_ij proportional to the sum over patterns of
-      x_i x_j, symmetric coupling and asynchronous updates descends an energy function to a local
-      minimum, so stored patterns and their inverses are attractors; capacity is limited, and at
-      high load stored states drift to spurious minima. CA3's recurrent collaterals and the
+      x_i x_j, symmetric coupling and asynchronous updates never raises an energy function, so the state settles in a local
+      minimum. At low load the stored patterns and their inverses are attractors; capacity is limited, and at
+      high load interference destabilizes them and retrieval ends in spurious minima. CA3's recurrent collaterals and the
       Nakazawa deletion make it the favoured site for such completion, but the computation is
-      inferred from a behavioural deficit, not observed. Replay data move from correlation (pairwise co-firing in three rats) to closed-loop
-      perturbation, but ripple disruption removes every ripple-linked event at once. Engram
+      inferred from a partial-cue behavioural deficit and weaker CA1 place-cell activity under partial cues, not observed in CA3 itself. Replay data move from correlation (pairwise co-firing in three rats) to closed-loop
+      perturbation, but ripple disruption interrupts ripple-linked activity in general, not one sequence. Engram
       experiments in mice establish sufficiency, conditional necessity at specific delays, and a
       distributed candidate set (117 of 247 regions by one index), all for contextual fear over
       days. Open question: does systems consolidation transfer, copy or transform a memory, and do
@@ -353,7 +353,7 @@ You read a place cell from a **rate map**. Track the rat with a camera, divide t
 
 In 2005 Torkel Hafting, Marianne Fyhn, Sturla Molden, May-Britt Moser and Edvard Moser recorded upstream, in the dorsocaudal medial entorhinal cortex of the rat. These **grid cells** fired at many places, and the places formed a lattice of roughly equilateral triangles. To test the regularity they used a **spatial autocorrelogram**: correlate the rate map with copies of itself shifted in every direction. A triangular lattice gives six peaks around the centre, at angles that are multiples of 60 degrees. Neighbouring grid cells shared an orientation but differed in **phase**, where the vertices fell, and grid spacing increased from dorsal to ventral. In the first large-enclosure sample, spacing ran from about 39 to 73 cm across cells. The grids persisted without external landmarks, which the authors took as consistent with **path integration**, keeping track of position from one's own movement.
 
-Two cautions. The lattice is in the rate map, not in the tissue: grid cells are not laid out in a honeycomb. And a cell that fires in one place is a correlation between firing and position. It does not show that the cell encodes only position, or that the animal uses it to navigate. O'Keefe and both Mosers shared the 2014 Nobel Prize in Physiology or Medicine.
+Three cautions. The lattice is in the rate map, not in the tissue: grid cells are not laid out in a honeycomb. And a cell that fires in one place is a correlation between firing and position. It does not show that the cell encodes only position, or that the animal uses it to navigate. And grid cells do not simply feed place cells: in rat pups, place firing appears before stable grid firing, and silencing the hippocampus erases the grid pattern, so the two systems shape each other. O'Keefe and both Mosers shared the 2014 Nobel Prize in Physiology or Medicine.
 
 ## Making a memory last
 
@@ -363,11 +363,11 @@ What that reorganization is remains debated. The standard model holds that the h
 
 ## Replay and ripples: correlation, then perturbation
 
-If the hippocampus teaches the cortex, it has to repeat experience after it happens. Matthew Wilson and Bruce McNaughton recorded many hippocampal cells at once in three rats, in slow-wave sleep before a spatial task, during the task, and in sleep afterwards. Cells that co-fired during the task were more likely to co-fire in the sleep after it than in the sleep before. Cells silent during the task showed no such increase. This was pairwise co-firing, not a decoded route.
+One proposal is that the hippocampus teaches the cortex by replaying experience after it happens. Matthew Wilson and Bruce McNaughton recorded many hippocampal cells at once in three rats, in slow-wave sleep before a spatial task, during the task, and in sleep afterwards. Cells that co-fired during the task were more likely to co-fire in the sleep after it than in the sleep before. Cells silent during the task showed no such increase. This was pairwise co-firing, not a decoded route.
 
-Later work decoded order. In rats running on a track, Kamran Diba and György Buzsáki in 2007 found place-cell sequences replayed in reverse during pauses at the end of runs, and forward sequences before runs; Foster and Wilson had reported reverse replay in awake rats a year earlier. Much replay rides on **sharp-wave ripples**, brief bursts of fast oscillation in the CA1 local field potential. Replay in both directions was reported in awake rats (Diba and Buzsaki 2007).
+Later work decoded order. In rats running on a track, Kamran Diba and György Buzsáki in 2007 found place-cell sequences replayed in reverse during pauses at the end of runs, and forward sequences before runs; Foster and Wilson had reported reverse replay in awake rats a year earlier. Much replay rides on **sharp-wave ripples**, brief bursts of fast oscillation in the CA1 local field potential. The cortex takes part too: in slow-wave sleep, ripples tend to coincide with cortical slow oscillations and thalamic spindles, and studies in people as well as rodents support a role for this coupling. Replay in both directions was reported in awake rats (Diba and Buzsaki 2007).
 
-All of this is correlation. The causal step came from cutting ripples short. Gabrielle Girardeau and colleagues in 2009 detected ripples online in rats during sleep after training on a hippocampus-dependent spatial task and triggered a stimulus that ended each one; rats given the same stimuli at a delay served as controls. Selective elimination of the ripples impaired performance. In 2019 Antonio Fernández-Ruiz and colleagues went the other way in awake rats: closed-loop optogenetic stimulation for 100 ms after detected ripples prolonged them, and maze working-memory performance improved. The comparison was control light delivered at random delays of 400 to 1000 ms after ripples, and the authors distinguish prolonging spontaneous ripples from inducing them at random. Note what disruption removes: every ripple-linked event, not one sequence.
+All of this is correlation. The causal step came from cutting ripples short. Gabrielle Girardeau and colleagues in 2009 detected ripples online in rats during sleep after training on a hippocampus-dependent spatial task and triggered a stimulus that ended each one; rats given the same stimuli at a delay served as controls. Selective elimination of the ripples impaired performance. In 2019 Antonio Fernández-Ruiz and colleagues went the other way in awake rats: closed-loop optogenetic stimulation for 100 ms after detected ripples prolonged them, and maze working-memory performance improved. That tested awake ripples in a working-memory task, not consolidation during sleep. The comparison was control light delivered at random delays of 400 to 1000 ms after ripples, and the authors distinguish prolonging spontaneous ripples from inducing them at random. Note what disruption removes: ripple-linked activity in general, not one sequence.
 
 ## Engrams: sufficiency and necessity
 
@@ -379,7 +379,7 @@ Necessity needs silencing during natural recall. Kitamura and colleagues (2017) 
 
 ## Completing a pattern
 
-How could a fragment recall a whole? The CA3 region of the hippocampus has dense recurrent connections between its pyramidal cells, so it is often modelled as an **attractor network**, in which a stored pattern is a stable state the activity falls into. John Hopfield's 1982 network makes this concrete. Units are +1 or −1, weights are set by Hebb's idea that co-active units strengthen their link, and units update one at a time.
+How could a fragment recall a whole? The CA3 region of the hippocampus has dense recurrent connections between its pyramidal cells, so it is often modelled as an **attractor network**, in which a stored pattern is a stable state the activity falls into. John Hopfield's 1982 network makes this concrete. Hopfield's units were 0 or 1; here they are +1 or −1, an equivalent form, weights follow a symmetric, Hebb-inspired rule in which units that agree strengthen their link, and units update one at a time.
 
 **Worked problem.** These values are teaching choices, not hippocampal measurements. Store x = (1, 1, −1, −1) in four units:
 
@@ -418,7 +418,7 @@ Light activation of dentate-gyrus cells tagged during fear conditioning makes mi
 
 Start from what is already shown: sufficiency, with specificity. Liu's neutral-context tags and EYFP-only mice did not freeze, so light, heating and tagging alone are excluded.
 
-Test necessity next. Tag the same cells with an inhibitory opsin and silence them while the mouse is returned to the conditioning box, the natural cue. Include a fluorophore-only group given the same light. If freezing falls only in the opsin group, the cells are needed for natural recall at that time.
+Test necessity next. Tag the same cells with an inhibitory opsin and silence them while the mouse is returned to the conditioning box, the natural cue. Include a fluorophore-only group given the same light. If freezing falls only in the opsin group, the cells contribute to natural recall at that time. Check that silencing does not reduce movement or freezing to another feared cue, which would point to fear expression rather than recall.
 
 Vary the time and the cue. Test at a recent and a remote delay; Kitamura's prefrontal engram was needed on day 12 and not day 2. Test partial cues, which engram cells are defined to respond to. Silence other regions too, since Roy's map points to a distributed complex: "where the memory is" may have more than one answer.
 
