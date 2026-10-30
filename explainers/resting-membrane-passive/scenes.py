@@ -286,7 +286,7 @@ class S05Weights(SpokenScene):
         self.add(axis, ek, ena)
 
         self.at("The Goldman Hodgkin Katz equation")
-        ghk = T("Goldman-Hodgkin-Katz: where total current = 0", 26, TEXT).move_to([1.6, 3.0, 0])
+        ghk = T("Goldman-Hodgkin-Katz: passive currents sum to 0", 26, TEXT).move_to([1.6, 3.0, 0])
         ghk.align_to([-2.2, 0, 0], LEFT)
         self.play(FadeIn(ghk, shift=UP * 0.1), run_time=self.q(0.07))
 
@@ -304,7 +304,7 @@ class S05Weights(SpokenScene):
         vm = vm_marker(-71.2, "Vm  −71.2 mV")
         self.play(FadeIn(vm, scale=1.4), run_time=self.q(0.06))
 
-        self.at("That sits")
+        self.at("That's its")
         br = vbracket(-95, -71.2, KC)
         bt = T("24 mV above EK", 26, KC).move_to([-2.2, Y(-83.1), 0]).align_to([-2.2, 0, 0], LEFT)
         self.play(GrowArrow(br), FadeIn(bt), run_time=self.q(0.06))

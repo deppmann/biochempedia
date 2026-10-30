@@ -164,7 +164,7 @@ class S02Dissociation(SpokenScene):
     def construct(self):
         head = T("dissociation: one ability fails, another survives", 30, TEXT).move_to([0, 3.0, 0])
         wm = mem_box(-4.7, "Working memory", TEAL, "digit span: normal")
-        dm = mem_box(0.0, "Declarative memory", BLUE, "new ones: not formed")
+        dm = mem_box(0.0, "Declarative memory", BLUE, "new ones: rare")
         sk = mem_box(4.7, "Skill learning", PURPLE, "mirror drawing: improves")
         note = T("the notepad", 24, TEAL).move_to([-4.7, -1.35, 0])
         b_wm = tick().move_to([-4.7, -0.55, 0])
@@ -216,7 +216,7 @@ class S03Single(SpokenScene):
         qb = T("B", 24, TEXT).next_to(mb, UP, buff=0.2)
         why = T("or is Task B just harder?", 28, RED).move_to([0.2, -0.95, 0])
 
-        self.at("One group failing one task")
+        self.at("One task fails")
         self.play(FadeIn(grp), FadeIn(ta), FadeIn(tb), GrowArrow(a1), GrowArrow(a2), run_time=1.0)
         self.play(FadeIn(ok, scale=0.6), FadeIn(okt), FadeIn(bad, scale=0.6), FadeIn(badt), run_time=0.7)
         self.at("single dissociation")
@@ -257,7 +257,7 @@ class S04Scores(SpokenScene):
             self.play(*[GrowFromEdge(p.bars[g], DOWN) for p in (pl, pr)],
                       *[FadeIn(p.labs[g], shift=UP * 0.1) for p in (pl, pr)], run_time=0.9)
 
-        self.at("Controls score")
+        self.at("Control scores")
         self.play(FadeIn(leg[0]), FadeIn(leg[3]), run_time=0.4)
         grow("ctrl")
         self.at("Amnesic patients score")
@@ -409,7 +409,7 @@ class S06Double(SpokenScene):
         p1 = chip("classification", PURPLE, 22).move_to([2.2, 1.6, 0])
         p2 = chip("questionnaire", BLUE, 22).move_to([5.0, 1.6, 0])
         sep = DashedLine([3.62, 2.1, 0], [3.62, 1.1, 0], color=GREY, stroke_width=3)
-        cap = T("two separable learning processes", 24, TEXT).move_to([3.7, 0.7, 0])
+        cap = T("evidence for separate processes", 24, TEXT).move_to([3.7, 0.7, 0])
         self.play(FadeIn(p1), FadeIn(p2), Create(sep), FadeIn(cap), run_time=0.9)
 
         self.at("pin each")

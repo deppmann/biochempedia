@@ -220,7 +220,7 @@ class S03Mono(SpokenScene):
                            fill_opacity=0.35).move_to(P(AX, AY))
         self.play(FadeOut(d2), Transform(r.mA, shrunk), Transform(r.labA, T("contracts", 22, GREEN).move_to(P(-5.3, AY))),
                   run_time=0.6)
-        self.at("Only this branch")
+        self.at("Synergists get")
         self.play(Indicate(mono, color=GREEN, scale_factor=1.15), run_time=0.7)
         self.at("as a whole")
         self.play(Indicate(r.br2, color=TEXT, scale_factor=1.0), run_time=0.7)

@@ -197,7 +197,7 @@ class S01Blips(SpokenScene):
         self.play(FadeIn(ax), run_time=0.5)
         t_end = self.t_of("far too small") - 0.5
         self.play(Create(tr, rate_func=linear), run_time=max(1.0, t_end - self.elapsed()))
-        self.at("far too small")
+        self.at("too small")
         thr = thr_line()
         self.play(Create(thr[0]), FadeIn(thr[1]), run_time=0.7)
         self.at("What are they")
@@ -403,7 +403,7 @@ class S04Count(SpokenScene):
         cap = T("quanta released by each nerve impulse", 24, GREY).move_to([0, -0.5, 0])
         avg = T("their average is the mean quantal content", 28, TEXT).move_to([0, -1.4, 0])
         self.play(LaggedStart(*[FadeIn(m) for m in rowb], lag_ratio=0.04), FadeIn(cap), run_time=1.4)
-        self.at("one impulse releases")
+        self.at("-1 impulse releases")
         self.play(FadeIn(avg, shift=UP * 0.1), run_time=0.6)
         self.at("Take a made")
         self.play(FadeOut(VGroup(rowb, cap, avg)), run_time=0.5)
@@ -460,21 +460,21 @@ class S05Safety(SpokenScene):
         ag = T("agree", 30, GREEN, weight=BOLD).move_to([0.15, -2.9, 0])
         self.play(Create(r1), Create(r2), FadeIn(ag), run_time=0.8)
 
-        self.at("Now restore normal calcium")
+        self.at("Now suppose")
         self.play(FadeOut(VGroup(defn, row, hdr, b1, b2, l1, l2, brace, eq, rh, cells, rl, req, req2, r1, r2, ag)), run_time=0.7)
         axes = bar_axes()
         self.play(FadeIn(axes), run_time=0.5)
-        self.at("and suppose")
+        self.at("quanta of")
         bar = stripes(60, 0.40)
         t1 = M("60 quanta x 0.40 mV", 28, GREEN).move_to([2.9, 2.5, 0])
         self.play(LaggedStart(*[FadeIn(r, shift=UP * 0.08) for r in bar], lag_ratio=0.02), FadeIn(t1), run_time=1.6)
         self.at("If they add linearly")
         t3 = T("if quanta add linearly", 22, GREY).move_to([2.9, 1.15, 0])
         self.play(FadeIn(t3), run_time=0.4)
-        self.at("the response is")
+        self.at("that is")
         t2 = M("= 24 mV", 28, GREEN).move_to([2.9, 1.8, 0])
         self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.5)
-        self.at("fires at")
+        self.at("a threshold")
         thr = thr_bar()
         self.play(Create(thr[0]), FadeIn(thr[1]), run_time=0.8)
         self.at("The safety factor")
@@ -540,7 +540,7 @@ class S06Where(SpokenScene):
         chk = T("pair it with a receptor count", 24, GREY).move_to([2.8, -0.35, 0])
         self.play(FadeIn(chk, shift=UP * 0.1), run_time=0.5)
 
-        self.at("Even so")
+        self.at("So")
         self.play(FadeOut(VGroup(axes, bar, va, vb, vm, a1, a2, chk)), run_time=0.7)
 
         def card(cx, header, hcolor, n_pk, scale_pk):
@@ -554,20 +554,20 @@ class S06Where(SpokenScene):
             pks = VGroup(*[packet().scale(scale_pk).move_to([cx + dx, 1.3, 0]) for dx in ([-1.0, 0, 1.0] if n_pk == 3 else [0])])
             return hd, term, tl, mus, ml, pks
 
-        h1, t_1, tl1, m1, ml1, p1 = card(-3.2, "smaller packets", YELLOW, 3, 0.4)
-        self.at("smaller packets")
+        h1, t_1, tl1, m1, ml1, p1 = card(-3.2, "smaller blips", YELLOW, 3, 0.4)
+        self.at("smaller miniatures")
         self.play(FadeIn(VGroup(h1, t_1, tl1, m1, ml1, p1)), run_time=0.8)
-        self.at("after the synapse")
-        lb1 = T("points after the synapse", 30, GOLD, weight=BOLD).move_to([-3.2, -2.3, 0])
-        self.play(m1.animate.set_stroke(GOLD, 7), FadeIn(lb1, shift=UP * 0.1), run_time=0.8)
+        self.at("receptors or filling")
+        lb1 = T("check both sides", 30, GOLD, weight=BOLD).move_to([-3.2, -2.3, 0])
+        self.play(t_1.animate.set_stroke(GOLD, 7), m1.animate.set_stroke(GOLD, 7), FadeIn(lb1, shift=UP * 0.1), run_time=0.8)
         h2, t_2, tl2, m2, ml2, p2 = card(3.2, "fewer packets", YELLOW, 1, 1.0)
         self.at("fewer packets")
         self.play(FadeIn(VGroup(h2, t_2, tl2, m2, ml2, p2)), run_time=0.8)
-        self.at("before it")
+        self.at("before the synapse")
         lb2 = T("points before it", 30, GOLD, weight=BOLD).move_to([3.2, -2.3, 0])
         self.play(t_2.animate.set_stroke(GOLD, 7), FadeIn(lb2, shift=UP * 0.1), run_time=0.8)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Smaller packets point after the synapse; fewer packets point before it."
+    LINE = "Smaller blips: receptors or filling. Fewer packets: before the synapse."
