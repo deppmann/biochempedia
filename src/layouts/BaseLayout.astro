@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import LabMenu from '../components/LabMenu.astro';
+import SiteMenu from '../components/SiteMenu.astro';
 import Footer from '../../brand/Footer.astro';
 import { feedbackUrl } from '../lib/feedback';
 
@@ -18,7 +18,7 @@ const { title, description, ogType = 'website', jsonLd, noindex = false } = Astr
 const year = 2026;
 const SITE_NAME = 'Biochemistrypedia';
 const DEFAULT_DESC =
-  'Free biology courses from molecules to ecosystems — short readings, films of the experiments, simulations you can change, and questions with checked answers.';
+  'Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account, no ads.';
 const desc = description ?? DEFAULT_DESC;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 const ogImage = Astro.site ? new URL('/og.png', Astro.site).href : '/og.png';
@@ -98,7 +98,14 @@ const websiteLd = {
           <span class="brand-mark">⬡</span>
           <span class="brand-name">Biochemistrypedia</span>
         </a>
-        <span class="brand-tag">free biology courses</span>
+        {/* The four main links sit in the bar on wide screens; on a phone they are in
+            the Menu button (SiteMenu.astro), which has the same four. */}
+        <div class="nav-main">
+          <a href="/courses/" class="nav-link-main">Courses</a>
+          <a href="/paths/" class="nav-link-main">Paths</a>
+          <a href="/teachers/" class="nav-link-main">Teachers</a>
+          <a href="/about/" class="nav-link-main">About</a>
+        </div>
         <a href="/search/" class="nav-search" aria-label="Search the lessons">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 L21 21" /></svg>
         </a>
@@ -106,8 +113,7 @@ const websiteLd = {
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M8.2 12.3 L11 15 L16 9.5" /></svg>
           <span class="nav-progress-dot" data-nav-due hidden></span>
         </a>
-        <a href="/play" class="nav-play" aria-label="Play the arcade">▶<span class="nav-play-word">&nbsp;Play</span></a>
-        <LabMenu />
+        <SiteMenu />
       </nav>
     </header>
 
@@ -127,8 +133,8 @@ const websiteLd = {
     <Footer
       brand="Biochemistrypedia"
       address={[
-        'Free biology courses',
-        'from the Deppmann Lab',
+        'Free science courses, starting with biology',
+        'Started in the Deppmann Lab at UVA',
       ]}
       copyright="Christopher Deppmann"
       tagline=""
@@ -136,8 +142,9 @@ const websiteLd = {
         {
           heading: 'This site',
           links: [
-            { label: 'Lessons', href: '/' },
-            { label: 'About', href: '/about' },
+            { label: 'Courses', href: '/courses/' },
+            { label: 'Paths', href: '/paths/' },
+            { label: 'About', href: '/about/' },
             { label: 'The Fun Stuff', href: '/fun' },
             { label: 'Metabolism Arcade', href: '/play' },
             { label: 'Resources for Teachers', href: '/teachers' },
@@ -164,18 +171,22 @@ const websiteLd = {
       ]}
     >
       <p>
-        <strong>A note on the figures.</strong> Some lecture slides here use AI-assisted
-        illustration, and a few carry a caption flagging a specific artifact on that
-        slide — a bond drawn wrong, a ring in the wrong chair. For anything you intend
-        to memorize, work from the live 3D structures in the lesson&rsquo;s Explore panel:
-        those load by accession ID from RCSB&nbsp;PDB and PubChem, so no one has drawn
-        them by hand or by model. Every slide names the person who screened it, and each
-        lesson&rsquo;s Sources &amp; Integrity panel lists what that covers.
+        <strong>A note on the figures.</strong> The illustrations in the lessons are
+        AI-generated. An image model draws each one from a written description, and a second
+        model checks it against the lesson. Each is marked as AI-generated, and none shows a
+        chemical structure or data. Some lecture slides also use AI-assisted illustration, and
+        a few carry a caption flagging a specific artifact on that slide &mdash; a bond drawn
+        wrong, a ring in the wrong chair. For anything you intend to memorize, work from the
+        live 3D structures in the lesson&rsquo;s Explore panel: those load by accession ID from
+        RCSB&nbsp;PDB and PubChem, so no one has drawn them by hand or by model. How each part
+        is made and checked is on the <a href="/about/">About page</a>, and each lesson&rsquo;s
+        Sources &amp; Integrity panel lists what applies to it.
         <a href="/contact">Found an error? Tell me and I will fix it.</a>
       </p>
       <p>
-        The code is MIT-licensed. Lesson narrative and scientist profiles are drawn from
-        <em>The Molecule Hunters</em> and Prof. Deppmann&rsquo;s lectures, and remain the
+        The code is MIT-licensed. AI models drafted most of the lesson text, working from
+        Prof. Deppmann&rsquo;s lectures, <em>The Molecule Hunters</em> and the research
+        literature, under his direction. The lesson narrative and scientist profiles remain the
         authors&rsquo; own (see the
         <a href="https://github.com/deppmann/biochempedia/blob/main/NOTICE">NOTICE</a>).
         Structures load live from RCSB&nbsp;PDB (CC0) and PubChem. Simulations from
@@ -216,29 +227,24 @@ const websiteLd = {
         color: var(--ddp-color-accent);
         font-size: 1.2em;
       }
-      .brand-tag {
-        color: var(--ddp-color-muted);
-        font-size: var(--ddp-text-sm);
-      }
-      /* The arcade gets a visible pill on every page; it takes the free space
-         so the Lab menu sits snug to its right. */
-      .nav-play {
-        margin-left: auto;
+      /* Main links: wide screens only; the Menu button carries them elsewhere. */
+      .nav-main { display: none; margin-left: var(--ddp-space-4); gap: var(--ddp-space-1); align-self: center; }
+      .nav-link-main {
         display: inline-flex;
         align-items: center;
-        min-height: 32px;
-        padding: 0.2em 0.85em;
+        min-height: 36px;
+        padding: 0 0.75em;
         border-radius: 999px;
         font-family: var(--ddp-font-mono);
         font-size: var(--ddp-text-xs);
-        font-weight: 700;
-        letter-spacing: 0.06em;
         text-transform: uppercase;
-        white-space: nowrap;
+        letter-spacing: 0.06em;
+        color: var(--ddp-color-accent);
         text-decoration: none;
-        color: var(--ddp-color-secondary-ink, var(--ddp-color-ink));
-        background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 22%, transparent);
-        border: 1px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 55%, transparent);
+      }
+      .nav-link-main:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
+      @media (min-width: 901px) {
+        .nav-main { display: flex; }
       }
       /* Search sits first in the right-hand group and takes the free space. */
       .nav-search {
@@ -252,7 +258,9 @@ const websiteLd = {
         color: var(--ddp-color-accent);
       }
       .nav-search:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
-      .nav-search + .nav-progress, .nav-progress + .nav-play { margin-left: 0; }
+      .nav-search + .nav-progress { margin-left: 0; }
+      /* Search takes the free space; the progress icon and the menu sit snug to its right. */
+      .nav-progress + :global(.sitemenu) { margin-left: 0; }
       .nav-progress {
         position: relative; display: inline-flex; align-items: center; justify-content: center;
         width: 36px; height: 36px; border-radius: 999px; color: var(--ddp-color-accent); flex: none;
@@ -260,9 +268,6 @@ const websiteLd = {
       .nav-progress:hover { background: color-mix(in srgb, var(--ddp-color-accent) 12%, transparent); }
       .nav-progress-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--ddp-color-caution); }
       .nav-progress-dot[hidden] { display: none; }
-      .nav-search + .nav-play { margin-left: 0; }
-      .nav-play:hover { background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 36%, transparent); }
-      :global(.nav-play + .labmenu) { margin-left: 0; }
       .nav-link {
         margin-left: auto;
         color: var(--ddp-color-accent);
@@ -281,23 +286,11 @@ const websiteLd = {
          sticky header is the first thing a phone visitor sees. Below 560px the
          tagline goes, and below 400px the mark shrinks rather than wraps. */
       .brand-name { white-space: nowrap; }
-      /* With the Play pill in the bar, the tagline only fits on wide screens. */
-      @media (max-width: 900px) {
-        .brand-tag { display: none; }
-      }
       @media (max-width: 560px) {
-        .brand-tag {
-          display: none;
-        }
         .site-header nav { gap: var(--ddp-space-3); }
         /* Room for the progress icon beside search on a phone. */
         .nav-search, .nav-progress { width: 30px; height: 30px; }
         .nav-search + .nav-progress { margin-left: calc(var(--ddp-space-1, 0.25rem) - var(--ddp-space-3)); }
-        .nav-play { padding: 0.2em 0.6em; }
-      }
-      /* Phones: the header used to run off the right edge (4px at 375, 56px at 320). */
-      @media (max-width: 480px) {
-        .nav-play-word { display: none; }
       }
       @media (max-width: 400px) {
         .site-header nav { gap: var(--ddp-space-2); }

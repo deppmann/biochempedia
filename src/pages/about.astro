@@ -1,60 +1,141 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { courseCards } from '../lib/catalog';
+import { feedbackUrl } from '../lib/feedback';
 
-// Counted from the collection so the sentence below cannot go stale.
-const NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty', 'thirty-one', 'thirty-two', 'thirty-three', 'thirty-four', 'thirty-five', 'thirty-six', 'thirty-seven', 'thirty-eight', 'thirty-nine', 'forty'];
-const lessonCount = (await getCollection('lessons', ({ data }) => !data.draft)).length;
-const lessonWord = NUM[lessonCount] ?? String(lessonCount);
+/* Counted from the collection so the numbers below cannot go stale. They are shown
+   as numerals: the old spelled-out version ran out of words above forty. */
+const { cards, lessonCount } = await courseCards();
+const courseCount = cards.length;
+const bioCount = (await getCollection('lessons', ({ data }) => !data.draft && data.course === 'biochemistry')).length;
+const fmt = (n: number) => n.toLocaleString('en-US');
 ---
 
-<BaseLayout title="About — Biochemistrypedia" description="What Biochemistrypedia is, and the rules that keep it honest.">
+<BaseLayout title="About — Biochemistrypedia" description="What this site is, how it is made with AI, how it is checked, and how to report an error.">
   <article class="wrap prose-col" style="padding-top: var(--ddp-space-12)">
     <p class="eyebrow">About</p>
-    <h1>An interactive textbook that refuses to make things up.</h1>
+    <h1>A free ladder through science, built in public.</h1>
 
     <p>
-      Biochemistrypedia is an interactive site for learning biochemistry, built for
-      the students working through an introductory biochemistry course. It is free,
-      and nobody paid for it. The content comes from material
-      Prof.&nbsp;Deppmann already has: twenty years of lectures and the
-      book <em>The Molecule Hunters</em>.
+      Short version: this is a free site for learning science, one rung at a time. It starts with biology.
+      Today it has {fmt(lessonCount)} lessons in {fmt(courseCount)} courses. They run from hands-on activities a parent
+      does with a five-year-old to courses that end at current research. Every lesson is free to read. You
+      never need an account to learn, and there are no ads.
     </p>
 
-    <h2>The rules that keep it honest</h2>
+    <h2>The idea</h2>
+    <p>
+      Picture everything people know as a circle. A small child stands at the center. Near the center the
+      questions have answers. Moving outward, the answers thin. Past the edge there are more questions than
+      answers, and that is where research happens.
+    </p>
+    <p>
+      To understand the open questions at the edge, you need every rung between the center and there. I am
+      trying to build those rungs. Biology comes first. Chemistry, physics, math and engineering are meant to
+      follow, and every rung will stay free.
+    </p>
+    <p>
+      You can start on any rung. Nobody needs a background to begin. Every lesson explains its central idea
+      at more than one level, and most run from a child’s version to a graduate student’s, so you can drop
+      down a level when you need to and climb back up.
+    </p>
+
+    <h2>What is in a lesson</h2>
+    <p>
+      A lesson is a short reading. Nearly every one has a short film. Most have a simulation you can change.
+      All have practice questions that show the answer and explain why. If you learn on your own, your progress stays on your own device. If a teacher adds you to a class, your
+      answers in that class go to your teacher; the <a href="/teach/privacy/">class privacy page</a> has the details.
+    </p>
+
+    <h2>Where it came from</h2>
+    <p>
+      It began in June 2026 as an experiment in my lab at the University of Virginia: {fmt(bioCount)} lessons for my
+      undergraduate biochemistry course, built from twenty years of my lectures and my book,
+      <em>The Molecule Hunters</em>. That first course gave the site its name. Biochemistry is now {fmt(bioCount)} of the
+      {fmt(lessonCount)} lessons, and the site is growing into its own thing.
+    </p>
+
+    <h2>A work in progress</h2>
+    <p>
+      I chose to put this up rough and improve it in public. You will find mistakes, and I want to hear about them.
+    </p>
+    <p>
+      Parts of some lessons are still being checked. Those lessons carry an <strong>Under review</strong> tag at
+      the top, and the text stays up while the check is done. Some subjects are not here yet: chemistry, physics,
+      math, engineering, and anything for children under five. The <a href="/paths/mcat/">MCAT path</a> lists the
+      parts of the exam the site does not cover yet.
+    </p>
+
+    <h2>How AI is used</h2>
+    <p>I use AI for most of the work, and here is where.</p>
     <ul>
-      <li><strong>No invented molecules.</strong> Every 3D structure is loaded live by accession ID from RCSB&nbsp;PDB (macromolecules) or PubChem (small molecules). Nothing is drawn by an AI, ever.</li>
-      <li><strong>No unreviewed figures.</strong> Every lecture slide names the person who checked it for accuracy and copyright, and a slide without a reviewer fails the build — the site literally won't compile. Many slides use AI-assisted illustration; the slide viewer says so, and a slide with a known drawing error carries a note saying what is wrong. The scientist portraits are AI-generated artwork and are labeled that way.</li>
-      <li><strong>No borrowed questions.</strong> Every practice and MCAT-style question is written for this site and comes with its answer and an explanation of why. MCAT-style items are original, not real AAMC questions.</li>
-      <li><strong>Honest media.</strong> Videos and podcasts are embedded from their source, never rehosted.</li>
+      <li>
+        <strong>Writing.</strong> The lessons, questions and film scripts are human-directed and AI-made. I decide
+        what goes in and direct the work. AI models write it from my lectures, my book and the research literature.
+        We will keep improving it as more people send feedback and as the models get better. We look hardest at
+        three things: clarity, accuracy, and whether each idea gets the emphasis it deserves.
+      </li>
+      <li><strong>Films.</strong> An AI draws the animations in code. An AI voice reads the narration. Every film has captions, and each lesson’s Sources &amp; Integrity panel names the voice.</li>
+      <li><strong>Illustrations.</strong> A lesson can have up to five. An image model draws each one from a written description, and every detail in that description has to come from a sentence in the lesson. A second model, which did not write the description, then checks the image against the lesson, labels included. Images that fail are redrawn or dropped. Each one is marked “AI-generated illustration” in a tag under the figure, in its description for screen readers, and in the lesson’s Sources &amp; Integrity panel. They never show a chemical structure or data.</li>
+      <li><strong>Scientist portraits</strong> are AI-generated artwork, and they are labelled that way.</li>
+      <li><strong>Molecules</strong> are never drawn by AI. Every 3D structure loads live from a public database, RCSB PDB or PubChem, by its ID.</li>
+      <li><strong>Lecture slides</strong> come from my own decks. Each one names the person who checked it for accuracy and copyright, and the site will not build without that name.</li>
+      <li><strong>No AI tutor talks to learners.</strong> A teacher can turn on AI feedback for their own class with their own key. It is off by default, and the <a href="/teach/privacy/">class privacy page</a> says exactly what is sent.</li>
     </ul>
 
-    <h2>What's not here yet</h2>
+    <h2>How it is checked</h2>
+    <ul>
+      <li>
+        <strong>Cross-model checks.</strong> Every lesson has been checked by AI models from more than one
+        company, claim by claim, against sources. Errors they find get corrected.
+      </li>
+      <li>
+        <strong>Human review.</strong> We built these lessons fast, so a person has not yet checked every one by
+        hand. We are working through them now. That is why your feedback matters: tell us what is wrong, and we
+        will fix it fast.
+      </li>
+      <li><strong>Questions.</strong> Every practice and MCAT-style question was written for this site. The MCAT-style questions are original. None is a real AAMC question.</li>
+      <li>
+        <strong>Corrections are public.</strong> Every fix goes into the site’s
+        <a href="https://github.com/deppmann/biochempedia/commits/main">public change history</a> on GitHub.
+      </li>
+    </ul>
+
+    <h2>Report an error</h2>
     <p>
-      The AI tutor and the "talk to a scientist" characters are intentionally not
-      built yet. A tutor that is confidently wrong would do real harm, so that
-      part waits until it can be grounded in the course material and clearly
-      labelled. What is here is the reading: {lessonWord} lessons, each one finished
-      before it went up.
+      Every lesson has a <strong>Report an error</strong> button in its side panel. It opens a short form with the
+      lesson already filled in. You do not have to say who you are. Tell me where on the page the problem is and
+      what looks wrong. The same form takes requests: a topic you want covered, or something the site is missing.
+    </p>
+    <p>
+      You can also email me at
+      <a href="mailto:deppmann@gmail.com?subject=Biochemistrypedia%20correction">deppmann@gmail.com</a>, which is the
+      way to send a screenshot. I read every report. A confirmed error gets fixed, or the figure comes down.
+    </p>
+    <p><a class="report-btn" href={feedbackUrl()} target="_blank" rel="noopener">Report an error →</a></p>
+
+    <h2>Who makes it</h2>
+    <p>
+      I’m Chris Deppmann, Professor in the Departments of Biology, Biomedical Engineering, Cell Biology, and
+      Neuroscience at the University of Virginia. I choose what goes in, direct the AI that makes it, and decide
+      what gets fixed. Former trainees from my lab have volunteered to help. Students in my biochemistry course, BIOL 3030, made
+      <a href="/fun">The Fun Stuff</a>: the trading cards, memes, songs and podcast.
     </p>
 
-    <h2>Scope follows the syllabus</h2>
+    <h2>The small print</h2>
     <p>
-      The chapters here are the chapters of Prof.&nbsp;Deppmann's one-semester
-      biochemistry course, start to finish. Three sit outside it. An interlude on
-      alchemy and vitalism opens the sequence, because the question of what makes
-      living matter different from the rest is where the field starts. Two
-      supplements close it: nucleotide metabolism, and a survey that puts the whole
-      of metabolism back together. None of the three is on the syllabus. They are
-      here for anyone who wants to keep going.
+      The site’s own films are served from its own storage. Videos and podcasts made by other people (YouTube and Spotify) are
+      embedded from their source. Visits are counted anonymously, with no cookies. Learners on their own never sign in. Teachers who
+      make a class have an account, and students in a class sign in with a nickname and a student code. Both are
+      described on the <a href="/teach/privacy/">class privacy page</a>.
     </p>
-
     <p class="src-meta">
-      Code is MIT-licensed and open. Lesson narrative and scientist profiles are
-      the authors' intellectual property (see the repository's NOTICE).
+      The code is MIT-licensed and open. The lesson narrative and scientist profiles are the authors’ intellectual
+      property; see the repository’s <a href="https://github.com/deppmann/biochempedia/blob/main/NOTICE">NOTICE</a>.
     </p>
 
-    <p><a href="/">← Back to lessons</a></p>
+    <p><a href="/">← Home</a></p>
   </article>
 
   <style>
@@ -69,5 +150,17 @@ const lessonWord = NUM[lessonCount] ?? String(lessonCount);
       color: var(--ddp-color-muted);
       font-size: var(--ddp-text-sm);
     }
+    .report-btn {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0.5em 1.2em;
+      border-radius: 999px;
+      background: var(--ddp-color-primary);
+      color: var(--ddp-color-surface);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .report-btn:hover { text-decoration: none; color: var(--ddp-color-surface); box-shadow: var(--ddp-shadow); }
   </style>
 </BaseLayout>

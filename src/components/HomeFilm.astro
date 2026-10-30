@@ -1,0 +1,81 @@
+---
+/**
+ * HomeFilm: a film on the splash page. Poster first; the player loads only when the
+ * reader presses play (DESIGN.md: "Never load a player up front"). Never autoplays.
+ * Captions are on by default. Without JavaScript the poster is a plain link to the
+ * mp4, so the film is still reachable.
+ */
+interface Props {
+  film: { src: string; captions: string; poster: string; title: string; durationSec: number };
+  /** DOM id, so a link elsewhere on the page can scroll to this film. */
+  id?: string;
+  /** True for a film on the first screen: its poster loads at once instead of lazily. */
+  eager?: boolean;
+}
+const { film, id, eager = false } = Astro.props;
+const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durationSec % 60)).padStart(2, '0')}`;
+---
+
+<figure class="hf" id={id} data-home-film data-src={film.src} data-captions={film.captions} data-title={film.title}>
+  <div class="hf-frame">
+    <a class="hf-poster" href={film.src} aria-label={`Play the film: ${film.title}, ${len}, with captions`}>
+      <img src={film.poster} alt="" width="1280" height="720" loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} decoding="async" />
+      <span class="hf-play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+        <span class="hf-play-text">Watch · {len}</span>
+      </span>
+    </a>
+  </div>
+  <figcaption class="hf-cap"><slot /></figcaption>
+</figure>
+
+<script>
+  /* Swap the poster for a real <video> on first press. The click is the reader's
+     own gesture, so starting playback (with sound) is allowed and expected. */
+  document.querySelectorAll<HTMLElement>('[data-home-film]').forEach((fig) => {
+    const poster = fig.querySelector<HTMLAnchorElement>('.hf-poster');
+    const frame = fig.querySelector<HTMLElement>('.hf-frame');
+    if (!poster || !frame) return;
+    poster.setAttribute('role', 'button');
+    const start = (e: Event) => {
+      e.preventDefault();
+      const v = document.createElement('video');
+      v.controls = true;
+      v.playsInline = true;
+      v.preload = 'auto';
+      v.poster = poster.querySelector('img')?.getAttribute('src') ?? '';
+      v.setAttribute('aria-label', fig.dataset.title ?? 'Film');
+      const s = document.createElement('source');
+      s.src = fig.dataset.src ?? '';
+      s.type = 'video/mp4';
+      const t = document.createElement('track');
+      t.kind = 'captions';
+      t.src = fig.dataset.captions ?? '';
+      t.srclang = 'en';
+      t.label = 'English';
+      t.default = true;
+      v.append(s, t);
+      frame.replaceChildren(v);
+      /* default="true" is honoured by most browsers; force it for the rest. */
+      v.addEventListener('loadedmetadata', () => { if (v.textTracks[0]) v.textTracks[0].mode = 'showing'; });
+      v.play().catch(() => { /* the reader can press play on the controls */ });
+      v.focus();
+    };
+    poster.addEventListener('click', start);
+    poster.addEventListener('keydown', (e) => { if (e.key === ' ') start(e); });
+  });
+</script>
+
+<style>
+  .hf { margin: 0; }
+  .hf-frame { position: relative; aspect-ratio: 16 / 9; border-radius: var(--ddp-radius); overflow: hidden; background: #0f1117; border: 1px solid var(--ddp-color-line); box-shadow: var(--ddp-shadow); }
+  .hf-frame :global(video) { display: block; width: 100%; height: 100%; background: #0f1117; }
+  .hf-poster { position: absolute; inset: 0; display: block; color: #fff; text-decoration: none; }
+  .hf-poster img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .hf-play { position: absolute; right: var(--ddp-space-4); bottom: var(--ddp-space-4); display: inline-flex; align-items: center; gap: var(--ddp-space-3); min-height: 44px; padding: 0.35rem 1.1rem 0.35rem 0.8rem; border-radius: 999px; background: rgba(15, 17, 23, 0.82); border: 1.5px solid rgba(255, 255, 255, 0.55); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-sm); font-weight: 700; letter-spacing: 0.04em; transition: scale 0.14s ease, background 0.14s ease; }
+  .hf-play { transform-origin: right bottom; }
+  .hf-poster:hover .hf-play, .hf-poster:focus-visible .hf-play { background: var(--ddp-color-primary); scale: 1.05; }
+  .hf-poster:focus-visible { outline: 3px solid var(--ddp-color-secondary); outline-offset: -3px; }
+  .hf-cap { margin-top: var(--ddp-space-3); font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+  @media (prefers-reduced-motion: reduce) { .hf-play { transition: none; } .hf-poster:hover .hf-play { scale: 1; } }
+</style>

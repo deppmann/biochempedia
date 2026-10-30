@@ -1,154 +1,201 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import LessonIcon from '../components/LessonIcon.astro';
-import { COURSE_ICONS } from '../data/course-icons';
 import SiteSearch from '../components/SiteSearch.astro';
-import DepthLadder from '../components/DepthLadder.astro';
-import { COURSES, courseHref, unitsFor } from '../data/courses';
+import HomeFilm from '../components/HomeFilm.astro';
+import { courseHref } from '../data/courses';
+import { PATHS } from '../data/paths';
+import { STAGES, stageOf } from '../data/stages';
+import { courseCards, plural } from '../lib/catalog';
+import { feedbackUrl } from '../lib/feedback';
 
-/* The homepage is the catalog: one card per course, core courses first and
-   electives below. Each course's lessons live on its own page, /courses/<slug>/. */
-const allLessons = (await getCollection('lessons')).filter((l) => !l.data.draft);
-// An empty homepage must never ship quietly. It happened once in development: a
-// stale content cache served lessons parsed before `course` existed, the course
-// filter matched nothing, and the page rendered with no chapters and no error.
-if (!allLessons.some((l) => l.data.course === 'biochemistry')) {
-  throw new Error('Homepage: no biochemistry lessons found. If you just changed src/schema.ts, delete node_modules/.astro/data-store.json and rebuild.');
+/* The homepage is a front door, not the catalog. It offers three ways in (see
+   everything, my age or stage, what I want to do), two films, and a compact course
+   chooser. The full catalog lives at /courses/. */
+const { cards, lessonCount } = await courseCards();
+const courseCount = cards.length;
+
+/* The live counter under the hero film. Counted at build time from the content
+   collection (the same sums the /courses/ cards show), so it moves with every deploy. */
+const sum = (k: 'films' | 'sims' | 'questions') => cards.reduce((n, c) => n + c[k], 0);
+const fmt = (n: number) => n.toLocaleString('en-US');
+const COUNTS = [
+  plural(lessonCount, 'lesson', 'lessons'),
+  plural(sum('films'), 'film', 'films'),
+  plural(sum('sims'), 'simulation', 'simulations'),
+  plural(sum('questions'), 'practice question', 'practice questions'),
+].map((t) => t.replace(/^\d+/, (d) => fmt(Number(d))));
+
+/* ---- Films. The files live under /explainers/home/ like every lesson film
+   (poster.jpg, explainer.mp4, explainer.vtt) and are served the same way. ---- */
+const FILMS = {
+  ladder: {
+    src: '/explainers/home/one-idea/explainer.mp4',
+    captions: '/explainers/home/one-idea/explainer.vtt',
+    poster: '/explainers/home/one-idea/poster.jpg',
+    title: 'One idea, six levels',
+    durationSec: 54.57,
+  },
+  /* The homepage film v2 (2026-10-30): new script, no counts or fact-checking claims.
+     HELD until the Gemini narration replaces the draft voice: one command,
+     ~/biochempedia-qa/2026-10-30/sizzle-v2-src/make.sh gemini, installs the files below and
+     sets durationSec. Then point HERO at it. See HANDOFF_SPLASH.md. */
+  sizzle: {
+    src: '/explainers/home/sizzle/explainer.mp4',
+    captions: '/explainers/home/sizzle/explainer.vtt',
+    poster: '/explainers/home/sizzle/poster.jpg',
+    title: 'What is here, in about a minute',
+    durationSec: 62.10,
+  },
+};
+const HERO = 'sizzle' as keyof typeof FILMS;
+const heroFilm = FILMS[HERO];
+/* While the ladder film is the hero it plays at the top, so the "one idea" band
+   shows the same six levels as text and points back up. Once the hero is the
+   re-voiced sizzle, the band plays the ladder film itself. */
+const bandPlaysFilm = HERO !== 'ladder';
+
+const LEVELS = [
+  { who: 'A small child', line: 'Plants need sun and water to grow.' },
+  { who: 'Elementary school', line: 'Plants make their own food from sunlight.' },
+  { who: 'Middle school', line: 'Leaves use light to turn carbon dioxide and water into sugar, and give off oxygen.' },
+  { who: 'High school', line: 'In chloroplasts, photosynthesis stores light energy as chemical energy in glucose.' },
+  { who: 'College', line: 'The light reactions make ATP and NADPH, and the Calvin cycle uses them to turn carbon dioxide into sugar.' },
+  { who: 'A research lab', line: 'Why does Rubisco so often grab oxygen by mistake?' },
+];
+
+/* ---- Door 2: stage chooser. Bands come from src/data/stages.ts; each links to
+   its course page(s). ---- */
+const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c) === s.key) })).filter((s) => s.cards.length > 0);
+
+/* ---- Door 3: goals. Each goal points at /paths/<id>/. A missing id fails the
+   build instead of shipping a dead card. ---- */
+interface Goal { label: string; line: string; links: { text: string; href: string; primary?: boolean }[]; ids: string[] }
+const GOALS: Goal[] = [
+  { label: 'Get ready for the MCAT', line: 'The biology and biochemistry the exam leans on, with original MCAT-style questions and a review queue.', ids: ['mcat'], links: [{ text: 'See the MCAT path', href: '/paths/mcat/', primary: true }, { text: 'MCAT practice', href: '/mcat/' }] },
+  { label: 'Keep up with a class I’m taking', line: 'Grades 7–12, or a college biology class. Find your course and work through it in order.', ids: ['school', 'major'], links: [{ text: 'Grades 7–12', href: '/paths/school/' }, { text: 'College', href: '/paths/major/' }] },
+  { label: 'Teach with it', line: 'Free for your classes. Make a class with one link, set the level of help, and see the standards map.', ids: ['teach'], links: [{ text: 'See the teaching path', href: '/paths/teach/', primary: true }, { text: 'Resources for teachers', href: '/teachers/' }] },
+  { label: 'Learn for the love of it', line: 'No exam and no set order. Start with whatever you’ve wondered about.', ids: ['curious'], links: [{ text: 'Start wondering', href: '/paths/curious/', primary: true }] },
+  { label: 'Reach the edge of research', line: 'Climb to the courses that end at the open questions, with the papers behind them.', ids: ['edge'], links: [{ text: 'Climb to the edge', href: '/paths/edge/', primary: true }] },
+];
+/* Five cards in a three-column grid leave a hole. The last row's cards get wider
+   so it fills: two left over span half the row each, one left over spans it all. */
+const goalTail = GOALS.length % 3;
+for (const g of GOALS) for (const id of g.ids) {
+  if (!PATHS.some((p) => p.id === id)) throw new Error(`Homepage: goal "${g.label}" points at path "${id}", which is not in src/data/paths.ts.`);
 }
 
-/* A course appears only once it has a published lesson. */
-const cards = COURSES.map((c) => {
-  const mine = allLessons.filter((l) => l.data.course === c.slug);
-  const units = unitsFor(c, mine);
-  return {
-    c,
-    lessons: mine.length,
-    units: units.length,
-    films: mine.reduce((n, l) => n + (l.data.explainer ? 1 : 0) + l.data.films.length, 0),
-    sims: mine.reduce((n, l) => n + l.data.simulations.length, 0),
-    questions: mine.reduce((n, l) => n + l.data.practiceQuestions.length + l.data.mcatQuestions.length, 0),
-    /* A course's own icon if it has one, else its first lesson's icon. */
-    icon: COURSE_ICONS[`course:${c.slug}`] ? `course:${c.slug}` : (units[0]?.entries[0]?.l.data.slug ?? c.slug),
-    unitNames: units.map((u) => u.name),
-  };
-}).filter((k) => k.lessons > 0);
-const tiers = [
-  { key: 'families', title: 'Ages 5–10 · for parents and teachers', note: 'Hands-on activities a grown-up runs with children, away from the screen. Aligned to Virginia’s kindergarten to grade 4 science standards.' },
-  { key: 'highschool', title: 'Grades 7–12', note: 'Courses for middle and high school, aligned to the Virginia Standards of Learning.' },
-  { key: 'foundation', title: 'Foundations', note: 'Intro courses for the first two years: biology, chemistry, statistics and physics.' },
-  { key: 'core', title: 'Core courses', note: 'The three subjects every biology degree requires. The numbers are a suggested order; each course also stands on its own.' },
-  { key: 'elective', title: 'Electives', note: 'One subject taken further, for students who have the core behind them.' },
-  { key: 'advanced', title: 'Advanced electives', note: 'Upper-level courses that go all the way to current research.' },
-].map((t) => ({ ...t, cards: cards.filter((k) => k.c.tier === t.key) })).filter((t) => t.cards.length > 0);
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const TRY = [
+  { title: 'Metabolism Arcade', line: 'Six games from the Biochemistry course: wire the cell, fix a broken enzyme, and drill for the MCAT.', href: '/play' },
+  { title: 'MCAT practice', line: 'Passages with data, a diagnostic and topic practice.', href: '/mcat/' },
+  { title: 'The methods library', line: 'How scientists find things out.', href: '/methods/' },
+  { title: 'The Fun Stuff', line: 'Trading cards, memes, songs and a podcast, made by students in my biochemistry course (BIOL 3030).', href: '/fun' },
+];
 ---
 
 <BaseLayout
-  title="Biochemistrypedia — free biology courses, from molecules to ecosystems"
-  description="Free biology courses from molecules to ecosystems. Each lesson pairs a short reading with a film of the experiment behind it, a simulation you can change, and questions with checked answers."
+  title="Biochemistrypedia — free science, from a first question to current research"
+  description="Free lessons, films and simulations, starting with biology. Ages 5 to graduate school. No account, no ads."
 >
-  <section class="hero wrap">
+  {/* One grid, three children. On a phone the order is text, doors, film, so a
+      first-time visitor sees an action before the film. On a wide screen the film
+      sits beside the text and the doors run underneath. */}
+  <div class="wrap top">
+    <section class="hero" aria-labelledby="home-h1">
+      <h1 id="home-h1">Start where you are. <em>Climb as far as anyone knows.</em></h1>
+      <div class="goldrule" aria-hidden="true"></div>
+      <p class="lede">Free lessons, films and simulations in science, starting with biology. Ages 5 to graduate school. No account, no ads.</p>
 
-    <h1>Biology from molecules to ecosystems. <em>Free, for anyone.</em></h1>
+      {/* Filled from this device's saved progress (src/lib/progress.ts); stays
+          hidden for a first visit, without JavaScript, or when storage is blocked. */}
+      <p class="resume" data-resume hidden>
+        <span data-resume-text></span>
+        <a href="/progress/" class="resume-link">Your progress →</a>
+      </p>
+    </section>
 
-    <div class="goldrule" aria-hidden="true"></div>
+    <nav class="doors" aria-label="Three ways in">
+      <a class="door" href="/courses/">
+        <span class="door-t">See everything</span>
+        <span class="door-d">All {courseCount} courses and {lessonCount} lessons, in order from first steps to research.</span>
+        <span class="door-go" aria-hidden="true">→</span>
+      </a>
+      <a class="door" href="#stage">
+        <span class="door-t">My age or stage</span>
+        <span class="door-d">Tell me where you are, and I’ll show you where to start.</span>
+        <span class="door-go" aria-hidden="true">↓</span>
+      </a>
+      <a class="door" href="#goals">
+        <span class="door-t">What I want to do</span>
+        <span class="door-d">The MCAT, a class, teaching, or just curiosity. Pick a goal and get an order to follow.</span>
+        <span class="door-go" aria-hidden="true">↓</span>
+      </a>
+    </nav>
 
-    <p class="lede">
-      Each lesson pairs a short reading with a film of the experiment behind it,
-      a simulation you can change, and questions with checked answers. Start at
-      the beginning or wherever you're stuck.
-    </p>
-
-    {/* The primary action is the catalog one anchor away; the first course
-        on the suggested path and the arcade sit beside it. */}
-    <p class="hero-cta">
-      <a class="cta" href="#courses">Browse the courses ↓</a>
-      <a class="cta-play" href="/play">▶ Play the Metabolism Arcade</a>
-      <a class="cta-ghost" href="/paths/">Choose your path →</a>
-    </p>
-
-    {/* Filled from this device's saved progress (src/lib/progress.ts); stays
-        hidden for a first visit, without JavaScript, or when storage is blocked. */}
-    <p class="resume" data-resume hidden>
-      <span data-resume-text></span>
-      <a href="/progress/" class="resume-link">Your progress →</a>
-    </p>
-  </section>
+    <div class="hero-film">
+      <HomeFilm film={heroFilm} id="hero-film" eager>
+        <strong>{heroFilm.title}.</strong>
+        {HERO === 'ladder'
+          ? ' Photosynthesis, from a small child’s version to a question researchers are still working on. Captions are on.'
+          : ' From planting a seed at five to questions nobody has answered yet, in about a minute. Captions are on.'}
+      </HomeFilm>
+      <p class="tally"><span class="tally-row">
+        {COUNTS.map((t) => <span class="tally-i">{t}</span>)}<span class="tally-i tally-more">and counting</span>
+      </span></p>
+    </div>
+  </div>
 
   <section class="wrap home-search">
     <SiteSearch label="Search every course" />
   </section>
 
-  {/* `lessons` stays as an anchor here: older links point at /#lessons. */}
-  <section class="wrap catalog" id="courses">
-    <span id="lessons"></span>
-    {tiers.map((t) => (
-      <section class="tier" aria-labelledby={`tier-${t.key}`}>
-        <h2 class="tier-h" id={`tier-${t.key}`}>{t.title}</h2>
-        <p class="tier-note">{t.note}</p>
-        <ul class="course-list">
-          {t.cards.map((k, i) => (
-            <li>
-              <a href={courseHref(k.c.slug)} class="course-card">
-                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} />{k.c.tier !== 'families' && <DepthLadder step={k.c.tier === 'highschool' ? (k.c.ladderStep ?? 2) : 4} size="sm" class="cc-ladder" />}</span>
-                <span class="cc-body">
-                  <span class="cc-kicker">{t.key === 'core' && <span class="cc-step">Step {i + 1} · </span>}{plural(k.units, 'unit', 'units')} · {k.c.tier === 'families' ? plural(k.lessons, 'activity', 'activities') : plural(k.lessons, 'lesson', 'lessons')}{k.c.mcat && <span class="cc-mcat" title="Covers material the MCAT tests">MCAT</span>}</span>
-                  <span class="cc-title">{k.c.title}</span>
-                  <span class="cc-tag">{k.c.tagline}</span>
-                  <span class="cc-units">{k.unitNames.join(' · ')}</span>
-                  <span class="cc-meta">
-                    {[
-                      k.films > 0 && plural(k.films, 'film', 'films'),
-                      k.sims > 0 && plural(k.sims, 'simulation', 'simulations'),
-                      plural(k.questions, 'question', 'questions'),
-                    ].filter(Boolean).map((m, i) => <>{i > 0 && ' · '}<span>{m}</span></>)}
-                  </span>
-                  <span class="cc-go">Open the course →</span>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ))}
-  </section>
+  {/* The ladder film's idea, and the three things that hold for every lesson. */}
+  <section class="wrap ladder" aria-labelledby="ladder-h">
+    <h2 class="sec-h" id="ladder-h">{bandPlaysFilm ? 'One idea, six levels.' : 'Every lesson works like this.'}</h2>
+    <p class="sec-lede">
+      {bandPlaysFilm
+        ? 'Here is photosynthesis, from a small child’s version to a question researchers are still working on. '
+        : 'The film’s photosynthesis, written out. '}
+      Every lesson explains its idea at more than one level, so you can step down when you need to and
+      up when you’re ready.
+    </p>
+    {bandPlaysFilm
+      ? <div class="ladder-film"><HomeFilm film={FILMS.ladder}>A small child, elementary school, middle school, high school, college, research lab. The idea stays the same.</HomeFilm></div>
+      : <p class="ladder-watch"><a href="#hero-film">▶ Watch the film above</a></p>}
+    <ol class="levels">
+      {LEVELS.map((l, i) => (
+        <li class="level" style={`--n:${i}`}>
+          <span class="level-n" aria-hidden="true">{i + 1}</span>
+          <span class="level-body"><span class="level-who">{l.who}</span><span class="level-line">{l.line}</span></span>
+        </li>
+      ))}
+    </ol>
 
-  {/* The feature register explains the site to someone already sold — it sits
-      below the chapters now instead of in front of them. */}
-  <section class="wrap register-band">
     <div class="register">
       <div class="chip">
         <span class="chip-ico">
           <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
-            <g stroke="currentColor" stroke-width="1.5">
-              <ellipse cx="24" cy="24" rx="19" ry="6.5" />
-              <ellipse cx="24" cy="24" rx="19" ry="6.5" transform="rotate(60 24 24)" />
-              <ellipse cx="24" cy="24" rx="19" ry="6.5" transform="rotate(120 24 24)" />
-              <circle cx="24" cy="24" r="4.5" />
+            <g stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+              <rect x="9" y="30" width="6" height="9" /><rect x="17.5" y="24" width="6" height="15" /><rect x="26" y="18" width="6" height="21" /><rect x="34.5" y="11" width="6" height="28" />
             </g>
-            <circle cx="24" cy="24" r="2.4" style="fill:var(--ddp-color-secondary)" />
+            <rect x="34.5" y="11" width="6" height="28" style="fill:var(--ddp-color-secondary)" fill-opacity="0.55" />
           </svg>
         </span>
-        <p class="chip-lab">Real molecules</p>
-        <p class="chip-sub">Loaded live from a public database, never drawn by an AI.</p>
+        <p class="chip-lab">Every level</p>
+        <p class="chip-sub">Every lesson explains its idea at more than one level. Most run from a child’s version up to a graduate student’s.</p>
       </div>
-
       <div class="chip">
         <span class="chip-ico">
           <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
             <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 38 V11 M11 38 H39" />
-              <path d="M11 36 Q24 16 39 14" />
-              <path d="M27 26 V31 M24.5 28.7 L27 31 L29.5 28.7" />
+              <rect x="7" y="11" width="34" height="22" rx="3" />
+              <path d="M21 17.5 L29 22 L21 26.5 Z" />
+              <path d="M12 39 H36" /><circle cx="26" cy="39" r="2.4" style="fill:var(--ddp-color-bg)" />
             </g>
-            <circle cx="27" cy="18.6" r="3.4" stroke="currentColor" stroke-width="1.5" style="fill:var(--ddp-color-bg)" />
           </svg>
         </span>
-        <p class="chip-lab">Sliders you move</p>
-        <p class="chip-sub">Change one condition and watch the curve respond.</p>
+        <p class="chip-lab">Films and simulations</p>
+        <p class="chip-sub">Nearly every lesson has a short film, and most have a simulation you can change.</p>
       </div>
-
       <div class="chip">
         <span class="chip-ico">
           <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
@@ -159,52 +206,117 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
           </svg>
         </span>
         <p class="chip-lab">Answers explained</p>
-        <p class="chip-sub">Every self-test question shows the answer and explains why.</p>
-      </div>
-
-      <div class="chip">
-        <span class="chip-ico">
-          <svg viewBox="0 0 48 48" width="38" height="38" fill="none" aria-hidden="true">
-            <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M24 14 C20 11 14.5 11 9 13 V36 C14.5 34 20 34 24 37" />
-              <path d="M24 14 C28 11 33.5 11 39 13 V36 C33.5 34 28 34 24 37" />
-              <line x1="24" y1="14" x2="24" y2="37" />
-              <line x1="12.5" y1="19.5" x2="20" y2="19.5" />
-              <line x1="12.5" y1="23.5" x2="19" y2="23.5" />
-              <circle cx="32" cy="22" r="3" />
-              <path d="M28.5 30 C28.5 26.4 35.5 26.4 35.5 30" />
-            </g>
-          </svg>
-        </span>
-        <p class="chip-lab">Scientist stories</p>
-        <p class="chip-sub">The people behind the molecules, from The Molecule Hunters.</p>
+        <p class="chip-sub">Every practice question shows the answer and why.</p>
       </div>
     </div>
   </section>
 
-  <section class="wrap funbar playbar">
-    <a href="/play" class="funbar-link playbar-link">
-      <span class="funbar-text">
-        <strong>Metabolism Arcade</strong>
-        <span>Play the pathways: wire the cell, diagnose a broken enzyme, run the regulators through a fast and a sprint, and drill for the MCAT.</span>
-      </span>
-      <span class="funbar-arrow" aria-hidden="true">→</span>
-    </a>
+  {/* Door 2. `courses` and `lessons` stay as anchors here: older links point at
+      /#courses and /#lessons and should still land on a course list. */}
+  <section class="wrap stage" id="stage" aria-labelledby="stage-h">
+    <span class="anchor" id="courses"></span><span class="anchor" id="lessons"></span>
+    <h2 class="sec-h" id="stage-h">Where are you starting?</h2>
+    <p class="sec-lede">
+      Pick the line closest to you. Anyone can start on any rung. If a lesson moves too fast, every
+      one has a simpler version of its idea.
+    </p>
+    <ul class="bands">
+      {bands.map((b) => (
+        <li class="band">
+          <div class="band-head">
+            <h3 class="band-t">{b.title}</h3>
+            <p class="band-d">{b.here}</p>
+          </div>
+          <ul class="band-courses">
+            {b.cards.map((k) => (
+              <li>
+                <a class="bc" href={courseHref(k.c.slug)}>
+                  <span class="bc-t">{k.c.title}</span>
+                  <span class="bc-n">{k.c.tier === 'families' ? plural(k.lessons, 'activity', 'activities') : plural(k.lessons, 'lesson', 'lessons')}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
+    <p class="stage-foot">
+      Under five, or ready for chemistry, physics or math? Those rungs aren’t built yet.
+      <a href="#wip">See what’s coming →</a>
+      <span class="stage-all"><a href="/courses/">See every course in full →</a></span>
+    </p>
   </section>
 
-  <section class="wrap funbar">
-    <a href="/fun" class="funbar-link">
-      <span class="funbar-text">
-        <strong>The Fun Stuff</strong>
-        <span>Trading cards, memes, songs, and a podcast — made by BIOL 3030 students.</span>
-      </span>
-      <span class="funbar-arrow" aria-hidden="true">→</span>
-    </a>
+  {/* Door 3. */}
+  <section class="wrap goals" id="goals" aria-labelledby="goals-h">
+    <h2 class="sec-h" id="goals-h">What do you want to do?</h2>
+    <p class="sec-lede">
+      Each goal puts the free courses in an order that suits it. Your choice is saved on this device
+      only, and you can change it any time.
+    </p>
+    <ul class={`goal-grid${goalTail === 2 ? ' tail-2' : goalTail === 1 ? ' tail-1' : ''}`}>
+      {GOALS.map((g) => (
+        <li class={`goal${g.links.some((l) => l.primary) ? ' goal-stretch' : ''}`}>
+          <h3 class="goal-t">
+            {g.links.find((l) => l.primary) ? <a href={g.links.find((l) => l.primary)!.href}>{g.label}</a> : g.label}
+          </h3>
+          <p class="goal-d">{g.line}</p>
+          <p class="goal-links">
+            {g.links.map((l) => (l.primary
+              ? <span class="goal-go" aria-hidden="true">{l.text} →</span>
+              : <a href={l.href}>{l.text} →</a>))}
+          </p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="wrap tryrow" aria-labelledby="try-h">
+    <h2 class="sec-h sec-h-quiet" id="try-h">Things to try</h2>
+    <ul class="try-grid">
+      {TRY.map((t) => (
+        <li>
+          <a class="try" href={t.href}>
+            <span class="try-t">{t.title}</span>
+            <span class="try-d">{t.line}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="wrap wip-band" id="wip" aria-labelledby="wip-h">
+    <div class="wip">
+      <h2 class="wip-h" id="wip-h">Work in progress, built in public.</h2>
+      <p>
+        I put this up rough on purpose, and I fix it in the open. Lessons still being checked carry an
+        <em>Under review</em> tag. Chemistry, physics, math and anything for under-fives aren’t built yet.
+        If you find an error, tell me and I’ll fix it.
+      </p>
+      <p class="wip-links">
+        <a class="wip-btn" href={feedbackUrl()} target="_blank" rel="noopener">Report an error →</a>
+        <a class="wip-btn wip-btn-ghost" href="/about/">How it’s made and checked →</a>
+      </p>
+      <p class="wip-sig">Chris Deppmann</p>
+    </div>
   </section>
 
   <script>
     import { load, dueNow, onChange } from '../lib/progress';
     import { PATHS } from '../data/paths';
+
+    /* The old homepage had #tier-* anchors. The catalog moved to /courses/, so send
+       those hashes to the matching band there. */
+    const OLD_TIERS: Record<string, string> = {
+      'tier-families': 'stage-ages-5-10',
+      'tier-highschool': 'stage-grade-7',
+      'tier-foundation': 'stage-starting-college',
+      'tier-core': 'stage-college-core',
+      'tier-elective': 'stage-college-further',
+      'tier-advanced': 'research',
+    };
+    const oldTier = OLD_TIERS[location.hash.slice(1)];
+    if (oldTier) location.replace(`/courses/#${oldTier}`);
 
     const box = document.querySelector<HTMLElement>('[data-resume]');
     const text = document.querySelector<HTMLElement>('[data-resume-text]');
@@ -231,36 +343,29 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
   </script>
 
   <style>
-    .funbar { padding: 0 var(--ddp-space-6) var(--ddp-space-16); }
-    .playbar { padding-bottom: var(--ddp-space-4); }
-    .funbar-link {
-      display: flex;
+    /* ---- Top: hero text, three doors, hero film ---- */
+    .top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      grid-template-areas: "hero film" "doors doors";
+      gap: var(--ddp-space-8) var(--ddp-space-12);
       align-items: center;
-      gap: var(--ddp-space-4);
-      justify-content: space-between;
-      padding: var(--ddp-space-6);
-      border: 1px solid var(--ddp-color-line);
-      border-radius: var(--ddp-radius);
-      background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface));
-      text-decoration: none;
-      color: inherit;
-      transition: transform 0.14s ease, box-shadow 0.14s ease;
+      padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-6);
     }
-    .funbar-link:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
-    .funbar-text { display: flex; flex-direction: column; gap: 0.15rem; }
-    .funbar-text strong { font-family: var(--ddp-font-serif); font-size: var(--ddp-text-lg); color: var(--ddp-color-primary); }
-    .funbar-text span { color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
-    .funbar-arrow { font-size: 1.5rem; color: var(--ddp-color-secondary); flex: none; }
-
-    /* ---- Hero: a left-aligned editorial column, "quiet authority" ---- */
-    .hero {
-      padding: var(--ddp-space-16) var(--ddp-space-6) var(--ddp-space-8);
-    }
-    /* Phone: same content, less air, so "Start with Chapter 1" clears the fold. */
-    @media (max-width: 720px) {
-      .hero { padding-top: var(--ddp-space-8); }
-      .goldrule { margin: var(--ddp-space-4) 0; }
-      .hero-cta { margin-top: var(--ddp-space-4); }
+    .hero { grid-area: hero; }
+    .hero-film { grid-area: film; min-width: 0; }
+    /* Live counter: quiet on purpose. Mono, small, muted; items wrap whole. */
+    .tally { margin: var(--ddp-space-2) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.03em; line-height: 1.7; color: var(--ddp-color-muted); }
+    /* Each item carries its own dot; the row is pulled left by one dot's width and
+       clipped, so a dot that starts a wrapped line is hidden. */
+    .tally { overflow: hidden; }
+    .tally-row { display: flex; flex-wrap: wrap; margin-left: -1.6em; }
+    .tally-i { white-space: nowrap; }
+    .tally-i::before { content: '·'; display: inline-block; width: 1.6em; text-align: center; opacity: 0.7; }
+    .tally-more { font-style: italic; }
+    .doors { grid-area: doors; }
+    @media (max-width: 900px) {
+      .top { grid-template-columns: minmax(0, 1fr); grid-template-areas: "hero" "doors" "film"; padding-top: var(--ddp-space-8); gap: var(--ddp-space-6); }
     }
     .hero h1 {
       font-family: var(--ddp-font-serif);
@@ -268,13 +373,10 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       font-size: var(--ddp-text-3xl);
       line-height: 1.1;
       color: var(--ddp-color-primary);
-      max-width: 20ch;
+      max-width: 17ch;
       margin: 0;
     }
-    .hero h1 em {
-      font-style: italic;
-      color: var(--ddp-color-accent);
-    }
+    .hero h1 em { font-style: italic; color: var(--ddp-color-accent); }
     .goldrule {
       width: 64px;
       height: 3px;
@@ -282,225 +384,160 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
       margin: var(--ddp-space-6) 0;
       transform-origin: left center;
     }
-    .lede {
-      max-width: 60ch;
-      font-size: var(--ddp-text-lg);
-      line-height: 1.6;
-      color: var(--ddp-color-ink-soft);
-      margin: 0;
-    }
-    .lede em {
-      font-style: italic;
-      color: var(--ddp-color-ink);
-    }
+    @media (max-width: 720px) { .goldrule { margin: var(--ddp-space-4) 0; } }
+    .lede { max-width: 52ch; font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); margin: 0; }
     .resume { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); align-items: baseline; }
     .resume[hidden] { display: none; }
     .resume :global(a) { color: var(--ddp-color-accent); font-weight: 600; }
-    .hero-cta {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: var(--ddp-space-4);
-      margin: var(--ddp-space-6) 0 0;
-    }
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      padding: 0.55em 1.3em;
-      background: var(--ddp-color-primary);
-      color: var(--ddp-color-surface);
-      font-weight: 700;
-      text-decoration: none;
-      border-radius: 999px;
-      transition: transform 0.14s ease, box-shadow 0.14s ease;
-    }
-    .cta:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; color: var(--ddp-color-surface); }
-    .cta-ghost {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      color: var(--ddp-color-accent);
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .cta-ghost:hover { text-decoration: underline; }
-    .cta-play {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      padding: 0.55em 1.3em;
-      border-radius: 999px;
-      font-weight: 700;
-      text-decoration: none;
-      color: var(--ddp-color-ink);
-      background: color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 28%, var(--ddp-color-surface));
-      border: 1.5px solid color-mix(in srgb, var(--ddp-color-secondary, #e0b452) 70%, transparent);
-      transition: transform 0.14s ease, box-shadow 0.14s ease;
-    }
-    .cta-play:hover { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
-    .register-band { padding: 0 var(--ddp-space-6) var(--ddp-space-8); }
 
-    /* ---- Feature register: four engraving chips on a single ruled grid.
-       gap:1px over a line-colored background paints the hairline dividers, so
-       it stays clean when it wraps to 2 / 1 columns. ---- */
+    /* ---- The three doors: equal cards ---- */
+    .doors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ddp-space-4); }
+    @media (max-width: 720px) { .doors { grid-template-columns: minmax(0, 1fr); gap: var(--ddp-space-3); } }
+    .door {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "t go" "d d";
+      align-content: start;
+      align-items: baseline;
+      column-gap: var(--ddp-space-3);
+      row-gap: var(--ddp-space-2);
+      min-height: 44px;
+      padding: var(--ddp-space-5) var(--ddp-space-6);
+      background: var(--ddp-color-surface);
+      border: 1px solid var(--ddp-color-line);
+      border-radius: var(--ddp-radius);
+      color: var(--ddp-color-ink);
+      text-decoration: none;
+      overflow: hidden;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+    }
+    .door::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--ddp-color-secondary); }
+    .door:hover, .door:focus-visible { transform: translateY(-3px); box-shadow: var(--ddp-shadow); border-color: var(--ddp-color-accent); text-decoration: none; }
+    .door-t { grid-area: t; font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-xl); line-height: 1.15; color: var(--ddp-color-primary); text-wrap: balance; }
+    .door-go { grid-area: go; font-size: 1.4rem; color: var(--ddp-color-accent); line-height: 1; }
+    .door-d { grid-area: d; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); }
+
+    /* ---- Sections ---- */
+    .home-search { padding-block: var(--ddp-space-4) var(--ddp-space-2); }
+    .ladder, .stage, .goals, .tryrow, .wip-band { padding-inline: var(--ddp-space-6); }
+    .ladder { padding-top: var(--ddp-space-12); }
+    .stage, .goals { padding-top: var(--ddp-space-12); }
+    .anchor { display: block; height: 0; scroll-margin-top: 5.5rem; }
+    .goals, .tryrow { scroll-margin-top: 5.5rem; }
+    .sec-h { font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.15; color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-3); }
+    .sec-h-quiet { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .sec-lede { max-width: 62ch; margin: 0 0 var(--ddp-space-6); color: var(--ddp-color-ink-soft); line-height: 1.6; }
+    #stage, #goals { scroll-margin-top: 5.5rem; }
+
+    /* ---- The six levels, as text: the ladder from the film ---- */
+    .ladder-film { max-width: 640px; margin: 0 0 var(--ddp-space-6); }
+    .ladder-watch { margin: 0 0 var(--ddp-space-4); }
+    .ladder-watch a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ddp-color-accent); font-weight: 700; }
+    .levels { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ddp-space-2); max-width: 62rem; }
+    .level { display: flex; gap: var(--ddp-space-3); align-items: flex-start; padding: var(--ddp-space-3) var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--ddp-color-accent); border-radius: var(--ddp-radius-sm); }
+    .level:last-child { border-left-color: var(--ddp-color-secondary); background: color-mix(in srgb, var(--ddp-color-secondary) 10%, var(--ddp-color-surface)); }
+    .level-n { flex: none; width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--ddp-color-primary); color: var(--ddp-color-surface); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); font-weight: 700; margin-top: 0.1rem; }
+    .level-body { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+    .level-who { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ddp-color-accent); }
+    .level-line { color: var(--ddp-color-ink); line-height: 1.45; }
+    @media (min-width: 900px) {
+      /* A staircase: each level steps in a little further. */
+      .level { margin-left: calc(var(--n) * 2.5%); }
+    }
+
+    /* ---- Chips: three things that hold for every lesson ---- */
     .register {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 1px;
       background: var(--ddp-color-line);
       border-top: 1px solid var(--ddp-color-line);
       border-bottom: 1px solid var(--ddp-color-line);
       margin-top: var(--ddp-space-8);
     }
-    .chip {
-      background: var(--ddp-color-bg);
-      padding: var(--ddp-space-6) var(--ddp-space-4);
-    }
-    .chip-ico {
-      display: block;
-      line-height: 0;
-      color: var(--ddp-color-accent);
-    }
-    .chip-ico svg {
-      transition: transform 0.18s ease, color 0.18s ease;
-    }
-    .chip:hover .chip-ico {
-      color: var(--ddp-color-primary);
-    }
-    .chip:hover .chip-ico svg {
-      transform: rotate(-6deg) scale(1.06);
-    }
-    .chip-lab {
-      font-family: var(--ddp-font-serif);
-      font-weight: 600;
-      font-size: var(--ddp-text-base);
-      color: var(--ddp-color-primary);
-      margin: var(--ddp-space-3) 0 var(--ddp-space-1);
-    }
-    .chip-sub {
-      font-size: var(--ddp-text-xs);
-      line-height: 1.45;
-      color: var(--ddp-color-muted);
-      margin: 0;
-    }
-    @media (max-width: 720px) {
-      .register { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 480px) {
-      .register { grid-template-columns: 1fr; }
-    }
+    .chip { background: var(--ddp-color-bg); padding: var(--ddp-space-6) var(--ddp-space-4); }
+    .chip-ico { display: block; line-height: 0; color: var(--ddp-color-accent); }
+    .chip-ico svg { transition: transform 0.18s ease, color 0.18s ease; }
+    .chip:hover .chip-ico { color: var(--ddp-color-primary); }
+    .chip:hover .chip-ico svg { transform: rotate(-6deg) scale(1.06); }
+    .chip-lab { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); margin: var(--ddp-space-3) 0 var(--ddp-space-1); }
+    .chip-sub { font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-muted); margin: 0; }
+    @media (max-width: 720px) { .register { grid-template-columns: minmax(0, 1fr); } }
 
-    /* ---- Catalog: one card per course, in two tiers ---- */
-    .home-search { padding-block: var(--ddp-space-2) 0; }
-    .catalog { padding-bottom: var(--ddp-space-8); scroll-margin-top: var(--ddp-space-4); }
-    .tier { margin-top: var(--ddp-space-8); }
-    .tier-h {
-      display: flex;
-      align-items: center;
-      gap: var(--ddp-space-3);
-      font-family: var(--ddp-font-mono);
-      font-size: var(--ddp-text-xs);
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--ddp-color-muted);
-      margin: 0 0 var(--ddp-space-2);
-    }
-    .tier-h::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
-    .tier-note { margin: 0 0 var(--ddp-space-4); max-width: 60ch; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
-    .course-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
-      gap: var(--ddp-space-4);
-    }
-    .course-card {
-      position: relative;
-      overflow: hidden;
-      height: 100%;
-      box-sizing: border-box;
-      display: flex;
-      gap: var(--ddp-space-5);
-      align-items: flex-start;
-      padding: var(--ddp-space-6);
-      background: var(--ddp-color-surface);
-      border: 1px solid var(--ddp-color-line);
-      border-radius: var(--ddp-radius);
-      text-decoration: none;
-      color: inherit;
-      transition: transform 0.14s ease, box-shadow 0.14s ease;
-    }
-    .course-card::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: var(--ddp-color-secondary);
-      transform: scaleY(0);
-      transform-origin: top;
-      transition: transform 0.22s ease;
-    }
-    .cc-step { color: var(--ddp-color-caution); font-weight: 600; }
-    .cc-mcat {
-      margin-left: var(--ddp-space-2);
-      padding: 0.05em 0.5em;
-      border: 1px solid var(--ddp-color-line);
-      border-radius: 999px;
-      color: var(--ddp-color-ink-soft);
-      letter-spacing: 0.08em;
-    }
-    .course-card:hover { transform: translateY(-3px); box-shadow: var(--ddp-shadow); text-decoration: none; }
-    .course-card:hover::before { transform: scaleY(1); }
-    .cc-ico { flex: none; line-height: 0; margin-top: 2px; display: flex; flex-direction: column; align-items: center; gap: var(--ddp-space-3); }
-    @media (max-width: 480px) { .cc-ico { flex-direction: row; align-items: flex-end; } }
-    .cc-body { display: flex; flex-direction: column; gap: var(--ddp-space-2); min-width: 0; }
-    .cc-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.07em; color: var(--ddp-color-accent); }
-    .cc-title { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-2xl, 1.6rem); line-height: 1.15; color: var(--ddp-color-primary); }
-    .cc-tag { color: var(--ddp-color-ink-soft); }
-    .cc-units { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-muted); }
-    .cc-meta { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
-    .cc-meta span { white-space: nowrap; }
-    .cc-go { font-weight: 700; color: var(--ddp-color-accent); margin-top: var(--ddp-space-1); }
-    .course-card:hover .cc-go { text-decoration: underline; text-underline-offset: 3px; }
-    @media (max-width: 480px) {
-      .course-card { flex-direction: column; gap: var(--ddp-space-3); padding: var(--ddp-space-5); }
-    }
+    /* ---- Stage chooser: the compact course strip ---- */
+    .bands { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ddp-color-line); }
+    .band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--ddp-space-3) var(--ddp-space-8); padding: var(--ddp-space-4) 0; border-bottom: 1px solid var(--ddp-color-line); align-items: center; }
+    @media (max-width: 720px) { .band { grid-template-columns: minmax(0, 1fr); } }
+    .band-t { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-xl); line-height: 1.15; color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-1); }
+    .band-d { margin: 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); max-width: 46ch; }
+    .band-courses { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    .bc { display: inline-flex; flex-direction: column; justify-content: center; min-height: 44px; padding: 0.4rem var(--ddp-space-4); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); text-decoration: none; color: inherit; transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease; }
+    .bc:hover, .bc:focus-visible { transform: translateY(-2px); border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .bc-t { font-weight: 700; color: var(--ddp-color-primary); line-height: 1.25; }
+    .bc-n { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .stage-foot { margin: var(--ddp-space-4) 0 0; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
+    .stage-foot a { color: var(--ddp-color-accent); font-weight: 600; }
+    .stage-all { display: block; }
+    .stage-all a { display: inline-flex; align-items: center; min-height: 44px; }
 
-    /* ---- Entrance: one calm staggered rise; gold rule draws after the
-       headline lands. All motion is disabled under reduced-motion. ---- */
-    @keyframes riseIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: none; }
+    /* ---- Goals ---- */
+    .goal-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ddp-space-4); }
+    @media (min-width: 560px) and (max-width: 899px) {
+      .goal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .goal-grid .goal:last-child:nth-child(odd) { grid-column: 1 / -1; }
     }
-    @keyframes drawRule {
-      from { transform: scaleX(0); }
-      to { transform: scaleX(1); }
+    @media (min-width: 900px) {
+      .goal-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .goal-grid .goal { grid-column: span 2; }
+      .goal-grid.tail-2 .goal:nth-last-child(-n+2) { grid-column: span 3; }
+      .goal-grid.tail-1 .goal:last-child { grid-column: 1 / -1; }
     }
-    .hero h1,
-    .hero .lede,
-    .register {
-      animation: riseIn 0.5s ease both;
-    }
-    .hero h1 { animation-delay: 0.05s; }
-    .hero .lede { animation-delay: 0.12s; }
-    .register { animation-delay: 0.24s; }
+    .goal { position: relative; display: flex; flex-direction: column; gap: var(--ddp-space-2); padding: var(--ddp-space-5); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease; }
+    .goal-stretch:hover { transform: translateY(-2px); border-color: var(--ddp-color-accent); box-shadow: var(--ddp-shadow); }
+    .goal-t { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-xl); line-height: 1.2; color: var(--ddp-color-primary); margin: 0; }
+    .goal-t a { color: inherit; text-decoration: none; }
+    /* The heading link covers the whole card; secondary links sit above it. */
+    .goal-stretch .goal-t a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+    .goal-t a:focus-visible { outline: none; }
+    .goal-stretch:has(.goal-t a:focus-visible) { outline: 3px solid var(--ddp-color-accent); outline-offset: 2px; }
+    .goal-d { margin: 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); flex: 1; }
+    .goal-links { margin: var(--ddp-space-2) 0 0; display: flex; flex-wrap: wrap; gap: 0 var(--ddp-space-4); }
+    .goal-links a, .goal-go { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; color: var(--ddp-color-accent); }
+    .goal-links a { position: relative; z-index: 1; }
+
+    /* ---- Things to try: demoted ---- */
+    .tryrow { padding-top: var(--ddp-space-12); }
+    .try-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ddp-space-3); }
+    @media (max-width: 900px) { .try-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 480px) { .try-grid { grid-template-columns: minmax(0, 1fr); } }
+    .try { display: flex; flex-direction: column; gap: var(--ddp-space-1); height: 100%; box-sizing: border-box; min-height: 44px; padding: var(--ddp-space-4); background: color-mix(in srgb, var(--ddp-color-secondary) 8%, var(--ddp-color-surface)); border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius-sm); color: inherit; text-decoration: none; transition: transform 0.14s ease, box-shadow 0.14s ease; }
+    .try:hover, .try:focus-visible { transform: translateY(-2px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .try-t { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-base); color: var(--ddp-color-primary); }
+    .try-d { font-size: var(--ddp-text-sm); line-height: 1.45; color: var(--ddp-color-ink-soft); }
+
+    /* ---- Work in progress strip ---- */
+    .wip-band { padding-top: var(--ddp-space-12); padding-bottom: var(--ddp-space-12); scroll-margin-top: 5.5rem; }
+    .wip { padding: var(--ddp-space-6); background: var(--ddp-color-surface); border: 1px solid var(--ddp-color-line); border-left: 4px solid var(--ddp-color-secondary); border-radius: var(--ddp-radius-sm); max-width: 62rem; }
+    .wip-h { font-family: var(--ddp-font-serif); font-weight: 500; font-size: var(--ddp-text-2xl); line-height: 1.15; color: var(--ddp-color-primary); margin: 0 0 var(--ddp-space-3); }
+    .wip p { margin: 0 0 var(--ddp-space-4); max-width: 62ch; line-height: 1.6; color: var(--ddp-color-ink-soft); }
+    .wip p.wip-links { display: flex; flex-wrap: wrap; gap: var(--ddp-space-3); margin-bottom: var(--ddp-space-3); }
+    .wip-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0.5em 1.2em; border-radius: 999px; background: var(--ddp-color-primary); color: var(--ddp-color-surface); font-weight: 700; text-decoration: none; }
+    .wip-btn:hover { text-decoration: none; color: var(--ddp-color-surface); box-shadow: var(--ddp-shadow); }
+    .wip-btn-ghost { background: transparent; color: var(--ddp-color-accent); border: 1.5px solid var(--ddp-color-accent); }
+    .wip-btn-ghost:hover { color: var(--ddp-color-accent); }
+    .wip p.wip-sig { margin: 0; font-family: var(--ddp-font-serif); font-style: italic; color: var(--ddp-color-ink); }
+
+    /* ---- Entrance: one calm rise. Disabled under reduced motion. ---- */
+    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes drawRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .hero h1, .hero .lede { animation: riseIn 0.5s ease both; }
+    .hero .lede { animation-delay: 0.1s; }
     .goldrule { animation: drawRule 0.5s ease 0.1s both; }
-
     @media (prefers-reduced-motion: reduce) {
-      .hero h1,
-      .hero .lede,
-      .register,
-      .goldrule { animation: none !important; }
-      .goldrule { transform: none; }
-      .chip-ico svg,
-      .course-card,
-      .course-card::before { transition: none; }
+      .hero h1, .hero .lede, .goldrule { animation: none !important; }
+      .door, .bc, .goal, .try, .chip-ico svg { transition: none; }
+      .door:hover, .bc:hover, .goal-stretch:hover, .try:hover, .chip:hover .chip-ico svg { transform: none; }
     }
-  
-</style>
+  </style>
 </BaseLayout>

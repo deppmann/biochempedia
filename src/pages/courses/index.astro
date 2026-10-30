@@ -1,0 +1,177 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LessonIcon from '../../components/LessonIcon.astro';
+import SiteSearch from '../../components/SiteSearch.astro';
+import { courseHref } from '../../data/courses';
+import { STAGES, stageOf } from '../../data/stages';
+import { courseCards, plural } from '../../lib/catalog';
+
+/* The full catalog: one card per course, grouped by the stage it starts from, in the
+   order a reader would climb them. The homepage keeps only a compact chooser. */
+const { cards, lessonCount } = await courseCards();
+const bands = STAGES.map((s) => ({ ...s, cards: cards.filter((k) => stageOf(k.c) === s.key) })).filter((s) => s.cards.length > 0);
+---
+
+<BaseLayout
+  title="All courses — Biochemistrypedia"
+  description="Every course, from hands-on activities for ages 5 to 10 to courses that end at current research. Free, no account."
+>
+  <section class="wrap cat-hero">
+    <p class="eyebrow"><a href="/">Home</a> · courses</p>
+    <h1>All {cards.length} courses</h1>
+    <p class="lede">
+      {lessonCount} lessons, in the order you would climb them: from activities a grown-up runs with a
+      child, up to courses that end at current research. Anyone can start on any rung.
+      <a href="/paths/">Prefer a suggested order for your goal?</a>
+    </p>
+  </section>
+
+  <nav class="wrap jump" aria-label="Jump to a stage">
+    <span class="jump-lab">Jump to</span>
+    <ul>
+      {bands.map((b) => (
+        <li><a href={`#${b.key === 'graduate' ? 'research' : `stage-${b.key}`}`}>{b.title}</a></li>
+      ))}
+    </ul>
+  </nav>
+
+  <section class="wrap home-search">
+    <SiteSearch label="Search every course" />
+  </section>
+
+  <section class="wrap catalog" id="catalog">
+    {bands.map((t) => (
+      <section class="tier" id={t.key === 'graduate' ? 'research' : `stage-${t.key}`} aria-labelledby={`tier-${t.key}`}>
+        <h2 class="tier-h" id={`tier-${t.key}`}>{t.title}</h2>
+        <p class="tier-note">{t.note}</p>
+        <ul class="course-list" data-n={t.cards.length}>
+          {t.cards.map((k) => (
+            <li>
+              <a href={courseHref(k.c.slug)} class="course-card">
+                <span class="cc-ico"><LessonIcon slug={k.icon} size={56} /></span>
+                <span class="cc-body">
+                  <span class="cc-kicker">{plural(k.units, 'unit', 'units')} · {k.c.tier === 'families' ? plural(k.lessons, 'activity', 'activities') : plural(k.lessons, 'lesson', 'lessons')}{k.c.mcat && <span class="cc-mcat" title="Covers material the MCAT tests">MCAT</span>}</span>
+                  <span class="cc-title">{k.c.title}</span>
+                  <span class="cc-tag">{k.c.tagline}</span>
+                  <span class="cc-units">{k.unitNames.join(' · ')}</span>
+                  <span class="cc-meta">
+                    {[
+                      k.films > 0 && plural(k.films, 'film', 'films'),
+                      k.sims > 0 && plural(k.sims, 'simulation', 'simulations'),
+                      plural(k.questions, 'question', 'questions'),
+                    ].filter(Boolean).map((m, i) => <>{i > 0 && ' · '}<span>{m}</span></>)}
+                  </span>
+                  <span class="cc-go">Open the course →</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </section>
+
+  <style>
+    .cat-hero { padding: var(--ddp-space-12) var(--ddp-space-6) var(--ddp-space-4); display: flex; flex-direction: column; gap: var(--ddp-space-3); }
+    .eyebrow { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ddp-color-accent); margin: 0; }
+    .eyebrow a { color: inherit; text-underline-offset: 3px; }
+    h1 { font-family: var(--ddp-font-serif); font-weight: 500; color: var(--ddp-color-primary); font-size: var(--ddp-text-3xl); line-height: 1.1; margin: 0; }
+    .lede { font-size: var(--ddp-text-lg); line-height: 1.6; color: var(--ddp-color-ink-soft); max-width: 62ch; margin: 0; }
+    .lede a { color: var(--ddp-color-accent); font-weight: 600; }
+    /* ---- Jump links: the page is long, so each stage band is one tap away ---- */
+    .jump { padding: var(--ddp-space-2) var(--ddp-space-6) var(--ddp-space-2); display: flex; flex-wrap: wrap; gap: var(--ddp-space-2) var(--ddp-space-3); align-items: center; }
+    .jump-lab { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ddp-color-muted); }
+    .jump ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ddp-space-2); }
+    .jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--ddp-space-4); border: 1px solid var(--ddp-color-line); border-radius: 999px; background: var(--ddp-color-surface); font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-accent); text-decoration: none; }
+    .jump a:hover, .jump a:focus-visible { border-color: var(--ddp-color-accent); text-decoration: none; }
+    /* ---- Catalog: one card per course, grouped by stage ---- */
+    .home-search { padding-block: var(--ddp-space-2) 0; }
+    .catalog { padding-bottom: var(--ddp-space-8); scroll-margin-top: var(--ddp-space-4); }
+    .tier { margin-top: var(--ddp-space-8); }
+    .tier-h {
+      display: flex;
+      align-items: center;
+      gap: var(--ddp-space-3);
+      font-family: var(--ddp-font-mono);
+      font-size: var(--ddp-text-xs);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ddp-color-muted);
+      margin: 0 0 var(--ddp-space-2);
+    }
+    .tier-h::after { content: ''; flex: 1; height: 1px; background: var(--ddp-color-line); }
+    .tier-note { margin: 0 0 var(--ddp-space-4); max-width: 60ch; color: var(--ddp-color-ink-soft); font-size: var(--ddp-text-sm); }
+    .course-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+      gap: var(--ddp-space-4);
+    }
+    /* A band with one course uses the full row; a band of three uses three columns
+       where there is room, so no band leaves an empty half or an orphaned card. */
+    .course-list[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1000px) {
+      .course-list[data-n="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .course-card {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      gap: var(--ddp-space-5);
+      align-items: flex-start;
+      padding: var(--ddp-space-6);
+      background: var(--ddp-color-surface);
+      border: 1px solid var(--ddp-color-line);
+      border-radius: var(--ddp-radius);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .course-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--ddp-color-secondary);
+      transform: scaleY(0);
+      transform-origin: top;
+      transition: transform 0.22s ease;
+    }
+    .cc-mcat {
+      margin-left: var(--ddp-space-2);
+      padding: 0.05em 0.5em;
+      border: 1px solid var(--ddp-color-line);
+      border-radius: 999px;
+      color: var(--ddp-color-ink-soft);
+      letter-spacing: 0.08em;
+    }
+    .course-card:hover { transform: translateY(-3px); box-shadow: var(--ddp-shadow); text-decoration: none; }
+    .course-card:hover::before { transform: scaleY(1); }
+    .cc-ico { flex: none; line-height: 0; margin-top: 2px; display: flex; flex-direction: column; align-items: center; gap: var(--ddp-space-3); }
+    @media (max-width: 480px) { .cc-ico { flex-direction: row; align-items: flex-end; } }
+    .cc-body { display: flex; flex-direction: column; gap: var(--ddp-space-2); min-width: 0; }
+    .cc-kicker { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); text-transform: uppercase; letter-spacing: 0.07em; color: var(--ddp-color-accent); }
+    .cc-title { font-family: var(--ddp-font-serif); font-weight: 600; font-size: var(--ddp-text-2xl, 1.6rem); line-height: 1.15; color: var(--ddp-color-primary); }
+    .cc-tag { color: var(--ddp-color-ink-soft); }
+    .cc-units { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-muted); }
+    .cc-meta { font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); color: var(--ddp-color-muted); }
+    .cc-meta span { white-space: nowrap; }
+    .cc-go { font-weight: 700; color: var(--ddp-color-accent); margin-top: var(--ddp-space-1); }
+    .course-card:hover .cc-go { text-decoration: underline; text-underline-offset: 3px; }
+    @media (max-width: 480px) {
+      .course-card { flex-direction: column; gap: var(--ddp-space-3); padding: var(--ddp-space-5); }
+    }
+    .tier { scroll-margin-top: 5rem; }
+    @media (prefers-reduced-motion: reduce) {
+      .course-card,
+      .course-card::before { transition: none; }
+    }
+  </style>
+</BaseLayout>

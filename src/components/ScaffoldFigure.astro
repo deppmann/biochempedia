@@ -54,7 +54,7 @@ const missing = keyItems.filter((_, i) => !shown.has(i)).slice().sort((a, b) => 
       <summary>Check your labels</summary>
       <ol class="sfig-key">{keyItems.map((k) => <li>{k}</li>)}</ol>
     </details>
-    <span class="sfig-caption">{caption}</span>
+    <span class="sfig-caption">{caption} <span class="fig-ai">AI-generated illustration</span></span>
   </figcaption>
 </figure>
 
@@ -75,6 +75,19 @@ const missing = keyItems.filter((_, i) => !shown.has(i)).slice().sort((a, b) => 
     margin-top: 0.5rem;
     font-size: 0.9rem;
     line-height: 1.45;
+    color: var(--ddp-color-ink-soft);
+  }
+  /* Visible disclosure, so a sighted reader sees what the alt text already says. */
+  .fig-ai {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05em 0.55em;
+    border: 1px solid var(--ddp-color-line);
+    border-radius: 999px;
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
     color: var(--ddp-color-ink-soft);
   }
   .sfig-key {
