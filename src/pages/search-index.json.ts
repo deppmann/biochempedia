@@ -6,7 +6,10 @@ import { COURSES, courseOf } from '../data/courses';
  * and fetched by <SiteSearch> the first time someone types. It holds what a
  * student would search by (title, the one-line hook, objectives, every section
  * heading, the scientists, techniques and structures a lesson names), not the
- * full prose, which keeps the file small enough to load on a phone.
+ * full prose, which keeps the file small enough to load on a phone. It answers the
+ * first keystrokes. The full text of every lesson is searched separately by Pagefind
+ * (/pagefind/, built after `astro build`; see docs/expansion/mission-2026-10/FULLTEXT_SEARCH.md),
+ * which loads only the pieces a query needs. Keep prose out of this file.
  */
 export async function GET(): Promise<Response> {
   const lessons = (await getCollection('lessons', ({ data }) => import.meta.env.DEV || !data.draft));

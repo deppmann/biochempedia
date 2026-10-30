@@ -11,6 +11,8 @@
    The caption always shows. Same disclosure rules as LessonFigure: the alt text
    must start "AI-generated illustration:" (scripts/check-figures.mjs).
    ============================================================================ */
+import FigureZoom from './FigureZoom.astro';
+
 interface Props {
   /** /figures/<lesson slug>/<id>.webp */
   src: string;
@@ -29,7 +31,7 @@ const shown = new Set(given);
 const missing = keyItems.filter((_, i) => !shown.has(i)).slice().sort((a, b) => a.localeCompare(b));
 ---
 <figure class="scaffold-figure">
-  <img src={src} alt={alt} width={width} height={height} loading="lazy" decoding="async" />
+  <FigureZoom src={src} alt={alt} width={width} height={height} />
   <figcaption>
     {/* Most help: the full key. */}
     <ol class="sfig-key sup-min-2" aria-label="Labels">
@@ -62,14 +64,6 @@ const missing = keyItems.filter((_, i) => !shown.has(i)).slice().sort((a, b) => 
   .scaffold-figure {
     margin: 1.75rem 0;
     max-width: 100%;
-  }
-  .scaffold-figure img {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    background: #fbf8f1;
-    border: 1px solid var(--ddp-color-line);
   }
   .scaffold-figure figcaption {
     margin-top: 0.5rem;

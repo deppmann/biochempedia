@@ -27,6 +27,30 @@
 /scientists/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# Full-text search (Pagefind, written to dist/pagefind/ by `npm run build`). The index
+# chunks, page fragments and filter files are named by a hash of their content, so a file
+# that changes gets a new name and the old one can be cached for good. The entry points
+# (pagefind.js, pagefind-entry.json, the worker, the wasm) keep their names from build to
+# build, so they revalidate on every visit (an ETag check, not a download).
+/pagefind/index/*
+  Cache-Control: public, max-age=31536000, immutable
+/pagefind/fragment/*
+  Cache-Control: public, max-age=31536000, immutable
+/pagefind/filter/*
+  Cache-Control: public, max-age=31536000, immutable
+/pagefind/pagefind.*.pf_meta
+  Cache-Control: public, max-age=31536000, immutable
+/pagefind/pagefind.js
+  Cache-Control: public, max-age=0, must-revalidate
+/pagefind/pagefind-entry.json
+  Cache-Control: public, max-age=0, must-revalidate
+/pagefind/pagefind-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+/pagefind/pagefind-highlight.js
+  Cache-Control: public, max-age=0, must-revalidate
+/pagefind/wasm.*
+  Cache-Control: public, max-age=0, must-revalidate
+
 # HTML stays short so a correction reaches students the same day it ships.
 /*.html
   Cache-Control: public, max-age=0, must-revalidate

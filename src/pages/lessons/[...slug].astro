@@ -217,7 +217,13 @@ const lessonLd = {
           that makes landmark navigation ambiguous for screen readers. */}
       <div class="lesson-main">
         {lesson.supports && <div class="prose-col"><SupportsSwitch /></div>}
-        <div class="prose-col"><Content /></div>
+        {/* Full-text search (Pagefind, run after `astro build`; see docs/expansion/mission-2026-10/FULLTEXT_SEARCH.md).
+            This div is the ONLY thing indexed on a lesson page: the body prose, its figure captions and
+            worked sentences. The title, the course filter and the section anchors come with it; the nav, rail,
+            lightboxes, quiz and footer are outside it. Worked answers (<details>) and the answer boxes are
+            skipped by exclude_selectors in pagefind.yml. */}
+        <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
+          data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>
 
         {(lesson.techniques.length > 0 || methods.length > 0) && (
           <section class="tech-panel" id="methods">
@@ -649,6 +655,28 @@ const lessonLd = {
       });
     });
   </script>
+
+  {/* Arriving from a full-text search result: the link carries ?pagefind-highlight=word&…, and
+      Pagefind's small helper (only fetched in that case) marks those words in the lesson text. */}
+  <script is:inline>
+    (function () {
+      try {
+        if (!/[?&]pagefind-highlight=/.test(location.search)) return;
+        // An ES module: import it, then constructing it marks the words.
+        var url = '/pagefind/pagefind-highlight.js';
+        import(url).then(function (m) { new m.default({ highlightParam: 'pagefind-highlight', addStyles: false }); }).catch(function () {});
+      } catch (e) { /* the lesson reads the same without the marks */ }
+    })();
+  </script>
+
+  <style is:global>
+    mark.pagefind-highlight {
+      background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent);
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 0.1em;
+    }
+  </style>
 
   <style>
     .under-review { margin: 0 0 var(--ddp-space-3); max-width: 60ch; font-size: var(--ddp-text-sm); color: var(--ddp-color-ink-soft); }
