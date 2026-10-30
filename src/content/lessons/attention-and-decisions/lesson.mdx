@@ -11,12 +11,12 @@ summary: >-
   competition, gain and shared noise, and parietal activity that ramps toward a decision. You
   will compute reaction times from a drift-to-bound model and learn to tell a neural correlate
   of a decision from a part of the brain the decision needs.
-hook: "A parietal neuron's firing climbs toward a fixed level just before a monkey announces its choice. Silence that area and the monkey chooses just as well. What was the neuron doing?"
+hook: "On average, a parietal neuron's firing climbs toward a similar level just before a monkey announces its choice. In one study, silencing that area left the choice no worse. What was the neuron doing?"
 
 estMinutes: 24
 objectives:
   - "Describe the evidence for prefrontal contributions to working memory and executive control, from monkey delay activity and rule coding, mouse thalamus-prefrontal loops and human latent memory states, and state Miller and Cohen's proposal as a theory."
-  - "Explain three effects of attention on visual neurons in macaque V4: competition within a receptive field, larger gains at low contrast, and reduced shared variability."
+  - "Explain three effects of attention on visual neurons in macaque V4: competition within a receptive field, larger gains at low contrast in one study, and reduced shared variability."
   - "Calculate reaction times from a drift-to-bound model and interpret MT and LIP recordings, MT microstimulation and the reaction-time random-dot task in terms of evidence accumulation."
   - "Distinguish a neural correlate of a decision from a necessary component, using reversible inactivation of MT and LIP."
 
@@ -63,9 +63,9 @@ scientists:
       researchers recorded from neurons in visual area V4. They placed two stimuli inside a
       neuron's receptive field: one that drove the cell well and one that drove it poorly. When
       the monkey attended to the poor stimulus, the response fell, although the image on the
-      retina had not changed. Cells in primary visual cortex were unaffected by attention.
+      retina had not changed. In that study, cells in primary visual cortex showed no such effect; later work found smaller attention effects there.
       The result suggested that stimuli compete for a neuron's
-      response and that attention settles the competition, an idea Desimone and John Duncan
+      response and that attention biases the competition, an idea Desimone and John Duncan
       later developed as biased competition. In 2000, with Reynolds and Pasternak, he showed
       that attention boosted V4 responses most at low contrast. The work made attention
       something you could measure in spikes.
@@ -92,13 +92,13 @@ scientists:
   - name: "Alexander Huk"
     contribution: >-
       With Leor Katz, Jacob Yates and Jonathan Pillow, reversibly inactivated MT or LIP in
-      monkeys doing a motion task and found that MT was needed for the discrimination while LIP,
-      despite its choice-related activity, was not needed under the conditions tested.
+      monkeys doing a motion task and found that MT was needed for the discrimination while silencing LIP,
+      despite its choice-related activity, caused no measurable deficit under the conditions tested.
     profileSourceAnchor: "Katz, Yates, Pillow & Huk, Nature 535:285–288 (2016); Huk & Shadlen, J. Neurosci. 25:10420–10436 (2005)."
     quotes: []
     story: >-
       Huk had himself studied how LIP activity reflects the integration of motion evidence, in
-      work with Shadlen published in 2005. By the 2010s LIP was the textbook site of the
+      work with Shadlen published in 2005. By the 2010s LIP was the leading candidate site of the
       accumulator, but much of the evidence was correlational; microstimulation of LIP had also biased choices (Hanks, Ditterich and Shadlen, 2006). In the study published in Nature
       in 2016, Huk's laboratory, with Leor Katz as first author, recorded from MT and LIP in rhesus
       monkeys making motion-direction judgments and then silenced each area in turn with
@@ -117,14 +117,14 @@ techniques:
       onset, saccade) shows what the neuron's firing goes with, which is a correlate, not a cause.
   - name: "Electrical microstimulation"
     blurb: >-
-      Weak current pulses through an electrode activate a cluster of neurons with similar
-      tuning. If behaviour shifts in the direction those neurons prefer, as in MT during motion
+      Weak current pulses through an electrode activate neurons and axons near the tip. In MT,
+      nearby neurons share a preferred direction, so a site can be chosen for its tuning. If behaviour shifts in the direction those neurons prefer, as in MT during motion
       judgments, their activity can influence the choice in that task.
   - name: "Reversible pharmacological inactivation"
     blurb: >-
       A small injection of muscimol, a GABA-A receptor agonist, silences neurons near the tip for
-      a limited time. A deficit shows the area is needed for that task; no deficit means it was not needed
-      under those conditions, which is informative only if a control shows the drug worked.
+      a limited time. A deficit shows the area contributes to that task. No deficit means no effect was detected
+      under those conditions, which is informative only if a control shows the drug worked; other areas may still compensate.
   - name: "TMS with EEG decoding"
     blurb: >-
       A classifier trained on EEG patterns reads out which category of item (not the individual item) a person is holding in memory;
@@ -138,7 +138,7 @@ simulations:
     ref: "DriftToBoundTrials"
     title: "Drift to a bound"
     caption: >-
-      Set the motion coherence and watch the accumulator climb from 30 to 70 spikes/s, then add noise to see 200 trials, their reaction-time histogram and how noise shortens mean times at weak motion.
+      Set the motion coherence and watch the accumulator climb from 30 to 70 spikes/s, then add noise to see 200 trials, a second bound for the other choice, their reaction-time histogram and how noise shortens mean times at weak motion.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -207,7 +207,7 @@ practiceQuestions:
     answer: 1
     rationale: >-
       A higher bound means more evidence must accumulate, so rise time grows, and noise has more
-      time to average out, so accuracy rises; since rise time is roughly distance over slope, the
+      time to average out, so accuracy rises wherever there is net motion (at 0% it stays at chance); since rise time is roughly distance over slope, the
       added time is largest where the slope is shallow, at weak motion. Faster, less accurate
       choices follow from lowering the bound. The slope is unchanged, but the distance to the
       bound is longer, so speed must change. A higher bound does not raise the rate of rise; it
@@ -245,14 +245,14 @@ mcatQuestions:
     choices:
       - "LIP is necessary for every decision that ends in an eye movement"
       - "LIP inactivation failed, since discrimination was barely changed"
-      - "LIP was not needed for this discrimination, though the drug acted"
+      - "Silencing LIP did not impair this discrimination, though the drug acted"
       - "LIP computes the decision while MT only relays the stimulus"
     answer: 2
     rationale: >-
       The free-choice shift shows the LIP injection silenced enough tissue to change behaviour,
-      yet the threshold barely moved, so LIP was not needed for this discrimination under these
-      conditions. Calling the inactivation a failure ignores the free-choice control. Saying LIP
-      computes the decision reverses the data: silencing MT, not LIP, doubled the threshold.
+      yet the threshold barely moved, so the LIP inactivation did not measurably impair this
+      discrimination under these conditions. Calling the inactivation a failure ignores the free-choice control. Saying LIP
+      computes the decision while MT only relays goes beyond the data: silencing MT, not LIP, doubled the threshold.
       Necessity for every saccadic decision overreaches; the discrimination itself survived.
 
 explainLevels:
@@ -260,8 +260,8 @@ explainLevels:
     label: "Like I'm five"
     text: >-
       The front of your brain helps you keep a plan in mind, like remembering where you hid a
-      toy. Paying attention is like turning up the volume on one voice in a noisy room. When you
-      make up your mind, your brain gathers clues bit by bit until it has enough, then you act.
+      toy. Paying attention is like turning up the volume on one voice in a noisy room. For some
+      choices, like which way dots are moving, your brain seems to gather clues bit by bit until it has enough, then you act.
       Scientists check which brain parts are really needed by quieting them for a short while.
   - level: "highschool"
     label: "High school"
@@ -270,10 +270,10 @@ explainLevels:
       remembers a location during a delay, and others signal which rule is in force. Attention
       changes what visual neurons report: a neuron facing two objects responds mostly to the one
       the animal attends to. To decide which way a cloud of dots is moving, the brain seems to add
-      up evidence over time. A neuron in the parietal cortex speeds up faster when the motion is
-      clearer, and the monkey answers once the firing reaches a set level. But silencing that
-      parietal area did not stop monkeys making the decision, so a neuron that tracks a choice is
-      not always needed for it.
+      up evidence over time. On average, neurons in the parietal cortex speed up faster when the motion is
+      clearer, and their firing reaches a similar level just before the monkey answers. But in one study silencing that
+      parietal area did not measurably impair the decision, so a neuron that tracks a choice is
+      not always needed for it. Other studies did find deficits, so the question is still open.
   - level: "college"
     label: "College"
     text: >-
@@ -282,7 +282,7 @@ explainLevels:
       Evidence includes direction-selective delay activity in monkey principal sulcus
       (Funahashi and colleagues, 1989), rule coding in monkey prefrontal neurons that generalizes
       to new pictures (Wallis and colleagues, 2001), and mouse experiments in which mediodorsal
-      thalamus to prefrontal signalling supported maintenance. In macaque V4, attention resolves
+      thalamus to prefrontal signalling supported maintenance. In macaque V4, attention biases
       competition between stimuli in a receptive field, acts like a contrast gain (mean factor
       1.51 in one study), and lowers noise correlations. In the random-dot task MT supplies
       evidence, which microstimulation shows can bias choice, and LIP firing ramps with a slope
@@ -299,7 +299,9 @@ explainLevels:
       varied timing on single trials, and population recordings are needed to settle single-trial
       dynamics. Second, muscimol in LIP spared discrimination (Katz and colleagues, 2016), so LIP
       activity may reflect a decision computed elsewhere, or LIP may be one of several redundant
-      sites, with the frontal eye field and superior colliculus as candidates.
+      sites, with the frontal eye field and superior colliculus as candidates. Other inactivation studies
+      did find deficits (Zhou and Freedman, 2019), and in one study LIP-dependent biases faded while
+      silencing persisted, a sign of compensation (Jeurissen and colleagues, 2022).
 
       For working memory, persistent firing (monkey prefrontal delay activity) now sits beside
       latent states: in humans the category of an unattended but still relevant item could be transiently
@@ -336,8 +338,8 @@ anecdotes:
       free-choice task the monkeys picked between targets with no right answer, and after LIP
       inactivation they chose targets in the affected part of space less often and their saccades to
       that side landed less accurately. The drug had acted on LIP. Only with that control in hand could the lack
-      of effect on motion discrimination be read as evidence that LIP was not needed for it under
-      those conditions.
+      of effect on motion discrimination be read as evidence against LIP being needed for it under
+      those conditions. A null result still cannot exclude compensation by other areas.
 
 corpusTags:
   - "neuroscience"
@@ -354,7 +356,7 @@ draft: false
 
 import DriftToBoundTrials from '../../../components/DriftToBoundTrials.astro';
 
-**A monkey watches a cloud of dots, some moving together and the rest at random, and must decide which way the coherent dots are going. As it watches, a neuron in its parietal cortex fires faster and faster, and when the firing reaches a certain level the monkey moves its eyes to give its answer.** Is that neuron making the decision? Silence the area it sits in and the monkey decides just as well. This lesson builds toward that puzzle through three abilities that sit between seeing and acting: holding information in mind, choosing what to process, and turning evidence into a choice.
+**A monkey watches a cloud of dots, some moving together and the rest at random, and must decide which way the coherent dots are going. As it watches, a neuron in its parietal cortex fires faster and faster, and on average the firing reaches a similar level just before the monkey moves its eyes to give its answer.** Is that neuron making the decision? In one study, silencing the area it sits in left the monkey deciding just as well, although other studies found deficits. This lesson builds toward that puzzle through three abilities that sit between seeing and acting: holding information in mind, choosing what to process, and turning evidence into a choice.
 
 ## Holding and using information: prefrontal cortex keeps the goal in view
 
@@ -368,13 +370,13 @@ Prefrontal neurons also code what to do. Wallis, Anderson and Miller (2001) trai
 
 Miller and Cohen (2001) proposed a theory that ties these findings together: prefrontal cortex maintains representations of goals, and these bias processing in other structures toward what the goal needs. Think of a referee's whistle held up front, tilting contests that happen elsewhere. It is a proposal, and the prefrontal cortex is one partner among several.
 
-Two newer results widen the picture. In mice running a delayed non-match-to-sample task in a T-maze, Bolkan and colleagues (2017) inhibited pathways selectively. Input from the **mediodorsal thalamus** (a thalamic nucleus, or cluster of neurons, connected with prefrontal cortex) to medial prefrontal cortex supported maintenance during the delay, and the reverse projection supported the later choice. Delay firing in medial prefrontal cortex needed the thalamic input, yet those delay-tuned neurons overlapped minimally with spatially tuned neurons, so mouse delay activity did not simply copy the monkey result. In humans, Rose and colleagues (2016) cued people to set one remembered item aside. That item's category could no longer be decoded from the EEG, but a single TMS pulse briefly made it decodable again, and only while it might still be needed. The authors suggest that short-term synaptic changes could hold such latent items; the synapses were not measured, and because decoding was at the category level, reinstated category context is an alternative to reactivation of the item itself.
+Two newer results widen the picture. In mice running a delayed non-match-to-sample task in a T-maze, Bolkan and colleagues (2017) inhibited pathways selectively. Input from the **mediodorsal thalamus** (a thalamic nucleus, or cluster of neurons, connected with prefrontal cortex) to medial prefrontal cortex supported maintenance during the delay, and the reverse projection supported the later choice. Delay firing in medial prefrontal cortex needed the thalamic input, yet those delay-tuned neurons overlapped minimally with neurons tuned to position in the maze. In humans, Rose and colleagues (2016) cued people to set one remembered item aside. That item's category could no longer be decoded from the EEG, but a single TMS pulse briefly made it decodable again, and only while it might still be needed. The authors suggest that short-term synaptic changes could hold such latent items; the synapses were not measured, and because decoding was at the category level, reinstated category context is an alternative to reactivation of the item itself.
 
 ## Attention changes what neurons report
 
 **Attention** is selecting part of what is available for further processing. Keep it apart from **arousal**, the overall level of alertness, which shifts with [sleep and rhythms](/lessons/sleep-and-rhythms/). A **receptive field** is the region of space in which a stimulus changes a neuron's firing, as in [visual cortex](/lessons/visual-cortex/).
 
-Moran and Desimone (1985) recorded from neurons in macaque visual area V4 and placed two stimuli inside one receptive field: one that drove the cell well and one that drove it poorly. When the monkey attended to the poor stimulus, the response fell toward what that stimulus gave alone, although the retinal image was unchanged. In primary visual cortex, cells were unaffected by attention. Stimuli seem to compete for a neuron, and attention biases the competition.
+Moran and Desimone (1985) recorded from neurons in macaque visual area V4 and placed two stimuli inside one receptive field: one that drove the cell well and one that drove it poorly. When the monkey attended to the poor stimulus, the response fell toward what that stimulus gave alone, although the retinal image was unchanged. In that study, primary visual cortex cells showed no such effect, though later work found smaller attention effects in V1. Stimuli seem to compete for a neuron, and attention biases the competition.
 
 Attention is not one fixed multiplier. Reynolds, Pasternak and Desimone (2000) varied contrast and found that attention raised V4 responses more at low contrast than at high. On average it acted like multiplying contrast by 1.51: an attended 10% contrast grating drove cells about as well as an unattended grating of 10 × 1.51 ≈ 15%. Near the top of the contrast-response curve, where responses saturate, extra effective contrast changes little.
 
@@ -384,13 +386,13 @@ Attention also changes how neurons vary together. **Noise correlation** is the c
 
 Kanashiro and colleagues (2017) reanalyzed V4 recordings from two monkeys detecting orientation changes. Mean noise correlation was 0.065 unattended and 0.045 attended. Mean covariance fell 34.0% while mean single-neuron variance rose 1.61%. Private noise partly cancels when a downstream cell pools many inputs; shared noise does not, so less of it makes the pool more reliable. Their circuit model predicts that attention acts mainly on inhibitory neurons, a prediction still to be tested.
 
-Damage shows the same networks at work. After damage to parietal or frontal cortex, a patient may fail to notice or respond to things on the side of space opposite the lesion (contralesional **hemispatial neglect**). Neglect is commoner and more severe after right-hemisphere damage.
+Damage in humans shows that attention also depends on parietal and frontal cortex. After damage to parietal or frontal cortex, a patient may fail to notice or respond to things on the side of space opposite the lesion (contralesional **hemispatial neglect**). Neglect is commoner and more severe after right-hemisphere damage.
 
 ## Accumulating evidence toward a choice: a ramp to a bound
 
 In the random-dot task, **coherence** is the percentage of dots moving together; the rest move randomly. Neurons in area MT are tuned to direction (see [sensory coding](/lessons/sensory-coding/)). Newsome, Britten and Movshon (1989) found that most of the MT neurons they studied, on a task matched to the neurons' properties, discriminated motion about as well as, or better than, the monkey. Salzman, Britten and Newsome (1990) then stimulated small clusters of MT neurons with a shared preferred direction and biased the monkeys' choices toward that direction. MT supplies evidence, and its activity can sway the choice.
 
-The **lateral intraparietal area (LIP)** in the parietal lobe holds neurons that fire before saccades into their response field. Roitman and Shadlen (2002) let rhesus monkeys answer whenever they were ready, with one choice target in the recorded neuron's response field. Stronger motion gave faster and more accurate choices. LIP firing ramped, predicted the choice, rose more steeply with stronger motion, and reached a similar level shortly before the saccade, which the authors read as a threshold that appeared to mark the end of the decision. These ramps are averages across trials. Whether single trials ramp or step is debated.
+The **lateral intraparietal area (LIP)** in the parietal lobe holds neurons that fire before saccades into their response field. Roitman and Shadlen (2002) let rhesus monkeys answer whenever they were ready, with one choice target in the recorded neuron's response field. Stronger motion gave faster and more accurate choices. LIP firing ramped, predicted the choice, rose more steeply with stronger motion, and reached a similar level shortly before the saccade, which the authors read as a threshold that appeared to mark the end of the decision. These ramps are averages across trials. Whether single trials ramp or step is debated. LIP firing also mixes sensory and premotor signals with a rise that grows with elapsed time (an urgency signal), so a common level before the saccade need not mark a pure decision bound.
 
 A **drift-to-bound model** captures this: momentary evidence is added up until the total hits a bound, and the drift, the average slope, grows with coherence.
 
@@ -413,7 +415,7 @@ How long to keep sampling also depends on what a choice is worth, which links to
 
 ## When the best correlate is not necessary
 
-Correlation shows what activity goes with a choice; a manipulation shows whether the choice needs it. Katz, Yates, Pillow and Huk (2016) recorded MT and LIP in rhesus monkeys and then reversibly silenced each with muscimol, a GABA-A receptor agonist. MT inactivation impaired motion discrimination. LIP inactivation produced no measurable impairment of motion decisions in the tasks tested. In a free-choice task, the same LIP inactivation changed spatial selection and eye-movement metrics.
+Correlation shows what activity goes with a choice; a manipulation tests whether the choice depends on it. Katz, Yates, Pillow and Huk (2016) recorded MT and LIP in rhesus monkeys and then reversibly silenced each with muscimol, a GABA-A receptor agonist. MT inactivation impaired motion discrimination. LIP inactivation produced no measurable impairment of motion decisions in the tasks tested. In a free-choice task, the same LIP inactivation changed spatial selection and eye-movement metrics. The result is debated. Zhou and Freedman (2019) found that parietal inactivation impaired motion and category decisions, most when the visual stimuli, rather than the response targets, sat in the inactivated field. Jeurissen and colleagues (2022) found that LIP inactivation biased decisions, but the biases faded while the area was still silenced, which suggests that other areas compensated.
 
 ### Design problem
 
@@ -422,7 +424,7 @@ Muscimol in MT raises the motion-discrimination threshold; in LIP it leaves the 
 <details>
 <summary>One way to do it</summary>
 
-LIP activity correlates with the decision, but LIP was not necessary for the discrimination under these conditions. The free-choice effect shows the inactivation worked, so the null result is not a missed injection. MT was needed for this discrimination, as expected of a stage that carries direction evidence, though direction-selective signals already reach MT from V1.
+LIP activity correlates with the decision, but silencing the targeted LIP sites caused no measurable discrimination deficit under these conditions. The free-choice effect shows the inactivation worked, so the null result is not a missed injection. It does not rule out a contribution that spared tissue or other areas could cover. MT was needed for this discrimination, as expected of a stage that carries direction evidence, though direction-selective signals already reach MT from V1.
 
 Several readings remain. Other areas that carry choice signals, such as the frontal eye field or the superior colliculus, may hold the signal redundantly or compensate when LIP is silenced. Or LIP may reflect a decision computed elsewhere. Next, inactivate several areas together, and record many neurons at once to see single-trial dynamics. Scope every conclusion to this task, this training and this species. The [circuit experiment design](/lessons/circuit-experiment-design/) and [large-scale neuroscience](/lessons/large-scale-neuroscience/) lessons build those tools.
 

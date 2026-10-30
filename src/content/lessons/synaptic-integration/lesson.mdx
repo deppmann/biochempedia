@@ -53,7 +53,7 @@ scientists:
       helps decide what the neuron computes.
   - name: "Allan Gulledge"
     contribution: >-
-      With Greg Stuart, recorded layer 5 pyramidal neurons in young rat cortical slices without
+      With Greg Stuart, recorded layer 5 pyramidal neurons in cortical slices from 3- to 4-week-old rats without
       disturbing their chloride and found that GABA could depolarize them and, depending on site
       and timing, inhibit or facilitate firing.
     profileSourceAnchor: "Gulledge & Stuart, Neuron 37:299–309 (2003)."
@@ -69,9 +69,11 @@ scientists:
       GABA and paired it with excitation. GABA responses depolarized the cells from rest, and
       when combined with proximal excitation they could help trigger action potentials, even
       though the GABA reversal potential was below threshold. Somatic GABA inhibited excitation
-      that arrived at the same time but facilitated excitation that arrived later. Their 2003
-      paper in Neuron turned the sign of a GABA input into a question of when and where it
-      lands, rather than a property of the transmitter.
+      that arrived at the same time but facilitated excitation that arrived later, while dendritic
+      GABA responses were excitatory whatever their timing. Their 2003 paper in Neuron showed
+      that, in that preparation, whether applied GABA inhibits can depend on when and where it
+      lands. Later work with synaptically released GABA in rat hippocampus found hyperpolarizing
+      responses all along the cell, so how general this is remains debated.
   - name: "Bertil Hille"
     contribution: >-
       With Byung-Chang Suh, Takanari Inoue and Tobias Meyer, depleted the membrane lipid PIP2
@@ -80,8 +82,9 @@ scientists:
     profileSourceAnchor: "Suh, Inoue, Meyer & Hille, Science 314:1454–1457 (2006)."
     quotes: []
     story: >-
-      Muscarinic acetylcholine receptors close KCNQ potassium channels and so make neurons more
-      excitable. These receptors activate phospholipase C, which splits the membrane lipid PIP2
+      In sympathetic neurons and many other cells, M1-type muscarinic acetylcholine receptors close
+      KCNQ potassium channels and so make the neurons more excitable. These Gq-coupled receptors
+      activate phospholipase C, which splits the membrane lipid PIP2
       into IP3 and diacylglycerol, and IP3 in turn releases calcium. That left a question of
       which event closes the channel: the products, the calcium, or the loss of PIP2 itself. A
       receptor cannot be made to do one without the others. Byung-Chang Suh, Takanari Inoue,
@@ -128,8 +131,10 @@ techniques:
   - name: "Optogenetic stimulation of axons"
     blurb: >-
       Expressing a light-gated channel in one class of neuron lets brief flashes release that
-      neuron's transmitter in a slice. Recording a postsynaptic cell then shows what the
-      endogenous transmitter, at its natural release sites, does to that cell.
+      neuron's transmitter in a slice. Recording a postsynaptic cell then shows what activating
+      those axons does to that cell. Axons can release more than one transmitter (dopamine axons in
+      striatum can also release glutamate and GABA), so receptor blockers are needed to tell which
+      one caused each effect.
   - name: "Two-site focal stimulation on imaged dendrites"
     blurb: >-
       Confocal imaging locates a dendritic branch, and two stimulating electrodes activate
@@ -190,7 +195,7 @@ practiceQuestions:
   - stem: "A GABA_A conductance opens in a neuron whose resting potential equals E_GABA. What does the conductance do?"
     choices:
       - "Does nothing at all, since no net current crosses at rest"
-      - "Leaves the voltage at rest but shrinks any EPSP that arrives"
+      - "Leaves the voltage at rest but shrinks EPSPs that arrive"
       - "Depolarizes the cell, since chloride flows down its gradient"
       - "Hyperpolarizes the cell until chloride leaves the cytoplasm"
     answer: 1
@@ -253,8 +258,8 @@ mcatQuestions:
     rationale: >-
       The same GABA response inhibited coincident excitation and facilitated later excitation,
       so its effect depended on timing: while open, the conductance shunts; once it closes, the
-      leftover depolarization brings the cell nearer threshold. One preparation of young rat
-      slices cannot show a general rule for adult cortex. The depolarization stayed below
+      leftover depolarization brings the cell nearer threshold. One preparation, with applied GABA in one
+      cortical area, cannot show a general rule for adult cortex. The depolarization stayed below
       threshold, so E_GABA above threshold is not needed to explain facilitation. Gramicidin
       pores do not pass chloride, which is why the method preserves, rather than reverses, the
       cell's gradient.
@@ -300,9 +305,10 @@ explainLevels:
       summation depends on the membrane time constant and spatial summation on the length
       constant. A GABA_A conductance with E_GABA near rest shunts: it lowers input resistance,
       shortens τ and shrinks EPSPs without changing resting voltage. Summation is sublinear when
-      driving force falls and can be sigmoidal for nearby inputs on one thin dendrite. Dopamine
-      on D1 receptors (Gs/olf, cAMP, PKA) and muscarinic closure of KCNQ channels through PIP2
-      depletion raise excitability.
+      driving force falls and can be sigmoidal for nearby inputs on one thin dendrite. In the cells studied here, dopamine
+      on D1 receptors (Gs/olf, cAMP, PKA) and muscarinic closure of KCNQ channels, for which PIP2
+      depletion is sufficient, raised excitability. In other cells or states the same receptors can
+      act differently.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -310,8 +316,8 @@ explainLevels:
       attractor and a change in total conductance, which sets both gain and integration time.
       Their arithmetic on firing is not fixed: in juvenile rat layer V pyramidal cells, a
       dynamic-clamp shunt was divisive for subthreshold voltage yet subtractive for firing rate
-      (Ulrich 2003), and in young rat layer 5 cells depolarizing GABA inhibited coincident but
-      facilitated delayed excitation (Gulledge and Stuart 2003). E_GABA itself is a dynamic
+      (Ulrich 2003), and in rat layer 5 cells the authors describe as mature, depolarizing somatic GABA inhibited
+      coincident but facilitated delayed excitation (Gulledge and Stuart 2003). E_GABA itself is a dynamic
       variable; models predict that chloride loading erodes dendritic inhibition and shifts its
       optimal placement (Currin and Raimondo 2022). Branch-specific sigmoidal summation in rat
       neocortical thin dendrites (Polsky, Mel and Schiller 2004) supports multi-subunit models of
@@ -400,15 +406,15 @@ This is **shunting inhibition**: an inhibitory conductance with a reversal poten
 
 <ShuntingConductanceCell />
 
-*Step 5: temporal summation, with and without the shunt.* Now give the cell two brief excitatory charge pulses of 0.4 pC, 10 ms apart. Each jumps the voltage by q/C = 0.4 pC / 200 pF = 2 mV, then decays. Without the shunt (τ = 20 ms), just after the second pulse the depolarization is 2 + 2 × e^(−10/20) = 2 + 1.21 = 3.21 mV. With the shunt on (total conductance 20 nS, τ = 10 ms), it is 2 + 2 × e^(−10/10) = 2 + 0.74 = 2.74 mV. The shunt did not shrink each jump, which charge and capacitance set. It shortened the time constant, so less of the first EPSP was left for the second to ride on.
+*Step 5: temporal summation, with and without the shunt.* Now give the cell two brief excitatory charge pulses of 0.4 pC, 10 ms apart. Each jumps the voltage by q/C = 0.4 pC / 200 pF = 2 mV, then decays. Without the shunt (τ = 20 ms), just after the second pulse the depolarization is 2 + 2 × e^(−10/20) = 2 + 1.21 = 3.21 mV. With the shunt on (total conductance 20 nS, τ = 10 ms), it is 2 + 2 × e^(−10/10) = 2 + 0.74 = 2.74 mV. In this idealized case the shunt did not shrink each jump, because an instantaneous charge pulse sets the jump by charge and capacitance alone. It shortened the time constant, so less of the first EPSP was left for the second to ride on. A real synaptic current lasts a millisecond or more, so the shunt also drains charge while it flows, and the EPSP peak itself gets smaller.
 
 Real cells keep the logic but not always the arithmetic. In layer V pyramidal neurons from juvenile rat somatosensory cortex, Ulrich (2003) used a dynamic clamp (a feedback system that injects the current a chosen conductance would pass) to add a shunt. It divided the subthreshold voltage responses but subtracted from the firing frequency. Do not assume either rule elsewhere.
 
 ## Where and when inhibition lands
 
-An IPSP can depolarize. If E_GABA lies above rest but below threshold, opening GABA_A channels moves the voltage up toward E_GABA while also holding it below threshold. Gulledge and Stuart (2003) studied this in layer 5 pyramidal neurons in somatosensory cortex slices from 3- to 4-week-old rats. They used gramicidin perforated-patch recording, which leaves the cell's own chloride in place because gramicidin pores do not pass chloride. GABA responses depolarized the cells from rest and, combined with proximal excitation, could help trigger spikes, even though E_GABA was below threshold. Timing mattered: somatic GABA inhibited excitation that arrived at the same time but facilitated excitation that arrived later. A likely reading is that the conductance had closed while some depolarization remained. This does not make GABA excitatory in adult cortex in general; in that preparation, its sign depended on timing and site. The larger depolarizing GABA responses of immature neurons, which come from higher internal chloride, belong to development: see [CNS synapses](/lessons/cns-synapses/).
+An IPSP can depolarize. If E_GABA lies above rest but below threshold, opening GABA_A channels moves the voltage up toward E_GABA, while the added conductance pulls any larger depolarization back toward E_GABA. Which effect wins depends on what else arrives, and when and where. Gulledge and Stuart (2003) studied this in layer 5 pyramidal neurons in somatosensory cortex slices from 3- to 4-week-old rats. They used gramicidin perforated-patch recording, which leaves the cell's own chloride in place because gramicidin pores do not pass chloride. GABA responses depolarized the cells from rest and, combined with proximal excitation, could help trigger spikes, even though E_GABA was below threshold. Timing mattered: somatic GABA inhibited excitation that arrived at the same time but facilitated excitation that arrived later. A likely reading is that the conductance had closed while some depolarization remained. This does not make GABA excitatory in adult cortex in general; in that preparation, its sign depended on timing and site. The larger depolarizing GABA responses of immature neurons, which come from higher internal chloride, belong to development: see [CNS synapses](/lessons/cns-synapses/).
 
-The chloride gradient is not fixed either. Each time GABA_A channels let chloride in, internal chloride rises a little and E_GABA creeps upward. In branched-dendrite computer models, Currin and Raimondo (2022) found that this activity-dependent chloride loading weakened inhibition, and that with chloride dynamics included the most effective placement of inhibitory synapses lay close to, but not at, a shared branch junction. These are model predictions, not measurements.
+The chloride gradient is not fixed either. When GABA_A channels let chloride in faster than transporters such as KCC2 can remove it, internal chloride rises and E_GABA creeps upward. In branched-dendrite computer models, Currin and Raimondo (2022) found that this activity-dependent chloride loading weakened inhibition, and that with chloride dynamics included the most effective placement of inhibitory synapses lay close to, but not at, a shared branch junction. These are model predictions, not measurements.
 
 ## Dendrites that do not add linearly
 
@@ -433,11 +439,11 @@ In a made-up perforated-patch recording from a D1 striatal projection neuron in 
 <details>
 <summary>One way to do it</summary>
 
-1. The current step is matched, so the extra spikes do not come from more input: the cell's intrinsic excitability rose. Blocked fast receptors rule out hidden synaptic drive.
+1. The current step is matched, so the extra spikes do not come from more input: the cell's intrinsic excitability rose. Blocking synaptic receptors limits hidden synaptic drive, but fast-receptor blockers alone leave slow GABA_B and muscarinic signaling in play; Lahiri and Bevan blocked those too.
 2. The antagonist abolished the change, so D1 receptors are required, assuming the drug is selective at the dose used.
 3. With PKA inhibited, the early increase (13 spikes) remained but did not last, so in these data PKA is needed for persistence, not onset. The data cannot say what carries the onset.
 4. Missing: current-only trials, the same steps given over the same time with no light. Subtract drift: the dopamine effect is (after minus before, with light) minus (late minus early, without light). Lahiri and Bevan corrected with matched current-only trials.
 5. Keep perforated patch. Whole-cell dialysis can wash out intracellular messengers and hide the effect.
-6. Limit: a spike count names no channel. To find the target, voltage-clamp candidate currents before and after dopamine.
+6. Limit: a spike count names no channel. To find the target, test whether selective channel blockers mimic or occlude the dopamine effect, as Lahiri and Bevan did. Voltage clamp is harder here: perforated patch gives poor voltage control, and whole-cell recording can lose the effect.
 
 </details>

@@ -11,13 +11,13 @@ summary: >-
   microglia, each with the experiment behind it. Afterwards you can calculate how much a rise in
   extracellular potassium shifts E_K, say which glial functions are established and which are
   still argued, and design a test of whether astrocytes release glutamate.
-hook: "Let potassium pile up outside a busy neuron and E_K can move by more than 30 mV. Who cleans it up?"
+hook: "Let potassium pile up outside neurons during seizure-like firing and E_K can move by more than 30 mV. Who cleans it up?"
 
 estMinutes: 24
 objectives:
   - "Relate each compartment of a mature neuron (dendrites, soma, axon initial segment, axon, terminal) to what it does with a signal, and name the exceptions: dendrites that fire spikes and initiation in the distal initial segment rather than at the hillock."
-  - "Calculate the shift in E_K when extracellular potassium rises, and explain how astrocytes limit it by spatial buffering through Kir4.1 and how they clear glutamate through GLT-1."
-  - "Describe myelin in the CNS and PNS (one Schwann cell per internode; one oligodendrocyte, several internodes), metabolic support of axons through MCT1, and microglial process surveillance, each with the preparation it was shown in."
+  - "Calculate the shift in E_K when extracellular potassium rises, and explain how astrocytes help limit it by spatial buffering through Kir4.1 and by pump uptake, and how they clear glutamate through GLT-1."
+  - "Describe myelin in the CNS and PNS (one Schwann cell per internode; one oligodendrocyte, several internodes), metabolic support of axons (with lactate through MCT1 one proposed route), and microglial process surveillance, each with the preparation it was shown in."
   - "Separate established glial functions from contested ones, and design an experiment that could show whether a subgroup of adult astrocytes releases glutamate that changes transmission."
 
 explainer:
@@ -59,8 +59,8 @@ scientists:
     quotes: []
     story: >-
       Microglia, the immune cells of the brain, were long described as resting in healthy
-      tissue and activated only by injury or disease. Most of that picture came from fixed
-      tissue, which shows a cell's shape at one moment and nothing about how it moves. Axel
+      tissue and activated only by injury or disease. That picture came from fixed
+      tissue, which shows a cell's shape at one moment and nothing about how it moves, and from slices or cultures, whose preparation itself injures the tissue. Axel
       Nimmerjahn, Frank Kirchhoff and Fritjof Helmchen looked instead at living tissue. They used
       two-photon microscopy, which can image fluorescent cells some distance below the surface of
       the brain, and took time-lapse images of microglia in the neocortex of adult mice. The cell
@@ -294,15 +294,15 @@ explainLevels:
       sodium channels set the trigger zone (about 35 µm from the hillock in rat layer 5 pyramidal
       neurons). The axon conducts the spike, saltatorily where myelinated, and calcium entry at
       the terminal triggers vesicle fusion, in under a millisecond at fast synapses. Some
-      dendrites fire spikes of their own. Astrocytes limit extracellular potassium by spatial
-      buffering through Kir4.1 and net uptake by the sodium-potassium ATPase, and clear glutamate
-      mainly through GLT-1. A Schwann cell makes one internode, an oligodendrocyte several;
-      oligodendrocyte MCT1 supports axons metabolically. Microglial processes survey healthy
+      dendrites fire spikes of their own. Extracellular potassium is limited by astrocytic spatial
+      buffering through Kir4.1 and by sodium-potassium ATPases in astrocytes and neurons, in
+      proportions still debated. Astrocytes clear glutamate mainly through GLT-1. A Schwann cell makes one internode, an oligodendrocyte several;
+      oligodendrocytes support axons metabolically, though whether they pass lactate through MCT1 or glucose seems to vary by region. Microglial processes survey healthy
       adult mouse cortex. Fast glutamatergic gliotransmission remains contested.
   - level: "grad"
     label: "Graduate"
     text: >-
-      Most evidence for glial function rests on conditional genetics whose scope is easy to
+      Much of the evidence for the glial functions in this lesson rests on conditional genetics whose scope is easy to
       overread. The Kir4.1 knockout of Djukic and colleagues was developmental and hit
       oligodendrocytes; astrocytic GLT-1 deletion in Petr and colleagues was induced after birth with an inducible Cre; and
       a synaptosome assay weighted the neuronal GLT-1 pool far above its share of protein.
@@ -368,7 +368,7 @@ draft: false
 
 import PotassiumClearanceEk from '../../../components/PotassiumClearanceEk.astro';
 
-**When a small patch of brain fires hard, potassium leaking from its neurons can pile up outside them fast enough to shift E_K by tens of millivolts. Something has to put it back.**
+**When a small patch of brain fires very hard, as in a seizure, potassium leaking from its neurons can pile up outside them fast enough to shift E_K by tens of millivolts. Ordinary firing adds less, but it adds up. Something has to put it back.**
 
 Astrocytes, a kind of glial cell, do a large share of that work. This lesson takes the neuron first, compartment by compartment, then the glial cells that keep it working, and ends by separating what glia are known to do from what is still argued. How these cells were discovered and built belongs to Developmental Neuroscience ([the neuron doctrine](/lessons/neuron-doctrine/), [origins of glia](/lessons/origins-of-glia/)); here you meet them at work in the mature brain.
 
@@ -382,7 +382,7 @@ The **soma**, or cell body, holds the nucleus and most of the machinery that mak
 
 The **axon initial segment** (AIS) is the first stretch of axon, packed with voltage-gated sodium channels. That density makes it the easiest place to reach threshold, so it is where the action potential usually starts. The next section shows where, exactly, in one cell type.
 
-The **axon** carries the spike away, regenerating it as it goes. In mature mouse layer 5 pyramidal neurons, voltage imaging showed the spike propagating saltatorily, from node to node, toward the axon's branches. The axon also carries cargo both ways on microtubule tracks, described in [molecular motors](/lessons/molecular-motors/).
+The **axon** carries the spike away, regenerating it as it goes. In the myelinated axons of mouse layer 5 pyramidal neurons, voltage imaging by Popovic and colleagues (2011) showed the spike propagating saltatorily, from node to node, toward the axon's branches. The axon also carries cargo both ways on microtubule tracks, described in [molecular motors](/lessons/molecular-motors/).
 
 The **terminal** turns the spike back into chemistry. Depolarization opens voltage-gated calcium channels, and calcium entry triggers fusion of transmitter-filled vesicles with the membrane. At fast synapses this release can follow the spike in less than a millisecond, though the delay is not the same at every synapse. [Synaptic transmission](/lessons/synaptic-transmission/) takes this apart.
 
@@ -406,7 +406,7 @@ An **equilibrium potential** is the voltage at which an ion's concentration grad
 
 *Step 1: rest.* With [K+]o = 3 mM, the ratio is 3/140 = 0.0214, and log10(0.0214) = −1.669. So E_K = 61.5 × (−1.669) = −102.6 mV.
 
-*Step 2: after intense firing.* Suppose a small extracellular space reaches 12 mM. The ratio is 12/140 = 0.0857, log10(0.0857) = −1.067, and E_K = −65.6 mV. That is 37.0 mV more positive. A fourfold rise always shifts E_K by 61.5 × log10(4) = 37.0 mV, whatever [K+]i is. The resting potential of a real neuron moves less than E_K, because other ions contribute to it, but it moves the same way, toward threshold.
+*Step 2: after intense firing.* Suppose a small extracellular space reaches 12 mM. That is an extreme case: in cat cortex, even strong repetitive stimulation and seizure-like afterdischarges raised extracellular potassium only to a ceiling of about 10 mM, and ordinary activity raises it much less. At 12 mM the ratio is 12/140 = 0.0857, log10(0.0857) = −1.067, and E_K = −65.6 mV. That is 37.0 mV more positive. A fourfold rise always shifts E_K by 61.5 × log10(4) = 37.0 mV, whatever [K+]i is. The resting potential of a real neuron moves less than E_K, because other ions contribute to it, but it moves the same way, toward threshold.
 
 <PotassiumClearanceEk />
 
@@ -414,7 +414,7 @@ An **equilibrium potential** is the voltage at which an ion's concentration grad
 
 *Step 4: read a real number correctly.* In mouse hippocampal slices, Tyurikova and colleagues (2025) measured the decay of the potassium current recorded in astrocytes after a train of five stimuli at 50 Hz: 1.85 s in control astrocytes and 1.13 s in astrocytes overexpressing Kir4.1. The decay is (1.85 − 1.13)/1.85 = 38.9 percent shorter. That is a property of a current, not a time constant for extracellular potassium, so do not drop it into Step 3.
 
-How do astrocytes do it? In **spatial buffering**, potassium enters an astrocyte where the extracellular concentration is high, travels through it and through the network of astrocytes joined to it by gap junctions, and leaves where the concentration is low. Think of a sponge that soaks up a spill at one end and wrings out at the other. The entry channel is largely Kir4.1, an inwardly rectifying potassium channel. Separately, the sodium-potassium ATPase brings potassium into glia for net uptake. Redistribution and net uptake are distinct mechanisms.
+How do astrocytes do it? In **spatial buffering**, potassium enters an astrocyte where the extracellular concentration is high, travels through it and through the network of astrocytes joined to it by gap junctions, and leaves where the concentration is low. Think of a sponge that soaks up a spill at one end and wrings out at the other. In this model the entry channel is Kir4.1, an inwardly rectifying potassium channel. Separately, sodium-potassium ATPases in astrocytes and in neurons take potassium up. Redistribution and net uptake are distinct mechanisms, and how much each contributes is still debated. In rat hippocampal slices, Kir4.1 buffered potassium while it was rising, and blocking the pumps slowed clearance after stimulation ended.
 
 The genetic evidence comes from the laboratory of Ken McCarthy. Djukic and colleagues deleted Kir4.1 from glia and found that CA1 astrocytes in hippocampal slices from mice 15 to 20 days old took up potassium poorly. They also took up glutamate poorly. That does not mean Kir4.1 carries glutamate: glutamate transport is driven by ion gradients and depends on the astrocyte's voltage, which Kir4.1 helps hold negative. The deletion began in development and also reached oligodendrocytes, so the result cannot be pinned on mature astrocytes alone.
 
@@ -426,9 +426,9 @@ Glutamate, the main fast excitatory transmitter, must be cleared from outside sy
 
 Myelin is not frozen in adults. Hughes and colleagues imaged adult mouse somatosensory cortex for weeks (the sheath-length figure is from mice 10 to 14 months old) and saw newly generated oligodendrocytes add new sheaths, while only about 1 percent of existing sheaths changed length over seven weeks.
 
-Oligodendrocytes also feed axons. Lee and colleagues knocked down the lactate transporter MCT1 in oligodendrocytes of the optic nerve, and the axons were damaged; in slice culture, added lactate prevented injury when MCT1 was blocked and glucose withheld. The fuller story is in [glia as metabolic partners](/lessons/glia-metabolic-partners/).
+Oligodendrocytes also feed axons. Lee and colleagues knocked down the lactate transporter MCT1 in oligodendrocytes of the optic nerve, and the axons were damaged; in slice culture, added lactate prevented injury when MCT1 was blocked and glucose withheld. The fuel may differ by region: in mouse corpus callosum slices, Meyer and colleagues found that oligodendrocytes kept axons working mainly by delivering glucose, and lactate rescued them less well. The fuller story is in [glia as metabolic partners](/lessons/glia-metabolic-partners/).
 
-**Microglia** are the brain's resident immune cells. Using two-photon imaging in healthy adult mouse neocortex, Nimmerjahn, Kirchhoff and Helmchen saw them in their presumed resting state with cell bodies in place but processes that extended and retracted continually, surveying the tissue. Their role in removing synapses during development is told in [microglia and complement pruning](/lessons/microglia-complement-pruning/).
+**Microglia** are the brain's resident immune cells. Using two-photon imaging in healthy adult mouse neocortex, Nimmerjahn, Kirchhoff and Helmchen saw them in their presumed resting state with cell bodies in place but processes that extended and retracted continually, surveying the tissue. Most such imaging has been done in anesthetized mice. In awake mice, Stowell and colleagues found less process surveillance, because noradrenaline acts on β2-adrenergic receptors on microglia. Their role in removing synapses during development is told in [microglia and complement pruning](/lessons/microglia-complement-pruning/).
 
 ## What is still argued: gliotransmission
 
@@ -447,11 +447,11 @@ Do adult hippocampal astrocytes release glutamate that changes synaptic transmis
 
 **Manipulation.** Delete VGLUT1 from astrocytes only in adults, with a tamoxifen-inducible Cre driven by an astrocyte promoter. This avoids a developmental confound and targets the release machinery rather than one calcium pathway.
 
-**Check the deletion.** Confirm that VGLUT1 is lost in astrocytes and that neurons and oligodendrocytes did not recombine. Neurons are full of VGLUT1, so even rare neuronal recombination would wreck the interpretation.
+**Check the deletion.** Confirm that VGLUT1 is lost in astrocytes and that neurons and oligodendrocytes did not recombine. Many excitatory neurons in hippocampus and cortex are full of VGLUT1, so even sparse neuronal recombination could confound the interpretation.
 
-**Measure release and its effect.** Image extracellular glutamate with a fluorescent sensor while recording from CA1 pyramidal neurons in slices: evoked EPSPs, spontaneous events and, if predicted, plasticity. Compare with littermates given tamoxifen but lacking the floxed allele.
+**Measure release and its effect.** A glutamate sensor reports glutamate from any source, so first image it with neuronal firing and synaptic release blocked, to see the astrocyte signal on its own. Then, with transmission intact, record from CA1 pyramidal neurons in slices: evoked EPSPs, spontaneous events and, if predicted, plasticity. Compare with littermates given tamoxifen but lacking the floxed allele.
 
-**Test sufficiency.** In separate animals, drive only astrocytes (for example with a light-gated or chemically gated receptor expressed in them) and ask whether a glutamate signal and a synaptic change appear, and whether they vanish after VGLUT1 deletion.
+**Test sufficiency.** In separate animals, drive only astrocytes (for example with a light-gated or chemically gated receptor expressed in them) and ask whether a glutamate signal and a synaptic change appear, and whether they vanish after VGLUT1 deletion. Check that the deletion did not change glutamate uptake or ion handling, which could explain a loss of signal without any vesicular release.
 
 **State the scope.** A positive result would show that VGLUT1-dependent release from this astrocyte subgroup can change transmission in adult mouse hippocampus under the conditions tested. It would not show that all astrocytes do this, in other regions or species, or that it matters for behaviour. A negative result would hold only for the readouts and activity patterns tested.
 

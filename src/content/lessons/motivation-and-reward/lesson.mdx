@@ -41,7 +41,7 @@ scientists:
       Two mouse mutants studied at the Jackson Laboratory in Maine looked alike: both obese and
       both ate too much. One was called obese (ob), the other diabetes (db). Coleman asked whether
       either lacked something carried in the blood. His method was parabiosis: surgically joining
-      two animals side by side so that a small fraction of their blood is exchanged. When a db/db
+      two animals side by side so that a small fraction of their blood is exchanged. In work first reported with Hummel in 1969, when a db/db
       mouse was joined to a normal mouse, the normal partner ate little and starved, as if it
       were receiving a strong signal to stop eating that the db/db mouse itself ignored. When an
       ob/ob mouse was joined to a normal mouse, the obese partner ate less and gained less weight than an ob/ob mouse joined to another ob/ob mouse, as if
@@ -235,7 +235,7 @@ mcatQuestions:
       After learning, the tone itself is an unpredicted predictor of reward, so the neuron bursts
       at the tone, and when the expected juice fails to arrive the error is negative, so firing
       dips below baseline at the expected time (Mirenowicz and Schultz 1994; Hollerman and Schultz
-      1998). A burst at the juice time with nothing at the tone is the pattern before learning.
+      1998). A burst at the juice time with nothing at the tone is the pattern on rewarded trials before learning; on these probe trials no juice arrives, so there is nothing to burst for.
       A burst at both times would mean the reward was still unpredicted, and there is no reward.
       No change at the tone ignores the transfer of the response to the predictive cue.
   - stem: "Well-fed mice expressing channelrhodopsin in AgRP neurons received 1 minute of light stimulation, which then ended before food was offered for 1 hour. They ate 0.34 ± 0.03 g, while unstimulated mice ate 0.14 ± 0.03 g (mean ± SEM). Which statement best describes the result?"
@@ -249,8 +249,8 @@ mcatQuestions:
       The ratio is 0.34 / 0.14, about 2.4, and since stimulation ended before food appeared, the
       increase shows that brief AgRP activity can leave a drive that persists afterwards (Chen and
       colleagues 2016). The value 0.4 inverts the ratio (0.14 / 0.34) and would be a decrease.
-      Requiring AgRP firing during eating contradicts the design, because the neurons were not
-      stimulated while the mice ate. The value 4.8 doubles the true ratio.
+      The claim that AgRP firing must coincide with eating does not fit, because stimulation
+      ended before food appeared and intake still rose. The value 4.8 doubles the true ratio.
   - stem: "Rats are given a neurotoxin that destroys most forebrain dopamine terminals. Afterwards they do not eat or drink on their own and must be fed by tube. When a sucrose solution is infused into the mouth, they show the same tongue protrusions and lip movements as untreated rats. What do these results suggest?"
     choices:
       - "Dopamine loss makes sucrose taste aversive"
@@ -280,7 +280,7 @@ explainLevels:
       Fat cells release a hormone called leptin. The more fat, the more leptin. A small region at
       the base of the brain, the hypothalamus, reads it: leptin quiets neurons that drive hunger
       and excites neurons that reduce it. Separately, dopamine neurons in the midbrain fire when a
-      reward is better than expected, stop firing for a moment when a reward is worse than
+      reward is better than expected, fire less for a moment when a reward is worse than
       expected, and do little when it is exactly as expected. That pattern is useful for learning.
       Dopamine is tied more closely to wanting a reward than to enjoying it.
   - level: "college"
@@ -303,7 +303,8 @@ explainLevels:
       intragastric nutrients inhibit AgRP neurons within minutes in proportion to calories, while
       leptin changes their population activity over hours (Beutler and colleagues 2017), so leptin
       reads as a slow signal of stored energy rather than a meal-ending signal. AgRP activity is
-      high before a meal and can leave a persistent drive after stimulation ends (Chen and
+      high in energy deficit, falls within seconds when food or a food cue appears, before eating
+      begins, and brief stimulation can leave a persistent drive after it ends (Chen and
       colleagues 2016), and the valence of AgRP activity depends on the paradigm used to test it.
 
       The dopamine prediction error in monkeys fits the temporal-difference error delta(t) = r(t) +
@@ -350,13 +351,13 @@ draft: false
 
 import RewardPredictionErrorTrials from '../../../components/RewardPredictionErrorTrials.astro';
 
-**Switch on one small group of hypothalamic neurons with a pulse of light, and a mouse that has just eaten its fill starts eating again.** Aponte, Atasoy and Sternson reported this in 2011, in well-fed mice whose arcuate AgRP neurons carried a light-gated channel. That one experiment raises the two questions of this lesson. How does the brain register the need for food? And how does it learn which cues and actions lead to food, or to any reward?
+**Switch on one small group of hypothalamic neurons with repeated pulses of light, and a well-fed mouse starts eating within minutes.** Aponte, Atasoy and Sternson reported this in 2011, in well-fed mice whose arcuate AgRP neurons carried a light-gated channel. That one experiment raises the two questions of this lesson. How does the brain register the need for food? And how does it learn which cues and actions lead to food, or to any reward?
 
-## The idea: hunger is read from a hormone, not found in a centre
+## The idea: from feeding centres to a hormone from fat
 
-For decades feeding was explained by two "centres". In rats, Hetherington and Ranson (1940) found that lesions of the ventromedial hypothalamus produced overeating and obesity, and Anand and Brobeck (1951) found that lesions of the lateral hypothalamus stopped animals eating. A lesion destroys everything in one place, including fibres passing through, so these labels described where damage changed feeding, not what the cells there compute. They have been superseded.
+For decades feeding was explained by two "centres". In rats, Hetherington and Ranson (1940) found that lesions of the ventromedial hypothalamus produced overeating and obesity, and Anand and Brobeck (1951) found that lesions of the lateral hypothalamus stopped animals eating. These early lesions destroyed everything in one place, including fibres passing through, so the labels described where damage changed feeding, not what the cells there compute. The idea of single centres has been superseded, although both regions still contain neurons that matter for feeding and body weight.
 
-The better clue came from genetics. Two mouse strains, obese (ob) and diabetes (db), were both obese. Douglas Coleman used **parabiosis**, surgically joining two animals so they exchange some blood. His 1973 reading of the results: an ob/ob mouse lacks a circulating factor that limits eating, and a db/db mouse makes the factor but cannot respond to it. A normal mouse joined to a db/db mouse ate little and starved.
+The better clue came from genetics. Two mouse strains, obese (ob) and diabetes (db), were both obese. Douglas Coleman used **parabiosis**, surgically joining two animals so they exchange some blood. His 1973 reading of the results: an ob/ob mouse lacks a circulating factor that limits eating, and a db/db mouse makes the factor but cannot respond to it. A normal mouse joined to a db/db mouse ate little and starved (Coleman and Hummel, 1969).
 
 Jeffrey Friedman's laboratory found the ob gene by positional cloning (Zhang and colleagues, 1994; the method is in [linkage and mapping](/lessons/linkage-and-mapping/)). Its product, named **leptin**, is a protein of about 16 kDa made by fat and present in mouse and human plasma. Daily injections of recombinant leptin reduced the body weight of ob/ob mice by 30% after two weeks, and did not reduce the weight of db/db mice (Halaas and colleagues, 1995). The db gene turned out to encode the leptin receptor, which signals through the pathway taught in [JAK-STAT signalling](/lessons/jak-stat/).
 
@@ -364,12 +365,12 @@ Think of leptin as a fuel gauge rather than a brake. It reports stored energy. M
 
 ## The idea: two arcuate populations push feeding in opposite directions
 
-The **arcuate nucleus** is a cluster of neurons at the base of the hypothalamus, next to the median eminence, where circulating hormones reach neurons easily (a **nucleus**, in the brain, is a cluster of cell bodies with a shared role; [the hypothalamus lesson](/lessons/hypothalamus-autonomic/) maps the region). Two intermingled populations there matter most.
+The **arcuate nucleus** is a cluster of neurons at the base of the hypothalamus, next to the median eminence, where circulating hormones reach neurons easily (a **nucleus**, in the brain, is a cluster of cell bodies with a shared role; [the hypothalamus lesson](/lessons/hypothalamus-autonomic/) maps the region). Two intermingled populations there are the best studied. They act on downstream targets such as the paraventricular nucleus and work alongside other hypothalamic and brainstem neurons.
 
 - **AgRP neurons** make agouti-related peptide, coexpress neuropeptide Y (NPY), and release GABA. AgRP is an antagonist of the melanocortin-4 receptor (MC4R).
 - **POMC neurons** make pro-opiomelanocortin, which is cleaved into alpha-MSH, an agonist at MC4R (a G-protein-coupled receptor; see [GPCRs and G proteins](/lessons/gpcrs-and-g-proteins/)). Alpha-MSH acting on MC4R reduces feeding.
 
-Leptin acts on both. In recordings from identified POMC neurons in mouse brain slices, leptin depolarized the cells through a nonspecific cation conductance and reduced their inhibitory input from local NPY/GABA neurons (Cowley and colleagues, 2001).
+Leptin acts on both. In recordings from identified POMC neurons in mouse brain slices, leptin depolarized the cells through a nonspecific cation conductance and reduced their inhibitory input from local NPY/GABA neurons (Cowley and colleagues, 2001). Neither population carries leptin's effect alone: deleting leptin receptors from POMC neurons causes only mild obesity, and deleting them from both AgRP and POMC neurons still leaves part of the response, so other leptin-sensitive neurons share the work (Balthasar and colleagues, 2004; van de Wall and colleagues, 2008).
 
 Now read the manipulations by what each can show. Exciting AgRP neurons with channelrhodopsin (20 Hz, 10 ms light pulses) was **sufficient** to evoke feeding in well-fed mice. It still evoked feeding in Ay mice, whose melanocortin receptors are already blocked, so AgRP neurons do not act only by opposing alpha-MSH. Prolonged POMC stimulation reduced intake, and that effect required melanocortin signalling (Aponte and colleagues, 2011). For **necessity**, Luquet and colleagues (2005) killed AgRP neurons with diphtheria toxin: adult mice rapidly starved, while ablation in newborn mice had minimal effects on feeding, which suggests that developing circuits compensate.
 
@@ -394,7 +395,7 @@ Here V is the cue's learned value, r the reward, and alpha (between 0 and 1) the
 3. Trial 3: delta = 1 - 0.51 = 0.49. New V = 0.51 + 0.30 x 0.49 = 0.657.
 4. The error left after n trials is 0.7 to the power n, so V = 1 - 0.7^n. After nine trials, V = 1 - 0.040 = 0.96.
 
-The error at the reward shrinks as the cue's value grows. In the temporal-difference reading, the cue itself arrives unpredicted, so the error at the cue grows toward V: the burst moves from reward to cue, as in the monkeys. Now omit the reward after long training, with V about 0.95: delta = 0 - 0.95 = -0.95, the dip at the expected time. An unpredicted reward (V = 0) gives +1.
+The error at the reward shrinks as the cue's value grows. The Rescorla-Wagner rule works trial by trial and has no time within a trial, so it cannot move the error to the cue. In the temporal-difference reading, the cue itself arrives unpredicted, so the error at the cue grows toward V: the burst moves from reward to cue, as in the monkeys. Now omit the reward after long training, with V about 0.95: delta = 0 - 0.95 = -0.95, the dip at the expected time. An unpredicted reward (V = 0) gives +1.
 
 <RewardPredictionErrorTrials />
 
@@ -413,7 +414,7 @@ Express channelrhodopsin in VTA dopamine neurons of rats carrying Cre under the 
 
 Controls: rats without the opsin given the same light; opsin rats stimulated at times unpaired with reward; and the probe test of X alone, without stimulation.
 
-Limits: this shows that an imposed burst is enough in these rats under this pattern. It does not show that natural bursts are needed (that requires silencing dopamine neurons at the expected reward), and it says nothing about pleasure.
+Limits: this shows that an imposed burst is enough in these rats under this pattern. It does not show that natural bursts are needed (that requires silencing dopamine neurons at an unexpected reward, when a natural burst would occur, and showing that learning then fails), and it says nothing about pleasure.
 
 </details>
 
@@ -421,7 +422,7 @@ Limits: this shows that an imposed burst is enough in these rats under this patt
 
 A common shortcut treats dopamine as the brain's signal for pleasure. The evidence separates two things. **Wanting**, or incentive salience, is the motivational pull of a reward and its cues. **Liking** is the hedonic impact of the reward itself (Berridge and Robinson, 1998).
 
-Liking can be measured in animals through **taste reactivity**: tongue protrusions to sweet, gapes to bitter, scored from video. Rats whose forebrain dopamine was depleted with a neurotoxin stopped seeking food yet kept normal positive reactions to sugar in the mouth. In the other direction, mice with dopamine transporter (DAT) expression at about 10% of normal, and about 70% more extracellular striatal dopamine, reached sweet food sooner in a runway, because they paused less (their running speed itself did not differ), but showed no increase in liking reactions to sucrose (Peciña and colleagues, 2003). Excess dopamine raised wanting, not liking. A lifelong mutation is not an acute drug, and a mouse's facial reaction is not a human report, so keep the scope.
+Liking can be measured in animals through **taste reactivity**: tongue protrusions to sweet, gapes to bitter, scored from video. Rats whose forebrain dopamine was depleted with a neurotoxin stopped seeking food yet kept normal positive reactions to sugar in the mouth. In the other direction, mice with dopamine transporter (DAT) expression at about 10% of normal, and about 70% more extracellular striatal dopamine, reached sweet food sooner in a runway, because they paused less (their running speed itself did not differ), but showed no increase in liking reactions to sucrose (Peciña and colleagues, 2003). In these tests, excess dopamine raised wanting, not liking. A lifelong mutation is not an acute drug, and a mouse's facial reaction is not a human report, so keep the scope. The wanting reading is also debated: other researchers explain the same dopamine results as changes in willingness to work or in learning. In Berridge's account, liking depends instead on small opioid and endocannabinoid hotspots in the nucleus accumbens and ventral pallidum (Berridge and Kringelbach, 2015).
 
 ## The idea: in addiction, wanting can grow while liking does not
 

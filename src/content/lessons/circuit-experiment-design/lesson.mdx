@@ -44,7 +44,7 @@ scientists:
       desensitized during continuous light to a smaller steady-state conductance. In 2005 Boyden,
       Zhang, Bamberg, Nagel and Deisseroth put that channel into cultured rat hippocampal neurons
       with a lentivirus and recorded what light did to spiking: control on the millisecond
-      timescale. That 2005 paper contained no behaviour and no animal. Other groups were
+      timescale. That 2005 paper tested neurons cultured from newborn rats, with no intact animal and no behaviour in it. Other groups were
       expressing the channel in neurons around the same period, so there is no single inventor of
       neuronal optogenetics and no useful "first" to award. What the 2005 result made possible is
       specific and large: once you can time spikes in chosen cells, you can ask whether that
@@ -58,14 +58,14 @@ scientists:
     quotes: []
     story: >-
       A region label is a poor experimental specification. The basolateral amygdala sends axons to
-      several targets, and a cell body sits upstream of all of them, so stimulating the region
+      several targets, and each cell body sits upstream of its own targets, so stimulating the region
       cannot tell you which output mattered. Tye and colleagues moved the manipulation to the
       terminals: they illuminated basolateral-amygdala projections in the central amygdala of
       freely moving mice. Activating those terminals acutely reduced anxiety-related behaviour,
       and inhibiting them with eNpHR3.0 increased it. A control group carrying only a fluorescent
       protein received the same illumination. Then they added the step that turns a correlation of
       light with behaviour into a claim about synaptic transmission: blocking glutamate receptors
-      locally in the central amygdala abolished the light-induced reduction. The design is now the
+      locally in the central amygdala abolished the light-induced reduction. The design is an early
       template for projection-specific work, and it is also the example to copy when you are asked
       what your manipulation actually names.
   - name: "Scott Marek"
@@ -114,7 +114,7 @@ structures: []
 simulations:
   - type: "local"
     ref: "PilotEffectSizeSampler"
-    title: "Small pilots overestimate"
+    title: "Selected pilots overestimate"
     caption: >-
       Draw 200 invented two-group pilots at a chosen true effect and group size, and watch how often they reach p < 0.05, what the planning formula asks for, and how pilots picked for follow-up overestimate d.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
@@ -202,7 +202,7 @@ mcatQuestions:
       deviation, giving 1.0, and 2 times 2.80 squared divided by 1.0 is 15.7, which rounds up to 16
       animals per group. Four would follow from an effect twice as large as the one estimated.
       Sixty-three is the answer for a standardized effect of 0.5, which is what a planner should
-      worry about because small pilots tend to overestimate. The largest value corresponds to a
+      worry about because effects selected from small pilots tend to be overestimates. The largest value corresponds to a
       still smaller effect.
   - stem: "A paper reports a correlation of 0.35 between a resting-state connectivity measure and a symptom score in 25 patients, and calls it a candidate biomarker. The standard error of the Fisher-transformed correlation is 1 divided by the square root of (n minus 3). Which statement is best supported?"
     choices:
@@ -317,21 +317,21 @@ draft: false
 
 import PilotEffectSizeSampler from '../../../components/PilotEffectSizeSampler.astro';
 
-**Illuminate the dorsal striatum of a mouse that carries no opsin at all, and its firing rate falls and it starts turning to one side.** Owen, Liu and Kreitzer reported that in 2019, in vivo and ex vivo, in wild-type animals. If light alone can do that, then your light-on versus light-off comparison was never a comparison between activity and no activity. It was a comparison between light and no light, in animals that happened to express an opsin.
+**Illuminate the dorsal striatum of a mouse that carries no opsin at all, keeping the light on at a power people routinely use, and its firing rate falls. Illuminate one side in a freely moving mouse and it starts turning toward the lit side.** Owen, Liu and Kreitzer reported that in 2019, in vivo and ex vivo, in wild-type animals. If light alone can do that, then your light-on versus light-off comparison was never a comparison between activity and no activity. It was a comparison between light and no light, in animals that happened to express an opsin.
 
 This lesson is about the gap between those two statements, and about the rest of what keeps a causal claim honest: which controls, which sample size, which experimental unit, and how far a human imaging association can be pushed.
 
 ## The idea: a manipulation answers what a recording cannot
 
-Most of this course has rested on measurement. A recording, an imaging signal or a lesion association tells you that activity goes with a behaviour. None of them tells you whether the activity produces it. The [attention and decisions](/lessons/attention-and-decisions/) lesson gives a case: choice-related activity in LIP that reversible inactivation showed was not needed for the choice under the conditions tested.
+Most of this course has rested on measurement. A recording or an imaging signal tells you that activity goes with a behaviour. Neither tells you whether the activity produces it. A lesion is a different kind of evidence: it tests what is lost when tissue is damaged, which speaks to necessity, but it carries its own problems of lesion extent, connected networks and compensation. The [attention and decisions](/lessons/attention-and-decisions/) lesson gives a case: choice-related activity in LIP that reversible inactivation showed was not needed for the choice under the conditions tested.
 
 Changing the activity on purpose tests the causal question, and it splits into two questions that are easy to confuse.
 
 A **gain-of-function** manipulation drives the activity and asks whether it is sufficient to produce a specified behavioural change under the tested conditions. A **loss-of-function** manipulation suppresses the activity and asks whether it is necessary for that behaviour under the same conditions. Both conclusions are narrow by construction: they hold for the cells you targeted, the time window you illuminated and the assay you scored. A partial reduction in behaviour when you silence a population is evidence that the population contributes, not that it is required.
 
-The tool that made this routine has two separate histories. In 2003 Nagel, Bamberg and colleagues characterized channelrhodopsin-2 as a directly light-switched, cation-selective channel in Xenopus oocytes and in mammalian cells, and reported that it desensitizes in continuous light to a smaller steady-state conductance. In 2005 Boyden, Zhang, Bamberg, Nagel and Deisseroth expressed it with a lentivirus in cultured rat hippocampal neurons and showed reliable millisecond-timescale control of spiking. That 2005 paper had no animal and no behaviour in it; it was a tool demonstration in a dish. The channel's gating and ion selectivity belong to [ion channels as receptors](/lessons/ion-channels-as-receptors/) in the signaling course, and restricting expression to one cell type relies on genetic targeting; for how genes are manipulated at all, see [CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/).
+The tool that made this routine has two separate histories. In 2003 Nagel, Bamberg and colleagues characterized channelrhodopsin-2 as a directly light-switched, cation-selective channel in Xenopus oocytes and in mammalian cells, and reported that it desensitizes in continuous light to a smaller steady-state conductance. In 2005 Boyden, Zhang, Bamberg, Nagel and Deisseroth expressed it with a lentivirus in cultured rat hippocampal neurons and showed reliable millisecond-timescale control of spiking. That 2005 paper had no intact animal and no behaviour in it; it was a tool demonstration in a dish of neurons cultured from newborn rats. The channel's gating and ion selectivity belong to [ion channels as receptors](/lessons/ion-channels-as-receptors/) in the signaling course, and restricting expression to one cell type relies on genetic targeting; for how genes are manipulated at all, see [CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/).
 
-A usable causal claim names four things: the cells, the projection, the timing and the behaviour. Tye and colleagues did this in 2011 in freely moving mice. Rather than illuminate the basolateral amygdala, which drives all of its outputs at once, they illuminated its terminals in the central amygdala. Activating those terminals acutely reduced anxiety-related behaviour; inhibiting them with eNpHR3.0 increased it. You met those structures in [emotion and stress](/lessons/emotion-and-stress/).
+A usable causal claim names four things: the cells, the projection, the timing and the behaviour. Tye and colleagues did this in 2011 in freely moving mice. Rather than illuminate the basolateral amygdala, where one light spot recruits cells with several different targets at once, they illuminated its terminals in the central amygdala. Activating those terminals acutely reduced anxiety-related behaviour; inhibiting them with eNpHR3.0 increased it. Illuminating the cell bodies instead did the opposite of terminal activation: open-arm time fell, an anxiogenic effect. Where the light went changed the answer. You met those structures in [emotion and stress](/lessons/emotion-and-stress/).
 
 ## Controls that make a light experiment mean something
 
@@ -339,9 +339,9 @@ The minimum design is a two-by-two: construct crossed with light. Opsin plus lig
 
 Three failure modes of the manipulation deserve checks rather than assumptions. Long channelrhodopsin-driven depolarization can suppress spikes through depolarization block, so driving harder can silence the cell you meant to drive. Anion-conducting silencers can excite neurons when internal chloride is high, as in some axonal compartments. And abruptly ending a period of silencing can produce rebound firing, so the window after the light is part of the result. Each is a reason to validate the physiology in your own preparation, with recordings during and after the light, rather than infer it from the construct's name.
 
-For a projection claim there is a further problem. Light at a terminal field can also excite axons passing through, and can drive the parent cell bodies, so "I illuminated terminals" is not yet "transmission at this synapse mattered". Blocking receptors locally at the terminal field is the test that closes that gap: in Tye and colleagues' mice, blocking glutamate receptors locally in the central amygdala abolished the light-induced reduction in anxiety-related behaviour.
+For a projection claim there is a further problem. Light at a terminal field can also excite axons passing through, and can drive the parent cell bodies, so "I illuminated terminals" is not yet "transmission at this synapse mattered". Blocking receptors locally at the terminal field is the test that narrows that gap: in Tye and colleagues' mice, blocking glutamate receptors locally in the central amygdala abolished the light-induced reduction in anxiety-related behaviour.
 
-Then the ordinary hygiene, which is where published work most often fails. Verify expression and fibre placement blind to group. Randomize allocation, counterbalance the order of repeated conditions, define exclusions in advance, and score behaviour blind. Add an off-window illumination condition if the claim is about timing, and a locomotor control if a motor explanation is available.
+Then the ordinary hygiene, which published work very often reports incompletely. Verify expression and fibre placement blind to group. Randomize allocation, counterbalance the order of repeated conditions, define exclusions in advance, and score behaviour blind. Add an off-window illumination condition if the claim is about timing, and a locomotor control if a motor explanation is available.
 
 ## Effect size, power and the experimental unit
 
@@ -355,11 +355,11 @@ For 80 percent power at a two-sided alpha of 0.05, the sample size per group for
 
 > **n per group = 2 (1.96 + 0.84)^2 / d^2**
 
-With d = 1.0 that is 2 × 7.84 / 1 = 15.7, so 16 animals per group, or about 17 once you allow for using a t distribution rather than a normal one. Now ask the question a planner must ask: what if the true effect is half the pilot estimate? At d = 0.5 the same formula gives 15.7 / 0.25 = 62.8, so 63 animals per group. A small pilot is a biased estimate of its own effect, because a pilot that happened to overshoot is the one that gets followed up. Power your confirmatory study on the smallest effect you would care about, not on the pilot.
+With d = 1.0 that is 2 × 7.84 / 1 = 15.7, so 16 animals per group, or about 17 once you allow for using a t distribution rather than a normal one. Now ask the question a planner must ask: what if the true effect is half the pilot estimate? At d = 0.5 the same formula gives 15.7 / 0.25 = 62.8, so 63 animals per group. A small pilot gives an imprecise estimate, and the pilots that happen to overshoot are the ones that get followed up, so the effects carried into confirmatory studies tend to be overestimates. Power your confirmatory study on the smallest effect you would care about, not on the pilot.
 
 <PilotEffectSizeSampler />
 
-The n in all of this counts experimental units, and reporting guidelines ask you to say what the unit is: an animal, a litter or a cage. If you illuminate eight mice for 40 trials each, you do not have 320 independent observations. You have eight animals with trials nested inside them, and the analysis has to carry that nesting. Inflating the unit is the quickest way to a significant result that will not replicate.
+The n in all of this counts experimental units, and reporting guidelines ask you to say what the unit is: an animal, a litter or a cage. If you illuminate eight mice for 40 trials each, you do not have 320 independent observations. You have eight animals with trials nested inside them, and the analysis has to carry that nesting. Inflating the unit underestimates the real variability, which is an easy route to a significant result that will not replicate.
 
 ## Why small human samples mislead
 
@@ -367,7 +367,7 @@ Human work substitutes a different measurement with different limits. The conven
 
 Size and sampling are the second limit. In Marek and colleagues' rigorously denoised analysis of 3,928 ABCD participants, the median absolute univariate brain-wide association with behaviour was 0.01, and the largest univariate correlation that replicated out of sample had an absolute value of 0.16. Replication rates improved as samples grew into the thousands, and resampling showed that independent subsamples of 25 people could support opposite conclusions about the same association. Elliott and colleagues, pooling 90 task-fMRI experiments and 1,008 participants, reported a mean test-retest intraclass correlation of 0.397, which matters because an individual-level biomarker needs stable individual rankings, not a strong group average.
 
-Keep the scope. This is about brain-wide association studies of individual differences. It is not a verdict that imaging is unreliable, and it does not set a minimum sample for every within-subject design, where each person is their own comparison. Work on study design since has shown that sampling scheme, and keeping within-person change separate from between-person differences, change the effect sizes you can detect at a given sample size.
+Keep the scope. This is about brain-wide association studies of individual differences. It is not a verdict that imaging is unreliable, and it does not set a minimum sample for every within-subject design, where each person is their own comparison. The same paper reports larger associations for functional than structural measures, for cognitive tests than questionnaires, and for multivariate than univariate methods, so the numbers above are the univariate floor rather than the ceiling. Work since has shown that sampling scheme, the reliability of the behavioural measure, and keeping within-person change separate from between-person differences all change the effect sizes you can detect at a given sample size.
 
 Here is the precision calculation to run before trusting an association. Suppose the true correlation is 0.10, which is the order of magnitude Marek and colleagues report. Using the Fisher transformation (atanh, the inverse hyperbolic tangent), the sample size needed for 80 percent power at a two-sided alpha of 0.05 is:
 
@@ -382,9 +382,9 @@ A paper reports the following. Twenty patients and twenty controls are scanned. 
 <details>
 <summary>One way to do it</summary>
 
-Start by separating three claims the paper runs together: an association in humans, a prediction target, and a causal intervention in mice. A cross-sectional scan plus an acute mouse assay licenses no statement about the mechanism of a human disorder.
+Start by separating three claims the paper runs together: an association in humans, a prediction target, and a causal intervention in mice. A cross-sectional scan plus an acute mouse assay can suggest a mechanism, but it does not establish the mechanism of a human disorder.
 
-On the human side: prespecify the imaging target, or validate it in an independent sample. Do feature selection and model tuning inside the training folds only, since choosing the strongest relationship from all the data and then cross-validating it reports a number that has already seen the answer. Split by person, never by scan, so no participant appears in both training and evaluation. Report the effect size and its uncertainty rather than a p value, and measure the test-retest reliability of the specific variable you propose as a marker. Forty participants cannot resolve an association of the size this literature reports, so either join a large cohort or reframe the study as a within-person design. Check the alternatives that diagnosis is confounded with: medication, head motion, and how the two groups were recruited.
+On the human side: prespecify the imaging target, or validate it in an independent sample. Do feature selection and model tuning inside the training folds only, since choosing the strongest relationship from all the data and then cross-validating it reports a number that has already seen the answer. Split by person, never by scan, so no participant appears in both training and evaluation. Report the effect size and its uncertainty, not a p value alone, and measure the test-retest reliability of the specific variable you propose as a marker. Forty participants cannot resolve an association of the size this literature reports, so either join a large cohort or reframe the study as a within-person design. Check the alternatives that diagnosis is confounded with: medication, head motion, and how the two groups were recruited.
 
 On the mouse side: add the opsin-negative arm and make the contrast light-by-construct, because light alone changes firing and behaviour. Verify expression and fibre placement blind, and verify the physiology during and after illumination, including the offset. Run both arms, activation for sufficiency and silencing for necessity, in the same prespecified window. If the claim is projection-specific, block transmission locally at the terminal field. Randomize allocation, blind the scoring, define exclusions in advance, and analyze trials nested within animals with the animal as the unit.
 
