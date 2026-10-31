@@ -11,7 +11,7 @@ summary: >-
   build, and explains how sliding filaments shorten a muscle. Afterwards you can read a gliding
   movie, turn trap data into a step rate, a force and an efficiency, and predict how sarcomere
   bands change.
-hook: "One kinesin molecule moves in 8-nanometre steps and spends one ATP on each. How was that measured?"
+hook: "A motor protein turns ATP into steps along a track, and every track has a direction. Which motors walk which way, and how do we know?"
 
 estMinutes: 24
 objectives:
@@ -227,19 +227,14 @@ practiceQuestions:
       tightly bound, the rigor state. Heads carrying ADP and phosphate are the cocked heads that
       exist only after ATP has been bound and split. Cycling needs ATP for every turn. A head with
       no nucleotide does not float free; it binds actin tightly.
-  - stem: "In a reconstitution of human dynein with dynactin, an adaptor that recruits one dynein is swapped for one that recruits two. What does the 2019 study suggest you should predict?"
+  - stem: "In reconstitution experiments, what turns purified human cytoplasmic dynein into a fast, processive motor?"
     choices:
-      - "Speed doubles, since each dynein adds steps"
-      - "Nothing changes, since dynactin sets both"
-      - "Force rises, while speed depends on the adaptor"
-      - "Force falls, since two dyneins pull apart"
-    answer: 2
-    rationale: >-
-      Recruiting a second dynein raised force, but speed was not set by motor number; it depended
-      on the adaptor and on how the packed dynein tails interact. Speed doubling assumes that
-      motors on one cargo add their speeds, which they do not. Force falling assumes the two
-      dyneins oppose each other, which the study did not find. Dynactin is needed for activation,
-      but the adaptor changes both motor number and speed, so the complex does change.
+      - "Binding dynactin together with an activating adaptor, a protein that also binds the cargo"
+      - "Binding kinesin-1, which carries dynein toward the plus end"
+      - "Hydrolysing two ATP per step, which doubles its step size"
+      - "Binding the barbed end of an actin filament, which switches its track"
+    answer: 0
+    rationale: "Dynein becomes a fast, processive motor when it binds dynactin and an activating adaptor such as BICD2, BICDR1 or HOOK3; the adaptor also binds cargo, linking motor to load. Kinesin-1 is a separate plus-end motor and is not what activates dynein in these experiments. Nothing in the reconstitution doubles the ATP cost per step. Dynein walks on microtubules, not actin, and a barbed end belongs to actin."
 
 mcatQuestions:
   - stem: "A bead carried by one motor protein is held in an optical trap of stiffness 0.08 pN/nm. The motor walks along its track in 8-nm steps until it stalls with the bead 60 nm from the trap centre. What is the stall force, and how much work does the motor do in one step against that force?"
@@ -377,9 +372,9 @@ draft: false
 import KinesinTrapReader from '../../../components/KinesinTrapReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A single kinesin molecule, carried on a bead and set on a microtubule in a dish, moves in jumps of 8 nanometres. At low load it spends one ATP per jump, and it takes about 100 jumps before it lets go.**
+**Motor proteins are enzymes that turn ATP hydrolysis into steps along actin filaments or microtubules. Cells use them to carry cargo, pull chromosomes apart and contract muscle, and each motor walks in a direction set by its track and its own design.**
 
-Those numbers come from purified proteins in vitro, and they show what a motor protein is: an enzyme that turns ATP hydrolysis into steps along a track. Cells use motors to carry cargo, pull chromosomes apart and contract muscle. This lesson asks three things. Which motors walk on which tracks, and which way? How do you watch one molecule step? And how do millions of motors shorten a muscle when no filament gets shorter?
+The clearest picture of one motor comes from purified proteins in vitro. A single kinesin molecule, carried on a bead and set on a microtubule in a dish, moves in jumps of 8 nanometres. At low load it spends one ATP per jump, and it takes about 100 jumps before it lets go. This lesson asks three things. Which motors walk on which tracks, and which way? How do you watch one molecule step? And how do millions of motors shorten a muscle when no filament gets shorter?
 
 ## The idea: three families, two tracks, a direction per motor
 
@@ -389,7 +384,7 @@ Think of trains on one-way rails: each rail has a built-in direction, and each t
 - **Kinesins** walk on microtubules. Conventional kinesin (kinesin-1) moves toward the plus end, so it carries cargo outward. Not all do: ncd, a kinesin-related protein from fruit flies, moves toward the minus end in vitro.
 - **Dyneins** walk on microtubules toward the minus end, so cytoplasmic dynein carries cargo inward. In a nerve cell it brings signals from the axon tip back to the cell body, as in [the lesson on the retrograde signal](/lessons/retrograde-signal/) and [long-distance signaling in neurons](/lessons/long-distance-signaling-in-neurons/).
 
-So the family tells you the track but not always the direction. Direction has to be measured for each motor; a few yeast kinesin-5 motors even switch direction with conditions.
+So the family tells you the track but not always the direction. Direction has to be measured for each motor.
 
 Step size also belongs to each motor, and to the conditions of the measurement. A bead carried by one kinesin advances 8 nm per step. Purified myosin V advances about 36 nm. Human dynein bound to dynactin and an adaptor, imaged without load at low ATP, took forward steps anywhere from 8 to 32 nm and often stepped backward or sideways.
 
@@ -401,7 +396,7 @@ What sets step size? In myosin V, the head is followed by a stiff neck, the leve
 
 Kinesin was found by asking what moves organelles along nerve axons. In 1985 Ronald Vale, Thomas Reese and Michael Sheetz partly purified a protein from squid giant axons and optic lobes that moved microtubules, and named it kinesin. Scott Brady reported a candidate motor fraction from chick brain the same year.
 
-The **gliding assay** turns the experiment upside down. Stick motors by their tails to a coverslip, add fluorescent filaments and ATP, and watch with a fluorescence microscope ([microscopy lesson](/lessons/microscopy-and-images/)). The motors cannot move, so the filament does. Each motor walks toward its preferred end, which pushes the filament the other way, so a plus-end motor fixed to glass drives its microtubule minus end first. In 1986 Stephen Kron and James Spudich used this setup with fluorescent actin over myosin. Filaments moved only with ATP. Rabbit skeletal muscle myosin moved them at 3 to 4 µm per second, myosin from the amoeba *Dictyostelium* at 1 to 2.
+The **gliding assay** turns the experiment upside down. Stick motors by their tails to a coverslip, add fluorescent filaments and ATP, and watch with a fluorescence microscope ([microscopy lesson](/lessons/microscopy-and-images/)). The motors cannot move, so the filament does. Each motor walks toward its preferred end, which pushes the filament the other way, so a plus-end motor fixed to glass drives its microtubule minus end first. In 1986 Stephen Kron and James Spudich used this setup with fluorescent actin over myosin, and the filaments moved only with ATP.
 
 <LessonFigure src="/figures/molecular-motors/gliding-assay-frames.webp" width={1200} height={800} alt="AI-generated illustration: four kinesin motors fixed by their tails to a glass coverslip push a microtubule to the left, minus end first, while a small inset shows one free kinesin walking right along a fixed microtubule." caption="In a gliding assay the motors are stuck to glass and cannot move, so the filament does. A plus-end motor fixed to glass drives its microtubule minus end first; the same motor free on a fixed track walks toward the plus end." />
 
@@ -424,13 +419,13 @@ These data are made up, though in the range of real measurements. A bead carried
 
 <KinesinTrapReader />
 
-A second caution: do not combine numbers from different experiments. In a 1994 trap study, one muscle myosin moved its actin filament about 11 nm at low load and pulled with 3 to 4 pN when held still. Those came from two loading conditions, so multiplying them does not give the work of one stroke. A 1995 trap study of a single myosin head put the working stroke nearer 4 nm, so 11 nm belongs to that preparation, not to the stroke itself.
+A second caution: do not combine numbers from different experiments. Each number belongs to the preparation and loading condition that measured it.
 
 ## Teams and adaptors: dynein-dynactin
 
 Cytoplasmic dynein is built differently. Its motor is a ring of six AAA+ ATPase domains, with a long stalk that reaches the microtubule. In reconstitution experiments, purified human dynein becomes a fast, processive motor when it binds a second large complex, dynactin, together with an activating adaptor, a protein that also binds cargo (BICD2, BICDR1 and HOOK3 are examples).
 
-The adaptor also biases how many motors ride together. In a 2018 study of human dynein with pig brain dynactin, electron microscopy and single-molecule studies showed that the adaptors BICDR1 and HOOK3 mostly recruited two dynein dimers, and those complexes produced more force and moved faster. Does the second dynein cause the extra speed? A 2019 study separated the two effects: adding a second dynein raised force but did not by itself set velocity, which depended on the adaptor and on how the closely packed dynein tails interact. In that system, a second dynein clearly bought pull; any effect on speed depended on the adaptor.
+The adaptor also biases how many motors ride together. In a 2018 study of human dynein with pig brain dynactin, electron microscopy and single-molecule studies showed that the adaptors BICDR1 and HOOK3 mostly recruited two dynein dimers, and those complexes produced more force and moved faster. A 2019 study separated the two effects: adding a second dynein raised force but did not by itself set velocity, which depended on the adaptor and on how the closely packed dynein tails interact. In that system, a second dynein clearly bought pull; any effect on speed depended on the adaptor.
 
 Teams can also pull against each other: when many kinesins drove one microtubule in a 2019 in vitro assay, about a third were slowing it. In cells, many cargoes carry both kinesin and dynein, and how a cargo settles on a direction is still being worked out.
 
@@ -464,3 +459,17 @@ Confirm in the other frame. Fix marked microtubules to the surface and add beads
 Controls: no ATP should stop movement, and so should the non-hydrolysable analogue AMP-PNP if the motor behaves like kinesin, which AMP-PNP locks onto the microtubule; a chamber with no motor should give no movement; conventional kinesin in a side-by-side chamber should glide microtubules minus end first, which checks your marking. Score many microtubules, not a few, and report the fraction moving each way.
 
 </details>
+
+## Going deeper
+
+### A motor whose direction can switch
+
+A few yeast kinesin-5 motors even switch direction with conditions. Family membership therefore does not fix direction, and why some motors reverse in the cell is not fully resolved.
+
+### Gliding speeds
+
+Rabbit skeletal muscle myosin moved fluorescent actin filaments at 3 to 4 µm per second, and myosin from the amoeba Dictyostelium at 1 to 2 µm per second (Kron and Spudich, 1986).
+
+### Two myosin numbers that do not multiply
+
+In a 1994 trap study, one muscle myosin moved its actin filament about 11 nm at low load and pulled with 3 to 4 pN when held still. Those came from two loading conditions, so multiplying them does not give the work of one stroke. A 1995 trap study of a single myosin head put the working stroke nearer 4 nm, so 11 nm belongs to that preparation, not to the stroke itself.

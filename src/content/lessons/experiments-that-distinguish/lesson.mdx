@@ -4,13 +4,8 @@ slug: "experiments-that-distinguish"
 course: "cell-biology"
 courseChapter: "Cell Biology · Unit 1: Seeing and testing cells"
 order: 403
-summary: >-
-  How do you find out where an enzyme lives, in what order a protein visits the compartments of a
-  cell, and whether a protein causes the defect you see when it is lost? This lesson reads three
-  kinds of evidence: a fractionation table, a pulse-chase time course, and a perturbation with
-  rescue. Afterwards you can calculate enrichment and recovery, say what a time course can and
-  cannot show, and design controls that tell two competing models apart.
-hook: "A pellet named 'mitochondria' is never only mitochondria. How do you find out what is really in it?"
+summary: "How do you find out where an enzyme lives, in what order a protein visits the compartments of a cell, and whether a protein causes the defect you see when it is lost? This lesson reads three kinds of evidence: a fractionation table, a pulse-chase time course, and a perturbation with rescue. Each answers one kind of question and is easily pushed to answer another. Afterwards you can calculate enrichment and recovery, say what a time course can and cannot show, and design controls that tell two competing models apart."
+hook: "Where does a protein live, in what order does it travel, and does it cause the defect you see? Each question needs a different experiment, and a pellet named 'mitochondria' is never only mitochondria."
 
 estMinutes: 24
 objectives:
@@ -226,20 +221,14 @@ practiceQuestions:
       construct can fail or mislead, and expression level must be checked, not relied on. A
       construct that drew the shRNA away would need to be a target, which is the opposite of what
       the silent changes do.
-  - stem: "Zebrafish carrying a premature stop codon in gene G look normal, but knockdown of G gives a strong defect. Related genes are expressed more in the mutants. Which allele best tests whether the mutant mRNA's decay triggers this compensation?"
+  - stem: "Pancreatic slices are pulse-labelled and then chased. Label is found first in rough microsomes, then in smooth microsomes identified with the Golgi complex, and then in the zymogen-granule fraction. What does this time course show?"
     choices:
-      - "An allele that adds a fluorescent tag to the end of the mutant protein"
-      - "A second allele with a different premature stop codon in the same gene"
-      - "An allele that overexpresses the related genes from a strong promoter"
-      - "An allele that deletes the promoter so that no mutant mRNA is produced"
-    answer: 3
-    rationale: >-
-      If decay of the mutant mRNA sets off the rise in related genes, an allele that makes no mRNA
-      at all should lose the rise and show the defect; El-Brolosy and colleagues reported that
-      pattern in selected zebrafish and mouse models. A second stop codon might also make a
-      decaying mRNA, so it is a less direct test; El-Brolosy found that some stop alleles escaped decay. A fluorescent tag on a protein that is not made reports
-      nothing about the trigger. Overexpressing the related genes asks whether they can compensate,
-      not what turns them on.
+      - "Newly made protein moves between compartments only by budding and fusing vesicles"
+      - "The order of compartments is ER, then Golgi, then granules, but not how the protein moves between them"
+      - "The granule fraction makes the protein and sends it back to the endoplasmic reticulum"
+      - "The route cannot be known unless protein synthesis is also blocked"
+    answer: 1
+    rationale: "A pulse-chase gives the order in which one labelled batch visits compartments. The same order fits vesicles that bud and fuse, and it also fits compartments that mature into one another, so it does not choose between them. The protein is made on the ER, not in granules, so the reverse direction is wrong. Blocking synthesis is a separate test of whether newly made protein is pushed along by later protein; it is not needed to read the order."
 
 mcatQuestions:
   - stem: "In a made-up experiment, a liver homogenate contains 200 mg protein and 800 units of an enzyme. After centrifugation, one fraction contains 8 mg protein and 240 units of the enzyme, and all fractions together contain 800 units. What are the enzyme's relative specific activity and recovery in that fraction?"
@@ -384,7 +373,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1955 a group in Louvain proposed a new organelle, the lysosome, from numbers in a table of centrifuge fractions, before anyone could say what it looked like.**
 
-They broke rat liver, spun it into five fractions, and measured enzymes in every one. One enzyme, acid phosphatase, did not quite travel with the mitochondria: it peaked in a lighter fraction. That table, and the reasoning applied to it, is the subject of this lesson. A cell cannot be watched doing everything at once, so cell biologists take it apart, follow a batch of molecules through it, or remove one part and see what fails. Each approach answers one kind of question and is easily pushed to answer another. Here you will learn which question each one answers.
+They broke rat liver, spun it into five fractions, and measured enzymes in every one. One enzyme, acid phosphatase, did not quite travel with the mitochondria: it peaked in a lighter fraction. That table is the first of three kinds of evidence in this lesson. A cell cannot be watched doing everything at once, so cell biologists ask three different questions, and each needs its own experiment. Where does a protein live? Break the cell apart and read a fractionation table. In what order does it visit compartments? Label one batch and follow it in a pulse-chase. Does it cause the defect you see when it is lost? Remove it, then put it back in a rescue experiment. Each approach is easily pushed to answer a question it cannot, so what you learn here is which question each one answers.
 
 ## The idea: a cell is tested by breaking it carefully
 
@@ -436,11 +425,11 @@ Here is a made-up data set for rat liver, invented for teaching. Each row gives 
 
 A fractionation table is a snapshot. To learn the order in which a protein visits compartments, you need to label one batch of it and follow that batch. This is a **pulse-chase**: give cells radioactive amino acid for a short time (the pulse), then flood them with the unlabelled amino acid (the chase), so that only proteins made during the pulse are labelled.
 
-In 1967 James Jamieson and George Palade did this with slices of guinea pig pancreas, whose acinar cells make large amounts of digestive enzymes for export. After a three-minute pulse of carbon-14 leucine, label was in the rough microsomes, the ribosome-studded ER fragments. Smooth microsomes, which these experiments identified as the peripheral elements of the Golgi complex, peaked at seven minutes of chase. Later the label reached the zymogen-granule fraction, the storage granules that release enzyme from the cell.
+In 1967 James Jamieson and George Palade did this with slices of guinea pig pancreas, whose acinar cells make large amounts of digestive enzymes for export. After a three-minute pulse of carbon-14 leucine, label was in the rough microsomes, the ribosome-studded ER fragments. Smooth microsomes, which these experiments identified as the peripheral elements of the Golgi complex, held the label next. Later the label reached the zymogen-granule fraction, the storage granules that release enzyme from the cell.
 
 <LessonFigure src="/figures/experiments-that-distinguish/pulse-chase-order.webp" width={1200} height={672} alt="AI-generated illustration: three frames of a pancreatic cell; labelled protein is first in rough ER during the pulse, then in Golgi vesicles during the chase, then in zymogen granules." caption="A short pulse tags one batch of protein; after the chase begins, where that batch sits tells you the order of compartments, though not how it moves between them." />
 
-Two cautions came from the same work. First, the granule fraction was half-maximally labelled at 17 minutes, but when Jamieson and Palade examined that pellet by autoradiography, the early label sat largely in condensing vacuoles of the Golgi complex that sediment with granules. In intact cells, labelled mature granules appeared at the earliest at 57 minutes. A labelled pellet dates the label's arrival in the pellet, not in the organelle it is named for. Second, in 1968 they added cycloheximide, a drug that blocks protein synthesis, at 0.5 mM during a 37-minute chase. Synthesis fell by up to 98%, yet transport continued with about 80% of the control efficiency. Newly made protein is not pushed along by the protein made after it, at least over that interval and in that tissue.
+Two cautions came from the same work. First, the granule fraction was half-maximally labelled at 17 minutes, but when Jamieson and Palade examined that pellet by autoradiography, the early label sat largely in condensing vacuoles of the Golgi complex that sediment with granules. In intact cells, labelled mature granules appeared at the earliest at 57 minutes. A labelled pellet dates the label's arrival in the pellet, not in the organelle it is named for. Second, in 1968 they added cycloheximide, a drug that blocks protein synthesis, during the chase. Synthesis fell sharply, yet transport continued at a large fraction of the control efficiency. Newly made protein is not pushed along by the protein made after it, at least over the chase interval and in that tissue.
 
 What a pulse-chase cannot show is how the protein moves. The order ER, then Golgi, then granules fits vesicles budding and fusing, and it also fits compartments that mature into one another. The full secretory story belongs to the [lesson on the secretory pathway](/lessons/secretory-pathway/).
 
@@ -451,9 +440,9 @@ Localization and timing show that a protein is in the right place at the right t
 The tools come from other courses. RNA interference uses a short RNA, delivered as an siRNA or made inside the cell as an shRNA, to guide destruction of a matching mRNA, reducing the protein. CRISPR uses the nuclease Cas9 and a guide RNA to cut a gene. Error-prone repair of the cut usually breaks the gene, but some edits leave in-frame or partial protein, so loss of the protein must be checked. Both are taught in the [lesson on CRISPR and functional genomics](/lessons/crispr-and-functional-genomics/), and building rescue constructs in the [lesson on recombinant DNA](/lessons/recombinant-dna-and-pcr/). Drugs are faster still, as the [lesson on drugs against a part](/lessons/drugs-against-a-part/) shows.
 
 Each tool has its own way of misleading.
-- **RNAi has off-target effects.** In HeLa-cell profiling, unintended targets were enriched for 3′ untranslated regions matching positions 2 to 7 of the guide strand. The answer is a second shRNA against a different part of the same mRNA, and above all **rescue**: a construct whose mRNA carries silent mutations, synonymous codon changes that the shRNA cannot pair with, while the protein stays the same.
-- **Drugs can hit more than their target.** OTS167 was described as an inhibitor of the kinase MELK. In 2017 Ann Lin, Jason Sheltzer and colleagues made MELK-null breast cancer clones by CRISPR; the clones grew well in their assays and were still sensitive to OTS167 (mean GI50, the concentration that halves growth, in Cal51 cells: 10 nM with control guides and 11 nM with MELK guides). Another group later found MELK dependency in MDA-MB-231 cells in a low-density colony assay, so whether those cells need MELK is still debated.
-- **Knockouts can be compensated.** In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes, and alleles that made no mRNA at all lacked this response (El-Brolosy and colleagues, 2019). A mild knockout phenotype does not prove the gene unimportant.
+- **RNAi has off-target effects.** A short stretch of the guide strand can match, and silence, unintended mRNAs. The answer is a second shRNA against a different part of the same mRNA, and above all **rescue**: a construct whose mRNA carries silent mutations, synonymous codon changes that the shRNA cannot pair with, while the protein stays the same.
+- **Drugs can hit more than their target.** OTS167 was described as an inhibitor of the kinase MELK. In 2017 Ann Lin, Jason Sheltzer and colleagues made MELK-null breast cancer clones by CRISPR; the clones grew well in their assays and were still sensitive to OTS167. Whether those cells need MELK depends on the assay and is still debated.
+- **Knockouts can be compensated.** In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes, and alleles that made no mRNA at all lacked this response. A mild knockout phenotype does not prove the gene unimportant.
 
 The cleanest test of mechanism is a **separation-of-function mutant**, one that keeps one activity of a protein and loses another. Stephen Royle, Nicholas Bright and Leon Lagnado found in 2005 that depleting clathrin heavy chain in HEK293 cells prolonged mitosis. Clathrin also coats endocytic vesicles, so the defect could have been indirect. Full-length shRNA-resistant clathrin rescued mitosis; the N-terminal fragment did not. In 2006 Royle and Lagnado reported that a shortened construct partly rescued mitosis while failing to support transferrin uptake, the standard readout of clathrin-mediated [endocytosis](/lessons/endocytosis/). A protein that cannot do one job but can partly do the other argues that the two jobs are separate.
 
@@ -475,3 +464,17 @@ Now separate the models. Score every condition for two things: time in mitosis (
 Do not decide on localization. Seeing C on the spindle fits Model 1 but does not exclude Model 2; a fragment can reach the spindle and still fail to rescue. This is the logic of Royle's clathrin experiments: full-length rescue, failed fragments, and a construct that separated the mitotic and endocytic readouts.
 
 </details>
+
+## Going deeper
+
+### The pulse-chase numbers
+
+In the Jamieson and Palade pancreas experiments, smooth microsomes peaked at seven minutes of chase. In the 1968 experiment, cycloheximide was added at 0.5 mM during a 37-minute chase. Synthesis fell by up to 98%, yet transport continued with about 80% of the control efficiency.
+
+### The MELK numbers and the dispute
+
+In Cal51 cells the mean GI50, the concentration that halves growth, was 10 nM with control guides and 11 nM with MELK guides. Another group later found MELK dependency in MDA-MB-231 cells in a low-density colony assay, so whether those cells need MELK is still debated.
+
+### RNAi off-targets and compensation in detail
+
+In HeLa-cell profiling, unintended targets were enriched for 3′ untranslated regions matching positions 2 to 7 of the guide strand. In selected zebrafish and mouse models, decay of a mutant mRNA switched on related genes, and alleles that made no mRNA at all lacked this response (El-Brolosy and colleagues, 2019).

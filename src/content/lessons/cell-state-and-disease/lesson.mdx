@@ -4,14 +4,7 @@ slug: "cell-state-and-disease"
 course: "cell-biology"
 courseChapter: "Cell Biology · Unit 5: Cells in tissues"
 order: 425
-summary: >-
-  How do you tell what kinds of cells a tissue holds, and when has a tissue stopped holding its
-  balance? This lesson shows how single-cell RNA sequencing turns cells into a table of counts,
-  why a cluster can be a cell type, a passing state or an artifact, and how lineage tracing and
-  perturbation test what a description can only suggest. It ends with normal tissue full of mutant clones
-  and the cell behaviours that decide which clones win. Afterwards you can separate a change in
-  composition from a change in regulation, and design an experiment that tells faster division
-  from altered daughter fate.
+summary: "A tissue is not one average. It is a mixture of cell types, each in a state that can change, and single-cell RNA sequencing is how you see the mixture by turning cells into a table of counts. This lesson shows why a cluster can be a cell type, a passing state or an artifact, and how lineage tracing and perturbation test what a description can only suggest. It ends with normal tissue full of mutant clones and the cell behaviours that decide which clones win. Afterwards you can separate a change in composition from a change in regulation, and design an experiment that tells faster division from altered daughter fate."
 hook: "Most of the lining of an older person's healthy oesophagus can carry a mutation found in cancer. Why is it still healthy?"
 
 estMinutes: 24
@@ -267,19 +260,14 @@ mcatQuestions:
       contradicted by the many caspase-negative cells. Necrosis from release damage is not
       tested by the staining; a viability test of the extruded cells would be
       needed to address it.
-  - stem: "In a simple model of a progenitor pool, each division gives two progenitors (PP), one progenitor and one differentiating cell (PD), or two differentiating cells (DD). A mutation shifts the probabilities from 0.25, 0.50 and 0.25 to 0.30, 0.50 and 0.20, with no change in cycle time and no cell death. Starting from 1,000 progenitors, how many progenitors are expected after two synchronous rounds of division?"
+  - stem: "In a single-cell RNA-seq count matrix, what does one entry record?"
     choices:
-      - "1,200, because PP rose by 0.05 and DD fell by 0.05"
-      - "1,100, because each round adds 0.10 per cell once"
-      - "1,210, because each progenitor makes 1.1 on average"
-      - "1,000, because the PD probability did not change"
-    answer: 2
-    rationale: >-
-      Expected progenitors per division are m = 2 x p(PP) + p(PD) = 0.60 + 0.50 = 1.1, so two
-      rounds give 1,000 x 1.1 x 1.1 = 1,210. Keeping the count at 1,000 ignores the shift from DD
-      to PP. Adding 0.10 per cell only once counts one round of growth instead of compounding two.
-      Treating the 0.05 shifts as adding 200 cells confuses probability changes with the
-      expected number of progenitors produced.
+      - "The number of RNA molecules (or reads) counted for one gene in one cell"
+      - "The fraction of the tissue's cells that express one gene"
+      - "The amount of protein made from one gene in one cell"
+      - "The position of one cell along an inferred pseudotime path"
+    answer: 0
+    rationale: "The count matrix has one row per gene and one column per cell, and each entry is the number of molecules (or reads) counted for that gene in that cell. The fraction of cells expressing a gene is something you compute from the matrix, not an entry in it. RNA counts do not measure protein, which is why CITE-seq adds antibodies. Pseudotime is a position assigned later by software, not a count."
 
 explainLevels:
   - level: "eli5"
@@ -375,7 +363,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In middle-aged and elderly organ donors with healthy oesophagus, cells carrying a NOTCH1 mutation made up an estimated 12 to 80% of the lining.**
 
-NOTCH1 mutations also turn up in oesophageal cancers. Yet this tissue looked normal under the microscope, and in that 2018 study the mutations were more common in normal tissue than in tumours. So a cancer-associated mutation did not make the tissue malignant. To see why, you need two skills. First, telling what kinds of cells a tissue holds, and what condition each is in. Second, telling what a cell does from what it merely looks like. This lesson builds both, then returns to the oesophagus.
+A tissue is not one average. It is a mixture of cell types, each in a state that can change, and single-cell RNA sequencing is how you see the mixture. A cluster in such data is a hypothesis about a type, a state or an artifact, to be tested with lineage tracing and perturbation, not read off the plot. NOTCH1 mutations also turn up in oesophageal cancers. Yet this tissue looked normal under the microscope, and in that 2018 study the mutations were more common in normal tissue than in tumours. So a cancer-associated mutation did not make the tissue malignant. To see why, you need those two skills: telling what kinds of cells a tissue holds, and what condition each is in, and telling what a cell does from what it merely looks like. This lesson builds both, then returns to the oesophagus.
 
 ## From a tissue to a count matrix
 
@@ -400,9 +388,9 @@ So a cluster is an observation to explain, not a type by definition. Six things 
 - **Batch effects.** Samples handled on different days or by different hands can differ for technical reasons and cluster apart.
 - **Dissociation stress.** Breaking up a tissue can perturb cell state before the RNA is captured.
 - **Resolution.** A clustering parameter sets the scale. Turn it up and one type can split into states, or into groups that are only noise; turn it down and distinct types merge.
-- **Circular marker testing.** If you cluster on the expression data and then test the same data for genes that differ between clusters, the P values are too small, because the clusters were drawn to differ. Markers also depend on what else is in the data set.
+- **Circular marker testing.** If you cluster on the expression data and then test the same data for genes that differ between clusters, the support is exaggerated. Check markers with independent evidence. Markers also depend on what else is in the data set.
 
-The 2016 melanoma study of Tirosh and colleagues shows the payoff when this is done with care. Among 4,645 cells from 19 patients' tumours, malignant cells within one tumour differed in programmes associated with the cell cycle, a state rather than a separate cancer type.
+The 2016 melanoma study of Tirosh and colleagues shows the payoff when this is done with care. Malignant cells within one tumour differed in programmes associated with the cell cycle, a state rather than a separate cancer type.
 
 ## Bulk averages hide composition
 
@@ -461,3 +449,13 @@ If mutants cycle faster, the EdU pulse labels more mutant basal cells. If they b
 A simple model shows why fate alone is enough. Expected progenitors per division are m = 2 x p(PP) + p(PD). Balanced outcomes of 0.25, 0.50 and 0.25 give m = 0.50 + 0.50 = 1.0. Biased outcomes of 0.35, 0.50 and 0.15 give m = 0.70 + 0.50 = 1.2. Starting from 100 progenitors with no death, three generations give 100 x 1.2 x 1.2 x 1.2 = 172.8 expected progenitors, with no change in cycle time. The published mouse result matched the fate answer: expansion without a higher division rate.
 
 </details>
+
+## Going deeper
+
+### Why circular testing inflates P values
+
+If you cluster on the expression data and then test the same data for genes that differ between clusters, the P values are too small, because the clusters were drawn to differ.
+
+### The melanoma data set
+
+In the 2016 melanoma study of Tirosh and colleagues, the analysis covered 4,645 cells from 19 patients' tumours. Malignant cells within one tumour differed in programmes associated with the cell cycle, a state rather than a separate cancer type.

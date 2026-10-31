@@ -24,7 +24,7 @@ explainer:
   src: "/explainers/nuclear-architecture-condensates/explainer.mp4"
   captions: "/explainers/nuclear-architecture-condensates/explainer.vtt"
   poster: "/explainers/nuclear-architecture-condensates/poster.jpg"
-  title: "Change the Amount, Watch the Bodies"
+  title: "A Nucleus Without Walls"
   durationSec: 178.4
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
@@ -226,36 +226,25 @@ practiceQuestions:
       refill after bleaching, which is why recovery is consistent with a droplet without proving
       one. FRAP works in the nucleus as well as the cytoplasm. Recovery needs exchange with the
       surroundings, which a membrane would slow, so it does not require one.
-  - stem: "In the first study of mice lacking the Neat1 gene, the animals had no paraspeckles yet were viable and fertile under laboratory conditions. What is the most defensible conclusion?"
+  - stem: "In a mammalian nucleolus, which part is rich in nucleophosmin (NPM1) and is where ribosomal subunits are assembled before export?"
     choices:
-      - "Paraspeckles must form without NEAT1 in other species"
-      - "Paraspeckles are needed only in cells that lack NEAT1_2"
-      - "Paraspeckles have no function in any tissue of the mouse"
-      - "Paraspeckles are not needed for survival under those conditions"
-    answer: 3
-    rationale: >-
-      The knockout shows only that paraspeckles are dispensable for survival and apparent fertility under
-      the conditions tested, so the narrower statement is the key. It does not show that they have
-      no function, since a role under stress or in particular cells could be missed, and later work found defects in pregnancy and lactation. Nothing in a
-      mouse knockout says paraspeckles form without NEAT1 in other species. Prominent
-      paraspeckles occur in cells that strongly express NEAT1_2, the reverse of a need in cells
-      that lack it.
+      - "The granular component"
+      - "The fibrillar centre"
+      - "The dense fibrillar component"
+      - "The Cajal body"
+    answer: 0
+    rationale: "The outer granular component is rich in NPM1 and is where ribosomal subunits are assembled before export. The fibrillar centre holds the rDNA and the RNA polymerase I machinery. The dense fibrillar component, rich in fibrillarin, is where newly made pre-rRNA begins to be processed. A Cajal body is a separate nuclear body marked by coilin, not a part of the nucleolus."
 
 mcatQuestions:
-  - stem: "In a made-up data set, a nuclear protein is expressed in a cultured cell line at a total nuclear concentration of 7 μM. Assume it forms one dense phase at 52 μM in coexistence with a dilute phase held at its saturation concentration of 2 μM. What fraction of the nuclear volume do the dense bodies occupy?"
+  - stem: "A Hi-C map is made from a large population of cultured human cells. Chromatin segments in one compartment contact one another far more often than they contact segments in the other compartment. Which interpretation is best supported by Hi-C maps of this kind?"
     choices:
-      - "About 4 percent"
-      - "About 74 percent"
-      - "About 13 percent"
-      - "About 10 percent"
-    answer: 3
-    rationale: >-
-      Mass balance gives c_total = c_sat(1 − φ) + c_dense(φ), so φ = (7 − 2)/(52 − 2) = 5/50 =
-      0.10, about 10 percent. About 13 percent comes from dividing the total by the dense
-      concentration, 7/52, which forgets the protein left in the dilute phase. About 74 percent is
-      the fraction of the protein that sits in the dense phase, 52 × 0.10 / 7, not the fraction of
-      the volume. About 4 percent comes from dividing the saturation concentration by the dense
-      concentration, 2/52, which has no meaning here.
+      - "Open, gene-rich, mostly active chromatin tends to sort apart from closed, mostly quiet chromatin, on average across the cells"
+      - "A membrane separates the two compartments in every cell, so they never touch"
+      - "The map shows where each region sits inside one individual nucleus"
+      - "The compartment of closed, quiet chromatin is the open one, and the compartment of open chromatin is the closed one"
+    answer: 0
+    rationale: "Hi-C reports how often two regions are near each other, averaged over millions of cells, and the 2009 maps showed that open and closed chromatin segregate into two genome-wide compartments (A, open and mostly active; B, closed and mostly quiet). It does not show that a membrane divides them, it does not give positions in one nucleus (single-cell versions do), and the choice that swaps open and closed has the labels reversed."
+
   - stem: "A researcher bleaches the left half of a large nuclear body and follows three signals. Over the next minute the bleached half regains 30% of its lost fluorescence, the unbleached right half loses a similar amount, and the nucleoplasm next to the body does not change. Which interpretation fits these data best?"
     choices:
       - "Molecules cross the edge of the body faster than they mix inside"
@@ -377,13 +366,13 @@ draft: false
 import CondensateLeverRule from '../../../components/CondensateLeverRule.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A human nucleus is only several micrometres across and holds roughly two metres of DNA, but it has no membrane-bound compartments inside it, and it is still not a uniform soup.** Chromosomes keep to their own regions. Ribosomal subunits are built mainly in one place, splicing factors gather in others. So what holds things apart when there are no walls? This lesson separates the parts of that answer that are well supported from the parts that are still argued over.
+**A human nucleus is only several micrometres across and holds roughly two metres of DNA, but it has no membrane-bound compartments inside it, and it is still not a uniform soup.** Chromosomes keep to their own regions, and open, active chromatin sorts apart from closed, quiet chromatin. Membraneless bodies concentrate the machinery for particular jobs: the nucleolus builds ribosomal subunits, and other bodies gather splicing and RNA-processing components. So what holds things apart when there are no walls? One proposal, phase separation, may explain some of the bodies and makes predictions you can test. This lesson separates the parts of the answer that are well supported from the parts that are still argued over.
 
 ## Chromosomes keep to territories, mostly
 
 During mitosis each chromosome is a compact rod. Afterwards it partly unpacks, but it does not spread through the whole nucleus. When whole chromosomes are labelled with fluorescent DNA probes, a method called chromosome painting, each one fills a region of its own, a **chromosome territory**. The DNA is packed as **chromatin**, DNA wound on histone proteins, and how tightly it is packed affects whether its genes are used, a topic covered in [that lesson](/lessons/eukaryotic-regulation/).
 
-Picture balls of yarn packed in a box. Each ball keeps its own space, but where two balls press together, loose loops of one poke into the other. Whether territories really work that way was hard to see, because a conventional light microscope blurs everything below a few hundred nanometres, as explained in [that lesson](/lessons/microscopy-and-images/). In 2006 Miguel Branco and Ana Pombo cut fixed human lymphocytes, activated with phytohemagglutinin, into frozen sections about 150 nm thick before painting them. The thin section removes most of the blur from above and below. Neighbouring territories overlapped at their edges, and how much two chromosomes overlapped correlated with how often that pair takes part in translocations measured in human lymphocytes after ex vivo irradiation. That is a correlation, not proof that overlap causes any given translocation.
+Picture balls of yarn packed in a box. Each ball keeps its own space, but where two balls press together, loose loops of one poke into the other. Whether territories really work that way was hard to see, because a conventional light microscope blurs everything below a few hundred nanometres, as explained in [that lesson](/lessons/microscopy-and-images/). In 2006 Miguel Branco and Ana Pombo painted thin frozen sections of fixed human lymphocytes. The thin section removes most of the blur from above and below. Neighbouring territories overlapped at their edges, and how much two chromosomes overlapped correlated with how often that pair takes part in translocations measured in human lymphocytes after ex vivo irradiation. That is a correlation, not proof that overlap causes any given translocation.
 
 <LessonFigure src="/figures/nuclear-architecture-condensates/thin-section-territories.webp" width={1200} height={678} alt="AI-generated illustration: a nucleus with three painted chromosome territories whose edges interleave, cut by a thin frozen section, with an inset contrasting a blurred whole-nucleus edge against a sharp thin-section edge." caption="Each chromosome fills a territory, but where two meet, loops of one poke into the other. A frozen section about 150 nm thick removes most of the blur, so the overlap can be seen." />
 
@@ -397,7 +386,7 @@ A **nuclear body** is a region of the nucleoplasm where particular molecules are
 
 Smaller bodies sit in the nucleoplasm around it. You can learn them by what they hold.
 
-- **Nuclear speckles** are enriched in pre-mRNA splicing factors. Immunofluorescence usually shows about 20 to 50 per nucleus in mammalian cells, and their contents exchange with the surrounding nucleoplasm. In mouse embryonic stem cells, genes near speckles showed more co-transcriptional splicing than genes farther away, and in human HEK293T cells, tethering a reporter pre-mRNA to speckles increased its splicing. Splicing itself is covered in [that lesson](/lessons/rna-processing/).
+- **Nuclear speckles** are enriched in pre-mRNA splicing factors. Their contents exchange with the surrounding nucleoplasm. In mouse embryonic stem cells, genes near speckles showed more co-transcriptional splicing than genes farther away, and in human HEK293T cells, tethering a reporter pre-mRNA to speckles increased its splicing. Splicing itself is covered in [that lesson](/lessons/rna-processing/).
 - **Cajal bodies** are marked by the protein coilin and contain components of the small nuclear ribonucleoproteins (snRNPs) that splice pre-mRNA. In an engineered mammalian cell system, tethering Cajal-body components to chromatin was enough to start apparently functional Cajal bodies from scratch.
 - **PML bodies** are built from the PML protein. In cultured mammalian cells and mouse experiments, oxidation drove PML to multimerize and nucleate the bodies, which then enhanced stress-induced SUMO modification of partner proteins held inside them. The name comes from promyelocytic leukaemia, in which a fusion of PML with a retinoic acid receptor is associated with disrupted bodies.
 - **Paraspeckles** are built on a long noncoding RNA, NEAT1. Mice lacking Neat1 have no paraspeckles yet were reported viable and fertile in the laboratory. Later work found defects in pregnancy and lactation, so the bodies are not needed for survival under those conditions, which is not the same as doing nothing.
@@ -433,7 +422,7 @@ Treat the result with care. A protein that fails this test may still phase separ
 
 Many early claims rested on three observations, and none of them separates the models. Round shapes and fusion arise for any soft body pulled by surface forces, and clusters on chromatin can look the same. FRAP, recovery of fluorescence after photobleaching (see [that lesson](/lessons/membrane-organization-topology/)), measures turnover: molecules that bind and unbind fixed sites also refill a bleached spot. And 1,6-hexanediol, an alcohol thought to weaken hydrophobic contacts, at 5% for 5 minutes strongly suppressed chromatin motion in live HeLa cells. A body that dissolves in it has not been shown to be a liquid.
 
-Heterochromatin shows why the system matters. Purified Drosophila HP1a demixed in the test tube, and HP1a foci in early Drosophila embryos looked liquid-like, with mature domains proposed to contain liquid and stable parts. In mouse fibroblasts, by contrast, chromocentres, dense clusters of heterochromatin, behaved like collapsed chromatin globules rather than HP1 liquid pools. Purified mouse HP1α mixed with DNA turned turbid, reaching half-maximal turbidity at 45 μM untagged and 23 μM with a GFP tag. Those are test-tube numbers, not saturation concentrations in a cell, and they show that the tag alone can shift the result. Neither study speaks for all heterochromatin.
+Heterochromatin shows why the system matters. Purified Drosophila HP1a demixed in the test tube, and HP1a foci in early Drosophila embryos looked liquid-like, with mature domains proposed to contain liquid and stable parts. In mouse fibroblasts, by contrast, chromocentres, dense clusters of heterochromatin, behaved like collapsed chromatin globules rather than HP1 liquid pools. Purified mouse HP1α mixed with DNA turned turbid in the test tube, and a GFP tag alone shifted the result, so test-tube numbers are not saturation concentrations in a cell. Neither study speaks for all heterochromatin.
 
 The threshold test has its own catch. In engineered Corelet experiments in living cells, local capture of a protein on a seed triggered phase separation below the global concentration needed for it, so if chromatin acts as a seed in the same way, a body could form on it where the average level looks too low.
 
@@ -451,3 +440,17 @@ None of the three observations is diagnostic. Roundness, fusion and FRAP recover
 Instead, tag X at its endogenous locus so its own gene sets its level, and check that the tag does not change its amount or behaviour. Raise and lower that level and measure concentrations inside and outside the foci, testing for a threshold and a buffered dilute phase as in the worked problem. Use half-body FRAP to ask whether X mixes inside a focus faster than it crosses the edge. Make a mutant that keeps DNA binding but loses its multivalent region, and see whether foci and transcription change together. Finally, test transcription separately from assembly, with a control that moves the same genes to or from the foci by another route, much as Bhat and colleagues tethered a reporter pre-mRNA to speckles to test splicing. Only then can you ask whether the foci themselves, rather than protein X alone, are needed.
 
 </details>
+
+## Going deeper
+
+### The thin-section experiment on territories
+
+Branco and Pombo (2006) used fixed human lymphocytes activated with phytohemagglutinin, cut into frozen sections about 150 nm thick before painting them.
+
+### How many speckles
+
+Immunofluorescence usually shows about 20 to 50 nuclear speckles per nucleus in mammalian cells.
+
+### The HP1α turbidity numbers
+
+Purified mouse HP1α mixed with DNA turned turbid, reaching half-maximal turbidity at 45 μM untagged and 23 μM with a GFP tag. These are in vitro values.

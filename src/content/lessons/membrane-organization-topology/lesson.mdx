@@ -11,11 +11,11 @@ summary: >-
   never flips it, and how to read a photobleaching experiment for mobile fraction, half-time and
   diffusion coefficient. Afterwards you can predict where a protein's ends and sugars will sit in
   any compartment of the secretory and endocytic pathways, and say what is and is not known about lipid rafts.
-hook: "The outer half of a red blood cell's membrane carries about 1.6 double bonds per phospholipid. The inner half carries about 3.4. Who keeps them apart?"
+hook: "A membrane has two faces that differ in their lipids and in the parts of each protein they carry. Who builds that difference, and why does vesicle traffic never flip it?"
 
 estMinutes: 24
 objectives:
-  - "Explain lipid asymmetry in the human erythrocyte membrane and how ATP-driven flippases maintain it while scramblases, which use no energy, collapse it."
+  - "Explain that a membrane has two chemically different faces, and how ATP-driven flippases maintain lipid asymmetry in the plasma membrane (as in the human erythrocyte) while scramblases, which use no energy, collapse it."
   - "Classify a membrane protein as single-pass type I or type II, multipass or GPI-anchored, using the rule that the lumen of the ER, Golgi or an endosome is topologically equivalent to the outside of the cell."
   - "Calculate a mobile fraction, a recovery half-time and an approximate diffusion coefficient from FRAP data, stating the model the calculation assumes."
   - "Predict the orientation of a protein and its glycans after it moves between compartments by vesicle traffic, and describe what is still argued about lipid rafts."
@@ -379,9 +379,7 @@ draft: false
 import FrapCurveReader from '../../../components/FrapCurveReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Digest away the outer leaflet's lipids of a human red blood cell and analyse what is left, and the two halves of its membrane turn out to be different. The outer half's phospholipids carry about 1.6 double bonds each, the inner half's about 3.4.**
-
-That measurement, made in 2020 on intact human erythrocytes, is one recent addition to an old finding: a cell membrane is not the same on both sides. Its lipids differ between the halves, and so do the parts of every protein it carries. The cell spends energy to keep it that way, and it moves membrane from compartment to compartment without ever turning it inside out. This lesson asks three questions. Who puts lipids where? Which way does a protein face, and why does traffic never flip it? And how do you measure how fast molecules move within the plane of the membrane?
+**A cell membrane has two different faces, and the cell spends energy to keep them different.** Its two layers of lipid carry different lipids, and every membrane protein sits with some parts on the cytosolic side and others on the far side. Pumps build the lipid difference, and scramblases can erase it on cue, for example to put phosphatidylserine on the surface of an activated platelet, where it supports blood clotting. Vesicles carry membrane from compartment to compartment without ever turning it inside out, so a protein's two sides stay as they were first set. This lesson asks three questions. Who puts lipids where? Which way does a protein face, and why does traffic never flip it? And how do you measure how fast molecules move within the plane of the membrane?
 
 ## The idea: a membrane has two different faces
 
@@ -393,14 +391,14 @@ Every membrane in the cell therefore has two faces. For the plasma membrane and 
 
 ## Asymmetry: who puts lipids where
 
-In human erythrocytes, studies summarized in a recent review place phosphatidylserine (PS) and phosphatidylethanolamine (PE) mainly in the cytoplasmic leaflet, and phosphatidylcholine (PC) and sphingomyelin mainly in the outer leaflet. Lorent and colleagues added the unsaturation numbers above. These are erythrocyte numbers. Other cells and organelles have their own, less completely measured.
+In human erythrocytes, studies summarized in a recent review place phosphatidylserine (PS) and phosphatidylethanolamine (PE) mainly in the cytoplasmic leaflet, and phosphatidylcholine (PC) and sphingomyelin mainly in the outer leaflet. These are erythrocyte findings. Other cells and organelles have their own, less completely measured. A 2020 study of intact erythrocytes also found that the two halves differ in how unsaturated their lipid tails are; the numbers are in Going deeper.
 
 Left alone, a phospholipid moves between leaflets slowly, on a scale of hours or longer for most species. That slowness lets asymmetry last, but something has to create it. Two classes of protein matter most here, and they act in opposite directions. A third class, floppases, uses ATP to move some lipids outward; ABC transporters appear to do this job.
 
-- **Flippases** use ATP to move chosen lipids, chiefly PS and PE, from the outer to the cytoplasmic leaflet, against their gradient. Most are P4-type ATPases. In a haploid genetic screen in human cells, Segawa and colleagues found ATP11C and its partner CDC50A required for this inward movement.
+- **Flippases** use ATP to move chosen lipids, chiefly PS and PE, from the outer to the cytoplasmic leaflet, against their gradient. Most are P4-type ATPases; in human cells, ATP11C with its partner CDC50A is one example.
 - **Scramblases** let lipids cross in both directions down their gradients and, unlike flippases, generally need no energy input. Switching one on collapses asymmetry far faster than spontaneous flip-flop would.
 
-TMEM16F is the best-studied calcium-activated scramblase. Alvadia and colleagues purified the mouse protein and showed that, in artificial vesicles, it scrambled both labelled PS and labelled PE when calcium was added. Its activity can expose PS on the surface of activated platelets, where the negatively charged lipid supports blood clotting. A different route exposes PS on dying cells, where it serves as a signal for engulfment; that pathway belongs to [death receptors, BCL-2 and caspases](/lessons/death-receptors-bcl2-caspases/).
+TMEM16F is the best-studied calcium-activated scramblase. Its activity can expose PS on the surface of activated platelets, where the negatively charged lipid supports blood clotting. A different route exposes PS on dying cells, where it serves as a signal for engulfment; that pathway belongs to [death receptors, BCL-2 and caspases](/lessons/death-receptors-bcl2-caspases/).
 
 So plasma-membrane asymmetry is a steady state: pumps push one way, slow leakage and regulated scramblases push the other. The ER membrane is thought to be much closer to symmetric, because lipids there are largely scrambled between the leaflets. Cholesterol, which flips quickly, is a harder case, and how it divides between the leaflets of the plasma membrane is still argued.
 
@@ -458,7 +456,7 @@ Two cautions. The formula assumes a circular, instantaneous bleach; a scanning c
 
 Recovery is also not always free diffusion. The plasma membrane has **domains**, regions that differ in composition or mobility. Tight junctions separate apical from basolateral membrane in epithelia. In a FRAP study of cholera toxin B on cultured cells, Day and Kenworthy found its slow diffusion was impeded by actin- and ATP-dependent processes, as expected if an actin meshwork restrains it (PLoS ONE 2012).
 
-**Lipid rafts**, proposed ordered domains rich in cholesterol and sphingolipid, are where care matters most. Membrane material that resists cold detergent was long called raft material, but a detergent-resistant fraction is not a native raft; detergent can create or rearrange domains. Reviews now describe the existence, size and composition of rafts in living cells as unresolved, not as one settled universal structure. Stone and colleagues, using super-resolution imaging in the CH27 mouse B-cell lymphoma line, found that a peptide probe preferring ordered membrane gathered near clustered B-cell receptors and one preferring disordered membrane was excluded, in live and fixed cells; fixed primary mouse B cells agreed. That supports phase-like sorting in that system. It does not give a raft's composition, and it does not show that every cell has them.
+**Lipid rafts**, proposed ordered domains rich in cholesterol and sphingolipid, are where care matters most. Membrane material that resists cold detergent was long called raft material, but a detergent-resistant fraction is not a native raft; detergent can create or rearrange domains. Reviews now describe the existence, size and composition of rafts in living cells as unresolved, not as one settled universal structure. Super-resolution imaging in one mouse B-cell line supports phase-like sorting near clustered B-cell receptors: a probe preferring ordered membrane gathered there and one preferring disordered membrane was excluded. It does not give a raft's composition, and it does not show that every cell has them.
 
 ### Design problem
 
@@ -480,3 +478,17 @@ Write the predictions first. N-out (type I): N-terminal parts lumenal or extrace
 If the methods disagree, suspect the tags or a mixed population of orientations, as Goder and colleagues found for engineered proteins.
 
 </details>
+
+## Going deeper
+
+### The red-cell unsaturation measurement
+
+Lorent and colleagues digested away the outer leaflet's lipids of intact human red blood cells and analysed what was left. The two halves of the membrane differed: the outer half's phospholipids carry about 1.6 double bonds each, the inner half's about 3.4. The measurement was made in 2020 on erythrocytes, so these are erythrocyte numbers. It is one recent addition to the old finding that lipid composition differs between the leaflets, and it is an active area of work on how that difference changes membrane physical properties.
+
+### How the transporters were found
+
+In a haploid genetic screen in human cells, Segawa and colleagues found ATP11C and its partner CDC50A required for inward movement of lipid. Alvadia and colleagues purified the mouse TMEM16F protein and showed that, in artificial vesicles, it scrambled both labelled PS and labelled PE when calcium was added. That reconstitution shows the protein can scramble lipid on its own. Its role in exposing PS on activated platelets is a separate, physiological finding.
+
+### The B-cell raft study
+
+Stone and colleagues used super-resolution imaging in the CH27 mouse B-cell lymphoma line. A peptide probe preferring ordered membrane gathered near clustered B-cell receptors and one preferring disordered membrane was excluded, in live and fixed cells; fixed primary mouse B cells agreed. That supports phase-like sorting in that system. It does not give a raft's composition, and it does not show that every cell has them.
