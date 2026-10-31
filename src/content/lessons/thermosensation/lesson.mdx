@@ -17,7 +17,7 @@ hook: "Mice lacking the cold-and-menthol receptor TRPM8 failed completely to lea
 
 estMinutes: 25
 objectives:
-  - "Recount what the TRPV1 (Caterina 1997) and TRPM8 (McKemy 2002; Peier 2002) cloning papers showed in heterologous cells, and what they left for knockouts and recordings to test."
+  - "Explain that temperature-gated channels in sensory endings turn temperature into signals, and recount what the TRPV1 (Caterina 1997) and TRPM8 (McKemy 2002; Peier 2002) cloning papers showed in heterologous cells, and what they left for knockouts and recordings to test."
   - "Explain why combined loss of TRPV1, TRPM3 and TRPA1 (Vandewauw 2018) supports functional redundancy for acute noxious heat rather than a chain of three channels."
   - "Describe warmth coding in the mouse forepaw as warm-evoked excitation plus reduced ongoing cool-afferent firing (Paricio-Montesinos 2020), and compute d′ from hit and false-alarm rates."
   - "Interpret ganglion and posterior-insula imaging and perturbation results by preparation, and explain why apparent Q10 and agonist-bound structures have not identified a heat sensor."
@@ -223,19 +223,14 @@ practiceQuestions:
       it, and naming one adds an unmeasured circuit. Warming reduced, not increased, that
       firing. Ongoing firing was measured directly in the 27 °C bath. Changes in input can in
       principle shift a threshold, so that is not the error.
-  - stem: "Increasing resiniferatoxin activation lowered the apparent high-temperature Q10 of rat TRPV1 in HEK293T cells from about 38 to about 3. What follows?"
+  - stem: "TRPM8 was cloned and shown to respond to cold and menthol in heterologous cells (details under Going deeper). A student says this proves that TRPM8 is the transducer of innocuous cooling in the mouse. Which additional result in the lesson best supports that claim in an intact animal?"
     choices:
-      - "TRPV1 is not activated by heat in any preparation"
-      - "Q10 values below 10 rule out a thermally gated channel"
-      - "Q10 is a property of the state measured, not a channel constant"
-      - "Resiniferatoxin blocks the channel's temperature sensor"
-    answer: 2
-    rationale: >-
-      The same protein gave different apparent Q10 values depending on how strongly the agonist had
-      already activated it, so Q10 describes an observable in a condition rather than a fixed
-      constant. Resiniferatoxin activates rather than blocks, and no sensor was localised. Heat
-      activation of TRPV1 is well supported in several preparations, so denying it overstates the
-      result. A numerical cutoff for thermal gating is not established by this experiment.
+      - "TRPM8-null mice could not report cooling steps with the larger plate and lost the ongoing firing of cool-sensitive fibres"
+      - "Menthol also activated the channel in the same foreign cells"
+      - "The receptor was cloned from a library made from newborn rat trigeminal neurons"
+      - "The apparent Q10 of the channel is large in heterologous cells"
+    answer: 0
+    rationale: "A cloning screen tests molecular sufficiency in a foreign cell. Necessity in the animal comes from the knockout: TRPM8-null mice could not report cooling steps with the larger plate, and recordings showed that the cool-sensitive fibres lost their ongoing firing. More activation in foreign cells, the tissue the clone came from and a Q10 value are all properties of the protein or the screen and do not show that the animal needs it."
 
 mcatQuestions:
   - stem: "In a head-fixed forepaw detection task, the plate rests at 32 °C. A trained mouse receives 100 warming trials and 100 catch trials with no temperature change. It licks on 70 warming trials and on 10 catch trials. Using d′ = z(hit rate) − z(false-alarm rate), with z(0.70) = 0.524 and z(0.10) = −1.282, what is d′?"
@@ -265,20 +260,14 @@ mcatQuestions:
       region. Full cortical bypass is not shown, since small cooling steps were impaired. Primary
       somatosensory cortex showed no widefield warming response here and no S1 silencing is described in this question, so no necessity
       claim about it follows.
-  - stem: "Dissociated mouse dorsal root ganglion neurons are imaged during warming. Cultures kept overnight contain about 26 ± 9% warmth-sensitive neurons; cultures kept three days contain about 6 ± 3%. Two laboratories using different culture times report different warmth-sensitive fractions. What is the most defensible interpretation?"
+  - stem: "In mouse spinal cord, one population of neurons fires steadily at a level that follows the absolute skin temperature and does not adapt, and receives TRPV1-positive input. A second population adapts quickly and fires mainly when temperature changes. Which description fits the two populations?"
     choices:
-      - "Culture duration changes the measured fraction, so the studies may differ"
-      - "Warmth sensitivity requires a factor removed by the medium"
-      - "The three-day cultures lost warmth-sensitive neurons to cell death"
-      - "The overnight figure is the true fraction in intact ganglia"
+      - "The first is a heat-responding population encoding absolute temperature, and the second is a cold-responding population encoding temperature change"
+      - "The first is a cold-responding population encoding temperature change, and the second is a heat-responding population encoding absolute temperature"
+      - "Both are heat-responding populations that differ only in conduction velocity"
+      - "Both are cortical populations that read out the insula"
     answer: 0
-    rationale: >-
-      The one variable shown to differ is time in culture, and it moves the measured fraction by
-      more than fourfold, so a disagreement between laboratories can arise from preparation alone.
-      Selective death of warmth-sensitive neurons is one possible mechanism but was not measured
-      here. Neither culture figure can be called the intact-ganglion value, since dissociation
-      itself changes the cells. A missing medium factor is an untested hypothesis, not the
-      interpretation the data force.
+    rationale: "In mouse spinal cord, heat-responding neurons encode absolute skin temperature without adapting and receive TRPV1-positive input, whereas cold-responding neurons adapt quickly and encode temperature change (Ran, Hoon and Chen, 2016). The reverse assignment swaps the two. The populations are spinal, not cortical, and nothing in the description distinguishes them by conduction velocity."
 
 explainLevels:
   - level: "eli5"
@@ -372,13 +361,13 @@ draft: false
 import WarmthDetectionIndex from '../../../components/WarmthDetectionIndex.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Mice lacking TRPM8, the cold-and-menthol receptor, completely failed to report forepaw warming after 10 days of training.** That sentence should be uncomfortable. If TRPM8 is the cold receptor, a mouse without it should be bad at cold, not at warm. The resolution is that temperature is not read off one channel at a time. It is read off the activity of several afferent populations at once, including populations that go quiet.
+**Sensory endings turn temperature into electrical signals through temperature-gated channels, but no single channel reads out every temperature. TRPM8 is the main established transducer of innocuous cooling. Acute noxious heat in mice rests on several redundant channels. In the mouse forepaw, warmth is signalled by populations that speed up and by populations that go quiet, although whether innocuous warmth rests on TRPV1-positive warm fibres or on reduced cool input is not settled.** The clearest case is a puzzle. Mice lacking TRPM8, the cold-and-menthol receptor, completely failed to report forepaw warming after 10 days of training. If TRPM8 is the cold receptor, a mouse without it should be bad at cold, not at warm. The resolution is that temperature is not read off one channel at a time. It is read off the activity of several afferent populations at once, including populations that go quiet.
 
 [Touch and pain](/lessons/touch-and-pain/) covers TRPV1, TRPM8 and TRPA1 at the level of necessity and sensitization, and [ion channels as receptors](/lessons/ion-channels-as-receptors/) covers how gates open and leaves heat gating open as a question. This lesson starts where those stop: how warmth, cold and noxious heat are encoded by populations of afferents and read by cortex, and what the gating evidence can and cannot say.
 
 ## Two cloning screens, and what they could not settle
 
-Michael Caterina and colleagues in David Julius's laboratory expressed pools of sensory-neuron cDNA in cells that do not normally respond to capsaicin and screened for capsaicin-evoked calcium influx (Nature, 1997). The clone they recovered encoded a nonselective cation channel that was also activated by noxious heating, which led them to suggest that it transduces painful thermal stimuli in vivo. Five years later, David McKemy, Neuhausser and Julius cloned a cold- and menthol-responsive receptor from a trigeminal-neuron library made from newborn Sprague Dawley rats and characterised it in HEK293 cells and Xenopus oocytes (Nature, 2002). In the same year, Andrea Peier and colleagues in Ardem Patapoutian's laboratory reported cold and menthol activation of heterologously expressed TRPM8 (Cell, 2002). The 2021 Nobel Prize in Physiology or Medicine went to Julius and Patapoutian for discoveries of receptors for temperature and touch.
+Michael Caterina and colleagues in David Julius's laboratory expressed pools of sensory-neuron cDNA in cells that do not normally respond to capsaicin and screened for capsaicin-evoked calcium influx (Nature, 1997). The clone they recovered encoded a nonselective cation channel that was also activated by noxious heating, which led them to suggest that it transduces painful thermal stimuli in vivo. Five years later, David McKemy, Neuhausser and Julius cloned a cold- and menthol-responsive receptor, TRPM8, and characterised it in heterologous cells (Nature, 2002). In the same year, Andrea Peier and colleagues in Ardem Patapoutian's laboratory reported cold and menthol activation of heterologously expressed TRPM8 (Cell, 2002). The 2021 Nobel Prize in Physiology or Medicine went to Julius and Patapoutian for discoveries of receptors for temperature and touch.
 
 Read what these experiments are. A heterologous expression screen tests molecular sufficiency: this protein, in this foreign cell, responds to this stimulus. It does not test whether an intact animal needs the protein, whether other proteins do the same job, or where in the protein the temperature is sensed. Three separate questions, three separate kinds of experiment, and the field spent the next twenty years on them.
 
@@ -418,13 +407,23 @@ Two readings of that number. It is a sensitivity index, not a temperature: 1.68 
 
 ## Reading the population: ganglion imaging and insular cortex
 
-Calcium imaging turned single-fibre recording into population measurement, with the caveats that come from the preparation. Yarmolinsky and colleagues imaged trigeminal ganglion somata in anaesthetized mice expressing GCaMP5 during oral thermal stimulation (Neuron, 2016). Warmth sensors were approximately 10% of the heat-responsive cells they sampled, and acute antagonism of TRPV1 eliminated the imaged warmth responses over 35 to 43 °C in that preparation. Note the denominator and the site: a tenth of heat-responsive cells in sampled trigeminal ganglia during oral stimulation, which is not a statement about mouse skin elsewhere, and not about people. It also sits awkwardly beside the forepaw study, in which trpv1-null mice still detected a 1 °C warming step; whether innocuous warmth rests on TRPV1-positive warm fibres or on reduced TRPM8-dependent cool input is not settled.
+Calcium imaging turned single-fibre recording into population measurement. Yarmolinsky and colleagues imaged trigeminal ganglion somata in anaesthetized mice during oral thermal stimulation (Neuron, 2016). Warmth sensors were approximately 10% of the heat-responsive cells they sampled, and acute antagonism of TRPV1 eliminated the imaged warmth responses over 35 to 43 °C in that preparation. This is a statement about sampled trigeminal ganglia during oral stimulation, not about mouse skin elsewhere or about people. It sits awkwardly beside the forepaw study, in which trpv1-null mice still detected a 1 °C warming step, and whether innocuous warmth rests on TRPV1-positive warm fibres or on reduced TRPM8-dependent cool input is not settled.
 
 Wang and colleagues imaged dorsal root ganglion somata with two-photon microscopy during hindpaw stimulation in anaesthetized mice (Cell Reports, 2018). Raising the temperature recruited more heat-responsive neurons, a graded population signal. Cooling responses were largely ungraded, which the authors read as suggesting combinatorial cold coding: which cells respond, rather than how hard they respond. The two imaging studies used different ganglia, different stimulus sites and different anaesthesia, so differences in tuning between them are not yet differences between body regions.
 
-Preparation matters even in a dish. In dissociated DRG cultures from male mice (the study used mice of 6 to 25 weeks), warmth-sensitive neurons were about 26 ± 9% of neurons in overnight cultures and about 6 ± 3% after three days (Abd El Hay and colleagues, eLife, 2025). A roughly fourfold difference between culture protocols, measured in different groups of animals, is enough to put two laboratories into apparent disagreement about the same biology.
+Preparation matters even in a dish: warmth-sensitive neurons were a much larger fraction of neurons in overnight dissociated DRG cultures than after three days (Abd El Hay and colleagues, eLife, 2025), enough to put two laboratories into apparent disagreement about the same biology. The numbers are under Going deeper.
 
-Between the ganglion and the cortex sit the spinal dorsal horn and the thalamus, and the codes already differ there: in mouse spinal cord, heat-responding neurons encode absolute skin temperature without adapting and receive TRPV1-positive input, while cold-responding neurons adapt quickly and encode temperature change (Ran, Hoon and Chen, Nature Neuroscience, 2016). Centrally, Vestergaard, Carta, Güney and Poulet imaged cortex in awake Thy1-GCaMP6s mice older than two months during forepaw Peltier stimulation (Nature, 2023). Posterior insular cortex responded to both cooling and warming and was somatotopically arranged, while primary somatosensory cortex showed a widefield response only to cooling, with only sparse warm-responding neurons under two-photon imaging. The grand-average insular calcium response began at about 80 ms for cooling and about 320 ms for warming, a difference the authors compare with the short-latency Aδ-fibre cool responses and longer-latency C-fibre responses recorded in the periphery. They then silenced posterior insula optogenetically, by driving inhibitory neurons in VGAT-ChR2 mice, during the detection task.
+Between the ganglion and the cortex sit the spinal dorsal horn and the thalamus, and the codes already differ there: in mouse spinal cord, heat-responding neurons encode absolute skin temperature without adapting and receive TRPV1-positive input, while cold-responding neurons adapt quickly and encode temperature change (Ran, Hoon and Chen, Nature Neuroscience, 2016). Centrally, Vestergaard, Carta, Güney and Poulet imaged cortex in awake mice during forepaw Peltier stimulation (Nature, 2023). Posterior insular cortex responded to both cooling and warming and was somatotopically arranged, while primary somatosensory cortex showed a widefield response only to cooling, with only sparse warm-responding neurons under two-photon imaging. They then silenced posterior insula optogenetically, by driving inhibitory neurons in VGAT-ChR2 mice, during the detection task.
+
+## Why Q10 and a structure have not named the sensor
+
+Q10 is the ratio of a process's rates measured 10 °C apart, and a steep Q10 is often treated as the signature of a temperature sensor. It is not a channel constant. For rat TRPV1 expressed in HEK293T cells, recorded at −60 mV, increasing resiniferatoxin activation reduced the apparent high-temperature Q10 from approximately 38 to approximately 3, while the low-temperature value stayed near 1.7 (Kwon and colleagues, Nature Communications, 2022). The same protein gives different numbers depending on how much agonist has already opened it, so Q10 characterises a state and an interval.
+
+Structures sharpen the question without closing it. Liao, Cao, Julius and Cheng reported a 3.4 Å cryo-EM structure of a minimal functional rat TRPV1 construct in amphipols (Nature, 2013), fourfold symmetric around a pathway formed by the S5 and S6 segments and the intervening pore loop. Agonist-bound structures from the same year suggested gating at both the outer pore and a lower hydrophobic gate. Kwon and colleagues examined full-length rat TRPV1 in lipid nanodiscs across temperatures (Nature Structural and Molecular Biology, 2021), with results supporting global conformational change followed by outer-pore rearrangement during heat-dependent opening in the presence of capsaicin. The activated states were obtained with an agonist present, and every structure used a construct and a lipid environment chosen by the experimenter, and the authors of the 2022 ensemble work cautioned that multiple cryo-EM classes may include off-pathway states rather than only sequential intermediates.
+
+There is also a theoretical reason not to expect a tidy sensor module. Clapham and Miller proposed that a large gating-associated change in heat capacity can account for steep TRP-channel temperature sensitivity. In a two-state approximation, K = Popen/(1 − Popen) = exp(−ΔG°/RT), and a temperature-independent gating enthalpy predicts a straight line when ln K is plotted against 1/T. A large heat-capacity change relaxes that assumption, since it makes the gating enthalpy itself change with temperature. Because the argument is independent of mechanistic detail, it does not require the temperature dependence to sit in one domain. On that view, looking for the sensor the way one looks for a capsaicin pocket may be the wrong search.
+
+So what would settle it? A single construct carried through three measurements at fixed voltage: apo, lightly agonist-occupied and strongly activated, with structures and Q10 taken on the same protein in the same lipid, plus mutations tested for effects on sensing, on coupling and on general gating separately. A mutation that shifts an activation threshold does not identify a sensor until those three are told apart. [Nociceptors and the sodium channels of pain](/lessons/nociceptors-and-sodium-channels/) takes up what happens after transduction, and [when pain persists](/lessons/chronic-pain/) takes up what happens when these systems are altered by injury.
 
 ### Design problem
 
@@ -443,12 +442,16 @@ And the scope: mouse cortex, awake, forepaw, with a licking report. No human the
 
 </details>
 
-## Why Q10 and a structure have not named the sensor
+## Going deeper
 
-Q10 is the ratio of a process's rates measured 10 °C apart, and a steep Q10 is often treated as the signature of a temperature sensor. It is not a channel constant. For rat TRPV1 expressed in HEK293T cells, recorded at −60 mV, increasing resiniferatoxin activation reduced the apparent high-temperature Q10 from approximately 38 to approximately 3, while the low-temperature value stayed near 1.7 (Kwon and colleagues, Nature Communications, 2022). The same protein gives different numbers depending on how much agonist has already opened it, so Q10 characterises a state and an interval.
+### Cloning libraries and host cells
 
-Structures sharpen the question without closing it. Liao, Cao, Julius and Cheng reported a 3.4 Å cryo-EM structure of a minimal functional rat TRPV1 construct in amphipols (Nature, 2013), fourfold symmetric around a pathway formed by the S5 and S6 segments and the intervening pore loop. Agonist-bound structures from the same year suggested gating at both the outer pore and a lower hydrophobic gate. Kwon and colleagues examined full-length rat TRPV1 in lipid nanodiscs across temperatures (Nature Structural and Molecular Biology, 2021), with results supporting global conformational change followed by outer-pore rearrangement during heat-dependent opening in the presence of capsaicin. The activated states were obtained with an agonist present, and every structure used a construct and a lipid environment chosen by the experimenter, and the authors of the 2022 ensemble work cautioned that multiple cryo-EM classes may include off-pathway states rather than only sequential intermediates.
+McKemy, Neuhausser and Julius cloned the cold- and menthol-responsive receptor from a trigeminal-neuron library made from newborn Sprague Dawley rats and characterised it in HEK293 cells and Xenopus oocytes (Nature, 2002).
 
-There is also a theoretical reason not to expect a tidy sensor module. Clapham and Miller proposed that a large gating-associated change in heat capacity can account for steep TRP-channel temperature sensitivity. In a two-state approximation, K = Popen/(1 − Popen) = exp(−ΔG°/RT), and a temperature-independent gating enthalpy predicts a straight line when ln K is plotted against 1/T. A large heat-capacity change relaxes that assumption, since it makes the gating enthalpy itself change with temperature. Because the argument is independent of mechanistic detail, it does not require the temperature dependence to sit in one domain. On that view, looking for the sensor the way one looks for a capsaicin pocket may be the wrong search.
+### Culture comparison and imaging details
 
-So what would settle it? A single construct carried through three measurements at fixed voltage: apo, lightly agonist-occupied and strongly activated, with structures and Q10 taken on the same protein in the same lipid, plus mutations tested for effects on sensing, on coupling and on general gating separately. A mutation that shifts an activation threshold does not identify a sensor until those three are told apart. [Nociceptors and the sodium channels of pain](/lessons/nociceptors-and-sodium-channels/) takes up what happens after transduction, and [when pain persists](/lessons/chronic-pain/) takes up what happens when these systems are altered by injury.
+Yarmolinsky and colleagues used mice expressing GCaMP5. In dissociated DRG cultures from male mice (the study used mice of 6 to 25 weeks), warmth-sensitive neurons were about 26 ± 9% of neurons in overnight cultures and about 6 ± 3% after three days (Abd El Hay and colleagues, eLife, 2025). A roughly fourfold difference between culture protocols was measured in different groups of animals.
+
+### Insular imaging details
+
+Vestergaard, Carta, Güney and Poulet imaged cortex in awake Thy1-GCaMP6s mice older than two months. The grand-average insular calcium response began at about 80 ms for cooling and about 320 ms for warming, a difference the authors compare with the short-latency Aδ-fibre cool responses and longer-latency C-fibre responses recorded in the periphery.

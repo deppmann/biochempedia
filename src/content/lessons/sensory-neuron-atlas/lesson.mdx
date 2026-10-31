@@ -4,18 +4,11 @@ slug: "sensory-neuron-atlas"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 1: Transduction and sensory cell types"
 order: 803
-summary: >-
-  Single-cell sequencing sorted mouse dorsal root ganglion neurons into eleven classes in 2015,
-  seventeen in 2018 and eighteen harmonized subtypes across six species in 2024. This lesson asks
-  when a transcriptomic cluster is a cell type and when it is a state, a resolution or an artefact
-  of the preparation. You will follow genetic access from a cluster to a driver line, see how
-  identity is built in development and suppressed by injury, and learn to read mouse and human atlases
-  without letting a marker or a cluster count say more than it measured.
-hook: "One mouse data set found eleven kinds of touch, pain and itch neuron; a later one found seventeen. Which number is right?"
-
+summary: "Single-cell sequencing refined the broad fibre classes of mouse dorsal root ganglion neurons into many molecular subtypes: eleven classes in 2015, seventeen in 2018 and eighteen harmonized subtypes across six species in 2024. This lesson asks when a transcriptomic cluster is a cell type and when it is a state, a resolution or an artefact of the preparation. You will follow genetic access from a cluster to a driver line, see how identity is built in development and suppressed by injury, and learn to read mouse and human atlases without letting a marker or a cluster count say more than it measured."
+hook: "Single-cell sequencing split the touch, pain and itch neurons of the dorsal root ganglion into many molecular kinds, far finer than C, Aδ and Aβ fibres. When does one of those clusters earn the name cell type?"
 estMinutes: 24
 objectives:
-  - "Trace how single-cell sequencing reclassified mouse DRG neurons, from Usoskin et al. (2015) to Zeisel et al. (2018) and the harmonized atlas of Bhuiyan et al. (2024), and say why the count depends on the data set."
+  - "Explain how single-cell sequencing refined the broad fibre classes of mouse DRG neurons into molecular subtypes (Usoskin et al., 2015; Zeisel et al., 2018; Bhuiyan et al., 2024), and why the count depends on the data set."
   - "Explain how a transcriptomic cluster becomes a functional type through genetic access and physiology, and compute the specificity and efficiency of a driver line as separate quantities."
   - "Describe how DRG subtype identity emerges in mouse development (Sharma et al., 2020) and how peripheral nerve injury suppresses it and how it returns over the time course of regeneration (Renthal et al., 2020)."
   - "Compare mouse and human DRG atlases, read a spatial transcriptomic data set without mistaking cluster labels for cell proportions, and judge whether a proposed human-only class is real."
@@ -150,7 +143,7 @@ practiceQuestions:
       - "The full set of somatosensory neuron types in mammals"
       - "The subtypes that survived later cross-species merging"
       - "The number of Trk receptors multiplied by fibre classes"
-      - "The resolution reached by one 622-neuron mouse data set"
+      - "The resolution reached by one early mouse data set"
     answer: 3
     rationale: >-
       Eleven is what unsupervised clustering resolved in 622 dissociated mouse neurons; a larger sample split the sensory branches into seventeen (Zeisel et al., 2018), so
@@ -183,18 +176,14 @@ practiceQuestions:
       groups keeps those neurons for profiling. Bax deletion does not block NGF delivery to
       targets, does not act as a genetic label for sequencing, and does not substitute for TrkA
       signalling; it removes a death effector.
-  - stem: "In vivo GCaMP6 imaging of mouse DRG neurons gave signals with a typical rise of about 200 ms and a decay time constant of about 700 ms (Chisholm et al., 2018). A neuron shows one transient during a 1 s skin stimulus. What can you conclude?"
+  - stem: "A cluster of mouse DRG neurons is defined only by its RNA profile. A group builds a driver line for its marker and images calcium in the labelled neurons while indenting the skin. The labelled neurons respond within their own range of forces, different from those of a neighbouring subtype. What does this add to the claim that the cluster is a cell type?"
     choices:
-      - "It fired, but its spike number and rate are uncertain"
-      - "Its axon conducts in the C-fibre velocity range"
-      - "It did not fire at a high rate during the stimulus"
-      - "It fired exactly one action potential to the stimulus"
+      - "An independent physiological anchor, so the cluster is more than a result of clustering settings"
+      - "Proof that the cluster will have the same count in every future atlas"
+      - "Proof that the cluster is a permanent type and not a state"
+      - "A direct count of the spikes fired by each neuron in the cluster"
     answer: 0
-    rationale: >-
-      A calcium transient shows that the neuron fired, but spikes closer together than the
-      indicator's slow rise and decay summate, so a single transient does not fix the spike count and its size tracks the rate only roughly. One transient therefore does not mean exactly one action
-      potential, and a short burst could also look like a single transient. Fluorescence
-      in the soma says nothing about conduction velocity.
+    rationale: "A distinct stimulus range measured in labelled cells ties the cluster to a function, which is the independent anchor that a type needs beyond its RNA. It does not fix how many clusters a future atlas will resolve, since the count depends on resolution and preparation. It does not exclude a state, which needs a separate test such as injury or lineage tracing. Calcium transients do not give exact spike counts."
   - stem: "After sciatic nerve crush in adult mice, single-nucleus sequencing of the DRG shows a cluster rich in Atf3 that is absent from uninjured ganglia and shrinks as axons regenerate. How is this cluster best classified?"
     choices:
       - "A new permanent subtype made by adult neurogenesis"
@@ -343,21 +332,21 @@ draft: false
 import DriverLineSpecificity from '../../../components/DriverLineSpecificity.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**One mouse data set split the sensory neurons of the dorsal root ganglion into eleven kinds. A larger one, three years later, found seventeen. A 2024 merger of 31 data sets from six species settled on eighteen.** None of the three counts is wrong, and none is final. This lesson asks what an atlas count measures, and what more it takes before a cluster of transcriptomes deserves to be called a cell type.
+**Single-cell sequencing has split the sensory neurons of the dorsal root ganglion into many molecular kinds, finer than the C, Aδ and Aβ fibre classes. A cluster becomes a cell type only when something other than its RNA ties it to an ending, a response or a job.** One mouse data set found eleven kinds, a larger one seventeen, and a 2024 merger of 31 data sets from six species eighteen. None of the three counts is wrong, and none is final. This lesson asks what an atlas count measures, and what more it takes before a cluster of transcriptomes deserves to be called a cell type.
 
 [Touch and pain](/lessons/touch-and-pain/) sorted afferents into Aβ, Aδ and C fibres, and [sensory coding](/lessons/sensory-coding/) weighed labelled lines against population codes. [Sequencing and genomes](/lessons/sequencing-and-genomes/) and [recording many neurons](/lessons/large-scale-neuroscience/) explain how single-cell sequencing works and what a brain atlas is. Here the question is narrower: when is a cluster a type, and when is it a state, a resolution, or an artefact of how the cells were prepared?
 
 ## Eleven, seventeen, eighteen: why the number moves
 
-The dorsal root ganglion (DRG) holds the cell bodies of the neurons that innervate skin, muscle and viscera. Usoskin, Ernfors and colleagues (2015) dissociated lumbar DRGs from mice, sequenced the RNA of 622 single neurons, and let an unsupervised method group them. They found eleven classes: five neurofilament-rich classes (NF1 to NF5) with myelinated profiles, three non-peptidergic (NP1 to NP3), two peptidergic (PEP1, PEP2), and one marked by tyrosine hydroxylase (TH). Some classes suggested a job. NP3, for example, was linked by the authors to itch. Expression is a hypothesis about function, not proof of it; [itch](/lessons/itch/) takes it further.
+The dorsal root ganglion (DRG) holds the cell bodies of the neurons that innervate skin, muscle and viscera. Usoskin, Ernfors and colleagues (2015) dissociated lumbar DRGs from mice, sequenced the RNA of single neurons, and let an unsupervised method group them into eleven classes. Some classes suggested a job. NP3, a non-peptidergic class, for example, was linked by the authors to itch. Expression is a hypothesis about function, not proof of it; [itch](/lessons/itch/) takes it further.
 
-Zeisel and colleagues (2018) then profiled roughly half a million cells across the mouse nervous system and arranged them in a hierarchical taxonomy. Within peripheral sensory neurons they resolved eight peptidergic, six non-peptidergic and three neurofilament types: seventeen. The half million is the whole census, not a count of DRG neurons.
+Zeisel and colleagues (2018) then profiled a far larger number of cells across the mouse nervous system and arranged them in a hierarchical taxonomy. Within peripheral sensory neurons they resolved eight peptidergic, six non-peptidergic and three neurofilament types: seventeen. The class names, sample sizes and the size of the whole census are under Going deeper.
 
 Think of a map. A country-level map and a county-level map of the same land are both correct; they differ in resolution. Broad classes (peptidergic, non-peptidergic, neurofilament) and fine subtypes sit at different levels of one tree. More cells, deeper sequencing or a finer clustering setting can split branches; a different preparation can also hide or reveal one.
 
 Bhuiyan, Renthal and colleagues (2024) integrated 31 DRG and trigeminal ganglion data sets from six mammalian species (human, mouse, rat, guinea pig and two macaque species) into a single reference with eighteen DRG and fifteen trigeminal neuronal subtypes. The authors stressed that preparation, sequencing depth and analysis change how many subtypes are resolved. One of their eighteen groups is defined by injury-induced transcription factors, the Atf3 group, which is a warning that an atlas can mix types with states. They also cautioned that one molecular subtype can behave differently at different innervation targets.
 
-Keep the fibre labels apart from the clusters. Among low-threshold mechanoreceptors (LTMRs, neurons activated by innocuous touch), C, Aδ and Aβ mean unmyelinated, lightly myelinated and heavily myelinated axons (Li and colleagues, 2011). They describe axons, not single transcriptomic clusters. And C does not mean nociceptor: in adult mouse, TH-positive neurons were identified as C-fibre LTMRs, with a mean conduction velocity of 0.58 m/s in ex vivo skin-nerve recordings from five neurons ([the LTMR lesson](/lessons/ltmr-classes/) builds the full class table).
+Keep the fibre labels apart from the clusters. Among low-threshold mechanoreceptors (LTMRs, neurons activated by innocuous touch), C, Aδ and Aβ mean unmyelinated, lightly myelinated and heavily myelinated axons (Li and colleagues, 2011). They describe axons, not single transcriptomic clusters. And C does not mean nociceptor: in adult mouse, neurons positive for tyrosine hydroxylase (TH) were identified as C-fibre LTMRs ([the LTMR lesson](/lessons/ltmr-classes/) builds the full class table).
 
 ## From a cluster to a driver line
 
@@ -380,15 +369,15 @@ Timing is part of the definition. With TrkC-CreER intersected with a Ret reporte
 
 The mouse DRG toolkit of Qi, Iskols, Sharma, Ginty and colleagues (2024) gathered such lines for the main subtypes: Th2A-CreER for C-LTMRs, TrkB-CreER for Aδ-LTMRs, Ret-CreER for Aβ rapidly adapting LTMRs, and new knock-ins such as Trpm8-T2a-FlpO. An intersection of Smr2-Cre with Calca-FlpE restricted labelling to an SMR2- and CGRP-positive population with free endings. The team then imaged calcium in the L4 DRG of anaesthetized young mice while indenting the skin with forces from 1 to 75 mN, heating it or cooling it. The authors reported that each genetically defined subtype had its own threshold and range of responses to mechanical or thermal stimuli. Together the subtypes tiled the range of forces and temperatures tested, so more subtypes were recruited as a stimulus grew stronger. Some variety remained inside a group: TRPM8 neurons, for example, showed three kinds of cooling response. On this evidence, the transcriptomic subtypes were also physiologically distinct.
 
-Read such imaging with its limits. In adult mouse DRG imaged in vivo under urethane, the GCaMP6 signal had a typical rise of about 200 ms and a decay time constant of about 700 ms (Chisholm and colleagues, 2018). Single action potentials were detected in most cases, but spikes closer together than those times summate, so a single transient does not give a spike count and its amplitude tracks firing rate only roughly. The firmest bridge between RNA and function is a measurement in the same cell. **Patch-seq** records a neuron with a patch electrode, then aspirates its contents for sequencing, so that physiology and gene expression come from the same cell; Cadwell and colleagues (2016) demonstrated it in mouse neocortex, and Parpaite and colleagues (2021) applied it to mouse DRG neurons, matching types of mechanically activated current to transcriptomic populations.
+Read such imaging with its limits. In adult mouse DRG imaged in vivo, the GCaMP6 signal rises and decays slowly compared with an action potential (Chisholm and colleagues, 2018). Single action potentials were detected in most cases, but spikes closer together than the indicator's rise and decay times summate, so a single transient does not give a spike count and its amplitude tracks firing rate only roughly. The firmest bridge between RNA and function is a measurement in the same cell. **Patch-seq** records a neuron with a patch electrode, then aspirates its contents for sequencing, so that physiology and gene expression come from the same cell; Cadwell and colleagues (2016) demonstrated it in mouse neocortex, and Parpaite and colleagues (2021) applied it to mouse DRG neurons, matching types of mechanically activated current to transcriptomic populations.
 
 ## How identity is built, and how injury takes it apart
 
-DRG neurons arise from the neural crest ([the neural crest](/lessons/neural-crest/)). Sharma, Ginty and colleagues (2020) sequenced mouse DRG neurons at E11.5, E12.5, E15.5, P0, P5 and P28 to 42. Newborn sensory neurons coexpressed transcription factors that later became restricted to particular subtypes. Unspecialized here means unspecialized as to subtype; the cells were already neurons. Identity narrowed over weeks, like a sculpture cut from a shared block.
+DRG neurons arise from the neural crest ([the neural crest](/lessons/neural-crest/)). Sharma, Ginty and colleagues (2020) sequenced mouse DRG neurons from embryonic stages through to adulthood. Newborn sensory neurons coexpressed transcription factors that later became restricted to particular subtypes. Unspecialized here means unspecialized as to subtype; the cells were already neurons. Identity narrowed over weeks, like a sculpture cut from a shared block.
 
 Does the target help cut? NGF from targets keeps TrkA-expressing neurons alive ([Trk and p75](/lessons/trk-and-p75/)). An Ngf knockout alone would therefore lose cells, and any change in the survivors could be selection rather than altered identity. Deleting Bax, which the neurons need to die by apoptosis, removes that confound. At P0, Ngf-null;Bax-null DRGs had fewer transcriptionally distinct populations than Bax-null controls. NGF contributes to subtype specialization; the experiment does not show that NGF alone sets every fate, and it is a mouse developmental result.
 
-Identity can also be taken apart. Renthal and colleagues (2020) injured peripheral nerves in mice, mostly males aged 8 to 12 weeks, and sequenced single DRG nuclei. Injury suppressed the expression that marks each subtype. Over a time course associated with axons regrowing to their targets, identity re-emerged, and Atf3 was required for the full injury reprogramming. "Associated with" is the right verb: the timing fits reinnervation, but timing alone does not prove that reinnervation restores identity, and an apparent recovery could also come from which neurons survived or were sampled. Lineage tracing of injured neurons is what separates those readings, and the study used reporters for this: the share of neurons labelled by an Atf3 injury reporter was unchanged from one week to two months, which argues against selective death, and Mrgprd reporter tracing fit retained identity.
+Identity can also be taken apart. Renthal and colleagues (2020) injured peripheral nerves in adult mice and sequenced single DRG nuclei. Injury suppressed the expression that marks each subtype. Over a time course associated with axons regrowing to their targets, identity re-emerged, and Atf3 was required for the full injury reprogramming. "Associated with" is the right verb: the timing fits reinnervation, but timing alone does not prove that reinnervation restores identity, and an apparent recovery could also come from which neurons survived or were sampled. Lineage tracing of injured neurons is what separates those readings, and the study used reporters for this: the share of neurons labelled by an Atf3 injury reporter was unchanged from one week to two months, which argues against selective death, and Mrgprd reporter tracing fit retained identity.
 
 <LessonFigure src="/figures/sensory-neuron-atlas/injury-state-not-type.webp" width={1200} height={484} alt="AI-generated illustration: a three-step strip of one mouse sensory neuron. Uninjured, with several subtype marker symbols filled and a continuous axon to the skin. Injured, with the axon cut, the marker symbols faded and a gold Atf3 badge. Axon regrows, with the marker symbols filled again and a dashed arrow with a question mark linking regrowth and recovery." caption="After peripheral nerve injury in mice, subtype-marker expression was suppressed and an Atf3-rich injury state appeared. Subtype expression re-emerged over a time course associated with axonal regrowth; this association alone does not show that reinnervation restores it. The symbols stand for expression states, not molecule counts, and an Atf3-rich cluster is a state existing neurons can leave, not a new type." />
 
@@ -428,3 +417,21 @@ Start with the known confound. Nguyen and colleagues noted that whole-cell seque
 Expected outcomes: if the class disappears when methods are matched, and the matching did not rely on an integration that could merge real differences, it was probably an artefact; if it survives matching and tissue validation but has no distinct physiology, it is a real molecular difference of unknown function; only all four together would make it a functional human-mouse difference, and calling it human-specific would also need comparison with other species such as macaque.
 
 </details>
+
+## Going deeper
+
+### Class lists and sample sizes in the first two atlases
+
+Usoskin and colleagues sequenced the RNA of 622 single neurons from dissociated lumbar DRGs. The eleven classes were five neurofilament-rich classes (NF1 to NF5) with myelinated profiles, three non-peptidergic (NP1 to NP3), two peptidergic (PEP1, PEP2), and one marked by tyrosine hydroxylase (TH).
+
+Zeisel and colleagues profiled roughly half a million cells across the mouse nervous system. The half million is the whole census, not a count of DRG neurons.
+
+In adult mouse, TH-positive neurons were identified as C-fibre LTMRs, with a mean conduction velocity of 0.58 m/s in ex vivo skin-nerve recordings from five neurons.
+
+### Calcium-indicator constants
+
+In adult mouse DRG imaged in vivo under urethane, the GCaMP6 signal had a typical rise of about 200 ms and a decay time constant of about 700 ms (Chisholm and colleagues, 2018).
+
+### Sampling schedule and cohort details
+
+Sharma, Ginty and colleagues sequenced mouse DRG neurons at E11.5, E12.5, E15.5, P0, P5 and P28 to 42. Renthal and colleagues injured peripheral nerves in mice, mostly males aged 8 to 12 weeks.

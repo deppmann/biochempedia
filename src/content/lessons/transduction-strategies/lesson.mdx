@@ -10,7 +10,7 @@ summary: >-
   each, separates four quantities that are often merged (a tissue latency, a channel time constant, a
   molecular gain and a behavioural latency), and sets out what evidence it takes to call a protein the
   transducer.
-hook: "The famous 40 microseconds of hair-cell transduction was never the opening time of a channel. What was it?"
+hook: "Every sense turns a stimulus into a change in ion-channel current, but by five different routes with very different machinery in between. Which route does a cell use, and what exactly does a quoted speed measure?"
 
 estMinutes: 24
 objectives:
@@ -146,20 +146,14 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "The figure of 40 microseconds from Corey and Hudspeth (1979) is best described as which of the following?"
+  - stem: "A rod and a vertebrate olfactory neuron both use a GPCR cascade that controls cyclic-nucleotide-gated channels. What is the sign of the response in each?"
     choices:
-      - "The corrected electrical response delay of a bullfrog sacculus epithelium to force"
-      - "The activation time constant of TMC1 after a step deflection of the hair bundle"
-      - "The opening time constant of one transduction channel in a mouse inner hair cell"
-      - "The first-spike latency of a hair-cell afferent fibre in an intact bullfrog"
+      - "Light closes channels and hyperpolarizes the rod, while odour opens channels and depolarizes the olfactory neuron"
+      - "Light opens channels and depolarizes the rod, while odour closes channels and hyperpolarizes the olfactory neuron"
+      - "Both cells depolarize, because both cascades raise cAMP"
+      - "Both cells hyperpolarize, because both cascades lower cGMP"
     answer: 0
-    rationale: >-
-      The corrected epithelial response delay in an in vitro bullfrog sacculus at 22 degrees C is the
-      measurement. The single-channel opening time in a mouse inner hair cell is wrong because the
-      experiment was a tissue recording in a frog, not a channel recording. The afferent first-spike
-      latency is wrong because the recording was a transepithelial microphonic, upstream of any afferent
-      spike. The TMC1 activation constant is wrong because no kinetic constant of a named protein was
-      measured in 1979.
+    rationale: "In a rod, rhodopsin activates transducin and PDE6, falling cGMP closes channels and the cell hyperpolarizes. In an olfactory neuron the receptor acts through Golf and adenylyl cyclase III to raise ciliary cAMP, which opens the channels and depolarizes the cell. The logic of enzymes between receptor and pore is the same, but the sign is opposite, so neither of the same-sign answers is correct."
   - stem: "Which of the following is a molecular gain, as the word is used in this lesson?"
     choices:
       - "The first-spike delay of about 25 ms of a mouse I7 olfactory neuron at a high odorant dose"
@@ -211,18 +205,14 @@ practiceQuestions:
       but says nothing about the pore.
 
 mcatQuestions:
-  - stem: "A type II taste-cell output channel is modelled as closed at t = 0 and activating with a single exponential, a(t) = 1 − exp(−t/τ), during a 4 ms square depolarization. In this made-up model the time constant τ is 20 ms. What fraction of the maximal activation is reached by the end of the pulse?"
+  - stem: "A hair cell and a type II taste cell each pass a signal to a separate afferent fibre, while an olfactory neuron sends its own axon into the brain. Which classification is correct?"
     choices:
-      - "About 82%, the fraction still closed after 4 ms"
-      - "About 63%, the value reached after one time constant"
-      - "About 2%, as if τ were 200 ms"
-      - "About 18%, from 1 − exp(−0.2)"
-    answer: 3
-    rationale: >-
-      With t/τ = 4/20 = 0.2, the activated fraction is 1 − e to the −0.2, which is about 0.18. The
-      value of 2% would need a time constant ten times larger. The value of 63% is the fraction reached
-      when t equals τ, not when t is one fifth of τ. The value of 82% is the fraction still closed,
-      the complement of the question asked.
+      - "The hair cell and the taste cell are secondary receptor cells, and the olfactory neuron is a primary sensory neuron"
+      - "The hair cell and the taste cell are primary sensory neurons, and the olfactory neuron is a secondary receptor cell"
+      - "All three are secondary receptor cells because each uses an ion channel"
+      - "All three are primary sensory neurons because each produces a current"
+    answer: 0
+    rationale: "A primary sensory neuron detects the stimulus and itself carries the signal into the nervous system, as an olfactory neuron does. A secondary receptor cell detects the stimulus and passes the signal to a separate afferent, as hair cells and type II taste cells do. This is cell architecture and not transduction mechanism, so using a channel or producing a current does not decide the class."
   - stem: "Purified rat TRPV1 is put into artificial lipid vesicles with no other cell proteins. Excised patches from the vesicles show currents that rise when the bath is heated quickly, and a made-up time constant of a few milliseconds is fitted to the rise. What is the strongest conclusion?"
     choices:
       - "Heat opens TRPV1 through a diffusible second messenger made by the channel"
@@ -336,7 +326,7 @@ draft: false
 import ActivationFractionPulse from '../../../components/ActivationFractionPulse.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**The number most often quoted for hair cells, 40 microseconds, is not how long a channel takes to open.** It is a corrected delay measured across a whole piece of tissue. Getting it right is the first step in reading any claim about transduction: which quantity was measured, in which cell?
+**Every sensory cell turns a stimulus into a change in ion-channel current, and there are five designs for doing it: a channel gated directly by force, an ionotropic chemoreceptor, a GPCR cascade, a receptor cell whose output is a channel, and a heat-gated channel.** Reading any claim about transduction means asking which design the cell uses and which quantity was measured, in which cell. The number most often quoted for hair cells, 40 microseconds, shows why: it is not how long a channel takes to open. It is a corrected delay measured across a whole piece of tissue.
 
 [Sensory coding](/lessons/sensory-coding/) already follows a stimulus through the receptor potential to a firing rate, [ion channels as receptors](/lessons/ion-channels-as-receptors/) treats gating as a receptor problem, and [senses and cGMP](/lessons/senses-and-cgmp/) works through the rod and olfactory cascades. This lesson starts where they stop and sets five strategies side by side.
 
@@ -365,17 +355,17 @@ Four different quantities are often merged, and they are not interchangeable:
 - A **molecular gain** is output events per input event, such as effective downstream complexes per activated receptor.
 - A **behavioural latency** is the time from stimulus to movement. It includes conduction, spinal circuits and muscle, and no channel time constant stands in for it.
 
+These are preparation-specific numbers and must not be combined into one description.
+
 A fast latency can be compatible with a candidate channel, but speed alone does not identify the channel.
 
 ## Gain has a price, and the price is not fixed
 
 A cascade can amplify, and amplification takes time. The question is how much of each.
 
-In intact mouse rods (1 to 3 months old, suction-pipette recordings at 37.5 degrees C), Yue and colleagues (2019) used two independent routes to the elementary event: rods with an inefficient rhodopsin mutant, and bleached opsin, which produced detectable dark electrical noise. In the Gcaps-null background they used, they estimated about 12 to 14 effective transducin-PDE complexes per activated rhodopsin. The raw current amplitudes from the two kinds of rod cannot simply be divided to obtain this number, because the estimate comes from a fuller analysis. It describes this preparation, not every rod, and it is debated: other analyses of mouse rods give several times more activated transducins per rhodopsin (Lamb 2022). Most of the rod's amplification comes after this step, because each activated PDE6 hydrolyses many cGMP molecules; Arshavsky and Burns (2014) estimated about 2000 cGMP per absorbed photon in mouse rods, which is why a rod can signal a single photon.
+Most of a rod's amplification comes after the receptor step, because each activated PDE6 hydrolyses many cGMP molecules; Arshavsky and Burns (2014) estimated about 2000 cGMP per absorbed photon in mouse rods, which is why a rod can signal a single photon. A GPCR does not guarantee large gain at the receptor step. In dissociated frog olfactory neurons, Bhandawat, Reisert and Yau (2005) found a low probability that one bound receptor activated even one G protein. The gain at the first step in mouse rods is preparation-dependent and debated: Yue and colleagues (2019) estimated about 12 to 14 effective transducin-PDE complexes per activated rhodopsin, and other analyses give several times more (Lamb 2022).
 
-A GPCR does not guarantee large gain at the receptor step. In dissociated frog olfactory neurons, Bhandawat, Reisert and Yau (2005) found a low probability that one bound receptor activated even one G protein.
-
-Speed varies as well. In dissociated mouse olfactory neurons at 37 degrees C, with an odour pulse of 100 ms, Ghatpande and Reisert (2011) reported first spikes as short as about 25 ms for I7 neurons at 300 μM heptanal and about 40 ms for mOR-EG neurons at 100 μM eugenol. Those are high doses; the authors reported that low-dose responses often began after the pulse had ended. A first-spike latency includes solution exchange (up to about 7 ms), membrane charging and spike initiation as well as transduction, so it should not be compared directly with the 40-microsecond tissue latency. The gap of more than two orders of magnitude is consistent with a slower cascade, but these numbers cannot say how much of it the cascade causes. Raising the stimulation rate from 2 to 5 Hz reduced spiking reliability in these neurons.
+Speed varies as well. In dissociated mouse olfactory neurons, first spikes appeared as early as about 25 to 40 ms after a high-dose odour pulse (Ghatpande and Reisert 2011), while low-dose responses often began after the pulse had ended. A first-spike latency includes solution exchange, membrane charging and spike initiation as well as transduction, so it should not be compared directly with the 40-microsecond tissue latency. The gap is consistent with a slower cascade, but these numbers cannot say how much of it the cascade causes.
 
 Amplifiers also amplify noise. Mouse olfactory neurons expressing different odorant receptors showed different levels of basal current fluctuation and spontaneous firing, and inverse-agonist odorants could suppress it (Reisert 2010). So the trade-off is real but not a law with a fixed price in milliseconds. No study in hand compares the five strategies by signal-to-noise ratio under matched stimulus statistics, bandwidth and conditions, and that comparison is still open.
 
@@ -385,35 +375,27 @@ A heat sensor shows the same caution about numbers. In purified rat TRPV1 in lip
 
 Type II taste cells lack classical synaptic structures, including synaptic vesicles. In mouse isolated taste preparations, GPCR stimulation recruits PLCβ2 and IP3-dependent calcium release, and the calcium rise activates TRPM5. Ma and colleagues (2018) used animals at least 52 days old and found that deleting Calhm3 abolished taste-evoked ATP release and removed the nonselective current, without impairing excitability. The cell still responded; it could not send the message.
 
-Kinetics supply the second argument. In cultured mouse N2a cells, CALHM1 alone activated with a voltage time constant above 500 ms, and CALHM3 coexpression brought it to about 10 ms.
-
-**Worked problem: does the speed matter?** Suppose a taste cell depolarizes for 3 ms. Model a channel that starts closed and activates with a single exponential:
-
-> **a(t) = 1 − exp(−t/τ)**
-
-*Step 1, fast case.* For τ = 10 ms, t/τ = 3/10 = 0.3, so a = 1 − e^(−0.3) = 0.259, or 25.9% of the maximum.
-
-*Step 2, slow case.* For τ = 500 ms, t/τ = 3/500 = 0.006, so a = 1 − e^(−0.006) = 0.00598, or 0.60%. Because the measured slow time constant was above 500 ms, the fraction in this model would be smaller still.
-
-*Step 3, the reading.* The partner makes the channel about 43 times more responsive over a short depolarization (25.9 divided by 0.598). These are teaching assumptions: a single exponential and a square pulse are simplifications, real CALHM currents have more than one kinetic component, and this gives an activation fraction, not the ATP released or the intensity of taste.
-
-<ActivationFractionPulse />
-
 This is also the place to separate cell architecture from transduction mechanism. A **primary sensory neuron** detects the stimulus and carries the signal into the nervous system itself: an olfactory neuron sends an axon from the epithelium to the bulb, and a free nerve ending belongs to a neuron. A **secondary receptor cell** detects the stimulus and passes on a signal to a separate afferent, as hair cells do with graded receptor potentials in the mature state and type II taste cells do through CALHM1/3. A reasonable inference, not an experiment on evolution, is that a primary neuron skips a peripheral receptor-to-afferent synapse, while a secondary cell lets local transduction and the afferent's firing be controlled separately.
 
 Photoreceptors are hard to place in this scheme. Rods and cones are sensory neurons that hyperpolarize in response to photons, and their graded voltage regulates graded transmitter release rather than triggering action potentials (Lankford and colleagues 2020). Not spiking does not make them non-neuronal. Lankford and colleagues group rods and cones with olfactory neurons as primary sensory neurons, although rods and cones synapse inside the retina and send no axon into the brain, so textbooks differ on the label. Neuronal identity, spiking and position in the circuit are three separate properties.
 
 <LessonFigure src="/figures/transduction-strategies/primary-vs-secondary-receptor-cells.webp" width={1200} height={818} alt="AI-generated illustration: two side-by-side schematic panels. Left, primary sensory neurons: an olfactory neuron and a free nerve ending, each a single cell with its own axon. Right, secondary receptor cells: a hair cell and a type II taste cell, each handing its signal to a separate afferent fibre." caption="A primary sensory neuron, like an olfactory neuron or a free nerve ending, is itself the cell that carries the signal into the nervous system. A secondary receptor cell, like a hair cell or a type II taste cell, passes the signal to a separate afferent. This is cell architecture, not transduction mechanism." />
 
+A second argument for CALHM1/3 as the output channel comes from kinetics. In cultured mouse N2a cells, CALHM1 alone activated with a voltage time constant above 500 ms, and CALHM3 coexpression brought it to about 10 ms.
+
+Fast gating matters for a short depolarization. In a single-exponential teaching model, a 3 ms depolarization reaches about 26% of the maximal activation when the time constant is 10 ms, and about 0.6% when it is 500 ms, which makes the faster channel about 43 times more responsive (the measured slow time constant was above 500 ms, so the true ratio would be larger). This is a teaching assumption: real CALHM currents have more than one kinetic component, and the model gives an activation fraction, not the ATP released or the intensity of taste.
+
+<ActivationFractionPulse />
+
 Receptor cells and afferents may also share the transduction. In mouse skin, Merkel cells sorted from newborn (P0 to P5) dorsal skin and cultured overnight lacked mechanically activated currents without Piezo2 (Woo and colleagues 2014). The results of Piezo2 deletion in all epidermal cells (Krt14-Cre, so not Merkel-cell specific) with ex vivo recording from hairy hindpaw skin and its nerve at 7 to 17 weeks were most consistent with two receptor sites, because static firing in the afferent was reduced.
 
 ## The checklist for calling something the transducer
 
-Calling a protein *the* transducer asks for five kinds of evidence. The protein must be in the right place at the right time. Removing it, together with any redundant partner, must abolish or clearly alter the native current. Mutating it should change permeation in a way that is hard to explain indirectly, such as a fast change after chemical modification of a single substituted residue. Placing it, or the complex it needs, in an insensitive cell or a bilayer should confer the sensitivity; a failure may only mean a missing partner. And its kinetics must be compatible with the native response. A fast latency, as above, is a constraint on the last item, not a proof.
+Calling a protein *the* transducer asks for five kinds of evidence. The protein must be in the right place at the right time. Removing it, together with any redundant partner, must abolish or clearly alter the native current. Mutating it should change permeation in a way that is hard to explain indirectly, such as a fast change after chemical modification of a single substituted residue. Placing it, or the complex it needs, in an insensitive cell or a bilayer should confer the sensitivity; a failure may only mean a missing partner. And its kinetics must be compatible with the native response.
 
 Applied to three proteins:
 
-- **TMC1.** Mouse hair cells lacking Tmc1 and Tmc2 lose the normal, tip-link-gated current (young null cells keep an anomalous current of reversed polarity, Kim and colleagues 2013), and restoring cysteine-substituted TMC1 followed by chemical modification changed permeation rapidly and irreversibly (Pan and colleagues 2018). Mammalian TMC1 did not reach the membrane in the heterologous cell lines discussed. Jia and colleagues (2020 issue) then reported that truncated turtle TMC1 and budgerigar TMC2, purified and reconstituted, responded to pressure in proteoliposomes. That extends sufficiency, but it is not mammalian TMC1; the 2025 report by Chen and colleagues of currents from full-length mouse TMC1 or TMC2 alone needed an engineered tag.
+- **TMC1.** Mouse hair cells lacking Tmc1 and Tmc2 lose the normal, tip-link-gated current, and restoring cysteine-substituted TMC1 followed by chemical modification changed permeation rapidly and irreversibly (Pan and colleagues 2018). Jia and colleagues (2020 issue) reported that truncated turtle TMC1 and budgerigar TMC2, purified and reconstituted, responded to pressure in proteoliposomes. That extends sufficiency, but it is not mammalian TMC1. For the anomalous current in young null cells and the heterologous-expression limits, see [TMC1 evidence in detail](#tmc1-evidence-in-detail).
 - **Piezo2.** In the Merkel-cell result above, mechanically activated currents required Piezo2, and Piezo2 confers mechanosensitivity on cells that lack it ([Piezo channels and the physics of force](/lessons/mechanotransduction-channels/)). Its status in each cell type is a separate question.
 - **OTOP1.** In isolated type III taste cells from mice of 6 to 12 weeks, deleting Otop1 eliminated the proton current, and OTOP1 expressed in HEK293 cells gave currents with similar properties to the native one (Teng and colleagues 2019), and sweet taste cells engineered to express OTOP1 also responded to acid (Zhang and colleagues 2019). In the knockouts of Teng and colleagues, acid-evoked taste-nerve responses were strongly reduced, yet knockout mice of 12 to 24 weeks still avoided acids in the two-bottle assays tested. Necessity of a protein for a current in a cell is not necessity for the behaviour.
 
@@ -429,3 +411,23 @@ Pan and colleagues could not test mammalian TMC1 in a heterologous cell, because
 Loss of current alone cannot settle it, because removing an accessory protein would also remove the current. So first rescue: deliver wild-type TMC1 to the null cells and show that the current returns. Then deliver variants in which single residues are replaced by cysteine, and record the bundle-evoked current before and during exposure to a cysteine-modifying reagent. Wild-type TMC1 should show no change; a variant whose residue lies in the permeation path should show a rapid, irreversible change in a permeation property such as selectivity or conductance. A trafficking partner often changes how much current there is, but accessory proteins can also change conductance or selectivity, so the speed and residue specificity of the change carry the argument; a slow change would suggest an indirect effect. Controls: a cysteine variant with no change, and a check that the baseline current is normal. Even then, sufficiency is untested. That needs a naive system: reconstitution of purified protein in a bilayer, as Jia and colleagues did with turtle TMC1 and budgerigar TMC2 (a result for those orthologs), or expression in a heterologous cell once the protein reaches the membrane.
 
 </details>
+
+## Going deeper
+
+### Rod and olfactory recording details
+
+Yue and colleagues (2019) recorded from intact mouse rods (1 to 3 months old, suction-pipette recordings at 37.5 degrees C), using two independent routes to the elementary event: rods with an inefficient rhodopsin mutant, and bleached opsin, which produced detectable dark electrical noise. The estimate of about 12 to 14 effective transducin-PDE complexes per activated rhodopsin was made in the Gcaps-null background. The raw current amplitudes from the two kinds of rod cannot simply be divided to obtain this number, because the estimate comes from a fuller analysis. Ghatpande and Reisert (2011) used dissociated mouse olfactory neurons at 37 degrees C with an odour pulse of 100 ms, and reported first spikes as short as about 25 ms for I7 neurons at 300 μM heptanal and about 40 ms for mOR-EG neurons at 100 μM eugenol. Solution exchange takes up to about 7 ms. Raising the stimulation rate from 2 to 5 Hz reduced spiking reliability in these neurons. The gap between these latencies and the 40-microsecond tissue latency is more than two orders of magnitude.
+
+### The activation-fraction calculation
+
+Suppose a taste cell depolarizes for 3 ms. Model a channel that starts closed and activates with a single exponential: a(t) = 1 − exp(−t/τ).
+
+Step 1, fast case. For τ = 10 ms, t/τ = 3/10 = 0.3, so a = 1 − e^(−0.3) = 0.259, or 25.9% of the maximum.
+
+Step 2, slow case. For τ = 500 ms, t/τ = 3/500 = 0.006, so a = 1 − e^(−0.006) = 0.00598, or 0.60%. Because the measured slow time constant was above 500 ms, the fraction in this model would be smaller still.
+
+Step 3, the reading. The partner makes the channel about 43 times more responsive over a short depolarization (25.9 divided by 0.598). These are teaching assumptions: a single exponential and a square pulse are simplifications, real CALHM currents have more than one kinetic component, and this gives an activation fraction, not the ATP released or the intensity of taste.
+
+### TMC1 evidence in detail
+
+Young null cells keep an anomalous current of reversed polarity (Kim and colleagues 2013). Mammalian TMC1 did not reach the membrane in the heterologous cell lines discussed. The 2025 report by Chen and colleagues of currents from full-length mouse TMC1 or TMC2 alone needed an engineered tag.

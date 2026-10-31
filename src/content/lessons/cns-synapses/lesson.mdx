@@ -4,21 +4,15 @@ slug: "cns-synapses"
 course: "developmental-neuroscience"
 courseChapter: "Developmental Neuroscience · Unit 8: Building synapses"
 order: 236
-summary: >-
-  A neuron in the brain receives thousands of inputs that use different transmitters, so each
-  contact has to say what kind of synapse it will become. This lesson follows the signals that
-  turn a growth cone into a nerve terminal, the scaffold that gathers receptors on the receiving
-  side, and the factors astrocytes add. Afterwards you can tell a protein that is sufficient to
-  build a synapse in a dish from one that is required in the animal, and design the experiment
-  that tells them apart.
-hook: "A kidney cell that makes one neuronal protein can persuade an axon to build a nerve terminal on it."
+summary: "A neuron in the brain receives thousands of inputs that use different transmitters, so each contact has to say what kind of synapse it will become. Building a working one takes three things: organizer signals that turn a growth cone into a nerve terminal, a scaffold that gathers receptors on the receiving side, and factors from astrocytes that build synapses and make them respond. Afterwards you can tell a protein that is sufficient to build a synapse in a dish from one that is required in the animal, and design the experiment that tells them apart."
+hook: "A synapse in the brain needs a nerve terminal facing the right receptors. A kidney cell that makes one neuronal protein can persuade an axon to build such a terminal on it, so does the brain need that protein?"
 
 estMinutes: 24
 objectives:
   - "Contrast central synapses with the neuromuscular junction in transmitters, inputs per cell and the mixing of excitatory and inhibitory sites, and say what that changes for synapse formation."
   - "Explain how adhesion proteins (cadherins, SynCAM, neurexin and neuroligin) and secreted signals (Wnt7a, FGF22) induce presynaptic or postsynaptic differentiation, and distinguish sufficient in a dish from required in the animal."
   - "Describe how the PSD-95 scaffold assembles the postsynaptic side and how stargazin brings AMPA receptors to cerebellar granule cell synapses."
-  - "Explain how astrocytes promote synapse formation, from the Pfrieger and Barres add-back experiment to thrombospondins and later factors."
+  - "Explain how astrocytes promote synapse formation and functional maturation, from the Pfrieger and Barres add-back experiment to thrombospondins and later factors, and how GABA changes sign as synapses mature."
 
 explainer:
   src: "/explainers/cns-synapses/explainer.mp4"
@@ -161,7 +155,7 @@ practiceQuestions:
       synapses side by side, so each contact must specify its own type. Input at one site from
       one axon with one transmitter describes the mature muscle fiber. Lacking receptors until
       release is wrong because dendrites can carry receptor clusters before contact,
-      the lonesome structures of this lesson. Waiting for mature astrocytes is wrong because
+      the pre-contact receptor clusters described in the first section. Waiting for mature astrocytes is wrong because
       neurons form some synapses without astrocytes; astrocytes add to synapse formation.
   - stem: "Cerebellar granule cells make signals that act on the axons of pontine neurons. Which pairing of a granule cell signal with its receptor on the pontine axon is correct?"
     choices:
@@ -248,19 +242,14 @@ mcatQuestions:
       receptors. Synthesis is not the defect, because in this setup total receptor protein is normal. Removing
       receptors from extrasynaptic membrane would not by itself create synaptic currents, and
       nothing in the data shows extra receptors being removed.
-  - stem: "Suppose that in newborn mice lacking neuroligins 1, 2 and 3, electron microscopy of the brainstem finds synapse density at 98% of control. Evoked inhibitory synaptic currents are 60% smaller than in controls and evoked excitatory currents 25% smaller. Which statement best fits these data?"
+  - stem: In a made-up immature cortical neuron, internal chloride is 30 mM and external chloride is 130 mM, so E(Cl) is about -39 mV with a resting potential near -60 mV. A few weeks later, KCC2 has risen and internal chloride is 7 mM, so E(Cl) is about -77 mV. What happens when GABA-A channels open at each stage?
     choices:
-      - "Neuroligins are dispensable for every aspect of synapses"
-      - "Neuroligins are needed to form most brainstem synapses"
-      - "Neuroligins act only at excitatory synapses in brainstem"
-      - "Neuroligins are needed for synapse function, not number"
-    answer: 3
-    rationale: >-
-      Density is nearly normal while both kinds of transmission fall, so the proteins matter for
-      how synapses work and mature rather than for whether they form. Needed to form most
-      synapses contradicts the 98% density. Acting only at excitatory synapses contradicts the
-      larger loss at inhibitory synapses. Dispensable for every aspect ignores the reduced
-      currents; the real triple knockout mice also died soon after birth.
+    - Depolarization early and hyperpolarization later
+    - Hyperpolarization early and depolarization later
+    - Depolarization at both stages, since GABA is always excitatory
+    - Hyperpolarization at both stages, since chloride always enters
+    answer: 0
+    rationale: With E(Cl) above the resting potential, opening the channel pulls the membrane up, which depolarizes; with E(Cl) below it, the same channel hyperpolarizes. The reversed answer swaps the stages. The other two ignore the change in internal chloride as KCC2 rises. Depolarizing is not the same as exciting, since GABA-A channels also shunt current.
 
 explainLevels:
   - level: "eli5"
@@ -360,9 +349,9 @@ draft: false
 ---
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A kidney cell line does not form synapses. Yet if it makes one neuronal protein, neuroligin, the axons that touch it in a dish gather synaptic vesicles at the point of contact and start releasing them, as if they had found a partner.**
+**A working synapse in the brain needs a release apparatus on one side lined up with the right receptors on the other. Three kinds of signal build it: organizer proteins that turn a growth cone into a nerve terminal, scaffolds that gather receptors on the receiving side, and factors from astrocytes that help synapses form and respond.**
 
-That result, from Peter Scheiffele and Tito Serafini's laboratory in 2000, sets the questions for this lesson. What tells a growth cone to become a nerve terminal? What builds the receiving side? What do astrocytes add? And why can a protein that builds synapses in a dish turn out not to be needed for synapses in the animal?
+The cleanest demonstration of an organizer comes from Peter Scheiffele and Tito Serafini's laboratory in 2000. A kidney cell line does not form synapses. Yet if it makes one neuronal protein, neuroligin, the axons that touch it in a dish gather synaptic vesicles at the point of contact and start releasing them, as if they had found a partner. That result sets the questions for this lesson. What tells a growth cone to become a nerve terminal? What builds the receiving side? What do astrocytes add? And why can a protein that builds synapses in a dish turn out not to be needed for synapses in the animal?
 
 ## The idea: both partners arrive almost ready
 
@@ -370,11 +359,9 @@ Synapse formation poses three challenges: making selective connections, differen
 
 Start by comparing the NMJ with central synapses. At a mature mammalian neuromuscular junction (see [that lesson](/lessons/neuromuscular-junction/)), a muscle fiber is usually contacted by one motor axon at one site, and the synapse uses one transmitter, acetylcholine, with one main receptor. A neuron in the brain differs on every count. A cortical pyramidal neuron receives thousands of synapses from many neurons. Excitatory synapses that use glutamate and inhibitory synapses that use GABA sit on the same dendrite, each with its own receptors. So a single signal that says "cluster receptors here" cannot be enough. Each contact has to specify what kind of synapse it will be.
 
-A second observation: neurons manufacture many synaptic building blocks before contact. In 1983 two groups showed that growth cones of cultured frog and chick neurons release acetylcholine before reaching a muscle, detected with a patch of receptor-rich membrane held near the growth cone. Presynaptic proteins travel down the axon in preassembled transport packets; in cultured hippocampal neurons, Stephen Smith's laboratory watched packets carrying active-zone proteins arrive at new contacts. In culture, dendrites can carry small clusters of receptors, sometimes with scaffold proteins, away from any axon.
+A second observation: neurons manufacture many synaptic building blocks before contact. Presynaptic proteins travel down the axon in preassembled transport packets, and in culture dendrites can carry small clusters of receptors, sometimes with scaffold proteins, away from any axon.
 
-His phrase for this: "Lonesome structures indicate that growth cones and dendrites are poised on the brink of differentiating into synaptic specialization." And the rule that follows: "Presynaptic and postsynaptic specializations can form in isolation, but stable synapses require both." Think of two halves of a bridge built out from opposite banks. Each half can stand for a while. Only joined do they carry traffic and last.
-
-He also asks, "The decision to form a synapse: calcium signal?" In cultured frog spinal neurons, contact with a muscle cell raised free calcium in the neurite, but contact with another neuron did not; in a cultured snail motor neuron, a cAMP analogue mimicked the boost in calcium entry that contact with its target produced. In these experiments the trigger came from the partner, from its surface or from the space between the cells.
+The Going deeper section gives the early growth-cone experiments and the calcium work. Their lesson is that "Presynaptic and postsynaptic specializations can form in isolation, but stable synapses require both." Think of two halves of a bridge built out from opposite banks. Each half can stand for a while. Only joined do they carry traffic and last.
 
 ## Signals that turn a growth cone into a bouton
 
@@ -385,6 +372,36 @@ His example is the mossy fiber synapse of the cerebellum. Neurons in the pons, p
 1. **Neurexin and neuroligin.** Neurexins are axon-side membrane proteins; neuroligins are their dendrite-side partners. Scheiffele's experiment above showed that neuroligin alone, on a cell that is not a neuron, makes pontine axons cluster vesicle proteins that recycle. Soluble beta-neurexin, which caps neuroligin, blocked the effect. The signal also runs the other way: Ann Marie Craig's laboratory reported in 2004 that neurexin on a non-neuronal cell clusters postsynaptic proteins in dendrites that touch it.
 2. **Wnt7a and its receptor.** In 2000 Anna Hall, Frances Lucas and Patricia Salinas reported that Wnt7a from granule cells makes mossy fiber ends spread and branch and gather the vesicle protein synapsin I. In mice lacking Wnt7a, maturation of the mossy fiber terminals was delayed. Wnt7a signals through Frizzled receptors in other neurons (see [that lesson](/lessons/wnt-signaling/)), but which receptor the mossy fibers use has not been identified.
 3. **FGF22 and FGFR2.** In 2004 Hisashi Umemori, Joshua Sanes and colleagues reported that FGF22, made by granule cells, promotes vesicle clustering in mossy fiber axons through FGFR2, a receptor tyrosine kinase (see [that lesson](/lessons/receptor-tyrosine-kinases/)), and that in mice, neutralizing FGF22 and its relatives FGF7 and FGF10, or inactivating FGFR2, reduced presynaptic differentiation of mossy fibers.
+
+Now the trap. "Sufficient in a dish" is not "required in the animal." In 2003 Markus Missler, Thomas Südhof and colleagues reported mice lacking all three alpha-neurexins. They died soon after birth, and their excitatory synapses were present at close to normal density, with moderately fewer inhibitory synapses, but released transmitter poorly. In 2006 mice lacking neuroligins 1, 2 and 3 were reported to have synapses in normal number in the brainstem, with impaired transmission, more so at inhibitory synapses, and they died from failed breathing. So alpha-neurexins and neuroligins are required for normal synapse function and maturation, not for forming most synapses. Many organizers overlap, and a dish holding one of them on a bare cell tests what that one can do, not what the brain depends on.
+
+## The receiving side: a scaffold that holds receptors
+
+Under an excitatory terminal sits the postsynaptic density, a dense layer of protein under the membrane that shows as a dark thickening in electron micrographs. One of its most abundant proteins is PSD-95, a scaffold of the MAGUK family with three PDZ domains, short modules that grip the last few amino acids of a partner protein (see [that lesson](/lessons/protein-interaction-modules/)). The first two PDZ domains bind the tail of NMDA receptor GluN2 subunits. The third binds the tail of neuroligin. That gives a chain across the cleft: neurexin in the axon, neuroligin in the dendrite, PSD-95 beneath it, glutamate receptors held by PSD-95. A scaffold works like a pegboard: whatever has the right hook hangs in the right place (see [that lesson](/lessons/adaptors-and-scaffolds/)).
+
+AMPA receptors, the glutamate-gated channels that carry most fast excitatory current (see [that lesson](/lessons/ion-channels-as-receptors/)), do not bind PSD-95 directly. The clue came from a mouse. Stargazer is a spontaneous mutant that tosses its head upward and has seizures. Its gene encodes stargazin, a small membrane protein. In stargazer cerebellar granule cells, mossy fiber synapses give NMDA receptor responses but no AMPA receptor responses. In 2000 the laboratories of David Bredt and Roger Nicoll reported that stargazin binds AMPA receptors and brings them to the cell surface, and that its tail, which binds PSD-95's PDZ domains, holds them at synapses. Stargazin became the first of the transmembrane AMPA receptor regulatory proteins, or TARPs. Other TARPs serve other neurons, which is one reason the stargazer defect shows most clearly in cerebellar granule cells.
+
+Inhibitory synapses use a different scaffold. Gephyrin forms dense clusters under the terminal that hold glycine receptors and many GABA-A receptors.
+
+<LessonFigure src="/figures/cns-synapses/excitatory-postsynaptic-scaffold.webp" width={1200} height={687} alt="AI-generated illustration: a schematic excitatory synapse in which neurexin on the axon clasps neuroligin on the dendrite, PSD-95 beneath holds neuroligin and NMDA receptors, and stargazin links AMPA receptors to PSD-95; a small inset shows gephyrin, drawn as a regular sheet for simplicity, holding inhibitory receptors, although real gephyrin clusters are irregular." caption="At an excitatory synapse, PSD-95 binds neuroligin and NMDA receptor GluN2 tails directly and anchors AMPA receptors through stargazin, one of the TARPs. At inhibitory synapses, gephyrin forms dense clusters that anchor glycine receptors and many GABA-A receptors." />
+
+## Astrocytes add the missing signal
+
+Astrocytes supply more than one kind of signal: some mainly build synapses, others mainly make them respond. Keep the scope. Neurons form some synapses without astrocytes, and the size of the glial effect depends on the culture system. Astrocytes add to synapse formation; they are not its sole cause.
+
+Ben Barres's laboratory could purify rat retinal ganglion cells by immunopanning, leaving cultures with almost no glia. In 1997 Frank Pfrieger and Barres reported that these neurons survived, grew and fired action potentials, yet barely spoke to one another. A layer of glia across the dish, not touching the neurons, or medium the glia had conditioned, changed that. With action potentials blocked by tetrodotoxin, the frequency of miniature synaptic currents rose sharply and evoked transmission failed much less often. Neuron survival did not change, so glia were not simply keeping more neurons alive.
+
+In 2001 Erik Ullian and colleagues in the same laboratory reported that astrocytes raised the number of synapses and were needed to keep them. In 2005 Karen Christopherson and colleagues identified thrombospondins 1 and 2 as astrocyte-secreted proteins that induce synapses. Those synapses looked normal and released transmitter but were postsynaptically silent, with no AMPA receptor responses, and mice lacking both thrombospondins had fewer excitatory synapses. Later work identified other astrocyte factors, including glypicans 4 and 6, which recruit AMPA receptors and make such synapses respond, and cholesterol carried in lipoproteins.
+
+## Maturation: GABA changes sign
+
+A new synapse keeps changing after it forms. At the neuromuscular junction the acetylcholine receptor swaps its fetal gamma subunit for the adult epsilon subunit. In the brain, the best-known change is in GABA. In immature rodent hippocampal and cortical neurons, chloride inside the cell is high, because the transporter NKCC1 brings chloride in and the exporter KCC2 is scarce. Opening GABA-A channels then lets chloride flow out, and GABA depolarizes the cell. As KCC2 rises over the first postnatal weeks, internal chloride falls and GABA hyperpolarizes. The Nernst equation for chloride at 37 °C gives E(Cl), the voltage that open chloride channels pull the membrane toward:
+
+<LessonFigure src="/figures/cns-synapses/gaba-chloride-switch.webp" width={1200} height={715} alt="AI-generated illustration: two side-by-side membrane schematics, labeled Immature and Mature, with dots for chloride ions above and below a two-line membrane. In the immature panel, a large NKCC1 transporter labeled as bringing chloride in sits beside a GABA-A channel with an upward arrow showing chloride leaving, a small KCC2 transporter is drawn beside them, and the panel is labeled Depolarizes. In the mature panel, a large KCC2 transporter labeled as exporting chloride sits beside a GABA-A channel with a downward arrow showing chloride entering, a small NKCC1 is drawn beside them, and the panel is labeled Hyperpolarizes. Dot density is similar in both panels and transporter sizes are schematic." caption="Schematic chloride regulation in rodent hippocampal and cortical neurons. In immature neurons, NKCC1 brings chloride in and KCC2 is scarce, so opening GABA-A channels lets chloride out and depolarizes the membrane. As KCC2 rises over the first postnatal weeks, internal chloride falls; opening GABA-A channels then lets chloride in and hyperpolarizes the membrane under the conditions described here. Depolarizing GABA can still inhibit by shunting. Protein sizes and ion counts are schematic." />
+
+> **E(Cl) = 61 mV × log10([Cl] inside / [Cl] outside)**
+
+With 30 mM chloride inside and 130 mM outside, E(Cl) is about −39 mV, above a resting potential near −60 mV, so opening the channel depolarizes. With 7 mM inside, E(Cl) is about −77 mV, and the same channel now hyperpolarizes. Depolarizing is not the same as exciting, though. An open GABA-A channel also damps firing by shunting current, and in the cortex of newborn mice GABA depolarizes most neurons yet still holds network activity down.
 
 ### Design problem
 
@@ -399,34 +416,24 @@ For controls, use cells that are untransfected or that make a different adhesion
 
 </details>
 
-Now the trap. "Sufficient in a dish" is not "required in the animal." In 2003 Markus Missler, Thomas Südhof and colleagues reported mice lacking all three alpha-neurexins. They died soon after birth, and their excitatory synapses were present at close to normal density, with moderately fewer inhibitory synapses, but released transmitter poorly. In 2006 mice lacking neuroligins 1, 2 and 3 were reported to have synapses in normal number in the brainstem, with impaired transmission, more so at inhibitory synapses, and they died from failed breathing. So alpha-neurexins and neuroligins are required for normal synapse function and maturation, not for forming most synapses. Many organizers overlap, and a dish holding one of them on a bare cell tests what that one can do, not what the brain depends on.
+## Going deeper
 
-## The receiving side: a scaffold that holds receptors
+### Early growth-cone experiments and the calcium signal
 
-Under an excitatory terminal sits the postsynaptic density, a dense layer of protein under the membrane that shows as a dark thickening in electron micrographs. One of its most abundant proteins is PSD-95, a scaffold of the MAGUK family with three PDZ domains, short modules that grip the last few amino acids of a partner protein (see [that lesson](/lessons/protein-interaction-modules/)). The first two PDZ domains bind the tail of NMDA receptor GluN2 subunits. The third binds the tail of neuroligin. That gives a chain across the cleft: neurexin in the axon, neuroligin in the dendrite, PSD-95 beneath it, glutamate receptors held by PSD-95. A scaffold works like a pegboard: whatever has the right hook hangs in the right place (see [that lesson](/lessons/adaptors-and-scaffolds/)).
+In 1983 two groups showed that growth cones of cultured frog and chick neurons release acetylcholine before reaching a muscle, detected with a patch of receptor-rich membrane held near the growth cone.
 
-AMPA receptors, the glutamate-gated channels that carry most fast excitatory current (see [that lesson](/lessons/ion-channels-as-receptors/)), do not bind PSD-95 directly. The clue came from a mouse. Stargazer is a spontaneous mutant that tosses its head upward and has seizures. Its gene encodes stargazin, a small membrane protein. In stargazer cerebellar granule cells, mossy fiber synapses give NMDA receptor responses but no AMPA receptor responses. In 2000 the laboratories of David Bredt and Roger Nicoll reported that stargazin binds AMPA receptors and brings them to the cell surface, and that its tail, which binds PSD-95's PDZ domains, holds them at synapses. Stargazin became the first of the transmembrane AMPA receptor regulatory proteins, or TARPs. Other TARPs serve other neurons, which is one reason the stargazer defect shows most clearly in cerebellar granule cells.
+In cultured hippocampal neurons, Stephen Smith's laboratory watched the packets carrying active-zone proteins arrive at new contacts.
 
-Inhibitory synapses use a different scaffold. Gephyrin forms dense clusters under the terminal that hold glycine receptors and many GABA-A receptors.
+His phrase for this: "Lonesome structures indicate that growth cones and dendrites are poised on the brink of differentiating into synaptic specialization."
 
-<LessonFigure src="/figures/cns-synapses/excitatory-postsynaptic-scaffold.webp" width={1200} height={687} alt="AI-generated illustration: a schematic excitatory synapse in which neurexin on the axon clasps neuroligin on the dendrite, PSD-95 beneath holds neuroligin and NMDA receptors, and stargazin links AMPA receptors to PSD-95; a small inset shows gephyrin, drawn as a regular sheet for simplicity, holding inhibitory receptors, although real gephyrin clusters are irregular." caption="At an excitatory synapse, PSD-95 binds neuroligin and NMDA receptor GluN2 tails directly and anchors AMPA receptors through stargazin, one of the TARPs. At inhibitory synapses, gephyrin forms dense clusters that anchor glycine receptors and many GABA-A receptors." />
+He also asks, "The decision to form a synapse: calcium signal?" In cultured frog spinal neurons, contact with a muscle cell raised free calcium in the neurite, but contact with another neuron did not; in a cultured snail motor neuron, a cAMP analogue mimicked the boost in calcium entry that contact with its target produced. In these experiments the trigger came from the partner, from its surface or from the space between the cells.
+
+### Target-derived NGF and postsynaptic assembly in sympathetic ganglia
 
 The signal for the receiving side can come from far away. In mouse sympathetic ganglia, Sharma, Deppmann, Harrington and colleagues reported in 2010 that nerve growth factor from the distant target tissue is needed for postsynaptic assembly in the ganglion neurons, and that postsynaptic assembly is in turn a prerequisite for presynaptic assembly, although preganglionic axons still grow into the ganglion without the growth factor. Signaling endosomes carrying its receptor TrkA travel back from the axon into the dendrites.
 
-## Astrocytes add the missing signal
+### Effect sizes in the glial add-back experiments
 
-Ben Barres's laboratory could purify rat retinal ganglion cells by immunopanning, leaving cultures with almost no glia. In 1997 Frank Pfrieger and Barres reported that these neurons survived, grew and fired action potentials, yet barely spoke to one another. A layer of glia across the dish, not touching the neurons, or medium the glia had conditioned, changed that. With action potentials blocked by tetrodotoxin, the frequency of miniature synaptic currents rose roughly twelvefold, and failures of evoked transmission fell from about one stimulus in five to about one in fifty. Neuron survival did not change, so glia were not simply keeping more neurons alive.
+With action potentials blocked by tetrodotoxin, the frequency of miniature synaptic currents rose roughly twelvefold, and failures of evoked transmission fell from about one stimulus in five to about one in fifty.
 
-In 2001 Erik Ullian and colleagues in the same laboratory reported that astrocytes raised the number of synapses about sevenfold and were needed to keep them. In 2005 Karen Christopherson and colleagues identified thrombospondins 1 and 2 as astrocyte-secreted proteins that induce synapses. Those synapses looked normal and released transmitter but were postsynaptically silent, with no AMPA receptor responses, and mice lacking both thrombospondins had fewer excitatory synapses. Later work identified other astrocyte factors, including glypicans 4 and 6, which recruit AMPA receptors and make such synapses respond, and cholesterol carried in lipoproteins. So astrocytes supply more than one kind of signal: some mainly build synapses, others mainly make them respond.
-
-Keep the scope. Neurons form some synapses without astrocytes, and the size of the glial effect depends on the culture system. Astrocytes add to synapse formation; they are not its sole cause.
-
-## Maturation: GABA changes sign
-
-A new synapse keeps changing after it forms. At the neuromuscular junction the acetylcholine receptor swaps its fetal gamma subunit for the adult epsilon subunit. In the brain, the best-known change is in GABA. In immature rodent hippocampal and cortical neurons, chloride inside the cell is high, because the transporter NKCC1 brings chloride in and the exporter KCC2 is scarce. Opening GABA-A channels then lets chloride flow out, and GABA depolarizes the cell. As KCC2 rises over the first postnatal weeks, internal chloride falls and GABA hyperpolarizes. The Nernst equation for chloride at 37 °C gives E(Cl), the voltage that open chloride channels pull the membrane toward:
-
-<LessonFigure src="/figures/cns-synapses/gaba-chloride-switch.webp" width={1200} height={715} alt="AI-generated illustration: two side-by-side membrane schematics, labeled Immature and Mature, with dots for chloride ions above and below a two-line membrane. In the immature panel, a large NKCC1 transporter labeled as bringing chloride in sits beside a GABA-A channel with an upward arrow showing chloride leaving, a small KCC2 transporter is drawn beside them, and the panel is labeled Depolarizes. In the mature panel, a large KCC2 transporter labeled as exporting chloride sits beside a GABA-A channel with a downward arrow showing chloride entering, a small NKCC1 is drawn beside them, and the panel is labeled Hyperpolarizes. Dot density is similar in both panels and transporter sizes are schematic." caption="Schematic chloride regulation in rodent hippocampal and cortical neurons. In immature neurons, NKCC1 brings chloride in and KCC2 is scarce, so opening GABA-A channels lets chloride out and depolarizes the membrane. As KCC2 rises over the first postnatal weeks, internal chloride falls; opening GABA-A channels then lets chloride in and hyperpolarizes the membrane under the conditions described here. Depolarizing GABA can still inhibit by shunting. Protein sizes and ion counts are schematic." />
-
-> **E(Cl) = 61 mV × log10([Cl] inside / [Cl] outside)**
-
-With 30 mM chloride inside and 130 mM outside, E(Cl) is about −39 mV, above a resting potential near −60 mV, so opening the channel depolarizes. With 7 mM inside, E(Cl) is about −77 mV, and the same channel now hyperpolarizes. Depolarizing is not the same as exciting, though. An open GABA-A channel also damps firing by shunting current, and in the cortex of newborn mice GABA depolarizes most neurons yet still holds network activity down.
+In 2001 Erik Ullian and colleagues in Ben Barres's laboratory reported that, in culture, astrocytes raised the number of synapses about sevenfold and were needed to keep them.
