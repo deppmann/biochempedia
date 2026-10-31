@@ -4,20 +4,15 @@ slug: "olfactory-receptor-choice"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 7: Smell and taste"
 order: 826
-summary: >-
-  A mature mouse olfactory neuron transcribes one odorant-receptor gene from one allele, out of
-  about a thousand genes. This lesson follows the mouse evidence for how that choice is made
-  (silenced chromatin, competing enhancer hubs, a stress-pathway feedback) and then compares an
-  insect receptor channel with a human receptor structure. Afterwards you can read a dose-response
-  shift from a pocket mutant and design a test of a structure-based ligand prediction.
+summary: "A mature mouse olfactory neuron transcribes one odorant-receptor gene from one allele, out of about a thousand genes, and that choice sets what the neuron responds to and helps set where its axon goes. This lesson follows the mouse evidence for how the choice is made and kept (silenced chromatin, competing enhancer hubs, a stress-pathway feedback), then compares an insect receptor channel with a human receptor structure. Afterwards you can order the evidence for the three stages and read a dose-response shift from a pocket mutant."
 hook: "A mouse olfactory neuron holds about a thousand receptor genes and uses one copy of one. How does it choose, and what keeps it from changing its mind?"
 
 estMinutes: 24
 objectives:
   - "Define singular choice and say which stages of mouse olfactory neuron development it does and does not describe."
   - "Order the evidence for silencing, enhancer hubs and feedback, and say what each experiment in the order does and does not show."
-  - "Compute a response and a potency shift from two EC50 values under stated assumptions."
-  - "Design a test of a structure-based ligand prediction and state what a negative result would not mean."
+  - "Explain how the choice reaches the wiring: the stress signal that stabilises the choice links to guidance and adhesion genes, so the choice and the address can share a signal."
+  - "Compute a response and a potency shift from two EC50 values under stated assumptions, and design a test of a structure-based ligand prediction, stating what a negative result would not mean."
 
 explainer:
   src: "/explainers/olfactory-receptor-choice/explainer.mp4"
@@ -187,33 +182,25 @@ practiceQuestions:
       from the start would leave nothing to resolve. A hub shared by all neurons cannot explain
       different neurons choosing different genes. Hubs forming only after the protein exists
       reverses the order, since contacts come before the stabilizing step.
-  - stem: "Eugenol and the repellent DEET bind in the same pocket of the bristletail receptor MhOR5. What does this show about the phrase one receptor per neuron?"
+  - stem: Different receptor sequences produce different ER-stress patterns in developing mouse olfactory neurons, and Ddit3 links PERK signalling to guidance and adhesion genes. What does this suggest about the choice and the wiring?
     choices:
-      - "Mouse neurons choose among about 400 receptor genes"
-      - "Insect receptors are G-protein-coupled like OR51E2"
-      - "One receptor type can bind chemically unrelated molecules"
-      - "A neuron with one receptor can detect only one odorant"
-    answer: 2
-    rationale: >-
-      The phrase concerns a chosen gene, and one receptor type can still bind unrelated ligands,
-      as MhOR5 did. A one-odorant limit is the misreading the structure counters. MhOR5 is an
-      odorant-gated ion channel, so calling it G-protein-coupled is wrong. About 400 is the human
-      repertoire, not the mouse number, and the structure says nothing about the count.
+    - The choice and the address can share a signal
+    - Axon guidance is fixed before any receptor is chosen
+    - The stress pathway acts only after the axon reaches the bulb
+    - Guidance genes decide which receptor gene is chosen
+    answer: 0
+    rationale: If receptor-dependent stress signalling reaches guidance and adhesion genes, then the same signal that helps stabilise a receptor choice can also influence where the axon goes, so the choice and the address can share a signal. Guidance is not fixed beforehand in this account, since receptor identity feeds into it. The stress pathway engages as the receptor is made in the developing neuron, not only after the axon arrives. Nothing in the result puts guidance genes upstream of the choice. These are mouse reports and show a link, not the full wiring rules.
 
 mcatQuestions:
-  - stem: "A receptor has an EC50 of 0.50 mM in a cAMP assay. A pocket mutant has an EC50 of 4.5 mM. Assume a Hill slope of 1, zero baseline and each construct normalized to its own maximum. What fraction of its own maximum does the mutant give at 0.50 mM?"
+  - stem: Which order of events best fits the mouse model of receptor choice described in this lesson?
     choices:
-      - "0.50"
-      - "0.10"
-      - "0.90"
-      - "0.01"
-    answer: 1
-    rationale: >-
-      With a Hill slope of 1, R = c / (EC50 + c) = 0.50 / (4.5 + 0.50) = 0.10. The value 0.50 is
-      the wild-type response, which sits at its EC50 at this concentration. The value 0.90 is 1 minus
-      the correct fraction, the share of its maximum that the mutant does not give. The value 0.01 is a
-      tenfold slip in the arithmetic: the shift is ninefold, and it applies to the EC50, not to
-      the response.
+    - Receptor genes are silenced, several enhancer hubs compete and one gene dominates, then feedback helps hold that choice
+    - One gene is activated first, then it silences all the others, then enhancer hubs form
+    - Feedback through the stress pathway selects the gene, then chromatin is silenced
+    - Enhancer hubs form in every stage, so all receptor genes are expressed until feedback removes most
+    answer: 0
+    rationale: 'The ordered model is silence first, then several competing hubs with one gene dominating, then feedback that helps stabilise the choice. The idea that the chosen gene silences the others is not what the allele comparison shows: the silencing was already there. Feedback acts after a receptor is expressed, so it cannot select the gene. Enhancer hubs are inferred to compete in developing neurons before one gene dominates, not to express every receptor. The model is mouse-based and incomplete, and singular expression is the endpoint of the sequence, not a property of every stage.'
+
   - stem: "In a made-up data set, a recombinase permanently marks every mouse neuron that has ever transcribed receptor X. At postnatal day 2, 2 percent of marked neurons in controls now express a different receptor. In Adcy3-null pups, 14 percent do. Which conclusion is best supported?"
     choices:
       - "Adcy3 loss blocked the initial choice of receptor X"
@@ -283,7 +270,6 @@ explainLevels:
       reverse, and a post-transcriptional silencing step reported for Mex3a keeps early transcripts
       from provoking stress.
 
-
       Open questions remain: the machinery of long-range suppression is unidentified, population
       contact maps cannot establish a unique hub in each cell, and the Lsd1 dependence does not show
       direct demethylation of H3K9me3 at receptor loci. Structurally, an insect ion channel and a
@@ -332,7 +318,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **A mouse olfactory neuron holds about a thousand odorant-receptor genes in each of its two genome copies, yet a mature one transcribes a single copy of a single gene. How does a cell make a choice that complete, and keep it?**
 
-The core course states the rule and moves on: [smell and taste](/lessons/smell-and-taste/) covers the Buck and Axel cloning, one receptor and two glomeruli, and the combinatorial code. This lesson starts where that one stops, with the mechanism. First the definition, because it is easy to over-read. **Singular choice** means that in a mature mouse olfactory sensory neuron, one receptor gene is transcribed from one allele (Chess and colleagues, 1994; Monahan and colleagues, 2017). It does not mean one receptor molecule, one odour, or one stage of development: the newer mouse work below finds competing states on the way to that endpoint.
+The core course states the rule and moves on: [smell and taste](/lessons/smell-and-taste/) covers the Buck and Axel cloning, one receptor and two glomeruli, and the combinatorial code. The rule matters because the receptor a neuron chooses fixes which odorants it responds to and helps set where its axon goes. This lesson starts where that one stops, with the mechanism. First the definition, because it is easy to over-read. **Singular choice** means that in a mature mouse olfactory sensory neuron, one receptor gene is transcribed from one allele (Chess and colleagues, 1994; Monahan and colleagues, 2017). It does not mean one receptor molecule, one odour, or one stage of development: the newer mouse work below finds competing states on the way to that endpoint.
 
 ## Silence first, then choose
 
@@ -340,7 +326,7 @@ Picture a library in which nearly every book is chained shut and one is left ope
 
 Read that carefully. The comparison shows that the chosen allele sits in a less repressed state. It does not say which change starts the choice, and it does not say the chosen gene silences the others: the silencing was already there. The picture in which feedback from the winning receptor does the silencing is not what these data show. Feedback and receptor RNA act later, as the next sections describe.
 
-A second line of evidence comes from the histone demethylase gene Lsd1 (see [eukaryotic gene regulation](/lessons/eukaryotic-regulation/)). Lyons and colleagues (2013) deleted Lsd1 early in the mouse epithelium and read the RNA of the whole tissue at embryonic day 18.5. The control tissue yielded 662 detected receptor genes and the knockout 212, which is 212 / 662 = 0.32, about a third. The authors concluded that early Lsd1 deletion impaired initiation of receptor expression. This is dependence, not mechanism: it does not show that LSD1 itself removes H3K9me3 at receptor loci, and a count from bulk tissue depends on the assay and the cells in the sample.
+A second line of evidence comes from the histone demethylase gene Lsd1 (see [eukaryotic gene regulation](/lessons/eukaryotic-regulation/)). Lyons and colleagues (2013) deleted Lsd1 early in the mouse epithelium and read the RNA of the whole tissue. The knockout tissue detected about a third as many receptor genes as the control. The authors concluded that early Lsd1 deletion impaired initiation of receptor expression. This is dependence, not mechanism: it does not show that LSD1 itself removes H3K9me3 at receptor loci, and a count from bulk tissue depends on the assay and the cells in the sample.
 
 ## Enhancer hubs that compete in trans
 
@@ -354,7 +340,7 @@ Pourmorady and colleagues (2024) went to single cells. Combining single-cell mul
 
 ## Feedback through a stress pathway
 
-Once a receptor is expressed, something must prevent a second choice. The evidence is again from mice. The first clue was genetic: when the chosen receptor gene cannot make a functional receptor, the neuron often expresses a second receptor gene as well, and neurons given a functional receptor transgene early do not express their own receptor genes (reviewed by Monahan and Lomvardas, 2015). So the feedback depends on receptor protein. In neurons lacking the cyclase Adcy3, lineage tracing of one receptor, MOR28, at postnatal day 2 showed about a twofold higher ratio of singly labelled neurons (the permanent mark without MOR28, or MOR28 without the mark) to neurons carrying both, which supports more switching, at an age when most neurons are still immature (Lyons and colleagues, 2013). **Lineage tracing** here means a recombinase permanently marks a neuron that has activated a given receptor locus long enough for recombination, which takes hours, so a marked neuron that now expresses a different receptor has switched. The authors also reported that Adcy3 participates in downregulating Lsd1 after choice, so the cyclase that serves transduction in the cilia ([senses and cGMP](/lessons/senses-and-cgmp/)) also stabilizes the choice.
+Once a receptor is expressed, something must prevent a second choice. The evidence is again from mice. The first clue was genetic: when the chosen receptor gene cannot make a functional receptor, the neuron often expresses a second receptor gene as well, and neurons given a functional receptor transgene early do not express their own receptor genes (reviewed by Monahan and Lomvardas, 2015). So the feedback depends on receptor protein. In neurons lacking the cyclase Adcy3, lineage tracing of one receptor, MOR28, at postnatal day 2 showed more switching, at an age when most neurons are still immature (Lyons and colleagues, 2013). **Lineage tracing** here means a recombinase permanently marks a neuron that has activated a given receptor locus long enough for recombination, which takes hours, so a marked neuron that now expresses a different receptor has switched. The authors also reported that Adcy3 participates in downregulating Lsd1 after choice, so the cyclase that serves transduction in the cilia ([senses and cGMP](/lessons/senses-and-cgmp/)) also stabilizes the choice.
 
 How does the neuron know a receptor has been made? Dalton, Lyons and Lomvardas (2013) found that receptor expression engages the **unfolded protein response**, the pathway by which a cell reacts to misfolded protein in its endoplasmic reticulum ([stress signals](/lessons/stress-signals/)). In developing mouse neurons, PERK-dependent phosphorylation of eIF2α promoted selective translation of ATF5, and ATF5 promoted transcription of Adcy3. Adcy3 induction in turn relieves the stress response, which supports a two-step model. These are epistasis experiments in mice, including newborn eIF2α-mutant animals rescued with ATF5. They place the signals in order, but they do not show how a receptor activates PERK.
 
@@ -364,8 +350,7 @@ Receptor identity also reaches the wiring. The 1996 receptor-swap experiments (M
 
 Now the protein. Del Mármol, Yedlin and Ruta (2021) solved cryo-EM structures of the bristletail receptor MhOR5, expressed in human cultured cells: a **homotetramer** (four identical subunits) that is itself an odorant-gated ion channel, with eugenol and the repellent DEET bound in the same pocket, one in each subunit. In a calcium-imaging screen it responded to more than 65 percent of the odorants in a 54-molecule panel. This is an insect channel, not a G-protein-coupled receptor, and an atypical one: the bristletail has no Orco, the co-receptor that partners with the odorant-specific subunit in most insect receptors.
 
-Mammals use the other design. Billesbølle and colleagues (2023) solved active human OR51E2 bound to propionate at 3.1 angstroms, as a purified, engineered complex with a mini G protein, made in HEK293-derived Expi293F cells, with the cAMP assays done in HEK293T cells. The human genome encodes about 400 odorant GPCRs; that is the human repertoire, not the mouse count, and not the 511 clones of a human screening library (Mainland and colleagues, 2015). The pocket mutants F155A and L158A gained responses to longer-chain fatty acids in a cAMP assay. Consensus-sequence structures from 2024 (de March and colleagues) extend the coverage, but they are engineered sequences and must be labelled so.
-
+Mammals use the other design. Billesbølle and colleagues (2023) solved active human OR51E2 bound to propionate, as a purified, engineered complex with a mini G protein. The human genome encodes about 400 odorant GPCRs; that is the human repertoire, not the mouse count. The pocket mutants F155A and L158A gained responses to longer-chain fatty acids in a cAMP assay. Consensus-sequence structures from 2024 (de March and colleagues) extend the coverage, but they are engineered sequences and must be labelled so.
 
 **Worked problem: reading a dose-response shift.** In the cAMP assay, propionate gave an EC50 of 0.824 mM for wild-type OR51E2 and 12.3 mM for F155A. Assume a Hill slope of 1, zero baseline, and each construct normalized to its own maximum, so response R(c) = c / (EC50 + c). These are the mean EC50 values in Extended Data Table 2 of the paper; its Table 3 gives 1.40 mM and 9.13 mM for the same two constructs (a shift of about 6.5-fold), and the F155A pEC50 in Table 2 has a standard error of 0.77 log units, so the size of the shift is uncertain. The responses calculated below are model values, not measured light outputs.
 
@@ -393,3 +378,18 @@ Make the point mutant and confirm that it reaches the cell surface, since a prot
 A non-response in this assay would not show that the ligand cannot bind. A flat curve can mean no binding, no G-protein coupling, no trafficking to the surface, or an assay ceiling, so a negative in vitro is not a deorphanization, the assignment of a ligand to a receptor. It would also not show what the receptor does in a neuron. If the mutant does respond, the next question is whether it does so in an olfactory neuron, where chaperones, cilia and the feedback pathway above are present.
 
 </details>
+
+## Going deeper
+
+### The Lsd1 knockout in numbers
+
+Lyons and colleagues read the RNA of the whole tissue at embryonic day 18.5. The control tissue yielded 662 detected receptor genes and the knockout 212, which is 212 / 662 = 0.32, about a third.
+
+### How the Adcy3 lineage ratio is defined
+
+In the Adcy3-null neurons, the ratio of singly labelled neurons (the permanent mark without MOR28, or MOR28 without the mark) to neurons carrying both was about twofold higher at postnatal day 2.
+
+### Where the OR51E2 structure and screen came from
+
+The active human OR51E2 structure was solved at 3.1 angstroms, with the complex made in HEK293-derived Expi293F cells and the cAMP assays done in HEK293T cells. The 511 clones of a human screening library (Mainland and colleagues, 2015) are a screening set, not the human repertoire.
+

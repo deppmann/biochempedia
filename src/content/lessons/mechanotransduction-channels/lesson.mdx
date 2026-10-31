@@ -4,18 +4,12 @@ slug: "mechanotransduction-channels"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 1: Transduction and sensory cell types"
 order: 802
-summary: >-
-  Piezo1 was found in 2010, with its relative Piezo2 characterised in the same paper, by knocking candidate genes down in a mouse cell line and
-  asking which loss reduced the current evoked by poking the cell. This lesson takes the question
-  past necessity and into mechanics: what cryo-EM shows about a curved trimer, how membrane tension
-  can do the gating work on its own, what a cytoskeletal tether would add, and which variants change
-  inactivation in people. Afterwards you can convert a patch pressure into a tension and read a
-  predicted current off a published fit.
-hook: "A channel shaped like a shallow dome, about 28 nm across in the purified structure. Force favours flattening, and flattening is thought to help open it."
+summary: "Piezo1 and Piezo2 are mechanically activated cation channels, and Piezo2 is a principal channel for touch and limb position in mice; two people lacking working Piezo2 had selective deficits in touch and especially limb position. This lesson asks how force opens them: what cryo-EM shows about a curved trimer, how membrane tension can do the gating work on its own, what a cytoskeletal tether would add, and which variants change inactivation in people. It also shows how the 2010 screen identified the channels and what that experiment left open. Afterwards you can convert a patch pressure into a tension and read a predicted current off a published fit."
+hook: "Piezo channels turn force into current, and Piezo2 is a principal channel for touch and limb position. How? In the leading, still debated model, the channel is a shallow dome about 28 nm across in the purified structure, force favours flattening it, and flattening is thought to help open the pore."
 
 estMinutes: 24
 objectives:
-  - "Recount how Piezo1 and Piezo2 were identified in 2010 and state precisely what that experiment left open."
+  - "State that Piezo1 and Piezo2 convert force into cation current, that Piezo2 is a principal channel for touch and limb position, and what the 2010 identification experiment left open."
   - "Describe the cryo-EM architecture of a Piezo trimer, keeping the helix counts per protomer and per channel distinct."
   - "Compare the force-from-lipid and force-from-filament arguments by preparation, and say why both can hold at once."
   - "Convert a patch pressure into a membrane tension, read a Boltzmann fit, and relate inactivation changes to human PIEZO variants."
@@ -192,18 +186,14 @@ practiceQuestions:
       and expression shows sufficiency, not the requirement the screen found. Ion substitution addressed what the
       current carried, not which gene was required. Adult conditional deletion and light touch come
       from Ranade and colleagues in 2014, four years later and in mice rather than a cell line.
-  - stem: "Mouse PIEZO2 was reported with 114 transmembrane helices in the trimer. How many belong to one protomer?"
+  - stem: "Which comparison keeps the mouse PIEZO2 result and the human PIEZO2 result apart?"
     choices:
-      - "342, three times the trimer count"
-      - "114, since the count is per subunit"
-      - "38, one third of the trimer count"
-      - "12, the usual count for a trimer"
-    answer: 2
-    rationale: >-
-      114 divided by three gives 38 helices per protomer, which is how the structure was reported.
-      Treating 114 as the per-subunit figure triples the real channel. Multiplying 114 by three makes
-      the same error by arithmetic. A round figure near 12 comes from expecting a Piezo
-      subunit to resemble a six-helix voltage-gated channel subunit, which it does not.
+      - "Both showed a complete loss of every touch ability"
+      - "Mice lacking it in sensory neurons and Merkel cells lost almost all light-touch behaviour; the two people showed selective deficits"
+      - "People lost all mechanical sensation, while mice lost only proprioception"
+      - "Neither group changed behaviour; only cultured-cell currents differed"
+    answer: 1
+    rationale: "Adult mice with Piezo2 deleted from sensory neurons and Merkel cells show an almost complete light-touch deficit across behavioural assays. The two people with compound inactivating PIEZO2 variants had impaired discriminative touch and profound proprioceptive impairment that worsened without visual cues, but they kept other abilities, so their deficits were selective. A complete loss of every ability fits neither group. Loss of all mechanical sensation in people overstates the human report, and mouse and human results both involved behaviour, not only cultured-cell currents."
   - stem: "Purified mouse Piezo1 was mechanically activated in droplet bilayers with no other cellular components. What does that experiment establish?"
     choices:
       - "Cytoskeletal tethers are irrelevant in intact cells"
@@ -385,11 +375,11 @@ draft: false
 import PatchTensionBoltzmann from '../../../components/PatchTensionBoltzmann.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Flatten a shallow dome 28 nanometres across and a pore in its centre opens.** That sentence is the leading structural model's answer, still debated, to a long-standing question physiology could not touch: how does a protein convert mechanical force into ionic current? [Touch and pain](/lessons/touch-and-pain/) names Piezo2 as the channel mice need for gentle touch, and [transduction strategies](/lessons/transduction-strategies/) places direct mechanical gating among the ways a stimulus becomes a current. This lesson asks the mechanical question those lessons leave alone. What is the shape, what does force do to it, and how would you tell whether the force arrives through lipid or through protein?
+**Piezo channels turn mechanical force directly into ionic current, and Piezo2 is a principal channel for touch and limb position.** In adult mice with Piezo2 deleted from sensory neurons and Merkel cells, light-touch behaviour is almost entirely lost. Two people with inactivating PIEZO2 variants had impaired discriminative touch and profound proprioceptive impairment, which worsened without visual cues. The open question is how a protein converts force into current. The leading structural model, still debated, answers with a shape: flatten a shallow dome 28 nanometres across and a pore in its centre opens. [Touch and pain](/lessons/touch-and-pain/) names Piezo2 as the channel mice need for gentle touch, and [transduction strategies](/lessons/transduction-strategies/) places direct mechanical gating among the ways a stimulus becomes a current. This lesson asks the mechanical question those lessons leave alone. What is the shape, what does force do to it, and how would you tell whether the force arrives through lipid or through protein?
 
 ## A knockdown screen, and the claim it refused to make
 
-The 2010 experiment was built around a cultured mouse neuroblastoma line, Neuro2A, that gave a reliable current when a separate glass probe indented the cell while a patch pipette recorded whole-cell current. Coste and colleagues silenced candidate genes one at a time with short interfering RNA and asked which loss reduced the current. Knocking down Fam38A, renamed Piezo1, reduced it sharply. Expressing mouse Piezo1, or the related Piezo2, in heterologous cultured cells produced mechanically activated currents whose kinetics differed between the two. Ion-substitution experiments pointed to a non-selective cation conductance for Piezo2, with a reported inactivation time constant of 7.3 ± 0.7 ms at −80 mV in HEK293T cells (n = 11).
+The 2010 experiment was built around a cultured mouse neuroblastoma line, Neuro2A, that gave a reliable current when a separate glass probe indented the cell while a patch pipette recorded whole-cell current. Coste and colleagues silenced candidate genes one at a time with short interfering RNA and asked which loss reduced the current. Knocking down Fam38A, renamed Piezo1, reduced it sharply. Expressing mouse Piezo1, or the related Piezo2, in heterologous cultured cells produced mechanically activated currents whose kinetics differed between the two. Ion-substitution experiments pointed to a non-selective cation conductance for Piezo2, and its current inactivated quickly.
 
 Notice the shape of the logic, because it recurs across this unit. The screen showed that one gene is required in one cell line, and expression showed that the gene suffices to confer a current in another. Neither shows that the protein lines the pore, and the authors said so: Piezo proteins might have been non-conducting subunits of a channel made of something else. Necessity, sufficiency and pore identity are three separate claims with three separate experiments, and the 2010 paper earned two of them.
 
@@ -438,11 +428,11 @@ Force could also arrive through protein. Wang J and colleagues (Cell Reports, 20
 
 It is tempting to treat the two accounts as rivals where one must lose. They are not, for a reason worth stating plainly: sufficiency in a reconstituted bilayer cannot exclude an additional coupling route in an intact cell, and a tether requirement in a cultured cell cannot abolish the lipid energetics that the structures measure. There is even a hint that the bilayer is missing something, since the purified droplet-bilayer recordings did not reproduce the rapid inactivation seen in whole cells.
 
-Other mechanotransducers fall on both sides, and each belongs to its preparation. Drosophila NOMPC, with its 29 ankyrin repeats, required microtubule association for mechanogating in S2 cells, with the behavioural work in third-instar larval class III dendritic-arborization neurons: a tether in a fly. A mec-4 null eliminated mechanically evoked receptor currents in C. elegans touch receptor neurons, where the current is carried mostly by sodium, unlike the non-selective Piezo current. In mouse hair cells, cysteine modification of rescued TMC1 rapidly changed permeation, which supports TMC1 as a pore-forming component of the transduction channel without showing that it alone constitutes the native complex; [the hair-cell transduction channel](/lessons/hair-cell-transduction-channel/) takes that story up. Purified Arabidopsis OSCA1.2 was mechanically activated in proteoliposomes, while mouse TMEM63C gave no stretch-activated current in the same expression assays that detected currents for other family members. Purified human TRAAK and zebrafish TREK1 were mechanically gated in lipid membranes with no cellular tethers, extending a force-from-lipid principle first established for the bacterial channels MscL and MscS, and TRAAK could electrically oppose Piezo1 activation in cultured cells, which makes the point that mechanosensitivity is not one mechanism with one protein.
+Other mechanotransducers fall on both sides, and each belongs to its preparation. Drosophila NOMPC required microtubule association for mechanogating in S2 cells: a tether in a fly. A mec-4 null eliminated mechanically evoked receptor currents in C. elegans touch receptor neurons, where the current is carried mostly by sodium, unlike the non-selective Piezo current. In mouse hair cells, cysteine modification of rescued TMC1 rapidly changed permeation, which supports TMC1 as a pore-forming component of the transduction channel without showing that it alone constitutes the native complex; [the hair-cell transduction channel](/lessons/hair-cell-transduction-channel/) takes that story up. Purified Arabidopsis OSCA1.2 was mechanically activated in proteoliposomes, while mouse TMEM63C gave no stretch-activated current in the same expression assays that detected currents for other family members. Purified human TRAAK and zebrafish TREK1 were mechanically gated in lipid membranes with no cellular tethers, extending a force-from-lipid principle first established for the bacterial channels MscL and MscS, and TRAAK could electrically oppose Piezo1 activation in cultured cells, which makes the point that mechanosensitivity is not one mechanism with one protein.
 
 ## Variants that change inactivation, and what people report
 
-Inactivation is the decay of mechanically activated current during a sustained stimulus, in this recording context, and it is where human genetics meets the biophysics. Coste and colleagues expressed human PIEZO2 variants from distal arthrogryposis families in HEK293T cells. Both I802F and E2727del accelerated recovery from inactivation; only E2727del slowed inactivation during the pulse. Piezo2's own tension sensitivity has also been measured with the same imaged pressure-clamp method, and it differs between splice variants: an alternatively spliced exon, exon 35, was enough to confer high sensitivity (Sindoni and colleagues, 2026). The two kinetic descriptions are not interchangeable, and "gain-of-function variants inactivate more slowly" is wrong for one of these two. On the Piezo1 side, the xerocytosis-associated human variants M2225R and R2456H slowed inactivation in heterologous recordings, and in mouse red blood cells the chemical agonist Yoda1 produced calcium influx followed by Gardos-channel-dependent dehydration, which connects a kinetic change to a cell-volume phenotype in that species.
+Inactivation is the decay of mechanically activated current during a sustained stimulus, in this recording context, and it is where human genetics meets the biophysics. Coste and colleagues expressed human PIEZO2 variants from distal arthrogryposis families in HEK293T cells. Both I802F and E2727del accelerated recovery from inactivation; only E2727del slowed inactivation during the pulse. Piezo2's own tension sensitivity has also been measured with the same imaged pressure-clamp method, and it differs between splice variants. The two kinetic descriptions are not interchangeable, and "gain-of-function variants inactivate more slowly" is wrong for one of these two. On the Piezo1 side, the xerocytosis-associated human variants M2225R and R2456H slowed inactivation in heterologous recordings, and in mouse red blood cells the chemical agonist Yoda1 produced calcium influx followed by Gardos-channel-dependent dehydration, which connects a kinetic change to a cell-volume phenotype in that species.
 
 Loss of function in people is narrower than the mouse headline. Two individuals with compound inactivating PIEZO2 variants had impaired discriminative touch and profound proprioceptive impairment that worsened without visual cues, while retaining other abilities. In a later study using experimental skin inflammation, PIEZO2-deficient participants did not develop the painful responses to gentle touch the protocol produces. Adult mice with Piezo2 deleted from sensory neurons and Merkel cells show an almost complete light-touch deficit across behavioural assays, and most rapidly adapting mechanically activated currents disappear from their cultured dorsal-root-ganglion neurons. Those are mouse sentences. The human sentences are selective deficits with residual abilities, and the two should never be merged. [Merkel cells](/lessons/merkel-cells/) and [the LTMR classes](/lessons/ltmr-classes/) carry the cell-biological half of this story, and [proprioception](/lessons/proprioception/) the limb-position half.
 
@@ -466,3 +456,18 @@ Predict the outcomes. If a tether is required, acute disruption should shift the
 A human answer needs different tools. Microneurography can record single afferents and psychophysics can measure thresholds, but neither can delete a linker, so in living people the main test would be people carrying variants in candidate adhesion proteins, with human cell models adding mechanistic evidence.
 
 </details>
+
+## Going deeper
+
+### Numbers from the 2010 paper
+
+In the 2010 experiments, Piezo2 showed a reported inactivation time constant of 7.3 ± 0.7 ms at −80 mV in HEK293T cells (n = 11).
+
+### Which Drosophila preparation
+
+Drosophila NOMPC has 29 ankyrin repeats. The microtubule requirement for mechanogating was shown in S2 cells, and the behavioural work was done in third-instar larval class III dendritic-arborization neurons.
+
+### A splice variant and Piezo2 tension sensitivity
+
+An alternatively spliced exon, exon 35, was enough to confer high tension sensitivity on Piezo2 in the tested splice variants (Sindoni and colleagues, 2026). This is one recent study, so treat it as an example that splice context can tune sensitivity, not as a field-wide rule.
+
