@@ -446,7 +446,7 @@ class S03Handle(Film):
 
         # a phosphate onto the serine of each CREB
         st = stalk()
-        self.at("There")
+        self.at("Their")
         self.play(*[Create(l) for l in st.lines], *[FadeIn(d, scale=0.5) for d in st.dots], run_time=0.5)
         pbs = [pbadge().move_to(pk.get_right() + RIGHT * 0.2) for _ in TIPS]
         self.at("puts a phosphate")

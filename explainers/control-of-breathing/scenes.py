@@ -115,7 +115,7 @@ def plot_frames():
     left = VGroup(
         PL.axes(),
         T("against arterial " + PCO2, 24, TEAL).move_to([-3.2, 3.25, 0]),
-        T("relative units, in this sketch", 22, GREY).move_to([-3.2, 2.85, 0]),
+        T("normal oxygen, relative units", 22, GREY).move_to([-3.2, 2.85, 0]),
         T("arterial " + PCO2 + " (mmHg)", 22, GREY).move_to([-3.2, -2.35, 0]),
         T("ventilation", 22, GREEN).rotate(PI / 2).move_to([-6.1, 0.45, 0]),
     )
@@ -180,11 +180,11 @@ class S01Puzzle(SpokenScene):
         n2 = self.fill(4.0, ORANGE, 0.55)
         self.play(Transform(f2, n2), GrowArrow(a2), run_time=1.6)
 
-        self.at("mostly the carbon dioxide")
+        self.at("carbon dioxide piling")
         ring = SurroundingRectangle(VGroup(t1, l1), color=YELLOW, buff=0.2, stroke_width=5, corner_radius=0.2)
         most = T("mostly", 28, YELLOW, weight=BOLD).move_to([-4.0, -3.05, 0])
         self.play(Create(ring), FadeIn(most, shift=UP * 0.1), run_time=0.8)
-        self.at("not oxygen running out")
+        self.at("though oxygen contributes")
         self.play(*[m.animate.set_opacity(0.35) for m in (t2, f2, l2, a2)], run_time=0.8)
 
         self.at("Why is the controller")
@@ -208,7 +208,7 @@ class S02Rhythm(SpokenScene):
         self.at("Two questions")
         self.play(Write(head), run_time=0.7)
         q1 = bchip("1  rhythm:\nwhere does it come from?", BLUE, 26).move_to([-3.1, 1.95, 0])
-        q2 = bchip("2  drive:\nwhat sets how hard?", GREEN, 26).move_to([3.5, 1.95, 0])
+        q2 = bchip("2  drive:\nhow fast, how deep?", GREEN, 26).move_to([3.5, 1.95, 0])
         self.at("where does the rhythm")
         self.play(FadeIn(q1, shift=UP * 0.15), FadeIn(q2, shift=UP * 0.15), run_time=0.5)
 
@@ -223,7 +223,7 @@ class S02Rhythm(SpokenScene):
         self.at("come from")
         self.play(Indicate(q1, color=BLUE, scale_factor=1.06), Create(box), FadeIn(box_l), FadeIn(qm, scale=0.6),
                   FadeIn(mus), GrowArrow(out), run_time=0.9)
-        self.at("what sets how hard")
+        self.at("what sets")
         self.play(Indicate(q2, color=GREEN, scale_factor=1.06), run_time=0.7)
         self.at("from the medulla")
         self.play(Indicate(box, color=YELLOW, scale_factor=1.02), run_time=0.7)
@@ -249,7 +249,7 @@ class S02Rhythm(SpokenScene):
         self.at("adult human circuit")
         self.play(Indicate(note, color=YELLOW, scale_factor=1.04), run_time=0.6)
 
-        # back to the whole story: chemistry sets the size
+        # back to the whole story: chemistry sets rate and depth
         self.at("At rest")
         self.play(FadeOut(ghost), FadeOut(stop), FadeOut(note), FadeOut(prep), FadeIn(pre), Transform(out, blue_out),
                   FadeIn(rl), run_time=0.8)
@@ -257,7 +257,7 @@ class S02Rhythm(SpokenScene):
         chem = bchip("chemistry", GREEN, 28).move_to([1.5, -2.75, 0])
         up = arr(chem.get_top() + UP * 0.02, [1.5, -1.3, 0], GREEN, 6)
         big = arr([-0.1, -1.1, 0], mus.get_left() + LEFT * 0.05, GREEN, 16, tip=0.4)
-        sz = T("size of the drive", 26, GREEN).move_to([1.5, -0.55, 0])
+        sz = T("rate and depth", 26, GREEN).move_to([1.5, -0.55, 0])
         self.play(FadeIn(chem, shift=UP * 0.2), GrowArrow(up), run_time=0.7)
         self.play(Transform(out, big), ReplacementTransform(rl, sz), run_time=0.9)
         self.finish()
@@ -340,12 +340,12 @@ class S04Curves(SpokenScene):
 
     def construct(self):
         left, right = plot_frames()
-        self.at("Against arterial")
+        self.at("At normal oxygen")
         self.play(FadeIn(left), run_time=0.8)
         line = line_co2()
-        self.at("rises along")
+        self.at("human ventilation")
         self.play(Create(line), run_time=1.2)
-        self.at("roughly straight")
+        self.at("rises roughly")
         rs = T("roughly straight", 24, TEAL).move_to([-1.95, 0.0, 0])
         self.play(FadeIn(rs), run_time=0.5)
 
@@ -454,22 +454,23 @@ class S06Hold(SpokenScene):
     """the breath hold: hyperventilation first lowers starting PCO2, lengthens the hold, lowers the saturation nadir."""
 
     def construct(self):
-        # the break point, and the carbon dioxide signal usually arriving first (order only, not to scale)
+        # the break point, with both gas signals at the same time position
         tl = Line([-5.4, 0.2, 0], [5.4, 0.2, 0], color=GREY, stroke_width=4)
         tla = arr([5.0, 0.2, 0], [5.8, 0.2, 0], GREY, 4)
         time_l = T("time in the breath hold", 24, GREY).move_to([-3.2, -0.3, 0])
         bpl = Line([4.6, 1.15, 0], [4.6, -0.25, 0], color=YELLOW, stroke_width=7)
         bp = bchip("apnea break point", YELLOW, 26).move_to([4.2, 1.6, 0])
         bpn = T("the breath hold ends", 24, GREY).move_to([4.2, -0.75, 0])
-        m1 = bchip("carbon dioxide signal", TEAL, 28).move_to([-3.0, 1.6, 0])
-        d1 = DashedLine([-3.0, 1.2, 0], [-3.0, 0.2, 0], color=TEAL, stroke_width=4, dash_length=0.12)
-        usual = T("usually first, not to scale", 24, GREY).move_to([-3.0, 2.55, 0])
+        m1 = VGroup(bchip("carbon dioxide signal", TEAL, 28),
+                    bchip("oxygen signal", ORANGE, 28)).arrange(DOWN, buff=0.25).move_to([-3.0, 1.6, 0])
+        d1 = DashedLine(m1.get_bottom(), [-3.0, 0.2, 0], color=GREY, stroke_width=4, dash_length=0.12)
+        usual = T("both contribute", 24, GREY).move_to([-3.0, 2.55, 0])
         cav = T("no simple blood-gas rule fully explains it", 28, YELLOW).move_to([0, -2.1, 0])
         self.at("breath hold ends")
         self.play(Create(tl), FadeIn(tla), FadeIn(time_l), run_time=0.6)
         self.at("at the apnea")
         self.play(FadeIn(bp, shift=DOWN * 0.15), Create(bpl), FadeIn(bpn), run_time=0.8)
-        self.at("signal usually")
+        self.at("Both gases contribute")
         self.play(FadeIn(m1, shift=DOWN * 0.15), Create(d1), FadeIn(usual), run_time=0.8)
         self.at("no simple")
         self.play(FadeIn(cav, shift=UP * 0.1), run_time=0.8)
@@ -500,7 +501,7 @@ class S06Hold(SpokenScene):
 
         self.at("of hyperventilation")
         self.play(Indicate(lab2, color=GREEN, scale_factor=1.04), run_time=0.7)
-        self.at("starting end tidal")
+        self.at("starting")
         p1, p2 = pc("29.0 mmHg", y1), pc("29.0 mmHg", y2)
         self.play(FadeIn(hdr1), FadeIn(p1), FadeIn(p2), run_time=0.7)
         self.at("It fell")
@@ -527,11 +528,11 @@ class S06Hold(SpokenScene):
         self.play(Transform(n2, n2b), GrowArrow(dn2), run_time=0.9)
 
         # the reading
-        self.at("lowers the carbon dioxide signal")
+        self.at("lowers carbon dioxide")
         r1 = bchip("carbon dioxide signal: lowered", TEAL, 26).move_to([-3.0, -2.85, 0])
         self.play(FadeIn(r1, shift=UP * 0.15), run_time=0.7)
-        self.at("adds almost no oxygen")
-        r2 = bchip("oxygen added: almost none", ORANGE, 26).move_to([3.2, -2.85, 0])
+        self.at("adds little oxygen")
+        r2 = bchip("blood oxygen added: little", ORANGE, 26).move_to([3.2, -2.85, 0])
         self.play(FadeIn(r2, shift=UP * 0.15), run_time=0.7)
 
         self.at("In an adult")

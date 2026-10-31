@@ -193,26 +193,26 @@ class S02Twosteps(SpokenScene):
         col_x = -3.2
         aas = [chip(n, TEXT, 28, pad=0.16).move_to([col_x, y, 0]) for n, y in zip(names, ys)]
         dots = [ndot().move_to(a.get_right() + RIGHT * 0.3) for a in aas]
-        self.at("amino acid")
+        self.at("amino acids")
         self.play(FadeIn(aas[0], shift=RIGHT * 0.2), FadeIn(dots[0], scale=0.6), run_time=0.7)
 
         # ---- step 1
-        self.at("Step one is transamination")
+        self.at("is transamination")
         step1 = heading("Step 1: transamination")
         self.play(Transform(head, step1), run_time=0.7)
-        self.at("amino transferase")
+        self.at("transferase")
         tag = chip("aminotransferase", GREY, 26, pad=0.14).move_to([-0.6, 2.4, 0])
         self.play(FadeIn(tag, shift=DOWN * 0.1), run_time=0.6)
         self.at("many different amino acids")
         self.play(*[FadeIn(a, shift=RIGHT * 0.2) for a in aas[1:]], *[FadeIn(d, scale=0.6) for d in dots[1:]],
                   run_time=0.9)
-        self.at("alpha ketoglutarate")
+        self.at("-cataglutarate to")
         hub = akg_chip(30).move_to([2.55, 0, 0])
         self.play(FadeIn(hub, shift=LEFT * 0.2), run_time=0.6)
         arrs = [arrow(d.get_right(), hub.get_left() + np.array([0, 0.18 * (1.5 - i) * 1.0, 0]), GREY, 3)
                 for i, d in enumerate(dots)]
         self.play(*[GrowArrow(a) for a in arrs], run_time=0.5)
-        self.at("collecting all that nitrogen")
+        self.at("off")
         landing = hub.get_top() + UP * 0.28
         flights = []
         for i, d in enumerate(dots):
@@ -221,7 +221,7 @@ class S02Twosteps(SpokenScene):
         self.play(LaggedStart(*flights, lag_ratio=0.3), run_time=2.0)
         self.at("single carrier")
         self.play(Indicate(hub, color=BLUE, scale_factor=1.12), run_time=0.8)
-        self.at("glutamate")
+        self.at("glutamine")
         glu = chip("glutamate", BLUE, 30).move_to(hub.get_center())
         carried = ndot().move_to(glu.get_corner(UR) + np.array([-0.05, 0.12, 0]))
         self.play(Transform(hub, glu), *[FadeOut(d) for d in dots], FadeIn(carried, scale=0.6), run_time=0.8)
@@ -235,7 +235,7 @@ class S02Twosteps(SpokenScene):
         self.play(FadeIn(one, shift=UP * 0.1), *[Indicate(a, color=PURPLE) for a in arrs], run_time=1.0)
 
         # ---- step 2: clear the stage; glutamate moves left
-        self.at("Step two is oxidative deamination")
+        self.at("oxidative deamination")
         step2 = heading("Step 2: oxidative deamination", 36)
         stage1 = VGroup(*aas, *arrs, tag, rev, one)
         self.play(FadeOut(stage1), Transform(head, step2), run_time=0.9)
@@ -293,7 +293,7 @@ class S02Twosteps(SpokenScene):
         r1 = chip("amino acids", TEXT, 28)
         r2 = chip("glutamate", BLUE, 28)
         r3 = chip("free ammonia", RED, 28)
-        r4 = chip("to the liver", TEXT, 28)
+        r4 = chip("urea or glutamine", TEXT, 28)
         row = VGroup(r1, r2, r3, r4).arrange(RIGHT, buff=0.8).move_to([0, -0.2, 0])
         fit(row, max_w=12.2)
         links = [arrow(row[i].get_right(), row[i + 1].get_left(), GREY, 4) for i in range(3)]
@@ -304,7 +304,7 @@ class S02Twosteps(SpokenScene):
         n1 = T("move 1", 26, GREY).move_to([links[0].get_center()[0], row.get_top()[1] + 0.45, 0])
         n2 = T("move 2", 26, GREY).move_to([links[1].get_center()[0], row.get_top()[1] + 0.45, 0])
         self.play(FadeIn(n1), FadeIn(n2), run_time=0.5)
-        self.at("ready to be packaged")
+        self.at("as glutamine")
         self.play(GrowArrow(links[2]), FadeIn(r4, shift=LEFT * 0.1), run_time=0.9)
         self.finish()
 
@@ -439,19 +439,19 @@ class S04Glutamine(SpokenScene):
         self.at("in your blood")
         self.play(FadeIn(mm), Indicate(bars[0], color=BLUE, scale_factor=1.05), run_time=0.6)
 
-        # ---- made everywhere: a second amino group goes onto glutamate
+        # ---- made everywhere: ammonia goes onto glutamate's side chain
         # the chart stays up through "Tissues everywhere" (it was on screen ~1 s); cross-fade on the next words
         glu = chip("glutamate", BLUE, 32, pad=0.26).move_to([-1.0, 0.1, 0])
         g1 = ndot().move_to(glu.get_top() + np.array([0, 0.28, 0]))
         tis = T("tissues everywhere", 28, GREY).move_to([-1.0, -1.45, 0])
         g2 = ndot().move_to([-5.4, 1.4, 0])
-        lab2 = T("amino group", 28, PURPLE).next_to(g2, UP, buff=0.18)
+        lab2 = T("ammonia", 28, PURPLE).next_to(g2, UP, buff=0.18)
         self.at("Tissues everywhere", lead=-0.4)
         self.play(FadeOut(VGroup(*bars, *names, axis, caption, mm)),
                   FadeIn(glu, shift=UP * 0.1), FadeIn(g1, scale=0.6), FadeIn(tis), run_time=0.5)
-        self.at("a second amino group")
+        self.at("add ammonia")
         self.play(FadeIn(g2, scale=0.6), FadeIn(lab2), run_time=0.4)
-        self.at("onto glutamate")
+        self.at("side chain")
         self.play(hop(g2, glu.get_top() + np.array([1.0, 0.28, 0]), angle=-PI / 5), FadeOut(lab2), run_time=1.0)
         self.at("make glutamine")
         gln2 = chip("glutamine", BLUE, 32, pad=0.26).move_to(glu.get_center())
@@ -501,20 +501,20 @@ class S04Glutamine(SpokenScene):
         self.at("building block")
         self.play(FadeIn(d_bb, shift=RIGHT * 0.1), run_time=0.6)
 
-        # ---- ammonia is not moved freely; nitrogen travels as glutamine
+        # ---- ammonia stays low in general blood; nitrogen travels as glutamine
         self.at("Ammonia is toxic")
         every = VGroup(src, blood, *[o for t in row_objs.values() for o in t], d_fuel, d_bb)
         self.play(FadeOut(every), run_time=0.7)
-        amm = chip("free ammonia", RED, 30).move_to([-3.6, 1.0, 0])
+        amm = chip("high ammonia", RED, 30).move_to([-3.6, 1.0, 0])
         bl = chip("blood", TEXT, 30).move_to([3.8, 0.0, 0])
         a_x = arrow(amm.get_right(), bl.get_top() + LEFT * 0.4, RED, 4)
         cross = VGroup(Line(UL * 0.3, DR * 0.3, color=RED, stroke_width=8), Line(UR * 0.3, DL * 0.3, color=RED, stroke_width=8))
         cross.move_to(a_x.point_from_proportion(0.5))
         self.play(FadeIn(amm, shift=RIGHT * 0.2), FadeIn(bl), run_time=0.7)
-        self.at("so the body almost never moves it freely")
+        self.at("keeps it low")
         self.play(GrowArrow(a_x), run_time=0.6)
         self.play(FadeIn(cross, scale=1.4), run_time=0.4)
-        self.at("Most nitrogen travels as glutamine")
+        self.at("Much nitrogen")
         gl3 = chip("glutamine", BLUE, 30).move_to([-3.6, -1.0, 0])
         k1 = ndot(0.24).move_to(gl3.get_top() + np.array([-0.5, 0.22, 0]))
         k2 = ndot(0.24).move_to(gl3.get_top() + np.array([0.5, 0.22, 0]))

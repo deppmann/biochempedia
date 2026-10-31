@@ -499,7 +499,7 @@ class S04Heart(SpokenScene):
         ch0, ch1 = channel(False), channel(True)
         ch_lbl = T("potassium\nchannel", 22, TEAL, line_spacing=0.8).move_to([5.45, 2.6, 0])
         tb = T("textbook picture", 24, GREY).move_to([5.0, -2.9, 0])
-        self.at("beta gamma")
+        self.at("opens")
         self.play(FadeIn(tb), run_time=0.4)
         self.play(FadeOut(tag_b), FadeOut(qb), FadeOut(db), FadeIn(ch0), FadeIn(ch_lbl),
                   *shift_all(bg, np.array([5.45 - FB[0], -1.25 - FB[1], 0])), run_time=1.2)

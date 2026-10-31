@@ -254,7 +254,7 @@ class S03Letter(SpokenScene):
         ile = chip("isoleucine 315", YELLOW, size=28).move_to(thr)
         self.at("replaces")
         self.play(FadeIn(thr, shift=UP * 0.1), run_time=0.5)
-        self.at("with isoleucine")
+        self.at("isolucin")
         self.play(ReplacementTransform(thr, ile), run_time=0.7)
         self.finish()
 
@@ -283,7 +283,7 @@ class S04Contact(SpokenScene):
 
         bump = bump_of(pc, k, big=True)
         ile = residue_chip("Ile 315", YELLOW, 24, pc + k * V(-3.05, 0.5))
-        self.at("Isoleucine is bulkier")
+        self.at("Isolucin")
         self.play(ReplacementTransform(knob, bump), ReplacementTransform(thr, ile), FadeOut(contact),
                   FadeOut(tie), run_time=0.9)
         tie2 = Line(ile.get_right(), bump.get_left(), color=YELLOW, stroke_width=3)
@@ -367,7 +367,7 @@ class S06Next(SpokenScene):
         tip = Dot(pc + k * V(-1.95, 1.25), radius=0.06, color=PINK)
         wl = wlabel("ponatinib", pc, k, xo=xo, yo=1.3, size=24)
         pon = VGroup(w, rod, tip)
-        self.at("Punatinib was built")
+        self.at("Ponatinib was built")
         self.play(FadeIn(pon, shift=DOWN * 0.2), FadeIn(wl, shift=DOWN * 0.2), run_time=0.6)
         slim = T("slim carbon-\ncarbon triple\nbond", 24, PINK, line_spacing=0.9).move_to(V(-5.3, 1.9))
         slim = VGroup(slim, Line(V(-4.35, 1.9), pc + k * V(-1.95, 1.25), color=PINK, stroke_width=2))

@@ -294,7 +294,7 @@ class S03Anomers(BP):
         ring0 = VGroup(tape.disc, ringlab)
 
         # anomeric carbon
-        self.at("The old carbonyl", 0.3)
+        self.at("old", 0.3)
         dot = Circle(radius=0.24, stroke_width=0, fill_color=RED, fill_opacity=1).move_to(R_POS[0])
         ac = T("anomeric carbon", 36, RED).move_to([4.5, 0.6, 0])
         nc = T("a brand-new chiral center", 28, GREY).next_to(ac, DOWN, buff=0.2)
@@ -397,11 +397,11 @@ class S04Bond(BP):
         self.play(FadeIn(capl1, shift=UP * 0.1), FadeIn(capl2, shift=UP * 0.1), run_time=0.9)
 
         # beta: link, lie flat, stack, H-bond
-        self.at("Link the very same", 0.4)
+        self.at("Link those monomers", 0.4)
         lb = [link(R[i], R[i + 1], TEAL) for i in range(N - 1)]
         blab = M("β-1,4", 32, TEAL).move_to([lane_r, y0 + 0.75, 0])
         self.play(FadeOut(eq), LaggedStart(*[Create(x) for x in lb], lag_ratio=0.1), FadeIn(blab), run_time=1.4)
-        self.at("the chains lie flat", 0.4)
+        self.at("the chains straighten", 0.4)
         rows = [R]
         extra = []
         for k in (1, 2):
@@ -412,7 +412,7 @@ class S04Bond(BP):
             extra.append(VGroup(*rowk, *lk))
             rows.append(rowk)
         self.play(FadeOut(blab), LaggedStart(*[FadeIn(e, shift=UP * 0.5) for e in extra], lag_ratio=0.4), run_time=1.6)
-        self.at("hydrogen-bond", 0.4)
+        self.at("rigid cellulose fibers", 0.4)
         hb = VGroup()
         for k in range(2):
             for i in range(0, N, 2):
@@ -421,20 +421,20 @@ class S04Bond(BP):
         hb_lab = T("hydrogen bonds between chains", 26, GREY).move_to([lane_r, -1.0, 0])
         self.play(Create(hb), FadeIn(hb_lab), run_time=1.2)
         capr1 = T("cellulose", 30, TEAL, weight=BOLD).move_to([lane_r, -2.75, 0])
-        capr2 = T("rigid fibers, indigestible", 26, TEAL).next_to(capr1, DOWN, buff=0.15)
+        capr2 = T("resists human enzymes", 26, TEAL).next_to(capr1, DOWN, buff=0.15)
         self.play(FadeIn(capr1, shift=UP * 0.1), FadeIn(capr2, shift=UP * 0.1), run_time=0.9)
 
         # punchline
         self.at("One bond geometry", 0.3)
         allb = L + rows[0] + rows[1] + rows[2]
         self.play(*[Indicate(b, color=BLUE, scale_factor=1.25) for b in allb], run_time=1.6)
-        self.at("The wood in your pencil", 0.2)
+        self.at("Your pencil's cellulose", 0.2)
         self.play(FadeOut(capl1), FadeOut(capl2), FadeOut(capr1), FadeOut(capr2), FadeOut(hb_lab), run_time=0.5)
-        wl1 = T("glucose in your blood", 28, GREEN, weight=BOLD).move_to([lane_l - 0.3, -2.75, 0])
-        wl2 = T("wood in your pencil", 28, TEAL, weight=BOLD).move_to([lane_r + 0.3, -2.75, 0])
+        wl1 = T("blood glucose", 28, GREEN, weight=BOLD).move_to([lane_l - 0.3, -2.75, 0])
+        wl2 = T("pencil's cellulose", 28, TEAL, weight=BOLD).move_to([lane_r + 0.3, -2.75, 0])
         mid = VGroup(block(0.42), T("same brick", 28, BLUE, weight=BOLD)).arrange(DOWN, buff=0.18).move_to([0, -2.5, 0])
         self.play(FadeIn(wl1, shift=UP * 0.1), FadeIn(wl2, shift=UP * 0.1), run_time=0.9)
-        self.at("are the same brick", 0.3)
+        self.at("the same brick", 0.3)
         self.play(FadeIn(mid, shift=UP * 0.1), run_time=0.7)
         self.at("laid a different way", 0.3)
         self.play(*[Indicate(b, color=BLUE, scale_factor=1.25) for b in allb + [mid[0]]], run_time=1.4)
@@ -482,7 +482,7 @@ class S05Glycogen(BP):
         self.play(LaggedStart(*[FadeIn(b, scale=0.6) for b in blocks], lag_ratio=0.1),
                   LaggedStart(*[Create(x) for x in main_links], lag_ratio=0.1), run_time=2.0)
         self.play(FadeIn(l14), run_time=0.6)
-        self.at("an α-1,6 branch", 0.4)
+        self.at("branch sprouts", 0.4)
         self.play(LaggedStart(*[AnimationGroup(FadeIn(b, scale=0.6), Create(x)) for b, x in zip(branch, br_links)],
                               lag_ratio=0.3), run_time=1.6)
         l16 = VGroup(M("α-1,6", 32, GREEN, weight=BOLD), T("branch", 32, GREEN, weight=BOLD)).arrange(RIGHT, buff=0.15)
@@ -490,7 +490,7 @@ class S05Glycogen(BP):
         brace = Brace(VGroup(*blocks[:10]), DOWN, color=GREY, buff=0.1)
         bl = T("about every ten units", 30, GREY).next_to(brace, DOWN, buff=0.12)
         self.play(FadeIn(l16), GrowFromCenter(brace), FadeIn(bl), run_time=1.0)
-        self.wait(self.until("Stack that up", 0.6))
+        self.wait(self.until("A full-size model", 0.6))
 
         # b. stack up: tree + counters
         motif = VGroup(*blocks, *branch, l14, l16, brace, bl)
@@ -510,19 +510,19 @@ class S05Glycogen(BP):
         units, ends = ValueTracker(0), ValueTracker(0)
         u_num = always_redraw(lambda: M(f"{int(units.get_value()):,}", 60, BLUE).move_to([4.2, 1.9, 0]))
         u_lab = T("glucose units", 30, BLUE).move_to([4.2, 1.15, 0])
-        e_num = always_redraw(lambda: M(f"{int(ends.get_value()):,}", 60, YELLOW).move_to([4.2, -0.2, 0]))
-        e_lab = T("non-reducing ends", 30, YELLOW).move_to([4.2, -0.95, 0])
-        self.at("a single liver glycogen", 0.2)
+        e_num = always_redraw(lambda: M(f"~{int(ends.get_value()):,}", 60, YELLOW).move_to([4.2, -0.2, 0]))
+        e_lab = T("model outer ends", 30, YELLOW).move_to([4.2, -0.95, 0])
+        self.at("model particle holds", 0.2)
         self.add(u_num)
         self.play(FadeIn(u_lab), units.animate.set_value(55000), FadeIn(tree_note), run_time=2.0)
-        self.at("about 2,100", 0.5)
+        self.at("with about", 0.5)
         self.add(e_num)
-        self.play(FadeIn(e_lab), ends.animate.set_value(2100), FadeIn(tip_dots, lag_ratio=0.02),
+        self.play(FadeIn(e_lab), ends.animate.set_value(2000), FadeIn(tip_dots, lag_ratio=0.02),
                   run_time=2.0)
         self.wait(self.until("Why does that matter", 0.4))
 
         # c. enzymes work at the ends
-        self.at("Enzymes only pull", 0.3)
+        self.at("Glycogen phosphorylase works", 0.3)
         enz_pts = [tips[i] for i in range(0, len(tips), 2)]
         enz = VGroup()
         for q, ang in enz_pts:
@@ -532,7 +532,7 @@ class S05Glycogen(BP):
             enz.add(e)
         enz_lab = T("enzyme", 30, PURPLE).move_to([4.2, -2.0, 0])
         self.play(FadeIn(enz[0], scale=1.5), FadeIn(enz_lab), run_time=0.8)
-        self.at("so 2,100 ends", 0.3)
+        self.at("many enzyme molecules", 0.3)
         self.play(LaggedStart(*[FadeIn(e, scale=1.5) for e in enz[1:]], lag_ratio=0.06), run_time=1.6)
         # glucose peels off
         peel = []
@@ -545,31 +545,29 @@ class S05Glycogen(BP):
         self.play(FadeIn(many), *[g.animate.shift(d * 0.9).set_opacity(0) for g, d in peel], run_time=1.6)
         self.wait(self.until("Branching is parallel", 0.4))
 
-        # d. parallel processing: bar race
-        self.at("Branching is parallel", 0.3)
+        # d. parallel processing: qualitative enzyme access
+        self.at("parallel", 0.3)
         self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.7)
-        title = T("glucose released while you sprint", 38, TEXT).move_to([0, 2.7, 0])
+        title = T("glucose from muscle glycogen while you sprint", 38, TEXT)
+        title.scale_to_fit_width(12).move_to([0, 2.7, 0])
         lab1 = T("one end", 32, GREY).move_to([-4.6, 1.0, 0])
-        lab2 = T("2,100 ends", 32, YELLOW).move_to([-4.4, -0.6, 0])
-        x0, w, h = -2.6, 8.4, 0.8
-        frame1 = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=2).move_to([x0 + w / 2, 1.0, 0])
-        frame2 = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=2).move_to([x0 + w / 2, -0.6, 0])
-        f1, f2 = ValueTracker(0), ValueTracker(0)
-        bar1 = always_redraw(lambda: Rectangle(width=max(0.04, w * f1.get_value()), height=h, stroke_width=0,
-                                               fill_color=GREEN, fill_opacity=0.9).move_to(
-            [x0 + max(0.04, w * f1.get_value()) / 2, 1.0, 0]))
-        bar2 = always_redraw(lambda: Rectangle(width=max(0.01, w * f2.get_value()), height=h, stroke_width=0,
-                                               fill_color=GREEN, fill_opacity=0.9).move_to(
-            [x0 + max(0.01, w * f2.get_value()) / 2, -0.6, 0]))
-        note = T("same rate per end  →  2,100× the glucose", 26, GREY).move_to([0, -1.7, 0])
-        tiny = M("1/2,100", 26, GREY).next_to(frame1.get_left(), RIGHT, buff=0.3)
+        lab2 = T("many ends", 32, YELLOW).move_to([-4.4, -0.6, 0])
+
+        def enzyme_at_end(x, y):
+            tip = Circle(radius=0.12, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to([x, y, 0])
+            enzyme = RoundedRectangle(corner_radius=0.06, width=0.5, height=0.36,
+                                      stroke_color=PURPLE, stroke_width=2,
+                                      fill_color=PURPLE, fill_opacity=0.9).next_to(tip, RIGHT, buff=0.12)
+            return VGroup(tip, enzyme)
+
+        single = enzyme_at_end(-1.8, 1.0)
+        parallel = VGroup(*[enzyme_at_end(x, -0.6) for x in (-1.8, 0.0, 1.8, 3.6)])
+        note = T("more ends  →  more enzymes can work", 26, GREY).move_to([0, -1.7, 0])
         fast = T("parallel processing for energy", 40, GREEN, weight=BOLD).move_to([0, -2.8, 0])
-        self.play(FadeIn(title), FadeIn(VGroup(lab1, lab2, frame1, frame2, bar1, bar2)), FadeIn(note), run_time=0.8)
+        self.play(FadeIn(title), FadeIn(VGroup(lab1, lab2, single, parallel)), FadeIn(note), run_time=0.8)
         self.play(FadeIn(fast, shift=UP * 0.1), run_time=0.8)
-        self.at("it's what lets you mobilize", 0.4)
-        race = max(3.0, self.narration_s - self.elapsed() - 0.8)
-        self.play(f1.animate.set_value(1 / 2100), f2.animate.set_value(1.0), FadeIn(tiny, run_time=1.0),
-                  run_time=race, rate_func=linear)
+        self.at("your sprinting muscles", 0.4)
+        self.play(Indicate(parallel, color=PURPLE), run_time=1.2)
         self.finish()
 
 

@@ -163,7 +163,7 @@ class S01Photon(SpokenScene):
         p1 = VGroup(ex1, gr1, e1, lab_ex, lab_gr)
         self.play(FadeIn(ttl[2]), p1.animate.set_opacity(0.3), p2.animate.set_opacity(0.3),
                   ttl[0].animate.set_opacity(0.4), ttl[1].animate.set_opacity(0.4), run_time=0.7)
-        self.at("the productive route")
+        self.at("productive")
         pig = chip("excited pigment", YELLOW, size=22).move_to(P(cx[2], 1.3))
         acc = chip("primary acceptor", GREY, size=22).move_to(P(cx[2], -0.5))
         g = glow(pig.get_center(), YELLOW, r=0.75, op=0.12)
@@ -259,7 +259,7 @@ class S02Funnel(SpokenScene):
         a, b = grid[path[2]], grid[path[3]]
         dbl = DoubleArrow(a + DOWN * 0.38, b + DOWN * 0.38, buff=0, color=TEXT, stroke_width=3, tip_length=0.13)
         lr = T("R", 24, TEXT).next_to(dbl, DOWN, buff=0.05)
-        cap4 = M("efficiency ∝ 1/R⁶", 26, TEXT).move_to(P(-3.55, -2.65))
+        cap4 = M("rate ∝ 1/R⁶", 26, TEXT).move_to(P(-3.55, -2.65))
         self.play(Create(dbl), FadeIn(lr), AnimationGroup(FadeOut(cap3), FadeIn(cap4), lag_ratio=1.0), run_time=0.8)
 
         # ---- the funnel feeds one reaction center -------------------------------------------
@@ -272,7 +272,7 @@ class S02Funnel(SpokenScene):
         self.play(*[FadeIn(g_, scale=0.5) for g_ in extra], run_time=0.3)
         self.play(*[g_.animate.move_to(P(-1.3, 0.0)) for g_ in extra], run_time=1.5, rate_func=smooth)
         self.at("on the right")
-        sp = chip("special pair", YELLOW, size=26).move_to(P(2.3, -0.1))
+        sp = chip("RC pigments", YELLOW, size=26).move_to(P(2.3, -0.1))
         acc = chip("acceptor", GREY, size=26).move_to(P(5.25, -0.1))
         divider = DashedLine(P(0.0, 2.4), P(0.0, -2.6), color=GREY, stroke_width=2, stroke_opacity=0.5)
         self.play(FadeOut(VGroup(*extra)), FadeIn(hr), FadeIn(hr2), FadeIn(sp), FadeIn(acc), Create(divider),
@@ -280,7 +280,7 @@ class S02Funnel(SpokenScene):
         self.play(packet.animate.move_to(sp.get_center()), run_time=0.3)
         self.play(FadeOut(packet), pigs[path[6]].animate.set_fill(GREY, 0.14), sp[0].animate.set_fill(YELLOW, 0.5), run_time=0.4)
 
-        self.at("There the special pair")
+        self.at("Their")
         cap_r = T("P680 or P700", 26, TEXT).move_to(P(2.3, -1.1))
         self.play(FadeIn(cap_r, shift=UP * 0.1), run_time=0.5)
         self.at("finally does something different")
@@ -364,7 +364,7 @@ class S03Circuit(SpokenScene):
         self.play(e.animate.move_to(P(-2.28, MY)), psII[1].animate.set_fill(GREY, 0.22), run_time=0.4)
         self.play(e.animate.move_to(P(-1.5, MY - 1.05)), run_time=0.3)
         self.play(e.animate.move_to(P(1.5, MY - 1.05)), run_time=0.45)
-        self.at("then C")
+        self.at("then")
         ph1 = wave(P(0.4, 2.0), P(1.05, MY + 0.85), color=YELLOW, amp=0.1, cycles=3, width=4.5)
         self.play(Create(ph1), run_time=0.4)
         self.play(FadeOut(ph1), psI[1].animate.set_fill(YELLOW, 0.45), e.animate.move_to(P(2.48, MY)), run_time=0.3)
@@ -387,7 +387,7 @@ class S03Circuit(SpokenScene):
         self.play(FadeIn(grad), run_time=0.6)
 
         # NADP+ -> NADPH
-        self.at("NADP plus is reduced")
+        self.at("plus")
         nadp = chip_mk("NADP<sup>+</sup>", PURPLE, 24).move_to(P(1.5, 2.1))
         self.play(FadeIn(nadp, shift=DOWN * 0.2), run_time=0.5)
         self.play(e.animate.move_to(nadp.get_bottom() + DOWN * 0.05), run_time=0.6)
@@ -397,7 +397,7 @@ class S03Circuit(SpokenScene):
         self.play(nadph.animate.move_to(P(0.2, 2.35)), run_time=0.5)
 
         # ATP synthase
-        self.at("Finally that proton gradient drives ATP synthase")
+        self.at("Finally")
         syn_body = RoundedRectangle(corner_radius=0.12, width=0.9, height=1.2, stroke_color=GREY, stroke_width=3,
                                     fill_color=GREY, fill_opacity=0.25).move_to(P(5.0, MY))
         syn_head = RoundedRectangle(corner_radius=0.3, width=1.3, height=0.9, stroke_color=GREY, stroke_width=3,
@@ -410,7 +410,7 @@ class S03Circuit(SpokenScene):
         self.play(*[h.animate.move_to(P(5.0, MY - 0.9)) for h in flow], run_time=0.8)
         self.play(*[h.animate.move_to(P(5.0, MY + 0.3)) for h in flow], run_time=0.5)
         self.play(*[h.animate.move_to(P(5.0 + 1.2 * (1 if i else -1), MY + 1.85)).set_opacity(0.0) for i, h in enumerate(flow)], run_time=0.9)
-        self.at("which makes ATP")
+        self.at("which")
         adp = chip_mk("ADP + P<sub>i</sub>", GREEN, 22).move_to(P(3.0, 2.85))
         atp = chip_mk("ATP", GREEN, 24).move_to(P(5.0, 2.85))
         self.play(FadeIn(adp), run_time=0.4)
@@ -459,7 +459,7 @@ class S04Twostep(SpokenScene):
                                 fill_color=GREY, fill_opacity=0.10).move_to(P(X1, (-0.8 + 2.65) / 2))
         l2 = T("Photosystem II", 26, TEXT, weight=BOLD).move_to(P(X2, 2.1))
         l1 = T("Photosystem I", 26, TEXT, weight=BOLD).move_to(P(X1, 2.98))
-        self.at("choreographed two step")
+        self.at("choreograph")
         self.play(FadeIn(col2), FadeIn(col1), run_time=0.7)
 
         # ---- Photosystem II: boost, water split ------------------------------------------
@@ -492,7 +492,7 @@ class S04Twostep(SpokenScene):
         hs = [proton(on_line(x)) for x in (-2.2, -1.3, -0.4)]
         pg = T("proton gradient", 26, RED).move_to(P(-0.55, -1.0))
         self.play(LaggedStart(*[FadeIn(h, scale=0.4) for h in hs], lag_ratio=0.3), FadeIn(pg), run_time=1.2)
-        self.at("powers ATP synthesis")
+        self.at("synthesis")
         atp = chip_mk("ATP", GREEN, 26).move_to(P(-0.55, -1.9))
         ar = Arrow(pg.get_bottom() + DOWN * 0.05, atp.get_top() + UP * 0.05, buff=0, color=GREEN, stroke_width=4,
                    max_tip_length_to_length_ratio=0.3)
@@ -529,7 +529,7 @@ class S04Twostep(SpokenScene):
         self.at("downhill slide between them")
         self.play(slide.animate.set_stroke(width=9), *[Indicate(h, color=RED) for h in hs], run_time=1.2)
         self.play(slide.animate.set_stroke(width=4), run_time=0.3)
-        self.at("one to make ATP")
+        self.at("make")
         c1 = chip_mk("boost 1 → ATP", GREEN, 26).move_to(P(0.2, -3.1))
         self.play(FadeIn(c1, shift=UP * 0.1), Indicate(atp, color=GREEN), run_time=0.8)
         self.at("one to make NADPH")
@@ -593,12 +593,12 @@ class S05Psii(SpokenScene):
         self.play(FadeIn(qh2, shift=RIGHT * 0.4), FadeIn(es), FadeIn(el), run_time=0.9)
         self.at("the QH2 carrier")
         self.play(Indicate(qh2, color=BLUE), run_time=0.8)
-        self.at("headed for cytochrome b6f")
+        self.at("headed")
         arr = Arrow(qh2.get_right() + RIGHT * 0.1, qh2.get_right() + RIGHT * 0.8, buff=0, color=GREY, stroke_width=3,
                     max_tip_length_to_length_ratio=0.35)
         cb = T("cyt b6f", 24, TEXT).next_to(arr, RIGHT, buff=0.15)
         self.play(GrowArrow(arr), FadeIn(cb), run_time=0.7)
-        self.at("Four protons are deposited in the lumen")
+        self.at("B6F4")
         hs = [proton(P(-0.6 + 0.5 * i, -1.15)) for i in range(4)]
         self.play(*[FadeIn(h, scale=0.4) for h in hs], run_time=0.4)
         self.play(*[h.animate.move_to(P(2.4 + 0.6 * i, -1.1)) for i, h in enumerate(hs)], run_time=1.2)

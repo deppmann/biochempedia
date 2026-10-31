@@ -271,22 +271,22 @@ class S02Axis(SpokenScene):
         self.play(g.animate.shift(-V), *[FadeIn(b) for b in ax.b], run_time=0.9)
 
         # CRH drives ACTH
-        self.at("CRH")
+        self.at("vasopressin")
         self.play(FadeIn(ax.c1, shift=DOWN * 0.1), ax.b[0].rect.animate.set_stroke(PURPLE), run_time=0.5)
         self.at("drives")
         self.play(GrowArrow(ax.a1), run_time=0.5)
-        self.at("ACTH")
+        self.at("from the")
         self.play(FadeIn(ax.c2, shift=DOWN * 0.1), run_time=0.4)
-        self.at("from the pituitary")
+        self.at("pituitary")
         self.play(ax.b[1].rect.animate.set_stroke(YELLOW), run_time=0.4)
         # ACTH drives the adrenal cortex to make cortisol
-        self.at("ACTH drives the adrenal")
+        self.at("drives the adrenal")
         self.play(GrowArrow(ax.a2), run_time=0.6)
         self.at("to make cortisol")
         self.play(ax.b[2].rect.animate.set_stroke(ORANGE), Indicate(gk.name, color=ORANGE, scale_factor=1.2), run_time=0.8)
 
         # trophic and target
-        self.at("Call ACTH")
+        self.at("Call")
         tag1 = bchip("trophic hormone: ACTH", YELLOW, 28)
         tag2 = bchip("target hormone: cortisol", ORANGE, 28)
         tags = VGroup(tag1, tag2).arrange(DOWN, buff=0.35, aligned_edge=LEFT).move_to([PANEL_L, -1.6, 0], aligned_edge=LEFT)
@@ -298,9 +298,9 @@ class S02Axis(SpokenScene):
         self.at("feeds back")
         self.play(Create(ax.v1), run_time=0.2)
         self.play(Create(ax.h), run_time=0.5)
-        self.at("on CRH")
+        self.at("on")
         self.play(Create(ax.d2), run_time=0.5)
-        self.at("and ACTH")
+        self.at("that")
         self.play(Create(ax.d1), run_time=0.5)
         self.at("long loop")
         self.play(FadeIn(ax.fbl), run_time=0.5)
@@ -352,7 +352,7 @@ class S03Primary(SpokenScene):
         self.play(FadeIn(pa, shift=RIGHT * 0.15), run_time=0.4)
         self.at("cortisol of")
         self.play(*gk.anim(0.45, "3 µg/dL"), run_time=0.9)
-        self.at("and ACTH")
+        self.at("picograms")
         self.play(*gc.anim(BARH, "300 pg/mL"), run_time=1.1)
 
         # low cortisol should make an intact pituitary drive hard
@@ -402,7 +402,7 @@ class S04Central(SpokenScene):
         self.play(FadeOut(VGroup(x, verdict, ref)), ReplacementTransform(pa, pb), ReplacementTransform(a2t, a2n),
                   ax.b[2].rect.animate.set_stroke(ORANGE), ax.b[1].rect.animate.set_stroke(YELLOW),
                   *gc.anim(0.02), run_time=0.8)
-        self.at("but ACTH")
+        self.at("but")
         self.play(*gc.anim(0.45, "5 pg/mL"), run_time=1.0)
         self.at("The drive itself")
         a2d = a2n.copy().set_opacity(0.25)

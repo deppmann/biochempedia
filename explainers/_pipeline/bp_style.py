@@ -34,8 +34,14 @@ SAFE_W = 12.6   # Manim frame is 14.22 x 8 units; keep content inside this
 SAFE_H = 7.0
 
 
+# Spoken number words and the digits a transcriber writes for them are the same token (Kokoro, 2026-10-31).
+_NUM = {w: str(i) for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty".split())}
+_NUM.update(thirty="30", forty="40", fifty="50", sixty="60", seventy="70", eighty="80", ninety="90", hundred="100", thousand="1000", million="1000000")
+
+
 def _norm(w):
-    return re.sub(r"[^a-z0-9']", "", w.lower())
+    w = re.sub(r"[^a-z0-9']", "", w.lower())
+    return _NUM.get(w, w)
 
 
 class SpokenScene(NarratedScene):

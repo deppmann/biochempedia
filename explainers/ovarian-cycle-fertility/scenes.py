@@ -186,7 +186,7 @@ class S02Select(SpokenScene):
         self.at("that ends almost")
         self.play(FadeIn(atr), run_time=0.5)
 
-        inh = bchip("inhibin B", GOLD, 28).move_to([4.9, 3.05, 0])
+        inh = bchip("inhibin B, estradiol", GOLD, 20).move_to([4.9, 3.05, 0])
         self.at("rescued follicles make")
         self.play(FadeIn(inh, shift=DOWN * 0.2), run_time=0.5)
         tgt = ax.c2p(4.0, f(4.0))
@@ -228,7 +228,7 @@ class S02Select(SpokenScene):
         self.play(keep[0].animate.set_color(TEAL).set_fill(TEAL, 0.25), keep[1].animate.set_color(TEAL),
                   dashes[4].animate.set_color(TEAL).set_opacity(0.9), run_time=0.6)
         dom = T("keeps growing:\ndominant", 22, TEAL, weight=BOLD, line_spacing=0.8).move_to([4.9, -2.45, 0])
-        self.at("It becomes dominant")
+        self.at("becomes")
         self.play(FadeOut(atr), run_time=0.25)
         self.play(FadeIn(dom), run_time=0.3)
         xs = VGroup(*[VGroup(Line(b.get_corner(UL), b.get_corner(DR), color=RED, stroke_width=4),
@@ -446,7 +446,7 @@ class S05Curves(SpokenScene):
         self.play(Create(e2b, rate_func=linear), run_time=2.0)
 
         fsh2 = plot(fsh_curve, -3, 14, BLUE)
-        self.at("FSH rises again")
+        self.at("rises again")
         self.play(Create(fsh2, rate_func=linear), run_time=1.6)
         self.finish()
 
@@ -504,7 +504,7 @@ class S06Luteal(SpokenScene):
         lcurve = axl.plot(lh, x_range=[0, 24, 0.03], color=YELLOW, stroke_width=5, use_smoothing=False)
         guides = VGroup(*[DashedLine(P3(axl.c2p(p, 0)[0], 2.0), P3(axl.c2p(p, 0)[0], -2.3), color=YELLOW,
                                      stroke_width=1.8, dash_length=0.12).set_opacity(0.55) for p in pulses])
-        self.at("after LH pulses")
+        self.at("pulses")
         self.play(axl_c, FadeIn(lh_l), run_time=0.5)
         self.play(Create(lcurve, rate_func=linear), run_time=1.3)
         self.play(Create(guides), run_time=0.4)

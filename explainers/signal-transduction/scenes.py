@@ -253,7 +253,7 @@ class S02Five(SpokenScene):
         a45 = arr(c4.get_right(), c5.get_left(), PURPLE)
         sub = T("hormone or neurotransmitter", 24, GREY).next_to(c1, RIGHT, buff=0.3)
 
-        self.at("shares the same molecular logic")
+        self.at("same molecular logic")
         self.play(Create(mem), FadeIn(out_lbl), FadeIn(in_lbl), run_time=0.8)
         self.at("A primary messenger")
         self.play(FadeIn(c1, shift=DOWN * 0.2), run_time=0.6)
@@ -325,7 +325,7 @@ class S03First(SpokenScene):
         sub = T("the extracellular signals", 26, GREY)
         sub.next_to(label, RIGHT, buff=0.25)
         self.play(FadeIn(sub), run_time=0.5)
-        self.at("signals—hormones")
+        self.at("hormones")
         self.play(FadeIn(row[0], shift=DOWN * 0.15), run_time=0.4)
         self.at("neurotransmitters")
         self.play(FadeIn(row[1], shift=DOWN * 0.15), run_time=0.4)
@@ -438,12 +438,12 @@ class S04Epi(SpokenScene):
                   arr([xs[2], -1.35, 0], [xs[2], -1.8, 0], GREEN)]
         self.at("It breaks down glycogen")
         self.play(GrowArrow(arrows[0]), FadeIn(bots[0], shift=DOWN * 0.15), run_time=0.8)
-        self.at("shuts off glycogen synthesis")
+        self.at("shuts off")
         cx1 = Line([xs[1] - 0.25, -1.4, 0], [xs[1] + 0.25, -1.75, 0], color=RED, stroke_width=7)
         cx2 = Line([xs[1] - 0.25, -1.75, 0], [xs[1] + 0.25, -1.4, 0], color=RED, stroke_width=7)
         self.play(GrowArrow(arrows[1]), FadeIn(bots[1], shift=DOWN * 0.15), run_time=0.5)
         self.play(Create(cx1), Create(cx2), run_time=0.4)
-        self.at("frees stored fat")
+        self.at("frees fat")
         self.play(GrowArrow(arrows[2]), FadeIn(bots[2], shift=DOWN * 0.15), run_time=0.8)
 
         # one hormone arrives at the surface
@@ -516,7 +516,7 @@ class S05Camp(SpokenScene):
 
         pka = bchip("protein kinase A", PURPLE, 26).move_to([-2.3, 1.2, 0])
         a_pka = arr(camp.get_bottom(), pka.get_top(), TEAL)
-        self.at("protein kinase A")
+        self.at("protein")
         self.play(GrowArrow(a_pka), FadeIn(pka), run_time=0.7)
         self.at("hits several targets")
         self.play(pulse(pka, PURPLE, 1.08), run_time=0.7)

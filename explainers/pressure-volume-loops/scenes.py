@@ -274,12 +274,12 @@ class S02Corners(SpokenScene):
         self.play(MoveAlongPath(runner, segs[0]), Create(bright[0]), run_time=1.0, rate_func=linear)
         lab_b = btext("aortic valve opens", 22, TEXT).move_to(PT(*B_) + RIGHT * 2.2)
         y80 = M("80", 22, TEXT).move_to(PT(0, 80) + LEFT * 0.38)
-        self.at("aortic valve opens")
+        self.at("jordic")
         self.play(FadeOut(qs[1]), FadeIn(lab_b), FadeIn(y80), run_time=0.4)
         self.at("ejects")
         self.play(MoveAlongPath(runner, segs[1]), Create(bright[1]), run_time=1.3, rate_func=linear)
         lab_c = btext("aortic valve closes", 22, TEXT).move_to(PT(*C_) + RIGHT * 1.6 + DOWN * 0.9)
-        self.at("aortic valve closes")
+        self.at("jordic valve closes")
         self.play(FadeOut(qs[2]), FadeIn(lab_c), run_time=0.4)
         st = state(*BASE)
         self.at("end systolic volume")
@@ -557,4 +557,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Preload, afterload, contractility: each moves a different part of the loop."
+    LINE = "Preload, afterload, contractility: each changes the loop in a different way."

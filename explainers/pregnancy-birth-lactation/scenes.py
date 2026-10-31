@@ -81,13 +81,13 @@ class S01Lungs(SpokenScene):
                                 M(str(v), 22, GREY).move_to(P(X0 + v * K, yax - 0.42))) for v in range(0, 51, 10)])
         cap = T("percent of combined ventricular output", 22, GREY).move_to([X0 + 25 * K, yax - 0.95, 0])
         self.play(Create(axis), FadeIn(ticks), FadeIn(cap), run_time=0.8)
-        # placenta bar: solid to 40, lighter band 40..45 (the lesson says roughly 40 to 45)
+        # placenta bar: solid to 40, lighter band 40..50 (about half in young lambs, 40 near term)
         b40 = Rectangle(width=40 * K, height=BAR_H, stroke_width=0, fill_color=PLAC, fill_opacity=0.9
                         ).move_to(P(X0 + 20 * K, yP))
-        b45 = Rectangle(width=5 * K, height=BAR_H, stroke_width=0, fill_color=PLAC, fill_opacity=0.45
-                        ).move_to(P(X0 + 42.5 * K, yP))
-        tp = T("roughly 40 to 45 percent", 24, PLAC).move_to(P(X0 + 20 * K, yP + 0.72))
-        self.at("Roughly")
+        b45 = Rectangle(width=10 * K, height=BAR_H, stroke_width=0, fill_color=PLAC, fill_opacity=0.45
+                        ).move_to(P(X0 + 45 * K, yP))
+        tp = T("about 50 falling to 40 percent", 24, PLAC).move_to(P(X0 + 20 * K, yP + 0.72))
+        self.at("placenta took")
         self.play(FadeOut(q1), run_time=0.2)
         self.play(GrowFromEdge(b40, LEFT), run_time=1.0)
         self.play(FadeIn(b45), FadeIn(tp), run_time=0.5)
@@ -95,8 +95,8 @@ class S01Lungs(SpokenScene):
                               ).move_to(P(X0 + 4.25 * K, yL)),
                     Rectangle(width=1.5 * K, height=BAR_H, stroke_width=0, fill_color=LUNG, fill_opacity=0.35
                               ).move_to(P(X0 + 9.25 * K, yL)))
-        tl = T("under 10 percent", 24, LUNG).move_to(P(X0 + 10 * K + 0.3 + 1.45, yL))
-        self.at("Under")
+        tl = T("small share, rising", 24, LUNG).move_to(P(X0 + 10 * K + 0.3 + 1.45, yL))
+        self.at("lungs took")
         self.play(FadeOut(q2), run_time=0.2)
         self.play(GrowFromEdge(bl, LEFT), run_time=0.6)
         self.play(FadeIn(tl), run_time=0.4)
@@ -169,7 +169,7 @@ class S02Shunts(SpokenScene):
         l_da = T("ductus arteriosus", 22, SHUNT).move_to(P(0.3, 3.35))
         self.at("Most of the blood")
         self.play(GrowArrow(da), FadeIn(l_da), run_time=0.9)
-        self.at("into the aorta")
+        self.at("into")
         self.play(Indicate(ao, color=SHUNT, scale_factor=1.1), run_time=0.8)
 
         # umbilical arteries
@@ -351,7 +351,7 @@ class S04Placenta(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S05Lambs(SpokenScene):
-    """Two orders in preterm lambs: clamp first drops right ventricular output, ventilate first does not."""
+    """Two orders in preterm lambs: clamp first drops right ventricular output, ventilate first drops it far less."""
 
     def construct(self):
         yb, SC = -1.9, 0.022         # axis floor; units per mL/min/kg
@@ -403,8 +403,8 @@ class S05Lambs(SpokenScene):
         hr = T("heart rate\nalso down\nabout 40 percent", 22, PLAC, line_spacing=0.9).move_to(P((bx1 + bx2) / 2, -1.0))
         self.play(FadeIn(hr), run_time=0.6)
         self.at("Ventilating first")
-        flat = Line(P(0.9, 0.2), P(5.9, 0.2), color=LUNG, stroke_width=8)
-        flat_t = T("stable flows\nand pressures", 30, LUNG, line_spacing=0.9).move_to(P(3.4, 1.2))
+        flat = Line(P(0.9, 0.2), P(5.9, -0.26), color=LUNG, stroke_width=8)
+        flat_t = T("output fell far less;\nflows and pressures stable", 30, LUNG, line_spacing=0.9).move_to(P(3.4, 1.2))
         flat_s = T("across the transition", 24, GREY).move_to(P(3.4, -0.5))
         self.play(Create(flat), FadeIn(flat_t), FadeIn(flat_s), run_time=1.2)
         self.finish()

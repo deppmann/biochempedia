@@ -436,14 +436,14 @@ class S06Rule(SpokenScene):
 
         wide = rect(x0 + W * (1 - FE2), W * FE2, y, H, ORANGE, 0.95)
         green2 = rect(x0, W * (1 - FE2), y, H, GREEN, 0.5)
-        self.at("small change")
+        self.at("that step")
         self.play(Indicate(brk, color=PURPLE, scale_factor=1.15), run_time=0.7)
         self.play(Transform(orange, wide), Transform(green, green2), FadeOut(gl), run_time=0.9)
-        fin = T("sets the daily calcium lost", 30, ORANGE, weight=BOLD).move_to([-1.0, -3.2, 0])
-        self.at("daily calcium lost")
+        fin = T("fine-tunes daily calcium loss", 30, ORANGE, weight=BOLD).move_to([-1.0, -3.2, 0])
+        self.at("urine calcium")
         self.play(FadeIn(fin, shift=UP * 0.15), Indicate(orange, color=ORANGE, scale_factor=1.4), run_time=0.9)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The small distal step that PTH regulates sets daily calcium loss."
+    LINE = "The small distal step that PTH regulates fine-tunes daily calcium loss."

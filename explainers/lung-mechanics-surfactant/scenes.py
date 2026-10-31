@@ -296,7 +296,7 @@ class S04Film(SpokenScene):
         self.play(film_x.animate.set_value(-3.3), UpdateFromAlphaFunc(d_mov, slide),
                   FadeIn(guide), ReplacementTransform(read, new_read), run_time=2.6)
         self.play(FadeIn(y10), FadeIn(sketch), run_time=0.5)
-        self.at("He named the material")
+        self.at("The name surfactant")
         chipg = chip("pulmonary surfactant", GREEN, size=28).move_to([-2.0, 0.35, 0])
         self.play(ReplacementTransform(film_l, chipg), run_time=0.8)
         self.finish()
