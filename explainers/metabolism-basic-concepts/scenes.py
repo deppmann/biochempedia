@@ -105,7 +105,7 @@ class S01TwoCamps(SpokenScene):
         pw_arrows = VGroup(*[Arrow(pw_dots[i].get_right(), pw_dots[i + 1].get_left(), color=TEXT, buff=0.08,
                                    stroke_width=4, tip_length=0.2) for i in range(4)])
         pathway = VGroup(pw_dots, pw_arrows).move_to([0, 0, 0])
-        self.at("Every metabolic pathway", 0.0)
+        self.at("Most metabolic pathways", 0.0)
         seq = []
         for i in range(5):
             seq.append(FadeIn(pw_dots[i], scale=0.6))
@@ -127,7 +127,7 @@ class S01TwoCamps(SpokenScene):
         self.play(ReplacementTransform(small, prod), run_time=1.0)
         self.at("capture the released energy", 0.2)
         self.play(FadeIn(e_lab, shift=RIGHT * 0.1), GrowArrow(e_arr), run_time=0.8)
-        self.at("as ATP", 0.2)
+        self.at("as a", 0.2)
         self.play(FadeIn(atp_c, scale=0.7), run_time=0.5)
         self.at("or as ion gradients", 0.2)
         self.play(FadeIn(or_t), FadeIn(ion_c, scale=0.7), run_time=0.7)
@@ -269,9 +269,9 @@ class S02Coupling(SpokenScene):
         s1 = T("specific step", 24, RED).move_to([axR.c2p(2.6, 0)[0], 1.25, 0])
         s2 = T("specific step", 24, GREEN).move_to([axR.c2p(7.6, 0)[0], 1.25, 0])
         self.play(FadeOut(eq), FadeOut(eq_u), FadeIn(s1, shift=DOWN * 0.1), FadeIn(s2, shift=DOWN * 0.1), run_time=0.9)
-        self.at("only the pathway as a whole", 0.2)
+        self.at("each", 0.2)
         path_all = axR.plot(fR, x_range=[0, 10], color=GREEN, stroke_width=11)
-        whole_t = fit(T("the whole pathway must be favorable", 26, GREEN), max_w=4.8).move_to([3.8, 1.5, 0])
+        whole_t = fit(T("every step must be favorable", 26, GREEN), max_w=4.8).move_to([3.8, 1.5, 0])
         self.play(FadeOut(s1), FadeOut(s2), FadeIn(whole_t), ShowPassingFlash(path_all, time_width=0.5), run_time=1.4)
         self.play(Indicate(net_t, color=GREEN, scale_factor=1.15), run_time=0.8)
         self.at("Coupling is how the cell pays", 0.2)
@@ -373,7 +373,7 @@ class S03WhyAtp(SpokenScene):
         cap4 = T("better solvated by water", 22, GREEN).move_to([c4x, c4y - 0.88, 0])
 
         # ---- intro
-        self.at("ATP hydrolysis", 0.0)
+        self.at("hydrolysis", 0.0)
         self.play(FadeIn(rx, shift=UP * 0.1), run_time=0.8)
         self.at("exergonic", 0.2)
         self.play(FadeIn(dg, shift=LEFT * 0.1), run_time=0.8)
@@ -393,12 +393,12 @@ class S03WhyAtp(SpokenScene):
         # ---- 2 resonance
         self.at("Second, resonance", 0.2)
         self.play(FadeIn(ttl[1]), FadeIn(lockbox), FadeIn(lockP), FadeIn(cap2a), run_time=0.7)
-        self.at("inorganic phosphate has more", 0.2)
+        self.at("inorganic phosphate", 0.2)
         self.play(FadeIn(arr2), FadeIn(piF), FadeIn(corners), FadeIn(cap2b), run_time=0.8)
         self.at("more equivalent resonance forms", 0.0)
         for k in range(4):
             self.play(Indicate(corners[k], color=ORANGE, scale_factor=2.2), run_time=0.45)
-        self.at("locked inside ATP", 0.4)
+        self.at("locked", 0.4)
         self.play(Indicate(lockbox, color=GREY, scale_factor=1.1), run_time=0.7)
 
         # ---- 3 entropy
@@ -422,10 +422,10 @@ class S03WhyAtp(SpokenScene):
         self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in [*sh_adp, *sh_pi]], lag_ratio=0.05), FadeIn(cap4),
                   run_time=1.2)
 
-        # ---- no single factor
-        self.at("No single factor dominates", 0.2)
+        # ---- combined effects
+        self.at("Together", 0.2)
         self.play(*[Indicate(f, color=GREY, scale_factor=1.03) for f in frames], run_time=1.4)
-        self.at("Together, they make hydrolysis favorable", 0.2)
+        self.at("make hydrolysis favorable", 0.2)
         self.play(Indicate(dg, color=GREEN, scale_factor=1.15), *[f.animate.set_stroke(GREEN, width=3) for f in frames],
                   run_time=1.2)
 
@@ -529,7 +529,7 @@ class S04Shift(SpokenScene):
         # ---- intro
         self.at("Here's the payoff of coupling", 0.0)
         self.play(FadeIn(rxn, shift=DOWN * 0.1), run_time=0.8)
-        self.at("made quantitative", 0.2)
+        self.at("under standard conditions", 0.2)
         self.play(FadeIn(key), run_time=0.6)
 
         # ---- alone
@@ -544,7 +544,7 @@ class S04Shift(SpokenScene):
         # ---- coupled
         self.at("Now couple that same reaction", 0.2)
         self.play(FadeIn(capR), run_time=0.6)
-        self.at("to ATP hydrolysis", 0.2)
+        self.at("hydrolysis", 0.2)
         self.play(FadeIn(atp_use, shift=UP * 0.1), run_time=0.8)
         self.at("The favorable energy of hydrolysis adds in", 0.2)
         self.play(FadeIn(dgR, shift=UP * 0.1), Indicate(atp_use, color=GREEN, scale_factor=1.1), run_time=1.0)
@@ -595,15 +595,15 @@ class S04Shift(SpokenScene):
         pull = mini("ATP", YELLOW, 30, pad=0.18)
         self.play(Indicate(p0, color=RED, scale_factor=1.6), run_time=0.8)
         pull.next_to(marker, LEFT, buff=1.5)
-        self.at("why ATP", 0.2)
+        self.at("why", 0.2)
         self.play(FadeIn(marker, scale=0.5), FadeIn(pull, scale=0.7), run_time=0.6)
         self.at("universal coupling agent", 0.2)
         self.play(Indicate(pull, color=YELLOW, scale_factor=1.2), run_time=0.9)
-        self.at("Spending one phosphin hydride bond", 0.2)
+        self.at("Spending one", 0.2)
         pull.add_updater(lambda mob: mob.next_to(marker, LEFT, buff=1.5))
         self.play(marker.animate.move_to(p1), run_time=2.2, rate_func=smooth)
         pull.clear_updaters()
-        self.at("all the way to completion", 0.0)
+        self.at("far toward products", 0.0)
         self.play(Indicate(p1, color=GREEN, scale_factor=1.6), run_time=1.0)
         self.finish()
 
@@ -716,15 +716,15 @@ class S05Charge(SpokenScene):
         self.play(a.animate.set_value(10), d.animate.set_value(0.0), m.animate.set_value(0.0), run_time=1.8, rate_func=smooth)
 
         # ---- formula
-        self.at("The formula weights ATP", 0.2)
+        self.at("formula", 0.2)
         self.play(FadeIn(EC_t), FadeIn(eqs), FadeIn(bar_l), FadeIn(num[0]), run_time=0.8)
-        self.at("and ADP half", 0.2)
+        self.at("half", 0.2)
         self.play(FadeIn(num[1]), FadeIn(num[2]), run_time=0.6)
         self.at("divides by the total adenylate pool", 0.2)
         self.play(FadeIn(den), run_time=0.8)
 
         # healthy pool
-        self.at("so a cell loaded with ATP", 0.2)
+        self.at("loaded", 0.2)
         self.add(base_line, bA, bD, bM)
         self.play(FadeIn(base_line), FadeIn(lA), FadeIn(lD), FadeIn(lM), FadeIn(pool_brace), FadeIn(pool_t), run_time=0.4)
         self.play(a.animate.set_value(7.0), d.animate.set_value(1.0), m.animate.set_value(0.2), run_time=1.2)
@@ -735,7 +735,7 @@ class S05Charge(SpokenScene):
         self.play(a.animate.set_value(2.0), d.animate.set_value(2.2), m.animate.set_value(1.8), run_time=1.8)
 
         # ---- regulation
-        self.at("This single value governs flux", 0.2)
+        self.at("This value", 0.2)
         self.play(FadeOut(formula), FadeOut(bar_l), FadeOut(base_line), FadeOut(lA), FadeOut(lD), FadeOut(lM),
                   FadeOut(pool_brace), FadeOut(pool_t), FadeOut(bA), FadeOut(bD), FadeOut(bM), run_time=0.8)
         self.play(FadeIn(cat_t), FadeIn(ana_t), FadeIn(fcat), FadeIn(fana), run_time=0.9)
@@ -749,7 +749,7 @@ class S05Charge(SpokenScene):
         self.play(a.animate.set_value(2.0), d.animate.set_value(2.2), m.animate.set_value(1.8), run_time=1.8)
         self.at("it does the reverse", 0.2)
         self.play(Indicate(cat_t, color=GREEN, scale_factor=1.08), Indicate(ana_t, color=RED, scale_factor=1.08), run_time=1.0)
-        self.at("master signal", 0.2)
+        self.at("key signal", 0.2)
         self.play(Indicate(g_title, color=YELLOW, scale_factor=1.12), Indicate(needle, color=YELLOW), run_time=0.8)
         self.at("balancing energy production", 0.2)
         show_normal.set_value(1.0)

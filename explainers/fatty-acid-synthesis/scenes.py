@@ -95,7 +95,7 @@ class S01Stages(SpokenScene):
         self.play(LaggedStart(*[FadeIn(t, shift=DOWN * 0.15) for t in tabs], lag_ratio=0.3), run_time=1.1)
 
         # ---------------- stage 1: transport
-        self.at("Stage 1")
+        self.at("Stage", nth=0)
         bar = bar_at(0)
         mito = RoundedRectangle(corner_radius=0.3, width=5.0, height=4.2, stroke_color=GREY, stroke_width=3,
                                 fill_color=GREY, fill_opacity=0.08).move_to([-3.7, -0.6, 0])
@@ -105,10 +105,10 @@ class S01Stages(SpokenScene):
         cyto_l = T("cytoplasm", 26, GREY).move_to(cyto.get_bottom() + UP * 0.4)
         citrate = chip("citrate", ORANGE, 30).move_to([-3.7, 0.2, 0])
         self.play(Create(bar), FadeIn(mito), FadeIn(mito_l), FadeIn(cyto), FadeIn(cyto_l), FadeIn(citrate), run_time=1.0)
-        self.at("ATP citrate lyase")
+        self.at("citrate")
         lyase = chip("ATP-citrate lyase", BLUE, 28).move_to([3.0, 0.85, 0])
         self.play(citrate.animate.move_to([3.0, -0.05, 0]), FadeIn(lyase, shift=DOWN * 0.2), run_time=1.3)
-        self.at("cleaves citrate")
+        self.at("cleave")
         ac = acetyl(30).move_to([1.6, -1.15, 0])
         oaa = chip("oxaloacetate", GREY, 28).move_to([4.5, -1.15, 0])
         self.play(FadeOut(citrate, scale=0.6), FadeIn(ac, shift=LEFT * 0.4), FadeIn(oaa, shift=RIGHT * 0.4), run_time=0.8)
@@ -119,7 +119,7 @@ class S01Stages(SpokenScene):
         self.play(Create(ring), run_time=0.7)
 
         # ---------------- stage 2: activation
-        self.at("Stage 2")
+        self.at("Stage", nth=1)
         st1 = VGroup(mito, mito_l, cyto, cyto_l, lyase, ac, oaa, ring)
         self.play(FadeOut(st1), Transform(bar, bar_at(1)), run_time=0.7)
         ac2 = acetyl(28, "acetyl CoA (2C)").move_to([-4.4, -0.5, 0])
@@ -148,7 +148,7 @@ class S01Stages(SpokenScene):
         self.play(tag[0].animate.set_fill(GOLD, opacity=0.4), run_time=0.3)
 
         # ---------------- stage 3: elongation
-        self.at("Stage 3")
+        self.at("Stage", nth=2)
         st2 = VGroup(ac2, tag, acc, a1, at, cg, d1, d2, mal, a2)
         self.play(FadeOut(st2), Transform(bar, bar_at(2)), run_time=0.7)
         C = np.array([-3.3, -0.7, 0])
@@ -222,7 +222,7 @@ class S02Commit(SpokenScene):
         self.play(FadeIn(head, shift=DOWN * 0.15), run_time=0.8)
 
         # ---------------- phase 1: the reaction
-        self.at("Acetyl CoA carboxylase")
+        self.at("carboxylase")
         acc = chip("ACC", BLUE, 32).move_to([-1.6, 0.1, 0])
         acc_l = T("acetyl CoA carboxylase", 24, BLUE).next_to(acc, DOWN, buff=0.25)
         self.play(FadeIn(acc, scale=0.8), FadeIn(acc_l), run_time=0.7)
@@ -234,7 +234,7 @@ class S02Commit(SpokenScene):
         hc = hco3(28).move_to([-2.5, 2.0, 0])
         d1 = arrow(hc.get_bottom(), acc.get_top() + LEFT * 0.3, RED, 3)
         self.play(FadeIn(hc, shift=DOWN * 0.2), GrowArrow(d1), run_time=0.6)
-        self.at("and ATP")
+        self.at("and")
         at = atp(28).move_to([-0.7, 2.0, 0])
         d2 = arrow(at.get_bottom(), acc.get_top() + RIGHT * 0.3, TEAL, 3)
         self.play(FadeIn(at, shift=DOWN * 0.2), GrowArrow(d2), run_time=0.6)
@@ -249,8 +249,8 @@ class S02Commit(SpokenScene):
         tag = chip("committed step", GOLD, 30).move_to([-1.6, -2.75, 0])
         brace = Brace(VGroup(ac, mal), DOWN, buff=1.05, color=GOLD)
         self.play(FadeIn(tag, shift=UP * 0.2), GrowFromCenter(brace), run_time=0.8)
-        self.at("making fat and nothing else")
-        fat = chip("fat", YELLOW, 28).move_to([5.4, 0.1, 0])
+        self.at("new fatty acids")
+        fat = chip2(["fatty", "acids"], YELLOW, 24).move_to([5.4, 0.1, 0])
         a3 = arrow(mal.get_right(), fat.get_left(), YELLOW, 6)
         self.play(GrowArrow(a3), FadeIn(fat, shift=RIGHT * 0.3), run_time=0.9)
 
@@ -521,7 +521,7 @@ class S04Engine(SpokenScene):
         rig = Group(track, cart, pul, rope1, rope2, wt)
         cart.clear_updaters(); wt.clear_updaters()
         self.play(FadeOut(rig), run_time=0.6)
-        self.at("acetoacetyl acp")
+        self.at("acetosityl")
         prod2 = chip("acetoacetyl-ACP", YELLOW, 28)
         prod2.move_to(prod).align_to(prod, LEFT)
         self.play(ReplacementTransform(prod, prod2), run_time=0.8)
@@ -610,7 +610,7 @@ class S05Gambit(SpokenScene):
         up_l = T("+1 ATP", 26, TEAL).next_to(up_a, RIGHT, buff=0.12).shift(DOWN * 0.5)
         self.play(FadeIn(tR), Create(rs), FadeIn(ls), run_time=0.7)
         self.play(GrowArrow(up_a), FadeIn(up_l), run_time=0.9)
-        self.at("stores energy in malonyl CoA")
+        self.at("stores")
         self.play(Create(rm), FadeIn(lm), run_time=0.9)
         self.at("that carbon dioxide is released")
         co_l = co2(24).move_to([4.9, r1 + 0.65, 0])
@@ -647,7 +647,7 @@ class S05Gambit(SpokenScene):
         brc = Brace(bl, DOWN, buff=0.2, color=YELLOW)
         cap2 = T("palmitate: 16 carbons, every one from acetyl CoA", 28, YELLOW).next_to(brc, DOWN, buff=0.2)
         self.play(LaggedStart(*[FadeIn(b, scale=0.6) for b in bl], lag_ratio=0.08), run_time=0.9)
-        self.at("traces back to acetyl CoA")
+        self.at("traces")
         self.play(GrowFromCenter(brc), FadeIn(cap2, shift=UP * 0.1), run_time=0.9)
         self.finish()
 

@@ -102,13 +102,13 @@ class S01Fork(SpokenScene):
         self.play(Create(ring), run_time=0.5)
         self.play(FadeOut(ring), run_time=0.4)
 
-        self.at("committed choice")
+        self.at("real choice")
         ql = arr([-1.45, 0.9, 0], [-3.55, 0.9, 0], GREY, 3)
         qr = arr([1.45, 0.9, 0], [3.55, 0.9, 0], GREY, 3)
         self.play(GrowArrow(ql), GrowArrow(qr), run_time=0.8)
 
         # ---- left road: glycolysis -----------------------------------------------------
-        self.at("Phospho glucose")
+        self.at("Phosphoglucose isomerase")
         pgi = T("phosphoglucose\nisomerase", 22, GREY, line_spacing=0.8).move_to([-2.5, 0.08, 0])
         self.play(ql.animate.set_color(BLUE).set_stroke(width=6), FadeIn(pgi), run_time=0.7)
         self.at("glycolysis")
@@ -205,7 +205,7 @@ class S02Pools(SpokenScene):
         self.play(FadeIn(nadh_lab), FadeIn(nadh_tick), run_time=0.5)
         self.at("roughly a thousand")
         ratio = M("≈ 1000 : 1", 28, BLUE).move_to([LX, 0.62, 0])
-        sub_l = T("mostly the oxidized form", 22, GREY).move_to([LX, 0.18, 0])
+        sub_l = T("free cytosolic: mostly oxidized", 22, GREY).move_to([LX, 0.18, 0])
         self.play(FadeIn(ratio, shift=UP * 0.1), FadeIn(sub_l), run_time=0.7)
 
         self.at("catabolism needs")
@@ -350,7 +350,7 @@ class S03Shield(SpokenScene):
 
         self.at("But once glutathione absorbs")
         self.play(Indicate(gssg, color=TEAL_G, scale_factor=1.12), run_time=0.8)
-        self.at("oxidized and useless")
+        self.at("and spent")
         olab = T("oxidized: used up", 22, GREY).move_to([4.4, -0.45, 0])
         self.play(gssg[0].animate.set_stroke(GREY), FadeIn(olab), FadeOut(gsh_lab), run_time=0.8)
         self.at("linked into")
@@ -409,7 +409,7 @@ class S03Shield(SpokenScene):
         hit2 = arr([1.5, 2.45, 0], [-0.85, 2.45, 0], RED, 4, 0.16)
         self.play(FadeOut(neutral), FadeIn(ros2, scale=0.6), run_time=0.5)
         self.play(GrowArrow(hit2), FadeIn(dmg), run_time=0.6)
-        self.at("runs unchecked")
+        self.at("can run")
         self.play(dmg[0].animate.set_stroke(RED), Create(xmark([-4.55, 2.45, 0], 0.16, RED, 6)), run_time=0.8)
         self.finish()
 
@@ -441,7 +441,7 @@ class S04Carbons(SpokenScene):
         self.at("by two", nth=0)
         tkc = met("transketolase", 28, GREY, min_w=2.8).move_to([-2.2, 0.9, 0])
         tac = met("transaldolase", 28, GREY, min_w=2.8).move_to([2.2, 0.9, 0])
-        self.at("enzymes—transketolase", nth=0)
+        self.at("transketolase")
         self.play(FadeIn(tkc, shift=DOWN * 0.1), run_time=0.5)
         self.at("transaldolase", nth=0)
         self.play(FadeIn(tac, shift=DOWN * 0.1), run_time=0.5)
@@ -466,9 +466,9 @@ class S04Carbons(SpokenScene):
 
         # row 1: transketolase  C5 + C5 -> C3 + C7
         L1, R1, ar1, lb1 = make_row(2.1, (5, 5), (3, 7), "transketolase")
-        self.at("transketolase", nth=0)
+        self.at("First")
         self.play(FadeIn(L1, shift=RIGHT * 0.2), GrowArrow(ar1), FadeIn(lb1), run_time=0.9)
-        self.at("3 carbon and a 7")
+        self.at("produces")
         self.play(TransformFromCopy(L1[0], R1[0]), FadeIn(R1[1]), TransformFromCopy(L1[2], R1[2]), run_time=1.1)
 
         # row 2: transaldolase  C3 + C7 -> C6 + C4
@@ -476,20 +476,20 @@ class S04Carbons(SpokenScene):
         self.at("transaldolase", nth=1)
         self.play(TransformFromCopy(R1[0], L2[0]), FadeIn(L2[1]), TransformFromCopy(R1[2], L2[2]),
                   GrowArrow(ar2), FadeIn(lb2), run_time=1.2)
-        self.at("a 6 and a 4")
+        self.at("converts")
         self.play(TransformFromCopy(L2[0], R2[0]), FadeIn(R2[1]), TransformFromCopy(L2[2], R2[2]), run_time=1.1)
 
         # row 3: transketolase  C4 + C5 -> C6 + C3
         L3, R3, ar3, lb3 = make_row(-0.6, (4, 5), (6, 3), "transketolase")
-        self.at("transketolase", nth=1)
+        self.at("Finally")
         self.play(GrowArrow(ar3), FadeIn(lb3), run_time=0.6)
-        self.at("a 4 and a 5")
+        self.at("turning")
         self.play(TransformFromCopy(R2[2], L3[0]), FadeIn(L3[1]), FadeIn(L3[2], shift=DOWN * 0.3), run_time=1.0)
-        self.at("into a 6 and a 3")
+        self.at("and a 3")
         self.play(TransformFromCopy(L3[0], R3[0]), FadeIn(R3[1]), TransformFromCopy(L3[2], R3[2]), run_time=1.1)
 
         # ---- the sum ---------------------------------------------------------------------------------
-        self.at("Some at all")
+        self.at("Some")
         inter = [R1, L2, R2[2], L3[0]]
         rule = Line([-6.0, -1.35, 0], [6.0, -1.35, 0], color=GREY, stroke_width=3)
         self.play(Create(rule), *[g.animate.set_opacity(0.22) for g in inter], run_time=0.9)
@@ -501,12 +501,12 @@ class S04Carbons(SpokenScene):
         sl = VGroup(cbar(5, U2), cbar(5, U2), cbar(5, U2)).arrange(RIGHT, buff=0.2).move_to([-3.4, -2.05, 0])
         sar = darr([-0.85, -2.05, 0], [0.15, -2.05, 0], GREY, 4)
         sr = VGroup(cbar(6, U2), cbar(6, U2), cbar(3, U2)).arrange(RIGHT, buff=0.2).move_to([3.4, -2.05, 0])
-        self.at("Three 5 carbon sugars")
+        self.at("sugars become")
         self.play(TransformFromCopy(L1[0], sl[0]), TransformFromCopy(L1[2], sl[1]), TransformFromCopy(L3[2], sl[2]),
                   GrowArrow(sar), FadeOut(cancel), run_time=1.3)
-        self.at("two 6 carbon sugars")
+        self.at("and one")
         self.play(TransformFromCopy(R2[0], sr[0]), TransformFromCopy(R3[0], sr[1]), run_time=1.0)
-        self.at("one 3 carbon sugar")
+        self.at("sugar", nth=2)
         self.play(TransformFromCopy(R3[2], sr[2]), run_time=0.9)
         cl = M("3 × 5 = 15 C", 24, GREY).move_to([-3.4, -2.85, 0])
         cr = M("2 × 6 + 3 = 15 C", 24, GREY).move_to([3.4, -2.85, 0])
@@ -611,7 +611,7 @@ class S05Modes(SpokenScene):
         self.at("lots of NADPH")
         h3 = header("Mode 3:  lots of NADPH, little ribose")
         self.play(ReplacementTransform(h2, h3), unhl(1), hl(2), *route(["nadph"], []), run_time=0.7)
-        self.at("routes ribose back")
+        self.at("roots")
         rec.set_opacity(1.0)
         self.add(recl)
         self.play(*route(["g6p", "oxid", "nadph", "nonox", "glyc"], ["a1", "a2", "an", "a3", "rec"]),

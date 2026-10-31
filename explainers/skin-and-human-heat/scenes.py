@@ -90,7 +90,7 @@ class S01Drip(SpokenScene):
         self.play(Indicate(VGroup(hL, vap), color=BLUE, scale_factor=1.06), run_time=1.0)
 
         # phase 2: vapour uptake lags muscle heat
-        self.at("Skin cools you only")
+        self.at("Sweat cools you")
         self.play(*[FadeOut(m) for m in (sL, sR, hL, tL, hR, tR, vap, heat, dR)], run_time=0.6)
         xl = -4.4
         lab1 = T("air takes up water vapour", 32, BLUE).move_to([xl + 2.5, 2.3, 0])
@@ -339,11 +339,11 @@ class S06Rule(SpokenScene):
         cl = T("humid-air cap: 700 W", 28, YELLOW)
         cl.move_to([OX + 10.45 * XS + 0.1 + cl.width / 2, OY + 700 * YS, 0])
 
-        self.at("Once the heat")
+        self.at("Once evaporation")
         self.play(Create(xax), Create(yax), FadeIn(xt), FadeIn(yt), FadeIn(sk), run_time=0.9)
         self.add(req)
         self.play(FadeIn(rl), run_time=0.5)
-        self.at("exceeds the most")
+        self.at("reaches the most")
         self.add(capl, cv)
         self.play(FadeIn(cl), run_time=0.5)
         self.add(gb)
@@ -372,8 +372,8 @@ class S06Rule(SpokenScene):
         self.play(req_t.animate.set_value(700.0), swap(cur, nxt), run_time=1.0)
         cur = nxt
 
-        a2 = chip("more dry loss:\nwind or shade", PURPLE, size=28).move_to([4.5, 0.9, 0])
-        self.at("Lose more dry heat")
+        a2 = chip("less dry gain:\nshade or cooler air", PURPLE, size=28).move_to([4.5, 0.9, 0])
+        self.at("less dry heat")
         nxt = stat("S > 0: heat stored", RED)
         self.play(FadeOut(a1), FadeIn(a2), req_t.animate.set_value(850.0), swap(cur, nxt), run_time=0.5)
         cur = nxt

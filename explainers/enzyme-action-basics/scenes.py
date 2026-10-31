@@ -35,14 +35,21 @@ class Base(NarratedScene):
         assert i >= 0, phrase
         return i / len(n)
 
-    # Measured onset times (s) of key phrases, read off pauses in the actual narration audio
-    # (ffmpeg silencedetect). They override the character-proportional estimate, which drifts
-    # by up to ~1.5 s where the voice speeds up or pauses.
-    CUES = {}
-
     def tm(self, phrase):
-        if phrase in self.CUES:
-            return self.CUES[phrase]
+        """Start time of `phrase` in the spoken words (audio/words.json, first occurrence), so cues follow
+        re-voiced audio (Kokoro, 2026-10-31). Falls back to the character-proportional estimate."""
+        if not hasattr(self, "_wl"):
+            from bp_style import _norm
+            wp = os.path.join(os.path.dirname(os.environ["KX_SCRIPT"]), "audio", "words.json")
+            ws = json.load(open(wp)).get(os.environ.get("KX_SCENE_ID"), []) if os.path.exists(wp) else []
+            self._wl = [(float(w[0]), _norm(w[2])) for w in ws if _norm(w[2])]
+        from bp_style import _norm
+        q = [_norm(x) for x in phrase.replace("ΔG", "delta G").split() if _norm(x)]
+        wl = self._wl
+        for i in range(len(wl) - len(q) + 1):
+            if [w[1] for w in wl[i:i + len(q)]] == q:
+                return wl[i][0]
+        print(f"[cue] {os.environ.get('KX_SCENE_ID')}: {phrase!r} not in words.json, estimating")
         return self.at(phrase) * self.narration_s
 
     def until(self, phrase, lead=0.25):
@@ -160,8 +167,6 @@ class S07End(EndCard):
 
 # ---------------------------------------------------------------- s01: two GPS questions
 class S01Gps(Base):
-    CUES = {"First:": 4.43, "That's thermodynamics": 8.20, "Second:": 14.84, "That's kinetics": 17.85,
-            "Here's the line": 24.86, "It never changes": 29.61}
 
     def construct(self):
         cxl, cxr = -3.35, 3.35
@@ -253,7 +258,6 @@ class S01Gps(Base):
 
 # ---------------------------------------------------------------- s02: the traffic light
 class S02Light(Base):
-    CUES = {"Green": 3.89, "Yellow": 8.63, "Red": 12.09, "It can only speed": 24.46, "Spontaneity belongs": 27.37}
 
     def construct(self):
         cx = -5.3
@@ -307,8 +311,8 @@ class S02Light(Base):
         cap = T("can't change the color", 30, GREY).move_to([-1.6, 0.8, 0])
         self.play(FadeIn(enz, shift=LEFT * 0.2), GrowArrow(push), run_time=1.0)
         self.play(Create(x), FadeIn(cap), run_time=0.7)
-        self.until("It can only speed")
-        # ... it can only speed your passage through a green one
+        self.until("It speeds")
+        # ... it speeds the trip both ways toward the same equilibrium
         road = Line([-3.4, -1.4, 0], [6.0, -1.4, 0], color=GREY, stroke_width=8)
         mark = Line([-3.4, -1.4, 0], [-3.4, -1.0, 0], color=GREEN, stroke_width=4)
         end = Line([6.0, -1.4, 0], [6.0, -1.0, 0], color=GREEN, stroke_width=4)
@@ -328,8 +332,6 @@ class S02Light(Base):
 
 # ---------------------------------------------------------------- s03: the mountain shortcut
 class S03Mountain(Base):
-    CUES = {"Without an enzyme": 1.99, "Notice both routes": 10.49, "So how exactly": 18.24,
-            "transition-state secret": 21.04}
 
     def construct(self):
         hi = Curve(-5.0, 5.0, -0.6, 3.4, -1.0)
@@ -362,7 +364,7 @@ class S03Mountain(Base):
         self.play(lab_r.animate.set_opacity(0), tr.animate.set_value(1.0), run_time=1.8, rate_func=smooth)
         self.play(FadeOut(ball), run_time=0.3)
         # both routes end at the same place: send one traveller down each route at once
-        self.until("Notice both routes")
+        self.until("Notice")
         t2 = ValueTracker(0)
         b_hi = ball_on(hi, t2, RED, 0.13)
         b_lo = ball_on(lo, t2, BLUE, 0.13)
@@ -378,15 +380,13 @@ class S03Mountain(Base):
         q = T("?", 64, PURPLE, weight=BOLD).move_to([pkl[0], pkl[1] - 1.0, 0])
         ring = Circle(radius=0.35, color=PURPLE, stroke_width=4).move_to(pkl + UP * 0.02)
         self.play(FadeOut(same), Create(ring), FadeIn(q, scale=0.5), run_time=0.9)
-        self.until("transition-state secret")
+        self.until("transition")
         self.play(Indicate(ring, color=PURPLE, scale_factor=1.4), run_time=1.0)
         self.finish()
 
 
 # ---------------------------------------------------------------- s04: lowers the barrier, not DG
 class S04Barrier(Base):
-    CUES = {"Both curves": 3.84, "What changes": 15.33, "far lower": 22.0, "Enzymes speed reactions": 24.80,
-            "by stabilizing": 26.5, "not by changing": 31.0}
 
     def construct(self):
         X0, X1, Y0 = -4.4, 4.1, -1.2
@@ -411,7 +411,7 @@ class S04Barrier(Base):
         self.play(Create(c_u), FadeIn(l_unc), FadeIn(prod), FadeIn(l_prod), run_time=2.4)
         self.play(Create(c_c), FadeIn(l_cat), run_time=1.6)
         # so DG is identical
-        self.until("so ΔG")
+        self.until("delta")
         d_sub = DashedLine([X0, Y0, 0], [4.85, Y0, 0], color=YELLOW, stroke_width=2.5).set_opacity(0.55)
         d_prod = DashedLine([X1 - 1.2, unc.pt(1)[1], 0], [4.85, unc.pt(1)[1], 0], color=GREEN, stroke_width=2.5).set_opacity(0.55)
         dg = vbrace(4.85, unc.pt(1)[1], Y0, GREEN, "ΔG", 0.65, 32, 5)
@@ -430,7 +430,7 @@ class S04Barrier(Base):
         t_c = M("ΔG‡", 26, BLUE).move_to([pc[0] - 0.52, (Y0 + pc[1]) / 2 - 0.1, 0])
         self.play(GrowFromCenter(b_c), FadeIn(t_c), run_time=1.2)
         # transition state at the top of the hill
-        self.until("Enzymes speed reactions")
+        self.until("speed")
         ts_u = Dot(pu, radius=0.16, color=PURPLE)
         ts_c = Dot(pc, radius=0.16, color=PURPLE)
         l_ts = T("transition state", 26, PURPLE).move_to([pu[0] + 2.25, pu[1] - 0.05, 0])
@@ -447,8 +447,6 @@ class S04Barrier(Base):
 
 # ---------------------------------------------------------------- s05: what is the transition state
 class S05Ts(Base):
-    CUES = {"The top row": 8.38, "substrate in": 10.02, "transition state, product": 11.10, "product out": 12.27,
-            "The bottom row": 13.44, "The key insight": 19.19}
 
     def construct(self):
         OFF = 1.7                      # the curve starts low on screen and moves to the "top row" later
@@ -474,8 +472,8 @@ class S05Ts(Base):
         l_ts = T("transition state", 28, PURPLE).move_to([pk[0] + 2.1, pk[1] + 0.1 - OFF, 0])
         top.add(ts, l_ts)
         self.play(FadeIn(ts, scale=2.0), Flash(ts, color=PURPLE, flash_radius=0.5), FadeIn(l_ts), run_time=0.9)
-        self.until("exists for about")
-        fs = M("≈ 10 fs", 30, PURPLE).move_to([pk[0] - 2.0, pk[1] + 0.1 - OFF, 0])
+        self.until("lasts only")
+        fs = M("femtoseconds", 30, PURPLE).move_to([pk[0] - 2.0, pk[1] + 0.1 - OFF, 0])
         top.add(fs)
         self.play(FadeIn(fs, shift=RIGHT * 0.15), run_time=0.7)
         # the arc: substrate in, transition state, product out
@@ -517,7 +515,7 @@ class S05Ts(Base):
         self.play(tr.animate.set_value(cv.peak_s()), run_time=1.6, rate_func=smooth)
         half = T("half-broken, half-formed", 28, PURPLE).move_to([0, -3.2, 0])
         self.play(FadeIn(half, shift=UP * 0.1), Flash(ts, color=PURPLE, flash_radius=0.5), run_time=0.9)
-        self.until("The key insight")
+        self.until("key")
         self.play(FadeOut(half), run_time=0.4)          # the 50/50 caption only belongs at the top
         self.play(tr.animate.set_value(1.0), run_time=1.1, rate_func=smooth)
         self.play(FadeOut(ball), FadeOut(VGroup(zoom, frame1, frame2, n1, n2, b1, b2, p1, p2)), run_time=0.6)
@@ -545,11 +543,6 @@ class S05Ts(Base):
 
 # ---------------------------------------------------------------- s06: binding energy facilitates catalysis
 class S06Binding(Base):
-    CUES = {"First,": 2.54, "releasing binding energy": 5.7, "Second,": 8.89,
-            "fits the transition state better": 12.4, "than it fits the ground-state": 14.6,
-            "Third,": 17.35, "catalyzed ΔG‡": 19.2, "equals the uncatalyzed": 20.4, "minus the binding": 22.6,
-            "Fourth,": 25.23, "drugs shaped": 27.55, "exploit that tight fit": 30.2, "binding far harder": 32.0,
-            "than substrate mimics": 33.5, "The enzyme's job": 34.75, "bind the transition state": 37.01}
 
     def construct(self):
         X0, X1, Y0 = -4.4, 4.4, -1.5
@@ -603,14 +596,14 @@ class S06Binding(Base):
         l_t = T("transition state", 28, PURPLE).move_to([-3.6, 1.5, 0])
         snug = T("snug fit", 28, GREEN).move_to([3.8, 0.2, 0])
         self.play(FadeIn(ts_shape, scale=0.4), FadeIn(l_t, shift=RIGHT * 0.1), FadeIn(snug), run_time=1.2)
-        self.until("than it fits the ground-state", 0.2)
+        self.until("than", 0.2)
         l_s = T("ground-state substrate", 28, YELLOW).move_to([-3.6, 1.5, 0])
         loose = T("loose fit", 28, GREY).move_to([3.8, 0.2, 0])
         self.play(Transform(ts_shape, sub_shape), FadeOut(l_t), FadeOut(snug), run_time=0.9)
         self.play(FadeIn(l_s, shift=RIGHT * 0.1), FadeIn(loose), run_time=0.6)
         sub_shape = ts_shape
 
-        # ---- 3. the bookkeeping: take the binding energy off the top of the uncatalyzed barrier
+        # ---- 3. the bookkeeping: extra transition-state grip lowers the barrier relative to substrate
         self.until("Third,", 0.2)
         self.play(FadeOut(VGroup(cup, sub_shape, l_s, loose, l_site)), Transform(tags, dots_row(2)), run_time=0.9)
         base_y = -2.3
@@ -618,21 +611,23 @@ class S06Binding(Base):
         hu, hb = 3.6, 2.3
         hc = hu - hb
         XU, XB = -1.6, 1.6
-        eq = VGroup(M("ΔG‡cat", 34, BLUE), M("=", 34, TEXT), M("ΔG‡uncat", 34, RED), M("−", 34, TEXT), M("ΔGbind", 34, GOLD))
-        eq.arrange(RIGHT, buff=0.3).move_to([0, 2.25, 0])
+        eq = VGroup(T("Barrier falls", 30, BLUE), T("by the", 30, TEXT), T("extra grip", 30, GOLD), T("on the", 30, TEXT), T("transition state", 30, PURPLE))
+        eq.arrange(RIGHT, buff=0.18)
+        fit(eq, max_w=11.5)
+        eq.move_to([0, 2.25, 0])
         base = Line([-3.6, base_y, 0], [3.6, base_y, 0], color=GREY, stroke_width=3)
         bar_low = Rectangle(width=BWID, height=hc, stroke_width=0, fill_color=RED, fill_opacity=0.9).move_to([XU, base_y + hc / 2, 0])
         bar_top = Rectangle(width=BWID, height=hb, stroke_width=0, fill_color=RED, fill_opacity=0.9).move_to([XU, base_y + hc + hb / 2, 0])
         n_u = T("uncatalyzed ΔG‡", 26, RED).next_to(bar_low, DOWN, buff=0.2)
-        self.until("catalyzed ΔG‡", 0.2)
+        self.until("barrier falls", 0.2)
         self.play(FadeIn(eq[0], shift=DOWN * 0.1), run_time=0.6)
-        self.until("equals the uncatalyzed", 0.2)
+        self.until("extra grip", 0.2)
         self.play(FadeIn(eq[1]), FadeIn(eq[2], shift=DOWN * 0.1), Create(base),
                   GrowFromEdge(VGroup(bar_low, bar_top), DOWN), FadeIn(n_u), run_time=1.1)
-        self.until("minus the binding", 0.2)
-        # the top slab of the barrier is the binding energy: it turns gold, then is carried away
+        self.until("over", 0.2)
+        # the top slab is extra transition-state stabilization over substrate: it turns gold, then is carried away
         self.play(FadeIn(eq[3]), FadeIn(eq[4], shift=DOWN * 0.1), bar_top.animate.set_fill(GOLD), run_time=0.8)
-        n_b = T("binding energy", 26, GOLD)
+        n_b = T("extra grip over\nsubstrate", 26, GOLD)
         n_b.move_to([XB + BWID / 2 + 0.25 + n_b.width / 2, base_y + hc + hb / 2, 0])
         n_c = T("catalyzed ΔG‡", 26, BLUE).next_to(bar_low, DOWN, buff=0.2)
         self.play(bar_top.animate.move_to([XB, base_y + hc + hb / 2, 0]), FadeIn(n_b),

@@ -153,11 +153,11 @@ class S01TimedSequence(SpokenScene):
         self.at("whole time you read it")
         self.play(LaggedStart(*[Indicate(c, scale_factor=1.07, color=TEXT) for c in chips], lag_ratio=0.12),
                   run_time=1.2)
-        self.at("but not all at once")
+        self.at("but at different")
         self.play(*[a for i in (1, 2, 3, 5) for a in dim(chips[i])], run_time=0.8)
 
         # opposites: glycolysis and gluconeogenesis as two arrows between glucose and pyruvate
-        self.at("Many of them")
+        self.at("Many are opposites")
         glc = chip("glucose", YELLOW, size=28).move_to([-3.7, 0.7, 0])
         pyr = chip("pyruvate", GREY, size=28).move_to([3.7, 0.7, 0])
         top = arr([-2.5, 1.25, 0], [2.5, 1.25, 0], YELLOW)
@@ -165,9 +165,9 @@ class S01TimedSequence(SpokenScene):
         self.play(*[FadeOut(chips[i]) for i in (2, 3, 4, 5)], *undim(chips[1]), run_time=0.3)
         self.play(chips[0].animate.move_to([0, 2.05, 0]), chips[1].animate.move_to([0, -0.55, 0]),
                   FadeIn(glc), FadeIn(pyr), run_time=0.7)
-        self.at("that would cancel")
+        self.at("could waste energy")
         self.play(GrowArrow(top), GrowArrow(bot), run_time=0.8)
-        self.at("futile cycle")
+        self.at("both ran")
         fc = T("futile cycle", 30, RED, weight=BOLD).move_to([0, 0.7, 0])
         loop = Polygon([-2.5, 1.25, 0], [2.5, 1.25, 0], [3.0, 0.7, 0], [2.5, 0.15, 0], [-2.5, 0.15, 0],
                        [-3.0, 0.7, 0], stroke_width=0)
@@ -177,7 +177,7 @@ class S01TimedSequence(SpokenScene):
         self.play(FadeOut(dot), run_time=0.1)
 
         # a timed sequence
-        self.at("so the body switches")
+        self.at("the body turns")
         strip = make_strip(y=0.5, h=1.5, big=True)
         tline = arr([-6.1, -0.6, 0], [6.1, -0.6, 0], GREY, w=4)
         tlab = T("time", 28, GREY).move_to([0, -1.15, 0])
@@ -292,7 +292,7 @@ class S02GlucoseRelay(SpokenScene):
         self.play(FadeIn(diet_lab), run_time=0.4)
 
         # store
-        self.at("is store")
+        self.at("store")
         store = T("STORE", 36, INSULIN, weight=BOLD).move_to([4.35, 2.6, 0])
         self.play(FadeIn(store, scale=1.2), run_time=0.5)
         self.at("liver lays down glycogen")
@@ -303,7 +303,7 @@ class S02GlucoseRelay(SpokenScene):
         self.play(FadeIn(c2, shift=DOWN * 0.15), run_time=0.5)
 
         # early fasting
-        self.at("From 4 to 16 hours")
+        self.at("From four")
         v4 = DashedLine(ax.c2p(4, 0), ax.c2p(4, 1.0) + UP * 0.15, color=GOLD, stroke_width=3, dash_length=0.1)
         v16 = DashedLine(ax.c2p(16, 0), ax.c2p(16, 1.0) + UP * 0.15, color=GOLD, stroke_width=3, dash_length=0.1)
         self.play(FadeOut(store), FadeOut(c1), FadeOut(c2), seg_off(strip[0]), seg_on(strip[1]),
@@ -360,8 +360,12 @@ class S03Fasting(SpokenScene):
         self.at("at one to two days")
         self.play(seg_off(strip[1]), seg_on(strip[2]), run_time=0.6)
 
+        self.at("Gluconeogenesis grows")
+        gng = T("gluconeogenesis", 24, PINK).move_to(liver_box.get_center() + DOWN * 0.3)
+        self.play(FadeIn(gng), liver_box.animate.set_stroke(PINK, 4).set_fill(PINK, 0.14), run_time=0.7)
+
         # glycogen gauge drains
-        self.at("With glycogen spent")
+        self.at("glycogen dwindles")
         gv = ValueTracker(1.0)
         gl = T("glycogen", 24, ORANGE).move_to([-3.7, 2.7, 0])
         gbox = RoundedRectangle(corner_radius=0.06, width=1.8, height=0.3, stroke_color=ORANGE, stroke_width=2.5
@@ -380,9 +384,7 @@ class S03Fasting(SpokenScene):
         out = arr([0, 2.1, 0], [0, 2.7, 0], YELLOW)
         bg = chip("blood glucose", YELLOW, size=26).move_to([0, 3.05, 0])
         self.play(GrowArrow(out), FadeIn(bg), run_time=0.7)
-        self.at("gluconeogenesis")
-        gng = T("gluconeogenesis", 24, PINK).move_to(liver_box.get_center() + DOWN * 0.3)
-        self.play(FadeIn(gng), liver_box.animate.set_stroke(PINK, 4).set_fill(PINK, 0.14), run_time=0.7)
+
 
         # substrates
         self.at("drawing on lactate")
@@ -462,10 +464,10 @@ class S04BrainProblem(SpokenScene):
         ffa = solid(chip("fatty acid", TEAL_FA, size=24)).move_to([-5.0, ROW, 0])
         self.play(FadeIn(ffa, shift=RIGHT * 0.2), run_time=0.4)
         self.play(ffa.animate.move_to([1.7, ROW, 0]), run_time=1.5, rate_func=linear)
-        self.at("do reach brain")
+        self.at("reach brain tissue")
         self.play(ffa.animate.move_to([BRAIN_X, ROW - 1.35, 0]), run_time=1.2, rate_func=smooth)
-        self.at("little capacity")
-        keep = T("barely burned", 26, RED).move_to([BRAIN_X, ROW - 2.05, 0])
+        self.at("astrocytes burn some")
+        keep = T("minor fuel", 26, RED).move_to([BRAIN_X, ROW - 2.05, 0])
         self.play(FadeIn(keep), ffa.animate.set_opacity(0.4), run_time=0.8)
 
         # glucose-only option: the muscle pays
@@ -554,7 +556,7 @@ class S05Ketones(SpokenScene):
         self.play(brain[0].animate.set_stroke(BRAIN, 3.5), run_time=0.3)
 
         # the liver makes them
-        self.at("the liver converts")
+        self.at("liver ketone production")
         liver_r = RoundedRectangle(corner_radius=0.16, width=6.4, height=2.3, stroke_color=GREY, stroke_width=3,
                                    fill_color=GREY, fill_opacity=0.07).move_to([-1.2, ROW, 0])
         liver_l = T("liver", 28, TEXT).move_to(liver_r.get_corner(UL) + RIGHT * 0.65 + DOWN * 0.3)
@@ -564,11 +566,11 @@ class S05Ketones(SpokenScene):
         ac = chip("acetyl-CoA", TEAL_FA, size=24).move_to([-2.9, ROW, 0])
         a1 = arr([-2.9, ROW + 1.7, 0], [-2.9, ROW + 0.45, 0], TEAL_FA)
         self.play(FadeIn(fa, shift=DOWN * 0.1), GrowArrow(a1), FadeIn(ac), run_time=0.9)
-        self.at("into ketone bodies")
+        self.at("becomes ketone bodies")
         kb = chip("ketone bodies", GREEN, size=24).move_to([-0.1, ROW, 0])
         a2 = arr([-1.75, ROW, 0], [-1.35, ROW, 0], TEAL_FA, w=5, tip=0.15)
         self.play(GrowArrow(a2), FadeIn(kb), run_time=0.8)
-        self.at("and exports them")
+        self.at("that are")
         ex = arr([1.35, ROW, 0], [WALL_X - 0.1, ROW, 0], GREEN, w=6)
         self.play(GrowArrow(ex), run_time=0.5)
         exl = Line([1.4, ROW, 0], [BRAIN_X - 1.05, ROW, 0])

@@ -12,6 +12,8 @@ python3 $P/fix_cues.py . || true
 PYTHONPATH=$P python3 $P/render.py --script script.json --scenes scenes.py --audio audio --out hq.mp4 --quality h
 ~/.venvs/stt/bin/python $P/make_web.py --dir . --master hq
 perl -0pi -e 's/narration: "an AI narrator voice \([^)]*\)/narration: "an AI narrator voice (Kokoro, af_heart)/' "$P/../../src/content/lessons/$1/lesson.mdx"
+# The biochemistry films credit their slides or the earlier voices (Sarah, Charon) in other words.
+perl -0pi -e 's/  narration: "this lesson.s (?:own )?narrated lecture slides, (?:in the site.s ElevenLabs narrator voice \(Sarah\)|re-read by an AI narrator voice \(Gemini, Charon\))"/  narration: "this lesson\x27s narrated lecture slides, read by an AI narrator voice (Kokoro, af_heart)"/; s/  narration: "written from this lesson.s text and read by the site.s ElevenLabs narrator voice \(Sarah\)"/  narration: "written from this lesson\x27s text and read by an AI narrator voice (Kokoro, af_heart)"/' "$P/../../src/content/lessons/$1/lesson.mdx"
 D=$(/Users/deppmann/miniconda3/bin/ffprobe -v error -show_entries format=duration -of csv=p=0 web/explainer.mp4)
 perl -0pi -e "s/(explainer:\\n(?:  .*\\n)*?  durationSec: )[0-9.]+/\${1}$(printf %.1f "$D")/" "$P/../../src/content/lessons/$1/lesson.mdx"
 cp web/explainer.mp4 web/explainer.vtt web/poster.jpg "$P/../../public/explainers/$1/"

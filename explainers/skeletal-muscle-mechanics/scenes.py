@@ -298,7 +298,7 @@ class S03Curve(SpokenScene):
         d0 = pl.dot(0, 0.4, SPEED)
         l0 = T("no load: 0.40 m/s", 26, SPEED).move_to(pl.p(0, 0.4) + UP * 0.45 + RIGHT * 1.6)
         self.play(FadeIn(pl.yt["0.4"]), FadeIn(d0, scale=1.6), FadeIn(l0), run_time=0.8)
-        self.at("does not shorten")
+        self.at("short")
         d1 = pl.dot(100, 0, ZERO)
         l1 = T("speed zero", 26, ZERO).move_to(pl.p(100, 0) + UP * 0.55 + RIGHT * 0.95)
         self.play(FadeIn(d1, scale=1.6), FadeIn(l1), run_time=0.7)

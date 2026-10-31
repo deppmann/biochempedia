@@ -396,7 +396,7 @@ class S04Taysachs(Scn):
         # 0.67  the cell chokes: symptoms
         self.at(0.67)
         self.play(FadeOut(VGroup(bar, base, bar_lab, gm2_lab)), run_time=self.beat(0.02))
-        lines = ["muscle weakness", "neurological decline", "early childhood death"]
+        lines = ["muscle weakness", "neurological decline", "infantile: death ~age 4"]
         rows = VGroup(*[VGroup(Dot(radius=0.1, color=RED), T(s, 28)).arrange(RIGHT, buff=0.25) for s in lines]).arrange(DOWN, aligned_edge=LEFT, buff=0.5)
         rows.move_to([3.3, 0.0, 0])
         fit(rows, max_w=5.6)
@@ -415,23 +415,9 @@ class S04Taysachs(Scn):
         self.wait(self.beat(0.01))
         self.play(FadeIn(c3, shift=UP * 0.2), run_time=self.beat(0.015))
 
-        # 0.88  when a compartment fails, everything it held back comes apart
+        # 0.88  the lysosome stays intact; no other compartment can take over
         self.at(0.88)
-        cb = c2[0]
-        ctr = c2.get_center()
-        pieces = VGroup()
-        for k in range(10):
-            a = TAU * k / 10
-            pc = RoundedRectangle(corner_radius=0.05, width=0.55, height=0.3, stroke_color=BLUE, stroke_width=3,
-                                  fill_color=BLUE, fill_opacity=0.25)
-            pc.move_to(ctr + np.array([np.cos(a) * c2.width / 2.6, np.sin(a) * c2.height / 2.2, 0])).rotate(a)
-            pieces.add(pc)
-        spill = VGroup(*[Dot(radius=0.09, color=RED).move_to(ctr + [rng.uniform(-0.8, 0.8), rng.uniform(-0.2, 0.2), 0]) for _ in range(22)])
-        self.play(FadeOut(c2), FadeIn(pieces), FadeIn(spill), run_time=self.beat(0.015))
-        self.play(*[p.animate.shift(np.array([np.cos(i * TAU / 10), np.sin(i * TAU / 10), 0]) * 0.9).rotate(0.6)
-                    for i, p in enumerate(pieces)],
-                  *[d.animate.shift(np.array([rng.uniform(-3.2, 3.2), rng.uniform(-2.2, 2.2), 0])) for d in spill],
-                  c1.animate.set_opacity(0.4), c3.animate.set_opacity(0.4), run_time=self.beat(0.09))
+        self.play(c1.animate.set_opacity(0.4), c3.animate.set_opacity(0.4), run_time=self.beat(0.09))
         self.finish()
 
 
