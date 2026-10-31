@@ -4,18 +4,12 @@ slug: "direction-selectivity"
 course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 5: Vision"
 order: 819
-summary: >-
-  Some retinal ganglion cells fire strongly to motion in one direction and little to the opposite
-  direction, before any signal leaves the eye. This lesson follows the evidence from the rabbit
-  recordings of the 1960s to the starburst amacrine cell, its dendrites, its wiring and its
-  development, and then to the inputs that shape it. Afterwards you can read a direction signal
-  from a published ratio, test a delay-line argument against its numbers, and say what an
-  ablation does and does not show.
+summary: "Some retinal ganglion cells fire strongly to motion in one direction and little to the opposite direction, before any signal leaves the eye. The difference is made largely by starburst amacrine cells: each dendritic branch prefers motion away from the cell body, and the branches that point along a ganglion cell's null direction give it the strongest inhibition, so null-direction motion is suppressed. This lesson follows the evidence from the rabbit recordings of the 1960s to the starburst dendrite, its wiring and its development, and then to the inputs that shape it. Afterwards you can read a direction signal from a published ratio, test a delay-line argument against its numbers, and say what an ablation does and does not show."
 hook: "A cell in the eye fires to a spot moving left and stays quiet for the same spot moving right. Which neuron makes the difference?"
 
 estMinutes: 24
 objectives:
-  - "Define a direction-selective ganglion cell by its preferred and null responses, and say what Barlow and Hill (1963) and Barlow and Levick (1965) each reported."
+  - "Explain how the retina computes motion direction before the optic nerve: starburst dendrites prefer outward motion, and the ones that point along a ganglion cell's null direction give it the most inhibition. Define preferred and null responses, and say what Barlow and Hill (1963) and Barlow and Levick (1965) each reported."
   - "Explain why the starburst amacrine cell computes direction in its dendrites rather than in its soma, and state what removing the starburst population showed."
   - "Interpret correlated imaging and electron microscopy, and paired recordings during development, as evidence about which starburst branches connect to which ganglion cells."
   - "Compute a transformed direction index and a delay-line speed from published numbers, and say what each does and does not establish."
@@ -205,19 +199,14 @@ practiceQuestions:
       later also carry direction signals.
 
 mcatQuestions:
-  - stem: "In a made-up data set, a model of starburst input places two excitatory inputs 100 micrometres apart along a dendrite. The proximal input arrives 20 ms after the distal input for the same stimulus. If only the delay line mattered, at what speed would outward motion make the two inputs coincide?"
+  - stem: "In a made-up data set, a direction-selective ganglion cell receives the same excitation for motion in either direction. Starburst inhibition onto it is 120 pA for motion in its null direction and 40 pA for motion in its preferred direction. Which prediction fits the circuit described in this lesson?"
     choices:
-      - "500 micrometres per second, from 100 micrometres divided by 200 ms"
-      - "2,000 micrometres per second, from 100 micrometres divided by 50 ms"
-      - "20,000 micrometres per second, from 100 micrometres divided by 5 ms"
-      - "5,000 micrometres per second, from 100 micrometres divided by 20 ms"
-    answer: 3
-    rationale: >-
-      The stimulus must cross 100 micrometres in the same 20 ms as the delay, so the speed is 100
-      micrometres divided by 20 ms, 5 micrometres per ms, which is 5,000 micrometres per second.
-      The 500 and 2,000 choices divide by a time that is ten times and 2.5 times too long. The
-      20,000 choice divides by a time that is four times too short. Each wrong choice uses a
-      wrong denominator.
+      - "The cell fires equally in both directions, because the excitation is the same"
+      - "The cell fires less for null-direction motion, because the starburst branches pointing along the null direction give it stronger inhibition"
+      - "The cell fires less for preferred-direction motion, because weaker inhibition silences a neuron"
+      - "The cell fires only to null-direction motion, because inhibition is what drives spikes"
+    answer: 1
+    rationale: "Starburst branches that point along a ganglion cell's null direction make the strongest inhibitory connections onto it, and inhibition is stronger for null-direction motion, so null-direction motion is suppressed even when excitation is similar. Equal excitation does not give equal firing when the inhibition differs. Weaker inhibition for the preferred direction leaves more of the excitation to drive spikes, not fewer. Inhibition reduces firing and does not drive it. The data are made up and the lesson notes that tuned excitation and timing can also contribute in some cells."
   - stem: "In a made-up data set modelled on real experiments, GABA release from starburst cells is blocked in an adult mouse while acetylcholine release and the cells themselves are intact. A ganglion cell's preferred-to-null response ratio falls from 5 to 2 but does not fall to 1. Which interpretation is best supported?"
     choices:
       - "Starburst cells are not needed for selectivity, because some direction selectivity remained after the manipulation"
@@ -333,7 +322,7 @@ draft: false
 import TwoFlashRemainder from '../../../components/TwoFlashRemainder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A ganglion cell in a rabbit's retina fires hard when a spot moves one way across its field and hardly at all when it moves the other way. Where in the retina is that direction computed, and by which cells?**
+**A ganglion cell in a rabbit's retina fires hard when a spot moves one way across its field and hardly at all when it moves the other way. The difference is made largely one synapse earlier, by starburst amacrine cells, although tuned excitation also contributes in some cells.** Each dendrite of a starburst cell prefers motion directed outward from the cell body. The dendrites that point along a ganglion cell's null direction, the direction it ignores, make the strongest inhibitory connections onto it, so motion in that direction is suppressed. The rest of the lesson shows how each step was found: where the computation sits, which cells do it, how they are wired, and how the asymmetry develops.
 
 The [retina lesson](/lessons/retina/) built centre-surround fields from bipolar and amacrine circuitry, and [sensory coding](/lessons/sensory-coding/) described lateral inhibition between neighbours. Neither gave a cell a sense of direction. This lesson starts where the retina does that, one synapse before the optic nerve. Motion in the cortex belongs to [visual cortex](/lessons/visual-cortex/). The cell census this circuit belongs to is in [retinal cell types](/lessons/retinal-cell-types/).
 
@@ -341,7 +330,7 @@ The [retina lesson](/lessons/retina/) built centre-surround fields from bipolar 
 
 A direction-selective ganglion cell (DSGC) is defined by what it does. It fires strongly to motion in its preferred direction and little or not at all to the opposite, called the null direction. Barlow and Hill reported such cells in the rabbit retina in Science in 1963, and they noted that replacing a light spot with a black spot kept the preferred direction. The 1965 paper by Barlow and Levick is the mechanism paper, and it is often credited with the discovery, which it was not.
 
-Barlow and Levick recorded spikes from ON-OFF direction-selective units in the rabbit, in vivo, from unopened eyes of decerebrate animals (higher brain regions surgically disconnected) or lightly anaesthetized animals. They stimulated two neighbouring places in one receptive field in sequence. From the results they inferred that small subunits of the field suppress responses to sequences running in the null direction. Their guesses about which cells do this were tentative, and you should read the paper as a statement of what the mechanism must do, not as an identification of starburst cells.
+Barlow and Levick recorded spikes from ON-OFF direction-selective units in the rabbit, in vivo. They stimulated two neighbouring places in one receptive field in sequence. From the results they inferred that small subunits of the field suppress responses to sequences running in the null direction. Their guesses about which cells do this were tentative, and you should read the paper as a statement of what the mechanism must do, not as an identification of starburst cells.
 
 There are two simple ways to build a direction detector from two inputs. One suppresses: a delayed inhibitory signal from one side vetoes the excitation when motion runs the null way. The other enhances: a delayed signal from one side is multiplied with the signal from the other, so the response grows when motion runs the preferred way. The Barlow-Levick scheme is the first, and the Hassenstein-Reichardt scheme is the second. A two-flash test tells them apart. Measure each flash alone, add the two responses, and subtract the sum from the paired-flash response. A positive remainder in one order is enhancement, and a negative remainder in the other order is suppression.
 
@@ -379,9 +368,7 @@ So development strengthened one side and did not delete the other. The authors a
 
 The wiring story is about output from the SAC. How the SAC dendrite gets its own preference is less settled. One line of work points inside the dendrite: in rabbit, Hausselt and colleagues (2007) found that SAC direction selectivity persisted with GABA and glycine receptors blocked and depended on voltage-gated channels and a voltage gradient from soma to dendritic tip. Another line looks at the inputs, and that side is under revision.
 
-The EyeWire project (Kim and colleagues, Nature, 2014) reconstructed 79 OFF SACs in a mouse retinal electron microscopy volume. Contact area suggested that type BC2 bipolar cells contact proximal parts of a SAC dendrite and type BC3a cells contact more distal parts. Their model proposed that this spatial arrangement, with different timing in the two inputs, could favour outward motion. That is a model prediction, resting on contact area as an indirect measure.
-
-Measurements followed. Fransen and Borghuis recorded excitation in ON and OFF SACs in whole-mount retina from mice aged 1.5 to 3 months, in vitro. Distal excitation was faster and more transient than proximal excitation in both types. Srivastava and colleagues imaged glutamate on SAC dendrites directly in mouse retina in vitro and found relatively sustained proximal input. Deconvolution suggested about three times larger steady release proximally, and their constrained model gave its strongest space-time contribution below about 500 micrometres per second.
+A model built from contact areas in a mouse electron microscopy volume, an indirect measure, proposed that bipolar cells of different types, contacting different parts of a starburst dendrite with different timing, could favour outward motion, and later recordings found that distal excitation is faster and more transient than proximal excitation. This input mechanism is a conditional contribution under revision, and the studies are under Going deeper.
 
 Excitation may also not always be untuned. Matsumoto and colleagues found that single bipolar cells have output boutons with different preferred directions in mouse retina, and that this depended on SAC cholinergic excitation and on wide-field amacrine inhibition. The DSGCs they recorded received both direction-tuned and untuned glutamatergic input. This is debated. Park and colleagues (2014) imaged glutamate arriving on ON-OFF DSGC dendrites in mouse and found no direction tuning, and they argued that apparent tuned excitation in voltage clamp comes from poor voltage control during null-direction inhibition. Either way, an upstream cell type does not make a clean feed-forward origin. For the primary-visual-cortex consequences, Hillier and colleagues reported in mice that disrupting retinal direction selectivity abolished the over-representation of posterior-motion-preferring layer 2/3 cells in V1, while other cortical motion computations persisted.
 
@@ -401,7 +388,7 @@ This transforms a published mean ratio. It is not a published direction-selectiv
 
 > **OFF: 100 / 26 = 3.8 micrometres per ms, about 3,800 micrometres per second. ON: 100 / 8 = 12.5 micrometres per ms, about 12,500 micrometres per second.**
 
-These speeds sit well above the below-500 micrometres per second regime in which the 2022 constrained model found its strongest space-time contribution. Treated as pure delays, these gradients would match only far faster stimuli than that regime. That mismatch comes from the pure-delay assumption, which ignores the difference in response shape (sustained proximal, transient distal), and is not a finding of either paper. Srivastava and colleagues measured similar proximal and distal latencies and found the contribution of sustained and transient kinetics at low speeds. Real latency differences depend on the radial positions and the preparation, so do not restate these values as a universal delay.
+Treated as pure delays, these gradients would match only far faster stimuli than the slow regime, below about 500 micrometres per second, in which the 2022 model of Srivastava and colleagues found its strongest space-time contribution. The mismatch comes from the pure-delay assumption, which ignores the difference in response shape, and is not a finding of either paper. Do not restate these values as a universal delay.
 
 ### Design problem
 
@@ -423,3 +410,20 @@ Add a control for tuned excitation. Some work finds direction-tuned bipolar bout
 State the species scope: the physiology is established in rabbit and mouse, and in macaque for direction-selective ganglion cells, while the human cell is a candidate homolog only.
 
 </details>
+
+## Going deeper
+
+### The Barlow and Levick preparation
+
+Barlow and Levick recorded spikes from ON-OFF direction-selective units in the rabbit, in vivo, from unopened eyes of decerebrate animals (higher brain regions surgically disconnected) or lightly anaesthetized animals. They stimulated two neighbouring places in one receptive field in sequence.
+
+### Input kinetics onto the starburst dendrite
+
+The EyeWire project (Kim and colleagues, Nature, 2014) reconstructed 79 OFF SACs in a mouse retinal electron microscopy volume. Contact area suggested that type BC2 bipolar cells contact proximal parts of a SAC dendrite and type BC3a cells contact more distal parts. Their model proposed that this spatial arrangement, with different timing in the two inputs, could favour outward motion. That is a model prediction, resting on contact area as an indirect measure.
+
+Measurements followed. Fransen and Borghuis recorded excitation in ON and OFF SACs in whole-mount retina from mice aged 1.5 to 3 months, in vitro. Distal excitation was faster and more transient than proximal excitation in both types. Srivastava and colleagues imaged glutamate on SAC dendrites directly in mouse retina in vitro and found relatively sustained proximal input. Deconvolution suggested about three times larger steady release proximally, and their constrained model gave its strongest space-time contribution below about 500 micrometres per second.
+
+### Limits of the pure-delay exercise
+
+These speeds sit well above the below-500 micrometres per second regime in which the 2022 constrained model found its strongest space-time contribution. Treated as pure delays, these gradients would match only far faster stimuli than that regime. That mismatch comes from the pure-delay assumption, which ignores the difference in response shape (sustained proximal, transient distal), and is not a finding of either paper. Srivastava and colleagues measured similar proximal and distal latencies and found the contribution of sustained and transient kinetics at low speeds. Real latency differences depend on the radial positions and the preparation, so do not restate these values as a universal delay.
+

@@ -1,15 +1,12 @@
 ---
 title: "Ubiquitin and Regulated Proteolysis as Signals"
+
 slug: "ubiquitin-and-proteolysis"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 2: The parts — switches and wiring"
 order: 108
-summary: >-
-  A phosphate can be taken off again, but a destroyed protein cannot be put back. This lesson
-  follows the E1, E2 and E3 relay that tags proteins with ubiquitin, shows how a signal writes a
-  destruction mark with a phosphate or with oxygen, and explains why other ubiquitin marks move or
-  assemble proteins instead. Afterwards you can trace oxygen sensing and auxin sensing from the
-  signal to the gene.
+summary: "A phosphate can be taken off again, but a destroyed protein cannot be put back. This lesson follows the E1, E2 and E3 relay that tags proteins with ubiquitin, shows how a signal writes a destruction mark with a phosphate or with oxygen, and explains why other ubiquitin marks move or assemble proteins instead. Afterwards you can trace oxygen sensing and auxin sensing from the signal to the gene."
+
 hook: "Why would a cell build a protein only to destroy it within minutes?"
 
 estMinutes: 22
@@ -403,7 +400,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Cells in your body make a transcription factor called HIF-1α and, while oxygen is around, destroy it again within minutes. Why build a protein only to throw it away?**
 
-A transcription factor is a protein that switches genes on, and HIF-1α switches on the genes a cell needs when oxygen runs short. Phosphorylation, from the previous lesson, can be undone: a phosphatase takes the phosphate off and the protein is as it was. Destroying a protein cannot be undone. This lesson is about that one-way switch and how a signal writes it.
+A transcription factor is a protein that switches genes on, and HIF-1α switches on the genes a cell needs when oxygen runs short. Phosphorylation, from the previous lesson, can be undone: a phosphatase takes the phosphate off and the protein is as it was. Destroying a protein cannot be undone. This lesson is about that one-way switch and how a signal writes it. Destruction is the classic meaning of a ubiquitin mark, not the only one: other ubiquitin marks move a protein or gather proteins into a complex, and a later section covers those.
 
 ## The idea: a switch you cannot flip back
 
@@ -435,9 +432,9 @@ Many regulated proteins do not carry a degron all the time. A signal writes it. 
 
 **An oxygen atom that completes a docking site.** The second example answers the opening question.
 
-Gregg Semenza found HIF-1 while studying erythropoietin, the kidney hormone that tells the bone marrow to make red blood cells. Its subunit HIF-1α was made all the time and destroyed almost as fast, so the amount standing at any instant changed with oxygen. Peter Ratcliffe's group showed in 1999 that the destruction depends on a protein called VHL, and only when oxygen is present. William Kaelin had reached VHL from the other side. VHL is mutated in an inherited cancer syndrome, and cells lacking it made oxygen-regulated messages at high levels in ordinary air. VHL is the substrate receptor of a cullin-RING ligase, the role an F-box protein plays in an SCF. So VHL had to be reading a degron on HIF-1α, and nobody knew what it was.
+Gregg Semenza found HIF-1 while studying erythropoietin, the kidney hormone that tells the bone marrow to make red blood cells. Its subunit HIF-1α was made all the time and destroyed almost as fast, so the amount standing at any instant changed with oxygen. The destruction depends on a protein called VHL, and only when oxygen is present. VHL is mutated in an inherited cancer syndrome, and cells lacking it made oxygen-regulated messages at high levels in ordinary air. VHL is the substrate receptor of a cullin-RING ligase, the role an F-box protein plays in an SCF. So VHL had to be reading a degron on HIF-1α, and nobody knew what it was.
 
-In 2001 the two laboratories, knowing they were competitors, each found it independently. The degron is a hydroxyl group on one proline of HIF-1α (proline 564 in the human protein; proline 402 is modified too). A short HIF-1α peptide made with hydroxyproline already in place bound VHL tightly with no cell extract, and the same peptide with an ordinary proline did not. The enzymes that add the hydroxyl are the prolyl hydroxylases, or PHDs. A PHD needs iron, a small molecule called 2-oxoglutarate, and one molecule of oxygen, O2. One atom of the oxygen ends up in the new hydroxyl and the other in succinate, which forms when 2-oxoglutarate loses a CO2.
+The degron is a hydroxyl group on one proline of HIF-1α. A short HIF-1α peptide made with hydroxyproline already in place bound VHL tightly with no cell extract, and the same peptide with an ordinary proline did not. The enzymes that add the hydroxyl are the prolyl hydroxylases, or PHDs. A PHD needs iron, a small molecule called 2-oxoglutarate, and one molecule of oxygen, O2.
 
 Oxygen is a substrate here, used up like flour in bread, and the pathway needs no separate oxygen receptor. When oxygen falls, the enzyme finishes the reaction less often, fewer prolines are hydroxylated, VHL has less to grip, and HIF-1α is spared. It builds up, pairs with a partner protein called ARNT in the nucleus, and switches on genes such as VEGF, a growth factor that drives new blood vessels. A close relative, HIF-2α, is destroyed through the same hydroxylation and VHL. In the body it is mainly HIF-2α that switches on erythropoietin, and in kidney cancers that lack VHL it is mainly HIF-2α that drives the tumour.
 
@@ -448,21 +445,6 @@ A simple model captures the dynamics. A protein P is made at a constant rate s a
 > **dP/dt = s - k × P, so at steady state P = s / k, and the half-life is 0.69 / k**
 
 A large k means a low steady state and a short half-life, and the half-life sets how fast the level can change.
-
-### Design problem
-
-A transcription factor must be nearly absent when oxygen is plentiful and present in the nucleus within minutes when oxygen falls. Design the control. Why is destroying it continuously better than making it on demand?
-
-<details>
-<summary>One way to do it</summary>
-
-Make the factor all the time and destroy it with a tag that needs oxygen to be written. Give it a half-life of five minutes in air, so k is about 0.14 per minute and the steady-state pool equals about seven minutes (1/k) of synthesis. The sensing sits in the tag, because the hydroxylation that writes it consumes oxygen.
-
-When oxygen falls, hydroxylation slows and destruction stops. Synthesis that was already running adds s molecules every minute to a pool that held s/k, so the pool grows by about 14 percent of its baseline each minute and is about five times baseline after 30 minutes, with no new transcription.
-
-Making the factor on demand would need the signal to switch on the gene, then wait for transcription, RNA processing and translation, which takes tens of minutes to hours. Continuous destruction also makes the off-switch as fast as the on-switch: when oxygen returns, the excess above baseline halves every five minutes, and after 25 minutes only about 3 percent of the excess is left. The cost is ATP and amino acids spent on a protein the cell keeps discarding.
-
-</details>
 
 ## Ubiquitin is a code: the kind of mark matters
 
@@ -480,8 +462,38 @@ SUMO is a close relative. A small ubiquitin-like modifier is a protein of about 
 
 The plant hormone auxin tells shoots which way to bend and roots where to grow. Many botanists looked for its receptor at the cell surface, because animal biology said a receptor catches the hormone, changes shape, and starts a cascade. The receptor that controls auxin's effect on genes turned out to be part of the destruction machine.
 
-The clue was a mutant. Arabidopsis plants with a broken TIR1 gene respond poorly to auxin. TIR1 is an F-box protein, the interchangeable part of an SCF ligase, and F-box proteins were thought to grab targets and sense nothing. On 26 May 2005, Estelle's laboratory at Indiana University and, independently, Ottoline Leyser and Stefan Kepinski at the University of York reported in the same issue of Nature that TIR1 binds auxin itself.
+The clue was a mutant. Arabidopsis plants with a broken TIR1 gene respond poorly to auxin. TIR1 is an F-box protein, the interchangeable part of an SCF ligase, and F-box proteins were thought to grab targets and sense nothing. In 2005 two laboratories, working independently, reported in the same issue of Nature that TIR1 binds auxin itself.
 
 Here is how it works. The genes that auxin switches on are held off by repressor proteins of the Aux/IAA family. Without auxin, TIR1 binds one of them poorly. Auxin fits into a pocket at the exact place where TIR1 and the repressor touch, and the grip tightens. The repressor is ubiquitinated and destroyed, and the genes come on. The 2007 crystal structure, from Estelle's group with Ning Zheng, showed auxin sitting in the joint between the two proteins. The hormone is part of the joint, a molecular glue, and detecting the hormone and grabbing the repressor for destruction are a single binding step.
 
 Drug makers now use the same principle on purpose. Lenalidomide, a relative of thalidomide used in multiple myeloma, binds cereblon, the substrate receptor of a cullin-RING ligase. The bound drug changes cereblon's surface so that it grips two transcription factors, Ikaros and Aiolos, which it would otherwise ignore, and they are ubiquitinated and destroyed. The drug was in clinical use years before anyone knew this. Chemists also build two-headed molecules called PROTACs, with one end that grips a target and one that grips a ligase such as VHL, using a small molecule built around the hydroxyproline that VHL grips in HIF-1α.
+
+### Design problem
+
+A transcription factor must be nearly absent when oxygen is plentiful and present in the nucleus within minutes when oxygen falls. Design the control. Why is destroying it continuously better than making it on demand?
+
+<details>
+<summary>One way to do it</summary>
+
+Make the factor all the time and destroy it with a tag that needs oxygen to be written. Give it a half-life of five minutes in air, so k is about 0.14 per minute and the steady-state pool equals about seven minutes (1/k) of synthesis. The sensing sits in the tag, because the hydroxylation that writes it consumes oxygen.
+
+When oxygen falls, hydroxylation slows and destruction stops. Synthesis that was already running adds s molecules every minute to a pool that held s/k, so the pool grows by about 14 percent of its baseline each minute and is about five times baseline after 30 minutes, with no new transcription.
+
+Making the factor on demand would need the signal to switch on the gene, then wait for transcription, RNA processing and translation, which takes tens of minutes to hours. Continuous destruction also makes the off-switch as fast as the on-switch: when oxygen returns, the excess above baseline halves every five minutes, and after 25 minutes only about 3 percent of the excess is left. The cost is ATP and amino acids spent on a protein the cell keeps discarding.
+
+</details>
+
+## Going deeper
+
+### How VHL was tied to oxygen
+
+Peter Ratcliffe's group showed in 1999 that the destruction depends on a protein called VHL, and only when oxygen is present. William Kaelin had reached VHL from the other side, through the cancer syndrome described above.
+
+### The 2001 discovery of the degron, and the oxygen bookkeeping
+
+In 2001 the two laboratories, knowing they were competitors, each found it independently. The degron is a hydroxyl group on one proline of HIF-1α (proline 564 in the human protein; proline 402 is modified too). One atom of the oxygen ends up in the new hydroxyl and the other in succinate, which forms when 2-oxoglutarate loses a CO2.
+
+### The auxin receptor papers
+
+On 26 May 2005, Estelle's laboratory at Indiana University and, independently, Ottoline Leyser and Stefan Kepinski at the University of York reported in the same issue of Nature that TIR1 binds auxin itself.
+

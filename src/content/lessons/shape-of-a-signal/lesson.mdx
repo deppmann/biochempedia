@@ -4,13 +4,8 @@ slug: "shape-of-a-signal"
 course: "signaling"
 courseChapter: "Cell Signaling · Unit 7: Space, time and distance"
 order: 135
-summary: >-
-  One messenger can carry several messages because a cell reads how much of it there is, how
-  long it lasts, how often it comes and where it is. This lesson shows the parts that do the
-  reading: a late-arriving product that times ERK, a kinase that holds its activity between
-  calcium spikes, feedback loops with a delay that make pulses, and anchors and clusters that
-  fix a signal in place. Afterwards you can look at a pathway and say what pattern it would answer.
-hook: "EGF and NGF both switch on ERK in the same cell. How does the cell tell them apart?"
+summary: "One messenger can carry several messages because a cell reads how much of it there is, how long it lasts, how often it comes and where it is. This lesson shows the parts that do the reading: a late-arriving product that times ERK, a kinase that holds its activity between calcium spikes, feedback loops with a delay that make pulses, and anchors and clusters that fix a signal in place. Afterwards you can look at a pathway and say what pattern it would answer. "
+hook: "EGF and NGF both switch on ERK in the same cell. How does the cell tell them apart? It reads the shape of the signal: how much, how long, how often and where."
 
 estMinutes: 22
 objectives:
@@ -314,7 +309,6 @@ explainLevels:
       sustained calcium because it is exported within minutes, while NF-κB persists in the nucleus for many minutes. Later optogenetic work in HeLa cells argues that NFAT sums total calcium load more than it reads frequency (Hannanta-Anan & Chow 2016). In the NF-κB module, IκBα supplies the delayed negative feedback and IκBβ
       and IκBε damp the oscillation.
 
-
       Spatial decoding by condensates is less settled. Reconstituted clusters built on the adaptor
       LAT concentrate kinases and exclude a phosphatase on supported bilayers, but in cells the
       standard assay, FRAP, does not separate liquid-liquid phase separation from binding to a
@@ -383,7 +377,7 @@ import LessonFilm from '../../../components/LessonFilm.astro';
 import SignalLengthDecoder from '../../../components/SignalLengthDecoder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In a PC12 cell, one growth factor says "divide" and another says "become neuron-like", and both say it through the same kinase, ERK.** PC12 is a line of rat adrenal tumour cells that grow nerve-like processes when given nerve growth factor. If the molecule that carries both orders is the same, the difference must lie in something else about the signal. This lesson is about what that something else can be.
+**A cell reads four things in a signal besides which molecule it is: how much, how long, how often and where.** Take a PC12 cell, a line of rat adrenal tumour cells that grow nerve-like processes when given nerve growth factor. One growth factor says "divide" and another says "become neuron-like", and both say it through the same kinase, ERK. If the molecule that carries both orders is the same, the difference must lie in something else about the signal. This lesson is about what that something else can be, and about the parts that do the reading.
 
 ## The idea: a signal has a shape, and the cell reads it
 
@@ -428,7 +422,29 @@ One such part is calcium/calmodulin-dependent kinase II (CaMKII), an assembly of
 
 Transcription factors can be sorted by the same rule. In 1998 Ricardo Dolmetsch, Keli Xu and Richard Lewis imposed calcium spikes of chosen spacing on a line of human T cells. Closely spaced spikes activated three transcription factors, NFAT and NF-κB among them. Widely spaced spikes activated only NF-κB. A likely reason is how fast each one switches off. NFAT leaves the nucleus within minutes once calcium falls. In B cells, NF-κB stayed in the nucleus long after a brief calcium spike had ended.
 
-Medicine uses this. The brain releases gonadotropin-releasing hormone (GnRH) in pulses. In 1978 Ernst Knobil's laboratory showed, in rhesus monkeys whose hypothalamic lesions had cut off their own GnRH supply, that one pulse an hour restored the pituitary's release of its two reproductive hormones, and that the same hormone given continuously shut the release down. Leuprolide is a synthetic relative of GnRH given as a slow-release dose, so that its level stays steady. After a first surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer. A drug can change the shape of a signal as well as its size.
+Medicine uses this. The brain releases gonadotropin-releasing hormone (GnRH) in pulses. In rhesus monkeys whose hypothalamic lesions had cut off their own GnRH supply, one pulse an hour restored the pituitary's release of its two reproductive hormones, and the same hormone given continuously shut the release down. Leuprolide is a synthetic relative of GnRH given as a slow-release dose, so that its level stays steady. After a first surge the pituitary goes quiet and testosterone falls, which is the aim in prostate cancer. A drug can change the shape of a signal as well as its size.
+
+## Pulses from feedback: a loop with a delay keeps its own time
+
+Where do pulses come from when the stimulus is steady? In [signaling circuits](/lessons/signaling-circuits/) you saw negative feedback pull a pathway back toward baseline. Add a delay and the correction arrives late. Think of a shower with a long pipe between tap and head: you turn the tap, nothing changes, you turn it further, and you end up too hot and then too cold. A loop like that can oscillate.
+
+NF-κB sits in such a loop. One of the genes it switches on encodes its own inhibitor, IκBα. Once IκB has been destroyed, as in [Toll-like receptors and NF-κB](/lessons/tlr-and-nf-kb/), NF-κB enters the nucleus, new IκBα is made after a delay, and it carries NF-κB back out. If the stimulus is still present, the new IκBα is destroyed and the round can repeat, as films of single cells carrying fluorescent NF-κB have shown in some cell lines (Nelson and colleagues, 2004). A 2002 study that combined a computer model with cells that lacked particular IκB proteins concluded that IκBα drives the oscillation and that the other two IκB proteins damp it.
+
+<LessonFigure src="/figures/shape-of-a-signal/nfkb-ikba-delay-loop.webp" width={1200} height={792} alt="AI-generated illustration: a cell with a nucleus showing a four-step loop. The inhibitor IκB is destroyed so NF-κB is free, NF-κB enters the nucleus and switches on the IκBα gene after a delay, and new IκBα carries NF-κB back out, after which the round can repeat. A small inset marks IκBα driving the oscillation and two other IκB proteins damping it." caption="NF-κB switches on the gene for its own inhibitor. After a delay, new IκBα binds nuclear NF-κB and promotes its export to the cytoplasm. If the stimulus remains, IκBα can be destroyed and the cycle can repeat. Hoffmann and colleagues concluded that IκBα drives the oscillation and IκBβ and IκBε damp it." />
+
+p53 and MDM2 also form a negative feedback loop, and [stress signals](/lessons/stress-signals/) covered what Galit Lahav's films of single cells, made in Uri Alon's laboratory, showed in 2004: p53 arrives in pulses of about the same size, and a larger dose of radiation gives more pulses on average. The MDM2 loop does not explain them alone: a 2008 study from Lahav's laboratory found that the pulses are driven by repeated restarts from the upstream kinases ATM and Chk2, and that a second feedback loop, through Wip1, keeps them uniform. Her laboratory later used nutlin-3, a small molecule that blocks MDM2, on a planned schedule to hold p53 steady at the height of one pulse. In the human cancer cells they studied, cells left to pulse after a moderate radiation dose recovered and returned to dividing. Cells held steady often stopped dividing for good.
+
+Is a ring of negative feedback with a delay enough to make a clock? Michael Elowitz and Stanislas Leibler tested that by building one. In the bacterium *E. coli* they wired three repressors, proteins that switch a gene off, into a ring, each silencing the gene for the next. Each protein takes time to make, so every order to switch off lands late and the three chase one another around the ring. A green fluorescent readout rose and fell with a period of hours in at least 40 percent of the single cells filmed. The clock was noisy, and it ran.
+
+## Where: the same kinase means something else in another place
+
+A message can also depend on its address. In [cAMP and PKA](/lessons/camp-and-pka/) and [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/) you met A-kinase anchoring proteins, which hold PKA beside particular targets. A local rise in cAMP then reaches the PKA parked nearby and may never reach PKA parked elsewhere. A receptor can likewise signal from the cell surface and again from an endosome after it has been taken inside, which is the subject of the next lesson.
+
+A cell can also make a place on demand. In 2016 the laboratories of Michael Rosen and Ronald Vale put twelve purified components from the start of T-cell signalling, the pathway in [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/), on an artificial membrane with no cell present. When a kinase phosphorylated the receptor tail, the downstream proteins gathered into clusters that behaved like liquid droplets. What holds such droplets together is a large number of weak contacts between repeated binding sites of the kind you met in [protein interaction modules](/lessons/protein-interaction-modules/). The droplets also sorted what entered them. Kinases were concentrated and phosphatases were kept out, which favours a signal that stays on inside.
+
+<LessonFigure src="/figures/shape-of-a-signal/tcell-droplets-on-a-slide.webp" width={1200} height={639} alt="AI-generated illustration: a flat membrane on a glass slide with a receptor tail carrying a phosphate and a kinase, and a soft droplet of clustered downstream proteins with the kinase inside and two phosphatases kept outside. A dashed inset shows a living cell with a bright spot and a question mark." caption="On an artificial membrane supported by glass, with no cell present, membrane-bound LAT and its binding partners formed liquid-like clusters that enriched the kinase ZAP70 and excluded the phosphatase CD45. The drawing is schematic. Whether bright spots in living T cells are a separate liquid phase is still debated." />
+
+That sorting was shown on a glass slide. In a human T-cell line, LAT mutants that clustered more switched on more ERK, but proving that a bright spot in a living cell is a separate liquid is harder. The usual test bleaches a spot with a laser and watches the brightness return, and proteins that bind a fixed scaffold and let go again would look the same as a liquid. For anchored kinases, place is an established part of the signal. For droplets it is established in the test tube and still argued over in the cell.
 
 ### Design problem
 
@@ -449,24 +465,17 @@ Dolmetsch, Lewis and their colleagues saw this split in B cells in 1997. A large
 
 </details>
 
-## Pulses from feedback: a loop with a delay keeps its own time
+## Going deeper
 
-Where do pulses come from when the stimulus is steady? In [signaling circuits](/lessons/signaling-circuits/) you saw negative feedback pull a pathway back toward baseline. Add a delay and the correction arrives late. Think of a shower with a long pipe between tap and head: you turn the tap, nothing changes, you turn it further, and you end up too hot and then too cold. A loop like that can oscillate.
+### The GnRH experiment
 
-NF-κB sits in such a loop. One of the genes it switches on encodes its own inhibitor, IκBα. Once IκB has been destroyed, as in [Toll-like receptors and NF-κB](/lessons/tlr-and-nf-kb/), NF-κB enters the nucleus, new IκBα is made after a delay, and it carries NF-κB back out. If the stimulus is still present, the new IκBα is destroyed and the round can repeat, as films of single cells carrying fluorescent NF-κB have shown in some cell lines (Nelson and colleagues, 2004). In 2002 Alexander Hoffmann, Andre Levchenko, Martin Scott and David Baltimore combined a computer model with cells that lacked particular IκB proteins. They concluded that IκBα drives the oscillation and that the other two IκB proteins damp it.
+The pulse-versus-continuous experiment described above was done in 1978 by Ernst Knobil's laboratory.
 
-<LessonFigure src="/figures/shape-of-a-signal/nfkb-ikba-delay-loop.webp" width={1200} height={792} alt="AI-generated illustration: a cell with a nucleus showing a four-step loop. The inhibitor IκB is destroyed so NF-κB is free, NF-κB enters the nucleus and switches on the IκBα gene after a delay, and new IκBα carries NF-κB back out, after which the round can repeat. A small inset marks IκBα driving the oscillation and two other IκB proteins damping it." caption="NF-κB switches on the gene for its own inhibitor. After a delay, new IκBα binds nuclear NF-κB and promotes its export to the cytoplasm. If the stimulus remains, IκBα can be destroyed and the cycle can repeat. Hoffmann and colleagues concluded that IκBα drives the oscillation and IκBβ and IκBε damp it." />
+### Who modelled NF-κB oscillations
 
-p53 and MDM2 also form a negative feedback loop, and [stress signals](/lessons/stress-signals/) covered what Galit Lahav's films of single cells, made in Uri Alon's laboratory, showed in 2004: p53 arrives in pulses of about the same size, and a larger dose of radiation gives more pulses on average. The MDM2 loop does not explain them alone: a 2008 study from Lahav's laboratory found that the pulses are driven by repeated restarts from the upstream kinases ATM and Chk2, and that a second feedback loop, through Wip1, keeps them uniform. Her laboratory later used nutlin-3, a small molecule that blocks MDM2, on a planned schedule to hold p53 steady at the height of one pulse. In the human cancer cells they studied, cells left to pulse after a moderate radiation dose recovered and returned to dividing. Cells held steady often stopped dividing for good.
+In 2002 Alexander Hoffmann, Andre Levchenko, Martin Scott and David Baltimore combined a computer model with cells that lacked particular IκB proteins. They concluded that IκBα drives the oscillation and that the other two IκB proteins damp it.
 
-Is a ring of negative feedback with a delay enough to make a clock? Michael Elowitz and Stanislas Leibler tested that by building one. In the bacterium *E. coli* they wired three repressors, proteins that switch a gene off, into a ring, each silencing the gene for the next. Each protein takes time to make, so every order to switch off lands late and the three chase one another around the ring. A green fluorescent readout rose and fell with a period of hours in at least 40 percent of the single cells filmed. The clock was noisy, and it ran.
+### Testing whether a bright spot is a liquid
 
-## Where: the same kinase means something else in another place
+In 2019 David McSwiggen, Mustafa Mir, Xavier Darzacq and Robert Tjian examined the bleaching test and wrote: "Even proteins that engage in stable, high-affinity binding interactions can show recovery."
 
-A message can also depend on its address. In [cAMP and PKA](/lessons/camp-and-pka/) and [adaptors and scaffolds](/lessons/adaptors-and-scaffolds/) you met A-kinase anchoring proteins, which hold PKA beside particular targets. A local rise in cAMP then reaches the PKA parked nearby and may never reach PKA parked elsewhere. A receptor can likewise signal from the cell surface and again from an endosome after it has been taken inside, which is the subject of the next lesson.
-
-A cell can also make a place on demand. In 2016 the laboratories of Michael Rosen and Ronald Vale put twelve purified components from the start of T-cell signalling, the pathway in [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/), on an artificial membrane with no cell present. When a kinase phosphorylated the receptor tail, the downstream proteins gathered into clusters that behaved like liquid droplets. What holds such droplets together is a large number of weak contacts between repeated binding sites of the kind you met in [protein interaction modules](/lessons/protein-interaction-modules/). The droplets also sorted what entered them. Kinases were concentrated and phosphatases were kept out, which favours a signal that stays on inside.
-
-<LessonFigure src="/figures/shape-of-a-signal/tcell-droplets-on-a-slide.webp" width={1200} height={639} alt="AI-generated illustration: a flat membrane on a glass slide with a receptor tail carrying a phosphate and a kinase, and a soft droplet of clustered downstream proteins with the kinase inside and two phosphatases kept outside. A dashed inset shows a living cell with a bright spot and a question mark." caption="On an artificial membrane supported by glass, with no cell present, membrane-bound LAT and its binding partners formed liquid-like clusters that enriched the kinase ZAP70 and excluded the phosphatase CD45. The drawing is schematic. Whether bright spots in living T cells are a separate liquid phase is still debated." />
-
-That sorting was shown on a glass slide. The same paper reported that, in a human T-cell line, LAT mutants that clustered more switched on more ERK, but proving that a bright spot in a living cell is a separate liquid is harder. The usual test bleaches a spot with a laser and watches the brightness return. In 2019 David McSwiggen, Mustafa Mir, Xavier Darzacq and Robert Tjian examined that test and wrote: "Even proteins that engage in stable, high-affinity binding interactions can show recovery." Proteins that bind a fixed scaffold and let go again would look the same as a liquid. For anchored kinases, place is an established part of the signal. For droplets it is established in the test tube and still argued over in the cell.
