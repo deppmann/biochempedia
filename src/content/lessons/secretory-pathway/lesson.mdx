@@ -6,7 +6,7 @@ courseChapter: "Cell Biology · Unit 3: Traffic and movement"
 order: 412
 summary: >-
   A secreted glycoprotein travels from the rough ER through the Golgi stack to the cell surface,
-  and its sugar chains are trimmed and rebuilt at each stop, so they record where it has been.
+  and its sugar chains are trimmed and rebuilt along the way, so they record which processing enzymes it has met.
   This lesson reads the classic pulse-chase experiments and an Endo H time course as evidence of
   order and rate, explains how ER residents are fetched back and how cargo crosses the Golgi, and
   separates the steady exit from the stored one. Afterwards you can turn a gel of Endo H bands into
@@ -125,15 +125,15 @@ techniques:
   - name: "Endo H digestion and SDS gel electrophoresis"
     blurb: >-
       An immunoprecipitated glycoprotein is treated with endoglycosidase H, which removes
-      high-mannose N-glycans but not complex ones, and run on a gel. Sensitive protein runs faster
+      high-mannose and hybrid N-glycans but not complex ones, and run on a gel. Sensitive protein runs faster
       after digestion; resistant protein does not. The rise of the resistant band over a chase
       times arrival at the Golgi enzymes that make glycans resistant.
   - name: "Live imaging of a fluorescent cargo"
     blurb: >-
       A cargo such as the temperature-sensitive VSV G protein, fused to a fluorescent protein, is
       held in the ER and then released all at once by a temperature shift (or a chemical switch in
-      the RUSH system). Following fluorescence in the ER, Golgi and surface over time gives rate
-      constants for each step in living cells.
+      the RUSH system). Fitting a kinetic model to fluorescence in the ER, Golgi and surface over time
+      gives effective rate constants for each stage in living cells.
 
 structures:
   - label: "KDEL receptor bound to a KDEL peptide — how escaped ER proteins are recognized"
@@ -149,9 +149,9 @@ structures:
     id: "1EDT"
     note: "Endo-beta-N-acetylglucosaminidase H from Streptomyces, X-ray crystal structure (Rao, Guan & Van Roey, Structure, 1995)"
     caption: >-
-      The enzyme cuts between the two GlcNAc residues at the base of high-mannose glycans. Its
-      cleft fits the mannose-rich branches; once Golgi enzymes have rebuilt the branches into the
-      complex type, the glycan no longer fits.
+      The enzyme cuts between the two GlcNAc residues at the base of high-mannose and hybrid
+      glycans. Once mannosidase II has trimmed two mannoses on the way to the complex type, the
+      glycan is no longer cut.
   - label: "Human proinsulin — the precursor cut late in the pathway"
     source: "rcsb"
     id: "2KQP"
@@ -204,7 +204,7 @@ practiceQuestions:
       ER; deleting it from grp78 caused secretion in COS cells. Entry into the ER is set by the
       amino-terminal signal sequence read by SRP, not by a carboxyl-terminal tag. Lysosomal
       enzymes are routed by mannose 6-phosphate, a different signal. Storage in dense granules
-      depends on sorting at the trans-Golgi network, where regulated cargo aggregates, not on KDEL.
+      depends on sorting of regulated cargo, which starts at the trans-Golgi network and continues in immature granules, not on KDEL.
   - stem: "In pancreatic slices, the zymogen granule fraction was half-maximally labelled at 17 minutes of chase, yet microscopy of intact cells found labelled granules no earlier than 57 minutes. What explained the gap?"
     choices:
       - "Autoradiography missed grains over the small dense granules"
@@ -230,7 +230,7 @@ practiceQuestions:
       Endo H resistance appears only after early Golgi enzymes, GlcNAc transferase I and
       mannosidase II, have acted, so a protein that never gains it has most likely not left the ER
       (misfolded cargo is often held there). A protein in granules or in the trans-Golgi network
-      would already have passed those enzymes and would be resistant. A secreted protein would be
+      would already have passed those enzymes and, since the normal protein's glycans can be processed, would most likely be resistant. Some glycans do stay sensitive after Golgi passage, so the location is worth checking directly. A secreted protein would be
       gone from the lysate rather than present and sensitive, so it could not show a sensitive band.
   - stem: "You film one Golgi cisterna in budding yeast labelled with a green early-Golgi protein and a red late-Golgi protein. What does the cisternal maturation model predict?"
     choices:
@@ -244,7 +244,7 @@ practiceQuestions:
       recycled backward, and gains late ones, so its colour changes while the cargo stays inside.
       This colour change is what Losev and colleagues and Matsuura-Tokita and colleagues saw in yeast. A
       cisterna that keeps one identity while vesicles come and go is the stable-compartment
-      picture. Equal colours throughout would mean no compartment identity and fits neither model.
+      picture. Equal colours throughout would show no change over time, which is not what maturation predicts.
 
 mcatQuestions:
   - stem: "A fluorescent cargo is held in the ER of cultured cells and released all at once. The fraction remaining in the ER falls by a single first-order process with a rate constant of 0.023 per minute. What is the half-time for leaving the ER?"
@@ -285,8 +285,9 @@ mcatQuestions:
       changed is discharge, as Jamieson and Palade concluded in 1971. A faster synthesis rate would
       put more label into protein during the pulse, which the data do not show. Faster ER-to-Golgi
       transport would move label into the Golgi earlier, which the data do not show. Concentration
-      into storage is an intermediate step that would not by itself raise output to the medium; the
-      extra release needs the discharge step itself to change.
+      did change in stimulated cells, which packed protein into Golgi saccules and small granules
+      instead of condensing vacuoles, but a change in packaging does not explain more protein in the
+      medium; the authors concluded that the stimulus acted mainly on discharge.
 
 explainLevels:
   - level: "eli5"
@@ -298,7 +299,7 @@ explainLevels:
   - level: "highschool"
     label: "High school"
     text: >-
-      Proteins that a cell sends out are made on ribosomes attached to the rough endoplasmic
+      Most proteins that a cell sends out are made on ribosomes attached to the rough endoplasmic
       reticulum (ER) and slide inside it as they are made. From the ER they travel to the Golgi
       apparatus, a stack of flattened sacs, where sugar chains on the protein are trimmed and
       rebuilt. At the far side of the Golgi the proteins are sorted: some leave at once, and some
@@ -309,21 +310,24 @@ explainLevels:
     label: "College"
     text: >-
       A secretory protein enters the ER lumen cotranslationally, loses its signal peptide, and
-      often receives an N-linked Glc3Man9GlcNAc2 core on asparagine. After folding it leaves in COPII
-      vesicles, passes the ERGIC, and crosses the cis, medial and trans Golgi, where mannosidases
+      often receives an N-linked Glc3Man9GlcNAc2 core on asparagine. After folding it leaves in COPII-coated carriers (vesicles or
+      tubules), passes the ERGIC, and crosses the cis, medial and trans Golgi, where mannosidases
       and glycosyltransferases convert high-mannose glycans to complex ones; resistance to Endo H
       marks passage through the early Golgi enzymes. ER residents that escape are returned by the
       KDEL receptor. At the trans-Golgi network cargo is sorted into constitutive carriers or into
-      immature granules, where prohormones such as proinsulin are cut. Pulse-chase autoradiography
+      immature granules, where sorting continues and prohormones such as proinsulin are cut. Pulse-chase autoradiography
       in the guinea-pig pancreas gave the order of compartments; Endo H time courses give rates.
   - level: "grad"
     label: "Graduate"
     text: >-
-      Transport kinetics are approximately first order and cargo-specific: rat hepatocyte
+      In the studies that measured them, transport kinetics were approximately first order and cargo-specific: rat hepatocyte
       secretory proteins leave the ER with half-times from 14 to 137 minutes, and VSVG-GFP in
       COS cells moves ER to Golgi at about 2.8% per minute, with no sign of saturation. That
-      spread argues against pure bulk flow and for selective export, now tied to COPII cargo
-      receptors and, for bulky cargo such as collagen, TANGO1 rings at exit sites. Endo H
+      spread was first read as evidence for selective export, but part of it reflects folding and
+      retention in the ER, and a small, fast-folding soluble protein with no known receptor is
+      secreted by bulk flow at about 1.2% per minute. Bulk flow and export through COPII cargo
+      receptors both seem to contribute, and bulky cargo such as collagen also needs TANGO1 rings at
+      exit sites. Endo H
       resistance is a threshold in glycan processing, not a compartment map, so a resistant band
       times arrival at mannosidase II rather than ER exit itself.
 
@@ -388,23 +392,23 @@ That timetable comes from Lucien Caro and George Palade, who published it in 196
 
 The pancreatic acinar cell is a good place to start because most of the protein it makes is for export. Palade's method was **pulse-chase**: give radioactive amino acid for a short time (the pulse), then flood the tissue with unlabelled amino acid (the chase), so that only the protein made during the pulse is labelled. That labelled group is a cohort, and you follow it as it moves. The method is set out in [the lesson on distinguishing experiments](/lessons/experiments-that-distinguish/).
 
-Caro and Palade did this in living guinea pigs and read the result by electron-microscope autoradiography: photographic emulsion laid over thin sections records each radioactive decay as a silver grain over a compartment. Grains moved from the rough ER to Golgi elements to zymogen granules. They read their data as suggesting two steps in the Golgi region, small peripheral vesicles first and then large central **condensing vacuoles**, sacs in which secretory protein is concentrated before it becomes a granule.
+Caro and Palade did this in living guinea pigs, injecting labelled leucine and, in most animals, following it with a large excess of unlabelled leucine as a chase, and read the result by electron-microscope autoradiography: photographic emulsion laid over thin sections forms silver grains where radiation from the label strikes it, so the grains show which compartments hold the label. Grains moved from the rough ER to Golgi elements to zymogen granules. They read their data as suggesting two steps in the Golgi region, small peripheral vesicles first and then large central **condensing vacuoles**, sacs in which secretory protein is concentrated before it becomes a granule.
 
 James Jamieson and Palade then moved to slices of pancreas kept alive in a dish, which allowed a precise three-minute pulse and chases of 7, 17 and 57 minutes. They broke the cells open and separated **microsomes**, small vesicles that form from broken membranes. Label was in rough microsomes (from the ER) at the end of the pulse, peaked in smooth microsomes (from the Golgi periphery) after 7 minutes of chase, and arrived in the zymogen granule fraction later. That is a precursor-product relation: each compartment fills as the one before it empties.
 
 The two methods disagreed at one point. The granule fraction was half-maximally labelled at 17 minutes, yet in intact cells the granules carried label no earlier than 57 minutes. The cause was contamination: labelled condensing vacuoles were sedimenting with the granules. A year later the same slices showed that the step between the ER exit region and the peripheral Golgi vesicles needs energy, and is blocked by inhibitors of respiration but not of glycolysis.
 
-Keep the scope exact. These experiments, in one tissue of one species, showed the order of compartments and the time spent in each. Jamieson and Palade argued that the kinetics were direct evidence for passage through small Golgi vesicles, but no one watched cargo ride inside a vesicle. Order and timing are what pulse-chase gives you.
+Keep the scope exact. These experiments, in one tissue of one species, showed the order of compartments and roughly when the labelled cohort reached each one. Jamieson and Palade argued that the kinetics were direct evidence for passage through small Golgi vesicles, but no one watched cargo ride inside a vesicle. Order and timing are what pulse-chase gives you.
 
 ## Processing along the way: glycans as a location stamp
 
 A secretory protein enters the ER as it is made, guided by its signal sequence and SRP, as [protein sorting](/lessons/protein-sorting/) explains for the ribosome and channel and [translation](/lessons/genetic-code-and-translation/) explains for protein synthesis. Signal peptidase removes the signal in the **lumen**, the space inside the ER. Very soon after the chain enters, oligosaccharyltransferase attaches a preformed core of 14 sugars (Glc3Man9GlcNAc2) to asparagine in the sequence Asn-X-Ser/Thr. So N-glycosylation begins in the ER, not the Golgi. The sugar chemistry is in [the carbohydrates lesson](/lessons/carbohydrates/).
 
-In the ER, glucoses are trimmed while the protein folds, under the controls described in [quality control](/lessons/quality-control-and-autophagy/). Folded cargo leaves at ER exit sites in COPII-coated vesicles (the coats and SNAREs are in [vesicle traffic](/lessons/vesicle-traffic/)). In mammalian cells it then passes the **ERGIC**, the ER-Golgi intermediate compartment marked by the protein ERGIC-53, before reaching the **cis** face of the Golgi, the side facing the ER. It crosses medial and **trans** cisternae (the flattened sacs of the stack) and leaves from the **trans-Golgi network** (TGN), a tubular sorting station on the far side.
+In the ER, glucoses are trimmed while the protein folds, under the controls described in [quality control](/lessons/quality-control-and-autophagy/). Folded cargo leaves at ER exit sites in COPII-coated carriers, long drawn as small vesicles, though some may be tubules (the coats and SNAREs are in [vesicle traffic](/lessons/vesicle-traffic/)). In mammalian cells it then passes the **ERGIC**, the ER-Golgi intermediate compartment marked by the protein ERGIC-53, before reaching the **cis** face of the Golgi, the side facing the ER. It crosses medial and **trans** cisternae (the flattened sacs of the stack) and leaves from the **trans-Golgi network** (TGN), a tubular sorting station on the far side.
 
-The Golgi rebuilds the glycan step by step. Mannosidase I, GlcNAc transferase I, mannosidase II and GlcNAc transferase II act early; galactose and sialic acid are added later. In Chinese hamster ovary cell membranes the early enzymes partly separated from the late ones on density gradients, and the authors suggested that they work in some or all of the cis-side cisternae. Because each enzyme sits in a particular region, the glycan carries a stamp of how far the protein has come.
+The Golgi rebuilds the glycan step by step. Mannosidase I, GlcNAc transferase I, mannosidase II and GlcNAc transferase II act early; galactose and sialic acid are added later. In Chinese hamster ovary cell membranes the early enzymes partly separated from the late ones on density gradients, and the authors suggested that they work in some or all of the cis-side cisternae. The enzymes are enriched in different regions but overlap, so the glycan records which enzymes the protein has met: a rough stamp of how far it has come, not an exact address.
 
-The tool that reads the stamp is **endoglycosidase H** (Endo H). It cuts high-mannose glycans but not the complex glycans made after GlcNAc transferase I and mannosidase II have acted. Cut protein runs faster on a gel. Endo H resistance is a threshold in a sequence, not a switch between two organelles: in normal rat hepatocytes about 10% of intracellular haptoglobin is resistant at any moment.
+The tool that reads the stamp is **endoglycosidase H** (Endo H). It cuts high-mannose and hybrid glycans but not the complex glycans made after GlcNAc transferase I and mannosidase II have acted. Cut protein runs faster on a gel. Endo H resistance is a threshold in a sequence, not a switch between two organelles: it shows that a glycan has been processed past mannosidase II, not which compartment the protein is in now. In one study of normal rat hepatocytes, only about 10% of the haptoglobin inside the cells was resistant, so most of it had not yet reached those Golgi enzymes.
 
 Some processing comes last. In human and rat pancreatic beta cells, proinsulin is cut to insulin mainly in clathrin-coated immature secretory granules, not in the Golgi stack.
 
@@ -425,7 +429,7 @@ The data here are illustrative. A glycoprotein in a cultured cell line is pulse-
 
 > k = -ln(0.67) / 15 = 0.0267 per min; -ln(0.45) / 30 = 0.0266 per min; -ln(0.20) / 60 = 0.0268 per min
 
-The three agree, so the data fit a single first-order step with k = 0.0267 per minute.
+The three agree, so the data fit a single first-order process with an apparent k = 0.0267 per minute. That does not mean only one physical step is involved.
 
 <EndoHChaseReader />
 
@@ -435,7 +439,7 @@ The three agree, so the data fit a single first-order step with k = 0.0267 per m
 
 **Step 4, interpret.** Resistance appears only after Golgi enzymes act, so 26 minutes covers ER exit plus the trip to those enzymes. It is an upper bound for ER exit alone.
 
-Real cargoes differ. Four secretory proteins in isolated rat hepatocytes left the ER with half-times from 14 to 137 minutes, and in human HepG2 cells five secreted proteins matured at rates differing at least threefold. That spread is hard to explain if cargo simply flows out with the fluid, and Lodish and colleagues suggested a receptor that selects cargo. For comparison, VSV G protein fused to green fluorescent protein moved from ER to Golgi in living COS cells at about 2.8% per minute (a first-order rate constant), a half-time of 0.693 / 0.028 = 24.8 minutes.
+Real cargoes differ. Four secretory proteins in isolated rat hepatocytes left the ER with half-times from 14 to 137 minutes, and in human HepG2 cells five secreted proteins matured at rates differing at least threefold. That spread was first read as evidence against pure bulk flow, and Lodish and colleagues suggested a receptor that selects cargo, though folding and retention in the ER also contribute. For comparison, VSV G protein fused to green fluorescent protein moved from ER to Golgi in living COS cells at about 2.8% per minute (a first-order rate constant), a half-time of 0.693 / 0.028 = 24.8 minutes.
 
 ## Through the Golgi: vesicles or maturing cisternae
 
@@ -451,11 +455,11 @@ Budding yeast made the question answerable for one organism, because its cistern
 
 ## Two exits: constitutive and regulated secretion
 
-At the TGN the routes split. In **constitutive secretion**, protein is released as fast as it is made. In **regulated secretion**, protein is stored at high concentration in granules until a stimulus arrives. Every cell has the first; endocrine, exocrine and nerve cells add the second.
+The routes split at the TGN, and in some cells sorting continues in immature granules. In **constitutive secretion**, protein is released as fast as it is made. In **regulated secretion**, protein is stored at high concentration in granules until a stimulus arrives. Nearly every eukaryotic cell has the first; endocrine, exocrine and nerve cells, among others, add the second.
 
-<LessonFigure src="/figures/secretory-pathway/constitutive-vs-regulated-exit.webp" width={1200} height={771} alt="AI-generated illustration: a secretory cell where the trans-Golgi network sends sand-coloured vesicles straight to the plasma membrane (constitutive route) and gold vesicles into stored granules (regulated route); an inset shows a granule fusing with the membrane when a stimulus arrives." caption="At the trans-Golgi network the routes split. Constitutive secretion releases protein as fast as it is made; regulated secretion stores it in granules until a stimulus arrives. Every cell has the first route, and endocrine, exocrine and nerve cells add the second." />
+<LessonFigure src="/figures/secretory-pathway/constitutive-vs-regulated-exit.webp" width={1200} height={771} alt="AI-generated illustration: a secretory cell where the trans-Golgi network sends sand-coloured vesicles straight to the plasma membrane (constitutive route) and gold vesicles into stored granules (regulated route); an inset shows a granule fusing with the membrane when a stimulus arrives." caption="The routes split at the trans-Golgi network, and sorting can continue in immature granules. Constitutive secretion releases protein as fast as it is made; regulated secretion stores it in granules until a stimulus arrives. Nearly every eukaryotic cell has the first route, and endocrine, exocrine and nerve cells, among others, add the second." />
 
-In a cell-free system from PC12 neuroendocrine cells, a regulated protein and a constitutive one were sorted into different vesicles as they left the TGN. Granins, typical regulated cargo, stay aggregated at pH 6.4 with 1 to 10 mM calcium, conditions believed to hold in the TGN, so clumping may help pull regulated cargo apart from the rest. How the selection is made is still argued.
+In a cell-free system from PC12 neuroendocrine cells, a regulated protein and a constitutive one were sorted into different vesicles as they left the TGN. Granins, typical regulated cargo, stay aggregated at pH 6.4 with 1 to 10 mM calcium, conditions then believed to hold in the TGN, so clumping may help pull regulated cargo apart from the rest. Later calcium probes found less free calcium in the trans-Golgi than in the medial Golgi or the ER, so how closely those test conditions match the living TGN is unclear. How the selection is made is still argued. In pancreatic beta cells, entry from the TGN into immature granules is not very selective: regulated proteins condense inside the granules, and lysosomal enzymes that entered with them are removed later.
 
 A stimulus acts at the end of this route. In guinea-pig pancreatic slices, a secretagogue did not speed synthesis or transit; it mainly increased discharge. Not every secreted protein follows this whole path either: some bypass the Golgi after entering the ER, and some proteins without a signal sequence leave without entering the ER at all.
 

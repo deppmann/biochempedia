@@ -7,7 +7,7 @@ order: 418
 summary: >-
   A checkpoint is a control that makes one cell-cycle event wait until another is finished. This
   lesson follows three of them (DNA damage, DNA replication and spindle assembly) from the sensor
-  to the cyclin-CDK it holds back, then shows how destroying proteins makes the big transitions
+  to the cyclin-CDK or APC/C it holds back, then shows how destroying proteins, together with feedback, makes the big transitions
   one-way. Afterwards you can read a degradation time course and predict what a cell does when a
   checkpoint part is missing.
 hook: "A yeast cell missing one gene keeps dividing after irradiation and dies. Hold it back with a drug, and it can repair the damage. What was the gene for?"
@@ -16,7 +16,7 @@ estMinutes: 24
 objectives:
   - "Define a checkpoint as a control that makes one event wait for another, and explain what the rad9 experiment showed about control versus repair."
   - "Trace the DNA-damage, replication and spindle-assembly checkpoints from what each senses to how it restrains cyclin-CDK or APC/C activity."
-  - "Explain how ubiquitin-dependent destruction by APC/C and SCF, and inhibitory Cdk1 phosphorylation, make cell-cycle transitions hard to reverse."
+  - "Explain how ubiquitin-dependent destruction by APC/C and SCF, inhibitory Cdk1 phosphorylation and positive feedback make cell-cycle transitions hard to reverse."
   - "Predict the phenotype of a cell that loses a checkpoint component, and calculate a degradation rate and half-life from a fluorescent-reporter time course."
 
 explainer:
@@ -67,8 +67,8 @@ scientists:
       reported more budding-yeast genes needed for mitosis to wait on DNA replication and repair.
       The rad9 experiment became the template for testing any candidate checkpoint gene: remove
       it, see whether the cell still waits, then impose the wait and see whether the cell
-      recovers. That test separates a gene that does a job from a gene that makes the cell wait
-      for the job to be done.
+      recovers. That test shows whether a gene is needed for the cell to wait.
+      It does not rule out a second role in the job itself.
   - name: "Conly Rieder"
     contribution: >-
       Used laser microsurgery in flat PtK1 cells to show that the signal delaying anaphase comes
@@ -114,8 +114,8 @@ techniques:
   - name: "Imposed-delay rescue"
     blurb: >-
       Damage a checkpoint mutant, then supply the missing delay artificially, for example with a
-      drug that blocks division. If the cells now survive or repair, the gene controls timing
-      rather than doing the repair. Weinert and Hartwell used this test on irradiated rad9 yeast.
+      drug that blocks division. If the cells now survive or repair, the gene is needed for the
+      delay. Weinert and Hartwell used this test on irradiated rad9 yeast.
   - name: "Laser microsurgery with video microscopy"
     blurb: >-
       A focused laser destroys one chosen structure, such as a single kinetochore, in a living
@@ -181,14 +181,14 @@ practiceQuestions:
     rationale: >-
       Hartwell and Weinert defined a checkpoint as a control that enforces dependency between
       cell-cycle events, so the key is the control that makes one event wait for another. A repair
-      enzyme does the job being waited for; the rad9 experiment showed that control and repair are
-      separate. A checkpoint is not a fixed clock time: cells without a problem pass through with
+      enzyme does the job being waited for; the rad9 experiment showed that control and repair can be
+      separated. A checkpoint is not a fixed clock time: cells without a problem pass through with
       little or no delay. A cyclin-destroying protein such as APC/C is often the target that a
       checkpoint restrains, not the checkpoint itself.
   - stem: "Irradiated rad9 budding yeast fail to delay in G2. When the same irradiated cells are held in G2 for several hours with a microtubule poison, repair can occur efficiently. What does this suggest about Rad9?"
     choices:
       - "Rad9 is the enzyme that rejoins broken DNA ends"
-      - "Rad9 imposes the delay, and repair can occur without it"
+      - "Rad9 is needed for the delay, and repair can occur without it"
       - "Rad9 is required to assemble the mitotic spindle"
       - "The microtubule poison repairs the DNA directly"
     answer: 1
@@ -196,8 +196,8 @@ practiceQuestions:
       Repair happened once the delay was supplied from outside, so the mutant's defect is in
       waiting, and Rad9 is needed for the delay; repair of this damage could proceed without it. If Rad9 rejoined broken
       ends, holding the cells in G2 would not have rescued repair. A spindle-assembly defect would
-      not explain a failure to delay in G2 after irradiation. The microtubule poison only blocks
-      division; it does nothing to DNA, which is exactly why it isolates the timing defect.
+      not explain a failure to delay in G2 after irradiation. The microtubule poison blocks
+      division by preventing spindle assembly; it is not a repair treatment, which is exactly why it isolates the timing defect.
   - stem: "At a stalled replication fork, single-stranded DNA becomes coated with RPA. Which protein binds this RPA-coated DNA and brings the kinase ATR to it?"
     choices:
       - "Sic1"
@@ -209,7 +209,7 @@ practiceQuestions:
       ATRIP is ATR's partner; in purified-protein assays RPA stimulates ATRIP binding to
       single-stranded DNA, and in human cells RPA is needed for ATR to reach damage sites. Cdc20
       is the APC/C activator that the spindle checkpoint traps; it has no role in sensing single
-      strands. Securin is an inhibitor of separase destroyed at anaphase. Sic1 is a budding-yeast
+      strands. Securin is an inhibitor of separase, destroyed from metaphase so that anaphase can start. Sic1 is a budding-yeast
       CDK inhibitor destroyed at G1/S. None of those three senses replication stress.
   - stem: "Human Cdc25C is engineered to carry alanine instead of serine at position 216, and the cells are irradiated in G2. What is the most reasonable prediction?"
     choices:
@@ -223,8 +223,8 @@ practiceQuestions:
       site for 14-3-3; a mutant that cannot be phosphorylated there does not bind 14-3-3, so
       Cdc25C is freer to activate Cdk1 and the G2 arrest is expected to weaken. Tighter 14-3-3
       binding is the opposite of what removing the phosphorylation site does. The mutation is in
-      the kinases' target, so it does not stop ATR from activating Chk1. The p53-to-p21 branch acts
-      mainly at G1 and does not depend on Cdc25C.
+      the kinases' target, so it does not stop ATR from activating Chk1. The mutation does not touch
+      p53, so p53 can still induce the p21 gene.
   - stem: "A budding-yeast strain with a temperature-sensitive Hrt1 subunit of the SCF ubiquitin ligase is shifted to the restrictive temperature. Which outcome fits?"
     choices:
       - "Cyclin B is destroyed and the cells leave mitosis early"
@@ -264,8 +264,8 @@ mcatQuestions:
       signal came from that kinetochore or very near it. Alignment cannot be the requirement,
       because the operated chromosome never reached the equator and anaphase still followed. If
       the laser had activated a DNA-damage response, anaphase would be expected to be delayed,
-      not released. The cell entered anaphase, so separase was clearly able to cut cohesin after
-      the kinetochore was destroyed.
+      not released. The cell entered anaphase, which needs separase to cut cohesin, so losing
+      one kinetochore did not block that step, although separase itself was not measured.
   - stem: "Cultured vertebrate cells arrested in mitosis are made to exit with a Cdk1 inhibitor under conditions that keep cyclin B from being degraded. When the inhibitor is washed out, many cells return to a mitotic state. Cells in which cyclin B was destroyed before washout do not return. What best explains the difference?"
     choices:
       - "Destroyed cyclin B must be made again to restore Cdk1 activity"
@@ -302,20 +302,20 @@ explainLevels:
     text: >-
       A checkpoint enforces dependency between cell-cycle events. DNA breaks activate ATM (helped
       by the MRN complex), which activates Chk2 and p53; p53 induces p21, which inhibits G1
-      cyclin-CDKs. Single-stranded DNA coated with RPA recruits ATR-ATRIP, which activates Chk1.
-      Chk1 and Chk2 phosphorylate Cdc25C on serine 216, creating a 14-3-3 binding site and keeping
-      Cdk1 inactive. Unattached kinetochores generate the mitotic checkpoint complex (Mad2,
+      cyclin-CDKs. Single-stranded DNA coated with RPA recruits ATR-ATRIP; once TopBP1 or ETAA1 stimulates it, ATR activates Chk1.
+      Chk1 and Chk2 inhibit Cdc25 phosphatases, for example by triggering destruction of Cdc25A or by
+      phosphorylating Cdc25C on serine 216, which creates a 14-3-3 binding site; Cdk1 keeps its inhibitory phosphates and stays inactive. Unattached kinetochores generate the mitotic checkpoint complex (Mad2,
       Cdc20, BubR1, Bub3), which inhibits APC/C. When the checkpoint is satisfied, APC/C-Cdc20
       ubiquitinates securin and cyclin B for destruction by the proteasome, freeing separase to
-      cut cohesin. Destroying proteins makes transitions hard to reverse.
+      cut cohesin. Destroying proteins, together with positive feedback loops, makes transitions hard to reverse.
   - level: "grad"
     label: "Graduate"
     text: >-
-      Checkpoint outputs converge on two targets: cyclin-CDK activity (through p21, Cdc25
-      inhibition and inhibitory Cdk1 phosphorylation) and APC/C (through the MCC). In the
+      The cell-cycle outputs of checkpoints converge on two targets: cyclin-CDK activity (through p21, Cdc25
+      inhibition and inhibitory Cdk1 phosphorylation) and APC/C (through the MCC). Checkpoint kinases also act on replication forks, origin firing and nucleotide supply. In the
       human APC/C-MCC cryo-EM structure, BubR1 degron-like motifs occupy Cdc20's degron-binding
       sites and BubR1 blocks the initiating E2 UbcH10, so the MCC acts as a pseudosubstrate and an
-      E2 blocker at once. Directionality comes from destruction: in cultured Xenopus and human
+      E2 blocker at once. Directionality comes from destruction and from feedback loops that make switches bistable, such as Cdk1 activating Cdc25 and inhibiting Wee1, or EMI1 inhibiting APC/C-Cdh1. As evidence for destruction, in cultured Xenopus and human
       cells, mitotic exit forced with a Cdk1 inhibitor reverses on washout if cyclin B is
       preserved, and inhibitory Cdk1 phosphorylation can supply a second lock. Checkpoints also
       act in unperturbed cells and at active forks: in reconstituted budding-yeast replisomes,
@@ -333,9 +333,8 @@ anecdotes:
       Hartwell tested that assumption for rad9 by giving the mutant the one thing it seemed to
       lack: time. They held irradiated rad9 cells in G2 for several hours with a microtubule
       poison, a drug that stops division by preventing spindle assembly. Under that imposed
-      block, repair could occur efficiently. The experiment cost little, needed no new
-      equipment, and changed the meaning of a whole class of mutants, from cells that cannot fix
-      damage to cells that do not wait for the fix.
+      block, repair could occur efficiently. The result recast rad9 from a mutant that cannot fix
+      damage to one that does not wait for the fix.
   - title: "Cutting out one kinetochore"
     source: "Rieder, Cole, Khodjakov & Sluder, J Cell Biol 130:941 (1995)."
     text: >-
@@ -364,15 +363,15 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Irradiate a budding-yeast cell that lacks a gene called *RAD9* and it does not pause. It keeps dividing for several generations and dies. Hold the same cell back with a drug for a few hours, and it repairs the damage.**
 
-So *RAD9* was not a repair gene. It was a gene for waiting. That result, from Ted Weinert and Leland Hartwell in 1988, opened a question you can ask of every step in the cycle: what makes one event hold off until another is done, and once the cell moves on, what stops it going back?
+So the defect in *rad9* cells was not in repair. *RAD9* was needed for waiting. That result, from Ted Weinert and Leland Hartwell in 1988, opened a question you can ask of every step in the cycle: what makes one event hold off until another is done, and once the cell moves on, what stops it going back?
 
 ## The idea: a checkpoint makes one event wait for another
 
 In 1989 Hartwell and Weinert gave these controls a name. A **checkpoint** is a control mechanism that enforces dependency between cell-cycle events. Think of a train whose doors report to the driver: the train can run perfectly well with the doors open, so a separate circuit must hold it at the platform until they close. A checkpoint is that circuit. Remove it and the cell can still divide, but it divides on time instead of on completion.
 
-The rad9 experiment shows how to test for one. Weinert and Hartwell irradiated haploid yeast. Wild-type cells arrested or delayed in G2, the gap between DNA synthesis and mitosis. rad9 cells did not delay. Then the authors supplied the missing wait themselves, using a microtubule poison to block irradiated rad9 cells in G2 for several hours, and repair could occur efficiently. The defect was in waiting, not in repair. Repair itself belongs to [that lesson](/lessons/dna-repair-and-recombination/).
+The rad9 experiment shows how to test for one. Weinert and Hartwell irradiated haploid yeast. Wild-type cells arrested or delayed in G2, the gap between DNA synthesis and mitosis. rad9 cells did not delay. Then the authors supplied the missing wait themselves, using a microtubule poison to block irradiated rad9 cells in G2 for several hours, and repair could occur efficiently. The defect was in waiting, not in repair. Later work showed that Rad9 is an adaptor that helps the kinase Mec1 (yeast's ATR) switch on the checkpoint kinase Rad53, and that it also limits how far broken DNA ends are trimmed. So Rad9 does more than make the cell wait, but the 1988 test isolated its role in waiting. Repair itself belongs to [that lesson](/lessons/dna-repair-and-recombination/).
 
-That gives you a rule for predicting phenotypes. A cell that loses a checkpoint usually grows normally when nothing goes wrong. It fails only when the event it should wait for is slow or broken, and then it moves on anyway. The cost shows up as broken or missing chromosomes in the next generation.
+That gives you a rule for predicting phenotypes, first learned from yeast. A yeast cell that loses a checkpoint often grows normally when nothing goes wrong. It fails when the event it should wait for is slow or broken, and then it moves on anyway. The cost shows up as broken or missing chromosomes in the next generation. The rule has limits in animals, where some checkpoint proteins are needed in every cycle. Mouse embryo cells lacking Mad2 grow normally at first, but once the epiblast starts dividing rapidly they missegregate chromosomes and die, even without spindle damage. Reducing Mad2 or BubR1 in human cancer cells killed them within six divisions. ATR is also needed in ordinary proliferating cells, as the next paragraph shows.
 
 Checkpoints are not only emergency brakes. In a 2018 study of cultured human cells, Saldivar and colleagues reported that the kinase ATR, activated by a protein called ETAA1 during ordinary replication, holds back a CDK1-driven switch on the transcription factor FOXM1 until S phase ends; when ATR was inhibited, cells entered mitosis early with under-replicated DNA. The cyclin-CDK engine these controls act on is in [the previous lesson](/lessons/cell-cycle-control/).
 
@@ -380,16 +379,16 @@ Checkpoints are not only emergency brakes. In a 2018 study of cultured human cel
 
 Both DNA checkpoints work the same way: a sensor finds an abnormal DNA structure, a protein kinase is activated there, and the kinase's targets keep a cyclin-CDK switched off. Phosphorylation as a switch is covered in [that lesson](/lessons/phosphorylation-switch/).
 
-**Broken DNA.** At a double-strand break, the MRN complex (Mre11, Rad50 and Nbs1) recruits the kinase ATM. In a purified system, Lee and Paull showed that MRN and DNA together activated ATM to phosphorylate p53 and the kinase Chk2. In mammalian cultured cells, Chk2 activation after damage depended on ATM. Two arms follow.
+**Broken DNA.** At a double-strand break, the MRN complex (Mre11, Rad50 and Nbs1) recruits the kinase ATM. In a purified system, Lee and Paull showed that MRN and DNA together activated ATM to phosphorylate p53 and the kinase Chk2. In mammalian cultured cells, Chk2 activation after damage depended on ATM. In S and G2, ATM and the Mre11 nuclease also trim the broken ends to expose single-stranded DNA coated with RPA. That recruits ATR, which activates Chk1, so a break signals through both kinases. Two arms follow.
 
-- The G1 arm runs through p53, the transcription factor taught in [that lesson](/lessons/stress-signals/). p53 induces the gene for p21, a CDK inhibitor; in biochemical assays p21 blocks cyclin E-Cdk2 from phosphorylating Rb. In isogenic human colon cancer lines that differed in p21 status, Waldman, Kinzler and Vogelstein found that loss of p21 completely abolished the G1 arrest after DNA damage. That result is in those cells, not in every cell type.
-- The G2 arm acts on Cdc25C, the phosphatase that removes inhibitory phosphates from Cdk1 so the cell can enter mitosis. Human Chk1 phosphorylates Cdc25C on serine 216, and Chk2 can do so too. A Cdc25C mutant that cannot be phosphorylated there no longer binds 14-3-3, a small adaptor protein; 14-3-3 binding is thought to keep Cdc25C away from Cdk1, so Cdk1 stays off.
+- The G1 arm has a fast part and a slow part. The fast part needs no new gene expression: in human cells, ultraviolet light or radiation triggered rapid ubiquitin-dependent destruction of Cdc25A, the phosphatase that activates Cdk2. This needed Chk1 but not p53, and Cdk2 kept its inhibitory phosphate, so S phase did not start. The slower part runs through p53, the transcription factor taught in [that lesson](/lessons/stress-signals/). p53 induces the gene for p21, a CDK inhibitor; in biochemical assays p21 blocks cyclin E-Cdk2 from phosphorylating Rb. In isogenic human colon cancer lines that differed in p21 status, Waldman, Kinzler and Vogelstein found that loss of p21 completely abolished the G1 arrest after DNA damage. That result is in those cells, not in every cell type.
+- The G2 arm keeps Cdk1 off. Cdk1 carries inhibitory phosphates, added by the kinases Wee1 and Myt1 and removed by Cdc25 phosphatases, and the cell enters mitosis only when the Cdc25 side wins. Chk1 and Chk2 tip that balance by inhibiting Cdc25 phosphatases. The classic example is Cdc25C: human Chk1 phosphorylates it on serine 216, and Chk2 can do so too. A Cdc25C mutant that cannot be phosphorylated there no longer binds 14-3-3, a small adaptor protein; 14-3-3 binding is thought to keep Cdc25C away from Cdk1. Cdc25C is only one route, though. Mouse cells lacking Cdc25C entered mitosis on time and responded normally to DNA damage, probably because Cdc25A and Cdc25B covered for it. And in human cells, p53 and p21 were needed to keep the G2 arrest going after radiation.
 
-<LessonFigure src="/figures/checkpoints/damage-checkpoint-two-arms.webp" width={1200} height={492} alt="AI-generated illustration: a flow diagram running left to right from a broken DNA double line to the MRN complex and the kinase ATM, which splits into two arms. The G1 arm runs Chk2, p53, p21, which blocks cyclin E-Cdk2 so Rb is not phosphorylated, ending in a lock labeled G1 arrest. The G2 arm runs Chk1 or Chk2, which inactivates phosphorylated Cdc25C (14-3-3 binding, marked as thought), leaving Cdk1 off, ending in a lock labeled no mitosis." caption="At a double-strand break, MRN recruits ATM, and the kinase chain splits in two. In the G1 arm p53 induces the CDK inhibitor p21; in the G2 arm Cdc25C is phosphorylated and, probably through 14-3-3, kept away from Cdk1. Either way, a cyclin-CDK stays off." />
+<LessonFigure src="/figures/checkpoints/damage-checkpoint-two-arms.webp" width={1200} height={492} alt="AI-generated illustration: a flow diagram running left to right from a broken DNA double line to the MRN complex and the kinase ATM, which splits into two arms. The G1 arm runs Chk2, p53, p21, which blocks cyclin E-Cdk2 so Rb is not phosphorylated, ending in a lock labeled G1 arrest. The G2 arm runs Chk1 or Chk2, which inactivates phosphorylated Cdc25C (14-3-3 binding, marked as thought), leaving Cdk1 off, ending in a lock labeled no mitosis." caption="At a double-strand break, MRN recruits ATM, and the kinase chain splits in two. In the G1 arm ATM acts on p53 directly and through Chk2, and p53 induces the CDK inhibitor p21; in the G2 arm Chk1 and Chk2 inhibit Cdc25 phosphatases; phosphorylated Cdc25C, one of them, is probably kept away from Cdk1 by 14-3-3. Either way, a cyclin-CDK stays off." />
 
-**Stalled replication.** When a polymerase stalls but the helicase keeps unwinding, single-stranded DNA appears and is coated by RPA, the single-strand binding protein. Zou and Elledge found that in human cells RPA was needed both for ATR to reach damage sites and for ATR to activate Chk1, and that RPA stimulates ATR's partner ATRIP to bind single strands in vitro. The checkpoint also acts at the fork itself. In replisomes rebuilt from purified budding-yeast proteins, the yeast checkpoint kinase Rad53 restrained excess unwinding by the CMG helicase after DNA synthesis was blocked, and only kinase-active Rad53 did so. That is a yeast reconstitution; how closely human ATR and Chk1 match it is still being worked out.
+**Stalled replication.** When a polymerase stalls but the helicase keeps unwinding, single-stranded DNA appears and is coated by RPA, the single-strand binding protein. Zou and Elledge found that in human cells RPA was needed both for ATR to reach damage sites and for ATR to activate Chk1, and that RPA stimulates ATR's partner ATRIP to bind single strands in vitro. Reaching the DNA is not the same as being switched on: the protein TopBP1 strongly stimulates ATR's kinase activity, and ETAA1 can do so too. The checkpoint also acts at the fork itself. In replisomes rebuilt from purified budding-yeast proteins, the yeast checkpoint kinase Rad53 restrained excess unwinding by the CMG helicase after DNA synthesis was blocked, and only kinase-active Rad53 did so. That is a yeast reconstitution; how closely human ATR and Chk1 match it is still being worked out.
 
-<LessonFigure src="/figures/checkpoints/stalled-fork-atr.webp" width={1200} height={604} alt="AI-generated illustration: a replication fork where the polymerase has stalled but the helicase keeps unwinding, exposing single-stranded DNA coated with RPA, which recruits ATRIP and the kinase ATR to activate Chk1." caption="When a polymerase stalls but the helicase keeps unwinding, single-stranded DNA appears and is coated with RPA. RPA helps ATRIP and ATR reach it, and ATR then activates Chk1." />
+<LessonFigure src="/figures/checkpoints/stalled-fork-atr.webp" width={1200} height={604} alt="AI-generated illustration: a replication fork where the polymerase has stalled but the helicase keeps unwinding, exposing single-stranded DNA coated with RPA, which recruits ATRIP and the kinase ATR to activate Chk1." caption="When a polymerase stalls but the helicase keeps unwinding, single-stranded DNA appears and is coated with RPA. RPA helps ATRIP and ATR reach it, activators such as TopBP1 switch ATR on, and ATR then activates Chk1." />
 
 ## The spindle checkpoint: one kinetochore says wait
 
@@ -405,9 +404,9 @@ The block is not absolute. Brito and Rieder found that PtK and human RPE1 cells 
 
 ## One-way doors: destruction by APC/C and SCF
 
-A phosphate can be removed in seconds. A destroyed protein can come back only by being made again. That is why the cell's biggest transitions are triggered by proteolysis.
+A phosphate can be removed in seconds. A destroyed protein can come back only by being made again. That is one reason proteolysis gives several big transitions, such as anaphase and mitotic exit, their direction. The other reason is feedback. Entry into mitosis is switched on by positive feedback: active Cdk1 activates its activator Cdc25 and inhibits its inhibitor Wee1, so once Cdk1 activity starts to rise, the rise feeds itself, and the switch is all-or-none and hard to reverse. In human cells, commitment to a new cycle also rests on a feedback switch. Cappell and colleagues found that EMI1 is first a substrate of the ligase APC/C-Cdh1 and then becomes its inhibitor, and that this double-negative loop is bistable, a one-way switch.
 
-When the last kinetochore attaches, the MCC releases its grip and APC/C-Cdc20 ubiquitinates two targets: securin and cyclin B. APC/C is the ubiquitin ligase; the proteasome does the destroying (in HeLa cells, the proteasome inhibitor MG132 blocked securin breakdown). Securin binds and inactivates **separase**, a protease. Freed separase cuts Scc1, the cohesin subunit that holds sister chromatids together, and anaphase begins. Losing cyclin B is a major way Cdk1 is turned off at mitotic exit. Ubiquitin chemistry is in [that lesson](/lessons/ubiquitin-and-proteolysis/).
+When the last kinetochore attaches, the MCC releases its grip and APC/C-Cdc20 ubiquitinates two targets: securin and cyclin B. APC/C is the ubiquitin ligase; the proteasome does the destroying (in HeLa cells, the proteasome inhibitor MG132 blocked securin breakdown). Securin binds and inactivates **separase**, a protease. In vertebrate cells cyclin B-Cdk1 also inhibits separase, and Hagting and colleagues found that both securin and cyclin B1 have to be degraded before sister chromatids can separate. Freed separase cuts Scc1, the cohesin subunit that holds sister chromatids together, and anaphase begins. Losing cyclin B is a major way Cdk1 is turned off at mitotic exit. Ubiquitin chemistry is in [that lesson](/lessons/ubiquitin-and-proteolysis/).
 
 The same logic runs at the budding-yeast G1/S transition through a second ligase, SCF. Sic1 is a CDK inhibitor. Once phosphorylated, it is bound by Cdc4 assembled with Skp1 and ubiquitinated. When the SCF subunit Hrt1 was inactivated, Sic1 stayed stable and cells arrested at G1/S. How such destruction turns a gradual input into an all-or-none switch is taught in [that lesson](/lessons/signaling-circuits/).
 
@@ -419,7 +418,7 @@ Destruction is not the only lock. In cultured Xenopus and human cells, Potapova 
 
 1. **Rate constant.** At 10 minutes F = 50, so ln(100/50) = 0.693 = k × 10, and k = 0.0693 per minute. The half-life is 0.693 / 0.0693 = 10 minutes. Check another point: 100 × e^(−0.0693 × 15) = 100 × e^(−1.04) = 35. It fits.
 2. **Time to 10 percent.** t = ln 10 / k = 2.303 / 0.0693 = 33 minutes.
-3. **Anaphase.** If sisters separate at about 20 minutes, 25 percent of securin is still there. In these made-up data, separase does not need every securin molecule gone.
+3. **Anaphase.** At 20 minutes, 25 percent of securin is still there. Real HeLa cells would not separate their sisters yet: Hagting and colleagues found that both securin and cyclin B1 have to be degraded before sister chromatids can separate. With this half-life, anaphase would come later, once securin is nearly gone.
 4. **Re-imposing the checkpoint.** Suppose a spindle poison such as nocodazole is added at 10 minutes and fluorescence stays near 50 for the next 20 minutes. Destruction has stopped, consistent with Hagting and colleagues' finding that re-imposing the checkpoint rapidly stops securin destruction (they used taxol): the spindle is disrupted and the checkpoint is holding APC/C-Cdc20 back again.
 5. **A D-box mutant.** The destruction box (D-box) is a short securin sequence that APC/C recognizes. A D-box mutant securin would not fall at metaphase, and in HeLa cells such a mutant, which cannot be degraded in metaphase, inhibited sister chromatid separation. (Hagting and colleagues found it was degraded later, in anaphase, through a KEN box.)
 
@@ -427,7 +426,7 @@ Destruction is not the only lock. In cultured Xenopus and human cells, Potapova 
 
 ### Design problem
 
-Knocking down protein Z with RNAi changes how long mitosis takes. Design experiments to decide whether Z is a spindle-checkpoint component or is needed for kinetochores to attach to microtubules.
+Knocking down protein Z with RNAi changes how long mitosis takes. Design experiments to decide whether Z is a spindle-checkpoint component, is needed for kinetochores to attach to microtubules, or both.
 
 <details>
 <summary>One way to do it</summary>
@@ -438,6 +437,6 @@ A checkpoint component should behave like Mad2. Mitosis may get shorter, as it d
 
 A pure attachment protein does the opposite. Unattached kinetochores keep signalling, so mitosis gets longer. That delay should collapse if Mad2 is depleted as well, because the delay needs the checkpoint. Nocodazole arrest should be intact.
 
-Score lagging chromosomes in anaphase in each condition. Rescue with an RNAi-resistant Z to show the effect is Z's. One caveat: a strong checkpoint can still look weak if cells slip out of mitosis by slow cyclin B loss, so measure how long cells stay arrested, not only whether they eventually leave.
+Score lagging chromosomes in anaphase in each condition. Stain for Mad2 or BubR1 at kinetochores too: some kinetochore proteins both grip microtubules and recruit checkpoint proteins, and a Z that does both could cause attachment errors and a weak arrest at once. Rescue with an RNAi-resistant Z to show the effect is Z's. One caveat: a strong checkpoint can still look weak if cells slip out of mitosis by slow cyclin B loss, so measure how long cells stay arrested, not only whether they eventually leave.
 
 </details>

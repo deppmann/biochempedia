@@ -62,13 +62,13 @@ scientists:
       G protein to a compartment where it gained Golgi sugars, in a reaction that needed energy.
       The 1984 version, by Balch, Dunphy, Braell and Rothman, used donor Golgi from clone 15B, a
       Chinese hamster ovary line that lacks a Golgi GlcNAc transferase. Mixed with wild-type
-      acceptor Golgi, cytosol and ATP, the G protein picked up radioactive GlcNAc only if it reached
+      acceptor Golgi, cytosol and ATP, the G protein picked up radioactive GlcNAc when it met the acceptor's enzyme, which the assay read as cargo that had reached
       the acceptor, so transport became a count of radioactivity. Taking the reaction apart, his
       laboratory found that N-ethylmaleimide inactivated the membranes and that a cytosolic protein
       restored them; in 1988 they purified it as NSF. In 1993 Söllner and colleagues used NSF and
       its partner SNAP as bait to pull membrane receptors out of bovine brain, and named them SNAP
       receptors, or SNAREs. In his Nobel lecture Rothman noted that the donor in the earliest assay
-      was later recognized as Golgi, not ER. These assays turned transport into an activity that
+      was later recognized as Golgi, not ER. Later work showed that Golgi enzymes can also move between stacks, so the signal marks an encounter more than which membrane moved. These assays turned transport into an activity that
       could be purified.
   - name: "Charles Barlowe"
     contribution: >-
@@ -146,12 +146,12 @@ structures:
     caption: >-
       In this closed form, part of the β2 subunit covers the sites where cargo motifs would bind.
       Compare it with the open form below.
-  - label: "AP2 core, open — cargo peptides bound"
+  - label: "AP2 core, open — cargo site filled"
     source: "rcsb"
     id: "2XA7"
-    note: "AP2 adaptor core in an active complex with cargo peptides, X-ray crystal structure (Jackson et al., Cell, 2010)"
+    note: "AP2 adaptor core in its open, active form with a cargo peptide, X-ray crystal structure (Jackson et al., Cell, 2010)"
     caption: >-
-      The C-terminal part of μ2 has swung away and cargo peptides occupy the exposed sites. On a
+      The C-terminal part of μ2 has swung away and a tyrosine-motif cargo peptide sits in its exposed site; in the crystal, a tag segment from a neighbouring molecule fills the dileucine site. On a
       membrane rich in PI(4,5)P2 this is the form that holds cargo.
   - label: "Clathrin cage — the outer lattice of a coated vesicle"
     source: "rcsb"
@@ -268,9 +268,9 @@ mcatQuestions:
       - "X acts at or before docking, a step finished by about 20 min"
     answer: 3
     rationale: >-
-      Resistance to X appears on the same schedule as docking, so the step X blocks is passed once a
+      Resistance to X appears on the same schedule as docking, which fits a step that is passed once a
       vesicle has docked; this is the pattern Cao, Ballew and Barlowe reported for GDI. If X blocked
-      fusion after docking, adding it at 20 min would still block most fusion. If X blocked budding,
+      only a fusion step that follows complete docking, adding it at 20 min would still block that fusion. If X blocked budding,
       resistance would appear by 5 min, ahead of docking. An effect that fades in step with a
       measured reaction points to a specific step, not to a lack of target.
   - stem: "A purified tethering complex and a truncated form are tested with liposomes carrying an active Rab. Both cluster liposomes to the same extent. In a content-mixing assay with SNARE-bearing proteoliposomes, the full complex supports fusion, but the truncated form gives no more signal than a no-tether control. Which conclusion is best supported?"
@@ -330,8 +330,8 @@ explainLevels:
       stalled the flat-to-curved change, so a fixed-curvature model is not general. Tethering and
       fusion are separable: in yeast ER-to-Golgi extracts, fusion became GDI-resistant after
       Uso1p/Ypt1p-dependent docking, and HOPS β-propeller truncations tethered Ypt7 liposomes but
-      failed to drive fusion. SNARE proteoliposomes fuse spontaneously at physiological temperature,
-      which shows sufficiency in that system, not specificity or speed in cells.
+      failed to drive fusion. SNARE proteoliposomes mix lipids spontaneously at physiological temperature,
+      which shows SNAREs can merge bilayers in that system, not specificity or speed in cells.
 
 
       An open question is what NSF and SNAP do before fusion. In a 2024 yeast vacuolar
@@ -387,7 +387,7 @@ draft: false
 import SecMutantSecretionReader from '../../../components/SecMutantSecretionReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A yeast mutant called sec1 grows at 25 °C. At 37 °C it keeps making secretory enzymes, but they stay inside: the internal pool rises up to eightfold, packed into membrane-bound vesicles that never reach the surface.**
+**A yeast mutant called sec1 grows at 25 °C. At 37 °C it keeps making secretory enzymes, but they stay inside: the internal pool rises up to eightfold, packed into membrane-bound vesicles that never fuse with the surface.**
 
 Novick and Schekman reported that result in 1979. The vesicles had formed, so budding worked. Something later had failed. This lesson asks what a vesicle needs at each stage: a way to pick its cargo and bend off a membrane, a way to recognize the right target, and a way to merge with it. It also asks how anyone worked out which protein acts at which stage.
 
@@ -395,7 +395,7 @@ A few terms first. The **cytosol** is the fluid of the cell outside organelles; 
 
 ## Two problems, choosing cargo and bending membrane: coats
 
-A **coat** is a lattice of cytosolic proteins that assembles on a patch of membrane. Think of a coat as a cookie cutter with hands: the cutter shapes the bud, and the hands grab the cargo that belongs inside. Both jobs are done by the same proteins.
+A **coat** is a lattice of cytosolic proteins that assembles on a patch of membrane. Think of a coat as a cookie cutter with hands: the cutter shapes the bud, and the hands grab the cargo that belongs inside. One coat does both jobs, though different parts of it often grab the cargo and build the cage.
 
 Each coat is started by a switch. At the ER it is **Sar1**, a small GTPase (the GTP switch cycle, with its GEFs and GAPs, is covered in [GTPase switches](/lessons/gtpase-switches/)). Sar1-GTP binds the ER membrane and recruits the Sec23/24 complex, which in turn recruits Sec13/31, the outer cage. Together these make **COPII**. With purified yeast proteins, Matsuoka and colleagues showed in 1998 that Sar1, Sec23/24 and Sec13/31 alone bud coated vesicles from chemically defined liposomes that contain PI4P or PI(4,5)P2, so the coat can bend membrane without help from other ER proteins. Cargo choice sits in Sec24: yeast mutant studies support a model in which Sec24 has several independent cargo-binding sites.
 
@@ -421,7 +421,7 @@ Two bilayers resist merging because their water-coated surfaces repel at close r
 
 While the motifs come from two membranes, the bundle is a **trans-SNARE complex**. It zippers from the N-terminal end toward the membrane anchors, drawing the bilayers together until they fuse. Afterwards all four sit in one membrane as a **cis-SNARE complex**. NSF (Sec18 in yeast), an ATPase, binds that complex through its adaptor SNAP (Sec17) and uses ATP to pull it apart for reuse.
 
-How much can SNAREs do alone? In 1998 Weber and colleagues put recombinant v-SNAREs (vesicle) and t-SNAREs (target) into separate liposomes, and the docked vesicles fused at physiological temperature. That shows SNAREs are sufficient for fusion of those liposomes. It does not show they supply specificity or speed in a cell. Purified yeast HOPS makes the gap visible: truncated forms lacking parts of Vps11 or Vps18 still tethered Ypt7 liposomes but failed to promote fusion. NSF's role has also grown. In a 2024 yeast vacuole reconstitution, Sec18 promoted fusion even with Sec17 fixed to the membrane, beyond its job of recycling SNAREs.
+How much can SNAREs do alone? In 1998 Weber and colleagues put recombinant v-SNAREs (vesicle) and t-SNAREs (target) into separate liposomes, and the docked liposomes mixed their lipids at physiological temperature, which the authors read as fusion. That shows SNAREs can merge those bilayers on their own, though lipid mixing alone cannot tell full fusion from hemifusion. It does not show they supply specificity or speed in a cell. Purified yeast HOPS makes the gap visible: truncated forms lacking parts of Vps11 or Vps18 still tethered Ypt7 liposomes but failed to promote fusion. NSF may do more than recycle SNAREs. In a 2024 yeast vacuole reconstitution, Sec18 still promoted fusion with Sec17 fixed to the membrane; whether this holds at other fusion steps is not yet known.
 
 ## Ordering a pathway with mutants and test tubes
 
@@ -450,7 +450,7 @@ You have a cell-free assay with donor yeast ER membranes, acceptor Golgi, cytoso
 
 Use three readouts. Budding: vesicles released from ER, collected after spinning out large membranes. Docking: vesicles that sediment with the acceptor Golgi. Fusion: cargo that gains an acceptor-only sugar, or lumenal content mixing.
 
-Start the reaction and add GDI at 0, 5, 10, 15 and 20 minutes. Plot fusion still blocked against time of addition, with docking measured on the same schedule. If GDI acts at the Rab-dependent docking step, sensitivity is lost as docking completes, as Cao, Ballew and Barlowe found. If it acts at fusion itself, late additions still block.
+Start the reaction and add GDI at 0, 5, 10, 15 and 20 minutes. Plot fusion still blocked against time of addition, with docking measured on the same schedule. If GDI acts at the Rab-dependent docking step, sensitivity is lost as docking completes, as Cao, Ballew and Barlowe found. If it acts at fusion itself, additions made after docking but before fusion still block. Measure when fusion itself happens on the same schedule, or hold vesicles docked but unfused before adding GDI, to tell the two apart.
 
 For the tether, run docking and fusion separately with the purified tether, matched SNARE proteoliposomes and an active Rab. Tethering without fusion is possible: HOPS truncations that still tethered failed to fuse. Controls: no ATP, no cytosol, no tether, and a leakage check so that content released by broken membranes is not read as fusion.
 

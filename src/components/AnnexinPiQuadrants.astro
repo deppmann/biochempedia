@@ -1,7 +1,7 @@
 ---
 /**
  * AnnexinPiQuadrants — read an annexin V / propidium iodide quadrant plot and compute the
- * caspase-dependent share of drug-induced death, with the cell-death lesson's own made-up
+ * caspase-dependent share of drug-induced annexin-positive cells, with the cell-death lesson's own made-up
  * Jurkat data (10,000 cells per sample). The learner chooses the sample; the plot shows one
  * dot per cell in the four quadrants. "Resample" redraws all three samples at random from the
  * lesson's proportions, so the observed counts (and the share computed from them) scatter
@@ -39,7 +39,7 @@
 
   <p class="apq-verdict" data-verdict role="status"></p>
 
-  <p class="apq-foot">Annexin V and PI at one time point cannot tell late apoptosis from necrosis, and the caspase-dependent share is the drug’s excess annexin-positive points minus those left with the inhibitor, divided by the drug’s excess; it assumes the inhibitor does not affect the cells on its own and that the untreated sample is the baseline for every condition; this is the lesson’s made-up data, dots sit at random inside each quadrant, and only the counts carry information.</p>
+  <p class="apq-foot">Annexin V and PI at one time point cannot tell late apoptosis from necrosis, and the caspase-dependent share of annexin-positive cells is the drug’s excess annexin-positive points minus those left with the inhibitor, divided by the drug’s excess; it assumes the inhibitor does not affect the cells on its own and that the untreated sample is the baseline for every condition; this is the lesson’s made-up data, dots sit at random inside each quadrant, and only the counts carry information.</p>
 </figure>
 
 <script>
@@ -187,7 +187,7 @@
       } else if (sel === 1) {
         v = `Drug, 6 hours: ${fmtN(c[1])} cells are AnnV+PI−, the clearest apoptotic signal because PS is out and the membrane still holds. The ${fmtN(c[2])} AnnV+PI+ cells could be late apoptotic cells in secondary necrosis or cells that died by necrosis from the start, and one time point cannot tell them apart. Annexin-positive in all: ${fmt(pct(ap))}%, an excess of ${fmt(o.exD)} points over untreated (${fmt(e.exD)} expected).`;
       } else {
-        v = `Drug plus inhibitor: annexin-positive cells fall to ${fmt(pct(ap))}% from ${fmt(o.d)}% with the drug alone, leaving an excess of ${fmt(o.exI)} points over untreated (${fmt(e.exI)} expected). The caspase-dependent share of the induced death comes out at ${asPct(o.s)} (expected ${asPct(e.s)}). The points that remain are caspase-independent death or incomplete inhibition, and the data cannot decide between them.`;
+        v = `Drug plus inhibitor: annexin-positive cells fall to ${fmt(pct(ap))}% from ${fmt(o.d)}% with the drug alone, leaving an excess of ${fmt(o.exI)} points over untreated (${fmt(e.exI)} expected). The caspase-dependent share of the induced annexin-positive cells comes out at ${asPct(o.s)} (expected ${asPct(e.s)}). The points that remain are caspase-independent death or incomplete inhibition, and the data cannot decide between them.`;
       }
       v = v.replace(/%%/g, '%');
       verdict.textContent = v;

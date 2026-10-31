@@ -17,7 +17,7 @@ estMinutes: 24
 objectives:
   - "Describe G1, S, G2, M and G0, and identify them by DNA content (2C and 4C in a diploid cell), EdU incorporation and phosphorylated histone H3, saying which states a DNA histogram alone cannot separate."
   - "Calculate phase durations from phase fractions in an exponentially growing culture, and explain why multiplying a fraction by the doubling time gives the wrong answer."
-  - "Explain cyclin-CDK logic: cyclins rise and fall, CDKs are the kinases, Wee1 and Cdc25 set an inhibitory phosphate, CDK inhibitors bind, and the SCF and APC/C ubiquitin ligases destroy regulators."
+  - "Explain cyclin-CDK logic: cyclins rise and fall, CDKs are the kinases, Wee1 and Cdc25 set an inhibitory phosphate, CDK inhibitors bind, and the SCF and APC/C ubiquitin ligases tag regulators for destruction."
   - "Interpret cell-fusion, cytoplasm-transfer and temperature-sensitive mutant experiments, including the difference between an execution point and an arrest point."
 
 explainer:
@@ -112,7 +112,7 @@ techniques:
       Fixed cells are stained with a DNA dye (propidium iodide plus RNase, or DAPI) and passed one
       at a time past a laser, giving a histogram with a 2C and a 4C peak. A short EdU pulse marks
       cells in S phase, and an antibody to histone H3 phosphorylated on serine 10 marks mitotic
-      cells, separating states that DNA content alone lumps together.
+      cells (and some late-G2 cells), separating states that DNA content alone lumps together.
   - name: "Temperature-sensitive mutants and shift experiments"
     blurb: >-
       A mutant protein works at a permissive temperature and fails at a restrictive one. Shifting
@@ -153,8 +153,8 @@ structures:
     note: "Human CDK1–cyclin B1 with the small subunit CKS2, X-ray crystal structure (Brown et al., Nature Communications, 2015)"
     caption: >-
       This is the mitotic pair that frog MPF turned out to contain. Compare it with cyclin A–CDK2:
-      the fold is the same, which is why the family could be recognised across yeast, clams, frogs
-      and humans.
+      the fold is the same. The family had already been recognised across yeast, clams, frogs
+      and humans by genetic rescue and protein sequence, before these structures were solved.
 
 simulations:
   - type: "local"
@@ -217,7 +217,7 @@ practiceQuestions:
       Each division turns one old cell into two newborn cells, so a growing culture holds twice
       as many cells at the start of the cycle as at the end, and early phases take up a larger
       share of the cells than of the time; the age-distribution model gives about 11.1 h. Equating
-      the two fractions is true only for a population that is not growing. Quiescent cells would
+      the two fractions works only when cells are spread evenly across the cycle, which a growing culture never is. Quiescent cells would
       inflate the 2C peak and make the naive estimate even longer, not shorter. Mitotic cells are
       not counted twice; each cell is one event in the cytometer.
   - stem: "A budding-yeast temperature-sensitive mutant arrests with large buds and an undivided nucleus. After a shift to the restrictive temperature, cells that were already in S phase also arrest with large buds in the same cycle. What can you conclude about when the gene acts?"
@@ -250,7 +250,7 @@ mcatQuestions:
       holds twice as many newborn as dividing cells. Twenty hours comes from using 1 - F in place
       of 1 - F/2, which gives log2(0.5) = -1. Five hours multiplies F/2 by the doubling time,
       dropping the logarithm altogether.
-  - stem: "Cultured mammalian cells are synchronised in S phase or in G2, and S-phase cells are given a nuclear label before fusion. In S-plus-G2 fused cells, a pulse of radioactive thymidine labels the S nucleus but not the G2 nucleus. In S-plus-G1 fused cells, both nuclei incorporate thymidine. Which conclusion do these results best support?"
+  - stem: "Cultured mammalian cells are synchronised in G1, S or G2, and S-phase cells are given a nuclear label before fusion. In S-plus-G2 fused cells, a pulse of radioactive thymidine labels the S nucleus but not the G2 nucleus. In S-plus-G1 fused cells, both nuclei incorporate thymidine. Which conclusion do these results best support?"
     choices:
       - "Thymidine cannot reach a second nucleus within one fused cell"
       - "The G2 nucleus imports no thymidine because fusion damaged it"
@@ -263,8 +263,8 @@ mcatQuestions:
       in the same shared cytoplasm, does not respond, so the difference lies in the nucleus,
       which has already replicated. Saying the cytoplasm lacks any activity contradicts the G1
       result. The claim that thymidine cannot reach a second nucleus is ruled out by the labelled
-      G1 nucleus. Fusion damage would need a control such as G2-plus-G2 fusions to test, and it
-      would not explain why only G2 nuclei fail.
+      G1 nucleus. Fusion damage is the weakest choice: G1 and S nuclei in fused cells still
+      replicate, so damage would have to strike only G2 nuclei.
   - stem: "In cycling Xenopus egg extracts with protein synthesis blocked, a nondegradable cyclin B was added at known concentrations. Interphase extracts entered mitosis only when it was above about 32 to 40 nM; extracts already in mitosis stayed there until it fell below about 16 to 24 nM. Two extracts are each brought to 28 nM, one from interphase and one from mitosis. What happens?"
     choices:
       - "Each settles halfway, with partial chromosome condensation"
@@ -294,7 +294,7 @@ explainLevels:
       The cell cycle has four phases: G1 (growth), S (copying DNA), G2 (getting ready) and M
       (mitosis, when the copies are pulled apart). You can tell whether a cell has copied its DNA yet by how
       much DNA it has: twice as much after S as before. What moves a cell along is a set of
-      enzymes called CDKs, which switch other proteins on by adding phosphate. A CDK works only
+      enzymes called CDKs, which change what other proteins do by adding phosphate to them, switching some on and some off. A CDK works only
       when a partner called a cyclin is attached. The cell builds up cyclin, the CDK switches on,
       and then the cell destroys the cyclin so the CDK switches off and the cycle can start again.
   - level: "college"
@@ -303,7 +303,7 @@ explainLevels:
       A diploid cell has 2C DNA in G1 and 4C in G2 and M; propidium iodide or DAPI staining
       resolves those peaks, EdU marks S and phospho-histone H3 (Ser10) marks mitosis. Progress is
       driven by cyclin-dependent kinases, which are inactive alone and are switched on by cyclins
-      whose levels oscillate. In mammals cyclin D-CDK4/6 acts in G1, cyclin E-CDK2 at the G1/S
+      whose levels oscillate. In mammals cyclin D-CDK4/6 normally acts in G1, cyclin E-CDK2 at the G1/S
       transition, cyclin A-CDK2 in S, and cyclins A and B with CDK1 in G2 and M. Wee1
       phosphorylates CDK1 on an inhibitory tyrosine and Cdc25 removes it; CDK inhibitors such as
       p21 and p27 bind and block; the SCF and the APC/C ubiquitin ligases mark regulators for the
@@ -389,13 +389,13 @@ The cycle has four phases. G1 is the gap between mitosis and the start of DNA re
 
 The first measurement is DNA content. One C is the DNA of one haploid genome, so a diploid cell has 2C in G1 and 4C in G2 and M. Doubling the DNA does not double the ploidy: a G2 cell is still diploid, with each chromosome made of two sister chromatids. To read DNA content, fix the cells and stain them with propidium iodide, a dye that fluoresces when bound to nucleic acid, plus RNase, because the dye also binds RNA. A flow cytometer measures each cell's fluorescence one at a time and builds a histogram: a 2C peak, a 4C peak, and S-phase cells smeared between.
 
-The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains fix the second; G0 still needs its own marker, such as Ki67. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S. An antibody to histone H3 phosphorylated on serine 10 marks condensed mitotic chromosomes. Saldivar and colleagues combined all three, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
+The histogram has two blind spots. G0 cells sit in the 2C peak with G1, and mitotic cells sit in the 4C peak with G2. Two more stains help: EdU separates S cells from the edges of the 2C and 4C peaks, where early and late S cells blur into G1 and G2, and phospho-H3 fixes the second blind spot. G0 is harder: cells out of the cycle lose Ki67, a protein made in cycling cells, but its level falls gradually through G1 and G0, so no single stain marks G0 cleanly. EdU, a thymidine analogue, is built into DNA made during a short pulse and is then detected by click chemistry with a fluorescent tag, so it marks cells in S. An antibody to histone H3 phosphorylated on serine 10 marks condensing mitotic chromosomes. It is close to a mitotic marker but not exact: the mark begins in late G2 and is removed from anaphase on. Saldivar and colleagues combined all three, read by image-based cytometry rather than flow, to separate phases in human RPE-1 and MCF10A cells (Science, 2018).
 
 <LessonFigure src="/figures/cell-cycle-control/which-stain-sees-which-state.webp" width={1200} height={456} alt="AI-generated illustration: five round cells in a row labelled G0, G1, S, G2 and M. A bracket under G0 and G1 reads 'both 2C' and a bracket under G2 and M reads 'both 4C'. A callout 'EdU marks S' points to gold glow on the DNA strands of the S cell, and a callout 'Phospho-H3 marks M' points to the gold-outlined X-shaped chromosomes of the M cell." caption="DNA content alone cannot separate G0 from G1 or mitosis from G2. A short EdU pulse marks cells in S, and phosphorylated histone H3 marks condensed mitotic chromosomes." />
 
 ### Worked problem: fractions are not durations
 
-The numbers here are illustrative. Suppose an asynchronous culture of a diploid human cell line doubles every 24 h, every cell is cycling, and none die. Of 10,000 cells, 5,500 fall in the 2C peak, 2,000 in the 4C peak and 2,500 between. A 30-minute EdU pulse labels 25% of cells, which agrees that the cells between the peaks are in S. And 3% are phospho-H3 positive; assume the stain marks only mitotic cells.
+The numbers here are illustrative. Suppose an asynchronous culture of a diploid human cell line doubles every 24 h, every cell is cycling, and none die. Of 10,000 cells, 5,500 fall in the 2C peak, 2,000 in the 4C peak and 2,500 between. A 30-minute EdU pulse labels 25% of cells, which agrees that the cells between the peaks are in S. And 3% are phospho-H3 positive; assume the stain marks every mitotic cell and nothing else.
 
 **Step 1.** Fractions: G1 0.55, S 0.25, G2 plus M 0.20, of which M is 0.03.
 
@@ -439,14 +439,14 @@ The lines met in 1988. Lohka, Hayes and Maller purified MPF from *Xenopus* eggs,
 
 The logic, as it is now taught:
 
-- **CDKs** (cyclin-dependent kinases) are the catalytic subunits, inactive alone. **Cyclins** are regulatory subunits that switch them on and steer them to targets; cyclin levels rise and fall while CDK levels stay fairly even. In mammals, cyclin D with CDK4 or CDK6 acts in G1, cyclin E with CDK2 at the G1/S transition, cyclin A with CDK2 in S, and cyclins A and B with CDK1 in G2 and M. Growth-factor signals reach cyclin D (see [Ras to MAPK](/lessons/ras-to-mapk/)), and the Rb brake it releases is in [cancer genetics](/lessons/cancer-genetics/).
-- **Wee1** adds an inhibitory phosphate to CDK1, holding the complex off while cyclin accumulates; the phosphatase **Cdc25** removes it (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
-- **CDK inhibitor proteins**, such as p21 and p27 in mammals, bind the complex and block it.
-- Two **ubiquitin ligases** destroy regulators: the SCF at several points, notably around G1/S, and the APC/C in mitosis, where destroying cyclin B ends M phase ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)).
+- **CDKs** (cyclin-dependent kinases) are the catalytic subunits, inactive alone. **Cyclins** are regulatory subunits that switch them on and steer them to targets, though full activity also needs an activating phosphate added by a CDK-activating kinase (CAK); cyclin levels rise and fall while CDK levels stay fairly even. In mammals, cyclin D with CDK4 or CDK6 acts in G1, cyclin E with CDK2 at the G1/S transition, cyclin A with CDK2 in S, and cyclins A and B with CDK1 in G2 and M. This is the usual division of labour, not a strict requirement: mouse embryos lacking CDK2, CDK3, CDK4 and CDK6 still develop to mid-gestation, with CDK1 binding all the cyclins. Growth-factor signals reach cyclin D (see [Ras to MAPK](/lessons/ras-to-mapk/)), and the Rb brake it releases is in [cancer genetics](/lessons/cancer-genetics/).
+- **Wee1** (with the related kinase Myt1 in animal cells) adds an inhibitory phosphate to CDK1, holding the complex off while cyclin accumulates; the phosphatase **Cdc25** removes it (the chemistry is in [the phosphorylation switch](/lessons/phosphorylation-switch/)).
+- **CDK inhibitor proteins**, such as p21 and p27 in mammals, bind CDK2 and CDK1 complexes and block them. With cyclin D-CDK4/6 they are less simple: they help that complex assemble, and tyrosine-phosphorylated p27 can leave it active.
+- Two **ubiquitin ligases** tag regulators for destruction by the proteasome: the SCF at several points, notably around G1/S, and the APC/C from mitosis through G1: with Cdc20 it targets securin, which lets sister chromatids separate, and then cyclin B, which ends M phase; with Cdh1 it keeps mitotic cyclins low through G1 ([ubiquitin and proteolysis](/lessons/ubiquitin-and-proteolysis/)).
 
 <LessonFigure src="/figures/cell-cycle-control/cyclin-cdk-ring-map.webp" width={1200} height={747} alt="AI-generated illustration: a ring of four phases G1, S, G2 and M with a cyclin-CDK block pair at each stage and two ubiquitin ligases, SCF near G1/S and APC/C at the end of M." caption="Which cyclin-CDK pair acts where, in mammals. Cyclin levels rise and fall while CDK levels stay fairly even; the SCF acts at several points, notably around G1/S, and the APC/C ends M phase by destroying cyclin B." />
 
-Active CDK1 also activates Cdc25 and inhibits Wee1, two positive loops that make mitotic entry a switch ([signaling circuits](/lessons/signaling-circuits/)). In *Xenopus* egg extracts, entry needed about 32 to 40 nM of added nondegradable cyclin B, but an extract already in mitosis stayed there down to about 16 to 24 nM, and unreplicated DNA raised the entry threshold. Read the fusion results in this light: mitotic cytoplasm is full of active CDK1-cyclin B, enough to condense any nucleus it meets.
+Active CDK1 also activates Cdc25 and inhibits Wee1, two positive loops that make mitotic entry a switch ([signaling circuits](/lessons/signaling-circuits/)). In *Xenopus* egg extracts, entry needed about 32 to 40 nM of added nondegradable cyclin B, but an extract already in mitosis stayed there down to about 16 to 24 nM, and unreplicated DNA raised the entry threshold. Read the fusion results in this light: mitotic cytoplasm is full of active CDK1-cyclin B, which, with the kinases and phosphatases it controls, can condense an interphase nucleus from G1, S or G2.
 
 ### Design problem
 
@@ -455,11 +455,11 @@ Using cell fusion, design experiments to ask whether S-phase cytoplasm can drive
 <details>
 <summary>One way to do it</summary>
 
-Synchronise cultured mammalian cells in G1, S and G2 and confirm each population by DNA content. Pre-label one partner before fusing, for example with a nuclear dye or a long label in the S cells, so that every nucleus in a fused cell can be identified.
+Synchronise cultured mammalian cells in G1, S and G2 and confirm each population by DNA content, using a mitotic marker to show that the 4C cells are in G2 and not M. Pre-label one partner before fusing, for example with a nuclear dye or a long label in the S cells, so that every nucleus in a fused cell can be identified.
 
 Fuse S with G1, and S with G2. Give a short pulse of a DNA precursor (radioactive thymidine or EdU) and score each nucleus separately. Expected result, as in Rao and Johnson's 1970 work: G1 nuclei start replicating early, G2 nuclei do not.
 
-Controls: same-phase fusions (G1 with G1, G2 with G2), which test whether the fusion itself starts or blocks replication, and unfused neighbours on the same slide.
+Controls: same-phase fusions, where G1 with G1 and G2 with G2 test whether fusion itself starts replication and S with S tests whether fusion blocks it, plus unfused neighbours on the same slide.
 
 Interpretation: S cytoplasm carries a replication-starting activity, and a nucleus that has replicated cannot answer it again before mitosis. A third pairing, mitotic with interphase, should give premature chromosome condensation, with an appearance that depends on the phase of the interphase nucleus.
 
