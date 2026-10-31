@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Build the narration track for one Biochemistrypedia explainer from the lesson's OWN slide audio.
 
-    build_audio.py --script script.json --out audio/ [--dry-run] [--engine eleven|gemini|say]
+    build_audio.py --script script.json --out audio/ [--dry-run] [--engine eleven|gemini|kokoro|say]
 
 --engine gemini speaks "tts" scenes with Gemini text-to-speech (gemini-3.1-flash-tts-preview, voice
 Charon; about 17 cents for a three-minute film). The Cell Signaling films use it (C. Deppmann,
 2026-10-10: it is cheaper). The biochemistry films use the default, ElevenLabs Sarah. Never switch
 to gemini-3.8-flash-tts: it reads the style line aloud.
+
+--engine kokoro speaks "tts" scenes with Kokoro-82M, voice af_heart, run locally for free
+(C. Deppmann, 2026-10-31: re-voices use it instead of ElevenLabs or Gemini). It needs the venv
+~/.venvs/kokoro (kokoro 0.9.4). Kokoro spells acronyms out letter by letter ("I-P-R-G-C") and can
+drop a plural s, so keep the transcript cue check in align.py after building.
 
 --engine say speaks "tts" scenes with the free macOS voice, for drafts: scenes cue on spoken
 phrases, so a video drafted this way re-times itself when the real narration replaces it
@@ -38,6 +43,8 @@ GEMINI_MODEL = "gemini-3.1-flash-tts-preview"   # not 3.8: it reads the style li
 GEMINI_VOICE = "Charon"
 GEMINI_STYLE = ("Read this aloud in a clear, calm, even voice at a moderate pace, "
                 "as a narrator for a science explainer video:")
+KOKORO_PY = Path.home() / ".venvs/kokoro/bin/python"
+KOKORO_VOICE = "af_heart"
 GEMINI_USD_PER_CHAR = 32 / 11.6 * 20.0 / 1e6   # 32 audio tokens/s, 11.6 chars/s, $20 per million audio tokens (measured 2026-10-02)
 
 
@@ -112,6 +119,21 @@ def eleven(text, out_wav):
     ff(["-f", "mp3", "-i", "pipe:0", "-ar", "48000", "-ac", "1", str(out_wav)], mp3)
 
 
+def kokoro(text, out_wav):
+    """Kokoro-82M (af_heart, 24 kHz), run in its own venv, resampled to 48 kHz mono."""
+    raw = out_wav.with_suffix(".24k.wav")
+    code = ("import sys, numpy as np, soundfile as sf\n"
+            "from kokoro import KPipeline\n"
+            "p = KPipeline(lang_code='a', repo_id='hexgrad/Kokoro-82M')\n"
+            f"a = np.concatenate([x for _, _, x in p(sys.stdin.read(), voice='{KOKORO_VOICE}', speed=1.0)])\n"
+            "sf.write(sys.argv[1], a, 24000)\n")
+    r = subprocess.run([str(KOKORO_PY), "-c", code, str(raw)], input=text.encode(), capture_output=True)
+    if r.returncode or not raw.exists():
+        sys.exit("kokoro: " + r.stderr.decode(errors="replace")[-400:])
+    ff(["-i", str(raw), "-ar", "48000", "-ac", "1", str(out_wav)])
+    raw.unlink()
+
+
 def say(text, out_wav):
     """Free draft voice (macOS). Never ship a video narrated this way.
 
@@ -152,17 +174,17 @@ def main():
     ap.add_argument("--script", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--engine", choices=["eleven", "gemini", "say"])
+    ap.add_argument("--engine", choices=["eleven", "gemini", "kokoro", "say"])
     a = ap.parse_args()
     sp = Path(a.script)
     script = json.loads(sp.read_text())
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     notes = lesson_notes(script["lesson"])
     tts_chars = sum(len(s["tts"]) for s in script["scenes"] if s.get("tts"))
-    if tts_chars and not a.engine:   # no default: two of the three engines cost money
-        sys.exit("this script has narration to synthesize: pass --engine eleven, gemini or say")
+    if tts_chars and not a.engine:   # no default: two of the engines cost money
+        sys.exit("this script has narration to synthesize: pass --engine eleven, gemini, kokoro or say")
     a.engine = a.engine or "eleven"
-    cost = {"eleven": "ElevenLabs quota", "gemini": f"Gemini, about ${tts_chars * GEMINI_USD_PER_CHAR:.2f}", "say": "free draft voice"}[a.engine]
+    cost = {"eleven": "ElevenLabs quota", "gemini": f"Gemini, about ${tts_chars * GEMINI_USD_PER_CHAR:.2f}", "kokoro": "free local voice", "say": "free draft voice"}[a.engine]
     print(f"narration characters this video: {tts_chars} (cap {TTS_CHAR_CAP}; {cost})")
     if tts_chars > TTS_CHAR_CAP:
         sys.exit("over the character cap; shorten the tts text")
@@ -184,10 +206,10 @@ def main():
                 s["narration"] = speakable(slide.get("notes"))
             s["slideTitle"] = slide.get("title", "")
         elif "tts" in s:
-            cache = out / {"eleven": ".tts", "gemini": ".tts-gemini", "say": ".tts-say"}[a.engine] / (hashlib.sha256(s["tts"].encode()).hexdigest()[:16] + ".wav")
+            cache = out / {"eleven": ".tts", "gemini": ".tts-gemini", "kokoro": ".tts-kokoro", "say": ".tts-say"}[a.engine] / (hashlib.sha256(s["tts"].encode()).hexdigest()[:16] + ".wav")
             cache.parent.mkdir(exist_ok=True)
             if not cache.exists():
-                {"eleven": eleven, "gemini": gemini, "say": say}[a.engine](s["tts"], cache)
+                {"eleven": eleven, "gemini": gemini, "kokoro": kokoro, "say": say}[a.engine](s["tts"], cache)
             ff(["-i", str(cache), str(w)])
             s["narration"] = speakable(s.get("caption") or s["tts"])   # "caption": the same words spelled for the eye (SOCS, NF-κB) when "tts" spells them for the voice
             if a.engine == "say":

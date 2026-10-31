@@ -56,15 +56,23 @@ def respell(words, narration):
     """Replace whisper tokens with the narration's spelling where they line up."""
     nt = narration.split()
     a, b = [key(w[2]) for w in words], [key(t) for t in nt]
-    out = [list(w) for w in words]
+    out = []
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
         if op == "equal":
-            for k in range(i2 - i1):
-                out[i1 + k][2] = nt[j1 + k]
-        elif op == "replace" and (i2 - i1) == (j2 - j1) and (i2 - i1) <= 3:
-            if difflib.SequenceMatcher(None, "".join(a[i1:i2]), "".join(b[j1:j2])).ratio() >= 0.6:
-                for k in range(i2 - i1):
-                    out[i1 + k][2] = nt[j1 + k]
+            out += [[*words[i1 + k][:2], nt[j1 + k]] for k in range(i2 - i1)]
+        elif op == "replace" and (i2 - i1) == (j2 - j1) and (i2 - i1) <= 3 and \
+                difflib.SequenceMatcher(None, "".join(a[i1:i2]), "".join(b[j1:j2])).ratio() >= 0.6:
+            out += [[*words[i1 + k][:2], nt[j1 + k]] for k in range(i2 - i1)]
+        elif op == "replace" and (i2 - i1) <= 6 and (j2 - j1) <= 6:
+            # Kokoro (2026-10-31) spells acronyms as letters and garbles some words ("FODU entrainment"
+            # for "photoentrainment"): the narration is what was sent to the voice, so show its words,
+            # spread over the time the transcript's words took.
+            t0, t1 = words[i1][0], words[i2 - 1][1]
+            lens = [len(t) + 1 for t in nt[j1:j2]]; tot = sum(lens); t = t0
+            for tok, n in zip(nt[j1:j2], lens):
+                out.append([round(t, 2), round(t + (t1 - t0) * n / tot, 2), tok]); t += (t1 - t0) * n / tot
+        elif op in ("replace", "delete"):
+            out += [list(w) for w in words[i1:i2]]
     return out
 
 
