@@ -320,7 +320,7 @@ class S03Hill(Sc):
         self.add(curve)
         self.play(FadeIn(mid), run_time=0.6)
         self.add(tan)
-        slope_lab = T("slope", 28, GOLD).next_to(ax.c2p(1.5, 0.5), DOWN, buff=0.35).shift(RIGHT * 0.2)
+        slope_lab = T("steepness", 28, GOLD).next_to(ax.c2p(1.5, 0.5), DOWN, buff=0.35).shift(RIGHT * 0.2)
         self.play(FadeIn(slope_lab), run_time=0.6)
         self.play(n.animate.set_value(2.8), run_time=2.4, rate_func=smooth)
         self.play(n.animate.set_value(1.0), run_time=1.6, rate_func=smooth)
@@ -489,7 +489,7 @@ class S05Co(Sc):
         self.at_s(9.4)
         for o in oxs:       # O2 tries to leave and cannot
             self.play(o.animate.shift(LEFT * 0.5 + UP * 0.15), run_time=0.6, rate_func=there_and_back)
-        refuse = T("O₂ refuses to release", 26, YELLOW).move_to(LEFT * 3.9 + DOWN * 1.7)
+        refuse = T("O₂ holds on tighter", 26, YELLOW).move_to(LEFT * 3.9 + DOWN * 1.7)
         self.play(FadeIn(refuse, shift=UP * 0.1), run_time=0.6)
         l_c = T("with CO", 26, RED).next_to(ax.c2p(60, 0.5), UP, buff=0.1)
         d_n = Dot(ax.c2p(26, 0.5), color=BLUE, radius=0.09)

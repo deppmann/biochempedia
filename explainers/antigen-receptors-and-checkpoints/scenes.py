@@ -496,7 +496,7 @@ class S05Branches(SpokenScene):
         self.at("C to")
         self.play(GrowArrow(a_tf[1]), FadeIn(tf_chips[1], shift=RIGHT * 0.2), run_time=0.6)
 
-        self.at("A third")
+        self.at("via third")
         self.play(GrowArrow(a_lat[2]), run_time=0.4)
         self.at("loads Ras")
         self.play(FadeIn(mid_chips[2], shift=RIGHT * 0.2), run_time=0.5)

@@ -96,7 +96,7 @@ class S00Title(TitleCard):
 
 # --------------------------------------------------------------------------------------------
 class S01Job(SpokenScene):
-    """The ring: C2 joins C4 -> C6 -> C5 -> C4; every carbon lost banks electrons; one GTP (worth one ATP) is the only direct payout."""
+    """The ring: C2 joins C4 -> C6 -> C5 -> C4; every carbon lost banks electrons; one GTP or ATP is the only direct payout."""
 
     def construct(self):
         C = np.array([-0.8, -0.7, 0])
@@ -139,7 +139,7 @@ class S01Job(SpokenScene):
         self.play(Transform(tok, tk("C₄").move_to(P(C, R, ND["c4"])), path_arc=-math.radians(75)),
                   FadeIn(co2b, shift=RIGHT * 0.2), GrowArrow(a_co2b), run_time=1.0)
 
-        # ---- we capture electrons in NADH and FADH2 and squeeze out a single GTP, worth one ATP
+        # ---- we capture electrons in NADH and FADH2 and squeeze out a single GTP or ATP
         self.at("NADH")
         n1 = pk("NADH").move_to([2.8, 0.75, 0])
         n2 = pk("NADH").move_to([2.8, -1.6, 0])
@@ -162,8 +162,8 @@ class S01Job(SpokenScene):
                   oaa_lbl.animate(rate_func=rush_from).set_opacity(0), run_time=0.9)
         self.at("single GTP")
         self.play(FadeIn(atp, scale=0.7), GrowArrow(a_atp), oaa_lbl.animate.set_opacity(1), run_time=0.6)
-        self.at("worth one ATP")
-        atp_eq = T("= 1 ATP", 24, GOLD).next_to(atp, DOWN, buff=0.15)
+        self.at("or")
+        atp_eq = T("or ATP", 24, GOLD).next_to(atp, DOWN, buff=0.15)
         self.play(FadeIn(atp_eq, shift=UP * 0.1), run_time=0.5)
         self.play(Indicate(oaa_lbl, color=BLUE), run_time=0.7)
 
@@ -173,11 +173,11 @@ class S01Job(SpokenScene):
         g5 = chip("C₅", GREY, 28, fill_opacity=0.0).move_to(P(C, R, -15))
         g4 = chip("C₄", GREY, 28, fill_opacity=0.0).move_to(P(C, R, -90))
         self.play(FadeIn(g6), FadeIn(g5), FadeIn(g4), run_time=0.7)
-        self.at("6 to")
+        self.at("six to")
         self.play(g6.animate.set_color(BLUE), run_time=0.3)
-        self.at("5 to")
+        self.at("five")
         self.play(g5.animate.set_color(BLUE), run_time=0.3)
-        self.at("to 4")
+        self.at("to four")
         self.play(g4.animate.set_color(BLUE), run_time=0.3)
 
         # ---- every step that drops a carbon also banks reducing power
@@ -238,7 +238,7 @@ class S02Stages(SpokenScene):
         self.at("two carbons are introduced")
         acetyl = chip("C₂ acetyl", YELLOW, 26).move_to([-3.0, 2.5, 0])
         self.play(FadeIn(acetyl, shift=DOWN * 0.2), run_time=0.6)
-        self.at("onto oxaloacetate")
+        self.at("onto")
         tok = tk("C₄").move_to(P(C, R, 90))
         oaa_lbl = T("oxaloacetate", 24, GREY).move_to(tok.get_center() + np.array([1.35, 0.62, 0]))
         self.play(FadeIn(tok, scale=0.7), FadeIn(oaa_lbl), acetyl.animate.move_to([-1.6, 2.15, 0]), run_time=0.8)
@@ -287,7 +287,7 @@ class S02Stages(SpokenScene):
         for k in range(4, 8):
             self.play(Transform(tok, tk("C₄").move_to(P(C, R, ang[k + 1])), path_arc=-math.radians(45)),
                       run_time=0.7)
-        self.at("until oxaloacetate")
+        self.at("until")
         oaa_lbl2 = T("oxaloacetate", 24, GREY).move_to(tok.get_center() + np.array([1.35, 0.62, 0]))
         self.play(FadeIn(oaa_lbl2), Indicate(tok[1], color=BLUE, scale_factor=1.15), run_time=0.8)
         self.at("ready to accept")
@@ -316,7 +316,7 @@ class S02Stages(SpokenScene):
         al2 = arrow(P(C, R, -157.5), l2.get_right(), PINK)
         self.play(*[FadeIn(m, scale=0.7) for m in (r1, r2, l1, l2)], *[GrowArrow(a) for a in (ar1, ar2, al1, al2)],
                   run_time=1.0)
-        self.at("power ATP synthesis")
+        self.at("synthesis")
         fade = VGroup(*arcs, dots, nums, shade1, shade2, tok, oaa_lbl2, d_top, d_bot, bnd, ar1, ar2, al1, al2,
                       s1a, s1b, s1c, s2a, s2b, s2c, head)
         self.play(FadeOut(fade),
@@ -402,7 +402,7 @@ class S03Throttle(SpokenScene):
         self.at("In a high energy state")
         self.play(*[FadeIn(m) for m in (sep,)], *[FadeIn(m) for m in bar_items], FadeIn(g3), FadeIn(g4), FadeIn(l3),
                   FadeIn(l4), level.animate.set_value(0.92), run_time=1.2)
-        self.at("ATP and NADH")
+        self.at("and")
         self.play(vals["ATP"].animate.set_value(0.92), vals["NADH"].animate.set_value(0.88),
                   vals["ADP"].animate.set_value(0.1), run_time=1.2)
         self.at("burn more fuel")
@@ -420,15 +420,15 @@ class S03Throttle(SpokenScene):
         self.at("In a low energy state")
         self.play(level.animate.set_value(0.08), vals["ATP"].animate.set_value(0.2),
                   vals["NADH"].animate.set_value(0.2), run_time=1.3)
-        self.at("when ADP piles up")
+        self.at("piles")
         self.play(vals["ADP"].animate.set_value(0.92), run_time=1.0)
-        self.at("ATP is scarce")
+        self.at("scarce")
         self.play(Indicate(bar_items[0], color=GOLD), run_time=0.9)
         self.at("the brakes come off")
         self.play(*[g.animate.set_color(GREEN).set_fill(GREEN, 0.25) for g in (g3, g4)], run_time=0.6)
         self.at("speeds up")
         self.play(rate.animate.set_value(0.95), spin.speed.animate.set_value(220), run_time=0.6)
-        self.at("to regenerate ATP")
+        self.at("regenerate")
         self.play(vals["ATP"].animate.set_value(0.5), run_time=1.2)
 
         # ---- the same logic upstream at pyruvate dehydrogenase
@@ -452,7 +452,7 @@ class S03Throttle(SpokenScene):
                   *[g.animate.set_color(GREEN).set_fill(GREEN, 0.25) for g in (g3, g4, gp)], run_time=1.4)
         self.at("Supply chases demand")
         self.play(Indicate(e_arr, color=YELLOW, scale_factor=1.15), Circumscribe(rate_frame, color=BLUE), run_time=1.2)
-        self.at("controls sit exactly")
+        self.at("control is shared")
         self.play(*[Indicate(g, color=GOLD, scale_factor=1.7) for g in (gp, g3, g4)], run_time=1.4)
         self.finish()
 
@@ -478,7 +478,7 @@ class S04Oxygen(SpokenScene):
         o2 = chip("O₂", OXY, 30, pad=0.2).move_to(OP)
 
         # ---- oxygen never appears in the cycle, yet the cycle is strictly aerobic
-        self.at("Oxygen never")
+        self.at("Oxygen")
         self.play(FadeIn(ring), FadeIn(name), FadeIn(o2, scale=0.7), run_time=0.7)
         spin.dots.set_opacity(1)
         self.at("never appears anywhere")
@@ -495,14 +495,11 @@ class S04Oxygen(SpokenScene):
         why = T("Why?", 56, YELLOW, font=TITLE_FONT).move_to([0.5, 1.9, 0])
         self.play(FadeIn(why, scale=0.8), run_time=0.5)
 
-        # ---- the cycle makes NADH and FADH2 but needs NAD+ and FAD back
+        # ---- NAD+ returns to the cycle; FAD remains enzyme-bound
         self.at("produces NADH")
         nad_red = pk("NADH", 26).move_to(CC + np.array([2.2, 0.75, 0]))
         self.play(FadeOut(why), FadeOut(aer), FadeIn(nad_red, shift=RIGHT * 0.3), run_time=0.5)
-        self.at("FADH2")
-        fad_red = pk("FADH₂", 26).move_to(CC + np.array([2.2, -0.15, 0]))
-        self.play(FadeIn(fad_red, shift=RIGHT * 0.3), run_time=0.5)
-        self.at("gets NAD")
+        self.at("it needs")
         lane_bot = VMobject(color=GREY, stroke_width=3).set_points_as_corners(
             [[EP[0], EP[1] - 0.75, 0], [EP[0], LANE_Y, 0], [CC[0], LANE_Y, 0], [CC[0], CC[1] - RC - 0.28, 0]])
         lane_tip = Arrow([CC[0], LANE_Y + 0.9, 0], [CC[0], CC[1] - RC - 0.02, 0], color=GREY, stroke_width=3,
@@ -511,29 +508,24 @@ class S04Oxygen(SpokenScene):
                                              stroke_width=2.5).move_to(EP), num_dashes=36)
         ph_q = T("?", 44, GREY).move_to(EP)
         g_nad = pk("NAD⁺", 26, filled=False).move_to([-0.6, LANE_Y, 0])
-        g_fad = pk("FAD", 26, filled=False).move_to([-2.6, LANE_Y, 0])
-        for g in (g_nad, g_fad):
+        for g in (g_nad,):
             g[0].set_stroke(opacity=0.5)
             g[1].set_opacity(0.5)
         need_lab = T("needed back", 24, GREY).move_to([-1.6, LANE_Y - 0.5, 0])
-        self.play(FadeIn(ph), FadeIn(ph_q), Create(lane_bot), FadeIn(lane_tip), FadeIn(g_nad), FadeIn(g_fad),
+        self.play(FadeIn(ph), FadeIn(ph_q), Create(lane_bot), FadeIn(lane_tip), FadeIn(g_nad),
                   FadeIn(need_lab), run_time=1.0)
 
         # ---- the ETC regenerates the carriers, and hands its electrons to oxygen
         self.at("the electron transport chain")
         self.play(FadeTransform(VGroup(ph, ph_q), etc), run_time=0.8)
-        self.at("oxidizes")
+        self.at("reoxidizes them")
         lane_top = Line([CC[0] + RC + 0.1, 0.5, 0], [EP[0] - 1.7, 0.5, 0], color=PINK, stroke_width=3)
         self.play(Create(lane_top), run_time=0.3)
         self.play(nad_red.animate.move_to([EP[0] - 1.1, 0.8, 0]).scale(0.5).set_opacity(0.0),
-                  fad_red.animate.move_to([EP[0] - 1.1, 0.3, 0]).scale(0.5).set_opacity(0.0),
                   g_nad[0].animate.set_stroke(opacity=1.0), g_nad[1].animate.set_opacity(1.0),
-                  g_fad[0].animate.set_stroke(opacity=1.0), g_fad[1].animate.set_opacity(1.0),
                   FadeOut(need_lab), FadeOut(lane_top), run_time=0.9)
-        self.play(g_nad.animate.move_to([CC[0] + 0.9, LANE_Y, 0]), g_fad.animate.move_to([CC[0] - 0.9, LANE_Y, 0]),
-                  run_time=0.7)
-        self.play(g_nad.animate.move_to([CC[0], CC[1] - RC - 0.5, 0]),
-                  FadeOut(g_fad), run_time=0.6)
+        self.play(g_nad.animate.move_to([CC[0] + 0.9, LANE_Y, 0]), run_time=0.7)
+        self.play(g_nad.animate.move_to([CC[0], CC[1] - RC - 0.5, 0]), run_time=0.6)
         self.play(FadeOut(g_nad), run_time=0.2)
         self.at("hands its electrons")
         e_arr = arrow(etc.get_right(), o2.get_left(), PINK)
@@ -554,15 +546,15 @@ class S04Oxygen(SpokenScene):
                   FadeOut(e_lab), run_time=0.9)
         self.at("the chain backs up")
         q1 = pk("NADH", 26).move_to([EP[0] - 2.5, 0.5, 0])
-        q2 = pk("FADH₂", 26).move_to([EP[0] - 4.0, 0.5, 0])
+        q2 = pk("NADH", 26).move_to([EP[0] - 4.0, 0.5, 0])
         q3 = pk("NADH", 26).move_to([EP[0] - 3.25, 1.45, 0])
         queue = VGroup(q1, q2, q3)
         self.play(etc[0].animate.set_color(RED), FadeIn(queue, shift=RIGHT * 0.4, lag_ratio=0.3), run_time=1.0)
         self.at("the carriers stay reduced")
         q_lab = T("all still loaded", 24, PINK).move_to([EP[0] - 3.25, 2.15, 0])
         self.play(FadeIn(q_lab), Indicate(queue, color=PINK, scale_factor=1.1), run_time=0.9)
-        self.at("never return")
-        none_lab = T("no NAD⁺, no FAD", 26, RED).move_to([-1.8, LANE_Y - 0.5, 0])
+        self.at("come back")
+        none_lab = T("no NAD⁺ back", 26, RED).move_to([-1.8, LANE_Y - 0.5, 0])
         self.play(lane_bot.animate.set_color(RED), lane_tip.animate.set_color(RED), FadeIn(none_lab), run_time=0.9)
         self.at("the cycle grinds")
         halt = T("HALT", 36, RED, weight=BOLD).move_to(CC)
@@ -574,7 +566,7 @@ class S04Oxygen(SpokenScene):
         everything = Group(*[m for m in self.mobjects])
         self.play(FadeOut(everything), run_time=0.5)
         items = [chip("O₂", OXY, 32, pad=0.22), chip("electron\ntransport chain", PURPLE, 28, pad=0.25),
-                 chip("NAD⁺ and FAD", PINK, 28, pad=0.25, fill_opacity=0.0), chip("citric acid\ncycle", BLUE, 28, pad=0.25)]
+                 chip("NAD⁺", PINK, 28, pad=0.25, fill_opacity=0.0), chip("citric acid\ncycle", BLUE, 28, pad=0.25)]
         row = VGroup(*items).arrange(RIGHT, buff=0.7).move_to([0, -0.2, 0])
         fit(row, max_w=12.4)
         arrs = [arrow(row[i].get_right(), row[i + 1].get_left(), GREY) for i in range(3)]

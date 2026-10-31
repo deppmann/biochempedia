@@ -6,7 +6,7 @@ COLOR MAP (one color per concept, whole video)
   BLUE   = air, ventilation, alveolar gas
   RED    = blood, perfusion, blood flow, arterial blood
   YELLOW = the oxygen the blood leaves with (oxygen content, PO2, the A-a difference, the question)
-  GREEN  = the middle of the range (the measured band, the textbook value 0.8)
+  GREEN  = the measured band and the textbook whole-lung ratio 0.8
   GREY   = lung outline, axes, labels, de-emphasized
 Only labelled blocks, arrows, bars and plots. Every number on screen is the lesson's own
 (roughly 6 L/min air and 5 L/min blood in a resting adult; 95.5 percent between ratios 0.3 and 2.1 in four
@@ -84,9 +84,9 @@ class S01Question(SpokenScene):
 
         self.at("A resting adult")
         self.play(FadeIn(who), run_time=0.5)
-        self.at("liters of air")
+        self.at("of air")
         self.play(FadeIn(air, shift=DOWN * 0.2), run_time=0.6)
-        self.at("liters of blood")
+        self.at("of blood")
         self.play(FadeIn(blood, shift=DOWN * 0.2), run_time=0.6)
         xs = [-3.15, -1.05, 1.05, 3.15]
         units = [unit(x, -0.55, True, True, s=0.78) for x in xs]
@@ -165,7 +165,7 @@ class S02Ratio(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S03Spread(SpokenScene):
-    """a spread of ratios (log axis): 95.5 percent of flow and ventilation between 0.3 and 2.1; 0.8 is the middle of a range."""
+    """a spread of ratios (log axis): 95.5 percent of flow and ventilation between 0.3 and 2.1; 0.8 is the whole-lung ratio, not a distribution mean."""
 
     def construct(self):
         X = lambda r: 5.9 * np.log10(r)      # log axis: 0.1 -> -5.9, 10 -> +5.9
@@ -234,9 +234,9 @@ class S03Spread(SpokenScene):
         tb = T("0.8", 28, MID, weight=BOLD).move_to([X(0.8), ay - 0.5, 0])
         tb_lbl = T("textbook: a single ratio of 0.8", 26, MID).move_to([0, 2.05, 0])
         self.play(Create(line08), FadeIn(tb), FadeIn(tb_lbl), run_time=0.6)
-        rng = T("the middle of a range", 28, TEXT, weight=BOLD).move_to([0, 2.05, 0])
+        rng = T("whole-lung ratio", 28, TEXT, weight=BOLD).move_to([0, 2.05, 0])
         band = SurroundingRectangle(VGroup(fbar, vbar), color=MID, stroke_width=4, buff=0.12)
-        self.at("middle of a range")
+        self.at("single")
         self.play(ReplacementTransform(tb_lbl, rng), Create(band), run_time=0.7)
         self.finish()
 

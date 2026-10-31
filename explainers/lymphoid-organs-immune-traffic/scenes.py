@@ -259,7 +259,7 @@ class S03Entry(SpokenScene):
         self.play(FadeIn(hevl), run_time=0.5)
         self.at("two entrances")
         self.play(Indicate(node, color=GREY, scale_factor=1.03), run_time=0.5)
-        self.at("two entrances", lead=-0.6)
+        self.at("entrances", lead=-0.6)
         self.play(GrowArrow(aff), FadeIn(affl), run_time=0.6)
         self.at("these venules")
         self.play(Indicate(VGroup(hev, hevl), color=BLOOD, scale_factor=1.06), run_time=0.7)
@@ -286,7 +286,7 @@ class S03Entry(SpokenScene):
         self.play(FadeOut(Group(node, nlbl, hev, hevl, aff, affl, eff, effl, sbar, sl1, sl2, sl3, d)), run_time=0.4)
         self.play(FadeIn(lumen), FadeIn(wall), FadeIn(zone), FadeIn(lum_l), FadeIn(wall_l), FadeIn(inside),
                   FadeIn(flowa), FadeIn(cg), run_time=0.6)
-        self.at("tethers")
+        self.at("cell")
         self.play(FadeIn(lsel, shift=DOWN * 0.1), run_time=0.3)
         self.play(cg.animate.move_to([-4.0, 0.55, 0]), lsel.animate.move_to([-4.0, 1.5, 0]), run_time=0.4)
         self.at("it rolls")
@@ -414,8 +414,8 @@ class S05Residence(SpokenScene):
         axis = Line([-5.6, base, 0], [5.6, base, 0], color=GREY, stroke_width=3)
         held_l = VGroup(T("cells held at steady state,", 22, HELD), T("relative to blood = 1", 22, HELD)).arrange(DOWN, buff=0.06)
         held_l.move_to([cx[0], -0.75, 0])
-        foot = VGroup(T("fitted rat model; it keeps only blood, spleen and subcutaneous nodes,", 22, GREY),
-                      T("and leaves out lung, liver and cell loss", 22, GREY)).arrange(DOWN, buff=0.06).move_to([0, -3.1, 0])
+        foot = VGroup(T("pool comparison omits other organs and cell loss;", 22, GREY),
+                      T("blood transit uses the full model, including lung and liver", 22, GREY)).arrange(DOWN, buff=0.06).move_to([0, -3.1, 0])
 
         org = sblock(4.4, 2.4, GREY, 0.10, at=(-1.2, -0.2, 0))
         orgl = T("a lymphoid organ", 28, GREY).move_to([-1.2, 0.65, 0])
@@ -433,7 +433,7 @@ class S05Residence(SpokenScene):
         flow(self, opath, n=3, total=0.9, r=0.2)
         self.at("The mean residence")
         self.play(FadeIn(eq, shift=DOWN * 0.1), run_time=0.7)
-        self.at("In a fitted rat model")
+        self.at("fitted")
         self.play(FadeOut(og), FadeIn(B1), FadeIn(B2), run_time=0.5)
         self.at("rate constant is")
         self.play(FadeIn(B3), run_time=0.5)
@@ -441,7 +441,7 @@ class S05Residence(SpokenScene):
         self.play(FadeIn(B4, shift=UP * 0.1), run_time=0.5)
         self.at("hours")
         self.play(FadeIn(B5), run_time=0.6)
-        self.at("node holds")
+        self.at("nodes together hold")
         self.play(Transform(eq, eq_top), ReplacementTransform(B1, hs), ReplacementTransform(B2, s1),
                   ReplacementTransform(B3, s2), ReplacementTransform(B4, s3), ReplacementTransform(B5, s4),
                   FadeIn(hn), FadeIn(n1), run_time=1.0)

@@ -215,7 +215,7 @@ def mask_image(px=360):
 class S02Planar(Clock):
     def construct(self):
         # ---------- A (0.2-3.9): the peptide bond is the root of every constraint
-        head = heading("Every constraint starts at the peptide bond", size=34)
+        head = heading("Backbone geometry starts at the peptide bond", size=34)
         big = RoundedRectangle(corner_radius=0.25, width=3.9, height=1.8, stroke_color=BLUE, stroke_width=5,
                                fill_color=BLUE, fill_opacity=0.22).shift(UP * 0.55)
         xs_ = [-4.8, -2.4, 0.0, 2.4, 4.8]
@@ -390,7 +390,7 @@ class S02Planar(Clock):
         la = tag("α-helix", c2p(-62, -108))
         lb = tag("β-sheet", c2p(-100, 160))
         self.play(FadeIn(la), FadeIn(lb), run_time=0.5)
-        big = M("≈ 15%", size=64, color=GREEN)
+        big = M("some", size=64, color=GREEN)
         sub = T("of φ–ψ space survives", size=30, color=TEXT)
         VGroup(big, sub).arrange(DOWN, buff=0.25).move_to([-3.6, -2.0, 0])
         self.to(27.3, FadeIn(big, shift=UP * 0.15), FadeIn(sub, shift=UP * 0.1), dur=0.8)
@@ -629,7 +629,7 @@ class S04Filter(Clock):
         self.play(*[dots[i].animate.set_color(RED) for i in others], run_time=0.3)
         self.play(*[FadeOut(dots[i], scale=0.2) for i in others], dots[best].animate.move_to(FC).set_color(GREEN).scale(3.2),
                   run_time=1.6)
-        one = chip("one stable fold", GREEN, size=28).next_to(dots[best], DOWN, buff=0.5)
+        one = chip("collapse favored", GREEN, size=28).next_to(dots[best], DOWN, buff=0.5)
         self.to(23.4, FadeIn(one, shift=UP * 0.1), dur=0.6)
         # not limitations -> the mechanism
         self.at(24.9)
@@ -640,7 +640,7 @@ class S04Filter(Clock):
         self.play(FadeOut(nl), run_time=0.4)
         gate = VGroup(*[chip(t_, c_, size=24, pad=0.14) for t_, c_ in names]).arrange(DOWN, buff=0.12).move_to([-0.7, 0.2, 0])
         seq = chip("sequence", BLUE, size=34, pad=0.26).next_to(gate, LEFT, buff=1.1)
-        fold = VGroup(T("one unique", size=34, color=GREEN), T("structure", size=34, color=GREEN)).arrange(DOWN, buff=0.1)
+        fold = VGroup(T("a favored", size=34, color=GREEN), T("structure", size=34, color=GREEN)).arrange(DOWN, buff=0.1)
         fbox = RoundedRectangle(corner_radius=0.14, width=fold.width + 0.52, height=fold.height + 0.44, stroke_color=GREEN,
                                 stroke_width=2.5, fill_color=GREEN, fill_opacity=0.16).move_to(fold)
         fold = VGroup(fbox, fold).next_to(gate, RIGHT, buff=1.1)
@@ -732,14 +732,14 @@ class S05A1at(Clock):
         ghost = blob(0.42, 0.05, 1, BLUE, 0.0, width=4).move_to([-4.2, 1.95, 0])
         ghost.set_stroke(BLUE, 4, 0.8)
         gc = Cross(Square(0.9), stroke_color=RED, stroke_width=7).move_to(ghost)
-        gl = T("antitrypsin missing", size=24, color=BLUE).next_to(ghost, RIGHT, buff=0.35)
+        gl = T("antitrypsin low", size=24, color=BLUE).next_to(ghost, RIGHT, buff=0.35)
         self.to(19.6, Create(ghost), FadeIn(gl), dur=0.5)
         self.play(Create(gc), run_time=0.4)
         els = VGroup(*[chip("elastase", GOLD, size=24, pad=0.14) for _ in range(3)])
         els.arrange(RIGHT, buff=0.35).move_to([3.1, 0.75, 0])
         self.to(21.6, LaggedStart(*[FadeIn(e, shift=DOWN * 0.15) for e in els], lag_ratio=0.3), dur=1.0)
         arrs = VGroup(*[Arrow(els[i].get_bottom(), alv[5 + i].get_top() + UP * 0.1, buff=0.08, color=GOLD, stroke_width=5, max_tip_length_to_length_ratio=0.2) for i in range(3)])
-        unc = T("unchecked", size=26, color=GOLD).move_to([-0.8, 0.75, 0])
+        unc = T("poorly controlled", size=26, color=GOLD).move_to([-0.8, 0.75, 0])
         self.to(23.1, LaggedStart(*[GrowArrow(a) for a in arrs], lag_ratio=0.25), FadeIn(unc), dur=1.2)
         # tissue destroyed
         self.at(24.5)
@@ -753,7 +753,7 @@ class S05A1at(Clock):
         self.play(*[FadeOut(m) for m in self.mobjects if m is not head], run_time=0.5)
         one = chip("one amino acid change", RED, size=36, pad=0.28).move_to([0, 1.7, 0])
         o1 = chip("liver: aggregation", RED, size=30).move_to([-3.4, -0.7, 0])
-        o2 = chip("lungs: elastase unchecked", RED, size=30).move_to([3.4, -0.7, 0])
+        o2 = chip("lungs: elastase poorly controlled", RED, size=30).move_to([3.4, -0.7, 0])
         a1 = Arrow(one.get_bottom() + LEFT * 0.6, o1.get_top(), buff=0.12, color=RED, stroke_width=5)
         a2 = Arrow(one.get_bottom() + RIGHT * 0.6, o2.get_top(), buff=0.12, color=RED, stroke_width=5)
         self.to(27.8, FadeIn(one, shift=DOWN * 0.15), dur=0.7)

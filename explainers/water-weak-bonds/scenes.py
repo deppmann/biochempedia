@@ -124,7 +124,7 @@ class S00Title(TitleCard):
 
 
 class S05End(EndCard):
-    LINE = "Water's freedom pays for life's order."
+    LINE = "Water's freedom helps pay for life's order."
 
 
 # ---------------------------------------------------------------- s01: three jobs
@@ -266,13 +266,13 @@ class S02Entropy(Base):
     def construct(self):
         # A: entropy, not attraction
         hdr = T("the hydrophobic effect", 48, font=TITLE_FONT).move_to(UP * 2.0)
-        by = T("driven by", 40)
+        by = T("driven mainly by", 40)
         ent = chip("entropy", GREEN, 52, pad=0.3)
         nb = T("not by", 40, GREY)
         att = chip("attraction", GREY, 44, pad=0.28)
         row = VGroup(by, ent, nb, att).arrange(RIGHT, buff=0.35).move_to(DOWN * 0.3)
         self.play(Write(hdr), run_time=1.2)
-        self.cue("driven by")
+        self.cue("driven mainly")
         self.play(FadeIn(by), run_time=0.6)
         self.cue("entropy,")
         self.play(GrowFromCenter(ent), run_time=0.8)
@@ -287,13 +287,13 @@ class S02Entropy(Base):
         r = random.Random(11)
         sq = VGroup(*[Square(0.34, stroke_color=GREEN, stroke_width=2.5, fill_color=GREEN, fill_opacity=0.25)
                       for _ in range(20)]).arrange_in_grid(4, 5, buff=0.16).move_to(UP * 0.1)
-        lab = T("the second law: disorder grows", 34, GREEN).move_to(DOWN * 2.5)
+        lab = T("second law: total disorder grows", 34, GREEN).move_to(DOWN * 2.5)
         self.play(FadeIn(sq, lag_ratio=0.03), run_time=0.5)
         tg = poisson(20, (-3.6, 3.6, -1.5, 1.8), 0.8, seed=4)
         self.play(FadeIn(lab, shift=UP * 0.1),
                   *[s.animate.move_to(p).rotate(r.uniform(-1.2, 1.2)) for s, p in zip(sq, tg)],
                   run_time=1.6, rate_func=smooth)
-        self.cue("When nonpolar", lead=0.2)
+        self.cue("When small", lead=0.2)
         self.play(FadeOut(VGroup(sq, lab)), run_time=0.4)
 
         # C: caged water around lone nonpolar blobs
@@ -504,7 +504,7 @@ class S03DanceFloor(Base):
                   run_time=1.6)
 
         # the water locks into cages: the 6 nearest dancers bind to each wallflower
-        self.cue("and the surrounding water locks")
+        self.cue("surrounding water")
         taken = set()
         for wi, w in enumerate(wf):
             wc = w.get_center()
@@ -515,7 +515,7 @@ class S03DanceFloor(Base):
                 ang = a0 + k * TAU / 6
                 d.slot = (lambda w=w, ang=ang: w.get_center() + 0.68 * np.array([math.cos(ang), math.sin(ang), 0]))
                 set_bound(d, True)
-        cage_lbl = T("water locks into cages", 28, BLUE).move_to(DOWN * 3.3)
+        cage_lbl = T("water forms ordered cages", 28, BLUE).move_to(DOWN * 3.3)
         self.play(FadeOut(lg), run_time=0.4)
         self.play(FadeIn(cage_lbl), run_time=0.5)
 
@@ -546,7 +546,7 @@ class S03DanceFloor(Base):
         self.play(FadeOut(cage_lbl), FadeIn(free_lbl), run_time=0.6)
 
         # not attraction
-        self.cue("The force isn't")
+        self.cue("main force")
         att = chip("attraction", GREY, 28).move_to(DOWN * 3.3)
         x_att = Line(att.get_left() + LEFT * 0.1, att.get_right() + RIGHT * 0.1, color=TEXT, stroke_width=5)
         self.play(FadeOut(free_lbl), run_time=0.3)
@@ -570,7 +570,7 @@ class S04Membranes(Base):
 
     def construct(self):
         # A: same entropy
-        ent = chip("water's entropy", GREEN, 40, pad=0.3).move_to(UP * 1.4)
+        ent = chip("hydrophobic effect", GREEN, 40, pad=0.3).move_to(UP * 1.4)
         c1 = chip("protein folding", GREEN, 32).move_to(np.array([-3.6, -1.4, 0]))
         c2 = chip("membranes", GREEN, 32).move_to(np.array([3.6, -1.4, 0]))
         a1 = Arrow(ent.get_bottom() + LEFT * 0.4, c1.get_top(), buff=0.15, color=GREEN, stroke_width=6)
@@ -689,14 +689,14 @@ class S04Membranes(Base):
         self.play(*[Transform(a, b) for a, b in zip(top, outer_t)],
                   *[Transform(a, b) for a, b in zip(bot, inner_t)],
                   FadeIn(ring_out), FadeIn(disc_in), run_time=2.2, rate_func=smooth)
-        bl = T("sealed bilayer", 32, TEXT).move_to(np.array([4.6, 2.6, 0]))
+        bl = T("sealed vesicle", 32, TEXT).move_to(np.array([4.6, 2.6, 0]))
         self.play(FadeIn(win), FadeIn(wout), FadeIn(bl, shift=LEFT * 0.1), run_time=0.4)
 
         # G: water does it
         self.cue("Enzymes make", lead=0.1)
         mk = T("enzymes make the lipids", 24, GREY).move_to(np.array([-4.4, 3.3, 0]))
         self.play(FadeIn(mk, shift=DOWN * 0.1), run_time=0.4)
-        self.cue("no enzyme zips", lead=0.1)
+        self.cue("none holds", lead=0.1)
         enz = chip("enzyme zipper", GREY, 30).move_to(np.array([-4.6, 2.6, 0]))
         x1 = Line(enz.get_left() + LEFT * 0.1, enz.get_right() + RIGHT * 0.1, color=TEXT, stroke_width=5)
         self.play(FadeIn(enz), run_time=0.4)

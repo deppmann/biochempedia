@@ -117,9 +117,9 @@ class S01Question(SpokenScene):
         x = cross(chan.get_left() + [-0.5, 0, 0], RED, 0.32)
         # rhythm panel
         ax = axes(1.6, 6.3, 0.5, 3.3)
-        head = T("gut rhythm", 28, GREY).move_to([4.0, 3.5, 0])
+        head = T("slow waves", 28, GREY).move_to([4.0, 3.5, 0])
         flat = Line([1.6, 0.5, 0], [6.3, 0.5, 0], color=RED, stroke_width=6)
-        norhy = T("no rhythm", 32, RED, weight=BOLD).move_to([4.0, 1.9, 0])
+        norhy = T("no waves", 32, RED, weight=BOLD).move_to([4.0, 1.9, 0])
         q = T("?", 140, GOLD, weight=BOLD).move_to([4.3, -1.6, 0])
         what = T("what does it do?", 28, GOLD).move_to([4.3, -2.9, 0])
 
@@ -129,7 +129,7 @@ class S01Question(SpokenScene):
         self.at("pacemaker cells")
         self.play(FadeIn(wall, lag_ratio=0.2), run_time=1.0)
         self.play(FadeIn(lbl), run_time=0.4)
-        self.at("no gut rhythm")
+        self.at("no electrical")
         self.play(FadeIn(ax), FadeIn(head), Create(flat), run_time=0.7)
         self.play(FadeIn(norhy), run_time=0.4)
         self.at("What does that channel do")
@@ -149,7 +149,7 @@ class S02Slowwave(SpokenScene):
     """slow wave trace; isolated ICC beat, isolated muscle does not; in a pair the wave shrinks passively."""
 
     def construct(self):
-        X0, X1, N = -2.4, 5.8, 4
+        X0, X1, N = -2.4, 5.8, 3
         # --- first: one muscle-cell recording, big, centred -------------------------------------
         yb0, amp0 = -1.3, 2.6
         ax0 = axes(X0, X1, yb0, yb0 + 3.0)
@@ -164,11 +164,11 @@ class S02Slowwave(SpokenScene):
         lasts = T("each lasts seconds", 24, YELLOW).move_to([wave_x(X0, X1, N, 3, 0.34), yb0 + amp0 + 0.5, 0])
         self.at("last seconds")
         self.play(FadeIn(lasts), run_time=0.4)
-        rate = T("about 3 to 5 per minute", 28, YELLOW).move_to([0.2, 3.3, 0])
-        rate2 = T("a review figure, species not given", 24, GREY).move_to([0.2, 2.85, 0])
-        self.at("distal stomach")
+        rate = T("about 3 per minute", 28, YELLOW).move_to([0.2, 3.3, 0])
+        rate2 = T("human stomach", 24, GREY).move_to([0.2, 2.85, 0])
+        self.at("human stomach")
         self.play(FadeOut(lasts), FadeIn(rate), run_time=0.5)
-        self.at("review figure")
+        self.at("pacemaker cells")
         self.play(FadeIn(rate2), run_time=0.5)
 
         # --- isolated cells ---------------------------------------------------------------------
@@ -439,7 +439,7 @@ class S06Rule(SpokenScene):
 
         bA = bars(hA)
         skn = T("schematic, relative units", 22, GREY).move_to([1.6, yb - 0.4, 0])
-        rule = T("Slow waves set the timing, not the strength.", 38, font=TITLE_FONT)
+        rule = T("Slow waves mainly set the timing.", 38, font=TITLE_FONT)
         fit(rule, max_w=12.0)
         rule.move_to([0, -2.8, 0])
 
@@ -460,4 +460,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Slow waves set the timing, not the strength."
+    LINE = "Slow waves mainly set the timing."

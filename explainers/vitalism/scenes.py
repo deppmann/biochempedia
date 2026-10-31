@@ -2,7 +2,7 @@
 
 COLOR MAP (kept for the whole video)
   GREEN   organic / living: cells, yeast, urea, sugar, fats, acetic acid, "organic"
-  BLUE    inorganic / lifeless chemistry: rocks, salts, charcoal, sulfur, "ordinary law"
+  BLUE    inorganic / lifeless chemistry: rocks, salts, charcoal, sulfur, "lab-made"
   RED     the vital force, and the claims made on its behalf (spark, fence, vitalist objection, gauge)
   YELLOW  an action or a dated person: heat, "1845 . Kolbe", experimental controls
   TEAL    the enzyme / the soluble agent
@@ -165,7 +165,7 @@ class S00Title(TitleCard):
 class S01Claim(VS):
     SID = "s01_claim"
     ANCH = [("make them.", 7.43), ("vital force.", 11.13), ("drew the line.", 13.76),
-            ("rocks and salts,", 17.52), ("ordinary law.", 19.2), ("Organic matter,", 20.57),
+            ("rocks and salts,", 17.52), ("in the lab.", 19.2), ("Organic matter,", 20.57),
             ("living bodies,", 22.4)]
 
     def construct(self):
@@ -183,7 +183,7 @@ class S01Claim(VS):
         self.at("molecules of living things")
         self.play(LaggedStart(*[AnimationGroup(GrowArrow(a), FadeIn(c, shift=UP * 0.15))
                                 for a, c in zip(arrows, chips)], lag_ratio=0.35), run_time=2.4)
-        self.at("to need living things")
+        self.at("needed living things")
         self.play(Indicate(cell, color=GREEN, scale_factor=1.08), run_time=1.3)
 
         # the vital force: a spark rides each arrow up into each molecule
@@ -207,28 +207,28 @@ class S01Claim(VS):
         wlabel = T("Berzelius's line", 28, YELLOW).move_to([0, 3.15, 0])
         self.play(org.animate.shift(RIGHT * 3.4), Create(wall), FadeIn(wlabel, shift=DOWN * 0.1), run_time=1.8)
 
-        self.at("Inorganic matter,")
+        self.at("organic")
         h_in = T("INORGANIC", 30, BLUE, weight=BOLD).move_to([-3.5, 2.1, 0])
         self.play(FadeIn(h_in, shift=RIGHT * 0.2), run_time=0.7)
         self.at("rocks and salts")
         rocks = chip("rocks", BLUE, 26).move_to([-4.6, 1.0, 0])
         salts = chip("salts", BLUE, 26).move_to([-2.4, 1.0, 0])
         self.play(FadeIn(rocks, shift=UP * 0.15), FadeIn(salts, shift=UP * 0.15), run_time=1.0)
-        self.at("obeyed ordinary law")
-        law = chip("ordinary law", BLUE, 26).move_to([-3.5, -3.0, 0])
+        self.at("in the lab")
+        law = chip("lab-made", BLUE, 26).move_to([-3.5, -3.0, 0])
         a1 = arrow(rocks.get_bottom(), law.get_top() + LEFT * 0.6, BLUE)
         a2 = arrow(salts.get_bottom(), law.get_top() + RIGHT * 0.6, BLUE)
         self.play(FadeIn(law, shift=UP * 0.15), GrowArrow(a1), GrowArrow(a2), run_time=1.2)
 
-        self.at("Organic matter,")
+        self.at("chemistry of living")
         h_org = T("ORGANIC", 30, GREEN, weight=BOLD).move_to([3.4, 2.1, 0])
         self.play(FadeIn(h_org, shift=LEFT * 0.2), run_time=0.7)
-        self.at("the chemistry of living bodies")
-        ghost = chip("ordinary law", GREY, 26, fill_opacity=0.0).move_to([3.4, -3.0, 0])
+        self.at("bodies")
+        ghost = chip("lab-made", GREY, 26, fill_opacity=0.0).move_to([3.4, -3.0, 0])
         ghost[0].set_stroke(GREY, 2.5).set_stroke(opacity=0.8)
         cross = Line(ghost.get_left() + LEFT * 0.12, ghost.get_right() + RIGHT * 0.12, color=RED, stroke_width=6)
         self.play(FadeIn(ghost, shift=UP * 0.15), run_time=0.7)
-        self.at("did not")
+        self.at("needed life")
         self.play(Create(cross), run_time=0.4)
         self.finish()
 
@@ -252,7 +252,7 @@ class S02Flask(VS):
 
         self.wait(0.3)
         self.play(FadeIn(tag, shift=DOWN * 0.15), run_time=1.0)
-        self.at("warmed an inorganic salt")
+        self.at("an inorganic salt")
         self.play(FadeIn(cy, shift=UP * 0.15), FadeIn(sub_cy), run_time=1.0)
         self.at("What crystallized")
         self.play(GrowArrow(arr), FadeIn(heat), run_time=1.0)
@@ -276,7 +276,6 @@ class S02Flask(VS):
         self.play(FadeIn(f1, shift=UP * 0.1), FadeIn(f2, shift=UP * 0.1), FadeIn(eq), run_time=1.0)
 
         # atom tallies: identical bars under both
-        self.at("one carbon,")
         counts = [("C", 1), ("H", 4), ("N", 2), ("O", 1)]
         unit = 0.32
         base_y = -3.0
@@ -297,7 +296,6 @@ class S02Flask(VS):
         base_l = Line([-5.6, base_y, 0], [-3.0, base_y, 0], color=GREY, stroke_width=2)
         base_r = Line([3.3, base_y, 0], [5.9, base_y, 0], color=GREY, stroke_width=2)
         self.play(Create(base_l), Create(base_r), FadeIn(L[1]), FadeIn(R[1]), run_time=0.6)
-        self.at("one carbon,")
         for i, ph in enumerate(["one carbon,", "four hydrogens,", "two nitrogens,", "one oxygen."]):
             self.at(ph, lead=0.1)
             self.play(GrowFromEdge(L[0][i], DOWN), GrowFromEdge(R[0][i], DOWN),
@@ -315,7 +313,7 @@ class S02Flask(VS):
 # ------------------------------------------------------------------ 3
 class S03Retreat(VS):
     SID = "s03_retreat"
-    ANCH = [("that afternoon.", 3.39), ("honest objection:", 5.56), ("organic sources.", 9.26),
+    ANCH = [("that afternoon.", 3.39), ("not a refutation,", 5.56), ("organic sources.", 9.26),
             ("somewhere to stand.", 12.88), ("in the chain.", 22.05)]
 
     def construct(self):
@@ -331,11 +329,11 @@ class S03Retreat(VS):
         self.at("did not kill")
         self.play(Transform(fill, gauge_fill(0.92)), run_time=1.2)
 
-        self.at("His critics")
+        self.at("Chemists")
         src = chip("organic source", GREEN, 30).move_to([-1.9, -2.3, 0])
         a_back = DashedLine(cy.get_bottom(), src.get_top(), color=RED, stroke_width=4, dash_length=0.15)
         q = T("inorganic?", 28, RED).next_to(cy, UP, buff=0.25)
-        self.at("could be traced back")
+        self.at("skeptics could trace")
         back_lbl = T("traced back", 26, RED).next_to(a_back, RIGHT, buff=0.2)
         self.play(FadeIn(q, shift=DOWN * 0.1), Create(a_back), run_time=1.0)
         self.play(FadeIn(src, shift=UP * 0.15), FadeIn(back_lbl), run_time=0.9)
@@ -351,14 +349,14 @@ class S03Retreat(VS):
         ac = chip("acetic acid", GREEN, 30).move_to([4.8, -0.5, 0])
         cd = chip("carbon disulfide", BLUE, 30).move_to([-0.5, -0.5, 0])
         charc = chip("charcoal", BLUE, 30).move_to([-4.7, 0.4, 0])
-        sulf = chip("molten sulfur", BLUE, 30).move_to([-4.6, -1.4, 0])
+        sulf = chip("sulfur", BLUE, 30).move_to([-4.6, -1.4, 0])
         a_ac = arrow(cd.get_right(), ac.get_left(), GREY)
         a_c = arrow(charc.get_right(), cd.get_left() + UP * 0.2, BLUE)
         a_s = arrow(sulf.get_right(), cd.get_left() + DOWN * 0.2, BLUE)
         self.play(FadeIn(ktag, shift=DOWN * 0.1), FadeIn(ac, shift=UP * 0.1), run_time=1.2)
         self.at("from carbon disulfide")
         self.play(FadeIn(cd, shift=RIGHT * 0.15), GrowArrow(a_ac), run_time=1.1)
-        self.at("made from charcoal")
+        self.at("charcoal with sulfur")
         self.play(FadeIn(charc, shift=RIGHT * 0.15), FadeIn(sulf, shift=RIGHT * 0.15), GrowArrow(a_c), GrowArrow(a_s),
                   run_time=1.3)
         self.at("with nothing alive")
@@ -370,7 +368,7 @@ class S03Retreat(VS):
         self.play(FadeOut(VGroup(ktag, ac, cd, charc, sulf, a_ac, a_c, a_s, br, brl)), run_time=0.6)
 
         # --- Berthelot
-        self.at("A decade later")
+        self.at("decade")
         btag = T("a decade later · Berthelot", 32, YELLOW).move_to([0, 1.35, 0])
         fats = chip("fats", GREEN, 30).move_to([4.6, -0.5, 0])
         gly = chip("glycerol", GREEN, 30).move_to([-4.2, 0.4, 0])
@@ -388,7 +386,7 @@ class S03Retreat(VS):
 class S04Redoubt(VS):
     SID = "s04_redoubt"
     ANCH = [("One redoubt remained.", 1.83), ("living yeast.", 6.24), ("living cell.", 13.64),
-            ("forty years.", 16.76), ("inside yeast.", 25.5)]
+            ("for decades.", 16.76), ("pepsin and invertase.", 25.5)]
 
     def construct(self):
         gl, fill = gauge(0.4)
@@ -417,8 +415,8 @@ class S04Redoubt(VS):
         flab = T("inseparable from the living cell", 30, RED).move_to([0, -3.3, 0])
         self.play(FadeIn(flab, shift=UP * 0.1), run_time=1.0)
 
-        self.at("That conviction")
-        years = chip("forty years", YELLOW, 30).move_to([4.9, 0.6, 0])
+        self.at("That argument")
+        years = chip("debated", YELLOW, 30).move_to([4.9, 0.6, 0])
         self.play(FadeIn(years, shift=DOWN * 0.1), fence.animate.set_stroke(width=8), run_time=1.0)
         self.play(Indicate(fence, color=RED, scale_factor=1.03), run_time=1.0)
 
@@ -431,7 +429,7 @@ class S04Redoubt(VS):
         self.at("from the Greek")
         greek = T("Greek: “in leaven”", 28, TEAL).move_to([4.7, 0.6, 0])
         self.play(FadeIn(greek, shift=DOWN * 0.1), run_time=0.8)
-        self.at("soluble agent")
+        self.at("soluble ferments")
         self.play(Indicate(enz, color=TEAL, scale_factor=1.15), run_time=1.4)
         self.finish()
 
@@ -441,7 +439,7 @@ class S05Buchner(VS):
     SID = "s05_buchner"
     ANCH = [("no intact cells in it.", 7.93), ("preserve it.", 9.98), ("began to ferment,", 11.54),
             ("dead yeast.", 14.97), ("must have survived.", 18.28), ("two controls.", 20.4),
-            ("destructible chemical.", 24.54)]
+            ("still fermented.", 24.54)]
 
     def construct(self):
         gl, fill = gauge(0.4)
@@ -493,7 +491,7 @@ class S05Buchner(VS):
                   Create(a_v), run_time=0.9)
 
         # two controls
-        self.at("Buchner ran two controls")
+        self.at("ran")
         self.play(FadeOut(VGroup(vit, a_v, co2, jlab)), run_time=0.5)
         ctitle = T("two controls", 32, YELLOW).move_to([0, 1.75, 0])
         bk2 = bk.copy()
@@ -502,26 +500,24 @@ class S05Buchner(VS):
         self.play(Write(ctitle), bk.animate.move_to([-3.6, -0.3, 0]), run_time=1.2)
         bk2.move_to([3.6, -0.3, 0])
         fz2 = Fizz(3.6, -0.3 + bk.bottom_y - 0.1, -0.3 + bk.surface_y - 0.1, width=1.1, n=9, seed=5)
-        lab_b = T("boiled juice", 28, YELLOW).move_to([-3.6, -1.95, 0])
+        lab_b = T("chloroform", 28, YELLOW).move_to([-3.6, -1.95, 0])
         lab_f = T("filtered juice", 28, YELLOW).move_to([3.6, -1.95, 0])
         funnel = Polygon([-0.7, 0.4, 0], [0.7, 0.4, 0], [0.12, -0.2, 0], [0.12, -0.5, 0], [-0.12, -0.5, 0], [-0.12, -0.2, 0],
                          color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to([3.6, 1.25, 0])
         self.play(FadeIn(bk2, shift=LEFT * 0.2), FadeIn(funnel, shift=DOWN * 0.2), FadeIn(lab_b), FadeIn(lab_f), run_time=1.0)
 
-        # boiled: fizz stops
-        self.at("Boiled juice")
-        waves = VGroup(*[ParametricFunction(lambda t, x0=x0: np.array([x0 + 0.08 * math.sin(6 * t), t, 0]),
-                                            t_range=[0, 0.55], color=YELLOW, stroke_width=4)
-                         for x0 in (-0.35, 0, 0.35)]).move_to([-3.6, 1.15, 0])
-        self.play(LaggedStart(*[Create(w) for w in waves], lag_ratio=0.2), run_time=1.0)
-        nofizz = T("no fizz", 28, GREY).move_to([-3.6, -2.55, 0])
-        self.play(FadeIn(nofizz, shift=UP * 0.1), run_time=0.6)
-        self.at("so the agent was")
-        agent = chip("destructible chemical", TEAL, 26).move_to([-3.6, -3.25, 0])
+        # chloroform: still fizzing
+        self.at("Juice with chloroform")
+        fz1 = Fizz(-3.6, -0.3 + bk.bottom_y - 0.1, -0.3 + bk.surface_y - 0.1, width=1.1, n=9, seed=7)
+        self.add(fz1)
+        fizz_label = T("fizz", 28, GREEN).move_to([-3.6, -2.55, 0])
+        self.play(FadeIn(fizz_label, shift=UP * 0.1), run_time=0.6)
+        self.at("antiseptic")
+        agent = chip("antiseptic", TEAL, 26).move_to([-3.6, -3.25, 0])
         self.play(FadeIn(agent, shift=UP * 0.1), run_time=0.9)
 
         # filtered: still fizzing
-        self.at("Filtered juice still did")
+        self.at("a sterile filter")
         self.add(fz2)
         t0 = self.elapsed()
         fill.add_updater(lambda m: m.become(gauge_fill(max(0.0, 0.4 * (1 - (self.elapsed() - t0) / 2.2)))))
@@ -580,7 +576,6 @@ class S06Course(VS):
         self.play(FadeOut(VGroup(line, vf, *items)), run_time=0.5)
 
         # --- the two kingdoms from the start, walled
-        self.at("What replaced it")
         rocks = chip("rocks", BLUE, 28).move_to([-4.6, 0.2, 0])
         salts = chip("salts", BLUE, 28).move_to([-2.6, 0.2, 0])
         cell = VGroup(Circle(radius=1.3, color=GREEN, fill_color=GREEN, fill_opacity=0.18, stroke_width=3.5),
@@ -604,10 +599,10 @@ class S06Course(VS):
         self.at("The catalysts")
         enz = chip("enzyme", TEAL, 26).move_to(cell.get_center() + DOWN * 0.45)
         self.play(FadeIn(enz, scale=0.6), run_time=0.8)
-        self.at("Kühne named")
+        self.at("Kühne")
         kn = T("named by Kühne", 26, YELLOW).move_to([3.6, -1.9, 0])
         self.play(FadeIn(kn, shift=UP * 0.1), run_time=0.7)
-        self.at("Buchner freed")
+        self.at("Buchner")
         bn = T("freed by Buchner", 26, YELLOW).move_to([0.1, -0.65, 0])
         self.play(enz.animate.move_to([0.1, 0.1, 0]), FadeOut(kn), FadeIn(bn), run_time=1.5)
         self.at("ordinary proteins")

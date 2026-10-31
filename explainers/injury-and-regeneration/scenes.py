@@ -387,7 +387,7 @@ class S06Rule(SpokenScene):
         # new case: clear the old answer first
         sdel = bchip("Sarm1 deleted", RED, 26).move_to([1.6, -0.1, 0])
         sbar = inhib([1.6, 0.4, 0], [1.6, cy - 0.65, 0])
-        self.at("deletes")
+        self.at("Delete")
         self.play(FadeOut(VGroup(wl, wa, wnote, whole, okl)),
                   *undim(chips[1]), arrs[0].animate.set_opacity(1.0),
                   FadeIn(sdel, shift=UP * 0.15), run_time=0.7)
@@ -395,7 +395,7 @@ class S06Rule(SpokenScene):
         xs_ = VGroup(Line(chips[2].get_corner(UL), chips[2].get_corner(DR), color=RED, stroke_width=6),
                      Line(chips[2].get_corner(DL), chips[2].get_corner(UR), color=RED, stroke_width=6))
         self.play(Create(xs_), run_time=0.5)
-        self.at("survive two")
+        self.at("survive too")
         whole2 = tube(-2.4, 2.4, res_y, 0.45)
         okl2 = T("stump intact", 26, BLUE).move_to([4.2, res_y, 0])
         self.play(FadeIn(whole2), FadeIn(okl2), run_time=0.8)

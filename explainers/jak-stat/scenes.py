@@ -458,7 +458,7 @@ class S03Pair(Film):
         d = L.x_out - L.x_in
         self.play(chL.animate.shift(RIGHT * d), jL.animate.shift(RIGHT * d),
                   chR.animate.shift(LEFT * d), jR.animate.shift(LEFT * d), run_time=1.1)
-        self.at("and so they're")
+        self.at("and")
         self.play(*jglow(jL, 1.06), *jglow(jR, 1.06), run_time=0.7)
         pos = T("in position", 28, GREY).next_to(jR[1], RIGHT, buff=0.35)
         self.at("in position")
@@ -528,7 +528,7 @@ class S04Dock(Film):
         cyto = T("cytoplasm", 24, GREY).move_to([-5.3, L.mem_y - L.mem_h / 2 - 0.4, 0])
         self.at("A protein called")
         self.play(FadeOut(dock_lbl), FadeIn(sA, shift=UP * 0.15), FadeIn(sB, shift=UP * 0.15), run_time=0.7)
-        self.at("waits in the")
+        self.at("weights")
         self.play(FadeIn(cyto), sA.animate(rate_func=there_and_back).shift(UP * 0.15),
                   sB.animate(rate_func=there_and_back).shift(DOWN * 0.15), run_time=0.9)
 

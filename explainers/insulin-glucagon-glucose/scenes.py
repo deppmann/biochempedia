@@ -398,9 +398,9 @@ class S04Release(SpokenScene):
         for k in range(1, 6):
             self.at(items[k][2], nth=1 if items[k][2] == "Calcium enters" else 0)
             self.play(GrowArrow(arrows[k - 1]), FadeIn(chips[k], shift=DOWN * 0.15), run_time=0.5)
-        wm = T("working model", 34, TEXT).move_to([0, -2.9, 0])
+        wm = T("triggering pathway", 34, TEXT).move_to([0, -2.9, 0])
         wl = Line([-3.0, -2.5, 0], [3.0, -2.5, 0], color=GOLD, stroke_width=4)
-        self.at("That is the working model")
+        self.at("trigger")
         self.play(FadeIn(wm), Create(wl), run_time=0.8)
         self.finish()
 
@@ -555,7 +555,7 @@ class S06Limits(SpokenScene):
         self.at("Cook and Hales")
         self.play(FadeOut(VGroup(head, *cards)), run_time=0.6)
         self.play(FadeIn(title), FadeIn(memb), FadeIn(kch), run_time=0.6)
-        self.at("ATP inhibition")
+        self.at("inhibition")
         self.play(FadeIn(atp, shift=UP * 0.3), run_time=0.5)
         self.play(Create(inh), FadeIn(inh_l), *close_chan(kch), run_time=0.7)
         self.at("cytoplasmic side")

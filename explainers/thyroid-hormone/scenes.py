@@ -169,7 +169,7 @@ class S03Rings(SpokenScene):
         blk = ring_block()
         d1 = bchip("D1", PURPLE, 30).move_to([-2.6, -2.1, 0])
         d2 = bchip("D2", PURPLE, 30).move_to([-0.9, -2.1, 0])
-        d3 = bchip("D3", PURPLE, 30).move_to([1.75, -2.1, 0])
+        d3 = bchip("D3 / D1", PURPLE, 30).move_to([1.75, -2.1, 0])
         self.at("three enzymes")
         self.play(FadeIn(blk), run_time=0.7)
         self.play(FadeIn(head), LaggedStart(FadeIn(d1), FadeIn(d2), FadeIn(d3), lag_ratio=0.3), run_time=1.0)

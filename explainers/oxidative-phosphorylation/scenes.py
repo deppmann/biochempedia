@@ -128,7 +128,7 @@ class S01Chemiosmosis(SpokenScene):
         self.at("Electron flow")
         lbl_e = T("electron flow", 30, YELLOW).move_to([-0.8, 1.45, 0])
         self.play(FadeIn(blocks, lag_ratio=0.25), FadeIn(lbl_e, shift=UP * 0.1), run_time=0.9)
-        self.at("ATP synthesis")
+        self.at("synthesis")
         lbl_a = T("ATP synthesis", 30, TEAL).move_to([3.5, 1.45, 0])
         self.play(FadeIn(synth), FadeIn(synth_lab), FadeIn(lbl_a, shift=UP * 0.1), run_time=0.9)
 
@@ -184,7 +184,7 @@ class S01Chemiosmosis(SpokenScene):
                                     mv(d, [3.5 + (k - 2) * 0.28, -2.05, 0], 0.5), FadeOut(d, run_time=0.2)))
         self.play(LaggedStart(*anims, lag_ratio=0.22), run_time=2.4)
 
-        self.at("phosphorylation of ADP")
+        self.at("phosphorylation")
         adp = chip("ADP", GREY, 26).move_to([1.45, -1.4, 0])
         atp = chip("ATP", TEAL, 26).move_to([5.5, -1.4, 0])
         a_in = arr([2.1, -1.4, 0], [2.6, -1.4, 0], GREY, 4, 0.16)
@@ -242,7 +242,7 @@ class S02Redox(SpokenScene):
         self.play(FadeIn(labs, lag_ratio=0.08), FadeIn(ytitle), run_time=1.4)
 
         # ---- NADH at the top ------------------------------------------------------------------
-        self.at("NADH sits high")
+        self.at("sits")
         nadh = chip("NADH", PURPLE, 28).move_to([-3.3, Y(-0.32), 0])
         nv = M(MINUS + "0.32 V", 26, TEXT).next_to(nadh, RIGHT, buff=0.3)
         g_n = DashedLine([AX, Y(-0.32), 0], nadh.get_left(), color=GREY, dash_length=0.1, stroke_width=3)
@@ -267,7 +267,7 @@ class S02Redox(SpokenScene):
         self.play(Indicate(o2, color=ORANGE, scale_factor=1.25), run_time=1.3)
 
         # ---- the flow: low to high ----------------------------------------------------------------
-        self.at("Electrons always flow")
+        self.at("electrons flow")
         flow = arr([0.0, 2.0, 0], [0.0, -1.95, 0], YELLOW, 8, 0.28)
         flow_l = T("e⁻ flow", 28, YELLOW).next_to(flow, RIGHT, buff=0.25)
         self.play(GrowArrow(flow), FadeIn(flow_l), FadeOut(edots), run_time=1.0)
@@ -354,7 +354,7 @@ class S03Pumps(SpokenScene):
 
         YI, YQ, YIII, YIV, YII, YCC = 2.4, 1.2, 0.0, -2.1, 0.3, -1.05
         # ---- NADH -> complex I -> Q ------------------------------------------------------------
-        self.at("Electrons from NADH enter")
+        self.at("Electrons from")
         nadh = chip("NADH", PURPLE, 28).move_to([-3.9, YI, 0])
         self.play(FadeIn(nadh, shift=RIGHT * 0.2), run_time=0.7)
         chain.add(nadh)
@@ -363,7 +363,7 @@ class S03Pumps(SpokenScene):
         aI = arr([nadh.get_right()[0] + 0.05, YI, 0], [-0.95, YI, 0], PURPLE, 5)
         self.play(FadeIn(bI, scale=0.8), GrowArrow(aI), run_time=0.8)
         chain.add(bI, aI)
-        self.at("NADH Q")
+        self.at("oxidortic")
         c1 = caption("Complex I:  NADH-Q oxidoreductase")
         self.at("handed to ubiquinone")
         q = chip("Q", TEXT, 28).move_to([0.5, YQ, 0])
@@ -390,7 +390,7 @@ class S03Pumps(SpokenScene):
         caption("Cytochrome c, a mobile carrier")
 
         # ---- complex IV -> oxygen ---------------------------------------------------------------
-        self.at("Complex RV")
+        self.at("oxidase")
         bIV = block("IV", GREEN, 2.9, 0.9).move_to([0.5, YIV, 0])
         a_c2 = CurvedArrow([3.2, YCC - 0.35, 0], [1.7, YIV + 0.3, 0], color=YELLOW, angle=-TAU / 8, stroke_width=5, tip_length=0.18)
         self.play(FadeIn(bIV, scale=0.8), Create(a_c2), run_time=0.8)
@@ -472,7 +472,7 @@ class S03Pumps(SpokenScene):
         rf = route("FADH₂", "II", 0.65, "~6 H⁺", "~1.5 ATP")
         self.play(FadeIn(rf[0]), GrowArrow(rf[1]), FadeIn(rf[2], lag_ratio=0.2), run_time=0.8)
         self.play(GrowArrow(rf[3]), FadeIn(rf[4]), run_time=0.4)
-        self.at("less ATP")
+        self.at("less")
         self.play(GrowArrow(rf[5]), FadeIn(rf[6]), run_time=0.5)
         self.at("than NADH")
         rn = route("NADH", "I", -1.0, "~10 H⁺", "~2.5 ATP")
@@ -592,7 +592,7 @@ class S04Inhibitors(SpokenScene):
         self.play(FadeIn(legend[1]), *self.state(r1, 2), run_time=1.3)
 
         # ---- rotenone ---------------------------------------------------------------------------------
-        self.at("So rotenone")
+        self.at("rotenone")
         rt = T("Rotenone: blocks Complex I", 28, GREY, t2c={"Rotenone": RED})
         left_at(rt, -6.0, 1.85)
         self.play(FadeOut(up), FadeOut(up_l), FadeOut(dn), FadeOut(dn_l), Transform(r1_title, rt),
@@ -601,7 +601,7 @@ class S04Inhibitors(SpokenScene):
         self.play(*self.state(r1, 1), run_time=1.0)
 
         # ---- antimycin A ------------------------------------------------------------------------------
-        self.at("Antimycin")
+        self.at("Antomysin")
         r2 = self.make_row(-0.55)
         at_t = T("Antimycin A: blocks Complex III", 28, GREY, t2c={"Antimycin A": RED})
         left_at(at_t, -6.0, 0.15)
@@ -697,7 +697,7 @@ class S05Battery(SpokenScene):
         self.play(FadeIn(pmf), run_time=0.7)
 
         # ---- discharge side ---------------------------------------------------------------------------
-        self.at("ATP synthase is the discharge circuit")
+        self.at("synthase")
         syn = VGroup(box(1.8, 1.3, TEAL, 0.28), T("ATP\nsynthase", 26, TEAL, weight=BOLD))
         syn[1].move_to(syn[0])
         syn.move_to([4.9, 0.55, 0])
@@ -710,7 +710,7 @@ class S05Battery(SpokenScene):
         self.play(LaggedStart(*[Succession(mv(d, [4.0, cable_y, 0], 0.9, linear), FadeOut(d, run_time=0.1)) for d in hs2],
                               lag_ratio=0.22),
                   lv.animate(run_time=2.6, rate_func=linear).set_value(0.7), run_time=2.6)
-        self.at("and make ATP")
+        self.at("make")
         atps = VGroup(chip("ATP", TEAL, 26).move_to([4.2, -1.1, 0]), chip("ATP", TEAL, 26).move_to([5.6, -1.1, 0]))
         a_a = VGroup(arr([4.5, -0.25, 0], [4.35, -0.72, 0], TEAL, 4, 0.15), arr([5.3, -0.25, 0], [5.45, -0.72, 0], TEAL, 4, 0.15))
         self.play(FadeIn(a_a), FadeIn(atps, shift=DOWN * 0.15, lag_ratio=0.3), run_time=1.0)
@@ -764,7 +764,7 @@ class S05Battery(SpokenScene):
         heat_l = T("heat", 30, RED).move_to([3.7, -2.85, 0])
         self.play(Create(heat, lag_ratio=0.3), FadeIn(heat_l), lv.animate(run_time=1.6, rate_func=smooth).set_value(0.12),
                   run_time=1.6)
-        self.at("instead of ATP")
+        self.at("instead")
         ghost = chip("ATP", TEAL, 26).move_to([5.2, -1.0, 0])
         ghost[0].set_stroke(opacity=0.6).set_fill(opacity=0.06)
         ghost[1].set_opacity(0.6)

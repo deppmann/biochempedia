@@ -243,7 +243,7 @@ class S04Relay(SpokenScene):
         note2 = T("still evokes scratching", 26, GREEN).move_to([0, -1.2, 0])
         self.play(FadeIn(giv2), pulse(n3), FadeIn(note2), run_time=1.0)
         # order
-        self.at("root fits")
+        self.at("route fits")
         self.play(FadeOut(giv2), FadeOut(note2), FadeOut(rm), FadeOut(x2), run_time=0.6)
         self.play(LaggedStart(*[Indicate(a, color=TEXT, scale_factor=1.25) for a in (a12, a23, a34)], lag_ratio=0.5), run_time=2.4)
         self.at("Direct contacts")

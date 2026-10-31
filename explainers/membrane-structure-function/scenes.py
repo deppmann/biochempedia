@@ -162,7 +162,7 @@ class S01Barrier(Sp):
         key = T("hydrophobicity is the key variable", 28, GOLD).move_to([0.6, 3.35, 0])
         self.play(FadeIn(key, shift=DOWN * 0.1), run_time=0.6)
 
-        self.at("Indole")
+        self.at("dol")
         self.play(FadeOut(key), run_time=0.3)
         ind_c = prof(0.7, GREEN)
         ind_l = T("indole", 28, GREEN).move_to(ax.c2p(7.7, 0.7), aligned_edge=LEFT)
@@ -303,7 +303,7 @@ class S02Families(Sp):
                   FadeIn(hi3), FadeIn(lo3), FadeIn(cargo3), run_time=0.8)
         self.at("100 cycles")
         self.play(FadeIn(g3[1]), run_time=0.4)
-        self.at("they spend ATP")
+        self.at("spend")
         atp = chip("ATP", RED, 24).move_to([CX[2] + 1.3, -0.75, 0])
         self.play(FadeIn(g3[2]), FadeIn(atp), cargo3.animate.move_to([CX[2], MY - PH / 2 + 0.0, 0]), run_time=0.8)
         self.at("against their gradient")
@@ -408,7 +408,7 @@ class S03Knockon(Sp):
         self.play(Transform(lab_a, T("Newton's cradle", 28, TEXT).move_to([3.4, -0.7, 0])), run_time=0.5)
 
         # binding energy -> exit energy
-        self.at("knock")
+        self.at("turns binding energy")
         self.play(FadeOut(VGroup(balls, first, line, lab_a)), run_time=0.5)
         e1 = chip("binding energy", YELLOW, 28).move_to([3.4, 1.7, 0])
         e2 = chip("exit energy", GREEN, 28).move_to([3.4, 0.0, 0])
@@ -478,14 +478,14 @@ class S04Secondary(Sp):
         self.play(pna.animate.move_to([CXp + 0.3, 1.9, 0]), FadeOut(atp), run_time=0.4)
 
         # symporter
-        self.at("simporters")
+        self.at("Simporters")
         self.play(FadeOut(VGroup(pl, pmp, pback, ttl, glab)), run_time=0.4)
         self.play(FadeIn(slab), Indicate(sym, color=ORANGE, scale_factor=1.08), run_time=0.7)
         self.at("same direction")
         sna = na(CXs - 0.75, 1.1)
         sgl = chip("glucose", PURPLE, 22).move_to([CXs + 0.45, 1.1, 0])
         self.play(FadeIn(sna), FadeIn(sgl), run_time=0.4)
-        self.at("SGLT 1")
+        self.at("in the intestine")
         sl = T("SGLT1, in the intestine", 24, ORANGE).move_to([CXs, -1.9, 0])
         self.play(FadeIn(sl), run_time=0.5)
         self.at("drags glucose uphill")
@@ -497,7 +497,7 @@ class S04Secondary(Sp):
         self.play(FadeIn(na_l), Indicate(sna, color=BLUE, scale_factor=1.3), run_time=0.8)
 
         # antiporter
-        self.at("anti porters")
+        self.at("Antiporters")
         self.play(FadeIn(alab), run_time=0.4)
         self.play(Indicate(ant, color=ORANGE, scale_factor=1.08), run_time=0.6)
         self.at("opposite directions")
@@ -528,7 +528,7 @@ class S04Secondary(Sp):
         self.play(FadeIn(glab2), *[Indicate(m, color=BLUE, scale_factor=1.25) for m in out_na], run_time=1.0)
 
         # waterwheel
-        self.at("like a waterwheel")
+        self.at("like a")
         everything = VGroup(mb, out_l, in_l, sym, ant, slab, alab, out_na, in_na, sna, sgl, ana, aca, glab2, pna)
         self.play(FadeOut(everything), run_time=0.6)
         WC = np.array([0.6, 0.1, 0])
@@ -552,11 +552,11 @@ class S04Secondary(Sp):
         self.play(Rotate(wheel, angle=PI / 2, about_point=WC, rate_func=linear), run_time=1.4)
 
         # everything depends on the pump
-        self.at("Every one of them")
+        self.at("This")
         self.play(FadeOut(VGroup(wheel, cur, cl, ll)), run_time=0.5)
         chain = VGroup(chip("Na⁺–K⁺ pump (spends ATP)", RED, 28),
                        chip("sodium gradient", BLUE, 28),
-                       chip("symporters and antiporters", ORANGE, 28)).arrange(UP, buff=0.9).move_to([0, 0.0, 0])
+                       chip("sodium-coupled carriers", ORANGE, 28)).arrange(UP, buff=0.9).move_to([0, 0.0, 0])
         arrs = VGroup(*[Arrow(chain[i].get_top(), chain[i + 1].get_bottom(), color=TEXT, buff=0.1, stroke_width=6)
                         for i in range(2)])
         self.play(FadeIn(chain[0], shift=UP * 0.1), run_time=0.5)
@@ -620,7 +620,7 @@ class S05Tree(Sp):
         self.play(FadeOut(head), run_time=0.4)
         self.play(FadeIn(top, shift=DOWN * 0.1), run_time=0.5)
         self.play(GrowArrow(a0), run_time=0.3)
-        self.at("small and non polar")
+        self.at("small and nonpolar")
         self.play(FadeIn(Q1), run_time=0.6)
         self.at("it simply diffuses")
         self.play(GrowArrow(a1), FadeIn(l1), FadeIn(R1[0]), FadeIn(R1[1][0]), run_time=0.7)
@@ -637,7 +637,7 @@ class S05Tree(Sp):
         self.play(GrowArrow(a2b), FadeIn(l2b), run_time=0.6)
         self.at("active transport")
         self.play(FadeIn(Q3), run_time=0.6)
-        self.at("directly by ATP")
+        self.at("directly")
         self.play(GrowArrow(a3), FadeIn(l3), FadeIn(R3), run_time=0.9)
         self.at("indirectly by")
         self.play(GrowArrow(a3b), FadeIn(l3b), FadeIn(R4), run_time=0.9)
