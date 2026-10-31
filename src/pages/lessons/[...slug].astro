@@ -17,6 +17,7 @@ import MethodPopout from '../../components/MethodPopout.astro';
 import LessonLadder from '../../components/LessonLadder.astro';
 import SupportsSwitch from '../../components/SupportsSwitch.astro';
 import DepthLadder from '../../components/DepthLadder.astro';
+import FilmTranscript from '../../components/FilmTranscript.astro';
 import { feedbackUrl } from '../../lib/feedback';
 import { courseOf, courseHref } from '../../data/courses';
 import { methodsFor, methodHref, filmLength } from '../../data/methods';
@@ -169,6 +170,8 @@ const lessonLd = {
             <p class="explainer-h" id="explainer-h"><span class="explainer-kicker">Watch first</span> {ex.title} <span class="explainer-len">· {exLen}</span></p>
           </figcaption>
         </figure>
+        {/* The film's words as text, closed until asked for. Its own search region: see the note at the prose column. */}
+        <div data-pagefind-body><FilmTranscript captions={ex.captions} title={ex.title} id="explainer" /></div>
       </section>
     )}
 
@@ -217,11 +220,15 @@ const lessonLd = {
           that makes landmark navigation ambiguous for screen readers. */}
       <div class="lesson-main">
         {lesson.supports && <div class="prose-col"><SupportsSwitch /></div>}
-        {/* Full-text search (Pagefind, run after `astro build`; see docs/expansion/mission-2026-10/FULLTEXT_SEARCH.md).
-            This div is the ONLY thing indexed on a lesson page: the body prose, its figure captions and
-            worked sentences. The title, the course filter and the section anchors come with it; the nav, rail,
-            lightboxes, quiz and footer are outside it. Worked answers (<details>) and the answer boxes are
-            skipped by exclude_selectors in pagefind.yml. */}
+        {/* Full-text search (Pagefind, run after `astro build`; the client is src/lib/lesson-search.ts).
+            A lesson page is indexed from several regions, each marked data-pagefind-body: this prose
+            column (weight 1, the default), the film transcripts, the "Explain at my level" and story
+            dialogs, the self-test, and the "How we measure it" techniques (weights 0.5 to 0.7, so the
+            prose outranks the extras). The title and course filter ride on this div. Each extra region
+            opens with a heading whose id starts sx- (sx-level-, sx-story-, sx-q-, sx-tech-, sx-film-);
+            that id is what a search result links to, and the script below opens the dialog or fold that
+            holds it. The nav, rail, slides, 3D viewers, sources and footer are not indexed. Worked
+            answers (bare <details>) and the answer boxes are skipped by exclude_selectors in pagefind.yml. */}
         <div class="prose-col" data-pagefind-body data-pagefind-meta="title[data-lesson-title]" data-pagefind-filter="course[data-lesson-course]"
           data-lesson-title={lesson.title} data-lesson-course={lesson.course}><Content /></div>
 
@@ -229,9 +236,9 @@ const lessonLd = {
           <section class="tech-panel" id="methods">
             <h2>How we measure it</h2>
             {lesson.techniques.length > 0 && (
-              <div class="tech-grid">
-                {lesson.techniques.map((t) => (
-                  <div class="tech card orient-pad"><h3>{t.name}</h3><p>{t.blurb}</p></div>
+              <div class="tech-grid" data-pagefind-body data-pagefind-weight="0.7">
+                {lesson.techniques.map((t, i) => (
+                  <div class="tech card orient-pad"><h3 id={`sx-tech-${i}`}>{t.name}</h3><p>{t.blurb}</p></div>
                 ))}
               </div>
             )}
@@ -514,7 +521,12 @@ const lessonLd = {
     {lesson.explainLevels.map((lv) => (
       <dialog id={`lb-level-${lv.level}`} class="lightbox lock-scroll">
         <div class="lightbox-head"><span>{lv.label}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
-        <div class="lightbox-body"><div class="prose-col level-body">{paras(lv.text).map((p) => <p>{p}</p>)}</div></div>
+        <div class="lightbox-body">
+          <div class="prose-col level-body" data-pagefind-body data-pagefind-weight="0.7">
+            <h2 class="visually-hidden" id={`sx-level-${lv.level}`}>Explain at my level: {lv.label}</h2>
+            {paras(lv.text).map((p) => <p>{p}</p>)}
+          </div>
+        </div>
       </dialog>
     ))}
 
@@ -523,7 +535,10 @@ const lessonLd = {
         <div class="lightbox-head"><span>{a.title}</span><button type="button" class="lightbox-close" data-close aria-label="Close">✕</button></div>
         <div class="lightbox-body">
           {a.animation && <AnecdoteAnimation anim={a.animation} />}
-          <div class="prose-col level-body">{paras(a.text).map((p) => <p>{p}</p>)}<p class="anec-source">— {a.source}</p></div>
+          <div class="prose-col level-body" data-pagefind-body data-pagefind-weight="0.7">
+            <h2 class="visually-hidden" id={`sx-story-${i}`}>Story: {a.title}</h2>
+            {paras(a.text).map((p) => <p>{p}</p>)}<p class="anec-source">— {a.source}</p>
+          </div>
         </div>
       </dialog>
     ))}
@@ -640,6 +655,46 @@ const lessonLd = {
       window.addEventListener('resize', () => { limit = releaseAt(); syncExplore(); }, { passive: true });
     }
 
+    // Deep links from search. A result can point inside a lightbox (an "Explain at my level" text, a
+    // story, one self-test question) or inside a closed transcript fold. The hash is then opened the
+    // way the reader would: the rail button for that dialog is clicked (so its usual side effects run,
+    // such as a story's animation), a closed <details> is opened, and the spot is scrolled into view,
+    // landing on the first highlighted search word when the link carries ?pagefind-highlight=.
+    function openHashTarget() {
+      let id = '';
+      try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
+      const el = id ? document.getElementById(id) : null;
+      if (!el) return;
+      const dlg = el.closest('dialog');
+      const fold = el.closest('details');
+      if (!dlg && !fold) return;               // an ordinary heading: the browser has already scrolled to it
+      if (dlg && !dlg.open) {
+        const btn = document.querySelector<HTMLElement>(`[data-open="${dlg.id}"]`);
+        if (btn) btn.click(); else dlg.showModal();
+      }
+      const q = /^sx-q-(\d+)$/.exec(id);
+      if (q) el.closest('[data-quiz]')?.dispatchEvent(new CustomEvent('quiz-goto', { detail: Number(q[1]) }));
+      for (let d: HTMLDetailsElement | null | undefined = fold; d; d = d.parentElement?.closest('details')) d.open = true;
+      // Scroll to the section, then (once the highlighter has run) to the first marked word in it.
+      const region = (dlg ?? fold ?? el) as HTMLElement;
+      const anchor = el.classList.contains('visually-hidden') ? (el.parentElement ?? el) : el;
+      const go = (to: Element) => to.scrollIntoView({ block: 'start' });
+      // A timer, not requestAnimationFrame: frames do not run in a background tab, and the page should still land.
+      window.setTimeout(() => {
+        go(anchor);
+        if (!/[?&]pagefind-highlight=/.test(location.search)) return;
+        let tries = 0;
+        const mark = () => {
+          const m = Array.from(region.querySelectorAll<HTMLElement>('mark.pagefind-highlight')).find((x) => !x.closest('[hidden]'));
+          if (m) { m.scrollIntoView({ block: 'center' }); return; }
+          if (++tries < 20) window.setTimeout(mark, 100);
+        };
+        mark();
+      }, 30);
+    }
+    openHashTarget();
+    window.addEventListener('hashchange', openHashTarget);
+
     document.querySelectorAll<HTMLDialogElement>('dialog.lightbox').forEach((d) => {
       d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
       d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
@@ -670,6 +725,8 @@ const lessonLd = {
   </script>
 
   <style is:global>
+    /* Search results link to these headings (some inside lightboxes, under the sticky lightbox header). */
+    [id^='sx-'] { scroll-margin-top: 4.5rem; }
     mark.pagefind-highlight {
       background: color-mix(in srgb, var(--ddp-color-accent) 22%, transparent);
       color: inherit;

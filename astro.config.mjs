@@ -12,7 +12,7 @@ import { join, normalize, extname, sep } from 'node:path';
 
 // Full-text search index. Pagefind reads the built HTML, so it runs once the build has written
 // dist/ and puts its files in dist/pagefind/ (config: pagefind.yml). It is an integration, not a
-// package.json step, so the index exists however the build is started: `npm run build`,
+// package.json step, so the index (and its page map, scripts/pagefind-page-map.mjs) exists however the build is started: `npm run build`,
 // `astro build`, or a CI/Cloudflare command that calls astro directly. If Pagefind itself fails the
 // build fails; a site with no /pagefind/ would quietly fall back to title search, which is the
 // regression this is here to prevent.
@@ -25,6 +25,10 @@ const pagefindIndex = () => ({
       logger.info('indexing lesson text with Pagefind');
       const r = spawnSync('npx', ['--no-install', 'pagefind', '--site', site], { stdio: 'inherit', cwd: process.cwd() });
       if (r.status !== 0) throw new Error('Pagefind failed to build the search index (see output above).');
+      // Which lesson each Pagefind result is, so the ranking can use a result before downloading its page.
+      // Optional: without the map the search fetches the top results' pages instead (slower, same answers).
+      const m = spawnSync(process.execPath, ['scripts/pagefind-page-map.mjs', site], { stdio: 'inherit', cwd: process.cwd() });
+      if (m.status !== 0) logger.warn('Could not write dist/pagefind/page-map.json; search will fetch result pages to rank them.');
     },
   },
 });
