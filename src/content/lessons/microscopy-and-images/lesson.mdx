@@ -64,7 +64,7 @@ scientists:
       excited molecules back to the ground state by stimulated emission before they fluoresce. Only
       molecules at the dark centre of the ring are left free to glow. In 2000 Thomas Klar, Stefan
       Jakobs, Marcus Dyba, Alexander Egner and Hell reported the experiment in PNAS, using a 1.4-NA
-      oil objective. Their measured fluorescent spot was nearly spherical and about 90 to 110 nm
+      oil objective. Their depletion beam was dark at the focus but bright around it, above and below as well as to the sides, so the spot shrank along the optical axis as well as across it. Their measured fluorescent spot was nearly spherical and about 90 to 110 nm
       across. They also imaged live baker's yeast and E. coli, where the gain was smaller, which
       they attributed largely to the mismatch in refractive index between the oil optics and the
       watery cells. Following a first experimental demonstration by Klar and Hell in 1999, the paper showed that the diffraction limit could be got around in a working
@@ -136,7 +136,7 @@ techniques:
       are plotted as the final picture. Precision improves with the number of photons collected.
 
 structures:
-  - label: "Green fluorescent protein (S65T) — the genetically encoded label behind most live-cell images"
+  - label: "Green fluorescent protein (S65T) — a brighter variant of a genetically encoded label widely used in live-cell imaging"
     source: "rcsb"
     id: "1EMA"
     note: "Aequorea victoria GFP, S65T variant, X-ray crystal structure (Ormö et al., Science, 1996)"
@@ -156,7 +156,7 @@ structures:
     id: "16850"
     note: "PubChem compound record for fluorescein"
     caption: >-
-      A flat, three-ring system with many alternating double bonds absorbs blue light and emits
+      Its flat three-ring core, with many alternating double bonds, absorbs blue light and emits
       green. Coupled to an antibody, it marks where the antibody bound.
   - label: "Glutaraldehyde — the fixative that holds proteins in place for electron microscopy"
     source: "pubchem"
@@ -213,8 +213,8 @@ practiceQuestions:
       The two vesicles are closer than the resolution, so their blurred images overlap into one
       spot when the light is recorded; enlarging the file only makes that spot bigger. Smaller
       pixels after enlargement are interpolated from the same data and carry no new information.
-      Software enlargement does not sharpen anything optically. The signal is not lost, since the
-      total intensity of the spot is unchanged; it is only drawn over more screen pixels.
+      Software enlargement does not sharpen anything optically. The signal is not lost either: the
+      recorded light is still in the original file; it is only drawn over more screen pixels.
   - stem: "A researcher compares protein levels in control and treated cells by mean fluorescence intensity. In the treated images many pixels in the brightest cells sit at the camera's maximum value. What is the problem?"
     choices:
       - "The camera added extra signal to every pixel above a threshold"
@@ -267,9 +267,9 @@ mcatQuestions:
     rationale: >-
       A specific antibody should lose its signal when the target is gone; staining that survives
       deletion of the gene, with P absent on the blot, must come from binding to something else.
-      A second gene copy is ruled out because the blot shows no P. The secondary antibody is ruled
-      out by the secondary-only control, which gave no signal. Relocation after deletion is
-      impossible because the deleted cells contain no P to relocate.
+      A second gene copy is unlikely because the blot shows no P. The secondary antibody is ruled
+      out by the secondary-only control, which gave no signal. Relocation after deletion cannot
+      explain it, because the deleted cells show no P to relocate.
   - stem: "In a localization microscope, the position of an isolated fluorescent molecule is found from its blurred image. In the shot-noise-limited case, the uncertainty in position scales as 1/√N, where N is the number of photons detected. With 400 detected photons the uncertainty is 10 nm. If a brighter dye yields 1,600 detected photons under the same conditions, what is the expected uncertainty?"
     choices:
       - "5 nm, because four times the photons halves the uncertainty"
@@ -300,7 +300,7 @@ explainLevels:
       and on how wide a cone of light the lens can gather. For a good oil lens and green light it
       is a little over 200 nm, smaller than a mitochondrion but larger than most proteins.
       Enlarging the image cannot fix this. Electron microscopes use electrons, whose wavelength is
-      far shorter, and newer light microscopes switch dye molecules on and off to get around the
+      far shorter, and some newer light microscopes switch dye molecules on and off to get around the
       blur.
   - level: "college"
     label: "College"
@@ -308,7 +308,7 @@ explainLevels:
       Diffraction turns each point into an Airy pattern, and two incoherent points are said to be
       resolved (Rayleigh criterion) when one's centre falls on the other's first dark ring, at
       d = 0.61λ/NA, where λ is the emission wavelength and NA = n sin θ. Axial resolution is
-      roughly 2λn/NA², several times worse. Cameras must sample with at least two pixels per d.
+      roughly 2λn/NA², several times worse. Cameras need at least two pixels per d, and strict Nyquist sampling asks for somewhat more.
       Confocal microscopy rejects out-of-focus light but is still diffraction limited. STED shrinks
       the fluorescing region with a depletion beam, SIM recovers finer detail from patterned
       illumination, and PALM/STORM localize sparse single molecules. Electron microscopy reaches
@@ -344,13 +344,13 @@ anecdotes:
       sections. In this preparation, the structure depended on the fixation, which is why every
       new structure in an electron micrograph needs to survive a second, independent method of
       preservation.
-  - title: "A fixative that moved the protein it was meant to hold"
+  - title: "A fixative that did not hold the protein still"
     source: "Stanly et al., Biology Open (2016)"
     text: >-
       Stanly and colleagues labelled the receptor LYVE-1, overexpressed from a lentiviral vector, in primary human dermal lymphatic endothelial
-      cells with a primary antibody, then fixed them with paraformaldehyde before adding a fluorescent secondary antibody. The secondary antibody pulled the receptors into
+      cells with a primary antibody, then fixed them with paraformaldehyde before adding a fluorescent secondary antibody. The two-armed primary antibody already gathered the receptors into small clusters, and the secondary antibody pulled them into larger
       clusters, because enough of them could still move in the fixed membrane, as FRAP (fluorescence recovery after photobleaching)
-      measurements showed. Adding glutaraldehyde to the fixative prevented the clustering. The
+      measurements showed. Adding glutaraldehyde to the fixative stopped the clustering by the secondary antibody. In cells that were fixed and then permeabilised, the usual order for staining inside cells, the receptors did not move even with paraformaldehyde alone. The
       lesson they drew applies to their system and target, not to one recipe for all: fixation is
       an experimental variable, and a punctate pattern can be made by the labelling itself.
   - title: "A ruler made of DNA"
@@ -387,7 +387,7 @@ Ernst Abbe set out the theory in 1873. Fine detail sends light off at wide angle
 
 > NA = n × sin θ, where n is the refractive index of the medium between lens and sample and θ is the half-angle of the collected cone
 
-Air has n = 1.00, so a dry objective cannot reach NA 1. Immersion oil has n ≈ 1.515, which is why the best objectives are oil lenses with NA near 1.4.
+Air has n = 1.00, so a dry objective cannot reach NA 1. Immersion oil has n ≈ 1.515, which is why the highest-NA objectives are oil lenses with NA near 1.4. For thick, watery samples, a water lens that matches the sample's refractive index can give a sharper image deep in the sample.
 
 In fluorescence microscopy, the label absorbs light of one colour and emits a longer wavelength, and it is the **emission** wavelength that sets the blur. You will often read that "the light limit is 200 nm". That number means nothing until you say which wavelength, which NA, which direction (side to side or along the optical axis) and which criterion.
 
@@ -403,7 +403,7 @@ Here is a worked problem. Take an ideal widefield microscope imaging GFP-like fl
 
 **Step 1, lateral resolution.** d = 0.61 × 520 / 1.40 = 317.2 / 1.40 = 226.6 nm, about 0.23 µm.
 
-**Step 2, sampling.** A camera has to record the blur finely enough to show the dip between two points. A common introductory rule is at least two pixels per resolved distance. Here 226.6 / 100 = 2.27 pixels, which just meets the rule. With 150 nm pixels you would have 1.5 pixels per d, and the camera, not the optics, would limit what you see.
+**Step 2, sampling.** A camera has to record the blur finely enough to show the dip between two points. A common introductory rule is at least two pixels per resolved distance. Here 226.6 / 100 = 2.27 pixels, which just meets the rule. Strict Nyquist sampling is set by the finest spacing the objective can pass, λ/(2NA) = 186 nm here, and asks for pixels of about 93 nm or smaller, so 100 nm pixels slightly under-sample and careful work often uses smaller ones. With 150 nm pixels you would have 1.5 pixels per d, and the camera, not the optics, would limit what you see.
 
 **Step 3, a weaker objective.** Keep λ = 520 nm but use NA 1.00: d = 317.2 / 1.00 = 317.2 nm. Losing 0.4 in NA costs about 90 nm of resolution.
 
@@ -415,13 +415,13 @@ Here is a worked problem. Take an ideal widefield microscope imaging GFP-like fl
 
 ## Seeing more: confocal, electrons and super-resolution
 
-A widefield microscope illuminates the whole depth of the sample, so light from above and below focus adds haze, which is worst in thick, densely labelled specimens. A **confocal** microscope scans a focused spot and places a pinhole in front of the detector that blocks most out-of-focus light. Each scan is an optical section, and a stack of sections can be rebuilt into a three-dimensional cell, which is how many organelle volumes in [the previous lesson](/lessons/measured-eukaryotic-cell/) were measured. A confocal is still diffraction limited. Closing the pinhole below one Airy unit (a pinhole as wide as the central disc of the Airy pattern) buys a little resolution at a real cost in signal.
+A widefield microscope illuminates the whole depth of the sample, so light from above and below focus adds haze, which is worst in thick, densely labelled specimens. A **confocal** microscope scans a focused spot and places a pinhole in front of the detector that blocks most out-of-focus light. Each scan is an optical section, and a stack of sections can be rebuilt into a three-dimensional cell, one way to measure organelle volumes. The volumes in [the previous lesson](/lessons/measured-eukaryotic-cell/) came from other methods, such as measuring areas in electron-microscope sections. A confocal is still diffraction limited. Closing the pinhole below one Airy unit (a pinhole as wide as the central disc of the Airy pattern) buys a little resolution at a real cost in signal.
 
-**Electron microscopes** use a beam of electrons focused by magnetic lenses. At 100 kV an electron's wavelength is around 0.004 nm, yet the practical resolution in biological specimens is far coarser, limited by preparation, contrast and beam damage. Transmission EM (TEM) sends electrons through sections about 50 to 100 nm thick of fixed, dehydrated, plastic-embedded cells stained with heavy metals; it shows membranes and organelles, but each image is a two-dimensional projection of dead tissue. Scanning EM (SEM) rasters the beam over a coated surface and shows shape. Fixation can make structures that were never there. In **cryo-EM**, samples are frozen so fast that water becomes glass-like vitreous ice instead of crystals. Near-atomic cryo-EM structures come from averaging many images of purified particles, not from imaging a whole cell, although cryo-electron tomography of thinned frozen cells now shows molecules in place at lower resolution.
+**Electron microscopes** use a beam of electrons focused by magnetic lenses. At 100 kV an electron's wavelength is around 0.004 nm, yet the practical resolution in biological specimens is far coarser, limited by preparation, contrast and beam damage. Transmission EM (TEM) sends electrons through a thin specimen. In the conventional method, cells are fixed, dehydrated, embedded in plastic, cut into sections about 50 to 100 nm thick and stained with heavy metals; it shows membranes and organelles, but each image is a two-dimensional projection of dead tissue. Scanning EM (SEM) rasters the beam over a coated surface and shows shape. Fixation can make structures that were never there. In **cryo-EM**, samples are frozen so fast that water becomes glass-like vitreous ice instead of crystals. Most near-atomic cryo-EM structures come from averaging many images of purified particles. Cryo-EM of thinned frozen cells shows molecules in place, usually at lower resolution, although averaging many copies of an abundant complex such as the ribosome has now given near-atomic structures inside human cells. The whole cell is still not resolved atom by atom.
 
-<LessonFigure src="/figures/microscopy-and-images/tem-section-preparation.webp" width={1200} height={523} alt="AI-generated illustration: a four-step strip showing a cell being fixed, dehydrated and embedded in a plastic block, cut with a knife into a very thin section, and stained on a grid with an electron beam passing through it, with a dashed folded membrane pocket marked as a possible artifact." caption="For transmission EM, cells are chemically fixed, dehydrated, embedded in plastic, cut into sections about 50 to 100 nm thick and stained with heavy metals. The image is a two-dimensional projection of dead tissue, so a structure that fixation could have made must be checked with a second method." />
+<LessonFigure src="/figures/microscopy-and-images/tem-section-preparation.webp" width={1200} height={523} alt="AI-generated illustration: a four-step strip showing a cell being fixed, dehydrated and embedded in a plastic block, cut with a knife into a very thin section, and stained on a grid with an electron beam passing through it, with a dashed folded membrane pocket marked as a possible artifact." caption="For conventional thin-section transmission EM, cells are chemically fixed, dehydrated, embedded in plastic, cut into sections about 50 to 100 nm thick and stained with heavy metals. The image is a two-dimensional projection of dead tissue, so a structure that fixation could have made must be checked with a second method." />
 
-**Super-resolution** light microscopes get around diffraction by controlling which molecules glow, not by repealing it.
+**Super-resolution** light microscopes get around diffraction without repealing it. STED and PALM/STORM do it by controlling which molecules glow; SIM does it by lighting the sample with striped patterns and computing an image.
 
 - **STED.** Hell and Wichmann proposed in 1994 to add a ring-shaped beam that forces excited dye molecules back to the dark state by stimulated emission, leaving only a small centre fluorescent. In 2000 Klar, Jakobs, Dyba, Egner and Hell reported a fluorescent spot about 90 to 110 nm across, with smaller gains in live yeast and E. coli.
 - **SIM.** Structured illumination records the sample under a series of striped patterns and computes an image; Gustafsson reported in 2000 a doubling of lateral resolution.
@@ -437,7 +437,7 @@ The 2014 Nobel Prize in Chemistry went to Eric Betzig, Stefan Hell and William E
 
 A beautiful image is a measurement, and it needs the same scrutiny as a number in a table. Ask these questions in order.
 
-**What is labelled, and how do we know?** An antibody (see [the purification lesson](/lessons/protein-purification-techniques/)) can bind the wrong protein. The strongest test of specificity is genetic: the signal should disappear in cells lacking the target. A secondary-only sample checks the secondary antibody. A genetic tag such as GFP, covered in [the signalling course](/lessons/hacking-the-cell/) along with biosensors in [detecting a signal](/lessons/detecting-a-signal/), avoids antibodies but can itself change where a protein goes. Fixation can move proteins too: in primary human lymphatic endothelial cells made to overexpress the receptor, secondary antibodies clustered the receptor LYVE-1 after formaldehyde fixation until glutaraldehyde was added. The long argument over what Golgi's silver stain showed in nerve tissue, told in [the neuron doctrine](/lessons/neuron-doctrine/), was an argument about what a stain reveals.
+**What is labelled, and how do we know?** An antibody (see [the purification lesson](/lessons/protein-purification-techniques/)) can bind the wrong protein. The strongest test of specificity is genetic: the signal should disappear in cells lacking the target. A secondary-only sample checks the secondary antibody. A genetic tag such as GFP, covered in [the signalling course](/lessons/hacking-the-cell/) along with biosensors in [detecting a signal](/lessons/detecting-a-signal/), avoids antibodies but can itself change where a protein goes. Incomplete fixation can let the labelling move proteins too: in primary human lymphatic endothelial cells made to overexpress the receptor LYVE-1, antibodies pulled the receptor into clusters on unpermeabilised cells fixed with formaldehyde alone, and adding glutaraldehyde to the fixative largely prevented it. The long argument over what Golgi's silver stain showed in nerve tissue, told in [the neuron doctrine](/lessons/neuron-doctrine/), was an argument about what a stain reveals.
 
 **Are the channels clean?** Image single-label samples in every channel to measure bleed-through, where one dye's light leaks into another's filter.
 
@@ -456,6 +456,6 @@ Split it into two claims. First, that the stain is P. Ask for cells with P knock
 
 Second, that P and the marker are near each other. Ask for single-label samples to rule out bleed-through, multicolour beads to check that the channels are aligned (registered) with each other, and raw images with no saturated pixels so that any overlap coefficient is computed on real intensities.
 
-Even if all of this passes, overlap within about 200 nm laterally, and several hundred nanometres axially, shows only that both proteins are in the same small region of the same organelle. Binding needs a direct test: co-immunoprecipitation, binding of purified proteins, or a method that reports molecular proximity, followed by mutations that break the interaction and abolish the result.
+Even if all of this passes, overlap within about 200 nm laterally, and several hundred nanometres axially, shows only that both proteins are in the same small region of the same organelle. Binding needs further tests. Co-immunoprecipitation shows that the two are in the same complex, and a proximity method shows that they are very close, but neither proves direct contact. Binding of purified proteins tests that directly, and mutations that break the interaction should abolish the result without changing the protein's amount or location.
 
 </details>

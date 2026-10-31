@@ -8,7 +8,7 @@ summary: >-
   How do you tell what kinds of cells a tissue holds, and when has a tissue stopped holding its
   balance? This lesson shows how single-cell RNA sequencing turns cells into a table of counts,
   why a cluster can be a cell type, a passing state or an artifact, and how lineage tracing and
-  perturbation turn a description into a cause. It ends with normal tissue full of mutant clones
+  perturbation test what a description can only suggest. It ends with normal tissue full of mutant clones
   and the cell behaviours that decide which clones win. Afterwards you can separate a change in
   composition from a change in regulation, and design an experiment that tells faster division
   from altered daughter fate.
@@ -17,7 +17,7 @@ hook: "Most of the lining of an older person's healthy oesophagus can carry a mu
 estMinutes: 24
 objectives:
   - "Explain how single-cell RNA-seq turns cells into a count matrix that is clustered and annotated, and define cell type (a stable identity) versus cell state (variation within it, such as cycling, stress or activation)."
-  - "Name the artifacts that create or erase clusters (sampling zeros, doublets, batch effects, dissociation stress, clustering resolution and circular marker testing) and calculate how a change in composition alone shifts a bulk measurement."
+  - "Name the artifacts that create, erase or falsely support clusters (sampling zeros, doublets, batch effects, dissociation stress, clustering resolution and circular marker testing) and calculate how a change in composition alone shifts a bulk measurement."
   - "Treat a cluster or a pseudotime path as a hypothesis, and choose lineage tracing, perturbation or protein measurement (CITE-seq) to test it."
   - "Connect loss of tissue homeostasis to cancer at the level of cells: mutant clones in normal tissue, fitness through altered daughter fates, crowding-driven extrusion and competition between neighbouring clones in mouse."
 
@@ -25,7 +25,7 @@ explainer:
   src: "/explainers/cell-state-and-disease/explainer.mp4"
   captions: "/explainers/cell-state-and-disease/explainer.vtt"
   poster: "/explainers/cell-state-and-disease/poster.jpg"
-  title: "Clones Win by Fate, Not Speed"
+  title: "Notch1 Clones Win by Fate, Not Speed"
   durationSec: 172.0
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
@@ -103,7 +103,7 @@ scientists:
       caspase-3, a marker of apoptosis. Most were negative: 80% of 46 extruding cells in human
       colon sections, 88% of 160 in developing zebrafish epidermis and 67% of 300 in overgrown
       cultures of MDCK dog kidney cells. To test crowding directly, they grew MDCK monolayers on a
-      stretched silicone sheet and released it. The crowded sheets extruded living cells. In
+      stretched silicone sheet and released it. The crowded sheets extruded living cells, which then died. In
       zebrafish, knocking down Piezo1 with a photo-cleavable morpholino prevented this extrusion,
       and masses of epidermal cells formed. Those masses were not shown to be cancers. The work
       gave a mechanical route by which a tissue can match cell loss to cell gain, and a way that
@@ -124,7 +124,7 @@ techniques:
   - name: "Inducible Cre lineage tracing"
     blurb: >-
       A drug switches on Cre recombinase in a few cells, which both deletes a floxed gene (one flanked by loxP sites) such as
-      Notch1 and turns on a reporter such as YFP. Every descendant stays labelled, so the size and
+      Notch1 and turns on a reporter such as YFP. The two sites can recombine independently, so loss of the gene is checked directly, for example by staining for its protein. Every descendant stays labelled, so the size and
       makeup of each clone can be followed over weeks.
   - name: "EdU pulse and pulse-chase"
     blurb: >-
@@ -233,8 +233,8 @@ practiceQuestions:
     answer: 1
     rationale: >-
       A short EdU pulse measures the fraction of basal cells in S phase; equal labelling in
-      mutant and wild-type clones argues against faster cycling, though S-phase length could also differ, which makes altered
-      daughter fate the leading explanation. More suprabasal cells in a mutant clone follows from a bigger clone and
+      mutant and wild-type clones argues against faster cycling (though S-phase length could also differ) and points to other causes, such as altered
+      daughter fate, that a pulse-chase can test. More suprabasal cells in a mutant clone follows from a bigger clone and
       says nothing about rate. Faster division of neighbouring normal cells concerns the
       neighbours, not the mutant cells. Continued expansion with age shows that growth persists,
       not why.
@@ -265,8 +265,8 @@ mcatQuestions:
       cells were being pushed out. Apoptosis first, then exit, predicts caspase-positive
       extruding cells, the opposite of the data. A requirement for caspase-3 activation is
       contradicted by the many caspase-negative cells. Necrosis from release damage is not
-      tested by the staining, and a control sheet that is released without crowding would be
-      needed to raise it.
+      tested by the staining; a viability test of the extruded cells would be
+      needed to address it.
   - stem: "In a simple model of a progenitor pool, each division gives two progenitors (PP), one progenitor and one differentiating cell (PD), or two differentiating cells (DD). A mutation shifts the probabilities from 0.25, 0.50 and 0.25 to 0.30, 0.50 and 0.20, with no change in cycle time and no cell death. Starting from 1,000 progenitors, how many progenitors are expected after two synchronous rounds of division?"
     choices:
       - "1,200, because PP rose by 0.05 and DD fell by 0.05"
@@ -292,7 +292,7 @@ explainLevels:
   - level: "highschool"
     label: "High school"
     text: >-
-      Every cell in your body has the same genes, but each kind of cell uses a different set. By
+      Nearly every cell in your body has the same genes, but each kind of cell uses a different set. By
       reading which genes each single cell is using, scientists sort cells into groups and name
       them. A group might be a real kind of cell, a cell in a temporary condition such as
       dividing, or a mistake in the measurement. Normal tissues also contain patches of cells
@@ -318,14 +318,14 @@ explainLevels:
       sustained tilt compounds geometrically per generation even at a fixed cycle time, so
       clone fitness can come entirely from fate rather than rate. In mouse oesophagus, EdU
       tracking was consistent with such a tilt in Notch1-mutant clones, and wild-type cells at
-      their margins differentiated and left the basal layer faster; once the mutant cells
+      the margins of Notch1-null clones differentiated and left the basal layer faster; once the mutant cells
       occupied the epithelium their behaviour returned toward wild type. Spatial feedback, not a
       fixed m, keeps real tissue near balance.
 
       The descriptive side has its own inference problem. Barcoding experiments in mouse
       haematopoietic progenitors found fate biases that were not visible in transcriptomes and
-      that arose earlier than snapshot algorithms detected. An open question is what, if not the
-      transcriptome, carries that bias: chromatin state, protein levels, position, or something
+      that arose earlier than snapshot algorithms detected. An open question is what carries that bias, since the
+      measured RNA did not reveal it: chromatin state, protein levels, RNA the method missed, or something
       not yet measured.
 
 anecdotes:
@@ -346,7 +346,7 @@ anecdotes:
       was intrinsic to the clone. Yet the RNA profile of the sequenced sister did not fully
       predict it. The experiment works only because sisters share an inherited barcode; it does
       not sequence one living cell twice. Its lesson for anyone reading a trajectory plot is
-      that two cells with the same transcriptome need not have the same future.
+      that two cells that look the same by RNA sequencing need not have the same future.
   - title: "Lesions lost without dying"
     source: "Colom et al., Nature (2021), doi:10.1038/s41586-021-03965-7."
     text: >-
@@ -391,22 +391,22 @@ Think of it as a census taken by reading everyone's shopping list. You can sort 
 
 ## Type, state, or artifact?
 
-Two words matter here. A **cell type** is a stable identity, such as a basal keratinocyte or a T cell. A **cell state** is variation within that identity: cycling, stressed, activated, early or late in differentiation. A single cell type can vary a great deal in its global gene expression, and cells of one type in different states can land in separate clusters.
+Two words matter here. A **cell type** is a stable identity, such as a keratinocyte or a T cell. A **cell state** is variation within that identity: cycling, stressed, activated, early or late in differentiation. These are working definitions; where the line falls depends on the question and on how finely you look. A single cell type can vary a great deal in its global gene expression, and cells of one type in different states can land in separate clusters.
 
-So a cluster is an observation to explain, not a type by definition. Six things can create or erase one.
+So a cluster is an observation to explain, not a type by definition. Six things can create or erase one, or make one look better supported than it is.
 
 - **Sampling zeros.** Only some of a cell's RNA molecules are captured, so a count of zero does not mean the gene is off.
 - **Doublets.** One barcode can label two cells, giving a hybrid profile that looks like a new type.
 - **Batch effects.** Samples handled on different days or by different hands can differ for technical reasons and cluster apart.
 - **Dissociation stress.** Breaking up a tissue can perturb cell state before the RNA is captured.
-- **Resolution.** A clustering parameter sets the scale. Turn it up and one type splits into states; turn it down and distinct types merge.
+- **Resolution.** A clustering parameter sets the scale. Turn it up and one type can split into states, or into groups that are only noise; turn it down and distinct types merge.
 - **Circular marker testing.** If you cluster on the expression data and then test the same data for genes that differ between clusters, the P values are too small, because the clusters were drawn to differ. Markers also depend on what else is in the data set.
 
 The 2016 melanoma study of Tirosh and colleagues shows the payoff when this is done with care. Among 4,645 cells from 19 patients' tumours, malignant cells within one tumour differed in programmes associated with the cell cycle, a state rather than a separate cancer type.
 
 ## Bulk averages hide composition
 
-Before single-cell methods, you ground up the tissue and measured RNA in bulk. That measurement is an average over every cell, weighted by how many of each kind there are. A change in the average can come from a change in composition with no change in regulation in any cell.
+Before single-cell methods, you ground up the tissue and measured RNA in bulk. That measurement is an average over every cell, weighted by how many of each kind there are and, in practice, by how much RNA each kind holds. A change in the average can come from a change in composition with no change in regulation in any cell.
 
 Work it through with made-up numbers. A tissue holds cell type T, which expresses gene X at 50 units per cell, and other cells that express it at 5 units per cell. Before a treatment, T is 20% of cells. After it, T is 40%. Expression per cell does not change in either group.
 
@@ -425,7 +425,7 @@ One caution cuts the other way. If dissociation loses fragile cells preferential
 
 Software such as Monocle can arrange cells along a path and give each a pseudotime, its distance along that inferred path from the start. It is tempting to read the path as a movie of one cell maturing. It is not. Sequencing destroys each cell, so pseudotime orders different cells that were caught at different points, and its direction is a guess.
 
-Three kinds of evidence turn such a picture into a cause.
+Three kinds of evidence test such a picture. Lineage shows ancestry, perturbation tests cause, and protein checks the annotation.
 
 **Lineage.** Mark a cell and every descendant. Weinreb, Klein, Camargo and colleagues gave mouse haematopoietic progenitors inherited DNA barcodes that are expressed as RNA, sequenced some cells early and followed their sisters' progeny. Sister cells shared fate biases that the RNA profiles had not detected. In tissues, the same logic uses inducible Cre recombinase to switch on a fluorescent reporter in a few cells (see [stem cells and tissue renewal](/lessons/stem-cells/)).
 
@@ -439,13 +439,13 @@ Three kinds of evidence turn such a picture into a cause.
 
 A renewing epithelium stays the same size only if cell gain matches cell loss. In mouse oesophagus, only basal progenitor cells divide. Each division can give two progenitors (PP), two differentiating daughters (DD) or one of each (PD), and in wild-type tissue these outcomes are balanced. Differentiating cells move upward and are shed.
 
-Crowding adds a second balance. In crowded MDCK sheets and in zebrafish epidermis, Eisenhoffer, Rosenblatt and colleagues saw epithelia squeeze out living cells (see [epithelia](/lessons/epithelia/)); most extruding cells lacked the apoptosis marker active caspase-3 (see [cell death](/lessons/cell-death/)). Knocking down the stretch-activated channel Piezo1 in zebrafish blocked this extrusion and produced masses of epidermal cells.
+Crowding adds a second balance. In crowded MDCK sheets and in zebrafish epidermis, Eisenhoffer, Rosenblatt and colleagues saw epithelia squeeze out living cells (see [epithelia](/lessons/epithelia/)); most extruding cells lacked the apoptosis marker active caspase-3 (see [cell death](/lessons/cell-death/)). The extruded cells then died, having lost survival signals from the sheet. Knocking down the stretch-activated channel Piezo1 in zebrafish blocked this extrusion and produced masses of epidermal cells.
 
 <LessonFigure src="/figures/cell-state-and-disease/crowding-extrusion.webp" width={1200} height={679} alt="AI-generated illustration: a crowded epithelial sheet pushes one living cell out through its top surface; the cell lacks active caspase-3. An inset shows the stretch-activated channel Piezo1 knocked down, extrusion blocked, and a mass of cells piled on the sheet." caption="In crowded epithelia, living cells are squeezed out and most lack active caspase-3. Knocking down Piezo1 in zebrafish blocks extrusion and masses of epidermal cells form." />
 
-A mutant clone wins by tilting these balances. It need not divide faster (see [cell-cycle control](/lessons/cell-cycle-control/)). Notch signalling is linked to differentiation of squamous epithelial cells (see [Notch signalling](/lessons/notch-signaling/)). In mouse oesophagus, Abby and colleagues found in 2023 that Notch1-mutant clones expanded without a higher division rate. EdU tracking was consistent with more progenitor and fewer differentiating daughters per division, and wild-type neighbours at the clone edge differentiated faster.
+A mutant clone wins by tilting these balances. It need not divide faster (see [cell-cycle control](/lessons/cell-cycle-control/)). Notch signalling is linked to differentiation of squamous epithelial cells (see [Notch signalling](/lessons/notch-signaling/)). In mouse oesophagus, Abby and colleagues found in 2023 that clones lacking one or both copies of Notch1 expanded without a higher division rate. EdU tracking was consistent with more progenitor and fewer differentiating daughters per division. At the edges of clones lacking both copies, wild-type neighbours also differentiated faster.
 
-Neighbours also matter for tumours. In a mouse model of oesophageal carcinogenesis, Colom and colleagues found that early lesions are removed more often when the surrounding clones are highly competitive, and less often when competition is blocked with a drug. In a mouse carcinogenesis model, Abby and colleagues also found that deleting Notch1 reduced tumour growth and that a NOTCH1-blocking antibody reduced the size of established lesions. These are mouse results about mechanism, not human prevention data. Which genes push a clone toward cancer is covered in [cancer genetics](/lessons/cancer-genetics/) and [oncogenes](/lessons/oncogenes/).
+Neighbours also matter for tumours. In a mouse model of oesophageal carcinogenesis, Colom and colleagues found that early lesions are removed more often when the surrounding clones are highly competitive, and less often when competition is blocked with a drug. In a mouse carcinogenesis model, Abby and colleagues also found that deleting Notch1 reduced tumour growth and that a NOTCH1-blocking antibody reduced the size of established lesions. So in mouse, Notch1 loss helped clones spread through normal lining but slowed tumour growth, one answer to the opening puzzle. These are mouse results about mechanism, not human prevention data. Which genes push a clone toward cancer is covered in [cancer genetics](/lessons/cancer-genetics/) and [oncogenes](/lessons/oncogenes/).
 
 ### Design problem
 
@@ -454,9 +454,9 @@ Notch1-mutant clones take over mouse oesophageal epithelium. Did the mutant cell
 <details>
 <summary>One way to do it</summary>
 
-Induce sparse clones with inducible Cre that deletes Notch1 and turns on YFP, and induce wild-type YFP clones in control mice. Measure division rate with a one-hour EdU pulse: the fraction of EdU-positive basal cells inside mutant and wild-type clones. Measure fate with an EdU pulse followed by a chase: of the labelled daughters, what fraction are still basal and what fraction have moved suprabasal? Follow clone size distributions over time as well.
+Induce sparse clones with inducible Cre that deletes Notch1 and turns on YFP, and induce wild-type YFP clones in control mice. Confirm Notch1 loss in labelled clones by staining for NOTCH1 protein. Estimate division rate with a one-hour EdU pulse: the fraction of EdU-positive basal cells inside mutant and wild-type clones. Measure fate with an EdU pulse followed by a chase: of the labelled daughters, what fraction are still basal and what fraction have moved suprabasal? Follow clone size distributions over time as well.
 
-If mutants cycle faster, the EdU pulse labels more mutant basal cells. If they bias fate, the pulse labels equal fractions but more labelled mutant daughters stay basal.
+If mutants cycle faster, the EdU pulse labels more mutant basal cells. If they bias fate, the pulse need not label more cells, but after the chase more labelled mutant daughters stay basal. The pulse is only a proxy for rate: it counts cells in S phase, a number that also depends on how long S phase lasts and on how many basal cells are still cycling progenitors.
 
 A simple model shows why fate alone is enough. Expected progenitors per division are m = 2 x p(PP) + p(PD). Balanced outcomes of 0.25, 0.50 and 0.25 give m = 0.50 + 0.50 = 1.0. Biased outcomes of 0.35, 0.50 and 0.15 give m = 0.70 + 0.50 = 1.2. Starting from 100 progenitors with no death, three generations give 100 x 1.2 x 1.2 x 1.2 = 172.8 expected progenitors, with no change in cycle time. The published mouse result matched the fate answer: expansion without a higher division rate.
 

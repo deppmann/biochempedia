@@ -12,7 +12,7 @@ summary: >-
   weighs the evidence that mitochondria and plastids began as bacteria. Afterwards you can
   convert pH values into proton ratios and assign a protein to a compartment from fractionation
   profiles.
-hook: "In HeLa cells the mitochondrial matrix measured near pH 8 and the Golgi near pH 6.6. How does one cell keep both?"
+hook: "In HeLa cells the mitochondrial matrix measured near pH 8 and the medial/trans Golgi near pH 6.6. How does one cell keep both?"
 
 estMinutes: 24
 objectives:
@@ -44,7 +44,7 @@ scientists:
       Mereschkowski had argued in the early 1900s that plastids came from cyanobacteria-like
       cells, but the proposal had not become mainstream. In 1967, writing as Lynn Sagan
       in the Journal of Theoretical Biology, she gathered the evidence then available into one long
-      argument: mitochondria and plastids carry their own DNA, divide on their own and resemble
+      argument: mitochondria and plastids carry their own DNA, arise only by division of existing ones and resemble
       bacteria in their biochemistry, so each could descend from a bacterium taken in by a host.
       The same paper proposed a third partnership, that the beating flagella of eukaryotic cells
       came from spirochetes; later work did not support that part. The first two parts were
@@ -62,7 +62,7 @@ scientists:
       Tsien's laboratory at the
       University of California, San Diego built and tuned variants of green fluorescent protein
       whose brightness changes with pH. In 1998, with Juan Llopis as first author and with
-      Marilyn Farquhar's group, they fused one variant to galactosyltransferase, an enzyme that
+      Marilyn Farquhar's group, they fused one variant to the targeting region of galactosyltransferase, an enzyme that
       stays in the medial and trans Golgi, and aimed another at the mitochondrial matrix. They
       checked where each reporter went, then calibrated it inside the cells with ionophores that
       clamp the compartment to a known pH. In HeLa cells the Golgi read 6.58, and the matrix was
@@ -77,8 +77,8 @@ scientists:
     profileSourceAnchor: "Itzhak, Tyanova, Cox & Borner, eLife 5:e16950 (2016); Itzhak et al., Cell Reports (2017)."
     quotes: []
     story: >-
-      Classical fractionation named a pellet after the organelle that was richest in it. Borner's
-      group asked a different question: across a whole series of fractions, which known marker
+      De Duve's group had already located enzymes by comparing their spread across fractions, and the Mann lab brought mass spectrometry to the method in 2003. Borner's
+      group scaled the question up: across a whole series of fractions, which known marker
       does an unknown protein travel with? In the 2016 eLife paper, with Daniel Itzhak as first
       author, a reference made from HeLa cells grown with heavy-isotope amino acids was measured
       alongside every fraction, so mass spectrometry could compare each fraction with the same
@@ -122,7 +122,7 @@ techniques:
     blurb: >-
       Reporters such as CY-RL7 or Grx1-roGFP2 change their fluorescence with their own oxidation
       state. Aimed at the ER, the cytosol or the matrix, they show which compartments are
-      oxidizing and which are reducing, and how quickly each recovers from an oxidant.
+      oxidizing and which are reducing, and how quickly each recovers from an oxidant. Each reporter reads only a limited range of one redox couple, so the probe must suit the compartment; CY-RL7 was built for the oxidizing ER.
   - name: "Fractionation profiling against organelle markers"
     blurb: >-
       Broken cells are separated into a series of fractions, and the amount of each protein in
@@ -278,7 +278,7 @@ mcatQuestions:
     rationale: >-
       Endosymbiotic gene transfer explains a nuclear gene whose product works in mitochondria and
       whose sequence groups with alphaproteobacteria: the gene began in the bacterial ancestor and
-      moved to the host genome. Independent evolution toward a bacterial-like sequence would not
+      moved to the host genome. Independent evolution toward a bacterial-like sequence would be unlikely to
       give a whole-sequence grouping with one bacterial group. The host making it and passing it
       to bacteria reverses the direction the tree supports. Mitochondria do not import proteins
       from living bacteria; the protein is made in the same cell.
@@ -303,14 +303,14 @@ explainLevels:
   - level: "college"
     label: "College"
     text: >-
-      Each lumen is a steady state between pumping and leak. The V-ATPase pumps protons into
+      Each ion gradient across an organelle membrane is a steady state between pumping and leak. The V-ATPase pumps protons into
       endosomes, lysosomes and the Golgi (pH 6.58 in the HeLa medial/trans Golgi; 4.5 to 5.0 in
       mammalian lysosomes), and needs counterion movement to keep going. SERCA fills the ER to
       about 0.5 to 1 mM free Ca2+ against about 100 nM in the cytosol. The ER is oxidizing yet near
       neutral, and the HeLa matrix is alkaline (about 7.98) because the respiratory chain pumps
       protons out. Location is assigned by matching a protein's fractionation profile to marker
       profiles. Mitochondrial rRNA groups with bacteria and plastids with cyanobacteria, and much
-      of each ancestral genome moved to the nucleus.
+      of each ancestral genome was lost or moved to the nucleus.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -319,9 +319,9 @@ explainLevels:
       buffered proton content or flux. Redox is couple-specific: in yeast the cytosolic and matrix
       glutathione potentials were both near −300 mV, and the IMS pool equilibrated with the cytosol
       through porins but not appreciably with the matrix. Spatial proteomics (LOPIT, organellar
-      maps) treats localization as classification of profiles, and leaves multi-localized
-      proteins unassigned rather than forcing them into a class. On origins, composition-aware
-      models place mitochondria as sister to sampled Alphaproteobacteria, and Gloeomargarita is
+      maps) treats localization as classification of profiles. A multi-localized protein gives a mixed
+      profile, which may be assigned to its most likely compartment with a secondary location noted, or left unclassified. On origins, composition-aware
+      models in one 2022 analysis placed mitochondria as sister to sampled Alphaproteobacteria, though other analyses disagree and the exact branch is still debated; Gloeomargarita is
       the closest cultured relative of primary plastids. Open question: what sets the different
       steady-state pH of each compartment along the endocytic route, given that one pump family
       acidifies them all?
@@ -375,7 +375,7 @@ draft: false
 import CompartmentPhRatio from '../../../components/CompartmentPhRatio.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In cultured HeLa cells, the inside of the mitochondrion measured close to pH 8.0 and the Golgi close to pH 6.6. In mammalian cells the lysosome sits at pH 4.5 to 5.0. All three share one cytosol.**
+**In cultured HeLa cells, the inside of the mitochondrion measured close to pH 8.0 and the medial and trans Golgi close to pH 6.6. In mammalian cells the lysosome sits at pH 4.5 to 5.0. All three share one cytosol.**
 
 That spread is larger than it looks, because pH is a logarithm. A cell keeps compartments that differ a thousandfold or more in free protons, and others that differ several thousandfold in free calcium, side by side. This lesson asks how it does that, what each compartment keeps, how you would find out where an unknown protein lives, and why two of these compartments carry their own DNA.
 
@@ -383,7 +383,7 @@ That spread is larger than it looks, because pH is a logarithm. A cell keeps com
 
 Think of a building in which every room has its own thermostat. The walls do not make a room warm. They slow the loss of heat, so a heater can hold the room at a set point. An organelle works the same way. Its **lumen**, the space enclosed by its membrane, is kept different from the **cytosol**, the fluid part of the cell outside all organelles, by pumps in the membrane working against leak.
 
-The wall here is the lipid bilayer, which ions cross only slowly unless a channel or carrier lets them through (see [the lesson on membrane transport](/lessons/membrane-transport/)). Every luminal difference you meet below is therefore a steady state. It lasts only as long as a pump keeps paying, usually in ATP. Stop the pump and the difference runs down.
+The wall here is the lipid bilayer, which ions cross only slowly unless a channel or carrier lets them through (see [the lesson on membrane transport](/lessons/membrane-transport/)). The ion differences you meet below are therefore steady states. Each lasts only as long as a pump keeps paying, in ATP or, in mitochondria and chloroplasts, in electron transport. Stop the pump and the difference runs down. Redox differences are also steady states, but they are kept by ongoing reactions rather than by a pump.
 
 Why bother? Because different jobs need different chemistry. Lysosomal hydrolases such as the protease cathepsin D work best in acid. Disulfide bonds form in an oxidizing lumen. A calcium store is useful only if its calcium is far above the cytosol's, so that opening a channel sends a signal (that release is covered in [the lesson on calcium signalling](/lessons/calcium-signaling/)). And ATP synthesis in the mitochondrion depends on a proton gradient across the inner membrane (see [oxidative phosphorylation](/lessons/oxidative-phosphorylation/)).
 
@@ -406,7 +406,7 @@ Here is what has been measured. Each value keeps its source, because the map com
 
 The nucleus shares much of the cytosol's ionic chemistry, because its envelope is perforated by pores through which small ions pass freely.
 
-Two traps sit in this table. First, not every organelle is acidic. The ER is near neutral, and the matrix is alkaline. Second, oxidizing does not mean acidic. In cultured CHO and HCT116 cells, a redox reporter called CY-RL7 was about 88% oxidized in the ER lumen and fully reduced in the cytosol, while the ER's pH stays near neutral. Redox describes electrons; pH describes protons.
+Two traps sit in this table. First, not every organelle is acidic. The ER is near neutral, and the matrix is alkaline. Second, oxidizing does not mean acidic. In cultured CHO cells, a redox reporter called CY-RL7 was about 88% oxidized in the ER lumen and fully reduced in the cytosol, while the ER's pH stays near neutral. Redox describes electrons; pH describes protons.
 
 Redox also depends on which chemical couple you measure. In budding yeast, a reporter coupled to glutathione estimated the cytosol at about −306 mV and the matrix at about −301 mV, so the matrix pool was strongly reducing even though mitochondria make reactive oxygen species. In the same yeast study, the glutathione pool of the intermembrane space exchanged with the cytosol through porins, but no appreciable exchange with the matrix was detected. In mammalian cultured cells, the redox state of the peroxisome depended strongly on growth conditions. No reliable peroxisomal pH is given here, so none is stated.
 
@@ -418,7 +418,7 @@ Redox also depends on which chemical couple you measure. In budding yeast, a rep
 
 1. Subtract: 7.98 − 6.58 = 1.40.
 2. Raise ten to that power: 10^1.40 = 25.1.
-3. Check by computing each side, treating activity as concentration: 10^−6.58 = 2.63 × 10^−7 M (0.263 µM) and 10^−7.98 = 1.05 × 10^−8 M (0.0105 µM). Then 0.263 / 0.0105 = 25.1.
+3. Check by computing each side, treating activity as concentration: 10^−6.58 = 2.63 × 10^−7 M (0.263 µM) and 10^−7.98 = 1.05 × 10^−8 M (0.0105 µM). Then 0.263 / 0.0105 ≈ 25, the same answer within rounding.
 
 The Golgi lumen has about 25 times the free proton activity of the matrix. This is free activity only. It says nothing about the total protons held by buffers or how fast protons move.
 
@@ -453,11 +453,11 @@ A pump that sets one gradient need not set another. In one HEK293 assay, the lys
 
 Mitochondria and plastids differ from most other organelles in having their own DNA and ribosomes, inside two envelope membranes (three or four around some algal plastids). The idea that they descend from bacteria taken into a host cell was proposed for plastids by Konstantin Mereschkowski early in the twentieth century. In 1967, writing as Lynn Sagan, Lynn Margulis assembled the case for both organelles. Her further proposal that eukaryotic flagella came from spirochetes has not been supported.
 
-Molecular sequences tested the idea. Trees of mitochondrial ribosomal RNA placed mitochondrial sequences within the Bacteria rather than with archaea or the eukaryotic cytosol, and later protein data pointed to the Alphaproteobacteria. A 2022 analysis of 108 mitochondrial proteins, using a model that allows for changes in amino-acid composition across sites and branches, favoured mitochondria as sister to the Alphaproteobacteria, excluding two related lineages (MarineProteo1 and Magnetococcia), rather than inside any living group. For plastids, phylogenomic analyses supported a cyanobacterial origin, and in 2017 the closest cultured relative was *Gloeomargarita lithophora*. That species is a cousin of the plastid line, not its ancestor.
+Molecular sequences tested the idea. Trees of mitochondrial ribosomal RNA placed mitochondrial sequences within the Bacteria rather than with archaea or the eukaryotic cytosol, and later protein data pointed to the Alphaproteobacteria. A 2022 analysis of 108 mitochondrial proteins, using a model that allows for changes in amino-acid composition across sites and branches, favoured mitochondria as sister to the Alphaproteobacteria, excluding two related lineages (MarineProteo1 and Magnetococcia), rather than inside any living group. Other analyses have placed mitochondria inside the Alphaproteobacteria, near the Rickettsiales, or deeper still, so the exact branch is still debated. For plastids, phylogenomic analyses supported a cyanobacterial origin, and in 2017 the closest cultured relative was *Gloeomargarita lithophora*. That species is a cousin of the plastid line, not its ancestor.
 
-The genomes tell the rest. Much of the ancestral mitochondrial genome moved to the nucleus by endosymbiotic gene transfer, so most mitochondrial proteins are now made in the cytosol and imported (see [protein sorting](/lessons/protein-sorting/)). The modern mitochondrial proteome is a mosaic, with many proteins of origins outside the Alphaproteobacteria. Nor are mitochondrial genomes all circles: that of *Proteromonas lacertae* is linear. Peroxisomes, by contrast, have no genome; they share the work of breaking down fatty acids with mitochondria (see [fatty acid degradation](/lessons/fatty-acid-degradation/)).
+The genomes tell the rest. Many ancestral mitochondrial genes were lost, and many others moved to the nucleus by endosymbiotic gene transfer. Most mitochondrial proteins are now encoded in the nucleus, made in the cytosol and imported (see [protein sorting](/lessons/protein-sorting/)). The modern mitochondrial proteome is a mosaic, with many proteins of origins outside the Alphaproteobacteria. Nor are mitochondrial genomes all circles: that of *Proteromonas lacertae* is linear. Peroxisomes, by contrast, have no genome; they share the work of breaking down fatty acids with mitochondria (see [fatty acid degradation](/lessons/fatty-acid-degradation/)).
 
-<LessonFigure src="/figures/organelles-as-environments/endosymbiosis-gene-transfer.webp" width={1200} height={789} alt="AI-generated illustration: a cell cut-away with a nucleus and a mitochondrion that has two envelope membranes, its own DNA and ribosomes. An arrow shows much of its genome moved to the nucleus, and another shows proteins made in the cytosol being imported. A small inset shows a plastid with the same features." caption="Mitochondria and plastids keep their own DNA and ribosomes inside two envelope membranes (more around some algal plastids), but much of the ancestral genome moved to the nucleus, so most mitochondrial proteins are made in the cytosol and imported. The DNA is drawn as a loop for simplicity; some mitochondrial genomes are linear." />
+<LessonFigure src="/figures/organelles-as-environments/endosymbiosis-gene-transfer.webp" width={1200} height={789} alt="AI-generated illustration: a cell cut-away with a nucleus and a mitochondrion that has two envelope membranes, its own DNA and ribosomes. An arrow shows much of its genome moved to the nucleus, and another shows proteins made in the cytosol being imported. A small inset shows a plastid with the same features." caption="Mitochondria and plastids keep their own DNA and ribosomes inside two envelope membranes (more around some algal plastids), but much of the ancestral genome was lost or moved to the nucleus, and most mitochondrial proteins are made in the cytosol and imported. The DNA is drawn as a loop for simplicity; some mitochondrial genomes are linear." />
 
 ### Design problem
 
@@ -468,11 +468,11 @@ You suspect that a protein lives in the lysosome lumen and needs low pH to work.
 
 Start by confirming the environment. Express a pH reporter targeted to lysosomes, calibrate it in the cells with ionophores, and check that it reads in the expected acid range for your cell type.
 
-Next, place the protein. Fractionate the cells and compare its profile with at least two lysosomal markers, such as cathepsin D, and with markers of nearby compartments. Test latency: if the protein is inside the lumen, its activity on an external substrate should rise when membranes are opened with detergent. Confirm by imaging against a lysosomal marker in intact cells.
+Next, place the protein. Fractionate the cells and compare its profile with at least two lysosomal markers, such as cathepsin D, and with markers of nearby compartments. Test latency: if the protein is inside the lumen, its activity on an added substrate that cannot cross the membrane should rise when membranes are opened with detergent, provided detergent does not change the protein's own activity. Imaging against a lysosomal marker in intact cells shows that the protein is at lysosomes but not that it is inside them; a protease-protection test on isolated lysosomes, with and without detergent, tests the lumen.
 
 <LessonFigure src="/figures/organelles-as-environments/latency-sealed-enzyme.webp" width={1200} height={615} alt="AI-generated illustration: two lysosomes side by side. On the left the membrane is intact and external substrate cannot reach the enzyme inside; on the right the membranes are opened with detergent and the substrate reaches the enzyme, producing product." caption="Latency as a test of location. An enzyme sealed inside a lumen cannot act on a substrate outside; when detergent opens the membranes its activity rises." />
 
-Then test the pH requirement. Add bafilomycin A1 to block the V-ATPase, and measure both the rise in lysosomal pH and the protein's activity over time. Include a control showing that bafilomycin has not simply stopped the protein from reaching lysosomes, for example that its amount in the lysosomal fraction is unchanged. A stronger test measures the purified protein's activity across a pH range in vitro.
+Then test the pH requirement. Add bafilomycin A1 to block the V-ATPase, and measure both the rise in lysosomal pH and the protein's activity over time. Include a control showing that bafilomycin has not simply stopped the protein from reaching lysosomes, for example that its amount in the lysosomal fraction is unchanged. In fly cells bafilomycin also inhibits SERCA, so repeat the test with a second way of raising lysosomal pH, such as depleting a V-ATPase subunit. A stronger test measures the purified protein's activity across a pH range in vitro.
 
 Keep the language of evidence. Activity that falls as pH rises is a correlation; the in vitro pH curve and a rescue (restoring activity by restoring acidity) are what argue for cause.
 

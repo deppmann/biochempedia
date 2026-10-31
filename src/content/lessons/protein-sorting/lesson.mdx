@@ -7,8 +7,8 @@ order: 407
 summary: >-
   Almost every protein in a eukaryotic cell is made in the cytosol, yet thousands of them end up
   inside the ER, mitochondria, chloroplasts or peroxisomes. This lesson shows how short stretches
-  of the protein's own sequence act as addresses, how the ER reads its address while the chain is
-  still being made, and how the other organelles read theirs after the chain is finished.
+  of the protein's own sequence act as addresses, how the ER usually reads its address while the chain is
+  still being made, and how the other organelles mostly read theirs after the chain is finished.
   Afterwards you can predict where a protein goes from its signals, and what happens when a
   signal is moved, deleted or added to a passenger protein.
 hook: "Made in a test tube with no membranes, a secretory protein comes out longer than the one the cell secretes. Why?"
@@ -88,7 +88,7 @@ scientists:
       the fusion protein reached the matrix. The experiment showed that this stretch was
       sufficient to send a passenger there; it did not show that all 53 residues were needed. In
       1986 Eilers and Schatz added methotrexate, a drug that binds DHFR tightly and
-      holds it folded. The fusion protein no longer entered, while the authentic precursor still
+      holds it folded. A presequence-DHFR fusion no longer entered, while the authentic precursor still
       did, and the authors concluded that the passenger has to unfold at least partly to cross.
       Together the two papers turned DHFR fusions into a standard tool for asking what a
       mitochondrial signal does and what state the cargo must be in.
@@ -122,8 +122,8 @@ techniques:
   - name: "Salt extraction and add-back"
     blurb: >-
       Membranes are washed in high salt to strip loosely bound proteins, tested for a lost
-      activity, then given back a purified candidate factor. If the factor restores the activity,
-      it is what the wash removed. This is how SRP was shown to be the selective ribosome-binding
+      activity, then given back a purified candidate factor. If a factor purified from the wash restores the activity,
+      it is a strong candidate for what the wash removed. This is how SRP was shown to be the selective ribosome-binding
       activity.
   - name: "Import into isolated organelles"
     blurb: >-
@@ -188,7 +188,7 @@ practiceQuestions:
     rationale: >-
       An ER signal sequence is a hydrophobic stretch, usually near the amino terminus, that SRP
       binds as it leaves the ribosome. An amphipathic helix with positive charges on one face is
-      the pattern of a mitochondrial matrix presequence, read after translation by TOM. A
+      the pattern of a mitochondrial matrix presequence, usually read after translation by TOM. A
       carboxyl-terminal SKL is the PTS1 peroxisomal signal read by PEX5. An internal cluster of
       basic residues describes a nuclear localization signal, which works through nuclear pores,
       not the ER.
@@ -299,7 +299,7 @@ explainLevels:
     label: "Like I'm five"
     text: >-
       A cell is like a city with many buildings, and almost every protein is built in the open
-      street. Each protein that belongs inside a building carries a short address written in its
+      street. Most proteins that belong inside a building carry a short address written in their
       own chain. Workers at each building read the address and let the right proteins in. A
       protein with no address stays out in the street.
   - level: "highschool"
@@ -307,12 +307,12 @@ explainLevels:
     text: >-
       Proteins are made by ribosomes in the cytosol, the watery inside of the cell. Some must end
       up inside the endoplasmic reticulum, the mitochondria, the chloroplasts or the peroxisomes.
-      Each of those proteins carries a short signal in its amino-acid sequence. For the ER, a
+      Most of those proteins carry a short signal in their amino-acid sequence. For the ER, a
       particle called SRP grabs the signal while the protein is still being made and steers the
       ribosome to a channel in the ER membrane. For mitochondria, chloroplasts and peroxisomes, the
-      protein is finished first, and receptors on the organelle recognise its signal and pull it
-      in. If you cut off a signal, the protein stays in the cytosol; if you add a signal to
-      another protein, it goes where the signal says.
+      protein is usually finished first, and receptors recognise its signal and bring it
+      in; for peroxisomes the receptor first finds the cargo in the cytosol. If you cut off a signal, the protein usually stays in the cytosol; if you add a signal to
+      another protein, it often goes where the signal says.
   - level: "college"
     label: "College"
     text: >-
@@ -388,7 +388,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Made in a test tube with no membranes, a secretory protein comes out longer than the one the cell secretes.**
 
-In 1971 Günter Blobel and David Sabatini proposed that proteins bound for the ER carry a signal that sends the ribosome making them to the membrane. In 1972 César Milstein's group translated the messenger RNA for an antibody light chain in a cell-free system and got a product slightly larger than the light chain that myeloma cells secrete, which they proposed was a precursor. In 1975 Blobel and Bernhard Dobberstein tested the idea directly: the extra piece is an address, read while the chain is still on the ribosome, and cut off once the protein has arrived. This lesson is about such addresses: what they look like, who reads them, and what happens when you move one.
+In 1971 Günter Blobel and David Sabatini proposed that proteins bound for the ER carry a signal that sends the ribosome making them to the membrane. In 1972 César Milstein's group translated the messenger RNA for an antibody light chain in a cell-free system and got a product slightly larger than the light chain that myeloma cells secrete, which they proposed was a precursor. In 1975 Blobel and Bernhard Dobberstein tested the idea directly: the extra piece is an address, read while the chain is still on the ribosome, and cut off as the growing chain enters the ER. This lesson is about such addresses: what they look like, who reads them, and what happens when you move one.
 
 ## The idea: a zip code in the sequence
 
@@ -398,8 +398,8 @@ The cell solves this with a **signal sequence**: a continuous stretch of amino a
 
 The signals differ by destination, and so does the timing:
 
-- **ER**: a hydrophobic stretch, usually near the amino terminus, read *while the chain is being made* (cotranslational).
-- **Mitochondrial matrix**: an amino-terminal presequence that tends to form an **amphipathic helix**, with positive charges on one face and hydrophobic residues on the other (see [protein structure](/lessons/protein-3d-structure/)). Read *after* translation.
+- **ER**: a hydrophobic stretch, usually near the amino terminus, most often read *while the chain is being made* (cotranslational). Some proteins, especially in yeast, cross after translation through Sec61 with its partners Sec62 and Sec63.
+- **Mitochondrial matrix**: an amino-terminal presequence that tends to form an **amphipathic helix**, with positive charges on one face and hydrophobic residues on the other (see [protein structure](/lessons/protein-3d-structure/)). Mostly read *after* translation.
 - **Chloroplast stroma**: an amino-terminal transit peptide, read after translation.
 - **Peroxisomal matrix**: usually a carboxyl-terminal tripeptide such as serine-lysine-leucine (SKL), called PTS1, or less often an amino-terminal PTS2. Read after translation.
 
@@ -411,8 +411,8 @@ Ribosomes and translation belong to [the genetic code and translation](/lessons/
 
 1. **Recognition.** The **signal recognition particle (SRP)**, a complex of six proteins and an RNA, binds the hydrophobic signal as it emerges from the ribosome. In 1981 Peter Walter and Blobel showed, translating preprolactin in a wheat germ cell-free system, that SRP made elongation stop at a chain of about 70 residues: the 30-residue signal plus roughly 40 residues hidden inside the ribosome. Those numbers belong to preprolactin in that system; in reticulocyte lysate SRP was later found to cause only a transient pause (Wolin & Walter, J Cell Biol 109:2617, 1989).
 2. **Docking.** The SRP-ribosome complex binds the **SRP receptor** on the ER membrane. Walter and Blobel found that washing dog-pancreas ER vesicles in salt removed their ability to bind ribosomes making prolactin, and purified SRP restored it. In 1982 Reid Gilmore, Walter and Blobel used SRP as bait to isolate a 72,000-dalton receptor protein.
-3. **Handover.** SRP and its receptor both carry GTP-binding subunits. With GTP bound they hold together and pass the ribosome to the **Sec61 channel**, the pore through which the chain enters the ER. GTP hydrolysis then separates SRP from its receptor, and elongation resumes with the chain threading through. A 2016 structure of an active Sec61 showed the signal sitting in the channel's lateral gate after displacing one of its helices.
-4. **Cleavage.** **Signal peptidase** on the lumenal side cuts off the signal. It is a different enzyme from the SRP receptor: the 1982 affinity column separated the two activities.
+3. **Handover.** SRP and its receptor both carry GTP-binding subunits. With GTP bound they hold together and pass the ribosome to the **Sec61 channel**, the pore through which the chain enters the ER. Elongation resumes with the chain threading through, and GTP hydrolysis then separates SRP from its receptor so both can be used again. A 2016 structure of an active Sec61 showed the signal sitting in the channel's lateral gate after displacing one of its helices.
+4. **Cleavage.** For secretory proteins such as preprolactin, **signal peptidase** on the lumenal side cuts off the signal. Many membrane proteins instead keep an uncleaved signal that stays in the membrane as an anchor. Signal peptidase is a different enzyme from the SRP receptor: the 1982 affinity column separated the two activities.
 
 The GTP step works as a timer. A complex that commits only with GTP bound, and comes apart only when GTP is hydrolysed, can wait until the ribosome is safely on Sec61 before letting go.
 
@@ -448,13 +448,13 @@ SRP is not the only road. In budding yeast, rapid SRP depletion in 2018 left man
 
 ## After translation: mitochondria, chloroplasts, peroxisomes
 
-The other organelles mostly read finished, released chains, although in human cells nearly a fifth of mitochondrial proteins can be imported while still being made. Each needs a receptor at the outer surface, a way across, and a source of energy, and they differ in whether the cargo must unfold.
+The other organelles mostly read finished, released chains, although in human cells nearly a fifth of mitochondrial proteins can be imported while still being made. Each needs a receptor for its signal, either in the outer membrane or free in the cytosol, a way across, and a source of energy, and they differ in whether the cargo must unfold.
 
 **Mitochondria.** A matrix protein's presequence is recognised by the **TOM complex** of the outer membrane and passed to the **TIM23 complex** of the inner membrane. Two energy sources drive it: the membrane potential across the inner membrane, which pulls on the positively charged presequence, and ATP used by mitochondrial Hsp70 in the matrix motor. Many presequences are then cut off. The cargo must unfold. In 1986 Eilers and Schatz showed that methotrexate, which holds a presequence-DHFR fusion folded, blocked its import. Two cautions. Metabolite carriers of the inner membrane have internal signals and use a separate **TIM22** route. And a 2023 study of the yeast complex placed the protein-conducting path in Tim17, not in Tim23 as older diagrams show.
 
 <LessonFigure src="/figures/protein-sorting/mito-import-needs-unfolding.webp" width={1200} height={800} alt="AI-generated illustration: a cutaway of the two mitochondrial membranes with TOM in the outer and TIM23 in the inner membrane. A precursor protein threads through as an unfolded chain, its gold presequence already in the matrix, pulled by the membrane potential and gripped by Hsp70 with ATP. An inset shows a methotrexate-locked folded passenger stuck at TOM." caption="A matrix protein crosses the outer and inner membranes as an unfolded chain, pulled in by the membrane potential and ATP-driven Hsp70. When methotrexate holds the DHFR passenger folded, import stops (Eilers and Schatz, 1986). The protein-conducting path itself may lie in Tim17 rather than Tim23, so the TIM23 block here is only a label." />
 
-**Chloroplasts.** Transit peptides are read by **TOC** in the outer envelope and **TIC** in the inner. In 1978 Nam-Hai Chua and Gregory Schmidt showed that finished precursors of the Rubisco small subunit from pea and spinach, 4,000 to 5,000 daltons larger than the mature protein, entered purified intact chloroplasts and were processed. In that paper the precursor from the alga *Chlamydomonas* did not enter those higher-plant chloroplasts, but a later study (Mishkind, Wessler and Schmidt, 1985) found that the algal precursor is imported efficiently by spinach and pea chloroplasts, so the negative result did not hold. Recent structures implicate an ATP-driven motor, Ycf2-FtsHi, at the inner envelope.
+**Chloroplasts.** Transit peptides are read by **TOC** in the outer envelope and **TIC** in the inner. In 1978 Nam-Hai Chua and Gregory Schmidt showed that finished precursors of the Rubisco small subunit from pea and spinach, 4,000 to 5,000 daltons larger than the mature protein, entered purified intact chloroplasts and were processed. In that paper the precursor from the alga *Chlamydomonas* did not enter those higher-plant chloroplasts, but a later study (Mishkind, Wessler and Schmidt, 1985) found that the algal precursor is imported efficiently by spinach and pea chloroplasts, so the negative result did not hold. Import uses GTP bound by the TOC receptors and ATP in the stroma, where chaperones such as Hsp70 and Hsp93 have long been proposed as the motor. Recent structures implicate another ATP-driven motor, Ycf2-FtsHi, at the inner envelope, and which motor does most of the work is still debated.
 
 **Peroxisomes.** PTS1 cargo is bound in the cytosol by the receptor **PEX5**; PTS2 cargo by **PEX7**. Peroxisomes break the unfolding rule: in 1995 Walton, Hill and Subramani found that mammalian peroxisomes imported proteins held folded by cross-links, and even gold particles coated with signal-bearing protein. In *Xenopus* egg extracts in 2022, PEX5 went all the way into the lumen with its cargo, and was unfolded when pulled back out. Insertion of loaded receptor has been described as ATP-independent, but recycling PEX5 needs ubiquitin and ATP, so sustained import is not free.
 
@@ -475,8 +475,8 @@ Protein Y has an amino-terminal amphipathic helix and ends in SKL. Where does it
 
 Predict first. The amino-terminal helix looks like a matrix presequence and SKL is a PTS1, so Y could go to mitochondria, peroxisomes or both. The presequence emerges first and, if accessible, may win. Treat that as a hypothesis.
 
-Build four GFP fusions: full-length Y, Y without the helix, Y without SKL, and Y without both. Image each in cultured cells with a mitochondrial marker and a peroxisomal marker, and score colocalization. Expect the double deletion in the cytosol. If deleting the helix moves Y to peroxisomes and deleting SKL leaves it in mitochondria, each signal works and the helix dominates in the full protein.
+Build four GFP fusions: full-length Y, Y without the helix, Y without SKL, and Y without both. Put GFP where it hides neither signal, for example just after the helix, so the helix stays at the amino end and SKL stays at the free carboxyl end. Image each in cultured cells with a mitochondrial marker and a peroxisomal marker, and score colocalization. Expect the double deletion in the cytosol. If deleting the helix moves Y to peroxisomes and deleting SKL leaves it in mitochondria, each signal works and the helix dominates in the full protein.
 
-Then test import directly. Incubate radiolabelled Y with isolated mitochondria, with and without an uncoupler, and treat with protease. Protected, processed Y that disappears with the uncoupler means true matrix import, not sticking to the surface. A similar protease test on isolated peroxisomes checks the SKL route.
+Then test import directly. Incubate radiolabelled Y with isolated mitochondria, with and without an uncoupler, and treat with protease. Protected, processed Y that disappears with the uncoupler means import, not sticking to the surface. To show it reached the matrix, open the outer membrane by swelling and repeat the protease test. A similar protease test on isolated peroxisomes checks the SKL route.
 
 </details>
