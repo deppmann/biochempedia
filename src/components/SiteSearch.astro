@@ -1,19 +1,22 @@
 ---
 /**
- * Search across every course, or inside one. Two layers, both static:
+ * Search across every course, or inside one. Two layers, both static, merged into ONE ranked
+ * list of lessons by src/lib/lesson-search.ts (read its header for the ranking):
  *
  *  1. The small title index (/search-index.json: titles, hooks, objectives,
  *     headings, names). Fetched the first time the box is used; it answers the
  *     first keystrokes at once.
  *  2. The full text of every lesson, through Pagefind (/pagefind/, built by
- *     `npm run build` after `astro build`). Pagefind loads a small entry file and
- *     then only the index chunks and page fragments a query needs, so a phone
- *     never downloads the whole text. Hits show a highlighted snippet and link to
- *     the section they come from. If /pagefind/ is missing (for example in
- *     `astro dev` before any build) the box quietly stays a title search.
+ *     `npm run build` after `astro build`): the prose, the "Explain at my level"
+ *     texts, the stories, the self-test, the "How we measure it" blurbs and the film
+ *     transcripts. Pagefind loads a small entry file and then only the index chunks and
+ *     page fragments a query needs, so a phone never downloads the whole text. If
+ *     /pagefind/ is missing (for example in `astro dev` before any build) the box
+ *     quietly stays a title search.
  *
- * Results are lessons, each with the section headings that matched, linked to
- * that section.
+ * When the text answers, the list is re-ranked once (not on every keystroke after that
+ * settles). Each result is a lesson with up to three spots where the words were found,
+ * labelled for where they are and linked there with the words highlighted.
  *
  * `scope` preselects a course; the chips let the reader widen it again.
  * `autofocus` is for the search page, where the box is the point of the page.
@@ -41,94 +44,45 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
   <div class="ss-scope" role="group" aria-label="Where to search" hidden></div>
   <p class="ss-status" role="status" aria-live="polite"></p>
   <ol class="ss-results"></ol>
-  <h2 class="ss-sec" hidden>Also in the lesson text</h2>
-  <ol class="ss-results ss-results-text"></ol>
-  <button type="button" class="ss-more" hidden>Show more matches in the lesson text</button>
+  <button type="button" class="ss-more" hidden>Show more lessons</button>
 </div>
 
 <script>
-  interface Rec { s: string; c: string; n: number; t: string; u: string; k: string; h: string; x: string; g: [string, string][] }
-  interface Index { courses: { s: string; t: string }[]; lessons: Rec[] }
-  type Prepared = Rec & { nt: string; nh: string; nx: string; ng: string[] };
-  /* The slice of Pagefind's API used here. */
-  interface PfSub { title: string; url: string; excerpt: string; anchor?: { id: string }; weighted_locations?: { weight: number; balanced_score: number }[] }
-  interface PfData { url: string; meta: { title?: string }; excerpt: string; sub_results: PfSub[] }
-  interface Pf {
-    options(o: object): Promise<void>;
-    search(q: string, o?: object): Promise<{ results: { id: string; data(): Promise<PfData> }[] }>;
-  }
-  interface TextHit { slug: string; url: string; excerpt: string; subs: PfSub[] }
+  import { browserEngine, createLessonSearch, TEXT_MIN, type LessonHit, type Ranked, type TextResult, type TitleHit } from '../lib/lesson-search';
 
-  const norm = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[‐-―]/g, '-');
   const esc = (s: string) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
-  /* A token matches at the start of a word ("phos" finds "phosphorylation"), so
-     short queries stay precise; "mapk" still finds "Ras-to-MAPK" because a
-     hyphen starts a word. */
-  const hits = (hay: string, tok: string) => {
-    let i = hay.indexOf(tok);
-    while (i !== -1) {
-      if (i === 0 || !/[a-z0-9]/.test(hay[i - 1])) return true;
-      i = hay.indexOf(tok, i + 1);
-    }
-    return false;
-  };
+  const PAGE = 12;       // lessons drawn (and their page fragments fetched) at a time
+  const SETTLE = 220;    // ms after the last keystroke before the lesson text is searched
 
-  let indexPromise: Promise<Index> | null = null;
-  const loadIndex = (): Promise<Index> => (indexPromise ??= fetch('/search-index.json').then((r) => {
-    if (!r.ok) throw new Error(String(r.status));
-    return r.json() as Promise<Index>;
-  }));
-
-  /* The full-text engine, loaded the first time a query is long enough to need it.
-     Resolves to null when /pagefind/ is not there (no build yet, or offline), and
-     the search carries on with titles and headings alone. */
-  let pfPromise: Promise<Pf | null> | null = null;
-  const loadPagefind = (): Promise<Pf | null> => (pfPromise ??= (async () => {
-    try {
-      const url = '/pagefind/pagefind.js';
-      const pf = (await import(/* @vite-ignore */ url)) as Pf;
-      // Makes each result link carry ?pagefind-highlight=… so the lesson page can mark the words.
-      await pf.options({ highlightParam: 'pagefind-highlight' });
-      return pf;
-    } catch { return null; }
-  })());
-
-  /* Pagefind needs every word of a query, and little words ("to", "a", "its") occur in
-     every paragraph, which pulls snippets toward sentences that match only those. They are
-     dropped, unless the query is in quotes (an exact phrase) or nothing else is left. */
-  const LITTLE = new Set('a an and are as at be by for from in into is it its of on or that the this to was were with'.split(' '));
-  const textQuery = (raw: string) => {
-    if (raw.includes('"')) return raw;
-    const words = raw.split(/\s+/).filter(Boolean);
-    const kept = words.filter((w) => !LITTLE.has(w.toLowerCase()));
-    return kept.length ? kept.join(' ') : raw;
-  };
-
-  const TEXT_MIN = 3;    // characters before the lesson text is searched
-  const TEXT_PAGE = 12;  // lesson-text hits fetched at a time
+  /* One engine for the page: the index and Pagefind load once however many boxes there are. */
+  const search = createLessonSearch(browserEngine());
 
   document.querySelectorAll<HTMLElement>('[data-site-search]').forEach((root) => {
     const input = root.querySelector<HTMLInputElement>('.ss-input')!;
     const form = root.querySelector<HTMLFormElement>('.ss-form')!;
     const scopeBox = root.querySelector<HTMLElement>('.ss-scope')!;
     const status = root.querySelector<HTMLElement>('.ss-status')!;
-    const list = root.querySelector<HTMLElement>('.ss-results:not(.ss-results-text)')!;
-    const textSec = root.querySelector<HTMLElement>('.ss-sec')!;
-    const textList = root.querySelector<HTMLElement>('.ss-results-text')!;
+    const list = root.querySelector<HTMLElement>('.ss-results')!;
     const moreBtn = root.querySelector<HTMLButtonElement>('.ss-more')!;
     let scope = root.dataset.scope || 'all';
-    let prepared: Prepared[] | null = null;
-    let bySlug = new Map<string, Prepared>();
-    let courses: Index['courses'] = [];
+    let ready = false;
 
-    /* Title/heading matches, recomputed on every keystroke. */
-    let titleOut: { r: Prepared; score: number; heads: [string, string][] }[] = [];
-    /* Lesson-text matches for the current query and scope, filled in as Pagefind answers. */
-    let text: { key: string; state: 'wait' | 'ok' | 'off'; handles: { data(): Promise<PfData> }[]; loaded: number; hits: Map<string, TextHit>; order: string[] } | null = null;
+    /* State of the current query. `seq` is bumped by every new query; an answer that comes back for
+       an older one is dropped. */
     let seq = 0;
     let textTimer = 0;
+    let cur: {
+      key: string;
+      query: string;
+      state: 'wait' | 'ok' | 'off';
+      titles: TitleHit[];
+      ranked: Ranked[];
+      shown: number;
+      hydrated: Map<string, LessonHit>;
+    } | null = null;
 
     const drawScope = () => {
+      const courses = search.courses();
       if (courses.length < 2) return;
       scopeBox.hidden = false;
       scopeBox.innerHTML = [{ s: 'all', t: 'All courses' }, ...courses]
@@ -148,149 +102,113 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
        inline script included, and would take the template for a real path. */
     const link = (slug: string, hash?: string) => ['href', `"/lessons/${esc(slug)}/${hash ? `#${esc(hash)}` : ''}"`].join('=');
     const rawLink = (url: string) => ['href', `"${esc(url)}"`].join('=');
-    const courseTitle = (s: string) => courses.find((c) => c.s === s)?.t ?? s;
     const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-    /* A section a text hit came from: heading, then the sentence around the match. */
-    const subItem = (h: PfSub) =>
-      `<li class="ss-snip"><a ${rawLink(h.url)}><span class="ss-snip-h">§ ${esc(h.title)}</span><span class="ss-snip-x">${h.excerpt}</span></a></li>`;
+    /* A place the words were found: where it is, then the sentence around the match. */
+    const spotItem = (s: LessonHit['spots'][number]) =>
+      `<li class="ss-snip ss-k-${s.kind}"><a ${rawLink(s.url)}><span class="ss-snip-h">${s.kind === 'section' ? '§ ' : ''}${esc(s.label)}</span><span class="ss-snip-x">${s.excerptHtml}</span></a></li>`;
 
-    const card = (r: Prepared, heads: [string, string][], th: TextHit | undefined, own: boolean) => {
-      // Headings the text hit already covers are not listed twice.
-      const subs = (th?.subs ?? []).filter((s) => s.anchor?.id).slice(0, 2);
-      const taken = new Set(subs.map((s) => s.anchor!.id));
-      const plain = heads.filter(([, a]) => !taken.has(a));
-      const items = [...subs.map(subItem), ...plain.map(([t, a]) => `<li><a ${link(r.s, a)}>§ ${esc(t)}</a></li>`)];
-      // A hit with no section of its own (text before the first heading) shows its snippet under the card.
-      const lead = th && !subs.length && th.excerpt ? `<p class="ss-hit-snippet">${th.excerpt}</p>` : '';
+    const card = (e: Ranked, hit: LessonHit | undefined) => {
+      const r = e.rec;
+      const spots = hit?.spots ?? [];
+      // Section headings the title index matched are listed too, unless a spot already points there.
+      const taken = new Set(spots.map((s) => /#(.+)$/.exec(s.url)?.[1]).filter(Boolean));
+      const plain = e.heads.filter(([, a]) => !taken.has(a)).slice(0, Math.max(0, 4 - spots.length));
+      const items = [...spots.map(spotItem), ...plain.map(([t, a]) => `<li><a ${link(r.s, a)}>§ ${esc(t)}</a></li>`)];
+      const partial = e.coverage < 1 ? '<p class="ss-hit-partial">Has some of your words, not all.</p>' : '';
       return `
         <li class="ss-hit">
-          <a class="ss-hit-main" ${own && th ? rawLink(th.url) : link(r.s)}>
-            <span class="ss-hit-where">${esc(courseTitle(r.c))}${r.u ? ` · ${esc(r.u)}` : ''} · Lesson ${r.n}</span>
+          <a class="ss-hit-main" ${link(r.s)}>
+            <span class="ss-hit-where">${esc(search.courseTitle(r.c))}${r.u ? ` · ${esc(r.u)}` : ''} · Lesson ${r.n}</span>
             <span class="ss-hit-title">${esc(r.t)}</span>
             <span class="ss-hit-hook">${esc(r.h)}</span>
           </a>
-          ${lead}
+          ${partial}
           ${items.length ? `<ul class="ss-hit-heads">${items.join('')}</ul>` : ''}
         </li>`;
     };
 
-    /* Draws title hits first (they were instant), then lessons found only in the text. */
     const render = () => {
-      const q = input.value.trim();
-      const where = scope === 'all' ? 'all courses' : courseTitle(scope);
-      const shown = titleOut.slice(0, 24);
-      const shownSet = new Set(shown.map(({ r }) => r.s));
-      list.innerHTML = shown.map(({ r, heads }) => card(r, heads, text?.hits.get(r.s), false)).join('');
+      if (!cur) return;
+      const where = scope === 'all' ? 'all courses' : search.courseTitle(scope);
+      const q = cur.query;
+      const shown = cur.ranked.slice(0, cur.shown);
+      list.innerHTML = shown.map((e) => card(e, cur!.hydrated.get(e.slug))).join('');
+      moreBtn.hidden = cur.shown >= cur.ranked.length;
 
-      const textOnly = (text?.order ?? []).filter((s) => !shownSet.has(s) && bySlug.has(s));
-      textList.innerHTML = textOnly.map((s) => card(bySlug.get(s)!, [], text!.hits.get(s), true)).join('');
-      textSec.hidden = textOnly.length === 0 || shown.length === 0;   // the heading only separates the two lists
-      moreBtn.hidden = !(text && text.state === 'ok' && text.loaded < text.handles.length);
-
-      const parts: string[] = [];
-      if (titleOut.length) parts.push(`${plural(titleOut.length, 'lesson', 'lessons')} by title or heading${titleOut.length > shown.length ? ` (first ${shown.length} shown)` : ''}`);
-      if (text?.state === 'ok' && text.handles.length) parts.push(`${plural(text.handles.length, 'lesson', 'lessons')} with the words in the text`);
-      if (text?.state === 'wait') parts.push('searching the lesson text…');
-      if (!parts.length) {
-        status.textContent = text?.state === 'off'
-          ? `No lesson in ${where} matches “${q}” by title or heading. The full-text index is not available here (it is built with the site).`
+      const n = cur.ranked.length;
+      if (!n) {
+        status.textContent = cur.state === 'wait' ? 'Searching the lesson text…'
+          : cur.state === 'off' ? `No lesson in ${where} matches “${q}” by title or heading. The full-text index is not available here (it is built with the site).`
           : `No lesson in ${where} matches “${q}”. Try fewer or different words.`;
-      } else {
-        status.textContent = `In ${where}: ${parts.join('; ')}.`;
+        return;
       }
+      const full = cur.ranked.filter((e) => e.coverage >= 1).length;
+      const none = full === 0;
+      status.textContent = cur.state === 'wait' ? `In ${where}: ${plural(n, 'lesson', 'lessons')} by title or heading so far; searching the lesson text…`
+        : none ? `No lesson in ${where} has every word of “${q}”. These have some of them.`
+        : full < n ? `In ${where}: ${plural(full, 'lesson has', 'lessons have')} every word of “${q}”, best match first. ${n - full} more ${n - full === 1 ? 'has' : 'have'} some of the words.`
+        : `In ${where}: ${plural(n, 'lesson', 'lessons')}, best match first.`;
     };
 
-    /* Lesson-text search through Pagefind, scoped by the course filter. Stale answers are dropped. */
-    const loadMore = async (my: number) => {
-      if (!text || text.state !== 'ok') return;
-      const next = text.handles.slice(text.loaded, text.loaded + TEXT_PAGE);
-      text.loaded += next.length;
-      const datas = await Promise.all(next.map((h) => h.data()));
-      if (my !== seq || !text) return;
-      for (const d of datas) {
-        const slug = /\/lessons\/([^/?#]+)/.exec(d.url)?.[1];
-        if (!slug || text.hits.has(slug)) continue;
-        // Pagefind lists a page's sections in reading order. The best one goes first: the section whose
-        // snippet holds the most different query words, then the one where rare words weigh most.
-        const stem = (m: string) => m.replace(/<\/?mark>/g, '').toLowerCase().replace(/[’']s$/, '').replace(/[^a-z0-9]+$/, '').replace(/s$/, '');
-        const distinct = (h: PfSub) => new Set((h.excerpt.match(/<mark>.*?<\/mark>/g) ?? []).map(stem)).size;
-        const strength = (h: PfSub) => (h.weighted_locations ?? []).reduce((a, l) => a + l.balanced_score * l.weight, 0);
-        const subs = [...d.sub_results].sort((a, b) => distinct(b) - distinct(a) || strength(b) - strength(a));
-        text.hits.set(slug, { slug, url: d.url, excerpt: d.excerpt, subs });
-        text.order.push(slug);
-      }
+    /* Downloads the page fragments for the lessons about to be drawn (their excerpts), then draws. */
+    const hydrateShown = async (my: number) => {
+      if (!cur) return;
+      const need = cur.ranked.slice(0, cur.shown).filter((e) => e.cand && !cur!.hydrated.has(e.slug));
+      if (!need.length) { render(); return; }
+      const got = await search.hydrate(need);
+      if (my !== seq || !cur) return;
+      for (const h of got) cur.hydrated.set(h.slug, h);
       render();
     };
-    const searchText = async (raw: string, forScope: string, key: string) => {
-      const my = ++seq;
-      text = { key, state: 'wait', handles: [], loaded: 0, hits: new Map(), order: [] };
-      render();
-      const pf = await loadPagefind();
-      if (my !== seq) return;
-      if (!pf) { text.state = 'off'; render(); return; }
+
+    /* The lesson text through Pagefind, scoped by the course filter; ranks once it answers. */
+    const searchText = async (my: number) => {
+      const c = cur;
+      if (!c) return;
       try {
-        const res = await pf.search(textQuery(raw), forScope === 'all' ? {} : { filters: { course: forScope } });
-        if (my !== seq) return;
-        text.handles = res.results;
-        text.state = 'ok';
-        await loadMore(my);
-        render();
+        const res: TextResult = await search.textSearch(c.query, scope);
+        if (my !== seq || cur !== c) return;
+        c.state = res.state;
+        c.ranked = search.rank(c.query, c.titles, res);
+        c.shown = PAGE;
+        c.hydrated.clear();
+        await hydrateShown(my);                 // one redraw, with the excerpts in it
       } catch (err) {
         // A failed fetch must not stick: clearing the key lets the same query try again.
         console.warn('Lesson-text search failed', err);
-        if (my === seq && text) { text.state = 'off'; text.key = ''; render(); }
+        if (my === seq && cur === c) { c.state = 'off'; c.key = ''; render(); }
       }
     };
-    moreBtn.addEventListener('click', () => { moreBtn.disabled = true; loadMore(seq).finally(() => { moreBtn.disabled = false; }); });
+
+    moreBtn.addEventListener('click', () => {
+      if (!cur) return;
+      moreBtn.disabled = true;
+      cur.shown += PAGE;
+      hydrateShown(seq).finally(() => { moreBtn.disabled = false; });
+    });
 
     const run = () => {
-      const q = norm(input.value).trim();
-      if (!q) { window.clearTimeout(textTimer); seq++; text = null; titleOut = []; status.textContent = ''; list.innerHTML = ''; textList.innerHTML = ''; textSec.hidden = true; moreBtn.hidden = true; return; }
-      if (!prepared) return;
-      const toks = q.split(/\s+/).filter(Boolean);
-      const out: typeof titleOut = [];
-      for (const r of prepared) {
-        if (scope !== 'all' && r.c !== scope) continue;
-        let score = 0;
-        let all = true;
-        const heads = new Set<number>();
-        for (const tok of toks) {
-          let s = 0;
-          if (hits(r.nt, tok)) s += 10;
-          r.ng.forEach((g, i) => { if (hits(g, tok)) { s += 4; heads.add(i); } });
-          if (hits(r.nh, tok)) s += 3;
-          if (hits(r.nx, tok)) s += 2;
-          if (s === 0) { all = false; break; }
-          score += s;
-        }
-        if (!all) continue;
-        // The whole phrase in the title is the best answer there is.
-        if (toks.length > 1 && r.nt.includes(q)) score += 15;
-        out.push({ r, score, heads: [...heads].slice(0, 3).map((i) => r.g[i]) });
-      }
-      out.sort((a, b) => b.score - a.score || a.r.c.localeCompare(b.r.c) || a.r.n - b.r.n);
-      titleOut = out;
-
-      // The lesson text is searched once the query has settled; a changed query or scope starts over.
-      const key = `${scope}|${input.value.trim()}`;
-      if (q.length < TEXT_MIN) { window.clearTimeout(textTimer); seq++; text = null; render(); return; }
-      if (text?.key === key) { render(); return; }
-      seq++;                                   // an answer for the old query must not land on the new one
-      text = { key, state: 'wait', handles: [], loaded: 0, hits: new Map(), order: [] };
-      render();
+      const raw = input.value.trim();
+      if (!raw) { window.clearTimeout(textTimer); seq++; cur = null; status.textContent = ''; list.innerHTML = ''; moreBtn.hidden = true; return; }
+      if (!ready) return;
+      const key = `${scope}|${raw}`;
+      if (cur?.key === key) { render(); return; }
+      const my = ++seq;                        // an answer for the old query must not land on the new one
       window.clearTimeout(textTimer);
-      textTimer = window.setTimeout(() => searchText(input.value.trim(), scope, key), 220);
+      const titles = search.titleMatches(raw, scope);
+      const textable = raw.length >= TEXT_MIN;
+      cur = { key, query: raw, state: textable ? 'wait' : 'ok', titles, ranked: search.rank(raw, titles, null), shown: PAGE, hydrated: new Map() };
+      render();
+      if (textable) textTimer = window.setTimeout(() => searchText(my), SETTLE);
     };
 
     const start = () => {
-      if (prepared) { run(); return; }
+      if (ready) { run(); return; }
       status.textContent = 'Loading the index…';
-      loadIndex().then((idx: Index) => {
-        courses = idx.courses;
-        if (scope !== 'all' && !courses.some((c) => c.s === scope)) scope = 'all';
-        prepared = idx.lessons.map((r: Rec) => ({ ...r, nt: norm(r.t), nh: norm(`${r.h} ${r.k} ${r.u}`), nx: norm(r.x), ng: r.g.map((g: [string, string]) => norm(g[0])) }));
-        bySlug = new Map(prepared.map((r) => [r.s, r]));
+      search.load().then(() => {
+        ready = true;
+        if (scope !== 'all' && !search.courses().some((c) => c.s === scope)) scope = 'all';
         drawScope();
         status.textContent = '';
         run();
@@ -299,7 +217,7 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
 
     let timer = 0;
     input.addEventListener('input', () => { window.clearTimeout(timer); timer = window.setTimeout(start, 90); });
-    input.addEventListener('focus', () => { if (!prepared) loadIndex().catch(() => {}); }, { once: true });
+    input.addEventListener('focus', () => { if (!ready) search.load().catch(() => {}); }, { once: true });
     // With JS the results appear in place; the form only navigates without it.
     form.addEventListener('submit', (e) => { e.preventDefault(); start(); });
 
@@ -373,9 +291,12 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
   .ss-hit-heads { list-style: none; margin: var(--ddp-space-2) 0 0; padding: var(--ddp-space-2) 0 0; border-top: 1px solid var(--ddp-color-line); display: flex; flex-direction: column; gap: 0.25rem; }
   .ss-hit-heads a { font-size: var(--ddp-text-sm); color: var(--ddp-color-ink); text-underline-offset: 3px; }
   .ss-hit-heads a:hover { color: var(--ddp-color-accent); }
+  .ss-hit-partial { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-xs); font-style: italic; color: var(--ddp-color-muted); }
   .ss-hit-snippet { margin: var(--ddp-space-2) 0 0; font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); overflow-wrap: anywhere; }
   .ss-snip a { display: flex; flex-direction: column; gap: 0.15rem; text-decoration: none; }
   .ss-snip-h { font-weight: 600; }
+  /* Spots outside the lesson's main text carry a small rule so the reader sees at a glance that this is a story, a quiz question, a transcript. */
+  .ss-snip:not(.ss-k-section):not(.ss-k-text) .ss-snip-h { color: var(--ddp-color-accent); }
   .ss-snip a:hover .ss-snip-h { text-decoration: underline; text-underline-offset: 3px; }
   .ss-snip-x { font-size: var(--ddp-text-sm); line-height: 1.5; color: var(--ddp-color-ink-soft); font-weight: 400; overflow-wrap: anywhere; }
   .ss mark {
@@ -385,8 +306,7 @@ const { scope = 'all', autofocus = false, label = 'Search the lessons', placehol
     padding: 0 0.1em;
     font-weight: 600;
   }
-  .ss-sec { margin: var(--ddp-space-5) 0 0; font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: var(--ddp-color-muted); }
-  .ss-sec[hidden], .ss-more[hidden] { display: none; }
+  .ss-more[hidden] { display: none; }
   .ss-more {
     align-self: flex-start;
     margin-top: var(--ddp-space-3);

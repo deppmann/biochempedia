@@ -31,16 +31,21 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
   </div>
   <div class="quiz-bar"><span class="quiz-bar-fill" data-bar style={`width: ${(1 / items.length) * 100}%`}></span></div>
 
-  <div class="quiz-stage">
+  {/* Search: the questions, choices and rationales are indexed (weight 0.5, below the prose). Each question
+      opens with a hidden heading, sx-q-<n>, which is what a result links to; the lesson page opens this
+      dialog and shows that question (the quiz-goto event below). The answer is not given away: the
+      rationale stays folded until the reader answers. See the note at the prose column in lessons/[...slug].astro. */}
+  <div class="quiz-stage" data-pagefind-body data-pagefind-weight="0.5">
     {items.map((it, i) => (
       <article class="q" data-question data-answer={it.q.answer} data-item={itemId(slug, it.q.stem)} hidden={i !== 0}>
-        {it.badge && <span class="quiz-badge">{it.badge}</span>}
+        <h2 class="visually-hidden" id={`sx-q-${i + 1}`}>Self-test: question {i + 1}</h2>
+        {it.badge && <span class="quiz-badge" data-pagefind-ignore>{it.badge}</span>}
         <p class="q-stem">{it.q.stem}</p>
         <ul class="q-choices">
           {it.q.choices.map((choice, ci) => (
             <li>
               <button type="button" class="q-choice" data-idx={ci} aria-pressed="false">
-                <span class="q-letter">{letters[ci]}</span>
+                <span class="q-letter" data-pagefind-ignore>{letters[ci]}</span>
                 <span>{choice}</span>
               </button>
             </li>
@@ -53,7 +58,7 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
           <p class="q-verdict" data-verdict></p>
           <p class="q-rationale"><strong>Why:</strong> {it.q.rationale}</p>
           {anchors[i] && (
-            <p class="q-reread" data-reread hidden>
+            <p class="q-reread" data-reread hidden data-pagefind-ignore>
               Read this again: <a href={`#${anchors[i]!.id}`} data-reread-link>{anchors[i]!.text}</a>.
               It comes back for review tomorrow.
             </p>
@@ -154,6 +159,9 @@ const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
         history.replaceState(null, '', a.getAttribute('href'));
       });
     });
+
+    // A search result can point at one question (#sx-q-3): the lesson page opens this dialog and asks for it here.
+    root.addEventListener('quiz-goto', (e) => show(Number((e as CustomEvent<number>).detail) - 1));
 
     prevBtn?.addEventListener('click', () => show(idx - 1));
     nextBtn?.addEventListener('click', () => show(idx + 1));

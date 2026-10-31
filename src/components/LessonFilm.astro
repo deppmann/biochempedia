@@ -7,8 +7,9 @@
  * Same terms as the opening film (IMAGE_POLICY.md rule 7): a schematic drawn in code, with
  * captions; the Sources & Integrity panel carries the AI disclosure and the narrator.
  */
+import FilmTranscript from './FilmTranscript.astro';
 interface Props {
-  film: { src: string; captions: string; poster: string; title: string; durationSec: number };
+  film: { src: string; captions: string; poster: string; title: string; durationSec: number; id?: string };
 }
 const { film } = Astro.props;
 const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durationSec % 60)).padStart(2, '0')}`;
@@ -22,6 +23,8 @@ const len = `${Math.floor(film.durationSec / 60)}:${String(Math.round(film.durat
   </video>
   <figcaption><span class="lf-kicker">Watch</span> {film.title} <span class="lf-len">· {len}</span></figcaption>
 </figure>
+{/* The captions as readable text, closed until asked for (and searchable). */}
+<FilmTranscript captions={film.captions} title={film.title} id={film.id ?? film.src.split('/').slice(-2, -1)[0] + '-' + film.src.split('/').pop()!.replace(/\.mp4$/, '')} />
 
 <style>
   .lf { margin: var(--ddp-space-5) 0; max-width: 880px; }

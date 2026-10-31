@@ -1,0 +1,41 @@
+---
+/**
+ * "Read the transcript" for a film: the caption file as plain paragraphs, closed until asked for.
+ * It is in the page's HTML either way, so it is searchable and works without scripts.
+ *
+ * Search: the heading's id (sx-film-<id>) is what a search result links to, and the lesson page
+ * opens this fold when the link points at it. This is a <details> with the class film-transcript
+ * (not a bare <details>), because pagefind.yml leaves worked answers out of the index and those
+ * are bare <details>.
+ *
+ * Renders nothing when the caption file is missing or unreadable.
+ */
+import { transcriptFor } from '../lib/film-transcript';
+
+interface Props {
+  captions?: string;
+  title: string;
+  /** Unique per film on the page; becomes the link target sx-film-<id>. */
+  id: string;
+}
+const { captions, title, id } = Astro.props;
+const paras = transcriptFor(captions);
+---
+
+{paras && (
+  <details class="film-transcript" id={`sx-film-${id}`} data-pagefind-weight="0.7">
+    <summary>Read the transcript <span class="ft-of">of “{title}”</span></summary>
+    <h3 class="ft-h" id={`sx-film-${id}-h`}>Film transcript: {title}</h3>
+    {paras.map((p) => <p>{p}</p>)}
+  </details>
+)}
+
+<style>
+  .film-transcript { margin: var(--ddp-space-3) 0 var(--ddp-space-5); max-width: 880px; border: 1px solid var(--ddp-color-line); border-radius: var(--ddp-radius); background: var(--ddp-color-surface); }
+  .film-transcript > summary { cursor: pointer; padding: var(--ddp-space-2) var(--ddp-space-4); min-height: 44px; display: flex; align-items: center; gap: 0.4em; flex-wrap: wrap; font-size: var(--ddp-text-sm); font-weight: 600; color: var(--ddp-color-primary); }
+  .film-transcript > summary:hover { color: var(--ddp-color-accent); }
+  .ft-of { font-weight: 400; color: var(--ddp-color-muted); }
+  .ft-h { margin: 0; padding: var(--ddp-space-2) var(--ddp-space-4) 0; border-top: 1px solid var(--ddp-color-line); font-family: var(--ddp-font-mono); font-size: var(--ddp-text-xs); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: var(--ddp-color-muted); }
+  .film-transcript p { margin: 0; padding: var(--ddp-space-2) var(--ddp-space-4); font-size: var(--ddp-text-sm); line-height: 1.65; color: var(--ddp-color-ink-soft); }
+  .film-transcript p:last-child { padding-bottom: var(--ddp-space-4); }
+</style>
