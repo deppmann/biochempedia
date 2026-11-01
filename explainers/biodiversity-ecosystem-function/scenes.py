@@ -1,17 +1,13 @@
-"""Biodiversity and ecosystem function: splitting a mixture's extra yield  (Biochemistrypedia explainer)
+"""Biodiversity and ecosystem function, timed to the supplied Kokoro narration.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-Every number on screen is the lesson's worked problem (M_A 400, M_B 100, Y_A 300, Y_B 100 g dry
-biomass per square metre, sown in equal proportions). Bars are drawn to scale from those numbers.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = species A
-  ORANGE = species B
-  GREY   = the expected yield / expected relative yield (the benchmark), axes, generic species
-  GOLD   = the net effect (observed minus expected)
-  GREEN  = complementarity (and the gain in relative yield, mean of which it uses)
-  RED    = selection
-  TEXT   = the best monoculture line and plain labels
+COLOR MAP (retained from the original film)
+  BLUE = species A; ORANGE = species B
+  GREY = benchmarks, axes, generic species and experimental structure
+  GOLD = net effect and biomass totals
+  GREEN = complementarity and gains
+  RED = selection
+  TEXT = best-monoculture benchmark and plain labels
+All plots are schematic, without numerical yield measurements.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -78,125 +74,6 @@ def add_all(scene, d, keys):
 STATIC = ["axis", "barA", "barB", "valA", "valB", "nameA", "nameB", "mixA", "mixB", "tA", "tB", "valM", "nameM", "unit"]
 
 
-class S00Title(TitleCard):
-    LESSON = "Biodiversity and ecosystem function"
-    TITLE = "Splitting a mixture's extra yield"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Mixture(SpokenScene):
-    def construct(self):
-        d = chart()
-        head = T("Made-up example: two species, sown in equal proportions", 28, TEXT).to_edge(UP, buff=0.4)
-        self.play(FadeIn(head, shift=DOWN * 0.1), FadeIn(d["unit"]), Create(d["axis"]), run_time=0.8)
-        self.at("monocultures")
-        self.play(FadeIn(d["nameA"]), FadeIn(d["nameB"]), FadeIn(d["nameM"]), run_time=0.6)
-        two = T("one reason, or two?", 46, GOLD).move_to([0, 0.6, 0])
-        self.at("one reason")
-        self.play(FadeIn(two, scale=0.9), run_time=0.6)
-        self.at("Species A alone")
-        self.play(FadeOut(two), GrowFromEdge(d["barA"], DOWN), run_time=0.8)
-        self.play(FadeIn(d["valA"]), run_time=0.4)
-        self.at("Species B alone")
-        self.play(GrowFromEdge(d["barB"], DOWN), run_time=0.6)
-        self.play(FadeIn(d["valB"]), run_time=0.4)
-        self.at("Sown together")
-        self.play(GrowFromEdge(d["mixA"], DOWN), run_time=0.7)
-        self.play(GrowFromEdge(d["mixB"], DOWN), run_time=0.5)
-        self.play(FadeIn(d["tA"]), FadeIn(d["tB"]), FadeIn(d["valM"]), run_time=0.5)
-        q = M("?", 70, GOLD).move_to([4.2, yy(300), 0])
-        qt = T("a gain?", 30, GOLD).next_to(q, DOWN, buff=0.2)
-        self.at("Is that a")
-        self.play(FadeIn(q, scale=1.4), FadeIn(qt), run_time=0.5)
-        self.at("where does it come from")
-        self.play(Indicate(q, color=GOLD, scale_factor=1.3), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Benchmark(SpokenScene):
-    def construct(self):
-        d = chart()
-        add_all(self, d, STATIC)
-        head = T("Made-up example: two species, sown in equal proportions", 28, TEXT).to_edge(UP, buff=0.4)
-        self.add(head)
-        self.at("set a benchmark")
-        self.play(Indicate(VGroup(d["barA"], d["barB"]), color=GREY, scale_factor=1.04), run_time=0.8)
-        self.at("expected mixture yield")
-        ex = dashed(yy(250))
-        exl = side_label("expected", "250", yy(250), GREY)
-        self.play(Create(ex), FadeIn(exl), run_time=0.9)
-        self.at("over")
-        eq = M("(400 + 100) / 2 = 250", 32, GREY).move_to([0.8, 2.6, 0])
-        self.play(FadeIn(eq, shift=DOWN * 0.1), run_time=0.6)
-        self.at("observed yield")
-        self.play(Indicate(d["mix"], color=TEXT, scale_factor=1.05), run_time=0.8)
-        self.at("net effect")
-        br = Brace(Line([2.55, yy(250), 0], [2.55, yy(400), 0]), direction=RIGHT, color=GOLD, buff=0.1)
-        lab = M("+150", 34, GOLD).next_to(br, RIGHT, buff=0.2)
-        self.play(GrowFromCenter(br), FadeIn(lab), run_time=0.7)
-        self.at("two parts")
-        # the +150 splits into two unknown parts
-        mid = (yy(250) + yy(400)) / 2
-        split = Line([2.95, mid, 0], [3.6, mid, 0], color=GOLD, stroke_width=3)
-        q1 = M("?", 40, GOLD).move_to([3.95, (mid + yy(400)) / 2, 0])
-        q2 = M("?", 40, GOLD).move_to([3.95, (mid + yy(250)) / 2, 0])
-        self.play(FadeOut(lab), Create(split), FadeIn(q1), FadeIn(q2), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Two(SpokenScene):
-    def construct(self):
-        ctitle = chip("complementarity", GREEN, 34).move_to([-3.2, 3.0, 0])
-        stitle = chip("selection", RED, 34).move_to([3.2, 3.0, 0])
-        # left panel: two species each above the level the monoculture predicts
-        b0 = -1.5
-        exp_h, act_h = 1.7, 2.9
-        xs = [-4.3, -2.0]
-        cols = [BLUE, ORANGE]
-        names = ["A", "B"]
-        lbars, lexp, lup, lnames = [], [], [], []
-        for x, c, n in zip(xs, cols, names):
-            bar = Rectangle(width=1.5, height=act_h, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.45)
-            bar.move_to([x, b0 + act_h / 2, 0])
-            e = DashedLine([x - 0.95, b0 + exp_h, 0], [x + 0.95, b0 + exp_h, 0], color=GREY, stroke_width=3, dash_length=0.12)
-            up = Arrow([x + 1.2, b0 + exp_h, 0], [x + 1.2, b0 + act_h, 0], buff=0, color=GREEN, stroke_width=6,
-                       tip_length=0.25, max_tip_length_to_length_ratio=0.5)
-            nm = T(n, 30, c).move_to([x, b0 - 0.35, 0])
-            lbars.append(bar); lexp.append(e); lup.append(up); lnames.append(nm)
-        lcap = VGroup(T("on average, better than", 24, GREEN), T("monocultures predict", 24, GREEN)).arrange(DOWN, buff=0.08).move_to([-3.2, -2.55, 0])
-        # right panel: random draw of species, one productive one takes over
-        sx = [1.3, 2.6, 3.9, 5.2]
-        dots = []
-        for i, x in enumerate(sx):
-            c = RED if i == 2 else GREY
-            dots.append(Circle(radius=0.42, stroke_color=c, stroke_width=3, fill_color=c, fill_opacity=0.5).move_to([x, 0.1, 0]))
-        rcap1 = T("a random mix of species", 24, GREY).move_to([3.3, 1.9, 0])
-        rcap2 = VGroup(T("one highly productive", 24, RED), T("species dominates", 24, RED)).arrange(DOWN, buff=0.08).move_to([3.3, -2.55, 0])
-        netq = VGroup(M("net effect = ", 30, GOLD), M("complementarity", 30, GREEN), M(" + ", 30, GOLD), M("selection", 30, RED))
-        netq.arrange(RIGHT, buff=0.2).move_to([0, -3.35, 0])
-
-        self.at("Complementarity is the first part")
-        self.play(FadeIn(ctitle, shift=DOWN * 0.1), run_time=0.5)
-        self.play(*[FadeIn(x) for x in lbars], *[FadeIn(x) for x in lnames], *[Create(x) for x in lexp], run_time=0.8)
-        self.at("better in mixture")
-        self.play(*[GrowArrow(x) for x in lup], FadeIn(lcap), run_time=0.8)
-        self.at("used resources differently")
-        self.play(Indicate(VGroup(*lbars), color=GREEN, scale_factor=1.03), run_time=0.9)
-        self.at("Selection is the second part")
-        self.play(FadeIn(stitle, shift=DOWN * 0.1), run_time=0.5)
-        self.play(*[GrowFromCenter(x) for x in dots], FadeIn(rcap1), run_time=0.7)
-        self.at("highly productive species")
-        self.play(Indicate(dots[2], color=RED, scale_factor=1.5), run_time=0.8)
-        self.at("dominates")
-        self.play(dots[2].animate.scale(2.0), *[dots[i].animate.scale(0.7) for i in (0, 1, 3)], FadeIn(rcap2), run_time=0.9)
-        self.at("The partition measures both")
-        self.play(FadeIn(netq, shift=UP * 0.1), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 RK = 4.4  # units per 1.0 relative yield
 RX = [-3.3, 0.6]
 RW = 2.2
@@ -218,145 +95,293 @@ def ry(v):
     return BASE + v * RK
 
 
-class S04Relative(SpokenScene):
+# New schematic helpers extend the original rectangles, dashed benchmarks and chips.
+def heading(text):
+    return T(text, 34).move_to([0, 3.05, 0])
+
+
+def tuft(color, height=1.0):
+    return VGroup(*[Line([0, 0, 0], [dx, height * h, 0], color=color, stroke_width=4)
+                    for dx, h in [(-0.2, 0.7), (0, 1), (0.2, 0.85)]])
+
+
+def grassplot(x, rich=True, y=-0.8):
+    ground = Line([x-1.7, y, 0], [x+1.7, y, 0], color=GREY, stroke_width=3)
+    colors = [BLUE, ORANGE, GREY, BLUE, ORANGE] if rich else [BLUE]*5
+    plants = VGroup(*[tuft(c, h).shift([x-1.3+i*0.65, y, 0])
+                       for i, (c,h) in enumerate(zip(colors, [1.1, 1.5, 1.25, 1.7, 1.3] if rich else [0.85]*5))])
+    return VGroup(ground, plants)
+
+
+def schematic_bar(x, height, color=GOLD, y=-1.9, width=1.4):
+    # Reuse the original baseline-aligned bar helper, with schematic heights.
+    return hbar(x, height, color, k=1, w=width).shift(UP*(y-BASE))
+
+
+def trace(values, x0, x1, base, color, scale=1):
+    points = [[x, base+scale*v, 0] for x,v in zip(np.linspace(x0,x1,len(values)), values)]
+    return VMobject().set_points_as_corners(points).set_stroke(color, 4)
+
+
+def timeseries(rich, center):
+    t = np.linspace(0, 6, 90)
+    vals = 0.14*np.sin(2.3*t)+0.11*np.sin(4.1*t+0.4) if rich else 0.5*np.sin(2.3*t)+0.3*np.sin(4.1*t+0.4)
+    return VGroup(Line([-5.3,center-0.85,0],[4.2,center-0.85,0],color=GREY),
+                  trace(vals,-5.3,4.2,center,GOLD),
+                  T('richer community' if rich else 'species-poor community',26).move_to([-2.8,center+1.1,0]))
+
+
+def clear(scene):
+    scene.play(*[FadeOut(m) for m in list(scene.mobjects)], run_time=0.45)
+
+
+class S00Title(TitleCard):
+    LESSON = 'Biodiversity and ecosystem function'
+    TITLE = 'More Species, More Biomass'
+
     def construct(self):
-        ax = axis(-5.2, 2.4)
-        unit = T("relative yield = mixture yield ÷ own monoculture yield", 22, GREY).to_corner(UL, buff=0.5).shift(DOWN * 0.1)
-        legend = T("dashed: the species alone   solid: in the mixture", 22, GREY).next_to(unit, DOWN, buff=0.12, aligned_edge=LEFT)
-        outs = []
-        for x, c in zip(RX, [BLUE, ORANGE]):
-            r = Rectangle(width=RW, height=RK, stroke_color=c, stroke_width=3).move_to([x, BASE + RK / 2, 0])
-            outs.append(DashedVMobject(r, num_dashes=44))
-        nm = [T("species A", 28, BLUE).move_to([RX[0], BASE - 0.4, 0]), T("species B", 28, ORANGE).move_to([RX[1], BASE - 0.4, 0])]
-        alone = [M("alone 400", 26, BLUE).next_to(outs[0], UP, buff=0.12), M("alone 100", 26, ORANGE).next_to(outs[1], UP, buff=0.12)]
-        self.at("measure each species")
-        self.play(FadeIn(unit), FadeIn(legend), Create(ax), *[Create(o) for o in outs], *[FadeIn(n) for n in nm], *[FadeIn(a) for a in alone], run_time=1.0)
-        self.at("Species A yields")
-        fa = rbar(RX[0], 0.75, BLUE)
-        la = M("300", 36, TEXT).move_to([RX[0], ry(0.75) - 0.5, 0])
-        self.play(GrowFromEdge(fa, DOWN), run_time=0.8)
-        self.play(FadeIn(la), run_time=0.3)
-        self.at("relative yield is")
-        ra = backed(VGroup(M("300/400", 24, BLUE), M("0.75", 40, BLUE)).arrange(DOWN, buff=0.08).move_to([-1.35, ry(0.75) - 0.75, 0]))
-        self.play(FadeIn(ra, shift=RIGHT * 0.1), run_time=0.5)
-        self.at("Species B yields")
-        fb = rbar(RX[1], 1.0, ORANGE)
-        lb = M("100", 36, TEXT).move_to([RX[1], ry(1.0) - 0.55, 0])
-        self.play(GrowFromEdge(fb, DOWN), run_time=0.8)
-        self.play(FadeIn(lb), run_time=0.3)
-        self.at("relative yield is", nth=1)
-        rb = backed(VGroup(M("100/100", 24, ORANGE), M("1", 40, ORANGE)).arrange(DOWN, buff=0.08).move_to([-1.35, ry(1.0) - 0.6, 0]))
-        self.play(FadeIn(rb, shift=RIGHT * 0.1), run_time=0.5)
-        self.at("sown at half")
-        ex = dashed(ry(0.5), -5.2, 2.4)
-        exl = side_label("expected", "0.5", ry(0.5), GREY, x=4.9, vs=36)
-        self.play(Create(ex), FadeIn(exl), run_time=0.8)
-        self.at("The gains are")
-        gxa = RX[0] - RW / 2 - 0.25
-        gxb = RX[1] + RW / 2 + 0.25
-        ga = Line([gxa, ry(0.5), 0], [gxa, ry(0.75), 0], color=GREEN, stroke_width=8)
-        gb = Line([gxb, ry(0.5), 0], [gxb, ry(1.0), 0], color=GREEN, stroke_width=8)
-        gal = M("+0.25", 32, GREEN).move_to([gxa - 0.2 - 0.7, (ry(0.5) + ry(0.75)) / 2, 0])
-        gbl = M("+0.5", 32, GREEN).move_to([gxb + 0.2 + 0.6, (ry(0.5) + ry(1.0)) / 2, 0])
-        self.play(Create(ga), FadeIn(gal), run_time=0.6)
-        self.at("and 0")
-        self.play(Create(gb), FadeIn(gbl), run_time=0.6)
+        title = T(self.TITLE, 48, font=TITLE_FONT).move_to([0,1,0])
+        sub = T(self.LESSON, 26, GREY).move_to([0,2.1,0])
+        plots = VGroup(grassplot(-3,False),grassplot(3,True)).shift(DOWN*0.7)
+        rule = Line(LEFT*1.2,RIGHT*1.2,color=GOLD).move_to([0,0.2,0])
+        self.play(FadeIn(title), FadeIn(sub), Create(rule), FadeIn(plots),run_time=0.9)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Sum(SpokenScene):
+class S01Mixture(SpokenScene):
     def construct(self):
-        wk = 0.05
-        x0 = -6.0
-        h = 0.6
-        yE1, yG = 2.75, 2.0
-        yE2, yR = 0.85, 0.1
-        yE3, yN = -0.95, -1.7
-        endg = x0 + 187.5 * wk
-        eq1 = M("complementarity = 2 × 0.375 × 250 = +187.5", 28, GREEN)
-        eq2 = M("selection = −37.5", 28, RED)
-        eq3 = M("187.5 − 37.5 = 150", 28, GOLD)
-        for e, y in ((eq1, yE1), (eq2, yE2), (eq3, yE3)):
-            e.move_to([0, y, 0]).align_to([x0, 0, 0], LEFT)
-
-        def bar(v, color, left, y):
-            r = Rectangle(width=v * wk, height=h, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.5)
-            return r.move_to([left + v * wk / 2, y, 0])
-
-        gbar = bar(187.5, GREEN, x0, yG)
-        rbar_ = bar(37.5, RED, endg - 37.5 * wk, yR)
-        nbar = bar(150, GOLD, x0, yN)
-        gl = M("+187.5", 28, GREEN).next_to(gbar, RIGHT, buff=0.2)
-        rl = M("−37.5", 28, RED).next_to(rbar_, RIGHT, buff=0.2)
-        nl = M("150 net effect", 28, GOLD).next_to(nbar, RIGHT, buff=0.2)
-        link = DashedLine([endg, yG - h / 2, 0], [endg, yR + h / 2, 0], color=GREY, stroke_width=2, dash_length=0.1)
-        xn = endg - 37.5 * wk
-        link2 = DashedLine([xn, yR - h / 2, 0], [xn, yN + h / 2, 0], color=GREY, stroke_width=2, dash_length=0.1)
-        ca = chip("A: alone 400, gain 0.25", BLUE, 26)
-        cb = chip("B: alone 100, gain 0.5", ORANGE, 26)
-        cc = VGroup(ca, cb).arrange(RIGHT, buff=0.6).move_to([0, -3.0, 0])
-
-        der1 = M("mean gain = (0.25 + 0.5) / 2", 26, GREEN).move_to([0, 1.3, 0]).align_to([x0, 0, 0], LEFT)
-        der2 = M("mean gain = (0.25 + 0.5) / 2 = 0.375", 26, GREEN).move_to([0, 1.3, 0]).align_to([x0, 0, 0], LEFT)
-        self.at("Complementarity is richness")
-        self.play(FadeIn(eq1, shift=DOWN * 0.1), run_time=0.7)
-        self.at("the mean gain")
-        self.play(FadeIn(der1, shift=DOWN * 0.1), run_time=0.6)
-        self.at("Two times")
-        self.play(ReplacementTransform(der1, der2), GrowFromEdge(gbar, LEFT), FadeIn(gl), run_time=1.0)
-        self.at("Selection asks")
-        self.play(FadeIn(cc, shift=UP * 0.1), run_time=0.7)
-        self.at("larger gain went to species")
-        self.play(Indicate(cb, color=ORANGE, scale_factor=1.08), run_time=0.8)
-        self.at("So selection is negative")
-        self.play(FadeIn(eq2, shift=DOWN * 0.1), Create(link), GrowFromEdge(rbar_, RIGHT), FadeIn(rl), run_time=0.9)
-        self.at("Add them")
-        self.play(FadeIn(eq3, shift=DOWN * 0.1), Create(link2), GrowFromEdge(nbar, LEFT), FadeIn(nl), run_time=0.9)
+        head=heading('Experimental grasslands')
+        poor,rich=grassplot(-3,False),grassplot(3,True)
+        names=VGroup(T('fewer species',28).move_to([-3,-1.5,0]),T('more species',28).move_to([3,-1.5,0]))
+        self.at('Grassland experiments')
+        self.play(FadeIn(head),FadeIn(poor),FadeIn(rich),FadeIn(names),run_time=0.7)
+        self.at('generally grow more')
+        bars=VGroup(schematic_bar(-3,1.25),schematic_bar(3,2.3))
+        self.play(ReplacementTransform(poor,bars[0]),ReplacementTransform(rich,bars[1]),
+                  Transform(head,heading('Harvested aboveground biomass')),names.animate.shift(DOWN*0.85),run_time=1)
+        pattern=T('More plant species → generally more biomass',30,GOLD).move_to([0,-2.9,0])
+        self.play(FadeIn(pattern),run_time=0.6)
+        self.at('Losing species')
+        self.play(Indicate(names[0],color=GREY),Indicate(bars[0],color=GOLD),run_time=0.8)
+        self.at('Richer communities')
+        clear(self)
+        top,bottom=timeseries(False,1.4),timeseries(True,-1.2)
+        self.play(FadeIn(top),FadeIn(bottom),FadeIn(T('Across years →',24,GREY).move_to([4.6,-3,0])),run_time=0.8)
+        self.at('At Cedar Creek')
+        site=T('Cedar Creek · Minnesota',28).move_to([0,3.1,0])
+        self.play(FadeIn(site),run_time=0.5)
+        self.at('individual species became')
+        t=np.linspace(0,6,90)
+        species=VGroup(trace(0.5*np.sin(2.7*t),-5.3,4.2,-1.2,BLUE),
+                       trace(0.4*np.sin(4.4*t+0.8),-5.3,4.2,-1.2,ORANGE))
+        self.play(bottom[1].animate.set_stroke(width=7),Create(species),run_time=0.8)
+        self.at('the whole community')
+        self.play(FadeOut(species),Indicate(bottom[1],color=GOLD),run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S03Two(SpokenScene):
+    def construct(self):
+        self.at('Why can a mixture')
+        question=heading('Why can a mixture produce more?')
+        self.play(FadeIn(question),run_time=0.5)
+        ct=chip('complementarity',GREEN,30).move_to([-3.2,2.1,0])
+        st=chip('selection',RED,30).move_to([3.2,2.1,0])
+        # Original two-panel drawing: yield bars above dashed expectations.
+        bars=VGroup(schematic_bar(-4.2,1.8,BLUE,y=-0.9,width=1),schematic_bar(-2.2,1.8,ORANGE,y=-0.9,width=1))
+        expected=VGroup(dashed(0,-4.9,-3.5),dashed(0,-2.9,-1.5))
+        cap=T('monoculture prediction',22,GREY).move_to([-3.2,-1.4,0])
+        self.at('Complementarity means')
+        self.play(FadeIn(ct),FadeIn(bars),Create(expected),FadeIn(cap),run_time=0.7)
+        self.at('do better together')
+        ups=VGroup(*[Arrow([x,0,0],[x,0.9,0],buff=0,color=GREEN) for x in [-4.9,-1.5]])
+        self.play(GrowArrow(ups[0]),GrowArrow(ups[1]),run_time=0.6)
+        self.at('use resources differently')
+        resources=VGroup(chip('resource use A',BLUE,22).move_to([-4.4,-2.2,0]),
+                         chip('resource use B',ORANGE,22).move_to([-1.8,-2.2,0]))
+        resource_arrows=VGroup(*[Arrow([x,-1.85,0],[x,-1.02,0],buff=0.05,color=c) for x,c in [(-4.2,BLUE),(-2.2,ORANGE)]])
+        self.play(FadeOut(cap),FadeIn(resources),Create(resource_arrows),run_time=0.7)
+        self.at('Legumes adding nitrogen')
+        leg=chip('legumes → nitrogen → neighbors',GREEN,22).move_to([-3.2,-2.2,0])
+        self.play(ReplacementTransform(resources,leg),FadeOut(resource_arrows),run_time=0.7)
+        self.at('Selection is another')
+        dots=VGroup(*[Circle(radius=0.3,stroke_color=RED if i==2 else GREY,
+                       fill_color=RED if i==2 else GREY,fill_opacity=0.5).move_to([1.4+i*1.15,0,0]) for i in range(4)])
+        rc=T('random draw',26,GREY).move_to([3.2,1.1,0])
+        self.play(FadeIn(st),FadeIn(rc),FadeIn(dots),run_time=0.6)
+        self.at('productive species that dominates')
+        dom=VGroup(T('productive species',24,RED),T('dominates',24,RED)).arrange(DOWN,buff=0.1).move_to([3.2,-1.8,0])
+        self.play(dots[2].animate.scale(2),*[dots[i].animate.scale(0.6) for i in (0,1,3)],FadeIn(dom),run_time=0.9)
+        self.at('Both can act together')
+        eq=VGroup(M('net effect =',28,GOLD),T('complementarity',28,GREEN),M('+',28),T('selection',28,RED)).arrange(RIGHT,buff=0.2).move_to([0,-3.1,0])
+        self.play(FadeOut(ups),FadeIn(eq),run_time=0.6)
+        self.at('partition separates')
+        clear(self)
+        self.play(FadeIn(heading('Loreau–Hector partition')),FadeIn(eq.copy().move_to([0,1.2,0])),run_time=0.7)
+        acct=chip('yield accounting',GOLD,32).move_to([0,-0.1,0])
+        self.play(FadeIn(acct),run_time=0.5)
+        self.at('does not identify')
+        mech=T('Biological mechanism needs more evidence',30).move_to([0,-1.8,0])
+        self.play(FadeIn(mech),run_time=0.7)
+        self.finish()
+
+
+class S04Stability(SpokenScene):
+    def construct(self):
+        self.at('Now ask what steadier')
+        self.play(FadeIn(heading('Temporal stability')),run_time=0.5)
+        formula=VGroup(T('mean total biomass',30,GOLD),Line(LEFT*2.1,RIGHT*2.1,color=TEXT),
+                       T('standard deviation',30,GREY)).arrange(DOWN,buff=0.2).move_to([3.6,0.5,0])
+        t=np.linspace(0,8,100)
+        # Deterministic independent random sequences, without paired opposing waves.
+        rng=np.random.default_rng(17)
+        a=rng.uniform(-0.55,0.55,15); b=rng.uniform(-0.55,0.55,15)
+        # Both species and their sum use the same vertical scale.
+        av=0.65+0.65*a; bv=0.65+0.65*b
+        total=trace(av+bv,-5.6,0.3,-1.6,GOLD)
+        ax=Line([-5.6,-1.8,0],[0.3,-1.8,0],color=GREY)
+        label=T('Total = A + B · years →',23).move_to([-2.7,-2.25,0])
+        self.at('Temporal stability is')
+        self.play(FadeIn(formula),Create(ax),Create(total),FadeIn(label),run_time=0.8)
+        self.at('species fluctuate independently')
+        species=VGroup(trace(av,-5.6,0.3,-1.6,BLUE),trace(bv,-5.6,0.3,-1.6,ORANGE))
+        self.play(Create(species),run_time=0.8)
+        self.at('partly cancel in the total')
+        self.play(Indicate(total,color=GOLD),run_time=0.7)
+        self.at('A higher mean production')
+        self.play(total.animate.shift(UP*0.45),species.animate.shift(UP*0.225),Indicate(formula[0],color=GOLD),run_time=0.8)
+        self.at('Resistance means')
+        clear(self)
+        self.play(FadeIn(heading('Disturbance and recovery are separate')),run_time=0.5)
+        baseline=dashed(1.1,-5.8,5.8)
+        event=Rectangle(width=1.5,height=2.9,stroke_width=0,fill_color=GREY,fill_opacity=0.15).move_to([-0.3,-0.3,0])
+        el=T('disturbance',24,GREY).move_to([-0.3,1.8,0])
+        path=trace([0,0,-1.7],-5.5,0.2,1.1,GOLD)
+        r=chip('resistance: change during',GOLD,24).move_to([-3,-2.5,0])
+        self.play(Create(baseline),FadeIn(event),FadeIn(el),Create(path),FadeIn(r),run_time=0.8)
+        self.at('Resilience means')
+        recovery=trace([-1.7,-0.8,0],0.2,5.5,1.1,GOLD)
+        rl=chip('resilience: return afterwards',GOLD,24).move_to([3,-2.5,0])
+        self.play(Create(recovery),FadeIn(rl),run_time=0.8)
+        self.at('greater resistance')
+        note=T('Grassland synthesis:\ngreater resistance',24).move_to([-3,-3.36,0])
+        self.play(FadeIn(note),Indicate(r,color=GOLD),run_time=0.7)
+        self.at('no detectable diversity effect')
+        result=VGroup(T('Recovery one year later:',23),T('no detectable diversity effect',23,GREY)).arrange(DOWN,buff=0.12).move_to([3,-3.36,0])
+        self.play(FadeIn(result),run_time=0.8)
+        self.finish()
+
+
+class S05Experiments(SpokenScene):
+    def construct(self):
+        self.at('How do we know')
+        head=heading('Assign richness; draw species at random')
+        self.play(FadeIn(head),run_time=0.5)
+        pool=VGroup(*[Dot([x,1.3,0],radius=0.18,color=c) for x,c in zip([-1.2,-0.4,0.4,1.2],[BLUE,ORANGE,GREY,BLUE])])
+        poor,rich=grassplot(-3,False,y=-1.3),grassplot(3,True,y=-1.3)
+        self.at('randomly chosen species')
+        self.play(FadeIn(pool),FadeIn(poor),FadeIn(rich),run_time=0.5)
+        seeds=VGroup(pool[0].copy(),pool[1:3].copy())
+        self.add(seeds)
+        self.play(seeds[0].animate.move_to([-3,-0.4,0]),seeds[1].animate.move_to([3,-0.4,0]),run_time=0.6)
+        self.play(FadeOut(seeds),run_time=0.2)
+        self.at('same seed mass')
+        mass=T('Equal total seed mass in every plot',30).move_to([0,-2.4,0])
+        self.play(FadeIn(mass),run_time=0.5)
+        self.at('They clipped')
+        clear(self)
+        h=heading('Measure aboveground biomass each year')
+        plant=grassplot(-4.3,True,y=-1)
+        cut=Line([-5.9,-0.7,0],[-2.7,-0.7,0],color=TEXT,stroke_width=5)
+        dry=chip('dry',GOLD,30).move_to([0,0,0])
+        weigh=chip('weigh',GOLD,30).move_to([4.2,0,0])
+        self.play(FadeIn(h),FadeIn(plant),Create(cut),run_time=0.3)
+        self.at('dried')
+        self.play(ReplacementTransform(plant[1],dry),FadeOut(cut),run_time=0.35)
+        self.at('weighed the plants')
+        self.play(TransformFromCopy(dry,weigh),run_time=0.4)
+        self.at('Random composition prevents')
+        clear(self)
+        rand=chip('random composition',GREY,32).move_to([0,1,0])
+        msg=VGroup(T('Researchers do not hand-pick',30),T('productive species for richer plots',30)).arrange(DOWN,buff=0.2).move_to([0,-0.7,0])
+        self.play(FadeIn(rand),FadeIn(msg),run_time=0.7)
+        self.at('repeated the logic')
+        clear(self)
+        cedar=chip('Cedar Creek',GREY,28).move_to([-4,0,0])
+        mn=T('Minnesota',24,GREY).move_to([-4,-0.9,0])
+        sites=VGroup(*[Dot([2.5+(i%4)*0.8,0.5-(i//4),0],radius=0.13,color=GREY) for i in range(8)])
+        eu=T('8 European BIODEPTH sites',27).move_to([2.8,1.6,0])
+        link=Arrow([-2.5,0,0],[1.6,0,0],color=GREY,buff=0.1)
+        self.play(FadeIn(cedar),FadeIn(mn),GrowArrow(link),FadeIn(sites),FadeIn(eu),run_time=0.8)
+        self.at('Across those sites')
+        result=VGroup(T('Species loss → lower average biomass',30,GOLD),T('Overall pattern across sites',24,GREY)).arrange(DOWN,buff=0.2).move_to([0,-2.3,0])
+        self.play(FadeIn(result),run_time=0.7)
+        self.finish()
+
+
+class S06Field(SpokenScene):
+    def construct(self):
+        self.at('Real landscapes')
+        self.play(FadeIn(heading('Field associations need caution')),run_time=0.5)
+        soil=chip('soil moisture / fertility',GREY,30).move_to([0,1.8,0])
+        richness=chip('more species',TEXT,30).move_to([-3,-0.5,0])
+        biomass=chip('more biomass',GOLD,30).move_to([3,-0.5,0])
+        arrows=VGroup(Arrow([-0.8,1.35,0],[-2.7,0.05,0],color=GREY,buff=0.1),
+                      Arrow([0.8,1.35,0],[2.7,0.05,0],color=GREY,buff=0.1))
+        self.at('Wetter or more fertile soil')
+        self.play(FadeIn(soil),FadeIn(richness),FadeIn(biomass),Create(arrows),run_time=0.9)
+        assoc=DashedLine([-1.4,-0.5,0],[1.4,-0.5,0],color=GOLD)
+        cap=T('positive association',25,GOLD).move_to([0,-1.5,0])
+        self.at('Field studies found positive')
+        self.play(Create(assoc),FadeIn(cap),run_time=0.6)
+        self.at('adjusting for environmental differences')
+        adjusted=T('Adjusted for measured environment',26,GREY).move_to([0,2,0])
+        self.play(ReplacementTransform(soil,adjusted),arrows.animate.set_opacity(0.3),run_time=0.7)
+        self.at('an unmeasured variable')
+        unknown=chip('unmeasured variable?',GREY,30).move_to([0,1.9,0])
+        self.play(ReplacementTransform(adjusted,unknown),arrows.animate.set_opacity(1),run_time=0.7)
+        self.at('Experiments assign richness')
+        exp=T('Experiments: assigned richness',27).move_to([0,-2.35,0])
+        self.play(FadeIn(exp),run_time=0.6)
+        self.at('Surveys need that extra caution')
+        caution=T('Surveys: association, with residual uncertainty',26,GREY).move_to([0,-3.1,0])
+        self.play(FadeIn(caution),run_time=0.6)
+        self.finish()
+
+
 class S06Rule(SpokenScene):
     def construct(self):
-        d = chart()
-        add_all(self, d, STATIC)
-        head = T("Made-up example: two species, sown in equal proportions", 28, TEXT).to_edge(UP, buff=0.4)
-        self.add(head)
-        ex = dashed(yy(250))
-        exl = side_label("expected", "250", yy(250), GREY)
-        self.add(ex, exl)
-        self.at("best monoculture")
-        best = dashed(yy(400), color=TEXT)
-        bl = side_label("best monoculture", "400", yy(400), TEXT, x=4.9)
-        self.play(Create(best), FadeIn(bl), run_time=0.8)
-        self.at("exactly what species")
-        self.play(Indicate(VGroup(d["barA"], d["mix"]), color=TEXT, scale_factor=1.04), run_time=0.9)
-        self.at("no transgressive overyielding")
-        no = T("no transgressive overyielding", 30, TEXT).move_to([0.8, 2.6, 0])
-        self.play(FadeIn(no, shift=DOWN * 0.1), run_time=0.7)
-        self.at("beats the average monoculture")
-        self.play(Indicate(exl, color=TEXT, scale_factor=1.15), run_time=0.9)
-        self.at("positive complementarity term")
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        comp = chip("positive complementarity", GREEN, 38).move_to([0, 2.6, 0])
-        part = chip("resource partitioning", GREY, 38).move_to([0, -0.2, 0])
-        a1 = Line([0, comp.get_bottom()[1] - 0.15, 0], [0, 1.6, 0], color=GREY, stroke_width=5)
-        a2 = Line([0, 0.75, 0], [0, part.get_top()[1] + 0.12, 0], color=GREY, stroke_width=5)
-        q = M("?", 56, GOLD).move_to([0, 1.18, 0])
-        self.play(FadeIn(comp, shift=DOWN * 0.2), run_time=0.5)
-        self.play(Create(a1), FadeIn(q), Create(a2), FadeIn(part), run_time=0.8)
-        self.at("does not prove")
-        self.play(Indicate(q, color=GOLD, scale_factor=1.4), run_time=0.8)
-        self.at("Keep this rule")
-        rule = T("The partition splits the gain.", 44, TEXT)
-        rule2 = T("It names no mechanism.", 44, TEXT)
-        VGroup(rule, rule2).arrange(DOWN, buff=0.3).move_to([0, -2.2, 0])
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.6)
-        self.at("names no mechanism")
-        self.play(FadeIn(rule2, shift=UP * 0.1), run_time=0.6)
+        self.at('One smaller point')
+        self.play(FadeIn(heading('Smaller point: the benchmark')),run_time=0.5)
+        # Original A-alone, B-alone, stacked-mixture drawing, stripped of numerical yields.
+        d=chart()
+        self.play(Create(d['axis']),FadeIn(d['barA']),FadeIn(d['barB']),
+                  FadeIn(d['nameA']),FadeIn(d['nameB']),run_time=0.6)
+        self.at('A mixture can beat')
+        self.play(GrowFromEdge(d['mixA'],DOWN),GrowFromEdge(d['mixB'],DOWN),FadeIn(d['nameM']),run_time=0.7)
+        self.at('the average monoculture')
+        average=dashed(yy(250))
+        avg=T('average',28,GREY).move_to([4.5,yy(250),0])
+        self.play(Create(average),FadeIn(avg),run_time=0.6)
+        self.at('without beating the best')
+        best=dashed(yy(400),color=TEXT)
+        lab=T('best',28,TEXT).move_to([4.5,yy(400),0])
+        self.play(Create(best),FadeIn(lab),run_time=0.6)
+        self.at('Extra yield against the average')
+        note=T('Above the average ≠ above the best',30,GOLD).move_to([0,2.35,0])
+        self.play(FadeIn(note),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The partition splits the gain, but names no mechanism."
+    TITLE = 'More Species, More Biomass'
+    LINE = 'More plant species generally mean more biomass and steadier production.'
+
+    def construct(self):
+        title=T(self.TITLE,40,font=TITLE_FONT).move_to([0,2.9,0])
+        line=T(self.LINE.replace('mean ', 'mean\n'),32,font=TITLE_FONT).move_to([0,1.5,0])
+        field=grassplot(-2.5,True,y=-1.2)
+        biomass=schematic_bar(3,2.2,y=-1.2)
+        label=T('biomass',26,GOLD).move_to([3,-1.8,0])
+        self.play(FadeIn(title),FadeIn(line),FadeIn(field),GrowFromEdge(biomass,DOWN),FadeIn(label),run_time=0.8)
+        self.finish()

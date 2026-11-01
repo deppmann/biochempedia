@@ -1,4 +1,4 @@
-"""What one daily survival number does  (Biochemistrypedia explainer, Ecology and Evolution)
+"""Selection has an agent  (Biochemistrypedia explainer, Ecology and Evolution)
 
 COLOR MAP (one color per concept, whole video)
   PALE_C = the pale morph (typica): dots, bars, share segment
@@ -7,7 +7,11 @@ COLOR MAP (one color per concept, whole video)
   YELLOW = the relative daily survival number and the arithmetic on it
   TEAL   = the dark share among survivors (the result)
   GREY   = frames, axes, labels, the wood
-  GREEN  = the directly witnessed attacks (26%)
+  GREEN  = the directly witnessed attacks (legacy helper palette)
+  BLUE   = trait axes, pools and shallow beaks
+  TEAL   = inheritance and measured fitness patterns
+  RED    = ecological agents (birds, wasps, drought)
+  PALE_C / DARK_C = contrasting guppy patterns as well as moth morphs
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -41,236 +45,253 @@ def share(t):
     return R ** t / (1 + R ** t)
 
 
+# Simple silhouettes extend the original ellipse-based moth drawing style.
+def bird(tail=0.7, color=RED):
+    body = Ellipse(width=0.65, height=0.42, color=color, fill_opacity=1)
+    head = Circle(radius=0.17, color=color, fill_opacity=1).shift(RIGHT * 0.32 + UP * 0.19)
+    beak = Polygon([0.45, 0.23, 0], [0.72, 0.13, 0], [0.45, 0.06, 0], color=color, fill_opacity=1)
+    feathers = VGroup(*[Line([-0.23 + d, -0.1, 0], [-0.48 + d, -tail, 0], color=color, stroke_width=7) for d in (-0.08, 0.08)])
+    return VGroup(body, head, beak, feathers)
+
+
+def fish(color):
+    return VGroup(Ellipse(width=0.65, height=0.3, color=color, fill_opacity=0.9),
+                  Polygon([-.28, 0, 0], [-.55, .22, 0], [-.55, -.22, 0], color=color, fill_opacity=0.9),
+                  Dot([.2, .04, 0], radius=.035, color=BG))
+
+
+def sun():
+    return VGroup(Circle(radius=.3, color=RED, fill_opacity=.5),
+                  *[Line(.42*np.array([np.cos(a), np.sin(a), 0]), .63*np.array([np.cos(a), np.sin(a), 0]), color=RED) for a in np.arange(0, TAU, TAU/8)])
+
+
+def beak(deep=True):
+    h = .46 if deep else .17
+    return Polygon([-.45, h, 0], [.55, 0, 0], [-.45, -h, 0], color=DARK_C if deep else BLUE, fill_opacity=.85)
+
+
 class S00Title(TitleCard):
     LESSON = "Natural selection in ecological context"
-    TITLE = "What One Daily Survival Number Does"
+    TITLE = "Selection Has an Agent"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Number(SpokenScene):
+class S01Lead(SpokenScene):
     def construct(self):
-        pale = cluster(PALE_C, -3.8, 0.8)
-        dark = cluster(DARK_C, 3.8, 0.8)
-        pl = T("pale (typica)", 28, PALE_C).next_to(pale, DOWN, buff=0.3)
-        dl = T("dark (carbonaria)", 28, DARK_C).next_to(dark, DOWN, buff=0.3)
-        site = T("peppered moth, near Cambridge", 28, GREY).to_edge(UP, buff=0.5)
-        self.at("Near Cambridge")
-        self.play(FadeIn(site), LaggedStart(*[FadeIn(m, scale=0.6) for m in list(pale) + list(dark)], lag_ratio=0.04), run_time=0.8)
-        bird = chip("birds", RED, 28).move_to([0, 2.5, 0])
-        a_d = Arrow(bird.get_right() + DOWN * 0.1, dark.get_top() + UP * 0.05, color=RED, stroke_width=8, buff=0.1)
-        a_p = Arrow(bird.get_left() + DOWN * 0.1, pale.get_top() + UP * 0.05, color=RED, stroke_width=2.5, buff=0.1)
-        self.at("birds took dark")
-        self.play(FadeIn(bird), GrowArrow(a_d), GrowArrow(a_p), run_time=0.8)
-        self.at("The moth has a pale form")
-        self.play(FadeIn(pl), FadeIn(dl), run_time=0.6)
-        self.at("Michael")
-        maj = T("Majerus: six years of releases", 26, GREY).move_to([0, -1.7, 0])
-        self.play(FadeIn(maj), run_time=0.5)
-        self.at("A dark moth survived each day")
-        eq = chip("dark = 0.91 × pale, per day", YELLOW, 32).move_to([0, -2.9, 0])
-        self.play(FadeOut(maj), FadeOut(bird), FadeOut(a_d), FadeOut(a_p), FadeIn(eq, shift=UP * 0.2), run_time=0.8)
-        self.at("wood full of moths")
-        wood = RoundedRectangle(corner_radius=0.3, width=12.4, height=4.5, stroke_color=GREY, stroke_width=3).move_to([0, 0.35, 0])
-        wl = T("a wood", 26, GREY).next_to(wood, UP, buff=0.12).align_to(wood, LEFT)
-        q = T("?", 110, YELLOW, weight=BOLD).move_to([0, 0.8, 0])
-        self.play(Create(wood), FadeIn(wl), FadeIn(q, scale=0.5), run_time=0.9)
+        row = VGroup(*[moth(c).move_to([x, .9, 0]) for x,c in zip((-4.5,-1.5,1.5,4.5), (PALE_C,DARK_C,PALE_C,DARK_C))])
+        head = T("Existing variation", 36).move_to([0, 3, 0])
+        self.at("Natural selection starts")
+        self.play(FadeIn(head), FadeIn(row), run_time=.8)
+        agent = bird().move_to([0, 2.1, 0])
+        self.at("a predator")
+        self.play(FadeIn(agent), run_time=.5)
+        self.at("a parasite")
+        self.play(Transform(agent, chip("parasite", RED).move_to(agent)), run_time=.45)
+        self.at("a rival")
+        self.play(Transform(agent, chip("rival", RED).move_to(agent)), run_time=.45)
+        self.at("a choosy mate")
+        self.play(Transform(agent, chip("choosy mate", RED).move_to(agent)), run_time=.45)
+        self.at("a drought")
+        self.play(Transform(agent, sun().move_to(agent)), run_time=.45)
+        young = VGroup(moth(PALE_C,.65).move_to([-3,-.8,0]),
+                       moth(DARK_C,.65).move_to([0,-.8,0]), moth(DARK_C,.65).move_to([2,-.8,0]))
+        self.at("leave more offspring")
+        self.play(TransformFromCopy(row[0],young[0]), TransformFromCopy(row[1],young[1]), TransformFromCopy(row[3],young[2]), run_time=1)
+        strip = chip("selection: one generation", YELLOW, 28).move_to([0,-2.25,0])
+        self.at("That difference")
+        self.play(FadeIn(strip), run_time=.7)
+        inherit = chip("response: needs inheritance", TEAL, 28).move_to([0,-3.1,0])
+        self.at("only if the variation")
+        self.play(FadeIn(inherit), run_time=.7)
+        self.at("the young of the survivors")
+        self.play(Indicate(young, color=TEAL), run_time=.7)
+        self.at("if the environment changes")
+        self.play(Transform(agent, bird().move_to(agent)), FadeOut(young), run_time=.7)
+        self.at("a different variant can win")
+        self.play(row[0].animate.scale(1.3), row[2].animate.scale(1.3), row[1].animate.set_opacity(.35), row[3].animate.set_opacity(.35), run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-BASE = -2.5
-H = 4.4          # bar height for 1,000
-XP, XD = -4.6, -1.8
-
-
-def stage(start_pale=1000, start_dark=1000):
-    bp = bar(XP, H * start_pale / 1000, PALE_C, BASE)
-    bd = bar(XD, H * start_dark / 1000, DARK_C, BASE)
-    base = Line([-6.0, BASE, 0], [0.0, BASE, 0], color=GREY, stroke_width=3)
-    lp = T("pale", 28, PALE_C).move_to([XP, BASE - 0.42, 0])
-    ld = T("dark", 28, DARK_C).move_to([XD, BASE - 0.42, 0])
-    return bp, bd, base, lp, ld
-
-
-def count(x, h, txt, color):
-    return M(txt, 30, color).move_to([x, BASE + h + 0.35, 0])
-
-
-class S02Wood(SpokenScene):
+class S02Agent(SpokenScene):
     def construct(self):
-        bp, bd, base, lp, ld = stage(0.001, 0.001)
-        self.add(base, lp, ld)
-        tag = chip("invented numbers", GREY, 26).move_to([3.3, 2.7, 0])
-        self.at("invented numbers")
-        self.play(FadeIn(tag), run_time=0.5)
-        self.at("wood holds")
-        fp = bar(XP, H, PALE_C, BASE)
-        np_ = count(XP, H, "1,000", PALE_C)
-        self.play(Transform(bp, fp), FadeIn(np_), run_time=0.9)
-        self.at("pale moths and")
-        fd = bar(XD, H, DARK_C, BASE)
-        nd = count(XD, H, "1,000", DARK_C)
-        self.play(Transform(bd, fd), FadeIn(nd), run_time=0.9)
-        self.at("Say pale moths survive")
-        ps = chip("pale: 0.80 survive per day", PALE_C, 28).move_to([3.3, 1.2, 0])
-        self.play(FadeIn(ps, shift=LEFT * 0.2), run_time=0.7)
-        items = []
-        for i, (ph, txt) in enumerate([("no migration", "no migration"), ("no reproduction", "no reproduction"), ("no change in rates", "no change in rates")]):
-            c = chip(txt, GREY, 26).move_to([3.3, -0.3 - i * 0.95, 0])
-            self.at(ph)
-            self.play(FadeIn(c, shift=LEFT * 0.2), run_time=0.5)
+        moths = VGroup(moth(PALE_C).move_to([-2,0,0]), moth(DARK_C).move_to([2,0,0]))
+        labels = VGroup(T("pale",28,PALE_C).move_to([-2,-1,0]), T("dark",28,DARK_C).move_to([2,-1,0]))
+        head=T("Peppered moth",36).move_to([0,3,0])
+        self.at("Take the")
+        self.play(FadeIn(head), FadeIn(moths), run_time=.7)
+        self.at("a pale form")
+        self.play(FadeIn(labels), run_time=.6)
+        inherited=chip("inherited colour",TEAL,26).move_to([0,-2.5,0])
+        self.at("the color is inherited")
+        self.play(FadeIn(inherited), run_time=.6)
+        trunks=VGroup(*[RoundedRectangle(width=4,height=3.6,corner_radius=.2,stroke_color=GREY,fill_color=c,fill_opacity=.8).move_to([x,0,0]) for x,c in ((-3.3,'#3A2A20'),(3.3,'#B9B79B'))])
+        pair=VGroup(moth(PALE_C,.85).move_to([-4.2,0,0]),moth(DARK_C,.85).move_to([-2.4,0,0]),moth(PALE_C,.85).move_to([2.4,0,0]),moth(DARK_C,.85).move_to([4.2,0,0]))
+        birds=VGroup(bird().move_to([-3.3,2.4,0]),bird().move_to([3.3,2.4,0]))
+        self.at("Birds hunt")
+        self.play(FadeOut(moths),FadeOut(labels),FadeOut(inherited),FadeIn(trunks),FadeIn(pair),FadeIn(birds),run_time=.9)
+        barklabels=VGroup(T("sooty bark",28,GREY).move_to([-3.3,-2.3,0]),T("lichen-covered bark",28,GREY).move_to([3.3,-2.3,0]))
+        self.at("Where pollution killed")
+        self.play(FadeIn(barklabels),run_time=.6)
+        self.at("dark moths matched")
+        self.play(birds[0].animate.move_to(pair[0]),run_time=.6)
+        self.play(FadeOut(pair[0]), birds[0].animate.move_to([-3.3,2.4,0]),run_time=.6)
+        self.at("the dark form became common")
+        self.play(Indicate(pair[1],color=YELLOW,scale_factor=1.3),run_time=.8)
+        self.at("When the air cleaned up")
+        self.play(birds[1].animate.move_to(pair[3]),run_time=.6)
+        self.play(FadeOut(pair[3]),birds[1].animate.move_to([3.3,2.4,0]),run_time=.6)
+        self.at("pale moths matched better")
+        self.play(Indicate(pair[2],color=YELLOW,scale_factor=1.3),run_time=.8)
+        self.at("Same moth same birds")
+        self.play(Indicate(birds),run_time=.6)
+        self.at("A different environment")
+        rule=T("Environment changes which colour is favoured",30,TEAL).move_to([0,-3.2,0])
+        self.play(FadeIn(rule),run_time=.7)
         self.finish()
 
 
-class S03Day(SpokenScene):
+class S03Measured(SpokenScene):
     def construct(self):
-        bp, bd, base, lp, ld = stage()
-        np_ = count(XP, H, "1,000", PALE_C)
-        nd = count(XD, H, "1,000", DARK_C)
-        self.add(bp, bd, base, lp, ld, np_, nd)
-        X0 = 3.4
-        l1 = M("dark = 0.909 × pale", 32, YELLOW).move_to([X0, 2.4, 0])
-        l2 = M("0.80 × 0.909", 36, YELLOW).move_to([X0, 1.3, 0])
-        l3 = M("= 0.7272", 36, YELLOW).next_to(l2, DOWN, buff=0.25).align_to(l2, LEFT)
-        self.at("Dark moths survive")
-        self.play(FadeIn(l1, shift=LEFT * 0.2), run_time=0.6)
-        self.at("So dark daily survival")
-        self.play(FadeIn(l2, shift=LEFT * 0.2), run_time=0.6)
-        self.at("That is")
-        self.play(FadeIn(l3, shift=LEFT * 0.2), run_time=0.5)
-        self.at("After one day")
-        np2 = count(XP, H * 0.8, "800", PALE_C)
-        nd2 = count(XD, H * 0.7272, "727.2", DARK_C)
-        self.play(Transform(bp, bar(XP, H * 0.8, PALE_C, BASE)), Transform(bd, bar(XD, H * 0.7272, DARK_C, BASE)),
-                  ReplacementTransform(np_, np2), ReplacementTransform(nd, nd2), run_time=1.6)
-        self.at("That last figure")
-        ex = chip("expected count", YELLOW, 28).move_to([X0, -0.9, 0])
-        ar = Arrow(ex.get_left(), nd2.get_right() + RIGHT * 0.05, color=YELLOW, stroke_width=4, buff=0.12)
-        self.play(FadeIn(ex), GrowArrow(ar), run_time=0.7)
-        self.at("A fraction of a moth")
-        ex2 = T("a fraction of a moth\nis an expectation, not a moth", 26, GREY).move_to([X0, -2.2, 0])
-        self.play(FadeIn(ex2), run_time=0.7)
+        # A location schematic, without a geographic scale.
+        site=VGroup(Polygon([-.5,1.7,0],[.15,1.5,0],[-.05,.9,0],[.4,.5,0],[.55,-.1,0],[.95,-.6,0],[.55,-1.15,0],[-.2,-1.3,0],[-1,-1.5,0],[-.5,-.9,0],[-.8,-.4,0],[-.35,.05,0],[-.65,.7,0],color=GREY,fill_opacity=.12),Dot([.55,-.8,0],color=YELLOW),T("near Cambridge",28).move_to([0,-2,0])).move_to([-3.7,.7,0])
+        ms=VGroup(moth(PALE_C).move_to([2,.9,0]),moth(DARK_C).move_to([4,.9,0]))
+        self.at("How do you show it")
+        self.play(FadeIn(site),run_time=.7)
+        self.at("released live moths")
+        self.play(FadeIn(ms,shift=LEFT),run_time=.8)
+        years=chip("six years of releases",GREY,26).move_to([0,3,0])
+        self.at("over six years")
+        self.play(FadeIn(years),run_time=.6)
+        agent=bird().move_to([3,2.3,0])
+        missing=T("disappeared → presumed eaten",26,GREY).move_to([0,-1.8,0])
+        self.at("recorded which disappeared")
+        self.play(ms[1].animate.set_opacity(.2),FadeIn(agent),FadeIn(missing),run_time=.8)
+        records=T("Cook and colleagues: analysis",28,GREY).move_to([0,-2.7,0])
+        self.at("Cook and colleagues")
+        self.play(FadeIn(records),run_time=.6)
+        self.at("Each day")
+        self.play(FadeOut(site),FadeOut(ms),FadeOut(years),FadeOut(agent),FadeOut(missing),FadeOut(records),run_time=.5)
+        eq=chip("dark survival = 0.91 × pale",YELLOW,34).move_to([0,1.6,0])
+        self.at("a dark moth survived")
+        self.play(FadeIn(eq),run_time=.8)
+        limits=T("relative • per day • one site",30,YELLOW).move_to([0,.2,0])
+        self.at("That number is relative")
+        self.play(FadeIn(limits),run_time=.7)
+        component=chip("fitness component: survival",TEAL,28).move_to([0,-1.2,0])
+        self.at("a measured fitness component")
+        self.play(FadeIn(component),run_time=.7)
+        tag=chip("agent: birds",RED,28).move_to([0,-2.5,0])
+        self.at("with a named agent")
+        self.play(FadeIn(tag),run_time=.7)
         self.finish()
 
 
-class S04Share(SpokenScene):
+class S04Modes(SpokenScene):
     def construct(self):
-        bp, bd, base, lp, ld = stage(800, 727.2)
-        np2 = count(XP, H * 0.8, "800", PALE_C)
-        nd2 = count(XD, H * 0.7272, "727.2", DARK_C)
-        self.add(bp, bd, base, lp, ld, np2, nd2)
-        CX, W, Y = 3.4, 5.6, 1.7
-        def sbar(f):
-            d = Rectangle(width=W * f, height=0.8, fill_color=DARK_C, fill_opacity=0.95, stroke_color=TEXT, stroke_width=2)
-            p = Rectangle(width=W * (1 - f), height=0.8, fill_color=PALE_C, fill_opacity=0.95, stroke_color=TEXT, stroke_width=2)
-            g = VGroup(d, p).arrange(RIGHT, buff=0)
-            return g.move_to([CX, Y, 0])
-        title = T("dark share of survivors", 28, TEAL).move_to([CX, Y + 0.95, 0])
-        s0 = sbar(0.5)
-        lab0 = M("50%", 30, TEAL).next_to(s0, DOWN, buff=0.2)
-        self.at("Now ask for the dark share")
-        self.play(FadeIn(title), FadeIn(s0), FadeIn(lab0), run_time=0.8)
-        eq = M("727.2 / (800 + 727.2)", 26, YELLOW).move_to([CX, 0.0, 0])
-        eq2 = M("= 0.476", 30, YELLOW).next_to(eq, DOWN, buff=0.2)
-        self.at("among the survivors")
-        self.play(FadeIn(eq, shift=LEFT * 0.2), run_time=0.7)
-        self.at("is 0")
-        self.play(FadeIn(eq2), run_time=0.5)
-        s1 = sbar(0.476)
-        lab1 = M("47.6%", 30, TEAL).next_to(s1, DOWN, buff=0.2)
-        self.at("falls from")
-        self.play(Transform(s0, s1), ReplacementTransform(lab0, lab1), run_time=1.2)
-        self.at("cancel")
-        c = M("0.909 / (1 + 0.909)", 26, YELLOW).move_to([CX, -1.9, 0])
-        cl = T("0.80 and the 1,000s cancel", 24, GREY).move_to([CX, -2.8, 0])
-        self.play(FadeIn(c, shift=LEFT * 0.2), FadeIn(cl), run_time=0.8)
+        ax=Axes(x_range=[0,1,.5],y_range=[0,1,.5],x_length=9,y_length=3.5,axis_config={"color":GREY,"include_ticks":False,"include_tip":False}).move_to([0,-.1,0])
+        xlabel=T("trait: gall size",28,GREY).move_to([0,-2.6,0])
+        ylabel=T("survival",28,TEAL).move_to([-5.1,2.55,0])
+        title=T("Selection has a shape",36).move_to([0,3.2,0])
+        self.at("Selection also")
+        self.play(FadeIn(title),run_time=.6)
+        self.at("Plot fitness")
+        self.play(Create(ax),FadeIn(xlabel),FadeIn(ylabel),run_time=.8)
+        curve=ax.plot(lambda x:.2+.65*np.sin(np.pi*x),x_range=[0,1],color=TEAL)
+        wasp=VGroup(Ellipse(width=.6,height=.22,color=RED,fill_opacity=.8),
+                    Ellipse(width=.35,height=.18,color=RED).shift(UP*.2),
+                    Line([-.2,0,0],[-.4,-.4,0],color=RED),
+                    T("wasps",26,RED).shift(RIGHT*1)).move_to([-3.2,2,0])
+        birdtag=VGroup(bird().scale(.8),T("birds",26,RED).shift(RIGHT*1.1)).move_to([3.3,2,0])
+        self.at("Wasps take")
+        self.play(FadeIn(wasp),run_time=.6)
+        self.at("birds open")
+        self.play(FadeIn(birdtag),run_time=.6)
+        self.at("galls survive best")
+        self.play(Create(curve),run_time=.8)
+        mode=T("Stabilizing selection",30,TEAL).move_to([0,-3.3,0])
+        self.at("That is stabilizing")
+        self.play(FadeIn(mode),run_time=.7)
+        self.at("In crowded lake enclosures")
+        newtitle=T("Sticklebacks in lake enclosures",34).move_to(title)
+        self.play(Transform(title,newtitle),FadeOut(wasp),FadeOut(birdtag),FadeOut(curve),FadeOut(mode),Transform(xlabel,T("trait",28,GREY).move_to(xlabel)),Transform(ylabel,T("fitness proxy",26,TEAL).move_to(ylabel)),run_time=.7)
+        dip=ax.plot(lambda x:.4+.35*(2*x-1)**2,x_range=[0,1],color=TEAL)
+        self.at("at either extreme")
+        self.play(Create(dip),run_time=.8)
+        proxy=T("Stand-ins for reproductive success",26,GREY).move_to([0,2.25,0])
+        self.at("on stand")
+        self.play(FadeIn(proxy),run_time=.6)
+        mode2=T("Disruptive selection",30,TEAL).move_to([0,-3.3,0])
+        self.at("That is disruptive")
+        self.play(FadeIn(mode2),run_time=.6)
+        high=ax.plot(lambda x:.12+.63*(2*x-1)**2,x_range=[0,1],color=TEAL)
+        crowd=T("More crowding → deeper dip",28,TEAL).move_to([0,1.5,0])
+        self.at("crowding made it stronger")
+        self.play(Transform(dip,high),FadeIn(crowd),run_time=.8)
         self.finish()
 
 
-class S05Compound(SpokenScene):
+class S05RareMates(SpokenScene):
     def construct(self):
-        ax = Axes(x_range=[0, 5, 1], y_range=[30, 50, 5], x_length=8.2, y_length=4.4,
-                  axis_config={"color": GREY, "stroke_width": 3, "include_ticks": True, "include_tip": False},
-                  ).move_to([-1.9, -0.3, 0])
-        xl = VGroup(*[T(str(i), 24, GREY).next_to(ax.c2p(i, 30), DOWN, buff=0.15) for i in range(6)])
-        yl = VGroup(*[T(str(v), 24, GREY).next_to(ax.c2p(0, v), LEFT, buff=0.15) for v in (30, 35, 40, 45, 50)])
-        xt = T("days", 26, GREY).next_to(xl, DOWN, buff=0.15)
-        yt = T("dark share of survivors, %", 26, TEAL).move_to([-1.9, 3.1, 0])
-        sk = chip("in this sketch: equal starting numbers", GREY, 24).move_to([3.9, 2.9, 0]) if False else None
-        sk = T("in this sketch: equal starting numbers", 24, GREY).move_to([-1.9, -3.35, 0]).align_to(xt, LEFT) if False else T("in this sketch: equal starting numbers", 24, GREY)
-        sk.move_to([3.5, 2.7, 0])
-        self.add(ax, xl, yl, xt)
-        pts = [ax.c2p(t, 100 * share(t)) for t in range(6)]
-        dots = [Dot(p, radius=0.11, color=TEAL) for p in pts]
-        self.add(yt, sk)
-        self.at("The ratio compounds")
-        l0 = M("day 0: 50%", 26, TEAL).next_to(dots[0], RIGHT, buff=0.3).shift(UP * 0.3)
-        self.play(FadeIn(dots[0], scale=0.5), FadeIn(l0), run_time=0.6)
-        self.at("Each extra day")
-        l1 = M("day 1: 47.6%", 26, TEAL).next_to(dots[1], RIGHT, buff=0.3).shift(UP * 0.45)
-        seg = Line(pts[0], pts[1], color=TEAL, stroke_width=4)
-        self.play(Create(seg), FadeIn(dots[1], scale=0.5), FadeIn(l1), run_time=0.7)
-        rr = M("× 0.909 each day", 28, YELLOW).move_to([3.5, 1.2, 0])
-        self.at("multiplies the dark to pale")
-        self.play(FadeIn(rr, shift=LEFT * 0.2), run_time=0.6)
-        self.at("again")
-        segs = []
-        for k in range(2, 5):
-            s = Line(pts[k - 1], pts[k], color=TEAL, stroke_width=4)
-            self.play(Create(s), FadeIn(dots[k], scale=0.5), run_time=0.3)
-        self.at("After five days")
-        s5 = Line(pts[4], pts[5], color=TEAL, stroke_width=4)
-        r5 = M("0.909⁵ = 0.621", 30, YELLOW).move_to([3.5, 0.0, 0])
-        self.play(Create(s5), FadeIn(dots[5], scale=0.5), FadeIn(r5, shift=LEFT * 0.2), run_time=0.9)
-        self.at("is then about")
-        l5 = M("day 5: 38%", 26, TEAL).next_to(dots[5], DOWN, buff=0.3).shift(LEFT * 0.3)
-        self.play(FadeIn(l5), Indicate(dots[5], color=TEAL, scale_factor=1.8), run_time=0.8)
+        title=T("Success depends on frequency",34).move_to([0,3,0])
+        self.at("Sometimes the winner")
+        self.play(FadeIn(title),run_time=.7)
+        pools=VGroup(); fishes=[]
+        for x,colors in ((-3.3,[PALE_C]*3+[DARK_C]),(3.3,[DARK_C]*3+[PALE_C])):
+            pool=Ellipse(width=5.2,height=3.5,color=BLUE,fill_opacity=.08).move_to([x,0,0])
+            group=VGroup(*[fish(c).move_to([x+dx,y,0]) for c,(dx,y) in zip(colors,[(-1,.6),(1,.6),(-1,-.6),(1,-.6)])])
+            pools.add(VGroup(pool,group)); fishes.append(group)
+        self.at("In Trinidad streams")
+        self.play(FadeIn(pools),run_time=.8)
+        rings=VGroup(*[Circle(radius=.62,color=YELLOW).move_to(g[3]) for g in fishes])
+        self.at("rare in some pools")
+        self.play(Create(rings),run_time=.7)
+        result=T("Rare pattern: better estimated survival",28,TEAL).move_to([0,-2.65,0])
+        self.at("Whichever pattern was rare")
+        self.play(FadeIn(result),run_time=.7)
+        self.at("selection can act through mating")
+        self.play(FadeOut(pools),FadeOut(rings),FadeOut(result),Transform(title,T("Selection through mating",34).move_to(title)),run_time=.7)
+        birds=VGroup(*[bird(tail=t,color=GREY).move_to([x,1,0]) for x,t in zip((-4,0,4),(.55,1.1,1.8))])
+        labels=VGroup(*[T(t,26,GREY).move_to([x,-1.25,0]) for x,t in zip((-4,0,4),("shortened","normal","lengthened"))])
+        self.at("shortened and lengthened")
+        self.play(FadeIn(birds),FadeIn(labels),run_time=.9)
+        # Schematic counts communicate direction, not the experiment's effect size.
+        def nest():
+            return VGroup(Arc(radius=.24,start_angle=PI,angle=PI,color=TEAL),
+                          Ellipse(width=.13,height=.19,color=PALE_C,fill_opacity=.8).shift(DOWN*.06))
+        nests=VGroup(*[VGroup(*[nest() for _ in range(n)]).arrange(RIGHT,buff=.16).move_to([x,-2.3,0]) for x,n in zip((-4,0,4),(1,2,3))])
+        arrow=Arrow([-3.7,-3.05,0],[4.3,-3.05,0],color=TEAL,buff=0)
+        note=T("More females nesting (schematic counts)",24,TEAL).move_to([0,-3.5,0])
+        self.at("Males given longer tails")
+        self.play(Indicate(birds[2],color=TEAL),run_time=.6)
+        self.at("attracted more females")
+        self.play(FadeIn(nests),GrowArrow(arrow),FadeIn(note),run_time=.8)
         self.finish()
 
 
-class S06Limits(SpokenScene):
+class S06Response(SpokenScene):
     def construct(self):
-        head = chip("0.091: relative, per day, one site", YELLOW, 30).move_to([0, 3.0, 0])
-        self.at("Keep the limits")
-        self.play(FadeIn(head, shift=DOWN * 0.2), run_time=0.7)
-        self.at("relative and per day")
-        self.play(Indicate(head, color=YELLOW, scale_factor=1.06), run_time=0.7)
-        names = ["annual decline", "absolute death rate", "all of Britain"]
-        row = VGroup(*[chip(n, GREY, 28) for n in names]).arrange(RIGHT, buff=0.5).move_to([0, 1.5, 0])
-        xs = []
-        for ph, c in zip(["not an annual decline", "not an absolute death rate", "all of Britain"], row):
-            self.at(ph)
-            x = cross(c)
-            self.play(FadeIn(c), run_time=0.35)
-            self.play(Create(x), run_time=0.4)
-            xs.append(x)
-        # witnessed fraction
-        W = 8.0
-        wit = Rectangle(width=W * 0.26, height=0.7, fill_color=GREEN, fill_opacity=0.85, stroke_color=TEXT, stroke_width=2)
-        rest = Rectangle(width=W * 0.74, height=0.7, fill_color=GREY, fill_opacity=0.35, stroke_color=TEXT, stroke_width=2)
-        bar_ = VGroup(wit, rest).arrange(RIGHT, buff=0).move_to([0, -0.1, 0])
-        t1 = T("disappeared moths", 26, GREY).next_to(bar_, UP, buff=0.15).align_to(bar_, LEFT)
-        t2 = T("26% witnessed bird attacks", 26, GREEN).next_to(bar_, DOWN, buff=0.2).align_to(bar_, LEFT)
-        self.at("also disappeared")
-        self.play(FadeIn(t1), FadeIn(bar_), run_time=0.7)
-        self.at("witnessed bird attacks")
-        self.play(FadeIn(t2), Indicate(wit, color=GREEN, scale_factor=1.1), run_time=0.8)
-        a = chip("morph share", TEAL, 28)
-        b = chip("allele frequency", GREY, 28)
-        arrow = Arrow(LEFT * 0.7, RIGHT * 0.7, color=GREY, stroke_width=5, buff=0)
-        grp = VGroup(a, arrow, b).arrange(RIGHT, buff=0.3).move_to([0, -2.0, 0])
-        nyet = T("different", 26, RED, weight=BOLD).next_to(arrow, UP, buff=0.12)
-        self.at("A change in morph share")
-        self.play(FadeIn(a), run_time=0.5)
-        self.at("allele frequency")
-        self.play(GrowArrow(arrow), FadeIn(b), FadeIn(nyet), run_time=0.7)
-        rule = T("relative daily survival → change in morph share, at one site", 26, YELLOW)
-        fit(rule, max_w=11.8)
-        rule.move_to([0, -3.15, 0])
-        self.at("A relative daily survival compounds")
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.8)
+        title=T("Selection: within one generation",34,YELLOW).move_to([0,3,0])
+        shapes=VGroup(*[beak(d).move_to([x,1.6,0]) for x,d in zip((-4,-1.4,1.4,4),(False,True,False,True))])
+        self.at("Each of these studies")
+        self.play(FadeIn(title),FadeIn(shapes),run_time=.8)
+        arrow=Arrow([0,-.4,0],[0,-1.7,0],color=TEAL,buff=0)
+        gate=chip("only if inherited",TEAL,28).move_to([3,-1,0])
+        self.at("the trait must be inherited")
+        self.play(GrowArrow(arrow),FadeIn(gate),run_time=.7)
+        young=VGroup(beak(True).scale(.75).move_to([-1,-2.5,0]),beak(True).scale(.75).move_to([1,-2.5,0]))
+        self.at("the next generation")
+        self.play(TransformFromCopy(shapes[1],young[0]),TransformFromCopy(shapes[3],young[1]),run_time=.8)
+        drought=sun().move_to([-5.4,.2,0])
+        sieve=VGroup(Line([-4.8,.5,0],[4.8,.5,0],color=GREY),*[Line([x,.5,0],[x,.1,0],color=GREY) for x in np.arange(-4.8,5,.6)])
+        self.at("A drought does not create")
+        self.play(FadeIn(drought),Create(sieve),run_time=.7)
+        self.at("It removes more")
+        self.play(shapes[0].animate.shift(DOWN*1.3).set_opacity(0),shapes[2].animate.shift(DOWN*1.3).set_opacity(0),shapes[1].animate.shift(DOWN*.6),shapes[3].animate.shift(DOWN*.6),run_time=.9)
+        self.at("Selection sorts")
+        self.play(Indicate(VGroup(shapes[1],shapes[3]),color=YELLOW),run_time=.7)
+        self.at("inheritance carries")
+        self.play(Indicate(arrow,color=TEAL),Indicate(young,color=TEAL),run_time=.7)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Relative daily survival compounds into morph share, at one site."
+    LINE = "Selection sorts existing variation; inheritance carries the sorting forward."

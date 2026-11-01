@@ -1,4 +1,4 @@
-"""Human evolutionary history: a positive D is not proof  (Biochemistrypedia explainer)
+"""Human evolutionary history: African origins and encounters  (Biochemistrypedia explainer)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -10,13 +10,15 @@ COLOR MAP (one color per concept, whole video)
   GREEN  = D (the statistic) and the "clue" it gives
   TEAL   = time, recombination, segment length (the test)
   RED    = "no" (a crossed-out reading)
-  GREY   = ancestral alleles, chromosomes, chimpanzee, de-emphasized
+  PINK   = Denisovan ancestry
+  GREY   = ancestral alleles, chromosomes, fossils, de-emphasized
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
 
 PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
+PINK = "#E78AC3"
 SAFE_L, SAFE_R = -6.3, 6.3
 
 
@@ -99,337 +101,354 @@ def blob(label, col, pos, r=0.5, below=True, size=24):
     return VGroup(c, t)
 
 
+# New helpers extend the old schematic drawing vocabulary.
+def heading(text, col=TEXT):
+    return T(text, 32, col, font=TITLE_FONT).move_to([0, 3.2, 0])
+
+
+def thread(points, col=BLUE):
+    return VMobject(stroke_color=col, stroke_width=5).set_points_smoothly(
+        [np.array([x, y, 0]) for x, y in points])
+
+
+def africa():
+    # Deliberately schematic coast: geography locates evidence, not inferred routes.
+    pts = [(-2.7,2.4),(-1.1,2.8),(0.4,2.3),(1.2,1.3),(2.0,0.9),
+           (1.1,0.3),(0.9,-1.0),(-0.3,-2.6),(-0.9,-1.6),(-1.4,0.0),
+           (-2.6,0.3),(-3.2,1.3)]
+    return Polygon(*[[x,y,0] for x,y in pts], stroke_color=GREY,
+                   fill_color=GREY, fill_opacity=0.1, stroke_width=3)
+
+
+def world():
+    outlines = [
+        [(-6,1.8),(-5,2.4),(-3.5,2),(-3.3,1),(-4.3,.2),(-5,.6)],
+        [(-4.1,.1),(-2.9,-.5),(-3.1,-1.7),(-3.7,-2.7),(-4,-1.1)],
+        [(-1.4,1.1),(-.2,1.4),(.7,.4),(.1,-1.6),(-.5,-2),(-1.2,-.4)],
+        [(-1.1,1.5),(-.4,2.3),(1.3,2.5),(3,2.1),(5.6,1.6),(4.7,.6),
+         (3.1,.3),(2.6,-.4),(1.6,.8),(.2,1.1)],
+        [(3.8,-1.5),(5,-1.1),(5.8,-1.8),(4.8,-2.3),(3.9,-2.1)]]
+    return VGroup(*[Polygon(*[[x,y,0] for x,y in ps], stroke_color=GREY,
+                           stroke_width=2, fill_color=GREY, fill_opacity=.12) for ps in outlines])
+
+
+def skull(pos, elongated=True, scale=1):
+    # Schematic lateral skull; no reconstructed anatomical detail is implied.
+    vault = Ellipse(width=2.2 if elongated else 1.65, height=1.25,
+                    color=GREY, fill_color=GREY, fill_opacity=.12)
+    face = VMobject(color=GREY, stroke_width=4).set_points_as_corners(
+        [[.65,.35,0],[1.02,.05,0],[.86,-.12,0],[.92,-.5,0],[.3,-.65,0]])
+    jaw = Line([.3,-.65,0],[-.25,-.35,0],color=GREY,stroke_width=4)
+    return VGroup(vault, face, jaw).scale(scale).move_to(pos)
+
+
+def person(pos, col=TEXT):
+    head = Circle(radius=.14, color=col, fill_opacity=.8)
+    body = Line([0,-.2,0],[0,-.7,0],color=col,stroke_width=5)
+    limbs = VGroup(Line([-.23,-.4,0],[.23,-.4,0],color=col,stroke_width=4),
+                   Line([0,-.7,0],[-.2,-1,0],color=col,stroke_width=4),
+                   Line([0,-.7,0],[.2,-1,0],color=col,stroke_width=4))
+    return VGroup(head, body, limbs).move_to(pos)
+
+
+def ancestry_bar(y, spans, x0=-5.3, x1=5.3, h=.7):
+    return VGroup(chrom(y,x0,x1,h),blocks(y,spans,h))
+
+
 class S00Title(TitleCard):
     LESSON = "Human evolutionary history"
-    TITLE = "A positive D is not proof"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Surplus(SpokenScene):
-    """African / Neanderthal / Eurasian genomes; Eurasian shares more derived sites; chimp = ancestral; two histories."""
+    TITLE = "Our African Origin and the Humans We Met"
 
     def construct(self):
-        N = {0, 2, 3, 5, 7, 9, 11}
-        AF = {0, 7, 10}
-        EU = {2, 3, 5, 8, 9, 11}
-        r_af = genome_row(2.8, AF, BLUE, "African", BLUE)
-        r_ne = genome_row(1.9, N, ORANGE, "Neanderthal", ORANGE)
-        r_eu = genome_row(0.9, EU, YELLOW, "Eurasian", YELLOW)
-        r_ch = genome_row(-0.2, set(), GREY, "Chimpanzee", GREY)
-        
-        tag = T("schematic: a few sites drawn for illustration", 22, GREY).move_to([0.5, 3.55, 0])
-        self.at("sampled African genome")
-        self.add(tag)
-        self.play(FadeIn(r_af, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("sampled Eurasian genome")
-        self.play(FadeIn(r_eu, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("with a Neanderthal genome")
-        self.play(FadeIn(r_ne, shift=RIGHT * 0.2), run_time=0.7)
-
-        # matches: only drawn where both genomes carry the derived allele
-        xs = lambda i: -3.0 + i * 0.78
-        m_eu = VGroup(*[Line([xs(i), 1.9 - 0.28, 0], [xs(i), 0.9 + 0.28, 0], color=YELLOW, stroke_width=5) for i in sorted(N & EU)])
-        m_af = VGroup(*[Line([xs(i), 2.9 - 0.28, 0], [xs(i), 1.9 + 0.28, 0], color=BLUE, stroke_width=5) for i in sorted(N & AF)])
-        self.at("shares more derived variants")
-        self.play(LaggedStart(*[Create(l) for l in m_eu], lag_ratio=0.15), run_time=1.3)
-        self.play(LaggedStart(*[Create(l) for l in m_af], lag_ratio=0.2), run_time=0.6)
-
-        self.at("chimpanzee shows which allele")
-        self.play(FadeIn(r_ch, shift=RIGHT * 0.2), run_time=0.7)
-        leg1 = VGroup(site(False, GREY), T("ancestral allele", 24, GREY)).arrange(RIGHT, buff=0.2)
-        leg2 = VGroup(site(True, TEXT), T("derived allele: a newer variant", 24, TEXT)).arrange(RIGHT, buff=0.2)
-        leg = VGroup(leg1, leg2).arrange(RIGHT, buff=0.7).move_to([0.5, -1.2, 0])
-        self.play(FadeIn(leg1, shift=UP * 0.1), run_time=0.5)
-        self.at("derived variant is a newer one")
-        self.play(FadeIn(leg2, shift=UP * 0.1), run_time=0.5)
-
-        self.at("Where does the surplus")
-        q = T("Where does the surplus come from?", 32, TEXT).move_to([0.5, -1.2, 0])
-        self.play(FadeOut(leg), FadeIn(q, shift=UP * 0.1), run_time=0.6)
-        self.at("Two different histories")
-        h1 = chip("one history ?", ORANGE, size=28)
-        h2 = chip("another history ?", PURPLE, size=28)
-        VGroup(h1, h2).arrange(RIGHT, buff=1.0).move_to([0.5, -2.6, 0])
-        self.play(FadeIn(h1, shift=UP * 0.2), run_time=0.6)
-        self.play(FadeIn(h2, shift=UP * 0.2), run_time=0.6)
+        brand=T("BIOCHEMISTRYPEDIA",22,TEAL,weight=BOLD)
+        lesson=T(self.LESSON.upper(),22,GREY)
+        title=fit(T(self.TITLE,54,font=TITLE_FONT),max_w=11.5)
+        rule=Line(LEFT*1.2,RIGHT*1.2,color=GOLD,stroke_width=4)
+        group=VGroup(brand,lesson,title,rule).arrange(DOWN,buff=.32)
+        self.play(FadeIn(brand),FadeIn(lesson),run_time=self.beat(.25))
+        self.play(Write(title),GrowFromCenter(rule),run_time=self.beat(.35))
+        self.wait(self.beat(.2))
+        self.play(FadeOut(group),run_time=self.beat(.2))
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Count(SpokenScene):
-    """ABBA and BABA site cards -> hypothetical counts 600 and 400 -> D = 0.20."""
-
+class S01Origin(SpokenScene):
     def construct(self):
-        c1 = card("ABBA", "ABBA site").scale(1.15).move_to([-4.5, 1.65, 0])
-        c2 = card("BABA", "BABA site").scale(1.15).move_to([-1.3, 1.65, 0])
-        self.at("Count the sites")
-        self.play(FadeIn(c1, shift=UP * 0.15), run_time=0.7)
-        self.at("Eurasian and the Neanderthal share")
-        ring1 = SurroundingRectangle(VGroup(c1[1][1], c1[1][2]), color=YELLOW, buff=0.06, stroke_width=3)
-        self.play(Create(ring1), run_time=0.5)
-        self.at("African and the Neanderthal share it")
-        self.play(FadeIn(c2, shift=UP * 0.15), run_time=0.7)
-        ring2 = SurroundingRectangle(VGroup(c2[1][0], c2[1][2]), color=BLUE, buff=0.06, stroke_width=3)
-        self.play(Create(ring2), run_time=0.5)
-
-        base = -2.9
-        self.at("Suppose you count")
-        bs = bars(0.01, 0.01, base, -4.5, -1.3)
-        target = bars(2.1, 1.4, base, -4.5, -1.3, "600", "400")
-        self.add(bs)
-        self.play(Transform(bs, target[:2]), run_time=1.2)
-        self.play(FadeIn(target[2]), FadeIn(target[3]), run_time=0.4)
-        tag = T("hypothetical counts", 22, GREY).move_to([-2.9, -3.3, 0])
-        self.play(FadeIn(tag), run_time=0.3)
-
-        self.at("difference divided by the total")
-        frac = VGroup(M("600 - 400", 30, TEXT), Line(LEFT * 1.2, RIGHT * 1.2, color=TEXT, stroke_width=3), M("600 + 400", 30, TEXT)).arrange(DOWN, buff=0.12)
-        f1 = VGroup(M("D =", 34, GREEN), frac).arrange(RIGHT, buff=0.3).move_to([3.5, 1.9, 0])
-        self.play(FadeIn(f1, shift=LEFT * 0.2), run_time=0.8)
-        f2 = M("= 200 / 1,000", 32, TEXT).move_to([3.6, 0.3, 0])
-        self.play(FadeIn(f2, shift=UP * 0.1), run_time=0.6)
-
-        self.at("which comes to")
-        f3 = M("D = 0.20", 44, GREEN).move_to([3.5, -0.9, 0])
-        self.play(Write(f3), run_time=0.8)
-        sc, xs = dscale(0.9, 6.1, -2.4)
-        mk = marker(xs(0.2), -2.4)
-        self.play(FadeIn(sc), run_time=0.5)
-        self.play(FadeIn(mk, shift=DOWN * 0.3), run_time=0.5)
+        coast = africa().shift(LEFT*1.3)
+        title = heading("Homo sapiens · Africa",BLUE)
+        self.at("Our species")
+        self.play(Create(coast),FadeIn(title),run_time=.8)
+        self.at("Not in one place")
+        north = Dot([-3.1,2,0],color=BLUE,radius=.12)
+        east = Dot([-.7,.1,0],color=BLUE,radius=.12)
+        self.play(FadeIn(north,scale=2),FadeIn(east,scale=2),run_time=.5)
+        self.at("north Africa")
+        nl = T("Jebel Irhoud\nabout 300,000 years",22,BLUE).move_to([-4.9,2.95,0])
+        self.play(Flash(north,color=BLUE),FadeIn(nl),run_time=.6)
+        self.at("east Africa")
+        el = T("Omo\nat least 233,000 years",24,BLUE).move_to([2,0,0])
+        self.play(Flash(east,color=BLUE),FadeIn(el),run_time=.6)
+        self.at("populations that split")
+        paths = VGroup(thread([(-3.1,2),(-2.7,1),(-1.8,1),(-.7,.1)]),
+                       thread([(-3.1,2),(-1.6,1.7),(-1.4,.5),(-.7,.1)]))
+        self.play(Create(paths),run_time=1)
+        self.at("merged again")
+        self.play(Indicate(east,color=BLUE),run_time=.6)
+        self.at("Later some")
+        self.play(FadeOut(VGroup(nl,el,paths,north,east)),
+                  ReplacementTransform(coast,world()),
+                  ReplacementTransform(title,heading("Descendants spread and met other humans")),run_time=.7)
+        route = thread([(-.5,.3),(.4,1.6),(2,1.4),(4,1)],YELLOW)
+        self.at("spread across the world")
+        self.play(Create(route),run_time=1)
+        self.at("met Neanderthals")
+        ne = thread([(1.4,2.3),(2,1.4),(2.7,1.6),(3.3,1.2)],ORANGE)
+        de = thread([(3.9,2.1),(3.3,1.2),(3.7,1.4),(4,1)],PINK)
+        labs=VGroup(T("Neanderthal",24,ORANGE).move_to([.8,2.7,0]),
+                    T("Denisovan",24,PINK).move_to([4.3,2.7,0]))
+        self.play(Create(ne),Create(de),FadeIn(labs),run_time=.8)
+        self.at("had children")
+        braid=VGroup(thread([(2.6,1.3),(3,.9),(3.5,1.3),(4,.9)],ORANGE),
+                     thread([(2.6,1.1),(3,1.4),(3.5,1),(4,1.2)],PINK))
+        self.play(Create(braid),run_time=.7)
+        self.at("Pieces of that")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        bar=ancestry_bar(0,[(-3,-2.6),(1,1.35)])
+        pink=blocks(0,[(3,3.35)]).set_color(PINK)
+        self.play(FadeIn(bar),FadeIn(pink),FadeIn(heading("Inherited pieces · people today")),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Null(SpokenScene):
-    """null: equal counts, D = 0 (in this sketch) -> 600/400, D = 0.20 -> not a percentage -> two histories."""
-
+class S02Fossils(SpokenScene):
     def construct(self):
-        base = -2.8
-        cond = T("no gene flow, one randomly mating ancestor", 28, GREY).move_to([0, 3.15, 0])
-        self.at("With no gene flow")
-        self.play(FadeIn(cond, shift=DOWN * 0.1), run_time=0.7)
-
-        self.at("the model predicts")
-        eq = bars(2.6, 2.6, base, -4.2, -1.4)
-        l1 = T("ABBA", 26, YELLOW).next_to(eq[0], DOWN, buff=0.15)
-        l2 = T("BABA", 26, BLUE).next_to(eq[1], DOWN, buff=0.15)
-        sk = T("in this sketch: equal counts", 24, GREY).move_to([-2.8, 1.6, 0])
-        self.play(GrowFromEdge(eq[0], DOWN), GrowFromEdge(eq[1], DOWN), FadeIn(l1), FadeIn(l2), run_time=0.9)
-        self.play(FadeIn(sk), run_time=0.4)
-        sc, xs = dscale(1.0, 6.0, -0.2)
-        mk = marker(xs(0), -0.2)
-        dz = M("D = 0", 44, GREEN).move_to([3.5, 1.7, 0])
-        self.at("equals zero")
-        self.play(FadeIn(sc), FadeIn(mk, shift=DOWN * 0.3), Write(dz), run_time=0.9)
-
-        self.at("here the Eurasian genome")
-        unequal = bars(3.1, 2.07, base, -4.2, -1.4, "600", "400")
-        sk2 = T("hypothetical counts", 24, GREY).move_to([-2.8, 1.6, 0])
-        dz2 = M("D = 0.20", 44, GREEN).move_to([3.5, 1.7, 0])
-        self.play(FadeOut(cond), Transform(eq, unequal[:2]), FadeIn(unequal[2]), FadeIn(unequal[3]),
-                  Transform(sk, sk2), Transform(dz, dz2),
-                  mk.animate.move_to([xs(0.2), 0.1, 0]), run_time=1.3)
-
-        # --- not a percentage ------------------------------------------------------------
-        self.at("do not read")
-        self.play(FadeOut(VGroup(eq, unequal[2], unequal[3], l1, l2, sk, sc, mk, dz)), run_time=0.5)
-        d = M("D = 0.20", 44, GREEN).move_to([-4.3, 0.5, 0])
-        ne = T("not equal to", 28, GREY).move_to([-0.7, 0.5, 0])
-        pc = chip("20% Neanderthal ancestry", ORANGE, size=28).move_to([3.7, 0.5, 0])
-        self.play(FadeIn(d), run_time=0.4)
-        self.play(FadeIn(ne), FadeIn(pc), run_time=0.5)
-        x = VGroup(Line(pc.get_corner(UL), pc.get_corner(DR), color=RED, stroke_width=7),
-                   Line(pc.get_corner(DL), pc.get_corner(UR), color=RED, stroke_width=7))
-        self.play(Create(x), run_time=0.5)
-
-        # --- two histories ---------------------------------------------------------------
-        self.at("Old structure in")
-        self.play(FadeOut(VGroup(d, ne, pc, x)), run_time=0.5)
-        # left: gene flow
-        lt = T("gene flow", 30, ORANGE, weight=BOLD).move_to([-3.2, 3.1, 0])
-        ne_b = blob("Neanderthal", ORANGE, [-5.0, 1.4, 0])
-        eu_b = blob("Eurasian", YELLOW, [-1.6, 1.4, 0])
-        af_b = blob("African", BLUE, [-3.3, -0.7, 0])
-        fl = Arrow([-4.45, 1.4, 0], [-2.15, 1.4, 0], color=ORANGE, stroke_width=6, buff=0)
-        fl_t = T("interbreeding", 24, ORANGE).next_to(fl, UP, buff=0.12)
-        # right: structure
-        rt = T("old structure", 30, PURPLE, weight=BOLD).move_to([2.6, 3.1, 0])
-        box = RoundedRectangle(corner_radius=0.2, width=3.9, height=2.1, stroke_color=PURPLE, stroke_width=4,
-                               fill_color=PURPLE, fill_opacity=0.08).move_to([1.4, 0.95, 0])
-        btitle = T("old subdivided African population", 22, PURPLE).next_to(box, UP, buff=0.12)
-        cells = VGroup(*[Circle(radius=0.38, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.3)
-                         .move_to([0.5 + 1.2 * k, 0.95, 0]) for k in range(3)])
-        cells[2].set_stroke(YELLOW).set_fill(YELLOW, 0.4)
-        anc = T("ancestors of Eurasians,\nif closer to the Neanderthal lineage", 22, YELLOW, line_spacing=0.8).move_to([2.9, -0.55, 0])
-        ne2 = blob("Neanderthal lineage", ORANGE, [5.0, 0.95, 0], r=0.4, size=22)
-        nointer = T("no interbreeding", 24, PURPLE).move_to([3.3, -1.45, 0])
-        self.play(FadeIn(lt), FadeIn(ne_b), FadeIn(eu_b), FadeIn(af_b), run_time=0.7)
-        self.play(GrowArrow(fl), FadeIn(fl_t), run_time=0.6)
-        self.play(FadeIn(rt), FadeIn(box), FadeIn(btitle), FadeIn(cells), run_time=0.7)
-        self.play(FadeIn(ne2), FadeIn(anc), FadeIn(nointer), run_time=0.7)
-        dl = chip("D above 0", GREEN, size=28).move_to([-3.2, -2.2, 0])
-        dr = chip("D above 0", GREEN, size=28).move_to([3.3, -2.2, 0])
-
-        self.at("also make D positive")
-        self.play(FadeIn(dl, shift=UP * 0.1), FadeIn(dr, shift=UP * 0.1), run_time=0.6)
-        self.at("consistent with gene flow")
-        self.play(Indicate(VGroup(lt, dl), color=ORANGE, scale_factor=1.12), run_time=0.8)
-        self.at("It is not proof")
-        pr = T("consistent with gene flow, not proof", 28, RED, weight=BOLD).move_to([0, -3.15, 0])
-        self.play(FadeIn(pr, shift=UP * 0.1), run_time=0.6)
+        title=heading("Fossil dates need care")
+        left=T("Jebel Irhoud · Morocco",26,BLUE).move_to([-3.3,2.3,0])
+        bone=skull([-3.5,.8,0])
+        flints=VGroup(*[Polygon([x,-.9,0],[x+.4,-.8,0],[x+.15,-.45,0],
+                               color=GOLD,fill_opacity=.4) for x in [-4.7,-4,-3.3]])
+        flabel=T("heated flints · dated",24,GOLD).move_to([-3.6,-1.5,0])
+        self.at("Fossil dates")
+        self.play(FadeIn(title),run_time=.5)
+        self.at("in Morocco")
+        self.play(FadeIn(left),Create(bone),run_time=.6)
+        self.at("flints heated by fire")
+        self.play(FadeIn(flints),FadeIn(flabel),run_time=.6)
+        self.at("face looks like ours")
+        face_label=T("modern-looking face",22,BLUE).move_to([-3.4,-2.2,0])
+        self.play(bone[1].animate.set_color(BLUE),FadeIn(face_label),run_time=.5)
+        self.at("brain case is more elongated")
+        vault_label=T("elongated braincase",22,TEAL).move_to([-3.4,-2.8,0])
+        self.play(bone[0].animate.set_stroke(TEAL,5),FadeIn(vault_label),run_time=.6)
+        self.at("At Omo")
+        right=T("Omo · Ethiopia",26,BLUE).move_to([3.1,2.3,0])
+        strata=VGroup(*[Rectangle(width=5,height=.8,stroke_color=GREY,stroke_width=1,
+                                  fill_color=GREY,fill_opacity=.1+.04*i).move_to([3,y,0])
+                        for i,y in enumerate([1.15,.35,-.45,-1.25])])
+        fossil=skull([2.8,-.5,0],False,.48)
+        self.play(FadeIn(right),FadeIn(strata),FadeIn(fossil),run_time=.7)
+        self.at("dated ash lies above")
+        ash=Rectangle(width=5,height=.16,fill_color=TEXT,fill_opacity=.9,stroke_width=0).move_to([3,.8,0])
+        ashlabel=T("dated ash",24,TEXT).move_to([3,1.65,0])
+        self.play(FadeIn(ash),FadeIn(ashlabel),run_time=.5)
+        self.at("fossil is at least")
+        arrow=Arrow([5.15,.7,0],[5.15,-.65,0],buff=0,color=TEAL)
+        bound=T("at least that old",24,TEAL).move_to([3,-2.2,0])
+        self.play(GrowArrow(arrow),FadeIn(bound),run_time=.6)
+        self.at("Ask what was dated")
+        self.play(ReplacementTransform(title,heading("What was dated? Where did it lie?")),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Cut(SpokenScene):
-    """recombination cuts an entering segment each generation; recent flow = long blocks, old structure = short pieces."""
-
+class S03Clue(SpokenScene):
     def construct(self):
-        ys = [2.3, 0.6, -1.1]
-        rows = [chrom(y) for y in ys]
-        spans = [[(-3.3, 1.7)],
-                 [(-3.3, -0.9), (-0.5, 1.7)],
-                 [(-3.3, -2.4), (-2.0, -0.9), (-0.5, 0.4), (0.8, 1.7)]]
-        blk = [blocks(y, s) for y, s in zip(ys, spans)]
-        cap = T("a chromosome", 24, GREY).move_to([-4.4, ys[0] + 0.75, 0])
-
-        self.at("Time can separate")
-        self.wait(0.1)
-        self.at("Recombination breaks")
-        self.play(FadeIn(rows[0]), FadeIn(cap), run_time=0.6)
-        self.at("DNA that entered")
-        self.play(FadeIn(blk[0], scale=0.9), run_time=0.6)
-        lab = T("DNA that entered from another population", 24, ORANGE).move_to([0.3, ys[0] + 0.75, 0])
-        self.play(FadeIn(lab), FadeOut(cap), run_time=0.5)
-
-        def step(i, label_x):
-            a = Arrow([0, ys[i - 1] - 0.42, 0], [0, ys[i] + 0.42, 0], color=TEAL, stroke_width=5, buff=0)
-            t = T("recombination", 24, TEAL).move_to([label_x, (ys[i - 1] + ys[i]) / 2, 0])
-            self.play(GrowArrow(a), FadeIn(t), FadeIn(rows[i]), run_time=0.5)
-            self.play(TransformFromCopy(blk[i - 1], blk[i]), run_time=0.8)
-            return VGroup(a, t)
-
-        self.at("surviving pieces")
-        s1 = step(1, 2.0)
-        self.at("get shorter")
-        s2 = step(2, 2.0)
-
-        self.at("tens of thousands")
-        self.play(FadeOut(VGroup(*rows, *blk, lab, s1, s2)), run_time=0.6)
-        y1, y2 = 1.9, -0.9
-        a_ch, b_ch = chrom(y1), chrom(y2)
-        a_bl = blocks(y1, [(-4.9, -1.1), (0.9, 4.7)])
-        b_sp = [(-5.0 + 0.55 * k, -5.0 + 0.55 * k + 0.28) for k in range(19)]
-        b_bl = blocks(y2, b_sp)
-        a_lab = T("gene flow tens of thousands of years ago: long blocks", 26, ORANGE).next_to(a_ch, UP, buff=0.2).align_to(a_ch, LEFT)
-        self.play(FadeIn(a_ch), FadeIn(a_lab), run_time=0.5)
-        self.play(FadeIn(a_bl, scale=0.95), run_time=0.7)
-
-        self.at("Old structure leaves much")
-        b_lab = T("old structure: much shorter pieces", 26, PURPLE).next_to(b_ch, UP, buff=0.2).align_to(b_ch, LEFT)
-        self.play(FadeIn(b_ch), FadeIn(b_lab), run_time=0.5)
-        self.play(LaggedStart(*[FadeIn(b, scale=0.5) for b in b_bl], lag_ratio=0.05), run_time=1.0)
-
-        self.at("segment length carries")
-        key = chip("segment length: a clue to timing", TEAL, size=30).move_to([0, -2.8, 0])
-        self.play(FadeIn(key, shift=UP * 0.15), run_time=0.7)
+        self.at("How do we know")
+        title=heading("How do we know about the meetings?")
+        self.play(FadeIn(title),run_time=.6)
+        af=genome_row(1.8,{0,5},BLUE,"Sampled African",BLUE,n=8,x0=-1.8,dx=.9)
+        eu=genome_row(.6,{1,2,4,6},YELLOW,"Sampled Eurasian",YELLOW,n=8,x0=-1.8,dx=.9)
+        ne=genome_row(-.6,{0,1,2,4,6},ORANGE,"Neanderthal",ORANGE,n=8,x0=-1.8,dx=.9)
+        self.at("Sampled genomes")
+        self.play(FadeIn(af),FadeIn(eu),FadeIn(ne),run_time=.7)
+        matches=VGroup(*[Line([-1.8+i*.9,.3,0],[-1.8+i*.9,-.3,0],color=YELLOW,stroke_width=5) for i in [1,2,4,6]])
+        self.at("share more variants")
+        self.play(LaggedStart(*[Create(m) for m in matches],lag_ratio=.15),run_time=1)
+        scale,xs=dscale(-3,3,-2.2)
+        pointer=marker(xs(0),-2.2)
+        dl=T("D",30,GREEN).move_to([-4,-2.2,0])
+        self.at("A test called")
+        self.play(FadeIn(scale),FadeIn(pointer),FadeIn(dl),run_time=.6)
+        self.at("that surplus")
+        self.play(pointer.animate.move_to([xs(.45),-1.9,0]),run_time=.6)
+        self.at("not a percentage")
+        note=T("not % ancestry",26,RED).move_to([0,-3.1,0])
+        self.play(FadeIn(note),run_time=.5)
+        self.at("On its own")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        clue=chip("D: a clue, not proof",GREEN,30).move_to([0,2.6,0])
+        self.play(FadeIn(clue),run_time=.6)
+        self.at("old structure inside Africa")
+        panel=RoundedRectangle(width=7,height=2.5,color=PURPLE,fill_opacity=.06).move_to([-1,0,0])
+        cells=VGroup(*[Circle(radius=.52,color=BLUE,fill_opacity=.16).move_to([x,0,0]) for x in [-3,-1,1]])
+        label=T("subdivided ancestral population",24,PURPLE).move_to([-1,1.6,0])
+        question=T("?",50,PURPLE).move_to([3,0,0])
+        self.play(Create(panel),FadeIn(cells),FadeIn(label),FadeIn(question),run_time=.7)
+        self.at("Stronger evidence")
+        self.play(FadeOut(VGroup(panel,cells,label,question)),run_time=.4)
+        clock=VGroup(Circle(radius=1.1,color=TEAL),Line(ORIGIN,[0,.75,0],color=TEAL),Line(ORIGIN,[.6,-.2,0],color=TEAL))
+        ar=Arrow([-3,0,0],[-1.5,0,0],color=TEAL)
+        time=T("Time tests the clue",30,TEAL).move_to([0,-2,0])
+        self.play(GrowArrow(ar),Create(clock),FadeIn(time),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Dated(SpokenScene):
-    """Ust'-Ishim ~45,000 years ago; longer segments than present-day; structure predicts no change; 7,000-13,000 years before."""
-
+class S04Segments(SpokenScene):
     def construct(self):
-        # timeline: 0 (present) at x=5.8, 60,000 years ago at x=-5.8
-        tx = lambda yrs: 5.8 - yrs * 11.6 / 60000.0
-        ty = -2.4
-        axis = Line([tx(60000), ty, 0], [tx(0), ty, 0], color=GREY, stroke_width=4)
-        pres = VGroup(Line([tx(0), ty - 0.12, 0], [tx(0), ty + 0.12, 0], color=GREY, stroke_width=3),
-                      T("present", 22, GREY).move_to([tx(0) - 0.2, ty - 0.45, 0]))
-        mk = Dot([tx(45000), ty, 0], radius=0.14, color=TEAL)
-        mk_t = T("Ust'-Ishim, about 45,000 years ago", 24, TEAL).move_to([tx(45000), ty - 0.55, 0])
-
-        self.at("was a Homo sapiens")
-        self.play(Create(axis), FadeIn(pres), run_time=0.8)
-        self.play(FadeIn(mk, scale=2), FadeIn(mk_t, shift=UP * 0.1), run_time=0.7)
-
-        # segment bars
-        def seg_row(y, name, col, spans):
-            ch = chrom(y, -3.6, 5.8, 0.6)
-            lab = T(name, 26, col).move_to([-3.9 - 1.0, y, 0])
-            lab.move_to([-3.85 - lab.width / 2, y, 0])
-            return VGroup(ch, lab), blocks(y, spans, 0.6)
-        ust, ust_b = seg_row(2.8, "Ust'-Ishim", TEAL, [(-3.4, -1.6), (0.0, 1.8), (3.4, 5.2)])
-        prs, prs_b = seg_row(1.7, "present day", GREY, [(-3.4 + 1.0 * k, -3.4 + 1.0 * k + 0.6) for k in range(9)])
-        self.at("His genome carried")
-        self.play(FadeIn(ust), FadeIn(prs), run_time=0.6)
-        self.play(FadeIn(ust_b, scale=0.95), FadeIn(prs_b, scale=0.95), run_time=0.8)
-        sk = T("schematic: segment lengths only", 22, GREY).move_to([1.1, 1.05, 0])
-        self.play(FadeIn(sk), run_time=0.4)
-
-        self.at("Dated genomes should")
-        self.play(Indicate(ust_b, color=ORANGE, scale_factor=1.06), run_time=0.9)
-
-        self.at("a slight change")
-        note = chip("old structure: only a slight change with age", PURPLE, size=28).move_to([0, 0.1, 0])
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.7)
-
-        self.at("From the lengths")
-        a = DashedLine([tx(45000) - 0.12, ty + 0.5, 0], [tx(52000), ty + 0.5, 0], color=ORANGE, stroke_width=4)
-        br = Line([tx(52000), ty + 0.5, 0], [tx(58000), ty + 0.5, 0], color=ORANGE, stroke_width=9)
-        e1 = Line([tx(52000), ty + 0.35, 0], [tx(52000), ty + 0.65, 0], color=ORANGE, stroke_width=5)
-        e2 = Line([tx(58000), ty + 0.35, 0], [tx(58000), ty + 0.65, 0], color=ORANGE, stroke_width=5)
-        bt = T("gene flow: 7,000 to 13,000 years before he lived", 24, ORANGE).move_to([-2.6, ty + 1.0, 0])
-        self.play(Create(a), run_time=0.5)
-        self.play(Create(br), FadeIn(e1), FadeIn(e2), FadeIn(bt, shift=UP * 0.1), run_time=0.8)
-
-        self.at("carries the uncertainty")
-        rough = T("an estimate; it depends on\nthe recombination model", 22, GREY, line_spacing=0.8).move_to([4.3, ty + 1.0, 0])
-        self.play(FadeIn(rough, shift=UP * 0.1), run_time=0.6)
+        title=heading("Recombination shortens inherited pieces",TEAL)
+        bar=ancestry_bar(.8,[(-4,4)])
+        self.at("Every generation")
+        self.play(FadeIn(title),FadeIn(bar),run_time=.6)
+        ticks=VGroup(*[Line([x,.25,0],[x,1.35,0],color=TEAL,stroke_width=3) for x in [-2,0,2]])
+        self.at("recombination cuts")
+        self.play(Create(ticks),run_time=.7)
+        shorter=blocks(.8,[(-4,-2.2),(-1.9,-.2),(.1,1.8),(2.1,4)])
+        self.at("into shorter pieces")
+        self.play(ReplacementTransform(bar[1],shorter),run_time=.7)
+        self.at("Ust Ishim")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        lab=heading("Ust'-Ishim · western Siberia",TEAL)
+        date=T("about 45,000 years ago",26,TEAL).move_to([0,2.5,0])
+        self.play(FadeIn(lab),FadeIn(date),run_time=.6)
+        old=ancestry_bar(1,[(-4.8,-2.4),(.4,2.8)])
+        now=ancestry_bar(-.4,[(x,x+.6) for x in [-4.9,-3.6,-2.3,-1,.3,1.6,2.9,4.2]])
+        labels=VGroup(T("Ust'-Ishim",24,TEAL).move_to([0,1.7,0]),T("present day",24,GREY).move_to([0,-1.1,0]))
+        self.at("His Neanderthal segments")
+        self.play(FadeIn(old),FadeIn(now),FadeIn(labels),run_time=.7)
+        self.at("longer than ours")
+        self.play(Indicate(old[1],color=ORANGE),run_time=.6)
+        self.at("From their length")
+        axis=Line([-5.4,-2.2,0],[5.4,-2.2,0],color=GREY)
+        ust=Dot([-1,-2.2,0],color=TEAL)
+        schematic=T("schematic · segment lengths only",22,GREY).move_to([0,-1.55,0])
+        self.play(FadeIn(schematic),run_time=.25)
+        present=T("present",22,GREY).move_to([5,-2.65,0])
+        bracket=VGroup(Line([-2.85,-1.9,0],[-2,-1.9,0],color=ORANGE,stroke_width=7),
+                       Line([-2.85,-2.05,0],[-2.85,-1.75,0],color=ORANGE),
+                       Line([-2,-2.05,0],[-2,-1.75,0],color=ORANGE),
+                       DashedLine([-2,-1.9,0],[-1,-1.9,0],color=ORANGE))
+        infer=T("inferred gene flow · 7,000–13,000 years before him",24,ORANGE).move_to([-.5,-3.2,0])
+        ulabel=T("45,000",22,TEAL).move_to([-1,-2.65,0])
+        self.play(Create(axis),FadeIn(ust),FadeIn(present),FadeIn(ulabel),run_time=.6)
+        self.at("inferred gene flow")
+        self.play(Create(bracket),FadeIn(infer),run_time=.7)
+        self.at("Cave in Bulgaria")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        title=heading("Bacho Kiro Cave · Bulgaria",TEAL)
+        people=VGroup(*[person([x,1.2,0]) for x in [-3,0,3]])
+        bars3=VGroup(*[ancestry_bar(-.3,[(-1.2,1.2)],x0=-1.4,x1=1.4,h=.45).shift(RIGHT*x) for x in [-3,0,3]])
+        self.play(FadeIn(title),FadeIn(people),FadeIn(bars3),run_time=.6)
+        self.at("only a few generations")
+        self.play(FadeIn(T("Neanderthal ancestors · a few generations back",28,ORANGE).move_to([0,-2,0])),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """compare both models on the same data; conclusion for the sampled non-Africans only; clue -> test."""
-
+class S05Hybrid(SpokenScene):
     def construct(self):
-        self.at("fit both histories")
-        m1 = chip("gene flow model", ORANGE, size=28)
-        m2 = chip("structure model", PURPLE, size=28)
-        VGroup(m1, m2).arrange(RIGHT, buff=1.4).move_to([0, 2.5, 0])
-        data = chip("the same data", GREY, size=28).move_to([0, 1.15, 0])
-        a1 = Arrow(m1.get_bottom(), data.get_top() + LEFT * 0.4, color=GREY, stroke_width=4, buff=0.08)
-        a2 = Arrow(m2.get_bottom(), data.get_top() + RIGHT * 0.4, color=GREY, stroke_width=4, buff=0.08)
-        self.play(FadeIn(m1, shift=DOWN * 0.1), FadeIn(m2, shift=DOWN * 0.1), run_time=0.7)
-        self.play(FadeIn(data), GrowArrow(a1), GrowArrow(a2), run_time=0.7)
+        title=heading("Denisova Cave · Siberia",PINK)
+        cave=VMobject(color=GREY,fill_color=GREY,fill_opacity=.15).set_points_as_corners(
+            [[-4,-1,0],[-3.7,1,0],[-2.6,2,0],[-1.3,1.1,0],[-1,-1,0],[-1.8,-1,0],[-2,0,0],[-2.8,.4,0],[-3.2,-1,0],[-4,-1,0]])
+        fragment=RoundedRectangle(width=.45,height=1.1,corner_radius=.17,color=TEXT,fill_opacity=.25).rotate(-.4).move_to([2,0,0])
+        flabel=T("finger bone · DNA",26,PINK).move_to([2,-1.4,0])
+        self.at("Denisovans are known")
+        self.play(FadeIn(title),Create(cave),run_time=.7)
+        self.at("a finger bone")
+        self.play(FadeIn(fragment),FadeIn(flabel),run_time=.6)
+        self.at("Another fragment")
+        other=Polygon([1.7,-.3,0],[2.2,-.2,0],[2.4,.4,0],[1.8,.5,0],color=TEXT,fill_opacity=.25)
+        self.play(ReplacementTransform(fragment,other),FadeOut(flabel),run_time=.5)
+        self.at("Denisova 11")
+        name=T("Denisova 11",30,TEXT).move_to([2,-1.4,0])
+        self.play(FadeIn(name),run_time=.5)
+        self.at("came from a child")
+        self.play(FadeOut(VGroup(cave,other,name)),run_time=.4)
+        child=person([0,-.2,0])
+        childlabel=T("Denisova 11",26,TEXT).move_to([0,-1.15,0])
+        self.play(FadeIn(child),FadeIn(childlabel),run_time=.5)
+        self.at("Neanderthal mother")
+        mother=blob("Neanderthal mother",ORANGE,[-3.6,1.6,0],r=.35,below=False)
+        ma=Arrow([-3.3,1.2,0],[-.4,.35,0],color=ORANGE,buff=.15)
+        self.play(FadeIn(mother),GrowArrow(ma),run_time=.5)
+        self.at("Denisovan father")
+        father=blob("Denisovan father",PINK,[3.6,1.6,0],r=.35,below=False)
+        pa=Arrow([3.3,1.2,0],[.4,.35,0],color=PINK,buff=.15)
+        self.play(FadeIn(father),GrowArrow(pa),run_time=.5)
+        self.at("At sites where")
+        paired=VGroup(*[VGroup(site(True,ORANGE,size=.42).move_to([x,-2,0]),
+                                     site(True,PINK,size=.42).move_to([x,-2.6,0]))
+                       for x in np.linspace(-2.8,2.8,8)])
+        self.play(FadeIn(paired),run_time=.6)
+        self.at("one version of each")
+        self.play(Indicate(paired,color=TEXT,scale_factor=1.06),run_time=.6)
+        self.at("Archaic groups mixed")
+        self.play(ReplacementTransform(title,heading("Archaic groups mixed with each other, too")),run_time=.6)
+        self.finish()
 
-        concl = chip("Neanderthal gene flow into the ancestors\nof the sampled non-Africans", ORANGE, size=28)
-        concl.move_to([-1.9, -0.6, 0])
-        self.at("supports Neanderthal gene flow")
-        self.play(FadeIn(concl, shift=UP * 0.2), run_time=0.9)
 
-        self.at("Keep the conclusion")
-        frame = SurroundingRectangle(concl, color=TEXT, buff=0.15, stroke_width=3)
-        ftag = T("these samples only", 22, TEXT).next_to(frame, UP, buff=0.1)
-        self.play(Create(frame), FadeIn(ftag), run_time=0.7)
-
-        self.at("other contacts")
-        oc = chip("other contacts", GREY, size=26).move_to([4.7, -0.6, 0])
-        oc[0].set_stroke(opacity=0.6)
-        oc_t = T("nothing shown", 22, GREY).next_to(oc, DOWN, buff=0.12)
-        self.play(FadeIn(oc), FadeIn(oc_t), run_time=0.6)
-
-        self.at("is a clue")
-        clue = chip("a positive D: a clue", GREEN, size=30).move_to([-3.1, -2.7, 0])
-        self.play(FadeIn(clue, shift=UP * 0.15), run_time=0.6)
-        self.at("Test it with")
-        test = chip("segment length: the test", TEAL, size=30).move_to([3.1, -2.7, 0])
-        ar = Arrow(clue.get_right(), test.get_left(), color=TEXT, stroke_width=5, buff=0.12)
-        self.play(GrowArrow(ar), FadeIn(test, shift=LEFT * 0.2), run_time=0.7)
+class S06Legacy(SpokenScene):
+    def construct(self):
+        m=world()
+        title=heading("Inherited DNA still matters")
+        self.at("Some of that")
+        self.play(FadeIn(title),Create(m),run_time=.7)
+        mel=Dot([5.4,-.9,0],color=PINK,radius=.12)
+        label=T("sampled Melanesians",24,PINK).move_to([3.8,-2.8,0])
+        share=VGroup(Rectangle(width=4,height=.35,color=GREY,fill_opacity=.2),
+                     Rectangle(width=.2,height=.35,color=PINK,fill_opacity=1).shift(LEFT*1.9)).move_to([2.8,-2.1,0])
+        pct=T("inferred 4–6% Denisovan ancestry",24,PINK).move_to([2.8,-3.3,0])
+        self.at("sampled Melanesians")
+        self.play(FadeIn(mel),FadeIn(label),FadeIn(share),run_time=.6)
+        self.at("Denisovan ancestry")
+        self.play(FadeIn(pct),run_time=.5)
+        self.at("In Tibetans")
+        self.play(*[FadeOut(mob) for mob in list(self.mobjects)],run_time=.4)
+        plateau=Polygon([-6,-1.4,0],[-5,-.7,0],[-4,1,0],[-2,1,0],[-1,-.4,0],[0,-1.4,0],
+                        stroke_color=GREY,fill_color=GREY,fill_opacity=.12)
+        title=heading("Tibetans · high altitude")
+        self.play(Create(plateau),FadeIn(title),run_time=.6)
+        self.at("a version of EPAS1")
+        epas=chip("EPAS1 haplotype",PINK,28).move_to([-3,1.9,0])
+        response=T("low-oxygen response",22,TEXT).move_to([-3,-.7,0])
+        self.play(FadeIn(epas),run_time=.5)
+        self.at("a gene in the low oxygen response")
+        self.play(FadeIn(response),run_time=.6)
+        self.at("probably came from")
+        origin=T("probably Denisovan\nor a related group",24,PINK).move_to([-3,-2.5,0])
+        self.play(FadeIn(origin),run_time=.6)
+        base=Line([1,-1.6,0],[5.5,-1.6,0],color=GREY)
+        freq=Rectangle(width=1,height=.45,color=PINK,fill_opacity=.7).move_to([3.2,-1.375,0])
+        flabel=T("frequency",24,PINK).move_to([3.2,-2.1,0])
+        self.at("and rose because")
+        self.play(Create(base),FadeIn(freq),FadeIn(flabel),run_time=.5)
+        self.play(freq.animate.stretch_to_fit_height(2.7).move_to([3.2,-.25,0]),run_time=1)
+        self.at("adaptive introgression")
+        self.play(ReplacementTransform(title,heading("Adaptive introgression",PINK)),run_time=.6)
+        self.at("All people alive today")
+        self.play(*[FadeOut(mob) for mob in list(self.mobjects)],run_time=.4)
+        title=heading("One species · Homo sapiens",BLUE)
+        rows=VGroup(*[VGroup(chrom(y,-4.5,4.5,.42),
+                            VGroup(*[site(True,TEXT,size=.22).move_to([x,y,0]) for x in [-3.8,-2.5,-1.2,.1,1.4,2.7,4]]),
+                            site(True,[BLUE,YELLOW,TEAL,PINK][i],size=.22).move_to([[-3.2,-1.9,.8,3.35][i],y,0]))
+                      for i,y in enumerate([1.65,.65,-.35,-1.35])])
+        self.play(FadeIn(title),FadeIn(rows),run_time=.7)
+        self.at("Most common variants")
+        self.play(LaggedStart(*[Indicate(r[1],color=TEXT,scale_factor=1.04) for r in rows],lag_ratio=.1),run_time=.8)
+        shared=T("Most common variants are shared worldwide",26,TEXT).move_to([0,-2.35,0])
+        self.play(FadeIn(shared),run_time=.5)
+        self.at("genetic variation does not divide")
+        clusters=VGroup(*[Ellipse(width=10.1,height=2.2,color=BLUE,stroke_opacity=.35,fill_opacity=.025).move_to([x,y,0])
+                          for x,y in [(-.25,.8),(.25,-.4)]])
+        self.play(Create(clusters),FadeIn(T("Variation has no discrete racial boundaries",26,TEXT).move_to([0,-3.15,0])),run_time=.8)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "A positive D is a clue, not proof of gene flow."
+    LINE = "We arose in Africa and mixed with Neanderthals and Denisovans."
