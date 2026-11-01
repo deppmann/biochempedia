@@ -80,10 +80,10 @@ scientists:
     story: >-
       The physician George Fordyce procured a suite of rooms, some heated by flues in the floor and the chamber used on 23 January by a
       cast-iron stove, and invited Charles Blagden, among others, to test how much heat a person
-      could bear. On 23 January 1774 Blagden went into a stove-heated room with Joseph Banks, Daniel
+      could bear. On 23 January 1775 Blagden went into a stove-heated room with Joseph Banks, Daniel
       Solander and Captain Phipps; the thermometer there read about 198 degrees F for the party and stood above 211 when Banks went in. A thermometer under
       Blagden's tongue read 98 degrees, about a degree above his usual. In April 1775 they returned,
-      with others added to the party, and the air reached a little over 260 degrees. Eggs set in
+      with others added to the party, and by evening the air reached a little over 260 degrees. Earlier in the day, eggs set in
       the room were roasted hard in about twenty minutes and a beefsteak cooked in thirty-three
       minutes, faster with a bellows blowing hot air across it. A dog stayed half an hour and came
       out unharmed. Blagden credited sweat evaporation with part of the cooling and suspected
@@ -119,8 +119,9 @@ techniques:
   - name: "Thermometry and pulse counting in a controlled environment"
     blurb: >-
       Body temperature is read at a stated site (under the tongue, in the hand, in urine) while the
-      surrounding temperature is set and recorded. Comparing the body with an inert object in the
-      same room shows whether temperature is being actively held.
+      surrounding temperature is set and recorded. Comparing the body with inert objects in the
+      same room shows how far it departs from passive heating. A wet object also stays below the air while it
+      evaporates, so the comparison points to control but does not prove it alone.
   - name: "Indirect calorimetry"
     blurb: >-
       An animal sits in a sealed chamber while the oxygen it takes up and the carbon dioxide it
@@ -292,8 +293,9 @@ explainLevels:
     text: >-
       A minimal description of a regulated variable x is a proportional controller, dx/dt =
       -k (x - x_ref) + d(t), where d is a disturbance and k the loop gain; a regulator has a large k
-      over some environmental range and a conformer a small one, so, if the disturbance follows the
-      environment, the slope of internal against external value on a plot runs from near 0 (large k) toward 1 (small k). Real systems add integral and
+      over some environmental range and a conformer a small one. If the disturbance is passive exchange with an
+      environment at value E, d = c (E - x), the steady-state slope of internal against external value is c / (k + c),
+      near 0 when k is large and near 1 when k is small. Real systems can add integral or
       feedforward terms, and the reference itself shifts. The cost of regulation is measurable: in
       single-housed male C57BL/6J mice, expenditure at 22 was about 1.30 times that at
       30 degrees C, and Skop and colleagues found phase-dependent thermoneutral points near
@@ -349,7 +351,7 @@ draft: false
 import HomeostaticLoopStepper from '../../../components/HomeostaticLoopStepper.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In a room heated to about 200 degrees F, close to the boiling point of water, a thermometer under Charles Blagden's tongue read 98 degrees, about one degree above his usual. A year later, in a room above 260 degrees F, eggs roasted hard and a steak cooked.** An egg in hot air heats until it matches the air. A living person did not. This lesson asks what kept him from heating up like the egg, starting with what a body is made of.
+**In a room heated to about 200 degrees F, close to the boiling point of water, a thermometer under Charles Blagden's tongue read 98 degrees, about one degree above his usual. Ten weeks later, in the same room, which by evening passed 260 degrees F, eggs roasted hard and a steak cooked.** An egg in hot air heats until it matches the air. A living person did not. This lesson asks what kept him from heating up like the egg, starting with what a body is made of.
 
 It builds on [what an organism has to do](/lessons/organism-problems/), [size and scaling](/lessons/size-and-scaling/) and [animal body plans](/lessons/animal-body-plans/).
 
@@ -362,9 +364,9 @@ A **tissue** is a group of similar cells, with the material around them, that to
 - **Muscle tissue** is made of cells that contract and so produce movement or force.
 - **Nervous tissue** is **neurons**, cells that receive and send electrical signals, plus **glial cells**, which support them.
 
-An **organ** is a structure built from several tissues that work together. A teaching histology section of a stomach wall (the source does not name the species) shows all four. Epithelium lines the inside, where food sits. Beneath it, connective tissue carries blood vessels and holds the layers together. Outside that, layers of smooth muscle churn and squeeze the contents. Networks of nerve cells run between the muscle layers and coordinate the churning.
+An **organ** is a structure built from several tissues that work together. A stained section through a stomach wall shows all four. Epithelium lines the inside, where food sits. Beneath it, connective tissue carries blood vessels and holds the layers together. Outside that, layers of smooth muscle churn and squeeze the contents. Networks of nerve cells run between the muscle layers and help control the churning.
 
-<LessonFigure src="/figures/tissues-and-homeostasis/stomach-wall-four-tissues.webp" width={1200} height={793} alt="AI-generated illustration: a flat diagram of a stomach wall as four stacked layers, from the inside outward a sheet of epithelial cells, connective tissue with two blood vessels, and two layers of smooth muscle with a web of nerve cells between them. An inset shows the stomach as one block among the esophagus, intestines, liver and pancreas in the digestive system." caption="In a teaching section of a stomach wall, epithelium lines the inside, connective tissue with blood vessels lies beneath it, layers of smooth muscle churn the contents, and networks of nerve cells run between the muscle layers. The stomach is one organ of the digestive system." />
+<LessonFigure src="/figures/tissues-and-homeostasis/stomach-wall-four-tissues.webp" width={1200} height={793} alt="AI-generated illustration: a flat diagram of a stomach wall as four stacked layers, from the inside outward a sheet of epithelial cells, connective tissue with two blood vessels, and layers of smooth muscle with a web of nerve cells between them. An inset shows the stomach as one block among the esophagus, intestines, liver and pancreas in the digestive system." caption="In a teaching section of a stomach wall, epithelium lines the inside, connective tissue with blood vessels lies beneath it, layers of smooth muscle churn the contents, and networks of nerve cells run between the muscle layers. The stomach is one organ of the digestive system." />
 
 An **organ system** is a set of organs that share a larger job. The stomach is one organ of the digestive system, along with the esophagus, intestines, liver and pancreas.
 
@@ -374,7 +376,7 @@ Not every animal is built this way. Sponges have specialized cells but no true t
 
 **Homeostasis** is the holding of a body variable within a range compatible with staying alive. The word comes from Walter Cannon, building on Claude Bernard's idea that the cells of an animal live in an *internal environment* of blood and tissue fluid that changes much less than the world outside.
 
-Every homeostatic loop has the same parts. Name them in this order.
+The standard model of a homeostatic loop has five parts. Name them in this order.
 
 1. The **regulated variable**: the quantity being held, such as core body temperature or the salt concentration of blood.
 2. The **set point**: the reference value around which the normal range fluctuates.
@@ -384,13 +386,13 @@ Every homeostatic loop has the same parts. Name them in this order.
 
 A house thermostat is the analogy: room temperature is the variable, the dial the set point, the thermometer the sensor, the circuit the integrator and the furnace the effector.
 
-In an adult human the variable is core temperature. Temperature-sensitive nerve cells in the skin and in the brain are the sensors. A temperature-regulating region of the brain, in the hypothalamus, is the integrator; how it is wired is covered in [the hypothalamus and the autonomic system](/lessons/hypothalamus-autonomic/). When temperature rises, the effectors are sweat glands, and evaporation of sweat from the skin removes heat. When it falls, the effectors include skeletal muscles, which shiver and release heat as they use ATP.
+In an adult human the variable is core temperature. Temperature-sensitive nerve cells in the skin and in the brain are the sensors. A temperature-regulating region of the brain, in the hypothalamus, is the integrator; how it is wired is covered in [the hypothalamus and the autonomic system](/lessons/hypothalamus-autonomic/). When temperature rises, the effectors include blood vessels in the skin, which widen and carry more heat to the surface, and sweat glands, whose sweat removes heat as it evaporates. When it falls, skin vessels narrow to keep heat in, and skeletal muscles shiver and release heat as they use ATP. Behaviour, such as seeking shade or putting on a coat, is an effector too.
 
-Blagden's report shows the loop at work in people. George Fordyce procured a suite of rooms for heating experiments. On 23 January 1774 Blagden went into a stove-heated chamber with Joseph Banks, Daniel Solander and Captain Phipps. The air stood near 200 degrees F for the party and above 211 when Banks went in. If a body behaved like an egg, its temperature should have climbed toward the air's. Instead Blagden's tongue read 98 degrees, about a degree above normal for him, while his pulse rose. In April 1775, with the air a little above 260 degrees, eggs roasted hard in about twenty minutes and a steak cooked in thirty-three, while the men's body thermometer came back to nearly the same point each time.
+Blagden's report shows the loop at work in people. George Fordyce procured a suite of rooms for heating experiments. On 23 January 1775 Blagden went into a stove-heated chamber with Joseph Banks, Daniel Solander and Captain Phipps. The air stood near 200 degrees F for the party and above 211 when Banks went in. If a body behaved like an egg, its temperature should have climbed toward the air's. Instead Blagden's tongue read 98 degrees, about a degree above normal for him, while his pulse rose. On 3 April 1775 the party returned to the same room, which by evening passed 260 degrees. Earlier that day, eggs set in the room roasted hard in about twenty minutes and a steak was overdone in thirty-three, while Blagden's body thermometer came back to nearly the same point each time he checked.
 
 <LessonFigure src="/figures/tissues-and-homeostasis/blagden-hot-room.webp" width={1200} height={800} alt="AI-generated illustration: a plain old room with an iron stove and wavy heat lines. On a table sit eggs, one cracked open and hard-cooked, and a cooked steak. Beside it a man in 18th-century dress sits calmly with a glass thermometer under his tongue. An inset contrasts an egg, which warms, with a seated person, who does not." caption="In rooms heated far above the boiling point of water, Blagden's party watched eggs roast hard and a steak cook while a thermometer under the tongue stayed near its usual reading. An egg follows the air; a living body, it seemed, did not." />
 
-That ruled in an active process holding human temperature against dry heat for minutes, but not its mechanism. Blagden credited evaporation of sweat with part of the cooling but suspected a further power of the living body did most of it. And it says nothing about moist air, which slows evaporation, or about long exposures.
+That ruled in an active process holding human temperature against dry heat for minutes, but not its mechanism. Blagden credited evaporation of sweat with part of the cooling but suspected a further power of the living body did most of it, and he cited Fordyce's trials in steamy rooms, where sweat could not evaporate, as support. Physiology no longer needs that extra power. When the air is hotter than the skin, the body gains heat from the air, and evaporation of sweat is the only way left to lose heat. The real finding stands: temperature was held. Today we know the brain holds it by adjusting sweating and skin blood flow. In humid air, where sweat evaporates slowly, that route weakens, and the 1775 trials lasted minutes, not hours.
 
 Plants run loops too. As a leaf's water status falls, its stomata, the pores in its surface, close, which slows water loss.
 
@@ -412,7 +414,7 @@ A **regulator** holds an internal variable fairly steady across a range of outsi
 
 **Temperature.** An **endotherm** warms its body mainly with heat from its own metabolism; mammals and birds are endotherms, with partial endothermy in some fish and insects. An **ectotherm** gets its body heat mainly from its surroundings. An adult human regulates core temperature by sweating and shivering. A typical teleost fish in a lake is an ectotherm whose body temperature largely follows the water. That is a different solution, not a lesser one.
 
-**Blood salt.** **Osmolality** is the concentration of dissolved particles in a fluid. An **osmoconformer** lets its blood osmolality follow the water's; an **osmoregulator** holds it different. The blue mussel, *Mytilus edulis*, conforms: over the salinities it tolerates, its blood comes close to the water around it. The shore crab, *Carcinus maenas*, is close to seawater in full-strength seawater, but in water diluted to roughly half strength it holds its blood well above the water. So it conforms at one end of its range and regulates at the other. How either animal does it is in [osmoregulation](/lessons/osmoregulation/).
+**Blood salt.** **Osmolality** is the concentration of dissolved particles in a fluid. An **osmoconformer** lets its blood osmolality follow the water's; an **osmoregulator** holds it fairly steady as the water's changes. The blue mussel, *Mytilus edulis*, conforms: over the salinities it tolerates, its blood comes close to the water around it. The shore crab, *Carcinus maenas*, is close to seawater in full-strength seawater, but in water diluted to roughly half strength it holds its blood well above the water. So it conforms at one end of its range and regulates at the other. How either animal does it is in [osmoregulation](/lessons/osmoregulation/).
 
 Regulation is not free. In a 2022 study, John and colleagues measured energy expenditure by indirect calorimetry in single-housed male C57BL/6J mice and found it about 30% higher at 22 degrees C than at 30 degrees C. A mouse is small and loses heat fast through its large surface for its size, so at 22 degrees C it spends more to stay warm.
 
@@ -439,6 +441,6 @@ Use thirsty mice with a stomach tube, so fluid bypasses the mouth, and record th
 1. *Separate volume from dilution.* Give one group water and another an equal volume of concentrated (hypertonic) salt solution. If stomach stretch alone stopped thirst, both would silence the neurons. If the gut senses dilution, only water should. Zimmerman and colleagues reported that hypertonic saline in the stomach activated these neurons instead.
 2. *Put neurons and blood on one time base.* Sample blood osmolality at short intervals while recording, and ask which changes first. Neural activity falling before blood changes means a feedforward signal on top of negative feedback from the blood.
 3. *Test the route.* Compare vagotomy with a sham operation, in which the nerves are exposed but not cut. If the effect weakens only after vagotomy, the vagus carries part of the signal.
-Limits: this is mice only, "no detectable change" depends on how sensitive the blood assay is, and the peripheral sensor itself remains unidentified.
+Limits: this is mice only, "no detectable change" depends on how sensitive the blood assay is, and the 2019 study did not find the gut sensor. Later work in mice (Ichiki and colleagues, 2022) traced the signal to vagal nerve fibres serving the hepatic portal area, where absorbed water passes toward the liver, driven partly by the gut hormone vasoactive intestinal peptide; which cells first detect the dilution is still open.
 
 </details>
