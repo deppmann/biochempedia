@@ -5,20 +5,14 @@ course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 4: Interactions and communities"
 order: 519
 summary: >-
-  Two communities can hold the same species and still differ in diversity, and a community that
-  is knocked back does not regrow along one fixed path. This lesson turns a species-by-count
-  table into richness, Shannon and Simpson indices and effective numbers of species, sets out
-  Connell and Slatyer's three testable models of succession, and follows the intermediate
-  disturbance hypothesis from Sousa's intertidal boulders to a bacterial microcosm and the
-  critique that followed. Afterwards you can compute and compare diversity indices, say what
-  each one misses, and design a test that separates disturbance from a confounded variable.
+  Two communities can hold the same species and still differ in diversity, and a community that is knocked back does not regrow along one fixed path. This lesson turns a species-by-count table into richness, Shannon and Simpson indices and effective numbers of species, sets out Connell and Slatyer's three testable models of succession, and shows from Sousa's intertidal boulders and a bacterial microcosm that the effect of disturbance on diversity depends on its frequency, its intensity and the system, so the intermediate disturbance hypothesis is one conditional prediction and not a rule. Afterwards you can compute and compare diversity indices, say what each one misses, and design a test that separates disturbance from a confounded variable.
 hook: "Two plots hold the same four species. Can one be more diverse than the other?"
 
 estMinutes: 24
 objectives:
   - "Calculate richness, Shannon entropy (natural log), Simpson concentration, its complement and inverse, evenness and effective numbers of species from a count table, and say what each measure misses."
-  - "Distinguish primary from secondary succession, and state the facilitation, tolerance and inhibition models as alternatives that a removal experiment can tell apart."
-  - "Explain the intermediate disturbance hypothesis, describe one manipulation that tested it, and summarize the critique that humped curves are found only sometimes."
+  - "Distinguish primary from secondary succession, and state the facilitation, tolerance and inhibition models as alternatives that a removal experiment can tell apart, and explain why where succession ends up depends on which species arrive, in what order, and how often the site is disturbed again."
+  - "Explain that the effect of disturbance on diversity depends on its frequency, its intensity and the system, describe the intermediate disturbance hypothesis as one conditional prediction and one manipulation that tested it, and summarize the critique that humped curves are found only sometimes."
   - "Separate a described pattern from a tested mechanism, and name the spatial scale (within a plot, among plots, a region) at which a diversity comparison is made."
 
 explainer:
@@ -139,19 +133,15 @@ practiceQuestions:
       abundance, so a skewed community has lower H than an even one with the same species.
       Simpson concentration is the sum of squared proportions and rises as one species dominates.
       Inverse Simpson is the reciprocal of that concentration and falls as dominance grows.
-  - stem: "A community has Simpson concentration lambda = 0.20. What is its order-two effective number of species?"
+  - stem: "Two abandoned pastures with similar soil and climate are followed for decades, and they come to be dominated by different species. Which statement fits this lesson's account of succession?"
     choices:
-      - "0.80 species"
-      - "5.0 species"
-      - "1.25 species"
-      - "0.20 species"
+      - "Succession always runs to one fixed endpoint, so one of the pastures must have been misjudged"
+      - "Where succession goes depends on which species arrive, in what order, and how often the site is disturbed again"
+      - "Early species prepare the site for a planned set of later species, so the pastures must have had different early species with different goals"
+      - "Differences like this can arise only through facilitation, never through tolerance or inhibition"
     answer: 1
     rationale: >-
-      The order-two effective number is 1/lambda = 1/0.20 = 5.0 species: the number of equally
-      common species that would give the same concentration. The value 0.20 is lambda itself,
-      which is a probability, not a count of species. The value 0.80 is the Gini-Simpson index
-      1 - lambda, also a probability. The value 1.25 is 1/0.80, which inverts the complement
-      instead of the concentration.
+      The lesson says succession does not necessarily run to one fixed endpoint: the outcome depends on which species arrive, in what order and how often the site is disturbed again, so similar sites can diverge. Early species have no goal; they alter conditions and later species do better or worse as a result. All three models, facilitation, tolerance and inhibition, are compatible with different outcomes, and real results are often mixed, so the divergence does not single out facilitation.
   - stem: "In a field where early colonists are removed as soon as they settle, later-successional species establish sooner than in untouched control plots. Which model of succession does this support?"
     choices:
       - "A fixed climax sequence"
@@ -325,7 +315,7 @@ draft: false
 import DiversityIndexBench from '../../../components/DiversityIndexBench.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Two plots each hold the same four species and 100 individuals. Are they equally diverse? That depends on what you decide to count.** A community is the set of species living and interacting in one place. Describing it with a single number sounds simple, but every index makes a choice about how much rare species matter. And communities change: a storm, a fire or a plough knocks them back, and they rebuild. This lesson measures diversity, then asks how communities rebuild and whether disturbance raises or lowers diversity.
+**Two plots each hold the same four species and 100 individuals. Are they equally diverse? That depends on what you decide to count.** A community is the set of species living and interacting in one place. Describing it with a single number sounds simple, but every index makes a choice about how much rare species matter, and the same number can describe very different communities. And communities change: a storm, a fire or a plough knocks them back, and they rebuild, not along one fixed path but in a way that depends on which species arrive, in what order, and how often the site is disturbed again. This lesson measures diversity, then asks how communities rebuild and how disturbance changes diversity, which turns out to depend on how often it strikes, how hard, and where.
 
 ## Counting a community: richness, evenness and effective species
 
@@ -365,7 +355,7 @@ One more trap: observed richness rises with sampling effort, because more indivi
 
 <LessonFigure src="/figures/diversity-and-succession/primary-vs-secondary-succession.webp" width={1200} height={800} alt="AI-generated illustration: on the left, bare rock exposed beside a retreating glacier with no soil and a single tuft of green; on the right, an abandoned pasture whose cut-away shows soil with seeds and roots under short grass. A small strip marks soil, seeds and roots as present only on the right." caption="Primary succession starts on surfaces with no previous community, such as rock bared by a retreating glacier. Secondary succession follows a disturbance that leaves soil, seeds or roots behind, as on an abandoned pasture." />
 
-Microbes take part too. In the forefield of the Puca Glacier in southeastern Peru, Knelman and colleagues (2014) randomly assigned 16 plots of soil, exposed by deglaciation about three years earlier, to control, nitrogen, phosphorus or both. After one year, bacterial communities given both nutrients most resembled those of soils exposed for about 85 years. They identified bacteria by gene sequencing (see [sequencing and genomes](/lessons/sequencing-and-genomes/)). That is a shift in bacterial composition in one forefield, not recovery of a whole ecosystem.
+Microbes take part too. In a randomized nutrient experiment on young soils exposed by a retreating glacier in southeastern Peru, adding nitrogen and phosphorus shifted bacterial communities toward those of much older soils (Knelman and colleagues, 2014; details in Going deeper). That is a shift in bacterial composition in one forefield, not recovery of a whole ecosystem.
 
 Why does one set of species replace another? In 1977 Joseph Connell and Ralph Slatyer set out three models as alternatives.
 
@@ -383,7 +373,7 @@ In a southern California intertidal boulder field, Wayne Sousa (1979) found the 
 
 <LessonFigure src="/figures/diversity-and-succession/sousa-boulder-sizes.webp" width={1200} height={800} alt="AI-generated illustration: three boulders of increasing size on an intertidal shore; the small one has sparse green alga and barnacles and a wave arrow, the intermediate one carries a varied mix of organisms, the large one is mostly covered by a red alga. Two insets show the same boulder free to be rolled by a wave and held fixed against it." caption="On Sousa's shore, small boulders were overturned often and stayed sparse and early, large ones were rarely overturned and dominated by one red alga, and intermediate ones carried the most diverse assemblages. Because size and disturbance were confounded, he compared stabilized boulders with unstable ones." />
 
-Hall and colleagues (2012) went further in the laboratory. In microcosms of the bacterium Pseudomonas fluorescens, they crossed five frequencies (0 to 16 disturbances in 16 days) with three intensities (10%, 99.9% or 99.999% mortality per event), measuring 1 - lambda among morphotypes that one strain evolves in each microcosm. Diversity rose with intensity, peaked or stayed flat, depending on the combination. In a later bacterial study by Gibbons and colleagues (2016), a diversity peak appeared only transiently, while distinct community states (different species compositions) mixed.
+Hall and colleagues (2012) went further in the laboratory, crossing disturbance frequency with disturbance intensity in microcosms of the bacterium Pseudomonas fluorescens. Diversity rose with intensity, peaked or stayed flat, depending on the combination of frequency and intensity. In a later bacterial study by Gibbons and colleagues (2016), a diversity peak appeared only transiently, while distinct community states mixed. Disturbance does not have one effect on diversity: the answer depends on frequency, intensity and system. In Hall's experiment, diversity is among morphotypes of one strain (details in Going deeper).
 
 Jeremy Fox (2013) argued that the IDH should be abandoned, partly because humped curves are found only rarely. Michael Huston (2014) replied that critics had ignored the linked predictions his model makes for disturbance and productivity together. The IDH is neither confirmed nor refuted: it is debated, and experiments give conditional answers.
 
@@ -391,7 +381,7 @@ Jeremy Fox (2013) argued that the IDH should be abandoned, partly because humped
 
 Keep three questions apart. **Description** reports a pattern: diversity is highest on intermediate boulders. **Mechanism** needs a manipulation or a tested alternative: stabilize boulders and see whether communities change. **Scale** says where the comparison sits: diversity within one boulder or plot, differences among plots, or the pooled species list of a region. A hump among plots can coexist with no hump within them, so state the level, the plot size and the sampling effort.
 
-Many succession studies use a **chronosequence**, a set of sites of different ages read as one trajectory (a space-for-time substitution). Rozendaal and colleagues (2019) pooled 56 Neotropical secondary-forest sites this way. In the 45 sites with old-growth reference plots, the model's mean predicted tree richness 20 years after abandonment was 80% of old-growth values, but similarity in composition to old growth was only 34% of the similarity found among old-growth plots. Both are model estimates from sites of different ages, not one forest followed for 20 years, and the two numbers measure different things. Richness can recover while the identity of the species lags far behind.
+Many succession studies use a **chronosequence**, a set of sites of different ages read as one trajectory (a space-for-time substitution). Rozendaal and colleagues (2019) pooled Neotropical secondary-forest sites this way and found that richness recovered much more than species composition: richness can recover while the identity of the species lags far behind (the figures and their limits are in Going deeper).
 
 ### Design problem
 
@@ -409,3 +399,17 @@ Mark every boulder and record overturning directly, for example by checking a pa
 If stabilized small boulders gain later-successional species and come to resemble intermediate or large boulders, while handling controls resemble untouched ones, overturning rather than size explains why small boulders stay sparse. If stabilized boulders stay sparse, preventing overturning was not enough. Something tied to size, such as surface area or scour, may matter, or later species may not have arrived within the study. Either result holds for this shore and these years.
 
 </details>
+
+## Going deeper
+
+### A nutrient experiment on young glacier soils
+
+In the forefield of the Puca Glacier in southeastern Peru, Knelman and colleagues (2014) randomly assigned 16 plots of soil, exposed by deglaciation about three years earlier, to control, nitrogen, phosphorus or both. After one year, bacterial communities given both nutrients most resembled those of soils exposed for about 85 years. They identified bacteria by gene sequencing (see [sequencing and genomes](/lessons/sequencing-and-genomes/)). That is a shift in bacterial composition in one forefield, not recovery of a whole ecosystem.
+
+### The bacterial microcosm experiments
+
+Hall and colleagues (2012) went further in the laboratory. In microcosms of the bacterium Pseudomonas fluorescens, they crossed five frequencies (0 to 16 disturbances in 16 days) with three intensities (10%, 99.9% or 99.999% mortality per event), measuring 1 - lambda among morphotypes that one strain evolves in each microcosm. Diversity rose with intensity, peaked or stayed flat, depending on the combination. In a later bacterial study by Gibbons and colleagues (2016), a diversity peak appeared only transiently, while distinct community states (different species compositions) mixed.
+
+### Recovery of richness versus composition in secondary forests
+
+Rozendaal and colleagues (2019) pooled 56 Neotropical secondary-forest sites this way. In the 45 sites with old-growth reference plots, the model's mean predicted tree richness 20 years after abandonment was 80% of old-growth values, but similarity in composition to old growth was only 34% of the similarity found among old-growth plots. Both are model estimates from sites of different ages, not one forest followed for 20 years, and the two numbers measure different things.
