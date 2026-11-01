@@ -18,7 +18,7 @@ estMinutes: 24
 objectives:
   - "Explain the MacArthur-Wilson equilibrium: why immigration of new species falls and extinction rises as richness grows, where the equilibrium lies, and how distance and area shift it."
   - "Calculate an equilibrium species number, its turnover rate and the approach to equilibrium from stated immigration and extinction curves."
-  - "Read the Simberloff-Wilson mangrove defaunation results and explain why returning richness with changed species lists means a dynamic equilibrium."
+  - "Read the Simberloff-Wilson mangrove defaunation results and explain why returning richness with changed species lists and continuing turnover is consistent with a dynamic equilibrium."
   - "Distinguish richness from identity with a Jaccard similarity, and apply the model, with its limits, to habitat fragments and corridors."
 
 explainer:
@@ -104,7 +104,7 @@ scientists:
       Damschen and colleagues, including Lars Brudvig, Nick Haddad, Douglas Levey, John Orrock and
       Joshua Tewksbury, reported results from a long experiment in longleaf pine savanna habitat in
       which replicate patches were either joined by a corridor or left unconnected, with
-      unconnected control patches matched for area and shape, some with side projections equal to the corridor's area. Tracking
+      unconnected control patches of equal total area: some were plain rectangles, and others carried dead-end side projections equal to the corridor's area and matching its edge-to-area ratio. Tracking
       239 plant species, they found annual colonisation about 5% higher and annual extinction about
       2% lower in connected patches, and after almost two decades connected patches held nearly
       14% more species, with richness still rising. The study showed that a connectivity effect can
@@ -207,7 +207,7 @@ practiceQuestions:
     answer: 3
     rationale: >-
       The area falls 16-fold, so richness is multiplied by 16^(-0.25) = 1/2, giving 40 x 0.5 = 20
-      species, and only after the community has relaxed to its new equilibrium. About 10 species
+      species, and only after the community has relaxed to its new equilibrium, if the same curve holds for the remnant. About 10 species
       uses an exponent of 0.5, so that richness falls with the square root of area.
       About 3 species assumes richness falls in proportion to area, as if z were 1. About 30
       species treats the exponent of 0.25 as a flat 25% loss of species.
@@ -250,9 +250,9 @@ mcatQuestions:
     answer: 1
     rationale: >-
       A corridor adds habitat area and changes patch shape as well as linking patches, so giving
-      unconnected patches strips of equal area means a difference between treatments can be
+      unconnected patches strips of equal area and similar edge means a difference between treatments can be
       attributed to connection rather than to extra area or edge. Dead-end strips do not reach the
-      central patch, so they cannot carry seeds there. They do not add planted species. They make
+      central patch, so they give seeds no continuous habitat path to it, although strip shape can still change how wind moves seeds. They do not add planted species. They make
       the unconnected patches equal in area to the connected ones, not smaller.
 
 explainLevels:
@@ -300,14 +300,14 @@ explainLevels:
       arrived and vanished between visits, so the observed values are lower bounds of uncertain
       size. Equal-richness endpoints can also coexist with low compositional similarity, so a
       study that reports only S cannot distinguish a dynamic equilibrium from a slow assembly
-      process with lasting priority effects; Ord and colleagues' 2017 constructed rock-island
-      experiment in New South Wales found similar composition on islands of the same size
+      process with lasting priority effects. A separate question is what sets composition. In Ord and colleagues' 2017 constructed rock-island
+      experiment in New South Wales, islands of the same size held similar animal communities over 64 weeks
       regardless of isolation, which points to a primary role for deterministic filtering, with only
-      limited neutrality. On land, fragments differ from islands because the matrix supports some
+      limited neutrality, although large, near islands had more common taxa, so dispersal limitation still mattered. On land, fragments differ from islands because the matrix supports some
       species and filters others, and Zhang, Chase and Liao's 2024 metacommunity model suggests the
       effect of fragmentation on diversity can depend on the amount of habitat lost. An open
-      question is how long relaxation to a new equilibrium takes after fragmentation: the
-      18-year corridor experiment had still not reached an asymptote.
+      question is how long communities take to reach a new equilibrium after the landscape changes. Extinction debts after habitat loss can take decades to pay, and in the
+      18-year corridor experiment the richness gain from connection had still not reached an asymptote.
 
 anecdotes:
   - title: "The fumigation damaged one island's tree"
@@ -327,7 +327,7 @@ anecdotes:
       1.0. The authors pointed out one reason the observed values could be low: a species that
       arrived and disappeared entirely between two censuses was never recorded, and they suggested
       that many such events were missed. Any census-based turnover rate is a count of what was
-      seen, and gaps between visits bias it downward.
+      seen. Gaps between visits bias it downward, but a resident species missed at one census and found at the next looks like an extinction and a recolonisation, which biases it upward.
   - title: "Fewer colonists, almost the same count"
     source: "Joshi et al., Oecologia 148:144-152 (2006)."
     text: >-
@@ -335,8 +335,8 @@ anecdotes:
       patches of 0.25, 2.25 and 20.25 square metres isolated by mowing the surrounding vegetation
       from 1993 to 1999, and compared them with unisolated controls of the same sizes. Plant
       colonisation was 30% lower in the isolated patches, yet after seven years they had only
-      marginally fewer species than the controls. The rates had changed well before the species
-      count showed much difference.
+      marginally fewer species than the controls. The rates had changed clearly while the species
+      count showed little difference.
 
 corpusTags:
   - "island-biogeography"
@@ -355,7 +355,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Empty a small mangrove island of every insect, spider and mite, and in one Florida Keys experiment most such islands held about as many arthropod species as untreated islands within roughly 250 days. The species on each island, though, were not all the ones present before treatment, and arrivals and extinctions continued.**
 
-That result is what a theory published in 1963 predicted. It treats the number of species on an island as a balance between two ongoing processes, so the count can be steady while its membership keeps turning over. This lesson builds the model, calculates its equilibrium, reads the experiment that tested it, and then asks what it can and cannot say about patches of habitat on land.
+That result fits what a theory published in 1963 predicted, although on its own it does not prove the theory's mechanism. It treats the number of species on an island as a balance between two ongoing processes, so the count can be steady while its membership keeps turning over. This lesson builds the model, calculates its equilibrium, reads the experiment that tested it, and then asks what it can and cannot say about patches of habitat on land.
 
 ## The idea: two curves and a crossing
 
@@ -381,9 +381,9 @@ This is a model: it says what follows if its assumptions hold. Real species do n
 
 ## Testing it: emptying islands in the Florida Keys
 
-The model is about rates, but most natural islands were colonised long ago, and the rare ones refilling, such as Krakatau, cannot be replicated or controlled. Daniel Simberloff and Wilson chose islands small enough to empty: six small islands of red mangrove, *Rhizophora mangle*, in the Florida Keys, each supporting a community of **terrestrial arthropods** (insects, spiders, mites and their relatives). They censused each island's arthropods, removed them by fumigation with methyl bromide, and censused the islands repeatedly for a year. The full report appeared in Ecology in 1969.
+The model is about rates, but most natural islands were colonised long ago, and the rare ones refilling, such as Krakatau, cannot be replicated or controlled. Daniel Simberloff and Wilson chose islands small enough to empty: six small islands of red mangrove, *Rhizophora mangle*, in the Florida Keys, each supporting a community of **terrestrial arthropods** (insects, spiders, mites and their relatives). They censused each island's arthropods, covered each island with a tent and removed the arthropods by fumigation with methyl bromide, and censused the islands repeatedly for a year. The full report appeared in Ecology in 1969.
 
-<LessonFigure src="/figures/island-biogeography/mangrove-census-fumigate-census.webp" width={1200} height={450} alt="AI-generated illustration: three numbered panels of the same small red mangrove island in shallow water. Panel 1, labelled red mangrove island and census before treatment: beetles, spiders and a red mite sit on the leaves, with an open census notebook in the foreground. Panel 2, labelled fumigation: a canister sprays a pale cloud that engulfs the island. Panel 3, labelled same species returns, new species arrive and censused again: a spider is back among the leaves, and a moth, ant, grasshopper, wasp and beetle have also arrived, with a second open notebook in the foreground." caption="Simberloff and Wilson censused the arthropods on six small red mangrove islands in the Florida Keys, removed them by fumigation with methyl bromide, and censused the islands repeatedly for a year. The drawing is schematic: the lesson does not describe the fumigation apparatus, and the animals shown are generic." />
+<LessonFigure src="/figures/island-biogeography/mangrove-census-fumigate-census.webp" width={1200} height={450} alt="AI-generated illustration: three numbered panels of the same small red mangrove island in shallow water. Panel 1, labelled red mangrove island and census before treatment: beetles, spiders and a red mite sit on the leaves, with an open census notebook in the foreground. Panel 2, labelled fumigation: a canister sprays a pale cloud that engulfs the island. Panel 3, labelled same species returns, new species arrive and censused again: a spider is back among the leaves, and a moth, ant, grasshopper, wasp and beetle have also arrived, with a second open notebook in the foreground." caption="Simberloff and Wilson censused the arthropods on six small red mangrove islands in the Florida Keys, removed them by fumigation with methyl bromide, and censused the islands repeatedly for a year. The drawing is schematic: the real islands were covered by a tent during fumigation, which the drawing does not show, and the animals shown are generic." />
 
 By day 250, all the experimental islands except E1, the most distant, had species numbers similar to those of untreated islands. Population densities, however, were still abnormally low, so richness recovered before the communities were demographically normal. The authors inferred that most arrivals came through the air, by flight or carried on the wind. They also considered physical causes important in the extinctions of early colonists, so not every loss can be read as one species excluding another. Treatment had its own side effects: on island E7, fumigation killed 85% of the mangrove tree.
 
@@ -411,15 +411,15 @@ A forest remnant surrounded by farmland looks like an island, and the species-ar
 
 **Worked problem, continued.** Take z = 0.25 as an illustrative value.
 
-5. *Habitat loss.* A habitat holding 50 species is cut from 100 to 10 km^2. Richness is multiplied by (10/100)^0.25 = 10^(-0.25) = 0.56, so the expected richness falls toward about 50 x 0.56 = 28 species. This is the expected long-run value after **relaxation**, the slow loss of species that a smaller area can no longer hold, not an immediate loss on the day the habitat is cut.
+5. *Habitat loss.* A habitat holding 50 species is cut from 100 to 10 km^2. Richness is multiplied by (10/100)^0.25 = 10^(-0.25) = 0.56, so the expected richness falls toward about 50 x 0.56 = 28 species. If the same curve holds for the remnant, this is the long-run value after **relaxation**, the slow loss of species that a smaller area can no longer hold, not an immediate loss on the day the habitat is cut. Treat it as a rough projection: some species survive in the surrounding land, and whether running a species-area curve backwards overestimates losses is debated.
 
 Fragments are not true islands. The surrounding land, the **matrix**, is not open sea: some species live in it, some cross it readily and some cannot cross it at all. That ties the model to the [metapopulation](/lessons/spatial-populations/) view, in which a **metapopulation** is a set of local populations linked by dispersal, each subject to local extinction and recolonisation.
 
-Experiments show that rates move before counts do. In calcareous grasslands in the Swiss Jura, Jasmin Joshi and colleagues isolated patches of 0.25 to 20.25 square metres by mowing around them from 1993 to 1999. Plant colonisation was 30% lower than in unisolated controls of the same sizes, yet after seven years the isolated patches had only marginally fewer species.
+Rates can be a more sensitive signal than counts. In calcareous grasslands in the Swiss Jura, Jasmin Joshi and colleagues isolated patches of 0.25 to 20.25 square metres by mowing around them from 1993 to 1999. Plant colonisation was 30% lower than in unisolated controls of the same sizes, yet after seven years the isolated patches had only marginally fewer species.
 
 Connectivity has been tested over a longer span. In an experiment in longleaf pine savanna habitat reported by Ellen Damschen and colleagues in Science in 2019, patches joined by corridors had annual colonisation about 5% higher and annual extinction about 2% lower than unconnected patches across 239 plant species. After almost two decades, connected patches held nearly 14% more species, and richness was still rising. A study that stopped after five years would have seen much less of the effect. For how these results enter reserve planning, see [conservation](/lessons/conservation/).
 
-<LessonFigure src="/figures/island-biogeography/corridor-vs-side-strips.webp" width={1200} height={800} alt="AI-generated illustration: a schematic map of green habitat patches in a dark surrounding matrix. On the left, two equal patches are joined by a gold-outlined corridor. On the right, two equal unconnected patches each carry a short dead-end side strip. An inset shows the corridor and the two side strips made of the same total number of tiles." caption="In the longleaf pine savanna experiment, patches joined by corridors were compared with unconnected patches of matched area and shape; some unconnected patches carried dead-end side strips equal in area to the corridor, so a difference could be attributed to connection. This is a schematic, not the experiment's map." />
+<LessonFigure src="/figures/island-biogeography/corridor-vs-side-strips.webp" width={1200} height={800} alt="AI-generated illustration: a schematic map of green habitat patches in a dark surrounding matrix. On the left, two equal patches are joined by a gold-outlined corridor. On the right, two equal unconnected patches each carry a short dead-end side strip. An inset shows the corridor and the two side strips made of the same total number of tiles." caption="In the longleaf pine savanna experiment, patches joined by corridors were compared with unconnected patches of equal total area. Some were plain rectangles; others carried two dead-end side strips whose combined area equalled the corridor's and whose edge-to-area ratio matched it, so a difference could be attributed to connection. This is a schematic, not the experiment's map: it gives each unconnected patch a single strip." />
 
 ### Design problem
 
@@ -431,10 +431,10 @@ A planner must choose between one 100 ha reserve and four 25 ha reserves, or dec
 Island biogeography alone does not settle the reserve choice: one large reserve may hold more area-sensitive species, while several small ones may sample more habitat types and spread the risk of a local disaster. So test the mechanism.
 
 1. *Replicate equal-area patches* in the same kind of habitat and matrix, and assign them at random to connected or unconnected treatments.
-2. *Control for the corridor's own area.* A corridor adds habitat and edge. Give unconnected patches dead-end side strips whose combined area equals the corridor's, as some of the unconnected control patches in the longleaf pine savanna experiment had, so that a difference can be attributed to connection.
+2. *Control for the corridor's own area.* A corridor adds habitat and edge. Give some unconnected patches dead-end side strips whose combined area and edge-to-area ratio match the corridor's, as in the longleaf pine savanna experiment, and give others the same extra area as a plain block, so that a difference can be attributed to connection rather than to area or edge.
 3. *Census species identity repeatedly*, at a fixed effort and season, for many years. Record which species are present as well as how many.
 4. *Estimate colonisation and local extinction separately*, from changes in each species' presence between censuses, and say how many events between visits you could have missed.
-5. *Report both richness and composition* (for example Jaccard similarity to a reference patch), and expect the effect to keep growing for many years: the 2019 experiment found connected patches nearly 14% richer after almost two decades, still without a plateau.
+5. *Report both richness and composition* (for example Jaccard similarity to a reference patch), and plan to monitor for many years, since effects can keep growing: the 2019 experiment found connected patches nearly 14% richer after almost two decades, still without a plateau, although in the same system the effect on bird-dispersed plants had levelled off.
 
 The result applies to that habitat, matrix and set of species. Whether it transfers to a different matrix or to animals with other dispersal modes is a separate question to test.
 

@@ -18,7 +18,7 @@ objectives:
   - "Build a cohort life table from counts (n_x, l_x, d_x, q_x, p_x, m_x) and calculate R0 = sum of l_x m_x, the cohort generation time T = sum of x l_x m_x / R0, and the approximation r = ln(R0)/T."
   - "Read Type I, II and III survivorship curves on a logarithmic axis, explaining that Type II is a constant probability of death per interval, not a constant number of deaths."
   - "Read an age-structure diagram as the present composition of a population, distinguish it from a survivorship curve, and explain demographic momentum."
-  - "Explain how cohort follow-up, static tables and mark-recapture collect demographic data, and how censoring, sparse old ages, pooled years, missed detections and emigration bias the estimates."
+  - "Explain how cohort follow-up, static tables and mark-recapture collect demographic data, and how censoring, sparse old ages, pooled years, missed detections and emigration affect the estimates."
 
 explainer:
   src: "/explainers/demography/explainer.mp4"
@@ -65,8 +65,10 @@ scientists:
       the same columns: numbers alive, deaths, death rate and expectation of further life. One of
       his best-known examples used the ages at death of Dall sheep estimated from skulls collected
       in Mount McKinley National Park in Alaska by the naturalist Adolph Murie. A table built from
-      remains of that kind is a static sample, and it is only a fair cohort if the population was
-      roughly stationary. Deevey's review made those assumptions explicit. What it made possible
+      remains of that kind is a static sample. It is only a fair cohort if the population was
+      roughly stationary and if skulls of every age were found equally often, and the fragile skulls
+      of young sheep were not. Deevey's review made those assumptions explicit and treated the
+      early-age figures as weak. What it made possible
       was the comparison of survivorship across wild species with a common method and a clear
       list of its weaknesses.
   - name: "Ralf Schaible and James W. Vaupel"
@@ -119,6 +121,7 @@ techniques:
     blurb: >-
       When some individuals are still alive or lost when the study ends, their records are
       censored: they count as at risk for the time they were seen and are not counted as deaths.
+      This gives fair estimates only if being censored is unrelated to an animal's risk of dying.
       Actuarial tables adjust the number at risk in each interval, and Kaplan-Meier curves with
       log-rank tests compare survival between groups.
   - name: "Capture-mark-recapture (Cormack-Jolly-Seber models)"
@@ -142,7 +145,7 @@ practiceQuestions:
   - stem: "In a closed cohort of 500 newborn females, 200 are alive at age 3 years. What is l_3?"
     choices:
       - "0.40, the fraction of the newborns still alive at age 3"
-      - "0.13, the fraction dying in each year before age 3"
+      - "0.20, the average fraction dying in each year before age 3"
       - "200, the number of females still alive at age 3"
       - "0.60, the fraction of the newborns that died before age 3"
     answer: 0
@@ -150,7 +153,7 @@ practiceQuestions:
       Survivorship l_x is the fraction of the original cohort alive at exact age x, n_x/n_0 =
       200/500 = 0.40. The value 0.60 is the cumulative fraction that died, which is 1 - l_3, not
       l_3. The count 200 is n_3, the number alive, which has not been divided by the starting
-      cohort. The annual figure of about 0.13 is l_3 divided by three, an average that
+      cohort. The value 0.20 spreads the 0.60 that died evenly over three years, an average that
       has no meaning here, which is neither l_x nor a correct q_x, because q_x is calculated interval by
       interval from the number alive at its start.
   - stem: "A cohort of 1,000 shows a Type II survivorship pattern with an annual death probability of 0.5. How many die during the third year of life (between ages 2 and 3)?"
@@ -184,15 +187,17 @@ practiceQuestions:
     choices:
       - "That the population was closed to immigration and emigration"
       - "That females bear daughters and sons in a 50:50 ratio"
-      - "That every individual in the study could be aged without error"
+      - "That every animal in the population was marked or identified at birth"
       - "That births and death rates were steady over the past years"
     answer: 3
     rationale: >-
       A static table compares animals born in different years, so it reads as a cohort only if
       the population was stationary: similar numbers born each year and similar age-specific
       death rates over time. Closure matters for a cohort follow-up too, since animals that leave
-      look like deaths in either design, so it is not the extra assumption. Accurate ageing also
-      matters in both designs, although a follow-up of known-age animals avoids it. A 50:50 sex
+      look like deaths in either design, so it is not the extra assumption. Marking every animal at
+      birth is what a cohort follow-up needs, and a static table avoids it. Static tables also need
+      accurate ageing and fair recovery of remains at every age, but steady births and death rates
+      are what let animals born in different years stand in for one cohort. A 50:50 sex
       ratio concerns converting births to daughters for m_x, not the survivorship schedule built
       from carcasses.
   - stem: "A country's age pyramid has a broad base, and its fertility has just fallen to the level that would exactly replace each generation in the long run. What does the age structure predict for the next few decades, if mortality and migration stay as they are?"
@@ -220,10 +225,12 @@ mcatQuestions:
       - "Water stress lowers nymph survival by the same amount at every temperature tested"
     answer: 1
     rationale: >-
-      An effect of water stress that appears at one temperature and not at the other points to an
+      An effect of water stress that appears at one temperature and not at the other suggests an
       interaction: the effect of one factor depends on the level of the other, here in laboratory
-      aphids on potted plants. A constant effect of water stress at every temperature is exactly
-      what the reported result rules out. Blaming high temperature alone ignores that water stress
+      aphids on potted plants. Strictly, a significant effect at one temperature and none detected
+      at the other is not itself a test of interaction; that needs a direct comparison of the two
+      effects. Of these choices it is still the one the data best support. A constant effect of
+      water stress at every temperature fits the reported result poorly. Blaming high temperature alone ignores that water stress
       did reduce survival at the high temperature, which the factorial design was able to show.
       A forecast for fields generalizes beyond a laboratory study with two regimes and does not
       consider reproduction, migration or natural enemies.
@@ -329,7 +336,8 @@ anecdotes:
       estimating survival: classical models that estimate dispersal and detection separately,
       and models that estimate them jointly, both using only encounters inside the study population. Survival estimates for
       non-breeding females differed more than those for males between models that estimated
-      survival jointly with dispersal and models that estimated it separately.
+      survival jointly with dispersal and models that estimated it separately. The shifts were small
+      and uncertain, a few hundredths, and breeder survival did not change.
       Young birds that settle elsewhere look, from inside one study area, exactly like young
       birds that died. The study is a reminder that apparent survival is a product of survival and
       staying put, and that extra data or a model of dispersal is needed to split the two.
@@ -340,7 +348,9 @@ anecdotes:
       a cool, well-watered treatment against 20% of 71 in a hot, water-stressed one. Water stress
       lowered nymph survival only at the higher temperature. Daily offspring production behaved
       differently: water stress and high temperature each reduced it, with no detected
-      interaction. One study, one aphid and two regimes, but a clear lesson for life tables:
+      interaction. Combined into a life table, R0 was lower at the higher temperature, but the
+      study detected no effect of either factor on generation time or r. One study, one aphid and
+      two regimes, but a clear lesson for life tables:
       the l_x column and the m_x column can respond to the same environment in different ways.
 
 corpusTags:
@@ -362,7 +372,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 ## The idea: a life table is a cohort's bookkeeping
 
-A **cohort** is a group of individuals born together. Follow one from birth and record, at each exact age x, how many are still alive. That count is **n_x**. Everything else in a **life table**, a summary of how survival and reproduction change with age, is arithmetic on those counts.
+A **cohort** is a group of individuals born together. Follow one from birth and record, at each exact age x, how many are still alive. That count is **n_x**. The survival columns of a **life table**, a summary of how survival and reproduction change with age, are arithmetic on those counts. The reproduction column needs a second record: the births to females at each age.
 
 Think of a ledger for a club whose members never join late: you start with a membership, you strike out names as they leave, and you note what each remaining member contributes each year. For a closed, completely observed cohort the columns are:
 
@@ -413,7 +423,7 @@ The model's verdict, if these rates stayed fixed, is that R0 above 1 means the p
 
 ## Survivorship curves and age structure
 
-Plot l_x against age and you have a **survivorship curve**. Always use a logarithmic y-axis. On a log scale, equal vertical drops mean equal *proportional* losses, which is what q_x measures.
+Plot l_x against age and you have a **survivorship curve**. Ecologists plot it on a logarithmic y-axis to compare curve shapes. On a log scale, equal vertical drops mean equal *proportional* losses, which is what q_x measures.
 
 - **Type I**: high survival through early and middle life, then heavy losses at old ages. The curve stays flat, then plunges.
 - **Type II**: a roughly constant probability of death per interval. Because l_x = (1 - q)^x, log l_x falls in a straight line.
@@ -429,18 +439,18 @@ Age structure also carries **demographic momentum**. If fertility falls to repla
 
 ## Where the numbers come from, and what they miss
 
-**Cohort follow-up** gives the cleanest table but is slow: for a long-lived species, nobody lives long enough to watch one cohort die out. **Static tables** take a snapshot instead, ageing every individual alive, or every carcass, at one time and treating the age counts as one cohort. That works only if the population is stationary, with similar births and death rates for years. **Mark-recapture** follows marked animals that cannot be counted directly.
+**Cohort follow-up** gives the cleanest table but is slow: for a long-lived species, following one cohort until its last member dies can take longer than a research career. **Static tables** take a snapshot instead, ageing at one time either every individual alive, whose counts stand in for survivors at each age, or every carcass, whose ages at death stand in for deaths at each age. Either way the counts are read as one cohort. That works only if the population is stationary, with similar births and death rates for years, and only if every age is sampled fairly. Remains of young animals are fragile and easily missed, and ages read from remains carry error. **Mark-recapture** follows marked animals that cannot be counted directly.
 
-<LessonFigure src="/figures/demography/cohort-vs-static-sampling.webp" width={1200} height={800} alt="AI-generated illustration: two halves compared. On the left, one group of four animals drawn at four successive moments, shrinking to one, with a time arrow. On the right, a single snapshot of animals of different sizes with a skeleton lying beside the largest, and a small inset showing those ages stacked as if they were one group." caption="A cohort follow-up watches one birth group over time. A static table takes a snapshot, ageing every individual alive or every carcass, and treats the counts as one cohort, which works only if the population is stationary." />
+<LessonFigure src="/figures/demography/cohort-vs-static-sampling.webp" width={1200} height={800} alt="AI-generated illustration: two halves compared. On the left, one group of four animals drawn at four successive moments, shrinking to one, with a time arrow. On the right, a single snapshot of animals of different sizes with a skeleton lying beside the largest, and a small inset showing those ages stacked as if they were one group." caption="A cohort follow-up watches one birth group over time. A static table takes a snapshot, ageing every individual alive or every carcass, and reads the counts as one cohort's survivors or deaths, which works only if the population is stationary and every age is sampled fairly." />
 
 Each method has known weak points:
 
-- **Censoring.** An animal still alive when the study ends, or lost to an accident in a study of natural deaths, is right-censored: it counts as at risk for the time it was seen, never as a death. The 2016 primate tables, for example, removed half the censored animals from the number at risk in their interval.
-- **Few old individuals.** Small samples at old ages make gradual changes in mortality hard to detect, so the tail of any table is its least certain part.
+- **Censoring.** An animal still alive when the study ends, or lost to an accident in a study of natural deaths, is right-censored: it counts as at risk for the time it was seen, never as a death. This is fair only if being censored is unrelated to the risk of dying; animals lost because they were sick or weak bias survival upward. The 2016 primate tables, for example, removed half the censored animals from the number at risk in their interval.
+- **Few old individuals.** Small samples at old ages make gradual changes in mortality hard to detect, so the oldest ages are usually among the least certain parts of a table.
 - **Pooled years.** Tables pooled across years, as the primate tables were, give average rates and hide good and bad years.
 - **Missing is not dead.** An animal not seen may be alive and missed, or alive and gone. Mark-recapture models estimate detection and **apparent survival** separately, but apparent survival is true survival multiplied by site fidelity. Permanent emigration pulls it below true survival, a problem that [spatial populations](/lessons/spatial-populations/) takes further.
 
-<LessonFigure src="/figures/demography/censoring-three-fates.webp" width={1200} height={800} alt="AI-generated illustration: a timeline of six equal blocks with a Study ends line, and three lanes, each a single animal. One gold bar ends in a cross (died), one reaches the study-end line and continues as a dashed arrow (still alive), one ends at an accident icon (lost). Only the first is marked as a death." caption="Censoring on one timeline: an animal that dies is a death. An animal still alive when the study ends, or lost to an accident, counts as at risk for the time it was seen and is never counted as a death." />
+<LessonFigure src="/figures/demography/censoring-three-fates.webp" width={1200} height={800} alt="AI-generated illustration: a timeline of six equal blocks with a Study ends line, and three lanes, each a single animal. One gold bar ends in a cross (died), one reaches the study-end line and continues as a dashed arrow (still alive), one ends at an accident icon (lost). Only the first is marked as a death." caption="Censoring on one timeline: an animal that dies is a death. An animal still alive when the study ends, or lost to an accident in a study of natural deaths, counts as at risk for the time it was seen and is not counted as a death." />
 
 The Hydra study shows how much conventions matter: its annual death probability near 0.006 holds for laboratory cohorts with catastrophic deaths censored. It is evidence against a universal rule of rising adult mortality, not evidence that Hydra are immortal.
 
@@ -454,7 +464,7 @@ Return to the colony from the start of the lesson. Of 100 adult birds banded the
 The 0.60 is an apparent return rate, not survival. It is lowered by three things besides death: birds alive at the colony but not seen, birds alive that moved elsewhere for good, and birds that lost their bands.
 
 1. **Detection.** Search the colony on several occasions each season and for several years, and fit a Cormack-Jolly-Seber model to each bird's encounter history. A bird missed one year and seen the next was alive and undetected, and these gaps let the model estimate detection probability and apparent survival separately.
-2. **Emigration.** Apparent survival is still true survival times fidelity to the colony. Search neighbouring colonies, or fit a subset of birds with tracking devices, to estimate permanent emigration. In a study of Bonelli's eagles in Catalonia, survival estimates for non-breeding females differed more than those for males between models that estimated survival jointly with dispersal and models that did not (Badia-Boher and colleagues, 2023).
+2. **Emigration.** Apparent survival is still true survival times fidelity to the colony. Search neighbouring colonies, or fit a subset of birds with tracking devices, to estimate permanent emigration. In a study of Bonelli's eagles in Catalonia, survival estimates for non-breeding females differed more than those for males between models that estimated survival jointly with dispersal and models that did not (Badia-Boher and colleagues, 2023). The differences were a few hundredths, with wide uncertainty, and breeder survival did not change.
 3. **Band loss.** Double-mark some birds with two bands, or a band and a second mark, to estimate how often bands are lost.
 4. **Unknown fates.** Record birds never seen again as unknown fates, keeping their later missed searches in their encounter histories, not as dead.
 

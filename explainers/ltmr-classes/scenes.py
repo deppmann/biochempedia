@@ -96,7 +96,7 @@ def cls_text(c, size=30):
 # ---------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
     LESSON = "The low-threshold mechanoreceptors"
-    TITLE = "One hair, three kinds of touch neuron"
+    TITLE = "One touch, several signals"
 
 
 def mini_fol(x, y):
@@ -385,4 +385,4 @@ class S06Why(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Endings at a hair are not a count of neurons."
+    LINE = "One touch reaches the spinal cord as several signals, at several speeds."

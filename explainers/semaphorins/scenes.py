@@ -2,10 +2,10 @@
 
 COLOR MAP (one color per concept, whole video)
   TEAL   = the growth cone and its axon
-  YELLOW = Sema3A (and the brain membranes that carry it)
+  YELLOW = Sema3A / semaphorin cues
   BLUE   = neuropilin
   PURPLE = plexin (and its inner GAP part)
-  ORANGE = R-Ras and the integrin adhesion it holds
+  ORANGE = small GTPase and integrin adhesion
   GOLD   = the GTP badge
   GREEN  = a response that happens
   RED    = a response that is blocked / switched off / lost
@@ -105,87 +105,9 @@ def qbox(w=1.1, h=1.1, color=GREY):
 
 class S00Title(TitleCard):
     LESSON = "Semaphorins and Repulsion"
-    TITLE = "Neuropilin catches, plexin signals"
+    TITLE = "Semaphorins: Keeping Axons on Course"
 
 
-# ------------------------------------------------------------------------------------------
-class S01Collapse(SpokenScene):
-    def construct(self):
-        c = np.array([-3.0, 0.0, 0.0])
-        R = 3.0
-        sh = shaft(c)
-        fn = fan(-0.85, 0.85, R, c)
-        fo = filopodia(-0.85, 0.85, R, c)
-        gc = T("growth cone", 28, TEAL).move_to([-3.0, -2.95, 0])
-        ax = T("axon", 26, TEAL).move_to([-5.0, 0.75, 0])
-        self.at("A growth cone")
-        self.play(FadeIn(sh), run_time=0.4)
-        self.play(FadeIn(fn), FadeIn(fo), FadeIn(gc), FadeIn(ax), run_time=0.7)
-        # yellow dots (brain membranes) approach
-        pts = [(4.4, 0.5), (5.0, 0.0), (4.4, -0.5), (3.8, 0.0), (4.9, 0.8), (4.9, -0.8), (3.9, 0.7), (3.9, -0.7)]
-        dd = dots(pts)
-        dl = T("brain membranes", 26, YELLOW).move_to([4.4, 1.6, 0])
-        self.at("Add brain membranes")
-        self.play(FadeIn(dd, shift=LEFT * 0.4), FadeIn(dl), run_time=0.7)
-        self.at("the fan folds")
-        # tight cluster near the tip, fan folds
-        pts2 = [(x - 1.7, y) for x, y in pts]
-        thin = fan(-0.07, 0.07, R * 0.62, c)
-        self.play(dd.animate.move_to(dd.get_center() + LEFT * 1.7), dl.animate.shift(LEFT * 1.7),
-                  ReplacementTransform(fn, thin), FadeOut(fo), run_time=1.3)
-        self.at("named collapsin")
-        l2 = T("collapsin", 28, YELLOW).move_to(dl)
-        self.play(FadeTransform(dl, l2), run_time=0.5)
-        self.at("Today it is called")
-        l3 = T("Sema3A", 28, YELLOW).move_to(l2)
-        self.play(FadeTransform(l2, l3), run_time=0.5)
-        self.at("picomolar")
-        pm = T("about 10 picomolar", 26, GREY).next_to(dd, DOWN, buff=0.4)
-        self.play(FadeIn(pm, shift=UP * 0.1), run_time=0.5)
-        self.at("What does the growth cone use")
-        q = qbox().move_to([0.3, 0.0, 0])
-        ql = T("what hears it?", 26, TEXT).next_to(q, UP, buff=0.3)
-        self.play(FadeIn(q, scale=0.9), FadeIn(ql), run_time=0.6)
-        self.finish()
-
-
-# ------------------------------------------------------------------------------------------
-class S02Neuropilin(SpokenScene):
-    def construct(self):
-        mem = mem_bar(0.0)
-        np_ = Rec("neuropilin", BLUE, 0.0, 0.0, s=1.3)
-        sm = sema(4.5, 2.95, w=1.8, h=0.7)
-        sm_l = T("Sema3A", 26, YELLOW).move_to(sm)
-        sm_l.set_color(BG)
-        sg = VGroup(sm, sm_l)
-        self.at("is a secreted")
-        self.play(FadeIn(mem), FadeIn(sg, shift=LEFT * 0.3), run_time=0.7)
-        self.at("receptor")
-        self.play(FadeIn(np_.body), FadeIn(np_.lab), FadeIn(np_.neck), FadeIn(np_.tail), run_time=0.8)
-        self.at("It is called neuropilin")
-        dock = sg.copy().move_to([0.0, np_.top() + 0.38, 0])
-        self.at("binds")
-        self.play(sg.animate.move_to([0.0, np_.top() + 0.38, 0]), run_time=0.8)
-        self.at("tightly")
-        self.play(Indicate(np_.body, color=BLUE, scale_factor=1.04), run_time=0.7)
-        self.at("look inside the cell")
-        inside = T("inside the cell", 26, GREY).move_to([-3.6, -0.9, 0])
-        self.play(FadeIn(inside), run_time=0.5)
-        self.at("Its tail is only")
-        tl = T("tail: about 40 amino acids", 26, BLUE).move_to([3.1, -0.85, 0])
-        ln = Line(tl.get_left() + LEFT * 0.05, np_.tail.get_right() + RIGHT * 0.05, color=BLUE, stroke_width=2.5)
-        self.play(FadeIn(tl), Create(ln), run_time=0.7)
-        self.at("nothing that looks like")
-        nl = T("no enzyme-like part", 26, GREY).next_to(tl, DOWN, buff=0.25)
-        self.play(FadeIn(nl), run_time=0.5)
-        self.at("Where is the wire")
-        q = qbox(1.3, 1.1).move_to([0.0, -2.5, 0])
-        wire = DashedLine(np_.tail.get_bottom(), q.get_top(), color=GREY, stroke_width=3.5)
-        self.play(Create(wire), FadeIn(q, scale=0.9), run_time=0.7)
-        self.finish()
-
-
-# ------------------------------------------------------------------------------------------
 YM = -0.5
 CS = 1.25
 
@@ -196,175 +118,295 @@ def complex_at(xn, xp, ym=YM, s=CS):
     return n, p
 
 
+def path(points, color=TEAL, width=6):
+    return VMobject(color=color, stroke_width=width).set_points_smoothly([np.array(p, float) for p in points])
+
+
+def growth(c=(-3, 0, 0), r=2.6):
+    return VGroup(shaft(c), fan(-0.85, 0.85, r, c), filopodia(-0.85, 0.85, r, c))
+
+
+def spinal():
+    """Schematic cross-section, dorsal up; separate sensory routes."""
+    outline = Ellipse(width=5.6, height=5.2, color=GREY, fill_color=GREY, fill_opacity=0.07).move_to([0, 0, 0])
+    horns = Polygon(*[np.array([x, y, 0]) for x, y in
+        [(-1.55, 1.9), (-.55, .55), (.55, .55), (1.55, 1.9), (1.1, .1),
+         (1.65, -1.7), (.55, -.95), (-.55, -.95), (-1.65, -1.7), (-1.1, .1)]],
+        color=GREY, fill_color=GREY, fill_opacity=.15)
+    anatomy = VGroup(outline, horns, T("dorsal", 24, GREY).move_to([0, 2.95, 0]),
+                     T("ventral horn", 24, GREY).move_to([0, -2.95, 0]))
+    cue = VGroup(rr(3.8, 1.55, YELLOW, .12).move_to([0, -1.1, 0]),
+                 T("Sema3A", 26, YELLOW).move_to([0, -1.4, 0]))
+    pain = path([[-6, 1, 0], [-3, 1, 0], [-1.6, .3, 0], [-1.25, 1.35, 0]])
+    pain_label = T("pain fibre", 26, TEAL).move_to([-4.6, 1.65, 0])
+    muscle = path([[6, 1, 0], [3.1, 1, 0], [1.4, .2, 0], [.8, -.7, 0]], GREY)
+    muscle_label = T("muscle-stretch\nfibre", 24, GREY).move_to([4.5, 1.85, 0])
+    return anatomy, cue, pain, pain_label, muscle, muscle_label
+
+
+class S01Collapse(SpokenScene):
+    def construct(self):
+        anatomy, cue, pain, pl, muscle, ml = spinal()
+        self.add(anatomy)
+        self.at("guide growing axons")
+        approach = path([[-6, 1, 0], [-3, 1, 0], [-1.6, .3, 0]])
+        self.play(Create(approach), run_time=1.2)
+        self.at("by repelling")
+        self.play(FadeIn(cue), Transform(approach, pain), run_time=1.2)
+        self.at("Keeping axons out")
+        self.play(Indicate(approach, color=TEAL), run_time=.7)
+        self.at("In the spinal cord")
+        self.play(FadeIn(pl), run_time=.5)
+        self.at("while muscle stretch")
+        self.play(Create(muscle), FadeIn(ml), run_time=1.1)
+        shared = T("Sema3A: one of the cues", 24, YELLOW).move_to([0, -3.45, 0])
+        self.at("Other cues probably")
+        self.play(FadeIn(shared), run_time=.5)
+        gc = growth()
+        gl = T("growth cone", 28, TEAL).move_to([-2, -3.0, 0])
+        self.at("A growth cone")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(gc), FadeIn(gl), run_time=.8)
+        dish = T("dish assay", 28, GREY).move_to([0, 3.2, 0])
+        dd = dots([(2.3, .8), (2.6, 0), (2.3, -.8)])
+        dl = T("repellent", 26, YELLOW).move_to([3.5, 1.7, 0])
+        self.at("In a dish")
+        self.play(FadeIn(dish), FadeIn(dd), FadeIn(dl), run_time=.5)
+        self.at("fold that fan")
+        self.play(Transform(gc[1], fan(-.07, .07, 1.8, [-3, 0, 0])), FadeOut(gc[2]),
+                  dd.animate.shift(LEFT), run_time=1.0)
+        self.at("That is collapse")
+        result = T("collapse", 30, RED).move_to([2, -1.6, 0])
+        self.play(FadeIn(result), run_time=.4)
+        self.finish()
+
+
+class S02Neuropilin(SpokenScene):
+    def construct(self):
+        gc = growth()
+        self.add(gc)
+        mem = mem_bar(0)
+        n = Rec("neuropilin", BLUE, 0, s=1.3)
+        sg = semag(4.5, 2.95, 1.8, .7)
+        self.at("How does the growth cone")
+        self.play(FadeOut(gc), FadeIn(mem), FadeIn(n), run_time=.9)
+        self.at("This secreted semaphorin")
+        self.play(FadeIn(sg), run_time=.5)
+        self.at("binds")
+        self.play(sg.animate.move_to([0, n.top() + .4, 0]), run_time=.9)
+        self.at("has only a short tail")
+        tl = T("short tail", 28, BLUE).move_to([3.0, -.9, 0])
+        ln = Line(n.tail.get_right(), [1.9, -.9, 0], color=BLUE)
+        inside = T("inside the cell", 24, GREY).move_to([-4, -.9, 0])
+        self.play(FadeIn(tl), Create(ln), FadeIn(inside), run_time=.6)
+        self.at("nothing that looks")
+        nl = T("no enzyme-like part", 26, GREY).move_to([3, -1.6, 0])
+        self.play(FadeIn(nl), run_time=.4)
+        self.at("must also pass it on")
+        q = qbox(1.3, 1.1).move_to([0, -2.5, 0])
+        wire = DashedLine(n.tail.get_bottom(), q.get_top(), color=GREY)
+        self.play(Create(wire), FadeIn(q), run_time=.6)
+        self.at("Where is the wire")
+        question = T("Where is the wire?", 28).move_to([3.6, -2.7, 0])
+        self.play(FadeIn(question), run_time=.5)
+        self.finish()
+
+
 class S03Plexin(SpokenScene):
     def construct(self):
-        mem = mem_bar(YM)
-        n, p = complex_at(-3.6, 3.6)
-        sm = semag(-3.6, n.top() + 0.37, w=1.8, h=0.7)
-        self.add(mem)
-        self.play(FadeIn(n), FadeIn(sm), run_time=0.01)  # carried over from the last scene, rebuilt in place
-        self.at("a second protein")
-        self.play(FadeIn(p, shift=LEFT * 0.3), run_time=0.8)
+        self.at("The answer is plexin")
+        p = Rec("plexin", PURPLE, 0, tail_h=1.5)
+        self.play(FadeIn(p), FadeIn(mem_bar(0)), run_time=.7)
+        self.at("In engineered cells")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=.3)
+        heading = T("engineered cells + Sema3A", 28, YELLOW).move_to([0, 3.2, 0])
+        cells = VGroup(*[Ellipse(width=3.0, height=2.3, color=TEAL, fill_color=TEAL,
+                                 fill_opacity=.12).move_to([x, .3, 0]) for x in (-3.5, 3.5)])
+        labels = VGroup(T("neuropilin alone", 26, BLUE).move_to([-3.5, 2, 0]),
+                        T("plexin alone", 26, PURPLE).move_to([3.5, 2, 0]))
+        self.play(FadeIn(heading), FadeIn(cells), FadeIn(labels), run_time=.5)
+        no = T("no shrinking", 28, RED).move_to([0, -1.8, 0])
         self.at("neither protein alone")
-        t1 = T("alone: no shrinking", 26, RED).move_to([-3.6, -3.1, 0])
-        t2 = T("alone: no shrinking", 26, RED).move_to([3.6, -3.1, 0])
-        self.play(FadeIn(t1), run_time=0.4)
-        self.play(FadeIn(t2), run_time=0.4)
-        self.at("Together")
-        tt = T("together: the cell shrinks", 28, GREEN).move_to([0.0, -3.1, 0])
-        bridge = semag(0.0, n.top() + 0.37, w=5.0, h=0.7)
-        self.play(FadeOut(t1), FadeOut(t2), n.animate.shift(RIGHT * 2.35), p.animate.shift(LEFT * 2.35),
-                  ReplacementTransform(sm, bridge), run_time=1.0)
-        self.play(FadeIn(tt), run_time=0.4)
-        self.at("more tightly")
-        tg = T("tighter grip on Sema3A", 26, YELLOW).move_to([0.0, 3.3, 0])
-        self.play(FadeIn(tg), Indicate(bridge, color=YELLOW, scale_factor=1.06), run_time=0.8)
+        self.play(FadeIn(no), run_time=.4)
+        self.at("Together they did")
+        both = T("neuropilin + plexin", 28).move_to([0, 2, 0])
+        yes = T("cell shrinks", 28, GREEN).move_to([0, -1.8, 0])
+        target = cells[0].copy().scale(.55).move_to([0, .3, 0])
+        self.play(FadeOut(labels), FadeOut(no), FadeIn(both),
+                  Transform(cells[0], target), Transform(cells[1], target), FadeIn(yes), run_time=.8)
+        self.at("Most class 3")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=.3)
+        # Two distinct routes; the first complex stays for the role labels.
+        n, p = complex_at(-4.5, -2.0, ym=-.1, s=1)
+        mem = mem_bar(-.1)
+        s = semag(-3.25, 2.4, 4.5, .65)
+        title = T("most secreted class 3", 24, YELLOW).move_to([-3.25, 3.2, 0])
+        self.play(FadeIn(mem), FadeIn(n), FadeIn(p), FadeIn(s), FadeIn(title), run_time=.7)
         self.at("Membrane semaphorins")
-        tg2 = T("membrane semaphorins: plexin directly", 26, YELLOW).move_to([0.0, 3.3, 0])
-        self.play(FadeTransform(tg, tg2), run_time=0.5)
-        self.at("Most class")
-        tg3 = T("most class 3: through neuropilin", 26, YELLOW).move_to([0.0, 3.3, 0])
-        self.play(FadeTransform(tg2, tg3), Indicate(n.body, color=BLUE, scale_factor=1.05), run_time=0.6)
+        p2 = Rec("plexin", PURPLE, 3.4, ym=-.1, tail_h=1.3)
+        uppermem = mem_bar(2.9, 1, 5.9, .18)
+        cue = rr(2.7, .55, YELLOW, .6).move_to([3.4, 2.1, 0])
+        name = T("semaphorin", 24, YELLOW).move_to(cue)
+        title2 = T("membrane cue: direct", 24, YELLOW).move_to([3.4, 3.45, 0])
+        stalk = Line([3.4, 2.375, 0], [3.4, 2.9, 0], color=YELLOW, stroke_width=5)
+        self.play(FadeIn(p2), FadeIn(uppermem), FadeIn(stalk), FadeIn(cue), FadeIn(name), FadeIn(title2), run_time=.7)
+        self.at("Neuropilin catches")
+        a = T("catches", 28, BLUE).move_to([-4.5, -2.7, 0])
+        self.play(FadeIn(a), Indicate(n.body), run_time=.5)
+        self.at("Plexin signals")
+        b = T("signals", 28, PURPLE).move_to([-2, -2.7, 0])
+        b2 = b.copy().move_to([3.4, -2.7, 0])
+        self.play(FadeIn(b), FadeIn(b2), Indicate(p.tail), Indicate(p2.tail), run_time=.5)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------------
 class S04Split(SpokenScene):
     def construct(self):
-        mem = mem_bar(YM)
-        n, p = complex_at(-1.25, 1.25)
-        bridge = semag(0.0, n.top() + 0.37, w=5.0, h=0.7)
-        self.add(mem)
-        self.play(FadeIn(n), FadeIn(p), FadeIn(bridge), run_time=0.01)
+        mem = mem_bar(YM, -6.3, 1.7)
+        n, p = complex_at(-4.5, -2)
+        bridge = semag(-3.25, n.top() + .37, 4.6, .7)
+        gc = growth(c=(3.0, 0, 0), r=1.7)
+        # Replace the shaft with a short right-hand axon.
+        gc[0].become(shaft([3, 0, 0], x0=1.9))
+        heading = T("deletion comparison", 28, GREY).move_to([0, 3.25, 0])
+        self.add(mem, n, p, bridge, gc, heading)
         self.at("A neuropilin without its tail")
-        cl = T("neuropilin with no tail", 26, BLUE).move_to([0.0, -2.85, 0])
-        self.play(FadeIn(cl), n.tail.animate.set_color(RED), run_time=0.5)
-        self.play(FadeOut(n.tail), run_time=0.4)
+        case = T("neuropilin: tail removed", 26, BLUE).move_to([-3.25, -2.8, 0])
+        self.play(FadeOut(n.tail), FadeIn(case), run_time=.5)
         self.at("still supported collapse")
-        r1 = T("collapse still works", 28, GREEN).move_to([0.0, -3.3, 0])
-        self.play(FadeIn(r1, shift=UP * 0.1), run_time=0.5)
+        result = T("collapse still occurs", 26, GREEN).move_to([3.8, -2, 0])
+        self.play(Transform(gc[1], fan(-.07, .07, 1.2, [3, 0, 0])), FadeOut(gc[2]), FadeIn(result), run_time=.7)
         self.at("A plexin stripped")
-        cl2 = T("plexin with no inner part", 26, PURPLE).move_to([0.0, -2.85, 0])
-        self.play(FadeOut(r1), FadeTransform(cl, cl2), FadeIn(n.tail.set_color(BLUE)), run_time=0.5)
-        self.play(p.tail.animate.set_color(RED), run_time=0.4)
-        self.play(FadeOut(p.tail), run_time=0.3)
+        case2 = T("plexin: inner part removed", 26, PURPLE).move_to(case)
+        self.play(FadeOut(result), FadeOut(case), FadeIn(case2), FadeIn(n.tail),
+                  Transform(gc[1], fan(-.85, .85, 1.7, [3, 0, 0])), FadeIn(gc[2]), FadeOut(p.tail), run_time=.6)
         self.at("blocked")
-        r2 = T("Sema3A response blocked", 28, RED).move_to([0.0, -3.3, 0])
-        self.play(FadeIn(r2, shift=UP * 0.1), run_time=0.5)
+        blocked = T("response blocked", 26, RED).move_to([3.8, -2, 0])
+        sensory = T("sensory neurons", 24, GREY).move_to([3.8, -2.8, 0])
+        self.play(FadeIn(blocked), FadeIn(sensory), run_time=.5)
         self.at("So neuropilin catches")
-        a = T("catches", 30, BLUE).move_to([n.x, 3.3, 0])
-        self.play(FadeOut(r2), FadeOut(cl2), FadeIn(p.tail.set_color(PURPLE)), FadeIn(a), run_time=0.6)
+        a = T("catches", 28, BLUE).move_to([-4.5, -2.8, 0])
+        self.play(FadeOut(case2), FadeOut(blocked), FadeOut(sensory), FadeIn(p.tail), FadeIn(a), run_time=.5)
         self.at("Plexin signals")
-        b = T("signals", 30, PURPLE).move_to([p.x, 3.3, 0])
-        self.play(FadeIn(b), run_time=0.5)
+        b = T("signals", 28, PURPLE).move_to([-2, -2.8, 0])
+        self.play(FadeIn(b), run_time=.5)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------------
 class S05Gap(SpokenScene):
     def construct(self):
-        mem = mem_bar(YM)
-        n, p = complex_at(-1.25, 1.25)
-        bridge = semag(0.0, n.top() + 0.37, w=5.0, h=0.7)
-        self.add(mem)
-        self.play(FadeIn(n), FadeIn(p), FadeIn(bridge), run_time=0.01)
         self.at("Inside the cell")
-        # slide the view down to the inside: membrane rises, plexin inner part becomes the stage
-        ym = 1.7
-        px = -3.8
-        newmem = mem_bar(ym)
-        newtail = rr(0.3, 1.5, PURPLE, op=0.5, sw=3, r=0.06).move_to([px, ym - 0.17 - 0.75, 0])
-        neck = Rectangle(width=0.3, height=0.34, stroke_width=0, fill_color=PURPLE, fill_opacity=0.9).move_to([px, ym, 0])
-        pl = T("Plexin-B1", 28, PURPLE).move_to([px - 1.05, ym - 0.7, 0])
-        frame_box = DashedVMobject(Rectangle(width=12.4, height=4.1, stroke_color=GREY, stroke_width=2.5), num_dashes=80).move_to([0, 0.35, 0])
-        bs = T("separate example, first case studied: Plexin-B1", 24, GREY).move_to([0.0, 2.95, 0])
-        self.play(FadeIn(frame_box), FadeIn(bs), FadeOut(n), FadeOut(bridge), FadeOut(p.body), FadeOut(p.lab), FadeOut(p.neck),
-                  ReplacementTransform(mem, newmem), ReplacementTransform(p.tail, newtail), FadeIn(neck), FadeIn(pl),
-                  run_time=1.0)
+        mem = mem_bar(2.4)
+        tail = rr(.4, 1.5, PURPLE).move_to([-4.5, 1.5, 0])
+        pl = T("plexin", 28, PURPLE).move_to([-4.5, 3.1, 0])
+        self.play(FadeIn(mem), FadeIn(tail), FadeIn(pl), run_time=.7)
         self.at("acts as a")
-        gap = chip("GAP", PURPLE, size=32).move_to([px, -0.2, 0])
-        self.play(FadeIn(gap, shift=UP * 0.2), run_time=0.6)
-        self.at("hydrolysis")
-        rras = chip("small GTPase", ORANGE, size=30).move_to([0.0, -0.2, 0])
-        gtp = chip("GTP", GOLD, size=22, pad=0.14).next_to(rras, UP, buff=0.3)
-        self.play(FadeIn(rras, shift=RIGHT * 0.3), FadeIn(gtp), run_time=0.7)
-        self.at("switches")
-        bar = Line(gap.get_right() + RIGHT * 0.1, rras.get_left() + LEFT * 0.12, color=RED, stroke_width=5)
-        tee = Line(rras.get_left() + LEFT * 0.12 + UP * 0.25, rras.get_left() + LEFT * 0.12 + DOWN * 0.25, color=RED, stroke_width=6)
-        self.play(Create(bar), Create(tee), FadeOut(gtp), rras[0].animate.set_stroke(GREY).set_fill(GREY, 0.16),
-                  rras[1].animate.set_color(GREY), run_time=0.8)
-        # reset R-Ras so the story reads in order: it is the target
-        self.at("reported target")
-        rras2 = chip("R-Ras / Rap", GREY, size=30).move_to(rras)
-        self.play(FadeTransform(rras, rras2), run_time=0.5)
-        rras = rras2
-        self.at("help hold")
-        adh = chip("integrin adhesion", ORANGE, size=30).move_to([4.1, -0.2, 0])
-        link = Arrow(rras.get_right() + RIGHT * 0.05, adh.get_left() + LEFT * 0.05, buff=0.05, color=GREY, stroke_width=5)
-        self.play(GrowArrow(link), FadeIn(adh, shift=LEFT * 0.2), run_time=0.7)
-        self.at("Switch it off")
-        fall = T("adhesion falls", 32, RED).next_to(adh, DOWN, buff=0.4)
-        self.play(adh[0].animate.set_stroke(RED).set_fill(RED, 0.1), adh[1].animate.set_color(RED).set_opacity(0.7),
-                  link.animate.set_color(RED).set_opacity(0.3), FadeIn(fall), run_time=0.8)
+        gap = chip("GAP", PURPLE, 30).move_to([-4.5, .3, 0])
+        self.play(FadeIn(gap), run_time=.5)
+        self.at("It speeds")
+        small = chip("small GTPase", ORANGE, 28).move_to([-1, .3, 0])
+        badge = chip("GTP", GOLD, 24).move_to([-1, 1.6, 0])
+        arrow = Arrow(gap.get_right(), small.get_left(), color=PURPLE, buff=.1)
+        hydro = T("faster hydrolysis", 24, PURPLE).move_to([-3.1, -1, 0])
+        self.play(FadeIn(small), FadeIn(badge), GrowArrow(arrow), FadeIn(hydro), run_time=.6)
+        self.at("switches a small")
+        off = chip("OFF", RED, 24).move_to(badge)
+        self.play(ReplacementTransform(badge, off), small[0].animate.set_stroke(GREY), run_time=.7)
+        self.at("This can lower")
+        adhesion = chip("integrin adhesion", ORANGE, 26).move_to([-2.7, -2.3, 0])
+        contacts = VGroup(*[Line([x, -2.8, 0], [x, -3.3, 0], color=ORANGE, stroke_width=5)
+                            for x in (-3.5, -3, -2.5, -2)])
+        self.play(FadeIn(adhesion), FadeIn(contacts), run_time=.4)
+        self.play(contacts.animate.set_opacity(.2), run_time=.6)
+        self.at("Plexin signaling also engages")
+        rho = chip("Rho-family GTPases", PURPLE, 25).move_to([3.6, 1.1, 0])
+        branch = Arrow([-.1, 2.4, 0], rho.get_top(), buff=.1, color=PURPLE)
+        self.play(FadeIn(rho), GrowArrow(branch), run_time=.6)
+        self.at("proteins that act")
+        effectors = chip("effector proteins", PURPLE, 26).move_to([3.6, -.4, 0])
+        a = Arrow(rho.get_bottom(), effectors.get_top(), buff=.08, color=PURPLE)
+        self.play(FadeIn(effectors), GrowArrow(a), run_time=.5)
+        self.at("actin and microtubules")
+        cyto = T("actin + microtubules", 26, TEAL).move_to([3.6, -2.1, 0])
+        b = Arrow(effectors.get_bottom(), cyto.get_top(), buff=.1, color=PURPLE)
+        self.play(FadeIn(cyto), GrowArrow(b), run_time=.6)
         self.finish()
 
 
-# ------------------------------------------------------------------------------------------
 class S06Rule(SpokenScene):
     def construct(self):
-        c = np.array([-4.0, 0.0, 0.0])
-        R = 3.2
-        sh = shaft(c)
-        fn = fan(-0.85, 0.85, R, c)
-        fo = filopodia(-0.85, 0.85, R, c)
-        gc = T("growth cone", 28, TEAL).move_to([-5.3, -0.75, 0])
-        self.at("Plexin")
-        pc = chip("plexin", PURPLE, size=28).move_to([3.4, 2.6, 0])
-        self.play(FadeIn(sh), FadeIn(fn), FadeIn(fo), FadeIn(gc), FadeIn(pc), run_time=0.9)
-        self.at("ro -family")
-        c1 = chip("Rho-family GTPases", PURPLE, size=26).move_to([3.4, 1.35, 0])
-        a1 = Arrow(pc.get_bottom(), c1.get_top(), buff=0.06, color=PURPLE, stroke_width=4)
-        self.play(GrowArrow(a1), FadeIn(c1), run_time=0.6)
-        self.at("proteins that act")
-        c2 = chip("actin and microtubule\nproteins", PURPLE, size=26).move_to([3.4, 0.0, 0])
-        xl = 0.35
-        a2 = VGroup(Line(pc.get_left(), [xl, pc.get_center()[1], 0], color=PURPLE, stroke_width=4),
-                    Line([xl, pc.get_center()[1], 0], [xl, c2.get_center()[1], 0], color=PURPLE, stroke_width=4),
-                    Arrow([xl, c2.get_center()[1], 0], c2.get_left(), buff=0.04, color=PURPLE, stroke_width=4))
-        self.play(FadeIn(a2), FadeIn(c2), run_time=0.6)
+        c = [-4, 0, 0]
+        gc = growth(c, 2.7)
+        head = T("local loss of\nactin and adhesion", 28, RED).move_to([3.3, 2, 0])
+        # Schematic actin struts and adhesion contacts, not molecular structures.
+        actin = VGroup(*[Line([-3.5, 0, 0], [-1.8, y, 0], color=TEAL, stroke_width=4)
+                          for y in (-1.3, -.6, .6, 1.3)])
+        adhesion = dots([(-1.6, -1.4), (-1, -.6), (-1, .6), (-1.6, 1.4)], ORANGE, .12)
+        self.add(gc, actin, adhesion)
         self.at("The net result")
-        head = T("local loss of\nactin and adhesion", 28, RED, line_spacing=0.9).move_to([3.4, 1.5, 0])
-        self.play(FadeOut(c1), FadeOut(a1), FadeOut(c2), FadeOut(a2), FadeOut(pc), run_time=0.4)
-        self.play(FadeIn(head), run_time=0.4)
+        self.play(FadeIn(head), run_time=.6)
         self.at("On one side")
-        top_pts = [(c[0] + 3.9 * np.cos(a), c[1] + 3.9 * np.sin(a)) for a in (0.45, 0.65, 0.85)]
-        dd = dots(top_pts)
-        case = T("one side: a turn", 30, YELLOW).move_to([3.4, -0.9, 0])
-        self.play(FadeIn(dd, shift=DOWN * 0.2), FadeIn(case), run_time=0.6)
+        dd = dots([(-1, 2), (-.5, 1.5), (0, 1)])
+        case = T("one side", 28, YELLOW).move_to([3.3, -.3, 0])
+        self.play(FadeIn(dd), FadeIn(case), actin[2:].animate.set_opacity(.12),
+                  adhesion[2:].animate.set_opacity(.12), run_time=.5)
         self.at("that means a turn")
-        turned = fan(-1.25, 0.0, R, c)
-        self.play(ReplacementTransform(fn, turned), FadeOut(fo), run_time=1.2)
+        turned = fan(-1.05, .1, 2.7, c)
+        self.play(Transform(gc[1], turned), FadeOut(gc[2]), FadeOut(actin), FadeOut(adhesion), run_time=.8)
         self.at("Everywhere at once")
-        fn2 = fan(-0.85, 0.85, R, c)
-        fo2 = filopodia(-0.85, 0.85, R, c)
-        ring = [(c[0] + 3.9 * np.cos(a), c[1] + 3.9 * np.sin(a)) for a in np.linspace(-0.85, 0.85, 7)]
-        dd2 = dots(ring)
-        case2 = T("all round: collapse", 30, YELLOW).move_to([3.4, -0.9, 0])
-        self.play(ReplacementTransform(turned, fn2), FadeIn(fo2), FadeOut(dd), FadeTransform(case, case2), run_time=0.7)
-        self.play(FadeIn(dd2, shift=LEFT * 0.2), run_time=0.5)
+        around = dots([(c[0] + 3.3 * np.cos(a), 3.3 * np.sin(a)) for a in np.linspace(-.85, .85, 5)])
+        case2 = T("all around", 28, YELLOW).move_to(case)
+        self.play(Transform(gc[1], fan(-.85, .85, 2.7, c)), FadeIn(gc[2]),
+                  ReplacementTransform(dd, around), ReplacementTransform(case, case2),
+                  FadeIn(actin.set_opacity(1)), FadeIn(adhesion.set_opacity(1)), run_time=.45)
         self.at("it means collapse")
-        thin = fan(-0.07, 0.07, R * 0.62, c)
-        self.play(ReplacementTransform(fn2, thin), FadeOut(fo2), run_time=1.1)
-        self.at("Keep the split")
-        self.play(FadeOut(dd2), FadeOut(case2), FadeOut(head), FadeOut(gc), FadeOut(thin), FadeOut(sh), run_time=0.6)
-        self.at("Neuropilin catches")
-        cn = chip("neuropilin catches the semaphorin", BLUE, size=32).move_to([0.0, 0.9, 0])
-        self.play(FadeIn(cn, shift=UP * 0.15), run_time=0.6)
-        self.at("Plexin sends")
-        cp = chip("plexin sends the signal", PURPLE, size=32).move_to([0.0, -0.9, 0])
-        self.play(FadeIn(cp, shift=UP * 0.15), run_time=0.6)
+        self.play(Transform(gc[1], fan(-.07, .07, 1.7, c)), FadeOut(gc[2]),
+                  FadeOut(actin), FadeOut(adhesion), run_time=.7)
+        self.at("This connects")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=.25)
+        blocks = VGroup(chip("cue", YELLOW, 28), chip("receptor\ncomplex", PURPLE, 26),
+                        chip("actin +\nadhesion loss", RED, 26), chip("turn", TEAL, 28))
+        blocks.arrange(RIGHT, buff=.8).move_to([0, 0, 0])
+        arrows = VGroup(*[Arrow(a.get_right(), b.get_left(), buff=.08, color=GREY)
+                             for a, b in zip(blocks, blocks[1:])])
+        self.play(FadeIn(blocks), FadeIn(arrows), run_time=.7)
+        self.finish()
+
+
+class S08Context(SpokenScene):
+    def construct(self):
+        heading = T("the receiving cell matters", 30).move_to([0, 3.2, 0])
+        self.at("The response also depends")
+        self.play(FadeIn(heading), run_time=.6)
+        self.at("In the developing cortex")
+        surface = mem_bar(2.2)
+        pia = T("pial surface", 24, GREY).move_to([-4.8, 2.9, 0])
+        cue = VGroup(rr(6, .8, YELLOW, .16).move_to([0, 1.65, 0]),
+                     T("Sema3A high near surface", 24, YELLOW).move_to([0, 1.65, 0]))
+        soma = Polygon([-0.5, -.7, 0], [.5, -.7, 0], [0, .3, 0], color=TEAL,
+                       fill_color=TEAL, fill_opacity=.25)
+        name = T("developing cortical\npyramidal neuron", 24, TEAL).move_to([-3.7, -.5, 0])
+        self.play(FadeOut(heading), FadeIn(surface), FadeIn(pia), FadeIn(cue), FadeIn(soma), FadeIn(name), run_time=.7)
+        self.at("repels a pyramidal")
+        axon = Arrow([0, -.7, 0], [0, -3.1, 0], color=TEAL, buff=.05, stroke_width=6)
+        al = T("axon: away", 26, TEAL).move_to([2.5, -2.6, 0])
+        self.play(GrowArrow(axon), FadeIn(al), run_time=.8)
+        self.at("attracts its apical")
+        dendrite = Arrow([0, .3, 0], [0, 1.1, 0], color=TEAL, buff=.03, stroke_width=7)
+        dl = T("apical dendrite: toward", 24, TEAL).move_to([3.6, .6, 0])
+        self.play(GrowArrow(dendrite), FadeIn(dl), run_time=.7)
+        self.at("The same cue")
+        self.play(Indicate(cue, scale_factor=1.03), run_time=.7)
+        self.at("Keep the purpose in view")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=.4)
+        anatomy, cue, pain, pl, muscle, ml = spinal()
+        self.play(FadeIn(anatomy), FadeIn(cue), FadeIn(pl), FadeIn(ml), run_time=.6)
+        self.at("signals help growing axons")
+        self.play(Create(pain), Create(muscle), run_time=1.2)
+        self.at("avoid the wrong territories")
+        reminder = T("avoid inappropriate territories", 26, TEAL).move_to([0, -3.45, 0])
+        self.play(FadeIn(reminder), run_time=.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Neuropilin catches the semaphorin. Plexin sends the signal."
+    LINE = "Semaphorins steer axons by repelling growth cones from wrong territory."

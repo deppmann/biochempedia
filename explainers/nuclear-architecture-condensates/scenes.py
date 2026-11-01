@@ -97,7 +97,7 @@ def out_of(t):
 
 class S00Title(TitleCard):
     LESSON = "Nuclear architecture and membraneless compartments"
-    TITLE = "Change the amount, watch the bodies"
+    TITLE = "A Nucleus Without Walls"
 
 
 
@@ -354,4 +354,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Change the amount, then measure inside and outside the bodies."
+    LINE = "The nucleus is organized without walls: territories, sorted chromatin, membraneless bodies."

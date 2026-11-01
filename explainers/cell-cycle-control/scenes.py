@@ -111,7 +111,7 @@ def until(scene, phrase, extra=0.0, floor=0.5, nth=0):
 
 class S00Title(TitleCard):
     LESSON = "Cell-cycle states and control logic"
-    TITLE = "A kinase whose partner rises and falls"
+    TITLE = "The Cyclin-CDK Engine"
 
 
 CDK_W, CDK_H = 3.0, 2.5

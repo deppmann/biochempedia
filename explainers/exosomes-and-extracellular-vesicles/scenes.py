@@ -308,7 +308,7 @@ def small_mvb():
 # The original title and end cards are retained verbatim.
 class S00Title(TitleCard):
     LESSON = "Exosomes and Extracellular Vesicles"
-    TITLE = "An exosome is named by its origin"
+    TITLE = "A Vesicle Can Carry A Signal"
 
 
 def mhc(base, direction=UP, length=0.4):
@@ -609,4 +609,4 @@ class S06Controls(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Say exosome only when you can show where it formed."
+    LINE = "Extracellular vesicles can carry a signal from one cell to another."

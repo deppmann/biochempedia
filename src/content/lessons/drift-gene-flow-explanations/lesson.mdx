@@ -113,7 +113,7 @@ techniques:
     blurb: >-
       Many populations are started from the same allele frequency and kept at a fixed small size.
       Each one drifts differently, so the spread of frequencies across replicates measures drift,
-      and the pooled mean tests whether there was any consistent push from selection.
+      and a shift in the pooled mean beyond the neutral expectation flags a consistent push, such as selection, that other tests must then confirm.
   - name: "Experimental founding of island populations"
     blurb: >-
       Founders are drawn at random from a single source and released on separate islands, then
@@ -164,7 +164,7 @@ practiceQuestions:
     rationale: >-
       Effective size is the size of an idealized Wright-Fisher population that shows the same rate
       of drift as the real one, so an Ne of 9.0 means the lines spread apart as fast as an ideal
-      population of 9 would. It is not a count of fertile flies; unequal offspring numbers among
+      population of 9 would. It is not a count of fertile flies; offspring numbers that vary more than chance predicts among
       fertile flies also lower Ne. Removal by selection would not be summarized this way and is not
       what the estimate measures. The census of 16 was set by design, so a miscount is not the
       explanation.
@@ -274,7 +274,7 @@ explainLevels:
       In the neutral Wright-Fisher model the next generation's allele count is a binomial sample
       of 2N copies, so the expected frequency is unchanged and the one-generation variance is
       p(1 - p)/2N. Fixation probability equals initial frequency. Real populations drift faster
-      than their census size implies because of unequal offspring numbers, skewed sex ratios and
+      than their census size implies because of offspring numbers that vary more than random sampling predicts, skewed sex ratios and
       fluctuating size, which is why drift is scaled by the effective population size Ne; Buri's
       16-fly lines had an estimated Ne of 9.0. Founder effects and bottlenecks are drift during a
       brief period of small size, and expanding fronts concentrate drift in a few pioneers even in
@@ -290,8 +290,8 @@ explainLevels:
       rate of change in allele-frequency variance, and it can differ from inbreeding effective
       size when the population is changing. Under neutrality, drift alone predicts zero mean change
       across replicates with variance growing as the populations diverge, so a consistent shift in
-      the replicate mean, beyond what a calibrated neutral model allows, is the signature of
-      selection. Weinstein and colleagues (2017) applied this logic to expanding E. coli colonies,
+      the replicate mean, beyond what a calibrated neutral model allows, rejects that model and points to
+      selection once mutation, migration, unequal starting conditions and marker costs are ruled out. An unchanged mean, in turn, is consistent with drift but does not by itself exclude selection. Weinstein and colleagues (2017) applied this logic to expanding E. coli colonies,
       using 20 replicates per starting composition and independently measured expansion
       velocities, and found that strain fitness rankings differed between agar expansion and
       well-mixed liquid culture. In the field the same logic appears as replicated founding
@@ -300,8 +300,8 @@ explainLevels:
 
 
       An open question is how to weigh drift and selection when replicates are impossible, as for
-      a single natural island or a single introgression event. There the neutral null must be
-      built from genome-wide data, and its result depends on the demographic model assumed.
+      a single natural island or a single introgression event. There the neutral null is usually
+      built from genome-wide data, sometimes with demographic or historical records, and its result depends on the demographic model assumed.
 
 anecdotes:
   - title: "Sixteen flies, an effective nine"
@@ -311,8 +311,7 @@ anecdotes:
       population size is 16. When he asked how big an ideal population would have to be to make
       his lines spread apart as fast as they did, the mean answer for his first series of 107 lines
       was 9.0. The gap is a reminder that a breeding count says how many animals were in the
-      bottle, while effective size says how hard chance acted on them. Real breeders do not all
-      leave the same number of offspring.
+      bottle, while effective size says how hard chance acted on them. Real breeders vary in offspring number more than random sampling alone would predict.
   - title: "A winner on agar, a loser in the flask"
     source: "Weinstein, Lavrentovich, Möbius, Murray and Nelson, PLOS Computational Biology (2017)."
     text: >-
@@ -321,7 +320,7 @@ anecdotes:
       the colonies with a neutral model in which mean fractions across replicates stay at their
       starting values. Mean fractions shifted beyond the neutral expectation, which supported
       selection, yet chance trajectories in single colonies remained conspicuous. And the
-      order of the strains was not the same on agar as in well-mixed liquid culture: the black strain grew faster than the eCFP and eYFP strains in liquid but expanded more slowly than them on agar.
+      order of the strains was not the same on agar as in well-mixed liquid culture: the black strain, a dimly fluorescent mutant of the yellow strain, grew slightly faster than the eCFP and eYFP strains in liquid but expanded more slowly than them on agar. The authors noted that the differences were small and the reason unclear, and every strain still outgrew the mCherry strain in both settings.
   - title: "Borrowed tolerance in the Houston Ship Channel"
     source: "Oziolor and colleagues, Adaptive introgression enables evolutionary rescue from extreme environmental pollution, Science (2019)."
     text: >-
@@ -355,7 +354,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 Think of an election poll. Ask 20 people and the result can be far from the true vote; ask 2,000 and it will be close. Nobody biased the small poll. It was just small.
 
-Each generation of a population is a poll of the previous one. The gene copies that make up the offspring are a sample of the parents' copies, and some parents leave more offspring than others by luck. **Genetic drift** is the change in allele frequency that comes from this random sampling of parents. It needs no difference in fitness, where **fitness** means the relative number of surviving offspring an individual leaves in a given environment. Drift acts on neutral, beneficial and harmful alleles alike, so it can carry a harmful allele up or a beneficial one to loss, especially when the population is small.
+Each generation of a population is a poll of the previous one. The gene copies that make up the offspring are a sample of the parents' copies, and some parents leave more offspring than others by luck. **Genetic drift** is the change in allele frequency that comes from this random sampling of parents. It needs no difference in fitness, where **fitness** means the relative number of surviving offspring an individual leaves in a given environment. Drift acts on neutral, beneficial and harmful alleles alike, so it can carry a harmful allele up or a beneficial one to loss, especially when the population is small. A rough rule: when Ne multiplied by the selection coefficient s (an allele's proportional fitness advantage or cost) is much smaller than 1, drift dominates; when it is much larger than 1, selection does.
 
 The standard model of drift is the **Wright-Fisher model**: a closed population of N diploid individuals, constant in size, with non-overlapping generations, random mating, no selection, no mutation and no migration. Each generation's 2N gene copies are drawn at random from the parents' pool. If the model's assumptions hold, it predicts:
 
@@ -363,7 +362,7 @@ The standard model of drift is the **Wright-Fisher model**: a closed population 
 
 So drift has no direction on average, and its scatter shrinks as the population grows. Given long enough, one allele fixes, and for a neutral allele the model predicts the chance that it is the one to fix equals its current frequency. A neutral allele at 0.60 is lost 40% of the time. [Population genetics](/lessons/population-genetics/) in the Genetics course works through the algebra; here you need what it predicts and how to test it.
 
-Real populations break the assumptions. Some parents leave many offspring and others none, the sex ratio is uneven, and the size swings from year to year. Each of these makes drift stronger than the census suggests. Biologists therefore describe drift with the **effective population size (Ne)**: the size of an idealized Wright-Fisher population that would drift at the same rate as the real one. Ne is usually below the census size N.
+Real populations break the assumptions. Offspring numbers vary among parents more than random sampling alone would produce, the breeding sex ratio is uneven, and the size swings from year to year. Each of these makes drift stronger than the census suggests. Biologists therefore describe drift with the **effective population size (Ne)**: the size of an idealized Wright-Fisher population that would drift at the same rate as the real one. Ne is usually below the census size N.
 
 Two short episodes of small size get their own names. A **bottleneck** is a sharp drop in numbers that leaves a chance sample of the original gene pool. A **founder effect** occurs when a new population starts from a few individuals who carry an unrepresentative sample of their source population's variation.
 
@@ -382,9 +381,9 @@ The lesson of the numbers: migration moves the mean, drift spreads the outcomes 
 
 Peter Buri, publishing in 1956, ran a large version of a laboratory design that Warwick Kerr and Sewall Wright had introduced in 1954, using Drosophila melanogaster. He used two alleles at the brown eye-colour locus, started every line at a frequency of 0.5, and each generation picked 16 flies as the parents of the next. His first series had 107 lines, carried for 19 generations.
 
-The key is replication. Any one line wanders up or down, and you cannot tell from it alone whether something pushed it. Across 107 lines, the distribution of frequencies spread out from 0.5 toward 0 and 1, with more and more lines fixed or lost, while the frequency pooled over all lines showed no systematic change. That pairing, spread without a shift in the mean, is the drift prediction.
+The key is replication. Any one line wanders up or down, and you cannot tell from it alone whether something pushed it. Across 107 lines, the distribution of frequencies spread out from 0.5 toward 0 and 1, with more and more lines fixed or lost, while the frequency pooled over all lines showed no systematic change. That pairing, spread without a shift in the mean, is the drift prediction. It is consistent with drift rather than proof of it; Buri also compared the changes with what sampling alone predicts and found no evidence of selection.
 
-Buri also asked what Ne would produce the spread he saw. For the first series the mean estimate was 9.0, not 16. The usual reading is that the flies in a bottle did not contribute equally to the next generation, so chance acted on fewer effective parents than were in the bottle.
+Buri also asked what Ne would produce the spread he saw. For the first series the mean estimate was 9.0, not 16. Buri said the cause was not known. He judged that variation in how many offspring each fly left, down to complete sterility, was certainly part of it, and thought crowding for egg-laying space in the small vials probably played a role. Either way, chance acted on fewer effective parents than were in the bottle.
 
 ## Founders and frontiers: anoles on islands, bacteria on agar
 
@@ -402,11 +401,11 @@ A large population is not safe from drift either. Oskar Hallatschek and colleagu
 
 It can harm. **Migration load** is a drop in a population's mean fitness caused by immigrant alleles that suit somewhere else. Timema cristinae walking-sticks live on two host plants, and colour morphs differ in how well they are camouflaged on each. Daniel Bolnick and Patrik Nosil (2007, Evolution) compared 25 natural populations and found that those receiving more immigrants from the other host were more poorly matched, and that more poorly matched populations showed larger shifts in morph frequency from selection within a generation. This is a comparison across populations, a correlation that fits the migration-load prediction rather than a manipulation of migration.
 
-It can also help. Sarah Fitzpatrick and colleagues (2020, Current Biology) studied gene flow into two small, isolated guppy populations in the Caigual and Taylor streams of Trinidad after fish from a different source were introduced upstream. Following the onset of gene flow, both recipient populations grew nearly tenfold. On average, hybrids lived longer and reproduced more than residents or immigrants, and alleles putatively associated with local adaptation were not entirely swamped. This is **genetic rescue**: an increase in a small population's fitness or growth after new alleles arrive. In the Houston Ship Channel and Galveston Bay region of Texas, Gulf killifish in polluted water carry tolerance-associated variants that Oziolor and colleagues (2019, Science) inferred had entered by introgression from Atlantic killifish, followed by strong selection. **Introgression** is the movement of alleles from one species into another through hybridization. Gene flow is neither good nor bad in general; each of these results belongs to its system.
+It can also help. Sarah Fitzpatrick and colleagues (2020, Current Biology) studied gene flow into two small, isolated guppy populations in the Caigual and Taylor streams of Trinidad after fish from a different source were introduced upstream. Following the onset of gene flow, both recipient populations grew nearly tenfold. On average, hybrids lived longer and reproduced more than residents or immigrants, though in some comparisons hybrids and pure immigrants did about equally well, and alleles putatively associated with local adaptation were not entirely swamped. This is **genetic rescue**: an increase in a small population's fitness or growth caused by the genetic effects of gene flow. Growth that comes only from adding immigrants is demographic rescue; here it is the pedigree evidence of fit hybrids that points to a genetic cause. In the Houston Ship Channel and Galveston Bay region of Texas, Gulf killifish in polluted water carry tolerance-associated variants that Oziolor and colleagues (2019, Science) inferred had entered by introgression from Atlantic killifish, followed by strong selection. **Introgression** is the movement of alleles from one species into another through hybridization followed by backcrossing into the receiving species. Gene flow is neither good nor bad in general; each of these results belongs to its system.
 
 ## Two explanations for one pattern
 
-Suppose one allele is common on an island and rare on the mainland. Selection predicts that the change is repeatable: replicate populations in the same environment shift the same way, and carriers outperform non-carriers when fitness is measured directly. Drift predicts that replicates scatter in both directions, with a mean that stays at the starting frequency, and that carriers do no better in a fitness assay. Gene flow predicts frequencies that track the amount and source of immigration.
+Suppose one allele is common on an island and rare on the mainland. Selection predicts that the change is repeatable: replicate populations in the same environment tend to shift the same way on average, though drift still scatters individual ones, and carriers outperform non-carriers when fitness is measured directly. A neutral model, drift alone, predicts that replicates scatter in both directions, with a mean that stays at the starting frequency, and that carriers do no better in a fitness assay, because the model assumes the alleles are equally fit. Gene flow predicts frequencies that track the amount and source of immigration.
 
 The tools that separate them are the ones you have met: **replicates**, so that a mean can be compared with scatter (Buri, Kolbe); a **neutral null**, a model of what chance alone would produce (Wright-Fisher, or a colony model); and an **independent fitness assay** that does not rely on the pattern itself. Often the answer is drift and selection together, as with the anoles. The earlier lessons on [testing an evolutionary explanation](/lessons/testing-evolutionary-explanations/) and [selection in ecological context](/lessons/selection-in-ecological-context/) use the same logic.
 
@@ -421,6 +420,6 @@ Grow many replicate colonies from the same starting mix, say 20 colonies at 50:5
 
 Then remove two confounds. Swap the fluorescent labels between the strains and repeat, so that any cost of carrying a particular marker shows up. And measure each strain's expansion speed growing alone, as an independent fitness assay that does not depend on the sector pattern.
 
-Finally, keep the scope. Fitness on agar during expansion may differ from fitness in a well-mixed liquid culture: Weinstein and colleagues found that the ranking of their strains changed between the two. A strain that wins on a plate has been shown to win on a plate.
+Finally, keep the scope. Fitness on agar during expansion may differ from fitness in a well-mixed liquid culture: Weinstein and colleagues found that the ranking of some of their strains changed between the two. A strain that wins on a plate has been shown to win on a plate.
 
 </details>

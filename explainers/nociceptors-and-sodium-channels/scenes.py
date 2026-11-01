@@ -135,7 +135,7 @@ def pedigree(n):
 
 class S00Title(TitleCard):
     LESSON = "Nociceptors and the sodium channels of pain"
-    TITLE = "Blocking a Channel Is Not Silence"
+    TITLE = "Pain Genes and Pain Relief"
 
 
 class S01Families(SpokenScene):
@@ -379,4 +379,4 @@ class S05Neuron(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A channel calculation is not neuronal silence."
+    LINE = "Variants in one sodium-channel gene can remove pain or cause pain syndromes."

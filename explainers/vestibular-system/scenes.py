@@ -143,7 +143,7 @@ def eye_neck():
 
 class S00Title(TitleCard):
     LESSON = "Balance: vestibular hair cells and self-motion"
-    TITLE = "Why Your Own Turns Cancel"
+    TITLE = "Two Channels for One Head Turn"
 
 
 class S01TwoChannels(SpokenScene):
@@ -430,4 +430,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Afferents keep firing; in the neurons tested, central cancelling needed matched neck feedback."
+    LINE = "The ear splits head motion into a sustained and a fast channel."

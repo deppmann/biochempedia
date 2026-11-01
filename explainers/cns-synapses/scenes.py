@@ -128,7 +128,7 @@ def trace(x, y, sign=1, color=GREEN, w=3.8):
 
 class S00Title(TitleCard):
     LESSON = "Synapses in the brain"
-    TITLE = "Sufficient in a dish, not required"
+    TITLE = "Building a Working Synapse"
 
 
 class S01Assembly(SpokenScene):
@@ -427,4 +427,4 @@ class S06Maturation(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Sufficient in a dish is not the same as required."
+    LINE = "A working synapse needs release machinery lined up with the right receptors."

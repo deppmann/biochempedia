@@ -52,7 +52,7 @@ def bell(c, base, amp, s, x0, x1, n=60):
 
 class S00Title(TitleCard):
     LESSON = "Restoring senses: implants and prostheses"
-    TITLE = "A contact is not a channel"
+    TITLE = "Which Neurons Get the Message"
 
 
 # Additional schematics use the old contact, arrow and opaque-chip helpers.
@@ -336,4 +336,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Ask what was counted. Native resolution is not zoomed reading."
+    LINE = "Which neurons get which information? Test the percept. Test the behaviour."

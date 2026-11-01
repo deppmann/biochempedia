@@ -119,7 +119,7 @@ def tag(text, x, y, color=TEXT, size=28):
 
 class S00Title(TitleCard):
     LESSON = "Stem cells and tissue renewal"
-    TITLE = "Chance decides which stem cell wins"
+    TITLE = "How Stem Cells Keep a Tissue New"
 
 
 class S01Lead(SpokenScene):
@@ -386,4 +386,4 @@ class S06Reset(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Balance is kept by the population, not by each division."
+    LINE = "Stem cells make every lining cell type and keep their numbers."

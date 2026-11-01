@@ -143,7 +143,7 @@ def bridge():
 
 class S00Title(TitleCard):
     LESSON = "From Glomeruli to Piriform Cortex"
-    TITLE = "Same Address, Different Message"
+    TITLE = "A Map In, a Pattern Out"
 
 
 class S01Lead(SpokenScene):
@@ -399,4 +399,4 @@ class S06Rule(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A shared glomerulus is a shared address, not a shared message."
+    LINE = "A map in, a scattered pattern out that still tracks chemical likeness."

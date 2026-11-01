@@ -7,7 +7,7 @@ order: 502
 summary: >-
   How do you tell, from a branching diagram, which species are most closely related, and how far
   should you trust the diagram? This lesson reads a rooted vertebrate tree step by step, clears
-  away the four commonest misreadings, maps characters onto branches to separate homology from
+  away four common misreadings, maps characters onto branches to separate homology from
   convergence, and explains what bootstrap support does and does not mean. Afterwards you can
   find the most recent common ancestor of any set of tips, count the fewest changes a character
   needs, and judge a support value.
@@ -18,7 +18,7 @@ objectives:
   - "Identify tips, internal nodes, the root, clades and sister groups on a rooted tree, and judge relatedness only by the most recent common ancestor."
   - "Explain why rotating a node, the left-to-right order of tips and the number of nodes between tips say nothing about relatedness, and why no living tip is more evolved than another."
   - "Map a character onto branches, use an outgroup to tell ancestral from derived states, count the fewest changes by parsimony, and distinguish homology from convergence."
-  - "Outline how trees are inferred by alignment, parsimony, likelihood and Bayesian methods, and interpret a bootstrap support value correctly."
+  - "Outline how trees are inferred by alignment, distance, parsimony, likelihood and Bayesian methods, and interpret a bootstrap support value correctly."
 
 explainer:
   src: "/explainers/reading-phylogenetic-trees/explainer.mp4"
@@ -146,7 +146,7 @@ practiceQuestions:
       Trout shares its most recent common ancestor with the frog-human clade, and that ancestor is
       not shared by shark or lamprey, so frog and human are equally its closest relatives. Shark sits
       beside trout only on the page, and page order means nothing. A shared aquatic body plan is
-      similarity, not shared ancestry, and lamprey branches off first. No tip is more derived than
+      an ancestral trait that trout, shark and lamprey all inherited, so it does not mark trout's closest relatives, and lamprey branches off first. No tip is more derived than
       another as a whole organism, and human is no closer to trout than frog is.
   - stem: "A student redraws the tree (lamprey, (shark, (trout, (frog, human)))) by swapping frog and human on the page, and then swapping trout with the frog-human pair. What has changed about the relationships shown?"
     choices:
@@ -173,7 +173,7 @@ practiceQuestions:
       the branch to the mouse-human clade explains the data with one change, the fewest possible.
       Two separate gains would need two changes, so parsimony prefers the single gain. A gain at the
       root with losses would need four changes. Calling hair ancestral for all tetrapods contradicts
-      the outgroup and the frogs and lizards, which lack it.
+      the outgroup's state, and it would need extra losses in the frogs and lizards, which lack it.
   - stem: "A clade on a tree inferred from one gene has a bootstrap support value of 95. Which statement does this value justify?"
     choices:
       - "95% of the sites in the alignment support it"
@@ -212,8 +212,8 @@ mcatQuestions:
     rationale: >-
       With ground dwelling ancestral, as the outgroup indicates, two separate origins of the twig form
       need two changes, the fewest that fit this tree. A single origin with dispersal predicts that the
-      twig species form one clade, which the tree rejects. Gene flow would not produce a tree in which
-      each twig species groups with its own island's ground species. Retention from a twig ancestor
+      twig species form one clade, which the tree rejects. Gene flow between the twig species would tend to pull them together on the tree, so it fits poorly with a tree in which
+      each twig species groups with its own island's ground species, though one tree cannot rule out exchange of a few genes. Retention from a twig ancestor
       needs a change to twig at the base of the island species and two changes back, three in all.
   - stem: "Kapli and Telford (2020) simulated protein data sets on a known animal tree in which sponges branch off first, with amino-acid mixes that differ among sites. They analysed the data with a model that assumes the same mix at every site. In 98 of 100 data sets the analysis recovered a different tree, and the wrong grouping usually received high bootstrap support. What does this imply for analyses of real data?"
     choices:
@@ -253,7 +253,7 @@ explainLevels:
       counts, and rotation preserves topology. Mapping characters onto branches, with an outgroup to
       polarize ancestral and derived states, lets parsimony count the fewest changes and separate
       homology, one origin, from convergence, independent origins. Trees are inferred from aligned
-      sequences by parsimony, maximum likelihood or Bayesian methods, and bootstrap values give the
+      sequences by distance, parsimony, maximum likelihood or Bayesian methods, and bootstrap values give the
       percentage of resampled data sets that recover each clade.
   - level: "grad"
     label: "Graduate"
@@ -264,7 +264,7 @@ explainLevels:
       model is misspecified, both can be high for a wrong clade: Kapli and Telford (2020) found that a
       site-homogeneous model recovered the wrong topology in 98 of 100 data sets simulated on a
       Porifera-first tree with site heterogeneity, while a C60 + LG + G model recovered the generating
-      tree in 88. Gene trees can also disagree with the species tree through incomplete lineage
+      tree in 88. The error was asymmetric: data simulated on a Ctenophora-first tree were recovered correctly every time, and the authors argued that Ctenophora-first support in real data is a likely artefact. Gene trees can also disagree with the species tree through incomplete lineage
       sorting, gene duplication and loss, or introgression, so a species tree from many loci is an
       estimate of a central history among discordant genealogies.
 
@@ -281,13 +281,13 @@ anecdotes:
       For years, two of Darwin's notebooks, including the one with the 1837 tree sketch, could not be
       found in Cambridge University Library. The library made a public appeal for their return, and in
       2022 the University of Cambridge announced that both notebooks were back in the library's
-      collection, in good condition. The sketch, a few lines and letters on one small page, is one of
-      the most reproduced images in the history of biology. Its return let scholars and the public
+      collection, in good condition. The sketch, a few lines and letters on one small page, is a
+      widely reproduced image in the history of biology. Its return let scholars and the public
       see the original again, rather than photographs of it.
   - title: "A simulation with a known answer"
     source: "Kapli and Telford, Science Advances 6:eabc5162 (2020)."
     text: >-
-      On real data, nobody knows the true tree, so nobody can tell whether a strongly supported clade
+      For ancient splits in real data, the true tree is not known, so it is hard to tell whether a strongly supported clade
       is right. Kapli and Telford got around this by simulating protein data on trees they chose
       themselves, with patterns of change estimated from real animal genes. When data generated on a
       tree with sponges branching first were analysed with a simpler model, the analysis returned the
@@ -364,7 +364,7 @@ Branch lengths need one more warning. On a **cladogram**, only the branching ord
 
 ## Characters on branches: homology, convergence and parsimony
 
-A **character** is a feature that varies among taxa, such as the presence of jaws, and its forms are **states**. The state found in the outgroup is taken as **ancestral**; a state that arose within the group is **derived**. Changes in state happen along branches, so you map them there.
+A **character** is a feature that varies among taxa, such as the presence of jaws, and its forms are **states**. The state found in the outgroup is taken as **ancestral**; a state that arose within the group is **derived**. This is an assumption: the outgroup's own lineage can change too, so careful studies use several outgroups. Changes in state happen along branches, so you map them there.
 
 **Homology** is similarity due to a single origin in a common ancestor. **Convergence** is similarity that arose independently in separate lineages. **Parsimony** prefers the mapping that needs the fewest changes. It is a rule for choosing among explanations, not a claim that evolution takes the shortest path.
 
@@ -386,8 +386,9 @@ One caution. Different genes in the same genome can have different histories, so
 
 ## How trees are built and how confident to be
 
-Building a tree starts with a **multiple sequence alignment**: sequences of one gene, lined up so that each column holds positions inferred to share an origin. The alignment is itself a hypothesis of homology at every site. The variants in it arise by [mutation](/lessons/mutation/). Three families of methods then choose among trees:
+A molecular tree usually starts with a **multiple sequence alignment**: sequences of one or more genes, lined up so that each column holds positions inferred to share an origin. The alignment is itself a hypothesis of homology at every site. The variants in it arise by [mutation](/lessons/mutation/). Four common families of methods then build or choose among trees:
 
+- **Distance methods**, such as neighbor-joining, turn the alignment into pairwise differences between taxa and build a tree from them.
 - **Maximum parsimony** finds the tree needing the fewest character changes.
 - **Maximum likelihood** uses an explicit model of sequence change and finds the tree under which the observed alignment is most probable.
 - **Bayesian inference** estimates a posterior distribution of trees and model parameters given the data, the model and a prior.
@@ -400,11 +401,11 @@ Then comes the question of support. Joseph Felsenstein, in 1985, applied the **b
 
 *Step 5.* Suppose the vertebrate tree carries bootstrap values of 98 on (frog, human) and 72 on (trout, (frog, human)). Those clades appeared in 98% and 72% of the replicate trees. They do not mean that the clades are 98% or 72% likely to be true. A bootstrap value tells you how consistently the characters in hand recover a clade under the method used. If the model is wrong in a systematic way, the same wrong clade can come back from every replicate.
 
-That is not a hypothetical worry. Kapli and Telford (2020) simulated protein data sets on a known animal tree with sponges branching first, letting the mix of amino acids differ among sites. A model that assumes the same mix at every site recovered the wrong tree in 98 of 100 data sets, and the wrong grouping usually had high bootstrap support. A richer model recovered the true tree in 88 of 100.
+That is not a hypothetical worry. Kapli and Telford (2020) simulated protein data sets on a known animal tree with sponges branching first, letting the mix of amino acids differ among sites. A model that assumes the same mix at every site recovered the wrong tree in 98 of 100 data sets, and the wrong grouping usually had high bootstrap support. A richer model recovered the true tree in 88 of 100. The error ran one way. Data simulated on a tree with comb jellies branching first were recovered correctly every time, even with the simpler model, so Kapli and Telford argued that strong support for comb jellies first in real data may be this kind of artefact.
 
 The root of the animal tree shows the uncertainty in practice. Schultz and colleagues (2023) mapped the linkage of genes on chromosomes, using unicellular relatives of animals as outgroups, and reported shared derived linkages grouping sponges with cnidarians, placozoans and bilaterians. That places comb jellies as the sister group of all other animals. Copley (2025) argued that their statistical test overstated the significance of some of those linkages. Read this as a live dispute.
 
-Finally, a node with more than two branches, a **polytomy**, usually means the data were not strong enough to resolve the order of splits. It is rarely evidence that three lineages split at once.
+Finally, a node with more than two descendant branches, a **polytomy**, usually means the data were not strong enough to resolve the order of splits. It is rarely evidence that three lineages split at once.
 
 ### Design problem
 
@@ -415,7 +416,7 @@ Similar twig-dwelling lizards, with short limbs and slender bodies, occur on fou
 
 Sample every lizard species you can on all four islands, plus mainland outgroups, and sequence several genes. Do not use genes or traits that were used to define the twig ecomorph, or the test becomes circular. Infer the tree by maximum likelihood or Bayesian methods and assess support by bootstrap or posterior probabilities.
 
-The two hypotheses predict different trees. One origin plus dispersal predicts that the twig species form a single clade. Repeated origins predict that each island's twig species is nested among other species from its own island, with the twig species of different islands in different clades. Map the twig form onto the tree with the outgroup's state as ancestral and count the changes each hypothesis needs.
+The two hypotheses predict different trees. One origin plus dispersal, with no later shifts from the twig form to other forms, predicts that the twig species form a single clade. Repeated origins predict that each island's twig species is nested among other species from its own island, with the twig species of different islands in different clades. Map the twig form onto the tree with the outgroup's state as ancestral and count the changes each hypothesis needs.
 
 Decide in advance what support you require. A clade of twig species with bootstrap support of 50 does not settle the matter; strong, consistent support across genes and methods comes closer. Even then, convergence on a tree is an inference with uncertainty. This is the logic of Losos and colleagues (1998) for Greater Antillean Anolis.
 

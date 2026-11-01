@@ -106,7 +106,7 @@ def arr_to(a, b, color):
 
 class S00Title(TitleCard):
     LESSON = "A measured eukaryotic cell"
-    TITLE = "The surface feeds the volume"
+    TITLE = "Cells Hold Their Size"
 
 
 def rootcell(w, h, d, center, f_color=TEAL):
@@ -370,4 +370,4 @@ class S07Rule(SpokenScene):
 
 
 class S08End(EndCard):
-    LINE = "A scaling penalty, not a universal maximum."
+    LINE = "Cells hold their size by linking growth to division."

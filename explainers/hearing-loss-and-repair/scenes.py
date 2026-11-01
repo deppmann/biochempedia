@@ -70,7 +70,7 @@ def dots(n_rows, n_cols, r=0.09, gap=0.27, color=TEXT):
 
 class S00Title(TitleCard):
     LESSON = "Hidden hearing loss, gene therapy and regeneration"
-    TITLE = "A normal threshold counts nothing"
+    TITLE = "A Normal Threshold Can Hide Damage"
 
 
 def heading(text, color=TEXT):
@@ -311,4 +311,4 @@ class S02Ribbon(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Ask what a number counts, and what it leaves out."
+    LINE = "A normal hearing threshold can conceal synaptic injury."

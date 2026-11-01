@@ -130,7 +130,7 @@ def clear(scene):
 
 class S00Title(TitleCard):
     LESSON = "Meissner and Pacinian corpuscles"
-    TITLE = "Is the Onion the Filter?"
+    TITLE = "Two Detectors of Change"
 
 
 
@@ -403,4 +403,4 @@ class S06Meissner(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "In duck, without the outer core, the terminal still adapts fast."
+    LINE = "Two detectors of change, each a nerve ending plus helper cells."

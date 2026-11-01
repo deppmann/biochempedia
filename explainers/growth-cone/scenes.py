@@ -215,7 +215,7 @@ class Turner:
 
 class S00Title(TitleCard):
     LESSON = "Harrison's Living Axon and the Growth Cone"
-    TITLE = "Adhesion Turns Flow Into Advance"
+    TITLE = "The Tip That Steers the Axon"
 
 
 class S07End(EndCard):
