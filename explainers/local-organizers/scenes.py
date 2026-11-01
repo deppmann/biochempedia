@@ -242,9 +242,9 @@ class S04Loop(SpokenScene):
         self.play(FadeIn(wnt), FadeIn(c_w, shift=UP * 0.2), run_time=0.8)
         self.at("span the boundary")
         self.play(FadeIn(enp), FadeIn(c_e, shift=UP * 0.2), run_time=0.8)
-        self.at("helps keep the others")
+        self.at("keep each other")
         self.play(LaggedStart(*[Create(l) for l in L], lag_ratio=0.3), run_time=1.2)
-        self.at("Remove one")
+        self.at("Remove")
         x = cross(c_w)
         self.play(Create(x), run_time=0.4)
         self.play(wnt.animate.set_fill(opacity=0.0), fgf.animate.set_fill(opacity=0.2), enp.animate.set_fill(opacity=0.04).set_stroke(opacity=0.3),

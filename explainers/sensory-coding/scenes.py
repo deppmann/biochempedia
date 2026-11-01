@@ -359,7 +359,7 @@ class S06Code(SpokenScene):
         self.at("Quality is the harder")
         q = T("quality?", 44, TEXT, weight=BOLD).move_to([0, -1.5, 0])
         self.play(FadeIn(q, shift=UP * 0.1), run_time=0.5)
-        self.at("a labeled line")
+        self.at("line")
         self.play(FadeOut(row), FadeOut(q), run_time=0.5)
 
         # left pane: labelled line

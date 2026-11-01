@@ -177,7 +177,7 @@ class S01Cable(SpokenScene):
         self.at("run up")
         boxes = dcn()
         self.play(FadeIn(boxes), Create(poly([[1.9, 0.8], [1.9, 1.95]], BLUE, 6)), run_time=1.0)
-        self.at("missing branch")
+        self.at("decades ago")
         q = RoundedRectangle(corner_radius=0.12, width=1.5, height=0.95, stroke_color=YELLOW, stroke_width=4,
                              fill_color=YELLOW, fill_opacity=0.12).move_to(f(-1.65, -0.825))
         qm = T("?", 56, YELLOW, weight=BOLD).move_to(q)
@@ -331,7 +331,7 @@ class S04Inhibit(SpokenScene):
         self.at("Two kinds")
         self.play(Indicate(M_["P"], color=ORANGE, scale_factor=1.25), run_time=1.0)
         ff = T("feedforward", 24, RED).move_to([4.15, 2.5, 0], aligned_edge=LEFT)
-        self.at("feed forward")
+        self.at("feed")
         self.play(FadeIn(ff), run_time=0.4)
         self.at("also excites")
         b1 = link(*R["A"], *R["I"], "exc")
@@ -347,7 +347,9 @@ class S04Inhibit(SpokenScene):
         self.at("lands")
         c1 = link(*R["J"], *R["A"], "inh")
         tagJ = T("PVi", 22, TEXT).next_to(M_["J"], DOWN, buff=0.08)
-        self.play(Create(c1), FadeIn(tagJ), run_time=0.7)
+        receptor = Circle(radius=0.08 * s, stroke_color=RED, stroke_width=3,
+                          fill_color=RED, fill_opacity=1).move_to(c1[1].get_center())
+        self.play(Create(c1), FadeIn(tagJ), FadeIn(receptor), run_time=0.7)
         self.at("turns down")
         self.play(M_["A"].animate.set_fill(BLUE, 0.3), run_time=0.7)
         # reset to a neutral state, then two separate knockouts, each with its own patch
@@ -362,13 +364,13 @@ class S04Inhibit(SpokenScene):
         skin2, circ2 = patch(-2.0)
         rl = VGroup(T("PSDC", 22, ORANGE), T("receptive field", 22, ORANGE)).arrange(DOWN, buff=0.04).move_to([5.0, 0.95, 0])
         l1 = T("feedforward knockout", 22, TEXT).move_to([5.0, -1.0, 0])
-        l2 = T("presynaptic knockout", 22, TEXT).move_to([5.0, -2.8, 0])
+        l2 = T("GABA receptor loss", 22, TEXT).move_to([5.0, -2.8, 0])
         self.play(M_["A"].animate.set_fill(BLUE, 0.9), FadeIn(skin1), FadeIn(circ1), FadeIn(skin2), FadeIn(circ2),
                   FadeIn(rl), FadeIn(l1), FadeIn(l2), run_time=0.9)
         self.at("either one")
         self.play(b2.animate.set_color(GREY), ff.animate.set_color(GREY), circ1.animate.scale(1.9), run_time=1.0)
         self.at("receptive")
-        self.play(b2.animate.set_color(RED), ff.animate.set_color(RED), c1.animate.set_color(GREY),
+        self.play(b2.animate.set_color(RED), ff.animate.set_color(RED), receptor.animate.set_color(GREY),
                   ff2.animate.set_color(GREY), circ2.animate.scale(1.9), run_time=1.0)
         self.finish()
 

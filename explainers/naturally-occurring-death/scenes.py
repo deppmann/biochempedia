@@ -111,7 +111,7 @@ class S01Gone(SpokenScene):
                     pts.append([cx + xo + rnd.uniform(-0.07, 0.07), cy + yy + rnd.uniform(-0.07, 0.07), 0])
         dots = VGroup(*[Dot(p, radius=0.17, color=BLUE) for p in pts])
         frame = Ellipse(width=2 * a + 0.4, height=2 * b + 0.4, color=GREY, stroke_width=3).move_to([cx, cy, 0])
-        cap = T("motor neurons for the leg", 26, BLUE).move_to([cx, cy - b - 0.62, 0])
+        cap = T("raw counts for the leg", 26, BLUE).move_to([cx, cy - b - 0.62, 0])
         leg = Ellipse(width=2.4, height=3.4, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW,
                       fill_opacity=0.22).move_to([4.5, cy, 0])
         leg_l = T("leg", 30, YELLOW).move_to(leg)
@@ -343,7 +343,7 @@ class S05Graft(SpokenScene):
         self.play(Create(gr_b), FadeIn(c_g), run_time=1.3)
         self.at("it had more")
         self.play(Create(gap), Indicate(c_g, color=YELLOW, scale_factor=1.05), run_time=0.8)
-        self.at("about 11")
+        self.at("About")
         self.play(FadeIn(gap_l), run_time=0.6)
         self.finish()
 

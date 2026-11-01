@@ -420,7 +420,7 @@ class S06Brakes(SpokenScene):
         self.play(FadeIn(ok1, shift=UP * 0.15), run_time=0.5)
 
         # --- case 2: deprived 15 to 20 hours -----------------------------------------------------------
-        n2, l2, nd2, dr2, _ = column(xs[1], "no NGF for about\n15 to 20 hours")
+        n2, l2, nd2, dr2, _ = column(xs[1], "no NGF, 15 to 20 hours\nprotein synthesis off")
         self.at("deprived of")
         self.play(FadeIn(n2), FadeIn(l2), FadeIn(nd2), FadeIn(dr2), run_time=0.7)
         self.play(dr2.animate.move_to(n2.get_center() + UP * 0.1), run_time=0.6)
@@ -429,7 +429,7 @@ class S06Brakes(SpokenScene):
         self.play(*die(n2), FadeIn(no2, shift=UP * 0.15), run_time=1.0)
 
         # --- case 3: caspase inhibitor ---------------------------------------------------------------
-        n3, l3, nd3, dr3, _ = column(xs[2], "no NGF for about\n15 to 20 hours")
+        n3, l3, nd3, dr3, _ = column(xs[2], "no NGF, 15 to 20 hours\nprotein synthesis off")
         inh = bchip("caspase inhibitor", GREEN, 24).move_to([xs[2], -2.9, 0])
         self.at("caspase inhibitor")
         self.play(FadeIn(n3), FadeIn(l3), FadeIn(nd3), FadeIn(dr3), FadeIn(inh, shift=UP * 0.15), run_time=0.5)

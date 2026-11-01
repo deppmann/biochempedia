@@ -125,7 +125,9 @@ def kokoro(text, out_wav):
     code = ("import sys, numpy as np, soundfile as sf\n"
             "from kokoro import KPipeline\n"
             "p = KPipeline(lang_code='a', repo_id='hexgrad/Kokoro-82M')\n"
-            f"a = np.concatenate([x for _, _, x in p(sys.stdin.read(), voice='{KOKORO_VOICE}', speed=1.0)])\n"
+            "import re\n"
+            # One sentence per chunk: a long single chunk can lose its last words (tlr-and-nf-kb s03, 2026-10-31).
+            f"a = np.concatenate([x for _, _, x in p(re.sub(r'(?<=[.!?])\\s+', '\\n', sys.stdin.read().strip()), voice='{KOKORO_VOICE}', speed=1.0)])\n"
             "sf.write(sys.argv[1], a, 24000)\n")
     r = subprocess.run([str(KOKORO_PY), "-c", code, str(raw)], input=text.encode(), capture_output=True)
     if r.returncode or not raw.exists():

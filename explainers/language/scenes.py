@@ -178,7 +178,7 @@ class S03Hundred(SpokenScene):
     """100 + 100 assumed people; 4 and 27 right-dominant; 31 in all."""
 
     def construct(self):
-        self.at("Now an exercise")
+        self.at("Now")
         foot = T("group sizes assumed for the exercise, not measured", 24, GREY).move_to([0, 3.15, 0])
         gr = grid(BLUE, [], [-GX, GY])
         gl = grid(YELLOW, [], [GX, GY])
@@ -239,7 +239,7 @@ class S04Pick(SpokenScene):
         self.at("How likely is it")
         self.play(FadeIn(q1), run_time=0.5)
 
-        self.at("of the 31 are")
+        self.at("of the")
         e1 = M("27 / 31 = 87.1%", 36, GREEN).move_to([-GX, GY - 3.0, 0])
         self.play(*[copies[i].animate.set_fill(YELLOW, 1.0) for i in range(27)],
                   Indicate(VGroup(*copies[:27]), color=YELLOW, scale_factor=1.06), run_time=0.8)

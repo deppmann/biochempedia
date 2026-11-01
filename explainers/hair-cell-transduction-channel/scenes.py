@@ -322,14 +322,14 @@ class S03Permeation(SpokenScene):
         self.at("calcium permeability")
         flow(self, REDUCED, rt=1.6)
 
-        bar = meter("single channel\ncurrent", 5.0, 1.55, 1.0, w=2.4, size=22)
+        bar = meter("single channel\ncurrent (disputed)", 5.0, 1.55, 1.0, w=2.4, size=22)
         bar[0].move_to([5.0, 2.45, 0])
         inside = T("comparison", 22, BG, weight=BOLD).move_to([5.0, 1.55, 0])
         sk = T("in this sketch", 22, GREY).move_to([5.0, 0.95, 0])
         self.at("Single channel")
         self.play(FadeIn(bar), FadeIn(inside), FadeIn(sk), run_time=0.5)
         inside2 = T("altered", 22, BG, weight=BOLD).move_to([3.8 + 0.05 + (2.4 * 0.55 - 0.1) / 2, 1.55, 0])
-        self.at("smaller")
+        self.at("disputed")
         self.play(Transform(bar[2], meter_fill(5.0, 1.55, 0.55, w=2.4)), Transform(inside, inside2), run_time=0.8)
 
         a, b = sc_lines("the sequence changes which ions pass", "a partner could do the same", y=-2.95)

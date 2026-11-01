@@ -260,7 +260,7 @@ class S03Coincidence(SpokenScene):
         self.add(olds)
 
         # equation strip along the bottom
-        c1 = tag("glutamate bound", YELLOW, 22)
+        c1 = tag("agonists bound", YELLOW, 22)
         plus = T("+", 30, TEXT)
         c2 = tag("depolarized", PINK, 22)
         eq = T("=", 30, TEXT)
@@ -408,10 +408,9 @@ class S05Down(SpokenScene):
         pho = tag("phosphatases", RED, 28).move_to(syn.p(-0.3, -1.4))
         self.play(FadeIn(pho, scale=0.8), run_time=0.7)
         self.at("rather than")
-        ghost = tag("CaMKII", GREY, 24).move_to(syn.p(1.95, -1.75))
+        ghost = tag("less CaMKII", GREY, 24).move_to(syn.p(1.95, -1.75))
         ghost.set_opacity(0.55)
-        cross = Line(ghost.get_left() + LEFT * 0.05, ghost.get_right() + RIGHT * 0.05, color=GREY, stroke_width=4)
-        self.play(FadeIn(ghost), Create(cross), run_time=0.7)
+        self.play(FadeIn(ghost), run_time=0.7)
         self.at("removing")
         outs = []
         for n in ("A1", "A3"):

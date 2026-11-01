@@ -422,7 +422,7 @@ class S05Micro(SpokenScene):
         self.at("macrophages")
         self.play(Indicate(VGroup(*cells), color=ORANGE, scale_factor=1.15), run_time=0.8)
         nomg = T("no microglia", 28, RED).move_to([3.4, -0.4, 0])
-        self.at("no brain microglia")
+        self.at("brain")
         self.play(FadeIn(nomg), run_time=0.4)
         # circulation case
         self.at("travel in")

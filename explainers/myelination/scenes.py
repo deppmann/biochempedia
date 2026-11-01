@@ -279,7 +279,7 @@ class S05Jump(SpokenScene):
             nxt = glow(k + 1)
             self.play(Create(arcs[k]), FadeOut(cur), FadeIn(nxt, scale=0.5), run_time=0.55)
             cur = nxt
-        self.at("saltatory conduction")
+        self.at("salutatory")
         name = chip("saltatory conduction", YELLOW, 34).move_to([0, -2.9, 0])
         self.play(FadeIn(name, shift=UP * 0.15), run_time=0.6)
         self.finish()

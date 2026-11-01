@@ -184,8 +184,8 @@ class S01Dark(SpokenScene):
         a2 = arr([1.9, 0.2, 0], [2.7, 0.2, 0], GREY, tip=0.2)
         self.play(FadeIn(stim, shift=RIGHT * 0.3), FadeIn(stim_l), FadeIn(rec), run_time=0.8)
         self.play(FadeIn(a2), FadeIn(st), run_time=0.5)
-        self.at("Vertebrate photoreceptors")
-        rec2 = chip("photoreceptor", BLUE, size=30).move_to(rec)
+        self.at("Rods and cones")
+        rec2 = chip("rods and cones", BLUE, size=30).move_to(rec)
         st2 = T("turned off", 34, GREY, weight=BOLD).move_to(st)
         stim2 = arr([-5.2, 0.2, 0], [-3.2, 0.2, 0], LIGHT)
         stim2_l = T("light", 28, LIGHT).next_to(stim2, UP, buff=0.15)
@@ -211,7 +211,7 @@ class S01Dark(SpokenScene):
         self.play(cur.gain.animate.set_value(1), FadeIn(cur_l), run_time=0.5)
         self.at("releases glutamate")
         self.play(FadeIn(box), glu.gain.animate.set_value(1), FadeIn(glu_l), run_time=0.6)
-        self.at("Light makes")
+        self.at("Light turns")
         beam = arr([4.2, -2.235, 0], [0.0, -2.235, 0], LIGHT, w=7, tip=0.3)
         beam_l = T("light", 28, LIGHT).next_to(beam, UP, buff=0.12).shift(RIGHT * 1.2)
         lt = state_tag("LIGHT", LIGHT)
@@ -317,7 +317,7 @@ def closeup(kind):
     col = PINK if kind == "off" else GREEN
     term = RoundedRectangle(corner_radius=0.2, width=4.8, height=0.9, stroke_color=BLUE, stroke_width=3,
                             fill_color=BLUE, fill_opacity=0.14).move_to([CX, -3.05, 0])
-    tl = T("rod terminal", 24, BLUE).move_to(term)
+    tl = T("cone terminal", 24, BLUE).move_to(term)
     cell = RoundedRectangle(corner_radius=0.9, width=4.8, height=3.9, stroke_color=col, stroke_width=3,
                             fill_color=col, fill_opacity=0.12).move_to([CX, 0.75, 0])
     name = T(f"{kind.upper()} bipolar cell", 28, col, weight=BOLD).move_to([CX, 2.2, 0])
@@ -350,7 +350,7 @@ class S03Split(SpokenScene):
         self.play(FadeIn(rod), FadeIn(cl), FadeIn(cr), FadeIn(cl_t), FadeIn(cr_t), run_time=0.4)
         self.add(fl, fr)
         dark = state_tag("DARK", GREY, pos=(4.6, 3.1))
-        self.at("The rod releases")
+        self.at("The cone releases")
         self.play(fl.gain.animate.set_value(1), fr.gain.animate.set_value(1), FadeIn(glu_l), FadeIn(dark), run_time=0.6)
         self.at("more in the dark")
         self.play(Indicate(glu_l, color=GLU, scale_factor=1.15), run_time=0.6)
@@ -466,12 +466,12 @@ class S05Streams(SpokenScene):
     """photoreceptor -> ON / OFF bipolar -> ON / OFF ganglion; sketch spike trains."""
 
     def construct(self):
-        rcpt = bchip("photoreceptor", BLUE, size=24).move_to([-5.05, 0.0, 0])
+        rcpt = bchip("cone", BLUE, size=24).move_to([-5.05, 0.0, 0])
         on_b = bchip("ON bipolar", GREEN, size=26).move_to([-1.75, 1.7, 0])
         off_b = bchip("OFF bipolar", PINK, size=26).move_to([-1.75, -1.7, 0])
         on_g = bchip("ON ganglion", GREEN, size=26).move_to([1.15, 1.7, 0])
         off_g = bchip("OFF ganglion", PINK, size=26).move_to([1.15, -1.7, 0])
-        self.at("So each photoreceptor")
+        self.at("So each cone")
         self.play(FadeIn(rcpt, scale=0.9), run_time=0.4)
         a_on = tbar(rcpt.get_right() + UP * 0.15, on_b.get_left(), RED)
         a_off = arr(rcpt.get_right() + DOWN * 0.15, off_b.get_left(), GREY)
@@ -529,12 +529,12 @@ class S06Rule(SpokenScene):
     """one glutamate stream, two readers; the rule."""
 
     def construct(self):
-        rcpt = bchip("photoreceptor", BLUE, size=28).move_to([-5.0, 0.4, 0])
+        rcpt = bchip("cone", BLUE, size=28).move_to([-5.0, 0.4, 0])
         lt = arr([-6.3, -1.1, 0], [-5.4, -0.2, 0], LIGHT, w=6)
         lt_l = T("light", 26, LIGHT).move_to([-6.1, -1.55, 0])
         off_r = bchip("OFF bipolar: keeps the sign", PINK, size=26).move_to([0.6, 2.0, 0])
         on_r = bchip("ON bipolar: inverts the sign", GREEN, size=26).move_to([0.6, -1.2, 0])
-        self.at("Light switches")
+        self.at("Light quiets")
         self.play(FadeIn(rcpt, scale=0.9), GrowArrow(lt), FadeIn(lt_l), run_time=0.7)
         off_t = T("off", 28, GREY, weight=BOLD).next_to(rcpt, DOWN, buff=0.25)
         self.play(FadeIn(off_t), run_time=0.4)

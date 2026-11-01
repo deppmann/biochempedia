@@ -345,7 +345,7 @@ class S06Rescue(SpokenScene):
         self.play(Indicate(lamps["sweet"], color=GREY, scale_factor=1.3), Indicate(lamps["umami"], color=GREY, scale_factor=1.3),
                   run_time=1.0)
         self.at("wired to report")
-        rule = T("the cell sets the quality", 30, TEXT).move_to([0, -3.4, 0])
+        rule = T("bitter runs in separate cells", 30, TEXT).move_to([0, -3.4, 0])
         self.play(FadeOut(cap), FadeIn(rule), run_time=0.6)
         self.at("mouse experiments on the periphery")
         self.play(Indicate(mt, color=TEXT, scale_factor=1.3), run_time=0.8)
@@ -367,12 +367,12 @@ class S06Rescue(SpokenScene):
         tc = VGroup(*[RoundedRectangle(corner_radius=0.2, width=0.9, height=2.4, stroke_color=GREY, stroke_width=3)
                       .move_to([1.8 + 1.1 * i, 0.0, 0]) for i in range(4)])
         tc[2].set_stroke(ON).set_fill(ON, 0.9)
-        tl = T("which cell fires", 26, TEXT).move_to([3.3, -1.9, 0])
+        tl = T("mostly which cell fires", 26, TEXT).move_to([3.3, -1.9, 0])
         self.play(FadeIn(sm), FadeIn(grid, lag_ratio=0.05), FadeIn(sl), run_time=1.0)
-        self.at("Taste reads which cell fires")
+        self.at("Taste mostly reads")
         self.play(FadeIn(ta), FadeIn(tc), FadeIn(tl), run_time=0.9)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Smell reads a pattern. Taste reads which cell fires."
+    LINE = "Smell reads a pattern. Taste mostly reads which cell fires."

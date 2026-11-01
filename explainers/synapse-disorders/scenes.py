@@ -114,7 +114,7 @@ class S01Question(SpokenScene):
         self.play(FadeOut(prot), FadeOut(qq), FadeOut(adult),
                   circ.animate.scale(1.0 / 1.35).move_to([-3.5, 0.6, 0]), run_time=0.8)
         wrong = Line(circ.nodes[0].get_center(), circ.nodes[4].get_center(), color=RED, stroke_width=5)
-        wl = T("built wrong:\nstays wrong", 28, RED, line_spacing=0.8).move_to([-3.5, -2.2, 0])
+        wl = T("built wrong for good:\nstays wrong", 28, RED, line_spacing=0.8).move_to([-3.5, -2.2, 0])
         self.play(Create(wrong), FadeIn(wl), run_time=0.7)
         self.at("is sound")
         circ2 = make_circuit((3.5, 0.6), 1.0)
@@ -328,7 +328,7 @@ class S06Rule(SpokenScene):
         self.play(LaggedStart(*[FadeIn(n, scale=0.5) for n in circ.nodes], lag_ratio=0.1),
                   LaggedStart(*[Create(e) for e in circ.edges], lag_ratio=0.1), run_time=1.2)
         self.at("not permanently miswired")
-        okl = T("intact, not miswired", 30, GREY).move_to([0, -3.15, 0])
+        okl = T("not permanently miswired", 30, GREY).move_to([0, -3.15, 0])
         self.play(FadeIn(okl), run_time=0.4)
         self.at("formed without")
         wl = T("formed without MeCP2", 30, RED).move_to([0, -3.15, 0])

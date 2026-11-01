@@ -371,7 +371,7 @@ class S01Gap(ZFilm):
         inner_y = MEM_Y - MEM_H / 2
         inner = Line([-6.3, inner_y, 0], [6.3, inner_y, 0], color=TEXT, stroke_width=5)
         inner_lbl = T("inner face", 24, TEXT).move_to([RAS_X + 2.05, inner_y - 0.32, 0])
-        self.at("inner face")
+        self.at("interface")
         self.play(Create(inner), FadeIn(inner_lbl), run_time=0.6)
         pm = T("plasma membrane", 24, GREY).move_to([4.2, MEM_Y + 0.55, 0])
         self.at("plasma membrane")
@@ -597,14 +597,14 @@ class S04Dock(ZFilm):
                   Indicate(r.body, color=TEXT, scale_factor=1.1), run_time=0.8)
 
         # the message from the phosphate to Ras, by position alone: the holds light up in order
-        self.at("one phosphotyrosine")
+        self.at("one phosphatira")
         self.play(pop(P3, 1.4), run_time=0.5)
         self.at("positioning")
         self.play(pop(P3, 1.35),
                   LaggedStart(Indicate(B.cup, color=TEXT, scale_factor=1.1), Indicate(B.body, color=TEXT, scale_factor=1.05),
                               Indicate(cl, color=TEXT, scale_factor=1.15), Indicate(S.body, color=TEXT, scale_factor=1.03),
                               Indicate(r.body, color=TEXT, scale_factor=1.1), lag_ratio=0.4), run_time=2.2)
-        self.at("Position does")
+        self.at("Position is")
         self.play(Indicate(r.body, color=TEXT, scale_factor=1.12), Indicate(S.body, color=TEXT, scale_factor=1.03), run_time=0.9)
         self.outro(FadeOut(VGroup(r1, r2, r3)))
 
@@ -720,10 +720,10 @@ class S06Rule(ZFilm):
         self.play(Create(r1), run_time=0.7)
         self.at("holds", nth=1)
         self.play(Create(r2), run_time=0.7)
-        self.at("position does")
+        self.at("position is")
         self.play(Create(r3), Indicate(r.body, color=TEXT, scale_factor=1.1), run_time=0.9)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The receptor holds Grb2, Grb2 holds Sos, position does the rest."
+    LINE = "The receptor holds Grb2, Grb2 holds Sos, position is the first step."

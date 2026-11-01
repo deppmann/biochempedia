@@ -61,9 +61,9 @@ for k, m in enumerate(classes):
         nw = narr_of.get(sid, "").split()
         wl = [(w, norm(w)) for w in nw if norm(w)]
     else:
-        wl = [(w[2], norm(w[2])) for w in words.get(sid, []) if norm(w[2])]
+        wl = [(p, norm(p)) for w in words.get(sid, []) for p in re.split(r"[\u2014\u2013]", w[2]) if norm(p)]
     H = [t for _, t in wl]
-    T = [norm(w) for w in text_of.get(sid, "").split() if norm(w)]
+    T = [norm(w) for w in re.split(r"[\s\u2014\u2013]+", text_of.get(sid, "")) if norm(w)]
     t2h = {}   # script-token index -> transcript-token index
     for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, T, H, autojunk=False).get_opcodes():
         for k2 in range(i1, i2):
@@ -78,7 +78,7 @@ for k, m in enumerate(classes):
         phrase, rest = mm.group(2), mm.group(3)
         nth = int((re.search(r"nth\s*=\s*(\d+)", rest) or [0, 0])[1])
         rest = re.sub(r",\s*nth\s*=\s*\d+", "", rest)   # a replacement cue is chosen to be the first occurrence
-        q = [norm(p) for p in phrase.split() if norm(p)]
+        q = [norm(p) for p in re.split(r"[\s\u2014\u2013]+", phrase) if norm(p)]
         h = nth_hit(H, q, nth)
         if narration_mode and phrase not in narr_of.get(sid, ""):
             h = None

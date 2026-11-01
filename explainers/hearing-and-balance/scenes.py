@@ -273,7 +273,7 @@ class S03Wave(SpokenScene):
         self.play(GrowArrow(snd), FadeIn(base_line), run_time=0.6)
 
         w = always_redraw(wave)
-        self.at("traveling wave")
+        self.at("wave")
         self.add(w)
         self.play(amp.animate.set_value(1.15), run_time=1.2, rate_func=smooth)
 
@@ -340,7 +340,7 @@ class S04Place(SpokenScene):
         l0 = M("0 mm", 22, GREY).next_to(t0, DOWN, buff=0.1)
         l35 = M("35 mm", 22, TEXT).next_to(t35, DOWN, buff=0.1)
         rul = T("ruler: mm from the base", 24, GREY).move_to([-2.9, ry + 0.3, 0])
-        self.at("Assume a cochlea")
+        self.at("sumacochlea")
         self.play(Create(ruler), FadeIn(rul), FadeIn(t0), FadeIn(t35), FadeIn(l0), FadeIn(l35), run_time=1.0)
 
         card_y = -3.0
@@ -362,20 +362,20 @@ class S04Place(SpokenScene):
         c1a = VGroup(M("x = 0.400:  0.400 × 35 mm = 14.0 mm from the apex", 24, PURPLE)).move_to([0, card_y + 0.3, 0])
         c1b = M("35 − 14.0 = 21.0 mm from the base", 24, PURPLE).move_to([0, card_y - 0.25, 0])
         m1 = marker(21.0, PURPLE, "1,000 Hz", 0)
-        self.at("A tone of 1000")
+        self.at("A tone")
         self.play(FadeIn(m1[2], shift=DOWN * 0.1), run_time=0.5)
-        self.at("14 millimeters")
+        self.at("peaks")
         self.play(FadeIn(c1a, shift=UP * 0.1), run_time=0.7)
-        self.at("21 millimeters")
+        self.at("which is")
         self.play(FadeIn(c1b, shift=UP * 0.1), Create(m1[0]), FadeIn(m1[1]), FadeIn(m1[3]), FadeIn(m1[4]), run_time=0.8)
 
         # 4,000 Hz: clear the first card in the same beat as the new tone
         c2a = M("x = 0.666:  0.666 × 35 mm = 23.3 mm from the apex", 24, ORANGE).move_to([0, card_y + 0.3, 0])
         c2b = M("35 − 23.3 = 11.7 mm from the base", 24, ORANGE).move_to([0, card_y - 0.25, 0])
         m2 = marker(11.7, ORANGE, "4,000 Hz", 0)
-        self.at("A tone of 4000")
+        self.at("of 4")
         self.play(FadeOut(c1a), FadeOut(c1b), FadeIn(m2[2], shift=DOWN * 0.1), run_time=0.5)
-        self.at("11 7 millimeters")
+        self.at("peaks 11")
         self.play(FadeIn(c2a, shift=UP * 0.1), FadeIn(c2b, shift=UP * 0.1), Create(m2[0]), FadeIn(m2[1]), FadeIn(m2[3]), FadeIn(m2[4]), run_time=0.9)
         self.at("nearer than the lower tone")
         self.play(Indicate(m2[1], color=ORANGE, scale_factor=1.8), run_time=0.7)
@@ -519,7 +519,7 @@ class S06Map(SpokenScene):
 
         self.at("This map of frequency")
         self.play(FadeIn(bars[0]), FadeIn(hi), FadeIn(lo), run_time=0.8)
-        self.at("called tonotopy")
+        self.at("called")
         self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.6)
 
         self.at("The auditory nerve")
@@ -544,7 +544,7 @@ class S06Map(SpokenScene):
         reveal(5)
 
         self.at("Keep this rule")
-        keep = T("the map is kept at every relay", 24, TEAL).move_to([2.9, -3.45, 0])
+        keep = T("the map follows the main pathway", 24, TEAL).move_to([2.9, -3.45, 0])
         frame_r = Rectangle(width=bx1 - bx0 + 0.5, height=ys[-1] - ys[0] + 0.65, stroke_color=TEAL, stroke_width=3).move_to([(bx0 + bx1) / 2, (ys[0] + ys[-1]) / 2, 0])
         self.play(Create(frame_r), FadeIn(keep), run_time=1.0)
         self.finish()

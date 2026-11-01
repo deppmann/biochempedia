@@ -60,11 +60,12 @@ class SpokenScene(NarratedScene):
             sid = os.environ["KX_SCENE_ID"]
             vdir = Path(os.environ["KX_SCRIPT"]).parent
             words = json.loads((vdir / "audio" / "words.json").read_text())[sid]
-            self._wl = [(float(w[0]), _norm(w[2])) for w in words if _norm(w[2])]
+            # A dash can glue two words into one transcript token ("1155—outward"): split it, both at the token's start.
+            self._wl = [(float(w[0]), _norm(p)) for w in words for p in re.split(r"[\u2014\u2013]", w[2]) if _norm(p)]
         return self._wl
 
     def t_of(self, phrase, nth=0):
-        toks = [_norm(p) for p in phrase.split() if _norm(p)]
+        toks = [_norm(p) for p in re.split(r"[\s\u2014\u2013]+", phrase) if _norm(p)]
         wl = self._words()
         hits = [wl[i][0] for i in range(len(wl) - len(toks) + 1) if [x[1] for x in wl[i:i + len(toks)]] == toks]
         if len(hits) <= nth:

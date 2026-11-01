@@ -395,7 +395,7 @@ class S06Rule(SpokenScene):
         for m in (gI, rI, ax1, ax2, t1, t2, lg):
             m.set_opacity(0)
         self.play(*[m.animate.set_opacity(1) for m in (gI, rI, ax1, t1, lg)], run_time=0.4)
-        self.at("abolished direction")
+        self.at("-abolish")
         self.play(Create(cross), FadeIn(ab), *[m.animate.set_opacity(1) for m in (ax2, t2)], run_time=0.5)
         gR.set_opacity(0); rR.set_opacity(0)
         self.add(gR, rR)
@@ -410,7 +410,7 @@ class S06Rule(SpokenScene):
         self.play(FadeIn(ach, shift=LEFT * 0.2), run_time=0.5)
         self.at("GABA")
         self.play(FadeIn(gab, shift=LEFT * 0.2), run_time=0.5)
-        q = mchip("which carries the\nasymmetry?", YELLOW, 24).move_to([4.0, -1.1, 0])
+        q = mchip("this assay\ncan't say which", YELLOW, 24).move_to([4.0, -1.1, 0])
         self.at("carries the asymmetry")
         self.play(FadeIn(q, shift=UP * 0.15), run_time=0.6)
 
