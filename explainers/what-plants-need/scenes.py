@@ -208,7 +208,7 @@ class S02Predict(SpokenScene):
         s4 = sun(0, 2.7, 0.38)
         sl = sill(-6.2, 6.2)
         self.add(sl, s4, *[m for u in us for m in u.parts()])
-        chips = VGroup(*[chip(t, TEAL, size=26) for t in ("same soil", "same cups", "same seeds", "same water")])
+        chips = VGroup(*[chip(t, TEAL, size=26) for t in ("same soil", "same cups", "same seeds")])
         chips.arrange(RIGHT, buff=0.35).move_to([0, 1.3, 0])
         sill_t = T("windowsill", 24, GREY).move_to([0, -3.1, 0])
 
@@ -221,9 +221,6 @@ class S02Predict(SpokenScene):
         self.play(FadeIn(chips[1], shift=DOWN * 0.15), run_time=0.5)
         self.at("same seeds")
         self.play(FadeIn(chips[2], shift=DOWN * 0.15), Indicate(VGroup(*[u.sprout for u in us]), color=GREEN, scale_factor=1.1),
-                  run_time=0.7)
-        self.at("same amount of water")
-        self.play(FadeIn(chips[3], shift=DOWN * 0.15), *[Indicate(u.drop, color=BLUE, scale_factor=1.3) for u in us],
                   run_time=0.7)
         self.at("sunny window")
         self.play(Indicate(s4, color=YELLOW, scale_factor=1.2), FadeIn(sill_t), run_time=0.7)
@@ -389,7 +386,7 @@ class S05Surprise(SpokenScene):
         gx, gy, gh = 3.75, -0.45, 2.4
         outline = Ellipse(width=1.7, height=gh, stroke_color=SOIL, stroke_width=6, fill_color=SOIL, fill_opacity=0.25).move_to([gx, gy, 0])
         fill = Ellipse(width=1.25, height=gh - 0.45, stroke_width=0, fill_color=PINK, fill_opacity=0.85).move_to([gx, gy, 0])
-        g_t = T("food stored in the seed", 24, PINK).move_to([gx, gy + gh / 2 + 0.4, 0])
+        g_t = T("food it has stored", 24, PINK).move_to([gx, gy + gh / 2 + 0.4, 0])
         fl = Arrow([gx - 0.9, 0.2, 0], [-0.55, 0.2, 0], buff=0, color=PINK, stroke_width=6, tip_length=0.25)
         self.at("stretches on food")
         self.play(FadeOut(VGroup(c_col, c_str, c_hei, best)), run_time=0.4)

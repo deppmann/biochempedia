@@ -8,6 +8,7 @@ in script.json, so a film needs no scenes.py code of its own:
 
 script.json scenes, in this order (ids fixed):
   s00_title    {"silent": 2.5}
+  s00_idea     optional, same shape as s01_gather: the big idea (scenes.py then adds S00Idea(BigIdea))
   s01_gather   {"tts": ..., "items": [{"text": "on screen", "cue": "words spoken"}], "image": "img/x.png"?}
   s02_setup    {"tts": ..., "items": [...numbered steps...], "image": ...?}
   s03_watch    {"tts": ..., "items": [...], "image": ...?}
@@ -23,7 +24,7 @@ from pathlib import Path
 
 from bp_style import *  # noqa: F401,F403
 
-HEAD = {"s01_gather": ("What you need", TEAL), "s02_setup": ("Set it up", GOLD),
+HEAD = {"s00_idea": ("The big idea", BLUE), "s01_gather": ("What you need", TEAL), "s02_setup": ("Set it up", GOLD),
         "s03_watch": ("What to watch for", GREEN), "s04_safety": ("Safety", RED)}
 
 
@@ -101,6 +102,11 @@ def _wrap(text, width_units, size=30):
     if cur:
         lines.append(cur)
     return lines
+
+
+class BigIdea(_Steps):
+    """Optional scene after the title: the activity's big idea in a child's words (2026-11-01)."""
+    SID = "s00_idea"
 
 
 class Gather(_Steps):

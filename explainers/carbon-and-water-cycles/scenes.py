@@ -450,7 +450,7 @@ class S05Meet(SpokenScene):
         cl2 = T("less carbon dioxide in", 24, PURPLE).move_to([-2.2, 1.75, 0])
         self.play(Transform(ca, ca_small), ReplacementTransform(cl, cl2), run_time=1.0)
         self.at("A change in one cycle")
-        both = T("change one cycle, change the other", 28, TEXT, weight=BOLD).move_to([0, -3.1, 0])
+        both = T("change one cycle, the other can change", 28, TEXT, weight=BOLD).move_to([0, -3.1, 0])
         self.play(FadeIn(both), run_time=0.8)
         self.play(Indicate(wc, color=TEAL, scale_factor=1.1), Indicate(cc, color=PURPLE, scale_factor=1.1), run_time=0.9)
         self.finish()
@@ -485,7 +485,7 @@ class S06Answer(SpokenScene):
         self.play(FadeIn(spring), *[d.animate.scale(1.7) for d in dots], run_time=1.0)
         # fall
         self.at("Each fall")
-        fall = T("fall: leaves drop, but respiration and\ndecomposition keep going", 26, ORANGE, weight=BOLD,
+        fall = T("fall: photosynthesis slows, many leaves drop,\nbut respiration and decomposition keep going", 26, ORANGE, weight=BOLD,
                  line_spacing=0.8).move_to([0, -3.3, 0])
         self.play(FadeOut(spring), FadeIn(fall), *[d.animate.scale(1 / 1.7).set_color(BROWN) for d in dots], run_time=1.0)
         # mixes

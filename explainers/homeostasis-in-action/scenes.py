@@ -230,7 +230,7 @@ class S04Parts(SpokenScene):
         self.at("The control center compares")
         self.play(GrowArrow(links[1]), FadeIn(nodes[2], scale=0.9), run_time=0.7)
         self.at("In your body")
-        brain = T("usually the brain", 24, PURPLE).move_to([2.9, -3.15, 0])
+        brain = T("often the brain", 24, PURPLE).move_to([2.9, -3.15, 0])
         self.play(FadeIn(brain, shift=UP * 0.1), run_time=0.5)
         self.at("An effector is")
         self.play(GrowArrow(links[2]), FadeIn(nodes[3], scale=0.9), run_time=0.7)

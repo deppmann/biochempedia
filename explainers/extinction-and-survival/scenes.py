@@ -278,7 +278,7 @@ class S05Present(SpokenScene):
         self.at("Variation does not promise")
         self.play(FadeIn(head), Create(ground), LaggedStart(*[FadeIn(t, scale=0.7) for t in trees], lag_ratio=0.08), run_time=1.2)
         self.at("helpful trait usually has to be there")
-        ht = T("helpful trait: usually has to be there already", 30, BLUE).move_to([0, 2.6, 0])
+        ht = T("fast change: helpful trait usually has to be there already", 26, BLUE).move_to([0, 2.6, 0])
         self.play(FadeIn(ht, shift=UP * 0.1), run_time=0.8)
         self.at("very little resistance")
         rl = T("resistance (a sketch)", 26, BLUE).move_to([0, -2.15, 0])
@@ -361,4 +361,4 @@ class S06Answer(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "A helpful trait usually has to be there already."
+    LINE = "In fast change, a helpful trait usually has to be there already."

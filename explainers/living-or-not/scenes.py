@@ -91,7 +91,7 @@ class S01Switch(SpokenScene):
         self.play(FadeIn(v, shift=DOWN * 0.3), FadeIn(v_lbl), run_time=0.7)
         self.at("it does nothing on its own")
         idle = T("does nothing on its own", 32, TEXT).move_to([0.6, -0.7, 0])
-        tm = T("for many hours", 32, GREY).move_to([0.6, -1.4, 0])
+        tm = T("for hours", 32, GREY).move_to([0.6, -1.4, 0])
         self.play(FadeIn(idle, shift=LEFT * 0.2), run_time=0.5)
         self.play(FadeIn(tm), run_time=0.4)
         # fingertip picks it up
@@ -284,7 +284,7 @@ class S05Host(SpokenScene):
         nl = T("new viruses", 32, YELLOW, weight=BOLD).move_to([2.7, -2.65, 0])
         self.play(FadeOut(pl), *[ReplacementTransform(parts[k].copy(), new[k]) for k in range(3)], FadeOut(parts), run_time=1.0)
         self.play(FadeIn(nl), run_time=0.4)
-        self.at("The cell does the building")
+        self.at("the ribosomes")
         self.play(Indicate(cell, color=BLUE, scale_factor=1.01), run_time=0.8)
         self.at("no metabolism of its own")
         nm = T("virus:\nno metabolism\nof its own", 30, RED).move_to([-1.2, -1.9, 0])

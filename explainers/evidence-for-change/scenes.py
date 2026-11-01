@@ -375,14 +375,14 @@ class S06Agree(SpokenScene):
             a = arr([c.get_center()[0], c.get_bottom()[1] - 0.1, 0], [c.get_center()[0], -1.0, 0], col, w=5, tip=0.2)
             qs.append(VGroup(bx, q, a))
         self.play(*[FadeIn(q) for q in qs], run_time=0.8)
-        self.at("Instead, they agree")
+        self.at("they largely agree")
         gold = chip("the same family story", GOLD, 38).move_to([0, -2.25, 0])
         arrs = [arr([c.get_center()[0] * 0.9, c.get_bottom()[1] - 0.1, 0], [c.get_center()[0] * 0.28, gold.get_top()[1] + 0.08, 0], col, w=5, tip=0.2)
                 for c, col in ((cf, BLUE), (cb, ORANGE), (cd, GREEN))]
         self.play(*[FadeOut(q) for q in qs], run_time=0.4)
         self.play(*[GrowArrow(a) for a in arrs], FadeIn(gold, scale=0.9), run_time=0.8)
         self.at("how scientists know")
-        ans = T("Three kinds of evidence agree.", 36, TEXT, weight=BOLD).move_to([0, -3.3, 0])
+        ans = T("Three kinds of evidence largely agree.", 36, TEXT, weight=BOLD).move_to([0, -3.3, 0])
         self.play(FadeIn(ans, shift=UP * 0.1), run_time=0.6)
         self.finish()
 

@@ -138,7 +138,7 @@ class S02Clues(SpokenScene):
         pos = [(-3.2, 1.75), (3.2, 1.75), (-3.2, -1.75), (3.2, -1.75)]
         frames = [box(5.9, 3.1, GREY, x, y, op=0.05) for x, y in pos]
         nums = [T(str(i + 1), 30, GREY, weight=BOLD).move_to([x - 2.6, y + 1.2, 0]) for i, (x, y) in enumerate(pos)]
-        self.at("Scientists sort")
+        self.at("scientists sort")
         self.play(*[FadeIn(f) for f in frames], *[FadeIn(n) for n in nums], run_time=0.8)
 
         # clue 1
@@ -321,15 +321,15 @@ class S05Dna(SpokenScene):
         more = T("more alike", 32, YELLOW).move_to([4.5, 1.5, 0])
         less = T("less alike", 32, GREY).move_to([4.5, -1.1, 0])
         note = T("a sketch, not real data", 24, GREY).move_to([0, -3.1, 0])
-        self.at("the more alike")
+        self.at("more matches")
         self.play(FadeIn(rowB), run_time=0.4)
         self.play(Create(L1), ReplacementTransform(lab, more), run_time=0.8)
         self.play(FadeIn(rowC), FadeIn(rowD), run_time=0.4)
         self.play(Create(L2), FadeIn(less), FadeIn(note), run_time=0.8)
 
-        more2 = T("more closely\nrelated", 28, YELLOW).move_to([4.5, 1.5, 0])
-        less2 = T("less closely\nrelated", 28, GREY).move_to([4.5, -1.1, 0])
-        self.at("more closely related")
+        more2 = T("a clue to a\ncloser relationship", 28, YELLOW).move_to([4.5, 1.5, 0])
+        less2 = T("a clue to a\nmore distant one", 28, GREY).move_to([4.5, -1.1, 0])
+        self.at("closer relationship")
         self.play(ReplacementTransform(more, more2), ReplacementTransform(less, less2), run_time=0.7)
 
         node = Dot([0, -1.2, 0], radius=0.14, color=GOLD)

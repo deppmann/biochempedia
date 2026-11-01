@@ -187,7 +187,7 @@ class S04Resource(SpokenScene):
         self.play(FadeIn(box), FadeIn(an, scale=0.5), FadeIn(anl), run_time=0.9)
         self.at("Food, water")
         self.play(FadeOut(defl), FadeIn(chips, lag_ratio=0.35, shift=DOWN * 0.15), run_time=1.6)
-        self.at("A niche is how")
+        self.at("Part of an")
         self.play(FadeIn(dots, lag_ratio=0.05), FadeOut(anl), run_time=0.8)
         self.play(Create(circ), FadeIn(clab), FadeIn(sk4), run_time=1.0)
         gone = VGroup(*[d for i, d in enumerate(dots) if i not in keep])

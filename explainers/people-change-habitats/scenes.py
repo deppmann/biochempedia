@@ -252,7 +252,7 @@ class S04Invasive(SpokenScene):
         bl = T("blue catfish", 28, BLUE).next_to(bf, DOWN, buff=0.1)
         self.play(FadeIn(bl), run_time=0.3)
         # three-part test
-        parts = [("brought to a new place", "new place"), ("spreads", "spreads"), ("harms native species", "harms")]
+        parts = [("brought to a new place", "new place"), ("spreads", "spreads"), ("harms native species or people", "harms")]
         rows = []
         for i, (txt, _) in enumerate(parts):
             c = chip(txt, GREY, 28)

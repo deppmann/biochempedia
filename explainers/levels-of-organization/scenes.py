@@ -206,7 +206,7 @@ class S04Shapes(SpokenScene):
         r_desc = T("small, flexible disc: carries oxygen", 26, GREY).next_to(r_name, DOWN, buff=0.12).align_to(r_name, LEFT)
         self.at("A red blood cell")
         self.play(FadeIn(rbc, scale=0.8), FadeIn(r_name), run_time=0.6)
-        self.at("small, flexible disc")
+        self.at("small")
         self.play(FadeIn(r_desc), run_time=0.5)
         self.at("very narrow vessels")
         self.play(Create(w_top), Create(w_bot), run_time=0.6)

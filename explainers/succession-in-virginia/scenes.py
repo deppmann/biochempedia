@@ -216,8 +216,8 @@ class S02Name(SpokenScene):
         tl = T("years to centuries", 24, GREY).move_to([0, -1.9, 0])
         self.play(GrowArrow(a1), Create(b2[0]), FadeIn(b2[1], lag_ratio=0.08), run_time=1.0)
         self.play(GrowArrow(a2), Create(b3[0]), FadeIn(b3[1], lag_ratio=0.08), FadeIn(tl), run_time=1.0)
-        self.at("predictable in a general way")
-        gen = T("predictable in a general way", 30, TEXT).move_to([0, -2.75, 0])
+        self.at("general pattern")
+        gen = T("often follows a general pattern", 30, TEXT).move_to([0, -2.75, 0])
         self.play(FadeIn(gen), run_time=0.5)
         self.at("come early")
         e = T("early", 26, LIME).next_to(b1, DOWN, buff=0.25)
@@ -353,7 +353,7 @@ class S05Shade(SpokenScene):
         self.play(seed.animate.scale(0.8, about_point=seed.get_bottom()), run_time=0.8)
         self.at("young hardwoods")
         sap = oak(2.6, B, 0.4, 0.22)
-        sl2 = lab2("oak or hickory sapling", "copes better, grows slowly", ca=HARD, cb=HARD, w=3.8).move_to([2.6, -2.85, 0])
+        sl2 = lab2("young hardwood sapling", "copes better, grows slowly", ca=HARD, cb=HARD, w=3.8).move_to([2.6, -2.85, 0])
         self.play(FadeIn(sap, shift=UP * 0.1), FadeIn(sl2), run_time=0.7)
         self.at("as the old pines die")
         dead = [p.animate.set_opacity(0.15) for p in pines]
@@ -382,9 +382,9 @@ class S06Answer(SpokenScene):
         ars = VGroup(*[arr([XS[i] + 0.7, 2.3, 0], [XS[i + 1] - 0.7, 2.3, 0], BLUE, 6) for i in range(3)])
         cl = T("light and soil change", 26, BLUE).move_to([0, 2.75, 0])
         self.play(LaggedStart(*[GrowArrow(a) for a in ars], lag_ratio=0.4), FadeIn(cl), run_time=1.4)
-        self.at("favor the next plants")
+        self.at("cope best")
         self.play(*[a.animate.set_color(GREEN) for a in ars], cl.animate.set_color(GREEN), run_time=0.7)
-        fav = T("and favor the next plants", 26, GREEN).move_to([0, 2.75, 0])
+        fav = T("and the plants that cope best take over", 26, GREEN).move_to([0, 2.75, 0])
         self.play(Transform(cl, fav), run_time=0.5)
         self.at("in most of virginia")
         box = RoundedRectangle(corner_radius=0.15, width=3.0, height=3.1, stroke_color=BLUE, stroke_width=3.5).move_to([XS[3], GY + 1.55, 0])
@@ -407,7 +407,7 @@ class S06Answer(SpokenScene):
         everything = Group(*self.mobjects)
         self.play(FadeOut(everything), run_time=0.8)
         rule = T("Each stage changes the place,", 42, font=TITLE_FONT)
-        rule2 = T("and that favors the next plants.", 42, GREEN, font=TITLE_FONT)
+        rule2 = T("and the plants that cope best take over.", 42, GREEN, font=TITLE_FONT)
         rr = VGroup(rule, rule2).arrange(DOWN, buff=0.35).move_to([0, 0.2, 0])
         fit(rr, max_w=12)
         self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.8)
@@ -416,4 +416,4 @@ class S06Answer(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Each stage changes the place and favors the next plants."
+    LINE = "Each stage changes the place, and the plants that cope best take over."
