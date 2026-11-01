@@ -91,13 +91,13 @@ class S02Species(SpokenScene):
         self.at("one name for each")
         self.play(FadeIn(one, shift=DOWN * 0.15), run_time=0.7)
         sp = T("species", 60, ORANGE, weight=BOLD).move_to([-4.5, 0.4, 0])
-        c1 = chip("similar-looking organisms", ORANGE, size=36)
+        c1 = chip("similar organisms", ORANGE, size=36)
         c2 = chip("can mate in nature", ORANGE, size=36)
         c3 = chip("young that can also reproduce", ORANGE, size=36)
         col = VGroup(c1, c2, c3).arrange(DOWN, buff=0.4, aligned_edge=LEFT).move_to([2.4, 0.35, 0])
         self.at("A species")
         self.play(Write(sp), run_time=0.7)
-        self.at("looking organisms")
+        self.at("similar organisms")
         self.play(FadeIn(c1, shift=RIGHT * 0.2), run_time=0.6)
         self.at("can mate in nature")
         self.play(FadeIn(c2, shift=RIGHT * 0.2), run_time=0.6)
@@ -195,7 +195,7 @@ class S04Levels(SpokenScene):
         lo = T("most specific", 30, GREY).move_to([2.6, top - step * 7, 0])
         loa = arr([rows[7].get_right()[0] + 0.1, top - step * 7, 0], [lo.get_left()[0] - 0.15, top - step * 7, 0], GREY)
         ph = VGroup(*[box(r.width, r.height, GREY, x=r.get_center()[0], y=r.get_center()[1], op=0.04) for r in rows])
-        self.at("eight levels")
+        self.at("main levels")
         self.play(FadeIn(hi), LaggedStart(*[FadeIn(p) for p in ph], lag_ratio=0.12), run_time=1.2)
         nth = {"species": 1}
         for i, c in enumerate(rows):
@@ -298,7 +298,7 @@ class S06Answer(SpokenScene):
         self.at("choice step")
         self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(l1), FadeIn(l2), run_time=0.7)
         self.play(FadeIn(yes), FadeIn(no), run_time=0.5)
-        nr = chip("does not show who is related", RED, size=38).move_to([0, -2.0, 0])
+        nr = chip("its order alone does not show who is related", RED, size=38).move_to([0, -2.0, 0])
         self.at("does not show")
         self.play(FadeIn(nr, shift=UP * 0.1), run_time=0.6)
         key = VGroup(kt, q, yes, no, a1, a2, l1, l2, nr)
@@ -307,7 +307,7 @@ class S06Answer(SpokenScene):
         self.play(FadeOut(key), run_time=0.4)
         self.play(FadeIn(qq, shift=DOWN * 0.1), run_time=0.5)
         sn = chip("scientific name, shared in every country", BLUE, size=38).move_to([0, 1.3, 0])
-        lv = chip("place in the eight levels", TEAL, size=38).move_to([0, -0.3, 0])
+        lv = chip("place in the eight main levels", TEAL, size=38).move_to([0, -0.3, 0])
         self.at("scientific name")
         self.play(FadeIn(sn, shift=UP * 0.15), run_time=0.6)
         self.at("its place in the")
@@ -319,4 +319,4 @@ class S06Answer(SpokenScene):
 
 
 class S07End(EndCard):
-    LINE = "Use its scientific name and its place in the eight levels."
+    LINE = "Use its scientific name and its place in the eight main levels."

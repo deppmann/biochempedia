@@ -126,7 +126,7 @@ class S01Puzzle(SpokenScene):
         gone = [toks[i] for i in range(40) if i not in SURVIVORS]
         self.play(FadeOut(VGroup(*gone), scale=0.6), FadeIn(b2, shift=LEFT * 0.2), run_time=1.0)
 
-        self.at("No elephant lost")
+        self.at("did not come")
         keep = [toks[i] for i in SURVIVORS if toks[i].tusked]
         self.play(*[Indicate(t, color=BLUE, scale_factor=1.25) for t in keep], run_time=1.2)
 
@@ -255,7 +255,7 @@ class S03Surplus(SpokenScene):
         ml = T("elephant", 26, GREY).next_to(mom, DOWN, buff=0.25)
         cl = T("calf", 26, TEAL).next_to(calf, DOWN, buff=0.25)
         calf.set_color(TEAL)
-        one = T("usually one calf at a time", 28, TEXT).move_to([ex, -1.35, 0])
+        one = T("usually one calf at a birth", 28, TEXT).move_to([ex, -1.35, 0])
         self.at("An elephant usually")
         self.play(FadeIn(mom, scale=0.8), FadeIn(ml), run_time=0.7)
         self.play(FadeIn(calf, scale=0.5), FadeIn(cl), FadeIn(one, shift=UP * 0.1), run_time=0.9)
@@ -274,8 +274,8 @@ class S04Pressure(SpokenScene):
         self.play(LaggedStart(*[FadeIn(t, scale=0.8) for t in toks], lag_ratio=0.02), FadeIn(leg), FadeIn(nt), run_time=1.0)
 
         sp = chip("selective pressure", RED, 30).move_to([3.5, 2.4, 0])
-        sp_sub = T("makes some variants more", 24, TEXT).move_to([3.5, 1.7, 0])
-        sp_sub2 = T("likely to survive than others", 24, TEXT).next_to(sp_sub, DOWN, buff=0.08)
+        sp_sub = T("makes some variants more likely", 24, TEXT).move_to([3.5, 1.7, 0])
+        sp_sub2 = T("to survive or reproduce than others", 24, TEXT).next_to(sp_sub, DOWN, buff=0.08)
         self.at("A selective pressure")
         self.play(FadeIn(sp, shift=LEFT * 0.2), run_time=0.6)
         self.at("makes some variants")

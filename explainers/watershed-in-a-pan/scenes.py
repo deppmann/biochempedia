@@ -267,7 +267,7 @@ class S02Paper(SpokenScene):
 
 # ---------------------------------------------------------------------------------------------
 class S03Watershed(SpokenScene):
-    """the same paper: land draining to one place is green; the ridge splits two; two low spots, two watersheds."""
+    """the same paper: land draining to one place is green; the ridge splits two; two low spots, each collecting from its own patch."""
 
     def construct(self):
         land, surf = land_poly(HILL), surf_line(HILL)
@@ -307,8 +307,8 @@ class S03Watershed(SpokenScene):
         self.play(FadeIn(ls1), GrowArrow(a1), run_time=0.5)
         self.at("one low spot")
         self.play(FadeIn(ls2), GrowArrow(a2), run_time=0.5)
-        self.at("has more than one watershed")
-        self.play(Indicate(wr, color=GREEN, scale_factor=1.15), Indicate(wl, color=GREEN, scale_factor=1.15), run_time=1.0)
+        self.at("its own small patch")
+        self.play(Indicate(ls1, color=BLUE, scale_factor=1.15), Indicate(ls2, color=BLUE, scale_factor=1.15), run_time=1.0)
         self.finish()
 
 
@@ -384,7 +384,7 @@ class S04Downstream(SpokenScene):
             pth = VMobject().set_points_as_corners([pos] + pts[1:-1] + [e])
             moves.append(MoveAlongPath(c, pth))
         self.play(*moves, run_time=t_end, rate_func=smooth)
-        self.at("end up downstream")
+        self.at("downstream")
         self.play(*[c.animate.scale(1.1) for c in chips], run_time=0.3)
         self.play(*[c.animate.scale(1 / 1.1) for c in chips], run_time=0.3)
 

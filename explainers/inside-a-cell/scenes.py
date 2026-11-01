@@ -74,7 +74,7 @@ def generic_parts(col_all=None):
 
 
 LABELS = {
-    "nucleus": ("nucleus", "holds the\ninstructions", BLUE, "L", 1.9),
+    "nucleus": ("nucleus", "holds the main\ninstructions", BLUE, "L", 1.9),
     "vacuole": ("vacuole", "stores water,\nfood and wastes", PINK, "L", -0.1),
     "membrane": ("cell membrane", "controls what\nenters and leaves", MEM, "L", -1.9),
     "er": ("endoplasmic\nreticulum", "makes and moves\nproteins and fats", PURPLE, "R", 1.8),
@@ -255,7 +255,7 @@ class S03More(SpokenScene):
         lab_c = mklabel("cyto")
         self.at("The cytoplasm")
         self.play(P["body"].animate.set_fill(CYTO, 0.4), FadeIn(lab_c), run_time=0.7)
-        self.at("holds the organelles")
+        self.at("organelles in it")
         self.play(*[Indicate(P[k], color=YELLOW, scale_factor=1.12) for k in ("nucleus", "er", "vacuole", "mito")], run_time=0.9)
         self.play(P["body"].animate.set_fill(CYTO, 0.14), run_time=0.3)
         lab_e = mklabel("er")
@@ -271,7 +271,7 @@ class S03More(SpokenScene):
         self.play(LaggedStart(*[c.animate.shift(RIGHT * 0.65 + DOWN * 0.1) for c in chips], lag_ratio=0.3), run_time=0.9)
         self.play(FadeOut(chips), run_time=0.4)
         lab_v = mklabel("vacuole")
-        self.at("is a sack")
+        self.at("sac")
         self.play(P["vacuole"].animate.set_color(PINK), FadeIn(lab_v), run_time=0.7)
         # water, food and wastes go into the vacuole
         dots = VGroup(*[Dot(radius=0.1, color=c).move_to(P["vacuole"].get_center() + np.array([-0.2 - 0.0, 0, 0]) + v)
@@ -314,10 +314,10 @@ class S04Energy(SpokenScene):
         # metabolism
         grp2 = VGroup(grp, mlabel, mline, sugar, a1, note, en, a2)
         met = T("metabolism", 56, GOLD, weight=BOLD, font=TITLE_FONT).move_to([0, 2.6, 0])
-        defn = T("all the interactions among\nmolecules in the cell", 32).next_to(met, DOWN, buff=0.3)
+        defn = T("all the chemical reactions\nin the cell", 32).next_to(met, DOWN, buff=0.3)
         self.at("Metabolism means")
         self.play(FadeOut(grp2), FadeIn(met, shift=DOWN * 0.1), run_time=0.7)
-        self.at("all the interactions")
+        self.at("chemical reactions")
         self.play(FadeIn(defn, shift=DOWN * 0.1), run_time=0.7)
         pc = chip("photosynthesis", GREEN, size=30).move_to([-3.5, -1.4, 0])
         rc = chip("cellular respiration", ORANGE, size=30).move_to([3.5, -1.4, 0])

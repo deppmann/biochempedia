@@ -191,7 +191,7 @@ class S02Three(SpokenScene):
         nv = T("new version of a gene", 24, MINT).move_to([3.5, -2.4, 0])
         self.play(FadeIn(nv), Indicate(blocks[3], color=MINT, scale_factor=1.3), run_time=0.7)
 
-        rule = T("Selection does not make variation. It sorts what is already there.", 28, GOLD, weight=BOLD)
+        rule = T("Selection does not make variation. It sorts the variation that is there.", 28, GOLD, weight=BOLD)
         fit(rule, max_w=12.0)
         rule.move_to([0, -3.3, 0])
         self.at("Selection does not make")
@@ -330,10 +330,10 @@ class S04Change(SpokenScene):
         nxt_cap = lines("next generation:", "deeper beaks", size=28, color=PURPLE).move_to([4.4, -0.7, 0])
         self.play(FadeIn(nxt_cap), run_time=0.5)
 
-        last = cchip("tends to last, unless the environment later favours something else", GOLD, 24)
+        last = cchip("selection can make a population better suited, but not perfectly", GOLD, 24)
         fit(last, max_w=12.0)
         last.move_to([0, -3.3, 0])
-        self.at("tends to last")
+        self.at("Over many generations")
         self.play(FadeIn(last, shift=UP * 0.1), run_time=0.8)
         self.finish()
 
@@ -391,7 +391,7 @@ class S05Species(SpokenScene):
         sideR = T("group B", 28, GREY).next_to(bR, UP, buff=0.12)
         x_arrow = DoubleArrow([-0.8, 0.2, 0], [0.8, 0.2, 0], color=RED, stroke_width=5, buff=0)
         x_c = cross(x_arrow, 0.3)
-        noint = lines("can no longer", "interbreed", size=24, color=RED).move_to([0, -0.6, 0])
+        noint = lines("no longer", "interbreed", size=24, color=RED).move_to([0, -0.6, 0])
         self.at("no longer do that")
         self.play(FadeIn(sideL), FadeIn(sideR), GrowFromCenter(x_arrow), Create(x_c), FadeIn(noint), run_time=0.9)
 
@@ -450,7 +450,7 @@ class S06Answer(SpokenScene):
         for c in (c1, c2):
             c.set_x(-3.4)
         a1 = arr(c1.get_bottom(), c2.get_top(), GREY, 4, 0.18)
-        self.at("which birds lived")
+        self.at("which")
         self.play(FadeIn(c1, shift=UP * 0.2), run_time=0.7)
         self.at("young inherited")
         self.play(GrowArrow(a1), FadeIn(c2, shift=UP * 0.2), run_time=0.7)
@@ -471,7 +471,7 @@ class S06Answer(SpokenScene):
                   *[b.beak.animate.stretch_to_fit_height(0.07) for b in gB[1]], FadeIn(diff), run_time=1.4)
         xa = DoubleArrow([4.0, 0.0, 0], [4.0, -0.8, 0], color=RED, stroke_width=5, buff=0)
         xc = cross(xa, 0.25)
-        nl = T("can no longer interbreed", 24, RED).move_to([4.0, -0.4, 0]).shift(RIGHT * 0.0)
+        nl = T("no longer interbreed", 24, RED).move_to([4.0, -0.4, 0]).shift(RIGHT * 0.0)
         xa.shift(LEFT * 2.2)
         xc.shift(LEFT * 2.2)
         nl.shift(RIGHT * 0.2)

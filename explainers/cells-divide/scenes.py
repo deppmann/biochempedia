@@ -261,7 +261,7 @@ class S05Apart(SpokenScene):
             fibers.add(Line([-4.45, CY, 0], l.get_left(), color=GREY, stroke_width=3))
         for r in rights:
             fibers.add(Line([4.45, CY, 0], r.get_right(), color=GREY, stroke_width=3))
-        self.at("thin fibers")
+        self.at("fibers")
         self.play(FadeIn(fibers), run_time=0.6)
         self.at("in telophase")
         self.play(*hilite(chips, 3), FadeOut(fibers), run_time=0.5)
@@ -274,7 +274,7 @@ class S05Apart(SpokenScene):
                   *[r.animate.move_to(t.get_center()) for r, t in zip(rights, r2)], run_time=1.2)
         d1 = cell(5.2, 3.4, -3.0, CY)
         d2 = cell(5.2, 3.4, 3.0, CY)
-        self.at("pinches into two")
+        self.at("splits into two")
         self.play(ReplacementTransform(cl, VGroup(d1, d2)), run_time=1.6)
         self.at("daughter cell")
         dl1 = word("daughter cell", 30).move_to([-3.0, -3.0, 0])

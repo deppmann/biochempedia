@@ -226,7 +226,7 @@ class S03Quiet(SpokenScene):
         self.at("ate the same")
         self.play(FadeIn(sb, shift=LEFT * 0.1), Indicate(VGroup(*F, dq), color=TEXT, scale_factor=1.6), run_time=1.0)
         gone = T("gone", 36, RED).move_to([bq[0], bq[1] - 0.8, 0])
-        self.at("eaten by one")
+        self.at("eat")
         self.play(dq.animate.move_to([a0[0] + 0.25, a0[1], 0]).scale(0.5), run_time=0.8)
         self.play(FadeOut(dq), A[0].animate.set_fill(opacity=0.9), run_time=0.3)
         hole = DashedVMobject(Circle(radius=0.3, stroke_color=RED, stroke_width=3), num_dashes=10).move_to([bq[0], bq[1], 0])
@@ -300,7 +300,7 @@ class S04Cooperate(SpokenScene):
         ins = [arr([-4.9, -0.6, 0], [-3.9, -0.1, 0], TEAL_C, w=8), arr([4.9, -0.6, 0], [3.9, -0.1, 0], TEAL_C, w=8)]
         self.at("work together")
         self.play(*[GrowArrow(a) for a in ins], run_time=0.6)
-        self.at("honeybee colony")
+        self.at("honey")
         self.play(*[FadeOut(x) for x in (*mid, *ins)], FadeIn(colony), run_time=0.4)
         self.play(LaggedStart(*[FadeIn(b, scale=0.4) for b in bees + key], lag_ratio=0.03), run_time=1.2)
         cl = T("honeybee colony: tens of thousands of bees", 32, TEAL_C).move_to([0, -3.4, 0])
@@ -447,7 +447,7 @@ class S06Answer(SpokenScene):
         t3b = T("living and nonliving", 28, GREY).move_to([1.7, -2.4, 0])
         self.at("limiting factors")
         self.play(FadeIn(box), *[FadeIn(c) for c in dots], *[GrowArrow(x) for x in pr], FadeIn(t3, shift=LEFT * 0.2), run_time=0.9)
-        self.at("living and non")
+        self.at("nonliving")
         self.play(FadeIn(t3b), run_time=0.5)
         self.finish()
 

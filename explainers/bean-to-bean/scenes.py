@@ -5,6 +5,10 @@ class S00Title(SetupTitle):
     pass
 
 
+class S00Idea(BigIdea):
+    pass
+
+
 class S01Gather(Gather):
     pass
 

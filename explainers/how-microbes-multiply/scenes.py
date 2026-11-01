@@ -82,7 +82,7 @@ class S01Two(SpokenScene):
         self.at("best laboratory")
         best = lab("best laboratory conditions", 24, GREY).move_to([LX, Y + 1.75, 0])
         self.play(FadeIn(hdrL), FadeIn(best), run_time=0.6)
-        self.at("coli cell")
+        self.at("cole")
         self.play(FadeIn(one, scale=0.9), FadeIn(one_lbl), run_time=0.6)
         c1 = cellbox(2.7, 2.2).move_to([LX - 1.5, Y, 0]); b1 = dnabar(1.5).move_to(c1)
         c2 = cellbox(2.7, 2.2).move_to([LX + 1.5, Y, 0]); b2 = dnabar(1.5).move_to(c2)
@@ -224,7 +224,7 @@ class S03Double(SpokenScene):
         self.at("100 cells become")
         self.play(Indicate(nums[-1], color=YELLOW, scale_factor=1.25), run_time=0.8)
         # one E. coli cell
-        self.at("From one")
+        self.at("From")
         grp = VGroup(axis, *bars, *nums, *ticks, unit, six)
         self.play(FadeOut(grp), run_time=0.5)
         start = chip("1 cell", BLUE, size=36).move_to([-5.2, 0.4, 0])

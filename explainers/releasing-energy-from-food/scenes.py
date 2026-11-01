@@ -151,7 +151,7 @@ class S02Fuel(SpokenScene):
 
         self.at("glucose")
         gl = bchip("glucose", SUGAR, 32).move_to([3.2, 1.2, 0])
-        sub = T("the main fuel: a sugar", 24, SUGAR).next_to(gl, DOWN, buff=0.18)
+        sub = T("the fuel we follow: a sugar", 24, SUGAR).next_to(gl, DOWN, buff=0.18)
         self.play(FadeIn(gl, shift=LEFT * 0.3), run_time=0.7)
         self.play(FadeIn(sub), run_time=0.4)
 
@@ -310,7 +310,7 @@ class S05Energy(SpokenScene):
         dots.add_updater(jig)
         self.play(FadeIn(box), FadeIn(dots), run_time=0.6)
 
-        self.at("feel as warmth")
+        self.at("feel")
         wm = T("you feel it as warmth", 26, HEAT).move_to([2.7, -2.5, 0])
         self.play(FadeIn(wm, shift=UP * 0.1), run_time=0.6)
 

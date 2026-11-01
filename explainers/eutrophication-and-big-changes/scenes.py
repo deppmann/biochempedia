@@ -368,7 +368,7 @@ class S06Answer(SpokenScene):
         tk = T("does not take", 28, BAD, weight=BOLD).move_to([0, 3.0, 0])
         self.play(FadeIn(fe), FadeIn(ox), GrowArrow(ax), run_time=0.6)
         self.play(Create(x1), Create(x2), FadeIn(tk), run_time=0.5)
-        self.at("Its nutrients")
+        self.at("It's")
         nu = chip("its nutrients", NUT, size=30, pad=0.16).move_to([-3.8, 0.4, 0])
         al = chip("algae", ALG, size=30, pad=0.16).move_to([3.8, 0.4, 0])
         an = arr([-2.1, 0.4, 0], [3.0, 0.4, 0], GREY)

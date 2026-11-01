@@ -118,7 +118,7 @@ class S02Nucleus(SpokenScene):
         nolab = T("no nucleus", 26, RED).move_to(R + UP * 0.9)
         self.at("with a nucleus")
         self.play(FadeIn(elab), run_time=0.4)
-        self.at("with no nucleus")
+        self.at("have no nucleus")
         self.play(Create(pc), FadeIn(pdna), run_time=0.7)
         self.play(FadeIn(plab), FadeIn(nolab), run_time=0.5)
 
@@ -223,16 +223,13 @@ class S04Kingdoms(SpokenScene):
 
         # fungi
         fi = icons(xs[1], 3, True)
-        f1, f2, f3 = lab("chitin wall", xs[1], -0.55, ORANGE), lab("decomposer", xs[1], -1.1, PINK), lab("absorbs food", xs[1], -1.65, PINK)
+        f1, f2, f3 = lab("chitin wall", xs[1], -0.55, ORANGE), lab("many decomposers", xs[1], -1.65, PINK), lab("absorbs food", xs[1], -1.1, PINK)
         self.at("Fungi have")
         self.play(Create(fi), FadeIn(f1), run_time=0.6)
-        self.at("decomposers")
-        self.play(FadeIn(f2), run_time=0.4)
-        self.at("absorb food")
+        self.at("absorb their food")
         self.play(FadeIn(f3), run_time=0.4)
-        f4 = lab("from dead material", xs[1], -2.2, PINK, 22)
-        self.at("dead material")
-        self.play(FadeIn(f4), run_time=0.4)
+        self.at("many are decomposers")
+        self.play(FadeIn(f2), run_time=0.4)
 
         # animals
         ai = icons(xs[2], 3, False)
@@ -249,10 +246,10 @@ class S04Kingdoms(SpokenScene):
 
         # protists
         qi = icons(xs[3], 1, False)
-        q1, q2 = lab("one eukaryotic cell", xs[3], -0.55), lab("fits none of these", xs[3], -1.1)
-        self.at("One eukaryotic cell")
+        q1, q2 = lab("any other eukaryote", xs[3], -0.55), lab("single cell or alga", xs[3], -1.1)
+        self.at("Any other eukaryote")
         self.play(Create(qi), FadeIn(q1), run_time=0.6)
-        self.at("fits none of these")
+        self.at("such as kelp")
         self.play(FadeIn(q2), run_time=0.4)
         qw = Circle(radius=0.28 * 1.3, stroke_color=ORANGE, stroke_width=4).move_to([xs[3], 0.15, 0])
         qw = DashedVMobject(qw, num_dashes=12)
@@ -317,7 +314,7 @@ class S05Key(SpokenScene):
         elbow = VGroup(Line(q4.get_bottom(), [qx, -3.3, 0], color=GREY, stroke_width=5),
                        Line([qx, -3.3, 0], [3.6, -3.3, 0], color=GREY, stroke_width=5),
                        arr([3.6, -3.3, 0], p.get_bottom(), GREY))
-        n4 = T("no: fits none", 22, GREY).move_to([1.6, -3.05, 0])
+        n4 = T("no: any other", 22, GREY).move_to([1.6, -3.05, 0])
         self.play(Create(elbow), FadeIn(n4), FadeIn(p), run_time=0.3)
 
         lim = T("A key only sorts what was built into it", 26, RED, weight=BOLD)
@@ -337,14 +334,14 @@ class S05Key(SpokenScene):
         crab = T("the blue crab", 28, GREY).move_to([0, 2.3, 0])
         self.play(FadeIn(crab), run_time=0.3)
         gl = T("genus: capital letter", 28, YELLOW, weight=BOLD).next_to(g, DOWN, buff=0.7)
-        sl = T("species: lower case", 28, GREEN, weight=BOLD).next_to(s, DOWN, buff=0.7)
+        sl = T("epithet: lower case", 28, GREEN, weight=BOLD).next_to(s, DOWN, buff=0.7)
         gl.set_x(g.get_center()[0]); sl.set_x(s.get_center()[0])
         gb = Line(g.get_bottom() + DOWN * 0.15, gl.get_top() + UP * 0.1, color=YELLOW, stroke_width=3)
         sb = Line(s.get_bottom() + DOWN * 0.15, sl.get_top() + UP * 0.1, color=GREEN, stroke_width=3)
         self.at("genus comes first")
         self.play(Write(g), run_time=0.9)
         self.play(Create(gb), FadeIn(gl), run_time=0.5)
-        self.at("species comes second")
+        self.at("epithet comes second")
         self.play(Write(s), run_time=0.8)
         self.play(Create(sb), FadeIn(sl), run_time=0.5)
         self.at("blue crab")

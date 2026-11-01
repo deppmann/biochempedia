@@ -117,7 +117,7 @@ class S02Sets(SpokenScene):
             b = rbar(MOM, PH[i]).move_to(P(XP[i] - 0.2, CY))
             o = rbar(DAD, PH[i]).move_to(P(XP[i] + 0.2, CY))
             bars += [b, o]
-        self.at("Most human body cells")
+        self.at("A typical cell")
         self.play(FadeIn(cell), *[FadeIn(b, scale=0.8) for b in bars], run_time=0.8)
         lab46 = T("46 chromosomes in 23 pairs", 28, TEXT).move_to(P(0, 3.2))
         note = T("model cell: 3 pairs shown, not 23", 22, GREY).move_to(P(0, -3.3))
@@ -317,7 +317,7 @@ class S05Shuffle(SpokenScene):
         self.play(*[Indicate(m, scale_factor=1.15) for m in (pb[0], po[1], pb[2])], run_time=0.8)
         self.at("one chromosome from each pair")
         sample = gam([0, 1, 0], 0.0)
-        cap = T("a sex cell: one from each pair", 26, GREEN).move_to(P(0, -2.45))
+        cap = T("a normal sex cell: one from each pair", 26, GREEN).move_to(P(0, -2.45))
         self.play(FadeIn(sample, shift=UP * 0.3), FadeIn(cap), run_time=0.9)
         self.at("either chromosome")
         self.play(*[Indicate(m, color=YELLOW, scale_factor=1.15) for m in (pb[0], po[0])], run_time=0.8)
