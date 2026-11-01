@@ -86,7 +86,7 @@ class S01Puzzle(SpokenScene):
         xs = [-5.0, -2.7, -0.4, 1.9]
         pig = Circle(radius=0.6, stroke_color=GREY, stroke_width=3, fill_color=MAROON, fill_opacity=1).move_to([4.7, cy, 0])
         pig_l = T("pigment", 24, GREY).next_to(pig, DOWN, buff=0.2)
-        self.at("A red eye needs pigment")
+        self.at("red fly eye")
         self.play(VGroup(e1, e2, times, l1, l2, a, e3, l3).animate.set_opacity(0.3), run_time=0.5)
         self.play(FadeIn(pig, scale=0.7), FadeIn(pig_l), run_time=0.6)
         chips = [bchip(f"step {i+1}", GREY, 26).move_to([x, cy, 0]) for i, x in enumerate(xs)]
@@ -96,10 +96,10 @@ class S01Puzzle(SpokenScene):
             r = chips[i].get_right()[0] + 0.05 if i < 4 else 0
             l = (chips[i + 1].get_left()[0] - 0.05) if i < 3 else pig.get_left()[0] - 0.05
             arrows.append(arr([chips[i].get_right()[0] + 0.05, cy, 0], [l, cy, 0], GREY))
-        self.at("made in several steps")
+        self.at("in several steps")
         self.play(LaggedStart(*[AnimationGroup(FadeIn(c, shift=RIGHT * 0.2), GrowArrow(a_)) for c, a_ in zip(chips, arrows)],
                               lag_ratio=0.35), run_time=2.4)
-        self.at("Losing any one step")
+        self.at("Losing some")
         cr = xmark(0.2, 0.2).next_to(chips[2], UP, buff=0.15)
         self.play(chips[2][1].animate.set_stroke(RED).set_fill(RED, 0.16), chips[2][2].animate.set_color(RED),
                   Create(cr), pig[0].animate.set_fill(PALE, 1), run_time=0.8)

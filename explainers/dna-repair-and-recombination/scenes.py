@@ -313,10 +313,10 @@ class S03Bulky(SpokenScene):
         self.at("dimer that")
         self.play(FadeIn(bridge, scale=0.5), FadeIn(dimer), run_time=0.6)
 
-        self.at("bends the helix")
+        self.at("distorts the helix")
         self.play(Transform(d.all, bent.all), bridge.animate.shift(DOWN * 0.35), run_time=0.9)
 
-        self.at("senses the bend")
+        self.at("senses the distortion")
         y_hi = top_y + 0.22
         y_lo = d.cy + d.ty - 0.35 - d.th / 2 - 0.12
         sense = Rectangle(width=d.X(6) - d.X(3) + 0.95, height=y_hi - y_lo, stroke_color=YELLOW, stroke_width=4)
@@ -389,7 +389,7 @@ class S04Mismatch(SpokenScene):
         tag_b = T("new\nstrand", 22, GREEN).move_to([-5.75, d.ytile("b", 0), 0])
         self.play(Transform(d.all, db.all), FadeIn(tag_t), FadeIn(tag_b), run_time=0.9)
 
-        self.at("In E. coli")
+        self.at("cole")
         ecoli = T("E. coli", 28, GREY, slant=ITALIC).move_to([-5.2, 3.0, 0])
         self.play(FadeIn(ecoli), run_time=0.5)
 
@@ -405,7 +405,7 @@ class S04Mismatch(SpokenScene):
         gatc.move_to([xa + 0.5 + gatc.width / 2, yb_top + 0.7, 0])
         self.play(FadeIn(me, scale=0.6), Create(stem), run_time=0.6)
 
-        self.at("GATC sites")
+        self.at("G at")
         self.play(Create(box), FadeIn(gatc), run_time=0.6)
 
         self.at("briefly unmethylated")

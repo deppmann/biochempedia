@@ -231,7 +231,7 @@ class S03Repair(SpokenScene):
         right = seqrow(R, [GREY] * 8, pitch, y, 46, cx=3.2)
         flash = Line([0, y + 0.65, 0], [0, y - 0.65, 0], color=YELLOW, stroke_width=7)
         self.play(FadeIn(left), FadeIn(right), Create(flash), run_time=0.9)
-        self.at("repairs the break")
+        self.at("repairs")
         brk = T("a double-strand break", 32, YELLOW).move_to([0, 0.6, 0])
         self.play(FadeIn(brk, shift=UP * 0.1), run_time=0.5)
         # end joining
@@ -387,7 +387,7 @@ class S06Rule(SpokenScene):
         self.at("knockout")
         self.play(GrowArrow(a2), FadeIn(c3), run_time=0.5)
         self.at("Only the third")
-        gr = T("the only genetic result", 30, TEXT).next_to(c3, DOWN, buff=0.25)
+        gr = T("the only loss of function", 30, TEXT).next_to(c3, DOWN, buff=0.25)
         ul = Rectangle(width=c3.width + 0.3, height=c3.height + 0.3, stroke_color=GOLD, stroke_width=4).move_to(c3)
         self.play(Create(ul), FadeIn(gr), run_time=0.7)
         # the mosaic
@@ -402,13 +402,13 @@ class S06Rule(SpokenScene):
         mo = T("a mosaic, not a null", 32, TEXT).move_to([-3.7, -3.3, 0])
         self.play(FadeIn(mo, shift=UP * 0.1), run_time=0.5)
         r1 = bchip("derive clones, genotype them", TEXT, 32).move_to([3.0, -0.2, 0])
-        r2 = bchip("or use more than one guide", TEXT, 32).move_to([3.0, -1.7, 0])
+        r2 = bchip("and check function is gone", TEXT, 32).move_to([3.0, -1.7, 0])
         self.at("Derive clones")
         self.play(FadeIn(r1, shift=LEFT * 0.2), run_time=0.6)
-        self.at("more than one guide")
+        self.at("function is gone")
         self.play(FadeIn(r2, shift=LEFT * 0.2), run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Cut, mutation, knockout: three states. Only the knockout is a genetic result."
+    LINE = "Cut, mutation, knockout: three states. Only the knockout is a loss of function."

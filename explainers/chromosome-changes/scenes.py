@@ -164,7 +164,7 @@ class S02Divisions(SpokenScene):
                   run_time=1.2)
 
         # nondisjunction: the pair that fails to part
-        self.at("disjunction")
+        self.at("Nondisjunction")
         everything = VGroup(st, secs[0], secs[1], *arrs, *arrs2, *sps, a, b, chI_on, chII_on, sl)
         self.play(FadeOut(everything), run_time=0.4)
         pa = chromo(BLUE, h=1.9).move_to([-0.45, 0.2, 0])
@@ -354,7 +354,7 @@ class S05MaternalOne(SpokenScene):
         hl = T("homologues", 30, TEXT).move_to([-3.2, -2.0, 0])
         sl = T("sisters", 30, TEXT).move_to([3.2, -2.0, 0])
         hd = T("alleles differ", 26, GREY).move_to([-3.2, -2.55, 0])
-        sd = T("same allele", 26, GREY).move_to([3.2, -2.55, 0])
+        sd = T("usually the same allele", 26, GREY).move_to([3.2, -2.55, 0])
         self.play(FadeIn(head), FadeIn(hp, shift=UP * 0.15), FadeIn(hl), run_time=0.7)
         self.at("differ there")
         self.play(FadeIn(hd), Indicate(hp[0].bn, color=TEXT, scale_factor=1.15), Indicate(hp[1].bn, color=TEXT, scale_factor=1.15), run_time=0.6)
@@ -385,7 +385,7 @@ class S05MaternalOne(SpokenScene):
         ch = VGroup(tall(GREY, "1", h=3.4).move_to([2.1, -0.3, 0]), tall(BLUE, "3", h=3.4).move_to([3.2, -0.3, 0]),
                     tall(YELLOW, "4", h=3.4).move_to([4.3, -0.3, 0]))
         cl = column_label("Child A", 3.2)
-        self.at("Child A types")
+        self.at("Child")
         self.play(FadeIn(cl), LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in ch], lag_ratio=0.25), run_time=1.3)
         r1 = SurroundingRectangle(ch[0], color=TEXT, buff=0.12, corner_radius=0.1, stroke_width=3)
         r2 = SurroundingRectangle(VGroup(ch[1], ch[2]), color=TEXT, buff=0.12, corner_radius=0.1, stroke_width=3)

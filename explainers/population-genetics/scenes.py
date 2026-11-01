@@ -134,7 +134,7 @@ class S01Question(SpokenScene):
                        Line([-5.7, -2.3, 0], [6.6, 2.9, 0], color=RED, stroke_width=8)).set_opacity(0.0)
         self.play(FadeIn(no, scale=1.5), qmark.animate.set_opacity(0.2), run_time=0.7)
         self.wait(self.beat(0.05))
-        self.at("starting point")
+        self.at("reference point")
         self.play(FadeOut(VGroup(*rows, *labs, leg, no, qmark, hardy, guess)), run_time=0.6)
         end = T("population genetics", 50, font=TITLE_FONT).move_to([0, 0.2, 0])
         self.play(Write(end), run_time=1.0)

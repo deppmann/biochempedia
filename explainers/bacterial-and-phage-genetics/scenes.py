@@ -313,7 +313,7 @@ class S05Reverse(SpokenScene):
         line2, chips2, tl2, st2 = row(y2, T2, "dcba")
         self.at("A second")
         self.play(FadeIn(l2), FadeIn(line2), run_time=0.2)
-        cues = {"d": "gives D", "c": "C at", "b": "B at", "a": "A at"}
+        cues = {"d": "gives D", "c": "C at", "b": "B at", "a": "and at"}
         for n in "dcba":
             self.at(cues[n], nth=0)
             self.play(FadeIn(chips2[n], shift=DOWN * 0.3), FadeIn(st2[n]), FadeIn(tl2[n]), run_time=0.45)
