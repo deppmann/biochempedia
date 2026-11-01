@@ -1,17 +1,13 @@
-"""Gas exchange: how two streams flow matters  (Biochemistrypedia explainer)
+"""Gas Exchange and Breathing — timed to the supplied Kokoro narration.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-The lesson's own numbers only: dry air at sea level about 21% oxygen at about 760 mmHg, so about
-160 mmHg; alveolar PO2 about 100 mmHg in an adult human at rest; warmed, humidified inhaled air
-about 150 mmHg. Every level, bar and shade is "in this sketch, not to scale".
-
-COLOR MAP (one color per concept, whole video)
-  BLOOD   = blood, purple (the stream inside the lamella or capillary)
-  TEAL   = the outside medium: water or air
-  YELLOW = oxygen partial pressure (brighter fill = higher, in this sketch)
-  RED    = a stretch that adds little
-  GREY   = structure, outlines, notes
-  TEXT   = generic labels
+COLOR MAP (retained from the original film)
+  BLOOD = blood, purple
+  TEAL = outside medium, water or air
+  YELLOW = oxygen / its partial pressure (qualitative brightness)
+  RED = limitation / carbon dioxide and its chemical signal
+  GREY = structures, outlines and notes
+  TEXT = generic labels
+All gradients and volumes are qualitative, with no numerical scale.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -46,353 +42,364 @@ def cell(x, y, v, edge, w=1.2, h=0.8):
                      fill_opacity=0.12 + 0.78 * v).move_to([x, y, 0])
 
 
+# Shared schematic pieces also recalled on the closing card.
+def slab():
+    return Rectangle(width=0.55, height=3.6, stroke_color=GREY, stroke_width=3,
+                     fill_color=GREY, fill_opacity=0.3)
+
+
+def pump():
+    box = RoundedRectangle(width=2.2, height=1.5, corner_radius=0.3,
+                           stroke_color=TEAL, fill_color=TEAL, fill_opacity=0.1)
+    return VGroup(box, arr([-0.8, 0, 0], [0.8, 0, 0], TEAL))
+
+
+def sensor():
+    return VGroup(Circle(radius=0.5, color=RED),
+                  Dot(radius=0.14, color=RED), arr([0.65, 0, 0], [1.4, 0, 0], GREY))
+
+
+def heading(text):
+    return T(text, 32, TEXT, font=TITLE_FONT).move_to([0, 3.15, 0])
+
+
+def label(text, x, y, color=TEXT, size=24):
+    return T(text, size, color).move_to([x, y, 0])
+
+
 class S00Title(TitleCard):
-    LESSON = "Gas exchange and breathing"
-    TITLE = "How two streams flow matters"
+    LESSON = "Large, thin, moist surfaces"
+    TITLE = "Gas Exchange and Breathing"
+
+    def construct(self):
+        brand = T("BIOCHEMISTRYPEDIA", 22, TEAL, weight=BOLD)
+        subtitle = T(self.LESSON, 24, GREY)
+        title = T(self.TITLE, 48, font=TITLE_FONT)
+        rule = Line(LEFT*1.2, RIGHT*1.2, color=GOLD, stroke_width=4)
+        group = VGroup(brand, subtitle, title, rule).arrange(DOWN, buff=.32)
+        self.play(FadeIn(brand), FadeIn(subtitle), run_time=self.beat(.25))
+        self.play(Write(title), GrowFromCenter(rule), run_time=self.beat(.35))
+        self.wait(self.beat(.2))
+        self.play(FadeOut(group), run_time=self.beat(.2))
+        self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S01Question(SpokenScene):
     def construct(self):
-        base, k = -1.7, 3.6
-        XL1, XL2, XR1, XR2 = -5.0, -2.9, 2.4, 4.5
-        left = RoundedRectangle(corner_radius=0.2, width=6.0, height=5.6, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.05).move_to([-3.95, -0.2, 0])
-        right = RoundedRectangle(corner_radius=0.2, width=6.0, height=5.6, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.05).move_to([3.45, -0.2, 0])
-        tl = T("a trout's gill", 30, TEXT).move_to([-3.95, 2.1, 0])
-        tr = T("your lung", 30, TEXT).move_to([3.45, 2.1, 0])
-        water = chip("water holds far less oxygen than air", TEAL, 24).move_to([0, 3.2, 0])
-        note = sketch_note(-3.3)
-
-        self.at("Water holds")
-        self.play(FadeIn(water, shift=DOWN * 0.1), run_time=0.8)
-        self.at("trout")
-        self.play(FadeIn(left), FadeIn(tl), run_time=0.6)
-        w_in = bar(XL1, base, 0.75 * k, color=YELLOW, op=0.55, stroke=TEAL)
-        w_in_l = T("water\nflowing in", 22, TEAL, line_spacing=0.6).next_to(w_in, DOWN, buff=0.12)
-        self.play(FadeIn(w_in, shift=UP * 0.2), FadeIn(w_in_l), run_time=0.6)
-        self.at("close to")
-        b_out = bar(XL2, base, 0.7 * k, color=YELLOW, op=0.55, stroke=BLOOD)
-        b_out_l = T("blood\nleaving", 22, BLOOD, line_spacing=0.6).next_to(b_out, DOWN, buff=0.12)
-        gap = DashedLine([XL1 - 0.45, base + 0.75 * k, 0], [XL2 + 0.45, base + 0.75 * k, 0], color=TEXT, stroke_width=3)
-        self.play(FadeIn(b_out, shift=UP * 0.2), FadeIn(b_out_l), Create(gap), run_time=0.8)
-        self.at("Your lung")
-        self.play(FadeIn(right), FadeIn(tr), run_time=0.6)
-        a_in = bar(XR1, base, 0.75 * k, color=YELLOW, op=0.55, stroke=TEAL)
-        a_in_l = T("air\nflowing in", 22, TEAL, line_spacing=0.6).next_to(a_in, DOWN, buff=0.12)
-        q_box = DashedVMobject(Rectangle(width=0.9, height=0.75 * k, stroke_color=BLOOD, stroke_width=3
-                                         ).move_to([XR2, base + 0.75 * k / 2, 0]), num_dashes=30)
-        q_l = T("blood\nleaving", 22, BLOOD, line_spacing=0.6).next_to(q_box, DOWN, buff=0.12)
-        self.play(FadeIn(a_in, shift=UP * 0.2), FadeIn(a_in_l), run_time=0.6)
-        self.play(Create(q_box), FadeIn(q_l), run_time=0.6)
-        self.at("Why not")
-        q = T("?", 90, YELLOW, weight=BOLD).move_to(q_box.get_center())
-        self.play(FadeIn(q, scale=1.4), FadeIn(note), run_time=0.6)
+        wall = slab()
+        wet = Rectangle(width=0.14, height=3.6, color=TEAL, fill_opacity=0.5).next_to(wall, LEFT, buff=0)
+        names = VGroup(label("air or water", -3.7, 2.35, TEAL), label("blood", 3.7, 2.35, BLOOD))
+        oxygen = VGroup(label("oxygen: higher → lower", -3, 1.05, YELLOW),
+                         arr([-4.6, 0.55, 0], [4.6, 0.55, 0], YELLOW, w=4))
+        co2 = VGroup(label("CO₂: lower ← higher", 3, -1.25, RED),
+                     arr([4.6, -0.65, 0], [-4.6, -0.65, 0], RED, w=4))
+        self.at("Animals take in")
+        self.play(FadeIn(wall), FadeIn(wet), FadeIn(names), run_time=0.5)
+        self.at("oxygen and remove")
+        self.play(FadeIn(oxygen), FadeIn(co2), run_time=0.7)
+        self.at("higher partial pressure")
+        self.play(ShowPassingFlash(oxygen[1].copy(), time_width=0.6),
+                  ShowPassingFlash(co2[1].copy(), time_width=0.6), run_time=0.8)
+        rate = label("more area → more transfer", 0, -2.65, TEXT, 28)
+        self.at("More area")
+        self.play(wall.animate.stretch_to_fit_height(4.6), wet.animate.stretch_to_fit_height(4.6),
+                  FadeIn(rate), oxygen[1].animate.set_stroke(width=6), co2[1].animate.set_stroke(width=6), run_time=0.6)
+        self.at("a steeper pressure difference")
+        self.play(Transform(rate, label("steeper difference → more transfer", 0, -2.65, TEXT, 28)),
+                  oxygen[1].animate.set_stroke(width=9), co2[1].animate.set_stroke(width=9), run_time=0.6)
+        self.at("a thinner barrier")
+        self.play(wall.animate.stretch_to_fit_width(0.2), wet.animate.shift(RIGHT * 0.175),
+                  Transform(rate, label("thinner barrier → more transfer", 0, -2.65, TEXT, 28)), run_time=0.6)
+        self.at("Breathing and blood flow")
+        flows = VGroup(arr([-5.5, -1.8, 0], [-5.5, 1.6, 0], TEAL),
+                       arr([5.5, 1.6, 0], [5.5, -1.8, 0], BLOOD))
+        self.play(FadeIn(flows), Transform(rate, label("flows maintain the pressure differences", 0, -2.65, TEXT, 28)), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S02Fick(SpokenScene):
     def construct(self):
-        base, k = -2.2, 3.4
-        XH, XB, XLO = -5.2, -3.4, -1.6
-        slab = Rectangle(width=0.7, height=3.8, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                         fill_opacity=0.35).move_to([XB, base + 1.9, 0])
-        slab_l = T("barrier", 24, GREY).next_to(slab, UP, buff=0.12)
-        hi = bar(XH, base, 0.95 * k, w=1.0)
-        lo = bar(XLO, base, 0.35 * k, w=1.0)
-        hi_l = T("higher", 22, YELLOW).next_to(hi, DOWN, buff=0.12)
-        lo_l = T("lower", 22, YELLOW).next_to(lo, DOWN, buff=0.12)
-        flow = arr([XH + 0.6, base + 2.6, 0], [XLO - 0.6, base + 2.6, 0], TEXT)
-        pp_l = T("partial pressure", 24, YELLOW).move_to([-3.4, base + 4.95, 0])
-
-        self.at("by diffusion")
-        self.play(FadeIn(slab), FadeIn(slab_l), run_time=0.6)
-        self.at("higher partial pressure")
-        self.play(FadeIn(hi, shift=UP * 0.2), FadeIn(hi_l), FadeIn(pp_l), run_time=0.6)
-        self.at("to lower")
-        self.play(FadeIn(lo, shift=UP * 0.2), FadeIn(lo_l), GrowArrow(flow), run_time=0.8)
-
-        c1 = bchip("dry air, sea level:\nabout 21% oxygen", TEAL, 24).move_to([3.1, 2.7, 0])
-        c1b = bchip("total pressure\nabout 760 mmHg", TEAL, 24).move_to([3.1, 1.3, 0])
-        c2 = bchip("oxygen: 0.21 x 760\nroughly 160 mmHg", YELLOW, 24).move_to([3.1, -0.1, 0])
-        self.at("Dry air")
-        self.play(FadeIn(c1, shift=LEFT * 0.2), run_time=0.7)
-        self.at("total pressure")
-        self.play(FadeIn(c1b, shift=LEFT * 0.2), run_time=0.7)
-        self.at("So oxygen's")
-        self.play(FadeIn(c2, shift=UP * 0.15), run_time=0.7)
-
-        eq = M("rate = k x A x (P1 - P2) / T", 26, TEXT).move_to([3.1, -1.25, 0])
-        self.at("The rate")
-        self.play(FadeIn(eq), run_time=0.6)
-        tags = VGroup(T("A: area", 22, TEXT), T("P1 - P2: pressure difference", 22, YELLOW),
-                      T("T: barrier thickness", 22, GREY)).arrange(DOWN, aligned_edge=LEFT, buff=0.12
-                                                                   ).move_to([3.1, -2.55, 0])
-        self.play(FadeIn(tags), run_time=0.5)
-        self.at("pressure difference")
-        self.play(Circumscribe(tags[1], color=YELLOW, buff=0.1), run_time=0.7)
-        self.at("barrier thickness")
-        self.play(Circumscribe(tags[2], color=GREY, buff=0.1), run_time=0.7)
-        self.at("kept up")
-        dbl = DoubleArrow([XLO + 0.9, base + 0.35 * k, 0], [XLO + 0.9, base + 0.95 * k, 0], buff=0, color=YELLOW,
-                          stroke_width=5, tip_length=0.2)
-        self.play(GrowFromCenter(dbl), run_time=0.6)
+        title = heading("Fick’s law")
+        numerator = T("k × area × partial-pressure difference", 28)
+        denominator = T("thickness", 28, GREY).move_to([1, 0.5, 0])
+        numerator.move_to([1, 1.6, 0])
+        rule = Line([-4.1, 1.05, 0], [6.1, 1.05, 0], color=GREY)
+        rate = label("rate =", -5.4, 1.05, TEXT, 28)
+        equation = VGroup(numerator, denominator, rule, rate)
+        self.at("This is")
+        self.play(FadeIn(title), FadeIn(equation), run_time=0.7)
+        self.play(Circumscribe(numerator, color=YELLOW), Circumscribe(denominator, color=GREY), run_time=0.8)
+        share = VGroup(bchip("one gas’s contribution", YELLOW, 26).move_to([-2.8, -1.4, 0]),
+                       label("of the total pressure", 2.6, -1.4, GREY, 26))
+        self.at("Partial pressure is")
+        self.play(FadeIn(share), run_time=0.6)
+        self.at("Gases dissolve")
+        self.play(FadeOut(equation), FadeOut(share), run_time=0.3)
+        water = Rectangle(width=1.3, height=3.6, color=TEAL, fill_opacity=0.18).move_to([-0.9, -0.4, 0])
+        cells = slab().stretch_to_fit_width(1.5).move_to([0.5, -0.4, 0])
+        gas = bchip("gas", YELLOW, 26).move_to([-4.5, -0.4, 0])
+        self.play(FadeIn(water), FadeIn(cells), FadeIn(gas),
+                  FadeIn(label("water film", -1, 2, TEAL)), FadeIn(label("cells", 1, 2, GREY)), run_time=0.4)
+        self.play(gas.animate.move_to([-0.9, -0.4, 0]), run_time=0.6)
+        self.at("before crossing cells")
+        dissolved = bchip("dissolved gas", YELLOW, 24).move_to([-2.7, -2.8, 0])
+        self.play(FadeIn(dissolved), gas.animate.move_to([3.6, -0.4, 0]), run_time=0.7)
+        self.at("must stay moist")
+        self.play(Indicate(water, color=TEAL), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Gill(SpokenScene):
-    N = 8
-    XS = np.linspace(-4.55, 4.55, 8)
-    YW, YB = 1.05, -1.05
-
-    def row(self, y, vals, edge):
-        return VGroup(*[cell(x, y, v, edge) for x, v in zip(self.XS, vals)])
-
-    def construct(self):
-        N, XS, YW, YB = self.N, self.XS, self.YW, self.YB
-        # sketch values (relative), water falls along its path, blood rises along its path
-        w = np.linspace(1.0, 0.45, N)
-        b_ctr = w - 0.1                     # blood exits at the left, enters at the right
-        outline = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=11.4, height=4.7, stroke_color=GREY,
-                                                  stroke_width=3).move_to([0, 0, 0]), num_dashes=80)
-        lam_l = T("one lamella", 26, GREY).move_to([4.5, 1.8, 0])
-        water = self.row(YW, w, TEAL)
-        wl = T("water", 26, TEAL).move_to([-6.0, YW, 0]) if False else None
-        w_arr = arr([-5.0, 1.85, 0], [-3.2, 1.85, 0], TEAL)
-        w_lbl = T("water in", 24, TEAL).next_to(w_arr, RIGHT, buff=0.15)
-
-        self.at("In teleost fish")
-        t = bchip("teleost fish: gill filaments carry thin plates, the lamellae", GREY, 24).move_to([0, 3.2, 0])
-        self.play(FadeIn(t), run_time=0.7)
-        self.at("carries filaments")
-        self.play(Create(outline), FadeIn(lam_l), run_time=0.8)
-        self.at("called lamellae")
-        self.play(FadeIn(water), GrowArrow(w_arr), FadeIn(w_lbl), run_time=0.8)
-
-        # blood, opposite direction
-        blood = self.row(YB, b_ctr, BLOOD)
-        b_arr = arr([5.0, -1.85, 0], [3.2, -1.85, 0], BLOOD)
-        b_lbl = T("blood in", 24, BLOOD).next_to(b_arr, LEFT, buff=0.15)
-        self.at("opposite to the water")
-        self.play(FadeIn(blood), GrowArrow(b_arr), FadeIn(b_lbl), run_time=0.9)
-        cc = T("countercurrent exchange", 32, TEXT, font=TITLE_FONT).move_to([0, -3.05, 0])
-        self.at("countercurrent exchange")
-        self.play(FadeIn(cc, shift=UP * 0.1), run_time=0.6)
-
-        # leaving blood meets new water (both at left)
-        out_arr = arr([-3.2, -1.85, 0], [-5.0, -1.85, 0], BLOOD)
-        out_lbl = T("blood out", 24, BLOOD).next_to(out_arr, RIGHT, buff=0.15)
-        self.at("about to leave")
-        self.play(FadeOut(b_arr), FadeOut(b_lbl), run_time=0.01)
-        self.play(GrowArrow(out_arr), FadeIn(out_lbl), Circumscribe(blood[0], color=BLOOD, buff=0.08), run_time=0.8)
-        self.at("just arrived")
-        self.play(Circumscribe(water[0], color=TEAL, buff=0.08), run_time=0.8)
-
-        # difference marks all along
-        marks = VGroup(*[DoubleArrow([x, YW - 0.45, 0], [x, YB + 0.45, 0], buff=0, color=YELLOW, stroke_width=4,
-                                     tip_length=0.12) for x in XS])
-        self.at("along the whole")
-        self.play(FadeIn(marks, lag_ratio=0.1), run_time=1.0)
-        diff_l = T("a difference everywhere", 24, YELLOW).move_to([0, 0, 0]).set_z_index(5)
-        back = Rectangle(width=diff_l.width + 0.3, height=diff_l.height + 0.12, stroke_width=0, fill_color=BG,
-                         fill_opacity=0.92).move_to(diff_l).set_z_index(4)
-        self.play(FadeIn(back), FadeIn(diff_l), run_time=0.4)
-
-        # reset to the same-direction case in one move
-        wv = np.array([1.0, 0.84, 0.72, 0.64, 0.6, 0.6, 0.6, 0.6])
-        bv = np.array([0.2, 0.35, 0.46, 0.55, 0.6, 0.6, 0.6, 0.6])
-        blood2 = self.row(YB, bv, BLOOD)
-        water2 = self.row(YW, wv, TEAL)
-        same_arr = arr([-5.0, -1.85, 0], [-3.2, -1.85, 0], BLOOD)
-        same_l = T("blood in", 24, BLOOD).next_to(same_arr, RIGHT, buff=0.15)
-        cc2 = T("same direction", 32, TEXT, font=TITLE_FONT).move_to([0, -3.05, 0])
-        self.at("ran the same way")
-        self.play(FadeOut(marks), FadeOut(diff_l), FadeOut(back), FadeOut(out_arr), FadeOut(out_lbl),
-                  FadeOut(cc), Transform(blood, blood2), Transform(water, water2), run_time=0.9)
-        self.play(GrowArrow(same_arr), FadeIn(same_l), FadeIn(cc2), run_time=0.6)
-        self.at("equal partial pressure")
-        eq_box = SurroundingRectangle(VGroup(water[4:], blood[4:]), color=RED, buff=0.08, stroke_width=4,
-                                      corner_radius=0.08)
-        eq_l = T("nearly equal from here", 24, RED).move_to([2.3, 0.28, 0]).set_z_index(5)
-        eq_back = Rectangle(width=eq_l.width + 0.3, height=eq_l.height + 0.12, stroke_width=0, fill_color=BG,
-                            fill_opacity=0.92).move_to(eq_l).set_z_index(4)
-        self.play(Create(eq_box), FadeIn(eq_back), FadeIn(eq_l), run_time=0.8)
-        self.at("add little")
-        nothing = T("adds little", 24, RED, weight=BOLD).move_to([2.3, -0.28, 0])
-        self.play(FadeIn(nothing), FadeIn(sketch_note(-3.5, 4.4)), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S04Mammal(SpokenScene):
     def construct(self):
-        YT = 0.5
-        tube = Rectangle(width=3.9, height=1.3, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                         fill_opacity=0.12).move_to([-4.3, YT, 0])
-        tube_l = T("airways", 24, GREY).next_to(tube, UP, buff=0.12)
-        sac = RoundedRectangle(corner_radius=0.5, width=2.6, height=2.6, stroke_color=TEAL, stroke_width=3,
-                               fill_color=TEAL, fill_opacity=0.08).move_to([-0.7, YT, 0])
-        sac_l = T("alveoli, dead-ended", 24, TEAL).next_to(sac, UP, buff=0.12)
-        two = DoubleArrow([-6.0, YT, 0], [-2.6, YT, 0], buff=0, color=TEAL, stroke_width=6, tip_length=0.25)
-        in_out = T("in and out, same airways", 24, TEAL).next_to(tube, DOWN, buff=0.12)
-
-        self.at("Now")
-        mm = T("in mammals", 28, TEXT).move_to([-5.2, 3.2, 0])
-        self.play(FadeIn(mm), run_time=0.5)
-        self.at("same airways")
-        self.play(FadeIn(tube), FadeIn(tube_l), GrowFromCenter(two), FadeIn(in_out), run_time=0.9)
-        self.at("tidal ventilation")
-        tv = T("tidal ventilation", 32, TEXT, font=TITLE_FONT).move_to([-3.4, -2.0, 0])
-        self.play(FadeIn(tv, shift=UP * 0.1), run_time=0.5)
-        self.at("airways end")
-        self.play(FadeIn(sac), FadeIn(sac_l), run_time=0.8)
-
-        # stale air left behind, fresh air mixing in
-        stale = VGroup(*[Circle(radius=0.12, stroke_width=0, fill_color=GREY, fill_opacity=0.9
-                                ).move_to([-0.7 + dx, YT + dy, 0]) for dx, dy in
-                         [(0.5, 0.6), (0.75, -0.1), (0.3, -0.7), (0.85, 0.7)]])
-        fresh = VGroup(*[Circle(radius=0.12, stroke_width=0, fill_color=TEAL, fill_opacity=1
-                                ).move_to([-3.0 + 0.35 * i, YT + dy, 0]) for i, dy in enumerate([0.25, -0.25, 0.3, -0.2])])
-        stale_l = T("stale air left behind", 22, GREY).next_to(sac, DOWN, buff=0.12)
-        self.at("stale air")
-        self.play(FadeIn(stale), FadeIn(stale_l), run_time=0.5)
-        self.play(FadeIn(fresh), run_time=0.3)
-        self.play(*[fresh[i].animate.move_to([-1.3 + 0.3 * i, YT + [0.35, -0.35, 0.05, -0.15][i], 0]) for i in range(4)],
-                  run_time=1.0)
-
-        # the bars (right half)
-        base, K = -2.3, 3.2 / 150.0
-        X1, X2, X3 = 2.4, 4.2, 6.0
-        b1 = bar(X1, base, 150 * K, w=1.1, color=YELLOW, op=0.5, stroke=TEAL)
-        b2 = bar(X2, base, 100 * K, w=1.1, color=YELLOW, op=0.5, stroke=TEAL)
-        b3 = bar(X3, base, 100 * K, w=1.1, color=YELLOW, op=0.5, stroke=BLOOD)
-        v1 = T("roughly 150", 22, YELLOW).next_to(b1, UP, buff=0.1)
-        v2 = T("about 100", 22, YELLOW).next_to(b2, UP, buff=0.1)
-        v3 = T("at best 100", 22, YELLOW).next_to(b3, UP, buff=0.1)
-        l1 = T("inhaled air,\nwarmed and\nhumidified", 22, TEAL, line_spacing=0.6).next_to(b1, DOWN, buff=0.1)
-        l2 = T("alveolar\ngas", 22, TEAL, line_spacing=0.6).next_to(b2, DOWN, buff=0.1)
-        l3 = T("blood", 22, BLOOD).next_to(b3, DOWN, buff=0.1)
-        unit = T("oxygen partial pressure, mmHg", 22, YELLOW).move_to([4.2, 3.3, 0])
-        who = T("adult human at rest", 22, GREY).move_to([4.2, 2.85, 0])
-        self.at("adult human at rest")
-        self.play(FadeIn(unit), FadeIn(who), FadeIn(b2), FadeIn(v2), FadeIn(l2), run_time=0.9)
-        self.at("millimeters")
-        self.play(Indicate(b2, color=YELLOW, scale_factor=1.1), run_time=0.8)
-        self.at("humidified inhaled")
-        self.play(FadeIn(b1), FadeIn(v1), FadeIn(l1), run_time=0.9)
-        self.at("Blood can at best")
-        self.play(FadeIn(b3), FadeIn(v3), FadeIn(l3), run_time=0.9)
+        title = heading("Mammal: enlarge the chest")
+        chest = RoundedRectangle(width=4.2, height=3.4, corner_radius=0.6, color=GREY).move_to([0, -0.3, 0])
+        lung = RoundedRectangle(width=2.5, height=2.2, corner_radius=0.5, color=TEAL, fill_opacity=0.1).move_to([0, -0.3, 0])
+        diaphragm = ArcBetweenPoints([-2.1, -2, 0], [2.1, -2, 0], angle=-0.8, color=GREY, stroke_width=7)
+        dlabel = label("diaphragm", 0, -2.8, GREY)
+        ribs = VGroup(*[Line([s*2.1, y, 0], [s*2.55, y-0.35, 0], color=GREY, stroke_width=6)
+                        for s in [-1, 1] for y in [0.2, 0.9]])
+        airway = Rectangle(width=0.5, height=1.1, color=GREY).move_to([0, 1.35, 0])
+        self.at("Breathing renews")
+        self.play(FadeIn(title), FadeIn(VGroup(chest, lung, diaphragm, dlabel, ribs, airway)), run_time=0.6)
+        self.at("the diaphragm flattens")
+        self.play(Transform(diaphragm, Line([-2.5, -2.3, 0], [2.5, -2.3, 0], color=GREY, stroke_width=7)), run_time=0.6)
+        self.at("the ribs lift")
+        self.play(ribs.animate.shift(UP*0.4 + RIGHT*0.05), run_time=0.45)
+        self.at("The chest enlarges")
+        self.play(chest.animate.stretch_to_fit_width(5).stretch_to_fit_height(4), lung.animate.scale(1.15), run_time=0.5)
+        pressure = label("alveolar pressure < outside", 0, -3.25, TEXT, 26)
+        self.at("pressure falls")
+        self.play(FadeIn(pressure), run_time=0.4)
+        inward = arr([0, 2.4, 0], [0, 0.3, 0], TEAL)
+        self.at("air flows in")
+        self.play(GrowArrow(inward), run_time=0.5)
+        self.at("A frog instead")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
+        title = heading("Frog: mouth-floor pump")
+        mouth = RoundedRectangle(width=3.4, height=1.5, corner_radius=0.2, color=GREY).move_to([-2, 0.1, 0])
+        floor = Line([-3.7, -0.1, 0], [-0.3, -0.1, 0], color=TEAL, stroke_width=7)
+        lung = RoundedRectangle(width=2.3, height=2.5, corner_radius=0.5, color=TEAL).move_to([3.6, 0, 0])
+        nostril = Dot([-3.4, 0.85, 0], color=TEAL, radius=0.13)
+        state = label("nostrils open", -2, 1.65, TEAL)
+        self.play(FadeIn(VGroup(title, mouth, floor, lung, nostril, state)), FadeIn(label("lungs", 3.6, -1.8, TEAL)), run_time=0.3)
+        intake = arr([-3.4, 2.2, 0], [-3.4, 0.9, 0], TEAL)
+        self.play(floor.animate.shift(DOWN*0.8), GrowArrow(intake), run_time=0.5)
+        self.at("raises its mouth floor")
+        self.play(Transform(state, label("nostrils closed", -2, 1.65, GREY)), nostril.animate.set_color(GREY),
+                  floor.animate.shift(UP*1.1), FadeOut(intake), run_time=0.5)
+        self.at("push air into")
+        self.play(GrowArrow(arr([-0.1, 0.2, 0], [2.3, 0.2, 0], TEAL)), run_time=0.5)
+        self.at("Mammal air flows")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.25)
+        tube = Rectangle(width=5, height=1.3, color=GREY).move_to([-1.5, 0, 0])
+        sac = RoundedRectangle(width=2.6, height=2.6, corner_radius=0.5, color=TEAL).move_to([2.3, 0, 0])
+        a = arr([-3.5, 0, 0], [2, 0, 0], TEAL)
+        self.play(FadeIn(tube), FadeIn(sac), GrowArrow(a), run_time=0.5)
+        self.at("out through the same")
+        self.play(Transform(a, arr([2, 0, 0], [-3.5, 0, 0], TEAL)), run_time=0.5)
+        self.at("This is tidal")
+        self.play(FadeIn(heading("Tidal ventilation")), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S04Alveolar(SpokenScene):
+    def construct(self):
+        tube = Rectangle(width=5, height=1.3, color=GREY).move_to([-1.5, 0, 0])
+        sac = RoundedRectangle(width=2.6, height=2.6, corner_radius=0.5, color=TEAL).move_to([2.3, 0, 0])
+        stale = VGroup(*[Dot([2+dx, dy, 0], radius=0.13, color=GREY) for dx,dy in [(0,.5),(.7,.2),(.2,-.6)]])
+        fresh = VGroup(*[Dot([-3+dx, dy, 0], radius=0.13, color=TEAL) for dx,dy in [(0,.3),(.5,-.3),(.8,0)]])
+        self.at("Each breath")
+        self.play(FadeIn(VGroup(tube,sac,stale,fresh)), FadeIn(heading("Each breath mixes with gas left behind")), run_time=0.6)
+        self.play(fresh.animate.shift(RIGHT*5), run_time=0.8)
+        self.at("windpipe and bronchi")
+        dead = label("dead space: no exchange", -2, -1.5, GREY, 26)
+        self.play(tube.animate.set_stroke(YELLOW, 5), FadeIn(dead), run_time=0.6)
+        self.at("Alveolar ventilation is")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
+        eq = VGroup(T("alveolar ventilation = breathing frequency", 28),
+                    T("× (tidal volume − dead space)", 28)).arrange(DOWN, buff=0.2).move_to([0,2,0])
+        self.play(FadeIn(eq), run_time=0.7)
+        self.at("after subtracting dead space")
+        self.play(Circumscribe(eq[1], color=GREY), run_time=0.7)
+        self.at("Equal total air movement")
+        self.play(eq.animate.shift(UP*0.65), run_time=0.3)
+        groups=[]
+        for x,name,widths in [(-3.2,"deeper, slower",[2.7,2.7]),(3.2,"shallower, faster",[1.35]*4)]:
+            breaths=VGroup()
+            for w in widths:
+                outer=Rectangle(width=w,height=.55,color=TEAL,fill_color=TEAL,fill_opacity=.45)
+                wasted=Rectangle(width=.8,height=.55,color=GREY,fill_color=GREY,fill_opacity=1).align_to(outer,LEFT)
+                breaths.add(VGroup(outer,wasted))
+            breaths.arrange(DOWN,buff=.17).move_to([x,-.5,0])
+            groups.append(VGroup(label(name,x,1.35,TEAL,26),breaths))
+        self.play(*[FadeIn(g) for g in groups], FadeIn(label("equal minute ventilation",0,1.95,GREY)), run_time=0.6)
+        self.at("different amounts of fresh air")
+        self.play(FadeIn(label("more fresh gas reaches alveoli",-3.2,-2.45,TEAL,22)),
+                  FadeIn(label("less fresh gas reaches alveoli",3.2,-2.45,TEAL,22)),
+                  FadeIn(label("grey = dead space in each breath",0,-3.25,GREY,22)), run_time=0.6)
+        self.finish()
+
+
+class S03Surfaces(SpokenScene):
+    def construct(self):
+        head=heading("Diffusion across exchange surfaces")
+        self.at("Animals use different surfaces")
+        self.play(FadeIn(head), run_time=0.6)
+        skin=RoundedRectangle(width=8,height=1.1,corner_radius=.45,color=GREY,fill_color=GREY,fill_opacity=.1)
+        wet=Line([-4,.6,0],[4,.6,0],color=TEAL,stroke_width=8)
+        flow=arr([-1,1.9,0],[-1,-.9,0],YELLOW)
+        self.at("Earthworms exchange")
+        self.play(FadeIn(VGroup(skin,wet)),GrowArrow(flow),FadeIn(label("earthworm: moist skin",0,-1.8,GREY,28)),run_time=.7)
+        self.at("Insects have branching")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not head],run_time=.3)
+        trunk=Line([-4.7,0,0],[-1.5,0,0],color=TEAL,stroke_width=9)
+        branches=VGroup(*[Line([-1.5,0,0],[1.3,y,0],color=TEAL,stroke_width=6) for y in [-1.3,0,1.3]])
+        tips=VGroup(*[Line([1.3,y,0],[3.3,y+dy,0],color=TEAL,stroke_width=3) for y in [-1.3,0,1.3] for dy in [-.3,.3]])
+        spiracle=Circle(radius=.22,color=TEAL).move_to([-4.8,0,0])
+        tissue=RoundedRectangle(width=1.5,height=4.2,corner_radius=.2,color=GREY).move_to([4.1,0,0])
+        self.play(Create(VGroup(trunk,branches,tips,spiracle,tissue)),FadeIn(label("spiracle",-4.8,-1.5,TEAL)),
+                  FadeIn(label("tracheae",0,-2.5,TEAL)),FadeIn(label("tissues",4.1,-2.5,GREY)),run_time=1)
+        self.at("Water holds far less")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not head],run_time=.3)
+        panels=VGroup()
+        for x,name,opacity,work in [(-3,"water",.18,"more work to move"),(3,"air",.85,"less work to move")]:
+            box=Rectangle(width=3.6,height=2.5,color=TEAL).move_to([x,.2,0])
+            gas=Rectangle(width=2.8,height=1.5,color=YELLOW,fill_color=YELLOW,fill_opacity=opacity).move_to(box)
+            panels.add(VGroup(box,gas,label(name,x,2,TEAL,28),label(work,x,-2,GREY)))
+        self.play(FadeIn(panels),FadeIn(label("equal volumes • brighter = more oxygen",0,-3.1,YELLOW)),run_time=.8)
+        self.at("takes more work")
+        self.play(Indicate(panels[0][3],color=TEAL),run_time=.7)
+        self.finish()
+
+
+class S03Gill(SpokenScene):
+    def construct(self):
+        fil=Line([-4,-2,0],[-4,2,0],color=GREY,stroke_width=10)
+        plates=VGroup(*[Rectangle(width=6,height=.3,color=GREY,fill_opacity=.15).move_to([-1,y,0]) for y in [-1.4,-.5,.5,1.4]])
+        self.at("A trout's gills")
+        self.play(FadeIn(heading("Gill filaments carry thin lamellae")),Create(fil),FadeIn(plates),run_time=.8)
+        self.at("Inside each lamella")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.3)
+        outline=DashedVMobject(RoundedRectangle(width=11.4,height=4.7,corner_radius=.2,color=GREY),num_dashes=60)
+        xs=np.linspace(-4.7,4.7,6)
+        water=VGroup(*[cell(x,.85,v,TEAL,w=1.5) for x,v in zip(xs,np.linspace(1,.4,6))])
+        blood=VGroup(*[cell(x,-.85,v,BLOOD,w=1.5) for x,v in zip(xs,np.linspace(.9,.3,6))])
+        wa=arr([-5,1.8,0],[5,1.8,0],TEAL)
+        ba=arr([5,-1.8,0],[-5,-1.8,0],BLOOD)
+        self.play(FadeIn(outline),FadeIn(water),FadeIn(blood),GrowArrow(wa),
+                  FadeIn(label("water",4.9,2.6,TEAL,22)),run_time=.6)
+        self.at("blood runs opposite")
+        self.play(GrowArrow(ba),FadeIn(label("blood",4.9,-2.6,BLOOD,22)),run_time=.6)
+        self.at("This countercurrent exchange")
+        self.play(FadeIn(heading("Countercurrent exchange")),run_time=.5)
+        self.at("along its whole length")
+        marks=VGroup(*[arr([x,.35,0],[x,-.35,0],YELLOW,w=3,tip=.14) for x in xs])
+        self.play(FadeIn(marks),FadeIn(label("oxygen pressure: water > blood at every point",0,-2.9,YELLOW)),run_time=.6)
+        self.at("Blood leaving can approach")
+        self.play(Circumscribe(VGroup(water[0],blood[0]),color=YELLOW),run_time=.8)
+        self.play(FadeIn(label("incoming water / outgoing blood",-2.8,2.55,TEXT,22)),
+                  FadeIn(sketch_note()),run_time=.5)
+        self.finish()
+
+
 class S05Bird(SpokenScene):
     def construct(self):
-        YT = 1.0
-        tube = Rectangle(width=11.2, height=1.3, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                         fill_opacity=0.12).move_to([0, YT, 0])
-        tube_l = T("one parabronchus", 24, GREY).move_to([-4.6, YT + 1.0, 0])
-        in_a = arr([-5.4, YT + 0.27, 0], [-3.0, YT + 0.27, 0], TEAL, w=6)
-        out_a = arr([-5.4, YT - 0.27, 0], [-3.0, YT - 0.27, 0], TEAL, w=6)
-        in_l = T("breathing in", 22, TEAL).next_to(in_a, RIGHT, buff=0.15)
-        out_l = T("breathing out", 22, TEAL).next_to(out_a, RIGHT, buff=0.15)
-
-        self.at("Birds do it")
-        b = T("in birds", 28, TEXT).move_to([-5.2, 3.2, 0])
-        self.play(FadeIn(b), run_time=0.5)
-        self.at("parabronchi")
-        self.play(FadeIn(tube), FadeIn(tube_l), run_time=0.7)
-        self.at("same way")
-        self.play(GrowArrow(in_a), FadeIn(in_l), run_time=0.7)
-        self.at("breathing out")
-        self.play(GrowArrow(out_a), FadeIn(out_l), run_time=0.7)
-
-        xs = [0.2, 2.4, 4.6]
-        caps = VGroup(*[Rectangle(width=0.55, height=3.0, stroke_color=BLOOD, stroke_width=3, fill_color=BLOOD,
-                                  fill_opacity=0.18).move_to([x, YT, 0]) for x in xs])
-        cap_l = T("capillaries cross the airstream", 24, BLOOD).move_to([2.8, YT + 1.95, 0])
+        tube=Rectangle(width=7,height=1.3,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([0,.5,0])
+        title=heading("Bird: exchange in parabronchi")
+        self.at("Bird lungs exchange")
+        self.play(FadeIn(title),FadeIn(tube),run_time=.7)
+        sacs=VGroup(*[RoundedRectangle(width=1.7,height=2.4,corner_radius=.5,color=TEAL,fill_opacity=.1).move_to([x,.5,0]) for x in [-4.7,4.7]])
+        self.at("Air sacs act")
+        self.play(FadeIn(sacs),FadeIn(label("air sacs: bellows",0,-2.6,TEAL,26)),run_time=.5)
+        self.play(sacs.animate.stretch(1.2,1),run_time=.5)
+        self.play(sacs.animate.stretch(1/1.2,1),run_time=.5)
+        a=arr([-3.1,.5,0],[3.1,.5,0],TEAL)
+        phase=label("breathing in",0,-1.2,TEAL,26)
+        self.at("air flows the same way")
+        self.play(GrowArrow(a),FadeIn(phase),run_time=.5)
+        self.at("breathing in and out")
+        self.play(sacs.animate.stretch(1.2,1),run_time=.5)
+        self.play(Transform(phase,label("breathing out",0,-1.2,TEAL,26)),sacs.animate.stretch(1/1.2,1),
+                  ShowPassingFlash(a.copy(),time_width=.6),run_time=.7)
+        caps=VGroup(*[Rectangle(width=.3,height=2.8,color=BLOOD,fill_color=BLOOD,fill_opacity=.18).move_to([x,.5,0]) for x in [-2,0,2]])
         self.at("Capillaries cross")
-        self.play(FadeIn(caps, lag_ratio=0.3), FadeIn(cap_l), run_time=1.0)
-        cx = T("crosscurrent exchange", 32, TEXT, font=TITLE_FONT).move_to([0, -1.0, 0])
-        self.at("crosscurrent")
-        self.play(FadeIn(cx, shift=UP * 0.1), run_time=0.6)
-        self.at("different stage")
-        self.play(*[Indicate(c, color=YELLOW, scale_factor=1.12) for c in caps], run_time=1.5, lag_ratio=0.4)
-
-        # comparison: mixed blood leaving versus air breathed out (relative, in this sketch)
-        base, K = -3.1, 1.9
-        X1, X2 = -1.4, 1.4
-        a = bar(X1, base, 0.55 * K, w=1.0, color=YELLOW, op=0.5, stroke=TEAL)
-        m = bar(X2, base, 0.85 * K, w=1.0, color=YELLOW, op=0.5, stroke=BLOOD)
-        a_l = T("air breathed out", 22, TEAL).next_to(a, LEFT, buff=0.15)
-        m_l = T("mixed blood leaving", 22, BLOOD).next_to(m, RIGHT, buff=0.15)
-        ql = T("oxygen partial pressure, in this sketch, not to scale", 22, YELLOW).move_to([0, -3.45, 0])
-        self.at("mixed blood")
-        self.play(FadeIn(a), FadeIn(a_l), FadeIn(m), FadeIn(m_l), FadeIn(ql), run_time=0.9)
-        self.at("a higher partial pressure")
-        self.play(Indicate(m, color=YELLOW, scale_factor=1.1), run_time=0.8)
+        self.play(FadeIn(caps),Transform(phase,label("blood capillaries",0,-1.5,BLOOD,26)),run_time=.7)
+        self.at("This is crosscurrent")
+        self.play(Transform(title,heading("Crosscurrent exchange")),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rank(SpokenScene):
+class S06Control(SpokenScene):
     def construct(self):
-        XS = [-4.1, 0.0, 4.1]
-        head = T("idealized models, matched conditions", 28, GREY).move_to([0, 3.3, 0])
-        who = T("Piiper and Scheid, 1972", 24, GREY).move_to([0, 2.8, 0])
+        title=heading("What controls breathing?")
+        self.at("What controls breathing")
+        self.play(FadeIn(title),run_time=.6)
+        co2=bchip("carbon dioxide",RED,28).move_to([-4.4,1,0])
+        self.at("carbon dioxide sets")
+        self.play(FadeIn(co2),FadeIn(label("main resting drive in humans",0,-2.7,GREY,26)),run_time=.7)
+        brain=RoundedRectangle(width=4.1,height=2.8,corner_radius=.7,color=GREY).move_to([1.1,.6,0])
+        fluid=label("brain extracellular fluid",1.1,2.4,GREY)
+        self.at("It enters the brain")
+        self.play(FadeIn(brain),FadeIn(fluid),co2.animate.move_to([1.1,1.3,0]),run_time=.7)
+        ph=label("pH falls",1.1,.4,RED,30)
+        self.at("lowers the fluid's")
+        self.play(FadeIn(ph),run_time=.5)
+        s=sensor().move_to([1.1,-.5,0])
+        self.at("Central chemoreceptors")
+        self.play(FadeIn(s),FadeIn(label("central chemoreceptors",1.1,-1.6,RED)),
+                  FadeIn(label("sensors → breathing adjustment",0,-3.35,TEXT,24)),run_time=.6)
+        self.at("The carotid bodies")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not title],run_time=.3)
+        forks=VGroup()
+        for x in [-3,3]:
+            forks.add(VGroup(Line([x,-1.6,0],[x,0,0],color=BLOOD,stroke_width=10),
+                              Line([x,0,0],[x-.8,1.3,0],color=BLOOD,stroke_width=8),
+                              Line([x,0,0],[x+.8,1.3,0],color=BLOOD,stroke_width=8),
+                              Dot([x+.28,.1,0],radius=.2,color=RED)))
+        self.play(Create(forks),FadeIn(label("carotid bodies at artery forks",0,2.35,RED,26)),run_time=.7)
+        self.at("mainly to low arterial oxygen")
+        low=label("mainly low arterial oxygen",0,-2.35,YELLOW,28)
+        self.play(FadeIn(low),run_time=.6)
+        self.at("also to carbon dioxide")
+        self.play(FadeIn(label("also carbon dioxide",0,-3.05,RED)),run_time=.5)
+        self.play(FadeIn(label("sensors → breathing adjustment",0,1.55,TEXT,24)),run_time=.4)
+        self.at("With carbon dioxide production unchanged")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.3)
+        self.play(FadeIn(heading("Carbon dioxide production unchanged")),run_time=.4)
+        left=bchip("alveolar ventilation ↓",TEAL,28).move_to([-3.3,0,0])
+        right=bchip("alveolar CO₂ pressure ↑",RED,28).move_to([3.3,0,0])
+        self.at("less alveolar ventilation")
+        self.play(FadeIn(left),run_time=.5)
+        self.at("lets alveolar carbon dioxide")
+        self.play(GrowArrow(arr([-.8,0,0],[.8,0,0],GREY)),FadeIn(right),run_time=.6)
+        self.play(FadeIn(label("chemical sensors → breathing adjustment",0,-2.1,TEXT,26)),run_time=.6)
+        self.finish()
 
-        def icon_counter(x):
-            a = arr([x - 1.0, 1.75, 0], [x + 1.0, 1.75, 0], TEAL, w=5)
-            b = arr([x + 1.0, 1.15, 0], [x - 1.0, 1.15, 0], BLOOD, w=5)
-            return VGroup(a, b)
 
-        def icon_cross(x):
-            a = arr([x - 1.2, 1.45, 0], [x + 1.2, 1.45, 0], TEAL, w=5)
-            bars = VGroup(*[Rectangle(width=0.3, height=1.5, stroke_color=BLOOD, stroke_width=3, fill_color=BLOOD,
-                                      fill_opacity=0.2).move_to([x + dx, 1.45, 0]) for dx in (-0.6, 0.0, 0.6)])
-            return VGroup(a, bars)
-
-        def icon_pool(x):
-            box = RoundedRectangle(corner_radius=0.25, width=1.8, height=1.5, stroke_color=TEAL, stroke_width=3,
-                                   fill_color=TEAL, fill_opacity=0.1).move_to([x, 1.45, 0])
-            d = DoubleArrow([x - 1.7, 1.45, 0], [x - 0.9, 1.45, 0], buff=0, color=TEAL, stroke_width=5, tip_length=0.2)
-            return VGroup(box, d)
-
-        icons = [icon_counter(XS[0]), icon_cross(XS[1]), icon_pool(XS[2])]
-        names = [T("countercurrent", 26, TEXT), T("crosscurrent", 26, TEXT), T("mixed pool", 26, TEXT)]
-        subs = [T("teleost gill", 22, GREY), T("bird lung", 22, GREY), T("mammal lung", 22, GREY)]
-        for n, s, x in zip(names, subs, XS):
-            n.move_to([x, 0.35, 0])
-            s.next_to(n, DOWN, buff=0.1)
-
-        self.at("Johan's")
-        self.play(FadeIn(head), FadeIn(who), run_time=0.6)
-        self.at("these three arrangements")
-        self.play(*[FadeIn(i) for i in icons], *[FadeIn(n) for n in names], *[FadeIn(s) for s in subs], run_time=1.0)
-
-        base = -2.9
-        hs = [2.0, 1.3, 0.6]
-        bars = [bar(x, base, h, w=1.2, color=YELLOW, op=0.5) for x, h in zip(XS, hs)]
-        tags = [T("most", 24, YELLOW), T("next", 24, YELLOW), T("least", 24, YELLOW)]
-        for t, b in zip(tags, bars):
-            t.next_to(b, UP, buff=0.1)
-        axl = T("gas transferred, by their measure", 24, YELLOW).move_to([0, -3.3, 0])
-        self.at("By their measure")
-        self.play(FadeIn(axl), run_time=0.5)
-        self.at("the most gas")
-        self.play(FadeIn(bars[0], shift=UP * 0.2), FadeIn(tags[0]), run_time=0.7)
-        self.at("Crosscurrent came next")
-        self.play(FadeIn(bars[1], shift=UP * 0.2), FadeIn(tags[1]), run_time=0.7)
-        self.at("the least")
-        self.play(FadeIn(bars[2], shift=UP * 0.2), FadeIn(tags[2]), run_time=0.7)
-        note = T("a ranking of arrangements, not of animals", 26, TEXT).move_to([0, -0.9, 0])
-        self.at("ranks arrangements")
-        self.play(FadeIn(note), run_time=0.6)
+class S06Alligator(SpokenScene):
+    def construct(self):
+        self.at("airflow also occurs")
+        self.play(FadeIn(heading("Shared one-way airflow")),run_time=.5)
+        columns=VGroup()
+        for x,name in [(-4.2,"birds"),(0,"alligators"),(4.2,"some lizards")]:
+            columns.add(VGroup(pump().move_to([x,.5,0]),label(name,x,1.9,TEXT,28)))
+        self.play(FadeIn(columns),run_time=.7)
+        self.at("Alligators have no")
+        note=label("no air sacs",0,-1.3,GREY,28)
+        self.play(FadeIn(note),Circumscribe(columns[1],color=TEAL),run_time=.7)
+        self.at("So air sacs")
+        self.play(FadeIn(label("Air sacs are not required for one-way flow.",0,-2.7,TEXT,30)),run_time=.7)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "How two streams flow past each other changes gas exchange."
+    LINE = "Gases cross large, thin surfaces by diffusion; breathing keeps gradients steep."
+    def construct(self):
+        title=heading(self.LINE)
+        fit(title, max_w=12.5)
+        icons=VGroup(slab().scale(.45),pump(),sensor()).arrange(RIGHT,buff=2.9).move_to([0,.4,0])
+        names=VGroup(*[label(name,icon.get_x(),-1.35,TEXT,26) for name,icon in zip(
+            ["diffusion","ventilation","chemical control"],icons)])
+        self.play(FadeIn(title),FadeIn(icons),FadeIn(names),run_time=self.beat(.3))
+        self.play(FadeIn(label("biochemistrypedia.com",0,-2.9,TEAL,22)),run_time=self.beat(.15))
+        self.finish()

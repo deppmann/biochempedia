@@ -1,4 +1,4 @@
-"""Plant body and growth: a root grows by cells times length  (Biochemistrypedia explainer)
+"""Plant body and growth: how meristems keep a plant growing  (Biochemistrypedia explainer)
 
 COLOR MAP (one color per concept, whole video)
   BLUE   = new cells / the zone of division / the rate of new cells
@@ -6,7 +6,10 @@ COLOR MAP (one color per concept, whole video)
   GREEN  = maturation / mature cells
   TEAL   = water in the vacuoles
   YELLOW = the result: root growth rate (equation, bars, tip movement)
-  RED    = blocked or halved (the changed condition)
+  RED    = reserved for changed conditions (unused)
+  WOOD   = secondary xylem / wood
+  PINK   = phloem / transported sugars and amino acids
+  BROWN  = cork; BLUE also marks dividing cambia / meristems
   GREY   = root cap, outlines, labels, de-emphasized
 """
 import numpy as np
@@ -164,296 +167,352 @@ def footer(text="illustrative numbers, not a measured species"):
     return T(text, 22, GREY).move_to([0, -3.45, 0])
 
 
+WOOD = "#BE9A70"
+PINK = "#D995CE"
+BROWN = "#A77B56"
+
+
+def heading(text):
+    return T(text, 32, TEXT, font=TITLE_FONT).move_to([0, 3.25, 0])
+
+
+def oak():
+    """A broad crown, woody trunk and visible root/shoot ends, all schematic."""
+    trunk = Polygon([-0.55, -1.1, 0], [0.5, -1.1, 0], [0.28, 1.2, 0], [-0.25, 1.2, 0],
+                    stroke_color=WOOD, fill_color=WOOD, fill_opacity=0.25)
+    branches = VGroup(*[Line([0, 0.3, 0], [x, y, 0], color=WOOD, stroke_width=7)
+                        for x, y in [(-1.4, 1.65), (0, 2.3), (1.5, 1.6)]])
+    crown = VGroup(*[Ellipse(width=w, height=h, color=GREEN, fill_opacity=0.12).move_to([x,y,0])
+                     for x,y,w,h in [(-1.3,1.6,2.2,1.6), (0,2.1,2.4,1.7), (1.3,1.6,2.3,1.7)]])
+    roots = VGroup(*[VMobject(color=GREY, stroke_width=4).set_points_as_corners(
+        [[0,-1.0,0],[x*0.45,-1.6,0],[x,-2.3,0]]) for x in [-1.8,0,1.8]])
+    return VGroup(trunk, branches, crown, roots)
+
+
+def tips():
+    return VGroup(*[Dot([x,y,0], radius=0.10, color=BLUE)
+                    for x,y in [(-1.4,1.65),(0,2.3),(1.5,1.6),(-1.8,-2.3),(0,-2.3),(1.8,-2.3)]])
+
+
+def meristem_cells():
+    return VGroup(*[RoundedRectangle(width=0.75,height=0.75,corner_radius=0.1,
+                   color=BLUE,fill_opacity=0.18).move_to([x,y,0])
+                   for y in [-0.45,0.45] for x in [-0.9,0,0.9]])
+
+
 class S00Title(TitleCard):
     LESSON = "Plant body and growth"
-    TITLE = "A root grows by cells times length"
+    TITLE = "How Meristems Keep a Plant Growing"
 
-
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
     def construct(self):
-        st = Strip(y=0.5)
-        note = T("one cell file, schematic, not to scale", 22, GREY).move_to([0, -3.3, 0])
-        self.at("adding roots")
-        tree = T("A tree keeps adding roots, branches and leaves", 30, TEXT).move_to([0, 2.9, 0])
-        self.play(FadeIn(tree, shift=UP * 0.1), run_time=0.7)
-        self.at("Take the root")
-        self.play(FadeOut(tree), LaggedStart(FadeIn(st.cap), *[FadeIn(r) for r in st.div], *[FadeIn(r) for r in st.el],
-                                             *[FadeIn(r) for r in st.mat], lag_ratio=0.12), FadeIn(note), run_time=1.6)
-        self.at("It gets longer")
-        grow = arr([-1.0, 2.35, 0], [-5.4, 2.35, 0], YELLOW, w=7)
-        glab = T("the root gets longer", 26, YELLOW).move_to([-3.2, 2.9, 0])
-        self.play(GrowArrow(grow), FadeIn(glab), run_time=0.8)
-        self.at("Does it make more cells")
-        c1 = chip("more cells?", BLUE, 28).move_to([1.8, 2.75, 0])
-        self.play(FadeIn(c1, shift=DOWN * 0.15), run_time=0.5)
-        self.at("or do its cells get longer")
-        c2 = chip("longer cells?", ORANGE, 28).move_to([4.7, 2.75, 0])
-        self.play(FadeIn(c2, shift=DOWN * 0.15), run_time=0.5)
-        self.at("under a protective root cap")
-        cl = T("root cap", 24, GREY).move_to([st.cap.get_center()[0], -1.3, 0])
-        self.play(Indicate(st.cap, color=GREY, scale_factor=1.08), FadeIn(cl), run_time=0.8)
-        self.at("three zones")
-        braces, nums = VGroup(), VGroup()
-        for i, name in enumerate(("div", "el", "mat")):
-            cx, a, b = st.zone_center(name)
-            br = Line([a + 0.05, -1.0, 0], [b - 0.05, -1.0, 0], color=GREY, stroke_width=4)
-            n = T(str(i + 1), 28, GREY, weight=BOLD).move_to([cx, -1.6, 0])
-            braces.add(br)
-            nums.add(n)
-        self.play(FadeOut(cl), LaggedStart(*[GrowFromCenter(b) for b in braces], lag_ratio=0.25),
-                  LaggedStart(*[FadeIn(n) for n in nums], lag_ratio=0.25), run_time=1.2)
+        title = VGroup(T("How Meristems Keep", 44, font=TITLE_FONT),
+                       T("a Plant Growing", 44, font=TITLE_FONT)).arrange(DOWN, buff=0.14).move_to([0,2.5,0])
+        tree = oak().scale(0.63).move_to([0,-0.9,0])
+        dots = tips().scale(0.63).move_to(tree)
+        ring = Ellipse(width=0.8,height=0.3,color=BLUE).move_to([0,-1.0,0])
+        self.play(FadeIn(title), FadeIn(tree), run_time=0.7)
+        self.play(FadeIn(dots), ring.animate.stretch(1.35,0), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Question(SpokenScene):
+    def construct(self):
+        tree = oak().shift(LEFT*3.1)
+        title = heading("How Meristems Keep a Plant Growing")
+        age = T("300-year-old oak",26,GREY).move_to([-3.1,-3.0,0])
+        self.add(tree,title,age)
+        self.at("new shoots and wood")
+        shoots = tips().shift(LEFT*3.1)
+        ring = Ellipse(width=1.05,height=0.42,color=BLUE,stroke_width=5).move_to([-3.1,-0.5,0])
+        self.play(FadeIn(shoots),Create(ring),run_time=0.7)
+        self.at("regions of dividing cells")
+        cells = meristem_cells().move_to([2.8,0.8,0])
+        link = arr([-1.5,1.6,0],[1.15,1.0,0],BLUE)
+        self.play(GrowArrow(link),FadeIn(cells),run_time=0.7)
+        self.at("called meristems")
+        lab = T("meristems",32,BLUE,weight=BOLD).move_to([2.8,2.0,0])
+        self.play(FadeIn(lab),run_time=0.5)
+        self.at("supply new cells")
+        splits = VGroup(*[Line(c.get_top(),c.get_bottom(),color=BLUE) for c in cells])
+        self.play(LaggedStart(*[Create(l) for l in splits],lag_ratio=0.12),run_time=0.8)
+        self.at("keep building their bodies")
+        self.play(tree.animate.stretch(1.02,1,about_point=[-3.1,-1.1,0]),run_time=0.7)
+        self.at("apical meristems")
+        self.play(FadeOut(VGroup(cells,splits,link,lab)),run_time=0.4)
+        ap = T("apical meristems\nroot + shoot tips",28,BLUE).move_to([2.7,1.4,0])
+        length = arr([0.6,-0.7,0],[0.6,2.4,0],BLUE)
+        ll = T("length",28,BLUE).move_to([2.0,-0.4,0])
+        self.play(FadeIn(ap),GrowArrow(length),FadeIn(ll),Indicate(shoots,scale_factor=1.4),run_time=0.7)
+        self.at("lateral meristems")
+        lateral = T("lateral meristems\naround the woody stem",26,BLUE).move_to([2.8,-1.6,0])
+        girth = DoubleArrow([-3.95,-0.7,0],[-2.25,-0.7,0],color=BLUE,buff=0)
+        gl = T("girth",26,BLUE).next_to(lateral,DOWN,buff=0.3)
+        self.play(FadeIn(lateral),GrowArrow(girth),FadeIn(gl),ring.animate.stretch(1.3,0),run_time=0.7)
+        self.finish()
+
+
 class S02Zones(SpokenScene):
     def construct(self):
         st = Strip(y=0.5)
-        for r in st.div:
-            r.set_stroke(GREY).set_fill(GREY, 0.1)
-        self.add(st.body(with_divlines=False, with_vacs=False))
-        st.set_vac(0.0)
-        note = T("one cell file, schematic, not to scale", 22, GREY).move_to([0, -3.3, 0])
-        self.add(note)
-        yb = -1.5
-
-        def zone_label(name, text, color):
-            cx, a, b = st.zone_center(name)
-            br = Line([a + 0.05, yb, 0], [b - 0.05, yb, 0], color=color, stroke_width=5)
-            lab = T(text, 26, color, weight=BOLD, line_spacing=0.8).move_to([cx, -2.3, 0])
-            return br, lab
-
-        # division
-        self.at("zone of division")
-        br, lab = zone_label("div", "zone of\ndivision", BLUE)
-        self.play(st.div.animate.set_stroke(BLUE).set_fill(BLUE, 0.14), GrowFromCenter(br), FadeIn(lab), run_time=0.7)
+        st.set_vac(0)
+        self.add(st.body(with_divlines=False,with_vacs=False),
+                 heading("From dividing cells to mature root"),
+                 footer("one cell file • schematic, not to scale"))
+        def zone(name,text,color):
+            cx,a,b=st.zone_center(name)
+            return VGroup(Line([a+0.05,-1.1,0],[b-0.05,-1.1,0],color=color,stroke_width=4),
+                          T(text,26,color).move_to([cx,-2.0,0]))
+        self.at("protective cap")
+        cl=T("root cap",24,GREY).move_to([-4.75,2.3,0])
+        self.play(FadeIn(cl),Indicate(st.cap),run_time=0.5)
         self.at("small cells divide")
-        self.play(LaggedStart(*[Create(l) for l in st.divlines], lag_ratio=0.25), run_time=1.0)
-        # elongation
+        dz=zone("div","division\nmeristem",BLUE)
+        self.play(st.div.animate.set_color(BLUE),FadeIn(dz),
+                  LaggedStart(*[Create(l) for l in st.divlines],lag_ratio=0.2),run_time=0.7)
         self.at("zone of elongation")
-        br2, lab2 = zone_label("el", "zone of\nelongation", ORANGE)
-        self.play(st.el.animate.set_stroke(ORANGE).set_fill(ORANGE, 0.14), GrowFromCenter(br2), FadeIn(lab2), run_time=0.7)
-        self.at("stop dividing")
-        self.play(Indicate(st.el, color=ORANGE, scale_factor=1.03), run_time=0.7)
-        self.at("as water fills their vacuoles")
-        vl = T("vacuoles fill with water", 24, TEAL_W).move_to([st.zone_center("el")[0], 2.2, 0])
+        ez=zone("el","elongation",ORANGE)
+        self.play(st.el.animate.set_color(ORANGE),FadeIn(ez),run_time=0.6)
+        self.at("and lengthen")
+        # Each cell grows longitudinally from a shortened outline to its full outline.
+        full=st.el.copy()
+        for c in st.el: c.stretch(0.6,0)
+        self.play(Transform(st.el,full),run_time=0.6)
+        self.at("water fills their vacuoles")
+        vl=T("water fills vacuoles",24,TEAL_W).move_to([0,2.3,0])
         self.add(st.vacs)
-        self.play(FadeIn(vl), *[v.animate.become(RoundedRectangle(corner_radius=0.12, width=v.full_w, height=v.full_h,
-                                                                   stroke_width=0, fill_color=TEAL_W, fill_opacity=0.5
-                                                                   ).move_to(v.get_center())) for v in st.vacs],
-                  run_time=1.5)
-        # maturation
+        self.play(FadeIn(vl),*[v.animate.stretch(3.1,0).stretch(3.1,1) for v in st.vacs],run_time=1.0)
         self.at("zone of maturation")
-        br3, lab3 = zone_label("mat", "zone of\nmaturation", GREEN)
-        self.play(FadeOut(vl), st.mat.animate.set_stroke(GREEN).set_fill(GREEN, 0.14), GrowFromCenter(br3), FadeIn(lab3), run_time=0.7)
+        mz=zone("mat","maturation",GREEN)
+        self.play(FadeOut(vl),st.mat.animate.set_color(GREEN),FadeIn(mz),run_time=0.6)
         self.at("final types")
-        self.play(Indicate(st.mat, color=GREEN, scale_factor=1.03), run_time=0.7)
-        self.at("root hairs")
-        hl = T("root hairs on the epidermis", 24, GREEN).move_to([st.zone_center("mat")[0], 3.0, 0])
-        self.play(LaggedStart(*[Create(h) for h in st.hairs], lag_ratio=0.05), FadeIn(hl), run_time=1.2)
+        self.play(Indicate(st.mat,color=GREEN,scale_factor=1.03),run_time=0.5)
+        self.at("root hairs appear")
+        hl=T("root hairs on epidermis",24,GREEN).move_to([4.2,2.6,0])
+        self.play(Create(st.hairs),FadeIn(hl),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S03Rule(SpokenScene):
     def construct(self):
-        st = Strip(y=0.5, colored=True, vac=1.0, hairs=True)
-        g = st.body()
-        g.scale(0.72).move_to([0, -1.75, 0])
-        self.add(g)
-        # zone centres after the shrink
-        s = 0.72
-        def zc(name):
-            cx = st.zone_center(name)[0]
-            return cx * s, g.get_center()[1] + 0.9
-        self.at("two parts")
-        eq1 = T("root growth rate", 42, YELLOW, weight=BOLD)
-        eq1b = T("=", 42, TEXT)
-        top = VGroup(eq1, eq1b).arrange(RIGHT, buff=0.35).move_to([0, 2.35, 0])
-        self.play(FadeIn(top, shift=UP * 0.1), run_time=0.6)
-        self.at("division makes the cells")
-        self.play(Indicate(VGroup(st.div, st.divlines), color=BLUE, scale_factor=1.15), run_time=0.8)
-        self.at("elongation sets")
-        self.play(Indicate(st.el, color=ORANGE, scale_factor=1.08), run_time=0.8)
+        st=Strip(y=0.5,colored=True,vac=1,hairs=True)
+        g=st.body().scale(0.8).move_to([0,-1.0,0])
+        self.add(g,footer("one root cell file • schematic"))
+        self.at("division supplies cells")
+        self.play(Indicate(st.div,color=BLUE),run_time=0.7)
+        self.at("elongation sets their length")
+        self.play(Indicate(st.el,color=ORANGE),run_time=0.7)
         self.at("steady state")
-        ss = T("steady state, every cell file alike", 24, GREY).move_to([0, 3.3, 0])
-        self.play(FadeIn(ss), run_time=0.5)
-        self.at("the rate of new cells per file")
-        t1 = T("rate of new cells per file", 36, BLUE).move_to([-2.6, 1.05, 0])
-        self.play(Write(t1), run_time=1.1)
-        x, y = zc("div")
-        a1 = arr(t1.get_bottom() + DOWN * 0.1, [x, y + 0.1, 0], BLUE, w=4)
-        self.play(GrowArrow(a1), run_time=0.5)
-        self.at("times the final cell length")
-        times = T("×", 40, TEXT).move_to([0.55, 1.05, 0])
-        t2 = T("final cell length", 36, ORANGE).move_to([3.1, 1.05, 0])
-        self.play(FadeIn(times), Write(t2), run_time=1.0)
-        x, y = zc("el")
-        xe = st.zone_center("el")[2] * s - 0.15
-        a2 = arr(t2.get_bottom() + DOWN * 0.1, [xe, y + 0.1, 0], ORANGE, w=4)
-        self.play(GrowArrow(a2), run_time=0.5)
-        self.at("illustrative")
-        f = footer()
-        self.play(FadeIn(f), run_time=0.5)
+        ss=T("Steady state • every cell file alike",26,GREY).move_to([0,3.25,0])
+        self.play(FadeIn(ss),run_time=0.6)
+        self.at("root growth rate equals")
+        eq=T("root growth rate =",34,YELLOW,weight=BOLD).move_to([0,2.3,0])
+        self.play(FadeIn(eq),run_time=0.5)
+        self.at("new cells per file per hour")
+        prod=T("new cells / file / hour",30,BLUE).move_to([-2.7,1.3,0])
+        self.play(FadeIn(prod),run_time=0.6)
+        self.at("times final cell length")
+        times=T("×",34,TEXT).move_to([0.6,1.3,0])
+        leng=T("final cell length",30,ORANGE).move_to([3.3,1.3,0])
+        self.play(FadeIn(times),FadeIn(leng),run_time=0.6)
+        self.at("illustrative numbers")
+        note=footer("illustrative example • not a measured species")
+        self.play(ReplacementTransform(self.mobjects[1],note),run_time=0.5)
+        self.at("one cell per hour")
+        n1=M("1 cell/h",30,BLUE).move_to([-3.7,-2.6,0])
+        self.play(FadeIn(n1),run_time=0.5)
+        self.at("times 300 micrometers")
+        n2=M("× 300 µm",30,ORANGE).move_to([-0.4,-2.6,0])
+        self.play(FadeIn(n2),run_time=0.5)
+        self.at("gives 300")
+        n3=M("= 300 µm/h",30,YELLOW).move_to([3.3,-2.6,0])
+        self.play(FadeIn(n3),run_time=0.5)
+        self.at("not from a measured species")
+        self.play(Indicate(note,scale_factor=1.02),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class _FileScene(SpokenScene):
-    def setup_file(self):
-        self.cf = CellFile()
-        self.fm = self.cf.mob()
-        self.add(self.fm)
-
-    def hour_label(self, n):
-        return M(f"hour {n}", 26, TEXT).move_to([-5.0, 0.15, 0])
-
-
-class S04Normal(_FileScene):
+class S04Normal(SpokenScene):
     def construct(self):
-        self.setup_file()
-        cf = self.cf
-        f = footer("illustrative, not a measured species; one cell shown, timing not to scale")
-        self.add(f)
-        self.at("one file of cells")
-        lab = T("one cell file", 26, GREY).move_to([-3.0, 3.2, 0])
-        self.play(FadeIn(lab), run_time=0.5)
-        self.at("one new cell per hour")
-        rate = T("1 new cell per hour", 28, BLUE).move_to([-3.0, 3.2, 0])
-        self.play(FadeIn(rate), FadeOut(lab), run_time=0.5)
-        hr = self.hour_label(1)
-        # ---- hour 1: the new cell appears tiny, then lengthens -----------------------------------
-        x_before = cf.tip_x()
-        tr = cf.add(LONG)
-        self.play(FadeIn(hr), run_time=0.3)
-        self.at("15 micrometers")
-        cell_x = BASE_X - sum(cf.widths()[:-1]) - 0.05
-        l15 = T("15 µm", 24, BLUE).move_to([cell_x - 0.9, 2.95, 0])
-        pt = arr([cell_x - 0.65, 2.75, 0], [cell_x - 0.07, 2.4, 0], BLUE, w=3, tip=0.14)
-        self.play(FadeIn(l15), GrowArrow(pt), run_time=0.5)
-        self.at("matures at")
-        self.play(FadeOut(l15), FadeOut(pt), tr.animate.set_value(1), run_time=1.6)
-        x_after = cf.tip_x()
-        l300 = T("300 µm", 24, GREEN).move_to([x_after + LONG / 2 + 0.1, 2.75, 0])
-        adv = arr([x_before, 0.15, 0], [x_after, 0.15, 0], YELLOW, w=6)
-        advl = T("tip moves 300 µm in 1 hour", 24, YELLOW).move_to([(x_before + x_after) / 2, -0.25, 0])
-        self.play(FadeIn(l300), GrowArrow(adv), FadeIn(advl), run_time=0.7)
-        self.at("One cell per hour times")
-        e1 = M("1 cell/h × 300 µm = 300 µm/h", 28, YELLOW).move_to([0, -0.9, 0])
-        self.play(FadeOut(l300), Write(e1), run_time=1.0)
-        # ---- hours 2 and 3 as a quick time-lapse ------------------------------------------------
-        self.at("is 300")
-        for n in (2, 3):
-            hr2 = self.hour_label(n)
-            tr = cf.add(LONG)
-            self.play(Transform(hr, hr2), FadeOut(adv), FadeOut(advl), run_time=0.3)
-            self.play(tr.animate.set_value(1), run_time=1.0)
-        self.at("that is")
-        e2 = M("300 µm/h × 24 h = 7,200 µm = 7.2 mm/day", 28, YELLOW).move_to([0, -0.9, 0])
-        self.play(ReplacementTransform(e1, e2), FadeOut(hr), run_time=0.8)
-        self.at("millimeters per day")
-        lab, bar, txt = bar_row("all normal", 7.2, -1.65)
-        self.play(FadeIn(lab), GrowFromEdge(bar, LEFT), FadeIn(txt), run_time=1.0)
+        self.add(heading("A trunk grows from its cambia"))
+        rings=VGroup(*[Circle(radius=r,color=c,fill_color=c,fill_opacity=1,stroke_width=3)
+                       for r,c in [(2.25,BROWN),(2.0,PINK),(1.75,BLUE),(1.58,WOOD)]]).move_to([-2.4,-0.2,0])
+        self.add(rings,T("trunk cross-section",24,GREY).move_to([-2.4,-2.9,0]))
+        self.at("vascular cambium")
+        vc=T("vascular cambium",28,BLUE).move_to([3.0,2.0,0])
+        pointer=arr([1.0,1.8,0],[-0.75,0.3,0],BLUE)
+        self.play(FadeIn(vc),GrowArrow(pointer),Indicate(rings[2],scale_factor=1.03),run_time=0.6)
+        self.at("secondary xylem inward")
+        inward=arr([0.9,0.8,0],[-1.4,0.0,0],WOOD)
+        xl=T("secondary xylem\ninward",26,WOOD).move_to([3.0,0.8,0])
+        self.play(GrowArrow(inward),FadeIn(xl),rings[3].animate.scale(1.05),run_time=0.6)
+        self.at("secondary phloem outward")
+        outward=arr([-0.6,-0.6,0],[1.0,-1.1,0],PINK)
+        pl=T("secondary phloem\noutward",26,PINK).move_to([3.0,-1.0,0])
+        self.play(GrowArrow(outward),FadeIn(pl),rings[1].animate.scale(1.035),run_time=0.6)
+        self.at("is wood")
+        wood=T("wood",30,WOOD,weight=BOLD).move_to([-2.4,-0.2,0])
+        self.play(FadeIn(wood),run_time=0.5)
+        self.at("a different meristem")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.5)
+        self.add(heading("Magnified radial strip"),
+                 T("inside ←",24,GREY).move_to([-5.2,2.3,0]),
+                 T("→ outside",24,GREY).move_to([5.2,2.3,0]))
+        # Tissue order from inside to outside. All strips share one radial axis.
+        bands=VGroup()
+        for a,b,c in [(-5.8,-2.4,WOOD),(-2.4,-2.15,BLUE),(-2.15,0.3,PINK),
+                      (0.3,2.3,GREEN),(2.3,2.55,BLUE),(2.55,5.8,BROWN)]:
+            bands.add(Rectangle(width=b-a,height=1.7,color=c,fill_color=c,fill_opacity=0.2).move_to([(a+b)/2,0.1,0]))
+        labs=VGroup(T("wood",24,WOOD).move_to([-4.1,0.1,0]),
+                    T("secondary\nphloem",24,PINK).move_to([-0.9,0.1,0]))
+        vcl=T("vascular\ncambium",22,BLUE).move_to([-2.3,-1.55,0])
+        self.play(FadeIn(bands[:3]),FadeIn(labs),FadeIn(vcl),run_time=0.5)
+        self.at("the cork cambium")
+        ccl=T("cork cambium",24,BLUE).move_to([2.4,1.65,0])
+        self.play(FadeIn(bands[4]),FadeIn(ccl),run_time=0.5)
+        self.at("makes cork outward")
+        cork=T("cork",26,BROWN).move_to([4.15,0.1,0])
+        ca=arr([2.7,1.0,0],[4.8,1.0,0],BROWN,w=3)
+        self.play(FadeIn(bands[5]),FadeIn(cork),GrowArrow(ca),run_time=0.5)
+        self.at("and living")
+        ph=T("living\nphelloderm",23,GREEN).move_to([1.3,0.1,0])
+        pa=arr([2.15,1.0,0],[0.55,1.0,0],GREEN,w=3)
+        self.play(FadeIn(bands[3]),FadeIn(ph),GrowArrow(pa),run_time=0.5)
+        self.at("these form the periderm")
+        per=VGroup(Line([0.3,-1.0,0],[5.8,-1.0,0],color=GREY,stroke_width=4),
+                   T("periderm",26,TEXT).move_to([3.1,-1.5,0]))
+        self.play(FadeIn(per),run_time=0.5)
+        self.at("replacing the epidermis")
+        ep=T("replaces epidermis",24,GREY).move_to([3.1,-2.1,0])
+        self.play(FadeIn(ep),run_time=0.5)
+        self.at("bark is everything outside")
+        bark=VGroup(Line([-2.1,-2.7,0],[5.8,-2.7,0],color=PINK,stroke_width=4),
+                    T("bark: outside the vascular cambium",24,PINK).move_to([1.8,-3.2,0]))
+        self.play(FadeIn(bark),run_time=0.6)
+        self.at("includes living phloem")
+        self.play(Indicate(bands[2],color=PINK,scale_factor=1.03),run_time=0.6)
         self.finish()
 
 
-class S05Block(_FileScene):
+def plant():
+    stem=RoundedRectangle(width=0.6,height=3.4,corner_radius=0.12,color=GREEN,fill_opacity=0.1)
+    leaves=VGroup(Ellipse(width=2.0,height=0.9,color=GREEN,fill_opacity=0.15).rotate(0.45).move_to([1,1.1,0]),
+                  Ellipse(width=2.0,height=0.9,color=GREEN,fill_opacity=0.15).rotate(-0.45).move_to([-1,0.4,0]))
+    roots=VGroup(*[Line([0,-1.7,0],[x,-2.6,0],color=GREY,stroke_width=4) for x in [-1.3,0,1.3]])
+    return VGroup(stem,leaves,roots)
+
+
+def tissue_cells(color):
+    return VGroup(RoundedRectangle(width=0.55,height=1.1,corner_radius=0.1,color=color,fill_opacity=0.15),
+                  Circle(radius=0.3,color=color,fill_opacity=0.15).shift(RIGHT*0.95),
+                  Polygon([1.5,-0.45,0],[2.15,-0.25,0],[2.0,0.5,0],[1.5,0.4,0],color=color,fill_opacity=0.15))
+
+
+class S05Block(SpokenScene):
     def construct(self):
-        self.setup_file()
-        cf = self.cf
-        f = footer()
-        self.add(f)
-        lab, bar, txt = bar_row("all normal", 7.2, -1.65)
-        self.add(lab, bar, txt)
-        x0 = BASE_X - 2 * LONG
-        mk = DashedLine([x0, 0.35, 0], [x0, 2.55, 0], color=GREY, stroke_width=3)
-        mkl = T("tip at start", 22, GREY).move_to([x0, 0.05, 0])
-        self.add(mk, mkl)
-        self.at("block elongation")
-        divc = chip("division: unchanged", BLUE, 24).move_to([-3.3, 3.2, 0])
-        elc = chip("elongation: blocked", ORANGE, 24).move_to([2.7, 3.2, 0])
-        cross = Line(elc.get_left() + RIGHT * 0.1, elc.get_right() - RIGHT * 0.1, color=RED, stroke_width=6)
-        self.play(FadeIn(divc), FadeIn(elc), run_time=0.6)
-        self.play(Create(cross), elc[0].animate.set_stroke(RED), run_time=0.5)
-        self.at("one new cell per hour")
-        e = M("1 cell/h × 15 µm = 15 µm/h", 28, YELLOW).move_to([0, -0.9, 0])
-        hr = self.hour_label(1)
-        self.play(FadeIn(hr), run_time=0.3)
-        for n in (1, 2, 3):
-            if n > 1:
-                self.play(Transform(hr, self.hour_label(n)), run_time=0.25)
-            c = (ValueTracker(0), SHORT)
-            cf.cells.append(c)
-            self.play(c[0].animate.set_value(1), run_time=0.6)
-        self.at("the cells stay")
-        l15 = T("15 µm", 24, GREEN).move_to([cf.tip_x() - 1.1, 2.75, 0])
-        p15 = arr([cf.tip_x() - 0.65, 2.6, 0], [cf.tip_x() + 0.0, 2.1, 0], GREEN, w=3, tip=0.14)
-        self.play(FadeIn(l15), GrowArrow(p15), run_time=0.4)
-        self.at("One times")
-        self.play(Write(e), FadeOut(hr), FadeOut(l15), FadeOut(p15), run_time=1.0)
-        self.at("That is")
-        e2 = M("15 µm/h × 24 h = 360 µm = 0.36 mm/day", 28, YELLOW).move_to([0, -0.9, 0])
-        self.play(ReplacementTransform(e, e2), run_time=0.8)
-        self.at("millimeters per day")
-        lab2, bar2, txt2 = bar_row("no elongation", 0.36, -2.27)
-        self.play(FadeIn(lab2), GrowFromEdge(bar2, LEFT), FadeIn(txt2), run_time=0.8)
-        self.at("one twentieth")
-        tw = T("1/20 of normal", 24, RED).next_to(txt2, RIGHT, buff=0.3)
-        self.play(FadeIn(tw), run_time=0.6)
-        self.at("supplies most")
-        self.play(Indicate(elc, color=ORANGE, scale_factor=1.12), run_time=1.0)
+        p=plant().move_to([-3.7,-0.3,0])
+        self.add(p,heading("Tissues connect the growing plant"))
+        self.at("new cells build tissues")
+        xs=tissue_cells(WOOD).move_to([2.5,1.1,0])
+        ps=tissue_cells(PINK).move_to([2.5,-0.6,0])
+        self.play(FadeIn(xs),FadeIn(ps),run_time=0.7)
+        self.at("xylem and phloem")
+        xl=T("xylem",28,WOOD).move_to([2.5,2.15,0])
+        pl=T("phloem",28,PINK).move_to([2.5,-1.65,0])
+        self.play(FadeIn(xl),FadeIn(pl),run_time=0.6)
+        self.at("several cell types")
+        types=T("several cell types in each tissue",24,GREY).move_to([2.5,-2.65,0])
+        self.play(FadeIn(types),Indicate(xs),Indicate(ps),run_time=0.7)
+        self.at("connect plant organs")
+        paths=VGroup()
+        for dx,col in [(-0.12,WOOD),(0.12,PINK)]:
+            paths.add(VMobject(color=col,stroke_width=5).set_points_as_corners(
+                [[-4.7+dx,-2.7,0],[-3.7+dx,-1.9,0],[-3.7+dx,0.8,0],[-2.7+dx,1.3,0]]))
+            paths.add(Line([-3.7+dx,0.1,0],[-4.8+dx,0.4,0],color=col,stroke_width=5))
+        self.play(Create(paths),run_time=0.7)
+        self.at("xylem carries water")
+        water=T("water",26,TEAL_W).move_to([-5.7,1.7,0])
+        wa=arr([-4.25,-1.5,0],[-4.25,1.0,0],TEAL_W,w=4)
+        self.play(FadeIn(water),GrowArrow(wa),run_time=0.6)
+        self.at("phloem carries sugars")
+        sugar=T("sugars + amino acids",25,PINK).move_to([-3.5,-3.3,0])
+        packet=Dot([-2.8,1.2,0],radius=0.09,color=PINK)
+        self.play(FadeIn(sugar),FadeIn(packet),run_time=0.3)
+        self.play(packet.animate.move_to([-3.58,0.2,0]),run_time=0.6)
+        self.play(packet.animate.move_to([-3.58,-1.8,0]),run_time=0.6)
+        self.at("vascular tissue system")
+        system=T("vascular tissue system",32,TEXT).move_to([2.5,-2.65,0])
+        self.play(ReplacementTransform(types,system),FadeOut(packet),run_time=0.6)
         self.finish()
 
 
-class S06Halve(_FileScene):
+class S06Halve(SpokenScene):
     def construct(self):
-        self.setup_file()
-        cf = self.cf
-        f = footer()
-        self.add(f)
-        rows = [bar_row("all normal", 7.2, -1.65), bar_row("no elongation", 0.36, -2.27)]
-        for r in rows:
-            self.add(*r)
-        x0 = BASE_X - 2 * LONG
-        mk = DashedLine([x0, 0.35, 0], [x0, 2.55, 0], color=GREY, stroke_width=3)
-        mkl = T("tip at start", 22, GREY).move_to([x0, 0.05, 0])
-        self.add(mk, mkl)
-        self.at("division and keep")
-        divc = chip("division: halved", RED, 24).move_to([-3.3, 3.2, 0])
-        elc = chip("elongation: normal", ORANGE, 24).move_to([2.7, 3.2, 0])
-        self.play(FadeIn(divc), FadeIn(elc), run_time=0.6)
-        hr = self.hour_label(1)
-        self.at("Half a cell")
-        e = M("0.5 cell/h × 300 µm = 150 µm/h", 28, YELLOW).move_to([0, -0.9, 0])
-        self.play(FadeIn(hr), Write(e), run_time=0.8)
-        for n in (1, 2, 3, 4):
-            if n > 1:
-                self.play(Transform(hr, self.hour_label(n)), run_time=0.3)
-            if n % 2 == 0:
-                tr = cf.add(LONG)
-                self.play(tr.animate.set_value(1), run_time=1.2)
-            else:
-                self.wait(0.5)
-        self.play(FadeOut(hr), run_time=0.2)
-        self.at("that is")
-        e2 = M("150 µm/h × 24 h = 3,600 µm = 3.6 mm/day", 28, YELLOW).move_to([0, -0.9, 0])
-        self.play(ReplacementTransform(e, e2), run_time=0.8)
-        self.at("millimeters per day")
-        lab3, bar3, txt3 = bar_row("half division", 3.6, -2.89)
-        self.play(FadeIn(lab3), GrowFromEdge(bar3, LEFT), FadeIn(txt3), run_time=0.8)
-        self.at("Keep the rule")
-        self.play(FadeOut(divc), FadeOut(elc), FadeOut(f), FadeOut(e2), FadeOut(mk), FadeOut(mkl), FadeOut(self.fm), run_time=0.6)
-        rule1 = T("root growth rate", 34, YELLOW, weight=BOLD)
-        eqs = T("=", 34, TEXT)
-        t1 = T("new cells per hour", 34, BLUE)
-        tx = T("×", 34, TEXT)
-        t2 = T("final cell length", 34, ORANGE)
-        rule = VGroup(rule1, eqs, t1, tx, t2).arrange(RIGHT, buff=0.25).move_to([0, 1.2, 0])
-        fit(rule)
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.8)
+        self.add(heading("A leaf gains carbon and loses water"))
+        # Eudicot cross-section: upper surface, palisade, spongy layer and lower stoma.
+        upper=Rectangle(width=10.8,height=0.3,color=GREEN,fill_opacity=0.15).move_to([0,2.3,0])
+        lower=VGroup(Line([-5.4,-1.5,0],[-0.65,-1.5,0],color=GREEN,stroke_width=8),
+                     Line([0.65,-1.5,0],[5.4,-1.5,0],color=GREEN,stroke_width=8))
+        mes=VGroup(*[RoundedRectangle(width=1.0,height=1.25,corner_radius=0.18,color=GREEN,fill_opacity=0.1).move_to([x,1.45,0])
+                     for x in [-4.6,-3.3,-2.0,-0.7,0.6,1.9,3.2,4.5]])
+        spongy=VGroup(*[Ellipse(width=1.35,height=0.65,color=GREEN,fill_opacity=0.1).rotate(a).move_to([x,y,0])
+                        for x,y,a in [(-4.4,-0.35,0.3),(-2.6,-0.7,-0.3),(-1.1,-0.2,0.4),(2.8,-0.6,0.2),(4.5,-0.1,-0.4)]])
+        vein=VGroup(Ellipse(width=1.7,height=1.0,color=GREY).move_to([1.1,-0.05,0]),
+                    RoundedRectangle(width=0.95,height=0.32,corner_radius=0.1,color=WOOD,fill_opacity=0.4).move_to([1.1,0.18,0]),
+                    RoundedRectangle(width=0.95,height=0.32,corner_radius=0.1,color=PINK,fill_opacity=0.4).move_to([1.1,-0.25,0]))
+        self.add(upper,lower,mes,spongy,vein)
+        self.at("veins carry both tissues")
+        vl=T("vein: xylem + phloem",24,TEXT).move_to([3.1,-2.2,0])
+        ptr=arr([2.5,-1.9,0],[1.5,-0.65,0],GREY,w=3)
+        self.play(FadeIn(vl),GrowArrow(ptr),run_time=0.5)
+        self.at("chloroplasts in the mesophyll")
+        chl=VGroup(*[Ellipse(width=0.22,height=0.12,color=GREEN,fill_opacity=0.8).move_to(c.get_center()+[dx,dy,0])
+                     for c in mes for dx,dy in [(-0.25,0.25),(0.25,-0.25)]])
+        ml=T("mesophyll + chloroplasts",24,GREEN).move_to([-2.9,-2.2,0])
+        self.play(FadeIn(chl),FadeIn(ml),run_time=0.6)
+        self.at("capture light")
+        light=VGroup(*[arr([x,3.0,0],[x,2.55,0],YELLOW,w=3,tip=0.12) for x in [-3,0,3]])
+        self.play(GrowArrow(light[0]),GrowArrow(light[1]),GrowArrow(light[2]),run_time=0.5)
+        self.at("airspaces connect to stomata")
+        air=T("air spaces",24,GREY).move_to([-3.4,0.35,0])
+        path=VMobject(color=GREY,stroke_width=3).set_points_as_corners([[-2.2,0.2,0],[-1.5,-0.75,0],[0,-0.8,0],[0,-1.55,0]])
+        guard=VGroup(Ellipse(width=0.45,height=0.65,color=GREEN,fill_opacity=0.4).move_to([-0.47,-1.5,0]),
+                     Ellipse(width=0.45,height=0.65,color=GREEN,fill_opacity=0.4).move_to([0.47,-1.5,0]))
+        self.play(FadeIn(air),Create(path),FadeIn(guard),run_time=0.7)
+        self.at("pores opened and closed")
+        gl=T("guard cells / stoma",24,GREEN).move_to([0,-2.8,0])
+        self.play(FadeIn(gl),guard[0].animate.shift(RIGHT*0.25),guard[1].animate.shift(LEFT*0.25),run_time=0.5)
+        self.at("an open stoma")
+        self.play(guard[0].animate.shift(LEFT*0.25),guard[1].animate.shift(RIGHT*0.25),
+                  FadeOut(gl),FadeOut(vl),FadeOut(ptr),FadeOut(ml),FadeOut(path),run_time=0.5)
+        self.at("carbon dioxide in")
+        co=VGroup(Line([-1.5,-3.0,0],[-0.13,-1.95,0],color=TEXT,stroke_width=4),
+                  arr([-0.13,-1.95,0],[-0.13,-0.85,0],TEXT,w=4))
+        cl=T("carbon dioxide in",24,TEXT).move_to([-3.3,-3.15,0])
+        self.play(Create(co),FadeIn(cl),run_time=0.5)
+        self.at("water vapor out")
+        wa=VGroup(Line([0.13,-0.85,0],[0.13,-1.95,0],color=TEAL_W,stroke_width=4),
+                  arr([0.13,-1.95,0],[1.8,-3.0,0],TEAL_W,w=4))
+        wl=T("water vapour out",24,TEAL_W).move_to([3.5,-3.15,0])
+        self.play(Create(wa),FadeIn(wl),run_time=0.5)
+        self.at("the leaf gains carbon")
+        # Make room for a readable whole plant while keeping the stoma and exchange arrows aligned.
+        leaf=VGroup(upper,lower,mes,spongy,vein,chl,guard)
+        little=plant().scale(0.8).move_to([5.1,0.25,0])
+        connector=DashedLine([3.24,0.87,0],[4.3,0.99,0],color=GREY,stroke_width=4)
+        self.play(FadeOut(light),leaf.animate.scale(0.6,about_point=[0,-1.5,0]),
+                  air.animate.move_to([-2.2,-0.4,0]),FadeIn(little),Create(connector),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "At steady state, growth equals new cells per file times final length."
+    LINE = "Meristems supply cells; tips add length, cambia add girth."
+
+    def construct(self):
+        line=VGroup(T("Meristems supply cells;",36,font=TITLE_FONT),
+                    T("tips add length, cambia add girth.",36,font=TITLE_FONT)).arrange(DOWN,buff=0.15).move_to([0,2.6,0])
+        tree=oak().scale(0.65).shift(DOWN*0.9)
+        dots=tips().scale(0.65).shift(DOWN*0.9)
+        cambium=Ellipse(width=0.75,height=0.28,color=BLUE,stroke_width=4).move_to([0,-1.1,0])
+        self.play(FadeIn(line),FadeIn(tree),run_time=0.6)
+        self.play(FadeIn(dots),Create(cambium),run_time=0.5)
+        self.finish()

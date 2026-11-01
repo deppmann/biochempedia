@@ -1,4 +1,4 @@
-"""Organism problems: every exchange surface has a cost  (Biochemistrypedia explainer)
+"""Organism problems: five problems and complementary questions  (Biochemistrypedia explainer)
 
 COLOR MAP (one colour per concept, whole film)
   GREEN  = carbon / gas taken in (CO2 in the leaf, oxygen in the lung)
@@ -60,79 +60,6 @@ class Stoma(VGroup):
                 self.gr.animate.move_to([self.cx + 0.02 + gw / 2, self.gr.get_center()[1], 0])]
 
 
-class S00Title(TitleCard):
-    LESSON = "What an organism has to do"
-    TITLE = "Every exchange surface has a cost"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Pore(SpokenScene):
-    def construct(self):
-        head = T("Barley leaf, block cross-section (not to scale)", 26, GREY).to_edge(UP, buff=0.35)
-        st = Stoma(0, 0.7, 1.0, opened=True)
-        self.play(FadeIn(head), FadeIn(st.inner), FadeIn(st.wax_l), FadeIn(st.wax_r), run_time=0.9)
-        wax = T("waxy layer", 26, GREY).move_to([-4.2, 1.5, 0])
-        cells = T("leaf cells", 26, GREY).move_to([0, -1.9, 0])
-        self.play(FadeIn(wax), FadeIn(cells), FadeIn(st.gl), FadeIn(st.gr), run_time=0.7)
-        self.at("The gas enters")
-        a_in = arr([-0.25, 2.95, 0], [-0.25, -0.8, 0], GREEN)
-        l_in = T(f"{CO2} in", 30, GREEN).move_to([-2.2, 2.6, 0])
-        self.play(GrowArrow(a_in), FadeIn(l_in), run_time=0.9)
-        self.at("tiny pores")
-        gl = T("guard cells around the pore", 26, PURPLE).move_to([3.7, 1.75, 0])
-        gline = Line([2.4, 1.5, 0], [1.4, 0.75, 0], color=PURPLE, stroke_width=2)
-        self.play(FadeIn(gl), Create(gline), Indicate(VGroup(st.gl, st.gr), color=PURPLE, scale_factor=1.06), run_time=0.9)
-        self.at("leaves through")
-        a_out = arr([0.25, -0.8, 0], [0.25, 2.95, 0], BLUE)
-        l_out = T("water vapour out", 30, BLUE).move_to([3.1, 2.7, 0])
-        self.play(GrowArrow(a_out), FadeIn(l_out), run_time=0.9)
-        self.at("very same pores")
-        self.play(Indicate(VGroup(st.gl, st.gr), color=PURPLE, scale_factor=1.06), run_time=0.8)
-        self.at("both things happen")
-        self.play(Indicate(a_in, color=GREEN, scale_factor=1.1), Indicate(a_out, color=BLUE, scale_factor=1.1), run_time=0.9)
-        self.finish()
-
-
-class S02Lung(SpokenScene):
-    def construct(self):
-        # carried over from scene 1, rebuilt smaller on the left
-        st = Stoma(-3.6, 0.6, 0.55, half=5.5 * 0.9, depth=5.6, opened=True)
-        a_in = arr([-3.85, 3.0, 0], [-3.85, 0.1, 0], GREEN, w=5)
-        a_out = arr([-3.35, 0.1, 0], [-3.35, 3.0, 0], BLUE, w=5)
-        lab_l = T("barley leaf", 28, GREY).move_to([-3.6, 3.35, 0])
-        self.add(st, a_in, a_out, lab_l)
-        self.at("An adult human lung")
-        chest = box(5.4, 6.2, GREY, 0.0, r=0.3).move_to([3.6, -0.1, 0])
-        chest_l = T("chest, not to scale", 24, GREY).move_to([3.6, -2.7, 0])
-        lung = box(4.6, 4.4, GREY, 0.07, r=0.25).move_to([3.6, 0.2, 0])
-        lung_l = T("lung", 26, GREY).move_to([3.6, 2.0, 0])
-        who = T("adult human", 28, GREY).move_to([3.6, 3.35, 0])
-        self.play(FadeIn(who), Create(chest), FadeIn(chest_l), run_time=0.8)
-        self.play(Create(lung), FadeIn(lung_l), run_time=0.7)
-        self.at("dissolve in a thin")
-        film = box(3.8, 0.38, BLUE, 0.35, r=0.1).move_to([3.6, -1.15, 0])
-        film_l = T("thin, wet film", 24, BLUE).move_to([3.6, -1.75, 0])
-        self.play(FadeIn(film), FadeIn(film_l), run_time=0.7)
-        self.at("diffuse into cells")
-        g_in = arr([2.4, 0.4, 0], [2.4, -0.95, 0], GREEN)
-        g_l = T("oxygen in", 24, GREEN).move_to([2.4, 0.8, 0])
-        self.play(GrowArrow(g_in), FadeIn(g_l), run_time=0.8)
-        self.at("loses water by evaporation")
-        w_out = arr([4.9, -0.95, 0], [4.9, 0.4, 0], BLUE)
-        w_l = T("water\nvapour out", 24, BLUE, line_spacing=0.9).move_to([4.9, 0.85, 0])
-        self.play(GrowArrow(w_out), FadeIn(w_l), run_time=0.8)
-        self.at("each breath")
-        self.play(Indicate(w_out, color=BLUE, scale_factor=1.12), run_time=0.8)
-        self.at("A stoma can close")
-        self.play(FadeOut(a_in), FadeOut(a_out), *st.close_anims(), run_time=0.9)
-        can = T("can close", 28, PURPLE).move_to([-3.6, -2.9, 0])
-        self.play(FadeIn(can), run_time=0.4)
-        self.at("cannot close")
-        no = T("cannot close", 24, RED).move_to([3.6, 1.55, 0])
-        self.play(FadeIn(no), run_time=0.5)
-        self.finish()
-
-
 def ratio_text(top="carbon gained", bot="water lost", size=30):
     t = T(top, size, GREEN)
     b = T(bot, size, BLUE)
@@ -149,141 +76,370 @@ def leaf_card(name, carbon, water, x, eff_text, res, color=YELLOW, y0=2.7):
     return title, c, w, res_t
 
 
+# The organism icons and limb diagrams are schematic, never to scale.
+ITEMS = ["Energy and materials", "Exchange / transport / wastes",
+         "Internal stability", "Defense", "Lineage continuation"]
+
+
+def plant():
+    stem = Line([0, -0.7, 0], [0, 0.95, 0], color=GREY, stroke_width=4)
+    leaves = VGroup(*[Ellipse(width=0.65, height=0.22, color=GREY, fill_opacity=0.2)
+                     .rotate(a).move_to([x, y, 0])
+                     for x, y, a in [(-0.27, 0.1, -0.5), (0.27, 0.45, 0.5)]])
+    grain = VGroup(*[Ellipse(width=0.23, height=0.35, color=GREY, fill_opacity=0.2)
+                    .move_to([x, y, 0]) for x, y in [(-0.12, 0.85), (0.12, 1.1), (0, 1.35)]])
+    roots = VGroup(*[Line([0, -0.7, 0], [x, -1.15, 0], color=GREY) for x in [-0.5, 0, 0.5]])
+    return VGroup(stem, leaves, grain, roots)
+
+
+def bee():
+    body = Ellipse(width=1.3, height=0.65, color=GREY, fill_opacity=0.2)
+    wings = VGroup(*[Ellipse(width=0.7, height=0.42, color=GREY).rotate(a).move_to([x, 0.45, 0])
+                    for x, a in [(-0.25, -0.6), (0.25, 0.6)]])
+    head = Circle(radius=0.24, color=GREY).move_to([0.8, 0.1, 0])
+    stripes = VGroup(*[Line([x, -0.25, 0], [x, 0.25, 0], color=GREY) for x in [-0.25, 0, 0.25]])
+    return VGroup(body, wings, head, stripes)
+
+
+def human():
+    return VGroup(Circle(radius=0.25, color=GREY).move_to([0, 0.9, 0]),
+                  Line([0, 0.65, 0], [0, -0.3, 0], color=GREY, stroke_width=5),
+                  Line([-0.6, 0, 0], [0, 0.4, 0], color=GREY, stroke_width=5),
+                  Line([0, 0.4, 0], [0.6, 0, 0], color=GREY, stroke_width=5),
+                  Line([-0.45, -1.1, 0], [0, -0.3, 0], color=GREY, stroke_width=5),
+                  Line([0, -0.3, 0], [0.45, -1.1, 0], color=GREY, stroke_width=5))
+
+
+def organisms():
+    g = VGroup()
+    for icon, name, y in [(plant(), "barley plant", 1.65), (bee(), "honeybee", -0.15), (human(), "human", -1.95)]:
+        icon.scale(0.48).move_to([4.7, y + 0.15, 0])
+        label = T(name, 24, GREY).move_to([4.7, y - 0.7, 0])
+        g.add(VGroup(icon, label))
+    return g
+
+
+def checklist(empty=False, x=-2.1):
+    rows = VGroup()
+    for i, label in enumerate(ITEMS):
+        sq = Square(side_length=0.3, color=GREY, stroke_width=2).move_to([x - 3.5, 1.9 - i * 0.92, 0])
+        row = VGroup(sq)
+        if not empty:
+            row.add(T(label, 26, GREY).next_to(sq, RIGHT, buff=0.23))
+        rows.add(row)
+    return rows
+
+
+class S00Title(TitleCard):
+    LESSON = "What an organism has to do"
+    TITLE = "What an Organism Has to Do"
+
+    def construct(self):
+        title = T(self.TITLE, 43, font=TITLE_FONT).move_to([0, 3.05, 0])
+        self.play(FadeIn(title), FadeIn(checklist(empty=True)), FadeIn(organisms()), run_time=0.8)
+        self.finish()
+
+
+class S08Checklist(SpokenScene):
+    def construct(self):
+        head = T("A teaching checklist", 36, font=TITLE_FONT).move_to([0, 3.1, 0])
+        empty, full, org = checklist(True), checklist(), organisms()
+        self.at("Every multicellular organism")
+        self.play(FadeIn(head), FadeIn(empty), FadeIn(org), run_time=0.65)
+        for i, cue in enumerate(["Get energy", "Exchange and move", "Keep its inside", "Resist damage", "And leave descendants"]):
+            self.at(cue)
+            self.play(ReplacementTransform(empty[i], full[i]), run_time=0.55)
+        self.at("This checklist connects")
+        # A shared bracket connects the whole checklist to all three organisms.
+        links = VGroup(*[Line([1.8, y, 0], [2.25, y, 0], color=GREY)
+                         for y in [1.9, 0.98, 0.06, -0.86, -1.78]],
+                       Line([2.25, -1.78, 0], [2.25, 1.9, 0], color=GREY),
+                       *[Line([2.25, y, 0], [3.65, y, 0], color=GREY) for y in [1.8, 0, -1.8]])
+        self.play(Create(links), run_time=0.8)
+        self.at("Every solution carries")
+        cost = T("Every solution carries a cost", 30, YELLOW).move_to([0, -3.05, 0])
+        self.play(FadeIn(cost), run_time=0.6)
+        self.at("how it solves")
+        self.play(Indicate(full, color=YELLOW, scale_factor=1.02), run_time=0.8)
+        self.at("how its solutions evolved")
+        self.play(Indicate(org, color=YELLOW, scale_factor=1.03), run_time=0.8)
+        self.finish()
+
+
+class S09Jobs(SpokenScene):
+    def construct(self):
+        rows = checklist(x=-2.1)
+        title = T("A teaching checklist", 34, font=TITLE_FONT).move_to([0, 3.1, 0])
+        self.add(rows, title)
+        stage = VGroup()
+        extras = []
+        def show(i, new):
+            nonlocal stage
+            self.play(rows.animate.set_color(GREY), FadeOut(stage),
+                      *[FadeOut(m) for m in extras], run_time=0.2)
+            extras.clear()
+            self.play(rows[i].animate.set_color(YELLOW), FadeIn(new), run_time=0.5)
+            stage = new
+        self.at("Plants capture light")
+        pl = plant().move_to([4.5, 0.1, 0])
+        light = VGroup(T("light", 25, GREY).move_to([3.2, 2, 0]), arr([3.3, 1.6, 0], [4.1, 0.8, 0], GREY))
+        show(0, VGroup(pl, light))
+        self.at("water and minerals")
+        root_in = VGroup(T("water + minerals", 22, BLUE).move_to([4.3, -2.1, 0]),
+                         arr([4.5, -1.8, 0], [4.5, -0.85, 0], BLUE))
+        self.play(FadeIn(root_in), run_time=0.6); extras.append(root_in)
+        self.at("Materials must reach")
+        cells = VGroup(*[box(0.65, 0.8, GREY, 0.1).move_to([x, 0.2, 0]) for x in [3.1, 4.25, 5.4]])
+        incoming = arr([2.7, 1.6, 0], [5.6, 1.6, 0], GREY)
+        show(1, VGroup(cells, incoming, T("to every cell", 24, GREY).move_to([4.3, 2.2, 0])))
+        self.at("wastes must leave")
+        waste = VGroup(arr([4.25, -0.4, 0], [4.25, -1.6, 0], GREY), T("wastes out", 24, GREY).move_to([4.25, -2.15, 0]))
+        self.play(FadeIn(waste), run_time=0.5); extras.append(waste)
+        self.at("Homeostasis keeps")
+        boundary = box(3.2, 2.8, GREY, 0.05).move_to([4.25, 0, 0])
+        band = box(2.5, 0.5, YELLOW, 0.1).move_to([4.25, 0, 0])
+        dot = Dot([3.6, 0, 0], color=GREY)
+        show(2, VGroup(boundary, band, dot, T("relatively stable", 23, GREY).move_to([4.25, -2, 0])))
+        self.play(dot.animate.shift(RIGHT * 1.2), run_time=0.8)
+        self.at("Defense resists")
+        shield = Polygon([3, 1.2, 0], [5.5, 1.2, 0], [5.25, -0.7, 0], [4.25, -1.5, 0], [3.25, -0.7, 0], color=GREY)
+        threat = arr([2.6, 0.2, 0], [3.1, 0.2, 0], RED)
+        show(3, VGroup(shield, threat, T("damage / invasion", 22, GREY).move_to([4.25, -2.15, 0])))
+        self.at("Reproduction continues")
+        line = VGroup(mchip("lineage", GREY, 26).move_to([4.25, 1.7, 0]),
+                      arr([4.25, 1.1, 0], [4.25, -0.1, 0], GREY),
+                      mchip("descendants", GREY, 24).move_to([4.25, -0.65, 0]))
+        show(4, line)
+        self.at("worker can help")
+        self.play(FadeOut(stage), run_time=0.25)
+        worker = bee().scale(0.65).move_to([3.1, 0.7, 0])
+        relatives = VGroup(bee().scale(0.4).move_to([5.3, 0.9, 0]), bee().scale(0.4).move_to([5.3, -0.2, 0]))
+        self.play(FadeIn(worker), FadeIn(relatives), GrowArrow(arr([3.9, 0.5, 0], [4.65, 0.5, 0], GREY)),
+                  FadeIn(T("worker helps raise\nclose relatives", 24, GREY).move_to([4.3, -1.8, 0])), run_time=0.7)
+        self.finish()
+
+
+class S01Pore(SpokenScene):
+    def construct(self):
+        head = VGroup(*[T(label, 22, YELLOW if i == 1 else GREY).move_to([x, 3.3, 0])
+                        for i, (x, label) in enumerate(zip([-5, -2.5, 0, 2.5, 5],
+                        ["Energy", "Exchange", "Stability", "Defense", "Lineage"]))])
+        st = Stoma(0, 0.45, 1, depth=3.0)
+        wax = T("waxy layer", 25, GREY).move_to([-4.2, 1.05, 0])
+        wet = Line([-4.6, -1.5, 0], [4.6, -1.5, 0], color=BLUE, stroke_width=6)
+        cells = T("wet internal cell walls", 26, BLUE).move_to([0, -2.3, 0])
+        self.at("A barley leaf")
+        self.play(FadeIn(head), FadeIn(st), FadeIn(wax), FadeIn(wet), FadeIn(cells), run_time=0.7)
+        self.at("Carbon dioxide enters")
+        ain = arr([-0.25, 2.4, 0], [-0.25, -1.1, 0], GREEN)
+        cin = T(f"{CO2} in", 28, GREEN).move_to([-2.3, 2.3, 0])
+        self.play(GrowArrow(ain), FadeIn(cin), run_time=0.7)
+        self.at("tiny pores called stomata")
+        gl = T("guard cells / stoma", 25, PURPLE).move_to([3.7, 1.3, 0])
+        self.play(FadeIn(gl), Indicate(VGroup(st.gl, st.gr), color=PURPLE), run_time=0.6)
+        self.at("Water vapor leaves")
+        aout = arr([0.25, -1.35, 0], [0.25, 2.4, 0], BLUE)
+        wout = T("water vapour out", 28, BLUE).move_to([3.3, 2.3, 0])
+        self.play(GrowArrow(aout), FadeIn(wout), run_time=0.7)
+        self.at("both things happen")
+        self.play(Indicate(ain, color=GREEN), Indicate(aout, color=BLUE), run_time=0.7)
+        self.finish()
+
+
+class S02Lung(SpokenScene):
+    def construct(self):
+        st = Stoma(-3.6, 0.4, 0.5, depth=5)
+        leaf = VGroup(st, T("barley leaf", 28, GREY).move_to([-3.6, 3.1, 0]),
+                      arr([-3.8, 2.3, 0], [-3.8, -0.7, 0], GREEN), arr([-3.4, -0.7, 0], [-3.4, 2.3, 0], BLUE))
+        self.add(leaf)
+        chest = box(5.5, 5.5, GREY).move_to([3.5, -0.1, 0])
+        lung = box(4.6, 3.5, GREY, 0.07).move_to([3.5, -0.4, 0])
+        sac = box(3.5, 1.8, BLUE, 0.08).move_to([3.5, -0.8, 0])
+        airway = VGroup(Line([3.25, 2.4, 0], [3.25, 0.2, 0], color=BLUE, stroke_width=4),
+                        Line([3.75, 2.4, 0], [3.75, 0.2, 0], color=BLUE, stroke_width=4))
+        labels = VGroup(T("lung inside chest", 27, GREY).move_to([3.5, 3.1, 0]),
+                        T("air-sac lining: wet film", 24, BLUE).move_to([3.5, -2.3, 0]))
+        self.at("Your lungs face")
+        self.play(FadeIn(chest), FadeIn(lung), FadeIn(labels[0]), run_time=0.7)
+        self.at("Gas must dissolve")
+        gas = arr([2.7, 0.6, 0], [2.7, -1.3, 0], GREEN)
+        self.play(FadeIn(sac), FadeIn(airway), FadeIn(labels[1]), GrowArrow(gas), run_time=0.7)
+        self.at("before entering cells")
+        self.play(Indicate(sac, color=BLUE, scale_factor=1.03), run_time=0.6)
+        self.at("A wet surface")
+        loss = arr([4.1, -0.6, 0], [4.1, 2.45, 0], BLUE)
+        self.play(GrowArrow(loss), run_time=0.65)
+        self.at("In ordinary")
+        # The airway wall supplies moisture on entry and recovers some on exit.
+        note = T("airways moisten air;\nrecover some water out", 22, BLUE).move_to([0, -3.2, 0])
+        recovered = arr([4.05, 1.1, 0], [3.75, 1.1, 0], BLUE, w=4, tip=0.12)
+        self.play(FadeIn(note), GrowArrow(recovered), run_time=0.6)
+        self.at("each breath carries")
+        out = T("water still leaves", 24, BLUE).move_to([-3.6, -2.7, 0])
+        self.play(FadeIn(out), Indicate(loss, color=BLUE), run_time=0.7)
+        self.at("Neither solution escapes")
+        self.play(Indicate(leaf, color=YELLOW, scale_factor=1.02), Indicate(chest, color=YELLOW, scale_factor=1.02), run_time=0.7)
+        self.finish()
+
+
 class S03Ratio(SpokenScene):
     def construct(self):
-        q = T("What does the exchange cost?", 36, font=TITLE_FONT).move_to([0, 2.9, 0])
-        self.play(Write(q), run_time=1.2)
-        self.at("Divide the carbon gained")
-        eq = T("water-use efficiency  =", 34, YELLOW)
-        fr = ratio_text(size=34)
-        grp = VGroup(eq, fr).arrange(RIGHT, buff=0.4).move_to([0, 1.3, 0])
-        self.play(FadeOut(q), run_time=0.4)
-        self.play(FadeIn(fr, shift=UP * 0.1), run_time=0.9)
-        self.at("This is called")
-        self.play(FadeIn(eq, shift=RIGHT * 0.1), run_time=0.7)
-        self.at("Here are two")
-        tA = T("Leaf A: made-up numbers, not barley data", 28, GREY, weight=BOLD).move_to([0, -0.2, 0])
-        self.play(FadeIn(tA), run_time=0.6)
+        eq = T("water-use efficiency =", 32, YELLOW)
+        fr = ratio_text(size=32)
+        formula = VGroup(eq, fr).arrange(RIGHT, buff=0.4).move_to([0, 2.3, 0])
+        self.at("Water use efficiency")
+        self.play(FadeIn(formula), run_time=0.7)
+        self.at("Here are made")
+        note = T("Illustrative leaves — not barley data", 27, GREY).move_to([0, 0.6, 0])
+        self.play(FadeIn(note), run_time=0.6)
         self.at("Leaf A gains")
-        c = mchip(f"gains 20 µmol {CO2}  per m² per s", GREEN, 28).move_to([-3.4, -1.3, 0])
-        self.play(FadeIn(c, shift=UP * 0.1), run_time=0.7)
+        carbon = mchip(f"Leaf A: 20 µmol {CO2}\nper m² per s", GREEN, 27).move_to([-3.3, -0.8, 0])
+        self.play(FadeIn(carbon), run_time=0.65)
         self.at("and loses")
-        w = mchip("loses 5 mmol H₂O  per m² per s", BLUE, 28).move_to([3.4, -1.3, 0])
-        self.play(FadeIn(w, shift=UP * 0.1), run_time=0.7)
+        water = mchip("5 mmol H₂O\nper m² per s", BLUE, 27).move_to([3.3, -0.8, 0])
+        self.play(FadeIn(water), run_time=0.65)
         self.at("Its efficiency is")
-        res = T("20 / 5  =  4.0", 44, YELLOW, weight=BOLD).move_to([0, -2.45, 0])
-        unit = T(f"µmol {CO2} per mmol H₂O", 26, YELLOW).move_to([0, -3.1, 0])
-        self.play(FadeIn(res, scale=1.1), run_time=0.7)
-        self.play(FadeIn(unit), run_time=0.4)
+        result = VGroup(T("20 / 5 = 4.0", 43, YELLOW), T(f"µmol {CO2} per mmol H₂O", 26, YELLOW)).arrange(DOWN, buff=0.15).move_to([0, -2.6, 0])
+        self.play(FadeIn(result, scale=1.05), run_time=0.65)
         self.finish()
+
+
+def comparison_card(name, carbon, water, result, x):
+    return VGroup(T(name, 30, GREY, weight=BOLD).move_to([x, 2.8, 0]),
+                  mchip(f"{carbon} µmol {CO2} per m² per s", GREEN, 23).move_to([x, 1.6, 0]),
+                  mchip(f"{water} mmol H₂O per m² per s", BLUE, 23).move_to([x, 0.5, 0]),
+                  VGroup(T(result, 37, YELLOW), T(f"µmol {CO2} per mmol H₂O", 22, YELLOW)).arrange(DOWN, buff=0.13).move_to([x, -0.85, 0]))
 
 
 class S04Leafb(SpokenScene):
     def construct(self):
-        xa, xb = -3.5, 3.5
-        tA, cA, wA, rA = leaf_card("Leaf A", "gains 20", "loses 5", xa, "20 / 5 = 4.0", "µmol per mmol", y0=3.0)
-        # keep the units visible by label under the pair
-        cA = mchip(f"gains 20 µmol {CO2}", GREEN, 28).move_to([xa, 1.9, 0])
-        wA = mchip("loses 5 mmol H₂O", BLUE, 28).move_to([xa, 0.95, 0])
-        rA = T("20 / 5  =  4.0", 40, YELLOW, weight=BOLD).move_to([xa, -0.05, 0])
-        self.add(tA, cA, wA, rA)
-        self.at("Leaf B has fewer")
-        tB = T("Leaf B: fewer stomata", 30, PURPLE, weight=BOLD).move_to([xb, 3.0, 0])
-        note = T("made-up numbers, not barley data; rates are per m² per s", 22, GREY).move_to([0, -3.4, 0])
-        self.play(FadeIn(tB), FadeIn(note), run_time=0.6)
-        self.at("It gains")
-        cB = mchip(f"gains 16 µmol {CO2}", GREEN, 28).move_to([xb, 1.9, 0])
-        wB = mchip("loses 3 mmol H₂O", BLUE, 28).move_to([xb, 0.95, 0])
-        self.play(FadeIn(cB, shift=UP * 0.1), FadeIn(wB, shift=UP * 0.1), run_time=0.8)
-        self.at("so its efficiency")
-        rB = T("16 / 3  =  5.3", 40, YELLOW, weight=BOLD).move_to([xb, -0.05, 0])
-        self.play(FadeIn(rB, scale=1.1), run_time=0.7)
-        self.at("less carbon")
-        lc = T("carbon: 0.8 of A, 20% less", 26, GREEN).move_to([xb, -1.05, 0])
-        self.play(FadeIn(lc, shift=UP * 0.1), run_time=0.6)
-        self.at("less water")
-        lw = T("water: 0.6 of A, 40% less", 26, BLUE).move_to([xb, -1.65, 0])
-        self.play(FadeIn(lw, shift=UP * 0.1), run_time=0.6)
-        self.at("Neither leaf is better everywhere")
-        mid = T("neither leaf is better everywhere", 28, YELLOW).move_to([0, -2.7, 0])
-        self.play(FadeOut(lc), FadeOut(lw), run_time=0.5)
-        self.play(FadeIn(mid), run_time=0.6)
+        a = comparison_card("Leaf A", 20, 5, "20 / 5 = 4.0", -3.3)
+        b = comparison_card("Leaf B", 16, 3, "16 / 3 = 5.3", 3.3)
+        note = T("Illustrative values — not barley data", 23, GREY).move_to([0, -3.35, 0])
+        self.add(a, note)
+        self.at("Leaf B gains")
+        self.play(FadeIn(b[0]), FadeIn(b[1]), run_time=0.5)
+        self.at("and loses")
+        self.play(FadeIn(b[2]), run_time=0.5)
+        self.at("Its efficiency is")
+        self.play(FadeIn(b[3]), run_time=0.5)
         self.at("When water is scarce")
-        bcase = T("water is scarce:\nB keeps more water\nper unit of carbon", 26, YELLOW, line_spacing=0.9).move_to([xb, -1.4, 0])
-        self.play(FadeIn(bcase, shift=UP * 0.1), run_time=0.7)
+        case = T("Water scarce: B keeps more water per unit carbon", 27, YELLOW).move_to([0, -2.3, 0])
+        self.play(FadeIn(case), Indicate(b[3], color=YELLOW), run_time=0.65)
         self.at("When water is plentiful")
-        acase = T("water is plentiful and\ncarbon limits growth:\nA gains more", 26, YELLOW, line_spacing=0.9).move_to([xa, -1.4, 0])
-        self.play(FadeIn(acase, shift=UP * 0.1), run_time=0.7)
+        new = T("Water plentiful, carbon limits growth: A gains more", 27, YELLOW).move_to([0, -2.3, 0])
+        self.play(ReplacementTransform(case, new), run_time=0.6)
+        self.at("gains more")
+        self.play(Indicate(a[1], color=GREEN), run_time=0.6)
         self.finish()
 
 
-class S05Barley(SpokenScene):
-    def construct(self):
-        q = mchip("fewer stomata  →  less grain?", YELLOW, 32).move_to([0, 3.0, 0])
-        self.at("You might expect")
-        self.play(FadeIn(q, shift=DOWN * 0.1), run_time=0.8)
-        self.at("tested this in barley")
-        gene = mchip("barley lines making more of one gene's product:\nfewer stomata develop", PURPLE, 26).move_to([0, 3.0, 0])
-        self.play(ReplacementTransform(q, gene), run_time=0.9)
-        # bars
-        base_y, H = -3.0, 3.7
-        title = T("stomatal density, mature sixth leaf (% of control)", 24, GREY).move_to([-3.0, 1.45, 0])
-        def bar(x, pct, lab, col):
-            h = H * pct / 100
-            b = Rectangle(width=1.3, height=h, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.4)
-            b.move_to([x, base_y + h / 2, 0])
-            l = T(lab, 24, GREY).move_to([x, base_y - 0.3, 0])
-            return b, l
-        self.at("In the mature sixth leaf")
-        b0, l0 = bar(-5.2, 100, "control", GREY)
-        v0 = T("100%", 26, GREY).next_to(b0, UP, buff=0.1)
-        # density axis only needs 100% -> shorten so title fits above
-        self.play(FadeIn(title), GrowFromEdge(b0, DOWN), FadeIn(l0), FadeIn(v0), run_time=0.9)
-        self.at("two lines kept")
-        b1, l1 = bar(-3.3, 24, "line 1", PURPLE)
-        b2, l2 = bar(-1.4, 12, "line 2", PURPLE)
-        v1 = T("about 24%", 24, PURPLE).next_to(b1, UP, buff=0.1)
-        v2 = T("about 12%", 24, PURPLE).next_to(b2, UP, buff=0.1)
-        self.play(GrowFromEdge(b1, DOWN), GrowFromEdge(b2, DOWN), FadeIn(l1), FadeIn(l2), run_time=0.9)
-        self.play(FadeIn(v1), FadeIn(v2), run_time=0.4)
-        self.at("Gas exchange fell")
-        c1 = mchip("gas exchange fell\nin well-watered plants", BLUE, 26).move_to([3.6, 1.45, 0])
-        self.play(FadeIn(c1, shift=UP * 0.1), run_time=0.7)
-        self.at("plants per group")
-        c2 = mchip("greenhouse grain yield: no\nstatistically significant drop\nunder either watering treatment\n(5 plants per group)", GREEN, 24).move_to([3.6, -0.55, 0])
-        self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.8)
-        self.at("does not prove")
-        c3 = mchip("not proof the yields are equal:\nno loss was detected", RED, 26).move_to([3.6, -2.35, 0])
-        self.play(FadeIn(c3, shift=UP * 0.1), run_time=0.8)
-        self.finish()
+def limb(kind):
+    # Shared one / two / wrist / digits layout, reshaped in each lineage.
+    length, spread = {"human arm": (1.0, 0.45), "bat wing": (0.8, 1.0), "whale flipper": (0.55, 0.65)}[kind]
+    upper = Line([0, 1.1, 0], [0, 0.4, 0], color=GREY, stroke_width=9)
+    lower = VGroup(*[Line([x, 0.4, 0], [x, 0.4-length, 0], color=GREY, stroke_width=6) for x in [-0.12, 0.12]])
+    y = 0.4-length
+    wrist = VGroup(*[Dot([x, y-0.13, 0], radius=0.07, color=GREY) for x in [-0.16, 0, 0.16]])
+    digits = VGroup(*[Line([0, y-0.22, 0], [spread*d, y-0.8-0.2*(2-abs(d)), 0], color=GREY, stroke_width=3) for d in [-2,-1,0,1,2]])
+    return VGroup(upper, lower, wrist, digits)
 
 
 class S06Rule(SpokenScene):
     def construct(self):
-        t = T("Why does a structure usually fit what it does?", 34, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.at("Why does a structure")
-        self.play(Write(t), run_time=1.6)
-        self.at("A sound claim")
-        good = mchip("Lineages with fewer stomata lost less water\nand left more descendants in dry places", GREEN, 32).move_to([0, 1.5, 0])
-        self.play(FadeIn(good, shift=UP * 0.1), run_time=0.9)
-        self.at("shorthand")
-        bad = mchip("\"Barley has fewer stomata to save water\":\nshorthand that hides the history", YELLOW, 28).move_to([0, 0.15, 0])
-        self.play(FadeIn(bad, shift=UP * 0.1), run_time=0.7)
-        self.at("links two traits")
-        a = mchip(f"more stomata: more {CO2} in", GREEN, 28).move_to([-3.4, -1.45, 0])
-        b = mchip("more water out", BLUE, 28).move_to([4.0, -1.45, 0])
-        lk = DoubleArrow(a.get_right() + RIGHT * 0.1, b.get_left() + LEFT * 0.1, buff=0, color=YELLOW, stroke_width=6,
-                         tip_length=0.25)
-        self.play(FadeIn(a), FadeIn(b), run_time=0.6)
-        self.play(GrowFromCenter(lk), run_time=0.6)
-        self.at("Improving one worsens")
-        trl = T("a trade-off: improving one worsens the other", 26, YELLOW).move_to([0, -2.35, 0])
-        self.play(FadeIn(trl), run_time=0.6)
-        self.at("Every exchange surface")
-        rule = T("Every exchange surface carries a cost.", 36, font=TITLE_FONT, color=GOLD).move_to([0, -3.1, 0])
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.8)
+        title = T("Why do structures fit what they do?", 35, font=TITLE_FONT).move_to([0, 3.05, 0])
+        self.at("Why do structures")
+        self.play(FadeIn(title), run_time=0.6)
+        def population(xs):
+            return VGroup(*[box(0.55, 0.6 + 0.14*k, GREY, 0.14).move_to([x, 0.5, 0]) for x,k in xs])
+        first = population([(-4.8,0),(-3.9,1),(-3,2)])
+        later = population([(1.6,0),(2.5,2),(3.4,2),(4.3,2)])
+        self.at("Natural selection acts")
+        self.play(FadeIn(first), FadeIn(T("inherited variation", 26, GREY).move_to([-3.9, -0.6, 0])), run_time=0.65)
+        self.at("Over generations")
+        timeline = arr([-1.7, 0.5, 0], [0.7, 0.5, 0], GREY)
+        self.play(GrowArrow(timeline), FadeIn(later), run_time=0.7)
+        self.at("greater reproductive success")
+        success = T("greater reproductive success", 26, YELLOW).move_to([2.8, -0.6, 0])
+        self.play(FadeIn(success), run_time=0.6)
+        self.at("can become more common")
+        self.play(*[later[i].animate.set_stroke(YELLOW).set_fill(YELLOW, 0.25) for i in [1,2,3]], run_time=0.7)
+        self.at("But the fit")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not title], run_time=0.5)
+        sub = T("The fit is never perfect", 30, YELLOW).move_to([0, 1.9, 0])
+        self.play(FadeIn(sub), run_time=0.5)
+        self.at("link gains to costs")
+        trade = VGroup(mchip("carbon gain", GREEN, 28).move_to([-3.6, 0.2, 0]),
+                       mchip("water loss", BLUE, 28).move_to([3.6, 0.2, 0]),
+                       DoubleArrow([-1.8,0.2,0],[1.8,0.2,0], color=YELLOW))
+        self.play(FadeIn(trade), run_time=0.6)
+        self.at("Selection works with")
+        self.play(FadeOut(trade), FadeOut(sub), run_time=0.3)
+        ancestry = T("Inherited structures, reshaped", 28, GREY).move_to([0, 2, 0])
+        limbs = VGroup(*[VGroup(limb(k).move_to([x, -0.05, 0]), T(k, 25, GREY).move_to([x, -2.1, 0]))
+                         for x,k in [(-4,"human arm"),(0,"bat wing"),(4,"whale flipper")]])
+        initial = VGroup(*[VGroup(limb("human arm").move_to([x, -0.05, 0]),
+                              T(k, 25, GREY).move_to([x, -2.1, 0]))
+                            for x,k in [(-4,"human arm"),(0,"bat wing"),(4,"whale flipper")]])
+        self.play(FadeIn(ancestry), FadeIn(initial), run_time=0.35)
+        self.play(ReplacementTransform(initial, limbs), run_time=0.7)
+        self.at("Some changes spread")
+        self.play(FadeOut(limbs), FadeOut(ancestry), run_time=0.3)
+        chance = mchip("chance", GREY, 32).move_to([-3, 0.3, 0])
+        self.play(FadeIn(chance), run_time=0.5)
+        self.at("some features are")
+        byproduct = mchip("by-products", GREY, 32).move_to([3, 0.3, 0])
+        self.play(FadeIn(byproduct), run_time=0.5)
+        self.at("Evolution has no")
+        rule = T("No preconceived ideal", 36, YELLOW).move_to([0, -2, 0])
+        self.play(FadeIn(rule), run_time=0.7)
+        self.finish()
+
+
+class S10Questions(SpokenScene):
+    def construct(self):
+        title = T("Complementary questions", 37, font=TITLE_FONT).move_to([0, 3.2, 0])
+        left = T("PROXIMATE", 28, GREY).move_to([-3.3, 2.25, 0])
+        right = T("ULTIMATE", 28, GREY).move_to([3.3, 2.25, 0])
+        self.at("We also need")
+        self.play(FadeIn(title), run_time=0.6)
+        self.at("Mechanism asks")
+        mech = mchip("Mechanism\nguard-cell movement", GREY, 26).move_to([-3.3, 0.85, 0])
+        self.play(FadeIn(left), FadeIn(mech), run_time=0.6)
+        guards = VGroup(box(0.25,0.5,PURPLE,0.3).move_to([-3.5,-0.15,0]),box(0.25,0.5,PURPLE,0.3).move_to([-3.1,-0.15,0]))
+        self.at("open and close")
+        self.play(FadeIn(guards), run_time=0.2)
+        self.play(guards[0].animate.shift(LEFT*0.2), guards[1].animate.shift(RIGHT*0.2), run_time=0.35)
+        self.play(guards[0].animate.shift(RIGHT*0.2), guards[1].animate.shift(LEFT*0.2), run_time=0.35)
+        self.at("Development asks")
+        dev = mchip("Development\ngenes → stomatal number", GREY, 26).move_to([-3.3, -1.5, 0])
+        self.play(FadeOut(guards), FadeIn(dev), run_time=0.6)
+        self.at("Adaptive significance asks")
+        adapt = mchip("Adaptive significance\nsurvival + reproduction\nin an environment", GREY, 25).move_to([3.3, 0.65, 0])
+        self.play(FadeIn(right), FadeIn(adapt), run_time=0.6)
+        self.at("History asks")
+        hist = mchip("History\nchanges across a lineage", GREY, 26).move_to([3.3, -1.5, 0])
+        self.play(FadeIn(hist), run_time=0.6)
+        self.at("The first pair")
+        self.play(left.animate.set_color(YELLOW), run_time=0.4)
+        lifetime = T("organism’s lifetime", 25, YELLOW).move_to([-3.3,-2.8,0])
+        self.play(FadeIn(lifetime), run_time=0.4)
+        self.at("The second concerns")
+        evo = T("evolution", 25, YELLOW).move_to([3.3,-2.8,0])
+        self.play(right.animate.set_color(YELLOW), FadeIn(evo), run_time=0.5)
+        self.at("A full account")
+        # Collapse the examples into the two questions and restore all five problems.
+        self.play(FadeOut(VGroup(title,mech,dev,adapt,hist,lifetime,evo)),
+                  left.animate.move_to([-2.4,-2.7,0]), right.animate.move_to([2.4,-2.7,0]), run_time=0.5)
+        frame = VGroup(*[T(label, 24, GREY).move_to([0, 2.6-i*0.85, 0]) for i,label in enumerate(ITEMS)])
+        self.play(FadeIn(frame), run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Every exchange surface carries a cost."
+    LINE = "Every organism solves the same problems, and each solution has a cost."
+    def construct(self):
+        title = T(self.LINE, 43, font=TITLE_FONT).move_to([0,3.05,0])
+        fit(title, max_w=12.5)
+        self.play(FadeIn(title), FadeIn(checklist()), FadeIn(organisms()), run_time=0.7)
+        self.finish()

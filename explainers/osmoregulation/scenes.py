@@ -1,15 +1,16 @@
-"""When kidneys cannot clear the salt: the cormorant salt gland  (Biochemistrypedia explainer)
+"""Water, salt and nitrogenous waste: schematic, word-synced animation.
 
-COLOR MAP (one color per concept, whole video)
+COLOR MAP (preserved from the original film)
   BLUE   = water / seawater
-  YELLOW = salt (sodium chloride)
-  ORANGE = the kidney route (kidneys, urine, cloacal fluid)
+  YELLOW = salt (sodium chloride; other inorganic ions labelled explicitly)
+  ORANGE = the kidney route (kidneys, urine)
   GREEN  = the nasal salt gland route (glands, nasal fluid)
-  RED    = the problem, the unknown, what was not shown
+  RED    = the problem / toxicity
   GREY   = outlines, axes, de-emphasized
+  TEAL   = organic solutes / nitrogen waste
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
 ORANGE = "#F29E4C"
 
@@ -35,222 +36,279 @@ def bird(cx, cy, w, h, label="cormorant"):
 
 
 def vial(x, y, color, w=0.8, h=1.1):
-    v = box(w, h, color, x, y, op=0.3, sw=3)
-    return v
+    return box(w, h, color, x, y, op=0.3, sw=3)
+
+
+def heading(txt):
+    return T(txt, 32, TEXT, font=TITLE_FONT).move_to([0, 3.15, 0])
+
+
+def flow(txt, start, end, color, label_pos, size=26, w=5):
+    return VGroup(arr(start, end, color, w=w), lines(txt, size, color).move_to(label_pos))
+
+
+def clear(scene):
+    scene.play(*[FadeOut(m) for m in list(scene.mobjects)], run_time=0.4)
+
+
+def travel(scene, start, end, color, duration=0.6):
+    d = Dot(start, radius=0.10, color=color)
+    scene.add(d)
+    scene.play(d.animate.move_to(end), run_time=duration)
+    scene.remove(d)
 
 
 class S00Title(TitleCard):
     LESSON = "Osmoregulation and nitrogenous waste"
-    TITLE = "When Kidneys Cannot Clear the Salt"
+    TITLE = "Water, Salt and Nitrogenous Waste"
+
+    def construct(self):
+        title = T(self.TITLE, 44, TEXT, font=TITLE_FONT).move_to([0, 1.1, 0])
+        habitats = VGroup(*[VGroup(box(3.4, 1.2, c, x, -0.8), T(t, 28, c).move_to([x, -0.8, 0]))
+                              for x, t, c in [(-4.3, "sea", BLUE), (0, "fresh water", BLUE), (4.3, "land", GREY)]])
+        self.play(FadeIn(title), run_time=0.5)
+        self.play(FadeIn(habitats), run_time=0.5)
+        self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S01Sea(SpokenScene):
     def construct(self):
-        sea = Rectangle(width=12.2, height=1.0, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.25).move_to([0, -2.9, 0])
-        sea_l = T("seawater: near 1,000 mOsm/kg (approximate)", 28, BLUE).move_to(sea)
-        self.at("sea")
-        bd = bird(-2.4, 0.35, 6.0, 3.4, "seabird")
-        self.play(FadeIn(bd), FadeIn(sea), run_time=0.7)
-        self.at("seawater")
-        sea_tmp = T("seawater", 28, BLUE).move_to(sea)
-        self.play(FadeIn(sea_tmp), run_time=0.5)
-        salt_in = arr([-2.4, -2.4, 0], [-2.4, -1.45, 0], YELLOW)
-        salt_l = chip("salt", YELLOW, 28).move_to([-4.2, -1.9, 0])
-        self.at("heavy load of salt")
-        self.play(GrowArrow(salt_in), FadeIn(salt_l, shift=UP * 0.1), run_time=0.7)
-        self.at("an approximate figure")
-        self.play(ReplacementTransform(sea_tmp, sea_l), run_time=0.8)
-        osm = lines("osmolality: dissolved particles\nper kilogram of water", 24, GREY).move_to([3.0, -1.9, 0])
-        self.at("That counts dissolved particles")
-        self.play(FadeIn(osm, shift=UP * 0.1), run_time=0.7)
-        kid = chip("kidneys", ORANGE, 30).move_to([-3.6, 0.35, 0])
-        urine = arr([-2.5, 0.35, 0], [1.2, 0.35, 0], ORANGE)
-        urine_l = lines("urine, not as salty\nas the sea", 26, ORANGE).move_to([3.9, 0.35, 0])
-        self.at("Bird kidneys cannot make urine")
-        self.play(FadeIn(kid), run_time=0.5)
-        self.play(GrowArrow(urine), FadeIn(urine_l), run_time=0.9)
-        q = chip("?", RED, 44, pad=0.3).move_to([1.9, 2.0, 0])
-        qa = arr([0.3, 1.4, 0], [1.3, 1.95, 0], RED)
-        ql = lines("where does the\nextra salt go?", 30, RED).move_to([4.4, 2.0, 0])
-        self.at("where does the extra salt go")
-        self.play(GrowArrow(qa), FadeIn(q, scale=0.8), FadeIn(ql), run_time=0.9)
-        self.play(Indicate(q, color=RED, scale_factor=1.15), run_time=0.8)
+        h = heading("A shared water and salt budget")
+        body = bird(0, 0, 3.4, 2.6, "animal")
+        water = flow("water", [-5, 0.6, 0], [-1.8, 0.6, 0], BLUE, [-3.5, 1.2, 0])
+        salt = flow("salt", [1.8, -0.6, 0], [5, -0.6, 0], YELLOW, [3.5, -1.25, 0])
+        self.at("Every animal")
+        self.play(FadeIn(h), FadeIn(body), FadeIn(water), FadeIn(salt), run_time=0.7)
+        self.at("gains and losses")
+        self.play(Indicate(water, color=BLUE), Indicate(salt, color=YELLOW), run_time=0.7)
+        self.at("surroundings keep pulling")
+        self.play(water.animate.shift(RIGHT * 0.3), salt.animate.shift(RIGHT * 0.3), run_time=0.7)
+        self.at("A marine bony fish")
+        marine = bird(0, 0, 3.4, 2.6, "marine bony fish")
+        wo = flow("water lost", [1.8, 0.6, 0], [5.4, 0.6, 0], BLUE, [3.7, 1.25, 0])
+        si = flow("salt gained", [-5.4, -0.6, 0], [-1.8, -0.6, 0], YELLOW, [-3.7, -1.25, 0])
+        self.play(ReplacementTransform(body, marine), ReplacementTransform(water, wo), ReplacementTransform(salt, si), run_time=0.6)
+        self.at("In freshwater")
+        fresh = bird(0, 0, 3.4, 2.6, "freshwater bony fish")
+        wi = flow("water enters", [5.4, 0.6, 0], [1.8, 0.6, 0], BLUE, [3.7, 1.25, 0])
+        so = flow("salts leak out", [-1.8, -0.6, 0], [-5.4, -0.6, 0], YELLOW, [-3.7, -1.25, 0])
+        self.play(ReplacementTransform(marine, fresh), ReplacementTransform(wo, wi), ReplacementTransform(si, so), run_time=0.7)
+        self.at("On land")
+        land = bird(0, 0, 3.4, 2.6, "land animal")
+        evap = flow("evaporation", [1.8, 0.6, 0], [5.4, 1.7, 0], BLUE, [3.6, 2.3, 0])
+        self.play(ReplacementTransform(fresh, land), ReplacementTransform(wi, evap), FadeOut(so), run_time=0.7)
+        self.at("Even marine invertebrates")
+        clear(self)
+        cell = VGroup(Circle(radius=1.5, color=GREY), T("cell", 26).move_to([0, -1.0, 0]))
+        hh = heading("Marine invertebrate: stable cell volume")
+        ext = lines("external concentration\nchanges", 26, BLUE).move_to([-4.3, 0.6, 0])
+        self.play(FadeIn(hh), Create(cell), FadeIn(ext), run_time=0.6)
+        self.at("adjust organic molecules")
+        osm = chip("organic osmolytes", TEAL, 22).move_to([0, 0.35, 0])
+        note = lines("adjust solutes\ninside the cell", 26, TEAL).move_to([4.3, 0.4, 0])
+        self.play(FadeIn(osm), FadeIn(note), run_time=0.6)
+        level = box(1.1, 0.16, TEAL, 0, -0.25, op=0.6)
+        self.play(FadeIn(level), run_time=0.2)
+        self.play(level.animate.stretch_to_fit_width(2.1), ext.animate.set_opacity(0.6), run_time=0.7)
+        self.at("keeps the cells")
+        self.play(Indicate(cell[0], color=TEAL, scale_factor=1.0), Indicate(osm, color=TEAL), run_time=0.6)
+        self.at("Nitrogen disposal")
+        clear(self)
+        n = chip("nitrogen waste", TEAL, 30).move_to([-3.5, 0, 0])
+        loss = flow("water used in disposal", [-1.6, 0, 0], [4.8, 0, 0], BLUE, [2, 0.8, 0])
+        self.play(FadeIn(n), FadeIn(loss), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S02Kidney(SpokenScene):
     def construct(self):
-        head = T("kidney route alone", 34, ORANGE, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        gulp = box(2.8, 1.0, BLUE, -4.4, 2.1, op=0.3)
-        gl = T("seawater gulp", 26, BLUE).move_to(gulp)
-        kid = chip("kidneys", ORANGE, 30).move_to([0, 2.1, 0])
-        urine = box(2.8, 1.0, ORANGE, 4.4, 2.1, op=0.2)
-        ul = T("urine", 26, ORANGE).move_to(urine)
-        a1 = arr([-2.95, 2.1, 0], [-1.2, 2.1, 0], GREY)
-        a2 = arr([1.2, 2.1, 0], [2.95, 2.1, 0], GREY)
-        fw = lines("fresh water is scarce at sea", 32, BLUE).move_to([0, 0.3, 0])
-        fw2 = lines("fresh water\nis scarce at sea", 26, BLUE).move_to([4.7, -0.5, 0])
-        self.at("Marine birds such as cormorants")
-        self.at("feed at sea")
-        self.play(FadeIn(fw, shift=UP * 0.1), run_time=0.7)
-        self.at("kidney")
-        self.play(ReplacementTransform(fw, fw2), FadeIn(head), FadeIn(gulp), FadeIn(gl), FadeIn(kid), FadeIn(urine), FadeIn(ul), GrowArrow(a1), GrowArrow(a2), run_time=1.1)
-        base = -3.0
-        b1 = Rectangle(width=2.0, height=1.8, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.35).move_to([-3.2, base + 0.9, 0])
-        b2 = Rectangle(width=2.0, height=3.2, stroke_color=RED, stroke_width=3, fill_color=RED, fill_opacity=0.3).move_to([0.6, base + 1.6, 0])
-        l1 = T("water drunk", 26, BLUE).next_to(b1, DOWN, buff=0.12)
-        l2 = T("water needed", 26, RED).next_to(b2, DOWN, buff=0.12)
-        ax = Line([-5.0, base, 0], [2.6, base, 0], color=GREY, stroke_width=3)
-        note = T("idealised, not to scale", 24, GREY).move_to([4.5, -3.0, 0])
-        self.at("would need more water than it drank")
-        self.play(Create(ax), GrowFromEdge(b1, DOWN), FadeIn(l1), run_time=0.8)
-        self.play(GrowFromEdge(b2, DOWN), FadeIn(l2), FadeIn(note), run_time=1.0)
-        self.at("short of water")
-        self.play(Indicate(b2, color=RED, scale_factor=1.05), run_time=0.8)
+        h = heading("Marine bony fish")
+        gut = chip("intestine", GREY, 28).move_to([-1.0, 1.35, 0])
+        drink = flow("seawater", [-5.7, 1.35, 0], [-2.5, 1.35, 0], BLUE, [-4.2, 2.0, 0])
+        self.at("Marine bony fish")
+        self.play(FadeIn(h), FadeIn(gut), FadeIn(drink), run_time=0.7)
+        absorb = flow("water + ions absorbed", [0.3, 1.35, 0], [5.5, 1.35, 0], BLUE, [3.1, 2.0, 0])
+        self.at("intestine absorbs")
+        self.play(FadeIn(absorb), run_time=0.7)
+        gill = chip("gills", GREY, 28).move_to([-1, -0.3, 0])
+        out = flow("mostly sodium + chloride", [0, -0.3, 0], [5.5, -0.3, 0], YELLOW, [3.1, 0.25, 0])
+        self.at("Excess sodium and chloride")
+        self.play(FadeIn(gill), FadeIn(out), run_time=0.7)
+        kidney = chip("kidneys", ORANGE, 28).move_to([-1, -2.0, 0])
+        urine = flow("absorbed magnesium + sulfate\nsmall urine volume", [0.3, -2, 0], [5.5, -2, 0], ORANGE, [3.2, -2.9, 0], size=23, w=3)
+        self.at("Absorbed magnesium")
+        self.play(FadeIn(kidney), FadeIn(urine), run_time=0.7)
+        self.at("Freshwater bony fish")
+        clear(self)
+        h = heading("Freshwater bony fish")
+        gill = chip("gills", GREY, 28).move_to([0, 0.7, 0])
+        leak = VGroup(flow("water enters", [-5.8, 0.7, 0], [-1, 0.7, 0], BLUE, [-3.5, 1.3, 0]),
+                      flow("salt leaks out", [1, 0.7, 0], [5.8, 0.7, 0], YELLOW, [3.5, 1.3, 0]))
+        self.play(FadeIn(h), FadeIn(gill), FadeIn(leak), run_time=0.7)
+        self.at("kidneys make plenty")
+        kidney = chip("kidneys", ORANGE, 28).move_to([-3.5, -1.5, 0])
+        urine = flow("large dilute urine stream", [-2.2, -1.5, 0], [5.6, -1.5, 0], ORANGE, [1.8, -2.2, 0], w=10)
+        self.play(FadeIn(kidney), FadeIn(urine), run_time=0.7)
+        self.at("gills actively take up")
+        active = flow("active sodium + chloride uptake · ATP", [5.8, 0.7, 0], [1, 0.7, 0], YELLOW, [2.8, 1.9, 0], size=23)
+        self.play(FadeOut(leak), FadeIn(active), run_time=0.7)
+        self.at("In salmon and eels")
+        clear(self)
+        h = heading("Salmon and eels: gill cells switch")
+        g = chip("gill cells", GREY, 30).move_to([0, 0, 0])
+        uptake = flow("salt uptake", [-5.7, 0, 0], [-1.5, 0, 0], YELLOW, [-3.6, 0.8, 0])
+        self.play(FadeIn(h), FadeIn(g), FadeIn(uptake), run_time=0.6)
+        self.at("switch between salt uptake")
+        secretion = flow("salt secretion", [1.5, 0, 0], [5.7, 0, 0], YELLOW, [3.6, 0.8, 0])
+        self.play(ReplacementTransform(uptake, secretion), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def experiment(scene, show_labels=True):
-    """returns dict of mobjects for the two-route bird block."""
-    bd = bird(-0.9, 0.2, 4.2, 3.2, "double-crested cormorant")
-    gl = chip("nasal salt glands", GREEN, 24).move_to([-0.9, 0.95, 0])
-    kd = chip("kidneys", ORANGE, 24).move_to([-0.9, -0.75, 0])
-    return bd, gl, kd
-
-
-class S03Test(SpokenScene):
+class S03Nitrogen(SpokenScene):
     def construct(self):
-        who = T("1958: Schmidt-Nielsen, Jørgensen, Osaki", 28, GREY).to_edge(UP, buff=0.5)
-        bd = bird(-1.6, 0.2, 5.0, 3.6, "double-crested cormorant")
-        kd = chip("kidneys", ORANGE, 28).move_to([-1.6, -0.8, 0])
-        q = chip("another route?", RED, 28).move_to([-1.6, 0.9, 0])
-        flask = chip("salt load", YELLOW, 28).move_to([-5.2, 0.2, 0])
-        fl2 = lines("by mouth\nor infusion", 24, YELLOW).next_to(flask, DOWN, buff=0.15)
-        fa = arr([-4.2, 0.2, 0], [-4.15 + 0.0, 0.2, 0], YELLOW)
-        fa = arr([-4.25, 0.2, 0], [-4.05, 0.2, 0], YELLOW)
-        self.at("In 1958")
-        self.play(FadeIn(who), run_time=0.6)
-        self.at("tested")
-        self.play(FadeIn(bd), FadeIn(kd), run_time=0.7)
-        self.play(FadeIn(q, shift=DOWN * 0.1), run_time=0.6)
-        self.at("a load of salt")
-        self.play(FadeIn(flask), FadeIn(fl2), run_time=0.8)
-        self.at("collected two fluids")
-        v2 = vial(3.4, -0.9, ORANGE)
-        a2 = arr([-0.8, -0.8, 0], [2.85, -0.9, 0], ORANGE)
-        l2 = lines("cloacal fluid\n(urine + feces)", 24, ORANGE).move_to([5.2, -0.9, 0])
-        self.at("urine mixed with feces")
-        self.play(GrowArrow(a2), FadeIn(v2), FadeIn(l2), run_time=0.9)
-        v1 = vial(3.4, 1.4, GREEN)
-        l1 = lines("clear fluid\ndripping from\nthe beak", 24, GREEN).move_to([5.2, 1.4, 0])
-        self.at("clear fluid that dripped")
-        self.play(FadeIn(v1), FadeIn(l1), run_time=0.7)
-        gl = chip("nasal salt glands", GREEN, 28).move_to([-1.6, 0.9, 0])
-        a1 = arr([-0.1, 0.95, 0], [2.85, 1.4, 0], GREEN)
-        self.at("Paired nasal salt glands")
-        self.play(ReplacementTransform(q, gl), GrowArrow(a1), run_time=0.9)
-        self.play(Indicate(gl, color=GREEN, scale_factor=1.1), run_time=0.8)
+        h = heading("Nitrogen waste: three tradeoffs")
+        protein = chip("protein breakdown", GREY, 28).move_to([-3.8, 1.8, 0])
+        ammonia = chip("ammonia", TEAL, 28).move_to([2, 1.8, 0])
+        a = arr([-1.6, 1.8, 0], [0.7, 1.8, 0], TEAL)
+        self.at("Protein breakdown")
+        self.play(FadeIn(h), FadeIn(protein), FadeIn(ammonia), GrowArrow(a), run_time=0.7)
+        # One grouped row per waste keeps the qualitative table compact.
+        heads = VGroup(*[T(t, 24, c).move_to([x, 1.4, 0]) for x,t,c in
+                         [(-4.8,"waste",TEAL),(-2,"toxicity",RED),(0.8,"water needed",BLUE),(4.2,"synthesis cost",TEXT)]])
+        def row(y, name, toxicity, water, cost):
+            return VGroup(*[lines(t, 23, c).move_to([x,y,0]) for x,t,c in
+                           [(-4.8,name,TEAL),(-2,toxicity,RED),(0.8,water,BLUE),(4.2,cost,TEXT)]])
+        r1 = row(0.25,"ammonia","toxic","plenty","no ATP to form")
+        r2 = row(-1.0,"urea","less toxic","less","ATP required")
+        r3 = row(-2.25,"uric acid","—","very little","usually costlier")
+        self.at("It needs no ATP")
+        self.play(FadeOut(protein), FadeOut(ammonia), FadeOut(a), FadeIn(heads), FadeIn(r1), run_time=0.7)
+        dissolved = lines("dissolved waste", 24, BLUE).move_to([0,-3.25,0])
+        self.at("plenty of water")
+        self.play(FadeIn(dissolved), run_time=0.5)
+        self.at("Urea costs")
+        self.play(FadeIn(r2[0]), FadeIn(r2[3]), run_time=0.6)
+        self.at("It is less toxic")
+        self.play(FadeIn(r2[1]), FadeIn(r2[2]), run_time=0.6)
+        self.at("Uric acid leaves")
+        self.play(FadeIn(r3[0]), FadeIn(r3[1]), FadeIn(r3[2]), run_time=0.6)
+        paste = VGroup(box(1.1,0.35,TEAL,2.9,-3.15,op=0.7), T("paste / solid",23,TEAL).move_to([5.1,-3.15,0]))
+        self.at("a paste or solid")
+        self.play(dissolved.animate.move_to([-2,-3.15,0]), FadeIn(paste), run_time=0.5)
+        self.at("It is usually")
+        self.play(FadeIn(r3[3]), run_time=0.6)
+        self.at("Each waste trades")
+        self.play(Indicate(heads, color=TEXT, scale_factor=1.02), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Result(SpokenScene):
+class S04Organs(SpokenScene):
     def construct(self):
-        head = T("after the salt load, in double-crested cormorants", 26, GREY).to_edge(UP, buff=0.45)
-        base = -2.3
-        sc = 3.6 / 700.0
-        ax = Line([-6.0, base, 0], [-0.4, base, 0], color=GREY, stroke_width=3)
-        yl = T("mmol/L", 24, GREY).move_to([-3.2, base - 0.45, 0])
-        bn = Rectangle(width=1.5, height=500 * sc, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.35).move_to([-4.6, base + 250 * sc, 0])
-        band = Rectangle(width=1.5, height=100 * sc, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.12).move_to([-4.6, base + 550 * sc, 0])
-        bs = Rectangle(width=1.5, height=470 * sc, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.35).move_to([-2.0, base + 235 * sc, 0])
-        nl = lines("nasal fluid\nNaCl 500-600", 24, GREEN).next_to(band, UP, buff=0.12)
-        sl = lines("seawater\nsodium about 470", 24, BLUE).next_to(bs, UP, buff=0.12)
-        self.at("would carry the load")
-        self.play(FadeIn(head), run_time=0.6)
-        self.at("It did not")
-        self.wait(0.2)
-        self.at("the nasal fluid held")
-        self.play(Create(ax), FadeIn(yl), GrowFromEdge(bn, DOWN), run_time=0.9)
-        self.at("of sodium chloride")
-        self.play(FadeIn(band), FadeIn(nl), run_time=0.8)
-        self.at("similar to seawater")
-        self.play(GrowFromEdge(bs, DOWN), FadeIn(sl), run_time=0.9)
-        # right side: clearance time
-        ttl = lines("total body NaCl cleared by\ncontinuous secretion in about", 24, GREY).move_to([3.3, 0.9, 0])
-        ten = T("10 hours", 44, YELLOW).move_to([3.3, -0.1, 0])
-        self.at("fast enough")
-        self.play(FadeIn(ttl), run_time=0.8)
-        self.play(FadeIn(ten), run_time=0.9)
+        h = heading("Organs control what leaves")
+        self.at("Organs control")
+        self.play(FadeIn(h), run_time=0.5)
+        tub = box(10.6,1.3,ORANGE,0,-0.2,op=0.12)
+        name = T("tubule",26,ORANGE).move_to([4,-0.2,0])
+        label = T("Most vertebrate kidneys",28,ORANGE).move_to([0,2.2,0])
+        filt = flow("filtration\nat glomerulus",[-4,1.5,0],[-4,0.5,0],GREY,[-4,2.1,0],size=22)
+        self.at("Most vertebrate kidneys")
+        self.play(FadeIn(label), Create(tub), FadeIn(name), run_time=0.6)
+        self.at("filter body fluid")
+        self.play(FadeIn(filt), run_time=0.5)
+        reabs = flow("reabsorption\nuseful substances",[-0.7,-0.1,0],[-0.7,-2.1,0],BLUE,[-2,-2.7,0],size=23)
+        self.at("reabsorb useful substances")
+        self.play(FadeIn(reabs), run_time=0.6)
+        sec = flow("secretion\nother substances",[2,1.5,0],[2,0.5,0],TEAL,[3.6,1.6,0],size=23)
+        self.at("secrete others")
+        self.play(FadeIn(sec), run_time=0.6)
+        self.at("Insect malpigian tubules")
+        clear(self)
+        label = heading("Insect Malpighian tubules: no filtration")
+        tub = box(9.0,1.3,GREY,-0.8,-0.3,op=0.08)
+        name = T("lumen",24,GREY).move_to([-4,-0.3,0])
+        self.play(FadeIn(label), Create(tub), FadeIn(name), run_time=0.6)
+        ions = flow("ion secretion",[-2,1.8,0],[-2,0.4,0],YELLOW,[-3.7,1.9,0])
+        self.at("They secrete ions")
+        self.play(FadeIn(ions), run_time=0.5)
+        water = flow("water follows\nby osmosis",[0.3,1.8,0],[0.3,0.4,0],BLUE,[1.5,1.9,0],size=24)
+        self.at("water follows")
+        self.play(FadeIn(water), run_time=0.5)
+        waste = flow("wastes",[-0.5,-2.4,0],[-0.5,-1,0],TEAL,[-2,-2.4,0])
+        self.at("Wastes enter")
+        self.play(FadeIn(waste), run_time=0.5)
+        rect = chip("rectum",GREY,26).move_to([4.8,-0.3,0])
+        recovery = flow("salts + water recovered",[4.8,-0.9,0],[4.8,-2.4,0],BLUE,[3,-3.0,0],size=24)
+        self.at("The rectum")
+        self.play(FadeOut(waste), FadeIn(rect), FadeIn(recovery), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S06Shark(SpokenScene):
+    def construct(self):
+        h = heading("Sharks retain urea for water balance")
+        plasma = box(5.4,2.7,GREY,2.8,0.7,op=0.08)
+        pl = T("shark plasma",27).move_to([2.8,2.4,0])
+        urea = chip("retained urea",TEAL,26).move_to([2.8,0.7,0])
+        self.at("Sharks retain urea")
+        self.play(FadeIn(h), Create(plasma), FadeIn(pl), FadeIn(urea), run_time=0.7)
+        ions = chip("inorganic ions",YELLOW,24).move_to([2.8,1.5,0])
+        tmao = chip("TMAO",TEAL,24).move_to([2.8,-0.15,0])
+        self.at("Urea and other dissolved particles")
+        self.play(FadeIn(ions), FadeIn(tmao), run_time=0.6)
+        total = lines("total osmolality:\nslightly above seawater",26,TEXT).move_to([-3.6,1.5,0])
+        self.at("slightly above seawater")
+        self.play(FadeIn(total), run_time=0.6)
+        slow = flow("slow water entry",[-5.9,-0.4,0],[-0.1,-0.4,0],BLUE,[-3.6,0.3,0])
+        self.at("water enters slowly")
+        self.play(FadeIn(slow), run_time=0.6)
+        self.at("Their kidneys recover")
+        # Zoom into the two outgoing routes, preserving the plasma/urea position.
+        self.play(FadeOut(total), FadeOut(slow), FadeOut(ions), FadeOut(tmao), run_time=0.3)
+        kidney = chip("kidneys",ORANGE,26).move_to([-3.8,-0.8,0])
+        ret = flow("most filtered urea returned",[-2.5,-0.8,0],[1.3,0.15,0],TEAL,[-0.4,-1.5,0],size=23)
+        self.play(FadeIn(kidney), FadeIn(ret), run_time=0.6)
+        self.at("They still regulate salts")
+        self.play(Indicate(plasma, color=YELLOW, scale_factor=1.0), run_time=0.6)
+        gland = chip("rectal gland",GREY,26).move_to([-3.8,-2.6,0])
+        salt = flow("concentrated sodium chloride",[-2.3,-2.6,0],[5.7,-2.6,0],YELLOW,[1.9,-3.2,0],size=23)
+        self.at("A rectal gland")
+        self.play(FadeIn(gland), FadeIn(salt), run_time=0.7)
+        self.finish()
+
+
 class S05Water(SpokenScene):
     def construct(self):
-        head = T("in this sketch: idealised, not to scale", 24, GREY).to_edge(UP, buff=0.5)
-        gulp = box(2.4, 2.6, BLUE, -5.0, 0.2, op=0.3)
-        gs = chip("salt", YELLOW, 26).move_to(gulp)
-        gl = lines("a gulp of\nseawater", 24, BLUE).next_to(gulp, DOWN, buff=0.15)
-        gland = chip("nasal salt gland", GREEN, 24).move_to([-1.5, 0.2, 0])
-        a1 = arr([-3.7, 0.2, 0], [-3.05, 0.2, 0], GREY)
-        a2 = arr([-0.1, 0.2, 0], [0.7, 0.2, 0], GREY)
-        # stacked outputs equal to gulp height 2.6
-        out = box(2.4, 1.5, GREEN, 2.0, 0.75, op=0.2)
-        os_ = chip("same salt", YELLOW, 24).move_to(out)
-        kept = box(2.4, 1.1, BLUE, 2.0, -0.55, op=0.35)
-        ol = lines("gland fluid:\nmore concentrated", 22, GREEN).move_to([4.95, 0.8, 0])
-        kl = lines("water the\nbird keeps", 22, BLUE).move_to([4.95, -0.55, 0])
-        self.at("A gland that excretes salt")
-        self.play(FadeIn(head), FadeIn(gland), run_time=0.6)
-        self.at("than seawater")
-        self.play(FadeIn(gulp), FadeIn(gl), run_time=0.8)
-        self.at("a gulp of seawater")
-        self.play(FadeIn(gs), Indicate(gulp, color=BLUE, scale_factor=1.05), run_time=0.8)
-        self.at("in less water than the gulp held")
-        self.play(GrowArrow(a1), run_time=0.4)
-        self.play(GrowArrow(a2), run_time=0.3)
-        self.play(FadeIn(out), FadeIn(os_), FadeIn(ol), run_time=0.9)
-        self.at("It keeps the difference")
-        self.play(FadeIn(kept), FadeIn(kl), run_time=0.9)
-        self.play(Indicate(kept, color=BLUE, scale_factor=1.06), run_time=0.8)
-        self.at("Gulls reach even higher")
-        gnote = T("gulls reach higher values still", 26, GREEN).move_to([0.0, -2.7, 0])
-        self.play(FadeIn(gnote, shift=UP * 0.1), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    def construct(self):
-        bd = bird(-3.8, 0.2, 4.2, 3.6, "cormorant")
-        gl = chip("nasal salt glands", GREEN, 24).move_to([-3.8, 0.95, 0])
-        kd = chip("kidneys", ORANGE, 24).move_to([-3.8, -0.8, 0])
-        g_out = arr([-2.4, 0.95, 0], [-1.5, 0.95, 0], GREEN)
-        k_out = arr([-3.05, -0.8, 0], [-1.5, -0.8, 0], ORANGE)
-        self.at("What did the experiment show")
-        self.play(FadeIn(bd), FadeIn(gl), FadeIn(kd), GrowArrow(k_out), run_time=0.9)
-        r1 = lines("ruled in:\na route besides the kidneys", 24, GREEN).move_to([2.4, 1.9, 0])
-        ok = chip("salt load excreted", GREEN, 24).move_to([2.4, 0.95, 0])
-        self.at("ruled")
-        self.play(GrowArrow(g_out), FadeIn(r1), FadeIn(ok), Indicate(gl, color=GREEN, scale_factor=1.1), run_time=1.1)
-        n1 = chip("? how the gland concentrates salt", RED, 24).move_to([2.4, -0.15, 0])
-        self.at("It did not show how")
-        self.play(FadeIn(n1, shift=LEFT * 0.2), run_time=0.7)
-        n2 = chip("? every bird has active glands", RED, 24).move_to([2.4, -1.1, 0])
-        self.at("every bird")
-        self.play(FadeIn(n2, shift=LEFT * 0.2), run_time=0.7)
-        rep = chip("marine reptiles: salt glands too", GREY, 24).move_to([2.4, -2.1, 0])
-        rep2 = T("sea turtles, marine iguana", 22, GREY).next_to(rep, DOWN, buff=0.12)
-        self.at("Sea turtles")
-        self.play(FadeIn(rep), FadeIn(rep2), run_time=0.7)
-        self.at("In cormorants")
-        self.play(Indicate(gl, color=GREEN, scale_factor=1.12), Indicate(g_out, color=GREEN), run_time=0.9)
+        head = heading("A smaller example: seabird salt glands")
+        gulp = box(2.4,2.6,BLUE,-5,0.2,op=0.3)
+        gs = chip("salt",YELLOW,26).move_to(gulp)
+        gl = lines("a gulp of\nseawater",24,BLUE).next_to(gulp,DOWN,buff=0.15)
+        gland = chip("nasal salt gland",GREEN,24).move_to([-1.5,0.2,0])
+        a1 = arr([-3.7,0.2,0],[-3.05,0.2,0],GREY)
+        a2 = arr([-0.1,0.2,0],[0.7,0.2,0],GREY)
+        out = box(2.4,1.5,GREEN,2,0.75,op=0.2)
+        os_ = chip("same salt",YELLOW,24).move_to(out)
+        kept = box(2.4,1.1,BLUE,2,-0.55,op=0.35)
+        ol = lines("gland fluid:\nmore concentrated",22,GREEN).move_to([4.95,0.85,0])
+        kl = lines("water the\nbird keeps",22,BLUE).move_to([4.95,-0.65,0])
+        self.at("One smaller example")
+        self.play(FadeIn(head), run_time=0.5)
+        self.at("seabirds use nasal salt glands")
+        self.play(FadeIn(gland), run_time=0.6)
+        self.at("Salt secretion")
+        self.play(FadeIn(out), FadeIn(os_), FadeIn(ol), run_time=0.6)
+        self.at("a gulp of seawater's salt")
+        self.play(FadeIn(VGroup(gulp,gs,gl)), run_time=0.6)
+        self.at("in less water")
+        self.play(GrowArrow(a1), GrowArrow(a2), run_time=0.6)
+        self.at("They keep the difference")
+        self.play(FadeIn(kept), FadeIn(kl), run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "In cormorants, salt can leave by a route besides the kidneys."
+    LINE = "Animals balance water and salt against their surroundings."
+    def construct(self):
+        line = T(self.LINE,40,TEXT,font=TITLE_FONT).move_to([0,1.1,0])
+        symbols = VGroup(chip("water",BLUE,28),chip("salt",YELLOW,28),chip("nitrogen waste",TEAL,28)).arrange(RIGHT,buff=0.65).move_to([0,-0.5,0])
+        self.play(FadeIn(line),FadeIn(symbols),run_time=0.7)
+        self.finish()
