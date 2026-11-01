@@ -1,4 +1,4 @@
-"""Why a cell is the size it is: the surface feeds the volume  (Biochemistrypedia explainer)
+"""Cells hold their size  (Biochemistrypedia explainer)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -9,6 +9,9 @@ COLOR MAP (one color per concept, whole video)
   TEAL   = the plant vacuole
   GREEN  = supply just meets demand
   RED    = demand exceeds supply
+  PURPLE = nucleus
+  RED    = also the Whi5 division brake
+  GREEN  = also commitment to division
   GREY   = labels, guides, axes, not-the-subject
 """
 import math
@@ -16,6 +19,7 @@ import numpy as np
 from bp_style import *  # noqa: F401,F403
 
 ORANGE = "#F29E4C"
+PURPLE = "#B58CD9"
 
 J, Q = 20.0, 6.0
 
@@ -105,201 +109,6 @@ class S00Title(TitleCard):
     TITLE = "The surface feeds the volume"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """the puzzle: what happens when a cell grows? surface in, volume used."""
-
-    def construct(self):
-        C = np.array([0.0, -0.45, 0.0])
-        head = T("Why is a cell the size it is?", 40, font=TITLE_FONT).to_edge(UP, buff=0.45)
-        body = cell(C, 2.2)
-        self.at("Why is a cell")
-        self.play(Write(head), run_time=1.2)
-        self.play(FadeIn(body, scale=0.9), run_time=0.7)
-
-        arrows = in_arrows(C, 2.2, 12)
-        surf = T("surface", 30, BLUE, weight=BOLD).move_to([-5.2, -0.45, 0])
-        self.at("takes in")
-        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.06), FadeIn(surf), run_time=1.2)
-        self.play(body.animate.set_stroke(YELLOW, width=9), run_time=0.3)
-        self.play(body.animate.set_stroke(BLUE, width=6), run_time=0.3)
-
-        d = dots(C, 2.2)
-        vol = T("volume", 30, ORANGE, weight=BOLD).move_to([5.0, -0.45, 0])
-        self.at("spread through")
-        self.play(LaggedStart(*[FadeIn(x, scale=0.3) for x in d], lag_ratio=0.01), FadeIn(vol), run_time=1.6)
-
-        q = T("?", 120, YELLOW, weight=BOLD).move_to([4.6, -0.45, 0])
-        self.at("what happens")
-        self.play(FadeOut(arrows), FadeOut(surf), FadeOut(vol), FadeIn(q, scale=0.5), run_time=0.5)
-        self.at("as a cell")
-        self.play(VGroup(body, d).animate.scale(1.28).move_to(C), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Double(SpokenScene):
-    """radius 5 -> 10: area x4, volume x8, ratio halves."""
-
-    def construct(self):
-        C = np.array([-3.5, 0.1, 0.0])
-        small = cell(C, 1.4)
-        d_small = dots(C, 1.4, 0.42)
-        lab = T("r = 5 µm", 30, YELLOW).move_to([-3.5, -3.2, 0])
-        self.at("Take a hypothetical")
-        self.play(FadeIn(small, scale=0.9), FadeIn(d_small), run_time=0.8)
-        self.play(FadeIn(lab), run_time=0.3)
-
-        # right panel: area and volume bars
-        X0, u = 1.0, 0.55
-        a_head = T("area", 28, BLUE, weight=BOLD).move_to([X0 + 0.5, 2.55, 0])
-        a_base = bar(X0, 1.95, u, BLUE)
-        v_head = T("volume", 28, ORANGE, weight=BOLD).move_to([X0 + 0.7, 0.55, 0])
-        v_base = bar(X0, -0.05, u, ORANGE)
-        ghost = DashedVMobject(Circle(radius=1.4, stroke_color=YELLOW, stroke_width=3).move_to(C), num_dashes=28)
-        big = cell(C, 2.8)
-        d_big = dots(C, 2.8, 0.46)
-        lab10 = T("r = 10 µm", 30, YELLOW).move_to([-3.5, -3.2, 0])
-        self.at("to 10")
-        self.play(ReplacementTransform(small, big), ReplacementTransform(d_small, d_big), FadeIn(ghost),
-                  Transform(lab, lab10), run_time=0.8)
-
-        a_big = bar(X0, 1.95, u * 4, BLUE)
-        a_num = M("314.2 → 1256.6 µm²", 24, BLUE).move_to([X0 + 2.15, 1.33, 0])
-        a_x = M("×4", 32, YELLOW, weight=BOLD).move_to([X0 + u * 4 + 0.55, 1.95, 0])
-        self.at("The area rises")
-        self.play(FadeIn(a_head), FadeIn(a_base), run_time=0.4)
-        self.play(Transform(a_base, a_big), FadeIn(a_num), FadeIn(a_x), run_time=0.8)
-
-        v_big = bar(X0, -0.05, u * 8, ORANGE)
-        v_num = M("523.6 → 4188.8 µm³", 24, ORANGE).move_to([X0 + 2.15, -0.67, 0])
-        v_x = M("×8", 32, YELLOW, weight=BOLD).move_to([X0 + u * 8 + 0.55, -0.05, 0])
-        self.at("The volume rises")
-        self.play(FadeIn(v_head), FadeIn(v_base), run_time=0.4)
-        self.play(Transform(v_base, v_big), FadeIn(v_num), FadeIn(v_x), run_time=0.8)
-
-        f_a = M("A = 4πr²", 28, BLUE).move_to([X0 + 1.25, -1.7, 0])
-        f_v = M("V = 4πr³/3", 28, ORANGE).move_to([X0 + 4.05, -1.7, 0])
-        self.at("Area is 4")
-        self.play(FadeIn(f_a), run_time=0.5)
-        self.at("Volume is 4")
-        self.play(FadeIn(f_v), run_time=0.5)
-
-        ratio = M("A / V = 3 / r", 30, YELLOW).move_to([X0 + 2.4, -2.55, 0])
-        self.at("the ratio of area")
-        self.play(FadeIn(ratio, shift=UP * 0.15), run_time=0.6)
-        res1 = M("0.6 µm⁻¹ at 5 µm", 26, YELLOW).move_to([X0 + 2.4, -3.2, 0])
-        self.at("So the ratio halves")
-        self.play(FadeIn(res1), run_time=0.5)
-        res2 = M("0.3 µm⁻¹ at 10 µm", 26, YELLOW).move_to([X0 + 2.4, -3.2, 0])
-        self.at("0 .3")
-        self.play(Transform(res1, res2), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Rates(SpokenScene):
-    """two made-up rates: uptake per area, use per volume."""
-
-    def construct(self):
-        C = np.array([-3.3, -0.1, 0.0])
-        body = cell(C, 2.1)
-        d = dots(C, 2.1, 0.44)
-        self.at("Now invent two rates")
-        self.play(FadeIn(body, scale=0.9), FadeIn(d), run_time=0.8)
-
-        tag = T("made-up inputs, not measurements", 26, GREY).move_to([2.9, 2.9, 0])
-        self.at("inputs, not measurements")
-        self.play(FadeIn(tag, shift=DOWN * 0.1), run_time=0.6)
-
-        arrows = in_arrows(C, 2.1, 12, out=0.75)
-        cj = card(["membrane uptake, at most", "J = 20 molecules / µm² / s"], BLUE, w=5.6, sizes=[24, 26], mono=[False, True])
-        cj.move_to([2.9, 1.5, 0])
-        self.at("take up a nutrient")
-        self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.05), FadeIn(cj, shift=LEFT * 0.2), run_time=1.3)
-
-        cq = card(["use, evenly through the volume", "q = 6 molecules / µm³ / s"], ORANGE, w=5.6, sizes=[24, 26], mono=[False, True])
-        cq.move_to([2.9, -0.3, 0])
-        self.at("the cell uses")
-        self.play(FadeIn(cq, shift=LEFT * 0.2), LaggedStart(*[Indicate(x, color=YELLOW, scale_factor=1.6) for x in d],
-                                                            lag_ratio=0.02), run_time=1.6)
-
-        note = card(["assumed", "whole surface takes up nutrient", "nothing else limits the cell"], GREY, w=5.6, sizes=[22, 24, 24])
-        note.move_to([2.9, -2.3, 0])
-        self.at("Assume the whole surface")
-        self.play(FadeIn(note, shift=UP * 0.15), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Balance(SpokenScene):
-    """supply J*4*pi*r^2 against demand q*4*pi*r^3/3; compare at 5 and 10 micrometres."""
-
-    def construct(self):
-        P = Plot([-4.7, -2.75], 7.6, 5.4, 11.0, 32000.0)
-        sup = lambda r: J * 4 * math.pi * r ** 2
-        dem = lambda r: Q * 4 * math.pi * r ** 3 / 3
-        ax = P.axes()
-        ticks = VGroup(P.xtick(5, "5"), P.xtick(10, "10"), P.ytick(10000, "10,000"), P.ytick(20000, "20,000"),
-                       P.ytick(30000, "30,000"))
-        xl = T("radius (µm)", 24, GREY).move_to([P.p(11, 0)[0] - 0.2, -3.35, 0])
-        yl = T("molecules per second", 24, GREY).move_to([P.p(0, 32000)[0] + 1.6, 2.95, 0])
-        cs = P.curve(sup, 0, 10.8, BLUE)
-        cd = P.curve(dem, 0, 10.8, ORANGE)
-        leg_s = T("supply = J × area", 26, BLUE).move_to([-4.2, 2.0, 0], aligned_edge=LEFT)
-        leg_d = T("demand = q × volume", 26, ORANGE).move_to([-4.2, 1.45, 0], aligned_edge=LEFT)
-
-        self.at("Now compare supply")
-        self.play(Create(ax), FadeIn(ticks), FadeIn(xl), FadeIn(yl), run_time=0.6)
-        self.play(Create(cs), FadeIn(leg_s), run_time=0.6)
-        self.play(Create(cd), FadeIn(leg_d), run_time=0.6)
-
-        def mark(r, col):
-            line = DashedLine(P.p(r, 0), P.p(r, sup(r) + 3500), color=col, stroke_width=3)
-            ds = Dot(P.p(r, sup(r)), radius=0.11, color=BLUE)
-            dd = Dot(P.p(r, dem(r)), radius=0.11, color=ORANGE)
-            return VGroup(line, ds, dd)
-
-        PX = 4.75
-        m5 = mark(5, YELLOW)
-        head5 = M("r = 5 µm", 26, YELLOW).move_to([PX, 2.2, 0])
-        s5 = M("supply 6,283", 22, BLUE).move_to([PX, 1.35, 0])
-        d5 = M("demand 3,142", 22, ORANGE).move_to([PX, 0.7, 0])
-        r5 = M("ratio 2", 30, YELLOW, weight=BOLD).move_to([PX, -0.3, 0])
-        self.at("At 5 micrometers")
-        self.play(Create(m5), FadeIn(head5), run_time=0.8)
-        self.at("supply is 6")
-        self.play(FadeIn(s5, shift=LEFT * 0.1), Indicate(m5[1], color=YELLOW, scale_factor=1.8), run_time=0.7)
-        self.at("Demand is 3")
-        self.play(FadeIn(d5, shift=LEFT * 0.1), Indicate(m5[2], color=YELLOW, scale_factor=1.8), run_time=0.7)
-        self.at("supply is twice")
-        self.play(FadeIn(r5, scale=0.8), run_time=0.6)
-
-        m10 = mark(10, GREEN)
-        head10 = M("r = 10 µm", 26, YELLOW).move_to([PX, 2.2, 0])
-        eq10 = M("supply = demand", 22, GREEN).move_to([PX, 1.0, 0])
-        r10 = M("ratio 1", 30, GREEN, weight=BOLD).move_to([PX, -0.3, 0])
-        self.at("At 10 micrometers")
-        self.play(ReplacementTransform(m5, m10), ReplacementTransform(head5, head10), FadeOut(s5), FadeOut(d5),
-                  FadeOut(r5), run_time=0.9)
-        self.at("only just meets")
-        self.play(FadeIn(eq10, shift=LEFT * 0.1), run_time=0.5)
-        self.at("exactly 1")
-        self.play(FadeIn(r10, scale=0.8), run_time=0.5)
-
-        rm = M("r = 3J / q", 26, YELLOW).move_to([PX, -1.3, 0])
-        rm2 = M("3 × 20 / 6", 26, YELLOW).move_to([PX, -1.9, 0])
-        rm3 = M("= 10 µm", 26, YELLOW).move_to([PX, -2.5, 0])
-        self.at("keeps up")
-        self.play(FadeIn(rm, shift=UP * 0.1), run_time=0.5)
-        self.at("3 times 20")
-        self.play(FadeIn(rm2), run_time=0.5)
-        self.at("that is 10")
-        self.play(FadeIn(rm3), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def rootcell(w, h, d, center, f_color=TEAL):
     outer = Rectangle(width=w, height=h, stroke_color=GREY, stroke_width=5, fill_color=ORANGE, fill_opacity=0.28).move_to(center)
     vac = Rectangle(width=w - 2 * d, height=h - 2 * d, stroke_color=f_color, stroke_width=3, fill_color=f_color,
@@ -307,99 +116,258 @@ def rootcell(w, h, d, center, f_color=TEAL):
     return outer, vac
 
 
-class S05Leaves(SpokenScene):
-    """what the arithmetic leaves out: shape, and the vacuole."""
+def rod(center, w, h=1.05):
+    """End-growing fission yeast, with a schematic proportional nucleus."""
+    body = RoundedRectangle(corner_radius=h / 2, width=w, height=h,
+                            stroke_color=BLUE, stroke_width=5,
+                            fill_color=ORANGE, fill_opacity=0.14).move_to(center)
+    nuc = Ellipse(width=w * 0.24, height=h * 0.48, color=PURPLE,
+                  fill_color=PURPLE, fill_opacity=0.5).move_to(center)
+    return VGroup(body, nuc)
 
+
+def brake_dots(center, r):
+    c = np.array(center)
+    return VGroup(*[Dot(c + r * np.array([x, y, 0]), radius=0.095, color=RED)
+                    for x, y in [(-.45, .25), (0, .48), (.45, .25),
+                                 (-.45, -.25), (0, -.48), (.45, -.25)]])
+
+
+class S01Lead(SpokenScene):
     def construct(self):
-        yc = 0.35
-        sph = Circle(radius=1.7, stroke_color=BLUE, stroke_width=6, fill_color=ORANGE, fill_opacity=0.14).move_to([-4.7, yc, 0])
-        flat = Ellipse(width=4.0, height=1.2, stroke_color=BLUE, stroke_width=6, fill_color=ORANGE, fill_opacity=0.14).move_to([-0.1, yc, 0])
-        thin = RoundedRectangle(corner_radius=0.4, width=1.0, height=5.2, stroke_color=BLUE, stroke_width=6,
-                                fill_color=ORANGE, fill_opacity=0.14).move_to([4.9, yc, 0])
-        l1 = T("sphere", 30, GREY).move_to([-4.7, -3.1, 0])
-        l2 = T("flat", 30, GREY).move_to([-0.1, -3.1, 0])
-        l3 = T("long and thin", 30, GREY).move_to([4.5, -3.1, 0])
-        self.at("The arithmetic leaves")
-        self.play(FadeIn(sph, scale=0.9), FadeIn(l1), run_time=0.8)
-        self.at("flat or long thin")
-        self.play(FadeIn(flat, shift=LEFT * 0.3), FadeIn(thin, shift=LEFT * 0.3), FadeIn(l2), FadeIn(l3), run_time=1.0)
-        self.at("much more surface")
-        self.play(flat.animate.set_stroke(YELLOW, width=9), thin.animate.set_stroke(YELLOW, width=9), run_time=0.5)
-        self.play(flat.animate.set_stroke(BLUE, width=6), thin.animate.set_stroke(BLUE, width=6), run_time=0.5)
-
-        # phase B: the plant root cell
-        CX = -3.8
-        o0, v0 = rootcell(1.2, 1.2, 0.25, [CX, 0, 0])
-        o1, v1 = rootcell(2.2, 5.6, 0.2, [CX, 0, 0])
-        cap = T("root cell", 28, GREY).move_to([CX, -3.3, 0])
-        note = T("schematic, not to scale", 22, GREY).move_to([3.4, -3.3, 0])
-        vlab = T("vacuole", 30, TEAL, weight=BOLD).move_to([CX + 2.8, 0.7, 0])
-        varr = arr_to([CX + 1.75, 0.7, 0], [CX + 0.35, 0.3, 0], TEAL)
-        self.at("A plant vacuole")
-        self.play(FadeOut(VGroup(sph, flat, thin, l1, l2, l3)), run_time=0.5)
-        self.play(FadeIn(o0), FadeIn(v0), FadeIn(cap), FadeIn(note), run_time=0.8)
-        self.play(FadeIn(vlab), GrowArrow(varr), run_time=0.4)
-        self.at("adds volume")
-        self.play(Transform(o0, o1), Transform(v0, v1), run_time=1.6)
-        cyt = T("cytoplasm", 30, ORANGE, weight=BOLD).move_to([CX + 2.9, -1.0, 0])
-        carr = arr_to([CX + 1.75, -1.0, 0], [CX + 1.0, -0.6, 0], ORANGE)
-        self.at("cytoplasm grows")
-        self.play(FadeIn(cyt), GrowArrow(carr), run_time=0.8)
-
-        PX = 3.0
-        hd = T("Arabidopsis root epidermis", 28, GREY).move_to([PX + 0.6, 2.9, 0])
-        t1 = card(["whole cell volume", "about 14-fold"], YELLOW, w=4.4, sizes=[24, 30])
-        t1.move_to([PX + 0.6, 1.2, 0])
-        t2 = card(["space between vacuole", "and cell boundary", "about 2 to 3-fold"], ORANGE, w=4.4, sizes=[24, 24, 30])
-        t2.move_to([PX + 0.6, -1.0, 0])
-        self.at("In Arabidopsis")
-        self.play(FadeIn(hd), run_time=0.5)
-        self.at("cells grew")
-        self.play(FadeIn(t1, shift=LEFT * 0.1), run_time=0.6)
-        self.at("space between")
-        self.play(FadeIn(t2, shift=LEFT * 0.1), run_time=0.6)
+        head = T("How does a cell know its size?", 38, YELLOW, font=TITLE_FONT).move_to([0, 3, 0])
+        a, b = rod([0, 1.25, 0], 2.1), rod([0, -1.15, 0], 3.7)
+        tags = VGroup(T("born small", 28, GREY).move_to([-4.7, 1.25, 0]),
+                      T("born large", 28, GREY).move_to([-4.7, -1.15, 0]))
+        self.at("Cells do not")
+        self.play(FadeIn(head), FadeIn(a), FadeIn(b), run_time=.7)
+        link = T("growth → division", 30, TEXT).move_to([0, -3.0, 0])
+        self.at("linking growth to division")
+        self.play(FadeIn(link), run_time=.6)
+        guides = VGroup(*[DashedLine([x, -2, 0], [x, 2.1, 0], color=YELLOW, stroke_width=2)
+                         for x in [-2.4, 2.4]])
+        self.at("reaches a set size")
+        self.play(Create(guides), run_time=.5)
+        self.at("Born small")
+        self.play(FadeIn(tags[0]), Transform(a, rod([0, 1.25, 0], 4.8)), run_time=1.3)
+        self.at("Born large")
+        self.play(FadeIn(tags[1]), Transform(b, rod([0, -1.15, 0], 4.8)), run_time=1.0)
+        # Divide the two cells at their midpoints, keeping total length approximately constant.
+        daughters = [VGroup(rod([-1.3, y, 0], 2.35), rod([1.3, y, 0], 2.35)) for y in [1.25, -1.15]]
+        self.play(Transform(a, daughters[0]), Transform(b, daughters[1]), FadeOut(guides), run_time=.9)
+        self.at("size sets how much")
+        self.play(Indicate(link, color=YELLOW, scale_factor=1.08), run_time=.7)
+        self.at("The nucleus")
+        self.play(FadeOut(tags), FadeOut(a), FadeOut(b), FadeOut(link), run_time=.4)
+        c = rod([0, -.1, 0], 3.0, 1.35)
+        nl = T("nucleus", 30, PURPLE).move_to([0, -2, 0])
+        self.play(FadeIn(c), FadeIn(nl), run_time=.4)
+        self.at("grows with the cell")
+        self.play(Transform(c, rod([0, -.1, 0], 5.7, 1.8)), run_time=1.1)
+        self.at("So how does")
+        self.play(Indicate(head, color=YELLOW, scale_factor=1.03), run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """capacity to demand = 10 / r falls through 1 at 10 micrometres."""
-
+class S02Sense(SpokenScene):
     def construct(self):
-        P = Plot([-5.6, -2.8], 11.2, 5.0, 14.0, 4.0)
-        f = lambda r: 10.0 / r
+        centers = [[-3.1, -.2, 0], [3.1, -.2, 0]]
+        bodies = [cell(centers[0], .85), cell(centers[1], 1.25)]
+        brakes = [brake_dots(centers[0], .85), brake_dots(centers[1], 1.25)]
+        head = T("Dilution", 40, YELLOW, font=TITLE_FONT).move_to([0, 3.1, 0])
+        labels = VGroup(T("born small", 28, GREY).move_to([-3.1, 2.1, 0]),
+                        T("born large", 28, GREY).move_to([3.1, 2.1, 0]))
+        self.at("One way is dilution")
+        self.play(FadeIn(head), run_time=.5)
+        self.at("In budding yeast")
+        self.play(*[FadeIn(b) for b in bodies], FadeIn(labels), run_time=.6)
+        same = T("same amount of division brake", 28, RED).move_to([0, -2.65, 0])
+        self.at("the same amount")
+        self.play(*[FadeIn(d) for d in brakes], FadeIn(same), run_time=.6)
+        self.at("a protein called")
+        self.play(Transform(same, T("Whi5 · division brake", 30, RED).move_to(same)), run_time=.6)
+        self.at("As the cell grows")
+        self.play(*[Transform(b, cell(c, r)) for b, c, r in zip(bodies, centers, [1.2, 1.85])],
+                  *[Transform(d, brake_dots(c, r)) for d, c, r in zip(brakes, centers, [1.2, 1.85])], run_time=1.3)
+        light = chip("commit", GREEN, 28).move_to([3.1, -2.7, 0])
+        self.at("dilutes it sooner")
+        self.play(Indicate(brakes[1], color=RED, scale_factor=1.15), run_time=.6)
+        self.at("commit to dividing")
+        self.play(FadeOut(same), FadeIn(light), bodies[1].animate.set_stroke(GREEN), run_time=.6)
+        wait = T("waits → more growth", 26, YELLOW).move_to([-3.1, -2.7, 0])
+        self.at("A cell born small waits")
+        self.play(FadeIn(wait), run_time=.5)
+        self.at("and grows more first")
+        self.play(Transform(bodies[0], cell(centers[0], 1.55)),
+                  Transform(brakes[0], brake_dots(centers[0], 1.55)), run_time=.9)
+        self.finish()
+
+
+class S03Make(SpokenScene):
+    def construct(self):
+        c = [-2.9, -.2, 0]
+        body, content = cell(c, 1.1), dots(c, 1.1, .48)
+        head = T("Making enough for the volume", 38, font=TITLE_FONT).move_to([0, 3.1, 0])
+        self.at("Size also sets")
+        self.play(FadeIn(head), FadeIn(body), FadeIn(content), run_time=.7)
+        label = card(["RNA + protein", "same concentration"], ORANGE, w=4.8, sizes=[28, 28]).move_to([3.5, .9, 0])
+        self.at("the same concentration")
+        self.play(FadeIn(label), run_time=.6)
+        self.at("must make more")
+        self.play(Transform(body, cell(c, 1.8)), Transform(content, dots(c, 1.8, .48)), run_time=1.2)
+        self.at("in step with volume")
+        self.play(Indicate(content, color=ORANGE, scale_factor=1.05), run_time=.6)
+        limit = T("Growth without division", 30, YELLOW).move_to([3.5, -1.1, 0])
+        self.at("That has a limit")
+        self.play(FadeOut(label), run_time=.5)
+        self.at("grow without dividing")
+        self.play(FadeIn(limit), run_time=.5)
+        self.at("get many times bigger")
+        spread = VGroup(*[Dot(np.array(c) + (d.get_center() - np.array(c)) * (2.65 / 1.8),
+                              radius=.07, color=ORANGE) for d in content])
+        self.play(Transform(body, cell(c, 2.65)), Transform(content, spread), run_time=1.3)
+        self.at("synthesis falls behind")
+        lag = T("synthesis falls behind", 28, ORANGE).move_to([3.5, -.1, 0])
+        self.play(FadeIn(lag), run_time=.6)
+        self.at("Their cytoplasm becomes diluted")
+        diluted = T("diluted", 36, YELLOW).move_to([3.5, -2.3, 0])
+        self.play(FadeIn(diluted), run_time=.7)
+        self.finish()
+
+
+class S04Parts(SpokenScene):
+    def construct(self):
+        head = T("Different cells, different shares", 38, font=TITLE_FONT).move_to([0, 3.1, 0])
+        key = T("nucleus", 28, PURPLE).move_to([4.9, 2.25, 0])
+        def share(y, fraction, name, text):
+            left, width = -1.7, 6.5
+            parts = VGroup(bar(left, y, width * fraction, PURPLE, .65),
+                           bar(left + width * fraction, y, width * (1-fraction), ORANGE, .65))
+            return VGroup(parts, T(name, 26, GREY).move_to([-4.2, y, 0]),
+                          T(text, 26, PURPLE).move_to([1.55, y-.65, 0]))
+        h = share(1.1, .27, "V79 hamster", "a little over one quarter")
+        f = share(-.8, .08, "fission yeast", "under one tenth")
+        self.at("The parts scale too")
+        self.play(FadeIn(head), run_time=.6)
+        self.at("A little more than a quarter")
+        self.play(FadeIn(h), FadeIn(key), run_time=.7)
+        self.at("In fission")
+        self.play(FadeIn(f), run_time=.7)
+        row = VGroup(rod([-4.2, 0, 0], 1.0, .5), rod([-1.1, 0, 0], 2.1, 1.05),
+                     rod([3.5, 0, 0], 3.27, 1.635))
+        self.at("There the nucleus grows")
+        self.play(FadeOut(h), FadeOut(f), FadeOut(key), FadeIn(row), run_time=.8)
+        range_label = T("35-fold range of cell volumes", 30, YELLOW).move_to([0, -1.8, 0])
+        self.at("across a 35")
+        self.play(FadeIn(range_label), run_time=.6)
+        dna = card(["16-fold change in DNA", "nucleus / cell ratio unchanged"], PURPLE,
+                   w=7, sizes=[28, 28]).move_to([0, -2.9, 0])
+        self.at("and a 16")
+        self.play(FadeOut(range_label), FadeIn(dna), run_time=.6)
+        self.at("leaves the ratio unchanged")
+        self.play(*[Indicate(r[1], color=PURPLE, scale_factor=1.1) for r in row], run_time=.6)
+        self.finish()
+
+
+class S05Vacuole(SpokenScene):
+    def construct(self):
+        outer, vac = rootcell(1.2, 1.2, .25, [-3.8, 0, 0])
+        head = T("Arabidopsis root epidermis", 34, font=TITLE_FONT).move_to([0, 3.15, 0])
+        note = T("schematic · not to scale", 22, GREY).move_to([-3.8, -3.2, 0])
+        self.at("Plant cells")
+        self.play(FadeIn(outer), FadeIn(vac), FadeIn(note), run_time=.6)
+        self.at("In Arabidopsis root epidermis")
+        self.play(FadeIn(head), run_time=.6)
+        whole = card(["whole cell volume", "about 14-fold"], YELLOW, w=4.9, sizes=[26, 32]).move_to([3.2, 1.6, 0])
+        self.at("cells grew about 14")
+        big_o, big_v = rootcell(2.3, 5.4, .2, [-3.8, 0, 0])
+        self.play(Transform(outer, big_o), Transform(vac, big_v), FadeIn(whole), run_time=1.2)
+        outside = card(["space outside vacuole", "about 2 to 3-fold"], ORANGE, w=4.9, sizes=[26, 30]).move_to([3.2, -.25, 0])
+        self.at("but the space between")
+        self.play(FadeIn(outside), run_time=.6)
+        vl = T("vacuole", 28, TEAL).move_to([-3.8, 0, 0])
+        self.at("Most new volume is vacuole")
+        self.play(FadeIn(vl), Indicate(vac, color=TEAL, scale_factor=1.02), run_time=.8)
+        wall = T("wall loosens → cell stretches", 26, GREY).move_to([3.2, -2.5, 0])
+        self.at("the wall has to loosen")
+        self.play(FadeIn(wall), outer.animate.set_stroke(width=3), run_time=.6)
+        self.at("to let the cells stretch")
+        end_o, end_v = rootcell(2.4, 5.7, .2, [-3.8, 0, 0])
+        self.play(Transform(outer, end_o), Transform(vac, end_v), run_time=.7)
+        self.finish()
+
+
+class S06Surface(SpokenScene):
+    def construct(self):
+        c = [-3.5, -.1, 0]
+        body = cell(c, 1.1)
+        content = dots(c, 1.1, .48)
+        head = T("Geometry adds a cost", 38, font=TITLE_FONT).move_to([0, 3.1, 0])
+        self.at("Geometry adds a cost")
+        self.play(FadeIn(head), FadeIn(body), run_time=.6)
+        arrows = in_arrows(c, 1.1, 6, out=.5)
+        surface = T("supply through surface", 28, BLUE).move_to([3, 1.8, 0])
+        self.at("crosses its surface")
+        self.play(FadeIn(arrows), FadeIn(surface), run_time=.6)
+        volume = T("use through volume", 28, ORANGE).move_to([3, -.1, 0])
+        self.at("spread through its volume")
+        self.play(FadeIn(content), FadeIn(volume), run_time=.6)
+        radius = T("radius: 5 → 10 µm", 28, YELLOW).move_to([-3.5, -2.8, 0])
+        self.at("Double a sphere's radius")
+        self.play(FadeOut(arrows), Transform(body, cell(c, 2.2)),
+                  Transform(content, dots(c, 2.2, .48)), FadeIn(radius),
+                  FadeOut(surface), FadeOut(volume), run_time=.9)
+        a = bar(.5, 1.4, .5, BLUE)
+        al = T("area ×4", 28, BLUE).move_to([3, 2.05, 0])
+        self.at("its area rises fourfold")
+        self.play(FadeIn(a), FadeIn(al), run_time=.25)
+        self.play(Transform(a, bar(.5, 1.4, 2, BLUE)), run_time=.6)
+        v = bar(.5, -.3, .5, ORANGE)
+        vl = T("volume ×8", 28, ORANGE).move_to([3, .35, 0])
+        self.at("its volume rises eightfold")
+        self.play(FadeIn(v), FadeIn(vl), run_time=.25)
+        self.play(Transform(v, bar(.5, -.3, 4, ORANGE)), run_time=.6)
+        # Qualitative model with fixed coefficients: no measured threshold is implied.
+        P = Plot([-4.8, -2.5], 9.6, 4.6, 1, 1)
         ax = P.axes()
-        ticks = VGroup(P.xtick(5, "5"), P.xtick(10, "10"), P.ytick(1, "1"), P.ytick(2, "2"), P.ytick(3, "3"))
-        xl = T("radius (µm)", 24, GREY).move_to([P.p(14, 0)[0] - 0.5, -3.4, 0])
-        yl = T("capacity ÷ demand", 24, GREY).move_to([P.p(0, 4)[0] + 1.45, 2.45, 0])
-        curve = P.curve(f, 2.6, 14, YELLOW)
-        one = DashedLine(P.p(0, 1), P.p(14, 1), color=GREEN, stroke_width=3)
-        short = Rectangle(width=P.p(14, 0)[0] - P.p(10, 0)[0], height=P.p(0, 1)[1] - P.p(0, 0)[1], stroke_width=0,
-                          fill_color=RED, fill_opacity=0.22).move_to((P.p(10, 0) + P.p(14, 1)) / 2)
-        sl = T("demand exceeds supply (in this model)", 24, RED).move_to([P.p(12, 0.5)[0] - 0.3, P.p(0, 1.9)[1], 0])
-        head = T("A scaling penalty, not a universal maximum", 34, font=TITLE_FONT).to_edge(UP, buff=0.4)
-
-        self.at("Keep the rule")
-        self.play(Create(ax), FadeIn(ticks), FadeIn(xl), FadeIn(yl), run_time=0.9)
-        self.at("Supply comes in")
-        s = bar(0, 0, 0.1, BLUE)  # placeholder, not shown
-        sup_t = T("supply: through the surface", 28, BLUE).move_to([0.5, 1.9, 0])
-        self.play(FadeIn(sup_t, shift=RIGHT * 0.2), run_time=0.6)
-        dem_t = T("demand: through the volume", 28, ORANGE).move_to([0.6, 1.2, 0])
-        self.at("Demand is spread")
-        self.play(FadeIn(dem_t, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("As the radius grows")
-        self.play(FadeOut(sup_t), FadeOut(dem_t), Create(curve), run_time=1.6)
-        self.play(Create(one), run_time=0.5)
-        self.play(FadeIn(short), FadeIn(sl), run_time=0.5)
-        fm = M("10 / r", 34, YELLOW, weight=BOLD).move_to([P.p(6.5, 3.2)])
-        self.at("In this model")
-        self.play(FadeIn(fm, shift=DOWN * 0.1), run_time=0.6)
-        self.at("scaling penalty")
-        self.play(Write(head), run_time=1.4)
+        supply = P.curve(lambda r: .55*r*r, 0, 1, BLUE)
+        demand = P.curve(lambda r: .85*r*r*r, 0, 1, ORANGE)
+        labs = VGroup(T("radius →", 24, GREY).move_to([4, -3.05, 0]),
+                      T("relative rate", 24, GREY).move_to([-4, 2.45, 0]),
+                      T("fixed uptake / area", 26, BLUE).move_to([-1.8, 1.6, 0]),
+                      T("fixed demand / volume", 26, ORANGE).move_to([-1.5, .9, 0]))
+        self.at("With fixed uptake per area")
+        self.play(*[FadeOut(m) for m in [body, content, radius, a, al, v, vl]],
+                  Create(ax), FadeIn(VGroup(*labs[:3])), run_time=.6)
+        self.play(Create(supply), run_time=.6)
+        self.at("and fixed demand per volume")
+        self.play(FadeIn(labs[3]), Create(demand), run_time=.7)
+        cross_r = .55/.85
+        cross = Dot(P.p(cross_r, .55*cross_r**2), color=YELLOW, radius=.1)
+        self.at("supply falls behind")
+        self.play(FadeIn(cross), Indicate(demand, color=ORANGE, scale_factor=1.01), run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S07End(EndCard):
+class S07Rule(SpokenScene):
+    def construct(self):
+        cards = [card(["1 · growth linked to division"], BLUE, w=9.5, sizes=[32]).move_to([0, 2, 0]),
+                 card(["2 · size sets synthesis and parts"], ORANGE, w=9.5, sizes=[32]).move_to([0, 0, 0]),
+                 card(["3 · surface adds a cost"], YELLOW, w=9.5, sizes=[32]).move_to([0, -2, 0])]
+        head = T("Keep the order", 36, font=TITLE_FONT).move_to([0, 3.2, 0])
+        self.at("Keep the order")
+        self.play(FadeIn(head), run_time=.5)
+        self.at("linking growth to division")
+        self.play(FadeIn(cards[0], shift=DOWN*.15), run_time=.6)
+        self.at("Size then sets")
+        self.play(FadeIn(cards[1], shift=DOWN*.15), run_time=.6)
+        self.at("Surface and volume")
+        self.play(FadeIn(cards[2], shift=DOWN*.15), run_time=.6)
+        note = T("not a universal maximum", 28, GREY).move_to([0, -3.2, 0])
+        self.at("not a universal maximum")
+        self.play(FadeIn(note), run_time=.6)
+        self.finish()
+
+
+class S08End(EndCard):
     LINE = "A scaling penalty, not a universal maximum."

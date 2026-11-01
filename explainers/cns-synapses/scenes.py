@@ -70,256 +70,359 @@ def neuro_state():
     return c, cl, st, nl
 
 
+# Additional conceptual colours: PURPLE = NMDA / glycine receptors;
+# ORANGE = AMPA receptors; PINK = GABA-A receptors; WHITE = astrocyte signals.
+PURPLE = "#B58CD9"
+ORANGE = "#F29E4C"
+PINK = "#D98CB3"
+
+_house_chip = chip
+
+
+def chip(*args, **kwargs):
+    """Keep membrane lines behind labels, with the original tinted chip above."""
+    g = _house_chip(*args, **kwargs)
+    back = RoundedRectangle(corner_radius=.14, width=g.width, height=g.height,
+                            stroke_width=0, fill_color=BG, fill_opacity=1).move_to(g)
+    return VGroup(back, g)
+
+
+def membrane(y, x0=-5.8, x1=5.8):
+    return RoundedRectangle(corner_radius=0.1, width=x1-x0, height=0.22,
+                            stroke_color=GREY, fill_color=GREY, fill_opacity=0.25).move_to([(x0+x1)/2, y, 0])
+
+
+def receptor(x, y, color=ORANGE):
+    # A schematic channel with an open cup; no molecular geometry.
+    return VGroup(Line([x-.22,y+.3,0], [x-.22,y-.3,0], color=color, stroke_width=6),
+                  Line([x+.22,y+.3,0], [x+.22,y-.3,0], color=color, stroke_width=6),
+                  Line([x-.22,y-.3,0], [x+.22,y-.3,0], color=color, stroke_width=6))
+
+
+def scaffold(x, y, w=2.2):
+    return RoundedRectangle(corner_radius=.12, width=w, height=.3, stroke_color=GREY,
+                            fill_color=GREY, fill_opacity=.5).move_to([x,y,0])
+
+
+def heading(s):
+    return fit(T(s, 32, TEXT, font=TITLE_FONT), max_w=12.6).move_to([0,3.1,0])
+
+
+def terminal(x, y=1.1, w=3.0):
+    a = axon(-w/2,w/2).move_to([x,y,0])
+    ds = VGroup(*[vdot((x+dx,y+dy)) for dx,dy in [(-.3,.1),(0,.1),(.3,.1),(0,-.15)]])
+    return VGroup(a, ds)
+
+
+def bridge(x, upper=.75, lower=.25):
+    return VGroup(stub(x,BLUE,upper),stub(x,YELLOW,lower),
+                  Line([x,lower+.15,0],[x,upper-.15,0],color=GREY,stroke_width=3))
+
+
+def trace(x, y, sign=1, color=GREEN, w=3.8):
+    # Qualitative response sketch, intentionally no numerical axes or scale.
+    return VMobject(color=color,stroke_width=4).set_points_as_corners(
+        [[x,y,0],[x+w*.25,y,0],[x+w*.32,y+sign*.65,0],
+         [x+w*.55,y+sign*.3,0],[x+w*.8,y,0],[x+w,y,0]])
+
+
 class S00Title(TitleCard):
     LESSON = "Synapses in the brain"
     TITLE = "Sufficient in a dish, not required"
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Assembly(SpokenScene):
+    def construct(self):
+        h = heading("Two sides, one aligned contact")
+        pre = terminal(0,1.5,5)
+        mem = membrane(-.2,-3.5,3.5)
+        recs = VGroup(*[receptor(x,-.2,ORANGE) for x in [-.65,0,.65]])
+        labels = VGroup(T("release apparatus",26,TEAL).move_to([0,2.35,0]),
+                        T("receptors",26,ORANGE).move_to([0,-1.1,0]))
+        self.at("a working synapse")
+        self.play(FadeIn(h),FadeIn(pre),run_time=.6)
+        self.at("lined up with")
+        self.play(Create(mem),FadeIn(recs,shift=UP*.3),FadeIn(labels),run_time=.7)
+        br = VGroup(bridge(-1.6,1,.15),bridge(1.6,1,.15))
+        self.at("adhesion proteins")
+        self.play(FadeIn(br),run_time=.6)
+        self.at("organize both sides")
+        self.play(Indicate(pre,color=BLUE),Indicate(recs,color=YELLOW),run_time=.7)
+        self.at("each contact")
+        self.play(FadeOut(VGroup(h,pre,mem,recs,labels,br)),run_time=.4)
+        dend = membrane(-.3)
+        dl = T("one dendrite",26,GREY).move_to([0,-2.65,0])
+        left,right = terminal(-3,1.3),terminal(3,1.3)
+        r1 = VGroup(*[receptor(x,-.3,ORANGE) for x in [-3.5,-3,-2.5]])
+        r2 = VGroup(*[receptor(x,-.3,PINK) for x in [2.5,3,3.5]])
+        names = VGroup(T("glutamate",28,ORANGE).move_to([-3,2.2,0]),
+                       T("GABA",28,PINK).move_to([3,2.2,0]))
+        self.play(Create(dend),FadeIn(left),FadeIn(right),FadeIn(dl),run_time=.7)
+        self.at("glutamate and gaba")
+        self.play(FadeIn(names),run_time=.6)
+        bs = VGroup(bridge(-4,.8,.2),bridge(4,.8,.2))
+        self.at("each with its own receptors")
+        self.play(FadeIn(r1),FadeIn(r2),FadeIn(bs),run_time=.6)
+        scs=VGroup(scaffold(-3,-1.05),scaffold(3,-1.05))
+        scl=T("scaffolds",25,GREY).move_to([0,-1.65,0])
+        self.at("scaffolds gather")
+        self.play(FadeIn(scs,shift=UP*.2),FadeIn(scl),run_time=.6)
+        astro=chip("astrocyte signals",TEXT,26).move_to([0,3.15,0])
+        sig=VGroup(arr([-1.2,2.9,0],[-1.6,1.5,0],TEXT),arr([1.2,2.9,0],[1.6,1.5,0],TEXT))
+        self.at("astrocytes add signals")
+        self.play(FadeIn(astro),GrowArrow(sig[0]),GrowArrow(sig[1]),run_time=.7)
+        self.finish()
+
+
 class S01Kidney(SpokenScene):
-    """A bare kidney cell gets neuroligin; an axon crosses it; the question marks pose the puzzle."""
-
     def construct(self):
-        c, cl, st, nl = neuro_state()
-        ax = axon()
-        axl = T("axon", 26, GREY).move_to([-5.3, 1.8, 0])
-        self.at("kidney cell")
-        self.play(FadeIn(c, scale=0.95), FadeIn(cl), run_time=0.7)
-        self.at("one neuronal protein")
-        self.play(LaggedStart(*[GrowFromEdge(s, DOWN) for s in st], lag_ratio=0.2), run_time=0.9)
-        self.at("called neuroligen")
-        self.play(FadeIn(nl, shift=UP * 0.1), run_time=0.5)
-        self.at("axons that touch it")
-        self.play(GrowFromEdge(ax, LEFT), FadeIn(axl), run_time=1.4)
-        self.at("found a partner")
-        self.play(Indicate(st, color=YELLOW, scale_factor=1.2), run_time=0.8)
-        self.at("What do those axons do")
-        q = T("?", 90, TEXT).move_to([3.1, 2.45, 0])
-        self.play(FadeIn(q, scale=0.5), run_time=0.5)
-        self.at("does the brain need")
-        box = dashed_box(-3.1, CELL_Y)
-        qm = T("?", 90, TEXT).move_to(box.get_center() + UP * 0.2)
-        bl = T("in the brain", 26, GREY).move_to([-3.1, CELL_Y - 0.9, 0])
-        self.play(Create(box), FadeIn(qm, scale=0.5), FadeIn(bl), run_time=0.9)
-        self.at("what kind of synapse")
-        self.play(Indicate(qm, color=TEXT, scale_factor=1.2), run_time=0.8)
+        c,cl,st,nl=neuro_state()
+        ax=axon()
+        ns=stub_row(BLUE,.55)
+        nxl=T("neurexin · axon",26,BLUE).move_to([3.1,1.9,0])
+        h=heading("Culture experiment 1 · induce the sending side")
+        self.at("sits on the axon")
+        self.play(FadeIn(h),FadeIn(ax),FadeIn(ns),FadeIn(nxl),run_time=.6)
+        self.at("its partner")
+        self.play(FadeIn(st),FadeIn(nl),run_time=.6)
+        self.at("a kidney cell")
+        self.play(FadeIn(c),FadeIn(cl),run_time=.6)
+        dots=VGroup(*[vdot(p) for p in SC3])
+        self.at("axons touching it")
+        self.play(FadeIn(dots),run_time=.4)
+        self.at("gather vesicles")
+        self.play(*[d.animate.move_to([*p,0]) for d,p in zip(dots,CL)],run_time=.65)
+        self.at("release and retrieve")
+        self.play(*[d.animate.shift(DOWN*.4) for d in dots[:3]],run_time=.4)
+        self.play(*[d.animate.shift(UP*.4) for d in dots[:3]],run_time=.4)
+        c0=cell(-3.1)
+        c0l=T("control cell",26,GREY).move_to([-3.1,-2.3,0])
+        no=T("no induced cluster",24,GREY).move_to([-3.1,-.8,0])
+        scatter=VGroup(*[vdot(p) for p in SC[:5]])
+        self.at("control cells")
+        self.play(FadeIn(c0),FadeIn(c0l),FadeIn(no),FadeIn(scatter),run_time=.6)
+        self.at("on a non")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        h2=heading("Culture experiment 2 · induce the receiving side")
+        c2=cell(0,w=6)
+        c2l=T("non-neuronal cell",26,GREY).move_to([0,-2.3,0])
+        nx=stub_row(BLUE,.25,xs=[-1.5,-.5,.5,1.5])
+        nxl2=T("neurexin",28,BLUE).move_to([0,-.8,0])
+        den=axon(-5.5,5.5)
+        denl=T("contacting dendrite",26,GREY).move_to([0,1.95,0])
+        self.play(FadeIn(h2),FadeIn(c2),FadeIn(c2l),FadeIn(nx),FadeIn(nxl2),FadeIn(den),FadeIn(denl),run_time=.6)
+        clusters=VGroup(*[stub(x,PURPLE,1.1) for x in [-4,-2,2,4]])
+        pl=T("postsynaptic proteins",26,PURPLE).move_to([0,2.55,0])
+        self.at("cluster postsynaptic proteins")
+        self.play(FadeIn(clusters),FadeIn(pl),run_time=.4)
+        self.play(*[m.animate.move_to([x,1.1,0]) for m,x in zip(clusters,[-.6,-.2,.2,.6])],run_time=.7)
+        self.at("organization runs both ways")
+        self.play(Indicate(clusters,color=PURPLE),Indicate(nx,color=BLUE),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Cluster(SpokenScene):
-    """Vesicles gather only over the neuroligin cell, are released and taken back."""
-
+class S02Scaffold(SpokenScene):
     def construct(self):
-        c, cl, st, nl = neuro_state()
-        ax = axon()
-        axl = T("axon", 26, GREY).move_to([-5.3, 1.8, 0])
-        c0 = cell(-3.1)
-        c0l = T("other cell", 26, GREY).move_to([-3.1, -2.3, 0])
-        self.add(c, cl, st, nl, ax, axl)
-        self.at("Grow kidney cells")
-        self.play(FadeIn(c0, scale=0.95), FadeIn(c0l), run_time=0.7)
-        dots = [vdot(p) for p in SC]
-        self.at("an axon crosses")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.08), run_time=1.0)
-        self.at("a cell that makes")
-        self.play(Indicate(st, color=YELLOW, scale_factor=1.2), run_time=0.7)
-        vl = T("synaptic vesicles", 26, TEAL).move_to([-2.0, 1.85, 0])
-        self.at("synaptic vesicles")
-        self.play(FadeIn(vl), run_time=0.4)
-        self.at("gather")
-        self.play(*[dots[k].animate.move_to([CL[i][0], CL[i][1], 0]) for i, k in enumerate(RIGHT_K)], run_time=1.2)
-        self.at("other cells")
-        self.play(Indicate(c0, color=GREY, scale_factor=1.04), run_time=0.9)
-        self.at("releases")
-        bottom = [dots[RIGHT_K[i]] for i in range(3)]
-        self.play(*[d.animate.shift(DOWN * 0.4) for d in bottom], run_time=0.8)
-        self.at("takes them back")
-        self.play(*[d.animate.shift(UP * 0.4) for d in bottom], run_time=0.8)
-        self.at("working terminals")
-        ring = RoundedRectangle(corner_radius=0.2, width=1.3, height=0.8, stroke_color=GREEN, stroke_width=4)
-        ring.move_to([3.1, 1.05, 0])
-        wt = T("working terminal", 26, GREEN).move_to([3.1, 1.85, 0])
-        self.play(Create(ring), FadeIn(wt), run_time=0.8)
+        h=heading("The receiving side · excitatory contact")
+        mem=membrane(.9)
+        nl=chip("neuroligin",YELLOW,26).move_to([-4,.9,0])
+        nm=chip("NMDA",PURPLE,26).move_to([-.8,.9,0])
+        psd=chip("PSD-95",GREY,28).move_to([-2.4,-1.5,0])
+        tails=VGroup(Line([-4,.5,0],[-4,-1.1,0],color=YELLOW),
+                     Line([-.8,.5,0],[-.8,-1.1,0],color=PURPLE),
+                     Line([-4,-1.1,0],[-.8,-1.1,0],color=GREY))
+        self.at("on the receiving side")
+        self.play(FadeIn(h),Create(mem),FadeIn(psd),run_time=.6)
+        self.at("holds neuralgene")
+        self.play(FadeIn(nl),FadeIn(nm),Create(tails),run_time=.7)
+        am=chip("AMPA",ORANGE,26).move_to([4,-2,0])
+        star=chip("stargazin",TEXT,24).move_to([4,-2.8,0])
+        self.at("receptors reach this scaffold")
+        self.play(FadeIn(am),FadeIn(star),run_time=.7)
+        delivery=T("surface delivery",24,TEXT).move_to([3.8,2.05,0])
+        self.at("brings them to the cell surface")
+        self.play(am.animate.move_to([4,.9,0]),star.animate.move_to([4,-.1,0]),FadeIn(delivery),run_time=.9)
+        tail=VGroup(Line([4,-.45,0],[4,-1.5,0],color=TEXT),Line([4,-1.5,0],psd.get_right(),color=TEXT))
+        anchor=T("synaptic anchoring",24,TEXT).move_to([3.8,-2.4,0])
+        self.at("its tail binds")
+        self.play(Create(tail),FadeOut(delivery),FadeIn(anchor),run_time=.7)
+        self.at("in stargazer cerebellar granule cells")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        h2=heading("Stargazer · cerebellar granule cells")
+        inset=RoundedRectangle(width=11.6,height=3.7,corner_radius=.2,stroke_color=GREY)
+        nm_label=chip("NMDA response",PURPLE,28).move_to([-3,1,0])
+        am_label=chip("AMPA response",ORANGE,28).move_to([3,1,0])
+        yes=trace(-4.9,-.5,1,PURPLE)
+        neutral=Line([1.1,-.5,0],[4.9,-.5,0],color=GREY,stroke_width=3)
+        self.play(FadeIn(h2),Create(inset),FadeIn(nm_label),FadeIn(am_label),run_time=.6)
+        self.at("keep nmdi responses")
+        self.play(Create(yes),run_time=.6)
+        no=T("absent",26,RED).move_to([3,-1.2,0])
+        self.at("but lack mpa responses")
+        self.play(Create(neutral),FadeIn(no),run_time=.6)
+        self.at("inhibitory synapses")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        hi=heading("The receiving side · inhibitory contact")
+        mi=membrane(1)
+        gly=chip("glycine receptors",PURPLE,26).move_to([-3,1,0])
+        gab=chip("many GABA-A receptors",PINK,26).move_to([2.6,1,0])
+        # An irregular filled patch, a schematic scaffold cluster.
+        geo=Polygon([-4,-.8,0],[-2,-.5,0],[-.3,-.9,0],[2,-.55,0],[4,-.9,0],
+                    [3.7,-1.4,0],[1,-1.25,0],[-1.5,-1.5,0],[-4,-1.3,0],
+                    color=GREY,fill_opacity=.4)
+        geol=T("gephyrin scaffold",28,GREY).move_to([0,-2.2,0])
+        t=VGroup(Line([-3,.55,0],[-3,-.8,0],color=PURPLE),Line([2.6,.55,0],[2.6,-.8,0],color=PINK))
+        self.play(FadeIn(hi),Create(mi),FadeIn(geo),FadeIn(geol),run_time=.6)
+        self.at("anchor glycine receptors")
+        self.play(FadeIn(gly),Create(t[0]),run_time=.6)
+        self.at("and many gaba")
+        self.play(FadeIn(gab),Create(t[1]),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Block(SpokenScene):
-    """Neurexin on the axon pairs with neuroligin; free neurexin caps neuroligin and the clusters go."""
-
+class S03Astrocytes(SpokenScene):
     def construct(self):
-        c, cl, st, nl = neuro_state()
-        ax = axon()
-        axl = T("axon", 26, GREY).move_to([-5.3, 1.8, 0])
-        c0 = cell(-3.1)
-        c0l = T("other cell", 26, GREY).move_to([-3.1, -2.3, 0])
-        dots = [vdot(SC[k]) if k in LEFT_K else vdot(CL[k - 6]) for k in range(12)]
-        self.add(c, cl, st, nl, ax, axl, c0, c0l, *dots)
-        ns = stub_row(BLUE, 0.55)
-        nxl = T("neurexin", 28, BLUE).move_to([5.0, 1.85, 0])
-        self.at("sit on the axon side")
-        self.play(LaggedStart(*[GrowFromEdge(s, UP) for s in ns], lag_ratio=0.2), FadeIn(nxl), run_time=1.0)
-        self.at("partners")
-        self.play(Indicate(VGroup(ns, st), color=TEXT, scale_factor=1.15), run_time=0.9)
-        free = VGroup(*[stub(0.0, BLUE, y) for y in (-2.3, -1.6, -0.9, -0.2)])
-        fl = T("soluble neurexin", 28, BLUE).move_to([0, -3.2, 0])
-        self.at("add soluble")
-        self.play(LaggedStart(*[FadeIn(f, scale=0.5) for f in free], lag_ratio=0.15), FadeIn(fl), run_time=0.9)
-        self.at("first so the axons")
-        self.play(*[free[i].animate.move_to([XS[i], 0.55, 0]) for i in range(4)],
-                  ns.animate.shift(UP * 0.3).set_opacity(0.3), run_time=1.3)
-        self.at("cannot reach")
-        self.play(Indicate(free, color=BLUE, scale_factor=1.2), run_time=0.6)
-        self.at("clusters are blocked")
-        blk = chip("blocked", RED, size=28).move_to([3.1, 2.45, 0])
-        self.play(*[dots[k].animate.move_to([SC3[i][0], SC3[i][1], 0]) for i, k in enumerate(RIGHT_K)], FadeIn(blk), run_time=1.0)
-        self.at("bond between")
-        self.play(Indicate(VGroup(free, st), color=TEXT, scale_factor=1.12), run_time=0.9)
+        h=heading("Purified rat retinal ganglion cells")
+        prep=T("culture experiment · glia-conditioned medium",25,GREY).move_to([0,2.4,0])
+        cells=VGroup(*[Circle(.5,color=GREY,fill_opacity=.2).move_to([x,.4,0]) for x in [-3,3]])
+        link=arr([-2.4,.4,0],[2.4,.4,0],GREY)
+        activity=chip("little synaptic activity",GREY,27).move_to([0,-1,0])
+        survival=chip("survival unchanged",TEXT,26).move_to([0,-2.3,0])
+        self.at("astrocyte signals")
+        self.play(FadeIn(h),run_time=.5)
+        self.at("purified retinal ganglion cells")
+        self.play(FadeIn(cells),run_time=.6)
+        self.at("barely communicated")
+        self.play(GrowArrow(link),FadeIn(activity),run_time=.6)
+        med=chip("glial signals",TEXT,26).move_to([0,1.5,0])
+        self.at("glial signals were added")
+        self.play(FadeIn(med,shift=DOWN*.4),run_time=.7)
+        self.at("conditioned medium increased transmission")
+        active=chip("increased transmission",GREEN,27).move_to(activity)
+        self.play(FadeIn(prep),ReplacementTransform(activity,active),link.animate.set_color(GREEN),run_time=.6)
+        self.at("without increasing survival")
+        self.play(FadeIn(survival),run_time=.5)
+        self.at("induce synapses")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        h2=heading("Separate factor experiments")
+        factor=chip("thrombospondins",TEXT,28).move_to([0,2.1,0])
+        pre=terminal(-2.6,.7,4)
+        post=membrane(-.7,-4.6,-.6)
+        structure=T("normal structure",26,GREEN).move_to([-2.6,-1.6,0])
+        release=T("transmitter release",26,TEAL).move_to([-2.6,-2.4,0])
+        response=chip("AMPA response",ORANGE,26).move_to([3,1,0])
+        flat=Line([1.2,-.2,0],[4.8,-.2,0],color=GREY,stroke_width=4)
+        absent=T("absent",27,RED).move_to([3,-1,0])
+        self.play(FadeIn(h2),FadeIn(factor),FadeIn(pre),Create(post),run_time=.6)
+        self.at("look normal")
+        self.play(FadeIn(structure),run_time=.4)
+        self.at("release transmitter")
+        self.play(FadeIn(release),pre[1][0].animate.shift(DOWN*.8),run_time=.6)
+        self.at("yet have no")
+        self.play(FadeIn(response),Create(flat),FadeIn(absent),run_time=.6)
+        gly=chip("glypicans 4 and 6",TEXT,28).move_to(factor)
+        self.at("other astrocyte factors")
+        self.play(ReplacementTransform(factor,gly),FadeOut(flat),FadeOut(absent),
+                  FadeOut(structure),FadeOut(release),run_time=.6)
+        receptors=VGroup(receptor(-3.1,-1.7),receptor(-2.1,-1.7))
+        self.at("recruit mpa receptors")
+        self.play(FadeIn(receptors),run_time=.4)
+        self.play(receptors.animate.shift(UP),run_time=.6)
+        response_trace=trace(1.2,-.2,1,ORANGE,3.6)
+        responds=T("responds",27,GREEN).move_to([3,-1.4,0])
+        self.at("make such synapses respond")
+        self.play(Create(response_trace),FadeIn(responds),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Enough(SpokenScene):
-    """The dish becomes 'sufficient'; a dashed box asks whether the animal needs it."""
-
-    def construct(self):
-        # mini dish, built about x = 0 then placed at the right (where the neuroligin cell was)
-        c = cell(0.0)
-        cl = T("kidney cell", 28, GREY).move_to([0, -2.3, 0])
-        st = stub_row(YELLOW, 0.25, xs=[-1.8, -0.6, 0.6, 1.8])
-        nl = T("neuroligin", 28, YELLOW).move_to([0, -0.8, 0])
-        ax = axon(-3.0, 3.0)
-        cluster = VGroup(*[vdot((p[0] - 3.1, p[1])) for p in CL])
-        dish = VGroup(c, cl, st, nl, ax, cluster).shift([3.1, 0, 0])
-        self.at("can do this")
-        self.play(FadeIn(dish, scale=0.95), run_time=0.8)
-        self.at("Call that sufficient")
-        self.play(dish.animate.scale(0.9).move_to([-3.4, 0.3, 0]), run_time=1.0)
-        suf = T("sufficient in a dish", 30, TEXT).move_to([-3.4, -2.35, 0])
-        self.play(FadeIn(suf, shift=UP * 0.1), run_time=0.5)
-        self.at("clean test of one protein")
-        self.play(Indicate(st, color=YELLOW, scale_factor=1.2), run_time=0.8)
-        self.at("what the brain depends on")
-        box = dashed_box(3.4, 0.3, w=5.4, h=3.8)
-        q = T("?", 100, TEXT).move_to(box.get_center())
-        req = T("required in the animal?", 30, TEXT).move_to([3.4, -2.35, 0])
-        self.play(Create(box), FadeIn(q, scale=0.5), FadeIn(req), run_time=1.0)
-        self.at("genetic experiment")
-        self.play(Indicate(q, color=TEXT, scale_factor=1.25), run_time=0.8)
-        self.at("take the protein away")
-        row = stub_row(YELLOW, -0.9, xs=[2.2, 3.0, 3.8, 4.6])
-        self.play(FadeIn(row), run_time=0.4)
-        x = Cross(row, stroke_color=RED, stroke_width=6)
-        self.play(Create(x), run_time=0.5)
-        self.play(FadeOut(row), FadeOut(x), run_time=0.5)
-        self.at("look at the synapses")
-        self.play(Indicate(q, color=TEXT, scale_factor=1.25), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
+# Original bar helper retained for the house drawing vocabulary.
 def bar(x, h, color, base=-1.9, w=1.1):
-    r = Rectangle(width=w, height=h, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.45)
-    return r.move_to([x, base + h / 2, 0])
+    r=Rectangle(width=w,height=h,stroke_color=color,stroke_width=3,fill_color=color,fill_opacity=.45)
+    return r.move_to([x,base+h/2,0])
 
 
 class S05Knockout(SpokenScene):
-    """Bars: synapse number stays level, transmission drops - first neuroligin mice, then neurexin mice."""
-
     def construct(self):
-        base = -1.9
-        H = 2.8
-        xl, xr = -3.3, 3.3
-        head = T("Mice lacking neuroligins 1, 2 and 3 (brainstem)", 32, TEXT).move_to([0, 3.2, 0])
-        axes = VGroup(Line([xl - 1.7, base, 0], [xl + 1.7, base, 0], color=GREY, stroke_width=3),
-                      Line([xr - 1.7, base, 0], [xr + 1.7, base, 0], color=GREY, stroke_width=3))
-        t1 = T("synapse number", 28, TEXT).move_to([xl, 1.35, 0])
-        t2 = T("transmission", 28, TEXT).move_to([xr, 1.35, 0])
-        w1, w2 = bar(xl - 0.9, H, GREY), bar(xr - 0.9, H, GREY)
-        n1 = T("normal", 24, GREY).move_to([xl - 0.9, -2.4, 0])
-        n2 = T("normal", 24, GREY).move_to([xr - 0.9, -2.4, 0])
-        l1 = T("lacking", 24, TEXT).move_to([xl + 0.9, -2.4, 0])
-        l2 = T("lacking", 24, TEXT).move_to([xr + 0.9, -2.4, 0])
-        note = T("bar heights are schematic", 22, GREY).move_to([0, -3.2, 0])
-        self.at("Mice lacking")
-        self.play(FadeIn(head), Create(axes), FadeIn(t1), FadeIn(t2), FadeIn(note), run_time=0.8)
-        self.play(GrowFromEdge(w1, DOWN), GrowFromEdge(w2, DOWN), FadeIn(n1), FadeIn(n2), run_time=0.8)
-        self.at("normal number and structure")
-        k1 = bar(xl + 0.9, H, GREEN)
-        self.play(GrowFromEdge(k1, DOWN), FadeIn(l1), run_time=0.8)
-        self.at("transmission was impaired")
-        k2 = bar(xr + 0.9, 1.1, RED)
-        self.play(GrowFromEdge(k2, DOWN), FadeIn(l2), run_time=0.8)
-        self.at("failed breathing")
-        died = chip("died from failed breathing", RED, size=26).move_to([0, 2.35, 0])
-        self.play(FadeIn(died, shift=DOWN * 0.1), run_time=0.5)
-        self.at("lacking all three")
-        head2 = T("Mice lacking all three alpha-neurexins", 32, TEXT).move_to([0, 3.2, 0])
-        self.play(ReplacementTransform(head, head2), FadeOut(k1), FadeOut(k2), FadeOut(died),
-                  FadeOut(l1), FadeOut(l2), run_time=0.9)
-        self.at("soon after birth")
-        died2 = chip("died soon after birth", RED, size=26).move_to([0, 2.35, 0])
-        self.play(FadeIn(died2, shift=DOWN * 0.1), run_time=0.5)
-        self.at("close to normal")
-        k3 = bar(xl + 0.9, 2.65, GREEN)
-        self.play(GrowFromEdge(k3, DOWN), FadeIn(l1), run_time=0.8)
-        self.at("transmitter poorly")
-        k4 = bar(xr + 0.9, 1.1, RED)
-        self.play(GrowFromEdge(k4, DOWN), FadeIn(l2), run_time=0.8)
-        self.at("Synapses formed")
-        self.play(Indicate(k3, color=GREEN, scale_factor=1.08), run_time=0.7)
-        self.at("worked badly")
-        self.play(Indicate(k4, color=RED, scale_factor=1.08), run_time=0.7)
+        h=heading("Sufficiency in culture · requirement in the animal")
+        self.at("now distinguish")
+        self.play(FadeIn(h),run_time=.6)
+        c=cell(-3.3,w=4.8)
+        ax=axon(-5.7,-.9)
+        st=stub_row(YELLOW,.25,xs=[-4.2,-3.3,-2.4])
+        nl=T("neuroligin",26,YELLOW).move_to([-3.3,-.7,0])
+        cl=T("kidney cell · culture",24,GREY).move_to([-3.3,-2.25,0])
+        ds=VGroup(*[vdot((p[0]-6.4,p[1])) for p in CL])
+        dish=VGroup(c,ax,st,nl,cl,ds)
+        self.play(FadeIn(c),FadeIn(ax),FadeIn(cl),run_time=.7)
+        self.at("sufficient to induce terminals")
+        self.play(FadeIn(st),FadeIn(nl),FadeIn(ds),run_time=.7)
+        ko=VGroup(T("Mice · brainstem",28,TEXT),T("neuroligins 1, 2 and 3 deleted",24,YELLOW)).arrange(DOWN,buff=.25).move_to([3.2,2,0])
+        self.at("yet mice lacking")
+        self.play(FadeIn(ko),run_time=.6)
+        num=chip("synapse counts: normal",GREEN,25).move_to([3.2,.4,0])
+        fn=chip("transmission: impaired",RED,25).move_to([3.2,-1,0])
+        self.at("normal synapse numbers")
+        self.play(FadeIn(num),run_time=.6)
+        self.at("with impaired transmission")
+        self.play(FadeIn(fn),run_time=.6)
+        tests=T("tests induction",26,TEXT).move_to([-3.3,-3.1,0])
+        self.at("the assay tests induction")
+        self.play(FadeIn(tests),Indicate(ds,color=TEAL),run_time=.6)
+        self.at("the deletion separates")
+        self.play(Indicate(num,color=GREEN,scale_factor=1.05),Indicate(fn,color=RED,scale_factor=1.05),run_time=.7)
+        self.at("normal counts do not mean")
+        self.play(FadeOut(tests),run_time=.3)
+        rule=T("Sufficient in a dish ≠ required in the animal",28,GOLD).move_to([0,-3.1,0])
+        self.play(FadeIn(rule),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """Function, not formation; many organizers overlap; one in a dish tests only itself; the rule."""
-
+class S06Maturation(SpokenScene):
     def construct(self):
-        nx = chip("alpha-neurexin", BLUE, size=30)
-        nl = chip("neuroligin", YELLOW, size=30)
-        pair = VGroup(nx, nl).arrange(DOWN, buff=0.35).move_to([-5.0, 0, 0])
-        head = T("synapse", 28, GREY).move_to([3.4, 2.5, 0])
-        fn = chip("function and maturation", GREEN, size=30).move_to([3.4, 1.4, 0])
-        fm = chip("forming most synapses", GREY, size=30).move_to([3.4, -1.4, 0])
-        a1 = arr([-3.6, 0.3, 0], [fn.get_left()[0] - 0.05, 1.4, 0], GREEN)
-        a2 = arr([-3.6, -0.3, 0], [fm.get_left()[0] - 0.05, -1.4, 0], GREY)
-        self.play(FadeIn(pair, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("normal synapse function")
-        self.play(FadeIn(head), GrowArrow(a1), FadeIn(fn), run_time=0.9)
-        self.at("not for forming most")
-        self.play(GrowArrow(a2), FadeIn(fm), run_time=0.7)
-        x = Cross(Square(0.5), stroke_color=RED, stroke_width=7).move_to(a2.point_from_proportion(0.55))
-        self.play(Create(x), run_time=0.5)
-        self.at("organizers overlap")
-        self.play(*[FadeOut(m) for m in (pair, head, fn, fm, a1, a2, x)], run_time=0.6)
-        yc = Circle(radius=1.6, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.18).move_to([-1.2, 0.4, 0])
-        gcs = [Circle(radius=1.3, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.18).move_to(p)
-               for p in ([1.3, 1.1, 0], [1.3, -0.3, 0], [0.1, -1.1, 0])]
-        yl = T("neuroligin", 28, YELLOW).move_to([-1.6, 0.6, 0])
-        gl = T("other organizers", 28, GREY).move_to([4.6, 0.3, 0])
-        self.play(LaggedStart(FadeIn(yc, scale=0.8), *[FadeIn(g, scale=0.8) for g in gcs], lag_ratio=0.25),
-                  FadeIn(yl), FadeIn(gl), run_time=1.3)
-        self.at("with one organizer")
-        self.play(*[g.animate.set_stroke(opacity=0.25).set_fill(opacity=0.05) for g in gcs],
-                  yc.animate.set_fill(YELLOW, 0.45), FadeOut(gl), run_time=0.8)
-        self.at("what that one can do")
-        tc = T("tests only what that one can do", 30, TEXT).move_to([0, -3.0, 0])
-        self.play(FadeIn(tc, shift=UP * 0.1), run_time=0.6)
-        self.at("Keep the rule")
-        self.play(*[FadeOut(m) for m in (yc, *gcs, yl, tc)], run_time=0.6)
-        self.at("sufficient in a dish")
-        r1 = chip("sufficient in a dish", TEXT, size=40).move_to([0, 1.5, 0])
-        self.play(FadeIn(r1, shift=UP * 0.1), run_time=0.6)
-        self.at("not the same as")
-        r2 = T("is not the same as", 36, GOLD).move_to([0, 0.2, 0])
-        self.play(FadeIn(r2), run_time=0.5)
-        self.at("required in the animal")
-        r3 = chip("required in the animal", TEXT, size=40).move_to([0, -1.1, 0])
-        self.play(FadeIn(r3, shift=UP * 0.1), run_time=0.6)
+        h=heading("A synapse keeps changing")
+        scope=T("Rodent hippocampal and cortical neurons",26,GREY).move_to([0,2.4,0])
+        stage=chip("immature",TEXT,27).move_to([-3.3,1.3,0])
+        chlor=chip("internal chloride: high",TEXT,26).move_to([-3.3,0,0])
+        gaba=chip("GABA-A response",PINK,26).move_to([3,1.3,0])
+        base=Line([.8,-.7,0],[5.2,-.7,0],color=GREY)
+        tr=trace(.8,-.7,1,PINK,4.4)
+        dep=T("depolarizing",28,PINK).move_to([3,-1.5,0])
+        note=T("qualitative response traces",22,GREY).move_to([0,-3.25,0])
+        self.at("finally a synapse")
+        self.play(FadeIn(h),run_time=.5)
+        self.at("in immature")
+        self.play(FadeIn(scope),FadeIn(stage),run_time=.6)
+        self.at("high internal chloride")
+        self.play(FadeIn(chlor),FadeIn(gaba),Create(base),FadeIn(note),run_time=.6)
+        self.at("makes gaba depolarize")
+        self.play(Create(tr),FadeIn(dep),run_time=.6)
+        kcc=chip("KCC2 ↑",TEXT,28).move_to([-3.3,1.3,0])
+        low=chip("internal chloride: low",TEXT,26).move_to(chlor)
+        self.at("as kcc2 rises")
+        self.play(ReplacementTransform(stage,kcc),FadeOut(tr),FadeOut(dep),run_time=.6)
+        self.at("internal chloride falls")
+        self.play(ReplacementTransform(chlor,low),run_time=.6)
+        hyper=T("hyperpolarizing",28,PINK).move_to([3,-2.05,0])
+        tr2=trace(.8,-.7,-1,PINK,4.4)
+        self.at("gaba hyperpolarizes")
+        self.play(Create(tr2),FadeIn(hyper),run_time=.6)
+        self.at("depolarizing does not always")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.4)
+        h2=heading("Depolarizing does not always mean exciting")
+        inset=T("Shunting current · schematic",26,GREY).move_to([0,2.15,0])
+        mem=membrane(.2,-5.4,5.4)
+        chan=receptor(0,.2,PINK)
+        lab=T("GABA-A channel",26,PINK).move_to([0,1.3,0])
+        incoming=arr([-4,-1.6,0],[-.4,-1.6,0],TEXT)
+        il=T("input current",24,TEXT).move_to([-3,-2.4,0])
+        shunt=arr([0,-1.6,0],[0,.8,0],PINK)
+        sl=T("current shunted",25,PINK).move_to([3,1,0])
+        result=chip("can still inhibit",GREEN,28).move_to([3,-1.6,0])
+        self.play(FadeIn(h2),FadeIn(inset),Create(mem),FadeIn(chan),FadeIn(lab),run_time=.6)
+        self.at("can still inhibit")
+        self.play(GrowArrow(incoming),FadeIn(il),FadeIn(result),run_time=.6)
+        self.at("by shunting current")
+        self.play(GrowArrow(shunt),FadeIn(sl),run_time=.7)
         self.finish()
 
 

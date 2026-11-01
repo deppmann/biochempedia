@@ -3,11 +3,11 @@
 COLOR MAP (one color per concept, whole video)
   BLUE   = sister cell 1 (and its spikes, bars)
   YELLOW = sister cell 2 (and its spikes, bars)
-  TEAL   = shared input: the glomerulus, receptor neurons, the link between sisters
-  GREEN  = rate (mean spike count) and the "looks like copies" reading
-  ORANGE = timing against the breath
+  TEAL   = shared input: glomeruli, receptor neurons, links and cortical activity
+  GREEN  = rate (mean spike count), learned meaning and reward
+  ORANGE = timing against the breath; aversive outcome
   PURPLE = granule cell and its inhibition (bar-ended arrows)
-  GOLD   = light used to find the parent glomerulus
+  GOLD   = tracer and experimental light
   GREY   = labels, axes, breath curve, electrodes, de-emphasized
   RED    = only the strike-through "no"
 """
@@ -89,118 +89,6 @@ def strike(mob, color=RED):
     return Line(mob.get_corner(DL) + np.array([0.04, 0.04, 0]), mob.get_corner(UR) + np.array([-0.04, -0.04, 0]), color=color, stroke_width=6)
 
 
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "From Glomeruli to Piriform Cortex"
-    TITLE = "Same Address, Different Message"
-
-
-class S01Question(SpokenScene):
-    def construct(self):
-        p = build("big")
-        self.at("cells in the mouse")
-        self.play(FadeIn(p["s1"], scale=0.6), FadeIn(p["s2"], scale=0.6), run_time=0.6)
-        self.at("one glomerulus")
-        self.play(Create(p["d1"]), Create(p["d2"]), FadeIn(p["glom"], scale=0.7), FadeIn(p["glom_t"]), run_time=1.0)
-        self.at("receptor neurons converge")
-        self.play(Create(p["rec"]), FadeIn(p["rec_t"]), run_time=0.9)
-        self.at("called sisters")
-        self.play(FadeIn(p["n1"]), FadeIn(p["n2"]), Create(p["a1"]), Create(p["a2"]), run_time=0.8)
-        self.at("same message")
-        q1 = chip("?", C1, size=34, pad=0.2).move_to([3.7, 1.8, 0])
-        q2 = chip("?", C2, size=34, pad=0.2).move_to([3.7, -1.0, 0])
-        self.play(FadeIn(q1, scale=0.5), FadeIn(q2, scale=0.5), run_time=0.7)
-        self.at("only an address")
-        self.play(Indicate(VGroup(p["glom"], p["glom_t"]), color=TEAL, scale_factor=1.15), run_time=1.0)
-        self.finish()
-
-
-class S02Sisters(SpokenScene):
-    def construct(self):
-        p = build("big")
-        self.add(*[p[k] for k in STRUCT + ["n1", "n2"]])
-        for q, y, c in [("?", 1.8, C1), ("?", -1.0, C2)]:
-            pass
-        self.at("Mitral and tufted")
-        m1 = T("mitral or tufted cell", 22, GREY).move_to([0.2, 3.05, 0])
-        m2 = T("mitral or tufted cell", 22, GREY).move_to([0.2, -2.2, 0])
-        self.play(FadeIn(m1), FadeIn(m2), run_time=0.6)
-        self.at("output neurons")
-        self.play(*[Indicate(p[k], color=WHITE, scale_factor=1.2) for k in ("a1", "a2")], FadeIn(p["ctx"]), run_time=1.0)
-        self.at("primary dendrite")
-        self.play(p["d1"].animate.set_stroke(width=10), p["d2"].animate.set_stroke(width=10), run_time=0.6)
-        pd = T("one primary dendrite", 22, GREY).move_to([-1.6, 0.4, 0])
-        self.play(FadeIn(pd), run_time=0.4)
-        self.at("sister cells")
-        link = DashedLine([0.2, 1.38, 0], [0.2, -0.58, 0], color=TEAL, stroke_width=4)
-        lab = T("sisters", 24, TEAL).move_to([1.15, 0.4, 0])
-        self.play(Create(link), FadeIn(lab), run_time=0.7)
-        self.at("recorded sisters")
-        e1 = VGroup(Line([1.3, 2.55, 0], [0.5, 1.95, 0], color=GREY, stroke_width=5), Dot([0.5, 1.95, 0], radius=0.07, color=GREY))
-        e2 = VGroup(Line([1.4, -1.9, 0], [0.5, -1.3, 0], color=GREY, stroke_width=5), Dot([0.5, -1.3, 0], radius=0.07, color=GREY))
-        el = T("electrodes", 22, GREY).move_to([2.7, -1.85, 0])
-        tg = tag()
-        pass
-        self.play(Create(e1), Create(e2), FadeIn(el), run_time=0.7)
-        self.at("in adult")
-        self.play(FadeIn(tg), run_time=0.5)
-        self.at("used light")
-        rings = VGroup(*[Circle(radius=1.0 + 0.3 * i, color=GOLD, stroke_width=4, stroke_opacity=0.9 - 0.25 * i).move_to(p["glom"]) for i in range(3)])
-        lt = T("light", 24, GOLD).move_to([-5.7, 1.9, 0])
-        self.play(FadeIn(lt), LaggedStart(*[Create(r) for r in rings], lag_ratio=0.3), run_time=1.0)
-        self.at("parent glomerulus")
-        self.play(Indicate(VGroup(p["glom"], p["glom_t"]), color=TEAL, scale_factor=1.12), run_time=0.8)
-        self.play(FadeOut(rings), FadeOut(lt), run_time=0.4)
-        self.at("by their input")
-        self.play(Indicate(VGroup(p["d1"], p["d2"], p["glom"]), color=TEAL, scale_factor=1.05), run_time=0.8)
-        self.at("how they responded")
-        r = chip("response to odours", GREY, size=22, pad=0.16).move_to([4.7, 2.7, 0])
-        self.play(FadeIn(r), run_time=0.4)
-        x = strike(r)
-        self.play(Create(x), run_time=0.4)
-        self.finish()
-
-
-class S03Rate(SpokenScene):
-    def construct(self):
-        p = build("big")
-        self.add(*[p[k] for k in STRUCT + ["n1", "n2"]])
-        tg = tag()
-        self.add(tg)
-        m = [T("mitral or tufted cell", 22, GREY).move_to([0.2, 3.05, 0]), T("mitral or tufted cell", 22, GREY).move_to([0.2, -2.2, 0])]
-        # start of scene: the circuit slides to the left, extras fade
-        self.play(*morph_to_side(self, p, 0.9), run_time=0.9)
-        self.at("counting mean spikes")
-        base = Line([0.3, -2.0, 0], [6.0, -2.0, 0], color=GREY, stroke_width=3)
-        yax = Line([0.3, -2.0, 0], [0.3, 2.2, 0], color=GREY, stroke_width=3)
-        ttl = T("mean spike count", 26, GREEN).move_to([3.2, 3.2, 0])
-        sub = T("relative units, in this sketch", 22, GREY).move_to([3.2, 2.8, 0])
-        xs = [1.5, 3.2, 4.9]
-        labs = [T(f"odour {n}", 22, GREY).move_to([x, -2.4, 0]) for n, x in zip("ABC", xs)]
-        labs = [T(t, 22, GREY).move_to([x, -2.4, 0]) for t, x in zip(["odour A", "odour B", "odour C"], xs)]
-        self.play(Create(base), Create(yax), FadeIn(ttl), FadeIn(sub), *[FadeIn(l) for l in labs], run_time=0.9)
-        self.at("rate for each")
-        self.play(Indicate(VGroup(*labs), color=GREEN, scale_factor=1.1), run_time=0.7)
-        self.at("rates of the two sisters")
-        h1, h2 = [0.9, 2.0, 1.4], [1.0, 1.85, 1.5]
-        unit = 1.5
-        bars = []
-        for x, a, b in zip(xs, h1, h2):
-            for dx, h, col in [(-0.3, a, C1), (0.3, b, C2)]:
-                bar = Rectangle(width=0.5, height=h * unit, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.35)
-                bar.move_to([x + dx, -2.0 + h * unit / 2, 0])
-                bars.append(bar)
-        grow = [GrowFromEdge(b, DOWN) for b in bars]
-        self.play(*grow, run_time=1.4)
-        self.at("vary together")
-        mid = VGroup(bars[2], bars[3])
-        self.play(Indicate(mid, color=WHITE, scale_factor=1.12), run_time=0.9)
-        self.at("identical information")
-        badge = chip("rates: correlated", GREEN, size=26).move_to([3.2, 1.95, 0])
-        self.play(FadeIn(badge, shift=DOWN * 0.1), run_time=0.6)
-        self.finish()
-
-
 def timing_panel():
     x0, x1 = 1.5, 6.0
     ph = np.linspace(0, 1, 80)
@@ -220,114 +108,293 @@ def spike_rows(P, ph1, ph2):
     return (ticks(P["x0"], P["x1"], P["y1"], cluster(ph1), C1), ticks(P["x0"], P["x1"], P["y2"], cluster(ph2), C2))
 
 
-class S04Timing(SpokenScene):
+
+# Population panels are schematic, with no measured values implied.
+POSITIONS = [(-1.8, .75), (-.7, 1.0), (.5, .65), (1.7, 1.0),
+             (-1.5, -.65), (-.25, -.3), (.8, -.9), (1.8, -.3)]
+ACTIVE = (0, 3, 5, 6)
+
+
+def sheet(x=3.5, y=.2, title="piriform cortex"):
+    border = RoundedRectangle(width=5.1, height=3.5, corner_radius=.22,
+                              color=GREY, stroke_width=3).move_to([x,y,0])
+    cells = VGroup(*[Dot([x+a,y+b,0], radius=.12, color=GREY).set_opacity(.4)
+                     for a,b in POSITIONS])
+    label = T(title, 26, GREY).move_to([x,y+2.2,0])
+    return VGroup(border, cells, label)
+
+
+def activity(cells, indices=ACTIVE):
+    return [d.animate.set_color(TEAL if i in indices else GREY).set_opacity(1 if i in indices else .4)
+            for i,d in enumerate(cells)]
+
+
+def bulb_row():
+    circles = VGroup(*[Circle(radius=.3, color=TEAL, stroke_width=3,
+                       fill_color=TEAL, fill_opacity=.08).move_to([-5.65+i*.82,.4,0])
+                       for i in range(5)])
+    label = T("bulb glomeruli",26,TEAL).move_to([-4,2.4,0])
+    return VGroup(circles,label)
+
+
+def bridge():
+    return Arrow([-1.8,.4,0],[.7,.4,0], color=TEAL, buff=.1, stroke_width=5)
+
+
+class S00Title(TitleCard):
+    LESSON = "From Glomeruli to Piriform Cortex"
+    TITLE = "Same Address, Different Message"
+
+
+class S01Lead(SpokenScene):
     def construct(self):
-        p = build("side")
-        self.add(*[p[k] for k in STRUCT + ["n1", "n2"]])
-        tg = tag()
-        self.add(tg)
-        P = timing_panel()
-        self.at("spike timing")
-        ttl = T("spike timing", 26, ORANGE).move_to([3.4, 3.2, 0])
-        sub = T("in this sketch", 22, GREY).move_to([3.4, 2.8, 0])
-        self.play(FadeIn(ttl), FadeIn(sub), FadeIn(P["l1"]), FadeIn(P["l2"]), Create(P["r1"]), Create(P["r2"]), run_time=0.8)
-        self.at("respiration cycle")
-        self.play(Create(P["breath"]), FadeIn(P["ax"]), FadeIn(P["axl"]), run_time=1.2)
-        self.at("rhythm of the animal's")
-        dot = Dot(P["breath"].get_start(), radius=0.1, color=ORANGE)
-        self.play(MoveAlongPath(dot, P["breath"]), run_time=1.6, rate_func=linear)
-        self.play(FadeOut(dot), run_time=0.2)
-        self.at("change the timing")
-        t1a, t2a = spike_rows(P, 0.22, 0.66)
-        od = chip("odour A", GREY, size=24).move_to([3.4, 2.0, 0])
-        self.play(FadeIn(od), LaggedStart(*[Create(t) for t in list(t1a) + list(t2a)], lag_ratio=0.12), run_time=1.0)
-        self.at("differently")
-        t1b, t2b = spike_rows(P, 0.5, 0.12)
-        od2 = chip("odour B", GREY, size=24).move_to([3.4, 2.0, 0])
-        self.play(Transform(od, od2), Transform(t1a, t1b), Transform(t2a, t2b), run_time=1.2)
-        self.at("same number of spikes")
-        same = chip("same spike count", GREEN, size=24).move_to([3.4, -3.1, 0])
-        self.play(FadeIn(same, scale=0.8), run_time=0.5)
-        self.at("did not treat")
-        nc = chip("by timing: not copies", ORANGE, size=24).move_to([3.4, -3.1, 0])
-        self.play(ReplacementTransform(same, nc), run_time=0.7)
+        b=bulb_row()
+        self.at("Every smell starts")
+        self.play(FadeIn(b),run_time=.7)
+        receptors=VGroup(*[Line([-5.0+i*.5,-1.5,0],[-4.83,.05,0],color=TEAL,stroke_width=4)
+                            for i in range(3)])
+        rl=T("one receptor type",22,TEAL).move_to([-4.5,-2.1,0])
+        self.at("receptor neurons")
+        self.play(Create(receptors),FadeIn(rl),run_time=.9)
+        self.at("converge on")
+        self.play(Indicate(b[0][1],color=TEAL,scale_factor=1.25),run_time=.8)
+        self.at("a fixed pattern")
+        self.play(*[b[0][i].animate.set_fill(TEAL,.8) for i in (0,1,3)],run_time=.7)
+        c=sheet()
+        a=bridge()
+        self.at("does not keep")
+        self.play(FadeIn(c),GrowArrow(a),run_time=.8)
+        self.at("switches on")
+        self.play(*activity(c[1]),run_time=.8)
+        od=chip("odour A",TEAL,22).move_to([3.5,-2.25,0])
+        self.at("Yet the scattered pattern")
+        self.play(FadeIn(od),run_time=.5)
+        self.at("chemically alike")
+        self.play(Transform(od,chip("related odour B",TEAL,22).move_to(od)),
+                  *activity(c[1],(0,2,3,5)),run_time=.8)
+        learned=chip("learned",GREEN,24).move_to([3.5,-3.15,0])
+        self.at("can learn")
+        self.play(FadeIn(learned),run_time=.6)
+        self.at("change from bulb")
+        self.play(Indicate(a,color=TEAL,scale_factor=1.08),run_time=.7)
         self.finish()
 
 
-class S05Cautions(SpokenScene):
+class S02Dispersed(SpokenScene):
     def construct(self):
-        p = build("side")
-        self.add(*[p[k] for k in STRUCT + ["n1", "n2"]])
-        c_rate = chip("rate: correlated", GREEN, size=26)
-        c_time = chip("timing: different", ORANGE, size=26)
-        row = VGroup(c_rate, c_time).arrange(RIGHT, buff=0.4).move_to([2.9, 2.7, 0])
-        self.at("two cell types")
-        self.play(FadeIn(row, shift=DOWN * 0.1), run_time=0.7)
-        self.at("different breath phases")
-        self.play(Indicate(c_rate, color=GREEN), Indicate(c_time, color=ORANGE), run_time=1.0)
-        self.at("Around the output cells")
-        self.play(FadeOut(row), run_time=0.4)
-        self.at("interneurons such as granule")
-        g = Circle(radius=0.4, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE, fill_opacity=0.25).move_to([0.6, 0.1, 0])
-        gl = T("granule cell", 22, PURPLE).move_to([2.2, 0.1, 0])
-        self.play(FadeIn(g, scale=0.6), FadeIn(gl), run_time=0.7)
+        c=sheet(0,.0)
+        self.at("Stetler and Axel")
+        self.play(FadeIn(c),run_time=.7)
+        self.at("One odor")
+        self.play(*activity(c[1]),run_time=.9)
+        self.at("then traced the output")
+        self.play(FadeOut(c),run_time=.5)
+        gl=Circle(radius=.55,color=TEAL,fill_color=TEAL,fill_opacity=.2).move_to([-5.3,0,0])
+        gt=T("one glomerulus",22,TEAL).move_to([-5.2,-1.1,0])
+        self.play(FadeIn(gl),FadeIn(gt),run_time=.6)
+        self.at("a single glomerulus")
+        self.play(gl.animate.set_fill(GOLD,.7),run_time=.6)
+        top=sheet(2.5,1.55)
+        bottom=sheet(2.5,-2.0,"cortical amygdala")
+        # Shorter panels leave room for labels between them.
+        for s in (top,bottom):
+            s[0].stretch_to_fit_height(2.15)
+            s[1].stretch(.65,1)
+            s[2].move_to(s[0].get_top()+UP*.4)
+        self.at("the axons spread diffusely")
+        fan=VGroup(*[bez((-4.75,0),d.get_center()[:2],.35).set_color(GOLD).set_stroke(width=2)
+                      for d in top[1]])
+        self.play(FadeIn(top),Create(fan),run_time=.9)
+        self.at("the cortical amygdala")
+        self.play(FadeIn(bottom[0]),FadeIn(bottom[2]),run_time=.6)
+        patches=VGroup(*[Ellipse(width=.9,height=.55,color=GOLD,fill_color=GOLD,fill_opacity=.55)
+                         .move_to([x,-2,0]) for x in (1,4)])
+        patch_ax=VGroup(*[bez((-4.75,0),(x,-2),-.5).set_color(GOLD).set_stroke(width=2) for x in (1,4)])
+        self.at("made tidy patches")
+        self.play(Create(patch_ax),FadeIn(patches),run_time=.8)
+        self.at("scattering belongs")
+        self.play(Indicate(top[0],color=TEAL,scale_factor=1.03),run_time=.8)
+        self.finish()
+
+
+def similarity_grid(x, cortical=False, lit=False):
+    cells=VGroup()
+    for r in range(4):
+        for c in range(4):
+            same=r//2==c//2
+            opacity=(.85 if r==c else (.75 if cortical else .4) if same else .08) if lit else .04
+            cells.add(Square(side_length=.72,color=GREY,stroke_width=1,
+                      fill_color=TEAL,fill_opacity=opacity).move_to([x+(c-1.5)*.75,.5+(1.5-r)*.75,0]))
+    letters=VGroup(*[T(l,22,GREY).move_to([x+(i-1.5)*.75,2.45,0]) for i,l in enumerate("ABCD")],
+                   *[T(l,22,GREY).move_to([x-1.95,.5+(1.5-i)*.75,0]) for i,l in enumerate("ABCD")])
+    return VGroup(cells,letters)
+
+
+class S03Geometry(SpokenScene):
+    def construct(self):
+        q=T("Chemistry lost in the scatter?",34).move_to([0,3.1,0])
+        self.at("Is chemistry lost")
+        self.play(FadeIn(q),run_time=.6)
+        left=similarity_grid(-3.4)
+        right=similarity_grid(3.4)
+        labels=VGroup(T("bulb boutons",26,TEAL).move_to([-3.4,-1.65,0]),
+                      T("piriform neurons",26,TEAL).move_to([3.4,-1.65,0]))
+        note=T("Odour pairs A–B and C–D are related • schematic",22,GREY).move_to([0,-2.35,0])
+        self.at("compared bulb inputs")
+        self.play(FadeOut(q),FadeIn(left),FadeIn(right),FadeIn(labels),FadeIn(note),run_time=.8)
+        self.at("related population patterns")
+        self.play(Transform(left,similarity_grid(-3.4,lit=True)),
+                  Transform(right,similarity_grid(3.4,lit=True)),run_time=.8)
+        self.at("more tightly")
+        self.play(Transform(right,similarity_grid(3.4,cortical=True,lit=True)),run_time=.8)
+        similar=chip("similarity",TEAL,26).move_to([-1.7,-3.15,0])
+        place=chip("place",GREY,26).move_to([1.7,-3.15,0])
+        self.at("map of similarity")
+        self.play(FadeIn(similar),run_time=.6)
+        self.at("not of place")
+        self.play(FadeIn(place),Create(strike(place)),run_time=.6)
+        self.at("wherever the cells sit")
+        self.play(Indicate(similar,color=TEAL,scale_factor=1.06),run_time=.7)
+        self.finish()
+
+
+class S04Meaning(SpokenScene):
+    def construct(self):
+        c=sheet(-3.5,.4)
+        links=VGroup(*[bez(c[1][i].get_center()[:2],c[1][j].get_center()[:2],.3)
+                        .set_color(TEAL).set_stroke(width=2) for i,j in [(0,5),(5,3),(3,6),(6,0)]])
+        self.at("Puriform neurons")
+        self.play(FadeIn(c),Create(links),run_time=.8)
+        store=T("experience?",26,GREY).move_to([-3.5,-2.1,0])
+        self.at("thought to store experience")
+        self.play(FadeIn(store),run_time=.6)
+        light=T("light",24,GOLD).move_to([-3.5,3.2,0])
+        beam=Polygon([-4.1,2.8,0],[-5.6,-.7,0],[-1.4,-.7,0],[-2.9,2.8,0],
+                     stroke_width=0,fill_color=GOLD,fill_opacity=.12)
+        self.at("with light")
+        self.play(FadeOut(store),FadeIn(light),FadeIn(beam),*activity(c[1]),run_time=.7)
+        # Alternative training cases: the whole result is replaced together.
+        drop=VMobject(color=GREEN,fill_color=GREEN,fill_opacity=.5)
+        drop.start_new_path(np.array([0,.4,0]))
+        drop.add_cubic_bezier_curve_to(np.array([-.12,.15,0]),np.array([-.45,-.15,0]),np.array([0,-.3,0]))
+        drop.add_cubic_bezier_curve_to(np.array([.45,-.15,0]),np.array([.12,.15,0]),np.array([0,.4,0]))
+        drop.close_path()
+        drop.move_to([2.0,1.1,0])
+        reward=VGroup(drop,T("reward",26,GREEN).move_to([3.4,1.1,0]))
+        toward=Arrow([5.6,-.1,0],[1.8,-.1,0],buff=0,color=GREEN)
+        approach=VGroup(toward,T("approach",26,GREEN).move_to([3.6,-.75,0]))
+        self.at("Paired with a reward")
+        self.play(FadeIn(reward),run_time=.6)
+        self.at("learned one")
+        self.play(FadeIn(approach),run_time=.6)
+        shock=VGroup(VMobject(color=ORANGE,stroke_width=5).set_points_as_corners(
+                     [[1.95,1.6,0],[1.65,1.1,0],[2.05,1.1,0],[1.8,.6,0]]),
+                     T("shock",26,ORANGE).move_to([3.4,1.1,0]))
+        away=VGroup(Arrow([1.8,-.1,0],[5.6,-.1,0],buff=0,color=ORANGE),
+                    T("avoid",26,ORANGE).move_to([3.6,-.75,0]))
+        self.at("Paired with a shock")
+        self.play(FadeOut(reward),FadeOut(approach),FadeIn(shock),run_time=.6)
+        self.at("learned the opposite")
+        self.play(FadeIn(away),run_time=.6)
+        meaning=chip("learned meaning",GREEN,26).move_to([3.5,-2,0])
+        self.at("gain learned meaning")
+        self.play(FadeOut(shock),FadeOut(away),FadeIn(meaning),run_time=.7)
+        # Simple profile of a nose; the question mark withholds a percept claim.
+        nose=VMobject(color=GREY,stroke_width=4).set_points_as_corners(
+             [[1.5,-2.65,0],[1.7,-3.05,0],[2.1,-3.2,0],[1.7,-3.35,0]])
+        unsure=T("smell?",26,GREY).move_to([3.6,-3,0])
+        self.at("not the same")
+        self.play(FadeIn(nose),FadeIn(unsure),run_time=.6)
+        self.finish()
+
+
+def inhibition(a,b):
+    a,b=np.array(a),np.array(b)
+    d=(b-a)/np.linalg.norm(b-a)
+    perp=np.array([-d[1],d[0],0])*.18
+    return VGroup(Line(a,b,color=PURPLE,stroke_width=4),Line(b-perp,b+perp,color=PURPLE,stroke_width=5))
+
+
+class S05Bulb(SpokenScene):
+    def construct(self):
+        title=T("The bulb shapes cortical input",32).move_to([0,3.1,0])
+        self.at("The bulb shapes")
+        self.play(FadeIn(title),run_time=.6)
+        g=VGroup(Circle(radius=.4,color=PURPLE,fill_color=PURPLE,fill_opacity=.25).move_to([0,0,0]),
+                 T("granule / interneuron",22,PURPLE).move_to([0,-.9,0]))
+        self.at("Granule cells")
+        self.play(FadeIn(g),run_time=.6)
+        p=build("side")
+        # Reuse the original sister-cell circles and dendrite curves, mirrored at right.
+        cell1=VGroup(p["s1"].copy().move_to([-4,1,0]),T("mitral / tufted",22,C1).move_to([-4,1.9,0]))
+        cell2=VGroup(p["s2"].copy().move_to([4,1,0]),T("neighbour",22,C2).move_to([4,1.9,0]))
+        dendrites=VGroup(bez((-3.6,1),(-.5,.3),.2).set_color(C1),
+                         bez((3.6,1),(.5,.3),.2).set_color(C2))
+        self.at("mitral and tufted cells")
+        self.play(FadeIn(cell1),FadeIn(cell2),Create(dendrites),run_time=.8)
+        ex=Arrow([-2.8,.7,0],[-.5,.25,0],color=C1,buff=0,stroke_width=4)
+        back=inhibition([-.5,-.15,0],[-2.8,.3,0])
+        glut=T("glutamate →",22,C1).move_to([-2.1,1.35,0])
+        gaba=T("GABA",22,PURPLE).move_to([-2.1,-.6,0])
+        reciprocal=VGroup(ex,back,glut,gaba)
         self.at("reciprocal synapses")
-        arrows = VGroup()
-        for sgn, col in [(1, C1), (-1, C2)]:
-            def Y(y):
-                return y if sgn == 1 else 0.2 - y
-            stub = Line([-2.5, Y(0.95), 0], [-2.05, Y(1.0), 0], color=col, stroke_width=6)
-            ex = Arrow([-2.05, Y(0.95), 0], [0.2, Y(0.42), 0], buff=0.0, color=col, stroke_width=4, tip_length=0.18)
-            tail, tip = np.array([0.28, Y(0.52), 0]), np.array([-2.05, Y(1.1), 0])
-            ih = Line(tail, tip, color=PURPLE, stroke_width=4)
-            d = (tip - tail) / np.linalg.norm(tip - tail)
-            perp = np.array([-d[1], d[0], 0])
-            cap = Line(tip + perp * 0.2, tip - perp * 0.2, color=PURPLE, stroke_width=6)
-            arrows.add(stub, ex, ih, cap)
-        leg = VGroup(T("arrow: excites   bar: inhibits", 22, GREY).move_to([1.6, -2.4, 0]), T("dendrodendritic synapses", 22, GREY).move_to([0.9, -1.6, 0]))
-        self.play(Create(arrows), FadeIn(leg), run_time=1.3)
-        self.at("which synapses made them")
-        q = chip("?", GREY, size=34, pad=0.2).move_to([-1.0, 0.1, 0])
-        self.play(FadeIn(q, scale=0.5), run_time=0.5)
-        self.at("granule cell inhibition")
-        self.play(Indicate(VGroup(g, gl), color=PURPLE, scale_factor=1.15), run_time=0.9)
-        self.at("Awaken")
-        an = chip("awake mouse", GREY, size=24).move_to([3.9, 2.3, 0])
-        self.play(FadeIn(an, shift=DOWN * 0.1), run_time=0.5)
-        self.at("diverse responses")
-        aw = chip("awake M72 sisters: diverse", GREY, size=24)
-        aw[0].set_stroke(opacity=0.8)
-        aw.move_to([3.9, 0.9, 0])
-        self.play(FadeIn(aw, shift=DOWN * 0.1), run_time=0.6)
+        self.play(Create(ex),FadeIn(glut),run_time=.5)
+        self.play(Create(back),FadeIn(gaba),run_time=.5)
+        lateral=inhibition([.5,-.15,0],[2.8,.3,0])
+        il=T("bar ends: inhibition",22,PURPLE).move_to([3,-.6,0])
+        self.at("recurrent and lateral inhibition")
+        self.play(Create(lateral),FadeIn(il),run_time=.7)
+        circuit=VGroup(title,g,cell1,cell2,dendrites,reciprocal,lateral,il)
+        caveat=chip("Timing does not identify the synapse",GREY,26).move_to([0,2.8,0])
+        self.at("Timing matters too")
+        self.play(FadeOut(circuit),FadeIn(caveat),run_time=.7)
+        self.at("do not show which synapses")
+        self.play(Indicate(caveat,color=GREY,scale_factor=1.02),run_time=.6)
+        p=build("side")
+        left=parts(p,["glom","glom_t","s1","s2","d1","d2","n1","n2"])
+        P=timing_panel()
+        graph=VGroup(*[P[k] for k in ("breath","r1","r2","l1","l2","ax","axl")])
+        tg=tag("anaesthetized mice").move_to([-3.8,-3.1,0])
+        self.at("Sister cells that share")
+        self.play(FadeOut(caveat),FadeIn(left),FadeIn(tg),FadeIn(graph),run_time=.7)
+        rate=chip("mean rates: correlated",GREEN,24).move_to([3.4,2.8,0])
+        sketch=T("schematic spikes",22,GREY).move_to([3.4,2.05,0])
+        self.at("correlated average rates")
+        self.play(FadeIn(rate),FadeIn(sketch),run_time=.6)
+        t1,t2=spike_rows(P,.23,.69)
+        self.at("fired at different moments")
+        self.play(Create(t1),Create(t2),run_time=.8)
+        self.at("A shared address")
+        msg=T("Shared input • different timing",26,ORANGE).move_to([2.8,-3.15,0])
+        self.play(FadeIn(msg),run_time=.7)
         self.finish()
 
 
 class S06Rule(SpokenScene):
     def construct(self):
-        p = build("side")
-        self.add(*[p[k] for k in STRUCT + ["n1", "n2"]])
-        tg = tag()
-        self.add(tg)
-        P = timing_panel()
-        self.at("shared address")
-        addr = chip("shared address", TEAL, size=22, pad=0.18).move_to([-4.9, 1.95, 0])
-        self.play(FadeIn(addr, shift=DOWN * 0.1), Indicate(p["glom"], color=TEAL, scale_factor=1.12), run_time=0.8)
-        self.at("not a shared message")
-        t1, t2 = spike_rows(P, 0.5, 0.12)
-        parts_ = [P["l1"], P["l2"], P["r1"], P["r2"], P["breath"], P["ax"], P["axl"]]
-        self.play(*[FadeIn(x) for x in parts_], run_time=0.7)
-        self.play(LaggedStart(*[Create(t) for t in list(t1) + list(t2)], lag_ratio=0.1), run_time=0.8)
-        msg = chip("same count, different timing", ORANGE, size=24).move_to([3.4, 2.7, 0])
-        self.play(FadeIn(msg, shift=DOWN * 0.1), run_time=0.5)
-        self.at("rate alone")
-        cp = chip("rate alone: incomplete", GREEN, size=24).move_to([3.4, -3.0, 0])
-        self.play(FadeIn(cp, scale=0.8), run_time=0.6)
-        self.at("shows that sisters are not copies")
-        self.play(Indicate(cp, color=GREEN), run_time=0.5)
-        self.at("vary together")
-        self.play(Indicate(cp, color=GREEN, scale_factor=1.05), run_time=0.7)
-        self.at("disagree on when")
-        self.play(Indicate(VGroup(t1, t2, P["breath"]), color=ORANGE, scale_factor=1.04), run_time=1.0)
+        b=bulb_row()
+        for i in (0,1,3):
+            b[0][i].set_fill(TEAL,.8)
+        c=sheet()
+        for i in ACTIVE:
+            c[1][i].set_color(TEAL).set_opacity(1)
+        a=bridge()
+        self.at("So the bulb")
+        self.play(FadeIn(b),run_time=.6)
+        self.at("cortex turns it")
+        self.play(GrowArrow(a),FadeIn(c),run_time=.7)
+        meaning=chip("likeness + learned meaning",GREEN,24).move_to([3.5,-2.35,0])
+        self.at("keeps chemical likeness")
+        self.play(FadeIn(meaning),run_time=.7)
+        self.at("drifts over weeks")
+        # Cells stay in place; response membership changes across weeks.
+        self.play(*activity(c[1],(1,3,5,7)),run_time=.7)
+        self.play(*activity(c[1],(0,2,5,7)),run_time=.7)
+        readout=chip("stable readout?",GREY,28).move_to([0,-3.2,0])
+        self.at("What stays stable")
+        self.play(FadeIn(readout),run_time=.7)
+        self.at("an open question")
+        self.play(Indicate(readout,color=GREY,scale_factor=1.04),run_time=.7)
         self.finish()
 
 

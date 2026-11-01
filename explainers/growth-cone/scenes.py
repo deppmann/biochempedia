@@ -5,9 +5,9 @@ Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in aud
 COLOR MAP (one color per concept, whole video)
   BLUE   = the actin network (the engine); the growth cone's fill
   TEAL   = newly added actin at the leading edge ("addition")
-  RED    = retrograde flow, myosin pull, removed actin (backward / loss)
+  RED    = retrograde flow, myosin pull, removed actin (backward / loss); repellent cloud
   YELLOW = adhesion molecules, the clutch
-  GREEN  = advance of the edge
+  GREEN  = advance of the edge; attractive cue cloud
   PURPLE = microtubules
   ORANGE = the guidance cue
   GREY   = substrate, outlines, markers, de-emphasized
@@ -158,218 +158,6 @@ def label(text, color, size=26, **kw):
     return T(text, size, color, **kw)
 
 
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "Harrison's Living Axon and the Growth Cone"
-    TITLE = "Adhesion Turns Flow Into Advance"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Fan(SpokenScene):
-    def construct(self):
-        cone = Cone(edge=1.6, lock=True, dash_op=0.0, flow_op=0.0)
-        # top-down fan
-        shaft = RoundedRectangle(corner_radius=0.3, width=5.2, height=0.9, stroke_color=OUTLINE, stroke_width=4,
-                                 fill_color=BLUE, fill_opacity=0.10).move_to(P(-3.6, 0))
-        ap = P(-1.2, 0)
-        arc = [ap + 3.0 * np.array([math.cos(a), math.sin(a), 0]) for a in np.linspace(-0.95, 0.95, 40)]
-        fan = Polygon(ap, *arc, stroke_color=OUTLINE, stroke_width=4, fill_color=BLUE, fill_opacity=0.10)
-        fil = VGroup(*[Line(ap + 3.0 * np.array([math.cos(a), math.sin(a), 0]),
-                            ap + 3.5 * np.array([math.cos(a), math.sin(a), 0]), color=BLUE, stroke_width=4)
-                       for a in np.linspace(-0.85, 0.85, 9)])
-        top = VGroup(shaft, fan, fil)
-        tag = label("growth cone: a flat fan", BLUE).move_to(P(1.0, -3.25))
-        axon = label("axon", GREY).move_to(P(-3.6, -0.85))
-        self.at("The tip of a growing")
-        self.play(FadeIn(top), FadeIn(axon), run_time=0.9)
-        self.play(FadeIn(tag), run_time=0.5)
-        self.at("Slice through it")
-        cut = DashedLine(P(-1.2, 0), P(2.7, 0), color=YELLOW, stroke_width=4)
-        self.play(Create(cut), run_time=0.8)
-        self.at("look from the side")
-        cone.attach(self)
-        sub = label("substrate", GREY).move_to(P(-5.0, -2.55))
-        self.play(FadeOut(VGroup(top, axon, tag, cut)), FadeIn(VGroup(cone.fill, cone.outline, cone.substrate)),
-                  FadeIn(sub), run_time=0.8)
-        self.at("New actin joins")
-        new = label("new actin joins at the front", TEAL).move_to(P(3.7, 3.0))
-        pt = arrow(P(2.8, 2.65), P(1.4, 0.5), TEAL, w=6, tip=0.22)
-        self.play(cone.dash_op.animate.set_value(1.0), cone.A.animate.set_value(A_RATE), FadeIn(new), GrowArrow(pt),
-                  run_time=1.2)
-        self.at("Motor proteins")
-        my = label("myosin II pulls the network back", RED).move_to(P(-2.4, 3.0))
-        self.play(cone.flow_op.animate.set_value(1.0), FadeIn(my), run_time=1.2)
-        self.at("So how does")
-        mk = marker(1.6)
-        q = T("?", 120, GREEN, weight=BOLD).move_to(P(3.1, 0.4))
-        self.play(Create(mk), FadeIn(q, scale=0.6), new.animate.set_opacity(0.45), my.animate.set_opacity(0.45),
-                  pt.animate.set_opacity(0.45), run_time=0.9)
-        self.play(Indicate(q, color=GREEN, scale_factor=1.15), run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Flow(SpokenScene):
-    def construct(self):
-        cone = Cone(edge=1.6)
-        cone.attach(self)
-        sub = label("substrate", GREY).move_to(P(-5.0, -2.55))
-        self.add(sub)
-        self.at("That backward movement")
-        rf = label("retrograde flow", RED, 30).move_to(P(-3.4, 2.65))
-        self.play(FadeIn(rf, shift=LEFT * 0.2), run_time=0.8)
-        self.at("The network treadmills")
-        self.wait(1.0)
-        self.at("is added")
-        add = label("added", TEAL, 30).move_to(P(3.7, 2.7))
-        pt = arrow(P(3.2, 2.4), P(1.4, 0.5), TEAL, w=6, tip=0.22)
-        self.play(FadeIn(add), GrowArrow(pt), run_time=0.8)
-        self.at("carried back")
-        cb = label("carried back", RED, 28).move_to(P(-0.4, 2.55))
-        cbar = arrow(P(-0.4, 2.2), P(-0.4, 1.5), RED, w=6, tip=0.22)
-        self.play(FadeIn(cb), GrowArrow(cbar), run_time=0.6)
-        self.at("at the same rate")
-        same = VGroup(label("added", TEAL, 34), label("=", TEXT, 34), label("carried back", RED, 34)).arrange(RIGHT, buff=0.3)
-        same.move_to(P(0.6, 3.25))
-        self.play(FadeIn(same, shift=DOWN * 0.2), run_time=0.7)
-        self.at("so the edge goes nowhere")
-        mk = marker(1.6)
-        stay = label("the edge stays here", GREY, 26).move_to(P(3.4, 0.3))
-        self.play(Create(mk), FadeIn(stay), run_time=0.8)
-        self.play(FadeOut(VGroup(add, pt, cb, cbar, rf)), run_time=0.5)
-        self.at("running engine")
-        self.play(FadeOut(same), run_time=0.4)
-        eng = chip("engine: the actin network", BLUE, size=26).move_to(P(-2.8, 3.0))
-        self.play(FadeIn(eng, shift=DOWN * 0.2), run_time=0.7)
-        self.at("as the road")
-        road = chip("road: the substrate", GREY, size=26).move_to(P(0.5, -2.75))
-        self.play(FadeIn(road, shift=UP * 0.2), FadeOut(sub), run_time=0.7)
-        self.at("The engine runs")
-        self.play(Indicate(eng, color=BLUE, scale_factor=1.1), run_time=0.9)
-        self.at("the car stays put")
-        self.play(Indicate(stay, color=TEXT, scale_factor=1.12), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Clutch(SpokenScene):
-    def construct(self):
-        cone = Cone(edge=1.6)
-        cone.attach(self)
-        mk = marker(1.6)
-        sub = label("substrate", GREY).move_to(P(-5.0, -2.55))
-        self.add(mk, sub)
-        self.at("Now add a clutch")
-        cl = chip("a clutch", YELLOW, size=30).move_to(P(-3.4, 2.9))
-        self.play(FadeIn(cl, shift=DOWN * 0.2), run_time=0.7)
-        self.at("adhesion molecules")
-        am = label("adhesion molecules", YELLOW, 26).move_to(P(-1.0, -2.55))
-        self.play(cone.links.animate.set_value(1.0), FadeIn(am), run_time=1.6)
-        self.at("the clutch engages")
-        self.play(cone.clutch.animate.set_value(1.0), cone.adv_op.animate.set_value(1.0), run_time=1.3,
-                  rate_func=smooth)
-        self.at("Retrograde flow slows")
-        fs = label("flow slows", RED, 30).move_to(P(0.0, 2.9))
-        self.play(FadeIn(fs), run_time=0.6)
-        self.at("pushes the edge forward")
-        fw = label("the edge moves forward", GREEN, 30).move_to(P(3.7, 2.9))
-        self.play(FadeIn(fw), FadeOut(fs), run_time=0.6)
-        self.at("proposed this")
-        who = label("Mitchison and Kirschner, 1988", GREY, 26).move_to(P(0, 3.3))
-        self.play(FadeIn(who), FadeOut(cl), FadeOut(fw), run_time=0.6)
-        self.at("It is called")
-        hyp = T("the clutch hypothesis", 44, YELLOW, font=TITLE_FONT).move_to(P(0, 2.7))
-        self.play(FadeIn(hyp, shift=UP * 0.2), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Rule(SpokenScene):
-    def construct(self):
-        cone = Cone(edge=2.3, clutch=0.0, links=0.0, adv_op=1.0, h=2.0)
-        cone.attach(self)
-        mk = marker(2.3, h=2.0)
-        self.add(mk)
-        # equation, built piece by piece
-        sz = 40
-        w_adv = label("advance", GREEN, sz)
-        eq1 = label("=", TEXT, sz)
-        w_add = label("addition", TEAL, sz)
-        minus = label("−", TEXT, sz)
-        w_flow = label("flow", RED, sz)
-        eq = VGroup(w_adv, eq1, w_add, minus, w_flow).arrange(RIGHT, buff=0.3).move_to(P(0, 3.05))
-        # bars (rates)
-        x0 = -2.2
-        rows = [("addition", TEAL, 2.25), ("flow", RED, 1.7), ("advance", GREEN, 1.15)]
-        names = VGroup(*[label(n, c, 26).move_to(P(x0 - 0.3 - 0.0, y)).align_to(P(x0 - 0.25, y), RIGHT)
-                         for n, c, y in rows])
-        bars = VGroup()
-
-        def mkbar(getter, color, y):
-            b = Rectangle(width=0.1, height=0.3, stroke_width=0, fill_color=color, fill_opacity=0.9)
-
-            def up(m):
-                w = getter() * 9
-                m.become(Rectangle(width=max(w, 0.04), height=0.3, stroke_width=0, fill_color=color,
-                                   fill_opacity=0.9 if w > 0.03 else 0.0).move_to(P(x0 + max(w, 0.04) / 2, y)))
-            b.add_updater(up)
-            return b
-        b_add = mkbar(lambda: cone.A.get_value(), TEAL, 2.25)
-        b_flow = mkbar(lambda: cone.Fv, RED, 1.7)
-        b_adv = mkbar(lambda: cone.A.get_value() - cone.Fv, GREEN, 1.15)
-        state = chip("clutch off", GREY, size=28).move_to(P(4.6, 1.7))
-        self.at("Put it as a rule")
-        self.wait(0.2)
-        self.at("The rate of advance")
-        self.play(FadeIn(w_adv), run_time=0.5)
-        self.at("equals")
-        self.play(FadeIn(eq1), run_time=0.3)
-        self.at("actin addition")
-        self.play(FadeIn(w_add, shift=LEFT * 0.2), run_time=0.5)
-        self.at("minus")
-        self.play(FadeIn(minus), run_time=0.3)
-        self.at("retrograde flow")
-        self.play(FadeIn(w_flow, shift=LEFT * 0.2), run_time=0.5)
-        self.at("With the clutch off")
-        self.add(b_add, b_flow, b_adv)
-        self.play(FadeIn(names), FadeIn(state), run_time=0.8)
-        self.at("flow matches addition")
-        self.play(Indicate(VGroup(b_add, b_flow), color=TEXT, scale_factor=1.05), run_time=0.9)
-        self.at("advance is zero")
-        self.play(Indicate(w_adv, color=GREEN, scale_factor=1.15), run_time=0.8)
-        self.at("With the clutch on")
-        on = chip("clutch on", YELLOW, size=28).move_to(state)
-        self.play(Transform(state, on), cone.links.animate.set_value(1.0),
-                  cone.clutch.animate.set_value(1.0), run_time=4.0, rate_func=smooth)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Tubules(SpokenScene):
-    def construct(self):
-        cone = Cone(edge=2.7, clutch=1.0, links=1.0, adv_op=1.0)
-        cone.attach(self)
-        self.at("Actin makes the advance")
-        a = label("actin makes the advance", BLUE, 30).move_to(P(1.0, 2.65))
-        self.play(FadeIn(a, shift=UP * 0.15), run_time=0.7)
-        self.at("Microtubules make it permanent")
-        m = label("microtubules make it permanent", PURPLE, 32).move_to(P(-0.6, 3.25))
-        self.play(FadeIn(m, shift=UP * 0.15), a.animate.set_opacity(0.4), run_time=0.7)
-        self.at("hollow tubes")
-        self.play(cone.mt_op.animate.set_value(1.0), run_time=1.2)
-        mt = label("microtubules", PURPLE, 26).move_to(P(-2.0, 0.4))
-        self.play(FadeIn(mt), run_time=0.4)
-        self.at("extend into the new territory")
-        self.play(cone.tip.animate.set_value(-1.8), FadeOut(mt), run_time=2.6, rate_func=smooth)
-        self.at("narrows")
-        self.play(cone.sh.animate.set_value(-2.6), cone.tip.animate.set_value(-0.8), run_time=1.5, rate_func=smooth)
-        self.at("becomes axon shaft")
-        shaft = label("axon shaft", GREY, 28).move_to(P(-4.2, 0.2))
-        self.play(FadeIn(shaft), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class Turner:
     """Top view of a growth cone that turns when its two sides advance at different rates."""
     R = 1.5
@@ -425,59 +213,293 @@ class Turner:
         return VGroup(self.trail, self.fan, self.fil, self.aL, self.aR)
 
 
-class S06Turn(SpokenScene):
-    def construct(self):
-        t1 = Turner(P(-4.6, -1.5), 0.0, 0.22, 0.22)
-        t1.attach(self)
-        self.at("Now see how")
-        self.wait(0.1)
-        self.at("a difference in that balance")
-        diff = label("one side advances more", GREEN, 28).move_to(P(-1.0, 3.0))
-        cue = VGroup(*[Circle(radius=r, stroke_color=ORANGE, stroke_width=3, stroke_opacity=o, fill_opacity=0)
-                       for r, o in ((0.4, 0.9), (0.8, 0.55), (1.2, 0.3))])
-        cue.add(Dot(color=ORANGE, radius=0.18))
-        cue.move_to(P(4.8, 2.4))
-        cl = label("nerve growth factor", ORANGE, 24).move_to(P(4.7, 0.5))
-        self.play(t1.vL.animate.set_value(0.30), t1.vR.animate.set_value(0.14), FadeIn(diff), FadeIn(cue, scale=0.6),
-                  FadeIn(cl), run_time=1.5)
-        self.at("A cue on one side")
-        self.play(FadeOut(diff), run_time=0.6)
-        self.at("sensory neurons")
-        src = label("chick sensory neuron", OUTLINE, 26).move_to(P(-3.4, -2.4))
-        self.play(FadeIn(src), run_time=0.6)
-        # case 2
-        self.at("Drugs released")
-        self.wait(0.1)
-        self.at("Remove actin")
-        t1.running = False
-        self.play(FadeOut(VGroup(t1.group, cue, cl, src)), run_time=0.6)
-        self.remove(t1.driver)
-        t2 = Turner(P(-4.6, 0.2), 0.0, 0.3, 0.3)
-        t2.attach(self)
-        self.at("on one side", nth=1)
-        xmark = VGroup(Line(P(-.25, -.25), P(.25, .25), color=RED, stroke_width=9),
-                       Line(P(-.25, .25), P(.25, -.25), color=RED, stroke_width=9))
-        xmark.add_updater(lambda m: m.move_to(t2.side_point(0.62, 0.45)))
-        lab = label("actin addition blocked", RED, 26)
-        lab.add_updater(lambda m: m.move_to(t2.side_point(0.62, 0.45) + UP * 0.5))
-        self.add(xmark, lab)
-        self.play(t2.vL.animate.set_value(0.15), t2.vR.animate.set_value(0.45), FadeIn(xmark), FadeIn(lab), run_time=1.5)
-        self.at("away from that side")
-        self.wait(0.4)
-        self.at("Keep the rule")
-        xmark.clear_updaters()
-        lab.clear_updaters()
-        self.play(FadeOut(VGroup(xmark, lab)), run_time=0.5)
-        r1 = VGroup(label("advance", GREEN, 36), label("=", TEXT, 36), label("addition", TEAL, 36),
-                    label("−", TEXT, 36), label("flow", RED, 36)).arrange(RIGHT, buff=0.28)
-        r1.move_to(P(0.6, 3.1))
-        r2 = VGroup(label("turning", GREEN, 36), label("=", TEXT, 36), label("difference between sides", GREEN, 36)
-                    ).arrange(RIGHT, buff=0.28).move_to(P(0.6, 2.5))
-        self.play(FadeIn(r1, shift=DOWN * 0.15), run_time=0.8)
-        self.at("Turning is", nth=1)
-        self.play(FadeIn(r2, shift=DOWN * 0.15), run_time=0.8)
-        self.finish()
+class S00Title(TitleCard):
+    LESSON = "Harrison's Living Axon and the Growth Cone"
+    TITLE = "Adhesion Turns Flow Into Advance"
 
 
 class S07End(EndCard):
     LINE = "Advance is addition minus flow. Turning is the difference between sides."
+
+
+# Top-down fan reuses Turner's outline and filopodia. Transforming a whole fan
+# keeps the shaft continuous while a deliberately bounded path shows the turn.
+def fan_at(x=0, y=0, theta=0, scale=1, actin=True, tubules=False):
+    t = Turner(P(0, 0), 0, 0, 0)
+    t.running = False
+    fan = VGroup(t.fan.copy(), t.fil.copy())
+    if not actin:
+        fan[1].set_opacity(0.12)
+    if tubules:
+        fan.add(VGroup(*[Line(P(-1.5, j * .16), P(.65, j * .32),
+                             color=PURPLE, stroke_width=5) for j in range(-1, 2)]))
+    return fan.scale(scale).rotate(theta).shift(P(x, y))
+
+
+def cloud(x, y, color):
+    return VGroup(*[Circle(radius=r, stroke_width=0, fill_color=color, fill_opacity=o)
+                    for r, o in ((1.05, .07), (.75, .12), (.4, .22))]).move_to(P(x, y))
+
+
+def pipette(x, y, color=ORANGE):
+    return Polygon(P(x, y), P(x + .7, y + .85), P(x + 1.15, y + .85),
+                   stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=.12)
+
+
+def route(points):
+    return VMobject(stroke_color=OUTLINE, stroke_width=17, stroke_opacity=.4).set_points_smoothly(
+        [P(*p) for p in points])
+
+
+class S01Steer(SpokenScene):
+    def construct(self):
+        cone = fan_at(-3.5, -.3, scale=.65)
+        shaft = route([(-6, -.3), (-4.5, -.3)])
+        cells = VGroup(*[Circle(radius=.45, color=GREY, fill_opacity=.08).move_to(P(x, y))
+                        for x, y in [(-1.8, 2.3), (3, -1.4), (3, 2.4), (5, .8)]])
+        target = cells[-1]
+        self.at('A growing axon')
+        self.play(FadeIn(cells), Create(shaft), FadeIn(cone), run_time=.8)
+        ax = label('axon', GREY).move_to(P(-5, -1.1))
+        self.at('at its tip')
+        tag = label('growth cone', BLUE, 30).move_to(P(-2.5, -2.1))
+        self.play(FadeIn(ax), FadeIn(tag), run_time=.5)
+        self.at('feels its way')
+        self.play(Transform(cone, fan_at(-2.7, -.3, scale=.65)),
+                  Transform(shaft, route([(-6, -.3), (-3.7, -.3)])), run_time=1)
+        attract = cloud(.7, 1.2, GREEN)
+        repel = cloud(.7, -1.0, RED)
+        cues = VGroup(label('attract', GREEN).move_to(P(.7, 2.65)),
+                      label('repel', RED).move_to(P(.7, -2.65)))
+        self.at('guidance cues')
+        self.play(FadeOut(ax), FadeOut(tag), FadeIn(attract), FadeIn(repel), FadeIn(cues), run_time=.6)
+        self.at('one side more strongly')
+        self.play(Transform(cone, fan_at(-1.4, .25, .4, .65)),
+                  Transform(shaft, route([(-6, -.3), (-3, -.3), (-2.3, -.15)])), run_time=1.1)
+        self.at('the growth cone turns')
+        self.play(Transform(cone, fan_at(.1, .85, .3, .65)),
+                  Transform(shaft, route([(-6, -.3), (-3, -.3), (-1.8, .3), (-.85, .55)])), run_time=1.2)
+        self.at('to its target')
+        self.play(FadeOut(attract), FadeOut(repel), FadeOut(cues),
+                  Transform(cone, fan_at(3.4, .8, 0, .65)),
+                  Transform(shaft, route([(-6, -.3), (-3, -.3), (-1.5, .7), (1, 1), (2.4, .8)])),
+                  target.animate.set_stroke(GREEN, 5), run_time=1.3)
+        self.at('So how does')
+        q = label('How does the tip move and turn?', TEXT, 34).move_to(P(0, -2.6))
+        self.play(FadeIn(q), run_time=.6)
+        self.finish()
+
+
+class S02Assay(SpokenScene):
+    def construct(self):
+        cone = fan_at(-1, -.5)
+        shaft = route([(-6, -.5), (-2.5, -.5)])
+        title = label('Gundersen and Barrett', GREY, 30).move_to(P(0, 3.1))
+        self.at('First the evidence')
+        self.play(FadeIn(cone), Create(shaft), FadeIn(title), run_time=.7)
+        pip = pipette(2, 1.3)
+        cue = cloud(2, 1.3, ORANGE)
+        name = label('nerve growth factor', ORANGE).move_to(P(3.2, -.2))
+        source = label('chick sensory neuron', GREY).move_to(P(-3, -2.8))
+        self.at('a pipette releasing')
+        self.play(FadeIn(pip), FadeIn(cue), FadeIn(name), FadeIn(source), run_time=.7)
+        self.at('met more of it')
+        gradient = VGroup(*[Dot(P(.25, y), radius=.09, color=ORANGE).set_opacity(o)
+                            for y, o in [(-1.3, .2), (-.6, .4), (.1, .7), (.8, 1)]])
+        self.play(FadeIn(gradient), run_time=.6)
+        self.at('turned toward it')
+        self.play(Transform(cone, fan_at(.2, .1, .5)),
+                  Transform(shaft, route([(-6, -.5), (-2.5, -.5), (-1.1, -.6)])), run_time=1.2)
+        self.at('then cut growth cones')
+        cut = DashedLine(P(-3, -1.4), P(-3, .6), color=RED, stroke_width=5)
+        newtitle = label('Campbell and Holt', GREY, 30).move_to(title)
+        newsource = label('frog retinal neuron', GREY).move_to(source)
+        self.play(FadeOut(gradient), FadeOut(name), FadeOut(pip), FadeOut(cue),
+                  Transform(cone, fan_at(-1, -.5)),
+                  Transform(shaft, route([(-6, -.5), (-2.5, -.5)])),
+                  Transform(title, newtitle), Transform(source, newsource), Create(cut), run_time=.7)
+        self.at('away from their cell bodies')
+        short = route([(-2.9, -.5), (-2.5, -.5)])
+        self.play(Transform(shaft, short), run_time=.6)
+        self.at('The isolated tips')
+        self.play(FadeOut(cut), FadeIn(pip), FadeIn(cue), run_time=.6)
+        self.at('to guidance cues')
+        self.play(Transform(cone, fan_at(.2, .1, .5)),
+                  Transform(shaft, route([(-2.9, -.5), (-2, -.5), (-1.1, -.6)])), run_time=1.2)
+        self.at('The decision is made')
+        result = label('the decision is at the tip', BLUE, 32).move_to(P(0, -2.8))
+        self.play(FadeOut(source), FadeIn(result), run_time=.6)
+        self.finish()
+
+
+class S03Flow(SpokenScene):
+    def construct(self):
+        top = fan_at(0, 0, scale=1.35, tubules=True)
+        top[2].set_opacity(0)
+        self.at('Now open the fan')
+        self.play(FadeIn(top), run_time=.6)
+        self.at('Microtubules fill')
+        mt = label('microtubules', PURPLE, 30).move_to(P(-3.4, -2.8))
+        self.play(top[2].animate.set_opacity(1), FadeIn(mt), run_time=.6)
+        self.at('Actin fills the edge')
+        act = label('actin', BLUE, 30).move_to(P(2.6, -2.8))
+        self.play(FadeIn(act), Indicate(top[1], color=TEAL), run_time=.8)
+        self.at('New actin joins')
+        cut = DashedLine(P(-2, 0), P(2.7, 0), color=GREY)
+        self.play(Create(cut), run_time=.3)
+        self.remove(top, mt, act, cut)
+        cone = Cone(edge=1.6, dash_op=0, flow_op=0)
+        cone.attach(self)
+        new = label('addition at the front', TEAL, 30).move_to(P(2.6, 3.05))
+        self.play(cone.dash_op.animate.set_value(1), FadeIn(new), run_time=.7)
+        self.at('Motor proteins')
+        my = label('myosin II pulls back', RED, 30).move_to(P(-3.2, 3.05))
+        self.play(cone.flow_op.animate.set_value(1), FadeIn(my), run_time=.7)
+        self.at('That backward movement')
+        rf = label('retrograde flow', RED, 30).move_to(my)
+        self.play(Transform(my, rf), run_time=.6)
+        self.at('at the same rate')
+        same = VGroup(label('addition', TEAL, 32), label('=', TEXT, 32), label('flow', RED, 32))
+        same.arrange(RIGHT, buff=.3).move_to(P(0, 3.05))
+        self.play(FadeOut(new), FadeOut(my), FadeIn(same), run_time=.5)
+        self.at('the edge goes nowhere')
+        mk = marker(1.6)
+        stay = label('edge stays here', GREY, 28).move_to(P(3.9, -.3))
+        self.play(Create(mk), FadeIn(stay), run_time=.6)
+        self.at('The engine runs')
+        self.play(Indicate(cone.dashes, color=BLUE, scale_factor=1.02), run_time=.6)
+        self.at('the car stays put')
+        self.play(Indicate(stay, color=TEXT), run_time=.6)
+        self.finish()
+
+
+class S04Clutch(SpokenScene):
+    def construct(self):
+        cone = Cone(edge=1.6, h=2)
+        cone.attach(self)
+        mk = marker(1.6, h=2)
+        self.add(mk)
+        header = label('the clutch', YELLOW, 34).move_to(P(0, 3.1))
+        self.at('Now add a clutch')
+        self.play(FadeIn(header), run_time=.6)
+        adh = label('adhesion links', YELLOW, 28).move_to(P(-1, -2.65))
+        self.at('adhesion molecules link')
+        self.play(cone.links.animate.set_value(1), FadeIn(adh), run_time=1)
+        self.at('retrograde flow slows')
+        self.play(cone.clutch.animate.set_value(1), run_time=.8)
+        self.at('pushes the edge forward')
+        self.play(cone.adv_op.animate.set_value(1), run_time=.7)
+        self.at('proposed this')
+        who = label('Mitchison and Kirschner · 1988', GREY, 28).move_to(P(0, 2.15))
+        self.play(FadeIn(who), run_time=.6)
+        words = [label('advance', GREEN, 34), label('=', TEXT, 34), label('addition', TEAL, 34),
+                 label('−', TEXT, 34), label('flow', RED, 34)]
+        eq = VGroup(*words).arrange(RIGHT, buff=.28).move_to(P(0, 3.1))
+        self.at('Put it as a rule')
+        self.play(FadeOut(header), FadeOut(who), run_time=.5)
+        bars = VGroup()
+        for n, c, y, value in [('addition', TEAL, 2.25, .30), ('flow', RED, 1.65, .20),
+                               ('advance', GREEN, 1.05, .10)]:
+            name = label(n, c, 24).move_to(P(-3, y)).align_to(P(-2.1, y), RIGHT)
+            bar = Rectangle(width=value * 10, height=.25, stroke_width=0, fill_color=c, fill_opacity=.9)
+            bar.move_to(P(-1.7 + value * 5, y))
+            bars.add(VGroup(name, bar))
+        self.at('The rate of advance')
+        self.play(FadeIn(words[0]), FadeIn(bars[2]), run_time=.4)
+        self.at('equals')
+        self.play(FadeIn(words[1]), run_time=.25)
+        self.at('rate of actin addition')
+        self.play(FadeIn(words[2]), FadeIn(bars[0]), run_time=.4)
+        self.at('minus')
+        self.play(FadeIn(words[3]), run_time=.25)
+        self.at('rate of retrograde flow')
+        self.play(FadeIn(words[4]), FadeIn(bars[1]), run_time=.4)
+        self.finish()
+
+
+class S05Turn(SpokenScene):
+    def construct(self):
+        cone = fan_at(0, -.1, PI/2)
+        shaft = route([(0, -3.1), (0, -1.6)])
+        arrows = VGroup(arrow(P(-1.05, 1.7), P(-1.05, 2.4), GREEN),
+                        arrow(P(1.05, 1.7), P(1.05, 2.4), GREEN))
+        self.at('Turning is that rule')
+        self.play(FadeIn(cone), Create(shaft), FadeIn(arrows), run_time=.7)
+        cue = cloud(-3, 1.1, ORANGE)
+        cue_label = label('cue', ORANGE).move_to(P(-3, 2.5))
+        self.at('A cue on one side')
+        self.play(FadeIn(cue), FadeIn(cue_label), run_time=.5)
+        self.at('one side advances more')
+        self.play(Transform(arrows[0], arrow(P(-1.05, 1.7), P(-1.05, 3.1), GREEN)),
+                  Transform(cone, fan_at(-.65, .2, PI/2+.35)),
+                  Transform(shaft, route([(0, -3.1), (0, -1.8), (-.15, -1.3)])), run_time=1)
+        self.at('Drugs released onto')
+        pip = pipette(-3, 1.1, RED)
+        # Reset both the shape and the old result before the drug experiment.
+        self.play(FadeOut(cue), FadeOut(cue_label), FadeOut(arrows), FadeIn(pip),
+                  Transform(cone, fan_at(0, -.1, PI/2)),
+                  Transform(shaft, route([(0, -3.1), (0, -1.6)])), run_time=.6)
+        self.at('Remove actin on one side')
+        # In the upward-facing fan, indices 5..8 are the screen-left edge.
+        removed = label('actin removed', RED, 28).move_to(P(-3.5, -.6))
+        self.play(*[cone[1][i].animate.set_opacity(.03) for i in range(5, 9)], FadeIn(removed), run_time=.7)
+        self.at('turns away from that side')
+        dest = fan_at(.9, .2, PI/2-.5)
+        for i in range(5, 9):
+            dest[1][i].set_opacity(.03)
+        self.play(Transform(cone, dest),
+                  Transform(shaft, route([(0, -3.1), (0, -1.7), (.2, -1.1)])), run_time=1.1)
+        self.finish()
+
+
+class S06Tubules(SpokenScene):
+    def construct(self):
+        cone = fan_at(0, -.1, PI/2, tubules=True)
+        shaft = route([(0, -3.1), (0, -1.6)])
+        self.at('Microtubules steer too')
+        self.play(FadeIn(cone), Create(shaft), run_time=.6)
+        pip = pipette(-3, 1.1, PURPLE)
+        taxol = label('taxol', PURPLE, 28).move_to(P(-3.2, 2.6))
+        self.at('Stabilize them on one side')
+        dest = fan_at(-.6, .2, PI/2+.35, tubules=True)
+        dest[2][2].set_stroke(width=9)
+        self.play(FadeIn(pip), FadeIn(taxol), cone[2][2].animate.set_stroke(width=9), run_time=.6)
+        self.at('turns toward that side')
+        self.play(Transform(cone, dest), Transform(shaft, route([(0, -3.1), (0, -1.8), (-.1, -1.3)])), run_time=.9)
+        self.at('Break them down on one side')
+        neutral = fan_at(0, -.1, PI/2, tubules=True)
+        neutral[2][2].set_opacity(.05)
+        loss = label('microtubules lost', RED, 28).move_to(P(-3.5, 2.6))
+        self.play(FadeOut(taxol), FadeIn(loss),
+                  Transform(cone, neutral), Transform(shaft, route([(0, -3.1), (0, -1.6)])), run_time=.7)
+        self.at('it turns away')
+        away = fan_at(.8, .1, PI/2-.45, tubules=True)
+        away[2][2].set_opacity(.05)
+        self.play(Transform(cone, away),
+                  Transform(shaft, route([(0, -3.1), (0, -1.8), (.15, -1.3)])), run_time=.8)
+        self.at('As the edge moves')
+        self.play(FadeOut(pip), FadeOut(loss),
+                  Transform(cone, fan_at(0, -.1, PI/2, tubules=True)),
+                  Transform(shaft, route([(0, -3.1), (0, -1.6)])), run_time=.6)
+        self.at('microtubules extend into the new territory')
+        tubes = VGroup(*[Line(P(j*.18, -2.9), P(j*.3, 1.2), color=PURPLE, stroke_width=5)
+                         for j in range(-1, 2)])
+        self.play(Transform(cone[2], tubes), run_time=1.1)
+        self.at('the fan behind them narrows')
+        narrow = fan_at(0, 1.1, PI/2, scale=.65, tubules=True)
+        self.play(Transform(cone, narrow),
+                  Transform(shaft, route([(0, -3.1), (0, .1)])), run_time=.9)
+        self.at('becomes axon shaft')
+        shaft_label = label('axon shaft', GREY, 28).move_to(P(2, -.9))
+        consolidated = VGroup(*[Line(P(j*.13, -2.9), P(j*.13, .2), color=PURPLE, stroke_width=4)
+                               for j in range(-1, 2)])
+        self.play(FadeIn(shaft_label), Create(consolidated), run_time=.6)
+        self.at('Keep the rule')
+        self.play(FadeOut(shaft_label), run_time=.4)
+        sense = label('senses a cue', ORANGE, 32).move_to(P(-3.5, 2.9))
+        self.at('The tip senses a cue')
+        self.play(FadeIn(sense), run_time=.5)
+        self.at('turning is the difference')
+        rule = label('turns by the difference\nbetween its two sides', GREEN, 30).move_to(P(3.3, -1.8))
+        self.play(FadeIn(rule), run_time=.7)
+        self.finish()
