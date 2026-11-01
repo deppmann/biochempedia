@@ -4,19 +4,14 @@ slug: "cancer-genetics"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 4: From gene to protein, and its control"
 order: 321
-summary: >-
-  Cancer cells carry altered DNA that they pass to their daughter cells, but most of those changes
-  are acquired during life, not inherited. This lesson separates the two kinds of cancer gene,
-  works through Knudson's two-hit arithmetic for retinoblastoma, shows how loss of heterozygosity
-  supplies the second hit, and follows mutation and selection inside a growing tumor. Afterwards
-  you can read variant allele fractions from tumor and matched-normal sequencing and say which
-  changes are inherited, clonal or subclonal.
-hook: "Every cell of a child who inherits one broken RB1 allele carries it. Why do only a few of those cells become tumors?"
+summary: "Cancer arises when cells acquire DNA changes that give a lineage a growth advantage, and most of those changes arise in body cells during life; they are not inherited. This lesson separates the two kinds of cancer gene, uses retinoblastoma and Knudson's two-hit idea to show how an inherited change and an acquired one combine, shows how loss of heterozygosity supplies the second hit, and follows mutation and selection inside a growing tumor. Afterwards you can read variant allele fractions from tumor and matched-normal sequencing and say which changes are inherited, clonal or subclonal."
+hook: "Cancer is a genetic disease, yet most of the DNA changes in a tumor were never inherited. How do changes acquired in body cells during life add up to a growing tumor?"
 
 estMinutes: 24
 objectives:
+  - "Explain why cancer is a genetic disease but usually not an inherited one: acquired changes accumulate, and drivers that give a cell a selective advantage are sorted from passengers that do not."
   - "Distinguish oncogenes (gain of function, one altered allele usually enough in the cell) from tumor-suppressor genes (loss of function, usually both alleles lost), with RAS, MYC, RB1 and TP53 as examples."
-  - "Explain why an inherited tumor-suppressor allele is dominant in a pedigree but recessive in the cell, using a Poisson model of Knudson's two-hit hypothesis."
+  - "Explain why an inherited tumor-suppressor allele is dominant in a pedigree but recessive in the cell, using Knudson's two-hit hypothesis for retinoblastoma."
   - "Describe how loss of heterozygosity, by deletion, chromosome loss or mitotic recombination, often supplies the second hit."
   - "Explain how genome instability and clonal selection drive tumor evolution, and interpret variant allele fractions from tumor and matched-normal sequencing."
 
@@ -187,19 +182,14 @@ practiceQuestions:
       tumor suppressor, not an oncogene. A tumor suppressor does not usually act by gain of
       function. Loss of function in a single tumor-suppressor allele usually leaves enough brake,
       which is why the second hit is needed, although p53 shows exceptions.
-  - stem: "What did Alfred Knudson's 1971 retinoblastoma paper contribute?"
+  - stem: "A tumor genome carries many somatic mutations. What distinguishes a driver mutation from a passenger?"
     choices:
-      - "Cloning RB1 and locating it on chromosome 13"
-      - "Showing that every cancer needs exactly two mutations"
-      - "Showing tumor DNA had lost markers on chromosome 13"
-      - "Inferring two rate-limiting events from case records"
-    answer: 3
-    rationale: >-
-      Knudson analysed the ages and laterality of retinoblastoma cases and proposed that two
-      mutational events are needed, without identifying a gene. RB1 was isolated as a cDNA by
-      Friend and colleagues in 1986. The marker evidence of lost alleles on chromosome 13 came from
-      Cavenee and colleagues in 1983. The hypothesis was about retinoblastoma, and it does not say
-      that every cancer needs exactly two mutations.
+      - "A driver gives its cell a selective advantage; a passenger was simply present when a clone expanded"
+      - "A driver is inherited through the germline; a passenger arises in body cells during life"
+      - "A driver always inactivates a tumor-suppressor gene; a passenger always activates an oncogene"
+      - "A driver is found in every tumor of a given type; a passenger is found in only one"
+    answer: 0
+    rationale: "Drivers are the changes that let a clone divide more or die less, so selection acts on them. Passengers ride along in the clone without helping it. Both kinds are usually somatic, so inheritance does not separate them. Drivers include both oncogene activation and tumor-suppressor loss, so neither class belongs to only one kind of gene. The number of drivers per tumor depends on how drivers are called, and the lesson does not say a given driver appears in every tumor of a type."
   - stem: "A tumor cell becomes homozygous for the mutant RB1 allele and still has two copies of chromosome 13. Which event could do this?"
     choices:
       - "Mitotic recombination between the two homologs"
@@ -226,19 +216,14 @@ practiceQuestions:
       made each cell a tumor, the whole retina would be tumor. A dominant-negative protein would make
       the allele dominant in the cell, the opposite of the premise. The wild-type allele is lost
       only in the few cells that become tumors, not in every cell of every carrier.
-  - stem: "In a Poisson model of hereditary retinoblastoma, suppose carriers develop a mean of 1.0 tumor per eye and the eyes are independent. What fraction of carriers would have no tumor in either eye?"
+  - stem: "A patient's tumor shrinks on a targeted drug and then regrows. Sequencing of the regrowth finds a resistance-conferring change that was present in only a small fraction of the cells before treatment. Which explanation fits the clonal-evolution view of tumors?"
     choices:
-      - "About 0.37"
-      - "About 0.14"
-      - "About 0.40"
-      - "About 0.63"
-    answer: 1
-    rationale: >-
-      The chance of no tumor in one eye is e^(−1) = 0.368, and for both eyes it is 0.368 × 0.368 =
-      0.135, about 0.14. The value 0.37 is the chance for one eye only. The value 0.40 is the
-      chance of tumors in both eyes, (1 − 0.368) squared. The value 0.63 is the chance that a single
-      eye has at least one tumor.
-
+      - "The drug selected a pre-existing subclone that divides in its presence, and that subclone expanded"
+      - "The drug caused the specific resistance change in each cell it reached"
+      - "Every cell in the tumor acquired the change at the same moment after treatment began"
+      - "Resistance in a tumor must have been inherited through the germline"
+    answer: 0
+    rationale: "Mutation supplies variants and selection keeps those that divide more or die less, as in bacteria under an antibiotic. A subclone with a resistance change survives treatment and expands, so treatment can fail when a resistant subline emerges. A change present in only a small fraction of cells beforehand was not acquired by all cells at once, and nothing in the scenario says the drug produced it. Resistance arises in tumor cells during life and is usually somatic, not germline."
 mcatQuestions:
   - stem: "A tumor sample is estimated to contain 80% tumor cells and 20% normal cells. Sequencing finds a variant at a variant allele fraction of 0.10 in the tumor sample and not at all in matched blood. The region has two copies in all cells, and the variant is assumed heterozygous. What fraction of tumor cells carries the variant?"
     choices:
@@ -372,11 +357,11 @@ draft: false
 import TwoHitTimeline from '../../../components/TwoHitTimeline.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Every cell in a child who inherits one broken copy of the gene *RB1* carries that broken copy. Yet most such children develop only a few tumors, mostly in the retina of the eye, and often in both eyes.**
+**Cancer is a genetic disease: tumor cells carry altered DNA that they pass to their daughter cells. That does not make it inherited. Most changes in a tumor are *somatic*: they arise in body cells during life and are not passed to children.**
 
-If the inherited allele were enough to make a cell cancerous, the whole retina would be tumor. The way out is that the inherited mutation is the first of two steps, and the second is a rare event in only a few cells. That idea, worked out from clinic records in 1971, organizes much of what is known about how mutations make cancer.
+A tumor grows because some of those changes give a cell a selective advantage. They switch on genes that drive growth, called oncogenes, or switch off genes that restrain it, called tumor suppressors. Cells with such changes divide more or die less, their descendants expand, and more changes accumulate.
 
-Cancer is a genetic disease because tumor cells carry altered DNA that they pass to their daughter cells. That does not make it inherited. Most changes in a tumor are **somatic**: they arise in body cells during life and are not passed to children.
+Retinoblastoma shows how an inherited change and an acquired one combine. Every cell in a child who inherits one broken copy of the gene *RB1* carries that broken copy. Yet most such children develop only a few tumors, mostly in the retina of the eye, and often in both eyes. If the inherited allele were enough to make a cell cancerous, the whole retina would be tumor. The way out is that the inherited mutation is the first of two steps, and the second is a rare event in only a few cells. That idea, worked out from clinic records in 1971, organizes much of what is known about how mutations make cancer.
 
 ## Two kinds of cancer gene: accelerators and brakes
 
@@ -384,9 +369,9 @@ Think of a car that will not stop: either the accelerator is stuck or the brakes
 
 <LessonFigure src="/figures/cancer-genetics/accelerator-and-brake-genes.webp" width={1200} height={800} alt="AI-generated illustration: three panels, each with a cell holding two gene copies. With one altered oncogene copy the cell divides; with one working copy of a tumor suppressor the cell is held back; with both tumor-suppressor copies lost the cell divides. Simple pedal shapes mark a stuck accelerator and a working or cracked brake." caption="An oncogene is an accelerator stuck on, so one altered copy is usually enough. A tumor suppressor is a brake, and one working copy usually still holds, so a cell must normally lose both copies before it divides unchecked." />
 
-A **proto-oncogene** is a normal gene whose product drives growth or division. An **oncogene** is an altered, overactive form: a gain of function. Because the altered protein is active even when the other copy is normal, one mutant allele (one copy of the gene) is usually enough, so the mutation is dominant within the cell. RAS is a switch that is on while it holds GTP and off once it cuts GTP to GDP; the [oncogenes lesson](/lessons/oncogenes/) and [the RAS-to-MAPK lesson](/lessons/ras-to-mapk/) cover the signaling. In 1982 several laboratories, among them those of Mariano Barbacid, Robert Weinberg and Michael Wigler, reported in *Nature* that the transforming gene from a human bladder carcinoma line differed from normal HRAS by one base change, which put valine in place of glycine at codon 12. A purified Val12 protein hydrolyzed GTP several times more slowly than normal HRAS protein made in *E. coli* in a 1984 assay. The larger effect was found in 1987: a cell protein, later called a GTPase-activating protein (GAP), sped GTP hydrolysis by normal RAS more than 200-fold but had no effect on codon 12 mutants, so they stay GTP-bound.
+A **proto-oncogene** is a normal gene whose product drives growth or division. An **oncogene** is an altered, overactive form: a gain of function. Because the altered protein is active even when the other copy is normal, one mutant allele (one copy of the gene) is usually enough, so the mutation is dominant within the cell. RAS is a switch that is on while it holds GTP and off once it cuts GTP to GDP; the [oncogenes lesson](/lessons/oncogenes/) and [the RAS-to-MAPK lesson](/lessons/ras-to-mapk/) cover the signaling. The transforming gene from a human bladder carcinoma line differed from normal HRAS by one base change, which put valine in place of glycine at codon 12, and the purified Val12 protein hydrolyzed GTP several times more slowly than normal HRAS protein made in *E. coli*. The larger effect was that a cell protein, later called a GTPase-activating protein (GAP), sped GTP hydrolysis by normal RAS more than 200-fold but had no effect on codon 12 mutants, so they stay GTP-bound.
 
-MYC is usually activated another way: by extra copies (amplification) or by a translocation that puts it under the control of a highly active gene's regulatory DNA. In Burkitt lymphoma the commonest change is t(8;14), which places MYC beside an immunoglobulin heavy-chain gene. Riccardo Dalla-Favera and colleagues mapped c-myc to chromosome 8 in 1982 (see [chromosome changes](/lessons/chromosome-changes/)).
+MYC is usually activated another way: by extra copies (amplification) or by a translocation that puts it under the control of a highly active gene's regulatory DNA. In Burkitt lymphoma the commonest change is t(8;14), which places MYC beside an immunoglobulin heavy-chain gene (see [chromosome changes](/lessons/chromosome-changes/)).
 
 A **tumor-suppressor gene** is a brake: its product restrains division or stops a damaged cell, and losing its function helps a cell become cancerous, usually together with other changes. One working copy usually gives enough brake, so a cell must normally lose both alleles. RB1 encodes RB, which in its underphosphorylated form binds E2F transcription factors that switch on genes for DNA replication. TP53 encodes p53, which accumulates after DNA damage and can halt the cell cycle or trigger cell death (see [stress signals](/lessons/stress-signals/) and [death receptors and BCL-2](/lessons/death-receptors-bcl2-caspases/)). Returning a cloned RB gene to RB-deficient human tumor cells suppressed their tumor-like growth in a 1988 test.
 
@@ -398,23 +383,9 @@ p53 warns against tidy rules. It acts as a tetramer, and many TP53 missense muta
 
 Retinoblastoma is a tumor of the developing retina. Hereditary cases tend to be bilateral (both eyes) and diagnosed earlier; nonhereditary cases involve a single tumor in one eye. Most hereditary cases have no family history, because the mutation arose new, most often in the father's sperm, and some carriers have a tumor in only one eye. Alfred Knudson analysed 48 cases with published series and proposed in 1971 that two mutational events are needed. In the hereditary form the first is in the germline, inherited from a parent or new in the egg or sperm, and present in every cell; in the nonhereditary form both must happen somatically, in the same cell. He estimated that carriers develop about three tumors on average. Knudson did not find the gene: a cDNA from the *RB1* locus, on chromosome 13, was isolated by Stephen Friend and colleagues in 1986.
 
-**Worked problem.** Assume that in a carrier of one mutant *RB1* allele each tumor arises from an independent second hit, so the number of tumors per eye follows a Poisson distribution with mean m = 1.5 (3 per person, Knudson's approximate figure), and the eyes are independent. What fractions of carriers have no tumor, a tumor in one eye only, and tumors in both eyes?
+A simple model shows what the two hits predict. Assume that in a carrier of one mutant *RB1* allele each tumor arises from an independent second hit, so the number of tumors per eye follows a Poisson distribution, and the eyes are independent. With about three tumors per carrier, about 5% of carriers have no tumor, so penetrance is about 95%, and most affected carriers have bilateral disease. The full calculation is under Going deeper.
 
-Step 1. The Poisson probability of zero events is e^(−m).
-
-> **P(no tumor in one eye) = e^(−1.5) = 0.223**
-
-Step 2. So P(at least one tumor in an eye) = 1 − 0.223 = 0.777.
-
-Step 3. No tumor in either eye: 0.223 × 0.223 = 0.050, which equals e^(−3). About 5% of carriers stay tumor free, so penetrance is about 95%.
-
-Step 4. Tumors in both eyes: 0.777 × 0.777 = 0.604.
-
-Step 5. A tumor in one eye only, where either eye can be the affected one: 2 × 0.223 × 0.777 = 0.347.
-
-Check: 0.050 + 0.604 + 0.347 = 1.001, which is 1 within rounding. Most affected carriers have bilateral disease, and about one carrier in twenty has no tumor yet can pass the allele on.
-
-Now a nonhereditary case. Both rare hits must fall in one cell, so the expected number of tumors per eye is far below 1. If it were 0.0001, a tumor in each eye would have a chance of about 1 in 100 million. Nonhereditary tumors are therefore single and one-sided, and because two events must accumulate in one cell lineage, they tend to be diagnosed later.
+Now a nonhereditary case. Both rare hits must fall in one cell, so the expected number of tumors per eye is far below 1. Nonhereditary tumors are therefore single and one-sided, and because two events must accumulate in one cell lineage, they tend to be diagnosed later.
 
 <TwoHitTimeline />
 
@@ -432,9 +403,9 @@ A tumor is usually a **clone**, the descendants of one cell. In 1976 Peter Nowel
 
 **Genome instability** raises the supply. Mutations in DNA-repair genes tend to cause further mutations in other genes. Cells lacking mismatch repair, as in Lynch syndrome tumors, accumulate copying errors in short repeats. Loss of BRCA1 or BRCA2 impairs repair of double-strand breaks by homologous recombination (see [DNA repair and recombination](/lessons/dna-repair-and-recombination/) and [mutation](/lessons/mutation/)). Faulty chromosome segregation produces whole-chromosome gains and losses, and chromothripsis can produce many clustered rearrangements in one catastrophic event.
 
-Colorectal tumors show the accumulation. In a 1988 series of 172 specimens, Bert Vogelstein and colleagues found RAS mutations in 9% of adenomas smaller than 1 cm, 58% of larger adenomas and 47% of carcinomas, and the changes accumulated as tumors progressed. Eric Fearon and Vogelstein's 1990 model stressed the accumulation of changes over their exact order; it is a colorectal model, not a fixed sequence for every tumor.
+Colorectal tumors show the accumulation. RAS mutations were found far more often in larger adenomas and in carcinomas than in small adenomas, and the changes accumulated as tumors progressed (Vogelstein and colleagues, 1988). Eric Fearon and Vogelstein's 1990 model stressed the accumulation of changes over their exact order; it is a colorectal model, not a fixed sequence for every tumor.
 
-A **driver** gives its cell a selective advantage; a **passenger** gives no advantage and was simply present in a cell whose clone expanded. Across 2,658 whole cancer genomes from 38 tumor types, each with matched normal tissue, the Pan-Cancer Analysis of Whole Genomes consortium identified an average of 4.6 drivers per tumor with current knowledge, a figure that depends on the rules used to call drivers. Selection also works before cancer, in clones of normal human esophagus.
+A **driver** gives its cell a selective advantage; a **passenger** gives no advantage and was simply present in a cell whose clone expanded. In whole cancer genomes from many tumor types, each with matched normal tissue, the Pan-Cancer Analysis of Whole Genomes consortium identified an average of 4.6 drivers per tumor with current knowledge, a figure that depends on the rules used to call drivers. Selection also works before cancer, in clones of normal human esophagus.
 
 ## Reading a tumor genome
 
@@ -444,7 +415,7 @@ To call a variant somatic, you sequence the tumor and a **matched normal** sampl
 
 > **expected VAF (heterozygous, all tumor cells, two copies) = purity × 0.5**
 
-Genotype now shapes diagnosis: in chronic myeloid leukemia the 9;22 translocation makes the BCR-ABL kinase that imatinib inhibits (see [drugs against a part](/lessons/drugs-against-a-part/)). In a 2021 study of acute myeloid leukemia and myelodysplastic syndromes, whole-genome sequencing in 117 consecutive patients took a median of five days and changed the genetic risk category for 19 of them.
+Genotype now shapes diagnosis: in chronic myeloid leukemia the 9;22 translocation makes the BCR-ABL kinase that imatinib inhibits (see [drugs against a part](/lessons/drugs-against-a-part/)). In a 2021 study of acute myeloid leukemia and myelodysplastic syndromes, whole-genome sequencing was fast enough to change the genetic risk category for some patients.
 
 ### Design problem
 
@@ -464,3 +435,33 @@ A colorectal tumor sample is estimated at 60% tumor cells. Tumor and matched-nor
 **The matched normal.** Tumor data alone cannot separate an inherited BRCA2 allele from a somatic one, or set aside the many harmless inherited variants every person carries. These are inferences about one sample, not clinical advice.
 
 </details>
+
+## Going deeper
+
+### The two-hit arithmetic in full
+
+**Worked problem.** Assume that in a carrier of one mutant *RB1* allele each tumor arises from an independent second hit, so the number of tumors per eye follows a Poisson distribution with mean m = 1.5 (3 per person, Knudson's approximate figure), and the eyes are independent. What fractions of carriers have no tumor, a tumor in one eye only, and tumors in both eyes?
+
+Step 1. The Poisson probability of zero events is e^(−m).
+
+> **P(no tumor in one eye) = e^(−1.5) = 0.223**
+
+Step 2. So P(at least one tumor in an eye) = 1 − 0.223 = 0.777.
+
+Step 3. No tumor in either eye: 0.223 × 0.223 = 0.050, which equals e^(−3). About 5% of carriers stay tumor free, so penetrance is about 95%.
+
+Step 4. Tumors in both eyes: 0.777 × 0.777 = 0.604.
+
+Step 5. A tumor in one eye only, where either eye can be the affected one: 2 × 0.223 × 0.777 = 0.347.
+
+Check: 0.050 + 0.604 + 0.347 = 1.001, which is 1 within rounding. Most affected carriers have bilateral disease, and about one carrier in twenty has no tumor yet can pass the allele on.
+
+For a nonhereditary tumor, the expected number of tumors per eye is far below 1. For a nonhereditary tumor, the expected number of tumors per eye is far below 1. If it were 0.0001, a tumor in each eye would have a chance of about 1 in 100 million.
+
+### Who found what, and when
+
+In 1982 several laboratories, among them those of Mariano Barbacid, Robert Weinberg and Michael Wigler, reported in *Nature* the codon 12 valine-for-glycine change described above. The slower GTP hydrolysis by the purified Val12 protein was measured in a 1984 assay. The larger effect was found in 1987, when the cell protein later called GAP was shown to speed GTP hydrolysis by normal RAS more than 200-fold but not by codon 12 mutants. Riccardo Dalla-Favera and colleagues mapped c-myc to chromosome 8 in 1982.
+
+### Cohort sizes and percentages
+
+In a 1988 series of 172 specimens, Bert Vogelstein and colleagues found RAS mutations in 9% of adenomas smaller than 1 cm, 58% of larger adenomas and 47% of carcinomas. The Pan-Cancer Analysis of Whole Genomes consortium examined 2,658 whole cancer genomes from 38 tumor types, each with matched normal tissue. In the 2021 leukemia study, whole-genome sequencing in 117 consecutive patients took a median of five days and changed the genetic risk category for 19 of them.

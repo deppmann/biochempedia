@@ -4,21 +4,16 @@ slug: "mutation"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 3: DNA: copying, changing, repairing"
 order: 314
-summary: >-
-  A mutation is a heritable change in DNA sequence, and this lesson asks two questions about it:
-  what kinds there are, and whether the environment that selects a mutant also creates it. You
-  will sort point mutations by their DNA change and by their effect on the protein, follow the
-  fluctuation test and replica plating that showed bacterial mutants arise before selection, and
-  estimate a mutation rate from a fluctuation test. Afterwards you can name the main spontaneous
-  and induced sources of mutation and read an Ames test without claiming more than it shows.
-hook: "Ten bacterial cultures of the same strain meet the same virus. Why does one give 52 survivors while five give none?"
+summary: "Mutation, a heritable change in DNA sequence, is the ultimate source of new genetic variation. It begins as a copying error or as damage that repair does not fix, and its effect on a protein runs from none to loss of function. This lesson sorts point mutations by their DNA change and by their effect on the protein, follows the fluctuation test and replica plating that showed bacterial mutants arise before selection, and estimates a mutation rate from a fluctuation test. Afterwards you can name the main spontaneous and induced sources of mutation and read an Ames test without claiming more than it shows."
+hook: "Every new allele began as a mutation, and in the classic bacterial experiments it arose before selection, not because of it. Ten cultures meet the same virus: why does one give 52 survivors while five give none?"
 
 estMinutes: 24
 objectives:
+  - "State that mutation supplies the new heritable variation that selection acts on, and describe how replication errors and unrepaired damage, spontaneous or induced, become mutations."
   - "Classify point mutations by DNA change (transition, transversion, insertion, deletion) and by effect on the protein (silent, missense, nonsense, frameshift, in-frame indel), and explain why a silent change is not always harmless."
   - "Explain how the Luria and Delbrück fluctuation test and the Lederbergs' replica plating showed that resistant bacteria arose before exposure to the selecting agent."
   - "Distinguish mutation rate from mutant frequency and estimate a rate per cell division from fluctuation-test data with the zero-class method."
-  - "Describe spontaneous and induced sources of mutation, and interpret an Ames test, including what a positive or negative result cannot show."
+  - "Interpret an Ames test, including what a positive or negative result cannot show."
 
 explainer:
   src: "/explainers/mutation/explainer.mp4"
@@ -195,19 +190,14 @@ practiceQuestions:
       here. A frameshift needs an insertion or deletion, but a substitution keeps the number of
       base pairs the same. An in-frame indel also adds or removes bases, in multiples of three,
       which a single substitution does not do.
-  - stem: "A deletion removes exactly three base pairs that make up one codon in the middle of a coding exon. What happens to the reading frame downstream of the deletion?"
+  - stem: "Ultraviolet light joins two adjacent thymines in a cell's DNA into a dimer. Which statement best describes the dimer and mutation?"
     choices:
-      - "It shifts by one base, so every later codon changes"
-      - "A stop codon must form at the junction of the deletion"
-      - "It is lost, because the mRNA no longer has a start codon"
-      - "It is kept, and the protein lacks a single amino acid"
-    answer: 3
-    rationale: >-
-      Three bases is one codon, so the codons after the deletion are read in their normal groups
-      and the protein is one amino acid shorter. A frameshift happens when the indel length
-      is not a multiple of three. A stop codon is not required; one can form at a junction only by
-      chance when a deletion spans two codons. The start codon is far upstream and untouched, so
-      reading still begins normally.
+      - "It is a mutation at once, because the chemistry of the DNA has changed"
+      - "It cannot lead to a mutation, because a dimer always stops replication for good"
+      - "It is damage, and becomes a mutation only if repair or copying leaves a changed sequence"
+      - "It is a mutation only if the dimer lies inside a coding sequence"
+    answer: 2
+    rationale: "A dimer is damage, not yet a mutation. Whether it becomes one depends on repair and on how polymerases copy past it, so a changed sequence that is then inherited is what counts. Calling it a mutation at once treats damage as if it were a heritable sequence change. Dimers do not always stop replication for good, since cells can copy past them, sometimes with errors. Where the dimer lies does not decide whether it is a mutation; what matters is whether the sequence is changed after repair and copying."
   - stem: "A single-base change in an exon replaces one codon with a synonymous codon for the same amino acid, yet carriers show a reduced amount of the protein. Which explanation is most plausible?"
     choices:
       - "The change can disrupt a splicing signal or mRNA handling"
@@ -395,9 +385,9 @@ draft: false
 import FluctuationTestSimulator from '../../../components/FluctuationTestSimulator.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Grow ten small cultures of the same *E. coli* to the same size, spread each one on a plate covered with a bacterial virus, and you may find 52 resistant colonies on one plate while five plates have none.**
+**A mutation is a heritable change in DNA sequence, and it is the ultimate source of new variation: the differences that selection acts on begin as mutations.** One starts when copying goes wrong or damage is not repaired, and its effect on a protein can range from nothing to loss of function, and occasionally a changed or gained function, and occasionally a changed or gained function. An old question is whether the environment that selects a useful variant also creates it.
 
-The cultures started from the same strain, the virus was identical, and the plates were treated alike. Why such different numbers? The answer decides an old question in biology: does the environment that selects a useful variant also create it? To answer it you first need words for what a variant is.
+Grow ten small cultures of the same *E. coli* to the same size, spread each one on a plate covered with a bacterial virus, and you may find 52 resistant colonies on one plate while five plates have none. The cultures started from the same strain, the virus was identical, and the plates were treated alike. Luria and Delbrück read that scatter as evidence that, in this system, the resistant cells arose by chance during growth, before the virus arrived, and the virus only revealed them. The rest of the lesson shows how that was tested, and where mutations come from. First you need words for what a variant is.
 
 ## The idea: a mutation is a change in sequence, sorted two ways
 
@@ -433,7 +423,7 @@ They compared many independent cultures with repeated samples from a single larg
 Independent cultures: 0, 0, 1, 0, 3, 0, 0, 52, 2, 2. Bulk samples: 4, 8, 6, 3, 9, 5, 7, 6, 8, 4.
 
 1. **Means.** Both sets sum to 60, so both means are 6.0.
-2. **Variances.** For the independent cultures, the squared deviations from 6 are 36, 36, 25, 36, 9, 36, 36, 2,116, 16 and 16, summing to 2,362. Divided by 9, the sample variance is about 262. For the bulk samples the squared deviations sum to 36, so the variance is 36/9 = 4.0.
+2. **Variances.** The independent cultures have a sample variance of about 262. The bulk samples have a variance of 4.0. (The term-by-term arithmetic is under Going deeper.)
 3. **Read it.** The bulk samples have a variance close to their mean, as Poisson sampling predicts. The independent cultures have a variance about 44 times their mean. Mutation before exposure fits; induction does not.
 4. **Rate.** Five of ten cultures have no mutants, so p0 = 0.5. If mutation events per culture follow a Poisson distribution with mean m, then p0 = e^-m.
 
@@ -457,7 +447,7 @@ Matching positions point back to particular spots on the master. The Lederbergs 
 
 **Spontaneous** mutations arise from the cell's own chemistry and copying, with no applied mutagen.
 
-- **Replication errors.** DNA polymerase sometimes inserts the wrong base (see [DNA replication](/lessons/dna-replication/)). Rare alternative forms of the bases, called tautomers, were proposed long ago as one cause of mispairing. NMR work has since detected short-lived tautomeric and ionized forms that let a wrong pair take the shape of a correct one, though how much they add to mutation in living cells is still being worked out.
+- **Replication errors.** DNA polymerase sometimes inserts the wrong base (see [DNA replication](/lessons/dna-replication/)).
 - **Deamination.** Cytosine loses its amino group and becomes uracil, which repair enzymes recognize as foreign. 5-Methylcytosine deaminates to thymine, a normal base, so the G:T mismatch is harder to resolve correctly and CpG sites, where cytosines are often methylated in vertebrates, are hot spots for C:G to T:A transitions. The chemistry is in [nucleotide metabolism](/lessons/nucleotide-metabolism/).
 - **Depurination.** The bond between a purine and its sugar breaks, leaving a site with no base to copy.
 - **Slippage.** In runs of repeated bases, the new strand can loop out or slip back during copying, adding or removing repeat units.
@@ -474,11 +464,11 @@ A landmark in the study of induced mutation came from Hermann Muller, who report
 
 ## The Ames test and what it can and cannot say
 
-Bruce Ames's test uses *Salmonella* strains that cannot make histidine because of a mutation in a histidine gene. On a plate with only a trace of histidine, they divide a few times and stop, unless a new mutation restores histidine synthesis. Each revertant colony marks such an event, sometimes at the original site and sometimes at a second, compensating site. Strain TA100 reverts mainly by base-pair substitution; TA98 reverts mainly by frameshift. Plates are run with and without S9, a rat-liver enzyme fraction, because many carcinogens become reactive only after liver metabolism. In 1973 Ames and colleagues reported that liver homogenate converted 18 tested carcinogens into frameshift mutagens.
+Bruce Ames's test uses *Salmonella* strains that cannot make histidine because of a mutation in a histidine gene. On a plate with only a trace of histidine, they divide a few times and stop, unless a new mutation restores histidine synthesis. Each revertant colony marks such an event, sometimes at the original site and sometimes at a second, compensating site. Strain TA100 reverts mainly by base-pair substitution; TA98 reverts mainly by frameshift. Plates are run with and without S9, a rat-liver enzyme fraction, because many carcinogens become reactive only after liver metabolism.
 
 <LessonFigure src="/figures/mutation/ames-test-activation.webp" width={1200} height={779} alt="AI-generated illustration: a petri dish with many tiny stalled bacterial specks and three larger revertant colonies, with an inset showing a test chemical passing through an S9 liver fraction to become a reactive metabolite that reaches a bacterium." caption="Histidine-dependent Salmonella divide a few times on a plate with only a trace of histidine and stop, unless a new mutation restores histidine synthesis; each revertant colony marks such an event. Plates are run with and without S9, a rat-liver fraction, because many carcinogens become reactive only after liver metabolism." />
 
-Two limits matter. A positive result shows that a chemical, or a metabolite, mutates bacteria; it does not measure cancer risk in people. A negative result does not prove safety, because some carcinogens act without mutating DNA or through processes bacteria lack. In McCann and colleagues' 1975 set, 156 of 174 tested carcinogens were positive, a figure for that set of chemicals.
+Two limits matter. A positive result shows that a chemical, or a metabolite, mutates bacteria; it does not measure cancer risk in people. A negative result does not prove safety, because some carcinogens act without mutating DNA or through processes bacteria lack.
 
 ### Design problem
 
@@ -492,3 +482,17 @@ Compare each count with its strain's background. TA100 without S9 stays at about
 Conclusion: a metabolite of X is a base-substitution mutagen in *Salmonella*. The result does not show that X causes cancer in people, since the test measures bacterial mutation with rat-liver enzymes. Had TA98 and TA100 both been negative, that would not have shown X is safe either, because some carcinogens act without mutation.
 
 </details>
+
+## Going deeper
+
+### The arithmetic behind the variances
+
+For the independent cultures, the squared deviations from 6 are 36, 36, 25, 36, 9, 36, 36, 2,116, 16 and 16, summing to 2,362. Divided by 9, the sample variance is about 262. For the bulk samples the squared deviations sum to 36, so the variance is 36/9 = 4.0.
+
+### Tautomers and mismatch shapes
+
+Rare alternative forms of the bases, called tautomers, were proposed long ago as one cause of mispairing. NMR work has since detected short-lived tautomeric and ionized forms that let a wrong pair take the shape of a correct one, though how much they add to mutation in living cells is still being worked out.
+
+### Ames validation counts
+
+In 1973 Ames and colleagues reported that liver homogenate converted 18 tested carcinogens into frameshift mutagens. In McCann and colleagues' 1975 set, 156 of 174 tested carcinogens were positive, a figure for that set of chemicals, not a general probability that a carcinogen will test positive.

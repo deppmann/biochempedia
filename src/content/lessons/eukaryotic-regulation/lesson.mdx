@@ -4,18 +4,12 @@ slug: "eukaryotic-regulation"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 4: From gene to protein, and its control"
 order: 320
-summary: >-
-  A liver cell and a kidney cell carry the same genes, yet each reads a different set and passes
-  that choice to its daughters. This lesson shows how eukaryotes do it: DNA packed into
-  nucleosomes that are closed by default, marks on histones and on DNA, enhancers that work by
-  combinations of transcription factors, and small RNAs that silence messages after they are made.
-  Afterwards you can map an enhancer from reporter deletions, tell a microRNA from an siRNA, and
-  say what the word "epigenetic" can and cannot honestly claim.
+summary: "A liver cell and a kidney cell carry the same genes, yet each reads a different set and passes that choice to its daughters. Combinations of transcription factors choose the genes, chromatin controls whether they can be read, and copied DNA methylation helps keep the choice through division. This lesson shows how eukaryotes do it: DNA packed into nucleosomes that are closed by default, marks on histones and on DNA, enhancers that work by combinations of transcription factors, and small RNAs that silence messages after they are made. Afterwards you can map an enhancer from reporter deletions, tell a microRNA from an siRNA, and say what the word epigenetic can and cannot honestly claim."
 hook: "A liver cell and a kidney cell share one genome. How does each read a different part of it, and remember which part after it divides?"
 
 estMinutes: 24
 objectives:
-  - "Describe the nucleosome (about 147 bp of DNA around a histone octamer) and explain how histone acetylation, residue-specific histone methylation and CpG methylation go with, and in tested cases cause, changes in transcription."
+  - "Describe the nucleosome (about 147 bp of DNA around a histone octamer) and explain how histone acetylation, residue-specific histone methylation and CpG methylation go with, and in tested cases cause, changes in transcription, including how DNMT1 copies a methylation pattern onto the new strand after replication."
   - "Explain enhancers as DNA elements that can act at a distance and in either orientation, bound by sequence-specific transcription factors that recruit coactivators and Mediator, and analyse a reporter-deletion experiment to find a minimal enhancer that works combinatorially."
   - "Contrast microRNAs, which come from hairpins in the genome, pair through a seed region and in animals mainly destabilize the target mRNA, with some repression of translation, with siRNAs, which pair fully and direct Argonaute to cut the target."
   - "Define epigenetic inheritance as a heritable change in gene expression across cell divisions without a change in DNA sequence, and separate established inheritance through mitosis from contested transgenerational claims in mammals."
@@ -229,19 +223,14 @@ practiceQuestions:
       siRNA is diluted. It does not change the DNA sequence either, which is what separates
       knockdown from a mutation. Translational block with no change in mRNA level describes
       imperfect pairing at best, and even then animal microRNAs mostly lower mRNA levels.
-  - stem: "A pregnant mouse (F0) is fed a test diet throughout pregnancy and then returned to normal food. Her descendants never receive the diet. Which is the first generation that was never exposed to the diet in any form?"
+  - stem: "In a mammalian cell line, the CpG island at a gene's promoter is densely methylated and the gene is silent. The cells are grown through several rounds of replication and division while DNMT1 is inhibited. What is expected?"
     choices:
-      - "F1, because the pups are born after the exposure ends"
-      - "F3, because F1 embryos and their germ cells were exposed"
-      - "F2, because only the mother and her embryos were exposed"
-      - "F0, because the mother's own germ cells were never exposed"
-    answer: 1
-    rationale: >-
-      The diet reaches the mother, her F1 embryos, and the germ cells inside those embryos that will
-      make the F2, so F3 is the first generation never exposed. F1 was exposed in the uterus even
-      though it was born later. F2 was exposed as the germ cells of the F1 embryos, so it is not
-      clean. F0 is the exposed animal itself, and her own eggs were present in her body during the
-      diet.
+      - "Methylation is copied onto each new strand by DNMT3A and DNMT3B, so the gene stays silent"
+      - "The CpG island sequence mutates to match the unmethylated state"
+      - "Methylation is diluted as new strands are made, so many daughter cells lose the mark and the promoter can be read again"
+      - "Both strands are methylated anew at every replication, so methylation increases"
+    answer: 2
+    rationale: "DNMT1 copies the methylation pattern from the old strand onto the new strand after replication. With DNMT1 blocked, each round of replication makes new strands that are not methylated, so the mark thins out in the daughter cells and the promoter can be read again. DNMT3A and DNMT3B lay down new methylation rather than copying the old pattern, so they do not hold a pattern through division. The change is in a chemical mark, not in the DNA sequence. Methylation does not increase by itself at each replication."
 
 mcatQuestions:
   - stem: "Firefly luciferase constructs are put into cells together with a Renilla luciferase plasmid that controls for uptake. Promoter alone gives 2,000 firefly and 1,000 Renilla units. Enhancer E plus promoter gives 30,000 firefly and 1,500 Renilla. E reversed plus promoter gives 18,000 firefly and 1,000 Renilla. After normalizing, by what factors do the forward and reversed constructs exceed the promoter alone?"
@@ -384,7 +373,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Nearly every cell in your body carries the same genome. Yet a liver cell and a kidney cell read different genes from it, and when either one divides, both daughters go on reading their parent's set.**
 
-How does a cell choose, and how does it remember? In [the lac operon](/lessons/lac-operon/) a bacterial promoter is open unless a repressor sits on it. Eukaryotic genes start from the other side: their DNA is packed into chromatin, and packed DNA is hard to read.
+How does a cell choose, and how does it remember? In brief: combinations of sequence-specific transcription factors choose which genes are read; chromatin, marked on its histones and on the DNA itself, controls whether they can be read; and in mammals DNMT1 copies a methylation pattern onto the new strand after replication, which helps daughter cells keep their parent's choice. Small RNAs add control over messages after they are made. In [the lac operon](/lessons/lac-operon/) a bacterial promoter is open unless a repressor sits on it. Eukaryotic genes start from the other side: their DNA is packed into chromatin, and packed DNA is hard to read.
 
 ## Chromatin: the default state is closed
 
@@ -396,27 +385,11 @@ Think of thread wound on spools: a needle catches thread between spools, not thr
 
 Each histone has a tail, rich in lysine and arginine, that sticks out of the core. Enzymes add and remove chemical marks on these tails and on the DNA itself.
 
-## Marks on histones and on DNA
-
-**Acetylation.** Histone acetyltransferases (HATs) add an acetyl group to lysine, removing its positive charge; histone deacetylases (HDACs) take it off. Acetylated chromatin goes with active genes. One reason is structural: in nucleosome arrays built in the test tube, histone H4 acetylated at lysine 16 stopped the arrays folding into compact fibres. In 1996 C. David Allis's laboratory cloned a histone acetyltransferase from the ciliate *Tetrahymena* that resembled yeast Gcn5, a protein known to be needed to activate certain genes, and recombinant Gcn5 acetylated histones. A coactivator that geneticists had tied to gene activation turned out to be a chromatin-modifying enzyme.
-
-**Histone methylation** means different things on different residues. Marks are named by histone, residue and modification: H3K4me3 is histone H3 carrying three methyl groups on lysine 4.
-
-- H3K4me3 sits at the promoters of active genes.
-- H3K27me3, placed by Polycomb complexes, marks repressed genes, many of them developmental regulators.
-- H3K9me3 marks heterochromatin, the densely packed, mostly silent chromatin. In 2001 two laboratories (Bannister and colleagues; Lachner and colleagues) reported that the protein HP1 binds H3 methylated at lysine 9 but not at lysine 4.
-
-So "methylation silences" is wrong for histones in general. Brian Strahl and Allis proposed in 2000 that combinations of marks are read like a code; the "histone code" is still a hypothesis. A mark can also go with activity without causing it. In mouse embryonic stem cells with catalytically dead Mll3 and Mll4, enhancers lost the H3K4 monomethylation these enzymes place, yet transcription changed only slightly.
-
-**DNA methylation.** In mammals, DNA methyltransferases add a methyl group to carbon 5 of cytosine, mostly where C is followed by G (a CpG site). DNMT3A and DNMT3B lay down new methylation. After replication, DNMT1 copies the pattern from the old strand onto the new one. Dense methylation of a promoter's CpG island goes with a silent gene. One reader is MeCP2, which binds methylated DNA. In cultured-cell assays it associated with a complex containing histone deacetylases, and the deacetylase inhibitor trichostatin A relieved its repression: the two marking systems work together. Mutations in *MECP2* cause most cases of Rett syndrome ([synapse disorders](/lessons/synapse-disorders/)).
-
-Two limits. Methylation can regulate one promoter rather than a whole gene, as at alternative promoters inside *SHANK3*. And it is not universal: budding yeast and *C. elegans* have little or no 5-methylcytosine, and *Drosophila* very little.
-
 ## Enhancers: control from a distance, by combination
 
-In 1981 Julian Banerji, Sandro Rusconi and Walter Schaffner put a rabbit β-globin gene into human HeLa cells with and without a piece of DNA from the virus SV40. With the SV40 piece, β-globin transcripts rose about 200-fold. The piece contained a 72 base-pair repeat, and it worked 1,400 base pairs upstream or 3,300 downstream of the start of transcription, in either orientation. Pierre Chambon's laboratory reported the same year that the repeat was needed for SV40 T-antigen expression in monkey cells. Such an element is an enhancer: DNA that raises transcription from a promoter and can act at a distance and in either orientation. "Can" matters. Not every enhancer does both, and in *Drosophila* cells thousands of enhancers preferred one of two kinds of core promoter.
+An **enhancer** is DNA that raises transcription from a promoter and can act at a distance and in either orientation. The first one was found in 1981, in a piece of the virus SV40 DNA (details under Going deeper). "Can" matters. Not every enhancer does both, and in *Drosophila* cells thousands of enhancers preferred one of two kinds of core promoter.
 
-Enhancers are bound by sequence-specific transcription factors (some switched on by hormones, as in [nuclear receptors](/lessons/nuclear-receptors/), or by [signaling to the nucleus](/lessons/signaling-to-the-nucleus/)). These recruit coactivators, including HATs, and the Mediator complex, which links them to RNA polymerase II at the promoter. In the usual picture the DNA between enhancer and promoter loops out so the two meet, but how direct that contact must be is still debated.
+Enhancers are bound by sequence-specific transcription factors (some switched on by hormones, as in [nuclear receptors](/lessons/nuclear-receptors/), or by [signaling to the nucleus](/lessons/signaling-to-the-nucleus/)). These recruit coactivators, including histone acetyltransferases (HATs, described under the marks section below), and the Mediator complex, which links them to RNA polymerase II at the promoter. In the usual picture the DNA between enhancer and promoter loops out so the two meet, but how direct that contact must be is still debated.
 
 Think of an enhancer as a committee that acts only when the right members are present. Combined in different ways, a modest set of factors can specify far more patterns than there are factors, as in [the motor neuron code](/lessons/motor-neuron-code/).
 
@@ -448,13 +421,27 @@ A 600 bp region upstream of a gene contains elements A, B and C. Each version is
 
 ## Small RNAs: lin-4 and RNA interference
 
-In 1993 Rosalind Lee, Rhonda Feinbaum and Victor Ambros reported that *lin-4*, a gene that times larval development in *C. elegans*, does not appear to encode a protein. It made RNAs of about 22 and 61 nucleotides, partly complementary to repeated sites in the 3' untranslated region (3' UTR) of *lin-14* mRNA, and Gary Ruvkun's laboratory showed that the *lin-14* 3' UTR is needed for the repression. Nobody called lin-4 a microRNA then; the term came in 2001, after let-7 was found in 2000 and shown to be conserved, when cloning studies turned up many more such RNAs.
+In 1993 Rosalind Lee, Rhonda Feinbaum and Victor Ambros reported that *lin-4*, a gene that times larval development in *C. elegans*, does not appear to encode a protein. It made short RNAs partly complementary to repeated sites in the 3' untranslated region (3' UTR) of *lin-14* mRNA. Such RNAs were later named microRNAs (details under Going deeper).
 
-A microRNA gene is transcribed into an RNA that folds into hairpins. In animals, Drosha cuts the hairpin out in the nucleus, and Dicer trims it in the cytoplasm to a duplex of about 22 nucleotides; plants use a Dicer-like enzyme for both steps in the nucleus. One strand guides an Argonaute protein to target mRNAs, mostly to their 3' UTRs. Pairing centres on a seed of about seven nucleotides near the guide's 5' end; outside it, animal microRNAs mostly pair imperfectly. They destabilize the mRNA and repress its translation. In HeLa cells and mouse neutrophils, lower mRNA levels accounted for at least 84% of the reduced protein output from targets (Guo and colleagues, 2010). Plant microRNAs often pair fully and direct cleavage.
+A microRNA gene is transcribed into an RNA that folds into hairpins. In animals, Drosha cuts the hairpin out in the nucleus, and Dicer trims it in the cytoplasm to a duplex of about 22 nucleotides; plants use a Dicer-like enzyme for both steps in the nucleus. One strand guides an Argonaute protein to target mRNAs, mostly to their 3' UTRs. Pairing centres on a seed of about seven nucleotides near the guide's 5' end; outside it, animal microRNAs mostly pair imperfectly. They destabilize the mRNA and repress its translation. In the animal cells measured, lower mRNA levels accounted for most of the reduced protein output from targets. Plant microRNAs often pair fully and direct cleavage.
 
 The second route, RNA interference, came from worms: in 1998 Andrew Fire, Craig Mello and colleagues found that injected double-stranded RNA silenced the matching gene far more effectively than either single strand. Dicer cuts long double-stranded RNA into short interfering RNAs (siRNAs) of 21 to 22 nucleotides. An siRNA pairs fully with its target, and Argonaute (Argonaute2 in mammals) cuts the mRNA at the paired site. In many mammalian cells long double-stranded RNA sets off broad antiviral responses, so RNAi there needed short synthetic siRNAs (Elbashir, Tuschl and colleagues, 2001). RNAi as a tool is in [forward and reverse genetics](/lessons/crispr-and-functional-genomics/).
 
 <LessonFigure src="/figures/eukaryotic-regulation/microrna-and-sirna-routes.webp" width={1200} height={787} alt="AI-generated illustration: two side-by-side panels; in the microRNA panel Drosha cuts a hairpin in the nucleus, Dicer trims it to a duplex, and Argonaute carries one strand to an mRNA's 3' UTR with imperfect pairing; in the siRNA panel Dicer cuts long double-stranded RNA and Argonaute with a fully paired strand cuts the mRNA." caption="In animals, microRNAs are cut out by Drosha, trimmed by Dicer and guide Argonaute to mostly imperfect sites in 3' UTRs. siRNAs come from Dicer cutting long double-stranded RNA and pair fully, so Argonaute cuts the mRNA." />
+
+## Marks on histones and on DNA
+
+**Acetylation.** Histone acetyltransferases (HATs) add an acetyl group to lysine, removing its positive charge; histone deacetylases (HDACs) take it off. Acetylated chromatin goes with active genes. One reason is structural: in nucleosome arrays built in the test tube, histone H4 acetylated at lysine 16 stopped the arrays folding into compact fibres. In 1996 C. David Allis's laboratory cloned a histone acetyltransferase from the ciliate *Tetrahymena* that resembled yeast Gcn5, a protein known to be needed to activate certain genes, and recombinant Gcn5 acetylated histones. A coactivator that geneticists had tied to gene activation turned out to be a chromatin-modifying enzyme.
+
+**Histone methylation** means different things on different residues. Marks are named by histone, residue and modification: H3K4me3 is histone H3 carrying three methyl groups on lysine 4.
+
+- H3K4me3 sits at the promoters of active genes.
+- H3K27me3, placed by Polycomb complexes, marks repressed genes, many of them developmental regulators.
+- H3K9me3 marks heterochromatin, the densely packed, mostly silent chromatin. In 2001 two laboratories (Bannister and colleagues; Lachner and colleagues) reported that the protein HP1 binds H3 methylated at lysine 9 but not at lysine 4.
+
+So "methylation silences" is wrong for histones in general. Brian Strahl and Allis proposed in 2000 that combinations of marks are read like a code; the "histone code" is still a hypothesis. A mark can also go with activity without causing it.
+
+**DNA methylation.** In mammals, DNA methyltransferases add a methyl group to carbon 5 of cytosine, mostly where C is followed by G (a CpG site). DNMT3A and DNMT3B lay down new methylation. After replication, DNMT1 copies the pattern from the old strand onto the new one. Dense methylation of a promoter's CpG island goes with a silent gene, with promoter-specific limits detailed under Going deeper. One reader is MeCP2, which binds methylated DNA. In cultured-cell assays it associated with a complex containing histone deacetylases, and the deacetylase inhibitor trichostatin A relieved its repression: the two marking systems work together. Mutations in *MECP2* cause most cases of Rett syndrome ([synapse disorders](/lessons/synapse-disorders/)).
 
 ## What "epigenetic" does and does not mean
 
@@ -480,3 +467,17 @@ Pregnant mice fed a methyl-donor diet bear offspring with altered coat colour at
 Run unexposed control lines alongside and score blind. A shift that reaches F3 through either parent, with no sequence change and with methylation that follows it, would support epigenetic transmission at this locus.
 
 </details>
+
+## Going deeper
+
+### The first enhancer, 1981
+
+In 1981 Julian Banerji, Sandro Rusconi and Walter Schaffner put a rabbit β-globin gene into human HeLa cells with and without a piece of DNA from the virus SV40. With the SV40 piece, β-globin transcripts rose about 200-fold. The piece contained a 72 base-pair repeat, and it worked 1,400 base pairs upstream or 3,300 downstream of the start of transcription, in either orientation. Pierre Chambon's laboratory reported the same year that the repeat was needed for SV40 T-antigen expression in monkey cells.
+
+### The lin-4 and microRNA record
+
+The lin-4 gene made RNAs of about 22 and 61 nucleotides. Gary Ruvkun's laboratory showed that the lin-14 3' UTR is needed for lin-4 to repress lin-14. Nobody called lin-4 a microRNA then; the term came in 2001, after let-7 was found in 2000 and shown to be conserved, when cloning studies turned up many more such RNAs. For targets of animal microRNAs in HeLa cells and mouse neutrophils, lower mRNA levels accounted for at least 84% of the reduced protein output (Guo and colleagues, 2010).
+
+### Exceptions and counter-examples in chromatin and DNA methylation
+
+In mouse embryonic stem cells with catalytically dead Mll3 and Mll4, enhancers lost the H3K4 monomethylation these enzymes place, yet transcription changed only slightly. DNA methylation can regulate one promoter rather than a whole gene, as at alternative promoters inside *SHANK3*. And it is not universal: budding yeast and *C. elegans* have little or no 5-methylcytosine, and *Drosophila* very little.

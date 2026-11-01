@@ -4,14 +4,8 @@ slug: "lac-operon"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 4: From gene to protein, and its control"
 order: 319
-summary: >-
-  How does a bacterium switch on the genes for a sugar only when the sugar is there and nothing
-  better is on offer? This lesson takes apart the lac operon of E. coli: a repressor that lets go
-  when the inducer binds, an activator that needs cAMP, and the partial-diploid genetics that told
-  a DNA site from a diffusible product. Afterwards you can predict expression for constitutive and
-  uninducible mutants in any partial diploid, and explain how the trp operon uses a second brake,
-  attenuation, that works only because bacteria translate mRNA while it is being made.
-hook: "Give E. coli glucose and lactose together and it eats the glucose first, pauses, then starts on the lactose. How does it choose?"
+summary: "A bacterium switches on the genes for a sugar only when two conditions hold: the sugar is there, and nothing better is on offer. In the lac operon of E. coli, a repressor that lets go when the inducer binds reports lactose, and an activator that needs cAMP, together with glucose-linked block of lactose entry, reports glucose. This lesson takes both apart, then uses the partial-diploid genetics that told a DNA site from a diffusible product. Afterwards you can predict expression for constitutive and uninducible mutants in any partial diploid, and explain how the trp operon uses a second brake, attenuation, that works only because bacteria translate mRNA while it is being made."
+hook: "Give E. coli glucose and lactose together and it eats the glucose first, pauses, then starts on the lactose. How does it choose? Two signals at one promoter: is lactose here, and is glucose scarce?"
 
 estMinutes: 24
 objectives:
@@ -263,20 +257,14 @@ mcatQuestions:
       dominant-negative lacI allele would poison repressor made from the F′ and make the second
       diploid constitutive too. A superrepressor would make expression uninducible, not
       constitutive.
-  - stem: "Two E. coli reporter strains differ only in their operators. With all three operators, β-galactosidase activity is 2,600 units with IPTG and 2 units without. With only O1, activity is 2,600 units with IPTG and 130 units without. Repression factor is activity with inducer divided by activity without. By what factor does activity without inducer rise when O2 and O3 are removed?"
+  - stem: "An E. coli strain has a mutation in the DNA site just upstream of the lac promoter where CAP binds, so CAP with cAMP bound can no longer attach. The repressor, operator and structural genes are wild type. The cells are grown with lactose and no glucose. Compared with a wild-type strain grown the same way, what is expected?"
     choices:
-      - "About 20-fold, the repression factor of O1 alone"
-      - "About 1,300-fold, the repression factor of all three"
-      - "About 1/65, since repression falls as basal activity rises"
-      - "About 65-fold, the ratio of the two basal activities"
-    answer: 3
-    rationale: >-
-      Without inducer the activity goes from 2 to 130 units, and 130 divided by 2 is 65, so basal
-      activity rises about 65-fold; equivalently, the repression factors are 1,300 and 20, and 1,300
-      divided by 20 is 65. The O1 repression factor of 20 compares induced with basal activity in one
-      strain, not basal activity across strains. The factor of 1,300 is the repression of the
-      three-operator strain alone. A factor of 1/65 inverts the ratio: basal activity rises, so the
-      factor is greater than one.
+      - "The same high expression, because the repressor has released the operator"
+      - "Much lower expression, because the weak promoter is no longer helped to start transcription"
+      - "Constitutive expression, because the repressor can no longer bind the operator"
+      - "Very high expression, because lactose entry is no longer blocked by glucose"
+    answer: 1
+    rationale: "With lactose present, allolactose releases the repressor, but the lac promoter is weak on its own and full transcription needs CAP bound to cAMP to contact RNA polymerase and help it bind and start. Without that site, expression stays well below the wild-type induced level. Expecting the same high expression forgets the positive control. The repressor still binds the operator in this strain, so the mutant is not constitutive. There is no glucose in the medium, and the lost site affects activation, not inducer exclusion."
 
 explainLevels:
   - level: "eli5"
@@ -378,7 +366,9 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Give *E. coli* a broth with both glucose and lactose and it does not eat them together. It uses up the glucose, pauses, and only then starts on the lactose.**
 
-Jacques Monod, studying bacterial growth around 1940, called this two-step growth diauxie. During the pause the cells make the proteins that handle lactose in quantity, having made only a trickle while glucose lasted. So a bacterium chooses which genes to use from what is in its medium. This lesson is about how, in the lac operon of *E. coli* and, for contrast, the trp operon.
+The answer is two signals read at one set of genes. A repressor reports whether lactose is present, and it lets go when the inducer binds. An activator, CAP with cAMP bound, is in the classic account the report of whether glucose is scarce, and glucose also blocks lactose from entering. The genes switch on fully only when lactose is present and glucose is scarce.
+
+Jacques Monod, studying bacterial growth around 1940, called the two-step growth diauxie. During the pause the cells make the proteins that handle lactose in quantity, having made only a trickle while glucose lasted. So a bacterium chooses which genes to use from what is in its medium. This lesson is about how, in the lac operon of *E. coli* and, for contrast, the trp operon.
 
 ## The switch: a repressor that lets go
 
@@ -392,11 +382,7 @@ Two traps. Lactose itself is not the inducer; allolactose is. And in the laborat
 
 There is a loop here: lactose needs the permease and β-galactosidase, yet both come from the operon it switches on. Repression leaks, so an uninduced cell can hold a few copies of each protein.
 
-One repressor on one operator is a simplification. The repressor is a tetramer, and the lac region has three operators, O1, O2 and O3. One tetramer can hold two operators at once, looping the DNA between them. Geneticists measure the strength of repression as a ratio:
-
-> **repression factor = enzyme activity with inducer ÷ enzyme activity without inducer**
-
-In chromosomal reporter strains, O1 alone gave a repression factor of about 20, and removing both auxiliary operators reduced repression more than 50-fold (Oehler and colleagues, 1990). For the genetics below, one operator is enough.
+One repressor on one operator is a simplification. The repressor is a tetramer, and the lac region has three operators, O1, O2 and O3. One tetramer can hold two operators at once, looping the DNA between them. For the genetics below, one operator is enough. (The repression-factor measurements are under Going deeper.)
 
 ## The partial diploid: telling a site from a product
 
@@ -424,7 +410,7 @@ An operator acts only on its own DNA molecule; a repressor acts on every operato
 
 One more class completes the set. Some I⁻ mutations are dominant. Written I⁻ᵈ, they make subunits that still assemble with normal subunits but bind DNA poorly or not at all. Each operator is gripped by a pair of subunits, so a pair that mixes a defective subunit with a normal one from the other copy binds the operator poorly. How strongly an I⁻ᵈ allele spoils the normal repressor varies from allele to allele. Such a mutation is called dominant-negative.
 
-What was the repressor made of? In 1961 Jacob and Monod did not know; Monod later wrote that it had seemed logical to assume a polyribonucleotide. In 1966 Walter Gilbert and Benno Müller-Hill isolated it, following its binding of radioactive IPTG, and it was a protein; in 1967 they showed it binds DNA carrying the lac operator.
+The repressor turned out to be a protein that binds DNA carrying the lac operator. (The history of its isolation is under Going deeper.)
 
 ## CAP and cAMP: the second input
 
@@ -454,7 +440,7 @@ Which hairpin forms depends on a ribosome. In bacteria there is no nucleus, so a
 - **Tryptophan plentiful.** Charged tryptophan tRNA is easy to find, and the ribosome moves past the two tryptophan codons onto region 2. With region 2 covered, regions 3 and 4 pair, the terminator forms, and polymerase stops.
 - **Tryptophan scarce.** The ribosome stalls at the tryptophan codons, short of region 2. Region 2 pairs with region 3, the terminator cannot form, and polymerase continues into the structural genes.
 
-In a test tube with no ribosomes, only about 5 percent of transcripts read through the *E. coli* trp attenuator (Lee and Yanofsky, 1977). In this model the ribosome is the sensor, turning the supply of charged tRNA into a choice of RNA fold, which needs translation coupled to transcription. In the nucleus of a eukaryotic cell the two are separated, so attenuation of this kind does not work there ([eukaryotic gene regulation](/lessons/eukaryotic-regulation/) takes up what does).
+In this model the ribosome is the sensor, turning the supply of charged tRNA into a choice of RNA fold, which needs translation coupled to transcription. In the nucleus of a eukaryotic cell the two are separated, so attenuation of this kind does not work there ([eukaryotic gene regulation](/lessons/eukaryotic-regulation/) takes up what does).
 
 <LessonFigure src="/figures/lac-operon/trp-attenuation-two-states.webp" width={1200} height={494} alt="AI-generated illustration: two side-by-side panels, each showing a leader RNA above the DNA with a ribosome and RNA polymerase. In the tryptophan-plentiful panel the ribosome has moved past the two tryptophan codons, a 3:4 terminator hairpin forms and RNA polymerase stops before the structural genes. In the tryptophan-scarce panel the ribosome sits on the two tryptophan codons, a 2:3 hairpin forms and RNA polymerase continues toward the structural genes." caption="In this model of attenuation, a ribosome on the trp leader is the sensor. With tryptophan plentiful it covers region 2, regions 3 and 4 pair into the terminator, and polymerase stops; with tryptophan scarce it stalls at the two tryptophan codons, 2 pairs with 3, and polymerase continues." />
 
@@ -480,3 +466,21 @@ To separate those two, move the working Z⁺ to the other copy: **m Z⁻ / F′ 
 Move the reporter gene and see whether the defect moves with it: a defect that stays on its own DNA is a site, and one that reaches the other copy is a product.
 
 </details>
+
+## Going deeper
+
+### Auxiliary operators and repression factor
+
+Geneticists measure the strength of repression as a ratio:
+
+> **repression factor = enzyme activity with inducer ÷ enzyme activity without inducer**
+
+In chromosomal reporter strains, O1 alone gave a repression factor of about 20, and removing both auxiliary operators reduced repression more than 50-fold (Oehler and colleagues, 1990).
+
+### How the repressor was found
+
+What was the repressor made of? In 1961 Jacob and Monod did not know; Monod later wrote that it had seemed logical to assume a polyribonucleotide. In 1966 Walter Gilbert and Benno Müller-Hill isolated it, following its binding of radioactive IPTG, and it was a protein; in 1967 they showed it binds DNA carrying the lac operator.
+
+### Attenuation in a test tube
+
+In a test tube with no ribosomes, only about 5 percent of transcripts read through the *E. coli* trp attenuator (Lee and Yanofsky, 1977).
