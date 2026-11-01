@@ -5,18 +5,14 @@ course: "cell-biology"
 courseChapter: "Cell Biology · Unit 4: Division and cell loss"
 order: 419
 summary: >-
-  How does a dividing cell give each daughter exactly one copy of every chromosome? This lesson
-  builds the spindle from several microtubule sources, shows how kinetochores are attached,
-  tested and corrected, and follows the one-way protease switch that releases sister chromatids.
-  Afterwards you can measure anaphase A and B from a time-lapse movie and keep lagging
-  chromosomes and micronuclei apart by their denominators.
-hook: "In the dividing cultured human cells measured, most spindle microtubules are not made at the centrosomes. So where do they come from?"
+  How does a dividing cell give each daughter exactly one copy of every chromosome? It attaches each pair of sister chromatids to opposite poles of a spindle, corrects wrong attachments, and then cuts the cohesin that holds the sisters together. This lesson builds the spindle from several microtubule sources, shows how kinetochores are attached, tested and corrected, and follows the one-way protease switch that releases sister chromatids. Afterwards you can measure anaphase A and B from a time-lapse movie and keep lagging chromosomes and micronuclei apart by their denominators.
+hook: "How does a dividing cell give each daughter exactly one sister of every chromosome, and what happens when one attachment goes wrong?"
 
 estMinutes: 24
 objectives:
+  - "Explain how a cell gives each daughter one sister of every chromosome: biorientation of sister kinetochores, correction of wrong attachments by Aurora B with tension stabilizing right ones, and release of sister cohesion at anaphase."
   - "Describe how a bipolar spindle is assembled from centrosomes, chromatin, kinetochores and augmin branching, and define kinetochore, k-fibre, biorientation, syntelic and merotelic attachment."
-  - "Explain how Aurora B destabilizes wrong attachments and how tension stabilizes right ones, keeping the evidence from living cells apart from the evidence in vitro."
-  - "Trace how sister cohesion is released, from APC/C-Cdc20 and securin to separase cutting Scc1, including the vertebrate prophase pathway and shugoshin."
+  - "Trace how sister cohesion is released, from APC/C-Cdc20 and securin to separase cutting Scc1, including the vertebrate prophase pathway and shugoshin, while keeping the evidence from living cells apart from the evidence in vitro."
   - "Calculate anaphase A and anaphase B rates from time-lapse measurements, and combine cell-level and chromosome-level error frequencies correctly."
 
 explainer:
@@ -204,20 +200,14 @@ practiceQuestions:
       job of APC/C-Cdc20, after which the proteasome destroys securin. Cyclin B is also
       ubiquitylated by the APC/C and destroyed by the proteasome, not cut by separase.
       Phosphorylating SA2 belongs to the vertebrate prophase pathway, which is a kinase step.
-  - stem: "In the HeLa and RPE1 cells studied by David and colleagues in 2019, where did most spindle microtubules nucleate?"
+  - stem: In an early mitotic cell, both sister kinetochores are attached to microtubules from the same pole, so the pair is not under tension. Which mechanism most directly corrects this error?
     choices:
-      - "Away from the centrosomes, largely by augmin branching"
-      - "At the two centrosomes, then captured by kinetochores"
-      - "At the cell cortex, then pulled inward by dynein"
-      - "At the nuclear envelope before it broke down"
-    answer: 0
-    rationale: >-
-      David and colleagues found that most spindle microtubules nucleated away from the
-      centrosomes, and augmin-dependent amplification on existing microtubules almost entirely
-      explained where growing ends were. Centrosomes do nucleate microtubules and kinetochores
-      do capture them, but in these cells that was the minority route. The cortex is where
-      dynein pulls on astral microtubules, not where spindle microtubules mostly start. The
-      nuclear envelope is not the main nucleation site in these mitotic cells.
+    - Separase cuts Scc1 so that the sisters can turn around
+    - Aurora B phosphorylates outer kinetochore proteins such as Ndc80, lowering their grip so the attachment is released and can be remade
+    - Tension across the pair stabilizes the attachment so that it is kept
+    - APC/C-Cdc20 tags securin so that the checkpoint is released
+    answer: 1
+    rationale: A syntelic attachment lacks the tension that biorientation produces. Aurora B phosphorylates outer kinetochore proteins including the Ndc80 complex, which lowers their grip on microtubules, so the wrong attachment is released and a new one can form. Tension stabilizes right attachments; it does not correct wrong ones. Separase acts later, on cohesin at anaphase, and cutting Scc1 would split the sisters rather than repair an attachment. Tagging securin by APC/C-Cdc20 also belongs to the release of cohesion, after the checkpoint is satisfied.
   - stem: "A vertebrate cell is depleted of shugoshin. Which outcome best fits what McGuinness and colleagues reported in HeLa cells?"
     choices:
       - "Securin is destroyed early, so separase acts too soon"
@@ -384,9 +374,9 @@ draft: false
 import AnaphaseRateReader from '../../../components/AnaphaseRateReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In the dividing human HeLa and RPE1 cells measured in 2019, most spindle microtubules were not made at the centrosomes.** This lesson builds the spindle, attaches and tests every chromosome, cuts the glue that holds sisters together, and then measures what happens from a movie.
+**A dividing cell must give each daughter exactly one sister of every duplicated chromosome. It does this by attaching each pair of sisters to opposite poles of a spindle, correcting wrong attachments, and then cutting the cohesin that holds the sisters together.** This lesson builds the spindle, shows how every chromosome is attached and tested, follows the cut that releases the sisters, and then measures what happens from a movie.
 
-You arrive at mitosis with each chromosome duplicated into two sister chromatids held together by cohesin, a protein ring that encircles DNA. CDK1-cyclin B has driven the cell into mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)) and the nuclear envelope has broken down. The task now is to give each daughter one sister of every chromosome. How chromosomes pair and separate in meiosis, and what happens to an organism when the count goes wrong, belong to [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) and [chromosome changes](/lessons/chromosome-changes/).
+You arrive at mitosis with each chromosome duplicated into two sister chromatids held together by cohesin, a protein ring that encircles DNA. CDK1-cyclin B has driven the cell into mitosis (see [cell-cycle control](/lessons/cell-cycle-control/)) and the nuclear envelope has broken down. The task now is to partition them. How chromosomes pair and separate in meiosis, and what happens to an organism when the count goes wrong, belong to [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) and [chromosome changes](/lessons/chromosome-changes/).
 
 ## Building a bipolar spindle from several sources
 
@@ -395,7 +385,7 @@ The spindle is a bipolar array of microtubules, the dynamic polymers described i
 The classic model, search-and-capture, has centrosomes fire microtubules in random directions until a plus end happens to hit a kinetochore and is stabilized. Like casting fishing lines at random, it works, but alone it would be slow. Other sources add microtubules:
 
 - **Near chromatin and kinetochores.** In human RPE1 cells, Sikirzhytski and colleagues used correlative light and electron microscopy and found short non-centrosomal microtubules near kinetochores from the start of spindle assembly. End-on attachments formed within the first three minutes of prometaphase. Inhibiting CENP-E, a kinetochore kinesin (see [molecular motors](/lessons/molecular-motors/)), impeded the conversion of side-on contacts into end-on attachments.
-- **Branching on existing microtubules.** Augmin is a protein complex that recruits the gamma-tubulin ring complex (gamma-TuRC), the template that starts new microtubules, onto the side of an existing one, so a new microtubule branches off in the same direction. In HeLa and RPE1 cells, David and colleagues tracked growing ends and found that most spindle microtubules nucleated away from centrosomes; augmin-dependent amplification almost entirely explained where the growing ends were. In vitro, purified human augmin and gamma-TuRC were sufficient for branching, with NEDD1 bridging the two and phosphorylation by CDK1 and PLK1 needed for NEDD1 to bind augmin.
+- **Branching on existing microtubules.** Augmin is a protein complex that recruits the gamma-tubulin ring complex (gamma-TuRC), the template that starts new microtubules, onto the side of an existing one, so a new microtubule branches off in the same direction. In HeLa and RPE1 cells, David and colleagues tracked growing ends and found that most spindle microtubules nucleated away from centrosomes; augmin-dependent amplification almost entirely explained where the growing ends were. In vitro, purified human augmin and gamma-TuRC were sufficient for branching.
 
 Keep the scope: these results come from two human cell lines and a test tube. Some cells, such as many oocytes, build spindles without centrosomes at all, and the share from each route differs between cell types.
 
@@ -411,7 +401,7 @@ Biorientation, unlike syntelic or monotelic attachment, puts the sisters under t
 
 **Aurora B destabilizes.** Aurora B is a kinase of the chromosomal passenger complex. Much of it sits at the inner centromere, between the sister kinetochores, and smaller pools sit closer to the kinetochores. It phosphorylates outer kinetochore proteins, including the microtubule-binding Ndc80 complex, which lowers their grip on microtubules. Lampson and colleagues blocked Aurora kinase activity in living vertebrate cells with a reversible inhibitor, let wrong attachments pile up, then washed the inhibitor out. Reactivated Aurora kinase corrected the errors by selectively disassembling kinetochore-microtubule fibres. How tension turns Aurora B's effect off is still argued. One popular model says stretching pulls the outer kinetochore out of reach of the kinase at the inner centromere; other evidence points to changes in kinetochore structure under force.
 
-**Tension stabilizes.** Akiyoshi and colleagues removed the cell entirely. Purified budding-yeast kinetochore particles, held on microtubules in a laser trap, stayed attached longer at higher force: a mean of 21 plus or minus 5 minutes at 1 piconewton and 50 plus or minus 17 minutes at 5 piconewtons, with no detectable Aurora B and no ATP.
+**Tension stabilizes.** Akiyoshi and colleagues removed the cell entirely. Purified budding-yeast kinetochore particles, held on microtubules in a laser trap, stayed attached longer at higher force, with no detectable Aurora B and no ATP.
 
 Keep the evidence separate: the in vitro result shows that force can stabilize attachment directly. It does not show that Aurora B is unnecessary in cells, where both mechanisms act together.
 
@@ -460,7 +450,7 @@ A movie that tracks only chromosomes cannot tell you how much of their separatio
 
 ## When segregation fails: merotely, laggards and micronuclei
 
-A merotelic kinetochore is attached, so it produces no checkpoint signal. Cimini and colleagues showed in PtK1 cells, a rat kangaroo kidney line, that merotelic attachment escaped the checkpoint. Lagging single chromatids appeared in 1.16% of untreated anaphases and 17.55% after recovery from a nocodazole block, and electron microscopy confirmed microtubules from both poles on the lagging kinetochores.
+A merotelic kinetochore is attached, so it produces no checkpoint signal. Cimini and colleagues showed in PtK1 cells, a rat kangaroo kidney line, that merotelic attachment escaped the checkpoint. Lagging single chromatids became far more frequent after recovery from a nocodazole block than in untreated cells, and electron microscopy confirmed microtubules from both poles on the lagging kinetochores.
 
 A lagging chromosome is a trajectory, not an outcome. It can reach the main nucleus late or end up in a micronucleus, a small separate nucleus. In human RPE1 and U2OS cells, Orr and colleagues found that most transient laggards rejoined the main nucleus; a midzone Aurora B mechanism helped correct errors in anaphase and delayed the completion of nuclear-envelope assembly on laggards. How persistent segregation errors feed chromosomal instability in tumours belongs to [cancer genetics](/lessons/cancer-genetics/); how spindle orientation sets cell fate is in [asymmetric division](/lessons/asymmetric-division/), and how mitotic defects in neural progenitors shrink the brain is in [microcephaly and malformations](/lessons/microcephaly-and-malformations/). The final split of the cell is [cytokinesis](/lessons/cytokinesis/).
 
@@ -480,3 +470,17 @@ To separate them, change one while holding the other fixed. In vitro, reconstitu
 Readout: time from last attachment, or from the lesion, to anaphase onset in single cells. Control: irradiate a spot of the same size near the kinetochore but off it, which should not release the delay. Limit: mantis spermatocytes in meiosis and PtK1 cells in mitosis are different systems, so a difference between the two papers may reflect the cell, not the mechanism.
 
 </details>
+
+## Going deeper
+
+### Branching: the NEDD1 link
+
+In the in vitro branching reconstitution, NEDD1 bridged augmin and gamma-TuRC, and phosphorylation by CDK1 and PLK1 was needed for NEDD1 to bind augmin.
+
+### How long attachments lasted under force
+
+In the laser-trap experiment, purified budding-yeast kinetochore particles stayed attached for a mean of 21 plus or minus 5 minutes at 1 piconewton and 50 plus or minus 17 minutes at 5 piconewtons.
+
+### Lagging chromatid frequencies in PtK1 cells
+
+In PtK1 cells, lagging single chromatids appeared in 1.16% of untreated anaphases and 17.55% after recovery from a nocodazole block.
