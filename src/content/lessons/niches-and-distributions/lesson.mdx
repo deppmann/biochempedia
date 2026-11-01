@@ -4,20 +4,14 @@ slug: "niches-and-distributions"
 course: "ecology-evolution"
 courseChapter: "Ecology and Evolution · Unit 3: Environments and populations"
 order: 512
-summary: >-
-  Why does a species stop where it does? This lesson defines the niche as the set of conditions
-  and resources in which a population can persist without immigrants, separates that set from
-  the places on a map where the species lives, and shows how competitors, predators and helpers
-  change the part of the niche a species actually occupies. You will read a thermal performance
-  curve, calculate a tolerance interval from development and survival data, and design a
-  transplant experiment that can tell a climate limit from a neighbour limit or a dispersal limit.
+summary: "Why does a species stop where it does? This lesson defines the niche as the set of conditions and resources in which a population can persist without immigrants, separates that set from the places on a map where the species lives, and shows how competitors, predators and helpers change the part of the niche a species actually occupies. You will read a thermal performance curve for a named response and design a transplant experiment that can tell a climate limit from a neighbour limit or a dispersal limit."
 hook: "A dune plant planted 60 km past its own range edge more than tripled in number. So what was stopping it?"
 
 estMinutes: 24
 objectives:
   - "Define the niche as the conditions and resources in which a population persists without immigration, and distinguish niche space from geographic space."
   - "Distinguish fundamental and realized niches, and explain why competitors and predators usually shrink the realized niche while facilitators can widen it."
-  - "Read a thermal performance curve for a named response, identify Tmin, Topt and Tmax, and calculate a tolerance interval when different vital rates limit opposite ends."
+  - "Read a thermal performance curve for a named response, identify Tmin, Topt and Tmax, and explain why different vital rates can limit opposite ends of a tolerance interval. The calculation is in Going deeper."
   - "Design a beyond-range transplant with within-range controls and whole-life-cycle measures (lambda) that compares abiotic, biotic and dispersal explanations for a range edge."
 
 explainer:
@@ -189,19 +183,14 @@ practiceQuestions:
       which by definition excludes such effects. The site is inside the realized niche, since the
       species persists there. Facilitation, predation and competition all change the realized
       niche, not competition alone.
-  - stem: "In made-up data, standardized combined performance P is 0.40 at 20 degrees C and 0.80 at 25 degrees C. With straight-line interpolation, at what temperature does P first reach 0.50?"
+  - stem: "A plant is recorded at one site in every survey. There, deaths exceed births, and the population is kept going only by seeds arriving from a neighbouring site. What does the plant's presence at this site show?"
     choices:
-      - "21.25 degrees C"
-      - "22.5 degrees C"
-      - "23.75 degrees C"
-      - "20.6 degrees C"
-    answer: 0
-    rationale: >-
-      P must rise 0.10 of the 0.40 it gains between the two treatments, a quarter of the way, so
-      the crossing is 20 + 0.25 x 5 = 21.25 degrees C. The midpoint, 22.5, would apply only if
-      0.50 lay halfway between 0.40 and 0.80. A value of 20.6 divides 0.10 by the 0.80 reached at
-      25 degrees C instead of by the 0.40 rise between treatments. A value of 23.75 measures three quarters of the way,
-      which is where P reaches 0.70.
+      - "The site lies inside the plant's niche, since the plant is there"
+      - "Lambda at the site is at least 1, since the plant keeps being found"
+      - "The site holds a sink population, so presence does not show where the niche ends"
+      - "The plant cannot disperse, since it stays in one place"
+    answer: 2
+    rationale: "A sink population is one where deaths exceed births and which is kept going only by immigrants, so lambda there is below 1 and the site is outside the conditions that let the population persist without immigration. Presence on a map, by itself, does not show where the niche ends. Being found there every year is exactly what immigration can produce. The plant is being supplied with seeds from elsewhere, which is the opposite of being unable to disperse."
 
 mcatQuestions:
   - stem: "Seeds of a beach plant were sown at three sites inside its range and at two sites 40 km beyond its northern edge, with the same handling everywhere. Over six years, matrix models gave lambda of 1.05 to 1.12 inside the range and 1.20 and 1.31 beyond it. No seedlings of the species were found in the surveyed dunes between the edge and the beyond-range sites. Which explanation for this northern edge do the data best support?"
@@ -335,13 +324,11 @@ draft: false
 import PerformanceBreadthReader from '../../../components/PerformanceBreadthReader.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A small coastal plant, planted about 60 km beyond the northern end of its range, more than tripled in number over the next 12 to 14 years.** If it can live there, why had it never got there? Answering that means separating three things that are easy to blur: the conditions a species can live in, the other species it meets, and the places it has been able to reach.
+**A species' niche is not the same thing as its map. The niche is the set of conditions in which a population can persist without immigrants; the map shows only where the species happens to be found, which also depends on the other species it meets and on whether it has been able to get there.** A small coastal plant, planted about 60 km beyond the northern end of its range, more than tripled in number over the next 12 to 14 years. If it can live there, why had it never got there? Answering that means separating three things that are easy to blur: the conditions a species can live in, the other species it meets, and the places it has been able to reach.
 
 ## The idea: a niche is a set of conditions, not a place
 
 A **niche** is the set of conditions and resources in which a population can persist without immigrants. G. Evelyn Hutchinson gave it this form in 1957. Treat each variable that matters as an axis: temperature, soil moisture, salt, the size of food items. The niche is the region of that space where the population's births at least balance its deaths. With n axes it is an **n-dimensional hypervolume**. Some treatments add biotic axes, such as the density of a predator, but the fundamental niche below is usually drawn on physical conditions and resources.
-
-Hutchinson did not coin the word. Joseph Grinnell used it in 1917 for a bird's habitat and habits, and Charles Elton in 1927 for an animal's place in a food web. What Hutchinson added was a version you can measure.
 
 The key move is to keep two spaces apart. **Niche space** is the space of conditions. **Geographic space** is the map. A thermostat analogy helps: the niche is a setting, say 15 to 25 degrees C with moist soil, and the map shows every place where that setting happens to occur. As you saw in [climate and biomes](/lessons/climate-and-biomes/), conditions vary with latitude, altitude and microclimate, so one patch of niche space can map onto scattered places, and one place can hold several microclimates.
 
@@ -353,13 +340,13 @@ The persistence test uses **lambda**, the finite rate of increase: the factor by
 
 Hutchinson split the niche in two. The **fundamental niche** is the set of conditions in which a species can persist with competitors and enemies absent; its food, and any partner it cannot live without, are assumed present. Hutchinson framed it in terms of competitors. The **realized niche** is the part it occupies when those interactions are present.
 
-The classic field case comes from the rocky shore at Millport, on the Isle of Cumbrae in Scotland, published by Joseph Connell in 1961. Adults of the barnacle *Chthamalus stellatus* (the Millport barnacles are now identified as *C. montagui*, a separate species split from *C. stellatus* after Connell's work) lived in a band high on the rocks, above the larger *Balanus balanoides* (now *Semibalanus balanoides*). Yet *Chthamalus* larvae settled lower. When Connell kept *Balanus* off portions of lower rock, *Chthamalus* survived there; where *Balanus* grew, it caused heavy *Chthamalus* mortality. On that shore, the lower part of the *Chthamalus* fundamental niche was unoccupied because of a competitor. Connell attributed the upper limits mainly to heat and drying, with *Chthamalus* the more tolerant. The experiment itself belongs to [competition](/lessons/competition/); here it shows the difference between the two niches.
+The classic field case comes from the rocky shore at Millport, on the Isle of Cumbrae in Scotland, published by Joseph Connell in 1961. Adults of the barnacle *Chthamalus stellatus* (the names are those of Connell's paper and have since been revised; see Going deeper) lived in a band high on the rocks, above the larger *Balanus balanoides*. Yet *Chthamalus* larvae settled lower. When Connell kept *Balanus* off portions of lower rock, *Chthamalus* survived there; where *Balanus* grew, it caused heavy *Chthamalus* mortality. On that shore, the lower part of the *Chthamalus* fundamental niche was unoccupied because of a competitor. Connell attributed the upper limits mainly to heat and drying, with *Chthamalus* the more tolerant. The experiment itself belongs to [competition](/lessons/competition/); here it shows the difference between the two niches.
 
 <LessonFigure src="/figures/niches-and-distributions/millport-barnacle-zones.webp" width={1200} height={800} alt="AI-generated illustration: a rock face with small gold Chthamalus barnacles in an upper band and larger slate Balanus barnacles in the zone below, with larvae settling lower. Two insets compare a lower patch with Balanus kept off, where small barnacles survive, and a patch with Balanus left on, crowded with large barnacles." caption="At Millport, Chthamalus adults lived high on the rock above the larger Balanus, yet its larvae settled lower. Where Connell kept Balanus off lower rock, Chthamalus survived; where Balanus grew, it caused heavy Chthamalus mortality." />
 
 Competitors and predators usually shrink the realized niche. Helpers can do the opposite. A shrub that shades seedlings, or a mussel bed that holds water at low tide, can let a species persist in conditions it cannot tolerate alone. If the fundamental niche is defined before any interaction, facilitation can make the realized niche larger than the fundamental one, a way of putting it that some ecologists dispute (Hutchinson's own wording concerned competition). So "the realized niche is always smaller" is a rule with exceptions.
 
-Field experiments measure interactions directly. Welk and colleagues grew 14 perennial grassland species in nine German botanical gardens, with a sown competitor grass, *Festuca rubra*, present or absent and molluscs excluded or not, in a fully crossed design. In their model, competition reduced aboveground biomass by 40.8% overall. Survival also declined as precipitation fell across the gardens, but climate varied among gardens rather than being assigned at random, so that part is an association.
+Field experiments measure interactions directly. In a crossed field experiment in German botanical gardens, a sown competitor grass strongly reduced the aboveground biomass of grassland perennials (Welk and colleagues). Survival also declined as precipitation fell across the gardens, but climate varied among gardens rather than being assigned at random, so that part is an association.
 
 A caution for later lessons. **Species distribution models**, fitted to the climates of places where a species has been recorded, describe occupied conditions plus accessibility. They estimate something closer to the realized niche filtered by dispersal, not the fundamental niche.
 
@@ -367,29 +354,9 @@ A caution for later lessons. **Species distribution models**, fitted to the clim
 
 A first step toward the temperature axis of the niche is taken in the laboratory: rear individuals at several constant temperatures and record a named response. The result is a **thermal performance curve**. For a rate such as development, it rises from zero at **Tmin**, peaks at **Topt** and falls to zero at **Tmax**. Survival curves are often flat across middle temperatures instead of peaking. The fall at high temperature has several causes, among them proteins losing their folded, active shape, as in [enzyme action](/lessons/enzyme-action-basics/).
 
-Every value belongs to its response. For development, Tmin and Tmax are where *that rate* reaches zero, not necessarily lethal temperatures. And different responses can peak in different places. In a 2024 synthesis of 46 laboratory data sets from 26 species of Lepidoptera, Mariana Abarca and colleagues found that development rate generally limited performance at the cold end and survival at the hot end. They combined the two:
+Every value belongs to its response. For development, Tmin and Tmax are where *that rate* reaches zero, not necessarily lethal temperatures. And different responses can peak in different places. In a 2024 synthesis of laboratory data sets for Lepidoptera, Mariana Abarca and colleagues found that development rate generally limited performance at the cold end and survival at the hot end. So the tolerance interval is set by different rates at its two ends. Multiplying the two rates, each scaled to its own maximum, and choosing a cutoff gives a breadth; the worked calculation, which also notes that this index leaves out fecundity and so is not lambda, is in Going deeper.
 
-> **P = D x S**   (D = development rate, S = survival, each scaled to its own maximum)
-
-**Worked problem.** The numbers are invented for teaching. A moth is reared at three temperatures. Survival peaked at a cooler temperature not shown, so S is below 1 at all three.
-
-| Temperature | D | S |
-|---|---|---|
-| 20 degrees C | 0.50 | 0.80 |
-| 25 degrees C | 1.00 | 0.60 |
-| 30 degrees C | 0.80 | 0.20 |
-
-Assume P changes in a straight line between treatments, do not extrapolate beyond 20 or 30 degrees C, and call the acceptable range P of at least 0.50 (the threshold Abarca's group used, an operational choice).
-
-1. *Compute P.* 0.50 x 0.80 = 0.40 at 20 degrees C; 1.00 x 0.60 = 0.60 at 25; 0.80 x 0.20 = 0.16 at 30. The best tested temperature is 25 degrees C. The true peak could lie between treatments.
-2. *Lower crossing.* P must rise 0.10 of the 0.20 it gains from 20 to 25, half the way: 20 + (0.50 - 0.40)/(0.60 - 0.40) x 5 = 22.5 degrees C.
-3. *Upper crossing.* P must fall 0.10 of the 0.44 it loses from 25 to 30: 25 + (0.60 - 0.50)/(0.60 - 0.16) x 5 = 25 + 1.14 = 26.14 degrees C.
-4. *Breadth.* 26.14 - 22.5 = 3.64 degrees C.
-5. *Which rate limits each end?* At 20 degrees C survival is high and development slow, so development limits the cold end. At 30 degrees C development is still fairly fast but survival has collapsed, so survival limits the hot end.
-
-<PerformanceBreadthReader />
-
-Now the limits of the answer. P leaves out fecundity, so it is not lambda. The crossings are not lethal limits, and they are not a range boundary: a moth in the field can shelter in shade, and its distribution also depends on host plants, enemies and dispersal.
+A breadth from a laboratory curve is not a range boundary. A moth in the field can shelter in shade, and its distribution also depends on host plants, enemies and dispersal.
 
 ## Testing a range edge by transplant
 
@@ -417,3 +384,39 @@ Read the results this way. If lambda is at least 1 beyond the range in both neig
 Two practical issues come first. Planting beyond a range needs the landowner's permission and often permits from agencies, depending on the species and the place, and a species that thrives there could spread as a new invader. Choosing sites that can be monitored, and removing plants at the end if required, is part of the design.
 
 </details>
+
+## Going deeper
+
+### Worked problem: a performance breadth from development and survival
+
+The 2024 synthesis by Mariana Abarca and colleagues used 46 laboratory data sets from 26 species of Lepidoptera. They combined the two rates:
+
+> **P = D x S**   (D = development rate, S = survival, each scaled to its own maximum)
+
+**Worked problem.** The numbers are invented for teaching. A moth is reared at three temperatures. Survival peaked at a cooler temperature not shown, so S is below 1 at all three.
+
+| Temperature | D | S |
+|---|---|---|
+| 20 degrees C | 0.50 | 0.80 |
+| 25 degrees C | 1.00 | 0.60 |
+| 30 degrees C | 0.80 | 0.20 |
+
+Assume P changes in a straight line between treatments, do not extrapolate beyond 20 or 30 degrees C, and call the acceptable range P of at least 0.50 (the threshold Abarca's group used, an operational choice).
+
+1. *Compute P.* 0.50 x 0.80 = 0.40 at 20 degrees C; 1.00 x 0.60 = 0.60 at 25; 0.80 x 0.20 = 0.16 at 30. The best tested temperature is 25 degrees C. The true peak could lie between treatments.
+2. *Lower crossing.* P must rise 0.10 of the 0.20 it gains from 20 to 25, half the way: 20 + (0.50 - 0.40)/(0.60 - 0.40) x 5 = 22.5 degrees C.
+3. *Upper crossing.* P must fall 0.10 of the 0.44 it loses from 25 to 30: 25 + (0.60 - 0.50)/(0.60 - 0.16) x 5 = 25 + 1.14 = 26.14 degrees C.
+4. *Breadth.* 26.14 - 22.5 = 3.64 degrees C.
+5. *Which rate limits each end?* At 20 degrees C survival is high and development slow, so development limits the cold end. At 30 degrees C development is still fairly fast but survival has collapsed, so survival limits the hot end.
+
+<PerformanceBreadthReader />
+
+P leaves out fecundity, so it is not lambda. The crossings are not lethal limits, and they are not a range boundary.
+
+### Field experiment on competition: the Welk study
+
+Welk and colleagues grew 14 perennial grassland species in nine German botanical gardens, with a sown competitor grass, *Festuca rubra*, present or absent and molluscs excluded or not, in a fully crossed design. In their model, competition reduced aboveground biomass by 40.8% overall.
+
+### Names and word history
+
+Hutchinson did not coin the word *niche*. Joseph Grinnell used it in 1917 for a bird's habitat and habits, and Charles Elton in 1927 for an animal's place in a food web. What Hutchinson added was a version you can measure. The Millport barnacles are now identified as *C. montagui*, a separate species split from *C. stellatus* after Connell's work, and *Balanus balanoides* is now *Semibalanus balanoides*.
