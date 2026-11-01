@@ -1,10 +1,12 @@
-"""Global change: a warming mountain outruns its species  (Biochemistrypedia explainer)
+"""Global change: species on the move  (Biochemistrypedia explainer)
 
 COLOR MAP (one color per concept, whole video)
   RED    = the isotherm and warming (the moving warm line)
   GREEN  = the species (dots on the slope)
   YELLOW = the lag, the gap between line and species
-  TEAL   = the invented inputs (warming rate, lapse rate) and the arithmetic
+  TEAL   = measurements, evidence and arithmetic
+  BLUE   = seawater
+  ORANGE also represents land use, transport and nitrogen deposition
   ORANGE = other possible drivers (barrier, forest loss, alternatives)
   GREY   = the mountain, the start level, labels
 Scale on the mountain: 1 unit of height = 50 m, so 11 m = 0.22 units, 150 m = 3 units.
@@ -70,335 +72,259 @@ def panel_chip(text, color, size=24, w=None):
     return c
 
 
+def heading(text):
+    return T(text, 34, font=TITLE_FONT).move_to([0, 3.15, 0])
+
+
+def arrow(a, b, color=GREEN):
+    return Arrow(a, b, color=color, buff=0, stroke_width=5)
+
+
+def tree(x, y, scale=1):
+    return VGroup(Line([x, y, 0], [x, y+0.8*scale, 0], color=GREY, stroke_width=4),
+                  Polygon([x-0.4*scale,y+0.35*scale,0], [x,y+1.3*scale,0],
+                          [x+0.4*scale,y+0.35*scale,0], color=GREEN, fill_opacity=0.3))
+
+
+def backed_chip(text, color=GREEN, size=24):
+    c = chip(text, color, size)
+    back = Rectangle(width=c.width, height=c.height, stroke_width=0,
+                     fill_color=BG, fill_opacity=1).move_to(c)
+    return VGroup(back, c)
+
+
+def prairie_plant(x, height):
+    y = -1.8
+    stalk = Line([x,y,0], [x,y+height,0], color=GREEN, stroke_width=4)
+    leaves = VGroup(*[Ellipse(width=.55, height=.18, color=GREEN, fill_opacity=.4)
+                       .rotate(angle).move_to([x+dx,y+height*f,0])
+                       for dx,f,angle in [(-.2,.4,-.5),(.2,.65,.5)]])
+    return VGroup(stalk, leaves)
+
+
+def bar(width, x, y, color=GREEN):
+    return Rectangle(width=width, height=0.5, stroke_width=0, fill_color=color,
+                     fill_opacity=0.8).move_to([x+width/2,y,0])
+
+
 class S00Title(TitleCard):
     LESSON = "Global change across scales"
-    TITLE = "A warming mountain outruns its species"
+    TITLE = "Species on the Move"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Isotherm(SpokenScene):
+class S01Moving(SpokenScene):
     def construct(self):
-        mt = mountain()
-        line = iso(Y0)
-        lab = lbl_on("isotherm", Y0, RED)
-        sp = dots(Y0)
-        sp_lab = splabel(Y0)
-        q = T("?", 56, YELLOW, weight=BOLD).move_to([sl(Y0 + 1.5) + 1.0, Y0 + 1.5, 0])
-
-        self.at("If a mountain warms")
-        self.play(Create(mt), run_time=0.7)
-        self.play(Create(line), FadeIn(lab), FadeIn(sp, scale=0.6), FadeIn(sp_lab), run_time=0.45)
-        self.at("where does")
-        self.play(FadeIn(q, scale=0.5), run_time=0.4)
-        self.play(Indicate(sp, color=GREEN), run_time=0.8)
-
-        # range
-        rng = RoundedRectangle(corner_radius=0.2, width=2.0, height=0.6, stroke_color=GREEN, stroke_width=3,
-                               fill_color=GREEN, fill_opacity=0.12).move_to(sp)
-        self.at("range is the")
-        self.play(FadeOut(q), Create(rng), run_time=0.6)
-        rng_lbl = T("range: where its populations live and reproduce", 24, GREEN).move_to([3.7, 1.5, 0])
-        rng_lbl = VGroup(T("range: where its", 24, GREEN), T("populations live", 24, GREEN), T("and reproduce", 24, GREEN)).arrange(DOWN, buff=0.12).move_to([3.7, 1.0, 0])
-        self.at("the area where")
-        self.play(FadeIn(rng_lbl, shift=LEFT * 0.2), run_time=0.6)
-
-        # temperature falls with height
-        ar = Arrow([1.2, -2.6, 0], [1.2, 2.2, 0], color=GREY, stroke_width=4, buff=0)
-        cool = T("cooler", 24, BLUE).move_to([2.2, 2.1, 0])
-        warm = T("warmer", 24, RED).move_to([2.2, -2.5, 0])
-        self.at("Temperature falls as you climb")
-        self.play(FadeOut(rng_lbl), GrowArrow(ar), FadeIn(cool), FadeIn(warm), run_time=0.9)
-
-        # warming pushes the isotherm uphill
-        warming = T("warming", 28, RED, weight=BOLD).move_to([4.9, -0.2, 0])
-        up = Arrow([3.6, -1.2, 0], [3.6, 0.6, 0], color=RED, stroke_width=6, buff=0)
-        self.at("So warming moves")
-        self.play(FadeOut(VGroup(cool, warm, ar)), FadeIn(warming), GrowArrow(up), run_time=0.6)
-        self.at("an isotherm")
-        self.play(Indicate(VGroup(line, lab), color=RED), run_time=0.8)
-        self.at("a line of equal temperature")
-        eq = T("equal temperature all along the line", 24, RED).move_to([3.9, 2.5, 0])
-        self.play(FadeIn(eq), run_time=0.5)
-        self.at("uphill")
-        d = 1.3
-        line2 = iso(Y0 + d)
-        lab2 = lbl_on("isotherm", Y0 + d, RED)
-        self.play(FadeOut(eq), Transform(line, line2), Transform(lab, lab2), run_time=1.3)
-        self.at("the edge should follow")
-        sp2 = dots(Y0 + d)
-        self.play(Transform(sp, sp2), rng.animate.move_to(sp2), sp_lab.animate.move_to(splabel(Y0 + d)), FadeOut(warming), FadeOut(up), run_time=1.5)
+        globe = VGroup(Circle(radius=2.35, color=GREY),
+                       Ellipse(width=2.5,height=4.7,color=GREY),
+                       Ellipse(width=4.7,height=1.1,color=GREY)).shift(LEFT*2.8)
+        sp = VGroup(*[Dot([x,y,0], radius=.13,color=GREEN) for x,y in [(-4,0),(-2.8,.4),(-1.8,-.4)]])
+        title = heading("Ranges are moving")
+        self.at("As the climate warms")
+        self.play(FadeIn(title),Create(globe),FadeIn(sp),run_time=.8)
+        self.at("toward the poles")
+        ars=VGroup(*[arrow(d.get_center(),d.get_center()+UP*h) for d,h in zip(sp,[.5,1.3,-1.1])])
+        self.play(*[d.animate.shift(UP*h) for d,h in zip(sp,[.5,1.3,-1.1])],Create(ars),run_time=1)
+        self.at("and up mountains")
+        mt=mountain(); ds=dots(Y0)
+        self.play(FadeOut(VGroup(globe,sp,ars)),Create(mt),FadeIn(ds),run_time=.7)
+        self.play(Transform(ds,dots(Y0+1.2)),run_time=.8)
+        self.at("by a median")
+        nums=VGroup(T("Land medians / decade",26,GREY),M("~17 km poleward",30,GREEN),
+                    M("11 m uphill",30,GREEN)).arrange(DOWN,buff=.35).move_to([3,1,0])
+        self.play(FadeIn(nums),run_time=.6)
+        self.at("Species vary a lot")
+        varied=VGroup(*[Dot([sl(y)+.6,y,0],radius=.14,color=GREEN) for y in [-1.3,-.1,1.5]])
+        self.play(Transform(ds,varied),FadeIn(T("Wide variation",26,YELLOW).move_to([3,-1,0])),run_time=.7)
+        self.at("In the sea")
+        self.play(FadeOut(Group(*self.mobjects)),run_time=.4)
+        sea=RoundedRectangle(width=11,height=3.5,color=BLUE,fill_opacity=.1).move_to([0,.3,0])
+        sd=VGroup(*[Dot([-4,y,0],radius=.15,color=GREEN) for y in [-.6,.3,1.2]])
+        self.play(FadeIn(heading("At sea: ~6× faster poleward")),Create(sea),FadeIn(sd),run_time=.6)
+        self.play(sd.animate.shift(RIGHT*6),run_time=1.5)
+        self.at("That reshuffling")
+        together=T("New combinations of species",30,GREEN).move_to([0,-2.4,0])
+        self.play(FadeIn(together),sd[0].animate.shift(UP*.5+LEFT),sd[2].animate.shift(DOWN*.4+RIGHT),run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Velocity(SpokenScene):
+class S02Evidence(SpokenScene):
     def construct(self):
-        mt = mountain()
-        ghost = DashedLine([sl(Y0) - 0.45, Y0, 0], [sr(Y0) + 0.3, Y0, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        ghost_lbl = T("start", 22, GREY).move_to([sr(Y0) + 0.3 + 0.55, Y0 - 0.42, 0])
-        line = iso(Y0)
-        lab = lbl_on("isotherm", Y0, RED)
-        sp = dots(Y0)
-        self.add(mt, ghost, ghost_lbl, line, lab, sp)
-
-        head = T("climate velocity", 34, RED, font=TITLE_FONT).move_to([4.0, 3.15, 0])
-        self.at("climate velocity")
-        self.play(Write(head), run_time=0.9)
-
-        c1 = chip("warming", TEAL, size=26)
-        c2 = chip("lapse rate", TEAL, size=26)
-        c1.move_to([4.0, 2.2, 0]); c2.move_to([4.0, 2.2, 0])
-        self.at("how fast the air warms")
-        self.play(FadeIn(c1, shift=DOWN * 0.2), run_time=0.5)
-        self.at("the lapse rate")
-        self.play(c1.animate.move_to([4.0, 2.2, 0]), FadeIn(c2.move_to([4.0, 1.4, 0]), shift=DOWN * 0.2), run_time=0.5)
-        note = T("how fast temperature falls with height", 24, GREY).move_to([4.0, 0.75, 0])
-        self.at("how fast temperature falls with height")
-        self.play(FadeIn(note), run_time=0.5)
-
-        v1 = M("0.3 °C per decade", 26, TEAL).move_to([4.0, 2.2, 0])
-        v2 = M("0.6 °C per 100 m", 26, TEAL).move_to([4.0, 1.4, 0])
-        self.at("Suppose a mountainside warms")
-        self.play(ReplacementTransform(c1, v1), FadeOut(note), run_time=0.6)
-        self.at("Suppose temperature falls")
-        self.play(ReplacementTransform(c2, v2), run_time=0.6)
-        inv = T("invented round figures", 24, YELLOW).move_to([4.0, 0.6, 0])
-        self.at("invented round figures")
-        self.play(FadeIn(inv, scale=0.9), run_time=0.5)
-
-        calc = M("0.3 ÷ 0.6 × 100 m", 30, TEAL).move_to([4.0, -0.4, 0])
-        self.at("Divide the first")
-        self.play(FadeOut(inv), FadeIn(calc, shift=UP * 0.2), run_time=0.7)
-        res = M("= 50 m per decade", 32, RED, weight=BOLD).move_to([4.0, -1.3, 0])
-        self.at("The isotherm climbs")
-        line2, lab2 = iso(Y0 + 1.0), lbl_on("isotherm", Y0 + 1.0, RED)
-        br = bracket(0.75, Y0, Y0 + 1.0, RED)
-        self.play(Transform(line, line2), Transform(lab, lab2), FadeIn(res, shift=UP * 0.2), run_time=1.2)
-        self.play(Create(br), run_time=0.5)
+        cards=VGroup(*[chip("study",TEAL,24).move_to([x,y,0]) for x,y in [(-4,1.3),(-1.3,1.6),(1.4,1.1),(4,1.6)]])
+        self.at("How do we know")
+        self.play(FadeIn(heading("Many studies, one synthesis")),FadeIn(cards),run_time=.7)
+        self.at("pooled published range shifts")
+        axes=VGroup(arrow([-3,-1.6,0],[3.8,-1.6,0],GREY),arrow([-3,-1.6,0],[-3,2,0],GREY))
+        labs=VGroup(T("warming →",24,RED).move_to([.4,-2.2,0]),T("range shift",24,GREEN).move_to([-4.5,1.8,0]))
+        pts=VGroup(*[Dot([x,y,0],radius=.13,color=TEAL) for x,y in [(-2.2,-1),(-.8,-.5),(.5,.4),(2,.7),(3,1.4)]])
+        self.play(ReplacementTransform(cards,pts),Create(axes),FadeIn(labs),run_time=.9)
+        self.at("Shifts were biggest")
+        self.play(Indicate(pts[-1],color=YELLOW,scale_factor=1.6),run_time=.8)
+        self.at("roughly kept pace")
+        self.play(FadeOut(Group(*self.mobjects)),run_time=.3)
+        mt=mountain(); ds=dots(Y0); line=iso(Y0)
+        self.play(Create(mt),FadeIn(ds),Create(line),run_time=.6)
+        note=T("Poleward: roughly kept pace",28,GREEN).move_to([3.1,2.6,0])
+        self.play(FadeIn(note),run_time=.5)
+        self.at("Uphill shifts mostly fell short")
+        self.play(Transform(line,iso(Y0+2.4)),Transform(ds,dots(Y0+.8)),run_time=1)
+        keys=VGroup(chip("isotherm",RED,24),chip("species",GREEN,24)).arrange(DOWN,buff=.3).move_to([3.1,.8,0])
+        self.play(FadeIn(keys),Create(bracket(-2.9,Y0+.8,Y0+2.4,YELLOW)),run_time=.6)
+        self.at("measure that shortfall")
+        self.play(FadeIn(T("Measure the uphill shortfall",26,YELLOW).move_to([3.1,-1.5,0])),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Species(SpokenScene):
+class S03Consequences(SpokenScene):
     def construct(self):
-        mt = mountain()
-        ghost = DashedLine([sl(Y0) - 0.45, Y0, 0], [sr(Y0) + 0.3, Y0, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        ghost_lbl = T("start", 22, GREY).move_to([sr(Y0) + 0.3 + 0.55, Y0 - 0.42, 0])
-        line = iso(Y0 + 1.0)
-        lab = lbl_on("isotherm", Y0 + 1.0, RED)
-        sp = dots(Y0)
-        sp_lab = splabel(Y0)
-        self.add(mt, ghost, ghost_lbl, line, lab, sp)
-
-        self.at("Now add a species")
-        self.play(FadeIn(sp_lab), Indicate(sp, color=GREEN), run_time=0.8)
-
-        t1 = T("species, per decade", 26, GREEN).move_to([4.0, 2.6, 0])
-        v = M("11 m", 40, GREEN, weight=BOLD).move_to([4.0, 1.9, 0])
-        src = T("median, 2011 synthesis,", 22, GREY).move_to([4.0, 1.25, 0])
-        src2 = T("terrestrial species", 22, GREY).move_to([4.0, 0.85, 0])
-        self.at("the median")
-        self.play(FadeIn(t1), run_time=0.4)
-        self.at("meters per decade")
-        d = 11 * U  # 0.22
-        sp2 = dots(Y0 + d)
-        self.play(FadeIn(v, scale=0.8), FadeIn(src), FadeIn(src2), Transform(sp, sp2), sp_lab.animate.move_to(splabel(Y0 + d)), run_time=1.2)
-
-        # bars
-        self.at("divided by")
-        barL = 0.07
-        bi = Rectangle(width=50 * barL, height=0.45, stroke_width=0, fill_color=RED, fill_opacity=0.9)
-        bs = Rectangle(width=11 * barL, height=0.45, stroke_width=0, fill_color=GREEN, fill_opacity=0.9)
-        bi.move_to([2.0 + 50 * barL / 2, -0.35, 0]); bs.move_to([2.0 + 11 * barL / 2, -1.15, 0])
-        li = M("50 m", 24, RED).next_to(bi, RIGHT, buff=0.15)
-        ls = M("11 m", 24, GREEN).next_to(bs, RIGHT, buff=0.15)
-        li.move_to([2.0 + 50 * barL + 0.55, -0.35, 0]); ls.move_to([2.0 + 11 * barL + 0.55, -1.15, 0])
-        tl = T("isotherm", 22, RED).move_to([2.75, 0.05, 0])
-        ts = T("species", 22, GREEN).move_to([2.6, -0.75, 0])
-        self.play(FadeOut(VGroup(src, src2, t1)), v.animate.move_to([4.0, 2.4, 0]), run_time=0.4)
-        self.play(GrowFromEdge(bi, LEFT), FadeIn(li), FadeIn(tl), run_time=0.6)
-        self.play(GrowFromEdge(bs, LEFT), FadeIn(ls), FadeIn(ts), run_time=0.6)
-        calc = M("11 ÷ 50 = 0.22", 30, TEAL).move_to([4.0, -2.0, 0])
-        self.at("so the species")
-        self.play(FadeIn(calc, shift=UP * 0.2), run_time=0.6)
-        pct = M("22%", 56, YELLOW, weight=BOLD).move_to([4.0, -3.0, 0])
-        self.at("covers")
-        self.play(FadeIn(pct, scale=0.7), bs.animate.set_fill(YELLOW, 1), run_time=0.7)
+        community=VGroup(Circle(radius=1.7,color=GREY).move_to([-2.5,.3,0]),Circle(radius=1.7,color=GREY).move_to([2.5,.3,0]))
+        icons=VGroup(Dot([-3,.5,0],radius=.22,color=GREEN),Triangle(color=GREEN,fill_opacity=.5).scale(.25).move_to([-2,-.3,0]),
+                     Square(side_length=.4,color=GREEN,fill_opacity=.5).move_to([2,.4,0]),Dot([3,-.3,0],radius=.22,color=GREEN))
+        self.at("Why does it matter")
+        self.play(FadeIn(heading("Communities reassemble")),Create(community),FadeIn(icons),run_time=.7)
+        self.at("Species do not move together")
+        self.play(icons[0].animate.shift(RIGHT*4.8),icons[2].animate.shift(LEFT*4.5),icons[1].animate.shift(UP*.8),run_time=1.3)
+        self.at("Hosts and pathogens")
+        host=chip("host",GREEN,26).move_to([-2,.3,0]); pathogen=chip("pathogen",ORANGE,26).move_to([2,.3,0])
+        self.play(FadeOut(community),FadeOut(icons),FadeIn(host),FadeIn(pathogen),run_time=.6)
+        self.at("can meet in new places")
+        self.play(host.animate.shift(RIGHT*.6),pathogen.animate.shift(LEFT*.6),run_time=.8)
+        self.at("food production")
+        food=chip("food",ORANGE,28).move_to([-4,-2,0])
+        self.play(FadeIn(food),run_time=.5)
+        self.at("spread of disease")
+        self.play(FadeIn(chip("disease",ORANGE,28).move_to([0,-2,0])),run_time=.5)
+        self.at("how much carbon")
+        self.play(FadeIn(chip("carbon",ORANGE,28).move_to([4,-2,0])),run_time=.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Lag(SpokenScene):
+class S04LandUse(SpokenScene):
     def construct(self):
-        mt = mountain()
-        ghost = DashedLine([sl(Y0) - 0.45, Y0, 0], [sr(Y0) + 0.3, Y0, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        ghost_lbl = T("start", 22, GREY).move_to([sr(Y0) + 0.3 + 0.55, Y0 - 0.42, 0])
-        line = iso(Y0 + 1.0)
-        lab = lbl_on("isotherm", Y0 + 1.0, RED)
-        sp = dots(Y0 + 0.22)
-        sp_lab = splabel(Y0 + 0.22)
-        self.add(mt, ghost, ghost_lbl, line, lab, sp, sp_lab)
-
-        clock = T("decade 1", 30, GREY).move_to([4.2, 3.1, 0])
-        self.at("Run it for")
-        self.play(FadeIn(clock), run_time=0.3)
-        # decades 2 and 3
-        n = clock
-        for k, ph in ((2, "30 years"), (3, "three decades")):
-            self.at(ph)
-            nxt = T(f"decade {k}", 30, GREY).move_to([4.2, 3.1, 0])
-            line2, lab2 = iso(Y0 + k), lbl_on("isotherm", Y0 + k, RED)
-            sp2 = dots(Y0 + 0.22 * k)
-            self.play(Transform(line, line2), Transform(lab, lab2), Transform(sp, sp2),
-                      sp_lab.animate.move_to(splabel(Y0 + 0.22 * k)),
-                      ReplacementTransform(n, nxt), run_time=0.8)
-            n = nxt
-        self.play(n.animate.set_color(YELLOW), run_time=0.3)
-
-        r1 = M("3 × 50 = 150 m", 30, RED).move_to([4.2, 2.1, 0])
-        self.at("The isotherm climbs")
-        b150 = bracket(0.75, Y0, Y0 + 3, RED)
-        l150 = M("150 m", 22, RED).move_to([0.75, Y0 + 3 + 0.35, 0])
-        self.play(FadeIn(r1, shift=UP * 0.15), Create(b150), FadeIn(l150), run_time=0.8)
-        r2 = M("3 × 11 = 33 m", 30, GREEN).move_to([4.2, 1.2, 0])
-        self.at("The species climbs")
-        self.play(FadeIn(r2, shift=UP * 0.15), Indicate(sp, color=GREEN), run_time=0.8)
-
-        ys, yi = Y0 + 0.22 * 3, Y0 + 3
-        bx = -3.0
-        gap = bracket(bx, ys, yi, YELLOW)
-        gl = M("117 m", 30, YELLOW, weight=BOLD).move_to([bx - 0.75, (ys + yi) / 2, 0])
-        gb = Rectangle(width=gl.width + 0.2, height=gl.height + 0.15, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(gl)
-        self.at("It ends up")
-        self.play(Create(gap), run_time=0.7)
-        self.at("below the elevation")
-        self.play(FadeIn(gb), FadeIn(gl), run_time=0.5)
-        lagt = T("the lag", 30, YELLOW).move_to([4.2, -0.1, 0])
-        lagt2 = T("species below the line", 24, GREY).move_to([4.2, -0.7, 0])
-        self.at("that now has its former temperature")
-        self.play(FadeIn(lagt), FadeIn(lagt2), Indicate(line, color=RED), run_time=0.9)
+        trees=VGroup(*[tree(x,-1.3) for x in [-4.7,-3.4,-2.1,-.8]])
+        self.at("Climate is not acting alone")
+        self.play(FadeIn(heading("Other drivers act alongside warming")),FadeIn(trees),run_time=.7)
+        self.at("Clearing land for farms and towns")
+        fields=VGroup(*[Rectangle(width=1.1,height=1,color=ORANGE,fill_opacity=.2).move_to([x,-.7,0]) for x in [-2.1,-.8]])
+        self.play(ReplacementTransform(VGroup(trees[2],trees[3]),fields),run_time=1)
+        self.at("One model estimate")
+        b=bar(4,1,-.5); label=VGroup(T("Local species richness",26,GREEN),T("model estimate",22,GREY)).arrange(DOWN,buff=.15).move_to([3,1,0])
+        self.play(FadeIn(label),GrowFromEdge(b,LEFT),run_time=.6)
+        self.at("average loss")
+        self.play(Transform(b,bar(4*.864,1,-.5)),FadeIn(M("−13.6%",34,YELLOW).move_to([3,-1.5,0])),run_time=.8)
+        self.at("In warmer regions")
+        self.play(FadeOut(Group(*self.mobjects)),run_time=.3)
+        mt=mountain(); ds=dots(Y0)
+        cleared=Polygon(LFOOT,[-4,-.4,0],[-1.8,-.4,0],RFOOT,color=ORANGE,fill_opacity=.18)
+        self.play(Create(mt),FadeIn(ds),FadeIn(cleared),FadeIn(T("Forest loss + warming",30,ORANGE).move_to([3,2,0])),run_time=.6)
+        self.at("speed up uphill shifts")
+        self.play(Transform(ds,dots(Y0+2)),run_time=.9)
+        self.at("And species carried by people")
+        self.play(FadeOut(Group(*self.mobjects)),run_time=.3)
+        lands=VGroup(Ellipse(width=2,height=3,color=GREY,fill_opacity=.12).move_to([-4.8,0,0]),Ellipse(width=2,height=3,color=GREY,fill_opacity=.12).move_to([4.8,0,0]))
+        ship=VGroup(Polygon([-1,-.25,0],[1,-.25,0],[.6,-.65,0],[-.7,-.65,0],color=ORANGE,fill_opacity=.3),Rectangle(width=.8,height=.4,color=ORANGE).move_to([0,-.05,0])).shift(LEFT*2+DOWN*.4)
+        plane=VGroup(Line(LEFT*.7,RIGHT*.7,color=ORANGE,stroke_width=5),Line([-.2,-.4,0],[.2,.4,0],color=ORANGE,stroke_width=5)).move_to([-2,1.4,0])
+        cargo=VGroup(Dot(ship.get_center(),color=GREEN,radius=.12),Dot(plane.get_center(),color=GREEN,radius=.12))
+        self.play(Create(lands),FadeIn(ship),FadeIn(plane),FadeIn(cargo),run_time=.6)
+        self.play(ship.animate.shift(RIGHT*4),plane.animate.shift(RIGHT*4),cargo.animate.shift(RIGHT*4),run_time=1.3)
+        self.at("threats linked to extinctions")
+        self.play(FadeIn(T("Introduced species: extinction threats",28,ORANGE).move_to([0,-2.5,0])),run_time=.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Assumptions(SpokenScene):
+class S05Timing(SpokenScene):
     def construct(self):
-        mt = mountain()
-        yi = Y0 + 3
-        ys = Y0 + 0.66
-        line = iso(yi)
-        lab = lbl_on("isotherm", yi, RED)
-        sp = dots(ys)
-        sp_lab = splabel(ys)
-        self.add(mt, line, lab, sp, sp_lab)
-        gap = bracket(-3.0, ys, yi, YELLOW)
-        gl = M("117 m", 30, YELLOW, weight=BOLD).move_to([-3.75, (ys + yi) / 2, 0])
-        gb = Rectangle(width=gl.width + 0.2, height=gl.height + 0.15, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(gl)
-        self.add(gap, gb, gl)
-
-        def row(text, y, color=TEAL):
-            return chip(text, color, size=22).move_to([4.0, y, 0])
-
-        a2 = row("temperature alone sets the range", 1.4)
-        a3 = row("nothing blocks the species", 0.6)
-        hdr = T("assumptions", 28, GREY).move_to([4.0, 3.7, 0])
-        a1 = chip("warming: constant", TEAL, size=22).move_to([4.0, 3.0, 0])
-        a1b = chip("lapse rate: constant", TEAL, size=22).move_to([4.0, 2.2, 0])
-        self.at("holds only under assumptions")
-        self.play(FadeIn(hdr), FadeOut(VGroup(gap, gb, gl)), run_time=0.4)
-        self.at("Warming")
-        self.play(FadeIn(a1, shift=LEFT * 0.2), FadeIn(a1b, shift=LEFT * 0.2), run_time=0.6)
-        self.at("Temperature alone")
-        self.play(FadeIn(a2, shift=LEFT * 0.2), run_time=0.5)
-        self.at("Nothing blocks the species")
-        self.play(FadeIn(a3, shift=LEFT * 0.2), run_time=0.5)
-        # barrier across the slope in front of the species
-        by = ys + 0.55
-        bar = Line([sl(by) + 0.1, by, 0], [sl(by) + 2.3, by, 0], color=ORANGE, stroke_width=9)
-        bar_lbl = VGroup(T("road, farm", 22, ORANGE), T("or cliff", 22, ORANGE)).arrange(DOWN, buff=0.08).move_to([sl(by) + 1.4, by + 0.5, 0])
-        self.at("such as a road")
-        self.play(Create(bar), FadeIn(bar_lbl), run_time=0.8)
-        self.play(Wiggle(sp, scale_value=1.1), run_time=0.5)
-
-        # causes of lag
-        causes = [("slow dispersal", ORANGE), ("cues other than temperature", ORANGE),
-                  ("competitors already upslope", ORANGE), ("loss of forest", ORANGE)]
-        cs = VGroup(*[chip(t, c, size=22) for t, c in causes]).arrange(DOWN, buff=0.25).move_to([4.0, 1.0, 0])
-        hdr2 = T("possible reasons for a lag", 26, GREY).move_to([4.0, 3.3, 0])
-        self.at("A real lag could reflect")
-        self.play(FadeOut(VGroup(hdr, a1, a1b, a2, a3, bar, bar_lbl)), FadeIn(hdr2), run_time=0.5)
-        self.at("slow dispersal")
-        self.play(FadeIn(cs[0], shift=LEFT * 0.2), run_time=0.4)
-        self.at("cues other than temperature")
-        self.play(FadeIn(cs[1], shift=LEFT * 0.2), run_time=0.4)
-        self.at("competitors already upslope")
-        self.play(FadeIn(cs[2], shift=LEFT * 0.2), run_time=0.4)
-        self.at("loss of forest")
-        self.play(FadeIn(cs[3], shift=LEFT * 0.2), run_time=0.4)
-
-        # variation: many species at different heights relative to the line
-        self.at("the median hides wide variation")
-        ds = VGroup(*[Dot([sl(yy) + 0.7, yy, 0], radius=0.14, color=GREEN) for yy in [yi - 2.3, yi - 1.5, yi - 0.7, yi]])
-        ahead = Dot([sl(yi + 0.7) + 0.7, yi + 0.7, 0], radius=0.14, color=GREEN)
-        self.play(FadeOut(VGroup(sp, sp_lab)), FadeOut(VGroup(cs, hdr2)), FadeIn(ds, lag_ratio=0.15), FadeIn(ahead), run_time=1.0)
-        al = T("far ahead of the line", 24, GREEN).move_to([4.0, yi + 0.9, 0])
-        l1 = Line([al.get_left()[0] - 0.1, al.get_center()[1], 0], ahead.get_center() + RIGHT * 0.18, color=GREEN, stroke_width=2)
-        self.at("far ahead of the isotherm")
-        self.play(FadeIn(al), Create(l1), Indicate(ahead, color=GREEN, scale_factor=1.6), run_time=0.7)
-        bl = T("far behind the line", 24, GREEN).move_to([4.0, -1.3, 0])
-        l2 = Line([bl.get_left()[0] - 0.1, bl.get_center()[1], 0], ds[0].get_center() + RIGHT * 0.18, color=GREEN, stroke_width=2)
-        self.at("or far behind it")
-        self.play(FadeIn(bl), Create(l2), Indicate(ds[0], color=GREEN, scale_factor=1.6), run_time=0.7)
+        lines=VGroup(Line([-3.2,1,0],[5.2,1,0],color=GREY),Line([-3.2,-.6,0],[5.2,-.6,0],color=GREY))
+        labs=VGroup(T("Bird laying",25,GREEN).move_to([-4.8,1,0]),T("Caterpillar peak",24,GREEN).move_to([-4.8,-.6,0]),T("earlier ← spring → later",24,GREY).move_to([.8,2.1,0]))
+        bird=backed_chip("laying",GREEN,24).move_to([2,1,0]); food=backed_chip("food",GREEN,24).move_to([2,-.6,0])
+        self.at("Warming also shifts timing")
+        self.play(FadeIn(heading("Spring events shift unevenly")),Create(lines),FadeIn(labs),FadeIn(bird),FadeIn(food),run_time=.8)
+        self.at("Many spring events now come earlier")
+        self.play(bird.animate.shift(LEFT*.7),food.animate.shift(LEFT*.7),run_time=.8)
+        self.at("not by the same amount")
+        self.play(food.animate.shift(LEFT*2.5),run_time=.8)
+        self.at("chicks can miss the peak")
+        gap=VGroup(DashedLine([1.3,.65,0],[1.3,-1.4,0],color=YELLOW),
+                   DashedLine([-1.2,-.95,0],[-1.2,-1.4,0],color=YELLOW),
+                   DoubleArrow([-1.2,-1.4,0],[1.3,-1.4,0],buff=0,color=YELLOW))
+        self.play(Create(gap),FadeIn(T("Food peaks before chicks need it",28,YELLOW).move_to([0,-2.1,0])),run_time=.7)
+        self.at("In Dutch pied flycatchers")
+        self.play(FadeOut(Group(*self.mobjects)),run_time=.3)
+        title=heading("Pied flycatcher populations")
+        labels=VGroup(T("Early food peak",26,GREY).move_to([-3,1.8,0]),T("Late food peak",26,GREY).move_to([3,1.8,0]))
+        a=bar(4,-5,0); b=bar(4,1,0)
+        self.play(FadeIn(title),FadeIn(labels),FadeIn(a),FadeIn(b),run_time=.6)
+        self.at("populations fell by about")
+        self.play(Transform(a,bar(.4,-5,0)),FadeIn(M("~90% decline",30,YELLOW).move_to([-3,-1,0])),run_time=1)
+        self.play(FadeIn(T("Weak decline at most",24,GREY).move_to([3,-1,0])),run_time=.4)
+        self.at("Fewer chicks do not always")
+        self.play(FadeIn(T("Fewer chicks ≠ always fewer birds",28,YELLOW).move_to([0,-2.5,0])),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Detection(SpokenScene):
+class S06SeaAndNitrogen(SpokenScene):
     def construct(self):
-        mt = mountain()
-        yi = Y0 + 3
-        self.add(mt)
-        sp = dots(Y0)
-        lab = splabel(Y0)
-        self.at("Say a range moves uphill")
-        self.play(FadeIn(sp), FadeIn(lab), run_time=0.5)
-        d = 1.8
-        sp2 = dots(Y0 + d)
-        self.play(Transform(sp, sp2), lab.animate.move_to(splabel(Y0 + d)), run_time=1.3)
+        sea=Rectangle(width=11,height=3.5,color=BLUE,fill_opacity=.12).move_to([0,-.8,0])
+        bubbles=VGroup(*[Circle(radius=.17,color=GREY).move_to([x,1.7,0]) for x in [-3,-1,1]])
+        gas=chip("CO₂",GREY,28).move_to([-4.8,2.3,0])
+        self.at("In the sea")
+        self.play(Create(sea),FadeIn(bubbles),FadeIn(gas),run_time=.7)
+        self.at("dissolved carbon dioxide")
+        self.play(bubbles.animate.shift(DOWN*2.2),run_time=.8)
+        self.at("lowers pH")
+        ph=chip("pH ↓",YELLOW,28).move_to([-3,-1,0])
+        self.play(FadeIn(ph),FadeOut(bubbles),run_time=.5)
+        self.at("and the carbonate")
+        carb=chip("carbonate ↓",YELLOW,28).move_to([.1,-1,0])
+        # A shell silhouette, with no molecular geometry.
+        shell=VGroup(Arc(radius=.9,start_angle=0,angle=PI,color=GREY),Line([-.9,0,0],[.9,0,0],color=GREY)).move_to([3.5,-1,0])
+        self.play(FadeIn(carb),Create(shell),run_time=.6)
+        self.at("On average")
+        self.play(FadeIn(T("Calcification, growth, survival ↓ on average",26,GREY).move_to([0,2.9,0])),run_time=.5)
+        self.at("but groups differ widely")
+        self.play(FadeIn(T("Responses differ among groups",26,YELLOW).move_to([0,-3,0])),run_time=.5)
+        self.at("On land")
+        self.play(FadeOut(Group(*self.mobjects)),run_time=.3)
+        ground=Line([-5.5,-1.8,0],[5.5,-1.8,0],color=GREY,stroke_width=4)
+        plants=VGroup(*[prairie_plant(x,h) for x,h in zip([-4,-2,0,2,4],[.85,1.1,.7,1,.9])])
+        nitrogen=VGroup(*[chip("N",ORANGE,22).move_to([x,1.3,0]) for x in [-3,0,3]])
+        self.play(FadeIn(heading("Nitrogen deposition on prairie")),Create(ground),FadeIn(plants),run_time=.6)
+        self.at("nitrogen from polluted air")
+        self.play(FadeIn(nitrogen),run_time=.4)
+        self.play(nitrogen.animate.shift(DOWN*1.6),run_time=.8)
+        self.at("can cut plant diversity")
+        self.play(FadeOut(nitrogen),plants[1].animate.stretch(2,1,about_edge=DOWN),plants[3].animate.stretch(2,1,about_edge=DOWN),plants[0].animate.set_opacity(.15),plants[4].animate.set_opacity(.15),run_time=.8)
+        self.at("On Minnesota prairie")
+        self.play(FadeIn(T("Minnesota prairie experiment",26,TEAL).move_to([0,2.2,0])),run_time=.5)
+        self.at("species number by 17 percent")
+        self.play(FadeIn(M("17% fewer species",34,YELLOW).move_to([0,-2.9,0])),run_time=.6)
+        self.finish()
 
-        det = VGroup(T("Detection", 30, GREEN, weight=BOLD), T("change beyond chance", 24, TEXT)).arrange(DOWN, buff=0.12)
-        detb = RoundedRectangle(corner_radius=0.15, width=4.6, height=det.height + 0.4, stroke_color=GREEN, stroke_width=3)
-        detg = VGroup(detb, det.move_to(detb)).move_to([4.1, 2.8, 0])
-        self.at("That shows a change happened")
-        self.play(FadeIn(detg, shift=LEFT * 0.2), run_time=0.7)
 
-        q = T("cause?", 36, YELLOW, weight=BOLD).move_to([4.1, 1.3, 0])
+class S07Attribution(SpokenScene):
+    def construct(self):
+        mt=mountain(); sp=dots(Y0); lab=splabel(Y0)
+        self.at("when a range moves uphill")
+        self.play(Create(mt),FadeIn(sp),FadeIn(lab),run_time=.6)
+        self.play(Transform(sp,dots(Y0+1.8)),Transform(lab,splabel(Y0+1.8)),run_time=.9)
+        self.at("that shows a change happened")
+        det=VGroup(chip("Detection",GREEN,30),T("A change happened",24,GREY)).arrange(DOWN,buff=.2).move_to([3.5,2.3,0])
+        self.play(FadeIn(det),run_time=.6)
         self.at("It does not show the cause")
-        self.play(FadeIn(q, scale=0.7), run_time=0.5)
-
-        # two drivers pushing
-        w = chip("warming", RED, size=24).move_to([1.6, -0.2, 0])
-        f = chip("forest loss", ORANGE, size=24).move_to([1.6, -1.4, 0])
-        aw = Arrow(w.get_left(), [sl(Y0 + d) + 1.4, Y0 + d + 0.1, 0], color=RED, stroke_width=4, buff=0.1)
-        af = Arrow(f.get_left(), [sl(Y0 + d) + 1.3, Y0 + d - 0.1, 0], color=ORANGE, stroke_width=4, buff=0.1)
-        self.at("forest loss in warmer regions")
-        self.play(FadeOut(q), FadeIn(f), GrowArrow(af), run_time=0.8)
-        self.at("tended to accelerate")
-        self.play(Indicate(sp, color=ORANGE, scale_factor=1.3), run_time=0.7)
-        self.at("not proof that climate acted alone")
-        self.play(FadeIn(w), GrowArrow(aw), run_time=0.8)
-        tag = T("average shifts at 43 sites", 24, GREY).move_to([3.9, -2.4, 0])
-        self.play(FadeIn(tag), run_time=0.3)
-
-        att = VGroup(T("Attribution", 30, YELLOW, weight=BOLD), T("a cause, alternatives tested", 24, TEXT)).arrange(DOWN, buff=0.12)
-        attb = RoundedRectangle(corner_radius=0.15, width=4.6, height=att.height + 0.4, stroke_color=YELLOW, stroke_width=3)
-        attg = VGroup(attb, att.move_to(attb)).move_to([4.1, 1.3, 0])
-        self.at("Attribution links a change")
-        self.play(FadeOut(tag), FadeIn(attg, shift=LEFT * 0.2), run_time=0.7)
+        q=T("Cause?",36,YELLOW).move_to([3.5,.7,0])
+        self.play(FadeIn(q),run_time=.5)
+        self.at("Attribution links the change")
+        att=VGroup(chip("Attribution",YELLOW,30),T("Link a cause; test alternatives",24,GREY)).arrange(DOWN,buff=.2).move_to([3.5,.6,0])
+        self.play(FadeOut(q),FadeIn(att),run_time=.6)
+        w=chip("warming",RED,24).move_to([2,-1.2,0]); f=chip("forest loss",ORANGE,24).move_to([2,-2.4,0])
+        aw=arrow(w.get_left(),[-2.8,.4,0],RED); af=arrow(f.get_left(),[-2.8,0,0],ORANGE)
         self.at("tests the alternatives")
-        self.play(Indicate(VGroup(w, f), color=YELLOW, scale_factor=1.12), run_time=0.8)
+        self.play(FadeIn(w),GrowArrow(aw),run_time=.5)
+        self.at("such as forest loss")
+        self.play(FadeIn(f),GrowArrow(af),run_time=.5)
+        self.at("Test the alternatives before")
+        self.play(Indicate(VGroup(w,f),color=YELLOW,scale_factor=1.08),run_time=.7)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Test the alternatives before you name the cause."
+class S08End(EndCard):
+    LINE = "Warming moves species poleward and uphill, reshaping communities."

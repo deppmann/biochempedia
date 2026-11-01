@@ -62,51 +62,10 @@ def dresser_timeline():
     return axis, older, younger, pin, tick, lab, zone, qs
 
 
-class S00Title(TitleCard):
-    LESSON = "History of Life and Macroevolution"
-    TITLE = "A Fossil Date Is a Floor"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Dresser(SpokenScene):
-    def construct(self):
-        m = mounds(0, 0.25, 1.15)
-        lab1 = T("Dresser Formation, Western Australia", 32).move_to([0, -0.45, 0])
-        lab2 = T("about 3.48 billion years old", 28, YELLOW).move_to([0, -1.0, 0])
-        self.play(LaggedStart(*[FadeIn(p, shift=UP * 0.2) for p in m[:-1]], lag_ratio=0.12), Create(m[-1]), run_time=1.2)
-        self.at("Dresser Formation")
-        self.play(FadeIn(lab1), FadeIn(lab2), run_time=0.7)
-        read = chip("2017 study: traces of life in hot springs", BLUE, size=28).move_to([0, -2.1, 0])
-        self.at("traces of life")
-        self.play(FadeIn(read, shift=UP * 0.15), run_time=0.6)
-        q = T("When did life begin?", 46, TEXT, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.at("when did life begin")
-        self.play(Write(q), run_time=0.9)
-        self.at("These rocks")
-        self.play(q.animate.set_color(RED), run_time=0.3)
-        axis, older, younger, pin, tick, lab, zone, qs = dresser_timeline()
-        self.at("that life existed")
-        small = mounds(PIN_X, 1.05, 0.6)
-        self.play(FadeOut(lab1), FadeOut(lab2), FadeOut(read), FadeOut(q),
-                  Transform(m, small), Create(axis), FadeIn(older), FadeIn(younger), run_time=0.9)
-        self.play(Create(pin), FadeIn(tick), FadeIn(lab), run_time=0.5)
-        self.at("older traces")
-        self.play(FadeIn(zone), LaggedStart(*[FadeIn(x, scale=1.4) for x in qs], lag_ratio=0.15), run_time=0.9)
-        reasons = [chip("destroyed", RED, 26), chip("never formed", RED, 26), chip("not yet found", RED, 26)]
-        row = VGroup(*reasons).arrange(RIGHT, buff=0.25).move_to([-2.25, -2.95, 0])
-        for r, ph in zip(reasons, ["destroyed", "never formed", "not yet found"]):
-            self.at(ph)
-            self.play(FadeIn(r, shift=UP * 0.12), run_time=0.4)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-def atom(color, r=0.38):
-    return Circle(radius=r, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.9)
-
-
 GRID = [(-1, 1), (1, 1), (-1, -1), (1, -1)]
 
+def atom(color, r=0.38):
+    return Circle(radius=r, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.9)
 
 def crystal(center, w, h, states, d, r):
     """states: 'U' uranium or 'P' lead for the four grid slots."""
@@ -117,19 +76,16 @@ def crystal(center, w, h, states, d, r):
         dots.add(atom(ORANGE if s == "U" else GREEN, r).move_to(np.array(center) + np.array([gx * d, gy * d, 0])))
     return box, dots
 
-
 def hourglass(cx, cy):
     top = Polygon([cx - 1, cy + 1.7, 0], [cx + 1, cy + 1.7, 0], [cx, cy, 0], stroke_color=GREY, stroke_width=4)
     bot = Polygon([cx, cy, 0], [cx + 1, cy - 1.7, 0], [cx - 1, cy - 1.7, 0], stroke_color=GREY, stroke_width=4)
     return VGroup(top, bot)
-
 
 def sand_top(cx, cy, f):
     L = 1.7 * np.sqrt(0.78 * max(f, 0.001))
     hw = L / 1.7
     return Polygon([cx - hw, cy + L, 0], [cx + hw, cy + L, 0], [cx, cy, 0], stroke_width=0,
                    fill_color=ORANGE, fill_opacity=0.85)
-
 
 def sand_bot(cx, cy, f):
     L = 1.7 * (1 - np.sqrt(1 - 0.78 * max(f, 0.001)))
@@ -139,236 +95,288 @@ def sand_bot(cx, cy, f):
                    [cx + hw_top, cy - 1.65 + L, 0], [cx - hw_top, cy - 1.65 + L, 0],
                    stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
 
+# Additional schematic colors: BLUE sky / oxygen, PURPLE ozone / UV;
+# GOLD iridium / surface mat. Red alga uses muted red, distinct from RED loss.
+TAKE_HOME = "Life remade the planet; extinctions and radiations reshaped life."
 
-class S02Clock(SpokenScene):
+
+def heading(text, color=TEXT):
+    return T(text, 36, color, font=TITLE_FONT).move_to([0, 3.1, 0])
+
+
+def life_icon(kind):
+    if kind == 'alga':
+        g = VGroup(Line([0, 0, 0], [0, 1.15, 0], color='#B85A70', stroke_width=6))
+        for y in (.3, .6, .9):
+            for s in (-1, 1):
+                g.add(Line([0, y, 0], [s*.32, y+.28, 0], color='#B85A70', stroke_width=5))
+        return g
+    if kind == 'animal':
+        g = VGroup(Ellipse(width=.8, height=1.25, color=BLUE, fill_opacity=.16))
+        for y in np.linspace(-.42, .42, 7):
+            g.add(Line([-.28, y, 0], [.28, y+.08, 0], color=BLUE, stroke_width=2))
+        return g
+    g = VGroup(Line([0, 0, 0], [0, 1.1, 0], color=TEAL, stroke_width=5))
+    for s, y in [(-1, .35), (1, .65)]:
+        g.add(Ellipse(width=.5, height=.23, color=TEAL, fill_opacity=.4).rotate(s*.6).move_to([s*.23, y, 0]))
+    return g
+
+
+def sweep_parts():
+    # Deliberately expanded late milestones keep labels legible.
+    axis = VGroup(arr([-6.1, -.65, 0], [6.1, -.65, 0]),
+                  T('older', 22, GREY).move_to([-5.6, -1.18, 0]),
+                  T('younger', 22, GREY).move_to([5.5, -1.18, 0]),
+                  T('milestones • spacing schematic', 22, GREY).move_to([0, -3.35, 0]))
+    xs = [-5, -2.8, -.4, 2, 4.4]
+    labels = [('Dresser', '3.48 billion'), ('oxygen', '2.4 billion'),
+              ('red alga', '>1 billion'), ('animals', '558 million'), ('land plants', '470 million')]
+    icons = [mounds(-5, -.55, .17), Dot([-2.8, .15, 0], radius=.24, color=BLUE)]
+    icons += [life_icon(k).move_to([x, .15, 0]) for k, x in zip(['alga','animal','plant'], xs[2:])]
+    milestones = VGroup()
+    for x, icon, (name, date) in zip(xs, icons, labels):
+        milestones.add(VGroup(icon, Line([x, -.65, 0], [x, -.4, 0], color=YELLOW),
+                             T(name, 22).move_to([x, 1.25, 0]),
+                             T(date, 22, YELLOW).move_to([x, -1.85, 0]),
+                             T('years ago', 22, GREY).move_to([x, -2.25, 0])))
+    notches = VGroup(*[Line([x, -.88, 0], [x, -.42, 0], color=RED, stroke_width=5)
+                        for x in np.linspace(5.15, 5.9, 5)])
+    return axis, milestones, notches
+
+
+def strata(cx=0, cy=0, w=3.5):
+    bed = Rectangle(width=w, height=2, color=BLUE, fill_opacity=.12).move_to([cx,cy,0])
+    fossils = VGroup(*[Ellipse(width=.55, height=.28, color=BLUE, fill_opacity=.7).move_to([cx+dx,cy+dy,0])
+                      for dx,dy in [(-.9,.4),(.1,.55),(.85,.1),(-.4,-.25)]])
+    label = T('fossil bed', 26, BLUE).move_to([cx,cy-.7,0])
+    ashes = VGroup(*[VGroup(Rectangle(width=w, height=.6, color=PURPLE, fill_opacity=.3).move_to([cx,cy+y,0]),
+                              T('ash', 24, PURPLE).move_to([cx,cy+y,0])) for y in (1.4,-1.4)])
+    return VGroup(bed, fossils, label), ashes
+
+
+class S00Title(TitleCard):
+    LESSON = 'History of Life and Macroevolution'
+    TITLE = 'How Life Remade the Planet'
+
+
+class S01Sweep(SpokenScene):
     def construct(self):
-        cc = np.array([-4.0, 0.3, 0])
-        box, dots = crystal(cc, 3.7, 3.7, "UUUU", 0.85, 0.4)
-        name = T("hypothetical zircon", 26, PURPLE).move_to([-4.0, -2.0, 0])
-        rock = Rectangle(width=3.7, height=3.7, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.15).move_to(cc)
-        fossil = Ellipse(width=1.6, height=0.8, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.7).move_to(cc)
-        fl = T("fossil", 26, BLUE).next_to(fossil, DOWN, buff=0.15)
-        self.play(FadeIn(rock), FadeIn(fossil, scale=0.5), FadeIn(fl), run_time=0.8)
-        self.at("Minerals in the rocks")
-        halo = [Circle(radius=0.14, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.8).move_to(cc + np.array(p + (0,)))
-                for p in [(-1.4, 1.4), (1.4, 1.4), (-1.4, -1.4), (1.4, -1.4), (0, 1.5), (0, -1.5)]]
-        ml = T("minerals around it", 26, PURPLE).move_to([-4.0, -2.0, 0])
-        self.play(LaggedStart(*[FadeIn(h, scale=0.3) for h in halo], lag_ratio=0.1), FadeIn(ml), run_time=1.0)
-        self.at("hypothetical zircon")
-        self.play(FadeOut(fossil), FadeOut(fl), FadeOut(VGroup(*halo)), FadeOut(ml), ReplacementTransform(rock, box), FadeIn(name), run_time=0.8)
-        self.at("took up uranium")
-        leg_u = VGroup(atom(ORANGE, 0.22), T("uranium (parent)", 26, ORANGE)).arrange(RIGHT, buff=0.2)
-        leg_u.move_to([4.2, 1.4, 0]).align_to([2.5, 0, 0], LEFT)
-        self.play(LaggedStart(*[FadeIn(d, scale=0.4) for d in dots], lag_ratio=0.15), FadeIn(leg_u), run_time=1.0)
-        self.at("almost no lead")
-        leg_p = VGroup(atom(GREEN, 0.22), T("lead (daughter)", 26, GREEN)).arrange(RIGHT, buff=0.2)
-        leg_p.move_to([4.2, -0.2, 0]).align_to([2.5, 0, 0], LEFT)
-        none = T("almost none at first", 22, GREY).next_to(leg_p, DOWN, buff=0.15).align_to(leg_p, LEFT)
-        self.play(FadeIn(leg_p), FadeIn(none), run_time=0.6)
-        self.at("later decay")
-        dk = arr([2.7, 1.0, 0], [2.7, 0.25, 0], GREY)
-        dkl = T("decay", 24, GREY).next_to(dk, RIGHT, buff=0.15)
-        dk2 = VGroup(dk, dkl)
-        dk2.shift(RIGHT * 0.0)
-        self.play(GrowArrow(dk), FadeIn(dkl), run_time=0.5)
-        self.at("hourglass")
-        hg = hourglass(0.0, 0.5)
-        st = sand_top(0.0, 0.5, 1.0)
-        sb = sand_bot(0.0, 0.5, 0.0)
-        # keep hourglass between crystal and legend
-        self.play(FadeOut(dk), FadeOut(dkl), Create(hg), FadeIn(st), run_time=0.8)
-        self.at("bottom bulb")
-        sb2 = sand_bot(0.0, 0.5, 0.1)
-        self.play(Transform(sb, sb2), run_time=0.4)
-        self.add(sb)
-        self.at("the time for half")
-        hl = T("half-life", 36, YELLOW, weight=BOLD).move_to([0.0, -2.7, 0])
-        self.play(FadeIn(hl, shift=UP * 0.1), run_time=0.5)
-        self.at("Here it is")
-        hl2 = T("half-life = 704 million years", 36, YELLOW, weight=BOLD).move_to([0.0, -2.7, 0])
-        self.play(ReplacementTransform(hl, hl2),
-                  dots[2].animate.set_color(GREEN).set_fill(GREEN, 0.9),
-                  dots[3].animate.set_color(GREEN).set_fill(GREEN, 0.9),
-                  Transform(st, sand_top(0.0, 0.5, 0.5)),
-                  Transform(sb, sand_bot(0.0, 0.5, 0.5)), run_time=1.6)
+        axis, marks, notches = sweep_parts()
+        title = heading('Most of the story was microbial')
+        sky = Rectangle(width=12.2,height=1.6,stroke_width=0,fill_color=ORANGE,fill_opacity=.12).move_to([0,.35,0]).set_z_index(-1)
+        self.at('For most of its history')
+        self.play(Create(axis), FadeIn(title), FadeIn(sky), run_time=.8)
+        self.at('Rocks')
+        self.play(FadeIn(marks[0], shift=DOWN*.2), run_time=.7)
+        self.at('traces of microbes')
+        self.play(Indicate(marks[0][0], color=BLUE), run_time=.7)
+        self.at('Oxygen began')
+        self.play(FadeOut(title), FadeIn(marks[1]), sky.animate.set_fill(BLUE, .18), run_time=1)
+        self.at('algae')
+        self.play(FadeIn(marks[2],shift=DOWN*.4),run_time=.6)
+        self.at('animals by about')
+        self.play(FadeIn(marks[3],shift=DOWN*.4),run_time=.6)
+        self.at('plants on land')
+        self.play(FadeIn(marks[4],shift=DOWN*.4),run_time=.6)
+        self.at('And five times')
+        self.play(Create(notches),run_time=.7)
+        self.at('mass extinctions')
+        self.play(FadeIn(heading('Five mass extinctions', RED)),run_time=.5)
         self.finish()
 
 
-class S03Ratio(SpokenScene):
+class S02Oxygen(SpokenScene):
     def construct(self):
-        d = 0.7
-        xs = [-4.5, 0.0, 4.5]
-        cy = np.array([0, 0.7, 0])
-        W, H, R = 3.0, 2.9, 0.33
-        # C first (the measured crystal), then A and B
-        boxC, dotsC = crystal(cy + np.array([xs[2], 0, 0]), W, H, "UPPP", d, R)
-        boxA, dotsA = crystal(cy + np.array([xs[0], 0, 0]), W, H, "UUUU", d, R)
-        boxB, dotsB = crystal(cy + np.array([xs[1], 0, 0]), W, H, "UUPP", d, R)
-        labC = VGroup(T("measured now", 26, TEXT), M("lead / uranium = 3", 22, YELLOW)).arrange(DOWN, buff=0.1).move_to([xs[2], -1.25, 0])
-        labA = VGroup(T("at the start", 26, TEXT), T("4 uranium", 24, ORANGE)).arrange(DOWN, buff=0.1).move_to([xs[0], -1.25, 0])
-        labB = VGroup(T("after one half-life", 26, TEXT), T("2 uranium, 2 lead", 24, GREY)).arrange(DOWN, buff=0.1).move_to([xs[1], -1.25, 0])
-        self.play(FadeIn(boxC), FadeIn(labC[0]), run_time=0.5)
-        self.at("three lead atoms")
-        self.play(LaggedStart(*[FadeIn(x, scale=0.4) for x in dotsC], lag_ratio=0.15), FadeIn(labC[1]), run_time=1.0)
-        self.at("once a uranium atom")
-        ghosts = VGroup(*[Circle(radius=R + 0.07, stroke_color=ORANGE, stroke_width=4).move_to(x) for x in dotsC[1:]])
-        self.play(Create(ghosts), run_time=0.6)
-        self.at("started with four")
-        self.play(FadeIn(boxA), LaggedStart(*[FadeIn(x, scale=0.4) for x in dotsA], lag_ratio=0.12), FadeIn(labA), run_time=1.0)
-        self.play(FadeOut(ghosts), run_time=0.3)
-        self.at("One quarter is left")
-        q = T("1 of 4 left: one quarter", 24, YELLOW).move_to([xs[2], -2.05, 0])
-        self.play(Indicate(dotsC[0], color=YELLOW, scale_factor=1.25), FadeIn(q), run_time=0.8)
-        self.at("That is two")
-        a1 = CurvedArrow(boxA.get_top() + UP * 0.05, boxB.get_top() + UP * 0.05, angle=-TAU / 6, color=YELLOW, stroke_width=5)
-        t1 = T("704 million years", 24, YELLOW).next_to(a1, UP, buff=0.05)
-        self.play(FadeIn(boxB), FadeIn(labB), Create(a1), FadeIn(t1), *[FadeIn(x, scale=0.4) for x in dotsB], run_time=0.8)
-        a2 = CurvedArrow(boxB.get_top() + UP * 0.05, boxC.get_top() + UP * 0.05, angle=-TAU / 6, color=YELLOW, stroke_width=5)
-        t2 = T("704 million years", 24, YELLOW).next_to(a2, UP, buff=0.05)
-        self.play(Create(a2), FadeIn(t2), run_time=0.5)
-        self.at("Two times")
-        res = T("2 × 704 = 1,408 million years", 40, YELLOW, weight=BOLD).move_to([0, -2.95, 0])
-        self.play(FadeIn(res, shift=UP * 0.15), run_time=0.7)
-        self.at("a model")
-        ass = T("a model, only as good as its assumptions", 24, GREY).move_to([0, -3.5 + 0.0, 0])
-        self.play(FadeIn(ass), run_time=0.5)
+        sea = VGroup(Rectangle(width=12,height=2.5,stroke_width=0,fill_color=BLUE,fill_opacity=.12).move_to([0,-1.7,0]),
+                     Line([-6,-.45,0],[6,-.45,0],color=BLUE,stroke_width=4))
+        cells=VGroup(*[Ellipse(width=1.15,height=.65,color=BLUE,fill_opacity=.25).move_to([x,-1.7,0]) for x in (-3,0,3)])
+        oxy=VGroup(*[Dot([x,y,0],radius=.09,color=BLUE) for x,y in [(-5,.4),(-3,1.2),(-1,.5),(1,1.2),(3,.6),(5,1.1)]])
+        title=heading('Oxygen builds up in the air')
+        self.at('The Great Oxidation Event')
+        self.play(FadeIn(sea),FadeIn(cells),FadeIn(title),run_time=.6)
+        self.at('first big buildup')
+        self.play(LaggedStart(*[FadeIn(d,shift=UP*.3) for d in oxy],lag_ratio=.1),run_time=1)
+        note=T('Oxygen-making photosynthesis had already begun',26,GREY).move_to([0,-3.2,0])
+        self.at('It was not the start')
+        self.play(FadeIn(note),run_time=.5)
+        aerobic=T('aerobic metabolism',28,BLUE).move_to([0,-2.5,0])
+        self.at('aerobic metabolism spread')
+        self.play(cells.animate.set_fill(BLUE,.65),FadeIn(aerobic),run_time=.7)
+        band=VGroup(Line([-5.8,1.95,0],[5.8,1.95,0],color=PURPLE,stroke_width=7),T('ozone shield',24,PURPLE).move_to([0,2.35,0]))
+        self.at('An ozone layer')
+        self.play(Create(band),FadeOut(title),run_time=.6)
+        rays=VGroup(*[VGroup(arr([x,3.25,0],[x+.35,2.02,0],PURPLE,3),arr([x+.35,2.02,0],[x+1,2.95,0],PURPLE,3)) for x in (-4,2)])
+        self.at('ultraviolet light')
+        self.play(LaggedStart(*[Create(r) for r in rays],lag_ratio=.15),run_time=.8)
+        self.at('cope with')
+        self.play(cells[0].animate.set_stroke(RED,7),cells[2].animate.set_stroke(RED,7),
+                  Transform(note,T("oxygen's harm",28,RED).move_to([0,-3.2,0])),run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Bracket(SpokenScene):
+def world_map():
+    # Simple continent silhouettes; columns are illustrative sites, not coordinates.
+    outlines=[ [(-5,1.8),(-3.7,2.4),(-2.6,1.5),(-3.3,.8),(-3.1,.2),(-4,.5)],
+               [(-3,.2),(-2.1,-.1),(-1.8,-1),(-2.4,-2),(-2.8,-.8)],
+               [(-.7,1.5),(.5,2.3),(2.1,2),(3.8,2.3),(5.2,1.3),(3.7,.6),(1.5,.8),(.4,.3)],
+               [(-.4,.8),(1,.7),(1.4,-.2),(.4,-1.6),(-.2,-.7)],
+               [(3.6,-1.2),(4.8,-1.1),(5.1,-1.8),(3.8,-1.9)] ]
+    return VGroup(*[Polygon(*[[x,y,0] for x,y in pts],color=GREY,stroke_width=2,fill_opacity=.12) for pts in outlines])
+
+
+class S03Impact(SpokenScene):
     def construct(self):
-        cx, w = -4.1, 4.0
-        bed = Rectangle(width=w, height=2.0, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.12).move_to([cx, 0.45, 0])
-        fos = VGroup(*[Ellipse(width=0.55, height=0.28, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.7).move_to([cx + dx, 0.45 + dy, 0])
-                       for dx, dy in [(-1.2, 0.55), (0.0, 0.7), (1.1, 0.5), (-0.6, 0.0), (0.6, -0.05)]])
-        bedlab = T("fossil bed", 28, BLUE).move_to([cx, -0.3, 0])
-        # put label inside lower part of bed
-        bedlab.move_to([cx, 0.45 - 0.78, 0])
-        top = Rectangle(width=w, height=0.8, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.3).move_to([cx, 1.9, 0])
-        toplab = T("ash", 28, PURPLE).move_to(top)
-        bot = Rectangle(width=w, height=0.8, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.3).move_to([cx, -1.0, 0])
-        botlab = T("ash", 28, PURPLE).move_to(bot)
-        tag = T("worked example (hypothetical)", 26, GREY).move_to([2.0, 3.3, 0])
-        self.at("date a fossil")
-        self.play(FadeIn(tag), run_time=0.4)
-        self.play(FadeIn(bed), LaggedStart(*[FadeIn(f, scale=0.3) for f in fos], lag_ratio=0.12), FadeIn(bedlab), run_time=1.0)
-        # age axis
-        ax_y = -2.45
-        x_old, x_young = 0.9, 4.7
-        axis = Arrow([-0.7, ax_y, 0], [6.2, ax_y, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.22)
-        axl = T("older", 22, GREY).move_to([-0.3, ax_y - 0.4, 0])
-        ayl = T("younger", 22, GREY).move_to([5.7, ax_y - 0.4, 0])
-        self.at("ash lies above")
-        self.play(FadeIn(top), FadeIn(toplab), run_time=0.6)
-        d1 = DashedLine([cx + w / 2, 1.9, 0], [x_young, 1.9, 0], color=PURPLE, stroke_width=3)
-        d1v = DashedLine([x_young, 1.9, 0], [x_young, ax_y, 0], color=PURPLE, stroke_width=3)
-        l1 = T("ash above: 1,408 million years", 26, YELLOW).move_to([2.25, 2.35, 0])
-        self.play(Create(d1), Create(d1v), Create(axis), FadeIn(axl), FadeIn(ayl), FadeIn(l1), run_time=1.0)
-        self.at("second ash")
-        self.play(FadeIn(bot), FadeIn(botlab), run_time=0.6)
-        d2 = DashedLine([cx + w / 2, -1.0, 0], [x_old, -1.0, 0], color=PURPLE, stroke_width=3)
-        d2v = DashedLine([x_old, -1.0, 0], [x_old, ax_y, 0], color=PURPLE, stroke_width=3)
-        l2 = T("ash below: 1,450 million years", 26, YELLOW).move_to([1.9, -0.6, 0])
-        self.play(Create(d2), Create(d2v), FadeIn(l2), run_time=1.0)
-        self.at("younger than")
-        s1 = T("older than 1,408", 28, TEXT)
-        s2 = T("younger than 1,450", 28, TEXT)
-        st = VGroup(s2, s1).arrange(DOWN, buff=0.12).move_to([2.8, 0.65, 0])
-        self.play(FadeIn(st, shift=UP * 0.1), run_time=0.7)
-        self.at("a bracket")
-        br = Line([x_old, ax_y, 0], [x_young, ax_y, 0], color=YELLOW, stroke_width=10)
-        brl = T("the fossils fall here", 26, YELLOW).move_to([2.8, ax_y + 0.45, 0])
-        self.play(Create(br), FadeIn(brl), run_time=0.8)
-        self.at("not a point")
-        self.play(Indicate(br, color=YELLOW, scale_factor=1.05), run_time=0.8)
+        definition=VGroup(heading('Mass extinction'),T('More than ¾ of species lost',36,RED),T('in a geologically short time',28,GREY).move_to([0,-.8,0]))
+        self.at('A mass extinction')
+        self.play(FadeIn(definition),run_time=.6)
+        world=world_map()
+        title=heading('End-Cretaceous • 66 million years ago')
+        self.at('At the end of the Cretaceous')
+        self.play(FadeOut(definition),run_time=.25)
+        self.play(FadeIn(world),FadeIn(title),run_time=.45)
+        cols=VGroup(); bands=VGroup()
+        for x in (-4,0,4):
+            col=VGroup(*[Rectangle(width=.65,height=.45,color=PURPLE,fill_opacity=.6).move_to([x,y,0]) for y in (.2,.65,1.1)])
+            cols.add(col); bands.add(Line([x-.33,.45,0],[x+.33,.45,0],color=GOLD,stroke_width=7))
+        ir=T('iridium at the boundary',28,GOLD).move_to([0,-2.55,0])
+        self.at('Iridium')
+        self.play(FadeIn(cols),FadeIn(ir),run_time=.6)
+        self.at('widely separated sites')
+        self.play(Create(bands),run_time=.7)
+        crater=VGroup(Ellipse(width=.75,height=.28,color=GOLD).move_to([-3.15,.12,0]),
+                      Line([-3.15,0,0],[-4.2,-1.6,0],color=GOLD),T('Chicxulub • Mexico',24,GOLD).move_to([-4.2,-2.05,0]))
+        self.at('A buried crater')
+        self.play(Create(crater),run_time=.8)
+        pair=VGroup(T('impact',28,RED).move_to([-3,.9,0]),T('extinction',28,RED).move_to([3,.9,0]),
+                    Line([-3,.3,0],[-3,-.5,0],color=PURPLE,stroke_width=10),Line([3,.3,0],[3,-.5,0],color=PURPLE,stroke_width=10))
+        bracket=VGroup(DoubleArrow([-3,-1,0],[3,-1,0],buff=0,color=YELLOW),T('synchrony • within 32,000 years',28,YELLOW).move_to([0,-1.6,0]))
+        self.at('Dating puts impact')
+        self.play(FadeOut(VGroup(world,title,cols,bands,ir,crater)),run_time=.25)
+        self.play(FadeIn(pair),Create(bracket),run_time=.55)
+        self.at('The impact triggered')
+        self.play(GrowArrow(arr([-1.8,.9,0],[1.6,.9,0],RED)),FadeIn(heading('Impact triggered the extinction',RED)),run_time=.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Floor(SpokenScene):
+class S04Permian(SpokenScene):
     def construct(self):
-        ly = 0.3
-        xs = [-4.1, -2.3, 0.6, 2.2]
-        x_van = 4.9
-        head = T("one lineage through time", 32, GREY).move_to([0, 3.1, 0])
-        rows = [("3.48 Ga", "Dresser Formation, Western Australia"), ("2,460 to 2,426 Ma", "onset of the Great Oxidation Event"),
-                ("1.047 Ga", "Bangiomorpha, a red alga"), ("571 to 541 Ma", "Ediacaran, Dickinsonia"),
-                ("473 to 471 Ma", "cryptospores of early land plants")]
-        lst = VGroup()
-        for i, (da, db) in enumerate(rows):
-            d_ = T(da, 28, YELLOW); t_ = T(db, 28, TEXT)
-            y_ = 1.2 - i * 0.7
-            d_.move_to([-1.4 - d_.width / 2, y_, 0]); t_.move_to([-1.0 + t_.width / 2, y_, 0])
-            lst.add(VGroup(d_, t_))
-        lead = T("firsts in the record", 30, GREY).move_to([0, 2.75, 0])
-        self.play(FadeIn(lead), LaggedStart(*[FadeIn(r, shift=RIGHT * 0.2) for r in lst], lag_ratio=0.25), run_time=1.6)
-        line = Line([xs[0], ly, 0], [x_van, ly, 0], color=TEAL, stroke_width=7)
-        fos = [Dot([x, ly, 0], radius=0.38, color=BLUE) for x in xs]
-        tl = Arrow([6.2, -3.25, 0], [-6.2, -3.25, 0], buff=0, color=GREY, stroke_width=4, tip_length=0.22)
-        tll = T("older", 22, GREY).move_to([-5.5, -2.85, 0])
-        tly = T("younger", 22, GREY).move_to([5.4, -2.85, 0])
-        self.at("minimum age")
-        self.play(FadeOut(lst), FadeOut(lead), run_time=0.4)
-        self.play(FadeIn(head), Create(tl), FadeIn(tll), FadeIn(tly), run_time=0.5)
-        self.play(Create(line), LaggedStart(*[FadeIn(f, scale=0.3) for f in fos], lag_ratio=0.1), run_time=0.8)
-        self.at("oldest fossil")
-        floor = Line([xs[0], ly - 1.0, 0], [xs[0], ly + 1.0, 0], color=YELLOW, stroke_width=7)
-        fl = VGroup(T("oldest fossil:", 28, YELLOW), T("a floor", 28, YELLOW, weight=BOLD)).arrange(DOWN, buff=0.05).move_to([xs[0], ly + 1.75, 0])
-        self.play(Create(floor), FadeIn(fl), run_time=0.7)
-        self.at("may be older")
-        dash = DashedLine([xs[0], ly, 0], [-6.2, ly, 0], color=RED, stroke_width=7)
-        ol = VGroup(T("lineage may", 26, RED), T("be older", 26, RED)).arrange(DOWN, buff=0.05).move_to([-5.3, ly - 0.95, 0])
-        self.play(Create(dash), FadeIn(ol), run_time=0.8)
-        self.at("uneven")
-        gx0, gx1 = xs[1], xs[2]
-        brk = VGroup(Line([gx0, ly - 0.55, 0], [gx1, ly - 0.55, 0], color=GREY, stroke_width=4),
-                     Line([gx0, ly - 0.45, 0], [gx0, ly - 0.65, 0], color=GREY, stroke_width=4),
-                     Line([gx1, ly - 0.45, 0], [gx1, ly - 0.65, 0], color=GREY, stroke_width=4))
-        gl = T("gap in the record", 26, GREY).move_to([(gx0 + gx1) / 2, ly - 1.05, 0])
-        self.play(Create(brk), FadeIn(gl), run_time=0.7)
-        self.at("not a gap in life")
-        gl2 = T("not a gap in life", 26, TEAL).move_to([(gx0 + gx1) / 2, ly - 1.65, 0])
-        self.play(Indicate(line, color=TEAL, scale_factor=1.0), FadeIn(gl2), run_time=0.8)
-        self.at("other end")
-        lf = T("last fossil", 28, BLUE).move_to([xs[3], ly + 0.95, 0])
-        self.play(FadeIn(lf), Indicate(fos[3], color=BLUE, scale_factor=1.4), run_time=0.7)
-        self.at("actually vanished")
-        xm = VGroup(Line([-0.28, -0.28, 0], [0.28, 0.28, 0]), Line([-0.28, 0.28, 0], [0.28, -0.28, 0])).set_color(RED).set_stroke(width=8).move_to([x_van, ly, 0])
-        vl = T("vanished", 28, RED).move_to([x_van, ly + 0.95, 0])
-        gap = DoubleArrow([xs[3] + 0.4, ly - 0.55, 0], [x_van - 0.1, ly - 0.55, 0], buff=0, color=RED, stroke_width=4, tip_length=0.2)
-        self.play(Create(xm), FadeIn(vl), GrowFromCenter(gap), run_time=0.9)
+        title=heading('End-Permian • 252 million years ago')
+        grid=VGroup(*[Ellipse(width=.65,height=.35,color=BLUE,fill_opacity=.7).move_to([x,y,0]) for y in (1.5,.6,-.3,-1.2) for x in (-3,-1.5,0,1.5,3)])
+        self.at('The end of the Permian')
+        self.play(FadeIn(title),FadeIn(grid),run_time=.7)
+        estimate=T('≈81% of marine species • one estimate',30,RED).move_to([0,-2.5,0])
+        self.at('about 81')
+        self.play(*[g.animate.set_color(GREY).set_fill(GREY,.15) for g in grid[:16]],FadeIn(estimate),run_time=1)
+        bed,ashes=strata(-2,0)
+        local=heading('Meishan, China')
+        self.at('At Meishan in China')
+        self.play(FadeOut(VGroup(grid,title,estimate)),run_time=.25)
+        self.play(FadeIn(bed),FadeIn(local),run_time=.45)
+        self.at('dated ash beds')
+        self.play(FadeIn(ashes),run_time=.6)
+        bracket=VGroup(Line([.2,-1.4,0],[.6,-1.4,0],color=YELLOW),Line([.6,-1.4,0],[.6,1.4,0],color=YELLOW),Line([.2,1.4,0],[.6,1.4,0],color=YELLOW))
+        duration=VGroup(T('≈60,000 years',32,YELLOW),T('wide uncertainty',26,GREY)).arrange(DOWN,buff=.2).move_to([3.2,0,0])
+        self.at('took about')
+        self.play(Create(bracket),FadeIn(duration),run_time=.7)
+        note=T('A clock for one place',30,YELLOW).move_to([0,-2.6,0])
+        self.at('That is a clock')
+        self.play(FadeIn(note),run_time=.5)
+        self.at('Any proposed cause')
+        self.play(Transform(note,T('Any proposed cause must fit this clock',30,YELLOW).move_to([0,-2.6,0])),Indicate(bracket,color=YELLOW),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+def flask(x):
+    outline=Polygon([x-.45,1.65,0],[x+.45,1.65,0],[x+.45,.8,0],[x+1.45,-1.6,0],[x-1.45,-1.6,0],[x-.45,.8,0],color=GREY,stroke_width=4)
+    liquid=Polygon([x-.83,0,0],[x+.83,0,0],[x+1.37,-1.5,0],[x-1.37,-1.5,0],stroke_width=0,fill_color=BLUE,fill_opacity=.16)
+    cells=VGroup(*[Ellipse(width=.22,height=.11,color=BLUE,fill_opacity=.8).move_to([x+dx,y,0]) for dx,y in [(-.4,-.4),(.35,-.4),(-.65,-1.1),(0,-1),(.7,-1.15)]])
+    return VGroup(outline,liquid,cells)
+
+
+class S05Radiation(SpokenScene):
     def construct(self):
-        names = [("measured age", YELLOW), ("a method", GREY), ("an uncertainty", GREY), ("a direction the truth could lie", RED)]
-        chips = [chip(t, c, size=24, pad=0.14) for t, c in names]
-        col = VGroup(*chips).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
-        col.move_to([0, 0, 0]).to_corner(UL, buff=0.5)
-        axis, older, younger, pin, tick, lab, zone, qs = dresser_timeline()
-        self.at("measured age")
-        self.play(FadeIn(chips[0], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("a method")
-        self.play(FadeIn(chips[1], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("an uncertainty")
-        self.play(FadeIn(chips[2], shift=RIGHT * 0.2), run_time=0.5)
-        self.at("direction in which")
-        self.play(FadeIn(chips[3], shift=RIGHT * 0.2), run_time=0.5)
-        small = mounds(PIN_X, 1.05, 0.6)
-        self.at("Dresser rocks")
-        self.play(FadeIn(small), Create(axis), FadeIn(older), FadeIn(younger), run_time=0.8)
-        self.at("life existed by")
-        self.play(Create(pin), FadeIn(tick), FadeIn(lab), run_time=0.6)
-        self.play(FadeIn(zone), LaggedStart(*[FadeIn(x, scale=1.4) for x in qs], lag_ratio=0.12), run_time=0.8)
-        self.at("never when it began")
-        final = VGroup(T("The oldest fossil tells you when life existed by,", 32, TEXT, font=TITLE_FONT),
-                       T("never when it began.", 36, YELLOW, font=TITLE_FONT)).arrange(DOWN, buff=0.15).move_to([0, -2.85, 0])
-        self.play(FadeIn(final, shift=UP * 0.15), run_time=0.8)
+        trunk=Line([-5,0,0],[-1,0,0],color=TEAL,stroke_width=6)
+        boundary=Line([-1.3,-2,0],[-1.3,2,0],color=RED,stroke_width=5)
+        lab=T('end-Cretaceous extinction',24,RED).move_to([-2.4,-2.6,0])
+        branches=VGroup(*[Line([-1,0,0],[5,y,0],color=TEAL,stroke_width=4) for y in (-1.8,-.6,.6,1.8)])
+        self.at('Extinctions also')
+        self.play(Create(trunk),Create(boundary),FadeIn(lab),run_time=.6)
+        self.at('Placental mammals diversified')
+        self.play(Create(branches),FadeIn(heading('Placental mammals diversify')),run_time=.9)
+        caution=T('Timing fits release from competition; does not prove it',25,GREY).move_to([0,-3.25,0])
+        self.at('but does not prove it')
+        self.play(FadeIn(caution),run_time=.5)
+        a,b=flask(-3),flask(3)
+        title=heading('One genotype • different environments')
+        still=T('still broth',28).move_to([-3,2.2,0]); shaken=T('shaken broth',28).move_to([3,2.2,0])
+        self.at('A flask can test')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.25)
+        self.play(FadeIn(a[0]),FadeIn(a[1]),FadeIn(title),FadeIn(still),run_time=.45)
+        self.at('in still broth')
+        self.play(FadeIn(a[2]),run_time=.5)
+        mat=Line([-3.8,0,0],[-2.2,0,0],color=GOLD,stroke_width=10)
+        variants=VGroup(*[RoundedRectangle(width=.24,height=.17,corner_radius=.04,color=TEAL,fill_opacity=.8).move_to([-3+dx,y,0]) for dx,y in [(-.6,-1.1),(0,-1),(.7,-1.15)]])
+        self.at('New heritable types')
+        self.play(Create(mat),ReplacementTransform(a[2][2:],variants),run_time=.8)
+        self.at('In shaken broth')
+        self.play(FadeIn(b),FadeIn(shaken),run_time=.6)
+        self.play(b.animate.shift(RIGHT*.12),run_time=.15)
+        self.play(b.animate.shift(LEFT*.24),run_time=.15)
+        self.play(b.animate.shift(RIGHT*.12),run_time=.15)
+        self.at('These were new types')
+        self.play(FadeIn(T('New heritable types ≠ new species',30,YELLOW).move_to([0,-2.7,0])),run_time=.6)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Oldest fossil: when life existed by, never when it began."
+class S06Dates(SpokenScene):
+    def construct(self):
+        box,dots=crystal([-2,0,0],3,2.9,'UUUU',.65,.28)
+        title=heading('How do we know when?')
+        self.at('How do we know when')
+        self.play(FadeIn(title),run_time=.4)
+        self.at('Zircon in volcanic ash')
+        self.play(FadeIn(box),FadeIn(dots),FadeIn(T('zircon',28,PURPLE).move_to([-2,-2,0])),run_time=.6)
+        key=VGroup(T('uranium',30,ORANGE),T('↓',30,GREY),T('lead',30,GREEN)).arrange(DOWN,buff=.25).move_to([2.5,0,0])
+        self.at('Uranium decays to lead')
+        self.play(FadeIn(key),dots[0].animate.set_color(GREEN).set_fill(GREEN,.9),run_time=.6)
+        self.at('at a steady rate')
+        self.play(dots[1].animate.set_color(GREEN).set_fill(GREEN,.9),run_time=.6)
+        bed,ashes=strata(-2,0)
+        bracket=VGroup(Line([.1,-1.4,0],[.5,-1.4,0],color=YELLOW),Line([.5,-1.4,0],[.5,1.4,0],color=YELLOW),Line([.1,1.4,0],[.5,1.4,0],color=YELLOW),T('age bracket',30,YELLOW).move_to([3,0,0]))
+        self.at('Ash beds above and below')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.2)
+        self.play(FadeIn(bed),FadeIn(ashes),run_time=.4)
+        self.at('bracket its age')
+        self.play(Create(bracket),run_time=.5)
+        axis,older,younger,pin,tick,lab,zone,qs=dresser_timeline()
+        self.at('But the oldest fossil')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.2)
+        self.play(Create(axis),FadeIn(older),FadeIn(younger),FadeIn(heading('The oldest fossil is a floor')),run_time=.4)
+        self.at('Life existed by')
+        self.play(Create(pin),FadeIn(tick),FadeIn(lab),FadeIn(mounds(PIN_X,1.05,.45)),run_time=.6)
+        self.at('It may be older')
+        self.play(FadeIn(zone),FadeIn(qs),FadeIn(T('Life may be older',30,RED).move_to([0,-3,0])),run_time=.6)
+        self.finish()
+
+
+class S07Rule(SpokenScene):
+    def construct(self):
+        axis,marks,notches=sweep_parts()
+        self.at('So the history of life')
+        self.play(Create(axis),FadeIn(marks),Create(notches),run_time=.7)
+        chips=VGroup(*[chip(t,c,26) for t,c in [('transitions',BLUE),('extinctions',RED),('radiations',TEAL)]]).arrange(RIGHT,buff=.5).move_to([0,2.8,0])
+        self.at('transitions that')
+        self.play(FadeIn(chips[0]),run_time=.4)
+        self.at('extinctions that')
+        self.play(FadeIn(chips[1]),run_time=.4)
+        self.at('radiations that')
+        self.play(FadeIn(chips[2]),run_time=.4)
+        line=VGroup(T('Fossil dates tell us when life existed,',34,font=TITLE_FONT),T('at the latest.',38,YELLOW,font=TITLE_FONT)).arrange(DOWN,buff=.25)
+        self.at('with fossil dates')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.25)
+        self.play(FadeIn(line),run_time=.55)
+        self.finish()
+
+
+class S08End(EndCard):
+    LINE = TAKE_HOME

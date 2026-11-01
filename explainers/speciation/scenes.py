@@ -1,4 +1,4 @@
-"""Speciation: barriers act on what remains  (Biochemistrypedia explainer)
+"""Speciation: how barriers between species grow  (Biochemistrypedia explainer)
 
 COLOR MAP (one colour per concept, whole video)
   BLUE   = gene flow (the band, the arrow, the gene-flow-left numbers)
@@ -118,220 +118,318 @@ def hl(d, j):
     return SurroundingRectangle(d["band"][j], color=YELLOW, buff=0.08, stroke_width=4)
 
 
-class S00Title(TitleCard):
-    LESSON = "Speciation"
-    TITLE = "Barriers act on what remains"
-
-
 def qboxes():
     return [bchip("?", ORANGE, 60).move_to([x, -0.7, 0]) for x in (-1.3, 0, 1.3)]
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(SpokenScene):
+# Schematic organisms, never molecular structures.
+def fish(color=BLUE, benthic=False):
+    body = Ellipse(width=1.05, height=0.56 if benthic else 0.34,
+                   color=color, fill_opacity=0.65, stroke_width=2.5)
+    tail = Polygon([-.48, 0, 0], [-.85, .25, 0], [-.85, -.25, 0],
+                   color=color, fill_opacity=0.65, stroke_width=2.5)
+    eye = Dot([.32, .06, 0], radius=.035, color=BG)
+    return VGroup(body, tail, eye)
+
+
+def bee():
+    body = Ellipse(width=.6, height=.36, color=GOLD, fill_opacity=.9)
+    wings = VGroup(*[Ellipse(width=.3, height=.4, color=GREY, fill_opacity=.3)
+                     .move_to([x, .22, 0]) for x in (-.12, .12)])
+    stripes = VGroup(*[Line([x, -.14, 0], [x, .14, 0], color=BG, stroke_width=4)
+                       for x in (-.1, .08)])
+    return VGroup(wings, body, stripes)
+
+
+def bird():
+    body = Ellipse(width=.65, height=.3, color=GREY, fill_opacity=.8)
+    wing = Polygon([0, .02, 0], [-.3, .65, 0], [.2, .1, 0], color=GREY, fill_opacity=.6)
+    beak = Line([.3, 0, 0], [.8, .05, 0], color=GREY, stroke_width=3)
+    return VGroup(body, wing, beak)
+
+
+def heading(text):
+    return T(text, 34, font=TITLE_FONT).move_to([0, 3.05, 0])
+
+
+class S00Title(TitleCard):
+    LESSON = "Speciation"
+    TITLE = "How Barriers Between Species Grow"
+
     def construct(self):
-        f1 = flower(PINK).move_to([-4.3, 0.5, 0])
-        f2 = flower(FRED).move_to([4.3, 0.5, 0])
-        n1 = T("Mimulus lewisii", 26, PINK, slant=ITALIC).move_to([-4.3, -1.5, 0])
-        n2 = T("M. cardinalis", 26, FRED, slant=ITALIC).move_to([4.3, -1.5, 0])
-        self.at("Two monkey")
-        self.play(GrowFromCenter(f1), GrowFromCenter(f2), FadeIn(n1), FadeIn(n2), run_time=1.0)
-        arrow = DoubleArrow([-2.6, 0.9, 0], [2.6, 0.9, 0], color=BLUE, stroke_width=6, buff=0, tip_length=0.25)
-        by = T("crossed by hand", 24, GREY).move_to([0, 1.3, 0])
-        seed = T("hybrid seed", 24, GREY).move_to([0, 0.45, 0])
+        title = T(self.TITLE, 44, font=TITLE_FONT).move_to([0, 1.65, 0])
+        fit(title, max_w=12.2)
+        flowers = VGroup(flower(PINK, .85).move_to([-2, -.9, 0]),
+                         flower(FRED, .85).move_to([2, -.9, 0]))
+        lesson = T(self.LESSON.upper(), 22, GREY).move_to([0, 2.65, 0])
+        self.play(FadeIn(lesson), FadeIn(title), GrowFromCenter(flowers), run_time=.8)
+        self.finish()
+
+
+class S01Lead(SpokenScene):
+    def construct(self):
+        f1 = flower(PINK).move_to([-4.3, .3, 0])
+        f2 = flower(FRED).move_to([4.3, .3, 0])
+        self.at("Two")
+        self.play(GrowFromCenter(f1), GrowFromCenter(f2), run_time=.7)
+        arrow = DoubleArrow([-2.6, .8, 0], [2.6, .8, 0], color=BLUE,
+                            stroke_width=6, buff=0, tip_length=.25)
+        by = T("crossed by hand", 26, GREY).move_to([0, 1.5, 0])
+        seed = VGroup(Ellipse(width=.3, height=.45, color=GOLD, fill_opacity=.8),
+                      T("hybrid seed", 24, GREY).move_to([0, -.6, 0])).move_to([0, -.45, 0])
         self.at("crossed by hand")
-        self.play(GrowFromCenter(arrow), FadeIn(by), run_time=0.8)
+        self.play(GrowFromCenter(arrow), FadeIn(by), run_time=.6)
         self.at("hybrid seed")
-        self.play(FadeIn(seed), run_time=0.5)
-        b1 = bchip("bumblebees", GREY, 24).move_to([-4.3, 2.9, 0])
-        b2 = bchip("hummingbirds", GREY, 24).move_to([4.3, 2.9, 0])
+        self.play(GrowFromCenter(seed), run_time=.5)
+        b1 = VGroup(bee(), T("bumblebees", 24, GREY).shift(UP * .8)).move_to([-4.3, 2.6, 0])
+        b2 = VGroup(bird(), T("hummingbirds", 24, GREY).shift(UP * .9)).move_to([4.3, 2.6, 0])
         self.at("bumblebees")
-        self.play(FadeIn(b1, shift=DOWN * 0.2), run_time=0.5)
+        self.play(FadeIn(b1, shift=DOWN * .2), run_time=.5)
         self.at("hummingbirds")
-        self.play(FadeIn(b2, shift=DOWN * 0.2), run_time=0.5)
-        bar = R(-0.12, 0.12, 0.45, 1.35, ORANGE, 0.9)
-        big = M("99.87%", 54, GREEN).move_to([0, 2.5, 0])
-        sub = T("of gene flow blocked (estimated average)", 22, GREEN).move_to([0, 1.95, 0])
-        self.at("estimated to block")
-        self.play(FadeOut(by), FadeOut(seed), arrow.animate.set_opacity(0.3), GrowFromCenter(bar), FadeIn(big), FadeIn(sub), run_time=1.0)
-        q = qboxes()
-        self.at("holds them apart")
-        self.play(*[FadeIn(b, scale=0.6) for b in q], lag_ratio=0.2, run_time=1.0)
-        self.play(Indicate(VGroup(*q), color=ORANGE, scale_factor=1.12), run_time=0.8)
+        self.play(FadeIn(b2, shift=DOWN * .2), run_time=.5)
+        band = R(-2.6, 2.6, -.4, .4, BLUE, .55)
+        flow = T("gene flow in the wild", 26, BLUE).move_to([0, -1.2, 0])
+        self.at("Yet in the wild")
+        self.play(FadeOut(arrow), FadeOut(by), FadeOut(seed), FadeIn(band), FadeIn(flow), run_time=.6)
+        self.at("almost no genes")
+        self.play(Transform(band, R(-2.6, 2.6, -.025, .025, BLUE, .6)), run_time=.8)
+        barrier = bchip("barriers to gene flow", ORANGE, 26).move_to([0, -2.3, 0])
+        self.at("barriers that cut")
+        self.play(FadeIn(barrier), run_time=.6)
+        self.at("different places")
+        self.play(f1.animate.shift(LEFT * .3), f2.animate.shift(RIGHT * .3), run_time=.7)
+        self.at("different pollinators")
+        self.play(Indicate(b1, scale_factor=1.05), Indicate(b2, scale_factor=1.05), run_time=.6)
         self.finish()
 
 
 class S02Barriers(SpokenScene):
     def construct(self):
-        q = qboxes()
-        for b in q:
-            self.add(b)
-        flow = Arrow([-6.2, YB, 0], [6.2, YB, 0], color=BLUE, stroke_width=8, buff=0, tip_length=0.3)
-        flow.set_z_index(-1)
-        flbl = T("gene flow", 26, BLUE).move_to([-5.2, YB - 0.75, 0])
-        self.at("reproductive barrier")
-        names = [bchip(n, ORANGE, 28).move_to([G[i], YB, 0]) for i, (n, _) in enumerate(ORDER_A)]
-        boxes_to = [bchip("?", ORANGE, 60).move_to([G[i], YB, 0]) for i in range(3)]
-        self.play(*[ReplacementTransform(a, b) for a, b in zip(q, boxes_to)], run_time=0.9)
-        self.at("reduces gene flow")
-        self.play(GrowFromEdge(flow, LEFT), FadeIn(flbl), run_time=0.9)
-        zl = DashedLine([1.2, -1.2, 0], [1.2, 3.1, 0], color=YELLOW, stroke_width=4)
-        dot = Dot([1.2, -0.7, 0], color=YELLOW, radius=0.14)
-        zt = T("zygote", 26, YELLOW).move_to([1.2, -1.6, 0])
-        pre = T("before the zygote", 32, TEXT).move_to([-2.5, 2.35, 0])
-        pre2 = T("prezygotic", 24, GREY).move_to([-2.5, 1.8, 0])
-        post = T("after the zygote", 32, TEXT).move_to([3.8, 2.35, 0])
-        post2 = T("postzygotic", 24, GREY).move_to([3.8, 1.8, 0])
+        title = heading("Reproductive barriers reduce gene flow")
+        chips = [bchip(n, ORANGE, 26).move_to([x, .4, 0])
+                 for n, x in zip(("habitat", "pollinator", "hybrid fertility"), (-4.7, -1.7, 4.1))]
+        self.at("A reproductive barrier")
+        self.play(FadeIn(title), run_time=.6)
+        line = DashedLine([1.2, -1.6, 0], [1.2, 2.4, 0], color=YELLOW, stroke_width=4)
+        z = T("zygote", 26, YELLOW).move_to([1.2, -2, 0])
+        before = T("before the zygote", 30).move_to([-3.1, 1.9, 0])
+        after = T("after", 30).move_to([4.1, 1.9, 0])
         self.at("sorted by when")
-        self.play(Create(zl), FadeIn(dot), FadeIn(zt), run_time=0.9)
+        self.play(Create(line), FadeIn(z), run_time=.7)
         self.at("Where the plants grow")
-        self.play(ReplacementTransform(boxes_to[0], names[0]), FadeIn(pre), FadeIn(pre2), run_time=0.7)
-        self.at("which pollinators")
-        self.play(ReplacementTransform(boxes_to[1], names[1]), run_time=0.7)
-        self.at("fertilized egg")
-        self.play(Indicate(zt, color=YELLOW, scale_factor=1.15), run_time=0.7)
-        self.at("Low fertility")
-        self.play(ReplacementTransform(boxes_to[2], names[2]), FadeIn(post), FadeIn(post2), run_time=0.7)
-        self.at("several barriers")
-        self.play(*[Indicate(n, color=ORANGE, scale_factor=1.12) for n in names], run_time=1.0)
+        self.play(FadeIn(chips[0], shift=RIGHT * .3), run_time=.6)
+        self.at("pollinators visit them")
+        self.play(FadeIn(chips[1], shift=RIGHT * .3), run_time=.6)
+        self.at("act before")
+        self.play(FadeIn(before), run_time=.5)
+        self.at("the fertilized egg")
+        self.play(Indicate(z, color=YELLOW, scale_factor=1.08), run_time=.5)
+        self.at("Low hybrid fertility")
+        self.play(FadeIn(chips[2], shift=RIGHT * .3), FadeIn(after), run_time=.6)
+        note = T("No single barrier is complete", 26, GREY).move_to([0, -3, 0])
+        self.at("No single barrier")
+        self.play(FadeIn(note), run_time=.6)
+        glow = RoundedRectangle(width=6.5, height=2.9, corner_radius=.2,
+                                color=ORANGE, fill_opacity=.07).move_to([-3.15, .8, 0]).set_z_index(-1)
+        self.at("most of the isolation")
+        self.play(Create(glow), run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03First(SpokenScene):
+class S03Adaptation(SpokenScene):
     def construct(self):
-        names = [bchip(n, ORANGE, 28).move_to([G[i], YB, 0]) for i, (n, _) in enumerate(ORDER_A)]
-        flow = Arrow([-6.2, YB, 0], [6.2, YB, 0], color=BLUE, stroke_width=8, buff=0, tip_length=0.3)
-        flow.set_z_index(-1)
-        self.add(flow, *names)
-        names2, ris = names_of(ORDER_A)
-        gene, cred, tag = statics()
-        d0 = dyn(ORDER_A, 0)
-        d0["band"] = [R(XS[j], XS[j + 1], YB - H / 2, YB + H / 2, BLUE, 0.55, sw=1.5) for j in range(4)]
+        title = heading("Barriers grow from adaptation")
+        slope = Polygon([-6, -2.5, 0], [5.8, 2, 0], [6, -2.5, 0],
+                        color=GREY, fill_opacity=.08, stroke_width=3)
+        red = flower(FRED, .65).move_to([-3.8, -1.1, 0])
+        pink = flower(PINK, .65).move_to([3.3, 1.5, 0])
+        self.at("These barriers")
+        self.play(FadeIn(title), Create(slope), run_time=.7)
+        self.at("lower elevations")
+        self.play(GrowFromCenter(red), run_time=.6)
+        self.at("higher ones")
+        self.play(GrowFromCenter(pink), run_time=.6)
+        b = bee().move_to([1.7, 2.2, 0])
+        h = bird().move_to([-5.4, -.3, 0])
+        self.at("suits bumblebees")
+        self.play(FadeIn(b), b.animate.move_to([2.4, 1.9, 0]), run_time=.6)
+        self.at("suits hummingbirds")
+        self.play(FadeIn(h), h.animate.move_to([-4.8, -.6, 0]), run_time=.6)
+        habitat = bchip("habitat", ORANGE, 26).move_to([0, -.9, 0])
+        pollinator = bchip("pollinator", ORANGE, 26).move_to([3.5, -.9, 0])
+        self.at("plants rarely meet")
+        self.play(FadeIn(habitat, shift=DOWN * .4), run_time=.6)
+        self.at("carries little pollen")
+        self.play(b.animate.shift(LEFT * .3), h.animate.shift(RIGHT * .3),
+                  FadeIn(pollinator, shift=DOWN * .4), run_time=.7)
+        rule = T("Isolation is a side effect", 30, GREEN).move_to([0, -3.15, 0])
+        self.at("Isolation is a side effect")
+        self.play(FadeIn(rule), run_time=.6)
+        self.at("ecological speciation")
+        self.play(Transform(title, heading("Ecological speciation")), run_time=.6)
+        self.finish()
+
+
+class S04Sticklebacks(SpokenScene):
+    def construct(self):
+        title = heading("Does isolation follow ecology?")
+        lakes, bottom, water = [], [], []
+        for x in (-4.3, 0, 4.3):
+            outline = Ellipse(width=3.1, height=3.4, color=GREY, fill_opacity=.05).move_to([x, .25, 0])
+            lakes.append(outline)
+            bottom.append(fish(ORANGE, True).move_to([x, -.7, 0]))
+            water.append(fish(BLUE).move_to([x, 1, 0]))
+        lakegroup = VGroup(*lakes)
+        fishgroup = VGroup(*bottom, *water)
+        legend = VGroup(T("bottom-feeding", 25, ORANGE), T("open-water", 25, BLUE)).arrange(RIGHT, buff=1).move_to([0, -2.4, 0])
+        self.at("How do we know")
+        self.play(FadeIn(title), run_time=.6)
+        self.at("Lakes in British Columbia")
+        self.play(Create(lakegroup), run_time=.8)
+        self.at("a bottom feeding")
+        self.play(FadeIn(VGroup(*bottom)), run_time=.6)
+        self.at("an open water")
+        self.play(FadeIn(VGroup(*water)), FadeIn(legend), run_time=.6)
+        self.at("arisen on its own")
+        self.play(LaggedStart(*[Indicate(l, color=GREY, scale_factor=1.03) for l in lakes], lag_ratio=.15), run_time=.8)
+        breaks = VGroup()
+        for x in (-4.3, 0, 4.3):
+            breaks.add(DashedLine([x, -.25, 0], [x, .55, 0], color=RED),
+                       Line([x-.18, .05, 0], [x+.18, .25, 0], color=RED, stroke_width=5))
+        note = T("different forms: rarely mate", 26, RED).move_to([0, -3.2, 0])
+        self.at("different forms rarely mated")
+        self.play(Create(breaks), FadeIn(note), run_time=.8)
+        links = VGroup(*[Line([a, y, 0], [b, y, 0], color=GREEN, stroke_width=4)
+                         for y in (-.7, 1) for a, b in ((-3.5, -.85), (.85, 3.45))]).set_z_index(-1)
+        self.at("from different lakes")
+        self.play(FadeOut(breaks), FadeOut(note), Create(links), run_time=.6)
+        result = T("same form across lakes: mate readily", 26, GREEN).move_to([0, -3.2, 0])
+        self.at("mated readily")
+        self.play(FadeIn(result), run_time=.5)
+        self.at("Isolation followed ecology")
+        self.play(Transform(title, heading("Isolation followed ecology")), run_time=.6)
+        self.finish()
+
+
+class S05Combine(SpokenScene):
+    def construct(self):
+        title = heading("Each barrier acts on what remains")
+        d = dyn(ORDER_A, 0)
+        band = VGroup(*d['band'])
+        gates = VGroup(*d['gates'])
+        labels = VGroup(*[T(n, 24, ORANGE).move_to([x, 2.15, 0])
+                         for n, x in zip(("habitat", "pollinator", "hybrid fertility"), G)])
+        flow = T("gene flow", 26, BLUE).move_to([-5, -1.35, 0])
         self.at("Barriers act in sequence")
-        self.play(*[n.animate.move_to([G[i], 3.0, 0]) for i, n in enumerate(names)],
-                  FadeOut(flow), *[GrowFromEdge(b, LEFT) for b in d0["band"]], FadeIn(gene), run_time=1.2)
-        self.add(*d0["gates"], *d0["led"])
-        self.play(FadeIn(d0["vals"][0]), run_time=0.4)
-        self.at("earlier barriers")
-        self.play(Indicate(d0["band"][0], color=YELLOW, scale_factor=1.03), run_time=0.8)
-        self.at("illustrative")
-        self.play(FadeIn(tag), FadeIn(cred), FadeIn(d0["led"][3]), run_time=0.7)
-        self.at("barrier blocks")
-        self.play(Indicate(d0["led"][3], color=ORANGE, scale_factor=1.0), run_time=0.6)
-        self.at("The first barrier")
-        self.play(Indicate(names[0], color=ORANGE, scale_factor=1.12), FadeIn(ris[0]), run_time=0.8)
+        self.play(FadeIn(title), GrowFromEdge(band, LEFT), FadeIn(labels), FadeIn(flow), run_time=.8)
+        self.add(gates)
+        self.at("Each one can only block")
         d1 = dyn(ORDER_A, 1)
-        self.at("gets credit")
-        # the gate closes and the credit appears together
-        self.play(*go(d0, d1), run_time=1.2)
+        self.play(*[Transform(a,b) for a,b in zip(d['band'],d1['band'])],
+                  *[Transform(a,b) for a,b in zip(d['gates'],d1['gates'])], run_time=.8)
+        self.at("earlier barriers left behind")
+        for k in (2,3):
+            nxt = dyn(ORDER_A, k)
+            self.play(*[Transform(a,b) for a,b in zip(d['band'],nxt['band'])],
+                      *[Transform(a,b) for a,b in zip(d['gates'],nxt['gates'])], run_time=.55)
+        assumption = T("if barriers act independently", 24, GREY).move_to([0, -1.6, 0])
+        formula = M("1 − (1 − RI1) × (1 − RI2) × (1 − RI3)", 28, GREEN).move_to([0, -2.6, 0])
+        self.at("if they act independently")
+        self.play(FadeOut(flow), FadeIn(assumption), run_time=.5)
+        self.at("fractions that get through multiply")
+        product = M("(1 − RI1) × (1 − RI2) × (1 − RI3)", 28, BLUE).move_to([0, -2.6, 0])
+        self.play(FadeIn(product), run_time=.6)
+        self.at("total isolation is")
+        self.play(ReplacementTransform(product, formula), run_time=.6)
+        raw = M("RI1 + RI2 + RI3", 26, ORANGE).move_to([0, -1.6, 0])
+        strike = Line(raw.get_left()+LEFT*.15, raw.get_right()+RIGHT*.15, color=RED, stroke_width=5)
+        self.at("Never just add")
+        self.play(FadeOut(assumption), FadeIn(raw), Create(strike), run_time=.6)
+        self.at("more than one")
+        self.play(Indicate(raw, color=RED, scale_factor=1.04), run_time=.5)
         self.finish()
 
 
-class S04Next(SpokenScene):
+class S06Where(SpokenScene):
     def construct(self):
-        names, ris = names_of(ORDER_A)
-        gene, cred, tag = statics()
-        d = dyn(ORDER_A, 1)
-        self.add(*names, ris[0], gene, cred, tag)
-        add_state(self, d, 1)
-        self.at("pollinator barrier")
-        self.play(Indicate(names[1], color=ORANGE, scale_factor=1.12), FadeIn(ris[1]), run_time=0.8)
-        box = hl(d, 1)
-        eq1 = M("0.90 × 0.40", 28, TEXT).move_to([G[1] + 0.2, 1.65, 0])
-        self.at("acts only on")
-        self.play(Create(box), FadeIn(eq1), run_time=0.8)
-        eq1b = M("0.90 × 0.40 = 0.36", 28, TEXT).move_to([G[1] + 0.2, 1.65, 0])
-        d2 = dyn(ORDER_A, 2)
-        self.at("It blocks")
-        self.play(Transform(eq1, eq1b), *go(d, d2), run_time=1.2)
-        self.at("hybrid fertility")
-        self.play(FadeOut(box), FadeOut(eq1), Indicate(names[2], color=ORANGE, scale_factor=1.12), FadeIn(ris[2]), run_time=0.8)
-        box2 = hl(d, 2)
-        eq2 = M("0.50 × 0.04", 28, TEXT).move_to([G[2] + 0.2, 1.65, 0])
-        self.at("acts on the")
-        self.play(Create(box2), FadeIn(eq2), run_time=0.8)
-        eq2b = M("0.50 × 0.04 = 0.02", 28, TEXT).move_to([G[2] + 0.2, 1.65, 0])
-        d3 = dyn(ORDER_A, 3)
-        self.at("It blocks", nth=1)
-        self.play(Transform(eq2, eq2b), *go(d, d3), run_time=1.2)
+        title = heading("Where is separate from how")
+        panels = VGroup(*[RoundedRectangle(width=3.8, height=3.2, corner_radius=.2, color=GREY)
+                          .move_to([x, .3, 0]) for x in (-4.3, 0, 4.3)])
+        dots = VGroup(*[Dot([x+dx, y, 0], radius=.12, color=BLUE)
+                        for x in (-4.3, 0, 4.3) for dx,y in ((-.9,0),(-.6,.9),(.6,.9),(.9,0))])
+        split = R(-4.55, -4.05, -1.25, 1.85, GREY, .65)
+        names = VGroup(T("split population", 24), T("dispersal", 24), T("one area",24))
+        for n,x in zip(names,(-4.3,0,4.3)): n.move_to([x,-1.95,0])
+        self.at("Where speciation happens")
+        self.play(FadeIn(title), Create(panels), FadeIn(dots), run_time=.8)
+        self.at("can split a population")
+        self.play(GrowFromCenter(split), FadeIn(names[0]), run_time=.6)
+        island = Ellipse(width=1.1, height=1.4, color=GREY).move_to([.95,.4,0])
+        crossing = Arrow([-.9,.2,0],[.5,.2,0],color=BLUE,buff=.05,stroke_width=3)
+        self.at("allopatric speciation")
+        self.play(Create(island), GrowArrow(crossing), FadeIn(names[1]),
+                  dots[4].animate.move_to([1.1, .45, 0]), run_time=.6)
+        self.at("diverge in one place")
+        self.play(*[dots[i].animate.set_color(ORANGE) for i in (10,11)],FadeIn(names[2]),run_time=.6)
+        warning=T("Living together does not prove a sympatric start",26,YELLOW).move_to([0,-3,0])
+        self.at("Living together today")
+        self.play(FadeIn(warning),run_time=.6)
+        crater=Circle(radius=1.65,color=GREY,fill_opacity=.06).move_to([2,.25,0])
+        source=Ellipse(width=3.7,height=2.1,color=GREY,fill_opacity=.06).move_to([-3.9,.25,0])
+        pair=VGroup(fish(BLUE).move_to([1.6,.8,0]),fish(ORANGE,True).move_to([2.3,-.4,0]))
+        label=T("Nicaragua: crater lake",26).move_to([2,-2,0])
+        self.at("For crater lake cichlids")
+        self.play(*[FadeOut(m) for m in (panels,dots,split,names,island,crossing,warning)],
+                  Transform(title,heading("Divergence inside the lake")),Create(crater),Create(source),FadeIn(pair),FadeIn(label),run_time=.8)
+        evidence=T("supported by genome-wide models",25,GREY).move_to([0,-3,0])
+        self.at("models supported divergence")
+        self.play(FadeIn(evidence),run_time=.6)
+        inflow=Arrow([-1.9,.3,0],[.25,.3,0],color=BLUE,stroke_width=2,buff=.05,tip_length=.16)
+        flowlabel=T("some genes from outside",24,BLUE).move_to([-2,1.9,0])
+        self.at("some genes arriving")
+        self.play(GrowArrow(inflow),FadeIn(flowlabel),run_time=.7)
         self.finish()
 
 
-class S05Total(SpokenScene):
+class S07Polyploidy(SpokenScene):
     def construct(self):
-        names, ris = names_of(ORDER_A)
-        gene, cred, tag = statics()
-        d = dyn(ORDER_A, 3)
-        self.add(*names, *ris, gene, cred, tag)
-        add_state(self, d, 3)
-        y = 1.65
-        lbl = M("left =", 28, TEXT).move_to([-1.7, y, 0])
-        f1 = M("0.40", 28, TEXT).next_to(lbl, RIGHT, buff=0.25)
-        f2 = M("× 0.10", 28, TEXT).next_to(f1, RIGHT, buff=0.2)
-        f3 = M("× 0.50", 28, TEXT).next_to(f2, RIGHT, buff=0.2)
-        res = M("= 0.02", 28, TEXT).next_to(f3, RIGHT, buff=0.2)
-        self.at("minus what")
-        self.play(FadeIn(lbl), run_time=0.5)
-        self.at("Multiply what")
-        self.play(FadeIn(f1), run_time=0.5)
-        self.at("times")
-        self.play(FadeIn(f2), run_time=0.5)
-        self.at("times", nth=1)
-        self.play(FadeIn(f3), run_time=0.5)
-        self.at("That is")
-        self.play(FadeIn(res), run_time=0.5)
-        x1 = LX0 + 9.6
-        brace = Line([LX0, -1.75, 0], [x1, -1.75, 0], color=GREEN, stroke_width=6)
-        tot = T("total isolation", 26, GREEN)
-        totn = M("0.98", 30, GREEN)
-        grp = VGroup(tot, totn).arrange(RIGHT, buff=0.25).move_to([(LX0 + x1) / 2, -1.45, 0])
-        self.at("so total isolation")
-        self.play(Create(brace), FadeIn(grp), run_time=0.9)
-        sm = M("0.60 + 0.90 + 0.50 = 2.00", 28, ORANGE).move_to([1.6, y, 0])
-        self.at("Do not add")
-        self.play(FadeOut(VGroup(lbl, f1, f2, f3, res)), FadeIn(sm), run_time=0.7)
-        strike = Line(sm.get_left() + LEFT * 0.1, sm.get_right() + RIGHT * 0.1, color=RED, stroke_width=6)
-        note = T("not a fraction of gene flow", 24, RED).move_to([2.2, 1.1, 0])
-        self.at("which means nothing")
-        self.play(Create(strike), FadeIn(note), run_time=0.8)
+        title=heading("A faster route: whole-genome doubling")
+        parents=VGroup(bchip("parent",PINK,28).move_to([-4.6,1.3,0]),
+                       bchip("parent",FRED,28).move_to([-4.6,-1.3,0]))
+        arrows=VGroup(*[Arrow([-3.5,y,0],[-1.5,0,0],buff=.15,color=GREY) for y in (1.3,-1.3)])
+        hybrid=bchip("hybrid",GREY,28).move_to([-.4,0,0])
+        # Abstract cards stand for a whole genome, not chromosomes or molecular structures.
+        genome=bchip("genome",YELLOW,24).move_to([-.4,-1.3,0])
+        self.at("There is also")
+        self.play(FadeIn(title),run_time=.6)
+        self.at("In plants especially")
+        self.play(FadeIn(parents),run_time=.6)
+        self.at("a hybrid can")
+        self.play(GrowArrow(arrows[0]),GrowArrow(arrows[1]),FadeIn(hybrid),FadeIn(genome),run_time=.6)
+        doubled=VGroup(bchip("genome",YELLOW,24).move_to([3.5,-.6,0]),
+                       bchip("genome",YELLOW,24).move_to([3.5,-1.5,0]))
+        self.at("double its whole genome")
+        self.play(ReplacementTransform(genome,doubled),run_time=.8)
+        poly=bchip("polyploid lineage",GREEN,26).move_to([3.5,.7,0])
+        self.at("new polyploid lineage")
+        self.play(FadeIn(poly),run_time=.6)
+        barrier=VGroup(Line([1.3,-2,0],[1.3,-.25,0],color=ORANGE,stroke_width=6),
+                       Line([1.3,.3,0],[1.3,2,0],color=ORANGE,stroke_width=6))
+        note=T("partly isolated • one generation",26,ORANGE).move_to([0,-2.7,0])
+        self.at("partly isolated")
+        self.play(Create(barrier),FadeIn(note),run_time=.6)
+        self.at("Either way")
+        self.play(*[FadeOut(m) for m in (parents,arrows,hybrid,doubled,barrier,note)],
+                  poly.animate.move_to([0,0,0]),run_time=.7)
+        rule=T("Barriers cut gene flow",36,ORANGE).move_to([0,1.5,0])
+        self.at("Barriers cut gene flow")
+        self.play(FadeOut(title),FadeIn(rule),run_time=.6)
+        path=Arrow([0,-.5,0],[3,-1.8,0],color=GREEN,buff=.1)
+        own=T("evolves on its own",30,GREEN).move_to([3,-2.5,0])
+        self.at("a new lineage evolves")
+        self.play(GrowArrow(path),FadeIn(own),run_time=.7)
         self.finish()
 
 
-class S06Order(SpokenScene):
-    def construct(self):
-        names, ris = names_of(ORDER_A)
-        gene, cred, tag = statics()
-        d = dyn(ORDER_A, 3)
-        self.add(*names, *ris, gene, cred, tag)
-        add_state(self, d, 3)
-        x1 = LX0 + 9.6
-        brace = Line([LX0, -1.75, 0], [x1, -1.75, 0], color=GREEN, stroke_width=6)
-        tot = T("total isolation", 26, GREEN)
-        totn = M("0.98", 30, GREEN)
-        grp = VGroup(tot, totn).arrange(RIGHT, buff=0.25).move_to([(LX0 + x1) / 2, -1.45, 0])
-        self.add(brace, grp)
-        self.at("swap the first two")
-        # swap the two chips and reset every result to neutral in the same animation
-        d0 = dyn(ORDER_B, 0)
-        d0["band"] = [R(XS[j], XS[j + 1], YB - H / 2, YB + H / 2, BLUE, 0.55, sw=1.5) for j in range(4)]
-        self.play(names[0].animate.move_to([G[1], 3.0, 0]), names[1].animate.move_to([G[0], 3.0, 0]),
-                  ris[0].animate.move_to([G[1], 2.2, 0]), ris[1].animate.move_to([G[0], 2.2, 0]),
-                  FadeOut(brace), FadeOut(grp), *go(d, d0), run_time=1.3)
-        self.at("pollinator barrier acts first")
-        self.play(*go(d, dyn(ORDER_B, 1)), Indicate(names[1], color=ORANGE, scale_factor=1.12), run_time=1.1)
-        self.at("gets only")
-        self.play(*go(d, dyn(ORDER_B, 2)), Indicate(names[0], color=ORANGE, scale_factor=1.12), run_time=1.1)
-        self.at("Hybrid fertility still")
-        self.play(*go(d, dyn(ORDER_B, 3)), Indicate(names[2], color=ORANGE, scale_factor=1.12), run_time=1.1)
-        brace2 = Line([LX0, -1.75, 0], [x1, -1.75, 0], color=GREEN, stroke_width=6)
-        tot2 = VGroup(T("total isolation", 26, GREEN), M("0.98", 30, GREEN)).arrange(RIGHT, buff=0.25).move_to([(LX0 + x1) / 2, -1.45, 0])
-        self.at("total is still")
-        self.play(Create(brace2), FadeIn(tot2), run_time=0.9)
-        self.at("position as well")
-        self.play(Indicate(d["led"][0], color=YELLOW, scale_factor=1.0), run_time=0.9)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "Barriers act on what remains; order moves credit, not the total."
+class S08End(EndCard):
+    LINE = "Barriers cut gene flow; a new lineage evolves on its own."
