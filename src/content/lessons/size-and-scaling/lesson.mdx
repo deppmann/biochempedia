@@ -81,11 +81,12 @@ scientists:
       in Australia, went back to the data. A basal metabolic rate is meant to be measured in an
       adult animal at rest, not digesting a meal, and in a thermoneutral environment, one where it
       spends no extra energy on warming or cooling itself. Many published values did not meet
-      those conditions, and large mammals tend to differ from small ones in body temperature and
-      in how long they stay in a digestive state. When White and Seymour restricted and corrected
+      those conditions. Large mammals tend to differ from small ones in body temperature, and
+      herbivores that ferment food in the gut, such as cattle and kangaroos, may never be fully
+      fasted when measured. When White and Seymour restricted and corrected
       the data for these factors, the fitted exponent for mammals came out close to 2/3. Their
       paper did not settle the question. It showed that the exponent depends on how the data are
-      chosen, which is why later work now reports exponents group by group.
+      chosen, and later work often reports exponents group by group.
 
 techniques:
   - name: "Respirometry and indirect calorimetry"
@@ -113,7 +114,7 @@ simulations:
     ref: "MetabolicPowerLaw"
     title: "Metabolic rate and body mass"
     caption: >-
-      Move two body masses and the exponent b along the lesson's fitted mammal line, 70 x M^b kcal per day, and watch the ratio of totals and the ratio of rates per kilogram change.
+      Move two body masses and the exponent b in an illustrative model, 70 x M^b kcal per day with M in kilograms (the usual mammal fit uses b = 0.75), and watch the ratio of totals and the ratio of rates per kilogram change.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -179,7 +180,7 @@ practiceQuestions:
     answer: 2
     rationale: >-
       The mesophyll measure divides one area (internal cell surface) by another (leaf area), so the
-      units cancel and it tells you how many times the leaf's outer area is repeated inside it.
+      units cancel and it tells you how many times the leaf's area, measured from one face, is repeated inside it.
       A surface-area-to-volume ratio divides area by volume and has units of per length, as in
       0.6 per um for a 10 um cube. Calling it per mm treats the two measures as the same kind.
       Volume per area and volume per volume describe quantities the study did not report here.
@@ -253,8 +254,8 @@ explainLevels:
       solute in water, 10 um takes 0.05 s and 1 cm about 14 hours. Organisms extend exchange
       surfaces by flattening (planarians, leaf laminae), folding (alveoli, lobed mesophyll)
       and branching (airways, leaf veins), and they move material by bulk flow (circulation,
-      ventilation, cytoplasmic streaming in Chara), always with diffusion over the last short step. Metabolic rate is
-      described empirically by R = a M^b, with b below 1, so the mass-specific rate a M^(b - 1)
+      ventilation, cytoplasmic streaming in Chara), usually with diffusion over the last short step. Metabolic rate is
+      described empirically by R = a M^b, with b below 1 in most comparisons of adult mammals and birds, so the mass-specific rate a M^(b - 1)
       falls with size. Kleiber's widely used b = 3/4 is a fit to mammals and birds; other
       analyses find values nearer 2/3, and b differs among taxa and states.
   - level: "grad"
@@ -299,12 +300,15 @@ anecdotes:
     source: "Goldstein and van de Meent, A physical perspective on cytoplasmic streaming, Interface Focus 5:20150030 (2015)."
     text: >-
       The freshwater alga Chara grows giant internodal cells, each long enough to see with the
-      naked eye. Diffusion alone would take hours to move a small molecule from one end of such a
-      cell to the other. Instead, molecular motors near the cell periphery drive the fluid inside
-      in a steady circulation at speeds up to about 100 um per s. Raymond Goldstein and Jan-Willem
-      van de Meent, reviewing the physics, use the Péclet number to compare this flow with
-      diffusion. In a single cell, the same answer appears that animals use with blood and plants
-      with sap: move the fluid in bulk.
+      naked eye, and some are more than 10 cm long. Diffusion alone would take days or longer to
+      move a small molecule from one end of such a cell to the other. Molecular motors in two
+      spiralling bands near the cell wall drive the fluid up one side of the cell and down the
+      other at speeds up to about 100 um per s, and the moving layer also stirs the large central
+      vacuole. Raymond Goldstein and Jan-Willem van de Meent, reviewing the physics, use the
+      Péclet number to compare this flow with diffusion. They treat streaming as a proposed answer
+      to slow transport in such a big cell, the same answer animals use with blood and plants with
+      sap: move the fluid in bulk. How much it actually relieves the diffusion limit is still an
+      open question.
 
 corpusTags:
   - "surface-area-to-volume"
@@ -320,7 +324,7 @@ draft: false
 import MetabolicPowerLaw from '../../../components/MetabolicPowerLaw.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**A widely used fit predicts that a 30 g mouse at rest burns roughly 5 kilocalories a day, and a 70 kg adult human about 1,700. The human is more than 2,000 times heavier but burns only about 340 times as much.** Each kilogram of mouse spends about seven times more energy than each kilogram of human. To see why, and why the mouse has lungs and a heart while a flatworm needs neither, you have to look at what happens to surfaces when bodies get bigger.
+**A widely used fit predicts that a 30 g mouse at rest burns roughly 5 kilocalories a day, and a 70 kg adult human about 1,700. The human is more than 2,000 times heavier but burns only about 340 times as much.** Each kilogram of mouse spends about seven times more energy than each kilogram of human. Why that happens is still debated, and the lesson comes back to it near the end. To see why the mouse has lungs and a heart while a flatworm needs neither, you have to look at what happens to surfaces when bodies get bigger.
 
 Everything a cell or a body takes in or gives out crosses a surface. Oxygen enters, carbon dioxide and heat leave. This lesson builds on [what an organism has to do](/lessons/organism-problems/) and asks how size changes the job.
 
@@ -368,9 +372,9 @@ Animals and plants face the same geometry, and the same four solutions turn up i
 
 **Flattening.** The planarian is one example. The blade, or **lamina**, of a typical eudicot leaf is another: a wide, thin sheet in which no cell is far from the surface.
 
-**Folding.** The mammalian lung packs a large exchange surface into the chest by folding it into a very large number of small air sacs, the alveoli. How much exchange is possible depends on that area divided by the thickness of the barrier. Leaves fold inward too. Their **mesophyll**, the photosynthetic tissue inside the leaf, is full of air spaces. Using X-ray microCT, Mathers and colleagues (2018) measured 21.3 mm² of exposed mesophyll surface per mm² of leaf area in barley and 15.5 in rice. That number has no units, because it is area divided by area: it says the inside surface is about twenty times the outside. Do not mix it with the cube's ratio in per um.
+**Folding.** The mammalian lung packs a large exchange surface into the chest by folding it into a very large number of small air sacs, the alveoli. How much exchange is possible depends on that area divided by the thickness of the barrier. Leaves pack a large surface inside too. Their **mesophyll**, the photosynthetic tissue inside the leaf, is full of air spaces. Using X-ray microCT, Mathers and colleagues (2018) measured 21.3 mm² of exposed mesophyll surface per mm² of leaf area in barley and 15.5 in rice. That number has no units, because it is area divided by area: it says the exposed inside surface is about twenty times the area of the leaf, measured from one face. Do not mix it with the cube's ratio in per um.
 
-**Branching.** The airways of the mammalian lung divide again and again, about 23 times in the standard textbook model of the adult human, from the trachea to the smallest airways. In a typical eudicot leaf, vascular tissue branches from the midrib into finer and finer veins, and the xylem in them brings water and minerals to the leaf. Branching shortens the last distance that diffusion has to cover.
+**Branching.** The airways of the mammalian lung divide again and again, about 23 times in the standard textbook model of the adult human, from the trachea to the alveolar sacs at the ends. In a typical eudicot leaf, vascular tissue branches from the midrib into finer and finer veins, and the xylem in them brings water and minerals to the leaf. In the lung, branching brings air close to every exchange surface, so diffusion has only a short last step. In the leaf, dense fine veins shorten the path water must take from the xylem, through living tissue, to where it evaporates.
 
 **Bulk flow.** **Bulk flow** moves a whole fluid, and everything in it, by a pressure difference or by motors. Breathing, blood circulation and the movement of sap in phloem are all bulk flow; you will meet them in [gas exchange](/lessons/gas-exchange/), [circulation](/lessons/circulation-and-heart/) and [plant transport](/lessons/plant-transport/). It even happens inside single cells. In the giant cells of the alga Chara, motors drive the cytoplasm round at up to about 100 um per s.
 
