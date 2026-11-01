@@ -127,20 +127,14 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "Which statement correctly describes where antidiuretic hormone (ADH) is made and where it enters the blood in mammals?"
+  - stem: "In a healthy adult human several hours after a meal, blood glucose is drifting down. Which response fits the hormone loop?"
     choices:
-      - "Made in the anterior pituitary, released into portal vessels"
-      - "Made in the kidney, released from the adrenal cortex"
-      - "Made in the posterior pituitary and released there"
-      - "Made in the hypothalamus, released from the posterior pituitary"
-    answer: 3
-    rationale: >-
-      ADH is made by neurons whose cell bodies lie in the hypothalamus; their axons run to the
-      posterior pituitary, which stores and releases it into the blood. Saying the posterior
-      pituitary makes ADH confuses the release site with the site of synthesis, the commonest
-      error here. The anterior pituitary makes its own hormones, and portal vessels carry
-      hypothalamic hormones toward it, not away. The kidney is ADH's target, and the adrenal cortex
-      releases steroids such as cortisol and aldosterone.
+      - "Alpha cells release glucagon, and the liver breaks down glycogen and releases glucose"
+      - "Beta cells release more insulin, so the liver raises its glucose output"
+      - "Alpha cells release glucagon, so muscle and fat take up more glucose"
+      - "Beta cells release more insulin, so muscle and fat take up more glucose"
+    answer: 0
+    rationale: "Between meals alpha cells release glucagon, which makes the liver break down glycogen and release glucose, so the falling level is pushed back up. Insulin is the after-meal signal: it increases uptake by muscle and fat and reduces liver output, so more insulin would lower glucose further. Glucagon acts on the liver, not on muscle and fat uptake. Insulin raising liver output has the sign backwards."
   - stem: "How do hypothalamic releasing hormones such as CRH reach the cells of the anterior pituitary in mammals?"
     choices:
       - "By diffusing through the cerebrospinal fluid of the ventricles"
@@ -225,19 +219,14 @@ mcatQuestions:
       fall can exceed all of the uptake. Forty-six percent is the fraction that remains, not the fall,
       and the data say nothing about liver receptors, which mouse liver does have. Two hundred and
       twenty percent divides the wrong way.
-  - stem: "In slices of hypothalamus from young male rats, the synthetic glucocorticoid dexamethasone lowered the frequency of excitatory synaptic currents in recorded neurons within 3 to 5 minutes. Dexamethasone chemically linked to albumin, a conjugate that cannot enter cells, had the same effect, but dexamethasone placed only inside the recorded neuron did not. What do these results best support?"
+  - stem: "In an illustrative experiment, a healthy volunteer eats a meal and blood glucose is followed for three hours. In a second trial with the same meal, a drug that acts only on pancreatic beta cells blocks insulin release. Compared with the first trial, which result do you expect?"
     choices:
-      - "The effect is a general toxic action of albumin on the slice"
-      - "The effect starts at a site reached from outside the cell membrane"
-      - "The effect needs dexamethasone to enter the recorded neuron's nucleus"
-      - "The effect needs new proteins made from glucocorticoid-activated genes"
-    answer: 1
-    rationale: >-
-      A version that cannot enter cells worked and an intracellular version did not, so the action
-      starts at or outside the membrane, in this preparation. New protein synthesis is too slow for
-      a 3 to 5 minute onset, and it would need the steroid inside the cell. Entry into the nucleus is
-      made unlikely by the failure of intracellular dexamethasone. Albumin cannot explain the result, because free dexamethasone with no albumin had the same
-      effect; albumin alone would still be the proper control.
+      - "Glucose rises higher and falls more slowly, since muscle and fat take up less and the liver's output is not suppressed"
+      - "Glucose rises less, since the liver takes up more glucose when insulin is absent"
+      - "Glucose is unchanged, since glucagon takes over insulin's job after a meal"
+      - "Glucose falls faster, since the liver stops releasing glucose when insulin is absent"
+    answer: 0
+    rationale: "Insulin increases glucose uptake by skeletal muscle and fat and slows the liver's glycogen breakdown and new glucose synthesis. Without it neither effect occurs, so glucose stays higher for longer. Glucagon opposes insulin and acts between meals; it does not replace insulin after a meal. The liver does not take up more glucose without insulin, and removing insulin removes a brake on liver output, so a faster fall has the sign backwards. This is a simplified model of one loop."
 
 explainLevels:
   - level: "eli5"
@@ -326,7 +315,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **In 1848 a Göttingen physician castrated young cockerels and put a testis back into the belly of some of them, cut off from its original nerves. Those birds still grew combs and crowed. How can an organ change the whole body without its own nerves?**
 
-It sends chemicals through the blood. This lesson asks what counts as a hormone, why some act in seconds and others over hours, how glands in the head control glands elsewhere, and how insects and frogs use the same logic.
+It sends chemicals through the blood. A hormone is a chemical message that the blood carries to distant cells, and only cells with the right receptor respond to it. The body keeps each message in check with negative feedback: the hormone's effect reduces the drive to release more of it. This lesson asks what counts as a hormone, why some act in seconds and others over hours, how glands in the head control glands elsewhere, how insulin and glucagon hold blood glucose steady, and how insects and frogs use the same logic.
 
 ## What makes a hormone
 
@@ -342,7 +331,7 @@ Most hormones fall into two chemical groups. **Peptide hormones**, such as insul
 
 <LessonFigure src="/figures/endocrine-system/peptide-vs-steroid.webp" width={1200} height={800} alt="AI-generated illustration: Two target cells side by side. On the left, small peptide hormone blocks float free in plasma and bind a receptor on the cell surface. On the right, steroid hormones ride on carrier proteins, one free steroid crosses the membrane and binds a receptor inside the cell that acts on genes in the nucleus." caption="A typical peptide hormone circulates free and binds a surface receptor, acting within seconds to minutes; a typical steroid rides on carrier proteins, crosses the membrane, and its receptor inside the cell changes transcription, with effects that usually build over hours." />
 
-Two warnings keep this from becoming a false rule. Not every peptide works the same way: glucagon's receptor is a G-protein-coupled receptor, but insulin's receptor is itself an enzyme, a tyrosine kinase (see [receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/)). And not every steroid action is slow, as the design problem shows. A third group, the **amine hormones** made from single amino acids, splits between the two: epinephrine acts like a peptide, while thyroid hormone, like a steroid, enters cells and binds an intracellular receptor.
+Two warnings keep this from becoming a false rule. Not every peptide works the same way: glucagon's receptor is a G-protein-coupled receptor, but insulin's receptor is itself an enzyme, a tyrosine kinase (see [receptor tyrosine kinases](/lessons/receptor-tyrosine-kinases/)). And not every steroid action is slow: some steroid actions begin within minutes and appear to start at the cell membrane (see Going deeper). A third group, the **amine hormones** made from single amino acids, splits between the two: epinephrine acts like a peptide, while thyroid hormone, like a steroid, enters cells and binds an intracellular receptor.
 
 ## Hypothalamus and pituitary: a chain with feedback
 
@@ -371,11 +360,11 @@ Most of these axes are held in check by **negative feedback**: a response that o
 
 ## Glucose and cortisol as loops
 
-**Blood glucose.** In a healthy adult human after a meal, glucose rises. Beta cells in the pancreatic islets respond by releasing insulin. Insulin increases glucose uptake by skeletal muscle and fat, and it reduces the liver's glucose output by slowing glycogen breakdown and new glucose synthesis. Glucose falls, and so does the stimulus for insulin. Between meals, alpha cells release glucagon, which makes the liver break down glycogen and release glucose. The liver is a target of both hormones. In mice, deleting the insulin receptor only in liver cells stopped insulin from suppressing the liver's glucose output normally. The chemistry of the liver's response belongs to [integration of metabolism](/lessons/integration-of-metabolism/) and [gluconeogenesis](/lessons/gluconeogenesis/).
+**Blood glucose.** In a healthy adult human after a meal, glucose rises. Beta cells in the pancreatic islets respond by releasing insulin. Insulin increases glucose uptake by skeletal muscle and fat, and it reduces the liver's glucose output by slowing glycogen breakdown and new glucose synthesis. Glucose falls, and so does the stimulus for insulin. Between meals, alpha cells release glucagon, which makes the liver break down glycogen and release glucose. The liver is a target of both hormones. The chemistry of the liver's response belongs to [integration of metabolism](/lessons/integration-of-metabolism/) and [gluconeogenesis](/lessons/gluconeogenesis/).
 
-**The stress axis.** CRH from the hypothalamus releases ACTH from the anterior pituitary, and ACTH makes the adrenal cortex produce cortisol. Cortisol raises glucose production: in normal human volunteers given high doses of hydrocortisone while their insulin, glucagon and growth hormone were held in fasting ranges, glucose production rose through new glucose synthesis. Rising cortisol then lowers CRH and ACTH. The glucose result comes from a high-dose infusion, not an ordinary stressful day. For the brain's side of stress, see [emotion and stress](/lessons/emotion-and-stress/).
+**The stress axis.** CRH from the hypothalamus releases ACTH from the anterior pituitary, and ACTH makes the adrenal cortex produce cortisol. Cortisol also raises glucose production, which is why it belongs in a glucose lesson. The evidence is from high-dose infusions in human volunteers, not an ordinary stressful day (details in Going deeper). Rising cortisol then lowers CRH and ACTH. For the brain's side of stress, see [emotion and stress](/lessons/emotion-and-stress/).
 
-Negative feedback does not hold a hormone at one fixed value. In humans, cortisol rises and falls over the day and comes in pulses roughly every 60 to 90 minutes. In a study of 15 healthy men whose own cortisol was blocked and replaced with the same daily dose on different schedules, the schedule changed how their brains responded to emotional stimuli. In this one small study, the timing itself carried information.
+Negative feedback does not hold a hormone at one fixed value. In humans, cortisol rises and falls over the day and comes in pulses roughly every 60 to 90 minutes.
 
 How fast a level can follow its gland depends on the hormone's **half-life**, the time for its plasma concentration to fall by half. **Worked problem.** This is a model, not an intact axis. Take an adult human with plasma cortisol of 400 nmol per L at time zero, and suppose secretion stops completely. Assume constant blood volume, no further secretion, and first-order elimination (a constant fraction lost per minute), with a half-life of 75 minutes, chosen within the textbook range of about 60 to 90 minutes.
 
@@ -403,6 +392,25 @@ Plants have hormones too, such as auxin, but no blood; they move signals through
 
 ### Design problem
 
+An adult human loses all the insulin-making beta cells of the pancreas. Predict what happens to blood glucose after a meal, and name the two actions of insulin that explain it. Then design a test that would show the change comes from missing insulin.
+
+<details>
+<summary>One way to do it</summary>
+
+Start with the loop. After a meal glucose rises. Normally insulin then increases glucose uptake by skeletal muscle and fat, and it slows the liver's glycogen breakdown and new glucose synthesis. With no insulin, neither action happens, so glucose rises higher and falls more slowly.
+
+Next, put the hormone back. If insulin is the missing step, giving insulin should bring the post-meal rise down. This is the logic of Berthold's graft: take the source away, see the loss, then restore the signal and see the loss reversed.
+
+Then separate it from the other side of the loop. Glucagon is released between meals and makes the liver release glucose. It opposes insulin and does not take over its job after a meal.
+
+Conclusion: without insulin the feedback that brings glucose back down is broken, and glucose stays high. This is a prediction from the loop, not a measured result, and a real patient's course depends on many other factors.
+
+</details>
+
+## Going deeper
+
+### Rapid steroid action in hypothalamic slices
+
 In slices of hypothalamus from young male rats, the synthetic glucocorticoid dexamethasone reduced excitatory synaptic input to recorded neurons within 3 to 5 minutes (Di, Malcher-Lopes, Halmos and Tasker, 2003). Is this the classical genomic action, in which the steroid enters the cell, binds an intracellular receptor and changes transcription? Design the tests, and say what each result would mean.
 
 <details>
@@ -421,3 +429,11 @@ Finally, look for what carries the signal. Blockers of the CB1 cannabinoid recep
 Conclusion: a rapid, membrane-initiated steroid action in rat hypothalamic slices. The membrane receptor was not identified, and the result does not show how cortisol feedback works in a living human.
 
 </details>
+
+### Cortisol timing and one small study
+
+In a study of 15 healthy men whose own cortisol was blocked and replaced with the same daily dose on different schedules, the schedule changed how their brains responded to emotional stimuli. In this one small study, the timing itself carried information.
+
+### Experiments behind the glucose and stress loops
+
+In mice, deleting the insulin receptor only in liver cells stopped insulin from suppressing the liver's glucose output normally. Cortisol raises glucose production: in normal human volunteers given high doses of hydrocortisone while their insulin, glucagon and growth hormone were held in fasting ranges, glucose production rose through new glucose synthesis. The glucose result comes from a high-dose infusion, not an ordinary stressful day.
