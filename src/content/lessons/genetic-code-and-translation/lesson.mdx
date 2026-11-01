@@ -4,17 +4,12 @@ slug: "genetic-code-and-translation"
 course: "genetics"
 courseChapter: "Genetics and Molecular Biology · Unit 4: From gene to protein, and its control"
 order: 318
-summary: >-
-  How does a cell turn a string of four bases into a chain of twenty amino acids? This lesson
-  follows how the code was worked out, by phage genetics and by test-tube translation, then
-  follows the adaptors and the ribosome that read it. Afterwards you can translate a message in
-  any reading frame, predict silent, missense, nonsense and frameshift changes, and say when a
-  premature stop in a human gene is likely to destroy its own mRNA.
+summary: "A cell reads an mRNA in nonoverlapping triplets called codons, and transfer RNAs on a ribosome turn each codon into an amino acid. This lesson shows how the code was worked out, by phage genetics and by test-tube translation, then follows the adaptors and the ribosome that read it. Afterwards you can translate a message in any reading frame, predict silent, missense, nonsense and frameshift changes, and say when a premature stop in a human gene is likely to destroy its own mRNA."
 hook: "Sixty-four codons, twenty amino acids, three stops: how was the dictionary read, and who reads it in the cell?"
 
 estMinutes: 24
 objectives:
-  - "Explain how frameshift genetics in phage T4 and cell-free translation with synthetic RNAs together showed that the code is read in nonoverlapping triplets from a fixed start, and assigned the first codons."
+  - "State that mRNA is read in nonoverlapping triplets from a fixed start, and explain how frameshift genetics in phage T4 and cell-free translation with synthetic RNAs showed it and assigned the first codons."
   - "Describe how aminoacyl-tRNA synthetases charge tRNA through an aminoacyl-AMP intermediate, and trace initiation, elongation and termination through the A, P and E sites in bacteria and eukaryotes."
   - "Translate an mRNA in each of its reading frames and predict the outcome of silent, missense, nonsense and frameshift mutations."
   - "Explain why, in mammalian cells, a premature stop codon well upstream of the last exon junction usually triggers nonsense-mediated decay while one in the last exon usually escapes it."
@@ -172,18 +167,14 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "In the standard genetic code, how many of the 64 codons specify an amino acid?"
+  - stem: "During elongation, just before the next aminoacyl-tRNA arrives, which site of the ribosome holds the tRNA carrying the growing chain, and which site receives that incoming aminoacyl-tRNA?"
     choices:
-      - "61"
-      - "64"
-      - "3"
-      - "20"
-    answer: 0
-    rationale: >-
-      Of 64 triplets, three (UAA, UAG and UGA) are ordinary stop codons, leaving 61 sense codons.
-      Sixty-four counts the stops as if they coded amino acids. Three is the number of stops,
-      not of sense codons. Twenty is the number of standard amino acids, and the code is
-      degenerate, so several codons share most amino acids.
+      - "The A site holds the growing chain; the P site receives the next aminoacyl-tRNA"
+      - "The E site holds the growing chain; the A site receives the next aminoacyl-tRNA"
+      - "The P site holds the growing chain; the A site receives the next aminoacyl-tRNA"
+      - "The P site holds the growing chain; the E site receives the next aminoacyl-tRNA"
+    answer: 2
+    rationale: "The P site (peptidyl) holds the tRNA attached to the growing chain, and the A site (aminoacyl) receives the incoming aminoacyl-tRNA whose anticodon matches the codon. The large subunit then transfers the chain to the amino group on the A-site amino acid, and EF-G moves the ribosome one codon so the empty tRNA reaches the E site and leaves. Putting the chain in the A site reverses the two names. The E site is the exit site for an empty tRNA, so it neither holds the chain nor receives an aminoacyl-tRNA."
   - stem: "In the first step of tRNA charging, what does an aminoacyl-tRNA synthetase make from the amino acid and ATP?"
     choices:
       - "Aminoacyl-GTP and free phosphate"
@@ -236,18 +227,14 @@ practiceQuestions:
       the rule. Saying both are degraded ignores the position dependence.
 
 mcatQuestions:
-  - stem: "E. coli ribosomes are mixed with radioactive lysyl-tRNA and then passed through a filter that retains ribosomes but not free tRNA. Retained counts: no added RNA, 0.2 units; the dinucleotide ApA, 0.2 units; the trinucleotide ApApA, 2.5 units; poly(A), 3.0 units. What is the best conclusion?"
+  - stem: "An E. coli cell-free system makes protein from an mRNA that ends in a UGA stop codon. The extract contains normal ribosomes, tRNAs and factors but has lost release factor RF2 and keeps RF1. What is the most likely result at the end of the coding sequence?"
     choices:
-      - "Lysyl-tRNA binds ribosomes without a template in this assay"
-      - "Two bases are enough to recruit lysyl-tRNA to the ribosome"
-      - "Three bases are the shortest tested that recruit lysyl-tRNA"
-      - "Peptide bonds must form before lysyl-tRNA stays on the ribosome"
-    answer: 2
-    rationale: >-
-      ApApA raises binding more than tenfold over background, while ApA does not, so three bases
-      is the shortest length here that recruits the tRNA. Template-free binding is ruled out by
-      the low no-RNA count. Two bases is ruled out because ApA equals background. Peptide bond
-      formation is not needed: a trinucleotide cannot be translated into a chain, yet it works.
+      - "Termination proceeds normally, because RF1 reads UGA"
+      - "Termination is impaired, because RF1 reads only UAA and UAG"
+      - "Termination proceeds normally, because a tRNA reads UGA"
+      - "Termination is impaired, because the stop codon is read in the E site"
+    answer: 1
+    rationale: "In bacteria RF1 reads UAA and UAG and RF2 reads UAA and UGA, so with RF2 missing nothing in this extract reads UGA and the ribosome tends to stall at the stop codon instead of releasing the chain. RF1 does not read UGA. Normally no tRNA reads a stop codon, so a tRNA cannot terminate translation here. A stop codon enters the A site, not the E site, which is where the empty tRNA leaves."
   - stem: "In one live-imaging study in human U2OS cells, ribosomes on a tagged reporter mRNA elongated at about 10 amino acids per second. A reporter's coding sequence is 3,600 nucleotides, not counting the stop codon. Assuming a constant rate, about how long does one ribosome take to traverse it?"
     choices:
       - "About 2 minutes"
@@ -367,13 +354,13 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Change one base in a gene and the protein may not change at all. Add one base and every amino acid after it can change.**
 
-Both facts follow from how the code is written. In this lesson you will see how the code was worked out, who reads it inside the cell, and how to predict what a mutation does to the protein. You already know the twenty side chains from [amino acids](/lessons/amino-acids/), and that an mRNA is made by [transcription](/lessons/transcription/) and, in eukaryotes, trimmed by [RNA processing](/lessons/rna-processing/). A **codon** is a group of three bases in mRNA that specifies one amino acid or a stop.
+Both facts follow from how the code is written. A cell reads an mRNA in nonoverlapping groups of three bases called codons. Each transfer RNA carries one amino acid and has an anticodon that pairs with a codon. The ribosome holds the mRNA and the tRNAs, joins the amino acids in order and stops at a stop codon. In this lesson you will see how the code was worked out, who reads it inside the cell, and how to predict what a mutation does to the protein. You already know the twenty side chains from [amino acids](/lessons/amino-acids/), and that an mRNA is made by [transcription](/lessons/transcription/) and, in eukaryotes, trimmed by [RNA processing](/lessons/rna-processing/). A **codon** is a group of three bases in mRNA that specifies one amino acid or a stop.
 
 ## How many letters per word? Crick and Brenner
 
 Four bases must spell twenty amino acids. Pairs give only 16 words, too few. Triplets give 64, more than enough. That count argued for at least three, but it was arithmetic, not evidence.
 
-The evidence came from phage genetics. In 1961 Francis Crick, Leslie Barnett, Sydney Brenner and Richard Watts-Tobin studied mutants in the rIIB gene of phage T4, the gene you met in [complementation and pathways](/lessons/complementation-and-pathways/). Their starting mutant was made with proflavin, a dye they argued adds or removes a base; most of the suppressor mutants that followed arose spontaneously. A **frameshift** is an insertion or deletion that is not a multiple of three, so every codon after it is read out of register. They sorted the mutants into two classes, called plus and minus. A plus with a nearby minus often restored function. Two pluses did not. Three pluses, or three minuses, restored wild or nearly wild growth in the combinations they tested.
+The evidence came from phage genetics. In 1961 Francis Crick, Leslie Barnett, Sydney Brenner and Richard Watts-Tobin studied mutants in the rIIB gene of phage T4, the gene you met in [complementation and pathways](/lessons/complementation-and-pathways/). A **frameshift** is an insertion or deletion that is not a multiple of three, so every codon after it is read out of register. They sorted the mutants into two classes, called plus and minus. A plus with a nearby minus often restored function. Two pluses did not. Three pluses, or three minuses, restored wild or nearly wild growth in the combinations they tested.
 
 Think of a sentence of three-letter words: THE FAT CAT ATE THE RAT. Insert one letter and the rest is nonsense; delete one nearby and the sense returns after the second mark. Insert three and only the words between them are wrong.
 
@@ -393,7 +380,7 @@ The finished table has 64 codons: 61 sense codons and 3 stops (UAA, UAG, UGA). A
 
 A codon cannot recognize an amino acid by shape. Crick had argued that an **adaptor** must carry each amino acid to the template, and **transfer RNA** is that adaptor. Each tRNA has an **anticodon** that pairs with the codon, and a 3' CCA end where the amino acid is attached.
 
-The matching is done by **aminoacyl-tRNA synthetases**, usually one enzyme for each amino acid. Most bacteria and all archaea lack a glutaminyl-tRNA synthetase and make Gln-tRNA indirectly. Charging has two steps:
+The matching is done by **aminoacyl-tRNA synthetases**, usually one enzyme for each amino acid. Charging has two steps:
 
 > **amino acid + ATP → aminoacyl-AMP + PPi**
 > **aminoacyl-AMP + tRNA → aminoacyl-tRNA + AMP**
@@ -404,7 +391,7 @@ Pyrophosphate is then hydrolyzed, so charging spends two high-energy phosphate b
 
 A **ribosome** has two subunits: 30S and 50S making a 70S ribosome in bacteria, 40S and 60S making an 80S ribosome in the eukaryotic cytosol. Svedberg values measure sedimentation, so they do not add. Three tRNA sites span the subunits: the **A site** (aminoacyl), the **P site** (peptidyl) and the **E site** (exit).
 
-**Initiation** differs most between the two systems. In many bacterial mRNAs, a purine-rich **Shine-Dalgarno** sequence a few bases upstream of the start codon pairs with the 3' end of 16S rRNA and places the start codon on the small subunit; other bacterial mRNAs, including leaderless ones, start without this pairing. The initiator is **fMet-tRNA** (formylmethionine) in most bacteria, and it can start at GUG as well as AUG. In most eukaryotic mRNAs, the 40S subunit with initiation factors and **Met-tRNAi** loads at the 5' cap and scans 5' to 3' to an AUG, usually the first in good **Kozak context** (a purine at -3 and a G at +4, counting the A of AUG as +1). In Kozak's preproinsulin reporter, changing bases around the AUG changed protein yield over a 20-fold range. Either way the initiator ends in the P site, and the large subunit joins.
+**Initiation** differs most between the two systems. In many bacterial mRNAs, a purine-rich **Shine-Dalgarno** sequence a few bases upstream of the start codon pairs with the 3' end of 16S rRNA and places the start codon on the small subunit; other bacterial mRNAs, including leaderless ones, start without this pairing. The initiator is **fMet-tRNA** (formylmethionine) in most bacteria, and it can start at GUG as well as AUG. In most eukaryotic mRNAs, the 40S subunit with initiation factors and **Met-tRNAi** loads at the 5' cap and scans 5' to 3' to an AUG, usually the first in good **Kozak context** (a purine at -3 and a G at +4, counting the A of AUG as +1). Either way the initiator ends in the P site, and the large subunit joins.
 
 <LessonFigure src="/figures/genetic-code-and-translation/initiation-bacteria-vs-eukaryotes.webp" width={1200} height={771} alt="AI-generated illustration: two panels comparing translation initiation. In bacteria a Shine-Dalgarno stretch upstream of the start codon pairs with the small subunit; in eukaryotes the small subunit loads at the 5' cap and scans along the mRNA to an AUG." caption="Many bacterial mRNAs place the start codon by pairing a Shine-Dalgarno sequence with 16S rRNA; in cap-dependent initiation, eukaryotes load the 40S subunit at the 5' cap and scan to an AUG in good Kozak context. Either way the initiator ends in the P site and the large subunit joins." />
 
@@ -438,7 +425,7 @@ Now predict four mutations, each checked codon by codon:
 
 Silent does not always mean harmless. In human cell lines, synonymous changes can alter mRNA stability while the protein sequence stays the same.
 
-A premature stop also changes the mRNA's fate. In mammalian cells, splicing leaves an **exon junction complex** about 20 to 24 bases upstream of most exon-exon junctions. A ribosome on the first round of translation displaces these complexes. If it stops more than about 50 to 55 bases upstream of the last junction, a complex remains downstream, and the mRNA is targeted by **nonsense-mediated decay (NMD)**. A stop in the last exon, or within about 50 bases of the last junction, usually escapes and may yield a truncated protein. The rule is a tendency with exceptions, and it is drawn from mammalian cells, not yeast or bacteria. For how such mutations arise, see [mutation](/lessons/mutation/).
+A premature stop also changes the mRNA's fate. In mammalian cells, splicing leaves an **exon junction complex** on the mRNA just upstream of most exon-exon junctions. A ribosome on the first round of translation displaces these complexes. If it stops more than about 50 to 55 bases upstream of the last junction, a complex remains downstream, and the mRNA is targeted by **nonsense-mediated decay (NMD)**. A stop in the last exon, or within about 50 bases of the last junction, usually escapes and may yield a truncated protein. The rule is a tendency with exceptions, and it is drawn from mammalian cells, not yeast or bacteria. For how such mutations arise, see [mutation](/lessons/mutation/).
 
 ### Design problem
 
@@ -458,3 +445,17 @@ Assumptions: codons are nonoverlapping triplets; translation can begin in any fr
 The Nirenberg-Leder binding test settles it: mix ribosomes with the trinucleotide AGA and labelled Arg-tRNA or Glu-tRNA, then repeat with AAG and GAA. The answer found was AGA Arg, GAG Glu, AAG Lys, GAA Glu.
 
 </details>
+
+## Going deeper
+
+### How the rIIB mutants were made
+
+The starting mutant in the rIIB gene was made with proflavin, a dye Crick and colleagues argued adds or removes a base; most of the suppressor mutants that followed arose spontaneously.
+
+### Glutaminyl-tRNA and the Kozak reporter
+
+Most bacteria and all archaea lack a glutaminyl-tRNA synthetase and make Gln-tRNA indirectly. In Kozak's preproinsulin reporter, changing bases around the AUG changed protein yield over a 20-fold range.
+
+### Where the exon junction complex sits
+
+Splicing leaves an exon junction complex about 20 to 24 bases upstream of most exon-exon junctions.
