@@ -188,7 +188,7 @@ class S02Ends(SpokenScene):
         dlab = T("the gene (DNA)", 24, GREY).move_to([-0.2, -1.55, 0])
         self.at("without copying")
         self.play(Create(dna), FadeIn(dlab), run_time=0.8)
-        self.at("not in the gene")
+        self.at("not")
         self.play(Indicate(VGroup(tail, tlab), color=GREEN, scale_factor=1.15), run_time=0.9)
         self.finish()
 

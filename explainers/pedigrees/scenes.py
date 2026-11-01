@@ -110,7 +110,7 @@ class S01Question(SpokenScene):
         self.at("What is the chance")
         ask = T("Is she a carrier?", 32, YELLOW).move_to([4.2, 2.1, 0])
         self.play(FadeIn(ask, shift=UP * 0.1), run_time=0.6)
-        self.at("say one half")
+        self.at("answer is one half")
         half = chip("1/2", GREY, size=48).move_to([3.0, 0.4, 0])
         self.play(FadeIn(half, shift=UP * 0.15), run_time=0.5)
         self.at("two thirds")

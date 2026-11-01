@@ -233,7 +233,7 @@ class S01Choice(SpokenScene):
         self.at("The answer is")
         self.play(FadeOut(VGroup(broth, blabel, leg, cell, cl, axis, tl, bar1, t1, bar2, t2, pause, q, gl, la)), run_time=0.6)
         self.play(Create(line), run_time=0.9)
-        self.at("Three genes")
+        self.at("lac genes")
         self.play(LaggedStart(*[FadeIn(g, shift=DOWN * 0.15) for g in (Z, Y, A)], lag_ratio=0.35), run_time=1.4)
         s1 = chip("lactose here?", YELLOW, 28).move_to([-0.6, 1.4, 0])
         s2 = chip("glucose here?", ORANGE, 28).move_to([3.6, 1.4, 0])
@@ -257,7 +257,7 @@ class S02Genes(SpokenScene):
         for k, key in enumerate("ZYA"):
             at_t(self, t1 + (t2 - t1) * (0.15 + 0.3 * k))
             self.play(Indicate(p[key], color=BLUE, scale_factor=1.15), run_time=0.6)
-        self.at("One promoter")
+        self.at("promoter")
         self.play(FadeIn(p["prom"]), run_time=0.5)
         ex, w = ValueTracker(RNA_X0), ValueTracker(5)
         poly = Poly(X["prom"])
