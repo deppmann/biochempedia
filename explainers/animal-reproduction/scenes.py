@@ -104,7 +104,7 @@ class Rig:
 
 class S00Title(TitleCard):
     LESSON = "Animal reproduction"
-    TITLE = "The pattern matters, not the amount"
+    TITLE = "The pattern matters, not just the amount"
 
 
 # ---------------------------------------------------------------------------------------------

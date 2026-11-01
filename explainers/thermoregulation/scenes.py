@@ -240,7 +240,7 @@ class S05Numbers(Sc):
         xl = T("air temperature (°C)", 26, GREY).move_to(ax.c2p(20, 0) + DOWN * 0.9)
         yl = T("heat production (W)", 26, GREY).rotate(PI / 2).move_to(ax.c2p(10, 0.3) + LEFT * 1.15)
         inv = T("invented numbers, below the lower critical temperature", 24, GREY).move_to([2.0, 3.4, 0])
-        slope = T("steepness = conductance:\nhow readily heat leaks out\nper degree of difference", 24, HEAT,
+        slope = T("steepness approximates conductance:\nhow readily heat leaks out\nper degree of difference", 24, HEAT,
                   line_spacing=0.8).move_to(ax.c2p(24.5, 0.5))
         self.play(Create(ax), FadeIn(xt), FadeIn(yt), FadeIn(xl), FadeIn(yl), FadeIn(inv), run_time=0.25)
         C1, C2 = 0.020, 0.010

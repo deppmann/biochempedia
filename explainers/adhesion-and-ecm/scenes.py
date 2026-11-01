@@ -14,17 +14,23 @@ COLOR MAP (one color per concept, whole video)
   RED    = blocked (myosin crossed out)
   GREY   = cells, membranes, labels
 """
+
+
 import numpy as np
+
+
 from bp_style import *  # noqa: F401,F403
 
+
 PURPLE = "#B58CD9"
+
+
 ORANGE = "#F29E4C"
+
+
 PINK = "#E87DB0"
 
 
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
 def bchip(text, color=BLUE, size=24, pad=0.14):
     c = chip(text, color, size=size, pad=pad)
     back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
@@ -88,7 +94,6 @@ def lobe(x, y, label, h=1.7, w=0.5):
     return VGroup(r, t)
 
 
-# ---- cadherin arms -----------------------------------------------------------------------------
 MEM_X = 2.0
 
 
@@ -116,6 +121,8 @@ def ca_dots(pts):
 
 
 YS = [1.7, 0.0, -1.7]
+
+
 LIMP = 0.3
 
 
@@ -144,140 +151,9 @@ def ca_all(ys=YS):
 
 class S00Title(TitleCard):
     LESSON = "Adhesion and the extracellular matrix"
-    TITLE = "Two grips, each wired to a cable"
+    TITLE = "Two Grips, Each Wired to a Cable"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Calcium(SpokenScene):
-    """sheet of cells: calcium out, cells round up and part; back, they rejoin; zoom: limp arms stiffen."""
-
-    def construct(self):
-        xs = [-4.8, -2.4, 0.0, 2.4, 4.8]
-        cells = VGroup(*[cell_rect(x, 0.2, 2.3, 3.0) for x in xs])
-        circ = [Circle(radius=1.0, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.16)
-                .move_to([x, 0.2 + (0.15 if i % 2 else -0.1), 0]) for i, x in enumerate(xs)]
-        # calcium in the fluid: in the gaps and above and below the sheet
-        pts = []
-        for x in [-3.6, -1.2, 1.2, 3.6]:
-            for y in [-0.9, 0.2, 1.3]:
-                pts.append([x, y, 0])
-        for x in np.linspace(-5.4, 5.4, 9):
-            pts.append([x, 2.35, 0]); pts.append([x, -1.95, 0])
-        ca = VGroup(*[Dot(p, radius=0.1, color=YELLOW) for p in pts])
-        ca_lbl = VGroup(Dot(radius=0.1, color=YELLOW), T("calcium", 26, YELLOW)).arrange(RIGHT, buff=0.15)
-        ca_lbl.move_to([0, 3.15, 0])
-        sheet_lbl = T("a sheet of cultured epithelial cells", 26, GREY).move_to([0, -3.0, 0])
-
-        self.play(FadeIn(cells), FadeIn(ca), FadeIn(ca_lbl), FadeIn(sheet_lbl), run_time=0.4)
-        self.at("calcium away")
-        self.play(FadeOut(ca, shift=UP * 0.3), run_time=0.8)
-        self.at("round up")
-        self.play(*[Transform(c, k) for c, k in zip(cells, circ)], run_time=1.0)
-        self.at("Put it back")
-        self.play(FadeIn(ca), run_time=0.7)
-        rects = [cell_rect(x, 0.2, 2.3, 3.0) for x in xs]
-        self.at("knit together")
-        self.play(*[Transform(c, k) for c, k in zip(cells, rects)], run_time=1.0)
-        self.at("What was the calcium")
-        q = T("?", 96, YELLOW, weight=BOLD).move_to([0.0, 0.2, 0])
-        self.play(FadeIn(q, scale=0.6), run_time=0.5)
-
-        # ---- zoom to one junction -------------------------------------------------------------
-        a, b, ma, mb = junction_cells()
-        limp = {}
-        for y in YS:
-            limp[(y, -1)] = arm_mob(arm_pts(-1, y, LIMP))
-            limp[(y, 1)] = arm_mob(arm_pts(1, y, LIMP))
-        limp_all = VGroup(*limp.values())
-        self.at("holding")
-        self.play(FadeOut(VGroup(cells, ca, q, ca_lbl, sheet_lbl)), FadeIn(VGroup(a, b, ma, mb)),
-                  FadeIn(limp_all), run_time=0.9)
-        stiff = stiff_arms()
-        cadl = T("cadherin", 28, BLUE).move_to([0, 2.7, 0])
-        ca_new = ca_all()
-        ca_leg = VGroup(Dot(radius=0.1, color=YELLOW), T("calcium", 26, YELLOW)).arrange(RIGHT, buff=0.15)
-        ca_leg.move_to([0, -2.85, 0])
-        self.at("stiffens")
-        self.play(*[Transform(limp[k], stiff[k]) for k in limp], FadeIn(ca_new, scale=0.5), FadeIn(ca_leg),
-                  run_time=1.3)
-        self.at("adhesion proteins")
-        self.play(FadeIn(cadl, shift=DOWN * 0.1), run_time=0.5)
-        self.at("grip the next")
-        self.play(*[Indicate(limp[k], color=BLUE, scale_factor=1.06) for k in limp], run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Cadherin(SpokenScene):
-    """cadherin crosses the membrane; chain inside: beta-catenin, alpha-catenin, actin; p120; a pull travels."""
-
-    def construct(self):
-        a, b, ma, mb = junction_cells()
-        stiff = stiff_arms()
-        ca_new = ca_all()
-        cadl = T("cadherin", 28, BLUE).move_to([0, 2.7, 0])
-        ca_leg = VGroup(Dot(radius=0.1, color=YELLOW), T("calcium", 26, YELLOW)).arrange(RIGHT, buff=0.15)
-        ca_leg.move_to([0, -2.85, 0])
-        self.add(a, b, ma, mb, *stiff.values(), ca_new, cadl, ca_leg)
-
-        # keep only the middle pair
-        outer = VGroup(*[stiff[(y, s)] for y in (1.7, -1.7) for s in (-1, 1)])
-        outer_ca = VGroup(*[ca_dots(arm_pts(s, y, 0.0)) for y in (1.7, -1.7) for s in (-1, 1)])
-        mid_ca = VGroup(ca_dots(arm_pts(-1, 0.0, 0.0)), ca_dots(arm_pts(1, 0.0, 0.0)))
-        self.remove(ca_new)
-        self.add(outer_ca, mid_ca)
-
-        tails = {}
-        for s in (-1, 1):
-            tails[s] = Line([s * MEM_X, 0, 0], [s * 2.55, 0, 0], color=BLUE, stroke_width=4)
-        self.at("crosses the membrane")
-        self.play(FadeOut(outer), FadeOut(outer_ca), *[Create(t) for t in tails.values()], run_time=0.9)
-        self.at("outer arm binds")
-        self.play(Indicate(VGroup(stiff[(0.0, -1)], stiff[(0.0, 1)]), color=BLUE, scale_factor=1.08), run_time=0.8)
-
-        # chain on both sides (labels on the left cell only)
-        def chain(s, labels):
-            bt = bchip("β-catenin", TEAL, 24) if labels else bchip("β-catenin", TEAL, 24)
-            bt.move_to([s * 3.4, 0.0, 0])
-            al = bchip("α-catenin", TEAL, 24).move_to([s * 3.4, -1.2, 0])
-            act = beaded([s * 6.0, -2.4, 0], [s * 2.3, -2.4, 0], GREEN)
-            t2 = Line([s * MEM_X, 0, 0], [bt.get_left()[0] if s < 0 else bt.get_left()[0], 0, 0])
-            return bt, al, act
-
-        bA, aA, actA = chain(-1, True)
-        bB, aB, actB = chain(1, False)
-        # tail lengths to reach the chip edges
-        tailA = Line([-MEM_X, 0, 0], [bA.get_right()[0], 0, 0], color=BLUE, stroke_width=4)
-        tailB = Line([MEM_X, 0, 0], [bB.get_left()[0], 0, 0], color=BLUE, stroke_width=4)
-        linkA = link([-3.4, bA.get_bottom()[1], 0], [-3.4, aA.get_top()[1], 0])
-        linkB = link([3.4, bB.get_bottom()[1], 0], [3.4, aB.get_top()[1], 0])
-        actlinkA = link([-3.4, aA.get_bottom()[1], 0], [-3.4, -2.4, 0])
-        actlinkB = link([3.4, aB.get_bottom()[1], 0], [3.4, -2.4, 0])
-        self.at("binds the tail directly")
-        self.play(Transform(tails[-1], tailA), Transform(tails[1], tailB),
-                  FadeIn(bA, scale=0.8), FadeIn(bB, scale=0.8), run_time=0.8)
-        self.at("recruits")
-        self.play(FadeIn(linkA), FadeIn(linkB), FadeIn(aA, shift=DOWN * 0.2), FadeIn(aB, shift=DOWN * 0.2),
-                  run_time=0.7)
-        self.at("actin filaments")
-        actl = T("actin", 26, GREEN).move_to([-5.0, -1.95, 0])
-        self.play(Create(actA), Create(actB), FadeIn(actlinkA), FadeIn(actlinkB), FadeIn(actl), run_time=1.0)
-
-        p120 = bchip("p120", TEAL, 24).move_to([-2.85, 1.25, 0])
-        p120l = link([-2.35, p120.get_bottom()[1], 0], [-2.35, 0.0, 0])
-        self.at("third protein")
-        self.play(FadeIn(p120, shift=DOWN * 0.2), FadeIn(p120l), run_time=0.7)
-
-        self.at("So a pull")
-        pull = arr([2.9, 2.0, 0], [5.4, 2.0, 0], GOLD, w=8, tip=0.3)
-        self.play(GrowArrow(pull), run_time=0.5)
-        path = [stiff[(0.0, 1)], stiff[(0.0, -1)], tails[-1], VGroup(*bA[1:]), VGroup(*aA[1:]), actA]
-        for m in path:
-            self.play(Indicate(m, color=GOLD, scale_factor=1.12), run_time=0.45)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def mesh_tiles(x0=-6.3, x1=6.3, y0=-3.0, y1=-1.75, tw=0.9):
     tiles = []
     x = x0
@@ -312,97 +188,6 @@ def focal_chain(x0=0.0, with_labels=True):
     return d
 
 
-class S03Integrin(SpokenScene):
-    """cell on a matrix mesh; integrin alpha/beta lobes grip the RGD tag of fibronectin; talin, actin, vinculin."""
-
-    def construct(self):
-        cell = RoundedRectangle(corner_radius=0.35, width=12.6, height=4.3, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.16).move_to([0, 1.25, 0])
-        mem = mem_h(-0.9)
-        tiles = mesh_tiles()
-        mesh = VGroup(*tiles)
-        l_mat = T("extracellular matrix", 26, ORANGE).move_to([-4.0, -3.28, 0])
-        d = focal_chain(0.0)
-        self.at("second grip")
-        self.play(FadeIn(cell), FadeIn(mem), run_time=0.7)
-        self.at("extracellular matrix")
-        self.play(FadeIn(mesh, lag_ratio=0.05), FadeIn(l_mat), run_time=1.2)
-        self.at("main matrix receptors")
-        self.play(GrowFromCenter(d["alpha"]), GrowFromCenter(d["beta"]), FadeIn(d["l_int"]), run_time=0.8)
-        self.at("alpha subunit")
-        self.play(Indicate(d["alpha"], color=PURPLE, scale_factor=1.15), run_time=0.7)
-        self.at("beta subunit")
-        self.play(Indicate(d["beta"], color=PURPLE, scale_factor=1.15), run_time=0.7)
-        eq = M("18 α + 8 β → 24 integrins", 32, PURPLE).move_to([0, 2.0, 0])
-        self.at("Mammals have")
-        self.play(FadeIn(eq, shift=UP * 0.15), run_time=0.6)
-        self.at("Many")
-        self.play(FadeOut(eq), run_time=0.4)
-        self.at("short sequence")
-        self.play(Create(d["fn_line"]), FadeIn(d["fn_beads"]), FadeIn(d["rgd"], shift=UP * 0.2), FadeIn(d["l_fn"]),
-                  run_time=0.9)
-        self.at("talin binds")
-        self.play(FadeIn(d["talin"], shift=UP * 0.15), FadeIn(d["bt"]), run_time=0.6)
-        self.at("links it to actin")
-        self.play(Create(d["actin"]), FadeIn(d["tlink"]), FadeIn(d["l_act"]), run_time=0.9)
-        self.at("vinculin reinforces")
-        self.play(FadeIn(d["vinc"], shift=LEFT * 0.2), FadeIn(d["vlink"]), run_time=0.7)
-        self.finish()
-
-
-class S04Exception(SpokenScene):
-    """the actin chain slides left; a hemidesmosome integrin binds laminin and ends on keratin via plectin."""
-
-    def construct(self):
-        cell = RoundedRectangle(corner_radius=0.35, width=12.6, height=4.3, stroke_color=GREY, stroke_width=3,
-                                fill_color=GREY, fill_opacity=0.16).move_to([0, 1.25, 0])
-        mem = mem_h(-0.9)
-        tiles = mesh_tiles()
-        left = VGroup(*[t for t in tiles if t.cx < 0])
-        right = VGroup(*[t for t in tiles if t.cx > 0])
-        l_mat = T("extracellular matrix", 26, ORANGE).move_to([-4.0, -3.28, 0])
-        d = focal_chain(0.0)
-        chain = VGroup(d["alpha"], d["beta"], d["fn_beads"], d["fn_line"], d["rgd"], d["talin"], d["actin"],
-                       d["tlink"], d["bt"], d["vinc"], d["vlink"], d["l_int"], d["l_fn"], d["l_act"])
-        self.add(cell, mem, left, right, l_mat, chain)
-
-        self.at("Not every integrin")
-        self.play(Indicate(d["actin"], color=GREEN, scale_factor=1.04), run_time=0.8)
-        self.at("Hemidesmosomes pin")
-        # chain 2 geometry
-        X2 = 3.4
-        band = RoundedRectangle(corner_radius=0.06, width=6.0, height=0.5, stroke_color=ORANGE, stroke_width=3,
-                                fill_color=ORANGE, fill_opacity=0.28).move_to([X2, -2.75, 0])
-        l_bm = T("basement membrane", 24, ORANGE).move_to(band)
-        hd = T("hemidesmosome", 26, GREY).move_to([X2, 2.95, 0])
-        self.play(chain.animate.shift(LEFT * X2), FadeOut(right),
-                  FadeIn(band), FadeIn(l_bm), FadeIn(hd), run_time=1.3)
-        # chain 2 built at X2
-        al = lobe(X2 - 0.3, -0.9, "α6")
-        be = lobe(X2 + 0.3, -0.9, "β4")
-        lam = bchip("laminin-332", ORANGE, 22, 0.1).move_to([X2, -2.0, 0])
-        lam_s = Line([X2, -2.5, 0], [X2, -2.25, 0], color=ORANGE, stroke_width=3)
-        plec = bchip("plectin", TEAL, 24).move_to([X2 + 0.2, 0.5, 0])
-        pb = link([X2 + 0.3, -0.05, 0], [X2 + 0.3, 0.5 - plec.height / 2, 0])
-        ker = rods([X2 - 2.8, 2.0, 0], [X2 + 2.8, 2.0, 0])
-        pk = link([X2 + 0.2, 0.5 + plec.height / 2, 0], [X2 + 0.2, 1.93, 0])
-        l_ker = T("keratin", 26, PINK).move_to([X2 + 2.0, 1.45, 0])
-        l_int2 = T("integrin α6β4", 24, PURPLE).move_to([X2 - 1.75, -0.3, 0])
-        self.at("There")
-        self.play(GrowFromCenter(al), GrowFromCenter(be), FadeIn(l_int2), run_time=0.8)
-        self.at("binds laminin")
-        self.play(FadeIn(lam, shift=UP * 0.2), FadeIn(lam_s), run_time=0.7)
-        self.at("connects through")
-        self.play(FadeIn(plec, shift=UP * 0.15), FadeIn(pb), run_time=0.7)
-        self.at("keratin filaments")
-        self.play(Create(ker), FadeIn(pk), FadeIn(l_ker), run_time=0.9)
-        self.at("Two chains")
-        self.play(Indicate(d["actin"], color=GREEN, scale_factor=1.04), Indicate(ker, color=PINK, scale_factor=1.04),
-                  run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def rod_row(unf=(), y=0.0, n=13, ew=0.55, uw=1.45, gap=0.07, h=0.9):
     widths = [uw if i in unf else ew for i in range(n)]
     total = sum(widths) + gap * (n - 1)
@@ -422,156 +207,259 @@ def rod_row(unf=(), y=0.0, n=13, ew=0.55, uw=1.45, gap=0.07, h=0.9):
 UNF = (2, 6, 10)
 
 
-class S05Talin(SpokenScene):
-    """myosin pulls the chain; the talin chip becomes 13 bundles; 12 pN raises vinculin binding events 1 -> 3."""
-
-    def construct(self):
-        bar = mem_v(-5.2, -1.2, 1.8)
-        integ = RoundedRectangle(corner_radius=0.2, width=0.7, height=1.3, stroke_color=PURPLE, stroke_width=3,
-                                 fill_color=PURPLE, fill_opacity=0.35).move_to([-5.2, 0.3, 0])
-        l_int = T("integrin", 24, PURPLE).move_to([-5.2, -1.6, 0])
-        talin = bchip("talin", TEAL, 28).move_to([-3.3, 0.3, 0])
-        l1 = link([-4.85, 0.3, 0], [talin.get_left()[0], 0.3, 0])
-        act = beaded([-2.2, 0.3, 0], [3.2, 0.3, 0], GREEN)
-        l2 = link([talin.get_right()[0], 0.3, 0], [-2.2, 0.3, 0])
-        l_act = T("actin", 26, GREEN).move_to([0.5, -0.45, 0])
-        myo = bchip("myosin II", GOLD, 28).move_to([0.5, 1.9, 0])
-        ml = VGroup(link([0.2, myo.get_bottom()[1], 0], [0.2, 0.38, 0], GOLD), link([0.8, myo.get_bottom()[1], 0], [0.8, 0.38, 0], GOLD))
-        pullarr = arr([3.4, 0.3, 0], [5.6, 0.3, 0], GOLD, w=9, tip=0.32)
-        self.play(FadeIn(VGroup(bar, integ, l_int, talin, l1, l2, act, l_act)), run_time=0.3)
-        self.at("pulls on its adhesions")
-        self.play(FadeIn(myo, shift=DOWN * 0.2), FadeIn(ml), GrowArrow(pullarr), run_time=0.8)
-        q = T("?", 64, TEXT, weight=BOLD).move_to([-3.3, 1.5, 0])
-        self.at("links themselves")
-        self.play(FadeIn(q, scale=0.6), Indicate(VGroup(*talin[1:]), color=TEXT, scale_factor=1.15), run_time=0.8)
-
-        # ---- the purified rod ------------------------------------------------------------------
-        folded = rod_row((), y=1.4)
-        lab = T("purified talin rod", 28, TEAL).move_to([0, 2.75, 0])
-        self.at("purified")
-        self.play(FadeOut(VGroup(bar, integ, l_int, l1, l2, act, l_act, myo, ml, pullarr, q)),
-                  ReplacementTransform(talin, folded), FadeIn(lab), run_time=1.1)
-        y0 = folded.get_bottom()[1] - 0.35
-        br = VGroup(Line([folded.get_left()[0], y0 + 0.12, 0], [folded.get_left()[0], y0, 0], color=GREY, stroke_width=3),
-                    Line([folded.get_left()[0], y0, 0], [folded.get_right()[0], y0, 0], color=GREY, stroke_width=3),
-                    Line([folded.get_right()[0], y0, 0], [folded.get_right()[0], y0 + 0.12, 0], color=GREY, stroke_width=3))
-        n13 = T("13 helical bundles", 26, GREY).move_to([0, y0 - 0.4, 0])
-        self.at("stack of")
-        self.play(Create(br), FadeIn(n13), run_time=0.8)
-
-        # ---- stretched at 12 pN ----------------------------------------------------------------
-        a_l = arr([folded.get_left()[0] - 0.1, 1.4, 0], [folded.get_left()[0] - 1.3, 1.4, 0], GOLD, w=9, tip=0.3)
-        a_r = arr([folded.get_right()[0] + 0.1, 1.4, 0], [folded.get_right()[0] + 1.3, 1.4, 0], GOLD, w=9, tip=0.3)
-        pn = M("12 pN", 30, GOLD).move_to([0, 3.35, 0])
-        self.at("Stretched at")
-        self.play(FadeOut(lab), GrowArrow(a_l), GrowArrow(a_r), FadeIn(pn), run_time=0.8)
-
-        # counter
-        head = T("vinculin-head binding events", 26, GREY).move_to([0, -1.05, 0])
-        one = VGroup(Dot(radius=0.13, color=TEAL), T("at most 1", 26, TEXT)).arrange(DOWN, buff=0.25)
-        three = VGroup(Dot(radius=0.13, color=TEAL), Dot(radius=0.13, color=TEAL), Dot(radius=0.13, color=TEAL))
-        three.arrange(RIGHT, buff=0.3)
-        three = VGroup(three, T("as many as 3", 26, TEXT)).arrange(DOWN, buff=0.25)
-        one.move_to([-3.0, -2.3, 0]); three.move_to([3.0, -2.3, 0])
-        ar = arr([-1.5, -2.1, 0], [1.5, -2.1, 0], GREY, w=5)
-        self.at("more vinculin")
-        self.play(FadeIn(head), FadeOut(VGroup(br, n13)), run_time=0.6)
-        self.at("from one at most")
-        self.play(FadeIn(one, shift=UP * 0.15), run_time=0.5)
-        self.at("as many as three")
-        self.play(GrowArrow(ar), FadeIn(three, shift=UP * 0.15), run_time=0.7)
-
-        # ---- the reading: bundles unfold --------------------------------------------------------
-        unf = rod_row(tuple(range(13)), y=1.4, uw=0.7)
-        a_l2 = arr([unf.get_left()[0] - 0.1, 1.4, 0], [unf.get_left()[0] - 0.8, 1.4, 0], GOLD, w=9, tip=0.3)
-        a_r2 = arr([unf.get_right()[0] + 0.1, 1.4, 0], [unf.get_right()[0] + 0.8, 1.4, 0], GOLD, w=9, tip=0.3)
-        self.at("force unfolds")
-        self.play(Transform(folded, unf), Transform(a_l, a_l2), Transform(a_r, a_r2), run_time=1.1)
-        sites = VGroup()
-        XS = [-3.0, 0.0, 3.0]
-        vins = VGroup(*[bchip("vinculin", TEAL, 22, 0.1).move_to([x, 0.35, 0]) for x in XS])
-        vl = VGroup(*[link([x, vins[0].get_top()[1], 0], [x, 1.2, 0]) for x in XS])
-        self.at("exposes vinculin sites")
-        self.play(FadeIn(sites, scale=0.4), run_time=0.5)
-        self.play(FadeIn(vins, shift=UP * 0.2), FadeIn(vl), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """autoinhibition flap opens; talin on a mitochondrion recruits vinculin with myosin blocked; two systems."""
-
-    def construct(self):
-        body = RoundedRectangle(corner_radius=0.2, width=3.4, height=1.6, stroke_color=TEAL, stroke_width=4,
-                                fill_color=TEAL, fill_opacity=0.25)
-        name = T("talin or\nvinculin", 26, TEAL, line_spacing=0.6).move_to(body.get_center() + LEFT * 0.8)
-        site = Circle(radius=0.2, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.9).move_to(
-            body.get_center() + RIGHT * 0.8)
-        flap = Rectangle(width=0.9, height=0.3, stroke_color=TEAL, stroke_width=3, fill_color=TEAL,
-                         fill_opacity=0.9).move_to(site.get_center())
-        prot = VGroup(body, name, site, flap).scale(1.3).move_to([0, 0.5, 0])
-        l_auto = T("autoinhibition", 32, TEAL).move_to([0, -1.1, 0])
-        self.play(FadeIn(prot), run_time=0.3)
-        self.at("shut state")
-        self.play(FadeIn(l_auto), run_time=0.5)
-
-        # ---- into the cell -------------------------------------------------------------------
-        cellp = RoundedRectangle(corner_radius=0.5, width=5.6, height=5.5, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.14).move_to([3.5, 0.25, 0])
-        l_cell = T("mouse fibroblast", 24, GREY).move_to([3.5, 3.3, 0])
-        mito = Ellipse(width=3.2, height=1.5, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.2)
-        mito.move_to([3.5, 0.2, 0])
-        l_mito = T("mitochondrion", 24, GREY).move_to([3.5, -0.8, 0])
-        self.at("mouse fibroblasts")
-        target = prot.copy().scale(0.55 / 1.3).move_to([3.5, 1.7, 0])
-        nn = T("talin", 28, TEAL).scale(0.55).move_to(target[1].get_center())
-        target[1].become(nn)
-        anchor = link([3.5, 0.95, 0], [3.5, 1.27, 0], TEAL, 4)
-        self.play(FadeIn(cellp), FadeIn(l_cell), FadeIn(mito), FadeIn(l_mito), FadeOut(l_auto),
-                  Transform(prot, target), FadeIn(anchor), run_time=1.2)
-        vin = bchip("vinculin", TEAL, 24).move_to([5.35, 2.7, 0])
-        fl = prot[3]
-        self.at("releasing it")
-        self.play(Rotate(fl, angle=PI * 0.55, about_point=fl.get_left()), run_time=0.8)
-        site_c = prot[2].get_center()
-        self.at("talin and vinculin associate")
-        vl = link([prot[0].get_right()[0], 1.7, 0], [4.6, 1.7, 0], TEAL, 3)
-        self.play(vin.animate.move_to([5.35, 1.7, 0]), run_time=0.9)
-        self.play(FadeIn(vl), run_time=0.2)
-        myo = bchip("myosin II", GOLD, 24).move_to([3.5, -1.75, 0])
-        cross = VGroup(Line(myo.get_corner(UL), myo.get_corner(DR), color=RED, stroke_width=5),
-                       Line(myo.get_corner(DL), myo.get_corner(UR), color=RED, stroke_width=5))
-        self.at("blocked")
-        self.play(FadeIn(myo), run_time=0.4)
-        self.play(Create(cross), run_time=0.5)
-
-        # ---- the left panel: force exposes sites -----------------------------------------------
-        unf = rod_row(UNF, y=0.3)
-        unf.scale(4.3 / unf.total)
-        unf.move_to([-3.6, 0.3, 0])
-        a_l = arr([unf.get_left()[0] - 0.05, 0.3, 0], [unf.get_left()[0] - 0.55, 0.3, 0], GOLD, w=7, tip=0.22)
-        a_r = arr([unf.get_right()[0] + 0.05, 0.3, 0], [unf.get_right()[0] + 0.55, 0.3, 0], GOLD, w=7, tip=0.22)
-        sites = VGroup(*[Dot(unf[i].get_center(), radius=0.06, color=TEXT) for i in UNF])
-        l_pur = T("purified fragment", 26, TEAL).move_to([-3.5, 3.3, 0])
-        l_force = T("force can expose sites", 26, GOLD).move_to([-3.5, -3.1, 0])
-        self.at("Purified fragments")
-        self.play(FadeIn(l_pur), FadeIn(unf), FadeIn(a_l), FadeIn(a_r), FadeIn(sites), run_time=0.9)
-        self.at("force can expose")
-        self.play(FadeIn(l_force, shift=UP * 0.1), run_time=0.5)
-        l_act = T("activation can, without force", 26, TEAL).move_to([3.5, -3.1, 0])
-        self.at("A cell assay")
-        self.play(FadeIn(l_act, shift=UP * 0.1), run_time=0.6)
-        self.at("Keep the systems apart")
-        div = VGroup(DashedLine([-0.1, 3.4, 0], [-0.1, 0.9, 0], color=GREY, stroke_width=3),
-                     DashedLine([-0.1, -1.0, 0], [-0.1, -3.4, 0], color=GREY, stroke_width=3))
-        self.play(Create(div), run_time=0.6)
-        self.at("which route dominates")
-        tq = VGroup(Circle(radius=0.45, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1),
-                    T("?", 44, TEXT, weight=BOLD)).move_to([-0.1, 0.3, 0])
-        tl = T("in a tissue", 22, GREY).move_to([-0.1, -0.5, 0])
-        self.play(FadeIn(tq, scale=0.6), FadeIn(tl), run_time=0.7)
-        self.finish()
-
-
 class S07End(EndCard):
-    LINE = "Force can expose sites. Activation can do it without force."
+    LINE = "Integrins grip the matrix, cadherins grip neighbours; both wire to the cytoskeleton."
+
+
+# Rebuilt beats for the checked Kokoro narration. All diagrams are schematic.
+def clear_scene(scene):
+    scene.play(*[FadeOut(m) for m in list(scene.mobjects)], run_time=0.35)
+
+
+def heading(text, color=TEXT):
+    return T(text, 30, color).move_to([0, 3.15, 0])
+
+
+def simple_attachment(x, keratin=False):
+    """Two-column comparison, with unscaled readable labels."""
+    filament = rods([x-2.3, 2.1, 0], [x+2.3, 2.1, 0]) if keratin else beaded([x-2.3,2.1,0],[x+2.3,2.1,0])
+    name = T('keratin' if keratin else 'actin',24,PINK if keratin else GREEN).move_to([x,2.65,0])
+    adaptor = bchip('plectin' if keratin else 'talin / vinculin',TEAL,22).move_to([x,.85,0])
+    receptor = bchip('integrin α6β4' if keratin else 'integrin',PURPLE,22).move_to([x,-.65,0])
+    ligand = bchip('laminin-332' if keratin else 'fibronectin',ORANGE,22).move_to([x,-2.05,0])
+    connectors = VGroup(link([x,2.1,0],adaptor.get_top()),link(adaptor.get_bottom(),receptor.get_top()),link(receptor.get_bottom(),ligand.get_top(),ORANGE))
+    return VGroup(filament,name,adaptor,receptor,ligand,connectors)
+
+
+class S03Integrin(SpokenScene):
+    def construct(self):
+        cell=cell_rect(0,1.25,12.4,4.2)
+        mem=mem_h(-.9)
+        mesh=VGroup(*mesh_tiles())
+        d=focal_chain()
+        mat=T('extracellular matrix',26,ORANGE).move_to([-3.7,-3.35,0])
+        self.at('Integrins connect cells')
+        self.play(FadeIn(cell),FadeIn(mem),FadeIn(mesh),FadeIn(d['alpha']),FadeIn(d['beta']),FadeIn(d['l_int']),run_time=.6)
+        self.at('extracellular matrix')
+        self.play(FadeIn(mat),Indicate(mesh,color=ORANGE,scale_factor=1.02),run_time=.65)
+        generic=VGroup(link([.3,-.05,0],[.3,2.2,0]),d['actin'],T('cytoskeleton',26,GREEN).move_to([-3.9,2.7,0]))
+        self.at('link to the cytoskeleton')
+        self.play(FadeIn(generic),run_time=.65)
+        signal=VGroup(arr([1,-.65,0],[3,1,0],TEAL),T('signal',24,TEAL).move_to([3.7,1.1,0]))
+        self.at('send signals')
+        self.play(FadeIn(signal),run_time=.5)
+        pull=arr([-2.5,-2.4,0],[-4.7,-2.4,0],GOLD,w=8)
+        self.at('a pull outside')
+        self.play(GrowArrow(pull),run_time=.5)
+        self.at('own filaments')
+        self.play(Indicate(generic,color=GOLD,scale_factor=1.03),run_time=.65)
+        self.at('Each integrin pairs')
+        self.play(FadeOut(signal),FadeOut(pull),FadeOut(generic),FadeOut(mat),FadeOut(mesh),run_time=.4)
+        self.at('an alpha subunit')
+        self.play(Indicate(d['alpha'],color=PURPLE),run_time=.5)
+        self.at('a beta subunit')
+        self.play(Indicate(d['beta'],color=PURPLE),run_time=.5)
+        self.at('Many recognize')
+        self.play(FadeIn(VGroup(d['fn_line'],d['fn_beads'],d['rgd'],d['l_fn'])),run_time=.7)
+        self.at('Talin binds')
+        self.play(FadeIn(d['talin']),Create(d['bt']),run_time=.6)
+        self.at('links it to actin')
+        self.play(FadeIn(d['actin']),Create(d['tlink']),FadeIn(d['l_act']),run_time=.6)
+        self.at('Vinculin reinforces')
+        self.play(FadeIn(d['vinc']),Create(d['vlink']),run_time=.65)
+        self.at('These complexes gather')
+        clear_scene(self)
+        culture=cell_rect(0,1,11,3.5)
+        base=VGroup(*mesh_tiles(-6.3,6.3,-2.6,-1.6))
+        clusters=VGroup(*[VGroup(*[RoundedRectangle(width=.22,height=.65,corner_radius=.07,color=PURPLE,fill_opacity=.4).move_to([x+dx,-.85,0]) for dx in (-.3,0,.3)]) for x in (-3.5,0,3.5)])
+        cables=VGroup(*[beaded([x-1,1.2,0],[x+1,1.2,0]) for x in (-3.5,0,3.5)])
+        ties=VGroup(*[link([x,1.2,0],[x,-.5,0]) for x in (-3.5,0,3.5)])
+        self.play(FadeIn(culture),FadeIn(base),FadeIn(clusters),FadeIn(cables),FadeIn(ties),FadeIn(heading('cultured cell',GREY)),run_time=.6)
+        self.at('focal adhesions')
+        self.play(FadeIn(T('focal adhesions',28,PURPLE).move_to([0,-3.15,0])),Indicate(clusters,color=PURPLE),run_time=.6)
+        self.finish()
+
+
+class S04Exception(SpokenScene):
+    def construct(self):
+        left=simple_attachment(-3.3)
+        self.at('Not every integrin')
+        self.play(FadeIn(left),FadeIn(T('focal adhesion',24,GREY).move_to([-3.3,3.25,0])),run_time=.5)
+        self.at('pin basal skin cells')
+        right=simple_attachment(3.3,True)
+        cell=cell_rect(3.3,.65,5.8,4.8)
+        title=T('basal skin cell',24,GREY).move_to([3.3,3.25,0])
+        band=RoundedRectangle(width=5.8,height=.38,corner_radius=.05,color=ORANGE,fill_opacity=.25).move_to([3.3,-2.8,0])
+        bm=T('basement membrane',22,ORANGE).move_to([3.3,-3.35,0])
+        self.play(FadeIn(cell),FadeIn(title),FadeIn(band),FadeIn(bm),run_time=.6)
+        self.at('Integrin alpha')
+        self.play(FadeIn(right[3]),run_time=.5)
+        self.at('binds laminin')
+        self.play(FadeIn(right[4]),Create(right[5][2]),run_time=.5)
+        self.at('connects through plectin')
+        self.play(FadeIn(right[2]),Create(right[5][1]),run_time=.6)
+        self.at('keratin filaments')
+        self.play(FadeIn(right[0]),FadeIn(right[1]),Create(right[5][0]),FadeIn(btext('hemidesmosome',22,GREY).move_to([4.85,0,0])),run_time=.65)
+        self.finish()
+        self.wait(1.5)
+
+
+class S01Calcium(SpokenScene):
+    def construct(self):
+        a,b,ma,mb=junction_cells()
+        cells=VGroup(a,ma,b,mb)
+        arms=VGroup(*stiff_arms().values())
+        calcium=ca_all()
+        self.at('The other grip')
+        self.play(FadeIn(cells),FadeIn(arms),FadeIn(heading('neighbouring epithelial cells',GREY)),run_time=.5)
+        self.at('need calcium')
+        label=T('cadherin + calcium',26,BLUE).move_to([0,-3.45,0])
+        self.play(FadeIn(calcium),FadeIn(label),Indicate(arms,color=BLUE,scale_factor=1.03),run_time=.6)
+        self.at('Remove calcium')
+        limp=VGroup(*[arm_mob(arm_pts(s,y,LIMP)) for y in YS for s in (-1,1)])
+        self.play(FadeOut(calcium),Transform(arms,limp),Transform(label,T('calcium removed',26,YELLOW).move_to(label)),run_time=.65)
+        self.at('they let go')
+        self.play(a.animate.shift(LEFT*.4),ma.animate.shift(LEFT*.4),b.animate.shift(RIGHT*.4),mb.animate.shift(RIGHT*.4),*[m.animate.shift(LEFT*.4 if i%2==0 else RIGHT*.4) for i,m in enumerate(arms)],run_time=.65)
+        self.at('Put it back')
+        self.play(FadeIn(calcium),Transform(label,T('calcium restored',26,YELLOW).move_to(label)),run_time=.45)
+        self.at('knit together again')
+        self.play(a.animate.shift(RIGHT*.4),ma.animate.shift(RIGHT*.4),b.animate.shift(LEFT*.4),mb.animate.shift(LEFT*.4),Transform(arms,VGroup(*stiff_arms().values())),run_time=.7)
+        self.finish()
+
+
+class S02Cadherin(SpokenScene):
+    def construct(self):
+        a,b,ma,mb=junction_cells()
+        arms=VGroup(*stiff_arms((0.,)).values())
+        tails=VGroup(*[Line([s*2,0,0],[s*2.65,0,0],color=BLUE,stroke_width=4) for s in (-1,1)])
+        self.at('A classical')
+        self.play(FadeIn(VGroup(a,b,ma,mb,arms)),FadeIn(heading('classical cadherin',BLUE)),run_time=.5)
+        self.at('crosses the membrane once')
+        self.play(Create(tails),run_time=.55)
+        self.at('the same kind')
+        self.play(Indicate(arms,color=BLUE,scale_factor=1.04),run_time=.55)
+        betas=VGroup(*[bchip('β-catenin',TEAL,24).move_to([s*3.6,0,0]) for s in (-1,1)])
+        alphas=VGroup(*[bchip('α-catenin',TEAL,24).move_to([s*3.6,-1.15,0]) for s in (-1,1)])
+        ba=VGroup(*[link([s*3.6,-.3,0],[s*3.6,-.85,0]) for s in (-1,1)])
+        acts=VGroup(*[beaded([s*2.5,-2.35,0],[s*5.9,-2.35,0]) for s in (-1,1)])
+        aa=VGroup(*[link([s*3.6,-1.45,0],[s*3.6,-2.35,0]) for s in (-1,1)])
+        self.at('binds its tail')
+        self.play(FadeIn(betas),run_time=.5)
+        self.at('and recruits')
+        self.play(FadeIn(alphas),Create(ba),run_time=.5)
+        self.at('couples the junction to actin')
+        self.play(FadeIn(acts),Create(aa),FadeIn(T('actin',26,GREEN).move_to([0,-3,0])),run_time=.65)
+        self.at('These contacts gather')
+        clear_scene(self)
+        cells=VGroup(cell_rect(-3,0,5.6,4.3),cell_rect(3,0,5.6,4.3))
+        belt=VGroup(*[VGroup(Line([-.45,y,0],[.45,y,0],color=BLUE,stroke_width=7),Line([-4.9,y,0],[-.45,y,0],color=GREEN,stroke_width=3),Line([.45,y,0],[4.9,y,0],color=GREEN,stroke_width=3)) for y in (-.55,0,.55)])
+        self.play(FadeIn(cells),FadeIn(belt),FadeIn(heading('adherens junction',BLUE)),run_time=.65)
+        self.finish()
+
+
+class SMatrix(SpokenScene):
+    def construct(self):
+        self.at('What does the matrix')
+        mesh=VGroup(*mesh_tiles(-6.3,6.3,-2.5,2.4))
+        self.play(FadeIn(mesh),FadeIn(heading('extracellular matrix',ORANGE)),run_time=.5)
+        self.at('Collagen cables')
+        clear_scene(self)
+        cables=VGroup(*[Line([-4.4,y,0],[4.4,y,0],color=ORANGE,stroke_width=7) for y in (-.25,0,.25)])
+        pulls=VGroup(arr([-4.5,0,0],[-6,0,0],GOLD),arr([4.5,0,0],[6,0,0],GOLD))
+        self.play(Create(cables),FadeIn(heading('collagen cables',ORANGE)),FadeIn(pulls),FadeIn(T('resist pulling',26,GOLD).move_to([0,-1.8,0])),run_time=.6)
+        self.at('Elastic fibers')
+        clear_scene(self)
+        elastic=VMobject(color=ORANGE,stroke_width=6).set_points_smoothly([[x,.35*np.sin(x*3),0] for x in np.linspace(-3,3,60)])
+        self.play(Create(elastic),FadeIn(heading('elastic fibres',ORANGE)),run_time=.45)
+        self.at('stretch and recoil')
+        self.play(elastic.animate.stretch(1.7,0),rate_func=there_and_back,run_time=1.1)
+        self.at('makes networks')
+        clear_scene(self)
+        net=VGroup(*mesh_tiles(-5.4,5.4,-2.2,-.6))
+        grip=VGroup(lobe(-.3,.25,'α'),lobe(.3,.25,'β'))
+        self.play(FadeIn(net),FadeIn(grip),FadeIn(heading('fibronectin network',ORANGE)),run_time=.6)
+        self.at('Basement membranes')
+        clear_scene(self)
+        top=VGroup(*mesh_tiles(-5.4,5.4,.25,1.15))
+        bottom=VGroup(*mesh_tiles(-5.4,5.4,-1.15,-.25))
+        ties=VGroup(*[link([x,-.25,0],[x,.25,0],ORANGE) for x in (-4,-2,0,2,4)])
+        labs=VGroup(T('laminin network',26,ORANGE).move_to([0,1.9,0]),T('type IV collagen network',26,ORANGE).move_to([0,-1.9,0]))
+        self.play(FadeIn(top),FadeIn(bottom),Create(ties),FadeIn(labs),FadeIn(heading('basement membrane: a thin sheet',ORANGE)),run_time=.65)
+        self.at('Proteoglycans draw in water')
+        clear_scene(self)
+        gel=RoundedRectangle(width=8,height=3.2,corner_radius=.4,color=ORANGE,fill_opacity=.15)
+        pg=VGroup(*[VGroup(Line([x,-1,0],[x,1,0],color=ORANGE,stroke_width=5),*[Line([x-.35,y,0],[x+.35,y,0],color=ORANGE,stroke_width=3) for y in (-.6,0,.6)]) for x in (-2,0,2)])
+        water=VGroup(*[bchip('water',GREY,22).move_to([x,y,0]) for x,y in ((-5,1),(5,-1))])
+        self.play(FadeIn(gel),FadeIn(pg),FadeIn(water),FadeIn(heading('proteoglycan gel',ORANGE)),run_time=.5)
+        self.play(water[0].animate.move_to([-1,.3,0]),water[1].animate.move_to([1,-.3,0]),run_time=.65)
+        self.at('resist compression')
+        arrows=VGroup(arr([0,2.6,0],[0,1.65,0],GOLD),arr([0,-2.6,0],[0,-1.65,0],GOLD))
+        self.play(FadeIn(arrows),run_time=.5)
+        self.at('helps keep the matrix hydrated')
+        ha=T('hyaluronan: hydration',26,ORANGE).move_to([0,-3.15,0])
+        self.play(FadeIn(ha),Indicate(gel,color=ORANGE,scale_factor=1.03),run_time=.6)
+        self.at('also stores growth factors')
+        clear_scene(self)
+        net=VGroup(*mesh_tiles(-5.4,5.4,-1.7,1))
+        factors=VGroup(*[bchip('growth factor',TEAL,22).move_to([x,-.35,0]) for x in (-3,0,3)])
+        self.play(FadeIn(net),FadeIn(factors),FadeIn(heading('stored growth factors',TEAL)),run_time=.6)
+        self.at('cut or pulled')
+        self.play(net.animate.stretch(1.1,0),factors.animate.shift(UP*2),run_time=.7)
+        self.at('mechanical support')
+        self.play(FadeIn(T('mechanical support',26,ORANGE).move_to([-3,-3,0])),run_time=.45)
+        self.at('biochemical cues')
+        self.play(FadeIn(T('biochemical cues',26,TEAL).move_to([3,-3,0])),run_time=.45)
+        self.finish()
+
+
+class S05Talin(SpokenScene):
+    def construct(self):
+        self.at('Some of these connections')
+        d=simple_attachment(-2.6)
+        self.play(FadeIn(d),run_time=.5)
+        myosin=bchip('myosin II',GOLD,26).move_to([3,2.1,0])
+        pull=arr([.2,2.1,0],[1.8,2.1,0],GOLD,w=8)
+        self.at('A cell pulls')
+        self.play(FadeIn(myosin),GrowArrow(pull),run_time=.6)
+        self.at('Stretching purified')
+        clear_scene(self)
+        folded=rod_row(n=5,ew=.9,y=.4)
+        self.play(FadeIn(folded),FadeIn(heading('purified talin',TEAL)),run_time=.45)
+        self.play(Transform(folded,rod_row(unf=(2,),n=5,ew=.9,uw=3,y=.4)),run_time=.7)
+        self.at('exposes hidden')
+        site=Dot([0,.4,0],radius=.16,color=TEXT)
+        label=T('exposed vinculin-binding site',26,TEAL).move_to([0,-2,0])
+        vin=bchip('vinculin',TEAL,26).move_to([0,1.8,0])
+        self.play(FadeIn(site),FadeIn(label),FadeIn(vin),Create(link([0,.6,0],[0,1.5,0])),run_time=.6)
+        self.at('In a reconstituted')
+        clear_scene(self)
+        title=heading('reconstituted complex',TEAL)
+        labels=VGroup(T('cadherin–catenin',24,TEAL).move_to([-3,2.1,0]),T('actin',24,GREEN).move_to([3,2.1,0]))
+        rows=VGroup(*[VGroup(bchip('contact',TEAL,22).move_to([-3,y,0]),beaded([1,y,0],[5,y,0]),link([-2.3,y,0],[1,y,0])) for y in (1,0,-1)])
+        self.play(FadeIn(title),FadeIn(labels),FadeIn(rows),run_time=.6)
+        self.at('some bonds')
+        self.play(FadeOut(rows[2][2]),run_time=.4)
+        self.at('last longer under load')
+        load=arr([4,-2,0],[5.7,-2,0],GOLD)
+        self.play(FadeIn(load),Indicate(VGroup(rows[0][2],rows[1][2]),color=GOLD,scale_factor=1.02),run_time=.6)
+        self.at('over a limited range')
+        self.play(FadeIn(T('moderate load • limited force range',26,GOLD).move_to([0,-3.1,0])),run_time=.5)
+        self.at('Matrix mechanics')
+        clear_scene(self)
+        bases=VGroup(*[RoundedRectangle(width=4.8,height=.55,corner_radius=.12,color=ORANGE,fill_opacity=.2).move_to([x,-.9,0]) for x in (-3.2,3.2)])
+        cells=VGroup(cell_rect(-3.2,.2,2.4,1.6),cell_rect(3.2,.2,3.7,1.3))
+        labs=VGroup(T('different substrate mechanics',26,ORANGE).move_to([0,-2,0]),T('can bias cell behaviour',26,GREY).move_to([0,-3,0]))
+        self.play(FadeIn(bases),FadeIn(cells),FadeIn(labs),FadeIn(heading('culture result',GREY)),run_time=.65)
+        self.at('Adhesions connect')
+        clear_scene(self)
+        left=simple_attachment(-3.3)
+        # Compact second receptor chain, with labels kept at full size.
+        receptor=bchip('cadherin',BLUE,24).move_to([3.3,-.65,0])
+        cats=bchip('β- / α-catenin',TEAL,22).move_to([3.3,.85,0])
+        act=beaded([1,2.1,0],[5.6,2.1,0])
+        neighbour=bchip('next cell',GREY,24).move_to([3.3,-2.05,0])
+        right=VGroup(receptor,cats,act,neighbour,T('actin',24,GREEN).move_to([3.3,2.65,0]),link(receptor.get_top(),cats.get_bottom()),link(cats.get_top(),[3.3,2.1,0]),link(receptor.get_bottom(),neighbour.get_top(),BLUE))
+        self.play(FadeIn(left),FadeIn(right),run_time=.6)
+        self.at('some links change when pulled')
+        self.play(Indicate(left[2][1],color=GOLD),Indicate(cats[1],color=GOLD),FadeIn(T('some links respond to force',28,GOLD).move_to([0,-3.3,0])),run_time=.8)
+        self.finish()

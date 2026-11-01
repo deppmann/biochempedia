@@ -109,10 +109,10 @@ class S01Cushion(SpokenScene):
         self.at("same count")
         self.play(FadeIn(egg), FadeIn(egg_lbl), FadeIn(egg_set), FadeIn(eq), run_time=0.8)
 
-        body = T("your body: one set only in eggs and sperm", 26, TEXT).move_to([0, -1.75, 0])
+        body = T("your body: one set only as eggs and sperm form", 26, TEXT).move_to([0, -1.75, 0])
         self.at("In your body")
         self.play(FadeIn(body, shift=UP * 0.1), run_time=0.7)
-        self.at("only as eggs")
+        self.at("only cells")
         self.play(Indicate(egg, color=BLUE, scale_factor=1.15), run_time=0.8)
 
         q = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=5.0, height=1.1, stroke_color=YELLOW, stroke_width=4))

@@ -1,4 +1,4 @@
-"""Muscle, bone and movement: filaments slide, nothing shortens  (Biochemistrypedia organismal biology explainer)
+"""Muscle, bone and movement: filaments slide, sarcomeres shorten  (Biochemistrypedia organismal biology explainer)
 
 COLOR MAP (one color per concept, whole video)
   BLUE   = myosin: thick filaments, myosin heads, the binding sites on actin
@@ -96,7 +96,7 @@ def scope():
 
 class S00Title(TitleCard):
     LESSON = "Muscle, bone and movement"
-    TITLE = "Filaments slide, nothing shortens"
+    TITLE = "Filaments slide, sarcomeres shorten"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -308,7 +308,7 @@ class S04Uncover(SpokenScene):
         hang = [head_mob([x - 0.45, 0.58], [x - 0.3, -0.05]) for x in site_x]
         sites_l = T("myosin-binding\nsites", 24, BLUE, line_spacing=0.8).move_to([5.3, -0.2, 0])
 
-        self.at("troponin is a protein")
+        self.at("Tropinin")
         self.play(FadeIn(thin), FadeIn(thin_l), run_time=0.7)
         self.play(FadeIn(trop, scale=1.4), FadeIn(trop_l), run_time=0.6)
         self.at("tropomyosin")
@@ -317,7 +317,7 @@ class S04Uncover(SpokenScene):
         self.play(FadeIn(thick), FadeIn(thick_l), *[FadeIn(h) for h in hang], run_time=0.9)
         sblk = VGroup(*[Line(s.get_center() + np.array([-0.3, 0.55, 0]), s.get_center() + np.array([0.3, 0.55, 0]), color=RED, stroke_width=1) for s in sites])
         self.play(FadeIn(sites_l), run_time=0.4)
-        self.at("calcium binds troponin")
+        self.at("Calcium")
         ca = VGroup(*[dot(-4.7 + 0.45 * i, -3.0 + 0.35 * i, YELLOW, 0.13) for i in range(3)])
         cal = T("calcium", 28, YELLOW).move_to([-5.6, -3.0, 0])
         self.play(FadeIn(ca), FadeIn(cal), run_time=0.4)
@@ -341,7 +341,7 @@ class S04Uncover(SpokenScene):
                   *[Transform(h, p) for h, p in zip(hang, pulled)], run_time=2.0)
         self.at("toward the middle")
         self.play(FadeIn(mid_l), FadeIn(mid), Create(midline), FadeIn(midline_l), run_time=0.7)
-        self.at("crossbridges")
+        self.at("cross")
         self.play(FadeIn(cb), run_time=0.5)
         self.finish()
 
@@ -368,7 +368,7 @@ class S05Slide(SpokenScene):
         s2 = sarcomere(D_SHORT, cy)
         sm2, sl2 = span_marker(-D_SHORT, D_SHORT, cy - 2.55, "sarcomere shorter", GREY, 26)
         self.play(Transform(s, s2), Transform(sm, sm2), Transform(sl, sl2), run_time=2.2)
-        self.at("A band")
+        self.at("band")
         ab, abl = span_marker(-THICK_HALF, THICK_HALF, cy + 2.0, "", BLUE, 26)
         abt = T("A band: the length of the thick filaments", 26, BLUE).move_to([0, cy + 2.6, 0])
         self.play(FadeOut(tk_l), FadeOut(keep), run_time=0.4)
@@ -436,7 +436,7 @@ class S06Atp(SpokenScene):
         self.play(FadeIn(j2), FadeIn(sr), FadeIn(pump), FadeIn(sr_l), run_time=0.8)
         ca = VGroup(*[dot(2.7 + 0.7 * i, -0.2 + 0.1 * (i % 2), YELLOW, 0.12) for i in range(3)])
         patp = chip("ATP", ORANGE, 26).move_to([5.0, 0.0, 0])
-        self.at("use ATP")
+        self.at("use")
         self.play(FadeIn(ca), FadeIn(patp, shift=LEFT * 0.1), run_time=0.5)
         self.at("move calcium back")
         self.play(patp.animate.move_to([3.95, 0.25, 0]), *[c.animate.move_to([3.4 + 0.3 * (i - 1), 1.5 + 0.1 * i, 0]) for i, c in enumerate(ca)], run_time=1.6)
@@ -452,7 +452,7 @@ class S06Atp(SpokenScene):
         self.play(mstrand.animate.shift(UP * 0.34), msites.animate.set_fill(BLUE, 0.15), FadeIn(cov), run_time=1.1)
         self.at("muscle relaxes")
         self.play(Indicate(cov, color=PURPLE, scale_factor=1.05), run_time=0.5)
-        self.at("without ATP")
+        self.at("Without")
         self.play(*[FadeOut(m) for m in (mthin, msites, mstrand, cov, sr, pump, sr_l, j2, ca, j1, l2)], run_time=0.8)
         stuck = head_mob([hx - 0.45, 1.33], [hx, -0.7])
         gp = VGroup(thick, thin, head, stuck)

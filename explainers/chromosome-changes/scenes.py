@@ -3,8 +3,8 @@
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
 COLOR MAP (one color per concept, whole video)
-  BLUE   = homologue "A" of the parent being followed (chromosome 21A; allele 3 in the marker scenes)
-  YELLOW = homologue "B" of the same parent (21B; allele 4)
+  BLUE   = homologue "A" of the parent being followed (chromosome 21A)
+  YELLOW = homologue "B" of the same parent (21B)
   GREY   = everything else: cells, outlines, the other parent's chromosomes, arrows, labels
   RED    = the error and its abnormal products (failure to part, disomic, nullisomic, three copies,
            the verdict chips)
@@ -81,258 +81,6 @@ def sister_pair(x, y=0.3):
     return VGroup(a, b, link)
 
 
-class S00Title(TitleCard):
-    LESSON = "Chromosome number and structure"
-    TITLE = "One missed separation, one extra chromosome"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Count(SpokenScene):
-    """46 small chromosomes in a cell; a 47th appears in red; the question."""
-
-    def construct(self):
-        box = RoundedRectangle(corner_radius=0.3, width=11.9, height=4.7, stroke_color=GREY, stroke_width=3,
-                               fill_color=GREY, fill_opacity=0.06).move_to([0, -0.45, 0])
-        ys = [1.0, -0.45, -1.9]
-        slots = [((i - 3.5) * 1.35, ys[0]) for i in range(8)] + [((i - 3.5) * 1.35, ys[1]) for i in range(8)] \
-            + [((i - 3.5) * 1.35, ys[2]) for i in range(7)]
-        pairs = VGroup(*[chromo(GREY, n=2, h=1.1).move_to([x, y, 0]) for (x, y) in slots])
-        count = M("46", 76, TEXT, weight=BOLD).move_to([-0.9, 2.9, 0])
-        self.at("In 1959")
-        self.play(FadeIn(box), run_time=0.5)
-        self.play(LaggedStart(*[FadeIn(p, scale=0.8) for p in pairs], lag_ratio=0.03), FadeIn(count), run_time=2.0)
-        self.at("nine children")
-        self.play(Indicate(count, color=TEXT, scale_factor=1.12), run_time=0.7)
-
-        extra = chromo(RED, n=1, h=1.1).move_to([(7 - 3.5) * 1.35, ys[2], 0])
-        self.at("It found")
-        count47 = M("47", 76, RED, weight=BOLD).move_to(count)
-        self.play(FadeIn(extra, scale=1.6), ReplacementTransform(count, count47), run_time=0.9)
-        self.at("One chromosome too many")
-        self.play(Indicate(extra, color=RED, scale_factor=1.4), run_time=0.9)
-        q = T("How?", 52, RED, weight=BOLD).move_to([2.4, 2.9, 0])
-        self.at("How does")
-        self.play(FadeIn(q, shift=UP * 0.2), run_time=0.5)
-        self.at("meiosis")
-        self.play(FadeOut(VGroup(box, pairs, count47, extra, q)), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Divisions(SpokenScene):
-    """a cell divides twice: homologues part, then sisters part; then nondisjunction."""
-
-    def construct(self):
-        x0, x1, x2 = X0 + 1.7, X1 + 1.7, X2 + 1.7
-        st = cell(x0, 0, R0)
-        a = chromo(BLUE).move_to([x0 - 0.35, 0, 0])
-        b = chromo(YELLOW).move_to([x0 + 0.35, 0, 0])
-        self.at("A cell makes")
-        self.play(FadeIn(st), FadeIn(a), FadeIn(b), run_time=0.6)
-        chI = div_chip("meiosis I", GREY, -1.4)
-        chII = div_chip("meiosis II", GREY, 2.4)
-        self.at("two divisions")
-        self.play(FadeIn(chI), FadeIn(chII), run_time=0.6)
-
-        # meiosis I: homologues part
-        secs = [cell(x1, y, R1) for y in SEC_Y]
-        arrs = [arr([x0 + R0 + 0.05, 0.3 * s, 0], [x1 - R1 - 0.05, y - 0.15 * s, 0]) for s, y in zip((1, -1), SEC_Y)]
-        chI_on = div_chip("meiosis I", TEAL, -1.4)
-        self.at("At meiosis")
-        self.play(ReplacementTransform(chI, chI_on), *[GrowArrow(x) for x in arrs], *[FadeIn(s) for s in secs],
-                  run_time=2.4)
-        hl = T("homologues", 24, GREY).move_to([x0, -R0 - 0.4, 0])
-        self.at("of each pair")
-        self.play(FadeIn(hl), a.animate.move_to([x1, SEC_Y[0], 0]), b.animate.move_to([x1, SEC_Y[1], 0]),
-                  run_time=1.2)
-
-        # meiosis II: sisters part
-        sps = [cell(x2, y, R2) for y in SP_Y]
-        arrs2 = [arr([x1 + R1 + 0.05, y, 0], [x2 - R2 - 0.05, sy, 0])
-                 for y, sy_pair in zip(SEC_Y, [(SP_Y[0], SP_Y[1]), (SP_Y[2], SP_Y[3])]) for sy in sy_pair]
-        chII_on = div_chip("meiosis II", TEAL, 2.4)
-        self.at("At meiosis", nth=1)
-        self.play(ReplacementTransform(chII, chII_on), FadeOut(hl), *[GrowArrow(x) for x in arrs2],
-                  *[FadeIn(s) for s in sps], run_time=0.8)
-        sl = T("sister chromatids", 24, GREY).move_to([x1, -SEC_Y[0] - R1 - 0.4 + 0.0, 0])
-        sl.move_to([x1, -2.78, 0])
-        self.at("sister chromatids")
-        self.play(FadeIn(sl), run_time=0.4)
-        self.at("of each chromosome")
-        self.play(a.caps[0].animate.move_to([x2, SP_Y[0], 0]), a.caps[1].animate.move_to([x2, SP_Y[1], 0]),
-                  b.caps[0].animate.move_to([x2, SP_Y[2], 0]), b.caps[1].animate.move_to([x2, SP_Y[3], 0]),
-                  run_time=1.2)
-
-        # nondisjunction: the pair that fails to part
-        self.at("Nondisjunction")
-        everything = VGroup(st, secs[0], secs[1], *arrs, *arrs2, *sps, a, b, chI_on, chII_on, sl)
-        self.play(FadeOut(everything), run_time=0.4)
-        pa = chromo(BLUE, h=1.9).move_to([-0.45, 0.2, 0])
-        pb = chromo(YELLOW, h=1.9).move_to([0.45, 0.2, 0])
-        pull = VGroup(arr([-1.3, 0.2, 0], [-4.6, 0.2, 0], GREY, 6), arr([1.3, 0.2, 0], [4.6, 0.2, 0], GREY, 6))
-        title = T("nondisjunction", 48, RED, weight=BOLD).move_to([0, 2.55, 0])
-        self.play(FadeIn(pa), FadeIn(pb), FadeIn(title, shift=DOWN * 0.15), run_time=0.5)
-        self.at("failure of chromosomes")
-        self.play(*[GrowArrow(x) for x in pull], run_time=0.6)
-        stuck = Line([-1.0, -1.45, 0], [1.0, -1.45, 0], color=RED, stroke_width=6)
-        note = T("they stay together", 30, RED).move_to([0, -2.0, 0])
-        self.at("part")
-        self.play(Create(stuck), FadeIn(note), run_time=0.6)
-        c1 = div_chip("at meiosis I", GREY, -2.4).move_to([-2.4, -3.1, 0])
-        c2 = div_chip("at meiosis II", GREY, 2.4).move_to([2.4, -3.1, 0])
-        self.at("Where it happens")
-        self.play(FadeIn(c1), FadeIn(c2), run_time=0.6)
-        self.at("changes the result")
-        self.play(Indicate(c1, color=TEAL), Indicate(c2, color=TEAL), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03First(SpokenScene):
-    """meiosis I error: both homologues to one cell -> two disomic sperm, two nullisomic."""
-
-    def construct(self):
-        st = cell(X0, 0, R0)
-        a = chromo(BLUE).move_to([X0 - 0.35, 0, 0])
-        b = chromo(YELLOW).move_to([X0 + 0.35, 0, 0])
-        stl = T("spermatocyte", 24, GREY).move_to([X0, R0 + 0.4, 0])
-        self.at("Follow chromosome")
-        self.play(FadeIn(st), FadeIn(a), FadeIn(b), FadeIn(stl), run_time=0.5)
-        la = T("21A", 26, BLUE, weight=BOLD).move_to([X0 - 0.6, -R0 - 0.4, 0])
-        lb = T("21B", 26, YELLOW, weight=BOLD).move_to([X0 + 0.6, -R0 - 0.4, 0])
-        chI = div_chip("meiosis I", GREY, -3.1)
-        chII = div_chip("meiosis II", GREY, 0.7)
-        self.at("call the")
-        self.play(FadeIn(la), FadeIn(lb), FadeIn(chI), FadeIn(chII), run_time=0.7)
-
-        # error at meiosis I
-        chI_bad = div_chip("meiosis I", RED, -3.1)
-        ring = SurroundingRectangle(VGroup(a, b), color=RED, buff=0.08, corner_radius=0.12, stroke_width=4)
-        self.at("fail to separate")
-        self.play(ReplacementTransform(chI, chI_bad), Create(ring), run_time=0.7)
-        secs = [cell(X1, y, R1) for y in SEC_Y]
-        arrs = [arr([X0 + R0 + 0.05, 0.3 * s, 0], [X1 - R1 - 0.05, y - 0.15 * s, 0]) for s, y in zip((1, -1), SEC_Y)]
-        self.at("same cell")
-        self.play(*[GrowArrow(x) for x in arrs], *[FadeIn(s) for s in secs], FadeOut(VGroup(la, lb)), run_time=0.5)
-        grp = VGroup(a, b, ring)
-        self.play(grp.animate.move_to([X1, SEC_Y[0], 0]), run_time=0.8)
-        self.play(FadeOut(ring), run_time=0.2)
-
-        # meiosis II normal
-        sps = [cell(X2, y, R2) for y in SP_Y]
-        arrs2 = [arr([X1 + R1 + 0.05, y, 0], [X2 - R2 - 0.05, sy, 0])
-                 for y, pr in zip(SEC_Y, [(SP_Y[0], SP_Y[1]), (SP_Y[2], SP_Y[3])]) for sy in pr]
-        chII_on = div_chip("meiosis II", TEAL, 0.7)
-        self.at("Meiosis", nth=1)
-        self.play(ReplacementTransform(chII, chII_on), *[GrowArrow(x) for x in arrs2], *[FadeIn(s) for s in sps],
-                  run_time=0.8)
-        self.at("runs normally")
-        self.play(a.caps[0].animate.move_to([X2 - 0.12, SP_Y[0], 0]), b.caps[0].animate.move_to([X2 + 0.12, SP_Y[0], 0]),
-                  a.caps[1].animate.move_to([X2 - 0.12, SP_Y[1], 0]), b.caps[1].animate.move_to([X2 + 0.12, SP_Y[1], 0]),
-                  run_time=1.3)
-
-        # the products
-        top = Line([3.55, SP_Y[0] + 0.45, 0], [3.55, SP_Y[1] - 0.45, 0], color=RED, stroke_width=5)
-        t1 = VGroup(T("disomic", 30, RED, weight=BOLD), T("two copies", 24, GREY)).arrange(DOWN, aligned_edge=LEFT, buff=0.1)
-        t1.next_to(top, RIGHT, buff=0.25)
-        self.at("meaning each")
-        self.play(sps[0].animate.set_stroke(RED), sps[1].animate.set_stroke(RED), Create(top), FadeIn(t1), run_time=0.8)
-        bot = Line([3.55, SP_Y[2] + 0.45, 0], [3.55, SP_Y[3] - 0.45, 0], color=RED, stroke_width=5)
-        t2 = VGroup(T("nullisomic", 30, RED, weight=BOLD), T("none", 24, GREY)).arrange(DOWN, aligned_edge=LEFT, buff=0.1)
-        t2.next_to(bot, RIGHT, buff=0.25)
-        self.at("The other cell")
-        self.play(Indicate(secs[1], color=GREY, scale_factor=1.15), run_time=0.7)
-        self.at("its two")
-        self.play(sps[2].animate.set_stroke(RED), sps[3].animate.set_stroke(RED), Create(bot), FadeIn(t2), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Second(SpokenScene):
-    """meiosis II error: one disomic, one nullisomic, two normal; tally 2 vs 1; disomic sperm + egg."""
-
-    def construct(self):
-        st = cell(X0, 0, R0)
-        a = chromo(BLUE).move_to([X0 - 0.35, 0, 0])
-        b = chromo(YELLOW).move_to([X0 + 0.35, 0, 0])
-        chI = div_chip("meiosis I", GREY, -3.1)
-        chII = div_chip("meiosis II", GREY, 0.7)
-        self.at("Now fail")
-        self.play(FadeIn(st), FadeIn(a), FadeIn(b), FadeIn(chI), FadeIn(chII), run_time=0.7)
-        chII_bad = div_chip("meiosis II", RED, 0.7)
-        self.at("instead")
-        self.play(ReplacementTransform(chII, chII_bad), run_time=0.5)
-
-        secs = [cell(X1, y, R1) for y in SEC_Y]
-        arrs = [arr([X0 + R0 + 0.05, 0.3 * s, 0], [X1 - R1 - 0.05, y - 0.15 * s, 0]) for s, y in zip((1, -1), SEC_Y)]
-        chI_on = div_chip("meiosis I", TEAL, -3.1)
-        self.at("normal")
-        self.play(ReplacementTransform(chI, chI_on), *[GrowArrow(x) for x in arrs], *[FadeIn(s) for s in secs],
-                  a.animate.move_to([X1, SEC_Y[0], 0]), b.animate.move_to([X1, SEC_Y[1], 0]), run_time=1.3)
-
-        ring = SurroundingRectangle(a, color=RED, buff=0.1, corner_radius=0.12, stroke_width=4)
-        self.at("sisters")
-        self.play(Create(ring), run_time=0.5)
-        sps = [cell(X2, y, R2) for y in SP_Y]
-        arrs2 = [arr([X1 + R1 + 0.05, y, 0], [X2 - R2 - 0.05, sy, 0])
-                 for y, pr in zip(SEC_Y, [(SP_Y[0], SP_Y[1]), (SP_Y[2], SP_Y[3])]) for sy in pr]
-        self.at("giving")
-        self.play(*[GrowArrow(x) for x in arrs2], *[FadeIn(s) for s in sps], FadeOut(ring), run_time=0.7)
-        self.play(a.caps[0].animate.move_to([X2 - 0.12, SP_Y[0], 0]), a.caps[1].animate.move_to([X2 + 0.12, SP_Y[0], 0]),
-                  b.caps[0].animate.move_to([X2, SP_Y[2], 0]), b.caps[1].animate.move_to([X2, SP_Y[3], 0]),
-                  run_time=1.2)
-        t_dis = T("disomic", 28, RED, weight=BOLD).next_to(sps[0], RIGHT, buff=0.3)
-        t_nul = T("none", 28, RED, weight=BOLD).next_to(sps[1], RIGHT, buff=0.3)
-        self.play(sps[0].animate.set_stroke(RED), sps[1].animate.set_stroke(RED), FadeIn(t_dis), FadeIn(t_nul),
-                  run_time=0.6)
-        t_n1 = T("normal", 28, GREEN, weight=BOLD).next_to(sps[2], RIGHT, buff=0.3)
-        t_n2 = T("normal", 28, GREEN, weight=BOLD).next_to(sps[3], RIGHT, buff=0.3)
-        self.at("The other cell")
-        self.play(sps[2].animate.set_stroke(GREEN), sps[3].animate.set_stroke(GREEN), FadeIn(t_n1), FadeIn(t_n2),
-                  run_time=0.8)
-
-        # tally: 2 vs 1
-        left = VGroup(st, secs[0], secs[1], *arrs, *arrs2, chI_on, chII_bad)
-        r1l = T("meiosis I error", 28, TEXT).move_to([-4.2, 1.0, 0])
-        r2l = T("meiosis II error", 28, TEXT).move_to([-4.2, -1.0, 0])
-        r1l.set_x(-4.2); r2l.set_x(-4.2)
-        n1 = M("2", 56, RED, weight=BOLD).move_to([-0.7, 1.0, 0])
-        n2 = M("1", 56, RED, weight=BOLD).move_to([-0.7, -1.0, 0])
-        i1 = VGroup(sperm_icon(2, -2.4, 1.0), sperm_icon(2, -1.5, 1.0))
-        i2 = sperm_icon(2, -2.4, -1.0)
-        self.at("So a")
-        self.play(FadeOut(left), FadeOut(t_n1), FadeOut(t_n2), FadeOut(sps[2]), FadeOut(sps[3]),
-                  FadeOut(VGroup(t_nul, sps[1])), FadeOut(b.caps[0]), FadeOut(b.caps[1]), FadeIn(r1l), run_time=0.7)
-        self.at("error gives")
-        self.play(FadeIn(i1), FadeIn(n1), run_time=0.6)
-        self.at("and a")
-        self.play(FadeIn(r2l), run_time=0.4)
-        self.at("error gives", nth=1)
-        self.play(FadeIn(i2), FadeIn(n2), run_time=0.6)
-
-        # a disomic sperm joins a normal egg
-        keep = VGroup(sps[0], a.caps[0], a.caps[1], t_dis)
-        self.at("Joined")
-        self.play(FadeOut(VGroup(r1l, r2l, i1, i2, n1, n2)), FadeOut(t_dis), run_time=0.5)
-        sp_group = VGroup(sps[0], a.caps[0], a.caps[1])
-        egg = cell(3.2, 0, 0.9)
-        egg_chr = capsule(GREY, h=CAP_H).move_to(egg)
-        egg_lbl = T("normal egg", 26, GREY).next_to(egg, DOWN, buff=0.3)
-        self.play(sp_group.animate.move_to([-2.4, 0, 0]).scale(1.3), FadeIn(egg), FadeIn(egg_chr), FadeIn(egg_lbl),
-                  run_time=1.1)
-        zyg = cell(0, 0.3, 1.7, RED)
-        self.at("sperm gives")
-        self.play(FadeOut(egg_lbl), FadeOut(VGroup(sps[0], egg)), FadeIn(zyg),
-                  a.caps[0].animate.scale(2.0 / 1.3).move_to([-0.7, 0.3, 0]),
-                  a.caps[1].animate.scale(2.0 / 1.3).move_to([0.0, 0.3, 0]),
-                  egg_chr.animate.scale(2.0).move_to([0.7, 0.3, 0]), run_time=1.0)
-        three = T("three copies", 40, RED, weight=BOLD).next_to(zyg, DOWN, buff=0.3)
-        self.at("zygote")
-        self.play(FadeIn(three, shift=UP * 0.15), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 HEAD_Y = 3.2
 
 
@@ -344,126 +92,312 @@ def verdict(text, x=-3.4, y=-2.8):
     return chip(text, RED, size=30).move_to([x, y, 0])
 
 
-class S05MaternalOne(SpokenScene):
-    """homologues differ at the centromere marker, sisters do not; then Child A types 1, 3, 4."""
+# The original capsule, cell, chromosome and marker helpers are retained above.
+# Gene bands below are schematic positions, not a molecular structure.
+def gene_chromosome(color, x, y=0.25, h=2.6):
+    body = capsule(color, h=h, w=0.30).move_to([x, y, 0])
+    bands = VGroup(*[
+        Rectangle(width=0.48, height=0.13, stroke_width=0,
+                  fill_color=TEXT, fill_opacity=1).move_to([x, y + dy, 0])
+        for dy in (-0.75, 0, 0.75)
+    ])
+    return VGroup(body, bands)
+
+
+def heading(text, color=TEXT):
+    return T(text, 32, color, weight=BOLD).move_to([0, 3.15, 0])
+
+
+def start_model():
+    st = cell(X0, 0, R0)
+    a = chromo(BLUE).move_to([X0 - 0.35, 0, 0])
+    b = chromo(YELLOW).move_to([X0 + 0.35, 0, 0])
+    return st, a, b
+
+
+def secondary_cells():
+    return [cell(X1, y, R1) for y in SEC_Y]
+
+
+def product_cells():
+    return [cell(X2, y, R2) for y in SP_Y]
+
+
+def first_arrows():
+    return VGroup(*[arr([X0 + R0 + 0.05, 0.3 * sign, 0],
+                       [X1 - R1 - 0.05, y - 0.15 * sign, 0])
+                   for sign, y in zip((1, -1), SEC_Y)])
+
+
+def second_arrows():
+    return VGroup(*[arr([X1 + R1 + 0.05, y, 0], [X2 - R2 - 0.05, sy, 0])
+                   for y, pr in zip(SEC_Y, [SP_Y[:2], SP_Y[2:]]) for sy in pr])
+
+
+class S00Title(TitleCard):
+    LESSON = "Chromosome number and structure"
+    TITLE = "One Missed Separation, One Extra Chromosome"
 
     def construct(self):
-        head = T("DNA marker at the centromere", 32, GREY).move_to([0, HEAD_Y, 0])
-        hp = homologue_pair(-3.2)
-        sp = sister_pair(3.2)
-        hl = T("homologues", 30, TEXT).move_to([-3.2, -2.0, 0])
-        sl = T("sisters", 30, TEXT).move_to([3.2, -2.0, 0])
-        hd = T("alleles differ", 26, GREY).move_to([-3.2, -2.55, 0])
-        sd = T("usually the same allele", 26, GREY).move_to([3.2, -2.55, 0])
-        self.play(FadeIn(head), FadeIn(hp, shift=UP * 0.15), FadeIn(hl), run_time=0.7)
-        self.at("differ there")
-        self.play(FadeIn(hd), Indicate(hp[0].bn, color=TEXT, scale_factor=1.15), Indicate(hp[1].bn, color=TEXT, scale_factor=1.15), run_time=0.6)
-        self.at("and sisters")
-        self.play(FadeIn(sp, shift=UP * 0.15), FadeIn(sl), run_time=0.7)
-        self.at("do not")
-        self.play(FadeIn(sd), Indicate(sp[0].bn, color=TEXT, scale_factor=1.15), Indicate(sp[1].bn, color=TEXT, scale_factor=1.15), run_time=0.6)
-
-        # the family
-        head2 = T("chromosome 21, marker at the centromere", 30, GREY).move_to([0, HEAD_Y, 0])
-        fa = VGroup(tall(GREY, "1", h=3.4).move_to([-5.45, -0.3, 0]), tall(GREY, "2", h=3.4).move_to([-4.55, -0.3, 0]))
-        mo = VGroup(tall(BLUE, "3", h=3.4).move_to([-2.25, -0.3, 0]), tall(YELLOW, "4", h=3.4).move_to([-1.35, -0.3, 0]))
-        demo_body = capsule(GREY, h=3.4, w=0.32, op=0.8).move_to([-1.0, -0.2, 0])
-        demo_band = RoundedRectangle(corner_radius=0.08, width=0.6, height=0.44, fill_color=TEXT, fill_opacity=1,
-                                     stroke_color=GREY, stroke_width=3).move_to(demo_body)
-        demo_line = Line(demo_band.get_right() + RIGHT * 0.05, demo_band.get_right() + RIGHT * 0.9, color=GREY, stroke_width=3)
-        demo_lbl = T("DNA marker at the centromere", 28, TEXT).next_to(demo_line, RIGHT, buff=0.15)
-        demo = VGroup(demo_body, demo_band, demo_line, demo_lbl)
-        self.at("Take a DNA marker")
-        self.play(FadeOut(VGroup(hp, sp, hl, sl, hd, sd)), ReplacementTransform(head, head2), FadeIn(demo), run_time=0.7)
-        fl = column_label("father", -5.0)
-        ml = column_label("mother", -1.8)
-        self.at("The father carries")
-        self.play(FadeOut(demo), FadeIn(fa, shift=UP * 0.15), FadeIn(fl), run_time=0.7)
-        self.at("the mother carries")
-        self.play(FadeIn(mo, shift=UP * 0.15), FadeIn(ml), run_time=0.7)
-
-        ch = VGroup(tall(GREY, "1", h=3.4).move_to([2.1, -0.3, 0]), tall(BLUE, "3", h=3.4).move_to([3.2, -0.3, 0]),
-                    tall(YELLOW, "4", h=3.4).move_to([4.3, -0.3, 0]))
-        cl = column_label("Child A", 3.2)
-        self.at("Child")
-        self.play(FadeIn(cl), LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in ch], lag_ratio=0.25), run_time=1.3)
-        r1 = SurroundingRectangle(ch[0], color=TEXT, buff=0.12, corner_radius=0.1, stroke_width=3)
-        r2 = SurroundingRectangle(VGroup(ch[1], ch[2]), color=TEXT, buff=0.12, corner_radius=0.1, stroke_width=3)
-        self.at("paternal allele")
-        self.play(Create(r1), run_time=0.5)
-        self.at("two different")
-        self.play(Create(r2), run_time=0.5)
-        link = arr([-0.8, -0.3, 0], [1.9 - 0.0, -0.3, 0], TEXT, 5)
-        self.at("is maternal")
-        self.play(GrowArrow(link), Indicate(mo, color=TEXT, scale_factor=1.05), run_time=0.8)
-        v = verdict("maternal meiosis I")
-        self.at("the error was")
-        self.play(FadeIn(v, shift=UP * 0.15), run_time=0.6)
+        title = T(self.TITLE, 44, font=TITLE_FONT)
+        fit(title, max_w=12.2)
+        sub = T("Chromosome dose changes development", 28, GREY)
+        lesson = T(self.LESSON, 24, TEAL)
+        rule = Line(LEFT * 1.2, RIGHT * 1.2, color=GOLD, stroke_width=4)
+        group = VGroup(lesson, title, rule, sub).arrange(DOWN, buff=0.42)
+        self.play(FadeIn(group), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06MaternalTwo(SpokenScene):
-    """Child B types 1, 3, 3 -> sisters -> maternal meiosis II; the crossover caveat; the rule."""
-
+class S01Count(SpokenScene):
     def construct(self):
-        head = T("chromosome 21, marker near the centromere", 30, GREY).move_to([0, HEAD_Y, 0])
-        fa = VGroup(tall(GREY, "1", h=3.4).move_to([-5.45, -0.3, 0]), tall(GREY, "2", h=3.4).move_to([-4.55, -0.3, 0]))
-        mo = VGroup(tall(BLUE, "3", h=3.4).move_to([-2.25, -0.3, 0]), tall(YELLOW, "4", h=3.4).move_to([-1.35, -0.3, 0]))
-        fl = column_label("father", -5.0)
-        ml = column_label("mother", -1.8)
-        self.add(head, fa, mo, fl, ml)
-        ch = VGroup(tall(GREY, "1", h=3.4).move_to([2.1, -0.3, 0]), tall(BLUE, "3", h=3.4).move_to([3.2, -0.3, 0]),
-                    tall(BLUE, "3", h=3.4).move_to([4.3, -0.3, 0]))
-        cl = column_label("Child B", 3.2)
-        self.at("Child B types")
-        self.play(FadeIn(cl), LaggedStart(*[FadeIn(c, shift=UP * 0.15) for c in ch], lag_ratio=0.25), run_time=1.3)
-        r2 = SurroundingRectangle(VGroup(ch[1], ch[2]), color=TEXT, buff=0.12, corner_radius=0.1, stroke_width=3)
-        self.at("one maternal allele")
-        self.play(Create(r2), run_time=0.5)
-        # bracket under the two matching chromosomes
-        bx0, bx1, by = 3.2, 4.3, -2.2
-        brk = VGroup(Line([bx0, by + 0.15, 0], [bx0, by, 0], color=TEXT, stroke_width=4),
-                     Line([bx0, by, 0], [bx1, by, 0], color=TEXT, stroke_width=4),
-                     Line([bx1, by, 0], [bx1, by + 0.15, 0], color=TEXT, stroke_width=4))
-        bl = T("sisters", 28, TEXT).move_to([3.75, -2.6, 0])
-        self.at("The sisters stayed")
-        self.play(FadeOut(r2), Create(brk), FadeIn(bl), run_time=0.7)
-        v = verdict("maternal meiosis II")
-        self.at("consistent with")
-        self.play(FadeIn(v, shift=UP * 0.15), run_time=0.6)
+        head = heading("Chromosome 21: two copies")
+        a = gene_chromosome(BLUE, -1.0)
+        b = gene_chromosome(YELLOW, 0)
+        c = gene_chromosome(RED, 1.0)
+        self.at("A cell")
+        self.play(FadeIn(head), FadeIn(a), FadeIn(b), run_time=0.5)
+        self.at("an extra")
+        self.play(FadeIn(c, shift=DOWN * 0.3),
+                  Transform(head, heading("Chromosome 21: extra gene copies", RED)), run_time=0.7)
+        dose = T("Extra chromosome → extra gene dose", 30, RED).move_to([0, -1.7, 0])
+        self.at("the wrong dose")
+        self.play(FadeIn(dose), Indicate(c[1], color=RED), run_time=0.7)
+        dev = T("→ altered development", 30, TEXT).move_to([0, -2.5, 0])
+        self.at("That can change")
+        self.play(FadeIn(dev), run_time=0.6)
+        warning = T("Most aneuploid human embryos\ndo not survive pregnancy", 30, TEXT,
+                    line_spacing=1.15).move_to([0, -2.15, 0])
+        self.at("Most aneuploid")
+        self.play(FadeOut(dose), FadeOut(dev), FadeIn(warning), run_time=0.6)
+        example = T("Trisomy 21: seen regularly at birth", 30, TEXT).move_to([0, -1.8, 0])
+        self.at("Trisomy 21")
+        self.play(FadeOut(warning), FadeIn(example), run_time=0.6)
+        self.at("three copies")
+        self.play(Indicate(VGroup(a, b, c), color=TEXT, scale_factor=1.08), run_time=0.7)
+        down = T("Down syndrome", 32, RED).move_to([0, -2.55, 0])
+        self.at("causes down syndrome")
+        self.play(FadeIn(down), run_time=0.5)
+        self.at("The important change")
+        self.play(FadeOut(example), FadeOut(down), FadeIn(dose),
+                  Indicate(c[1], color=RED), run_time=0.6)
+        question = T("How does a cell get that extra chromosome?", 30, TEXT).move_to([0, -2.6, 0])
+        self.at("How does")
+        self.play(FadeIn(question), run_time=0.6)
+        self.finish()
 
-        # the caveat: a crossover between marker and centromere
-        self.at("One caveat")
-        self.play(Indicate(v, color=RED, scale_factor=1.06), run_time=0.7)
-        new_num = M("4", 26, BG, weight=BOLD).move_to(ch[2].num)
-        v2 = verdict("looks like meiosis I")
-        self.at("A crossover")
-        cx = ch[2].band.get_center() + UP * 0.45
-        xmark = VGroup(Line(cx + [-0.2, 0.15, 0], cx + [0.2, -0.15, 0], color=RED, stroke_width=6),
-                       Line(cx + [-0.2, -0.15, 0], cx + [0.2, 0.15, 0], color=RED, stroke_width=6))
-        self.play(Create(xmark), run_time=0.4)
-        self.play(FadeOut(xmark), Transform(ch[2].num, new_num), ch[2].band.animate.set_stroke(YELLOW, 6), FadeOut(v), run_time=0.8)
-        self.at("look like the other")
-        self.play(FadeOut(brk), FadeOut(bl), FadeIn(v2, shift=UP * 0.15), run_time=0.8)
 
-        # the rule: two panels
-        self.at("Keep the rule")
-        self.play(FadeOut(VGroup(head, fa, mo, fl, ml, cl, ch, v2)), run_time=0.7)
-        hp = homologue_pair(-3.4, 0.5)
-        sp = sister_pair(3.4, 0.5)
-        hl = T("two homologues together", 28, TEXT).move_to([-3.4, -1.7, 0])
-        sl = T("two sisters together", 28, TEXT).move_to([3.4, -1.7, 0])
-        v_h = chip("meiosis I", RED, size=32).move_to([-3.4, -2.55, 0])
-        v_s = chip("meiosis II", RED, size=32).move_to([3.4, -2.55, 0])
-        self.at("homologues together")
-        self.play(FadeIn(hp, shift=UP * 0.15), FadeIn(hl), run_time=0.6)
-        self.play(FadeIn(v_h), run_time=0.4)
-        self.at("sisters together")
-        self.play(FadeIn(sp, shift=UP * 0.15), FadeIn(sl), run_time=0.6)
-        self.play(FadeIn(v_s), run_time=0.4)
+class S01XDose(SpokenScene):
+    def construct(self):
+        head = heading("Extra X chromosomes are better tolerated")
+        c21 = gene_chromosome(RED, -4.2)
+        c21label = T("Extra 21", 28, RED).move_to([-4.2, 2.15, 0])
+        x1 = gene_chromosome(BLUE, 0.5)
+        x2 = gene_chromosome(YELLOW, 2.1)
+        xs = T("X               X", 28, TEXT).move_to([1.3, 2.15, 0])
+        self.at("Extra X chromosomes")
+        self.play(FadeIn(head), FadeIn(c21), FadeIn(c21label), FadeIn(x1), FadeIn(x2), FadeIn(xs), run_time=0.7)
+        note = T("Most extra X genes silenced; some escape", 30, TEXT).move_to([0, -2.05, 0])
+        self.at("silence every X")
+        # Dim the body and two gene bands, preserving one lit escape position.
+        self.play(x2[0].animate.set_opacity(0.20),
+                  x2[1][0].animate.set_opacity(0.18), x2[1][1].animate.set_opacity(0.18),
+                  FadeIn(note), run_time=1.0)
+        self.at("some genes escape")
+        self.play(Indicate(x1[1][2], color=TEXT), Indicate(x2[1][2], color=TEXT), run_time=0.8)
+        thought = T("Extra active escape-gene copies\nmay explain many features", 28, TEXT).move_to([0, -2.7, 0])
+        self.at("are thought to explain")
+        self.play(FadeOut(note), FadeIn(thought), run_time=0.6)
+        syndrome = heading("Klinefelter syndrome", RED)
+        self.at("Klinefelter syndrome")
+        self.play(Transform(head, syndrome), run_time=0.5)
+        y = capsule(GREY, h=1.5, w=0.3).move_to([3.7, 0.25, 0])
+        ylabel = T("Y", 28, GREY).move_to([3.7, 2.15, 0])
+        male = T("XXY male", 28, TEXT).move_to([2.1, -1.45, 0])
+        self.at("usually an extra X")
+        self.play(FadeOut(c21), FadeOut(c21label), FadeIn(y), FadeIn(ylabel), FadeIn(male), run_time=0.7)
+        self.finish()
+
+
+class S02Divisions(SpokenScene):
+    def construct(self):
+        head = heading("Nondisjunction: failure to part", RED)
+        st, a, b = start_model()
+        self.at("Nondisjunction")
+        self.play(FadeIn(head), FadeIn(st), FadeIn(a), FadeIn(b), run_time=0.6)
+        ring = SurroundingRectangle(VGroup(a, b), color=RED, buff=0.1, corner_radius=0.1)
+        self.at("failure of chromosomes")
+        self.play(Create(ring), VGroup(a, b).animate.shift(RIGHT * 0.25), run_time=0.6)
+        secs = secondary_cells()
+        arrows1 = first_arrows()
+        self.at("At meiosis 1")
+        self.play(FadeOut(ring), Transform(head, heading("Meiosis I: homologue separation", TEAL)),
+                  *[FadeIn(c) for c in secs], GrowArrow(arrows1[0]), GrowArrow(arrows1[1]),
+                  a.animate.move_to([X1, SEC_Y[0], 0]), b.animate.move_to([X1, SEC_Y[1], 0]), run_time=1.4)
+        sps = product_cells()
+        arrows2 = second_arrows()
+        self.at("At meiosis 2")
+        self.play(FadeOut(st), FadeOut(arrows1),
+                  Transform(head, heading("Meiosis II: sister separation", TEAL)),
+                  *[FadeIn(c) for c in sps], *[GrowArrow(ar) for ar in arrows2], run_time=0.5)
+        self.at("the sister chromatids")
+        self.play(a.caps[0].animate.move_to([X2, SP_Y[0], 0]),
+                  a.caps[1].animate.move_to([X2, SP_Y[1], 0]),
+                  b.caps[0].animate.move_to([X2, SP_Y[2], 0]),
+                  b.caps[1].animate.move_to([X2, SP_Y[3], 0]), run_time=1.0)
+        self.at("Follow chromosome")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.35)
+        st, a, b = start_model()
+        label = T("Human spermatocyte\nchromosome 21", 28, TEXT).move_to([-2.0, 0, 0])
+        self.play(FadeIn(st), FadeIn(a), FadeIn(b), FadeIn(label), run_time=0.45)
+        assumptions = VGroup(T("One error", 30, RED), T("Other divisions normal", 30, TEXT),
+                             T("All four products recovered", 30, TEXT)).arrange(DOWN, buff=0.45).move_to([2.9, 0, 0])
+        self.at("Assume one error")
+        self.play(FadeIn(assumptions[0]), run_time=0.5)
+        self.at("otherwise normal divisions")
+        self.play(FadeIn(assumptions[1]), run_time=0.5)
+        self.at("recovery of all")
+        self.play(FadeIn(assumptions[2]), run_time=0.5)
+        self.finish()
+
+
+class S03First(SpokenScene):
+    def construct(self):
+        st, a, b = start_model()
+        head = heading("Meiosis I: both homologues stay together", RED)
+        self.at("Suppose both homologues")
+        self.play(FadeIn(st), FadeIn(a), FadeIn(b), FadeIn(head), run_time=0.5)
+        secs = secondary_cells()
+        ars = first_arrows()
+        self.at("the same cell")
+        self.play(*[FadeIn(c) for c in secs], *[GrowArrow(ar) for ar in ars],
+                  a.animate.move_to([X1 - 0.3, SEC_Y[0], 0]),
+                  b.animate.move_to([X1 + 0.3, SEC_Y[0], 0]), run_time=1.0)
+        sps = product_cells()
+        ars2 = second_arrows()
+        self.at("Meiosis 2 then")
+        self.play(FadeOut(st), FadeOut(ars),
+                  Transform(head, heading("Meiosis II runs normally", TEAL)),
+                  *[FadeIn(c) for c in sps], *[GrowArrow(ar) for ar in ars2], run_time=0.6)
+        self.at("That cell gives")
+        self.play(a.caps[0].animate.move_to([X2 - 0.12, SP_Y[0], 0]),
+                  b.caps[0].animate.move_to([X2 + 0.12, SP_Y[0], 0]),
+                  a.caps[1].animate.move_to([X2 - 0.12, SP_Y[1], 0]),
+                  b.caps[1].animate.move_to([X2 + 0.12, SP_Y[1], 0]), run_time=1.1)
+        dis = VGroup(T("disomic", 30, RED, weight=BOLD), T("two copies each", 24, GREY)).arrange(DOWN, buff=0.15).move_to([4.9, 1.48, 0])
+        self.at("These are disomic")
+        self.play(FadeIn(dis), sps[0].animate.set_stroke(RED), sps[1].animate.set_stroke(RED), run_time=0.6)
+        self.at("The other cell")
+        self.play(Indicate(secs[1], color=RED), run_time=0.7)
+        self.at("Its two sperm")
+        self.play(sps[2].animate.set_stroke(RED), sps[3].animate.set_stroke(RED), run_time=0.6)
+        nul = VGroup(T("nullisomic", 30, RED, weight=BOLD), T("no chromosome 21", 24, GREY)).arrange(DOWN, buff=0.15).move_to([4.9, -1.48, 0])
+        self.at("These are nullosomic")
+        self.play(FadeIn(nul), run_time=0.6)
+        self.finish()
+
+
+class S04Second(SpokenScene):
+    def construct(self):
+        st, a, b = start_model()
+        secs = secondary_cells()
+        ars = first_arrows()
+        head = heading("Meiosis I is normal", TEAL)
+        self.at("Now")
+        self.play(FadeIn(st), FadeIn(a), FadeIn(b), FadeIn(head), run_time=0.4)
+        self.at("meiosis 1 is normal")
+        self.play(*[FadeIn(c) for c in secs], *[GrowArrow(ar) for ar in ars],
+                  a.animate.move_to([X1, SEC_Y[0], 0]), b.animate.move_to([X1, SEC_Y[1], 0]), run_time=0.9)
+        ring = SurroundingRectangle(a, color=RED, buff=0.1, corner_radius=0.1)
+        self.at("sisters fail")
+        self.play(Transform(head, heading("Meiosis II: sisters stay together in one cell", RED)),
+                  Create(ring), run_time=0.6)
+        sps = product_cells()
+        ars2 = second_arrows()
+        self.at("This gives")
+        self.play(FadeOut(st), FadeOut(ars), FadeOut(ring),
+                  *[FadeIn(c) for c in sps], *[GrowArrow(ar) for ar in ars2],
+                  a.caps[0].animate.move_to([X2 - 0.12, SP_Y[0], 0]),
+                  a.caps[1].animate.move_to([X2 + 0.12, SP_Y[0], 0]), run_time=0.8)
+        dis = T("disomic", 28, RED).move_to([4.8, SP_Y[0], 0])
+        nul = T("nullisomic", 28, RED).move_to([4.8, SP_Y[1], 0])
+        self.at("one disomic sperm")
+        self.play(FadeIn(dis), sps[0].animate.set_stroke(RED), run_time=0.45)
+        self.at("one with none")
+        self.play(FadeIn(nul), sps[1].animate.set_stroke(RED), run_time=0.45)
+        normal = VGroup(*[T("normal", 28, GREEN).move_to([4.8, SP_Y[i], 0]) for i in (2, 3)])
+        self.at("The other cell")
+        self.play(b.caps[0].animate.move_to([X2, SP_Y[2], 0]),
+                  b.caps[1].animate.move_to([X2, SP_Y[3], 0]),
+                  sps[2].animate.set_stroke(GREEN), sps[3].animate.set_stroke(GREEN), FadeIn(normal), run_time=0.8)
+        self.at("Joined to a normal egg")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
+        sperm = cell(-3.0, 0, 0.85, RED)
+        pair = VGroup(*[capsule(BLUE, h=1.0, w=0.2).move_to([x, 0, 0]) for x in (-3.18, -2.82)])
+        egg = cell(2.8, 0, 1.0)
+        ec = capsule(GREY, h=1.0, w=0.2).move_to(egg)
+        sl = T("disomic sperm", 28, RED).move_to([-3, -1.5, 0])
+        el = T("normal egg", 28, GREY).move_to([2.8, -1.5, 0])
+        self.play(FadeIn(sperm), FadeIn(pair), FadeIn(egg), FadeIn(ec), FadeIn(sl), FadeIn(el), run_time=0.5)
+        zyg = cell(0, 0, 1.5, RED)
+        tri = T("Trisomy 21: three copies", 34, RED).move_to([0, -2.25, 0])
+        self.at("makes a zygote")
+        self.play(FadeOut(sperm), FadeOut(egg), FadeOut(sl), FadeOut(el), FadeIn(zyg),
+                  pair[0].animate.move_to([-0.55, 0, 0]), pair[1].animate.move_to([0, 0, 0]),
+                  ec.animate.move_to([0.55, 0, 0]), FadeIn(tri), run_time=0.9)
+        self.at("A sperm with none")
+        empty = cell(-3, 0, 0.85, RED)
+        egg2 = cell(2.8, 0, 1.0)
+        ec2 = capsule(GREY, h=1.0, w=0.2).move_to(egg2)
+        nl = T("nullisomic sperm", 28, RED).move_to([-3, -1.5, 0])
+        self.play(FadeOut(zyg), FadeOut(pair), FadeOut(ec), FadeOut(tri),
+                  FadeIn(empty), FadeIn(egg2), FadeIn(ec2), FadeIn(nl), FadeIn(el), run_time=0.6)
+        mono = T("Monosomy 21: one copy", 34, RED).move_to([0, -2.25, 0])
+        self.at("makes a zygote with only")
+        self.play(FadeOut(empty), FadeOut(egg2), FadeOut(nl), FadeOut(el), FadeIn(zyg),
+                  ec2.animate.move_to(ORIGIN), FadeIn(mono), run_time=0.7)
+        self.finish()
+
+
+class S05HumanContext(SpokenScene):
+    def construct(self):
+        head = heading("From the model to people")
+        self.at("That is the model")
+        self.play(FadeIn(head), run_time=0.5)
+        origin = T("Most free trisomy 21: maternal origin", 32, TEXT).move_to([0, 1.8, 0])
+        division = T("Most maternal errors: meiosis I", 32, TEXT).move_to([0, 0.8, 0])
+        self.at("most free trisomy")
+        self.play(FadeIn(origin), run_time=0.6)
+        self.at("most maternal errors")
+        self.play(FadeIn(division), run_time=0.6)
+        risk = T("Risk rises with maternal age", 30, TEXT).move_to([-0.6, -1.1, 0])
+        up = arr([4, -2, 0], [5.1, -0.2, 0], RED, 6)
+        self.at("The risk rises")
+        self.play(FadeIn(risk), GrowArrow(up), run_time=0.8)
+        chain = VGroup(T("Missed separation", 32, RED),
+                       T("↓", 30, GREY),
+                       T("Extra or missing chromosome", 32, TEXT),
+                       T("↓", 30, GREY),
+                       T("Altered gene dose", 32, RED),
+                       T("↓", 30, GREY),
+                       T("Development and survival", 32, TEXT)).arrange(DOWN, buff=0.16).move_to([0, 0, 0])
+        self.at("changes chromosome number")
+        self.play(FadeOut(head), FadeOut(origin), FadeOut(division), FadeOut(risk), FadeOut(up),
+                  FadeIn(VGroup(*chain[:3])), run_time=0.6)
+        self.at("The extra or missing")
+        self.play(FadeIn(VGroup(*chain[3:5])), run_time=0.6)
+        self.at("consequences for development")
+        self.play(FadeIn(VGroup(*chain[5:])), run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Two homologues together: meiosis I. Two sisters together: meiosis II."
+    LINE = "Missed separation → changed chromosome dose → consequences for development and survival."
+
+    def construct(self):
+        line = T("Missed separation → changed chromosome dose\n→ consequences for development and survival.",
+                 size=32, font=TITLE_FONT, line_spacing=1.25)
+        sub = T("biochemistrypedia.com", 22, TEAL)
+        group = VGroup(line, sub).arrange(DOWN, buff=0.6)
+        self.play(FadeIn(group), run_time=0.8)
+        self.finish()

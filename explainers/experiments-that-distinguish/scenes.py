@@ -67,233 +67,14 @@ def gauge(x, y_base, h, frac, title=None):
     return frame, fill
 
 
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "Experiments That Distinguish Mechanisms"
-    TITLE = "Read the Whole Distribution"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Pellet(SpokenScene):
-    def construct(self):
-        circ = Circle(radius=1.5, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.14)
-        circ.move_to(UP * 0.5)
-        q = T("?", 110, YELLOW, weight=BOLD).move_to(circ)
-        lab = T("pellet named \"mitochondria\"", 34).next_to(circ, DOWN, buff=0.45)
-        self.play(FadeIn(circ), FadeIn(lab), run_time=0.7)
-        self.play(Write(q), run_time=0.6)
-        self.at("really in it")
-        self.play(Indicate(q, color=YELLOW, scale_factor=1.3), run_time=1.0)
-
-        self.at("broke rat liver")
-        liver = chip("rat liver", GREY, size=34).move_to(UP * 0.5)
-        self.play(FadeOut(q), FadeOut(lab), ReplacementTransform(circ, liver), run_time=0.8)
-
-        self.at("five fractions")
-        xs = [-4.8, -2.4, 0.0, 2.4, 4.8]
-        tubes = VGroup(*[tube(x, 1.5, pellet=(i < 4)) for i, x in enumerate(xs)])
-        letters = VGroup(*[T(f, 30).move_to([x, 0.2, 0]) for f, x in zip(FR, xs)])
-        self.play(ReplacementTransform(liver, tubes), run_time=0.9)
-        self.play(FadeIn(letters, shift=UP * 0.1), run_time=0.5)
-
-        self.at("measured enzymes")
-        base = -3.05
-        sc = 0.038
-        L1 = chip("mitochondrial marker", ORANGE, size=22).move_to([-3.0, 3.1, 0])
-        axis = Line([-6.0, base, 0], [6.0, base, 0], color=GREY, stroke_width=3)
-        cap = T("percent of each enzyme in each fraction (made-up data)", 22, GREY).move_to([0, -3.38, 0])
-        cb = [bar(x - 0.28, base, v * sc, 0.5, ORANGE) for x, v in zip(xs, CYT)]
-        self.play(FadeIn(L1), Create(axis), FadeIn(cap), run_time=0.5)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in cb], lag_ratio=0.15), run_time=1.4)
-
-        self.at("peaked in one place")
-        self.play(Indicate(cb[1], color=ORANGE, scale_factor=1.15), run_time=1.0)
-
-        self.at("acid phosphatase")
-        L2 = chip("acid phosphatase", BLUE, size=22).move_to([3.0, 3.1, 0])
-        ab = [bar(x + 0.28, base, v * sc, 0.5, BLUE) for x, v in zip(xs, ACP)]
-        self.play(FadeIn(L2), run_time=0.4)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in ab], lag_ratio=0.15), run_time=1.4)
-
-        self.at("travel with")
-        self.play(Indicate(ab[2], color=BLUE, scale_factor=1.12), run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Ratio(SpokenScene):
-    def construct(self):
-        hdr = T("made-up data for rat liver", 28, GREY).move_to([0, 3.1, 0])
-        self.play(FadeIn(hdr), run_time=0.5)
-
-        top = chip("% of the enzyme", BLUE, size=30)
-        line = Line(LEFT * 1.9, RIGHT * 1.9, color=TEXT, stroke_width=4)
-        bot = chip("% of the protein", GREY, size=30)
-        frac = VGroup(top, line, bot).arrange(DOWN, buff=0.2)
-        eq = T("=", 44)
-        rl = T("relative specific activity", 34, YELLOW)
-        formula = VGroup(frac, eq, rl).arrange(RIGHT, buff=0.4).move_to([0, 0.6, 0])
-        # lay out all, then show piece by piece
-        self.at("percent of an enzyme")
-        self.play(FadeIn(top, shift=DOWN * 0.15), run_time=0.5)
-        self.at("divide by")
-        self.play(Create(line), run_time=0.4)
-        self.at("percent of the protein")
-        self.play(FadeIn(bot, shift=UP * 0.15), run_time=0.5)
-        self.at("relative specific activity")
-        self.play(FadeIn(eq), FadeIn(rl, shift=LEFT * 0.2), run_time=0.6)
-
-        self.at("holds")
-        base = -2.8
-        flab = T("Fraction L", 30, YELLOW).move_to([-3.8, 0.95, 0])
-        self.play(formula.animate.scale(0.62).move_to([-3.4, 2.45, 0]), FadeIn(flab), run_time=0.9)
-        ax1 = Line([-6.2, base, 0], [-1.2, base, 0], color=GREY, stroke_width=3)
-        self.play(Create(ax1), run_time=0.3)
-
-        self.at("acid phosphatase")
-        bb = bar(-3.0, base, 45 * 0.05, 0.9, BLUE)
-        bl = M("45%", 28, BLUE).next_to(bb, UP, buff=0.12)
-        bn = T("acid phosphatase", 22, BLUE).move_to([-3.0, base - 0.35, 0])
-        self.play(GrowFromEdge(bb, DOWN), run_time=0.9)
-        self.play(FadeIn(bl), FadeIn(bn), run_time=0.4)
-
-        self.at("percent of the protein", nth=1)
-        gb = bar(-5.2, base, 5 * 0.05, 0.9, GREY)
-        gl = M("5%", 28, GREY).next_to(gb, UP, buff=0.12)
-        gn = T("protein", 22, GREY).move_to([-5.2, base - 0.35, 0])
-        self.play(GrowFromEdge(gb, DOWN), run_time=0.5)
-        self.play(FadeIn(gl), FadeIn(gn), run_time=0.4)
-
-        self.at("over")
-        eqn = M("45 ÷ 5", 40).move_to([0.9, 0.9, 0])
-        self.play(FadeIn(eqn, shift=RIGHT * 0.2), run_time=0.5)
-
-        self.at("enriched")
-        bx = 4.6
-        ax2 = Line([3.1, base, 0], [6.1, base, 0], color=GREY, stroke_width=3)
-        rb = bar(bx, base, 9.0 * 0.27, 1.2, GREEN)
-        ref = DashedLine([3.1, base + 0.27, 0], [6.1, base + 0.27, 0], color=GREY, stroke_width=3)
-        one = M("1", 24, GREY).move_to([2.8, base + 0.27, 0])
-        note = T("1 = starting mixture", 22, GREY).move_to([bx, base - 0.4, 0])
-        eqr = M("= 9.0", 40, GREEN).next_to(eqn, RIGHT, buff=0.2)
-        self.play(Create(ax2), Create(ref), FadeIn(one), FadeIn(note), run_time=0.4)
-        self.play(GrowFromEdge(rb, DOWN), FadeIn(eqr), run_time=0.9)
-        tag = chip("enriched", GREEN, size=28).move_to([bx, 1.7, 0])
-        vl = M("9.0", 30, GREEN).next_to(rb, UP, buff=0.1)
-        self.play(FadeIn(vl), FadeIn(tag), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def legend3():
     a = chip("cytochrome oxidase", ORANGE, size=22).move_to([-4.0, 3.1, 0])
     b = chip("acid phosphatase", BLUE, size=22).move_to([0.0, 3.1, 0])
     c = chip("unknown enzyme X", PURPLE, size=22).move_to([4.0, 3.1, 0])
     return a, b, c
 
-
-class S03Profile(SpokenScene):
-    def construct(self):
-        P_ = rsa_plot()
-        base = P_["base"]
-        sc = P_["scale"]
-        La, Lb, Lc = legend3()
-        axt = T("relative specific activity", 22, GREY).move_to([-4.6, 2.2, 0])
-        self.play(Create(P_["line"]), FadeIn(VGroup(*P_["letters"])), FadeIn(axt), run_time=0.8)
-        self.at("every fraction")
-        self.play(*[Indicate(l, color=YELLOW, scale_factor=1.25) for l in P_["letters"]], run_time=0.8)
-
-        self.at("cytochrome oxidase")
-        self.play(FadeIn(La), run_time=0.4)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in P_["cyt"]], lag_ratio=0.15), run_time=1.3)
-        self.at("peaks in")
-        v_m = val("3.5", P_["cyt"][1], ORANGE)
-        self.play(FadeIn(v_m), Indicate(P_["cyt"][1], color=ORANGE, scale_factor=1.12), run_time=0.8)
-
-        self.at("acid phosphatase")
-        self.play(FadeIn(Lb), run_time=0.4)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in P_["acp"]], lag_ratio=0.15), run_time=1.3)
-        self.at("peaks in", nth=1)
-        v_l = val("9.0", P_["acp"][2], BLUE)
-        self.play(FadeIn(v_l), Indicate(P_["acp"][2], color=BLUE, scale_factor=1.08), run_time=0.8)
-
-        self.at("unknown enzyme")
-        self.play(FadeIn(Lc), run_time=0.4)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in P_["x"]], lag_ratio=0.15), run_time=1.3)
-        v_x = val("8.8", P_["x"][2], PURPLE)
-        self.play(FadeIn(v_x), run_time=0.4)
-
-        self.at("follows acid phosphatase")
-        xl = P_["xs"][2]
-        ring = SurroundingRectangle(VGroup(P_["acp"][2], P_["x"][2], v_x, v_l), color=YELLOW, buff=0.12, stroke_width=4)
-        self.play(Create(ring), run_time=0.7)
-
-        self.at("does not follow")
-        self.play(*[b.animate.set_opacity(0.3) for b in P_["cyt"]], FadeOut(v_m), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Purity(SpokenScene):
-    def construct(self):
-        P_ = rsa_plot()
-        base = P_["base"]
-        La, Lb, Lc = legend3()
-        axt = T("relative specific activity", 22, GREY).move_to([-4.6, 2.2, 0])
-        v_l = val("9.0", P_["acp"][2], BLUE)
-        v_x = val("8.8", P_["x"][2], PURPLE)
-        for b in P_["cyt"]:
-            b.set_opacity(0.3)
-        ring = SurroundingRectangle(VGroup(P_["acp"][2], P_["x"][2], v_x, v_l), color=YELLOW, buff=0.12, stroke_width=4)
-        self.add(ring)
-        allm = VGroup(P_["line"], *P_["letters"], *P_["cyt"], *P_["acp"], *P_["x"], La, Lb, Lc, axt, v_l, v_x)
-        self.add(allm)
-
-        self.at("also carries")
-        keep = VGroup(P_["cyt"][2], P_["acp"][2], P_["x"][2], P_["letters"][2], v_l, v_x)
-        gone = VGroup(*[m for m in allm if m not in keep.submobjects])
-        newline = Line([-3.4, base, 0], [-0.2, base, 0], color=GREY, stroke_width=3)
-        pivot = np.array([0.0, base, 0.0])
-        P_["cyt"][2].set_opacity(0.9)
-        self.play(FadeOut(gone), FadeOut(ring),
-                  keep.animate.scale(1.2, about_point=pivot).shift(LEFT * 1.8), run_time=1.0)
-        self.add(newline)
-        cyt = P_["cyt"][2]
-        cl = T("15% of the cell's\ncytochrome oxidase", 22, ORANGE).move_to([-4.9, -1.7, 0])
-        ar = Arrow(cl.get_right() + RIGHT * 0.02, [cyt.get_left()[0] - 0.05, -1.7, 0], buff=0.05, color=ORANGE,
-                   stroke_width=4, tip_length=0.18)
-        self.play(FadeIn(cl), GrowArrow(ar), Indicate(cyt, color=ORANGE, scale_factor=1.1), run_time=0.9)
-
-        self.at("relative specific activity")
-        v_c = val("3.0", cyt, ORANGE)
-        self.play(FadeIn(v_c), run_time=0.5)
-
-        self.at("acid phosphatase")
-        y0 = 1.2
-        st = T("all the acid phosphatase", 26, BLUE).move_to([3.6, 2.2, 0])
-        r1 = Rectangle(width=2.25, height=0.7, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.7)
-        r2 = Rectangle(width=2.75, height=0.7, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.35)
-        r1.move_to([1.0 + 1.125, y0, 0])
-        r2.move_to([1.0 + 2.25 + 1.375, y0, 0])
-        t1 = T("in L", 24, BLUE).next_to(r1, DOWN, buff=0.15)
-        t2 = T("elsewhere", 24, GREY).next_to(r2, DOWN, buff=0.15)
-        self.play(FadeIn(st), run_time=0.4)
-        self.play(GrowFromEdge(r1, LEFT), GrowFromEdge(r2, LEFT), run_time=0.9)
-        self.play(FadeIn(t1), FadeIn(t2), run_time=0.4)
-
-        self.at("enriched in lysosomes")
-        tag1 = chip("enriched", GREEN, size=28).move_to([2.2, -1.1, 0])
-        self.play(FadeIn(tag1, shift=UP * 0.1), run_time=0.5)
-        self.at("not pure")
-        tag2 = chip("not pure", RED, size=28).move_to([4.9, -1.1, 0])
-        self.play(FadeIn(tag2, shift=UP * 0.1), run_time=0.5)
-
-        self.at("several markers")
-        self.play(*[Indicate(m, scale_factor=1.1) for m in (P_["cyt"][2], P_["acp"][2], P_["x"][2])], run_time=1.1)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def particle(cx, cy, r=1.25, closed=True):
     if closed:
         return Circle(radius=r, stroke_color=GREY, stroke_width=7).move_to([cx, cy, 0])
@@ -304,140 +85,300 @@ def particle(cx, cy, r=1.25, closed=True):
         arcs.add(a)
     return arcs
 
-
 def ghost(text, x, y, color=PURPLE, op=0.45):
     c = chip(text, color, size=26)
     c.set_opacity(op)
     return c.move_to([x, y, 0])
 
+# Additional uses of the existing palette:
+# GREY = intended protein / mRNA / compartments; RED = defect or failed readout;
+# GREEN = recovered behavior / measured readout; YELLOW = labelled cohort / questions.
 
-class S05Latency(SpokenScene):
+
+def label(text, x, y, color=TEXT, size=28):
+    return T(text, size, color).move_to([x, y, 0])
+
+
+def arrow(a, b, color=GREY):
+    return Arrow(a, b, buff=0.16, color=color, stroke_width=4, tip_length=0.2)
+
+
+def cell(x, y, protein=True):
+    outline = Circle(1.05, stroke_color=GREY, stroke_width=4,
+                     fill_color=GREY, fill_opacity=0.08).move_to([x, y, 0])
+    inside = chip('protein' if protein else 'depleted', GREY, size=24).move_to(outline)
+    return VGroup(outline, inside)
+
+
+def blot(names, levels, x=0, y=-1.8):
+    """Schematic immunoblot: target row and equal loading-reference row."""
+    g = VGroup(label('protein', x-4.6, y+0.25, GREY, 22),
+               label('loading', x-4.6, y-0.55, GREY, 22))
+    for i, (name, level) in enumerate(zip(names, levels)):
+        cx = x-2.6+i*2.4
+        g.add(label(name, cx, y+1, GREY, 22))
+        g.add(Line([cx-.55,y+.25,0],[cx+.55,y+.25,0],
+                   color=TEXT,stroke_width=9).set_opacity(level))
+        g.add(Line([cx-.55,y-.55,0],[cx+.55,y-.55,0],color=GREY,stroke_width=9))
+    return g
+
+
+class S00Title(TitleCard):
+    LESSON = 'Experiments That Distinguish Mechanisms'
+    TITLE = 'Experiments That Distinguish Mechanisms'
+
+
+class S01Cause(SpokenScene):
     def construct(self):
-        cyL, cyR, cyy = -5.0, 0.7, 0.3
-        gL, gR = -2.9, 3.0
-        gbase, gh = -2.3, 3.4
-
-        mem = particle(cyL, cyy)
-        capL = T("intact particles", 24, GREY).move_to([cyL, -1.75, 0])
-        gin = ghost("X?", cyL, cyy)
-        self.play(Create(mem), FadeIn(capL), run_time=0.8)
-
-        self.at("inside a particle")
-        self.play(FadeIn(gin), run_time=0.4)
-
-        self.at("latency")
-        lat = chip("latency", YELLOW, size=30).move_to([-1.5, 3.1, 0])
-        self.play(FadeIn(lat, shift=DOWN * 0.1), run_time=0.5)
-
-        self.at("cannot be measured")
-        rng = np.random.default_rng(3)
-        dots = []
-        for ang in (0.5, 1.4, 2.4, 3.5, 4.4, 5.5):
-            d = Circle(radius=0.1, stroke_width=0, fill_color=GOLD, fill_opacity=1)
-            d.move_to([cyL + 1.75 * np.cos(ang), cyy + 1.55 * np.sin(ang), 0])
-            dots.append(d)
-        sub = chip("substrate", GOLD, size=22).move_to([-1.5, 1.9, 0])
-        self.play(LaggedStart(*[FadeIn(d) for d in dots], lag_ratio=0.1), FadeIn(sub), run_time=0.7)
-        self.at("until a membrane")
-        self.play(Indicate(mem, color=YELLOW, scale_factor=1.06), run_time=0.9)
-
-        self.at("suppose")
-        gfL, fillL = gauge(gL, gbase, gh, 0.10)
-        vL = M("10", 30, GREEN).next_to(fillL, UP, buff=0.12)
-        act = T("activity measured", 22, GREY).move_to([-0.1, -2.9, 0])
-        self.play(Create(gfL), GrowFromEdge(fillL, DOWN), FadeIn(vL), FadeIn(act), run_time=0.8)
-
-        self.at("detergent")
-        memR = particle(cyR, cyy)
-        capR = T("plus detergent", 24, PINK).move_to([cyR, -1.75, 0])
-        xR = chip("X", PURPLE, size=26).move_to([cyR, cyy, 0])
-        det = chip("detergent", PINK, size=26).move_to([cyR, 2.4, 0])
-        self.play(Create(memR), FadeIn(capR), FadeIn(xR), FadeIn(det, shift=DOWN * 0.2), run_time=0.5)
-        broken = particle(cyR, cyy, closed=False)
-        dotsR = []
-        for ang in (0.5, 1.4, 2.4, 3.5, 4.4, 5.5):
-            d = Circle(radius=0.1, stroke_width=0, fill_color=GOLD, fill_opacity=1)
-            d.move_to([cyR + 1.75 * np.cos(ang), cyy + 1.55 * np.sin(ang), 0])
-            dotsR.append(d)
-        self.play(*[FadeIn(d) for d in dotsR], run_time=0.2)
-        self.play(FadeOut(memR), FadeIn(broken), run_time=0.3)
-
-        self.at("rises")
-        gfR, fillR = gauge(gR, gbase, gh, 1.0)
-        fillR0 = bar(gR, gbase, gh * 0.10, 0.7, GREEN, 0.85)
-        vR = M("100", 30, GREEN).next_to(fillR, UP, buff=0.12)
-        self.play(Create(gfR), FadeIn(fillR0), run_time=0.4)
-        ins = [[cyR - 0.7, cyy + 0.5], [cyR + 0.7, cyy + 0.55], [cyR - 0.55, cyy - 0.65], [cyR + 0.6, cyy - 0.6],
-               [cyR + 0.05, cyy + 0.8], [cyR + 0.05, cyy - 0.85]]
-        self.play(*[d.animate.move_to([p[0], p[1], 0]) for d, p in zip(dotsR, ins)],
-                  Transform(fillR0, fillR), FadeIn(vR), run_time=1.2)
-
-        self.at("sealed")
-        self.play(*[d.animate(rate_func=there_and_back).shift((mem.get_center() - d.get_center()) * 0.18) for d in dots],
-                  Indicate(mem, color=GREY, scale_factor=1.05), run_time=1.2)
-
-        self.at("latent")
-        tag = chip("90% latent", YELLOW, size=30).move_to([4.95, 0.3, 0])
-        self.play(FadeIn(tag, shift=LEFT * 0.2), run_time=0.5)
-        self.at("sits inside")
-        self.play(gin.animate.set_opacity(1).become(chip("X", PURPLE, size=26).move_to([cyL, cyy, 0])),
-                  run_time=0.6)
+        c = cell(-3, .6)
+        outcome = chip('normal behavior', GREEN, size=28).move_to([3,.6,0])
+        a = arrow([-1.7,.6,0],[1,.6,0])
+        self.at('Removing a protein')
+        self.play(FadeIn(c), FadeIn(outcome), GrowArrow(a), run_time=.6)
+        depleted = cell(-3,.6,False)
+        defect = chip('defect', RED, size=28).move_to(outcome)
+        self.at('can cause a defect')
+        self.play(Transform(c,depleted), Transform(outcome,defect),run_time=.6)
+        question = label('What caused the defect?',0,3,YELLOW,34)
+        loss = chip('intended protein loss?',GREY,26).move_to([-3,-1.8,0])
+        off = chip('off-target effect?',YELLOW,26).move_to([3,-1.8,0])
+        self.at('but that alone')
+        self.play(FadeIn(question), FadeIn(loss),run_time=.6)
+        self.at('may affect something else')
+        self.play(FadeIn(off),run_time=.6)
+        control = chip('independent control',GREY,26).move_to([-3,-1.8,0])
+        self.at('Use independent controls')
+        self.play(ReplacementTransform(loss,control),FadeOut(off),run_time=.6)
+        rescue = chip('rescue: protein returned',GREY,26).move_to([3,-1.8,0])
+        self.at('then put the protein back')
+        self.play(FadeIn(rescue),Transform(c,cell(-3,.6)),run_time=.7)
+        self.at('If the defect goes away')
+        self.play(Transform(outcome,chip('normal behavior',GREEN,28).move_to(outcome)),run_time=.6)
+        evidence = label('Strong evidence',0,-3,GREEN,32)
+        self.at('rescue is strong evidence')
+        self.play(FadeIn(evidence),run_time=.6)
+        self.at('finding a protein')
+        self.play(*[FadeOut(m) for m in (c,outcome,a,control,rescue,evidence)],
+                  Transform(question,label('Location + timing',0,2,YELLOW,34)),run_time=.7)
+        location = chip('right place',GREY,30).move_to([-3,.3,0])
+        timing = chip('right time',GREY,30).move_to([3,.3,0])
+        self.play(FadeIn(location),FadeIn(timing),run_time=.5)
+        causal = label('Cause still needs a test',0,-1.7,RED,32)
+        self.at('does not show that it causes anything')
+        self.play(FadeIn(causal),run_time=.7)
+        self.at('These experiments test different questions')
+        self.play(Indicate(causal,scale_factor=1.04),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S02Rescue(SpokenScene):
     def construct(self):
-        xc = chip("X", PURPLE, size=34).move_to([-5.0, 3.0, 0])
-        ar = Arrow([-4.4, 3.0, 0], [-3.2, 3.0, 0], buff=0.05, color=GREY, stroke_width=5, tip_length=0.22)
-        lys = chip("lysosomal", BLUE, size=34).move_to([-1.9, 3.0, 0])
-        prov = T("provisional", 26, YELLOW).next_to(lys, DOWN, buff=0.15)
-        self.at("provisionally")
-        self.play(FadeIn(xc), run_time=0.3)
-        self.play(GrowArrow(ar), FadeIn(lys), FadeIn(prov), run_time=0.8)
+        heading = label('Independent depletion + resistant rescue',0,3.1,TEXT,32)
+        mrna = chip('original mRNA',GREY,30).move_to([0,.6,0])
+        h1 = chip('hairpin 1',YELLOW,26).move_to([-3,1.9,0])
+        site1 = Rectangle(width=1.1,height=.15,color=YELLOW,fill_opacity=1).move_to([-1,.1,0])
+        self.at('A short hairpin')
+        self.play(FadeIn(heading),FadeIn(mrna),FadeIn(h1),run_time=.6)
+        self.at('by targeting its messenger')
+        self.play(h1.animate.move_to([-2,-.8,0]),Create(site1),run_time=.6)
+        h2 = chip('hairpin 2',YELLOW,26).move_to([3,-.8,0])
+        site2 = site1.copy().move_to([1,.1,0])
+        self.at('Use another hairpin')
+        self.play(FadeIn(h2),Create(site2),run_time=.6)
+        self.at('check that the protein is lost')
+        b = blot(['control','hairpin 1','hairpin 2'],[1,.08,.08],y=-2)
+        self.play(FadeOut(h1),FadeOut(h2),FadeOut(site1),FadeOut(site2),FadeIn(b),run_time=.6)
+        self.at('For rescue')
+        original = chip('original mRNA',GREY,28).move_to([-3,1.5,0])
+        resistant = chip('rescue mRNA',GREY,28).move_to([-3,-.3,0])
+        protein = chip('same protein',GREY,30).move_to([3,.6,0])
+        a1 = arrow([-1.1,1.5,0],[1.5,.8,0])
+        a2 = arrow([-1.1,-.3,0],[1.5,.4,0])
+        self.play(FadeOut(b),Transform(mrna,original),FadeIn(resistant),run_time=.6)
+        changes = VGroup(*[Rectangle(width=.2,height=.18,color=YELLOW,fill_opacity=1)
+                           .move_to([-3+dx,-.75,0]) for dx in (-.55,0,.55)])
+        self.at('silent mutations change the messenger')
+        self.play(FadeIn(changes),run_time=.5)
+        self.at('but keep the protein the same')
+        self.play(GrowArrow(a1),GrowArrow(a2),FadeIn(protein),run_time=.7)
+        hp = chip('hairpin',YELLOW,26).move_to([-3,-1.8,0])
+        blocked = label('no pairing',0,-2.7,RED,26)
+        self.at('The hairpin cannot pair')
+        self.play(FadeIn(hp),run_time=.3)
+        self.play(hp.animate.shift(UP*.4),run_time=.4)
+        self.play(hp.animate.shift(DOWN*.4),FadeIn(blocked),run_time=.4)
+        self.at('Check that the rescue protein')
+        check = blot(['normal','empty vector','rescue'],[1,.08,1],y=-.3)
+        self.play(*[FadeOut(m) for m in (mrna,resistant,protein,a1,a2,changes,hp,blocked)],FadeIn(check),run_time=.6)
+        note = label('Rescue expression ≈ normal level',0,-2.5,GREEN,30)
+        self.at('at about its normal level')
+        self.play(FadeIn(note),run_time=.6)
+        self.finish()
 
-        self.at("second lysosomal marker")
-        b1 = Square(0.34, stroke_color=GREY, stroke_width=3).move_to([-5.9, 1.4, 0])
-        t1 = T("a second lysosomal marker tracks X", 24).next_to(b1, RIGHT, buff=0.25)
-        t1b = T("on a density gradient", 22, GREY).next_to(t1, DOWN, buff=0.1, aligned_edge=LEFT)
-        self.play(FadeIn(b1), FadeIn(t1), FadeIn(t1b), run_time=0.7)
-        self.at("images of the protein")
-        b2 = Square(0.34, stroke_color=GREY, stroke_width=3).move_to([-5.9, 0.4, 0])
-        t2 = T("images of X in intact cells", 24).next_to(b2, RIGHT, buff=0.25)
-        self.play(FadeIn(b2), FadeIn(t2), run_time=0.7)
 
-        self.at("shared peak")
-        tb = RoundedRectangle(corner_radius=0.5, width=1.8, height=5.3, stroke_color=GREY, stroke_width=4,
-                              fill_color=GREY, fill_opacity=0.08).move_to([2.4, -0.4, 0])
-        o1 = VGroup(Circle(0.36, stroke_color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.2),
-                    T("1", 26, TEXT)).move_to([1.9, 1.5, 0])
-        o2 = VGroup(Square(0.7, stroke_color=TEXT, stroke_width=4, fill_color=TEXT, fill_opacity=0.2),
-                    T("2", 26, TEXT)).move_to([2.9, 1.5, 0])
-        self.play(Create(tb), FadeIn(o1), FadeIn(o2), run_time=0.7)
-        self.at("two organelles")
-        self.play(Indicate(o1, color=TEXT), Indicate(o2, color=TEXT), run_time=0.8)
-        self.at("sediment together")
-        band = Line([1.5, -1.5, 0], [3.3, -1.5, 0], color=YELLOW, stroke_width=6)
-        self.play(o1.animate.move_to([1.9, -1.1, 0]), o2.animate.move_to([2.9, -1.1, 0]), run_time=1.0)
-        pk = T("one shared peak", 24, YELLOW).move_to([4.85, -1.3, 0])
-        self.play(Create(band), FadeIn(pk), run_time=0.5)
+class S03SeparateJobs(SpokenScene):
+    def construct(self):
+        title = label('Which clathrin job matters?',0,3.1,TEXT,34)
+        defect = chip('depleted: prolonged mitosis',RED,30).move_to([0,1.3,0])
+        spindle = chip('spindle defect?',YELLOW,28).move_to([-3.2,-.7,0])
+        indirect = chip('indirect: endocytosis?',YELLOW,28).move_to([3,-.7,0])
+        self.at('Now ask which job matters')
+        self.play(FadeIn(title),FadeIn(defect),FadeIn(spindle),FadeIn(indirect),run_time=.6)
+        self.at('Depleting clathrin')
+        self.play(Indicate(defect,scale_factor=1.03),run_time=.6)
+        self.at('Was that a spindle defect')
+        self.play(Indicate(spindle,scale_factor=1.03),run_time=.5)
+        self.at('or an indirect effect')
+        self.play(Indicate(indirect,scale_factor=1.03),run_time=.5)
+        # Qualitative states, rather than invented quantitative measurements.
+        heads=VGroup(label('resistant construct',-3.8,1.7,GREY,24),
+                     label('mitosis duration',.2,1.7,GREY,24),
+                     label('transferrin uptake',4,1.7,GREY,24))
+        duration = Line([-.9,.22,0],[1.3,.22,0],color=GREY,stroke_width=5)
+        rows=VGroup(duration,label('depleted',-3.8,.6,GREY,26),label('prolonged',.2,.6,RED,26),label('impaired',4,.6,RED,26))
+        normal_time = Line([-.9,-.88,0],[-.15,-.88,0],color=GREY,stroke_width=5)
+        full=VGroup(normal_time,label('full length',-3.8,-.5,GREY,26),label('rescued',.2,-.5,GREEN,26))
+        partial_time = duration.copy().shift(DOWN*2.2)
+        short=VGroup(label('shortened',-3.8,-1.6,GREY,26),label('partial rescue',.2,-1.6,GREEN,26))
+        failed=label('not supported',4,-1.6,RED,26)
+        self.at('resistant clathrin rescued mitosis')
+        self.play(FadeOut(defect),FadeOut(spindle),FadeOut(indirect),FadeIn(heads),FadeIn(rows),FadeIn(full),run_time=.7)
+        self.at('A shortened version partly rescued mitosis')
+        self.play(FadeIn(short),FadeIn(partial_time),run_time=.3)
+        self.play(Transform(partial_time,Line([-.9,-1.98,0],[.5,-1.98,0],color=GREY,stroke_width=5)),run_time=.6)
+        self.at('while failing to support transferrin uptake')
+        self.play(FadeIn(failed),run_time=.6)
+        qualitative=label('Duration bars are qualitative',3.8,-2.5,GREY,22)
+        self.play(FadeIn(qualitative),run_time=.3)
+        rule=chip('separation of function',YELLOW,30).move_to([0,-3.15,0])
+        self.at('Keeping part of one function')
+        self.play(Indicate(short[1],scale_factor=1.06),Indicate(failed,scale_factor=1.06),run_time=.7)
+        self.at('the jobs are separate')
+        self.play(FadeIn(rule),run_time=.6)
+        self.at('Score both functions')
+        self.play(Indicate(heads[1:],scale_factor=1.04),run_time=.8)
+        self.finish()
 
-        self.at("whole distribution")
-        base = -3.1
-        xs = [-5.2, -4.2, -3.2, -2.2, -1.2]
-        vals = rsa(XX)
-        bars = [bar(x, base, v * 0.17, 0.6, PURPLE) for x, v in zip(xs, vals)]
-        lets = [T(f, 24, GREY).move_to([x, base - 0.28, 0]) for f, x in zip(FR, xs)]
-        ln = Line([-5.8, base, 0], [-0.6, base, 0], color=GREY, stroke_width=3)
-        cap = T("X in every fraction", 24, PURPLE).move_to([-3.2, -1.05, 0])
-        self.play(Create(ln), FadeIn(cap), *[FadeIn(l) for l in lets], run_time=0.5)
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in bars], lag_ratio=0.12), run_time=1.0)
 
-        self.at("pellet's name")
-        nm = T("a name is not the contents", 26, YELLOW).move_to([-3.2, -0.45, 0])
-        self.play(FadeIn(nm), run_time=0.5)
+class S04PulseChase(SpokenScene):
+    def construct(self):
+        title=label('Follow one labelled batch',0,3.1,TEXT,34)
+        batch=VGroup(*[Dot([x,.4,0],radius=.13,color=YELLOW) for x in (-.45,0,.45)])
+        pulse=chip('pulse: labelled amino acid',YELLOW,28).move_to([-3.2,1.8,0])
+        chase=chip('chase: unlabelled amino acid',GREY,28).move_to([3.1,1.8,0])
+        self.at('A different question')
+        self.play(FadeIn(title),FadeIn(pulse),FadeIn(chase),FadeIn(batch),run_time=.6)
+        self.at('In what order')
+        q=label('Which compartment comes first?',0,-1.4,YELLOW,30)
+        self.play(FadeIn(q),run_time=.5)
+        self.at('A short pulse')
+        self.play(Indicate(pulse,scale_factor=1.03),Indicate(batch,scale_factor=1.1),run_time=.6)
+        self.at('A chase with')
+        self.play(FadeOut(pulse),chase.animate.move_to([0,1.8,0]),FadeOut(q),run_time=.6)
+        self.at('In pancreatic slices')
+        caption=label('Pancreatic slices • measured fractions',0,2.2,GREY,26)
+        compartments=VGroup(*[chip(t,GREY,26).move_to([x,-.5,0])
+                              for t,x in zip(('ER fragments','Golgi fractions','granule fraction'),(-4.3,0,4.3))])
+        self.play(FadeOut(chase),FadeIn(caption),FadeIn(compartments),run_time=.6)
+        self.at('label appeared first')
+        self.play(batch.animate.move_to([-4.3,.4,0]),run_time=.6)
+        self.at('then in Golgi fractions')
+        self.play(batch.animate.move_to([0,.4,0]),run_time=.7)
+        self.at('then in the granule fraction')
+        self.play(batch.animate.move_to([4.3,.4,0]),run_time=.7)
+        caveat=label('Early granule-fraction label: condensing vacuoles\nA fraction is not an organelle identification',0,-2.5,GREY,24)
+        self.play(FadeIn(caveat),run_time=.6)
+        self.at('That gives an order')
+        self.play(Indicate(compartments,scale_factor=1.03),run_time=.6)
+        self.at('It does not choose between')
+        self.play(*[FadeOut(m) for m in (caption,compartments,batch,caveat)],
+                  Transform(title,label('Same order; two possible mechanisms',0,3.1,TEXT,32)),run_time=.6)
+        l=chip('budding + fusion',GREY,28).move_to([-3.2,1.8,0])
+        r=chip('compartment maturation',GREY,28).move_to([3,1.8,0])
+        # Fixed compartments exchange a labelled carrier on the left.
+        source=VGroup(*[RoundedRectangle(width=1.25,height=.85,corner_radius=.2,color=GREY)
+                         .move_to([x,0,0]) for x in (-5.4,-3.4,-1.4)])
+        organelles=VGroup(*[label(t,x,-.85,GREY,22)
+                            for t,x in zip(('ER','Golgi','granule'),(-5.4,-3.4,-1.4))])
+        ves=VGroup(Circle(.23,color=YELLOW,fill_opacity=.15),Dot(radius=.08,color=YELLOW))
+        ves.move_to([-5.4,0,0])
+        # The labelled cargo stays inside one cisterna as its identity changes.
+        def cisterna(name, width, height):
+            membrane=RoundedRectangle(width=width,height=height,corner_radius=.3,color=GREY).move_to([3,0,0])
+            cargo=VGroup(*[Dot([3+dx,0,0],radius=.09,color=YELLOW) for dx in (-.3,0,.3)])
+            return VGroup(membrane,cargo,label(name,3,-1,GREY,24))
+        mature=cisterna('ER',2.4,.7)
+        self.at('vesicles budding and fusing')
+        self.play(FadeIn(l),Create(source),FadeIn(organelles),FadeIn(ves),run_time=.4)
+        self.play(ves.animate.move_to([-3.4,0,0]),run_time=.7)
+        self.play(Indicate(source[1],scale_factor=1.05),run_time=.3)
+        self.play(ves.animate.move_to([-1.4,0,0]),run_time=.7)
+        self.play(Indicate(source[2],scale_factor=1.05),run_time=.3)
+        self.at('and compartments maturing')
+        self.play(FadeIn(r),FadeIn(mature),run_time=.4)
+        self.play(Transform(mature,cisterna('Golgi',2,.95)),run_time=.7)
+        self.play(Transform(mature,cisterna('granule',1.4,1.3)),run_time=.7)
+        limit=label('Timing alone does not select a mechanism',0,-2.3,YELLOW,30)
+        self.play(FadeIn(limit),run_time=.6)
+        self.finish()
+
+
+class S03Profile(SpokenScene):
+    def construct(self):
+        title=label('Where does enzyme X live?',0,3.15,TEXT,32)
+        p=rsa_plot(scale=.39,base=-2.6)
+        la,lb,lc=legend3()
+        legends=VGroup(la,lb,lc).shift(DOWN*.85)
+        axis=VGroup(p['line'],*p['letters'],label('Relative specific activity • made-up data',0,-3.63,GREY,22))
+        acp=VGroup(*p['acp']); xx=VGroup(*p['x']); cyt=VGroup(*p['cyt'])
+        self.at('Finally where does an enzyme live')
+        self.play(FadeIn(title),FadeIn(axis),FadeIn(legends),
+                  LaggedStart(*[GrowFromEdge(b,DOWN) for b in (*xx,*acp,*cyt)],lag_ratio=.03),run_time=.8)
+        self.at('fractionation table')
+        self.play(Indicate(axis,scale_factor=1),run_time=.5)
+        self.at('enzyme X follows')
+        self.play(Indicate(xx,scale_factor=1.02),run_time=.7)
+        self.at('acid phosphatase profile')
+        self.play(Indicate(acp,scale_factor=1.02),run_time=.7)
+        self.at('rather than the mitochondrial marker')
+        self.play(Indicate(cyt,scale_factor=1.02),run_time=.7)
+        tag=chip('X: provisionally lysosomal',BLUE,28).move_to([0,3.15,0])
+        self.at('That makes X provisionally lysosomal')
+        self.play(ReplacementTransform(title,tag),run_time=.5)
+        self.at('Enrichment is not purity')
+        mixed=tube(-3,0,w=3.2,h=3,pellet=False)
+        contents=VGroup(chip('acid phosphatase',BLUE,22).move_to([-3,.7,0]),
+                        chip('X',PURPLE,26).move_to([-3,-.15,0]),
+                        chip('cyt. oxidase',ORANGE,22).move_to([-3,-1,0]))
+        mixnote=label('Fraction L\nenriched, mixed',2.5,0,YELLOW,32)
+        self.play(*[FadeOut(m) for m in (axis,legends,acp,xx,cyt)],FadeIn(mixed),FadeIn(contents),FadeIn(mixnote),run_time=.7)
+        self.at('Activity revealed by opening a membrane')
+        mem=particle(-3,0)
+        x=ghost('X',-3,0)
+        frame,low=gauge(2,-1.6,2.8,.1)
+        act=label('measured activity',2,-2.3,GREY,24)
+        self.play(FadeOut(mixed),FadeOut(contents),FadeOut(mixnote),Create(mem),FadeIn(x),Create(frame),FadeIn(low),FadeIn(act),run_time=.5)
+        self.play(ReplacementTransform(mem,particle(-3,0,closed=False)),
+                  Transform(low,bar(2,-1.6,2.8,.7,GREEN,.85)),x.animate.set_opacity(1),run_time=.7)
+        supports=label('Supports membrane enclosure',0,-3.1,GREEN,28)
+        self.at('supports enclosure')
+        self.play(FadeIn(supports),run_time=.5)
+        self.at('A second lysosomal marker')
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not tag],run_time=.4)
+        gradient=tube(-3,0,w=1.8,h=3.4,pellet=False)
+        bands=VGroup(Line([-3.6,-.5,0],[-2.4,-.5,0],color=BLUE,stroke_width=8),
+                     Line([-3.6,-.8,0],[-2.4,-.8,0],color=PURPLE,stroke_width=8))
+        gl=label('Second lysosomal marker + X\non a density gradient',-3,-2.5,GREY,24)
+        self.play(FadeIn(gradient),FadeIn(bands),FadeIn(gl),run_time=.6)
+        self.at('and imaging in intact cells')
+        intact=particle(3,0,r=1.35)
+        spots=VGroup(*[Dot([3+dx,dy,0],radius=.12,color=PURPLE) for dx,dy in ((-.5,.3),(.4,.5),(.1,-.5))])
+        il=label('Image X in intact cells',3,-2.5,GREY,24)
+        self.play(Create(intact),FadeIn(spots),FadeIn(il),run_time=.6)
+        self.at('would help confirm the assignment')
+        self.play(Indicate(tag,scale_factor=1.04),run_time=.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Read the whole distribution; a pellet's name is not its contents."
+    LINE = "Rescue tests causal attribution. Pulse-chase tests order. Fractionation tests compartment assignment."

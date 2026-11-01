@@ -375,10 +375,10 @@ class S06Block(SpokenScene):
         self.at("fell by")
         self.play(b2.animate.stretch_to_fit_width(rem, about_edge=LEFT), FadeIn(gone), FadeIn(gl), FadeIn(left), Create(oth2), FadeIn(othl), run_time=1.2)
         self.at("much of the hormone's effect")
-        ctitle = T("a large cholinergic (nerve) component", 22, TEAL).move_to([-3.2, 1.2, 0])
+        ctitle = T("a large cholinergic component", 22, TEAL).move_to([-3.2, 1.2, 0])
         self.play(FadeIn(ctitle), pulse(nerve, 1.15), pulse(rec, 1.08), run_time=0.9)
         rule = T("Block one route, then measure what remains.", 30, font=TITLE_FONT).move_to([0, -3.3, 0])
-        self.at("Block one route")
+        self.at("Block")
         self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.8)
         self.finish()
 

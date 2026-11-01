@@ -88,7 +88,7 @@ class S02Absence(SpokenScene):
         mn = T("methanogen", 28, ORANGE).move_to([-3.5, -0.95, 0])
         en = T("E. coli", 28, BLUE).move_to([3.5, -0.95, 0])
         self.add(meth, eco, mn, en)
-        self.at("lumped")
+        self.at("lump")
         brace = Brace(VGroup(meth, eco), UP, color=GREY, buff=0.2)
         lump = chip("prokaryotes", GREY, 30).next_to(brace, UP, buff=0.15)
         self.play(GrowFromCenter(brace), run_time=0.6)
@@ -181,7 +181,7 @@ class S03Catalogue(SpokenScene):
         self.play(FadeIn(enz, shift=DOWN * 0.15), run_time=0.5)
         box = RoundedRectangle(corner_radius=0.2, width=12.0, height=2.4, stroke_color=GREY, stroke_width=3).move_to([0, -1.3, 0])
         cl = T("catalogue of pieces", 28, GREY).move_to([0, 0.15, 0])
-        self.at("catalogued")
+        self.at("cataloged")
         self.play(Create(box), FadeIn(cl), FadeOut(enz), run_time=0.5)
         k = 0.85
         tw = sum(w * k for w in widths) + 0.3 * (len(segs) - 1)

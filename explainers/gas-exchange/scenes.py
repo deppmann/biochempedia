@@ -9,7 +9,7 @@ COLOR MAP (one color per concept, whole video)
   BLOOD   = blood, purple (the stream inside the lamella or capillary)
   TEAL   = the outside medium: water or air
   YELLOW = oxygen partial pressure (brighter fill = higher, in this sketch)
-  RED    = a stretch that adds nothing
+  RED    = a stretch that adds little
   GREY   = structure, outlines, notes
   TEXT   = generic labels
 """
@@ -67,7 +67,7 @@ class S01Question(SpokenScene):
 
         self.at("Water holds")
         self.play(FadeIn(water, shift=DOWN * 0.1), run_time=0.8)
-        self.at("trout's gill")
+        self.at("trout")
         self.play(FadeIn(left), FadeIn(tl), run_time=0.6)
         w_in = bar(XL1, base, 0.75 * k, color=YELLOW, op=0.55, stroke=TEAL)
         w_in_l = T("water\nflowing in", 22, TEAL, line_spacing=0.6).next_to(w_in, DOWN, buff=0.12)
@@ -216,12 +216,12 @@ class S03Gill(SpokenScene):
         self.at("equal partial pressure")
         eq_box = SurroundingRectangle(VGroup(water[4:], blood[4:]), color=RED, buff=0.08, stroke_width=4,
                                       corner_radius=0.08)
-        eq_l = T("equal from here", 24, RED).move_to([2.3, 0.28, 0]).set_z_index(5)
+        eq_l = T("nearly equal from here", 24, RED).move_to([2.3, 0.28, 0]).set_z_index(5)
         eq_back = Rectangle(width=eq_l.width + 0.3, height=eq_l.height + 0.12, stroke_width=0, fill_color=BG,
                             fill_opacity=0.92).move_to(eq_l).set_z_index(4)
         self.play(Create(eq_box), FadeIn(eq_back), FadeIn(eq_l), run_time=0.8)
-        self.at("add nothing")
-        nothing = T("adds nothing", 24, RED, weight=BOLD).move_to([2.3, -0.28, 0])
+        self.at("add little")
+        nothing = T("adds little", 24, RED, weight=BOLD).move_to([2.3, -0.28, 0])
         self.play(FadeIn(nothing), FadeIn(sketch_note(-3.5, 4.4)), run_time=0.5)
         self.finish()
 
@@ -239,7 +239,7 @@ class S04Mammal(SpokenScene):
         two = DoubleArrow([-6.0, YT, 0], [-2.6, YT, 0], buff=0, color=TEAL, stroke_width=6, tip_length=0.25)
         in_out = T("in and out, same airways", 24, TEAL).next_to(tube, DOWN, buff=0.12)
 
-        self.at("Now the mammal lung")
+        self.at("Now")
         mm = T("in mammals", 28, TEXT).move_to([-5.2, 3.2, 0])
         self.play(FadeIn(mm), run_time=0.5)
         self.at("same airways")
@@ -317,7 +317,7 @@ class S05Bird(SpokenScene):
         self.at("Capillaries cross")
         self.play(FadeIn(caps, lag_ratio=0.3), FadeIn(cap_l), run_time=1.0)
         cx = T("crosscurrent exchange", 32, TEXT, font=TITLE_FONT).move_to([0, -1.0, 0])
-        self.at("is cross")
+        self.at("crosscurrent")
         self.play(FadeIn(cx, shift=UP * 0.1), run_time=0.6)
         self.at("different stage")
         self.play(*[Indicate(c, color=YELLOW, scale_factor=1.12) for c in caps], run_time=1.5, lag_ratio=0.4)
@@ -368,7 +368,7 @@ class S06Rank(SpokenScene):
             n.move_to([x, 0.35, 0])
             s.next_to(n, DOWN, buff=0.1)
 
-        self.at("Johannes")
+        self.at("Johan's")
         self.play(FadeIn(head), FadeIn(who), run_time=0.6)
         self.at("these three arrangements")
         self.play(*[FadeIn(i) for i in icons], *[FadeIn(n) for n in names], *[FadeIn(s) for s in subs], run_time=1.0)
