@@ -131,7 +131,7 @@ class S01Juice(SpokenScene):
         sp_lab = T("spikes", 22, GREY).move_to([tx(2.2), YB + 0.85, 0])
         self.play(LaggedStart(*[FadeIn(t) for t in base_ticks], lag_ratio=0.5), FadeIn(sp_lab),
                   run_time=max(1.0, self.t_of("three quarters") - 0.3 - self.elapsed()))
-        self.at("three quarters")
+        self.at("-quarters")
         bar_o = Rectangle(width=3.0, height=0.3, stroke_color=GREY, stroke_width=3)
         bar_f = Rectangle(width=2.25, height=0.3, stroke_width=0, fill_color=GREEN, fill_opacity=0.8)
         bar_o.move_to([4.3, 1.45, 0]); bar_f.align_to(bar_o, LEFT).align_to(bar_o, UP)
@@ -323,7 +323,7 @@ class S05Shift(SpokenScene):
         t_end = self.t_of("After nine trials") - 0.35
         self.play(LaggedStart(*[GrowFromEdge(g, DOWN) for g in ng[2:]], lag_ratio=0.35), FadeIn(VGroup(*nt[2:])),
                   run_time=max(0.8, t_end - self.elapsed()))
-        self.at("After nine trials")
+        self.at("trials")
         v9 = M("0.96", 26, TEAL).next_to(ng[8][1], UP, buff=0.1)
         ring = SurroundingRectangle(ng[8], color=TEAL, buff=0.1, stroke_width=3)
         self.play(Create(ring), FadeIn(v9), run_time=0.6)

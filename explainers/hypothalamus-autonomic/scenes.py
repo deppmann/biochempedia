@@ -218,7 +218,7 @@ class S02Loop(SpokenScene):
         b_eff[0].set_stroke(GREY)
         b_eff[0].set_fill(GREY, 0.14)
         e_t.move_to(b_eff.get_center() + UP * 1.0)
-        head = T("A homeostatic loop", 30, TEXT, weight=BOLD).move_to([0, 3.5, 0])
+        head = T("A simple loop model", 30, TEXT, weight=BOLD).move_to([0, 3.5, 0])
         self.play(FadeIn(head), run_time=0.4)
         ghosts = VGroup(*[RoundedRectangle(corner_radius=0.16, width=W, height=hh, stroke_color=GREY, stroke_width=2, stroke_opacity=0.5).move_to(p)
                           for p, hh in (([xl, yt, 0], H), ([xr, yt, 0], H), ([xr, yb, 0], H), ([xl, yb - 0.3, 0], 2.5))])
@@ -232,7 +232,7 @@ class S02Loop(SpokenScene):
         self.at("A comparator")
         a2 = arr([xr, yt - H / 2 - 0.05, 0], [xr, yb + H / 2 + 0.05, 0])
         self.play(GrowArrow(a2), FadeIn(b_cmp, shift=UP * 0.15), FadeOut(ghosts[2]), run_time=self.beat(0.05))
-        self.at("An effector pushes back")
+        self.at("and")
         a3 = arr([xr - W / 2 - 0.05, yb, 0], [xl + W / 2 + 0.05, yb, 0])
         self.play(GrowArrow(a3), FadeIn(VGroup(b_eff[0], e_t)), FadeOut(ghosts[3]), run_time=self.beat(0.05))
         self.at("saves water")
@@ -263,7 +263,7 @@ class S03Line(SpokenScene):
         thr = dashed(ax.P(THR, 0), ax.P(THR, 6.6), TEXT)
         thr_l = T("threshold: where the response starts", 22, TEXT).next_to(ax.P(THR, 6.6), RIGHT, buff=0.15)
         self.play(Create(thr), FadeIn(thr_l), run_time=self.beat(0.07))
-        self.at("a gain")
+        self.at("again")
         self.play(Create(rise), run_time=self.beat(0.10))
         gain_l = T("gain: growth per unit of error", 22, AVP)
         dv = ax.P(298, avp(298)) - ax.P(THR, 0)
@@ -282,9 +282,9 @@ class S03Line(SpokenScene):
         hedge = chip("illustrative\naverages", GOLD, size=26, pad=0.2)
         hedge.move_to([4.7, -1.6, 0])
         self.play(FadeIn(hedge, shift=UP * 0.1), run_time=self.beat(0.06))
-        self.at("no release")
+        self.at("osmotic release")
         self.play(Create(flat), run_time=self.beat(0.06))
-        nr = T("no release", 24, AVP).move_to(ax.P(280, 0.8))
+        nr = T("no osmotic release", 24, AVP).move_to(ax.P(280, 0.8))
         self.play(FadeIn(nr), run_time=self.beat(0.04))
         self.finish()
 
@@ -348,7 +348,7 @@ class S04Drink(SpokenScene):
 class S05Ahead(SpokenScene):
     def construct(self):
         rows_y = [2.55, 0.55, -1.45]
-        names = ["drinks", "sees water,\ncannot drink", "licks an empty bottle\n(salt-challenged mice)"]
+        names = ["drinks", "sees water,\ncannot drink\n(salt-challenged mice)", "licks an empty bottle\n(salt-challenged mice)"]
         axs, labs, bases = [], [], []
         for y, nm in zip(rows_y, names):
             a = Ax(-1.7, 6.0, y - 0.7, y + 0.7, -0.5, 5.0, 0.0, 1.0)
@@ -433,7 +433,7 @@ class S06Rule(SpokenScene):
         ff = box("Feedforward", "acts on an expected one", FF, 6.0, 2.6, tsize=42, bsize=30).move_to([3.3, -0.3, 0])
         self.remove(*lim)
         self.play(FadeIn(fb, shift=UP * 0.15), run_time=self.beat(0.04))
-        self.at("forward acts on")
+        self.at("acts on")
         self.play(FadeIn(ff, shift=UP * 0.15), run_time=self.beat(0.04))
         self.at("Thirst uses both")
         both = T("thirst uses both", 40, TEXT, weight=BOLD).move_to([0, 2.5, 0])

@@ -327,9 +327,9 @@ class S02Length(SpokenScene):
         self.play(FadeIn(dif, shift=LEFT * 0.2), run_time=0.6)
 
         # --- the length is the message --------------------------------------------------------
-        self.at("length of the signal")
+        self.at("length matters")
         self.play(*lengthen(*bars, *lens), run_time=1.2)
-        self.at("what counts")
+        self.at("shapes it")
         self.play(*[tr_[0].animate.set_stroke(width=11) for tr_ in tr], run_time=0.5)
         self.play(*[tr_[0].animate.set_stroke(width=7) for tr_ in tr], run_time=0.5)
         self.finish()

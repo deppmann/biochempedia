@@ -119,7 +119,7 @@ class S01Sheet(SpokenScene):
         self.play(FadeIn(emb, shift=DOWN * 0.15), FadeIn(tag_e), FadeIn(fb), run_time=0.8)
         self.at("looks the same")
         self.play(Indicate(emb, color=TEXT, scale_factor=1.02), run_time=1.0)
-        self.at("no borders at all")
+        self.at("no clear borders")
         self.play(Indicate(emb, color=TEXT, scale_factor=1.02), run_time=0.8)
         arrow = Arrow([0, 0.7, 0], [0, -0.3, 0], buff=0, color=GREY, stroke_width=5, tip_length=0.25)
         q = T("?", 60, TEXT, weight=BOLD).move_to([0.9, 0.2, 0])

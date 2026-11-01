@@ -255,13 +255,13 @@ class S05Blur(SpokenScene):
         self.add(ax, ct, cv, cc, bar, mk, tag, r1, r2, r3)
         r1n, r3n = row("vision", BLUE, "", Y1), row("combined", GREEN, "", Y3)
         t0 = self.t_of("Now blur the picture")
-        t1 = self.t_of("weights swap")
-        self.at("Now blur the picture")
+        t1 = self.t_of("weight")
+        self.at("they")
         self.play(Transform(r1, r1n), Transform(r3, r3n), run_time=0.5)
         self.play(sv.animate.set_value(8.0), run_time=max(1.5, t1 - t0 - 1.2), rate_func=smooth)
         r1c = row("vision", BLUE, "SD 8 mm   variance 64 mm²", Y1)
         self.play(Transform(r1, r1c), run_time=0.5)
-        self.at("weights swap")
+        self.at("swap")
         self.play(Indicate(bar[0], color=BLUE, scale_factor=1.04), Indicate(bar[1], color=ORANGE, scale_factor=1.04), run_time=1.0)
         r3c = row("combined", GREEN, "53.2 mm   variance 12.8 mm²   SD 3.58 mm", Y3)
         self.at("The estimate moves")
@@ -334,7 +334,7 @@ class S06Scope(SpokenScene):
         self.play(FadeIn(s1, shift=UP * 0.15), run_time=0.4)
         self.at("four people")
         self.play(FadeIn(s2, shift=UP * 0.15), run_time=0.4)
-        self.at("behavioral fit")
+        self.at("behavioral")
         self.play(FadeIn(s3, shift=UP * 0.15), run_time=0.4)
         br = chip("where in the brain?", RED, 30)
         brd = DashedVMobject(br[0], num_dashes=40).set_color(RED)
@@ -352,12 +352,12 @@ class S06Scope(SpokenScene):
         t1 = T("vision SD 2 mm", 26, BLUE).move_to([-4.0 + 1.4, 1.2 + 0.7, 0])
         t2 = T("vision SD 8 mm", 26, BLUE).move_to([-4.0 + 1.4, -1.0 + 0.7, 0])
         self.play(FadeIn(b1), FadeIn(t1), run_time=0.4)
-        self.at("which sense wins")
+        self.at("for one event")
         self.play(FadeIn(b2), FadeIn(t2), run_time=0.6)
-        self.at("follows its reliability")
+        self.at("more reliable")
         self.play(Indicate(b1[0], color=BLUE, scale_factor=1.03), Indicate(b2[1], color=ORANGE, scale_factor=1.03), run_time=1.2)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Which sense wins follows its reliability in the task at hand."
+    LINE = "For one event, the more reliable sense weighs more."

@@ -201,7 +201,7 @@ class S04Lost(SpokenScene):
         self.at("abnormal directions")
         self.play(LaggedStart(*[Create(b) for b in brs], lag_ratio=0.25), run_time=1.5)
         need = T("needed at this turn", 30, YELLOW).move_to([3.4, -0.5, 0])
-        self.at("that cell is needed")
+        self.at("these cells")
         self.play(FadeIn(need, shift=DOWN * 0.15), run_time=0.5)
         ad = chip("adhesion?", GREY, size=26).move_to([2.5, -1.6, 0])
         sg = chip("a signal?", GREY, size=26).move_to([5.0, -1.6, 0])

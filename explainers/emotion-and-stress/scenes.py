@@ -305,10 +305,10 @@ class S02Learned(SpokenScene):
         self.play(FadeIn(ask, shift=UP * 0.1), run_time=0.6)
         self.at("One group of rats")
         self.play(FadeOut(ask), FadeIn(paired, shift=RIGHT * 0.2), run_time=0.9)
-        self.at("A control group")
+        self.at("Controls hear")
         self.play(FadeIn(unpaired, shift=RIGHT * 0.2), run_time=0.9)
-        cap = T("only the difference is learning", 30, TEXT).move_to([0, -3.0, 0])
-        self.at("only the difference")
+        cap = T("the difference estimates learning", 30, TEXT).move_to([0, -3.0, 0])
+        self.at("the difference")
         self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.5)
 
         # --- charts ------------------------------------------------------------------------
@@ -378,12 +378,12 @@ class S03Routes(SpokenScene):
         b = circuit("wide")
         arrows = circuit_arrows(b, "wide")
         tag = T("in the rat", 26, GREY).move_to([-5.2, 3.2, 0])
-        self.at("the rat")
+        self.at("rat circuit")
         self.play(FadeIn(tag), run_time=0.3)
         self.at("the tone reaches")
         self.play(FadeIn(b["tone"]), GrowArrow(arrows[0]), FadeIn(b["la"], shift=RIGHT * 0.2), run_time=0.8)
         inp = T("input stage", 22, TEAL).next_to(b["la"], DOWN, buff=0.18)
-        self.at("input stage")
+        self.at("lateral amygdala")
         self.play(FadeIn(inp), run_time=0.4)
         self.at("central amygdala")
         self.play(GrowArrow(arrows[1]), FadeIn(b["cea"], shift=RIGHT * 0.2), run_time=0.7)
@@ -394,7 +394,7 @@ class S03Routes(SpokenScene):
 
         # the question: which route carries which response?
         freeze, press, links, qq = routes_question(b)
-        self.at("Which route")
+        self.at("Which")
         self.play(FadeIn(freeze), FadeIn(press), run_time=0.4)
         self.play(Create(links), run_time=0.7)
         self.play(FadeIn(qq, scale=1.4), run_time=0.4)
@@ -530,7 +530,7 @@ class S06Feeling(SpokenScene):
         cx = nbox("at most\nminimal fear", PINK, 26, min_w=3.0).move_to([4.3, 2.4, 0])
         bx = nbox("external threats\ntested", GREY, 26, min_w=3.0).move_to([0, 2.4, 0])
         r1 = arr(a[1].get_right(), cx[1].get_left())
-        self.at("Patient SM")
+        self.at("Patient")
         self.play(FadeIn(a, shift=RIGHT * 0.2), run_time=0.6)
         self.at("at most minimal fear")
         self.play(GrowArrow(r1), FadeIn(cx, shift=RIGHT * 0.2), run_time=0.6)
@@ -571,9 +571,9 @@ class S06Feeling(SpokenScene):
         self.at("Three of twelve")
         self.play(FadeIn(labB), LaggedStart(*[FadeIn(d) for d in dotsB], lag_ratio=0.05), run_time=0.7)
         self.play(FadeIn(cntB), run_time=0.3)
-        thr = VGroup(T("the difference lay", 26, TEXT), T("in the threat", 26, TEXT)).arrange(DOWN, buff=0.1)
+        thr = VGroup(T("the kind of threat", 26, TEXT), T("seems to matter", 26, TEXT)).arrange(DOWN, buff=0.1)
         thr.move_to([4.7, -1.6, 0])
-        self.at("lay in the threat")
+        self.at("kind of threat")
         self.play(FadeIn(thr, shift=UP * 0.1), run_time=0.5)
 
         # --- row 3: rat work ----------------------------------------------------------------

@@ -224,7 +224,7 @@ class S02Touch(SpokenScene):
         d = dot().move_to([XS, YT, 0])
         a = n.tA[1]
         # --- up the cord on the same side, no synapse ---------------------------------
-        self.at("climbs on the same side")
+        self.at("sends a branch")
         self.play(FadeOut(stub), run_time=0.01)
         self.play(Create(a.halo), Create(a.line), FadeIn(d), run_time=0.9)
         self.play(FadeIn(a.tip), run_time=0.1)
@@ -233,7 +233,7 @@ class S02Touch(SpokenScene):
         self.play(FadeIn(ns), run_time=0.5)
         self.play(d.animate.move_to([-0.6, YT, 0]), run_time=0.9, rate_func=linear)
         # --- synapse in the nucleus -----------------------------------------------------
-        self.at("gracile")
+        self.at("gracil")
         self.play(FadeOut(ns), FadeIn(n.nuc[1], scale=0.9), run_time=0.6)
         pulse(self, n.nuc[1], 1.08, 0.5)
         # --- cross the midline --------------------------------------------------------------

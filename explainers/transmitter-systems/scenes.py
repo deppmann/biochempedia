@@ -161,7 +161,7 @@ class S02Parts(SpokenScene):
         src = T("source", 30, ORANGE, weight=BOLD).move_to([4.5, 2.3, 0])
         sline = Line([2.3, 2.3, 0], [3.6, 2.3, 0], color=ORANGE, stroke_width=3)
         self.play(FadeIn(src), Create(sline), run_time=0.5)
-        self.at("make and release")
+        self.at("release the chemical")
         xs0 = [-5.0, -4.0, -3.0, -1.6, -0.6, 0.4]
         ds = VGroup(*[dot(YELLOW, 0.14, (x, 2.5 + 0.2 * ((i % 2) - 0.5))) for i, x in enumerate(xs0)])
         self.play(LaggedStart(*[FadeIn(d, scale=0.5) for d in ds], lag_ratio=0.1), run_time=0.8)
@@ -177,13 +177,13 @@ class S02Parts(SpokenScene):
         rline = Line([2.3, -1.6, 0], [3.6, -1.6, 0], color=BLUE, stroke_width=3)
         self.play(FadeIn(ch, shift=UP * 0.2), FadeIn(gp, shift=UP * 0.2), FadeIn(readers), Create(rline), run_time=0.8)
         self.at("ion channels")
-        ch_lbl = VGroup(T("ion channel", 24, BLUE), T("about 1 ms", 24, TEXT)).arrange(DOWN, buff=0.08).move_to([CH_X, -2.7, 0])
+        ch_lbl = VGroup(T("ion channel", 24, BLUE), T("within ms", 24, TEXT)).arrange(DOWN, buff=0.08).move_to([CH_X, -2.7, 0])
         self.play(FadeIn(ch_lbl), run_time=0.4)
         self.play(ds[0].animate.move_to([CH_X, -0.7, 0]), run_time=0.7)
         self.play(ch.animate.set_stroke(GREEN).set_fill(GREEN, 0.5), run_time=0.15)
         self.play(ch.animate.set_stroke(BLUE).set_fill(BLUE, 0.35), run_time=0.5)
         self.at("Others are")
-        gp_lbl = VGroup(T("G-protein-coupled", 24, BLUE), T("tens of ms to seconds", 24, TEXT)).arrange(DOWN, buff=0.08).move_to([GP_X + 0.2, -2.7, 0])
+        gp_lbl = VGroup(T("G-protein-coupled", 24, BLUE), T("tens of ms to minutes", 24, TEXT)).arrange(DOWN, buff=0.08).move_to([GP_X + 0.2, -2.7, 0])
         self.play(FadeIn(gp_lbl), ds[4].animate.move_to([GP_X, -0.55, 0]), run_time=0.8)
         self.play(gp.animate.set_stroke(GREEN).set_fill(GREEN, 0.5), run_time=0.2)
         self.play(gp.animate.set_stroke(BLUE).set_fill(BLUE, 0.35), run_time=0.9)
@@ -254,7 +254,7 @@ class S03Off(SpokenScene):
 
         # --- peptides -> peptidase -----------------------------------------------------------
         self.at("Peptides are cut")
-        n3, s3 = case_label("peptide", ["peptidases cut", "them into inactive", "fragments"])
+        n3, s3 = case_label("peptide", ["peptidases usually", "cut them into", "inactive fragments"])
         pep = enz.copy().become(chip_at("peptidase", TEAL, [-1.0, 0.1, 0], 24))
         bar = RoundedRectangle(corner_radius=0.09, width=0.9, height=0.2, stroke_color=YELLOW, stroke_width=2,
                                fill_color=YELLOW, fill_opacity=0.9).move_to([-3.6, 0.5, 0])
@@ -388,7 +388,7 @@ class S04Drugs(SpokenScene):
         self.play(d5.animate.move_to([TR_X, 1.05, 0]), run_time=0.8)
         self.at("occupies the transporter")
         self.play(y5.animate.move_to([TR_X - 0.5, 0.2, 0]), run_time=0.5)
-        self.at("Paroxetine sits")
+        self.at("Perixetine")
         parox = T("paroxetine", 26, PURPLE, weight=BOLD).move_to([4.45, 0.1, 0]).align_to([2.7, 0, 0], LEFT)
         self.play(FadeIn(parox), run_time=0.4)
         self.at("where serotonin binds")
@@ -430,7 +430,7 @@ class S05Fill(SpokenScene):
         v1 = DashedLine([ox, Y(0.5), 0], [X(KD), Y(0.5), 0], color=YELLOW, stroke_width=2.5)
         v1b = DashedLine([X(KD), Y(0.5), 0], [X(KD), oy, 0], color=YELLOW, stroke_width=2.5)
         self.play(Create(v1), Create(v1b), FadeIn(p1), run_time=0.8)
-        self.at("For paroxetine")
+        self.at("For")
         kd_lbl = M("KD = 0.08 nM", 26, YELLOW).move_to([X(KD) + 2.0, Y(0.5) - 0.65, 0])
         self.play(FadeIn(kd_lbl), run_time=0.5)
         self.at("are filled")
@@ -475,8 +475,8 @@ class S06Cause(SpokenScene):
         # beat 3: the two reviews
         self.at("umbrella review")
         hB = T("Is low serotonin the cause?", 26, GOLD).move_to([3.4, 0.5, 0])
-        rB = VGroup(T("2022 umbrella review", 28, TEXT, weight=BOLD), T("no consistent support", 28, TEXT),
-                    T("for it", 28, TEXT)).arrange(DOWN, buff=0.12).move_to([3.4, -0.7, 0])
+        rB = VGroup(T("2022 umbrella review", 28, TEXT, weight=BOLD), T("disputed; no consistent", 28, TEXT),
+                    T("support for it", 28, TEXT)).arrange(DOWN, buff=0.12).move_to([3.4, -0.7, 0])
         self.play(FadeIn(hB), FadeIn(rB, shift=UP * 0.1), run_time=0.6)
         self.at("network meta analysis")
         hA = T("Do the drugs help?", 26, GOLD).move_to([-3.6, 0.5, 0])

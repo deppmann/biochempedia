@@ -134,7 +134,7 @@ class S02Layers(SpokenScene):
         l_ecto = lab("ectoderm", BLUE, 26).move_to([0.0, 1.85, 0])
         self.at("The outer layer")
         self.play(*[paint(c, BLUE) for c in ecto], FadeIn(l_ecto), run_time=0.8)
-        self.at("makes skin and the nervous system")
+        self.at("makes outer skin")
         self.play(Indicate(VGroup(*ecto), color=BLUE, scale_factor=1.05), run_time=0.8)
 
         l_plate = lab("neural plate", PURPLE, 26).move_to([X(3), 1.85, 0])

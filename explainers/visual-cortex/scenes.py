@@ -361,7 +361,7 @@ class S06Complex(SpokenScene):
         note = T("same orientation, different positions", 24, GREY).move_to([-1.9, 2.55, 0])
         self.play(*[Transform(a, b) for a, b in zip(lgn, lgn2)], Transform(simple, cx), FadeIn(note), run_time=1.0)
         self.at("proposal")
-        prop = chip("a proposal, not a demonstration", YELLOW, size=28).move_to([2.6, 1.7, 0])
+        prop = chip("1962 proposal; step one later supported", YELLOW, size=28).move_to([2.6, 1.7, 0])
         self.play(FadeIn(prop), run_time=0.5)
         self.at("Keep the rule")
         rule = T("In cat visual cortex, bars at the right angle drive cells that spots often miss.", 26, TEXT)

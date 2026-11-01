@@ -247,7 +247,7 @@ def s1_objects():
     o = {}
     o["wall"] = wall_bar(S1_WALL_Y)
     o["wlbl"] = T("vessel wall", 24, GREY).move_to([-5.2, 3.2, 0])
-    o["inf"] = T("infection", 28, TEXT).move_to([X0, 3.2, 0])
+    o["inf"] = T("stop here", 28, TEXT).move_to([X0, 3.2, 0])
     o["tick"] = Line([X0, 3.0, 0], [X0, 2.88, 0], color=TEXT, stroke_width=4)
     o["cell"] = s1_cell(X0)
     o["q"] = T("?", 80, TEXT, weight=BOLD).move_to([X0, 1.45, 0])
@@ -319,7 +319,7 @@ class S01Stop(SpokenScene):
         flbl = T("flowing blood", 26, GREY).move_to([-4.0, -2.95, 0])
         self.at("carried along")
         t_c = self.elapsed()
-        t_i = self.t_of("an infection") - 0.2
+        t_i = self.t_of("where it is") - 0.2
         t_s = self.t_of("can stop") - 0.2
         glide = max(2.0, t_s - t_c)
         label_in = Succession(Wait(max(0.0, t_i - t_c)),
@@ -328,7 +328,7 @@ class S01Stop(SpokenScene):
                   AnimationGroup(LaggedStart(*[GrowArrow(a) for a in flow], lag_ratio=0.3), FadeIn(flbl), run_time=1.2),
                   label_in)
 
-        self.at("can stop")
+        self.at("the")
         self.play(cellg.animate.move_to([X0, S1_CY, 0]), FadeOut(flow), FadeOut(flbl), run_time=1.2, rate_func=smooth)
 
         self.at("about a second", lead=0.45)
@@ -678,12 +678,12 @@ class S06Rule(SpokenScene):
         r_gl = T("grip", 24, TEXT).move_to([5.7, -1.4, 0])
         r_sw = toggle(False, scale=0.5).move_to([5.7, -1.95, 0])
         r_st = T("OFF", 28, RED, weight=BOLD).move_to([5.7, -2.55, 0])
-        self.at("stays off")
+        self.at("cell can still")
         self.play(FadeIn(r_gl), FadeIn(r_sw), FadeIn(r_st), run_time=0.5)
 
         g = ig.geom()
         talin = bchip("talin", PURPLE, 24, pad=0.16).move_to([RXX - 2.6, -2.5, 0])
-        self.at("until the cell")
+        self.at("keep the grip")
         self.play(FadeIn(talin, shift=RIGHT * 0.15), run_time=0.5)
         self.play(talin.animate.move_to(g["tip_b"] + DOWN * 0.34), run_time=1.2, rate_func=smooth)
         talin.add_updater(lambda m: m.move_to(ig.geom()["tip_b"] + DOWN * 0.34))
@@ -699,15 +699,15 @@ class S06Rule(SpokenScene):
                   *flip(r_sw, True, GREEN), ReplacementTransform(r_st, T("ON", 28, GREEN, weight=BOLD).move_to(r_st)),
                   run_time=0.9)
 
-        dc = T("the cell decides", 30, PURPLE, weight=BOLD).move_to([RXX, -3.15, 0])
+        dc = T("inside-out control", 30, PURPLE, weight=BOLD).move_to([RXX, -3.15, 0])
         self.at("Keep this rule")
         self.play(FadeOut(itx), FadeIn(dc, shift=UP * 0.1), run_time=0.6)
-        self.at("not the ligand")
+        self.at("signals inside")
         self.play(pop(dl, 1.12), pop(dc, 1.12), run_time=0.7)
-        self.at("decides when")
+        self.at("strengthen")
         self.play(Flash(g["C"], color=GREEN, flash_radius=1.0, line_length=0.22, num_lines=10), run_time=0.9)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The cell, not the ligand, decides when an integrin grips."
+    LINE = "Signals inside the cell can strengthen an integrin's grip."

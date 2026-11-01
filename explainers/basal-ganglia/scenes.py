@@ -247,7 +247,7 @@ class S01Brake(Base):
         self.at("foot resting")
         brake = chip("brake", INH, size=26).move_to([3.4, 1.4, 0])
         self.play(FadeIn(brake, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("needs the brake")
+        self.at("needs")
         dd.remove_updater(adv)
         self.play(FadeOut(dd), FadeOut(brake),
                   d.node["gpi"][0].animate.set_fill(opacity=LOW).set_stroke(POP, width=3),
@@ -262,7 +262,7 @@ class S02Direct(Base):
         d = Diag(links=list(LINKS.keys() - {"da1", "da2"}), op=DIM)
         leg, tag = legend(), model_tag()
         self.add(*d.node.values(), *d.link.values(), *d.lab.values(), leg, tag)
-        self.at("Two routes")
+        self.at("roots")
         self.play(*[d.link[k].animate.set_opacity(0.5) for k in d.shown], run_time=0.6)
         self.at("direct pathway")
         self.play(*d.only(["s_gpi"], 0.5), d.node["D1"][0].animate.set_stroke(HI, width=5), run_time=0.6)
