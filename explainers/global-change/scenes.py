@@ -306,7 +306,7 @@ class S05Assumptions(SpokenScene):
         a1b = chip("lapse rate: constant", TEAL, size=22).move_to([4.0, 2.2, 0])
         self.at("holds only under assumptions")
         self.play(FadeIn(hdr), FadeOut(VGroup(gap, gb, gl)), run_time=0.4)
-        self.at("Warming and the lapse rate")
+        self.at("Warming")
         self.play(FadeIn(a1, shift=LEFT * 0.2), FadeIn(a1b, shift=LEFT * 0.2), run_time=0.6)
         self.at("Temperature alone")
         self.play(FadeIn(a2, shift=LEFT * 0.2), run_time=0.5)
@@ -366,7 +366,7 @@ class S06Detection(SpokenScene):
         sp2 = dots(Y0 + d)
         self.play(Transform(sp, sp2), lab.animate.move_to(splabel(Y0 + d)), run_time=1.3)
 
-        det = VGroup(T("Detection", 30, GREEN, weight=BOLD), T("a change happened", 24, TEXT)).arrange(DOWN, buff=0.12)
+        det = VGroup(T("Detection", 30, GREEN, weight=BOLD), T("change beyond chance", 24, TEXT)).arrange(DOWN, buff=0.12)
         detb = RoundedRectangle(corner_radius=0.15, width=4.6, height=det.height + 0.4, stroke_color=GREEN, stroke_width=3)
         detg = VGroup(detb, det.move_to(detb)).move_to([4.1, 2.8, 0])
         self.at("That shows a change happened")
@@ -387,7 +387,7 @@ class S06Detection(SpokenScene):
         self.play(Indicate(sp, color=ORANGE, scale_factor=1.3), run_time=0.7)
         self.at("not proof that climate acted alone")
         self.play(FadeIn(w), GrowArrow(aw), run_time=0.8)
-        tag = T("1,464 elevational shifts", 24, GREY).move_to([3.9, -2.4, 0])
+        tag = T("average shifts at 43 sites", 24, GREY).move_to([3.9, -2.4, 0])
         self.play(FadeIn(tag), run_time=0.3)
 
         att = VGroup(T("Attribution", 30, YELLOW, weight=BOLD), T("a cause, alternatives tested", 24, TEXT)).arrange(DOWN, buff=0.12)

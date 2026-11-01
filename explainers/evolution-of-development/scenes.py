@@ -193,7 +193,7 @@ class S03Hybrid(SpokenScene):
 
         # one nucleus
         nuc = Circle(radius=3.0, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([0, -0.2, 0])
-        self.at("tell them apart")
+        self.at("can test for")
         self.play(FadeOut(VGroup(chrom, chrom_lbl, region, reg_lbl, gtick, glbl, others, cis, trans)),
                   FadeIn(nuc, scale=0.8), run_time=0.9)
 
@@ -256,7 +256,7 @@ class S04Ratio(SpokenScene):
         verdict = T("Shared factors: the Paxton allele itself is less active (cis)", 24, TEXT).move_to([0, -3.1, 0])
         self.at("factors are shared")
         self.play(FadeIn(verdict, shift=UP * 0.1), run_time=0.7)
-        self.at("only in the pelvis")
+        self.at("pelvis but")
         self.play(Circumscribe(VGroup(pm, pp), color=PURPLE, buff=0.15), run_time=1.0)
 
         # real result
@@ -325,7 +325,7 @@ class S05Reporter(SpokenScene):
         mfish = fish_body(GREEN, mpos, 0.85)
         glow = lamp(belly(mpos, 0.85), 0.26)
         mlbl = T("pelvic expression", 26, PURPLE).move_to([-3.3, -1.5, 0])
-        self.at("Marine Pel drove")
+        self.at("Marine")
         self.play(FadeIn(mfish), run_time=0.5)
         self.play(FadeIn(glow, scale=0.4), FadeIn(mlbl), run_time=0.6)
 
@@ -359,12 +359,12 @@ class S05Reporter(SpokenScene):
         isp = spines(GREY, ipos, 0.8, (0.6, 0.35))
         ul = T("uninjected sibling", 26, GREY).move_to([-3.4, -1.7, 0])
         il = T("injected:\nspines variably enhanced", 26, PURPLE).move_to([3.4, -1.85, 0])
-        self.at("marine Pel", nth=1)
+        self.at("Pit")
         self.play(FadeIn(head), FadeIn(ch, shift=DOWN * 0.15), run_time=0.7)
         self.play(FadeIn(uf), FadeIn(ifs), FadeIn(ul), run_time=0.6)
         self.add(usp)
         ai = arr([1.4, 1.85, 0], [3.0, 1.15, 0], PURPLE)
-        self.at("mini")
+        self.at("minigene")
         self.play(GrowArrow(ai), run_time=0.5)
         sp_small = spines(GREY, ipos, 0.8, (0.18, 0.18))
         self.add(sp_small)
@@ -395,15 +395,15 @@ class S06Ladder(SpokenScene):
         bones = T("several hind-limb\nbones shorter", 28, TEXT).move_to([3.5, 1.2, 0])
         self.at("Several bones")
         self.play(FadeIn(bones, shift=LEFT * 0.2), run_time=0.7)
-        tune = T("tunes how much Pitx1\nthe limb makes,\nnot an on-off switch", 28, BLUE).move_to([3.5, -1.0, 0])
-        self.at("tunes how much")
+        tune = T("supplies part of the\nlimb's Pitx1; other\nenhancers the rest;\nnot an on-off switch", 28, BLUE).move_to([3.5, -1.0, 0])
+        self.at("supplies part")
         self.play(FadeIn(tune, shift=LEFT * 0.2), run_time=0.8)
 
         # ladder
         chart = VGroup(title, axis, ctrl, ref, cl, mut, ml, bones, tune)
         rows = [("Mapping", "which chromosome region"),
                 ("In situ hybridization", "where the transcript is"),
-                ("F1 hybrid test", "cis or trans"),
+                ("F1 hybrid test", "whether there is a cis difference"),
                 ("Reporter", "what a sequence can drive"),
                 ("Native deletion", "whether form depends on it")]
         ys = [2.5, 1.25, 0.0, -1.25, -2.5]

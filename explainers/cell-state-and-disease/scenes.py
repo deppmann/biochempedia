@@ -9,7 +9,8 @@ COLOR MAP (one color per concept, whole video)
   YELLOW  Notch1-mutant cell or clone, and the grown progenitor count of the clone
   RED     cancer / malignant, the crossed-out idea, the early lesion
   GREY    structure, frames, neutral labels
-  TEXT    all other labels and the formula
+  TEAL    T-cell identity; RNA measurements
+  TEXT    all other labels and state symbols (state never changes identity colour)
 """
 import random
 from bp_style import *
@@ -77,274 +78,316 @@ def tick(color=GREEN):
         [LEFT * 0.22 + UP * 0.0, LEFT * 0.06 + DOWN * 0.18, RIGHT * 0.26 + UP * 0.22])
 
 
-# ---------- scenes ----------
+# Small schematic groups are single visual units; identity colours never encode state.
+def heading(text):
+    return T(text, size=34, font=TITLE_FONT).move_to(UP * 3.15)
+
+
+def cells(colors, positions, r=0.38):
+    return VGroup(*[dot(c, r=r).move_to(p) for c, p in zip(colors, positions)])
+
+
+def barcode(label, pos):
+    return chip(label, GREY, size=22, pad=0.12).move_to(pos)
+
+
+def cycle_symbol(pos):
+    a = Arc(radius=0.18, start_angle=0.3, angle=5.2, color=TEXT, stroke_width=3)
+    a.add_tip(tip_length=0.09)
+    return a.move_to(pos)
+
+
+def clear(scene, *keep):
+    scene.play(*[FadeOut(m) for m in list(scene.mobjects) if m not in keep], run_time=0.35)
+
+
 class S00Title(TitleCard):
     LESSON = "Cell Identity, Cell State and Disease"
-    TITLE = "Clones Win by Fate, Not Speed"
+    TITLE = "Cell Identity, Cell State and Disease"
 
 
-class S01Puzzle(SpokenScene):
+class S01Identity(SpokenScene):
     def construct(self):
-        random.seed(4)
-        gl = cell_grid(6, 7, 0.56, LEFT * 4.2 + DOWN * 0.35)
-        gr = cell_grid(6, 7, 0.56, LEFT * 0.5 + DOWN * 0.35)
-        q = T("Why is it still healthy?", size=34, font=TITLE_FONT).move_to(UP * 3.2 + LEFT * 2.35)
-        self.at("Why is this")
-        self.play(FadeIn(q, shift=DOWN * 0.1),
-                  LaggedStart(*[GrowFromCenter(c) for c in VGroup(gl, gr)], lag_ratio=0.01), run_time=1.6)
-        self.at("sequenced normal")
-        lab = T("normal oesophagus lining: the range across donors", size=24, color=GREY).move_to(LEFT * 2.35 + UP * 2.15)
-        self.play(FadeIn(lab, shift=DOWN * 0.1), run_time=0.5)
-        t12 = T("12%", size=30, color=YELLOW).next_to(gl, DOWN, buff=0.2)
-        t80 = T("80%", size=30, color=YELLOW).next_to(gr, DOWN, buff=0.2)
-        lo = T("low end", size=22, color=GREY).next_to(t12, DOWN, buff=0.08)
-        hi = T("high end", size=22, color=GREY).next_to(t80, DOWN, buff=0.08)
-        la = list(range(len(gl))); random.shuffle(la)
-        ra = list(range(len(gr))); random.shuffle(ra)
-        self.at("made up an estimated")
-        self.play(*[gl[i].animate.set_color(YELLOW).set_fill(YELLOW, 0.5) for i in la[:5]],
-                  FadeIn(t12), FadeIn(lo), run_time=0.9)
-        self.at("to 80")
-        self.play(*[gr[i].animate.set_color(YELLOW).set_fill(YELLOW, 0.5) for i in ra[:34]],
-                  FadeIn(t80), FadeIn(hi), run_time=1.2)
-        head = T("Notch1 mutations", size=26, color=YELLOW).move_to(RIGHT * 4.45 + UP * 1.75)
-        self.at("also turn up")
-        cb = Rectangle(width=1.7, height=0.4, stroke_width=0, fill_color=RED, fill_opacity=0.8)
-        cb.move_to(RIGHT * 2.75 + UP * 0.85, aligned_edge=LEFT)
-        cl = T("oesophageal cancers", size=24).next_to(cb, DOWN, buff=0.12).align_to(cb, LEFT)
-        self.play(FadeIn(head), GrowFromEdge(cb, LEFT), FadeIn(cl), run_time=0.9)
-        self.at("this tissue looked normal")
-        tag = T("looks normal", size=26, color=GREY).move_to(RIGHT * 4.45 + DOWN * 0.45)
-        self.play(FadeIn(tag), run_time=0.5)
-        self.at("more common here")
-        nb = Rectangle(width=3.4, height=0.4, stroke_width=0, fill_color=YELLOW, fill_opacity=0.85)
-        nb.move_to(RIGHT * 2.75 + DOWN * 1.35, aligned_edge=LEFT)
-        nl = T("this normal tissue", size=24).next_to(nb, DOWN, buff=0.12).align_to(nb, LEFT)
-        self.play(GrowFromEdge(nb, LEFT), FadeIn(nl), run_time=0.9)
+        h = heading("What is inside a tissue?")
+        outline = RoundedRectangle(width=5, height=3.4, corner_radius=0.7, color=GREY)
+        pts = [[-1.4,0.65,0],[0,0.65,0],[1.4,0.65,0],[-1.4,-0.65,0],[0,-0.65,0],[1.4,-0.65,0]]
+        tissue = cells([TEAL,RED,GREY,TEAL,RED,GREY], pts)
+        self.at("A tissue")
+        self.play(FadeIn(h), Create(outline), FadeIn(tissue), run_time=0.8)
+        self.at("reveals a mixture")
+        self.play(FadeOut(outline), *[c.animate.move_to([[-4,0.65,0],[0,0.65,0],[4,0.65,0],[-4,-0.65,0],[0,-0.65,0],[4,-0.65,0]][i]) for i,c in enumerate(tissue)], run_time=1)
+        self.at("A type is")
+        lab = T("T-cell identity", 28, TEAL).move_to([-4,1.9,0])
+        self.play(FadeIn(lab), Indicate(VGroup(tissue[0],tissue[3]), color=TEAL), run_time=0.6)
+        self.at("A state is")
+        syms = VGroup(cycle_symbol(tissue[0].get_center()), T("!",26).move_to(tissue[3]))
+        states = T("cycling / stress", 24).move_to([-4,-1.8,0])
+        self.play(FadeIn(syms), FadeIn(states), run_time=0.6)
+        self.at("In melanoma")
+        clear(self)
+        h = heading("One melanoma: malignant identity")
+        mal = cells([RED]*6, pts, r=0.43)
+        self.play(FadeIn(h), FadeIn(mal), run_time=0.6)
+        self.at("differed in")
+        cycling = VGroup(*[cycle_symbol(mal[i].get_center()) for i in range(3)])
+        self.play(FadeIn(cycling), run_time=0.55)
+        self.at("separate clusters")
+        dest = [[-3.8,0.6,0],[-2.6,0.6,0],[-3.2,-0.6,0],[2.6,0.6,0],[3.8,0.6,0],[3.2,-0.6,0]]
+        self.play(*[m.animate.move_to(p) for m,p in zip(mal,dest)], *[cycling[i].animate.move_to(dest[i]) for i in range(3)], run_time=0.8)
+        tags = VGroup(T("cycling state?",26).move_to([-3.2,-1.8,0]),T("other cycle state?",26).move_to([3.2,-1.8,0]))
+        self.at("different states")
+        self.play(FadeIn(tags), run_time=0.5)
+        self.at("needs an explanation")
+        self.play(FadeIn(T("provisional annotations",26,GREY).move_to(DOWN*2.8)),run_time=0.5)
+        self.finish()
+
+
+class S01Matrix(SpokenScene):
+    def construct(self):
+        tissue = cells([TEAL,GREY,TEAL,GREY], [[-.5,.5,0],[.5,.5,0],[-.5,-.5,0],[.5,-.5,0]])
+        self.add(tissue)
+        self.at("Separate the cells")
+        self.play(*[c.animate.move_to([x,1.5,0]) for c,x in zip(tissue,[-4.5,-1.5,1.5,4.5])],run_time=0.8)
+        rna = VGroup(*[VGroup(*[chip("RNA",TEAL,22,pad=.1).move_to([x,y,0]) for y in [0,-.75]]) for x in [-4.5,-1.5,1.5,4.5]])
+        tags = VGroup(*[VGroup(*[barcode(b,[x+.85,y,0]) for y in [0,-.75]]) for x,b in zip([-4.5,-1.5,1.5,4.5],["A","B","C","D"])])
+        self.at("Tag each")
+        self.play(FadeIn(rna),FadeIn(tags),run_time=.7)
+        self.at("sequence and count")
+        self.play(FadeOut(tissue),rna.animate.shift(UP*.4),tags.animate.shift(UP*.4),run_time=.5)
+        self.at("The matrix has")
+        clear(self)
+        h=heading("Genes × cells: captured RNA counts")
+        vals=[[8,1,7,1],[6,0,5,1],[0,7,1,6]]
+        mat=VGroup(*[VGroup(*[VGroup(Rectangle(width=.8,height=.65,color=GREY,fill_color=TEAL,fill_opacity=.08+.06*vals[j][i]),M(str(vals[j][i]),22)).move_to([-1.5+i,1-j*.8,0]) for j in range(3)]) for i in range(4)])
+        cols=VGroup(*[T(b,24).move_to([-1.5+i,1.75,0]) for i,b in enumerate("ABCD")])
+        axes=VGroup(T("cells",26).move_to([0,2.35,0]),T("genes",26).move_to([-3.2,.2,0]))
+        self.play(FadeIn(h),FadeIn(mat),FadeIn(cols),FadeIn(axes),run_time=.65)
+        self.at("Group similar cells")
+        self.play(mat[1].animate.shift(RIGHT),mat[2].animate.shift(LEFT),cols[1].animate.shift(RIGHT),cols[2].animate.shift(LEFT),run_time=.6)
+        self.at("annotate their clusters")
+        known=VGroup(T("known profiles",24,GREY).move_to([4.5,1.8,0]))
+        for i, pattern in enumerate([[.8,.7,.1],[.1,.1,.8]]):
+            for j, level in enumerate(pattern):
+                known.add(Rectangle(width=.7,height=.65,stroke_color=GREY,fill_color=TEAL,fill_opacity=level).move_to([4+i,1-j*.8,0]))
+        known.add(T("compare patterns",22,GREY).move_to([4.5,-1.3,0]))
+        groups=VGroup(*[SurroundingRectangle(VGroup(mat[a],mat[b]),buff=.08,color=GREY) for a,b in [(0,2),(1,3)]])
+        provisional=T("cluster annotations remain provisional",26).move_to([0,-2,0])
+        self.play(FadeIn(known),Create(groups),FadeIn(provisional),run_time=.7)
+        self.finish()
+
+
+class S02Validation(SpokenScene):
+    def construct(self):
+        h=heading("A cluster can be an artifact")
+        two=pair(TEAL,GREY,LEFT*3,gap=1.2,r=.5)
+        tag=barcode("shared barcode",[-3,-1.3,0])
+        hybrid=chip("hybrid profile?",GREY,28).move_to([2.8,0,0])
+        self.at("But a cluster")
+        self.play(FadeIn(h),FadeIn(two),run_time=.7)
+        self.at("Two cells")
+        self.play(FadeIn(tag),run_time=.5)
+        self.at("share a barcode")
+        self.play(TransformFromCopy(two,hybrid),run_time=.6)
+        self.at("Sample handling")
+        clear(self)
+        h=heading("One identity, different handling")
+        batch=cells([TEAL]*4,[[-.8,.5,0],[.8,.5,0],[-.8,-.5,0],[.8,-.5,0]])
+        labs=VGroup(T("batch A",26,GREY).move_to([-3.2,-1.7,0]),T("batch B",26,GREY).move_to([3.2,-1.7,0]))
+        self.play(FadeIn(h),FadeIn(batch),run_time=.5)
+        self.at("separate cells")
+        self.play(*[c.animate.shift(LEFT*2.4 if i%2==0 else RIGHT*2.4) for i,c in enumerate(batch)],FadeIn(labs),run_time=.7)
+        self.at("Check annotations")
+        clear(self)
+        ann=chip("annotation?",GREY,28).move_to([-3.3,1.6,0])
+        ev=chip("independent evidence",GREEN,28).move_to([2.7,1.6,0])
+        self.play(FadeIn(ann),FadeIn(ev),run_time=.6)
+        self.at("RNA does not")
+        mismatch=T("RNA ≠ protein",32).move_to([0,0,0])
+        self.play(FadeIn(mismatch),run_time=.5)
+        self.at("measures surface proteins")
+        clear(self)
+        h=heading("CITE-seq: RNA + surface protein")
+        cell=dot(TEAL,r=.95).move_to([-2.7,-.3,0])
+        # Antibody is a labelled chip, with a separate DNA tag; no molecule drawing.
+        protein=chip("surface protein",GREY,22).move_to([-.4,-.3,0])
+        antibody=chip("antibody",GREEN,24).move_to([-.4,1,0])
+        dna=chip("DNA tag",GREY,22).next_to(antibody,RIGHT,buff=.3)
+        rna=chip("RNA",TEAL,26).move_to(cell)
+        readout=VGroup(T("protein readout",26,GREEN),T("RNA readout",26,TEAL)).arrange(DOWN,buff=.45).move_to([4,-1.1,0])
+        self.play(FadeIn(h),FadeIn(cell),FadeIn(protein),FadeIn(antibody),FadeIn(dna),FadeIn(rna),run_time=.7)
+        self.at("alongside RNA")
+        self.play(Indicate(dna,color=GREY),Indicate(rna,color=TEAL),FadeIn(readout),run_time=.6)
+        self.at("the same cell")
+        self.play(Indicate(cell,color=TEAL),run_time=.5)
+        self.finish()
+
+
+class S03Lineage(SpokenScene):
+    def construct(self):
+        h=heading("Inferred pseudotime")
+        path=DashedLine([-4,-1,0],[4,1,0],color=GREY)
+        sampled=cells([GREY]*4,[[-4,-1,0],[-1.4,-.35,0],[1.4,.35,0],[4,1,0]],r=.42)
+        note=T("different sampled cells",28).move_to(DOWN*2.3)
+        self.at("An expression path")
+        self.play(FadeIn(h),Create(path),FadeIn(sampled),run_time=.8)
+        self.at("does not track")
+        self.play(FadeIn(note),run_time=.5)
+        self.at("Sequencing destroys")
+        self.play(*[FadeOut(c,scale=.3) for c in sampled],run_time=.6)
+        self.at("Inherited barcodes")
+        clear(self)
+        h=heading("Inherited barcode links sisters")
+        parent=dot(BLUE,.4).move_to([0,1.7,0])
+        sisters=pair(BLUE,BLUE,[0,.1,0],gap=5,r=.4)
+        branches=VGroup(Line([0,1.3,0],[-2.5,.5,0],color=GREY),Line([0,1.3,0],[2.5,.5,0],color=GREY))
+        tags=VGroup(*[barcode("A",p) for p in [[.8,1.7,0],[-1.6,.1,0],[3.4,.1,0]]])
+        self.play(FadeIn(h),FadeIn(parent),Create(branches),FadeIn(sisters),FadeIn(tags),run_time=.7)
+        self.at("linking sisters")
+        seq=chip("sequence RNA",TEAL,24).move_to([-3,-1.4,0])
+        kids=pair(BLUE,BLUE,[2.5,-1.5,0],gap=1.5,r=.35)
+        kt=VGroup(*[barcode("A",p) for p in [[1.75,-2.3,0],[3.25,-2.3,0]]])
+        self.play(ReplacementTransform(sisters[0],seq),TransformFromCopy(sisters[1],kids),FadeIn(kt),run_time=.7)
+        self.at("In mouse blood")
+        context=T("mouse blood progenitors",26,GREY).move_to([0,-3.1,0])
+        self.play(FadeIn(context),run_time=.5)
+        self.at("shared fate biases")
+        clear(self)
+        h=heading("Similar RNA can hide different futures")
+        profiles=VGroup(chip("similar RNA",TEAL,28).move_to([-3,1.2,0]),chip("similar RNA",TEAL,28).move_to([3,1.2,0]))
+        fates=VGroup(chip("fate bias A",GREY,26).move_to([-3,-1,0]),chip("fate bias B",GREY,26).move_to([3,-1,0]))
+        arrows=VGroup(*[Arrow(p.get_bottom(),f.get_top(),color=GREY,buff=.15) for p,f in zip(profiles,fates)])
+        self.play(FadeIn(h),FadeIn(profiles),FadeIn(fates),Create(arrows),run_time=.7)
+        self.at("Perturbation tests cause")
+        clear(self)
+        h=heading("Test a cause")
+        candidate=chip("candidate",GREY,28).move_to([-4,0,0])
+        self.play(FadeIn(h),FadeIn(candidate),run_time=.4)
+        self.at("block a candidate")
+        x=cross(candidate)
+        self.play(Create(x),run_time=.4)
+        self.at("check the outcome")
+        outcome=chip("check outcome",GREY,28).move_to([0,0,0])
+        self.play(FadeIn(outcome),run_time=.4)
+        self.at("then restore it")
+        restored=chip("restore candidate",GREY,28).move_to([4,0,0])
+        self.play(FadeIn(restored),run_time=.4)
+        self.finish()
+
+
+class S04Composition(SpokenScene):
+    def construct(self):
+        h=heading("A mixture can change the bulk signal")
+        # Same per-cell fill and RNA mark for each identity in both conditions.
+        def mixture(x,cols):
+            g=VGroup()
+            for i,c in enumerate(cols):
+                body=dot(c,.35).move_to([x+(i%2-.5)*1.1,.9-(i//2)*1.1,0])
+                mark=Line(body.get_center()+DOWN*.16,body.get_center()+UP*(.18 if c==TEAL else -.02),color=TEXT,stroke_width=5)
+                g.add(VGroup(body,mark))
+            return g
+        left=mixture(-3,[TEAL,GREY,GREY,GREY])
+        right=mixture(3,[TEAL,GREY,GREY,GREY])
+        names=VGroup(T("mixture before",26).move_to([-3,2,0]),T("mixture after",26).move_to([3,2,0]))
+        self.at("A bulk measurement")
+        self.play(FadeIn(h),FadeIn(left),FadeIn(right),FadeIn(names),run_time=.7)
+        self.at("stays fixed")
+        fixed=T("per-cell expression stays fixed",26).move_to([0,-1.5,0])
+        self.play(FadeIn(fixed),run_time=.5)
+        self.at("More cells expressing")
+        self.play(Transform(right,mixture(3,[TEAL,TEAL,TEAL,GREY])),run_time=.7)
+        baseline=Line([-4.8,-3,0],[4.8,-3,0],color=GREY)
+        bars=VGroup(Rectangle(width=1.1,height=.45,fill_color=GREY,fill_opacity=.8,stroke_width=0).move_to([-3,-3,0],aligned_edge=DOWN),Rectangle(width=1.1,height=.45,fill_color=GREY,fill_opacity=.8,stroke_width=0).move_to([3,-3,0],aligned_edge=DOWN))
+        self.at("raise the tissue average")
+        self.play(Create(baseline),FadeIn(bars),run_time=.3)
+        self.play(bars[1].animate.stretch_to_fit_height(1).move_to([3,-3,0],aligned_edge=DOWN),run_time=.5)
+        self.at("data separate")
+        self.play(Transform(fixed,T("same within-type levels; changed proportions",26).move_to([0,-1.5,0])),run_time=.5)
+        self.at("losing fragile cells")
+        clear(self)
+        h=heading("Dissociation can bias proportions")
+        fragile=mixture(-2,[TEAL,TEAL,GREY,GREY])
+        label=T("fragile cells lost",28,GREY).move_to([3,1,0])
+        caution=T("measured mixture ≠ original mixture",28).move_to([0,-2,0])
+        self.play(FadeIn(h),FadeIn(fragile),run_time=.4)
+        self.play(FadeOut(fragile[0],shift=UP*.6),FadeOut(fragile[1],shift=UP*.6),FadeIn(label),run_time=.7)
+        self.at("bias the measured")
+        self.play(FadeIn(caution),run_time=.5)
         self.finish()
 
 
 class S02Balance(SpokenScene):
     def construct(self):
-        c = LEFT * 4.1
-        basal, diff = stack(c)
-        frame = DashedVMobject(Rectangle(width=4.4, height=4.7, stroke_color=GREY, stroke_width=2.5)
-                               .move_to(c), num_dashes=60)
-        self.at("The lining stays")
-        self.play(LaggedStart(*[GrowFromCenter(d) for d in diff], lag_ratio=0.02),
-                  LaggedStart(*[GrowFromCenter(d) for d in basal], lag_ratio=0.05), run_time=1.5)
-        self.at("the same size")
-        same = T("same size", size=26, color=GREY).next_to(frame, UP, buff=0.12)
-        self.play(Create(frame), FadeIn(same), run_time=1.0)
-        self.at("only the basal progenitor")
-        blab = T("basal progenitors divide", size=24, color=BLUE).next_to(frame, DOWN, buff=0.12)
-        self.play(FadeIn(blab), Indicate(basal, color=BLUE, scale_factor=1.1), run_time=1.0)
-        rows = [
-            division_row(1.9, BLUE, BLUE, "two progenitors"),
-            division_row(0.2, GREEN, GREEN, "two differentiating"),
-            division_row(-1.5, BLUE, GREEN, "one of each"),
-        ]
-        self.at("two progenitors")
-        self.play(FadeIn(rows[0][0]), GrowArrow(rows[0][1]), run_time=0.5)
-        self.play(TransformFromCopy(rows[0][0], rows[0][2]), FadeIn(rows[0][3]), run_time=0.7)
-        self.at("two differentiating daughters")
-        self.play(FadeIn(rows[1][0]), GrowArrow(rows[1][1]), run_time=0.5)
-        self.play(TransformFromCopy(rows[1][0], rows[1][2]), FadeIn(rows[1][3]), run_time=0.7)
-        self.at("one of each")
-        self.play(FadeIn(rows[2][0]), GrowArrow(rows[2][1]), run_time=0.5)
-        self.play(TransformFromCopy(rows[2][0], rows[2][2]), FadeIn(rows[2][3]), run_time=0.7)
-        self.at("these three outcomes")
-        bal = T("balanced", size=30, color=TEXT, weight=BOLD).move_to(RIGHT * 3.0 + UP * 3.1)
-        rule = Line(bal.get_left() + DOWN * 0.3, bal.get_right() + DOWN * 0.3, color=GOLD, stroke_width=3)
-        self.play(FadeIn(bal), Create(rule), run_time=0.8)
-        self.at("Differentiating cells move upward")
-        top = VGroup(*diff[-5:])
-        up = Arrow(c + RIGHT * 2.55 + DOWN * 1.0, c + RIGHT * 2.55 + UP * 2.2, buff=0, color=GREEN, stroke_width=4)
-        self.play(GrowArrow(up), diff.animate.shift(UP * 0.35), run_time=1.0)
-        self.at("and are shed")
-        shed = T("shed", size=26, color=GREEN).next_to(up, UP, buff=0.1)
-        self.play(FadeOut(top, shift=UP * 0.6), FadeIn(shed), run_time=0.9)
+        h=heading("Balance cell gain and loss")
+        # Reuse the original epithelial stack, with fewer cells visible at once.
+        basal,upper=stack(LEFT*3.4)
+        diff=VGroup(upper[10],upper[12],upper[14])
+        basal=VGroup(basal[0],basal[2],basal[4])
+        floor=Line([-5.7,-2.3,0],[-1.1,-2.3,0],color=GREY)
+        system=T("mouse oesophagus",26,GREY).move_to([-3.4,2.3,0])
+        self.at("Tissue health")
+        self.play(FadeIn(h),Create(floor),FadeIn(basal),FadeIn(diff),run_time=.7)
+        self.at("In mouse")
+        self.play(FadeIn(system),run_time=.4)
+        self.at("progenitors divide")
+        kids=pair(BLUE,BLUE,[-3.4,-1.7,0],gap=.8,r=.3)
+        self.play(ReplacementTransform(basal[1],kids),run_time=.6)
+        self.at("daughters differentiate")
+        lab=T("differentiate",28,GREEN).move_to([3,.3,0])
+        self.play(kids[1].animate.set_color(GREEN).set_fill(GREEN,.4).shift(UP*1.6),FadeIn(lab),run_time=.65)
+        self.at("cells are shed")
+        self.play(FadeOut(diff,shift=UP*.8),run_time=.65)
+        self.at("In crowded")
+        clear(self)
+        h=heading("Crowding-driven live-cell extrusion")
+        system=T("MDCK cultured sheets / zebrafish epidermis",26,GREY).move_to([0,2.2,0])
+        sheet=cells([GREY]*5,[[x,-.8,0] for x in [-3,-1.5,0,1.5,3]],r=.58)
+        floor=Line([-4,-1.5,0],[4,-1.5,0],color=GREY)
+        self.play(FadeIn(h),FadeIn(system),FadeIn(sheet),Create(floor),run_time=.6)
+        self.at("living cells")
+        live=T("living",26).move_to([0,.25,0])
+        self.play(FadeIn(live),run_time=.3)
+        self.at("squeezed out")
+        self.play(sheet[0].animate.shift(RIGHT*.6),sheet[1].animate.shift(RIGHT*.4),sheet[3].animate.shift(LEFT*.4),sheet[4].animate.shift(LEFT*.6),sheet[2].animate.shift(UP*1.4),live.animate.shift(UP*1.4),run_time=.65)
+        self.at("then die")
+        dead=T("death outside the sheet",26,GREY).move_to([0,.55,0])
+        self.play(FadeOut(live),FadeOut(sheet[2],scale=.3),FadeIn(dead),run_time=.6)
+        self.at("Cell interactions")
+        self.play(Indicate(VGroup(sheet[1],sheet[3]),color=GREY),run_time=.7)
         self.finish()
 
 
 class S03Fate(SpokenScene):
     def construct(self):
-        c = LEFT * 4.1
-        mut = (1, 2, 3)
-        basal, diff = stack(c)
-        diff.shift(UP * 0.0)
-        frame = DashedVMobject(Rectangle(width=4.4, height=4.7, stroke_color=GREY, stroke_width=2.5)
-                               .move_to(c), num_dashes=60)
-        blab = T("basal progenitors", size=24, color=BLUE).next_to(frame, DOWN, buff=0.12)
-        self.add(frame, basal, diff, blab)
-        self.at("A mutant clone")
-        cl = T("Notch1-mutant clone", size=24, color=YELLOW).next_to(frame, UP, buff=0.12)
-        self.play(*[basal[i].animate.set_color(YELLOW).set_fill(YELLOW, 0.5) for i in (2,)], FadeIn(cl), run_time=0.7)
-        self.play(*[basal[i].animate.set_color(YELLOW).set_fill(YELLOW, 0.5) for i in (1, 3)], run_time=0.5)
-        self.at("tilting that balance")
-        self.play(Indicate(VGroup(basal[1], basal[2], basal[3]), color=YELLOW, scale_factor=1.15), run_time=1.0)
-        # two question cards
-        c1 = chip("Divide faster?", color=TEXT, size=34).move_to(RIGHT * 2.4 + UP * 2.4)
-        arc = Arc(radius=0.5, start_angle=0.6, angle=5.0, color=GREY, stroke_width=5)
-        arc.add_tip(tip_length=0.2)
-        g1 = VGroup(arc).move_to(RIGHT * 2.4 + UP * 1.0)
-        self.at("simply divide faster")
-        self.play(FadeIn(c1, shift=LEFT * 0.2), Create(g1[0]), run_time=0.8)
-        c2 = chip("Daughters differentiate less?", color=TEXT, size=34).move_to(RIGHT * 2.4 + DOWN * 0.5)
-        pr = pair(BLUE, GREEN, RIGHT * 2.4 + DOWN * 1.65, gap=1.3, r=0.3)
-        self.at("differentiate less")
-        self.play(FadeIn(c2, shift=LEFT * 0.2), FadeIn(pr, shift=UP * 0.1), run_time=0.8)
-        self.at("Notch signaling")
-        note = T("Notch signalling: linked to differentiation", size=22, color=GREY).move_to(RIGHT * 2.4 + DOWN * 2.7)
-        self.play(FadeIn(note), run_time=0.8)
-        self.at("without a higher division rate")
-        x = strike(c1)
-        self.play(Create(x), c1[1].animate.set_opacity(0.6), g1.animate.set_opacity(0.4), run_time=0.9)
-        self.at("more progenitor daughters")
-        newb = dot(BLUE, r=0.3).move_to(pr[1])
-        self.play(Transform(pr[1], newb), run_time=0.9)
-        self.at("fewer differentiating")
-        tk = tick().move_to(RIGHT * 4.5 + DOWN * 1.55)
-        cons = T("consistent", size=22, color=GREEN).next_to(tk, DOWN, buff=0.1)
-        self.play(Create(tk), FadeIn(cons), run_time=0.8)
-        self.finish()
-
-
-class S04Odds(SpokenScene):
-    def construct(self):
-        xs = [-3.6, 0.0, 3.6]
-        base_y = -1.4
-        K = 5.5
-        names = ["PP", "PD", "DD"]
-        words = ["two progenitors", "one of each", "two differentiating"]
-        cols = [(BLUE, BLUE), (BLUE, GREEN), (GREEN, GREEN)]
-        axis = Line(LEFT * 5.8 + UP * base_y, RIGHT * 5.8 + UP * base_y, color=GREY, stroke_width=3)
-        glyphs = VGroup(*[pair(cols[i][0], cols[i][1], RIGHT * xs[i] + DOWN * 1.9, gap=0.8) for i in range(3)])
-        labs = VGroup(*[T(f"{names[i]}: {words[i]}", size=24).move_to(RIGHT * xs[i] + DOWN * 2.65) for i in range(3)])
-        f1 = M("m = 2 × p(PP) + p(PD)", size=30).move_to(UP * 3.0)
-        probs0 = [0.25, 0.50, 0.25]
-        probs1 = [0.35, 0.50, 0.15]
-
-        def bar(i, p):
-            col = [BLUE, TEAL, GREEN][i]
-            b = Rectangle(width=1.5, height=max(p * K, 0.01), stroke_width=0, fill_color=[BLUE, GREY, GREEN][i],
-                          fill_opacity=0.8)
-            b.move_to(RIGHT * xs[i] + UP * base_y, aligned_edge=DOWN)
-            return b
-
-        def val(i, p):
-            return M(f"{p:.2f}", size=28).next_to(bar(i, p), UP, buff=0.12)
-
-        self.at("Count the progenitors")
-        self.play(Create(axis), FadeIn(glyphs), FadeIn(labs), run_time=1.2)
-        self.at("two times the chance")
-        self.play(Write(f1), run_time=1.6)
-        self.at("Balanced odds")
-        bars = VGroup(*[bar(i, probs0[i]) for i in range(3)])
-        vals = VGroup(*[val(i, probs0[i]) for i in range(3)])
-        self.play(*[GrowFromEdge(b, DOWN) for b in bars], FadeIn(vals), run_time=1.2)
-        self.at("so the count holds")
-        f2 = M("= 2 × 0.25 + 0.50 = 0.50 + 0.50 = 1.0", size=28).move_to(UP * 2.25)
-        self.play(Write(f2), run_time=1.6)
-        self.at("Now tilt the odds")
-        bars2 = VGroup(*[bar(i, probs1[i]) for i in range(3)])
-        vals2 = VGroup(*[val(i, probs1[i]) for i in range(3)])
-        self.play(FadeOut(f2), Transform(bars, bars2), Transform(vals, vals2), run_time=1.6)
-        self.at("Then the average becomes")
-        f3 = M("= 2 × 0.35 + 0.50 = 0.70 + 0.50 = 1.2", size=28, color=YELLOW).move_to(UP * 2.25)
-        self.play(Write(f3), run_time=1.6)
-        self.finish()
-
-
-class S05Growth(SpokenScene):
-    def construct(self):
-        K = 0.022
-        base_y = -2.4
-        xs = [-4.2, -1.4, 1.4, 4.2]
-        counts = [100, 120, 144, 172.8]
-        bars = []
-        for i, n in enumerate(counts):
-            col = BLUE if i == 0 else YELLOW
-            b = Rectangle(width=1.5, height=n * K, stroke_width=0, fill_color=col, fill_opacity=0.8)
-            b.move_to(RIGHT * xs[i] + UP * base_y, aligned_edge=DOWN)
-            bars.append(b)
-        axis = Line(LEFT * 5.6 + UP * base_y, RIGHT * 5.6 + UP * base_y, color=GREY, stroke_width=3)
-        glab = [T(s, size=24, color=GREY).move_to(RIGHT * xs[i] + DOWN * 2.75)
-                for i, s in enumerate(["start", "generation 1", "generation 2", "generation 3"])]
-        v0 = M("100", size=30, color=BLUE).next_to(bars[0], UP, buff=0.12)
-        v3 = M("172.8", size=30, color=YELLOW).next_to(bars[3], UP, buff=0.12)
-        self.at("Start with 100")
-        self.play(Create(axis), GrowFromEdge(bars[0], DOWN), FadeIn(v0), FadeIn(glab[0]), run_time=1.3)
-        nodeath = T("no cell death", size=24, color=GREY).move_to(LEFT * 3.4 + UP * 3.1)
-        self.at("no cell death")
-        self.play(FadeIn(nodeath), run_time=0.5)
-        self.at("multiplies the count")
-        arrs = []
-        for i in range(3):
-            a = Arrow(RIGHT * (xs[i] + 0.9) + UP * (base_y + counts[i] * K + 0.45),
-                      RIGHT * (xs[i + 1] - 0.9) + UP * (base_y + counts[i + 1] * K + 0.45),
-                      buff=0, color=GREY, stroke_width=3, max_tip_length_to_length_ratio=0.25)
-            t = M("× 1.2", size=26).next_to(a, UP, buff=0.1)
-            arrs.append(VGroup(a, t))
-        self.play(GrowFromEdge(bars[1], DOWN), FadeIn(arrs[0]), FadeIn(glab[1]), run_time=0.8)
-        self.play(GrowFromEdge(bars[2], DOWN), FadeIn(arrs[1]), FadeIn(glab[2]), run_time=0.8)
-        self.play(GrowFromEdge(bars[3], DOWN), FadeIn(arrs[2]), FadeIn(glab[3]), run_time=0.8)
-        self.at("no change in cycle time")
-        cyc = T("cycle time: unchanged", size=24, color=GREY).move_to(RIGHT * 3.2 + UP * 3.1)
-        self.play(FadeIn(cyc), run_time=0.6)
-        self.at("After three generations")
-        self.play(FadeIn(v3, scale=1.3), run_time=0.9)
-        self.at("The model shows")
-        sh = SurroundingRectangle(v3, color=YELLOW, buff=0.12)
-        self.play(Create(sh), run_time=0.7)
-        self.finish()
-
-
-class S06Rule(SpokenScene):
-    def construct(self):
-        sp = 0.82
-        r1y, r2y = 1.1, -1.5
-
-        def row(y, n=13):
-            return VGroup(*[dot(BLUE, r=0.3).move_to(RIGHT * ((i - (n - 1) / 2) * sp) + UP * y) for i in range(n)])
-
-        row1 = row(r1y)
-        for i in range(4, 9):
-            row1[i].set_color(YELLOW).set_fill(YELLOW, 0.5)
-        mal = chip("malignant", color=RED, size=30).move_to(UP * 3.0)
-        l1 = T("human oesophagus: NOTCH1-mutant cells", size=24, color=YELLOW).move_to(UP * (r1y + 1.2))
-        self.at("A cancer gene mutation")
-        self.play(LaggedStart(*[GrowFromCenter(d) for d in row1], lag_ratio=0.03), FadeIn(l1), FadeIn(mal), run_time=1.5)
-        self.at("did not make")
-        x = strike(mal)
-        self.play(Create(x), mal[1].animate.set_opacity(0.6), run_time=0.8)
+        h=heading("Smaller point: mouse Notch1 clones")
+        c=LEFT*3.5
+        basal,diff=stack(c)
+        diff=VGroup(diff[10],diff[12],diff[14])
+        floor=Line([-5.7,-2.3,0],[-1.3,-2.3,0],color=GREY)
+        self.at("A smaller point")
+        self.play(FadeIn(h),FadeIn(basal),FadeIn(diff),Create(floor),run_time=.7)
         self.at("In mouse")
-        l1b = T("mouse oesophagus: Notch1-mutant clone", size=24, color=YELLOW).move_to(UP * (r1y + 1.2))
-        self.play(FadeOut(mal), FadeOut(x), Transform(l1, l1b), run_time=0.8)
-        self.at("clone edge")
-        edge = [row1[3], row1[9]]
-        self.play(*[e.animate.set_color(GREEN).set_fill(GREEN, 0.4).shift(UP * 0.35) for e in edge], run_time=1.0)
-        self.at("differentiated faster")
-        nl = T("wild-type neighbours at the clone edge", size=22, color=GREEN).move_to(UP * (r1y - 0.85))
-        self.play(*[Indicate(e, color=GREEN, scale_factor=1.25) for e in edge], FadeIn(nl), run_time=0.8)
-        row2 = VGroup(*[dot(PURPLE, r=0.3, fo=0.5).move_to(RIGHT * ((i - 6) * sp) + UP * r2y) for i in range(13)])
-        lesion = VGroup(*[dot(RED, r=0.3, fo=0.5) for _ in range(3)])
-        lesion.arrange(RIGHT, buff=0.22).move_to(UP * r2y)
-        for i in (5, 6, 7):
-            row2[i].set_opacity(0)
-        l2 = T("mouse model: early lesion among competitive clones", size=24, color=GREY).move_to(UP * (r2y + 0.85))
-        self.at("early lesions")
-        self.play(FadeIn(row2), FadeIn(lesion), FadeIn(l2), run_time=1.0)
-        self.at("removed more often")
-        self.play(*[FadeOut(d, scale=0.3) for d in lesion], run_time=1.0)
-        self.at("not human prevention data")
-        m = T("mouse result", size=24, color=GREY).move_to(UP * (r2y - 0.85))
-        self.play(FadeIn(m), run_time=0.5)
-        self.at("So ask which clones")
-        rule = T("Which clones expand, and why?", size=36, font=TITLE_FONT).move_to(DOWN * 3.05)
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.8)
+        system=T("mouse oesophagus",24,GREY).move_to([-3.5,1.8,0])
+        self.play(FadeIn(system),run_time=.4)
+        self.at("mutant clones expanded")
+        self.play(basal[2].animate.set_color(YELLOW).set_fill(YELLOW,.5),run_time=.3)
+        self.play(*[basal[i].animate.set_color(YELLOW).set_fill(YELLOW,.5) for i in [1,3]],run_time=.5)
+        self.at("without dividing faster")
+        rate=chip("division timing unchanged",GREY,26).move_to([2.8,1.5,0])
+        self.play(FadeIn(rate),run_time=.5)
+        pr=pair(BLUE,GREEN,[2.8,-.1,0],gap=1.2,r=.4)
+        fate=T("daughter fates",26).move_to([2.8,.65,0])
+        self.at("Tracking was consistent")
+        self.play(FadeIn(pr),FadeIn(fate),run_time=.5)
+        self.at("more progenitor daughters")
+        self.play(Transform(pr[1],dot(BLUE,.4).move_to(pr[1])),run_time=.6)
+        self.at("fewer differentiating")
+        cons=T("consistent with a fate shift",24,GREY).move_to([2.8,-1.25,0])
+        self.play(FadeIn(cons),run_time=.5)
+        title=T("Cell Identity, Cell State and Disease",32,font=TITLE_FONT).move_to([0,-3,0])
+        self.at("ones")
+        self.play(FadeIn(title),run_time=.5)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Ask which clones expand, and why, not only which mutations."
+    LINE = "A tissue is a mixture of types and states, not one average."

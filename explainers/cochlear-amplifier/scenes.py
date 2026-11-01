@@ -1,4 +1,4 @@
-"""Cochlear amplifier film: what a returning sound, a capacitance bell and a structure can and cannot show.
+"""Cochlear amplifier: active cells, electrical readouts, emissions and feedback.
 
 COLOR MAP (one colour per concept, whole film)
   BLUE   = the outer hair cell and prestin in its extended state (the subject)
@@ -45,381 +45,271 @@ def pulse(color=YELLOW, r=0.13):
     return Dot(radius=r, color=color)
 
 
-# ------------------------------------------------------------------ title
+
+def hair_cell(u, x=-3.0, bottom=-2.0):
+    """Original rounded cell, anchored at its base as its length changes."""
+    h = 4.1 - u.get_value()
+    return RoundedRectangle(corner_radius=0.6, width=1.4, height=h,
+        stroke_color=BLUE, stroke_width=4, fill_color=BLUE,
+        fill_opacity=0.22).move_to([x, bottom + h / 2, 0])
+
+
+def wave(x, y, amplitude=0.3, width=4.5, color=TEAL):
+    m = VMobject(color=color, stroke_width=4)
+    m.set_points_as_corners([[x+t, y+amplitude*np.sin(2*PI*t), 0]
+                            for t in np.linspace(0, width, 160)])
+    return m
+
+
+def ear(y=0.5):
+    mic = chip("microphone", GREY, size=24).move_to([-5.0, y, 0])
+    canal = Rectangle(width=3.6, height=0.8, stroke_color=GREY,
+        stroke_width=3, fill_color=GREY, fill_opacity=0.08).move_to([-1.9, y, 0])
+    label = T("sealed ear canal", 22, GREY).next_to(canal, DOWN, buff=0.18)
+    middle = chip("middle ear", GREY, size=24).move_to([1.4, y, 0])
+    cochlea = chip("outer hair cells", BLUE, size=24).move_to([4.6, y, 0])
+    return VGroup(mic, canal, label, middle, cochlea)
+
+
 class S00Title(TitleCard):
     LESSON = "The Cochlear Amplifier and Otoacoustic Emissions"
-    TITLE = "What the returning sound leaves out"
+    TITLE = "The cochlear amplifier"
 
 
-# ------------------------------------------------------------------ 1 echo
-class S01Echo(SpokenScene):
+class S01Gain(SpokenScene):
     def construct(self):
-        y0 = 0.5
-        yf = 2.55
-        mic = chip("microphone", GREY, size=24)
-        mic.move_to([-5.0, y0, 0])
-        canal = Rectangle(width=4.6, height=0.8, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                          fill_opacity=0.08).move_to([-1.6, y0, 0])
-        canal_l = T("closed ear canal", 22, GREY).next_to(canal, DOWN, buff=0.15)
-        cochlea = chip("cochlea", BLUE, size=26).move_to([2.3, y0, 0])
-
-        self.at("microphone sealed")
-        self.play(FadeIn(mic), Create(canal), FadeIn(canal_l), run_time=0.9)
-        self.at("the cochlea made")
-        self.play(FadeIn(cochlea), run_time=0.6)
-        d = pulse(TEAL).move_to(cochlea.get_left() + LEFT * 0.1)
-        self.play(FadeIn(d), run_time=0.2)
-        self.play(d.animate.move_to(mic.get_right() + RIGHT * 0.15), run_time=1.0)
-        ret = T("returning sound", 22, TEAL).next_to(canal, UP, buff=0.15)
-        self.play(FadeIn(ret), FadeOut(d), run_time=0.5)
-
-        # plots
-        def trace(tail):
-            ax = mkaxes(5.3, 2.2, (0, 30), (-1.2, 1.2))
-            ts = np.arange(0, 30.001, 0.04)
-            pts = []
-            for t in ts:
-                if t < 4.0:
-                    y = 0.95 * np.exp(-t / 1.1) * np.cos(2 * np.pi * 0.9 * t)
-                elif t < 5.0:
-                    y = 0.0
-                else:
-                    y = tail * np.exp(-(t - 5.0) / 14.0) * np.cos(2 * np.pi * 0.6 * (t - 5.0))
-                pts.append([t, y])
-            return ax, pts
-
-        axn, ptn = trace(0.55)
-        axn.move_to([-3.4, -0.55, 0])
-        trn = VMobject(color=TEAL, stroke_width=3.5)
-        trn.set_points_as_corners([axn.c2p(*p) for p in ptn])
-        n5 = DashedLine(axn.c2p(5, -1.2), axn.c2p(5, 1.2), color=YELLOW, stroke_width=2.5)
-        n5l = T("5 ms", 22, YELLOW).next_to(axn.c2p(5, -1.2), DOWN, buff=0.12)
-        n0l = T("0", 22, GREY).next_to(axn.c2p(0, -1.2), DOWN, buff=0.12)
-        titn = T("normal ears", 24, TEXT).next_to(axn, UP, buff=0.12)
-
-        axd, ptd = trace(0.0)
-        axd.move_to([3.4, -0.55, 0])
-        trd = VMobject(color=TEAL, stroke_width=3.5)
-        trd.set_points_as_corners([axd.c2p(*p) for p in ptd])
-        d5 = DashedLine(axd.c2p(5, -1.2), axd.c2p(5, 1.2), color=YELLOW, stroke_width=2.5)
-        d5l = T("5 ms", 22, YELLOW).next_to(axd.c2p(5, -1.2), DOWN, buff=0.12)
-        d0l = T("0", 22, GREY).next_to(axd.c2p(0, -1.2), DOWN, buff=0.12)
-        titd = T("ears with cochlear deafness", 24, TEXT).next_to(axd, UP, buff=0.12)
-        sk = T("in this sketch", 22, GREY).move_to([0, -3.3, 0])
-
-        self.at("brief impulses")
-        self.play(FadeOut(ret), VGroup(mic, canal, canal_l, cochlea).animate.shift(UP * (yf - y0)), run_time=0.7)
-        imp = pulse(YELLOW).move_to(mic.get_right() + RIGHT * 0.15)
-        impl = T("brief impulse", 22, YELLOW).next_to(canal, UP, buff=0.15)
-        self.play(FadeIn(imp), FadeIn(impl), run_time=0.3)
-        self.play(imp.animate.move_to(cochlea.get_left() + LEFT * 0.1), run_time=0.9)
-        self.play(FadeOut(imp), FadeIn(VGroup(axn, titn, n0l, sk)), run_time=0.6)
-        initial = VMobject(color=YELLOW, stroke_width=3.5)
-        initial.set_points_as_corners([axn.c2p(*p) for p in ptn if p[0] < 4.0])
-        self.play(Create(initial), FadeOut(impl), run_time=0.8)
-        self.at("slowly decaying")
-        tailpts = [axn.c2p(*p) for p in ptn if p[0] >= 5.0]
-        tail = VMobject(color=TEAL, stroke_width=3.5)
-        tail.set_points_as_corners(tailpts)
-        self.play(FadeIn(VGroup(n5, n5l)), run_time=0.4)
-        self.play(Create(tail), run_time=2.0)
-        self.at("in the ears")
-        self.play(FadeIn(VGroup(axd, titd, d0l)), run_time=0.5)
-        initd = VMobject(color=YELLOW, stroke_width=3.5)
-        initd.set_points_as_corners([axd.c2p(*p) for p in ptd if p[0] < 4.0])
-        flat = Line(axd.c2p(5, 0), axd.c2p(30, 0), color=TEAL, stroke_width=3.5)
-        self.play(Create(initd), FadeIn(VGroup(d5, d5l)), run_time=0.8)
-        self.at("it was absent")
-        self.play(Create(flat), run_time=0.8)
-        self.at("that supports")
-        box = SurroundingRectangle(cochlea, color=TEAL, buff=0.1, stroke_width=4)
-        src = T("source", 22, TEAL).next_to(cochlea, UP, buff=0.3)
-        self.play(Create(box), FadeIn(src), run_time=0.6)
-        self.at("identify a motor")
-        mot = chip("motor?", GREY, size=26).move_to([5.2, yf, 0])
-        ln = DashedLine(cochlea.get_right(), mot.get_left(), color=GREY)
-        self.play(FadeIn(ln), FadeIn(mot), run_time=0.7)
+        benefits = VGroup(*[T(s, 27, TEXT) for s in
+            ["detect weak sounds", "separate nearby frequencies", "handle a wide range of loudness"]])
+        benefits.arrange(DOWN, buff=0.4).move_to([0, 0.7, 0])
+        self.at("helps us hear")
+        self.play(FadeIn(benefits[0]), run_time=0.5)
+        self.at("separate nearby frequencies")
+        self.play(FadeIn(benefits[1]), run_time=0.5)
+        self.at("handle a wide")
+        self.play(FadeIn(benefits[2]), run_time=0.5)
+        active = chip("active process", GOLD, size=28).move_to([0, -1.7, 0])
+        self.at("an active process")
+        self.play(FadeIn(active), run_time=0.5)
+        self.at("in mammals")
+        self.play(FadeOut(benefits), FadeOut(active), run_time=0.4)
+        u = ValueTracker(0)
+        cell = always_redraw(lambda: hair_cell(u))
+        label = T("outer hair cell", 26, BLUE).move_to([-3, 2.8, 0])
+        vibration = wave(0.4, 0, 0.18, 5.3)
+        energy = Arrow([-1.8, 0, 0], [0.1, 0, 0], color=YELLOW, buff=0.1)
+        el = T("adds energy", 24, YELLOW).move_to([-0.7, 1.2, 0])
+        self.play(FadeIn(cell), FadeIn(label), Create(vibration), run_time=0.6)
+        self.at("add energy")
+        self.play(GrowArrow(energy), FadeIn(el), run_time=0.5)
+        self.play(u.animate.set_value(1), Transform(vibration, wave(0.4, 0, 0.65, 5.3)), run_time=0.8)
+        self.play(u.animate.set_value(0), run_time=0.7)
+        self.at("their motor")
+        motor = chip("prestin · motor", BLUE, size=26).move_to([-3, -2.8, 0])
+        self.play(FadeIn(motor), run_time=0.6)
+        self.at("a microphone")
+        self.play(*[FadeOut(m) for m in [cell,label,vibration,energy,el,motor]], run_time=0.4)
+        e = ear()
+        self.play(FadeIn(e), run_time=0.7)
+        self.at("sends back out")
+        sound = pulse(TEAL).move_to(e[4].get_left())
+        self.play(FadeIn(sound), run_time=0.2)
+        self.play(sound.animate.move_to(e[0].get_right()), run_time=1.0)
+        self.play(FadeOut(sound), FadeIn(T("returning sound", 26, TEAL).move_to([0, 2, 0])), run_time=0.4)
+        self.at("check outer hair")
+        self.play(FadeIn(T("check outer hair cell function", 28, BLUE).move_to([0,-1.8,0])), run_time=0.5)
         self.finish()
 
 
-# ------------------------------------------------------------------ 2 fast
 class S02Fast(SpokenScene):
     def construct(self):
-        u = ValueTracker(0.0)
-        bottom = -2.1
-        cx = -3.0
-
-        def cell():
-            h = 4.1 - 1.0 * u.get_value()
-            c = RoundedRectangle(corner_radius=0.6, width=1.4, height=h, stroke_color=BLUE, stroke_width=4,
-                                 fill_color=BLUE, fill_opacity=0.22)
-            c.move_to([cx, bottom + h / 2, 0])
-            return c
-
-        cellm = always_redraw(cell)
-        cl = T("outer hair cell", 24, BLUE).move_to([cx, 2.75, 0])
-        mx = -1.1
-        meter = Line([mx, bottom, 0], [mx, 1.7, 0], color=GREY, stroke_width=4)
-        mk = always_redraw(lambda: Triangle(color=YELLOW, fill_opacity=1, stroke_width=0).scale(0.17)
-                           .rotate(PI / 2 * 3).move_to([mx - 0.22, bottom + 0.1 + 3.4 * u.get_value(), 0]))
-        vl = T("voltage", 24, YELLOW).move_to([mx + 0.15, 2.2, 0])
-        top_l = T("more positive", 22, GREY).next_to(meter, RIGHT, buff=0.2).align_to(meter, UP)
+        u = ValueTracker(0)
+        cell = always_redraw(lambda: hair_cell(u))
+        label = T("outer hair cell", 26, BLUE).move_to([-3,2.8,0])
+        self.at("how does the cell")
+        self.play(FadeIn(cell), FadeIn(label), run_time=0.6)
+        channel = chip("transduction channel", YELLOW, size=24).move_to([2.9,2.3,0])
+        current = Arrow([1.5,1.65,0], [-2.1,1.65,0], color=YELLOW, buff=0.1)
+        cl = T("current",24,YELLOW).move_to([0,2.1,0])
+        self.at("current through")
+        self.play(FadeIn(channel), GrowArrow(current), FadeIn(cl), run_time=0.6)
+        voltage = chip("voltage → prestin", YELLOW, size=26).move_to([2.9,0.6,0])
+        self.at("sets the voltage")
+        self.play(FadeIn(voltage), run_time=0.5)
         self.at("shorten and lengthen")
-        self.play(FadeIn(cellm), FadeIn(cl), Create(meter), FadeIn(mk), FadeIn(vl), run_time=0.8)
-        self.play(u.animate.set_value(1.0), run_time=1.0)
-        self.play(u.animate.set_value(0.0), run_time=1.0)
-        self.add(top_l)
-        self.at("is the motor")
-        base = Line([cx, bottom - 0.05, 0], [cx, bottom - 0.5, 0], color=GREY)
-        pc = chip("prestin", BLUE, size=26).move_to([cx, bottom - 0.9, 0])
-        self.play(FadeIn(base), FadeIn(pc), run_time=0.6)
-        self.play(u.animate.set_value(1.0), run_time=0.5)
-        self.play(u.animate.set_value(0.0), run_time=0.5)
-        self.at("think about speed")
-        # tone: one cycle
-        ax = mkaxes(4.9, 1.8, (0, 3), (-1.3, 1.3)).move_to([3.75, 2.1, 0])
-        wv = ax.plot(lambda x: np.sin(2 * PI * x), x_range=[0, 3, 0.02], color=YELLOW, stroke_width=4)
-        tl = T("tone at 20 kHz", 24, YELLOW).next_to(ax, UP, buff=0.1)
-        self.play(FadeIn(tl), Create(ax), run_time=0.5)
-        self.at("completes a cycle")
-        self.play(Create(wv), run_time=1.2)
-        br = BraceBetweenPoints(ax.c2p(0, -1.3), ax.c2p(1, -1.3), direction=DOWN, color=WHITE)
-        brl = T("one cycle = 50 µs", 24, TEXT).next_to(br, DOWN, buff=0.1)
-        self.play(GrowFromCenter(br), FadeIn(brl), run_time=0.6)
-        self.at("Preston responds")
-        chem = chip("ATP hydrolysis", GREY, size=24).move_to([3.75, -0.3, 0])
-        self.play(FadeIn(chem), run_time=0.5)
-        cross = Cross(chem, stroke_color=RED, stroke_width=4)
+        movement = T("somatic motility",26,BLUE).move_to([-3,-2.8,0])
+        self.play(FadeIn(movement),u.animate.set_value(1),run_time=0.8)
+        self.play(u.animate.set_value(0),run_time=0.8)
+        direct = T("direct voltage response",24,YELLOW).move_to([2.9,-0.7,0])
+        self.at("responds directly")
+        self.play(FadeIn(direct),run_time=0.5)
         self.at("without burning")
-        self.play(Create(cross), run_time=0.5)
-        self.at("Membrane filtering")
-        link = Line([mx - 0.25, bottom - 0.9, 0], pc.get_right(), color=YELLOW, stroke_width=5)
-        link2 = Line([mx, bottom, 0], [mx, bottom - 0.9, 0], color=YELLOW, stroke_width=5)
-        res = T("responds to voltage directly", 24, YELLOW).move_to([2.3, -3.0, 0])
-        self.play(Create(link2), Create(link), FadeIn(res), run_time=0.6)
-        self.play(u.animate.set_value(1.0), run_time=0.6)
-        self.play(u.animate.set_value(0.0), run_time=0.6)
+        noatp = T("no ATP burned each cycle",24,GREY).move_to([2.9,-1.7,0])
+        self.play(FadeIn(noatp),run_time=0.5)
+        self.at("in a")
+        self.play(*[FadeOut(m) for m in [cell,label,channel,current,cl,voltage,movement,direct,noatp]],run_time=0.5)
+        head=T("Prestin knock-in mouse",32,BLUE).move_to([0,2.8,0])
+        self.play(FadeIn(head),run_time=0.5)
+        normal=VGroup(T("transduction: normal",28,TEXT),T("cell mechanics: normal",28,TEXT)).arrange(DOWN,buff=0.5).move_to([0,0.9,0])
+        self.at("transduction and cell")
+        self.play(FadeIn(normal),run_time=0.6)
+        lost=chip("amplification lost",RED,size=30).move_to([0,-0.9,0])
+        self.at("yet amplification")
+        self.play(FadeIn(lost),run_time=0.5)
+        self.at("motility is necessary")
+        conclusion=T("cell-body motility is necessary",28,BLUE).move_to([0,-2.5,0])
+        self.play(FadeIn(conclusion),run_time=0.6)
         self.finish()
 
 
-# ------------------------------------------------------------------ 3 bell
 class S03Bell(SpokenScene):
     def construct(self):
-        # left: cell with prestin in the membrane, voltage clamp
-        cell = RoundedRectangle(corner_radius=0.5, width=3.6, height=3.4, stroke_color=BLUE, stroke_width=4,
-                                fill_color=BLUE, fill_opacity=0.12).move_to([-4.2, 1.1, 0])
-        cl = T("cell with prestin", 24, BLUE).move_to(cell)
-        pip = Line([-1.4, 3.35, 0], [-2.9, 2.5, 0], color=YELLOW, stroke_width=5)
-        pl = T("voltage clamp", 24, YELLOW).next_to(pip.get_start(), LEFT, buff=0.15).shift(UP * 0.25)
-        mem = Rectangle(width=3.8, height=0.3, stroke_color=GREY, fill_color=GREY, fill_opacity=0.45,
-                        stroke_width=2).move_to([-4.2, -0.6, 0])
-        pr = RoundedRectangle(corner_radius=0.15, width=0.8, height=1.0, stroke_color=BLUE, stroke_width=3,
-                              fill_color=BLUE, fill_opacity=0.3).move_to([-4.2, -0.6, 0])
-        ml = T("membrane", 22, GREY).next_to(mem, DOWN, buff=0.45).shift(LEFT * 1.0)
-        prl = T("prestin", 22, BLUE).next_to(mem, DOWN, buff=0.45).shift(RIGHT * 0.9)
-        # right: bell axes
-        ax = mkaxes(6.2, 4.0, (-220, -20), (0, 1.15)).move_to([3.0, 0.4, 0])
-        xl = T("membrane voltage", 24, YELLOW).next_to(ax, DOWN, buff=0.2)
-        yl = T("capacitance, two-state model", 24, GREEN).next_to(ax, UP, buff=0.3).align_to(ax, LEFT)
-        bell = curve(ax, nlc, (-220, -20), GREEN, 1.0, 6)
-
-        self.at("how do you connect")
-        self.play(FadeIn(cell), FadeIn(cl), run_time=0.5)
-        self.play(Create(pip), FadeIn(pl), run_time=0.5)
-        self.play(FadeIn(mem), FadeIn(pr), FadeIn(ml), FadeIn(prl), Create(ax), FadeIn(xl), FadeIn(yl), run_time=0.8)
-        self.at("bell shaped")
-        vt = ValueTracker(-215)
-        dot = always_redraw(lambda: Dot(ax.c2p(vt.get_value(), nlc(vt.get_value())), radius=0.12, color=YELLOW))
-        self.add(dot)
-        self.play(Create(bell), vt.animate.set_value(-25), run_time=1.7, rate_func=linear)
-        self.remove(dot)
-        self.at("peaks at one")
-        pk = DashedLine(ax.c2p(VH, 0), ax.c2p(VH, 1.0), color=GREY, stroke_width=3)
-        pd = Dot(ax.c2p(VH, 1.0), radius=0.14, color=YELLOW)
-        pkl = T("peak", 24, GREEN).next_to(pd, UP, buff=0.1)
-        self.play(Create(pk), FadeIn(pd), FadeIn(pkl), run_time=0.6)
-        self.at("movement of charge")
-        q = Dot(radius=0.13, color=YELLOW).move_to(pr.get_center() + UP * 0.3)
-        self.play(FadeIn(q), run_time=0.3)
-        self.play(q.animate.move_to(pr.get_center() + DOWN * 0.3), run_time=0.8)
-        self.play(q.animate.move_to(pr.get_center() + UP * 0.3), run_time=0.8)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 4 two states
-class S04Twostate(SpokenScene):
-    def construct(self):
-        # left: two states and occupancy bar
-        ext = chip("extended", BLUE, size=26).move_to([-5.1, 2.3, 0])
-        con = chip("contracted", GREEN, size=26).move_to([-1.3, 2.3, 0])
-        self.at("two states")
-        self.play(FadeIn(ext), FadeIn(con), run_time=0.7)
-        self.at("toward a contracted")
-        arr = Arrow(ext.get_right(), con.get_left(), buff=0.1, color=YELLOW, stroke_width=5)
-        dep = T("depolarization", 24, YELLOW).move_to([-3.2, 3.1, 0])
-        self.play(GrowArrow(arr), FadeIn(dep), run_time=0.7)
-
-        # occupancy bar
-        W = 4.4
-        f = ValueTracker(0.0)
-        bx = -3.15
-
-        def bar():
-            fv = f.get_value()
-            g = VGroup()
-            gl = Rectangle(width=max(W * fv, 0.001), height=0.5, stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
-            bl = Rectangle(width=max(W * (1 - fv), 0.001), height=0.5, stroke_width=0, fill_color=BLUE,
-                           fill_opacity=0.6)
-            gl.move_to([bx - W / 2 + W * fv / 2, 1.1, 0])
-            bl.move_to([bx + W / 2 - W * (1 - fv) / 2, 1.1, 0])
-            return VGroup(bl, gl)
-
-        barm = always_redraw(bar)
-        outline = Rectangle(width=W, height=0.5, stroke_color=GREY, stroke_width=2.5).move_to([bx, 1.1, 0])
-        barl = T("share of prestin in each state", 22, GREY).next_to(outline, UP, buff=0.12)
-        
-        # right: stacked plots
-        axf = mkaxes(5.6, 2.3, (-220, -20), (0, 1.1)).move_to([3.4, 1.35, 0])
-        axb = mkaxes(5.6, 2.3, (-220, -20), (0, 1.15)).move_to([3.4, -1.75, 0])
-        tf = T("occupancy f of the contracted state", 22, GREEN).next_to(axf, UP, buff=0.1)
-        tb = T("normalized capacitance", 22, GREEN).next_to(axb, UP, buff=0.1)
-        cf = curve(axf, occ, (-220, -20), GREEN, 1.0, 5)
-        cb = curve(axb, nlc, (-220, -20), GREEN, 1.0, 5)
-        self.at("and colleagues fitted")
-        self.add(barm, outline)
-        self.play(FadeIn(barl), Create(axf), Create(axb), FadeIn(tf), FadeIn(tb), run_time=0.8)
-        self.play(Create(cf), Create(cb), run_time=1.5)
-        gerbil = T("gerbil prestin, cell line", 22, GREY).move_to([-3.15, -0.2, 0])
-        self.play(FadeIn(gerbil), run_time=0.4)
-        self.at("effective charge")
-        par = M("Vh = −112 mV   z = 0.70", 24, YELLOW).move_to([-3.15, -0.9, 0])
-        self.play(FadeIn(par), run_time=0.6)
-
-        vx = ValueTracker(VH)
-        vline = always_redraw(lambda: VGroup(
-            DashedLine(axf.c2p(vx.get_value(), 0), axf.c2p(vx.get_value(), 1.1), color=YELLOW, stroke_width=2.5),
-            DashedLine(axb.c2p(vx.get_value(), 0), axb.c2p(vx.get_value(), 1.15), color=YELLOW, stroke_width=2.5),
-            Dot(axf.c2p(vx.get_value(), occ(vx.get_value())), radius=0.1, color=YELLOW),
-            Dot(axb.c2p(vx.get_value(), nlc(vx.get_value())), radius=0.1, color=YELLOW)))
-        r1 = M("f = 0.5   capacitance = 1 (peak)", 22, GREEN).move_to([-3.15, -1.9, 0])
-        self.at("half the protein")
-        self.play(FadeIn(vline), f.animate.set_value(0.5), FadeIn(r1), run_time=0.9)
-        xl1 = M("−112 mV", 22, YELLOW).next_to(axb.c2p(VH, 0), DOWN, buff=0.12).shift(LEFT * 0.45)
-        self.add(xl1)
-        self.at("more positive")
-        r2 = M("f = 0.798   capacitance = 0.644", 22, GREEN).move_to([-3.15, -2.5, 0])
-        xl2 = M("−62 mV", 22, YELLOW).next_to(axb.c2p(-62, 0), DOWN, buff=0.12).shift(RIGHT * 0.45)
-        self.play(vx.animate.set_value(-62), f.animate.set_value(occ(-62)), FadeIn(xl2), run_time=1.2)
-        self.at("occupancy rises")
-        self.play(FadeIn(r2), run_time=0.5)
-        self.at("falls to about")
-        pct = T("about 64% of the peak", 24, TEXT).move_to([-3.15, -3.15, 0])
-        self.play(FadeIn(pct), Indicate(r2, color=GREEN), run_time=0.8)
-        self.finish()
-
-
-# ------------------------------------------------------------------ 5 limits
-class S05Limits(SpokenScene):
-    def construct(self):
-        # left: charge movement and force unknown
-        ax = mkaxes(4.4, 2.0, (-220, -20), (0, 1.15)).move_to([-3.9, 1.6, 0])
-        bell = curve(ax, nlc, (-220, -20), GREEN, 1.0, 5)
-        t1 = T("charge movement in a cell line", 22, GREEN).next_to(ax, UP, buff=0.12)
+        title=T("Nonlinear capacitance",32,GREEN).move_to([0,3.1,0])
+        self.at("one electrical signature")
+        self.play(FadeIn(title),run_time=0.5)
+        cell=RoundedRectangle(corner_radius=0.5,width=3.6,height=3.4,
+            stroke_color=BLUE,stroke_width=4,fill_color=BLUE,fill_opacity=0.12).move_to([-4.2,0.4,0])
+        cl=T("cell with prestin",24,BLUE).move_to(cell)
+        pip=Line([-1.6,2.4,0],[-2.9,1.7,0],color=YELLOW,stroke_width=5)
+        pl=T("voltage clamp",24,YELLOW).move_to([-4.2,2.55,0])
+        pr=RoundedRectangle(corner_radius=0.15,width=0.8,height=1,
+            stroke_color=BLUE,stroke_width=3,fill_color=BLUE,fill_opacity=0.3).move_to([-4.2,-1.3,0])
+        self.at("voltage clamp")
+        self.play(FadeIn(VGroup(cell,cl,pip,pl,pr)),run_time=0.6)
+        ax=mkaxes(5.7,3.4,(0,5),(0,1.15)).move_to([3,0.3,0])
+        xl=T("membrane voltage",24,YELLOW).next_to(ax,DOWN,buff=0.2)
+        yl=T("capacitance",24,GREEN).next_to(ax,UP,buff=0.2)
+        # Qualitative curve only: no fitted constants, numerical ticks or occupancy readout.
+        bell=curve(ax,lambda v: np.exp(-((v-2.5)/1.2)**2),(0,5),GREEN,0.025,6)
+        self.at("shows a")
+        self.play(Create(ax),FadeIn(xl),FadeIn(yl),Create(bell),run_time=1.2)
+        q=pulse(YELLOW).move_to(pr.get_center()+UP*0.28)
+        readout=T("readout: charge movement",26,GREEN).move_to([0,-2.65,0])
         self.at("charge movement")
-        self.play(Create(ax), Create(bell), FadeIn(t1), run_time=1.0)
-        fp = chip("force, power of a hair cell", GREY, size=24).move_to([-3.9, -1.0, 0])
-        q = T("not read out", 24, RED).next_to(fp, DOWN, buff=0.2)
-        self.at("how much force")
-        self.play(FadeIn(fp), run_time=0.5)
-        self.play(FadeIn(q), Create(DashedLine(ax.get_bottom() + DOWN * 0.2, fp.get_top(), color=GREY)),
-                  run_time=0.6)
-
-        # right: two purified protein schematics
-        self.at("purified protein")
-        pt = T("purified protein in chosen conditions", 22, GREY).move_to([3.0, 3.35, 0])
-
-        def membrane_with(width, y, color, name):
-            mem = Rectangle(width=4.6, height=0.28, stroke_width=0, fill_color=GREY, fill_opacity=0.4)
-            blob = RoundedRectangle(corner_radius=0.2, width=width, height=1.1, stroke_color=color, stroke_width=3,
-                                    fill_color=color, fill_opacity=0.28)
-            lab = T(name, 24, color)
-            g = VGroup(mem, blob).move_to([3.0, y, 0])
-            lab.next_to(g, RIGHT, buff=0.0)
-            return g, lab
-
-        gc, gcl = membrane_with(1.5, 2.2, BLUE, "")
-        gs, gsl = membrane_with(1.5, 0.0, GREEN, "")
-        lc = T("chloride", 24, BLUE).move_to([1.45, 1.75, 0])
-        ls = T("salicylate", 24, GREEN).move_to([1.45, -0.45, 0])
-        self.play(FadeIn(pt), FadeIn(gc), FadeIn(lc), FadeIn(gs), FadeIn(ls), run_time=0.9)
-        self.at("differ by about")
-        arr = DoubleArrow([2.5, 1.65, 0], [2.5, 0.75, 0], color=YELLOW, buff=0, stroke_width=5, tip_length=0.15)
-        lab = VGroup(T("mean transmembrane area", 22, YELLOW), T("differs by about 200 Å²", 22, YELLOW)).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
-        lab.move_to([2.8 + lab.width / 2, 1.2, 0])
-        sch = T("schematic, not to scale", 22, GREY).move_to([3.0, -0.95, 0])
-        self.play(GrowFromCenter(arr), FadeIn(lab), FadeIn(sch), run_time=0.9)
-        self.at("compares two structures")
-        cmp_ = T("two structures compared", 24, TEXT).move_to([3.0, -1.65, 0])
-        self.play(FadeIn(cmp_), run_time=0.5)
-        self.at("not a stroke")
-        st = chip("stroke measured in a hair cell", GREY, size=24).move_to([3.0, -2.55, 0])
-        self.play(FadeIn(st), run_time=0.4)
-        self.play(Create(Cross(st, stroke_color=RED, stroke_width=6)), run_time=0.5)
+        self.play(FadeIn(q),FadeIn(readout),run_time=0.4)
+        self.play(q.animate.shift(DOWN*0.56),run_time=0.6)
+        self.play(q.animate.shift(UP*0.56),run_time=0.6)
+        self.at("does not measure")
+        limit=T("not a force or power measurement",26,RED).move_to([0,-3.35,0])
+        self.play(FadeIn(limit),run_time=0.5)
         self.finish()
 
 
-# ------------------------------------------------------------------ 6 rule
-class S06Rule(SpokenScene):
+class S01Echo(SpokenScene):
     def construct(self):
-        def icon_sound():
-            ax = mkaxes(2.0, 1.0, (0, 30), (-1.2, 1.2))
-            ts = np.arange(5, 30.01, 0.1)
-            m = VMobject(color=TEAL, stroke_width=3.5)
-            m.set_points_as_corners([ax.c2p(t, 0.9 * np.exp(-(t - 5) / 14) * np.cos(2 * np.pi * 0.6 * (t - 5)))
-                                     for t in ts])
-            return VGroup(ax, m)
-
-        def icon_bell():
-            ax = mkaxes(2.0, 1.0, (-220, -20), (0, 1.15))
-            return VGroup(ax, curve(ax, nlc, (-220, -20), GREEN, 2.0, 4))
-
-        def icon_struct():
-            mem = Rectangle(width=2.0, height=0.2, stroke_width=0, fill_color=GREY, fill_opacity=0.4)
-            b = RoundedRectangle(corner_radius=0.15, width=0.8, height=0.8, stroke_color=BLUE, stroke_width=3,
-                                 fill_color=BLUE, fill_opacity=0.28)
-            return VGroup(mem, b).move_to(ORIGIN)
-
-        cols = []
-        for x, ic, head, col, claim in [
-            (-4.2, icon_sound(), "returning sound", TEAL, "supports a cochlear source"),
-            (0.0, icon_bell(), "capacitance curve", GREEN, "reports charge movement"),
-            (4.2, icon_struct(), "structures", BLUE, "show chosen preparation conditions"),
-        ]:
-            box = RoundedRectangle(corner_radius=0.2, width=3.8, height=4.0, stroke_color=col, stroke_width=3,
-                                   fill_color=col, fill_opacity=0.07).move_to([x, 0.2, 0])
-            h = T(head, 26, col).move_to([x, 1.65, 0])
-            ic.move_to([x, 0.4, 0])
-            c1 = T(claim, 22, TEXT)
-            fit(c1, max_w=3.4)
-            c1.move_to([x, -1.2, 0])
-            cols.append((box, h, ic, c1))
-
-        self.at("different preparation")
-        self.play(*[FadeIn(VGroup(c[0])) for c in cols], run_time=0.8)
+        e=ear(1.1)
+        title=T("Otoacoustic emissions",32,TEAL).move_to([0,3,0])
         self.at("returning sound")
-        self.play(FadeIn(cols[0][1]), FadeIn(cols[0][2]), run_time=0.5)
-        self.play(FadeIn(cols[0][3]), run_time=0.5)
-        self.at("capacitance curve")
-        self.play(FadeIn(cols[1][1]), FadeIn(cols[1][2]), run_time=0.5)
-        self.play(FadeIn(cols[1][3]), run_time=0.5)
-        self.at("the structures")
-        self.play(FadeIn(cols[2][1]), FadeIn(cols[2][2]), run_time=0.5)
-        self.play(FadeIn(cols[2][3]), run_time=0.5)
-        self.at("complementary views")
-        line = T("complementary views, not one settled movie", 28, GOLD).move_to([0, -2.95, 0])
-        self.play(FadeIn(line), run_time=0.7)
+        self.play(FadeIn(e),FadeIn(title),run_time=0.6)
+        self.at("depend on the active")
+        self.play(Indicate(e[4],color=BLUE),run_time=0.6)
+        self.at("a microphone")
+        d=pulse(TEAL).move_to(e[4].get_left())
+        self.play(FadeIn(d),run_time=0.2)
+        self.play(d.animate.move_to(e[0].get_right()),run_time=1.1)
+        self.play(FadeOut(d),run_time=0.2)
+        screen=T("newborn hearing screening",28,TEXT).move_to([0,-0.8,0])
+        self.at("newborn hearing screening")
+        self.play(FadeIn(screen),run_time=0.6)
+        emission=chip("emission present",TEAL,size=26).move_to([-3.2,-2,0])
+        self.at("a pass shows")
+        self.play(FadeIn(emission),run_time=0.5)
+        self.at("through the middle ear")
+        self.play(Indicate(e[3],color=TEAL),run_time=0.5)
+        caution=T("a pass does not prove intact hearing",28,RED).move_to([0,-3.2,0])
+        self.at("does not prove")
+        self.play(FadeIn(caution),run_time=0.5)
+        self.at("in auditory neuropathy")
+        neuro=T("auditory neuropathy",28,RED).move_to([0,-0.8,0])
+        self.play(ReplacementTransform(screen,neuro),run_time=0.5)
+        self.at("auditory brainstem response")
+        response=VGroup(T("auditory nerve → brainstem",24,GREY),
+            T("response absent / very abnormal",24,RED)).arrange(DOWN,buff=0.25).move_to([3.1,-2,0])
+        self.play(FadeIn(response),run_time=0.6)
+        self.at("different stages")
+        self.play(Indicate(emission,color=TEAL),Indicate(response,color=RED),run_time=0.6)
+        self.finish()
+
+
+class S08Bundle(SpokenScene):
+    def construct(self):
+        head=T("Excised adult bullfrog sacculus",30,BLUE).move_to([0,3.1,0])
+        base=Line([-5.5,-1.8,0],[-1.5,-1.8,0],color=GREY,stroke_width=5)
+        bundle=VGroup(*[Line([-4.4+i*0.55,-1.8,0],[-4.4+i*0.55,-0.1+i*0.35,0],color=BLUE,stroke_width=8) for i in range(4)])
+        bl=T("hair bundle",24,BLUE).move_to([-3.5,-2.4,0])
+        self.at("in frogs")
+        self.play(FadeIn(head),Create(base),Create(bundle),FadeIn(bl),run_time=0.7)
+        self.at("a flexible probe")
+        probe=VMobject(color=YELLOW,stroke_width=5).set_points_smoothly([[-0.7,2,0],[-1,1.4,0],[-2,0.9,0],[-2.75,0.8,0]])
+        pl=T("flexible probe",24,YELLOW).move_to([-1.7,2.4,0])
+        self.play(Create(probe),FadeIn(pl),run_time=0.5)
+        target=bundle.copy()
+        target.apply_function(lambda p: p+RIGHT*(p[1]+1.8)*0.25)
+        self.play(Transform(bundle,target),probe.animate.shift(RIGHT*0.45),run_time=0.7)
+        self.play(Transform(bundle,VGroup(*[Line([-4.4+i*0.55,-1.8,0],[-4.4+i*0.55,-0.1+i*0.35,0],color=BLUE,stroke_width=8) for i in range(4)])),probe.animate.shift(LEFT*0.45),run_time=0.7)
+        balance=VGroup(T("energy dissipated through drag",24,TEXT),T(">",38,TEXT),T("energy supplied by probe",24,YELLOW)).arrange(DOWN,buff=0.3).move_to([3.1,0.8,0])
+        self.at("dissipated more energy")
+        self.play(FadeIn(balance),run_time=0.6)
+        extra=chip("bundle supplies the difference",BLUE,size=24).move_to([3.1,-1.5,0])
+        self.at("extra energy came")
+        self.play(FadeIn(extra),Indicate(bundle,color=BLUE,scale_factor=1.0),run_time=0.6)
+        self.at("a large movement alone")
+        note=T("large motion alone ≠ added energy",26,RED).move_to([0,-3.2,0])
+        self.play(FadeIn(note),run_time=0.6)
+        self.at("a passive bundle")
+        self.play(*[FadeOut(m) for m in [probe,pl,balance,extra]],run_time=0.4)
+        passive=VGroup(T("passive bundle",27,GREY),T("probe can supply the motion",24,YELLOW)).arrange(DOWN,buff=0.35).move_to([2.8,0.5,0])
+        self.play(FadeIn(passive),bundle.animate.set_color(GREY),run_time=0.5)
+        self.play(bundle.animate.apply_function(lambda p: p+RIGHT*(p[1]+1.8)*0.35),run_time=0.7)
+        self.play(bundle.animate.apply_function(lambda p: p-RIGHT*(p[1]+1.8)*0.35),run_time=0.7)
+        self.at("does not show")
+        limit=T("mammalian bundle contribution not established here",25,RED).move_to([0,-3.2,0])
+        self.play(FadeOut(note),run_time=0.3)
+        self.play(FadeIn(limit),run_time=0.3)
+        self.finish()
+
+
+class S09Feedback(SpokenScene):
+    def construct(self):
+        u=ValueTracker(0)
+        cell=always_redraw(lambda: hair_cell(u,x=3.8))
+        label=T("outer hair cell",26,BLUE).move_to([3.8,2.8,0])
+        brain=chip("brain",GREY,size=28).move_to([-4.8,2.4,0])
+        nerve=Arrow([-3.7,2.4,0],[2.9,1.3,0],buff=0.12,color=GREY,stroke_width=4)
+        self.at("the brain")
+        self.play(FadeIn(brain),FadeIn(cell),FadeIn(label),GrowArrow(nerve),run_time=0.6)
+        self.play(u.animate.set_value(1),run_time=0.6)
+        self.play(u.animate.set_value(0),run_time=0.6)
+        eff=T("medial olivocochlear efferent",24,GREY).move_to([-1.6,3.2,0])
+        ach=chip("acetylcholine",YELLOW,size=25).move_to([-1.3,0.5,0])
+        self.at("efferents release")
+        self.play(FadeIn(eff),FadeIn(ach),run_time=0.5)
+        particle=pulse(YELLOW).move_to(ach.get_right())
+        self.play(FadeIn(particle),run_time=0.2)
+        self.play(particle.animate.move_to([3,0.5,0]),run_time=0.6)
+        self.play(FadeOut(particle),run_time=0.2)
+        calcium=chip("calcium entry",YELLOW,size=24).move_to([-3.7,-0.9,0])
+        potassium=chip("potassium channels",YELLOW,size=24).move_to([0,-0.9,0])
+        link=Arrow(calcium.get_right(),potassium.get_left(),buff=0.1,color=YELLOW)
+        self.at("calcium entry")
+        self.play(FadeIn(calcium),GrowArrow(link),FadeIn(potassium),run_time=0.6)
+        self.at("shunts and hyperpolarizes")
+        self.play(*[FadeOut(m) for m in [ach,calcium,potassium,link]],run_time=0.4)
+        voltage=T("shunting + hyperpolarization",26,YELLOW).move_to([-2.6,0.1,0])
+        self.play(FadeIn(voltage),run_time=0.6)
+        self.at("suppressing their motility")
+        self.play(u.animate.set_value(0.2),run_time=0.6)
+        self.play(u.animate.set_value(0),run_time=0.6)
+        suppressed=T("reduced motility",26,RED).move_to([3.8,-2.7,0])
+        self.play(FadeIn(suppressed),run_time=0.4)
+        self.at("this feedback regulates")
+        regulation=T("feedback regulates amplification",29,GOLD).move_to([-1.4,-1.4,0])
+        self.play(FadeIn(regulation),run_time=0.6)
+        self.at("detect weak sounds")
+        self.play(*[FadeOut(m) for m in [brain,nerve,eff,voltage,regulation]],run_time=0.4)
+        benefits=VGroup(T("detect weak sounds",28,TEXT),T("separate nearby frequencies",28,TEXT)).arrange(DOWN,buff=0.45).move_to([-2,0.4,0])
+        self.play(FadeIn(benefits),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Read them as complementary views, not one settled movie."
+    LINE = "Mammalian outer hair cells add energy to each sound cycle, via prestin."

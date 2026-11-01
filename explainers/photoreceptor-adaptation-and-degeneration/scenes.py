@@ -1,4 +1,4 @@
-"""Photoreceptor adaptation: delete the calcium sensors and adaptation stays  (Biochemistrypedia explainer)
+"""Photoreceptor adaptation and degeneration: animation for the revised narration  (Biochemistrypedia explainer)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -7,9 +7,9 @@ COLOR MAP (one color per concept, whole video)
   ORANGE = calcium (dots, gauge, bath tag, the calcium-dependent mechanism)
   PURPLE = the two calcium sensors, GCAPs and recoverin (and their kinase partner chip)
   TEAL   = membrane proteins (CNG channels, the pump)
-  GREEN  = cGMP, adaptation / gain control, the dark state
+  GREEN  = cGMP, adaptation / gain control, the dark state, supportive / therapeutic effects
   PINK   = activated visual pigment
-  BLUE   = control cones (curve, label, bars)
+  BLUE   = intact / control photoreceptors (cells, curves, labels, bars)
   RED    = removed / lacking / off (crossed-out sensors, knockout cones, the off T-bar, "not clamped")
   GREY   = membranes, outlines, unknowns (dashed question-mark boxes)
 """
@@ -102,242 +102,166 @@ def fit_curve(ax, p, color):
     return ax.plot(lambda x: logS(x, p["I0"], p["n"]), x_range=[2, 6, 0.02], color=color, stroke_width=6, use_smoothing=False)
 
 
+# Additional schematic helpers use the same outlines and chip vocabulary.
+def rod_cell(color=BLUE, s=1.0):
+    outer = RoundedRectangle(corner_radius=0.15, width=0.7, height=1.7,
+                             stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.18).move_to([0, 0.85, 0])
+    body = RoundedRectangle(corner_radius=0.4, width=1.1, height=1.1,
+                            stroke_color=color, stroke_width=4, fill_color=color, fill_opacity=0.18).move_to([0, -0.55, 0])
+    return VGroup(outer, body, Line([0, -1.1, 0], [0, -1.6, 0], color=color, stroke_width=4)).scale(s)
+
+
+def response(left, bottom, width, height, tau, color):
+    # Illustrative impulse response, normalized to its stated peak.
+    ts = np.linspace(0, 8, 160)
+    vals = (ts / tau) * np.exp(1 - ts / tau)
+    return VMobject(color=color, stroke_width=5).set_points_as_corners(
+        [[left + width*t/8, bottom + height*v, 0] for t, v in zip(ts, vals)])
+
+
+def question(text, pos, width=3.4):
+    box = DashedVMobject(RoundedRectangle(width=width, height=1.0, corner_radius=0.15,
+                                        stroke_color=GREY), num_dashes=26).move_to(pos)
+    return VGroup(box, T(text, 22, GREY).move_to(box))
+
+
 class S00Title(TitleCard):
     LESSON = "Photoreceptors across a billion-fold range, and when they fail"
-    TITLE = "Delete the sensors, adaptation stays"
+    TITLE = "Calcium Turns Down the Gain"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """a cone, a background-light bar and a sensitivity meter; the two sensors are crossed out and the meter still falls."""
 
+class S01Gain(SpokenScene):
     def construct(self):
-        cone = cone_cell(BLUE, 1.5).move_to([-4.6, -0.2, 0])
-        cone_lbl = T("mouse cone", 26, BLUE).next_to(cone, DOWN, buff=0.15)
-        self.at("A mouse cone")
-        self.play(FadeIn(cone, shift=UP * 0.1), FadeIn(cone_lbl), run_time=0.7)
-
-        L = 0.9
-        lt_lbl = T("background light", 26, YELLOW).move_to([3.0, 2.55, 0])
-        se_lbl = T("sensitivity", 26, BLUE).move_to([3.0, 0.75, 0])
-        lt = bar(L, 1.95, 0.6, YELLOW)
-        se = bar(L, 0.15, 4.4, BLUE)
-        self.at("Its sensitivity resets")
-        self.play(FadeIn(lt_lbl), FadeIn(se_lbl), FadeIn(lt), FadeIn(se), run_time=0.7)
-        self.at("brightens")
-        self.play(Transform(lt, bar(L, 1.95, 4.4, YELLOW)), Transform(se, bar(L, 0.15, 1.0, BLUE)), run_time=0.9)
-        ad = T("adaptation", 30, GREEN, weight=BOLD).move_to([3.0, -0.65, 0])
-        self.at("That reset is called")
-        self.play(FadeIn(ad, shift=UP * 0.1), run_time=0.5)
-
-        self.at("calcium sensors")
-        c1 = bchip("GCAPs", PURPLE, 26).move_to([-1.8, 1.3, 0])
-        c2 = bchip("recoverin", PURPLE, 26).move_to([-1.8, 0.2, 0])
-        l1 = Line(cone.get_right() + LEFT * 0.3 + UP * 0.9, c1.get_left(), color=PURPLE, stroke_width=3)
-        l2 = Line(cone.get_right() + LEFT * 0.2 + DOWN * 0.1, c2.get_left(), color=PURPLE, stroke_width=3)
-        self.play(FadeIn(c1, shift=LEFT * 0.2), FadeIn(c2, shift=LEFT * 0.2), Create(l1), Create(l2), run_time=0.9)
-        self.at("Delete them")
-        x1, x2 = cross(c1), cross(c2)
-        self.play(Create(x1), Create(x2), run_time=0.7)
-        self.at("still adapts")
-        self.play(Transform(lt, bar(L, 1.95, 0.6, YELLOW)), Transform(se, bar(L, 0.15, 4.4, BLUE)), run_time=0.4)
-        self.play(Transform(lt, bar(L, 1.95, 4.4, YELLOW)), Transform(se, bar(L, 0.15, 1.0, BLUE)), run_time=1.1)
-        self.play(Indicate(ad, color=GREEN, scale_factor=1.15), run_time=0.5)
-
-        q = RoundedRectangle(corner_radius=0.2, width=5.4, height=1.5, stroke_color=GREY, stroke_width=4, fill_opacity=0)
-        q = DashedVMobject(q, num_dashes=40).move_to([3.0, -2.15, 0])
-        qm = T("?", 64, TEXT, weight=BOLD).move_to([3.0, -2.15, 0])
-        self.at("doing the work")
-        self.play(Create(q), FadeIn(qm, scale=1.4), run_time=0.8)
+        cell = cone_cell(BLUE, 1.25).move_to([-4.5, -0.25, 0])
+        light = VGroup(T("background light", 26, YELLOW).move_to([0, 3.1, 0]), bar(-5.6, 2.55, 0.5, YELLOW))
+        self.at("Your eyes work")
+        self.play(FadeIn(cell), FadeIn(light), run_time=0.7)
+        dial = VGroup(Arc(radius=0.75, start_angle=0, angle=PI, color=GREEN).move_to([3.7, 1.5, 0]),
+                      T("gain", 26, GREEN).move_to([3.7, 0.6, 0]))
+        needle = Line([3.7, 1.1, 0], [4.3, 1.7, 0], color=GREEN, stroke_width=6)
+        self.at("turning its own")
+        self.play(FadeIn(dial), Create(needle), run_time=0.5)
+        self.at("background brightens")
+        self.play(Transform(light[1], bar(-5.6, 2.55, 11.2, YELLOW)),
+                  Transform(needle, Line([3.7, 1.1, 0], [3.1, 1.5, 0], color=GREEN, stroke_width=6)), run_time=0.9)
+        gauge = VGroup(Rectangle(width=0.35, height=1.55, color=ORANGE).move_to([-4.5, 0.9, 0]),
+                       bar(-4.675, 0.9, 0.35, ORANGE, 1.5),
+                       T("calcium", 24, ORANGE).move_to([-1.9, 1.55, 0]),
+                       T("outer segment", 22, GREY).move_to([-1.9, 0.95, 0]))
+        self.at("Calcium is the signal")
+        self.play(FadeIn(gauge), run_time=0.5)
+        self.at("Light lowers calcium")
+        self.play(Transform(gauge[1], bar(-4.675, 0.3, 0.35, ORANGE, 0.3)), run_time=1.0)
+        cg = bchip("cGMP synthesis ↑", GREEN, 24).move_to([-0.8, -0.15, 0])
+        self.at("Falling calcium speeds")
+        self.play(FadeIn(cg), run_time=0.6)
+        pig = bchip("pigment off sooner", PINK, 24).move_to([-0.8, -1.1, 0])
+        self.at("active pigment")
+        self.play(FadeIn(pig), run_time=0.6)
+        traces = VGroup(T("background + flashes", 22, YELLOW).move_to([0.4, -1.45, 0]),
+                        Line([-2.3, -2.2, 0], [4.8, -2.2, 0], color=YELLOW, stroke_width=2),
+                        T("responses", 22, BLUE).move_to([-3.9, -3.0, 0]))
+        for x in (-2.3, 0, 2.3):
+            traces.add(Line([x, -2.2, 0], [x, -1.8, 0], color=YELLOW, stroke_width=5),
+                       response(x, -3.2, 2, 0.65, 0.6, BLUE))
+        self.at("That feedback keeps")
+        self.play(FadeOut(cg), FadeOut(pig), run_time=0.3)
+        self.play(FadeIn(traces), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S02Loop(SpokenScene):
-    """outer-segment membrane: light closes CNG channels, calcium entry stops, pump removes calcium, GCAPs and recoverin act."""
-
     def construct(self):
-        cap = RoundedRectangle(corner_radius=0.6, width=8.4, height=4.0, stroke_color=GREY, stroke_width=4,
-                               fill_color=GREY, fill_opacity=0.08).move_to([-2.3, -0.4, 0])
-        cx = [-5.0, -3.2, -1.4]
-        chans = [bchip("CNG", TEAL, 22).move_to([x, 1.6, 0]) for x in cx]
-        ol = T("outer segment", 22, GREY).move_to([-5.2, -1.95, 0])
-        pump = VGroup(RoundedRectangle(corner_radius=0.12, width=0.7, height=0.5, stroke_color=TEAL, stroke_width=2.5,
-                                       fill_color=BG, fill_opacity=1).move_to([-3.2, -2.4, 0]),
-                      RoundedRectangle(corner_radius=0.12, width=0.7, height=0.5, stroke_color=TEAL, stroke_width=2.5,
-                                       fill_color=TEAL, fill_opacity=0.16).move_to([-3.2, -2.4, 0]))
-        pump_lbl = T("NCKX pump", 22, TEAL).move_to([-1.9, -1.95, 0])
-        out_dots = [Dot([x, 2.1, 0], radius=0.1, color=ORANGE) for x in cx]
-        in_dots = [Dot([x, 1.0, 0], radius=0.1, color=ORANGE) for x in cx]
-        g_lbl = T("calcium in\nouter segment", 22, ORANGE, line_spacing=0.8).move_to([4.6, 2.3, 0])
-        sk2 = T("sketch, not to scale", 22, GREY).move_to([4.6, -3.0, 0])
-        g_box = Rectangle(width=0.9, height=3.6, stroke_color=GREY, stroke_width=3).move_to([4.6, -0.5, 0])
-
-        def gfill(h):
-            return Rectangle(width=0.9, height=h, stroke_width=0, fill_color=ORANGE, fill_opacity=0.8).move_to([4.6, -2.3 + h / 2, 0])
-        gf = gfill(3.0)
-        base = VGroup(sk2, cap, *chans, ol, pump, pump_lbl, *out_dots, *in_dots, g_lbl, g_box, gf)
-        self.add(base)
-
-        # light closes the channels
-        arrows = [arr([x, 3.4, 0], [x, 1.2, 0], YELLOW, 6) for x in (-4.1, -2.3, -0.5)]
-        lt = T("light", 28, YELLOW).move_to([-6.2, 3.0, 0])
+        cap = RoundedRectangle(corner_radius=0.6, width=8.4, height=4.0, stroke_color=GREY,
+                               stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([-2.3, -0.4, 0])
+        chans = VGroup(*[bchip("CNG", TEAL, 22).move_to([x, 1.6, 0]) for x in (-5, -3.2, -1.4)])
+        outline = VGroup(cap, T("outer segment", 22, GREY).move_to([-4.9, -1.95, 0]))
+        dots = VGroup(*[Dot([x, 2.2, 0], radius=0.1, color=ORANGE) for x in (-5, -3.2, -1.4)])
+        light = VGroup(T("light", 26, YELLOW).move_to([-0.2, 2.8, 0]), arr([-1.4, 3.1, 0], [-1.4, 2, 0], YELLOW))
+        self.add(outline, chans, dots)
         self.at("Light closes channels")
-        self.play(*[GrowArrow(a) for a in arrows], FadeIn(lt), run_time=0.5)
-        self.play(*[x for c in chans for x in recolor(c, GREY, 0.05)], *[d.animate.set_opacity(0) for d in in_dots], run_time=0.5)
+        self.play(FadeIn(light), *[a for c in chans for a in recolor(c, GREY, 0.05)], run_time=0.8)
         self.at("entry falls")
-        self.play(*[FadeOut(d) for d in out_dots], run_time=0.8)
-
-        # the pump keeps removing calcium
-        exit_dots = [Dot([-3.2, -2.0, 0], radius=0.1, color=ORANGE) for _ in range(2)]
+        self.play(FadeOut(dots), run_time=0.5)
+        pump = bchip("pump", TEAL, 22).move_to([-3.0, -2.4, 0])
+        calcium = Dot([-3, -1.6, 0], color=ORANGE, radius=0.12)
         self.at("pump keeps removing")
-        self.play(*[FadeIn(d) for d in exit_dots], Indicate(pump_lbl, color=TEAL), run_time=0.5)
-        self.play(exit_dots[0].animate.move_to([-3.2, -3.1, 0]), exit_dots[1].animate.move_to([-3.2, -2.55, 0]), run_time=0.8)
-        self.at("calcium falls")
-        self.play(Transform(gf, gfill(0.8)), FadeOut(VGroup(*exit_dots)), run_time=1.3)
-
-        # GCAPs speed cGMP synthesis, channels reopen
-        gcap = bchip("GCAPs", PURPLE, 22).move_to([-5.0, 0.45, 0])
-        lowca = T("low", 22, ORANGE).next_to(g_box, RIGHT, buff=0.1)
+        self.play(FadeIn(pump), FadeIn(calcium), run_time=0.3)
+        self.play(calcium.animate.move_to([-3, -3.1, 0]), run_time=0.8)
+        self.play(FadeOut(calcium), run_time=0.2)
+        gcap = bchip("GCAPs", PURPLE, 22).move_to([-5, 0.35, 0])
+        cg = bchip("cGMP", GREEN, 22).move_to([-2.6, 0.35, 0])
+        thick = arr(gcap.get_right(), cg.get_left(), PURPLE, 9)
         self.at("At low calcium")
-        self.play(FadeIn(gcap, shift=DOWN * 0.1), FadeIn(lowca), run_time=0.6)
-        cg = bchip("cGMP", GREEN, 22).move_to([-3.2, 0.45, 0])
-        a_g = arr(gcap.get_right(), cg.get_left(), PURPLE)
-        self.at("speed")
-        self.play(GrowArrow(a_g), FadeIn(cg), run_time=0.7)
-        ups = [arr([-3.5, 0.8, 0], [-4.9, 1.25, 0], GREEN, 4, 0.16), arr([-3.2, 0.8, 0], [-3.2, 1.25, 0], GREEN, 4, 0.16), arr([-2.9, 0.8, 0], [-1.5, 1.25, 0], GREEN, 4, 0.16)]
-        self.at("reopens channels")
-        self.play(*[GrowArrow(u) for u in ups], *[x for c in chans for x in recolor(c, TEAL)], run_time=0.8)
-
-        # recoverin lets go of GRK1; GRK1 switches off activated pigment
-        rec = bchip("recoverin", PURPLE, 22).move_to([-5.0, -0.75, 0])
-        grk = bchip("GRK1", PURPLE, 22).next_to(rec, RIGHT, buff=0.0)
-        self.at("Recoverin lets go")
-        self.play(FadeIn(rec), FadeIn(grk), run_time=0.5)
-        self.play(grk.animate.move_to([-2.6, -0.75, 0]), run_time=0.8)
-        pig = bchip("activated pigment", PINK, 22).move_to([0.0, -0.75, 0])
-        tb = inhib([-2.0, -0.75, 0], [pig.get_left()[0] - 0.05, -0.75, 0], RED)
+        self.play(FadeIn(gcap), run_time=0.5)
+        self.at("speeds see GMP")
+        self.play(GrowArrow(thick), FadeIn(cg), run_time=0.7)
+        self.at("which reopens channels")
+        up = arr(cg.get_top(), [-2.6, 1.3, 0], GREEN, 4)
+        self.play(GrowArrow(up), *[a for c in chans for a in recolor(c, TEAL)], run_time=0.7)
+        rec = bchip("recoverin", PURPLE, 22).move_to([-4.9, -0.8, 0])
+        grk = bchip("GRK1", PURPLE, 22).next_to(rec, RIGHT, buff=0.05)
+        self.at("Recover in")
+        self.play(FadeIn(rec), FadeIn(grk), run_time=0.4)
+        self.at("Let's Go")
+        self.play(grk.animate.move_to([-2.4, -0.8, 0]), run_time=0.7)
+        pig = bchip("activated pigment", PINK, 22).move_to([0, -0.8, 0])
+        tb = inhib([-1.75, -0.8, 0], [pig.get_left()[0] - 0.05, -0.8, 0])
         self.at("switches off activated pigment")
-        self.play(FadeIn(pig), Create(tb), run_time=0.6)
+        self.play(FadeIn(pig), Create(tb), run_time=0.5)
         self.play(*recolor(pig, GREY, 0.05), run_time=0.5)
-
-        back = bchip("back toward the dark state", GREEN, 22).move_to([-0.7, -3.15, 0])
-        self.at("push the cell back")
-        self.play(FadeIn(back, shift=UP * 0.1), run_time=0.6)
-        gc = T("gain control", 34, GREEN, weight=BOLD).move_to([4.6, -3.0, 0])
-        self.play(FadeOut(sk2), run_time=0.2)
+        back = bchip("toward dark state", GREEN, 24).move_to([4.4, 0.4, 0])
+        self.at("Both push the cell back")
+        # Clear the detailed branches before zooming out to the feedback loop.
+        detail = VGroup(gcap, cg, thick, up, rec, grk, pig, tb, pump)
+        self.play(FadeOut(detail), FadeIn(back), run_time=0.7)
+        loop = CurvedArrow([4.2, -0.4, 0], [-0.9, 1.5, 0], angle=-PI/2, color=GREEN, stroke_width=5)
+        label = T("gain control", 30, GREEN, weight=BOLD).move_to([4.3, -2, 0])
         self.at("gain control")
-        self.play(Write(gc), run_time=0.8)
+        self.play(Create(loop), FadeIn(label), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S03Cut(SpokenScene):
-    """two cones in isolated mouse retina: control with three sensors, knockout with all three crossed; both still adapt."""
-
     def construct(self):
-        y1, y2 = 0.75, -1.45
-        cone1 = cone_cell(BLUE, 0.55).move_to([-5.9, y1 - 0.05, 0])
-        names = ["GCAP1", "GCAP2", "recoverin"]
-        xs = [-4.1, -2.5, -0.8]
-
-        def row(y):
-            return [bchip(n, PURPLE, 22).move_to([x, y, 0]) for n, x in zip(names, xs)]
-        r1 = row(y1)
-        L = 2.1
-        W = 3.6
-        se1 = bar(L, y1, W, BLUE)
-        sl = T("flash sensitivity", 22, BLUE).move_to([L + 1.35, y1 + 0.5, 0])
-        sk = T("qualitative sketch: bar lengths are not data", 22, GREY).move_to([0.0, -3.2, 0])
-        self.add(cone1, *r1, sk)
+        heads = VGroup(T("control rod", 26, BLUE).move_to([-3.4, 3.0, 0]),
+                       T("GCAP knockout rod", 26, RED).move_to([3.2, 3.0, 0]))
+        cells = VGroup(rod_cell(BLUE, 0.55).move_to([-5.6, 0.9, 0]), rod_cell(RED, 0.55).move_to([0.8, 0.9, 0]))
         self.at("To test a loop")
-        self.play(FadeIn(se1), FadeIn(sl), run_time=0.5)
-
-        cone2 = cone_cell(RED, 0.55).move_to([-5.9, y2 - 0.05, 0])
-        r2 = row(y2)
-        se2 = bar(L, y2, W, RED)
+        self.play(FadeIn(heads), FadeIn(cells), run_time=0.7)
+        chips = VGroup(*[bchip(n, PURPLE, 22).move_to([x, 2.1, 0]) for n,x in (("GCAP1",2.2),("GCAP2",4.3))])
         self.at("cut it")
-        self.play(FadeIn(cone2), *[FadeIn(c) for c in r2], FadeIn(se2), run_time=0.5)
-        xr = [cross(c) for c in r2]
-        self.play(*[Create(x) for x in xr], run_time=0.7)
-
-        tag1 = bchip("isolated mouse retina", GREY, 22).move_to([-2.4, 3.1, 0])
-        self.at("isolated mouse retina")
-        self.play(FadeIn(tag1, shift=DOWN * 0.1), run_time=0.5)
-        tag2 = bchip("signal from cones only", GREY, 22).move_to([2.2, 3.1, 0])
-        self.at("signal came from cones")
-        self.play(FadeIn(tag2, shift=DOWN * 0.1), run_time=0.5)
-
-        lb1 = T("control cone", 24, BLUE).move_to([-4.1, y1 + 0.62, 0]).align_to([-4.9, 0, 0], LEFT)
-        lb2 = T("knockout cone", 24, RED).move_to([-4.1, y2 + 0.62, 0]).align_to([-4.9, 0, 0], LEFT)
-        self.at("compared control cones")
-        self.play(FadeIn(lb1), FadeIn(lb2), run_time=0.5)
-
-        bg = T("background light", 22, YELLOW).move_to([L + 1.35, 2.35, 0])
-        lt = bar(L, 1.95, 0.5, YELLOW, 0.22)
-        self.at("still adapted")
-        self.play(FadeIn(bg), FadeIn(lt), run_time=0.4)
-        self.play(Transform(lt, bar(L, 1.95, W, YELLOW, 0.22)), Transform(se1, bar(L, y1, 0.5 * W, BLUE)),
-                  Transform(se2, bar(L, y2, 0.11 * W, RED)), run_time=0.9)
-
-        b1 = bchip("bath calcium 1.2 mM", ORANGE, 22).move_to([L + 1.9, -2.55, 0])
-        self.at("bath calcium")
-        self.play(FadeIn(b1, shift=UP * 0.1), run_time=0.5)
-        self.at("nanomolar")
-        b2 = bchip("bath calcium ≈ 30 nM", ORANGE, 22).move_to(b1)
-        self.play(FadeOut(b1), run_time=0.2)
-        self.play(FadeIn(b2), Indicate(se2, color=RED, scale_factor=1.0), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Curve(SpokenScene):
-    """log-log plot of S/Sdark against background, drawn from the fit values; I0 and slope marked."""
-
-    def construct(self):
-        ax, base = make_plot()
-        ctrl = fit_curve(ax, CTRL, BLUE)
-        ko = fit_curve(ax, KO, RED)
-        form = M("S / Sdark = 1 / (1 + (I / I0)^n)", 22, TEXT).move_to([-1.9, 3.2, 0])
-        self.at("Sensitivity is response")
-        self.play(FadeIn(base), FadeIn(form), run_time=0.8)
-
-        self.at("It falls")
-        self.play(Create(ctrl), run_time=1.6)
-
-        # I0 on the control curve
-        x0 = np.log10(CTRL["I0"])
-        pt = Dot(ax.c2p(x0, np.log10(0.5)), radius=0.12, color=BLUE)
-        hl = DashedLine(ax.c2p(2, np.log10(0.5)), ax.c2p(x0, np.log10(0.5)), color=BLUE, stroke_width=3)
-        vl = DashedLine(ax.c2p(x0, np.log10(0.5)), ax.c2p(x0, -3), color=BLUE, stroke_width=3)
-        half = T("0.5", 22, BLUE).next_to(ax.c2p(2, np.log10(0.5)), RIGHT, buff=0.12).shift(UP * 0.25)
-        i0 = T("I0", 26, BLUE, weight=BOLD).next_to(ax.c2p(x0, -3), UP, buff=0.12).shift(RIGHT * 0.3)
-        self.at("is the background that halves")
-        self.play(Create(hl), Create(vl), FadeIn(pt, scale=1.5), FadeIn(half), FadeIn(i0), run_time=1.0)
-
-        asy = DashedLine(ax.c2p(4.9, -n_asym(4.9, CTRL)), ax.c2p(6, -n_asym(6, CTRL)), color=BLUE, stroke_width=3)
-        sl = T("slope −n", 24, BLUE).move_to(ax.c2p(5.5, -0.35))
-        self.at("sets the slope")
-        self.play(Create(asy), FadeIn(sl), run_time=0.9)
-
-        # legend
-        lg1 = VGroup(T("control cones", 26, BLUE, weight=BOLD), M("I0 = 48,800", 24, BLUE), M("n = 1", 24, BLUE)).arrange(DOWN, aligned_edge=LEFT, buff=0.12).move_to([4.6, 1.5, 0]).align_to([3.1, 0, 0], LEFT)
-        self.at("Control cones had")
-        self.play(FadeIn(lg1, shift=LEFT * 0.1), run_time=0.6)
-        self.at("photons per square")
-        self.play(Indicate(base[4], color=GREY, scale_factor=1.06), run_time=0.8)
-
-        x1 = np.log10(KO["I0"])
-        pt2 = Dot(ax.c2p(x1, np.log10(0.5)), radius=0.12, color=RED)
-        vl2 = DashedLine(ax.c2p(x1, np.log10(0.5)), ax.c2p(x1, -3), color=RED, stroke_width=3)
-        lg2 = VGroup(T("without the sensors", 26, RED, weight=BOLD), M("I0 = 12,100", 24, RED), M("n = 1.5", 24, RED)).arrange(DOWN, aligned_edge=LEFT, buff=0.12).move_to([4.6, -1.4, 0]).align_to([3.1, 0, 0], LEFT)
-        self.at("Cones lacking the sensors")
-        self.play(Create(ko), run_time=1.5)
-        self.play(Create(vl2), FadeIn(pt2, scale=1.5), FadeIn(lg2, shift=LEFT * 0.1), run_time=0.8)
-        asy2 = DashedLine(ax.c2p(5.0, -n_asym(5.0, KO)), ax.c2p(6, -n_asym(6, KO)), color=RED, stroke_width=3)
-        sl2 = T("slope −n", 24, RED).move_to(ax.c2p(5.4, -2.85))
-        self.at("n of", nth=1)
-        self.play(Create(asy2), FadeIn(sl2), run_time=0.7)
+        self.play(FadeIn(chips), run_time=0.3)
+        self.at("mouse rods lacking both")
+        cuts = VGroup(*[cross(c) for c in chips])
+        self.play(Create(cuts), run_time=0.6)
+        baselines = VGroup(Line([-4.6,-0.4,0],[-0.8,-0.4,0],color=GREY), Line([1.5,-0.4,0],[5.8,-0.4,0],color=GREY))
+        ctrl = response(-4.6,-0.4,3.8,0.35,0.55,BLUE)
+        ko = response(1.5,-0.4,4.3,0.35,1.9,RED)
+        self.at("responses recover slowly")
+        self.play(Create(baselines), Create(ctrl), Create(ko), run_time=0.8)
+        photons = VGroup(*[Dot([x,1.1,0],radius=0.1,color=YELLOW) for x in (-4.4,1.7)])
+        self.at("single photon responses grow")
+        self.play(FadeIn(photons), run_time=0.3)
+        self.at("about five times larger")
+        five = T("≈ 5×",26,RED).move_to([5.4,1.65,0])
+        self.play(Transform(ko,response(1.5,-0.4,4.3,1.75,1.9,RED)),FadeIn(five),run_time=0.8)
+        impaired = T("background adaptation impaired",24,RED).move_to([0,-1.15,0])
+        self.at("adaptation to background light")
+        self.play(FadeOut(photons), FadeOut(chips), FadeOut(cuts), FadeIn(impaired),run_time=0.6)
+        cones = VGroup(cone_cell(BLUE,0.3).move_to([-5.5,-2.35,0]), cone_cell(RED,0.3).move_to([0.8,-2.35,0]),
+                       response(-4.6,-2.9,3.8,0.17,0.45,BLUE), response(1.5,-2.9,4.3,0.85,1.3,RED),
+                       T("cones",22,GREY).move_to([-5.5,-3.2,0]))
+        self.at("Cones without")
+        self.play(FadeIn(cones),run_time=0.8)
+        self.at("normally curb")
+        self.play(Indicate(ctrl,color=BLUE,scale_factor=1.05),Indicate(ko,color=RED,scale_factor=1.05),run_time=0.7)
+        tag = bchip("GCAP1 mutations: inherited blinding disease",RED,26).move_to([0,-2.2,0])
+        self.at("In people")
+        self.play(FadeOut(cones),FadeOut(impaired),run_time=0.4)
+        self.at("mutations are linked")
+        self.play(FadeIn(tag),run_time=0.7)
         self.finish()
 
 
@@ -345,96 +269,161 @@ def n_asym(x, p):
     return p["n"] * (x - np.log10(p["I0"]))
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Gap(SpokenScene):
-    """the same plot; a vertical line at 48,800 reads 0.500 and 0.110; the knockout needs a 4.55 times stronger flash."""
-
+class S04Curve(SpokenScene):
     def construct(self):
         ax, base = make_plot()
-        ctrl = fit_curve(ax, CTRL, BLUE)
-        ko = fit_curve(ax, KO, RED)
-        x0 = np.log10(CTRL["I0"])
-        x1 = np.log10(KO["I0"])
-        p1 = ax.c2p(x0, np.log10(0.5))
-        pt = Dot(p1, radius=0.12, color=BLUE)
-        pt2 = Dot(ax.c2p(x1, np.log10(0.5)), radius=0.12, color=RED)
-        vl2 = DashedLine(ax.c2p(x1, np.log10(0.5)), ax.c2p(x1, -3), color=RED, stroke_width=3)
-        prep = T("mouse cones, ex vivo, central fit values", 22, GREY).move_to([-1.9, 3.2, 0])
-        self.add(base, ctrl, ko, pt, pt2, vl2)
-
-        vline = DashedLine(ax.c2p(x0, 0), ax.c2p(x0, -3), color=YELLOW, stroke_width=4)
-        bgl = M("48,800", 24, YELLOW).next_to(ax.c2p(x0, -3), UP, buff=0.1).shift(RIGHT * 0.5)
-        head = T("at 48,800\nphotons per µm² per s", 24, YELLOW, line_spacing=0.8).move_to([4.7, 2.7, 0]).align_to([3.1, 0, 0], LEFT)
-        self.at("At a background of")
-        self.play(Create(vline), FadeIn(bgl), FadeIn(head), run_time=0.9)
-        self.at("control cones keep half")
-        v1 = VGroup(T("control", 26, BLUE), M("0.500", 28, BLUE, weight=BOLD)).arrange(RIGHT, buff=0.3).move_to([4.7, 1.75, 0]).align_to([3.1, 0, 0], LEFT)
-        self.play(Indicate(pt, color=BLUE, scale_factor=1.8), FadeIn(v1), run_time=0.8)
-
-        sK = 0.110
-        p2 = ax.c2p(x0, np.log10(sK))
-        pk = Dot(p2, radius=0.12, color=RED)
-        v2 = VGroup(T("knockout", 26, RED), M("0.110", 28, RED, weight=BOLD)).arrange(RIGHT, buff=0.3).move_to([4.7, 1.2, 0]).align_to([3.1, 0, 0], LEFT)
-        self.at("keep about")
-        self.play(FadeIn(pk, scale=1.8), FadeIn(v2), run_time=0.8)
-        own = T("each against its own\ndark sensitivity", 22, GREY, line_spacing=0.8).move_to([4.7, 0.45, 0]).align_to([3.1, 0, 0], LEFT)
-        self.at("measured against its own")
-        self.play(FadeIn(own), run_time=0.5)
-
-        gap = VGroup(M("0.500 / 0.110", 24, YELLOW), M("= 4.55 times", 28, YELLOW, weight=BOLD), T("stronger flash needed", 24, YELLOW), T("for the same response size", 22, YELLOW)).arrange(DOWN, aligned_edge=LEFT, buff=0.08)
-        gap.move_to([4.7, -1.2, 0]).align_to([3.0, 0, 0], LEFT)
-        self.at("same size")
-        self.play(FadeIn(gap, shift=UP * 0.1), Indicate(pk, color=YELLOW, scale_factor=1.8), run_time=0.9)
-        self.at("central fit values")
-        self.play(FadeIn(prep), run_time=0.5)
-        self.at("So the sensors matter")
-        self.play(Indicate(ko, color=RED), run_time=0.8)
+        ctrl, ko = fit_curve(ax,CTRL,BLUE), fit_curve(ax,KO,RED)
+        self.at("Sensitivity falls")
+        self.play(FadeIn(base), Create(ctrl),run_time=1.2)
+        x0,x1 = np.log10(CTRL["I0"]),np.log10(KO["I0"])
+        halfy = np.log10(0.5)
+        dots = VGroup(Dot(ax.c2p(x0,halfy),color=BLUE,radius=0.1),Dot(ax.c2p(x1,halfy),color=RED,radius=0.1))
+        marks = VGroup(DashedLine(ax.c2p(2,halfy),ax.c2p(x0,halfy),color=GREY),
+                       DashedLine(ax.c2p(x0,halfy),ax.c2p(x0,-3),color=BLUE),
+                       T("½",24,GREY).next_to(ax.c2p(2,halfy),LEFT,buff=0.18),
+                       T("I0",24,BLUE).next_to(ax.c2p(x0,-3),UP,buff=0.15))
+        self.at("is the background")
+        self.play(Create(marks),FadeIn(dots[0]),run_time=0.8)
+        slope = T("n sets slope",24,BLUE).move_to([4.5,2.1,0])
+        self.at("sets the slope")
+        self.play(FadeIn(slope),run_time=0.6)
+        legend = VGroup(T("control",26,BLUE), T("without GCAPs",24,RED),T("and recoverin",24,RED)).arrange(DOWN,buff=0.18).move_to([4.5,0.7,0])
+        self.at("Mouse cones lacking")
+        self.play(Create(ko),FadeIn(legend),run_time=0.9)
+        mark2=VGroup(DashedLine(ax.c2p(x1,halfy),ax.c2p(x1,-3),color=RED),T("I0",24,RED).next_to(ax.c2p(x1,-3),UP,buff=0.15))
+        self.at("reach half sensitivity")
+        self.play(Create(mark2),FadeIn(dots[1]),run_time=0.7)
+        ratio=T("I0 ≈ ¼ control",24,RED).move_to([4.5,-0.7,0])
+        self.at("about a quarter")
+        self.play(FadeIn(ratio),run_time=0.5)
+        steep=T("steeper fall",24,RED).move_to([4.5,-1.4,0])
+        self.at("fall more steeply")
+        self.play(FadeIn(steep),run_time=0.5)
+        q=question("remaining adaptation?",[4.5,-2.65,0],3.8)
+        self.at("Some adaptation remains")
+        self.play(FadeIn(q),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """adaptation has three inputs; the low-calcium bath is not a clamp; the rule."""
-
+class S05RodsCones(SpokenScene):
     def construct(self):
-        ad = bchip("adaptation", GREEN, 30).move_to([5.1, 0.0, 0])
-        ci = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=5.2, height=1.6, stroke_color=GREY, stroke_width=4, fill_opacity=0), num_dashes=40).move_to([0.4, 2.0, 0])
-        ci_q = T("?", 56, TEXT, weight=BOLD).move_to([-1.3, 2.0, 0])
-        ci_t = T("calcium-independent\ncomponent, not named", 22, TEXT, line_spacing=0.8).move_to([1.2, 2.0, 0])
-        cd = bchip("a further calcium-dependent mechanism", ORANGE, 22).move_to([0.4, 0.0, 0])
-        sn = bchip("GCAPs and recoverin", PURPLE, 24).move_to([0.4, -2.0, 0])
-        a1 = DashedLine([3.0, 1.9, 0], [4.4, 0.4, 0], color=GREY, stroke_width=5, dash_length=0.15).add_tip(tip_length=0.2)
-        a2 = arr([3.2, 0.0, 0], [3.9, 0.0, 0], ORANGE)
-        a3 = arr([2.3, -2.0, 0], [4.4, -0.4, 0], PURPLE)
-
-        self.at("The authors read this")
-        self.play(FadeIn(ad), Create(ci), FadeIn(ci_q), FadeIn(ci_t), Create(a1), run_time=1.0)
-        self.at("also reported")
-        self.play(FadeIn(cd, shift=LEFT * 0.1), GrowArrow(a2), run_time=0.8)
-
-        # the bath
-        bath = RoundedRectangle(corner_radius=0.3, width=3.7, height=6.4, stroke_color=ORANGE, stroke_width=3,
-                                fill_color=ORANGE, fill_opacity=0.08).move_to([-4.7, 0.0, 0])
-        bl = T("low-calcium bath", 22, ORANGE).move_to([-4.7, 2.75, 0])
-        cone = cone_cell(GREY, 1.0).move_to([-5.4, 0.25, 0])
-        gbox = Rectangle(width=0.6, height=2.2, stroke_color=GREY, stroke_width=3).move_to([-3.55, -0.1, 0])
-        gq = T("?", 44, TEXT, weight=BOLD).move_to(gbox)
-        self.at("changes the solution")
-        self.play(FadeIn(bath), FadeIn(bl), FadeIn(cone), run_time=0.7)
-        ginfo = T("calcium inside:", 22, GREY).move_to([-4.7, -2.3, 0])
-        nc = T("not held fixed", 22, RED).move_to([-4.7, -2.75, 0])
-        self.at("does not clamp")
-        self.play(FadeIn(gbox), FadeIn(gq), FadeIn(ginfo), FadeIn(nc), run_time=0.8)
-        self.at("no molecule")
-        self.play(Indicate(ci_q, color=TEXT, scale_factor=1.3), run_time=0.8)
-
-        self.at("keep this rule")
-        self.play(FadeOut(bath), FadeOut(bl), FadeOut(cone), FadeOut(gbox), FadeOut(gq), FadeOut(ginfo), FadeOut(nc), run_time=0.5)
-        self.at("contribute")
-        self.play(FadeIn(sn, shift=LEFT * 0.1), GrowArrow(a3), run_time=0.8)
-        self.play(Indicate(sn, color=PURPLE, scale_factor=1.1), run_time=0.6)
+        axis=VGroup(arr([-5.8,1.8,0],[5.8,1.8,0],GREY,3),T("dim",24,GREY).move_to([-5.7,2.4,0]),T("bright",24,YELLOW).move_to([5.4,2.4,0]),T("light level",26,GREY).move_to([0,3.1,0]))
+        rods=VGroup(bar(-5.7,1.1,6.7,BLUE),T("rods",26,BLUE).move_to([-3.2,0.5,0]))
+        cones=VGroup(bar(-0.7,-0.2,6.4,BLUE),T("cones",26,BLUE).move_to([3.3,-0.8,0]))
+        self.at("Rods and cones split")
+        self.play(FadeIn(axis),FadeIn(rods),FadeIn(cones),run_time=0.8)
+        rtrace=VGroup(T("single photon",22,YELLOW).move_to([-3.3,-1.4,0]),response(-5.5,-2.8,4.3,0.95,1.0,BLUE))
+        self.at("A rod can respond")
+        self.play(FadeIn(rtrace),run_time=0.7)
+        ctrace=response(1,-2.8,4.3,0.5,0.4,BLUE)
+        self.at("Cones are less sensitive")
+        self.play(Create(ctrace),run_time=0.7)
+        self.at("end each response faster")
+        self.play(Indicate(ctrace,color=BLUE,scale_factor=1.05),run_time=0.7)
+        mouse=bchip("mouse recordings",GREY,26).move_to([0,3,0])
+        self.at("Mouse recordings")
+        self.play(FadeOut(axis),FadeOut(rods),FadeOut(cones),FadeOut(rtrace),FadeOut(ctrace),run_time=0.3)
+        self.play(FadeIn(mouse),run_time=0.4)
+        ax=Axes(x_range=[0,10,2],y_range=[0,1,0.5],x_length=9.5,y_length=3.8,axis_config={"include_tip":False,"include_ticks":False,"color":GREY}).move_to([0,-0.1,0])
+        labels=VGroup(T("rod-driven contrast sensitivity",26,BLUE).move_to([0,2.0,0]),T("continued exposure →",24,GREY).move_to([1,-2.7,0]),T("schematic",22,GREY).move_to([4.6,-3.3,0]))
+        start=VGroup(DashedLine(ax.c2p(2,0),ax.c2p(2,1),color=YELLOW),T("bright background starts",22,YELLOW).move_to([-2.5,-3.3,0]))
+        before=ax.plot(lambda x:0.9,x_range=[0,2],color=BLUE,stroke_width=5)
+        drop=ax.plot(lambda x:0.9-0.72*(x-2),x_range=[2,3],color=BLUE,stroke_width=5)
+        recover=ax.plot(lambda x:0.18+0.64*(1-np.exp(-(x-3)/2.2)),x_range=[3,10],color=BLUE,stroke_width=5)
+        self.at("On a bright background")
+        self.play(FadeIn(ax),FadeIn(labels),FadeIn(start),Create(before),run_time=0.7)
+        self.at("responses dip")
+        self.play(Create(drop),run_time=0.7)
+        self.at("then recover")
+        self.play(Create(recover),run_time=1.3)
+        self.at("in these mice")
+        self.play(Indicate(recover,color=BLUE,scale_factor=1.02),run_time=0.7)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "GCAPs and recoverin contribute, and do not account for all of the adaptation."
+class S06Degeneration(SpokenScene):
+    def construct(self):
+        rods=VGroup(*[rod_cell(BLUE,0.65).move_to([x,0.8,0]) for x in (-4.5,-1.5,1.5)])
+        cones=VGroup(*[cone_cell(BLUE,0.65).move_to([x,0.8,0]) for x in (-3,0,3)])
+        head=T("photoreceptor loss",30,TEXT).move_to([0,3.1,0])
+        self.at("When photoreceptors die")
+        self.play(FadeIn(rods),FadeIn(cones),FadeIn(head),run_time=0.7)
+        rp=T("typical retinitis pigmentosa",30,TEXT).move_to(head)
+        self.at("typical retinitis pigmentosa")
+        self.play(Transform(head,rp),run_time=0.7)
+        self.at("rods die first")
+        self.play(rods.animate.set_opacity(0.08),run_time=0.7)
+        self.at("cones die after")
+        self.play(cones.animate.set_opacity(0.08),run_time=0.7)
+        vision=T("daylight + central vision",30,BLUE).move_to([0,-2.2,0])
+        self.at("Losing cones costs")
+        self.play(FadeIn(vision),run_time=0.7)
+        rod=rod_cell(BLUE,0.95).move_to([-4.7,0.6,0])
+        cone=cone_cell(BLUE,0.95).move_to([4.8,0.6,0])
+        candidate=T("candidate: rod support",28,GREY).move_to([0,3.1,0])
+        self.at("One candidate reason")
+        self.play(FadeOut(rods),FadeOut(cones),FadeOut(vision),Transform(head,candidate),FadeIn(rod),FadeIn(cone),run_time=0.7)
+        factor=bchip("RdCVF",GREEN,24).move_to([-3,1.3,0])
+        support=arr([-3.9,1.3,0],factor.get_left(),GREEN,4)
+        dock=VGroup(bchip("basigin-1",TEAL,22),bchip("GLUT1",TEAL,22)).arrange(DOWN,buff=0.35,aligned_edge=RIGHT)
+        dock.move_to([0,1.0,0]).shift(RIGHT*(cone.body.get_left()[0]-0.3-dock.get_right()[0]))
+        docked_factor=factor.copy().next_to(dock[0],LEFT,buff=0.4)
+        self.at("rod derived factor")
+        self.play(GrowArrow(support),FadeIn(factor),run_time=0.5)
+        self.at("RDCVF")
+        self.play(FadeIn(dock),factor.animate.move_to(docked_factor),
+                  Transform(support,arr([-3.9,1.3,0],docked_factor.get_left(),GREEN,4)),run_time=0.8)
+        glucose=VGroup(T("glucose",24,GREEN).move_to([0,-0.8,0]),arr([0.8,-1.0,0],cone.body.get_center()+RIGHT*0.15,GREEN,7),T("experimental models",22,GREY).move_to([0,-3.1,0]))
+        self.at("raises cone glucose uptake")
+        self.play(FadeIn(glucose),run_time=0.7)
+        # Loss of the donor removes the support arrow; both explanations remain candidates.
+        damage=question("oxidative damage?",[-2.5,-1.8,0],4.2)
+        self.at("Oxidative damage")
+        self.play(rod.animate.set_opacity(0.08),FadeOut(support),FadeOut(factor),FadeOut(glucose),FadeIn(damage),run_time=0.7)
+        unsettled=T("no single cause settled",28,GREY).move_to([0,-3.1,0])
+        self.at("no single cause")
+        self.play(FadeIn(unsettled),run_time=0.6)
+        self.finish()
+
+
+class S07Rescue(SpokenScene):
+    def construct(self):
+        title=T("gene therapy",36,GREEN).move_to([0,3.1,0])
+        self.at("Gene therapy")
+        self.play(FadeIn(title),run_time=0.7)
+        left=RoundedRectangle(width=6.1,height=5.3,corner_radius=0.2,color=GREY).move_to([-3.3,-0.3,0])
+        lh=VGroup(T("randomized trial",28,TEXT),T("RPE65 augmentation",26,GREEN)).arrange(DOWN,buff=0.2).move_to([-3.3,1.7,0])
+        self.at("randomized trial")
+        self.play(Create(left),FadeIn(lh),run_time=0.7)
+        course=VGroup(*[Line([-5.8,y,0],[-0.8,y,0],color=GREY,stroke_width=2) for y in (0.2,-1.1)],
+                      *[Rectangle(width=0.25,height=0.4,color=YELLOW).move_to([x,y+0.2,0]) for y in (0.2,-1.1) for x in (-3.5,-1.7)])
+        treated=Dot([-5.7,0.5,0],color=GREEN,radius=0.13)
+        control=Dot([-5.7,-0.8,0],color=BLUE,radius=0.13)
+        rows=VGroup(T("treated",22,GREEN).move_to([-5.3,0.95,0]),T("control",22,BLUE).move_to([-5.3,-0.35,0]),T("low-light navigation · 1 year",22,GREY).move_to([-3.3,-2.4,0]))
+        levels = VGroup(T("light levels",22,GREY).move_to([-4.9,-1.85,0]),
+                        *[bar(-3.6+i*0.65,-1.85,0.45,YELLOW,0.12+0.08*i) for i in range(4)])
+        course.add(levels)
+        self.at("improved navigation")
+        self.play(FadeIn(course),FadeIn(rows),FadeIn(treated),FadeIn(control),run_time=0.6)
+        self.play(treated.animate.move_to([-1.0,0.5,0]),control.animate.move_to([-3.9,-0.8,0]),run_time=1.0)
+        right=RoundedRectangle(width=6.1,height=5.3,corner_radius=0.2,color=GREY).move_to([3.3,-0.3,0])
+        rh=VGroup(T("early editing study",28,TEXT),T("CEP290",26,GREEN)).arrange(DOWN,buff=0.2).move_to([3.3,1.7,0])
+        eyes=VGroup(VGroup(Ellipse(width=1.3,height=0.7,color=GREEN),Dot(color=GREEN,radius=0.16)).move_to([2,0.3,0]),
+                    VGroup(Ellipse(width=1.3,height=0.7,color=GREY),Dot(color=GREY,radius=0.16)).move_to([4.6,0.3,0]),
+                    T("treated eye",22,GREEN).move_to([2,-0.4,0]),T("fellow eye\nuntreated",22,GREY,line_spacing=0.8).move_to([4.6,-0.5,0]))
+        self.at("An early editing study")
+        self.play(Create(right),FadeIn(rh),FadeIn(eyes),run_time=0.7)
+        possible=T("safety + possible benefit",24,GREEN).move_to([3.3,-1.4,0])
+        self.at("reported safety")
+        self.play(FadeIn(possible),run_time=0.7)
+        no=T("no control group",26,RED).move_to([3.3,-2.3,0])
+        self.at("without a control group")
+        self.play(FadeIn(no),run_time=0.6)
+        close=T("design sets the claim",32,TEXT).move_to([0,3.1,0])
+        self.at("The design decides")
+        self.play(Transform(title,close),run_time=0.7)
+        self.finish()
+
+
+class S08End(EndCard):
+    LINE = "Falling calcium turns down photoreceptor gain as background light rises."

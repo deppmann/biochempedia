@@ -272,7 +272,7 @@ class S05Lines(SpokenScene):
         self.play(Create(frame), FadeIn(ylab), FadeIn(xlab), FadeIn(sketch), run_time=0.9)
         allm = [line_through([[fx(g), fy(v), 0] for g, v in enumerate(l)], PURPLE, 1.6, 0.5) for l in lines]
         one = line_through([[fx(g), fy(v), 0] for g, v in enumerate(lines[0])], TEXT, 4, 1.0)
-        self.at("Any one line")
+        self.at("Anyone")
         self.play(Create(one), run_time=1.4)
         self.at("Across 107 lines")
         self.play(one.animate.set_stroke(PURPLE, 1.6, 0.5), LaggedStart(*[Create(m) for m in allm], lag_ratio=0.02), run_time=3.0)
@@ -300,7 +300,7 @@ class S05Lines(SpokenScene):
         il = T("ideal population: 9.0", 26, BLUE).next_to(ideal, DOWN, buff=0.2)
         self.at("mean answer was")
         self.play(FadeIn(ideal, scale=0.5), FadeIn(il), run_time=0.8)
-        self.at("did not contribute equally")
+        self.at("how many offspring")
         self.play(*[Indicate(d, color=TEXT, scale_factor=1.2) for d in flies], run_time=1.0)
         self.finish()
 
@@ -346,7 +346,7 @@ class S06Test(SpokenScene):
         fr1, t1 = panel(1, GREEN, "Selection")
         sl_ = wf_lines(8, gens, 40, seed=4, s=0.28)
         sl = VGroup(*[line_through([[mx(1, g), my(v), 0] for g, v in enumerate(l)], GREEN, 2.5, 0.8) for l in sl_])
-        sc = T("same shift;\ncarriers do better", 24, GREEN).move_to([cx[1], cy - ph / 2 - 0.65, 0])
+        sc = T("same shift on average;\ncarriers do better", 24, GREEN).move_to([cx[1], cy - ph / 2 - 0.65, 0])
         self.at("Selection predicts")
         self.play(Create(fr1), FadeIn(t1), run_time=0.6)
         self.play(LaggedStart(*[Create(l) for l in sl], lag_ratio=0.1), run_time=2.0)

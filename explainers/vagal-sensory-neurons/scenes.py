@@ -41,86 +41,6 @@ def strand(x0, x1, y, color, w=9):
     return Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=w)
 
 
-class S00Title(TitleCard):
-    LESSON = "Vagal sensory neurons"
-    TITLE = "A label is not a type"
-
-
-class S01Question(SpokenScene):
-    def construct(self):
-        prep = T("in an anaesthetized mouse", 26, GREY).move_to([0, 3.2, 0])
-        nerve = tube(-4.6, 4.6, 0.6)
-        nlab = T("vagus: sensory axons", 22, GREY).move_to([0, -0.2, 0])
-        self.at("light on one set")
-        self.play(FadeIn(nerve), FadeIn(prep), FadeIn(nlab), run_time=0.4)
-        sa = strand(-4.3, -0.2, 0.6, BLUE)
-        la = arr([-2.3, 2.5, 0], [-2.3, 1.3, 0], TEAL)
-        ll = T("light", 24, TEAL).next_to(la, RIGHT, buff=0.1)
-        self.play(Create(sa), run_time=0.6)
-        self.play(GrowArrow(la), FadeIn(ll), run_time=0.4)
-        ra = arr([-2.3, 0.05, 0], [-2.3, -0.8, 0], BLUE)
-        rc = chip("breathing suppressed", BLUE, 26).move_to([-3.0, -1.4, 0])
-        self.play(GrowArrow(ra), FadeIn(rc), run_time=0.6)
-        self.at("light on another set")
-        sb = strand(0.2, 4.3, 0.6, YELLOW)
-        lb = arr([2.3, 2.5, 0], [2.3, 1.3, 0], TEAL)
-        llb = T("light", 24, TEAL).next_to(lb, RIGHT, buff=0.1)
-        self.play(Create(sb), run_time=0.6)
-        self.play(GrowArrow(lb), FadeIn(llb), run_time=0.4)
-        rb = arr([2.3, 0.05, 0], [2.3, -0.8, 0], YELLOW)
-        rcb = chip("fast, shallow breathing", YELLOW, 26).move_to([3.0, -1.4, 0])
-        self.play(GrowArrow(rb), FadeIn(rcb), run_time=0.6)
-        self.at("sensory axons here")
-        self.play(Indicate(nlab, color=TEXT, scale_factor=1.05), run_time=0.6)
-        self.at("one cable")
-        one = chip("one cable: the body is stretched", GREY, 26).move_to([0, -2.6, 0])
-        self.play(FadeIn(one), run_time=0.5)
-        self.at("could not happen")
-        x = Cross(one, stroke_color=RED, stroke_width=6)
-        self.play(Create(x), run_time=0.5)
-        self.at("what does each set report")
-        q = T("what does each set report?", 28, PURPLE).move_to([0, -3.4, 0])
-        self.play(FadeIn(q), run_time=0.5)
-        self.finish()
-
-
-class S02Access(SpokenScene):
-    def construct(self):
-        xs = [-5.0 + 2.0 * i for i in range(6)]
-        cols = [BLUE, GREY, YELLOW, GREY, BLUE, YELLOW]
-        cells = VGroup(*[cell(GREY, 0.4, (x, 1.5)) for x in xs])
-        glab = T("two ganglia at the base of the skull", 26, GREY).move_to([0, 2.75, 0])
-        self.at("cell bodies")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.7) for c in cells], lag_ratio=0.12), FadeIn(glab), run_time=1.2)
-        self.at("genetic access")
-        anims = []
-        labs = VGroup()
-        for c, col, x in zip(cells, cols, xs):
-            if col != GREY:
-                anims.append(c.animate.set_stroke(col).set_fill(col, 0.4))
-                labs.add(T("P2ry1" if col == BLUE else "Npy2r", 22, col).move_to([x, 0.7, 0]))
-        self.play(*anims, run_time=0.7)
-        self.play(FadeIn(labs), run_time=0.5)
-        self.at("in mice")
-        mem = membrane(0, -1.7, 4.4)
-        mlab = T("membrane of a labelled neuron", 24, GREY).move_to([0, -2.55, 0])
-        ch = chip("light-gated channel", ORANGE, 26).move_to([0, -1.7, 0])
-        chb = RoundedRectangle(corner_radius=0.14, width=ch[0].width, height=ch[0].height, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(ch[0])
-        ch = VGroup(chb, *ch)
-        self.play(FadeIn(mem), FadeIn(mlab), run_time=0.5)
-        self.play(FadeIn(ch, shift=DOWN * 0.3), run_time=0.6)
-        self.at("carry one label")
-        self.play(Indicate(labs, color=TEXT, scale_factor=1.1), run_time=0.6)
-        self.at("light then drives")
-        la = arr([0, -0.2, 0], [0, -1.15, 0], TEAL)
-        ll = T("light", 24, TEAL).next_to(la, RIGHT, buff=0.12)
-        self.play(GrowArrow(la), FadeIn(ll), run_time=0.5)
-        self.play(Indicate(VGroup(*ch[1:]), color=ORANGE, scale_factor=1.12), run_time=0.7)
-        self.at("two labels")
-        self.play(Indicate(labs[0], color=BLUE), Indicate(labs[2], color=YELLOW), run_time=0.8)
-        self.finish()
-
-
 def breathing(x0, w, yc, t_light, amp0, per0, amp1, per1, t_end=8.5, color=BLUE, sx=None):
     pts = []
     n = 500
@@ -140,162 +60,286 @@ def breathing(x0, w, yc, t_light, amp0, per0, amp1, per1, t_end=8.5, color=BLUE,
     return m
 
 
+# Additional colours keep new gut populations distinct from the airway sets.
+# ORANGE = Oxtr intestinal afferents; GOLD = Glp1r gastric afferents;
+# TEXT = GPR65 afferents and chemical-route labels; PURPLE = uncertainty.
+
+
+def heading(text):
+    return T(text, 30).move_to([0, 3.15, 0])
+
+
+def organ(name, pos, compact=False):
+    x, y = pos
+    if name == "lung":
+        shape = VGroup(*[Ellipse(width=0.7, height=1.15, color=GREY,
+                                  fill_opacity=0.12).move_to([x+d, y, 0]) for d in [-0.4, 0.4]])
+        shape.add(Line([x,y+0.9,0],[x,y+0.3,0],color=GREY))
+    elif name == "artery" and compact:
+        shape = VGroup(
+            Line([x-0.75,y+0.28,0],[x+0.65,y+0.28,0],color=GREY,stroke_width=4),
+            Line([x-0.75,y-0.28,0],[x+0.65,y-0.28,0],color=GREY,stroke_width=4),
+            Ellipse(width=0.3,height=0.56,color=GREY,stroke_width=4).move_to([x+0.65,y,0]))
+    elif name == "gut" and compact:
+        shape = VMobject(stroke_color=GREY,stroke_width=5)
+        shape.set_points_smoothly([np.array([x+dx,y+dy,0]) for dx,dy in
+            [(-0.7,0.38),(0.55,0.38),(0.7,0.16),(-0.55,0.1),
+             (-0.7,-0.15),(0.55,-0.22),(0.7,-0.4)]])
+    elif name == "artery":
+        shape = tube(x-0.85,x+0.85,y,0.65)
+    else:
+        shape = VGroup(*[ArcBetweenPoints([x-0.85,y+d,0],[x+0.85,y+d,0],
+                             angle=(-1 if i%2 else 1)*PI/2, color=GREY, stroke_width=4)
+                         for i,d in enumerate([-0.35,0.1,0.55])])
+    if compact and name == "lung":
+        shape.scale(0.65,about_point=np.array([x,y,0]))
+    return VGroup(shape,T(name,24,GREY).move_to([x,y-(0.8 if compact else 1.05),0]))
+
+
+def overview(y=0):
+    a=chip("organs",GREY,26).move_to([-4.9,y,0])
+    b=chip("sensory populations",GREEN,26).move_to([-0.2,y,0])
+    c=chip("brainstem",GREY,26).move_to([4.7,y,0])
+    return VGroup(a,b,c,arr(a.get_right(),b.get_left(),GREEN),arr(b.get_right(),c.get_left(),GREEN))
+
+
+class S00Title(TitleCard):
+    LESSON = "Vagal sensory neurons"
+    TITLE = "One Nerve, Many Sensory Lines"
+
+
+class S01Question(SpokenScene):
+    def construct(self):
+        self.at("the vagus carries")
+        title=heading("Many specialised sensory lines")
+        nerve=tube(-1.4,2.0,0,5.8)
+        nerve_label=T("vagus nerve",24,GREY).move_to([0.3,2.6,0])
+        target=chip("brainstem",GREY,26).move_to([4.9,0,0])
+        self.play(FadeIn(title),FadeIn(nerve),FadeIn(nerve_label),FadeIn(target),run_time=0.6)
+        routes=VGroup()
+        for name,y,col,cue,desc in [
+            ("lung",2.0,BLUE,"some report","inflation / irritants"),
+            ("artery",-0.1,GREEN,"others report","arterial stretch"),
+            ("gut",-2.2,ORANGE,"gut stretch","stretch / food")]:
+            self.at(cue)
+            o=organ(name,(-5.2,y+0.3),compact=True)
+            label=T(desc,22,col).move_to([0.3,y*0.57+0.5,0])
+            path=arr([-4.1,y,0],[3.6,y*0.25,0],col)
+            routes.add(VGroup(o,label,path))
+            self.play(FadeIn(o),FadeIn(label),GrowArrow(path),run_time=0.65)
+            self.play(ShowPassingFlash(path.copy().set_stroke(width=10)),run_time=0.5)
+        self.at("these signals help")
+        jobs=T("breathing     •     blood pressure     •     feeding",26).move_to([0,-3.3,0])
+        self.play(FadeIn(jobs),run_time=0.5)
+        self.at("so the question")
+        self.play(FadeOut(routes),FadeOut(nerve),FadeOut(nerve_label),FadeOut(target),FadeOut(jobs),run_time=0.4)
+        qs=VGroup(*[chip(t,PURPLE,26).move_to([x,0.8,0]) for t,x in
+                    [("what is reported?",-4.5),("which force sensor?",0),("where does it land?",4.5)]])
+        self.play(FadeIn(qs),run_time=0.6)
+        self.at("we follow the mouse evidence")
+        route=overview(-1.6)
+        self.play(FadeIn(T("mouse evidence",24,GREY).move_to([0,2.2,0])),FadeIn(route),run_time=0.6)
+        self.finish()
+
+
+class S02Gut(SpokenScene):
+    def construct(self):
+        self.at("start in the gut")
+        h=heading("Gut sensory populations • awake mice")
+        wall=tube(-5.8,-1.8,0.2,2.4)
+        end=VGroup(Line([-5.3,-0.55,0],[-2.3,-0.55,0],color=ORANGE,stroke_width=6),
+                   Arc(radius=0.55,start_angle=0,angle=PI,color=ORANGE).move_to([-3.8,-0.2,0]))
+        label=T("intestinal stretch endings • Oxtr",24,ORANGE).move_to([-3.8,1.9,0])
+        self.play(FadeIn(h),FadeIn(wall),run_time=0.5)
+        self.at("activating intestinal stretch")
+        self.play(Create(end),FadeIn(label),wall.animate.stretch(1.12,1),run_time=0.8)
+        result=chip("feeding: strong suppression",ORANGE,25).move_to([3.1,0.2,0])
+        link=arr([-1.5,0.2,0],result.get_left(),ORANGE)
+        self.at("strongly suppressed feeding")
+        self.play(GrowArrow(link),FadeIn(result),Indicate(end,color=ORANGE),run_time=0.7)
+        self.at("activating gastric afferents")
+        self.play(Transform(label,T("gastric stretch endings • Glp1r",24,GOLD).move_to(label)),
+                  end.animate.set_color(GOLD),FadeOut(result),FadeOut(link),run_time=0.6)
+        self.at("suppressed it more")
+        result=chip("feeding: weaker suppression",GOLD,25).move_to([3.1,0.2,0])
+        link=arr([-1.5,0.2,0],result.get_left(),GOLD)
+        self.play(FadeIn(result),GrowArrow(link),run_time=0.6)
+        self.at("gpr65 afferents")
+        self.play(FadeOut(result),FadeOut(link),FadeOut(end),
+                  Transform(label,T("intestinal villous endings • GPR65",24,TEXT).move_to(label)),run_time=0.5)
+        villi=VGroup(*[Arc(radius=0.28,start_angle=0,angle=PI,color=TEXT).move_to([x,0.2,0])
+                      for x in [-4.8,-3.8,-2.8]])
+        self.play(Create(villi),run_time=0.5)
+        self.at("responded to intestinal food")
+        food=chip("intestinal food",TEXT,24).move_to([-3.8,-1.7,0])
+        response=T("sensory response",28,TEXT).move_to([3.1,0.6,0])
+        self.play(FadeIn(food),GrowArrow(arr([-3.8,-1.3,0],[-3.8,-0.2,0],TEXT)),
+                  FadeIn(response),Indicate(villi,color=TEXT),run_time=0.7)
+        self.at("but activating them")
+        outcome=VGroup(T("activation → feeding:",28,TEXT),
+                       T("no measurable change",28,TEXT,weight=BOLD),
+                       T("in tested assays",28,TEXT,weight=BOLD)).arrange(DOWN,buff=0.22).move_to([3.1,-1.2,0])
+        self.play(FadeIn(outcome),run_time=0.6)
+        self.at("chemical signals also")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not h],run_time=0.5)
+        lining=membrane(-4.6,0,2.8)
+        secretor=cell(TEXT,0.4,(-4.6,0))
+        a=VGroup(T("gut lining",28,TEXT),
+                 T("enteroendocrine cell",28,TEXT)).arrange(DOWN,buff=0.24).move_to([-4.6,-1.3,0])
+        hormone=chip("gut hormone",TEXT,26).move_to([0,0,0])
+        terminal=chip("vagal terminal",GREEN,26).move_to([4.6,0,0])
+        self.play(FadeIn(lining),FadeIn(secretor),FadeIn(a),run_time=0.5)
+        self.at("hormones released")
+        self.play(FadeIn(hormone),GrowArrow(arr([-3,0,0],hormone.get_left(),TEXT)),run_time=0.6)
+        self.play(FadeIn(terminal),GrowArrow(arr(hormone.get_right(),terminal.get_left(),TEXT)),run_time=0.6)
+        self.at("including cholecystokinin")
+        self.play(Transform(hormone,chip("cholecystokinin",TEXT,26).move_to(hormone)),run_time=0.5)
+        self.play(ShowPassingFlash(Line([-3,0,0],[3.2,0,0],color=TEXT,stroke_width=8)),run_time=0.8)
+        self.finish()
+
+
 class S03Light(SpokenScene):
     def construct(self):
-        prep = T("mice under deep isoflurane, vagus exposed", 26, GREY).move_to([0, 3.25, 0])
-        self.at("under deep")
-        self.play(FadeIn(prep), run_time=0.5)
-        W = 5.4
-        panels = [(-3.4, BLUE, "P2ry1 neurons + light", "breathing suppressed"),
-                  (3.4, YELLOW, "Npy2r neurons + light", "rapid shallow breathing")]
-        lighted = []
-        for cx, col, title, res in panels:
-            t = T(title, 28, col).move_to([cx, 2.55, 0])
-            base = Line([cx - W / 2, 0.75, 0], [cx + W / 2, 0.75, 0], color=GREY, stroke_width=1.5)
-            tl = 4.0 / 8.5 * W
-            lb = Rectangle(width=W - tl, height=0.18, stroke_width=0, fill_color=TEAL, fill_opacity=0.9).move_to([cx - W / 2 + tl + (W - tl) / 2, -0.35, 0])
-            ltx = T("light on", 22, TEAL).move_to([lb.get_center()[0], -0.75, 0])
-            lighted.append((cx, col, t, base, lb, ltx, res))
-        # draw both baselines and the pre-light trace together with the first sentence of results
-        a = lighted[0]; b = lighted[1]
-        self.play(FadeIn(a[2]), FadeIn(b[2]), Create(a[3]), Create(b[3]), run_time=0.6)
-        tr_a = breathing(-3.4 - W / 2, W, 0.75, 4.0, 0.55, 2.0, 0.06, 2.0, color=BLUE)
-        tr_b = breathing(3.4 - W / 2, W, 0.75, 4.0, 0.55, 2.0, 0.2, 0.8, color=YELLOW)
+        self.at("airway populations")
+        h=heading("Airway populations • anaesthetized mice")
+        self.play(FadeIn(h),run_time=0.5)
+        panels=[]
+        for cx,col,name in [(-3.4,BLUE,"P2ry1"),(3.4,YELLOW,"Npy2r")]:
+            lab=chip(name+" afferents",col,26).move_to([cx,2.1,0])
+            baseline=Line([cx-2.7,0.6,0],[cx+2.7,0.6,0],color=GREY,stroke_width=1)
+            light=VGroup(Rectangle(width=2.86,height=0.16,stroke_width=0,fill_color=TEAL,fill_opacity=1).move_to([cx+1.27,-0.5,0]),
+                         T("light on",22,TEAL).move_to([cx+1.27,-0.95,0]))
+            panels.append((lab,baseline,light))
+        self.at("light on p2ry1")
+        self.play(FadeIn(panels[0][0]),Create(panels[0][1]),FadeIn(panels[0][2]),run_time=0.6)
         self.at("suppressed breathing")
-        self.play(FadeIn(a[4]), FadeIn(a[5]), Create(tr_a), run_time=1.2)
-        ra = T(a[6], 26, BLUE).move_to([-3.4, 1.9, 0])
-        self.play(FadeIn(ra), run_time=0.4)
+        tr1=breathing(-6.1,5.4,0.6,4,0.55,2,0.03,2,color=BLUE)
+        out1=T("breathing suppressed",25,BLUE).move_to([-3.4,-1.7,0])
+        self.play(Create(tr1),FadeIn(out1),run_time=0.8)
+        self.at("light on npy2r")
+        self.play(FadeIn(panels[1][0]),Create(panels[1][1]),FadeIn(panels[1][2]),run_time=0.6)
         self.at("rapid shallow breathing")
-        self.play(FadeIn(b[4]), FadeIn(b[5]), Create(tr_b), run_time=1.2)
-        rb = T(b[6], 26, YELLOW).move_to([3.4, 1.9, 0])
-        self.play(FadeIn(rb), run_time=0.4)
-        tag = T("breathing traces: in this sketch", 24, GREY).move_to([0, -3.3, 0])
-        self.play(FadeIn(tag), run_time=0.4)
-        self.at("nerve recordings")
-        la = T("nerve recordings", 24, GREY).move_to([0, -1.35, 0])
-        self.play(FadeIn(la), run_time=0.4)
-        self.at("largely fast")
-        ca = chip("largely fast A fibres", BLUE, 26).move_to([-3.4, -2.2, 0])
-        self.play(FadeIn(ca, shift=UP * 0.2), run_time=0.5)
-        self.at("largely slow")
-        cb = chip("largely slow C fibres", YELLOW, 26).move_to([3.4, -2.2, 0])
-        self.play(FadeIn(cb, shift=UP * 0.2), run_time=0.5)
+        tr2=breathing(0.7,5.4,0.6,4,0.55,2,0.2,0.8,color=YELLOW)
+        out2=T("rapid shallow breathing",25,YELLOW).move_to([3.4,-1.7,0])
+        sketch=T("schematic breathing traces",22,GREY).move_to([0,-2.6,0])
+        self.play(Create(tr2),FadeIn(out2),FadeIn(sketch),run_time=0.8)
+        self.at("driving p2ry1")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not h],run_time=0.5)
+        driver=chip("P2ry1 activation",BLUE,28).move_to([0,1.8,0])
+        self.play(FadeIn(driver),run_time=0.5)
+        # Vocal folds are two bars that close; swallowing moves a bolus downward;
+        # expiration moves an arrow outward. All are schematic outputs.
+        folds=VGroup(Line([-4.9,0.3,0],[-4.9,-0.6,0],color=BLUE,stroke_width=8),
+                      Line([-4.1,0.3,0],[-4.1,-0.6,0],color=BLUE,stroke_width=8))
+        self.at("closed vocal folds")
+        self.play(Create(folds),FadeIn(T("vocal folds close",24,BLUE).move_to([-4.5,-1.4,0])),run_time=0.4)
+        self.play(folds[0].animate.shift(RIGHT*0.3),folds[1].animate.shift(LEFT*0.3),run_time=0.5)
+        self.at("swallowing")
+        bolus=Dot([0,0.3,0],radius=0.16,color=BLUE)
+        self.play(FadeIn(bolus),FadeIn(T("swallowing",24,BLUE).move_to([0,-1.4,0])),run_time=0.3)
+        self.play(bolus.animate.shift(DOWN*1.1),run_time=0.5)
+        self.at("expiratory reflexes")
+        self.play(GrowArrow(arr([3.5,-0.2,0],[5.4,-0.2,0],BLUE)),
+                  FadeIn(T("expiration",24,BLUE).move_to([4.5,-1.4,0])),run_time=0.6)
+        self.at("light shows")
+        tag=chip("activation: sufficiency",TEAL,26).move_to([0,-2.5,0])
+        self.play(FadeIn(tag),run_time=0.5)
+        self.at("it does not identify")
+        self.play(Transform(tag,chip("natural stimulus?",PURPLE,26).move_to(tag)),run_time=0.6)
         self.finish()
 
 
 class S04Stop(SpokenScene):
     def construct(self):
-        halt = chip("inspiration halts", RED, 28).move_to([4.7, 0.2, 0])
-        # top route
-        p = chip("P2ry1 neurons", BLUE, 26).move_to([-4.6, 2.3, 0])
-        defence = chip("airway defence", BLUE, 26).move_to([-0.6, 2.3, 0])
-        dl = T("apnoea, closed vocal folds,\nswallowing, expiratory reflexes", 22, GREY, line_spacing=0.9).move_to([-0.6, 1.2, 0])
-        self.at("airway defense")
-        self.play(FadeIn(p), run_time=0.4)
-        self.play(GrowArrow(arr(p.get_right(), defence.get_left(), BLUE)), FadeIn(defence), run_time=0.6)
-        self.play(FadeIn(dl), run_time=0.5)
-        a1 = arr(defence.get_right() + RIGHT * 0.05, halt.get_top() + LEFT * 0.4, BLUE)
-        self.play(FadeIn(halt), GrowArrow(a1), run_time=0.7)
-        # bottom route
-        self.at("second way")
-        fill = chip("lung fills", GREY, 26).move_to([-5.0, -2.0, 0])
-        self.play(FadeIn(fill), run_time=0.5)
-        self.at("a filling lung")
-        st = chip("stretch-responsive neurons", GREEN, 26).move_to([-0.1, -2.0, 0])
-        a2 = arr(fill.get_right(), st.get_left(), GREEN)
-        hb = T("Hering-Breuer reflex", 22, GREY).move_to([-3.0, -2.75, 0])
-        self.play(GrowArrow(a2), FadeIn(st), run_time=0.6)
-        self.play(FadeIn(hb), run_time=0.4)
-        a3 = arr(st.get_right(), halt.get_bottom() + LEFT * 0.4, GREEN)
-        self.play(GrowArrow(a3), run_time=0.6)
-        self.at("ganglion imaging")
-        tag = T("mouse ganglion imaging: most were Piezo2-positive, P2ry1-negative", 22, GREEN).move_to([0, -3.4, 0])
-        self.play(FadeIn(tag), run_time=0.6)
+        self.at("lung inflation")
+        h=heading("Lung inflation reflex")
+        lung=organ("lung",(-4.8,0.5))
+        halt=chip("inspiration halts",RED,28).move_to([4.3,0.5,0])
+        link=arr([-3.4,0.5,0],halt.get_left(),GREEN)
+        self.play(FadeIn(h),FadeIn(lung),run_time=0.5)
+        self.at("halt inspiration")
+        self.play(lung[0].animate.scale(1.2),GrowArrow(link),FadeIn(halt),run_time=0.7)
+        self.at("deleting piezo 2")
+        deletion=chip("adult sensory neurons: Piezo2 deletion",GREEN,26).move_to([0,-1.7,0])
+        self.play(FadeIn(deletion),run_time=0.5)
+        self.at("impaired this inflation reflex")
+        self.play(Transform(halt,chip("reflex impaired",RED,28).move_to(halt)),link.animate.set_opacity(0.3),run_time=0.7)
+        self.at("arterial pressure sensing")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.5)
+        h=heading("Baroreflex • anaesthetized mice")
+        source=chip("pressure rises",GREY,26).move_to([-4.4,1.9,0])
+        heart=chip("heart slows",GREEN,26).move_to([4.4,1.9,0])
+        reflex=arr(source.get_right(),heart.get_left(),GREEN)
+        context=T("nodose + petrosal neurons",24,GREY).move_to([0,0.8,0])
+        normal=T("intact reflex",22,GREY).move_to([0,2.35,0])
+        self.play(FadeIn(h),FadeIn(source),FadeIn(heart),GrowArrow(reflex),FadeIn(context),FadeIn(normal),run_time=0.7)
+        self.at("deleting both")
+        double=chip("Piezo1 + Piezo2 deletion",GREEN,25).move_to([-3.5,-0.5,0])
+        self.play(FadeIn(double),run_time=0.5)
+        self.at("abolished the")
+        loss=T("baroreflex abolished",26,RED).move_to([3.6,-0.5,0])
+        self.play(FadeIn(loss),run_time=0.5)
+        self.at("neither single deletion")
+        singles=VGroup(T("Piezo1 deletion",25,GREEN).move_to([-3.5,-1.4,0]),
+                       T("Piezo2 deletion",25,GREEN).move_to([-3.5,-2.2,0]),
+                       T("no detectable change",24,GREY).move_to([3.6,-1.4,0]),
+                       T("no detectable change",24,GREY).move_to([3.6,-2.2,0]))
+        self.play(FadeIn(singles),run_time=0.7)
+        self.at("this shows a collective")
+        caveat=T("Population requirement ≠ both channels in every neuron",24,PURPLE).move_to([0,-3.2,0])
+        self.play(FadeIn(caveat),run_time=0.6)
         self.finish()
 
 
-class S05Limits(SpokenScene):
+class S05Brainstem(SpokenScene):
     def construct(self):
-        xs = [-4.5, 0.0, 4.5]
-        h1 = chip("light: sufficiency", TEAL, 26).move_to([xs[0], 2.8, 0])
-        h2 = chip("label, not sensor", BLUE, 26).move_to([xs[1], 2.8, 0])
-        h3 = chip("cluster: candidate", PURPLE, 26).move_to([xs[2], 2.8, 0])
-        # panel 1
-        c1 = cell(BLUE, 0.5, (xs[0], 1.0))
-        l1 = arr([xs[0] - 1.6, 1.0, 0], [xs[0] - 0.6, 1.0, 0], TEAL)
-        t1 = T("what cells can do\nwhen driven", 24, TEXT, line_spacing=0.9).move_to([xs[0], -0.3, 0])
-        q1 = T("what drives them\nin life?", 24, PURPLE, line_spacing=0.9).move_to([xs[0], -1.6, 0])
-        # panel 2
-        c2 = cell(BLUE, 0.5, (xs[1], 1.0))
-        lab2 = chip("gene used as label", BLUE, 22).move_to([xs[1], 0.0, 0])
-        m2 = membrane(xs[1], -0.9, 3.4)
-        s2 = chip("the sensing molecule?", PURPLE, 22).move_to([xs[1], -1.8, 0])
-        # panel 3
-        rng = np.random.default_rng(4)
-        dots = VGroup()
-        centers = [(xs[2] - 1.0, 1.6), (xs[2] + 0.9, 1.5), (xs[2], 0.1)]
-        cand = VGroup()
-        for k, (cx, cy) in enumerate(centers):
-            for _ in range(9):
-                d = Dot(point=[cx + rng.normal(0, 0.22), cy + rng.normal(0, 0.18), 0], radius=0.07,
-                        color=PURPLE if k == 2 else GREY)
-                (cand if k == 2 else dots).add(d)
-        ring = Circle(radius=0.55, color=PURPLE, stroke_width=3).move_to([xs[2], 0.1, 0])
-        n3 = chip("NP19", PURPLE, 24).move_to([xs[2], -1.0, 0])
-        t3 = T("candidate for the\ndefence reflexes", 22, GREY, line_spacing=0.9).move_to([xs[2], -2.1, 0])
-        self.at("test of sufficiency")
-        self.play(FadeIn(h1), run_time=0.4)
-        self.play(FadeIn(c1), GrowArrow(l1), run_time=0.6)
-        self.play(FadeIn(t1), run_time=0.5)
-        self.at("not what drives")
-        self.play(FadeIn(q1), run_time=0.5)
-        self.at("receptor gene")
-        self.play(FadeIn(h2), FadeIn(c2), run_time=0.6)
-        self.play(FadeIn(lab2), run_time=0.4)
-        self.at("senses")
-        self.play(FadeIn(m2), FadeIn(s2), run_time=0.6)
-        self.at("candidate")
-        self.play(FadeIn(h3), FadeIn(dots), FadeIn(cand), run_time=0.7)
-        self.play(Create(ring), FadeIn(n3), run_time=0.6)
-        self.play(FadeIn(t3), run_time=0.5)
+        self.at("where do these signals")
+        h=heading("Sensory routes into the brainstem")
+        medulla=RoundedRectangle(width=7.0,height=5.3,corner_radius=0.45,
+                                  color=GREY,fill_opacity=0.1).move_to([2.8,-0.25,0])
+        self.play(FadeIn(h),FadeIn(medulla),run_time=0.5)
+        organs=T("organ sensory\nstrands",24,GREY).move_to([-5.2,1.6,0])
+        self.at("vagal sensory axons")
+        self.play(FadeIn(organs),run_time=0.5)
+        nts=chip("NTS",GREEN,30).move_to([2.5,1.4,0])
+        strands=VGroup(*[arr([-3.8,1.3+d,0],[1.4,1.4+d*0.2,0],col)
+                        for d,col in [(-0.5,BLUE),(0,GREEN),(0.5,ORANGE)]])
+        self.at("nucleus of the solitary tract")
+        fullname=T("nucleus of the solitary tract\nprimary target",22,GREEN).move_to([2.5,0.35,0])
+        self.play(FadeIn(nts),Create(strands),FadeIn(fullname),run_time=0.7)
+        self.at("in the medulla")
+        self.play(FadeIn(T("medulla",24,GREY).move_to([4.9,1.9,0])),run_time=0.5)
+        self.at("processes the input")
+        self.play(ShowPassingFlash(strands.copy().set_stroke(width=9)),Indicate(nts,color=GREEN),run_time=0.8)
+        self.at("take a different route")
+        j=T("jugular afferents",24,BLUE).move_to([-4.9,-1.0,0])
+        pt=chip("paratrigeminal nucleus",BLUE,24).move_to([2.5,-1.1,0])
+        self.play(FadeIn(j),GrowArrow(arr([-3.3,-1.1,0],pt.get_left(),BLUE)),FadeIn(pt),run_time=0.7)
+        self.at("some gut afferents")
+        gut=T("some gut afferents",24,ORANGE).move_to([-4.9,-2.3,0])
+        ap=chip("area postrema",ORANGE,25).move_to([2.5,-2.3,0])
+        self.play(FadeIn(gut),GrowArrow(arr([-3.2,-2.3,0],ap.get_left(),ORANGE)),FadeIn(ap),run_time=0.7)
         self.finish()
 
 
 class S06Rule(SpokenScene):
     def construct(self):
-        nerve = tube(-6.0, -2.4, 2.2, 0.9)
-        cols = [BLUE, YELLOW, GREEN, GREY, GREY, GREY, GREY]
-        ys = [3.05, 2.7, 2.35, 2.0, 1.65, 1.3, 0.95]
-        self.at("not one cable")
-        self.play(FadeIn(nerve), run_time=0.5)
-        cable = strand(-5.8, -2.6, 2.2, GREY, 8)
-        self.play(Create(cable), run_time=0.4)
-        nl = T("vagus: sensory axons", 24, GREY).next_to(nerve, DOWN, buff=0.25).align_to(nerve, LEFT)
-        self.play(FadeIn(nl), run_time=0.3)
-        self.at("many types")
-        fan = VGroup(*[Line([-2.4, 2.2, 0], [3.0, y, 0], color=c, stroke_width=7) for c, y in zip(cols, ys)])
-        self.play(ReplacementTransform(cable.copy(), fan), run_time=0.9)
-        self.remove(cable)
-        self.play(FadeIn(Dot([-2.4, 2.2, 0], radius=0.08, color=GREY)), run_time=0.1)
-        jobs = T("different types,\nsome tied to\ndifferent jobs", 24, TEXT, line_spacing=0.9).move_to([5.0, 2.0, 0])
-        self.play(FadeIn(jobs), run_time=0.4)
-        self.at("atlases give")
-        at = T("atlases: counts differ with scope", 24, GREY).move_to([3.4, 0.3, 0])
-        self.play(FadeIn(at), run_time=0.5)
-        c1 = chip("label: a handle", BLUE, 28).move_to([-4.8, -1.5, 0])
-        c2 = chip("type: a hypothesis", PURPLE, 28).move_to([-0.1, -1.5, 0])
-        c3 = chip("function", GREEN, 28).move_to([4.7, -1.5, 0])
-        self.at("a label is a handle")
-        self.play(FadeIn(c1), run_time=0.5)
-        self.at("a type is a hypothesis")
-        a1 = arr(c1.get_right(), c2.get_left(), GREY)
-        self.play(GrowArrow(a1), FadeIn(c2), run_time=0.6)
-        self.at("ties it to one")
-        a2 = arr(c2.get_right(), c3.get_left(), GREEN)
-        tie = T("genetic access, physiology\nor behaviour", 22, GREY, line_spacing=0.9).move_to([2.35, -0.55, 0])
-        self.play(GrowArrow(a2), FadeIn(c3), FadeIn(tie), run_time=0.7)
+        self.at("a smaller closing point")
+        h=heading("A smaller point")
+        neuron=cell(GREY,0.65,(-2.3,0.8))
+        axon=strand(-1.65,1.4,0.8,GREY,5)
+        self.play(FadeIn(h),FadeIn(neuron),Create(axon),run_time=0.5)
+        self.at("a genetic label")
+        label=chip("genetic label: a handle",BLUE,26).move_to([-3.4,2.0,0])
+        self.play(FadeIn(label),neuron.animate.set_stroke(BLUE),run_time=0.5)
+        self.at("it does not by itself")
+        sensor=chip("sensing molecule?",PURPLE,26).move_to([4.0,0.8,0])
+        self.play(FadeIn(sensor),run_time=0.5)
+        self.at("senses stretch or food")
+        route=overview(-2.0)
+        self.play(FadeIn(route),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "A label is a handle. A type is a hypothesis until tested."
+    LINE = "In mice, the vagus carries many specialised sensory lines."

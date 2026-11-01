@@ -248,7 +248,7 @@ class S05Arithmetic(SpokenScene):
         self.play(*[d.animate.set_fill(TEAL, 0.9) for d in gc if d.ok], run_time=1.2, lag_ratio=0.05)
         ct = M("19 of 25", 30, TEAL).move_to([-3.4, -0.5, 0])
         self.play(FadeIn(ct), run_time=0.3)
-        self.at("handicapped nests did")
+        self.at("handicap")
         self.play(*[d.animate.set_fill(ORANGE, 0.9) for d in gh if d.ok], run_time=1.0, lag_ratio=0.05)
         ht = M("8 of 17", 30, ORANGE).move_to([3.4, -0.5, 0])
         self.play(FadeIn(ht), run_time=0.3)
@@ -278,7 +278,7 @@ class S06Rule(SpokenScene):
         bl = T("skylark with load", 24, GREY).next_to(b, DOWN, buff=0.3)
         self.add(b, bl)
         rows = []
-        specs = [("reproductive output: reduced", YELLOW, "harness and load together"),
+        specs = [("fledglings in first broods: fewer", YELLOW, "harness and load together"),
                  ("survival cost to adults: not established", BLUE, "adult return did not differ significantly"),
                  ("harness alone: no such group", ORANGE, "harness and load cannot be separated")]
         ys = [2.3, 1.0, -0.3]
@@ -288,7 +288,7 @@ class S06Rule(SpokenScene):
             g = VGroup(t1, t2).arrange(DOWN, buff=0.1, aligned_edge=LEFT).move_to([1.7, y, 0], aligned_edge=LEFT) if False else VGroup(t1, t2).arrange(DOWN, buff=0.1, aligned_edge=LEFT)
             g.move_to([0, y, 0], aligned_edge=LEFT).shift(RIGHT * -1.2)
             rows.append(g)
-        self.at("reduced reproductive output")
+        self.at("harness and load")
         self.play(FadeIn(rows[0], shift=RIGHT * 0.3), run_time=0.6)
         bl2 = T("nest success gap: borderline", 22, GOLD).next_to(rows[0], DOWN, buff=0.08, aligned_edge=LEFT)
         self.at("borderline")

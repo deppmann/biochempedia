@@ -312,7 +312,7 @@ class S05Controls(SpokenScene):
         self.play(FadeIn(sites_in, scale=0.5), FadeIn(sites_out, scale=0.5), FadeIn(same, shift=LEFT * 0.2), run_time=0.9)
 
         crosses = VGroup(*[Cross(s, stroke_color=RED, stroke_width=6, scale_factor=1.3) for s in list(sites_in) + list(sites_out)])
-        why = VGroup(T("all fail:", 30, RED, weight=BOLD), T("likely handling or a bad year", 28, RED)).arrange(DOWN, buff=0.12).move_to([4.2, 0.3, 0])
+        why = VGroup(T("all fail:", 30, RED, weight=BOLD), T("test cannot single out the edge", 28, RED)).arrange(DOWN, buff=0.12).move_to([4.2, 0.3, 0])
         self.at("fail too")
         self.play(*[Create(c) for c in crosses], FadeIn(why), run_time=1.0)
 
@@ -369,16 +369,16 @@ class S06Read(SpokenScene):
             # keep arrow ending next to the chip
             ar2 = Arrow([res.get_left()[0] - 1.0, y, 0], [res.get_left()[0] - 0.1, y, 0], buff=0, color=color, stroke_width=5, tip_length=0.2)
             return VGroup(left, ar2, res)
-        r1 = row("λ at least 1 beyond the range", "with or without neighbours", "dispersal limit", TEAL, 2.3)
+        r1 = row("λ at least 1 beyond the range", "in both neighbour treatments", "dispersal limit", TEAL, 2.3)
         r2 = row("λ below 1 only where neighbours remain", "not where neighbours are cleared", "biotic limit", ORANGE, 0.2)
-        r3 = row("λ below 1 in every treatment beyond", "inside controls stay at 1 or above", "abiotic limit", BLUE, -1.9)
+        r3 = row("λ below 1 in every treatment beyond", "inside controls stay at 1 or above", "edge conditions", BLUE, -1.9)
         note = T("(dune plant, one site)", 22, TEAL).next_to(r1[2], DOWN, buff=0.12)
 
         qs = [T("?", 40, GREY, weight=BOLD).move_to(r[2].get_center()) for r in (r1, r2, r3)]
         self.play(*[FadeIn(q, scale=0.6) for q in qs], run_time=0.6)
         self.at("lambda is at least one")
         self.play(FadeIn(r1[0], shift=RIGHT * 0.2), run_time=0.8)
-        self.at("Dispersal is the likely limit")
+        self.at("colonization")
         self.play(GrowArrow(r1[1]), ReplacementTransform(qs[0], r1[2]), run_time=0.7)
         self.at("one site")
         self.play(FadeIn(note), run_time=0.5)
@@ -390,7 +390,7 @@ class S06Read(SpokenScene):
 
         self.at("every treatment")
         self.play(FadeIn(r3[0], shift=RIGHT * 0.2), run_time=0.8)
-        self.at("abiotic limit is the likeliest")
+        self.at("conditions beyond the edge")
         self.play(GrowArrow(r3[1]), ReplacementTransform(qs[2], r3[2]), run_time=0.7)
 
         rule = VGroup(T("Absence on a map", 44, TEXT, font=TITLE_FONT),

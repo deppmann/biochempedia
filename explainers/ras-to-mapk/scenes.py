@@ -1,4 +1,4 @@
-"""Ras to MAPK: one chain, two answers, set by time  (Biochemistrypedia explainer)
+"""Ras to MAPK: from membrane to genes  (Biochemistrypedia explainer)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -16,9 +16,7 @@ COLOR MAP (one color per concept, whole video)
 No molecular structures: Ras is a mouth on the membrane, Raf is a block with a lid that folds over it,
 MEK and ERK are blocks with labelled site tabs, a phosphate is a "P" badge, DNA is a bar.
 
-Two framings of the same picture (BASE, and ZOOM which is BASE scaled up on the membrane):
-  scene 2   ZOOM   Ras and Raf fill the frame; at the end the view pulls back to BASE
-  scenes 3-4 BASE  the staircase membrane -> Ras -> Raf pair -> MEK -> ERK across the whole frame
+Original BASE/ZOOM helpers are retained. New scenes use close-ups and a shared overview.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -291,236 +289,10 @@ def reframe(old, new):
     return [Transform(a, b) for a, b in zip(old, new)]
 
 
-class Film(SpokenScene):
-    def outro(self, *anims, then=None, run_time=0.38, hold=0.0):
-        """hold until the narration ends, clear what the next scene does not inherit, then (optionally)
-        change framing. These run after the last word, so they add a short breath between scenes."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=0.9)
-            self.wait(0.15)
-        if hold:
-            self.wait(hold)
-        self.finish()
+X0, X_HR, X_END = -3.7, -0.7, 3.9
+YT, YB, AMP = 0.55, -2.3, 1.9
 
 
-class S00Title(TitleCard):
-    LESSON = "Ras to MAPK: The Kinase Cascade"
-    TITLE = "One chain, two answers, set by time"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(Film):
-    """EGF and NGF go in, different answers come out, through the same four proteins. (BASE)"""
-
-    def construct(self):
-        title = T("PC12 cell", 26, GREY).move_to([0, 3.22, 0])
-        box = RoundedRectangle(corner_radius=0.3, width=2.7, height=5.2).move_to([0, 0.33, 0])
-        edge = DashedVMobject(box, num_dashes=64).set_color(GREY)
-        q = T("?", 80, GREY, weight=BOLD).move_to([0, 0.33, 0])
-        self.play(FadeIn(title), Create(edge), FadeIn(q), run_time=0.9)
-
-        # EGF: in at the top left, out at the bottom left
-        egf = bchip("EGF", YELLOW, 30).move_to([-4.7, 2.35, 0])
-        in_l = arr([-3.7, 2.35, 0], [-1.4, 2.35, 0], YELLOW)
-        out_l = arr([-1.4, -1.55, 0], [-3.4, -1.55, 0], GREY)
-        path_l = VMobject().set_points_as_corners([egf.get_center(), [-1.4, 2.35, 0], [0, 2.35, 0], [0, -1.55, 0], [-1.4, -1.55, 0], [-3.9, -1.55, 0]])
-        dot = Dot(egf.get_center(), radius=0.15, color=YELLOW)
-        div_lbl = T("divides", 28, ORANGE).move_to([-4.7, -2.65, 0])
-        div_ic = dividing_icon([-4.7, -1.55, 0], 0.62)
-        self.at("growth factor")
-        self.play(FadeIn(egf, shift=RIGHT * 0.2), GrowArrow(in_l), run_time=0.5)
-        self.play(FadeIn(dot), run_time=0.1)
-        self.play(MoveAlongPath(dot, path_l), run_time=1.3, rate_func=linear)
-        one = cell_icon([-4.7, -1.55, 0], 0.62)
-        self.play(FadeOut(dot), FadeIn(out_l), FadeIn(one), run_time=0.2)
-        self.at("divides")
-        self.play(Transform(one, div_ic), FadeIn(div_lbl, shift=UP * 0.1), run_time=0.6)
-
-        # NGF: the same box, a different answer
-        ngf = bchip("NGF", YELLOW, 30).move_to([4.7, 2.35, 0])
-        in_r = arr([3.7, 2.35, 0], [1.4, 2.35, 0], YELLOW)
-        out_r = arr([1.4, -1.55, 0], [3.2, -1.55, 0], GREY)
-        path_r = VMobject().set_points_as_corners([ngf.get_center(), [1.4, 2.35, 0], [0, 2.35, 0], [0, -1.55, 0], [1.4, -1.55, 0], [3.9, -1.55, 0]])
-        dot2 = Dot(ngf.get_center(), radius=0.15, color=YELLOW)
-        ghost = dividing_icon([4.7, -1.55, 0], 0.62).set_opacity(0.45)
-        x_r = strike(ghost)
-        fib = fibres_icon([4.7, -1.55, 0], 0.45, 0.75)
-        fib_lbl = T("nerve-like fibres", 26, ORANGE).move_to([4.6, -3.1, 0])
-        self.at("same cell")
-        self.play(FadeIn(ngf, shift=LEFT * 0.2), GrowArrow(in_r), run_time=0.6)
-        self.play(FadeIn(dot2), run_time=0.1)
-        self.play(MoveAlongPath(dot2, path_r), run_time=1.2, rate_func=linear)
-        self.play(FadeOut(dot2), FadeIn(out_r), run_time=0.2)
-        self.at("stops dividing")
-        self.play(FadeIn(ghost), Create(x_r), run_time=0.5)
-        self.at("grows long")
-        self.play(FadeOut(ghost), FadeOut(x_r), run_time=0.3)
-        self.play(LaggedStart(*[Create(f) for f in fib[0]], lag_ratio=0.12), FadeIn(fib[1]), FadeIn(fib_lbl, shift=UP * 0.1),
-                  run_time=1.1)
-
-        # the same four proteins fill the box
-        names = [("Ras", BLUE), ("Raf", PURPLE), ("MEK", PURPLE), ("ERK", PURPLE)]
-        ys = [2.35, 1.0, -0.35, -1.7]
-        chips = [bchip(n, c, 30).move_to([0, y, 0]) for (n, c), y in zip(names, ys)]
-        links = [arr(chips[i].get_bottom(), chips[i + 1].get_top(), GREY, w=4, tip=0.16) for i in range(3)]
-        self.at("proteins")
-        self.play(FadeOut(q), run_time=0.3)
-        self.wait(0.15)
-        self.play(LaggedStart(*[AnimationGroup(FadeIn(c, scale=0.8), GrowArrow(l) if l is not None else Wait(0.01))
-                               for c, l in zip(chips, [None] + links)], lag_ratio=0.55), run_time=2.3)
-        self.at("one chain")
-        self.play(LaggedStart(*[Indicate(c[1:], color=TEXT, scale_factor=1.08) for c in chips], lag_ratio=0.15), run_time=0.9)
-        two = T("?", 64, ORANGE, weight=BOLD).move_to([0, -2.85, 0])
-        self.at("two instructions")
-        self.play(FadeIn(two, scale=0.6), *glow(one, fib[1], s=1.15), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Catch(Film):
-    """SOS loads Ras with GTP; active Ras holds the folded Raf at the membrane and opens it; two Rafs pair. (ZOOM)"""
-
-    def construct(self):
-        V = ZOOM
-        k = V.k
-        mem = membrane(V)
-        r = ras(V, 18, False)
-        tag = nt_tag(V, "GDP", GREY)
-        mlabel = T("membrane", 24, TEXT).rotate(PI / 2).move_to(ZP(V.p(MEM_X, 0)[0], -0.8))
-        self.play(FadeIn(mem), FadeIn(r), FadeIn(tag), FadeIn(mlabel), run_time=0.8)
-
-        sos = sos_chip(V)
-        rest = sos.get_center().copy()
-        sos.move_to(rest + ZP(4.2, 0.3))
-        self.at("loads")
-        self.play(FadeIn(sos), run_time=0.3)
-        self.play(sos.animate.move_to(rest), run_time=0.7)
-        self.play(tag.animate.shift(RIGHT * 1.2 + UP * 0.3).set_opacity(0), run_time=0.6)
-        tag_on = nt_tag(V, "GTP", GREEN)
-        self.at("is on")
-        self.play(FadeIn(tag_on, scale=0.6), Transform(r.body, ras_body(V, 70, True)), run_time=0.8)
-        self.play(*glow(r.body, s=1.05, color=GREEN), run_time=0.5)
-
-        nk = T("not a kinase", 32, GREY).move_to(ZP(1.2, 2.55))
-        self.at("not a kinase")
-        self.play(FadeIn(nk, shift=UP * 0.1), run_time=0.4)
-        by = T("works by contact", 32, TEXT).move_to(ZP(1.2, 2.55))
-        self.at("by contact")
-        self.play(Transform(r.body, ras_body(V, 36, True)), ReplacementTransform(nk, by), run_time=0.3)
-        self.play(Transform(r.body, ras_body(V, 70, True)), run_time=0.3)
-
-        # Raf, folded shut, floats in the cytosol
-        rA = raf(V, -0.5, RAFA[1], open_=False)
-        cyto = T("cytosol", 28, GREY).move_to(ZP(4.9, 3.0))
-        self.at("catches")
-        self.play(*glow(r.body, r.lbl, s=1.06, color=GREEN), FadeOut(by), run_time=0.6)
-        self.at("floats")
-        self.play(FadeIn(rA, shift=LEFT * 0.5), FadeIn(cyto), run_time=0.7)
-        self.play(rA.animate(rate_func=there_and_back).shift(UP * 0.25), run_time=0.8)
-        fs = T("folded shut", 30, GREY).next_to(rA, DOWN, buff=0.45)
-        self.at("folded shut")
-        self.play(FadeIn(fs), *glow(rA.lid[1], s=1.15), run_time=0.6)
-
-        # Ras brings it to the membrane and opens it
-        dx = (-0.5 - RAFA[0]) * k
-        self.at("Binding")
-        self.play(rA.animate.shift(LEFT * dx), FadeOut(fs), FadeOut(cyto), run_time=1.3)
-        self.at("there it opens")
-        self.play(Rotate(rA.lid, PI, about_point=rA.body.get_left()), run_time=0.8)
-        rA.lid.become(raf(V, *RAFA, open_=True)[1])
-        self.play(*glow(r.body, rA.lid[1], s=1.08, color=GREEN), run_time=0.5)
-
-        # a second Raf pairs with it
-        rB = raf(V, -0.5, RAFB[1], open_=True)
-        self.at("Then two")
-        self.play(FadeIn(rB, shift=LEFT * 0.5), run_time=0.6)
-        self.at("pair")
-        self.play(rB.animate.shift(LEFT * dx), run_time=0.9)
-        br = bracket(rA.body.get_right()[0] + 0.45, rB.get_bottom()[1], rA.get_top()[1], side=1)
-        pair_l = T("pair", 32, TEXT).next_to(br, RIGHT, buff=0.25)
-        self.at("side by side")
-        self.play(Create(br), FadeIn(pair_l), run_time=0.3)
-        act_l = T("active", 32, GREEN).move_to(pair_l)
-        self.at("normal activation")
-        self.play(*raf_on(rA), *raf_on(rB), ReplacementTransform(pair_l, act_l), br.animate.set_color(GREEN), run_time=0.7)
-
-        # pull back to the framing used by the next two scenes
-        m2, r2, t2, s2, a2, b2 = stage(BASE)
-        self.outro(FadeOut(mlabel), FadeOut(br), FadeOut(act_l),
-                   then=reframe([mem, r, tag_on, sos, rA, rB], [m2, r2, t2, s2, a2, b2]))
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Relay(Film):
-    """Raf puts two phosphates on MEK; MEK puts two on ERK, and ERK needs both. (BASE)"""
-
-    def construct(self):
-        V = BASE
-        k = V.k
-        mem, r, tag, sos, rA, rB = stage(V)
-        mek = kinase(V, "MEK", *MEK_XY, tabs=("Ser", "Ser"))
-        erk = kinase(V, "ERK", *ERK_XY, tabs=("Thr", "Tyr"))
-        self.add(mem, r, tag, sos, rA, rB)
-        self.play(*glow(rA.body, rB.body, s=1.04, color=GREEN), run_time=0.6)
-
-        # Raf -> MEK, two serines
-        pa = pbadge(k).move_to(rA.body.get_right() + RIGHT * 0.3)
-        pb = pbadge(k).move_to(rB.body.get_right() + RIGHT * 0.3)
-        self.at("adds phosphates")
-        self.play(FadeIn(pa, scale=0.5), FadeIn(pb, scale=0.5), run_time=0.4)
-        self.at("next kinase")
-        self.play(FadeIn(mek, scale=0.85), run_time=0.5)
-        self.play(pa.animate(path_arc=0.5).move_to(mek.sites[0]), pb.animate(path_arc=0.5).move_to(mek.sites[1]), run_time=0.9)
-        self.at("two serines")
-        self.play(pop(pa, 1.4), pop(pb, 1.4), run_time=0.6)
-
-        # MEK turns on
-        self.at("unusual")
-        self.play(*go_on(mek), *glow(mek.lbl, s=1.1), run_time=0.7)
-
-        # MEK -> ERK: a threonine and a tyrosine, side by side
-        src = mek.body.get_right() + RIGHT * 0.1
-        p3 = pbadge(k).move_to(src + DOWN * 0.1)
-        self.at("adds a phosphate")
-        self.play(FadeIn(erk, scale=0.85), FadeIn(p3, scale=0.5), run_time=0.5)
-        self.play(p3.animate(path_arc=0.5).move_to(erk.sites[0]), run_time=0.8)
-        p4 = pbadge(k).move_to(src + DOWN * 0.45)
-        self.at("and another")
-        self.play(FadeIn(p4, scale=0.5), run_time=0.3)
-        self.play(p4.animate(path_arc=0.5).move_to(erk.sites[1]), run_time=0.8)
-        br = bracket(erk.sites[0][0] - 0.5, erk.sites[1][1] - 0.25, erk.sites[0][1] + 0.25, side=-1)
-        apart = T("one residue apart", 26, GREY).next_to(br, LEFT, buff=0.2)
-        self.at("apart")
-        self.play(Create(br), FadeIn(apart), run_time=0.5)
-
-        # ERK needs both
-        self.at("needs both")
-        self.play(*go_on(erk), pop(p3, 1.4), pop(p4, 1.4), FadeOut(apart), FadeOut(br), run_time=0.7)
-
-        # take one off: ERK goes quiet
-        self.at("Take either")
-        self.play(p4.animate.shift(LEFT * 1.2).set_opacity(0), erk.body.animate.set_stroke(PURPLE, 3), run_time=0.8)
-        self.at("goes quiet")
-        self.play(*go_quiet(erk), run_time=0.6)
-
-        # for the next scene: ERK is on again
-        p5 = pbadge(k).move_to(src + DOWN * 0.45)
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        self.play(FadeIn(p5, scale=0.5), run_time=0.25)
-        self.play(p5.animate(path_arc=0.5).move_to(erk.sites[1]),
-                  erk.body.animate.set_stroke(GREEN, 4.5).set_fill(PURPLE, 0.3), erk.lbl.animate.set_color(PURPLE), run_time=0.9)
-        self.wait(0.2)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def chain_on(V):
     """the whole chain, every part on: [mem, ras, tag, sos, rafA, rafB, mek, erk, P x4 (MEK sites, ERK sites)]"""
     mem, r, tag, sos, rA, rB = stage(V)
@@ -531,99 +303,11 @@ def chain_on(V):
     ps = [pbadge(V.k).move_to(s) for s in mek.sites + erk.sites]
     return mem, r, tag, sos, rA, rB, mek, erk, ps
 
-
-class S04Feedback(Film):
-    """ERK shuts down what is above it, and turns on a phosphatase that takes its phosphates off. (BASE)"""
-
-    def construct(self):
-        V = BASE
-        k = V.k
-        mem, r, tag, sos, rA, rB, mek, erk, ps = chain_on(V)
-        self.add(mem, r, tag, sos, rA, rB, mek, erk, *ps)
-        pm1, pm2, pe1, pe2 = ps
-
-        # the signal has a length
-        neg = T("negative feedback", 34, RED, weight=BOLD).move_to(V.p(3.2, 2.5))
-        self.at("Negative feedback")
-        self.play(FadeIn(neg, shift=DOWN * 0.1), run_time=0.5)
-        ck = clock(V.p(3.4, 1.3), 0.55)
-        how = T("how long", 28, GREY).next_to(ck, RIGHT, buff=0.3)
-        self.at("how long")
-        self.play(FadeIn(ck), FadeIn(how), run_time=0.4)
-        self.play(Rotate(ck.hand, -TAU * 0.6, about_point=ck.c, rate_func=linear), run_time=1.6)
-        self.at("supplies its own")
-        self.play(*glow(erk.body, erk.lbl, s=1.08, color=RED), run_time=0.7)
-
-        # ERK -> back up the chain: Raf and SOS
-        a1 = fb_curve(V.p(3.9, -1.6), V.p(4.6, 0.9), V.p(1.2, 2.4), V.p(-0.85, 1.35))
-        a2 = fb_curve(V.p(3.3, -2.8), V.p(1.5, -2.9), V.p(-3.4, -2.4), V.p(-4.35, -0.43))
-        q1 = pbadge(0.9 * k).move_to(a1[0].get_start())
-        q2 = pbadge(0.9 * k).move_to(a2[0].get_start())
-        self.at("phosphorylates proteins")
-        self.play(FadeOut(neg), FadeOut(ck), FadeOut(how), Create(a1[0]), FadeIn(q1), run_time=0.3)
-        self.play(MoveAlongPath(q1, a1[0]), run_time=1.1, rate_func=linear)
-        self.play(FadeIn(a1[1]), FadeOut(q1), run_time=0.2)
-        self.at("among them")
-        self.play(Create(a2[0]), FadeIn(q2), run_time=0.2)
-        self.play(MoveAlongPath(q2, a2[0]), run_time=1.1, rate_func=linear)
-        self.play(FadeIn(a2[1]), FadeOut(q2), run_time=0.2)
-        self.at("and that")
-        self.play(*raf_weak(rA), *raf_weak(rB), sos[1].animate.set_stroke(GREY).set_fill(GREY, 0.1), sos[2].animate.set_color(GREY),
-                  run_time=0.8)
-        self.play(FadeOut(a1), FadeOut(a2), run_time=0.5)
-
-        # ERK -> a gene -> a phosphatase (not there yet)
-        gene = bchip("gene", GREY, 28).move_to(V.p(-3.6, -1.95))
-        c2 = V.p(-2.4, -2.8)
-        g_arrow = bez(V.p(3.4, -2.8), V.p(1.0, -2.95), c2, V.p(-3.3, -2.35))
-        g_arrow.set_stroke(GREEN, 5)
-        g_tip = Triangle(fill_color=GREEN, fill_opacity=1, stroke_width=0).scale(0.14)
-        d = np.array(g_arrow.get_end()) - c2
-        g_tip.rotate(np.arctan2(d[1], d[0]) - PI / 2).move_to(g_arrow.get_end())
-        self.at("turns on genes")
-        self.play(FadeIn(gene), run_time=0.3)
-        self.play(Create(g_arrow), run_time=0.8)
-        self.play(FadeIn(g_tip), gene[1].animate.set_stroke(GREEN).set_fill(GREEN, 0.2), gene[2].animate.set_color(GREEN), run_time=0.4)
-        ph_ghost = ghost_chip("phosphatase", 28, RED).move_to(V.p(-0.9, -2.15))
-        self.at("phosphatuses")
-        self.play(FadeIn(ph_ghost, shift=RIGHT * 0.2), run_time=0.6)
-        pointer = DashedLine(ph_ghost.get_right() + RIGHT * 0.05, [erk.sites[1][0] - 0.35, ph_ghost.get_center()[1], 0],
-                             color=RED, stroke_width=4, dash_length=0.12)
-        self.at("take both")
-        self.play(Create(pointer), run_time=0.7)
-
-        # slower: a protein has to be made
-        ck2 = clock(V.p(-3.4, -0.95), 0.5)
-        slow = T("slower", 30, RED).next_to(ck2, RIGHT, buff=0.3)
-        self.at("slower")
-        self.play(FadeIn(ck2), FadeIn(slow), run_time=0.4)
-        self.play(Rotate(ck2.hand, -TAU * 1.0, about_point=ck2.c, rate_func=linear), run_time=1.1)
-        ph = bchip("phosphatase", RED, 28).move_to(ph_ghost)
-        self.at("has to be made")
-        self.play(FadeOut(ph_ghost), FadeIn(ph), FadeOut(pointer), run_time=0.6)
-
-        # it takes both phosphates off ERK
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        self.play(ph.animate.move_to([erk.sites[1][0] - 1.55, (erk.sites[0][1] + erk.sites[1][1]) / 2, 0]), run_time=0.9)
-        self.play(pe1.animate.move_to(ph.get_center()).set_opacity(0), pe2.animate.move_to(ph.get_center()).set_opacity(0),
-                  *go_quiet(erk), run_time=0.9)
-        self.wait(0.3)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-X0, X_HR, X_END = -3.7, -0.7, 3.9        # S05: time zero, "about an hour", the right end of the axis
-YT, YB, AMP = 0.55, -2.3, 1.9            # S05: baselines of the top and bottom rows
-
-
 def egf_curve(x0=X0, x1=X_HR, y0=YT, amp=AMP):
     """ERK activity after EGF: rises and falls back to nothing within about an hour (schematic)."""
     f = lambda t: (t / 0.15) * np.exp(1 - t / 0.15)
     return ParametricFunction(lambda t: np.array([x0 + (x1 - x0) * t, y0 + amp * f(t), 0]), t_range=[0, 1, 0.01],
                               color=GREEN, stroke_width=6)
-
 
 def plateau_curve(x0=X0, x1=X_END, y0=YB, amp=AMP, color=GREEN, rise=0.12, run=2.6):
     """ERK activity after NGF: climbs to a plateau that lasts (schematic)."""
@@ -631,158 +315,338 @@ def plateau_curve(x0=X0, x1=X_END, y0=YB, amp=AMP, color=GREEN, rise=0.12, run=2
     return ParametricFunction(lambda t: np.array([x0 + (x1 - x0) * t / run, y0 + amp * f(t), 0]), t_range=[0, run, 0.01],
                               color=color, stroke_width=6)
 
-
 def axes_row(x0, x1, y0, h):
     ya = Line([x0, y0, 0], [x0, y0 + h, 0], color=GREY, stroke_width=3)
     xa = Line([x0, y0, 0], [x1, y0, 0], color=GREY, stroke_width=3)
     return VGroup(ya, xa)
 
+# The old drawing primitives above are retained; new layouts follow the new narration.
+def label(text, x, y, color=TEXT, size=28):
+    return T(text, size, color).move_to([x, y, 0])
 
-class S05Clock(Film):
-    """Two rows on a shared clock: a short window and a long one; the difference is the instruction. (plots)"""
 
+def node(text, x, y, color=PURPLE, size=28):
+    return bchip(text, color, size).move_to([x, y, 0])
+
+
+def link(a, b, color=GREY):
+    return arr(a.get_right(), b.get_left(), color, w=3)
+
+
+def overview():
+    # Five stations and two outputs; the arrows are part of each relay station.
+    names = [('receptor', GREY), ('Ras–GTP', BLUE), ('Raf', PURPLE), ('MEK', PURPLE), ('ERK', PURPLE)]
+    ns = [node(n, x, 1.25, c, 26) for (n, c), x in zip(names, [-5.1, -2.4, 0, 2.2, 4.5])]
+    ls = [link(a, b) for a, b in zip(ns, ns[1:])]
+    cyt = node('cytoplasmic proteins', 3.9, -0.5, ORANGE, 24)
+    nuc = VGroup(node('transcription factors', 0.6, -2.0, PURPLE, 24), label('nucleus', 0.6, -1.25, GREY, 24))
+    branches = VGroup(arr(ns[-1].get_bottom(), cyt.get_top(), PURPLE, w=3),
+                      VGroup(VMobject(stroke_color=PURPLE, stroke_width=3).set_points_as_corners(
+                          [[4.0, 1.1, 0], [1.8, 0.3, 0], [1.8, -1.1, 0]]),
+                          arr([1.8, -1.1, 0], [1.4, -1.7, 0], PURPLE, w=3)))
+    return ns, ls, cyt, nuc, branches
+
+
+class S00Title(TitleCard):
+    LESSON = 'Ras to MAPK: The Kinase Cascade'
+    TITLE = 'Ras to MAPK: From Membrane to Genes'
+
+
+class S01Puzzle(SpokenScene):
     def construct(self):
-        H = AMP + 0.45
-        rows = VGroup(axes_row(X0, X_HR + 0.6, YT, H), axes_row(X0, X_END + 0.3, YB, H))
-        lab1 = T("stimulus 1", 24, GREY).move_to([-5.15, YT + 1.0, 0])
-        lab2 = T("stimulus 2", 24, GREY).move_to([-5.15, YB + 1.0, 0])
-        tarrow = Arrow([X_END + 0.3, YB, 0], [X_END + 0.65, YB, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2)
-        tlabel = T("time", 24, GREY).move_to([X_END + 0.2, YB - 0.42, 0])
-        erk_l = T("ERK activity", 24, GREEN).move_to([X0 + 1.15, YT + H + 0.3, 0])
-        self.at("Different stimuli")
-        self.play(Create(rows), FadeIn(lab1), FadeIn(lab2), FadeIn(tlabel), FadeIn(tarrow), FadeIn(erk_l), run_time=1.0)
-
-        # windows of different length, each closed by feedback
-        w1 = Rectangle(width=X_HR - X0, height=H, stroke_width=0, fill_color=GREEN, fill_opacity=0.14).move_to([(X0 + X_HR) / 2, YT + H / 2, 0])
-        w2 = Rectangle(width=X_END - X0, height=H, stroke_width=0, fill_color=GREEN, fill_opacity=0.14).move_to([(X0 + X_END) / 2, YB + H / 2, 0])
-        e1 = Line([X_HR, YT, 0], [X_HR, YT + H, 0], color=RED, stroke_width=6)
-        e2 = Line([X_END, YB, 0], [X_END, YB + H, 0], color=RED, stroke_width=6)
-        self.at("different lengths")
-        self.play(GrowFromEdge(w1, LEFT), GrowFromEdge(w2, LEFT), run_time=1.5)
-        self.at("of time")
-        self.play(Create(e1), Create(e2), run_time=0.6)
-
-        # EGF: a pulse that rises and falls back within about an hour
-        egf = bchip("EGF", YELLOW, 28).move_to(lab1)
-        c1 = egf_curve()
-        hour = DashedLine([X_HR, YB - 0.1, 0], [X_HR, YT + H, 0], color=GREY, stroke_width=3, dash_length=0.12)
-        hl = T("about an hour", 24, GREY).move_to([X_HR, YB - 0.5, 0])
-        self.at("activity after")
-        self.play(ReplacementTransform(lab1, egf), run_time=0.5)
-        self.at("rises and falls")
-        self.play(Create(c1), run_time=1.6, rate_func=linear)
-        self.at("about an hour")
-        self.play(Create(hour), FadeIn(hl), run_time=0.5)
-
-        # NGF: climbs to a plateau that goes on
-        ngf = bchip("NGF", YELLOW, 28).move_to(lab2)
-        c2 = plateau_curve()
-        tip = Triangle(fill_color=GREEN, fill_opacity=1, stroke_width=0).scale(0.14).rotate(-PI / 2).move_to([X_END + 0.12, YB + AMP, 0])
-        self.at("climbs")
-        self.play(ReplacementTransform(lab2, ngf), run_time=0.4)
-        self.play(Create(c2), run_time=1.2, rate_func=linear)
-        self.play(FadeIn(tip), run_time=0.15)
-        self.at("lasts for hours")
-        self.play(*glow(c2, s=1.0, color=TEXT), run_time=0.6)
-
-        # the difference is the instruction
-        arr_d = DoubleArrow([X_HR + 0.1, YB + 0.5, 0], [X_END - 0.1, YB + 0.5, 0], buff=0, color=TEXT, stroke_width=4, tip_length=0.2)
-        diff = T("the difference", 26, TEXT).move_to([(X_HR + X_END) / 2, YB + 0.95, 0])
-        self.at("proposed")
-        self.play(GrowFromCenter(arr_d), FadeIn(diff), run_time=0.7)
-        ins = T("the instruction", 28, TEXT, weight=BOLD).move_to(diff)
-        self.at("instruction")
-        self.play(ReplacementTransform(diff, ins), run_time=0.6)
-
-        # brief -> division, sustained -> differentiation
-        XI = 5.3
-        brief = T("brief", 26, GREEN).move_to([XI, 2.5, 0])
-        d_ic = dividing_icon([XI, 1.6, 0], 0.5)
-        d_lbl = T("division", 24, ORANGE).move_to([XI, 0.85, 0])
-        sust = T("sustained", 26, GREEN).move_to([XI, 0.15, 0])
-        f_ic = fibres_icon([XI, -1.0, 0], 0.36, 0.5)
-        f_lbl = T("differentiation", 22, ORANGE).move_to([XI - 0.1, -2.1, 0])
-        self.at("brief signal")
-        self.play(FadeOut(arr_d), FadeOut(ins), FadeIn(brief, shift=DOWN * 0.1), FadeIn(d_ic), FadeIn(d_lbl), run_time=0.8)
-        self.at("sustained")
-        self.play(FadeIn(sust, shift=DOWN * 0.1), FadeIn(f_ic), FadeIn(f_lbl), run_time=0.8)
+        ns, ls, cyt, nuc, branches = overview()
+        mem = RoundedRectangle(width=0.26, height=2.5, corner_radius=0.1, color=GREY,
+                               fill_color=GREY, fill_opacity=0.3).move_to([-5.1, 1.25, 0])
+        gf = node('growth factor', -5.1, 3.1, YELLOW, 24)
+        self.at('A growth factor')
+        self.play(FadeIn(mem), FadeIn(ns[0]), FadeIn(gf), run_time=0.5)
+        self.at('binds a receptor')
+        self.play(gf.animate.move_to([-5.1, 2.35, 0]), ns[0][1].animate.set_stroke(GREEN), run_time=0.65)
+        self.at('switches on')
+        self.play(FadeIn(ns[1]), GrowArrow(ls[0]), run_time=0.6)
+        self.at('three kinases')
+        self.play(LaggedStart(*[AnimationGroup(FadeIn(n), GrowArrow(a)) for n, a in zip(ns[2:], ls[1:])], lag_ratio=0.5), run_time=1.4)
+        self.at('acts on proteins')
+        self.play(FadeIn(cyt), GrowArrow(branches[0]), run_time=0.6)
+        self.at('transcription factors')
+        self.play(FadeIn(nuc), Create(branches[1]), run_time=0.6)
+        gene = node('genes', -3.4, -2.0, ORANGE, 26)
+        ga = arr(nuc[0].get_left(), gene.get_right(), GREEN, w=3)
+        response = label('cell response', 0, -3.2, ORANGE, 28)
+        self.at('That changes gene expression')
+        self.play(FadeIn(gene), GrowArrow(ga), FadeIn(response), run_time=0.75)
+        self.at('This is how')
+        self.play(LaggedStart(*[Indicate(n[1], color=GREEN) for n in ns], lag_ratio=0.2), run_time=1.3)
+        stuck = label('stuck ON → cancer', 1.2, 2.8, RED, 28)
+        self.at('Mutations that hold')
+        self.play(FadeOut(gf), FadeIn(stuck), *[n[1].animate.set_stroke(GREEN, 4) for n in ns[1:]], run_time=0.7)
+        self.at('So first learn')
+        self.play(FadeOut(stuck), run_time=0.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-PX0, PXE, PYB, PH = -2.7, 3.7, -1.45, 3.0     # S06: plot origin x, right end, baseline, height
-
-
-class S06Test(Film):
-    """Force MEK on, no growth factor: ERK stays on, the cell grows fibres; one cell line; the rule."""
-
+class S02Catch(SpokenScene):
     def construct(self):
-        axes = axes_row(PX0, PXE + 0.2, PYB, PH)
-        tarrow = Arrow([PXE + 0.2, PYB, 0], [PXE + 0.55, PYB, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2)
-        tlabel = T("time", 24, GREY).move_to([PXE + 0.1, PYB - 0.42, 0])
-        erk_l = T("ERK activity", 24, GREEN).move_to([PX0 + 1.15, PYB + PH + 0.3, 0])
-        self.play(Create(axes), FadeIn(tlabel), FadeIn(tarrow), FadeIn(erk_l), run_time=0.9)
+        V = View(k=1.15, ox=RAS_X, oy=RAS_Y, sx=-3.4, sy=0)
+        mem = membrane(V).shift(LEFT * 0.25)
+        r = ras(V)
+        r.lbl.shift(LEFT * 0.16 + UP * 0.2)
+        tag = nt_tag(V, 'GDP', GREY)
+        rec = node('receptor', -4.6, 2.8, GREY, 26)
+        grb = node('Grb2', -2.3, 2.8, GREY, 26)
+        sos = node('SOS', -0.3, 2.8, PINK, 28)
+        self.at('The active receptor')
+        self.play(FadeIn(mem), FadeIn(r), FadeIn(tag), FadeIn(rec), run_time=0.55)
+        self.at('recruits')
+        recruitment = VGroup(link(rec, grb), link(grb, sos))
+        self.play(FadeIn(grb, shift=LEFT*0.3), FadeIn(sos, shift=LEFT*0.3), Create(recruitment), run_time=0.7)
+        self.at('makes')
+        self.play(sos.animate.move_to([-1.3, 0, 0]), FadeOut(recruitment), run_time=0.6)
+        self.at('release GDP')
+        self.play(tag.animate.shift(RIGHT*2).set_opacity(0), run_time=0.65)
+        gtp = nt_tag(V, 'GTP', GREEN).shift(RIGHT*2)
+        self.at('so GTP can bind')
+        self.play(FadeIn(gtp), run_time=0.2)
+        self.play(gtp.animate.shift(LEFT*2), Transform(r.body, ras_body(V, 70, True)), run_time=0.65)
+        notkin = label('Ras: contact, not phosphorylation', 0, -2.8, BLUE, 28)
+        self.at('is not a kinase')
+        self.play(FadeOut(rec), FadeOut(grb), FadeOut(sos), FadeIn(notkin), run_time=0.5)
+        a = raf(View(), 2.2, 0)
+        self.at('It catches')
+        self.play(FadeIn(a), run_time=0.4)
+        self.at('brings it to the membrane')
+        self.play(a.animate.shift(LEFT*3.65), run_time=0.85)
+        closed = label('recruited ≠ open', 2, 1.5, GREY, 28)
+        self.at('Binding alone')
+        self.play(FadeIn(closed), run_time=0.5)
+        lipid = label('lipid contact', -3.2, -1.65, GREY, 24)
+        steps = label('+ further steps', 1.6, -1.65, GREY, 26)
+        self.at('Contact with membrane lipids')
+        self.play(FadeIn(lipid), mem.animate.set_stroke(YELLOW, 4), run_time=0.5)
+        self.at('and further steps')
+        self.play(FadeIn(steps), run_time=0.4)
+        self.at('help it open')
+        opened = raf(View(), -1.45, 0, open_=True)
+        self.play(Transform(a, opened), FadeOut(closed), run_time=0.7)
+        b = raf(View(), 2.4, -1.05, open_=True)
+        self.at('Two RAF molecules')
+        self.play(FadeOut(lipid), FadeOut(steps), FadeOut(notkin), FadeIn(b), run_time=0.5)
+        self.at('then pair')
+        self.play(b.animate.shift(LEFT*3.85), run_time=0.7)
+        active = label('pairing → normal activation', 1.6, -2.8, GREEN, 28)
+        self.at('normal activation')
+        self.play(*raf_on(a), *raf_on(b), FadeIn(active), run_time=0.6)
+        self.finish()
 
-        # no growth factor, but MEK forced on
-        gf = ghost_chip("growth factor", 26, YELLOW).move_to([-5.0, 2.3, 0])
-        gx = strike(gf)
-        mek = bchip("MEK", PURPLE, 32).move_to([-5.0, 0.55, 0])
-        mek[1].set_stroke(GREEN, 5)
-        on_l = T("always on", 26, GREEN).move_to([-5.0, -0.3, 0])
-        self.at("force")
-        self.play(FadeIn(mek, scale=0.8), run_time=0.5)
-        self.at("on for good")
-        self.play(FadeIn(on_l, shift=DOWN * 0.1), *glow(mek[1], mek[2], s=1.1, color=GREEN), run_time=0.6)
-        self.at("no growth factor")
-        self.play(FadeIn(gf), run_time=0.3)
-        self.play(Create(gx), run_time=0.3)
 
-        # ERK stays on without end
-        trace = plateau_curve(PX0, PXE, PYB, PH - 0.5, GREEN, 0.12, 2.6)
-        tip = Triangle(fill_color=GREEN, fill_opacity=1, stroke_width=0).scale(0.14).rotate(-PI / 2).move_to([PXE + 0.12, PYB + PH - 0.5, 0])
-        link = arr([-4.0, 0.55, 0], [PX0 - 0.1, 0.0, 0], GREEN, w=4, tip=0.18)
-        self.at("then stays on")
-        self.play(GrowArrow(link), run_time=0.4)
-        self.play(Create(trace), run_time=1.0, rate_func=linear)
-        self.play(FadeIn(tip), run_time=0.15)
-        self.at("which")
-        self.play(*glow(trace, s=1.0, color=TEXT), run_time=0.6)
+class S03Relay(SpokenScene):
+    def construct(self):
+        V = View()
+        a = raf(V, -4.8, 1.5, open_=True, active=True)
+        m = kinase(V, 'MEK', -0.7, 1.5, ('Ser', 'Ser'))
+        e = kinase(V, 'ERK', 4.4, 1.5, ('Thr', 'Tyr'))
+        # The intervening residue is a text schematic, not a drawn molecular structure.
+        gap = label('Thr – X – Tyr', 4.0, 3.0, GREY, 24)
+        ps = [pbadge().move_to(a.body.get_right()) for _ in range(2)]
+        self.at('adds phosphates')
+        self.play(FadeIn(a), FadeIn(m), *[FadeIn(p) for p in ps], run_time=0.5)
+        self.at('two serines')
+        self.play(*[p.animate.move_to(s) for p, s in zip(ps, m.sites)], *go_on(m), run_time=0.65)
+        p1 = pbadge().move_to(m.body.get_right())
+        p2 = pbadge().move_to(m.body.get_right())
+        self.at('adds one')
+        self.play(FadeIn(e), FadeIn(gap), FadeIn(p1), run_time=0.4)
+        self.at('a threonine')
+        self.play(p1.animate.move_to(e.sites[0]), run_time=0.5)
+        self.at('a tyrosine')
+        self.play(FadeIn(p2), run_time=0.15)
+        self.play(p2.animate.move_to(e.sites[1]), run_time=0.5)
+        self.at('needs both')
+        self.play(*go_on(e), pop(p1), pop(p2), run_time=0.6)
+        targets = VGroup(*[node('protein', x, -0.7, PURPLE, 24) for x in [-4.6, -1.9, 0.8]])
+        fan = VGroup(*[arr(e.get_bottom(), t.get_top(), PURPLE, w=3) for t in targets])
+        cytoplasm = label('cytoplasm', -2.0, -1.5, GREY, 24)
+        self.at('wide fan of targets')
+        self.play(FadeOut(a), FadeOut(m), *[FadeOut(p) for p in ps], FadeOut(gap), FadeIn(targets), FadeIn(cytoplasm), Create(fan), run_time=0.7)
+        elk = node('Elk-1', 3.9, -1.2, PURPLE, 28)
+        nucl = label('nucleus', 5.5, -0.5, GREY, 24)
+        ea = arr(e.get_bottom(), elk.get_top()+UP*0.12, GOLD, w=3)
+        pp = pbadge().move_to(e.get_bottom())
+        self.at('In the nucleus')
+        self.play(FadeIn(elk), FadeIn(nucl), run_time=0.4)
+        self.at('phosphorylates')
+        self.play(GrowArrow(ea), FadeIn(pp), run_time=0.25)
+        self.play(pp.animate.move_to(elk.get_right()+RIGHT*0.3), run_time=0.6)
+        gene = node('c-fos', 0.3, -2.8, ORANGE, 28)
+        ga = arr(elk.get_bottom(), gene.get_right(), GREEN, w=3)
+        self.at('helps switch on')
+        self.play(FadeIn(gene), GrowArrow(ga), run_time=0.6)
+        self.finish()
 
-        # it looks to the cell like a long NGF signal
-        ghost = DashedVMobject(plateau_curve(PX0, PXE, PYB, PH - 0.5, YELLOW, 0.12, 2.6), num_dashes=70).set_color(YELLOW)
-        ngf_l = T("a long NGF signal", 24, YELLOW).move_to([1.8, PYB + PH - 0.05, 0])
-        self.at("duration reader")
-        self.play(Create(ghost), FadeIn(ngf_l), run_time=1.0)
 
-        # the 1994 result: fibres, with no NGF
-        XI = 5.2
-        f_ic = fibres_icon([XI, 0.35, 0], 0.38, 0.52)
-        f_lbl = T("fibres", 26, ORANGE).move_to([XI, -1.0, 0])
-        self.at("grew")
-        self.play(FadeOut(ngf_l), FadeOut(ghost), run_time=0.3)
-        self.play(LaggedStart(*[Create(f) for f in f_ic[0]], lag_ratio=0.12), FadeIn(f_ic[1]), FadeIn(f_lbl, shift=UP * 0.1), run_time=1.0)
+class S08Cancer(SpokenScene):
+    def construct(self):
+        title = label('Cancer: relay held ON', 0, 3.1, RED, 32)
+        context = label('B-Raf V600E', 0, 2.0, PURPLE, 30)
+        mutant = node('B-Raf V600E', -3.5, 0.4, PURPLE, 28)
+        mek = node('MEK', 0, 0.4)
+        erk = node('ERK', 3.5, 0.4)
+        edges = VGroup(link(mutant, mek, GREEN), link(mek, erk, GREEN))
+        output = label('ERK output ON', 3.5, -1.0, GREEN, 28)
+        self.at('In cancer')
+        self.add(title, context, mutant, mek, erk, edges, output)
+        mutant[1].set_stroke(GREEN, 4)
+        mek[1].set_stroke(GREEN, 4)
+        erk[1].set_stroke(GREEN, 4)
+        self.at('BRAF V600E')
+        self.play(Indicate(context, color=GREEN, scale_factor=1.05), run_time=0.6)
+        independent = label('without Ras–GTP', -3.5, -1.0, GREY, 24)
+        self.play(FadeIn(independent), run_time=0.3)
+        drug = node('Raf inhibitor', -3.5, 1.45, RED, 24)
+        self.at('A RAF inhibitor')
+        self.play(FadeIn(drug, shift=DOWN*0.3), run_time=0.4)
+        self.at('can block it')
+        self.play(edges.animate.set_color(GREY), Transform(output, label('ERK output OFF', 3.5, -1, GREY, 28)),
+                  mutant[1].animate.set_stroke(RED), run_time=0.6)
+        self.at('But with normal')
+        self.play(*[FadeOut(o) for o in [context, mutant, mek, erk, edges, output, independent, drug]], run_time=0.35)
+        context = label('Normal B-Raf + active Ras', 0, 2.0, BLUE, 30)
+        a = raf(View(), -3.4, 0.7, open_=True)
+        b = raf(View(), -3.4, -0.35, open_=True)
+        ras_tag = node('Ras–GTP', -3.6, -2.0, BLUE, 26)
+        drug = node('drug-bound', -0.6, 0.7, RED, 24)
+        free = label('drug-free partner', -0.2, -0.65, PURPLE, 24)
+        mek = node('MEK', 3.6, -0.4)
+        erk = node('ERK', 3.6, -2.15)
+        outedge = arr(mek.get_bottom(), erk.get_top(), GREY, w=3)
+        self.play(FadeIn(context), FadeIn(a), FadeIn(b), FadeIn(ras_tag), FadeIn(mek), FadeIn(erk), FadeIn(outedge), run_time=0.5)
+        self.at('drug bound')
+        self.play(FadeIn(drug), a.body.animate.set_stroke(RED), run_time=0.4)
+        self.at('can activate')
+        partner = arr(a.body.get_right(), b.body.get_right()+RIGHT*0.35, GREEN, w=3)
+        self.play(GrowArrow(partner), *raf_on(b), FadeIn(free), run_time=0.55)
+        signal = arr(b.body.get_right(), mek.get_left(), GREEN, w=3)
+        self.at('activity then rises')
+        rising = label('ERK activity ↑', 3.6, -3.1, GREEN, 26)
+        self.play(GrowArrow(signal), outedge.animate.set_color(GREEN), mek[1].animate.set_stroke(GREEN), erk[1].animate.set_stroke(GREEN), FadeIn(rising), run_time=0.6)
+        self.at('A MEK inhibitor')
+        md = node('MEK inhibitor', 3.6, 0.9, RED, 24)
+        self.play(FadeIn(md), run_time=0.4)
+        self.at('holds MEK inactive')
+        self.play(mek[1].animate.set_stroke(RED), outedge.animate.set_color(GREY), erk[1].animate.set_stroke(GREY), FadeOut(rising), run_time=0.6)
+        self.at('effect depends')
+        self.play(Indicate(context, scale_factor=1.05), run_time=0.6)
+        self.finish()
 
-        # one caution: one cell line
-        one = T("one cell line", 26, TEXT).move_to(f_lbl)
-        self.at("one caution")
-        self.play(ReplacementTransform(f_lbl, one), *glow(f_ic[1], s=1.2), run_time=0.7)
-        cells = VGroup(*[VGroup(Circle(radius=0.3, stroke_color=GREY, stroke_width=3), T("?", 28, GREY)) for _ in range(5)])
-        cells.arrange(RIGHT, buff=0.55).move_to([0.4, -3.05, 0])
-        for c in cells:
-            c[1].move_to(c[0])
-        self.at("how widely")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.7) for c in cells], lag_ratio=0.15), run_time=1.0)
 
-        # the rule
-        span = DoubleArrow([PX0, PYB - 0.95, 0], [PXE, PYB - 0.95, 0], buff=0, color=GREEN, stroke_width=4, tip_length=0.2)
-        rule = T("how long ERK stays on", 30, GREEN, weight=BOLD).move_to([(PX0 + PXE) / 2, PYB - 1.5, 0])
-        self.at("So keep this rule")
-        self.play(FadeOut(cells), FadeOut(one), run_time=0.4)
-        self.play(GrowFromCenter(span), FadeIn(rule, shift=UP * 0.1), run_time=0.8)
-        self.at("carries the")
-        self.play(*glow(trace, s=1.0, color=TEXT), *glow(f_ic[1], s=1.2), run_time=0.8)
+class S04Feedback(SpokenScene):
+    def construct(self):
+        sos = node('SOS', -4.1, 1.6, PINK)
+        rafc = node('Raf', 0, 1.6)
+        erk = kinase(View(), 'ERK', 4.0, 0.2, ('Thr', 'Tyr'))
+        erk.body.set_stroke(GREEN)
+        ps = [pbadge().move_to(s) for s in erk.sites]
+        fast = label('fast feedback', -1.5, 3.05, RED, 30)
+        self.at('The relay also')
+        self.play(FadeIn(sos), FadeIn(rafc), FadeIn(erk), *[FadeIn(p) for p in ps], run_time=0.5)
+        f1 = fb_curve([3.7, 0.9, 0], [4, 2.8, 0], [0, 2.9, 0], [0, 2.05, 0])
+        f2 = fb_curve([3, 0.2, 0], [0, -0.5, 0], [-4.1, -0.5, 0], [-4.1, 1.1, 0])
+        self.at('ERK weakens')
+        self.play(Create(f1), Create(f2), FadeIn(fast), run_time=0.6)
+        self.at('by phosphorylation')
+        pp = [pbadge().move_to([0, 2.4, 0]), pbadge().move_to([-4.1, 0.7, 0])]
+        self.play(*[FadeIn(p) for p in pp], sos[1].animate.set_stroke(GREY), rafc[1].animate.set_stroke(GREY), run_time=0.5)
+        gene = node('phosphatase genes', -3.8, -1.8, ORANGE, 24)
+        ga = arr(erk.get_bottom(), gene.get_right(), GREEN, w=3)
+        self.at('It turns on genes')
+        self.play(FadeOut(f1), FadeOut(f2), FadeOut(fast), *[FadeOut(p) for p in pp], FadeOut(sos), FadeOut(rafc), FadeIn(gene), GrowArrow(ga), run_time=0.6)
+        ghost = ghost_chip('phosphatase', 26, RED).move_to([0, -2.6, 0])
+        self.at('for phosphatases')
+        self.play(FadeIn(ghost), run_time=0.4)
+        ck = clock([-0.5, 1.8, 0], 0.55)
+        delay = label('protein-production delay', -0.6, 2.8, GREY, 26)
+        self.at('That takes longer')
+        self.play(FadeIn(ck), FadeIn(delay), run_time=0.4)
+        self.play(Rotate(ck.hand, -TAU, about_point=ck.c), run_time=0.9)
+        ph = node('phosphatase', 0, -2.6, RED, 26)
+        self.at('a protein must be made')
+        self.play(FadeOut(ghost), FadeIn(ph), run_time=0.5)
+        self.play(*[p.animate.move_to(ph).set_opacity(0) for p in ps], *go_quiet(erk), run_time=0.7)
+        self.at('Signal duration')
+        self.play(*[FadeOut(o) for o in [gene, ga, ph, erk, ck, delay]], run_time=0.4)
+        factors = VGroup(*[label(t, -4.0, y, GREY, 28) for t, y in [('stimulus', 1.8), ('cell type', 0.3), ('dose', -1.2)]])
+        window = Rectangle(width=5.5, height=2.4, stroke_color=GREEN, fill_color=GREEN, fill_opacity=0.15).move_to([2, 0.3, 0])
+        span = DoubleArrow([-0.75, -1.6, 0], [4.75, -1.6, 0], color=GREEN, buff=0)
+        dur = label('duration window', 2, 2.0, GREEN, 30)
+        time = label('time', 2, -2.3, GREY, 24)
+        self.play(FadeIn(factors), GrowFromEdge(window, LEFT), FadeIn(dur), GrowFromCenter(span), FadeIn(time), run_time=0.8)
+        self.at('Timing helps')
+        self.play(window.animate.stretch(0.7, 0, about_edge=LEFT), run_time=0.7)
+        self.finish()
+
+
+class S09Modules(SpokenScene):
+    def construct(self):
+        left = VGroup(*[node(n, -3.3, y, PURPLE, 30) for n, y in [('Raf', 2.0), ('MEK', 0.1), ('ERK', -1.8)]])
+        arrows = VGroup(*[arr(a.get_bottom(), b.get_top(), GREEN, w=w) for a, b, w in zip(left, left[1:], [3, 7])])
+        title = label('amplification', -3.3, 3.1, GREEN, 30)
+        self.at('Three kinase tiers')
+        self.play(FadeIn(left), Create(arrows), run_time=0.6)
+        self.at('give amplification')
+        pulses = VGroup(*[Dot([-4.5+i*0.35, -2.6, 0], radius=0.08, color=GREEN) for i in range(8)])
+        self.play(FadeIn(title), LaggedStart(*[FadeIn(p) for p in pulses], lag_ratio=0.1), run_time=0.65)
+        controls = VGroup(*[VGroup(Line([-5.5,y,0],[-4.5,y,0], color=RED), Line([-4.5,y-0.2,0],[-4.5,y+0.2,0], color=RED)) for y in [2,0.1,-1.8]])
+        self.at('separate control points')
+        self.play(Create(controls), run_time=0.6)
+        right = VGroup(*[node(n, 2.7, y, GREY, 28) for n,y in [('kinase A',2),('kinase B',0.1),('kinase C',-1.8)]])
+        ra = VGroup(*[arr(a.get_bottom(), b.get_top(), GREY, w=3) for a,b in zip(right,right[1:])])
+        other = label('another MAPK module', 2.7, 3.1, GREY, 26)
+        self.at('Other MAP kinase pathways')
+        self.play(FadeOut(controls), FadeOut(pulses), FadeIn(right), Create(ra), FadeIn(other), run_time=0.7)
+        frames = VGroup(*[RoundedRectangle(width=3.1,height=5.6,corner_radius=0.3,stroke_color=GREY,stroke_width=3).move_to([x,0.1,0]) for x in [-3.3,2.7]])
+        scaffold = label('scaffolds', -0.3, -3.3, GREY, 26)
+        self.at('Scaffolds hold')
+        self.play(Create(frames), FadeIn(scaffold), run_time=0.7)
+        self.at('mainly to each other')
+        self.play(Indicate(arrows, color=GREEN), Indicate(ra, color=GREEN), run_time=0.6)
+        loc = VGroup(Circle(radius=0.22,color=YELLOW), Dot(radius=0.06,color=YELLOW)).move_to([5.2,-2.9,0])
+        address = label('location', 5.2, -3.45, GREY, 24)
+        self.at('where the cascade runs')
+        self.play(FadeIn(loc), FadeIn(address), frames[1].animate.set_stroke(YELLOW), run_time=0.7)
+        self.finish()
+
+
+class S10Development(SpokenScene):
+    def construct(self):
+        head = label('Mild pathway over-activation', 0, 2.9, GREEN, 32)
+        cells = VGroup(*[cell_icon([x,0.3,0],0.65) for x in [-4,0,4]])
+        tissues = VGroup(*[label(t,x,-1.0,ORANGE,28) for t,x in [('face',-4),('heart',0),('growth',4)]])
+        self.at('Milder overactivation')
+        self.play(FadeIn(head), FadeIn(cells), run_time=0.5)
+        origin = label('inherited  /  new at conception', 0, 1.7, GREY, 28)
+        self.at('Mutations inherited')
+        self.play(FadeIn(origin), run_time=0.6)
+        syndrome = label('RASopathies', 0, -2.4, TEXT, 36)
+        self.at('developmental syndromes')
+        self.play(FadeIn(syndrome), FadeIn(tissues), run_time=0.6)
+        self.at('Their effects differ')
+        self.play(LaggedStart(*[Indicate(c, color=ORANGE, scale_factor=1.08) for c in cells],lag_ratio=0.3), run_time=1)
+        self.at('The relay carries')
+        self.play(*[FadeOut(o) for o in [head,cells,tissues,origin,syndrome]], run_time=0.35)
+        ns, ls, cyt, nuc, branches = overview()
+        self.play(*[FadeIn(n) for n in ns], Create(VGroup(*ls)), FadeIn(cyt), FadeIn(nuc), Create(branches), run_time=0.65)
+        genes = node('genes', -3.5, -2, ORANGE, 26)
+        ga = arr(nuc[0].get_left(), genes.get_right(),GREEN,w=3)
+        scaffold = bracket(5.7,0.7,1.8,side=1)
+        sc = label('scaffold', 4.9, 2.6, GREY, 24)
+        feedback = fb_curve([4.5,1.7,0],[4.5,3.5,0],[0,3.5,0],[0,1.8,0])
+        self.at('but its control')
+        self.play(Create(feedback), Create(scaffold), FadeIn(sc), FadeIn(genes), GrowArrow(ga), run_time=0.6)
+        context = label('cell context → response', 0, -3.25, ORANGE, 28)
+        self.at('shape the answer')
+        self.play(FadeIn(context), run_time=0.5)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "In PC12 cells, how long ERK stays on carries the instruction."
+    LINE = 'Ras, Raf, MEK and ERK relay a surface signal to genes.'

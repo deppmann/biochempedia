@@ -1,14 +1,13 @@
-"""Neural crest: where crest cells may not go  (Biochemistrypedia explainer)
+"""Neural crest: shared ancestry, regional fates and migration.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = neural crest cells (the thing that moves)
-  BLUE   = Eph B receptor on the crest cell
-  RED    = ephrin B and the caudal half it keeps closed (keep out)
-  GREEN  = rostral half (the way in)
-  TEAL   = dorsal root ganglia (what the cells build)
-  GREY   = neural tube, somite outlines, control protein, labels
+COLOR MAP (original concept colors retained)
+  YELLOW = neural crest cells and their population ancestry
+  BLUE   = Eph B receptor (reserved; not shown in this narration)
+  RED    = exclusion / failed development (ephrin B in the original film)
+  GREEN  = permitted route (reserved)
+  TEAL   = dorsal root ganglia and peripheral neural derivatives
+  GREY   = embryonic structures and labels
+  GOLD   = explanatory highlights; pigment and skeleton use neutral TEXT
 """
 import random
 import numpy as np
@@ -79,292 +78,298 @@ def tab(color, w=0.34, h=0.5):
 
 class S00Title(TitleCard):
     LESSON = "The Neural Crest: Cells That Leave Home"
-    TITLE = "Where Crest Cells May Not Go"
+    TITLE = "Neural Crest: One Origin, Many Tissues"
 
 
-# ---------------------------------------------------------------------------------------------
+def label(txt, x, y, size=26, color=TEXT):
+    return T(txt, size, color, line_spacing=0.85).move_to([x, y, 0])
+
+
+def arrow(a, b, color=YELLOW):
+    return Arrow(a, b, buff=0.14, color=color, stroke_width=3)
+
+
+def population(x=0, y=1.9):
+    cells = VGroup(*[crest_cell(0.18).move_to([x+(i-1)*0.5, y, 0]) for i in range(3)])
+    return VGroup(cells, label("crest population", x, y+0.6, color=YELLOW))
+
+
+def axial_map():
+    # A schematic embryo silhouette, with head, neck, trunk and caudal landmarks.
+    head = Circle(0.62, color=GREY, fill_opacity=0.12).move_to([-4.8, 2.0, 0])
+    body = RoundedRectangle(width=1.4, height=4.2, corner_radius=0.5,
+                            color=GREY, fill_opacity=0.12).move_to([-4.8, -0.65, 0])
+    axis = Line([-4.8, 1.3, 0], [-4.8, -2.3, 0], color=GREY)
+    levels = VGroup(*[crest_cell(0.15).move_to([-4.8, y, 0]) for y in [2, 0.95, -0.55, -2.3]])
+    names = VGroup(label("head", -2.9, 2), label("vagal", -2.9, 0.95),
+                   label("trunk", -2.9, -0.55), label("sacral", -2.9, -2.3))
+    return VGroup(head, body, axis, levels, names)
+
+
 class S01Row(SpokenScene):
-    """The puzzle: crest at the top of the tube, a repeating row of ganglia, question marks between."""
-
     def construct(self):
-        tube = make_tube()
-        self.at("spinal cord")
-        self.play(Create(tube), run_time=1.0)
-        gx = [c - 0.5 for c in CX]
-        gang = VGroup(*[ganglion(x) for x in gx])
-        glab = T("dorsal root\nganglia", 24, TEAL, line_spacing=0.8).move_to([5.2, ROW_Y, 0])
-        self.at("dorsal root ganglia")
-        self.play(LaggedStart(*[GrowFromCenter(g) for g in gang], lag_ratio=0.25), FadeIn(glab), run_time=1.6)
-        self.at("neat repeating row")
-        self.play(pop(gang, TEAL, 1.25), run_time=1.2)
-        self.at("No central")
-        self.wait(0.2)
-        cells = top_cells()
-        clab = T("neural crest", 24, YELLOW).move_to([5.2, TUBE_Y + 0.4, 0])
-        self.at("neural crest")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.5) for c in cells], lag_ratio=0.1), FadeIn(clab), run_time=1.2)
-        self.at("top of the")
-        tl = tube_label()
-        self.play(FadeIn(tl), run_time=0.5)
-        lines = VGroup(*[DashedLine([x, TUBE_Y - 0.5, 0], [x, ROW_Y + 0.5, 0], color=GREY, stroke_width=2) for x in gx])
-        qs = VGroup(*[qmark(x, 0.45) for x in gx])
-        self.at("So what turns")
-        self.play(Create(lines), run_time=0.8)
-        self.play(LaggedStart(*[FadeIn(q, scale=0.6) for q in qs], lag_ratio=0.2), run_time=1.0)
-        self.at("into a row")
-        self.play(pop(qs, GOLD, 1.25), run_time=1.0)
+        origin = population(-4.5, 0.7)
+        self.at("The neural crest")
+        self.play(FadeIn(origin), run_time=0.6)
+        targets = VGroup()
+        for phrase, txt, y, col in [
+            ("nerve cells outside", "peripheral neurons", 2.1, TEAL),
+            ("glia that wrap", "nerve-wrapping glia", 0.8, TEAL),
+            ("pigment cells", "melanocytes", -0.5, TEXT),
+            ("bone and cartilage", "facial bone / cartilage", -1.8, TEXT)]:
+            node = chip(txt, col, size=26).move_to([2.5, y, 0])
+            link = arrow([-3.45, 0.7, 0], node.get_left())
+            targets.add(VGroup(link, node))
+            self.at(phrase)
+            self.play(GrowArrow(link), FadeIn(node), run_time=0.65)
+        self.at("share an embryonic ancestor")
+        self.play(Indicate(origin, color=YELLOW, scale_factor=1.08), run_time=0.8)
+        plate = RoundedRectangle(width=5, height=2.8, corner_radius=0.25, color=GREY,
+                                 fill_color=GREY, fill_opacity=0.2).move_to([-2.8, 0, 0])
+        border = Line([-0.3, -1.3, 0], [-0.3, 1.3, 0], color=YELLOW, stroke_width=7)
+        cells = VGroup(*[crest_cell(0.19).move_to([-0.3, y, 0]) for y in [-0.9, 0, 0.9]])
+        pl = label("neural plate", -2.8, 0)
+        bl = label("crest at the border", 2.7, 1.6, color=YELLOW)
+        self.at("Crest cells form")
+        self.play(FadeOut(origin), FadeOut(targets), run_time=0.25)
+        self.play(FadeIn(plate), FadeIn(pl), Create(border), FadeIn(bl), run_time=0.45)
+        self.at("then leave and migrate")
+        self.play(ReplacementTransform(border, cells), run_time=0.35)
+        self.play(*[c.animate.shift(RIGHT*3.2) for c in cells], run_time=1.2)
+        self.at("That shared origin")
+        shared = population(-4.5, 0.7)
+        tissues = VGroup(*[chip(t, TEAL if i == 0 else TEXT, size=25).move_to([2.2, y, 0])
+                            for i, (t, y) in enumerate([
+                                ("gut wall neurons", 1.8), ("hair melanocytes", 0.2),
+                                ("inner-ear melanocytes", -1.4)])])
+        links = VGroup(*[arrow([-3.45, 0.7, 0], t.get_left()) for t in tissues])
+        self.play(*[FadeOut(m) for m in (plate, pl, cells, bl)], FadeIn(shared),
+                  FadeIn(tissues), Create(links), run_time=0.7)
+        hearing = label("support hearing", 2.2, -2.3, size=24)
+        self.at("and hearing")
+        self.play(FadeIn(hearing), Indicate(tissues[2], scale_factor=1.04), run_time=0.6)
+        self.at("Where along the body")
+        self.play(*[FadeOut(m) for m in (shared, tissues, links, hearing)],
+                  FadeIn(axial_map()), FadeIn(label("Origin along the body", 1.8, 2.6, color=YELLOW)),
+                  run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Derivatives(SpokenScene):
+    def construct(self):
+        embryo = axial_map()
+        self.at("In the head")
+        self.play(FadeIn(embryo), run_time=0.5)
+        facial = chip("facial bone / cartilage", TEXT, size=26).move_to([2.3, 2, 0])
+        headlink = arrow([-2, 2, 0], facial.get_left())
+        self.at("facial bone and cartilage")
+        self.play(GrowArrow(headlink), FadeIn(facial), run_time=0.65)
+        gut = chip("gut wall: neurons + glia", TEAL, size=26).move_to([2.3, 0.8, 0])
+        # Route the sacral contribution below, then around the trunk derivatives.
+        sacral_path = VMobject(color=YELLOW, stroke_width=3).set_points_as_corners([
+            [-2, -2.3, 0], [6.2, -2.3, 0], [6.2, 0.8, 0]])
+        gutlinks = VGroup(arrow([-2, 0.95, 0], gut.get_left()), sacral_path,
+                           arrow([6.2, 0.8, 0], gut.get_right()))
+        self.at("Vagal and sacral")
+        self.play(Create(gutlinks), FadeIn(gut), run_time=0.8)
+        trunk_text = T("sensory + sympathetic neurons\nSchwann cells: nerve-wrapping glia\nmelanocytes",
+                       24, TEAL, line_spacing=1.2)
+        trunk_box = RoundedRectangle(width=trunk_text.width + 0.8, height=trunk_text.height + 0.6,
+                                     corner_radius=0.14, stroke_color=TEAL, stroke_width=2.5,
+                                     fill_color=TEAL, fill_opacity=0.16)
+        trunk = VGroup(trunk_box, trunk_text).move_to([2.3, -1.1, 0])
+        trunklink = arrow([-2, -0.55, 0], trunk.get_left())
+        self.at("Trunk crest gives")
+        self.play(GrowArrow(trunklink), FadeIn(trunk), run_time=0.75)
+        restriction = label("Birds + mammals: trunk crest\ndoes not normally make skeleton",
+                            2.3, -2.85, size=24, color=RED)
+        self.at("In birds and mammals")
+        self.play(FadeIn(restriction), run_time=0.8)
+        self.finish()
+
+
 class S02Leave(SpokenScene):
-    """EMT: a cell in a sheet loosens, rounds up and crawls away."""
-
     def construct(self):
-        n = 7
-        w, h = 1.25, 3.4
-        cells = VGroup()
-        for i in range(n):
-            col = YELLOW if i in (2, 3, 4) else GREY
-            r = RoundedRectangle(corner_radius=0.18, width=w, height=h, stroke_color=col, stroke_width=3,
-                                 fill_color=col, fill_opacity=0.28).move_to([(i - 3) * w, 0.9, 0])
-            cells.add(r)
-        edge = T("the tube's top edge", 26, GREY).move_to([0, 3.15, 0])
-        self.at("Crest cells begin")
-        self.play(LaggedStart(*[FadeIn(c, shift=UP * 0.2) for c in cells], lag_ratio=0.08), run_time=1.4)
-        self.play(FadeIn(edge), run_time=0.5)
-        sheet_lbl = T("cell in a sheet", 26, GREY).move_to([-2.3, -1.3, 0])
-        self.at("loosen their grip")
-        self.play(*[cells[i].animate.shift(RIGHT * 0.2 * (i - 3)) for i in range(n)], run_time=1.2)
-        mid = cells[3]
-        self.at("Then they crawl away")
-        circ = Circle(radius=0.6, stroke_color=YELLOW, stroke_width=3, fill_color=YELLOW, fill_opacity=0.5).move_to(mid)
-        self.play(ReplacementTransform(mid, circ), run_time=0.7)
-        path = CubicBezier(circ.get_center(), np.array([-0.2, -1.6, 0]), np.array([1.6, -2.1, 0]), np.array([3.8, -2.1, 0]))
-        self.play(MoveAlongPath(circ, path), run_time=1.6)
-        free_lbl = T("free cell", 26, YELLOW).next_to(circ, RIGHT, buff=0.3)
+        identity = label("crest identity", 0, 2.9, color=YELLOW)
+        self.at("First")
+        self.play(FadeIn(identity), run_time=0.5)
+        proposed = label("one proposed network", 0, 2.1, size=24, color=GREY)
+        sig = chip("BMP · Wnt · FGF", TEXT, size=26).move_to([-4.3, 0.6, 0])
+        border = chip("border genes", TEXT, size=26).move_to([0, 0.6, 0])
+        crest = chip("crest genes", YELLOW, size=26).move_to([4.1, 0.6, 0])
+        self.at("In one proposed network")
+        self.play(FadeIn(proposed), FadeIn(sig), run_time=0.7)
+        self.at("turn on border genes")
+        a = arrow(sig.get_right(), border.get_left(), GREY)
+        self.play(GrowArrow(a), FadeIn(border), run_time=0.7)
+        self.at("then crest genes")
+        b = arrow(border.get_right(), crest.get_left(), GREY)
+        self.play(GrowArrow(b), FadeIn(crest), run_time=0.6)
+        output = chip("adhesion · movement · fate", TEXT, size=26).move_to([0, -1.6, 0])
+        c = arrow(crest.get_bottom(), output.get_top(), GREY)
+        self.at("These control adhesion")
+        self.play(GrowArrow(c), FadeIn(output), run_time=0.7)
+        # Reuse the original film's epithelial rectangles and rounding/departure action.
+        cells = VGroup(*[RoundedRectangle(corner_radius=0.18, width=1.25, height=2.7,
+                            stroke_color=YELLOW if i == 2 else GREY, stroke_width=3,
+                            fill_color=YELLOW if i == 2 else GREY, fill_opacity=0.28)
+                            .move_to([(i-2)*1.25, 0.9, 0]) for i in range(5)])
+        basement = VGroup(Line([-4, -0.65, 0], [-0.8, -0.65, 0], color=GREY, stroke_width=5),
+                          Line([-0.8, -0.65, 0], [0.8, -0.65, 0], color=GREY, stroke_width=5),
+                          Line([0.8, -0.65, 0], [4, -0.65, 0], color=GREY, stroke_width=5))
+        bm = label("basement membrane", -3.7, -1.3, size=24, color=GREY)
+        polarity = DoubleArrow([0, 1.95, 0], [0, -0.1, 0], buff=0, color=TEXT)
+        polabel = label("top-to-bottom polarity", 0, 3, size=24)
+        self.at("Crest cells loosen")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(cells), Create(basement),
+                  FadeIn(bm), GrowArrow(polarity), FadeIn(polabel), run_time=0.6)
+        self.play(*[cells[i].animate.shift(RIGHT*(i-2)*0.23) for i in range(5)], run_time=0.8)
+        self.at("lose their top")
+        circ = crest_cell(0.58).move_to(cells[2])
+        self.play(FadeOut(polarity), FadeOut(polabel), ReplacementTransform(cells[2], circ), run_time=0.7)
+        self.at("break through the basement")
+        self.play(FadeOut(basement[1]), circ.animate.move_to([0, -0.6, 0]), run_time=0.8)
+        self.at("and crawl away")
+        path = CubicBezier(circ.get_center(), [0, -2, 0], [1.8, -2, 0], [3.3, -1.8, 0])
+        self.play(MoveAlongPath(circ, path), run_time=1.15)
+        sheet = label("cell in a sheet", -2.3, 2.8, size=26, color=GREY)
+        free = label("free mesenchymal cell", 3.3, -2.75, size=24, color=YELLOW)
         self.at("from a cell in a sheet")
-        self.play(FadeIn(sheet_lbl), cells[2].animate.set_stroke(width=6), run_time=0.7)
-        self.at("to a free cell")
-        self.play(FadeIn(free_lbl), run_time=0.6)
-        emt = chip("epithelial-to-mesenchymal transition", GOLD, size=28)
-        emt.move_to([-1.9, -3.1, 0])
-        self.at("epithelial to mesenchymal transition")
-        self.play(FadeIn(emt, shift=UP * 0.2), run_time=0.8)
-        short = chip("EMT", GOLD, size=34).move_to(emt)
-        self.at("shorten it")
-        self.play(ReplacementTransform(emt, short), run_time=0.7)
+        self.play(FadeIn(sheet), run_time=0.5)
+        self.at("a free mesenchymal cell")
+        self.play(FadeIn(free), run_time=0.6)
+        emt = label("epithelial-to-mesenchymal transition", 0, -3.45, size=26, color=GOLD)
+        self.at("transition")
+        self.play(FadeIn(emt), run_time=0.5)
+        self.at("EMT")
+        self.play(Transform(emt, label("EMT", 0, -3.45, size=30, color=GOLD)), run_time=0.5)
         self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-def embryo_labels_right():
-    soma = VGroup(Line([3.8, 1.2, 0], [4.4, 1.2, 0], color=GREY, stroke_width=2), T("somite", 24, GREY).move_to([5.3, 1.2, 0]))
-    scl = VGroup(Line([3.8, -0.8, 0], [4.4, -0.8, 0], color=GREY, stroke_width=2), T("sclerotome", 24, GREY).move_to([5.4, -0.8, 0]))
-    return soma, scl
 
 
 class S03Route(SpokenScene):
-    """Somite blocks beside the tube; rostral and caudal halves; the stream goes through the rostral halves."""
-
     def construct(self):
-        tube = make_tube()
-        tl = tube_label()
-        lanes = [d for c in CX for d in lane_dots(c)]
-        self.add(tube, tl, *lanes)
-        self.at("In the chick trunk")
-        self.wait(0.2)
-        blocks = VGroup(*[somite(c) for c in CX])
-        soma, scl = embryo_labels_right()
+        title = label("Chick trunk · cross-section", 0, 3.15, color=GREY)
+        tube = Circle(0.7, color=GREY, fill_opacity=0.18).move_to([-3, 1.2, 0])
+        tl = label("neural tube", -4.9, 1.2, size=24, color=GREY)
+        skin = ArcBetweenPoints([-5.8, 2.2, 0], [0.7, 2.2, 0], angle=-0.3, color=GREY)
+        sl = label("skin", -5.5, 2.8, size=24, color=GREY)
+        blocks = VGroup(*[RoundedRectangle(width=1.25, height=1.6, corner_radius=0.12,
+                           color=GREY, fill_opacity=0.15).move_to([x, -0.35, 0]) for x in [-4.65, -1.35]])
+        bl = label("somites", -3, -1.55, size=24, color=GREY)
+        anatomy = VGroup(title, tube, tl, skin, sl, blocks, bl)
+        cells = VGroup(*[crest_cell().move_to([-3+(i-1)*0.4, 2.05, 0]) for i in range(3)])
+        self.at("Migration depends")
+        self.play(FadeIn(anatomy), FadeIn(cells), run_time=0.75)
+        vm = VMobject(color=YELLOW, stroke_width=4).set_points_smoothly([
+            [-2.6, 2.05, 0], [-1.35, 1.2, 0], [-1.35, -0.4, 0], [-2, -2.3, 0]])
+        vl = label("ventromedial", -3, -2.8, size=24, color=YELLOW)
         self.at("through the somites")
-        self.play(LaggedStart(*[FadeIn(b, shift=UP * 0.25) for b in blocks], lag_ratio=0.15), run_time=1.5)
-        self.at("Somites are")
-        self.play(FadeIn(soma), run_time=0.5)
-        self.at("will form vertebrae")
-        self.play(FadeIn(scl), run_time=0.5)
-        ros = VGroup(*[half(c, True) for c in CX])
-        cau = VGroup(*[half(c, False, GREY, 0.2) for c in CX])
-        rl = T("rostral", 22, GREEN).move_to([CX[0] - 0.475, -2.7, 0])
-        cl = T("caudal", 22, GREY).move_to([CX[0] + 0.475, -3.15, 0])
-        self.at("front half")
-        self.play(FadeIn(ros), FadeIn(rl), run_time=0.7)
-        self.at("back half")
-        self.play(FadeIn(cau), FadeIn(cl), run_time=0.7)
-        # the stream: one cell per rostral half drops in, several lanes
-        self.at("Crest cells pass only")
-        anims = []
-        for k, c in enumerate(CX):
-            for j, dy in enumerate([0.8, -0.2, -1.2]):
-                anims.append(lanes[3 * k + j].animate.move_to([c - 0.475 + (j - 1) * 0.34, dy, 0]))
-        self.play(LaggedStart(*anims, lag_ratio=0.04), run_time=2.0)
-        self.at("rostral half")
-        self.play(pop(ros, GREEN, 1.04), run_time=1.0)
+        self.play(Create(vm), FadeIn(vl), run_time=0.6)
+        self.play(MoveAlongPath(cells[0], vm), run_time=1.5)
+        gang = ganglion(3.25, y=-0.4, w=4.9, h=3.5)
+        derivatives = label("dorsal root sensory ganglia\nsympathetic ganglia\nadrenal medulla", 3.25, -0.4, size=25, color=TEAL)
+        link = arrow([-1.6, -1.6, 0], [0.7, -0.6, 0])
+        self.at("It gives sensory")
+        self.play(GrowFromCenter(gang), FadeIn(derivatives), GrowArrow(link), run_time=0.85)
+        dl = VMobject(color=YELLOW, stroke_width=4).set_points_smoothly([
+            [-3, 2.05, 0], [-1.3, 1.9, 0], [0.3, 1.85, 0]])
+        pigment = chip("mostly melanocytes", TEXT, size=24).move_to([3.3, 2.05, 0])
+        dlab = label("later: dorsolateral", -0.4, 2.7, size=24, color=YELLOW)
+        self.at("A later")
+        self.play(Create(dl), FadeIn(dlab), run_time=0.5)
+        self.play(MoveAlongPath(cells[1], dl), run_time=0.8)
+        self.at("mostly melanocytes")
+        self.play(FadeIn(pigment), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Keepout(SpokenScene):
-    """Close-up of the boundary: Eph B tabs meet ephrin B tabs and the cell is pushed back."""
-
+class S04Collective(SpokenScene):
     def construct(self):
-        ros = Rectangle(width=6.7, height=5.2, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.12)
-        ros.move_to([-2.35, -0.15, 0])
-        cau = Rectangle(width=4.4, height=5.2, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.12)
-        cau.move_to([3.2, -0.15, 0])      # x from 1.0 to 5.4
-        rlab = T("rostral half", 26, GREEN).move_to([-2.35, 3.05, 0])
-        clab = T("caudal half", 26, GREY).move_to([3.2, 3.05, 0])
-        self.play(FadeIn(ros), FadeIn(cau), FadeIn(rlab), FadeIn(clab), run_time=0.8)
-        # crest cell with receptor tabs
-        body = Circle(radius=0.95, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.45)
-        rec = VGroup()
-        for a in (-40, -13, 13, 40):
-            t = tab(BLUE)
-            ang = np.deg2rad(a)
-            t.move_to([0.95 * np.cos(ang) + 0.1, 0.95 * np.sin(ang), 0]).rotate(ang)
-            rec.add(t)
-        cell = VGroup(body, rec).move_to([-3.3, 0.2, 0])
-        rlab2 = T("Eph B receptor", 26, BLUE).move_to([-3.4, -1.85, 0])
-        self.at("keeps them out")
-        self.play(cau.animate.set_stroke(RED).set_fill(RED, 0.2), clab.animate.set_color(RED), run_time=0.8)
-        self.at("receptor called")
-        self.play(FadeIn(body, scale=0.8), run_time=0.6)
-        self.play(FadeIn(rec), FadeIn(rlab2), run_time=0.6)
-        eph = VGroup()
-        for y in (1.5, 0.5, -0.5, -1.5):
-            t = tab(RED, 0.4, 0.5).move_to([0.85, y + 0.2, 0])
-            eph.add(t)
-        elab = T("ephrin B", 26, RED).move_to([3.4, 0.2, 0])
-        self.at("signal on their surface")
-        self.play(LaggedStart(*[FadeIn(t, shift=LEFT * 0.2) for t in eph], lag_ratio=0.15), FadeIn(elab), run_time=1.0)
-        self.at("only when cells touch")
-        self.wait(0.2)
-        self.at("When a crest cell touches")
-        # contact: receptor tabs reach ephrin tabs (cell right edge at x = -3.3+0.95+0.4 ~ 0.0 -> move +0.95)
-        self.play(cell.animate.shift(RIGHT * 2.6), FadeOut(rlab2), run_time=1.2)
-        self.at("repels it")
-        flash = Flash(np.array([0.65, 0.2, 0]), color=RED, flash_radius=0.7, num_lines=10, line_length=0.3)
-        rep = Arrow([0.3, 1.9, 0], [-1.1, 1.9, 0], color=RED, stroke_width=7, buff=0)
-        self.play(flash, GrowArrow(rep), run_time=0.8)
-        self.at("pushed away")
-        away = T("repelled", 28, RED).move_to([-3.2, 2.1, 0])
-        self.play(cell.animate.shift(LEFT * 2.8 + DOWN * 0.6), FadeIn(away), run_time=1.5)
+        title = label("Crest cells steer each other", 0, 3, color=YELLOW)
+        a, b = crest_cell(0.6).move_to([-3, 0.4, 0]), crest_cell(0.6).move_to([3, 0.4, 0])
+        self.at("Crest cells")
+        self.play(FadeIn(title), FadeIn(a), FadeIn(b), run_time=0.6)
+        species = label("frog + zebrafish", 0, 2.15, size=26, color=GREY)
+        incoming = VGroup(arrow([-3, -0.7, 0], [-1.3, -0.7, 0]), arrow([3, -0.7, 0], [1.3, -0.7, 0]))
+        self.at("In frog and zebrafish")
+        self.play(FadeIn(species), Create(incoming), a.animate.move_to([-0.6, 0.4, 0]),
+                  b.animate.move_to([0.6, 0.4, 0]), run_time=1.2)
+        contact = label("contact inhibition of locomotion", 0, -2, size=28, color=GOLD)
+        self.at("cells that touch")
+        self.play(FadeOut(incoming), FadeIn(contact), run_time=0.5)
+        self.at("head off in new directions")
+        self.play(a.animate.move_to([-2.4, 1, 0]), b.animate.move_to([2.4, -0.5, 0]), run_time=1.0)
+        group = VGroup(*[crest_cell(0.32).move_to([x, y, 0]) for x, y in
+                        [(-3.5, 0.7), (-2.2, 0.9), (-3.4, -0.7), (-2, -0.6)]])
+        frog = label("frog cranial crest", 0, 2.6, color=GREY)
+        self.at("In frog cranial crest")
+        self.play(FadeOut(a), FadeOut(b), FadeOut(contact), FadeOut(title),
+                  ReplacementTransform(species, frog), FadeIn(group), run_time=0.65)
+        mutual = label("mutual attraction", -2.6, 1.55, color=YELLOW)
+        self.at("mutual attraction")
+        self.play(group.animate.arrange_in_grid(rows=2, buff=0.17).move_to([-2.6, 0, 0]),
+                  FadeIn(mutual), run_time=0.8)
+        cue = chip("Sdf1", TEXT, size=28).move_to([4.6, 0, 0])
+        gradient = VGroup(*[Rectangle(width=0.45, height=2.6, stroke_width=0,
+                             fill_color=TEXT, fill_opacity=0.04+0.035*i).move_to([0.5+i*0.65, 0, 0])
+                             for i in range(6)])
+        guide = label("chemotaxis toward the cue", 2.6, -1.85, size=24)
+        self.at("a chemical cue")
+        self.play(FadeIn(gradient), FadeIn(cue), FadeIn(guide),
+                  group.animate.shift(RIGHT*1.8), mutual.animate.shift(RIGHT*1.8), run_time=1.1)
+        limit = label("Bird + mammal trunk crest: how far this applies is less clear",
+                      0, -3, size=25, color=GREY)
+        self.at("How far this applies")
+        self.play(FadeIn(limit), run_time=0.75)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Stripes(SpokenScene):
-    """A stripe dish: cells avoid ephrin B stripes; soluble ephrin B removes the avoidance."""
-
+class S06Clinic(SpokenScene):
     def construct(self):
-        SW, NS = 1.35, 8
-        x0 = -SW * NS / 2
-        yc, hh = 0.1, 4.0
-        stripes = VGroup()
-        for i in range(NS):
-            red = (i % 2 == 0)
-            col = RED if red else GREY
-            stripes.add(Rectangle(width=SW, height=hh, stroke_color=col, stroke_width=1.5, fill_color=col,
-                                  fill_opacity=0.38 if red else 0.22).move_to([x0 + SW / 2 + i * SW, yc, 0]))
-        frame = Rectangle(width=SW * NS + 0.2, height=hh + 0.2, stroke_color=TEXT, stroke_width=2, fill_opacity=0).move_to([0, yc, 0])
-        case = T("Crest cells on stripes", 30, TEXT).move_to([0, 3.0, 0])
-        grey_x = [x0 + SW / 2 + i * SW for i in range(NS) if i % 2 == 1]
-        all_x = [x0 + SW / 2 + i * SW for i in range(NS)]
-        self.at("in a dish")
-        self.play(Create(frame), FadeIn(case), run_time=0.8)
-        self.at("alternating stripes")
-        self.play(LaggedStart(*[FadeIn(s) for s in stripes], lag_ratio=0.1), run_time=1.2)
-        l_e = T("ephrin B", 24, RED).move_to([all_x[0], yc - hh / 2 - 0.45, 0])
-        l_c = T("control protein", 24, GREY).move_to([all_x[3] + 0.5, yc - hh / 2 - 0.45, 0])
-        self.at("and a control")
-        self.play(FadeIn(l_e), FadeIn(l_c), run_time=0.6)
-        rng = random.Random(7)
-        N = 16
-        start = [(rng.uniform(x0 + 0.3, -x0 - 0.3), rng.uniform(yc - hh / 2 + 0.35, yc + hh / 2 - 0.35)) for _ in range(N)]
-        cells = VGroup(*[crest_cell(0.17).move_to([x, y, 0]) for x, y in start])
-        self.at("plated trunk crest cells")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.4) for c in cells], lag_ratio=0.05), run_time=1.0)
-        # case A result: cells go to the grey stripes
-        tgt = []
-        for k, (x, y) in enumerate(start):
-            gx = min(grey_x, key=lambda g: abs(g - x))
-            tgt.append((gx + rng.uniform(-0.4, 0.4), y))
-        self.at("The cells avoided")
-        self.play(*[c.animate.move_to([tx, ty, 0]) for c, (tx, ty) in zip(cells, tgt)], run_time=2.0)
-        resA = T("cells avoid the ephrin B stripes", 28, YELLOW).move_to([0, -3.15, 0])
-        self.play(FadeIn(resA), run_time=0.5)
-        sceptic = T("just a poor surface?", 28, GOLD).move_to([0, 3.0, 0])
-        self.at("could say the stripe")
-        self.play(FadeOut(resA), ReplacementTransform(case, sceptic), run_time=0.6)
-        self.wait(0.3)
-        # case B: fresh dish, soluble ephrin B
-        caseB = T("Same stripes, plus soluble ephrin B", 30, TEXT).move_to([0, 3.0, 0])
-        self.at("So they added soluble")
-        self.play(ReplacementTransform(sceptic, caseB),
-                  *[c.animate.move_to([x, y, 0]) for c, (x, y) in zip(cells, start)], run_time=1.0)
-        dots = VGroup(*[Circle(radius=0.08, stroke_color=TEXT, stroke_width=1, fill_color=RED, fill_opacity=1).move_to(
-            [rng.uniform(x0 + 0.1, -x0 - 0.1), rng.uniform(yc - hh / 2 + 0.1, yc + hh / 2 - 0.1), 0]) for _ in range(45)])
-        self.at("to the medium")
-        self.play(LaggedStart(*[FadeIn(d) for d in dots], lag_ratio=0.02), run_time=1.0)
-        self.at("free in the liquid")
-        self.play(LaggedStart(*[Indicate(d, color=TEXT, scale_factor=1.9) for d in dots], lag_ratio=0.02), run_time=1.0)
-        resB = T("no avoidance of the stripes", 28, YELLOW).move_to([0, -3.15, 0])
-        self.at("That blocked the avoidance")
-        drift = [(x + rng.uniform(-0.25, 0.25), y + rng.uniform(-0.2, 0.2)) for x, y in start]
-        self.play(*[c.animate.move_to([x, y, 0]) for c, (x, y) in zip(cells, drift)], FadeIn(resB), run_time=1.2)
-        # finish: Eph B meets ephrin B
-        eph = chip("Eph B", BLUE, size=44)
-        ephr = chip("ephrin B", RED, size=44)
-        pair = VGroup(eph, ephr).arrange(RIGHT, buff=1.6).move_to([0, 0.5, 0])
-        link = Arrow(ephr.get_left(), eph.get_right(), color=TEXT, buff=0.12, stroke_width=6)
-        need = T("the avoidance needs this signal", 32, TEXT).move_to([0, -1.2, 0])
-        self.at("The avoidance needs")
-        self.play(*[FadeOut(m) for m in (stripes, frame, cells, dots, l_e, l_c, caseB, resB)], run_time=0.7)
-        self.play(FadeIn(pair), GrowFromCenter(link), run_time=0.8)
-        self.play(FadeIn(need), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    """Back in the embryo: cells go through rostral halves, are turned back at caudal halves, gather into a row."""
-
-    def construct(self):
-        tube = make_tube()
-        tl = tube_label()
-        lanes = [d for c in CX for d in lane_dots(c)]
-        tries = [crest_cell(0.16).move_to([c + 0.475, TUBE_Y + 0.27, 0]) for c in CX]
-        top = VGroup(*lanes, *tries)
-        blocks = VGroup(*[somite(c) for c in CX])
-        ros = VGroup(*[half(c, True) for c in CX])
-        cau = VGroup(*[half(c, False, RED, 0.22) for c in CX])
-        self.at("Back in the embryo")
-        self.play(FadeIn(tube), FadeIn(tl), FadeIn(top), run_time=0.6)
-        self.play(FadeIn(blocks), FadeIn(ros), FadeIn(cau), run_time=0.9)
-        movers = lanes
-        entering = []
-        for k, c in enumerate(CX):
-            for j, dy in enumerate([0.8, -0.2, -1.2]):
-                entering.append(movers[3 * k + j].animate.move_to([c - 0.475 + (j - 1) * 0.34, dy, 0]))
-        self.at("Crest cells enter")
-        self.play(LaggedStart(*entering, lag_ratio=0.04), run_time=1.8)
-        self.at("not the caudal half")
-        self.play(*[t.animate.move_to([c + 0.475, 0.9, 0]) for t, c in zip(tries, CX)], run_time=0.9)
-        xs = VGroup(*[VGroup(Line([c + 0.2, 0.55, 0], [c + 0.75, 0.0, 0], color=TEXT, stroke_width=6),
-                             Line([c + 0.2, 0.0, 0], [c + 0.75, 0.55, 0], color=TEXT, stroke_width=6)) for c in CX])
-        self.play(*[t.animate.move_to([c - 0.2, 1.1, 0]) for t, c in zip(tries, CX)], FadeIn(xs), run_time=0.8)
-        self.play(FadeOut(xs), FadeOut(VGroup(*tries)), run_time=0.4)
-        # gather into ganglia
-        gang = VGroup(*[ganglion(c - 0.475, y=-0.8, w=0.8, h=1.9) for c in CX])
-        glab = T("dorsal root\nganglia", 24, TEAL, line_spacing=0.8).move_to([5.2, -0.8, 0])
-        self.at("dorsal root ganglia are segmented")
-        self.play(*[FadeOut(m) for m in movers],
-                  LaggedStart(*[GrowFromCenter(g) for g in gang], lag_ratio=0.15), FadeIn(glab), run_time=1.6)
-        self.at("Where crest cells may not go")
-        self.play(pop(cau, RED, 1.04), run_time=1.2)
-        self.at("what they build")
-        self.play(pop(gang, TEAL, 1.12), run_time=1.2)
+        origin = population(0, 1.8)
+        self.at("When crest development fails")
+        self.play(FadeIn(origin), run_time=0.65)
+        gut = RoundedRectangle(width=8, height=1.2, corner_radius=0.35,
+                               color=GREY, fill_opacity=0.12).move_to([0, -0.1, 0])
+        neurons = VGroup(*[ganglion(x, y=0.4, w=0.28, h=0.28) for x in [-3.4, -2.6, -1.8, -1]])
+        distal = Line([0.4, 0.55, 0], [3.6, 0.55, 0], color=RED, stroke_width=6)
+        gl = label("Hirschsprung disease", 0, -1.4, size=30)
+        missing = label("distal gut: no wall neurons", 1.6, -2.3, size=25, color=RED)
+        self.at("In Hirschsprung disease")
+        self.play(FadeIn(gut), FadeIn(neurons), FadeIn(gl), run_time=0.7)
+        self.at("the distal gut")
+        self.play(Create(distal), FadeIn(missing), run_time=0.6)
+        wa = label("Waardenburg syndrome", 0, 2.9, size=30)
+        pigment = chip("pigment changes", TEXT, size=28).move_to([-3, 0, 0])
+        hearing = chip("hearing loss", TEXT, size=28).move_to([3, 0, 0])
+        self.at("syndrome")
+        self.play(*[FadeOut(m) for m in (gut, neurons, distal, gl, missing, origin)],
+                  FadeIn(wa), run_time=0.5)
+        self.at("pigment changes")
+        self.play(FadeIn(pigment), run_time=0.5)
+        self.at("and hearing loss")
+        self.play(FadeIn(hearing), run_time=0.5)
+        # A neutral patient silhouette combines the named clinical findings.
+        person = VGroup(Circle(0.4, color=GREY, fill_opacity=0.25).move_to([0, 0.8, 0]),
+                        RoundedRectangle(width=1.15, height=1.6, corner_radius=0.3,
+                                         color=GREY, fill_opacity=0.25).move_to([0, -0.45, 0]))
+        both = label("gut wall neurons absent", 0, -2, size=26, color=RED)
+        one = label("some patients: one gene mutation", 0, 2.9, size=28, color=YELLOW)
+        self.at("Some patients have both")
+        self.play(ReplacementTransform(wa, one), FadeIn(person), FadeIn(both), run_time=0.8)
+        self.at("Their different symptoms")
+        shared = population(0, 1.8)
+        nodes = VGroup(*[chip(t, c, size=24).move_to([x, -1, 0]) for t, c, x in
+                         [("gut neurons", TEAL, -4.2), ("hair pigment", TEXT, 0),
+                          ("inner-ear pigment", TEXT, 4.2)]])
+        links = VGroup(*[arrow([0, 1.4, 0], n.get_top()) for n in nodes])
+        rule = label("shared developmental ancestry", 0, -2.7, size=30, color=YELLOW)
+        self.play(*[FadeOut(m) for m in (one, person, both, pigment, hearing)],
+                  FadeIn(shared), FadeIn(nodes), Create(links), run_time=0.9)
+        self.at("a shared developmental ancestry")
+        self.play(FadeIn(rule), run_time=0.8)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Where crest cells may not go helps shape what they build."
+    LINE = "One origin: neural crest gives nerves, glia, pigment cells and facial bone."

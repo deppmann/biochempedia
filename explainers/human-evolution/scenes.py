@@ -295,7 +295,7 @@ class S04Cut(SpokenScene):
 
         self.at("Time can separate")
         self.wait(0.1)
-        self.at("Recombination cuts")
+        self.at("Recombination breaks")
         self.play(FadeIn(rows[0]), FadeIn(cap), run_time=0.6)
         self.at("DNA that entered")
         self.play(FadeIn(blk[0], scale=0.9), run_time=0.6)
@@ -309,9 +309,9 @@ class S04Cut(SpokenScene):
             self.play(TransformFromCopy(blk[i - 1], blk[i]), run_time=0.8)
             return VGroup(a, t)
 
-        self.at("shorter pieces")
+        self.at("surviving pieces")
         s1 = step(1, 2.0)
-        self.at("every generation")
+        self.at("get shorter")
         s2 = step(2, 2.0)
 
         self.at("tens of thousands")
@@ -325,8 +325,8 @@ class S04Cut(SpokenScene):
         self.play(FadeIn(a_ch), FadeIn(a_lab), run_time=0.5)
         self.play(FadeIn(a_bl, scale=0.95), run_time=0.7)
 
-        self.at("Old structure leaves only short")
-        b_lab = T("old structure: only short pieces", 26, PURPLE).next_to(b_ch, UP, buff=0.2).align_to(b_ch, LEFT)
+        self.at("Old structure leaves much")
+        b_lab = T("old structure: much shorter pieces", 26, PURPLE).next_to(b_ch, UP, buff=0.2).align_to(b_ch, LEFT)
         self.play(FadeIn(b_ch), FadeIn(b_lab), run_time=0.5)
         self.play(LaggedStart(*[FadeIn(b, scale=0.5) for b in b_bl], lag_ratio=0.05), run_time=1.0)
 

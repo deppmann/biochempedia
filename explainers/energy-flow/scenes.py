@@ -175,7 +175,7 @@ class S03Herb(SpokenScene):
         self.play(FadeIn(ing_l), run_time=0.4)
         self.wait(0.2)
         # egest
-        self.at("egest")
+        self.at("adjust")
         egw, rsw, pdw = 1080 * k2, 360 * k2, 360 * k2
         eg = seg(x0, egw, yb, 1.1, ORANGE, 0.5)
         rest = seg(x0 + egw, rsw + pdw, yb, 1.1, BLUE, 0.5)
@@ -241,7 +241,7 @@ class S04Pred(SpokenScene):
         yb = 0.2
         bar = seg(x0, 200 * K, yb, 1.1, BLUE, 0.5)
         self.play(ReplacementTransform(sl.copy(), bar), run_time=0.8)
-        self.at("egest")
+        self.at("adjust")
         egw, rsw, pdw = 100 * K, 60 * K, 40 * K
         eg = seg(x0, egw, yb, 1.1, ORANGE, 0.5)
         rest = seg(x0 + egw, rsw + pdw, yb, 1.1, BLUE, 0.5)
@@ -304,7 +304,7 @@ class S05Detritus(SpokenScene):
         self.at("feces")
         self.play(FadeIn(stack[1]), FadeIn(labels[1]), run_time=0.4)
         self.play(FadeIn(stack[2]), FadeIn(labels[2]), run_time=0.4)
-        self.at("uneaten animal")
+        self.at("uneat")
         self.play(FadeIn(stack[3]), FadeIn(labels[3]), run_time=0.5)
         self.at("Together they come to")
         tot = num("5,540", ORANGE, 30).move_to([tcx, 2.6, 0])
@@ -401,11 +401,11 @@ class S06Ledger(SpokenScene):
             bar.move_to([x0b + max(v * sc, 0.03) / 2, y, 0])
             vl = num(txt, PURPLE, 26).next_to(bar, RIGHT, buff=0.2)
             grp.add(VGroup(lb, bar, vl))
-        self.at("gets a tenth")
+        self.at("gets")
         for r in grp:
             self.play(FadeIn(r, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("rough average")
-        rule = T("a rough average, not a law", 32, GOLD).move_to([0, -2.7, 0])
+        self.at("rough benchmark")
+        rule = T("a rough benchmark, not a law", 32, GOLD).move_to([0, -2.7, 0])
         self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.7)
         self.at("Keep rates")
         self.play(Indicate(rule, color=GOLD, scale_factor=1.06), run_time=0.8)
