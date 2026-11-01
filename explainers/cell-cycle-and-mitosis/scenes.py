@@ -4,6 +4,7 @@ Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in aud
 
 COLOR MAP (one color per concept, whole video)
   BLUE   = DNA / chromosomes / sister chromatids (labelled bars, never a molecule)
+  DNA2   = darker DNA blue for the second model chromosome
   GOLD   = the centromere (little dot joining two sister chromatids)
   PURPLE = nuclear envelope / nucleus
   YELLOW = spindle fibers and the pinching ring (what moves things)
@@ -66,400 +67,343 @@ def stage_chip(text):
     return chip(text, TEXT, size=32).move_to([0, 3.0, 0])
 
 
+# Two shades of the DNA blue distinguish the two model chromosomes throughout.
+DNA2 = "#3485B4"
+
+
+def model_pair(x=0, y=-0.4, copied=True, h=1.3):
+    a = chrom([x - 0.65, y, 0], copied, h, 0.20)
+    b = chrom([x + 0.65, y, 0], copied, h * 0.72, 0.20)
+    b.l.set_color(DNA2)
+    if copied:
+        b.r.set_color(DNA2)
+    return VGroup(a, b)
+
+
+def daughter(x, y=0.0):
+    outline = cell_shape(2.2, 2.7, [x, y, 0], GREEN)
+    n = nucleus(0.72, [x, y, 0])
+    dna = model_pair(x, y, False, 0.75)
+    # Compact matching complete sets inside each nucleus.
+    dna[0].move_to([x - 0.24, y, 0])
+    dna[1].move_to([x + 0.24, y, 0])
+    return VGroup(outline, n, dna)
+
+
+def book(center):
+    cover = RoundedRectangle(width=1.5, height=1.9, corner_radius=0.1,
+                              color=BLUE, fill_color=BLUE, fill_opacity=0.15)
+    lines = VGroup(*[Line([-0.5, y, 0], [0.5, y, 0], color=TEXT, stroke_width=3)
+                     for y in (0.5, 0.15, -0.2, -0.55)])
+    return VGroup(cover, lines).move_to(center)
+
+
 class S00Title(TitleCard):
     LESSON = "The Cell Cycle and Mitosis"
-    TITLE = "Copy first, then divide"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Cut(SpokenScene):
-    """a cut fills with new cells; an onion root tip adds cells; two open questions."""
+    TITLE = "Copy First, Then Divide"
 
     def construct(self):
-        # --- left: skin with a cut ---------------------------------------------------------
-        skin = RoundedRectangle(corner_radius=0.12, width=5.2, height=2.8, stroke_color=GREY, stroke_width=4,
-                                fill_color=GREY, fill_opacity=0.28).move_to([-3.3, 1.2, 0])
-        gap = Rectangle(width=1.7, height=1.5, stroke_color=RED, stroke_width=3, fill_color=BG,
-                        fill_opacity=1).move_to([-3.3, 1.75, 0])
-        skin_lbl = T("a cut in skin", 28, TEXT).move_to([-3.3, -0.5, 0])
-        self.at("A cut on your finger")
-        self.play(FadeIn(skin), FadeIn(gap), FadeIn(skin_lbl), run_time=0.8)
-        new = VGroup()
-        for i in range(5):
-            for j in range(3):
-                new.add(Square(0.32, stroke_color=GREEN, stroke_width=2, fill_color=GREEN, fill_opacity=0.55)
-                        .move_to([-3.3 - 0.64 + i * 0.32, 1.75 - 0.32 + j * 0.32, 0]))
-        new.move_to(gap.get_center())
-        self.at("closes in roughly")
-        self.play(LaggedStart(*[FadeIn(s, scale=0.4) for s in new], lag_ratio=0.1), run_time=2.2)
-        wk = T("closes in roughly a week or a little longer", 24, GREY).move_to([-3.3, -1.05, 0])
-        self.play(FadeIn(wk), run_time=0.5)
-
-        # --- right: onion root tip ---------------------------------------------------------
-        root = RoundedRectangle(corner_radius=0.7, width=1.9, height=3.6, stroke_color=GREY, stroke_width=4,
-                                fill_color=GREY, fill_opacity=0.28).move_to([3.4, 1.2, 0])
-        root_lbl = T("an onion root tip", 28, TEXT).move_to([3.4, -0.9, 0])
-        self.at("Near the tip of an onion root")
-        self.play(FadeIn(root), FadeIn(root_lbl), run_time=0.8)
-        tipcells = VGroup()
-        for i in range(3):
-            for j in range(3):
-                tipcells.add(Square(0.34, stroke_color=GREEN, stroke_width=2, fill_color=GREEN, fill_opacity=0.55)
-                             .move_to([3.4 - 0.4 + i * 0.4, -0.35 + j * 0.4, 0]))
-        self.at("cells divide")
-        self.play(LaggedStart(*[FadeIn(s, scale=0.4) for s in tipcells], lag_ratio=0.12), run_time=1.6)
-        down = arr([5.0, 1.9, 0], [5.0, -0.2, 0], YELLOW)
-        soil = T("deeper into the soil", 24, GREY).move_to([5.0, -0.25, 0]).shift(LEFT * 0.0)
-        self.at("pushes deeper")
-        self.play(GrowArrow(down), run_time=0.7)
-        self.play(root.animate.shift(DOWN * 0.0), run_time=0.1)
-        self.play(FadeOut(wk), run_time=0.3)
-
-        # --- the two questions -------------------------------------------------------------
-        self.at("adds new cells")
-        self.play(Indicate(new, color=GREEN, scale_factor=1.05), Indicate(tipcells, color=GREEN, scale_factor=1.05),
-                  run_time=0.9)
-        q1 = chip("more cells, not bigger cells?", ORANGE, size=28).move_to([-3.4, -2.45, 0])
-        q2 = chip("a full set of instructions in each?", ORANGE, size=26).move_to([3.4, -2.45, 0])
-        self.at("Why add more cells")
-        self.play(FadeIn(q1, shift=UP * 0.2), run_time=0.7)
-        self.at("full set of instructions")
-        self.play(FadeIn(q2, shift=UP * 0.2), run_time=0.7)
+        title = T(self.TITLE, 48, font=TITLE_FONT).move_to([0, 2.5, 0])
+        skin = VGroup(*[Square(0.45, color=GREEN, fill_opacity=0.2)
+                        .move_to([-3.8 + i * 0.5, 0.3, 0]) for i in range(3)])
+        root = RoundedRectangle(width=0.7, height=1.5, corner_radius=0.3,
+                                color=GREY).move_to([3.2, 0.3, 0])
+        labels = VGroup(T("skin repair", 24).move_to([-3.3, -1.0, 0]),
+                        T("onion root", 24).move_to([3.2, -1.0, 0]))
+        model = VGroup(cell_shape(2.5, 2, [0, 0, 0]), nucleus(0.7, ORIGIN),
+                       model_pair(0, 0, False, 0.65).scale(0.65))
+        self.play(FadeIn(title), FadeIn(skin), FadeIn(root), FadeIn(labels), run_time=0.7)
+        self.play(FadeOut(skin), FadeOut(root), FadeOut(labels), FadeIn(model, scale=0.6), run_time=0.8)
+        self.play(model.animate.scale(1.5), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Small(SpokenScene):
-    """model cubes of side 2 and side 4: surface, volume, ratio 3 -> 1.5."""
-
-    def construct(self):
-        note = T("model cube (drawn flat), from geometry", 26, GREY).move_to([0, 3.1, 0])
-        sq_a = Square(1.8, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.12).move_to([-3.2, -0.1, 0])
-        side_a = T("side 2", 26, TEXT).move_to(sq_a)
-        # --- things cross the membrane --------------------------------------------------------
-        self.at("Oxygen, food")
-        sq_a.move_to([0, 0.5, 0])
-        self.play(Create(sq_a), run_time=0.7)
-        ox = arr([-3.2, 0.9, 0], [-1.05, 0.9, 0], TEAL)
-        fd = arr([-3.2, 0.1, 0], [-1.05, 0.1, 0], TEAL)
-        ws = arr([1.05, 0.5, 0], [3.2, 0.5, 0], TEAL)
-        ox_l = T("oxygen", 26, TEAL).move_to([-4.2, 0.9, 0])
-        fd_l = T("food", 26, TEAL).move_to([-4.2, 0.1, 0])
-        ws_l = T("wastes", 26, TEAL).move_to([4.2, 0.5, 0])
-        self.play(GrowArrow(ox), FadeIn(ox_l), run_time=0.6)
-        self.play(GrowArrow(fd), FadeIn(fd_l), run_time=0.5)
-        self.at("wastes")
-        self.play(GrowArrow(ws), FadeIn(ws_l), run_time=0.6)
-        mem_l = T("cell membrane", 26, GREY).move_to([0, -1.1, 0])
-        self.at("cell membrane")
-        self.play(FadeIn(mem_l), run_time=0.5)
-
-        # --- model a cell as a cube ---------------------------------------------------------
-        self.at("Model a cell as a cube")
-        self.play(FadeOut(VGroup(ox, fd, ws, ox_l, fd_l, ws_l, mem_l)), FadeIn(note), run_time=0.6)
-        self.at("sides of two units")
-        sq_a_t = Square(1.8, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.12).move_to([-3.2, -0.1, 0])
-        self.play(Transform(sq_a, sq_a_t), FadeIn(side_a), run_time=0.8)
-        rows_a = VGroup(M("surface 24 square units", 24, TEAL), M("volume 8 cubic units", 24, BLUE),
-                        M("surface ÷ volume = 3", 24, TEXT)).arrange(DOWN, buff=0.16).move_to([-3.2, -2.3, 0])
-        self.at("has a surface of")
-        self.play(FadeIn(rows_a[0], shift=UP * 0.1), run_time=0.5)
-        self.at("and a volume")
-        self.play(FadeIn(rows_a[1], shift=UP * 0.1), run_time=0.5)
-
-        # --- double the side ----------------------------------------------------------------
-        sq_b = Square(3.6, stroke_color=GREY, stroke_width=5, fill_color=GREY, fill_opacity=0.12).move_to([2.7, 0.8, 0])
-        side_b = T("side 4", 26, TEXT).move_to(sq_b)
-        self.at("Double the sides")
-        self.play(TransformFromCopy(sq_a, sq_b), FadeIn(side_b), run_time=1.0)
-        rows_b = VGroup(M("surface 96 square units", 24, TEAL), M("volume 64 cubic units", 24, BLUE),
-                        M("surface ÷ volume = 1.5", 24, RED)).arrange(DOWN, buff=0.16).move_to([2.7, -2.3, 0])
-        self.at("The surface grows")
-        self.play(FadeIn(rows_b[0], shift=UP * 0.1), run_time=0.5)
-        self.at("the volume to")
-        self.play(FadeIn(rows_b[1], shift=UP * 0.1), run_time=0.5)
-
-        # --- the ratio ----------------------------------------------------------------------
-        self.at("Surface for each unit")
-        self.play(FadeIn(rows_a[2], shift=UP * 0.1), run_time=0.5)
-        self.at("falls from")
-        self.play(FadeIn(rows_b[2], shift=UP * 0.1), rows_a[2].animate.set_color(TEXT), run_time=0.6)
-        verdict = T("a bigger cell: less membrane for its inside", 28, RED).move_to([0, 3.1, 0])
-        self.at("A bigger cell has less membrane")
-        self.play(ReplacementTransform(note, verdict), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S03Copy(SpokenScene):
-    """cell cycle strip; interphase is not a rest; S phase doubles each chromosome."""
-
     def construct(self):
-        cell = cell_shape(6.4, 3.6, [0, -0.7, 0])
-        nuc = nucleus(1.4, [0, -0.7, 0])
-        c1 = chrom([-0.8, -0.7, 0], copied=False)
-        c2 = chrom([0.8, -0.7, 0], copied=False)
-        self.at("The cell cycle")
-        self.play(Create(cell), FadeIn(nuc), FadeIn(c1), FadeIn(c2), run_time=1.0)
-        newlbl = T("a new cell", 28, TEXT).move_to([0, 1.55, 0])
-        self.play(FadeIn(newlbl), run_time=0.5)
+        cell = cell_shape(6.4, 3.6, [0, -0.4, 0])
+        nuc = nucleus(1.4, [0, -0.4, 0])
+        dna = model_pair(copied=False)
+        heading = T("DNA: copy before mitosis", 34, BLUE).move_to([0, 2.8, 0])
+        self.at("A cell copies")
+        self.play(FadeIn(cell), FadeIn(nuc), FadeIn(dna), FadeIn(heading), run_time=0.6)
+        copies = model_pair()
+        self.at("its DNA")
+        self.play(ReplacementTransform(dna, copies), run_time=1.2)
+        outcome = T("A complete set for each new cell", 30).move_to([0, -2.8, 0])
+        self.at("a full set")
+        self.play(FadeIn(outcome), run_time=0.6)
+        self.at("Copy first")
+        self.play(Indicate(copies, color=BLUE), run_time=0.7)
 
-        # strip
-        g1 = chip("G1: grows", GREEN, 28)
-        s = chip("S: copies DNA", BLUE, 28)
-        g2 = chip("G2: gets ready", TEXT, 28)
-        strip = VGroup(g1, s, g2).arrange(RIGHT, buff=0.5).move_to([0, 2.5, 0])
-        brace_y = 3.1
-        line = Line([strip.get_left()[0], brace_y, 0], [strip.get_right()[0], brace_y, 0], color=GREY, stroke_width=4)
-        inter = T("interphase", 30, TEXT, weight=BOLD).move_to([-1.6, 3.4, 0])
-        nr = T("not a rest", 30, RED).move_to([1.7, 3.4, 0])
-        self.at("Interphase")
-        self.play(ReplacementTransform(newlbl, inter), Create(line), run_time=0.8)
-        self.at("is not a rest")
-        self.play(FadeIn(nr, shift=LEFT * 0.2), run_time=0.5)
-        self.at("the cell grows")
-        self.play(FadeIn(g1), cell.animate.scale(1.12), run_time=1.2)
-        self.at("In S phase")
-        self.play(FadeIn(s), run_time=0.5)
-        t1 = chrom([-0.8, -0.7, 0], copied=True)
-        t2 = chrom([0.8, -0.7, 0], copied=True)
-        self.at("it copies")
-        self.play(ReplacementTransform(c1, t1), ReplacementTransform(c2, t2), run_time=1.3)
-        self.at("gets ready")
-        self.play(FadeIn(g2), run_time=0.5)
-        self.play(Indicate(g2, color=TEXT, scale_factor=1.06), run_time=0.8)
-
-        # zoom in on one copied chromosome
-        big = chrom([0, -0.5, 0], True, 2.3, 0.55, 0.5, 0.2)
-        l1 = T("chromosome", 28, BLUE).move_to([-3.7, -0.5, 0])
-        a1 = arr([-2.6, -0.5, 0], [-0.9, -0.5, 0], BLUE, w=3, tip=0.18)
+        analogy = T("ANALOGY: two groups need every recipe", 30).move_to([0, 2.8, 0])
+        groups = VGroup(T("group 1", 26).move_to([-3, -2.1, 0]),
+                        T("group 2", 26).move_to([3, -2.1, 0]))
+        whole = book([0, 0, 0])
+        self.at("Picture two groups")
+        self.play(*[FadeOut(m) for m in (cell, nuc, copies, heading, outcome)],
+                  FadeIn(analogy), FadeIn(groups), FadeIn(whole), run_time=0.7)
+        halves = VGroup(*[VGroup(Rectangle(width=1.5, height=0.92, color=BLUE,
+                         fill_opacity=0.15), T("½ recipes", 24)).move_to([x, 0, 0]) for x in (-3, 3)])
+        self.at("Tearing a book")
+        self.play(ReplacementTransform(whole, halves), run_time=1.2)
+        fulls = VGroup(book([-3, 0, 0]), book([3, 0, 0]))
+        self.at("Copying it first")
+        self.play(ReplacementTransform(halves, fulls), run_time=1.0)
+        caveat = T("Cells do not decide", 32, GREY).move_to([0, -3, 0])
+        self.at("The comparison breaks")
+        self.play(FadeIn(caveat), run_time=0.7)
+        protein = chip("proteins copy and share DNA", BLUE, 30).move_to([0, 2.8, 0])
+        singles = model_pair(copied=False)
+        self.at("Proteins copy")
+        self.play(*[FadeOut(m) for m in (analogy, groups, fulls, caveat)],
+                  FadeIn(protein), FadeIn(cell), FadeIn(nuc), FadeIn(singles), run_time=0.7)
+        inter = T("interphase", 32).move_to([0, 3.25, 0])
+        g1 = chip("G1: growth", GREEN, 26).move_to([-3.8, 2.3, 0])
+        s = chip("S: DNA copying", BLUE, 26).move_to([0, 2.3, 0])
+        g2 = chip("G2: preparation", TEXT, 26).move_to([3.8, 2.3, 0])
+        self.at("In interphase")
+        self.play(FadeOut(protein), FadeIn(inter), run_time=0.4)
+        self.at("G1 is growth")
+        self.play(FadeIn(g1), cell.animate.scale(1.06), run_time=0.6)
+        self.at("S phase")
+        copies = model_pair()
+        self.play(FadeIn(s), ReplacementTransform(singles, copies), run_time=1.1)
+        self.at("G2 is preparation")
+        self.play(FadeIn(g2), run_time=0.6)
+        big = chrom([0, -0.5, 0], True, 2.0, 0.45, 0.35, 0.16)
         self.at("Each copied chromosome")
-        self.play(FadeOut(cell), FadeOut(nuc), FadeOut(t2), ReplacementTransform(t1, big), run_time=1.0)
-        self.play(FadeIn(l1), GrowArrow(a1), run_time=0.6)
-        br = Brace(VGroup(big.l, big.r), UP, color=BLUE, buff=0.12)
-        l2 = T("sister chromatids", 28, BLUE).next_to(br, UP, buff=0.12)
-        self.at("sister chromatids")
-        self.play(GrowFromCenter(br), FadeIn(l2), run_time=0.7)
-        l3 = T("centromere", 28, GOLD).move_to([0, -2.9, 0])
-        a3 = arr([0, -2.5, 0], [0, -0.78, 0], GOLD, w=3, tip=0.18)
-        self.at("the centromere")
-        self.play(FadeIn(l3), GrowArrow(a3), run_time=0.7)
+        self.play(*[FadeOut(m) for m in (cell, nuc, copies, inter, g1, s, g2)], FadeIn(big), run_time=0.7)
+        sisters = T("two identical sister chromatids", 30, BLUE).move_to([0, 1.6, 0])
+        self.at("two identical sister chromatids")
+        self.play(FadeIn(sisters), run_time=0.6)
+        cent = T("centromere", 28, GOLD).move_to([3.1, -0.5, 0])
+        pointer = arr([1.8, -0.5, 0], [0.25, -0.5, 0], GOLD, w=3)
+        self.at("joined at the centromere")
+        self.play(FadeIn(cent), GrowArrow(pointer), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S04Mitosis(SpokenScene):
-    """one model cell, two chromosomes: prophase, metaphase, anaphase, telophase."""
-
     def construct(self):
         cy = -0.4
-        cell = cell_shape(8.2, 5.0, [0, cy, 0])
+        cell = cell_shape(8.2, 5, [0, cy, 0])
         nuc = nucleus(1.5, [0, cy, 0])
-        c1 = chrom([-0.8, cy, 0], True, 1.3, 0.18)
-        c2 = chrom([0.8, cy, 0], True, 1.3, 0.18)
-        note = T("model cell, 2 chromosomes shown", 22, GREY).move_to([0, -3.3, 0])
-        self.add(cell, nuc, c1, c2)
-        self.at("Mitosis divides the nucleus")
-        stage = stage_chip("mitosis: the nucleus divides")
-        self.play(FadeIn(stage), FadeIn(note), run_time=0.7)
-
-        # --- prophase -------------------------------------------------------------------
+        dna = model_pair()
+        c1, c2 = dna
+        stage = stage_chip("mitosis: nuclear division")
+        note = T("model cell: two chromosomes shown", 24, GREY).move_to([0, -3.35, 0])
+        self.at("Mitosis shares")
+        self.play(FadeIn(cell), FadeIn(nuc), FadeIn(dna), FadeIn(stage), FadeIn(note), run_time=0.7)
+        # Introduce a schematic fiber separately before showing spindle attachment.
+        legend = VGroup(Line([-4, -3.25, 0], [-2, -3.25, 0], color=YELLOW, stroke_width=4),
+                        T("spindle: protein fibers", 26, YELLOW).move_to([1, -3.25, 0]))
+        self.at("Spindle fibers are")
+        self.play(FadeOut(note), FadeIn(legend), run_time=0.6)
         self.at("In prophase")
-        nstage = stage_chip("prophase")
-        self.play(ReplacementTransform(stage, nstage), run_time=0.5)
-        stage = nstage
+        newstage = stage_chip("prophase")
+        self.play(ReplacementTransform(stage, newstage), FadeOut(legend), FadeIn(note), run_time=0.4)
+        stage = newstage
         self.at("coil up")
-        self.play(Transform(c1, chrom([-0.8, cy, 0], True, 0.95, 0.3, 0.04)),
-                  Transform(c2, chrom([0.8, cy, 0], True, 0.95, 0.3, 0.04)), run_time=1.0)
-        env_lbl = T("nuclear envelope", 24, PURPLE).move_to([0, -2.4, 0])
-        self.play(FadeIn(env_lbl), run_time=0.4)
-        self.at("breaks down")
-        self.play(FadeOut(nuc), FadeOut(env_lbl), run_time=1.0)
-
-        # --- metaphase ------------------------------------------------------------------
+        self.play(c1.animate.stretch(0.7, 1).stretch(1.3, 0),
+                  c2.animate.stretch(0.7, 1).stretch(1.3, 0), run_time=0.7)
+        self.at("nuclear envelope breaks down")
+        self.play(FadeOut(nuc), run_time=0.8)
         self.at("In metaphase")
-        nstage = stage_chip("metaphase")
-        self.play(ReplacementTransform(stage, nstage), run_time=0.5)
-        stage = nstage
-        self.at("spindle fibers")
-        edge_l, edge_r = np.array([-4.0, cy, 0]), np.array([4.0, cy, 0])
-
+        newstage = stage_chip("metaphase")
+        self.play(ReplacementTransform(stage, newstage), run_time=0.4)
+        stage = newstage
         def fiber(edge, target):
-            f = Line(edge, target.get_center(), color=YELLOW, stroke_width=4)
-            f.set_z_index(1)
-            f.add_updater(lambda m, e=edge, t=target: m.put_start_and_end_on(e, t.get_center()))
+            f = Line(edge, target.get_center(), color=YELLOW, stroke_width=3).set_z_index(0)
+            f.add_updater(lambda m: m.put_start_and_end_on(edge, target.get_center()))
             return f
-
-        # the chromosomes line up first (still in prophase positions), fibers appear from both ends
-        fibs = VGroup(fiber(edge_l, c1.l), fiber(edge_r, c1.r), fiber(edge_l, c2.l), fiber(edge_r, c2.r))
-        fl = T("spindle fibers", 26, YELLOW).move_to([-1.6, 1.15, 0])
-        self.play(FadeIn(fibs), FadeIn(fl), c1.animate.move_to([0, cy + 0.75, 0]), c2.animate.move_to([0, cy - 0.75, 0]),
-                  run_time=1.6)
-        self.at("line the chromosomes up")
-        self.wait(0.1)
-        # a plate line to show the middle
-        mid = DashedLine([0, cy - 2.2, 0], [0, cy + 2.2, 0], color=GREY, stroke_width=2).set_z_index(0)
-        self.play(FadeIn(mid), run_time=0.5)
-
-        # --- anaphase -------------------------------------------------------------------
+        fibers = VGroup(*[fiber(np.array([x, cy, 0]), part)
+                          for c in dna for x, part in ((-4, c.l), (4, c.r))])
+        self.at("spindle fibers line")
+        middle = DashedLine([0, -2.5, 0], [0, 1.8, 0], color=GREY).set_z_index(-1)
+        self.play(FadeIn(fibers), FadeIn(middle), c1.animate.move_to([0, 0.45, 0]),
+                  c2.animate.move_to([0, -1.2, 0]), run_time=1.6)
         self.at("In anaphase")
-        nstage = stage_chip("anaphase")
-        self.play(ReplacementTransform(stage, nstage), FadeOut(fl), FadeOut(mid), run_time=0.5)
-        stage = nstage
+        newstage = stage_chip("anaphase")
+        self.play(ReplacementTransform(stage, newstage), FadeOut(middle), run_time=0.4)
+        stage = newstage
         self.at("sister chromatids separate")
-        y1, y2 = cy + 0.75, cy - 0.75
         self.play(FadeOut(c1.dot), FadeOut(c2.dot),
-                  c1.l.animate.shift(LEFT * 0.25), c1.r.animate.shift(RIGHT * 0.25),
-                  c2.l.animate.shift(LEFT * 0.25), c2.r.animate.shift(RIGHT * 0.25), run_time=0.8)
-        self.at("opposite ends")
-        self.play(c1.l.animate.move_to([-2.7, y1, 0]), c2.l.animate.move_to([-2.7, y2, 0]),
-                  c1.r.animate.move_to([2.7, y1, 0]), c2.r.animate.move_to([2.7, y2, 0]), run_time=2.0)
-
-        # --- telophase ------------------------------------------------------------------
+                  *[p.animate.shift(direction * 0.45) for c in dna
+                    for p, direction in ((c.l, LEFT), (c.r, RIGHT))], run_time=0.7)
+        self.at("move to opposite ends")
+        self.play(*[p.animate.move_to([x, y, 0]) for c, y in ((c1, 0.35), (c2, -1.1))
+                    for p, x in ((c.l, -2.7), (c.r, 2.7))], run_time=1.6)
         self.at("In telophase")
-        nstage = stage_chip("telophase")
-        self.play(ReplacementTransform(stage, nstage), FadeOut(fibs), run_time=0.6)
-        stage = nstage
-        envL = Ellipse(width=1.5, height=3.0, stroke_color=PURPLE, stroke_width=4, fill_color=PURPLE,
-                       fill_opacity=0.10).move_to([-2.7, cy, 0])
-        envR = envL.copy().move_to([2.7, cy, 0])
-        self.at("a new nuclear")
-        self.play(FadeIn(envL), FadeIn(envR), run_time=1.0)
-        lbl = T("a new nuclear envelope\naround each set", 26, PURPLE, line_spacing=0.9).move_to([0, cy, 0])
-        self.at("around each set")
-        self.play(FadeIn(lbl), run_time=0.6)
+        newstage = stage_chip("telophase")
+        self.play(ReplacementTransform(stage, newstage), FadeOut(fibers), run_time=0.4)
+        stage = newstage
+        self.at("a full set reaches")
+        self.play(Indicate(VGroup(c1.l, c2.l), color=BLUE),
+                  Indicate(VGroup(c1.r, c2.r), color=BLUE), run_time=0.7)
+        envs = VGroup(*[Ellipse(width=1.65, height=2.8, color=PURPLE,
+                               fill_opacity=0.1).move_to([x, cy, 0]) for x in (-2.7, 2.7)])
+        label = T("one complete set in each nucleus", 26, PURPLE).move_to([0, -3.25, 0])
+        self.at("new nuclear envelope")
+        self.play(FadeIn(envs), FadeOut(note), FadeIn(label), run_time=1.0)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S05Split(SpokenScene):
-    """cytokinesis: animal furrow, plant cell plate."""
-
     def construct(self):
-        A, B = 2.6, 1.8
-        p = ValueTracker(0.0)
-
+        p = ValueTracker(0)
         def body():
-            pp = p.get_value()
-
             def f(t):
-                x = A * np.cos(t)
-                y = B * np.sin(t) * (1 - pp * np.exp(-(x / (0.38 * A)) ** 2))
-                return np.array([x, y, 0])
-            return ParametricFunction(f, t_range=[0, TAU], stroke_color=GREY, stroke_width=4,
-                                      fill_color=GREY, fill_opacity=0.07).shift([-3.4, 0.2, 0])
-
+                x = 2.6 * np.cos(t)
+                y = 1.7 * np.sin(t) * (1 - p.get_value() * np.exp(-(x / 0.99) ** 2))
+                return [x - 3.3, y, 0]
+            return ParametricFunction(f, t_range=[0, TAU], color=GREY, stroke_width=4,
+                                      fill_color=GREY, fill_opacity=0.07)
         animal = always_redraw(body)
-        nL = nucleus(0.6, [-4.4, 0.2, 0])
-        nR = nucleus(0.6, [-2.4, 0.2, 0])
-        setL = VGroup(chrom([-4.55, 0.2, 0], False, 0.7, 0.14), chrom([-4.25, 0.2, 0], False, 0.7, 0.14))
-        setR = VGroup(chrom([-2.55, 0.2, 0], False, 0.7, 0.14), chrom([-2.25, 0.2, 0], False, 0.7, 0.14))
-        a_title = T("animal cell", 30, TEXT).move_to([-3.4, 2.5, 0])
-        cyto = T("cytoplasm", 24, GREY).move_to([-3.4, -0.85, 0])
-
-        self.at("Cytokinesis then")
-        head = chip("cytokinesis", TEXT, 32).move_to([0, 3.1, 0])
-        self.play(FadeIn(head), FadeIn(a_title), FadeIn(animal), FadeIn(nL), FadeIn(nR), FadeIn(setL), FadeIn(setR),
-                  run_time=1.0)
-        self.at("divides the cytoplasm")
-        self.play(FadeIn(cyto), run_time=0.5)
-
+        left, right = daughter(-4.45), daughter(-2.15)
+        nuclear = VGroup(left[1:], right[1:])
+        head = T("cytokinesis: cytoplasmic division", 32).move_to([0, 3.1, 0])
+        sub = T("mitosis: nuclear division", 26, PURPLE).move_to([0, 2.35, 0])
+        a_label = T("animal cell", 28).move_to([-3.3, -2.3, 0])
+        self.at("Cytokinesis divides")
+        self.play(FadeIn(head), FadeIn(sub), FadeIn(animal), FadeIn(nuclear), FadeIn(a_label), run_time=0.8)
+        self.at("It often starts")
+        self.play(p.animate.set_value(0.22), run_time=1.2)
         self.at("In an animal cell")
-        self.play(Indicate(a_title, color=TEXT, scale_factor=1.08), run_time=0.6)
-        ring_a = arr([-3.4, 2.4, 0], [-3.4, 1.4, 0], YELLOW, w=6)
-        ring_b = arr([-3.4, -2.0, 0], [-3.4, -1.0, 0], YELLOW, w=6)
-        ring_l = T("ring", 26, YELLOW).move_to([-2.6, 2.1, 0])
-        self.at("a ring at the middle")
-        self.play(FadeOut(a_title), GrowArrow(ring_a), GrowArrow(ring_b), FadeIn(ring_l), run_time=0.8)
-        self.at("pinches the membrane")
-        self.play(FadeOut(cyto), FadeOut(ring_l), p.animate.set_value(0.7), run_time=1.6)
-        furrow = T("furrow", 28, YELLOW).move_to([-3.4, -2.6, 0])
-        self.at("a furrow")
-        self.play(FadeIn(furrow), p.animate.set_value(0.97), run_time=1.0)
-        self.at("until the cell splits")
-        left = Ellipse(width=2.7, height=2.9, stroke_color=GREEN, stroke_width=4, fill_color=GREY,
-                       fill_opacity=0.07).move_to([-4.85, 0.2, 0])
-        right = left.copy().move_to([-1.95, 0.2, 0])
-        self.play(FadeOut(animal), FadeOut(ring_a), FadeOut(ring_b), FadeIn(left), FadeIn(right),
-                  nL.animate.shift(LEFT * 0.45), setL.animate.shift(LEFT * 0.45),
-                  nR.animate.shift(RIGHT * 0.45), setR.animate.shift(RIGHT * 0.45), run_time=1.0)
-        two = T("two cells", 28, GREEN).move_to([-3.4, -2.6, 0])
-        self.play(ReplacementTransform(furrow, two), run_time=0.5)
-
-        # --- plant ---------------------------------------------------------------------
-        p_title = T("plant cell", 30, TEXT).move_to([3.5, 2.5, 0])
-        wall = Rectangle(width=4.8, height=3.4, stroke_color=GREY, stroke_width=10, fill_color=GREY,
-                         fill_opacity=0.07).move_to([3.5, 0.2, 0])
-        pL = nucleus(0.6, [2.4, 0.2, 0])
-        pR = nucleus(0.6, [4.6, 0.2, 0])
-        sL = VGroup(chrom([2.25, 0.2, 0], False, 0.7, 0.14), chrom([2.55, 0.2, 0], False, 0.7, 0.14))
-        sR = VGroup(chrom([4.45, 0.2, 0], False, 0.7, 0.14), chrom([4.75, 0.2, 0], False, 0.7, 0.14))
+        self.play(Indicate(animal, scale_factor=1.02), run_time=0.6)
+        ring = VGroup(arr([-3.3, 2, 0], [-3.3, 0.9, 0], YELLOW),
+                      arr([-3.3, -2, 0], [-3.3, -0.9, 0], YELLOW))
+        self.at("a ring pinches")
+        self.play(FadeIn(ring), p.animate.set_value(0.7), run_time=1.2)
+        self.at("The furrow deepens")
+        self.play(p.animate.set_value(0.98), run_time=0.9)
+        outlines = VGroup(left[0], right[0])
+        self.at("the cell splits")
+        self.play(FadeOut(animal), FadeOut(ring), FadeIn(outlines), run_time=0.6)
+        wall = RoundedRectangle(width=5, height=3.4, corner_radius=0.12, color=GREY,
+                                fill_color=GREY, fill_opacity=0.07).move_to([3.3, 0, 0])
+        pd1, pd2 = daughter(2.15), daughter(4.45)
+        pn = VGroup(pd1[1:], pd2[1:])
+        p_label = T("plant cell: stiff wall", 28).move_to([3.3, -2.3, 0])
         self.at("A plant cell has")
-        self.play(FadeIn(p_title), FadeIn(wall), FadeIn(pL), FadeIn(pR), FadeIn(sL), FadeIn(sR), run_time=0.9)
-        stiff = T("stiff wall", 28, GREY).move_to([3.5, -2.6, 0])
-        self.play(FadeIn(stiff), run_time=0.5)
+        self.play(FadeIn(wall), FadeIn(pn), FadeIn(p_label), run_time=0.7)
         self.at("cannot pinch")
-        nopinch = T("cannot pinch", 28, RED).move_to([3.5, -2.6, 0])
-        self.play(ReplacementTransform(stiff, nopinch), run_time=0.5)
-        self.at("A cell plate")
-        plate = Line([3.5, 0.2, 0], [3.5, 0.2, 0], color=GREEN, stroke_width=10)
-        plate_t = Line([3.5, 1.9, 0], [3.5, -1.5, 0], color=GREEN, stroke_width=10)
-        plate_l = T("cell plate", 28, GREEN).move_to([3.5, -2.6, 0])
-        self.play(FadeOut(nopinch), FadeIn(plate_l), Transform(plate, plate_t), run_time=2.0)
-        self.at("becomes a new wall")
-        newwall = T("becomes a new wall", 28, GREEN).move_to([3.5, -2.6, 0])
-        self.play(FadeOut(plate_l), FadeIn(newwall), plate.animate.set_stroke(width=14), run_time=1.0)
+        self.play(Indicate(wall, scale_factor=1.01), run_time=0.5)
+        plate = Line([3.3, -0.05, 0], [3.3, 0.05, 0], color=GREEN, stroke_width=8)
+        plate_label = T("cell plate", 26, GREEN).move_to([3.3, -3.0, 0])
+        self.at("A cell plate forms")
+        self.play(Create(plate), FadeIn(plate_label), run_time=0.6)
+        self.at("grows outward")
+        self.play(Transform(plate, Line([3.3, -1.7, 0], [3.3, 1.7, 0],
+                                      color=GREEN, stroke_width=8)), run_time=1.1)
+        self.at("The two new cells")
+        same = T("same complete DNA set, usually", 28, BLUE).move_to([0, -3.05, 0])
+        self.play(FadeOut(plate_label), FadeIn(same), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Answer(SpokenScene):
-    """two answers: ratio 3 -> 1.5, and copy first then share out."""
-
+class S01Cut(SpokenScene):
     def construct(self):
-        q1 = chip("Why more cells,\nnot bigger ones?", ORANGE, 26).move_to([-3.4, 2.85, 0])
-        q2 = chip("How does each new cell\nget a full copy?", ORANGE, 26).move_to([3.4, 2.85, 0])
-        self.at("why more cells")
-        self.play(FadeIn(q1), run_time=0.6)
+        head = T("growth • repair • replacement", 34).move_to([0, 3, 0])
+        cells = VGroup(daughter(-1.3), daughter(1.3))
+        self.at("These new cells")
+        self.play(FadeIn(head), FadeIn(cells), run_time=0.8)
+        skin = RoundedRectangle(width=6, height=2.5, corner_radius=0.12, color=GREY,
+                                fill_color=GREY, fill_opacity=0.2).move_to([-3, 0, 0])
+        wound = Rectangle(width=1.4, height=1, color=RED, fill_color=BG,
+                          fill_opacity=1).move_to([-3, 0.75, 0])
+        dividing = VGroup(*[Square(0.5, color=GREEN, fill_opacity=0.3)
+                            .move_to([-3.4 + i * 0.8, -0.6, 0]) for i in range(2)])
+        skin_label = T("skin: division behind the wound", 24).move_to([-3, -1.8, 0])
+        self.at("Skin cells divide")
+        self.play(FadeOut(cells), FadeIn(skin), FadeIn(wound), FadeIn(dividing), FadeIn(skin_label), run_time=0.7)
+        added = VGroup(*[Square(0.35, color=GREEN, fill_opacity=0.5)
+                         .move_to([-3.5 + i * 0.34, -0.6, 0]) for i in range(4)])
+        self.play(ReplacementTransform(dividing, added), run_time=0.6)
+        self.at("replace cells that")
+        self.play(added.animate.move_to(wound), wound.animate.set_opacity(0.25), run_time=1)
+        self.at("Near an onion root tip")
+        self.play(*[FadeOut(m) for m in (skin, wound, added, skin_label)], run_time=0.4)
+        root = RoundedRectangle(width=1.6, height=4.2, corner_radius=0.6,
+                                color=GREY, fill_opacity=0.1).move_to([-1.8, -0.1, 0])
+        division = VGroup(*[Square(0.38, color=GREEN, fill_opacity=0.4)
+                            .move_to([-2.1 + i * 0.6, -1.3 + j * 0.45, 0])
+                            for i in range(2) for j in range(2)])
+        dlab = T("division zone", 26, GREEN).move_to([1.4, -1.2, 0])
+        self.play(FadeIn(root), FadeIn(division), FadeIn(dlab), run_time=0.5)
+        self.at("tip cells divide")
+        divided = VGroup(*[Rectangle(width=0.38, height=0.2, color=GREEN, fill_opacity=0.4)
+                            .move_to([-2.1 + i * 0.6, -1.5 + j * 0.24, 0])
+                            for i in range(2) for j in range(4)])
+        self.play(ReplacementTransform(division, divided), run_time=0.5)
+        division = divided
+        elong = VGroup(*[Rectangle(width=0.5, height=0.5, color=GREEN, fill_opacity=0.2)
+                         .move_to([-2.1 + i * 0.6, 0.35, 0]) for i in range(2)])
+        elab = T("elongation zone", 26, GREEN).move_to([1.5, 0.6, 0])
+        self.at("Behind that zone")
+        self.play(FadeIn(elong), FadeIn(elab), run_time=0.5)
+        self.at("new cells stretch")
+        self.play(elong.animate.stretch(2.8, 1), run_time=0.8)
+        down = arr([-3.2, -0.5, 0], [-3.2, -2.5, 0], YELLOW)
+        self.at("pushing the root")
+        self.play(root.animate.stretch(1.1, 1, about_edge=UP), division.animate.shift(DOWN * 0.35),
+                  GrowArrow(down), run_time=0.8)
+        self.at("For a single")
+        self.play(*[FadeOut(m) for m in (head, root, division, dlab, elong, elab, down)], run_time=0.5)
+        amoeba = cell_shape(3.4, 2.5, [0, 0, 0], GREEN)
+        label = T("amoeba: one cell, one organism", 30).move_to([0, 2.7, 0])
+        self.play(FadeIn(amoeba), FadeIn(label), run_time=0.5)
+        self.at("division can make")
+        self.play(Transform(amoeba, cell_shape(2.3, 2.5, [-1.5, 0, 0], GREEN)),
+                  FadeIn(cell_shape(2.3, 2.5, [1.5, 0, 0], GREEN), shift=RIGHT), run_time=1)
+        self.finish()
 
-        s1 = Square(1.4, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to([-4.7, 0.0, 0])
-        s2 = Square(2.8, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to([-2.1, 0.7, 0])
-        r1 = M("3", 34, TEXT).next_to(s1, DOWN, buff=0.3).align_to(s1, DOWN).shift(DOWN * 0.45)
-        r2 = M("1.5", 34, RED).next_to(s2, DOWN, buff=0.3)
-        r1.move_to([-4.7, -1.3, 0])
-        r2.move_to([-2.1, -1.3, 0])
-        lab = T("surface ÷ volume (model cubes)", 24, GREY).move_to([-3.4, -1.8, 0])
-        self.play(FadeIn(s1), FadeIn(s2), run_time=0.6)
-        self.play(FadeIn(r1), FadeIn(lab), run_time=0.4)
-        self.play(FadeIn(r2), run_time=0.4)
-        self.at("A bigger cell")
-        ans1 = T("one reason: a bigger cell has\nless membrane for its inside", 26, RED, line_spacing=0.9).move_to([-3.4, -2.6, 0])
-        nc = T("real cells are not cubes", 22, GREY).move_to([-3.4, -3.35, 0])
-        self.play(FadeIn(ans1), FadeIn(nc), Indicate(s2, color=RED, scale_factor=1.05), run_time=0.9)
 
-        # --- second question -------------------------------------------------------------
-        self.at("how does each")
-        self.play(FadeIn(q2), run_time=0.6)
-        cell = Circle(radius=1.5, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([3.4, 0.4, 0])
-        c = chrom([3.4, 0.4, 0], copied=False, h=1.2, w=0.22)
-        self.play(FadeIn(cell), FadeIn(c), run_time=0.6)
-        cp = chrom([3.4, 0.4, 0], copied=True, h=1.2, w=0.22)
-        step = T("1  copy first", 26, BLUE).move_to([3.4, -1.7, 0])
-        self.at("copies its")
-        self.play(ReplacementTransform(c, cp), FadeIn(step), run_time=1.0)
-        c = cp
-        self.at("Mitosis then shares")
-        step2 = T("2  mitosis shares it out", 26, GREEN).move_to([3.4, -2.35, 0])
-        self.play(FadeOut(c.dot), FadeIn(step2), run_time=0.4)
-        cl = Circle(radius=1.1, stroke_color=GREEN, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([2.2, 0.4, 0])
-        cr = Circle(radius=1.1, stroke_color=GREEN, stroke_width=4, fill_color=GREY, fill_opacity=0.08).move_to([4.6, 0.4, 0])
-        self.play(FadeOut(cell), FadeIn(cl), FadeIn(cr), c.l.animate.move_to([2.2, 0.4, 0]),
-                  c.r.animate.move_to([4.6, 0.4, 0]), run_time=1.4)
-        same = T("same DNA, usually", 26, TEXT).move_to([3.4, -3.0, 0])
-        self.at("usually have the same")
-        self.play(FadeIn(same), run_time=0.6)
+def cube_model(side, center):
+    face = Square(side, color=GREY, fill_color=GREY, fill_opacity=0.15)
+    shift = np.array([0.32 * side, 0.25 * side, 0])
+    top = Polygon(face.get_corner(UL), face.get_corner(UR), face.get_corner(UR) + shift,
+                  face.get_corner(UL) + shift, color=GREY, fill_color=GREY, fill_opacity=0.08)
+    right = Polygon(face.get_corner(UR), face.get_corner(DR), face.get_corner(DR) + shift,
+                    face.get_corner(UR) + shift, color=GREY, fill_color=GREY, fill_opacity=0.2)
+    return VGroup(face, top, right).move_to(center)
+
+
+class S02Small(SpokenScene):
+    def construct(self):
+        head = T("A smaller point: cell size", 34).move_to([0, 3.1, 0])
+        cell = cell_shape(2.6, 2.6, ORIGIN)
+        self.at("A smaller point")
+        self.play(FadeIn(head), FadeIn(cell), run_time=0.7)
+        flow = VGroup(arr([-3, 0.7, 0], [-0.8, 0.7, 0], TEAL),
+                      arr([0.8, -0.5, 0], [3, -0.5, 0], TEAL),
+                      T("oxygen + food", 26, TEAL).move_to([-4.5, 0.7, 0]),
+                      T("wastes", 26, TEAL).move_to([4, -0.5, 0]))
+        self.at("Oxygen food")
+        self.play(FadeIn(flow), run_time=0.7)
+        self.at("In a cube model")
+        small, large = cube_model(1.3, [-3.2, 0, 0]), cube_model(1.3, [2.7, 0.4, 0])
+        model = T("geometry model", 26, GREY).move_to([0, 2.3, 0])
+        self.play(FadeOut(cell), FadeOut(flow), FadeIn(small), FadeIn(large), FadeIn(model), run_time=0.6)
+        self.at("a cell gets bigger")
+        self.play(large.animate.scale(1.9), run_time=0.8)
+        growth = T("inside grows faster than surface", 30, TEXT).move_to([0, -2.1, 0])
+        self.at("its volume grows faster")
+        self.play(FadeIn(growth), large[0].animate.set_fill(GREY, opacity=0.45), run_time=0.7)
+        ratio = T("less membrane for each bit inside", 30, RED).move_to([0, -2.9, 0])
+        self.at("less membrane")
+        self.play(FadeIn(ratio), run_time=0.6)
+        shapes = VGroup(cell_shape(2, 2, [-3.5, 0, 0]), cell_shape(1.5, 3.2, [0, 0, 0]),
+                        cell_shape(3, 1.3, [3.5, 0, 0]))
+        self.at("Real cells are not cubes")
+        self.play(*[FadeOut(m) for m in (small, large, model, growth, ratio)], FadeIn(shapes), run_time=0.7)
+        control = T("cells also control their size", 28).move_to([0, -2.3, 0])
+        self.at("Cells also control")
+        self.play(FadeIn(control), run_time=0.6)
+        limit = T("surface area: one limit among several", 30, RED).move_to([0, -3.1, 0])
+        self.at("surface area is one limit")
+        self.play(FadeIn(limit), run_time=0.7)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Copy the DNA first, then share it out."
+    LINE = "Cells copy their DNA first, so each new cell gets a full set."
