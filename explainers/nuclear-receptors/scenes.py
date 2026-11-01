@@ -1,4 +1,4 @@
-"""Nuclear receptors: where helix 12 lies decides whether the groove is free  (Biochemistrypedia explainer)
+"""Nuclear receptors: the receptor is the gene switch  (Biochemistrypedia explainer)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -18,13 +18,8 @@ No molecular structures: the hormone-binding domain is a rounded block with a no
 shallow notch for the groove; helix 12 is a pink capsule that swings on a hinge; the hormone is a dot or a
 chip; DNA is a line, histones are discs, the gene is a block on the line.
 
-ONE RULE FOR THE GROOVE (every scene): its outline is DASHED whenever helix 12 is not in its closed, agonist
-position (lid open, lid blocked, or helix 12 lying in the groove), and SOLID only when the lid is closed.
-
-One picture, three framings of the same parts (the block is scaled, never redrawn differently):
-  CLOSE (scenes 3 and 5)  the hormone-binding block fills the frame.
-  WIDE  (scenes 2 and 4)  the whole receptor stands on the DNA, block smaller.
-  ROW   (scene 6)         three small copies, then two side by side.
+The retained close-up helpers below preserve the original film's drawing vocabulary.
+This overview uses the pocket, hinge and DNA grip; it does not show helix 12.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -265,469 +260,301 @@ def lid_flight(lid, B, top, run_time=2.0):
     return UpdateFromAlphaFunc(lid, upd, run_time=run_time, rate_func=linear)
 
 
-class Film(SpokenScene):
-    def outro(self, *anims, then=None, after=None, run_time=0.3):
-        """hold until the narration ends, clear what the next scene does not inherit, then (optionally)
-        change framing (`then`) and bring in the new framing's extras (`after`)."""
-        rest = self.narration_s - 0.02 - self.elapsed()
-        if rest > 0:
-            self.wait(rest)
-        if anims:
-            self.play(*anims, run_time=run_time)
-        if then:
-            self.play(*then, run_time=0.8)
-        if after:
-            self.play(*after, run_time=0.4)
-        if then or after:
-            self.wait(0.05)
-        self.finish()
+# Overview framing reuses the old pocket, hinge, DNA grip, histones and opaque chips.
+# Helix 12 and its groove are intentionally outside this film's overview.
+def receptor(k, x, y, bound=False):
+    r = Rec(k, [x, y, 0], 'closed', 'solid')
+    hinge, dbd, dy, stretch = chain_parts(r)
+    g = VGroup(r.body, r.pocket_fill, r.pocket_line, hinge, dbd)
+    if bound:
+        g.add(hdot(r))
+    return g, r, dy, stretch
+
+
+def dna_line(y, x=0, width=11.8):
+    return Line([x-width/2, y, 0], [x+width/2, y, 0], color=GREY, stroke_width=6)
+
+
+def pool(x, y, kind=0):
+    shapes = VGroup()
+    for dx, dy in [(-0.45, 0), (0.45, 0), (0, 0.45)]:
+        m = (Square(side_length=0.28, fill_color=PURPLE, fill_opacity=0.8, stroke_width=2)
+             if kind == 0 else Circle(radius=0.16, fill_color=PURPLE, fill_opacity=0.8, stroke_width=2) if kind == 1
+             else Triangle(fill_color=PURPLE, fill_opacity=0.8, stroke_width=2).scale(0.18))
+        shapes.add(m.set_color(PURPLE).move_to([x+dx, y+dy, 0]))
+    return shapes
 
 
 class S00Title(TitleCard):
-    LESSON = "Nuclear receptors"
-    TITLE = "One helix decides on or off"
+    LESSON = 'Nuclear receptors'
+    TITLE = 'The Receptor Is the Gene Switch'
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Catch(Film):
-    """the uterus keeps estradiol; a steroid crosses the membrane alone; what inside catches it?"""
-
+class S01Catch(SpokenScene):
     def construct(self):
-        PW, MY, PB = 5.9, 1.35, -3.3
-
-        def panel(cx):
-            outline = upath(cx, MY - 0.15, PW, MY - 0.15 - PB, 0.3, GREY, 3)
-            mem = RoundedRectangle(corner_radius=0.1, width=PW, height=0.3, stroke_color=GREY, stroke_width=3,
-                                   fill_color=GREY, fill_opacity=0.35).move_to([cx, MY, 0])
-            return VGroup(outline, mem)
-        pl, pr = panel(-3.3), panel(3.3)
-        self.play(FadeIn(pl), FadeIn(pr), run_time=0.7)
-
-        tag = bchip("radioactive estradiol", YELLOW, 24, pad=0.16).move_to([0, 3.0, 0])
-        dl = [Dot([x, 2.0, 0], radius=0.16, color=YELLOW) for x in (-4.4, -3.3, -2.2)]
-        dr = [Dot([x, 2.0, 0], radius=0.16, color=YELLOW) for x in (2.2, 3.3, 4.4)]
-        self.at("radioactive")
-        self.play(FadeIn(tag, shift=DOWN * 0.15), *[FadeIn(d, scale=0.5) for d in dl + dr], run_time=0.6)
-
-        lab_l = T("most tissues", 26, GREY).move_to([-3.3, -2.9, 0])
-        self.at("almost every tissue")
-        self.play(FadeIn(lab_l), run_time=0.4)
-        ins = [(-4.4, 0.3), (-3.3, -0.6), (-2.2, -1.5)]
-        self.at("hormone go again")
-        self.play(*[d.animate.move_to([x, y, 0]) for d, (x, y) in zip(dl, ins)], run_time=0.6)
-        self.play(*[d.animate.move_to([x, 2.0, 0]) for d, (x, y) in zip(dl, ins)], run_time=0.6)
-        self.play(*[FadeOut(d) for d in dl], run_time=0.3)
-
-        lab_r = T("uterus and vagina", 26, GREY).move_to([3.3, -2.9, 0])
-        self.at("The uterus")
-        self.play(FadeIn(lab_r), run_time=0.4)
-        stay = [(2.2, 0.3), (3.3, -0.6), (4.4, -1.5)]
-        self.play(*[d.animate.move_to([x, y, 0]) for d, (x, y) in zip(dr, stay)], run_time=0.8)
-        self.at("keep it")
-        self.play(pr[0].animate.set_stroke(YELLOW, 6), *[Indicate(d, color=TEXT, scale_factor=1.6) for d in dr], run_time=0.8)
-
-        # one big cell: how the hormone gets in
         cell = big_cell()
-        hc = bchip("estradiol", YELLOW, 26, pad=0.16).move_to([-2.0, 2.55, 0])
-        self.at("is a steroid")
-        self.play(FadeOut(VGroup(pl, pr, lab_l, lab_r, tag, *dr)), run_time=0.5)
-        self.play(FadeIn(cell), FadeIn(hc), run_time=0.6)
-        fat = T("dissolves in fat", 24, YELLOW).next_to(hc, RIGHT, buff=0.3)
-        self.at("dissolves in fat")
-        self.play(FadeIn(fat, shift=RIGHT * 0.1), pop(hc, 1.08), run_time=0.6)
-        self.at("crosses the cell membrane")
-        self.play(FadeOut(fat), hc.animate.move_to([-2.0, 0.2, 0]), run_time=1.3)
-        self.at("on its own")
-        self.play(pop(hc, 1.1), run_time=0.5)
+        rec, r, dy, stretch = receptor(0.48, -2.7, -0.2)
+        label = T('intracellular receptor', 28, BLUE).move_to([-2.7, -2.4, 0])
+        h = hdot(r).move_to([-4.8, 0.55, 0])
+        self.at('Nuclear receptors')
+        self.play(FadeIn(cell), FadeIn(rec), FadeIn(label), run_time=0.6)
+        self.at('catch chemical signals')
+        self.play(FadeIn(h), run_time=0.2)
+        self.play(h.animate.move_to(hdot(r)), run_time=0.6)
+        nucleus = VGroup(RoundedRectangle(width=6, height=3.6, corner_radius=0.4, color=GREY).move_to([2.5, -0.6, 0]),
+                         T('nucleus', 24, GREY).move_to([4.5, 0.85, 0]))
+        dna = dna_line(dy, 2.6, 5.1)
+        genes = VGroup(*[gene_block(x, dy, 0.65) for x in [1, 2.6, 4.2]])
+        self.at('control whether genes')
+        self.play(FadeOut(label), FadeIn(nucleus), FadeIn(dna), FadeIn(genes),
+                  rec.animate.shift(RIGHT*4.2), h.animate.shift(RIGHT*4.2), run_time=0.7)
+        tf = T('receptor = transcription factor', 30, BLUE).move_to([0, 2.7, 0])
+        self.at('receptor itself')
+        self.play(FadeIn(tf), Indicate(rec, color=BLUE), run_time=0.6)
+        rnas = VGroup(*[bchip('RNA', GREEN, 22, pad=0.12).move_to([x, -2.45, 0]) for x in [1, 2.6, 4.2]])
+        self.at('many genes at once')
+        self.play(*[Indicate(g, color=GREEN) for g in genes], FadeIn(rnas, shift=UP*0.15), run_time=0.7)
+        proteins = VGroup(*[bchip('protein', GREEN, 22, pad=0.12).move_to([x, -3.15, 0]) for x in [1, 2.6, 4.2]])
+        self.at('protein take time')
+        self.play(FadeIn(proteins, shift=DOWN*0.15), run_time=0.6)
+        timeline = VGroup(arr([-5.4, -2.7, 0], [-0.5, -2.7, 0], GREY),
+                          T('hours', 26, TEXT).move_to([-3, -3.2, 0]))
+        marker = Dot([-5.2, -2.7, 0], color=GREEN)
+        self.at('builds over hours')
+        self.play(FadeIn(timeline), FadeIn(marker), run_time=0.3)
+        self.play(marker.animate.shift(RIGHT*4.2), run_time=1.1)
+        self.at('after the hormone has gone')
+        self.play(FadeOut(h), Indicate(proteins, color=GREEN), run_time=0.7)
+        # The last sentence returns to the membrane entry step, as narrated.
+        entry, er, _, _ = receptor(0.48, -2.7, -0.2)
+        hormone = hdot(er).move_to([er.pcx, 2.5, 0])
+        tag = T('steroid hormone', 26, YELLOW).move_to([0.2, 2.5, 0])
+        self.at('A steroid hormone')
+        self.play(FadeOut(VGroup(nucleus, dna, genes, rnas, proteins, timeline, marker, tf, rec)),
+                  FadeIn(entry), FadeIn(hormone), FadeIn(tag), run_time=0.5)
+        self.at('crosses the membrane')
+        self.play(hormone.animate.move_to(hdot(er)), run_time=1.0)
+        self.finish()
 
-        ghost = ghost_chip("surface receptor", 24).move_to([3.4, 2.5, 0])
-        cross = strike(ghost)
-        self.at("nothing on the outer surface")
-        self.play(FadeIn(ghost, shift=DOWN * 0.1), run_time=0.5)
-        self.at("has to receive it")
-        self.play(Create(cross), run_time=0.4)
 
-        q = qbox()
-        self.at("What inside the cell")
-        self.play(FadeIn(q, scale=0.9), run_time=0.6)
-        self.at("built to catch it")
-        self.play(hc.animate.move_to([0.45, -1.0, 0]), run_time=0.8)
-        self.play(pop(q, 1.08), run_time=0.5)
-        self.outro(FadeOut(ghost), FadeOut(cross))
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Chain(Film):
-    """the catcher is one chain with two grips: it is the transcription factor. (WIDE)"""
-
+class S02Chain(SpokenScene):
     def construct(self):
-        cell, q = big_cell(), qbox()
-        hc = bchip("estradiol", YELLOW, 26, pad=0.16).move_to([0.45, -1.0, 0])
-        self.add(cell, hc, q)
-
-        rec = Rec(K2, O2, "closed", "solid")
-        hinge, dbd, dna_y, stretch = chain_parts(rec)
-        hov = hdot(rec).move_to([rec.pcx, rec.yt + 0.8, 0])
-        self.at("catches the hormone")
-        self.play(pop(hc, 1.12), run_time=0.6)
-
-        lab = T("receptor", 34, BLUE, weight=BOLD).move_to([3.7, O2[1], 0])
-        pt = arr([2.4, O2[1], 0], [1.2, O2[1], 0], BLUE)
-        self.at("is a receptor")
-        self.play(FadeOut(cell), FadeOut(q), FadeOut(hc), FadeIn(rec.body, scale=0.92), FadeIn(hov, scale=0.8), run_time=0.9)
-        self.play(FadeIn(rec.pocket_fill), Create(rec.pocket_line), FadeIn(lab), GrowArrow(pt), run_time=0.6)
-
-        in_dbd = T("binds DNA", 26, BLUE).move_to(dbd)
-        self.at("one chain")
-        self.play(FadeIn(hinge, shift=UP * 0.15), FadeIn(dbd, shift=UP * 0.15), run_time=0.7)
-
-        def badge(n, pos):
-            c = Circle(radius=0.24, stroke_color=TEXT, stroke_width=3, fill_color=BG, fill_opacity=1)
-            return VGroup(c, T(str(n), 24, TEXT, weight=BOLD).move_to(c)).move_to(pos)
-        b1 = badge(1, [rec.body.get_right()[0] + 0.45, rec.yt - 0.3, 0])
-        b2 = badge(2, [dbd.get_right()[0] + 0.45, dbd.get_center()[1], 0])
-        self.at("two grips")
-        self.play(FadeOut(lab), FadeOut(pt), FadeIn(b1, scale=0.5), FadeIn(b2, scale=0.5),
-                  *glow(rec.body, dbd, s=1.03), run_time=0.8)
-
-        in_hbd = T("binds hormone", 26, BLUE).move_to([rec.O[0] + 1.5 * rec.k, O2[1] - 0.2, 0])
-        self.at("closes around the hormone")
-        self.play(hov.animate.move_to([rec.pcx, rec.yt - 1.0 * rec.k, 0]), run_time=0.8)
-        self.play(FadeIn(in_hbd), run_time=0.4)
-
-        dna = Line([-6.2, dna_y - 0.9, 0], [6.2, dna_y - 0.9, 0], color=GREY, stroke_width=6)
-        gene = gene_block(4.4, dna_y - 0.9)
-        gene_lbl = T("gene", 24, GREY).move_to([4.4, dna_y - 0.9 - 0.5, 0])
-        self.add(dna, gene, gene_lbl)
-        self.at("takes hold")
-        self.play(dna.animate.shift(UP * 0.9), gene.animate.shift(UP * 0.9), gene_lbl.animate.shift(UP * 0.9), run_time=0.6)
-        spec = T("a specific short stretch", 24, TEXT).move_to([rec.O[0], dna_y - 0.5, 0])
-        self.at("specific short stretch")
-        self.play(Create(stretch), FadeIn(in_dbd), FadeIn(spec, shift=UP * 0.1), run_time=0.6)
-
-        sm = ghost_chip("second messenger", 24).move_to([4.0, 2.4, 0])
-        x1 = strike(sm)
-        self.at("No second messenger")
-        self.play(FadeIn(sm), run_time=0.3)
-        self.play(Create(x1), run_time=0.3)
-        kc = ghost_chip("kinase cascade", 24).move_to([4.0, 1.4, 0])
-        x2 = strike(kc)
-        self.at("kinase cascade")
-        self.play(FadeIn(kc), run_time=0.3)
-        self.play(Create(x2), run_time=0.3)
-
-        tf = T("transcription factor", 32, BLUE, weight=BOLD).move_to([4.0, O2[1] - 0.3, 0])
-        tp = arr([1.75, O2[1] - 0.3, 0], [1.15, O2[1] - 0.3, 0], BLUE)
-        self.at("transcription factor")
-        self.play(FadeOut(VGroup(sm, x1, kc, x2)), FadeOut(b1), FadeOut(b2), FadeIn(tf, shift=LEFT * 0.1), GrowArrow(tp), run_time=0.8)
-
-        self.at("binds")
-        self.play(*glow(dbd, s=1.06), run_time=0.6)
-        ctl = arr([dbd.get_right()[0] + 0.3, dna_y + 0.35, 0], [gene.get_left()[0] - 0.1, dna_y + 0.35, 0], TEXT)
-        self.at("controls whether")
-        self.play(GrowArrow(ctl), run_time=0.6)
-        rna = chip("RNA", GREY, size=24, pad=0.14).move_to([4.4, dna_y + 1.0, 0])
-        ra = arr([4.4, dna_y + 0.25, 0], [4.4, dna_y + 0.65, 0], GREY, w=4, tip=0.16)
-        self.at("copied into")
-        self.play(*glow(gene, s=1.12), FadeIn(rna, shift=UP * 0.1), GrowArrow(ra), run_time=0.7)
-
-        self.at("receptor is one")
-        self.play(*glow(rec.body, dbd, hinge, s=1.03), *glow(tf, s=1.06), run_time=0.7)
-
-        # zoom in on the hormone-binding block (CLOSE); the lid and the groove come into view
-        rec3 = Rec(K3, O3, "open", "dashed")
-        carry = VGroup(rec.body, rec.pocket_fill, rec.pocket_line, hov)
-        rest = [hinge, dbd, in_dbd, in_hbd, dna, gene, gene_lbl, stretch, spec, tf, tp, ctl, rna, ra]
-        self.outro(*[FadeOut(m) for m in rest],
-                   then=[carry.animate.scale(K3 / K2, about_point=O2).shift(O3 - O2)],
-                   after=[FadeIn(rec3.lid), FadeIn(rec3.groove_fill), FadeIn(rec3.groove), FadeOut(hov), FadeIn(hchip(rec3))])
+        rec, r, dy, stretch = receptor(0.72, -2.6, 1.05)
+        self.at('The receptor')
+        self.play(FadeIn(rec), run_time=0.6)
+        labels = VGroup(T('hormone-binding domain', 26, BLUE).move_to([3.3, 1.1, 0]),
+                        T('hinge', 26, BLUE).move_to([3.3, -0.15, 0]),
+                        T('DNA-binding domain', 26, BLUE).move_to([3.3, -0.9, 0]))
+        links = VGroup(*[arr([1.1, y, 0], [x, y, 0], BLUE, w=3) for x,y in [(-0.1,1.1),(-2.3,-0.15),(-1.3,-0.9)]])
+        self.at('one chain with two grips')
+        self.play(FadeIn(labels[1]), GrowArrow(links[1]), run_time=0.5)
+        h = hdot(r).shift(UP*1.7)
+        self.at('One region binds')
+        self.play(FadeIn(labels[0]), GrowArrow(links[0]), FadeIn(h), run_time=0.4)
+        self.play(h.animate.move_to(hdot(r)), run_time=0.6)
+        dna = dna_line(dy)
+        self.at('Another recognizes')
+        self.play(FadeIn(labels[2]), GrowArrow(links[2]), Create(dna), Create(stretch), run_time=0.7)
+        self.at('work in pairs')
+        self.play(FadeOut(VGroup(rec, h, labels, links, dna, stretch)), run_time=0.3)
+        pair = VGroup()
+        for x in [-1.35, 1.35]:
+            g, _, yy, ss = receptor(0.34, x, 0.4)
+            pair.add(g, ss)
+        line = dna_line(yy)
+        response = T('response element', 28, TEXT).move_to([0, -1.6, 0])
+        self.play(FadeIn(pair), Create(line), run_time=0.6)
+        self.at('called a response element')
+        self.play(FadeIn(response), run_time=0.6)
+        title = T('glucocorticoid receptor + same receptor', 30, BLUE).move_to([0, 2.7, 0])
+        self.at('The glucocorticoid receptor')
+        self.play(FadeIn(title), pair[2].animate.shift(RIGHT*1.6), run_time=0.5)
+        self.at('after hormone arrives')
+        hormones = VGroup(*[Dot([x-0.48, 0.57, 0], radius=0.14, color=YELLOW) for x in [-1.35, 1.35]])
+        self.play(FadeIn(hormones), pair[2].animate.shift(LEFT*1.6), run_time=0.7)
+        thyroid = T('thyroid hormone receptor + RXR', 30, BLUE).move_to(title)
+        names = VGroup(T('thyroid receptor', 24, BLUE).move_to([-2.4, 1.6, 0]),
+                       T('RXR', 24, BLUE).move_to([2.4, 1.6, 0]))
+        self.at('The thyroid hormone receptor')
+        self.play(FadeOut(hormones), ReplacementTransform(title, thyroid), FadeIn(names), run_time=0.7)
+        self.at('different partner')
+        self.play(Indicate(pair[2], color=BLUE), run_time=0.6)
+        jobs = T('hormone recognition  •  DNA recognition\nTwo jobs in the same protein', 28, TEXT).move_to([0, -2.7, 0])
+        self.at('Hormone recognition')
+        self.play(FadeIn(jobs), Indicate(pair, color=BLUE), run_time=0.8)
+        self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Lid(Film):
-    """helix 12 folds over the pocket like a lid and completes the groove a co-activator fits. (CLOSE)"""
-
+class S04Loosen(SpokenScene):
     def construct(self):
-        rec = Rec(K3, O3, "open", "dashed")
-        hch = hchip(rec)
-        self.add(*rec.layers(), hch)
-        yt, k = rec.yt, rec.k
+        pair = VGroup()
+        for x in [-1.35,1.35]:
+            g, _, yy, ss = receptor(0.34, x, 0.4)
+            pair.add(g, ss)
+        dna = dna_line(yy)
+        names = T('thyroid hormone receptor + RXR', 30, BLUE).move_to([0,2.7,0])
+        helper = bchip('co-repressor', PURPLE, 26).move_to([0,1.8,0])
+        self.add(pair, dna, names, helper)
+        h = Dot([-3.5,1.5,0], radius=0.16,color=YELLOW)
+        self.at('Hormone binding')
+        self.play(FadeIn(h), run_time=0.2)
+        self.play(h.animate.move_to([-1.82,0.57,0]), pair[0][0].animate.stretch(1.08,0), run_time=0.7)
+        self.at('releases a correpressor')
+        self.play(helper.animate.shift(UP*0.5).set_opacity(0), run_time=0.6)
+        active = bchip('co-activator', PURPLE, 26).move_to([0,1.8,0])
+        self.at('brings in a coactivator')
+        self.play(FadeIn(active, shift=DOWN*0.25), run_time=0.6)
+        # Reuse the old histone discs with DNA wound around them.
+        hist = VGroup(*[VGroup(Circle(radius=0.55, stroke_width=0,fill_color=GREY,fill_opacity=0.55),
+                              Circle(radius=0.65,color=GREY,stroke_width=7)).move_to([x,-0.65,0]) for x in [-1.15,0,1.15]])
+        chrom = T('chromatin: DNA around histones',26,GREY).move_to([0,-2.1,0])
+        self.at('act on chromatin')
+        self.play(FadeOut(VGroup(pair,dna,names,h)), active.animate.move_to([-3.8,2.5,0]),
+                  FadeIn(hist),FadeIn(chrom), run_time=0.7)
+        line = dna_line(-0.65)
+        self.add(line.set_z_index(-3))
+        enzyme = bchip('enzymes',PURPLE,26).move_to([0,2.5,0])
+        link = arr(active.get_right(),enzyme.get_left(),PURPLE)
+        self.at('bring enzymes')
+        self.play(GrowArrow(link),FadeIn(enzyme),run_time=0.6)
+        acs=VGroup()
+        for x in [-1.15,0,1.15]:
+            c=Circle(radius=0.25,color=GOLD,fill_color=GOLD,fill_opacity=1)
+            acs.add(VGroup(c,T('Ac',22,BG).move_to(c)).move_to([x,1.3,0]))
+        self.at('add acetyl groups')
+        self.play(FadeIn(acs),run_time=0.4)
+        self.at('to histones')
+        self.play(*[a.animate.move_to([x,0.2,0]) for a,x in zip(acs,[-1.15,0,1.15])],run_time=0.7)
+        loose=T('looser packing',28,GREEN).move_to(chrom)
+        self.at('loosens the packing')
+        self.play(*[m.animate.shift(RIGHT*d) for m,d in zip(hist,[-1.2,0,1.2])],
+                  *[m.animate.shift(RIGHT*d) for m,d in zip(acs,[-1.2,0,1.2])],ReplacementTransform(chrom,loose),run_time=0.8)
+        pol=bchip('RNA polymerase',TEXT,24).move_to([4.2,0.3,0])
+        rna=bchip('RNA',GREEN,24).move_to([4.4,-1.6,0])
+        self.at('polymerase start')
+        self.play(FadeIn(pol,shift=DOWN*0.3),FadeIn(rna,shift=DOWN*0.2),run_time=0.7)
+        # Clear the active case before the separate removal comparison.
+        rep=bchip('co-repressor + enzymes',PURPLE,26).move_to([0,2.5,0])
+        comp=T('separate comparison: acetyl removal',26,TEXT).move_to([0,3.35,0])
+        self.at('Correpressors bring enzymes')
+        self.play(FadeOut(VGroup(active,enzyme,link,pol,rna,loose)),FadeIn(rep),FadeIn(comp),run_time=0.5)
+        self.at('remove those groups')
+        self.play(acs.animate.shift(UP*1.2),run_time=0.6)
+        self.play(FadeOut(acs),run_time=0.3)
+        cells=VGroup(*[VGroup(RoundedRectangle(width=4,height=3,corner_radius=0.4,color=GREY).move_to([x,-0.3,0]),
+                              pool(x,-0.4,i),T('cell '+str(i+1),26,GREY).move_to([x,-2.3,0])) for i,x in enumerate([-3.2,3.2])])
+        helpers=T('Different cellular helper pools',30,PURPLE).move_to([0,2.6,0])
+        self.at('own mix')
+        self.play(FadeOut(VGroup(hist,line,rep,comp)),FadeIn(cells),FadeIn(helpers),run_time=0.7)
+        self.finish()
 
-        lab12 = T("helix 12", 30, PINK, weight=BOLD)
-        lab12.next_to(rec.lid_label_open(), LEFT, buff=0.1)
-        self.at("moving part")
-        self.play(FadeIn(lab12, shift=RIGHT * 0.1), *glow(rec.lid.edge, s=1.06, color=PINK), run_time=0.7)
 
-        dom = T("hormone-binding domain", 28, BLUE).move_to([O3[0], O3[1] - 1.5 * k + 0.45, 0])
-        self.at("last helix")
-        self.play(FadeIn(dom, shift=UP * 0.1), *glow(rec.body, s=1.01, color=BLUE), run_time=0.7)
-
-        ag = T("agonist: switches the receptor on", 28, YELLOW).move_to(dom)
-        self.at("An agonist")
-        self.play(ReplacementTransform(dom, ag), *glow(hch[1], hch[2], s=1.12, color=TEXT), run_time=0.8)
-        self.at("With one in the pocket")
-        self.play(*glow(hch[1], hch[2], s=1.15, color=TEXT), run_time=0.7)
-
-        self.at("folds across")
-        self.play(Rotate(rec.lid, -PI / 2, about_point=rec.P), lab12.animate.move_to(rec.lid_label_closed()),
-                  FadeOut(ag), run_time=1.0)
-
-        glab = T("groove", 30, ORANGE, weight=BOLD).move_to([rec.gcx, yt - 0.9 * k, 0])
-        self.at("completes a shallow")
-        self.play(FadeOut(rec.groove), FadeIn(rec.groove_line), FadeIn(glab, shift=UP * 0.1), run_time=0.7)
-        self.play(*glow(rec.groove_line, s=1.03, color=TEXT), run_time=0.5)
-
-        co = coact(rec, text=True, dy=0.85, raised=1.7)
-        self.at("helper protein")
-        self.play(FadeIn(co, shift=DOWN * 0.2), run_time=0.7)
-        self.at("short helix")
-        self.play(*glow(co.peg.cap, s=1.08, color=TEXT), run_time=0.7)
-        self.at("fits the groove")
-        self.play(co.animate.shift(DOWN * 1.7), run_time=0.9)
-        self.play(*glow(rec.groove_line, co.peg.cap, s=1.03, color=TEXT), run_time=0.5)
-
-        self.at("message gets through")
-        self.play(*glow(rec.groove_line, rec.lid.edge, co.peg.cap, s=1.04, color=TEXT), run_time=0.8)
-
-        # zoom out (WIDE): the receptor stands on the DNA with the co-activator still in the groove
-        k4 = Rec(K4, O4, "closed", "solid")
-        hd1 = hdot(rec)
-        carry = VGroup(rec.body, rec.pocket_fill, rec.groove_fill, rec.pocket_line, rec.groove_line, rec.lid, co.peg.cap, hd1)
-        co4 = coact(k4, text=False, dy=0.9)
-        hinge, dbd, dna_y, stretch = chain_parts(k4)
-        dna = Line([-6.2, dna_y, 0], [6.2, dna_y, 0], color=GREY, stroke_width=6)
-        self.outro(FadeOut(lab12), FadeOut(glab), FadeOut(co.chip), FadeOut(co.stem), FadeOut(co.peg[1]),
-                   FadeOut(hch), FadeIn(hd1),
-                   then=[carry.animate.scale(K4 / K3, about_point=O3).shift(O4 - O3)],
-                   after=[FadeIn(co4.chip), FadeIn(co4.stem), FadeIn(hinge), FadeIn(dbd), FadeIn(dna), FadeIn(stretch)])
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Loosen(Film):
-    """the co-activator brings enzymes; acetyl groups loosen the histones; the gene can be copied. (WIDE)"""
-
+class S08Lipids(SpokenScene):
     def construct(self):
-        rec = Rec(K4, O4, "closed", "solid")
-        hinge, dbd, dna_y, stretch = chain_parts(rec)
-        dna = Line([-6.2, dna_y, 0], [6.2, dna_y, 0], color=GREY, stroke_width=6)
-        co = coact(rec, text=False, dy=0.9)
-        hd = hdot(rec)
-        GX = 5.1
-        gene = gene_block(GX, dna_y, 1.4)
-        gene_lbl = T("gene", 24, GREY).move_to([GX, dna_y - 0.5, 0])
-        self.add(*rec.layers(), hd, hinge, dbd, dna, stretch, co, gene, gene_lbl)
-
-        # histones: discs with the DNA wound round them
-        R = 0.55
-        packed, spread = [0.35, 1.5, 2.65], [-0.1, 1.5, 3.1]
-        discs, rings = [], []
-        for x in packed:
-            discs.append(Circle(radius=R, stroke_width=0, fill_color=GREY, fill_opacity=0.55).move_to([x, dna_y, 0]))
-            rings.append(Circle(radius=R + 0.1, stroke_color=GREY, stroke_width=7).move_to([x, dna_y, 0]))
-        hist = [VGroup(r, d) for r, d in zip(rings, discs)]
-        self.at("wound around")
-        self.play(LaggedStart(*[GrowFromCenter(h) for h in hist], lag_ratio=0.25), run_time=1.0)
-        hl = T("histones", 26, GREY).move_to([1.5, dna_y - 1.15, 0])
-        self.at("histones")
-        self.play(FadeIn(hl, shift=UP * 0.1), run_time=0.5)
-
-        tight = T("tightly packed", 26, GREY).move_to([1.5, dna_y - 1.15, 0])
-        self.at("Tightly packed")
-        self.play(ReplacementTransform(hl, tight), run_time=0.5)
-        self.play(*[Wiggle(h, scale_value=1.05, rotation_angle=0.02 * TAU) for h in hist], run_time=0.7)
-
-        enz = bchip("enzymes", PURPLE, 24, pad=0.16).move_to([1.5, 0.75, 0])
-        link = Line(co.chip.get_right() + [0.02, 0, 0], enz.get_left() + [-0.02, 0.0, 0], color=PURPLE, stroke_width=6)
-        self.at("brings enzymes")
-        self.play(*glow(co.chip[1], co.chip[2], s=1.08, color=TEXT), Create(link), FadeIn(enz, shift=LEFT * 0.2), run_time=0.8)
-
-        def ac():
-            c = Circle(radius=0.24, stroke_color=GOLD, stroke_width=3, fill_color=GOLD, fill_opacity=1)
-            return VGroup(c, T("Ac", 22, BG, weight=BOLD).move_to(c))
-        acs = [ac().move_to(enz.get_bottom() + [dx, -0.1, 0]) for dx in (-0.5, 0.0, 0.5)]
-        ac_lbl = T("acetyl groups", 26, GOLD).next_to(enz, RIGHT, buff=0.4)
-        self.at("acetyl groups")
-        self.play(*[FadeIn(a, scale=0.5) for a in acs], FadeIn(ac_lbl, shift=RIGHT * 0.1), run_time=0.6)
-        self.at("to histones")
-        self.play(*[a.animate.move_to([x, dna_y + R + 0.3, 0]) for a, x in zip(acs, packed)], run_time=1.0)
-        self.play(FadeOut(ac_lbl), run_time=0.3)
-
-        loose = T("loosened", 26, GREEN).move_to([1.5, dna_y - 1.15, 0])
-        self.at("loosens the packing")
-        moves = []
-        for h, a, p0, p1 in zip(hist, acs, packed, spread):
-            moves += [h.animate.shift(RIGHT * (p1 - p0)), a.animate.shift(RIGHT * (p1 - p0))]
-        self.play(*moves, ReplacementTransform(tight, loose), run_time=1.1)
-
-        pol = bchip("RNA\npolymerase", TEXT, 22, pad=0.14).move_to([GX, dna_y + 1.7, 0])
-        self.at("polymerase start")
-        self.play(FadeIn(pol, shift=DOWN * 0.2), run_time=0.5)
-        self.play(pol.animate.move_to([GX, dna_y + 0.95, 0]), run_time=0.5)
-
-        self.at("Then the gene")
-        self.play(gene.animate.set_fill(GREEN), gene_lbl.animate.set_color(GREEN), run_time=0.7)
-        self.play(*glow(gene, s=1.12), run_time=0.5)
-
-        # zoom in again (CLOSE)
-        rec5 = Rec(K3, O3, "closed", "solid")
-        co5 = coact(rec5, text=False, dy=0.85)
-        carry = VGroup(rec.body, rec.pocket_fill, rec.groove_fill, rec.pocket_line, rec.groove_line, rec.lid, co.peg.cap, hd)
-        out = [hinge, dbd, dna, stretch, gene, gene_lbl, pol, loose, enz, link, *acs, *hist, co.chip, co.stem]
-        self.outro(*[FadeOut(m) for m in out],
-                   then=[carry.animate.scale(K3 / K4, about_point=O4).shift(O3 - O4)],
-                   after=[FadeIn(co5.chip), FadeIn(co5.stem), FadeOut(hd), FadeIn(hchip(rec5))])
+        title=T('Signals from the cell’s own lipids',34,font=TITLE_FONT).move_to([0,3,0])
+        rows=[]
+        for y,lig,name in [(1.6,'fatty acids','PPARs'),(0,'oxidized cholesterol','LXR'),(-1.6,'bile acids','FXR')]:
+            l=bchip(lig,YELLOW,26).move_to([-3.6,y,0])
+            rec,r,dy,ss=receptor(0.21,0,y+0.15)
+            lab=T(name,30,BLUE).move_to([1.9,y+0.45,0])
+            dna=VGroup(dna_line(y,4.4,2.5),gene_block(4.4,y,0.9),T('DNA',22,GREY).move_to([4.4,y-0.5,0]))
+            a=arr(l.get_right(),[-1,y,0],YELLOW)
+            b=arr([1,y,0],[2.9,y,0],BLUE)
+            rows.append(VGroup(l,rec,lab,dna,a,b))
+        self.at('the family reaches')
+        self.play(FadeIn(title),FadeIn(rows[0]),run_time=0.6)
+        self.at('ppars bind fatty acids')
+        self.play(Indicate(rows[0],scale_factor=1.03),run_time=0.7)
+        self.at('lxr binds oxidized cholesterol')
+        self.play(FadeIn(rows[1]),run_time=0.7)
+        self.at('fxr binds bile acids')
+        self.play(FadeIn(rows[2]),run_time=0.7)
+        gamma=T('PPAR-γ',30,BLUE).move_to([0,2.5,0])
+        route=rows[0].copy().shift(DOWN*1.1)
+        route[2].become(T('PPAR-γ',30,BLUE).move_to(route[2]))
+        cell=Circle(radius=0.55,color=GREY).move_to([-1.8,-1.7,0])
+        fat=VGroup(Circle(radius=0.9,color=GREY),Circle(radius=0.65,color=YELLOW,fill_color=YELLOW,fill_opacity=0.25)).move_to([2.5,-1.7,0])
+        change=arr([-0.9,-1.7,0],[1.3,-1.7,0],GREEN)
+        fatlabel=T('fat cell',28,TEXT).move_to([2.5,-3,0])
+        self.at('ppar gamma drives')
+        self.play(FadeOut(VGroup(*rows,title)),FadeIn(route),FadeIn(gamma),FadeIn(cell),run_time=0.5)
+        self.at('making of fat cells')
+        self.play(GrowArrow(change),TransformFromCopy(cell,fat),FadeIn(fatlabel),run_time=0.8)
+        rule=T('intracellular signal → gene control',30,TEXT).move_to([0,3.3,0])
+        self.at('an intracellular signal')
+        self.play(ReplacementTransform(gamma,rule),Indicate(route,color=BLUE),run_time=0.7)
+        self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Wrong(Film):
-    """tamoxifen's side chain keeps the lid from closing; helix 12 lies in the groove instead. (CLOSE)"""
-
+class S06Rule(SpokenScene):
     def construct(self):
-        rec = Rec(K3, O3, "closed", "solid")
-        co = coact(rec, text=False, dy=0.85)
-        hch = hchip(rec)
-        self.add(*rec.layers(), hch, co)
-        yt, k = rec.yt, rec.k
-
-        # set the agonist picture aside: co-activator off, lid open, estradiol out
-        self.at("An antagonist")
-        self.play(co.animate.shift(UP * 1.7).set_opacity(0), run_time=0.6)
-        self.play(Rotate(rec.lid, PI / 2, about_point=rec.P), hch.animate.shift(UP * 1.8).set_opacity(0),
-                  FadeOut(rec.groove_line), FadeIn(rec.groove_dash), run_time=0.8)
-        rec.groove = rec.groove_dash          # lid open: the groove is no longer complete
-
-        anti = T("antagonist: occupies it without switching it on", 26, RED).move_to([O3[0], O3[1] - 1.5 * k + 0.45, 0])
-        self.at("occupies the receptor")
-        self.play(FadeIn(anti, shift=UP * 0.1), run_time=0.6)
-
-        tc, ts = tam_parts(rec)
-        tc.move_to([rec.pcx, yt + 1.3 * k, 0])
-        lab = T("tamoxifen", 28, RED, weight=BOLD).next_to(tc, RIGHT, buff=0.3)
-        self.at("liver converts")
-        self.play(FadeIn(tc, scale=0.6), FadeIn(lab, shift=LEFT * 0.1), run_time=0.6)
-        lab2 = T("4-hydroxytamoxifen", 28, RED, weight=BOLD).next_to(tc, RIGHT, buff=0.3)
-        self.at("such as")
-        self.play(ReplacementTransform(lab, lab2), *glow(tc, s=1.15, color=TEXT), run_time=0.8)
-
-        self.at("That molecule")
-        self.play(tc.animate.move_to([rec.pcx, yt - 1.0 * k, 0]), lab2.animate.move_to([rec.gcx, yt - 1.25 * k, 0]), run_time=0.9)
-
-        side = T("side chain", 26, RED).next_to([rec.pcx + 0.25 * k, yt + 0.7 * k, 0], RIGHT, buff=0.15)
-        self.at("one side chain")
-        self.play(GrowFromEdge(ts, DOWN), run_time=0.8)
-        self.play(FadeIn(side, shift=RIGHT * 0.1), FadeOut(lab2), run_time=0.4)
-        self.at("too long")
-        self.play(*glow(ts, s=1.12, color=TEXT), run_time=0.7)
-        self.at("sticks out")
-        self.play(pop(ts, 1.1), run_time=0.6)
-
-        phi = float(np.arctan2(1.27, 1.0)) - 0.03
-        tip = np.array([rec.pcx - 0.13 * k, yt + 1.0 * k, 0])
-        self.at("lid should close")
-        self.play(Rotate(rec.lid, -phi, about_point=rec.P), run_time=0.6)
-        self.play(Flash(tip, color=RED, line_length=0.25, flash_radius=0.3, num_lines=8),
-                  Rotate(rec.lid, 0.1, about_point=rec.P), run_time=0.3)
-        self.play(Rotate(rec.lid, -0.1, about_point=rec.P), run_time=0.2)
-
-        plab = T("helix 12 in the groove", 28, PINK, weight=BOLD).move_to([rec.gcx, yt - 0.95 * k, 0])
-        self.at("Instead")
-        self.play(FadeOut(side), Rotate(rec.lid, phi, about_point=rec.P), run_time=0.35)
-        self.play(lid_flight(rec.lid, rec.lid_in_groove(), top=yt + 2.1 * k, run_time=1.3))
-        self.play(FadeIn(plab, shift=UP * 0.1), *glow(rec.lid.edge, s=1.04, color=PINK), run_time=0.4)
-
-        co2 = coact(rec, text=False, dy=0.85, raised=1.7)
-        self.at("so the")
-        self.play(FadeIn(co2, shift=DOWN * 0.2), run_time=0.4)
-        self.play(co2.animate.shift(DOWN * (1.7 - 0.43 * k)), run_time=0.7)
-        xm = VGroup(Line([rec.gcx - 0.3, yt + 0.5, 0], [rec.gcx + 0.3, yt - 0.1, 0]),
-                    Line([rec.gcx - 0.3, yt - 0.1, 0], [rec.gcx + 0.3, yt + 0.5, 0])).set_color(RED).set_stroke(width=8)
-        taken = T("groove taken", 28, RED, weight=BOLD).move_to([rec.gcx, yt - 0.95 * k, 0])
-        self.at("nowhere to bind")
-        self.play(Create(xm), ReplacementTransform(plab, taken), run_time=0.5)
-        self.play(co2.animate.shift(UP * 0.7), run_time=0.5)
-
-        # hand over to scene 6: shrink the finished picture into the first column
-        core = VGroup(*rec.layers(), tc, ts)
-        self.outro(FadeOut(co2), FadeOut(xm), FadeOut(anti), FadeOut(taken),
-                   then=[core.animate.scale(K6 / K3, about_point=O3).shift(np.array([COLS[0], COL_Y, 0.0]) - O3)])
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(Film):
-    """the same drug in breast and uterus; the helper proteins differ in kind; the rule: where helix 12 lies decides if the groove is free."""
-
-    def construct(self):
-        cols = COLS
-        Oc = lambda x: np.array([x, COL_Y, 0.0])
-        core, rec1 = tam_core(K6, Oc(cols[0]))
-        self.add(core)
-        c2 = core.copy().shift(RIGHT * (cols[1] - cols[0]))
-        self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.5)
-
-        def tissue(name, x):
-            return bchip(name, TEXT, 28, pad=0.16).move_to([x, 3.0, 0])
-        t1, t3 = tissue("breast", cols[0]), tissue("uterus", cols[1])
-        v1 = T("blocks estrogen", 26, RED, weight=BOLD).move_to([cols[0], 2.4, 0])
-        v3 = T("imitates estrogen", 26, GREEN, weight=BOLD).move_to([cols[1], 2.4, 0])
-
-        self.at("blocks estrogen")
-        self.play(FadeIn(t1, shift=DOWN * 0.1), FadeIn(v1, shift=DOWN * 0.1), run_time=0.7)
-        self.at("imitates")
-        self.play(FadeIn(t3, shift=DOWN * 0.1), FadeIn(v3, shift=DOWN * 0.1), run_time=0.7)
-
-        # each copy stands on its DNA
-        extras = []
-        for x in cols:
-            r = Rec(K6, Oc(x))
-            hinge, dbd, dna_y, stretch = chain_parts(r)
-            dna = Line([x - 2.4, dna_y, 0], [x + 2.4, dna_y, 0], color=GREY, stroke_width=6)
-            extras.append(VGroup(dna, hinge, dbd, stretch))
-        dna_lbl = T("DNA", 24, GREY).move_to([0, dna_y, 0])
-        self.at("still binds")
-        self.play(*[FadeIn(e, shift=UP * 0.1) for e in extras], FadeIn(dna_lbl), run_time=0.9)
-
-        # helper proteins differ in kind (shape), not in number
-        def square(x, y):
-            return Square(side_length=0.3, stroke_width=0, fill_color=PURPLE, fill_opacity=1).move_to([x, y, 0])
-
-        def disc(x, y):
-            return Dot([x, y, 0], radius=0.17, color=PURPLE)
-        offs = [(-0.45, 0.0), (0.45, 0.0), (0.0, 0.45)]
-        clusters = [VGroup(*[square(cols[0] + px, -2.65 + py) for px, py in offs]),
-                    VGroup(*[disc(cols[1] + px, -2.65 + py) for px, py in offs])]
-        arrows = [arr([x, -2.15, 0], [x, dna_y - 0.12, 0], PURPLE, w=4, tip=0.16) for x in cols]
-        help_lbl = T("helper proteins differ by tissue", 26, PURPLE).move_to([0, -3.3, 0])
-        self.at("helper proteins")
-        self.play(*[FadeIn(c, shift=UP * 0.1) for c in clusters], FadeIn(help_lbl), *[GrowArrow(a) for a in arrows], run_time=0.9)
-        self.at("each tissue")
-        self.play(*[Indicate(c, color=TEXT, scale_factor=1.15) for c in clusters], run_time=0.8)
-
-        # the rule: two receptors side by side
-        RK, OL, OR = 0.8, np.array([-3.3, -0.2, 0]), np.array([3.3, -0.2, 0])
-        recL = Rec(RK, OL, "closed", "solid")
-        hdL = hdot(recL)
-        coL = coact(recL, text=False, dy=0.8)
-        coreR, recR = tam_core(RK, OR)
-        coR = coact(recR, text=False, dy=0.8)
-        coR.shift(UP * 0.43 * RK)          # its helix rests on top of helix 12: the groove is taken
-        xm = VGroup(Line([recR.gcx - 0.25, recR.yt + 0.45, 0], [recR.gcx + 0.25, recR.yt - 0.05, 0]),
-                    Line([recR.gcx - 0.25, recR.yt - 0.05, 0], [recR.gcx + 0.25, recR.yt + 0.45, 0])).set_color(RED).set_stroke(width=7)
-        pL = T("helix 12", 26, PINK, weight=BOLD).move_to(recL.lid_label_closed())
-        pR = T("helix 12", 26, PINK, weight=BOLD).move_to([recR.gcx, recR.yt - 0.9 * RK, 0])
-        free = T("groove free", 32, GREEN, weight=BOLD).move_to([OL[0], -2.05, 0])
-        taken = T("groove taken", 32, RED, weight=BOLD).move_to([OR[0], -2.05, 0])
-        everything = VGroup(core, c2, t1, t3, v1, v3, dna_lbl, *extras, *clusters, *arrows, help_lbl)
-        self.at("Keep this rule")
-        self.play(FadeOut(everything), run_time=0.4)
-        self.play(FadeIn(VGroup(*recL.layers(), hdL)), FadeIn(coreR), FadeIn(pL), FadeIn(pR), run_time=0.5)
-        self.at("where helix")
-        self.play(*glow(recL.lid.edge, s=1.06, color=TEXT), *glow(recR.lid.edge, s=1.06, color=TEXT), run_time=0.7)
-        self.at("whether the groove is free")
-        self.play(FadeIn(coL, shift=DOWN * 0.2), FadeIn(free, shift=UP * 0.1), run_time=0.7)
-        self.at("for a")
-        self.play(FadeIn(coR, shift=DOWN * 0.2), FadeIn(taken, shift=UP * 0.1), Create(xm), run_time=0.7)
+        opening_rec, _, opening_y, opening_stretch = receptor(0.45,0,0.4,True)
+        opening = VGroup(opening_rec,dna_line(opening_y),opening_stretch,
+                         T('intracellular signal → gene control',30,TEXT).move_to([0,3.3,0]))
+        self.add(opening)
+        drugs=VGroup(bchip('prednisone',YELLOW,28),bchip('dexamethasone',YELLOW,28)).arrange(RIGHT,buff=0.6).move_to([0,2.7,0])
+        gr=bchip('glucocorticoid receptor',BLUE,30).move_to([0,1.1,0])
+        arrows=VGroup(*[arr(d.get_bottom(),gr.get_top(),YELLOW) for d in drugs])
+        benefit=T('reduced inflammation',30,GREEN).move_to([0,-0.3,0])
+        self.at('Prednisone and dexamethasone')
+        self.play(FadeOut(opening),FadeIn(drugs),run_time=0.5)
+        self.at('through the glucocorticoid receptor')
+        self.play(FadeIn(gr),FadeIn(arrows),run_time=0.6)
+        self.at('calm inflammation')
+        self.play(FadeIn(benefit),run_time=0.6)
+        long=VGroup(T('long treatment',26,GREY).move_to([0,-1.5,0]),
+                    arr([-3.4,0.7,0],[-3.4,-1.8,0],GREY),arr([3.4,0.7,0],[3.4,-1.8,0],GREY))
+        effects=VGroup(T('raised blood glucose',26,RED).move_to([-3,-2.5,0]),T('thinner bone',26,RED).move_to([3,-2.5,0]))
+        self.at('Long treatment')
+        self.play(FadeIn(long),run_time=0.4)
+        self.at('raises blood glucose')
+        self.play(FadeIn(effects[0]),run_time=0.5)
+        self.at('thins bone')
+        self.play(FadeIn(effects[1]),run_time=0.5)
+        tam=bchip('tamoxifen',RED,28).move_to([0,3.15,0])
+        self.at('Tissue context')
+        self.play(FadeOut(VGroup(drugs,gr,arrows,benefit,long,effects)),run_time=0.4)
+        columns=VGroup()
+        for x,name in [(-4.3,'breast'),(0,'uterus'),(4.3,'bone\nafter menopause')]:
+            rec,r,dy,ss=receptor(0.28,x,0.1,False)
+            dot=hdot(r).set_color(RED)
+            line=dna_line(dy,x,3.5)
+            columns.add(VGroup(rec,dot,line,ss,T(name,26,TEXT).move_to([x,2,0])))
+        self.at('Tamoxifen')
+        self.play(FadeIn(tam),FadeIn(columns),run_time=0.6)
+        block=T('blocks estrogen',24,RED).move_to([-4.3,-1.7,0])
+        mimics=VGroup(*[T('imitates estrogen',24,GREEN).move_to([x,-1.7,0]) for x in [0,4.3]])
+        self.at('blocks estrogen')
+        self.play(FadeIn(block),run_time=0.4)
+        self.at('imitates it')
+        self.play(FadeIn(mimics[0]),run_time=0.4)
+        self.at('after menopause')
+        self.play(FadeIn(mimics[1]),run_time=0.4)
+        self.at('still binds DNA')
+        self.play(*[Indicate(c[2],color=TEXT) for c in columns],run_time=0.6)
+        af=VGroup(*[bchip('AF-1',BLUE,22,pad=0.12).move_to([x+0.6,0.95,0]) for x in [-4.3,0,4.3]])
+        self.at('switching surface')
+        self.play(FadeIn(af),run_time=0.5)
+        self.at('can still work')
+        self.play(Indicate(af,color=BLUE),run_time=0.6)
+        pools=VGroup(*[pool(x,-2.8,i) for i,x in enumerate([-4.3,0,4.3])])
+        maybe=T('Helper pools can help explain the difference',26,PURPLE).move_to([0,-3.5,0])
+        self.at('can depend on')
+        self.play(FadeIn(pools),FadeIn(maybe),run_time=0.7)
+        signal=bchip('signal',YELLOW,28).move_to([-4.7,1.8,0])
+        rec,r,dy,ss=receptor(0.45,0,0.4,True)
+        dna=VGroup(dna_line(dy),ss,T('receptor on DNA',26,BLUE).move_to([0,-1.8,0]))
+        helpers=bchip('cellular helpers',PURPLE,28).move_to([4.3,1.8,0])
+        links=VGroup(arr(signal.get_right(),[-1.6,0.8,0],YELLOW),arr(helpers.get_left(),[1.6,0.8,0],PURPLE))
+        self.at('The signal')
+        self.play(FadeOut(VGroup(tam,columns,block,mimics,af,pools,maybe)),FadeIn(signal),FadeIn(rec),FadeIn(dna),run_time=0.5)
+        self.at('cells helpers together')
+        self.play(FadeIn(helpers),FadeIn(links),run_time=0.5)
+        out=bchip('gene transcription',GREEN,30).move_to([0,-2.9,0])
+        self.at('shape gene control')
+        self.play(FadeIn(out,shift=DOWN*0.15),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Where helix 12 lies decides whether the groove is free."
+    LINE = 'The receptor itself controls gene transcription.'

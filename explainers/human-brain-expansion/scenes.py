@@ -11,11 +11,20 @@ COLOR MAP (one color per concept, whole video)
   GREY   = ventricle, brain surface, labels, de-emphasized
   GOLD   = the question mark and the final rule
 """
+
+
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+
+
+from bp_style import *
+
 
 PURPLE = "#B58CD9"
+
+
 ORANGE = "#F29E4C"
+
+
 PINK = "#E58BB8"
 
 
@@ -52,54 +61,12 @@ def sq(x, bottom, side, color):
 
 class S00Title(TitleCard):
     LESSON = "What makes the human brain big"
-    TITLE = "More columns, not thicker cortex"
+    TITLE = "More Progenitors, More Cortical Area"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(SpokenScene):
-    """thickness barely changes (about 2x) while area changes enormously (about 1000x): the puzzle."""
-
-    def construct(self):
-        # thickness panel
-        t_title = T("wall thickness", 30, PURPLE).move_to([-3.3, 2.9, 0])
-        bm = Rectangle(width=0.9, height=1.2, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.3)
-        bm.move_to([-4.3, -1.0 + 0.6, 0])
-        bh = Rectangle(width=0.9, height=2.4, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.3)
-        bh.move_to([-2.3, -1.0 + 1.2, 0])
-        l1 = T("mouse", 26, GREY).move_to([-4.3, -1.45, 0])
-        l2 = T("human", 26, GREY).move_to([-2.3, -1.45, 0])
-        r1 = M("about 2×", 30, PURPLE).move_to([-3.3, -2.0, 0])
-        # area panel
-        a_title = T("surface area", 30, GREEN).move_to([3.3, 2.9, 0])
-        sm = sq(1.7, -1.0, 0.5, GREEN)
-        sh = sq(4.6, -1.0, 3.0, GREEN)
-        l3 = T("mouse", 26, GREY).move_to([1.7, -1.45, 0])
-        l4 = T("human", 26, GREY).move_to([4.6, -1.45, 0])
-        r2 = M("roughly 1,000×", 30, GREEN).move_to([3.3, -2.0, 0])
-        ns = T("drawn schematically, not to scale", 22, GREY).move_to([3.3, -2.5, 0])
-        q = T("?", 120, GOLD, weight=BOLD).move_to([0, 0.3, 0])
-        ask = T("More area, without a thicker wall?", 34, TEXT, font=TITLE_FONT).move_to([0, -3.1, 0])
-
-        self.play(FadeIn(t_title), FadeIn(a_title), FadeIn(l1), FadeIn(l2), FadeIn(l3), FadeIn(l4), run_time=0.5)
-        self.at("twice as thick")
-        self.play(FadeIn(bm, shift=UP * 0.2), run_time=0.5)
-        self.play(FadeIn(bh, shift=UP * 0.2), FadeIn(r1), run_time=0.7)
-        self.at("a thousand times larger")
-        self.play(FadeIn(sm), run_time=0.4)
-        self.play(GrowFromEdge(sh, DOWN), FadeIn(r2), FadeIn(ns), run_time=1.1)
-        self.at("That is the puzzle")
-        self.play(FadeIn(q, scale=0.6), run_time=0.6)
-        self.at("thickness changes little")
-        self.play(Indicate(VGroup(bm, bh), color=PURPLE, scale_factor=1.05), run_time=0.8)
-        self.at("area changes enormously")
-        self.play(Indicate(sh, color=GREEN, scale_factor=1.05), run_time=0.8)
-        self.at("How does a growing brain")
-        self.play(FadeIn(ask, shift=UP * 0.15), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 UX = [-4.5 + 1.8 * i for i in range(6)]
+
+
 VEN_Y = -2.7
 
 
@@ -118,65 +85,13 @@ def column_rect(x):
 STACK_Y = [0.7, 1.15, 1.6, 2.05]
 
 
-class S02Unit(SpokenScene):
-    """a patch of progenitors makes a column; units set area, neurons per unit set thickness."""
-
-    def construct(self):
-        ven = bar(-6.3, 6.3, VEN_Y, GREY)
-        pial = Line([-6.3, 2.62, 0], [6.3, 2.62, 0], color=GREY, stroke_width=3)
-        ven_l = T("ventricle", 24, GREY).move_to([5.6, -3.25, 0])
-        tag = chip("fetal rhesus monkey", GOLD, size=24, pad=0.16).move_to([0, -3.2, 0])
-        self.at("fetal rhesus monkey")
-        self.play(Create(ven), Create(pial), FadeIn(ven_l), FadeIn(tag), run_time=0.9)
-
-        p0, f0 = unit_parts(UX[0])
-        unit_l = T("one unit", 24, BLUE).move_to([UX[0], -3.2, 0])
-        self.at("Young neurons")
-        self.play(FadeIn(p0, scale=0.6), FadeIn(unit_l), run_time=0.5)
-        dots = [dot(UX[0], -2.4, YELLOW) for _ in STACK_Y]
-        self.at("climb radial")
-        self.play(Create(f0), run_time=0.5)
-        self.play(LaggedStart(*[Succession(FadeIn(d, scale=0.5, run_time=0.1),
-                                           d.animate.move_to([UX[0], y, 0]).set_run_time(0.5))
-                                for d, y in zip(dots, STACK_Y)], lag_ratio=0.3), run_time=1.6)
-        self.at("glial fibers")
-        col0 = column_rect(UX[0])
-        self.play(Create(col0), run_time=0.6)
-
-        head = T("radial unit hypothesis", 32, TEXT, font=TITLE_FONT).move_to([0, 3.25, 0])
-        self.at("radial unit hypothesis")
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.6)
-
-        rest = [unit_parts(x) for x in UX[1:]]
-        self.at("Each patch of progenitors")
-        self.play(FadeOut(head), LaggedStart(*[AnimationGroup(FadeIn(p, scale=0.6), Create(f)) for p, f in rest],
-                                             lag_ratio=0.2), run_time=1.4)
-        self.at("makes one column")
-        cols, allds = [], []
-        for x in UX[1:]:
-            ds = [dot(x, y, YELLOW) for y in STACK_Y]
-            allds += ds
-            cols.append(column_rect(x))
-        self.play(LaggedStart(*[FadeIn(d, shift=UP * 0.4) for d in allds], lag_ratio=0.03),
-                  *[Create(c) for c in cols], run_time=1.6)
-
-        a = darr([-4.9, 2.98, 0], [4.9, 2.98, 0], GREEN)
-        a_l = btext("area", 28, GREEN).move_to([0, 2.98, 0])
-        self.at("number of units")
-        self.play(GrowFromCenter(a), FadeIn(a_l), run_time=0.7)
-        t = darr([-5.55, 0.6, 0], [-5.55, 2.3, 0], PURPLE)
-        t_l = T("thickness", 24, PURPLE).rotate(PI / 2).move_to([-6.0, 1.45, 0])
-        self.at("number of neurons in each unit")
-        self.play(GrowFromCenter(t), FadeIn(t_l), run_time=0.7)
-        self.at("sets the thickness")
-        self.play(Indicate(col0, color=PURPLE, scale_factor=1.04), run_time=0.8)
-        self.finish()
+LX, RX = -3.2, 3.3
 
 
-# ---------------------------------------------------------------------------------------------
-LX, RX = -3.2, 3.3          # panel centres
-BY = -1.75                   # ventricle bar
-COL_B, COL_H = -1.3, 2.7    # column bottom and height
+BY = -1.75
+
+
+COL_B, COL_H = -1.3, 2.7
 
 
 def founders(cx, n, span=5.6):
@@ -193,68 +108,6 @@ def founders(cx, n, span=5.6):
     return g
 
 
-class S03Arithmetic(SpokenScene):
-    """a simple model: three symmetric rounds multiply units by eight; three asymmetric divisions add a sliver."""
-
-    def construct(self):
-        head = T("A simple model", 32, TEXT, font=TITLE_FONT).move_to([0, 3.25, 0])
-        self.play(FadeIn(head), run_time=0.5)
-        vl = bar(-6.2, -0.4, BY, GREY)
-        vr = bar(0.4, 6.2, BY, GREY)
-        t_l = T("symmetric divisions", 28, GREEN).move_to([LX, 2.6, 0])
-        t_r = T("asymmetric divisions", 28, PURPLE).move_to([RX, 2.6, 0])
-
-        self.at("founder cells divide symmetrically")
-        cur = founders(LX, 1)
-        self.play(Create(vl), FadeIn(t_l), FadeIn(cur, shift=UP * 0.15), run_time=0.8)
-        self.at("the pool doubles each round")
-        nxt = founders(LX, 2)
-        two = M("×2", 36, GREEN).move_to([LX, 2.05, 0])
-        self.play(FadeTransform(cur, nxt), FadeIn(two), run_time=0.8)
-        cur = nxt
-
-        self.at("they switch")
-        cr = founders(RX, 1)
-        crd = cr[1]
-        self.play(Create(vr), FadeIn(t_r), FadeIn(cr, shift=UP * 0.15), run_time=0.8)
-        top = COL_B + COL_H
-        sl1 = Rectangle(width=0.5, height=0.07, stroke_color=PURPLE, stroke_width=2, fill_color=PURPLE,
-                        fill_opacity=1).move_to([RX, top + 0.035, 0])
-        lab1 = M("+1 neuron", 28, PURPLE).move_to([RX, 2.05, 0])
-        self.at("adds only one neuron")
-        self.play(FadeIn(sl1, shift=DOWN * 0.15), FadeIn(lab1), run_time=0.6)
-
-        # reset the symmetric panel and run three rounds
-        self.at("simple model")
-        self.play(FadeOut(cur), FadeOut(two), FadeOut(sl1), FadeOut(lab1), run_time=0.4)
-        cur = founders(LX, 1)
-        self.play(FadeIn(cur), run_time=0.3)
-        eq = M("1", 32, GREEN).move_to([LX, -2.4, 0])
-        self.play(FadeIn(eq), run_time=0.2)
-        self.at("rounds give")
-        for n in (2, 4, 8):
-            nxt = founders(LX, n)
-            new_eq = M(" → ".join(str(k) for k in (1, 2, 4, 8)[: (1, 2, 4, 8).index(n) + 1]), 32, GREEN)
-            new_eq.move_to([LX, -2.4, 0])
-            self.play(FadeTransform(cur, nxt), ReplacementTransform(eq, new_eq), run_time=0.7)
-            cur, eq = nxt, new_eq
-            self.wait(0.15)
-        self.at("eight times as many units")
-        res_l = T("eight times as many units", 28, GREEN).move_to([LX, -3.05, 0])
-        self.play(FadeIn(res_l, shift=UP * 0.1), Indicate(cur, color=GREEN, scale_factor=1.03), run_time=0.8)
-
-        self.at("Three extra asymmetric divisions")
-        sl3 = Rectangle(width=0.5, height=0.2, stroke_color=PURPLE, stroke_width=2, fill_color=PURPLE,
-                        fill_opacity=1).move_to([RX, top + 0.1, 0])
-        lab3 = M("+3 neurons", 28, PURPLE).move_to([RX, 2.05, 0])
-        self.play(FadeIn(sl3, shift=DOWN * 0.15), FadeIn(lab3), run_time=0.7)
-        self.at("small by comparison")
-        res_r = T("small by comparison", 28, PURPLE).move_to([RX, -3.05, 0])
-        self.play(FadeIn(res_r, shift=UP * 0.1), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 def blob(a, b, eps, cx=0.0, cy=0.0):
     return ParametricFunction(
         lambda th: np.array([cx + a * (1 + eps * np.sin(11 * th)) * np.cos(th),
@@ -270,215 +123,342 @@ def ring_dots(cx, cy, a, b, n, color=BLUE, r=0.1):
     return g
 
 
-class S04Mouse(SpokenScene):
-    """a delay in the switch could multiply units; the test in mouse: stabilized beta-catenin."""
-
-    def construct(self):
-        # --- Rakic's proposal: the switch comes a few cycles later ----------------------------
-        head = T("Proposal for primates", 32, TEXT, font=TITLE_FONT).move_to([0, 3.0, 0])
-        cw = 0.95
-
-        def row(ng, y, label):
-            g = VGroup()
-            for i in range(ng):
-                g.add(Rectangle(width=cw, height=0.7, stroke_color=GREEN, stroke_width=3, fill_color=GREEN,
-                                fill_opacity=0.3).move_to([-5.5 + cw * (i + 0.5), y, 0]))
-            for i in range(5):
-                g.add(Rectangle(width=cw, height=0.7, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE,
-                                fill_opacity=0.3).move_to([-5.5 + cw * (ng + i + 0.5), y, 0]))
-            return g
-
-        r1 = row(3, 1.3, "")
-        r2 = row(5, -0.5, "")
-        k1 = T("symmetric", 24, GREEN).move_to([-5.5 + cw * 1.5, 0.65, 0])
-        k2 = T("asymmetric", 24, PURPLE).move_to([-5.5 + cw * 5.5, 0.65, 0])
-        self.at("a delay of only a few")
-        self.play(FadeIn(head), FadeIn(r1), FadeIn(k1), FadeIn(k2), run_time=0.9)
-        sw1 = Line([-5.5 + cw * 3, 1.85, 0], [-5.5 + cw * 3, 1.7, 0])
-        self.play(FadeIn(r2), run_time=0.7)
-        add = VGroup(r2[3], r2[4])
-        k3 = T("a few more cycles before the switch", 24, GREEN).move_to([-1.5, -1.3, 0])
-        self.at("cell cycles")
-        self.play(Indicate(add, color=GREEN, scale_factor=1.12), FadeIn(k3), run_time=0.9)
-        res = T("could account for a large increase in cortical area", 28, TEXT).move_to([0, -2.5, 0])
-        self.at("large increase in cortical area")
-        self.play(FadeIn(res, shift=UP * 0.1), run_time=0.7)
-
-        # --- the mouse test -------------------------------------------------------------------
-        self.at("One test came from mice")
-        self.play(FadeOut(VGroup(head, r1, r2, k1, k2, k3, res)), run_time=0.5)
-        tag = chip("mouse", GOLD, size=24, pad=0.16).move_to([0, 3.15, 0])
-        cy = -0.1
-        ea, eb = 2.0, 1.55
-        left = blob(ea, eb, 0.0, -3.2, cy)
-        l_lbl = T("normal", 26, GREY).move_to([-3.2, -3.0, 0])
-        ldots = ring_dots(-3.2, cy, ea, eb, 8)
-        self.play(FadeIn(tag), FadeIn(left), FadeIn(ldots), FadeIn(l_lbl), run_time=0.7)
-
-        right = blob(ea, eb, 0.0, 3.4, cy)
-        rdots = ring_dots(3.4, cy, ea, eb, 8)
-        chipb = chip("stabilized β-catenin", ORANGE, size=26).move_to([3.4, 2.75, 0])
-        r_lbl = T("transgenic", 26, ORANGE).move_to([3.4, -3.0, 0])
-        self.at("stabilized form")
-        self.play(FadeIn(right), FadeIn(rdots), FadeIn(chipb, shift=DOWN * 0.15), FadeIn(r_lbl), run_time=0.8)
-        more = ring_dots(3.4, cy, ea, eb, 16)
-        self.at("More progenitors kept")
-        self.play(Transform(rdots, more), Indicate(rdots, color=BLUE, scale_factor=1.1), run_time=1.0)
-        big = blob(2.7, 2.1, 0.0, 3.4, cy)
-        bigdots = ring_dots(3.4, cy, 2.7, 2.1, 16)
-        self.at("Their cortex")
-        self.play(Transform(right, big), Transform(rdots, bigdots), run_time=1.1)
-        fold = blob(2.7, 2.1, 0.07, 3.4, cy)
-        self.at("buckled into folds")
-        f_lbl = T("folds", 28, YELLOW).move_to([3.4, -3.0, 0])
-        self.play(Transform(right, fold), FadeIn(f_lbl), FadeOut(r_lbl), run_time=1.2)
-        sm_lbl = T("smooth", 28, YELLOW)
-        self.play(ReplacementTransform(l_lbl, sm_lbl.move_to([-3.2, -3.0, 0])), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Orgs(SpokenScene):
-    """outer radial glia: fibre to the surface, no ventricle contact, dividing far from the ventricle."""
-
-    def construct(self):
-        ven = bar(-6.3, 0.9, -2.75, GREY)
-        pial = Line([-6.3, 2.75, 0], [0.9, 2.75, 0], color=GREY, stroke_width=3)
-        ven_l = T("ventricle", 24, GREY).move_to([-5.4, -3.25, 0])
-        pial_l = T("brain surface", 24, GREY).move_to([-5.2, 3.2, 0])
-
-        self.at("In primates")
-        self.play(Create(ven), Create(pial), FadeIn(ven_l), FadeIn(pial_l), run_time=0.8)
-        # classical radial glia, attached to the ventricle
-        rg = Ellipse(width=0.8, height=0.34, stroke_color=BLUE, stroke_width=3, fill_color=BLUE,
-                     fill_opacity=0.5).move_to([-5.2, -2.45, 0])
-        rg_f = Line([-5.2, -2.28, 0], [-5.2, 2.75, 0], color=BLUE, stroke_width=3).set_opacity(0.6)
-        rg_l = T("classical", 24, BLUE).move_to([-5.2, -1.55, 0])
-        rg_l.set_x(-5.2).shift(RIGHT * 0.0)
-        rg_l.add_background_rectangle(BG, 1, buff=0.05)
-        self.play(FadeIn(rg, scale=0.6), Create(rg_f), FadeIn(rg_l), run_time=0.8)
-
-        tag = chip("human fetal cortex", GOLD, size=24, pad=0.16).move_to([-1.9, 3.2, 0])
-        self.at("In human fetal cortex")
-        self.play(FadeIn(tag), run_time=0.4)
-        xs = [-3.5, -2.0, -0.5]
-        tops = [-4.3, -2.0, 0.3]
-        bodies = [Circle(radius=0.26, stroke_color=PINK, stroke_width=3, fill_color=PINK, fill_opacity=0.5)
-                  .move_to([x, 0.0, 0]) for x in xs]
-        self.at("outer radial glia")
-        self.play(LaggedStart(*[FadeIn(b, scale=0.5) for b in bodies], lag_ratio=0.2), run_time=0.9)
-        o_l = T("outer radial glia", 26, PINK).move_to([-2.0, -0.85, 0])
-        self.play(FadeIn(o_l), run_time=0.4)
-        fibres = [Line([x, 0.26, 0], [tx, 2.75, 0], color=PINK, stroke_width=3).set_opacity(0.8)
-                  for x, tx in zip(xs, tops)]
-        self.at("long fiber")
-        self.play(*[Create(f) for f in fibres], run_time=1.0)
-        cross = VGroup(Line([-3.4, -1.85, 0], [-2.6, -1.35, 0], color=RED, stroke_width=5),
-                       Line([-3.4, -1.35, 0], [-2.6, -1.85, 0], color=RED, stroke_width=5))
-        # keep the cross clear of the label: put the note under the cells
-        gap = DashedLine([-2.0, -1.2, 0], [-2.0, -2.45, 0], color=RED, stroke_width=3, dash_length=0.12)
-        gap.shift(DOWN * 0.0)
-        note = T("no process to the ventricle", 24, RED).move_to([-2.0, -1.75, 0])
-        note.add_background_rectangle(BG, 1, buff=0.05)
-        self.at("no process touching the ventricle")
-        self.play(Create(gap), FadeIn(note), run_time=0.8)
-        self.at("They divide there")
-        d1 = bodies[1].copy()
-        d2 = bodies[1].copy()
-        self.add(d1, d2)
-        self.play(d1.animate.shift(LEFT * 0.17), d2.animate.shift(RIGHT * 0.17), run_time=0.8)
-        self.at("renew themselves")
-        self.play(Indicate(d1, color=PINK, scale_factor=1.25), Indicate(d2, color=PINK, scale_factor=1.25), run_time=0.8)
-        self.at("diverge")
-        out_l = arr([-4.1, 2.35, 0], [-4.9, 2.35, 0], GREY, w=4, tip=0.18)
-        out_r = arr([-0.1, 2.35, 0], [0.7, 2.35, 0], GREY, w=4, tip=0.18)
-        self.play(GrowArrow(out_l), GrowArrow(out_r), run_time=0.6)
-
-        # species strip
-        rows = [("primates", "abundant", 2.0), ("ferret", "abundant", 0.9), ("mouse", "rare", -0.2)]
-        grp = VGroup()
-        for name, word, y in rows:
-            nm = T(name, 28, TEXT).move_to([1.7, y, 0]).align_to([1.7, y, 0], LEFT)
-            wd = T(word, 28, PINK).move_to([4.6, y, 0]).align_to([4.4, y, 0], LEFT)
-            grp.add(VGroup(nm, wd))
-        self.at("abundant in primates")
-        self.play(LaggedStart(*[FadeIn(g, shift=LEFT * 0.2) for g in grp[:2]], lag_ratio=0.4), run_time=1.0)
-        self.at("rare in mouse")
-        self.play(FadeIn(grp[2], shift=LEFT * 0.2), run_time=0.6)
-        mm = T("marmoset", 26, TEXT).move_to([1.7, -1.5, 0]).align_to([1.7, -1.5, 0], LEFT)
-        mm_d = T("present, cortex nearly smooth", 22, GREY).move_to([1.7, -2.05, 0]).align_to([1.7, -2.05, 0], LEFT)
-        self.at("The marmoset has them too")
-        self.play(FadeIn(mm), FadeIn(mm_d), run_time=0.7)
-        self.at("do not guarantee folding")
-        verdict = T("not enough for folding", 26, GOLD).move_to([3.95, -3.0, 0])
-        self.play(FadeIn(verdict), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Genes(SpokenScene):
-    """what was tested, in which system; nothing in a developing human brain; the rule."""
-
-    def construct(self):
-        head = T("Human genes, and where they were tested", 30, TEXT, font=TITLE_FONT).move_to([0, 3.15, 0])
-        rows = [
-            ("ARHGAP11B", "mouse embryo", "more basal progenitors", 2.3),
-            ("ARHGAP11B", "marmoset fetus", "larger neocortex", 1.35),
-            ("NOTCH2NL", "mouse cortex", "progenitors keep dividing", 0.4),
-            ("NOTCH2NL deleted", "human organoid", "progenitors differentiate early", -0.55),
-            ("SRGAP2C", "mouse neurons", "slower spine maturation", -1.5),
-        ]
-        built = []
-        for g, s, r, y in rows:
-            gc = chip(g, ORANGE, size=26, pad=0.16)
-            gc.move_to([-4.2, y, 0])
-            sy = T(s, 26, GREY).move_to([-0.9, y, 0]).align_to([-1.6, y, 0], LEFT)
-            re = T(r, 24, TEXT).move_to([2.0, y, 0]).align_to([2.0, y, 0], LEFT)
-            built.append((gc, sy, re))
-        self.at("have been tested")
-        self.play(FadeIn(head), run_time=0.6)
-        self.at("increased basal progenitors")
-        for gc, sy, re in built[0:1]:
-            self.play(FadeIn(gc, shift=RIGHT * 0.2), FadeIn(sy), FadeIn(re), run_time=0.7)
-        self.at("marmoset fetuses")
-        for gc, sy, re in built[1:2]:
-            self.play(FadeIn(gc, shift=RIGHT * 0.2), FadeIn(sy), FadeIn(re), run_time=0.7)
-        self.at("kept progenitors dividing")
-        for gc, sy, re in built[2:3]:
-            self.play(FadeIn(gc, shift=RIGHT * 0.2), FadeIn(sy), FadeIn(re), run_time=0.7)
-        self.at("deleting it")
-        for gc, sy, re in built[3:4]:
-            self.play(FadeIn(gc, shift=RIGHT * 0.2), FadeIn(sy), FadeIn(re), run_time=0.7)
-        self.at("differentiate early")
-        for gc, sy, re in built[4:5]:
-            self.play(FadeIn(gc, shift=RIGHT * 0.2), FadeIn(sy), FadeIn(re), run_time=0.7)
-
-        box = RoundedRectangle(corner_radius=0.14, width=11.6, height=0.95, stroke_color=RED, stroke_width=3,
-                               fill_opacity=0).move_to([0, -2.75, 0])
-        dash = DashedVMobject(box, num_dashes=60)
-        txt = T("gene removed from a developing human brain", 26, RED).move_to([-1.6, -2.75, 0])
-        no = T("not tested", 26, RED, weight=BOLD).move_to([4.6, -2.75, 0])
-        self.at("developing human brain")
-        self.play(Create(dash), FadeIn(txt), FadeIn(no), run_time=0.9)
-        self.at("one gene made the human cortex")
-        self.play(Indicate(VGroup(txt, no), color=RED, scale_factor=1.04), run_time=0.8)
-
-        self.at("Keep the idea")
-        self.play(FadeOut(VGroup(head, dash, txt, no, *[m for tr in built for m in tr])), run_time=0.6)
-        rule = T("More founders can give more area", 38, GOLD, font=TITLE_FONT).move_to([0, 2.2, 0])
-        self.play(FadeIn(rule, shift=UP * 0.15), run_time=0.6)
-        vv = bar(-5.5, 5.5, -2.6, GREY)
-        f = founders(0, 1, span=10).move_to([0, -0.5, 0])
-        self.at("A longer")
-        self.play(Create(vv), FadeIn(f), run_time=0.5)
-        cur = f
-        self.at("founder phase")
-        for n in (2, 4, 8):
-            nxt = founders(0, n, span=10.4).move_to([0, -0.5, 0])
-            self.play(FadeTransform(cur, nxt), run_time=0.4)
-            cur = nxt
-        self.finish()
-
-
 class S07End(EndCard):
-    LINE = "More founders can give more area."
+    LINE = "More progenitors, more cortical area"
+
+    def construct(self):
+        line = T(self.LINE, 40, GOLD, font=TITLE_FONT).move_to([0, 2.9, 0])
+        fit(line, max_w=12)
+        surface = Line([-5.5, 1.8, 0], [5.5, 1.8, 0], color=GREY)
+        parent = org_cell(-4, 0, top=1.8)
+        ip = dot(0, 0, BLUE, .26)
+        neurons = VGroup(dot(3.6, .2, YELLOW), dot(4.4, .2, YELLOW))
+        labels = VGroup(T('outer radial glia', 24, PINK).move_to([-4, -.85, 0]),
+                        T('intermediate progenitor', 24, BLUE).move_to([0, -.85, 0]),
+                        T('neurons', 24, YELLOW).move_to([4, -.85, 0]))
+        links = VGroup(arr([-3.5, 0, 0], [-.5, 0, 0], BLUE),
+                       arr([.5, 0, 0], [3.1, 0, 0], YELLOW))
+        sub = T('biochemistrypedia.com', 22, TEAL).move_to([0, -2.7, 0])
+        self.play(FadeIn(line), FadeIn(VGroup(surface, parent, ip, neurons, labels, links)),
+                  FadeIn(sub), run_time=self.beat(.3))
+        self.finish()
+
+# Intermediate progenitors use blue; outer radial glia retain pink.
+# All tissues, cells and scaling relationships below are schematic.
+def heading(text, color=TEXT):
+    return T(text, 30, color, font=TITLE_FONT).move_to([0, 3.25, 0])
+
+
+def org_cell(x, y, topx=None, top=2.35):
+    """Classic outer radial glial example: basal fibre, no apical process."""
+    if topx is None:
+        topx = x
+    return VGroup(Line([x, y + .24, 0], [topx, top, 0], color=PINK, stroke_width=3),
+                  dot(x, y, PINK, .24))
+
+
+def outer_stage():
+    surface = VGroup(Line([-6, 2.35, 0], [6, 2.35, 0], color=GREY),
+                     T('brain surface', 22, GREY).move_to([4.7, 2.7, 0]))
+    ventricle = VGroup(bar(-6, 6, -2.55), T('ventricle', 24, GREY).move_to([4.9, -3.05, 0]))
+    zone = VGroup(Rectangle(width=12, height=2.3, stroke_width=0, fill_color=PINK,
+                           fill_opacity=.055).move_to([0, -.2, 0]),
+                  btext('outer subventricular zone', 24, PINK).move_to([-3.5, 1.55, 0]).set_z_index(3))
+    return VGroup(surface, ventricle, zone)
+
+
+class S01Puzzle(SpokenScene):
+    def construct(self):
+        title = heading('A sheet that grows in area')
+        thick = VGroup(T('wall thickness', 28, PURPLE).move_to([-3.3, 2.4, 0]),
+                       Rectangle(width=.9, height=1, color=PURPLE, fill_opacity=.3).move_to([-4.3, .1, 0]),
+                       Rectangle(width=.9, height=2, color=PURPLE, fill_opacity=.3).move_to([-2.3, .6, 0]),
+                       T('mouse', 24, GREY).move_to([-4.3, -.8, 0]),
+                       T('human', 24, GREY).move_to([-2.3, -.8, 0]))
+        ratio = T('about twice the thickness', 26, PURPLE).move_to([-3.3, -1.6, 0])
+        area = VGroup(T('surface area', 28, GREEN).move_to([3.3, 2.4, 0]),
+                      sq(1.7, -.4, .5, GREEN), sq(4.4, -.4, 2.3, GREEN),
+                      T('mouse', 24, GREY).move_to([1.7, -.8, 0]),
+                      T('human', 24, GREY).move_to([4.4, -.8, 0]))
+        area_ratio = T('roughly 1,000× the area', 26, GREEN).move_to([3.3, -1.6, 0])
+        note = T('schematic sheets • not to scale', 22, GREY).move_to([0, -2.65, 0])
+        self.at('Your cortex')
+        self.play(FadeIn(title), FadeIn(thick), FadeIn(note), run_time=.65)
+        self.at('twice as thick')
+        self.play(FadeIn(ratio), run_time=.5)
+        self.at('its surface')
+        self.play(FadeIn(area), run_time=.6)
+        self.at('a thousand times larger')
+        self.play(FadeIn(area_ratio), run_time=.6)
+        self.at('A leading explanation')
+        stage = outer_stage()
+        stage[0][0].put_start_and_end_on([-4, 2.35, 0], [4, 2.35, 0])
+        stage[0][1].move_to([4.7, 2.85, 0])
+        stage[2][1].become(btext('outer subventricular\nzone', 22, PINK).move_to([-5, 1.1, 0]))
+        head = heading('A leading explanation', GOLD)
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(stage), FadeIn(head), run_time=.65)
+        parent = org_cell(-3, -.35)
+        parent_label = T('outer radial glia', 24, PINK).move_to([-3, -1.2, 0])
+        self.at('Outer radial glia')
+        self.play(FadeIn(parent), FadeIn(parent_label), run_time=.5)
+        self.at('renew themselves')
+        renewed = org_cell(-1.2, -.35)
+        self.play(TransformFromCopy(parent, renewed), run_time=.65)
+        self.at('Their daughters can become')
+        ip = VGroup(dot(1.3, -.35, BLUE, .26), T('intermediate\nprogenitor', 24, BLUE).move_to([1.3, -1.25, 0]))
+        link = arr([-.75, -.35, 0], [.9, -.35, 0], BLUE)
+        self.play(TransformFromCopy(renewed[1], ip[0]), FadeIn(ip[1]), GrowArrow(link), run_time=.7)
+        self.at('divide into neurons')
+        neurons = VGroup(dot(3.7, -.05, YELLOW), dot(4.5, -.05, YELLOW),
+                         T('neurons', 24, YELLOW).move_to([4.1, -.8, 0]))
+        self.play(FadeOut(link), TransformFromCopy(ip[0], neurons[:2]), FadeIn(neurons[2]), run_time=.75)
+        self.at('amplify neuron production')
+        self.play(Indicate(neurons, color=YELLOW, scale_factor=1.1), run_time=.65)
+        self.at('a larger cortical sheet')
+        sheet = bar(-6, 6, 2.35, GREEN, .35)
+        self.play(Transform(stage[0][0], sheet), neurons[:2].animate.move_to([3.5, 1.8, 0]), run_time=.9)
+        self.finish()
+
+
+class S05Orgs(SpokenScene):
+    def construct(self):
+        stage = outer_stage()
+        head = heading('Living human fetal cortical slice')
+        parent = org_cell(-3, -.35)
+        self.at('In living slices')
+        self.play(FadeIn(stage), FadeIn(head), FadeIn(parent), run_time=.65)
+        self.at('filmed these cells dividing')
+        daughter = org_cell(-1.6, -.35)
+        self.play(TransformFromCopy(parent, daughter), parent.animate.shift(LEFT * .5), run_time=.7)
+        classic = T('classic example', 24, PINK).move_to([-3.5, -.95, 0])
+        self.at('The classic outer')
+        self.play(FadeOut(daughter), FadeIn(classic), run_time=.5)
+        self.at('keeps a fiber')
+        self.play(Indicate(parent[0], color=PINK, scale_factor=1.03), run_time=.65)
+        gap = DashedLine([-3.5, -1.2, 0], [-3.5, -2.3, 0], color=RED)
+        no = T('no ventricular contact', 24, RED).move_to([0, -2, 0])
+        self.at('no contact with the ventricle')
+        self.play(Create(gap), FadeIn(no), run_time=.6)
+        self.at('Daughters could divide again')
+        renewed = org_cell(-1.5, -.35)
+        self.play(FadeOut(gap), FadeOut(no), FadeOut(classic), TransformFromCopy(parent, renewed), run_time=.7)
+        self.at('or become intermediate progenitors')
+        ip = VGroup(dot(1.2, -.35, BLUE, .25), T('intermediate\nprogenitor', 24, BLUE).move_to([1.2, -1.25, 0]))
+        neurons = VGroup(dot(3.5, .1, YELLOW), dot(4.3, .1, YELLOW))
+        self.play(TransformFromCopy(renewed[1], ip[0]), FadeIn(ip[1]), run_time=.5)
+        self.play(TransformFromCopy(ip[0], neurons), run_time=.5)
+        self.at('abundant in primates and ferret')
+        abundance = T('primates + ferret: abundant', 26, PINK).move_to([0, -3.1, 0])
+        self.play(FadeOut(stage[1][1]), FadeIn(abundance), run_time=.5)
+        self.at('rare in mouse')
+        abundance2 = T('primates + ferret: abundant   •   mouse: rare', 26, PINK).move_to([0, -3.1, 0])
+        self.play(ReplacementTransform(abundance, abundance2), run_time=.5)
+        self.at('Their fibers fan')
+        fan = VGroup(org_cell(-3.5, -.35, -5.1), org_cell(-1.5, -.35, -.3), org_cell(.5, -.35, 3))
+        self.play(FadeOut(ip), FadeOut(neurons), ReplacementTransform(VGroup(parent, renewed), fan), run_time=.8)
+        self.at('growth in area')
+        wide = darr([-5.2, 1.9, 0], [3.2, 1.9, 0], GREEN)
+        self.play(GrowFromCenter(wide), run_time=.6)
+        self.at('The nearly smooth marmoset')
+        marmoset = VGroup(blob(1.3, .65, 0, 3.7, -.8),
+                          T('marmoset • nearly smooth', 22, TEXT).move_to([3.7, -1.85, 0]))
+        self.play(FadeIn(marmoset), run_time=.65)
+        self.at('do not guarantee folding')
+        caveat = T('outer radial glia do not guarantee folding', 28, GOLD).move_to([0, -3.1, 0])
+        self.play(ReplacementTransform(abundance2, caveat), run_time=.6)
+        self.finish()
+
+
+class S02Unit(SpokenScene):
+    def construct(self):
+        head = heading('Early founders at the ventricle')
+        ven = VGroup(bar(-6, 6, VEN_Y), T('ventricle', 24, GREY).move_to([4.8, -3.2, 0]))
+        units = VGroup(*[VGroup(*unit_parts(x)) for x in (-3.6, 0, 3.6)])
+        self.at('Early founders')
+        self.play(FadeIn(head), FadeIn(ven), FadeIn(VGroup(*[u[0] for u in units])), run_time=.65)
+        newhead = heading('Radial unit hypothesis')
+        source = T('Pasko Rakic • fetal rhesus monkey work', 24, GREY).move_to([0, -3.2, 0])
+        self.at('the radial unit hypothesis')
+        self.play(ReplacementTransform(head, newhead), ReplacementTransform(ven[1], source), run_time=.6)
+        self.at('In this simplified model')
+        model = btext('simplified model', 24, GOLD).move_to([4.9, -1.7, 0]).set_z_index(3)
+        self.play(FadeIn(model), run_time=.4)
+        cols = VGroup(*[VGroup(column_rect(x), *[dot(x, y, YELLOW) for y in STACK_Y]) for x in (-3.6, 0, 3.6)])
+        self.at('each patch of progenitors')
+        self.play(*[Create(u[1]) for u in units], run_time=.5)
+        self.at('makes a column')
+        self.play(FadeIn(cols, shift=UP * .35), run_time=.65)
+        area = VGroup(darr([-4.2, 2.8, 0], [4.2, 2.8, 0], GREEN), btext('area', 26, GREEN).move_to([0, 2.8, 0]))
+        self.at('number of units sets area')
+        self.play(FadeIn(area), run_time=.6)
+        thickness = VGroup(darr([-4.65, .4, 0], [-4.65, 2.4, 0], PURPLE),
+                           T('thickness', 24, PURPLE).rotate(PI/2).move_to([-5.3, 1.4, 0]))
+        self.at('neuron output sets thickness')
+        self.play(FadeIn(thickness), run_time=.6)
+        self.at('spread sideways')
+        self.play(cols[1][2].animate.shift(LEFT * .8), cols[1][3].animate.shift(RIGHT * .8), run_time=.8)
+        self.finish()
+
+
+class S03Arithmetic(SpokenScene):
+    def construct(self):
+        head = heading('Arithmetic in the simplified radial-unit model', GOLD)
+        left_title = T('symmetric founders', 26, GREEN).move_to([LX, 2.5, 0])
+        right_title = T('direct asymmetric divisions', 26, PURPLE).move_to([RX, 2.5, 0])
+        cur = founders(LX, 1)
+        self.at('While founders divide symmetrically')
+        self.play(FadeIn(head), FadeIn(left_title), FadeIn(cur), run_time=.65)
+        self.at('the pool doubles each round')
+        eq = M('1', 30, GREEN).move_to([LX, -2.4, 0])
+        self.play(FadeIn(eq), run_time=.4)
+        self.at('three extra rounds give')
+        for n in (2, 4, 8):
+            nxt = founders(LX, n)
+            neweq = M(' → '.join(map(str, (1, 2, 4, 8)[:(1, 2, 4, 8).index(n)+1])), 30, GREEN).move_to(eq)
+            self.play(ReplacementTransform(cur, nxt), ReplacementTransform(eq, neweq), run_time=.38)
+            cur, eq = nxt, neweq
+        self.at('eight times as many units')
+        self.play(Indicate(cur, color=GREEN, scale_factor=1.03), run_time=.5)
+        self.at('Three extra direct asymmetric divisions')
+        right = founders(RX, 1)
+        right[1].stretch_to_fit_height(1.5).move_to([RX, COL_B + .75, 0])
+        self.play(FadeIn(right_title), FadeIn(right), run_time=.55)
+        extra = VGroup(*[dot(RX, .45 + i * .4, YELLOW, .14) for i in range(3)])
+        result = T('+3 neurons per column', 26, PURPLE).move_to([RX, -2.4, 0])
+        self.at('add just three neurons')
+        self.play(LaggedStart(*[FadeIn(d, shift=UP*.3) for d in extra], lag_ratio=.3), FadeIn(result), run_time=.9)
+        self.at('In mice')
+        tag = heading('Mouse progenitors: stabilized β-catenin', ORANGE)
+        normal = blob(1.8, 1.25, 0, -3.2, -.05)
+        changed = blob(1.8, 1.25, 0, 3.2, -.05)
+        labels = VGroup(T('comparison', 24, GREY).move_to([-3.2, -2.25, 0]),
+                        T('stabilized β-catenin', 24, ORANGE).move_to([3.2, -2.25, 0]))
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(tag), FadeIn(normal), FadeIn(changed), FadeIn(labels), run_time=.65)
+        cells = ring_dots(3.2, -.05, 1.8, 1.25, 4)
+        self.at('kept more progenitor cycling')
+        cycling = T('more progenitors cycling', 26, BLUE).move_to([0, 2.45, 0])
+        self.play(FadeIn(cells), FadeIn(cycling), run_time=.6)
+        self.play(Transform(cells, ring_dots(3.2, -.05, 1.8, 1.25, 8)), run_time=.6)
+        self.at('cortex enlarged and buckled')
+        vent = blob(1.3, .85, 0, 3.2, -.05).set_color(GREY).set_fill(opacity=0)
+        self.add(vent)
+        self.play(Transform(changed, blob(2.6, 1.7, .07, 3.2, -.05)),
+                  Transform(vent, blob(1.9, 1.2, .07, 3.2, -.05).set_color(GREY).set_fill(opacity=0)),
+                  Transform(cells, ring_dots(3.2, -.05, 2.6, 1.7, 8)), run_time=.9)
+        self.at('did not reproduce primate cortical growth')
+        caveat = T('Mouse expansion did not reproduce primate cortical growth', 26, GOLD).move_to([0, -3.15, 0])
+        self.play(FadeIn(caveat), run_time=.6)
+        self.finish()
+
+
+class S06Genes(SpokenScene):
+    def construct(self):
+        head = heading('Human-specific gene copies: evidence by system')
+        headers = VGroup(T('gene / intervention', 24, ORANGE).move_to([-4.75, 2.5, 0]),
+                         T('experimental system', 24, GREY).move_to([-.7, 2.5, 0]),
+                         T('observed result', 24, TEXT).move_to([3.9, 2.5, 0]))
+        records = [
+            ('ARHGAP11B', 'mouse embryos', 'more basal progenitors'),
+            ('ARHGAP11B', 'marmoset fetuses', 'larger neocortex'),
+            ('NOTCH2NL', 'mouse cortex', 'continued division'),
+            ('NOTCH2NL deleted', 'human organoids', 'early differentiation'),
+            ('ARHGAP11B blocked', 'cultured human\nfetal slices', 'fewer basal progenitors'),
+        ]
+        rows = VGroup()
+        for i, (gene, system, result) in enumerate(records):
+            y = 1.65 - .86 * i
+            row = VGroup(T(gene, 23, ORANGE).move_to([-4.75, y, 0]),
+                         T(system, 23, GREY).move_to([-.7, y, 0]),
+                         T(result, 23, TEXT).move_to([3.9, y, 0]),
+                         Line([-6.3, y-.39, 0], [6.3, y-.39, 0], color=GREY, stroke_width=1).set_opacity(.3))
+            rows.add(row)
+        self.at('gene copies act')
+        self.play(FadeIn(head), FadeIn(headers), run_time=.6)
+        self.at('increased basal progenitors')
+        self.play(FadeIn(rows[0], shift=RIGHT*.15), run_time=.6)
+        self.at('enlarged the neocortex')
+        self.play(FadeIn(rows[1], shift=RIGHT*.15), run_time=.6)
+        self.at('kept progenitors dividing')
+        self.play(FadeIn(rows[2], shift=RIGHT*.15), run_time=.6)
+        self.at('Deleting it made')
+        self.play(FadeIn(rows[3], shift=RIGHT*.15), run_time=.6)
+        self.at('In cultured human fetal slices')
+        # Show the experimental system first; the result arrives only when spoken.
+        self.play(FadeIn(rows[4][1]), FadeIn(rows[4][3]), run_time=.5)
+        self.at('blocking')
+        self.play(FadeIn(rows[4][0]), run_time=.5)
+        self.at('reduced basal progenitors')
+        self.play(FadeIn(rows[4][2]), run_time=.6)
+        self.at('These tests support contributions')
+        summary = T('progenitor amplification + continued division', 26, BLUE).move_to([0, -2.85, 0])
+        self.play(FadeIn(summary), run_time=.6)
+        self.at('None shows that one gene')
+        caution = T('Contributions to expansion • no single-gene explanation', 26, GOLD).move_to([0, -3.4, 0])
+        self.play(FadeIn(caution), run_time=.6)
+        self.finish()
+
+
+class S08Time(SpokenScene):
+    def construct(self):
+        head = heading('Time for producing neurons')
+        note = T('schematic durations • no numerical scale', 22, GREY).move_to([0, -3.1, 0])
+        rows = VGroup()
+        for label, length, y in [('mouse', 2, 1.6), ('rhesus', 4, .5), ('human', 7, -.6)]:
+            rows.add(VGroup(T(label, 26, GREY).move_to([-4.9, y, 0]), bar(-3.5, -3.5+length, y, BLUE, .38)))
+        self.at('Time matters too')
+        self.play(FadeIn(head), FadeIn(note), run_time=.5)
+        self.at('Human cortical neurogenesis')
+        self.play(FadeIn(rows), run_time=.65)
+        self.at('more time to divide')
+        cycle = VGroup(dot(4.5, -.6, BLUE, .22),
+                       Arc(radius=.6, start_angle=.3, angle=5.5, color=BLUE).add_tip(tip_length=.15).move_to([4.5, -.6, 0]))
+        cycle.shift(RIGHT * .4)
+        self.play(FadeIn(cycle), run_time=.55)
+        self.play(Rotate(cycle[1], angle=TAU), run_time=.65)
+        self.at('Output also depends')
+        factors = T('output: duration • cell-cycle length • division type', 26, BLUE).move_to([0, -2.05, 0])
+        self.play(FadeIn(factors), run_time=.6)
+        self.at('Human neurons mature slowly')
+        newhead = heading('After production: neuron maturation', YELLOW)
+        timeline = VGroup(arr([-5.7, -1.8, 0], [5.7, -1.8, 0], GREY),
+                          T('postmitotic maturation →', 26, YELLOW).move_to([0, -2.4, 0]))
+        neuron = dot(-4.6, .3, YELLOW, .25)
+        label = T('human neuron', 26, YELLOW).move_to([-4.6, 1.35, 0])
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(newhead), FadeIn(timeline), FadeIn(neuron), FadeIn(label), run_time=.65)
+        host = VGroup(RoundedRectangle(width=5.6, height=2.3, corner_radius=.2, color=GREY).move_to([2.6, .3, 0]),
+                      T('newborn mouse cortex', 26, GREY).move_to([2.6, 1.9, 0]))
+        self.at('Transplanted into newborn mouse cortex')
+        self.play(FadeIn(host), neuron.animate.move_to([.7, .3, 0]), FadeOut(label), run_time=.8)
+        pace = T('largely human pace', 28, YELLOW).move_to([0, -3.1, 0])
+        # Symbolic maturation track, spatially separate from all production diagrams.
+        self.at('they kept a largely human pace')
+        track = Line([-5, -1.8, 0], [4.6, -1.8, 0], color=YELLOW, stroke_width=6)
+        self.play(Create(track), neuron.animate.move_to([4.3, .3, 0]).scale(1.25), FadeIn(pace), run_time=1.1)
+        self.at('distinct from producing neurons')
+        distinction = T('Maturation is distinct from producing neurons', 28, GOLD).move_to([0, -3.1, 0])
+        self.play(ReplacementTransform(pace, distinction), run_time=.6)
+        self.finish()
+
+
+class S09Scaling(SpokenScene):
+    def construct(self):
+        head = heading('Broadly consistent with primate scaling')
+        axes = VGroup(arr([-4.3, -1.9, 0], [4.6, -1.9, 0]), arr([-4.3, -1.9, 0], [-4.3, 2.1, 0]),
+                      T('brain size →', 24, GREY).move_to([.2, -2.45, 0]),
+                      T('neuron number', 24, GREY).rotate(PI/2).move_to([-5.1, .2, 0]))
+        trend = Line([-3.7, -1.5, 0], [3.7, 1.8, 0], color=GREEN, stroke_width=4)
+        schematic = T('schematic relationship • no data values', 22, GREY).move_to([0, -3.15, 0])
+        self.at('The result broadly fits')
+        self.play(FadeIn(head), FadeIn(axes), Create(trend), FadeIn(schematic), run_time=.65)
+        human = VGroup(dot(2.8, 1.4, YELLOW, .16), T('human', 26, YELLOW).move_to([4.1, 1.5, 0]))
+        self.at('A human brain holds')
+        self.play(FadeIn(human), run_time=.6)
+        self.at('predicted for a primate brain')
+        self.play(Indicate(human, color=YELLOW, scale_factor=1.1), run_time=.6)
+        self.at('Mass alone misses')
+        final_head = heading('Where neurons sit matters', GOLD)
+        regions = VGroup(chip('cerebral cortex', YELLOW, 28).move_to([-3.2, .3, 0]),
+                         chip('cerebellum', YELLOW, 28).move_to([3.2, .3, 0]))
+        allocation = T('regional neuron allocation', 30, YELLOW).move_to([0, -1.2, 0])
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], FadeIn(final_head), FadeIn(regions), FadeIn(allocation), run_time=.65)
+        self.finish()

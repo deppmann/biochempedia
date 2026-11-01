@@ -134,7 +134,7 @@ class S01Shore(SpokenScene):
         q = T("What had held it back?", 28, TEXT, font=TITLE_FONT).move_to([cx, 3.5, 0])
         self.at("held it back")
         self.play(FadeIn(q), run_time=0.5)
-        self.at("smother")
+        self.at("mother")
         self.play(FadeOut(ok), FadeIn(near), run_time=0.6)
         arrs = VGroup()
         for g in near:

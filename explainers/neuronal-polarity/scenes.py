@@ -106,143 +106,7 @@ def hdr(text, color=TEXT, size=30):
 
 class S00Title(TitleCard):
     LESSON = "Neuronal polarity"
-    TITLE = "An axon is a state, not a stamp"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Cut(SpokenScene):
-    """polarized neuron: cut near the body -> a dendrite becomes the axon; rebuild; cut far -> old axon regrows."""
-
-    def construct(self):
-        nA = mature()
-        lblA = hdr("Cut close to the cell body", RED)
-        axl = T("axon", 26, YELLOW).move_to(nA.point(0, 3.2) + UP * 0.6)
-        dl = T("dendrites", 26, BLUE).move_to(C0 + LEFT * 0.1 + DOWN * 2.75)
-        self.play(FadeIn(nA.group), FadeIn(axl), FadeIn(dl), run_time=0.5)
-        self.at("close to the cell body")
-        cut = cutmark(nA.point(0, 1.5))
-        self.play(Create(cut), FadeIn(lblA), run_time=0.5)
-        distal = Line(nA.point(0, 1.5), nA.point(0, 10.3), color=YELLOW, stroke_width=11)
-        dtip = Dot(nA.point(0, 10.3), radius=0.2, color=YELLOW)
-        self.add(distal, dtip)
-        nA.tr[0].set_value(1.5)
-        self.play(FadeOut(distal), FadeOut(dtip), FadeOut(axl), run_time=0.7)
-        self.at("can grow out")
-        self.play(nA.tr[1].animate.set_value(6.3), nA.recolor(1, YELLOW)[0], nA.recolor(1, YELLOW)[1], *nA.recolor(0, BLUE),
-                  FadeOut(cut), run_time=2.2)
-        new = T("new axon", 26, YELLOW).move_to(nA.point(1, 6.3) + RIGHT * 1.15)
-        self.play(FadeIn(new), run_time=0.4)
-        # ---- case B: rebuild and reset in one animation ----
-        nB = mature()
-        lblB = hdr("Cut farther away", RED)
-        self.at("farther away")
-        self.play(FadeOut(nA.group), FadeOut(new), FadeOut(dl), FadeOut(lblA), FadeIn(nB.group), FadeIn(lblB), run_time=0.6)
-        cutB = cutmark(nB.point(0, 6.0))
-        distalB = Line(nB.point(0, 6.0), nB.point(0, 10.3), color=YELLOW, stroke_width=11)
-        dtipB = Dot(nB.point(0, 10.3), radius=0.2, color=YELLOW)
-        self.play(Create(cutB), run_time=0.4)
-        self.add(distalB, dtipB)
-        nB.tr[0].set_value(6.0)
-        self.play(FadeOut(distalB), FadeOut(dtipB), run_time=0.5)
-        self.at("old axon regrows")
-        self.play(nB.tr[0].animate.set_value(10.3), FadeOut(cutB), run_time=1.8)
-        q = T("What decides which process is the axon?", 34, TEXT, font=TITLE_FONT).move_to([0.6, -2.5, 0])
-        self.at("What decides")
-        self.play(FadeOut(lblB), FadeIn(q, shift=UP * 0.15), run_time=0.7)
-        self.finish()
-
-
-class S02Race(SpokenScene):
-    """five equal neurites; bar chart; one pulls ahead and becomes the axon."""
-
-    def construct(self):
-        n = young()
-        cols = [GREY] * 5
-        ch = Chart(n, cols)
-        head = hdr("Cultured rat hippocampal neuron", GREY, 28)
-        self.at("Start in a dish")
-        self.play(FadeIn(head), FadeIn(n.group), run_time=0.8)
-        self.at("grows several short neurites")
-        self.play(FadeIn(ch.group), run_time=0.8)
-        alike = T("all alike", 30, GREY).move_to([3.8, 0.9, 0])
-        self.at("all look alike")
-        self.play(FadeIn(alike), run_time=0.4)
-        self.at("one neurite starts to grow")
-        self.play(FadeOut(alike), n.tr[0].animate.set_value(5.0), run_time=3.4, rate_func=rate_functions.ease_in_sine)
-        self.at("becomes the axon")
-        self.play(*n.recolor(0, YELLOW), ch.bars[0].animate.set_color(YELLOW), run_time=0.6)
-        lab = T("axon", 28, YELLOW).move_to(n.point(0, 5.0) + UP * 0.6 + LEFT * 0.2)
-        self.play(FadeIn(lab), run_time=0.3)
-        # the ten-micrometre gap
-        self.at("axon cuts")
-        y2 = BASE_Y + 2.3 * ch.s
-        y1 = BASE_Y + 5.0 * ch.s
-        x = BAR_X0 + 0.55
-        ref = DashedLine([BAR_X0 - 0.2, y2, 0], [BAR_X0 + 0.65, y2, 0], color=GREY, stroke_width=3)
-        gap = DoubleArrow([BAR_X0 + 0.5, y2, 0], [BAR_X0 + 0.5, y1, 0], color=TEXT, stroke_width=4, buff=0,
-                          tip_length=0.18)
-        gl = T("10 µm lead (after cuts)", 28, TEXT).next_to(gap, RIGHT, buff=0.2).shift(UP * 0.35)
-        self.play(Create(ref), GrowFromCenter(gap), FadeIn(gl), run_time=0.8)
-        race = T("a race", 48, GOLD, font=TITLE_FONT).move_to([4.0, 1.5, 0])
-        self.at("behaves like a race")
-        self.play(FadeIn(race, scale=0.9), run_time=0.5)
-        self.finish()
-
-
-class S03Feedback(SpokenScene):
-    """leader with positive feedback + PIP3; PI3-kinase blocked -> no axon; negative feedback with a question mark."""
-
-    def construct(self):
-        n = young((5.0, 2.3, 2.3, 2.3, 2.3))
-        self.add(n.group)
-        n.lines[0].set_color(YELLOW); n.tips[0].set_color(YELLOW)
-        head = hdr("Two kinds of feedback", TEXT, 30)
-        self.play(FadeIn(head), run_time=0.5)
-        # positive feedback loop on the right
-        grows = chip("grows", YELLOW, size=28).move_to([2.3, 2.3, 0])
-        faster = chip("grows faster", YELLOW, size=28).move_to([5.0, 2.3, 0])
-        top = CurvedArrow(grows.get_top() + UP * 0.05, faster.get_top() + UP * 0.05, angle=-TAU / 4,
-                          color=GREEN, stroke_width=5)
-        bot = CurvedArrow(faster.get_bottom() + DOWN * 0.05, grows.get_bottom() + DOWN * 0.05, angle=-TAU / 4,
-                          color=GREEN, stroke_width=5)
-        pos = T("positive feedback", 30, GREEN).move_to([3.65, 0.95, 0])
-        self.at("Positive feedback in the leader")
-        self.play(FadeIn(grows), FadeIn(faster), Create(top), Create(bot), FadeIn(pos), run_time=1.2)
-        # PIP3 at tip
-        tipp = n.point(0, 5.0)
-        dots = VGroup(*[Dot(tipp + np.array([0.12 + 0.2 * (k % 3) * 0, 0, 0]) + RIGHT * 0.0, radius=0.07, color=GREEN)
-                        for k in range(1)])
-        dots = VGroup(*[Dot(tipp + np.array(p), radius=0.08, color=GREEN) for p in
-                        [(-0.45, 0.28, 0), (-0.2, -0.3, 0), (0.15, 0.32, 0), (0.38, -0.2, 0), (-0.05, 0.0, 0.0),
-                         (-0.6, -0.22, 0)]])
-        pl = T("PIP3", 28, GREEN).next_to(dots, DOWN, buff=0.45).shift(RIGHT * 0.1)
-        self.at("builds up at its tip")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in dots], lag_ratio=0.15), FadeIn(pl), run_time=1.2)
-        # PI3-kinase blocked
-        self.at("Blocking")
-        k = chip("PI 3-kinase", GREEN, size=28).move_to([3.7, -1.0, 0])
-        cross = VGroup(Line(k.get_corner(UL), k.get_corner(DR), color=RED, stroke_width=4),
-                       Line(k.get_corner(DL), k.get_corner(UR), color=RED, stroke_width=4))
-        self.play(FadeIn(k), run_time=0.4)
-        self.play(Create(cross), run_time=0.4)
-        self.at("stop any neurite from becoming an axon")
-        noax = T("no neurite becomes an axon", 28, RED).move_to([3.7, -2.1, 0])
-        self.play(FadeIn(noax), FadeOut(dots), FadeOut(pl), *n.recolor(0, GREY), run_time=0.6)
-        # negative feedback: red bars on the other neurites, with a question mark
-        self.at("Negative feedback holds the others back")
-        self.play(FadeOut(k), FadeOut(cross), FadeOut(noax), *n.recolor(0, YELLOW), run_time=0.4)
-        bars = VGroup()
-        for i in range(1, 5):
-            p = n.point(i, 1.0)
-            d = n.dirs[i]
-            perp = np.array([-d[1], d[0], 0])
-            bars.add(Line(p + perp * 0.32, p - perp * 0.32, color=RED, stroke_width=8))
-        neg = T("negative feedback", 30, RED).move_to([3.7, -1.0, 0])
-        self.play(LaggedStart(*[Create(b) for b in bars], lag_ratio=0.2), FadeIn(neg), run_time=1.2)
-        self.at("less settled")
-        qm = T("how?", 36, GOLD, weight=BOLD).move_to([3.7, -2.0, 0])
-        self.play(FadeIn(qm, scale=1.3), run_time=0.5)
-        self.finish()
+    TITLE = "One Axon, Many Dendrites"
 
 
 def cone(cx, cy, col, n_actin, mt_end, seed, sc=1.32):
@@ -270,151 +134,293 @@ def cone(cx, cy, col, n_actin, mt_end, seed, sc=1.32):
     return dict(fan=fan, shaft=shaft, actin=actin, mts=mts, x_neck=x_neck, shaft_x0=shaft_x0, cx=cx, cy=cy)
 
 
-class S04Tip(SpokenScene):
-    """two growth cones: dense actin + short microtubules (sibling) vs loose actin + deep microtubules (leader)."""
 
+def branches(n, color=BLUE):
+    g = VGroup()
+    for i in range(1, 5):
+        d = n.dirs[i]; perp = np.array([-d[1], d[0], 0])
+        end = n.tr[i].get_value()
+        for side in (-1, 1):
+            p = n.point(i, end * .65)
+            g.add(Line(p, p + d * .6 + perp * .45 * side, color=color, stroke_width=4),
+                  Line(n.point(i, end * .83), n.point(i, end) + d * .3, color=color, stroke_width=3))
+    return g
+
+
+def clear(scene):
+    scene.play(*[FadeOut(m) for m in list(scene.mobjects)], run_time=.35)
+
+
+class S01Domains(SpokenScene):
     def construct(self):
-        CY = 0.25
-        LX, SX = -2.55, 3.95
-        Lc = cone(LX, CY, YELLOW, 18, LX + 0.5, 3)
-        Sc = cone(SX, CY, GREY, 60, 0, 5)
-        # sibling microtubules stop at the neck
-        for k, m in enumerate(Sc["mts"]):
-            m.put_start_and_end_on(m.get_start(), [Sc["x_neck"] + 0.2 - 0.15 * k, m.get_start()[1], 0])
-        lt = T("leader", 32, YELLOW).move_to([LX, 2.45, 0])
-        st = T("sibling", 32, GREY).move_to([SX, 2.45, 0])
-        self.at("Look at the growth cone")
-        self.play(FadeIn(VGroup(Lc["fan"], Lc["shaft"])), FadeIn(VGroup(Sc["fan"], Sc["shaft"])),
-                  FadeIn(lt), FadeIn(st), run_time=1.0)
-        a_lab = chip("actin", ORANGE, size=28).move_to([LX - 1.6, -2.85, 0])
-        m_lab = chip("microtubules", TEAL, size=28).move_to([LX + 1.5, -2.85, 0])
-        self.at("Its actin network is looser")
-        self.play(FadeIn(Sc["actin"]), FadeIn(Lc["actin"]), FadeIn(a_lab), run_time=1.2)
-        loose = T("loose", 30, ORANGE).move_to([LX, -2.0, 0])
-        dense = T("dense", 30, ORANGE).move_to([SX, -2.0, 0])
-        self.play(FadeIn(loose), FadeIn(dense), run_time=0.4)
-        self.at("push in")
-        self.play(FadeIn(Lc["mts"]), FadeIn(Sc["mts"]), FadeIn(m_lab), run_time=1.0)
-        self.at("more stable")
-        self.play(Indicate(Lc["mts"], color=TEAL, scale_factor=1.0), run_time=0.8)
-        # chosen sibling: loosen actin, microtubules push in
-        self.at("Loosen the actin in a chosen neurite")
-        drop = VGroup(*[m for i, m in enumerate(Sc["actin"]) if i % 3 != 0])
-        newmts = VGroup(*[Line(m.get_start(), [SX + 0.5 - 0.2 * k, m.get_start()[1], 0], color=TEAL, stroke_width=7)
-                          for k, m in enumerate(Sc["mts"])])
-        self.play(FadeOut(drop), Transform(dense, T("loosened", 30, ORANGE).move_to([SX, -2.0, 0])), run_time=1.0)
-        self.at("stabilize its microtubules")
-        self.play(Transform(Sc["mts"], newmts), run_time=0.9)
-        self.at("can become the axon")
-        newt = T("chosen", 32, YELLOW).move_to([SX, 2.45, 0])
-        self.play(ReplacementTransform(st, newt), Sc["fan"].animate.set_stroke(YELLOW),
-                  Sc["shaft"].animate.set_color(YELLOW), run_time=0.8)
+        n = mature(); b = branches(n)
+        self.at('A neuron')
+        self.play(FadeIn(n.group), Create(b), run_time=.6)
+        dl = T('dendritic input', 26, BLUE).move_to([-3.9, -2.55, 0])
+        al = T('axonal output', 26, YELLOW).move_to([3.1, -.4, 0])
+        incoming = Arrow([-3.2, 2.4, 0], [-3.8, 1.5, 0], color=BLUE, buff=.1)
+        self.at('takes in signals')
+        self.play(FadeIn(dl), GrowArrow(incoming), run_time=.6)
+        self.at('sends its output')
+        pulse = Dot(n.point(0, 1), color=YELLOW, radius=.16)
+        self.play(FadeIn(al), FadeIn(pulse), run_time=.3)
+        self.play(pulse.animate.move_to(n.point(0, 10)), run_time=1.0)
+        self.at('These branches differ')
+        self.play(FadeOut(incoming), FadeOut(pulse), run_time=.3)
+        self.at('That difference')
+        head = hdr('Neuronal polarity')
+        self.play(FadeIn(head), run_time=.5)
+        self.at('Dendrites carry receptors')
+        clear(self)
+        dend = Line([-5.8, 1, 0], [-.8, 1, 0], color=BLUE, stroke_width=13)
+        ax = Line([.8, 1, 0], [5.8, 1, 0], color=YELLOW, stroke_width=13)
+        rec = VGroup(*[VGroup(Line([x-.13,1.05,0],[x-.13,1.5,0],color=BLUE),
+                             Line([x+.13,1.05,0],[x+.13,1.5,0],color=BLUE),
+                             Line([x-.13,1.05,0],[x+.13,1.05,0],color=BLUE)) for x in (-4.8,-3.3,-1.8)])
+        rlab=T('neurotransmitter receptors',24,BLUE).move_to([-3.3,2.25,0])
+        self.play(Create(dend),Create(rec),FadeIn(rlab),run_time=.7)
+        self.at('The axon has')
+        ch=chip('channels',YELLOW,24).move_to([2,2.25,0])
+        ves=chip('vesicle machinery',YELLOW,24).move_to([4.5,-.1,0])
+        self.play(Create(ax),FadeIn(ch),FadeIn(ves),run_time=.6)
+        self.at('send proteins')
+        cargos=VGroup(Dot([-6,.45,0],color=BLUE,radius=.14),Dot([0,.45,0],color=YELLOW,radius=.14))
+        self.add(cargos)
+        self.play(cargos[0].animate.move_to([-3.3,.45,0]),cargos[1].animate.move_to([3.3,.45,0]),run_time=1)
+        self.at('How does it choose')
+        q=T('Choose an axon • maintain distinct domains',30,GOLD).move_to([0,-2.15,0])
+        self.play(FadeIn(q),run_time=.5)
+        self.at('Start with a young')
+        clear(self)
+        y=young(); dish=Ellipse(width=6.2,height=5.8,color=GREY).move_to(C0)
+        # The dish is centered on the cell but clipped neither at the left nor right.
+        dish.stretch_to_fit_width(4.7)
+        self.play(FadeIn(y.group),Create(dish),FadeIn(hdr('Young rat neuron • culture dish',GREY,28)),run_time=.7)
+        self.finish()
+
+
+class S02Race(SpokenScene):
+    def construct(self):
+        n=young((.8,)*5); ch=Chart(n,[GREY]*5)
+        self.at('A rat hippocampal neuron')
+        self.play(FadeIn(hdr('Cultured rat hippocampal neuron',GREY,28)),FadeIn(n.group),run_time=.5)
+        self.at('grows several short neurites')
+        self.play(*[t.animate.set_value(2.3) for t in n.tr],FadeIn(ch.group),run_time=1)
+        self.at('After a day')
+        self.play(FadeIn(T('a day or two',26,GREY).move_to([3.7,1.8,0])),run_time=.4)
+        self.at('one grows much faster')
+        self.play(n.tr[0].animate.set_value(5),run_time=1.2,rate_func=rate_functions.ease_in_sine)
+        self.at('It becomes the axon')
+        self.play(*n.recolor(0,YELLOW),ch.bars[0].animate.set_color(YELLOW),run_time=.5)
+        self.at('The others grow as dendrites')
+        self.play(*[a for i in range(1,5) for a in n.recolor(i,BLUE)],
+                  *[ch.bars[i].animate.set_color(BLUE) for i in range(1,5)],Create(branches(n)),run_time=.8)
+        self.at('The choice behaves')
+        self.play(FadeIn(T('a race',44,GOLD,font=TITLE_FONT).move_to([3.7,.6,0])),run_time=.5)
+        self.finish()
+
+
+class S03Feedback(SpokenScene):
+    def construct(self):
+        n=young((5,2.3,2.3,2.3,2.3)); n.lines[0].set_color(YELLOW); n.tips[0].set_color(YELLOW)
+        self.add(n.group)
+        grows=chip('grows',YELLOW,26).move_to([1.7,2.15,0]); faster=chip('grows faster',YELLOW,26).move_to([4.7,2.15,0])
+        loop=VGroup(CurvedArrow(grows.get_top(),faster.get_top(),angle=-PI/2,color=GREEN),
+                    CurvedArrow(faster.get_bottom(),grows.get_bottom(),angle=-PI/2,color=GREEN))
+        self.at('Positive feedback')
+        self.play(FadeIn(grows),FadeIn(faster),Create(loop),run_time=.8)
+        self.at('the more it grows')
+        self.play(Indicate(loop,color=GREEN),run_time=.6)
+        dots=VGroup(*[Dot(n.point(0,5)+np.array(p),radius=.08,color=GREEN) for p in [(-.4,.3,0),(-.2,-.3,0),(.2,.3,0),(.3,-.2,0)]])
+        pip=T('PIP3',28,GREEN).move_to([1.1,-.5,0])
+        self.at('A lipid called')
+        self.play(FadeIn(dots),FadeIn(pip),run_time=.6)
+        self.at('Blocking')
+        k=chip('PI3-kinase',GREEN,26).move_to([3.7,-1,0]); cross=Cross(k,stroke_color=RED)
+        self.play(FadeIn(k),Create(cross),run_time=.6)
+        self.at('is reported to stop')
+        # Reset to an unpolarized culture: blocking formation is not axon removal.
+        reset=young()
+        self.play(FadeOut(n.group),FadeOut(dots),FadeOut(pip),FadeIn(reset.group),
+                  FadeIn(T('culture: no axon forms',26,RED).move_to([3.7,-2.1,0])),run_time=.7)
+        self.at('Negative feedback')
+        clear(self)
+        self.add(n.group)
+        bars=VGroup()
+        for i in range(1,5):
+            p=n.point(i,1.2); d=n.dirs[i]; v=np.array([-d[1],d[0],0])*.3
+            bars.add(Line(p-v,p+v,color=RED,stroke_width=7))
+        self.play(Create(bars),FadeIn(T('holds siblings back',30,RED).move_to([3.5,1.2,0])),run_time=.7)
+        self.at('How it does that')
+        self.play(FadeIn(T('mechanism less settled ?',30,GOLD).move_to([3.3,-.1,0])),run_time=.5)
+        self.finish()
+
+
+class S04Tip(SpokenScene):
+    def construct(self):
+        a=cone(-2.6,.4,YELLOW,18,-2.1,3,sc=1.05); b=cone(3.8,.4,GREY,60,1.8,5,sc=1.05)
+        for k,m in enumerate(b['mts']):
+            m.put_start_and_end_on(m.get_start(),[b['x_neck']+.2-.15*k,m.get_start()[1],0])
+        outlines=VGroup(a['fan'],a['shaft'],b['fan'],b['shaft'])
+        labels=VGroup(T('future axon',28,YELLOW).move_to([-2.6,2.5,0]),T('sibling',28,GREY).move_to([3.8,2.5,0]))
+        self.at('At the growing tip')
+        self.play(FadeIn(outlines),FadeIn(labels),run_time=.6)
+        self.at('actin is looser')
+        self.play(FadeIn(a['actin']),FadeIn(b['actin']),FadeIn(T('orange: actin',26,ORANGE).move_to([-3.1,-1.9,0])),run_time=.6)
+        self.at('microtubules are more stable')
+        self.play(Create(a['mts']),Create(b['mts']),FadeIn(T('teal: microtubules',26,TEAL).move_to([3,-1.9,0])),run_time=.7)
+        self.at('Locally loosen actin')
+        clear(self)
+        # Two independent culture examples, rather than sequential treatments of one tip.
+        left=Neuron([(0,2,GREY,9),(120,1.2,GREY,7),(240,1.2,GREY,7)],center=[-4.8,-.5,0],soma_r=.45)
+        right=Neuron([(0,2,GREY,9),(120,1.2,GREY,7),(240,1.2,GREY,7)],center=[1.8,-.5,0],soma_r=.45)
+        self.play(FadeIn(left.group),FadeIn(T('loosen actin locally',26,ORANGE).move_to([-3.5,2,0])),
+                  FadeIn(Circle(radius=.35,color=ORANGE).move_to(left.point(0,2))),run_time=.6)
+        self.at('or stabilize microtubules')
+        self.play(FadeIn(right.group),FadeIn(T('stabilize microtubules',26,TEAL).move_to([3.2,2,0])),
+                  FadeIn(Line(right.point(0,.6),right.point(0,2),color=TEAL,stroke_width=4).shift(DOWN*.2)),run_time=.7)
+        self.at('can become the axon')
+        self.play(left.tr[0].animate.set_value(3.2),right.tr[0].animate.set_value(3.2),
+                  *left.recolor(0,YELLOW),*right.recolor(0,YELLOW),
+                  FadeIn(T('can favor an axon',30,YELLOW).move_to([0,-2.5,0])),run_time=.9)
+        self.at('The cytoskeleton')
+        self.play(FadeIn(hdr('The cytoskeleton can tip the choice',GOLD,30)),run_time=.5)
+        self.finish()
+
+
+class S04bTracks(SpokenScene):
+    def construct(self):
+        self.at('Those microtubules')
+        self.play(FadeIn(hdr('Tracks guide cargo',TEXT,32)),run_time=.5)
+        def tracks(y, mixed=False):
+            g=VGroup()
+            for j in range(2):
+                yy=y-j*.8; rev=mixed and j==1
+                g.add(Line([-3.7,yy,0],[5.4,yy,0],color=TEAL,stroke_width=6),
+                      T('+' if rev else '−',48,YELLOW if rev else BLUE,weight=BOLD).move_to([-4.05,yy,0]),
+                      T('−' if rev else '+',48,BLUE if rev else YELLOW,weight=BOLD).move_to([5.75,yy,0]))
+            return g
+        ax=tracks(1.8); de=tracks(-1.1,True)
+        self.at('In the axon')
+        self.play(Create(ax),FadeIn(T('axon • nearly all + end out',26,YELLOW).move_to([1,2.7,0])),
+                  FadeIn(T('cell-body\nend',40,GREY).move_to([-5.5,1.4,0])),run_time=.7)
+        self.at('In vertebrate dendrites')
+        self.play(Create(de),FadeIn(T('vertebrate dendrite • mixed',26,BLUE).move_to([1,-.35,0])),
+                  FadeIn(T('cell-body\nend',40,GREY).move_to([-5.5,-1.5,0])),run_time=.7)
+        self.at('A kinesin that prefers stable')
+        motor=VGroup(Dot([-3,1.8,0],radius=.13,color=TEXT),Square(side_length=.25,color=YELLOW,fill_opacity=1).move_to([-3,2.15,0]))
+        kl=T('kinesin → + end',28,YELLOW).move_to([.4,.45,0])
+        self.play(FadeIn(motor),FadeIn(kl),run_time=.5)
+        self.at('can steer cargo')
+        self.play(motor.animate.shift(RIGHT*7.6),run_time=1.3)
+        self.at('can carry cargo outward')
+        dm=VGroup(Dot([-3,-1.9,0],radius=.13,color=TEXT),Square(side_length=.25,color=BLUE,fill_opacity=1).move_to([-3,-1.55,0]))
+        dlab=T('dynein → − end',28,BLUE).move_to([.4,-2.65,0])
+        self.play(FadeIn(dm),FadeIn(dlab),run_time=.4)
+        self.play(dm.animate.shift(RIGHT*7.6),run_time=2)
+        self.at('Different tracks help')
+        self.play(FadeIn(T('Tracks help maintain distinct domains',26,GOLD).move_to([0,-3.4,0])),run_time=.6)
         self.finish()
 
 
 class S05Hold(SpokenScene):
-    """mature neuron: AIS on ankyrin G; MAP2 kept out of axon; lower ankyrin G -> segment dissolves, MAP2 enters the proximal axon, which looks like a dendrite; distal axon stays yellow."""
-
     def construct(self):
-        n = mature()
-        self.play(FadeIn(n.group), run_time=0.8)
-        # MAP2 dots in dendrites and soma
-        rng = np.random.RandomState(2)
-        dots = VGroup()
-        for i in range(1, 5):
-            for _ in range(5):
-                dots.add(Dot(n.point(i, rng.uniform(0.7, n.tr[i].get_value() - 0.1)) + np.array([0, rng.uniform(-.18, .18), 0]),
-                             radius=0.07, color=TEXT))
-        for dd in dots:
-            dd.set_color(BLUE).set_stroke(TEXT, 1.5)
-        # AIS band
-        ais = Line(n.point(0, 0.95), n.point(0, 2.95), color=PURPLE, stroke_width=26).set_opacity(0.85)
-        ais_lbl = T("axon initial segment", 28, PURPLE).move_to(n.point(0, 3.6) + DOWN * 0.85)
-        self.at("scaffold called")
-        ank = chip("ankyrin G", PURPLE, size=30).move_to([-0.9, -2.35, 0])
-        self.play(FadeIn(ank), run_time=0.5)
-        self.at("builds the axon initial segment")
-        self.play(Create(ais), FadeIn(ais_lbl), run_time=0.9)
-        map2 = chip("MAP2", BLUE, size=28).move_to([-5.6, -2.35, 0])
-        self.at("It works as a gate")
-        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in dots], lag_ratio=0.05), FadeIn(map2), run_time=1.2)
-        self.play(Indicate(ais, color=PURPLE, scale_factor=1.15), run_time=0.8)
-        # lower ankyrin G
-        self.at("in a mature neuron")
-        cross = VGroup(Line(ank.get_corner(UL), ank.get_corner(DR), color=RED, stroke_width=4),
-                       Line(ank.get_corner(DL), ank.get_corner(UR), color=RED, stroke_width=4))
-        self.play(Create(cross), run_time=0.4)
-        self.at("falls apart")
-        self.play(ais.animate.set_color(RED).set_opacity(0.5), run_time=0.4)
-        self.play(FadeOut(ais), FadeOut(ais_lbl), run_time=0.5)
-        # MAP2 enters axon
-        self.at("spreads into")
-        proximal_end = 2.95
-        newd = VGroup(*[Dot(n.point(0, 0.9 + 0.32 * k) + np.array([0, (-1) ** k * 0.14, 0]), radius=0.07,
-                            color=BLUE).set_stroke(TEXT, 1.5) for k in range(7)])
-        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in newd], lag_ratio=0.1), run_time=2.0)
-        self.at("begins to look like a dendrite")
-        spines = VGroup()
-        for k in range(1, 6):
-            p = n.point(0, 0.8 + 0.4 * k)
-            s = 1 if k % 2 else -1
-            spines.add(Line(p, p + UP * 0.32 * s, color=BLUE, stroke_width=4))
-        proximal = Line(n.point(0, SOMA_R), n.point(0, proximal_end), color=BLUE, stroke_width=11)
-        self.play(Create(proximal), FadeIn(spines), run_time=1.2)
-        lab = T("near the body: looks like a dendrite", 24, BLUE).move_to([3.2, -2.35, 0])
-        self.play(FadeIn(lab), run_time=0.4)
+        n=mature(); self.add(n.group,branches(n))
+        ais=Line(n.point(0,.95),n.point(0,2.95),color=PURPLE,stroke_width=26)
+        ank=chip('ankyrin G',PURPLE,28).move_to([-.8,-2.4,0])
+        lab=T('axon initial segment',28,PURPLE).move_to([.7,1.5,0])
+        leader=Line(n.point(0,2.7)+UP*.2,lab.get_corner(DL)+DOWN*.12,
+                    color=PURPLE,stroke_width=3)
+        self.at('Near the cell body')
+        self.play(FadeIn(ank),Create(ais),FadeIn(lab),Create(leader),run_time=.8)
+        self.at('In many neurons')
+        qualifier=hdr('Action potentials start here • in many neurons',TEXT,28)
+        self.play(FadeIn(qualifier),run_time=.5)
+        self.at('action potentials start here')
+        p=Dot(n.point(0,1.7),radius=.22,color=TEXT)
+        self.play(FadeIn(p),run_time=.25)
+        self.play(p.animate.move_to(n.point(0,9.8)),run_time=1)
+        self.play(FadeOut(p),run_time=.2)
+        self.at('It also helps hold polarity')
+        self.play(Indicate(ais,color=PURPLE),run_time=.6)
+        self.at('Lower')
+        culture=hdr('Culture • initial segment already formed',GREY,28)
+        self.play(ReplacementTransform(qualifier,culture),Create(Cross(ank,stroke_color=RED)),run_time=.7)
+        self.at('it falls apart')
+        self.play(FadeOut(ais),FadeOut(lab),FadeOut(leader),run_time=.7)
+        self.at('The dendrite protein')
+        maplab=chip('MAP2',BLUE,26).move_to([-5.5,-2.4,0])
+        dots=VGroup(*[Dot(n.point(0,.85+k*.32),radius=.08,color=BLUE) for k in range(7)])
+        self.play(FadeIn(maplab),run_time=.5)
+        self.at('enters the axon')
+        moving=dots.copy().shift(LEFT*1.1)
+        self.add(moving)
+        self.play(Transform(moving,dots),run_time=.9)
+        self.at('The near end gains')
+        proximal=Line(n.point(0,SOMA_R),n.point(0,2.95),color=BLUE,stroke_width=13)
+        spines=VGroup(*[Line(n.point(0,.9+k*.4),n.point(0,.9+k*.4)+UP*.35*(-1)**k,color=BLUE,stroke_width=4) for k in range(5)])
+        self.play(Create(proximal),Create(spines),run_time=.7)
+        self.at('while farther out')
+        distal=VGroup(*[Dot(n.point(0,5+k*.8),radius=.09,color=YELLOW) for k in range(6)])
+        self.play(FadeIn(distal),FadeIn(T('distal axonal proteins remain',24,YELLOW).move_to([3.7,-.8,0])),run_time=.7)
+        self.at('Identity needs active maintenance')
+        self.play(FadeOut(culture),FadeIn(hdr('Identity needs active maintenance',GOLD,32)),run_time=.6)
         self.finish()
 
 
-class S06Rule(SpokenScene):
-    """short stump: little stable axon left, a dendrite can take over. long stump: old axon regrows."""
+def migrant(center=(0,0,0),axon=True):
+    c=np.array(center,float)
+    return VGroup(Line(c,c+UP*1.5,color=GREY,stroke_width=7),
+                  Line(c,c+DOWN*2,color=YELLOW if axon else GREY,stroke_width=7),
+                  Circle(radius=.42,color=GREY,fill_color=SOMA_FILL,fill_opacity=1).move_to(c))
 
+
+class S06Tissue(SpokenScene):
     def construct(self):
-        # case A: short stump (1.0 long), four dendrites alike
-        nA = mature()
-        lblA = hdr("Short stump: under 35 µm", RED)
-        self.add(nA.group)
-        self.at("Now return to the cut")
-        cutp = nA.point(0, 1.2)
-        cut = cutmark(cutp)
-        self.play(Create(cut), FadeIn(lblA), run_time=0.6)
-        distal = Line(cutp, nA.point(0, 10.3), color=YELLOW, stroke_width=11)
-        dtip = Dot(nA.point(0, 10.3), radius=0.2, color=YELLOW)
-        self.add(distal, dtip)
-        nA.tr[0].set_value(1.2)
-        self.at("stump shorter than")
-        self.play(FadeOut(distal), FadeOut(dtip), run_time=0.8)
-        nobody = T("little stable axon left", 30, GREY).move_to([3.9, 1.0, 0])
-        self.at("little stable axon")
-        self.play(FadeIn(nobody), run_time=0.5)
-        self.at("like the first race again")
-        self.play(FadeOut(cut), FadeOut(nobody), run_time=0.4)
-        self.at("a dendrite can win it")
-        self.play(nA.tr[1].animate.set_value(6.3), *nA.recolor(1, YELLOW), *nA.recolor(0, BLUE),
-                  run_time=1.9)
-        # case B: reset everything in one animation
-        nB = mature()
-        lblB = hdr("Long stump: over 35 µm", RED)
-        self.at("Leave a longer stump")
-        self.play(FadeOut(nA.group), FadeOut(lblA), FadeIn(nB.group), FadeIn(lblB), run_time=0.6)
-        cutp = nB.point(0, 5.2)
-        cutB = cutmark(cutp)
-        distalB = Line(cutp, nB.point(0, 10.3), color=YELLOW, stroke_width=11)
-        dtipB = Dot(nB.point(0, 10.3), radius=0.2, color=YELLOW)
-        self.play(Create(cutB), run_time=0.3)
-        self.add(distalB, dtipB)
-        nB.tr[0].set_value(5.2)
-        self.play(FadeOut(distalB), FadeOut(dtipB), run_time=0.4)
-        self.at("the old axon regrows")
-        self.play(nB.tr[0].animate.set_value(10.3), FadeOut(cutB), run_time=1.6)
-        self.at("Keep this rule")
-        rule = T("An axon is a state the cell holds", 38, GOLD, font=TITLE_FONT).move_to([1.9, -1.2, 0])
-        self.play(FadeOut(lblB), FadeIn(rule, shift=UP * 0.15), run_time=0.8)
-        self.at("that state can pass to another process")
-        sub = T("lose enough of the axon, and the state can pass on", 28, TEXT).next_to(rule, DOWN, buff=0.35)
-        self.play(FadeIn(sub), run_time=0.6)
+        cell=migrant(axon=False)
+        env=VGroup(*[Arrow([x,-2.5,0],[x,2.5,0],color=GREY,buff=.2,stroke_width=2) for x in (-3,3)])
+        self.at('In tissue')
+        self.play(FadeIn(cell),FadeIn(env),FadeIn(hdr('Environmental cues orient polarity',TEXT,30)),run_time=.7)
+        self.at('Many cortical neurons')
+        self.play(cell.animate.shift(UP*.65),FadeIn(T('migration ↑',26,GREY).move_to([4.6,1.1,0])),run_time=1.2)
+        self.at('from the trailing process')
+        self.play(cell[1].animate.set_color(YELLOW),FadeIn(T('trailing axon',28,YELLOW).move_to([3,-1.5,0])),run_time=.7)
+        self.at('Cortical neurons lacking')
+        clear(self)
+        def chain(cx):
+            lk=chip('LKB1',GREY,24).move_to([cx-1.85,2,0])
+            sad=chip('SAD-A / SAD-B',GREY,24).move_to([cx+1.25,2,0])
+            activation=Arrow(lk.get_right(),sad.get_left(),color=TEXT,buff=.12)
+            act=T('activates',22,TEXT).move_to([cx-.6,2.65,0])
+            return lk,sad,activation,act
+        left_lk,left_sad,left_arrow,left_act=chain(-3.5)
+        right_lk,right_sad,right_arrow,right_act=chain(3.5)
+        left_sad.set_opacity(.35)
+        self.play(*[FadeIn(m) for m in (left_lk,left_sad,left_act,right_lk,right_sad,right_act)],
+                  GrowArrow(left_arrow),GrowArrow(right_arrow),run_time=.5)
+        a=migrant((-4,-.8,0),False); b=migrant((3,-.8,0),False)
+        self.at('LKB1')
+        la=T('no LKB1',26,RED).move_to([-4,.9,0])
+        self.play(FadeIn(a),FadeIn(la),Create(Cross(left_lk,stroke_color=RED)),run_time=.5)
+        self.at('or both')
+        lb=T('no SAD-A and no SAD-B',24,RED).move_to([3,.9,0])
+        self.play(FadeIn(b),FadeIn(lb),Create(Cross(right_sad,stroke_color=RED)),run_time=.5)
+        self.at('fail to form axons')
+        self.play(a[1].animate.set_opacity(.15),b[1].animate.set_opacity(.15),
+                  FadeIn(T('axon fails to form',26,RED).move_to([-4,-3.25,0])),
+                  FadeIn(T('axon fails to form',26,RED).move_to([3,-3.25,0])),run_time=.6)
+        self.at('The dish reveals mechanisms')
+        clear(self)
+        dish=Ellipse(width=5.2,height=4.5,color=GREY).move_to([-3.5,0,0])
+        youngcell=Neuron([(d,1.3,GREY,7) for d in (0,72,144,216,288)],center=[-3.5,0,0],soma_r=.4)
+        self.play(Create(dish),FadeIn(youngcell.group),FadeIn(T('dish: equal neurites',26,GREY).move_to([-3.5,-2.8,0])),run_time=.6)
+        self.at('The developing brain')
+        tissue=migrant((3.3,0,0)); arrow=Arrow([5,0,0],[5,2,0],color=GREY)
+        self.play(FadeIn(tissue),GrowArrow(arrow),FadeIn(T('tissue: migrating neuron',26,TEXT).move_to([3.3,-2.8,0])),run_time=.7)
+        self.at('a different starting point')
+        self.play(FadeIn(hdr('Different starting points',GOLD,32)),run_time=.5)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "An axon is a state the cell holds, not a stamp."
+    LINE = "In cultured neurons, one neurite wins a race to become the axon."

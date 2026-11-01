@@ -125,7 +125,7 @@ class S01Ponds(SpokenScene):
         br = VGroup(Line([-6.0, y0 + 0.25, 0], [-6.0, y0, 0]), Line([-6.0, y0, 0], [6.0, y0, 0]),
                     Line([6.0, y0, 0], [6.0, y0 + 0.25, 0])).set_color(BLUE).set_stroke(width=4)
         mp = T("metapopulation", 32, BLUE).move_to([0, y0 - 0.5, 0])
-        self.at("a meta")
+        self.at("metapopulation")
         self.play(Create(br), FadeIn(mp, shift=UP * 0.1), run_time=0.7)
         self.at("losing their populations")
         self.play(FadeOut(arcs), run_time=0.3)

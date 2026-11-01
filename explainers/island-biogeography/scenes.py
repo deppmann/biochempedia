@@ -105,7 +105,7 @@ class S01Empty(SpokenScene):
         new_dots = VGroup(*[dot(BLUE, 0.33).move_to(p) for p in pts])
         self.play(FadeOut(q), LaggedStart(*[GrowFromCenter(d) for d in new_dots], lag_ratio=0.25),
                   run_time=max(2.0, self.t_of("untreated islands") - self.elapsed() - 0.3))
-        self.at("untreated islands")
+        self.at("Yet")
         same = T("about as many species", 26, BLUE).move_to([0, -3.05, 0])
         self.play(FadeIn(same), run_time=0.5)
         self.at("not all the ones")
@@ -153,7 +153,7 @@ class S02Arrive(SpokenScene):
         call2 = T("more arrivals are already here", 22, BLUE).move_to(rp.p(70, 10.0))
         run = max(2.0, self.t_of("reaches zero") - self.elapsed() - 0.4)
         self.play(ReplacementTransform(call, call2), tr.animate.set_value(100).set_rate_func(linear), run_time=run)
-        self.at("reaches zero")
+        self.at("reach")
         d.clear_updaters()
         pool = T("pool: 100 species", 22, BLUE).move_to(rp.p(78, 4.8))
         self.play(Indicate(d, color=GREEN, scale_factor=2), FadeIn(pool), run_time=0.7)

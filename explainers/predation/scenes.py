@@ -101,7 +101,7 @@ class S01Patch(SpokenScene):
     def construct(self):
         w = World()
         w.top.set_z_index(3); w.mid.set_z_index(3)
-        self.at("Ecologists in the early")
+        self.at("Marine ecology")
         self.play(FadeIn(w.rock), LaggedStart(*[FadeIn(d, scale=0.5) for d in [*w.top, *w.mid]], lag_ratio=0.04),
                   LaggedStart(*[FadeIn(m, scale=0.5) for m in w.mus], lag_ratio=0.05), run_time=1.6)
         lab = T("a shore community", 28, GREY).next_to(w.rock, UP, buff=0.3)
@@ -138,7 +138,7 @@ class S01Patch(SpokenScene):
                   run_time=1.2)
         self.at("instead of")
         self.play(FadeIn(inst), FadeIn(n15), run_time=0.6)
-        self.at("made the community poorer")
+        self.at("fewer kinds")
         self.play(FadeOut(VGroup(*w.mid)), FadeOut(rep), run_time=0.8)
         qs = VGroup(*[T("?", 40, RED, weight=BOLD).move_to(d.get_center()) for d in w.mid])
         self.play(LaggedStart(*[FadeIn(q, scale=0.5) for q in qs], lag_ratio=0.06), run_time=0.8)
@@ -171,7 +171,7 @@ class S02Design(SpokenScene):
         # two adjacent patches
         ctl = rock(5.8, 4.4, (-3.2, -0.5))
         rem = rock(5.8, 4.4, (3.2, -0.5))
-        self.at("He kept Pisaster out")
+        self.at("kept")
         rl = T("removal patch", 30, RED).next_to(rem, UP, buff=0.25)
         self.play(FadeIn(rem), FadeIn(rl), run_time=0.5)
         fz = fence(rem, RED, 0.15)
@@ -220,7 +220,7 @@ class S03Space(SpokenScene):
         mlab = T("mussels: strong competitors for rock", 26, BLUE).move_to([0, -3.3, 0])
         self.play(FadeOut(lf), FadeOut(lim), run_time=0.3)
         self.play(FadeIn(mlab), LaggedStart(*[Indicate(m, color=BLUE, scale_factor=1.2) for m in w.mus], lag_ratio=0.08), run_time=1.4)
-        self.at("With Pisaster eating them")
+        self.at("With")
         self.play(FadeOut(st[1]), run_time=0.3)
         NOTCH = "#252830"
 
@@ -285,7 +285,7 @@ class S05Count(SpokenScene):
         tag = T("removal patch", 26, RED).next_to(w.rock, DOWN, buff=0.4)
         self.play(FadeIn(w.rock), FadeIn(w.top), FadeIn(mus_big), run_time=0.6)
         self.play(Create(fz), FadeIn(tag), LaggedStart(*[FadeIn(d, scale=0.4) for d in row], lag_ratio=0.05), FadeIn(n15), run_time=1.4)
-        self.at("richness fell")
+        self.at("holding space")
         gone = VGroup(*row[8:])
         self.play(LaggedStart(*[d.animate.set_fill(opacity=0.0).set_stroke(opacity=0.3) for d in gone], lag_ratio=0.08), ReplacementTransform(n15, n8), run_time=1.4)
         self.at("The control")

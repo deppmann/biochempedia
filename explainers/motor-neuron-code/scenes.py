@@ -102,263 +102,285 @@ class S00Title(TitleCard):
     TITLE = "A Motor Neuron Is a Combination"
 
 
-# ---------------------------------------------------------------------------------------------
+# Extra schematic helpers. Structural binding helpers above are retained from the old film,
+# but the new chick comparison deliberately uses only chips.
+# Additional colours: GOLD = Olig2 / Hox positional information; TEAL also = guidance context.
+def neuron(pos, radius=0.7, color=GREEN):
+    body = Circle(radius=radius, color=color, stroke_width=4, fill_color=color, fill_opacity=0.14).move_to(pos)
+    branches = VGroup(*[Line(body.get_center() + radius * np.array([np.cos(a), np.sin(a), 0]),
+                              body.get_center() + radius * 1.5 * np.array([np.cos(a), np.sin(a), 0]),
+                              color=color, stroke_width=3) for a in (2.3, 3.1, 3.9)])
+    return VGroup(body, branches)
+
+
+def tube():
+    bands = VGroup(*[Rectangle(width=2.8, height=0.78, stroke_color=GREY, stroke_width=2,
+                               fill_color=GREY, fill_opacity=0.10 + 0.08 * (i % 2)) for i in range(7)])
+    return bands.arrange(DOWN, buff=0).move_to([-2.8, 0, 0])
+
+
+def muscle(pos, label="muscle", width=2.1):
+    box = RoundedRectangle(width=width, height=1, corner_radius=0.3, color=GREY,
+                           fill_color=GREY, fill_opacity=0.16).move_to(pos)
+    return VGroup(box, T(label, 26, GREY).move_to(box))
+
+
 class S01Puzzle(SpokenScene):
     def construct(self):
-        # tube in cross section: seven stacked stripes, dorsal at the top
-        W, H, N = 3.0, 6.2, 7
-        tc = np.array([0.4, 0.0, 0])
-        bands = VGroup(*[Rectangle(width=W, height=H / N, stroke_color=GREY, stroke_width=2,
-                                   fill_color=GREY, fill_opacity=0.10 + 0.08 * (i % 2)) for i in range(N)])
-        bands.arrange(DOWN, buff=0).move_to(tc)
-        pmn = bands[5]  # a stripe in the lower half (ventral)
-        # gradient bar left of the tube, strongest at the bottom
-        steps = 16
-        bar = VGroup(*[Rectangle(width=0.45, height=H / steps, stroke_width=0, fill_color=TEAL,
-                                 fill_opacity=0.06 + 0.85 * (i / (steps - 1)) ** 1.5) for i in range(steps)])
-        bar.arrange(DOWN, buff=0).move_to([tc[0] - 2.5, 0, 0])
-        shh = T("Sonic hedgehog", 26, TEAL).rotate(PI / 2).move_to([tc[0] - 3.2, 0, 0])
-
-        self.at("Sonic hedgehog")
-        self.play(FadeIn(bar), FadeIn(shh), run_time=0.8)
-        self.at("read their position")
-        self.play(LaggedStart(*[FadeIn(b) for b in bands], lag_ratio=0.12), run_time=1.3)
-        self.at("one stripe")
-        lab = T("pMN", 34, GREEN, weight=BOLD).move_to([tc[0] + W / 2 + 0.9, pmn.get_center()[1], 0])
-        self.play(pmn.animate.set_fill(GREEN, 0.5).set_stroke(GREEN, 4), FadeIn(lab, shift=LEFT * 0.2), run_time=0.7)
-        self.at("makes motor neurons")
-        self.play(Indicate(pmn, color=GREEN, scale_factor=1.06), run_time=0.8)
-
-        # the stripe becomes one cell
-        cell_c = np.array([-3.2, 0.0, 0])
-        cell = Circle(radius=2.5, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to(cell_c)
-        self.at("does not contain")
-        others = [m for m in bands if m is not pmn]
-        self.play(FadeOut(VGroup(*others)), FadeOut(bar), FadeOut(shh), FadeOut(lab), ReplacementTransform(pmn, cell), run_time=1.0)
-        q = RoundedRectangle(corner_radius=0.16, width=5.4, height=0.95, stroke_color=GREEN, stroke_width=3,
-                             fill_color=GREEN, fill_opacity=0.1).move_to([3.6, 2.5, 0])
-        ql = T("a gene for motor neuron?", 28, GREEN).move_to(q)
-        self.play(FadeIn(q), FadeIn(ql), run_time=0.5)
-        x = cross([q.get_left()[0] - 0.55, q.get_center()[1], 0], 0.6, 0.6)
-        self.play(Create(x), ql.animate.set_opacity(0.5), q.animate.set_stroke(opacity=0.5), run_time=0.5)
-
-        self.at("transcription factors")
-        pos = [(-0.95, 0.65), (0.95, 0.65), (-0.95, -0.65), (0.95, -0.65)]
-        chips = VGroup(*[chip("factor", GREY, size=28).move_to([cell_c[0] + dx, cell_c[1] + dy, 0]) for dx, dy in pos])
-        self.play(LaggedStart(*[FadeIn(c, scale=0.8) for c in chips], lag_ratio=0.25), run_time=1.4)
-        self.at("that particular set")
-        a = arr([cell_c[0] + 2.55, 0, 0], [1.6, -0.9, 0], GREEN)
-        mn = T("motor neuron", 38, GREEN, weight=BOLD).move_to([4.0, -0.9, 0])
-        self.play(GrowArrow(a), Indicate(chips, color=GREEN, scale_factor=1.05), run_time=0.8)
-        self.play(FadeIn(mn, shift=RIGHT * 0.2), run_time=0.5)
+        n = neuron([-3, 0, 0], 1.1)
+        factors = VGroup(chip("factor", YELLOW, 26), chip("factor", BLUE, 26), chip("factor", PINK, 26)).arrange(RIGHT, buff=0.25).move_to([0, 2.3, 0])
+        self.at("A motor neuron")
+        self.play(FadeIn(n), run_time=0.5)
+        self.at("combinations of transcription factors")
+        self.play(FadeIn(factors), run_time=0.6)
+        stages = VGroup(*[T(t, 24, GREY) for t in ("progenitor stripe", "motor neuron", "column / pool", "axon route", "muscle")]).arrange(RIGHT, buff=0.5).move_to([0, -2.4, 0])
+        self.at("acting in stages")
+        self.play(FadeIn(stages), run_time=0.5)
+        self.at("first makes")
+        identity = VGroup(chip("Isl1 / Isl2", YELLOW, 26), chip("Lhx3", BLUE, 26), chip("Mnx1", PINK, 26)).arrange(RIGHT, buff=0.25).move_to(factors)
+        self.play(Indicate(n, color=GREEN), Transform(factors, identity), stages[1].animate.set_color(GREEN), run_time=0.6)
+        target = muscle([4.6, 0, 0])
+        axon = VMobject(color=GREEN, stroke_width=5).set_points_smoothly([[-1.9, 0, 0], [0, -0.5, 0], [2, 0.3, 0], [3.55, 0, 0]])
+        self.at("Then it helps decide")
+        positional = VGroup(chip("Hox", GOLD, 28), chip("FoxP1", TEXT, 28)).arrange(RIGHT, buff=0.3).move_to([1, 2.3, 0])
+        self.play(FadeIn(target), Transform(factors, positional), stages[2].animate.set_color(GREEN), run_time=0.6)
+        self.at("its axon will reach")
+        route_code = VGroup(chip("Lhx1", TEXT, 28), T("+ guidance cues", 26, TEAL)).arrange(RIGHT, buff=0.3).move_to([1, 2.3, 0])
+        self.play(Create(axon), Transform(factors, route_code), stages[3:].animate.set_color(GREEN), run_time=1)
+        self.at("only part of the story")
+        self.play(Indicate(VGroup(axon, target), color=GREEN), run_time=0.7)
+        self.at("Follow the code")
+        self.play(LaggedStart(*[Indicate(t, color=GREEN) for t in stages], lag_ratio=0.3), run_time=2)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S08Progenitors(SpokenScene):
+    def construct(self):
+        bands = tube()
+        bar = VGroup(*[Rectangle(width=0.45, height=5.46 / 16, stroke_width=0, fill_color=TEAL,
+                                 fill_opacity=0.06 + 0.85 * (i / 15) ** 1.5) for i in range(16)]).arrange(DOWN, buff=0).move_to([-5, 0, 0])
+        shh = T("Sonic hedgehog", 26, TEAL).rotate(PI / 2).move_to([-5.8, 0, 0])
+        self.at("Sonic Hedgehog")
+        self.play(FadeIn(bar), FadeIn(shh), FadeIn(bands), run_time=0.7)
+        self.at("read their position")
+        self.play(LaggedStart(*[Indicate(b, color=TEAL) for b in bands], lag_ratio=0.1), run_time=0.9)
+        pmn = bands[5]
+        lab = T("pMN", 30, GREEN).move_to([-0.5, pmn.get_y(), 0])
+        self.at("One stripe")
+        self.play(pmn.animate.set_fill(GREEN, 0.5).set_stroke(GREEN), FadeIn(lab), run_time=0.6)
+        cell = Circle(radius=0.9, color=GREY, fill_color=GREY, fill_opacity=0.14).move_to([3.5, 0, 0])
+        olig = chip("Olig2", GOLD, 28).move_to(cell)
+        self.at("Its dividing cells")
+        self.play(TransformFromCopy(pmn, cell), FadeIn(olig), run_time=0.7)
+        daughter = Circle(radius=0.65, color=GREY, fill_color=GREY, fill_opacity=0.14).move_to([2.3, 0.6, 0])
+        other = daughter.copy().move_to([4.7, -0.6, 0])
+        self.at("Around the final division")
+        self.play(ReplacementTransform(cell, VGroup(daughter, other)), FadeOut(olig), run_time=0.7)
+        new = neuron([2.3, 0.6, 0], 0.65)
+        code = chip("new factor set", GREEN, 26).move_to([3.5, -2.2, 0])
+        self.at("turns on a new set")
+        self.play(ReplacementTransform(daughter, new), FadeIn(code), other.animate.set_opacity(0.3), run_time=0.6)
+        self.finish()
+
+
 class S02Markers(SpokenScene):
     def construct(self):
-        lc = np.array([-3.5, 0.3, 0])
-        rc = np.array([3.5, 0.3, 0])
-        cell_l = Circle(radius=2.3, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to(lc)
-        lab_l = T("progenitor", 30, GREY).move_to([lc[0], -2.55, 0])
-        self.play(FadeIn(cell_l), FadeIn(lab_l), run_time=0.7)
-        self.at("final division")
-        self.play(Indicate(cell_l, color=GREY, scale_factor=1.06), run_time=0.8)
-        self.at("new set")
-        lab_l2 = T("motor neuron", 30, GREEN, weight=BOLD).move_to(lab_l)
-        self.play(cell_l.animate.set_stroke(GREEN).set_fill(GREEN, 0.12), ReplacementTransform(lab_l, lab_l2), run_time=0.6)
-        c_isl = chip("Isl1", YELLOW, 30).move_to(lc + [-0.55, 0.95, 0])
-        c_lhx = chip("Lhx3", BLUE, 30).move_to(lc)
-        c_mnx = chip("Mnx1", PINK, 30).move_to(lc + [0, -0.95, 0])
-        self.at("These are")
-        self.play(FadeIn(c_isl, scale=0.8), run_time=0.6)
-        self.at("or its relative")
-        orl = T("or Isl2", 26, YELLOW).next_to(c_isl, RIGHT, buff=0.22)
-        self.play(FadeIn(orl, shift=LEFT * 0.15), run_time=0.5)
-        self.wait(2.4)   # Lhx3 is named about three seconds after "or its relative"
-        self.play(FadeIn(c_lhx, scale=0.8), run_time=0.5)
-        self.wait(1.0)   # then Mnx1
-        self.play(FadeIn(c_mnx, scale=0.8), run_time=0.5)
-        self.at("stain for")
-        # stained nuclei: each marker lights up in its own colour, as in a section
-        glows = VGroup(*[SurroundingRectangle(c, color=col, buff=0.1, corner_radius=0.12, stroke_width=5)
-                         for c, col in ((c_isl, YELLOW), (c_lhx, BLUE), (c_mnx, PINK))])
-        stain = T("markers you stain for", 26, GREY).move_to([lc[0], 2.95, 0])
-        self.play(LaggedStart(*[Create(g) for g in glows], lag_ratio=0.3), FadeIn(stain), run_time=1.2)
-        self.at("also made")
-        self.play(FadeOut(glows[0]), FadeOut(glows[2]), Indicate(c_lhx, color=BLUE, scale_factor=1.2), run_time=0.9)
-        self.at("of the motor neuron")
-        cell_r = Circle(radius=2.3, stroke_color=ORANGE, stroke_width=4, fill_color=ORANGE, fill_opacity=0.12).move_to(rc)
-        lab_r = T("V2 interneuron", 30, ORANGE, weight=BOLD).move_to([rc[0], -2.55, 0])
-        c_lhx2 = chip("Lhx3", BLUE, 30).move_to(rc)
-        g2 = SurroundingRectangle(c_lhx2, color=BLUE, buff=0.1, corner_radius=0.12, stroke_width=5)
-        self.play(FadeIn(cell_r), FadeIn(lab_r), TransformFromCopy(c_lhx, c_lhx2), TransformFromCopy(glows[1], g2), run_time=1.3)
-        self.at("One protein sits")
-        self.play(Indicate(VGroup(c_lhx, glows[1]), color=BLUE, scale_factor=1.2),
-                  Indicate(VGroup(c_lhx2, g2), color=BLUE, scale_factor=1.2), run_time=1.0)
+        lc, rc = np.array([-3.4, 0.2, 0]), np.array([3.4, 0.2, 0])
+        cell_l = Circle(radius=2.2, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.12).move_to(lc)
+        lab_l = T("new motor neuron", 30, GREEN).move_to([-3.4, -2.5, 0])
+        isl_chip = chip("Isl1 or Isl2", YELLOW, 28).move_to(lc + [0, 1, 0])
+        lhx_chip = chip("Lhx3", BLUE, 30).move_to(lc)
+        mnx_chip = chip("Mnx1", PINK, 30).move_to(lc + [0, -1, 0])
+        self.at("ILAT")
+        self.play(FadeIn(cell_l), FadeIn(lab_l), FadeIn(isl_chip), run_time=0.6)
+        self.at("LHX 3")
+        self.play(FadeIn(lhx_chip), run_time=0.5)
+        self.at("and MNX 1")
+        self.play(FadeIn(mnx_chip), run_time=0.5)
+        self.at("not a unique label")
+        self.play(Indicate(lhx_chip, color=BLUE), run_time=0.6)
+        cell_r = Circle(radius=2.2, stroke_color=ORANGE, stroke_width=4, fill_color=ORANGE, fill_opacity=0.12).move_to(rc)
+        lab_r = T("V2 interneuron", 30, ORANGE).move_to([3.4, -2.5, 0])
+        lhx2 = chip("Lhx3", BLUE, 30).move_to(rc)
+        self.at("also appears")
+        self.play(FadeIn(cell_r), FadeIn(lab_r), TransformFromCopy(lhx_chip, lhx2), run_time=0.8)
+        self.at("Its partners")
+        self.play(Indicate(isl_chip, color=YELLOW), Indicate(lhx2, color=BLUE), run_time=0.8)
         self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-LC = np.array([-4.2, 0.6, 0])
-KK = 1.2
-OUT_X = -2.8
-OUT_Y = -2.8
-ARR_X = -4.0
 
 
 class S03Nli(SpokenScene):
     def construct(self):
-        sp = tag("chick neural tube", [-4.8, 3.2, 0])
-        cup = lhx(LC, KK)
-        self.at("experiment")
-        self.play(FadeIn(sp), GrowFromCenter(cup), run_time=0.9)
-        ghost = ghost_isl([5.0, LC[1], 0], KK)
-        self.at("have no")
-        self.play(FadeIn(ghost), run_time=0.6)
-        v2 = chip("V2 interneuron genes", ORANGE, 30).move_to([OUT_X, OUT_Y, 0])
-        a = arr([ARR_X, LC[1] - 1.9, 0], [ARR_X, OUT_Y + 0.55, 0], ORANGE)
-        self.at("You get")
-        self.play(GrowArrow(a), FadeIn(v2, shift=DOWN * 0.2), run_time=0.8)
-        n = nli([1.4, LC[1], 0], KK)
-        self.at("binds")
-        self.play(FadeIn(n, shift=LEFT * 0.3), run_time=0.4)
-        self.play(n.animate.shift(notch(LC, KK) - n[0].get_center()), run_time=1.0)
-        self.at("That complex")
-        self.play(Indicate(VGroup(cup, n), color=ORANGE, scale_factor=1.04), a.animate.set_stroke(width=8), run_time=1.0)
+        sp = tag("chick • factor addition", [0, 3.1, 0])
+        lh = chip("Lhx3", BLUE, 32).move_to([-3, 0.7, 0])
+        nl = chip("NLI", PURPLE, 32).move_to([0, 0.7, 0])
+        absent = T("without Isl1", 28, GREY).move_to([3.5, 0.7, 0])
+        self.at("In CHIC")
+        self.play(FadeIn(sp), FadeIn(lh), FadeIn(absent), run_time=0.6)
+        self.at("binds NLI")
+        nl.shift(LEFT * 0.8)
+        self.play(FadeIn(nl, shift=LEFT * 0.3), lh.animate.shift(RIGHT * 0.8), run_time=0.6)
+        out = chip("V2 interneuron genes", ORANGE, 30).move_to([0, -2, 0])
+        a = arr([0, -0.1, 0], [0, -1.4, 0], ORANGE)
+        self.at("and promotes")
+        self.play(GrowArrow(a), FadeIn(out), run_time=0.6)
+        is1 = chip("Isl1", YELLOW, 32).move_to([2.2, 0.7, 0])
+        self.at("Add islet 1")
+        self.play(FadeOut(out), FadeOut(a), FadeOut(absent), FadeIn(is1), run_time=0.5)
+        self.at("a different complex")
+        self.play(lh.animate.move_to([-1.7, 0.7, 0]), nl.animate.move_to([0, 0.7, 0]), is1.animate.move_to([1.7, 0.7, 0]), run_time=0.6)
+        new = chip("motor-neuron genes", GREEN, 30).move_to([0, -2, 0])
+        a2 = arr([0, -0.1, 0], [0, -1.4, 0], GREEN)
+        self.at("promotes motor neuron")
+        self.play(GrowArrow(a2), FadeIn(new), run_time=0.6)
+        self.at("The combination matters")
+        self.play(Indicate(VGroup(lh, nl, is1), color=GREEN), run_time=0.7)
         self.finish()
 
 
-class S04Isl1(SpokenScene):
-    def construct(self):
-        sp = tag("chick neural tube", [-4.8, 3.2, 0])
-        cup = lhx(LC, KK)
-        n = nli(notch(LC, KK), KK)
-        ghost = ghost_isl([5.0, LC[1], 0], KK)
-        v2 = chip("V2 interneuron genes", ORANGE, 30).move_to([OUT_X, OUT_Y, 0])
-        a = arr([ARR_X, LC[1] - 1.9, 0], [ARR_X, OUT_Y + 0.55, 0], ORANGE)
-        self.add(sp, cup, n, ghost, v2, a)
-        s = isl([1.4, LC[1], 0], KK)
-        self.at("Add")
-        # old answer cleared in the same beat the new partner arrives
-        self.play(FadeOut(v2), FadeOut(a), FadeOut(ghost), FadeIn(s), run_time=0.7)
-        self.at("competes")
-        self.play(s.animate.shift(LEFT * 1.1), run_time=0.9)
-        # Isl1 takes NLI: NLI leaves the Lhx3 socket and binds beneath Isl1, where it stays
-        n_on = nli_down(isl_dock(s, KK), KK)
-        self.play(Transform(n, n_on), run_time=1.2)
-        self.at("displaces")
-        # Isl1, holding NLI, plugs its tail into the Lhx3 socket
-        d = notch(LC, KK) - s[0].get_center()
-        self.play(VGroup(s, n).animate.shift(d), run_time=1.2)
-        self.at("C terminal")
-        ct = T("C-terminal region", 24, YELLOW).move_to([-1.2, LC[1] - 1.15, 0])
-        self.play(FadeIn(ct, shift=UP * 0.1), Indicate(s[1], color=YELLOW, scale_factor=1.0), run_time=0.8)
-        self.at("complex that forms")
-        self.play(Indicate(VGroup(cup, s, n), color=GREEN, scale_factor=1.04), run_time=0.9)
-        mn = chip("motor neuron genes", GREEN, 30).move_to([OUT_X, OUT_Y, 0])
-        a2 = arr([ARR_X, LC[1] - 1.9, 0], [ARR_X, OUT_Y + 0.55, 0], GREEN)
-        self.at("promotes")
-        self.play(GrowArrow(a2), FadeIn(mn, shift=DOWN * 0.2), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Surface(SpokenScene):
-    def construct(self):
-        k = 0.78
-        c1 = np.array([-5.0, 0.7, 0])   # V2 panel
-        c2 = np.array([1.3, 0.7, 0])    # motor-neuron panel
-        cup1, n1 = lhx(c1, k), nli(notch(c1, k), k)
-        cup2, s2 = lhx(c2, k), isl(notch(c2, k), k)
-        n2 = nli_down(isl_dock(s2, k), k)   # NLI stays bound, now to Isl1
-        ox1, ox2, oy = -3.9, 2.9, -2.4
-        v2 = chip("V2 interneuron genes", ORANGE, 26).move_to([ox1, oy, 0])
-        mn = chip("motor neuron genes", GREEN, 26).move_to([ox2, oy, 0])
-        a1 = arr([c1[0], c1[1] - 1.3, 0], [c1[0], oy + 0.5, 0], ORANGE)
-        a2 = arr([c2[0], c2[1] - 1.3, 0], [c2[0], oy + 0.5, 0], GREEN)
-        right = VGroup(cup2, s2, n2, a2, mn)
-        left = VGroup(cup1, n1, a1, v2)
-        self.add(right)
-        self.at("not reading")
-        self.play(Indicate(right, color=GREEN, scale_factor=1.02), run_time=0.8)
-        self.at("wins a competition")
-        self.play(FadeIn(left, shift=RIGHT * 0.3), run_time=0.9)
-        self.at("shared partner")
-        self.play(Indicate(n1, color=PURPLE, scale_factor=1.15), Indicate(n2, color=PURPLE, scale_factor=1.15), run_time=1.0)
-        self.at("one binding site")
-        r1 = Circle(radius=0.44 * k + 0.1, stroke_color=TEXT, stroke_width=4).move_to(notch(c1, k))
-        r2 = Circle(radius=0.44 * k + 0.1, stroke_color=TEXT, stroke_width=4).move_to(notch(c2, k))
-        lab = T("one binding site", 28, TEXT).move_to([-1.5, 3.2, 0])
-        self.play(Create(r1), Create(r2), FadeIn(lab), run_time=0.8)
-        self.at("same surface")
-        lab2 = T("the same surface of Lhx3", 28, BLUE).move_to([-1.5, 3.2, 0])
-        self.play(ReplacementTransform(lab, lab2), Indicate(r1, color=TEXT, scale_factor=1.25),
-                  Indicate(r2, color=TEXT, scale_factor=1.25), run_time=1.0)
-        h1 = T("holds NLI", 26, PURPLE).move_to([-4.6, 2.3, 0])
-        h2 = T("holds a segment of Isl1", 26, YELLOW).move_to([2.6, 2.3, 0])
-        self.at("It holds")
-        self.play(Indicate(n1, color=PURPLE, scale_factor=1.15), FadeIn(h1, shift=DOWN * 0.1), run_time=0.9)
-        self.at("In the other")
-        self.play(Indicate(s2[0:2], color=YELLOW, scale_factor=1.1), Indicate(r2, color=TEXT, scale_factor=1.25), run_time=0.9)
-        self.at("a segment of")
-        self.play(FadeIn(h2, shift=DOWN * 0.1), s2[1].animate.set_stroke(width=11), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S06Tests(SpokenScene):
     def construct(self):
-        y1, y2 = 1.5, -1.5
-        t1 = T("chick", 30, GREY, weight=BOLD).move_to([-5.6, y1, 0])
-        t2 = T("mouse", 30, GREY, weight=BOLD).move_to([-5.6, y2, 0])
-        slots = []
-        for y in (y1, y2):
-            box = RoundedRectangle(corner_radius=0.16, width=4.4, height=0.9)
-            d = DashedVMobject(box, num_dashes=24).set_stroke(GREY, 3).move_to([3.9, y, 0])
-            q = T("?", 34, GREY).move_to([3.9, y, 0])
-            slots.append(VGroup(d, q))
-        self.at("Two tests")
-        self.play(FadeIn(t1), FadeIn(t2), FadeIn(slots[0]), FadeIn(slots[1]), run_time=0.8)
-
-        i1 = chip("Isl1", YELLOW, 30).move_to([-3.6, y1, 0])
-        plus = T("+", 36, TEXT).move_to([-2.45, y1, 0])
-        l1 = chip("Lhx3", BLUE, 30).move_to([-1.3, y1, 0])
-        ar1 = arr([-0.3, y1, 0], [1.5, y1, 0], GREEN)
-        r1 = chip("motor neuron genes", GREEN, 30).move_to([3.9, y1, 0])
-        self.at("chick cell")
-        self.play(FadeIn(i1, shift=RIGHT * 0.2), FadeIn(plus), FadeIn(l1, shift=LEFT * 0.2), run_time=0.8)
-        self.at("come up")
-        self.play(GrowArrow(ar1), FadeOut(slots[0]), FadeIn(r1), run_time=0.8)
-
-        i2 = chip("no Isl1", RED, 30).move_to([-3.4, y2, 0])
-        x2 = VGroup()
-        ar2 = arr([-0.3, y2, 0], [1.5, y2, 0], RED)
-        r2 = chip("no motor neurons", RED, 30).move_to([3.9, y2, 0])
-        self.at("in the mouse")
-        self.play(FadeIn(i2), run_time=0.4)
+        sp = tag("mouse • gene deletions", [0, 3.1, 0])
+        i = chip("delete Isl1", RED, 30).move_to([-4.5, 1.5, 0])
+        m = chip("delete Mnx1", RED, 30).move_to([-4.5, -1.1, 0])
+        a1 = arr([-2.9, 1.5, 0], [-1.7, 1.5, 0], GREY)
+        no = T("motor neurons\nnot generated", 30, RED).move_to([1.5, 1.5, 0])
+        self.at("Delete islet 1")
+        self.play(FadeIn(sp), FadeIn(i), run_time=0.5)
         self.at("not generated")
-        self.play(GrowArrow(ar2), FadeOut(slots[1]), FadeIn(r2), run_time=0.8)
+        self.play(GrowArrow(a1), FadeIn(no), run_time=0.6)
+        self.at("Delete MNX1")
+        self.play(FadeIn(m), run_time=0.5)
+        ns = VGroup(*[neuron([x, -1, 0], 0.35) for x in (-0.8, 0.3, 1.4)])
+        self.at("and they form")
+        self.play(FadeIn(ns), run_time=0.5)
+        state = T("transient V2 features", 26, ORANGE).move_to([1.8, -2.2, 0])
+        self.at("transiently show")
+        self.play(FadeIn(state), ns.animate.set_color(ORANGE), run_time=0.5)
+        scattered = [(-1.1, -0.6, 0), (0.4, -1.3, 0), (1.9, -0.7, 0)]
+        paths = VGroup(*[arr(a, b, GREEN, w=3) for a, b in (
+            ((-1.1, -0.95, 0), (-0.4, -1.8, 0)),
+            ((0.4, -1.65, 0), (-0.3, -1.9, 0)),
+            ((2.25, -0.7, 0), (3.2, -1.6, 0)),
+        )])
+        disorder = T("disordered columns / projections", 26, ORANGE).move_to([1.3, -3.1, 0])
+        self.at("disordered columns and axons")
+        self.play(*[n.animate.move_to(p) for n, p in zip(ns, scattered)], Create(paths), FadeIn(disorder), run_time=0.6)
+        self.at("Making a cell")
+        self.play(Indicate(no, color=RED), run_time=0.6)
+        self.at("maintaining its identity")
+        self.play(Indicate(VGroup(ns, state), color=GREEN), run_time=0.6)
+        self.finish()
 
-        c1 = T("adding: what it can impose", 26, GREY).move_to([0.2, y1 - 1.0, 0])
-        c2 = T("deleting: what cannot be built without it", 26, GREY).move_to([0.2, y2 - 1.0, 0])
-        self.at("Adding a factor")
-        self.play(FadeIn(c1, shift=UP * 0.1), run_time=0.6)
-        self.at("Deleting it")
-        self.play(FadeIn(c2, shift=UP * 0.1), run_time=0.6)
 
-        self.at("Keep this rule")
-        rows = VGroup(t1, t2, i1, plus, l1, ar1, r1, i2, ar2, r2, c1, c2)
-        self.play(FadeOut(rows), run_time=0.8)
-        rl0 = T("a motor neuron is spelled by", 34, GREEN).move_to([0, 1.7, 0])
-        rl1 = T("a combination of factors", 46, TEXT, font=TITLE_FONT).move_to([0, 0.5, 0])
-        self.at("combination of factors")
-        self.play(FadeIn(rl0, shift=UP * 0.15), FadeIn(rl1, shift=UP * 0.15), run_time=0.7)
-        rl2 = T("not one master gene", 46, GREY, font=TITLE_FONT).move_to([0, -0.8, 0])
-        self.at("one master gene")
-        self.play(FadeIn(rl2, shift=UP * 0.15), run_time=0.7)
+class S09Hox(SpokenScene):
+    def construct(self):
+        cord = RoundedRectangle(width=1.5, height=5.3, corner_radius=0.3, color=GREY).move_to([-4.7, 0, 0])
+        profiles = VGroup(*[Rectangle(width=0.4, height=h, color=GOLD, fill_color=GOLD, fill_opacity=op).move_to([-5.1 + i * 0.4, y, 0]) for i, (h, y, op) in enumerate(((2.6, 1.2, 0.3), (3.2, 0, 0.6), (2.4, -1.3, 0.9)))])
+        ho = T("Hox profiles", 28, GOLD).move_to([-4.7, 3.1, 0])
+        self.at("Now which motor neuron")
+        self.play(FadeIn(cord), run_time=0.5)
+        self.at("Hox proteins")
+        self.play(FadeIn(profiles), FadeIn(ho), run_time=0.6)
+        fox = chip("FoxP1", TEXT, 30).move_to([-1.7, 2.3, 0])
+        column = RoundedRectangle(width=2.6, height=3.8, corner_radius=0.2, color=GREEN).move_to([-0.7, -0.4, 0])
+        pools = VGroup(*[VGroup(*[Dot([x, y, 0], color=GREEN, radius=0.13) for x in (-1.2, -0.7, -0.2)]) for y in (0.4, -1.2)])
+        self.at("With FOXP1")
+        self.play(FadeIn(fox), run_time=0.5)
+        self.at("columns and pools")
+        self.play(Create(column), FadeIn(pools), run_time=0.6)
+        lmc = T("lateral motor\ncolumn", 26, GREEN).move_to([-0.7, -2.9, 0])
+        limb = muscle([4.5, 0.2, 0], "limb muscles", width=3.2)
+        route = arr([0.7, 0.2, 0], [2.85, 0.2, 0], GREEN)
+        self.at("The lateral motor column")
+        self.play(FadeIn(lmc), FadeIn(limb), GrowArrow(route), run_time=0.6)
+        one = muscle([4.5, -1.9, 0], "one muscle", width=3.2)
+        pool_route = arr([0, -1.2, 0], [2.85, -1.9, 0], GREEN)
+        self.at("A pool supplies")
+        self.play(FadeOut(route), FadeIn(one), GrowArrow(pool_route), Indicate(pools[1], color=GREEN), run_time=0.6)
+        deletion = chip("mouse: delete Foxp1", RED, 28).move_to([0, 2.6, 0])
+        self.at("Delete FOXP1")
+        self.play(*[FadeOut(o) for o in (fox, ho, cord, profiles, lmc, column, limb, one, pool_route)], FadeIn(deletion), pools.animate.move_to([-3.7, 0, 0]), run_time=0.6)
+        retained = T("motor neurons still form", 28, GREEN).move_to([-3.6, -2.1, 0])
+        self.at("still form")
+        self.play(FadeIn(retained), run_time=0.5)
+        failed = T("limb / autonomic\ncolumn identities fail", 28, RED).move_to([3.1, 1.3, 0])
+        self.at("identities fail")
+        self.play(FadeIn(failed), run_time=0.5)
+        targets = VGroup(muscle([4.6, -0.4, 0], "muscle A"), muscle([4.6, -2.2, 0], "muscle B"))
+        tangled = VGroup(*[VMobject(color=GREEN, stroke_width=3).set_points_smoothly([[-3.2, y, 0], [-1, y + dy, 0], [1, z + dy, 0], [3.5, z, 0]]) for y, dy, z in ((0.8, -1, -2.2), (-0.8, 0.8, -0.4), (0.8, -1.8, -0.4))])
+        self.at("axons appear to choose")
+        self.play(FadeIn(targets), Create(tangled), run_time=1)
+        qual = T("apparently random\nlimb targeting", 24, GREY).move_to([4.6, -3.25, 0])
+        self.at("at random")
+        self.play(FadeIn(qual), run_time=0.5)
+        self.finish()
+
+
+class S10Limb(SpokenScene):
+    def construct(self):
+        n = neuron([-4.5, 0, 0], 0.8)
+        nl = T("lateral LMC cells", 28, GREEN).move_to([-4.5, 2.2, 0])
+        lh = chip("Lhx1", TEXT, 28).move_to([-4.5, -1.7, 0])
+        limb = RoundedRectangle(width=5.3, height=4.4, corner_radius=0.7, color=GREY).move_to([3.4, 0, 0])
+        labels = VGroup(T("dorsal limb", 28, GREY).move_to([3.5, 1.6, 0]), T("ventral limb", 28, GREY).move_to([3.5, -1.6, 0]))
+        dorsal = VMobject(color=GREEN, stroke_width=6).set_points_smoothly([[-3.7, 0, 0], [-1, 0, 0], [1.3, 0.9, 0], [4.4, 0.9, 0]])
+        self.at("The code also")
+        self.play(FadeIn(n), FadeIn(limb), FadeIn(labels), run_time=0.6)
+        self.at("Lateral cells")
+        self.play(FadeIn(nl), run_time=0.5)
+        self.at("express LHX1")
+        self.play(FadeIn(lh), run_time=0.5)
+        self.at("ensures a dorsal trajectory")
+        self.play(Create(dorsal), run_time=1)
+        loss = chip("without Lhx1", RED, 28).move_to(lh)
+        neutral = T("dorsal preference lost", 28, RED).move_to([0, -3, 0])
+        ventral = VMobject(color=GREEN, stroke_width=4).set_points_smoothly([[-3.7, 0, 0], [-1, 0, 0], [1.3, -0.9, 0], [4.4, -0.9, 0]])
+        self.at("Without it")
+        self.play(ReplacementTransform(lh, loss), FadeOut(dorsal), run_time=0.5)
+        self.at("lose that preference")
+        self.play(Create(dorsal.copy().set_stroke(width=4)), Create(ventral), FadeIn(neutral), run_time=0.7)
+        machinery = VGroup(chip("Eph receptors / ephrins", TEAL, 26), T("part of the guidance machinery", 24, GREY)).arrange(DOWN, buff=0.2).move_to([0, 2.9, 0])
+        self.at("F receptors")
+        self.play(FadeOut(nl), FadeIn(machinery), run_time=0.6)
+        self.at("Identity helps")
+        self.play(Indicate(n, color=GREEN), run_time=0.7)
+        self.finish()
+
+
+class S11Dish(SpokenScene):
+    def construct(self):
+        dish = Ellipse(width=11.5, height=3.5, color=GREY, stroke_width=4).move_to([0, -0.7, 0])
+        cells = VGroup(*[Circle(radius=0.35, color=GREY, fill_color=GREY, fill_opacity=0.2).move_to([x, -0.7 + y, 0]) for x, y in ((-1, 0.1), (0, -0.2), (1, 0.2))])
+        stage = T("mouse embryonic stem cells", 30, GREY).move_to([0, -3, 0])
+        self.at("Use that developmental logic")
+        self.play(Create(dish), FadeIn(cells), FadeIn(stage), run_time=0.7)
+        ra = VGroup(chip("retinoic acid", GOLD, 28), T("rostral hindbrain / cervical", 24, GOLD)).arrange(DOWN, buff=0.2).move_to([-3.1, 2.3, 0])
+        self.at("retinoic acid")
+        self.play(FadeIn(ra), run_time=0.5)
+        spinal = T("spinal progenitors", 30, GREY).move_to(stage)
+        self.at("promotes spinal character")
+        self.play(ReplacementTransform(stage, spinal), cells.animate.set_stroke(GOLD), run_time=0.6)
+        hh = VGroup(chip("Hedgehog agonist", TEAL, 28), T("ventral / pMN", 24, TEAL)).arrange(DOWN, buff=0.2).move_to([3.1, 2.3, 0])
+        self.at("A hedgehog agonist")
+        self.play(FadeIn(hh), run_time=0.5)
+        pmn = T("pMN progenitors", 30, GREEN).move_to(spinal)
+        self.at("toward PMN")
+        self.play(ReplacementTransform(spinal, pmn), cells.animate.set_stroke(GREEN), run_time=0.5)
+        neurons = VGroup(*[neuron(c.get_center(), 0.35) for c in cells])
+        mn = T("Mnx1-positive motor neurons", 30, GREEN).move_to(pmn)
+        self.at("Motor neurons follow")
+        self.play(ReplacementTransform(cells, neurons), ReplacementTransform(pmn, mn), run_time=0.6)
+        bias = T("mostly medial motor column", 28, GREEN).move_to([0, -1.7, 0])
+        self.at("mostly medial motor column")
+        self.play(FadeIn(bias), run_time=0.6)
+        unresolved = chip("one named pool?", GREY, 30).move_to([0, 2.3, 0])
+        self.at("Making one named pool")
+        self.play(FadeOut(ra), FadeOut(hh), FadeIn(unresolved), run_time=0.6)
+        self.at("fine detail is still incomplete")
+        self.play(Indicate(unresolved, color=GREY), run_time=0.7)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "A motor neuron is spelled by a combination, not one master gene."
+    LINE = "A staged transcription-factor code builds identity and helps specify connections."

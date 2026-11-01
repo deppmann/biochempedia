@@ -79,339 +79,296 @@ def cross(center, size=0.28, color=RED):
 
 class S00Title(TitleCard):
     LESSON = "Neurotrophins, Trk Receptors and p75"
-    TITLE = "One factor, two opposite messages"
+    TITLE = "Neurotrophins Switch On Survival Signals"
 
 
-# ---------------------------------------------------------------------------------------------
+# The original title/end cards and drawing helpers are retained verbatim.
+S = 1.2
+HX = 0.6
+RTOP = 1.35
+DY = RTOP + 0.45
+
+
+def neuron(x, y, r=1.0):
+    cell = Circle(radius=r, stroke_color=GREY, stroke_width=4,
+                  fill_color=GREY, fill_opacity=0.12).move_to([x, y, 0])
+    rec = receptor(x, PINK, h=1.0).shift(UP * (y + r))
+    return VGroup(cell, rec)
+
+
+def population(x, y, n=6, color=GREY):
+    # Schematic counts, never quantitative knockout measurements.
+    return VGroup(*[Circle(radius=0.18, stroke_color=color, stroke_width=3,
+                           fill_color=color, fill_opacity=0.35)
+                   .move_to([x + (i % 3 - 1) * 0.55, y - (i // 3) * 0.55, 0])
+                   for i in range(n)])
+
+
 class S01Question(SpokenScene):
     def construct(self):
-        C = np.array([1.8, 0.2, 0])
-        R = 2.3
-        cell = Circle(radius=R, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to(C)
-        self.at("mature nerve growth")
-        d1 = dimer(-4.5, 0.2, 1.5)
-        l1 = lab("mature NGF", BLUE, -4.5, 1.2, 28)
-        g1 = VGroup(d1, l1)
-        self.play(FadeIn(g1, scale=0.9), run_time=0.6)
-        self.at("cultured sympathetic")
-        nl = lab("cultured sympathetic neurons", GREY, 1.8, 3.1, 26)
-        self.play(FadeIn(cell, scale=0.92), FadeIn(nl, shift=UP * 0.1), run_time=0.6)
-        self.play(g1.animate.shift(RIGHT * 2.7), run_time=0.8)
-        self.at("they survive")
-        ok = chip("survives", GREEN, size=28).move_to([1.8, -3.2, 0])
-        self.play(cell.animate.set_stroke(GREEN).set_fill(GREEN, 0.3), FadeIn(ok, shift=UP * 0.1), run_time=0.5)
-        # --- case 2: reset the old answer in the same beat as the new factor comes in
-        self.at("add the same protein")
-        d2 = dimer(-4.5, 0.2, 1.5, tails=True)
-        l2 = lab("same NGF, uncut", TEXT, -4.5, 2.3, 28)
-        g2 = VGroup(d2, l2)
-        self.play(cell.animate.set_stroke(GREY).set_fill(GREY, 0.12), FadeOut(ok), FadeOut(g1),
-                  FadeIn(g2, shift=RIGHT * 0.3), run_time=0.6)
-        self.at("Barbara Hempstead's")
-        self.play(g2.animate.shift(RIGHT * 2.7), run_time=0.8)
-        self.at("neurons died")
-        bad = chip("dies", RED, size=28).move_to([1.8, -3.2, 0])
-        self.play(cell.animate.set_stroke(RED).set_fill(RED, 0.3), FadeIn(bad, shift=UP * 0.1), run_time=0.5)
-        self.at("How can one factor")
-        self.play(cell.animate.set_stroke(GREY).set_fill(GREY, 0.12), FadeOut(bad), FadeOut(g2), run_time=0.5)
-        self.at("opposite messages")
-        a = chip("survives", GREEN, size=28).move_to([-2.0, 0.2, 0])
-        b = chip("dies", RED, size=28).move_to([5.3, 0.2, 0])
-        self.play(FadeIn(a, shift=RIGHT * 0.2), FadeIn(b, shift=LEFT * 0.2), run_time=0.5)
-        self.at("receptors on the neuron")
-        bars = VGroup()
-        for deg in (55, 80, 105, 130):
-            ang = deg * DEGREES
-            p = C + R * np.array([np.cos(ang), np.sin(ang), 0])
-            bar = RoundedRectangle(corner_radius=0.08, width=0.34, height=0.85, stroke_color=GREY, stroke_width=3,
-                                   fill_color=GREY, fill_opacity=0.5).rotate(ang - PI / 2).move_to(p)
-            bars.add(bar)
-        q = lab("receptors?", GREY, 1.8, 3.3, 30)
-        self.play(FadeOut(a), FadeOut(b), FadeOut(nl), FadeIn(bars, lag_ratio=0.2), FadeIn(q, shift=DOWN * 0.1),
-                  run_time=0.8)
+        target = chip("target", GREY, 30).move_to([-4.6, 1.6, 0])
+        n = neuron(2.6, -0.5, 1.8)
+        nl = lab("developing neuron", GREY, 2.6, -2.8, 28)
+        factor = dimer(-4.6, 0.2, 1.0)
+        fl = lab("neurotrophin", BLUE, -4.6, -0.7, 26)
+        self.at("Many developing neurons")
+        self.play(FadeIn(target), FadeIn(n), FadeIn(nl), run_time=0.6)
+        self.at("a neurotrophin activates")
+        self.play(FadeIn(factor), FadeIn(fl), run_time=0.4)
+        self.play(factor.animate.move_to([2.6, 2.1, 0]), run_time=0.8)
+        rl = lab("matching Trk", PINK, 5.2, 1.3, 26)
+        self.play(FadeIn(rl), Indicate(n[1], color=PINK), run_time=0.5)
+        self.at("are kinases")
+        self.play(Indicate(n[1].foot, color=PINK), run_time=0.5)
+        self.at("signals supporting survival")
+        signal = chip("survival + growth", GREEN, 26).move_to([2.6, -0.8, 0])
+        self.play(FadeIn(signal), n[0].animate.set_stroke(GREEN), run_time=0.6)
+        self.at("its target supplies")
+        a = arr([-3.5, 1.6, 0], [1.2, 2.1, 0], BLUE)
+        self.play(GrowArrow(a), run_time=0.6)
+        self.at("different groups of neurons")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        groups = VGroup()
+        for x, f, r in [(-4.2, "NGF", "TrkA"), (0, "BDNF / NT-4", "TrkB"), (4.2, "NT-3", "TrkC")]:
+            g = VGroup(neuron(x, -0.5), dimer(x, 1.7, 0.8),
+                       lab(f, BLUE, x, 2.7), lab(r, PINK, x, -2.1),
+                       lab("survival", GREEN, x, -3.0))
+            groups.add(g)
+        self.play(FadeIn(groups, lag_ratio=0.15), run_time=0.8)
+        self.at("How does that survival")
+        q = lab("How does the signal start?", TEXT, 0, 3.5, 30)
+        self.play(FadeIn(q), run_time=0.5)
         self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-S = 1.2           # ligand scale on the membrane stage
-HX = 0.6          # half spacing of a receptor pair under a dimer
-RTOP = 1.35       # top of a receptor bar
-DY = RTOP + 0.45  # dimer centre height when docked
 
 
 class S02Trk(SpokenScene):
     def construct(self):
+        self.at("Mammals make")
+        head = lab("Four neurotrophins → three Trks", TEXT, 0, 3.3, 32)
+        self.play(FadeIn(head), run_time=0.4)
+        rows = VGroup()
+        specs = [("NGF", "TrkA", 1.8), ("BDNF + NT-4", "TrkB", 0.1), ("NT-3", "TrkC", -1.6)]
+        for cue, (f, r, y) in zip(["NGF prefers", "BDNF and NT4", "NT3 prefers"], specs):
+            self.at(cue)
+            row = VGroup(chip(f, BLUE, 28).move_to([-3.5, y, 0]),
+                         arr([-1.4, y, 0], [2.0, y, 0], BLUE),
+                         chip(r, PINK, 28).move_to([3.1, y, 0]))
+            rows.add(row)
+            self.play(FadeIn(row), run_time=0.6)
+        self.at("and activates")
+        weak = VGroup(*[DashedLine([-1.9, -1.35, 0], [2.3, y - 0.3, 0], color=BLUE,
+                                   stroke_width=2, dash_length=0.13).add_tip(tip_length=0.16) for y in (1.8, 0.1)],
+                      lab("weaker", BLUE, 0, -2.7, 24))
+        self.play(FadeIn(weak), run_time=0.6)
+        self.at("Each factor is a dimer")
+        self.play(FadeOut(rows), FadeOut(weak), FadeOut(head), run_time=0.4)
+        d = dimer(0, 2.0, S)
+        dl = lab("two identical chains", BLUE, 0, 3.15, 28)
         mem = membrane()
-        lo = T("outside", 22, GREY).move_to([-5.3, 0.6, 0])
-        li = T("inside", 22, GREY).move_to([-5.3, -0.6, 0])
-        self.at("two kinds of receptor")
-        self.play(FadeIn(mem), FadeIn(lo), FadeIn(li), run_time=0.5)
-        self.at("the first kind")
-        rA, rB, rC = receptor(-3, PINK), receptor(0, PINK), receptor(3, PINK)
-        la, lb, lc = lab("TrkA", PINK, -3, -2.3), lab("TrkB", PINK, 0, -2.3), lab("TrkC", PINK, 3, -2.3)
-        head = lab("Trk receptors", PINK, 0, 3.2, 30)
-        self.play(FadeIn(rA, shift=UP * 0.2), FadeIn(rB, shift=UP * 0.2), FadeIn(rC, shift=UP * 0.2),
-                  FadeIn(head), run_time=0.7)
-        self.play(FadeIn(la), FadeIn(lb), FadeIn(lc), run_time=0.4)
-        self.at("particular factors")
-        self.play(Indicate(rA.bar, color=PINK, scale_factor=1.08), Indicate(rB.bar, color=PINK, scale_factor=1.08),
-                  Indicate(rC.bar, color=PINK, scale_factor=1.08), run_time=0.7)
-        self.at("prefers", nth=1)
-        d = dimer(-3, 2.5, S)
-        nl = lab("NGF", BLUE, -3, 3.3, 26)
-        ng = VGroup(d, nl)
-        self.play(FadeIn(ng, shift=DOWN * 0.2), Indicate(rA.bar, color=PINK, scale_factor=1.12), run_time=0.7)
-        self.at("is a dimer")
-        self.play(Indicate(d, color=BLUE, scale_factor=1.12), run_time=0.6)
-        self.at("two receptors together")
-        rA2 = receptor(HX, PINK)
-        two = lab("2 x TrkA", PINK, 0, -2.3, 26)
-        self.play(FadeOut(head), FadeOut(rB), FadeOut(rC), FadeOut(la), FadeOut(lb), FadeOut(lc),
-                  rA.animate.shift(RIGHT * (3 - HX)), FadeIn(rA2), FadeIn(two),
-                  d.animate.move_to([0, DY, 0]), nl.animate.move_to([0, DY + 0.8, 0]), run_time=1.0)
-        self.at("kinase domains")
-        fL, fR = rA.foot.get_center(), rA2.foot.get_center()
-        self.play(rA.foot.animate.set_fill(PINK, 0.9), rA2.foot.animate.set_fill(PINK, 0.9), run_time=0.4)
+        left, right = receptor(-2.8, PINK), receptor(2.8, PINK)
+        self.play(FadeIn(d), FadeIn(dl), FadeIn(mem), FadeIn(left), FadeIn(right), run_time=0.6)
+        self.at("It brings")
+        self.play(left.animate.shift(RIGHT * 2.2), right.animate.shift(LEFT * 2.2),
+                  d.animate.move_to([0, DY, 0]), run_time=0.9)
+        self.at("Their kinase domains")
+        self.play(left.foot.animate.set_fill(PINK, 0.9), right.foot.animate.set_fill(PINK, 0.9), run_time=0.4)
         self.at("phosphorylate each other")
+        fL, fR = left.foot.get_center(), right.foot.get_center()
         pL, pR = badge(fL), badge(fR)
         self.add(pL, pR)
         self.play(MoveAlongPath(pL, ArcBetweenPoints(fL, fR, angle=-PI / 2)),
-                  MoveAlongPath(pR, ArcBetweenPoints(fR, fL, angle=-PI / 2)), run_time=0.9)
-        self.at("survival branches")
-        c1 = chip("Ras to ERK", GREEN, size=26).move_to([-2.9, -3.2, 0])
-        c2 = chip("PI3K to Akt", GREEN, size=26).move_to([2.9, -3.2, 0])
-        a1 = arr([-0.6, -1.95, 0], [-2.5, -2.85, 0], GREEN)
-        a2 = arr([0.6, -1.95, 0], [2.5, -2.85, 0], GREEN)
-        self.play(FadeIn(a1), FadeIn(a2), FadeIn(c1, shift=UP * 0.1), FadeIn(c2, shift=UP * 0.1), run_time=0.8)
+                  MoveAlongPath(pR, ArcBetweenPoints(fR, fL, angle=-PI / 2)), run_time=0.8)
+        self.at("The phosphorylated tyrosines")
+        self.play(Indicate(VGroup(pL, pR), color=TEXT), run_time=0.5)
+        self.at("through RAS")
+        c1 = chip("Ras → ERK", GREEN, 26).move_to([-2.9, -3.1, 0])
+        c2 = chip("PI3K → Akt", GREEN, 26).move_to([2.9, -3.1, 0])
+        a1 = arr([-0.6, -1.95, 0], [-2.5, -2.7, 0], GREEN)
+        a2 = arr([0.6, -1.95, 0], [2.5, -2.7, 0], GREEN)
+        self.play(GrowArrow(a1), FadeIn(c1), run_time=0.45)
+        self.at("and PI3K")
+        self.play(GrowArrow(a2), FadeIn(c2), run_time=0.45)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S02Targets(SpokenScene):
+    def construct(self):
+        target = chip("target", GREY, 30).move_to([0, 2.8, 0])
+        pool = VGroup(*[dimer(x, 1.7, 0.5) for x in (-0.7, 0.7)])
+        neurons = VGroup(neuron(-3.2, -0.9, 1.25), neuron(3.2, -0.9, 1.25))
+        labels = VGroup(*[lab("matching Trk", PINK, x, -2.6, 24) for x in (-3.2, 3.2)])
+        self.at("Targets make")
+        self.play(FadeIn(target), FadeIn(neurons), FadeIn(labels), run_time=0.5)
+        self.at("a limited amount")
+        self.play(FadeIn(pool), run_time=0.5)
+        self.play(pool[0].animate.move_to([-3.2, 1.1, 0]), run_time=0.7)
+        enough = lab("enough → survives", GREEN, -3.2, -3.3, 26)
+        self.play(neurons[0][0].animate.set_stroke(GREEN), FadeIn(enough), run_time=0.4)
+        self.at("Neurons that fail")
+        low = lab("insufficient support", GREY, 3.2, 1.5, 24)
+        self.play(FadeIn(low), run_time=0.4)
+        self.at("get enough dye")
+        lost = lab("neuron lost", RED, 3.2, -3.3, 26)
+        self.play(neurons[1].animate.set_opacity(0.12), FadeIn(lost), run_time=0.7)
+        self.at("Which factor a population")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        f = chip("target's factor", BLUE, 30).move_to([-3.8, 1.5, 0])
+        r = chip("neuron's Trk", PINK, 30).move_to([3.8, 1.5, 0])
+        self.play(FadeIn(f), FadeIn(r), run_time=0.6)
+        self.at("So the receptor map")
+        result = chip("survival dependence", GREEN, 30).move_to([0, -1.8, 0])
+        arrows = VGroup(arr([-3.8, 0.9, 0], [-1, -1.25, 0], BLUE),
+                         arr([3.8, 0.9, 0], [1, -1.25, 0], PINK))
+        self.play(GrowArrow(arrows[0]), GrowArrow(arrows[1]), FadeIn(result), run_time=0.7)
+        self.finish()
+
+
+class S02Knockouts(SpokenScene):
+    def construct(self):
+        self.at("Mouse knockouts test")
+        heading = lab("Mouse neuron populations", TEXT, 0, 3.4, 32)
+        cols = VGroup(lab("control", GREY, 1.0, 2.5), lab("knockout", RED, 4.8, 2.5))
+        note = lab("schematic populations • counts are not measurements", GREY, 0, -3.4, 22)
+        self.play(FadeIn(heading), FadeIn(cols), FadeIn(note), run_time=0.5)
+        rows = VGroup()
+        specs = [("Without NGF", "NGF / TrkA", "sympathetic; pain / heat", 1.3),
+                 ("Without BDNF", "BDNF", "balance (vestibular)", -0.3),
+                 ("Without NT3", "NT-3 / TrkC", "limb position", -1.9)]
+        for cue, pair, kind, y in specs:
+            self.at(cue)
+            name = VGroup(lab(pair, BLUE, -4.2, y + 0.1, 26),
+                          lab(kind, GREY, -4.2, y - 0.45, 22))
+            control, ko = population(1, y), population(4.8, y)
+            row = VGroup(name, control, ko)
+            rows.add(row)
+            self.play(FadeIn(row), run_time=0.35)
+            # Loss is revealed on the subsequent population description.
+            loss_cue = {"NGF / TrkA": "mice lose", "BDNF": "for balance", "NT-3 / TrkC": "report limb position"}[pair]
+            self.at(loss_cue)
+            lost_cells = [ko[i] for i in (1, 3, 4, 5)]
+            self.play(*[FadeOut(c, scale=0.5) for c in lost_cells], run_time=0.6)
+            ko.remove(*lost_cells)
+        self.at("Different pairs give")
+        self.play(*[Indicate(row[2], color=RED, scale_factor=1.1) for row in rows], run_time=0.7)
+        self.finish()
+
+
 class S03P75(SpokenScene):
     def construct(self):
         mem = membrane()
-        lo = T("outside", 22, GREY).move_to([-5.3, 0.6, 0])
-        li = T("inside", 22, GREY).move_to([-5.3, -0.6, 0])
-        trk = VGroup(*[receptor(x, PINK) for x in (-4.4, -3.4, -2.4)])
-        trkl = lab("Trk", PINK, -3.4, -2.3)
-        self.add(mem, lo, li, trk, trkl)
-        self.at("The second kind")
-        p = receptor(1.2, VIOLET, foot=False)
-        pl = lab("p75", VIOLET, 1.2, -2.3, 28)
-        self.play(FadeIn(p, shift=UP * 0.2), FadeIn(pl), run_time=0.6)
+        p = receptor(0, VIOLET, foot=False)
+        pl = lab("p75", VIOLET, 0, -2.3, 28)
+        self.at("A shared receptor")
+        self.play(FadeIn(mem), FadeIn(p), FadeIn(pl), run_time=0.5)
         self.at("binds all four")
-        button = Circle(radius=0.22, stroke_color=VIOLET, stroke_width=3, fill_color=VIOLET, fill_opacity=0.9)
-        button.move_to([1.2, 1.62, 0])
-        names = ["NGF", "BDNF", "NT-3", "NT-4"]
-        chips = VGroup(*[chip(n, BLUE, size=26).move_to([x, 3.0, 0]) for n, x in zip(names, (-1.4, 0.35, 2.05, 3.75))])
-        self.play(FadeIn(button, scale=0.5), FadeIn(chips, lag_ratio=0.2), run_time=0.7)
-        for c in chips:
-            ring = Circle(radius=0.25, stroke_color=VIOLET, stroke_width=4).move_to(button)
-            self.play(Indicate(c, color=BLUE, scale_factor=1.12), ring.animate.scale(3.2).set_stroke(opacity=0),
-                      run_time=0.3)
-            self.remove(ring)
-        self.at("no kinase")
-        nk = lab("no kinase", GREY, 1.2, -2.3, 26)
-        self.play(ReplacementTransform(pl, nk), run_time=0.4)
+        names = VGroup(*[chip(n, BLUE, 26).move_to([x, 3.1, 0])
+                         for n, x in zip(["NGF", "BDNF", "NT-3", "NT-4"], [-4.5, -1.5, 1.5, 4.5])])
+        self.play(FadeIn(names), run_time=0.5)
+        for c in names:
+            lig = dimer(c.get_x(), 2.3, 0.55)
+            self.play(FadeIn(lig), run_time=0.1)
+            self.play(lig.animate.move_to([0, 1.6, 0]), run_time=0.2)
+            self.play(FadeOut(lig), run_time=0.1)
+        self.at("It has no kinase")
+        nk = lab("no kinase", GREY, 3.6, -1.3, 26)
+        self.play(FadeIn(nk), run_time=0.4)
         self.at("tumor necrosis factor")
-        fam = chip("TNF receptor family", VIOLET, size=24).move_to([4.2, 1.9, 0])
-        self.play(FadeIn(fam, shift=LEFT * 0.2), run_time=0.5)
-        self.at("death receptor FASS")
-        fas = chip("Fas", VIOLET, size=24).move_to([4.2, 1.0, 0])
-        ln = Line(fam.get_bottom(), fas.get_top(), color=VIOLET, stroke_width=3)
-        self.play(FadeIn(fas, shift=UP * 0.1), Create(ln), run_time=0.5)
-        self.at("death domain")
-        dd = Circle(radius=0.26, stroke_color=VIOLET, stroke_width=3, fill_color=VIOLET, fill_opacity=0.9)
-        dd.move_to([1.2, -1.55, 0])
-        ddl = lab("death domain", VIOLET, 1.2, -2.3, 26)
-        self.play(FadeIn(dd, scale=0.4), ReplacementTransform(nk, ddl), run_time=0.5)
-        self.at("locks cut")
-        lk = lab("locks, cut for certain keys", PINK, -3.4, -2.3, 24)
-        self.play(ReplacementTransform(trkl, lk), *[Indicate(r.bar, color=PINK, scale_factor=1.1) for r in trk],
-                  run_time=0.8)
-        self.at("doorbell")
-        db = lab("doorbell", VIOLET, -0.4, 1.62, 26)
-        self.play(FadeIn(db, shift=RIGHT * 0.1), run_time=0.4)
-        self.at("any key can ring")
-        for _ in range(2):
-            ring = Circle(radius=0.25, stroke_color=VIOLET, stroke_width=4).move_to(button)
-            self.play(ring.animate.scale(3.5).set_stroke(opacity=0), Indicate(button, color=VIOLET, scale_factor=1.5),
-                      run_time=0.45)
-            self.remove(ring)
+        fam = chip("TNF receptor family", VIOLET, 26).move_to([-3.9, 1.1, 0])
+        self.play(FadeOut(names), FadeIn(fam), run_time=0.5)
+        self.at("a death domain")
+        dd = Circle(radius=0.26, stroke_color=VIOLET, fill_color=VIOLET, fill_opacity=0.9).move_to([0, -1.55, 0])
+        ddl = lab("death domain", VIOLET, -3.7, -1.55, 26)
+        self.play(FadeIn(dd), FadeIn(ddl), run_time=0.4)
+        self.at("But its response depends")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        title = lab("p75: response depends on partners", TEXT, 0, 3.2, 32)
+        self.play(FadeIn(title), run_time=0.4)
+        self.at("it can raise")
+        # Functional association only: no physical TrkA–p75 complex is asserted.
+        left = VGroup(chip("p75", VIOLET, 28).move_to([-4.8, 1.0, 0]),
+                      chip("TrkA", PINK, 28).move_to([-2.3, 1.0, 0]),
+                      lab("with", GREY, -3.55, 1.0, 22),
+                      lab("can raise NGF binding", BLUE, -3.5, -0.5, 26))
+        self.play(FadeIn(left), run_time=0.5)
+        self.at("it can carry")
+        right = VGroup(chip("p75", VIOLET, 28).move_to([2.1, 1.0, 0]),
+                       chip("sortilin", YELLOW, 28).move_to([4.9, 1.0, 0]),
+                       lab("with", GREY, 3.4, 1.0, 22),
+                       arr([3.5, 0.3, 0], [3.5, -1.3, 0], RED),
+                       chip("can signal death", RED, 26).move_to([3.5, -2.0, 0]))
+        self.play(FadeIn(right), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Cut(SpokenScene):
-    def construct(self):
-        C = np.array([-3.4, 0.3, 0])
-        SS = 1.9
-        CY = -0.4          # dimer body height
-        cell = Circle(radius=2.7, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.12).move_to(C)
-        self.at("Like most secreted")
-        self.play(FadeIn(cell, scale=0.92), run_time=0.6)
-        self.at("is made")
-        d = dimer(C[0], CY, SS)
-        self.play(FadeIn(d, scale=0.7), run_time=0.5)
-        self.at("longer chain")
-        tails = dimer(C[0], CY, SS, tails=True).tails
-        self.play(*[GrowFromEdge(t, DOWN) for t in tails], run_time=0.6)
-        d.add(*tails)
-        self.at("extra stretch")
-        pdl = lab("pro-domain", ORANGE, 0.3, 2.6, 28)
-        pa = arr([-0.8, 2.55, 0], [C[0] + 0.95 + 0.25, 2.15, 0], ORANGE)
-        self.play(FadeIn(pdl, shift=LEFT * 0.1), FadeIn(pa), Indicate(tails, color=ORANGE, scale_factor=1.15),
-                  run_time=0.7)
-        self.at("is called")
-        nm = lab("proNGF", BLUE, C[0], CY - 1.15, 30)
-        self.play(FadeIn(nm, shift=UP * 0.1), run_time=0.4)
-        self.at("Cells can trim")
-        guess = chip("always trimmed inside?", GREY, size=24).move_to([C[0], -3.15, 0])
-        self.play(FadeIn(guess, shift=UP * 0.1), run_time=0.5)
-        self.at("secrete")
-        x = cross(guess.get_center())
-        self.play(Create(x), run_time=0.3)
-        self.play(FadeOut(guess), FadeOut(x), FadeOut(pdl), FadeOut(pa),
-                  VGroup(d, nm).animate.shift(RIGHT * 6.6), run_time=1.0)
-        self.at("Outside")
-        out = lab("outside the cell", GREY, 3.2, -2.6, 26)
-        self.play(FadeIn(out), run_time=0.4)
-        self.at("plasmon")
-        cx = d.bodies[0].get_center()[0]
-        tl_l, tl_r = tails[0], tails[1]
-        pc = chip("plasmin", GOLD, size=26).move_to([cx - 0.2, 3.0, 0])
-        pca = arr([cx - 0.2, 2.65, 0], [tl_l.get_center()[0], tl_l.get_top()[1] + 0.05, 0], GOLD)
-        self.play(FadeIn(pc, shift=DOWN * 0.1), FadeIn(pca), run_time=0.4)
-        self.play(tl_l.animate.shift(LEFT * 1.0 + UP * 0.2).set_opacity(0.0), FadeOut(pca), run_time=0.6)
-        self.at("matrix metalloproteinases")
-        cxr = d.bodies[1].get_center()[0]
-        mc = chip("MMPs", GOLD, size=26).move_to([cxr + 0.9, 3.0, 0])
-        mca = arr([cxr + 0.9, 2.65, 0], [tl_r.get_center()[0], tl_r.get_top()[1] + 0.05, 0], GOLD)
-        self.play(FadeIn(mc, shift=DOWN * 0.1), FadeIn(mca), run_time=0.4)
-        self.play(tl_r.animate.shift(RIGHT * 1.0 + UP * 0.2).set_opacity(0.0), FadeOut(mca), run_time=0.6)
-        mat = lab("mature NGF", BLUE, nm.get_center()[0], nm.get_center()[1], 30)
-        self.play(ReplacementTransform(nm, mat), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S05Outcome(SpokenScene):
     def construct(self):
-        cL, cR = -3.2, 3.2
-        S5 = 1.0
-        DY5 = RTOP + 0.375
-        def mem_at(c):
-            return Rectangle(width=5.9, height=0.36, stroke_width=0, fill_color=GREY, fill_opacity=0.5).move_to([c, 0, 0])
-        def panel(c):
-            tA = VGroup(receptor(c - 1.9 - HX, PINK), receptor(c - 1.9 + HX, PINK))
-            p = receptor(c, VIOLET, foot=True)
-            p.foot.set_fill(VIOLET, 0.9)
-            return tA, p
-        tAL, pL_ = panel(cL)
-        tAR, pR_ = panel(cR)
-        head = lab("cultured sympathetic neurons", GREY, 0, 3.45, 22)
-        lA = lab("TrkA", PINK, cL - 1.9, -2.35, 24)
-        lA2 = lab("TrkA", PINK, cR - 1.9, -2.35, 24)
-        lP = lab("p75", VIOLET, cL - 0.7, -1.55, 24)
-        lP2 = lab("p75", VIOLET, cR - 0.7, -1.55, 24)
-        self.add(mem_at(cL), mem_at(cR), head, tAL, tAR, pL_, pR_, lA, lA2, lP, lP2)
-        self.at("uncut")
-        pro = dimer(cL + 0.6, DY5 + 0.35, S5, tails=True)
-        prl = lab("proNGF", BLUE, cL + 0.6, 3.0, 26)
-        self.play(FadeIn(pro, shift=DOWN * 0.2), FadeIn(prl), run_time=0.5)
-        self.at("bound")
-        self.play(pro.animate.move_to([cL + 0.6, DY5 + 0.0, 0]).shift(UP * 0.0), run_time=0.6)
-        self.at("very little")
-        vl = lab("very little", PINK, cL - 1.9, 1.95, 24)
-        pf = badge(tAL[0].foot.get_center()).scale(0.7).set_opacity(0.35)
-        self.play(FadeIn(vl, shift=DOWN * 0.1), FadeIn(pf), run_time=0.5)
+        self.at("Precursor processing adds")
+        heading = lab("Processing changes the signal", TEXT, 0, 3.3, 32)
+        self.play(FadeIn(heading), run_time=0.4)
+        self.at("starts as a longer chain")
+        cell = Circle(radius=1.8, stroke_color=GREY, stroke_width=4,
+                      fill_color=GREY, fill_opacity=0.12).move_to([-3.8, -0.3, 0])
+        pro = dimer(-3.8, -0.3, 1.2, tails=True)
+        nm = lab("proNGF", BLUE, -3.8, -2.5, 28)
+        pd = lab("pro-domain", ORANGE, -3.8, 2.0, 26)
+        self.play(FadeIn(cell), FadeIn(pro), FadeIn(nm), FadeIn(pd), run_time=0.6)
+        self.at("Cells can")
+        self.play(pro.animate.shift(RIGHT * 7.3), nm.animate.shift(RIGHT * 7.3),
+                  pd.animate.shift(RIGHT * 7.3), run_time=0.8)
+        self.at("In Hempstead's experiments")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        head = lab("cultured sympathetic neurons", GREY, 0, 3.55, 26)
+        pro = dimer(-3.2, 1.6, 1.0, tails=True)
+        prl = lab("uncut proNGF", BLUE, -3.2, 2.95, 26)
+        p = receptor(-3.8, VIOLET)
+        p.foot.set_fill(VIOLET, 0.9)
+        pl = lab("p75", VIOLET, -4.6, -1.5, 24)
+        mem = membrane()
+        self.play(FadeIn(head), FadeIn(pro), FadeIn(prl), FadeIn(p), FadeIn(pl), FadeIn(mem), run_time=0.5)
+        self.at("bound P75 tightly")
+        self.play(pro.animate.shift(DOWN * 0.2), Indicate(p.bar, color=VIOLET), run_time=0.6)
         self.at("triggered apoptosis")
-        sortL = receptor(cL + 2.3, YELLOW, foot=False)
-        self.play(FadeIn(sortL, shift=UP * 0.2), run_time=0.4)
-        dead = chip("apoptosis", RED, size=28).move_to([cL + 0.6, -3.2, 0])
-        da = arr([cL + 0.3, -1.95, 0], [cL + 0.6, -2.85, 0], RED)
-        self.play(pL_.foot.animate.set_stroke(RED).set_fill(RED, 0.9), FadeIn(da), FadeIn(dead, shift=UP * 0.1),
-                  run_time=0.6)
-        self.at("a partner")
-        sl = lab("sortilin", YELLOW, cL + 2.3, -1.8, 24)
-        self.play(FadeIn(sl), Indicate(sortL.bar, color=YELLOW, scale_factor=1.1), run_time=0.6)
-        self.at("binds the")
-        top_r = pro.tails[1].get_top()
-        hook = ArcBetweenPoints(top_r, [cL + 2.3, RTOP + 0.05, 0], angle=-PI / 2, color=ORANGE, stroke_width=7)
-        self.play(Create(hook), Indicate(pro.tails, color=ORANGE, scale_factor=1.1), run_time=0.7)
-        # second, separate neuron of the same kind (right)
-        self.at("kept", lead=0.9)
-        sortR = receptor(cR + 2.3, YELLOW, foot=False)
-        slR = lab("sortilin", YELLOW, cR + 2.3, -1.8, 24)
-        mat = dimer(cR - 1.9, DY5 + 0.35, S5)
-        ml = lab("mature NGF", BLUE, cR - 1.9, 2.75, 26)
-        self.play(FadeIn(sortR), FadeIn(slR), FadeIn(mat), FadeIn(ml), run_time=0.6)
-        self.at("the same kind")
-        self.play(mat.animate.move_to([cR - 1.9, DY5, 0]), run_time=0.6)
-        self.at("alive")
-        fL, fR = tAR[0].foot.get_center(), tAR[1].foot.get_center()
-        bL, bR = badge(fL), badge(fR)
-        ok = chip("survives", GREEN, size=28).move_to([cR - 1.9, -3.2, 0])
-        oa = arr([cR - 1.9, -1.95, 0], [cR - 1.9, -2.85, 0], GREEN)
-        self.play(FadeIn(bL), FadeIn(bR), FadeIn(oa), FadeIn(ok, shift=UP * 0.1), run_time=0.6)
-        self.at("Another group")
-        sc = lab("shown in cultured cells and rodent injury models", GREY, 0, 3.45, 22)
-        self.play(ReplacementTransform(head, sc), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    def construct(self):
-        X = (-4.2, 0.0, 4.2)
-        nums = VGroup(*[M(str(i + 1), 44, GREY).move_to([x, 2.9, 0]) for i, x in enumerate(X)])
-        self.at("Three things")
-        self.play(FadeIn(nums, lag_ratio=0.3), run_time=0.8)
-        # column 1
-        self.at("Was the factor cut")
-        h1 = chip("cut or uncut?", ORANGE, size=26).move_to([X[0], 2.9, 0])
-        pro = dimer(-5.4, 0.9, 0.9, tails=True)
-        mat = dimer(-2.9, 0.9, 0.9)
-        ar = arr([-4.45, 0.9, 0], [-3.85, 0.9, 0], GREY)
-        l_u = lab("uncut", ORANGE, -5.4, -0.5, 24)
-        l_c = lab("cut", BLUE, -2.9, -0.5, 24)
-        self.play(ReplacementTransform(nums[0], h1), FadeIn(pro), run_time=0.5)
-        self.play(FadeIn(ar), FadeIn(mat), FadeIn(l_u), FadeIn(l_c), run_time=0.6)
-        # column 2
-        self.at("which receptors does")
-        h2 = chip("which receptors?", PINK, size=26).move_to([X[1], 2.9, 0])
-        rT = receptor(-0.7, PINK, foot=False, h=2.2).shift(UP * 0.9)
-        rP = receptor(0.7, VIOLET, foot=False, h=2.2).shift(UP * 0.9)
-        lt, lp = lab("TrkA", PINK, -0.7, -0.5, 24), lab("p75", VIOLET, 0.7, -0.5, 24)
-        self.play(ReplacementTransform(nums[1], h2), FadeIn(rT, shift=UP * 0.1), FadeIn(rP, shift=UP * 0.1),
-                  FadeIn(lt), FadeIn(lp), run_time=0.8)
-        # column 3
-        self.at("how much of each")
-        h3 = chip("how much of each?", GREY, size=26).move_to([X[2], 2.9, 0])
-        def mini(x1, x2, hp, ht):
-            base = Line([x1 - 0.45, -0.2, 0], [x2 + 0.45, -0.2, 0], color=GREY, stroke_width=3)
-            tl = Rectangle(width=0.42, height=hp, stroke_color=VIOLET, stroke_width=3, fill_color=VIOLET,
-                           fill_opacity=0.55).move_to([x1, -0.2 + hp / 2, 0])
-            sh = Rectangle(width=0.42, height=ht, stroke_color=PINK, stroke_width=3, fill_color=PINK,
-                           fill_opacity=0.55).move_to([x2, -0.2 + ht / 2, 0])
-            ll = VGroup(lab("p75", VIOLET, x1, -0.55, 22), lab("TrkA", PINK, x2, -0.55, 22))
-            return VGroup(base, tl, sh, ll)
-        cA = mini(2.8, 3.55, 1.8, 0.7)
-        cB = mini(4.85, 5.6, 0.7, 1.8)
-        vs = lab("vs", GREY, 4.2, 0.5, 24)
-        cap = lab("ratio changes the response", GREY, 4.2, -1.1, 22)
-        self.play(ReplacementTransform(nums[2], h3), FadeIn(cA), run_time=0.8)
-        self.play(FadeIn(vs), FadeIn(cB), FadeIn(cap), run_time=0.7)
-        self.at("precursor killing")
-        note = lab("precursor killing in normal development: less clear", GREY, 0, -3.2, 24)
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.5)
-        self.at("Cut or uncut")
-        res = chip("what the factor says", TEXT, size=32).move_to([0, -2.2, 0])
-        arrs = VGroup(arr([X[0], -0.95, 0], [-1.7, -1.85, 0]), arr([X[1], -0.95, 0], [0, -1.85, 0]),
-                      arr([X[2], -1.35, 0], [1.7, -1.85, 0]))
-        self.play(FadeIn(arrs, lag_ratio=0.2), FadeIn(res, scale=0.9), run_time=0.8)
+        dead = chip("apoptosis", RED, 28).move_to([-3.2, -3.1, 0])
+        da = arr([-3.8, -1.95, 0], [-3.2, -2.65, 0], RED)
+        self.play(FadeIn(dead), GrowArrow(da), run_time=0.5)
+        self.at("Later work showed")
+        sort = receptor(-2.3, YELLOW, foot=False)
+        sl = lab("sortilin required", YELLOW, -1.9, -1.95, 24)
+        self.play(FadeIn(sort), FadeIn(sl), run_time=0.5)
+        self.at("Mature NGF supported")
+        # Same membrane, a separate comparison on the right.
+        mat = dimer(3.2, DY, 1.0)
+        ml = lab("mature NGF", BLUE, 3.2, 2.95, 26)
+        trks = VGroup(receptor(2.6, PINK), receptor(3.8, PINK))
+        tl = lab("TrkA", PINK, 3.2, -2.2, 24)
+        ok = chip("survival", GREEN, 28).move_to([3.2, -3.1, 0])
+        self.play(FadeIn(mat), FadeIn(ml), FadeIn(trks), FadeIn(tl), run_time=0.5)
+        self.play(FadeIn(badge(trks[0].foot.get_center())), FadeIn(badge(trks[1].foot.get_center())),
+                  FadeIn(ok), run_time=0.5)
+        self.at("Another group found")
+        # Clear both experimental outcomes before introducing the alternative result.
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        alt = dimer(-3.3, 0.3, 1.3, tails=True)
+        al = lab("uncut proNGF", BLUE, -3.3, 2.0, 28)
+        ah = lab("another group's result", GREY, 0, 3.3, 28)
+        self.play(FadeIn(alt), FadeIn(al), FadeIn(ah), run_time=0.5)
+        self.at("could support survival too")
+        weak = chip("weaker survival", GREEN, 30).move_to([3.2, 0.3, 0])
+        wa = arr([-1.7, 0.3, 0], weak.get_left() + LEFT * 0.2, GREEN, w=2)
+        self.play(GrowArrow(wa), FadeIn(weak), run_time=0.5)
+        self.at("more weekly")
+        wl = lab("weaker support", GREEN, 3.2, -0.7, 26)
+        self.play(FadeIn(wl), run_time=0.4)
+        self.at("The outcome depends")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        cut = chip("processing", ORANGE, 30).move_to([-3.5, 1.8, 0])
+        balance = chip("receptor balance", PINK, 30).move_to([3.5, 1.8, 0])
+        result = chip("outcome", TEXT, 34).move_to([0, -1.7, 0])
+        self.play(FadeIn(cut), FadeIn(balance), run_time=0.4)
+        self.play(GrowArrow(arr([-3.5, 1.15, 0], [-0.8, -1.1, 0], ORANGE)),
+                  GrowArrow(arr([3.5, 1.15, 0], [0.8, -1.1, 0], PINK)), FadeIn(result), run_time=0.5)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Cut or uncut, and which receptors: together help set what the factor says."
+    LINE = "Many developing neurons survive when the right neurotrophin activates its Trk receptor."
