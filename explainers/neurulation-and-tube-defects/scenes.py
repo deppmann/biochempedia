@@ -68,208 +68,7 @@ def flash(self, pt, color=GREEN, r=0.5):
 
 class S00Title(TitleCard):
     LESSON = "Neurulation and neural tube defects"
-    TITLE = "The folds must be able to meet"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Flat(SpokenScene):
-    """flat sheet -> closed tube -> open groove with a question mark between the edges."""
-
-    def construct(self):
-        s = sec(2.8, 0)
-        skin = lab("skin", ORANGE, 28).move_to([5.0, OY - 0.5, 0])
-        self.play(FadeIn(s), FadeIn(skin), run_time=0.8)
-        self.at("flat sheet")
-        sheet = lab("a flat sheet of cells", BLUE, 32).move_to([0, OY + 0.9, 0])
-        back = lab("back of the embryo", GREY, 26).move_to([0, OY + 1.7, 0])
-        self.play(FadeIn(sheet, shift=DOWN * 0.1), FadeIn(back), run_time=0.6)
-        self.at("fourth week")
-        clock = chip("about 4 weeks after fertilization", GOLD, 28).move_to([0, -3.1, 0])
-        self.play(FadeIn(clock, shift=UP * 0.1), run_time=0.6)
-        self.at("rolled into a closed tube")
-        closed = lab("a closed tube", GREEN, 32).move_to([0, OY + 0.9, 0])
-        self.play(Transform(s, sec(1.5, 1.6)), run_time=0.7)
-        self.play(Transform(s, sec(0.03, 3.2)), run_time=0.7)
-        self.play(Transform(s, tube(1.6)), ReplacementTransform(sheet, closed), run_time=0.8)
-        self.at("pregnant")
-        self.wait(0.2)
-        self.at("does not close")
-        openl = lab("not closed", RED, 32).move_to([0, OY + 0.9, 0])
-        self.play(Transform(s, sec(1.6, 2.6)), ReplacementTransform(closed, openl), run_time=1.0)
-        self.at("How far apart")
-        gap = darr([-1.35, OY - 0.55, 0], [1.35, OY - 0.55, 0], RED, 5)
-        q = lab("?", RED, 72).move_to([0, OY - 1.6, 0])
-        self.play(GrowFromCenter(gap), FadeIn(q), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Fold(SpokenScene):
-    """plate creases at a hinge, the folds rise and move in, fuse, the tube pinches off beneath the skin."""
-
-    def construct(self):
-        s = sec(2.8, 0)
-        skin = lab("skin", ORANGE, 28).move_to([5.0, OY - 0.5, 0])
-        self.add(s)
-        self.at("neural plate")
-        plate_l = lab("neural plate", BLUE, 34).move_to([0, OY + 1.0, 0])
-        self.play(FadeIn(plate_l, shift=DOWN * 0.1), run_time=0.5)
-        self.at("hinge points")
-        self.play(Transform(s, sec(2.5, 1.0)), run_time=0.9)
-        wedge = Polygon([-0.0, OY - 1.0 + 0.1, 0], [-0.32, OY - 1.0 - 0.5, 0], [0.32, OY - 1.0 - 0.5, 0],
-                        color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.35)
-        hinge = lab("hinge point", YELLOW, 28).move_to([0, OY - 2.0, 0])
-        self.play(FadeIn(wedge), FadeIn(hinge), run_time=0.6)
-        self.play(Indicate(wedge, color=YELLOW, scale_factor=1.3), run_time=0.8)
-        self.at("neural folds")
-        folds = lab("neural folds", BLUE, 30)
-        folds.move_to([-4.3, OY + 0.8, 0])
-        self.play(Transform(s, sec(1.8, 2.0)), FadeOut(wedge), FadeOut(hinge), ReplacementTransform(plate_l, folds), run_time=1.1)
-        self.at("toward the middle")
-        ar = VGroup(parr([-2.9, OY + 0.55, 0], [-1.0, OY + 0.55, 0]), parr([2.9, OY + 0.55, 0], [1.0, OY + 0.55, 0]))
-        self.play(Transform(s, sec(0.5, 3.0)), FadeIn(ar), run_time=1.3)
-        self.at("meet")
-        self.play(Transform(s, sec(0.03, 3.2)), FadeOut(ar), run_time=0.7)
-        self.at("fuse")
-        flash(self, [0, OY, 0])
-        self.play(Transform(s, tube(1.6)), run_time=0.7)
-        self.play(FadeOut(folds), run_time=0.3)
-        self.at("pinches off")
-        tl = lab("neural tube", GREEN, 30).move_to([0, OY - 2.2 - 0.9, 0]) if False else lab("neural tube", GREEN, 30).move_to([4.2, OY - 2.0, 0])
-        self.play(Transform(s, tube(1.6, drop=0.35)), FadeIn(tl), run_time=1.0)
-        self.at("skin")
-        self.play(FadeIn(skin, shift=DOWN * 0.1), run_time=0.4)
-        self.at("seals over")
-        seal = Line([-HALF, OY, 0], [HALF, OY, 0], color=ORANGE, stroke_width=8)
-        self.play(Indicate(s[0:2], color=ORANGE, scale_factor=1.0), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Reach(SpokenScene):
-    """a wide plate: the folds move a fixed reach and stop short. A narrow plate: the same reach closes it."""
-
-    def construct(self):
-        s = sec(3.6, 0)
-        self.play(FadeIn(s), run_time=0.5)
-        self.at("width of the plate")
-        dim = darr([-3.6, OY + 1.9, 0], [3.6, OY + 1.9, 0], GREY, 5)
-        wl = lab("wide", TEXT, 32).move_to([0, OY + 2.5, 0])
-        self.play(GrowFromCenter(dim), FadeIn(wl), run_time=0.8)
-        self.at("two people")
-        table = RoundedRectangle(corner_radius=0.1, width=5.6, height=0.3, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.35).move_to([0, -2.2, 0])
-        tl = lab("wide table", GREY, 26).move_to([0, -2.8, 0])
-
-        def person(x):
-            head = Circle(radius=0.3, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.25).move_to([x, -0.9, 0])
-            body = RoundedRectangle(corner_radius=0.2, width=0.7, height=1.0, stroke_color=TEXT, stroke_width=3,
-                                    fill_color=TEXT, fill_opacity=0.25).move_to([x, -1.8, 0])
-            return VGroup(head, body)
-        pl, pr = person(-3.7), person(3.7)
-        self.play(FadeIn(table), FadeIn(pl), FadeIn(pr), FadeIn(tl), run_time=0.8)
-        self.at("reaching to shake hands")
-        armL = Line([-3.35, -1.5, 0], [-3.35, -1.5, 0], color=YELLOW, stroke_width=8)
-        armR = Line([3.35, -1.5, 0], [3.35, -1.5, 0], color=YELLOW, stroke_width=8)
-        self.add(armL, armR)
-        self.play(armL.animate.put_start_and_end_on([-3.35, -1.5, 0], [-1.35, -1.5, 0]),
-                  armR.animate.put_start_and_end_on([3.35, -1.5, 0], [1.35, -1.5, 0]), run_time=1.2)
-        self.at("fixed reach")
-        self.play(Indicate(VGroup(armL, armR), color=YELLOW, scale_factor=1.15), run_time=0.8)
-        self.at("The folds are the same")
-        ra = VGroup(parr([-3.6, OY + 0.55, 0], [-1.9, OY + 0.55, 0]), parr([3.6, OY + 0.55, 0], [1.9, OY + 0.55, 0]))
-        rl = VGroup(lab("reach", YELLOW, 28).move_to([-2.75, OY + 1.1, 0]), lab("reach", YELLOW, 28).move_to([2.75, OY + 1.1, 0]))
-        self.play(FadeOut(VGroup(table, pl, pr, tl, armL, armR)), run_time=0.5)
-        self.play(GrowFromPoint(ra[0], ra[0].get_start()), GrowFromPoint(ra[1], ra[1].get_start()), FadeIn(rl), run_time=0.8)
-        self.at("rise and move inward")
-        self.play(Transform(s, sec(1.9, 2.4)), run_time=1.4)
-        self.at("too far apart")
-        gap = darr([-1.5, OY - 0.6, 0], [1.5, OY - 0.6, 0], RED, 5)
-        self.play(FadeOut(VGroup(dim, wl, ra, rl)), GrowFromCenter(gap), run_time=0.6)
-        self.at("never meet")
-        nm = lab("never meet", RED, 34).move_to([0, OY - 1.3, 0])
-        self.play(FadeIn(nm, shift=UP * 0.1), run_time=0.5)
-        self.at("before the tube can close")
-        self.play(FadeOut(VGroup(gap, nm)), Transform(s, sec(3.6, 0)), run_time=0.8)
-        self.at("narrow")
-        na = VGroup(parr([-3.6, OY + 0.55, 0], [-1.75, OY + 0.55, 0], GREY), parr([3.6, OY + 0.55, 0], [1.75, OY + 0.55, 0], GREY))
-        nl = lab("narrow", TEXT, 32).move_to([0, OY + 1.2, 0])
-        self.play(Transform(s, sec(1.7, 0)), FadeIn(na), FadeIn(nl), run_time=1.0)
-        self.play(FadeOut(na), run_time=0.3)
-        self.play(Transform(s, sec(0.03, 3.2)), run_time=1.1)
-        flash(self, [0, OY, 0])
-        ml = lab("folds meet", GREEN, 34).move_to([4.2, OY - 1.5, 0])
-        self.play(Transform(s, tube(1.6)), FadeIn(ml), run_time=0.7)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Squeeze(SpokenScene):
-    """top view of plate cells: ten cells rearrange from a short wide block to a long thin one."""
-
-    W, H = 1.3, 1.05
-
-    def layout(self, rows):
-        """positions for rows of cell counts, centred, rows spaced 1.15 apart (row 0 at the top)."""
-        pos = []
-        n = len(rows)
-        for j, k in enumerate(rows):
-            y = ((n - 1) / 2 - j) * 1.22
-            for i in range(k):
-                pos.append(np.array([(i - (k - 1) / 2) * 1.6, y, 0]))
-        return pos
-
-    def mkcell(self):
-        r = RoundedRectangle(corner_radius=0.18, width=self.W, height=self.H, stroke_color=BLUE, stroke_width=3.5,
-                             fill_color=BLUE, fill_opacity=0.28)
-        bl = Rectangle(width=0.1, height=0.7, stroke_width=0, fill_color=TEAL, fill_opacity=1).move_to(r.get_left() + RIGHT * 0.12)
-        br = Rectangle(width=0.1, height=0.7, stroke_width=0, fill_color=TEAL, fill_opacity=1).move_to(r.get_right() + LEFT * 0.12)
-        bl.set_opacity(0); br.set_opacity(0)
-        g = VGroup(r, bl, br)
-        g.r, g.bl, g.br = r, bl, br
-        return g
-
-    def construct(self):
-        p0 = self.layout([5, 5]); p1 = self.layout([4, 4, 2]); p2 = self.layout([2, 2, 2, 2, 2])
-        cells = [self.mkcell().move_to(p) for p in p0]
-        allc = VGroup(*cells)
-        self.at("Narrowing")
-        top = lab("convergent extension", TEAL, 34).move_to([0, 3.3, 0])
-        self.play(LaggedStart(*[FadeIn(c, scale=0.8) for c in cells], lag_ratio=0.06), run_time=1.2)
-        self.at("convergent extension")
-        self.play(FadeIn(top, shift=DOWN * 0.1), run_time=0.5)
-        self.at("push in between")
-        pushers = [cells[8], cells[9]]
-        self.play(*[c.r.animate.set_stroke(YELLOW).set_fill(YELLOW, 0.4) for c in pushers], run_time=0.5)
-        self.at("intercalation")
-        il = lab("intercalation", YELLOW, 34).move_to([0, -2.2, 0])
-        self.play(FadeIn(il, shift=RIGHT * 0.1), run_time=0.5)
-        self.at("narrower and longer")
-        head = lab("head", GREY, 28).move_to([-2.6, 2.4, 0]); tail = lab("tail", GREY, 28).move_to([-2.6, -2.4, 0])
-        # the three-row layout fits between head and tail
-        self.play(*[c.r.animate.set_stroke(BLUE).set_fill(BLUE, 0.28) for c in pushers], FadeOut(il), run_time=0.3)
-        self.play(*[c.animate.move_to(p) for c, p in zip(cells, p1)], run_time=1.2)
-        self.at("short wide plate")
-        self.wait(0.3)
-        self.at("into a long thin")
-        self.play(FadeOut(top), run_time=0.2)
-        self.play(*[c.animate.move_to(p) for c, p in zip(cells, p2)], FadeIn(head), FadeIn(tail), run_time=1.6)
-        self.at("which way is sideways")
-        sd = darr([-1.6, -3.3, 0], [1.6, -3.3, 0], GREY, 5)
-        sdl = lab("sideways", GREY, 28).move_to([3.1, -3.3, 0])
-        self.play(GrowFromCenter(sd), FadeIn(sdl), run_time=0.7)
-        self.at("planar cell polarity")
-        pcp = chip("planar cell polarity", TEAL, 30).move_to([-4.3, 0.6, 0])
-        self.play(FadeIn(pcp, shift=RIGHT * 0.1), run_time=0.6)
-        self.at("including")
-        dl = lab("Dishevelled", TEAL, 32).move_to([4.3, 1.3, 0])
-        ar = Arrow([3.0, 1.3, 0], cells[1].br.get_center() + RIGHT * 0.2,
-                   buff=0.05, color=TEAL, stroke_width=4, tip_length=0.2)
-        self.play(FadeIn(dl), GrowArrow(ar), run_time=0.6)
-        self.at("opposite sides")
-        self.play(FadeOut(sd), FadeOut(sdl),
-                  *[o.animate.set_opacity(1) for c in cells for o in (c.bl, c.br)], run_time=0.8)
-        self.finish()
+    TITLE = "If the Neural Tube Does Not Close"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -277,104 +76,327 @@ def bar_over(x0, x1, color=RED, y=OY + 0.5):
     return Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=12)
 
 
-class S05Frog(SpokenScene):
-    """wide flat plate, Dishevelled disrupted at the midline: stays wide, folds rise, tube stays open."""
+def heading(text, color=TEXT):
+    return lab(text, color, 32).move_to([0, 3.15, 0])
 
+
+def site_map():
+    """Schematic axial map: locations, not a single embryo with both defects."""
+    head = Arc(radius=0.78, start_angle=0.3, angle=PI-0.6,
+               color=BLUE, stroke_width=12).move_to([0, 1.55, 0])
+    cord = VGroup(Line([-0.4, 1.25, 0], [-0.4, -2.0, 0], color=BLUE, stroke_width=10),
+                  Line([0.4, 1.25, 0], [0.4, -2.0, 0], color=BLUE, stroke_width=10))
+    axis = DashedLine([0, 0.9, 0], [0, -1.5, 0], color=GREY, stroke_width=2)
+    ends = VGroup(lab("head", GREY, 24).move_to([-1.5, 1.9, 0]),
+                  lab("lower end", GREY, 24).move_to([-1.8, -1.85, 0]))
+    return VGroup(head, cord, axis, ends)
+
+
+def open_site(y):
+    return DashedVMobject(Ellipse(width=1.9, height=1.0, color=RED, stroke_width=4),
+                         num_dashes=16).move_to([0, y, 0])
+
+
+def cell_patch(long=False):
+    # Six representative cells, with no biological cell count implied.
+    pts = ([(-0.6, 1.3), (0.6, 1.3), (-0.6, 0), (0.6, 0),
+            (-0.6, -1.3), (0.6, -1.3)] if long else
+           [(-1.7, 0.65), (0, 0.65), (1.7, 0.65),
+            (-1.7, -0.65), (0, -0.65), (1.7, -0.65)])
+    return VGroup(*[RoundedRectangle(corner_radius=0.18, width=1.1, height=1.05,
+                      stroke_color=BLUE, stroke_width=3.5,
+                      fill_color=BLUE, fill_opacity=0.28).move_to([x,y,0]) for x,y in pts])
+
+
+class S01Flat(SpokenScene):
     def construct(self):
-        s = sec(3.6, 0)
-        self.at("Frog embryos")
-        top = lab("frog embryo", GREY, 30).to_edge(UP, buff=0.45)
-        self.play(FadeIn(s), FadeIn(top), run_time=0.8)
-        self.at("early frog cell is mapped")
-        ticks = VGroup(*[Line([x, OY + 0.18, 0], [x, OY - 0.18, 0], color=TEXT, stroke_width=3)
-                         for x in np.linspace(-3.4, 3.4, 15)])
-        ml = lab("each cell's fate is known", GREY, 28).move_to([0, OY + 1.3, 0])
-        self.play(LaggedStart(*[FadeIn(t) for t in ticks], lag_ratio=0.05), FadeIn(ml), run_time=1.0)
-        self.at("aim an injection")
-        needle = VGroup(Line([0, OY + 2.2, 0], [0, OY + 1.0, 0], color=TEXT, stroke_width=5),
-                        Polygon([-0.12, OY + 1.0, 0], [0.12, OY + 1.0, 0], [0, OY + 0.45, 0], color=TEXT, stroke_width=3,
-                                fill_color=TEXT, fill_opacity=1))
-        self.play(FadeOut(ml), FadeIn(needle, shift=DOWN * 0.2), run_time=0.7)
-        self.at("a disrupted")
-        bar = bar_over(-1.2, 1.2)
-        barl = lab("Dishevelled disrupted", RED, 30).move_to([0, OY + 1.1, 0])
-        mid = lab("midline", GREY, 26).move_to([0, OY - 0.65, 0])
-        self.play(FadeOut(needle), FadeOut(ticks), GrowFromCenter(bar), FadeIn(barl), FadeIn(mid), run_time=0.7)
-        self.at("stayed wide")
-        dim = darr([-3.6, OY + 2.1, 0], [3.6, OY + 2.1, 0], RED, 5)
-        wl = lab("plate stays wide", RED, 30).move_to([0, OY + 2.65, 0])
-        self.play(FadeOut(top), GrowFromCenter(dim), FadeIn(wl), run_time=0.7)
-        self.at("rose and moved inward")
-        ra = VGroup(parr([-3.6, OY + 0.55, 0], [-2.0, OY + 0.55, 0]), parr([3.6, OY + 0.55, 0], [2.0, OY + 0.55, 0]))
-        self.play(Transform(s, sec(1.9, 2.4)), FadeOut(mid), FadeIn(ra), run_time=1.3)
+        m = site_map()
+        title = heading("Where closure fails")
+        self.at("If the neural tube")
+        self.play(FadeIn(m), FadeIn(title), run_time=0.6)
+        h, l = open_site(1.75), open_site(-1.85)
+        hl = lab("anencephaly", RED, 30).move_to([3.4, 1.8, 0])
+        ll = lab("open spina bifida", RED, 30).move_to([3.4, -1.8, 0])
+        self.at("head end")
+        self.play(Create(h), FadeIn(hl), run_time=0.6)
+        self.at("lower end")
+        self.play(Create(l), FadeIn(ll), run_time=0.6)
+        stakes = lab("Fatal outcomes • weakness • paralysis", RED, 28).move_to([0,-3.05,0])
+        self.at("These defects")
+        self.play(FadeIn(stakes), run_time=0.5)
+        self.at("Closure happens")
+        timeline = Line([-5.8,0,0], [5.8,0,0], color=GREY, stroke_width=4)
+        conception = VGroup(Line([-1.7,-0.2,0],[-1.7,0.2,0],color=GREY),
+                             lab("conception", GREY, 26).move_to([-1.7,-0.7,0]))
+        closure = VGroup(Line([4.5,-0.2,0],[4.5,0.2,0],color=GREEN),
+                         lab("closure by about week 4", GREEN, 26).move_to([3.4,0.75,0]),
+                         lab("after fertilization", GREY, 24).move_to([3.4,1.35,0]))
+        self.play(FadeOut(VGroup(m,title,h,l,hl,ll,stakes)), Create(timeline),
+                  FadeIn(conception), FadeIn(closure), run_time=0.8)
+        early = lab("Often before pregnancy is recognized", TEXT, 28).move_to([0,-2.0,0])
+        self.at("often before")
+        self.play(FadeIn(early), run_time=0.5)
+        folic = chip("folic acid", GREEN, 28).move_to([-4.5,0.9,0])
+        marker = parr([-4.5,0.45,0],[-4.5,0.08,0],GREEN)
+        self.at("Folic acid")
+        self.play(FadeIn(folic), GrowArrow(marker), run_time=0.6)
+        lower = lab("Lower risk • incomplete protection", GREEN, 28).move_to([0,-3.0,0])
+        self.at("lowers the risk")
+        self.play(FadeIn(lower), run_time=0.5)
+        self.finish()
+
+
+class S02Fold(SpokenScene):
+    def construct(self):
+        s = sec(2.8,0,oy=0.1)
+        title = heading("Neural plate → neural tube")
+        self.at("The brain")
+        self.play(FadeIn(s), FadeIn(title), run_time=0.5)
+        name = lab("neural plate", BLUE, 30).move_to([0,0.9,0])
+        self.at("neural plate")
+        self.play(FadeIn(name), run_time=0.4)
+        inset = RoundedRectangle(width=2.7,height=0.8,corner_radius=0.15,
+                                 color=BLUE,fill_color=BLUE,fill_opacity=0.25).move_to([4.3,1.9,0])
+        inset_l = lab("top view", GREY, 24).move_to([4.3,2.95,0])
+        self.at("It narrows")
+        self.play(FadeIn(inset), FadeIn(inset_l), Transform(s,sec(1.8,0,oy=0.1)), run_time=0.45)
+        self.play(inset.animate.stretch(0.5,0).stretch(2.1,1), run_time=0.65)
+        self.at("It creases")
+        wedge = Polygon([0,-0.75,0],[-0.3,-1.35,0],[0.3,-1.35,0],
+                        color=YELLOW,fill_opacity=0.35)
+        hinge = lab("hinge point",YELLOW,26).move_to([0,-1.9,0])
+        self.play(Transform(s,sec(1.7,1.0,oy=0.1)),FadeIn(wedge),FadeIn(hinge),
+                  FadeOut(inset),FadeOut(inset_l),run_time=0.65)
+        self.at("edges rise")
+        folds = lab("neural folds",BLUE,30).move_to([0,0.9,0])
+        self.play(Transform(s,sec(1.15,2.0,oy=0.1)),ReplacementTransform(name,folds),
+                  FadeOut(wedge),FadeOut(hinge),run_time=0.8)
+        self.at("folds meet")
+        self.play(Transform(s,sec(0.03,2.6,oy=0.1)), run_time=0.4)
+        self.at("fuse")
+        self.play(Transform(s,tube(1.3,oy=0.1)), run_time=0.5)
+        self.at("tube separates")
+        skin = lab("skin",ORANGE,28).move_to([4.8,0.8,0])
+        tl = lab("neural tube",BLUE,30).move_to([4.0,-1.8,0])
+        self.play(Transform(s,tube(1.3,drop=0.35,oy=0.1)),FadeOut(folds),FadeIn(tl),run_time=0.8)
+        self.at("seals over")
+        self.play(FadeIn(skin),Indicate(s[0:2],color=ORANGE,scale_factor=1),run_time=0.6)
+        self.finish()
+
+
+class S03Defects(SpokenScene):
+    def construct(self):
+        m = site_map().shift(LEFT*3)
+        h = open_site(1.75).shift(LEFT*3)
+        title = heading("Anencephaly",RED)
+        tissue = Ellipse(width=1.25,height=0.6,color=BLUE,fill_color=BLUE,
+                         fill_opacity=0.55).move_to([-3,1.75,0])
+        self.at("In anencephaly")
+        self.play(FadeIn(m),FadeIn(h),FadeIn(title),FadeIn(tissue),run_time=0.4)
+        exposed = lab("exposed brain tissue",BLUE,30).move_to([2.5,1.5,0])
+        self.at("exposed brain tissue")
+        self.play(FadeIn(exposed),run_time=0.4)
+        self.at("degenerates")
+        self.play(tissue.animate.scale(0.2).set_opacity(0.1),run_time=0.65)
+        outcome = lab("Stillborn or death\nsoon after birth",RED,30).move_to([2.5,-0.3,0])
+        self.at("Affected babies")
+        self.play(FadeIn(outcome),run_time=0.5)
+        self.at("In one form")
+        lesion = open_site(-1.85).shift(LEFT*3)
+        lesion_cord = Line([-3,-1.25,0],[-3,-2.15,0],color=BLUE,stroke_width=15)
+        newtitle = heading("Open spina bifida",RED)
+        form = lab("myelomeningocele",RED,30).move_to([2.5,1.5,0])
+        self.play(FadeOut(VGroup(h,tissue,exposed,outcome)),ReplacementTransform(title,newtitle),
+                  FadeIn(lesion),FadeIn(form),run_time=0.6)
+        self.at("cord lies")
+        cord_l = lab("cord in the open lesion",BLUE,26).move_to([2.5,0.45,0])
+        self.play(Create(lesion_cord),FadeIn(cord_l),run_time=0.55)
+        consequence = lab("Weakness or paralysis\nLoss of bladder and bowel control",RED,26).move_to([1.8,-1.45,0])
+        self.at("Weakness or paralysis")
+        self.play(FadeIn(consequence),run_time=0.65)
+        self.finish()
+
+
+class S03Prevention(SpokenScene):
+    def construct(self):
+        title = heading("Randomized prevention trials")
+        self.at("Randomized trials")
+        self.play(FadeIn(title),run_time=0.5)
+        pop = lab("RECURRENCE\nPrevious affected pregnancy",TEXT,30).move_to([0,2.0,0])
+        self.at("previous affected pregnancy")
+        self.play(FadeIn(pop),run_time=0.5)
+        treatment = chip("folic acid before conception",GREEN,28).move_to([0,0.8,0])
+        self.at("folic acid started")
+        self.play(FadeIn(treatment),run_time=0.5)
+        base = Rectangle(width=7,height=0.45,stroke_color=GREY,fill_color=GREY,fill_opacity=0.5).move_to([0,-0.5,0])
+        reduced = Rectangle(width=7*0.28,height=0.45,stroke_color=GREEN,fill_color=GREEN,fill_opacity=0.65).align_to(base,LEFT)
+        reduction = lab("≈72% relative reduction in recurrence",GREEN,32).move_to([0,-1.7,0])
+        self.at("cut recurrence")
+        self.play(FadeIn(base),run_time=0.35)
+        self.at("about 72")
+        self.play(Transform(base,reduced),FadeIn(reduction),run_time=0.7)
+        self.at("A Hungarian trial")
+        first = heading("Hungarian trial • first occurrence")
+        left = lab("Multivitamin\ncontaining folic acid",GREEN,28).move_to([-3.2,1.35,0])
+        right = lab("Trace-element\ncomparison",GREY,28).move_to([3.2,1.35,0])
+        self.play(FadeOut(VGroup(pop,treatment,base,reduction)),ReplacementTransform(title,first),
+                  FadeIn(left),FadeIn(right),run_time=0.65)
+        zero = M("0",48,GREEN).move_to([-3.2,-0.1,0])
+        six = M("6",48,RED).move_to([3.2,-0.1,0])
+        counts = lab("Affected pregnancies",GREY,26).move_to([0,-1.2,0])
+        self.at("no affected pregnancies")
+        self.play(FadeIn(zero),FadeIn(counts),run_time=0.5)
+        self.at("against six")
+        self.play(FadeIn(six),run_time=0.5)
+        support = lab("Supports prevention of a first occurrence",GREEN,28).move_to([0,-2.15,0])
+        self.at("That supports")
+        self.play(FadeIn(support),run_time=0.5)
+        limit = lab("Cannot isolate folic acid’s effect",YELLOW,28).move_to([0,-3.05,0])
+        self.at("But that trial alone")
+        self.play(FadeOut(support),FadeIn(limit),run_time=0.5)
+        self.finish()
+
+
+class S04Squeeze(SpokenScene):
+    def construct(self):
+        title = heading("One route to closure failure")
+        cells = cell_patch()
+        self.at("Now consider")
+        self.play(FadeIn(title),FadeIn(cells),run_time=0.5)
+        ce = heading("Convergent extension",YELLOW)
+        self.at("Convergent extension")
+        self.play(ReplacementTransform(title,ce),run_time=0.4)
+        self.at("cells push between")
+        target = cell_patch(True)
+        # Stagger the exchanges so the cells visibly slide between neighbours.
+        self.play(LaggedStart(*[c.animate.move_to(t.get_center()) for c,t in zip(cells,target)],
+                             lag_ratio=0.12),run_time=1.5)
+        self.at("Planar cell polarity")
+        polarity = heading("Planar cell polarity",TEAL)
+        marks = VGroup(*[VGroup(Line(c.get_left()+RIGHT*0.12+DOWN*0.3,
+                                       c.get_left()+RIGHT*0.12+UP*0.3,color=TEAL,stroke_width=5),
+                               Line(c.get_right()+LEFT*0.12+DOWN*0.3,
+                                    c.get_right()+LEFT*0.12+UP*0.3,color=TEAL,stroke_width=5)) for c in cells])
+        self.play(ReplacementTransform(ce,polarity),FadeIn(marks),run_time=0.6)
+        self.at("shared direction")
+        direction = darr([-1.4,-2.6,0],[1.4,-2.6,0],TEAL)
+        self.play(GrowFromCenter(direction),run_time=0.5)
+        self.at("If the plate stays")
+        wide = sec(3.6,0,half=3.6,sc=0.85,cx=-3.3,oy=0.5)
+        narrow = sec(1.6,0,half=3.6,sc=0.85,cx=3.3,oy=0.5)
+        wl = lab("wide plate",RED,28).move_to([-3.3,1.7,0])
+        nl = lab("narrow plate",GREEN,28).move_to([3.3,1.7,0])
+        self.play(FadeOut(VGroup(cells,marks,direction,polarity)),FadeIn(wide),FadeIn(narrow),
+                  FadeIn(wl),FadeIn(nl),run_time=0.5)
+        self.at("folds cannot meet")
+        self.play(Transform(wide,sec(1.9,2.4,half=3.6,sc=0.85,cx=-3.3,oy=0.5)),
+                  Transform(narrow,tube(1.2,half=3.6,sc=0.85,cx=3.3,oy=0.5)),run_time=0.7)
+        result = VGroup(lab("folds stop short",RED,28).move_to([-3.3,-2.4,0]),
+                        lab("folds meet",GREEN,28).move_to([3.3,-2.4,0]))
+        self.play(FadeIn(result),run_time=0.35)
+        self.finish()
+
+
+class S05Frog(SpokenScene):
+    def construct(self):
+        s = sec(3.6,0)
+        top = heading("Frog embryo",GREY)
+        self.at("In frog embryos")
+        self.play(FadeIn(s),FadeIn(top),run_time=0.6)
+        bar = bar_over(-1.2,1.2)
+        label = lab("Dishevelled disrupted at midline",RED,30).move_to([0,2.1,0])
+        self.at("researchers disrupted")
+        self.play(GrowFromCenter(bar),FadeIn(label),run_time=0.6)
+        wide = darr([-3.6,0,0],[3.6,0,0],RED)
+        wl = lab("plate stays wide",RED,28).move_to([0,-0.7,0])
+        self.at("plate stayed wide")
+        self.play(GrowFromCenter(wide),FadeIn(wl),run_time=0.5)
+        self.at("still rose")
+        arrows = VGroup(parr([-3.6,0.1,0],[-1.9,0.1,0]),parr([3.6,0.1,0],[1.9,0.1,0]))
+        self.play(FadeOut(VGroup(wide,wl)),Transform(s,sec(1.9,2.4)),FadeIn(arrows),run_time=1.1)
         self.at("tube stayed open")
-        gap = darr([-1.5, OY - 0.6, 0], [1.5, OY - 0.6, 0], RED, 5)
-        ol = lab("tube open", RED, 34).move_to([0, OY - 1.3, 0])
-        self.play(FadeOut(ra), GrowFromCenter(gap), FadeIn(ol), run_time=0.7)
+        gap = darr([-1.5,OY-0.6,0],[1.5,OY-0.6,0],RED,5)
+        ol = lab("tube open",RED,34).move_to([0,OY-1.3,0])
+        self.play(FadeOut(arrows),GrowFromCenter(gap),FadeIn(ol),run_time=0.6)
         self.finish()
 
 
 class S06Rule(SpokenScene):
-    """sides disrupted -> closes. Midline needed. Mouse: nothing starts. Rule: wide = open, narrow = closed."""
-
     def construct(self):
-        # rebuild the end of the previous scene
-        s = sec(1.9, 2.4)
-        bar = bar_over(-1.2, 1.2)
-        barl = lab("Dishevelled disrupted", RED, 30).move_to([0, OY + 1.1, 0])
-        dim = darr([-3.6, OY + 2.1, 0], [3.6, OY + 2.1, 0], RED, 5)
-        wl = lab("plate stays wide", RED, 30).move_to([0, OY + 2.65, 0])
-        gap = darr([-1.5, OY - 0.6, 0], [1.5, OY - 0.6, 0], RED, 5)
-        ol = lab("tube open", RED, 34).move_to([0, OY - 1.3, 0])
-        old = VGroup(bar, barl, dim, wl, gap, ol)
-        self.add(s, old)
-        self.at("sides instead")
-        sb = VGroup(bar_over(-3.6, -1.2), bar_over(1.2, 3.6))
-        sbl = lab("Dishevelled disrupted at the sides", RED, 30).move_to([0, OY + 1.2, 0])
-        self.play(FadeOut(old), Transform(s, sec(3.6, 0)), run_time=0.6)
-        self.play(FadeIn(sb), FadeIn(sbl), run_time=0.6)
-        self.at("This time")
-        nb = VGroup(bar_over(-1.7, -0.55), bar_over(0.55, 1.7))
-        self.play(Transform(s, sec(1.7, 0)), Transform(sb, nb), sbl.animate.move_to([0, OY + 1.2, 0]), run_time=0.8)
-        self.play(Transform(s, sec(0.03, 3.2)), run_time=0.8)
-        flash(self, [0, OY, 0], r=0.5)
-        cl = lab("closes normally", GREEN, 34).move_to([4.2, OY - 1.5, 0])
-        self.play(Transform(s, tube(1.6)), FadeIn(cl), run_time=0.5)
+        top = heading("Frog • regional comparison",GREY)
+        left = sec(1.9,2.4,half=3.6,sc=0.85,cx=-3.3,oy=0.5)
+        right = sec(3.6,0,half=3.6,sc=0.85,cx=3.3,oy=0.5)
+        ll = lab("midline disrupted",RED,28).move_to([-3.3,2.05,0])
+        rl = lab("sides disrupted",RED,28).move_to([3.3,2.05,0])
+        bars = VGroup(bar_over(0.5,2.5,y=1.25),bar_over(4.1,6.1,y=1.25))
+        self.at("Disrupting the sides")
+        self.play(FadeIn(top),FadeIn(left),FadeIn(right),FadeIn(ll),FadeIn(rl),FadeIn(bars),run_time=0.5)
+        self.at("instead left")
+        self.play(Transform(right,sec(1.6,0,half=3.6,sc=0.85,cx=3.3,oy=0.5)),run_time=0.35)
+        self.play(Transform(right,tube(1.2,half=3.6,sc=0.85,cx=3.3,oy=0.5)),run_time=0.55)
+        results = VGroup(lab("open",RED,28).move_to([-3.3,-2.35,0]),
+                         lab("closed",GREEN,28).move_to([3.3,-2.35,0]))
+        self.play(FadeIn(results),run_time=0.3)
+        self.at("Under those conditions")
+        scope = lab("In this frog comparison",GREY,26).move_to([0,-3.1,0])
+        self.play(FadeIn(scope),run_time=0.4)
         self.at("needed at the midline")
-        self.play(FadeOut(VGroup(sb, sbl, cl)), Transform(s, sec(3.6, 0)), run_time=0.8)
-        mb = bar_over(-1.2, 1.2, TEAL)
-        ml = lab("midline: narrowing sets the distance", TEAL, 30).move_to([0, OY + 1.2, 0])
-        dd = darr([-3.6, OY + 2.1, 0], [3.6, OY + 2.1, 0], YELLOW, 5)
-        dl = lab("distance between the folds", YELLOW, 30).move_to([0, OY + 2.65, 0])
-        self.play(GrowFromCenter(mb), FadeIn(ml), run_time=0.7)
-        self.at("distance between the folds")
-        self.play(GrowFromCenter(dd), FadeIn(dl), run_time=0.7)
-        self.at("Mice tell the same story")
-        self.play(FadeOut(VGroup(mb, ml, dd, dl)), run_time=0.5)
-        mouse = lab("loop-tail mouse", GREY, 32).to_edge(UP, buff=0.45)
-        self.play(FadeIn(mouse), run_time=0.5)
-        self.at("failed to extend")
-        mb2 = bar_over(-1.2, 1.2, RED)
-        ml2 = lab("midline failed to extend", RED, 30).move_to([0, OY + 1.2, 0])
-        self.play(GrowFromCenter(mb2), FadeIn(ml2), run_time=0.7)
+        self.play(Indicate(ll,color=TEAL,scale_factor=1.05),run_time=0.6)
+        self.at("narrowing sets the distance")
+        distance = darr([-4.65,0.0,0],[-1.95,0.0,0],YELLOW)
+        self.play(GrowFromCenter(distance),run_time=0.6)
+        self.at("In the loop tail mouse")
+        mouse = heading("Loop-tail mouse • separate evidence",GREY)
+        plate = RoundedRectangle(width=4.8,height=2.5,corner_radius=0.25,color=BLUE,
+                                 fill_color=BLUE,fill_opacity=0.2).move_to([0,-0.2,0])
+        mid = Line([0,-1.3,0],[0,0.9,0],color=RED,stroke_width=9)
+        self.play(FadeOut(VGroup(left,right,ll,rl,bars,results,scope,distance)),
+                  ReplacementTransform(top,mouse),FadeIn(plate),Create(mid),run_time=0.55)
+        failed = lab("midline fails to extend before folding",RED,28).move_to([0,1.95,0])
+        self.at("midline failed to extend")
+        self.play(FadeIn(failed),Indicate(mid,color=RED,scale_factor=1),run_time=0.7)
+        never = lab("closure never starts",RED,32).move_to([0,-2.5,0])
         self.at("closure never started")
-        nv = lab("closure never started", RED, 34).move_to([0, OY - 1.4, 0])
-        self.play(FadeIn(nv, shift=UP * 0.1), run_time=0.6)
-        self.at("Keep this rule")
-        self.play(FadeOut(VGroup(s, mb2, ml2, nv, mouse)), run_time=0.5)
-        ob = sec(1.9, 2.4, half=2.9, sc=1.0, cx=-3.3, oy=OY)
-        cb = tube(1.6, half=2.9, sc=1.0, cx=3.3, oy=OY)
-        # left (wide) picture shows a wide plate whose folds stop short: draw it with a=1.9 on a wide plate
-        self.play(FadeIn(cb), run_time=0.5)
-        cbl = lab("narrow plate: folds meet", GREEN, 28).move_to([3.3, OY - 3.9, 0])
-        self.play(FadeIn(cbl), run_time=0.4)
-        self.at("stays too wide")
-        wide_l = lab("wide plate: folds stop short", RED, 28).move_to([-3.3, OY - 3.9, 0])
-        self.play(FadeIn(ob), FadeIn(wide_l), run_time=0.6)
-        self.at("cannot meet")
-        self.play(Indicate(wide_l, color=RED, scale_factor=1.1), run_time=0.8)
+        self.play(FadeIn(never),run_time=0.5)
+        self.finish()
+
+
+class S08Causes(SpokenScene):
+    def construct(self):
+        title = heading("Multiple contributing routes")
+        polarity = chip("plate polarity",TEAL,28).move_to([-4.4,0.8,0])
+        self.at("There are other routes")
+        self.play(FadeIn(title),FadeIn(polarity),run_time=0.5)
+        diabetes = chip("diabetes\nbefore pregnancy",RED,26).move_to([0,0.8,0])
+        valproate = chip("valproic acid\nin early pregnancy",RED,26).move_to([4.4,0.8,0])
+        self.at("Diabetes before pregnancy")
+        self.play(FadeIn(diabetes),run_time=0.5)
+        self.at("valproic acid")
+        self.play(FadeIn(valproate),run_time=0.5)
+        risk = lab("Spina bifida risk",RED,32).move_to([0,-1.5,0])
+        routes = VGroup(*[parr([x,-0.05,0],[x*0.2,-1.0,0],RED,w=4) for x in [-4.4,0,4.4]])
+        self.at("raise the risk")
+        self.play(FadeIn(risk),*[GrowArrow(a) for a in routes],run_time=0.6)
+        self.at("Most mothers")
+        tests = heading("Most affected pregnancies",TEXT)
+        measured = lab("Ordinary tests do not show\nfolate deficiency in most mothers",TEXT,32).move_to([0,0.8,0])
+        self.play(FadeOut(VGroup(polarity,diabetes,valproate,risk,routes)),
+                  ReplacementTransform(title,tests),FadeIn(measured),run_time=0.6)
+        self.at("How folate prevents")
+        unknown = lab("Folate → ? → prevention",YELLOW,36).move_to([0,-1.2,0])
+        self.play(FadeIn(unknown),run_time=0.5)
+        self.at("Its benefit is clear")
+        benefit = heading("Folic acid lowers risk",GREEN)
+        self.play(FadeOut(measured),ReplacementTransform(tests,benefit),unknown.animate.shift(UP*1.8),run_time=0.5)
+        lower = VGroup(parr([-2.0,-0.1,0],[-2.0,-1.25,0],GREEN),
+                       lab("lower risk",GREEN,34).move_to([0.5,-0.7,0]))
+        self.at("lower risk")
+        self.play(GrowArrow(lower[0]),FadeIn(lower[1]),run_time=0.7)
+        remains = lab("Some defects still occur",RED,32).move_to([0,-2.0,0])
+        self.at("some defects still occurring")
+        self.play(FadeIn(remains),run_time=0.5)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "If the plate stays too wide, the folds cannot meet."
+    LINE = "If the neural tube stays open, defects follow; folic acid lowers risk."

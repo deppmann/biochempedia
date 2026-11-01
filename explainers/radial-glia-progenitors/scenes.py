@@ -126,286 +126,331 @@ def pt_on_ring(deg):
     return RING_C + RING_R * np.array([np.cos(np.deg2rad(deg)), np.sin(np.deg2rad(deg)), 0])
 
 
+# Additional notation: GOLD = permanent lineage mark; BLUE labelled chip = intermediate progenitor.
+
+def neuron(x, y, r=0.28):
+    return Circle(radius=r, stroke_color=GREEN, stroke_width=3,
+                  fill_color=GREEN, fill_opacity=0.9).move_to([x, y, 0]).set_z_index(5)
+
+
+def heading(text):
+    return T(text, 30, TEXT, font=TITLE_FONT).move_to([0, 3.45, 0])
+
+
+def opening():
+    return VGroup(wall(), bigcell(), bignuc(Y_AP))
+
+
+def roles():
+    return VGroup(bchip("makes most cortical neurons", BLUE, 26).move_to([3.1, 1.25, 0]),
+                  bchip("guides migrating neurons", GREEN, 26).move_to([3.1, -0.25, 0]))
+
+
 class S00Title(TitleCard):
     LESSON = "The ventricular zone: radial glia as stem cells"
-    TITLE = "The cell stays, the nucleus travels"
+    TITLE = "Radial Glia Make Cortical Neurons"
 
 
-# ---------------------------------------------------------------------------------------------
 class S01Puzzle(SpokenScene):
     def construct(self):
-        w = wall()
-        self.at("Slice an embryonic mouse cortex")
-        tag = T("embryonic mouse cortex", 24, GREY).move_to([-3.9, 0.3, 0])
-        self.play(FadeIn(w), FadeIn(tag), run_time=0.8)
-
-        div = [dumb(COLS[i], Y_AP) for i in (0, 3, 5)]
-        cop = [nuc(COLS[1], 1.2), nuc(COLS[2], 2.0), nuc(COLS[4], 1.6)]
-        rings = [ring_of(n.get_center()[0], n.get_center()[1]) for n in cop]
-
-        self.at("caught in mitosis")
-        self.play(*[FadeIn(d, scale=0.6) for d in div], run_time=0.6)
-        lab_m = T("in mitosis", 26, TEAL).move_to([5.2, -2.5, 0])
-        am = arr([4.2, -2.5, 0], [3.55, -2.5, 0], TEAL)
-        self.play(FadeIn(lab_m), GrowArrow(am), run_time=0.6)
-        self.at("against the ventricle")
-        self.play(Indicate(w[0], color=TEAL, scale_factor=1.0), run_time=1.0)
-        self.at("copying their DNA")
-        self.play(*[FadeIn(n, scale=0.6) for n in cop], *[Create(r) for r in rings], run_time=0.8)
-        lab_c = T("copying DNA", 26, TEAL).move_to([5.2, 1.6, 0])
-        ac = arr([4.05, 1.6, 0], [2.5, 1.6, 0], TEAL)
-        self.play(FadeIn(lab_c), GrowArrow(ac), run_time=0.6)
-        self.at("farther out")
-        self.play(*[Indicate(VGroup(n, r), color=YELLOW, scale_factor=1.1) for n, r in zip(cop, rings)], run_time=0.9)
-        self.at("Why would a cell")
-        q = T("?", 120, RED, weight=BOLD).move_to([-4.6, -0.6, 0])
-        self.play(FadeOut(tag), FadeIn(q, scale=0.5), run_time=0.7)
-        self.play(Indicate(q, color=RED, scale_factor=1.15), run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S02Cells(SpokenScene):
-    def construct(self):
-        w = wall()
-        div = [dumb(COLS[i], Y_AP) for i in (0, 3, 5)]
-        cop = [nuc(COLS[1], 1.2), nuc(COLS[2], 2.0), nuc(COLS[4], 1.6)]
-        rings = [ring_of(m.get_center()[0], m.get_center()[1]) for m in cop]
-        lab_m = T("in mitosis", 26, TEAL).move_to([5.2, -2.5, 0])
-        am = arr([4.2, -2.5, 0], [3.55, -2.5, 0], TEAL)
-        lab_c = T("copying DNA", 26, TEAL).move_to([5.2, 1.6, 0])
-        ac = arr([4.05, 1.6, 0], [2.5, 1.6, 0], TEAL)
-        q = T("?", 120, RED, weight=BOLD).move_to([-4.6, -0.6, 0])
-        old = VGroup(lab_m, am, lab_c, ac, q, *rings)
-        self.add(w, *div, *cop, old)
-        # nuclei at many heights
-        n = [nuc(x, y) for x, y in zip(COLS, [-1.0, 1.2, 2.0, -0.2, 1.6, -2.5])]
-        self.at("looks layered")
-        self.play(FadeOut(old),
-                  ReplacementTransform(div[0], n[0]), ReplacementTransform(div[1], n[3]),
-                  ReplacementTransform(div[2], n[5]),
-                  ReplacementTransform(cop[0], n[1]), ReplacementTransform(cop[1], n[2]),
-                  ReplacementTransform(cop[2], n[4]), run_time=1.4)
-        lay = T("looks layered", 28, GREY).move_to([5.0, 0.6, 0])
-        self.play(FadeIn(lay), run_time=0.5)
-        self.at("several kinds of cells")
-        kinds = VGroup(T("several kinds", 28, RED), T("of cells?", 28, RED)).arrange(DOWN, buff=0.12).move_to([5.0, -0.6, 0])
-        self.play(FadeIn(kinds), run_time=0.6)
-        self.at("something simpler")
-        cells = [cell(x) for x in COLS]
-        sauer = T("Sauer, 1935", 26, GREY).move_to([5.0, 2.2, 0])
-        self.play(FadeOut(lay), FadeOut(kinds), FadeIn(sauer),
-                  LaggedStart(*[GrowFromCenter(c) for c in cells], lag_ratio=0.15), run_time=1.8)
-        self.at("long and thin")
-        self.play(Indicate(cells[3], color=BLUE, scale_factor=1.04), run_time=1.0)
-        self.at("apical surface")
-        sl = side_labels()
-        self.play(FadeIn(sl[0]), Indicate(w[0], color=GREY, scale_factor=1.0), run_time=0.8)
-        self.at("basal surface")
-        self.play(FadeIn(sl[1]), Indicate(w[2], color=GREY, scale_factor=1.0), run_time=0.8)
-        self.at("nucleus moves")
-        self.play(*[nn.animate.set_y(y) for nn, y in zip(n, [1.8, -1.8, -0.6, 1.2, -1.2, 0.6])], run_time=1.6)
-        self.play(*[nn.animate.set_y(y) for nn, y in zip(n, [-0.2, 0.4, 1.6, -1.4, 0.4, -2.0])], run_time=1.4)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Lift(SpokenScene):
-    def construct(self):
-        w = wall()
-        sl = side_labels()
-        cells = [cell(x) for x in COLS]
-        ys = [-0.2, 0.4, 1.6, -1.4, 0.4, -2.0]
-        n = [nuc(x, y) for x, y in zip(COLS, ys)]
-        self.add(w, sl, *cells, *n)
-        # keep the middle cell; slide it to the left stage
-        c = cells[2]
-        main = n[2]
-        others = VGroup(*[cells[i] for i in (0, 1, 3, 4, 5)], *[n[i] for i in (0, 1, 3, 4, 5)])
-        self.at("Picture a lift")
-        big_c, big_n = bigcell(), bignuc(Y_AP)
-        self.play(FadeOut(others), ReplacementTransform(c, big_c), ReplacementTransform(main, big_n), run_time=0.8)
-        c, main = big_c, big_n
-        shaft = beside(T("the cell: a fixed shaft", 28, BLUE), 1.6)
-        car = beside(T("the nucleus: the car", 28, YELLOW), 0.7)
-        self.at("The shaft is the cell")
-        self.play(FadeIn(shaft, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("The car is the nucleus")
-        self.play(FadeIn(car, shift=RIGHT * 0.2), run_time=0.6)
-        self.play(main.animate.set_y(0.0), run_time=0.8)
-        self.play(main.animate.set_y(Y_AP), run_time=0.8)
-
-        arcs = ring_arcs()
-        labs = ring_labels()
-        mid = T("cell cycle", 24, GREY).move_to(RING_C)
-        marker = Dot(pt_on_ring(60), radius=0.14, color=YELLOW).set_z_index(5)
-        self.at("timetable")
-        self.play(FadeOut(shaft), FadeOut(car), run_time=0.4)
-        self.play(*[Create(a) for a in arcs.values()],
-                  *[FadeIn(l) for l in labs.values()], FadeIn(mid), FadeIn(marker), run_time=1.0)
-
-        def go(name, **kw):
-            return MoveAlongPath(marker, arcs[name], **kw)
-
-        def lit(name):
-            return [arcs[k].animate.set_stroke(opacity=1.0 if k == name else 0.35) for k in arcs]
-
-        self.at("moves basally")
-        self.play(go("G1"), main.animate.move_to([CX, Y_BA - 1.0, 0]), *lit("G1"), run_time=1.1, rate_func=linear)
-        self.at("S phase")
-        copy_ring = ring_of(CX, Y_BA, NR)
-        self.play(go("S"), main.animate.move_to([CX, Y_BA, 0]), *lit("S"), Create(copy_ring), run_time=0.9, rate_func=linear)
-        dna = beside(T("copying DNA", 26, TEAL), Y_BA)
-        self.at("DNA is copied")
-        self.play(FadeIn(dna, shift=LEFT * 0.2), run_time=0.5)
-        self.at("basal part")
-        self.play(Indicate(dna, color=TEAL, scale_factor=1.1), run_time=0.8)
-        self.at("back to the apical")
-        self.play(go("G2"), main.animate.move_to([CX, Y_AP, 0]), *lit("G2"), FadeOut(copy_ring), FadeOut(dna),
-                  run_time=1.7, rate_func=linear)
-        self.at("Mitosis happens")
+        stage = opening()
+        n = neuron(CX + BIGW / 2, -0.6)
+        labels = roles()
+        scope = T("embryonic rodent cortex", 24, GREY).move_to([2.8, 2.65, 0])
+        self.add(stage, n, scope)
+        self.at("make most cortical neurons")
+        self.play(FadeIn(labels[0]), run_time=0.6)
+        self.at("guide migrating neurons")
+        self.play(FadeIn(labels[1]), n.animate.set_y(1.8), run_time=1.1)
+        self.at("main source")
+        self.play(Indicate(stage[2], color=YELLOW), run_time=0.6)
+        self.at("see the scaffold")
+        self.play(Indicate(stage[1], color=BLUE, scale_factor=1.03), run_time=0.7)
+        definition = T("progenitor: a cell that still divides", 26, BLUE).move_to([2.7, -1.5, 0])
+        self.at("is a progenitor")
+        self.play(FadeIn(definition), run_time=0.6)
+        self.at("still divides")
         d = bigdumb(Y_AP)
-        self.play(go("M"), *lit("M"), ReplacementTransform(main, d), run_time=0.9, rate_func=linear)
+        self.play(ReplacementTransform(stage[2], d), run_time=0.6)
+        self.at("Its daughters")
+        keep = bignuc(Y_AP)
+        baby = neuron(CX + BIGW / 2, Y_AP)
+        self.play(ReplacementTransform(d, keep), FadeIn(baby, scale=0.4), run_time=0.6)
+        self.at("become neurons")
+        self.play(baby.animate.set_y(-0.8), run_time=0.8)
+        self.at("keeps making more")
+        self.play(Indicate(keep, color=YELLOW), run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Motors(SpokenScene):
-    def construct(self):
-        w = wall()
-        sl = side_labels()
-        c = bigcell()
-        main = bignuc(Y_AP)
-        self.add(w, sl, c, main)
-        self.at("has motors")
-        # motor tag ride-along
-        kin = beside(bchip("kinesin Kif1a", PURPLE, 26), Y_AP)
-        g1 = T("G1", 28, TEAL, weight=BOLD).next_to(kin, UP, buff=0.12)
-        rat = T("embryonic rat cortex", 24, GREY).move_to([4.1, 2.6, 0])
-        self.at("In embryonic rat cortex")
-        self.play(FadeIn(rat), run_time=0.5)
-        self.at("carries the nucleus basalee")
-        self.play(FadeIn(kin, shift=LEFT * 0.2), run_time=0.5)
-        self.play(FadeIn(g1), run_time=0.3)
-        kg = VGroup(kin, g1)
-        self.play(kg.animate.shift(UP * (Y_BA - Y_AP)), main.animate.move_to([CX, Y_BA, 0]), run_time=2.0)
-        self.at("Cytoplasmic dinein")
-        dyn = beside(bchip("dynein", ORANGE, 26), Y_BA)
-        g2 = T("G2", 28, TEAL, weight=BOLD).next_to(dyn, UP, buff=0.12)
-        self.play(FadeOut(kg), FadeIn(dyn, shift=RIGHT * 0.2), FadeIn(g2), run_time=0.6)
-        self.at("pulls it apically")
-        dg = VGroup(dyn, g2)
-        self.play(dg.animate.shift(DOWN * (Y_BA - Y_AP)), main.animate.move_to([CX, Y_AP, 0]), run_time=2.0)
-        self.at("measured in rat")
-        mr = bchip("measured in rat", GREY, 24).move_to([3.4, 1.7, 0])
-        self.play(FadeOut(dg), FadeOut(rat), FadeIn(mr), run_time=0.6)
-        self.at("zebrafish retina")
-        zf = bchip("zebrafish retina", GREY, 24).move_to([3.4, 0.2, 0])
-        self.play(FadeIn(zf), run_time=0.6)
-        self.at("depend on")
-        am = bchip("apical move: actomyosin", PINK, 24).move_to([3.4, -1.2, 0])
-        down = arr([zf.get_bottom()[0], zf.get_bottom()[1] - 0.05, 0], [am.get_top()[0], am.get_top()[1] + 0.05, 0], PINK)
-        self.play(GrowArrow(down), FadeIn(am), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S05Fate(SpokenScene):
     def construct(self):
-        w = wall()
-        sl = side_labels()
-        c = bigcell()
-        d = bigdumb(Y_AP)
-        self.add(w, sl, c, d)
-        q1 = T("?", 72, RED, weight=BOLD).move_to([CX - 1.8, Y_AP + 1.0, 0])
-        q2 = T("?", 72, RED, weight=BOLD).move_to([CX + 1.8, Y_AP + 1.0, 0])
-        self.at("Where a cell divides")
-        self.play(FadeIn(q1, scale=0.5), FadeIn(q2, scale=0.5), run_time=0.7)
-        self.at("what its daughters become")
-        self.play(Indicate(VGroup(q1, q2), color=RED, scale_factor=1.2), run_time=1.0)
-
-        main = bignuc(Y_AP)
-        ne = beside(T("neuroepithelial cell", 28, GREY), 2.3)
-        self.at("neuroepithelial cells")
-        self.play(FadeOut(q1), FadeOut(q2), ReplacementTransform(d, main), FadeIn(ne), run_time=0.9)
-        rg = T("radial glial cell", 28, BLUE).move_to(ne.get_center())
-        rg.align_to(ne, LEFT)
-        self.at("become radial glia")
-        self.play(ReplacementTransform(ne, rg), run_time=0.8)
-        self.at("a foot on the ventricle")
-        self.play(Indicate(w[0], color=BLUE, scale_factor=1.0), run_time=0.9)
-        self.at("long fiber")
-        self.play(Indicate(c, color=BLUE, scale_factor=1.03), run_time=0.9)
-        self.at("keep the lift")
-        self.play(main.animate.set_y(Y_BA - 0.6), run_time=0.6)
-        self.play(main.animate.set_y(Y_AP), run_time=0.6)
-
-        # direct neurogenesis equation
-        chipA = bchip("radial glial cell", BLUE, 24)
-        chipB = bchip("radial glial cell", BLUE, 24)
-        chipN = bchip("neuron", GREEN, 24)
-        plus = T("+", 30, TEXT)
-        row2 = VGroup(chipB, plus, chipN).arrange(RIGHT, buff=0.25).move_to([3.4, -0.5, 0])
-        chipA.move_to([3.4, 1.0, 0])
-        down = arr([3.4, chipA.get_bottom()[1] - 0.02, 0], [3.4, row2.get_top()[1] + 0.02, 0], GREY)
-        self.at("direct neurogenesis")
-        self.play(FadeOut(rg), FadeIn(chipA), run_time=0.6)
-        self.at("divides into another")
-        dd = bigdumb(Y_AP)
-        fx = CX + BIGW / 2   # the parent's fiber: the cell's right edge
-        neuron = Circle(radius=0.3, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.9).move_to([fx, Y_AP, 0])
-        neuron.set_z_index(5)
-        keep = bignuc(Y_AP)
-        self.play(ReplacementTransform(main, dd), run_time=0.6)
-        self.play(ReplacementTransform(dd, keep), FadeIn(neuron, scale=0.4), GrowArrow(down), FadeIn(row2), run_time=1.0)
-        self.at("that neuron moved out")
-        trail = Line([fx, Y_AP, 0], [fx, Y_AP + 0.01, 0], stroke_color=GREEN, stroke_width=7).set_z_index(4)
-        self.add(trail)
-        trail.add_updater(lambda m: m.put_start_and_end_on([fx, Y_AP, 0], neuron.get_center() + DOWN * 0.001))
-        self.play(neuron.animate.move_to([fx, 1.8, 0]), Indicate(chipN, color=GREEN, scale_factor=1.15), run_time=2.6)
-        trail.clear_updaters()
+        # Three persistent panel frames, with one animated experiment in focus at a time.
+        xs = [-4.35, 0, 4.35]
+        names = ["Mouse sorting\n& fate mapping", "Rat lineage\nimaging", "Rat recording\n& dye filling"]
+        panels = VGroup(*[RoundedRectangle(width=4.05, height=5.5, corner_radius=0.15,
+                            stroke_color=GREY, stroke_opacity=0.45).move_to([x, -0.1, 0]) for x in xs])
+        titles = VGroup(*[T(name, 24, GREY).move_to([x, 2.15, 0]) for x, name in zip(xs, names)])
+        self.add(heading("How do we know?"), panels, titles)
+        rg = bchip("radial glia", BLUE, 24).move_to([-4.35, 0.85, 0])
+        dish = Arc(radius=1.2, start_angle=PI, angle=PI, stroke_color=GREY).stretch(0.4, 1).move_to([-4.35, -1.4, 0])
+        ns = VGroup(neuron(-4.8, -0.8), neuron(-3.9, -0.8))
+        culture = T("culture", 24, GREY).move_to([-4.35, -2.15, 0])
+        self.at("sorted radial glia")
+        self.play(FadeIn(rg), titles[0].animate.set_color(TEXT), run_time=0.5)
+        self.at("made neurons in culture")
+        self.play(Create(dish), TransformFromCopy(rg, ns), FadeIn(culture), run_time=0.7)
+        marked = VGroup(neuron(-4.9, -0.7), neuron(-3.8, -0.7))
+        for n in marked:
+            n.add(Dot(n.get_center(), radius=0.09, color=GOLD))
+        in_vivo = T("in the animal\npermanent mark", 23, GOLD).move_to([-4.35, -1.9, 0])
+        badge = Dot(rg.get_right() + LEFT * 0.17, radius=0.09, color=GOLD)
+        self.at("Fate mapping")
+        self.play(FadeOut(dish), FadeOut(ns), FadeOut(culture), FadeIn(badge), FadeIn(in_vivo), run_time=0.5)
+        self.at("marked their descendants")
+        self.play(TransformFromCopy(badge, marked), run_time=0.7)
+        result = T("nearly all cortical\nprojection neurons", 22, GREEN).move_to([-4.35, -2.25, 0])
+        self.at("Nearly all cortical")
+        self.play(in_vivo.animate.set_y(-1.4), FadeIn(result), run_time=0.5)
+        c = cell(-0.3, width=0.65).scale([1, 0.52, 1]).move_to([-0.3, -0.3, 0])
+        nu = nuc(-0.3, -1.55, 0.25)
+        self.at("In filmed rat slices")
+        self.play(VGroup(rg, badge, marked, in_vivo, result).animate.set_opacity(0.6),
+                  titles[1].animate.set_color(TEXT), FadeIn(c), FadeIn(nu), run_time=0.5)
+        dd = dumb(-0.3, -1.55)
+        daughter = neuron(0.025, -1.55, 0.22)
+        self.at("divided and made neurons")
+        self.play(ReplacementTransform(nu, dd), run_time=0.35)
+        self.play(ReplacementTransform(dd, nuc(-0.3, -1.55, 0.25)), FadeIn(daughter), run_time=0.4)
+        self.at("moved along")
+        self.play(daughter.animate.set_y(0.8), run_time=1.0)
+        filled = cell(4.35, width=0.7).scale([1, 0.52, 1]).move_to([4.35, -0.35, 0])
+        soma = nuc(4.35, -0.8, 0.25)
+        electrode = Line([5.8, 0.65, 0], [4.6, -0.7, 0], stroke_color=GREY, stroke_width=5)
+        self.at("recordings also tied")
+        self.play(titles[2].animate.set_color(TEXT), FadeIn(soma), Create(electrode), run_time=0.5)
+        self.at("dividing precursors")
+        self.play(ReplacementTransform(soma, dumb(4.35, -0.8)), run_time=0.5)
+        self.at("to radial glial shape")
+        self.play(DrawBorderThenFill(filled), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S08Routes(SpokenScene):
+    def construct(self):
+        head = heading("Rodent example lineages")
+        direct = T("direct", 28, BLUE).move_to([-3.3, 2.5, 0])
+        indirect = T("indirect", 28, BLUE).move_to([3.0, 2.5, 0])
+        a = bchip("radial glia", BLUE, 24).move_to([-3.3, 1.55, 0])
+        b = bchip("radial glia", BLUE, 24).move_to([3.0, 1.55, 0])
+        self.add(head)
+        self.at("two routes")
+        self.play(FadeIn(direct), FadeIn(indirect), FadeIn(a), FadeIn(b), run_time=0.6)
+        drg = bchip("radial glia", BLUE, 24).move_to([-4.85, 0.1, 0])
+        dn = bchip("neuron", GREEN, 24).move_to([-1.9, 0.1, 0])
+        da = VGroup(arr(a.get_bottom(), drg.get_top()), arr(a.get_bottom(), dn.get_top()))
+        self.at("Direct neurogenesis")
+        self.play(Create(da), TransformFromCopy(a, drg), TransformFromCopy(a, dn), run_time=0.8)
+        irg = bchip("radial glia", BLUE, 24).move_to([1.35, 0.1, 0])
+        ip = bchip("intermediate\nprogenitor", BLUE, 22).move_to([4.65, 0.1, 0])
+        ia = VGroup(arr(b.get_bottom(), irg.get_top()), arr(b.get_bottom(), ip.get_top()))
+        self.at("Indirect neurogenesis")
+        self.play(Create(ia), TransformFromCopy(b, irg), TransformFromCopy(b, ip), run_time=0.8)
+        # A compact physical inset makes loss of ventricular contact visible.
+        foot = Line([3.5, -2.8, 0], [5.9, -2.8, 0], color=GREY)
+        contact = Line([4.65, -1.35, 0], [4.65, -2.8, 0], color=BLUE, stroke_width=3)
+        progenitor = Circle(radius=0.25, color=BLUE, fill_opacity=0.3).move_to([4.65, -1.35, 0])
+        vl = T("ventricle", 22, GREY).move_to([4.65, -3.15, 0])
+        self.at("leaves the ventricle")
+        self.play(FadeIn(foot), FadeIn(vl), Create(contact), FadeIn(progenitor), run_time=0.4)
+        self.play(FadeOut(contact), progenitor.animate.set_y(-0.75), run_time=0.6)
+        svz = T("SVZ", 24, GREY).move_to([5.75, -0.85, 0])
+        self.at("divides in the subventricular zone")
+        self.play(FadeIn(svz), ReplacementTransform(progenitor, dumb(4.65, -0.75)), run_time=0.6)
+        # Reset the physical inset before restoring the completed family tree.
+        self.at("usually into two neurons")
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m not in [head, direct, indirect, a, b, drg, dn, da, irg, ip, ia]], run_time=0.25)
+        two = VGroup(bchip("neuron", GREEN, 22).move_to([3.3, -1.55, 0]),
+                     bchip("neuron", GREEN, 22).move_to([5.4, -1.55, 0]))
+        branches = VGroup(*[arr(ip.get_bottom(), n.get_top()) for n in two])
+        note = T("Usually two in rodents; yields vary", 22, GREY).move_to([2.8, -2.4, 0])
+        self.play(Create(branches), FadeIn(two), FadeIn(note), run_time=0.6)
+        self.at("without spending")
+        self.play(Indicate(irg[1:], color=BLUE), Indicate(drg[1:], color=BLUE), run_time=0.6)
+        self.at("Human cortex")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.35)
+        h = heading("Human cortex: outer radial glia")
+        v = Line([-5.8, -2.65, 0], [5.8, -2.65, 0], color=GREY)
+        vlabel = T("ventricle", 24, GREY).move_to([-4.5, -3.0, 0])
+        outer = VGroup(Circle(radius=0.4, color=BLUE, fill_opacity=0.3).move_to([-2, 0.4, 0]),
+                       Line([-2, 0.8, 0], [-2, 2.6, 0], color=BLUE, stroke_width=4))
+        ol = T("outer radial glia", 26, BLUE).move_to([-2, -0.55, 0])
+        self.play(FadeIn(h), FadeIn(v), FadeIn(vlabel), FadeIn(outer), FadeIn(ol), run_time=0.6)
+        self.at("feed further progenitors")
+        more = bchip("further progenitors", BLUE, 26).move_to([2.8, 0.4, 0])
+        self.play(GrowArrow(arr([-1.4, 0.4, 0], more.get_left())), FadeIn(more), run_time=0.7)
+        self.finish()
+
+
+class S09Niche(SpokenScene):
+    def construct(self):
+        c, n = bigcell(), bignuc(Y_AP)
+        v = Rectangle(width=9.6, height=0.5, stroke_width=0, fill_color=TEAL, fill_opacity=0.15).move_to([0, -3.15, 0])
+        pia = Line([-4.8, 3.1, 0], [4.8, 3.1, 0], color=GREY, stroke_width=5)
+        bm = Line([-4.8, 2.92, 0], [4.8, 2.92, 0], color=GREY, stroke_width=3)
+        feet = VGroup(Line([CX-0.8,-2.9,0],[CX+0.8,-2.9,0],color=BLUE,stroke_width=8),
+                      Line([CX-0.8,2.9,0],[CX+0.8,2.9,0],color=BLUE,stroke_width=8))
+        self.add(c,n,v,pia,bm)
+        self.at("touch two niches")
+        self.play(Create(feet), run_time=0.6)
+        ap = VGroup(T("apical foot", 26, BLUE), T("ventricle + CSF", 26, GREY)).arrange(DOWN,buff=0.2).move_to([2.8,-2.2,0])
+        self.at("The apical foot")
+        self.play(FadeIn(ap), Indicate(feet[0], color=BLUE, scale_factor=1.1), run_time=0.6)
+        gf = VGroup(*[Dot([x,-3.15,0],radius=0.075,color=TEAL) for x in [-3.8,-2.9,-1.8,-0.8,0.2,1.2]])
+        gl = T("mouse CSF: growth factors", 25, TEAL).move_to([2.6,0,0])
+        self.at("In mouse")
+        self.play(FadeIn(gl), FadeIn(gf), run_time=0.5)
+        self.at("support proliferation")
+        self.play(ReplacementTransform(n, bigdumb(Y_AP)), run_time=0.7)
+        ba = VGroup(T("basal foot",26,BLUE),T("basement membrane",26,GREY),T("beneath the pia",24,GREY)).arrange(DOWN,buff=0.18).move_to([2.8,1.9,0])
+        self.at("The basal foot")
+        self.play(FadeIn(ba), Indicate(feet[1],color=BLUE,scale_factor=1.1), run_time=0.7)
+        baby = Circle(radius=0.3,color=BLUE,fill_opacity=0.3).move_to([0,-2.4,0])
+        tether = Line([0,-2.7,0],[0,-2.9,0],color=BLUE,stroke_width=4)
+        self.at("A daughter that leaves")
+        self.play(FadeOut(gl),FadeIn(baby),Create(tether),run_time=0.5)
+        self.at("loses apical contact")
+        self.play(FadeOut(tether),baby.animate.move_to([0.2,-0.3,0]),run_time=0.8)
+        self.finish()
+
+
+class S10Output(SpokenScene):
+    def construct(self):
+        head = heading("Daughters that keep dividing")
+        p = bchip("P: remain progenitors", BLUE, 28).move_to([-3.2,1.8,0])
+        q = bchip("Q: quit the cycle", GREEN,28).move_to([3.2,1.8,0])
+        eq = M("P + Q = 1",32).move_to([0,0.55,0])
+        self.add(head)
+        self.at("Call that fraction P")
+        self.play(FadeIn(p),run_time=0.5)
+        self.at("the fraction that quits")
+        self.play(FadeIn(q),run_time=0.5)
+        self.at("P plus Q")
+        self.play(FadeIn(eq),run_time=0.5)
+        def pool(count):
+            return VGroup(*[Circle(radius=0.25,color=BLUE,fill_opacity=0.4).move_to([(i-(count-1)/2)*0.85,-1.55,0]) for i in range(count)])
+        cells = pool(3)
+        status = M("Q < 0.5",30).move_to([0,-0.45,0])
+        self.at("Below Q equals")
+        self.play(FadeIn(status),FadeIn(cells),run_time=0.4)
+        self.at("the pool grows")
+        self.play(Transform(cells,pool(5)),run_time=0.7)
+        self.at("At 0 .5")
+        self.play(Transform(status,M("Q = 0.5",30).move_to(status)),Transform(cells,pool(3)),run_time=0.45)
+        self.at("it holds steady")
+        # Renew the three members while keeping the pool count fixed.
+        self.play(Indicate(cells,color=BLUE,scale_factor=1.05),run_time=0.55)
+        self.at("Above it")
+        self.play(Transform(status,M("Q > 0.5",30).move_to(status)),Transform(cells,pool(3)),run_time=0.4)
+        self.at("it shrinks")
+        self.play(Transform(cells,pool(2)),run_time=0.6)
+        ip = bchip("Intermediate progenitors count in P",BLUE,26).move_to([0,-2.8,0])
+        self.at("An intermediate progenitor")
+        self.play(FadeIn(ip),run_time=0.6)
+        self.at("In mouse cortex")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.4)
+        self.add(heading("Mouse cortex: a longer cell cycle"))
+        # Constant arc length per unit time: growing G1 increases total circumference.
+        def clock(g1):
+            spans = [g1, 1.0, 0.8, 0.3]
+            total = sum(spans)
+            rad = total / 3.1
+            arcs, labs = VGroup(), VGroup()
+            angle = PI/2
+            for name,span in zip(["G1","S","G2","M"],spans):
+                sweep = -TAU*span/total
+                arcs.add(Arc(radius=rad,start_angle=angle,angle=sweep,arc_center=[-1.3,0,0],
+                             stroke_color=TEAL,stroke_width=10,stroke_opacity=1 if name=="G1" else 0.45))
+                mid = angle+sweep/2
+                labs.add(T(name,26,TEAL).move_to([-1.3+(rad+0.4)*np.cos(mid),(rad+0.4)*np.sin(mid),0]))
+                angle += sweep
+            return VGroup(arcs,labs)
+        ring = clock(1.3)
+        self.play(Create(ring),run_time=0.6)
+        self.at("cell cycle lengthens")
+        self.play(Transform(ring,clock(2.8)),run_time=0.8)
+        self.at("mostly in G1")
+        label = T("added time: mostly G1",27,TEAL).move_to([3.4,0.4,0])
+        self.play(FadeIn(label),run_time=0.5)
+        self.finish()
+
+
+class S03Lift(SpokenScene):
+    def construct(self):
+        # VZ-only view: the upper edge is basal VZ, not the pial surface.
+        low = Line([-4.8,-2.9,0],[5.9,-2.9,0],color=GREY,stroke_width=5)
+        ap = T("apical / ventricle",24,GREY).move_to([-3.6,-3.3,0])
+        basal = T("basal VZ",24,GREY).move_to([-3.6,3.15,0])
+        cells = VGroup(*[VGroup(cell(x),nuc(x,y)) for x,y in zip([-2.4,-1.2,0,1.2],[-1.7,1.7,-0.2,0.9])])
+        self.add(low,ap,basal,cells)
+        self.at("Picture a lift")
+        c, main = bigcell(),bignuc(Y_AP)
+        self.play(ReplacementTransform(cells,VGroup(c,main)),run_time=0.7)
+        shaft = beside(T("cell = shaft",28,BLUE),1.7)
+        car = beside(T("nucleus = car",28,YELLOW),0.8)
+        self.at("The shaft is the cell")
+        self.play(FadeIn(shaft),run_time=0.4)
+        self.at("the car is the nucleus")
+        self.play(FadeIn(car),run_time=0.4)
+        arcs, labs = ring_arcs(),ring_labels()
+        ring = VGroup(*arcs.values(),*labs.values(),T("cell cycle",24,GREY).move_to(RING_C))
+        marker = Dot(pt_on_ring(60),radius=0.13,color=YELLOW)
+        def lit(name):
+            return [arcs[k].animate.set_stroke(opacity=1 if k==name else 0.35) for k in arcs]
+        self.at("In G1")
+        self.play(FadeOut(shaft),FadeOut(car),FadeIn(ring),FadeIn(marker),run_time=0.4)
+        self.at("moves basally")
+        self.play(main.animate.set_y(Y_BA),MoveAlongPath(marker,arcs["G1"]),*lit("G1"),run_time=0.9,rate_func=linear)
+        self.at("S phase")
+        rr = ring_of(CX,Y_BA,NR)
+        self.play(Create(rr),MoveAlongPath(marker,arcs["S"]),*lit("S"),run_time=0.3,rate_func=linear)
+        self.at("copies DNA")
+        dna = T("copying DNA",25,TEAL).move_to([0.8,2.8,0])
+        self.play(FadeIn(dna),run_time=0.4)
+        self.at("In G2")
+        self.play(FadeOut(dna),FadeOut(rr),MoveAlongPath(marker,arcs["G2"]),
+                  main.animate.set_y(Y_AP),*lit("G2"),run_time=1.0,rate_func=linear)
+        self.at("Mitosis happens")
+        dd = bigdumb(Y_AP)
+        self.play(ReplacementTransform(main,dd),MoveAlongPath(marker,arcs["M"]),*lit("M"),run_time=0.8)
+        self.at("Nuclei at different heights")
+        layer = VGroup(*[VGroup(cell(x),nuc(x,y)) for x,y in zip([-2.4,-1.2,0,1.2],[-1.7,1.7,-0.2,0.9])])
+        self.play(FadeOut(ring),FadeOut(marker),FadeOut(c),FadeOut(dd),FadeIn(layer),run_time=0.6)
+        self.at("single cell layer")
+        tag = VGroup(T("one cell layer",28,BLUE),T("pseudostratified",26,GREY)).arrange(DOWN,buff=0.2).move_to([4.35,0.2,0])
+        self.play(FadeIn(tag),run_time=0.5)
+        self.finish()
+
+
 class S06Rule(SpokenScene):
     def construct(self):
-        w = wall()
-        sl = side_labels()
-        c = bigcell()
-        main = bignuc(Y_AP)
-        fx = CX + BIGW / 2
-        neuron = Circle(radius=0.3, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.9).move_to([fx, 1.8, 0])
-        neuron.set_z_index(5)
-        trail = Line([fx, Y_AP, 0], [fx, 1.8, 0], stroke_color=GREEN, stroke_width=7).set_z_index(4)
-        self.add(w, sl, c, main, trail, neuron)
-        self.at("stays put")
-        stay = beside(T("the cell stays put", 28, BLUE), 0.0)
-        self.play(Indicate(c, color=BLUE, scale_factor=1.04), FadeIn(stay, shift=RIGHT * 0.2), run_time=1.0)
-        self.at("copies DNA")
-        ringc = ring_of(CX, Y_BA, NR)
-        dna = beside(T("copying DNA", 26, TEAL), Y_BA - 0.5)
-        self.play(main.animate.move_to([CX, Y_BA, 0]), neuron.animate.move_to([fx, 2.6, 0]),
-                  trail.animate.put_start_and_end_on([fx, Y_AP, 0], [fx, 2.6, 0]), run_time=1.4)
-        self.play(Create(ringc), FadeIn(dna), run_time=0.6)
-        self.at("rides back")
-        self.play(FadeOut(ringc), FadeOut(dna), main.animate.move_to([CX, Y_AP, 0]), run_time=0.9)
-        self.at("divides at the ventricle")
-        dd = bigdumb(Y_AP)
-        self.play(ReplacementTransform(main, dd), run_time=0.6)
-        self.play(FadeOut(stay), run_time=0.3)
-        self.at("guides migrating neurons")
-        g = bchip("guides migrating neurons", GREEN, 26).move_to([3.2, 1.5, 0])
-        self.play(FadeIn(g, shift=LEFT * 0.2), Indicate(neuron, color=GREEN, scale_factor=1.3), run_time=0.9)
-        self.at("makes most of them")
-        m = bchip("makes most of them", GREEN, 26).move_to([3.2, -0.3, 0])
-        self.play(FadeIn(m, shift=LEFT * 0.2), Indicate(dd, color=YELLOW, scale_factor=1.3), run_time=0.9)
-        self.at("Keep the rule")
-        rule = VGroup(T("The cell stays put.", 34, BLUE), T("The nucleus rides the cell cycle.", 34, YELLOW)).arrange(DOWN, buff=0.25).move_to([2.2, -1.9, 0])
-        rule.set_x(3.0)
-        self.play(FadeIn(rule, shift=UP * 0.2), run_time=1.0)
+        stage = opening()
+        n = neuron(CX+BIGW/2,0.0)
+        labels = roles()
+        scope = T("embryonic rodent cortex",24,GREY).move_to([2.8,2.65,0])
+        self.add(stage,n,scope)
+        self.at("Keep the main finding")
+        self.play(Indicate(stage[1],color=BLUE,scale_factor=1.02),run_time=0.6)
+        self.at("guide migrating neurons")
+        self.play(FadeIn(labels[1]),n.animate.set_y(1.8),run_time=0.8)
+        self.at("make most of them")
+        baby = neuron(CX+BIGW/2,Y_AP)
+        division = bigdumb(Y_AP)
+        self.play(ReplacementTransform(stage[2],division),run_time=0.3)
+        self.play(ReplacementTransform(division,bignuc(Y_AP)),FadeIn(baby,scale=0.4),FadeIn(labels[0]),run_time=0.4)
+        self.play(baby.animate.set_y(-1.1),run_time=0.4)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "The cell stays put; its nucleus rides the cell cycle."
+    LINE = "In embryonic rodent cortex, radial glia both guide and make most neurons."

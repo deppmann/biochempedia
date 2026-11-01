@@ -52,301 +52,288 @@ def bell(c, base, amp, s, x0, x1, n=60):
 
 class S00Title(TitleCard):
     LESSON = "Restoring senses: implants and prostheses"
-    TITLE = "A contact is not a channel"
+    TITLE = "Which Neurons Get the Message"
 
 
-# ---------------------------------------------------------------------------------------------
+# Additional schematics use the old contact, arrow and opaque-chip helpers.
+def cell(x, y, color=PURPLE):
+    soma = Circle(radius=0.22, color=color, fill_color=color, fill_opacity=0.5).move_to([x, y, 0])
+    return VGroup(soma, Line([x + .22, y, 0], [x + 1.0, y, 0], color=color, stroke_width=3))
+
+
+def goggles(x=0, y=0):
+    lenses = VGroup(*[RoundedRectangle(width=1.0, height=.65, corner_radius=.18,
+                        color=BLUE, fill_color=BLUE, fill_opacity=.15).move_to([x+d, y, 0]) for d in (-.65, .65)])
+    return VGroup(lenses, Line([x-.15,y,0],[x+.15,y,0],color=BLUE))
+
+
+def gripper(x, y):
+    return VGroup(poly([(x-1.1,y+1.1),(x-.4,y+.4),(x,y)], BLUE, w=9),
+                  poly([(x-.45,y-.55),(x-.45,y),(x+.45,y),(x+.45,y-.55)], BLUE, w=5))
+
+
 class S01Question(SpokenScene):
     def construct(self):
-        n, pitch, y = 22, 0.5, 0.7
-        x0 = -(n - 1) * pitch / 2
-        bar = RoundedRectangle(corner_radius=0.2, width=n * pitch + 0.3, height=0.75, stroke_color=GREY,
-                               stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to([0, y, 0])
-        cs = VGroup(*[contact(x0 + i * pitch, y) for i in range(n)])
-        lab = T("cochlear implant array", 30, GREY).move_to([0, y + 1.3, 0])
-        self.play(FadeIn(bar), FadeIn(lab), run_time=0.8)
-        self.at("contacts")
-        self.play(LaggedStart(*[FadeIn(c, scale=0.6) for c in cs], lag_ratio=0.06), run_time=2.0)
-        cnt = T("up to 22 contacts", 32, BLUE).move_to([0, y - 1.0, 0])
-        self.play(FadeIn(cnt), run_time=0.5)
-        self.at("stopped improving")
-        ch = bchip("8 to 10 channels", TEAL, 34).move_to([0, -1.9, 0])
-        sub = T("speech scores stopped improving: one study of 18 adult implant users", 24, GREY).move_to([0, -2.9, 0])
-        a = arr([0, y - 1.4, 0], [0, -1.35, 0], TEAL)
-        self.play(GrowArrow(a), FadeIn(ch, shift=UP * 0.15), FadeIn(sub), run_time=1.0)
-        self.at("what is a channel")
-        q = T("?", 56, YELLOW, weight=BOLD).next_to(ch, RIGHT, buff=0.4)
-        self.play(FadeIn(q, scale=1.4), run_time=0.5)
-        self.at("electrode in the eye")
-        self.play(*[FadeOut(m) for m in (bar, cs, lab, cnt, a, ch, sub, q)], run_time=0.6)
-        eye = T("in the eye", 32, GREY).move_to([0, 2.6, 0])
-        el = contact(-3.5, 0, 1.0)
-        ell = T("one electrode", 30, BLUE).next_to(el, DOWN, buff=0.4)
-        box = DashedVMobject(Square(side_length=2.2, stroke_color=TEXT, stroke_width=3)).move_to([3.5, 0, 0])
-        qq = T("?", 80, YELLOW, weight=BOLD).move_to(box)
-        bl = T("one pixel?", 30, TEXT).next_to(box, DOWN, buff=0.4)
-        ar = arr([-2.5, 0, 0], [2.2, 0, 0], GREY)
-        self.play(FadeIn(eye), FadeIn(el), FadeIn(ell), run_time=0.6)
-        self.play(GrowArrow(ar), FadeIn(box), FadeIn(qq), FadeIn(bl), run_time=0.9)
+        hair = VGroup(*[VGroup(Line([x,-.2,0],[x,.8,0],color=GREY,stroke_width=5),
+                    Line([x-.18,.95,0],[x+.18,.55,0],color=RED),
+                    Line([x-.18,.55,0],[x+.18,.95,0],color=RED)) for x in (-.7,0,.7)])
+        hairs = VGroup(hair, T('damaged hair cells',26,GREY).move_to([0,-.8,0]))
+        neurons = VGroup(*[cell(3.5,y) for y in (-.5,.5,1.5)])
+        nl = T('surviving auditory\nneurons',26,PURPLE).move_to([4.2,-1.6,0])
+        implant = bchip('cochlear\nimplant',BLUE,30).move_to([-4.6,.7,0])
+        self.at('A cochlear implant')
+        self.play(FadeIn(implant),FadeIn(hairs),FadeIn(neurons),FadeIn(nl),run_time=.7)
+        bypass = poly([(-3.1,.7),(-2.5,2.2),(2.7,2.2),(3.3,1.5)],YELLOW,w=5)
+        self.at('bypasses damaged')
+        self.play(Create(bypass),run_time=.7)
+        self.at('stimulates surviving')
+        self.play(Indicate(neurons,color=YELLOW),run_time=.7)
+        benefit = bchip('useful hearing',TEXT,32).move_to([0,-2.6,0])
+        self.at('useful hearing')
+        self.play(FadeIn(benefit),run_time=.6)
+        speech = bchip('supports speech understanding',TEXT,30).move_to([0,-2.6,0])
+        self.at('support speech understanding')
+        self.play(ReplacementTransform(benefit,speech),run_time=.6)
+        self.at('frequency map')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.5)
+        bar = RoundedRectangle(width=10.8,height=.8,corner_radius=.2,color=GREY,fill_opacity=.2).move_to([0,.5,0])
+        contacts = VGroup(*[contact(x,.5,.55) for x in (-4.5,-2.7,-.9,.9,2.7,4.5)])
+        heading = T('cochlear place map · schematic',30,GREY).move_to([0,2.8,0])
+        self.play(FadeIn(bar),FadeIn(contacts),FadeIn(heading),run_time=.6)
+        hi=T('basal contacts\nhigher frequency',30,TEAL).move_to([-3.7,-1.3,0])
+        lo=T('apical contacts\nlower frequency',30,TEAL).move_to([3.7,-1.3,0])
+        self.at('Higher frequencies')
+        self.play(FadeIn(hi),Indicate(contacts[:3],color=TEAL),run_time=.7)
+        self.at('lower ones')
+        self.play(FadeIn(lo),Indicate(contacts[3:],color=TEAL),run_time=.7)
+        q=T('Which neurons get which information?',34,TEXT).move_to([0,-3,0])
+        self.at('Which neurons')
+        self.play(FadeIn(q),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S02Overlap(SpokenScene):
     def construct(self):
-        n, pitch, yc = 7, 1.65, -1.1
-        xs = [-(n - 1) * pitch / 2 + i * pitch for i in range(n)]
-        sig, amp, base = 0.78, 2.3, -0.65
-        head = T("a few contacts, enlarged", 28, GREY).to_edge(UP, buff=0.35)
-        bar = RoundedRectangle(corner_radius=0.2, width=xs[-1] - xs[0] + 1.6, height=0.8, stroke_color=GREY,
-                               stroke_width=3, fill_color=GREY, fill_opacity=0.25).move_to([0, yc, 0])
-        cs = VGroup(*[contact(x, yc, 0.55) for x in xs])
-        self.play(FadeIn(head), FadeIn(bar), FadeIn(cs), run_time=0.5)
-        cl = T("contact: hardware", 28, BLUE).move_to([-3.3, -2.2, 0])
-        cla = arr([-3.3, -1.9, 0], [xs[1] - 0.05, yc - 0.4, 0], BLUE, w=4)
-        self.at("hardware")
-        self.play(FadeIn(cl), GrowArrow(cla), run_time=0.8)
-        # channel = a band of frequency information
-        bx = xs[3]
-        band = Rectangle(width=pitch * 0.95, height=3.1, stroke_color=TEAL, stroke_width=3, fill_color=TEAL,
-                         fill_opacity=0.18).move_to([bx, 0.7, 0])
-        bl = T("channel: a band of frequency information", 28, TEAL).move_to([2.2, 2.95, 0])
-        bla = arr([bx + 0.7, 2.8, 0], [bx + 0.15, 2.3, 0], TEAL, w=4)
-        self.at("band of frequency")
-        self.play(FadeIn(band), FadeIn(bl), GrowArrow(bla), run_time=0.9)
-        # clinical map
-        axis = arr([-5.9, -2.5, 0], [5.9, -2.5, 0], GREY, w=4)
-        hi = T("base: higher frequencies", 26, GREY).move_to([-3.9, -3.0, 0])
-        lo = T("apex: lower frequencies", 26, GREY).move_to([3.9, -3.0, 0])
-        self.at("clinical maps")
-        self.play(FadeOut(cl), FadeOut(cla), FadeOut(bl), FadeOut(bla), FadeOut(band), FadeOut(head), run_time=0.4)
-        self.play(GrowArrow(axis), FadeIn(hi), FadeIn(lo), run_time=1.0)
-        # overlapping fields (a sketch)
-        fields, overlaps = [], []
+        xs=(-2,0,2)
+        bar=RoundedRectangle(width=7,height=.7,corner_radius=.2,color=GREY).move_to([0,-1,0])
+        cs=VGroup(*[contact(x,-1,.6) for x in xs])
+        hard=T('contact = hardware',30,BLUE).move_to([0,-2,0])
+        self.at('A contact')
+        self.play(FadeIn(bar),FadeIn(cs),FadeIn(hard),run_time=.6)
+        band=Rectangle(width=1.4,height=1.7,color=TEAL,fill_color=TEAL,fill_opacity=.15).move_to([0,1,0])
+        bl=T('channel = a band of frequency information',28,TEAL).move_to([0,3.1,0])
+        self.at('A channel')
+        self.play(FadeIn(band),FadeIn(bl),run_time=.6)
+        fields=VGroup()
         for x in xs:
-            gx, gy = bell(x, base, amp, sig, x - 1.9, x + 1.9)
-            fields.append(poly(list(zip(gx, gy)), YELLOW, 0.14, w=3))
-        for i in range(n - 1):
-            gx = np.linspace(xs[i] - 0.6, xs[i + 1] + 0.6, 60)
-            g1 = base + amp * np.exp(-0.5 * ((gx - xs[i]) / sig) ** 2)
-            g2 = base + amp * np.exp(-0.5 * ((gx - xs[i + 1]) / sig) ** 2)
-            ym = np.minimum(g1, g2)
-            pts = list(zip(gx, ym)) + [(gx[-1], base), (gx[0], base)]
-            overlaps.append(poly(pts, YELLOW, 0.6, w=0))
-        tag = T("electric fields, in this sketch", 26, YELLOW).move_to([0, 2.55, 0])
-        self.at("Neighboring contacts")
-        self.play(LaggedStart(*[FadeIn(f) for f in fields], lag_ratio=0.1), FadeIn(tag), run_time=1.2)
-        self.at("overlapping electric fields")
-        ov = VGroup(*overlaps)
-        self.play(FadeIn(ov), run_time=0.8)
-        ci = bchip("overlap = channel interaction", YELLOW, 28).move_to([0, 2.55, 0])
-        self.at("channel interaction")
-        self.play(FadeOut(tag), FadeIn(ci, shift=DOWN * 0.1), run_time=0.6)
-        self.at("So many contacts")
-        neq = VGroup(T("many contacts", 30, BLUE), T("≠", 40, RED, weight=BOLD),
-                     T("as many independent channels", 30, TEAL)).arrange(RIGHT, buff=0.3).move_to([0, 3.25, 0])
-        self.play(FadeOut(ci), FadeIn(neq), run_time=0.7)
-        self.at("The plateau depends")
-        pl = bchip("plateau depends on array type and placement", GREY, 26).move_to([0, 2.3, 0])
-        self.play(FadeIn(pl, shift=DOWN * 0.1), run_time=0.7)
+            gx,gy=bell(x,-.65,2.9,1.3,x-2.2,x+2.2)
+            pts=list(zip(gx,gy))+[(x+2.2,-.65),(x-2.2,-.65)]
+            fields.add(poly(pts,YELLOW,.16,w=3))
+        ns=VGroup(*[cell(x,1.2) for x in (-2.5,-.7,1.1)])
+        self.at('Neighboring contacts')
+        self.play(FadeOut(band),FadeOut(bl),FadeIn(fields),FadeIn(ns),run_time=.8)
+        interaction=T('overlapping electric fields · schematic',28,YELLOW).move_to([0,3.1,0])
+        self.at('overlapping electric fields')
+        self.play(FadeIn(interaction),Indicate(ns,color=YELLOW),run_time=.8)
+        self.at('So more contacts')
+        neq=T('more contacts ≠ as many independent channels',28,TEXT).move_to([0,-3,0])
+        self.play(FadeIn(neq),run_time=.6)
+        self.at('which surviving neurons')
+        self.play(ReplacementTransform(interaction,T('which neurons receive the signal?',30,PURPLE).move_to([0,3.1,0])),
+                  Indicate(ns,color=YELLOW),run_time=.7)
+        self.at('the pattern it carries')
+        self.play(LaggedStart(*[Indicate(c,color=YELLOW) for c in cs],lag_ratio=.3),run_time=1.2)
+        self.at('Electrode count alone')
+        self.play(Indicate(neq,color=RED),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S03Streak(SpokenScene):
     def construct(self):
-        # retina, schematic surface view (left); percept panel (right)
-        head = T("retina, schematic", 26, GREY).move_to([-3.1, 3.2, 0])
-        panel = RoundedRectangle(corner_radius=0.15, width=3.8, height=4.2, stroke_color=GREY, stroke_width=3,
-                                 fill_color=GREY, fill_opacity=0.12).move_to([4.4, 0.2, 0])
-        plab = T("what the person sees", 26, TEXT).move_to([4.4, 2.8, 0])
-        ey0 = 0.2
-        el = contact(-3.4, ey0, 0.7)
-        ell = T("epiretinal electrode over the macular retina (schematic)".replace(" over", "\nover"), 24, BLUE).move_to([-3.1, -2.95, 0])
-        elr = arr([-3.4, -2.6, 0], [-3.4, ey0 - 0.45, 0], BLUE, w=4)
-        dot = Circle(radius=0.22, stroke_width=0, fill_color=TEXT, fill_opacity=1).move_to([4.4, 0.2, 0])
-        dl = T("expected: one dot", 26, TEXT).move_to([4.4, -1.4, 0])
-        self.play(FadeIn(head), FadeIn(panel), FadeIn(plab), run_time=0.6)
-        self.at("camera")
-        offs = [(dx, dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx, dy) != (0, 0)]
-        gel = VGroup(*[contact(-3.4 + dx * 1.0, ey0 + dy * 1.0, 0.5) for dx, dy in offs])
-        gdt = VGroup(*[Circle(radius=0.2, stroke_width=0, fill_color=TEXT, fill_opacity=1).move_to([4.4 + dx * 0.9, 0.5 + dy * 0.9, 0]) for dx, dy in offs])
-        dot.move_to([4.4, 0.5, 0])
-        dl.move_to([4.4, -1.5, 0])
-        dl_grid = T("expected:\na grid of dots", 26, TEXT).move_to([4.4, -1.35, 0])
-        self.play(FadeIn(el), FadeIn(gel), FadeIn(dot), FadeIn(gdt), FadeIn(dl_grid), run_time=0.9)
-        self.at("But an electrode")
-        self.play(FadeOut(gel), FadeOut(gdt), FadeOut(dl_grid), FadeOut(head), run_time=0.6)
-        self.play(GrowArrow(elr), FadeIn(ell), dot.animate.move_to([4.4, 0.2, 0]), FadeIn(dl), run_time=0.7)
-        # ganglion cells and axons
-        ys = [1.9, 1.3, 0.7, 0.2, -0.4, -1.0, -1.6]
-        disk_c = np.array([1.2, 0.2, 0])
-        disk = Circle(radius=0.55, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.3).move_to(disk_c)
-        dlab = T("optic disk", 26, GREY).next_to(disk, UP, buff=0.5)
-        cells, axons = [], []
-        for y in ys:
-            c = Circle(radius=0.14, stroke_color=PURPLE, stroke_width=2.5, fill_color=PURPLE, fill_opacity=0.7).move_to([-5.5, y, 0])
-            ax = Line([-5.36, y, 0], [disk_c[0] - 0.5, 0.2 + (y - 0.2) * 0.15, 0], color=PURPLE, stroke_width=3)
-            cells.append(c); axons.append(ax)
-        grp = VGroup(*cells, *axons)
-        axl = T("ganglion-cell axons", 26, PURPLE).move_to([-3.1, 2.75, 0])
-        self.at("axons running")
-        self.play(FadeIn(disk), FadeIn(dlab), LaggedStart(*[Create(a) for a in axons], lag_ratio=0.1),
-                  FadeIn(VGroup(*cells)), FadeIn(axl), run_time=1.6)
-        # the axons passing the electrode: those whose line passes y near 0.2 at x=-3.4
-        def ay(i, x):
-            y = ys[i]; yend = 0.2 + (y - 0.2) * 0.15
-            t = (x + 5.36) / (disk_c[0] - 0.5 + 5.36)
-            return y + (yend - y) * t
-        pass_idx = [i for i in range(len(ys)) if abs(ay(i, -3.4) - ey0) < 0.45]
-        self.at("axons of passage")
-        hl = [axons[i].animate.set_color(YELLOW).set_stroke(width=6) for i in pass_idx]
-        cur = Circle(radius=0.75, stroke_color=YELLOW, stroke_width=3).move_to(el)
-        self.play(Create(cur), *hl, run_time=0.9)
-        self.play(*[cells[i].animate.set_color(YELLOW) for i in pass_idx], FadeOut(cur), run_time=0.6)
-        self.at("follows the places")
-        cy = [ys[i] for i in pass_idx]
-        top, bot = max(cy), min(cy)
-        streak = Ellipse(width=0.6, height=2.0, stroke_width=0, fill_color=TEXT, fill_opacity=1).move_to([4.4, 0.7, 0])
-        streak.rotate(PI / 2 * 0.0)
-        sl = T("one example of an\nelongated or distorted\npercept", 24, TEXT).move_to([4.4, -1.15, 0])
-        self.play(ReplacementTransform(dot, streak), ReplacementTransform(dl, sl), run_time=1.0)
-        self.at("Four adults")
-        note = T("4 adults with Argus implants drew single-electrode percepts", 24, TEXT).move_to([0, -3.45, 0])
-        self.play(FadeOut(ell), FadeOut(elr), FadeIn(note), run_time=0.7)
-        self.at("an axon model")
-        mod = bchip("axon-pathway model", PURPLE, 26).move_to([-3.1, -2.75, 0])
-        self.play(FadeIn(mod, shift=UP * 0.1), run_time=0.6)
-        self.at("direct recording")
-        ms = bchip("model-supported explanation, not a recording", GREY, 24).move_to([-0.0, -2.75, 0]).shift(LEFT * 0)
-        self.play(FadeOut(mod), FadeOut(note), FadeIn(ms.move_to([-1.6, -2.95, 0])), run_time=0.7)
+        head=T('retina · schematic surface view',26,GREY).move_to([-3.2,3,0])
+        panel=RoundedRectangle(width=3.8,height=4.4,corner_radius=.15,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([4.3,.2,0])
+        plab=T('percept drawing',26,TEXT).move_to([4.3,2.9,0])
+        disk=Circle(radius=.45,color=GREY,fill_opacity=.3).move_to([.8,.2,0])
+        dl=T('optic disk',24,GREY).move_to([.7,-.8,0])
+        axons=VGroup(*[Line([-5.6,y,0],[.35,.2+(y-.2)*.15,0],color=PURPLE,stroke_width=3) for y in (1.7,1,.3,-.4,-1.1)])
+        cells=VGroup(*[Circle(radius=.14,color=PURPLE,fill_color=PURPLE,fill_opacity=.7).move_to([-5.7,y,0]) for y in (1.7,1,.3,-.4,-1.1)])
+        anatomy=VGroup(axons,cells,disk,dl)
+        el=contact(-3.4,.3,.65)
+        el_label=T('inner-surface electrode\nover ganglion-cell axons',24,BLUE).move_to([-3.2,-2.1,0])
+        self.at('In the retina')
+        self.play(FadeIn(head),FadeIn(panel),FadeIn(plab),run_time=.6)
+        self.at('An electrode')
+        self.play(FadeIn(anatomy),FadeIn(el),FadeIn(el_label),run_time=.8)
+        dot=Circle(radius=.22,color=TEXT,fill_color=TEXT,fill_opacity=1).move_to([4.3,.6,0])
+        expected=T('tempting expectation:\none dot',24,TEXT).move_to([4.3,-1.2,0])
+        self.play(FadeIn(dot),FadeIn(expected),run_time=.6)
+        self.at('elongated or distorted')
+        streak=Ellipse(width=.6,height=2,color=TEXT,fill_color=TEXT,fill_opacity=1).rotate(-.4).move_to([4.3,.7,0])
+        reported=T('reported:\nelongated / distorted',24,TEXT).move_to([4.3,-1.25,0])
+        self.play(ReplacementTransform(dot,streak),ReplacementTransform(expected,reported),run_time=.8)
+        self.at('An axon pathway model')
+        model=T('model-supported explanation',28,PURPLE).move_to([0,-3.1,0])
+        self.play(FadeIn(model),run_time=.6)
+        self.play(LaggedStart(*[Indicate(a,color=YELLOW) for a in axons[1:4]],lag_ratio=.15),run_time=1.2)
+        self.at('not a direct recording')
+        self.play(ReplacementTransform(model,T('model-supported explanation · not recorded activity',25,GREY).move_to([0,-3.1,0])),run_time=.6)
+        self.at('One electrode')
+        self.play(ReplacementTransform(head,T('one electrode ≠ one pixel',28,TEXT).move_to([-3.2,3,0])),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Count(SpokenScene):
+class S04RetinalRoutes(SpokenScene):
     def construct(self):
-        head = T("PRIMAvera: open-label, single-arm; adults with geographic atrophy", 26, GREY).move_to([0, 3.2, 0])
-        cols, rows, pitch, r = 10, 4, 1.0, 0.38
-        gx0, gy0 = -4.5, 2.5
-        dots = []
-        for k in range(38):
-            rr, cc = divmod(k, cols)
-            d = Circle(radius=r, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.9)
-            d.move_to([gx0 + cc * pitch, gy0 - rr * pitch, 0])
-            dots.append(d)
-        grid = VGroup(*dots)
-        self.play(FadeIn(head), run_time=0.7)
-        self.at("were implanted")
-        cnt1 = T("38 implanted", 32, GREY).move_to([0, -1.4, 0])
-        self.play(LaggedStart(*[FadeIn(d, scale=0.5) for d in dots], lag_ratio=0.03), FadeIn(cnt1), run_time=1.6)
-        self.at("were assessed")
-        un = dots[32:]
-        asd = dots[:32]
-        cnt2 = T("32 assessed at twelve months", 32, TEXT).move_to([0, -1.4, 0])
-        self.play(*[d.animate.set_stroke(TEXT).set_fill(TEXT, 0.9) for d in asd],
-                  *[d.animate.set_fill(BG, 1).set_stroke(GREY) for d in un],
-                  ReplacementTransform(cnt1, cnt2), run_time=1.0)
-        self.at("met the endpoint")
-        cnt3 = T("26 met the endpoint", 32, GREEN).move_to([0, -1.4, 0])
-        self.play(*[d.animate.set_stroke(GREEN).set_fill(GREEN, 0.95) for d in dots[:26]],
-                  ReplacementTransform(cnt2, cnt3), run_time=1.0)
-        def key(col, fill, text):
-            d = Circle(radius=0.16, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=fill)
-            return VGroup(d, T(text, 24, TEXT)).arrange(RIGHT, buff=0.15)
-        legend = VGroup(key(GREEN, 0.95, "met the endpoint"), key(TEXT, 0.9, "assessed, not met"),
-                        key(GREY, 0.0, "not assessed")).arrange(RIGHT, buff=0.6).move_to([0, -3.2, 0])
-        self.play(FadeIn(legend), run_time=0.6)
-        # fraction 1
-        br1 = Brace(VGroup(*asd[:10]), UP, color=TEXT)  # placeholder, replaced below
-        self.remove(br1)
-        f1 = VGroup(T("26 / 32 = 81.3%", 36, GREEN, weight=BOLD), T("of those assessed", 26, TEXT)).arrange(DOWN, buff=0.15)
-        f1.move_to([-3.1, -2.2, 0])
-        self.at("of those assessed")
-        self.play(FadeIn(f1, shift=LEFT * 0.2), FadeOut(cnt3), run_time=0.8)
-        self.at("Count the")
-        unbox = SurroundingRectangle(VGroup(*un), color=GREY, buff=0.12, corner_radius=0.1)
-        unl = T("6 not assessed", 26, GREY).next_to(unbox, DOWN, buff=0.15)
-        self.play(Create(unbox), FadeIn(unl), run_time=0.8)
-        f2 = VGroup(T("26 / 38 = 68.4%", 36, GREEN, weight=BOLD), T("of those implanted", 26, GREY)).arrange(DOWN, buff=0.15)
-        f2.move_to([3.1, -2.2, 0])
-        self.at("of those implanted")
-        self.play(FadeIn(f2, shift=LEFT * 0.2), run_time=0.8)
+        title=T('After photoreceptor loss: limited vision',32,TEXT).move_to([0,3.1,0])
+        self.at('Retinal implants')
+        self.play(FadeIn(title),run_time=.6)
+        # The subretinal pixels are physically below the remaining network.
+        pixels=VGroup(*[contact(x,-1.7,.55) for x in (-1,0,1)])
+        pixel_label=T('PRIMA · subretinal photovoltaic pixels',26,BLUE).move_to([0,-2.6,0])
+        retina=Line([-2.1,-1,0],[2.1,-1,0],color=GREY,stroke_width=5)
+        bipolar=VGroup(*[VGroup(Line([x,-.7,0],[x,.4,0],color=PURPLE,stroke_width=3),
+                       Circle(radius=.16,color=PURPLE,fill_opacity=.6).move_to([x,-.2,0])) for x in (-1,0,1)])
+        network=VGroup(*[cell(x,1) for x in (-1,0,1)])
+        labels=VGroup(T('bipolar cells',26,PURPLE).move_to([4,-.2,0]),T('remaining retinal\nnetwork',26,PURPLE).move_to([4,1.4,0]))
+        self.at('In the PRIMA design')
+        self.play(FadeIn(pixels),FadeIn(pixel_label),Create(retina),FadeIn(bipolar),FadeIn(network),FadeIn(labels),run_time=.7)
+        camera=bchip('camera image\nprojected as NIR light',BLUE,24).move_to([-4.3,1,0])
+        beam=arr([-3.3,.2,0],[-1.5,-1.6,0],ORANGE)
+        self.at('projected near')
+        self.play(FadeIn(camera),GrowArrow(beam),run_time=.7)
+        current=VGroup(*[arr([x,-1.35,0],[x,-.5,0],YELLOW,w=3) for x in (-1,0,1)])
+        self.at('current that stimulates')
+        self.play(FadeOut(beam),FadeIn(current),Indicate(bipolar,color=YELLOW),run_time=.8)
+        self.at('The signal then passes')
+        self.play(FadeOut(camera),FadeOut(current),Indicate(network,color=YELLOW),run_time=.8)
+        self.at('Early participants')
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not title],run_time=.5)
+        benefit=bchip('early participants\noptimal chip placement\nprosthetic acuity',TEXT,30).move_to([-3.1,.3,0])
+        self.play(FadeIn(benefit),run_time=.6)
+        risk=bchip('later trial\nserious device- or\nprocedure-related events',RED,28).move_to([3.2,.3,0])
+        self.at('Later trial benefits')
+        self.play(FadeIn(risk),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Native(SpokenScene):
+class S05Optogenetics(SpokenScene):
     def construct(self):
-        # left: with the PRIMA glasses and zoom; right: native implant resolution
-        divider = DashedLine([0.15, 3.3, 0], [0.15, -2.4, 0], color=GREY, stroke_width=3)
-        lh = T("with the PRIMA glasses", 32, ORANGE, weight=BOLD).move_to([-3.3, 3.0, 0])
-        rh = T("native implant", 32, BLUE, weight=BOLD).move_to([3.5, 3.0, 0])
-        ep = bchip("endpoint:\ngain of at least 0.2 logMAR", ORANGE, 26).move_to([-3.3, 1.75, 0])
-        self.at("The endpoint")
-        self.play(FadeIn(lh), FadeIn(ep, shift=DOWN * 0.1), Create(divider), run_time=1.0)
-        self.at("adjust zoom")
-        sl_line = Line([-5.6, -0.1, 0], [-1.0, -0.1, 0], color=ORANGE, stroke_width=5)
-        t1 = T("1×", 30, ORANGE).move_to([-5.6, -0.75, 0])
-        t12 = T("12×", 30, ORANGE).move_to([-1.0, -0.75, 0])
-        knob = Circle(radius=0.2, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=1).move_to([-5.6, -0.1, 0])
-        zl = T("zoom", 30, ORANGE).move_to([-3.3, 0.6, 0])
-        self.play(Create(sl_line), FadeIn(t1), FadeIn(t12), FadeIn(knob), FadeIn(zl), run_time=0.8)
-        self.play(knob.animate.move_to([-1.0, -0.1, 0]), run_time=1.5)
-        self.at("implant plus a magnifier")
-        zsum = bchip("implant + magnifier", ORANGE, 28).move_to([-3.3, -1.7, 0])
-        self.play(FadeIn(zsum, shift=UP * 0.1), run_time=0.7)
-        self.at("Without zoom or image processing")
-        nz = bchip("no zoom, no image processing", BLUE, 26).move_to([3.5, 1.75, 0])
-        self.play(FadeIn(rh), FadeIn(nz, shift=DOWN * 0.1), run_time=0.8)
-        self.at("mean implant resolution")
-        nat = T("1.32 logMAR", 46, BLUE, weight=BOLD).move_to([3.5, 0.55, 0])
-        self.play(FadeIn(nat, scale=0.9), run_time=0.8)
-        self.at("to the power")
-        w = M("20 × 10^1.32 ≈ 417", 30, BLUE).move_to([3.5, -0.6, 0])
-        self.play(FadeIn(w), run_time=0.7)
-        self.at("so 20 over")
-        sn = T("= 20/417", 50, BLUE, weight=BOLD).move_to([3.5, -1.7, 0])
-        self.play(FadeIn(sn, shift=UP * 0.1), run_time=0.7)
-        self.at("separate measurements")
-        sep = bchip("separate measurements", RED, 32).move_to([0.15, -3.05, 0])
-        self.play(FadeIn(sep, scale=0.9), divider.animate.set_color(RED).set_stroke(width=6), run_time=0.8)
+        cells=VGroup(*[cell(x,0) for x in (-1.8,0,1.8)])
+        label=T('surviving retinal ganglion cells',28,PURPLE).move_to([0,-1.2,0])
+        self.at('Optogenetics changes')
+        self.play(FadeIn(cells),FadeIn(label),run_time=.6)
+        vector=bchip('viral vector',BLUE,28).move_to([-4.6,2.1,0])
+        self.at('A viral vector')
+        self.play(FadeIn(vector),run_time=.5)
+        badges=VGroup(*[Circle(radius=.1,color=ORANGE,fill_color=ORANGE,fill_opacity=1).move_to([x-.12,.16,0]) for x in (-1.8,0,1.8)])
+        protein=T('light-sensitive protein',28,ORANGE).move_to([1.8,2.1,0])
+        self.at('express a light')
+        self.play(FadeIn(badges),FadeIn(protein),run_time=.7)
+        scope=T('one adult · retinitis pigmentosa',28,GREY).move_to([0,3.2,0])
+        self.at('In one adult')
+        self.play(FadeOut(vector),FadeIn(scope),run_time=.6)
+        gs=goggles(-4.3,0)
+        light=VGroup(*[arr([-3.1,y,0],[-2,y,0],ORANGE,w=4) for y in (-.3,0,.3)])
+        self.at('light from engineered goggles')
+        self.play(FadeIn(gs),FadeIn(light),FadeOut(protein),run_time=.7)
+        self.play(Indicate(badges,color=ORANGE),run_time=.6)
+        self.at('With the treated eye')
+        self.play(*[FadeOut(m) for m in list(self.mobjects) if m is not scope],run_time=.5)
+        gs=goggles(0,1.3)
+        state=T('treated eye + goggles',30,BLUE).move_to([0,2.3,0])
+        objects=VGroup(Circle(radius=.3,color=TEXT),Square(side_length=.6,color=TEXT),Triangle(color=TEXT).scale(.35)).arrange(RIGHT,buff=1).move_to([0,-.5,0])
+        self.play(FadeIn(gs),FadeIn(state),FadeIn(objects),run_time=.6)
+        tasks=T('located · counted · touched objects',30,TEXT).move_to([0,-2,0])
+        self.at('located counted and touched')
+        self.play(FadeIn(tasks),Indicate(objects,color=ORANGE),run_time=.7)
+        self.at('Without the goggles')
+        neutral=T('treated eye · without goggles',30,GREY).move_to([0,2.3,0])
+        self.play(FadeOut(tasks),FadeOut(gs),FadeOut(objects),ReplacementTransform(state,neutral),run_time=.5)
+        failure=T('did not detect objects',34,TEXT).move_to([0,-.1,0])
+        self.at('did not detect objects')
+        self.play(FadeIn(failure),run_time=.6)
+        self.at('This was partial')
+        limitation=T('partial, goggle-dependent function\nin one person',30,ORANGE).move_to([0,-2.3,0])
+        self.play(FadeIn(limitation),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S06Touch(SpokenScene):
+    def construct(self):
+        title=T('Peripheral nerve interface · people with amputations',28,GREY).move_to([0,3.1,0])
+        nerve=VGroup(*[Line([-5.6,y,0],[-2.4,y,0],color=PURPLE,stroke_width=4) for y in (.4,.7,1)])
+        electrode=contact(-4,.7,.6)
+        lab=T('residual peripheral nerve',26,PURPLE).move_to([-3.9,1.9,0])
+        cortex=bchip('sensory cortex',PURPLE,28).move_to([3.6,.7,0])
+        self.at('Touch can be written')
+        self.play(FadeIn(title),FadeIn(nerve),FadeIn(electrode),FadeIn(lab),run_time=.6)
+        self.at('or into sensory cortex')
+        self.play(FadeIn(cortex),run_time=.6)
+        self.at('Nerve stimulation')
+        self.play(FadeOut(cortex),Indicate(electrode,color=YELLOW),run_time=.6)
+        percept=bchip('phantom-hand\ntouch percept',TEXT,28).move_to([3.5,1,0])
+        link=arr([-2.2,.7,0],[1.6,.7,0],YELLOW)
+        self.at('phantom hand touch')
+        self.play(GrowArrow(link),FadeIn(percept),run_time=.6)
+        arm=gripper(0,-1.7)
+        obj=Ellipse(width=.6,height=.9,color=TEXT).move_to([0,-2.3,0])
+        objlabel=T('delicate object',24,TEXT).move_to([3,-2.3,0])
+        self.at('handle delicate objects')
+        self.play(FadeIn(arm),FadeIn(obj),FadeIn(objlabel),run_time=.6)
+        self.play(arm.animate.shift(DOWN*.22),run_time=.6)
+        self.at('In one man')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=.5)
+        scope=T('separate example · one man with spinal cord injury',28,GREY).move_to([0,3.1,0])
+        motor=bchip('motor cortex',PURPLE,28).move_to([-3.8,1.5,0])
+        sensory=bchip('sensory cortex',PURPLE,28).move_to([-3.8,-1.2,0])
+        arm=gripper(3.6,.3)
+        arm_label=T('robotic arm',28,BLUE).move_to([3.5,2,0])
+        self.play(FadeIn(scope),run_time=.6)
+        self.at('motor cortex signals')
+        drive=arr([-2,1.5,0],[2.4,.8,0],YELLOW)
+        self.play(FadeIn(motor),FadeIn(arm),FadeIn(arm_label),GrowArrow(drive),run_time=.7)
+        self.play(arm.animate.shift(DOWN*.4),run_time=.7)
+        feedback=arr([3,-.6,0],[-2,-1.2,0],YELLOW)
+        self.at('Stimulation of sensory cortex')
+        self.play(FadeIn(sensory),GrowArrow(feedback),run_time=.7)
+        self.at('supplied touch feedback')
+        fb=T('touch feedback',26,YELLOW).move_to([.8,-1.7,0])
+        self.play(FadeIn(fb),Indicate(sensory,color=YELLOW),run_time=.6)
+        self.at('shortened his task time')
+        result=T('shorter task time · one participant',30,TEXT).move_to([0,-3,0])
+        self.play(FadeIn(result),run_time=.6)
+        self.at('not a population effect')
+        self.play(Indicate(scope,color=TEXT),run_time=.6)
+        self.finish()
+
+
 class S06Rule(SpokenScene):
     def construct(self):
-        ev = VGroup(T("19 participants", 40, RED, weight=BOLD),
-                    T("26 serious device- or procedure-related events", 32, RED)).arrange(DOWN, buff=0.25)
-        evb = RoundedRectangle(corner_radius=0.2, width=ev.width + 0.8, height=ev.height + 0.7, stroke_color=RED,
-                               stroke_width=3, fill_color=RED, fill_opacity=0.12).move_to(ev)
-        evg = VGroup(evb, ev).move_to([0, 0.3, 0])
-        self.at("Serious events")
-        self.play(FadeIn(evg, scale=0.95), run_time=0.9)
-        ask = T("ask what was counted", 38, TEXT, weight=BOLD).move_to([0, 1.8, 0])
-        self.at("ask what was counted")
-        small = VGroup(T("19 participants", 26, RED, weight=BOLD),
-                       T("26 serious device- or procedure-related events", 24, RED)).arrange(DOWN, buff=0.12)
-        sb = RoundedRectangle(corner_radius=0.15, width=small.width + 0.6, height=small.height + 0.4, stroke_color=RED,
-                              stroke_width=3, fill_color=RED, fill_opacity=0.12).move_to(small)
-        sg = VGroup(sb, small).move_to([0, 3.0, 0])
-        self.play(ReplacementTransform(evg, sg), run_time=0.7)
-        self.play(FadeIn(ask, scale=0.95), run_time=0.5)
-        pairs = [("contacts", BLUE, "channels", TEAL, "Contacts are not channels"),
-                 ("electrodes", BLUE, "pixels", TEXT, "electrodes are not pixels"),
-                 ("people assessed", TEXT, "people implanted", GREY, "people assessed"),
-                 ("native", BLUE, "zoomed", ORANGE, "Native resolution")]
-        ys = [0.6, -0.5, -1.6, -2.7]
-        for (a, ca, b, cb, cue), y in zip(pairs, ys):
-            ca_c = bchip(a, ca, 30)
-            cb_c = bchip(b, cb, 30)
-            ne = T("\u2260", 44, RED, weight=BOLD)
-            row = VGroup(ca_c, ne, cb_c).arrange(RIGHT, buff=0.5).move_to([0, y, 0])
-            self.at(cue)
-            self.play(FadeIn(row, shift=UP * 0.1), run_time=0.6)
+        # Recall the four routes without suggesting a comparison of efficacy.
+        cochlea=VGroup(*[contact(x,1.6,.4) for x in (-5.2,-4.6,-4)])
+        retina=VGroup(cell(-1.7,1.6),contact(-1.4,.8,.35))
+        gs=goggles(1.6,1.6)
+        arm=gripper(5,1.3)
+        recall=VGroup(cochlea,retina,gs,arm)
+        labels=VGroup(*[T(t,24,c).move_to([x,2.9,0]) for t,x,c in [('place map',-4.6,TEAL),('retinal targets',-1.3,PURPLE),('goggles',1.6,BLUE),('arm + feedback',4.9,BLUE)]])
+        self.at('The design rule')
+        self.play(FadeIn(recall),FadeIn(labels),run_time=.7)
+        code=bchip('task-relevant features\nof the natural neural code',TEAL,30).move_to([0,-.6,0])
+        connections=VGroup(*[arr([x,.5,0],[x*.35,-.05,0],GREY,w=3) for x in (-4.6,-1.3,1.6,4.9)])
+        self.at('features of the natural neural code')
+        self.play(FadeIn(code),FadeIn(connections),run_time=.7)
+        tests=T('test perception  →  test behaviour',32,TEXT).move_to([0,-2.3,0])
+        self.at('then test perception')
+        self.play(FadeIn(tests),run_time=.6)
+        self.at('Biomimicry')
+        self.play(FadeOut(connections),FadeOut(recall),FadeOut(labels),run_time=.4)
+        strategy=T('Biomimicry: evidence-backed strategy',32,TEXT).move_to([0,2.2,0])
+        self.play(FadeIn(strategy),run_time=.6)
+        self.at('It is not a proven law')
+        caveat=T('more exact copying ≠ guaranteed improvement',28,GREY).move_to([0,.8,0])
+        self.play(FadeIn(caveat),run_time=.7)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Ask what was counted. Native resolution is not zoomed reading."
+    LINE = "Which neurons get which information? Test the percept. Test the behaviour."

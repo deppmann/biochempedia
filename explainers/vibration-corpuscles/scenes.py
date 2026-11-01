@@ -5,7 +5,7 @@ Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in aud
 COLOR MAP (one color per concept, whole video)
   INDIGO = outer core of the corpuscle (the onion layers, the capsule)
   TEAL   = inner core / lamellar cells (the cells that touch the terminal)
-  YELLOW = the nerve ending (terminal) and its impulses (spikes)
+  YELLOW = the nerve ending (terminal) and its impulses (spikes); pale yellow = second afferent
   GREEN  = graded signal of the ending (generator potential, transduction current)
   ORANGE = the mechanical stimulus (press, tap, vibration)
   RED    = what is not shown / not supported
@@ -76,347 +76,331 @@ def lead(a, b, color=GREY, w=2):
     return Line(a, b, color=color, stroke_width=w, stroke_opacity=0.8)
 
 
+# Reused silhouettes and traces are schematics, not quantitative fits.
+def wave(x0, x1, y, cycles=3, amp=0.25, color=ORANGE):
+    return poly([(x, y + amp * np.sin(2 * np.pi * cycles * (x-x0)/(x1-x0)))
+                 for x in np.linspace(x0, x1, 180)], color, 4)
+
+
+def meissner():
+    cells = VGroup(*[Ellipse(width=1.4, height=0.38, color=TEAL,
+                             fill_color=TEAL, fill_opacity=0.13).move_to([0, y, 0])
+                     for y in (-0.5, 0, 0.5)])
+    nerve = poly([(-1.2,-0.7),(-0.45,-0.7),(-0.45,0.7),(0.2,0.7)], YELLOW)
+    return VGroup(cells, nerve)
+
+
+def mouse():
+    body = Ellipse(width=1.3, height=0.65, color=GREY, fill_color=GREY, fill_opacity=0.25)
+    head = Circle(radius=0.27, color=GREY).move_to([0.65,0.12,0])
+    ear = Circle(radius=0.17, color=GREY).move_to([0.5,0.4,0])
+    tail = ArcBetweenPoints([-0.65,0,0],[-1.3,0.3,0], angle=-0.7, color=GREY)
+    feet = VGroup(*[Line([x,-0.2,0],[x+0.1,-0.45,0],color=GREY) for x in (-0.4,0.3)])
+    return VGroup(body,head,ear,tail,feet)
+
+
+def human():
+    return VGroup(Circle(radius=0.22,color=GREY).move_to([0,0.65,0]),
+                  poly([(0,0.4),(0,-0.2),(-0.35,-0.7)],GREY,4),
+                  poly([(0,-0.2),(0.35,-0.7)],GREY,4),
+                  poly([(-0.45,0.05),(0,0.25),(0.45,0.05)],GREY,4))
+
+
+def monkey():
+    head=Circle(radius=0.34,color=GREY,fill_color=GREY,fill_opacity=0.15)
+    ears=VGroup(*[Circle(radius=0.16,color=GREY).move_to([x,0.05,0]) for x in (-0.42,0.42)])
+    muzzle=Ellipse(width=0.4,height=0.25,color=GREY).move_to([0,-0.14,0])
+    return VGroup(head,ears,muzzle)
+
+
+def wrap_terminal(x=-2.8, y=0):
+    top = Ellipse(width=3.8, height=0.9, color=TEAL, fill_color=TEAL, fill_opacity=0.15).move_to([x,y+1,0])
+    bot = top.copy().move_to([x,y-1,0])
+    term = RoundedRectangle(width=2.8,height=0.5,corner_radius=0.16,color=YELLOW,
+                            fill_color=YELLOW,fill_opacity=0.3).move_to([x,y,0])
+    axon = Line([x-2.6,y,0],[x-1.4,y,0],color=YELLOW,stroke_width=7)
+    g = VGroup(top,bot,term,axon)
+    g.top,g.bot,g.term,g.axon=top,bot,term,axon
+    return g
+
+
+def clear(scene):
+    scene.play(*[FadeOut(m) for m in list(scene.mobjects)],run_time=0.4)
+
+
 class S00Title(TitleCard):
     LESSON = "Meissner and Pacinian corpuscles"
-    TITLE = "Is the Onion the Filter?"
+    TITLE = "Two Detectors of Change"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Press(SpokenScene):
-    """Pacinian corpuscle: a held press fires the fibre at onset and offset only; the onion gets the credit."""
 
+class S01Two(SpokenScene):
     def construct(self):
-        c = place(corpuscle(), -3.4, -0.5, 1.1)
-        self.at("Press a")
-        self.play(FadeIn(c), run_time=0.6)
-        lbl = T("Pacinian corpuscle", 26, TEXT).move_to([-3.4, -2.8, 0])
-        arr = press_arrow(-2.4, 3.0, 1.45)
-        X0, X1 = 0.5, 6.0
-        a, b = 1.9, 4.6
-        ys, yi = 2.0, -0.7
-        row1 = T("press", 24, ORANGE).move_to([X0 + 0.55, ys + 0.85, 0])
-        row2 = T("impulses in the nerve fibre", 24, YELLOW).move_to([X0 + 2.0, yi + 1.3, 0])
-        base1 = Line([X0, ys, 0], [X1, ys, 0], color=GREY, stroke_width=2)
-        base2 = Line([X0, yi, 0], [X1, yi, 0], color=GREY, stroke_width=2)
-        tlabel = T("time", 22, GREY).move_to([X1 - 0.3, yi + 0.35, 0])
-        self.play(FadeIn(lbl), GrowArrow(arr), FadeIn(row1), Create(base1), run_time=0.6)
-        sk1 = tag(SKETCH).move_to([5.0, 3.2, 0])
-        self.at("and hold")
-        self.add(sk1)
-        step = poly([(X0, ys), (a, ys), (a, ys + 0.7), (b, ys + 0.7), (b, ys), (X1, ys)], ORANGE)
-        self.play(Create(step), FadeIn(row2), Create(base2), FadeIn(tlabel), run_time=1.0)
-        self.at("fires when the press starts")
-        s1 = spike(a + 0.1, yi)
-        self.play(Create(s1), run_time=0.4)
-        self.at("when it ends")
-        s2 = spike(b + 0.1, yi)
-        self.play(Create(s2), run_time=0.4)
-        self.at("It does not fire")
-        none = T("no impulses during the hold", 24, GREY).move_to([(a + b) / 2 + 0.2, yi - 0.55, 0])
-        self.play(FadeIn(none), run_time=0.4)
-        self.at("wraps one nerve ending")
-        self.play(Indicate(c.term, color=YELLOW, scale_factor=1.5), run_time=0.8)
-        self.at("many concentric layers")
-        ol = T("outer core: many layers", 22, INDIGO).move_to([-4.6, 2.55, 0])
-        self.play(c.outer.animate.set_stroke(width=5), FadeIn(ol), run_time=0.5)
-        self.at("got the credit")
-        self.play(Indicate(c.outer, color=INDIGO, scale_factor=1.04), run_time=0.9)
-        self.at("Was that right")
-        q = T("?", 100, GOLD, weight=BOLD).move_to([-0.3, 0.4, 0])
-        self.play(FadeIn(q, scale=0.6), run_time=0.4)
+        skin = RoundedRectangle(width=6,height=3.8,corner_radius=0.15,color=GREY,
+                                fill_color=GREY,fill_opacity=0.07).move_to([-3.3,-0.3,0])
+        finger = RoundedRectangle(width=2.1,height=0.65,corner_radius=0.3,color=ORANGE,
+                                  fill_color=ORANGE,fill_opacity=0.2).move_to([-4.6,2.05,0])
+        small = meissner().scale(0.65).move_to([-4.5,0.75,0])
+        deep = place(corpuscle(),-2.7,-1.15,0.57)
+        names = VGroup(T("Meissner",24,TEAL).move_to([-2.4,0.9,0]),
+                       T("Pacinian",24,INDIGO).move_to([-4.9,-1.5,0]))
+        self.at("Slide a fingertip")
+        self.play(FadeIn(skin),FadeIn(finger),run_time=0.5)
+        self.play(finger.animate.shift(RIGHT*1.2),run_time=0.8)
+        self.at("buzzing phone")
+        phone=RoundedRectangle(width=0.7,height=1.2,corner_radius=0.1,color=GREY).move_to([3.1,1.6,0])
+        self.play(FadeIn(phone),Wiggle(finger,rotation_angle=0.04),run_time=0.6)
+        self.at("Two kinds")
+        self.play(FadeIn(small),FadeIn(deep),run_time=0.5)
+        slow=wave(0.7,5.7,0.6,3)
+        fast=wave(0.7,5.7,-0.7,12)
+        self.at("report flutter")
+        self.play(FadeIn(names[0]),Create(slow),Indicate(small,color=TEAL),run_time=0.8)
+        self.at("report the fast")
+        self.play(FadeIn(names[1]),Create(fast),Indicate(deep.inner,color=TEAL),run_time=0.8)
+        self.at("Both fire")
+        self.play(FadeOut(phone),FadeOut(slow),FadeOut(fast),run_time=0.3)
+        press=poly([(0.7,1.6),(1.7,1.6),(1.7,2.1),(4.6,2.1),(4.6,1.6),(5.9,1.6)],ORANGE)
+        trace=VGroup(Line([0.7,0,0],[5.9,0,0],color=GREY),spike(1.7,0),spike(4.6,0))
+        labels=VGroup(T("steady press",24,ORANGE).move_to([3.2,2.65,0]),
+                      tag(SKETCH).move_to([3.2,-1.1,0]))
+        self.play(Create(press),Create(trace),FadeIn(labels),run_time=0.8)
+        self.at("go quiet")
+        quiet=T("quiet during the hold",24,GREY).move_to([3.2,-0.5,0])
+        self.play(FadeIn(quiet),run_time=0.4)
+        self.at("wrapped in cells")
+        self.play(Indicate(deep.inner,color=TEAL),Indicate(small[0],color=TEAL),run_time=0.7)
+        rule=T("two detectors of change",32,GOLD).move_to([0,-3.05,0])
+        self.play(FadeIn(rule),run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Filter(SpokenScene):
-    """The 1966 model: fluid = viscosity, layers = elasticity; slow press dissipated, fast tap passes; high-pass sketch."""
-
+class S02Flutter(SpokenScene):
     def construct(self):
-        c = place(corpuscle(), -3.4, -0.3, 1.1)
-        self.add(c)
-        head = T("the 1966 model, Loewenstein and Skalak", 26, GREY).to_edge(UP, buff=0.35)
-        self.play(FadeIn(head), run_time=0.5)
-        fl = T("fluid between layers: viscosity", 28, INDIGO).move_to([2.7, 2.0, 0])
-        el = T("the layers: elasticity", 28, INDIGO).move_to([2.7, 1.1, 0])
-        outer = c.outer
-        pf = outer[1].point_from_proportion(0.0)
-        pe = outer[3].point_from_proportion(0.0)
-        l1 = lead(fl.get_left() + LEFT * 0.1, pf, INDIGO)
-        l2 = lead(el.get_left() + LEFT * 0.1, pe, INDIGO)
-        cap = T("the capsule: the layers", 28, INDIGO).move_to([2.7, 2.0, 0])
-        lc_ = lead(cap.get_left() + LEFT * 0.1, outer[0].point_from_proportion(0.0), INDIGO)
-        self.at("mechanical filter")
-        self.play(FadeIn(cap), Create(lc_), run_time=0.6)
-        self.at("modeled the capsule")
-        self.play(Indicate(c.outer, color=INDIGO, scale_factor=1.04), run_time=0.9)
-        self.at("fluid between the layers")
-        self.play(FadeOut(cap), FadeOut(lc_), run_time=0.2)
-        self.play(FadeIn(fl), Create(l1), run_time=0.6)
-        self.at("The layers supply")
-        self.play(FadeIn(el), Create(l2), run_time=0.6)
-        self.at("A slow press")
-        self.play(FadeOut(fl), FadeOut(el), FadeOut(l1), FadeOut(l2), run_time=0.4)
-        top = c.get_top()[1]
-        slow = fade_arrow(-3.4, top + 1.1, c.get_center()[1], n=8, w=9)
-        sl = VGroup(T("slow press:", 30, ORANGE), T("dissipated before it", 30, ORANGE), T("reaches the core", 30, ORANGE)
-                    ).arrange(DOWN, buff=0.15).move_to([2.2, 0.8, 0])
-        self.play(Create(slow, lag_ratio=0.3), FadeIn(sl), run_time=1.6)
-        self.at("A fast tap")
-        self.play(FadeOut(slow), FadeOut(sl), run_time=0.3)
-        fast = press_arrow(-3.4, top + 1.1, c.get_center()[1] + 0.15, w=10)
-        fl2 = VGroup(T("fast tap:", 30, ORANGE), T("gets through", 30, ORANGE)).arrange(DOWN, buff=0.15).move_to([2.2, 0.8, 0])
-        self.play(GrowArrow(fast), FadeIn(fl2), run_time=0.6)
-        self.play(Indicate(c.term, color=YELLOW, scale_factor=1.5), run_time=0.7)
-        self.at("decades this")
-        self.play(FadeOut(fast), FadeOut(fl2), run_time=0.3)
-        X0, X1, Y0, Y1 = 0.8, 5.8, -1.8, 1.4
-        ax_x = Arrow([X0, Y0, 0], [X1 + 0.2, Y0, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2)
-        ax_y = Arrow([X0, Y0, 0], [X0, Y1 + 0.35, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2)
-        xs = np.linspace(-1.3, 1.3, 60)
-        gain = lambda lf: 10 ** lf / np.sqrt(10 ** (2 * lf) + 1)
-        pts = [(X0 + 0.15 + (x + 1.3) / 2.6 * (X1 - X0 - 0.35), Y0 + 0.1 + gain(x) * (Y1 - Y0 - 0.2)) for x in xs]
-        curve = poly(pts, GREEN, 6)
-        xl = T("slow to fast", 26, ORANGE).move_to([(X0 + X1) / 2 + 0.2, Y0 - 0.45, 0])
-        yl = T("passed on", 26, GREEN).move_to([X0 + 0.9, Y1 + 0.6, 0])
-        nm = T("high-pass filter", 32, TEXT, weight=BOLD).move_to([3.3, 2.7, 0])
-        sk = tag(SKETCH).move_to([5.3, -3.15, 0])
-        self.play(Create(ax_x), Create(ax_y), FadeIn(xl), FadeIn(yl), FadeIn(nm), FadeIn(sk), run_time=0.5)
-        self.play(Create(curve), run_time=1.2)
-        self.at("textbook explanation")
-        self.play(Indicate(nm, color=GOLD, scale_factor=1.08), run_time=0.8)
+        q=T("How do they split the work?",36,font=TITLE_FONT).move_to([0,2.8,0])
+        self.at("How do we know")
+        self.play(FadeIn(q),run_time=0.5)
+        h=human().move_to([-5.5,1.1,0])
+        study=T("1968 · Talbot, Mountcastle & colleagues",26,GREY).move_to([0,2.8,0])
+        self.at("colleagues vibrated")
+        self.play(ReplacementTransform(q,study),FadeIn(h),
+                  FadeIn(T("human",22,GREY).move_to([-5.5,-0.5,0])),run_time=0.5)
+        axis=Arrow([-4.5,-0.2,0],[6,-0.2,0],color=GREY,buff=0)
+        xlabel=T("vibration frequency →",24,GREY).move_to([0,-0.75,0])
+        # A schematic axis: the only numeric bands are those spoken in the narration.
+        flutter=VGroup(Line([-4.1,0.45,0],[-0.8,0.45,0],color=ORANGE,stroke_width=14),
+                       T("5–40 Hz · flutter",26,ORANGE).move_to([-2.45,1.05,0]))
+        hum=VGroup(Line([0.7,0.45,0],[5.8,0.45,0],color=ORANGE,stroke_width=14),
+                   T("~60–80 Hz upward · hum",26,ORANGE).move_to([3.3,1.05,0]))
+        self.at("From about")
+        self.play(Create(axis),FadeIn(xlabel),FadeIn(flutter),run_time=0.7)
+        self.at("From around")
+        self.play(FadeIn(hum),run_time=0.6)
+        self.at("single nerve fibers")
+        monkey_label=chip("monkey · nerve recording",GREY,24).move_to([0,-1.5,0])
+        self.play(FadeIn(monkey_label),FadeIn(monkey().move_to([-5.3,-1.9,0])),run_time=0.5)
+        a=VGroup(VGroup(Line([-4.4,-2.3,0],[-0.6,-2.3,0],color=GREY),*[spike(x,-2.3,h=0.45,w=0.14) for x in (-3.8,-2.5,-1.2)]),T("Meissner afferent",24,YELLOW).move_to([-2.5,-3.05,0]))
+        b=VGroup(VGroup(Line([1,-2.3,0],[5.8,-2.3,0],color=GREY),*[spike(x,-2.3,h=0.45,w=0.1) for x in np.linspace(1.3,5.5,9)]),T("Pacinian afferent",24,YELLOW).move_to([3.4,-3.05,0]))
+        self.at("Flutter matched")
+        self.play(Create(a),run_time=0.7)
+        self.at("The hum matched")
+        self.play(Create(b),run_time=0.7)
+        self.at("And in mice")
+        clear(self)
+        self.add(T("Sensitivity peaks differ by species",34,font=TITLE_FONT).move_to([0,2.8,0]))
+        axes=VGroup(Arrow([-5,-2,0],[5.8,-2,0],color=GREY,buff=0),
+                     T("frequency →",24,GREY).move_to([0,-2.65,0]),
+                     tag("relative sensitivity · in this sketch").move_to([0,2,0]))
+        c1=poly([(x,-2+2.4*np.exp(-((x+1.6)/1.2)**2)) for x in np.linspace(-5,5.5,140)],TEXT)
+        c2=poly([(x,-2+2.4*np.exp(-((x-2.8)/1.2)**2)) for x in np.linspace(-5,5.5,140)],TEAL)
+        icons=VGroup(human().scale(0.6).move_to([-1.6,1.1,0]),mouse().scale(0.6).move_to([2.8,1.1,0]),
+                     T("human",24,TEXT).move_to([-3,0.8,0]),T("mouse",24,TEAL).move_to([4.4,0.8,0]))
+        self.play(FadeIn(axes),Create(c1),FadeIn(icons),run_time=0.7)
+        self.at("higher frequency")
+        self.play(Create(c2),run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Cat(SpokenScene):
-    """1965 isolated cat corpuscles: layers removed, generator potential lasts, one spike; two stages."""
-
+class S03Piezo(SpokenScene):
     def construct(self):
-        c = place(corpuscle(), -3.7, -0.2, 0.95)
-        self.add(c)
-        head = T("1965: isolated cat Pacinian corpuscles", 26, GREY).move_to([-2.6, 3.2, 0])
-        self.play(FadeIn(head), run_time=0.5)
-        self.at("removed most of the layers")
-        self.play(*[FadeOut(c.outer[i]) for i in range(1, 5)], c.outer[0].animate.set_fill(INDIGO, 0).set_stroke(opacity=0.45),
-                  run_time=1.3)
-        rm = T("most layers removed", 24, RED).move_to([-3.7, -2.15, 0])
-        self.play(FadeIn(rm), run_time=0.4)
-
-        X0, X1 = -1.2, 6.1
-        a, b = 1.9, 4.9
-        y1, y2, y3 = 2.1, 0.4, -1.6
-        for y, t_, col in ((y1, "press, held", ORANGE), (y2, "generator potential", GREEN), (y3, "impulses", YELLOW)):
-            self.add(Line([X0, y, 0], [X1, y, 0], color=GREY, stroke_width=2))
-            self.add(T(t_, 24, col).move_to([X0 + 1.55 if t_ != "press, held" else X0 + 1.0, y + 0.4, 0]))
-        sk = tag(SKETCH).move_to([5.0, 3.2, 0])
-        self.add(sk)
-        arr = press_arrow(-3.7, 2.8, 1.15)
-        self.at("held a press")
-        self.play(GrowArrow(arr), Create(poly([(X0, y1), (a, y1), (a, y1 + 0.7), (b, y1 + 0.7), (b, y1), (X1, y1)], ORANGE)),
-                  run_time=1.0)
-        self.at("generator potential")
-        gp = []
-        for x in np.linspace(X0, X1, 90):
-            if x < a:
-                v = 0
-            elif x < b:
-                v = 0.95 * (1 - np.exp(-(x - a) / 0.2)) * (1 - 0.45 * (x - a) / (b - a))
-            else:
-                v = 0.95 * 0.55 * np.exp(-(x - b) / 0.25)
-            gp.append((x, y2 + v * 0.8))
-        ref = []
-        for x in np.linspace(X0, X1, 90):
-            if x < a:
-                v = 0
-            elif x < b:
-                v = 0.95 * np.exp(-(x - a) / 0.35)
-            else:
-                v = 0
-            ref.append((x, y2 + v * 0.8))
-        refc = poly(ref, GREEN, 3).set_stroke(opacity=0.5)
-        refl = T("layers on", 22, GREY).move_to([a + 0.15 + 0.9, y2 + 0.85, 0])
-        self.play(Create(refc), FadeIn(refl), run_time=0.7)
-        self.play(Create(poly(gp, GREEN)), run_time=1.2)
-        self.at("much more slowly")
-        bt = T("layers off: decays much more slowly", 24, TEXT).move_to([(a + b) / 2 + 0.3, y2 - 0.4, 0])
-        self.play(FadeIn(bt), run_time=0.5)
-        self.at("intense compression")
-        bt2 = T("mainly under intense compression", 22, GREY).move_to([(a + b) / 2 + 0.3, y2 - 0.8, 0])
-        self.play(FadeIn(bt2), run_time=0.5)
-        self.at("single spike")
-        sp = spike(a + 0.1, y3)
-        self.play(Create(sp), run_time=0.5)
-        self.at("two stages")
-        st1 = T("1  mechanics around the ending", 24, INDIGO).move_to([-3.2, -3.1, 0])
-        st2 = T("2  spike-generating membrane", 24, YELLOW).move_to([3.2, -3.1, 0])
-        self.at("One lay in the mechanics")
-        self.play(FadeIn(st1), Indicate(c.outer[0], color=INDIGO), run_time=0.8)
-        self.at("The other lay")
-        self.play(FadeIn(st2), Indicate(sp, color=YELLOW), run_time=0.8)
+        head=T("Where force becomes current",36,font=TITLE_FONT).move_to([0,3,0])
+        g=wrap_terminal(-1.5,0)
+        self.at("Where does force")
+        self.play(FadeIn(head),run_time=0.4)
+        self.at("starts in the axon")
+        self.play(FadeIn(g),FadeIn(chip("mouse",GREY,24).move_to([-5.5,2.7,0])),run_time=0.6)
+        channels=VGroup(*[VGroup(Line([x-0.12,0.18,0],[x-0.12,0.55,0],color=GREEN,stroke_width=5),
+                                  Line([x+0.12,0.18,0],[x+0.12,0.55,0],color=GREEN,stroke_width=5))
+                           for x in (-2.3,-0.8)])
+        name=T("Piezo2 · axon membrane",26,GREEN).move_to([2.9,1.7,0])
+        self.at("A channel called")
+        self.play(FadeIn(channels),FadeIn(name),run_time=0.6)
+        links=VGroup(*[poly([(x,0.25),(x+0.25,0.55),(x+0.25,0.65)],YELLOW,3) for x in (-2.8,-1.4)])
+        self.at("tiny protrusions")
+        self.play(Create(links),run_time=0.6)
+        self.at("tethered to the wrapping")
+        self.play(Indicate(g.top,color=TEAL),run_time=0.5)
+        # Reset the result whenever the deletion case changes.
+        case=chip("axon Piezo2 absent",RED,24).move_to([2.8,-0.6,0])
+        result=T("light touch almost lost",26,RED).move_to([2.8,-1.5,0])
+        self.at("Without it")
+        self.play(FadeIn(case),channels.animate.set_opacity(0.15),run_time=0.4)
+        self.at("almost lost")
+        self.play(FadeIn(result),run_time=0.4)
+        case2=chip("wrapping-cell Piezo2 deleted",GREY,24).move_to([2.8,-0.6,0])
+        self.at("Delete it from")
+        self.play(ReplacementTransform(case,case2),FadeOut(result),channels.animate.set_opacity(1),run_time=0.4)
+        result2=T("touch responses stay",26,GREEN).move_to([2.8,-1.5,0])
+        self.at("touch responses stay")
+        self.play(FadeIn(result2),run_time=0.4)
+        self.at("A press stretches")
+        force=press_arrow(-1.5,2.35,1.6)
+        self.play(FadeOut(case2),FadeOut(result2),GrowArrow(force),g.term.animate.stretch(1.12,0),run_time=0.6)
+        self.at("the channels open")
+        self.play(*[c[0].animate.shift(LEFT*0.15) for c in channels],
+                  *[c[1].animate.shift(RIGHT*0.15) for c in channels],run_time=0.4)
+        current=Arrow([-0.8,0.85,0],[-0.8,-0.1,0],color=GREEN,buff=0)
+        self.at("the current drives spikes")
+        sp=VGroup(Line([1.2,-1.5,0],[5.8,-1.5,0],color=GREY),*[spike(x,-1.5) for x in (2,3,4)])
+        self.play(GrowArrow(current),Create(sp),FadeIn(T("current → spikes",26,GREEN).move_to([3.2,-2.6,0])),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Duck(SpokenScene):
-    """2025 duck Herbst corpuscle: pipette on the terminal, outer core removed, fast current and tuning stay."""
-
+class S04Cells(SpokenScene):
     def construct(self):
-        c = place(corpuscle(), -3.6, -0.5, 1.05)
-        self.add(c)
-        head = T("2025: duck bill skin, late embryos, ex vivo", 26, GREY).to_edge(UP, buff=0.35)
-        self.play(FadeIn(head), run_time=0.5)
-        nm = T("Herbst corpuscle (bird Pacinian)", 26, TEXT).move_to([-3.4, -2.75, 0])
-        tip = c.term.get_right() + RIGHT * 0.05
-        pip = Polygon(tip, tip + np.array([1.6, 0.35, 0]), tip + np.array([2.5, 1.9, 0]), tip + np.array([2.9, 1.75, 0]),
-                      tip + np.array([2.0, 0.1, 0]), stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.25)
-        pl = T("pipette on the nerve terminal", 24, GREY).move_to(tip + np.array([2.2, 2.35, 0]))
-        self.at("recorded directly")
-        self.play(FadeIn(pip), FadeIn(pl), run_time=0.7)
-        self.at("the bird version")
-        self.play(FadeIn(nm), run_time=0.5)
-        self.at("removed the outer core")
-        self.play(*[FadeOut(c.outer[i]) for i in range(5)], run_time=1.3)
-        X0, X1 = 1.4, 6.0
-        yb = 0.3
-        base = Line([X0, yb, 0], [X1, yb, 0], color=GREY, stroke_width=2)
-        lab = T("transduction current", 26, GREEN).move_to([X0 + 1.7, yb + 0.9, 0])
-        sk = tag(SKETCH).move_to([5.1, 3.2, 0])
-        self.at("lamellar cells in place")
-        ic = T("inner core: kept", 24, TEAL).move_to([-3.6, -1.55, 0])
-        self.play(FadeIn(ic), c.inner.animate.set_stroke(width=5), run_time=0.6)
-        self.at("The fast transduction current")
-        self.play(Create(base), FadeIn(lab), FadeIn(sk), run_time=0.5)
-        pts = [(X0, yb)]
-        for x in np.linspace(X0, X1, 80):
-            t = x - 2.4
-            pts.append((x, yb - np.exp(-t / 0.22) * 1.1 if t >= 0 else yb))
-        cur = poly(pts, GREEN, 6)
-        self.play(Create(cur), run_time=1.0)
-        res1 = T("fast kinetics: stayed", 28, TEXT).move_to([3.7, -1.2, 0])
-        self.at("stayed")
-        self.play(FadeIn(res1), run_time=0.4)
-        self.at("frequency tuning")
-        res2 = VGroup(T("frequency tuning:", 28, TEXT), T("no significant change", 28, TEXT)).arrange(DOWN, buff=0.12).move_to([3.7, -2.4, 0])
-        self.play(FadeIn(res2), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Scope(SpokenScene):
-    """Slower inactivation only as decapsulated terminals deteriorated; one reading of 1965; scope of the duck result."""
-
-    def construct(self):
-        X0, X1 = -6.0, 0.2
-        yb = 1.9
-        base = Line([X0, yb, 0], [X1, yb, 0], color=GREY, stroke_width=2)
-        lab = T("transduction current, decapsulated duck terminal", 24, GREEN).move_to([-2.6, 3.1, 0])
-        sk = tag(SKETCH).move_to([-0.9, -0.55, 0])
-        self.at("Slower inactivation")
-        self.play(Create(base), FadeIn(lab), FadeIn(sk), run_time=0.6)
-        curves = []
-        for tau, op in ((0.3, 1.0), (0.9, 0.7), (2.2, 0.45)):
-            pts = [(X0, yb)]
-            for x in np.linspace(X0, X1, 90):
-                t = x - (X0 + 0.7)
-                pts.append((x, yb - (np.exp(-t / tau) * 2.0 if t >= 0 else 0)))
-            curves.append(poly(pts, GREEN, 6).set_stroke(opacity=op))
-        self.play(Create(curves[0]), run_time=0.5)
-        self.play(Create(curves[1]), run_time=0.5)
-        self.play(Create(curves[2]), run_time=0.5)
-        dt = VGroup(T("as the terminal deteriorates,", 28, TEXT), T("inactivation slows", 28, TEXT)).arrange(DOWN, buff=0.12).move_to([-2.9, -1.6, 0])
-        self.at("deteriorated")
-        self.play(FadeIn(dt), run_time=0.5)
-        self.at("a dying terminal")
-        r1 = T("one reading of 1965:", 30, GOLD)
-        r2 = T("a dying terminal looks like", 30, TEXT)
-        r3 = T("a terminal that lost its filter", 30, TEXT)
-        rr = VGroup(r1, r2, r3).arrange(DOWN, buff=0.22).move_to([3.4, 0.6, 0])
-        self.play(FadeIn(rr, shift=UP * 0.1), run_time=0.8)
-        self.at("Keep the scope")
-        self.play(FadeOut(VGroup(base, lab, sk, dt, rr, *curves)), run_time=0.5)
-        sc = T("the scope", 34, GOLD, weight=BOLD).move_to([0, 2.6, 0])
-        self.play(FadeIn(sc), run_time=0.3)
-        c1 = chip("a bird corpuscle", INDIGO, 30).move_to([-3.8, 1.1, 0])
-        c2 = chip("ex vivo", GREY, 30).move_to([0.0, 1.1, 0])
-        c3 = chip("late embryos", GREY, 30).move_to([3.6, 1.1, 0])
-        self.at("bird corpuscle")
-        self.play(FadeIn(c1, shift=UP * 0.1), run_time=0.4)
-        self.at("ex vivo")
-        self.play(FadeIn(c2, shift=UP * 0.1), FadeIn(c3, shift=UP * 0.1), run_time=0.5)
-        self.at("does not show")
-        n1 = T("not shown:", 34, RED, weight=BOLD).move_to([0, -0.6, 0])
-        n2 = T("that the capsule does nothing", 36, TEXT).move_to([0, -1.5, 0])
-        n3 = T("in a cat or a human hand", 36, TEXT).move_to([0, -2.3, 0])
-        self.play(FadeIn(n1), run_time=0.3)
-        self.play(FadeIn(VGroup(n2, n3), shift=UP * 0.1), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Cells(SpokenScene):
-    """Lamellar cells feel force; depolarizing one drives the afferent, but 20 ms to 9 s vs a 5 ms cycle."""
-
-    def construct(self):
-        cx, cy = -3.0, 0.5
-        top = Ellipse(width=4.0, height=1.1, stroke_color=TEAL, stroke_width=4, fill_color=TEAL, fill_opacity=0.15).move_to([cx, cy + 0.95, 0])
-        bot = Ellipse(width=4.0, height=1.1, stroke_color=TEAL, stroke_width=4, fill_color=TEAL, fill_opacity=0.15).move_to([cx, cy - 0.95, 0])
-        term = RoundedRectangle(corner_radius=0.15, width=2.0, height=0.5, stroke_color=YELLOW, stroke_width=3,
-                                fill_color=YELLOW, fill_opacity=0.9).move_to([cx, cy, 0])
-        axon = Line([cx - 3.0, cy, 0], [cx - 1.0, cy, 0], color=YELLOW, stroke_width=7)
-        name = T("duck Grandry corpuscle", 26, TEXT).move_to([cx, -2.8, 0])
-        self.at("So what are the lamellar cells")
-        lc = T("lamellar cell", 26, TEAL).move_to([cx - 1.5, cy + 1.95, 0])
-        self.play(FadeIn(term), Create(axon), run_time=0.5)
-        self.play(FadeIn(top), FadeIn(bot), FadeIn(lc), FadeIn(name), run_time=0.8)
-        self.at("flattened cells wrap")
-        self.play(Indicate(VGroup(top, bot), color=TEAL, scale_factor=1.04), run_time=0.8)
-        tl = T("nerve terminal", 24, YELLOW).move_to([cx - 1.4, cy - 1.95, 0])
-        self.play(FadeIn(tl), run_time=0.3)
+        g=wrap_terminal(-2.7,0)
+        name=T("lamellar cells",28,TEAL).move_to([-2.7,-2.4,0])
+        self.at("the wrapping cells")
+        self.play(FadeIn(g),FadeIn(name),run_time=0.6)
+        species=chip("duck",GREY,26).move_to([3.2,2.6,0])
+        self.at("In duckbill corpuscles")
+        self.play(FadeIn(species),run_time=0.4)
+        force=press_arrow(-2.7,2.7,1.5)
         self.at("respond to force")
-        fa = press_arrow(cx + 1.0, cy + 3.0, cy + 1.6, w=7)
-        fl = T("force", 24, ORANGE).move_to([cx + 1.9, cy + 2.4, 0])
-        self.play(GrowArrow(fa), FadeIn(fl), top.animate.set_fill(TEAL, 0.4), bot.animate.set_fill(TEAL, 0.4), run_time=0.7)
-        self.at("Depolarizing one")
-        self.play(FadeOut(fa), FadeOut(fl), bot.animate.set_fill(TEAL, 0.15), top.animate.set_fill(TEAL, 0.8), run_time=0.5)
-        dep = T("depolarized", 24, TEAL).move_to([cx + 1.2, cy + 1.95, 0])
-        link = DashedLine(top.get_bottom() + RIGHT * 0.5, term.get_top() + RIGHT * 0.5, color=TEAL, stroke_width=4)
-        sp = spike(cx - 2.45, cy + 0.12, h=0.6, w=0.25)
-        self.play(FadeIn(dep), Create(link), run_time=0.5)
-        self.at("make its afferent fire")
-        self.play(Create(sp), run_time=0.5)
+        self.play(GrowArrow(force),g.top.animate.set_fill(TEAL,0.5),run_time=0.5)
+        self.at("depolarizing one")
+        self.play(FadeOut(force),g.top.animate.set_fill(TEAL,0.85),run_time=0.5)
+        sp=spike(2.8,0,h=1)
+        base=Line([1.3,0,0],[5.5,0,0],color=GREY)
+        self.at("nerve fiber fire")
+        self.play(Create(base),Create(sp),run_time=0.5)
+        self.at("In mice")
+        self.play(ReplacementTransform(species,chip("mouse · Pacinian",GREY,26).move_to([3.2,2.6,0])),
+                  FadeOut(sp),g.top.animate.set_fill(TEAL,0.15),run_time=0.4)
+        self.at("on with light")
+        light=VGroup(*[Line([-3.7+0.5*i,2.5,0],[-3.3+0.5*i,1.4,0],color=GOLD,stroke_width=4) for i in range(3)])
+        self.play(Create(light),g.top.animate.set_fill(TEAL,0.85),run_time=0.5)
+        self.at("drove the fiber")
+        self.play(Create(sp),run_time=0.4)
+        self.at("Switching them off")
+        self.play(FadeOut(light),FadeOut(sp),FadeOut(base),g.top.animate.set_fill(TEAL,0.05),run_time=0.4)
+        axis=Line([1.3,-2.2,0],[5.8,-2.2,0],color=GREY)
+        bar=Rectangle(width=0.7,height=0.4,color=ORANGE,fill_color=ORANGE,fill_opacity=0.7).move_to([3.4,-2,0])
+        lab=T("vibration threshold",26,ORANGE).move_to([3.4,0.9,0])
+        self.play(Create(axis),FadeIn(bar),FadeIn(lab),run_time=0.4)
+        self.at("five times harder")
+        factor=T("~5×",30,ORANGE).move_to([4.6,-0.5,0])
+        self.play(bar.animate.stretch(5,1,about_edge=DOWN),FadeIn(factor),run_time=0.7)
+        self.at("How these cells signal")
+        self.play(FadeOut(axis),FadeOut(bar),FadeOut(lab),FadeOut(factor),run_time=0.3)
+        # The gap carries a question, rather than inventing a signaling route.
+        question=T("?",24,GOLD).move_to([-2.7,0.4,0])
+        unknown=T("cell → nerve: still unknown",28,GOLD).move_to([2.7,-1.7,0])
+        self.play(FadeIn(question),FadeIn(unknown),run_time=0.5)
+        self.finish()
 
-        X0, X1, yb = 0.9, 5.7, -0.9
-        self.at("the delay ran")
-        axis = Line([X0, yb, 0], [X1, yb, 0], color=GREY, stroke_width=3)
-        xmap = lambda ms: X0 + (np.log10(ms) / 4.0) * (X1 - X0)
-        ticks = VGroup()
-        for ms, txt in ((1, "1 ms"), (10, "10 ms"), (100, "100 ms"), (1000, "1 s"), (10000, "10 s")):
-            ticks.add(Line([xmap(ms), yb - 0.1, 0], [xmap(ms), yb + 0.1, 0], color=GREY, stroke_width=3))
-            ticks.add(T(txt, 22, GREY).move_to([xmap(ms), yb - 0.4, 0]))
-        lat = Line([xmap(20), yb + 0.45, 0], [xmap(9000), yb + 0.45, 0], color=TEAL, stroke_width=14)
-        lt = VGroup(T("in duck: lamellar cell", 24, TEAL), T("to afferent:", 24, TEAL), T("20 ms to about 9 s", 24, TEAL)
-                    ).arrange(DOWN, buff=0.08).move_to([4.3, yb + 1.45, 0])
-        lt2 = VGroup()
-        self.play(Create(axis), FadeIn(ticks), run_time=0.5)
-        self.play(Create(lat), FadeIn(lt), FadeIn(lt2), run_time=0.9)
-        self.at("vibration repeats")
-        cyc = Line([xmap(5), yb - 0.05, 0], [xmap(5), yb + 2.5, 0], color=YELLOW, stroke_width=5)
-        ct = T("one cycle of 200 Hz: 5 ms", 24, YELLOW).move_to([xmap(5) + 1.95, yb + 2.95, 0])
-        self.play(Create(cyc), FadeIn(ct), run_time=0.7)
-        self.at("may set the")
-        ms_ = VGroup(T("may set sensitivity,", 28, GOLD), T("not carry each cycle", 28, GOLD)).arrange(DOWN, buff=0.12).move_to([3.4, -2.5, 0])
-        self.play(FadeIn(ms_), run_time=0.5)
-        self.at("Keep this")
-        self.play(FadeOut(VGroup(top, bot, lc, link, dep, tl, name, axis, ticks, lat, lt, lt2, cyc, ct, ms_, sp, axon)),
-                  term.animate.move_to([0, 0.3, 0]).scale(1.5), run_time=0.8)
-        bt = T("duck terminal, outer core gone", 34, YELLOW).move_to([0, 1.5, 0])
-        bt2 = T("still adapts fast", 34, TEXT).move_to([0, -0.9, 0])
-        self.at("outer core gone")
-        self.play(FadeIn(bt), run_time=0.3)
-        self.at("still adapts fast")
-        self.play(FadeIn(bt2), Indicate(term, color=YELLOW), run_time=0.7)
+
+class S05Brief(SpokenScene):
+    def construct(self):
+        c=place(corpuscle(),-3.7,-0.1,0.95)
+        self.at("Why is the response")
+        self.play(FadeIn(c),FadeIn(T("Why so brief?",36,font=TITLE_FONT).move_to([0,3,0])),run_time=0.6)
+        self.at("the onion of layers")
+        self.play(Indicate(c.outer,color=INDIGO),run_time=0.7)
+        force=fade_arrow(-3.7,2.4,-0.1,n=6)
+        self.at("soaks up slow presses")
+        self.play(Create(force),FadeIn(T("classic mechanical filter",26,INDIGO).move_to([2.7,1.9,0])),run_time=0.7)
+        self.at("stripped most layers")
+        clear(self)
+        self.add(c,chip("1965 · cat",GREY,24).move_to([-3.7,2.8,0]),tag(SKETCH).move_to([4.8,3,0]))
+        self.play(*[FadeOut(e) for e in c.outer[1:]],c.outer[0].animate.set_stroke(opacity=0.3),run_time=0.8)
+        x0,x1,a,b=-0.8,5.9,0.2,4.7
+        potential=poly([(x,0.35+(0.9*np.exp(-(x-a)/6) if a<=x<b else 0)) for x in np.linspace(x0,x1,140)],GREEN)
+        ref=poly([(x,0.35+(0.9*np.exp(-(x-a)/0.35) if x>=a else 0)) for x in np.linspace(x0,x1,140)],GREEN,2).set_opacity(0.4)
+        labels=VGroup(T("generator potential",26,GREEN).move_to([2.7,1.8,0]),T("layers off",24,GREEN).move_to([3,-0.05,0]),
+                      T("layers on",22,GREY).move_to([1,-0.4,0]))
+        self.at("voltage then lasted longer")
+        self.play(Create(ref),Create(potential),FadeIn(labels),run_time=0.8)
+        caveat=T("mainly under intense compression",24,GREY).move_to([2.5,-0.8,0])
+        self.at("mainly under intense compression")
+        self.play(FadeIn(caveat),run_time=0.5)
+        sp=VGroup(Line([x0,-2,0],[x1,-2,0],color=GREY),spike(a+0.2,-2))
+        self.at("single spike")
+        self.play(Create(sp),run_time=0.6)
+        stages=VGroup(T("1  mechanics around the ending",24,INDIGO).move_to([-3.2,-3.1,0]),
+                      T("2  spike-generating membrane",24,YELLOW).move_to([3.2,-3.1,0]))
+        self.at("two stages")
+        self.play(FadeIn(stages),run_time=0.6)
+        self.at("In 2025")
+        clear(self)
+        d=place(corpuscle(),-3.7,-0.2,0.95)
+        self.add(d,chip("duck, ex vivo",GREY,26).move_to([-3.7,2.8,0]),T("2025 · Herbst corpuscle",28,GREY).move_to([2.8,2.8,0]))
+        self.at("removing the outer layers")
+        self.play(*[FadeOut(e) for e in d.outer],run_time=0.7)
+        self.at("fast current and tuning intact")
+        cur=poly([(x,0.5-(1.5*np.exp(-(x-1.5)/0.25) if x>=1.5 else 0)) for x in np.linspace(0.4,5.8,150)],GREEN)
+        self.play(Create(cur),FadeIn(T("fast current: stays",28,GREEN).move_to([3,1.5,0])),run_time=0.6)
+        self.play(FadeIn(T("tuning: intact",28,TEXT).move_to([3,-1.6,0])),FadeIn(tag(SKETCH).move_to([3,-2.6,0])),run_time=0.5)
+        self.finish()
+
+
+class S06Meissner(SpokenScene):
+    def construct(self):
+        m=meissner().scale(1.9).move_to([-3.4,0.2,0])
+        self.at("Mice nerve corpuscles")
+        self.play(FadeIn(m),FadeIn(chip("mouse · Meissner",GREY,26).move_to([-3.4,2.8,0])),run_time=0.5)
+        second=poly([(-5.6,-1.7),(-3.4,-1.7),(-3.4,1.3),(-2.7,1.3)],"#FFF1A6",4)
+        self.at("two genetically different")
+        self.play(Create(second),run_time=0.6)
+        labels=VGroup(T("two distinct afferents",28,YELLOW).move_to([2.7,1.5,0]),
+                      T("one more sensitive",28,TEXT).move_to([2.7,0.5,0]))
+        self.at("one more sensitive")
+        self.play(FadeIn(labels),Indicate(m[1],color=YELLOW),run_time=0.5)
+        self.at("Mice that grew up")
+        self.play(FadeOut(labels),run_time=0.3)
+        title=T("touch threshold",28,ORANGE).move_to([2.9,1.9,0])
+        bar=Rectangle(width=0.8,height=0.8,color=ORANGE,fill_color=ORANGE,fill_opacity=0.7).move_to([2.9,-1.8,0])
+        baseline=Line([0.4,-2.2,0],[5.6,-2.2,0],color=GREY)
+        label=T("without Meissner corpuscles",24,GREY).move_to([2.9,-2.8,0])
+        self.play(FadeIn(title),FadeIn(bar),Create(baseline),FadeIn(label),run_time=0.4)
+        self.at("twice the push")
+        self.play(bar.animate.stretch(2,1,about_edge=DOWN),FadeIn(T("~2×",30,ORANGE).move_to([4.2,-1,0])),run_time=0.7)
+        self.at("In freely moving mice")
+        clear(self)
+        branch=Line([-5.7,-0.8,0],[5.7,-0.8,0],color=GREY,stroke_width=12)
+        animal=mouse().move_to([4.2,-0.3,0])
+        heading=T("Pacinian neurons · freely moving mouse",30,font=TITLE_FONT).move_to([0,2.8,0])
+        self.play(Create(branch),FadeIn(animal),FadeIn(heading),run_time=0.6)
+        force=press_arrow(-4.8,1.1,-0.6)
+        self.at("answered taps on a branch")
+        self.play(GrowArrow(force),run_time=0.4)
+        distance=VGroup(Line([-4.8,-1.7,0],[4.2,-1.7,0],color=GREY),T("2.5 m",28,GREY).move_to([-0.3,-2.2,0]))
+        self.at("half meters away")
+        self.play(FadeIn(distance),Create(wave(-4.5,3.4,-0.8,9,0.12)),
+                  Create(VGroup(*[spike(x,0.8,h=0.6) for x in (3.5,4.2,4.9)])),run_time=0.7)
+        self.at("Two detectors of change")
+        clear(self)
+        a=meissner().scale(1.25).move_to([-3.2,0,0])
+        b=place(corpuscle(),3.2,0,0.8)
+        names=VGroup(T("Meissner · flutter",28,TEAL).move_to([-3.2,2.1,0]),
+                      T("Pacinian · vibration",28,INDIGO).move_to([3.2,2.1,0]),
+                      T("two detectors of change",36,GOLD).move_to([0,3.1,0]))
+        self.play(FadeIn(a),FadeIn(b),FadeIn(names),run_time=0.6)
+        self.at("the cells that help")
+        self.play(Indicate(a[0],color=TEAL),Indicate(b.inner,color=TEAL),
+                  FadeIn(T("nerve ending + wrapping cells",30,TEXT).move_to([0,-2.8,0])),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "In duck, without the outer core, the terminal still adapts fast."
+    LINE = "Two detectors of change, each a nerve ending plus helper cells."

@@ -97,64 +97,88 @@ def out_of(t):
 
 class S00Title(TitleCard):
     LESSON = "Nuclear architecture and membraneless compartments"
-    TITLE = "Change the amount, watch the bodies"
+    TITLE = "A Nucleus Without Walls"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Question(SpokenScene):
-    """a nucleus with territories and bodies; no membrane inside; what holds it apart?; phase separation."""
 
+# Three territories are painted regions, not membrane enclosures.
+def map_parts():
+    c = np.array([-2.8, 0, 0])
+    terrs = VGroup(*[Ellipse(width=w, height=h, stroke_width=0,
+                    fill_color=PURPLE, fill_opacity=op).rotate(a * DEGREES).move_to(c + [x,y,0])
+        for x,y,w,h,a,op in [(-1.1,.6,2.6,2.9,20,.18),(1.0,.8,2.5,2.7,-15,.3),(.1,-1.3,3.2,2.0,5,.42)]])
+    nu = Circle(radius=.65, stroke_color=BLUE, stroke_width=3,
+                fill_color=BLUE, fill_opacity=.55).move_to(c + [.1,.1,0])
+    small = VGroup(*[Circle(radius=.17, stroke_color=BLUE, fill_color=BLUE,
+                       fill_opacity=.55).move_to(c + v) for v in [[-1.9,-.6,0],[1.7,-.5,0]]])
+    return nucleus(c,3.05), terrs, nu, small
+
+
+class S01Map(SpokenScene):
     def construct(self):
-        C = np.array([-2.7, -0.1, 0.0])
-        R = 3.15
-        nuc = nucleus(C, R)
-        terr_spec = [((-1.1, 1.0), 2.5, 1.9, 20), ((1.1, 0.95), 2.2, 2.0, -15),
-                     ((-1.2, -1.2), 2.4, 1.8, -10), ((1.15, -1.15), 2.3, 1.9, 15)]
-        terrs = VGroup(*[Ellipse(width=w, height=h, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE,
-                                 fill_opacity=0.22).rotate(a * DEGREES).move_to(C + np.array([x, y, 0]))
-                         for (x, y), w, h, a in terr_spec])
-        nucleolus = Circle(radius=0.42, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.55).move_to(C + [0.0, 0.0, 0])
-        speck = VGroup(*[Circle(radius=0.17, stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.55).move_to(C + np.array(p + (0,)))
-                         for p in [(-0.05, 1.95), (-2.05, 0.05), (2.0, 0.15), (0.1, -2.0)]])
-
-        # right column
-        X = 3.7
-        ml = Rectangle(width=0.9, height=0.3, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.35)
-        mt = T("a membrane", 26, GREY)
-        mem = VGroup(ml, mt).arrange(RIGHT, buff=0.3).move_to([X, 2.3, 0])
-        strike = VGroup(Line(ml.get_corner(UL) + UL * 0.08, ml.get_corner(DR) + DR * 0.08, color=RED, stroke_width=6), Line(ml.get_corner(DL) + DL * 0.08, ml.get_corner(UR) + UR * 0.08, color=RED, stroke_width=6))
-        nomem = T("none inside", 26, RED).next_to(mem, DOWN, buff=0.2)
-
-        sw_t = Square(0.32, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.3)
-        row_t = VGroup(sw_t, T("each chromosome: its own region", 24, PURPLE)).arrange(RIGHT, buff=0.3)
-        row_n = VGroup(Circle(radius=0.2, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.55),
-                       T("nucleolus: ribosomes built", 24, BLUE)).arrange(RIGHT, buff=0.3)
-        row_s = VGroup(Circle(radius=0.12, stroke_color=BLUE, stroke_width=2, fill_color=BLUE, fill_opacity=0.55),
-                       T("speckles: splicing factors", 24, BLUE)).arrange(RIGHT, buff=0.3)
-        rows = VGroup(row_t, row_n, row_s).arrange(DOWN, buff=0.4, aligned_edge=LEFT).move_to([X + 0.1, 0.5, 0])
-        q = T("What holds things apart?", 32, TEXT, weight=BOLD).move_to([X, -1.9, 0])
-        prop = chip("phase separation?", TEAL, 30).move_to([X, -2.9, 0])
-
-        self.play(Create(nuc), run_time=0.9)
+        nuc, terrs, nu, small = map_parts()
+        self.at("A nucleus")
+        self.play(Create(nuc), run_time=.7)
+        note = T("No internal membranes",28,RED).move_to([3.6,2.6,0])
         self.at("no membranes")
-        self.play(FadeIn(mem), run_time=0.4)
-        self.play(Create(strike), FadeIn(nomem), run_time=0.5)
-        self.at("its own region")
-        self.play(LaggedStart(*[FadeIn(t, scale=0.9) for t in terrs], lag_ratio=0.2), FadeIn(row_t), run_time=1.3)
-        self.at("Ribosomes are assembled")
-        self.play(GrowFromCenter(nucleolus), FadeIn(row_n), run_time=0.7)
-        self.at("splicing factors")
-        self.play(LaggedStart(*[GrowFromCenter(s) for s in speck], lag_ratio=0.15), FadeIn(row_s), run_time=0.8)
-        self.at("no walls")
-        self.play(FadeIn(q, shift=UP * 0.1), run_time=0.5)
-        self.play(Wiggle(strike, scale_value=1.1, rotation_angle=0.02 * TAU), run_time=0.7)
-        self.at("phase separation")
-        self.play(FadeIn(prop, shift=UP * 0.15), run_time=0.6)
+        self.play(FadeIn(note),run_time=.6)
+        lab = T("Chromosome territories",28,PURPLE).move_to([3.6,1.45,0])
+        self.at("Each chromosome")
+        self.play(FadeIn(terrs),FadeIn(lab),run_time=1.0)
+        active = T("Open, active",28,PURPLE).move_to([3.6,.45,0])
+        quiet = T("Closed, quiet",28,PURPLE).move_to([3.6,-.25,0])
+        self.at("and open")
+        self.play(FadeIn(active),terrs[0].animate.set_fill(opacity=.3),run_time=.7)
+        self.at("closed quiet")
+        self.play(FadeIn(quiet),terrs[2].animate.set_fill(opacity=.5),run_time=.7)
+        bodies = T("Small nuclear bodies",28,BLUE).move_to([3.6,-1.3,0])
+        self.at("Membraneless bodies")
+        self.play(FadeOut(active),FadeOut(quiet),FadeOut(lab),FadeIn(small),FadeIn(bodies),run_time=.7)
+        nl = T("Nucleolus",32,BLUE,weight=BOLD).move_to([3.6,1.1,0])
+        job = T("Ribosomal RNA\n+ subunit assembly",26,TEXT,line_spacing=1).move_to([3.6,0,0])
+        self.at("The largest")
+        self.play(GrowFromCenter(nu),FadeIn(nl),run_time=.7)
+        self.at("which makes")
+        self.play(FadeIn(job),run_time=.7)
+        q = T("Together without walls?",30,TEXT,weight=BOLD).move_to([3.6,-2.65,0])
+        self.at("So what holds")
+        self.play(FadeOut(note),FadeIn(q),Indicate(nu,color=BLUE),run_time=.9)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Three(SpokenScene):
+class S02Nucleolus(SpokenScene):
+    def construct(self):
+        c=np.array([-2.5,0,0])
+        outer=Circle(radius=2.75,stroke_color=BLUE,stroke_width=3,fill_color=BLUE,fill_opacity=.22).move_to(c)
+        middle=Circle(radius=1.8,stroke_color=BLUE,stroke_width=3,fill_color=BLUE,fill_opacity=.46).move_to(c)
+        inner=Circle(radius=.8,stroke_color=GREY,stroke_width=3,fill_color=BG,fill_opacity=1).move_to(c)
+        layers=VGroup(outer,middle,inner)
+        ids=VGroup(T("FC",26,TEXT).move_to(c),T("DFC",26,TEXT).move_to(c+[0,1.3,0]),T("GC",26,TEXT).move_to(c+[0,2.28,0]))
+        detail=T("Inside → out",32,TEXT).move_to([3.6,2.6,0])
+        self.at("Read the nucleolus")
+        self.play(FadeIn(layers),FadeIn(ids),FadeIn(detail),run_time=.8)
+        fc=T("FC · fibrillar centre\nRibosomal genes",26,TEXT,line_spacing=1).move_to([3.6,1.1,0])
+        dfc=T("DFC · dense fibrillar\nRNA processing",26,TEXT,line_spacing=1).move_to([3.6,1.1,0])
+        gc=T("GC · granular component\nSubunit assembly",26,TEXT,line_spacing=1).move_to([3.6,1.1,0])
+        self.at("holds the ribosomal")
+        self.play(FadeIn(fc),Indicate(inner,color=TEXT,scale_factor=1.05),run_time=.7)
+        self.at("Around it")
+        self.play(ReplacementTransform(fc,dfc),Indicate(middle,color=BLUE,scale_factor=1.03),run_time=.8)
+        self.at("The outer granular")
+        self.play(ReplacementTransform(dfc,gc),Indicate(outer,color=BLUE,scale_factor=1.03),run_time=.8)
+        sub=chip("subunit",BLUE,24).move_to(c+[2.15,-.6,0])
+        self.at("before export")
+        self.play(FadeIn(sub),run_time=.3)
+        self.play(sub.animate.move_to([3.6,-.7,0]),run_time=.9)
+        frog=T("Frog oocytes",28,TEXT).move_to([3.6,-1.65,0])
+        liquids=T("Two coexisting liquids\nwithout mixing",26,BLUE,line_spacing=1).move_to([3.6,-2.65,0])
+        self.at("In frog oocytes")
+        self.play(FadeOut(sub),FadeIn(frog),run_time=.5)
+        self.at("two liquids")
+        self.play(FadeIn(liquids),run_time=.8)
+        self.finish()
+
+class S03Proposal(SpokenScene):
     """three ways to make a bright spot; all look the same; they differ when the amount changes."""
 
     def construct(self):
@@ -190,30 +214,25 @@ class S02Three(SpokenScene):
         chain.set_points_as_corners(beads_start)
         bridge = VGroup(*[pdot(beads_start[i] + np.array([0, 0.15, 0])) for i in (3, 7, 10)])
 
-        self.at("A bright spot")
-        self.play(*[Create(n) for n in nucs], run_time=0.8)
-        self.play(FadeIn(d1), FadeIn(line2), FadeIn(sites), FadeIn(d2), FadeIn(chain), FadeIn(beads), FadeIn(bridge), run_time=0.6)
-
-        self.at("phase separation")
-        self.play(FadeIn(labs[0]), run_time=0.3)
-        self.play(*[d1[k].animate.move_to(tgt1[k]) for k in range(14)], run_time=1.6)
-        halo1 = Circle(radius=0.62, stroke_width=0, fill_color=BLUE, fill_opacity=0.0).move_to(c1 + np.array([0.25, 0.2, 0]))
+        self.at("One proposal")
+        self.play(Create(nucs[0]), FadeIn(d1), FadeIn(labs[0]), run_time=0.8)
+        self.at("Molecules with many")
+        self.play(*[d1[k].animate.move_to(tgt1[k]) for k in range(14)], run_time=1.1)
+        halo1 = Circle(radius=0.65, stroke_width=0, fill_color=BLUE, fill_opacity=0.28).move_to(c1 + [0.25, 0.2, 0])
+        self.play(FadeIn(halo1), run_time=0.5)
+        self.at("a bright spot")
+        self.play(Create(nucs[1]), Create(nucs[2]), FadeIn(line2), FadeIn(sites),
+                  FadeIn(d2), FadeIn(chain), FadeIn(beads), FadeIn(bridge), run_time=0.8)
 
         self.at("clustered sites")
         self.play(FadeIn(labs[1]), run_time=0.3)
-        self.play(*[d2[k].animate.move_to(tgt2[k]) for k in range(min(len(d2), len(tgt2)))], run_time=1.6)
+        self.play(*[d2[k].animate.move_to(tgt2[k]) for k in range(min(len(d2), len(tgt2)))], run_time=1.1)
 
         self.at("bridge chromatin")
         self.play(FadeIn(labs[2]), run_time=0.3)
         self.play(*[beads[k].animate.move_to(beads_end[k]) for k in range(14)],
                   Transform(chain, VMobject(stroke_color=PURPLE, stroke_width=3).set_points_as_corners(beads_end)),
-                  *[bridge[j].animate.move_to(beads_end[i]) for j, i in enumerate((3, 7, 10))], run_time=1.8)
-
-        self.at("All three make")
-        halos = [Circle(radius=0.65, stroke_width=0, fill_color=BLUE, fill_opacity=0.28).move_to(p)
-                 for p in (c1 + np.array([0.25, 0.2, 0]), c2 + np.array([0.28, 0.0, 0]), c3)]
-        self.play(*[FadeIn(h, scale=0.5) for h in halos], run_time=0.8)
-        self.play(*[Indicate(h, color=BLUE, scale_factor=1.15) for h in halos], run_time=0.9)
+                  *[bridge[j].animate.move_to(beads_end[i]) for j, i in enumerate((3, 7, 10))], run_time=1.2)
 
         self.at("change the amount")
         arrow = Arrow(LEFT * 3.2, RIGHT * 3.2, color=TEXT, stroke_width=6, buff=0).move_to([0, -3.1, 0])
@@ -222,226 +241,117 @@ class S02Three(SpokenScene):
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Threshold(SpokenScene):
-    """plot of protein outside vs total: the curve rises to the threshold and goes flat while a drop grows."""
 
+class S04Threshold(SpokenScene):
     def construct(self):
-        axes = make_axes()
-        Cn = np.array([3.5, 0.0, 0.0])
-        Rn = 2.55
-        nuc = nucleus(Cn, Rn)
-        dots_pos = ring_points(8, Cn, 1.2, Rn - 0.25, 11, gap=0.42)
-        t = ValueTracker(0.0)
-
-        def curve():
-            return model_curve(max(t.get_value(), 0.001))
-
-        def marker():
-            x = t.get_value()
-            return Dot(P(x, out_of(x)), radius=0.11, color=TEXT)
-
-        def drop():
-            ph = phi_of(t.get_value())
-            if ph <= 0.0005:
-                return VGroup()
-            return body(Cn, Rn, ph)
-
-        def dots():
-            n = int(round(out_of(t.get_value()) * 8))
-            return VGroup(*[pdot(p) for p in dots_pos[:n]])
-
-        cv = always_redraw(curve)
-        mk = always_redraw(marker)
-        dr = always_redraw(drop)
-        ds = always_redraw(dots)
-
-        thr = DashedLine(P(0, C_SAT), P(8.4, C_SAT), color=YELLOW, stroke_width=3)
-        thr_lbl = T("saturation concentration", 22, YELLOW).move_to(P(3.9, C_SAT) + UP * 0.42)
-
+        axes=make_axes()
+        thr=DashedLine(P(0,1),P(8.4,1),color=YELLOW,stroke_width=3)
+        tl=T("threshold: 1 µM",24,YELLOW).move_to(P(5,1)+UP*.45)
+        total=ValueTracker(.2)
+        curve=always_redraw(lambda:model_curve(max(.001,total.get_value())))
+        marker=always_redraw(lambda:Dot(P(total.get_value(),out_of(total.get_value())),radius=.1,color=TEXT))
+        frame=Rectangle(width=5.4,height=1.15,stroke_color=GREY,stroke_width=3).move_to([3.4,.4,0])
+        def dense():
+            width=5.4*phi_of(total.get_value())
+            return Rectangle(width=max(.001,width),height=1.15,stroke_width=0,fill_color=BLUE,
+                             fill_opacity=.65 if width>.002 else 0).move_to([.7+width/2,.4,0])
+        bar=always_redraw(dense)
+        title=T("Nuclear volume",28,TEXT).move_to([3.4,1.55,0])
+        outside=T("outside",26,YELLOW).move_to([3.7,.4,0])
+        self.at("Phase separation")
+        self.play(FadeIn(axes),Create(frame),FadeIn(title),run_time=.8)
         self.at("predicts a threshold")
-        self.play(FadeIn(axes), Create(nuc), run_time=1.0)
-        self.play(Create(thr), FadeIn(thr_lbl), run_time=0.7)
-        self.add(cv, mk, dr, ds)
-
+        self.play(Create(thr),FadeIn(tl),run_time=.6)
+        self.add(curve,marker,bar)
+        self.at("Below a saturation")
+        self.play(total.animate.set_value(.85),run_time=1.2)
+        no=T("No bodies",28,GREY).move_to([3.4,-.8,0])
         self.at("no bodies form")
-        self.play(t.animate.set_value(C_SAT), run_time=1.6, rate_func=linear)
-        self.wait(0.4)
-        self.at("extra protein goes")
-        self.play(t.animate.set_value(8.0), run_time=3.6, rate_func=linear)
-
-        self.at("stays at the threshold")
-        flat = Line(P(2, C_SAT), P(7.5, C_SAT), color=TEAL, stroke_width=10)
-        self.play(Indicate(flat, color=TEAL, scale_factor=1.0), run_time=0.9)
-        self.at("buffered dilute phase")
-        chp = chip("buffered dilute phase", TEAL, 26).move_to(P(5.2, 3.4))
-        ar = Arrow(chp.get_bottom() + RIGHT * 1.0, P(7.2, C_SAT) + UP * 0.12, color=TEAL, stroke_width=4, buff=0.1)
-        self.play(FadeIn(chp, shift=UP * 0.1), GrowArrow(ar), run_time=0.8)
+        self.play(FadeIn(no),run_time=.5)
+        self.at("Above it")
+        self.play(FadeOut(no),total.animate.set_value(1.2),run_time=.5)
+        self.at("extra protein")
+        self.play(total.animate.set_value(8),run_time=2,rate_func=linear)
+        self.at("concentration outside stays")
+        self.play(FadeIn(outside),Indicate(thr,color=YELLOW,scale_factor=1),run_time=.9)
+        made=T("Made-up data",26,GREY).move_to([3.4,2.65,0])
+        two=T("total 2 µM · bodies ≈2%",26,BLUE).move_to([3.4,-.85,0])
+        eight=T("total 8 µM · bodies ≈14%",26,BLUE).move_to([3.4,-.85,0])
+        self.at("With made")
+        self.play(FadeIn(made),total.animate.set_value(2),run_time=.6)
+        self.at("bodies fill about")
+        self.play(FadeIn(two),run_time=.6)
+        self.at("and about")
+        self.play(total.animate.set_value(8),ReplacementTransform(two,eight),run_time=1.2)
+        fixed=T("outside ≈1 µM",28,YELLOW).move_to([3.4,-1.85,0])
+        self.at("while the outside")
+        self.play(FadeIn(fixed),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Numbers(SpokenScene):
-    """mass balance: with c_dense 50 and c_sat 1, bodies fill 2.0, 6.1, 14.3 percent at totals 2, 4, 8."""
+def test_plot(cx):
+    origin=np.array([cx-1.8,-1.6,0])
+    def xy(x,y): return origin+np.array([x*.46,y*.46,0])
+    axes=VGroup(Line(xy(0,0),xy(8.4,0),color=GREY),Line(xy(0,0),xy(0,7),color=GREY),
+                T("total protein",24,TEXT).move_to([cx,-2.2,0]),
+                T("outside concentration",24,TEXT).move_to([cx,2,0]))
+    return axes,xy
 
+
+class S05Test(SpokenScene):
     def construct(self):
-        a1 = chip("dense phase 50 µM", BLUE, 26)
-        a2 = chip("saturation concentration 1 µM", YELLOW, 26)
-        top = VGroup(a1, a2).arrange(RIGHT, buff=0.6).move_to([0, 3.1, 0])
-        eq = M("fraction of volume = (total - c_sat) / (c_dense - c_sat)", 26, TEXT)
-        fit(eq, max_w=11.8)
-        eq.move_to([0, 2.3, 0])
-
-        cxs = [-4.3, 0.0, 4.3]
-        cy, R = -0.1, 1.4
-        totals = [2, 4, 8]
-        phis = [phi_of(v) for v in totals]
-        pct = ["2.0", "6.1", "14.3"]
-        nucs, bodies, heads, foots, dotgs = [], [], [], [], []
-        for x, v, ph, pc in zip(cxs, totals, phis, pct):
-            c = np.array([x, cy, 0])
-            nucs.append(nucleus(c, R))
-            bodies.append(body(c, R, ph))
-            heads.append(T(f"total {v} µM", 26, TEXT).move_to([x, cy + R + 0.4, 0]))
-            foots.append(T(f"bodies {pc}%", 26, BLUE, weight=BOLD).move_to([x, cy - R - 0.4, 0]))
-            dotgs.append(VGroup(*[pdot(p) for p in ring_points(8, c, 0.75, R - 0.2, 21, gap=0.3)]))
-        outs = [T("outside near 1 µM", 24, YELLOW).move_to([x, cy - R - 0.95, 0]) for x in cxs]
-
-        self.at("Assume one dense")
-        self.play(FadeIn(a1, shift=DOWN * 0.15), run_time=0.5)
-        self.play(FadeIn(a2, shift=DOWN * 0.15), run_time=0.5)
-        self.at("mass balance")
-        self.play(Write(eq), run_time=1.6)
-        self.at("At totals of")
-        self.play(*[Create(n) for n in nucs], *[FadeIn(h) for h in heads], *[FadeIn(d) for d in dotgs], run_time=0.9)
-        self.at("bodies fill")
-        for b, f in zip(bodies, foots):
-            self.play(GrowFromCenter(b), FadeIn(f, shift=UP * 0.1), run_time=0.7)
-        self.at("The bodies grow")
-        self.play(*[Indicate(b, color=BLUE, scale_factor=1.15) for b in bodies], run_time=0.9)
-        br = Arrow([-4.3, -3.2, 0], [4.3, -3.2, 0], buff=0, color=TEXT, stroke_width=4)
-        sev = T("bodies grow sevenfold", 28, TEXT, weight=BOLD).move_to([0, -3.2, 0])
-        sev_back = Rectangle(width=sev.width + 0.4, height=sev.height + 0.3, stroke_width=0, fill_color=BG, fill_opacity=1).move_to(sev)
-        self.play(GrowArrow(br), FadeIn(sev_back), FadeIn(sev), run_time=0.7)
-        self.at("stays near")
-        self.play(*[FadeIn(o, shift=UP * 0.1) for o in outs], run_time=0.8)
+        left,p=test_plot(-3.3)
+        right,q=test_plot(3.3)
+        head=T("Change protein · measure inside and outside",30,TEXT).move_to([0,3.15,0])
+        self.at("So the test")
+        self.play(FadeIn(head),run_time=.7)
+        self.at("Change the amount")
+        self.play(FadeIn(left),FadeIn(right),run_time=.7)
+        # Two schematic concentration responses; points advance with the total.
+        flat=Line(p(1,1),p(8,1),color=TEAL,stroke_width=6)
+        rise=Line(q(0,0),q(8,5.8),color=PURPLE,stroke_width=6)
+        fl=T("Fits phase separation",28,TEAL).move_to([-3.3,-3.1,0])
+        rl=T("Fits binding sites better",28,PURPLE).move_to([3.3,-3.1,0])
+        self.at("If the outside")
+        self.play(Create(flat),run_time=.9)
+        self.at("that fits phase")
+        self.play(FadeIn(fl),run_time=.5)
+        self.at("If it rises")
+        self.play(Create(rise),run_time=1)
+        ratio=T("Constant fraction outside",24,PURPLE).move_to([3.3,2.55,0])
+        self.at("a constant fraction")
+        self.play(FadeIn(ratio),run_time=.6)
+        self.at("that fits binding")
+        self.play(FadeIn(rl),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Two(SpokenScene):
-    """protein A sits on the flat prediction; protein B climbs along a line through the origin."""
-
-    def construct(self):
-        axes = make_axes()
-        thr = DashedLine(P(0, C_SAT), P(8.4, C_SAT), color=YELLOW, stroke_width=3)
-        pred = model_curve(8.0)
-        pred_l = T("prediction", 24, TEAL).move_to(P(6.0, C_SAT) + UP * 0.4)
-        self.add(axes, thr)
-
-        totals = [2, 4, 8]
-        A = [1.0, 1.0, 1.1]
-        B = [1.5, 2.8, 5.9]
-        ptsA = [Dot(P(x, y), radius=0.12, color=GREEN) for x, y in zip(totals, A)]
-        ptsB = [Dot(P(x, y), radius=0.12, color=ORANGE) for x, y in zip(totals, B)]
-        lineB = VMobject(stroke_color=ORANGE, stroke_width=3).set_points_as_corners([P(x, y) for x, y in zip(totals, B)])
-
-        X = 3.4
-        hA = chip("protein A", GREEN, 28).move_to([X - 1.2, 2.55, 0])
-        dA = M("1.0, 1.0, 1.1 µM", 26, GREEN).next_to(hA, DOWN, buff=0.25).align_to(hA, LEFT)
-        vA = T("fits the prediction", 26, GREEN).next_to(dA, DOWN, buff=0.2).align_to(hA, LEFT)
-        hB = chip("protein B", ORANGE, 28).move_to([X - 1.2, -0.05, 0])
-        dB = M("1.5, 2.8, 5.9 µM", 26, ORANGE).next_to(hB, DOWN, buff=0.25).align_to(hB, LEFT)
-        fr = VGroup(*[M(s, 26, ORANGE) for s in ("1.5/2 = 0.75", "2.8/4 = 0.70", "5.9/8 = 0.74")])
-        fr.arrange(DOWN, buff=0.12, aligned_edge=LEFT).next_to(dB, DOWN, buff=0.2).align_to(hB, LEFT)
-        vB = T("fits binding sites better", 26, ORANGE).next_to(fr, DOWN, buff=0.25).align_to(hB, LEFT)
-        dash = DashedLine(P(0, 0), P(8, 5.9), color=ORANGE, stroke_width=3)
-
-        self.at("test two proteins")
-        self.play(Create(pred), FadeIn(pred_l), run_time=1.0)
-        self.at("protein A")
-        self.play(FadeIn(hA, shift=DOWN * 0.1), run_time=0.4)
-        self.play(*[FadeIn(p, scale=0.4) for p in ptsA], FadeIn(dA), run_time=0.9)
-        self.at("That fits")
-        self.play(FadeIn(vA, shift=UP * 0.1), run_time=0.5)
-        self.at("For protein B")
-        self.play(FadeIn(hB, shift=DOWN * 0.1), run_time=0.4)
-        self.play(*[FadeIn(p, scale=0.4) for p in ptsB], Create(lineB), FadeIn(dB), run_time=1.0)
-        self.at("Divide by the totals")
-        self.play(LaggedStart(*[FadeIn(f, shift=RIGHT * 0.15) for f in fr], lag_ratio=0.5), run_time=1.7)
-        self.at("constant fraction")
-        self.play(Create(dash), run_time=0.9)
-        self.at("binding sites better")
-        self.play(FadeIn(vB, shift=UP * 0.1), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S06Rule(SpokenScene):
-    """four observations cannot tell the models apart; two cautions; the rule: change the amount, measure inside and outside."""
-
     def construct(self):
-        names = ["round shapes", "fusion", "fluorescence recovery", "hexanediol"]
-        pos = [(-3.2, 1.6), (3.2, 1.6), (-3.2, 0.0), (3.2, 0.0)]
-        chips = VGroup(*[chip(n, TEXT, 40).move_to([x, y, 0]) for n, (x, y) in zip(names, pos)])
-        verdict = T("cannot tell the models apart", 44, RED, weight=BOLD).move_to([0, -1.8, 0])
-        crosses = VGroup(*[Line(c.get_left() + LEFT * 0.1, c.get_right() + RIGHT * 0.1, color=RED, stroke_width=5) for c in chips])
-
-        fails = VGroup(RoundedRectangle(corner_radius=0.2, width=5.8, height=3.0, stroke_color=ORANGE, stroke_width=3),
-                       T("a protein that fails", 32, ORANGE, weight=BOLD),
-                       T("may still phase separate,\nas one part of a mixture", 28, TEXT, line_spacing=0.9))
-        fails[1].move_to(fails[0].get_center() + UP * 0.8)
-        fails[2].move_to(fails[0].get_center() + DOWN * 0.45)
-        fails.move_to([-3.3, 0.5, 0])
-        passes = VGroup(RoundedRectangle(corner_radius=0.2, width=5.8, height=3.0, stroke_color=GREEN, stroke_width=3),
-                        T("a protein that passes", 32, GREEN, weight=BOLD),
-                        T("has not been shown\nto need its body", 28, TEXT, line_spacing=0.9))
-        passes[1].move_to(passes[0].get_center() + UP * 0.8)
-        passes[2].move_to(passes[0].get_center() + DOWN * 0.45)
-        passes.move_to([3.3, 0.5, 0])
-
-        self.at("Round shapes")
-        self.play(LaggedStart(*[FadeIn(c, shift=DOWN * 0.15) for c in chips], lag_ratio=0.25), run_time=1.6)
+        names=["round shapes","fusion","fluorescence recovery","hexanediol"]
+        chips=VGroup(*[chip(n,TEXT,28).move_to([x,y,0]) for n,(x,y) in zip(names,[(-3.2,1.8),(3.2,1.8),(-3.2,.1),(3.2,.1)])])
+        verdict=T("Cannot tell these models apart",36,RED,weight=BOLD).move_to([0,-1.7,0])
+        for cue,obj in zip(["Round shapes","fusion","fluorescence recovery","and hexandial"],chips):
+            self.at(cue)
+            self.play(FadeIn(obj),run_time=.35)
         self.at("cannot tell")
-        self.play(LaggedStart(*[Create(x) for x in crosses], lag_ratio=0.15), FadeIn(verdict), run_time=1.2)
-        self.at("Treat the result")
-        self.play(FadeOut(chips), FadeOut(crosses), FadeOut(verdict), run_time=0.6)
-        self.at("that fails")
-        self.play(FadeIn(fails, shift=RIGHT * 0.2), run_time=0.7)
-        self.at("that passes")
-        self.play(FadeIn(passes, shift=LEFT * 0.2), run_time=0.7)
-
-        # the rule: three nuclei at rising amounts, measured inside and outside
-        cxs = [-4.3, 0.0, 4.3]
-        cy, R = 0.5, 1.6
-        totals = [2, 4, 8]
-        nucs, bods, dgs = [], [], []
-        for x, v in zip(cxs, totals):
-            c = np.array([x, cy, 0])
-            nucs.append(nucleus(c, R))
-            bods.append(body(c, R, phi_of(v)))
-            dgs.append(VGroup(*[pdot(p) for p in ring_points(8, c, 0.8, R - 0.2, 21, gap=0.3)]))
-        arrow = Arrow(LEFT * 3.2, RIGHT * 3.2, color=TEXT, stroke_width=6, buff=0).move_to([0, -2.0, 0])
-        al = T("change the amount of protein", 26, TEXT).next_to(arrow, UP, buff=0.12)
-        ins = T("inside", 26, BLUE, weight=BOLD)
-        outs = T("outside", 26, YELLOW, weight=BOLD)
-        self.at("So change the amount")
-        self.play(FadeOut(fails), FadeOut(passes), run_time=0.5)
-        self.play(*[Create(n) for n in nucs], *[FadeIn(d) for d in dgs], run_time=0.7)
-        self.play(*[GrowFromCenter(b) for b in bods], GrowArrow(arrow), FadeIn(al), run_time=0.9)
-        self.at("measure inside")
-        # labels on the third nucleus
-        c3 = np.array([cxs[2], cy, 0])
-        ins.move_to(c3 + np.array([-0.25, R + 0.4, 0]))
-        l_in = Line(ins.get_bottom() + DOWN * 0.05, bods[2].get_top() + LEFT * 0.0, color=BLUE, stroke_width=3)
-        self.play(FadeIn(ins), Create(l_in), run_time=0.6)
-        self.at("outside the bodies")
-        low = min(dgs[2], key=lambda d: d.get_center()[1])
-        outs.move_to([cxs[2] + 1.0, cy - R - 0.4, 0])
-        l_out = Line(outs.get_top() + UP * 0.05, low.get_center(), color=YELLOW, stroke_width=3)
-        self.play(FadeIn(outs), Create(l_out), run_time=0.5)
+        self.play(FadeIn(verdict),run_time=.6)
+        fail=VGroup(chip("Fails the test",ORANGE,30),T("May still phase separate\nas part of a mixture",28,TEXT,line_spacing=1)).arrange(DOWN,buff=.5).move_to([0,.5,0])
+        passed=VGroup(chip("Passes the test",GREEN,30),T("Does its job require the body?\nStill unproven",28,TEXT,line_spacing=1)).arrange(DOWN,buff=.5).move_to([0,.5,0])
+        self.at("A protein that fails")
+        self.play(FadeOut(chips),FadeOut(verdict),FadeIn(fail),run_time=.6)
+        self.at("A protein that passes")
+        self.play(ReplacementTransform(fail,passed),run_time=.7)
+        nuc,terrs,nu,small=map_parts()
+        diagram=VGroup(nuc,terrs,nu,small).scale(.78).move_to([-4.1,0,0]).set_opacity(.32)
+        lines=VGroup(*[T(s,30,TEXT) for s in ["1  What is there?","2  What does it do?","3  How does it form?","4  Does form matter for its job?"]]).arrange(DOWN,buff=.5,aligned_edge=LEFT).move_to([2.65,0,0])
+        self.at("Keep the order")
+        self.play(FadeOut(passed),FadeIn(diagram),run_time=.5)
+        for cue,line in zip(["What is there","what it does","how it forms","whether its form"],lines):
+            self.at(cue)
+            self.play(FadeIn(line,shift=UP*.1),run_time=.3)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Change the amount, then measure inside and outside the bodies."
+    LINE = "The nucleus is organized without walls: territories, sorted chromatin, membraneless bodies."

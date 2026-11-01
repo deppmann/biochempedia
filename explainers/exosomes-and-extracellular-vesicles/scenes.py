@@ -3,24 +3,21 @@
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
 COLOR MAP (one color per concept, whole video)
-  BLUE   = the receptor (transferrin receptor): a stalk with a round head, head = the part that sat outside the cell
+  BLUE   = surface proteins (MHC and receptors): a stalk with a round head, head = the part that sat outside the cell
   TEAL   = a small vesicle (outline): internal vesicle, exosome, microvesicle, "vesicle" labels
   YELLOW = cytosol, the cell's own fluid (the tint of the cell interior and the fill inside every vesicle)
   PURPLE = the multivesicular body / endosome, and the "formed inside it" origin of an exosome
   RED    = the lysosome and digestion (the incinerator door)
   GREEN  = the street door: released from the cell, intact
-  ORANGE = tetraspanin markers (the small dots on a vesicle's surface)
+  ORANGE = peptide carried by MHC (or existing tetraspanin helper markers)
   GOLD   = the message (a signal carried to another cell)
   GREY   = membranes (plasma membrane), labels, what is unknown or not shown (dashed)
 
 No molecular structures: a receptor is a stalk with a round head, a vesicle is a circle, the
 compartment is a ring, membranes are lines, the cytosol is a tint. Nothing is drawn atom by atom.
 
-Layout changes with the action (nothing sits in a fixed stage):
-  s01 the cell surface fills the lower frame, vesicles are thrown up and away;
-  s02 the compartment is huge, centred, and fills the frame height;
-  s03 it shrinks left, a lysosome comes in on the right and the cell surface on top;
-  s04 a flat membrane, one bud, large;  s05 one wide cell surface;  s06 a three-part diagram.
+Layouts follow the new narration: recognition, inward budding, two exits, geometry,
+three target-cell routes, and separation controls.
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -261,169 +258,6 @@ class Film(SpokenScene):
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "Exosomes and Extracellular Vesicles"
-    TITLE = "An exosome is named by its origin"
-
-
-# ---------------------------------------------------------------------------------------------
-S1_MEM = -1.45                    # the cell surface in scene 1
-S1_X = [-2.5, -1.25, 0.0, 1.25, 2.5]
-S1_TO = [P(-2.5, 0.8), P(-1.25, 1.85), P(0.0, 1.0), P(1.25, 1.85), P(2.5, 0.8)]
-S1_Q = P(2.5, -2.55)              # the question-mark box inside the cell
-
-
-def q_box(c):
-    box = RoundedRectangle(corner_radius=0.16, width=1.7, height=1.15).move_to(c)
-    back = box.copy().set_stroke(width=0).set_fill(BG, 1)
-    edge = DashedVMobject(box, num_dashes=30).set_color(PURPLE)
-    q = T("?", 44, TEXT, weight=BOLD).move_to(c)
-    return VGroup(back, edge, q)
-
-
-class S01Question(Film):
-    """a red blood cell throws its receptors out on vesicles; rubbish or a message; but from where?"""
-
-    def construct(self):
-        tint = tint_rect(S1_MEM)
-        mem = membrane_line(S1_MEM, w=16)
-        self.add(tint)
-        cell_lbl = T("nearly mature\nred blood cell", 28, TEXT, line_spacing=0.9).move_to(P(-2.7, -2.55))
-        self.at("red blood cell")
-        self.play(Create(mem), FadeIn(cell_lbl, shift=UP * 0.1), run_time=0.8)
-
-        # the receptors stand on the membrane
-        lols = [lolli(P(x, S1_MEM + 0.09), UP, 0.7, 0.14, 6.0) for x in S1_X]
-        rec_lbl = T("transferrin receptor", 26, BLUE).move_to(P(-4.7, -0.65))
-        ptr = Line(P(-3.0, -0.65), P(-2.6, -0.65), color=BLUE, stroke_width=3)
-        self.at("throws its")
-        self.play(LaggedStart(*[GrowFromPoint(l, l[0].get_start()) for l in lols], lag_ratio=0.1),
-                  FadeIn(rec_lbl), Create(ptr), run_time=0.9)
-
-        # thrown out of the cell, each one in a small vesicle
-        vs = [Ves(c, 0.58, [90]) for c in S1_TO]
-        self.at("out of the cell")
-        self.play(FadeOut(rec_lbl), FadeOut(ptr),
-                  LaggedStart(*[AnimationGroup(ReplacementTransform(l, v.lols[0]), GrowFromCenter(v.shell()))
-                                for l, v in zip(lols, vs)], lag_ratio=0.12), run_time=1.5)
-
-        # "still sitting in membrane"
-        self.at("still sitting")
-        self.play(*[Indicate(v.body, color=TEAL, scale_factor=1.12) for v in vs], run_time=0.8)
-
-        # about 50 nanometres, and what a vesicle is
-        vlbl = VGroup(T("vesicle", 30, TEAL, weight=BOLD), T("about 50 nanometres", 22, GREY)).arrange(DOWN, buff=0.1)
-        vlbl.move_to(P(4.6, -0.1))
-        vptr = Line(P(3.2, 0.1), P(3.0, 0.4), color=TEAL, stroke_width=3)
-        self.at("across")
-        self.play(FadeIn(vlbl, shift=LEFT * 0.1), Create(vptr), run_time=0.6)
-        self.at("small sac")
-        self.play(Indicate(vs[4].body, color=TEXT, scale_factor=1.3), run_time=0.8)
-
-        # the puzzle: rubbish, or a message
-        rub = ghost_chip("rubbish disposal", 26).move_to(P(-4.6, 2.5))
-        msg = ghost_chip("a message?", 26).move_to(P(4.6, 2.5))
-        self.at("rubbish disposal")
-        self.play(FadeIn(rub, shift=RIGHT * 0.15), run_time=0.5)
-        self.at("a message")
-        self.play(FadeIn(msg, shift=LEFT * 0.15), run_time=0.5)
-
-        # where do they come from? an unknown inside the cell
-        qb = q_box(S1_Q)
-        path = darr(P(2.5, -1.95), P(2.5, 0.12), PURPLE, w=6)
-        self.at("come from")
-        self.play(FadeIn(qb, scale=0.8), Create(path[0]), FadeIn(path[1]), run_time=0.9)
-        self.play(pop(qb[2], 1.4), run_time=0.5)
-        # into the cell: the unknown becomes the next scene's compartment
-        ring = Circle(radius=2.6, stroke_color=PURPLE, stroke_width=7, fill_color=BG, fill_opacity=1).move_to(P(0, -0.1))
-        solid = RoundedRectangle(corner_radius=0.16, width=1.7, height=1.15, stroke_color=PURPLE, stroke_width=4,
-                                 fill_color=BG, fill_opacity=1).move_to(S1_Q)
-        self.remove(qb[1], qb[2]); self.add(solid, qb[2])
-        self.outro(FadeOut(VGroup(mem, cell_lbl, rub, msg, vlbl, vptr, path, *[v.group() for v in vs])),
-                   then=[ReplacementTransform(solid, ring), FadeOut(qb[0]), FadeOut(qb[2]),
-                         Transform(tint, tint_rect(4.1))])
-
-
-# ---------------------------------------------------------------------------------------------
-M2_C = P(0, -0.1)
-M2_R = 3.2
-
-
-class S02Inward(Film):
-    """the endosome membrane buds inward, away from the cytosol, and pinches off vesicles; receptors ride on them."""
-
-    def construct(self):
-        tint = tint_rect(4.1)
-        m = Mvb(M2_C, M2_R, with_lols=True)
-        self.add(tint, m.ring)
-
-        endo = T("endosome", 32, PURPLE, weight=BOLD).move_to(P(-5.0, 2.1))
-        e_ptr = Line(P(-3.85, 1.95), P(-2.85, 1.55), color=PURPLE, stroke_width=3)
-        inside = T("inside the cell", 32, GREY).move_to(P(-4.9, -2.75))
-        self.at("inside the cell")
-        self.play(m.ring.animate(rate_func=there_and_back).scale(1.03), FadeIn(inside, shift=UP * 0.1), run_time=0.8)
-        self.at("called an")
-        self.play(FadeIn(endo, shift=RIGHT * 0.1), Create(e_ptr), run_time=0.6)
-
-        # the first bud: inward, away from the cytosol
-        buds = []
-        for i, v in enumerate(m.ves):
-            p = m.c + M2_R * dv(m.ANG[i])
-            buds.append(Bud(p, m.ANG[i] + 180, v.c, v.r, L=1.2, w=0.38))
-        b0 = buds[0]
-        self.add(b0.holder)
-        self.at("inward")
-        self.play(b0.grow(run_time=1.0, rate_func=smooth))
-        cyto = T("cytosol", 32, YELLOW, weight=BOLD).move_to(P(-5.2, -2.75))
-        self.at("own fluid")
-        self.play(ReplacementTransform(inside, cyto), tint.animate(rate_func=there_and_back).set_fill(YELLOW, 0.3), run_time=1.0)
-
-        self.at("pinches off")
-        self.play(b0.pinch(run_time=1.0))
-        for b in buds[1:]:
-            self.add(b.holder)
-        self.at("small vesicles")
-        self.play(LaggedStart(*[Succession(b.grow(run_time=0.5), b.pinch(run_time=0.5)) for b in buds[1:]],
-                              lag_ratio=0.3), run_time=2.0)
-
-        # receptors ride on the vesicles, their heads pointing out
-        head = m.ves[2].lols[0][1].get_center()
-        rec = T("receptor", 30, BLUE, weight=BOLD).move_to(P(5.0, -2.3))
-        r_ptr = Line(P(3.85, -2.1), head + P(0.2, -0.15), color=BLUE, stroke_width=3)
-        lol_anims = [GrowFromPoint(l, l[0].get_start()) for v in m.ves for l in v.lols]
-        self.at("carry")
-        self.play(LaggedStart(*lol_anims, lag_ratio=0.04), FadeIn(rec), Create(r_ptr), run_time=1.2)
-
-        mvb = T("multivesicular\nbody", 30, PURPLE, weight=BOLD, line_spacing=0.9).move_to(P(4.85, 2.0))
-        m_ptr = Line(P(3.5, 1.75), P(2.95, 1.25), color=PURPLE, stroke_width=3)
-        self.at("packed with")
-        self.play(ReplacementTransform(endo, mvb), ReplacementTransform(e_ptr, m_ptr),
-                  m.ring.animate(rate_func=there_and_back).scale(1.03), run_time=0.9)
-        # carry the compartment, small, to the left of the cell for scene 3
-        tgt = S3_START
-        self.remove(*[b.holder for b in buds])
-        self.add(*[v.shell() for v in m.ves])
-        grp = VGroup(m.ring, *[v.group() for v in m.ves])
-        self.outro(FadeOut(VGroup(mvb, m_ptr, rec, r_ptr, cyto)),
-                   then=[grp.animate.scale(K3, about_point=m.c).shift(tgt - m.c)])
-
-
-R3 = 1.9
-K3 = R3 / M2_R
-S3_START = P(-2.1, -1.25)           # where the small compartment sits at the start of scene 3
-S3_YM = 1.5                        # the cell surface
-S3_LY = P(4.4, -1.5)               # the lysosome
-S3_RLY = 1.4
-
-
-def small_mvb():
-    """the compartment of scene 2, scaled down and moved to its place at the start of scene 3."""
-    m = Mvb(M2_C, M2_R, with_lols=True)
-    grp = VGroup(m.ring, *[v.group() for v in m.ves])
-    grp.scale(K3, about_point=m.c).shift(S3_START - m.c)
-    return m, grp
-
 
 def open_ring(c, R, a_deg, ring_w=7):
     """the compartment after it has fused with the cell surface: a ring open at the top."""
@@ -432,7 +266,6 @@ def open_ring(c, R, a_deg, ring_w=7):
     arc.set_fill(BG, 1)
     arc.set_z_index(-1)
     return arc
-
 
 def dimmer(mob, f, **kw):
     """scale every opacity in mob by f (animated); call again with 1/f to restore exactly."""
@@ -446,353 +279,334 @@ def dimmer(mob, f, **kw):
             m.set_stroke(opacity=min(1.0, so * k))
     return UpdateFromAlphaFunc(mob, upd, **kw)
 
-
 def check_mark(c, s=0.3, color=GREEN, w=8):
     c = np.array(c, float)
     return VMobject().set_points_as_corners([c + s * P(-0.9, 0.0), c + s * P(-0.3, -0.7), c + s * P(1.0, 0.9)]).set_stroke(color, w)
 
 
-class S03Doors(Film):
-    """one compartment, two doors: the lysosome (digested) or the cell surface (released intact)."""
+# Original helper entry points retained for the shared drawing vocabulary.
+M2_C = P(0, -0.1)
+M2_R = 3.2
+R3 = 1.9
+K3 = R3 / M2_R
+S3_START = P(-2.1, -1.25)
 
+def q_box(c):
+    box = RoundedRectangle(corner_radius=0.16, width=1.7, height=1.15).move_to(c)
+    back = box.copy().set_stroke(width=0).set_fill(BG, 1)
+    edge = DashedVMobject(box, num_dashes=30).set_color(PURPLE)
+    q = T("?", 44, TEXT, weight=BOLD).move_to(c)
+    return VGroup(back, edge, q)
+
+def small_mvb():
+    """the compartment of scene 2, scaled down and moved to its place at the start of scene 3."""
+    m = Mvb(M2_C, M2_R, with_lols=True)
+    grp = VGroup(m.ring, *[v.group() for v in m.ves])
+    grp.scale(K3, about_point=m.c).shift(S3_START - m.c)
+    return m, grp
+
+# The original title and end cards are retained verbatim.
+class S00Title(TitleCard):
+    LESSON = "Exosomes and Extracellular Vesicles"
+    TITLE = "A Vesicle Can Carry A Signal"
+
+
+def mhc(base, direction=UP, length=0.4):
+    """Schematic display protein with an orange peptide badge at its head."""
+    protein = lolli(base, direction, length, 0.10, 4)
+    peptide = RoundedRectangle(width=0.24, height=0.10, corner_radius=0.04,
+                               stroke_width=0, fill_color=ORANGE, fill_opacity=1)
+    peptide.move_to(protein[1]).rotate(np.arctan2(direction[1], direction[0]) - PI / 2)
+    return VGroup(protein, peptide)
+
+
+def display_ves(c, r=0.45, angle=0):
+    v = Ves(c, r)
+    v.lols = [mhc(c + r * dv(angle), dv(angle), 0.35)]
+    return v
+
+
+class DisplayBud(Bud):
+    def rider(self, a, *spec):
+        receptor = super().rider(a, *spec)
+        return mhc(receptor[0].get_start(), receptor[0].get_unit_vector(), receptor[0].get_length())
+
+
+class S01Signal(SpokenScene):
     def construct(self):
-        tint = tint_rect(4.1)
-        m, grp = small_mvb()
-        self.add(tint, grp)
-        R = R3
-        ym = S3_YM
-        c0 = S3_START
+        cell = Circle(radius=1.25, color=GREY, fill_color=YELLOW, fill_opacity=CY).move_to(P(-4.7, 0))
+        label = T("donor cell", 28, GREY).move_to(P(-4.7, -1.8))
+        ves = [display_ves(P(-3.2, y), 0.38) for y in (0.7, -0.7)]
+        self.at("Cells release")
+        self.play(Create(cell), FadeIn(label), run_time=0.6)
+        self.at("extracellular vesicles")
+        self.play(*[FadeIn(v.shell(), scale=0.3) for v in ves], run_time=0.7)
+        ev = T("extracellular vesicles", 28, TEAL).move_to(P(-0.8, 2.7))
+        self.play(FadeIn(ev), run_time=0.5)
+        self.at("carry a signal")
+        self.play(*[v.shell().animate.shift(RIGHT * 2.0) for v in ves], run_time=1.3)
+        self.at("immune system")
+        self.play(Transform(label, T("B cell", 28, GREY).move_to(label)), run_time=0.5)
+        self.at("that carry")
+        # Rebuild displays at the shells' new positions.
+        for v in ves:
+            v.lols = [mhc(v.body.get_center() + RIGHT * v.r, RIGHT, 0.35)]
+        prot = T("MHC class II", 28, BLUE).move_to(P(-0.8, 1.9))
+        self.play(*[FadeIn(v.lols[0][0]) for v in ves], FadeIn(prot), run_time=0.6)
+        self.at("holding a peptide")
+        pep = T("peptide", 26, ORANGE).move_to(P(-0.8, -2.0))
+        self.play(FadeIn(pep), *[FadeIn(v.lols[0][1]) for v in ves], run_time=0.6)
+        targets = [Circle(radius=0.95, color=GREY, fill_color=GREY, fill_opacity=0.07).move_to(P(4.0, y)) for y in (1.4, -1.4)]
+        names = [T("T cell", 26, GREY).move_to(P(5.65, y)) for y in (1.4, -1.4)]
+        # A cup fits the top peptide; a triangular head differs on the lower cell.
+        cup = VMobject().set_points_as_corners([P(2.7,1.62),P(2.7,1.18),P(3.05,1.18),P(3.05,1.62)]).set_stroke(BLUE,5)
+        other = Triangle(color=GREY, fill_opacity=0.15).scale(0.22).move_to(P(2.85,-1.4))
+        self.at("switch on T cells")
+        self.play(FadeOut(ev), FadeOut(prot), FadeOut(pep), *[Create(t) for t in targets],
+                  *[FadeIn(t) for t in names], Create(cup), FadeIn(other), run_time=0.7)
+        self.at("whose receptor")
+        self.play(*[v.group().animate.move_to(P(2.05, y)) for v,y in zip(ves,(1.4,-1.4))], run_time=0.9)
+        self.at("recognizes that peptide")
+        signal = arr(P(3.15,1.4),P(4.45,1.4),GOLD)
+        self.play(targets[0].animate.set_stroke(GOLD,7).set_fill(GOLD,0.20), GrowArrow(signal), run_time=0.6)
+        self.at("Nothing has to get inside")
+        none = T("nothing enters the cell", 30, GOLD).move_to(P(0,-3.1))
+        self.play(FadeIn(none), run_time=0.6)
+        self.at("A scrap of membrane")
+        self.play(*[Indicate(v.body,color=TEAL) for v in ves], run_time=0.8)
+        self.finish()
 
-        sort = T("sorting\nroom", 28, GREY, line_spacing=0.9).move_to(P(-5.2, -1.25))
-        self.at("sorting room")
-        self.play(FadeIn(sort, shift=UP * 0.1), m.ring.animate(rate_func=there_and_back).scale(1.04), run_time=0.8)
 
-        # two doors: the lysosome on the right, the cell surface above
-        lyso = Circle(radius=S3_RLY, stroke_color=RED, stroke_width=6, fill_color=BG, fill_opacity=1).move_to(S3_LY)
-        lyso_t = Circle(radius=S3_RLY, stroke_width=0, fill_color=RED, fill_opacity=0.10).move_to(S3_LY)
-        lyso_g = VGroup(lyso, lyso_t)
-        memL = Line(P(-6.3, ym), P(c0[0], ym), color=GREY, stroke_width=16).set_cap_style(CapStyleType.ROUND)
-        memR = Line(P(c0[0], ym), P(6.3, ym), color=GREY, stroke_width=16).set_cap_style(CapStyleType.ROUND)
-        a_in = arr(P(c0[0] + R + 0.1, -1.1), S3_LY + P(-S3_RLY - 0.1, -0.15), RED, w=5)
-        a_st = arr(c0 + P(0, R + 0.1), P(c0[0], ym - 0.12), GREEN, w=5)
+class S02Inward(SpokenScene):
+    def construct(self):
+        tint = Rectangle(width=12.8,height=6.5,stroke_width=0,fill_color=YELLOW,fill_opacity=CY)
+        m = Mvb(P(-0.5,0),2.45,with_lols=False)
+        # Three large buds keep the compartment legible.
+        centers = [P(-1.5,0.8),P(0.55,0.7),P(-0.4,-1.1)]
+        ves = [display_ves(c,0.46,90) for c in centers]
+        cyto = T("cytosol",30,YELLOW).move_to(P(-5.1,-2.7))
+        endo = T("endosome",30,PURPLE).move_to(P(4.5,1.5))
+        self.at("Where do these vesicles")
+        self.play(FadeIn(tint),Create(m.ring),run_time=0.7)
+        self.at("inside the cell")
+        self.play(FadeIn(cyto),run_time=0.5)
+        self.at("called an endosome")
+        self.play(FadeIn(endo),run_time=0.5)
+        buds=[]
+        for a,v in zip((145,35,270),ves):
+            b=Bud(m.c+m.R*dv(a),a+180,v.c,v.r,L=1.1,w=0.34)
+            buds.append(b)
+        self.at("buds inward")
+        self.add(buds[0].holder)
+        self.play(buds[0].grow(run_time=1.0))
+        self.at("away from the cytosol")
+        self.play(Indicate(cyto,color=YELLOW),run_time=0.7)
+        self.at("pinches off small vesicles")
+        self.play(buds[0].pinch(run_time=0.7))
+        self.remove(buds[0].holder); self.add(ves[0].shell())
+        for b in buds[1:]: self.add(b.holder)
+        self.play(*[Succession(b.grow(run_time=0.6),b.pinch(run_time=0.6)) for b in buds[1:]],run_time=1.2)
+        for b in buds[1:]: self.remove(b.holder)
+        self.add(*[v.shell() for v in ves[1:]])
+        self.at("carry receptors")
+        self.play(*[FadeIn(v.lols[0][0]) for v in ves],run_time=0.5)
+        self.at("multivesicular body")
+        self.play(Transform(endo,T("multivesicular\nbody",28,PURPLE).move_to(P(4.5,1.5))),run_time=0.6)
+        self.at("In B cells")
+        bl=T("B cell",28,GREY).move_to(P(-5.1,2.7))
+        self.play(FadeIn(bl),run_time=0.5)
+        self.at("loaded with peptide")
+        ml=T("MHC II + peptide",26,BLUE).move_to(P(4.5,-0.8))
+        self.play(*[FadeIn(v.lols[0][1]) for v in ves],FadeIn(ml),run_time=0.6)
+        self.finish()
+
+
+class S03Doors(SpokenScene):
+    def construct(self):
+        m=Mvb(P(-2.8,-0.8),1.55,with_lols=False); group=m.group()
+        mem=membrane_line(1.5)
+        ly=Circle(radius=1.05,color=RED,fill_color=RED,fill_opacity=0.1).move_to(P(4,-1.0))
+        sort=T("sorting room",28,PURPLE).move_to(P(-3,-2.9))
+        self.at("Picture this compartment")
+        self.play(FadeIn(group),FadeIn(sort),run_time=0.6)
         self.at("two doors")
-        self.play(Transform(tint, tint_rect(ym)), FadeIn(lyso_g, shift=LEFT * 0.3), Create(memL), Create(memR),
-                  run_time=1.0)
-        inc = T("incinerator", 28, RED).move_to(P(1.7, -0.45))
-        self.at("one to the")
-        self.play(GrowArrow(a_in), FadeIn(inc, shift=UP * 0.1), run_time=0.7)
-        street = T("street", 28, GREEN).move_to(P(-1.0, 0.95))
-        self.at("and one to")
-        self.play(GrowArrow(a_st), FadeIn(street, shift=RIGHT * 0.1), run_time=0.7)
-
-        # door one: fuses with the lysosome; its vesicles are digested
-        ly_lbl = T("lysosome", 30, RED, weight=BOLD).move_to(S3_LY + P(0, -S3_RLY - 0.38))
-        vg = VGroup(*[v.group() for v in m.ves])
-        touch = S3_LY - (S3_LY - c0) / np.linalg.norm(S3_LY - c0) * (R + S3_RLY + 0.04)
-        self.at("fuses with")
-        self.play(FadeOut(inc), FadeOut(street), FadeOut(a_st), FadeOut(a_in), FadeOut(sort),
-                  grp.animate.shift(touch - c0), FadeIn(ly_lbl, shift=UP * 0.1), run_time=1.0)
-        self.at("their cargo")
-        self.play(FadeOut(m.ring), vg.animate.scale(0.6).move_to(S3_LY), lyso.animate(rate_func=there_and_back).scale(1.05), run_time=0.9)
-        dig = T("digested", 30, RED, weight=BOLD).move_to(S3_LY + P(0, S3_RLY + 0.38))
-        self.at("digested")
-        self.play(*[v.body.animate.set_stroke(RED).set_fill(RED, 0.25) for v in m.ves],
-                  *[l.animate.set_color(RED) for v in m.ves for l in v.lols], run_time=0.5)
-        self.play(FadeOut(vg, scale=0.2), FadeIn(dig, shift=DOWN * 0.1), run_time=0.7)
-
-        # door two: the same kind of compartment goes to the surface instead
-        m2, grp2 = small_mvb()
-        self.remove(grp)
-        self.at("But the same")
-        self.play(FadeOut(dig), FadeOut(ly_lbl), FadeOut(lyso_g), FadeIn(grp2), run_time=0.8)
-        self.at("move to the")
-        cy_f = ym - R * np.cos(np.radians(36))
-        up_to = P(c0[0], ym - R - 0.1)
-        self.play(grp2.animate.shift(up_to + P(0, -R) - c0 + P(0, R)), run_time=0.8)
-        hw = R * np.sin(np.radians(36))
-        arc = open_ring(P(c0[0], cy_f), R, 36)
-        self.at("fuse with")
-        self.play(grp2.animate.shift(P(0, cy_f - (ym - R - 0.1))),
-                  FadeOut(m2.ring), FadeIn(arc),
-                  memL.animate.put_start_and_end_on(P(-6.3, ym), P(c0[0] - hw, ym)),
-                  memR.animate.put_start_and_end_on(P(c0[0] + hw, ym), P(6.3, ym)), run_time=0.9)
-        pm = T("plasma membrane", 26, GREY).move_to(P(3.0, 1.1))
-        self.at("plasma membrane")
-        self.play(FadeIn(pm, shift=UP * 0.1), run_time=0.5)
-
-        # its vesicles are then outside the cell, intact
-        xs = [c0[0] + 1.25 * k for k in (-2, -1, 0, 1, 2)]
-        ys = [2.5, 2.62, 2.5, 2.62, 2.5]
-        anims = []
-        for i, (v, x, y) in enumerate(zip(m2.ves, xs, ys)):
-            c_now = v.body.get_center()
-            gate = P(c0[0] + (x - c0[0]) * 0.3, ym - 0.05)
-            tgt = P(x, y)
-            anims.append(Succession(v.group().animate(run_time=0.4).shift(gate - c_now),
-                                    v.group().animate(run_time=0.6).shift(tgt - c_now).scale(1.4, about_point=tgt),
-                                    Rotate(VGroup(*v.lols), angle=np.radians(65 - Mvb.LOL[i][0]), about_point=tgt, run_time=0.4)))
-        self.at("Its vesicles", nth=1)
-        self.play(LaggedStart(*anims, lag_ratio=0.1), run_time=1.15)
-        out_lbl = T("outside the cell", 26, GREY).move_to(P(4.9, 3.0))
-        self.at("outside the cell")
-        self.play(FadeIn(out_lbl, shift=LEFT * 0.1), run_time=0.5)
-        self.at("intact")
-        self.play(*[Indicate(v.body, color=TEAL, scale_factor=1.25) for v in m2.ves], run_time=0.8)
-        exo = T("exosomes", 34, TEAL, weight=BOLD).move_to(P(2.3, 2.55))
-        self.at("exosomes")
-        self.play(FadeIn(exo, shift=LEFT * 0.1), run_time=0.5)
-
-        # the word names an origin
-        orig = T("origin", 32, PURPLE, weight=BOLD).move_to(P(-5.55, 0.2))
-        o_ptr = darr(P(-4.85, 0.2), P(-4.1, 0.2), PURPLE, w=4)
-        self.at("names an origin")
-        self.play(FadeIn(orig, shift=RIGHT * 0.1), Create(o_ptr[0]), FadeIn(o_ptr[1]), run_time=0.8)
-        mvb_l = T("multivesicular body", 28, PURPLE, weight=BOLD).move_to(P(c0[0], cy_f - R - 0.4))
-        self.at("formed inside")
-        self.play(arc.animate(rate_func=there_and_back).set_stroke(width=13), run_time=0.8)
-        self.at("body")
-        self.play(FadeIn(mvb_l, shift=UP * 0.1), run_time=0.6)
-        self.outro(FadeOut(VGroup(arc, *[v.group() for v in m2.ves], memL, memR, pm, out_lbl, exo, orig, o_ptr,
-                                  mvb_l)),
-                   then=[Transform(tint, tint_rect(-1.5))], then_time=0.4)
+        self.play(Create(mem),Create(ly),run_time=0.6)
+        inc=T("incinerator",28,RED).move_to(P(4,-2.5))
+        street=T("street",28,GREEN).move_to(P(-3,2.5))
+        route = arr(P(-0.9,-0.8),P(2.7,-1),RED)
+        self.at("incinerator")
+        self.play(FadeIn(inc),GrowArrow(route),run_time=0.5)
+        self.at("street")
+        self.play(FadeIn(street),run_time=0.5)
+        self.at("fuses with a lysosome")
+        self.play(FadeOut(sort),FadeOut(route),Transform(inc,T("lysosome",28,RED).move_to(inc)),group.animate.scale(0.5).move_to(ly),run_time=0.8)
+        self.at("are digested")
+        self.play(group.animate.set_color(RED),run_time=0.4)
+        self.play(FadeOut(group,scale=0.1),run_time=0.5)
+        fresh=Mvb(P(-2.8,-0.8),1.55,with_lols=False); fg=fresh.group()
+        self.at("If it moves")
+        self.play(FadeOut(ly),FadeOut(inc),FadeIn(fg),run_time=0.6)
+        self.at("cell surface")
+        self.play(fg.animate.shift(UP*0.65),run_time=0.7)
+        self.at("fuses with the plasma membrane")
+        arc=open_ring(P(-2.8,0.25),1.55,36)
+        gap=1.55*np.sin(np.radians(36))
+        split=VGroup(membrane_line(1.5,-6.3,-2.8-gap),membrane_line(1.5,-2.8+gap,6.3))
+        self.play(FadeOut(fresh.ring),FadeIn(arc),ReplacementTransform(mem,split),FadeOut(street),run_time=0.7)
+        self.at("released intact")
+        self.play(*[v.group().animate.move_to(P(-2.8+(i-2)*0.15,1.4)) for i,v in enumerate(fresh.ves)],run_time=0.45)
+        self.play(*[v.group().animate.move_to(P(-5+i*1.05,2.55)) for i,v in enumerate(fresh.ves)],run_time=0.55)
+        self.at("are exosomes")
+        ex=T("exosomes",32,TEAL).move_to(P(3.1,2.55))
+        self.play(FadeIn(ex),run_time=0.5)
+        self.at("young red blood cells")
+        redcell=Ellipse(width=2.1,height=1.3,color=GREY,fill_color=RED,fill_opacity=0.16).move_to(P(3.6,-1.2))
+        rlabel=T("young red blood cell",24,GREY).move_to(P(3.6,-2.45))
+        self.play(FadeIn(redcell),FadeIn(rlabel),run_time=0.6)
+        rec=lolli(P(3.6,-0.55),UP,0.4)
+        self.at("throwing out transferrin receptors")
+        rv=Ves(P(3.6,0.25),0.28,[90])
+        self.play(FadeIn(rec),run_time=0.3)
+        self.play(ReplacementTransform(rec,rv.lols[0]),FadeIn(rv.shell()),run_time=0.7)
+        self.finish()
 
 
-class S04Geometry(Film):
-    """a bud grows into the compartment, away from the cytosol: the receptors on its outer face point out."""
-
+class S04Geometry(SpokenScene):
     def construct(self):
-        Y0 = -1.5
-        tint = tint_rect(Y0)
-        self.add(tint)
-        mem = Line(P(-6.3, Y0), P(6.3, Y0), color=PURPLE, stroke_width=12).set_cap_style(CapStyleType.ROUND)
-        cyto = T("cytosol", 32, YELLOW, weight=BOLD).move_to(P(-2.0, -2.6))
-        lumen = T("inside the compartment", 26, GREY).move_to(P(-3.9, -1.05))
-        VC = P(0, 0.7)
-        bud = Bud(P(0, Y0), 90, VC, 1.0, L=1.6, w=0.6)
-        # receptors stand in the flat membrane, heads into the compartment (the side away from the cytosol)
-        STALK, HEAD, LW = 0.9, 0.16, 6.5
-        specs = [(160, P(-0.45, Y0 + 0.06), STALK, HEAD, LW), (90, P(0.0, Y0 + 0.06), STALK, HEAD, LW),
-                 (20, P(0.45, Y0 + 0.06), STALK, HEAD, LW)]
-        riders = [lolli(sp[1], UP, STALK, HEAD, LW) for sp in specs]
-        for r in riders:
-            r.set_z_index(2)
+        y=-1.5; center=P(-2.7,0.55)
+        mem=membrane_line(y,-6.3,-0.25,color=PURPLE)
+        tint=tint_rect(y)
+        cyto=T("cytosol",30,YELLOW).move_to(P(-3,-2.65))
+        lumen=T("compartment interior",24,PURPLE).move_to(P(-3.5,2.9))
+        bud=DisplayBud(P(-2.7,y),90,center,0.85,L=1.6,w=0.55)
+        specs=[(150,P(-3.05,y),0.5,0.1,4),(30,P(-2.35,y),0.5,0.1,4)]
+        riders=[mhc(s[1],UP,0.5) for s in specs]
+        self.at("direction of budding")
+        self.play(Create(mem),FadeIn(tint),FadeIn(cyto),FadeIn(lumen),*[FadeIn(r) for r in riders],run_time=0.7)
         self.add(bud.holder)
-        self.at("direction of")
-        self.play(Create(mem), FadeIn(cyto), FadeIn(lumen),
-                  LaggedStart(*[GrowFromPoint(r, r[0].get_start()) for r in riders], lag_ratio=0.15), run_time=0.9)
-
-        # the bud grows up into the compartment, carrying the receptors; it is open to the cytosol below
-        self.at("budding")
-        self.play(bud.anim_with(riders, specs, 0.0, 0.5, run_time=3.0, rate_func=smooth))
-        self.at("away from")
-        self.play(bud.holder[2].animate(rate_func=there_and_back).set_fill(YELLOW, 0.5),
-                  pop(cyto, 1.15), run_time=1.1)
-
-        # it pinches off: the inside is now a sample of cytosol, and the receptors face out
-        self.at("inside of")
-        self.play(bud.anim_with(riders, specs, 0.5, 1.0, run_time=1.6))
-        v = Ves(VC, 1.0, [])
-        v.lols = riders
+        self.at("bud forms away")
+        self.play(bud.anim_with(riders,specs,0,0.5,run_time=1.3))
+        self.at("inside of an exosome")
+        self.play(bud.anim_with(riders,specs,0.5,1,run_time=1.0))
         self.remove(bud.holder)
-        self.add(v.shell())
-        cin = T("cytosol", 28, YELLOW).move_to(VC)
-        self.at("sample of")
-        self.play(FadeIn(cin, scale=0.8), run_time=0.6)
-
-        # the outer face carries the receptors, heads out
-        outer = T("outer face", 30, TEAL, weight=BOLD).move_to(P(4.5, 2.45))
-        optr = Line(P(3.4, 2.35), P(0.78, 1.47), color=TEAL, stroke_width=3)
+        v=Ves(center,0.85);v.lols=riders;self.add(v.shell())
+        self.at("sample of cytosol")
+        inside=T("cytosol",24,YELLOW).move_to(center)
+        self.play(FadeIn(inside),run_time=0.5)
         self.at("outer face")
-        self.play(FadeIn(outer, shift=LEFT * 0.1), Create(optr),
-                  v.body.animate(rate_func=there_and_back).set_stroke(width=9), run_time=1.0)
-        was = T("was the outside\nof the cell", 26, GREY, line_spacing=0.9).move_to(P(4.6, 1.6))
+        outer=T("outer face",26,TEAL).move_to(P(0.7,1.6))
+        ptr=Line(P(-0.4,1.6),P(-1.9,0.85),color=TEAL)
+        self.play(FadeIn(outer),Create(ptr),run_time=0.5)
         self.at("outside of the cell")
-        self.play(FadeIn(was, shift=LEFT * 0.1), run_time=0.6)
-
-        rec_lbl = T("receptor", 28, BLUE, weight=BOLD).move_to(P(4.6, 0.15))
-        rec_ptr = Line(P(3.55, 0.3), riders[2][1].get_center() + P(0.2, -0.12), color=BLUE, stroke_width=3)
-        self.at("a receptor")
-        self.play(FadeOut(outer), FadeOut(optr), FadeOut(was), *[pop(l[1], 1.8) for l in riders],
-                  FadeIn(rec_lbl, shift=LEFT * 0.1), Create(rec_ptr), run_time=0.9)
-        out_arrows = VGroup()
-        for l in riders:
-            hc = l[1].get_center()
-            d = (hc - VC) / np.linalg.norm(hc - VC)
-            out_arrows.add(arr(hc + 0.3 * d, hc + 0.8 * d, BLUE, w=5, tip=0.2))
-        faces = T("faces outward", 28, BLUE, weight=BOLD).move_to(P(4.6, 0.15))
-        self.at("still faces outward")
-        self.play(LaggedStart(*[GrowArrow(x) for x in out_arrows], lag_ratio=0.1), ReplacementTransform(rec_lbl, faces),
-                  FadeOut(rec_ptr), run_time=1.0)
-
-        # now beside the plasma membrane
-        memR = Line(P(0.45, Y0), P(6.3, Y0), color=GREY, stroke_width=12).set_cap_style(CapStyleType.ROUND)
-        pl = [lolli(P(x, Y0 + 0.06), UP, 0.9, 0.16, 6.5) for x in (1.7, 3.4, 5.1)]
-        pl_arr = [arr(P(x, Y0 + 0.06 + 0.9 + 0.3), P(x, Y0 + 0.06 + 0.9 + 0.85), BLUE, w=5, tip=0.2) for x in (1.7, 3.4, 5.1)]
-        pm = T("plasma membrane", 26, GREY).move_to(P(3.4, -2.2))
-        outside = T("outside the cell", 26, GREY).move_to(P(4.6, 2.95))
-        left = VGroup(v.group(), cin, out_arrows)
-        self.at("as it did")
-        self.play(FadeOut(faces), left.animate.shift(LEFT * 3.3),
-                  mem.animate.put_start_and_end_on(P(-6.3, Y0), P(-0.45, Y0)), run_time=1.1)
+        outside=T("outside the cell",26,GREY).move_to(P(3.8,2.9))
+        self.play(FadeIn(outside),run_time=0.5)
+        self.at("an MHC molecule")
+        name=T("MHC + peptide",26,BLUE).move_to(P(-3.0,2.15))
+        self.play(FadeIn(name),run_time=0.5)
+        self.at("still points outward")
+        arrows=[arr(center+1.45*dv(a),center+1.95*dv(a),GOLD) for a in (150,30)]
+        self.play(FadeOut(outer),FadeOut(ptr),*[GrowArrow(a) for a in arrows],run_time=0.6)
         self.at("plasma membrane")
-        self.play(Create(memR), LaggedStart(*[GrowFromPoint(l, l[0].get_start()) for l in pl], lag_ratio=0.15),
-                  FadeIn(pm), FadeIn(outside), run_time=1.0)
-        self.play(LaggedStart(*[GrowArrow(x) for x in pl_arr], lag_ratio=0.15), run_time=0.7)
-        self.outro(FadeOut(VGroup(mem, memR, cyto, lumen, pm, outside, *pl, *pl_arr, left)))
+        pm=membrane_line(y,0.4,6.3)
+        proteins=[mhc(P(x,y),UP,0.75) for x in (2.3,4.4)]
+        pl=T("plasma membrane",24,GREY).move_to(P(3.6,-2.1))
+        pa=[arr(P(x,-0.3),P(x,0.4),GOLD) for x in (2.3,4.4)]
+        self.play(Create(pm),*[FadeIn(p) for p in proteins],FadeIn(pl),*[GrowArrow(a) for a in pa],run_time=0.7)
+        self.at("show a ligand")
+        self.play(*[Indicate(r[1],color=ORANGE) for r in riders+proteins],run_time=0.7)
+        self.finish()
 
 
-class S05Lookalike(Film):
-    """exosome and microvesicle: different origins, identical on the outside, so in the medium you cannot tell."""
-
+class S05ThreeWays(SpokenScene):
     def construct(self):
-        ym = -1.5
-        cx, R, a = -2.8, 1.1, 38
-        cy = ym - R * np.cos(np.radians(a))
-        hw = R * np.sin(np.radians(a))
-        tint = tint_rect(ym)
-        arc = open_ring(P(cx, cy), R, a, ring_w=6)
-        memL = Line(P(-6.3, ym), P(cx - hw, ym), color=GREY, stroke_width=16).set_cap_style(CapStyleType.ROUND)
-        memR = Line(P(cx + hw, ym), P(6.3, ym), color=GREY, stroke_width=16).set_cap_style(CapStyleType.ROUND)
-        inner = [Ves(P(cx + dx, cy + dy), 0.2) for dx, dy in [(-0.45, -0.25), (0.1, -0.6), (0.5, -0.1)]]
-        ANG, MARK = [30, 90, 150], [210, 250, 330]
-        exo = Ves(P(cx, 0.75), 0.7, ANG, marks=MARK)
-        self.add(tint, arc, memL, memR, *[v.shell() for v in inner], exo.shell(), *exo.lols)
+        xs=(-4.4,0,4.4)
+        headings=[T(t,28,TEAL).move_to(P(x,2.9)) for x,t in zip(xs,("Surface signal","Fusion","Uptake"))]
+        membranes=[Line(P(x-1.7,0),P(x+1.7,0),color=GREY,stroke_width=10) for x in xs]
+        ves=[display_ves(P(x,1.1),0.42,270) for x in xs]
+        self.at("A vesicle could act")
+        self.play(*[FadeIn(h) for h in headings],*[Create(m) for m in membranes],*[FadeIn(v.group()) for v in ves],run_time=0.8)
+        receptor=VMobject().set_points_as_corners([P(-4.65,0.6),P(-4.65,0.25),P(-4.15,0.25),P(-4.15,0.6)]).set_stroke(BLUE,5)
+        self.at("ligand on its surface")
+        self.play(Create(receptor),run_time=0.4)
+        self.at("bind a receptor")
+        self.play(ves[0].group().animate.shift(DOWN*0.2),run_time=0.5)
+        signal=arr(P(-4.4,-0.25),P(-4.4,-1.3),GOLD)
+        self.at("nothing has to get in")
+        self.play(GrowArrow(signal),FadeIn(T("signal",26,GOLD).move_to(P(-4.4,-1.8))),run_time=0.5)
+        self.at("can fuse")
+        self.play(ves[1].group().animate.move_to(P(0,0)),run_time=0.6)
+        gap=VGroup(Line(P(-1.7,0),P(-0.5,0),color=GREY,stroke_width=10),Line(P(0.5,0),P(1.7,0),color=GREY,stroke_width=10))
+        cargo=VGroup(*[Dot(P(dx,0),radius=0.09,color=YELLOW) for dx in (-0.2,0,0.2)])
+        self.at("release its contents")
+        self.play(FadeOut(ves[1].group()),ReplacementTransform(membranes[1],gap),FadeIn(cargo),run_time=0.4)
+        self.play(cargo.animate.shift(DOWN*1.3),FadeIn(T("cytosol",26,YELLOW).move_to(P(0,-2.2))),run_time=0.6)
+        self.at("target can swallow it")
+        endo=Circle(radius=0.72,color=PURPLE).move_to(P(4.4,-1.05))
+        self.play(ves[2].group().animate.move_to(P(4.4,-1.05)),Create(endo),run_time=0.8)
+        self.at("Swallowing alone")
+        question=T("signal?",28,GREY).move_to(P(5.6,-2.5))
+        self.play(FadeIn(question),run_time=0.5)
+        self.at("ends in the lysosome")
+        ly=Circle(radius=0.6,color=RED,fill_color=RED,fill_opacity=0.12).move_to(P(3.35,-2.5))
+        ll=T("lysosome",22,RED).move_to(P(3.35,-3.35))
+        self.play(Create(ly),FadeIn(ll),VGroup(endo,ves[2].group()).animate.scale(0.45).move_to(ly),run_time=0.8)
+        self.finish()
 
-        # the microvesicle buds straight outward from the plasma membrane
-        mx = 2.8
-        bud = Bud(P(mx, ym), 90, P(mx, 0.75), 0.7, L=1.3, w=0.45)
-        mv = Ves(P(mx, 0.75), 0.7, ANG, marks=MARK)
-        self.add(bud.holder)
-        self.at("bud straight")
-        self.play(bud.grow(run_time=1.0))
-        self.at("called")
-        self.play(bud.pinch(run_time=0.9))
+
+class S06Controls(SpokenScene):
+    def construct(self):
+        tube=RoundedRectangle(width=2,height=4.1,corner_radius=0.45,color=GREY).move_to(P(-3.8,0))
+        ves=[Ves(P(-4.15+i*0.6,-1.45),0.22) for i in range(2)]
+        clumps=VGroup(*[Circle(radius=0.13,color=GREY,fill_color=GREY,fill_opacity=1).move_to(P(-4.3+i*0.35,-1.8)) for i in range(4)])
+        title=T("centrifuge pellet",28,GREY).move_to(P(-3.8,2.7))
+        self.at("Proving a case takes controls")
+        self.play(Create(tube),FadeIn(title),run_time=0.6)
+        self.at("collects vesicles")
+        self.play(*[FadeIn(v.shell()) for v in ves],run_time=0.5)
+        self.at("protein clumps")
+        lab=T("vesicles + protein clumps",26,GREY).move_to(P(1.6,-1.6))
+        self.play(FadeIn(clumps),FadeIn(lab),run_time=0.5)
+        self.at("activity floats")
+        gradient=VGroup(*[Rectangle(width=1.9,height=0.65,stroke_width=0,fill_color=PURPLE,fill_opacity=0.08+i*0.055).move_to(P(-3.8,1.65-i*0.65)) for i in range(6)])
+        gradient.set_z_index(-2)
+        activity=Dot(P(-3.8,-1.45),radius=0.11,color=GOLD)
+        act=T("activity",26,GOLD).move_to(P(-0.7,0.9))
+        self.play(FadeIn(gradient),FadeIn(activity),FadeIn(act),FadeOut(lab),run_time=0.5)
+        self.at("density gradient")
+        band=Line(P(-4.7,0.65),P(-2.9,0.65),color=TEAL,stroke_width=5)
+        self.play(*[v.shell().animate.shift(UP*2.1) for v in ves],activity.animate.move_to(P(-3.8,0.9)),Create(band),Transform(title,T("density gradient",28,PURPLE).move_to(title)),run_time=0.9)
+        self.at("whether it is specific")
+        specific=T("specific response?",30,GOLD).move_to(P(2.5,1.3))
+        self.play(FadeIn(specific),run_time=0.5)
+        self.at("T cell response")
+        match=T("matching T cell → signal",26,GOLD).move_to(P(2.5,0.35))
+        self.play(FadeIn(match),run_time=0.5)
+        self.at("mind the name")
+        self.play(*[FadeOut(m) for m in list(self.mobjects)],run_time=0.5)
+        ex=Ves(P(-3,0.5),0.65,[45,135]); mv=Ves(P(3,-1.3),0.65,[45,135])
+        origin=T("exosome\nfrom inside a compartment",24,PURPLE).move_to(P(-3,2.7))
+        self.add(ex.group(),origin)
+        self.at("bud straight from the cell surface")
+        membrane=membrane_line(-1.3,0.4,6.2)
+        bud=Bud(P(3,-1.3),90,P(3,0.5),0.65,L=1.2,w=0.4)
+        self.play(Create(membrane),run_time=0.3); self.add(bud.holder)
+        self.play(bud.grow(run_time=0.55),run_time=0.55)
+        self.play(bud.pinch(run_time=0.55),run_time=0.55)
         self.remove(bud.holder)
-        self.add(mv.shell())
-        mv_name = T("microvesicle", 32, TEAL, weight=BOLD).move_to(P(mx, 3.15))
-        self.play(LaggedStart(*[GrowFromPoint(l, l[0].get_start()) for l in mv.lols], lag_ratio=0.1),
-                  FadeIn(mv_name, shift=DOWN * 0.1), run_time=0.8)
-
-        # different by origin
-        ex_name = T("exosome", 32, TEAL, weight=BOLD).move_to(P(cx, 3.15))
-        ex_tag = T("formed in a multivesicular body", 22, PURPLE).move_to(P(cx, 2.7))
-        mv_tag = T("budded from the cell surface", 22, GREY).move_to(P(mx, 2.7))
-        self.at("different kind")
-        self.play(FadeIn(ex_name, shift=DOWN * 0.1), FadeIn(ex_tag), FadeIn(mv_tag), run_time=0.9)
-
-        # same orientation, overlapping size
-        self.at("same orientation")
-        self.play(*[pop(l[1], 1.8) for l in exo.lols + mv.lols], run_time=0.9)
-        sz = [DoubleArrow(P(x - 0.7, -0.2), P(x + 0.7, -0.2), buff=0, color=GREY, stroke_width=4, tip_length=0.14)
-              for x in (cx, mx)]
-        sz_lbl = T("sizes overlap", 24, GREY).move_to(P((cx + mx) / 2, -0.2))
-        self.at("overlap in size")
-        self.play(*[GrowFromCenter(d) for d in sz], FadeIn(sz_lbl), run_time=0.8)
-
-        # the usual markers sit on both
-        tet = T("tetraspanin", 28, ORANGE, weight=BOLD).move_to(P((cx + mx) / 2, 1.35))
-        p1 = Line(P(-0.8, 1.2), exo.c + 0.7 * dv(330) + P(0.1, 0.1), color=ORANGE, stroke_width=3)
-        p2 = Line(P(0.8, 1.2), mv.c + 0.7 * dv(210) + P(-0.1, 0.1), color=ORANGE, stroke_width=3)
-        self.at("usual markers")
-        self.play(FadeOut(sz_lbl), *[FadeOut(d) for d in sz], *[GrowFromCenter(d) for d in exo.marks + mv.marks],
-                  FadeIn(tet, shift=DOWN * 0.1), Create(p1), Create(p2), run_time=1.0)
-        self.at("both kinds")
-        self.play(*[pop(d, 1.8) for d in exo.marks + mv.marks], run_time=0.7)
-
-        # in the medium nothing tells them apart: the tags go and the two swap places
-        med = T("culture medium", 28, GREY).move_to(P(0, -1.0))
-        self.at("culture medium")
-        self.play(FadeOut(ex_name), FadeOut(mv_name), FadeOut(ex_tag), FadeOut(mv_tag), FadeOut(tet), FadeOut(p1), FadeOut(p2),
-                  FadeIn(med), exo.group().animate.shift(P(1.0, 0)), mv.group().animate.shift(P(-1.0, 0)),
-                  run_time=1.2)
-        self.at("no agreed test")
-        self.play(exo.group().animate(path_arc=-PI / 2).shift(P(3.6, 0)),
-                  mv.group().animate(path_arc=-PI / 2).shift(P(-3.6, 0)), run_time=1.3)
-        qA = T("?", 60, TEXT, weight=BOLD).move_to(exo.body.get_center() + P(0, 2.0))
-        qB = T("?", 60, TEXT, weight=BOLD).move_to(mv.body.get_center() + P(0, 2.0))
-        self.at("tells them")
-        self.play(GrowFromCenter(qA), GrowFromCenter(qB), run_time=0.7)
-        self.outro(FadeOut(VGroup(tint, arc, memL, memR, *[v.shell() for v in inner], exo.group(), mv.group(), med, qA, qB)))
-
-
-class S06Rule(Film):
-    """the rule: say exosome only when the origin is shown; otherwise say extracellular vesicle."""
-
-    def construct(self):
-        YB, YA = 1.0, -2.0
-        mB = Mvb(P(-4.0, YB), 1.5, ring_w=6, with_lols=False)
-        mB_g = VGroup(mB.ring, *[v.group() for v in mB.ves])
-        vB = Ves(P(1.1, YB), 0.72, [30, 90, 150], marks=[210, 330])
-        aB = arr(P(-2.4, YB), P(0.3, YB), PURPLE, w=6)
-        chipB = bchip("exosome", TEAL, 32).move_to(P(1.1, 3.05))
-        self.at("exosome")
-        self.play(FadeIn(vB.group(), scale=0.8), FadeIn(chipB, shift=DOWN * 0.1), run_time=0.7)
-        self.at("where it formed")
-        self.play(FadeIn(mB_g, scale=0.9), GrowArrow(aB), run_time=0.8)
-        tests = [ghost_chip(t, 28).move_to(P(x, -1.2)) for t, x in (("size", -2.6), ("markers", 0.0), ("orientation", 2.9))]
-        # each test gets a "?" badge: it is not a reliable way to show the origin
-        marks = []
-        for c in tests:
-            ring_ = Circle(radius=0.2, stroke_color=GREY, stroke_width=3, fill_color=BG, fill_opacity=1)
-            q_ = T("?", 26, TEXT, weight=BOLD).move_to(ring_)
-            marks.append(VGroup(ring_, q_).move_to(c.get_corner(UR) + P(0.05, 0.05)))
-        for nm, c, k in zip(("size", "markers", "orientation"), tests, marks):
-            self.at(nm)
-            self.play(FadeIn(c, shift=UP * 0.1), run_time=0.35)
-            self.play(FadeIn(k, scale=0.5), run_time=0.35)
-        nr = T("not reliable", 26, GREY).move_to(P(0.15, -2.0))
-        self.at("reliably")
-        self.play(FadeIn(nr, shift=UP * 0.1), run_time=0.5)
-
-        # a separate job: the message
-        tgt_box = RoundedRectangle(corner_radius=0.2, width=1.9, height=1.6, stroke_color=GREY, stroke_width=3).move_to(P(5.3, YB))
-        tgt_lbl = T("target cell", 24, GREY).move_to(tgt_box)
-        msg = darr(P(2.5, YB), P(4.2, YB), GOLD, w=5)
-        msg_l = T("message?", 26, GOLD, weight=BOLD).move_to(P(3.2, YB - 0.45))
-        self.at("carries a message")
-        self.play(FadeOut(VGroup(*tests, *marks, nr)), FadeIn(tgt_box), FadeIn(tgt_lbl), Create(msg[0]), FadeIn(msg[1]),
-                  FadeIn(msg_l), run_time=0.9)
-        self.at("separate job")
-        self.play(dimmer(VGroup(mB_g, aB), 0.3, run_time=0.6))
-        ctl = T("needs controls", 24, GREY).move_to(P(3.2, YB - 1.1))
-        self.at("needs controls")
-        self.play(FadeIn(ctl, shift=UP * 0.1), run_time=0.5)
-
-        # to call it an exosome: show the origin
-        shown = T("origin shown", 26, GREEN, weight=BOLD).move_to(P(-1.05, YB - 0.55))
-        ck = check_mark(P(-1.05, YB + 0.55))
-        self.at("To call that")
-        self.play(FadeOut(VGroup(tgt_box, tgt_lbl, msg, msg_l, ctl)), dimmer(VGroup(mB_g, aB), 1 / 0.3), run_time=0.7)
-        self.at("must also show")
-        self.play(aB.animate(rate_func=there_and_back).set_stroke(width=11), mB.ring.animate(rate_func=there_and_back).set_stroke(width=11),
-                  run_time=0.8)
-        mvb_l = T("multivesicular body", 26, PURPLE, weight=BOLD).move_to(P(-4.0, YB - 2.05))
-        self.at("came from")
-        self.play(FadeIn(shown, shift=UP * 0.1), Create(ck), FadeIn(mvb_l, shift=UP * 0.1), run_time=0.7)
-
-        # the default: extracellular vesicle
-        qbox = q_box(P(-4.0, YA))
-        aA = darr(P(-3.0, YA), P(0.3, YA), GREY, w=5)
-        vA = Ves(P(1.1, YA), 0.72, [30, 90, 150], marks=[210, 330])
-        nos = T("origin not shown", 26, GREY).move_to(P(-1.35, YA - 0.55))
-        chipA = bchip("extracellular vesicle", TEAL, 28).move_to(P(4.5, YA))
-        self.at("urges authors")
-        self.play(FadeIn(qbox), FadeIn(vA.group(), scale=0.8), Create(aA[0]), FadeIn(aA[1]), FadeIn(nos), run_time=0.9)
+        mv=Ves(P(3,0.5),0.65,[45,135]);self.add(mv.group())
+        surface=T("microvesicle\nfrom the cell surface",24,GREY).move_to(P(3,2.7))
+        self.at("look the same")
+        self.play(FadeIn(surface),*[Indicate(v.body,color=TEAL) for v in (ex,mv)],run_time=0.6)
+        self.at("unless you can show")
+        self.play(FadeOut(membrane),FadeOut(origin),FadeOut(surface),run_time=0.5)
+        self.at("where a vesicle formed")
+        unknown=T("origin?",30,GREY).move_to(P(0,2.5))
+        self.play(FadeIn(unknown),run_time=0.5)
         self.at("extracellular vesicle")
-        self.play(FadeIn(chipA, shift=LEFT * 0.1), run_time=0.6)
-        self.at("unless they can show")
-        self.play(aB.animate(rate_func=there_and_back).set_stroke(width=11), pop(ck, 1.4), run_time=0.8)
-
-        # the rule
-        self.at("keep this rule")
-        self.play(dimmer(VGroup(qbox, aA, vA.group(), nos, chipA), 0.45, run_time=0.7))
-        self.at("say exosome")
-        self.play(*glow(chipB[1], chipB[2], s=1.12, color=TEAL), run_time=0.8)
-        self.at("show where it formed")
-        self.play(aB.animate(rate_func=there_and_back).set_stroke(width=12), mB.ring.animate(rate_func=there_and_back).set_stroke(width=12),
-                  pop(ck, 1.5), run_time=0.9)
+        both=T("extracellular vesicle",36,TEAL).move_to(P(0,-1.65))
+        self.play(FadeIn(both),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Say exosome only when you can show where it formed."
+    LINE = "Extracellular vesicles can carry a signal from one cell to another."
