@@ -85,10 +85,11 @@ scientists:
       frequency of sickle-cell trait across regions and found it highest where falciparum malaria
       was intense. In 1954, in the British Medical Journal, he reported that carriers of the
       trait had lower malaria parasite counts, and he described infecting adult volunteers with
-      falciparum malaria, an experiment that would not be approved today, in which carriers of
-      the trait developed infection less often. The paper made the sickle allele the standard
+      falciparum malaria: infection took hold in 2 of 15 carriers of the trait and in 14 of 15
+      men without it. The paper made the sickle allele the standard
       example of a balanced polymorphism, an allele held in a population because heterozygotes
-      survive best.
+      survive best. Later cohort studies refined the picture: carriers still pick up parasites,
+      and the protection is strongest against severe malaria.
   - name: "Peter Buri"
     contribution: >-
       Watched genetic drift happen in 107 small laboratory populations of Drosophila, all started
@@ -283,7 +284,7 @@ explainLevels:
   - level: "highschool"
     label: "High school"
     text: >-
-      Each person carries two copies of each gene, and the different versions are called alleles.
+      Each person carries two copies of most genes, one from each parent, and the different versions are called alleles.
       If you know how common each allele is in a population (call them p and q), you can predict
       how common each pair will be: p times p, two times p times q, and q times q. This prediction
       holds when mating is random and nothing is adding, removing or favouring alleles. It is
@@ -316,8 +317,8 @@ explainLevels:
       under its model, an age of about 7,300 years, and its balancing-selection model estimated a
       heterozygote advantage of about 15%. Testing equilibrium in genomic data is complicated by
       technique: Pearson's chi-square can inflate false rejections when the minor allele is rare,
-      exact tests condition on allele counts, and in 1000 Genomes sequence data disequilibrium
-      was about 11 times more frequent in segmental duplications and simple tandem repeats.
+      exact tests condition on allele counts, and in 1000 Genomes sequence data departures from Hardy-Weinberg proportions
+      were about 11 times more frequent in segmental duplications and simple tandem repeats.
 
 
       An open question is how to separate the forces from the data alone. A heterozygote excess in
@@ -345,7 +346,7 @@ anecdotes:
       January 1908, months before Hardy's note appeared, and had gone on to apply it to human
       inheritance. Stern proposed that the principle carry both names, and it has done so since.
       The episode is a reminder that priority can depend on which language a paper was printed in.
-  - title: "Protection against severe disease, not against infection"
+  - title: "Protection against severe disease more than against infection"
     source: "Williams et al., Journal of Infectious Diseases 192:178 (2005)."
     text: >-
       Thomas Williams and colleagues followed two cohorts of children on the coast of Kenya and
@@ -354,7 +355,7 @@ anecdotes:
       against mild clinical malaria, about 75% against admission to hospital and almost 90%
       against severe or complicated malaria, and with no significant protection against other
       childhood diseases. The protection that keeps the sickle allele common acts mainly against
-      dying of malaria, not against being infected.
+      severe malaria, the form most likely to kill, more than against carrying parasites.
 
 corpusTags:
   - "hardy-weinberg"
@@ -376,7 +377,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **If an allele is dominant, it shows up in heterozygotes as well as homozygotes. So why does a dominant allele not spread, generation by generation, until almost everyone shows it?**
 
-That was the question put to the mathematician G. H. Hardy in 1908. The answer is short, and it is the starting point for all of population genetics: dominance describes how alleles act inside one person, and says nothing about how common they become. To change how common an allele is, something has to act on the population. This lesson builds the baseline in which nothing acts, then adds each force in turn.
+That was the question put to the mathematician G. H. Hardy in 1908. The answer is short, and it became the reference point for population genetics: dominance describes how alleles act inside one person, and says nothing about how common they become. To change how common an allele is, something has to act on the population. This lesson builds the baseline in which nothing acts, then adds each force in turn.
 
 ## The idea: with nothing acting, frequencies stay put
 
@@ -388,7 +389,7 @@ Now picture every egg and sperm in the population thrown into one pool, and zygo
 
 This is the product and sum rule from [probability and crosses](/lessons/probability-and-crosses/), applied to a whole population instead of one cross. Count the A copies in the next generation and you get p^2 + pq = p(p + q) = p. The allele frequency has not moved, and one round of random mating restores the proportions whatever they were before.
 
-Wilhelm Weinberg, a physician in Stuttgart, derived the same result independently in a lecture in January 1908, so the principle carries both names.
+Wilhelm Weinberg, a physician in Stuttgart, derived the same result independently in a lecture in January 1908, so the principle carries both names. W. E. Castle and Karl Pearson had made earlier attempts at the same problem.
 
 The assumptions are the whole point. The population is large, mating is random with respect to this locus, allele frequencies are the same in both sexes, and there is no selection, mutation, migration or drift. Real populations break these. Hardy-Weinberg is a **null model**: a statement of what you would see if nothing were happening, against which you detect what is.
 
@@ -444,7 +445,7 @@ A **founder effect** is drift at the start of a population: a small group carrie
 
 The sickle allele of the β-globin gene (HBB) changes glutamate to valine at position 6 of the β chain, and deoxygenated HbS polymerises (see [protein binding and allostery](/lessons/protein-binding-allostery/)). Sickle-cell disease (SS) is autosomal recessive. In conditions where the disease shortens life, selection should remove S. Yet in regions with intense falciparum malaria the allele is common.
 
-The reason is heterozygote advantage. Sickle-cell trait (AS) does not give immunity to malaria. In two cohorts of children on the Kenyan coast it made no difference to symptomless infection, but it was associated with about 50% protection against mild malaria, 75% against hospital admission and almost 90% against severe disease. AS outsurvives AA through malaria and SS through the disease, and selection then holds both alleles. If the cost to AA is s and the cost to SS is t, the equilibrium is:
+The reason is heterozygote advantage. Sickle-cell trait (AS) does not give immunity to malaria. In two cohorts of children on the Kenyan coast it made no difference to how often children carried parasites without symptoms, but it was associated with about 50% protection against mild malaria, 75% against hospital admission and almost 90% against severe disease. AS outsurvives AA through malaria and SS through the disease, and selection then holds both alleles. If the cost to AA is s and the cost to SS is t, the equilibrium is:
 
 <LessonFigure src="/figures/population-genetics/sickle-heterozygote-advantage.webp" width={1200} height={732} alt="AI-generated illustration: three tiles showing red blood cells for genotypes AA, AS and SS. The AA cell is round with a malaria parasite inside. The AS cell is round, also with a parasite, and is outlined in gold with a shield badge. The SS cell is crescent-shaped with a bundle of rods inside. A band below reads that selection holds both alleles." caption="Sickle-cell trait (AS) does not give immunity to malaria, but it was associated with protection against mild, admitted and severe malaria. AS outsurvives AA through malaria and SS through the disease, so selection holds both alleles." />
 
@@ -459,9 +460,9 @@ Interpret these illustrative data (not measurements) for a malaria-endemic popul
 
 Heterozygotes survive best, so this is balancing selection. The fitness costs are s = 1 - 0.88 = 0.12 for AA and t = 1 - 0.20 = 0.80 for SS. Assuming a large, randomly mating population with survival as the only force, the equilibrium is q = 0.12 / 0.92 = 0.13. Since newborns start at 0.10, q should rise slightly over generations.
 
-Check one generation. Survivors are AA 0.81 x 0.88 = 0.713, AS 0.18, SS 0.01 x 0.20 = 0.002, out of 0.895. As fractions of adults: AA 0.797, AS 0.201, SS 0.002. Adult q = 0.201/2 + 0.002 = 0.103. Under Hardy-Weinberg, q = 0.103 predicts 0.184 heterozygotes, but adults have 0.201. Adults show a **heterozygote excess**, even though their newborns fit. When to sample matters.
+Check one generation. Survivors are AA 0.81 x 0.88 = 0.713, AS 0.18, SS 0.01 x 0.20 = 0.002, out of 0.895. As fractions of adults: AA 0.797, AS 0.201, SS 0.002. Adult q = 0.201/2 + 0.002 = 0.103. Under Hardy-Weinberg, q = 0.103 predicts 2 x 0.897 x 0.103 = 0.185 heterozygotes, but adults have 0.201. Adults show a **heterozygote excess**, even though their newborns fit. When to sample matters.
 
-To separate selection from the alternatives, show that the allele's frequency follows the historical intensity of malaria across regions, that AS children are protected in follow-up studies, and that newborns fit equilibrium while adults show the excess. Migration from a high-S population would raise q without producing that newborn-to-adult change.
+To separate selection from the alternatives, show that the allele's frequency follows the historical intensity of malaria across regions, that AS children are protected in follow-up studies, and that newborns fit equilibrium while adults show the excess. Migration from a high-S population would raise q, but mixing in migrants from a population at Hardy-Weinberg proportions gives a heterozygote deficit, not an excess. The exception is adult migrants who were themselves selected in a malarious region, so record where each adult was born.
 
 </details>
 

@@ -7,7 +7,7 @@ order: 315
 summary: >-
   DNA is damaged all the time, by its own chemistry, by light and by the polymerase that copies
   it. This lesson sorts the damage into kinds and matches each kind to the system that fixes it:
-  direct reversal, base excision, nucleotide excision, mismatch repair, and the two ways of mending
+  direct reversal, base excision, nucleotide excision, mismatch repair, and the two main ways of mending
   a broken chromosome. Afterwards you can calculate how much mismatch repair lowers the error rate
   of replication, explain how a cell tells the new strand from the old, and connect xeroderma
   pigmentosum, Lynch syndrome and BRCA1 or BRCA2 variants to the repair step each disrupts.
@@ -126,8 +126,8 @@ techniques:
       chromatin in a living cell.
   - name: "Site-specific break reporter"
     blurb: >-
-      The yeast endonuclease I-SceI cuts a recognition site placed once in a chromosome, next to a
-      broken reporter gene. Repair of the break by homologous recombination restores a working
+      The yeast endonuclease I-SceI cuts a recognition site placed once in a chromosome, inside an inactive copy of a reporter gene such as GFP;
+      a nearby fragment of the same gene serves as the donor. Repair of the break by homologous recombination restores a working
       reporter, so the fraction of reporter-positive cells measures homology-directed repair at
       that one site.
 
@@ -323,13 +323,13 @@ explainLevels:
     label: "Graduate"
     text: >-
       Fidelity is multiplicative: base selection, exonucleolytic proofreading and mismatch repair
-      each lower the error rate by orders of magnitude, so loss of one stage raises the mutation
+      each lower the error rate by orders of magnitude, so in a simple model loss of one stage raises the mutation
       rate by roughly its own factor, about a thousandfold for mismatch repair in round textbook
-      numbers. Strand discrimination differs by lineage. E. coli MutH reads hemimethylated GATC;
+      numbers; measured effects vary widely with the kind of error and the sequence around it. Strand discrimination differs by lineage. E. coli MutH reads hemimethylated GATC;
       eukaryotic MutS-alpha and MutL-alpha use pre-existing nicks, and MutL-alpha's latent
       endonuclease, activated in a PCNA-dependent manner, can create entry points on the strand
       that carries them. At double-strand breaks, the decisive step is resection: 3′ single-strand
-      tails commit a break toward Rad51-dependent homologous recombination, whereas end protection
+      tails favor Rad51-dependent homologous recombination, though single-strand annealing and alternative end joining also use resected ends, whereas end protection
       favors Ku-dependent joining. Work since 2018 named end-protection factors such as shieldin,
       whose loss restored homologous recombination in BRCA1-deficient experimental systems.
       Labels such as error-free and error-prone fit outcomes better than pathways, since canonical
@@ -343,14 +343,14 @@ explainLevels:
 
 anecdotes:
   - title: "An enzyme that works once"
-    source: "Harris, Karran & Lindahl, Cancer Research 43:3247 (1983)."
+    source: "Harris, Karran & Lindahl, Cancer Research 43:3247 (1983); Gerson, Cancer Research 48:5368 (1988)."
     text: >-
       Most enzymes are catalysts: they come out of a reaction unchanged and go on to the next
       substrate. The human methyltransferase that repairs O6-methylguanine does not. Harris, Karran
       and Lindahl reported in 1983 that the enzyme from human lymphoid cells transfers the methyl
       group to one of its own cysteines and is inactivated by it. Repair-proficient cell lines held
       roughly 10,000 to 25,000 molecules per cell, so a cell's capacity to repair this lesion is a
-      fixed count in a resting cell, and a large enough dose of an alkylating agent can use it up. Dividing lymphocytes can make new enzyme, but resting ones did not.
+      limited stock, and a large enough dose of an alkylating agent can use it up. In a separate 1988 study, Gerson found that human lymphocytes stimulated to divide made new enzyme after such a dose, but resting ones did not.
   - title: "A junction that outlived its model"
     source: "Holliday, Genetical Research 5:282 (1964); Szostak, Orr-Weaver, Rothstein & Stahl, Cell 33:25 (1983)."
     text: >-
@@ -379,19 +379,19 @@ draft: false
 import RepairPathwayChooser from '../../../components/RepairPathwayChooser.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Every day, in every one of your cells, some cytosines lose their amino group and turn into uracil, a base that pairs with adenine.**
+**Every day, in the DNA of your cells, some cytosines lose their amino group and turn into uracil, a base that pairs with adenine.**
 
 Water and body temperature are enough. If the uracil stayed, the next replication would put an A opposite it, and the round after that would leave an A·T pair where a G·C pair had been: a mutation made by chemistry alone. This lesson asks how cells find a few wrong bases among billions of right ones, and what happens to people who inherit a broken repair system.
 
 ## Damage is constant: the lesions
 
-A **lesion** is any change to DNA's chemical structure, and it is not yet a mutation. It becomes a **mutation**, a heritable change in sequence, when replication copies it into a normal-looking base pair on both strands.
+A **lesion** is any change to DNA's chemical structure, and it is not yet a mutation. It usually becomes a **mutation**, a heritable change in sequence, when replication copies it into a normal-looking base pair on both strands. Repair can also change the sequence, as when end joining loses a few bases at a break.
 
 The lesions fall into a few kinds:
 
 - **Spontaneous chemistry.** Cytosine deaminates to uracil, and purine bases fall off their sugars, leaving an **abasic (AP) site**, a sugar with no base.
 - **Oxidation and alkylation.** Reactive oxygen produces 8-oxoguanine, which can pair with adenine. Alkylating agents add methyl groups; O6-methylguanine pairs with thymine.
-- **Ultraviolet light.** UV joins two neighboring pyrimidines on the same strand into a **cyclobutane pyrimidine dimer** or a **6-4 photoproduct**. Both bend the helix and stall polymerases.
+- **Ultraviolet light.** UV joins two neighboring pyrimidines on the same strand into a **cyclobutane pyrimidine dimer** or a **6-4 photoproduct**. Both distort the helix, the 6-4 photoproduct much more than the dimer, and both stall polymerases.
 - **Strand breaks.** Ionizing radiation and collapsed replication forks can break both strands at once.
 - **Replication errors.** The polymerase pairs normal bases wrongly or slips on repeats (see [mutation](/lessons/mutation/)).
 
@@ -403,20 +403,22 @@ One rule runs through almost all of repair: the double helix holds its informati
 
 **Base excision repair** (BER) handles most small, non-bulky base lesions that direct reversal does not: uracil, 8-oxoguanine, some alkylated bases, AP sites. It runs in steps:
 
-1. A **DNA glycosylase** specific for one kind of damaged base flips that base out of the helix and cuts the bond to its sugar, leaving an AP site.
-2. **AP endonuclease** cuts the backbone at the AP site.
-3. A polymerase (polymerase beta in human cells) inserts the correct nucleotide, using the partner strand.
+1. A **DNA glycosylase** that recognizes one damaged base, or a few related ones, flips that base out of the helix and cuts the bond to its sugar, leaving an AP site.
+2. **AP endonuclease** cuts the backbone at the AP site. Some glycosylases, including the one that removes 8-oxoguanine, also cut the backbone themselves, and AP endonuclease then trims the cut end.
+3. A polymerase (polymerase beta in human cells) inserts the correct nucleotide, using the partner strand, and removes any leftover sugar fragment.
 4. A ligase seals the nick.
+
+This is the short-patch route, which replaces one nucleotide. A long-patch route replaces several.
 
 In 1974 Tomas Lindahl reported an E. coli activity that released uracil from deaminated DNA and left the backbone uncut. In 1996 his group rebuilt human uracil repair from four purified proteins, which filled a one-nucleotide patch.
 
-**Nucleotide excision repair** (NER) handles bulky lesions that distort the helix: UV dimers and 6-4 photoproducts, and adducts from drugs such as cisplatin. It senses the distortion, not the chemistry, so one machine copes with many lesions. It cuts the damaged strand on both sides and removes a short oligonucleotide. Aziz Sancar and Dean Rupp showed this dual incision in 1983 with the purified E. coli proteins UvrA, UvrB and UvrC. The E. coli fragment is about 12 to 13 nucleotides; in a human cell-free system the removed piece was 27 to 29 nucleotides long. A polymerase then fills the gap, and a ligase seals it.
+**Nucleotide excision repair** (NER) handles bulky lesions that distort the helix: UV dimers and 6-4 photoproducts, and adducts from drugs such as cisplatin. It recognizes distortion of the helix rather than one chemical change, so one pathway copes with many lesions. In human cells the sensor XPC finds distorted DNA anywhere in the genome, helped by UV-DDB for the weakly distorting cyclobutane dimers, and an RNA polymerase stalled at a lesion flags damage in genes being transcribed. TFIIH, a complex with helicase activity, then opens the DNA and checks that a lesion is there. NER then cuts the damaged strand on both sides and removes a short oligonucleotide. Aziz Sancar and Dean Rupp showed this dual incision in 1983 with the purified E. coli proteins UvrA, UvrB and UvrC. The E. coli fragment is about 12 to 13 nucleotides; in a human cell-free system the removed piece was 27 to 29 nucleotides long. In human cells the cut on the 5′ side is made by XPF-ERCC1 and the cut on the 3′ side by XPG. A polymerase then fills the gap, and a ligase seals it.
 
 ## Fixing the copier's mistakes: mismatch repair
 
 A **mismatch** is two normal bases paired wrongly, such as G with T. Neither base is damaged, so which one is wrong? The answer is whichever is on the new strand, because the template was correct before the polymerase arrived.
 
-In E. coli the new strand carries a mark of absence. The Dam methylase adds a methyl group to the adenine in every GATC sequence, but only some time after the fork passes. For that window, new DNA is **hemimethylated**: methylated on the template strand only. **MutS** binds the mismatch, **MutL** joins it, and together they activate **MutH**, which nicks the unmethylated strand at a GATC site. An exonuclease removes the new strand from the nick past the mismatch, and the polymerase and ligase fill in. In Paul Modrich's purified system a GATC site about 1 kilobase away still directed repair.
+In E. coli the new strand carries a mark of absence. The Dam methylase adds a methyl group to the adenine in GATC sequences, but only some time after the fork passes. For that window, new DNA is **hemimethylated**: methylated on the template strand only. **MutS** binds the mismatch, **MutL** joins it, and together they activate **MutH**, which nicks the unmethylated strand at a GATC site. The helicase UvrD unwinds the new strand from the nick past the mismatch, exonucleases degrade it, and the polymerase and ligase fill in. In Paul Modrich's purified system a GATC site about 1 kilobase away still directed repair.
 
 That GATC signal belongs to E. coli and its relatives. It is unusual, not universal. Eukaryotes keep MutS and MutL relatives (MSH2 paired with MSH6, and MLH1 paired with PMS2 in humans) but have no MutH. They appear to read **strand breaks** instead: new DNA has free ends, at the tip of the growing strand and between Okazaki fragments. A purified human system could be directed by a nick on either side of a mismatch. Human mismatch repair also corrects small loops left when the polymerase slips on a repeat.
 
@@ -442,21 +444,21 @@ So with these numbers, losing mismatch repair raises the error rate a thousandfo
 
 ## Broken chromosomes: end joining and homologous recombination
 
-A **double-strand break** cuts the chromosome in two. Picture a rope cut through: you can knot the ends, or splice in a matching length from an identical rope. Cells do both.
+A **double-strand break** cuts the chromosome in two. Picture a rope cut through: you can knot the ends, or splice in a matching length from an identical rope. Cells do both. These are the two main routes. Others, such as single-strand annealing and alternative end joining by polymerase theta, join resected ends at short matching sequences and usually delete DNA in the process.
 
 **Non-homologous end joining** (NHEJ) knots the ends. The ring-shaped **Ku** protein binds each end, recruits the kinase DNA-PKcs, and nucleases such as Artemis and polymerases trim or fill ends that do not fit. XRCC4 with DNA ligase IV joins them. NHEJ uses no template, so if the ends had to be processed, a few bases may be gained or lost at the joint. Calling it error-prone overstates this: how accurate it is depends on the structure of the ends, and clean, compatible ends are often rejoined exactly. NHEJ works throughout the cell cycle.
 
 **Homologous recombination** (HR) splices from a matching rope. Nucleases resect the 5′ ends, leaving 3′ single-stranded tails. A recombinase coats each tail, **RecA** in E. coli and **Rad51** in eukaryotes, and the filament searches for a matching duplex and invades it, forming a displacement loop (**D-loop**). The invading 3′ end primes DNA synthesis, copying the information lost at the break. The best template is the **sister chromatid**, the identical copy made during replication, so HR acts mainly in S and G2.
 
-When both ends engage the template, the two duplexes are linked by two **Holliday junctions**, four-stranded crossings named for Robin Holliday, who proposed the structure in 1964. In their 1983 yeast model, Szostak, Orr-Weaver, Rothstein and Stahl made the double-strand break the event that starts recombination. Before the chromosomes separate, the junctions are either dissolved, giving no crossover, or cut by resolvases, giving a crossover or not depending on which strands are cut. The same machinery, started by programmed breaks, makes the meiotic crossovers of [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) that [linkage mapping](/lessons/linkage-and-mapping/) measures. How a CRISPR cut is repaired is taken up in [forward and reverse genetics](/lessons/crispr-and-functional-genomics/).
+Most often the extended end is then released from the D-loop and pairs with the other end of the break, a route called **synthesis-dependent strand annealing** (SDSA) that forms no crossover. In another branch, which makes most meiotic crossovers, the second end is also captured and the two duplexes are linked by two **Holliday junctions**, four-stranded crossings named for Robin Holliday, who proposed the structure in 1964. In their 1983 yeast model, Szostak, Orr-Weaver, Rothstein and Stahl made the double-strand break the event that starts recombination. Before the chromosomes separate, the junctions are either dissolved, giving no crossover, or cut by resolvases, giving a crossover or not depending on which strands are cut. Related machinery, started by programmed breaks and joined by meiosis-specific proteins, makes the meiotic crossovers of [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/) that [linkage mapping](/lessons/linkage-and-mapping/) measures. How a CRISPR cut is repaired is taken up in [forward and reverse genetics](/lessons/crispr-and-functional-genomics/).
 
 ## When repair fails: three human conditions
 
-Unrepaired damage also triggers checkpoints run by p53, described in [stress signals](/lessons/stress-signals/). Three inherited conditions show what happens when a repair pathway itself is lost.
+Unrepaired damage also triggers checkpoints, signaled by the kinases ATM and ATR and enforced in part by p53, described in [stress signals](/lessons/stress-signals/). Three inherited conditions show what happens when a repair pathway is lost: from birth in XP, and in tumor cells of people with Lynch syndrome or BRCA variants.
 
 **Xeroderma pigmentosum** (XP) is autosomal recessive: affected people have two nonworking alleles of one gene. Most forms disrupt NER, so UV dimers in skin cells go unrepaired, and the condition is associated with sunlight-induced skin cancers. Cell fusion sorted patients into several complementation groups, each a different NER gene. One form, the **XP variant**, has normal excision. Its cells cannot replicate efficiently past UV damage, and in 1999 two groups, Masutani and colleagues and Johnson, Prakash and colleagues, found mutations in the gene for DNA polymerase eta, a bypass polymerase, in XP variant cell lines.
 
-**Lynch syndrome** is a dominantly inherited predisposition to colorectal, endometrial and other cancers, with risks that vary by gene. Carriers are heterozygous for a germline variant in **MLH1, MSH2, MSH6 or PMS2**, or have a deletion at the 3′ end of EPCAM that silences the neighboring MSH2. One working allele is enough for repair, so their normal cells repair mismatches. Typically a tumor arises in a cell lineage that loses the second allele and with it mismatch repair, though some cancers in carriers keep mismatch repair. The link was made in 1993, when Fishel and colleagues and Leach and colleagues each reported MSH2 mutations in such families. The two-hit logic belongs to [cancer genetics](/lessons/cancer-genetics/).
+**Lynch syndrome** is a dominantly inherited predisposition to colorectal, endometrial and other cancers, with risks that vary by gene. Carriers are heterozygous for a germline variant in **MLH1, MSH2, MSH6 or PMS2**, or have a deletion at the 3′ end of EPCAM that silences the neighboring MSH2. One working allele is usually enough for repair, so their normal cells repair mismatches. Typically a tumor arises in a cell lineage that loses or inactivates the second allele and with it mismatch repair, though some cancers in carriers keep mismatch repair. The link was made in 1993, when Fishel and colleagues and Leach and colleagues each reported MSH2 mutations in such families. The two-hit logic belongs to [cancer genetics](/lessons/cancer-genetics/).
 
 **BRCA1 and BRCA2** were cloned by Miki and colleagues (1994) and Wooster and colleagues (1995). Both are needed for efficient HR: Brca1-deficient mouse stem cells repaired chromosome breaks poorly by HR, and BRCA2-mutant human and mouse cell lines showed 6-fold to more than 100-fold less homology-directed repair, depending on the line. Carriers inherit one nonworking allele in an autosomal dominant pattern of risk for breast and ovarian cancers, and tumors typically lose the remaining allele. HR-deficient cells are unusually sensitive to PARP inhibitors, an example of synthetic lethality.
 
