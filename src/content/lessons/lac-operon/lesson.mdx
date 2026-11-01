@@ -195,19 +195,16 @@ practiceQuestions:
       The operator is a stretch of DNA, so it cannot leave its molecule and controls only the genes
       beside it, which is why Oc acts in cis. The repressor is a diffusible protein that binds every
       lac operator in the cell, so it acts in trans. CAP is also a diffusible protein and acts on
-      any lac promoter in the cell. The permease carries lactose into the cell and does not act on
-      DNA at all, so cis and trans do not apply to it.
+      any lac promoter in the cell. The permease is a protein made from lacY; it works in the membrane, not on DNA, and a working lacY on either copy supplies permease to the whole cell, so it acts in trans.
   - stem: "Wild-type E. coli is grown with plenty of lactose and plenty of glucose. Compared with lactose alone, lac expression is lower. Which pair of causes accounts for this?"
     choices:
       - "Glucose binds CAP directly and blocks the repressor from leaving"
       - "Glucose is converted to allolactose, which then holds the repressor on"
-      - "Lower cAMP leaves CAP inactive, and lactose uptake is blocked"
+      - "Lower cAMP leaves less CAP active, and lactose uptake is blocked"
       - "Glucose binds the operator, and the permease is then degraded"
     answer: 2
     rationale: >-
-      With glucose present, cAMP falls, so less CAP is active at the promoter, and a protein of the
-      glucose uptake system binds the lac permease and blocks lactose entry, which is inducer
-      exclusion. Glucose does not bind CAP; CAP binds cAMP. Glucose is not converted to allolactose,
+      In the classic account, glucose lowers cAMP, so less CAP is active at the promoter, though how much this matters in living cells is debated. A protein of the glucose uptake system also binds the lac permease and blocks lactose entry, which is inducer exclusion, a major cause in E. coli. Glucose does not bind CAP; CAP binds cAMP. Glucose is not converted to allolactose,
       and allolactose releases the repressor rather than holding it on. Glucose does not bind the
       operator, which is bound by the repressor, and the permease is inhibited rather than
       destroyed.
@@ -251,8 +248,7 @@ mcatQuestions:
       Enzyme is made at first because the recipient has no repressor, then synthesis stops as the
       incoming I+ gene makes repressor that accumulates, and IPTG releases that repressor, so the
       I+ product builds up and represses. If Z+ were lost, IPTG could not restore synthesis. The I-
-      recipient makes no working repressor, so it cannot be the source of the shutdown. If Z+ had
-      to recombine before working, synthesis would not begin soon after entry and then stop.
+      recipient makes no working repressor, so it cannot be the source of the shutdown. A need for Z+ to recombine before working would not explain why synthesis stops and IPTG restarts it.
   - stem: "A new constitutive mutation, m, is placed in two partial diploids grown without glucose. In m Z+ / F′ I+ O+ Z-, β-galactosidase is made with and without IPTG. In m Z- / F′ I+ O+ Z+, the enzyme is made only with IPTG. What is m?"
     choices:
       - "An operator mutation that acts only in cis"
@@ -293,7 +289,7 @@ explainLevels:
   - level: "highschool"
     label: "High school"
     text: >-
-      E. coli has three genes for using lactose lying side by side and copied into one message.
+      E. coli has three lac genes lying side by side and copied into one message; two of them let the cell take in and break down lactose.
       Normally a repressor protein sits on a stretch of DNA in front of them, the operator, and
       blocks the copying. When lactose enters, a little of it is turned into allolactose, which
       binds the repressor and makes it let go, so the genes are switched on. A second protein, CAP,
@@ -310,8 +306,8 @@ explainLevels:
       and lowers its affinity for the operator. CAP bound to cAMP binds upstream of the promoter and
       contacts the α subunit of RNA polymerase to activate initiation, so expression is high only
       with inducer present and glucose low; glucose also blocks lactose uptake by inducer exclusion.
-      In F′ partial diploids the repressor acts in trans, so I- is recessive, while Is (cannot bind
-      inducer) and I-d (poisons mixed tetramers) are dominant; Oc acts only in cis. The trp operon is
+      In F′ partial diploids the repressor acts in trans, so I- is recessive, while Is (does not respond to
+      inducer) and I-d (poisons repressor made with normal subunits) are dominant; Oc acts only in cis. The trp operon is
       repressed by a tryptophan-bound repressor and attenuated by a leader whose translation, coupled
       to transcription, decides between a terminator and an antiterminator.
   - level: "grad"
@@ -386,13 +382,13 @@ Jacques Monod, studying bacterial growth around 1940, called this two-step growt
 
 ## The switch: a repressor that lets go
 
-Three genes for using lactose sit side by side on the *E. coli* chromosome: *lacZ* encodes β-galactosidase, which splits lactose into glucose and galactose; *lacY* encodes the permease that carries lactose in; *lacA* encodes a transacetylase. RNA polymerase transcribes all three from one promoter into one mRNA, read into three separate proteins. An mRNA that carries several genes like this is called polycistronic, and a set of genes transcribed together under one control is an operon. (Promoters and RNA polymerase are in [the lesson on transcription](/lessons/transcription/).)
+Three lac genes sit side by side on the *E. coli* chromosome: *lacZ* encodes β-galactosidase, which splits lactose into glucose and galactose; *lacY* encodes the permease that carries lactose in; *lacA* encodes a transacetylase, which is not needed to use lactose and whose role is less clear. RNA polymerase transcribes all three from one promoter into one mRNA, read into three separate proteins. An mRNA that carries several genes like this is called polycistronic, and a set of genes transcribed together under one control is an operon. (Promoters and RNA polymerase are in [the lesson on transcription](/lessons/transcription/).)
 
 Next to the operon is a fourth gene, *lacI*, with its own promoter. It encodes the lac repressor, a protein that binds a short stretch of DNA called the operator, which lies at the start of transcription. Bound there, the repressor keeps RNA polymerase from transcribing the genes. This is negative control: the regulator's job is to stop.
 
 Picture a hand holding a light switch off; lactose arrives and the hand lets go. The real mechanism: when lactose gets in, β-galactosidase converts a little of it to allolactose, which joins the same two sugars by a different bond. Allolactose is the natural inducer. It binds the repressor and changes the protein's shape, which lowers its affinity for the operator, so the repressor comes off and transcription starts. A molecule that changes a protein's shape by binding at a separate site is an allosteric effector ([the lesson on protein binding and allostery](/lessons/protein-binding-allostery/)).
 
-Two traps. Lactose itself is not the inducer; allolactose is. And in the laboratory geneticists usually use IPTG, a synthetic compound that binds the repressor but is not broken down by β-galactosidase, so its level stays steady. An inducer of this kind is called gratuitous.
+Two traps. Lactose itself is not the inducer; allolactose is. And in the laboratory geneticists usually use IPTG, a synthetic compound that binds the repressor but is not broken down by β-galactosidase, so the cell does not use it up. An inducer of this kind is called gratuitous.
 
 There is a loop here: lactose needs the permease and β-galactosidase, yet both come from the operon it switches on. Repression leaks, so an uninduced cell can hold a few copies of each protein.
 
@@ -412,9 +408,9 @@ The rule: a gene product diffuses, so it acts in trans, on both copies; a site s
 
 ### Worked problem: four partial diploids
 
-Predict β-galactosidase activity without and with IPTG for cells grown without glucose, so cAMP and CAP are available. Each genotype is written chromosome / F′, and every lac gene not listed is wild type. Assume Z⁻ makes no active enzyme, I⁻ makes no working repressor, Iˢ (a superrepressor) makes a repressor that binds the operator but cannot bind inducer, and Oᶜ cannot be bound by any repressor. For each, ask two questions: where is the working Z⁺, and what controls the operator next to it?
+Predict β-galactosidase activity without and with IPTG for cells grown without glucose, so cAMP and CAP are available. Each genotype is written chromosome / F′, and every lac gene not listed is wild type. Assume Z⁻ makes no active enzyme, I⁻ makes no working repressor, Iˢ (a superrepressor) makes a repressor that binds the operator but cannot bind inducer (real Iˢ alleles either bind inducer poorly or bind it without the shape change), and Oᶜ cannot be bound by any repressor. For each, ask two questions: where is the working Z⁺, and what controls the operator next to it?
 
-**(a) I⁻ Z⁺ / F′ I⁺ Z⁻.** The only Z⁺ is on the chromosome, beside a normal operator. The chromosome makes no repressor, but the F′ I⁺ does, and repressor diffuses to the chromosomal operator. No IPTG: off. IPTG: on. **Inducible.** I⁻ is recessive.
+**(a) I⁻ Z⁺ / F′ I⁺ Z⁻.** The only Z⁺ is on the chromosome, beside a normal operator. The chromosome makes no working repressor, but the F′ I⁺ does, and repressor diffuses to the chromosomal operator. No IPTG: off. IPTG: on. **Inducible.** I⁻ is recessive.
 
 **(b) Oᶜ Z⁻ / F′ O⁺ Z⁺.** Both copies are I⁺. The Oᶜ copy is transcribed all the time, but its Z⁻ makes nothing active. The only Z⁺ sits beside a normal operator, which the repressor holds until IPTG arrives. **Inducible.**
 
@@ -426,7 +422,7 @@ An operator acts only on its own DNA molecule; a repressor acts on every operato
 
 <LacMerodiploidSwitch />
 
-One more class completes the set. Some I⁻ mutations are dominant. Written I⁻ᵈ, they make subunits that still join tetramers but cannot bind DNA, so tetramers that mix them with normal subunits from the other copy fail too. Such a mutation is called dominant-negative.
+One more class completes the set. Some I⁻ mutations are dominant. Written I⁻ᵈ, they make subunits that still assemble with normal subunits but bind DNA poorly or not at all. Each operator is gripped by a pair of subunits, so a pair that mixes a defective subunit with a normal one from the other copy binds the operator poorly. How strongly an I⁻ᵈ allele spoils the normal repressor varies from allele to allele. Such a mutation is called dominant-negative.
 
 What was the repressor made of? In 1961 Jacob and Monod did not know; Monod later wrote that it had seemed logical to assume a polyribonucleotide. In 1966 Walter Gilbert and Benno Müller-Hill isolated it, following its binding of radioactive IPTG, and it was a protein; in 1967 they showed it binds DNA carrying the lac operator.
 
@@ -451,7 +447,7 @@ Keep this apart from your own cells, where cAMP acts mainly through protein kina
 
 The *trp* operon of *E. coli* encodes the enzymes that make tryptophan, and its logic runs the other way: the genes should be off when tryptophan is plentiful. The trp repressor alone binds the operator poorly. Tryptophan binds the repressor and lets it bind the operator, so the end product shuts down its own pathway. The lac operon is inducible; the trp operon is repressible.
 
-A second control, worked out mostly in Charles Yanofsky's laboratory, acts after transcription has started. Transcription can stop in a leader region before the first structural gene, at a point called the attenuator. The leader encodes a peptide of 14 amino acids with two tryptophan codons in a row. Its RNA can fold into different hairpins. One, called 3:4, followed by a run of U's, is a terminator. Another, 2:3, prevents 3:4 from forming and lets transcription continue.
+A second control, worked out mostly in Charles Yanofsky's laboratory, acts after transcription has started. Transcription can stop in a leader region before the first structural gene, at a point called the attenuator. The leader encodes a peptide of 14 amino acids with two tryptophan codons in a row. Its RNA can fold into different hairpins. One, called 3:4, followed by a run of U's, is a terminator. Another, 2:3, prevents 3:4 from forming and lets transcription continue. A third, 1:2, forms first and makes RNA polymerase pause, which gives a ribosome time to start on the leader; the moving ribosome then releases the polymerase, so the two travel together.
 
 Which hairpin forms depends on a ribosome. In bacteria there is no nucleus, so a ribosome starts translating the leader while RNA polymerase is still transcribing just ahead of it ([the genetic code and translation](/lessons/genetic-code-and-translation/)).
 
@@ -474,7 +470,7 @@ You isolate a new constitutive lac mutant, m. Design partial diploids that tell 
 Start with **m Z⁺ / F′ I⁺ O⁺ Z⁻**: the only working Z⁺ is beside m, and the F′ supplies a normal repressor gene.
 
 - If expression becomes inducible, m is a recessive I⁻: the normal repressor from the F′ diffuses to the chromosomal operator.
-- If it stays constitutive, m is either I⁻ᵈ or Oᶜ. An Oᶜ ignores the repressor in cis, and an I⁻ᵈ poisons the tetramers made with F′ subunits.
+- If it stays constitutive, m is either I⁻ᵈ or Oᶜ. An Oᶜ ignores the repressor in cis, and an I⁻ᵈ poisons repressor that mixes its subunits with F′ subunits.
 
 To separate those two, move the working Z⁺ to the other copy: **m Z⁻ / F′ I⁺ O⁺ Z⁺**.
 

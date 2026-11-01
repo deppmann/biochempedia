@@ -10,7 +10,7 @@ summary: >-
   without a Punnett square, the binomial for counting outcomes in a family, and the chi-square
   test for asking whether a deviation from a ratio is larger than chance would usually produce.
   Afterwards you can run the test and say what its p-value does and does not mean.
-hook: "Mendel expected 312.75 round yellow seeds and counted 315. How far off can a count be before the ratio is wrong?"
+hook: "A 9:3:3:1 ratio predicts 312.75 round yellow seeds among Mendel's 556, and he counted 315. How far off can a count be before the ratio is wrong?"
 
 estMinutes: 24
 objectives:
@@ -83,10 +83,10 @@ scientists:
       traits are associated, each quantity estimated from the data uses up a degree of freedom.
       Pearson had not subtracted them, so tests run his way were too lenient. Fisher's correction
       is the reason you count degrees of freedom with care. In 1936 he applied the test to
-      Mendel's paper as a whole. Experiment by experiment the fits were good, and taken together
-      they were better than chance would usually give. The paper started a long debate about how
-      Mendel's data were gathered, which is still discussed. It also showed that a test can flag a
-      fit that is too close as well as one that is too far.
+      Mendel's paper as a whole. By his reckoning the fits were good experiment by experiment, and taken together
+      they were better than chance would usually give. W. F. R. Weldon had raised a similar doubt in 1902, but Fisher's paper started a long debate about how
+      Mendel's data were gathered, which is still discussed. It also showed that the chi-square distribution can flag a
+      fit that is too close, from its lower tail, as well as one that is too far, from the usual upper tail.
 
 techniques:
   - name: "Controlled cross with stamen removal"
@@ -96,8 +96,8 @@ techniques:
       with a prediction.
   - name: "Progeny testing"
     blurb: >-
-      Plants with the dominant phenotype are selfed or crossed and their offspring scored. Plants
-      that breed true are homozygous; plants that give both forms are heterozygous. Mendel used it
+      Plants with the dominant phenotype are selfed or crossed to a recessive plant and their offspring scored. Plants
+      that give both forms are heterozygous; plants that breed true are probably homozygous, though a small family can miss a heterozygote. Mendel used it
       to show that two-thirds of dominant-looking F2 plants were hybrids.
   - name: "Chi-square goodness-of-fit test"
     blurb: >-
@@ -256,7 +256,7 @@ explainLevels:
       If you flip a coin, it lands heads half the time. If you flip two coins, both land heads only
       one time in four, because you take half of a half. Babies get their parents' genes a bit like
       coin flips. And when you count real coins, you usually do not get exactly half heads, so
-      scientists have a test that tells them when a count is too far off to be just luck.
+      scientists have a test that tells them when a count is so far off that luck alone would rarely give it.
   - level: "highschool"
     label: "High school"
     text: >-
@@ -266,13 +266,13 @@ explainLevels:
       several separate ways to get an outcome, you add their chances. Real counts seldom match a
       ratio exactly, so geneticists use the chi-square test. They compare the counts they got with
       the counts the ratio predicts, add up the squared differences divided by the expected counts,
-      and look the total up in a table. A small total means the ratio could easily explain the
-      counts; a large one means it probably cannot.
+      and look the total up in a table for the right degrees of freedom. A small total means counts like these are common if the ratio holds, so it could explain the
+      counts; a large one means such counts would be rare if the ratio held, which is a reason to doubt it.
   - level: "college"
     label: "College"
     text: >-
       For unlinked loci, segregation at each locus is an independent event, so the probability of
-      a multilocus phenotype is the product of single-locus probabilities (the product rule), and
+      a multilocus genotype, or of a set of traits each controlled by its own locus, is the product of single-locus probabilities (the product rule), and
       the probability of any one of several mutually exclusive outcomes is their sum (the sum
       rule). The branch method applies both without a Punnett square. For a fixed number n of
       independent offspring with constant probability p, the number of a given type is binomial:
@@ -288,8 +288,8 @@ explainLevels:
       Pearson's statistic is asymptotically chi-square distributed under a multinomial null; the
       approximation degrades when expected counts are small (an introductory rule is at least five
       per class), when exact tests or simulation of the multinomial are better. Degrees of freedom
-      are k - 1 - m for k classes and m parameters estimated from the data, the point Fisher made
-      in 1922 against Pearson's handling of contingency tables. A p-value conditions on the whole
+      are k - 1 - m for k classes and m parameters estimated efficiently from the grouped counts, the point Fisher made
+      for contingency tables in 1922 and for fitted constants in general in 1924. If the parameters are instead estimated from ungrouped data, the null distribution lies between chi-square with k - 1 - m and with k - 1 df (Chernoff and Lehmann, 1954). A p-value conditions on the whole
       model, not only the genetic hypothesis: independent sampling, correct classification, equal
       viability of genotypes, no selective scoring. A small p therefore does not say which
       assumption failed (segregation distortion, linkage, lethality, misscoring), and a large p
@@ -308,16 +308,16 @@ anecdotes:
     text: >-
       In 1936 Ronald Fisher went through Mendel's paper experiment by experiment and computed a
       chi-square for each. A fit can be too good: if a hypothesis is true, chance still scatters
-      counts around it, and very small chi-square values should be uncommon. Adding Mendel's
-      experiments together, Fisher found agreement closer than chance would usually give. He wrote that the data seemed adjusted to match Mendel's expectations, and suggested that an assistant who knew too well what was expected might have done it, not Mendel himself. The cause is still argued over. The lesson for a student is that
-      the test reads both tails of credibility: too far from expectation, and too close.
+      counts around it, and across many experiments a combined chi-square far below its degrees of freedom should be uncommon. Adding Mendel's
+      experiments together, Fisher found agreement closer than chance would usually give. He wrote that the data seemed adjusted to match Mendel's expectations, and suggested that an assistant who knew too well what was expected might have done it, not Mendel himself. The cause, and whether the excess is as large as Fisher thought, is still argued over. The lesson for a student is that
+      the chi-square distribution has two tails worth reading: the usual test asks whether counts are too far from expectation, and the lower tail asks whether they are too close.
   - title: "The hidden two-thirds"
     source: "Mendel (1866), Abbott & Fairbanks translation, Genetics 204:407–422 (2016)."
     text: >-
       Round seeds look alike, but Mendel predicted they were not all the same. He grew 565 plants
       from round F2 seeds and scored the seeds they made. Of these, 193 gave only round seeds and
       372 gave both round and wrinkled. A 1:2 ratio predicts 188.3 and 376.7. Chi-square is about
-      0.17 with 1 degree of freedom, an ordinary deviation from a simple 1:2 ratio. In his later tests of this kind Mendel sowed only ten seeds per plant, and Fisher argued that with so few, 5 to 6 per cent of hybrids would pass as true-breeding, so in those tests the expected ratio of hybrids to true-breeding plants is a little lower than 2:1. Two-thirds of the dominant-looking
+      0.17 with 1 degree of freedom, an ordinary deviation from a simple 1:2 ratio. In his later tests of this kind Mendel sowed only ten seeds per plant, and Fisher argued that with so few, 5 to 6 per cent of hybrids would by chance give no recessive offspring and pass as true-breeding, so in those tests the expected ratio of plants scored as hybrid to plants scored as true-breeding is about 1.7:1, not 2:1. Mendel's counts in those tests sat close to 2:1, and that became part of Fisher's case that the data fit too well. Later analyses point out that the correction assumes exactly ten plants grew from every parent. Two-thirds of the dominant-looking
       plants were hybrids, as the model said, which no amount of looking at the seeds could have
       shown.
   - title: "Statisticians issue a statement"
@@ -436,6 +436,6 @@ Two true-breeding white-flowered lines are crossed and the F1 is all purple. The
 
 **9:7.** Expected 160 x 9/16 = 90 and 160 x 7/16 = 70. Chi-square = 36/90 + 36/70 = 0.40 + 0.51 = 0.91, with 1 df, p about 0.34. Not rejected.
 
-**What next.** A good fit does not establish the model. A 5:3 ratio (100:60) fits these counts too, with chi-square about 0.43, and no one is proposing it. What 9:7 adds is a mechanism: two genes, each needed for purple, with each white parent lacking a different one. Test that mechanism with a cross whose outcome differs between models. Cross F2 white plants with each other in many pairs. Under one gene, white x white always gives white. Under two genes, some pairs (one carrying aa, the other bb, each with the other gene's dominant allele) give purple offspring. Crossing the F1 back to either white parent should give about 1 purple : 1 white. How two genes produce 9:7 is the subject of [extending Mendel](/lessons/extending-mendel/).
+**What next.** A good fit does not establish the model. A 5:3 ratio (100:60) fits these counts too, with chi-square about 0.43, and no one is proposing it. What 9:7 adds is a mechanism: two genes, each needed for purple, with each white parent lacking a different one. The F1 already pointed this way. If both white lines lacked the same gene, the F1 would be white too, so an all-purple F1 is the classic sign of two genes, and the 3:1 test checked a model the cross had already argued against. Test that mechanism with a cross whose outcome differs between models. Cross F2 white plants with each other in many pairs. Under a simple one-gene model, white x white gives white. Under two genes, some pairs (one carrying aa, the other bb, each with the other gene's dominant allele) give purple offspring. Crossing the F1 back to either white parent should give about 1 purple : 1 white, but a one-gene testcross also gives 1:1, so that cross checks the model without telling the models apart. How two genes produce 9:7 is the subject of [extending Mendel](/lessons/extending-mendel/).
 
 </details>

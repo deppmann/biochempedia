@@ -90,6 +90,9 @@ scientists:
       testing each SNP alone they asked how well overall genetic similarity between pairs of
       people predicted similarity in height. The estimate was 45% of the variance. The authors
       attributed much of the missing heritability to many effects too small to detect singly.
+      They also argued that the rest was hidden by imperfect tagging of causal variants, especially
+      rarer ones. In 2022 whole-genome sequencing of 25,465 people put height heritability at 0.68
+      and pointed to rare variants as a major source of the remainder, so both views were partly right.
       The method, now widely used, made SNP heritability a quantity you can estimate for almost
       any measured trait.
   - name: "Alicia R. Martin"
@@ -204,8 +207,8 @@ practiceQuestions:
       tags the causal variant shows a strong association too. A tiny p-value is what genome-wide
       significance requires and is not a sign of error. Most associated variants lie outside
       coding sequence, often in regulatory regions, so the claim that causal variants are always
-      in exons is false. Principal components adjust for ancestry structure; they do not erase
-      a true local signal.
+      in exons is false. Principal components adjust for ancestry structure; they rarely erase
+      a true local signal, though a causal variant whose frequency tracks ancestry can lose some power.
   - stem: "A study tests 500,000 independent SNPs and wants a family-wise error rate of 0.05 using a Bonferroni correction. What per-SNP threshold should it use?"
     choices:
       - "5 × 10^-8"
@@ -257,8 +260,8 @@ mcatQuestions:
       - "A threshold too strict for a condition of this kind"
     answer: 0
     rationale: >-
-      When cases and controls differ in ancestry, any SNP whose frequency differs between the
-      source populations looks associated with case status; this is population stratification,
+      When cases and controls differ in ancestry, SNPs whose frequencies differ between the
+      source populations can look associated with case status; this is population stratification,
       and principal components model that structure, which is why the hits disappear. Real
       causal variants are not normally removed by adjusting for ancestry. Linkage disequilibrium usually acts over
       short distances, so it is very unlikely to tie SNPs on many chromosomes to one causal variant. A
@@ -272,8 +275,8 @@ mcatQuestions:
     answer: 2
     rationale: >-
       Expression data plus an allele swap that changes C, and not A or B, in a relevant cell type
-      support a regulatory effect of the variant on gene C in that cell type; whole-animal tests
-      would still be needed to link C to the lipid trait. Lying inside gene A does not make A
+      support a regulatory effect of the variant on gene C in that cell type; further evidence, such as
+      animal models or human genetic data on C, would still be needed to link C to the lipid trait. Lying inside gene A does not make A
       the target, since enhancers can act on distant genes. Gene B did not change, and one cell
       type says nothing about all tissues. An allele swap in cultured cells is a direct test that
       ancestry confounding cannot produce.
@@ -283,8 +286,8 @@ explainLevels:
     label: "Like I'm five"
     text: >-
       How tall you grow depends on lots of tiny instructions from your parents, plus how well you
-      eat and sleep. No single instruction makes you tall. Scientists can compare many people to
-      find which instructions go along with being taller. But each one only nudges a little.
+      eat and sleep. Usually no single instruction makes you tall. Scientists can compare many people to
+      find which instructions go along with being taller. But most of them only nudge a little.
   - level: "highschool"
     label: "High school"
     text: >-
@@ -304,7 +307,7 @@ explainLevels:
       on allele dosage at each SNP, adjusts for ancestry with principal components, and applies a
       threshold of 5 × 10^-8 (0.05 over about a million independent common-variant tests in
       European-ancestry data). Because of linkage disequilibrium, a lead SNP tags a region;
-      fine-mapping, colocalization with expression data and allele editing are needed to find
+      fine-mapping, colocalization with expression data and allele editing are common ways to find
       the causal variant and gene. A polygenic score sums allele counts times GWAS weights and
       loses accuracy where LD and allele frequencies differ from the discovery sample.
   - level: "grad"
@@ -321,24 +324,26 @@ explainLevels:
       parental alleles not passed to the child still associated with educational attainment, at
       29.9% of the transmitted-score association. Within-family designs separate these. An open
       question is how much of the remaining cross-ancestry gap is due to differences in LD and
-      allele frequency, which larger diverse samples can fix, and how much to genuine differences
+      allele frequency, which larger diverse samples can reduce, and how much to genuine differences
       in causal effects or gene-by-environment interaction.
 
 anecdotes:
   - title: "The obesity gene that may work through its neighbours"
-    source: "Frayling et al., Science 316:889 (2007); Smemo et al., Nature 507:371 (2014); Claussnitzer et al., N Engl J Med 373:895 (2015)."
+    source: "Frayling et al., Science 316:889 (2007); Smemo et al., Nature 507:371 (2014); Claussnitzer et al., N Engl J Med 373:895 (2015); Sobreira et al., Science 372:1085 (2021); Zhang et al., Nat Metab 5:1337 (2023)."
     text: >-
       In 2007 a genome-wide search for type 2 diabetes variants found a region in the FTO gene,
-      and the association turned out to act through body mass index: in European adult cohorts,
+      and adjusting for body mass index removed the diabetes association, suggesting it acts through BMI: in European adult cohorts,
       each copy of the risk allele went with about 0.4 kg/m2 higher BMI. For years FTO was called
       an obesity gene. In 2014 Smemo and colleagues reported that the region contacts and
-      regulates IRX3, a gene some distance away. In 2015 Claussnitzer and colleagues traced the
+      regulates IRX3, a gene some distance away. In 2015 Claussnitzer and colleagues linked the
       signal in human fat-cell precursors to one base change, rs1421085, that disrupts an ARID5B
-      binding motif and raises IRX3 and IRX5 expression.
+      binding motif and raises IRX3 and IRX5 expression in cultured cells. The story is not settled:
+      later work found several functional variants in the region, and in mice the same base change
+      raised Fto expression in brown fat and protected against weight gain on a high-fat diet.
   - title: "A score from genes the child never inherited"
     source: "Kong et al., The nature of nurture: effects of parental genotypes, Science 359:424 (2018)."
     text: >-
-      Each parent passes on half of their alleles and keeps the other half. In 2018 Kong and
+      At each locus a parent passes one of their two alleles to a child; the other is not transmitted. In 2018 Kong and
       colleagues, studying 21,637 Icelandic probands with at least one genotyped parent, built an
       educational-attainment score from the alleles the parents did not transmit. Those alleles
       cannot act inside the child, yet the score still associated with the child's educational
@@ -399,7 +404,7 @@ VA is **additive** variance, from the average effects of alleles, the part that 
 Three common errors follow.
 
 - **It is not about a person.** One person has no variance. An h^2 of 0.60 does not mean that 60% of any individual's height comes from genes.
-- **High does not mean fixed.** Phenylketonuria is a single-gene disorder, yet a low-phenylalanine diet prevents most of its harm. Height is highly heritable within populations, yet average height rose across the twentieth century.
+- **High does not mean fixed.** Phenylketonuria is a single-gene disorder, yet a low-phenylalanine diet, started early and kept up, prevents most of its harm. Height is highly heritable within populations, yet average height rose across the twentieth century.
 - **Within-group says nothing about between-group.** In an analogy Richard Lewontin set out in 1970, take a varied stock of seed and plant half in rich soil and half in poor. Within each tray, height differences are entirely genetic; the difference between trays is entirely environmental.
 
 ### Twins: two kinds of sibling as a natural experiment
@@ -415,13 +420,13 @@ Monozygotic (MZ) twins are genetically identical at conception. Dizygotic (DZ) t
 3. e^2 = 1 - 0.80 = 0.20.
 4. Check: 0.60 + 0.20 + 0.20 = 1.00.
 
-These are Falconer's estimates. They assume equal MZ and DZ environments, additive effects and random mating; if MZ pairs are treated more alike, h^2 is overestimated. Polderman and colleagues' 2015 meta-analysis of twin studies of 17,804 traits reported a heritability of 49% across all traits: a summary of that literature under these assumptions, not a law.
+These are Falconer's estimates. They assume equal MZ and DZ environments, additive effects and random mating; if MZ pairs share more trait-relevant environment than DZ pairs, h^2 is overestimated. Polderman and colleagues' 2015 meta-analysis of twin studies of 17,804 traits reported a heritability of 49% across all traits: a summary of that literature under these assumptions, not a law.
 
 ## Scanning the genome: association, tags and a threshold
 
 A **single nucleotide polymorphism (SNP)** is a base position where people carry different nucleotides. A **genome-wide association study (GWAS)** genotypes hundreds of thousands to millions of SNPs in many people and, at each SNP, tests whether allele dosage (0, 1 or 2 copies) associates with the trait, by linear regression for a measurement and logistic regression for a disease.
 
-The key to reading the result is **linkage disequilibrium (LD)**, the nonrandom association of alleles at nearby loci in a population. Neighbouring variants travel together on a stretch of chromosome for many generations before recombination separates them. It differs from linkage in a family, where you count recombinant offspring ([linkage and mapping](/lessons/linkage-and-mapping/)). Because of LD, a SNP that does nothing can show a strong association by tagging a causal variant nearby. A GWAS peak marks a region.
+The key to reading the result is **linkage disequilibrium (LD)**, the nonrandom association of alleles at different loci in a population, usually strongest between nearby loci. Neighbouring variants travel together on a stretch of chromosome for many generations before recombination separates them. It differs from linkage in a family, where you count recombinant offspring ([linkage and mapping](/lessons/linkage-and-mapping/)). Because of LD, a SNP that does nothing can show a strong association by tagging a causal variant nearby. A GWAS peak marks a region.
 
 <LessonFigure src="/figures/complex-traits-and-gwas/ld-tagging-a-region.webp" width={1200} height={492} alt="AI-generated illustration: a chromosome stretch drawn as twelve equal tiles. A bracket over the middle tiles marks a block of neighbouring variants that travel together; a hollow circle marks a tagging SNP and a gold diamond marks the causal variant nearby." caption="Neighbouring variants travel together on a stretch of chromosome for many generations. Because of linkage disequilibrium, a SNP that does nothing can show a strong association by tagging a causal variant nearby, so a GWAS peak marks a region." />
 
@@ -429,15 +434,15 @@ In 2005 Klein and colleagues, with 96 cases of age-related macular degeneration 
 
 **Worked problem 4.** Why 5 x 10^-8? Pe'er and colleagues estimated about one million independent common-variant tests across the genome in European-ancestry HapMap data. A Bonferroni correction divides the acceptable chance of any false positive, 0.05, by the number of tests: 0.05 / 1,000,000 = 5 x 10^-8. The same study estimated about twice as many independent tests in African-ancestry HapMap data, where LD blocks are shorter. The threshold is a convention tied to those LD patterns.
 
-A false hit can also come from **population stratification**. If cases and controls differ in ancestry, every SNP whose frequency differs between the source populations will look associated. Price and colleagues showed in 2006 that principal components of genome-wide genotypes (a few summary axes of genetic variation that track ancestry) can model these differences; they are now standard covariates that reduce confounding without guaranteeing its absence.
+A false hit can also come from **population stratification**. If cases and controls differ in ancestry, SNPs whose frequencies differ between the source populations can look associated even when they do not affect the trait. Price and colleagues showed in 2006 that principal components of genome-wide genotypes (a few summary axes of genetic variation that track ancestry) can model these differences; they are now standard covariates that reduce confounding without guaranteeing its absence.
 
-Yang, Visscher and colleagues estimated in 2010 that common SNPs analysed jointly captured 45% of height variance in 3,925 unrelated people, far more than the significant hits alone, because most effects are too small to pass the threshold.
+Yang, Visscher and colleagues estimated in 2010 that common SNPs analysed jointly captured 45% of height variance in 3,925 unrelated people, far more than the significant hits alone, because most effects are too small to pass the threshold. Later whole-genome sequencing suggested that much of the remaining gap lies in rare variants that arrays tag poorly.
 
 ## From a hit to a mechanism
 
-An association becomes a cause only with three further kinds of evidence. **Fine-mapping** uses the LD pattern, often across several ancestry groups, to rank variants and define a credible set likely to contain the causal one. **Colocalization** tests whether the trait signal and a gene-expression signal in a relevant tissue share the same variant, which points to a gene, often not the nearest. **Editing** changes the allele in the right cell type and measures the genes and the cellular phenotype.
+Moving from an association to a cause takes converging evidence. Three common kinds are these. **Fine-mapping** uses the LD pattern, often across several ancestry groups, to rank variants and define a credible set likely to contain the causal one. **Colocalization** tests whether the trait signal and a gene-expression signal in a relevant tissue share the same variant, which points to a gene, often not the nearest. **Editing** changes the allele in the right cell type and measures the genes and the cellular phenotype.
 
-The FTO region shows why all three matter. The obesity association lies in FTO introns, but Smemo and colleagues (2014) reported that the region regulates IRX3. Claussnitzer and colleagues (2015) traced the signal in human fat-cell precursors to rs1421085, a T-to-C change that disrupts a binding motif for the repressor ARID5B and is associated with doubled IRX3 and IRX5 expression early in differentiation. Correcting the allele by CRISPR in cultured primary adipocytes from a risk-allele carrier restored heat production, reported as about sevenfold. That is a cellular result; it does not show weight change in a person. See [the CRISPR lesson](/lessons/crispr-and-functional-genomics/) for the tools.
+The FTO region shows why such evidence matters, though the work there relied on chromatin contacts, epigenomic maps and editing more than on formal fine-mapping. The obesity association lies in FTO introns, but Smemo and colleagues (2014) reported that the region regulates IRX3. Claussnitzer and colleagues (2015) linked the signal in human fat-cell precursors to rs1421085, a T-to-C change that disrupts a binding motif for the repressor ARID5B and is associated with doubled IRX3 and IRX5 expression early in differentiation. Correcting the allele by CRISPR in cultured primary adipocytes from a risk-allele carrier restored heat production, reported as about sevenfold. That is a cellular result; it does not show weight change in a person. Later work found several functional variants on the same haplotype, and mice carrying the risk base had more brown-fat heat production, not less, so the mechanism is still debated. See [the CRISPR lesson](/lessons/crispr-and-functional-genomics/) for the tools.
 
 ## Polygenic scores, portability and the weight of history
 
@@ -456,12 +461,12 @@ A GWAS reports a lead SNP in an intron of gene A, with p = 3 x 10^-12 and an odd
 <details>
 <summary>One way to do it</summary>
 
-Do not name a gene from the association. The p-value (3 x 10^-12, below 5 x 10^-8) says data this extreme would be very unlikely if nothing in the region affected the trait, not which variant or gene is responsible, because every SNP in strong LD with the lead SNP carries a similar signal. An odds ratio of 1.08 is a small effect for any one person.
+Do not name a gene from the association. The p-value (3 x 10^-12, below 5 x 10^-8) says data this extreme would be very unlikely if the lead SNP had no association with the trait, not which variant or gene is responsible, because every SNP in strong LD with the lead SNP carries a similar signal. An odds ratio of 1.08 is a small effect for any one person.
 
 1. **Fine-map.** Use the LD structure, ideally from cohorts of more than one ancestry, to build a credible set of variants likely to contain the causal one.
 2. **Colocalize.** Test whether the disease signal and the expression signal for C share one causal variant, rather than being two nearby signals; test A and B too.
 3. **Edit.** In the relevant human cell type, use CRISPR to swap the credible-set variant (or delete the candidate enhancer), with matched unedited and sham-edited controls. Measure A, B and C expression and a cellular phenotype linked to the disease.
 
-The FTO region is the precedent: an intronic signal named after one gene was reported to act through regulation of IRX3 and IRX5. A positive edit implicates C in that cell type; linking C to the disease still needs evidence from the organism.
+The FTO region is the precedent, though still debated: an intronic signal named after one gene was reported to act through regulation of IRX3 and IRX5. A positive edit implicates C in that cell type; linking C to the disease still needs evidence from whole organisms or human genetics.
 
 </details>

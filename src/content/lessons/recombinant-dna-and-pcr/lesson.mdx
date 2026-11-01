@@ -151,8 +151,8 @@ structures:
     note: "Klentaq1 ternary complex with primer-template DNA and ddCTP, X-ray crystal structure (Li, Korolev & Waksman, EMBO J., 1998)"
     caption: >-
       The primer's 3' end sits in the active site with the template strand running past it. The
-      incoming nucleotide pairs with the next template base, the step repeated thousands of times in
-      every extension.
+      incoming nucleotide pairs with the next template base, the step repeated once for every base
+      added in an extension.
 
 simulations:
   - type: "local"
@@ -215,7 +215,7 @@ practiceQuestions:
       its own strand; then each new strand contains a site for the other primer. Two primers on one
       strand make only single-stranded copies that neither primer can use. With 5' ends facing each
       other the primers copy away from the target. Primers 15 °C apart in melting temperature
-      cannot both anneal well at one annealing temperature, so primer pairs are matched.
+      rarely both anneal well at one annealing temperature, so primer pairs are matched.
   - stem: "One double-stranded molecule of genomic DNA is the template. Assuming perfect copying, how many double-stranded molecules exactly the length between the two primers exist after three cycles?"
     choices:
       - "Two"
@@ -267,8 +267,8 @@ mcatQuestions:
       - "The RNA itself was copied, since reverse transcription failed"
     answer: 1
     rationale: >-
-      Without reverse transcriptase no cDNA is made, so amplification in that reaction must come
-      from DNA already in the RNA preparation; a Ct only one cycle later means about half as much
+      Without reverse transcriptase no cDNA is made, so amplification in that reaction most likely comes
+      from DNA already in the RNA preparation; if both reactions are about equally efficient, a Ct only one cycle later means about half as much
       template, so roughly half the signal in the main reaction may be genomic DNA. Contaminated
       reagents would also make the no-template control amplify, and it did not. Amplification in
       both reactions says nothing about abundance when one of them should have been blank. Taq
@@ -322,8 +322,8 @@ explainLevels:
       fraction of human tissue samples, which is why geometric means of several validated
       references are used. MIQE guidelines (2009) and their précis (2010) ask for no-RT and no-template controls, and the 2025 revision asks for prediction intervals, detection limits and dynamic ranges for each target.
       On the cloning side, selection and color are phenotypes, not sequence: some white
-      colonies carry no insert, so junction sequencing
-      remains the decisive check. An open question for any qPCR study is how much of the variance
+      colonies carry no insert, so sequencing across the junctions
+      and the insert remains the decisive check. An open question for any qPCR study is how much of the variance
       between replicates comes from efficiency differences that a single assumed E hides.
 
 anecdotes:
@@ -349,8 +349,8 @@ anecdotes:
     source: "Jackson, Symons & Berg, Proc. Natl. Acad. Sci. USA 69:2904 (1972); Berg & Mertz, Genetics 184:9 (2010); Cohen, Proc. Natl. Acad. Sci. USA 110:15521 (2013)."
     text: >-
       In 1972 David Jackson, Robert Symons and Paul Berg reported joining lambda phage genes and the
-      E. coli galactose operon to SV40 DNA in a test tube, using complementary single-nucleotide
-      tails added by terminal transferase. Peter Lobban, a graduate student in Dale Kaiser's
+      E. coli galactose operon to SV40 DNA in a test tube, using complementary poly(dA) and poly(dT)
+      tails, long runs of one kind of nucleotide added by terminal transferase. Peter Lobban, a graduate student in Dale Kaiser's
       Stanford laboratory, independently conceived enzymatic DNA joining and published it with Kaiser in 1973. Cohen and
       Boyer's 1973 work was the first to propagate such a plasmid in bacteria. Accounts of how much credit belongs where still differ.
 
@@ -386,15 +386,15 @@ The first recombinant molecules were made entirely in the test tube. In 1972 Dav
 
 ## Into bacteria: finding the colony that carries your insert
 
-A plasmid is a small circle of DNA that a bacterium copies separately from its chromosome (see [bacterial and phage genetics](/lessons/bacterial-and-phage-genetics/)). A cloning vector is a plasmid reduced to three working parts. An **origin of replication** is the site where the host's replication machinery starts copying; without it the plasmid is not copied and is lost as cells divide. A **selectable marker**, such as a gene for ampicillin resistance, lets only plasmid-bearing cells grow. A **cloning site** holds unique restriction sites where the insert goes.
+A plasmid is a small circle of DNA that a bacterium copies separately from its chromosome (see [bacterial and phage genetics](/lessons/bacterial-and-phage-genetics/)). A basic plasmid cloning vector needs three working parts. An **origin of replication** is the site where the host's replication machinery starts copying; without it the plasmid is not copied and is lost as cells divide. A **selectable marker**, such as a gene for ampicillin resistance, lets only plasmid-bearing cells grow. A **cloning site** holds unique restriction sites where the insert goes.
 
 In 1973 Stanley Cohen, Annie Chang, Herbert Boyer and Robert Helling joined restriction fragments from separate plasmids, put the products into E. coli and recovered plasmids that replicated and carried properties of both parents. Berg's group had made recombinant DNA first; the Cohen and Boyer collaboration first showed a recombinant plasmid replicating in a cell.
 
-Getting the plasmid in is **transformation**: uptake of naked DNA by a bacterial cell. Cells are made competent with cold calcium chloride or by electroporation, and only a fraction take up a plasmid. Bacterial transformation is a different process from transfection, which is putting DNA into animal cells, and from oncogenic transformation, which is a cell becoming cancer-like.
+Getting the plasmid in is **transformation**: uptake of naked DNA by a bacterial cell. Cells treated with cold calcium chloride take up DNA during a brief heat shock; other cells take it up during an electric pulse, which is electroporation. Either way only a fraction take up a plasmid. Bacterial transformation is a different process from transfection, which is putting DNA into animal cells, and from oncogenic transformation, which is a cell becoming cancer-like.
 
-Now the two questions every cloning experiment must keep apart. **Selection** asks whether a cell has a plasmid: on ampicillin, cells without one die. But a vector that closed up without an insert also confers resistance. **Screening** asks which plasmid it is. In blue-white screening the cloning site sits inside lacZ-alpha, a short piece of the beta-galactosidase gene from the [lac operon](/lessons/lac-operon/). The host strain makes the rest of the enzyme, and the two pieces together are active. Active enzyme turns the colorless substrate X-gal blue. An insert in the cloning site breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert. The final checks are a restriction digest or colony PCR, then sequencing across both junctions. Even then a correct plasmid need not express its insert; that needs a promoter and the other parts of an expression construct (see [hacking the cell](/lessons/hacking-the-cell/)).
+Now the two questions every cloning experiment must keep apart. **Selection** asks whether a cell has a plasmid: on ampicillin, cells without one die. But a vector that closed up without an insert also confers resistance. **Screening** asks which plasmid it is. In blue-white screening the cloning site sits inside lacZ-alpha, a short piece of the beta-galactosidase gene from the [lac operon](/lessons/lac-operon/). The host strain makes the rest of the enzyme, and the two pieces together are active. Active enzyme turns the colorless substrate X-gal blue. An insert in the cloning site usually breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert. The final checks are a restriction digest or colony PCR, then sequencing across both junctions and through the insert. Even then a correct plasmid need not express its insert; that needs a promoter and the other parts of an expression construct (see [hacking the cell](/lessons/hacking-the-cell/)).
 
-<LessonFigure src="/figures/recombinant-dna-and-pcr/blue-white-screening.webp" width={1200} height={839} alt="AI-generated illustration: two plasmid rings. The left ring has an origin of replication, an ampicillin resistance block and an intact lacZ-alpha block, and gives a blue colony. The right ring has an insert splitting lacZ-alpha and gives a white colony. A small inset shows an ampicillin plate with blue and white colonies." caption="A vector closed without an insert keeps lacZ-alpha intact and makes blue colonies on X-gal. An insert in the cloning site breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert." />
+<LessonFigure src="/figures/recombinant-dna-and-pcr/blue-white-screening.webp" width={1200} height={839} alt="AI-generated illustration: two plasmid rings. The left ring has an origin of replication, an ampicillin resistance block and an intact lacZ-alpha block, and gives a blue colony. The right ring has an insert splitting lacZ-alpha and gives a white colony. A small inset shows an ampicillin plate with blue and white colonies." caption="A vector closed without an insert keeps lacZ-alpha intact and makes blue colonies on X-gal. An insert in the cloning site usually breaks lacZ-alpha, so recombinant colonies stay white. White is a strong hint, not proof: some white colonies carry no insert." />
 
 ## PCR: copying one region a billion times
 
@@ -448,7 +448,7 @@ Each readout needs its controls:
 
 - a **size ladder** on every gel;
 - a **no-template control** for every PCR, to detect contamination, and a **no-RT control** for RNA, to detect genomic DNA;
-- a **positive control**, so a negative result means the target was not detected rather than that the reaction failed;
+- a **positive control**, to show that the assay works, and a check for inhibitors in the sample, such as a spike-in, so a negative result means the target was not detected rather than that the reaction failed;
 - a **loading control** on blots, such as a reprobe for a stable RNA or a total-protein stain, read within its linear range.
 
 ### Design problem
@@ -458,13 +458,13 @@ You cut a 5.0 kb vector and a 1.2 kb insert with EcoRI and BamHI, ligate, transf
 <details>
 <summary>One way to do it</summary>
 
-**Interpret.** An EcoRI end (AATT overhang) cannot pair with a BamHI end (GATC overhang), so a vector cut by both enzymes cannot close on itself. Colonies from vector alone must come from vector that was cut by only one enzyme, whose matching ends re-ligate, or not cut at all, since uncut plasmid transforms well. That background is 180 of 200, so most colonies on the insert plate probably lack the insert.
+**Interpret.** An EcoRI end (AATT overhang) cannot pair with a BamHI end (GATC overhang), so a vector cut by both enzymes cannot close on itself. Colonies from vector alone mostly come from vector that was cut by only one enzyme, whose matching ends re-ligate, or not cut at all, since uncut plasmid transforms well. Less often, the small piece cut out between the two sites is ligated back in. That background is 180 of 200, so most colonies on the insert plate probably lack the insert.
 
 **Redesign.**
 1. Digest the vector longer or with more enzyme, and check each single digest.
-2. Gel-purify the cut vector away from uncut circles. Singly and doubly cut vector run at almost the same size, so this step alone is not enough.
+2. Gel-purify the cut vector away from uncut circles. When the two sites sit close together, as in a cloning site, singly and doubly cut vector run at almost the same size, so this step alone is not enough.
 3. Dephosphorylate the vector with alkaline phosphatase. Without 5'-phosphates it cannot re-ligate, while the insert still supplies phosphates for each junction.
 4. Add controls: cut vector without ligase, to measure carry-over of uncut plasmid (the vector-only ligation above adds singly cut vector that re-closes); and uncut plasmid, to measure transformation efficiency.
-5. Screen colonies by colony PCR or by EcoRI plus BamHI digest, expecting bands of 5.0 and 1.2 kb, then sequence across both junctions.
+5. Screen colonies by colony PCR or by EcoRI plus BamHI digest, expecting bands of 5.0 and 1.2 kb, then sequence across both junctions and through the insert.
 
 </details>

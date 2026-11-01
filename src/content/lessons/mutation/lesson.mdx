@@ -11,7 +11,7 @@ summary: >-
   fluctuation test and replica plating that showed bacterial mutants arise before selection, and
   estimate a mutation rate from a fluctuation test. Afterwards you can name the main spontaneous
   and induced sources of mutation and read an Ames test without claiming more than it shows.
-hook: "Ten identical bacterial cultures meet the same virus. Why does one give 52 survivors while five give none?"
+hook: "Ten bacterial cultures of the same strain meet the same virus. Why does one give 52 survivors while five give none?"
 
 estMinutes: 24
 objectives:
@@ -46,9 +46,10 @@ scientists:
       already different? Luria saw that the two ideas predict different patterns across many
       small cultures, and set out to count. The 1943 paper in Genetics, written with Max
       Delbrück, states in a footnote that Luria was responsible for the experiments. The answer,
-      that resistance arose in that system without the virus's help, made bacteria usable for
-      genetics: if their mutants behave like those of flies and maize, they can be crossed,
-      mapped and counted in numbers no animal allows. In 1969 Luria shared the Nobel Prize in
+      that resistance arose in that system without the virus's help, showed that bacteria have
+      genes that mutate like those of flies and maize, and helped make them a subject for
+      genetics. Crossing and mapping came later, after Joshua Lederberg and Edward Tatum found
+      gene recombination in E. coli in 1946. In 1969 Luria shared the Nobel Prize in
       Physiology or Medicine with Delbrück and Alfred Hershey.
   - name: "Max Delbrück"
     contribution: >-
@@ -100,8 +101,8 @@ scientists:
     story: >-
       Ames was a biochemist who had studied the genes for histidine synthesis in Salmonella, and
       the mutagen test he built uses histidine-requiring Salmonella mutants. Mutant strains that cannot
-      make histidine form no colonies on a plate that lacks it, unless a second mutation restores
-      the gene. Counting those revertant colonies measures how often a chemical causes mutations.
+      make histidine form no colonies on a plate that lacks it, unless a further mutation restores
+      their ability to make histidine. Comparing the count of revertant colonies with the untreated background shows whether a chemical causes mutations in these strains.
       Many carcinogens, though, do nothing to bacteria until the body's enzymes alter them. In
       1973, at the University of California, Berkeley, Ames, William Durston, Edith Yamasaki and
       Frank Lee added rat or human liver homogenate to the plates and reported that 18 tested
@@ -115,13 +116,14 @@ techniques:
     blurb: >-
       Grow many small independent cultures from few cells, plate each one entirely on a selective
       medium, and count mutant colonies per culture. The scatter across cultures tells you whether
-      mutants arose during growth, and the distribution gives the number of mutation events and
-      so the mutation rate.
+      mutants arose during growth, and the distribution gives an estimate of the average number of
+      mutation events per culture and so the mutation rate.
   - name: "Replica plating"
     blurb: >-
       Press sterile velvet onto a master plate and print its colonies, in their positions, onto
       plates with different media or agents. A colony that fails to grow on one print, or grows
-      only there, is a mutant you can then pick from the master without ever exposing it.
+      only there, marks a likely mutant at that spot on the master, which you can pick without
+      ever exposing it and then confirm by retesting.
   - name: "Bacterial reverse-mutation (Ames) test"
     blurb: >-
       Expose amino-acid-requiring tester strains to a chemical, with and without a liver enzyme
@@ -154,8 +156,8 @@ structures:
     id: "6113"
     note: "PubChem compound record."
     caption: >-
-      The ethyl group is what EMS transfers to DNA. Ethylated guanine tends to pair with thymine,
-      which gives G:C to A:T transitions.
+      The ethyl group is what EMS transfers to DNA. One product, O6-ethylguanine, tends to pair with
+      thymine, which gives G:C to A:T transitions.
   - label: "Proflavine — an acridine dye that intercalates and causes frameshifts"
     source: "pubchem"
     id: "7099"
@@ -176,7 +178,7 @@ simulations:
     ref: "FluctuationTestSimulator"
     title: "Fluctuation test: induced or already there?"
     caption: >-
-      Run parallel cultures under both hypotheses and watch jackpots and empty plates appear only when mutation comes before exposure.
+      Run parallel cultures under both hypotheses and watch jackpots and an excess of empty plates appear when mutation comes before exposure, while induction gives counts that cluster near the mean.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -202,7 +204,7 @@ practiceQuestions:
     answer: 3
     rationale: >-
       Three bases is one codon, so the codons after the deletion are read in their normal groups
-      and the protein is one amino acid shorter. A shift by one base happens when the indel length
+      and the protein is one amino acid shorter. A frameshift happens when the indel length
       is not a multiple of three. A stop codon is not required; one can form at a junction only by
       chance when a deletion spans two codons. The start codon is far upstream and untouched, so
       reading still begins normally.
@@ -217,9 +219,10 @@ practiceQuestions:
       Exons carry more than codons: sequences that guide splicing, and features that affect mRNA
       stability and translation, so a synonymous change can lower protein output. By definition a
       synonymous change keeps the same amino acid, so the amino-acid explanation is wrong. A
-      substitution cannot shift the frame. A change to a stop codon would be a nonsense mutation,
+      substitution does not change the number of bases, so it cannot shift the frame directly; any
+      frame change would come through faulty splicing, the explanation in the correct choice. A change to a stop codon would be a nonsense mutation,
       not a synonymous one.
-  - stem: "One bacterial culture of 10^9 cells contains 500 resistant mutants, and sequencing shows they all descend from a single mutation that happened early in growth. What does the ratio 500/10^9 measure?"
+  - stem: "One bacterial culture of 10^9 cells contains 500 resistant mutants, and suppose they all descend from a single mutation that happened early in growth. What does the ratio 500/10^9 measure?"
     choices:
       - "The mutation rate per cell division in this culture"
       - "The number of separate mutation events in the culture"
@@ -240,7 +243,7 @@ practiceQuestions:
       - "Large deletions that span several adjacent genes"
     answer: 1
     rationale: >-
-      EMS ethylates guanine, and the ethylated guanine tends to pair with thymine, so after
+      EMS ethylates guanine, and one product, O6-ethylguanine, tends to pair with thymine, so after
       replication a G:C pair becomes A:T, a transition. Transversions are not the main EMS
       signature. Single-base insertions at repeats are typical of replication slippage and of
       intercalators such as proflavine. Large multi-gene deletions are more typical of ionizing
@@ -291,8 +294,8 @@ explainLevels:
   - level: "eli5"
     label: "Like I'm five"
     text: >-
-      Every time a cell copies its DNA, it can make a tiny spelling mistake, and the mistake gets
-      copied from then on. Most mistakes do nothing, some break a gene, and once in a while one
+      Every time a cell copies its DNA, it can make a tiny spelling mistake, and if the cell does not
+      fix it, the mistake gets copied from then on. Most mistakes do nothing, some break a gene, and once in a while one
       helps. Scientists showed that the mistakes happen by chance, before anyone knows whether they
       will help. Some chemicals and some kinds of light make the mistakes happen more often.
   - level: "highschool"
@@ -321,7 +324,7 @@ explainLevels:
       include replication errors, deamination (5-methylcytosine to thymine at CpG), depurination,
       slippage at repeats, base analogs, alkylating agents, intercalators, UV and ionizing
       radiation. The Ames test scores reversion of histidine-requiring Salmonella with and without
-      liver S9, and detects bacterial mutagens, not human carcinogens.
+      liver S9, and detects bacterial mutagens; it can flag a possible carcinogen but does not by itself show that a chemical causes cancer in people.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -330,8 +333,8 @@ explainLevels:
       counts follow the heavily skewed Luria and Delbrück distribution. The zero-class estimator
       m = -ln p0 is simple but useful only over a narrow range (Foster's 2006 guide gives p0 between 10% and 70%, roughly m = 0.3 to 2.3, as its range of usefulness), and maximum-likelihood methods that use the whole distribution are now preferred. The
       rate per division is m divided by the number of divisions, about Nt - N0. Mean-based
-      estimates are inflated by jackpots, phenotypic lag inflates p0, partial plating adds
-      sampling noise, and neglecting cell death can overstate rates under stress. Genome-wide
+      estimates are inflated by jackpots, phenotypic lag inflates p0, partial plating
+      inflates p0 and lowers the estimate unless corrected for the fraction plated, and neglecting cell death can overstate rates under stress. Genome-wide
       mutation-accumulation lines with sequencing give a different kind of number: about 2.0 x
       10^-10 base substitutions per nucleotide per generation in wild-type E. coli K-12 (Lee et
       al. 2012), which cannot be compared with a single-locus resistance rate without an
@@ -347,7 +350,7 @@ anecdotes:
   - title: "A footnote that divided the work"
     source: "Luria & Delbrück, Genetics 28:491–511 (1943), footnote on p. 491."
     text: >-
-      Scientific papers rarely say who did what, but the fluctuation-test paper does. A footnote on
+      Papers of that era rarely said who did what, but the fluctuation-test paper does. A footnote on
       its first page assigns the experiments to Luria and the theory to Delbrück. The division
       shows in the paper itself: long stretches of probability argument about what each
       hypothesis predicts, set beside tables of colony counts from parallel cultures and from
@@ -394,13 +397,13 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Grow ten small cultures of the same *E. coli* to the same size, spread each one on a plate covered with a bacterial virus, and you may find 52 resistant colonies on one plate while five plates have none.**
 
-The cells were identical, the virus was identical, and the plates were treated alike. Why such different numbers? The answer decides an old question in biology: does the environment that selects a useful variant also create it? To answer it you first need words for what a variant is.
+The cultures started from the same strain, the virus was identical, and the plates were treated alike. Why such different numbers? The answer decides an old question in biology: does the environment that selects a useful variant also create it? To answer it you first need words for what a variant is.
 
 ## The idea: a mutation is a change in sequence, sorted two ways
 
 A **mutation** is a heritable change in the DNA sequence. A **point mutation** changes one base pair, or adds or removes a few. You can sort point mutations in two independent ways.
 
-**By the change in DNA.** A **transition** swaps a purine for a purine (A and G) or a pyrimidine for a pyrimidine (C and T). A **transversion** swaps a purine for a pyrimidine or the reverse. Each base has one transition partner and two transversion partners, so there are 4 possible transitions and 8 possible transversions. Even so, in most organisms studied, transitions are the more common kind. An **insertion** or **deletion** (an indel) adds or removes bases.
+**By the change in DNA.** A **transition** swaps a purine for a purine (A and G) or a pyrimidine for a pyrimidine (C and T). A **transversion** swaps a purine for a pyrimidine or the reverse. Each base has one transition partner and two transversion partners, so there are 4 possible transitions and 8 possible transversions. Even so, in many organisms studied, transitions are the more common kind. An **insertion** or **deletion** (an indel) adds or removes bases.
 
 **By the effect on the protein.** Inside a coding sequence:
 
@@ -423,7 +426,7 @@ Salvador Luria and Max Delbrück saw that the two ideas predict different patter
 - **If the virus induces resistance**, every cell on the plate has the same small chance of becoming resistant. Counts from separate cultures should scatter only as much as random sampling allows, like raindrops on paving stones. The variance should be close to the mean.
 - **If mutation comes first**, a mutation early in a culture's growth leaves a large clone of resistant descendants (a "jackpot"), a late one leaves a few, and many cultures have none. The variance should be far larger than the mean.
 
-They compared many independent cultures with repeated samples from a single large culture, which measures plating noise alone. The independent cultures scattered far beyond sampling error, and they concluded that, in their system, resistance arose independently of the virus. Later work has shown that mutation rates can change with a cell's condition (pulses of mutagenesis after alkylation damage have been seen in single *E. coli* cells), and the debate over stress and mutation continues. None of it reverses the 1943 result for phage resistance.
+They compared many independent cultures with repeated samples from a single large culture, which measures sampling and plating error alone. The independent cultures scattered far beyond sampling error, and they concluded that, in their system, resistance arose independently of the virus. Later work has shown that mutation rates can change with a cell's condition (pulses of mutagenesis after alkylation damage have been seen in single *E. coli* cells), and the debate over stress and mutation continues. None of it reverses the 1943 result for phage resistance.
 
 **Worked problem.** Ten independent 0.2 mL cultures and one bulk culture of *E. coli* each grow to about 2 x 10^8 cells per 0.2 mL. Each independent culture, and ten 0.2 mL samples of the bulk culture, are plated on T1. Assume every mutant survives plating and is counted, mutants grow like the parent, no mutations arise after plating, and the number of divisions in a culture roughly equals its final cell number.
 
@@ -454,7 +457,7 @@ Matching positions point back to particular spots on the master. The Lederbergs 
 
 **Spontaneous** mutations arise from the cell's own chemistry and copying, with no applied mutagen.
 
-- **Replication errors.** DNA polymerase sometimes inserts the wrong base (see [DNA replication](/lessons/dna-replication/)). Rare alternative forms of the bases, called tautomers, were proposed as one cause of mispairing; that model is historical and now treated with caution.
+- **Replication errors.** DNA polymerase sometimes inserts the wrong base (see [DNA replication](/lessons/dna-replication/)). Rare alternative forms of the bases, called tautomers, were proposed long ago as one cause of mispairing. NMR work has since detected short-lived tautomeric and ionized forms that let a wrong pair take the shape of a correct one, though how much they add to mutation in living cells is still being worked out.
 - **Deamination.** Cytosine loses its amino group and becomes uracil, which repair enzymes recognize as foreign. 5-Methylcytosine deaminates to thymine, a normal base, so the G:T mismatch is harder to resolve correctly and CpG sites, where cytosines are often methylated in vertebrates, are hot spots for C:G to T:A transitions. The chemistry is in [nucleotide metabolism](/lessons/nucleotide-metabolism/).
 - **Depurination.** The bond between a purine and its sugar breaks, leaving a site with no base to copy.
 - **Slippage.** In runs of repeated bases, the new strand can loop out or slip back during copying, adding or removing repeat units.
@@ -467,13 +470,13 @@ Matching positions point back to particular spots on the master. The Lederbergs 
 - **Ultraviolet light** joins adjacent pyrimidines into dimers. A dimer is damage, not yet a mutation; whether it becomes one depends on repair and on how polymerases copy past it.
 - **Ionizing radiation** breaks DNA strands and damages bases.
 
-Induced mutation began with Hermann Muller, who reported in *Science* in 1927 that X-rays greatly raise the mutation rate in *Drosophila*, in experiments that counted new lethal mutations on the X chromosome. He received the Nobel Prize in 1946. How cells fix damage before it becomes mutation is the subject of [DNA repair and recombination](/lessons/dna-repair-and-recombination/).
+A landmark in the study of induced mutation came from Hermann Muller, who reported in *Science* in 1927 that X-rays greatly raise the mutation rate in *Drosophila*, in experiments that counted new lethal mutations on the X chromosome. He received the Nobel Prize in 1946. How cells fix damage before it becomes mutation is the subject of [DNA repair and recombination](/lessons/dna-repair-and-recombination/).
 
 ## The Ames test and what it can and cannot say
 
 Bruce Ames's test uses *Salmonella* strains that cannot make histidine because of a mutation in a histidine gene. On a plate with only a trace of histidine, they divide a few times and stop, unless a new mutation restores histidine synthesis. Each revertant colony marks such an event, sometimes at the original site and sometimes at a second, compensating site. Strain TA100 reverts mainly by base-pair substitution; TA98 reverts mainly by frameshift. Plates are run with and without S9, a rat-liver enzyme fraction, because many carcinogens become reactive only after liver metabolism. In 1973 Ames and colleagues reported that liver homogenate converted 18 tested carcinogens into frameshift mutagens.
 
-<LessonFigure src="/figures/mutation/ames-test-activation.webp" width={1200} height={779} alt="AI-generated illustration: a petri dish with many tiny stalled bacterial specks and three larger revertant colonies, with an inset showing a test chemical passing through an S9 liver fraction to become a reactive metabolite that reaches a bacterium." caption="Histidine-dependent Salmonella divide a few times on a plate with only a trace of histidine and stop, unless a new mutation restores histidine synthesis; each revertant colony marks such an event. Plates are run with S9, a rat-liver fraction, because many carcinogens become reactive only after liver metabolism." />
+<LessonFigure src="/figures/mutation/ames-test-activation.webp" width={1200} height={779} alt="AI-generated illustration: a petri dish with many tiny stalled bacterial specks and three larger revertant colonies, with an inset showing a test chemical passing through an S9 liver fraction to become a reactive metabolite that reaches a bacterium." caption="Histidine-dependent Salmonella divide a few times on a plate with only a trace of histidine and stop, unless a new mutation restores histidine synthesis; each revertant colony marks such an event. Plates are run with and without S9, a rat-liver fraction, because many carcinogens become reactive only after liver metabolism." />
 
 Two limits matter. A positive result shows that a chemical, or a metabolite, mutates bacteria; it does not measure cancer risk in people. A negative result does not prove safety, because some carcinogens act without mutating DNA or through processes bacteria lack. In McCann and colleagues' 1975 set, 156 of 174 tested carcinogens were positive, a figure for that set of chemicals.
 
@@ -484,7 +487,7 @@ TA100 gives about 120 spontaneous revertants per plate and TA98 about 30. Compou
 <details>
 <summary>One way to do it</summary>
 
-Compare each count with its strain's background. TA100 without S9 stays at about 120 at every dose, so X itself does not mutate strain TA100 at these doses. TA100 with S9 rises to about 2, 4 and 8 times background as the dose rises: a dose-dependent increase in base-pair substitutions that appears only after liver metabolism. TA98 with S9 stays at about 30, so there is no frameshift activity.
+Compare each count with its strain's background. TA100 without S9 stays at about 120 at every dose, so X itself shows no detectable mutagenic activity in TA100 at these doses. TA100 with S9 rises to about 2, 4 and 8 times background as the dose rises: a dose-dependent increase in base-pair substitutions that appears only after liver metabolism. TA98 with S9 stays at about 30, so there is no detectable frameshift activity in TA98.
 
 Conclusion: a metabolite of X is a base-substitution mutagen in *Salmonella*. The result does not show that X causes cancer in people, since the test measures bacterial mutation with rat-liver enzymes. Had TA98 and TA100 both been negative, that would not have shown X is safe either, because some carcinogens act without mutation.
 

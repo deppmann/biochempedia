@@ -11,14 +11,14 @@ summary: >-
   raw counts to a map, then asks why a centimorgan is not a fixed length of DNA. Afterwards you
   can order three genes, calculate interval distances, coincidence and interference, and say
   where crossovers in humans and mice tend to fall.
-hook: "Two crossovers between the same pair of genes cancel out. How do you count what you cannot see?"
+hook: "Two crossovers on one chromatid between the same pair of genes cancel out. How do you count what you cannot see?"
 
 estMinutes: 24
 objectives:
   - "Order three linked genes from a test cross by matching the double-crossover classes to the parental classes and finding the gene that has switched."
   - "Calculate each interval's map distance with the double crossovers counted in both intervals, and explain why a two-point count across the outer genes comes out smaller."
   - "Calculate the expected number of double crossovers, the coefficient of coincidence and the interference, and state what positive and negative interference mean."
-  - "Compare genetic distance with physical distance, using hotspots, PRDM9, sex differences and the absence of crossing over in Drosophila males."
+  - "Compare genetic distance with physical distance, using hotspots, PRDM9, sex differences and the absence of crossing over in Drosophila melanogaster males."
 
 explainer:
   src: "/explainers/three-point-mapping/explainer.mp4"
@@ -105,12 +105,10 @@ techniques:
   - name: "Dense SNP genotyping of progeny"
     blurb: >-
       Single-nucleotide differences between the two parental chromosomes are read in many
-      offspring, or in the genomes of single offspring. Each switch from one parent's sequence to
-      the other's marks a crossover to within the spacing of the markers, which places
-      crossovers on the DNA sequence itself.
+      offspring, or in the genomes of single offspring. A lasting switch from one parent's sequence to the other's marks a crossover to within the spacing of the markers, which places crossovers on the DNA sequence itself. A short switch that returns to the first parent marks a gene conversion instead.
 
 structures:
-  - label: "PRDM9 zinc fingers on hotspot DNA — the protein that chooses where crossovers start"
+  - label: "PRDM9 zinc fingers on hotspot DNA — the protein that helps choose where recombination starts"
     source: "rcsb"
     id: "5EGB"
     note: "Human PRDM9 allele A zinc-finger domain bound to a recombination hotspot DNA sequence, X-ray crystal structure (Genes Dev., 2016)"
@@ -123,7 +121,7 @@ structures:
     note: "Methyltransferase (PR/SET) domain of human PRDM9, X-ray crystal structure"
     caption: >-
       This domain trimethylates lysine 4 of histone H3 on nucleosomes near the bound site. Look
-      for the pocket where the lysine side chain enters.
+      for the histone-bound form in entry 4C1Q; this entry has no histone peptide or cofactor.
   - label: "Topoisomerase VI A subunit — the archaeal relative of Spo11, which breaks DNA to start recombination"
     source: "rcsb"
     id: "1D3Y"
@@ -157,10 +155,8 @@ practiceQuestions:
     answer: 1
     rationale: >-
       A double crossover needs a crossover in both intervals at once, so it is the rarest event,
-      and it swaps only the gene between the two crossovers. The largest classes are the
-      parentals, made with no crossover. The gene written first is only first in the listing,
-      which need not be map order. Classes making up about half the progeny would fit unlinked
-      genes, not the rare products of two crossovers. Rarity is a guide, so check it against
+      and it swaps only the gene between the two crossovers. The largest classes are the parentals, made mostly with no crossover. The gene written first is only first in the listing,
+      which need not be map order. Two classes making up about half the progeny are large classes, not the rare products of two crossovers; with unlinked genes, any two of the eight classes would make up about a quarter. Rarity is a guide, so check it against
       the parentals and against viability before relying on it.
   - stem: "A test cross gives parental classes A B C and a b c. The two rarest classes are a B C and A b c. Which gene lies in the middle?"
     choices:
@@ -226,8 +222,7 @@ mcatQuestions:
       Compare each rare class with the parental that shares most of its alleles: d E F against
       d E f differs only at F, and D e f against D e F differs only at F. The gene switched in
       the doubles is the middle gene, so F lies between D and E. E is in the middle only of the
-      alphabetical listing. D keeps its parental partner alleles in both doubles, so it is an
-      outer gene. Unlinked genes would give eight classes of about equal size, not two classes
+      alphabetical listing. D and E keep their parental pairing in both doubles, so they are the outer genes. Unlinked genes would give eight classes of about equal size, not two classes
       above 400 and two below 10.
   - stem: "In a three-point test cross of 1,000 progeny with gene order A - B - C, there are 70 + 74 single crossovers between A and B, 40 + 36 between B and C, and 3 + 5 double crossovers. What is the A to C map distance from the two intervals, and what would counting A and C alone give?"
     choices:
@@ -272,7 +267,7 @@ explainLevels:
       Genes on the same chromosome stay together unless a crossover swaps pieces between the
       two copies. To map three genes, scientists cross a parent carrying different versions of
       all three with a parent carrying only recessive versions, and count the eight kinds of
-      offspring. The commonest kinds have no swap. The rarest have two swaps, one on each side
+      offspring. The commonest kinds show no swap. The rarest have two swaps, one on each side
       of the middle gene, and the middle gene is the only one that looks swapped. Counting how
       often each gap is crossed gives distances in centimorgans. These distances measure how
       often crossovers happen, not how much DNA lies between the genes.
@@ -308,9 +303,7 @@ explainLevels:
       mice PRDM9 binds a sequence motif through its zinc fingers, trimethylates histone H3 on
       lysine 4 nearby, and so marks sites where Spo11 makes breaks. Dogs lack a functional
       PRDM9 and birds appear to lack the gene; in those animals, as in budding yeast, hotspots tend to sit
-      near promoter-like features. An open question is why PRDM9 binding sites, and so hotspots, turn over so
-      fast in evolution, given that the motif a hotspot needs is erased by the very
-      recombination it starts.
+      near promoter-like features. Because the motif a hotspot needs is erased by the very recombination it starts, single hotspots are lost quickly in evolution, and new PRDM9 variants create new ones. What drives the fast change in PRDM9's zinc fingers is still debated.
 
 anecdotes:
   - title: "Two factors at one point"
@@ -358,9 +351,9 @@ draft: false
 import ThreePointOrderFinder from '../../../components/ThreePointOrderFinder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**Two crossovers between the same pair of genes cancel out. If you score only those two genes, an offspring with two crossovers looks exactly like one with none.**
+**Two crossovers on one chromatid between the same pair of genes cancel out. If you score only those two genes, an offspring that inherits that chromatid looks exactly like one with no crossover.**
 
-In [linkage and mapping](/lessons/linkage-and-mapping/) you measured the distance between two genes by counting recombinant offspring. That count has a blind spot. A **crossover** is an exchange of segments between two non-sister chromatids in meiosis (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). One crossover between two genes recombines them. A second crossover between the same two genes puts them back together. The gamete has been rearranged twice and looks parental. This lesson shows how a third gene, placed between the other two, makes those hidden events visible, and what the counts then tell you about order, distance and the spacing of crossovers.
+In [linkage and mapping](/lessons/linkage-and-mapping/) you measured the distance between two genes by counting recombinant offspring. That count has a blind spot. A **crossover** is an exchange of segments between two non-sister chromatids in meiosis (see [chromosomes and meiosis](/lessons/chromosomes-and-meiosis/)). One crossover between two genes recombines them. A second crossover between the same two genes, on the same chromatid, puts them back together. The gamete has been rearranged twice and looks parental. This lesson shows how a third gene, placed between the other two, makes those hidden events visible, and what the counts then tell you about order, distance and the spacing of crossovers.
 
 ## Why add a third gene: the middle marker catches the doubles
 
@@ -368,7 +361,7 @@ A **locus** is the place a gene occupies on a chromosome, and the versions of a 
 
 Follow three linked loci in one test cross and each gamete can carry one of eight allele combinations. Those combinations fall into four pairs:
 
-- **Parentals**: no crossover between any of the three loci. Two classes, the largest.
+- **Parentals**: no crossover detected between the three loci. Two classes, the largest.
 - **Single crossovers in the first interval**: two classes.
 - **Single crossovers in the second interval**: two classes.
 - **Double crossovers**: one crossover in each interval. Two classes, usually the smallest.
@@ -421,7 +414,7 @@ A caution. Rarest usually means double, but a class can also be small because th
 - p to r: (96 + 92 + 7 + 5) / 1,000 = 200 / 1,000 = 20.0 cM
 - q to r: 12.0 + 20.0 = 32.0 cM
 
-Now score only q and r, as a two-point cross would. The doubles q + r and + p + carry the parental q-r combinations, so they drop out: (53 + 55 + 96 + 92) / 1,000 = 296 / 1,000 = 29.6%. The two-point estimate is short by 2.4 points, which is the 12 doubles counted twice (24 / 1,000). Leaving the doubles out of the interval counts is the commonest error in these problems.
+Now score only q and r, as a two-point cross would. The doubles q + r and + p + carry the parental q-r combinations, so they drop out: (53 + 55 + 96 + 92) / 1,000 = 296 / 1,000 = 29.6%. The two-point estimate is short by 2.4 points, which is the 12 doubles counted twice (24 / 1,000). Do not leave the doubles out of the interval counts.
 
 Even 32.0 cM is a lower bound. Two crossovers inside the q-p interval, with no marker between them, still escape detection. That is why Sturtevant preferred to build maps from short adjacent intervals.
 
@@ -455,7 +448,7 @@ So even with no interference at all, about one cross in twenty this size would s
 
 To decide, score more progeny. With 5,000 progeny you expect 30 doubles under independence, and the chance of zero becomes e^-30, about 10^-13. If you still see none, interference is close to complete over these intervals. If you see about 15, interference is about 0.5.
 
-Before blaming interference, check that the double-crossover classes survive and can be scored, since a missing class can be a viability problem. And remember why interference is expected here: these intervals are short and adjacent, where one crossover most strongly reduces the chance of another. Over widely separated intervals the coincidence would be near 1.
+Before blaming interference, check that the double-crossover classes survive and can be scored, since a missing class can be a viability problem. And remember why interference is plausible here: in organisms whose crossovers show interference, it is strongest over short adjacent intervals like these. Over widely separated intervals the coincidence would be near 1.
 
 </details>
 
@@ -467,6 +460,6 @@ In humans the genome-wide average is close to 1 cM per million base pairs. That 
 
 <LessonFigure src="/figures/three-point-mapping/prdm9-hotspot-moves.webp" width={1200} height={783} alt="AI-generated illustration: a PRDM9 protein with a row of zinc-finger lobes sits on a short gold hotspot stretch of DNA, marks a nearby histone, and Spo11 makes a break beside it; in a second panel, different zinc fingers sit on a different stretch of DNA and the gold hotspot has moved." caption="PRDM9 binds particular DNA sequences through a row of zinc fingers and places a methyl mark on histone H3 nearby; Spo11 breaks near such sites start recombination. Change the zinc fingers and the hotspots move, as in humans and mice." />
 
-The map also depends on who makes the gametes. The human female map is longer than the male map, by about 1.6 to 1.7 times over the genome as a whole. Drosophila males go further: they have no meiotic crossing over. That is why Drosophila mapping crosses put the triple heterozygote in the female, as in the fly question at the end of this lesson. Near centromeres, crossovers are suppressed in many organisms, including Drosophila and Arabidopsis. And in Drosophila females, crossover rates measured in 100-kilobase windows varied strongly along the chromosomes and between strains.
+The map also depends on who makes the gametes. The human female map is longer than the male map, by about 1.6 to 1.7 times over the genome as a whole. Males of *Drosophila melanogaster* go further: they normally have no meiotic crossing over, although males of some other species, such as *D. ananassae*, do. That is why *D. melanogaster* mapping crosses put the triple heterozygote in the female, as in the fly question at the end of this lesson. Near centromeres, crossovers are suppressed in many organisms, including Drosophila and Arabidopsis. And in *D. melanogaster* females, crossover rates varied strongly along the chromosomes and between strains.
 
 So a genetic map and a DNA sequence agree on order and disagree on spacing. Use the map to predict how often genes travel together. Use the sequence to say how much DNA lies between them.
