@@ -117,7 +117,7 @@ class S01Moths(SpokenScene):
         ld.move_to([3.2, -2.95, 0]); self.play(FadeIn(ld), run_time=0.3)
 
         # soot
-        self.at("soot darkened the trees")
+        self.at("soot darkened")
         lab = T("sooty trees", 34, GREY, weight=BOLD).move_to([0, -2.95, 0])
         mostly_dark = ["dark", "dark", "pale", "dark", "dark", "dark", "dark", "dark"]
         ms2 = place(mostly_dark, pts8)
@@ -133,9 +133,9 @@ class S01Moths(SpokenScene):
         self.at("dark moths became rare")
         self.play(FadeIn(VGroup(*ms3), scale=0.7), run_time=0.8)
         # the puzzle
-        nm = T("No moth changed its colour", 48, TEXT, weight=BOLD).move_to([0, 0.0, 0])
+        nm = T("No adult moth changed\nits wing colour", 48, TEXT, weight=BOLD).move_to([0, 0.0, 0])
         nmg = nm
-        self.at("No moth changed")
+        self.at("moth changed")
         self.play(FadeOut(VGroup(P, head, lab2, *ms3)), FadeIn(nmg), run_time=0.6)
         self.at("So why do some traits")
         q = T("Why do some traits become\nmore common over time?", 50, YELLOW, weight=BOLD, line_spacing=0.9)
@@ -229,11 +229,11 @@ class S03Birds(SpokenScene):
         sk = T("in this sketch (not real counts)", 26, GREY).move_to([0, 2.6, 0])
         self.play(FadeOut(row), bark_to(P, "soot"), FadeIn(sl), FadeIn(sk), run_time=0.9)
         # the bird
-        br = bird(1.0).move_to([6.2, 2.6, 0])
+        br = bird(1.0).move_to([5.0, 2.55, 0])
         bl = T("bird", 28, BLUE).next_to(br, UP, buff=0.15)
         self.at("Birds spot")
         self.play(FadeIn(br), FadeIn(bl), run_time=0.5)
-        self.play(VGroup(br, bl).animate.move_to([5.2, 2.5, 0]), run_time=0.4)
+        self.wait(0.4)  # Keep the bird above the bark, clear of every moth.
         pale = [i for i, k in enumerate(KINDS12) if k == "pale"]
         rings = [ring(ms[i], BLUE) for i in pale]
         self.at("the pale moths stand out")
@@ -241,13 +241,12 @@ class S03Birds(SpokenScene):
         sw = T("pale moths stand out", 34, BLUE, weight=BOLD).move_to([0, -3.05, 0])
         self.play(FadeOut(sl), run_time=0.15)
         self.play(FadeIn(sw), run_time=0.15)
-        # eat 4 pale, 1 dark
+        # eat only pale moths; leave every dark moth untouched
         self.at("So birds find more pale")
-        eat = [pale[0], pale[1], 0, pale[2], pale[3]]  # index 0 is a dark moth
+        eat = pale[:4]
         crosses = []
-        for j, i in enumerate(eat):
-            tgt = ms[i].get_center()
-            self.play(br.animate.move_to(tgt + [0.8, 0.7, 0]), bl.animate.move_to(tgt + [0.8, 1.35, 0]), run_time=0.35)
+        for i in eat:
+            self.wait(0.35)
             x = cross(ms[i])
             self.play(FadeIn(x), run_time=0.15)
             crosses.append(x)
@@ -264,9 +263,8 @@ class S04Young(SpokenScene):
         W2, H2 = 11.4, 4.4
         P = panel(W2, H2, PX, PY, "soot")
         pts2 = grid_pts(W2, H2, PX, PY, jit=JIT)
-        eaten = {1, 3, 0, 4, 6}  # pale idx 1,3,4,6 and dark idx 0 are gone (same as scene 3)
         pale = [i for i, k in enumerate(KINDS12) if k == "pale"]
-        eaten = set([pale[0], pale[1], 0, pale[2], pale[3]])
+        eaten = set(pale[:4])  # Same four pale moths as scene 3.
         surv = [i for i in range(12) if i not in eaten]
         ms = {i: moth(KINDS12[i]).move_to(pts2[i]) for i in surv}
         self.add(P, *ms.values())
@@ -293,7 +291,7 @@ class S04Young(SpokenScene):
         self.at("have young")
         self.play(LaggedStart(*[AnimationGroup(GrowArrow(a), FadeIn(y)) for a, y in zip(arrows, young)], lag_ratio=0.12), run_time=1.0)
         yl = T("young", 30, GREEN, weight=BOLD).move_to([0, low_y - 0.85, 0])
-        self.at("young inherit")
+        self.at("pass on genes")
         self.play(FadeIn(yl), *pulse_anim(young, 1.2), rate_func=there_and_back, run_time=0.9)
         nd = sum(1 for i in surv if KINDS12[i] == "dark")
         self.at("Most of the survivors here are dark")

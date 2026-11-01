@@ -134,10 +134,10 @@ class S02Groups(SpokenScene):
         lens_l = T("microscope", 26, GREY).next_to(lens, UP, buff=0.12)
         shape = T("shape  ✓", 34, GREEN, weight=BOLD).move_to([3.4, 1.6, 0])
         size = T("size  ✓", 34, GREEN, weight=BOLD).move_to([3.4, 0.9, 0])
-        anc = T("ancestry  ✗", 38, RED, weight=BOLD).move_to([3.4, -2.0, 0])
+        anc = T("ancestry: little", 38, RED, weight=BOLD).move_to([3.4, -2.0, 0])
         self.play(Create(lens), FadeIn(lens_l), run_time=0.6)
         self.play(FadeIn(shape, shift=RIGHT * 0.2), FadeIn(size, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("not ancestry")
+        self.at("says little")
         self.play(FadeIn(anc, shift=UP * 0.15), run_time=0.6)
         self.finish()
 
@@ -272,15 +272,14 @@ class S04Score(SpokenScene):
         keep = Line(la[2].get_right(), newb[2].get_left(), color=GREEN, stroke_width=4)
         self.at("low with typical bacteria")
         self.play(FadeOut(links), FadeOut(high), ReplacementTransform(tb2, tb3), ReplacementTransform(lb, newb),
-                  marker.animate.move_to([-1.46, -2.25, 0]).set_color(RED), run_time=1.0)
-        self.play(FadeIn(keep), run_time=0.4)
+                  marker.animate.move_to([-1.46, -2.25, 0]).set_color(RED), run_time=0.7)
+        self.play(FadeIn(keep), run_time=0.3)
         low = T("low", 30, RED, weight=BOLD).next_to(marker, UP, buff=0.12)
-        self.play(FadeIn(low), run_time=0.3)
+        self.play(FadeIn(low), run_time=0.2)
 
-        # three lines of descent
-        self.at("three major lines of descent")
+        # Clear the score as the comparison ends; show the result for the final sentence.
         old = VGroup(la, newb, ta2, tb3, keep, gauge, g0, g1, sc_l, marker, low)
-        self.play(FadeOut(old), run_time=0.6)
+        self.play(FadeOut(old), run_time=0.4)
         root = Dot(radius=0.07, color=GREY).move_to([0, -2.2, 0])
         tips = [(-4.2, BAC, "typical bacteria"), (0.0, TEAL, "methane makers"), (4.2, GREEN, "yeast, duckweed")]
         lines = VGroup(); labs = VGroup()
@@ -288,8 +287,10 @@ class S04Score(SpokenScene):
             lines.add(Line(root.get_center(), [x, 0.9, 0], color=col, stroke_width=7))
             labs.add(T(name, 28, col).move_to([x, 1.4, 0]))
         three = T("three major lines of descent", 36, TEXT, weight=BOLD).move_to([0, -3.0, 0])
-        self.play(FadeIn(root), *[Create(l) for l in lines], run_time=0.9)
-        self.play(*[FadeIn(l) for l in labs], FadeIn(three), run_time=0.6)
+        self.play(FadeIn(root), *[Create(l) for l in lines],
+                  *[FadeIn(l) for l in labs], FadeIn(three), run_time=1.0)
+        self.at("three major lines of descent")
+        self.wait(2)
         self.finish()
 
 
@@ -337,7 +338,7 @@ class S05Domains(SpokenScene):
         self.play(Create(br), FadeIn(look), run_time=0.7)
 
         self.at("But in 1993")
-        ev = bchip("1993: a survey of 25 proteins", YELLOW, 28).move_to([0, -2.2, 0])
+        ev = bchip("1993: a study of protein sequences", YELLOW, 28).move_to([0, -2.2, 0])
         self.play(FadeIn(ev, shift=UP * 0.15), FadeOut(look), run_time=0.6)
         self.at("strongly supported fungi")
         new_fu = bchip("fungi", ORANGE, 30).move_to([2.0, 0.3, 0])
@@ -378,7 +379,7 @@ class S06Answer(SpokenScene):
         a3 = arr(new_ev.get_right(), new_claim.get_left(), GREEN)
         self.at("New DNA and RNA")
         self.play(FadeIn(new_ev, shift=UP * 0.1), run_time=0.6)
-        self.at("changed the groups")
+        self.at("change the")
         self.play(GrowArrow(a3), FadeIn(new_claim, scale=0.9), run_time=0.7)
         self.at("Classification changes when")
         rule = T("evidence changes, so the groups change", 34, TEXT, weight=BOLD).move_to([0, -3.3, 0])

@@ -68,7 +68,7 @@ class S01Slipper(SpokenScene):
         self.play(FadeOut(chips), FadeIn(grid, lag_ratio=0.03), FadeIn(gl), run_time=1.1)
         self.at("survive alone")
         q = T("How can one cell survive alone?", 38, YELLOW, font=TITLE_FONT).to_edge(DOWN, buff=0.55)
-        self.play(Write(q), run_time=1.2)
+        self.play(FadeIn(q), run_time=0.6)
         self.finish()
 
 
@@ -238,7 +238,7 @@ def gene_bar(cx, cy, n=6, size=0.36):
 class S05Genes(SpokenScene):
     def construct(self):
         lx, rx, cy = -3.4, 3.4, 0.2
-        muscle = RoundedRectangle(corner_radius=0.3, width=5.2, height=3.8, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.1).move_to([lx, cy, 0])
+        muscle = RoundedRectangle(corner_radius=0.3, width=5.2, height=4.2, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.1).move_to([lx, cy - 0.2, 0])
         rbc = RoundedRectangle(corner_radius=0.3, width=5.2, height=3.8, stroke_color=GREEN, stroke_width=4, fill_color=GREEN, fill_opacity=0.1).move_to([rx, cy, 0])
         mn = label("muscle cell", 28, GREEN).next_to(muscle, UP, buff=0.2)
         rn = label("red blood cell in the making", 28, GREEN).next_to(rbc, UP, buff=0.2)
@@ -254,8 +254,8 @@ class S05Genes(SpokenScene):
         b1, bar1, dna1, nl1 = nucleus(lx)
         b2, bar2, dna2, nl2 = nucleus(rx)
         extra = VGroup(*[Circle(radius=0.24, stroke_color=GREY, stroke_width=3) for _ in range(2)])
-        extra[0].move_to([lx - 2.0, cy - 1.4, 0]); extra[1].move_to([lx + 2.0, cy - 1.4, 0])
-        many = label("many nuclei", 22, GREY).move_to([lx, cy - 1.45, 0])
+        extra[0].move_to([lx - 2.0, cy - 1.8, 0]); extra[1].move_to([lx + 2.0, cy - 1.8, 0])
+        many = label("many nuclei", 22, GREY).move_to([lx, cy - 1.8, 0])
         self.at("with a nucleus")
         self.play(FadeIn(VGroup(b1, nl1, extra, many)), FadeIn(VGroup(b2, nl2)), run_time=0.6)
         self.at("essentially the same")
@@ -268,7 +268,8 @@ class S05Genes(SpokenScene):
         self.play(FadeOut(same), Write(ge), FadeIn(note), run_time=0.7)
         self.at("A muscle cell uses")
         self.play(bar1[1].animate.set_fill(YELLOW, 0.9).set_stroke(YELLOW), run_time=0.5)
-        g1 = label("genes for proteins that shorten", 24, YELLOW).move_to([lx, cy - 0.85, 0])
+        g1 = VGroup(*[label(line, 24, YELLOW) for line in
+                     ["genes for proteins that", "slide past each other", "to shorten the cell"]]).arrange(DOWN, buff=0.08).move_to([lx, cy - 0.85, 0])
         self.play(FadeIn(g1), run_time=0.4)
         self.at("genes for hemoglobin")
         self.play(bar2[4].animate.set_fill(YELLOW, 0.9).set_stroke(YELLOW), run_time=0.5)

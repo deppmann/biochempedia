@@ -71,13 +71,14 @@ class S01Puzzle(SpokenScene):
         self.play(FadeIn(body), FadeIn(blbl), run_time=0.7)
         self.at("small hip bones")
         self.play(FadeIn(hip, scale=0.8), FadeIn(small), run_time=0.7)
-        walk = bar_chip("animals that walked", GREEN, 30).move_to([0.0, -3.0, 0])
-        q1 = DashedLine([-3.9, -2.05, 0], walk.get_left(), color=RED, stroke_width=4)
-        q2 = DashedLine([3.9, -2.05, 0], walk.get_right(), color=RED, stroke_width=4)
-        qm = T("?", 60, RED, weight=BOLD).move_to([0.0, -1.7, 0])
+        walk = bar_chip("land mammal", GREEN, 30).move_to([0.0, -3.0, 0])
+        q1 = arr([-3.9, -2.05, 0], walk.get_left(), RED, 4)
+        q2 = arr([3.9, -2.05, 0], walk.get_right(), RED, 4)
+        qm1 = T("?", 36, RED, weight=BOLD).move_to(q1.get_center() + UP * 0.4)
+        qm2 = T("?", 36, RED, weight=BOLD).move_to(q2.get_center() + UP * 0.4)
         self.at("related to animals that walked")
-        self.play(FadeIn(walk, shift=UP * 0.2), Create(q1), Create(q2), run_time=0.8)
-        self.play(FadeIn(qm, scale=1.4), run_time=0.4)
+        self.play(FadeIn(walk, shift=UP * 0.2), GrowArrow(q1), GrowArrow(q2),
+                  FadeIn(qm1), FadeIn(qm2), run_time=0.8)
         self.finish()
 
 
@@ -281,7 +282,7 @@ class S05Fields(SpokenScene):
         # panel 2: anatomy
         c2 = cs[1]
         f2, t2 = panel(c2, "Anatomy", BLUE)
-        vd = lines(["vestigial: a reduced body part that", "no longer does the job it did", "in ancestors"], size=22, at=(c2[0], c2[1] + 0.4))
+        vd = lines(["vestigial: a reduced body part that", "has lost all or most of the job", "it did in ancestors"], size=22, at=(c2[0], c2[1] + 0.4))
         for m in vd:
             m.set_x(c2[0])
         self.at("A vestigial structure")
@@ -310,7 +311,7 @@ class S05Fields(SpokenScene):
         et.set_x(c3[0] + 1.45)
         self.at("spotted dolphin embryos")
         self.play(FadeIn(f3), FadeIn(t3), FadeIn(sub), FadeIn(eb), FadeIn(el), run_time=0.7)
-        self.at("hind limb buds")
+        self.at("hindlimb")
         self.play(FadeIn(bud, shift=RIGHT * 0.3), FadeIn(bud_lbl), run_time=0.6)
         self.at("break down")
         self.play(FadeIn(et), run_time=0.5)

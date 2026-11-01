@@ -206,7 +206,7 @@ class S03Return(SpokenScene):
         self.play(FadeIn(top[0], shift=DOWN * 0.2), FadeIn(top[1], shift=DOWN * 0.2), FadeIn(sc), run_time=0.7)
         self.at("Cross two pink plants")
         self.play(FadeIn(p2), FadeIn(left[0], shift=RIGHT * 0.2), FadeIn(left[1], shift=RIGHT * 0.2), run_time=0.7)
-        self.at("Punnett square")
+        self.at("punnet")
         self.play(Create(grid), run_time=0.7)
         spec = {(0, 0): ("RR", RED), (1, 0): ("RW", PINK), (0, 1): ("RW", PINK), (1, 1): ("WW", WHT)}
         fills = {}
@@ -223,7 +223,7 @@ class S03Return(SpokenScene):
         self.play(FadeIn(fills[(1, 1)], scale=0.8), FadeIn(ratio), run_time=0.5)
         note = T("red and white\ncome back", 28, TEXT, line_spacing=0.9).move_to([cx + 4.4, cy - 0.2, 0])
         self.at("come back")
-        self.play(FadeIn(note), Indicate(fills[(0, 0)], color=RED, scale_factor=1.12), Indicate(fills[(1, 1)], color=WHT, scale_factor=1.12), run_time=0.9)
+        self.play(FadeIn(note), ScaleInPlace(fills[(0, 0)], 1.12, rate_func=there_and_back), ScaleInPlace(fills[(1, 1)], 1.12, rate_func=there_and_back), run_time=0.9)
         sep = T("alleles stay separate", 28, TEAL, weight=BOLD).move_to([cx + 4.4, cy - 1.4, 0])
         self.at("never blended")
         self.play(FadeIn(sep, shift=UP * 0.1), run_time=0.5)
@@ -236,7 +236,7 @@ class S04Both(SpokenScene):
 
     def construct(self):
         ct = term("codominance", 44).move_to([0, 3.0, 0])
-        self.at("Codominance means")
+        self.at("Codeminence")
         self.play(FadeIn(ct, shift=DOWN * 0.1), run_time=0.5)
         tx = T("both alleles show fully", 30, TEXT).move_to([0, 2.3, 0])
         self.at("both alleles show fully")
@@ -378,7 +378,7 @@ class S05Family(SpokenScene):
         self.at("sorted into pairs")
         self.play(LaggedStart(*[AnimationGroup(a) for a in anims], lag_ratio=0.02), run_time=1.6)
         cnt = T("46 chromosomes = 23 pairs", 30, TEXT, weight=BOLD).move_to([0, -3.2, 0])
-        self.at("human body cells")
+        self.at("human body cell")
         self.play(FadeIn(cnt, shift=UP * 0.1), run_time=0.5)
         # pair 21
         hx, hy = homes[20]
@@ -422,7 +422,7 @@ class S06Answer(SpokenScene):
         self.play(FadeIn(t1), FadeIn(VGroup(*a1), scale=0.8), run_time=0.6)
         self.at("in between")
         self.play(GrowArrow(d1), FadeIn(s1, scale=0.8), FadeIn(l1), run_time=0.7)
-        self.at("In codominance")
+        self.at("codaminants")
         self.play(FadeIn(t2), FadeIn(VGroup(*a2), scale=0.8), run_time=0.6)
         self.at("shows both alleles")
         self.play(GrowArrow(d2), FadeIn(s2, scale=0.8), FadeIn(l2), run_time=0.7)

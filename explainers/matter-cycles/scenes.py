@@ -258,33 +258,31 @@ class S04Water(SpokenScene):
         riv_y = -2.5
         river_v = Line(P(4.0, 0.5), P(4.0, riv_y), color=BLUE, stroke_width=14).set_stroke(opacity=0.5)
         river_h = Line(P(4.0, riv_y), P(-2.2, riv_y), color=BLUE, stroke_width=14).set_stroke(opacity=0.5)
-        rl = T("Susquehanna River", 30, TEXT).move_to(P(1.0, riv_y + 0.95))
+        rl = T("Susquehanna River", 30, TEXT).move_to(P(1.0, 0.1))
         toks = [bchip("nitrogen", GREEN, 28), bchip("sediment", GREY, 28), bchip("germs", PURPLE, 28)]
-        ys = [-0.05, -0.95, -1.85]
+        xs = [-1.2, 2.0, 5.2]
         self.at("Moving water carries")
         self.play(Create(river_v), run_time=0.5)
         self.at("nutrients such as nitrogen")
-        toks[0].move_to(P(4.0, ys[0]))
+        toks[0].move_to(P(xs[0], -0.7))
         self.play(FadeIn(toks[0]), run_time=0.3)
         self.at("sediment")
-        toks[1].move_to(P(4.0, ys[1]))
+        toks[1].move_to(P(xs[1], -0.7))
         self.play(FadeIn(toks[1]), run_time=0.3)
         self.at("and germs")
-        toks[2].move_to(P(4.0, ys[2]))
+        toks[2].move_to(P(xs[2], -0.7))
         self.play(FadeIn(toks[2]), run_time=0.3)
         self.at("rainstorm in Pennsylvania")
         self.play(Create(river_h), FadeIn(rl), run_time=0.5)
         self.at("Susquehanna River")
-        ends = [P(-0.9, riv_y), P(1.3, riv_y), P(3.15, riv_y)]
-        paths = []
-        for i, t in enumerate(toks):
-            pth = VMobject().set_points_as_corners([t.get_center(), P(4.0, riv_y + 0.0) if i < 2 else P(4.0, riv_y), ends[i]])
-            paths.append(pth)
-        # nitrogen leads along the bend; sediment and germs follow
-        self.play(*[MoveAlongPath(t, p) for t, p in zip(toks, paths)], run_time=1.4)
+        # Keep a readable row above the river, clear of its label and line.
+        ends = [P(x, riv_y + 0.9) for x in xs]
+        self.play(*[t.animate.move_to(end) for t, end in zip(toks, ends)], run_time=1.4)
         bay2 = bchip("Chesapeake Bay", BLUE, 34).move_to(bay)
         self.at("flows into the Bay")
-        self.play(Transform(bay, bay2), FadeOut(ev), FadeOut(evl), run_time=0.6)
+        bay_spots = [P(-4.8, -1.4), P(-1.0, -1.4), P(-2.6, -3.35)]
+        self.play(Transform(bay, bay2), FadeOut(ev), FadeOut(evl),
+                  *[t.animate.move_to(spot) for t, spot in zip(toks, bay_spots)], run_time=0.6)
         self.finish()
 
 
@@ -336,7 +334,7 @@ class S05Nitrogen(SpokenScene):
 
         am = arr(P(-5.2, -2.3), P(-5.2, -0.5), ORANGE, 7)
         aml = T("ammonification", 26, TEXT).move_to(P(-3.55, -1.25))
-        self.at("Ammonification")
+        self.at("Aminification")
         self.play(GrowArrow(am), FadeIn(aml), run_time=0.7)
         dec = bchip("decomposers", PURPLE, 28).move_to(P(-4.8, -2.85))
         self.at("decomposers turning wastes")

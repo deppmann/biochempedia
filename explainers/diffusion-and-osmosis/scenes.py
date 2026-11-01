@@ -324,7 +324,8 @@ class S04Membrane(SS):
         less_o = T("less oxygen", 30, YELLOW).move_to(P(3.0, 2.25))
         self.at_idle("Oxygen is more", allp, 0.07, 6)
         self.play(*[g.animate.set_opacity(0.2) for g in dim_all], FadeOut(easy), FadeOut(hard), FadeOut(blood), FadeOut(incell),
-                  FadeOut(sp), FadeIn(more_o), FadeIn(less_o), run_time=0.7)
+                  FadeOut(sp), run_time=0.35)
+        self.play(FadeIn(more_o), FadeIn(less_o), run_time=0.35)
         mv = list(ol)[:5]
         tg = [P(1.2 + 0.9 * i, mv[i].get_y()) for i in range(5)]
         arrow = arr(P(-1.4, 2.7), P(1.4, 2.7), YELLOW)
@@ -359,7 +360,7 @@ class S05Osmosis(SS):
         osm = vocab("osmosis", 42).move_to(P(0, 3.25))
         mdl = T("model, not to scale", 24, GREY).move_to(P(4.7, 3.3))
         self.add(mdl)
-        self.at("is the movement")
+        self.at("is the diffusion")
         self.play(FadeIn(out), FadeIn(wat_l), FadeIn(wat_r), Create(m), FadeIn(wl), FadeIn(wr), FadeIn(osm, shift=DOWN * 0.15), run_time=1.0)
         wl_l, wr_l = list(wl), list(wr)
         allw = wl_l + wr_l
@@ -400,7 +401,7 @@ class S05Osmosis(SS):
         note = T("our model membrane: holds back all the salt", 28, ORANGE).move_to(P(0, -3.2))
         self.at_idle("Our model membrane holds back", allp, 0.07, 6)
         self.play(FadeIn(note), FadeOut(morec), FadeOut(lessc), run_time=0.6)
-        real = T("real membranes: some salt crosses, much more slowly", 28, GREY).move_to(P(0, -3.2))
+        real = T("most real membranes: some salt crosses, much more slowly", 28, GREY).move_to(P(0, -3.2))
         self.at_idle("Real ones let some through", allp, 0.07, 7)
         self.play(ReplacementTransform(note, real), run_time=0.6)
         self.finish()

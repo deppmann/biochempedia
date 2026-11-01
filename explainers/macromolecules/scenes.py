@@ -242,7 +242,7 @@ class S03Water(SpokenScene):
         self.at("splits a polymer")
         self.play(FadeIn(poly_t), run_time=0.4)
         self.at("adding water")
-        self.play(water.animate.move_to([0, Y, 0]), run_time=0.7)
+        self.play(water.animate.move_to([0, 2.4, 0]), run_time=0.7)
         self.play(FadeOut(water), FadeOut(newlink), FadeOut(link_t), FadeOut(poly_t),
                   A.animate.move_to([-3.7, Y, 0]), B.animate.move_to([3.7, Y, 0]), run_time=1.0)
         pcs = T("smaller pieces", 30, GREY).move_to([0, Y, 0])
@@ -308,7 +308,7 @@ class S04Classes(SpokenScene):
         self.play(FadeIn(j3, shift=LEFT * 0.2), run_time=0.5)
         # --- lipids
         h4 = head("Lipids", YELLOW, ys[3])
-        self.at("Lipids such as fats")
+        self.at("Lipids mostly")
         self.play(FadeIn(h4, shift=RIGHT * 0.2), run_time=0.5)
         y = ys[3]
         gly = RoundedRectangle(corner_radius=0.08, width=0.5, height=1.25, stroke_color=YELLOW, stroke_width=2.5,
@@ -317,7 +317,7 @@ class S04Classes(SpokenScene):
                                          fill_color=YELLOW, fill_opacity=0.25).move_to([-1.5, y + dy, 0])
                         for dy in (0.45, 0.0, -0.45)])
         ties = VGroup(*[Line([-2.45, y + dy, 0], [-2.25, y + dy, 0], color=GREY, stroke_width=4) for dy in (0.45, 0.0, -0.45)])
-        fa_t = T("glycerol +\nfatty acids", 24, YELLOW, line_spacing=0.8).move_to([0.9, y, 0])
+        fa_t = T("fats: glycerol +\nfatty acids", 24, YELLOW, line_spacing=0.8).move_to([0.9, y, 0])
         self.at("fatty acids and glycerol")
         self.play(FadeIn(gly), FadeIn(ties), LaggedStart(*[FadeIn(b, shift=LEFT * 0.2) for b in bars], lag_ratio=0.2),
                   FadeIn(fa_t), run_time=1.1)
@@ -458,7 +458,7 @@ class S06Answer(SpokenScene):
         self.play(FadeIn(sand, scale=0.8), run_time=0.7)
 
         ys = [2.0, 0.55, -0.9, -2.5]
-        names = ["simple sugars", "amino acids", "nucleotides", "fatty acids + glycerol"]
+        names = ["simple sugars", "amino acids", "parts of nucleotides", "fatty acids"]
         cols = [ORANGE, PURPLE, PINK, YELLOW]
         pieces = [bchip(n, c, 24).move_to([-0.6, y, 0]) for n, c, y in zip(names, cols, ys)]
         head_p = T("small pieces", 26, GREY).move_to([-0.6, 3.1, 0])
@@ -476,7 +476,7 @@ class S06Answer(SpokenScene):
         fat = VGroup(gly, fas, *[Line([3.22, gy + dy, 0], [3.35, gy + dy, 0], color=GREY, stroke_width=4) for dy in (0.42, 0, -0.42)])
         head_n = T("new large molecules", 26, GREY).move_to([4.3, 3.1, 0])
         jar = [arr([1.6, y, 0], [2.4, y, 0], GREEN, w=4, tip=0.16) for y in ys]
-        self.at("Your cells join")
+        self.at("Your cells use")
         self.play(FadeIn(head_n), LaggedStart(*[AnimationGroup(GrowArrow(a)) for a in jar], lag_ratio=0.2), run_time=0.8)
         self.play(*[c.build(0.2) for c in chains], FadeIn(fat), run_time=1.2)
 
