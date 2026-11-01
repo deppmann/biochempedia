@@ -11,7 +11,7 @@ summary: >-
   sets out the somatic and autonomic divisions. Afterwards you can calculate a conduction velocity
   and a reflex delay from distances and times, and read a drug-blockade experiment to say which
   autonomic division sets the resting human heart rate.
-hook: "In 1850 Helmholtz timed a signal running along a frog's nerve. It was fast, but no faster than a car on a motorway."
+hook: "A doctor taps the tendon below your kneecap and your leg kicks before you decide anything. What route does the signal take, and how fast does it run?"
 
 estMinutes: 24
 objectives:
@@ -170,18 +170,14 @@ practiceQuestions:
       rule. Norepinephrine is the rule being tested, not the exception. Epinephrine is released
       mainly as a hormone from the adrenal medulla into the blood, not by these nerve fibres.
       Dopamine is a transmitter in parts of the brain and is not the sweat-gland transmitter.
-  - stem: "A myelinated axon conducts at a steady 60 m per s. How long does an impulse take to travel 0.9 m along it?"
+  - stem: "A person steps on a tack and lifts the foot. Which sequence names the parts of this reflex arc in order?"
     choices:
-      - "54 ms"
-      - "1.5 ms"
-      - "15 ms"
-      - "150 ms"
-    answer: 2
-    rationale: >-
-      Time is distance divided by velocity: 0.9 m / 60 m per s = 0.015 s, which is 15 ms. The value
-      54 ms comes from multiplying distance by velocity instead of dividing. The values 1.5 ms and
-      150 ms come from moving the decimal point one place in either direction when converting
-      seconds to milliseconds.
+      - "Pain receptor, sensory neuron, interneurons in the spinal cord, motor neuron, flexor muscle"
+      - "Pain receptor, motor neuron, interneurons in the spinal cord, sensory neuron, flexor muscle"
+      - "Sensory neuron, pain receptor, interneurons in the spinal cord, motor neuron, flexor muscle"
+      - "Pain receptor, sensory neuron, motor neuron with no interneurons, flexor muscle"
+    answer: 0
+    rationale: "A reflex arc runs receptor, sensory neuron, integrating centre, motor neuron, effector. In the withdrawal reflex the integrating centre is made of interneurons in the spinal cord: they excite the motor neurons of the flexor muscles, and other interneurons inhibit the opposing extensor muscles. Putting the motor neuron before the sensory neuron reverses the direction of the signal. The receptor comes first, since it detects the stimulus. A direct path with no interneuron describes only the direct excitatory limb of the knee jerk, not this reflex."
 
 mcatQuestions:
   - stem: "In a hypothetical isolated frog nerve-muscle preparation at room temperature (illustrative numbers), the nerve is stimulated at two points. Stimulating 46 mm from the muscle gives a delay of 3.7 ms before contraction begins; stimulating 10 mm from the muscle gives 2.5 ms. What is the best estimate of the conduction velocity of the nerve?"
@@ -314,9 +310,9 @@ draft: false
 import ReflexLatencySum from '../../../components/ReflexLatencySum.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**In 1850, in a frog's leg, Hermann von Helmholtz timed a nerve signal and found it ran at a few tens of metres per second: about the speed of a car on a motorway.**
+**A nervous system does one job again and again: a sense organ detects a change, neurons carry the signal to a circuit, and a motor neuron makes a muscle or gland respond. In 1850, in a frog's leg, Hermann von Helmholtz timed such a signal and found it ran at a few tens of metres per second: about the speed of a car on a motorway.**
 
-Helmholtz showed that the nerve signal has a speed you can calculate from a ruler and a clock. From that result, this lesson meets the cell that carries the signal, compares how four animal groups arrange those cells, traces the simplest circuit from a sense organ to a muscle, and looks at the division that runs your heart and gut without asking you.
+The nerve signal has a speed you can calculate from a ruler and a clock. This lesson meets the neuron that carries the signal, shows how its speed is worked out, compares how four animal groups arrange their neurons, traces the simplest circuits from a sense organ to a muscle, the knee jerk and the withdrawal reflex, and looks at the division that runs your heart and gut without asking you.
 
 ## One neuron: in at the dendrites, out along the axon
 
@@ -330,11 +326,11 @@ Many vertebrate axons are wrapped in **myelin**, layers of membrane from glial c
 
 ## How fast? Helmholtz times a frog nerve
 
-Helmholtz used an isolated frog gastrocnemius (calf) muscle still attached to its sciatic nerve. He stimulated the nerve with a brief electric shock near the muscle and timed the delay before the muscle began to twitch. Then he stimulated it farther up and timed it again. He timed these tiny intervals with a galvanometer method and with a recording myograph that wrote the twitch on a moving surface.
+Helmholtz used an isolated frog gastrocnemius (calf) muscle still attached to its sciatic nerve. He stimulated the nerve with a brief electric shock near the muscle and timed the delay before the muscle began to twitch. Then he stimulated it farther up and timed it again.
 
 <LessonFigure src="/figures/nervous-control/helmholtz-two-point-setup.webp" width={1200} height={790} alt="AI-generated illustration: an isolated frog calf muscle with its sciatic nerve running away from it. Two stimulating electrodes sit on the nerve, one near the muscle and one farther up, with a bracket marking the extra length of nerve between them. An inset shows the nerve-muscle junction and muscle as two blocks." caption="Helmholtz stimulated a frog's sciatic nerve near the gastrocnemius and then farther up, and timed the delay to the twitch each time. The junction and muscle respond in the same time in both trials, so the extra delay belongs only to the extra length of nerve." />
 
-His teacher Johannes Müller had doubted that the speed could be measured at all. Helmholtz saw that the farther stimulus point always added a small, repeatable delay. The experiment works by subtraction. The time the junction and the muscle take to respond is the same in both trials, so the *extra* delay belongs only to the *extra* length of nerve. His estimate came out at a few tens of metres per second.
+Helmholtz saw that the farther stimulus point always added a small, repeatable delay. The experiment works by subtraction. The time the junction and the muscle take to respond is the same in both trials, so the *extra* delay belongs only to the *extra* length of nerve. His estimate came out at a few tens of metres per second.
 
 That rules in a physical process of finite speed in this preparation. It does not show what the signal is, and the nerve of an ectothermic frog, an animal whose body temperature follows its surroundings, at room temperature is not a human nerve at 37 degrees C.
 
@@ -348,7 +344,7 @@ That rules in a physical process of finite speed in this preparation. It does no
 
 <ReflexLatencySum />
 
-This is a model sum, not a measured knee-jerk latency. Animals have reached fast conduction in two ways. The giant axon of the squid *Loligo* has no myelin and is fast because it is very wide, typically about half a millimetre across and sometimes wider. Vertebrate motor axons are far narrower, a few to about 20 micrometres, yet the larger myelinated ones conduct as fast or faster. Hodgkin and Huxley's 1952 analysis of the impulse used that squid axon ([action potential](/lessons/action-potential/)).
+This is a model sum, not a measured knee-jerk latency. Animals have reached fast conduction in two ways. The giant axon of the squid *Loligo* has no myelin and is fast because it is very wide. Vertebrate motor axons are far narrower, yet the larger myelinated ones conduct as fast or faster. Hodgkin and Huxley's 1952 analysis of the impulse used that squid axon ([action potential](/lessons/action-potential/)).
 
 ## Nerve nets, cords and brains in four groups
 
@@ -375,7 +371,7 @@ The **withdrawal reflex**, pulling your foot off a tack, works through interneur
 
 ## Two autonomic divisions and their exceptions
 
-The autonomic route to an organ usually has two neurons in series: a **preganglionic neuron** in the CNS, and a **postganglionic neuron** whose cell body sits in a peripheral ganglion and whose axon reaches the organ. John Newport Langley, who named the autonomic nervous system, divided its outflow into two, and set the gut's own enteric network apart. In humans, the **sympathetic division** leaves from the thoracic and upper lumbar spinal cord (thoracolumbar). The **parasympathetic division** leaves from the brainstem, in cranial nerves such as the vagus, and from the sacral cord (craniosacral). A 2016 mouse study proposed calling the sacral part sympathetic; that is disputed, and this course keeps the standard grouping.
+The autonomic route to an organ usually has two neurons in series: a **preganglionic neuron** in the CNS, and a **postganglionic neuron** whose cell body sits in a peripheral ganglion and whose axon reaches the organ. John Newport Langley, who named the autonomic nervous system, divided its outflow into two, and set the gut's own enteric network apart. In humans, the **sympathetic division** leaves from the thoracic and upper lumbar spinal cord (thoracolumbar). The **parasympathetic division** leaves from the brainstem, in cranial nerves such as the vagus, and from the sacral cord (craniosacral). Where the sacral outflow belongs is disputed; this course keeps the standard grouping (see Going deeper).
 
 | Human target | Sympathetic | Parasympathetic |
 |---|---|---|
@@ -385,7 +381,7 @@ The autonomic route to an organ usually has two neurons in series: a **pregangli
 | Most blood vessels | Main neural control of tone | Little or no direct supply |
 | Sweat glands (eccrine) | Supplied, and the fibres release acetylcholine | No supply |
 
-The divisions oppose each other at the heart, the iris and the gut. They do not oppose everywhere. Most vessels and the sweat glands have only a sympathetic supply, so their control is turned up and down by one division. In the rabbit parotid salivary gland, sympathetic stimulation increased flow on top of a parasympathetic background secretion, so there the two worked in the same direction. For hypothalamic control see [autonomic control and the hypothalamus](/lessons/hypothalamus-autonomic/); for transmitters and drugs, [transmitter systems](/lessons/transmitter-systems/). Hormones, the second kind of control, are in [the endocrine system](/lessons/endocrine-system/), and the pacemaker in [circulation and the heart](/lessons/circulation-and-heart/).
+The divisions oppose each other at the heart, the iris and the gut. They do not oppose everywhere. Most vessels and the sweat glands have only a sympathetic supply, so their control is turned up and down by one division. In one rabbit salivary gland, the parotid, the two divisions worked in the same direction (see Going deeper). For hypothalamic control see [autonomic control and the hypothalamus](/lessons/hypothalamus-autonomic/); for transmitters and drugs, [transmitter systems](/lessons/transmitter-systems/). Hormones, the second kind of control, are in [the endocrine system](/lessons/endocrine-system/), and the pacemaker in [circulation and the heart](/lessons/circulation-and-heart/).
 
 ### Design problem
 
@@ -401,3 +397,13 @@ With only parasympathetic input left (propranolol), the rate is 62: vagal brakin
 Two checks. The conclusion holds only if each drug fully blocks its own division, and nothing else, at the dose used. And the divisions oppose at this pacemaker, which does not carry over to sweat glands or most vessels, with one supply, or to the rabbit parotid, where they add.
 
 </details>
+
+## Going deeper
+
+### Helmholtz's apparatus and the speed numbers
+
+Helmholtz timed these tiny intervals with a galvanometer method and with a recording myograph that wrote the twitch on a moving surface. His teacher Johannes Müller had doubted that the speed could be measured at all. The giant axon of the squid *Loligo* is typically about half a millimetre across and sometimes wider. Vertebrate motor axons are far narrower, a few to about 20 micrometres.
+
+### Exceptions in autonomic control
+
+A 2016 mouse study proposed calling the sacral part sympathetic; that is disputed, and this course keeps the standard grouping. In the rabbit parotid salivary gland, sympathetic stimulation increased flow on top of a parasympathetic background secretion, so there the two worked in the same direction.

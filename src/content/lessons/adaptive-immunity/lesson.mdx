@@ -4,16 +4,8 @@ slug: "adaptive-immunity"
 course: "organismal-biology"
 courseChapter: "Organismal Biology · Unit 5: Defense, movement and reproduction"
 order: 718
-summary: >-
-  How can a body make a matching defense against a virus it has never met? This lesson explains
-  clonal selection, how about 150 gene segments give millions of different receptors, how B
-  cells and T cells divide the work, and how memory, vaccines, a mother's antibodies and blood
-  groups follow from the same rules. It retells the chicken bursa experiment that named the B cell
-  and compares jawed vertebrates with lampreys, which reached a similar result with different
-  molecules. Afterwards you can calculate combinatorial diversity and say what a falling antibody
-  level does and does not tell you about memory.
-hook: "About 150 antibody gene segments can be combined into well over a million different antibodies. Who chooses which one you make?"
-
+summary: "How can a body make a matching defense against a virus it has never met? This lesson explains clonal selection: lymphocytes make a huge variety of receptors before any antigen arrives, and the antigen picks the cells that fit. It shows how gene segments are shuffled to make that variety, how B cells and T cells divide the work, and how memory and vaccines follow from the same rule, along with a mother's antibodies and blood groups. It compares jawed vertebrates with lampreys, which reached a similar result with different molecules, and retells the chicken bursa experiment that named the B cell. Afterwards you can calculate combinatorial diversity and say what a falling antibody level does and does not tell you about memory."
+hook: "Your body already holds B cells that can bind viruses you have never met. Receptors are made first, and the antigen only chooses among them."
 estMinutes: 24
 objectives:
   - "Explain clonal selection, and describe how somatic recombination of V, D and J segments, junctional variation and chain pairing produce receptor diversity before antigen arrives, and why only B cells then refine their receptors by somatic hypermutation."
@@ -214,19 +206,14 @@ mcatQuestions:
       roles assigns graft rejection to the bursa and antibody to the thymus, the opposite of the
       result. Normal antibody in both groups would show no bursa effect, and rejection only without a
       thymus would contradict the thymus being needed for it.
-  - stem: "In a study of adults who had recovered from an infection, antibody against a viral protein fell slowly, with an apparent half-life of about 140 days (with a wide confidence interval) over the study window. Assume a toy model in which the titer falls by half every 140 days, with no new exposure. A person's titer is 800 arbitrary units at the first visit. What does the model predict 280 days later?"
+  - stem: "Two groups of mice are given the same harmless viral protein. Group 1 gets one injection of the protein. Group 2 gets one injection of antibody taken from immunized mice. Both are exposed to the virus carrying that protein six months later. Which outcome best fits the difference between active and passive immunity?"
     choices:
-      - "0 arbitrary units"
-      - "200 arbitrary units"
-      - "100 arbitrary units"
-      - "400 arbitrary units"
-    answer: 1
-    rationale: >-
-      280 days is two half-lives of 140 days, so the titer halves twice: 800 to 400 to 200 units. 400
-      units is one half-life, the value at 140 days. 100 units would be three half-lives, 420 days.
-      Exponential decay approaches zero but does not reach it in a fixed time, so 0 units is wrong.
-      The answer is a model extrapolation: falling antibody does not by itself show that memory B
-      or T cells are lost.
+      - "Group 1 shows a faster and larger response than a naive mouse; Group 2 responds like a naive mouse"
+      - "Group 2 shows a faster and larger response, because antibody is the memory"
+      - "Both groups respond like naive mice, because one dose creates no memory"
+      - "Group 1 responds like a naive mouse, because the protein cannot select B cells"
+    answer: 0
+    rationale: "The injected protein selects lymphocytes whose receptors fit, and their clones leave memory B and T cells, so the second encounter is faster and larger. Transferred antibody is passive immunity: it is broken down over weeks and leaves no memory cells, so Group 2 responds as a naive animal would. A single dose can create memory, which rules out the third choice. Antigen selecting fitting B cells is the clonal selection rule, which rules out the fourth."
   - stem: "A newly found jawless fish has circulating cells that look like lymphocytes. After immunization, its serum contains antigen-specific proteins built from leucine-rich-repeat modules, and no immunoglobulin genes or RAG genes are found in its genome. Which conclusion is best supported?"
     choices:
       - "It lacks adaptive immunity, as only innate receptors are present"
@@ -336,7 +323,7 @@ draft: false
 import ReceptorComboCounter from '../../../components/ReceptorComboCounter.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**You have never met most of the viruses that will ever infect you, yet your body already holds B cells whose receptors can bind them.** How can a defense be ready for a molecule before it exists in your world? This lesson shows how lymphocytes make that guess in advance and how the body keeps the guesses that pay off.
+**You have never met most of the viruses that will ever infect you, yet your body already holds B cells whose receptors can bind them.** The rule behind this is **clonal selection**: lymphocytes make a huge variety of receptors before any antigen arrives, the antigen picks the few cells that fit, and those cells multiply and leave memory cells behind. This lesson shows how the variety is made, how B cells and T cells use it, and why a second infection or a vaccine finds the body ready.
 
 ## One clone, one receptor: clonal selection
 
@@ -346,9 +333,9 @@ The central rule is **clonal selection**, proposed by Macfarlane Burnet in 1957.
 
 <LessonFigure src="/figures/adaptive-immunity/clonal-selection-strip.webp" width={1200} height={450} alt="AI-generated illustration: three frames. Five lymphocytes with five different receptor shapes; an antigen fits the receptor of one cell, which turns gold; that cell has divided into a group of identical gold cells while the other four are unchanged." caption="Receptors are made before antigen arrives. The antigen binds only the cell whose receptor already fits, and that cell divides into a clone." />
 
-Fit is not perfect one-to-one matching. Wooldridge and colleagues (2012) estimated, from tested peptides plus a mathematical model, that one human CD8 T cell clone from a person with type 1 diabetes responds to over a million different ten-amino-acid peptides presented on one MHC class I molecule. A receptor is specific in that it ignores almost everything, but it can bind many different targets.
+A receptor is specific in that it ignores almost everything, but it can bind many different targets.
 
-How does a body make millions of receptor shapes from a human genome of about 20,000 protein-coding genes? Each antibody is built from **heavy chains** and **light chains**, and the part that binds antigen, the **variable region**, is not encoded as one piece. It is assembled in each developing lymphocyte by **somatic recombination**: the cell cuts the DNA at one **V** (variable), one **D** (diversity) and one **J** (joining) segment for a heavy chain, or one V and one J for a light chain, and joins the chosen pieces. Depending on how the segments are oriented, the DNA between them is removed or inverted. The cutting needs the **RAG** enzymes; in fibroblasts given a recombination test sequence, Oettinger and colleagues (1990) found that adding RAG2 to RAG1 raised recombination at least 1,000-fold. At each joint, nucleotides are added or removed (**junctional variation**), and each B cell then pairs one heavy chain with one light chain. T cell receptors are built the same way, with their own segments, and each T cell pairs an alpha chain with a beta chain. The molecular detail belongs to [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/).
+How does a body make millions of receptor shapes from a human genome of about 20,000 protein-coding genes? Each antibody is built from **heavy chains** and **light chains**, and the part that binds antigen, the **variable region**, is not encoded as one piece. It is assembled in each developing lymphocyte by **somatic recombination**: the cell cuts the DNA at one **V** (variable), one **D** (diversity) and one **J** (joining) segment for a heavy chain, or one V and one J for a light chain, and joins the chosen pieces. Depending on how the segments are oriented, the DNA between them is removed or inverted. The cutting needs the **RAG** enzymes. At each joint, nucleotides are added or removed (**junctional variation**), and each B cell then pairs one heavy chain with one light chain. T cell receptors are built the same way, with their own segments, and each T cell pairs an alpha chain with a beta chain. The molecular detail belongs to [antigen receptors and checkpoints](/lessons/antigen-receptors-and-checkpoints/).
 
 **Worked problem: counting receptors.** The segment counts below are illustrative values for humans; the real numbers differ between people and between sources. Assume every combination is functional and equally likely.
 
@@ -364,9 +351,7 @@ That is from fewer than 150 segments. Junctional variation multiplies the total 
 
 ## Where B and T cells come from: a chicken's bursa
 
-Birds have a pouch of lymphoid tissue opening into the cloaca, the **bursa of Fabricius**. In the 1950s nobody knew what it did. At Ohio State University, Bruce Glick was removing it from young chickens (bursectomy) to find out. The link to antibody began by chance: a graduate student, Timothy Chang, used some of Glick's bursectomized birds to raise antibody against Salmonella, and they made none. Glick, Chang and R. George Jaap then immunized bursectomized birds and intact controls with a Salmonella antigen. Antibody against bacteria is classically measured by **agglutination**: serial dilutions of serum are mixed with bacteria, and the highest dilution that still clumps them gives the titer.
-
-If the bursa had no immune role, both groups should have made similar antibody. Instead, most bursectomized birds made little or no detectable antibody (Poultry Science, 1956). That ruled in a need for the bursa in normal antibody production in chickens. It did not identify the cell, or say anything about mammals.
+Birds have a pouch of lymphoid tissue opening into the cloaca, the **bursa of Fabricius**. Bruce Glick removed it from young chickens, and Glick, Chang and Jaap found in 1956 that most of the bursectomized birds made little or no detectable antibody against Salmonella. That showed the bursa is needed for normal antibody production in chickens. It did not identify the cell, or say anything about mammals.
 
 Two later experiments split the system in two. In mice, J. F. A. P. Miller reported in 1961 that removing the thymus at birth impaired immune function. In chickens, Max Cooper, Raymond Peterson and Robert Good (1965, and in full in 1966) removed the bursa or the thymus in irradiated newly hatched birds: losing the bursa removed antibody while skin grafts were still rejected, only more slowly, and losing the thymus impaired graft rejection. Two lineages, then: bursa-derived **B cells** and thymus-derived **T cells**.
 
@@ -411,3 +396,19 @@ Dan and colleagues (Science, 2021) sampled blood from 188 people up to eight mon
 Treat memory as several compartments and measure each one separately in the same people. Measure plasma antibody by ELISA. Count antigen-binding memory B cells by antigen-probe flow cytometry, and count CD4 and CD8 T cells with a separate T cell assay, such as peptide stimulation followed by activation markers. Sample each person repeatedly (paired longitudinal samples), not different people at different times, and report each compartment's trend. Antibody comes mainly from plasma cells and decays as they and the antibody turn over; memory B cells can persist or even rise while antibody falls, as they did here. State the limit plainly: none of these readouts is a measure of protection. Protection needs its own endpoint, such as reinfection rates, which this design lacks. It supports no advice about vaccines.
 
 </details>
+
+## Going deeper
+
+### Going deeper: how specific is a receptor?
+
+Fit is not perfect one-to-one matching. Wooldridge and colleagues (2012) estimated, from tested peptides plus a mathematical model, that one human CD8 T cell clone from a person with type 1 diabetes responds to over a million different ten-amino-acid peptides presented on one MHC class I molecule.
+
+### Going deeper: the RAG enzymes
+
+The cutting needs the **RAG** enzymes; in fibroblasts given a recombination test sequence, Oettinger and colleagues (1990) found that adding RAG2 to RAG1 raised recombination at least 1,000-fold.
+
+### Going deeper: how the bursa experiment unfolded
+
+In the 1950s nobody knew what the bursa did. At Ohio State University, Bruce Glick was removing it from young chickens (bursectomy) to find out. The link to antibody began by chance: a graduate student, Timothy Chang, used some of Glick's bursectomized birds to raise antibody against Salmonella, and they made none. Glick, Chang and R. George Jaap then immunized bursectomized birds and intact controls with a Salmonella antigen. Antibody against bacteria is classically measured by **agglutination**: serial dilutions of serum are mixed with bacteria, and the highest dilution that still clumps them gives the titer.
+
+If the bursa had no immune role, both groups should have made similar antibody. Instead, most bursectomized birds made little or no detectable antibody (Poultry Science, 1956). That ruled in a need for the bursa in normal antibody production in chickens. It did not identify the cell, or say anything about mammals.
