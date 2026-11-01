@@ -1,20 +1,16 @@
-"""Killing faster than microbes double: innate immunity as a race (Biochemistrypedia explainer)
+"""Recognize and Respond: Innate Immunity. Word-timed schematic animation.
 
-Timed to the SPOKEN words (self.at cues). Everything drawn is a schematic block, circle or arrow;
-the numbers are the lesson's illustrative worked problem (100 bacteria, doubling every 20 minutes,
-constant rates, well-mixed wound), computed from N = N0 x [2 x (1 - k)]^n.
-
-COLOR MAP (one color per concept, whole video)
-  RED    = microbes: spores, bacteria, budding yeast, the no-defense line, "grows"
-  BLUE   = defender cells: blood cells, phagocytes, macrophages, neutrophils, NK cells
-  TEAL   = complement pieces (C3b, C3a, C5a, hole-making pieces)
+COLOR MAP (preserved from the original film)
+  RED = microbes: spores, bacteria, budding yeast, infected cells
+  BLUE = defender cells: phagocytes, macrophages, neutrophils, NK cells
+  TEAL = complement pieces and blood proteins
   PURPLE = signals: interferon, mediators such as histamine
-  ORANGE = lysosomes (digestive enzymes)
-  GREY   = barriers, tissue, labels, axes
-  GREEN  = cleared / killed / "shrinks" / the 75% line
-  YELLOW = highlight, the 40% line
-  GOLD   = the 50% threshold and the rule
-  TEXT   = labels and equations
+  ORANGE = lysosomes and antimicrobial peptides
+  GREY = barriers, tissue, structural labels
+  GREEN = cleared / protected / rebuilt
+  YELLOW = recognition highlight
+  GOLD = closing rule
+  TEXT = labels
 """
 import numpy as np
 from bp_style import *  # noqa: F401,F403
@@ -55,360 +51,378 @@ class Sc(SpokenScene):
         return min(max(0.4, self.beat(f)), 1.1)
 
 
-# ---------------------------------------------------------------- title / end
-class S00Title(TitleCard):
-    LESSON = "Innate Immunity"
-    TITLE = "Killing Faster Than Microbes Double"
-
-
-class S07End(EndCard):
-    LINE = "In this model, defenses clear an infection only by killing over half per doubling time."
-
-
-# ---------------------------------------------------------------- s01
-class S01Flea(Sc):
-    def construct(self):
-        body = RoundedRectangle(corner_radius=0.5, width=9.0, height=4.2, stroke_color=TEXT, stroke_width=3,
-                                fill_color=TEXT, fill_opacity=0.04).move_to([0, -0.2, 0])
-        name = T("water flea, Daphnia", 34).move_to([0, 3.0, 0])
-        self.play(Create(body), FadeIn(name), run_time=0.9)
-        self.at("is transparent")
-        tr = T("transparent: it can be watched alive", 26, WALL).move_to([0, -2.9, 0])
-        self.play(FadeIn(tr, shift=UP * 0.1), body.animate.set_fill(TEXT, opacity=0.0), run_time=self.rt(0.05))
-        self.at("its blood cells")
-        c1, c2, c3 = cell(-3.2, -0.9), cell(0.2, 1.0), cell(3.6, -1.0)
-        cl = T("blood cells", 28, DEF).move_to([-3.2, -1.75, 0])
-        self.play(FadeIn(c1, scale=0.6), FadeIn(c2, scale=0.6), FadeIn(c3, scale=0.6), FadeIn(cl),
-                  run_time=self.rt(0.05))
-        self.at("invading yeast")
-        s1, s2, s3 = spore(-1.8, 0.4, 0.5), spore(1.3, -0.8, 1.0), spore(2.8, 0.9, 0.3)
-        sl = T("yeast spores", 28, MIC).move_to([1.3, -1.6, 0])
-        self.play(FadeIn(s1, scale=0.5), FadeIn(s2, scale=0.5), FadeIn(s3, scale=0.5), FadeIn(sl),
-                  run_time=self.rt(0.05))
-        self.play(c1.animate.move_to([-2.2, 0.2, 0]), c2.animate.move_to([-1.2, 0.5, 0]),
-                  c3.animate.move_to([2.5, 0.2, 0]), FadeOut(cl), run_time=0.6)
-        self.play(s1.animate.move_to([-2.2, 0.2, 0]).scale(0.3), s2.animate.move_to([1.6, -0.5, 0]),
-                  s3.animate.move_to(c3).scale(0.3), c2.animate.move_to([1.6, -0.5, 0]), FadeOut(sl), run_time=0.6)
-        self.at("Where the cells destroyed")
-        eaten = VGroup(s1, s3)
-        self.play(FadeOut(eaten), FadeOut(s2), FadeOut(name), FadeOut(tr), run_time=0.4)
-        grp = VGroup(body, c1, c2, c3)
-        self.play(grp.animate.scale(0.68).move_to([-3.3, 0.3, 0]), run_time=self.rt(0.07))
-        l1 = T("spores destroyed:\ninfection stops", 30, OK, line_spacing=0.8).move_to([-3.3, -1.75, 0])
-        self.play(FadeIn(l1, shift=UP * 0.1), run_time=self.rt(0.04))
-        self.at("Where spores grew")
-        body2 = RoundedRectangle(corner_radius=0.3, width=6.12, height=2.86, stroke_color=TEXT, stroke_width=3,
-                                 fill_color=TEXT, fill_opacity=0.0).move_to([3.4, 0.3, 0])
-        ys = VGroup(*[yeast(3.4 + dx, 0.3 + dy) for dx, dy in
-                      [(-2.0, 0.6), (-1.0, -0.7), (0.0, 0.7), (1.1, -0.6), (1.9, 0.5), (-0.6, 0.1), (0.7, 0.0)]])
-        self.play(Create(body2), run_time=0.4)
-        self.play(LaggedStart(*[FadeIn(y, scale=0.5) for y in ys], lag_ratio=0.15), run_time=self.rt(0.1))
-        l2 = T("budding yeast grows:\nthe flea dies", 30, MIC, line_spacing=0.8).move_to([3.4, -1.75, 0])
-        self.play(FadeIn(l2, shift=UP * 0.1), run_time=self.rt(0.04))
-        self.finish()
-
-
-# ---------------------------------------------------------------- s02
-class S02Walls(Sc):
-    def construct(self):
-        head = T("innate immunity", 44, TEXT).move_to([0, 2.7, 0])
-        sub = T("ready before it meets a particular microbe", 30, WALL).move_to([0, 1.9, 0])
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.6)
-        self.at("before an organism")
-        self.play(FadeIn(sub), run_time=self.rt(0.05))
-        self.at("In mammalian airways")
-        self.play(FadeOut(head), FadeOut(sub), run_time=0.4)
-        WX = -1.2
-        top = Rectangle(width=0.5, height=2.5, stroke_width=0, fill_color=WALL, fill_opacity=0.9).move_to([WX, 1.55, 0])
-        bot = Rectangle(width=0.5, height=2.5, stroke_width=0, fill_color=WALL, fill_opacity=0.9).move_to([WX, -1.55, 0])
-        wall = VGroup(top, bot)
-        wl = T("airway lining (mammal)", 26, WALL).move_to([WX, -3.25, 0])
-        out = T("outside", 26, WALL).move_to([-4.6, 3.1, 0])
-        inn = T("inside the body", 26, WALL).move_to([1.0, 3.1, 0])
-        self.play(FadeIn(inn), GrowFromEdge(top, UP), GrowFromEdge(bot, DOWN), FadeIn(wl), FadeIn(out), run_time=0.7)
-        self.at("mucus traps")
-        mucus = Rectangle(width=1.2, height=5.6, stroke_width=0, fill_color=WALL, fill_opacity=0.25).move_to([WX - 0.85, 0, 0])
-        ml = T("mucus", 26, WALL).move_to([WX - 0.85, 3.1, 0])
-        mics = VGroup(*[dot(-4.0, y) for y in (1.6, 0.4, -1.1, 2.4)])
-        self.play(FadeIn(mucus), FadeIn(ml), FadeIn(mics), run_time=0.5)
-        self.play(*[m.animate.move_to([-2.1, m.get_y(), 0]) for m in mics], run_time=0.7)
-        self.at("cilia carry")
-        ticks = VGroup(*[Line([WX - 0.25, y, 0], [WX - 0.65, y + 0.12, 0], color=WALL, stroke_width=4)
-                         for y in list(np.arange(-2.7, -0.4, 0.3)) + list(np.arange(0.6, 2.9, 0.3))])
-        up = arrow([-3.2, -0.4, 0], [-3.2, 2.6, 0], color=TEXT)
-        self.play(Create(ticks), GrowArrow(up), run_time=0.6)
-        self.play(*[m.animate.shift(UP * 1.0).set_opacity(0.0) for m in mics if m.get_y() > 0],
-                  *[m.animate.shift(UP * 1.0) for m in mics if m.get_y() <= 0], run_time=0.7)
-        self.at("A microbe that gets through")
-        m = dot(-2.1, 0.0, r=0.2)
-        self.play(FadeIn(m, scale=0.5), run_time=0.2)
-        self.play(m.animate.move_to([0.8, 0.0, 0]), run_time=0.9)
-        ph = cell(3.6, 0.0, r=2.1, op=0.12)
-        pl = T("phagocyte", 32, DEF).move_to([3.6, 2.65, 0])
-        self.at("meets a phagocyte")
-        self.play(FadeIn(ph, scale=0.8), FadeIn(pl), run_time=0.5)
-        self.play(FadeOut(mucus), FadeOut(ticks), FadeOut(up), FadeOut(ml), FadeOut(out), FadeOut(wl),
-                  FadeOut(wall), FadeOut(mics), FadeOut(inn), m.animate.move_to([3.0, 0.3, 0]), run_time=0.7)
-        self.at("sits in a bubble")
-        bub = Circle(radius=0.55, stroke_color=TEXT, stroke_width=3, fill_opacity=0).move_to(m)
-        bl = T("phagosome", 26, TEXT).move_to([3.0, -0.65, 0])
-        self.play(Create(bub), FadeIn(bl), run_time=self.rt(0.05))
-        self.at("digestive enzymes")
-        ly = VGroup(cell(4.8, 1.0, r=0.3, color=LYS, op=0.5), cell(4.8, -0.5, r=0.3, color=LYS, op=0.5))
-        yl = T("lysosomes: sacs of digestive enzymes", 26, LYS).move_to([3.5, -2.65, 0])
-        self.play(FadeIn(ly), FadeIn(yl), run_time=self.rt(0.05))
-        self.at("fuse with it")
-        self.play(*[l.animate.move_to(bub.get_center() + d) for l, d in zip(ly, [UP * 0.5 + RIGHT * 0.15, DOWN * 0.5 + RIGHT * 0.15])],
-                  bub.animate.set_stroke(LYS).set_fill(LYS, opacity=0.2), run_time=self.rt(0.07))
-        self.at("kill the microbe")
-        self.play(m.animate.scale(0.2).set_opacity(0), run_time=self.rt(0.06))
-        self.finish()
-
-
-# ---------------------------------------------------------------- s03
-class S03Three(Sc):
-    def construct(self):
-        mic = RoundedRectangle(corner_radius=0.6, width=4.4, height=2.4, stroke_color=MIC, stroke_width=4,
-                               fill_color=MIC, fill_opacity=0.18).move_to([-2.4, -0.3, 0])
-        ml = T("microbe", 30, MIC).move_to(mic)
-        pl = T("in mammals", 30, WALL).move_to([0, 3.2, 0])
-        self.play(FadeIn(pl), Create(mic), FadeIn(ml), run_time=0.8)
-        self.at("Complement is a set")
-        cl = T("complement: proteins in blood plasma", 30, CMP).move_to([0, 3.2, 0])
-        c3 = chip("C3", CMP, size=34).move_to([-5.2, 1.8, 0])
-        self.play(Transform(pl, cl), FadeIn(c3, scale=0.7), run_time=self.rt(0.06))
-        self.at("is cut")
-        c3b = chip("C3b", CMP, size=34).move_to([-4.4, 1.9, 0])
-        c3a = chip("C3a", CMP, size=24, pad=0.12).move_to([-5.6, 2.7, 0])
-        cut = Line([-5.2, 2.5, 0], [-5.2, 1.1, 0], color=TEXT, stroke_width=4)
-        self.play(Create(cut), run_time=0.3)
-        self.play(FadeOut(c3, scale=1.2), FadeIn(c3b), FadeIn(c3a), FadeOut(cut), run_time=self.rt(0.04))
-        self.at("sticks to a microbe")
-        tags = VGroup(*[chip("C3b", CMP, size=22, pad=0.1).move_to(p) for p in
-                        ([0.2, 0.6, 0], [0.2, -0.3, 0], [0.2, -1.2, 0])])
-        self.play(c3b.animate.move_to(tags[0]), run_time=self.rt(0.05))
-        self.play(FadeIn(tags[1]), FadeIn(tags[2]), FadeOut(c3b), FadeIn(tags[0]), run_time=0.4)
-        self.at("marks it for eating")
-        ph = cell(5.0, -0.3, r=1.6, op=0.12)
-        phl = T("phagocyte", 28, DEF).move_to([5.0, 1.75, 0])
-        eat = T("marked for eating", 28, CMP).move_to([2.3, -2.4, 0])
-        self.play(FadeIn(ph), FadeIn(phl), run_time=self.rt(0.04))
-        self.play(ph.animate.move_to([2.3, -0.3, 0]), phl.animate.move_to([2.3, 1.75, 0]), FadeIn(eat),
-                  run_time=0.8)
-        self.at("drift away")
-        c5a = chip("C5a", CMP, size=24, pad=0.12).move_to([-1.8, 0.95, 0])
-        self.play(FadeIn(c5a, scale=0.7), c3a.animate.move_to([-3.2, 1.7, 0]), run_time=0.3)
-        self.play(c3a.animate.move_to([-4.6, 2.5, 0]), c5a.animate.move_to([-2.2, 2.4, 0]), run_time=self.rt(0.05))
-        infl = T("promote inflammation", 28, TEXT).move_to([-3.4, 3.2 - 0.0, 0])
-        self.play(FadeOut(pl), FadeIn(infl), run_time=0.3)
-        self.at("punch holes")
-        hole = Rectangle(width=0.8, height=0.3, stroke_width=0, fill_color=BG, fill_opacity=1).move_to([-2.4, -1.5, 0])
-        barrel = RoundedRectangle(corner_radius=0.1, width=1.1, height=0.55, stroke_color=CMP, stroke_width=4,
-                                  fill_opacity=0).move_to([-2.4, -1.5, 0])
-        hl = T("holes in susceptible microbes", 28, CMP).move_to([-2.4, -2.5, 0])
-        self.play(FadeIn(hole), Create(barrel), FadeIn(hl), FadeOut(eat), run_time=self.rt(0.05))
-        self.at("Interferons from")
-        self.play(*[FadeOut(m) for m in [mic, ml, tags, ph, phl, c3a, c5a, infl, hole, barrel, hl]], run_time=0.5)
-        # interferon (left half) and NK (right half)
-        sep = DashedLine([0.2, -3.0, 0], [0.2, 3.0, 0], color=WALL, stroke_width=2)
-        inf_c = cell(-5.0, 0.4, r=1.0, color=MIC, op=0.25)
-        inf_l = T("virus-infected\ncell", 26, MIC, line_spacing=0.8).move_to([-5.0, -1.45, 0])
-        nb_c = cell(-1.8, 0.4, r=1.0, color=DEF, op=0.12)
-        nb_l = T("nearby cell", 26, DEF).move_to([-1.8, -1.45, 0])
-        self.play(Create(sep), FadeIn(inf_c), FadeIn(inf_l), FadeIn(nb_c), FadeIn(nb_l), run_time=0.5)
-        ifn = VGroup(*[dot(-3.9 + 0.1 * i, 0.4 + 0.2 * (i % 2 - 0.5), r=0.12, color=SIG) for i in range(3)])
-        il = T("interferon", 28, SIG).move_to([-3.4, 1.9, 0])
-        self.play(FadeIn(ifn), FadeIn(il), run_time=0.3)
-        self.play(*[d.animate.shift(RIGHT * 1.0) for d in ifn], run_time=self.rt(0.05))
-        av = T("antiviral state", 26, OK).move_to([-1.8, -2.3, 0])
-        self.play(nb_c.animate.set_stroke(OK).set_fill(OK, opacity=0.25), FadeIn(av), run_time=self.rt(0.04))
-        self.at("Natural killer cells")
-        nk = cell(2.0, 0.4, r=1.0, color=DEF, op=0.3)
-        nkl = T("natural\nkiller cell", 26, DEF, line_spacing=0.8).move_to([2.0, -1.45, 0])
-        tg = cell(5.2, 0.4, r=1.0, color=MIC, op=0.25)
-        tgl = T("infected or\nabnormal cell", 26, MIC, line_spacing=0.8).move_to([5.2, -1.45, 0])
-        self.play(FadeIn(nk), FadeIn(nkl), FadeIn(tg), FadeIn(tgl), run_time=0.5)
-        a = arrow([3.2, 0.4, 0], [4.0, 0.4, 0], color=DEF)
-        self.play(GrowArrow(a), run_time=self.rt(0.05))
-        self.play(tg.animate.set_stroke(opacity=0.35).set_fill(opacity=0.05), FadeOut(a), run_time=self.rt(0.05))
-        self.finish()
-
-
-# ---------------------------------------------------------------- s04
-class S04Inflame(Sc):
-    GX = -1.5
-
-    def construct(self):
-        tissue = Rectangle(width=12.4, height=4.6, stroke_color=WALL, stroke_width=2, fill_color=WALL,
-                           fill_opacity=0.08).move_to([0, 0.95, 0])
-        tl = T("tissue", 26, WALL).move_to([-5.7, 1.0, 0])
-        gx = self.GX
-        vtop_l = Line([-6.2, -1.4, 0], [gx - 0.3, -1.4, 0], color=WALL, stroke_width=6)
-        vtop_r = Line([gx + 0.3, -1.4, 0], [6.2, -1.4, 0], color=WALL, stroke_width=6)
-        vbot = Line([-6.2, -3.1, 0], [6.2, -3.1, 0], color=WALL, stroke_width=6)
-        vl = T("small blood vessel", 26, WALL).move_to([4.2, -3.45, 0])
-        self.play(FadeIn(tissue), Create(vtop_l), Create(vtop_r), Create(vbot), FadeIn(tl), FadeIn(vl), run_time=0.9)
-
-        def lab(s, color=TEXT):
-            return T(s, 36, color).move_to([-3.9, 2.6, 0])
-        mac = cell(0.6, 1.8, r=0.6, op=0.3)
-        bact = VGroup(*[dot(x, y, r=0.15) for x, y in [(4.1, 2.2), (4.6, 1.5), (4.0, 1.0), (4.9, 2.1)]])
-        self.at("Resident cells such as")
-        ml = T("macrophage", 24, DEF).move_to([0.6, 2.75, 0])
-        self.play(FadeIn(mac, scale=0.7), FadeIn(ml), FadeIn(bact), run_time=0.6)
-        s1 = lab("1  sensing")
-        self.at("sense microbes")
-        recs = VGroup(*[Line(mac.get_center() + 0.6 * np.array([np.cos(a), np.sin(a), 0]),
-                             mac.get_center() + 0.9 * np.array([np.cos(a), np.sin(a), 0]), color=DEF, stroke_width=4)
-                        for a in np.radians([0, 30, 60, 330, 300])])
-        pr = T("pattern-recognition receptors", 24, DEF).move_to([1.5, 0.8, 0])
-        self.play(FadeIn(s1), Create(recs), FadeIn(pr), run_time=0.7)
-        self.at("Mediators such as")
-        s2 = lab("2  leaky vessels")
-        sig = VGroup(*[dot(x, -0.75, r=0.12, color=SIG) for x in (-4.4, -3.6, -2.8, -2.0)])
-        mast = cell(-5.0, -0.75, r=0.3, color=SIG, op=0.4)
-        mastl = T("mast cell", 24, SIG).move_to([-5.0, -0.2, 0])
-        sl = T("histamine", 26, SIG).move_to([-3.2, -0.25, 0])
-        self.play(Transform(s1, s2), FadeOut(pr), FadeIn(mast), FadeIn(mastl), FadeIn(sig), FadeIn(sl), run_time=0.7)
-        self.at("widen small vessels")
-        self.play(sig.animate.shift(DOWN * 0.45),
-                  vtop_l.animate.put_start_and_end_on([-6.2, -1.4, 0], [gx - 1.2, -1.4, 0]),
-                  vtop_r.animate.put_start_and_end_on([gx + 1.2, -1.4, 0], [6.2, -1.4, 0]),
-                  run_time=0.9)
-        self.at("Fluid and plasma proteins")
-        s3 = lab("3  leak")
-        fl = VGroup(*[dot(gx - 0.5 + 0.5 * i, -1.9, r=0.11, color=DEF) for i in range(3)])
-        cp = chip("complement", CMP, size=22, pad=0.1).move_to([gx, -2.55, 0])
-        self.play(Transform(s1, s3), FadeOut(sl), FadeOut(sig), FadeOut(mast), FadeOut(mastl), FadeIn(fl), FadeIn(cp), run_time=0.6)
-        self.play(*[f.animate.move_to([gx + 0.6 + 0.35 * i, -0.5 - 0.3 * (i % 2)] + [0]) for i, f in enumerate(fl)],
-                  cp.animate.move_to([-2.9, -0.6, 0]), run_time=1.0)
-        self.at("Neutrophils squeeze")
-        s4 = lab("4  recruitment")
-        neu = VGroup(*[cell(x, -2.25, r=0.4) for x in (-4.4, -3.5)])
-        nl = T("neutrophils", 24, DEF).move_to([-4.0, -3.45, 0])
-        self.play(Transform(s1, s4), FadeIn(neu), FadeIn(nl), run_time=0.5)
-        self.play(*[n.animate.move_to([gx + 0.0 * i, -1.4, 0]) for i, n in enumerate(neu)], run_time=0.7)
-        self.play(neu[0].animate.move_to([3.3, 0.5, 0]), neu[1].animate.move_to([3.3, 1.8, 0]), FadeOut(nl),
-                  run_time=1.2)
-        nl2 = T("neutrophils", 24, DEF).move_to([4.9, 0.3, 0])
-        self.play(FadeIn(nl2), run_time=0.3)
-        self.at("monocytes follow")
-        mono = VGroup(*[cell(x, -2.25, r=0.4, op=0.1) for x in (-0.6, 0.2)])
-        mol = T("monocytes", 24, DEF).move_to([0.8, -3.45, 0])
-        self.play(FadeIn(mono), FadeIn(mol), run_time=0.3)
-        self.play(*[mo.animate.move_to([gx, -1.4, 0]) for mo in mono], run_time=0.5)
-        self.play(mono[0].animate.move_to([2.3, -0.1, 0]), mono[1].animate.move_to([2.3, 1.0, 0]) , FadeOut(mol),
-                  run_time=0.8)
-        mol2 = T("monocytes", 24, DEF).move_to([2.3, -0.75, 0])
-        self.play(FadeIn(mol2), run_time=0.3)
-        self.at("Macrophages then clear")
-        s5 = lab("5  repair")
-        self.play(Transform(s1, s5), *[FadeOut(b, scale=0.3) for b in bact], run_time=0.8)
-        self.at("tissue rebuilds")
-        note = T("microbes and debris\ncleared; tissue rebuilds", 26, OK, line_spacing=0.8).move_to([-3.9, 1.5, 0])
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------- s05
 def lg(v):
     return float(np.log10(v))
 
 
-class S05Race(Sc):
-    X0, X1, Y0, Y1 = -4.4, 3.0, -2.3, 2.3
+# Shared schematic receptor: an open cup on a short stem.
+def receptor(x, y, color=DEF):
+    return VGroup(Line([x-.3,y+.25,0], [x-.3,y-.15,0], color=color, stroke_width=5),
+                  Line([x-.3,y-.15,0], [x+.3,y-.15,0], color=color, stroke_width=5),
+                  Line([x+.3,y-.15,0], [x+.3,y+.25,0], color=color, stroke_width=5),
+                  Line([x,y-.15,0], [x,y-.55,0], color=color, stroke_width=5))
 
-    def P(self, n, val):
-        return np.array([self.X0 + (self.X1 - self.X0) * n / 12, self.Y0 + (self.Y1 - self.Y0) * (lg(val) + 2) / 8, 0])
 
-    def line(self, k, color):
-        pts = [self.P(n, 100 * (2 * (1 - k)) ** n) for n in range(13)]
-        return VMobject(stroke_color=color, stroke_width=6).set_points_as_corners(pts)
+def heading(text, color=TEXT):
+    return T(text, 34, color).move_to([0, 3.15, 0])
 
+
+class S00Title(TitleCard):
+    LESSON = "Innate Immunity"
+    TITLE = "Recognize and Respond: Innate Immunity"
+
+
+class S08End(EndCard):
+    LINE = "Keep microbes out, recognize intruders,\ngather defenses to clear them."
+
+
+class S01Lead(Sc):
     def construct(self):
-        top = T("illustrative numbers, not a measured infection", 28, WALL).move_to([0, 3.3, 0])
-        self.play(FadeIn(top), run_time=0.5)
-        self.at("illustrative")
-        ax = VGroup(Line(self.P(0, 0.01), self.P(12, 0.01), color=WALL, stroke_width=3),
-                    Line(self.P(0, 0.01), self.P(0, 1e6), color=WALL, stroke_width=3))
-        yt = VGroup(*[VGroup(Line(self.P(0, v) + LEFT * 0.08, self.P(0, v) + RIGHT * 0.08, color=WALL, stroke_width=3),
-                             T(s, 22, WALL).next_to(self.P(0, v), LEFT, buff=0.15))
-                      for v, s in ((0.01, "0.01"), (1, "1"), (100, "100"), (1e4, "10,000"), (1e6, "1,000,000"))])
-        xt = VGroup(*[T(str(h), 22, WALL).move_to(self.P(3 * h, 0.01) + DOWN * 0.35) for h in range(5)])
-        xl = T("hours since the bacteria entered", 24, WALL).move_to([-0.8, -3.15, 0])
-        yl = T("bacteria (log scale)", 24, WALL).move_to([-3.3, 2.75, 0])
-        self.play(Create(ax), FadeIn(yt), FadeIn(xt), FadeIn(xl), FadeIn(yl), run_time=self.rt(0.08))
-        self.at("bacteria enter a wound")
-        start = Dot(self.P(0, 100), radius=0.12, color=TEXT)
-        sl = T("start: 100", 24, TEXT).move_to(self.P(0, 100) + RIGHT * 1.0 + UP * 0.85)
-        self.play(FadeIn(start, scale=0.5), FadeIn(sl), run_time=self.rt(0.04))
-        self.at("no defense")
-        l0 = self.line(0.0, MIC)
-        e0 = VGroup(T("409,600", 28, MIC), T("no defense", 22, MIC)).arrange(DOWN, aligned_edge=LEFT, buff=0.05)
-        e0.next_to(self.P(12, 409600), RIGHT, buff=0.2)
-        self.play(Create(l0), run_time=self.rt(0.1))
-        self.play(FadeIn(e0), run_time=0.3)
-        self.at("each interval")
-        l1 = self.line(0.75, OK)
-        self.play(Create(l1), run_time=self.rt(0.1))
-        self.at("infection is cleared")
-        e1 = VGroup(T("about 0.024", 28, OK), T("75% killed", 22, OK)).arrange(DOWN, aligned_edge=LEFT, buff=0.05)
-        e1.next_to(self.P(12, 100 * 0.5 ** 12), RIGHT, buff=0.2)
-        m1 = T("multiplier 0.5", 24, OK).move_to(self.P(6, 100 * 0.5 ** 6) + LEFT * 0.1 + DOWN * 0.55)
-        self.play(FadeIn(e1), FadeIn(m1), run_time=0.4)
-        self.at("kill only")
-        l2 = self.line(0.4, HI)
-        self.play(Create(l2), run_time=self.rt(0.08))
-        m2 = T("multiplier 1.2", 24, HI).move_to(self.P(8.5, 100 * 1.2 ** 8.5) + DOWN * 0.5)
-        self.play(FadeIn(m2), run_time=0.3)
-        self.at("still growing")
-        e2 = VGroup(T("about 892", 28, HI), T("40% killed", 22, HI)).arrange(DOWN, aligned_edge=LEFT, buff=0.05)
-        e2.next_to(self.P(12, 100 * 1.2 ** 12), RIGHT, buff=0.2)
-        self.play(FadeIn(e2), run_time=0.4)
+        wall = Rectangle(width=11.8, height=.35, stroke_width=0,
+                         fill_color=WALL, fill_opacity=.8).move_to([0, 1.0, 0])
+        microbes = VGroup(dot(-3,2.2), dot(-1,2.3), dot(2,2.1))
+        resident = cell(1.3,-1.15,r=.95)
+        rec = receptor(1.3,-.15)
+        label = T("ready defenses",32,DEF).move_to([0,-3,0])
+        self.at("Long before")
+        self.play(FadeIn(wall), FadeIn(microbes), FadeIn(resident), Create(rec), run_time=.8)
+        self.at("already defending itself")
+        self.play(FadeIn(label), run_time=.6)
+        self.at("Innate immunity")
+        title = heading("Innate immunity: ready before contact")
+        self.play(FadeIn(title), run_time=.6)
+        self.at("Barriers keep")
+        self.play(microbes[0].animate.move_to([-3,1.35,0]),
+                  microbes[1].animate.move_to([-1,1.35,0]), run_time=.5)
+        self.play(microbes[0].animate.shift(UP*.8+LEFT*.7),
+                  microbes[1].animate.shift(UP*.9+LEFT*.3), run_time=.6)
+        self.at("For the ones")
+        gap = Rectangle(width=.8,height=.5,stroke_width=0,fill_color=BG,fill_opacity=1).move_to([2,1,0])
+        self.play(FadeIn(gap),microbes[2].animate.move_to([2,.5,0]),run_time=.7)
+        self.at("receptors recognize")
+        self.play(microbes[2].animate.move_to([1.3,-.02,0]),rec.animate.set_color(HI),run_time=.8)
+        self.at("signs of damage")
+        damage=chip("damage",WALL,24).move_to([-3,-.7,0])
+        self.play(FadeIn(damage),run_time=.5)
+        self.at("That recognition")
+        self.play(FadeOut(damage),FadeOut(microbes[0]),FadeOut(microbes[1]),FadeOut(label),run_time=.5)
+        self.at("inflammation")
+        self.play(Transform(title,heading("Inflammation: gather the defenses",SIG)),run_time=.6)
+        ph=cell(-4,-1.2,r=.55)
+        protein=chip("blood proteins",CMP,24).move_to([4.3,-2.1,0])
+        paths=VGroup(arrow([-3.2,-1.2,0],[-.1,-1.2,0],DEF),
+                     arrow([3.5,-1.6,0],[2.5,-1.25,0],CMP))
+        self.at("brings eating cells")
+        self.play(FadeIn(ph),GrowArrow(paths[0]),run_time=.5)
+        self.play(ph.animate.move_to([-.6,-1.2,0]),run_time=.7)
+        self.at("blood proteins")
+        self.play(FadeIn(protein),GrowArrow(paths[1]),run_time=.5)
         self.finish()
 
 
-# ---------------------------------------------------------------- s06
-class S06Rule(Sc):
-    XA, XB, YA, YB = -4.2, 4.4, -1.6, 2.1     # k = 0..1 across, multiplier 0..2 up
-
-    def Pt(self, k, m):
-        return np.array([self.XA + (self.XB - self.XA) * k, self.YA + (self.YB - self.YA) * m / 2, 0])
-
+class S02Inflame(Sc):
     def construct(self):
-        eq = M("N = N0 x [2 x (1 - k)]^n", 32, TEXT).move_to([0, 3.2, 0])
-        self.play(FadeIn(eq, shift=DOWN * 0.1), run_time=0.6)
-        self.at("constant rates")
-        sub = T("k = fraction killed per doubling time", 24, WALL).move_to([0, 2.65, 0])
-        self.play(FadeIn(sub), run_time=0.4)
-        self.at("shrinks only if")
-        P = self.Pt
-        grow = Polygon(P(0, 1), P(1, 1), P(1, 2), P(0, 2), stroke_width=0, fill_color=MIC, fill_opacity=0.12)
-        shr = Polygon(P(0, 0), P(1, 0), P(1, 1), P(0, 1), stroke_width=0, fill_color=OK, fill_opacity=0.12)
-        ax = VGroup(Line(P(0, 0), P(1, 0), color=WALL, stroke_width=3), Line(P(0, 0), P(0, 2), color=WALL, stroke_width=3))
-        xt = VGroup(*[T(f"{int(k * 100)}%", 22, WALL).move_to(P(k, 0) + DOWN * 0.3) for k in (0, 0.25, 0.5, 0.75, 1)])
-        yt = VGroup(*[T(str(m), 22, WALL).next_to(P(0, m), LEFT, buff=0.15) for m in (0, 1, 2)])
-        xl = T("fraction killed per doubling time", 24, WALL).move_to([0.1, -2.4, 0])
-        yl = T("multiplier per interval", 24, WALL).rotate(PI / 2).move_to([-5.5, 0.25, 0])
-        gl = T("grows", 30, MIC).move_to(P(0.82, 1.65))
-        sl = T("shrinks", 30, OK).move_to(P(0.22, 0.4))
-        self.play(FadeIn(grow), FadeIn(shr), Create(ax), FadeIn(xt), FadeIn(yt), FadeIn(xl), FadeIn(yl),
-                  FadeIn(gl), FadeIn(sl), run_time=self.rt(0.1))
-        one = DashedLine(P(0, 1), P(1, 1), color=THR, stroke_width=4)
-        curve = Line(P(0, 2), P(1, 0), color=TEXT, stroke_width=6)
-        self.play(Create(curve), Create(one), run_time=self.rt(0.1))
-        p40 = Dot(P(0.4, 1.2), radius=0.12, color=HI)
-        p75 = Dot(P(0.75, 0.5), radius=0.12, color=OK)
-        t40 = T("40%: 1.2", 24, HI).next_to(p40, UR, buff=0.1)
-        t75 = T("75%: 0.5", 24, OK).next_to(p75, UR, buff=0.1)
-        self.play(FadeIn(p40, scale=0.5), FadeIn(t40), FadeIn(p75, scale=0.5), FadeIn(t75), run_time=0.5)
-        self.at("Keep one rule")
-        v = DashedLine(P(0.5, 0), P(0.5, 1), color=THR, stroke_width=4)
-        vt = T("50%", 28, THR).next_to(P(0.5, 0), DOWN, buff=0.12)
-        vt.set_opacity(0)
-        cross = Dot(P(0.5, 1), radius=0.14, color=THR)
-        self.play(Create(v), FadeIn(cross, scale=0.4), xt[2].animate.set_color(THR), run_time=self.rt(0.08))
-        self.at("kills more than half")
-        rule = fit(T("in this model: kill more than half, each doubling time", 34, THR), max_w=12.0).move_to([0, -3.1, 0])
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=self.rt(0.06))
+        # Original tissue-above-vessel drawing, with a closed wall before sensing.
+        tissue=Rectangle(width=12.4,height=4.4,stroke_color=WALL,stroke_width=2,
+                         fill_color=WALL,fill_opacity=.08).move_to([0,1,0])
+        gx=-1.5
+        top_l=Line([-6.2,-1.3,0],[gx,-1.3,0],color=WALL,stroke_width=6)
+        top_r=Line([gx,-1.3,0],[6.2,-1.3,0],color=WALL,stroke_width=6)
+        bottom=Line([-6.2,-2.8,0],[6.2,-2.8,0],color=WALL,stroke_width=6)
+        vessel=VGroup(top_l,top_r,bottom,T("small blood vessel",24,WALL).move_to([3.7,-3.25,0]))
+        mac=cell(.6,1.35,r=.75,op=.3)
+        ml=T("macrophage",26,DEF).move_to([.6,2.85,0])
+        rec=receptor(.6,2.05)
+        bact=dot(4.7,1.8,r=.25)
+        step=T("1  sensing",32).move_to([-3.8,2.65,0])
+        self.at("In a mammal")
+        self.play(FadeIn(tissue),FadeIn(vessel),FadeIn(step),run_time=.6)
+        self.at("resident cells")
+        self.play(FadeIn(mac),FadeIn(ml),Create(rec),run_time=.7)
+        self.at("TLR4")
+        rl=T("TLR4",24,DEF).move_to([2.2,2.35,0])
+        ligand=chip("LPS",MIC,24).move_to([4.2,.65,0])
+        ll=T("bacterial outer-membrane molecule",24,MIC).move_to([2.5,-.55,0])
+        self.play(FadeIn(rl),FadeIn(bact),FadeIn(ligand),run_time=.6)
+        self.at("recognizes lipopolysaccharide")
+        self.play(ligand.animate.move_to([.6,2.2,0]),rec.animate.set_color(HI),run_time=.8)
+        self.at("outer membrane")
+        self.play(FadeIn(ll),run_time=.5)
+        self.at("Sensing switches")
+        genes=chip("inflammatory genes ON",SIG,24).move_to([-3.6,1.1,0])
+        self.play(FadeIn(genes),run_time=.6)
+        self.at("Mediators such as")
+        hist=chip("histamine",SIG,26).move_to([-3.8,-.45,0])
+        self.play(FadeOut(ll),FadeOut(rl),FadeOut(ligand),FadeOut(genes),
+                  Transform(step,T("2  open the vessel",32).move_to(step)),FadeIn(hist),run_time=.6)
+        self.at("widen small vessels")
+        self.play(bottom.animate.shift(DOWN*.3),hist.animate.shift(RIGHT*1.3),run_time=.7)
+        self.at("loosen their lining")
+        self.play(top_l.animate.put_start_and_end_on([-6.2,-1.3,0],[gx-.7,-1.3,0]),
+                  top_r.animate.put_start_and_end_on([gx+.7,-1.3,0],[6.2,-1.3,0]),run_time=.6)
+        fluid=VGroup(*[dot(gx+dx,-2,r=.11,color=DEF) for dx in (-.4,0,.4)])
+        cp=chip("complement",CMP,22,pad=.1).move_to([1,-2.1,0])
+        self.at("Fluid and plasma proteins")
+        self.play(FadeOut(hist),FadeIn(fluid),FadeIn(cp),Transform(step,T("3  leak into tissue",32).move_to(step)),run_time=.5)
+        self.at("leak into the tissue")
+        self.play(fluid.animate.shift(UP*1.5),cp.animate.move_to([-3.4,-.25,0]),run_time=.8)
+        neu=cell(-3.6,-2.1,r=.4)
+        nl=T("neutrophil",24,DEF).move_to([-4.6,-2.25,0])
+        self.at("Neutrophils squeeze")
+        self.play(FadeOut(fluid),FadeOut(cp),FadeIn(neu),FadeIn(nl),
+                  Transform(step,T("4  recruit cells",32).move_to(step)),run_time=.35)
+        self.play(neu.animate.move_to([gx,-1.3,0]).stretch(.55,0),run_time=.4)
+        self.play(neu.animate.move_to([3.2,.7,0]).stretch(1/.55,0),FadeOut(nl),run_time=.6)
+        mono=cell(-.2,-2.1,r=.45,op=.12)
+        mol=T("monocyte",24,DEF).move_to([1.6,-2.2,0])
+        self.at("monocytes follow")
+        self.play(FadeIn(mono),FadeIn(mol),run_time=.3)
+        self.play(mono.animate.move_to([gx,-1.3,0]).stretch(.55,0),run_time=.4)
+        self.play(mono.animate.move_to([2,-.05,0]).stretch(1/.55,0),FadeOut(mol),run_time=.6)
+        self.at("Macrophages clear")
+        self.play(mac.animate.move_to(bact),FadeOut(ml),FadeOut(rec),run_time=.5)
+        self.play(FadeOut(bact,scale=.1),Transform(step,T("5  clear and repair",32).move_to(step)),run_time=.4)
+        self.at("tissue rebuilds")
+        self.play(tissue.animate.set_stroke(OK),
+                  top_l.animate.put_start_and_end_on([-6.2,-1.3,0],[gx,-1.3,0]),
+                  top_r.animate.put_start_and_end_on([gx,-1.3,0],[6.2,-1.3,0]),run_time=.6)
+        self.finish()
+
+
+class S03Walls(Sc):
+    def construct(self):
+        title=heading("Barriers come first",WALL)
+        self.at("Barriers come first")
+        self.play(FadeIn(title),run_time=.5)
+        skin=VGroup(*[RoundedRectangle(width=1.5,height=.75,corner_radius=.08,
+                    stroke_color=WALL,fill_color=WALL,fill_opacity=.3).move_to([x,y,0])
+                    for y in (-.3,.5) for x in (-2.3,-.75,.8,2.35)])
+        sl=T("skin: dead, tightly packed cells",30,WALL).move_to([0,-2,0])
+        self.at("Skin's outer layer")
+        self.play(FadeIn(skin),FadeIn(sl),run_time=.6)
+        self.at("In airways")
+        lining=Rectangle(width=.4,height=4,stroke_width=0,fill_color=WALL,fill_opacity=.8).move_to([1,0,0])
+        mucus=Rectangle(width=.8,height=4,stroke_width=0,fill_color=WALL,fill_opacity=.23).move_to([.4,0,0])
+        ticks=VGroup(*[Line([.8,y,0],[.2,y+.18,0],color=WALL,stroke_width=4) for y in np.arange(-1.8,1.9,.4)])
+        ms=VGroup(dot(-2,1.2),dot(-2,-.4))
+        al=T("airway: mucus + cilia",30,WALL).move_to([0,-2.7,0])
+        self.play(FadeOut(skin),FadeOut(sl),FadeIn(lining),FadeIn(mucus),FadeIn(ms),FadeIn(al),run_time=.5)
+        self.at("mucus traps")
+        self.play(ms.animate.shift(RIGHT*2.2),run_time=.5)
+        self.at("cilia carry")
+        up=arrow([-1,0,0],[-1,2,0],WALL)
+        self.play(Create(ticks),GrowArrow(up),ms.animate.shift(UP*2).set_opacity(0),run_time=.7)
+        self.at("Stomach acid")
+        acid=RoundedRectangle(width=6,height=3,corner_radius=.7,stroke_color=WALL,
+                             fill_color=LYS,fill_opacity=.15)
+        am=VGroup(dot(-1,0),dot(.5,.6),dot(1.5,-.5))
+        ac=T("stomach acid",32,LYS).move_to([0,-2.4,0])
+        self.play(*[FadeOut(m) for m in (lining,mucus,ticks,ms,al,up)],FadeIn(acid),FadeIn(am),FadeIn(ac),run_time=.5)
+        self.at("kills many")
+        self.play(FadeOut(am,scale=.1),run_time=.7)
+        self.at("Lining cells release")
+        lc=VGroup(*[cell(x,-.8,.5,color=WALL) for x in (-2.4,-.8,.8,2.4)])
+        peptides=VGroup(*[dot(x,.4,r=.1,color=LYS) for x in (-2,-.4,1.2)])
+        pl=T("antimicrobial peptides",28,LYS).move_to([0,1.9,0])
+        self.play(FadeOut(acid),FadeOut(ac),FadeIn(lc),FadeIn(peptides),FadeIn(pl),run_time=.6)
+        self.at("antimicrobial peptides")
+        self.play(peptides.animate.shift(UP*.6),run_time=.6)
+        self.at("harmless resident microbes")
+        residents=VGroup(*[cell(x,.1,.32,color=MIC,op=.25) for x in (-2.4,-.8,.8,2.4)])
+        rl=T("resident microbes occupy the space",28,MIC).move_to([0,-2.3,0])
+        newcomer=dot(0,2.2,r=.22)
+        self.play(FadeOut(peptides),FadeOut(pl),FadeIn(residents),FadeIn(rl),FadeIn(newcomer),run_time=.6)
+        self.at("take the space")
+        self.play(newcomer.animate.move_to([0,.85,0]),run_time=.5)
+        self.play(newcomer.animate.shift(UP*1.2),run_time=.5)
+        self.finish()
+
+
+class S04Eat(Sc):
+    def construct(self):
+        ph=cell(1,0,r=2.1,op=.12)
+        pl=T("phagocyte",32,DEF).move_to([1,2.7,0])
+        microbe=dot(-3,0,r=.22)
+        self.at("A microbe")
+        self.play(FadeIn(ph),FadeIn(pl),FadeIn(microbe),run_time=.6)
+        self.at("engulfs particles")
+        self.play(microbe.animate.move_to([.5,.2,0]),run_time=.8)
+        bubble=cell(.5,.2,r=.6,color=TEXT,op=0)
+        self.play(Create(bubble),run_time=.4)
+        ly=VGroup(cell(2.3,.9,.3,color=LYS,op=.5),cell(2.3,-.7,.3,color=LYS,op=.5))
+        yl=T("lysosomes",28,LYS).move_to([3.8,-1.5,0])
+        self.at("Lysosomes fuse")
+        self.play(FadeIn(ly),FadeIn(yl),run_time=.4)
+        self.play(ly[0].animate.move_to([.8,.65,0]),ly[1].animate.move_to([.8,-.25,0]),
+                  bubble.animate.set_stroke(LYS).set_fill(LYS,opacity=.2),run_time=.7)
+        self.at("usually kill it")
+        self.play(FadeOut(microbe,scale=.1),run_time=.5)
+        self.at("The evidence came")
+        self.play(*[FadeOut(m) for m in (ph,pl,bubble,ly,yl)],run_time=.4)
+        body=RoundedRectangle(corner_radius=.5,width=9,height=4.2,stroke_color=TEXT,
+                              fill_color=TEXT,fill_opacity=.02).move_to([0,-.2,0])
+        name=heading("Transparent water flea")
+        self.at("transparent water flea")
+        self.play(Create(body),FadeIn(name),run_time=.7)
+        c1,c2=cell(-2,-.3,.65),cell(2,.5,.65)
+        s1,s2=spore(-3,.5),spore(3,-.3)
+        self.at("watched its blood cells")
+        self.play(FadeIn(c1),FadeIn(c2),run_time=.4)
+        self.at("swallow invading yeast spores")
+        self.play(FadeIn(s1),FadeIn(s2),run_time=.3)
+        self.play(s1.animate.move_to(c1),s2.animate.move_to(c2),run_time=.7)
+        self.at("Where the cells destroyed")
+        self.play(FadeOut(s1,scale=.1),FadeOut(s2,scale=.1),FadeOut(name),run_time=.4)
+        intact=VGroup(body,c1,c2)
+        self.play(intact.animate.scale(.6).move_to([-3.3,.35,0]),run_time=.6)
+        good=T("spores destroyed\ninfection stops",28,OK,line_spacing=.8).move_to([-3.3,-1.8,0])
+        self.play(FadeIn(good),run_time=.4)
+        self.at("Where spores grew")
+        body2=RoundedRectangle(corner_radius=.3,width=5.4,height=2.52,stroke_color=TEXT,
+                               fill_opacity=0).move_to([3.3,.35,0])
+        ys=VGroup(*[yeast(3.3+dx,.35+dy) for dx,dy in [(-1.6,.5),(-.7,-.6),(.3,.6),(1.5,-.4)]])
+        bad=T("budding yeast grows\nflea dies",28,MIC,line_spacing=.8).move_to([3.3,-1.8,0])
+        self.play(Create(body2),LaggedStart(*[FadeIn(y,scale=.4) for y in ys],lag_ratio=.12),run_time=.8)
+        self.at("the flea died")
+        self.play(body2.animate.set_stroke(MIC),FadeIn(bad),run_time=.5)
+        self.finish()
+
+
+class S05Complement(Sc):
+    def construct(self):
+        # Reuse the original complement chip split, microbe and phagocyte.
+        mic=RoundedRectangle(corner_radius=.6,width=4.4,height=2.4,stroke_color=MIC,
+                             stroke_width=4,fill_color=MIC,fill_opacity=.18).move_to([-2.4,-.3,0])
+        ml=T("microbe",30,MIC).move_to(mic)
+        title=heading("Complement: proteins in blood plasma",CMP)
+        c3=chip("C3",CMP,34).move_to([-5.2,1.8,0])
+        self.at("is a set", lead=.76)
+        self.play(FadeIn(title),Create(mic),FadeIn(ml),FadeIn(c3),run_time=.7)
+        self.at("is cut")
+        c3b=chip("C3b",CMP,34).move_to([-3.7,1.85,0])
+        c3a=chip("C3a",CMP,24,pad=.12).move_to([-5.5,2.1,0])
+        cut=Line([-5.2,2.4,0],[-5.2,1.2,0],color=TEXT,stroke_width=4)
+        self.play(Create(cut),run_time=.25)
+        self.play(FadeOut(c3),FadeIn(c3b),FadeIn(c3a),FadeOut(cut),run_time=.4)
+        self.at("sticks to a microbe")
+        self.play(c3b.animate.move_to([-.2,.5,0]),run_time=.6)
+        self.at("marks it for eating")
+        ph=cell(4.8,-.3,r=1.45,op=.12)
+        phl=T("phagocyte",28,DEF).move_to([4.8,1.6,0])
+        reach=arrow([3,-.3,0],[.8,-.3,0],DEF)
+        self.play(FadeIn(ph),FadeIn(phl),GrowArrow(reach),run_time=.7)
+        self.at("The small pieces")
+        self.play(FadeOut(title),FadeOut(reach),run_time=.4)
+        self.at("a step later")
+        c5a=chip("C5a",CMP,24,pad=.12).move_to([-1.8,1.5,0])
+        self.play(FadeIn(c5a),run_time=.5)
+        self.at("drift away")
+        self.play(c3a.animate.move_to([-4.7,2.65,0]),c5a.animate.move_to([-1.7,2.65,0]),run_time=.6)
+        self.at("promote inflammation")
+        infl=T("promote inflammation",28,SIG).move_to([1.9,2.65,0])
+        self.play(FadeIn(infl),run_time=.6)
+        self.at("punch holes")
+        hole=Rectangle(width=.8,height=.3,stroke_width=0,fill_color=BG,fill_opacity=1).move_to([-2.4,-1.5,0])
+        barrel=RoundedRectangle(corner_radius=.1,width=1.1,height=.55,stroke_color=CMP,
+                                stroke_width=4,fill_opacity=0).move_to(hole)
+        hl=T("holes in susceptible microbes",28,CMP).move_to([-2.4,-2.65,0])
+        self.play(FadeIn(hole),Create(barrel),FadeIn(hl),run_time=.7)
+        self.finish()
+
+
+class S06Virus(Sc):
+    def construct(self):
+        infected=cell(-3.5,.3,1.3,color=MIC)
+        neighbour=cell(3.5,.3,1.3,op=.12)
+        il=T("infected cell",28,MIC).move_to([-3.5,-1.6,0])
+        nl=T("nearby cell",28,DEF).move_to([3.5,-1.6,0])
+        title=heading("Interferons alert nearby cells",SIG)
+        self.at("Against viruses")
+        self.play(FadeIn(infected),FadeIn(neighbour),FadeIn(il),FadeIn(nl),FadeIn(title),run_time=.6)
+        ifn=VGroup(*[dot(-1.7,y,.12,color=SIG) for y in (-.1,.3,.7)])
+        self.at("interferons from")
+        self.play(FadeIn(ifn),run_time=.4)
+        self.at("put nearby cells")
+        self.play(ifn.animate.shift(RIGHT*3.6),run_time=.8)
+        self.at("antiviral state")
+        self.play(neighbour.animate.set_stroke(OK).set_fill(OK,opacity=.25),
+                  Transform(nl,T("antiviral state",28,OK).move_to(nl)),FadeOut(ifn),run_time=.6)
+        self.at("Natural killer cells")
+        self.play(*[FadeOut(m) for m in (infected,neighbour,il,nl,title)],run_time=.35)
+        nk=cell(-4.7,.1,.85,op=.3)
+        nkl=T("NK cell",28,DEF).move_to([-4.7,-1.5,0])
+        normal=cell(-.9,.1,.9,color=WALL)
+        target=cell(4,.1,.9,color=MIC)
+        badge=chip("MHC I",WALL,22,pad=.1).move_to([-.9,1.2,0])
+        badge2=chip("MHC I",WALL,22,pad=.1).move_to([4,1.2,0])
+        normal_l=T("normal cell",26,WALL).move_to([-.9,-1.5,0])
+        target_l=T("infected / abnormal",26,MIC).move_to([4,-1.5,0])
+        self.play(FadeIn(nk),FadeIn(nkl),FadeIn(normal),FadeIn(target),FadeIn(badge),
+                  FadeIn(badge2),FadeIn(normal_l),FadeIn(target_l),run_time=.5)
+        self.at("kill infected or abnormal cells")
+        self.play(nk.animate.move_to([1.25,.1,0]),nkl.animate.move_to([1.25,-1.5,0]),run_time=.7)
+        self.at("A cell that has lost")
+        self.play(FadeOut(badge2),run_time=.6)
+        self.at("normal surface protein")
+        legend=heading("MHC class I: a brake on NK cells",WALL)
+        self.play(FadeIn(legend),run_time=.6)
+        self.at("removes a")
+        self.play(nk.animate.move_to([3,.1,0]),nkl.animate.move_to([2.5,-2.3,0]),run_time=.4)
+        self.play(FadeOut(target,scale=.2),FadeOut(target_l),run_time=.5)
+        self.finish()
+
+
+class S07Close(Sc):
+    def construct(self):
+        # Organism silhouettes, not molecular drawings.
+        fly=VGroup(Ellipse(width=.65,height=1.1,color=WALL),
+                   Ellipse(width=1,height=.5,color=WALL).rotate(.5).shift(LEFT*.5+UP*.2),
+                   Ellipse(width=1,height=.5,color=WALL).rotate(-.5).shift(RIGHT*.5+UP*.2),
+                   cell(0,.7,.23,color=WALL,op=.1)).move_to([-4,1,0])
+        leaf=VGroup(Ellipse(width=1.1,height=1.8,color=WALL).rotate(-.4),
+                    Line([0,-1.4,0],[0,.4,0],color=WALL,stroke_width=4)).move_to([0,1,0])
+        mouse=VGroup(Ellipse(width=1.6,height=.9,color=WALL),cell(.65,.35,.32,color=WALL,op=.1),
+                     Arc(radius=.5,start_angle=-PI/2,angle=PI,color=WALL).shift(LEFT*1.1)).move_to([4,1,0])
+        labels=VGroup(*[T(t,28,WALL).move_to([x,-.5,0]) for t,x in (("fly",-4),("plant",0),("mouse",4))])
+        self.at("Flies make no antibodies")
+        self.play(FadeIn(fly),FadeIn(labels[0]),run_time=.6)
+        self.at("flies and plants")
+        self.play(FadeIn(leaf),FadeIn(mouse),FadeIn(labels[1:]),run_time=.5)
+        recs=VGroup(*[receptor(x,-1.7) for x in (-4,0,4)])
+        self.at("their own receptors")
+        self.play(Create(recs),run_time=.6)
+        self.at("Innate immunity does not")
+        note=heading("Ready receptors")
+        self.play(FadeIn(note),run_time=.5)
+        self.at("build new receptors")
+        new=chip("new B / T cell receptors",WALL,26).move_to([0,-3,0])
+        strike=Line([-2.7,-3,0],[2.7,-3,0],color=MIC,stroke_width=4)
+        self.play(FadeIn(new),Create(strike),run_time=.6)
+        self.at("lacks their")
+        self.play(Transform(note,heading("No B / T receptor-based memory",WALL)),run_time=.6)
+        self.at("What it gives is speed")
+        self.play(*[FadeOut(m) for m in (fly,leaf,mouse,labels,recs,new,strike)],
+                  Transform(note,heading("Speed: recognize and respond",THR)),run_time=.6)
+        # Three steps, with action at each cue in the closing sentence.
+        wall=Rectangle(width=.25,height=2,stroke_width=0,fill_color=WALL,fill_opacity=.8).move_to([-4,0,0])
+        m=dot(-5.2,.3,r=.18)
+        wl=T("keep out",28,WALL).move_to([-4,-1.7,0])
+        self.at("Keep microbes out")
+        self.play(FadeIn(wall),FadeIn(m),FadeIn(wl),run_time=.3)
+        self.play(m.animate.move_to([-4.4,.3,0]),run_time=.25)
+        self.play(m.animate.shift(LEFT*.8),run_time=.3)
+        rec=receptor(0,.2)
+        ligand=dot(0,1.2,r=.18)
+        rl=T("recognize",28,DEF).move_to([0,-1.7,0])
+        self.at("recognize the ones")
+        self.play(Create(rec),FadeIn(ligand),FadeIn(rl),run_time=.3)
+        self.play(ligand.animate.move_to([0,.3,0]),rec.animate.set_color(HI),run_time=.5)
+        defenders=VGroup(cell(3,-.6,.5),cell(5,-.6,.5))
+        target=dot(4,.6,r=.18)
+        dl=T("gather and clear",28,DEF).move_to([4,-1.7,0])
+        self.at("gather the defenses")
+        self.play(FadeIn(defenders),FadeIn(target),FadeIn(dl),run_time=.35)
+        self.at("clear them")
+        self.play(defenders[0].animate.move_to([3.6,.3,0]),defenders[1].animate.move_to([4.4,.3,0]),
+                  FadeOut(target,scale=.1),run_time=.55)
         self.finish()

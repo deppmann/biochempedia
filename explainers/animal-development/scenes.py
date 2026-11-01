@@ -1,7 +1,4 @@
-"""Animal development: cleavage divides without growing  (Biochemistrypedia explainer)
-
-All numbers are the lesson's worked problem (invented round values): 1.000 nL zygote, five
-synchronous equal divisions, no growth, no cell loss, spherical cells.
+"""Animal development: from one egg to organized tissues  (Biochemistrypedia explainer)
 
 COLOR MAP (one color per concept, whole video)
   BLUE   = cells / cytoplasm (zygote and blastomeres)
@@ -11,6 +8,10 @@ COLOR MAP (one color per concept, whole video)
   GOLD   = yolk
   YELLOW = the number or question being highlighted
   RED    = "no growth" (crossed out)
+  PURPLE = mesoderm
+  PINK   = endoderm
+  BLUE also identifies ectoderm and its derivatives
+  YELLOW also identifies inherited factors / signals / graft
   GREY   = outlines, labels, structure
 """
 import numpy as np
@@ -57,262 +58,283 @@ def dbar(x0, x1, y, color=YELLOW):
 SEQ = [(1, 1), (2, 1), (2, 2), (4, 2), (4, 4), (8, 4)]
 
 
+PURPLE = "#B58CD9"
+PINK = "#E888AE"
+
+
+def cell(x=0, y=0, r=0.55, color=BLUE):
+    return Circle(radius=r, stroke_color=color, stroke_width=3,
+                  fill_color=color, fill_opacity=0.22).move_to([x,y,0])
+
+
+def layers(x=0, y=0, scale=1):
+    # Schematic cross-section, not an anatomical stage or a molecular drawing.
+    return VGroup(*[Annulus(inner_radius=r-0.24, outer_radius=r,
+                           color=c, fill_opacity=0.55, stroke_width=2)
+                    for r,c in [(2.1,BLUE),(1.6,PURPLE),(1.1,PINK)]]).scale(scale).move_to([x,y,0])
+
+
+def heading(text):
+    return T(text, 34, font=TITLE_FONT).move_to([0,3.15,0])
+
+
+def curve(points, color=BLUE, width=13):
+    return VMobject(stroke_color=color, stroke_width=width).set_points_smoothly(
+        [np.array([x,y,0]) for x,y in points])
+
+
 class S00Title(TitleCard):
     LESSON = "Animal development"
-    TITLE = "Cleavage divides without growing"
+    TITLE = "From One Egg to Organized Tissues"
+
+    def construct(self):
+        title = T(self.TITLE, 40, font=TITLE_FONT).move_to([0,2.6,0])
+        sub = T(self.LESSON.upper(),22,GREY).move_to([0,3.35,0])
+        embryo = layers(0,-0.45,0.82)
+        rule = Line([-1.2,-2.7,0],[1.2,-2.7,0],color=GOLD,stroke_width=4)
+        self.play(FadeIn(sub),Write(title),FadeIn(embryo),Create(rule),run_time=1.2)
+        self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S01Question(SpokenScene):
     def construct(self):
-        cy = 0.0
-        outline = dashed_outline(0, cy)
-        g = grid(1, 1, 0, cy)
-        zl = T("one zygote", 28, BLUE).move_to([0, 3.0, 0])
-        self.at("One fertilized egg")
-        self.play(FadeIn(g, scale=0.9), FadeIn(outline), FadeIn(zl), run_time=0.8)
-        self.at("divides again")
-        for nx, ny in SEQ[1:4]:
-            ng = grid(nx, ny, 0, cy)
-            self.play(ReplacementTransform(g, ng), run_time=0.6)
-            g = ng
-            self.wait(0.15)
-        note = T("same outline: same total size", 24, GREY).move_to([0, -3.1, 0])
-        self.at("do not grow")
-        gc = chip("growth between divisions", RED, 26).move_to([0, 3.0, 0])
-        gx = cross(gc)
-        self.play(ReplacementTransform(zl, gc), FadeIn(note), run_time=0.6)
-        self.play(Create(gx), run_time=0.5)
-        self.at("where does the material")
-        qs = VGroup(*[T("?", 40, YELLOW, weight=BOLD).move_to(c.get_center()) for c in g])
-        self.play(LaggedStart(*[FadeIn(q, scale=0.6) for q in qs], lag_ratio=0.08), run_time=1.0)
-        self.at("the egg itself")
-        self.play(FadeOut(qs), g.animate.set_stroke(GREEN).set_fill(GREEN, 0.28), outline.animate.set_color(GREEN),
-                  run_time=0.8)
-        self.at("Cleavage is")
-        lab = T("cleavage", 34, font=TITLE_FONT).move_to([0, 3.0, 0])
-        self.play(FadeOut(gc), FadeOut(gx), FadeIn(lab), g.animate.set_stroke(BLUE).set_fill(BLUE, 0.28),
-                  outline.animate.set_color(GREY), run_time=0.7)
-        self.at("each small cell")
-        pick = g[0]
-        bl = chip("a blastomere", BLUE, 26).move_to([-5.4, 3.0, 0])
-        ar = arr(bl.get_right(), pick.get_corner(UL) + LEFT * 0.02 + UP * 0.02, BLUE, w=4)
-        self.play(FadeOut(note), FadeIn(bl), GrowArrow(ar), Indicate(pick, color=YELLOW, scale_factor=1.12),
-                  run_time=0.8)
-        self.at("What does that do")
-        q1 = chip("cell size?", BLUE, 28).move_to([-2.5, -3.1, 0])
-        q2 = chip("membrane?", TEAL, 28).move_to([2.5, -3.1, 0])
-        self.play(FadeIn(q1, shift=UP * 0.2), run_time=0.5)
-        self.play(FadeIn(q2, shift=UP * 0.2), run_time=0.5)
+        q = heading("One egg → organized tissues?")
+        egg = cell(-3,0,1.9)
+        self.at("How does")
+        self.play(FadeIn(q),FadeIn(egg),run_time=0.65)
+        self.at("organizes the embryo")
+        h=heading("Gastrulation")
+        self.play(Transform(q,h),run_time=0.6)
+        moving=VGroup(*[cell(-3+1.9*np.cos(a),1.9*np.sin(a),0.18)
+                        for a in [0.3,0.9,1.5,2.1]])
+        self.at("Cells move from")
+        self.play(FadeIn(moving),run_time=0.3)
+        self.play(*[m.animate.move_to([-3+dx,dy,0]) for m,dx,dy in
+                    zip(moving,[-0.7,0.1,0.6,-0.3],[0.5,0.1,-0.5,-0.7])],run_time=1.7)
+        embryo=layers(-3,0)
+        self.at("Most animals form")
+        self.play(FadeOut(egg),FadeOut(moving),FadeIn(embryo),run_time=0.6)
+        labels=[]
+        for cue,txt,c,y in [("ectoderm outside","ectoderm · outside",BLUE,1.9),
+                            ("mesoderm in the middle","mesoderm · middle",PURPLE,0),
+                            ("endoderm inside","endoderm · inside",PINK,-1.9)]:
+            lab=T(txt,28,c).move_to([3.0,y,0]); labels.append(lab)
+            self.at(cue); self.play(FadeIn(lab),run_time=0.5)
+        self.at("In vertebrates")
+        self.play(Transform(q,heading("Vertebrate tissue examples")),run_time=0.5)
+        for cue,lab,txt,c in [("ectoderm makes",labels[0],"ectoderm → epidermis\nand nervous tissue",BLUE),
+                              ("Mesoderm makes",labels[1],"mesoderm → muscle\nand blood",PURPLE),
+                              ("Endoderm makes",labels[2],"endoderm → gut\nand airway lining",PINK)]:
+            self.at(cue)
+            new=T(txt,26,c,line_spacing=0.8).move_to(lab)
+            self.play(Transform(lab,new),Indicate(embryo[list(labels).index(lab)],scale_factor=1.04),run_time=0.7)
+        self.at("Arranging the cells")
+        self.play(Indicate(embryo,scale_factor=1.05),run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S02Count(SpokenScene):
     def construct(self):
-        cy = 0.0
-        outline = dashed_outline(0, cy)
-        g = grid(1, 1, 0, cy)
-        lab_t = T("worked example: invented round numbers", 26, GREY).move_to([0, -3.1, 0])
-        self.at("Here is a worked example")
-        self.play(FadeIn(g, scale=0.9), FadeIn(outline), FadeIn(lab_t), run_time=0.8)
-        self.at("block of volume")
-        vol = M("1.000 nL", 40, GREEN).move_to(g.get_center())
-        zyg = T("zygote", 26, BLUE).move_to([0, 3.1, 0])
-        self.play(Write(vol), FadeIn(zyg), g.animate.set_stroke(GREEN).set_fill(GREEN, 0.2), run_time=0.8)
-        count = M("cells: 1", 34, YELLOW).move_to([-4.4, 3.1, 0])
-        self.at("Each division doubles")
-        dbl = M("x 2", 40, YELLOW).move_to([4.6, 3.1, 0])
-        ng = grid(2, 1, 0, cy)
-        c2 = M("cells: 2", 34, YELLOW).move_to(count)
-        self.play(FadeOut(vol), FadeOut(zyg), FadeOut(lab_t), ReplacementTransform(g, ng),
-                  FadeIn(dbl, scale=0.8), FadeIn(count), run_time=0.9)
-        g = ng
-        self.play(Transform(count, c2), run_time=0.3)
-        self.at("five synchronous")
-        span = self.t_of("with no growth") - self.t_of("five synchronous")
-        step = max(0.3, min(1.4, span / 4 - 0.35))
-        for k, (nx, ny) in enumerate(SEQ[2:], start=2):
-            ng = grid(nx, ny, 0, cy)
-            nc = M(f"cells: {2 ** (k)}", 34, YELLOW).move_to(count)
-            self.play(ReplacementTransform(g, ng), Transform(count, nc), run_time=step)
-            g = ng
-            self.wait(0.2)
-        note = T("no growth, no cell loss", 26, RED).move_to([0, -3.1, 0])
-        self.at("growth")
-        self.play(FadeIn(note, shift=UP * 0.1), run_time=0.4)
-        self.at("to the fifth power")
-        eq = M("2^5 = 32", 44, YELLOW).move_to([0, 3.1, 0])
-        self.play(FadeOut(dbl), Write(eq), run_time=0.7)
-        self.at("blastomeres")
-        self.play(Indicate(g, color=YELLOW, scale_factor=1.04), run_time=0.8)
+        h=heading("Three ways to move inward")
+        self.at("The movements differ")
+        self.play(FadeIn(h),run_time=0.5)
+        xs=[-4.4,0,4.4]
+        sheets=[]; labs=[]
+        for x,txt in zip(xs,["Invagination","Involution","Ingression"]):
+            sheets.append(curve([(x-1.6,0.8),(x,0.8),(x+1.6,0.8)]))
+            labs.append(T(txt,26,BLUE).move_to([x,2,0]))
+        self.at("In invagination")
+        self.play(Create(sheets[0]),FadeIn(labs[0]),run_time=0.45)
+        self.at("a sheet bends inward")
+        self.play(Transform(sheets[0],curve([(-6,0.8),(-5.3,0.5),(-4.9,-0.8),(-3.9,-0.8),(-3.5,0.5),(-2.8,0.8)])),run_time=1)
+        self.at("In involution")
+        self.play(Create(sheets[1]),FadeIn(labs[1]),run_time=0.45)
+        self.at("it rolls over")
+        self.play(Transform(sheets[1],curve([(-1.6,0.8),(0,0.8),(1.4,0.6),(1.5,-0.2),(0.7,-0.7),(-0.6,-0.7)])),run_time=1.4)
+        self.at("single cells leave")
+        singles=VGroup(*[cell(x,0.8,0.23) for x in [3.1,3.95,4.8,5.65]])
+        self.play(FadeIn(labs[2]),FadeIn(singles),run_time=0.4)
+        self.play(singles[1].animate.shift(DOWN*1.6+LEFT*0.3),
+                  singles[2].animate.shift(DOWN*1.9+RIGHT*0.3),run_time=1.2)
+        self.at("Germ layers make tissues")
+        self.play(*[FadeOut(m) for m in [*sheets[:2],*labs,singles]],
+                  Transform(h,heading("Tissues combine in one intestine")),run_time=0.6)
+        outer=Annulus(inner_radius=1.4,outer_radius=2.05,color=PURPLE,fill_opacity=0.45).move_to([-3,0,0])
+        inner=Annulus(inner_radius=0.95,outer_radius=1.3,color=PINK,fill_opacity=0.6).move_to([-3,0,0])
+        lining=T("endoderm → epithelial lining",26,PINK).move_to([2.5,1.5,0])
+        self.at("An intestine has endoderm lining")
+        self.play(FadeIn(inner),FadeIn(lining),run_time=0.7)
+        muscle=T("mesoderm → muscle\nand connective tissue",26,PURPLE).move_to([2.5,0,0])
+        self.at("with mesoderm muscle")
+        self.play(FadeIn(outer),FadeIn(muscle),run_time=0.7)
+        nerves=VGroup(*[cell(-3+1.7*np.cos(a),1.7*np.sin(a),0.13,BLUE) for a in [0.6,2.8,4.7]])
+        nl=T("ectoderm → neural crest\n→ nerve cells",26,BLUE).move_to([2.5,-1.7,0])
+        self.at("Neural crest cells")
+        self.play(FadeIn(nerves),FadeIn(nl),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S03Volume(SpokenScene):
     def construct(self):
-        cx0, cy = 0.0, 0.0
-        g = grid(8, 4, cx0, cy)
-        outline = dashed_outline(cx0, cy)
-        eq0 = M("2^5 = 32", 44, YELLOW).move_to([0, 3.1, 0])
-        self.add(g, outline, eq0)
-        self.at("Volume is shared")
-        tot = M("1.000 nL in all", 36, GREEN).move_to([0, 3.1, 0])
-        self.play(ReplacementTransform(eq0, tot), g.animate.set_stroke(GREEN).set_fill(GREEN, 0.2),
-                  outline.animate.set_color(GREEN), run_time=0.7)
-        self.at("shared among")
-        self.play(LaggedStart(*[Indicate(c, color=YELLOW, scale_factor=1.15) for c in g], lag_ratio=0.03), run_time=1.4)
-        self.at("for each cell")
-        shift = LEFT * 2.4
-        self.play(g.animate.shift(shift), outline.animate.shift(shift), tot.animate.shift(shift), run_time=0.7)
-        pick = g[11].copy()
-        big = RoundedRectangle(corner_radius=0.2, width=2.2, height=2.7, stroke_color=GREEN, stroke_width=4,
-                               fill_color=GREEN, fill_opacity=0.3).move_to([5.0, 0.2, 0])
-        lbl = M("31.25 pL", 34, GREEN).next_to(big, DOWN, buff=0.3)
-        one = T("one blastomere", 26, BLUE).next_to(big, UP, buff=0.25)
-        self.play(ReplacementTransform(pick, big), FadeIn(lbl, shift=UP * 0.1), FadeIn(one), run_time=0.9)
-        self.at("of that size")
-        times = VGroup(T("32 cells,", 24, YELLOW), T("each 31.25 pL", 24, YELLOW)).arrange(DOWN, buff=0.1).move_to([2.7, 0.2, 0])
-        self.play(FadeIn(times, scale=0.8), run_time=0.5)
-        eq = M("32 x 0.03125 nL = 1.000 nL", 28, GREEN).move_to([-2.4, -3.1, 0])
-        self.play(Write(eq), run_time=1.0)
-        self.at("Dividing made many cells")
-        self.play(Indicate(g, color=YELLOW, scale_factor=1.03), Indicate(eq, color=YELLOW), FadeOut(times), run_time=0.9)
+        h=heading("What sets cell fate?")
+        egg=cell(-3,0,1.65)
+        self.at("What tells a cell")
+        self.play(FadeIn(h),FadeIn(egg),run_time=0.5)
+        factors=VGroup(*[Dot([-3+dx,dy,0],radius=0.12,color=YELLOW)
+                         for dx,dy in [(-0.6,-0.7),(0,-0.9),(0.6,-0.7)]])
+        lab=T("Inherited factors",28,YELLOW).move_to([-3,2.2,0])
+        self.at("Cytoplasmic determinants")
+        self.play(FadeIn(lab),FadeIn(factors),run_time=0.6)
+        self.at("inherited by cells there")
+        daughters=VGroup(cell(-3.8,0,0.75),cell(-2,0,0.75))
+        self.play(ReplacementTransform(egg,daughters),factors.animate.scale(0.6).move_to([-3.8,0,0]),run_time=1)
+        sender=cell(1.3,0,0.65); target=cell(4.5,0,0.8)
+        il=T("Neighbouring signal",28,YELLOW).move_to([3,2.2,0])
+        signal=arr([2,0,0],[3.6,0,0],YELLOW)
+        self.at("Induction is a signal")
+        self.play(FadeIn(sender),FadeIn(target),FadeIn(il),GrowArrow(signal),run_time=0.7)
+        self.at("changes the fate")
+        fate=T("cell fate",24).move_to(target)
+        self.play(FadeIn(fate),target.animate.set_fill(BLUE,0.6),run_time=0.6)
+        self.at("The amphibian organizer")
+        self.play(*[FadeOut(m) for m in [daughters,factors,lab,sender,target,il,signal,fate]],
+                  Transform(h,heading("Amphibian organizer graft")),run_time=0.55)
+        host=Ellipse(width=5.5,height=4.5,color=BLUE,stroke_width=3,fill_opacity=0.12).move_to([-0.8,-0.25,0])
+        axis=Line([-1.8,-1.9,0],[-1.8,1.4,0],color=BLUE,stroke_width=15)
+        graft=cell(-5,0.2,0.3,YELLOW)
+        gl=T("graft cells",24,YELLOW).move_to([-4.9,1.2,0])
+        hl=T("host cells",24,BLUE).move_to([4,1.2,0])
+        self.play(FadeIn(host),Create(axis),FadeIn(graft),FadeIn(gl),FadeIn(hl),run_time=0.7)
+        self.at("a graft recruited")
+        self.play(graft.animate.move_to([0.5,-1.5,0]),run_time=0.6)
+        recruited=VGroup(*[cell(x,y,0.18,BLUE) for x,y in [(1.6,-1.3),(1.9,-0.5),(1.7,0.3),(1.2,1)]])
+        self.play(FadeIn(recruited),run_time=0.25)
+        self.at("second body axis")
+        self.play(*[m.animate.move_to([0.5,-0.9+i*0.65,0]) for i,m in enumerate(recruited)],run_time=0.8)
+        al=T("second axis",24,BLUE).move_to([4,-0.4,0])
+        self.play(FadeIn(al),run_time=0.35)
+        self.at("Most embryos studied closely")
+        self.play(*[FadeOut(m) for m in [host,axis,graft,gl,hl,recruited,al]],
+                  Transform(h,heading("Both inputs help set cell fate")),run_time=0.5)
+        left=chip("Inherited factors",YELLOW,28).move_to([-3.2,1,0])
+        right=chip("Neighbouring signals",YELLOW,28).move_to([3.2,1,0])
+        result=chip("Cell fate",BLUE,32).move_to([0,-1.6,0])
+        self.play(FadeIn(left),FadeIn(right),FadeIn(result),
+                  GrowArrow(arr(left.get_bottom(),result.get_top()+LEFT*0.4)),
+                  GrowArrow(arr(right.get_bottom(),result.get_top()+RIGHT*0.4)),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S04Size(SpokenScene):
     def construct(self):
-        k = 0.034
-        D1, D2 = 124 * k, 39 * k
-        c1 = Circle(radius=D1 / 2, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.25).move_to([-3.6, 0.6, 0])
-        c2 = Circle(radius=D2 / 2, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.25).move_to([3.8, 0.6, 0])
-        t1 = T("zygote", 28, BLUE).move_to([-3.6, 3.3, 0])
-        t2 = T("one blastomere of 32", 28, BLUE).move_to([3.8, 3.3, 0])
-        g = grid(8, 4, 0, 0)
-        self.add(g)
-        self.at("as spheres")
-        self.play(FadeOut(g), FadeIn(c1, scale=0.8), FadeIn(c2, scale=0.8), FadeIn(t1), FadeIn(t2), run_time=1.0)
-        note = T("idealised spheres, drawn to scale", 24, GREY).move_to([0, -3.45, 0])
-        self.play(FadeIn(note), run_time=0.3)
-        self.at("diameter follows")
-        f = M("d = 2 x (3V / 4pi)^(1/3)", 30, YELLOW).move_to([0, -2.95, 0])
-        self.play(Write(f), run_time=1.1)
-        self.at("is about")
-        b1 = dbar(-3.6 - D1 / 2, -3.6 + D1 / 2, 0.6 - D1 / 2 - 0.35)
-        l1 = M("124 um", 32, YELLOW).next_to(b1, DOWN, buff=0.15)
-        l1.move_to([-3.6, l1.get_center()[1], 0])
-        self.play(Create(b1), FadeIn(l1), run_time=0.8)
-        self.at("Each")
-        b2 = dbar(3.8 - D2 / 2, 3.8 + D2 / 2, 0.6 - D2 / 2 - 0.35)
-        l2 = M("39 um", 32, YELLOW).next_to(b2, DOWN, buff=0.15)
-        self.play(Create(b2), FadeIn(l2), run_time=0.8)
-        self.at("That is smaller")
-        r = VGroup(M("124 / 39", 32, YELLOW), M("= 32^(1/3)", 32, YELLOW), M("= 3.17", 40, YELLOW)).arrange(DOWN, buff=0.25).move_to([0.1, 0.6, 0])
-        self.play(FadeOut(f), FadeOut(note), FadeIn(r, shift=DOWN * 0.1), run_time=0.8)
-        self.at("which is")
-        self.play(Indicate(r, color=GREEN), run_time=0.8)
+        h=heading("Earlier: cleavage")
+        egg=cell(0,0,2.1)
+        self.at("Earlier cleavage")
+        self.play(FadeIn(h),FadeIn(egg),run_time=0.6)
+        self.at("the egg divides")
+        cuts=VGroup(Line([0,-2.1,0],[0,2.1,0],color=BLUE,stroke_width=3),
+                    Line([-2.1,0,0],[2.1,0,0],color=BLUE,stroke_width=3))
+        self.play(Create(cuts[0]),run_time=0.65)
+        self.play(Create(cuts[1]),run_time=0.65)
+        self.at("without growing")
+        note=T("same egg outline",26,GREY).move_to([0,-2.8,0])
+        self.play(FadeIn(note),run_time=0.5)
+        self.at("Each is a blastomere")
+        bl=chip("blastomere",BLUE,26).move_to([4,1.1,0])
+        pointer=arr(bl.get_left(),[1.1,1.1,0],BLUE)
+        self.play(FadeIn(bl),GrowArrow(pointer),run_time=0.6)
+        self.at("Yolk slows or blocks")
+        self.play(*[FadeOut(m) for m in [egg,cuts,note,bl,pointer]],run_time=0.4)
+        # Reused yolk block and divided disc from the original bird comparison.
+        yolk=RoundedRectangle(corner_radius=0.2,width=5.4,height=3.2,
+                              stroke_color=GOLD,stroke_width=3,fill_color=GOLD,fill_opacity=0.28).move_to([0,-0.65,0])
+        yl=T("yolk · undivided",28,GOLD).move_to(yolk)
+        self.play(FadeIn(yolk),FadeIn(yl),run_time=0.6)
+        self.at("In birds")
+        disc=grid(4,1,0,1.3,w=3.5,h=0.65,gap=0.05)
+        dl=T("Birds: only the disc divides",28,BLUE).move_to([0,2.2,0])
+        self.play(FadeIn(disc),FadeIn(dl),run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S05Membrane(SpokenScene):
     def construct(self):
-        base_y = -2.6
-        OFF = 3.6
-        x1, x2 = -5.0 + OFF, -2.6 + OFF
-        h1 = 1.1
-        h2 = h1 * 3.17
-        ax = Line([-6.2 + OFF, base_y, 0], [-1.4 + OFF, base_y, 0], color=GREY, stroke_width=3)
-        cap = T("membrane area", 28, TEAL).move_to([-3.8 + OFF, 3.1, 0])
-        self.at("Smaller cells")
-        b1 = Rectangle(width=1.8, height=h1, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.4)
-        b1.move_to([x1, base_y + h1 / 2, 0])
-        n1 = T("zygote", 24, BLUE).next_to(ax, DOWN, buff=0.15).set_x(x1)
-        v1 = M("48,400 um2", 24, TEAL).next_to(b1, UP, buff=0.12)
-        self.play(Create(ax), FadeIn(cap), FadeIn(b1), FadeIn(n1), FadeIn(v1), run_time=0.9)
-        self.at("Added up")
-        b2 = Rectangle(width=1.8, height=h2, stroke_color=TEAL, stroke_width=3, fill_color=TEAL, fill_opacity=0.4)
-        b2.move_to([x2, base_y + h2 / 2, 0])
-        n2 = T("32 cells", 24, BLUE).next_to(ax, DOWN, buff=0.15).set_x(x2)
-        v2 = M("153,500 um2", 24, TEAL).next_to(b2, UP, buff=0.12)
-        self.play(GrowFromEdge(b2, DOWN), FadeIn(n2), run_time=1.0)
-        self.play(FadeIn(v2), run_time=0.3)
-        self.at("times the membrane")
-        mult = M("x 3.17", 44, YELLOW).move_to([-5.0 + OFF, 0.3, 0])
-        self.play(FadeIn(mult, scale=0.8), run_time=0.6)
-        pcx, pcy = 3.5, 0.0
-        blk = RoundedRectangle(corner_radius=0.15, width=5.4, height=3.6, stroke_color=GREEN, stroke_width=3,
-                               fill_color=BLUE, fill_opacity=0.18).move_to([pcx, pcy, 0])
-        self.at("no new cytoplasm")
-        left = VGroup(ax, cap, b1, n1, v1, b2, n2, v2, mult)
-        cl = T("same cytoplasm, 1.000 nL", 26, GREEN).next_to(blk, UP, buff=0.25)
-        self.play(left.animate.shift(LEFT * OFF), FadeIn(blk), FadeIn(cl), run_time=0.9)
-        self.at("number of nuclei")
-        n_dot = Dot(radius=0.2, color=ORANGE).move_to(blk.get_center())
-        nl = T("nuclei: 1", 28, ORANGE).next_to(blk, DOWN, buff=0.25)
-        self.play(FadeIn(n_dot, scale=0.5), FadeIn(nl), run_time=0.6)
-        dots = VGroup()
-        for j in range(4):
-            for i in range(8):
-                dots.add(Dot(radius=0.13, color=ORANGE).move_to([pcx - 2.2 + i * (4.4 / 7), pcy + 1.2 - j * (2.4 / 3), 0]))
-        nl2 = T("nuclei: 32", 28, ORANGE).move_to(nl)
-        self.play(ReplacementTransform(n_dot, dots), Transform(nl, nl2), run_time=1.1)
-        self.at("same cytoplasm")
-        self.play(Indicate(blk, color=GREEN, scale_factor=1.03), run_time=0.8)
+        h=heading("Starting event: fertilization")
+        egg=cell(0,-0.25,2)
+        sperm=VGroup(Ellipse(width=0.48,height=0.28,color=BLUE,fill_opacity=0.7),
+                     curve([(-0.2,0),(-0.7,0.2),(-1.2,0)],BLUE,3)).move_to([-4,0,0])
+        self.at("Fertilization starts")
+        self.play(FadeIn(h),FadeIn(egg),FadeIn(sperm),run_time=0.6)
+        self.at("Sperm and egg fuse")
+        self.play(sperm.animate.move_to([-1.9,-0.25,0]),run_time=0.8)
+        self.play(FadeOut(sperm),run_time=0.3)
+        z=T("zygote",28,BLUE).move_to([0,-2.9,0])
+        self.at("form a zygote")
+        self.play(FadeIn(z),run_time=0.4)
+        self.at("A calcium wave")
+        wave_x=ValueTracker(-1.95)
+        wave=always_redraw(lambda: Line([wave_x.get_value(),-0.25-np.sqrt(max(0,4-wave_x.get_value()**2)),0],
+                                       [wave_x.get_value(),-0.25+np.sqrt(max(0,4-wave_x.get_value()**2)),0],
+                                       color=TEAL,stroke_width=13))
+        wl=T("calcium wave",26,TEAL).move_to([-4.5,1.7,0])
+        self.add(wave);self.play(FadeIn(wl),wave_x.animate.set_value(1.95),run_time=1.3,rate_func=linear)
+        self.remove(wave)
+        self.at("restarts the cell cycle")
+        cycle=Arc(radius=0.9,start_angle=0.4,angle=TAU-0.7,color=GREEN,stroke_width=6).move_to(egg)
+        cycle.add_tip(tip_length=0.2)
+        cl=T("cell cycle restarts",26,GREEN).move_to([4,1.5,0])
+        self.play(Create(cycle),FadeIn(cl),FadeOut(wl),run_time=0.65)
+        self.at("Eggs also block")
+        extras=VGroup(*[sperm.copy().set_opacity(1).move_to([3.2,y,0]) for y in [0,-1.1]])
+        stops=VGroup(*[Line([2.55,y-0.3,0],[2.55,y+0.3,0],color=RED,stroke_width=7) for y in [0,-1.1]])
+        self.play(FadeIn(extras),Create(stops),run_time=0.55)
+        self.at("In mice")
+        ml=T("Mouse membrane block:\nnon-electrical",26,RED).move_to([4.2,-2.3,0])
+        self.play(FadeIn(ml),run_time=0.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S06Rule(SpokenScene):
     def construct(self):
-        def circ(x, y, r=0.7, color=BLUE):
-            return Circle(radius=r, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.28).move_to([x, y, 0])
-        ax_, bx_, cx_ = -4.3, 0.0, 4.3
-        A = VGroup(*[circ(ax_ + dx, 0.7 + dy) for dx in (-0.75, 0.75) for dy in (-0.75, 0.75)])
-        At = T("equal, synchronous", 26, BLUE).move_to([ax_, 3.0, 0])
-        Al = M("1, 2, 4, 8, ...", 28, YELLOW).move_to([ax_, -2.0, 0])
-        self.at("These numbers assume")
-        self.play(FadeIn(A, scale=0.8), FadeIn(At), run_time=0.7)
-        self.play(FadeIn(Al), run_time=0.4)
-        B = VGroup(circ(bx_ - 0.75, -0.0), circ(bx_ + 0.75, -0.0), circ(bx_, 1.3))
-        Bt = T("mouse embryo", 26, BLUE).move_to([bx_, 3.0, 0])
-        Bl = T("3 cells or 5 can occur", 26, YELLOW).move_to([bx_, -2.0, 0])
-        self.at("A real mouse embryo")
-        self.play(FadeIn(B, scale=0.8), FadeIn(Bt), run_time=0.7)
-        self.at("not synchronous")
-        self.play(FadeIn(Bl), run_time=0.5)
-        yolk = RoundedRectangle(corner_radius=0.2, width=3.8, height=2.2, stroke_color=GOLD, stroke_width=3,
-                                fill_color=GOLD, fill_opacity=0.28).move_to([cx_, -0.2, 0])
-        disc = grid(12, 2, cx_, 1.3, w=2.6, h=0.5, gap=0.03)
-        Ct = T("birds", 26, BLUE).move_to([cx_, 3.0, 0])
-        Cy = T("yolk, undivided", 24, GOLD).move_to(yolk.get_center())
-        Cd = T("disc of cells on the yolk", 24, BLUE).next_to(disc, UP, buff=0.12)
-        Cl = T("only a disc cleaves", 26, YELLOW).move_to([cx_, -2.0, 0])
-        self.at("Yolk matters")
-        self.play(FadeIn(yolk), FadeIn(Cy), run_time=0.6)
-        self.at("In birds")
-        self.play(FadeIn(disc, scale=0.9), FadeIn(Ct), FadeIn(Cd), FadeIn(Cl), run_time=0.8)
-        self.at("Keep this rule")
-        allp = VGroup(A, At, Al, B, Bt, Bl, yolk, disc, Ct, Cy, Cd, Cl)
-        self.play(FadeOut(allp), run_time=0.6)
-        rule = T("Cleavage divides without growth", 48, font=TITLE_FONT).move_to([0, 1.9, 0])
-        self.play(FadeIn(rule, shift=UP * 0.1), run_time=0.6)
-        c1 = chip("more cells", BLUE, 34).move_to([-3.3, 0.2, 0])
-        c2 = chip("smaller cells", BLUE, 34).move_to([3.3, 0.2, 0])
-        c3 = chip("more total membrane", TEAL, 34).move_to([-3.3, -1.5, 0])
-        c4 = chip("same total volume", GREEN, 34).move_to([3.3, -1.5, 0])
-        self.at("cells shrink")
-        self.play(FadeIn(c2, shift=UP * 0.15), run_time=0.5)
-        self.at("their number")
-        self.play(FadeIn(c1, shift=UP * 0.15), run_time=0.5)
-        self.at("total membrane")
-        self.play(FadeIn(c3, shift=UP * 0.15), run_time=0.5)
-        self.play(FadeIn(c4, shift=UP * 0.15), run_time=0.5)
+        h=heading("Frogs, birds and mammals")
+        plate=curve([(-3.5,0.4),(-1.8,0.4),(0,0.4),(1.8,0.4),(3.5,0.4)],BLUE,22)
+        lab=T("ectoderm → neural plate",28,BLUE).move_to([0,2.1,0])
+        self.at("Now follow one tissue")
+        self.play(FadeIn(h),Create(plate),FadeIn(lab),run_time=0.6)
+        self.at("the neural plate folds")
+        folded=curve([(-2.3,1.1),(-1.4,0.6),(-1,-0.9),(0,-1.5),(1,-0.9),(1.4,0.6),(2.3,1.1)],BLUE,22)
+        self.play(Transform(plate,folded),run_time=1.1)
+        tube=Circle(radius=1,stroke_color=BLUE,stroke_width=22).move_to([0,-0.7,0])
+        self.at("a hollow neural tube")
+        self.play(ReplacementTransform(plate,tube),
+                  Transform(lab,T("hollow neural tube",28,BLUE).move_to(lab)),run_time=0.7)
+        future=T("future brain and spinal cord",28,BLUE).move_to([0,-2.4,0])
+        self.at("the future brain")
+        self.play(FadeIn(future),run_time=0.55)
+        self.at("Neural crest forms")
+        # Replay the plate to locate crest at its two edges, rather than on the tube.
+        crestplate=curve([(-2.3,1.1),(-1.4,0.6),(-1,-0.9),(0,-1.5),(1,-0.9),(1.4,0.6),(2.3,1.1)],BLUE,22)
+        crest=VGroup(cell(-2.3,1.1,0.23),cell(2.3,1.1,0.23)).set_stroke(YELLOW,4)
+        self.play(FadeOut(tube),FadeOut(future),FadeIn(crestplate),FadeIn(crest),
+                  Transform(lab,T("neural crest · plate edges",28,BLUE).move_to(lab)),run_time=0.6)
+        self.at("makes peripheral neurons")
+        self.play(FadeOut(crestplate),crest.animate.move_to([0,0.5,0]),run_time=0.4)
+        neurons=T("Peripheral neurons",27,BLUE).move_to([-3,-1.7,0])
+        self.play(FadeIn(neurons),GrowArrow(arr([-1.7,0.1,0],[-3,-1.2,0],BLUE)),run_time=0.55)
+        self.at("much of the skeleton")
+        skull=T("Much of the facial\nand skull skeleton",27,BLUE).move_to([3,-1.7,0])
+        self.play(FadeIn(skull),GrowArrow(arr([1.7,0.1,0],[3,-1.05,0],BLUE)),run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "In equal, synchronous cleavage without growth: cells shrink, membrane rises."
+    LINE = "Cleavage, gastrulation and fate signals turn one egg into tissues."
+    def construct(self):
+        line=T(self.LINE,40,font=TITLE_FONT).move_to([0,2.8,0])
+        fit(line, max_w=12.5)
+        embryo=layers(0,-0.2,0.85)
+        inherited=chip("Inherited factors",YELLOW,24).move_to([-4.7,0,0])
+        signal=chip("Neighbour signals",YELLOW,24).move_to([4.7,0,0])
+        sub=T("biochemistrypedia.com",22,TEAL).move_to([0,-3,0])
+        self.play(FadeIn(line),FadeIn(embryo),FadeIn(inherited),FadeIn(signal),FadeIn(sub),run_time=1)
+        self.finish()

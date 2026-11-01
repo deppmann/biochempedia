@@ -1,4 +1,4 @@
-"""Auxin moves sideways, and the shoot bends  (Biochemistrypedia explainer, Organismal Biology)
+"""Plant Signals Steer Growth  (Biochemistrypedia explainer, Organismal Biology)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -6,9 +6,9 @@ COLOR MAP (one color per concept, whole video)
   YELLOW = light (lamp rays, the lit side)
   ORANGE = the signal that moves: auxin, or "something passes down"
   GREEN  = living plant tissue (seedlings, coleoptiles, flanks)
-  BLUE   = mica and glass (things placed in the way or over the tip)
+  BLUE   = light receptor / flowering signal FT
   GREY   = ground, the opaque cap, outlines, notes
-  TEAL   = agar blocks
+  TEAL   = other hormone signals / mobile defence signal
   PURPLE = the PIN carrier in the cell membrane
   RED    = the question, and a blocked signal
 """
@@ -92,371 +92,340 @@ def at_pose(mob, p, th):
     return mob
 
 
+# Additional schematics retain the original band-and-blob drawing language.
+def dots(points, color=ORANGE):
+    return VGroup(*[Dot(p, radius=0.11, color=color) for p in points])
+
+
+def horizontal(x, y, bend=0, h=3.8, w=0.65):
+    return stem([0, 0, 0], h, bend, w=w).rotate(-PI / 2, about_point=ORIGIN).shift([x, y, 0])
+
+
+def comparison():
+    root = horizontal(-5.6, 0.25, -0.65)
+    shoot = horizontal(1.4, 0.25, 0.65)
+    return VGroup(root, shoot,
+        label('ROOT', -3.4, 2.5, 30, GREEN), label('SHOOT', 3.4, 2.5, 30, GREEN),
+        label('lower side: less elongation', -3.4, -2.2, 24, ORANGE),
+        label('lower side: more elongation', 3.4, -2.2, 24, ORANGE),
+        dots([[x, -0.06, 0] for x in (-5.25, -4.8, -4.35, 1.75, 2.2, 2.65)]))
+
+
+def plant():
+    stalk = stem([0, -2.3, 0], 4.4, 0, w=0.25)
+    leaves = VGroup(*[Ellipse(width=1.8, height=0.65, color=GREEN, fill_opacity=0.28)
+        .rotate(a).move_to([x, y, 0]) for x, y, a in [(-0.8, -0.6, -0.35), (0.8, 0.5, 0.35)]])
+    return VGroup(stalk, leaves)
+
+
+def seed(x, y):
+    return Ellipse(width=1.4, height=0.9, color=GREEN, fill_opacity=0.3).rotate(0.3).move_to([x, y, 0])
+
+
+def cell(x=0, y=0, w=3.2, h=2.8):
+    return RoundedRectangle(width=w, height=h, corner_radius=0.2, color=GREEN,
+        stroke_width=3, fill_color=GREEN, fill_opacity=0.12).move_to([x, y, 0])
+
+
+def carrier(x, y):
+    return RoundedRectangle(width=0.28, height=0.75, corner_radius=0.1, color=PURPLE,
+        fill_opacity=0.7).move_to([x, y, 0])
+
+
 class S00Title(TitleCard):
-    LESSON = "Plant hormones and responses"
-    TITLE = "Auxin Moves Sideways, and the Shoot Bends"
+    LESSON = 'Plant hormones and responses'
+    TITLE = 'Plant Signals Steer Growth'
+
+    def construct(self):
+        title = T(self.TITLE, 46, TEXT, font=TITLE_FONT).move_to([0, 2.55, 0])
+        light = VGroup(Circle(radius=0.25, color=YELLOW, fill_opacity=0.8).move_to([-5.8, 0, 0]), rays(-5.3, 0))
+        shoot = stem([-3.4, -1.9, 0], 3.0, 0, w=0.45)
+        gravity = VGroup(horizontal(1.3, 0, 0, h=2.8, w=0.4), horizontal(1.3, -0.7, 0, h=2.8, w=0.4))
+        self.add(title, light, shoot, gravity)
+        self.play(Transform(shoot, stem([-3.4, -1.9, 0], 3.0, 0.6, w=0.45)),
+                  Transform(gravity, VGroup(horizontal(1.3, 0, 0.6, h=2.8, w=0.4), horizontal(1.3, -0.7, -0.6, h=2.8, w=0.4))), run_time=1.4)
+        self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S01Bend(SpokenScene):
     def construct(self):
-        bx, by, h = 0.2, -2.3, 4.3
-        gr = ground(bx, by, 2.6)
-        s0 = stem([bx, by, 0], h, 0.0, w=0.6)
-        name = label("oat seedling", bx, by - 0.55, 26)
-        lamp_c = Circle(radius=0.38, stroke_color=YELLOW, stroke_width=4, fill_color=YELLOW, fill_opacity=0.85).move_to([-5.7, 0.7, 0])
-        rs = rays(-5.1, 0.7, n=3, gap=0.7, length=1.5)
-        lamp_l = label("lamp", -5.7, 1.4, 26, YELLOW)
-        self.at("oat seedling")
-        self.play(FadeIn(gr), FadeIn(s0), FadeIn(name), run_time=0.8)
-        self.at("from one side")
-        self.play(FadeIn(lamp_c), FadeIn(lamp_l), LaggedStart(*[GrowArrow(r) for r in rs], lag_ratio=0.25), run_time=1.0)
-        self.at("bends toward")
-        s1 = stem([bx, by, 0], h, 0.55, w=0.6)
-        self.play(Transform(s0, s1), run_time=1.6)
-        self.at("the tip")
-        tp, _ = pose([bx, by, 0], h, 0.55, 1.0)
-        tip_l = T("tip: light sensed", 26, YELLOW).move_to([tp[0] + 2.6, tp[1] + 0.25, 0])
-        tip_a = arr([tip_l.get_left()[0] - 0.05, tip_l.get_left()[1], 0], [tp[0] + 0.5, tp[1] + 0.05, 0], YELLOW)
-        self.play(FadeIn(tip_l), GrowArrow(tip_a), run_time=0.7)
-        self.at("lower down")
-        zp0, _ = pose([bx, by, 0], h, 0.55, Z0)
-        zp1, _ = pose([bx, by, 0], h, 0.55, Z1)
-        bxr = max(zp0[0], zp1[0]) + 0.75
-        brace = Line([bxr, zp0[1], 0], [bxr, zp1[1], 0], color=GREEN, stroke_width=7)
-        bl = T("the bend forms here", 26, GREEN).move_to([bxr + 0.35 + 1.45, (zp0[1] + zp1[1]) / 2, 0])
-        self.play(Create(brace), FadeIn(bl), run_time=0.8)
-        self.at("what carries")
-        qx = bl.get_center()[0]
-        q = arr([qx, tip_l.get_bottom()[1] - 0.15, 0], [qx, bl.get_top()[1] + 0.15, 0], RED)
-        qm = T("?", 60, RED, weight=BOLD).next_to(q, RIGHT, buff=0.25)
-        self.play(GrowArrow(q), FadeIn(qm, scale=0.7), run_time=0.8)
+        bx, by, h = -0.4, -2.1, 3.9
+        left = band([bx, by, 0], h, 0, -0.65, 0)
+        right = band([bx, by, 0], h, 0, 0, 0.65)
+        lamp = VGroup(Circle(radius=0.35, color=YELLOW, fill_opacity=0.8).move_to([-5.7, 0.7, 0]),
+                      rays(-5.1, 0.7, length=1.5), label('lamp', -5.7, 1.5, 26, YELLOW))
+        name = label('oat seedling', bx, -2.85, 28)
+        self.at('Light an oat')
+        self.add(left, right, lamp, name)
+        self.at('bends toward the lamp')
+        self.play(Transform(left, band([bx, by, 0], h, 0.45, -0.65, 0)),
+                  Transform(right, band([bx, by, 0], h, 0.45, 0, 0.65)), run_time=0.8)
+        flank_poses = [pose([bx, by, 0], h, 0.45, f) for f in (0.3, 0.45, 0.6, 0.75)]
+        signal = dots([p - 0.3 * np.array([np.cos(th), np.sin(th), 0]) for p, th in flank_poses])
+        aux = label('auxin', 3.2, 1.6, 30, ORANGE)
+        self.at('a plant hormone')
+        self.play(FadeIn(signal), FadeIn(aux), run_time=0.4)
+        self.at('moves toward the shaded flank')
+        self.play(*[d.animate.move_to(p + 0.42 * np.array([np.cos(th), np.sin(th), 0])) for d, (p, th) in zip(signal, flank_poses)], run_time=0.8)
+        faster = VGroup(arr([1, -1.7, 0], [1, 0.6, 0], GREEN),
+                        label('shaded side', 3.3, 0.1, 26), label('elongates faster', 3.3, -0.5, 26, GREEN))
+        self.at('That side elongates faster')
+        self.play(FadeIn(faster), right.animate.stretch(1.12, 1, about_point=[bx, by, 0]), run_time=0.7)
+        self.at('so the chute bends')
+        self.play(Transform(left, band([bx, by, 0], h, 0.7, -0.65, 0)),
+                  Transform(right, band([bx, by, 0], h, 0.7, 0, 0.65)), FadeOut(signal), run_time=0.9)
+        self.at('Gravity also redirects')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.35)
+        organs = VGroup(horizontal(-5.6, 0.2), horizontal(1.4, 0.2))
+        names = VGroup(label('SHOOT', -3.4, 2.6, 30, GREEN), label('ROOT', 3.4, 2.6, 30, GREEN))
+        self.play(FadeIn(organs), FadeIn(names), run_time=0.5)
+        lower = dots([[x, -0.1, 0] for x in (-5.2, -4.7, -4.2, 1.8, 2.3, 2.8)])
+        self.at('It collects on the lower side')
+        self.play(FadeIn(lower), run_time=0.5)
+        self.at('making a chute curve up')
+        self.play(Transform(organs[0], horizontal(-5.6, 0.2, 0.65)), run_time=0.7)
+        self.at('and a root curve down')
+        self.play(Transform(organs[1], horizontal(1.4, 0.2, -0.65)), run_time=0.7)
+        chain = VGroup(T('Auxin redistribution', 26, ORANGE), T('→  unequal elongation  →', 26, GREEN), T('bending', 26, GREEN)).arrange(RIGHT, buff=0.25).move_to([0, -2.8, 0])
+        self.at('by moving a chemical signal')
+        self.play(FadeIn(chain), run_time=0.6)
+        self.at('Unequal growth on opposite sides')
+        self.play(Indicate(organs, color=GREEN), run_time=0.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Darwin(SpokenScene):
-    def construct(self):
-        cs = [-4.2, 0.3, 4.8]
-        base_y, h = -1.5, 3.0
-        note = label("canary grass seedlings (Phalaris canariensis), lit from the left", 0, 3.2, 26)
-        stems, grs, rs = [], [], []
-        for c in cs:
-            grs.append(ground(c, base_y, 1.8))
-            stems.append(stem([c, base_y, 0], h, 0.0, w=0.5))
-            rs.append(rays(c - 2.0, base_y + 1.9, n=3, gap=0.6, length=0.7))
-        names = [label(t, c, base_y - 0.65, 26) for c, t in zip(cs, ["bare tip", "opaque cap", "glass tube"])]
-        self.at("charles darwin")
-        self.play(FadeIn(note), *[FadeIn(g) for g in grs], *[FadeIn(s) for s in stems], run_time=0.8)
-        self.play(*[FadeIn(r) for r in rs], run_time=0.5)
-        # bare: bends
-        self.at("one side")
-        self.play(FadeIn(names[0]), Transform(stems[0], stem([cs[0], base_y, 0], h, 0.5, w=0.5)), run_time=0.9)
-        # opaque cap
-        self.at("opaque cap")
-        capp, capth = pose([cs[1], base_y, 0], h, 0.0, 1.0)
-        cap = Rectangle(width=0.8, height=0.75, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.85)
-        cap.move_to([capp[0], capp[1] - 0.1, 0])
-        self.play(FadeIn(cap, shift=DOWN * 0.3), FadeIn(names[1]), run_time=0.7)
-        self.at("greatly reduced bending")
-        b2 = 0.1
-        p2, th2 = pose([cs[1], base_y, 0], h, b2, 1.0)
-        self.play(Transform(stems[1], stem([cs[1], base_y, 0], h, b2, w=0.5)),
-                  cap.animate.move_to([p2[0], p2[1] - 0.1, 0]).rotate(th2, about_point=[p2[0], p2[1] - 0.1, 0]), run_time=1.0)
-        red_t = label("bending greatly reduced", cs[1], base_y + 3.4, 24, RED)
-        # glass tube
-        self.at("transparent glass")
-        p3, _ = pose([cs[2], base_y, 0], h, 0.0, 0.88)
-        tube = RoundedRectangle(corner_radius=0.18, width=0.85, height=1.1, stroke_color=BLUE, stroke_width=4,
-                                fill_color=BLUE, fill_opacity=0.18).move_to([cs[2], base_y + h - 0.35, 0])
-        self.play(FadeIn(tube, shift=DOWN * 0.3), FadeIn(names[2]), run_time=0.7)
-        self.at("did not stop")
-        b3 = 0.5
-        tp3, tth3 = pose([cs[2], base_y, 0], h, b3, 0.84)
-        self.play(Transform(stems[2], stem([cs[2], base_y, 0], h, b3, w=0.5)),
-                  tube.animate.move_to([tp3[0] - 0.1, tp3[1] + 0.2, 0]).rotate(tth3, about_point=[tp3[0] - 0.1, tp3[1] + 0.2, 0]),
-                  run_time=1.2)
-        self.at("light is sensed")
-        c1 = T("light is sensed mainly near the tip", 28, YELLOW).move_to([0, -3.2, 0])
-        self.play(FadeIn(c1), run_time=0.6)
-        self.at("something passes down")
-        sp, _ = pose([cs[0], base_y, 0], h, 0.5, 0.9)
-        sp2, _ = pose([cs[0], base_y, 0], h, 0.5, 0.25)
-        sa = arr([sp[0] + 0.75, sp[1], 0], [sp2[0] + 0.75, sp2[1], 0], ORANGE, w=6)
-        sl = VGroup(T("something", 24, ORANGE), T("passes down", 24, ORANGE)).arrange(DOWN, buff=0.06).move_to([cs[0] + 1.75, base_y + 0.55, 0])
-        self.play(GrowArrow(sa), FadeIn(sl), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Mica(SpokenScene):
-    def construct(self):
-        cs = [-4.2, 0.3, 4.8]
-        base_y, h = -1.5, 3.0
-        note = label("oat (Avena sativa) coleoptiles, lit from the left", 0, 3.3, 26)
-        defn = label("coleoptile: the sheath over a grass seedling's first leaf", 0, 2.7, 24)
-        stems, grs, rs = [], [], []
-        for c in cs:
-            grs.append(ground(c, base_y, 1.8))
-            stems.append(stem([c, base_y, 0], h, 0.0, w=0.5))
-            rs.append(rays(c - 2.0, base_y + 0.6, n=3, gap=0.6, length=0.7))
-        names = [label(t, c, base_y - 0.65, 24) for c, t in zip(cs, ["tip cut, set back", "mica, lit side", "mica, shaded side"])]
-        self.at("worked with")
-        self.play(FadeIn(note), run_time=0.5)
-        self.at("coleoptoils")
-        self.play(FadeIn(stems[0]), FadeIn(grs[0]), FadeIn(rs[0]), FadeIn(defn), run_time=0.7)
-        # cut and set back
-        self.at("cut off tips")
-        cp, cth = pose([cs[0], base_y, 0], h, 0.0, 0.8)
-        cut = Line([cp[0] - 0.4, cp[1], 0], [cp[0] + 0.4, cp[1], 0], color=RED, stroke_width=5)
-        cut_l = label("cut", cs[0] - 0.75, cp[1], 24, RED)
-        self.play(Create(cut), FadeIn(cut_l), FadeIn(names[0]), run_time=0.7)
-        self.at("bent below the cut")
-        b = 0.5
-        self.play(Transform(stems[0], stem([cs[0], base_y, 0], h, b, w=0.5)), run_time=1.3)
-        cp2, cth2 = pose([cs[0], base_y, 0], h, b, 0.8)
-        self.play(cut.animate.move_to(cp2).rotate(cth2), cut_l.animate.move_to([cp2[0] - 0.75, cp2[1], 0]), run_time=0.01)
-        self.at("crossed a wound")
-        self.wait(0.3)
-        # mica panels
-        self.at("slid mica")
-        self.play(*[FadeIn(g) for g in grs[1:]], *[FadeIn(s) for s in stems[1:]], *[FadeIn(r) for r in rs[1:]], run_time=0.6)
-        mpos = 0.72
-
-        def mica(c, side, bend):
-            p, th = pose([c, base_y, 0], h, bend, mpos)
-            m = Rectangle(width=0.55, height=0.1, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.9)
-            off = side * 0.18
-            m.move_to([p[0] + off, p[1], 0])
-            m.rotate(th, about_point=p)
-            return m
-        m2 = mica(cs[1], -1, 0.0)
-        m3 = mica(cs[2], +1, 0.0)
-        ml2 = label("mica", cs[1] - 1.25, base_y + 0.72 * h + 0.35, 24, BLUE)
-        ml3 = label("mica", cs[2] + 1.0, base_y + 0.72 * h, 24, BLUE)
-        self.play(FadeIn(m2, shift=RIGHT * 0.3), FadeIn(ml2), FadeIn(m3, shift=LEFT * 0.3), FadeIn(ml3), run_time=0.8)
-        self.at("dissolved chemicals")
-        note2 = label("dissolved chemicals cannot cross mica", 0, -3.2, 26, BLUE)
-        self.play(FadeIn(note2), FadeIn(names[1]), FadeIn(names[2]), run_time=0.6)
-        self.at("lit side left bending intact")
-        b2 = 0.5
-        p2, th2 = pose([cs[1], base_y, 0], h, b2, mpos)
-        self.play(Transform(stems[1], stem([cs[1], base_y, 0], h, b2, w=0.5)),
-                  m2.animate.move_to([p2[0] - 0.18 * np.cos(th2), p2[1] - 0.18 * np.sin(th2), 0]).rotate(th2, about_point=p2),
-                  ml2.animate.move_to([p2[0] - 1.25, p2[1] + 0.4, 0]), run_time=1.3)
-        self.at("shaded side blocked")
-        blk = T("no bending", 24, RED).move_to([cs[2], base_y + h + 0.55, 0])
-        self.play(FadeIn(blk), run_time=0.5)
-        self.at("runs down")
-        def inside(c, bend, sf):
-            p, th = pose([c, base_y, 0], h, bend, sf)
-            return np.array([p[0] + 0.13 * np.cos(th), p[1] + 0.13 * np.sin(th), 0])
-        my = base_y + mpos * h
-        arr3 = arr([cs[2] + 0.13, base_y + 0.97 * h, 0], [cs[2] + 0.13, my + 0.1, 0], ORANGE, w=5, tip=0.16)
-        x3 = VGroup(Line([cs[2] + 0.03, my + 0.25, 0], [cs[2] + 0.23, my + 0.05, 0], color=RED, stroke_width=5),
-                    Line([cs[2] + 0.03, my + 0.05, 0], [cs[2] + 0.23, my + 0.25, 0], color=RED, stroke_width=5))
-        arr2 = arr(inside(cs[1], b2, 0.97), inside(cs[1], b2, 0.3), ORANGE, w=5, tip=0.16)
-        self.play(GrowArrow(arr2), GrowArrow(arr3), Create(x3), run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Agar(SpokenScene):
-    def construct(self):
-        base_y, h = -1.9, 2.6
-        cA, cB, cC = -4.6, 0.5, 4.9
-        note = label("oat coleoptiles, grown in the dark", 0, 3.3, 26)
-        # --- A: tips on agar
-        blockA = RoundedRectangle(corner_radius=0.08, width=2.0, height=0.45, stroke_color=TEAL, stroke_width=3,
-                                  fill_color=TEAL, fill_opacity=0.3).move_to([cA, -0.6, 0])
-        tips = VGroup(*[RoundedRectangle(corner_radius=0.15, width=0.4, height=0.9, stroke_color=GREEN, stroke_width=3,
-                                         fill_color=GREEN, fill_opacity=0.3).move_to([cA + dx, -0.6 + 0.225 + 0.45, 0])
-                        for dx in (-0.55, 0.0, 0.55)])
-        lblA = label("cut tips on agar", cA, 1.2, 26)
-        lblAg = label("agar", cA, -1.35, 24, TEAL)
-        self.at("took the signal")
-        self.play(FadeIn(note), run_time=0.5)
-        dots = VGroup(*[Circle(radius=0.09, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to([cA + dx, -0.6 + 0.2, 0])
-                        for dx in (-0.55, 0.0, 0.55)])
-        big = VGroup(blockA, tips, dots, lblA, lblAg)
-        big.scale(1.6, about_point=[cA, -0.2, 0]).shift([-cA, 0.3, 0])
-        self.at("cut tips")
-        self.play(FadeIn(blockA), FadeIn(tips), FadeIn(lblA), FadeIn(lblAg), run_time=0.8)
-        self.play(FadeIn(dots, shift=DOWN * 0.2), run_time=0.5)
-        dots2 = VGroup(*[Circle(radius=0.09 * 1.6, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to([0 + dx * 1.6, blockA.get_center()[1], 0])
-                         for dx in (-0.7, -0.35, 0.0, 0.35, 0.7)])
-        self.play(Transform(dots, dots2), run_time=0.7)
-        self.at("then removed")
-        self.play(FadeOut(tips), FadeOut(lblA), run_time=0.7)
-        # --- B: decapitated coleoptile in the dark
-        grB, grC = ground(cB, base_y, 1.8), ground(cC, base_y, 1.8)
-        sB = stem([cB, base_y, 0], h, 0.0, w=0.5)
-        sC = stem([cC, base_y, 0], h, 0.0, w=0.5)
-        dark = label("in the dark", 0, -3.35, 26)
-        self.at("in the dark")
-        A = VGroup(blockA, dots, lblAg)
-        self.play(A.animate.scale(1 / 1.6, about_point=blockA.get_center()).move_to([cA, -0.6, 0]).shift(DOWN * 0.0),
-                  FadeIn(grB), FadeIn(sB), FadeIn(dark), run_time=1.0)
-        self.at("one side")
-        topB = base_y + h
-        blkB = blockA.copy()
-        dotsB = dots.copy()
-        grp = VGroup(blkB, dotsB)
-        self.play(grp.animate.scale(0.5).move_to([cB + 0.2, topB + 0.12, 0]), run_time=1.1)
-        a_in = arr([cB + 0.3, topB - 0.05, 0], [cB + 0.3, topB - 1.0, 0], ORANGE, w=5)
-        # curved away from the block (block on the right, bend to the left)
-        self.at("curved away")
-        bb = 0.5
-        tpB, thB = pose([cB, base_y, 0], h, bb, 1.0)
-        self.play(Transform(sB, stem([cB, base_y, 0], h, bb, w=0.5)),
-                  grp.animate.move_to([tpB[0] + 0.2 * np.cos(thB), tpB[1] + 0.12 * np.cos(thB) + 0.2 * np.sin(thB) * 0 + 0.0, 0]).rotate(thB, about_point=[tpB[0], tpB[1], 0]),
-                  run_time=1.4)
-        lbB = label("curves away from the block", cB, 2.75, 26, GREEN)
-        self.play(FadeIn(lbB), run_time=0.5)
-        # --- C: plain agar
-        self.at("plain agar")
-        grpC = VGroup(RoundedRectangle(corner_radius=0.08, width=1.0, height=0.22, stroke_color=TEAL, stroke_width=3,
-                                       fill_color=TEAL, fill_opacity=0.3))
-        grpC.move_to([cC + 0.2, topB + 0.12, 0])
-        self.play(FadeIn(grC), FadeIn(sC), FadeIn(grpC), run_time=0.7)
-        lbC = label("plain agar: no curve", cC, 2.75, 26, GREY)
-        self.play(FadeIn(lbC), run_time=0.5)
-        self.at("sped elongation")
-        sp = T("a substance from the tips entered the agar", 26, ORANGE).move_to([0, -2.75, 0])
-        self.play(FadeIn(sp), run_time=0.6)
-        self.at("identified later")
-        idl = T("auxin was identified later, by others", 26, TEXT).move_to([0, -2.75, 0])
-        self.play(FadeOut(sp), run_time=0.3)
-        self.play(FadeIn(idl), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
 class S05Sideways(SpokenScene):
     def construct(self):
-        bx, by, h = -0.9, -2.3, 3.9
-        w = 1.7
-        lamp_r = rays(-4.7, 0.0, n=3, gap=0.9, length=1.0)
-        lamp_l = label("light", -4.2, 1.5, 26, YELLOW)
-        gr = ground(bx, by, 3.0)
-        left0 = band([bx, by, 0], h, 0.0, -w / 2, 0.0)
-        right0 = band([bx, by, 0], h, 0.0, 0.0, w / 2)
-        ll = label("lit flank", bx - 0.85, by - 0.5, 24, YELLOW)
-        sl = label("shaded flank", bx + 0.85, by - 0.5, 24, GREY)
-        sl.shift(RIGHT * 0.4)
-        self.at("why does")
-        self.play(FadeIn(gr), FadeIn(left0), FadeIn(right0), FadeIn(lamp_r), FadeIn(lamp_l), FadeIn(ll), FadeIn(sl), run_time=1.0)
-
-        def blob(x, y):
-            return Circle(radius=0.13, stroke_width=0, fill_color=ORANGE, fill_opacity=1).move_to([x, y, 0])
-        top_y = by + h - 0.7
-        ys = [top_y, top_y - 0.6, top_y - 1.2, top_y - 1.8]
-        blobs_l = VGroup(*[blob(bx - 0.42, y) for y in ys])
-        blobs_r = VGroup(*[blob(bx + 0.25, y) for y in ys])
-        al = label("auxin", bx + 2.7, top_y - 0.6, 28, ORANGE)
-        al_a = arr([al.get_left()[0] - 0.05, al.get_left()[1], 0], [bx + 0.95, top_y - 0.6, 0], ORANGE, w=3, tip=0.16)
-        self.at("hypothesis says")
-        self.play(FadeIn(blobs_l), FadeIn(blobs_r), FadeIn(al), FadeIn(al_a), run_time=0.8)
-        self.at("sideways toward")
-        side = arr([bx - 0.5, ys[0] + 0.55, 0], [bx + 0.5, ys[0] + 0.55, 0], ORANGE, w=6)
-        self.play(GrowArrow(side),
-                  *[blobs_l[i].animate.move_to([bx + 0.62, ys[i] - 0.3, 0]) for i in (0, 1, 2)],
-                  run_time=1.6)
-        self.at("elongates faster")
-        fa = arr([bx + 1.2, by + 0.5, 0], [bx + 1.2, by + 2.2, 0], GREEN, w=6)
-        fl = VGroup(T("shaded flank", 24, GREEN), T("grows faster", 24, GREEN)).arrange(DOWN, buff=0.06).move_to([bx + 2.45, by + 1.35, 0])
-        self.play(GrowArrow(fa), FadeIn(fl), run_time=0.7)
-        self.at("bends toward")
-        bb = 0.5
-        left1 = band([bx, by, 0], h, bb, -w / 2, 0.0)
-        right1 = band([bx, by, 0], h, bb, 0.0, w / 2)
-        self.play(Transform(left0, left1), Transform(right0, right1), FadeOut(side), FadeOut(blobs_l), FadeOut(blobs_r),
-                  FadeOut(al), FadeOut(al_a), FadeOut(fa), FadeOut(fl), run_time=1.4)
-        # PIN cell
-        cx, cy = 3.6, 0.5
-        self.at("carrier called")
-        self.play(*[m.animate.shift(LEFT * 1.5) for m in (gr, left0, right0, lamp_r, lamp_l, ll, sl)], run_time=0.6)
-        cell = RoundedRectangle(corner_radius=0.2, width=3.0, height=2.4, stroke_color=GREEN, stroke_width=3,
-                                fill_color=GREEN, fill_opacity=0.12).move_to([cx, cy, 0])
-        cap = VGroup(T("a cell of the", 24, GREY), T("Arabidopsis hypocotyl", 24, GREY)).arrange(DOWN, buff=0.06).move_to([cx, cy + 2.0, 0])
-        self.play(FadeIn(cell), FadeIn(cap), run_time=0.7)
-        self.at("one face")
-        pin = RoundedRectangle(corner_radius=0.1, width=0.3, height=1.1, stroke_color=PURPLE, stroke_width=3,
-                               fill_color=PURPLE, fill_opacity=0.7).move_to([cx + 1.5, cy, 0])
-        pl = label("PIN3 carrier", cx + 0.35, cy - 1.75, 26, PURPLE)
-        pl_a = arr([cx + 1.0, cy - 1.5, 0], [cx + 1.5, cy - 0.6, 0], PURPLE, w=3, tip=0.16)
-        self.play(FadeIn(pin), FadeIn(pl), GrowArrow(pl_a), run_time=0.7)
-        self.at("repositioning them")
-        ds = VGroup(*[blob(cx - 0.7 + 0.4 * k, cy) for k in range(3)])
-        out = arr([cx + 0.7, cy, 0], [cx + 2.6, cy, 0], ORANGE, w=6)
-        self.play(FadeIn(ds), GrowArrow(out), run_time=0.9)
+        shoot = stem([-3.8, -2, 0], 3.8, 0.5, w=0.6)
+        title = label('Arabidopsis hypocotyl', 0, 3.1, 32, TEXT)
+        sub = label('stem below the seed leaves', 0, 2.5, 24)
+        c = cell(1, 0, 3.6, 3)
+        pins = VGroup(carrier(0.4, -1.5).rotate(PI/2), carrier(1.6, -1.5).rotate(PI/2))
+        self.at('How does auxin change direction')
+        self.add(shoot)
+        self.at('In Arabidopsis hypocotyls')
+        self.play(shoot.animate.scale(0.75).move_to([-4.6, 0, 0]), FadeIn(title), FadeIn(sub), FadeIn(c), run_time=0.8)
+        self.at('a carrier called')
+        pl = label('PIN3: auxin export', 1, -2.2, 26, PURPLE)
+        self.play(FadeIn(pins), FadeIn(pl), run_time=0.5)
+        self.at('one face of a cell')
+        self.play(Indicate(pins, color=PURPLE), run_time=0.6)
+        self.at('Repositioning them steers auxin')
+        flow = arr([1.7, 0, 0], [4.6, 0, 0], ORANGE)
+        ds = dots([[0, 0, 0], [0.5, 0, 0], [1, 0, 0]])
+        shaded = label('toward shaded flank', 4.5, -1.3, 24, ORANGE)
+        self.play(Transform(pins, VGroup(carrier(2.8, -0.6), carrier(2.8, 0.6))), FadeIn(ds), run_time=0.65)
+        self.play(GrowArrow(flow), ds.animate.shift(RIGHT * 2.5), FadeIn(shaded), run_time=0.8)
+        self.at('A blue light receptor')
+        receptor = chip('phototropin', BLUE, 26).move_to([0, 1.85, 0])
+        receptor_leader = Line([-0.8, 1.55, 0], [-0.8, 1.05, 0], color=BLUE, stroke_width=3)
+        light = rays(-6.2, 1.5, n=2, gap=0.5, length=1)
+        self.play(FadeIn(receptor), Create(receptor_leader), FadeIn(light), run_time=0.5)
+        self.at('detects the light')
+        faster = label('shaded side elongates faster', -2.5, -3.1, 26, GREEN)
+        self.play(Indicate(receptor, color=BLUE), Transform(shoot, stem([-4.6, -1.45, 0], 2.9, 0.75, w=0.45)), FadeIn(faster), run_time=0.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
+class S08Gravity(SpokenScene):
     def construct(self):
-        base_y = -2.2
-        u = 1.15                        # 0.03 mg per L = one unit of height
-        bw = 1.9
-        c1, c2 = -3.0, 0.0
-        head = label("illustrative numbers, not a real experiment", -1.0, 3.3, 28, TEXT)
-        sub = label("auxin from agar blocks, in mg per L", -1.8, 2.7, 24, GREY)
-        base = Line([-4.4, base_y, 0], [1.4, base_y, 0], color=GREY, stroke_width=3)
-        lit = Rectangle(width=bw, height=1 * u, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.28).move_to([c1, base_y + 0.5 * u, 0])
-        sha = Rectangle(width=bw, height=2 * u, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.6).move_to([c1, base_y + 2.0 * u, 0])
-        t_lit = M("0.03", 26, TEXT).move_to(lit)
-        t_sha = M("0.06", 26, TEXT).move_to(sha)
-        k_lit = label("lit half", c1 - bw / 2 - 0.95, base_y + 0.5 * u, 24, YELLOW)
-        k_sha = label("shaded half", c1 - bw / 2 - 1.1, base_y + 2.0 * u, 24, GREY)
-        cap1 = VGroup(T("lit from one side,", 24, GREY), T("split tip", 24, GREY)).arrange(DOWN, buff=0.08).move_to([c1, base_y - 0.65, 0])
-        dk = Rectangle(width=bw, height=3 * u, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.45).move_to([c2, base_y + 1.5 * u, 0])
-        t_dk = M("0.09", 26, TEXT).move_to(dk)
-        cap2 = VGroup(T("kept in the dark,", 24, GREY), T("whole tips", 24, GREY)).arrange(DOWN, buff=0.08).move_to([c2, base_y - 0.65, 0])
-        # schematic of the split tip (each half drains into its own block)
-        dx = 4.2
-        tipb = RoundedRectangle(corner_radius=0.15, width=2.0, height=0.9, stroke_color=GREEN, stroke_width=3,
-                                fill_color=GREEN, fill_opacity=0.3).move_to([dx, 1.0, 0])
-        barrier = Line([dx, 1.55, 0], [dx, 0.0, 0], color=BLUE, stroke_width=5)
-        ag1 = RoundedRectangle(corner_radius=0.06, width=0.9, height=0.3, stroke_color=TEAL, stroke_width=3,
-                               fill_color=TEAL, fill_opacity=0.3).move_to([dx - 0.55, 0.2, 0])
-        ag2 = ag1.copy().move_to([dx + 0.55, 0.2, 0])
-        sr = rays(dx - 2.5, 1.0, n=3, gap=0.4, length=0.9)
-        d_cap = VGroup(T("tip split by a barrier,", 24, GREY), T("each half into its own block", 24, GREY)).arrange(DOWN, buff=0.06).move_to([dx, 2.45, 0])
-        d_l = label("lit half", dx - 0.95, -0.3, 24, YELLOW)
-        d_s = label("shaded half", dx + 1.0, -0.3, 24, GREY)
-        diag = VGroup(tipb, barrier, ag1, ag2, sr, d_cap, d_l, d_s)
-        self.at("worked bioassay")
-        self.play(FadeIn(head), FadeIn(diag), run_time=0.8)
-        self.at("illustrative")
-        self.play(FadeIn(sub), FadeIn(base), FadeIn(cap1), FadeIn(cap2), run_time=0.7)
-        self.at("lit half")
-        self.play(FadeIn(lit), FadeIn(t_lit), FadeIn(k_lit), run_time=0.7)
-        self.at("shaded half")
-        self.play(FadeIn(sha), FadeIn(t_sha), FadeIn(k_sha), run_time=0.7)
-        self.at("kept in the dark")
-        self.play(FadeIn(dk), FadeIn(t_dk), run_time=0.8)
-        self.at("same total")
-        eq = DashedLine([c1 - bw / 2 - 0.1, base_y + 3 * u, 0], [c2 + bw / 2 + 0.1, base_y + 3 * u, 0], color=TEXT, stroke_width=3)
-        eqt = T("same total", 26, TEXT).next_to(eq, UP, buff=0.15)
-        self.play(Create(eq), FadeIn(eqt), run_time=0.8)
-        self.at("did not destroy")
-        self.play(FadeOut(diag), run_time=0.3)
-        g1 = VGroup(T("light did not destroy auxin", 28, TEXT), T("on the lit side:", 28, TEXT)).arrange(DOWN, buff=0.12, aligned_edge=LEFT)
-        g2 = VGroup(T("it moved auxin to", 28, ORANGE), T("the shaded side", 28, ORANGE)).arrange(DOWN, buff=0.12, aligned_edge=LEFT)
-        g = VGroup(g1, g2).arrange(DOWN, buff=0.22, aligned_edge=LEFT)
-        g.move_to([0, 0, 0]).align_to([1.65, 0, 0], LEFT).shift(UP * 1.2)
-        g2.set_opacity(0)
-        self.play(FadeIn(g1), run_time=0.8)
-        self.at("it moved")
-        self.play(g2.animate.set_opacity(1), run_time=0.6)
-        self.at("growth follows")
-        rule = VGroup(T("each flank's growth follows", 28, GREEN), T("its auxin level;", 28, GREEN),
-                      T("the curve is the difference", 28, GREEN)).arrange(DOWN, buff=0.12, aligned_edge=LEFT)
-        rule.align_to([1.65, 0, 0], LEFT).move_to([0, -1.5, 0], coor_mask=[0, 1, 0])
-        self.play(FadeIn(rule), run_time=0.8)
+        seedling = VGroup(stem([0, 0, 0], 2.1, 0, w=0.4), stem([0, 0, 0], 2.1, 0, w=0.3).rotate(PI, about_point=ORIGIN))
+        self.at('Now lay a seedling')
+        self.add(seedling)
+        self.play(Rotate(seedling, -PI/2), run_time=0.8)
+        self.at('In Arabidopsis root cap cells')
+        self.play(FadeOut(seedling), run_time=0.3)
+        c = cell(-2.5, 0, 3, 2.6)
+        title = label('Arabidopsis root-cap cell', -2.5, 2.4, 28, TEXT)
+        pin = carrier(-1, 0)
+        pl = label('PIN3', -4.6, -1.9, 26, PURPLE)
+        self.play(FadeIn(c), FadeIn(title), FadeIn(pin), FadeIn(pl), run_time=0.5)
+        self.at('relocates to the new lower face')
+        self.play(pin.animate.rotate(PI/2).move_to([-2.5, -1.3, 0]), run_time=0.8)
+        self.at('redirecting oxen downward')
+        flow = arr([-2.5, -0.2, 0], [-2.5, -2.9, 0], ORANGE)
+        ds = dots([[-2.5, y, 0] for y in (0.8, 0.3, -0.2)])
+        self.play(FadeIn(ds), GrowArrow(flow), ds.animate.shift(DOWN * 0.6), run_time=0.6)
+        self.at('Extra oxen slows elongation')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.3)
+        comp = comparison()
+        # Begin straight: the different growth rates produce the bends on cue.
+        comp[0].become(horizontal(-5.6, 0.25)); comp[1].become(horizontal(1.4, 0.25))
+        comp[5].set_opacity(0)
+        self.play(FadeIn(comp), run_time=0.5)
+        upper = RoundedRectangle(width=3.2, height=0.32, corner_radius=0.07, color=GREEN, fill_opacity=0.25).move_to([-3.8, 1.3, 0])
+        lower = upper.copy().stretch(0.7, 0, about_edge=LEFT).shift(DOWN * 0.55).set_color(ORANGE)
+        root_tags = VGroup(label('upper', -6.05, 1.3, 22, GREEN), label('lower', -6.05, 0.75, 22, ORANGE))
+        self.play(FadeIn(VGroup(upper, lower)), FadeIn(root_tags), run_time=0.4)
+        self.at('The upper side grows faster')
+        self.play(upper.animate.stretch(1.2, 0, about_edge=LEFT), run_time=0.6)
+        self.at('so the root curves down')
+        self.play(Transform(comp[0], horizontal(-5.6, 0.25, -0.65)), FadeOut(upper), FadeOut(lower), FadeOut(root_tags), run_time=0.75)
+        self.at('In the shoot')
+        self.play(comp[5].animate.set_opacity(1), run_time=0.4)
+        upper2 = RoundedRectangle(width=2.3, height=0.32, corner_radius=0.07, color=GREEN, fill_opacity=0.25).move_to([3.1, 1.7, 0])
+        lower2 = upper2.copy().shift(DOWN * 0.55).set_color(ORANGE)
+        shoot_tags = VGroup(label('upper', 1.25, 1.7, 22, GREEN), label('lower', 1.25, 1.15, 22, ORANGE))
+        self.at('speeds elongation on the lower side')
+        self.play(FadeIn(upper2), FadeIn(lower2), FadeIn(shoot_tags), run_time=0.3)
+        self.play(lower2.animate.stretch(1.5, 0, about_edge=LEFT), run_time=0.6)
+        self.at('so the shoot curves up')
+        self.play(Transform(comp[1], horizontal(1.4, 0.25, 0.65)), FadeOut(upper2), FadeOut(lower2), FadeOut(shoot_tags), run_time=0.7)
+        self.finish()
+
+
+class S09Hormones(SpokenScene):
+    def construct(self):
+        self.at('The same hormone')
+        comp = comparison(); self.add(comp)
+        self.at('Plant cells make hormones')
+        self.play(FadeOut(comp), run_time=0.4)
+        p = plant().move_to([0, -0.1, 0])
+        buds = VGroup(Dot([-0.25, -0.5, 0], radius=0.17, color=GREEN), Dot([0.25, 0.5, 0], radius=0.17, color=GREEN))
+        title = label('Growing shoot tip regulates side buds', 0, 3.1, 30, TEXT)
+        tip_label = label('growing shoot tip', 2.1, 2.1, 24, GREEN)
+        tip_leader = Line([0.2, 2.1, 0], [0.65, 2.1, 0], color=GREEN, stroke_width=2)
+        self.play(FadeIn(p), FadeIn(buds), FadeIn(title), FadeIn(tip_label), Create(tip_leader), run_time=0.6)
+        aux = chip('auxin', ORANGE, 26).move_to([-1.4, 1.7, 0])
+        self.at('helps the growing shoot tip')
+        self.play(FadeIn(aux), run_time=0.5)
+        self.at('suppress side buds')
+        regulation = VGroup(arr([0, 2.1, 0], [0.25, 0.5, 0], ORANGE), label('side buds suppressed', 2.3, -0.7, 24, GREY),
+                            Line([0.45, -0.65, 0], [-0.05, -0.5, 0], color=GREY, stroke_width=2))
+        self.play(FadeIn(regulation), buds.animate.set_opacity(0.3), run_time=0.6)
+        self.at('together with')
+        partners = VGroup(chip('cytokinins', TEAL, 26), chip('strigolactones', TEAL, 26)).arrange(DOWN, buff=0.4).move_to([-4.1, -0.6, 0])
+        links = VGroup(arr(partners[0].get_right(), [0.1, 0.5, 0], TEAL),
+                       arr(partners[1].get_right(), [-0.4, -0.5, 0], TEAL))
+        self.play(FadeIn(partners), *[GrowArrow(link) for link in links], run_time=0.6)
+        self.at('Other hormones control other transitions')
+        side_bud_frame = list(self.mobjects)
+        tomato = VGroup(Circle(radius=1, color=GREEN, fill_opacity=0.65).move_to([0, -0.2, 0]),
+                        Line([-0.25, 0.8, 0], [0, 1.2, 0], color=GREEN, stroke_width=6))
+        eth = chip('ethylene', TEAL, 30).move_to([-4, 0, 0])
+        head = label('Tomato ripening', 0, 3, 34, TEXT)
+        status = label('little ethylene', 0, 1.9, 28, TEAL)
+        self.at('Ethylene promotes fruit ripening')
+        self.play(*[FadeOut(m) for m in side_bud_frame], FadeIn(tomato), FadeIn(eth), FadeIn(head), FadeIn(status), run_time=0.7)
+        self.at('Tomatoes engineered to make little ethylene')
+        result = label('fails to ripen normally', 0, -2.1, 28, GREY)
+        self.play(FadeIn(result), eth.animate.set_opacity(0.25), run_time=0.6)
+        self.at('Supplied ethylene restored ripening')
+        arrow = arr([-2.5, 0, 0], [-1.2, 0, 0], TEAL)
+        self.play(Transform(eth, chip('ethylene', TEAL, 30).move_to([-4, 0, 0])), GrowArrow(arrow), Transform(status, label('supplied ethylene', 0, 1.9, 28, TEAL)),
+                  Transform(result, label('ripening restored', 0, -2.1, 28, GREEN)), tomato[0].animate.set_color(RED), run_time=1.1)
+        self.finish()
+
+
+class S10Flowering(SpokenScene):
+    def construct(self):
+        context = label('Arabidopsis · long-day plant', 0, 3.15, 30, TEXT)
+        p = plant().shift(RIGHT * 2.6)
+        dial = Circle(radius=1.1, color=GREY).move_to([-4.3, 0.8, 0])
+        day = Arc(radius=1.1, start_angle=-PI/2, angle=1.5*PI, color=YELLOW, stroke_width=12).move_arc_center_to([-4.3, 0.8, 0])
+        hand = Line([-4.3, 0.8, 0], [-4.3, 1.65, 0], color=TEXT, stroke_width=4)
+        clock = VGroup(dial, day, hand, label('daily clock + light', -4.3, -0.9, 24, YELLOW))
+        self.at('Light also helps time flowering')
+        self.add(context, p)
+        self.at('a daily clock')
+        self.play(FadeIn(clock), run_time=0.6)
+        co = chip('CONSTANS', YELLOW, 26).move_to([-0.4, 1.6, 0])
+        evening = label('evening light: stable protein', -2.9, 2.3, 24, YELLOW)
+        self.at('evening light stabilizes the protein')
+        self.play(Rotate(hand, -2.5, about_point=[-4.3, 0.8, 0]), FadeIn(co), FadeIn(evening), run_time=0.8)
+        gene = chip('FT gene ON', BLUE, 26).move_to([-0.4, -0.15, 0])
+        phloem = label('leaf phloem', -0.4, -1.05, 24, GREY)
+        path = arr([-0.4, 1.15, 0], [-0.4, 0.35, 0], BLUE)
+        self.at('promotes the gene')
+        self.play(GrowArrow(path), FadeIn(gene), FadeIn(phloem), run_time=0.7)
+        ft = chip('FT', BLUE, 24).move_to([1.7, -0.6, 0])
+        route = VMobject(color=BLUE, stroke_width=5).set_points_as_corners([[1.7,-0.6,0],[2.6,-0.3,0],[2.6,2.1,0]])
+        self.at('protein travels to the shoot apex')
+        self.play(FadeIn(ft), Create(route), run_time=0.4)
+        self.play(MoveAlongPath(ft, route), run_time=1.0)
+        self.at('where flowers form')
+        flower = VGroup(*[Ellipse(width=0.55, height=0.25, color=TEXT, fill_opacity=0.8).rotate(a).shift([np.cos(a)*0.28,np.sin(a)*0.28,0]) for a in np.arange(0,TAU,TAU/5)], Dot(ORIGIN, radius=0.1, color=YELLOW)).move_to([2.6,2.1,0])
+        self.play(FadeOut(ft), FadeIn(flower), run_time=0.6)
+        self.at('Leaves read the timing')
+        takeaway = label('leaf timing → mobile FT → shoot apex', 0, -3.1, 28, BLUE)
+        self.play(FadeIn(takeaway), run_time=0.6)
+        self.finish()
+
+
+class S11Seeds(SpokenScene):
+    def construct(self):
+        head = label('Opposing effects on seed growth', 0, 3.1, 32, TEXT)
+        dormant, growing = seed(-3.4, -0.3), seed(3.4, -0.3)
+        self.at('Hormones also have opposing effects')
+        self.add(head, dormant, growing)
+        aba = chip('abscisic acid', TEAL, 28).move_to([-3.4, 1.7, 0])
+        ga = chip('gibberellins', TEAL, 28).move_to([3.4, 1.7, 0])
+        hold = VGroup(arr([-0.5, -0.3, 0], [-2.5, -0.3, 0], TEAL), label('dormancy maintained', -3.4, -2.6, 26, TEAL))
+        self.at('acid maintains seed dormancy')
+        self.play(FadeIn(aba), FadeIn(hold), run_time=0.6)
+        arrest = label('arrested growth', -3.4, -1.55, 24)
+        self.at('a state of arrested growth')
+        self.play(FadeIn(arrest), run_time=0.4)
+        sprout = VGroup(stem([3.4,0,0], 1.1, 0.4, w=0.18), stem([3.4,-0.5,0], 1.0, 0.3, w=0.14).rotate(PI, about_point=[3.4,-0.5,0]))
+        go = VGroup(arr([0.5,-0.3,0],[2.5,-0.3,0],TEAL), label('germination promoted',3.4,-2.6,26,TEAL))
+        self.at('Gibberellins promote germination')
+        self.play(FadeIn(ga), FadeIn(go), Create(sprout), run_time=0.9)
+        self.at('Their effects point in opposite directions')
+        self.play(Indicate(hold, color=TEAL), Indicate(go, color=TEAL), run_time=0.8)
+        self.finish()
+
+
+class S12Defence(SpokenScene):
+    def construct(self):
+        leaf = Ellipse(width=3.5, height=1.4, color=GREEN, fill_opacity=0.25).move_to([0,-0.5,0])
+        insect = VGroup(Ellipse(width=0.7,height=0.4,color=GREY,fill_opacity=0.8),
+                         *[Line([x,-0.1,0],[x-0.12,-0.35,0],color=GREY) for x in (-0.2,0,0.2)]).move_to([0,0.35,0])
+        ja = chip('jasmonates', TEAL, 30).move_to([-3.8,1.8,0])
+        defense = label('defence against plant-eating animals', 0,-2.3,28,TEAL)
+        self.at('Hormones spread defense signals')
+        self.add(leaf)
+        self.at('signal defense against')
+        self.play(FadeIn(insect), FadeIn(ja), FadeIn(defense), run_time=0.7)
+        self.at('Salicylic acid helps systemic acquired resistance')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        p = plant().scale(1.1)
+        title = label('Systemic acquired resistance',0,3.1,32,TEXT)
+        infected = Dot([-0.85,-0.65,0],radius=0.25,color=RED)
+        infection = label('infection here',-3.8,-1.3,26,RED)
+        self.play(FadeIn(p), FadeIn(title), run_time=0.5)
+        self.at('Infection in one part')
+        self.play(FadeIn(infected), FadeIn(infection), run_time=0.5)
+        moving = Dot([-0.85,-0.65,0],radius=0.13,color=TEAL)
+        route = VMobject(color=TEAL,stroke_width=4).set_points_as_corners([[-0.85,-0.65,0],[0,-0.3,0],[0,0.6,0],[0.85,0.6,0]])
+        protected = label('distant leaf: more resistant',3.8,1.7,24,GREEN)
+        self.at('other parts more resistant')
+        self.play(Create(route), FadeIn(moving), run_time=0.4)
+        self.play(MoveAlongPath(moving,route), FadeIn(protected), run_time=0.7)
+        self.at('In tobacco')
+        tobacco = label('TOBACCO',-4.6,2.4,28,TEXT)
+        self.play(FadeIn(tobacco), run_time=0.4)
+        sa = VGroup(chip('salicylic acid',TEAL,26), T('needed in protected leaves',24,TEAL)).arrange(DOWN,buff=0.2).move_to([3.8,-0.2,0])
+        self.at('needed in the distant protected leaves')
+        self.play(FadeIn(sa), run_time=0.6)
+        self.at('but is not itself the traveling signal')
+        mobile = label('mobile signal: identity unassigned',0,-2.9,26,TEAL)
+        self.play(FadeIn(mobile), Indicate(moving,color=TEAL), run_time=0.7)
+        self.at('is a tendency')
+        self.play(*[FadeOut(m) for m in list(self.mobjects)], run_time=0.4)
+        context = VGroup(T('A tendency, not a rule',38,TEXT,font=TITLE_FONT),
+            chip('attacker',GREY,30), chip('plant',GREEN,30)).arrange(DOWN,buff=0.6)
+        self.play(FadeIn(context), run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Each flank's growth follows its auxin level; the curve is the difference."
+    LINE = "Plants steer growth by moving auxin, so one flank grows faster."
+    def construct(self):
+        line = T(self.LINE,32,TEXT,font=TITLE_FONT).move_to([0,2.7,0])
+        recap = VGroup(*[chip(t,c,24) for t,c in [('Auxin → bending',ORANGE),('Hormones interact',TEAL),('Leaf → FT → apex',BLUE),('Dormancy ↔ germination',GREEN),('Defence: context',TEAL)]])
+        recap[:3].arrange(RIGHT,buff=0.4).move_to([0,0.7,0])
+        recap[3:].arrange(RIGHT,buff=0.6).move_to([0,-0.9,0])
+        self.add(line)
+        self.play(LaggedStart(*[FadeIn(m) for m in recap],lag_ratio=0.12),run_time=1.3)
+        self.add(label('biochemistrypedia.com',0,-2.7,22,TEAL))
+        self.finish()

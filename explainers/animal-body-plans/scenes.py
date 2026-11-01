@@ -37,263 +37,290 @@ def cross(mob, color=RED):
                   Line(mob.get_corner(UR), mob.get_corner(DL), color=color, stroke_width=6))
 
 
-class S00Title(TitleCard):
-    LESSON = "Animal body plans"
-    TITLE = "Body plans describe, genes test"
+# Additional anatomy colors: PURPLE = mesoderm; TEXT = gut; GREY = body wall/tissue.
+MESO = "#B695E0"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Snail(SpokenScene):
-    def construct(self):
-        head = T("Slipper snail embryo, Crepidula", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        self.play(Write(head), run_time=1.0)
-        # timeline
-        line = Arrow([-6.0, -0.2, 0], [6.1, -0.2, 0], color=GREY, stroke_width=4, buff=0, tip_length=0.22)
-        t0 = Line([-5.2, -0.45, 0], [-5.2, 0.05, 0], color=GREY, stroke_width=4)
-        t1 = Line([3.2, -0.45, 0], [3.2, 0.05, 0], color=GREY, stroke_width=4)
-        l0 = T("fertilization", 24, GREY).next_to(t0, DOWN, buff=0.15)
-        l1 = T("about 12 days", 24, GREY).next_to(t1, DOWN, buff=0.15)
-        self.play(Create(line), FadeIn(t0), FadeIn(l0), run_time=0.7)
-        self.at("makes its mouth")
-        bl = bchip("first gut opening", YELLOW, 26).move_to([-3.4, 1.9, 0])
-        mouth = bchip("mouth", GREEN, 28).move_to([-3.4, 0.5, 0])
-        a1 = arr(bl.get_bottom(), mouth.get_top(), YELLOW)
-        self.play(FadeIn(bl, shift=DOWN * 0.1), run_time=0.5)
-        self.play(GrowArrow(a1), FadeIn(mouth), run_time=0.6)
-        self.at("anus appears")
-        self.play(FadeIn(t1), FadeIn(l1), run_time=0.4)
-        anus = bchip("anus", RED, 28).move_to([3.2, 0.5, 0])
-        self.play(FadeIn(anus, scale=0.9), run_time=0.5)
-        self.at("different set of cells")
-        other = bchip("different cells", GREY, 26).move_to([3.2, 1.9, 0])
-        a2 = arr(other.get_bottom(), anus.get_top(), GREY)
-        self.play(FadeIn(other), GrowArrow(a2), run_time=0.6)
-        self.at("two great groups")
-        g1 = bchip("protostomes", BLUE, 28).move_to([-2.2, -2.0, 0])
-        g2 = bchip("deuterostomes", ORANGE, 28).move_to([2.2, -2.0, 0])
-        self.play(FadeIn(g1), FadeIn(g2), run_time=0.7)
-        self.at("Does that sorting work")
-        q = T("Does that sorting work?", 44, GOLD, font=TITLE_FONT).move_to([0, -3.2, 0])
-        self.play(Write(q), run_time=0.9)
-        self.finish()
+def heading(text):
+    return T(text, 34, font=TITLE_FONT).move_to([0, 3.15, 0])
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Rule(SpokenScene):
-    def construct(self):
-        head = T("Karl Grobben, 1908: sort bilaterians by the blastopore", 32, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        self.play(Write(head), run_time=1.0)
-        self.at("blastopore")
-        bl = bchip("blastopore: first gut opening", YELLOW, 28).move_to([0, 0.7, 0])
-        self.play(FadeIn(bl, scale=0.9), run_time=0.6)
-        # two columns
-        colL = T("Protostomes: mouth first", 30, BLUE, weight=BOLD).move_to([-3.4, 2.3, 0])
-        colR = T("Deuterostomes: mouth second", 30, ORANGE, weight=BOLD).move_to([3.4, 2.3, 0])
-        self.at("In protostomes")
-        self.play(FadeIn(colL), run_time=0.6)
-        mL = bchip("mouth", GREEN, 30).move_to([-3.4, -1.0, 0])
-        aL = arr([-1.6, 0.3, 0], mL.get_top() + UP * 0.05, YELLOW)
-        self.at("the blastopore becomes the mouth")
-        self.play(GrowArrow(aL), FadeIn(mL), run_time=0.8)
-        self.at("In deuterostomes")
-        self.play(FadeIn(colR), run_time=0.6)
-        mR = bchip("mouth", GREEN, 30).move_to([2.4, -1.0, 0])
-        sep = T("forms separately", 24, GREY).next_to(mR, DOWN, buff=0.25)
-        self.at("the mouth forms separately")
-        self.play(FadeIn(mR), FadeIn(sep), run_time=0.7)
-        anR = bchip("anus", RED, 30).move_to([4.7, -1.0, 0])
-        aR = arr([1.6, 0.3, 0], anR.get_top() + UP * 0.05, YELLOW)
-        often = T("often", 24, YELLOW).next_to(aR, RIGHT, buff=0.1).shift(UP * 0.1)
-        self.at("often becomes the anus")
-        self.play(GrowArrow(aR), FadeIn(anR), FadeIn(often), run_time=0.8)
-        self.finish()
+def tube(name, segmented=False):
+    body = RoundedRectangle(width=4.7, height=0.85, corner_radius=0.4,
+                            color=GREY, fill_color=GREY, fill_opacity=0.15)
+    g = VGroup(body)
+    if segmented:
+        for x in np.linspace(-1.8, 1.8, 9):
+            g.add(Line([x, -.39, 0], [x, .39, 0], color=GREY, stroke_width=2))
+    g.add(T(name, 28).next_to(body, UP, buff=.3))
+    return g
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Test(SpokenScene):
-    def construct(self):
-        head = T("Crepidula fornicata, 2015", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        self.play(Write(head), run_time=0.9)
-        self.at("checked the rule")
-        sn = bchip("slipper snail: Crepidula fornicata", TEAL, 30).move_to([0, 1.2, 0])
-        rl = bchip("does the blastopore become the mouth?", YELLOW, 28).move_to([0, -0.4, 0])
-        self.play(FadeIn(sn, shift=DOWN * 0.1), run_time=0.6)
-        self.play(FadeIn(rl, shift=DOWN * 0.1), run_time=0.6)
-        self.at("injected fluorescent tracers")
-        self.play(FadeOut(sn), FadeOut(rl), run_time=0.4)
-        tr = bchip("fluorescent tracer", TEAL, 26).move_to([-4.4, 1.6, 0])
-        cell = bchip("chosen cell", GREY, 26).move_to([-4.4, 0.0, 0])
-        a = arr(tr.get_bottom(), cell.get_top(), TEAL)
-        self.play(FadeIn(tr), run_time=0.5)
-        self.play(GrowArrow(a), FadeIn(cell), run_time=0.6)
-        self.at("followed the descendants")
-        desc = bchip("descendants, followed", TEAL, 26).move_to([-4.4, -1.7, 0])
-        a2 = arr(cell.get_bottom(), desc.get_top(), TEAL)
-        self.play(GrowArrow(a2), FadeIn(desc), run_time=0.7)
-        # result
-        bl = bchip("blastopore", YELLOW, 26).move_to([0.3, 0.9, 0])
-        mouth = bchip("mouth", GREEN, 26).move_to([3.4, 0.9, 0])
-        self.at("The blastopore became the mouth")
-        self.play(FadeIn(bl), run_time=0.4)
-        self.play(GrowArrow(arr(bl.get_right(), mouth.get_left(), YELLOW)), FadeIn(mouth), run_time=0.6)
-        self.at("anus formed late")
-        oth = bchip("other cells", GREY, 26).move_to([0.3, -1.0, 0])
-        anus = bchip("anus, formed late", RED, 26).move_to([3.4, -1.0, 0])
-        self.play(FadeIn(oth), run_time=0.4)
-        self.play(GrowArrow(arr(oth.get_right(), anus.get_left(), GREY)), FadeIn(anus), run_time=0.6)
-        self.at("protostomic by fate map")
-        ver = bchip("protostomic by fate map", GOLD, 30).move_to([2.0, -2.6, 0])
-        self.play(FadeIn(ver, shift=UP * 0.1), run_time=0.6)
-        # hedges: clear the stage
-        self.at("does not tell us")
-        everything = Group(*[m for m in self.mobjects if m is not head])
-        h1 = T("This snail only.", 36, GOLD, font=TITLE_FONT).move_to([0, 0.9, 0])
-        h2 = T("Its wider group, the spiralians, is not covered.", 30, TEXT).move_to([0, -0.1, 0])
-        self.play(FadeOut(everything), run_time=0.5)
-        self.play(FadeIn(h1), FadeIn(h2), run_time=0.6)
-        self.at("not a reliable test")
-        h3 = T("Blastopore fate is not a reliable test of the major clades.", 30, RED).move_to([0, -1.5, 0])
-        self.play(FadeIn(h3, shift=UP * 0.1), run_time=0.7)
-        self.finish()
+def section(kind):
+    """Schematic transverse sections: lumen distinct from the body cavity."""
+    wall = Circle(1.0, color=GREY, fill_color=MESO, fill_opacity=.75, stroke_width=5)
+    if kind == 0:
+        cavity = Circle(.72, stroke_width=0, fill_color=MESO, fill_opacity=.75)
+    else:
+        cavity = Circle(.72, color=MESO, stroke_width=10, fill_color=BG, fill_opacity=1)
+    gutwall = Circle(.32, color=MESO if kind != 1 else TEXT,
+                     stroke_width=10 if kind != 1 else 3, fill_color=BG, fill_opacity=1)
+    lumen = Circle(.20, stroke_width=0, fill_color=TEXT, fill_opacity=.65)
+    return VGroup(wall, cavity, gutwall, lumen)
 
 
-# ---------------------------------------------------------------------------------------------
-BIN_X = [-4.4, 0.0, 4.4]
+BIN_X = [-4.3, 0, 4.3]
 
 
 def build_bins():
-    """three columns by body cavity; returns (group, dict of chip placements)."""
     names = ["acoelomate", "pseudocoelomate", "coelomate"]
-    boxes, labels = [], []
-    for x, n in zip(BIN_X, names):
-        b = bin_box(4.1, 4.2).move_to([x, -0.4, 0])
-        l = T(n, 30, TEXT, weight=BOLD).move_to([x, 1.2, 0])
-        boxes.append(b); labels.append(l)
+    boxes = [bin_box(4.05, 4.2).move_to([x, -.15, 0]) for x in BIN_X]
+    labels = [T(n, 26, weight=BOLD).move_to([x, 1.48, 0]) for x,n in zip(BIN_X,names)]
     return boxes, labels
 
 
-class S04Grades(SpokenScene):
+def tree_lines():
+    # An unresolved schematic of two groups; no tip-to-tip sister claims.
+    g = VGroup(Line([-5.9,0,0],[-4.8,0,0],color=GREY),
+               Line([-4.8,-.2,0],[-4.8,.2,0],color=GREY))
+    for y,c in [(.2,ORANGE),(-.2,BLUE)]:
+        g.add(Line([-4.8,y,0],[-3.6,y,0],color=c))
+    return g
+
+
+class S00Title(TitleCard):
+    LESSON = "Animal body plans"
+    TITLE = "Similar Bodies, Different Branches"
+
+
+class S01Lead(SpokenScene):
     def construct(self):
-        head = T("Libbie Hyman: bilaterians sorted by body cavity", 32, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        self.play(Write(head), run_time=1.0)
-        boxes, labels = build_bins()
-        sub = [T("tissue fills the space", 22, GREY), T("fluid cavity, partial lining", 22, GREY),
-               T("cavity lined by mesoderm", 22, GREY)]
-        self.at("volumes")
-        bk = bchip("The Invertebrates, volumes 2 and 3 (1951)", GOLD, 30).move_to([0, 0.3, 0])
-        self.play(FadeIn(bk, shift=DOWN * 0.1), run_time=0.6)
-        self.at("ordered the bilaterians")
-        self.play(FadeOut(bk), *[Create(b) for b in boxes], *[FadeIn(l) for l in labels], run_time=0.8)
-        self.at("have tissue filling")
-        sub[0].move_to([BIN_X[0], 0.55, 0])
-        self.play(FadeIn(sub[0]), run_time=0.4)
-        c0 = bchip("planarian", GREY, 28).move_to([BIN_X[0], -0.7, 0])
-        self.at("a planarian flatworm")
-        self.play(FadeIn(c0, shift=DOWN * 0.1), run_time=0.5)
-        self.at("without a complete")
-        sub[1].move_to([BIN_X[1], 0.55, 0])
-        self.play(FadeIn(sub[1]), run_time=0.4)
-        c1 = bchip("C. elegans", GREY, 28).move_to([BIN_X[1], -0.7, 0])
-        self.at("the nematode")
-        self.play(FadeIn(c1, shift=DOWN * 0.1), run_time=0.5)
-        self.at("have a cavity lined")
-        sub[2].move_to([BIN_X[2], 0.55, 0])
-        self.play(FadeIn(sub[2]), run_time=0.4)
-        c2 = bchip("earthworm", GREY, 28).move_to([BIN_X[2], -0.7, 0])
-        self.at("as in the earthworm")
-        self.play(FadeIn(c2, shift=DOWN * 0.1), run_time=0.5)
-        self.at("form a grade")
-        g = T("a grade: a shared level of organization", 32, GOLD, font=TITLE_FONT).move_to([0, -3.1, 0])
-        self.play(Write(g), run_time=1.0)
+        h = heading("Similar bodies … same branch?")
+        n = tube("nematode").move_to([-3.4,.5,0])
+        e = tube("earthworm", True).move_to([3.4,.5,0])
+        self.at("A nematode")
+        self.play(FadeIn(h), FadeIn(n), FadeIn(e), run_time=.7)
+        guts = VGroup()
+        for x in [-3.4,3.4]:
+            guts.add(arr([x-2.15,.22,0],[x+2.15,.22,0],TEXT,w=4))
+        self.at("with a gut")
+        self.play(*[GrowArrow(a) for a in guts],run_time=.6)
+        ends = VGroup(T("mouth",22,GREEN).move_to([-5.4,-.65,0]),
+                      T("anus",22,RED).move_to([-1.35,-.65,0]),
+                      T("mouth",22,GREEN).move_to([1.35,-.65,0]),
+                      T("anus",22,RED).move_to([5.4,-.65,0]))
+        self.at("from mouth")
+        self.play(FadeIn(ends),run_time=.5)
+        lines=tree_lines()
+        n2=bchip("nematode",ORANGE,26).move_to([-1.8,1.1,0])
+        e2=bchip("earthworm",BLUE,26).move_to([-1.8,-1.1,0])
+        self.at("Yet gene comparisons")
+        self.play(FadeOut(guts),FadeOut(ends),Transform(n,n2),Transform(e,e2),
+                  Transform(h,heading("Gene comparisons separate them")),Create(lines),run_time=1)
+        insect=bchip("insect",ORANGE,26).move_to([2,1.1,0])
+        self.at("groups with insects")
+        self.play(Create(Line([-3.6,.2,0],n.get_bottom(),color=ORANGE)),
+                  Create(Line([-3.6,.2,0],insect.get_bottom(),color=ORANGE)),FadeIn(insect),run_time=.6)
+        snail=bchip("snail",BLUE,26).move_to([1.6,-1.1,0])
+        flat=bchip("flatworm",BLUE,26).move_to([4.5,-1.1,0])
+        self.at("groups with snails")
+        self.play(*[Create(Line([-3.6,-.2,0],c.get_top(),color=BLUE)) for c in [e,snail,flat]],FadeIn(snail),FadeIn(flat),run_time=.7)
+        self.at("On their own")
+        self.play(FadeIn(T("Body shape alone does not establish ancestry",28,GOLD).move_to([0,-2.8,0])),run_time=.7)
         self.finish()
 
 
-class S05Clade(SpokenScene):
+class S02Grades(SpokenScene):
     def construct(self):
-        head = T("Grade or clade?", 34, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        self.add(head)
-        boxes, labels = build_bins()
-        sub = [T("tissue fills the space", 22, GREY), T("fluid cavity, partial lining", 22, GREY),
-               T("cavity lined by mesoderm", 22, GREY)]
-        for s, x in zip(sub, BIN_X):
-            s.move_to([x, 0.55, 0])
-        c0 = bchip("planarian", GREY, 28).move_to([BIN_X[0], -0.7, 0])
-        c1 = bchip("C. elegans", GREY, 28).move_to([BIN_X[1], -0.7, 0])
-        c2 = bchip("earthworm", GREY, 28).move_to([BIN_X[2], -0.7, 0])
-        self.add(*boxes, *labels, *sub, c0, c1, c2)
-        self.wait(0.3)
+        h=heading("Libbie Hyman: sort by body cavity")
+        boxes,labels=build_bins()
+        self.at("Libby Hyman's")
+        self.play(FadeIn(h),run_time=.6)
+        self.at("by body cavity")
+        self.play(*[Create(b) for b in boxes],run_time=.6)
+        diagrams=[]
+        for i,(phrase,name) in enumerate([("like a planarian","planarian"),("like a nematode","nematode"),("like the earthworm","earthworm")]):
+            d=VGroup(section(i).move_to([BIN_X[i],0,0]),T(name,25).move_to([BIN_X[i],-1.45,0]))
+            diagrams.append(d)
+            self.at(phrase)
+            self.play(FadeIn(labels[i]),FadeIn(d),run_time=.6)
+        legend=VGroup(T("purple: mesoderm",22,MESO),T("white center: gut lumen",22,TEXT)).arrange(RIGHT,buff=.7).move_to([0,-2.7,0])
+        self.at("lined entirely")
+        self.play(FadeIn(legend),Indicate(diagrams[2][0][2],color=MESO),run_time=.7)
+        self.at("a shared level")
+        self.play(Transform(h,heading("Grade: shared level of organization")),run_time=.6)
         self.at("A clade is different")
-        defn = T("clade: an ancestor and all of its descendants", 32, GOLD, font=TITLE_FONT).move_to([0, -3.1, 0])
-        self.play(Write(defn), run_time=1.2)
-        self.at("In 1997")
-        yr = T("1997: 18S ribosomal RNA gene, many animals", 30, TEAL).move_to([0, -3.1, 0])
-        self.play(ReplacementTransform(defn, yr), run_time=0.7)
-        self.at("Nematodes grouped with arthropods")
-        arth = bchip("arthropod", GREY, 28).move_to([BIN_X[2], -1.9, 0])
-        self.play(FadeIn(arth, shift=DOWN * 0.1), run_time=0.5)
-        link = CurvedArrow(c1.get_bottom() + DOWN * 0.05, arth.get_left() + LEFT * 0.05, angle=TAU / 6, color=ORANGE, stroke_width=6)
-        self.play(Create(link), c1[1].animate.set_stroke(ORANGE).set_fill(ORANGE, 0.16),
-                  c1[2].animate.set_color(ORANGE), arth[1].animate.set_stroke(ORANGE).set_fill(ORANGE, 0.16),
-                  arth[2].animate.set_color(ORANGE), run_time=0.8)
-        self.at("molticuticle")
-        mol = T("both moult a cuticle", 28, ORANGE).move_to([0, -3.1, 0])
-        self.play(FadeOut(yr), FadeIn(mol, shift=UP * 0.1), run_time=0.5)
-        self.at("so the group is called")
-        # regroup into two rows
-        top_y, bot_y = 1.5, -1.5
-        n0 = bchip("flatworm", BLUE, 32).move_to([-1.6, top_y, 0])
-        n2 = bchip("annelid", BLUE, 32).move_to([1.4, top_y, 0])
-        n1 = bchip("nematode", ORANGE, 32).move_to([-1.6, bot_y, 0])
-        n3 = bchip("arthropod", ORANGE, 32).move_to([1.6, bot_y, 0])
-        eco = T("Ecdysozoa", 34, ORANGE, weight=BOLD).move_to([-5.1, bot_y, 0])
-        old = VGroup(*boxes, *labels, *sub, link, mol, yr)
-        self.play(FadeOut(VGroup(*boxes, *labels, *sub, link, mol)), ReplacementTransform(c0, n0), ReplacementTransform(c2, n2),
-                  ReplacementTransform(c1, n1), ReplacementTransform(arth, n3), run_time=1.3)
-        self.play(FadeIn(eco), run_time=0.5)
-        self.at("Flatworms sit inside")
-        spi = T("Spiralia", 34, BLUE, weight=BOLD).move_to([-5.1, top_y, 0])
-        self.play(FadeIn(spi), run_time=0.5)
-        self.at("mollusks")
-        n4 = bchip("mollusc", BLUE, 32).move_to([4.0, top_y, 0])
-        self.play(FadeIn(n4, shift=LEFT * 0.1), run_time=0.5)
+        self.play(FadeOut(VGroup(*boxes,*labels,*diagrams,legend)),Transform(h,heading("Clade: ancestor + all descendants")),run_time=.6)
+        root=Dot([-3,0,0],color=GOLD)
+        branches=VGroup(*[Line([-3,0,0],[1,y,0],color=GOLD) for y in [-1.5,0,1.5]])
+        tips=VGroup(*[Dot([1,y,0],color=GOLD) for y in [-1.5,0,1.5]])
+        bracket=RoundedRectangle(width=7,height=4.3,corner_radius=.3,color=GOLD).move_to([-1,0,0])
+        self.at("an ancestor")
+        self.play(FadeIn(root),run_time=.3)
+        self.at("all of its descendants")
+        self.play(Create(branches),FadeIn(tips),Create(bracket),run_time=.7)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S03Test(SpokenScene):
+    def construct(self):
+        h=heading("1997: compare the 18S rRNA gene")
+        boxes,labels=build_bins()
+        chips=[bchip("flatworm",GREY,26).move_to([-4.3,0,0]),bchip("nematode",GREY,26).move_to([0,0,0]),bchip("annelid",GREY,26).move_to([4.3,0,0])]
+        self.at("In 1997")
+        self.play(FadeIn(h),*[Create(b) for b in boxes],*[FadeIn(l) for l in labels],*[FadeIn(c) for c in chips],run_time=.8)
+        n=bchip("nematode",ORANGE,26).move_to([-1.8,1.1,0])
+        a=bchip("arthropod",ORANGE,26).move_to([1.6,1.1,0])
+        lines=tree_lines()
+        lines.add(*[Line([-3.6,.2,0],c.get_bottom(),color=ORANGE) for c in [n,a]])
+        self.at("Nematodes grouped with arthropods")
+        self.play(FadeOut(VGroup(*boxes)),
+                  Transform(labels[0],T("acoelomate",22,GREY).move_to([-1.8,-1.75,0])),
+                  Transform(labels[1],T("pseudocoelomate",22,GREY).move_to([-1.8,1.75,0])),
+                  Transform(labels[2],T("coelomate",22,GREY).move_to([1.6,-1.75,0])),
+                  Transform(chips[1],n),
+                  chips[0].animate.move_to([-1.8,-1.1,0]),chips[2].animate.move_to([1.6,-1.1,0]),FadeIn(a),Create(lines),run_time=.9)
+        eco=T("Ecdysozoa",28,ORANGE,weight=BOLD).move_to([0,2.25,0])
+        molt=T("moult a cuticle",25,ORANGE).move_to([4.5,1.1,0])
+        self.at("Both molticuticle")
+        self.play(FadeIn(molt),run_time=.5)
+        self.at("so the group is called")
+        self.play(FadeIn(eco),run_time=.5)
+        self.at("Later analyses")
+        self.play(Transform(h,heading("Many genes broadly support the grouping")),run_time=.6)
+        spi=T("Spiralia",28,BLUE,weight=BOLD).move_to([0,-2.4,0])
+        m=bchip("mollusc",BLUE,26).move_to([4.7,-1.1,0])
+        self.at("They put flatworms inside")
+        self.play(FadeIn(spi),Create(Line([-3.6,-.2,0],chips[0].get_top(),color=BLUE)),chips[0][1].animate.set_stroke(BLUE),chips[0][2].animate.set_color(BLUE),run_time=.5)
+        self.at("with annelids and mollusks")
+        self.play(FadeIn(m),*[Create(Line([-3.6,-.2,0],c.get_top(),color=BLUE)) for c in [chips[2],m]],chips[2][1].animate.set_stroke(BLUE),chips[2][2].animate.set_color(BLUE),run_time=.5)
+        cavity=T("coelomate",22,GREY).move_to([4.7,-1.75,0])
+        self.at("among relatives")
+        self.play(FadeOut(molt),FadeIn(cavity),run_time=.6)
+        self.at("So body cavity")
+        self.play(FadeIn(T("Body cavity: a grade, not a clade",30,GOLD).move_to([0,-3.1,0])),run_time=.6)
+        self.finish()
+
+
+class S04Characters(SpokenScene):
+    def construct(self):
+        h=heading("Characters describe an animal")
+        names=["symmetry","germ layers","body cavity","gut"]
+        nav=VGroup(*[bchip(n,GREY,24).move_to([x,2.2,0]) for x,n in zip([-4.8,-1.6,1.6,4.8],names)])
+        self.at("These characters")
+        self.play(FadeIn(h),FadeIn(nav),run_time=.6)
+        sponge=Polygon([-5,-.9,0],[-4.9,1,0],[-4.3,.6,0],[-3.8,1,0],[-3.3,-.7,0],color=GREY,fill_opacity=.2)
+        radial=VGroup(Circle(.8,color=GREY),*[Line(ORIGIN,[.8*np.cos(t),.8*np.sin(t),0],color=GREY) for t in np.linspace(0,TAU,7)[:-1]]).move_to([0,0,0])
+        bilateral=VGroup(Ellipse(width=1.5,height=2,color=GREY),DashedLine([0,-1,0],[0,1,0],color=TEXT)).move_to([4.2,0,0])
+        sym=VGroup(sponge,radial,bilateral,*[T(n,24).move_to([x,-1.7,0]) for x,n in [(-4.2,"none: sponge"),(0,"radial"),(4.2,"bilateral")]])
+        self.at("Symmetry")
+        self.play(Indicate(nav[0],color=GOLD),FadeIn(sym),run_time=.6)
+        two=VGroup(*[Rectangle(width=3,height=.35,color=c,fill_color=c,fill_opacity=.6).move_to([-3,y,0]) for y,c in [(.4,GREY),(-.4,TEXT)]],T("two layers",26).move_to([-3,-1.3,0]))
+        three=VGroup(*[Rectangle(width=3,height=.35,color=c,fill_color=c,fill_opacity=.6).move_to([3,y,0]) for y,c in [(.65,GREY),(0,MESO),(-.65,TEXT)]],T("three layers",26).move_to([3,-1.3,0]))
+        self.at("Germ layers")
+        self.play(FadeOut(sym),Indicate(nav[1],color=GOLD),FadeIn(two),FadeIn(three),run_time=.6)
+        ml=T("mesoderm",26,MESO).move_to([3,-2.1,0])
+        self.at("middle layer")
+        self.play(FadeIn(ml),Indicate(three[1],color=MESO),run_time=.5)
+        cavities=VGroup(section(2).move_to([-3,0,0]),section(0).move_to([3,0,0]),T("cavity",26).move_to([-3,-1.6,0]),T("no body cavity",26).move_to([3,-1.6,0]))
+        self.at("A body cavity")
+        self.play(FadeOut(VGroup(two,three,ml)),FadeIn(cavities),Indicate(nav[2],color=GOLD),run_time=.6)
+        plan=VGroup(Ellipse(width=6,height=2.2,color=GREY,fill_color=MESO,fill_opacity=.5),
+                    Line([0,-1.1,0],[0,0,0],color=TEXT,stroke_width=12),
+                    *[Line([0,0,0],[x,.65,0],color=TEXT,stroke_width=10) for x in [-1.7,0,1.7]])
+        label=T("planarian: gut present, body cavity absent",28).move_to([0,-2.1,0])
+        self.at("keep the gut apart")
+        self.play(FadeOut(cavities),FadeIn(plan),FadeIn(label),Indicate(nav[3],color=GOLD),run_time=.6)
+        self.at("Even a planarian")
+        self.play(Indicate(VGroup(*plan[1:]),color=TEXT,scale_factor=1.08),run_time=.6)
+        self.finish()
+
+
+class S05Function(SpokenScene):
+    def construct(self):
+        h=heading("Body plans shape how an animal lives")
+        worm=tube("earthworm",True).scale(2).move_to([0,.2,0])
+        self.at("These characters")
+        self.play(FadeIn(h),FadeIn(worm),run_time=.6)
+        gut=arr([-4.4,-.1,0],[4.4,-.1,0],TEXT,w=10)
+        food=Dot([-4.2,-.1,0],color=TEXT,radius=.12)
+        self.at("moves food one way")
+        self.play(GrowArrow(gut),FadeIn(food),run_time=.4)
+        self.play(food.animate.move_to([4.1,-.1,0]),run_time=1.4)
+        regions=VGroup(bchip("gizzard",TEXT,26).move_to([-2,-1.7,0]),bchip("intestine",TEXT,26).move_to([2.5,-1.7,0]))
+        self.at("grinding gizzard")
+        self.play(FadeIn(regions[0]),run_time=.4)
+        self.at("long intestine")
+        self.play(FadeIn(regions[1]),run_time=.4)
+        self.at("A sealed")
+        self.play(FadeOut(VGroup(worm,gut,food,regions)),Transform(h,heading("A sealed segment: hydrostatic skeleton")),run_time=.6)
+        def cylinder(length,radius,x=0):
+            body=Rectangle(width=length,height=2*radius,color=GREY,fill_color=GREY,fill_opacity=.22)
+            ends=VGroup(*[Ellipse(width=.3,height=2*radius,color=GREY,fill_color=BG,fill_opacity=.5).move_to([v,0,0]) for v in [-length/2,length/2]])
+            return VGroup(body,ends).move_to([x,0,0])
+        seg=cylinder(2.8,1)
+        self.play(FadeIn(seg),run_time=.5)
+        const=T("constant fluid volume",28,GREY).move_to([0,-2,0])
+        squeeze=VGroup(arr([0,1.8,0],[0,1.05,0],GREY),arr([0,-1.8,0],[0,-1.05,0],GREY))
+        self.at("Squeeze it narrower")
+        self.play(FadeIn(squeeze),run_time=.4)
+        self.at("at constant volume")
+        # V = pi*r²*L, so L grows as inverse radius squared.
+        self.play(UpdateFromAlphaFunc(seg, lambda m,a: m.become(cylinder(2.8/(1-.25*a)**2,1-.25*a))),
+                  FadeOut(squeeze),FadeIn(const),run_time=1.2)
+        self.at("Waves of this")
+        self.play(FadeOut(seg),FadeOut(const),run_time=.25)
+        parts=VGroup(*[cylinder(1.25,.7,x) for x in [-3.8,-1.9,0,1.9,3.8]])
+        soil=Line([-5,-1,0],[5.8,-1,0],color=GREY)
+        anchors=VGroup(*[Line([x,-.65,0],[x-.2,-1,0],color=GREY) for x in [-3.8,-1.9,1.9,3.8]])
+        self.play(FadeIn(parts),Create(soil),Create(anchors),run_time=.3)
+        for i in [1,2,3]:
+            dest=parts[i].get_center()
+            anchor = anchors[1] if i == 1 else anchors[2] if i == 3 else None
+            if anchor is not None:
+                self.remove(anchor)
+            self.play(UpdateFromAlphaFunc(parts[i], lambda m,a: m.become(cylinder(1.25/(1-.2*a)**2,.7*(1-.2*a)).move_to(dest))),run_time=.25)
+            self.play(UpdateFromAlphaFunc(parts[i], lambda m,a: m.become(cylinder(1.25/(.8+.2*a)**2,.7*(.8+.2*a)).move_to(dest))),run_time=.25)
+            if anchor is not None:
+                self.add(anchor)
+        self.play(parts.animate.shift(RIGHT*.7),anchors.animate.shift(RIGHT*.7),run_time=.5)
+        self.finish()
+
+
 class S06Rule(SpokenScene):
     def construct(self):
-        head = T("Test the grouping with independent evidence", 32, font=TITLE_FONT).to_edge(UP, buff=0.5)
-        self.play(Write(head), run_time=1.0)
-        self.at("body cavity describes a grade")
-        g = bchip("body cavity: describes a grade", GREY, 30).move_to([-3.2, 1.8, 0])
-        c = bchip("not a clade", RED, 30).move_to([3.2, 1.8, 0])
-        self.play(FadeIn(g), run_time=0.6)
-        self.play(FadeIn(c), run_time=0.6)
-        self.at("secondary simplification")
-        fw = bchip("flatworm: acoelomate", BLUE, 28).move_to([-3.2, 0.4, 0])
-        note = T("may be a secondary simplification", 26, TEXT).move_to([2.2, 0.7, 0])
-        deb = T("ancestral state still debated", 24, GREY).move_to([2.2, 0.05, 0])
-        self.play(FadeIn(fw), run_time=0.5)
-        self.play(FadeIn(note), FadeIn(deb), run_time=0.7)
-        self.at("hundreds of genes")
-        self.play(FadeOut(VGroup(g, c, fw, note, deb)), run_time=0.5)
-        e1 = bchip("hundreds of genes", TEAL, 28).move_to([-4.0, 1.5, 0])
-        e2 = bchip("many species", TEAL, 28).move_to([-4.0, 0.0, 0])
-        res = bchip("does the grouping survive?", GOLD, 30).move_to([2.6, 0.8, 0])
-        self.play(FadeIn(e1), FadeIn(e2), run_time=0.6)
-        self.play(GrowArrow(arr(e1.get_right(), res.get_left() + UP * 0.1, TEAL)),
-                  GrowArrow(arr(e2.get_right(), res.get_left() + DOWN * 0.1, TEAL)), FadeIn(res), run_time=0.8)
+        h=heading("Test developmental rules, too")
+        self.at("Old developmental rules")
+        self.play(FadeIn(h),run_time=.6)
+        sn=bchip("slipper snail embryo",TEAL,30).move_to([0,1.6,0])
+        bl=bchip("blastopore",YELLOW,28).move_to([-2.5,0,0])
+        mouth=bchip("mouth",GREEN,28).move_to([2.5,0,0])
+        self.at("In a slipper snail")
+        self.play(FadeIn(sn),run_time=.6)
+        self.at("the blastopore becomes")
+        self.play(FadeIn(bl),GrowArrow(arr(bl.get_right(),mouth.get_left(),YELLOW)),FadeIn(mouth),run_time=.7)
+        caution=bchip("Fate varies among relatives",RED,28).move_to([0,-1.7,0])
+        self.at("But blastopore fate varies")
+        self.play(FadeIn(caution),run_time=.6)
+        self.at("not a reliable test")
+        self.play(Indicate(caution,color=RED),run_time=.6)
+        self.at("To test a grouping")
+        self.play(FadeOut(Group(*[m for m in self.mobjects if m is not h])),Transform(h,heading("Independent evidence tests ancestry")),run_time=.6)
+        gene=bchip("many genes",TEAL,28).move_to([-3.6,1.2,0])
+        chrom=bchip("genes sharing\nchromosomes",TEAL,28).move_to([-3.6,-1.1,0])
+        tree=VGroup(Line([1,0,0],[2,0,0],color=GOLD),Line([2,-1.5,0],[2,1.5,0],color=GOLD),*[Line([2,y,0],[4.4,y,0],color=GOLD) for y in [-1.5,0,1.5]],*[Dot([4.4,y,0],color=GOLD) for y in [-1.5,0,1.5]])
+        self.at("sample many genes")
+        self.play(FadeIn(gene),Create(tree),GrowArrow(arr(gene.get_right(),[1,0,0],TEAL)),run_time=.7)
         self.at("which genes share chromosomes")
-        e3 = bchip("which genes share chromosomes", TEAL, 28).move_to([-2.0, -1.2, 0])
-        self.play(FadeIn(e3), GrowArrow(arr(e3.get_right(), res.get_bottom() + DOWN * 0.02, TEAL)), run_time=0.8)
-        self.at("characters describe animals")
-        keep = VGroup(T("Body-plan characters describe animals.", 34, TEXT, font=TITLE_FONT),
-                      T("Independent evidence tests their ancestry.", 34, GOLD, font=TITLE_FONT)).arrange(DOWN, buff=0.3).move_to([0, -2.9, 0])
-        self.play(FadeIn(keep[0], shift=UP * 0.1), run_time=0.6)
+        self.play(FadeIn(chrom),GrowArrow(arr(chrom.get_right(),[1,0,0],TEAL)),run_time=.7)
+        rule=T("Body-plan characters describe animals.",30,TEXT,font=TITLE_FONT).move_to([0,-2.5,0])
+        rule2=T("Independent evidence tests their ancestry.",30,GOLD,font=TITLE_FONT).move_to([0,-3.2,0])
+        self.at("Body plan characters")
+        self.play(FadeIn(rule),run_time=.6)
         self.at("Independent evidence tests")
-        self.play(FadeIn(keep[1], shift=UP * 0.1), run_time=0.6)
+        self.play(FadeIn(rule2),run_time=.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Body-plan characters describe animals; independent evidence tests their ancestry."
+    LINE = "Body-plan characters describe animals;\nindependent evidence tests their ancestry."
