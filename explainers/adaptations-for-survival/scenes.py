@@ -330,17 +330,13 @@ class S05Variation(SpokenScene):
         self.play(ReplacementTransform(lab, var), run_time=0.7)
 
         self.at("cannot decide")
-        keep = hs[1]
-        self.play(FadeOut(VGroup(hs[0], hs[2], hs[3], t1, t4, tl, tl_l, base, var)),
-                  keep.animate.scale(1.7).move_to([-3.0, -0.2, 0]), run_time=0.9)
-        dec = bchip("cannot choose its color", RED, 30).move_to([3.5, 0.6, 0])
+        dec = bchip("one hare cannot decide", RED, 30).move_to([0, 2.0, 0])
+        self.play(ReplacementTransform(var, dec), run_time=0.5)
         self.at("decide to change")
-        self.play(FadeIn(dec, shift=LEFT * 0.2), run_time=0.5)
-        one = T("one hare", 28, GREY).next_to(keep, DOWN, buff=0.2)
-        self.add(one)
+        cross = cross_out(dec).set_stroke(width=4)
+        self.play(Create(cross), run_time=0.4)
 
-        self.at("Change happens")
-        self.play(FadeOut(VGroup(keep, one, dec)), run_time=0.6)
+        self.at("Change in how common")
         pop_t = T("population", 40, YELLOW).move_to([0, 3.2, 0])
         sub = T("all the members of one species in one area", 26, TEXT).move_to([0, 2.65, 0])
         bl = RoundedRectangle(corner_radius=0.2, width=4.9, height=3.6, stroke_color=YELLOW, stroke_width=3
@@ -359,7 +355,8 @@ class S05Variation(SpokenScene):
         left = grid(-3.6, {0, 5})
         right = grid(3.6, {0, 1, 3, 4, 5, 6})
         self.at("a population")
-        self.play(FadeIn(pop_t), FadeIn(sub), Create(bl), run_time=0.7)
+        self.play(FadeOut(VGroup(*hs, t1, t4, tl, tl_l, base, dec, cross)),
+                  FadeIn(pop_t), FadeIn(sub), Create(bl), run_time=0.7)
         self.play(FadeIn(left, lag_ratio=0.1), run_time=0.8)
         fit_c = bchip("timing fits the snow", GREEN, 26).move_to([-3.6, -2.25, 0])
         self.at("timing fits the snow")
@@ -408,15 +405,15 @@ class S06Answer(SpokenScene):
         nc = bchip("cannot choose a new coat", RED, 28).move_to([3.55, -0.9, 0])
         self.play(FadeIn(nc, shift=LEFT * 0.2), run_time=0.5)
 
-        self.at("Only populations")
+        self.at("Over many")
         self.play(FadeOut(VGroup(ground, h, place, qt, so, pl, ap, sp, nc)), run_time=0.6)
         pop = bchip("population", YELLOW, 52).move_to([0, 0.7, 0])
-        gen = T("changes over many generations", 38, TEXT).move_to([0, -0.7, 0])
+        gen = VGroup(T("over many generations,", 34, TEXT), T("inherited traits become more or less common", 34, TEXT)).arrange(DOWN, buff=0.15).move_to([0, -0.8, 0])
         self.play(FadeIn(pop, scale=0.9), run_time=0.5)
-        self.at("over many generations")
+        self.at("more or less common")
         self.play(FadeIn(gen), run_time=0.6)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Only populations change, over many generations."
+    LINE = "Inherited traits change in populations, over many generations."
