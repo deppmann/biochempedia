@@ -40,7 +40,10 @@ scientists:
     story: >-
       Deiner and Altermatt chose a simple natural experiment. Lake Greifensee in Switzerland
       drains into the river Glatt, and two invertebrates that live in the lake, the water flea
-      Daphnia longispina and the freshwater mussel Unio tumidus, were their targets. They took
+      Daphnia longispina and the freshwater mussel Unio tumidus, were their targets. Long-term
+      surveys had never found either species in the river itself, and a tributary outside the
+      lake's drainage served as a negative control, so a river positive pointed to DNA carried from
+      the lake. They took
       water at eleven river locations downstream of the lake and tested it with standard PCR,
       confirming amplified products with Sanger sequencing. Daphnia DNA turned up at every
       sampled river location, including the furthest, 12.3 km downstream. Mussel DNA was not
@@ -131,7 +134,8 @@ techniques:
   - name: "Negative controls and sequence confirmation"
     blurb: >-
       Field blanks, extraction blanks and PCR no-template controls are carried through the
-      workflow to reveal contamination, and amplified products are sequenced to confirm that the
+      workflow to flag contamination (a few blanks reliably catch contamination that runs through
+      a batch, but rare one-off events can escape them), and amplified products are sequenced to confirm that the
       signal comes from the target species and not a relative or an off-target product.
 
 structures: []
@@ -141,7 +145,7 @@ simulations:
     ref: "EdnaDetectionLadder"
     title: "When can an all-negative pond be called empty?"
     caption: >-
-      Change runs, extractions, samples and prior to see why more qPCR wells alone cannot move an all-negative pond below the 5% line, while another independent water sample can.
+      Change runs, extractions, samples and prior. At the starting settings, which match the worked example, more qPCR wells alone cannot move an all-negative pond below the 5% line, while a third independent water sample can.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -168,8 +172,7 @@ practiceQuestions:
     rationale: >-
       A positive shows that target DNA was in the water at the sampling point; in flowing water
       it can come from organisms upstream, as the lake-dwelling Daphnia showed. Treating it as a
-      resident population ignores transport. Reading it as recent dispersal of animals confuses
-      moved DNA with moved organisms, and the two-day figure in that option comes from Welsh stream mesocosms (Seymour and colleagues), not from this river study. The
+      resident population ignores transport. Reading it as recent dispersal of animals goes beyond the data, because the DNA could come from shed material, drifting dead animals or predators' faeces, and a positive cannot tell these apart, and the two-day figure in that option comes from Welsh stream mesocosms (Seymour and colleagues), not from this river study. The
       12.3 km figure was the furthest location sampled for one species in one river, not a
       general transport distance.
   - stem: "A pond is represented by one water sample made from 20 pooled subsamples from around the pond, and that sample is run in 12 qPCR wells. How many independent field samples does the pond have?"
@@ -208,8 +211,8 @@ practiceQuestions:
       With one sample, the miss probability is 1 - 0.60 x 0.95 = 0.43, and almost all of it
       comes from DNA being absent from the sample. A second independent sample brings it to about
       0.43^2 = 0.185. More wells can only push lab detection from 0.95 toward 1, which lowers the
-      miss to no less than 0.40. Pooling more subsamples still yields one sample and, in the pig
-      trial, pooling the ten samples from a site underestimated occupancy. A naive fraction of positive wells is a summary,
+      miss to no less than 0.40. Pooling more subsamples still yields one sample, and the stem fixes its
+      chance of holding DNA at 0.60, so the miss stays at 0.43. A naive fraction of positive wells is a summary,
       not a way to detect more.
 
 mcatQuestions:
@@ -254,8 +257,9 @@ mcatQuestions:
       with repeated independent samples and a direct search, separates transport from a local
       population. More wells from the same extract test the lab step, not the source of the
       DNA. Clean controls argue against contamination but not against transport from the lake,
-      so they do not establish residency. Discarding the positive throws away a real detection
-      that the clean controls support.
+      so they do not establish residency. Discarding the positive throws away a result
+      that the clean controls make credible, although no set of blanks can rule out a rare,
+      one-off contamination event.
 
 explainLevels:
   - level: "eli5"
@@ -319,8 +323,8 @@ anecdotes:
     source: "Buxton et al., Scientific Reports (2021), doi:10.1038/s41598-021-91166-7."
     text: >-
       Among the English great crested newt surveys analysed by Buxton and colleagues were ponds
-      where newts had been confirmed by direct observation, 53 of the 2,958 sites. Thirteen percent of the samples from
-      those ponds showed no amplification at all. A negative eDNA result, even one built on
+      where newts had been seen while the eDNA sample was taken, 53 of the 2,958 sites; no targeted newt surveys were done.
+      Thirteen percent of the samples from those ponds, about seven, showed no amplification at all. A negative eDNA result, even one built on
       twelve qPCR replicates, is a probability statement about a site, and these samples are a
       reminder that the newts do not stop existing when the tube stays flat.
 
@@ -338,15 +342,15 @@ draft: false
 import EdnaDetectionLadder from '../../../components/EdnaDetectionLadder.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**At the 53 English ponds in a large eDNA survey where great crested newts had been seen directly, 13% of the eDNA water samples showed no amplification at all.** The newts were there. Their DNA was not found. So when a survey of a pond you care about comes back with every test negative, what have you actually learned, and is it enough to stop looking?
+**At the 53 English ponds in a large eDNA survey where great crested newts were seen while the water was being sampled, 13% of the eDNA water samples, about seven, showed no amplification at all.** The newts were there. Their DNA was not found. So when a survey of a pond you care about comes back with every test negative, what have you actually learned, and is it enough to stop looking?
 
 This workshop puts together tools from across the course. You will read a detection dataset, turn negatives into a probability, decide what to do next, make the analysis something another person can rerun, and ask who decides how the data are used. The organism-level ideas of occupancy and detection come from [spatial populations](/lessons/spatial-populations/); the decision setting comes from [conservation](/lessons/conservation/) and [global change](/lessons/global-change/).
 
 ## What eDNA detects and what it misses
 
-**Environmental DNA (eDNA)** is DNA that organisms shed into their surroundings, collected from water, soil or air and identified to species. In a targeted survey, you filter water, extract the DNA and run a quantitative PCR (qPCR) assay designed for one species. PCR and qPCR are taught in [recombinant DNA and PCR](/lessons/recombinant-dna-and-pcr/), and sequencing in [sequencing and genomes](/lessons/sequencing-and-genomes/); here all you need is that each qPCR run either amplifies the target or does not.
+**Environmental DNA (eDNA)** is DNA collected from an environmental sample, such as water, soil or air, rather than from the organism itself; for animals, much of it is DNA they shed into their surroundings. In a targeted survey, you filter water, extract the DNA and run a quantitative PCR (qPCR) assay designed for one species. PCR and qPCR are taught in [recombinant DNA and PCR](/lessons/recombinant-dna-and-pcr/), and sequencing in [sequencing and genomes](/lessons/sequencing-and-genomes/); here all you need is that each qPCR run either amplifies the target or does not.
 
-A site is **occupied** if the species uses it during the survey. A detection is a molecular signal, and it can be wrong in two directions. A **false negative** is a miss: the organism or its DNA is present and nothing amplifies. A **false positive** is a report of the target when it is absent, and contamination of a sample or a reagent is one route to it. That is why blanks and negative controls travel through the whole workflow, and why positives are often sequenced to confirm the species.
+A site is **occupied** if the species uses it during the survey. A detection is a molecular signal, and it can be wrong in two directions. A **false negative** is a miss: the organism or its DNA is present and nothing amplifies. A **false positive** is a report of the target when it is absent. Contamination of a sample or a reagent is one route to it, and a poorly specific assay is another. In flowing water, DNA carried from elsewhere can also make a site look occupied when the species does not live there. That is why blanks and negative controls travel through the whole workflow, and why positives are often sequenced to confirm the species.
 
 Think of the survey as a series of nets, each with holes. DNA must be in the water you scoop, the extraction must capture it, and the PCR run must amplify it. Each net can let the signal slip through. A positive can also mislead about place. In the river Glatt below Lake Greifensee, Switzerland, Kristy Deiner and Florian Altermatt (2014) detected the lake-dwelling water flea *Daphnia longispina* at every one of their sampled river locations, as far as 12.3 km downstream, but did not detect the mussel *Unio tumidus* beyond 9.1 km. In flowing water, a sample can carry DNA from upstream.
 
@@ -365,9 +369,9 @@ Here is a made-up dataset for practice. Four ponds, two water samples each, two 
 | S3 | 00000 / 00000 | 00000 / 00000 |
 | S4 | 11100 / 00000 | 11000 / 00000 |
 
-Two of four ponds show amplification, so the naive positive fraction is 0.50. That is a count of detections, not an estimate of occupancy, because some of S2 and S3 may be occupied and missed.
+Two of four ponds show amplification, so the naive positive fraction is 0.50. S1 rests on one positive well out of twenty, the sparse pattern that Buxton and colleagues judged more likely than others to be a false positive. That is the naive occupancy estimate. It counts detections and does not correct for misses, and some of S2 and S3 may be occupied and missed.
 
-**Worked problem.** How likely is it that S2 is occupied? You need a model and its assumptions. Assume no false positives, occupancy fixed during sampling, and each stage independent given the stage above it. Borrow, purely as illustrative values, two estimates from the wild pig study in central Texas by Amy Davis and colleagues (2018): **gamma** = 0.49, the chance an extraction captures DNA that is in the sample, and **delta** = 0.38, the chance one qPCR run amplifies captured DNA. Then assign two choices of our own: **theta** = 0.60, the chance DNA is in a water sample at an occupied pond, and a prior occupancy of 0.20. None of these can be estimated from four ponds.
+**Worked problem.** How likely is it that S2 is occupied? You need a model and its assumptions. Assume no false positives, occupancy fixed during sampling, and each stage independent given the stage above it. Borrow, purely as illustrative values, two estimates from the wild pig study in central Texas by Amy Davis and colleagues (2018): **gamma** = 0.49, the chance an extraction captures DNA that is in the sample, and **delta** = 0.38, the chance one qPCR run amplifies captured DNA. Then assign two choices of our own: **theta** = 0.60, the chance DNA is in a water sample at an occupied pond, and a prior occupancy of 0.20. Four ponds are far too few to estimate any of these reliably.
 
 1. *PCR stage.* One run misses with probability 1 - 0.38 = 0.62. All five miss with 0.62^5 = 0.092, so A = 1 - 0.092 = 0.908.
 2. *Extraction stage.* One extraction detects with 0.49 x 0.908 = 0.445, and misses with 0.555. Both miss with 0.555^2 = 0.308, so B = 0.692.
@@ -389,7 +393,7 @@ Notice what these numbers depend on. The 0.60, the 0.20 and the 5% are choices. 
 
 Why not run more wells instead? Because wells share a sample. If the scoop held no DNA, no number of runs will find it. In the model above, even perfect lab work gives q no higher than theta = 0.60. One sample can then bring the posterior no lower than 0.20 x 0.40 / (0.80 + 0.08) = 0.091, above the threshold. Only another independent sample attacks that 40%.
 
-Treating wells as independent field samples is **pseudoreplication**, counting repeated measurements of one unit as if they were separate units. If you pretended the 20 wells at S2 were 20 independent tries, each detecting with 0.60 x 0.49 x 0.38 = 0.112, you would get a miss probability of 0.888^20 = 0.094 and a posterior of 2.3%. You would stop, on an error in the model rather than evidence. Pooling has the same trap: in the English newt surveys analysed by Andrew Buxton and colleagues (2021), twenty subsamples from around the pond were combined into one water sample per pond, which is one field sample. In the Texas pig trial, pooled samples underestimated occupancy at sites known to be occupied.
+Treating wells as independent field samples is **pseudoreplication**, counting repeated measurements of one unit as if they were separate units. If you pretended the 20 wells at S2 were 20 independent tries, each detecting with 0.60 x 0.49 x 0.38 = 0.112, you would get a miss probability of 0.888^20 = 0.094 and a posterior of 2.3%. You would stop, on an error in the model rather than evidence. Pooling raises a related point. In the English newt surveys analysed by Andrew Buxton and colleagues (2021), twenty subsamples from around the pond were combined into one water sample per pond. Pooling spreads collection across the pond, but the result is still one field sample, not twenty, and it leaves no field replicates from which to estimate theta. In the Texas pig trial, the authors suspected that pooling the ten samples from each site diluted the DNA, and pooled data underestimated occupancy at sites known to be occupied.
 
 Buxton's simulations found that replicating both field collection and lab analysis reduced bias and narrowed credible intervals. The same study shows how much the model matters: two published models fitted to the same 2,958 ponds surveyed in 2019 gave overall occupancy of 0.26 and 0.47, and the true answer was unknown.
 
@@ -402,8 +406,8 @@ A river survey detects an endangered mussel's eDNA at one site 5 km below a lake
 
 Start from what a positive can mean: a local population, DNA carried down from the lake, or contamination. In the Glatt below Lake Greifensee, DNA of the lake mussel *Unio tumidus* was detected downstream of the lake, though not beyond 9.1 km, so a positive 5 km below a source lake is consistent with transport in at least one river.
 
-1. *Rule out contamination.* Carry field blanks, extraction blanks and PCR negatives through every batch, and sequence positives to confirm the species.
-2. *Test transport.* Sample a transect from the lake outlet down past the site, plus each tributary entering between them. A local population predicts a signal that rises or persists at and below the site; transport alone predicts no rise at the site, and often a signal that fades with distance from the lake.
+1. *Check for contamination.* Carry field blanks, extraction blanks and PCR negatives through every batch, and sequence positives to confirm the species. Clean controls make contamination less likely, but they cannot exclude a rare, one-off event.
+2. *Test transport.* Sample a transect from the lake outlet down past the site, plus each tributary entering between them. A local population would tend to add signal at and below the site; transport alone would tend to give a signal that fades with distance from the lake. Retention on the streambed, resuspension and patchy flow blur both patterns, so read the profile with replicate samples and flow data.
 3. *Replicate in the field.* Take several independent water samples per site on separate dates, not more wells from one sample, and record flow and pH.
 4. *Model and confirm.* Fit an occupancy model with stated assumptions, then search the site directly with a method suited to mussels.
 5. *Agree access first.* Settle with whoever governs the river and the data how results will be shared.
