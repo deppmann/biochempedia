@@ -203,7 +203,7 @@ class S03Mica(SpokenScene):
         names = [label(t, c, base_y - 0.65, 24) for c, t in zip(cs, ["tip cut, set back", "mica, lit side", "mica, shaded side"])]
         self.at("worked with")
         self.play(FadeIn(note), run_time=0.5)
-        self.at("coleoptiles")
+        self.at("coleoptoils")
         self.play(FadeIn(stems[0]), FadeIn(grs[0]), FadeIn(rs[0]), FadeIn(defn), run_time=0.7)
         # cut and set back
         self.at("cut off tips")

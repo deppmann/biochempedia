@@ -135,7 +135,7 @@ class S01Haze(SpokenScene):
         q2 = chip("?", GREY, 40).move_to(P3(4.8, -1.0))
         a1 = Arrow(s2[0].get_right() + RIGHT * 0.35, q1.get_left(), buff=0.1, color=PAT, stroke_width=5)
         a2 = Arrow(s2[0].get_right() + RIGHT * 0.35, q2.get_left(), buff=0.1, color=PAT, stroke_width=5)
-        self.at("Both sperm fertilize")
+        self.at("Both sperm")
         self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(q1), FadeIn(q2), run_time=0.8)
         why = T("Why two?", 52, TEXT, font=TITLE_FONT).move_to(P3(0.6, -2.4))
         self.at("Why two")
@@ -421,7 +421,7 @@ class S06Xenia(SpokenScene):
         self.play(GrowArrow(arrow), FadeIn(kern, scale=0.8), FadeIn(k_l), run_time=0.9)
         note = VGroup(lab("simplified: one gene, Y fully dominant;", GREY, 22),
                       lab("real maize deepens with each Y copy", GREY, 22)).arrange(DOWN, buff=0.06).move_to(P3(-1.6, -1.7))
-        self.at("fully dominant")
+        self.at("dominant")
         self.play(FadeIn(note), run_time=0.5)
         x_l = chip("xenia", TEXT, 30).move_to(P3(3.6, 1.5))
         self.at("called xenia")

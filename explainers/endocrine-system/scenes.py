@@ -317,7 +317,7 @@ class S05Timing(SpokenScene):
         oa1 = arr(s1.get_right(), out.get_left(), GREEN)
         oa2 = arr(s2.get_right(), out.get_left(), GREEN)
         self.play(GrowArrow(oa1), GrowArrow(oa2), FadeIn(out), run_time=0.9)
-        self.at("Timing carries information")
+        self.at("timing itself")
         self.play(Indicate(VGroup(s1, s2), color=GOLD, scale_factor=1.1), run_time=0.9)
         self.finish()
 
@@ -331,7 +331,7 @@ class S06Rule(SpokenScene):
         r1l.move_to([-6.2 + r1l.width / 2, 1.9, 0])
         r2l = T("frog tadpoles", 32, WHITE)
         r2l.move_to([-6.2 + r2l.width / 2, -0.9, 0])
-        h1 = bchip("signal from the head", YELLOW, 36).move_to([-3.4, 0.8, 0])
+        h1 = bchip("moult-promoting signal", YELLOW, 36).move_to([-3.4, 0.8, 0])
         b1 = bchip("in the blood", GREY, 36).move_to([1.7, 0.8, 0])
         m1 = bchip("moult", GREEN, 36).move_to([5.0, 0.8, 0])
         a1 = arr(h1.get_right(), b1.get_left(), GREY)

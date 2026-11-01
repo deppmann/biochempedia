@@ -235,7 +235,7 @@ class S05Clade(SpokenScene):
         self.play(Create(link), c1[1].animate.set_stroke(ORANGE).set_fill(ORANGE, 0.16),
                   c1[2].animate.set_color(ORANGE), arth[1].animate.set_stroke(ORANGE).set_fill(ORANGE, 0.16),
                   arth[2].animate.set_color(ORANGE), run_time=0.8)
-        self.at("a cuticle so the group")
+        self.at("molticuticle")
         mol = T("both moult a cuticle", 28, ORANGE).move_to([0, -3.1, 0])
         self.play(FadeOut(yr), FadeIn(mol, shift=UP * 0.1), run_time=0.5)
         self.at("so the group is called")
@@ -253,7 +253,7 @@ class S05Clade(SpokenScene):
         self.at("Flatworms sit inside")
         spi = T("Spiralia", 34, BLUE, weight=BOLD).move_to([-5.1, top_y, 0])
         self.play(FadeIn(spi), run_time=0.5)
-        self.at("and molluscs")
+        self.at("mollusks")
         n4 = bchip("mollusc", BLUE, 32).move_to([4.0, top_y, 0])
         self.play(FadeIn(n4, shift=LEFT * 0.1), run_time=0.5)
         self.finish()

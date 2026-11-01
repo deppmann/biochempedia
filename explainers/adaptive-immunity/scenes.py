@@ -139,8 +139,8 @@ class S02Select(SpokenScene):
         parent = cells[MATCH]
         targets = [Cell(x, -2.0, MATCH, 0.55, GREEN) for x in (-4.0, -2.0, 0, 2.0, 4.0)]
         self.play(LaggedStart(*[ReplacementTransform(parent.copy(), t) for t in targets], lag_ratio=0.2), run_time=1.8)
-        clab = T("a clone: identical descendants", 28, GREEN).move_to([0, -3.15, 0])
-        self.at("identical descendants")
+        clab = T("a clone: descended from one cell", 28, GREEN).move_to([0, -3.15, 0])
+        self.at("descended from")
         self.play(FadeIn(clab), run_time=0.5)
         self.finish()
 
@@ -180,7 +180,7 @@ class S03Shapes(SpokenScene):
         self.play(*[FadeIn(n) for n in names], run_time=0.5)
 
         bv, bd, bj = seg_block(-5.0, y, PURPLE, "V"), seg_block(0.9, y, ORANGE, "D"), seg_block(4.0, y, TEAL, "J")
-        self.at("joins one V")
+        self.at("joins")
         self.play(LaggedStart(FadeIn(bv, scale=1.3), FadeIn(bd, scale=1.3), FadeIn(bj, scale=1.3), lag_ratio=0.3), run_time=1.0)
         self.play(FadeOut(v[0]), FadeOut(v[1]), FadeOut(d[0]), FadeOut(d[1]), FadeOut(j[0]), FadeOut(j[1]),
                   *[FadeOut(n) for n in names], FadeOut(title),

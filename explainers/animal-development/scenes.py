@@ -139,7 +139,7 @@ class S02Count(SpokenScene):
             g = ng
             self.wait(0.2)
         note = T("no growth, no cell loss", 26, RED).move_to([0, -3.1, 0])
-        self.at("with no growth")
+        self.at("growth")
         self.play(FadeIn(note, shift=UP * 0.1), run_time=0.4)
         self.at("to the fifth power")
         eq = M("2^5 = 32", 44, YELLOW).move_to([0, 3.1, 0])

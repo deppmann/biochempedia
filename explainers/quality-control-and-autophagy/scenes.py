@@ -6,7 +6,10 @@ COLOR MAP (one color per concept, whole video)
   ORANGE = lysosome / destroying (the drain)
   RED    = block: bafilomycin, the plugged drain, the misleading reading
   YELLOW = flux (the difference between the two measurements)
-  GREY   = cell outline, axes, cytoplasm, structure
+  GREY   = cell outline, axes, cytoplasm, structure / ER
+  TEAL   = folding helpers / UPR sensors
+  GREEN  = folding success; green fluorescent reporter emission
+  RED also denotes red fluorescent reporter emission when explicitly labelled
 """
 import math
 import numpy as np
@@ -116,248 +119,306 @@ def glabel(cx, name):
 
 class S00Title(TitleCard):
     LESSON = "Protein quality control and organelle turnover"
-    TITLE = "Count the flux, not the dots"
+    TITLE = "Protein Quality Control and Organelle Turnover"
 
 
-# ---------------------------------------------------------------------------------------------
+# Simple compartment and cargo schematics, never molecular structures.
+def compartment():
+    box = RoundedRectangle(width=5.0, height=4.5, corner_radius=0.35,
+                           stroke_color=GREY, stroke_width=4, fill_color=GREY,
+                           fill_opacity=0.05).move_to(pt(-3.4, 0))
+    return VGroup(box, T("ER · folding compartment", 25, GREY).move_to(pt(-3.4, 2.65)))
+
+
+def membrane_badge(text, color, size=24):
+    badge = chip(text, color, size)
+    backing = RoundedRectangle(width=badge.width, height=badge.height,
+                               corner_radius=0.14, stroke_width=0,
+                               fill_color=BG, fill_opacity=1)
+    return VGroup(backing, badge)
+
+
+def arrow(a, b, color=GREY):
+    return Arrow(pt(*a), pt(*b), buff=0.08, color=color, stroke_width=4)
+
+
+def cup(c, span, r=1.5):
+    start = 3 * PI / 2 - span / 2
+    return VGroup(*[Arc(radius=rad, start_angle=start, angle=span,
+                       arc_center=c, color=BLUE, stroke_width=5)
+                    for rad in (r, r * 0.72)])
+
+
+def lyso(c, r=1.65):
+    return VGroup(Circle(radius=r, stroke_color=ORANGE, stroke_width=5,
+                         fill_color=ORANGE, fill_opacity=0.12).move_to(c),
+                  T("acidic lysosome", 25, ORANGE).move_to(c + UP * (r + 0.45)))
+
+
 class S01Puzzle(SpokenScene):
     def construct(self):
-        cell = Ellipse(width=5.6, height=5.0, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.06) \
-            .move_to(pt(-3.9, 0.1))
-        first = VGroup(*[autop(p) for p in [(-4.7, 1.0), (-3.1, -0.4), (-4.5, -1.2)]])
-        more = VGroup(*[autop(p) for p in [(-3.2, 1.4), (-4.3, 0.0), (-2.6, 0.7), (-3.6, -1.8), (-5.3, -0.2)]])
-        cl = lbl("autophagosomes", BLUE, 26).move_to(pt(-3.9, -2.95))
-        self.at("You count")
-        self.play(FadeIn(cell), run_time=0.6)
-        self.play(LaggedStart(*[FadeIn(a, scale=0.6) for a in first], lag_ratio=0.25), FadeIn(cl), run_time=1.4)
-        self.at("you find more")
-        self.play(LaggedStart(*[FadeIn(a, scale=0.6) for a in more], lag_ratio=0.2), run_time=1.5)
-        self.at("make more of them")
-        self.play(Indicate(more, color=BLUE, scale_factor=1.15), run_time=1.0)
-        self.at("destroy fewer")
-        self.play(Indicate(more, color=ORANGE, scale_factor=1.15), run_time=1.0)
-
-        s = Sink(3.4, 0.0)
-        w0 = s.water(0.7)
-        self.at("Think of a sink")
-        self.play(Create(s.basin), FadeIn(s.tap), FadeIn(s.drain), FadeIn(w0), run_time=1.0)
-        tap_c = chip("made more?", BLUE, 24).move_to(pt(s.cx + 1.5, s.cy + 2.45))
-        dr_c = chip("destroyed fewer?", ORANGE, 24).move_to(pt(s.cx - 0.5, s.cy - 2.5))
-        self.at("tap is on harder")
-        w1 = s.water(1.9)
-        self.play(FadeIn(s.stream), FadeIn(tap_c), Transform(w0, w1), run_time=1.6)
-        self.at("drain is blocked")
-        self.play(FadeIn(s.plug, scale=0.5), FadeIn(dr_c), run_time=0.8)
-        q = T("?", 90, RED, weight=BOLD).move_to(pt(-0.2, 0.1))
-        self.at("fails on its own")
-        self.play(FadeIn(q, scale=0.5), Indicate(tap_c, color=RED), Indicate(dr_c, color=RED), run_time=1.2)
+        er = compartment()
+        protein = chip("new protein", GREY, 26).move_to(pt(-3.4, 0))
+        self.at("a cell checks")
+        self.play(FadeIn(er), FadeIn(protein), run_time=0.7)
+        self.at("get help folding")
+        good = chip("folded", GREEN, 26).move_to(pt(-3.4, 1.05))
+        golgi = chip("Golgi", GREY, 28).move_to(pt(3.5, 1.5))
+        path = arrow((-0.7, 1.5), (2.5, 1.5), GREEN)
+        self.play(Transform(protein, good), FadeIn(golgi), GrowArrow(path), run_time=1)
+        self.play(protein.animate.move_to(pt(1.0, 2.15)), run_time=0.7)
+        self.at("a protein that keeps failing")
+        bad = chip("persistent failure", RED, 25).move_to(pt(-3.4, -1.0))
+        self.play(FadeIn(bad), run_time=0.6)
+        self.at("held back")
+        self.play(Indicate(bad, color=RED), run_time=0.6)
+        proteasome = chip("proteasome", ORANGE, 28).move_to(pt(3.5, -1.5))
+        route = arrow((-0.7, -1.5), (2.0, -1.5), ORANGE)
+        cyt = T("cytosol", 25, GREY).move_to(pt(3.5, -2.4))
+        self.at("then sent to the cytosolic")
+        self.play(FadeIn(proteasome), FadeIn(cyt), GrowArrow(route),
+                  bad.animate.move_to(pt(0.8, -0.6)), run_time=0.9)
+        ub = chip("Ub", RED, 22).next_to(bad, UP, buff=0.15)
+        self.play(FadeIn(ub), run_time=0.4)
+        name = T("ER-associated degradation · ERAD", 27, ORANGE).move_to(pt(0, -3.15))
+        self.at("associated degradation")
+        self.play(FadeIn(name), VGroup(bad, ub).animate.move_to(pt(3.5, -0.5)), run_time=0.9)
+        self.play(FadeOut(bad, scale=0.2), FadeOut(ub, scale=0.2), run_time=0.6)
+        self.at("proteins misfold")
+        bad2 = chip("misfolded", RED, 26).move_to(pt(-3.4, -1.0))
+        self.play(FadeIn(bad2), run_time=0.5)
+        self.at("destroy the failures")
+        self.play(bad2.animate.move_to(proteasome), run_time=0.9)
+        self.play(FadeOut(bad2, scale=0.2), run_time=0.5)
+        self.at("folding help and disposal")
+        self.play(Indicate(er, color=TEAL), Indicate(proteasome, color=ORANGE), run_time=1)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S01Folding(SpokenScene):
+    def construct(self):
+        er = compartment()
+        # Release from a chaperone remains inside the ER lumen.
+        er[0].stretch_to_fit_width(11.8).move_to(ORIGIN)
+        p = chip("new chain", GREY, 26).move_to(pt(-3.6, 0))
+        bip = chip("BiP", TEAL, 27).move_to(pt(-3.6, -1.6))
+        self.at("helps a new chain")
+        self.play(FadeIn(er), FadeIn(p), FadeIn(bip), run_time=0.6)
+        self.play(bip.animate.next_to(p, DOWN, buff=0.1), run_time=0.6)
+        lectin = chip("calnexin / calreticulin", TEAL, 25).move_to(pt(-3.4, -1.4))
+        self.at("and calreticulin hold")
+        self.play(ReplacementTransform(bip, lectin), p.animate.move_to(pt(-3.4, 0)), run_time=0.7)
+        glc = chip("glucose", GREEN, 22).move_to(pt(-3.4, 0.85))
+        self.at("with a glucose tag")
+        self.play(FadeIn(glc), lectin.animate.next_to(p, DOWN, buff=0.1), run_time=0.6)
+        released = T("released · still non-native", 24, RED).move_to(pt(2.8, 1.6))
+        self.at("if a released protein")
+        self.play(FadeOut(glc, shift=UP * 0.4), p.animate.move_to(pt(2.8, 0.4)),
+                  FadeIn(released), run_time=0.8)
+        uggt = chip("UGGT", TEAL, 26).move_to(pt(2.8, -1.0))
+        self.at("UGGT adds")
+        self.play(FadeIn(uggt), run_time=0.5)
+        glc.move_to(pt(2.8, 1.05))
+        self.at("glucose back")
+        self.play(FadeIn(glc), run_time=0.4)
+        self.at("for another round")
+        self.play(VGroup(p, glc).animate.move_to(pt(-3.4, 0.3)),
+                  FadeOut(released), FadeOut(uggt), run_time=0.9)
+        self.at("persistent failures leave")
+        bad = chip("persistent failure", RED, 25).move_to(pt(-3.4, 0))
+        self.play(Transform(p, bad), FadeOut(glc), FadeOut(lectin),
+                  Transform(er[0], compartment()[0]), run_time=0.6)
+        route = T("ERAD", 30, ORANGE).move_to(pt(2.8, 2.7))
+        self.play(FadeIn(route), run_time=0.4)
+        ub = chip("Ub", RED, 22).next_to(p, UP, buff=0.15)
+        self.at("ubiquitin tags the protein")
+        self.play(FadeIn(ub), run_time=0.5)
+        motor = chip("ATPase", TEAL, 26).move_to(pt(1.0, -1.2))
+        self.at("pulls it out")
+        self.play(FadeIn(motor), VGroup(p, ub).animate.move_to(pt(1.0, 0.2)), run_time=0.7)
+        machine = chip("proteasome", ORANGE, 27).move_to(pt(4.2, 0.2))
+        self.at("the proteasome destroys")
+        self.play(FadeIn(machine), run_time=0.3)
+        self.play(VGroup(p, ub).animate.move_to(machine), run_time=0.45)
+        self.play(FadeOut(p, scale=0.2), FadeOut(ub, scale=0.2), run_time=0.35)
+        self.finish()
+
+
 class S02Route(SpokenScene):
     def construct(self):
-        cell = Ellipse(width=12.4, height=6.8, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.05) \
-            .move_to(pt(0, -0.15))
-        lyso = Circle(radius=1.9, stroke_color=ORANGE, stroke_width=5, fill_color=ORANGE, fill_opacity=0.12).move_to(pt(3.7, 0))
-        ll = lbl("lysosome", ORANGE, 24).move_to(pt(3.7, 1.45))
-        C = pt(-3.4, 0)
-        blob = Circle(radius=0.6, stroke_width=0, fill_color=GREY, fill_opacity=0.6).move_to(C)
-        cl = lbl("cytoplasm", GREY, 24).move_to(pt(-3.4, -2.0))
-        self.play(FadeIn(cell), FadeIn(lyso), FadeIn(ll), run_time=0.8)
-        self.play(FadeIn(blob), FadeIn(cl), run_time=0.6)
-
-        def arcs(span):
-            st = 3 * PI / 2 - span / 2
-            return VGroup(Arc(radius=1.5, start_angle=st, angle=span, arc_center=C, color=BLUE, stroke_width=5),
-                          Arc(radius=1.05, start_angle=st, angle=span, arc_center=C, color=BLUE, stroke_width=5))
-        a1, a2, a3 = arcs(2.6), arcs(4.8), arcs(2 * PI - 0.001)
-        self.at("cup shaped membrane")
-        self.play(Create(a1), run_time=1.3)
-        self.play(Transform(a1, a2), run_time=1.5)
-        self.at("closes into")
-        self.play(Transform(a1, a3), run_time=1.2)
-        apl = lbl("autophagosome", BLUE, 26).move_to(pt(-3.4, 1.85))
-        self.play(FadeIn(apl), run_time=0.5)
+        machine = chip("proteasome", ORANGE, 29).move_to(pt(2.8, 0))
+        p = chip("single protein", GREY, 26).move_to(pt(-3.5, 0))
+        self.at("the proteasome destroys")
+        self.play(FadeIn(machine), FadeIn(p), run_time=0.5)
+        self.play(p.animate.move_to(machine), run_time=0.8)
+        self.play(FadeOut(p, scale=0.2), run_time=0.4)
+        C = pt(-3.3, 0)
+        cargo = VGroup(Ellipse(width=1.2, height=0.8, color=GREY,
+                              fill_color=GREY, fill_opacity=0.3).move_to(C),
+                       Dot(C + UP * 0.7, radius=0.12, color=GREY))
+        cargo_label = T("organelle", 23, GREY).move_to(C + DOWN * 0.85)
+        lys = lyso(pt(3.5, 0))
+        self.at("for whole organelles")
+        self.play(FadeOut(machine), FadeIn(cargo), FadeIn(cargo_label), FadeIn(lys), run_time=0.8)
+        a = cup(C, 2.6)
+        self.at("a membrane cup grows")
+        self.play(Create(a), FadeOut(cargo_label), run_time=0.8)
+        self.play(Transform(a, cup(C, 4.8)), run_time=1)
+        self.at("closes into an autophagosome")
+        self.play(Transform(a, cup(C, 2 * PI - 0.001)), run_time=0.8)
+        lab = T("autophagosome", 26, BLUE).move_to(pt(-3.3, 2.1))
+        self.play(FadeIn(lab), run_time=0.4)
         self.at("two membranes")
-        self.play(Indicate(a1[0], color=BLUE, scale_factor=1.08), Indicate(a1[1], color=BLUE, scale_factor=1.08), run_time=1.0)
-        outer_d = ring_dots(C, 1.5, 10, dr=0.09)
-        inner_d = ring_dots(C, 1.05, 8, start=0.3, dr=0.09)
-        key = VGroup(Dot(radius=0.08, color=PURPLE), T("LC3-II", 26, PURPLE)).arrange(RIGHT, buff=0.15).move_to(pt(-5.2, 3.1))
-        self.at("lipid linked")
-        self.play(FadeIn(outer_d, lag_ratio=0.1), FadeIn(inner_d, lag_ratio=0.1), FadeIn(key), run_time=1.4)
-
-        grp = VGroup(a1, blob, outer_d, inner_d, apl)
-        self.at("fuses with")
-        self.remove(cl)
-        self.play(grp.animate.shift(RIGHT * 3.9), run_time=1.2)
-        # outer membrane joins the lysosome membrane; its dots end up on the rim
-        rim = [pt(3.7 + 1.9 * math.cos(a), 1.9 * math.sin(a)) for a in np.linspace(2.4, 3.9, 10)]
-        self.play(FadeOut(a1[0]), FadeOut(apl), FadeOut(outer_d),
-                  Flash(pt(1.8, 0), color=ORANGE, flash_radius=0.5), run_time=0.8)
-        inner_ring = a1[1]
-        inner_grp = VGroup(inner_ring, blob)
-        self.play(inner_grp.animate.shift(RIGHT * 3.2), inner_d.animate.shift(RIGHT * 3.2), run_time=0.9)
-        self.at("its contents are digested")
-        self.play(FadeOut(inner_ring, scale=0.3), FadeOut(blob, scale=0.3), run_time=1.3)
-        self.at("are destroyed there")
-        self.play(FadeOut(inner_d, scale=0.2), Indicate(lyso, color=ORANGE, scale_factor=1.04), run_time=1.2)
+        self.play(Indicate(a[0], color=BLUE), Indicate(a[1], color=BLUE), run_time=0.6)
+        self.at("it fuses with")
+        self.play(VGroup(a, cargo).animate.move_to(pt(3.5, 0)), FadeOut(lab), run_time=1)
+        self.play(FadeOut(a[0]), Indicate(lys[0], color=ORANGE), run_time=0.5)
+        self.at("the inner membrane")
+        self.play(FadeOut(a[1], scale=0.3), FadeOut(cargo, scale=0.3), run_time=1.3)
+        blocks = VGroup(*[Dot(pt(3.5 + (i-1)*0.3, 0), radius=0.1, color=GREY) for i in range(3)])
+        self.at("the building blocks return")
+        self.play(FadeIn(blocks), run_time=0.3)
+        self.play(*[d.animate.move_to(pt(-1.8, (i-1)*0.8)) for i,d in enumerate(blocks)], run_time=1.1)
+        reuse = T("cytosol · reuse", 28, GREY).move_to(pt(-2.0, -1.8))
+        self.play(FadeIn(reuse), run_time=0.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
+class S03Stress(SpokenScene):
+    def construct(self):
+        er = RoundedRectangle(width=10.8, height=1.2, corner_radius=0.2,
+                              stroke_color=GREY).move_to(pt(0, 2.2))
+        load = VGroup(*[chip("unfolded", RED, 23).move_to(pt(x,2.2)) for x in (-3.6,0,3.6)])
+        self.at("what if unfolded proteins")
+        self.play(Create(er), FadeIn(load, lag_ratio=0.15), run_time=0.8)
+        outcome = VGroup(T("protein synthesis ↓", 27, TEAL),
+                         T("folding machinery ↑", 27, TEAL)).arrange(RIGHT, buff=1.2).move_to(pt(0,-2.1))
+        self.at("slows protein synthesis")
+        self.play(FadeIn(outcome[0]), run_time=0.7)
+        self.at("makes more folding machinery")
+        self.play(FadeIn(outcome[1]), run_time=0.7)
+        sensors = VGroup(*[chip(n, TEAL, 30).move_to(pt(x,0.8))
+                           for x,n in zip((-4.4,0,4),("IRE1","PERK","ATF6"))])
+        self.at("three branches")
+        self.play(FadeIn(sensors), run_time=0.7)
+        # Keep each branch independent when ATF6 moves to its cleavage position.
+        self.remove(sensors)
+        self.add(*sensors)
+        rna = VGroup(chip("XBP1", GREY, 27), chip("intron", RED, 24), chip("mRNA", GREY, 27)).arrange(RIGHT,buff=0.16).move_to(pt(-4.4,-0.5))
+        self.at("IRE1 splices")
+        self.play(FadeIn(rna), run_time=0.5)
+        self.play(FadeOut(rna[1],shift=DOWN*0.5), rna[0].animate.shift(RIGHT*0.3), rna[2].animate.shift(LEFT*0.3),run_time=0.7)
+        tr = T("most translation ↓",27,TEAL).move_to(pt(0,-0.5))
+        self.at("slows most translation")
+        self.play(FadeIn(tr),run_time=0.6)
+        golgi = chip("Golgi",GREY,28).move_to(pt(4.5,-0.35))
+        to_golgi = Arrow(sensors[2].get_bottom(), golgi.get_top(),
+                         buff=0.12, color=TEAL, stroke_width=4)
+        self.at("travels to the Golgi")
+        self.play(FadeIn(golgi),GrowArrow(to_golgi),run_time=0.65)
+        self.at("to be cut")
+        fragment=chip("ATF6",TEAL,27).move_to(pt(4.5,-1.35))
+        self.play(ReplacementTransform(sensors[2],fragment),FadeOut(to_golgi),run_time=0.5)
+        death=VGroup(T("unresolved stress",25,RED).move_to(pt(-2,-3.1)),
+                     arrow((-0.1,-3.1),(1.2,-3.1),RED),
+                     T("can drive cell death",25,RED).move_to(pt(3.2,-3.1)))
+        self.at("unresolved stress")
+        self.play(FadeIn(death),run_time=0.7)
+        self.finish()
+
+
+class S04Selective(SpokenScene):
+    def construct(self):
+        cargo=chip("selected cargo",GREY,26).move_to(pt(-0.6,0.9))
+        a=cup(pt(0,0),3.6,2.1)
+        receptor=chip("receptor",TEAL,24).move_to(pt(0,-0.45))
+        lc=membrane_badge("LC3",PURPLE,24).move_to(pt(1.6,-1.1))
+        links=VGroup(arrow((-0.6,0.5),(0,-0.1),TEAL),arrow((0.7,-0.6),(1.3,-1.0),TEAL))
+        self.at("autophagy can also choose")
+        self.play(FadeIn(cargo),Create(a),run_time=0.7)
+        self.at("receptors link particular cargo")
+        self.play(FadeIn(receptor),Create(links),run_time=0.7)
+        self.at("the LC3 family")
+        self.play(FadeIn(lc),run_time=0.6)
+        mito=VGroup(Ellipse(width=3.4,height=1.5,stroke_color=GREY,fill_color=GREY,fill_opacity=0.12),
+                    T("mitochondrion",26,GREY)).move_to(pt(0,0))
+        self.at("mitophagy removes mitochondria")
+        self.play(FadeOut(cargo),FadeOut(a),FadeOut(receptor),FadeOut(lc),FadeOut(links),FadeIn(mito),run_time=0.7)
+        example=T("Cultured-cell example",29,GREY).move_to(pt(0,3.0))
+        dep=T("depolarized",26,RED).move_to(pt(0,1.15))
+        self.at("in cultured cells")
+        self.play(FadeIn(example),run_time=0.5)
+        pink=chip("PINK1",TEAL,25).move_to(pt(-2.3,0.8))
+        self.at("pink one builds up")
+        self.play(FadeIn(pink),FadeIn(dep),run_time=0.6)
+        park=chip("Parkin",TEAL,25).move_to(pt(4,0.7))
+        self.at("and recruits parkin")
+        self.play(FadeIn(park),run_time=0.3)
+        self.play(park.animate.move_to(pt(2.3,0.8)),run_time=0.65)
+        ub=VGroup(*[chip("Ub",RED,22).move_to(pt(x,-0.95)) for x in (-1,0,1)])
+        self.at("parkin adds ubiquitin tags")
+        self.play(FadeIn(ub),run_time=0.7)
+        rec=chip("receptors",TEAL,25).move_to(pt(0,-3.1))
+        self.at("receptors bind the tagged")
+        self.play(FadeIn(rec),run_time=0.6)
+        engulf=cup(pt(0,0),4.3,2.55)
+        marker=chip("LC3",PURPLE,24).move_to(pt(2.8,-1.8))
+        self.at("recruit the machinery")
+        connect=VGroup(arrow((0,-2.7),(0,-1.3),TEAL),
+                       arrow((1.0,-2.9),(2.4,-2.0),TEAL))
+        # Sensor names have served their beat; clear the future membrane path.
+        self.play(FadeOut(pink),FadeOut(park),Create(engulf),
+                  FadeIn(marker),Create(connect),run_time=0.6)
+        self.at("that engulfs it")
+        self.play(Transform(engulf,cup(pt(0,0),2*PI-0.001,2.55)),run_time=0.75)
+        self.finish()
+
+
 class S03Block(SpokenScene):
     def construct(self):
-        L = pt(-3.3, -0.7)
-        lyso = Circle(radius=2.0, stroke_color=ORANGE, stroke_width=5, fill_color=ORANGE, fill_opacity=0.12).move_to(L)
-        ll = lbl("lysosome", ORANGE, 26).move_to(L + DOWN * 2.45)
-        pump = chip("V-ATPase", ORANGE, 26).move_to(L + UP * 2.4)
-        pr = T("protons in", 24, ORANGE).move_to(L + UP * 3.95)
-        pa = Arrow(L + UP * 3.65, L + UP * 2.8, buff=0.05, color=ORANGE, stroke_width=5, tip_length=0.2)
-        self.play(FadeIn(lyso), FadeIn(ll), run_time=0.5)
-        self.at("Now block")
-        self.play(FadeIn(pump), GrowArrow(pa), FadeIn(pr), run_time=0.8)
-        baf = chip("bafilomycin", RED, 26).move_to(L + UP * 2.4 + RIGHT * 3.2)
-        cross = VGroup(Line(L + UP * 3.2 + LEFT * 0.5, L + UP * 3.2 + RIGHT * 0.5, color=RED, stroke_width=9))
-        self.at("blocks the")
-        self.play(FadeIn(baf, shift=LEFT * 0.3), run_time=0.7)
-        self.play(Create(cross), pa.animate.set_color(GREY), pr.animate.set_color(GREY), run_time=0.7)
-        self.at("pump that keeps")
-        self.play(Indicate(pump, color=ORANGE), run_time=0.9)
-        self.at("degradation stops")
-        v = VGroup(Circle(radius=0.95, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.1).move_to(L),
-                   ring_dots(L, 0.95, 8, start=0.4, dr=0.09))
-        self.play(lyso.animate.set_stroke(GREY).set_fill(GREY, 0.1), ll.animate.set_color(GREY), FadeIn(v, scale=0.5), run_time=1.2)
-        self.at("Assume the block")
-        self.play(Indicate(baf, color=RED), run_time=0.8)
-        self.at("otherwise have been destroyed")
-        self.play(*[d.animate.set_color(YELLOW).scale(1.5) for d in v[1]], run_time=0.8)
-        self.play(Indicate(v[1], color=YELLOW, scale_factor=1.15), run_time=0.8)
-        f0 = T("flux", 40, YELLOW, weight=BOLD)
-        f1 = VGroup(T("LC3-II", 30, PURPLE), T("with bafilomycin", 30, RED)).arrange(RIGHT, buff=0.15)
-        f2 = VGroup(T("−", 30, TEXT), T("LC3-II", 30, PURPLE), T("without", 30, GREY)).arrange(RIGHT, buff=0.15)
-        eq = VGroup(VGroup(f0, T("=", 40, TEXT)).arrange(RIGHT, buff=0.2), f1, f2).arrange(DOWN, aligned_edge=LEFT, buff=0.35)
-        eq.move_to(pt(3.4, 0.2))
-        self.at("equals")
-        self.play(FadeIn(eq[0]), FadeIn(f1), run_time=0.8)
-        self.at("minus")
-        self.play(FadeIn(f2), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Induce(SpokenScene):
-    def construct(self):
-        ax = axes()
-        lg = legend()
-        cC, cS = -2.3, 2.3
-        self.at("made up data set")
-        self.play(Create(ax), FadeIn(lg), run_time=1.2)
-        self.at("normalized to actin")
-        self.play(Indicate(ax[-1], color=YELLOW), run_time=0.8)
-        b0, b1 = bar(cC - 0.6, 1.0, False), bar(cC + 0.6, 2.0, True)
-        self.at("Control cells read")
-        self.play(FadeIn(glabel(cC, "Control")), GrowFromEdge(b0, DOWN), FadeIn(vlab(cC - 0.6, 1.0)), run_time=0.9)
-        self.at("and 2 with it")
-        self.play(GrowFromEdge(b1, DOWN), FadeIn(vlab(cC + 0.6, 2.0)), run_time=0.9)
-        s0 = seg(cC + 0.6, 1.0, 2.0)
-        self.at("flux is 2")
-        self.play(FadeIn(s0), FadeIn(fluxlab(cC, 1.0, 2.0)), run_time=0.9)
-        c0, c1 = bar(cS - 0.6, 1.5, False), bar(cS + 0.6, 4.5, True)
-        self.at("Starved cells read")
-        self.play(FadeIn(glabel(cS, "Starved")), GrowFromEdge(c0, DOWN), FadeIn(vlab(cS - 0.6, 1.5)), run_time=0.9)
-        self.at("and 4")
-        self.play(GrowFromEdge(c1, DOWN), FadeIn(vlab(cS + 0.6, 4.5)), run_time=1.0)
-        s1 = seg(cS + 0.6, 1.5, 4.5)
-        fl = fluxlab(cS, 1.5, 4.5)
-        self.at("Their flux")
-        self.play(FadeIn(s1), FadeIn(fl), run_time=0.9)
-        tri = VGroup(Arrow(pt(-0.55, 2.55), pt(0.55, 2.55), buff=0, color=YELLOW, stroke_width=6, tip_length=0.25),
-                     M("× 3", 30, YELLOW).move_to(pt(0, 2.05)))
-        self.at("triples")
-        self.play(FadeIn(tri), run_time=0.9)
-        self.at("More autophagosomes")
-        note = VGroup(T("more made", 26, BLUE), T("and", 26, TEXT), T("more destroyed", 26, ORANGE)).arrange(RIGHT, buff=0.2)
-        note.move_to(pt(0.2, -3.35))
-        self.play(FadeIn(note), run_time=0.9)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Drug(SpokenScene):
-    def construct(self):
-        ax = axes()
-        lg = legend()
-        cC, cS, cD = -3.6, 0.2, 4.0
-        old = VGroup(bar(cC - 0.6, 1.0, False), bar(cC + 0.6, 2.0, True), seg(cC + 0.6, 1.0, 2.0),
-                     vlab(cC - 0.6, 1.0), vlab(cC + 0.6, 2.0), fluxlab(cC, 1.0, 2.0), glabel(cC, "Control"),
-                     bar(cS - 0.6, 1.5, False), bar(cS + 0.6, 4.5, True), seg(cS + 0.6, 1.5, 4.5),
-                     vlab(cS - 0.6, 1.5), vlab(cS + 0.6, 4.5), fluxlab(cS, 1.5, 4.5), glabel(cS, "Starved"))
-        self.add(ax, lg, old)
-        d0, d1 = bar(cD - 0.6, 3.0, False), bar(cD + 0.6, 3.2, True)
-        self.at("Now drug")
-        self.play(FadeIn(glabel(cD, "Drug D")), run_time=0.6)
-        self.at("has the most")
-        self.play(GrowFromEdge(d0, DOWN), FadeIn(vlab(cD - 0.6, 3.0)), run_time=1.0)
-        self.play(Indicate(d0, color=YELLOW, scale_factor=1.06), run_time=0.8)
-        self.at("3 2")
-        self.play(GrowFromEdge(d1, DOWN), FadeIn(vlab(cD + 0.6, 3.2)), run_time=0.9)
-        sd = seg(cD + 0.6, 3.0, 3.2)
-        fd = fluxlab(cD, 3.0, 3.2)
-        self.at("flux is only")
-        self.play(FadeIn(sd), FadeIn(fd), run_time=0.8)
-        fifth = M("0.2 is 1/5 of 1.0", 22, YELLOW).move_to(pt(cD, 2.1))
-        self.at("1 fifth")
-        self.play(FadeIn(fifth), run_time=0.8)
-        verdict = T("blocks fusion or degradation, not induction", 28, RED).move_to(pt(0.2, -3.35))
-        self.at("blocks fusion")
-        self.play(FadeIn(verdict, shift=UP * 0.2), run_time=0.9)
-        withs = [o for o in old if isinstance(o, Rectangle) and o.get_fill_opacity() > 0.5] + [d1, sd]
-        self.at("would look like")
-        self.play(*[w.animate.set_opacity(0.2) for w in withs], FadeOut(verdict), run_time=0.9)
-        box = SurroundingRectangle(d0, color=RED, buff=0.08, stroke_width=4)
-        strong = T("read alone, drug D looks like the strongest inducer", 28, RED).move_to(pt(0.2, -3.35))
-        self.at("strongest inducer")
-        self.play(Create(box), FadeIn(strong), run_time=1.0)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Rule(SpokenScene):
-    def construct(self):
-        cx0, cx1 = -4.4, -2.9
-        s = Sink(3.6, 0.0)
-        water = s.water(0.9)
-        tapc = chip("tap: made", BLUE, 24).move_to(pt(s.cx + 1.55, s.cy + 2.45))
-        drc = chip("drain: destroyed", ORANGE, 24).move_to(pt(s.cx - 0.45, s.cy - 2.5))
-        ylab = T("LC3-II", 26, PURPLE).move_to(pt(-3.5, 2.5))
-        b0 = bar(cx0, 2.0, False)
-        base = Line(pt(-5.2, BASE), pt(-1.5, BASE), color=GREY, stroke_width=3)
-        self.at("do not read")
-        self.play(FadeIn(base), FadeIn(ylab), GrowFromEdge(b0, DOWN), run_time=1.0)
-        self.at("fuller")
-        self.play(Create(s.basin), FadeIn(s.tap), FadeIn(s.drain), FadeIn(water), FadeIn(s.stream), run_time=1.2)
-        self.at("tap or the drain")
-        self.play(FadeIn(tapc), FadeIn(drc), run_time=0.8)
-        b1 = bar(cx1, 3.0, True)
-        w2 = s.water(1.5)
-        self.at("lysosomal inhibitor")
-        self.play(FadeIn(s.plug, scale=0.5), Transform(water, w2), GrowFromEdge(b1, DOWN), run_time=1.6)
-        sg = seg(cx1, 2.0, 3.0)
-        extra = Rectangle(width=2 * s.hw - 0.1, height=0.6, stroke_width=0, fill_color=YELLOW, fill_opacity=0.45) \
-            .move_to(pt(s.cx, s.cy - s.wall + 0.05 + 1.5 + 0.3))
-        self.at("subtract")
-        self.play(FadeIn(sg), run_time=0.8)
-        fl = T("flux", 30, YELLOW, weight=BOLD).move_to(pt(cx1 + 1.35, BASE + 2.5 * U))
-        self.at("difference shows")
-        self.play(FadeIn(fl), Indicate(sg, color=YELLOW), FadeIn(extra), run_time=1.0)
-        box = SurroundingRectangle(b0, color=RED, buff=0.1, stroke_width=4)
-        self.at("steady state")
-        self.play(Create(box), run_time=0.8)
-        self.at("Keep the rule")
-        self.play(Indicate(fl, color=YELLOW, scale_factor=1.3), Indicate(sg, color=YELLOW), run_time=1.0)
+        ves=VGroup(*[autop(pt(x,0),0.6) for x in (-2,0,2)])
+        title=T("More autophagosomes?",34,BLUE).move_to(pt(0,2.7))
+        made=T("increased formation",28,BLUE).move_to(pt(-3,-1.6))
+        clear=T("impaired clearance",28,ORANGE).move_to(pt(3,-1.6))
+        self.at("finally how do you measure")
+        self.play(FadeIn(title),FadeIn(ves),run_time=0.6)
+        self.at("more are made")
+        self.play(FadeIn(made),ves.animate.shift(UP*0.3),run_time=0.5)
+        self.at("fewer are destroyed")
+        self.play(FadeIn(clear),run_time=0.5)
+        # Schematic amounts: no invented numerical measurements.
+        b0,b1=bar(-2.1,1.6,False),bar(2.1,3.6,True)
+        labels=VGroup(T("without bafilomycin",25,TEXT).move_to(pt(-2.6,-2.8)),
+                      T("with bafilomycin",25,TEXT).move_to(pt(2.6,-2.8)),
+                      T("LC3-II · schematic comparison",30,PURPLE).move_to(pt(0,2.9)))
+        self.at("compare")
+        self.play(FadeOut(title),FadeOut(ves),FadeOut(made),FadeOut(clear),
+                  FadeIn(labels),GrowFromEdge(b0,DOWN),GrowFromEdge(b1,DOWN),run_time=0.9)
+        assumption=T("Assume a complete lysosomal block",26,RED).move_to(pt(0,2.05))
+        self.at("assuming a complete lysosomal block")
+        self.play(FadeIn(assumption),run_time=0.7)
+        delta=seg(2.1,1.6,3.6)
+        meaning=T("LC3-II otherwise degraded",27,YELLOW).move_to(pt(0,1.2))
+        self.at("the difference reveals")
+        self.play(FadeIn(delta),FadeIn(meaning),run_time=0.8)
+        self.at("check cargo")
+        cargo=chip("p62 · cargo measurement",TEAL,27).move_to(pt(0,1.6))
+        self.play(*[FadeOut(m) for m in (labels,b0,b1,assumption,delta,meaning)],FadeIn(cargo),run_time=0.7)
+        carrier=chip("LC3 · carrier",PURPLE,27).move_to(pt(0,2.8))
+        self.at("marks the carrier")
+        self.play(FadeIn(carrier),run_time=0.5)
+        reporters=VGroup(T("Tandem red / green LC3 reporter",27,TEXT).move_to(pt(0,0.25)),
+            T("lysosomal delivery",25,ORANGE).move_to(pt(-3.2,-2.25)),
+            T("pre-fusion block",25,RED).move_to(pt(3.2,-2.25)))
+        red=VGroup(Dot(pt(-3.2,-1.1),radius=0.22,color=RED),T("red only",24,TEXT).move_to(pt(-3.2,-2.9)))
+        both=VGroup(Dot(pt(2.95,-1.1),radius=0.22,color=RED),Dot(pt(3.45,-1.1),radius=0.22,color=GREEN),
+                    T("red + green",24,TEXT).move_to(pt(3.2,-2.9)))
+        self.at("and fluorescent reporters")
+        self.play(FadeIn(reporters),FadeIn(red),FadeIn(both),run_time=0.8)
+        self.at("to judge turnover")
+        self.play(Indicate(cargo,color=TEAL),Indicate(carrier,color=PURPLE),run_time=0.7)
         self.finish()
 
 
 class S07End(EndCard):
-    LINE = "Measure the flux, not just the dots."
+    LINE = "Failed ER proteins go to the proteasome; whole organelles to the lysosome."
