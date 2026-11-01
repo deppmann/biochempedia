@@ -60,7 +60,7 @@ scientists:
     quotes: []
     story: >-
       Population viability analysis, PVA, had become a standard tool by the 1990s, and critics
-      raised a fair objection: its forecasts run decades ahead, so no one could check them. Brook
+      raised a fair objection: its forecasts ran decades ahead and had rarely been checked against what real populations did. Brook
       and his coauthors, including Richard Frankham, Reşit Akçakaya and Mark Burgman, used a
       retrospective test instead. They gathered 21 long-term ecological studies, fitted PVA
       models to the first half of each time series, and asked how well the models predicted the
@@ -142,7 +142,7 @@ simulations:
     ref: "EffectiveSizeSexRatio"
     title: "Census size versus effective size"
     caption: >-
-      Set the breeding males and females and watch effective size Ne fall below the census N, and see how many adults a target Ne of 100 needs at that sex ratio.
+      Set the breeding males and females and watch effective size Ne fall below the census N as the sex ratio becomes uneven, and see how many adults a target Ne of 100 needs at that sex ratio.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -160,17 +160,17 @@ practiceQuestions:
       ignores that risk is a probability and that estimates differ by species and setting. The
       number of breeders in an ideal population that drifts equally is the effective population
       size, a different quantity. The largest population the habitat can support is the
-      carrying capacity, which says nothing about the risk of extinction.
+      carrying capacity. It affects extinction risk, but it is not itself a chance of persisting for a stated time.
   - stem: "A census counts 600 adult deer in a valley, but genetic parentage shows that only 40 males sired the year's fawns. Which quantity governs how fast this population loses genetic variation by drift?"
     choices:
-      - "The effective size, set by how many adults actually breed"
+      - "The effective size, set by who breeds and how evenly they contribute"
       - "The carrying capacity of the valley for deer in an average year"
       - "The census size, since every adult in the valley is counted"
       - "The number of fawns born in the valley during the current year"
     answer: 0
     rationale: >-
       Drift depends on the effective size, which falls below the census size when few
-      individuals contribute offspring, so the key is the effective size set by who breeds. The
+      individuals contribute offspring, so the key is the effective size, which depends on who breeds and how unevenly they contribute offspring. The
       census size counts the 600 adults whether or not they breed, which is the common mistake
       of treating N as Ne. Carrying capacity sets how many deer the valley can hold, not how
       many parents pass on genes. The number of fawns born says how productive the year was,
@@ -276,10 +276,10 @@ explainLevels:
       survives and breeds, good and bad years, rare disasters, and inbreeding. There is no
       single safe number. Instead, scientists pick a target, such as a 95% chance of lasting 100
       years, and use computer models to estimate what size meets it. They also distinguish how
-      many animals there are from how many actually pass on genes, which is usually fewer. Tools
+      many animals there are from the effective size, which reflects how many pass on genes and how evenly, and is usually smaller. Tools
       such as reserves, corridors, moving animals between populations and restoring habitat each
-      have evidence behind them, and each study shows its effect in one place, over one span of
-      years.
+      have evidence behind them, and each study's result holds for the places and years it
+      covered.
   - level: "college"
     label: "College"
     text: >-
@@ -293,8 +293,9 @@ explainLevels:
       term) refer to effective size, which depends on sex ratio, variance in offspring number
       and fluctuations in N, and must be converted to a census number with a population-specific
       ratio. Interventions differ in evidence: protected-area comparisons are observational,
-      the Savannah River corridor experiment was randomized, and the panther rescue was a
-      before-and-after study without a control.
+      the Savannah River corridor experiment was randomized, and the panther rescue was observational,
+      comparing before with after and admixed with non-admixed animals in one population, with
+      no control population.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -302,11 +303,16 @@ explainLevels:
       Monte Carlo error (with 1,000 runs and a true risk of 3.7%, the standard error is about 0.6
       percentage points), parameter uncertainty in vital rates and their variances, and
       structural uncertainty about density dependence, correlation among rates, catastrophes
-      and inbreeding depression. The last two usually dominate, which is why relative rankings of
-      management scenarios are more robust than absolute probabilities, and why Traill and
+      and inbreeding depression. The last two are often larger than the Monte Carlo error. Relative rankings of
+      management scenarios are usually more robust than absolute probabilities, but Regan and
+      colleagues (2017) found that rankings can change with model structure when effects are
+      small or scenarios depart far from baseline, so rankings should be tested across plausible
+      inputs and structures. Likewise, Traill and
       colleagues' standardized cross-species median MVP of 4,169 individuals is a summary of a
-      literature rather than a target. Effective size enters twice, through genetic loss and
-      through demographic variance, and Ne/N ratios vary widely among populations.
+      literature rather than a target. Effective size governs genetic loss, while demographic
+      stochasticity depends on census size and variation in individual survival and reproduction;
+      the same variance in offspring number lowers Ne and adds demographic risk. Ne/N ratios vary
+      widely among populations.
 
       An open question is how to evaluate genetic rescue causally. The Florida panther record
       shows strong associations between admixture and fitness and a later stabilisation and
@@ -359,11 +365,11 @@ Was that a success, and how would you know? Answering takes three ideas: why sma
 
 A large population absorbs bad luck. A small one can be ended by it. Mark Shaffer, writing in BioScience in 1981, sorted the chance events that threaten small populations into four kinds.
 
-**Demographic stochasticity** is chance in individual fates: which animals happen to survive, and how many offspring, of which sex, each produces. Suppose, as an illustration, a population is down to its last breeding female and she has five young. The chance that all five are male is (1/2)^5 = 1/32, about 3%. In a population of thousands such runs of luck average out. In a population of ten they decide the outcome.
+**Demographic stochasticity** is chance in individual fates: which animals happen to survive, and how many offspring, of which sex, each produces. Suppose, as an illustration, a population is down to its last breeding female and she has five young. The chance that all five are male is (1/2)^5 = 1/32, about 3%. In a population of thousands such runs of luck average out. In a population of ten they can decide the outcome.
 
 **Environmental stochasticity** is variation from year to year in weather, food and the populations of competitors, predators and disease that a population depends on. It hits every individual at once, so it does not average out with size the way demographic chance does. **Catastrophes**, such as fires, hurricanes and epidemics, are its extreme. The fourth kind is genetic: in a small population **genetic drift** (chance change in allele frequencies) erodes variation, and mating among relatives raises **inbreeding**, which exposes harmful recessive alleles and lowers survival and fertility. The arithmetic of drift and inbreeding belongs to [population genetics](/lessons/population-genetics/): the short version is that loss of variation per generation scales with one over the effective size.
 
-These forces feed each other. Fewer animals mean more inbreeding, which lowers survival, which means fewer animals. Michael Gilpin and Michael Soulé called this feedback an **extinction vortex** in 1986. The age- and stage-specific rates that drive these models come from [life tables](/lessons/demography/) and the growth models of [population growth](/lessons/population-growth/).
+These forces feed each other. Fewer animals mean more inbreeding, which lowers survival, which means fewer animals. Michael Gilpin and Michael Soulé called this feedback an **extinction vortex** in 1986. Some species also show an **Allee effect**: at low density, individuals find mates or defend against predators less well, so growth slows just when numbers are lowest. The age- and stage-specific rates that drive these models come from [life tables](/lessons/demography/) and the growth models of [population growth](/lessons/population-growth/). One caution: a population is usually small because something, such as habitat loss or overharvest, drove it down. Graeme Caughley argued in 1994 that finding and removing that cause usually comes first, before the risks of small size.
 
 ## MVP and PVA: risk as a probability
 
@@ -371,7 +377,7 @@ How many individuals are enough? Shaffer's answer was that the question has no a
 
 A **population viability analysis** (PVA) is how such a probability is estimated. Think of it as a weather forecast for one population: you do not predict the future, you run it many times and report how often it rains. The model takes in survival and birth rates by age or stage, how much those rates vary between years, density dependence, catastrophe frequencies and, sometimes, inbreeding effects. It puts out the fraction of runs that go extinct, or fall below a chosen threshold, within the horizon.
 
-Can such forecasts be trusted? In 2000, Barry Brook and colleagues fitted PVA models to the first half of each of 21 long-term ecological data sets and predicted the second half. They reported that predicted risks of decline matched observed outcomes closely, with no significant bias. That supports PVA within populations and spans like those tested. It does not make any single forecast exact, and because errors in the inputs tend to affect every scenario alike, PVA is most useful for comparing management options against each other.
+Can such forecasts be trusted? In 2000, Barry Brook and colleagues fitted PVA models to the first half of each of 21 long-term ecological data sets and predicted the second half. They reported that predicted risks of decline matched observed outcomes closely, with no significant bias. That supports PVA within populations and spans like those tested. It does not make any single forecast exact. PVA is most often recommended for comparing management options against each other rather than for its absolute numbers. Even rankings need checking: in a 2017 test, rankings held across model structures for the dominant threats but not for smaller effects, and a 2020 appraisal rated fewer than one in five of 160 published PVAs as high quality.
 
 **Worked problem, part A.** These numbers are invented. For one hypothetical species in one habitat, a PVA is run 1,000 times from each of three starting sizes, over 100 years. Extinction means zero individuals by year 100. Assume the model's vital rates and their variation are correct and the habitat stays as it is.
 
@@ -383,7 +389,7 @@ Can such forecasts be trusted? In 2000, Barry Brook and colleagues fitted PVA mo
 
 1. *Probabilities.* Divide extinct runs by total runs, as in the table: 12.0%, 3.7% and 0.8%.
 2. *Compare with a target.* Suppose managers choose at most 5% extinction risk in 100 years. N0 = 20 fails. N0 = 50 passes, with persistence 1 - 0.037 = 96.3%. So 50 is the smallest *tested* size that meets the target. Sizes between 20 and 50 were never run, so the true threshold could lie anywhere in that range.
-3. *Check the Monte Carlo error.* With 1,000 runs, the standard error of 3.7% is the square root of (0.037 x 0.963 / 1,000), about 0.006 (0.6 percentage points), so a rough 95% range, 3.7% plus or minus two standard errors (1.2 points), is 2.5% to 4.9%. The answer survives, narrowly. A different target, horizon or model would give a different answer.
+3. *Check the Monte Carlo error.* With 1,000 runs, the standard error of 3.7% is the square root of (0.037 x 0.963 / 1,000), about 0.006 (0.6 percentage points), so a rough 95% range, 3.7% plus or minus two standard errors (1.2 points), is 2.5% to 4.9%. The upper end sits just under 5%, so the answer holds only narrowly; a more exact interval method puts the upper end at about 5.1%, and more runs would be needed to be confident. A different target, horizon or model would give a different answer.
 
 For comparison, the IUCN Red List can classify a taxon as Endangered under its criterion E when a quantitative analysis gives at least a 20% probability of extinction within 20 years or five generations, whichever is longer, up to 100 years.
 
@@ -402,25 +408,25 @@ For an unequal sex ratio alone, with Nm breeding males and Nf breeding females:
 
 <EffectiveSizeSexRatio />
 
-This assumes the ratio holds and ignores the other causes of low Ne, which in wild populations often push Ne/N much lower. It also shows why the older 50/500 rule, and Frankham's 100/1,000, are about effective size: neither is a census target. A standardised median MVP of 4,169 individuals across 212 species (Traill and colleagues, 2007) summarises a literature and is not a target for any species either.
+This assumes the ratio holds and ignores the other causes of low Ne, which in wild populations often push Ne/N much lower. Frankham and colleagues give meta-analytic averages of about 0.1 to 0.2, which would put Ne = 100 at roughly 500 to 1,000 adults. It also shows why the older 50/500 rule, and Frankham's 100/1,000, are about effective size: neither is a census target. A standardised median MVP of 4,169 individuals across 212 species (Traill and colleagues, 2007) summarises a literature and is not a target for any species either.
 
 ## Interventions and their evidence
 
 Each tool has its own kind of evidence, and the kinds differ in strength.
 
-**Protected areas.** Across terrestrial sites worldwide, Gray and colleagues (2016) found sample richness 10.6% higher and abundance 14.5% higher inside protected areas than outside. Most of that advantage was explained by land-use differences between the sites. The comparison is observational: reserves are not placed at random.
+**Protected areas.** Across terrestrial sites worldwide, Gray and colleagues (2016) found sample richness 10.6% higher and abundance 14.5% higher inside protected areas than outside. Most of that advantage was explained by land-use differences between the sites, and rarefied richness and endemism did not differ significantly. The comparison is observational: reserves are not placed at random. Studies that match protected sites with similar unprotected ones give a cleaner estimate. In Costa Rica, Andam and colleagues (2008) found that about 10% of protected forest would otherwise have been cleared, and that simpler comparisons overstated that benefit by more than 65%.
 
-**Corridors.** At the Savannah River Site in South Carolina, in restored longleaf pine savanna, Damschen and colleagues followed 239 plant species for 18 years in patches of equal area, some joined by corridors. Annual colonization rates were 5% higher and local extinction rates 2% lower in connected patches, and connected patches ended with about 200 species against 176. This is a randomized experiment in one landscape, the same logic as [island biogeography](/lessons/island-biogeography/) and [spatial populations](/lessons/spatial-populations/), and it does not establish how corridors work everywhere.
+**Corridors.** At the Savannah River Site in South Carolina, in restored longleaf pine savanna, Damschen and colleagues followed 239 plant species for 18 years in patches of equal area, some joined by corridors. Annual colonization rates were 5% higher and local extinction rates 2% lower in connected patches, and connected patches ended with about 200 species against 176. This is a randomized experiment, replicated in ten experimental landscapes at one site, the same logic as [island biogeography](/lessons/island-biogeography/) and [spatial populations](/lessons/spatial-populations/), and it does not establish how corridors work everywhere.
 
 <LessonFigure src="/figures/conservation/corridor-patch-layout.webp" width={1200} height={800} alt="AI-generated illustration: bird's-eye view of savanna with five green habitat patches. A central patch is joined by one narrow gold corridor to one of four outer patches; the other three outer patches stand apart and are drawn larger." caption="The corridor experiment's layout. In each landscape a central patch was joined by a corridor to one of four outer patches, and the three unconnected patches were enlarged to match the joined patch plus its corridor, so connection is the difference being tested." />
 
-**Translocation.** The IUCN separates **reintroduction**, releasing organisms within their native range where they have disappeared, from **reinforcement**, adding them to a population that remains. The panther release was reinforcement with genetic rescue as its aim. IUCN guidance asks for strong evidence that the threats that caused any earlier loss have been identified and removed or sufficiently reduced first.
+**Translocation.** The IUCN separates **reintroduction**, releasing organisms within their native range where they have disappeared, from **reinforcement**, adding them to a population that remains. The panther release was reinforcement with genetic rescue as its aim. Genetic rescue does not rest on the panther alone: a 2015 meta-analysis found that outcrossing inbred populations improved fitness in 92.9% of 156 cases judged to carry a low risk of outbreeding depression. IUCN guidance asks for strong evidence that the threats that caused any earlier loss have been identified and removed or sufficiently reduced first.
 
 <LessonFigure src="/figures/conservation/reintroduction-vs-reinforcement.webp" width={1200} height={800} alt="AI-generated illustration: two range outlines. Left, an empty native range receives released animals (reintroduction). Right, a range that already holds animals receives more (reinforcement)." caption="The IUCN separates reintroduction, release where the species has disappeared, from reinforcement, adding animals to a population that remains. The panther release was reinforcement." />
 
-**Restoration.** The Society for Ecological Restoration defines it as assisting the recovery of a degraded, damaged or destroyed ecosystem. In southern Costa Rica, Karen Holl and colleagues compared natural regeneration, applied nucleation (planting tree islands) and plantations at 13 sites. After about a decade, planting raised recruitment of animal-dispersed trees, yet tree-recruit composition in every treatment remained distinct from reference forest. A 2018 global analysis of 400 recovery studies found that ecosystems rarely recovered completely within the study periods. A 2024 meta-analysis of 665 trials with no-action comparisons found that conservation action improved biodiversity or slowed its decline in about two-thirds of cases.
+**Restoration.** The Society for Ecological Restoration defines it as assisting the recovery of a degraded, damaged or destroyed ecosystem. In southern Costa Rica, Karen Holl and colleagues compared natural regeneration, applied nucleation (planting tree islands) and plantations at 13 sites. After about a decade, planting raised recruitment of animal-dispersed trees, yet tree-recruit composition in every treatment remained distinct from reference forest. A 2018 global analysis of 400 recovery studies found that ecosystems rarely recovered completely within the study periods, and that active restoration did not, on average, give faster or more complete recovery than simply ending the disturbance, though few studies compared the two directly. A 2024 meta-analysis of 665 trials with no-action comparisons found that conservation action improved biodiversity or slowed its decline in about two-thirds of cases.
 
-<LessonFigure src="/figures/conservation/restoration-three-treatments.webp" width={1200} height={800} alt="AI-generated illustration: three panels of the same degraded ground. Left, left alone with almost no trees. Middle, three small clumps of planted trees with open ground between. Right, trees planted across the whole area." caption="The three treatments compared in southern Costa Rica: leave the land to recover, plant small tree islands, or plant the whole area." />
+<LessonFigure src="/figures/conservation/restoration-three-treatments.webp" width={1200} height={800} alt="AI-generated illustration: three panels of the same degraded ground. Left, left alone with almost no trees. Middle, three small clumps of planted trees with open ground between. Right, trees planted across the whole area." caption="The three treatments compared in southern Costa Rica: let the land regenerate naturally after the same early clearing given to every plot, plant small tree islands, or plant the whole area." />
 
 ## Decisions with competing goals
 

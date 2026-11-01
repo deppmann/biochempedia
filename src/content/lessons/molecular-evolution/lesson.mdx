@@ -17,14 +17,14 @@ estMinutes: 24
 objectives:
   - "Correct observed sequence differences for repeated substitutions and date a split with a molecular clock calibrated by a fossil or by dated samples, stating that a fossil gives a minimum age."
   - "State the neutral theory's claim and its expectations (K = mu for neutral mutations, fixation probability 1/2N for one new neutral copy), and contrast Ohta's nearly neutral theory, in which effective population size matters."
-  - "Interpret dN/dS (omega) below, near and above 1, and explain why a McDonald-Kreitman comparison of polymorphism and divergence is a second, independent signal."
+  - "Interpret dN/dS (omega) below, near and above 1, and explain why a McDonald-Kreitman comparison of polymorphism and divergence is a second, partly independent signal."
   - "Identify the checks (alignment, orthology, mutation model, synonymous-site neutrality, functional tests) needed before accepting a statistical signal of positive selection."
 
 explainer:
   src: "/explainers/molecular-evolution/explainer.mp4"
   captions: "/explainers/molecular-evolution/explainer.vtt"
   poster: "/explainers/molecular-evolution/poster.jpg"
-  title: "Genes Date a Split Without Fossils"
+  title: "Dating a Split From Genes"
   durationSec: 180.7
   narration: "an AI narrator voice (Gemini, Charon) reading narration written from this lesson's text"
   aiGenerated: true
@@ -138,7 +138,7 @@ techniques:
   - name: "Parent-offspring trio sequencing"
     blurb: >-
       The genomes of two parents and their offspring are sequenced at high coverage, and sites
-      where both parents carry the reference base and the offspring is heterozygous are taken as
+      where both parents are homozygous for the reference base and the offspring is heterozygous are taken as
       candidate new mutations. Correcting for the callable part of the genome and for missed
       mutations gives a per-generation germline mutation rate.
 
@@ -157,7 +157,7 @@ simulations:
     ref: "ClockCalibrationLine"
     title: "Calibrating a molecular clock"
     caption: >-
-      Slide the calibration and target distances along the line D = 2rt to date a second split, and switch on the forgotten factor 2 to see the commonest error.
+      Slide the calibration and target distances along the line D = 2rt to date a second split, and switch on the forgotten factor 2 to see the error it causes.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -171,7 +171,7 @@ practiceQuestions:
     rationale: >-
       Omega = 0.006 / 0.030 = 0.2, well below 1, so amino-acid changes have been fixed at a
       fifth of the rate of silent ones, the signature of purifying selection removing most of
-      them. Positive selection would push omega above 1, not below it. The neutral expectation
+      them. Because most amino-acid changes that arose were never fixed, most cannot have been fixed by positive selection, though omega alone cannot rule out a few adaptive changes hidden in the average. The neutral expectation
       is omega near 1, which this gene is far from. A dN of 0.006 is not zero, so some
       amino-acid substitutions did occur; the gene is evolving, only under constraint.
   - stem: "In the simple neutral model, a diploid population of N individuals receives new neutral mutations at a rate mu per gene copy per generation. What is the expected neutral substitution rate K?"
@@ -197,7 +197,7 @@ practiceQuestions:
     answer: 1
     rationale: >-
       The clade must be at least as old as its oldest correctly assigned fossil, and probably
-      somewhat older, because the first members were rare and unlikely to fossilise and be found;
+      somewhat older, because early members may have been rare, may lack the features that identify them, and may not have fossilised or been found;
       so the fossil sets a minimum. Treating it as the exact origin date ignores that gap.
       Treating it as a maximum reverses the logic, since the clade existed by then and may have
       existed earlier. A fossil gives an age, not a substitution rate; the rate is inferred by
@@ -248,7 +248,7 @@ mcatQuestions:
       ratios, which these are not. Weakly harmful replacements would show the opposite pattern,
       an excess among polymorphisms. Nothing in the table singles out synonymous changes as
       selected; they serve as the neutral reference.
-  - stem: "Pedigree sequencing gives the same germline mutation rate, 1.0 x 10^-8 per site per generation, for a rodent with a 2-year generation time and a primate with a 20-year generation time. Assume synonymous sites are neutral and K = mu holds. How do their yearly synonymous substitution rates compare?"
+  - stem: "Suppose pedigree sequencing gave the same germline mutation rate, 1.0 x 10^-8 per site per generation, for a rodent with a 2-year generation time and a primate with a 20-year generation time. Assume synonymous sites are neutral and K = mu holds. How do their yearly synonymous substitution rates compare?"
     choices:
       - "About ten times higher in the two-year species"
       - "Equal in both, since per-generation rates match"
@@ -261,7 +261,7 @@ mcatQuestions:
       primate, a tenfold difference. Equal yearly rates would follow only if generation times
       matched, which they do not. The twenty-year species fits fewer generations into a year, so
       its yearly rate is lower, not higher. Under the simple neutral model K does not depend on
-      population size, so population size does not decide the comparison.
+      population size, so population size does not decide the comparison. In real species per-generation rates are not equal: generation time is one of the main traits that shapes them.
   - stem: "Researchers simulate 1,000 coding alignments on a primate tree with no positive selection, but include realistic multinucleotide mutations. A branch-site test then reports significant positive selection on one branch in far more than 5% of the alignments. What does this imply for an empirical branch-site result on that branch?"
     choices:
       - "It means the branch has a relaxed clock rate"
@@ -271,7 +271,7 @@ mcatQuestions:
     answer: 3
     rationale: >-
       Because the simulated data contained no positive selection, every significant result is a
-      false positive caused by a mutation process the test's model leaves out, so a real
+      false positive, and the excess over the expected 5% comes from a mutation process the test's model leaves out, so a real
       significant result on that branch could arise the same way and needs further checks.
       Significance alone cannot confirm adaptation when the null model is wrong. The simulation
       shows that multinucleotide mutations mimic the signal, not that they are themselves
@@ -292,11 +292,11 @@ explainLevels:
     text: >-
       When two species split from a common ancestor, mutations keep arising in each line, and
       some spread until every member carries them. Comparing the same gene in both species shows
-      how many changes have built up. If changes build up at a steady rate, and a fossil tells
-      you when one pair of species split, you can work out the rate and use it to date other
+      how many changes have built up. If changes build up at a steady rate, and a fossil shows
+      roughly when one pair of species split, you can work out the rate and use it to date other
       splits. The neutral theory says most of the changes that spread had no effect on survival
       or reproduction and spread by chance, while harmful ones were removed. Comparing changes
-      that alter a protein with changes that do not shows where selection has acted.
+      that alter a protein with changes that do not can suggest where selection has acted.
   - level: "college"
     label: "College"
     text: >-
@@ -359,9 +359,10 @@ anecdotes:
       and Thornton simulated coding sequences with no positive selection at all, but with
       mutations that sometimes change several adjacent nucleotides at once, at rates taken
       from real mammal and fly alignments. The test still reported positive selection in many
-      simulated data sets. The result does not mean that published cases of adaptation are false,
-      but it showed that an omitted mutation process can produce the signal the test credits to
-      selection.
+      simulated data sets, as often as it did in the real data, and in the real alignments codons
+      with several differences carried virtually all the support for selection. Some flagged genes
+      may still have evolved adaptively, but the authors concluded that many published inferences
+      from this test may be artefacts of the omitted mutation process.
 
 corpusTags:
   - "molecular-clock"
@@ -379,7 +380,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 **Two living species may have left no fossil of the moment they split. Their genes can still tell you, roughly, when it happened, and whether selection or chance shaped what changed.**
 
-This lesson reads DNA and protein sequences the way a geologist reads layers of rock: as a record laid down over time. You will date a split from sequence differences, see why most of those differences are thought to be selectively neutral, and learn to tell, with caution, when selection has been at work.
+This lesson reads DNA and protein sequences the way a geologist reads layers of rock: as a record laid down over time. You will date a split from sequence differences, see why the neutral theory holds that many of those differences were fixed by chance, and learn to tell, with caution, when selection has been at work.
 
 ## The idea: sequences as a record of time
 
@@ -407,7 +408,7 @@ Sequences alone cannot separate rate from time. A distance of 0.02 could mean a 
 2. *Calibrate.* r = 0.012 / (2 x 3,000,000 years) = 2.0 x 10^-9 substitutions per site per year.
 3. *Date the target.* t = 0.024 / (2 x 2.0 x 10^-9) = 0.024 / (4.0 x 10^-9) = 6.0 million years. Check: 2 x 2.0 x 10^-9 x 6,000,000 = 0.024 substitutions per site, the stated distance.
 
-The commonest error is forgetting the factor 2 in step 3, which gives 0.024 / 2.0 x 10^-9 = 12 million years. And since a real fossil calibration is only a minimum, both splits may be older than these figures.
+An easy error is forgetting the factor 2 in step 3, which gives 0.024 / 2.0 x 10^-9 = 12 million years. And since a real fossil calibration is only a minimum, both splits may be older than these figures.
 
 <ClockCalibrationLine />
 
@@ -423,9 +424,9 @@ The model makes a clean prediction. In an ideal diploid population of N individu
 
 The neutral substitution rate K equals the neutral mutation rate and does not depend on population size: a large population makes more mutations, but each has a smaller chance of fixing. The derivation of the fixation probability belongs to [population genetics](/lessons/population-genetics/). Note that mu is the neutral mutation rate, not the total; mutations removed by selection never become substitutions.
 
-In 1973 Tomoko Ohta proposed the **nearly neutral theory**. Many mutations are slightly deleterious, with effects on fitness of the order of 1/Ne, where Ne, the effective population size, measures how strongly drift acts. In a small population drift can fix them; in a large one selection removes them. So for this class the substitution rate does depend on Ne.
+In 1973 Tomoko Ohta proposed the **nearly neutral theory**. Many mutations are slightly deleterious, with effects on fitness of the order of 1/Ne, where Ne, the effective population size, measures how strongly drift acts. In a small population drift can fix them; in a large one selection removes them more reliably. So for this class the substitution rate does depend on Ne.
 
-<LessonFigure src="/figures/molecular-evolution/population-size-and-fate.webp" width={1200} height={800} alt="AI-generated illustration: two population fields of plain dots, a small one with six dots and a large one with twenty-four. A slightly harmful mutation, marked in gold, spreads to every dot in the small population but is removed in the large one. A bracket beneath notes that a large population makes more neutral mutations, each with a smaller chance of fixing." caption="In a small population drift can fix a slightly harmful mutation; in a large one selection removes it, so for these mutations the substitution rate depends on the effective population size. For strictly neutral mutations, more mutations in a large population are offset by a smaller chance that each fixes." />
+<LessonFigure src="/figures/molecular-evolution/population-size-and-fate.webp" width={1200} height={800} alt="AI-generated illustration: two population fields of plain dots, a small one with six dots and a large one with twenty-four. A slightly harmful mutation, marked in gold, spreads to every dot in the small population but is removed in the large one. A bracket beneath notes that a large population makes more neutral mutations, each with a smaller chance of fixing." caption="In a small population drift can fix a slightly harmful mutation; in a large one selection is more likely to remove it, so for these mutations the substitution rate depends on the effective population size. For strictly neutral mutations, more mutations in a large population are offset by a smaller chance that each fixes." />
 
 Mutation input also varies. Bergeron and colleagues in 2023 sequenced 151 parent-offspring trios from 68 vertebrate species and found per-generation germline mutation rates differing 40-fold across species. The 36 mammals sampled averaged 7.97 x 10^-9 mutations per site per generation, and the four classes sampled did not differ significantly overall. That is a per-generation mutation rate; the clock rate above is a per-year substitution rate. Linking them takes assumptions about neutrality and generation time.
 
@@ -439,7 +440,7 @@ In a coding gene, a **nonsynonymous** change alters the amino acid and a **synon
 
 <LessonFigure src="/figures/molecular-evolution/synonymous-vs-nonsynonymous.webp" width={1200} height={800} alt="AI-generated illustration: a row of six codon blocks, each with three small squares, above a string of six coloured beads for amino acids. Two insets compare a synonymous change, where one square turns gold but the bead keeps its colour, with a nonsynonymous change, where one square turns gold and the bead changes colour." caption="In a coding gene, a nonsynonymous change alters the amino acid and a synonymous change does not, because the genetic code has several codons for most amino acids. That is why dS can serve as a built-in control for dN." />
 
-**Worked problem, step 4.** In the same gene from the second pair, dN = 0.004 and dS = 0.040 substitutions per site. Omega = 0.004 / 0.040 = 0.10. Amino-acid changes fixed at a tenth the rate of silent ones, so most were removed by purifying selection, even though the gene is still evolving.
+**Worked problem, step 4.** In a different gene from the second pair, dN = 0.004 and dS = 0.040 substitutions per site. Omega = 0.004 / 0.040 = 0.10. Amino-acid changes fixed at a tenth the rate of silent ones, so most were removed by purifying selection, even though the gene is still evolving.
 
 A second signal comes from polymorphism. Under neutrality, variants within a species are transient stages on their way to fixation or loss, so the ratio of replacement to synonymous changes should be the same among polymorphisms as among fixed differences between species. In 1991 John McDonald and Martin Kreitman applied this to the Adh gene in three Drosophila species and found an excess of fixed replacement differences, which they suggested reflected adaptive fixation. The **McDonald-Kreitman test** uses each class of change as the control for the other, so it needs no clock.
 
@@ -447,7 +448,7 @@ A second signal comes from polymorphism. Under neutrality, variants within a spe
 
 Each of these tests is a model inference, and each model can fail.
 
-A gene-wide omega averages over sites. If most codons are strongly constrained, a few positively selected sites barely lift the average, so the test has little power. Within a single population, omega near 1 can arise under selection and does not establish neutrality. Synonymous sites are not always neutral: Rahman and colleagues in 2021 found evidence of non-neutral synonymous substitutions in Enterobacterales, which undermines the denominator. And in 2018 Venkat, Hahn and Thornton showed with simulations based on mammal and fly alignments, containing no positive selection, that mutations changing several adjacent nucleotides at once can make the branch-site test report positive selection on a lineage.
+A gene-wide omega averages over sites. If most codons are strongly constrained, a few positively selected sites barely lift the average, so the test has little power. Within a single population, omega near 1 can arise under selection and does not establish neutrality. Synonymous sites are not always neutral: Rahman and colleagues in 2021 found evidence of non-neutral synonymous substitutions in Enterobacterales, so treating every synonymous change as neutral inflated omega: corrected values averaged 80% of the standard estimates. And in 2018 Venkat, Hahn and Thornton showed with simulations based on mammal and fly alignments, containing no positive selection, that mutations changing several adjacent nucleotides at once can make the branch-site test report positive selection on a lineage.
 
 ### Design problem
 
@@ -460,7 +461,7 @@ Start with the data. Inspect the alignment around the flagged codons for errors,
 
 Then test the model. Simulate alignments on the same tree with no positive selection but with realistic multinucleotide mutations and the observed base composition, and see how often the test fires; if it fires often, the empirical result is weak. Check codon-usage bias, since selection on synonymous sites changes dS.
 
-Seek an independent signal. Build a McDonald-Kreitman table for the lineage from polymorphism data: replacement and synonymous changes, polymorphic and fixed. An excess of fixed replacements would support the inference by a different route.
+Seek a second line of evidence. Build a McDonald-Kreitman table from polymorphism within the species and fixed differences from a close relative, with an outgroup to place the fixed changes on this lineage: replacement and synonymous changes, polymorphic and fixed. An excess of fixed replacements would support the inference with partly independent data, though this test also treats synonymous changes as neutral.
 
 Finally, test function. Reconstruct the ancestral and derived proteins, express both, and measure the property that matters, such as binding to a pathogen protein. Even then, report the result as a model inference supported by evidence, not as an observation of adaptation.
 
