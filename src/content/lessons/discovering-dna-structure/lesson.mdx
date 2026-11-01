@@ -150,13 +150,13 @@ practiceQuestions:
     choices:
       - "CGTA"
       - "ATGC"
-      - "GCAT"
+      - "TAGC"
       - "TACG"
     answer: 3
     rationale: >-
       Each base pairs with its partner: A with T, T with A, G with C and C with G, so ATGC is matched
-      by TACG. Copying ATGC unchanged ignores pairing. GCAT swaps A for G and T for C, which are not
-      partners. CGTA reverses the order and also uses wrong partners, so it fails the rule at every
+      by TACG. Copying ATGC unchanged ignores pairing. TAGC matches A and T correctly but puts G under G and C under C, which are not
+      partners. GCAT would be the partner strand written in the opposite direction, which is how it is often written because the strands run opposite ways, but this question asks for each letter matched to the one above. CGTA reverses the order and also uses wrong partners, so it fails the rule at every
       position.
   - stem: "A student wants a model that shows how much space the atoms of DNA fill and how the molecule’s outside looks. Which model fits best?"
     choices:
@@ -181,7 +181,7 @@ practiceQuestions:
       Divide the earlier cost by the later one: 95,300,000 divided by 525 is about 181,500, so the
       2022 estimate was about 180,000 times cheaper. Answers of 180 and 18,000 are off by a factor
       of 1,000 and 10, which happens when zeros are dropped. Eighteen million is 100 times too big.
-      These are production cost estimates, not prices a person would pay.
+      These are production cost estimates, not prices a person would pay, and the 2022 estimate is for re-reading a genome against an existing reference rather than building a new one.
   - stem: "Suppose a made-up research lab has $10,000 to spend only on sequencing, and each human-sized genome costs $525, as in NHGRI’s May 2022 estimate. How many whole genomes can the lab sequence?"
     choices:
       - "20 genomes"
@@ -210,7 +210,7 @@ explainLevels:
   - level: "highschool"
     label: "Biology"
     text: >-
-      DNA is too small to see directly, so scientists understand it through models, and each model
+      A DNA molecule is far too narrow to see with your eyes or a light microscope, so scientists understand it through models, and each model
       shows some features and hides others. The double helix model of 1953 was built to fit
       several kinds of evidence: base amounts measured in DNA samples, which showed A about equal
       to T and G about equal to C, X-ray diffraction patterns that pointed to a helix of a certain
@@ -222,12 +222,12 @@ explainLevels:
     label: "Biology II"
     text: >-
       Virginia’s Biology II: Genetics course asks what the Human Genome Project made possible. The
-      project provided data needed to read and edit the human genome. With a reference sequence,
-      scientists can compare a person’s DNA with it and find differences. Those comparisons are used
+      project provided a reference that made reading and editing human DNA much easier. With a reference sequence,
+      scientists can compare a person’s DNA with it and find differences. DNA comparisons are used
       in forensics to match DNA samples, in personalized medicine to choose care that fits a
       person’s genes, and in genetic counseling to help families understand inherited risks. This
-      lesson left out those uses, and also how editing tools find a target sequence. Each of those
-      depends on first knowing the order of bases in the region being studied.
+      lesson left out those uses, and also how editing tools find a target sequence. Most of those uses today
+      depend on first knowing the order of bases in the region being studied.
   - level: "college"
     label: "College"
     text: >-
@@ -248,7 +248,7 @@ anecdotes:
       one chromosome, human chromosome 22, in December 1999. They read the euchromatic part of the chromosome,
       which holds most of its genes, about 33.4 million bases. The sequence was not one unbroken
       string. It came in 12 long pieces with gaps between them. Even with gaps, the team
-      showed that reading a whole human chromosome was possible, and the public project’s work on the rest of the genome
+      showed that reading most of a human chromosome was possible, and the public project’s work on the rest of the genome
       followed the same mapped, piece-by-piece approach.
   - title: "Filling the gaps, twenty years later"
     source: "Nurk and colleagues, The complete sequence of a human genome, Science 376:44-53 (2022), doi:10.1126/science.abj6987."
@@ -277,7 +277,7 @@ import CER from '../../../components/CER.astro';
 import ScaffoldFigure from '../../../components/ScaffoldFigure.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
 
-**The Human Genome Project spent about 13 years, from 1990 to 2003, reading the DNA of humans. By 2022, the estimated cost to sequence a human-sized genome had fallen to about 525 dollars.** Nobody has ever looked at DNA the way you look at a pencil. Most of what we know about its shape and its letters comes from indirect evidence and from models. How was the model of DNA built, and what changed when scientists could read whole genomes?
+**The Human Genome Project spent about 13 years, from 1990 to 2003, reading the DNA of humans. By 2022, the estimated cost to sequence a human-sized genome had fallen to about 525 dollars.** Nobody can look at DNA the way you look at a pencil. Its shape was first worked out from indirect evidence and from models. How was the model of DNA built, and what changed when scientists could read whole genomes?
 
 <IdeaCheck items={[
   { idea: 'Watson and Crick discovered DNA.', answer: 'disagree', explain: 'DNA was identified by Friedrich Miescher in 1869, in material from the nuclei of white blood cells. In 1953 Watson and Crick proposed a model of how DNA is shaped. Their model used measurements that other scientists had already made, so it was the result of many people’s work.' },
@@ -324,7 +324,7 @@ These are four pictures of one substance, not four kinds of DNA. The map analogy
 
 DNA was identified in 1869, long before anyone knew its shape. By the early 1950s, scientists had three kinds of evidence to work with.
 
-- Base amounts. Chemists broke DNA into its bases and measured each one. Erwin Chargaff’s group found that in a DNA sample, the amount of A is close to the amount of T, and G is close to C. Other teams showed that the four bases do not simply come in equal amounts in every species.
+- Base amounts. Chemists broke DNA into its bases and measured each one. Erwin Chargaff’s group found that in a DNA sample, the amount of A is close to the amount of T, and G is close to C. The same work showed that the four bases do not come in equal amounts, and that the mix of bases differs from one species to another.
 - X-ray patterns. In **X-ray diffraction**, X-rays shone through lined-up DNA fibers scatter into a pattern of spots on film. Rosalind Franklin and Raymond Gosling measured such patterns, including one often called Photo 51. The spacing of the spots pointed to a helix about 2 nanometers wide, with phosphates on the outside. The pattern gave shape clues, not a photograph of the bases.
 - Model building. James Watson and Francis Crick fitted these facts together with the known chemistry of the parts. Their paper said they had been stimulated by knowing the general nature of unpublished results and ideas from Maurice Wilkins, Franklin and their coworkers at King’s College London.
 
@@ -344,11 +344,11 @@ Knowing the shape did not tell anyone the order of the bases. **DNA sequencing**
 
 A **genome** is all the DNA in one set of an organism’s chromosomes. A **chromosome** is one long DNA molecule wound with proteins. A human genome has about 3 billion base pairs.
 
-The **Human Genome Project** was an international project, from October 1990 to April 2003, that read the order of bases in human DNA. It mostly used improved Sanger sequencing. Human chromosome 22 was the first finished human chromosome, published in 1999. The project produced a **reference sequence**, a standard human DNA sequence that other sequences are compared against. It was pieced together from several donors, and it still had gaps.
+The **Human Genome Project** was an international project, from October 1990 to April 2003, that read the order of bases in human DNA. It mostly used improved Sanger sequencing. Human chromosome 22 was the first human chromosome to be sequenced, published in 1999. Its sequence covered the gene-rich part of the chromosome and still had gaps. The project produced a **reference sequence**, a standard human DNA sequence that other sequences are compared against. It was pieced together from several donors, and it still had gaps.
 
-Newer methods kept going. In 2022 a team reported a human sequence with no gaps in the 22 numbered chromosomes and the X, and a finished Y followed in 2023. In 2023 another team released a draft “pangenome” built from 47 people, to show how human DNA varies. The double helix model still holds. Sequencing added the letters, how many there are, and how they differ between people.
+Newer methods kept going. In 2022 a team reported a human sequence with no gaps in the 22 numbered chromosomes and the X, and a finished Y followed in 2023. In 2023 another team released a draft “pangenome” built from 47 people, to show how human DNA varies. The main features of the double helix model still hold, though later measurements refined details such as how many base pairs make one turn. Sequencing added the letters, how many there are, and how they differ between people.
 
-<Support min={2}>**Key idea:** Sequencing reads the order of DNA bases, and since 1990 it has grown from single chromosomes to whole human genomes.</Support>
+<Support min={2}>**Key idea:** Sequencing reads the order of DNA bases, and since 1990 it has grown to read whole human genomes.</Support>
 
 ## Elaborate: the falling cost of a genome
 
@@ -365,18 +365,18 @@ Newer methods kept going. In 2022 a team reported a human sequence with no gaps 
 | August 2021 | 562 |
 | May 2022 | 525 |
 
-These values come from the National Human Genome Research Institute (NHGRI) “Cost per Genome” data table, May 2022 version (genome.gov). They are production costs at NHGRI-funded sequencing centers, scaled to a genome of 3,000 million bases. They leave out the cost of interpreting the DNA, and they are not prices a person pays. For comparison, NHGRI reported the whole U.S. part of the Human Genome Project at about 2.7 billion dollars, counted in 1991 dollars, which paid for much more than sequencing.
+These values come from the National Human Genome Research Institute (NHGRI) “Cost per Genome” data table, May 2022 version (genome.gov). They are production costs at NHGRI-funded sequencing centers, scaled to a genome of 3,000 million bases. They leave out the cost of interpreting the DNA, and they are not prices a person pays. The job being priced also changed. Up to October 2007 the estimates are for Sanger sequencing, read enough times to build a genome without a reference. From January 2008 they are for newer machines that read short pieces and line them up against the existing human reference. NHGRI notes that a genome with no reference would need more reading. So the early and late numbers price somewhat different jobs. For comparison, NHGRI reported the whole U.S. part of the Human Genome Project at about 2.7 billion dollars, counted in 1991 dollars, which paid for much more than sequencing.
 
 1. Between which two neighboring dates did the cost fall the most, compared with its starting value?
 2. About how many times cheaper was May 2022 than September 2001?
-3. Compare 2019 to 2022 with 2008 to 2010. What do you notice about the recent change?
+3. Compare 2019 to 2022 with 2008 to 2010. What do you notice about the recent change? (The table shows selected dates. In NHGRI's full table, the values after about 2015 go up and down from one date to the next.)
 
 <CER
   task="Make a claim that answers the essential question: how did reading whole genomes change what biologists can study? Use this data."
   claim="The data show that the cost of sequencing a genome ___, so biologists can now ___."
   evidence="In September 2001 one genome cost about ___, but by May 2022 it cost about ___."
   reasoning="If each genome costs less, the same budget pays for ___ genomes, which lets scientists compare ___."
-  model="The cost of sequencing a human-sized genome fell so far that biologists can now compare many genomes instead of one reference. In September 2001 NHGRI estimated about 95 million dollars per genome. By May 2022 the estimate was about 525 dollars, roughly 180,000 times cheaper. In this table, the steepest fall came between early 2008 and early 2010, from about 3 million dollars to about 47,000 dollars. With a fixed budget, a lower cost per genome pays for many more genomes, so scientists can compare DNA across many people and species. One limit: these are production costs from funded sequencing centers only, and they leave out the cost of analyzing the data."
+  model="The cost of sequencing a human-sized genome fell so far that biologists can now compare many genomes instead of one reference. In September 2001 NHGRI estimated about 95 million dollars per genome. By May 2022 the estimate was about 525 dollars, roughly 180,000 times cheaper. In this table, the steepest fall came between early 2008 and early 2010, from about 3 million dollars to about 47,000 dollars. With a fixed budget, a lower cost per genome pays for many more genomes, so scientists can compare DNA across many people and species. One limit: these are production costs from funded sequencing centers only, and they leave out the cost of analyzing the data. Another limit: after 2008 the estimates are for re-reading a human genome against an existing reference, not for building a new one, so part of the fall comes from a change in what was priced."
 />
 
 ### Design problem
@@ -400,6 +400,6 @@ If short strips often give the wrong order around the repeat while 20-letter str
 
 ## Evaluate: check your thinking
 
-The human genome took about 13 years to read partly because the methods of the time were slow and costly. New sequencing technology cut the estimated cost from about 95 million dollars in 2001 to about 525 dollars in 2022. The double helix model from 1953 still holds, and cheap sequencing now lets biologists compare the DNA of many people and species.
+The human genome took about 13 years to read partly because the methods of the time were slow and costly. New sequencing technology, together with a finished reference to compare against, cut the estimated cost from about 95 million dollars in 2001 to about 525 dollars in 2022. The main features of the 1953 double helix model still hold, and cheap sequencing now lets biologists compare the DNA of many people and species.
 
 **Science practices you used:** comparing models and naming their limits, tracing how evidence built a model, reading a data table and calculating a ratio, and planning a fair test with repeated trials.

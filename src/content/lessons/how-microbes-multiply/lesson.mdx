@@ -13,8 +13,8 @@ hook: "How can one bacterium become millions of cells in an afternoon, and how c
 estMinutes: 40
 supports: true
 objectives:
-  - "You will describe how most bacteria reproduce asexually by binary fission (and some by budding), making genetically identical cells, and explain that conjugation, in which bacteria pass DNA between cells, is a rarer way to gain new genes."
-  - "You will describe the lytic cycle (the virus takes over the host, copies are assembled and released, often killing the cell) and the lysogenic cycle (the viral genetic material joins the host’s genome and is copied with it, and may later switch to the lytic cycle)."
+  - "You will describe how most bacteria reproduce asexually by binary fission (and some by budding), making cells that are genetically identical except for rare copying mistakes, and explain that conjugation, in which bacteria pass DNA between cells, is another way to gain new genes, one that does not make a new cell."
+  - "You will describe the lytic cycle (the virus takes over the host, copies are assembled and released, often killing the cell) and the lysogenic cycle (the viral genetic material stays in the host and is copied with it, in phage lambda as part of the host’s chromosome, and may later switch to the lytic cycle)."
   - "You will use a doubling model and growth data to calculate bacterial numbers over time, and compare how bacteria and viruses reproduce."
 
 ladder:
@@ -45,7 +45,7 @@ techniques:
       cloudiness into a number of cells needs a separate calibration.
   - name: "Viable plate count"
     blurb: >-
-      A diluted sample is spread on a dish of food gel, and each cell that can grow there makes a
+      A diluted sample is spread on a dish of food gel, and each live cell, or small clump of cells, that can grow there makes a
       visible colony. Counting colonies estimates live cells, reported as colony-forming units.
   - name: "Time-lapse fluorescence microscopy"
     blurb: >-
@@ -74,7 +74,7 @@ practiceQuestions:
       Most bacteria grow, copy their DNA and split into two cells, which is binary fission. Bacteria
       do not give birth the way animals do; one parent cell becomes two. Conjugation moves
       DNA between existing cells and does not join them into one cell or make a new cell. Copying
-      inside a host cell describes how viruses are made, not bacteria.
+      inside a host cell describes how viruses are made. A few bacteria do live inside host cells, but they still divide as cells.
   - stem: "What does conjugation do in bacteria?"
     choices:
       - "It lets a virus put its DNA into a cell"
@@ -167,10 +167,10 @@ explainLevels:
     text: >-
       In Life Science you learned that some living things reproduce asexually. One parent makes
       offspring, and the offspring are genetically identical to the parent. Other living things
-      reproduce sexually, with two parents, and the offspring are different from each parent. You
+      reproduce sexually, usually with two parents, and the offspring are different from each parent. You
       may have seen a picture of one cell becoming two. Biology adds the names and steps: bacteria
-      split by binary fission or grow buds, can trade DNA by conjugation, and viruses copy
-      themselves only inside a host cell, by the lytic or lysogenic cycle.
+      split by binary fission or grow buds, can trade DNA by conjugation, and viruses are copied
+      only inside a host cell. Phages, the viruses of bacteria, can follow the lytic cycle, and some can also follow the lysogenic cycle.
   - level: "highschool"
     label: "Biology"
     text: >-
@@ -178,8 +178,8 @@ explainLevels:
       into two nearly identical cells. A few bacteria bud instead. Conjugation passes DNA, often a
       plasmid, from one cell to another; it does not make a new cell, but it can give a cell new
       genes. Viruses cannot divide. In the lytic cycle a virus makes the host build new viruses,
-      which are released, often killing the cell. In the lysogenic cycle the viral DNA joins the
-      host’s chromosome and is copied each time the host divides, until it may switch to the lytic
+      which are released, often killing the cell. In the lysogenic cycle the viral DNA stays in the host (in phage lambda it joins the
+      host’s chromosome) and is copied each time the host divides, and it may later switch to the lytic
       cycle. With constant doubling, numbers grow fast, but real populations level off when food
       runs out.
   - level: "bio2"
@@ -211,8 +211,8 @@ anecdotes:
       In the 1940s, Joshua Lederberg and Edward Tatum worked with E. coli strains that could not
       grow unless they were fed certain extra nutrients. Each strain needed different ones. Alone,
       neither strain grew on plain food gel. When the two were mixed, only a very small fraction of
-      the cells added grew into colonies on the plain gel. Those cells could now make every
-      nutrient they needed. The result was evidence that bacteria can combine genes, which later
+      the cells added grew into colonies on the plain gel. Those cells could now make all the extra
+      nutrients the parent strains had been missing. The result was evidence that bacteria can combine genes, which later
       work traced to DNA passing between cells.
   - title: "Phages that count their neighbors"
     source: "Erez and colleagues, Communication between viruses guides lysis-lysogeny decisions, Nature 541:488-493 (2017)."
@@ -221,7 +221,7 @@ anecdotes:
       grew new infections in liquid taken from earlier infected cultures. Fewer cells burst, and a
       DNA test showed more phage DNA joined to the host chromosome. The phages release a small
       protein piece, a peptide, as they multiply. When much of it builds up, more infections go
-      lysogenic. Even then, only about half the infected cells became lysogens within 60 minutes.
+      lysogenic. In a later test with the peptide made in the lab and added to the medium, about half the bacteria became lysogens within 60 minutes, compared with about a fifth without it. Even with plenty of peptide, the outcome for each cell stayed partly a matter of chance.
 
 corpusTags:
   - "bacteria"
@@ -251,7 +251,7 @@ import LessonFigure from '../../../components/LessonFigure.astro';
 
 ## Explore: grow a population and follow a virus
 
-The simulation has two panels. In the first, you start a bacterial population, pick a doubling time and set how much food is in the dish, then watch the count over time. In the second, you step a phage, a virus that infects bacteria, through an infection and choose the lytic or the lysogenic path.
+The simulation has two panels. In the first, you start a bacterial population, pick a doubling time and set how much food is in the dish, then watch the count over time. In the second, you step a phage, a virus that infects bacteria, through an infection and choose the lytic or the lysogenic path. In a real infection nobody chooses: in phage lambda the outcome depends on the state of the host cell and on how many phages infect it at once, and it is partly a matter of chance.
 
 <DoublingAndViralCycles />
 
@@ -277,7 +277,7 @@ Some bacteria use **budding**, when a small new cell grows out of the parent and
 
 The daughter cells are usually genetically identical. "Usually" matters. Copying DNA sometimes makes mistakes, and sequencing studies of lab E. coli found mutations building up over many generations.
 
-Bacteria have one more way to change their genes. **Conjugation** is when one bacterial cell passes DNA directly to another through contact. The DNA is often a **plasmid**, a small extra circle of DNA separate from the chromosome. Conjugation does not make a new cell. Afterward there are still two cells, but one has new genes. The Virginia SOL calls conjugation a form of sexual reproduction, because genes from two cells are combined. Many biologists call it gene transfer, because no new cell is made. Conjugation is far rarer than binary fission.
+Bacteria have one more way to change their genes. **Conjugation** is when one bacterial cell passes DNA directly to another through contact. The DNA is often a **plasmid**, a small extra circle of DNA separate from the chromosome. Conjugation does not make a new cell. Afterward there are still two cells, but one has new genes. The Virginia SOL calls conjugation a form of sexual reproduction, because genes from two cells are combined. Many biologists call it gene transfer, because no new cell is made. The Virginia SOL describes conjugation as rare. How often it really happens depends on the kind of bacteria, the DNA they carry and their surroundings.
 
 <LessonFigure src="/figures/how-microbes-multiply/conjugation-before-after.webp" width={1200} height={800} alt="AI-generated illustration: two rod-shaped bacteria touching, one passing a small ring of DNA called a plasmid to the other along a short bridge, and afterwards the same two cells apart, both holding the small ring." caption="In conjugation, one bacterium passes DNA, often a plasmid, to another through contact. No new cell is made: there are still two cells, but one has new genes." />
 
@@ -290,11 +290,11 @@ A virus cannot split, grow or make anything on its own. It needs a **host cell**
 The **lytic cycle** is the path where a virus takes over the host, the host builds new viruses, and the cell bursts open to release them. It runs like this:
 
 1. The phage attaches to the bacterium and injects its DNA.
-2. The host’s machinery copies the viral DNA and builds viral parts.
+2. The phage’s genes take over the cell. The host’s machinery, helped by some proteins made from phage genes, copies the viral DNA and builds viral parts.
 3. New phages are assembled from those parts.
 4. The cell bursts and the new phages escape. The host cell dies.
 
-The **lysogenic cycle** is the path where the viral DNA joins the host’s own DNA and is copied along with it. The best-known example is phage lambda, which infects E. coli. Its DNA becomes part of the bacterial chromosome. That stored viral DNA is called a **prophage**. Each time the bacterium divides by binary fission, both daughter cells get a copy. The cell stays alive, and the virus spreads quietly through a growing family of cells. Later, something such as damage to the cell’s DNA can switch the prophage into the lytic cycle.
+The **lysogenic cycle** is the path where the viral DNA stays inside the host and is copied along with the host’s DNA. The best-known example is phage lambda, which infects E. coli. Its DNA becomes part of the bacterial chromosome. Some other phages keep their DNA as a separate piece inside the cell instead. The stored viral DNA is called a **prophage**. Each time the bacterium divides by binary fission, both daughter cells get a copy. The cell stays alive, and the virus spreads quietly through a growing family of cells. Later, something such as damage to the cell’s DNA can switch the prophage into the lytic cycle.
 
 {/* DIAGRAM: lytic and lysogenic cycles side by side: 1 phage injects DNA, 2 lytic path: viral parts made and assembled, 3 cell bursts and releases phages, 4 lysogenic path: viral DNA joins the chromosome as a prophage, 5 host divides and both daughters carry the prophage, 6 switch arrow from prophage back to lytic */}
 
@@ -302,9 +302,9 @@ The **lysogenic cycle** is the path where the viral DNA joins the host’s own D
 |---|---|---|---|
 | Who does the copying | The bacterium itself | The host cell | The host cell, each time it divides |
 | What is made | Two new cells | Many new virus particles | Host cells that carry viral DNA |
-| Host cell afterward | No host involved | Usually dies | Alive, until a switch to lytic |
+| Host cell afterward | No host needed for most bacteria | Usually dies | Alive, unless it later switches to lytic |
 
-Now the cold sore. Herpes simplex virus infects people, not bacteria, but it uses a similar hiding strategy. It can stay in sensory nerve cells, the cells that carry feeling from the skin. Studies of infected human and mouse tissue suggest its DNA stays as a separate circle in the nucleus rather than joining the chromosome the way lambda does. From time to time the virus can become active again and travel back to the skin, and a new sore appears.
+Now the cold sore. Herpes simplex virus infects people, not bacteria, but it uses a similar hiding strategy. It can stay in sensory nerve cells, the cells that carry feeling from the skin. Studies of infected human and mouse tissue suggest its DNA stays as a separate circle in the nucleus rather than joining the chromosome the way lambda does. From time to time the virus can become active again and travel back to the skin. Sometimes a new sore appears, but the virus can also become active without causing a sore.
 
 <Support min={2}>**Key idea:** A virus never divides; a host cell builds new viruses in the lytic cycle. In the lysogenic cycle, viral DNA is copied with the host’s DNA and may later switch to the lytic cycle.</Support>
 
@@ -322,7 +322,7 @@ Here is a worked example. A model population starts with 100 cells and doubles e
 
 Starting from one E. coli cell with 21 doublings (7 hours), the model gives 2,097,152 cells. That is the "millions in an afternoon" from the opening. These are calculated numbers, not counts. The model assumes no cells die, no waiting before growth starts and endless food.
 
-Real cultures follow a curve with stages. First there is a lag, where cells are active but the count barely rises. Then comes fast growth, close to steady doubling. Last, food runs low and wastes build up, so growth levels off. The same limits apply to every population, as the carrying capacity lesson shows.
+Real cultures follow a curve with stages. First there is a lag, where cells are active but the count barely rises. Then comes fast growth, close to steady doubling. Then food runs low and wastes build up, so growth levels off. If the culture is left long enough, the number of living cells can start to fall. Every population meets limits of some kind, though which limits matter depends on the organism and where it lives, as the carrying capacity lesson shows.
 
 <Support min={2}>**Key idea:** Constant doubling makes numbers grow very fast, but a real population levels off when food runs out and wastes build up.</Support>
 
@@ -343,7 +343,7 @@ Scientists often track a liquid culture by its cloudiness, called optical densit
 | 16 | 0.318 |
 | 18 | 0.315 |
 
-These are raw readings from one well, curve 15, of E. coli strain BW25113 grown in a defined lab medium, from the dataset of Honoka Aida and Bei-Wen Ying (deposited on figshare in 2025). The readings were taken every 30 minutes; this table shows ten of them. The raw numbers include some cloudiness from the medium itself.
+These are raw readings from one well, curve 15, of E. coli strain BW25113 grown in a defined lab medium, from the dataset of Honoka Aida and Bei-Wen Ying (deposited on figshare in 2025). The readings were taken every 30 minutes; this table shows ten of them. The raw numbers include some cloudiness from the medium itself. The culture began from a 1,000-fold dilution, so a flat start can mean a lag or simply too few cells for the reading to show.
 
 1. Between which times does the reading barely change? Between which times does it rise fastest?
 2. How much did the reading rise from 6 to 12 hours? How much did it change from 14 to 18 hours?
@@ -354,7 +354,7 @@ These are raw readings from one well, curve 15, of E. coli strain BW25113 grown 
   claim="The data show that the population ___."
   evidence="From 6 to 12 hours the reading rose from ___ to ___, but from 14 to 18 hours it ___."
   reasoning="This happens because ___, so doubling stops when ___."
-  model="A bacterial population cannot keep doubling forever. In this E. coli culture the cloudiness barely moved for the first 6 hours, from 0.078 to 0.084. It then rose steeply to 0.313 by 12 hours. From 14 to 18 hours it stayed near 0.32 and even dipped a little. The cells multiplied faster once they got going, but in a closed well the food runs low and wastes build up, so growth levels off. One limit: this is one well of one strain in one medium, and cloudiness is not a cell count."
+  model="A bacterial population cannot keep doubling forever. In this E. coli culture the cloudiness barely moved for the first 6 hours, from 0.078 to 0.084. The culture started from a 1,000-fold dilution, so early growth may have been too small for the reading to show. The reading then rose steeply to 0.313 by 12 hours. From 14 to 18 hours it stayed near 0.32, so growth had levelled off. In a closed well, food running low or wastes building up could explain this, but this curve alone cannot tell us which. One limit: this is one well of one strain in one medium, and cloudiness is not a cell count."
 />
 
 ### Design problem
@@ -364,14 +364,14 @@ Baker’s yeast is a single-celled fungus, not a bacterium, but it also reproduc
 <details>
 <summary>One way to do it</summary>
 
-- **Independent variable:** sugar in warm water, for example 0, 1, 2 and 4 grams per 100 mL.
-- **Dependent variable:** cloudiness every hour, using a turbidity probe or by comparing against a printed card behind the tube, for about 8 hours.
+- **Independent variable:** sugar added to the same nutrient broth in every tube, for example 0, 1, 2 and 4 grams per 100 mL. The broth must also supply nitrogen and minerals, such as a yeast nutrient your teacher provides, because yeast in sugar water alone soon runs short of them and stops growing.
+- **Dependent variable:** cloudiness every hour, using a turbidity probe or a printed card behind the tube, until the readings stop rising. Mix each tube gently first, because yeast settles and gas bubbles add cloudiness. To check that cloudiness tracks cell number, count cells in a drop under a microscope a few times.
 - **Constants:** the same yeast packet and amount, the same water volume and temperature, the same tubes.
 - **Control:** the tube with no sugar.
 - **Trials and sample size:** three tubes per sugar level, then average them.
 - **Safety:** use only yeast from the store, as your teacher directs. Never grow microbes from skin, soil or surfaces, because you cannot know what will grow.
 
-If the high-sugar tubes level off higher, food limits the population. If all tubes level off at the same height, something else, such as wastes, may set the limit first.
+If the high-sugar tubes level off higher, sugar was limiting how far the population grew. If all tubes level off at the same height, something else, such as another nutrient running out or wastes building up, may set the limit first.
 
 </details>
 
