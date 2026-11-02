@@ -1,0 +1,89 @@
+---
+/* About page: how a lesson is made, checked and then kept fixed. Plain HTML, so it
+   reflows to one column on a phone. The claims match the lists beside it on /about/. */
+const MADE = [
+  { k: 'I choose', t: 'the idea and the sources: my lectures, my book, the research papers.' },
+  { k: 'AI writes', t: 'the lesson, the film script and the questions from those sources.' },
+  { k: 'Other AI checks', t: 'it claim by claim, using models from more than one company.' },
+];
+const KEPT = [
+  { k: 'It goes up', t: 'with an Under review tag on any part still waiting for a person’s check.' },
+  { k: 'You report', t: 'what looks wrong, with the button on every lesson.' },
+  { k: 'It gets fixed', t: 'and the fix goes into the public change history.' },
+];
+---
+
+<figure class="mcf">
+  <div class="mcf-row">
+    <p class="mcf-h">Made once</p>
+    <ol class="mcf-steps">
+      {MADE.map((s) => <li><strong>{s.k}</strong> {s.t}</li>)}
+    </ol>
+  </div>
+  <div class="mcf-row mcf-loop">
+    <p class="mcf-h">Fixed for as long as it is up <span aria-hidden="true">↻</span></p>
+    <ol class="mcf-steps" start="4">
+      {KEPT.map((s) => <li><strong>{s.k}</strong> {s.t}</li>)}
+    </ol>
+  </div>
+  <figcaption>The making happens once. The checking and fixing keep going, and your reports drive the loop.</figcaption>
+</figure>
+
+<style>
+  .mcf { margin: var(--ddp-space-6) 0 var(--ddp-space-8); }
+  .mcf-row + .mcf-row { margin-top: var(--ddp-space-4); }
+  .mcf-h {
+    margin: 0 0 var(--ddp-space-2);
+    font-family: var(--ddp-font-mono);
+    font-size: var(--ddp-text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ddp-color-accent);
+  }
+  .mcf-loop .mcf-h { color: var(--ddp-color-secondary-ink); }
+  .mcf-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--ddp-space-6);
+  }
+  .mcf-steps li {
+    position: relative;
+    margin: 0;
+    padding: var(--ddp-space-3) var(--ddp-space-4);
+    border: 1px solid var(--ddp-color-line);
+    border-top: 3px solid var(--ddp-color-accent);
+    border-radius: var(--ddp-radius-sm);
+    background: var(--ddp-color-surface);
+    font-size: var(--ddp-text-sm);
+    line-height: 1.5;
+    color: var(--ddp-color-ink-soft);
+  }
+  .mcf-loop .mcf-steps li { border-top-color: var(--ddp-color-secondary); }
+  .mcf-steps li strong { display: block; color: var(--ddp-color-primary); font-size: var(--ddp-text-base); }
+  /* Arrow to the next card */
+  .mcf-steps li:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: calc(-1 * var(--ddp-space-6) + 4px);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ddp-color-muted);
+    font-weight: 700;
+  }
+  .mcf figcaption { margin-top: var(--ddp-space-3); color: var(--ddp-color-muted); font-size: var(--ddp-text-sm); }
+
+  @media (max-width: 640px) {
+    .mcf-steps { grid-template-columns: 1fr; gap: var(--ddp-space-4); }
+    .mcf-steps li:not(:last-child)::after {
+      content: '↓';
+      right: auto;
+      left: 50%;
+      top: auto;
+      bottom: calc(-1 * var(--ddp-space-4) - 2px);
+      transform: translateX(-50%);
+    }
+  }
+</style>

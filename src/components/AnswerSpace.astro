@@ -1,0 +1,205 @@
+---
+/* "Picture everything people know as a circle." The static About-page version of the
+   answer-space prototype (docs/expansion/mission-2026-10/answer-space-prototype.html).
+   The rings come from STAGES, so a new stage band shows up here without an edit.
+   The dots are placed by a seeded generator, so every build draws the same picture. */
+import { STAGES } from '../data/stages';
+
+const W = 640, H = 640;
+const cx = 320, cy = 330;
+const R = 236;           // the edge
+const R0 = 26;           // the age-0 hub
+
+/* Short ring names; a stage without one falls back to its full title. */
+const SHORT: Record<string, string> = {
+  'ages-5-10': 'Ages 5–10',
+  'grade-7': 'Grade 7',
+  'high-school': 'High school',
+  'starting-college': 'Starting college',
+  'college-core': 'College core',
+  'college-further': 'Going further',
+  graduate: 'Graduate school',
+};
+const n = STAGES.length;
+const step = (R - R0) / n;
+const rings = STAGES.map((s, i) => ({
+  label: SHORT[s.key] ?? s.title,
+  outer: R0 + step * (i + 1),
+  mid: R0 + step * (i + 0.5),
+}));
+
+/* Angles in degrees, 0 = right, -90 = up (SVG y runs down). Biology is the slice
+   the site has built; the rest are named and left empty. */
+const BIO: [number, number] = [-150, -30];
+const OTHERS = ['Chemistry', 'Physics', 'Math', 'Engineering', 'Earth and space'];
+const otherSpan = (360 - (BIO[1] - BIO[0])) / OTHERS.length;
+const others = OTHERS.map((name, i) => {
+  const a0 = BIO[1] + otherSpan * i;
+  return { name, a0, mid: a0 + otherSpan / 2 };
+});
+
+const rad = (d: number) => (d * Math.PI) / 180;
+const pt = (r: number, d: number) => [cx + r * Math.cos(rad(d)), cy + r * Math.sin(rad(d))];
+const f = (x: number) => x.toFixed(1);
+const wedge = (r: number, a0: number, a1: number) => {
+  const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1);
+  const large = a1 - a0 > 180 ? 1 : 0;
+  return `M${cx},${cy} L${f(x0)},${f(y0)} A${r},${r} 0 ${large} 1 ${f(x1)},${f(y1)} Z`;
+};
+
+/* Seeded random (mulberry32). */
+let seed = 20261030;
+const rnd = () => {
+  seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+/* Answers: packed near the middle, thinning toward the edge. */
+const inBio = (d: number) => d >= BIO[0] && d <= BIO[1];
+const dots: { x: number; y: number; bio: boolean }[] = [];
+for (let i = 0; i < 2600 && dots.length < 520; i++) {
+  const r = R * Math.sqrt(rnd());
+  const d = rnd() * 360 - 180;
+  if (r < R0 + 4 || r > R - 5) continue;
+  const keep = 0.06 + 0.94 * Math.pow(1 - r / R, 1.6);
+  if (rnd() > keep) continue;
+  const [x, y] = pt(r, d);
+  dots.push({ x, y, bio: inBio(d) });
+}
+
+/* Questions past the edge: more of them farther out. Kept clear of the two
+   written questions in the top corners and the edge note at the bottom. */
+const qs: { x: number; y: number; s: number }[] = [];
+for (let i = 0; i < 4000 && qs.length < 46; i++) {
+  const r = R + 14 + rnd() * 150;
+  const d = rnd() * 360 - 180;
+  const [x, y] = pt(r, d);
+  if (x < 14 || x > W - 14 || y < 18 || y > H - 40) continue;
+  if (y < 96 && (x < 236 || x > 404)) continue;
+  if (x > 470 && y < 150) continue;
+  if (y > H - 64 && x > 120 && x < W - 120) continue;
+  if (rnd() > (r - R) / 150 + 0.15) continue;
+  if (qs.some((q) => Math.hypot(q.x - x, q.y - y) < 22)) continue;
+  qs.push({ x, y, s: 13 + Math.round(rnd() * 6) });
+}
+
+const aria = `A circle of what people know. A dot in the middle is age 0. Rings around it are the stages of learning: ${rings.map((r) => r.label).join(', ')}. Answers are packed near the middle and thin toward a dotted edge, and past the edge there are more questions than answers. The top slice, biology, is shaded as the part this site has built. Chemistry, physics, math, engineering, and earth and space science are not built yet.`;
+---
+
+<figure class="answer-space">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={aria}>
+    <defs>
+      <marker id="as-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" class="as-arrowhead" />
+      </marker>
+    </defs>
+
+    {/* The slice the site has built */}
+    <path d={wedge(R, BIO[0], BIO[1])} class="as-bio" />
+    {others.map((o) => {
+      const [x, y] = pt(R, o.a0);
+      return <line x1={cx} y1={cy} x2={f(x)} y2={f(y)} class="as-divider" />;
+    })}
+    {[BIO[0]].map((a) => {
+      const [x, y] = pt(R, a);
+      return <line x1={cx} y1={cy} x2={f(x)} y2={f(y)} class="as-divider" />;
+    })}
+
+    {/* Rings */}
+    {rings.slice(0, -1).map((r) => <circle cx={cx} cy={cy} r={f(r.outer)} class="as-ring" />)}
+
+    {/* Answers */}
+    {dots.map((d) => <circle cx={f(d.x)} cy={f(d.y)} r="1.7" class={d.bio ? 'as-dot as-dot-bio' : 'as-dot'} />)}
+
+    {/* The edge */}
+    <circle cx={cx} cy={cy} r={R} class="as-edge" />
+
+    {/* Sciences not built yet */}
+    {others.map((o) => {
+      const [x, y] = pt(R * 0.6, o.mid);
+      return (
+        <text x={f(x)} y={f(y)} class="as-other" text-anchor="middle">
+          <tspan x={f(x)}>{o.name}</tspan>
+          <tspan x={f(x)} dy="17" class="as-other-note">not built yet</tspan>
+        </text>
+      );
+    })}
+
+    {/* Stage labels stack up the middle of the biology slice, like rungs */}
+    {rings.map((r) => (
+      <text x={cx} y={f(cy - r.mid + 5)} class="as-rung" text-anchor="middle">{r.label}</text>
+    ))}
+    <circle cx={cx} cy={cy} r="7" class="as-hub" />
+    <text x={cx} y={cy + 26} class="as-rung" text-anchor="middle">Age 0</text>
+    <text x={f(pt(R + 16, -90)[0])} y={f(pt(R + 16, -90)[1] + 1)} class="as-bio-label" text-anchor="middle">BIOLOGY · ON THE SITE NOW</text>
+
+    {/* Past the edge */}
+    {qs.map((q) => <text x={f(q.x)} y={f(q.y)} class="as-q" style={`font-size:${q.s}px`} text-anchor="middle">?</text>)}
+
+    <text x="18" y="34" class="as-question">
+      <tspan class="as-qmark">? </tspan>Why do we need sleep?
+    </text>
+    <text x={W - 18} y="34" class="as-question" text-anchor="end">
+      <tspan class="as-qmark">? </tspan>Why does Rubisco so often
+      <tspan x={W - 18} dy="21">grab oxygen by mistake?</tspan>
+    </text>
+
+    {/* Leaning back: an edge question needs the rings inside it */}
+    <path d={`M ${W - 120} 82 C ${W - 150} 150, ${cx + 120} 160, ${f(cx + 64)} ${f(cy - rings[4].mid - 2)}`} class="as-lean" marker-end="url(#as-arrow)" />
+    <text x={W - 104} y="112" class="as-lean-label">leans on</text>
+    <text x={W - 104} y="130" class="as-lean-label">the rings inside</text>
+
+    <text x={cx} y={H - 14} class="as-edge-label" text-anchor="middle">The edge: past it, more questions than answers</text>
+  </svg>
+  <figcaption>
+    The dot in the middle is age 0, and each ring is a stage of learning. Answers are packed near the middle
+    and thin toward the edge. The shaded slice, biology, is the part this site has built so far. The real map
+    is lumpier than a circle: some edges are close to the middle, and the edge keeps moving. The circle
+    comes from Matt Might’s
+    <a href="https://matt.might.net/articles/phd-school-in-pictures/" rel="noopener">Illustrated Guide to a Ph.D.</a>
+  </figcaption>
+</figure>
+
+<style>
+  .answer-space { margin: var(--ddp-space-8) 0; }
+  .answer-space svg { display: block; width: 100%; height: auto; max-width: 640px; margin: 0 auto; }
+  .answer-space figcaption {
+    margin-top: var(--ddp-space-3);
+    color: var(--ddp-color-muted);
+    font-size: var(--ddp-text-sm);
+    line-height: 1.55;
+  }
+  /* On a phone, let the drawing use the full screen width so its labels stay legible. */
+  @media (max-width: 560px) {
+    .answer-space svg { width: calc(100% + 2 * var(--ddp-space-4)); max-width: none; margin-inline: calc(-1 * var(--ddp-space-4)); }
+  }
+
+  .as-bio { fill: var(--ddp-color-accent-soft); }
+  .as-divider { stroke: var(--ddp-color-line); stroke-width: 1; }
+  .as-ring { fill: none; stroke: var(--ddp-color-line); stroke-width: 1.2; }
+  .as-dot { fill: var(--ddp-color-muted); opacity: 0.45; }
+  .as-dot-bio { fill: var(--ddp-color-accent); opacity: 0.85; }
+  .as-edge { fill: none; stroke: var(--ddp-color-secondary); stroke-width: 3; stroke-dasharray: 2 7; stroke-linecap: round; }
+  .as-hub { fill: var(--ddp-color-secondary); }
+
+  .answer-space text { font-family: var(--ddp-font-sans); }
+  .as-rung {
+    font-size: 16px; font-weight: 700; fill: var(--ddp-color-primary);
+    paint-order: stroke; stroke: var(--ddp-color-accent-soft); stroke-width: 5px; stroke-linejoin: round;
+  }
+  .as-other { font-size: 15px; font-weight: 600; fill: var(--ddp-color-muted); }
+  .as-other-note { font-size: 13px; font-weight: 400; font-style: italic; }
+  .as-bio-label {
+    font-family: var(--ddp-font-mono) !important; font-size: 12px; letter-spacing: 0.08em; fill: var(--ddp-color-accent);
+    paint-order: stroke; stroke: var(--ddp-color-bg); stroke-width: 6px;
+  }
+  .as-q { fill: var(--ddp-color-secondary-ink); opacity: 0.55; font-family: var(--ddp-font-serif) !important; }
+  .as-question { font-family: var(--ddp-font-serif) !important; font-style: italic; font-size: 17px; fill: var(--ddp-color-ink); }
+  .as-qmark { fill: var(--ddp-color-secondary-ink); font-weight: 700; font-style: normal; }
+  .as-lean { fill: none; stroke: var(--ddp-color-accent); stroke-width: 1.8; stroke-dasharray: 5 4; }
+  .as-arrowhead { fill: var(--ddp-color-accent); }
+  .as-lean-label { font-size: 13px; fill: var(--ddp-color-accent); font-style: italic; }
+  .as-edge-label { font-size: 14px; font-style: italic; fill: var(--ddp-color-secondary-ink); }
+</style>
