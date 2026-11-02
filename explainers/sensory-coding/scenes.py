@@ -1,417 +1,523 @@
-"""Sensory coding: identical spikes, different meanings  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-All spike trains, bars and curves are drawn in this sketch from the lesson's own numbers or as
-relative units; none is a recording.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the stimulus (load, light) and the stimulus axis
-  TEAL   = the receptor potential (graded voltage)
-  GREEN  = spikes, firing rate, outputs (the afferent's message)
-  BLUE   = the steep flank / a highlighted comparison
-  RED    = inhibition (lateral inhibition links, the cut)
-  PURPLE = receptor proteins for smell (combination code)
-  GREY   = structure, axes, neurons, de-emphasized
+"""Chapter 1, reviewer fix round.
+COLOR MAP: YELLOW stimulus; TEAL graded potential / fluctuation;
+GREEN spikes / firing rate; BLUE comparison; GREY structures / axes;
+RED inhibition; PURPLE smell receptor proteins (unused in this chapter).
+Models: Gaussian tuning 50 exp(-.5*((theta-45)/22.5)^2);
+V = -65/(1+g); passive attenuation exp(-x/lambda).
+Rasters are illustrative integrate-and-fire reconstructions, not measured data:
+spike times are crossings of integrated rate, with exponential adaptation.
 """
 import numpy as np
-from scipy.interpolate import PchipInterpolator
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
-PURPLE = "#B58CD9"
-
-
-def train(xs, y, h=0.7, color=GREEN, w=5):
-    return VGroup(*[Line([x, y, 0], [x, y + h, 0], color=color, stroke_width=w) for x in xs])
+PURPLE = '#B58CD9'
 
 
-def baseline(x0, x1, y, color=GREY):
-    return Line([x0, y, 0], [x1, y, 0], color=color, stroke_width=2.5)
+def train(xs, y, h=.8, color=GREEN, w=5):
+    return VGroup(*[Line([x,y,0],[x,y+h,0],color=color,stroke_width=w) for x in xs])
 
 
-def spaced(n, x0, x1):
-    return list(np.linspace(x0, x1, n))
+def baseline(x0,x1,y,color=GREY):
+    return Line([x0,y,0],[x1,y,0],color=color,stroke_width=2)
 
 
-def sketch_tag():
-    return T("in this sketch", 22, GREY).to_corner(DL, buff=0.35)
+def firing(duration, initial, steady=None, tau=2):
+    """Deterministic phase crossings of r(t)=steady+(initial-steady)e^-t/tau."""
+    steady=initial if steady is None else steady
+    t=np.linspace(0,duration,12001)
+    phase=steady*t+(initial-steady)*tau*(1-np.exp(-t/tau))
+    return np.interp(np.arange(.35,phase[-1],1),phase,t)
 
 
-def inhib(a, b, color=RED, w=5):
-    a, b = np.array(a, float), np.array(b, float)
-    d = (b - a) / np.linalg.norm(b - a)
-    b = b - d * 0.05
-    perp = np.array([-d[1], d[0], 0])
-    return VGroup(Line(a, b, color=color, stroke_width=w), Line(b + perp * 0.2, b - perp * 0.2, color=color, stroke_width=w + 1))
+def heading(s,color=TEXT):
+    return T(s,34,color).move_to([0,3.15,0])
 
 
-def arr(a, b, color=GREY, w=5, tip=0.22):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def tag(s):
+    return T(s,26,GREY).move_to([0,-3.22,0])
+
+
+def brain():
+    outline=Union(Circle(.8).shift(LEFT*.5),Circle(.9).shift(RIGHT*.5),Circle(.65).shift(UP*.5),color=GREY,fill_opacity=.13)
+    return VGroup(outline,T('brain',28).move_to([0,-.15,0]))
+
+
+def sense(kind):
+    if kind=='eye':
+        return VGroup(Ellipse(width=1.35,height=.8,color=GREY),Circle(.25,color=GREY))
+    if kind=='fingertip':
+        return VGroup(RoundedRectangle(width=.8,height=1.1,corner_radius=.35,color=GREY),RoundedRectangle(width=.44,height=.36,corner_radius=.12,color=GREY).shift(UP*.18))
+    if kind=='tongue':
+        return VGroup(VMobject(color=YELLOW,fill_opacity=.13).set_points_smoothly([[-.6,.45,0],[-.57,-.2,0],[-.38,-.6,0],[0,-.72,0],[.38,-.6,0],[.57,-.2,0],[.6,.45,0]]),Line([0,.25,0],[0,-.4,0],color=YELLOW))
+    return VGroup(VMobject(color=GREY).set_points_smoothly([[-.2,.65,0],[-.05,.2,0],[.48,-.2,0],[.35,-.4,0],[.05,-.42,0],[-.12,-.25,0],[-.4,-.45,0],[-.57,-.3,0]]),Arc(radius=.16,start_angle=0,angle=PI,color=GREY).shift(RIGHT*.02+DOWN*.37))
+
+
+def muscle_stage():
+    muscle=RoundedRectangle(width=1.65,height=3.7,corner_radius=.65,color=GREY,fill_opacity=.13).move_to([-4,.4,0])
+    fibres=VGroup(*[Line([-4+dx,-1.1,0],[-4+dx,1.9,0],color=GREY,stroke_opacity=.45) for dx in [-.48,.48]])
+    receptor=VGroup(Ellipse(width=.55,height=1.15,color=TEAL,stroke_width=5).move_to([-4,.4,0]),T('one stretch receptor',28,TEAL).move_to([-.3,-1.25,0]),Line([-3.75,.05,0],[-1.6,-.9,0],color=TEAL))
+    nerve=VGroup(Line([-3.72,.4,0],[2.2,.4,0],color=GREY,stroke_width=5),T('one nerve fibre',28,GREY).move_to([-.5,.85,0]))
+    electrode=VGroup(Line([2.2,1.6,0],[2.2,.35,0],color=TEXT,stroke_width=6),T('electrode',28).move_to([3.55,1.55,0]),baseline(2.1,5.7,-.5),train(2.2+firing(1,4)*3.4,-.5,.8))
+    weight=VGroup(Line([-4,-1.45,0],[-4,-2,0],color=YELLOW),Rectangle(width=1.6,height=.8,color=YELLOW,fill_opacity=.15).move_to([-4,-2.4,0]),T('weight',28,YELLOW).move_to([-2.35,-2.4,0]))
+    return VGroup(muscle,fibres,receptor,nerve,electrode),weight
+
+
+def prediction():
+    title=heading('Heavier weight: bigger spikes, or more spikes?',YELLOW)
+    setups=VGroup()
+    for x,h,name,w in [(-3.1,1.8,'light weight',1.2),(3.1,2.6,'heavier weight',1.8)]:
+        top=2.5
+        m=RoundedRectangle(width=1.45,height=h,corner_radius=.4,color=GREY,fill_opacity=.12).move_to([x,top-h/2,0])
+        r=Ellipse(width=.55,height=h*.7,color=TEAL).move_to(m)
+        wt=Rectangle(width=w,height=.45,color=YELLOW,fill_opacity=.15).move_to([x,top-h-.45,0])
+        setups.add(VGroup(m,r,Line([x,top-h,0],wt.get_top(),color=YELLOW),wt,T(name,28,YELLOW).move_to([x+(-1.75 if x<0 else 2.05),1.4,0])))
+    left=VGroup(baseline(-5.8,-.5,-2.15),train(-5.6+firing(1,4)*4.9,-2.15,1.35,GREY),T('bigger?',30,GREY).move_to([-3.15,-2.7,0])).set_opacity(.55)
+    right=VGroup(baseline(.5,5.8,-2.15),train(.7+firing(1,9)*4.9,-2.15,.85,GREY),T('more often?',30,GREY).move_to([3.15,-2.7,0])).set_opacity(.55)
+    return title,setups,left,right,tag('candidate traces • reconstruction')
+
+
+def idea_box():
+    border=RoundedRectangle(width=12.1,height=6.7,corner_radius=.2,color=GREY).move_to([0,.1,0])
+    title=T('RATE CODE • fixed counting window',28,GREY).move_to([0,2.75,0])
+    eq=VGroup(T('rate',32,GREEN),T('= tuning curve(stimulus)',32),T('+ fluctuation',32,TEAL)).arrange(RIGHT,buff=.15).move_to([0,1.85,0])
+    noise=VGroup(T('noise = standard deviation of the fluctuation',28,TEAL).move_to([0,.95,0]),T('average fluctuation = 0',28,TEAL).move_to([0,.05,0]))
+    ident=VGroup(T('neuron identities + relative rates',30,GREEN).move_to([0,-.85,0]),T('what • where • how much',30,YELLOW).move_to([0,-1.75,0]))
+    small=VGroup(T('A small change is easiest to see where the mean rate',26,BLUE),T('changes a lot compared with the noise.',26,BLUE)).arrange(DOWN,buff=.17).move_to([0,-2.65,0])
+    small.add(Line([-4,-2.12,0],[4,-2.12,0],color=GREY,stroke_opacity=.4))
+    return border,title,eq,noise,ident,small
+
+
+def count_window(compact=False):
+    if compact:
+        return VGroup(Rectangle(width=9.5,height=1.25,color=GREY).move_to([0,-1.9,0]),train(-4.3+firing(1,7)*8.6,-2.4,.9),T('spike count: 7 in a fixed 1 s window',28,GREEN).move_to([0,-.95,0]),T('0 s',26,GREY).move_to([-4.45,-2.8,0]),T('1 s',26,GREY).move_to([4.45,-2.8,0]))
+    return VGroup(Rectangle(width=9.5,height=1.65,color=GREY).move_to([0,.4,0]),train(-4.3+firing(1,7)*8.6,-.1,.95),T('spike count in a fixed window',30).move_to([0,1.85,0]),T('0 s',26,GREY).move_to([-4.45,-.75,0]),T('1 s',26,GREY).move_to([4.45,-.75,0]),T('7 spikes in 1 second',32,GREEN).move_to([0,-1.65,0]))
+
+
+def channel(x, opened=False, resting=False):
+    color=GREY if resting or not opened else TEAL
+    walls=VGroup(*[Line([x+dx,-1.4,0],[x+dx,1.5,0],color=color,stroke_width=5) for dx in [-.23,.23]])
+    if opened:
+        gate=VGroup(Line([x-.23,.15,0],[x-.23,.65,0],color=color,stroke_width=9),Line([x+.23,-.15,0],[x+.23,.35,0],color=color,stroke_width=9))
+        if not resting:
+            walls.add(Line([x,-1.3,0],[x,1.4,0],color=TEAL,stroke_width=12,stroke_opacity=.22))
+    else:
+        gate=Line([x-.23,.25,0],[x+.23,.25,0],color=color,stroke_width=7)
+    return VGroup(walls,gate)
+
+
+def voltage(g):
+    return -65/(1+g)
+
+
+def voltage_stage(g=0):
+    mem=VGroup(Line([-6.3,1.75,0],[-.65,1.75,0],color=GREY,stroke_width=5),Line([-6.3,-1.65,0],[-.65,-1.65,0],color=GREY,stroke_width=5))
+    resting=VGroup(channel(-5.55,True,True),channel(-4.8,True,True),T('resting channels',22,GREY).move_to([-5,-2.02,0]))
+    channels=VGroup(*[channel(x,i<g) for i,x in enumerate([-3.85,-3.05,-2.25,-1.45])])
+    count=T(f'{g} open transduction '+('channel' if g==1 else 'channels'),26,TEAL).move_to([-3.4,-2.55,0])
+    scale=NumberLine(x_range=[-65,0,13],length=5.4,include_numbers=False,color=GREY).move_to([3,.05,0])
+    labels=VGroup(T('−65 mV',26,GREY).move_to([.35,-.65,0]),T('0 mV',26,GREY).move_to([5.7,-.65,0]),T('balance point',28,TEAL).move_to([3,2.15,0]),Line([5.7,-.25,0],[5.7,.8,0],color=TEXT,stroke_width=5))
+    marker=Triangle(color=TEAL,fill_opacity=1).scale(.16).rotate(PI).move_to(scale.n2p(voltage(g))+UP*.3)
+    readout=T(f'{voltage(g):g} mV',30,TEAL).move_to([scale.n2p(voltage(g))[0],1.05,0])
+    mem.add(T('closed: bar across • open: clear gap',22,GREY).move_to([-3.4,-3.05,0]))
+    return mem,resting,channels,count,scale,labels,marker,readout
 
 
 class S00Title(TitleCard):
-    LESSON = "Principles of sensory coding"
-    TITLE = "Identical spikes, different meanings"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Load(SpokenScene):
-    """a question box becomes two spike trains: heavier load, same-size spikes, shorter gaps."""
-
+    TITLE='What a Spike Means'
+    LESSON='Principles of Sensory Coding'
     def construct(self):
-        ax0, ax1 = -2.6, 6.0
-        yA, yB = 2.0, -1.9
-        q = T("?", 120, YELLOW, weight=BOLD)
-        qbox = RoundedRectangle(corner_radius=0.2, width=3.2, height=2.6, stroke_color=YELLOW, stroke_width=4,
-                                fill_color=YELLOW, fill_opacity=0.1)
-        qg = VGroup(qbox, q.move_to(qbox)).move_to([1.5, 0.0, 0])
-        qlab = T("how hard was the touch?", 30, TEXT).next_to(qg, UP, buff=0.35)
-        self.play(FadeIn(qg, scale=0.9), FadeIn(qlab), run_time=1.2)
-        self.at("recorded one stretch receptor")
-        musc = chip("frog muscle", GREY, 28).move_to([-4.8, 0.2, 0])
-        self.play(FadeOut(qg), FadeOut(qlab), FadeIn(musc), run_time=0.7)
-        rec = T("one stretch receptor", 26, BLUE).next_to(musc, DOWN, buff=0.3)
-        self.play(FadeIn(rec), run_time=0.4)
-
-        lightlab = chip("light load", YELLOW, 28).move_to([-4.8, yA, 0])
-        heavylab = chip("heavy load", YELLOW, 28, pad=0.4).move_to([-4.8, yB, 0])
-        trA = train(spaced(4, ax0 + 0.6, ax1 - 0.6), yA - 0.35, h=0.9)
-        trB = train(spaced(10, ax0 + 0.3, ax1 - 0.3), yB - 0.35, h=0.9)
-        bA, bB = baseline(ax0, ax1, yA - 0.35), baseline(ax0, ax1, yB - 0.35)
-        self.at("loaded the muscle")
-        self.play(FadeIn(lightlab), Create(bA), run_time=0.3)
-        self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.1) for s in trA], lag_ratio=0.2), run_time=0.6)
-        self.at("with weights")
-        self.play(FadeIn(heavylab), Create(bB), run_time=0.5)
-        self.play(LaggedStart(*[FadeIn(s, shift=UP * 0.1) for s in trB], lag_ratio=0.1), run_time=0.8)
-        tag = sketch_tag()
-        self.add(tag)
-
-        self.at("never grew bigger")
-        top = DashedLine([ax0, yA + 0.55, 0], [ax1, yA + 0.55, 0], color=GREY, dash_length=0.12)
-        topB = DashedLine([ax0, yB + 0.55, 0], [ax1, yB + 0.55, 0], color=GREY, dash_length=0.12)
-        same = T("same size", 28, TEXT).move_to([ax1 - 1.0, 0.2, 0])
-        self.play(Create(top), Create(topB), FadeIn(same), run_time=0.8)
-        self.at("more often")
-        xs = spaced(10, ax0 + 0.3, ax1 - 0.3)
-        gap = DoubleArrow([xs[4], yB - 0.75, 0], [xs[5], yB - 0.75, 0], color=GREEN, stroke_width=4, tip_length=0.15, buff=0)
-        glab = T("shorter gaps", 26, GREEN).next_to(gap, DOWN, buff=0.12)
-        xsl = spaced(4, ax0 + 0.6, ax1 - 0.6)
-        gapA = DoubleArrow([xsl[1], yA - 0.75, 0], [xsl[2], yA - 0.75, 0], color=GREEN, stroke_width=4, tip_length=0.15, buff=0)
-        self.play(FadeOut(same), Create(gapA), Create(gap), FadeIn(glab), run_time=0.9)
+        group=VGroup(T('BIOCHEMISTRYPEDIA',26,TEAL),T(self.LESSON.upper(),26,GREY),T(self.TITLE,54,font=TITLE_FONT),Line(LEFT*1.2,RIGHT*1.2,color=GOLD,stroke_width=4)).arrange(DOWN,buff=.4)
+        self.play(FadeIn(group),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Graded(SpokenScene):
-    """stimulus -> graded receptor potential -> faster spikes, in three rows."""
-
+class S01Question(SpokenScene):
     def construct(self):
-        ys = [1.9, 0.1, -1.7]
-        u = 0.95   # relative unit length
-        heads = [T("stimulus", 28, YELLOW).move_to([-4.7, 3.05, 0]),
-                 T("receptor potential", 28, TEAL).move_to([-0.8, 3.05, 0]),
-                 T("spikes", 28, GREEN).move_to([4.1, 3.05, 0])]
-        names = ["weak", "medium", "strong"]
-        stim = VGroup(); lab = VGroup()
-        for k, (y, n) in enumerate(zip(ys, names)):
-            b = Rectangle(width=u * (k + 1), height=0.6, stroke_width=0, fill_color=YELLOW, fill_opacity=0.85)
-            b.move_to([-6.2 + b.width / 2, y, 0])
-            stim.add(b)
-        self.at("starts with transduction")
-        self.play(FadeIn(heads[0]), LaggedStart(*[GrowFromEdge(b, LEFT) for b in stim], lag_ratio=0.25), run_time=1.0)
-        pot = VGroup()
-        for k, y in enumerate(ys):
-            b = Rectangle(width=u * (k + 1), height=0.6, stroke_width=0, fill_color=TEAL, fill_opacity=0.85)
-            b.move_to([-2.2 + b.width / 2, y, 0])
-            pot.add(b)
-        arrs = VGroup(*[arr([-3.2, y, 0], [-2.35, y, 0], GREY) for y in ys])
-        self.at("receptor potential")
-        self.play(FadeIn(heads[1]), FadeIn(arrs), run_time=0.5)
-        self.at("graded")
-        self.play(LaggedStart(*[GrowFromEdge(b, LEFT) for b in pot], lag_ratio=0.2), run_time=0.9)
-        self.at("a stronger stimulus")
-        self.play(Indicate(stim[2], color=YELLOW, scale_factor=1.08), Indicate(pot[2], color=TEAL, scale_factor=1.08), run_time=0.9)
-        marks = VGroup(*[arr([0.8, y, 0], [1.65, y, 0], GREY) for y in ys])
-        zone = T("spike initiating zone", 24, GREY).move_to([1.2, -2.45, 0])
-        self.at("spike initiating zone")
-        self.play(FadeIn(heads[2]), FadeIn(marks), FadeIn(zone), run_time=0.6)
-        counts = [2, 4, 8]
-        trs = VGroup(); bls = VGroup()
-        for n, y in zip(counts, ys):
-            bls.add(baseline(1.85, 6.2, y - 0.3))
-            trs.add(train(spaced(n, 2.15, 6.0), y - 0.3, h=0.75))
-        self.at("the faster the neuron fires")
-        self.play(FadeIn(bls), run_time=0.3)
-        self.play(*[LaggedStart(*[FadeIn(s, shift=UP * 0.1) for s in t], lag_ratio=0.2) for t in trs], run_time=1.8)
-        tag = T("relative units, in this sketch", 22, GREY).to_corner(DL, buff=0.35)
-        self.play(FadeIn(tag), run_time=0.3)
+        title=heading('What a Spike Means')
+        rows=VGroup()
+        ys=[2,.55,-.9,-2.35]
+        for kind,y in zip(['fingertip','eye','tongue','nose'],ys):
+            icon=sense(kind).scale(1.15).move_to([-5.55,y,0])
+            label=T(kind,26,GREY).move_to([-3.75,y,0])
+            rows.add(VGroup(icon,label,baseline(-2.5,2.45,y)))
+        b=brain().scale(1.3).move_to([4.4,-.1,0])
+        self.at('Every sense')
+        self.add(title,rows,b)
+        self.at('spikes that look alike')
+        ticks=VGroup(*[train(-2.41+firing(1,4)*1.5,y,.5) for y in ys])
+        self.play(FadeIn(ticks),run_time=.25)
+        self.play(ticks.animate.shift(RIGHT*3.3),run_time=1.15,rate_func=linear)
+        self.at('So how does')
+        self.play(Transform(title,heading('what?    where?    how hard?',YELLOW)),run_time=.45)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Time(SpokenScene):
-    """a held step stimulus: rapidly adapting fires at onset (and offset), slowly adapting throughout."""
-
+class S02Adrian(SpokenScene):
     def construct(self):
-        x0, x1 = -5.8, 6.0
-        on, off = -3.0, 3.2
-        yS, yR, yL = 2.5, 0.3, -2.3
-        ds = Line([x0, yS, 0], [on, yS, 0], color=YELLOW, stroke_width=6)
-        up = Line([on, yS, 0], [on, yS + 0.7, 0], color=YELLOW, stroke_width=6)
-        hold = Line([on, yS + 0.7, 0], [off, yS + 0.7, 0], color=YELLOW, stroke_width=6)
-        dn = Line([off, yS + 0.7, 0], [off, yS, 0], color=YELLOW, stroke_width=6)
-        ds2 = Line([off, yS, 0], [x1, yS, 0], color=YELLOW, stroke_width=6)
-        slab = T("stimulus", 28, YELLOW).move_to([x0 + 0.9, yS + 0.7, 0])
-        rl = T("rapidly adapting ending", 28, GREEN).move_to([-3.3, yR + 1.15, 0])
-        sl = T("slowly adapting ending", 28, GREEN).move_to([-3.3, yL + 1.15, 0])
-        bR, bL = baseline(x0, x1, yR), baseline(x0, x1, yL)
-        self.at("differ in time")
-        self.play(Create(VGroup(ds, up, hold, dn, ds2), lag_ratio=0.25), FadeIn(slab), run_time=1.5)
-        self.at("rapidly adapting ending")
-        self.play(FadeIn(rl), Create(bR), run_time=0.5)
-        onx = [on + 0.15 + 0.2 * (1.25 ** k) * 0.5 * k for k in range(6)]
-        onx = [on + 0.12, on + 0.4, on + 0.75, on + 1.2, on + 1.75]
-        self.at("start of a held stimulus")
-        t_on = train(onx, yR, h=0.75)
-        self.play(LaggedStart(*[FadeIn(s) for s in t_on], lag_ratio=0.2), run_time=0.9)
-        self.at("falls quiet")
-        quiet = T("quiet", 26, GREY).move_to([0.1, yR + 0.45, 0])
-        self.play(FadeIn(quiet), run_time=0.5)
-        self.at("fire again when it is removed")
-        offx = [off + 0.12, off + 0.42, off + 0.8]
-        t_off = train(offx, yR, h=0.75)
-        self.play(LaggedStart(*[FadeIn(s) for s in t_off], lag_ratio=0.25), run_time=0.7)
-        pac = T("Pacinian corpuscle: vibration", 24, GREY).move_to([-1.7, yR - 0.5, 0])
-        self.play(FadeIn(pac), run_time=0.4)
-        self.at("slowly adapting ending")
-        self.play(FadeIn(sl), Create(bL), run_time=0.5)
-        self.at("keeps firing")
-        lx = list(np.arange(on + 0.2, off - 0.05, 0.45))
-        t_l = train(lx, yL, h=0.75)
-        self.play(LaggedStart(*[FadeIn(s) for s in t_l], lag_ratio=0.08), run_time=2.0)
-        mk = T("Merkel-cell afferent: steady indentation", 24, GREY).move_to([-0.4, yL - 0.5, 0])
-        self.play(FadeIn(mk), run_time=0.4)
-        self.at("one reports change")
-        c1 = T("reports change", 28, GREEN, weight=BOLD).move_to([4.2, yR + 1.15, 0])
-        self.play(FadeIn(c1), run_time=0.4)
-        self.at("the stimulus itself")
-        c2 = T("reports the stimulus", 28, GREEN, weight=BOLD).move_to([3.6, yL + 1.15, 0])
-        self.play(FadeIn(c2), run_time=0.4)
-        tag = sketch_tag()
-        self.add(tag)
+        s,w=muscle_stage()
+        self.at('In')
+        self.add(heading('Adrian and Zotterman • 1926'),s[0],s[1],tag('reconstruction • frog muscle'))
+        self.at('recorded one stretch receptor')
+        self.play(FadeIn(s[2]),Create(s[3]),FadeIn(s[4]),run_time=.8)
+        self.at('Then they hung weights')
+        self.play(FadeIn(w,shift=DOWN*.25),run_time=.65)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Flank(SpokenScene):
-    """tuning curve through 50, 40, 20, 8 spikes/s; steep flank beats the peak for fine changes."""
-
+class S03Predict(SpokenScene):
     def construct(self):
-        X0, X1 = -5.2, 5.4       # screen x for 0 and 45 degrees (axis end slightly beyond)
-        Y0, Y1 = -2.7, 2.7       # screen y for 0 and 50 spikes/s
-
-        def sx(d): return X0 + (X1 - X0) * d / 45.0
-        def sy(r): return Y0 + (Y1 - Y0) * r / 50.0
-
-        axx = Arrow([X0 - 0.3, Y0, 0], [X1 + 0.5, Y0, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.18)
-        axy = Arrow([X0 - 0.3, Y0, 0], [X0 - 0.3, Y1 + 0.55, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.18)
-        xl = T("angle (degrees)", 24, YELLOW).move_to([0.2, Y0 - 0.8, 0])
-        yl = T("firing rate (spikes/s)", 24, GREEN).rotate(PI / 2).move_to([X0 - 0.85, 0, 0])
-        ticks = VGroup(*[T(str(d), 24, GREY).move_to([sx(d), Y0 - 0.3, 0]) for d in (0, 15, 30, 45)])
-        made = T("made-up neuron", 24, GREY).move_to([4.6, 3.3, 0])
-        self.at("a tuning curve")
-        self.play(Create(axx), Create(axy), FadeIn(xl), FadeIn(yl), FadeIn(ticks), run_time=1.2)
-        pts = [(0, 50), (15, 40), (30, 20), (45, 8)]
-        dots = [Dot([sx(d), sy(r), 0], radius=0.11, color=GREEN) for d, r in pts]
-        vals = [T(str(r), 26, GREEN).next_to(dt, UP, buff=0.15) for dt, (d, r) in zip(dots, pts)]
-        vals[0].next_to(dots[0], RIGHT, buff=0.35).shift(UP * 0.1)
-        self.at("up neuron")
-        self.play(FadeIn(made), run_time=0.4)
-        self.at("spikes per second")
-        self.play(FadeIn(dots[0]), FadeIn(vals[0]), run_time=0.4)
-        f = PchipInterpolator([p[0] for p in pts], [p[1] for p in pts])
-        ds = np.linspace(0, 45, 60)
-        curve = VMobject(color=GREEN, stroke_width=5).set_points_smoothly([[sx(d), sy(float(f(d))), 0] for d in ds])
-        self.at("degrees and")
-        self.play(FadeIn(dots[3]), FadeIn(vals[3]), run_time=0.4)
-        self.play(Create(curve), FadeIn(dots[1]), FadeIn(dots[2]), FadeIn(vals[1]), FadeIn(vals[2]), run_time=1.4)
-        self.at("most useful at its peak")
-        ring = Circle(radius=0.32, color=YELLOW, stroke_width=4).move_to(dots[0])
-        qm = T("best here?", 28, YELLOW).move_to([sx(8), sy(50) + 0.5, 0])
-        self.play(Create(ring), FadeIn(qm), run_time=0.6)
-        self.at("often the reverse")
-        self.play(FadeOut(ring), FadeOut(qm), run_time=0.4)
-        self.at("steepest part")
-        seg = VMobject(color=BLUE, stroke_width=9).set_points_smoothly(
-            [[sx(d), sy(float(f(d))), 0] for d in np.linspace(15, 30, 20)])
-        sl = T("steepest: 15 to 30 degrees", 26, BLUE).move_to([sx(26), sy(41), 0])
-        self.play(Create(seg), FadeIn(sl), run_time=0.9)
-        self.at("a small change there")
-        dd = 4.0
-        def window(d0, color):
-            a = [sx(d0), sy(float(f(d0))), 0]; b = [sx(d0 + dd), sy(float(f(d0 + dd))), 0]
-            h = Line([a[0], a[1], 0], [b[0], a[1], 0], color=color, stroke_width=4)
-            v = Line([b[0], a[1], 0], [b[0], b[1], 0], color=color, stroke_width=6)
-            return VGroup(h, v)
-        w_flank = window(20, BLUE)
-        w_peak = window(3, YELLOW)
-        same = T("same small change in angle", 24, TEXT).move_to([sx(14), sy(50) + 0.5, 0])
-        self.play(Create(w_peak), Create(w_flank), FadeIn(same), run_time=0.9)
-        self.at("moves the rate more")
-        self.play(Indicate(w_flank[1], color=BLUE, scale_factor=1.3), run_time=0.9)
-        self.at("more noise")
-        mk = Dot([sx(22.5), sy(float(f(22.5))), 0], radius=0.17, color=BLUE)
-        nz = T("more noise: can shift", 26, RED).move_to([sx(34), sy(30), 0])
-        self.play(FadeIn(mk), FadeIn(nz), run_time=0.5)
-        self.at("back toward the peak")
-        self.play(mk.animate.move_to([sx(11), sy(float(f(11))), 0]), run_time=1.3)
+        title,setups,l,r,n=prediction()
+        s,w=muscle_stage()
+        old=VGroup(s,w)
+        self.add(heading('Adrian and Zotterman • 1926'),old,tag('reconstruction • frog muscle'))
+        self.at('A heavier weight')
+        self.play(FadeOut(old),FadeIn(setups),FadeIn(l),FadeIn(r),run_time=.7)
+        self.at('Will its spikes')
+        self.play(Transform(self.mobjects[0],title),Indicate(l,color=GREY,scale_factor=1.02),run_time=.4)
+        self.at('or will they')
+        self.play(Indicate(r,color=GREY,scale_factor=1.02),run_time=.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Edge(SpokenScene):
-    """lateral inhibition: links, cut, then 10,10,10,20,20,20 -> 6,6,4,14,12,12."""
-
+class S04Pause(Scene):
     def construct(self):
-        xs = [-5.0, -3.0, -1.0, 1.0, 3.0, 5.0]
-        yU = 0.45
-        units = VGroup(*[RoundedRectangle(corner_radius=0.12, width=1.1, height=0.7, stroke_color=GREY, stroke_width=3,
-                                          fill_color=GREY, fill_opacity=0.25).move_to([x, yU, 0]) for x in xs])
-        dots_l = T("...", 34, GREY).move_to([-6.25, yU, 0]); dots_r = T("...", 34, GREY).move_to([6.25, yU, 0])
-        hdr = T("Limulus eye, one unit per receptor", 28, TEXT).move_to([0, 2.7, 0])
-        self.at("can also suppress")
-        self.play(FadeIn(hdr), LaggedStart(*[FadeIn(u, scale=0.9) for u in units], lag_ratio=0.12), FadeIn(dots_l), FadeIn(dots_r), run_time=1.3)
-        links = VGroup()
-        for i in range(5):
-            a = [xs[i] + 0.55, yU - 0.12, 0]; b = [xs[i + 1] - 0.55, yU - 0.12, 0]
-            links.add(inhib(b, a, RED, 4), inhib(a, b, RED, 4))
-        self.at("suppressed its steady discharge")
-        rec = RoundedRectangle(corner_radius=0.14, width=1.4, height=1.0, stroke_color=BLUE, stroke_width=4).move_to([xs[2], yU, 0])
-        reclab = T("recorded unit", 26, BLUE).next_to(rec, UP, buff=0.2)
-        lit = VGroup(*[Square(0.6, stroke_width=0, fill_color=YELLOW, fill_opacity=0.9).move_to([x, yU + 1.6, 0]) for x in (xs[1], xs[2], xs[3])])
-        self.play(Create(rec), FadeIn(reclab), FadeIn(lit), run_time=0.7)
-        self.play(Create(links), run_time=0.9)
-        self.at("abolished that inhibition")
-        crosses = VGroup()
-        for i in (1, 2):
-            m = [(xs[i] + xs[i + 1]) / 2, yU - 0.12, 0]
-            crosses.add(Line(np.array(m) + [-0.2, 0.2, 0], np.array(m) + [0.2, -0.2, 0], color=TEXT, stroke_width=6),
-                        Line(np.array(m) + [-0.2, -0.2, 0], np.array(m) + [0.2, 0.2, 0], color=TEXT, stroke_width=6))
-        cutl = T("connections to the recorded unit cut: no inhibition", 26, TEXT).move_to([0, -1.3, 0])
-        self.play(Create(crosses), FadeIn(cutl), run_time=0.8)
-        self.at("a simple sketch")
-        self.play(FadeOut(crosses), FadeOut(cutl), FadeOut(links), FadeOut(rec), FadeOut(reclab), FadeOut(lit), FadeOut(hdr), run_time=0.6)
-        self.play(*[u.animate.move_to([x, 0.75, 0]) for u, x in zip(units, xs)],
-                  dots_l.animate.move_to([-6.25, 0.75, 0]), dots_r.animate.move_to([6.25, 0.75, 0]), run_time=0.7)
-        yU = 0.75
-        links2 = VGroup()
-        for i in range(5):
-            a = [xs[i] + 0.55, yU, 0]; b = [xs[i + 1] - 0.55, yU, 0]
-            links2.add(inhib(b, a, RED, 3), inhib(a, b, RED, 3))
-        formula = T("output = own light − 0.2 × (left + right)", 28, TEXT).move_to([0, -0.3, 0])
-        exc = [10, 10, 10, 20, 20, 20]
-        out = [6, 6, 4, 14, 12, 12]
-        ex_bars = VGroup(); ex_lab = VGroup()
-        base_e = 1.45
-        for x, e in zip(xs, exc):
-            b = Rectangle(width=1.1, height=0.095 * e, stroke_width=0, fill_color=YELLOW, fill_opacity=0.85).move_to([x, base_e + 0.095 * e / 2, 0])
-            ex_bars.add(b)
-            ex_lab.add(T(str(e), 26, BG, weight=BOLD).move_to([x, base_e + 0.3, 0]))
-        self.at("Each unit reports")
-        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in ex_bars], lag_ratio=0.1), FadeIn(ex_lab), Create(links2), run_time=1.4)
-        self.play(FadeIn(formula), run_time=0.6)
-        base_o = -3.15
-        sc = 0.13
-        o_bars = VGroup(); o_lab = VGroup()
-        for x, o in zip(xs, out):
-            b = Rectangle(width=1.1, height=sc * o, stroke_width=0, fill_color=GREEN, fill_opacity=0.85).move_to([x, base_o + sc * o / 2, 0])
-            o_bars.add(b)
-            o_lab.add(T(str(o), 28, GREEN, weight=BOLD).move_to([x, base_o + sc * o + 0.3, 0]))
-        bl = baseline(-5.8, 5.8, base_o)
-        d6 = DashedLine([-5.8, base_o + sc * 6, 0], [5.8, base_o + sc * 6, 0], color=GREY, dash_length=0.12, stroke_width=2)
-        d12 = DashedLine([-5.8, base_o + sc * 12, 0], [5.8, base_o + sc * 12, 0], color=GREY, dash_length=0.12, stroke_width=2)
-        self.at("becomes")
-        self.play(FadeIn(bl), FadeIn(d6), FadeIn(d12), run_time=0.4)
-        for b, l in zip(o_bars, o_lab):
-            self.play(GrowFromEdge(b, DOWN), FadeIn(l), run_time=0.45)
-        self.at("edge is exaggerated")
-        r1 = SurroundingRectangle(VGroup(o_bars[2], o_bars[3], o_lab[2], o_lab[3]), color=TEXT, buff=0.12, stroke_width=3)
-        self.play(Create(r1), run_time=0.6)
-        tag = sketch_tag()
-        self.play(FadeIn(tag), run_time=0.3)
+        self.camera.background_color=BG
+        title,setups,l,r,n=prediction()
+        self.add(title,setups,l,r,tag('reconstruction • frog muscle'))
+        self.wait(5)
+
+
+class S05Reveal(SpokenScene):
+    def construct(self):
+        title=heading('reconstruction',GREY)
+        rows=VGroup()
+        for rate,y,name in [(4,1.45,'light'),(7,-.4,'medium'),(11,-2.25,'heavy')]:
+            xs=-2.8+firing(1,rate)*8.4
+            rows.add(VGroup(T(name+' load',28,YELLOW).move_to([-4.55,y+.45,0]),baseline(-3,5.8,y),train(xs,y,.95),DashedLine([-3,y+.95,0],[5.8,y+.95,0],color=GREY,stroke_width=1)))
+        self.at('They come more often')
+        self.add(title)
+        self.play(LaggedStart(*[FadeIn(r) for r in rows],lag_ratio=.12),run_time=.85)
+        record_note=tag('illustrative spike records • time →')
+        self.add(record_note)
+        self.at('Every spike stays')
+        self.play(Transform(title,heading('rate coding • same spike size',GREEN)),run_time=.4)
+        self.at('while a weight is held')
+        self.play(FadeOut(rows),FadeOut(record_note),run_time=.25)
+        held=T('heavy load held',30,YELLOW).move_to([0,2.15,0])
+        axis=VGroup(baseline(-5.6,5.6,-1.3),T('0',26,GREY).move_to([-5.6,-1.7,0]),T('time →',28,GREY).move_to([4.9,-1.7,0]))
+        self.play(FadeIn(held),Create(axis),run_time=.4)
+        self.at('the firing slowly falls')
+        label=T('adaptation • gaps widen during a held load',30,TEAL).move_to([0,-2.65,0])
+        # Fixed spike positions; reveal forward in time, never rearrange existing events.
+        xs=-5.4+firing(5,4,1.2,tau=1.8)*2.15
+        spikes=train(xs,-1.3,1.9)
+        self.add(label)
+        cursor=ValueTracker(-5.6)
+        growing=always_redraw(lambda: VGroup(
+            Line([-5.6,1.25,0],[-5.6,1.75,0],color=YELLOW),
+            Line([-5.6,1.75,0],[max(-5.599,cursor.get_value()),1.75,0],color=YELLOW),
+            Line([cursor.get_value(),1.75,0],[cursor.get_value(),1.25,0],color=YELLOW)))
+        for spike in spikes:
+            spike.set_opacity(0)
+            spike.add_updater(lambda m: m.set_opacity(float(m.get_x() <= cursor.get_value())))
+        self.add(growing,spikes)
+        self.play(cursor.animate.set_value(5.6),run_time=2.2,rate_func=linear)
+        growing.clear_updaters()
+        spikes.clear_updaters()
+        self.wait(.8)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Code(SpokenScene):
-    """rate = how strong, receptive field = where; labelled line vs population; smell combination; the rule."""
-
+class S06Rate(SpokenScene):
     def construct(self):
-        c1 = chip("rate: how strong", GREEN, 36)
-        c2 = chip("receptive field: where", YELLOW, 36)
-        row = VGroup(c1, c2).arrange(RIGHT, buff=0.7).move_to([0, 0.5, 0])
-        fit(row, max_w=12.3)
-        self.at("Rate tells you")
-        self.play(FadeIn(c1, shift=UP * 0.2), run_time=0.6)
-        self.at("Receptive fields tell you")
-        self.play(FadeIn(c2, shift=UP * 0.2), run_time=0.6)
-        self.at("Quality is the harder")
-        q = T("quality?", 44, TEXT, weight=BOLD).move_to([0, -1.5, 0])
-        self.play(FadeIn(q, shift=UP * 0.1), run_time=0.5)
-        self.at("line")
-        self.play(FadeOut(row), FadeOut(q), run_time=0.5)
-
-        # left pane: labelled line
-        lt = T("labelled line", 30, GREEN, weight=BOLD).move_to([-3.3, 3.35, 0])
-        fibre = Line([-5.3, 2.0, 0], [-1.4, 2.0, 0], color=GREY, stroke_width=6)
-        soma = Circle(radius=0.38, stroke_color=GREY, stroke_width=4, fill_color=GREY, fill_opacity=0.3).move_to([-5.7, 2.0, 0])
-        sp = train(spaced(6, -4.8, -1.8), 2.0, h=0.7, color=GREEN)
-        sweet = chip("sweet", GREEN, 32).move_to([-3.3, 0.8, 0])
-        one = T("one fibre, one meaning", 26, GREY).move_to([-3.3, 0.05, 0])
-        self.play(FadeIn(lt), FadeIn(soma), Create(fibre), run_time=0.7)
-        self.play(LaggedStart(*[FadeIn(s) for s in sp], lag_ratio=0.15), FadeIn(sweet), FadeIn(one), run_time=1.2)
-
-        # right pane: population
-        self.at("In a population code")
-        pt = T("population code", 30, BLUE, weight=BOLD).move_to([3.3, 3.35, 0])
-        hs = [1.3, 0.35, 0.9, 0.2, 1.5, 0.6]
-        bars = VGroup(*[Rectangle(width=0.55, height=h, stroke_width=0, fill_color=BLUE, fill_opacity=0.85).move_to([1.2 + 0.85 * k, 1.3 + h / 2, 0]) for k, h in enumerate(hs)])
-        bbase = baseline(0.85, 6.1, 1.3)
-        pat = T("pattern across many fibres", 26, GREY).move_to([3.5, 0.7, 0])
-        self.play(FadeIn(pt), Create(bbase), LaggedStart(*[GrowFromEdge(b, DOWN) for b in bars], lag_ratio=0.15), run_time=1.4)
-        self.play(FadeIn(pat), run_time=0.4)
-
-        # bottom: smell
-        self.at("In smell")
-        st = T("smell: odorants and receptors", 28, PURPLE, weight=BOLD).move_to([-0.5, -0.75, 0])
-        od = [chip("odorant A", YELLOW, 24).move_to([-3.4, -1.7, 0]), chip("odorant B", YELLOW, 24).move_to([-3.4, -2.5, 0])]
-        rc = [chip(f"receptor {k + 1}", PURPLE, 22).move_to([2.4, y, 0]) for k, y in enumerate([-1.4, -2.2, -3.0])]
-        links = []
-        for a_, b_ in [(0, 0), (0, 1), (1, 1), (1, 2)]:
-            links.append(Line(od[a_].get_right() + [0.05, 0, 0], rc[b_].get_left() + [-0.05, 0, 0], color=GREY, stroke_width=3))
-        self.play(FadeIn(st), FadeIn(VGroup(*od)), FadeIn(VGroup(*rc)), run_time=0.8)
-        self.at("several receptors")
-        self.play(Create(links[0]), Create(links[1]), run_time=0.6)
-        self.at("coded by a combination")
-        self.play(Create(links[2]), Create(links[3]), run_time=0.6)
-        self.at("still argue")
-        vs = T("vs", 34, GREY).move_to([0, 2.3, 0])
-        self.play(FadeIn(vs), run_time=0.4)
-        self.at("Keep this")
-        self.play(*[FadeOut(m) for m in self.mobjects], run_time=0.6)
-        w1 = chip("rate", GREEN, 40); w2 = chip("source", YELLOW, 40); w3 = chip("pattern", BLUE, 40)
-        rw = VGroup(w1, w2, w3).arrange(RIGHT, buff=0.6).move_to([0, 0.2, 0])
-        txt = T("spikes look alike, so meaning lies in their", 34, TEXT).next_to(rw, UP, buff=0.7)
-        self.play(FadeIn(txt), run_time=0.6)
-        self.at("their rate")
-        self.play(FadeIn(w1, shift=UP * 0.15), run_time=0.4)
-        self.at("their source")
-        self.play(FadeIn(w2, shift=UP * 0.15), run_time=0.4)
-        self.at("their pattern")
-        self.play(FadeIn(w3, shift=UP * 0.15), run_time=0.4)
+        meter=Rectangle(width=1.5,height=4.4,color=GREY).move_to([-2.5,.1,0])
+        bundle=VGroup(*[Line([.3,y,0],[5.4,y,0],color=GREY,stroke_width=7) for y in [1.7,.9,.1,-.7,-1.5]])
+        load_labels=VGroup(*[T(s,28,YELLOW).move_to([-5,y,0]) for s,y in [('light',-1.6),('medium',0),('heavy',1.6)]])
+        count=T('1 / 5',32,GREEN).move_to([2.8,2.45,0])
+        fill=Rectangle(width=1.35,height=.9,color=GREEN,fill_opacity=.8).align_to(meter,DOWN).set_x(-2.5)
+        pointer=Arrow([-4.2,-1.6,0],[-3.4,-1.6,0],color=YELLOW,buff=0)
+        self.at('So the rate')
+        self.add(heading('how much?',YELLOW),meter,fill,bundle,load_labels,pointer,count,T('load',28,YELLOW).move_to([-5,2.45,0]),T('firing rate',28,GREEN).move_to([-2.5,-2.65,0]),T('number of active fibres',28,GREEN).move_to([2.8,-2.65,0]))
+        bundle[0].set_color(GREEN)
+        self.wait(1.35)
+        for n,h,y in [(3,2.7,0),(5,4.25,1.6)]:
+            target=Rectangle(width=1.35,height=h,color=GREEN,fill_opacity=.8).align_to(meter,DOWN).set_x(-2.5)
+            self.play(Transform(fill,target),pointer.animate.set_y(y),*[bundle[j].animate.set_color(GREEN) for j in range(n)],Transform(count,T(f'{n} / 5',32,GREEN).move_to(count)),run_time=.45)
+            self.wait(1.2)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Spikes look alike; meaning lies in rate, source and pattern."
+class S07Line(SpokenScene):
+    def construct(self):
+        eye=VGroup(Ellipse(width=3.1,height=4.8,color=GREY,fill_opacity=.08),Arc(radius=1.35,start_angle=PI+.18,angle=PI-.36,color=GREY).stretch(.35,1).shift(UP*.35),Arc(radius=1.2,start_angle=-.7,angle=1.4,color=TEAL).shift(RIGHT*.15)).move_to([-4.45,.15,0])
+        nerve=Line([-2.9,-.15,0],[2.25,-.15,0],color=GREY,stroke_width=8)
+        b=brain().scale(1.7).move_to([4.05,-.35,0])
+        b[0].stretch_to_fit_height(4.7).set_y(-.1)
+        b[1].move_to([4.05,-1.4,0])
+        self.at('Now the what')
+        eye_label=T('closed eye',28,GREY).move_to([-4.45,-2.55,0])
+        self.add(heading('what?',YELLOW),eye,nerve,b,eye_label)
+        finger=RoundedRectangle(width=.85,height=1.3,corner_radius=.35,color=YELLOW,fill_opacity=.15).move_to([-4.45,3.0,0])
+        flab=T('pressing finger',28,YELLOW).move_to([-1.2,2.35,0])
+        leader=Line([-3.95,2.8,0],flab.get_left()+LEFT*.15,color=YELLOW)
+        self.at('Pressure on the closed eye')
+        self.play(FadeIn(finger),FadeIn(flab),Create(leader),run_time=.3)
+        self.play(finger.animate.shift(DOWN*.45),run_time=.45)
+        flash=VGroup(*[Line([4.05+np.cos(a)*.35,.8+np.sin(a)*.35,0],[4.05+np.cos(a)*.7,.8+np.sin(a)*.7,0],color=YELLOW,stroke_width=4) for a in np.linspace(0,TAU,9)[:-1]])
+        self.at('seen as light')
+        self.play(Create(flash),FadeIn(T('seen as light',28,YELLOW).move_to([4.05,2.35,0])),run_time=.4)
+        self.at('Activity in the optic nerve')
+        self.add(T('optic nerve',28,GREEN).move_to([-.1,.75,0]))
+        self.play(nerve.animate.set_color(GREEN),run_time=.35)
+        activity=train(-2.85+firing(1,3)*1.3,-.15,.55)
+        self.play(FadeIn(activity),run_time=.2)
+        self.play(activity.animate.shift(RIGHT*3.7),run_time=1.1,rate_func=linear)
+        self.play(FadeOut(activity),run_time=.2)
+        self.at('So the kind of sense')
+        touch=VGroup(Circle(.35,color=YELLOW).move_to([-4.45,-2.65,0]),T('finger touch',28,YELLOW).move_to([-4.45,-3.18,0]),VMobject(color=GREEN,stroke_width=5).set_points_as_corners([[-4.1,-2.65,0],[1.7,-2.65,0],[2.8,-1.15,0]]),Dot([2.8,-1.15,0],radius=.14,color=YELLOW),T('touch afferent → touch',28,GREEN).move_to([.2,-3.05,0]))
+        self.play(FadeOut(eye_label),FadeIn(touch),run_time=.45)
+        self.at('the line')
+        self.play(FadeOut(flab),FadeOut(leader),FadeIn(T('labelled line',32,GREEN).move_to([.3,-1.3,0])),run_time=.35)
+        self.add(tag('Müller’s law of specific nerve energies • classic example').set_y(-3.55))
+        self.at('Whether every quality')
+        self.play(FadeIn(T('Every quality? Still argued.',26,GREY).move_to([-.5,2.35,0])),run_time=.4)
+        self.finish()
+
+
+class S08Terms(SpokenScene):
+    def construct(self):
+        # Positive orientation coordinates keep the vertical axis at the left edge.
+        ax=Axes(x_range=[0,90,15],y_range=[0,60,20],x_length=9.7,y_length=4.6,tips=False,axis_config={'color':GREY}).move_to([-.25,.1,0])
+        rate=lambda x:50*np.exp(-.5*((x-45)/22.5)**2)
+        curve=ax.plot(rate,x_range=[0,90],color=GREEN)
+        ticks=VGroup(*[T(str(x)+'°',26,GREY).next_to(ax.c2p(x,0),DOWN,buff=.15) for x in [0,45,90]],*[T(str(y),26,GREY).next_to(ax.c2p(0,y),LEFT,buff=.15) for y in [0,20,40,60]])
+        caption=tag('illustrative Gaussian tuning').set_y(-3.55)
+        self.at('A tuning curve')
+        self.add(ax,ticks,heading('bar orientation → mean firing rate'),caption,T('orientation',28,YELLOW).move_to([0,-2.95,0]),T('spikes/s',28,GREEN).rotate(PI/2).move_to([-6.2,.4,0]))
+        self.play(Create(curve),run_time=1.1)
+        self.at('mean firing rate')
+        self.play(FadeIn(T('tuning curve',28,GREEN).move_to([-2.7,2.05,0])),run_time=.35)
+        self.at('The count varies')
+        points=VGroup(*[Dot(ax.c2p(x,rate(x)),radius=.055,color=TEAL) for x in [15,30,45,60,75]])
+        self.play(FadeIn(points),run_time=.4)
+        self.at('That spread is noise')
+        bars=VGroup()
+        for x in [15,30,45,60,75]:
+            low=ax.c2p(x,rate(x)-5); high=ax.c2p(x,rate(x)+5)
+            bars.add(VGroup(Line(low,high,color=TEAL),Line(low+LEFT*.12,low+RIGHT*.12,color=TEAL),Line(high+LEFT*.12,high+RIGHT*.12,color=TEAL)))
+        noise=VGroup(T('noise:',28,TEAL),T('trial-to-trial',26,TEAL),T('spread',26,TEAL)).arrange(DOWN,buff=.12).move_to([4.85,1.65,0])
+        self.play(FadeOut(caption),run_time=.18)
+        self.play(LaggedStart(*[Create(b) for b in bars],lag_ratio=.4),FadeIn(noise),FadeIn(tag('illustrative Gaussian tuning • equal noise').set_y(-3.55)),run_time=1.1)
+        self.wait(1.2)
+        self.finish()
+
+
+class S09Idea(SpokenScene):
+    def construct(self):
+        b,t,e,n,_,_=idea_box()
+        # The window is already explicit while the opening sentence is spoken.
+        window=count_window()
+        self.at('Here is the one idea')
+        self.add(b,t,window)
+        self.at('for spikes counted')
+        self.play(Indicate(window[0],color=GREEN,scale_factor=1.02),run_time=.5)
+        self.at('On each trial')
+        self.play(ReplacementTransform(window,count_window(True)),FadeIn(e[0],shift=LEFT*.3),run_time=.45)
+        self.at('is its tuning curve')
+        self.play(FadeIn(e[1],shift=LEFT*.3),run_time=.45)
+        self.at('plus a fluctuation')
+        self.play(FadeIn(e[2],shift=LEFT*.3),run_time=.45)
+        self.at('averages to zero')
+        self.play(FadeIn(n),run_time=.45)
+        self.finish()
+
+
+class S10Reading(SpokenScene):
+    def construct(self):
+        b,t,e,n,i,_=idea_box()
+        window=count_window(True)
+        self.add(b,t,e,n,window)
+        self.at('Which neurons respond')
+        self.play(FadeOut(window),FadeIn(i[0]),run_time=.6)
+        self.at('together tell you')
+        self.play(FadeIn(i[1]),run_time=.5)
+        self.finish()
+
+
+class S11Small(SpokenScene):
+    def construct(self):
+        b,t,e,n,i,s=idea_box()
+        self.add(b,t,e,n,i)
+        self.at('A small change')
+        self.play(FadeIn(s),run_time=.55)
+        self.at('Spike timing can')
+        self.play(FadeIn(tag('Spike timing can carry information too.').set_y(-3.55)),run_time=.5)
+        self.finish()
+
+
+class S12Transduction(SpokenScene):
+    def construct(self):
+        mem,rest,chs,count,scale,labels,marker,readout=voltage_stage(0)
+        self.at('How is the rate')
+        self.add(heading('How is the rate set?'),mem,rest,chs,count,scale,labels,marker,readout,T('nerve ending membrane',28,GREY).move_to([-3.4,2.5,0]))
+        self.at('force opens channels')
+        force=Arrow([-3.85,2.15,0],[-3.85,1.65,0],color=YELLOW,buff=0)
+        self.play(GrowArrow(force),run_time=.35)
+        self.play(FadeOut(count),FadeOut(readout),run_time=.15)
+        count=T('1 open transduction channel',26,TEAL).move_to(count)
+        readout=T('−32.5 mV',30,TEAL).move_to([scale.n2p(voltage(1))[0],1.05,0])
+        self.play(Transform(chs[0],channel(-3.85,True)),marker.animate.move_to(scale.n2p(voltage(1))+UP*.3),FadeIn(count),FadeIn(readout),run_time=.45)
+        self.at('In a simple model')
+        self.add(tag('toy passive model • no injected current • settled voltages').set_y(-3.6))
+        self.play(Indicate(scale,color=TEAL,scale_factor=1.02),run_time=.5)
+        self.add(T('resting reversal: −65 mV',26,GREY).move_to([3,-1.65,0]))
+        self.at('each open channel')
+        self.play(Indicate(chs[0],color=TEAL,scale_factor=1.03),Indicate(readout,color=TEAL,scale_factor=1.03),run_time=.8)
+        self.finish()
+
+
+class S13Graded(SpokenScene):
+    def construct(self):
+        mem,rest,chs,count,scale,labels,marker,readout=voltage_stage(1)
+        self.add(mem,rest,chs,count,scale,labels,marker,readout,tag('toy passive model • no injected current • settled voltages').set_y(-3.6),T('resting reversal: −65 mV',26,GREY).move_to([3,-1.65,0]))
+        self.at('So the receptor potential')
+        self.add(heading('graded receptor potential',TEAL))
+        self.at('Each extra channel')
+        for g in [2,3,4]:
+            if g==3:
+                self.at('as the voltage')
+            previous=voltage(g-1); value=voltage(g)
+            label={2:'−22 mV',3:'−16 mV',4:'−13 mV'}[g]
+            p0=scale.n2p(previous)+DOWN*1.1; p1=scale.n2p(value)+DOWN*1.1
+            bracket=VGroup(Line(p0,p1,color=TEAL),Line(p0+UP*.1,p0+DOWN*.1,color=TEAL),Line(p1+UP*.1,p1+DOWN*.1,color=TEAL),T({2:'about 11 mV',3:'about 5 mV',4:'about 3 mV'}[g],26,TEAL).move_to([3,-2.35,0]))
+            self.play(FadeOut(count),FadeOut(readout),run_time=.15)
+            count=T(f'{g} open transduction channels',26,TEAL).move_to(count)
+            readout=T(label,30,TEAL).move_to([scale.n2p(value)[0],1.05,0])
+            self.play(Transform(chs[g-1],channel([-3.85,-3.05,-2.25,-1.45][g-1],True)),marker.animate.move_to(scale.n2p(value)+UP*.3),FadeIn(count),FadeIn(readout),FadeIn(bracket),run_time=.45)
+            self.wait(1.15)
+            self.play(FadeOut(bracket),run_time=.15)
+        self.add(T('smaller steps → saturation',28,TEAL).move_to([3,-2.35,0]))
+        self.wait(1.2)
+        self.finish()
+
+
+class S14Spikes(SpokenScene):
+    def construct(self):
+        title=heading('a graded potential fades',TEAL)
+        axon=RoundedRectangle(width=10.6,height=4.6,corner_radius=.65,color=GREY,fill_opacity=.05).move_to([-.7,.1,0])
+        # x=0 and x=lambda included explicitly: the second bar is exactly exp(-1).
+        lam=3.8
+        xs=np.array([-5.6,-1.8,.1,2,3.9])
+        bars=VGroup(*[Line([x,-.8,0],[x,-.8+2.6*np.exp(-(x+5.6)/lam),0],color=TEAL,stroke_width=9) for x in xs])
+        bracket=VGroup(Line([-5.6,-1.6,0],[-1.8,-1.6,0],color=TEAL),Line([-5.6,-1.45,0],[-5.6,-1.75,0],color=TEAL),Line([-1.8,-1.45,0],[-1.8,-1.75,0],color=TEAL))
+        note=VGroup(T('one length constant',26,TEAL),T('falls to about 1/3',26,TEAL)).arrange(DOWN,buff=.12).move_to([-3.7,-2.25,0])
+        values=VGroup(T('100%',26,TEAL).move_to([-5.3,2.05,0]),T('37%',26,TEAL).move_to([-1.8,.65,0]))
+        self.add(title,axon,bars[0],values[0])
+        self.at('a graded potential fades')
+        self.play(LaggedStart(*[GrowFromEdge(b,DOWN) for b in bars[1:]],lag_ratio=.16),FadeIn(bracket),FadeIn(note),FadeIn(values[1]),run_time=1)
+        self.at('To reach the spinal cord')
+        cord=chip('spinal\ncord',GREY,28).move_to([5.45,-.2,0])
+        connector=Line([4.6,-.2,0],cord.get_left(),color=GREY,stroke_width=5)
+        self.play(FadeIn(cord),Create(connector),run_time=.4)
+        self.at('it must become spikes')
+        self.play(FadeOut(bracket),FadeOut(note),FadeOut(values),run_time=.25)
+        self.at('which regenerate')
+        spikes=train(xs,-.8,2.6)
+        self.play(Transform(title,heading('spikes regenerate',GREEN)),ReplacementTransform(bars,spikes),FadeIn(T('same spike height along the axon',28,GREEN).move_to([-.6,-2.7,0])),run_time=.6)
+        self.wait(1.2)
+        self.finish()
+
+
+class S15Where(SpokenScene):
+    def construct(self):
+        # Smooth, joined silhouette: four fingers and a thumb on a rounded palm.
+        hand=VMobject(color=GREY,fill_opacity=.1)
+        hand.start_new_path(np.array([-4.8,-2.3,0]))
+        def curve(c1,c2,end):
+            hand.add_cubic_bezier_curve_to(np.array([*c1,0]),np.array([*c2,0]),np.array([*end,0]))
+        def edge(x,y):
+            hand.add_line_to(np.array([x,y,0]))
+        curve((-4.8,-1.4),(-5.25,-.65),(-5.72,.02))
+        curve((-6.05,.55),(-5.55,.7),(-5.28,.25))
+        edge(-4.95,-.25); edge(-5.08,1.8)
+        curve((-5.08,2.35),(-4.5,2.35),(-4.5,1.8))
+        edge(-4.48,.25); edge(-4.44,2.12)
+        curve((-4.44,2.7),(-3.83,2.7),(-3.83,2.12))
+        edge(-3.8,.3); edge(-3.78,1.95)
+        curve((-3.78,2.52),(-3.16,2.52),(-3.16,1.95))
+        edge(-3.12,.15); edge(-3.08,1.35)
+        curve((-3.08,1.92),(-2.53,1.92),(-2.53,1.35))
+        edge(-2.5,-.8)
+        curve((-2.48,-1.5),(-2.95,-1.65),(-3,-2.3))
+        edge(-4.8,-2.3); hand.close_path()
+        back=RoundedRectangle(width=3.6,height=4.9,corner_radius=.8,color=GREY,fill_opacity=.1).move_to([3.4,.05,0])
+        first=Ellipse(width=.46,height=.65,color=YELLOW,stroke_width=5).move_to([-4.12,1.96,0])
+        leader=Line([-3.85,2.05,0],[-1.95,2.35,0],color=YELLOW)
+        firstlabel=T('receptive field',28,YELLOW).move_to([-.45,2.4,0])
+        self.at('Receptive fields help')
+        self.add(heading('where?',YELLOW),hand,back,first,leader,firstlabel,T('hand',28,GREY).move_to([-4,-2.85,0]),T('back',28,GREY).move_to([3.4,-2.85,0]))
+        self.at('small fields on a fingertip')
+        small=VGroup(*[Ellipse(width=.44,height=.6,color=YELLOW,stroke_width=4).move_to([x,y,0]) for x,y in [(-4.78,1.8),(-3.46,1.8),(-4.12,1.25)]])
+        self.play(FadeOut(firstlabel),run_time=.15)
+        firstlabel=T('small-field\ntouch afferents',26,YELLOW).move_to([-.35,1.4,0])
+        self.play(Create(small),Transform(leader,Line([-3.25,1.8,0],firstlabel.get_left()+LEFT*.1,color=YELLOW)),FadeIn(firstlabel),run_time=.5)
+        self.at('larger ones elsewhere')
+        large=VGroup(*[Ellipse(width=2.25,height=1.3,color=YELLOW,stroke_width=4).move_to([x,y,0]) for x,y in [(3.1,1.55),(3.6,0),(3.1,-1.55)]])
+        self.play(Create(large),FadeIn(T('larger fields elsewhere',26,YELLOW).move_to([3.4,2.85,0])),run_time=.5)
+        self.at('Field size also depends')
+        broad=DashedVMobject(Ellipse(width=2.7,height=2.5,color=BLUE).move_to([-3.95,-.8,0]),num_dashes=24)
+        pac=VGroup(T('Pacinian afferents',26,BLUE),T('much broader',26,BLUE),T('fields',26,BLUE)).arrange(DOWN,buff=.14).move_to([-.1,-1.5,0])
+        self.play(Create(broad),FadeIn(pac),Create(Line([-2.6,-.8,0],[-1.85,-1.15,0],color=BLUE)),run_time=.5)
+        self.finish()
+
+
+class S16When(SpokenScene):
+    def construct(self):
+        # All three rows share x; the probe spans the onset-to-offset hold.
+        x0,x1=-3.6,3.5
+        skin=Line([-4.1,2.02,0],[4,2.02,0],color=GREY,stroke_width=5)
+        probe=Rectangle(width=x1-x0,height=.4,color=YELLOW,fill_opacity=.2).move_to([(x0+x1)/2,2.5,0])
+        step=VMobject(color=YELLOW,stroke_width=4).set_points_as_corners([[-5.8,1.1,0],[x0,1.1,0],[x0,1.85,0],[x1,1.85,0],[x1,1.1,0],[5.8,1.1,0]])
+        marks=VGroup(*[DashedLine([x,1.1,0],[x,-3,0],color=GREY,stroke_opacity=.4) for x in [x0,x1]])
+        self.at('Endings are tuned')
+        self.add(heading('tuned in time'),skin,probe,step,T('probe',26,YELLOW).move_to([-5.15,2.5,0]),T('skin',26,GREY).move_to([5,2.02,0]),T('pressure on skin',28,YELLOW).move_to([0,1.48,0]),T('onset',26,YELLOW).move_to([x0,.8,0]),T('offset',26,YELLOW).move_to([x1,.8,0]),marks,tag('illustrative rasters • shared time axis →').set_y(-3.55))
+        self.play(probe.animate.shift(DOWN*.18),run_time=.35)
+        self.at('Rapidly adapting endings')
+        # Rate proportional to the onset/offset transient: exponential bursts.
+        burst=firing(.7,9,.1,tau=.2)
+        ra_x=np.concatenate([x0+burst*.9,x1+burst*.9])
+        ra=VGroup(baseline(-5.8,5.8,-1.05),train(ra_x,-1.05,1.25),T('rapidly adapting • change',28,GREEN).move_to([0,.5,0]))
+        self.play(Create(ra),run_time=.6)
+        self.at('Slowly adapting endings')
+        times=firing(6,3.5,1.7,tau=2)
+        sa_x=x0+times/6*(x1-x0)
+        sa=VGroup(baseline(-5.8,5.8,-3),train(sa_x,-3,1.25),T('slowly adapting • held stimulus',28,GREEN).move_to([0,-1.45,0]))
+        self.play(Create(sa),run_time=.7)
+        self.at('keep firing')
+        self.play(Indicate(sa[1],color=GREEN,scale_factor=1.02),run_time=.5)
+        self.finish()
+
+
+class S17Takeaway(SpokenScene):
+    def construct(self):
+        b,t,e,n,_,_=idea_box()
+        box=VGroup(b,t,e,n)
+        self.at('So a spike means')
+        self.add(box)
+        self.wait(2)
+        line=VGroup(T('A spike means what',40),T('its neuron is tuned to.',40,GREEN)).arrange(DOWN,buff=.2).move_to([0,1.75,0])
+        self.play(FadeOut(box),FadeIn(line),run_time=.45)
+        self.at('Next')
+        # Overlapping receptive fields, explicitly labelled as neighbours.
+        units=VGroup()
+        for x,label in [(-2.1,'A'),(0,'B'),(2.1,'C')]:
+            units.add(VGroup(Circle(1.25,color=BLUE,fill_opacity=.07).move_to([x,-.8,0]),chip(label,GREY,28).move_to([x,-.8,0]),Line([x,-2.05,0],[x,-2.4,0],color=GREY)))
+        self.play(FadeIn(units),run_time=.4)
+        self.at('neighbors compare')
+        self.play(FadeIn(T('Next: neighbours compare',30,BLUE).move_to([0,-3.15,0])),run_time=.4)
+        self.wait(2.4)
+        self.finish()
+
+
+class S18End(EndCard):
+    LINE='A spike means what its neuron is tuned to.'
