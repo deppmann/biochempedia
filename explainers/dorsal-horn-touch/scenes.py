@@ -1,480 +1,272 @@
-"""Dorsal horn and dorsal column nuclei: two copies of one touch  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = the direct route: touch afferents (primary afferent fibres and their terminal)
-  ORANGE = the indirect route: the PSDC neuron and its axon
-  GREEN  = excitatory (excitatory neurons, excitatory arrows)
-  RED    = inhibitory (inhibitory neurons, inhibitory bar-ended arrows)
-  PURPLE = the dorsal column nuclei (gracile, cuneate) in the brainstem
-  YELLOW = a travelling spike, the vibration wave, and the 4.5 ms gap
-  GOLD   = the IB4 border (one highlight), and synaptic delay in the timing chart
-  GREY   = cord outline, laminae bands, dorsal column, labels
-
-Anatomy rules kept: the cord is one flat schematic cross-section (the half on the hindpaw's side,
-laminae as labelled bands, the dorsal column as a labelled box). The brainstem is only two labelled
-boxes. Nothing is wired to a drawn body. The dorsal column stays on the hindpaw's own side.
+"""Chapter 1: Two Routes, One Patch of Skin.
+COLOR MAP: BLUE #58C4DD = direct afferent; GOLD #E4BF51 = PSDC/indirect.
+PURPLE #B58CD9 = gracile nucleus; GREY = anatomy; TEXT = labels;
+RED = negation. All anatomy is schematic. Response traces are illustrative
+model outputs, never recordings: sinusoidal vibration with one spike/cycle;
+constant-rate firing gated by a rectangular held press (no fitted parameters).
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+PURPLE = '#B58CD9'
+GOLD = '#E4BF51'
+LESSON = 'Where Touch Is First Processed: Dorsal Horn and Dorsal Column Nuclei'
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-
-# ---------------------------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------------------------
-def poly(pts, color, w=5, opacity=1.0):
-    m = VMobject()
-    m.set_points_as_corners([np.array([p[0], p[1], 0.0]) for p in pts])
-    m.set_stroke(color, w, opacity=opacity)
-    m.set_fill(opacity=0)
-    return m
-
-
-def arr(a, b, color=GREEN, w=5, tip=0.2):
-    return Arrow(a, b, buff=0, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.5, max_stroke_width_to_length_ratio=12)
-
-
-def inhib(a, b, color=RED, w=5):
-    a, b = np.array(a, float), np.array(b, float)
-    d = (b - a) / np.linalg.norm(b - a)
-    perp = np.array([-d[1], d[0], 0])
-    return VGroup(Line(a, b, color=color, stroke_width=w),
-                  Line(b + perp * 0.2, b - perp * 0.2, color=color, stroke_width=w + 1))
-
-
-def link(pa, ra, pb, rb, kind="exc", gap=0.05, color=None):
-    pa, pb = np.array(pa, float), np.array(pb, float)
-    d = (pb - pa) / np.linalg.norm(pb - pa)
-    a = pa + d * (ra + gap)
-    b = pb - d * (rb + gap)
-    if kind == "exc":
-        return arr(a, b, color or GREEN)
-    return inhib(a, b, color or RED)
-
-
-def amap(s, lc, sc):
-    return lambda x, y: np.array([(x - lc[0]) * s + sc[0], (y - lc[1]) * s + sc[1], 0.0])
-
-
-def lbl_right(text, size, color, pt):
-    t = T(text, size, color)
-    t.move_to(pt, aligned_edge=RIGHT)
-    return t
-
-
-def lbl_left(text, size, color, pt):
-    t = T(text, size, color)
-    t.move_to(pt, aligned_edge=LEFT)
-    return t
-
+def poly(pts, color=GREY, w=4, opacity=1):
+    return VMobject().set_points_as_corners([[x,y,0] for x,y in pts]).set_stroke(color,w,opacity=opacity).set_fill(opacity=0)
+def label(s,x,y,color=TEXT,size=28):
+    return T(s,size=size,color=color).move_to([x,y,0])
+def lines(ss,x,y,color=TEXT,size=28):
+    return VGroup(*[T(s,size=size,color=color) for s in ss]).arrange(DOWN,buff=.12).move_to([x,y,0])
+def arr(a,b,color=GOLD,w=5):
+    return Arrow([*a,0],[*b,0],buff=0,color=color,stroke_width=w,tip_length=.2)
+def leader(a,b,color=GREY): return poly([a,b],color,2)
+def cell(x,y,r=.3,color=GOLD):
+    return Circle(radius=r,color=color,fill_color=color,fill_opacity=.24).move_to([x,y,0])
+def paw(center=(-4.7,-2.5),scale=1):
+    # Continuous, rounded silhouette: five toes above the broad plantar pad.
+    pts=[(-.65,-.65),(-.85,-.15),(-.9,.35),(-.72,.65),(-.62,.4),(-.5,.95),(-.3,1.05),(-.25,.55),(-.12,1.17),(.08,1.17),(.18,.55),(.34,1.05),(.53,.95),(.5,.42),(.72,.74),(.87,.6),(.8,.15),(.65,-.4),(.25,-.75)]
+    p=VMobject().set_points_smoothly([[x,y,0] for x,y in pts+[pts[0]]]).set_stroke(GREY,3).set_fill(GREY,.22)
+    pad=Ellipse(width=.9,height=.72,color=GREY,fill_color=GREY,fill_opacity=.3).move_to([0,-.15,0])
+    return VGroup(p,pad).scale(scale).move_to([*center,0])
+def glow(x,y,r=.32):
+    return VGroup(*[Circle(radius=r+k*.1,stroke_width=0,fill_color=BLUE,fill_opacity=.035*(5-k)).move_to([x,y,0]) for k in reversed(range(5))],cell(x,y,r,BLUE))
 
 class Cord:
-    """The schematic half-cord. Local coordinates (x, y); f() maps them to the screen.
-    Local layout: outline x -3.6..1.7, y -3.0..0.8. Dorsal column box x 0.2..1.4. Laminae x -3.3..0.0:
-    IIiv 0..-0.55, III -0.55..-1.1, IV -1.1..-1.65. PSDC axon runs at x 0.55, direct axon at x 1.05."""
+    def __init__(self, zoom=False):
+        if not zoom:
+            self.outer=Ellipse(width=7.3,height=6.3,color=GREY,fill_color=GREY,fill_opacity=.06).move_to([-1,0,0])
+            pts=[(-1,.1),(-2,1.1),(-2.9,2.1),(-3.1,1.2),(-2.6,.25),(-3.4,-1.6),(-2.7,-2.1),(-1,-.55),(.7,-2.1),(1.4,-1.6),(.6,.25),(1.1,1.2),(.9,2.1),(0,1.1),(-1,.1)]
+            self.grey=VMobject().set_points_smoothly([[x,y,0] for x,y in pts]).set_stroke(GREY,2).set_fill(GREY,.25)
+            self.column=RoundedRectangle(width=1.4,height=1.2,corner_radius=.1,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([-.1,2.5,0])
+            self.entry=poly([(5.8,.6),(2.6,.6),(1.1,1.6),(.2,1.5)],BLUE,6)
+            self.up=poly([(.2,1.5),(.2,3)],BLUE,6)
+            self.base=VGroup(self.outer,self.grey,self.column,DashedLine([-1,-3,0],[-1,3,0],color=GREY,stroke_opacity=.5))
+            self.labels=VGroup(label('dorsal column',3.1,2.65,GREY),leader((1.6,2.65),(.6,2.65)),label('dorsal',-3.8,2.9,GREY,26),label('lumbar spinal cord',-1,-3.4,GREY,26))
+            return
+        # Isolated enlargement of the UPPER wing; ventral tissue is outside this view.
+        pts=[(-4.6,-3.0),(-4.5,.7),(-3.8,2),(-3.1,2.55),(-2.5,1.55),(-1.1,.9),(.55,-.1),(.65,-3.0),(-4.6,-3.0)]
+        horn=VMobject().set_points_smoothly([[x,y,0] for x,y in pts]).set_stroke(GREY,3).set_fill(GREY,.12)
+        column=RoundedRectangle(width=1.8,height=2,corner_radius=.12,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([1,2.1,0])
+        self.base=VGroup(horn,column)
+        self.layers=VGroup(*[poly([(-4.2,y),(-3.3,y+.12),(-2.1,y+.12),(-.5,y-.12)],GREY,2,.6) for y in [1,.0,-1.05]])
+        self.labels=VGroup(label('lumbar dorsal horn',-2.7,3.15,GREY,28),leader((-3,2.88),(-3.1,2.35)),label('dorsal column',3.8,2.7,GREY,28),leader((2.35,2.7),(1.8,2.7)),*[label(s,-4.9,y,GREY,26) for s,y in [('II',1.15),('III',.1),('IV',-1)]],label('enlarged dorsal wing · schematic',-2,-3.55,GREY,26))
+        self.entry=poly([(5.7,1),(2.7,1),(1.45,1.3)],BLUE,6)
+        self.up=poly([(1.45,1.3),(1.45,3.1)],BLUE,6)
+        # A small bridge gap keeps the incoming blue fiber distinct from gold.
+        self.entry_bridge=VGroup(poly([(5.7,1),(2.7,1),(1.88,1.197)],BLUE,6),poly([(1.62,1.259),(1.45,1.3)],BLUE,6))
+        # Branch leaves to the LEFT of the two ascending axons; gold never crosses it.
+        self.branch=poly([(1.45,1.3),(1.1,-.1),(-3.3,-.1)],BLUE,6)
+        self.inter=VGroup(cell(-3,-1),cell(-2,-1.9))
+        self.neuron=cell(-.15,-1.8,.43)
+        self.links=VGroup(arr((-3,-.18),(-3,-.65)),arr((-2.75,-1.2),(-2.25,-1.65)),arr((-1.65,-1.9),(-.65,-1.8)))
+        self.short=arr((-.7,-.12),(-.25,-1.3),w=3)
+        self.axon=poly([(.28,-1.8),(1.75,-1.8),(1.75,3.1)],GOLD,6)
+        self.interlabel=VGroup(lines(['local','interneurons'],-3,-2.6,GOLD,26),leader((-2.65,-2.2),(-2.25,-2.07),GOLD))
+    def group(self,circuit=False):
+        g=VGroup(self.base,self.layers,self.labels,self.entry_bridge if circuit else self.entry,self.up,self.branch)
+        if circuit: g.add(self.inter,self.neuron,self.links,self.short,self.axon,self.interlabel)
+        return g
 
-    def __init__(self, s=1.0, lc=(-0.95, -1.1), sc=(-0.1, -1.1), labels=True):
-        self.s, self.f = s, amap(s, lc, sc)
-        f = self.f
-        self.outline = RoundedRectangle(corner_radius=0.45 * s, width=5.3 * s, height=3.8 * s, stroke_color=GREY,
-                                        stroke_width=3, fill_color=GREY, fill_opacity=0.06).move_to(f(-0.95, -1.1))
-        self.colbox = Rectangle(width=1.2 * s, height=2.3 * s, stroke_color=GREY, stroke_width=2,
-                                fill_color=GREY, fill_opacity=0.22).move_to(f(0.8, -0.35))
-        dl = VGroup(T("dorsal", 22, GREY), T("column", 22, GREY)).arrange(DOWN, buff=0.04, aligned_edge=LEFT)
-        dl.move_to(f(1.85, 0.2), aligned_edge=LEFT)
-        self.collbl = dl
-        self.bands = VGroup(*[
-            Rectangle(width=3.3 * s, height=0.55 * s, stroke_color=GREY, stroke_width=1.5,
-                      fill_color=GREY, fill_opacity=op).move_to(f(-1.65, yc))
-            for yc, op in ((-0.275, 0.14), (-0.825, 0.26), (-1.375, 0.14))])
-        self.ib4 = DashedLine(f(-3.3, 0), f(0.0, 0), color=GOLD, stroke_width=3, dash_length=0.12)
-        self.ib4lbl = lbl_right("IB4 border", 22, GOLD, f(-3.8, 0.3))
-        self.lamlbl = VGroup(*[lbl_right(t, 24, TEXT, f(-3.8, yc)) for t, yc in
-                               (("IIiv", -0.275), ("III", -0.825), ("IV", -1.375))])
-        self.base = VGroup(self.outline, self.colbox, self.bands)
-        self.labels = VGroup(self.collbl, self.ib4, self.ib4lbl, self.lamlbl)
+class Routes:
+    def __init__(self):
+        self.paw=paw((-4.7,-2.25)); self.patch=glow(-4.7,-2.4,.25)
+        self.column=RoundedRectangle(width=1.25,height=4.35,corner_radius=.1,color=GREY,fill_color=GREY,fill_opacity=.12).move_to([.65,-.5,0])
+        self.horn=RoundedRectangle(width=3.4,height=2.25,corner_radius=.25,color=GREY,fill_color=GREY,fill_opacity=.09).move_to([-1.95,-1.65,0])
+        self.med=RoundedRectangle(width=4.9,height=1.4,corner_radius=.2,color=PURPLE,fill_color=PURPLE,fill_opacity=.10).move_to([.1,2.4,0])
+        self.soma=cell(.65,2.25,.36,TEXT)
+        self.blue=poly([(-4.4,-2.4),(-3.8,-3.05),(1,-3.05),(1,1.75),(.86,1.95)],BLUE,6)
+        self.branch=poly([(-3,-3.05),(-3,-1.6),(-2.5,-1.6)],GOLD,5)
+        self.local=VGroup(cell(-2.3,-1.6,.22),arr((-2.02,-1.6),(-1.18,-1.6)))
+        self.psdc=cell(-.85,-1.6,.3)
+        self.gold=poly([(-.55,-1.6),(.3,-1.6),(.3,1.7)],GOLD,6)
+        self.end=poly([(.3,1.7),(.47,1.95)],GOLD,6)
+        breaks=VGroup(*[poly([(x-.13,.4),(x+.06,.56),(x-.13,.72)],GREY,3) for x in [.03,1.27]])
+        self.labels=VGroup(label('gracile nucleus',-.2,3.35,PURPLE,28),leader((-.2,3.1),(-.2,2.98),PURPLE),label('caudal medulla',-4.2,2.45,GREY,26),leader((-2.7,2.45),(-2.36,2.45)),label('dorsal column',3.2,.85,GREY,26),leader((1.8,.85),(1.28,.85)),label('long way up',3.1,.12,GREY,26),leader((1.8,.12),(1.28,.5)),label('dorsal horn',-2,-.22,GREY,26),leader((-2,-.48),(-2,-.57)),label('hindpaw',-4.7,-3.55,GREY,26))
+        self.base=VGroup(self.horn,self.column,self.med,self.paw,self.patch,self.blue,breaks,self.soma,self.labels)
+        self.indirect=VGroup(self.branch,self.local,self.psdc,self.gold)
+    def all(self): return VGroup(self.base,self.indirect)
 
-
-def bchip(text, color=BLUE, size=24, **kw):
-    c = chip(text, color, size=size, **kw)
-    back = RoundedRectangle(corner_radius=0.14, width=c[0].width, height=c[0].height, stroke_width=0,
-                            fill_color=BG, fill_opacity=1).move_to(c[0])
-    return VGroup(back, *c)
-
-
-def send(scene, pts, n=3, run=2.0, color=YELLOW, r=0.1):
-    """spikes (dots) travelling along a polyline"""
-    path = VMobject()
-    path.set_points_as_corners([np.array([p[0], p[1], 0.0]) for p in pts])
-    dots = VGroup(*[Dot(radius=r, color=color) for _ in range(n)]).set_opacity(0)
-    scene.add(dots)
-
-    def upd(m, a):
-        for i, d in enumerate(m):
-            aa = a - 0.13 * i
-            if aa <= 0 or aa >= 1:
-                d.set_opacity(0)
-            else:
-                d.set_opacity(1)
-                d.move_to(path.point_from_proportion(aa))
-
-    scene.play(UpdateFromAlphaFunc(dots, upd, run_time=run, rate_func=linear))
-    scene.remove(dots)
-
-
-def dcn(show=True, hi=None):
-    """the dorsal column nuclei as labelled boxes (gracile above the cord's axons)"""
-    title = T("dorsal column nuclei (DCN), brainstem", 22, PURPLE).move_to([3.1, 3.2, 0])
-    g = RoundedRectangle(corner_radius=0.12, width=2.3, height=0.8, stroke_color=PURPLE, stroke_width=3,
-                         fill_color=PURPLE, fill_opacity=0.18).move_to([1.65, 2.35, 0])
-    c = RoundedRectangle(corner_radius=0.12, width=2.3, height=0.8, stroke_color=PURPLE, stroke_width=3,
-                         fill_color=PURPLE, fill_opacity=0.08).move_to([4.55, 2.35, 0])
-    gl = T("gracile", 26, TEXT).move_to(g)
-    cl = T("cuneate", 26, GREY).move_to(c)
-    return VGroup(title, g, c, gl, cl)
-
-
-def rf_patch(center, r=0.4, label=True):
-    """a patch of hindpaw skin (flat) with one receptive-field circle"""
-    skin = Ellipse(width=2.5, height=1.6, stroke_color=GREY, stroke_width=2, fill_color=GREY, fill_opacity=0.15)
-    skin.move_to(center)
-    circ = Circle(radius=r, stroke_color=ORANGE, stroke_width=4, fill_color=ORANGE, fill_opacity=0.25).move_to(center)
-    return skin, circ
-
+def prediction():
+    r=Routes()
+    other=cell(2,2.25,.32,GREY)
+    opts=VGroup(DashedLine([.3,1.7,0],[.47,1.95,0],color=GOLD),DashedLine([.3,1.7,0],[1.8,1.99,0],color=GOLD))
+    names=VGroup(lines(['same neuron','as blue'],-3.9,1.25,GOLD,26),leader((-2.6,1.4),(.3,2.1),GOLD),lines(['a separate','neuron'],4.45,2.4,GREY,26),leader((3.2,2.3),(2.35,2.25)))
+    q=lines(['Does gold reach the','same brainstem neuron?'],3.9,-2.25,size=29)
+    return VGroup(r.all(),other,opts,names,q)
+def report_tags():
+    return VGroup(VGroup(lines(['Direct,','keeps timing'],3.9,-.65,BLUE,28),leader((2.5,-.65),(1,-.65),BLUE)),VGroup(lines(['Rebuilt in the','dorsal horn,','sustained pressure'],3.8,-2.05,GOLD,26),leader((2.1,-2),(.3,-1.7),GOLD)))
+def copy_mark():
+    t=label('just a copy',-1.4,.7,GOLD,26)
+    return VGroup(t,Line(t.get_left(),t.get_right(),color=RED,stroke_width=4),leader((t.get_right()[0]+.08,.7),(.3,.7),GOLD))
+def summary():
+    r=Routes(); return VGroup(r.all(),r.end,report_tags(),copy_mark())
 
 class S00Title(TitleCard):
-    LESSON = "Dorsal horn and dorsal column nuclei"
-    TITLE = "Two Copies of One Touch"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Cable(SpokenScene):
-    """the textbook cable, then a question mark over the dorsal horn"""
-
+    LESSON=LESSON
+    TITLE='Two Routes, One Patch of Skin'
     def construct(self):
-        C = Cord()
-        f = C.f
-        chipm = bchip("hindpaw skin indented", BLUE, 22).move_to([-4.6, -2.3, 0])
-        cable_pts = [chipm.get_right() + RIGHT * 0.02, f(-3.6, -2.3), f(1.05, -2.3), f(1.05, 1.0), [1.9, 1.95]]
-        cable_pts[0] = [chipm.get_right()[0], -2.3]
-        cable = poly(cable_pts, BLUE, 6)
-        caption = T("mouse lumbar cord, hindpaw side: schematic cross-section", 22, GREY).move_to([-0.1, -3.35, 0])
-        self.at("skin")
-        self.play(FadeIn(C.base), FadeIn(C.collbl), FadeIn(C.ib4), FadeIn(C.ib4lbl), FadeIn(C.lamlbl),
-                  FadeIn(caption), FadeIn(chipm, shift=RIGHT * 0.2), run_time=1.2)
-        self.at("textbook")
-        tb = T("the textbook: a cable", 26, BLUE).move_to([4.5, 1.2, 0])
-        # the cable reaches the brainstem boxes only when the narrator says brainstem
-        self.play(Create(VMobject().set_points_as_corners([np.array([p[0], p[1], 0]) for p in cable_pts[:4]])
-                         .set_stroke(BLUE, 6).set_fill(opacity=0)), FadeIn(tb), run_time=1.6)
-        self.at("Touch spikes")
-        send(self, cable_pts[:4], n=3, run=2.0)
-        self.at("run up")
-        boxes = dcn()
-        self.play(FadeIn(boxes), Create(poly([[1.9, 0.8], [1.9, 1.95]], BLUE, 6)), run_time=1.0)
-        self.at("decades ago")
-        q = RoundedRectangle(corner_radius=0.12, width=1.5, height=0.95, stroke_color=YELLOW, stroke_width=4,
-                             fill_color=YELLOW, fill_opacity=0.12).move_to(f(-1.65, -0.825))
-        qm = T("?", 56, YELLOW, weight=BOLD).move_to(q)
-        self.play(FadeIn(q, scale=0.8), FadeIn(qm), run_time=0.7)
-        self.at("circuitry")
-        self.play(Indicate(q, color=YELLOW, scale_factor=1.12), run_time=1.2)
-        self.finish()
-
-
-class S02Direct(SpokenScene):
-    """the direct route: afferent axons, no synapse, to the gracile nucleus; vibration timing"""
-
+        g=VGroup(label('BIOCHEMISTRYPEDIA',0,2,TEAL,26),lines(['WHERE TOUCH IS FIRST PROCESSED:','DORSAL HORN AND DORSAL COLUMN NUCLEI'],0,.8,GREY,26),lines(['Two Routes,','One Patch of Skin'],0,-.8,size=48))
+        self.add(g); self.finish()
+class S01Question(SpokenScene):
     def construct(self):
-        C = Cord()
-        f = C.f
-        chipm = bchip("hindpaw touch", BLUE, 24).move_to([-5.0, -2.3, 0])
-        caption = T("mouse lumbar cord, hindpaw side: schematic cross-section", 22, GREY).move_to([-0.1, -3.35, 0])
-        boxes = dcn()
-        pts = [[chipm.get_right()[0], -2.3], f(-3.6, -2.3), f(1.05, -2.3), f(1.05, 1.0), [1.9, 1.95]]
-        faint = poly(pts, BLUE, 6, opacity=0.35)
-        self.add(C.base, C.collbl, C.ib4, C.ib4lbl, C.lamlbl, caption, chipm, boxes, faint)
-        self.at("direct")
-        lit = poly(pts, BLUE, 9)
-        self.play(Create(lit), run_time=1.4)
-        self.at("afferents")
-        lab = T("touch afferents", 24, BLUE).move_to([-5.0, -2.85, 0])
-        self.play(FadeIn(lab), run_time=0.5)
-        self.at("synapse")
-        nos = T("no synapse on the way", 24, BLUE).move_to([-2.0, 1.3, 0]).align_to([1.1, 0, 0], RIGHT)
-        self.play(FadeIn(nos), run_time=0.5)
-        send(self, pts, n=3, run=2.2)
-        self.at("brainstem")
-        self.play(boxes[1].animate.set_fill(PURPLE, 0.5), Indicate(boxes[3], color=YELLOW), run_time=1.0)
-        # vibration panel, in this sketch
-        self.at("vibration")
-        wave = FunctionGraph(lambda x: 0.28 * np.sin(2 * np.pi * x / 0.52), x_range=[0, 2.6], color=YELLOW,
-                             stroke_width=4).move_to([4.75, -1.1, 0])
-        wlab = T("vibration", 24, YELLOW).move_to([4.75, -0.35, 0])
-        self.play(Create(wave), FadeIn(wlab), run_time=1.0)
-        self.at("precision")
-        x0 = 4.75 - 1.3 + 0.13
-        ticks = VGroup(*[Line([x0 + 0.52 * k, -2.18, 0], [x0 + 0.52 * k, -1.86, 0], color=BLUE, stroke_width=5)
-                         for k in range(5)])
-        tl = T("direct-route spikes", 22, BLUE).move_to([4.75, -2.6, 0])
-        sk = T("in this sketch", 22, GREY).move_to([4.75, -3.05, 0])
-        self.play(LaggedStart(*[Create(t) for t in ticks], lag_ratio=0.2), FadeIn(tl), FadeIn(sk), run_time=1.6)
-        self.finish()
-
-
-def circuit(C):
-    """cells and fibres of the zone (local coordinates), returns dict of mobjects"""
-    f, s = C.f, C.s
-    R = {}
-    R["A"] = (f(-2.2, -0.825), 0.14 * s)
-    R["E"] = (f(-0.6, -0.275), 0.22 * s)
-    R["G2"] = (f(-3.0, -1.35), 0.22 * s)
-    R["I"] = (f(-1.55, -1.4), 0.22 * s)
-    R["J"] = (f(-3.0, -0.3), 0.2 * s)
-    R["P"] = (f(-0.6, -1.375), 0.28 * s)
-    cols = {"A": BLUE, "E": GREEN, "G2": GREEN, "I": RED, "J": RED, "P": ORANGE}
-    M_ = {}
-    for k, (p, r) in R.items():
-        c = Circle(radius=r, stroke_color=cols[k], stroke_width=3, fill_color=cols[k],
-                   fill_opacity=0.9 if k == "A" else 0.28).move_to(p)
-        M_[k] = c
-    return R, M_
-
-
-def fibres(C):
-    f = C.f
-    H = poly([f(-3.6, -2.05), f(-2.2, -2.05), f(-2.2, -0.96)], BLUE, 5)
-    D = poly([f(-3.6, -2.45), f(1.05, -2.45), f(1.05, 1.1)], BLUE, 5, opacity=0.35)
-    Pax = poly([f(-0.6 + 0.28, -1.375), f(0.55, -1.375), f(0.55, 1.1)], ORANGE, 5)
-    return H, D, Pax
-
-
-class S03Zone(SpokenScene):
-    """zoom to the laminae; the zone's cells are 70 percent excitatory; the PSDC neuron; its axon goes up"""
-
+        p=paw((-2.7,-.25),2.7); patch=glow(-2.7,-.9,.48)
+        probe=RoundedRectangle(width=.42,height=1.7,corner_radius=.12,color=TEXT,fill_color=GREY,fill_opacity=1).move_to([-2.7,-.35,0])
+        q=lines(['How does the news','reach the brainstem?'],2.9,2.1,size=33)
+        self.add(p,probe,q,lines(['1 mm probe','schematic, not to scale'],3,-.25,GREY,26),label('mouse hindpaw',-2.7,-3.3,GREY))
+        self.at('Press the skin'); self.play(probe.animate.shift(DOWN*.35),FadeIn(patch),run_time=.6)
+        self.at('How does the news'); self.play(Indicate(q,scale_factor=1.03),run_time=.4)
+        one=VGroup(arr((1,-1.5),(5.4,-1.5),BLUE),label('one route',3.2,-1.1,BLUE,28))
+        self.at('The textbook draws'); self.play(FadeIn(one),run_time=.4)
+        two=VGroup(arr((1,-1.5),(5.4,-1.5),BLUE),arr((1,-2.15),(5.4,-2.15),GOLD),label('two routes',3.2,-1.05,size=28))
+        self.at('There are two',lead=.3); self.play(FadeOut(one),FadeIn(two),run_time=.3); self.finish()
+class S02Textbook(SpokenScene):
     def construct(self):
-        C = Cord(1.35, lc=(-1.15, -0.9), sc=(-1.24, -0.2))
-        f, s = C.f, C.s
-        R, M_ = circuit(C)
-        H, D, Pax = fibres(C)
-        self.add(C.base, C.collbl, D)
-        self.at("also end")
-        afl = lbl_right("afferent", 22, BLUE, f(-3.8, -2.05))
-        self.play(Create(H), FadeIn(afl), run_time=1.0)
-        self.play(FadeIn(M_["A"], scale=0.5), run_time=0.3)
-        self.at("dorsal horn")
-        self.play(FadeIn(C.ib4), run_time=0.5)
-        self.at("laminae")
-        surf = lbl_right("surface", 22, GREY, f(-3.8, 0.7))
-        self.play(FadeIn(C.ib4lbl), FadeIn(surf), run_time=0.5)
-        self.at("numbered")
-        self.play(LaggedStart(*[FadeIn(t, shift=RIGHT * 0.1) for t in C.lamlbl], lag_ratio=0.35), run_time=1.5)
-        self.at("mouse lumbar")
-        mtag = T("mouse lumbar cord", 22, GREY).move_to(f(-1.9, 0.6))
-        self.play(FadeIn(mtag), run_time=0.4)
-        # 70 / 30 bar
-        bx = 5.2
-        top, bot = 0.7, -2.6
-        h = top - bot
-        gbar = Rectangle(width=1.6, height=0.7 * h, stroke_color=GREEN, stroke_width=3, fill_color=GREEN,
-                         fill_opacity=0.35).move_to([bx, bot + 0.35 * h, 0])
-        rbar = Rectangle(width=1.6, height=0.3 * h, stroke_color=RED, stroke_width=3, fill_color=RED,
-                         fill_opacity=0.35).move_to([bx, top - 0.15 * h, 0])
-        gt = T("about 70%", 22, GREEN).move_to(gbar)
-        rt = T("about 30%", 22, RED).move_to(rbar)
-        gt2 = T("excitatory", 24, GREEN).move_to([bx, bot - 0.3, 0])
-        rt2 = T("inhibitory", 24, RED).move_to([bx, top + 0.3, 0])
-        hdr = VGroup(T("neurons in", 22, GREY), T("this zone", 22, GREY)).arrange(DOWN, buff=0.04).move_to([bx, 1.85, 0])
-        self.at("this zone")
-        self.play(FadeIn(hdr), run_time=0.4)
-        self.at("excitatory")
-        self.play(GrowFromEdge(gbar, DOWN), FadeIn(gt), FadeIn(gt2), FadeIn(M_["E"], scale=0.5),
-                  FadeIn(M_["G2"], scale=0.5), run_time=0.9)
-        self.at("inhibitory")
-        self.play(GrowFromEdge(rbar, DOWN), FadeIn(rt), FadeIn(rt2), FadeIn(M_["I"], scale=0.5),
-                  FadeIn(M_["J"], scale=0.5), run_time=0.9)
-        self.at("postsynaptic")
-        pl = T("PSDC neuron", 22, ORANGE).move_to(f(-0.1, -1.95))
-        self.play(FadeIn(M_["P"], scale=0.5), FadeIn(pl), run_time=0.8)
-        self.at("excitation")
-        a1 = link(*R["A"], *R["E"], "exc")
-        a2 = link(*R["E"], *R["P"], "exc")
-        self.play(GrowArrow(a1), run_time=0.5)
-        self.play(GrowArrow(a2), run_time=0.5)
-        self.at("axon")
-        up = T("to the gracile nucleus", 22, ORANGE).move_to([1.3, 3.05, 0])
-        self.play(Create(Pax), run_time=1.5)
-        self.play(FadeIn(up), run_time=0.4)
-        send(self, [f(-0.32, -1.375), f(0.55, -1.375), f(0.55, 1.1)], n=3, run=1.6)
-        self.finish()
-
-
-class S04Inhibit(SpokenScene):
-    """feedforward inhibition, presynaptic inhibition, then disrupting either enlarges the receptive field"""
-
+        c=Cord(); self.add(c.base,c.labels,c.entry)
+        self.at('A touch afferent'); self.play(FadeIn(lines(['touch afferent','Aβ low-threshold','mechanoreceptor'],4,-1.3,BLUE,26)),run_time=.35)
+        self.at('enters the spinal cord'); self.play(Create(c.entry.copy()),run_time=.6)
+        side=VGroup(lines(['same side','as the paw'],.75,-2.05,BLUE,28),leader((-.75,-1.8),(-1,-1.8),BLUE))
+        self.at('Its main branch'); self.play(Create(c.up),FadeIn(side),run_time=.65)
+        self.at('on the same side',lead=.4); self.play(Indicate(side[0],scale_factor=1.03),run_time=.25); self.finish()
+class S03Direct(SpokenScene):
     def construct(self):
-        C = Cord(1.35, lc=(-1.15, -0.9), sc=(-1.24, -0.2))
-        f, s = C.f, C.s
-        R, M_ = circuit(C)
-        H, D, Pax = fibres(C)
-        a1 = link(*R["A"], *R["E"], "exc")
-        a2 = link(*R["E"], *R["P"], "exc")
-        self.add(C.base, C.collbl, C.ib4, C.ib4lbl, C.lamlbl, D, H, Pax, *M_.values(), a1, a2)
-        afl = lbl_right("afferent", 22, BLUE, f(-3.8, -2.05))
-        pl = T("PSDC neuron", 22, ORANGE).move_to(f(-0.1, -1.95))
-        self.add(afl, pl)
-        self.at("Two kinds")
-        self.play(Indicate(M_["P"], color=ORANGE, scale_factor=1.25), run_time=1.0)
-        ff = T("feedforward", 24, RED).move_to([4.15, 2.5, 0], aligned_edge=LEFT)
-        self.at("feed")
-        self.play(FadeIn(ff), run_time=0.4)
-        self.at("also excites")
-        b1 = link(*R["A"], *R["I"], "exc")
-        self.play(GrowArrow(b1), run_time=0.6)
-        tagI = T("Rorβ", 22, TEXT).next_to(M_["I"], DOWN, buff=0.08)
-        self.at("inhibits")
-        b2 = link(*R["I"], *R["P"], "inh")
-        self.play(Create(b2), FadeIn(tagI), run_time=0.7)
-        self.wait(0.3)
-        self.at("In presynaptic")
-        ff2 = T("presynaptic", 24, RED).move_to([4.15, 1.9, 0], aligned_edge=LEFT)
-        self.play(FadeIn(ff2), run_time=0.4)
-        self.at("lands")
-        c1 = link(*R["J"], *R["A"], "inh")
-        tagJ = T("PVi", 22, TEXT).next_to(M_["J"], DOWN, buff=0.08)
-        receptor = Circle(radius=0.08 * s, stroke_color=RED, stroke_width=3,
-                          fill_color=RED, fill_opacity=1).move_to(c1[1].get_center())
-        self.play(Create(c1), FadeIn(tagJ), FadeIn(receptor), run_time=0.7)
-        self.at("turns down")
-        self.play(M_["A"].animate.set_fill(BLUE, 0.3), run_time=0.7)
-        # reset to a neutral state, then two separate knockouts, each with its own patch
-        self.at("genetic")
-        def patch(cy):
-            skin = Ellipse(width=2.2, height=1.1, stroke_color=GREY, stroke_width=2, fill_color=GREY,
-                           fill_opacity=0.15).move_to([5.0, cy, 0])
-            circ = Circle(radius=0.3, stroke_color=ORANGE, stroke_width=4, fill_color=ORANGE,
-                          fill_opacity=0.25).move_to([5.0, cy, 0])
-            return skin, circ
-        skin1, circ1 = patch(-0.2)
-        skin2, circ2 = patch(-2.0)
-        rl = VGroup(T("PSDC", 22, ORANGE), T("receptive field", 22, ORANGE)).arrange(DOWN, buff=0.04).move_to([5.0, 0.95, 0])
-        l1 = T("feedforward knockout", 22, TEXT).move_to([5.0, -1.0, 0])
-        l2 = T("GABA receptor loss", 22, TEXT).move_to([5.0, -2.8, 0])
-        self.play(M_["A"].animate.set_fill(BLUE, 0.9), FadeIn(skin1), FadeIn(circ1), FadeIn(skin2), FadeIn(circ2),
-                  FadeIn(rl), FadeIn(l1), FadeIn(l2), run_time=0.9)
-        self.at("either one")
-        self.play(b2.animate.set_color(GREY), ff.animate.set_color(GREY), circ1.animate.scale(1.9), run_time=1.0)
-        self.at("receptive")
-        self.play(b2.animate.set_color(RED), ff.animate.set_color(RED), receptor.animate.set_color(GREY),
-                  ff2.animate.set_color(GREY), circ2.animate.scale(1.9), run_time=1.0)
-        self.finish()
-
-
-class S05Gap(SpokenScene):
-    """the timing chart: direct 5.0 ms, indirect 9.5 ms, gap 4.5 ms (illustrative numbers)"""
-
+        r=Routes(); self.add(r.base)
+        self.at('It reaches'); self.play(Create(r.blue.copy()),run_time=1)
+        self.at('in the brainstem'); self.play(Indicate(r.med,scale_factor=1.02),run_time=.4)
+        tag=VGroup(lines(['direct route','no synapse on the way'],3.9,-1.6,BLUE,26),leader((1.8,-1.3),(1,-1.3),BLUE))
+        self.at('with no synapse'); self.play(FadeIn(tag),run_time=.35)
+        self.at('Call this'); self.play(Indicate(tag[0],scale_factor=1.02),run_time=.4); self.finish()
+class S04Below(SpokenScene):
     def construct(self):
-        def X(ms):
-            return -3.9 + 0.9 * ms
-        top = T("illustrative numbers, not measurements", 26, TEXT).move_to([0.0, 3.3, 0])
-        formula = M("t = L / v", 26, GREY).move_to([-5.4, -2.7, 0])
-        axis = Line([X(0), -2.3, 0], [X(10), -2.3, 0], color=GREY, stroke_width=3)
-        ticks = VGroup(*[Line([X(k), -2.3, 0], [X(k), -2.2, 0], color=GREY, stroke_width=3) for k in range(0, 11, 1)])
-        tl = VGroup(*[T(str(k), 22, GREY).move_to([X(k), -2.65, 0]) for k in range(0, 11, 2)])
-        msl = T("ms", 24, GREY).move_to([X(10) + 0.5, -2.3, 0])
-        rl1 = T("direct", 26, BLUE).move_to([-5.3, 1.55, 0])
-        rl2 = T("indirect", 26, ORANGE).move_to([-5.3, -0.1, 0])
-
-        def seg(a, b, y, col, txt):
-            r = Rectangle(width=0.9 * (b - a), height=0.7, stroke_color=col, stroke_width=2,
-                          fill_color=col, fill_opacity=0.85).move_to([(X(a) + X(b)) / 2, y, 0])
-            t = T(txt, 24, BG, weight=BOLD).move_to(r)
-            return VGroup(r, t)
-
-        self.add(top, formula, axis, ticks, tl, msl, rl1, rl2)
-        self.at("direct route")
-        d = seg(0, 5.0, 1.55, BLUE, "5.0 ms")
-        dcap = T("0.08 m at 16 m/s", 22, BLUE).move_to([X(2.5), 0.9, 0])
-        self.play(FadeIn(dcap), GrowFromEdge(d[0], LEFT), run_time=2.6, rate_func=linear)
-        self.at("takes")
-        self.play(FadeIn(d[1]), run_time=0.4)
-        self.at("indirect route")
-        self.wait(0.1)
-        s1 = seg(0, 2.5, -0.1, BLUE, "2.5 ms")
-        c1 = T("paw to cord", 22, BLUE).move_to([X(1.25), -0.72, 0])
-        self.play(GrowFromEdge(s1[0], LEFT), FadeIn(s1[1]), FadeIn(c1), run_time=0.9)
-        s2 = seg(2.5, 4.5, -0.1, GOLD, "2 ms")
-        c2 = VGroup(T("2 synapses,", 22, GOLD), T("1 ms each (assumed)", 22, GOLD)).arrange(DOWN, buff=0.03)
-        c2.move_to([X(3.5) + 0.05, -0.88, 0])
-        self.at("Two synapses")
-        self.play(GrowFromEdge(s2[0], LEFT), FadeIn(s2[1]), FadeIn(c2), run_time=0.9)
-        s3 = seg(4.5, 9.5, -0.1, ORANGE, "5 ms")
-        c3 = VGroup(T("PSDC axon,", 22, ORANGE), T("8 m/s (assumed)", 22, ORANGE)).arrange(DOWN, buff=0.03)
-        c3.move_to([X(7.0), -0.88, 0])
-        self.at("axon")
-        self.play(GrowFromEdge(s3[0], LEFT), FadeIn(s3[1]), FadeIn(c3), run_time=1.0)
-        self.at("total")
-        e1 = Line([X(5.0), 1.9, 0], [X(5.0), 2.45, 0], color=YELLOW, stroke_width=4)
-        e2 = Line([X(9.5), 0.35, 0], [X(9.5), 2.45, 0], color=YELLOW, stroke_width=4)
-        tot = T("9.5 ms", 26, ORANGE).move_to([X(9.5) + 0.95, -0.1, 0])
-        self.play(Create(e1), Create(e2), FadeIn(tot), run_time=0.9)
-        br = DoubleArrow([X(5.0), 2.45, 0], [X(9.5), 2.45, 0], buff=0, color=YELLOW, stroke_width=5,
-                         tip_length=0.2, max_tip_length_to_length_ratio=0.2)
-        gl = T("4.5 ms later", 28, YELLOW, weight=BOLD).move_to([(X(5.0) + X(9.5)) / 2, 2.85, 0])
-        self.at("later")
-        self.play(GrowFromCenter(br), FadeIn(gl), run_time=0.9)
-        self.finish()
-
-
-class S06Meet(SpokenScene):
-    """both copies converge on one thalamus-projecting neuron of the gracile nucleus; aligned receptive fields"""
-
+        c=Cord(True); self.add(c.base,c.labels,c.layers,c.entry,c.up)
+        self.at('Now look below'); self.play(Indicate(c.base[0],scale_factor=1.02),run_time=.4)
+        self.at('also sends branches'); self.play(Create(c.branch),run_time=.6)
+        self.at('a layered circuit'); self.play(Indicate(c.layers,scale_factor=1.03),run_time=.4); self.finish()
+class S05Psdc(SpokenScene):
     def construct(self):
-        box = RoundedRectangle(corner_radius=0.15, width=7.2, height=3.2, stroke_color=PURPLE, stroke_width=3,
-                               fill_color=PURPLE, fill_opacity=0.12).move_to([1.3, 1.2, 0])
-        bt = T("gracile nucleus", 26, PURPLE).move_to([-0.9, 2.4, 0])
-        soma = Circle(radius=0.6, stroke_color=TEXT, stroke_width=3, fill_color=TEXT, fill_opacity=0.15).move_to([1.6, 1.1, 0])
-        sl = T("one thalamus-projecting neuron", 22, TEXT).move_to([1.6, 0.15, 0])
-        out = arr([2.25, 1.1, 0], [5.6, 1.1, 0], TEXT, 4)
-        ol = VGroup(T("to the", 22, TEXT), T("thalamus", 22, TEXT)).arrange(DOWN, buff=0.03).move_to([5.65, 1.6, 0])
-        self.play(FadeIn(box), FadeIn(bt), FadeIn(soma), FadeIn(sl), run_time=1.0)
-        self.play(GrowArrow(out), FadeIn(ol), run_time=0.8)
-        # inputs
-        d = bchip("direct input", BLUE, 26).move_to([-4.8, 2.0, 0])
-        i = bchip("indirect input", ORANGE, 26).move_to([-4.8, 0.45, 0])
-        da = arr(d.get_right() + RIGHT * 0.05, [1.0, 1.3, 0], BLUE, 5)
-        ia = arr(i.get_right() + RIGHT * 0.05, [1.05, 0.9, 0], ORANGE, 5)
-        self.at("direct and indirect")
-        self.play(FadeIn(d), FadeIn(i), run_time=0.7)
-        self.play(GrowArrow(da), GrowArrow(ia), run_time=0.9)
-        # aligned receptive fields on the hindpaw skin
-        self.at("aligned")
-        skin = Ellipse(width=4.2, height=1.9, stroke_color=GREY, stroke_width=2, fill_color=GREY,
-                       fill_opacity=0.15).move_to([-1.2, -2.4, 0])
-        rb = Circle(radius=0.75, stroke_color=BLUE, stroke_width=5, fill_color=BLUE, fill_opacity=0.15).move_to([-1.2, -2.4, 0])
-        ro = DashedVMobject(Circle(radius=0.75, stroke_color=ORANGE, stroke_width=5).move_to([-1.2, -2.4, 0]),
-                            num_dashes=18)
-        rtext = VGroup(T("aligned receptive fields", 24, TEXT), T("on the hindpaw skin", 22, GREY)
-                       ).arrange(DOWN, buff=0.06, aligned_edge=LEFT).move_to([4.0, -2.4, 0])
-        self.play(FadeIn(skin), FadeIn(rb), run_time=0.7)
-        self.play(Create(ro), FadeIn(rtext), run_time=0.9)
-        self.at("vibration")
-        sub1 = T("vibration", 24, BLUE).next_to(d, DOWN, buff=0.12)
-        self.play(FadeIn(sub1), run_time=0.5)
-        self.at("sustained")
-        sub2 = VGroup(T("sustained indentation,", 24, ORANGE), T("up to high forces", 24, ORANGE)
-                      ).arrange(DOWN, buff=0.04).next_to(i, DOWN, buff=0.12)
-        self.play(FadeIn(sub2), run_time=0.6)
-        self.at("receives")
-        both = T("a direct copy and a processed copy", 26, TEXT).move_to([1.3, 3.3, 0])
-        self.play(FadeIn(both), run_time=0.8)
-        self.finish()
+        c=Cord(True); self.add(c.group())
+        self.at('Those branches drive'); self.play(FadeIn(c.inter),FadeIn(c.interlabel),GrowArrow(c.links[0]),run_time=.55)
+        self.at('Through them'); self.play(GrowArrow(c.links[1]),GrowArrow(c.links[2]),FadeIn(c.neuron),run_time=.5)
+        self.at('in places directly'); self.play(GrowArrow(c.short),run_time=.4)
+        self.at('a spinal neuron'); self.play(Indicate(c.neuron),run_time=.4)
+        self.at('whose own axon'); self.remove(c.entry); self.add(c.entry_bridge); self.play(Create(c.axon),run_time=.9); self.finish()
+class S06Define(SpokenScene):
+    def construct(self):
+        c=Cord(True); self.add(c.group(True)); ring=Circle(radius=.57,color=GOLD).move_to(c.neuron)
+        self.at('This is a'); self.play(Create(ring),run_time=.3)
+        name=VGroup(lines(['postsynaptic dorsal','column (PSDC) neuron'],3.8,-.4,GOLD,26),leader((2,-.7),(.45,-1.65),GOLD))
+        self.at('postsynaptic dorsal column'); self.play(FadeIn(name),run_time=.35)
+        definition=lines(['PSDC = driven in','the dorsal horn;','axon up the','dorsal column'],3.8,-2.05,GOLD,26)
+        self.at('It is driven'); self.play(FadeIn(definition),run_time=.35)
+        self.at('projects to the brainstem',lead=.4); self.play(FadeIn(label('to brainstem',1.7,3.5,GOLD,26)),Indicate(c.axon,scale_factor=1),run_time=.3); self.finish()
 
+def animal(mouse=False):
+    # Smooth side-view silhouettes with species-specific ears, muzzle and tail.
+    def filled(m):
+        return m.set_stroke(width=0).set_fill(GREY,1)
+    body=filled(Ellipse(width=3.1,height=1.6).move_to([-.5,0,0]))
+    if mouse:
+        head=filled(VMobject().set_points_smoothly([[.45,.5,0],[1.2,.6,0],[2,-.05,0],[1.45,-.45,0],[.5,-.5,0],[.45,.5,0]]))
+        ears=VGroup(*[filled(Circle(radius=r).move_to([x,y,0])) for x,y,r in [(1,.73,.4),(.55,.72,.34)]])
+        feet=VGroup(*[filled(Ellipse(width=.65,height=.2).move_to([x,-.72,0])) for x in [-1,.85]])
+        tail=VMobject().set_points_smoothly([[-1.8,-.2,0],[-2.3,-.45,0],[-2.9,-.2,0],[-3.1,.3,0],[-2.9,.55,0]]).set_stroke(GREY,5)
+        eye=Dot([1.35,.12,0],radius=.065,color=BG)
+    else:
+        head=filled(Circle(radius=.64).move_to([1,.64,0]))
+        muzzle=filled(Ellipse(width=.6,height=.4).move_to([1.5,.4,0]))
+        ears=VGroup(*[filled(Polygon([x-.28,1,0],[x-.2,1.72,0],[x+.3,1.12,0])) for x in [.6,1.25]])
+        feet=VGroup(*[filled(RoundedRectangle(width=.36,height=1.15,corner_radius=.16).move_to([x,-.7,0])) for x in [-1.45,-.85,.65,1.12]])
+        tail=VMobject().set_points_smoothly([[-1.8,0,0],[-2.4,.4,0],[-2.5,1.35,0],[-2.2,1.65,0],[-1.95,1.4,0]]).set_stroke(GREY,15)
+        eye=Dot([1.24,.76,0],radius=.065,color=BG)
+    return VGroup(tail,body,feet,ears,head,*([muzzle] if not mouse else []),eye).scale(1.1).move_to([-2.65,.05,0])
+class S07Cats(SpokenScene):
+    def construct(self):
+        cat=animal(); title=label('Cat recordings',0,3,size=36); date=label('by the early 1980s',-2.5,-2.45,GREY,30)
+        electrode=VGroup(poly([(1.5,1.6),(1.5,-1)],TEXT,4),lines(['electrode','recordings'],3.4,-1,TEXT,30),arr((2.2,.8),(1.55,.3),TEXT))
+        self.add(cat,title,date,electrode)
+        self.at('Recordings in cats'); self.play(Indicate(cat,scale_factor=1.02),run_time=.4)
+        switches=VGroup(); knobs=[]; states=[]
+        for y,s,col in [(1.5,'direct',BLUE),(.1,'indirect',GOLD)]:
+            knob=cell(4.7,y,.19,col); state=label('ON',5.65,y,col,24)
+            switches.add(label(s,3.4,y+.45,col,28),Line([2.1,y,0],[4.9,y,0],color=col,stroke_width=6),knob,state)
+            knobs.append(knob); states.append(state)
+        blue=poly([(1.7,-2),(2.2,-1.2),(5.8,-1.2)],BLUE,6)
+        gold=poly([(1.7,-2),(2.4,-2.15),(3.2,-2.15),(3.2,-1.85),(5.8,-1.85)],GOLD,6)
+        mini=VGroup(blue,gold,cell(3.2,-2.15,.16),cell(5.8,-1.52,.23,PURPLE))
+        self.at('Mousework adds'); self.play(FadeOut(cat),FadeIn(animal(True)),FadeOut(electrode),FadeOut(date),FadeOut(title),FadeIn(label('Mouse studies',0,3,size=36)),FadeIn(switches),FadeIn(mini),run_time=.45)
+        self.at('genetic access'); self.play(FadeIn(label('genetic access; test each route',0,-3.05,size=30)),run_time=.35)
+        self.at('a test of each')
+        off=label('OFF',5.65,1.5,GREY,24)
+        self.play(knobs[0].animate.shift(LEFT*2.4),blue.animate.set_stroke(color=GREY,opacity=.3),FadeOut(states[0]),FadeIn(off),run_time=.4)
+        # Reset the direct route before testing the indirect route.
+        self.play(knobs[0].animate.shift(RIGHT*2.4),blue.animate.set_stroke(color=BLUE,opacity=1),FadeOut(off),FadeIn(states[0]),knobs[1].animate.shift(LEFT*2.4),gold.animate.set_stroke(color=GREY,opacity=.3),mini[2].animate.set_color(GREY).set_opacity(.3),FadeOut(states[1]),FadeIn(label('OFF',5.65,.1,GREY,24)),run_time=.4); self.finish()
+class S08Gold(SpokenScene):
+    def construct(self):
+        r=Routes(); self.add(r.base)
+        self.at('So draw a second line'); self.play(Create(r.branch),run_time=.7)
+        self.at('in gold'); self.play(FadeIn(r.local[0]),run_time=.3)
+        self.at('from the afferent'); self.play(GrowArrow(r.local[1]),FadeIn(r.psdc),run_time=.45)
+        self.at('through the circuit'); self.play(Indicate(r.psdc,scale_factor=1.08),run_time=.25)
+        self.at('and up to the',lead=.45); self.play(Succession(Create(r.gold,run_time=.8),Create(r.end,run_time=.2)),FadeIn(label('indirect route',3.8,-1.5,GOLD,28)),run_time=1); self.finish()
+class S09Question(SpokenScene):
+    def construct(self):
+        p=prediction(); self.add(p)
+        self.at('Pause and predict'); self.play(Indicate(p[2],scale_factor=1.02),run_time=.4)
+        self.at('Does the gold line'); self.play(Indicate(p[4],scale_factor=1.02),run_time=.4); self.finish()
+class S10Pause(Scene):
+    def construct(self): self.camera.background_color=BG; self.add(prediction()); self.wait(5)
+class S11Reveal(SpokenScene):
+    def construct(self):
+        r=Routes(); self.add(r.all())
+        self.at('For thalamus'); self.play(Create(r.end),run_time=.3)
+        name=VGroup(lines(['thalamus-projecting','gracile neuron'],4.3,2.5,PURPLE,26),leader((2.55,2.45),(1.05,2.3),PURPLE))
+        self.play(FadeIn(name),run_time=.35)
+        self.at('yes'); self.play(Indicate(r.soma,color=GOLD),run_time=.4)
+        inset=VGroup(RoundedRectangle(width=5.4,height=3.65,corner_radius=.2,color=GREY).move_to([4,-1.55,0]),paw((4,-1.35),1.45))
+        blue=Circle(radius=.83,color=BLUE,stroke_width=5).move_to([3.85,-1.55,0]); gold=DashedVMobject(Circle(radius=.63,color=GOLD,stroke_width=5).move_to([4.08,-1.66,0]),num_dashes=16)
+        self.at('highly aligned'); self.play(FadeOut(r.labels[6]),FadeOut(r.labels[7]),FadeOut(r.labels[4]),FadeOut(r.labels[5]),FadeIn(inset),Create(blue),Create(gold),run_time=.45)
+        self.at('Both reported'); self.play(FadeIn(lines(['aligned receptive fields:','the same patch of skin'],4,-2.97,size=26)),run_time=.35); self.finish()
 
-class S07End(EndCard):
-    LINE = "The brainstem receives a direct copy and a processed copy."
+# Computed toy response model. Time is normalized: no measurement or frequency
+# is implied. One phase-locked spike/cycle, and a constant-rate pressure response.
+def response_row(y,col,vibration):
+    xs=np.linspace(-4.6,5.2,1000); t=(xs+4.6)/9.8; gate=(t>=.1)&(t<=.9)
+    stim=np.where(gate,.18*np.sin(2*np.pi*8*(t-.1)/.8) if vibration else .35,0)
+    trace=poly(list(zip(xs,y-1+stim)),col,3)
+    spiket=(.1+np.arange(8)*.8/8 if vibration else np.arange(.12,.9,.031))
+    spikes=VGroup(*[Line([-4.6+9.8*v,y,0],[-4.6+9.8*v,y+.52,0],color=col,stroke_width=3) for v in spiket])
+    axes=VGroup(arr((-4.6,y-.05),(5.6,y-.05),GREY,2),arr((-4.6,y-1.22),(5.6,y-1.22),GREY,2),label('time',5.65,y-.7,GREY,26),label('firing',-5.55,y+.2,col,26),label('stimulus',-5.55,y-1,col,26))
+    return VGroup(axes,spikes,trace)
+class S12Differ(SpokenScene):
+    def construct(self):
+        blue=response_row(1.85,BLUE,True); gold=response_row(-1.4,GOLD,False)
+        self.add(label('Two different reports',0,3.45,size=34),label('illustrative model responses',0,-3.65,GREY,26),blue[0],gold[0])
+        self.at('But the two reports'); self.play(FadeIn(blue[2]),FadeIn(gold[2]),run_time=.35)
+        self.at('The direct route'); self.play(FadeIn(label('direct: vibration, precise timing',0,2.8,BLUE,28)),Create(blue[1]),run_time=.45)
+        self.at('The indirect route'); self.play(FadeIn(lines(['indirect: sustained firing, up to high forces'],0,-.55,GOLD,28)),Create(gold[1]),run_time=.45); self.finish()
+class S13Idea(SpokenScene):
+    def construct(self):
+        r=Routes(); tags=report_tags(); self.add(r.all(),r.end)
+        self.at('That is the idea'); self.play(Indicate(r.patch),run_time=.35)
+        self.at('One report keeps'); self.play(FadeIn(tags[0]),run_time=.3)
+        self.at('The other is rebuilt'); self.play(FadeIn(tags[1]),run_time=.3)
+        self.at('not copied'); self.play(FadeIn(copy_mark()),run_time=.3); self.finish()
+class S14Hold(Scene):
+    def construct(self): self.camera.background_color=BG; self.add(summary()); self.wait(3)
+class S16Scope(SpokenScene):
+    def construct(self):
+        self.add(label('Scope of the evidence',0,3.15,size=36))
+        cards=VGroup(*[VGroup(RoundedRectangle(width=11,height=1.6,corner_radius=.18,color=GREY,fill_color=GREY,fill_opacity=.1).move_to([0,y,0]),label(s,0,y,size=34)) for y,s in [(1.65,'mouse hindlimb'),(-.35,'mostly anaesthetized adults'),(-2.35,'dorsal column route only')]])
+        self.at('these are mouse studies'); self.play(FadeIn(cards[0]),run_time=.25)
+        self.at('mostly in'); self.play(FadeIn(cards[1]),run_time=.25)
+        self.at('and the dorsal column'); self.play(FadeIn(cards[2]),run_time=.25); self.finish()
+class S17Takeaway(SpokenScene):
+    def construct(self):
+        r=Routes(); self.add(r.all(),r.end)
+        block=lines(['One touch, two routes,','two different reports','on the same skin.'],3.7,-1.8,size=31)
+        self.at('The Takeaway'); self.play(FadeIn(block),run_time=.3)
+        self.at('one touch'); self.play(Indicate(r.patch,scale_factor=1.2),run_time=.3)
+        self.at('two roots'); self.play(Indicate(r.blue),Indicate(r.gold),run_time=.3); self.finish()
+class S18End(EndCard):
+    LINE='One touch, two routes, two different reports on the same skin.'
+    def construct(self):
+        self.add(lines(['One touch, two routes,','two different reports on the same skin.'],0,.3,size=36),label('biochemistrypedia.com',0,-1.35,TEAL,26)); self.finish()

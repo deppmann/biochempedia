@@ -5,24 +5,42 @@ course: "sensory-systems"
 courseChapter: "Sensory Systems · Unit 2: Touch"
 order: 808
 summary: >-
-  The textbook draws the dorsal column as a cable that carries touch spikes from the skin to the brainstem. In mice, a dense layer of spinal interneurons and two kinds of inhibition, feedforward and presynaptic, reshape those signals first, and the brainstem receives both a direct and a processed copy and combines them on single neurons. You will be able to describe the recipient zone for low-threshold mechanoreceptors, say what each of three recent papers did and did not show, and compute the latency gap between the two routes.
-hook: "A touch signal that reaches the brainstem has often been through the spinal cord's circuitry first. What does that circuitry do to it?"
+  The textbook draws the dorsal column as a cable that carries touch spikes from the skin to the brainstem. One idea carries this lesson: two routes, one patch of skin. In mice, a touch reaches the gracile nucleus both by the afferent's own axon, which keeps precise timing, and by a route through the dorsal horn, where convergence and two kinds of inhibition, feedforward and presynaptic, rebuild the signal before postsynaptic dorsal column neurons send it up. That indirect route reports sustained pressure up to high forces, and both inputs reach the same brainstem neurons, with aligned receptive fields. You will be able to say what each route carries and how silencing one at a time showed it, compute the latency gap between the routes and use a jitter model to see what a relay could cost vibration timing, describe what the dorsal horn does to the signal and who sits where touch afferents end, and say what each of three recent papers did and did not show.
+hook: "The brainstem can hear about one touch of the paw twice: directly, and again by a route through the spinal cord that, in a simple conduction model, arrives a few milliseconds later. What does the second report add?"
 
 estMinutes: 24
 objectives:
+  - "Contrast the direct and indirect dorsal column pathways to the gracile nucleus, say what each carries and how silencing one route at a time showed it, and explain what their aligned receptive fields mean (Turecek, Lehnert and Ginty, 2022)."
+  - "Compute the latency difference between the two routes from path lengths, velocities and synaptic delays, and use a toy jitter model to explain why a relay could cost vibration timing far more than it costs a sustained press."
   - "Explain how convergence, feedforward inhibition and presynaptic inhibition shape the output of postsynaptic dorsal column neurons in anaesthetized adult mice (Chirila and colleagues, 2022)."
-  - "Describe the LTMR recipient zone of the mouse lumbar dorsal horn and the reporter-defined interneuron populations of Abraira and colleagues (2017), with the coverage and the limits of that atlas."
-  - "Contrast the direct and indirect dorsal column pathways to the gracile nucleus and the way they reconverge (Turecek, Lehnert and Ginty, 2022)."
-  - "Compute the latency difference between the two routes from path lengths, velocities and synaptic delays, and design a control-rich test of whether a spinal change matters for perception."
+  - "Describe the LTMR recipient zone of the mouse lumbar dorsal horn and the reporter-defined interneuron populations of Abraira and colleagues (2017), with the coverage and the limits of that atlas, and design a control-rich test of whether a spinal change matters for perception."
 
 explainer:
   src: "/explainers/dorsal-horn-touch/explainer.mp4"
   captions: "/explainers/dorsal-horn-touch/explainer.vtt"
   poster: "/explainers/dorsal-horn-touch/poster.jpg"
-  title: "Two Copies of One Touch"
-  durationSec: 153.6
+  title: "Two Routes, One Patch of Skin"
+  durationSec: 138.5
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "silence-one-route"
+    src: "/explainers/dorsal-horn-touch/silence-one-route.mp4"
+    captions: "/explainers/dorsal-horn-touch/silence-one-route.vtt"
+    poster: "/explainers/dorsal-horn-touch/silence-one-route-poster.jpg"
+    title: "Silence One Route"
+    durationSec: 180.4
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "why-later-is-fine"
+    src: "/explainers/dorsal-horn-touch/why-later-is-fine.mp4"
+    captions: "/explainers/dorsal-horn-touch/why-later-is-fine.vtt"
+    poster: "/explainers/dorsal-horn-touch/why-later-is-fine-poster.jpg"
+    title: "Why Later Is Fine, and What the Cord Does"
+    durationSec: 191.5
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Victoria Abraira"
@@ -39,7 +57,7 @@ scientists:
       express, antibodies against pre- and postsynaptic markers to see which terminals touched
       which cells, and whole-cell recordings in spinal slices to see how the cells fire. The
       result was seven excitatory and four inhibitory populations that together covered roughly
-      71 to 82 percent of the neurons in the zone, with the subtypes sampling input from one to three classes of touch afferent. The team then silenced two spinal lineages and tested mice
+      71 to 82 percent of the neurons in the zone, with the subtypes sampling input from one to three of the classes of touch afferent assayed. The team then silenced two spinal lineages and tested mice
       on a task in which they explore objects of different texture. The paper named populations that a recording or a silencing experiment can be aimed at, in place of the zone as a whole.
   - name: "Anda Chirila"
     contribution: >-
@@ -129,7 +147,7 @@ simulations:
     ref: "TwoRouteLatency"
     title: "Two routes, two arrival times"
     caption: >-
-      Change the conduction speeds and synaptic delay to see when the direct and indirect copies reach the gracile nucleus in this sketch, then block the lumbar glutamate synapses to remove the indirect arrival.
+      Change the conduction speeds and synaptic delay to see when the direct and indirect inputs reach the gracile nucleus in this sketch, then block the lumbar glutamate synapses to remove the indirect arrival.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -207,8 +225,8 @@ mcatQuestions:
     rationale: >-
       A 100 ms window at 50 cycles per second holds 50 times 0.100, which is 5 cycles, so the
       model fires 5 spikes. The rate is 5 spikes divided by 0.100 s, or 50 spikes per second, which
-      equals the stimulus frequency. Giving 5 spikes per second reports the spike count as if it were a rate. Giving 10 spikes per second divides the count by 0.5 s. Giving 500 spikes per second multiplies by ten instead of dividing by the window length.
-  - stem: "In an anaesthetized adult mouse, one gracile neuron that projects to the thalamus is recorded before and after glutamate receptor antagonists are applied to the lumbar cord. Phase-locked firing to hindpaw vibration is unchanged. Firing during a 300 ms, 100 mN indentation almost disappears. Which conclusion is best supported?"
+      equals the stimulus frequency. Giving 5 spikes per second reports the spike count as if it were a rate. Giving 10 spikes per second divides the count by 0.5 s. Giving 500 spikes per second is ten times the correct rate; it comes from dividing 5 spikes by 0.010 s instead of 0.100 s.
+  - stem: "Suppose, in a hypothetical within-unit experiment in an anaesthetized adult mouse, a confirmed thalamus-projecting gracile neuron is recorded before and after glutamate receptor antagonists are applied to the lumbar cord. Phase-locked firing to hindpaw vibration is unchanged, while sustained firing during a 300 ms, 100 mN indentation nearly disappears. Which conclusion would this best support?"
     choices:
       - "Vibration timing does not depend on spinal synapses, and sustained firing at high force does"
       - "Vibration is carried by spinal neurons, and sustained firing at high force by afferents"
@@ -240,23 +258,25 @@ explainLevels:
       Touch does not go straight from your skin to your brain like a note passed along a row of
       desks. Close to the start, in your spinal cord, there is a busy crowd of helper cells. Some
       of them mix messages from different parts of the skin, and some of them quiet the messages
-      down. A second copy of the message also goes up a faster direct way, and the two copies
-      meet again in the brainstem, just above the cord.
+      down, and then a cell in the cord sends its own new message up. The touch nerve also sends
+      its message straight up a faster way. The two messages are about the same spot of skin, but
+      they say different things, and they meet again in the brainstem, just above the cord.
   - level: "highschool"
     label: "High school"
     text: >-
       Nerve cells in the skin that feel gentle touch send their signals into the spinal cord. In
       mice, the area where they arrive is full of many types of nerve cell, about seven out of ten
       of them excitatory and the rest inhibitory. These cells combine signals and also turn some
-      of them down, and then send a new version up the spinal cord to the brainstem. A direct copy
-      of the original signal travels up as well. The direct copy is good at fast vibration and the
-      processed copy is good at telling how hard something is pressing. Both arrive at the same
-      brainstem cells and match up to the same patch of skin.
+      of them down, and then send a rebuilt signal up the spinal cord to the brainstem. The skin
+      nerve's own signal travels straight up as well. The direct signal is good at fast vibration
+      with precise timing, and the rebuilt signal is good at telling how hard something is
+      pressing and for how long. Both arrive at the same brainstem cells and match up to the same
+      patch of skin.
   - level: "college"
     label: "College"
     text: >-
       In the mouse lumbar dorsal horn, low-threshold mechanoreceptor (LTMR) terminals overlap in
-      a recipient zone about 250 µm deep below the IB4 border. Abraira and colleagues (2017) split
+      a recipient zone sampled to about 250 µm deep, beginning just below the band labelled by IB4. Abraira and colleagues (2017) split
       its neurons into seven excitatory and four inhibitory reporter-defined populations, about 70
       percent of the zone's neurons being excitatory, and found that postsynaptic dorsal column
       (PSDC) neurons receive most of their excitatory synaptic input from local interneurons. In anaesthetized adult mice,
@@ -264,8 +284,8 @@ explainLevels:
       feedforward inhibition from Rorβ interneurons, and GABA-A dependent presynaptic inhibition
       involving PVi neurons, all of which shape PSDC output. Turecek, Lehnert and Ginty (2022)
       showed that the gracile nucleus receives a direct Aβ-LTMR input with precise vibration timing
-      and an indirect PSDC input that carries sustained force, and the two align on
-      thalamus-projecting neurons.
+      and an indirect PSDC input that carries sustained force, and the two have aligned receptive
+      fields on single thalamus-projecting neurons.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -290,8 +310,8 @@ anecdotes:
       of memory, motivation or movement. The authors tested the same mice on objects that differed
       in colour and shape instead of texture, and they still preferred the novel one. That
       control does not say what the lineages compute. It rules out a mouse that has simply
-      stopped exploring, which is why a behavioural result in this field needs a non-tactile
-      twin of the assay.
+      stopped exploring, which is why a behavioural result in this field needs a twin of the
+      assay that does not turn on texture.
   - title: "A force that did not hurt"
     source: "Turecek, Lehnert & Ginty, Nature (2022), doi 10.1038/s41586-022-05470-x."
     text: >-
@@ -319,53 +339,79 @@ draft: false
 
 import TwoRouteLatency from '../../../components/TwoRouteLatency.astro';
 import LessonFigure from '../../../components/LessonFigure.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**When the skin of a mouse's hindpaw is indented, the spikes that climb the dorsal column are not all copies of what the skin sent.** Some are. Others have already been through the circuitry of the spinal cord, where touch afferents converge on interneurons and two kinds of inhibition, feedforward and presynaptic, shape what the postsynaptic dorsal column neurons send up. The brainstem receives both the direct copy and the processed copy, and combines them on single neurons. This lesson follows three mouse studies, from 2017 and 2022, that show what that circuitry is, what it does to the signal, and how the brainstem receives both versions.
+**When the skin of a mouse's hindpaw is pressed, the brainstem can hear about it twice.** Once from the touch afferent's own axon, which climbs the spinal cord without a synapse. And once from a neuron in the spinal cord that has already worked on the signal.
 
-Every result here is from mice, and most recordings were made in anaesthetized adult animals. There are no human data in this lesson. The ages and preparations are listed under Going deeper.
+What does the second report add? Three mouse studies, from 2017 and 2022, answer the question.
 
-## The textbook relay and its missing branch
+## Two routes on one drawing
 
-[Touch and pain](/lessons/touch-and-pain/) draws the dorsal column-medial lemniscus pathway: the first-order axon ascends on the same side, synapses in the gracile or cuneate nucleus (together, the dorsal column nuclei, DCN), and the second-order axon crosses in the medulla and reaches the ventral posterolateral thalamus (VPL). That route is correct. This lesson starts below the drawing, in the cord.
+[Touch and pain](/lessons/touch-and-pain/) draws the dorsal column-medial lemniscus pathway as a blue line. The first-order axon ascends on the same side and synapses in the gracile or cuneate nucleus (together, the dorsal column nuclei, DCN). The second-order axon crosses in the medulla and reaches the ventral posterolateral thalamus (VPL). That route is correct. This lesson starts below the drawing, in the cord, and follows touch from the hindlimb to the gracile nucleus.
 
-The drawing hides two things. First, the touch afferents (low-threshold mechanoreceptors, LTMRs, sorted in [the LTMR lesson](/lessons/ltmr-classes/)) end in a layered region of the dorsal horn, and what happens there is a circuit, not a handoff. Second, the dorsal column carries more than primary afferents. **Postsynaptic dorsal column (PSDC) neurons** are spinal neurons that receive input in the dorsal horn and send an axon up the dorsal column to the DCN. They are not a new discovery: recordings in cats described their complex receptive fields by the early 1980s. What the mouse work adds is genetic access and a test of what each route carries. So the brainstem can get a touch signal directly or after spinal processing. Think of a live feed and a mixed recording of the same concert reaching one listener. The anterolateral system is a separate output route and is not covered here.
+Picture the cross-section of the cord again: the grey butterfly, with the dorsal horn at the top and the white-matter dorsal column above it. The touch afferents that matter here are **Aβ low-threshold mechanoreceptors** (Aβ-LTMRs; the LTMR classes are sorted in [the LTMR lesson](/lessons/ltmr-classes/)). As each one enters, it does two things.
 
-## An atlas of the LTMR recipient zone
+- **The direct route.** Its main branch climbs the dorsal column to the gracile nucleus with no synapse on the way. Keep drawing this in blue.
+- **The indirect route.** Other branches end in the dorsal horn, a layered region where what happens is a circuit, not a handoff. There the afferent drives local interneurons and, through them and in places directly, a spinal neuron whose own axon climbs the same dorsal column to the same nucleus. Draw this in gold.
 
-LTMR terminals overlap in laminae IIiv to IV of the dorsal horn (laminae are the layers numbered from the surface). The upper border is marked by IB4, a stain for a set of nociceptor terminals. In the mouse lumbar cord, the **LTMR recipient zone (LTMR-RZ)** was sampled from that border to about 250 µm below it.
+Other LTMR classes have no direct branch to the gracile nucleus; they can contribute through spinal circuits.
 
-Abraira and colleagues (Cell, 2017) described seven excitatory and four inhibitory interneuron populations there. A **reporter-defined** population is one marked in a mouse line by a gene it expresses, which is a molecular label, not proof of a single cell type (genetic access is covered in [tools for development](/lessons/tools-for-development/)). The population names and firing patterns are listed under Going deeper; the ones that matter below are CCK and Rorβ (silenced in the texture test; Rorβ interneurons also supplied feedforward inhibition in a later study), and PVi, the parvalbumin-expressing inhibitory population, with Cdh3 (axo-axonic contacts).
+That spinal neuron is a **postsynaptic dorsal column (PSDC) neuron**: a spinal neuron that receives input in the dorsal horn and sends an axon up the dorsal column to the DCN. PSDC neurons are not a new discovery. Recordings in cats described their complex receptive fields by the early 1980s. What the mouse work adds is genetic access, and a test of what each route carries.
 
-Three numbers set the scale. The reporter lines together covered an estimated 71 to 82 percent of LTMR-RZ neurons, so the atlas is incomplete. About 70 percent of the neurons intrinsic to the zone were excitatory and about 30 percent inhibitory. And the populations were not private lines. By counting pre- and postsynaptic marker apposition, the authors found that the LTMR subtypes they assayed formed contacts onto between four and eleven interneuron subtypes, and each interneuron subtype sampled input from at least one to three LTMR classes. The interneurons also received descending corticospinal input, and PSDC neurons received their excitatory input mainly from local interneurons of the zone.
+In Touch and Pain the blue line was one axon to the medulla. Below that drawing there are two.
 
-PVi and Cdh3 neurons formed **axo-axonic** contacts (synapses onto another neuron's axon terminal) on sensory terminals, consistent with presynaptic inhibition of the afferents, the mechanism of [synaptic integration](/lessons/synaptic-integration/).
+> **The one idea to carry through this lesson.** Two routes, one patch of skin. A touch reaches the gracile nucleus by two routes. The direct route is the afferent's own axon, and it keeps precise timing. The indirect route runs through the dorsal horn, where local circuits rebuild the signal; in the illustrative model below (equal cord-to-brainstem paths, matched final synapses, a PSDC axon no faster than the afferent) it arrives a few milliseconds later, and it reports sustained pressure, up to high forces. The two reports describe the same patch of skin and meet on single brainstem neurons.
 
-Did any of it matter for behaviour? The authors silenced spinal CCK or Rorβ lineages in mice and tested a texture version of the novel object recognition test (NORT), in which a mouse that remembers an object explores a new one more. Both silenced groups lost the preference for the newly textured object, and kept the preference when objects differed in colour and shape. Read this carefully. A lineage includes every cell that ever expressed the marker, so the silencing is not acute and not one pure type. It shows these lineages contribute to the task, not that each subtype is needed.
+The lesson builds it in three steps, then marks its limits: the experiment that showed what each route carries, the arithmetic of what a slower route costs, and what the dorsal horn does to the signal on the way.
 
-<LessonFigure src="/figures/dorsal-horn-touch/texture-vs-colour-object-recognition.webp" width={1200} height={750} alt="AI-generated illustration: a top-down mouse arena with two identical-shaped objects, one smooth and one ridged, and a smaller inset arena with a cube and a cylinder that differ in colour and shape. The new object in each is ringed in gold." caption="Abraira and colleagues tested a texture version of the novel object recognition test, in which a mouse that remembers an object explores a new one more. Mice with CCK or Rorβ lineages silenced lost the preference for the newly textured object but kept it when objects differed in colour and shape." />
+**Predict.** You can record from one gracile neuron while you touch the paw, and both routes feed it. How would you find out what each route contributes?
 
-## Convergence and two kinds of inhibition
+<details>
+<summary>Check your prediction</summary>
 
-An atlas lists who is present. Chirila and colleagues (Cell, 2022) asked what the circuit does to a touch signal. They recorded from the dorsal horn of adult, urethane-anaesthetized mice (older than 6 weeks) while the skin was indented, and sorted the responses into six functional profiles. Those are response clusters, not six cell types. Individual neurons received convergent input from low-threshold and high-threshold mechanoreceptors, the latter being afferents that respond only to stronger, often damaging, stimuli.
+Take one route away at a time and see what the neuron loses: silence the afferent terminals in the gracile nucleus, or block the spinal synapses. The next section shows how that was done.
 
-Two inhibitory motifs shaped the output of PSDC neurons.
+</details>
 
-- **Feedforward inhibition.** The same afferent input that excites a PSDC neuron also excites an interneuron that inhibits it, so excitation is followed by inhibition. Rorβ interneurons supplied glycinergic feedforward inhibition onto PSDC neurons.
-- **Presynaptic inhibition.** Inhibition is applied to the afferent terminal, scaling down the transmitter it releases. PVi neurons form axo-axonic contacts on afferent terminals and take part in this GABA-A receptor dependent inhibition, but they are not its only source. Chirila and colleagues removed it by deleting a GABA-A receptor subunit from all sensory neurons, not by targeting PVi neurons.
+## The key experiment: silence one route at a time
 
-<LessonFigure src="/figures/dorsal-horn-touch/two-inhibitory-motifs.webp" width={1200} height={710} alt="AI-generated illustration: two cell-level diagrams. Left, an afferent excites both a gold PSDC neuron and a Rorβ interneuron, which then inhibits the PSDC neuron. Right, a PVi interneuron inhibits the afferent terminal itself through GABA-A receptors, so the afferent's excitatory arrow to the PSDC neuron is thinner." caption="Feedforward inhibition follows the same afferent input onto the PSDC neuron (Rorβ interneurons, glycinergic), while presynaptic inhibition acts on the afferent terminal and scales down its transmitter release (GABA-A dependent, with PVi neurons among its sources). Disrupting either enlarged PSDC receptive fields in Chirila and colleagues' mice; presynaptic inhibition was removed from all sensory neurons, not through PVi neurons." />
+<LessonFilm film={frontmatter.films[0]} />
 
-Disrupting either motif enlarged PSDC receptive fields, and loss of presynaptic inhibition produced after-discharge, continued firing after the end of a step indentation. Disrupting feedforward inhibition also changed touch responses in primary somatosensory cortex (S1) of awake mice, and those mice showed tactile over-reactivity and a texture discrimination deficit. The limits are plain: the dorsal horn and PSDC recordings were made in anaesthetized mice, and both disruptions were chronic conditional knockouts (Vgat deleted in Rorβ neurons for feedforward inhibition, and the GABA-A β3 subunit gene deleted in sensory neurons for presynaptic inhibition), which cannot be assumed to isolate acute circuit function. The dorsal column is therefore not a simple relay.
+Turecek, Lehnert and Ginty (Nature, 2022) recorded single neurons in the hindlimb part of the gracile nucleus of adult, urethane-anaesthetized mice. They picked out the neurons that project to the thalamus (VPL) by **antidromic activation**: stimulating their axons there and testing for collision with a spontaneous spike, which proves the projection.
 
-## Two routes to the brainstem that meet again
+Then they took one route away at a time.
 
-Turecek, Lehnert and Ginty (Nature, 2022) recorded in the hindlimb part of the gracile nucleus of adult, urethane-anaesthetized mice (older than 5 weeks, both sexes). Neurons were identified by antidromic activation, stimulating a projection target and testing for collision, as either VPL-projecting or inferior colliculus-projecting. The **direct** pathway is primary Aβ-LTMR axons contacting DCN neurons. The **indirect** pathway reaches the DCN through PSDC neurons.
+- **To remove the direct route,** they silenced afferent terminals reversibly with a light-gated chloride channel, ACR1. The light was aimed at the gracile nucleus, sparing the afferents' branches in the cord.
+- **To remove the indirect route,** they applied glutamate receptor antagonists to the lumbar cord. That blocks the spinal synapses that drive PSDC neurons, while the afferents' ascending branches, which have no synapse on their way up the dorsal column, keep conducting.
 
-Direct input conveyed vibration with high temporal precision. Most VPL-projecting neurons entrained to vibration (fired in time with each vibration cycle) only within a narrow range below 150 Hz, while most neurons that projected to the inferior colliculus phase-locked from 10 to 500 Hz, the highest frequency tested. The indirect input supported coding of sustained contact intensity, extending to high forces, tested with a blunt 1-mm probe from 1 to 300 mN. Both pathways contributed to responses to gentle displacement, so "direct means vibration and indirect means light touch" is too simple. The authors also could not detect a clear core-shell organization in the mouse gracile recordings, so the split here is direct versus indirect route, not a map of submodalities across the nucleus.
+They tested three kinds of stimulus on the hindpaw: vibration, gentle displacement of the skin, and sustained indentation with a blunt probe 1 mm across, at forces from 1 to 300 mN.
 
-To separate the routes, the authors silenced afferent terminals reversibly with the light-gated ACR1, which was validated only for gentle stimuli of about 20 to 30 mN or less, and applied glutamate receptor antagonists to the lumbar cord to suppress the indirect route while the direct axons kept conducting. That drug is not specific to PSDC neurons. Blocking lumbar excitatory transmission almost eliminated sustained indentation firing in most recorded units. And the two routes meet: direct and indirect inputs to single VPL-projecting neurons had highly aligned receptive fields, and these neurons had small excitatory fields surrounded by larger suppressive regions.
+**Predict.** For each stimulus, which route do you expect to carry it? Use what you know: the direct route has no synapse before the brainstem, and the indirect route passes at least one synapse in the cord (two, through an interneuron).
 
-**Worked problem: can the two inputs be told apart by timing?** Suppose a gracile neuron receives both inputs from a mouse hindpaw. These are illustrative numbers, not measurements, and the assumptions are constant velocity and conduction plus synaptic delay only (see [the action potential lesson](/lessons/action-potential/)).
+<details>
+<summary>Check your prediction</summary>
+
+| Stimulus | Direct route (afferent axon) | Indirect route (through PSDC neurons) |
+| --- | --- | --- |
+| Vibration | Carried, with high temporal precision; it underlies the high-frequency tuning | Can contribute to low-frequency (10 Hz) vibration responses |
+| Gentle displacement | Contributes | Contributes |
+| Sustained indentation, up to high force | Not enough on its own (see the next column) | Carried: with the lumbar synapses blocked, leaving only the direct route, sustained-indentation firing almost disappeared in most units |
+
+If you gave fast vibration to the direct route, you were right, and the next section shows why a relay could struggle to keep that timing. If you gave all light touch to the direct route, the data say otherwise: both routes contributed to gentle displacement, so "direct means vibration and indirect means light touch" is too simple. Blocking the cord also raised the onset threshold, the force needed to make the neuron fire at all, so the indirect route is not only a late add-on.
+
+</details>
+
+Now the result that gives the lesson its idea. On single VPL-projecting neurons, the direct and indirect inputs had **highly aligned receptive fields** (a receptive field is the patch of skin whose touch drives the neuron). These neurons had a small excitatory field surrounded by a larger suppressive region, where touch reduced their firing. So the two routes are not two maps but two reports on one spot, meeting on one neuron.
+
+One limit, said once. ACR1 silencing was validated only for gentle stimuli, about 20 to 30 mN or less, so the high-force conclusion rests on the lumbar drug, and that drug is not specific to PSDC neurons.
+
+## What a slower route costs
+
+<LessonFilm film={frontmatter.films[1]} />
+
+What does a later report cost? Start by estimating how much later.
+
+**Worked problem: how much later?** Suppose a gracile neuron receives both inputs from a mouse hindpaw. These are illustrative numbers, not measurements. The model assumes constant velocity, conduction plus synaptic delay only (see [the action potential lesson](/lessons/action-potential/)), one shared start at the paw, equal path lengths from cord to brainstem, and the same delay at each route's final synapse in the gracile nucleus, which then cancels.
 
 > **t = L / v**
 
@@ -375,22 +421,110 @@ To separate the routes, the authors silenced afferent terminals reversibly with 
 - Indirect, PSDC axon: 0.04 m at an assumed 8 m/s = 5.0 ms.
 - Indirect total: 2.5 + 2.0 + 5.0 = 9.5 ms. Difference: 9.5 − 5.0 = 4.5 ms.
 
-The indirect input arrives about 4.5 ms later in this model. Whether two components that far apart can be told apart in a real recording depends on how much their timing varies and overlaps. Lumbar excitatory blockade should remove the indirect input. Turecek and colleagues did not measure latencies this way: they found that blockade nearly abolished sustained-indentation firing in most units and also raised the onset threshold, so the indirect route is not only a late add-on.
+The indirect input arrives about 4.5 ms later in this model. Its size is not a measurement: other plausible path lengths, speeds and delays give lags from under 1 ms to about 12 ms (Going deeper). Its sign is firmer: the two routes make separate synapses onto the same gracile neuron, and under the stated assumptions, with a PSDC axon no faster than the afferent, the spinal synapses alone make the indirect input later. Whether two components that far apart can be told apart in a real recording depends on how much their timing varies and overlaps.
+
+**Predict.** Take the 4.5 ms lag. Does it matter more for a 300 ms press, or for a 500 Hz vibration?
+
+<details>
+<summary>Check your prediction</summary>
+
+For a readout of average firing during the plateau of a 300 ms press, probably little: 4.5 ms is 1.5 percent of the press, though that fraction says nothing about onset detection, integration with other inputs or perception. For vibration at 500 Hz, the highest frequency tested, one cycle lasts 1/500 s = 2.0 ms, so the lag spans more than two whole cycles (2.25).
+
+A fixed delay does not blur one route's own locking: if every spike is late by the same amount, the spikes still share one phase. That phase moves, though. At 500 Hz, 2.25 cycles shifts the locked phase by a quarter cycle (90°), which matters where the two routes meet on one neuron. What blurs locking is variability: in the model below, each synapse adds a little random jitter to when the next spike fires.
+
+</details>
+
+A toy model shows how much jitter could matter. **Vector strength** is a locking score: how tightly spikes lock to one phase of a vibration cycle, from 1 (every spike at the same phase) to 0 (no net phase preference, as when spikes spread evenly over the cycle, or split equally between opposite phases). If spike times scatter around one phase with a normal spread σ, vector strength = exp(−(2πfσ)²/2) at frequency f (f in Hz, σ in seconds). Assume the direct route has σ = 0.2 ms, and that each of two spinal synapses adds independent random jitter of σ = 0.5 ms. Independent spreads add as squares, so the indirect route has σ = √(0.2² + 0.5² + 0.5²) ≈ 0.73 ms.
+
+| Vibration | One cycle | Vector strength, direct (σ 0.2 ms) | Vector strength, indirect (σ 0.73 ms) |
+| --- | --- | --- | --- |
+| 50 Hz | 20 ms | 1.00 | 0.97 |
+| 300 Hz | 3.3 ms | 0.93 | 0.38 |
+| 500 Hz | 2.0 ms | 0.82 | 0.07 |
+
+The jitter values are assumptions, not Turecek and colleagues' measurements, and relays need not add this much, so the model shows a possibility, not the paper's explanation: if each spinal synapse adds even half a millisecond of independent jitter, locking at hundreds of hertz would be mostly lost on the relayed route, while locking at 50 Hz survives. It also fits some gracile neurons better than others. Most thalamus-projecting neurons entrained to vibration (fired in time with each cycle) only below 150 Hz, where the model predicts little cost; it was most inferior colliculus-projecting neurons, identified the same antidromic way, that phase-locked from 10 to 500 Hz.
+
+Against a 300 ms press, the same 0.73 ms of scatter is small (0.25 percent), though small is not proven harmless. So for a plateau-rate readout the lag is probably cheap, and what the indirect route adds is what it carries. Whether onset timing or the relative arrival times matter is open.
+
+Turecek and colleagues did not measure the lag; they measured something more telling, what each route carries (the table in the last section). Try the arithmetic in the sketch below.
 
 <TwoRouteLatency />
 
+## What the dorsal horn does to the signal
+
+Start with one anatomical fact from the atlas in the next section: PSDC neurons received their excitatory input mainly from local interneurons of the zone where touch afferents end, rather than straight from the afferents. So most of what a PSDC neuron sends up is the output of a circuit, rebuilt rather than passed on.
+
+Chirila and colleagues (Cell, 2022) asked what that circuit does to a touch signal. They recorded from the dorsal horn of adult, urethane-anaesthetized mice while the skin was indented, and sorted the responses into six functional profiles. Those are response clusters, not six cell types. They found **convergence**, one neuron receiving input from more than one kind of afferent: individual neurons received input from both low-threshold and high-threshold mechanoreceptors. High-threshold mechanoreceptors are afferents that respond only to stronger, often damaging, stimuli.
+
+Two inhibitory motifs shaped the output of PSDC neurons.
+
+- **Feedforward inhibition.** The same afferent input that excites a PSDC neuron also excites an interneuron that inhibits it, so excitation is followed by inhibition. Rorβ interneurons supplied glycinergic feedforward inhibition onto PSDC neurons.
+- **Presynaptic inhibition.** Inhibition is applied to the afferent terminal, scaling down the transmitter it releases. PVi neurons, the parvalbumin-expressing inhibitory population, form axo-axonic contacts on afferent terminals and take part in this GABA-A receptor dependent inhibition, but they are not its only source. Chirila and colleagues removed it in all sensory neurons, not by targeting PVi neurons.
+
+<LessonFigure src="/figures/dorsal-horn-touch/two-inhibitory-motifs.webp" width={1200} height={710} alt="AI-generated illustration: two cell-level diagrams. Left, an afferent excites both a gold PSDC neuron and a Rorβ interneuron, which then inhibits the PSDC neuron. Right, a PVi interneuron inhibits the afferent terminal itself through GABA-A receptors, so the afferent's excitatory arrow to the PSDC neuron is thinner." caption="Feedforward inhibition follows the same afferent input onto the PSDC neuron (Rorβ interneurons, glycinergic), while presynaptic inhibition acts on the afferent terminal and scales down its transmitter release (GABA-A dependent, with PVi neurons among its sources). Disrupting either enlarged PSDC receptive fields in Chirila and colleagues' mice; presynaptic inhibition was removed from all sensory neurons, not through PVi neurons." />
+
+**Predict.** Remove either kind of inhibition. Will the PSDC neuron's receptive field shrink or grow? And what might happen at the end of a step indentation?
+
+<details>
+<summary>Check your prediction</summary>
+
+It grows. Disrupting either motif enlarged PSDC receptive fields: a larger field means touches farther from its centre now drive the neuron. Loss of presynaptic inhibition also produced **after-discharge**, continued firing after the end of a step indentation.
+
+</details>
+
+Disrupting feedforward inhibition also changed touch responses in primary somatosensory cortex (S1) of awake mice, and those mice showed tactile over-reactivity and a texture discrimination deficit. The study did not show that the dorsal column carried the cortical change. The limits are plain: the dorsal horn and PSDC recordings were made in anaesthetized mice, and both disruptions were chronic conditional knockouts (Vgat deleted in Rorβ neurons for feedforward inhibition, and the GABA-A β3 subunit gene deleted in sensory neurons for presynaptic inhibition), which cannot be assumed to isolate acute circuit function. The dorsal horn is therefore not a simple relay on the way to the dorsal column.
+
+## Who is in the zone: an atlas
+
+Abraira and colleagues (Cell, 2017) asked an earlier question: which cells sit where touch afferents end? In the mouse lumbar cord, LTMRs end in a band in the middle of the dorsal horn, the **LTMR recipient zone (LTMR-RZ)**. It begins just below the band labelled by IB4, a marker of a set of nociceptor terminals.
+
+They described seven excitatory and four inhibitory interneuron populations there. A **reporter-defined** population is one marked in a mouse line by a gene it expresses, which is a molecular label, not proof of a single cell type (genetic access is covered in [tools for development](/lessons/tools-for-development/)). Two have already appeared, Rorβ and PVi; CCK and Rorβ return in the texture test below.
+
+Three facts set the scale. About 70 percent of the neurons intrinsic to the zone were excitatory and about 30 percent inhibitory. The reporter lines together covered an estimated 71 to 82 percent of LTMR-RZ neurons, so the atlas is incomplete. And the populations were not private lines. By counting pre- and postsynaptic marker apposition, each LTMR subtype assayed contacted four to eleven interneuron subtypes, and each interneuron subtype sampled one to three of the LTMR classes assayed (which does not exclude classes not assayed), so the zone mixes its inputs. The interneurons also received descending corticospinal input.
+
+PVi and a second inhibitory population, Cdh3, formed **axo-axonic** contacts (synapses onto another neuron's axon terminal) on sensory terminals, consistent with presynaptic inhibition of the afferents (see [synaptic integration](/lessons/synaptic-integration/)).
+
+Did any of it matter for behaviour? The authors silenced spinal CCK or Rorβ lineages and tested a texture version of the novel object recognition test, in which a mouse that remembers an object explores a new one more. Both silenced groups lost the preference for the newly textured object.
+
+**Predict.** A mouse that no longer prefers a novel texture might have lost touch. What else could it have lost, and what control would rule that out?
+
+<details>
+<summary>Check your prediction</summary>
+
+It might have stopped exploring, or lost memory, motivation or movement. The control is the same recognition task with objects that differ in colour and shape rather than texture. The silenced mice kept the preference, so the deficit is not a general failure to explore or recognize objects.
+
+</details>
+
+<LessonFigure src="/figures/dorsal-horn-touch/texture-vs-colour-object-recognition.webp" width={1200} height={750} alt="AI-generated illustration: a top-down mouse arena with two identical-shaped objects, one smooth and one ridged, and a smaller inset arena with a cube and a cylinder that differ in colour and shape. The new object in each is ringed in gold." caption="Abraira and colleagues tested a texture version of the novel object recognition test, in which a mouse that remembers an object explores a new one more. Mice with CCK or Rorβ lineages silenced lost the preference for the newly textured object but kept it when objects differed in colour and shape." />
+
+One limit to keep in mind: a lineage includes every cell that ever expressed the marker, so the silencing is not acute and not one pure type. It shows these lineages contribute to the task, not that each subtype is needed.
+
 ## When inhibition fails
 
-If inhibition holds back touch from other circuits, loss of inhibition could let it reach them. Duan and colleagues (Cell, 2014) tested that in mice, and [spinal circuits that gate pain](/lessons/spinal-pain-circuits/) covers the work in full. Ablating somatostatin-lineage excitatory spinal neurons impaired mechanical pain behaviours, and dynorphin-lineage inhibitory neurons gated Aβ input from activating the somatostatin neurons (ablation in vivo; slice recordings from mice aged 23 to 30 days). This is a separate circuit result from the PSDC experiments. An enlarged PSDC receptive field is not allodynia (pain from normally non-painful touch), and the blunt 300 mN indentations did not evoke pain behaviour in awake mice. A later lesson takes touch over-reactivity in [autism models](/lessons/touch-in-autism-models/) further.
+If inhibition holds back touch from other circuits, loss of inhibition could let it reach them. Duan and colleagues (Cell, 2014) tested that idea for spinal pain circuits in mice and found that dynorphin-lineage inhibitory neurons gated Aβ input away from somatostatin-lineage neurons needed for mechanical pain behaviours; [spinal circuits that gate pain](/lessons/spinal-pain-circuits/) covers the work in full. This is a separate circuit from the PSDC experiments. An enlarged PSDC receptive field is not allodynia (pain from normally non-painful touch), and the blunt 300 mN indentations did not evoke pain behaviour in awake mice. A later lesson takes touch over-reactivity in [autism models](/lessons/touch-in-autism-models/) further.
 
-### Design problem
+## Where the idea stops
+
+Here is how far "two routes, one patch of skin" holds.
+
+- **Mouse hindlimb only.** The evidence is from the mouse lumbar dorsal horn and gracile nucleus, recorded mostly in urethane-anaesthetized adults. There are no human data.
+- **The hindlimb and gracile example only.** The cuneate nucleus also belongs to the dorsal column pathway but is not analysed here; the anterolateral and trigeminal systems are separate pathways.
+- **Rebuilt is not copied.** The indirect route is not a delayed duplicate: it supports sustained-intensity coding into the high-force range that direct input alone did not reproduce: blocking lumbar transmission nearly abolished sustained responses in most recorded units. Both routes contribute to gentle displacement, so neither is a single-submodality channel.
+- **The direct route skips the dorsal horn, not processing.** It still ends at a synapse in the gracile nucleus, and the thalamus-projecting neurons there have suppressive surrounds. Silencing the direct afferent terminals reduced that surround suppression, which points to direct input acting mainly through local inhibitory neurons of the nucleus; the full microcircuit was not resolved.
+- **What reaches the brainstem, not what the animal perceives.** No study here recorded PSDC or gracile neurons in awake animals.
+
+## Design problem
 
 Chirila and colleagues found that PSDC receptive fields grow when presynaptic inhibition is lost. Design an experiment to show that this matters for perception, and say what would be needed in people.
 
 <details>
 <summary>One way to do it</summary>
 
-Remove presynaptic inhibition of the afferents acutely in adult mice, not by a developmental or germline deletion, which can change the cord's wiring. Silencing PVi neurons alone would not do this, because they are one of several sources of axo-axonic contacts and also make ordinary synapses. To show the effect runs through PSDC neurons, add a perturbation or rescue restricted to PSDC output. Record PSDC neurons in awake mice, not under urethane, to check that the field enlargement survives without anaesthesia. Measure tactile acuity behaviourally, for example discrimination of closely spaced textures, paired with a control that does not depend on texture, like Abraira's colour and shape object test, so a general change in exploration is not mistaken for a tactile one. Remember that a spinal drug blockade is not PSDC-specific, so a drug result must not be read as one. Finally, mouse data do not transfer by default. In people, you would need psychophysical acuity measures and a way to change spinal inhibition safely, and a result would still be limited to that preparation.
+- **Make the change acute.** Remove presynaptic inhibition of the afferents acutely in adult mice, not by a developmental or germline deletion, which can change the cord's wiring. Silencing PVi neurons alone would not do this, because they are one of several sources of axo-axonic contacts and also make ordinary synapses.
+- **Tie it to PSDC output.** Add a perturbation or rescue restricted to PSDC output. A spinal drug blockade is not PSDC-specific, so a drug result must not be read as one.
+- **Record awake.** Record PSDC neurons in awake mice, not under urethane, to check that the field enlargement survives without anaesthesia.
+- **Measure perception with a control.** Measure tactile acuity behaviourally, for example discrimination of closely spaced textures, paired with a control that does not depend on texture, like Abraira's colour and shape object test, so a general change in exploration is not mistaken for a tactile one.
+- **People.** Mouse data do not transfer by default. In people, you would need psychophysical acuity measures and a way to change spinal inhibition safely, and a result would still be limited to that preparation.
 
 </details>
 
@@ -398,7 +532,11 @@ Remove presynaptic inhibition of the afferents acutely in adult mice, not by a d
 
 ### Ages and preparations
 
-The 2017 study used fixed tissue mostly from mice aged 30 to 35 days, spinal slices from mice aged 13 to 21 days, and behaviour in males aged 7 to 12 weeks. In the two 2022 studies the dorsal horn and gracile nucleus were recorded in adult mice under urethane anaesthesia; Chirila and colleagues also recorded primary somatosensory cortex in awake mice.
+The 2017 study used fixed tissue mostly from mice aged 30 to 35 days, spinal slices from mice aged 13 to 21 days, and behaviour in males aged 7 to 12 weeks. In the two 2022 studies the dorsal horn and gracile nucleus were recorded in adult mice under urethane anaesthesia: older than 6 weeks for the dorsal horn recordings of Chirila and colleagues, and older than 5 weeks, of both sexes, for the gracile recordings of Turecek and colleagues.
+
+### Where touch afferents end
+
+LTMR terminals overlap in laminae IIiv to IV of the dorsal horn (laminae are the layers numbered from the surface; IIiv is the inner, ventral part of lamina II). In the mouse lumbar cord, the LTMR-RZ was sampled from the IB4 border to about 250 µm below it.
 
 ### The interneuron populations and their firing patterns
 
@@ -409,3 +547,15 @@ In spinal slices, the populations fired differently when current was injected. C
 ### Counting inhibitory contacts
 
 Abraira counted 2.9 ± 0.1 (mean ± SEM) axo-axonic inhibitory contacts per sensory terminal in fixed mouse tissue, of which 1.5 ± 0.1 were from PVi neurons. 1.5 / 2.9 = 0.52, so about 52 percent of the contacts. These are contact counts, not conductances, so they do not say PVi neurons supply half of the inhibition.
+
+### No core-shell map
+
+Turecek and colleagues could not detect a clear core-shell organization in the mouse gracile recordings, so the split in this lesson is direct versus indirect route, not a map of submodalities across the nucleus.
+
+### How big is the lag?
+
+Under the worked problem's assumptions, the lag is L(cord to DCN) × (1/v(PSDC) − 1/v(afferent)) plus the number of spinal synapses times the synaptic delay. A sweep over illustrative mouse ranges (paw to cord 3 to 5 cm, cord to gracile nucleus 2.5 to 4.5 cm, afferent 10 to 25 m/s, PSDC axon 5 to 16 m/s and never faster than the afferent, one to three spinal synapses at 0.5 to 1.5 ms each), sampled on the grid paw to cord {3, 4, 5} cm, cord to gracile {2.5, 3.5, 4.5} cm, afferent {10, 16, 25} m/s, PSDC {5, 8, 12, 16} m/s, synapses {1, 2, 3} at {0.5, 1, 1.5} ms, with every admissible combination weighted equally (810 combinations), gave lags from 0.5 to 11.7 ms, with a median of about 4.0 ms. The median is a property of that grid, not a biological estimate. Every lag was positive. These ranges are assumptions for illustration, not measurements.
+
+### The Duan experiment
+
+Ablating somatostatin-lineage excitatory spinal neurons impaired mechanical pain behaviours, and dynorphin-lineage inhibitory neurons gated Aβ input from activating the somatostatin neurons (ablation in vivo; slice recordings from mice aged 23 to 30 days).
