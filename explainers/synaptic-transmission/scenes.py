@@ -1,573 +1,472 @@
-"""Release comes in countable packets: synaptic transmission and quantal release (Biochemistrypedia explainer)
+"""Blips from a Silent Nerve — reviewed animation.
 
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-Every plot is a sketch ("in this sketch"); the numbers on screen are the lesson's own (the made-up frog
-junction: 0.40 mV, 200 stimuli, 74 failures, 0.37, 0.99; normal calcium: 60 quanta, 24 mV, fires at 12 mV,
-safety factor 2.0; myasthenia: 0.24 mV, 14.4 mV, 45 quanta, 10.8 mV).
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = presynaptic side: axon, nerve terminal
-  YELLOW = transmitter: acetylcholine, a packet (quantum), vesicle filling
-  GREEN  = the muscle's voltage response: miniature, evoked response, the bar of quanta, "fires"
-  TEAL   = calcium
-  PURPLE = magnesium
-  PINK   = receptors
-  ORANGE = the level at which the fibre fires (dashed line), the safety factor
-  RED    = failure / no response / "the fibre fails"
-  GOLD   = where the fault lies (highlight of the muscle side or the terminal side in the last scene)
-  GREY   = muscle fibre, membranes, axes, labels, de-emphasized
+COLOR MAP: BLUE = motor axon / terminal; YELLOW = ACh only;
+CALCIUM (violet) = Ca²⁺; PINK = receptors; GREEN = recorded voltage,
+miniature and evoked EPP; ORANGE = firing threshold; GREY = neutral anatomy,
+axes, vesicle membrane, and question panels. TEXT = explanatory text.
+Every trace is a sum of the reference difference-of-exponentials model.
+All amplitudes, timing and the illustrative integer count are schematic.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
-ORANGE = "#F29E4C"
-PURPLE = "#B58CD9"
-PINK = "#E88FC0"
+CALCIUM = '#B58CD9'
+PINK = '#E88FC0'
+ORANGE = '#F29E4C'
+UNIT_HEIGHT = .6
+AXIS_TEXT = TEXT
 
-BASE_Y = -1.4      # resting level on the trace panel
-Q_VIS = 0.7        # height of one miniature on the trace panel (sketch)
+def label(s, x, y, color=TEXT, size=28):
+    return T(s, size=size, color=color).move_to([x,y,0])
 
+def arrow(a,b,color=GREY):
+    return Arrow(a,b,buff=.06,color=color,stroke_width=4)
 
-def arr(a, b, color=GREY, w=4, tip=0.2):
-    return Arrow(a, b, buff=0.06, color=color, stroke_width=w, tip_length=tip,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def leader(text, pos, end, color=TEXT, size=28):
+    t=label(text,*pos,color,size)
+    start=t.get_left() if end[0]<pos[0] else t.get_right()
+    return VGroup(t,Line(start,end,color=color,stroke_width=2))
 
+_F=lambda t: np.exp(-t/.22)-np.exp(-t/.04)
+_PEAK=max(_F(t) for t in np.linspace(.001,1,1000))
 
-def packet(r=0.24, dot=0.065, color=YELLOW, rings=1):
-    """a quantum: a cluster of transmitter dots (hex packing), not a molecule."""
-    pts = [np.array([0.0, 0.0, 0.0])]
-    for k in range(1, rings + 1):
-        for j in range(6 * k):
-            ang = 2 * np.pi * j / (6 * k)
-            pts.append(np.array([np.cos(ang), np.sin(ang), 0.0]) * r * k)
-    g = VGroup(*[Dot(p, radius=dot, color=color) for p in pts])
-    return g
+def blip_y(x,onset,h):
+    dt=x-onset
+    return 0 if dt<0 else h*_F(dt)/_PEAK
 
-
-_F = lambda s: np.exp(-s / 0.22) - np.exp(-s / 0.04)
-_PEAK = max(_F(s) for s in np.linspace(0.001, 1.0, 400))
-
-
-def blip_y(x, x0, h):
-    t = x - x0
-    if t < 0:
-        return 0.0
-    return h * _F(t) / _PEAK
-
-
-def trace_from(blips, x0=1.0, x1=6.2, base=BASE_Y, dx=0.01):
-    xs = np.arange(x0, x1 + 1e-9, dx)
-    ys = np.array([base + sum(blip_y(x, bx, h) for bx, h in blips) for x in xs])
-    m = VMobject(stroke_color=GREEN, stroke_width=4)
-    m.set_points_as_corners([[x, y, 0] for x, y in zip(xs, ys)])
+def trace_from(events,x0=-5.15,x1=5.8,base=-2.55,dx=.012):
+    xs=np.arange(x0,x1+dx/2,dx)
+    m=VMobject(stroke_color=GREEN,stroke_width=4)
+    m.set_points_as_corners([[x,base+sum(blip_y(x,t,h) for t,h in events),0] for x in xs])
     return m
 
+BLIPS=[(-4.65,2.1),(-2.95,2.02),(-1.45,2.18),(.25,2.1),(2.15,2.0),(4.45,2.14)]
 
-BLIPS = [(1.4, 1.0 * Q_VIS), (2.25, 0.95 * Q_VIS), (2.65, 1.05 * Q_VIS), (3.75, 1.0 * Q_VIS),
-         (4.7, 0.94 * Q_VIS), (5.45, 1.02 * Q_VIS)]
+class Junction:
+    """Fixed geometry throughout the relay; continuous axon-terminal outline."""
+    def __init__(self,receptors=True):
+        p=VMobject(stroke_color=BLUE,stroke_width=4,fill_color=BLUE,fill_opacity=.12)
+        p.start_new_path(np.array([-6,2.25,0])); p.add_line_to(np.array([-1.8,2.25,0]))
+        p.add_cubic_bezier_curve_to(np.array([-1.4,2.9,0]),np.array([2.8,2.9,0]),np.array([3,2.0,0]))
+        p.add_cubic_bezier_curve_to(np.array([3.2,1.5,0]),np.array([3.1,.65,0]),np.array([2.6,.65,0]))
+        p.add_line_to(np.array([-1.2,.65,0]))
+        p.add_cubic_bezier_curve_to(np.array([-1.8,.65,0]),np.array([-1.8,1.4,0]),np.array([-1.9,1.65,0]))
+        p.add_line_to(np.array([-6,1.65,0])); p.close_path()
+        self.term=p
+        self.cleft=Rectangle(width=5.7,height=1.35,stroke_opacity=0,fill_color=GREY,fill_opacity=.08).move_to([.7,-.025,0])
+        self.muscle=RoundedRectangle(width=12,height=1.65,corner_radius=.14,color=GREY,fill_color=GREY,fill_opacity=.1).move_to([0,-1.525,0])
+        self.receptors=VGroup(*[VGroup(*[Rectangle(width=.12,height=.42,color=PINK,fill_color=PINK,fill_opacity=.45).move_to([x+d,-.72,0]) for d in (-.14,.14)]) for x in (-.9,.7,2.3)]) if receptors else VGroup()
+        self.patch=Line([-1.55,-.7,0],[2.95,-.7,0],color=GREEN,stroke_width=7)
+        self.labels=VGroup(label('motor nerve',-4.25,2.72,BLUE,28),label('skeletal muscle fibre',-.2,-1.85,GREY,28))
+        self.body=VGroup(self.cleft,self.term,self.muscle,self.receptors)
+        self.all=VGroup(self.body,self.labels)
 
+def contact_label():
+    bracket=VGroup(Line([3.3,.65,0],[3.55,.65,0],color=TEXT),Line([3.55,.65,0],[3.55,-.7,0],color=TEXT),Line([3.3,-.7,0],[3.55,-.7,0],color=TEXT))
+    return VGroup(bracket,leader('synapse',(4.8,1.05),[3.55,.1,0]))
 
-class Stage:
-    """nerve terminal over a muscle fibre with an intracellular electrode (cells as simple shapes)."""
+def relay_slots(n=0):
+    g=VGroup()
+    for i,s in enumerate(('spike','Ca²⁺','fuse','cross','open')):
+        c=TEXT if i<n else GREY
+        r=RoundedRectangle(width=2.12,height=.7,corner_radius=.12,color=c,fill_color=c,fill_opacity=.16 if i<n else .025)
+        g.add(VGroup(r,T(f'{i+1}  {s}',size=27,color=c).move_to(r)))
+    return g.arrange(RIGHT,buff=.19).move_to([0,-3.12,0])
 
-    def __init__(self):
-        self.axon = RoundedRectangle(corner_radius=0.2, width=1.45, height=0.55, stroke_color=BLUE, stroke_width=3,
-                                     fill_color=BLUE, fill_opacity=0.18).move_to([-5.55, 2.2, 0])
-        self.term = RoundedRectangle(corner_radius=0.55, width=3.4, height=1.7, stroke_color=BLUE, stroke_width=3,
-                                     fill_color=BLUE, fill_opacity=0.18).move_to([-3.3, 2.2, 0])
-        self.muscle = RoundedRectangle(corner_radius=0.15, width=5.7, height=2.8, stroke_color=GREY, stroke_width=3,
-                                       fill_color=GREY, fill_opacity=0.14).move_to([-3.3, -0.45, 0])
-        self.term_lbl = T("nerve terminal", 22, BLUE).move_to([-3.3, 2.7, 0])
-        self.mus_lbl = T("muscle fibre", 22, GREY).move_to([-1.9, -1.45, 0])
-        self.end_lbl = T("endplate", 22, GREY).move_to([-3.3, -0.1, 0])
-        self.el_line = Line([-6.0, -3.3, 0], [-4.7, -0.5, 0], color=TEXT, stroke_width=3)
-        self.tip = Dot([-4.7, -0.5, 0], radius=0.08, color=TEXT)
-        self.el_lbl = T("electrode", 22, TEXT).move_to([-4.55, -2.95, 0])
-        self.nostim = T("nerve not stimulated", 22, GREY).move_to([-4.7, 3.3, 0])
-        self.body = VGroup(self.axon, self.term, self.muscle, self.term_lbl, self.mus_lbl, self.end_lbl,
-                           self.el_line, self.tip, self.el_lbl)
+def relay_scene(scene,n,title):
+    j=Junction(); slots=relay_slots(n)
+    scene.add(j.all,slots,label(title,0,3.32,TEXT,31))
+    return j,slots
 
+def electrode(tip=(-2,2.45)):
+    x,y=tip
+    return VGroup(Line([x-1.55,y+1.0,0],[x,y,0],color=TEXT,stroke_width=5),Line([x-1.3,y+1.08,0],[x,y,0],color=TEXT,stroke_width=5))
 
-def panel_axes():
-    yax = Line([1.0, -2.4, 0], [1.0, 2.9, 0], color=GREY, stroke_width=3)
-    xax = Line([1.0, -2.4, 0], [6.2, -2.4, 0], color=GREY, stroke_width=3)
-    ylab = T("voltage, mV", 22, GREY).rotate(PI / 2).move_to([0.55, 0.25, 0])
-    xlab = T("time", 22, GREY).move_to([5.7, -2.8, 0])
-    note = T("in this sketch", 22, GREY).move_to([3.0, -3.25, 0])
-    return VGroup(yax, xax, ylab, xlab, note)
+def recording_stage(away=False):
+    # Wide picture-in-picture strip: a legible electrode inside a continuous fibre.
+    fibre=RoundedRectangle(width=11.3,height=.65,corner_radius=.09,color=GREY,fill_color=GREY,fill_opacity=.1).move_to([.25,2.55,0])
+    terminal=RoundedRectangle(width=1.8,height=.65,corner_radius=.22,color=BLUE,fill_color=BLUE,fill_opacity=.16).move_to([-2.05,3.2,0])
+    axon=Line([-5.4,3.3,0],[-2.95,3.3,0],color=BLUE,stroke_width=6)
+    patch=Line([-2.95,2.875,0],[-1.15,2.875,0],color=GREEN,stroke_width=6)
+    e=electrode((3.5 if away else -2,2.45))
+    end=VGroup(label('endplate',-4.25,2.58,GREEN,26),Line([-3.55,2.6,0],[-2.65,2.84,0],color=GREEN,stroke_width=2))
+    return VGroup(fibre,terminal,axon,patch,e,end),e,terminal
 
+def axes():
+    return VGroup(Line([-5.35,-3.0,0],[-5.35,2.3,0],color=GREY,stroke_width=2),Line([-5.35,-3.0,0],[5.95,-3.0,0],color=GREY,stroke_width=2),label('voltage (mV)',-5.78,-.35,AXIS_TEXT,26).rotate(PI/2),label('time (s)',5.05,-3.48,AXIS_TEXT,26),label('schematic, not to scale',.3,-3.48,AXIS_TEXT,26))
 
-def solution_chips():
-    c1 = chip("less calcium", TEAL, 22)
-    c2 = chip("more magnesium", PURPLE, 22)
-    return VGroup(c1, c2).arrange(RIGHT, buff=0.25).move_to([3.5, 3.1, 0])
+def recording(scene,events=BLIPS,away=False):
+    st,e,term=recording_stage(away); tr=trace_from(events)
+    scene.add(st,axes(),tr)
+    return st,e,term,tr
 
+def stimulator():
+    box=Rectangle(width=.85,height=.42,color=GREY).move_to([-4.6,3.58,0])
+    cross=VGroup(Line([-5.05,3.43,0],[-4.15,3.78,0],color=RED,stroke_width=4),Line([-5.05,3.78,0],[-4.15,3.43,0],color=RED,stroke_width=4))
+    wire=Line([-4.6,3.37,0],[-4.6,3.3,0],color=GREY,stroke_width=3)
+    return VGroup(box,cross,wire,label('no stimulation',2.8,3.32,GREY,28))
 
-def thr_line():
-    ln = DashedLine([1.0, 2.4, 0], [6.2, 2.4, 0], color=ORANGE, stroke_width=3)
-    lb = T("fires the fibre", 22, ORANGE).move_to([4.95, 2.68, 0])
-    return VGroup(ln, lb)
+def comparison():
+    # Shared unit height; the large response is schematic, with no claimed count.
+    sm=trace_from([(-4.85,UNIT_HEIGHT)],x0=-5.4,x1=-1.35,base=-1.9)
+    big=trace_from([(1.8,6*UNIT_HEIGHT)],x0=1.25,x1=5.75,base=-1.9)
+    labs=VGroup(label('miniature',-3.55,-2.35,GREEN),label('evoked response',3.6,-2.35,GREEN))
+    return sm,big,labs
 
+def comparison_axes():
+    scale=VGroup(Line([5.65,-1.9,0],[5.65,-1.9+UNIT_HEIGHT,0],color=TEXT),Line([5.49,-1.9,0],[5.81,-1.9,0],color=TEXT),Line([5.49,-1.9+UNIT_HEIGHT,0],[5.81,-1.9+UNIT_HEIGHT,0],color=TEXT),label('1 unit',5.65,-.98,TEXT,26))
+    return VGroup(Line([-5.7,-2.0,0],[-5.7,2.0,0],color=GREY),Line([-5.7,-2.0,0],[6.05,-2.0,0],color=GREY),label('voltage (mV)',-6.08,0,AXIS_TEXT,26).rotate(PI/2),label('time (s)',4.9,-3.25,AXIS_TEXT,26),label('schematic, not to scale',.3,-3.48,AXIS_TEXT,26),scale)
 
-# ---- trial grid (twelve impulses at low release; heights are multiples of one miniature) ----
-PATTERN = [0, 1, 0, 2, 0, 1, 3, 0, 1, 2, 0, 1]
-BW, BH, GAP = 1.2, 1.3, 0.1
-UNIT = 0.26
+def unit_row():
+    # Several examples + ellipsis: these are not falsely asserted to be three quanta.
+    return VGroup(*[trace_from([(0,UNIT_HEIGHT)],x0=-.15,x1=1.05,base=0).move_to([x,-1.15,0]) for x in (-4.8,-3.55,-2.3)],label('…',-1.35,-1.25,GREEN,40))
 
+def unit_stack():
+    # Explicit illustration only: each block shares the miniature/scale height.
+    return VGroup(*[Rectangle(width=.55,height=UNIT_HEIGHT,color=GREEN,fill_color=GREEN,fill_opacity=.14).move_to([.7,-1.9+UNIT_HEIGHT*(i+.5),0]) for i in range(6)])
 
-def trial_box(n, cx, cy):
-    box = Rectangle(width=BW, height=BH, stroke_color=GREY, stroke_width=2).move_to([cx, cy, 0])
-    by = cy - BH / 2 + 0.3
-    xs = np.arange(0, BW - 0.2, 0.01)
-    pts = []
-    for x in xs:
-        y = by + (blip_y(x, 0.2, n * UNIT) if n else 0.0)
-        pts.append([cx - BW / 2 + 0.1 + x, y, 0])
-    tr = VMobject(stroke_color=(GREEN if n else GREY), stroke_width=3.5)
-    tr.set_points_as_corners(pts)
-    return VGroup(box, tr)
-
-
-def trial_grid(cx0=1.6, cy0=1.85):
-    boxes = []
-    for i, n in enumerate(PATTERN):
-        r, c = divmod(i, 4)
-        boxes.append(trial_box(n, cx0 + c * (BW + GAP), cy0 - r * (BH + GAP)))
-    return boxes
-
-
-# ---- bar of quanta (response in mV) ----
-MV = 0.24
-BASE_B = -3.0
-BAR_X = -2.6
-
-
-def stripes(n, q, color=GREEN):
-    rs = []
-    for i in range(n):
-        h = q * MV
-        r = Rectangle(width=2.0, height=h, stroke_width=0, fill_color=color, fill_opacity=0.9 if i % 2 == 0 else 0.55)
-        r.move_to([BAR_X, BASE_B + h * i + h / 2, 0])
-        rs.append(r)
-    return VGroup(*rs)
-
-
-def bar_axes():
-    ax = Line([-4.3, BASE_B, 0], [-4.3, 3.1, 0], color=GREY, stroke_width=3)
-    base = Line([-4.3, BASE_B, 0], [-0.9, BASE_B, 0], color=GREY, stroke_width=3)
-    ticks = VGroup()
-    for v in (0, 12, 24):
-        y = BASE_B + v * MV
-        ticks.add(Line([-4.4, y, 0], [-4.3, y, 0], color=GREY, stroke_width=3))
-        ticks.add(M(str(v), 22, GREY).move_to([-4.75, y, 0]))
-    ylab = T("response, mV", 22, GREY).rotate(PI / 2).move_to([-5.6, 0.2, 0])
-    return VGroup(ax, base, ticks, ylab)
-
-
-def thr_bar():
-    y = BASE_B + 12 * MV
-    ln = DashedLine([-4.3, y, 0], [6.0, y, 0], color=ORANGE, stroke_width=3)
-    lb = T("fires at 12 mV (illustration)", 24, ORANGE).move_to([2.9, y + 0.33, 0])
-    return VGroup(ln, lb)
-
+def puzzle():
+    _,big,labs=comparison(); labs[0].become(label('miniatures',-3.55,-2.35,GREEN))
+    return VGroup(unit_row(),big,labs,label('Built from blips like these?',0,2.9,TEXT,36),comparison_axes()),label('?',-.35,.15,TEXT,66)
 
 class S00Title(TitleCard):
-    LESSON = "Synaptic transmission and quantal release"
-    TITLE = "Release comes in countable packets"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Blips(SpokenScene):
-    """electrode in a resting frog fibre at the endplate; the nerve is not stimulated; small equal blips arrive at random."""
-
+    TITLE='Blips from a Silent Nerve'
+    LESSON='Synaptic Transmission and Quantal Release'
     def construct(self):
-        st = Stage()
-        self.at("Put an electrode")
-        self.play(FadeIn(st.muscle), FadeIn(st.term), FadeIn(st.axon), FadeIn(st.mus_lbl), FadeIn(st.term_lbl), run_time=0.8)
-        self.at("inside a resting")
-        self.play(Create(st.el_line), FadeIn(st.tip), FadeIn(st.el_lbl), run_time=0.9)
-        self.at("where the nerve ends")
-        self.play(FadeIn(st.end_lbl), run_time=0.4)
-        self.at("Stimulate nothing")
-        self.play(FadeIn(st.nostim), run_time=0.5)
+        g=VGroup(T('BIOCHEMISTRYPEDIA',26,TEAL),T(self.LESSON,28,GREY),T(self.TITLE,48,font=TITLE_FONT),Line(LEFT*1.3,RIGHT*1.3,color=GOLD,stroke_width=4)).arrange(DOWN,buff=.4)
+        self.play(FadeIn(g),run_time=.6); self.finish()
 
-        ax = panel_axes()
-        tr = trace_from(BLIPS)
-        self.at("Small depolarizations")
-        self.play(FadeIn(ax), run_time=0.5)
-        t_end = self.t_of("far too small") - 0.5
-        self.play(Create(tr, rate_func=linear), run_time=max(1.0, t_end - self.elapsed()))
-        self.at("too small")
-        thr = thr_line()
-        self.play(Create(thr[0]), FadeIn(thr[1]), run_time=0.7)
-        self.at("What are they")
-        q = T("?", 96, TEXT, weight=BOLD).move_to([3.6, 0.7, 0])
-        self.play(FadeIn(q, scale=0.6), Indicate(tr, color=GREEN, scale_factor=1.0), run_time=0.9)
+class S01Question(SpokenScene):
+    def construct(self):
+        j=Junction(False); self.add(j.all)
+        self.at('How does a nerve')
+        q=label('How does a nerve hand a signal to a muscle?',0,3.35,TEXT,30)
+        self.play(FadeIn(q),run_time=.3)
+        pulse=Dot([-5.7,1.95,0],radius=.11,color=BLUE)
+        self.add(pulse); self.play(pulse.animate.move_to([.7,1.7,0]),run_time=1.1)
+        self.at('what is that')
+        self.play(FadeIn(label('And what is that signal made of?',0,-3.15,TEXT,32)),run_time=.4)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-class S02Packet(SpokenScene):
-    """a packet leaves as a blip appears; an impulse; less calcium, more magnesium; a grid of trials with failures."""
-
+class S02Synapse(SpokenScene):
     def construct(self):
-        st = Stage()
-        ax = panel_axes()
-        tr = trace_from(BLIPS)
-        thr = thr_line()
-        self.add(st.body, st.nostim, ax, tr, thr)
-
-        self.at("These are miniature")
-        lab = T("miniature endplate potential", 24, GREEN).move_to([3.4, 0.55, 0])
-        pt = arr([3.75, 0.2, 0], [3.75, BASE_Y + Q_VIS + 0.12, 0], GREEN)
-        self.play(FadeIn(lab), GrowArrow(pt), run_time=0.7)
-
-        self.at("spontaneous release")
-        pk = [packet().move_to([x, 1.95, 0]) for x in (-4.3, -3.3, -2.3)]
-        ach = T("acetylcholine", 22, YELLOW).move_to([-3.3, 2.7, 0])
-        self.play(FadeOut(lab), FadeOut(pt), FadeOut(st.nostim), ReplacementTransform(st.term_lbl, ach),
-                  *[FadeIn(p, scale=0.6) for p in pk], run_time=0.8)
-        out = pk[2].copy()
-        ring = Circle(radius=0.15, color=GREEN, stroke_width=4).move_to([-2.3, 1.15, 0])
-        self.play(out.animate.move_to([-2.3, 1.15, 0]), run_time=0.7)
-        nb1 = trace_from([(3.2, Q_VIS)], x0=3.2, x1=4.1)
-        nb1.set_stroke(YELLOW, 6)
-        self.play(FadeOut(out), ring.animate.scale(4).set_stroke(opacity=0), Create(nb1, rate_func=linear), run_time=0.8)
-        self.play(nb1.animate.set_stroke(GREEN, 4), run_time=0.3)
-
-        self.at("from the nerve terminal")
-        out2 = pk[0].copy()
-        ring2 = Circle(radius=0.15, color=GREEN, stroke_width=4).move_to([-4.3, 1.15, 0])
-        self.play(out2.animate.move_to([-4.3, 1.15, 0]), run_time=0.7)
-        nb2 = trace_from([(4.15, Q_VIS)], x0=4.15, x1=4.65)
-        nb2.set_stroke(YELLOW, 6)
-        self.play(FadeOut(out2), ring2.animate.scale(4).set_stroke(opacity=0), Create(nb2, rate_func=linear), run_time=0.8)
-        self.play(nb2.animate.set_stroke(GREEN, 4), run_time=0.3)
-
-        self.at("nerve impulse")
-        boxes = trial_grid()
-        leg = T("each box: one nerve impulse, in this sketch", 22, GREY).move_to([3.55, -3.2, 0])
-        self.play(FadeOut(ax), FadeOut(tr), FadeOut(thr), FadeOut(nb1), FadeOut(nb2), run_time=0.6)
-        imp_lbl = T("nerve impulse", 22, TEXT).move_to([-5.3, 3.3, 0])
-        pulse = Dot([-6.1, 2.2, 0], radius=0.17, color=TEXT)
-        self.play(FadeIn(imp_lbl), FadeIn(pulse), LaggedStart(*[FadeIn(b[0]) for b in boxes], lag_ratio=0.05), FadeIn(leg), run_time=0.9)
-        self.play(pulse.animate.move_to([-4.6, 2.2, 0]), run_time=0.6)
-        self.play(FadeOut(pulse), run_time=0.2)
-
-        self.at("They bathed")
-        chips = solution_chips()
-        self.play(FadeIn(chips, shift=DOWN * 0.15), run_time=0.7)
-        self.at("a trickle")
-        self.play(FadeOut(pk[0]), FadeOut(pk[2]), run_time=0.8)
-
-        self.at("Now an impulse")
-        self.play(LaggedStart(*[Create(b[1]) for b in boxes], lag_ratio=0.15), run_time=1.8)
-        self.at("a failure")
-        empties = [b for b, n in zip(boxes, PATTERN) if n == 0]
-        fl = T("no response: a failure", 26, RED, weight=BOLD).move_to([3.55, -2.45, 0])
-        self.play(*[b[0].animate.set_stroke(RED, 4) for b in empties], *[b[1].animate.set_color(RED) for b in empties], FadeIn(fl), run_time=0.7)
+        j=Junction(False); self.add(j.all)
+        self.at('A synapse')
+        # A modest zoom into the contact, settling back on the common relay geometry.
+        j.all.scale(.84)
+        self.play(j.all.animate.scale(1/.84),FadeIn(contact_label()),run_time=.8)
+        self.at('passes a signal')
+        self.play(Indicate(j.term,color=BLUE,scale_factor=1.015),run_time=.65)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-def s2_end_state(scene):
-    """what S02 leaves on screen (rebuilt in the same place)."""
-    st = Stage()
-    ach = T("acetylcholine", 22, YELLOW).move_to([-3.3, 2.7, 0])
-    body = VGroup(st.axon, st.term, st.muscle, st.mus_lbl, st.end_lbl, st.el_line, st.tip, st.el_lbl, ach)
-    pk = packet().move_to([-3.3, 1.95, 0])
-    imp = T("nerve impulse", 22, TEXT).move_to([-5.3, 3.3, 0])
-    chips = solution_chips()
-    boxes = trial_grid()
-    for b, n in zip(boxes, PATTERN):
-        if n == 0:
-            b[0].set_stroke(RED, 4)
-            b[1].set_color(RED)
-    leg = T("each box: one nerve impulse, in this sketch", 22, GREY).move_to([3.55, -3.2, 0])
-    fl = T("no response: a failure", 26, RED, weight=BOLD).move_to([3.55, -2.45, 0])
-    side = VGroup(body, pk, imp, chips, leg, fl)
-    scene.add(side, *boxes)
-    return side, boxes
-
-
-COLX = [1.8, 3.1, 4.4, 5.7]
-BASE_H = -2.0
-
-
-class S03Steps(SpokenScene):
-    """the twelve trials sort into columns at 0, 1, 2, 3 miniatures; then one quantum: a packet, one vesicle, not one molecule."""
-
+class S03Chemical(SpokenScene):
     def construct(self):
-        side, boxes = s2_end_state(self)
-        grid = VGroup(*boxes)
-
-        self.at("When a response did come")
-        fails = [b for b, n in zip(boxes, PATTERN) if n == 0]
-
-        self.at("its size was not random")
-        self.play(FadeOut(side), grid.animate.scale(0.9).move_to([-3.3, 0.3, 0]), run_time=1.0)
-        base = Line([1.0, BASE_H, 0], [6.2, BASE_H, 0], color=GREY, stroke_width=3)
-        labs = [M(s, 26, c).move_to([x, -2.45, 0]) for s, c, x in zip(["0", "1x", "2x", "3x"], [RED, GREEN, GREEN, GREEN], COLX)]
-        axt = T("size of response, in miniatures", 22, GREY).move_to([3.6, -3.0, 0])
-        skn = T("in this sketch", 22, GREY).move_to([3.6, -3.4, 0])
-        self.play(Create(base), FadeIn(VGroup(*labs)), FadeIn(axt), FadeIn(skn), run_time=0.8)
-
-        self.at("The amplitudes clustered")
-        dots, tgt = [], []
-        count = [0, 0, 0, 0]
-        for b, n in zip(boxes, PATTERN):
-            d = Dot(b.get_center(), radius=0.27, color=RED if n == 0 else GREEN)
-            dots.append(d)
-            tgt.append([COLX[n], BASE_H + 0.36 + 0.62 * count[n], 0])
-            count[n] += 1
-        self.play(*[FadeIn(d, scale=0.5) for d in dots], run_time=0.5)
-        self.play(LaggedStart(*[d.animate.move_to(t) for d, t in zip(dots, tgt)], lag_ratio=0.1), run_time=2.2)
-
-        cols = {1: [dots[i] for i, n in enumerate(PATTERN) if n == 1], 2: [dots[i] for i, n in enumerate(PATTERN) if n == 2],
-                3: [dots[i] for i, n in enumerate(PATTERN) if n == 3]}
-
-        def box_col(k):
-            return SurroundingRectangle(VGroup(labs[k], *cols[k]), color=GREEN, buff=0.15, stroke_width=4)
-        self.at("one miniature")
-        hb = box_col(1)
-        self.play(Create(hb), run_time=0.5)
-        self.at("twice that")
-        hb2 = box_col(2)
-        self.play(FadeOut(hb), Create(hb2), run_time=0.5)
-        self.at("three times")
-        hb3 = box_col(3)
-        self.play(FadeOut(hb2), Create(hb3), run_time=0.5)
-        self.play(FadeOut(hb3), run_time=0.4)
-
-        self.at("Each packet is a quantum")
-        self.play(FadeOut(grid), run_time=0.5)
-        pk = packet(r=0.33, dot=0.13, rings=2).move_to([-3.3, 0.3, 0])
-        ql = T("one quantum", 34, YELLOW, weight=BOLD).move_to([-3.3, 2.75, 0])
-        self.play(LaggedStart(*[FadeIn(d, scale=0.3) for d in pk], lag_ratio=0.04), FadeIn(ql), run_time=1.0)
-
-        self.at("later identified")
-        ves = Circle(radius=1.35, color=GREY, stroke_width=5).move_to([-3.3, 0.3, 0])
-        vl = T("one vesicle", 26, GREY).move_to([-3.3, 1.95, 0])
-        self.play(Create(ves), FadeIn(vl), run_time=0.9)
-
-        self.at("not one molecule")
-        one = pk[-1]
-        ring = Circle(radius=0.19, color=RED, stroke_width=5).move_to(one.get_center())
-        rl = T("not one molecule", 28, RED, weight=BOLD).move_to([-3.3, -1.5, 0])
-        self.play(Create(ring), FadeIn(rl, shift=UP * 0.1), run_time=0.8)
+        j=Junction(); self.add(j.all)
+        self.at('At a chemical synapse')
+        self.play(FadeIn(label('chemical synapse',0,3.35,TEXT,32)),run_time=.35)
+        self.at('the terminal releases')
+        p=Dot([.7,.8,0],radius=.1,color=YELLOW)
+        self.play(FadeIn(p),FadeIn(label('terminal',.7,1.75,BLUE)),run_time=.4)
+        self.at('It crosses a gap')
+        self.play(p.animate.move_to([.7,-.25,0]),FadeIn(leader('cleft',(4.75,.05),[2.95,.05,0],GREY)),run_time=.8)
+        self.at('acts on receptors')
+        self.play(p.animate.move_to([.7,-.53,0]),FadeIn(leader('receptors',(4.7,-1.05),[2.45,-.8,0],PINK)),run_time=.55)
         self.finish()
 
-
-# ---------------------------------------------------------------------------------------------
-def s4_left():
-    hdr = T("ratio of means", 24, GREY).move_to([-3.3, 1.4, 0])
-    h = 0.40 * 4.0
-    b1 = Rectangle(width=1.3, height=h, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.5).move_to([-4.6, -0.9 + h / 2, 0])
-    b2 = Rectangle(width=1.3, height=h, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.5).move_to([-2.0, -0.9 + h / 2, 0])
-    l1 = T("mean miniature\n0.40 mV", 22, GREEN, line_spacing=0.8).move_to([-4.6, -1.55, 0])
-    l2 = T("mean response\nfailures included\n0.40 mV", 22, GREEN, line_spacing=0.8).move_to([-2.0, -1.75, 0])
-    eq = M("m = 0.40 / 0.40 = 1.00", 26, TEXT).move_to([-3.3, -2.9, 0])
-    return hdr, b1, b2, l1, l2, eq
-
-
-def s4_right():
-    hdr = T("failures", 24, GREY).move_to([3.6, 1.4, 0])
-    cells = VGroup()
-    for i in range(200):
-        r, c = divmod(i, 20)
-        cells.add(Square(side_length=0.2, stroke_width=0, fill_color=GREY, fill_opacity=0.45).move_to([1.4 + c * 0.22, 1.05 - r * 0.22, 0]))
-    l1 = T("200 stimuli, 74 gave no response", 22, RED).move_to([3.6, -1.3, 0])
-    eq = M("74 / 200 = 0.37", 26, TEXT).move_to([3.6, -2.2, 0])
-    return hdr, cells, l1, eq
-
-
-def fill_failures(cells):
-    return [cells[i].animate.set_fill(RED, 0.9) for i in range(74)]
-
-
-class S04Count(SpokenScene):
-    """two bars of equal height give m = 1.00; a grid of 200 stimuli with 74 failures gives 0.37."""
-
+class S04Nmj(SpokenScene):
     def construct(self):
-        self.at("The mean quantal content")
-        defn = T("mean quantal content, m = average number of quanta per impulse", 28, TEXT).move_to([0, 3.05, 0])
-        self.play(FadeIn(defn, shift=DOWN * 0.1), run_time=0.8)
-
-        self.at("the average number")
-        rowb = VGroup()
-        for cx, k in zip([-4.0, -2.4, -0.8, 0.8, 2.4, 4.0], [1, 0, 2, 1, 3, 0]):
-            bx = Rectangle(width=1.4, height=1.5, stroke_color=GREY, stroke_width=2).move_to([cx, 0.6, 0])
-            rowb.add(bx)
-            for j in range(k):
-                rowb.add(packet(r=0.13, dot=0.05).move_to([cx + (j - (k - 1) / 2) * 0.42, 0.6, 0]))
-        cap = T("quanta released by each nerve impulse", 24, GREY).move_to([0, -0.5, 0])
-        avg = T("their average is the mean quantal content", 28, TEXT).move_to([0, -1.4, 0])
-        self.play(LaggedStart(*[FadeIn(m) for m in rowb], lag_ratio=0.04), FadeIn(cap), run_time=1.4)
-        self.at("-1 impulse releases")
-        self.play(FadeIn(avg, shift=UP * 0.1), run_time=0.6)
-        self.at("Take a made")
-        self.play(FadeOut(VGroup(rowb, cap, avg)), run_time=0.5)
-        self.at("frog junction in low")
-        c0 = chip("made-up frog junction", GREY, 22)
-        c1 = chip("low calcium", TEAL, 22)
-        c2 = chip("high magnesium", PURPLE, 22)
-        row = VGroup(c0, c1, c2).arrange(RIGHT, buff=0.3).move_to([0, 2.3, 0])
-        self.play(LaggedStart(*[FadeIn(c, shift=DOWN * 0.1) for c in (c0, c1, c2)], lag_ratio=0.3), run_time=1.2)
-
-        hdr, b1, b2, l1, l2, eq = s4_left()
-        self.at("The mean miniature")
-        self.play(FadeIn(hdr), GrowFromEdge(b1, DOWN), FadeIn(l1), run_time=0.8)
-        self.at("and the mean response")
-        self.play(GrowFromEdge(b2, DOWN), FadeIn(l2), run_time=0.8)
-        self.at("So the ratio")
-        brace = DashedLine(b1.get_corner(UR) + [0.05, 0, 0], b2.get_corner(UL) + [-0.05, 0, 0], color=TEXT, stroke_width=3)
-        self.play(Create(brace), run_time=0.4)
-        self.play(FadeIn(eq, shift=UP * 0.1), run_time=0.6)
-
-        rh, cells, rl, req = s4_right()
-        self.at("Failures give a second")
-        self.play(FadeIn(rh), FadeIn(cells), run_time=0.8)
-        self.at("stimuli gave")
-        self.play(LaggedStart(*fill_failures(cells), lag_ratio=0.015), run_time=1.3)
-        self.at("no response")
-        self.play(FadeIn(rl), run_time=0.4)
-        self.play(FadeIn(req, shift=UP * 0.1), run_time=0.6)
+        j=Junction(); self.add(j.all)
+        self.at('The best studied example')
+        self.play(FadeIn(label('the neuromuscular junction',0,3.35,TEXT,34)),run_time=.4)
+        self.at('between a motor nerve')
+        self.play(Indicate(j.labels[0],scale_factor=1.03,color=BLUE),run_time=.5)
+        self.at('and a skeletal muscle')
+        self.play(Indicate(j.labels[1],scale_factor=1.03,color=GREY),run_time=.5)
         self.finish()
 
-
-class S05Safety(SpokenScene):
-    """the failure estimate agrees; then normal calcium: a bar of sixty quanta against the level that fires, safety factor 2."""
-
+class S05Relay(SpokenScene):
     def construct(self):
-        defn = T("mean quantal content, m = average number of quanta per impulse", 28, TEXT).move_to([0, 3.05, 0])
-        c0 = chip("made-up frog junction", GREY, 22)
-        c1 = chip("low calcium", TEAL, 22)
-        c2 = chip("high magnesium", PURPLE, 22)
-        row = VGroup(c0, c1, c2).arrange(RIGHT, buff=0.3).move_to([0, 2.3, 0])
-        hdr, b1, b2, l1, l2, eq = s4_left()
-        brace = DashedLine(b1.get_corner(UR) + [0.05, 0, 0], b2.get_corner(UL) + [-0.05, 0, 0], color=TEXT, stroke_width=3)
-        rh, cells, rl, req = s4_right()
-        for i in range(74):
-            cells[i].set_fill(RED, 0.9)
-        self.add(defn, row, hdr, b1, b2, l1, l2, brace, eq, rh, cells, rl, req)
-
-        self.at("Under a Poisson model")
-        req2 = M("m = -ln(0.37) = 0.99", 26, TEXT).move_to([3.6, -2.9, 0])
-        self.play(FadeIn(req2, shift=UP * 0.1), run_time=0.8)
-        self.at("The two estimates agree")
-        r1 = SurroundingRectangle(eq, color=GREEN, buff=0.12, stroke_width=3)
-        r2 = SurroundingRectangle(req2, color=GREEN, buff=0.12, stroke_width=3)
-        ag = T("agree", 30, GREEN, weight=BOLD).move_to([0.15, -2.9, 0])
-        self.play(Create(r1), Create(r2), FadeIn(ag), run_time=0.8)
-
-        self.at("Now suppose")
-        self.play(FadeOut(VGroup(defn, row, hdr, b1, b2, l1, l2, brace, eq, rh, cells, rl, req, req2, r1, r2, ag)), run_time=0.7)
-        axes = bar_axes()
-        self.play(FadeIn(axes), run_time=0.5)
-        self.at("quanta of")
-        bar = stripes(60, 0.40)
-        t1 = M("60 quanta x 0.40 mV", 28, GREEN).move_to([2.9, 2.5, 0])
-        self.play(LaggedStart(*[FadeIn(r, shift=UP * 0.08) for r in bar], lag_ratio=0.02), FadeIn(t1), run_time=1.6)
-        self.at("If they add linearly")
-        t3 = T("if quanta add linearly", 22, GREY).move_to([2.9, 1.15, 0])
-        self.play(FadeIn(t3), run_time=0.4)
-        self.at("that is")
-        t2 = M("= 24 mV", 28, GREEN).move_to([2.9, 1.8, 0])
-        self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.5)
-        self.at("a threshold")
-        thr = thr_bar()
-        self.play(Create(thr[0]), FadeIn(thr[1]), run_time=0.8)
-        self.at("The safety factor")
-        y0, y1 = BASE_B + 12 * MV, BASE_B + 24 * MV
-        dbl = DoubleArrow([-0.95, y0, 0], [-0.95, y1, 0], color=ORANGE, buff=0, stroke_width=4, tip_length=0.2)
-        sf1 = T("safety factor", 28, ORANGE).move_to([2.9, -0.85, 0])
-        sf2 = M("24 / 12 = 2.0", 28, ORANGE).move_to([2.9, -1.5, 0])
-        self.play(GrowFromCenter(dbl), FadeIn(sf1), run_time=0.7)
-        self.at("the ratio of the two")
-        self.play(FadeIn(sf2, shift=UP * 0.1), run_time=0.6)
+        j=Junction(); self.add(j.all)
+        self.at('The signal crosses')
+        self.play(FadeIn(label('A relay of five steps',0,3.35,TEXT,32)),run_time=.35)
+        self.at('five steps')
+        self.play(LaggedStart(*[FadeIn(s) for s in relay_slots()],lag_ratio=.1),run_time=.7)
         self.finish()
 
-
-class S06Where(SpokenScene):
-    """smaller quanta still fire; fewer quanta fail; size depends on filling and receptors; rule: size points after, number before."""
-
+class S06Step1(SpokenScene):
     def construct(self):
-        axes = bar_axes()
-        bar = stripes(60, 0.40)
-        thr = thr_bar()
-        t1 = M("60 quanta x 0.40 mV", 28, GREEN).move_to([2.9, 2.5, 0])
-        t2 = M("= 24 mV", 28, GREEN).move_to([2.9, 1.8, 0])
-        t3 = T("if quanta add linearly", 22, GREY).move_to([2.9, 1.15, 0])
-        y0, y1 = BASE_B + 12 * MV, BASE_B + 24 * MV
-        dbl = DoubleArrow([-0.95, y0, 0], [-0.95, y1, 0], color=ORANGE, buff=0, stroke_width=4, tip_length=0.2)
-        sf1 = T("safety factor", 28, ORANGE).move_to([2.9, -0.85, 0])
-        sf2 = M("24 / 12 = 2.0", 28, ORANGE).move_to([2.9, -1.5, 0])
-        self.add(axes, bar, thr, t1, t2, t3, dbl, sf1, sf2)
-
-        self.at("fewer receptors")
-        chm = chip("myasthenia gravis", GREY, 24).move_to([2.9, 3.0, 0])
-        self.play(FadeOut(VGroup(t1, t2, t3, dbl, sf1, sf2)), run_time=0.6)
-        rec = T("fewer receptors", 30, PINK, weight=BOLD).move_to([2.9, 2.3, 0])
-        self.play(FadeIn(chm, shift=DOWN * 0.1), FadeIn(rec), run_time=0.6)
-        self.at("smaller quantal size")
-        small = stripes(60, 0.24)
-        qs = M("quantal size 0.24 mV", 26, PINK).move_to([2.9, 1.7, 0])
-        self.play(Transform(bar, small), FadeIn(qs), run_time=1.2)
-        self.at("of them still")
-        r1 = M("60 x 0.24 = 14.4 mV", 26, GREEN).move_to([2.9, 1.1, 0])
-        r2 = T("still fires", 30, GREEN, weight=BOLD).move_to([2.9, -0.8, 0])
-        self.play(FadeIn(r1, shift=UP * 0.1), run_time=0.5)
-        self.play(FadeIn(r2), run_time=0.4)
-        self.at("But suppose")
-        hedge = T("suppose release runs down:\n25 percent fewer quanta, 60 to 45", 24, RED, line_spacing=0.8).move_to([2.9, -1.85, 0])
-        self.play(FadeIn(hedge, shift=UP * 0.1), run_time=0.6)
-        self.at("The response is then")
-        fewer = stripes(45, 0.24, RED)
-        f1 = M("45 x 0.24 = 10.8 mV", 26, RED).move_to([2.9, 1.1, 0])
-        f2 = T("the fibre fails", 30, RED, weight=BOLD).move_to([2.9, -0.8, 0])
-        self.play(Transform(bar, fewer), ReplacementTransform(r1, f1), ReplacementTransform(r2, f2), run_time=1.2)
-
-        self.at("vesicle filling")
-        self.play(FadeOut(VGroup(chm, rec, qs, f1, f2, thr, hedge)), run_time=0.6)
-        va = chip("vesicle filling", YELLOW, 26).move_to([0.9, 2.3, 0])
-        vb = chip("receptors", PINK, 26).move_to([4.7, 2.3, 0])
-        vm = chip("miniature size", GREEN, 28).move_to([2.8, 0.7, 0])
-        a1 = arr(va.get_bottom(), vm.get_top() + [-0.5, 0, 0], YELLOW)
-        a2 = arr(vb.get_bottom(), vm.get_top() + [0.5, 0, 0], PINK)
-        self.play(FadeIn(va, shift=DOWN * 0.1), FadeIn(vb, shift=DOWN * 0.1), run_time=0.6)
-        self.play(GrowArrow(a1), GrowArrow(a2), FadeIn(vm), run_time=0.7)
-        self.at("receptor count")
-        chk = T("pair it with a receptor count", 24, GREY).move_to([2.8, -0.35, 0])
-        self.play(FadeIn(chk, shift=UP * 0.1), run_time=0.5)
-
-        self.at("So")
-        self.play(FadeOut(VGroup(axes, bar, va, vb, vm, a1, a2, chk)), run_time=0.7)
-
-        def card(cx, header, hcolor, n_pk, scale_pk):
-            hd = T(header, 34, hcolor, weight=BOLD).move_to([cx, 3.0, 0])
-            term = RoundedRectangle(corner_radius=0.5, width=4.0, height=1.5, stroke_color=BLUE, stroke_width=3,
-                                    fill_color=BLUE, fill_opacity=0.18).move_to([cx, 1.65, 0])
-            tl = T("nerve terminal", 22, BLUE).move_to([cx, 2.1, 0])
-            mus = RoundedRectangle(corner_radius=0.15, width=5.4, height=2.0, stroke_color=GREY, stroke_width=3,
-                                   fill_color=GREY, fill_opacity=0.14).move_to([cx, -0.55, 0])
-            ml = T("muscle fibre", 22, GREY).move_to([cx, -1.15, 0])
-            pks = VGroup(*[packet().scale(scale_pk).move_to([cx + dx, 1.3, 0]) for dx in ([-1.0, 0, 1.0] if n_pk == 3 else [0])])
-            return hd, term, tl, mus, ml, pks
-
-        h1, t_1, tl1, m1, ml1, p1 = card(-3.2, "smaller blips", YELLOW, 3, 0.4)
-        self.at("smaller miniatures")
-        self.play(FadeIn(VGroup(h1, t_1, tl1, m1, ml1, p1)), run_time=0.8)
-        self.at("receptors or filling")
-        lb1 = T("check both sides", 30, GOLD, weight=BOLD).move_to([-3.2, -2.3, 0])
-        self.play(t_1.animate.set_stroke(GOLD, 7), m1.animate.set_stroke(GOLD, 7), FadeIn(lb1, shift=UP * 0.1), run_time=0.8)
-        h2, t_2, tl2, m2, ml2, p2 = card(3.2, "fewer packets", YELLOW, 1, 1.0)
-        self.at("fewer packets")
-        self.play(FadeIn(VGroup(h2, t_2, tl2, m2, ml2, p2)), run_time=0.8)
-        self.at("before the synapse")
-        lb2 = T("points before it", 30, GOLD, weight=BOLD).move_to([3.2, -2.3, 0])
-        self.play(t_2.animate.set_stroke(GOLD, 7), FadeIn(lb2, shift=UP * 0.1), run_time=0.8)
+        j=Junction(); self.add(j.all,relay_slots(1))
+        spike=VMobject(color=BLUE,stroke_width=6).set_points_as_corners([[-5.7,1.9,0],[-5.5,1.9,0],[-5.35,2.25,0],[-5.2,1.68,0],[-5.05,1.9,0]])
+        self.at('First'); self.add(spike)
+        self.at('an action potential')
+        self.play(FadeIn(label('1  Spike arrives',0,3.35,TEXT,32)),spike.animate.shift(RIGHT*5.8),run_time=.85)
+        self.at('at the nerve terminal')
+        self.play(Indicate(spike,scale_factor=1.08,color=BLUE),run_time=.4)
         self.finish()
 
+class S07Step2(SpokenScene):
+    def construct(self):
+        j,slots=relay_scene(self,2,'2  Calcium in')
+        # Membrane breaks and two rails show the route through each channel.
+        channels=VGroup(*[VGroup(Line([x-.15,.65,0],[x+.15,.65,0],color=BG,stroke_width=10),Line([x-.16,.48,0],[x-.16,.82,0],color=CALCIUM,stroke_width=4),Line([x+.16,.48,0],[x+.16,.82,0],color=CALCIUM,stroke_width=4)) for x in (-.7,.7,2.1)])
+        ions=VGroup(*[Dot([x,-.1,0],radius=.09,color=CALCIUM) for x in (-.7,.7,2.1)])
+        self.at('Second'); self.add(channels)
+        self.at('calcium flows')
+        self.play(FadeIn(ions),FadeIn(chip('Ca²⁺',CALCIUM,28).move_to([4.5,.75,0])),run_time=.25)
+        self.play(ions.animate.shift(UP*1.4),run_time=.7)
+        self.finish()
 
-class S07End(EndCard):
-    LINE = "Smaller blips: receptors or filling. Fewer packets: before the synapse."
+class S08Step3(SpokenScene):
+    def construct(self):
+        j,slots=relay_scene(self,3,'3  Vesicles fuse → ACh released')
+        xs=(-.9,.7,2.3)
+        ves=VGroup(*[Circle(radius=.32,color=GREY,stroke_width=3).move_to([x,.99,0]) for x in xs])
+        cargo=VGroup(*[Dot([x+d,.99,0],radius=.06,color=YELLOW) for x in xs for d in (-.12,.04,.15)])
+        self.add(ves,cargo)
+        self.at('vesicles fuse')
+        cups=VGroup(*[Arc(radius=.32,start_angle=0,angle=PI,color=GREY,stroke_width=3).move_to([x,.81,0]) for x in xs])
+        gaps=VGroup(*[Line([x-.28,.65,0],[x+.28,.65,0],color=BG,stroke_width=9) for x in xs])
+        self.add(gaps); self.play(ReplacementTransform(ves,cups),cargo.animate.shift(DOWN*.17),run_time=.55)
+        self.at('release their transmitter')
+        self.play(cargo.animate.shift(DOWN*.48),run_time=.65)
+        self.at('acetylcholine')
+        self.play(FadeIn(chip('ACh',YELLOW,28).move_to([4.6,.7,0])),run_time=.3)
+        self.finish()
+
+class S09Step4(SpokenScene):
+    def construct(self):
+        j,slots=relay_scene(self,4,'4  ACh crosses')
+        cargo=VGroup(*[Dot([x+d,.33,0],radius=.065,color=YELLOW) for x in (-.9,.7,2.3) for d in (-.1,.1)])
+        self.add(cargo,leader('cleft',(4.8,.1),[2.95,.1,0],GREY))
+        self.at('acetylcholine crosses')
+        self.play(cargo.animate.shift(DOWN*.86),run_time=1.05,rate_func=linear)
+        self.finish()
+
+class S10Step5(SpokenScene):
+    def construct(self):
+        j,slots=relay_scene(self,5,'5  Receptors open')
+        self.at('it opens receptor channels')
+        self.play(*[r[0].animate.shift(LEFT*.1) for r in j.receptors],*[r[1].animate.shift(RIGHT*.1) for r in j.receptors],run_time=.6)
+        self.at('and the')
+        self.play(Create(j.patch),run_time=.55)
+        self.play(Indicate(slots,scale_factor=1.025,color=TEXT),run_time=.6)
+        self.finish()
+
+class S11Epp(SpokenScene):
+    def construct(self):
+        j=Junction()
+        for r in j.receptors:
+            r[0].shift(LEFT*.1); r[1].shift(RIGHT*.1)
+        self.add(j.all,j.patch,relay_slots(5))
+        self.at('That depolarization')
+        self.play(FadeIn(label('endplate potential (EPP)',0,3.35,GREEN,34)),run_time=.4)
+        self.at('The end plate is')
+        self.play(FadeIn(leader('endplate',(4.6,-1.1),[2.8,-.7,0],GREEN)),run_time=.4)
+        self.at('the patch of')
+        self.play(Indicate(j.patch,scale_factor=1.03,color=GREEN),run_time=.5)
+        self.finish()
+
+class S12Electrode(SpokenScene):
+    def construct(self):
+        j=Junction(); self.add(j.all,label('The record that started the story',0,3.35,TEXT,32))
+        self.at('Paul')
+        self.play(FadeIn(label('Paul Fatt  •  Bernard Katz',0,-3.15,TEXT,32)),run_time=.4)
+        e=electrode((.7,-1.25)).shift(UP*1.5+LEFT*1.5)
+        self.at('a fine glass electrode')
+        self.play(Create(e),run_time=.5)
+        self.at('inside a frog muscle')
+        frog=label('frog muscle fibre',-.2,-1.85,GREY,28)
+        self.play(e.animate.shift(DOWN*1.5+RIGHT*1.5),ReplacementTransform(j.labels[1],frog),run_time=.65)
+        self.finish()
+
+class S13Axes(SpokenScene):
+    def construct(self):
+        st,e,t=recording_stage(); self.add(st)
+        ax=axes()
+        self.at('Voltage runs')
+        self.play(Create(ax[0]),FadeIn(ax[2]),FadeIn(ax[4]),run_time=.6)
+        self.at('Time runs')
+        self.play(Create(ax[1]),FadeIn(ax[3]),run_time=.6)
+        self.finish()
+
+class S14Nostim(SpokenScene):
+    def construct(self):
+        st,e,t,tr=recording(self,[])
+        self.at('They did not stimulate')
+        self.play(FadeIn(stimulator()),run_time=.4)
+        # Time fiducials travel left with the flat recording: a visible scroll
+        # without inventing voltage noise or spontaneous events before their cue.
+        scroll=ValueTracker(0)
+        ticks=always_redraw(lambda: VGroup(*[Line([x,-2.78,0],[x,-2.64,0],color=GREY,stroke_width=3) for x in np.arange(-5,18,2)-scroll.get_value() if -5.15<=x<=5.8]))
+        self.at('the trace should')
+        self.add(ticks)
+        self.play(scroll.animate.set_value(8),run_time=1.6,rate_func=linear)
+        ticks.clear_updaters(); self.finish()
+
+class S15Blips(SpokenScene):
+    def construct(self):
+        st,e,t,tr=recording(self,[]); self.add(stimulator())
+        self.at('But small blips')
+        self.remove(tr)
+        # Events enter at the right and scroll across a fixed recording window.
+        clock=ValueTracker(0)
+        moving=always_redraw(lambda: trace_from([(x+10.5-clock.get_value(),h) for x,h in BLIPS]))
+        self.add(moving)
+        self.play(clock.animate.set_value(10.5),run_time=2.6,rate_func=linear)
+        moving.clear_updaters(); self.finish()
+
+class S16Samesize(SpokenScene):
+    def construct(self):
+        st,e,t,tr=recording(self)
+        marks=VGroup()
+        for x,h in BLIPS:
+            px=x+.084
+            marks.add(VGroup(Line([px-.23,-2.55,0],[px-.23,-2.55+h,0],color=GREY,stroke_width=2),Line([px-.31,-2.55+h,0],[px-.15,-2.55+h,0],color=GREY,stroke_width=2),Line([px-.31,-2.55,0],[px-.15,-2.55,0],color=GREY,stroke_width=2)))
+        self.at('Each blip')
+        self.play(Create(marks),run_time=.5)
+        self.at('the same size')
+        self.play(FadeIn(label('about the same size',.3,.25,GREEN,30)),run_time=.35)
+        self.at('far too small')
+        self.add(DashedLine([-5.15,1.0,0],[5.8,1.0,0],color=ORANGE,stroke_width=3),label('firing threshold',4,1.48,ORANGE,28))
+        self.finish()
+
+class S17Distance(SpokenScene):
+    def construct(self):
+        st,e,t,tr=recording(self)
+        self.at('Move the electrode')
+        dim=VGroup(DoubleArrow([-1.9,2.05,0],[3.5,2.05,0],buff=0,color=TEXT,stroke_width=3),label('distance from endplate',1.3,1.53,TEXT,26))
+        self.add(dim)
+        self.play(e.animate.shift(RIGHT*5.5),run_time=1.05)
+        self.at('and the blips')
+        self.play(Transform(tr,trace_from([(x,h*.22) for x,h in BLIPS]).set_stroke(opacity=.6)),run_time=1.0)
+        self.finish()
+
+class S18Source(SpokenScene):
+    def construct(self):
+        st,e,t,tr=recording(self,[(x,h*.22) for x,h in BLIPS],True)
+        self.at('So')
+        self.play(e.animate.shift(LEFT*5.5),Transform(tr,trace_from(BLIPS)),run_time=.7)
+        self.at('attributed them')
+        # Release through the terminal's right membrane, above the fibre.
+        dot=Dot([-1.15,3.18,0],radius=.08,color=YELLOW)
+        self.add(dot); self.play(dot.animate.shift(RIGHT*.35),run_time=.3)
+        a=Arrow(dot.get_center(),[.334,-.45,0],buff=0,color=GREY,stroke_width=4)
+        dot.set_z_index(2)
+        self.at('acetylcholine released spontaneously')
+        self.play(GrowArrow(a),run_time=.55)
+        self.play(FadeIn(label('spontaneous ACh release',3.1,1.2,YELLOW,28)),run_time=.3)
+        self.finish()
+
+class S19Name(SpokenScene):
+    def construct(self):
+        self.add(axes(),trace_from(BLIPS))
+        self.at('They called them')
+        self.play(FadeIn(label('miniature endplate potentials',0,2.9,GREEN,36)),run_time=.4)
+        self.at('miniature endplate potentials')
+        self.play(FadeIn(label('miniatures',0,2.15,GREEN,28)),run_time=.3)
+        self.at('reported them in')
+        self.play(FadeIn(label('Fatt and Katz • 1952',0,1.25,GREY,28)),run_time=.3)
+        self.finish()
+
+class S20Copies(SpokenScene):
+    def construct(self):
+        sm,big,labs=comparison(); self.add(sm,big,comparison_axes())
+        self.at('Each miniature')
+        self.play(FadeIn(labs),run_time=.3)
+        self.at('looked like a')
+        self.play(FadeIn(label('A miniature looks like a scaled-down copy.',0,3.2,TEXT,30)),run_time=.3)
+        factor=ValueTracker(1)
+        overlay=always_redraw(lambda: DashedVMobject(trace_from([(1.8,UNIT_HEIGHT*factor.get_value())],x0=1.25,x1=5.75,base=-1.9),num_dashes=45).set_stroke(GREEN,2))
+        counter=label('× ?',-.15,.8,GREEN,36)
+        self.at('copy of the response')
+        travel=sm.copy(); self.add(travel)
+        target=trace_from([(1.8,UNIT_HEIGHT)],x0=1.25,x1=5.75,base=-1.9)
+        self.play(Transform(travel,target),run_time=.45)
+        self.remove(travel); self.add(overlay,counter)
+        self.play(factor.animate.set_value(6),big.animate.set_stroke(width=7,opacity=.45),run_time=1.0,rate_func=linear)
+        overlay.clear_updaters()
+        self.finish()
+
+class S21Puzzle(SpokenScene):
+    def construct(self):
+        g,mark=puzzle(); self.add(g[1],g[2],g[4])
+        self.at('Here is the puzzle')
+        self.play(FadeIn(g[3]),run_time=.3)
+        self.at('Is the')
+        self.play(FadeIn(mark),run_time=.25)
+        self.play(mark.animate.scale(1.18),run_time=.25)
+        self.play(mark.animate.scale(1/1.18),run_time=.25)
+        self.at('blips like these')
+        self.play(LaggedStart(*[FadeIn(m,shift=UP*.15) for m in g[0]],lag_ratio=.22),run_time=.7)
+        self.finish()
+
+class S22Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        g,mark=puzzle(); self.add(g,mark)
+        stack=unit_stack().set_stroke(opacity=.5).set_fill(opacity=.05)
+        self.add(label('illustrative stack',.7,-2.9,TEXT,26))
+        self.play(LaggedStart(*[FadeIn(b,shift=RIGHT*.2) for b in stack],lag_ratio=.15),mark.animate.scale(1.12),run_time=2.5)
+        self.play(mark.animate.scale(1/1.12),run_time=2.5)
+
+class S23Reveal(SpokenScene):
+    def construct(self):
+        g,mark=puzzle(); stack=unit_stack().set_stroke(opacity=.5).set_fill(opacity=.05); self.add(g,mark,stack,label('illustrative stack',.7,-2.9,TEXT,26))
+        self.at('It is')
+        answer=label('Yes: built from miniatures',0,2.9,GREEN,34)
+        # Arc above the illustrative stack, ending at the evoked peak.
+        link=CurvedArrow([-1.3,-.85,0],[1.884,1.7,0],angle=-2.1,color=GREEN,stroke_width=4)
+        self.play(ReplacementTransform(mark,link),stack.animate.set_stroke(opacity=1).set_fill(opacity=.14),ReplacementTransform(g[3],answer),run_time=.45)
+        self.at('The evidence comes')
+        self.play(FadeIn(label('evidence: next chapter',0,3.48,TEXT,28)),run_time=.4)
+        self.finish()
+
+def question_tiles(two=False):
+    items=[('Counting','How do you count merged units?'),('Calcium','Why does calcium matter so much?'),('Size','What sets the size of one unit?'),('Recording','How can a recording tell which side is at fault?')]
+    g=VGroup()
+    for i,(name,question) in enumerate(items):
+        y=(1.6 if i==0 else -1.4) if two and i<2 else 2.08-i*1.65
+        box=RoundedRectangle(width=11.8,height=1.35,corner_radius=.14,color=GREY,fill_color=GREY,fill_opacity=.06).move_to([0,y,0])
+        heading=T(name,size=28,color=TEXT).move_to([0,y+.29,0])
+        prompt=T(question,size=28,color=TEXT).move_to([0,y-.23,0])
+        heading.set_x(-5.4,LEFT); prompt.set_x(-5.4,LEFT)
+        g.add(VGroup(box,heading,prompt))
+    return g
+
+class S24More1(SpokenScene):
+    def construct(self):
+        g=question_tiles(two=True); self.add(label('More questions',0,3.38,TEXT,34))
+        self.at('That answer')
+        self.at('How do you count')
+        self.play(FadeIn(g[0],shift=UP*.15),run_time=.4)
+        self.at('Why does calcium')
+        self.play(FadeIn(g[1],shift=UP*.15),run_time=.4)
+        self.finish()
+
+class S25More2(SpokenScene):
+    def construct(self):
+        g=question_tiles(); previous=question_tiles(two=True)
+        self.add(label('More questions',0,3.38,TEXT,34),previous[0],previous[1])
+        self.at('What sets the size')
+        self.play(Transform(previous[0],g[0]),Transform(previous[1],g[1]),FadeIn(g[2],shift=UP*.15),run_time=.6)
+        self.at('how can a recording')
+        self.play(FadeIn(g[3],shift=UP*.15),run_time=.4)
+        self.finish()
+
+class S26Takeaway(SpokenScene):
+    def construct(self):
+        sm,big,labs=comparison(); self.add(sm,big,labs,comparison_axes())
+        self.at('The miniature')
+        self.play(FadeIn(label('The miniature is the unit.',0,3.35,GREEN,36)),run_time=.4)
+        self.at('Every evoked response')
+        stack=unit_stack()
+        self.play(FadeIn(label('Every evoked response at this junction is built from it.',0,2.55,TEXT,30)),LaggedStart(*[FadeIn(b) for b in stack],lag_ratio=.08),FadeIn(label('× ?',-1.0,.5,GREEN,32)),FadeIn(label('illustrative stack',.7,-2.9,TEXT,26)),run_time=.65)
+        self.at('is built from it')
+        self.play(Indicate(stack,color=GREEN,scale_factor=1.025),run_time=.4)
+        self.finish()
+
+class S27End(EndCard):
+    LINE='Every evoked response here is built from miniatures.'
+    def construct(self):
+        lines=VGroup(T('Every evoked response here',size=40,font=TITLE_FONT),T('is built from miniatures.',size=40,font=TITLE_FONT),T('biochemistrypedia.com',size=26,color=TEAL)).arrange(DOWN,buff=.4)
+        self.play(FadeIn(lines),run_time=.5); self.finish()
