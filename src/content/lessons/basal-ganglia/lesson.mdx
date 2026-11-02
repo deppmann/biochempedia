@@ -6,29 +6,48 @@ courseChapter: "Neuroscience · Unit 4: Motor systems"
 order: 616
 summary: >-
   How does the cortex command the spinal cord, and how do the basal ganglia decide whether a
-  movement goes ahead? This lesson follows the corticospinal tract from cortex to cord, uses its
-  crossing and the signs of upper and lower motor neuron damage to place a lesion, and then
-  treats the basal ganglia as a circuit of excitatory and inhibitory links whose signs you can
-  multiply. Afterwards you can localize a corticospinal lesion from a short case, predict what
-  dopamine loss does in the classic rate model of Parkinson's disease and what early
-  indirect-pathway loss does in Huntington's disease, and say where that model fails.
+  movement goes ahead? One habit carries the lesson: follow a motor chain from a lesion or a
+  drug toward the muscle and count two things. Crossings of the midline set the side of the effect, and
+  inhibitory links set its sign. With it you place a corticospinal lesion from its side and
+  its upper or lower motor neuron signs, follow the basal ganglia's direct and indirect routes
+  to the brake on the thalamus, and predict, in the classic rate model, what dopamine loss does
+  in Parkinson's disease, what silencing the subthalamic nucleus does, and what early
+  indirect-pathway loss does in Huntington's disease. Then you see where the count fails.
 hook: "A stroke deep in the left hemisphere weakens the right side. A cut in the right half of the neck weakens the right side too. Why?"
 
-estMinutes: 25
+estMinutes: 30
 objectives:
   - "Trace the lateral corticospinal tract from layer V of motor cortex through the internal capsule, cerebral peduncle and pyramids to its crossing in the caudal medulla, and use upper versus lower motor neuron signs and that crossing to locate a lesion."
-  - "Explain the direct and indirect basal ganglia pathways as a signed circuit, and dopamine's opposite actions through D1 and D2 receptors in the classic rate model of 1989 and 1990."
-  - "Use the rate model to predict the motor effects of losing substantia nigra dopamine neurons in Parkinson's disease and of early loss of GPe-projecting striatal neurons in Huntington's disease."
+  - "Explain the direct and indirect basal ganglia pathways as a signed circuit, counting the inhibitory links along each route, and dopamine's opposite actions through D1 and D2 receptors in the classic rate model of 1989 and 1990."
+  - "Use the rate model to predict the motor effects of losing substantia nigra dopamine neurons in Parkinson's disease, of silencing the subthalamic nucleus (including which side of the body changes), and of early loss of GPe-projecting striatal neurons in Huntington's disease."
   - "State the model's limits: coactivation of both pathways at movement onset, the hyperdirect cortex-to-STN route, direct-pathway collaterals to GPe, and its failure to explain tremor."
 
 explainer:
   src: "/explainers/basal-ganglia/explainer.mp4"
   captions: "/explainers/basal-ganglia/explainer.vtt"
   poster: "/explainers/basal-ganglia/poster.jpg"
-  title: "Counting Signs Around the Brake"
-  durationSec: 135.9
+  title: "Two Counts: Side and Sign"
+  durationSec: 160.8
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "brake-and-routes"
+    src: "/explainers/basal-ganglia/brake-and-routes.mp4"
+    captions: "/explainers/basal-ganglia/brake-and-routes.vtt"
+    poster: "/explainers/basal-ganglia/brake-and-routes-poster.jpg"
+    title: "The Brake and Its Two Routes"
+    durationSec: 184.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "silence-the-stn"
+    src: "/explainers/basal-ganglia/silence-the-stn.mp4"
+    captions: "/explainers/basal-ganglia/silence-the-stn.vtt"
+    poster: "/explainers/basal-ganglia/silence-the-stn-poster.jpg"
+    title: "The Test: Silence the STN"
+    durationSec: 114.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Oleh Hornykiewicz"
@@ -164,7 +183,7 @@ simulations:
     ref: "BasalGangliaSignLoop"
     title: "Count the signs"
     caption: >-
-      Switch dopamine, indirect-pathway neurons and the STN on and off and read the direction of change in every box of the basal ganglia loop by multiplying signs along the direct and indirect routes.
+      Switch dopamine, indirect-pathway neurons and the STN on and off and read the direction of change in every box of the basal ganglia loop by counting the inhibitory links (multiplying signs) along the direct and indirect routes.
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
@@ -204,7 +223,7 @@ practiceQuestions:
     answer: 1
     rationale: >-
       The links are excitatory, inhibitory, inhibitory, excitatory, so the product is
-      (+1)(−1)(−1)(+1) = +1: two inhibitions in series give disinhibition. Calling it negative
+      (+1)(−1)(−1)(+1) = +1: two inhibitions in series, an even number, give disinhibition. Calling it negative
       because the striatum is inhibitory, or because GPi is inhibitory, counts only one of the two
       inhibitory links. A zero sign confuses multiplying signs with adding them.
   - stem: "In the classic model, how does dopamine from the substantia nigra pars compacta act on the two populations of striatal projection neurons?"
@@ -216,10 +235,10 @@ practiceQuestions:
     answer: 2
     rationale: >-
       In the model dopamine excites D1-expressing direct neurons and inhibits D2-expressing
-      indirect neurons, and both effects push the circuit toward releasing the thalamus. The
-      reverse assignment swaps the receptor actions. Equal excitation of both would push the two
-      pathways in opposite directions, so the signs give no net release, and equal inhibition of
-      both has the same problem with the opposite sign.
+      indirect neurons, and both effects push the circuit toward releasing the thalamus. Inhibiting
+      D1 neurons while exciting D2 neurons swaps the receptor actions. Exciting both populations
+      equally, or inhibiting both equally, would make the two routes pull in opposite directions,
+      so the signs alone cannot say which way the net effect goes.
   - stem: "In early Huntington's disease, striatal neurons projecting to GPe are more affected than those projecting to GPi. Using the signed indirect pathway, what does the model predict?"
     choices:
       - "GPi output rises and movement is reduced"
@@ -382,88 +401,250 @@ draft: false
 ---
 
 import BasalGangliaSignLoop from '../../../components/BasalGangliaSignLoop.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A stroke deep in the left hemisphere weakens the right face, arm and leg. A cut through the right half of the spinal cord in the neck weakens the right arm and leg. Same tract, opposite sides.**
+**A stroke deep in the left hemisphere weakens the right face, arm and leg. A cut through the right half of the spinal cord in the neck weakens the right arm and leg. Lesions on opposite sides, weakness on the same side.**
 
-The difference is where the lesion sits relative to one crossing. This lesson uses that crossing to place lesions, then turns to the basal ganglia, deep nuclei that never reach the spinal cord yet decide, in the classic model, whether a movement goes ahead. You will treat that circuit as a chain of plus and minus signs, use it on two diseases, and see where it breaks.
+Something about where each lesion sits decides which side of the body pays for it. The same kind of reasoning turns out to explain how a set of deep nuclei that never reach the spinal cord can still decide whether a movement goes ahead.
 
-## The upper motor neuron: its crossing and its signs
+## Three puzzles
 
-A **lower motor neuron** is a motor neuron in the brainstem or the spinal cord's ventral horn whose axon leaves the central nervous system and ends on muscle; you met it in [motor units and reflexes](/lessons/motor-units-reflexes/). An **upper motor neuron** is a neuron in the cortex or brainstem whose axon descends to control lower motor neurons, directly or through interneurons. A **tract** is a bundle of axons inside the central nervous system, and a **decussation** is a place where a tract crosses the midline. **Ipsilateral** means on the same side; **contralateral** means on the opposite side.
+Start with what has to be explained. Three observations about movement look unrelated.
 
-The corticospinal tract starts in layer V of primary motor cortex, with contributions from premotor, supplementary motor and parietal areas. Its axons pass through the corona radiata, the posterior limb of the internal capsule, the cerebral peduncle of the midbrain and the base of the pons, and form the medullary pyramids. In the caudal medulla most of them cross at the pyramidal decussation. Estimates vary between sources, from roughly 75 to 90%. The crossed fibres run in the lateral column of the cord as the **lateral corticospinal tract** and end mainly on interneurons of the intermediate grey matter and on ventral horn motor neurons. In macaques some cortical cells contact digit motor neurons directly (Rathelot and Strick, 2006). Most of the uncrossed minority forms the anterior tract, whose fibres largely appear to cross segmentally. How they cross during development is in [crossing the midline](/lessons/crossing-the-midline/).
+1. **Side.** Why do the two lesions above, on opposite sides, weaken the same limbs?
+2. **Control without contact.** The **basal ganglia** are a group of nuclei (a **nucleus** is a cluster of neuron cell bodies with shared connections) deep in the brain. They do not project to the spinal cord, yet in the classic model they decide whether a movement goes ahead. How?
+3. **Opposite diseases.** Losing the dopamine neurons of the substantia nigra makes movement slow and hard to start, as in Parkinson's disease. Losing a different set of neurons early in Huntington's disease is thought to contribute to extra, involuntary movements. Why do two losses in one circuit push movement in opposite directions?
 
-A **lower motor neuron** lesion causes weakness with low tone and reduced or absent reflexes, because the motor limb of the reflex arc is cut; later the muscle wastes and may show fasciculations, the visible twitches of single motor units firing on their own. An established **upper motor neuron** lesion causes weakness with raised tone, brisk stretch reflexes, clonus (rhythmic beats of contraction set off by a sudden stretch) and an extensor plantar response, in which stroking the sole makes the great toe extend. Independent finger movements are often lost. Two timing traps: right after a spinal cord injury the limbs below can be flaccid and areflexic (spinal shock), and spasticity appears later; and an upgoing toe is normal in infants, so in a young child it has to be read against age.
+> **The one idea to carry through this lesson.** To predict what a lesion or a drug does to movement, follow the motor chain from the place it acts toward the muscle and count two things. Each crossing of the midline flips the side: an odd number of crossings puts the effect on the opposite side of the body. Each inhibitory link flips the sign: an even number of inhibitions passes a change on with its direction kept, and an odd number reverses it. The counts give the side and the **direction** of a change, not its size.
 
-The face adds one more clue. Corticobulbar fibres to the motor neurons for the lower face come mainly from the opposite cortex, while the forehead receives input from both sides. An upper motor neuron lesion above the brainstem therefore weakens the contralateral lower face more than the forehead, which is relatively spared.
+Each count has limits, and each is stated where the count is first used.
 
-**Worked problem: two cases.** Assume one focal lesion, examined weeks after onset so the upper motor neuron signs have developed.
+## Counting crossings: the corticospinal tract
 
-*Case 1.* Weakness of the right lower face, right arm and right leg, with raised tone, brisk reflexes and an extensor plantar response on the right.
+Picture a front view of the brain and spinal cord. Draw one line from the motor cortex of the left hemisphere down to the right hand, with one X low in the brainstem where the line crosses the midline. Now attach names to the picture.
+
+- The line starts at an **upper motor neuron**: a neuron in the cortex or brainstem whose axon descends to control lower motor neurons, directly or through interneurons.
+- It ends at a **lower motor neuron**: a motor neuron in the brainstem or the spinal cord's ventral horn whose axon leaves the central nervous system and ends on muscle. You met it in [motor units and reflexes](/lessons/motor-units-reflexes/).
+- The descending axons travel together as a **tract**, a bundle of axons inside the central nervous system.
+- The X is a **decussation**, a place where a tract crosses the midline.
+- **Ipsilateral** means on the same side; **contralateral** means on the opposite side.
+
+The corticospinal tract starts in layer V of primary motor cortex, with contributions from premotor, supplementary motor and parietal areas. On the way down its axons pass five stops:
+
+1. the corona radiata;
+2. the posterior limb of the internal capsule;
+3. the cerebral peduncle of the midbrain;
+4. the base of the pons;
+5. the medullary pyramids.
+
+In the caudal medulla most of the fibres cross at the **pyramidal decussation**. That is the X in the picture. The crossed fibres run in the lateral column of the cord as the **lateral corticospinal tract** and end mainly on interneurons of the intermediate grey matter and on ventral horn motor neurons.
+
+The X splits the pathway in two. Damage above it, with one crossing still to come, shows up on the opposite side of the body. Damage in the cord, below it, shows up on the same side.
+
+### Which neuron is damaged: the signs
+
+The side tells you where along the tract to look. The signs tell you whether the damage is in the descending pathway or in the final motor neuron.
+
+- A **lower motor neuron** lesion causes weakness with low tone and reduced or absent reflexes, because the motor limb of the reflex arc is cut. Later the muscle wastes and may show fasciculations, the visible twitches of single motor units firing on their own.
+- An established **upper motor neuron** lesion causes weakness with raised tone (more resistance when the limb is moved passively), brisk stretch reflexes, clonus (rhythmic beats of contraction set off by a sudden stretch) and an extensor plantar response, in which stroking the sole makes the great toe extend. Independent finger movements are often lost.
+
+"Established" matters. Right after a spinal cord injury the limbs below can be flaccid and areflexic (spinal shock), and spasticity appears later. And an upgoing toe is normal in infants, so in a young child it has to be read against age.
+
+The face adds one more clue. Corticobulbar fibres to the motor neurons for the lower face come mainly from the opposite cortex, while the forehead receives input from both sides. An upper motor neuron lesion above the brainstem therefore weakens the contralateral lower face more than the forehead, which is relatively spared. This is the side count's limit: the forehead, fed from both sides, is weakened less rather than flipped.
+
+### Two cases
+
+Assume one focal lesion, examined weeks after onset so the upper motor neuron signs have developed.
+
+**Worked problem.** *Case 1.* Weakness of the right lower face, right arm and right leg, with raised tone, brisk reflexes and an extensor plantar response on the right.
+
 - Step 1: upper motor neuron signs put the lesion in the descending pathway, not the motor neurons or nerves.
 - Step 2: the lower face is involved. Fibres for voluntary face movement end on facial motor neurons in the pons, so the lesion is above the facial nucleus: in the hemisphere, or occasionally in the pons above that level.
 - Step 3: above the decussation the deficit is contralateral, so right-sided weakness means a left-sided lesion.
 - Answer: most likely the left hemisphere, for example the posterior limb of the left internal capsule, where descending fibres for the face, arm and leg are packed into a small space.
 
-*Case 2.* The same right arm and leg signs, but the face is normal. Vibration sense is lost on the right, and pain and temperature are lost on the left below about the C6 dermatome.
+For sensation, run the side count the other way: count the crossings between the body and the lesion. The dorsal column pathway for touch and vibration crosses in the medulla; the spinothalamic pathway for pain and temperature crosses within a segment or two of entering the cord ([touch and pain](/lessons/touch-and-pain/)).
+
+**Predict.** *Case 2.* The same right arm and leg signs, but the face is normal. Vibration sense is lost on the right, and pain and temperature are lost on the left below about the C6 dermatome. Where is the lesion, and on which side?
+
+<details>
+<summary>Check your prediction</summary>
+
 - Step 1: the face is spared, which fits a lesion below the facial nucleus, probably in the cord; the sensory findings in step 3 test this.
-- Step 2: in the cord the corticospinal fibres have already crossed, so the weakness is ipsilateral: a right-sided lesion.
-- Step 3: check with sensation ([touch and pain](/lessons/touch-and-pain/)). Dorsal column fibres ascend on the same side to nuclei in the medulla, and only the next neurons cross, so right vibration loss points to the right cord. Spinothalamic fibres cross within a segment or two of entry, so right cord damage removes pain and temperature on the left, starting a little below the lesion.
+- Step 2: in the cord the corticospinal fibres have already crossed, so no crossing lies between the lesion and the muscle and the weakness is ipsilateral: a right-sided lesion.
+- Step 3: check with sensation. The dorsal columns have not yet crossed in the cord, so right vibration loss points to the right cord. The spinothalamic fibres have already crossed, so right cord damage removes pain and temperature on the left, starting a little below the lesion.
 - Answer: a right hemisection of the cord near C5, with lower motor neuron signs expected at the level itself, where ventral horn cells are destroyed.
 
-## The basal ganglia as a signed loop
+</details>
 
-A **nucleus** in the brain is a cluster of neuron cell bodies with shared connections. The basal ganglia include the **striatum** (caudate and putamen), the external and internal segments of the globus pallidus (**GPe** and **GPi**), the **subthalamic nucleus** (STN), and the substantia nigra, whose pars reticulata (**SNr**) works like GPi and whose pars compacta (**SNc**) holds dopamine neurons. The basal ganglia do not project to the spinal cord. Their output acts through the thalamus, which projects back to cortex, and through brainstem targets.
+## Counting inhibitions: the basal ganglia brake
 
-The output neurons of GPi and SNr are GABAergic and fire tonically, holding the motor thalamus under steady inhibition, like a foot resting on a brake. In the classic model, movement needs the brake lifted.
+<LessonFilm film={frontmatter.films[0]} />
 
-Striatal projection neurons are themselves GABAergic, and two routes from them reach the brake. In the **direct pathway**, striatal neurons that express D1 dopamine receptors inhibit GPi and SNr directly. In the **indirect pathway**, striatal neurons that express D2 receptors inhibit GPe; GPe inhibits STN; and STN, which is glutamatergic, excites GPi.
+The corticospinal tract carries the command. In the classic **rate model**, which treats each nucleus as one firing rate that rises or falls, the basal ganglia decide whether that command goes ahead. Start with a picture and add the names after.
 
-**Worked problem: count the signs.** Give each excitatory link +1 and each inhibitory link −1, and multiply along the route. A positive product means activity entering the loop ends up increasing cortical drive; a negative product means it ends up decreasing it.
+Picture one hemisphere's circuit as a column of boxes. At the top is the cortex. Below it is an **input stage**, and near the bottom an **output stage**, which feeds the thalamus. The thalamus sends an arrow back up to the cortex, closing a loop. Between input and output run two routes: a short one straight down, and a long one that detours through two more boxes. Off to one side sits one more box that sprays dopamine onto the input stage. Every arrow is either excitation or inhibition.
 
-> **Direct: cortex→striatum (+1) × striatum→GPi (−1) × GPi→thalamus (−1) × thalamus→cortex (+1) = +1**
+Now the names.
 
-> **Indirect: cortex→striatum (+1) × striatum→GPe (−1) × GPe→STN (−1) × STN→GPi (+1) × GPi→thalamus (−1) × thalamus→cortex (+1) = −1**
+- The input stage is the **striatum** (caudate and putamen).
+- The output stage is the internal segment of the globus pallidus, **GPi**, with a partner that works much the same way, the substantia nigra pars reticulata (**SNr**).
+- The detour runs through the external segment of the globus pallidus, **GPe**, and the **subthalamic nucleus** (STN).
+- The dopamine comes from the substantia nigra pars compacta, **SNc**.
 
-The direct route has two inhibitions in series, which give disinhibition. The indirect route has three negatives, so its product is −1.
+Besides the thalamus, the output also reaches brainstem targets.
 
-Now add dopamine. In the classic model, SNc dopamine excites D1 direct neurons and inhibits D2 indirect neurons. Exciting a +1 route raises cortical drive. Inhibiting a −1 route also raises it. So both actions push toward movement, and losing dopamine pushes both routes toward less movement: the prediction of akinesia. How D1 and D2 receptors couple to cAMP belongs to [G proteins](/lessons/gpcrs-and-g-proteins/) and [cAMP and PKA](/lessons/camp-and-pka/); where dopamine is released and cleared is in [transmitter systems](/lessons/transmitter-systems/).
+### The brake
 
-This arithmetic is the logic of the rate model set out by Albin, Young and Penney in 1989 and by DeLong in 1990: a way to reason about the direction of a change, not a measured law of how firing rates add.
+The output neurons of GPi and SNr are GABAergic, releasing the inhibitory transmitter GABA, and fire tonically, that is, steadily, even at rest. So the motor thalamus is held under steady inhibition, like a foot resting on a brake. In the classic model, movement needs the brake lifted: GPi must fire less.
+
+How can a circuit made largely of inhibitory neurons lift anything? Try the smallest case.
+
+**Predict.** Neuron A inhibits neuron B, and B inhibits neuron C. B is firing, and C has steady excitatory drive of its own. A starts firing faster. What does C do?
+
+<details>
+<summary>Check your prediction</summary>
+
+A fires more, so B is inhibited more and fires less. B fires less, so C gets less inhibition and fires more. Inhibiting an inhibitor releases its target. This is **disinhibition**: two inhibitory links in a row pass the change on with its direction kept, as long as each cell can still change its firing (a B that is already silent cannot slow further). Removing inhibition only permits firing; C's own drive does the exciting.
+
+</details>
+
+### Two routes to the brake
+
+Striatal projection neurons are themselves GABAergic, so every arrow leaving the striatum is an inhibition.
+
+- In the **direct pathway**, striatal neurons that express D1 dopamine receptors inhibit GPi and SNr directly.
+- In the **indirect pathway**, striatal neurons that express D2 receptors inhibit GPe; GPe, also GABAergic, inhibits STN; and STN, which is glutamatergic (it releases the excitatory transmitter glutamate), excites GPi.
+
+Follow more striatal firing down each route and count the inhibitions from the striatum to the thalamus. A released thalamus means a push toward movement; a thalamus held down harder means a push away.
+
+| Route | Chain from striatum to thalamus | Inhibitory links | More striatal firing means |
+| --- | --- | --- | --- |
+| Direct | striatum ⊣ GPi ⊣ thalamus | 2, even | thalamus released: toward movement |
+| Indirect | striatum ⊣ GPe ⊣ STN → GPi ⊣ thalamus | 3, odd | thalamus held down harder: away from movement |
+
+Read the indirect row one step at a time. D2 neurons fire more, so GPe fires less. STN, freed from GPe, fires more. GPi, excited by STN, fires more. The thalamus is held down harder. The links into the striatum from cortex and out of the thalamus to cortex are excitatory, so they add no flips.
+
+### Dopamine is one more link
+
+In the classic model, SNc dopamine acts on the two kinds of striatal neuron in opposite ways: it **excites** D1 direct-pathway neurons and **inhibits** D2 indirect-pathway neurons. Dopamine is not a box in the loop; it acts on the first box of each route. So treat each action as one more link at the head of its route, and count again.
+
+**Predict.** Acting through each receptor, does dopamine push toward movement or away from it? What should losing dopamine do?
+
+<details>
+<summary>Check your prediction</summary>
+
+Through D1: an excitatory link, then the direct route's two inhibitions. Two flips, an even number: more dopamine, more movement.
+
+Through D2: dopamine's inhibitory action is one flip, then the indirect route's three. Four flips, an even number: more dopamine, more movement again.
+
+Both actions agree, so the count can call the net effect. Losing dopamine pushes both routes toward less movement. The direct pathway weakens and the indirect pathway strengthens: GPe is more inhibited and STN is released. So GPi fires more for two reasons at once: less inhibition from the striatum, and more excitation from STN. The thalamus is held down harder and movement becomes hard to start, which is called **akinesia**. That is the classic model's prediction for dopamine loss.
+
+</details>
+
+**What the sign count can and cannot call.** It assumes each link has one fixed sign, and it counts a lesion as a fall in activity. When several routes carry a change and **agree** in sign, the count predicts the net effect. When they **disagree**, it says only that they pull against each other; which one wins depends on how strong each route is, and signs cannot tell you that. "Where the box model breaks" returns to this.
+
+How D1 and D2 receptors couple to cAMP belongs to [G proteins](/lessons/gpcrs-and-g-proteins/) and [cAMP and PKA](/lessons/camp-and-pka/); where dopamine is released and cleared is in [transmitter systems](/lessons/transmitter-systems/).
+
+This counting is the logic of the rate model set out by Albin, Young and Penney in 1989 and by DeLong in 1990. It is a way to reason about the direction of a change, not a measured law of how firing rates add.
+
+Use the simulation to watch the count: switch dopamine, the indirect-pathway neurons and the STN on and off, predict each box first, then check.
 
 <BasalGangliaSignLoop />
 
+## Both counts together: silencing the STN
+
+<LessonFilm film={frontmatter.films[1]} />
+
+The dopamine count says that after dopamine loss the STN is overactive and drives GPi harder. If so, silencing the STN should help. This is where both counts work at once: crossings set the side, inhibitions set the sign. For the side, follow the loop. In the classic model each hemisphere's basal ganglia loop returns to the cortex on its own side, and that cortex's commands cross once, at the pyramidal decussation.
+
+The test animal is a monkey made parkinsonian with **MPTP**, a toxin that preferentially kills SNc dopamine neurons (its discovery is in the anecdote "Parkinsonism from a contaminated drug").
+
+**Predict.** In a monkey treated with MPTP, you lesion the left STN. Which way should movement change, and on which side of the body?
+
+<details>
+<summary>Check your prediction</summary>
+
+*Sign.* STN excites GPi, and GPi inhibits the thalamus: one inhibition, an odd number. So STN activity and thalamic activity move in opposite directions. A lesion makes STN activity fall, so the thalamus is released, toward movement.
+
+*Side.* Left STN, left GPi, left thalamus, left cortex, then one crossing on the way to the cord: the right side of the body.
+
+*Prediction:* the parkinsonian signs should ease on the right side.
+
+</details>
+
+Hagai Bergman, Thomas Wichmann and Mahlon DeLong did this experiment in MPTP-treated monkeys and reported in Science in 1990 that the parkinsonian signs improved on the side of the body opposite the lesion. The rate model had made a prediction a lesion could test, and the prediction held. The result made the STN a surgical target (DeLong's profile has the award that followed).
+
+The same count, with the same sign, gives a different outcome when dopamine is normal. A lesion in or near one STN, classically a small stroke in a person without Parkinson's disease, can release the opposite limbs too far. The result is hemiballism, large flinging movements of one arm or leg.
+
 ## Parkinson's and Huntington's through the circuit
 
-**Parkinson's disease.** The motor signs (slowness, small movements, rigidity, rest tremor) appear after substantial loss of SNc dopamine neurons; published threshold figures vary. Ehringer and Hornykiewicz found striatal dopamine greatly reduced in post-mortem brains from patients (1960). Run the signs: without dopamine the direct route weakens and the indirect route strengthens, so GPe is more inhibited, STN is released, and GPi fires more. The thalamus is held down harder and movement is hard to start.
+**Parkinson's disease.** The motor signs (slowness, small movements, rigidity, rest tremor) appear after substantial loss of SNc dopamine neurons; published threshold figures vary. The evidence that tied the disease to dopamine came from post-mortem tissue: Ehringer and Hornykiewicz found striatal dopamine greatly reduced in brains from patients (1960). The dopamine count above gives the model's account of the slowness: GPi pressed harder from two directions, the thalamus held down.
 
-A dopamine precursor such as L-DOPA raises the dopamine available in the striatum, and the predicted overactive STN became a surgical target. In mice with dopamine depleted by 6-hydroxydopamine, driving direct-pathway neurons with light rescued the motor deficits Kravitz and colleagues measured (2010). Why the dopamine neurons die is taken up in [neurodegeneration](/lessons/neurodegeneration/).
+Treatments follow the same logic. A dopamine precursor such as L-DOPA raises the dopamine available in the striatum. In mice with dopamine depleted by 6-hydroxydopamine, driving direct-pathway neurons with light rescued the motor deficits Kravitz and colleagues measured (2010). Why the dopamine neurons die is taken up in [neurodegeneration](/lessons/neurodegeneration/).
 
-**Huntington's disease** has a different cause: an expanded CAG repeat in the huntingtin gene (the mutation type is in [mutation](/lessons/mutation/)), not a primary loss of dopamine. In post-mortem tissue from 17 patients, Reiner and colleagues (1988) found the enkephalin-containing projection to GPe more affected in early and middle stages than the substance P projection to GPi, and broad loss in the most advanced cases. Run the signs for losing indirect striatal neurons: GPe is released, STN is more inhibited, GPi gets less excitation and fires less, and the thalamus is released. That is thought to contribute to chorea, the brief, irregular involuntary movements of early disease. Later loss of direct-pathway output is associated with the akinesia of late disease.
+**Huntington's disease** has a different cause: an expanded CAG repeat in the huntingtin gene (the mutation type is in [mutation](/lessons/mutation/)), not a primary loss of dopamine.
+
+**Predict.** Suppose the striatal neurons of the indirect pathway, the ones projecting to GPe, are affected first, so their output to GPe falls. Predict what GPe, STN and GPi do, and what happens to movement.
+
+<details>
+<summary>Check your prediction</summary>
+
+Losing that output removes the inhibition of GPe, so GPe is released and fires more. STN is more inhibited and fires less. GPi gets less excitation and fires less, and the thalamus is released. In the model this pushes toward extra movement. That is thought to contribute to chorea, the brief, irregular involuntary movements of early disease.
+
+</details>
+
+What supports the premise? Enkephalin marks the striatal projection to GPe and substance P the one to GPi, and in post-mortem tissue the enkephalin terminals in GPe are the more affected in early and middle stages (Reiner and colleagues, 1988; the anecdote "Seventeen brains and two peptides" has the study). Staining alone cannot tell neuron death from terminal loss or reduced peptide. Later loss of direct-pathway output is associated with the akinesia of late disease.
 
 ## Where the box model breaks
 
-The rate model predicts the sign of several clinical effects. Four sets of results show its limits.
+The rate model predicts the sign of several clinical effects. Four sets of results show its limits, and each meets a limit of the count stated with dopamine.
 
-First, the pathways do not alternate on and off. Cui and colleagues (2013) found calcium signals from both D1-expressing (direct-pathway) and A2A-expressing (indirect-pathway) striatal populations in mice rising around the start of an action. Freeze and colleagues (2013) found that stimulating either pathway produced both excitatory and inhibitory responses among SNr neurons in mice, although the inhibited and excited subgroups predicted the movement effects the model expects.
+**First, routes that disagree are active together.** The cartoon has the pathways alternating on and off. Cui and colleagues (2013) found calcium signals from both D1-expressing (direct-pathway) and A2A-expressing (indirect-pathway) striatal populations in mice rising around the start of an action. Two routes of opposite sign active at once is exactly the case the count cannot call.
 
-Second, there are more routes. In awake monkeys, Nambu and colleagues (2000) found that cortical stimulation evoked an early pallidal excitation that depended on STN and arrived faster than effects through the striatum: a **hyperdirect** pathway. And in mice, direct-pathway neurons branch. Labouesse and colleagues (2023) found that 147 of 148 SNr-labelled direct-pathway neurons in their sample also carried a GPe label. That is 147/148 = 99.3% of the SNr-labelled cells counted, not of all striatal neurons.
+**Second, there are more routes.** In awake monkeys, Nambu and colleagues (2000) found that cortical stimulation evoked an early pallidal excitation that depended on STN and arrived faster than effects through the striatum: a **hyperdirect** pathway. Count it: cortex excites STN, STN excites GPi, GPi inhibits the thalamus. One inhibition, so it pushes away from movement, against the direct route. And in mice, direct-pathway neurons branch into GPe as well (Labouesse and colleagues, 2023). Counted with the simple signs, a branch through GPe and STN has three inhibitions and would push against the direct route. Yet inhibiting the direct-pathway terminals in GPe impaired the mice's motor performance, the opposite of what that count predicts. The authors traced part of the effect to inhibition of Npas1-expressing GPe neurons, one of several GPe cell types with different targets. So the count cannot assign this branch a sign; the result shows only that the branch does real work.
 
-Third, rate may not be the main variable. Parker and colleagues (2018) found that dopamine depletion in mice disrupted the clustered activity of movement-related indirect-pathway neurons, a change in pattern rather than only in mean rate. Studies of parkinsonian animals and patients also report more bursting and synchronized oscillation in STN and GPi.
+**Third, rate may not be the main variable.** The count follows mean firing rates. In mice, dopamine depletion disrupted the clustered pattern of movement-related indirect-pathway activity (Parker and colleagues, 2018), a change in pattern rather than only in mean rate. Studies of parkinsonian animals and patients also report more bursting and synchronized oscillation in STN and GPi.
 
-Fourth, some symptoms and treatments do not fit. Lesioning GPi should release the thalamus and cause extra movements, but pallidotomy instead relieves parkinsonism and also eases dyskinesia and dystonia. The model gives no account of rest tremor, and deep brain stimulation of the STN relieves parkinsonian signs by a mechanism that is still unresolved. What the basal ganglia contribute to choosing actions by their value continues in [motivation and reward](/lessons/motivation-and-reward/).
+**Fourth, some symptoms and treatments do not fit.** Lesioning GPi relieves parkinsonism, as the model predicts. But the model also predicts that removing GPi output should cause extra movements, and pallidotomy usually does not cause them; it also eases dyskinesia and dystonia. The model gives no account of rest tremor, and deep brain stimulation of the STN relieves parkinsonian signs by a mechanism that is still unresolved. What the basal ganglia contribute to choosing actions by their value continues in [motivation and reward](/lessons/motivation-and-reward/).
 
 ### Design problem
 
-The rate model predicts that the STN is overactive in parkinsonism and that silencing it should help. Design a primate experiment to test this, and say what result would count against the model.
+You have seen the result. Now design the experiment as if it had not been done, with its controls. The rate model predicts that the STN is overactive in parkinsonism and that silencing it should help. Design a primate experiment to test this, and say what result would count against the model.
 
 <details>
 <summary>One way to do it</summary>
 
-Use monkeys made parkinsonian with MPTP, which preferentially kills SNc dopamine neurons. Record single units in STN and GPi before and after MPTP; the model predicts both rates rise. Then lesion or inactivate one STN and score akinesia and rigidity on the opposite side of the body, with the other side as a within-animal comparison. Bergman, Wichmann and DeLong (1990) did the lesion step and reported improvement in the limbs opposite the lesion.
+Use monkeys made parkinsonian with MPTP. Record single units in STN and GPi before and after MPTP; the model predicts both rates rise. Then lesion or inactivate one STN and score akinesia and rigidity on the opposite side of the body, with the other side as a within-animal comparison. This is the lesion step Bergman, Wichmann and DeLong did.
 
 Controls: sham surgery; histology for lesion position and SNc loss; scoring blind to side and condition; and GPi recording after the lesion to see whether its output fell.
 
 Against the model: no motor improvement after an accurate STN lesion; or improvement with no fall in GPi activity, which would mean the benefit does not work by lowering GPi rate as the model says. Two cautions: pattern and synchrony change as well as rate, so record them too; and a lesion result does not explain deep brain stimulation.
 
 </details>
+
+## Going deeper
+
+### How much of the tract crosses
+
+Estimates of the fraction of corticospinal fibres that cross at the pyramidal decussation vary between sources, from roughly 75 to 90%. Most of the uncrossed minority forms the anterior corticospinal tract, whose fibres largely appear to cross segmentally, near the level where they end. How the fibres cross during development is in [crossing the midline](/lessons/crossing-the-midline/).
+
+### Direct contacts on motor neurons
+
+In macaques some cortical cells contact digit motor neurons directly (Rathelot and Strick, 2006).
+
+### The count as a product of signs
+
+The inhibition count can be written as arithmetic. Give each excitatory link +1 and each inhibitory link −1, and multiply along the route from cortex back to cortex. A positive product means activity entering the loop ends up releasing the thalamus and so favours movement; a negative product means it ends up holding the thalamus down.
+
+> **Direct: cortex→striatum (+1) × striatum→GPi (−1) × GPi→thalamus (−1) × thalamus→cortex (+1) = +1**
+
+> **Indirect: cortex→striatum (+1) × striatum→GPe (−1) × GPe→STN (−1) × STN→GPi (+1) × GPi→thalamus (−1) × thalamus→cortex (+1) = −1**
+
+### What the SNr subgroups did
+
+Freeze and colleagues (2013) found that stimulating either pathway produced both excitatory and inhibitory responses among SNr neurons in mice, so neither pathway simply pushed all of SNr one way. Even so, movement initiation during direct-pathway stimulation tracked the inhibited SNr subgroup, and movement suppression during indirect-pathway stimulation was most strongly associated with the excited subgroup. These pathway-specific relationships fit the model despite the mixed responses.
+
+### Counting the branched cells
+
+Of 148 direct-pathway neurons in the mouse dorsomedial striatum that carried the SNr tracer, 147 also carried the GPe tracer. That is 147/148 = 99.3% of the SNr-labelled cells counted, not of all striatal neurons. The anecdote "One cell, two targets" tells the story.

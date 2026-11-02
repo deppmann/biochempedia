@@ -1,4 +1,4 @@
-"""Emotion and stress: one source, two separate outputs  (Biochemistrypedia explainer)
+"""Emotion and stress: One Signal, Three Routes  (Biochemistrypedia explainer)
 
 Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
 
@@ -13,6 +13,8 @@ COLOR MAP (one color per concept, whole video)
   GREY   = unpaired control, frames, axes, and every unanswered or unmeasured thing (dashed)
   PINK   = people (patient SM, the panic dots)
   TEXT   = the learned difference and the claims
+
+GREEN = hormone chain and glucocorticoid (extension for this chapter).
 
 All rat numbers are the lesson's invented numbers (worked problem), laid out in the design of the
 1988 study; they are not that study's data.
@@ -74,9 +76,7 @@ def sine(cx, cy, w, amp=0.17, cycles=3.5, color=YELLOW, sw=4):
 
 
 def zig(cx, cy, w, color=GOLD, sw=4):
-    pts = [[-0.5, 0.18], [-0.2, -0.18], [0.05, 0.18], [0.3, -0.18], [0.5, 0.18]]
-    return VMobject(color=color, stroke_width=sw).set_points_as_corners(
-        [np.array([cx + p[0] * w, cy + p[1], 0]) for p in pts])
+    return Polygon(*[[cx+x*w,cy+y,0] for x,y in [(.12,.33),(-.38,-.03),(-.03,-.03),(-.15,-.33),(.38,.07),(.06,.07)]],color=color,fill_color=color,fill_opacity=1,stroke_width=1)
 
 
 def tone_block(cx, cy, w=2.0, h=0.7):
@@ -98,16 +98,6 @@ def xmark(box, color=RED, w=9, pad=0.12):
                   Line([x0, y1, 0], [x1, y0, 0], color=color, stroke_width=w))
 
 
-def lesion_badge(box):
-    """a red badge with a white cross on the box's top-right corner (the box label stays readable)."""
-    c = box[1].get_corner(UR)
-    disc = Circle(radius=0.24, stroke_width=0, fill_color=RED, fill_opacity=1).move_to(c)
-    k = 0.11
-    cr = VGroup(Line(c + [-k, -k, 0], c + [k, k, 0], color=WHITE, stroke_width=5),
-                Line(c + [-k, k, 0], c + [k, -k, 0], color=WHITE, stroke_width=5))
-    return VGroup(disc, cr)
-
-
 def hit(box, on=True, base=PURPLE):
     """animations: tint a box red (lesioned) or back to its colour."""
     if on:
@@ -115,499 +105,407 @@ def hit(box, on=True, base=PURPLE):
     return box[1].animate.set_stroke(base).set_fill(base, 0.16)
 
 
-def circuit(layout):
-    """The rat circuit. layout 'wide' (scene 3) or 'compact' (scenes 4 and 5): same boxes, new places.
-    Returns dict of boxes; arrows are built by circuit_arrows."""
-    if layout == "wide":
-        sz = 24
-        pos = dict(tone=(-5.6, 0), la=(-3.45, 0), cea=(-0.9, 0), lh=(2.1, 1.65), pag=(2.1, -1.65))
-    else:
-        sz = 22
-        pos = dict(tone=(-4.2, 3.1), la=(-4.2, 1.7), cea=(-4.2, 0.25), lh=(-5.05, -1.4), pag=(-2.3, -1.4))
-    b = dict(
-        tone=nbox("tone", YELLOW, sz, fill=0.18),
-        la=nbox("lateral\namygdala", TEAL, sz),
-        cea=nbox("central\namygdala", TEAL, sz),
-        lh=nbox("lateral\nhypothalamus", PURPLE, sz),
-        pag=nbox("caudal\nperiaqueductal\ngray", PURPLE, sz),
-    )
-    if layout != "wide":
-        for k, t, col in (("tone", "tone", YELLOW), ("la", "lateral\namygdala", TEAL), ("cea", "central\namygdala", TEAL),
-                          ("lh", "lateral\nhypothalamus", PURPLE), ("pag", "caudal\nperiaqueductal\ngray", PURPLE)):
-            b[k] = nbox(t, col, sz, pad=0.12, fill=0.18 if k == "tone" else 0.16)
-    for k, (x, y) in pos.items():
-        b[k].move_to([x, y, 0])
-    return b
+# The source film has no hormone kinetics model. The slow plot below is computed
+# by linear interpolation of the LESSON'S ORDINAL observations (lag, peak tens
+# of minutes later, return toward nonzero baseline), not fitted measurements.
+# Its axes deliberately have no invented numerical times or concentrations.
+# CHAPTERS.md is left unchanged: TASK.md's final edit restriction permits only
+# scenes.py and the requested render/review artifacts.
 
 
-def circuit_arrows(b, layout):
-    if layout == "wide":
-        return VGroup(edge(b["tone"], b["la"]), edge(b["la"], b["cea"]),
-                      edge(b["cea"], b["lh"]), edge(b["cea"], b["pag"]))
-    return VGroup(edge(b["tone"], b["la"], "d", "u"), edge(b["la"], b["cea"], "d", "u"),
-                  edge(b["cea"], b["lh"], "d", "u"), edge(b["cea"], b["pag"], "d", "u"))
+def label(text, x, y, color=TEXT, size=28):
+    return T(text, size, color).move_to([x, y, 0])
 
 
-def sq_legend(color, text, size=22):
-    sw = Square(0.26, stroke_color=color, fill_color=color, fill_opacity=0.6, stroke_width=3)
-    return VGroup(sw, T(text, size, TEXT).next_to(sw, RIGHT, buff=0.15))
+def rat_icon(color=TEXT):
+    body = Ellipse(width=2.35, height=1.25, color=color, fill_color=color, fill_opacity=.2)
+    head = Ellipse(width=.85, height=.8, color=color, fill_color=BG, fill_opacity=1).move_to([1.1,.2,0])
+    ear = Circle(.23, color=color, fill_color=BG, fill_opacity=1).move_to([.92,.65,0])
+    eye = Dot([1.27,.32,0], radius=.05, color=color)
+    tail = VMobject(color=color, stroke_width=4).set_points_as_corners([[-1.1,0,0],[-1.65,-.2,0],[-1.9,-.05,0],[-2.15,-.35,0]])
+    feet = VGroup(Line([-.6,-.45,0],[-.45,-.8,0],color=color), Line([.6,-.45,0],[.8,-.8,0],color=color))
+    return VGroup(tail,body,head,ear,eye,feet)
 
 
-def routes_question(b):
-    """the two response chips, the four dashed question links and the big question mark (scene 3, rebuilt in 4)."""
-    freeze = nbox("freezing", BLUE, 26, min_w=1.9, min_h=0.9).move_to([5.3, 0.85, 0])
-    press = nbox("pressure\nrise", ORANGE, 26, min_w=1.9, min_h=0.9).move_to([5.3, -0.85, 0])
-    links = VGroup()
-    for r in ("lh", "pag"):
-        for t in (freeze, press):
-            links.add(darr(b[r][1].get_right(), t[1].get_left()))
-    qq = T("?", 56, YELLOW, weight=BOLD).move_to([3.85, 0, 0])
-    return freeze, press, links, qq
+def gauge(high=True):
+    # A schematic dial, not a graph of an invented pressure measurement.
+    face = Circle(1.05, color=ORANGE, fill_color=ORANGE, fill_opacity=.08)
+    ticks = VGroup(*[Line(.86*np.array([np.cos(a),np.sin(a),0]),1.01*np.array([np.cos(a),np.sin(a),0]),color=ORANGE) for a in np.linspace(-.2,3.35,9)])
+    a = .65 if high else 2.5
+    needle = Arrow(ORIGIN,.8*np.array([np.cos(a),np.sin(a),0]),buff=0,color=ORANGE,stroke_width=6)
+    return VGroup(face,ticks,needle,Dot(color=ORANGE,radius=.07))
 
 
-# bar geometry shared by scenes 4 and 5: share of the learned response kept
-CH_BASE = -1.9
-CH_SC = 0.034            # scene units per percentage point
-CH_AX = -0.3             # x of the y axis
-CH_X = [1.2, 3.4, 5.6]   # group centres
-CH_DX = 0.45
+
+def responses(high=True):
+    r=rat_icon(BLUE).scale(1.8).move_to([-3.2,0,0])
+    g=gauge(high).scale(1.8).move_to([3.3,0,0])
+    return VGroup(r,g,label('freezing',-3.2,-2.1,BLUE,34),label('blood pressure',3.3,-2.1,ORANGE,34))
 
 
-def share_axes():
-    ax = VGroup(Line([CH_AX, CH_BASE, 0], [CH_AX, CH_BASE + 100 * CH_SC, 0], color=GREY, stroke_width=3),
-                Line([CH_AX, CH_BASE, 0], [6.3, CH_BASE, 0], color=GREY, stroke_width=3))
-    for v in (0, 50, 100):
-        ax.add(M(str(v), 22, GREY).move_to([CH_AX - 0.32, CH_BASE + v * CH_SC, 0]))
-    full = DashedLine([CH_AX, CH_BASE + 100 * CH_SC, 0], [6.3, CH_BASE + 100 * CH_SC, 0], dash_length=0.14,
-                      color=GREY, stroke_width=2)
-    title = T("Share of what was learned that is left (%)", 24, TEXT).move_to([3.0, 3.4, 0])
-    tag = T("invented numbers, not the study's data", 22, GREY).move_to([3.0, 3.0, 0])
-    return VGroup(ax, full, title, tag)
+def thought(x=0,y=2):
+    return VGroup(Ellipse(width=2.3,height=1.2,color=GREY).move_to([x,y,0]),label('?',x,y,GREY,44),Circle(.12,color=GREY).move_to([x-.6,y-.8,0]))
 
 
-GROUP_LABEL = ["lateral\nhypothalamus", "caudal\nPAG", "central\namygdala"]
+def clock_face(x,y,r=.6):
+    face=Circle(r,color=TEXT).move_to([x,y,0])
+    hand=Line([x,y,0],[x,y+r*.8,0],color=TEXT,stroke_width=4)
+    return VGroup(face,hand,Dot([x,y,0],radius=.04,color=TEXT))
 
 
-def group_labels():
-    out = VGroup()
-    for i, t in enumerate(GROUP_LABEL):
-        lab = VGroup(*[T(l, 22, GREY) for l in t.split("\n")]).arrange(DOWN, buff=0.05)
-        lab.move_to([CH_X[i], CH_BASE - 0.55, 0])
-        out.add(lab)
-    return out
+def running_clock(clock, speed):
+    clock[1].add_updater(lambda m,dt:m.rotate(-speed*dt,about_point=clock[0].get_center()))
+    return clock
 
 
-def share_legend():
-    a, b = sq_legend(BLUE, "freezing"), sq_legend(ORANGE, "pressure rise")
-    return VGroup(a, b).arrange(RIGHT, buff=0.6).move_to([3.0, -3.45, 0])
+def speed_tag(x,y,slow=False):
+    cl=clock_face(x-.5,y,.18)
+    return VGroup(cl,label('slow' if slow else 'fast',x+.15,y,GREEN if slow else TEXT,26))
 
 
-def share_bar(g, which, value, label=None):
-    """which 0 freezing (blue), 1 pressure (orange). Returns (bar, value label)."""
-    col = BLUE if which == 0 else ORANGE
-    x = CH_X[g] + (-CH_DX if which == 0 else CH_DX)
-    h = max(value * CH_SC, 0.02)
-    bar = Rectangle(width=0.8, height=h, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.6)
-    bar.move_to([x, CH_BASE + h / 2, 0])
-    txt = label if label is not None else f"{value}%"
-    lab = M(txt, 22, TEXT).move_to([x, CH_BASE + h + 0.3, 0])
-    lab.set_stroke(BG, width=8, background=True)
-    return bar, lab
+def route_map(n=3,cue=True,tags=False):
+    tone=VGroup(tone_block(-5.05,2.65,1.5,.55),label('tone',-5.05,3.15,YELLOW,26))
+    la=nbox('lateral\namygdala\n(input)',TEAL,26,min_w=2.6,min_h=1.25).move_to([-5.05,1.05,0])
+    c=nbox('central\namygdala\n(output)',TEAL,26,min_w=2.6,min_h=1.25).move_to([-5.05,-.95,0])
+    inp=VGroup(tone,la,arr(tone[0].get_bottom(),la.get_top(),YELLOW),arr(la.get_bottom(),c.get_top(),TEAL),c)
+    names=['caudal periaqueductal\ngray (PAG), midbrain','lateral\nhypothalamus','hypothalamus\npituitary → adrenal']
+    cols=[BLUE,ORANGE,GREEN]; ys=[2,0,-2]
+    targets=[nbox(t,col,26,min_w=3.5,min_h=1.15).move_to([-.15,y,0]) for t,col,y in zip(names,cols,ys)]
+    r=VGroup(rat_icon(BLUE).scale(.68).move_to([4.65,2.15,0]),label('freezing',4.65,1.35,BLUE,26))
+    g=VGroup(gauge().scale(.62).move_to([4.65,.15,0]),label('pressure rise',4.65,-.72,ORANGE,26))
+    h=nbox('hormone',GREEN,28,min_w=2.5,min_h=1.15).move_to([4.65,-2,0])
+    outs=[r,g,h]; links=VGroup(); nodes=VGroup()
+    for i in range(n):
+        start=c.get_right()+UP*(.35-i*.35)
+        a=darr(start,targets[i].get_left(),cols[i]) if i==2 else arr(start,targets[i].get_left(),cols[i])
+        link=VGroup(a,arr(targets[i].get_right(),outs[i].get_left(),cols[i]))
+        links.add(link); nodes.add(targets[i],outs[i])
+    m=VGroup(links,inp,nodes)
+    if tags:
+        m.add(*[speed_tag(2.8,ys[i]+.55,i==2) for i in range(n)])
+    return m,c,targets,outs,links
 
 
-def work_lines(a, b):
-    la = M(a, 22, BLUE).move_to([3.0, 2.55, 0])
-    lb = M(b, 22, ORANGE).move_to([3.0, 2.15, 0])
-    return VGroup(la, lb)
+def brain_view():
+    brain=Ellipse(width=10.2,height=6.25,color=GREY,fill_color=GREY,fill_opacity=.09).move_to([.8,0,0])
+    ear=Circle(.42,color=YELLOW).move_to([-5.6,.6,0])
+    th=Dot([-1.7,.7,0],radius=.23,color=GREY)
+    am=Ellipse(width=1.8,height=1,color=TEAL,fill_color=TEAL,fill_opacity=.6).rotate(.35).move_to([1.55,-.85,0])
+    labs=VGroup(label('brain • schematic',.8,2.5,GREY,30),label('ear',-5.6,-.3,YELLOW,28),label('thalamus',-1.7,1.5,GREY,30),label('amygdala',2,-1.9,TEAL,34))
+    path=VGroup(arr(ear.get_right(),th.get_left(),YELLOW),arr(th.get_center()+RIGHT*.25,am.get_left(),YELLOW))
+    return VGroup(brain,ear,th,am,labs,path)
 
 
-# ---------------------------------------------------------------------------------------------
+def timeline(y,paired=True):
+    xs=(-4.65,-.55,3.55)
+    tones=VGroup(*[tone_block(x,y,1.35,.85) for x in xs])
+    shocks=VGroup(*[shock_block(x+(1.1 if paired else 2.15),y,.5,.85) for x in xs])
+    axis=Arrow([-6.1,y-.65,0],[6.5,y-.65,0],buff=0,color=GREY)
+    name=label('paired' if paired else 'unpaired control',0,y+1.2,BLUE if paired else GREY,32)
+    legends=VGroup(label('tone',xs[0],y+.7,YELLOW,26),label('shock',xs[0]+(1.1 if paired else 2.15),y-.97,GOLD,26))
+    return VGroup(tones,shocks,axis,name,legends)
+
+
+def lesion_badge(box):
+    # Reserve an opaque lower strip INSIDE the damaged node for X + lesion.
+    # The tissue name remains above it; no mark is placed on a connection.
+    r=box[1]
+    y=r.get_bottom()[1]+.22
+    x=r.get_center()[0]-.64
+    backing=Rectangle(width=1.75,height=.4,stroke_width=0,
+                      fill_color=BG,fill_opacity=1).move_to([x+.5,y,0])
+    cross=VGroup(Line([x-.12,y-.12,0],[x+.12,y+.12,0],color=RED,stroke_width=5),
+                 Line([x-.12,y+.12,0],[x+.12,y-.12,0],color=RED,stroke_width=5))
+    return VGroup(backing,cross,label('lesion',x+.62,y,RED,26))
+
+
+def lesion_picture():
+    m,c,ts,outs,links=route_map(2)
+    # Add a dedicated lesion row below each tissue label, inside its border.
+    for node in [c,*ts[:2]]:
+        for shape in node[:2]:
+            shape.stretch_to_fit_height(shape.height+.55).shift(DOWN*.275)
+    return m,c,ts,outs,links
+
+
+def scope_map():
+    m,c,ts,outs,links=route_map(3)
+    # Centre the map and its frame; reserve a narrow outside strip for the question.
+    m[1].shift(RIGHT*1.2)
+    for o in outs: o.shift(LEFT*1.05)
+    for o in outs[:2]: o[0].scale(.8)
+    new_links=VGroup()
+    for i,col in enumerate([BLUE,ORANGE,GREEN]):
+        start=c.get_right()+UP*(.35-i*.35)
+        a=darr(start,ts[i].get_left(),col) if i==2 else arr(start,ts[i].get_left(),col)
+        new_links.add(VGroup(a,arr(ts[i].get_right(),outs[i].get_left(),col)))
+    m.remove(links);m.add_to_back(new_links)
+    m.add(*[speed_tag(2.25,y+.85,i==2) for i,y in enumerate([2,0,-2])])
+    frame=RoundedRectangle(width=10.6,height=6.75,corner_radius=.18,color=GREY).move_to([0,.05,0])
+    return m,frame,label('learned • outside cue • rats',0,-3.55,GREY,28)
+
+
 class S00Title(TitleCard):
-    LESSON = "Emotion and stress"
-    TITLE = "One source, two separate outputs"
+    LESSON='Emotion and Stress'
+    TITLE='One Signal, Three Routes'
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Tone(SpokenScene):
-    """training: tone then shock; test: tone -> rat -> freezing and pressure rise; is one pathway behind both?"""
-
+class S01Question(SpokenScene):
     def construct(self):
-        # training row (small, top)
-        lab = T("training", 24, GREY).move_to([-5.2, 3.0, 0])
-        tone = tone_block(-3.0, 3.0, 2.2)
-        tone_l = T("tone", 22, YELLOW).next_to(tone, DOWN, buff=0.08)
-        shock = shock_block(-1.35, 3.0)
-        shock_l = T("shock", 22, GOLD).next_to(shock, DOWN, buff=0.08)
-        self.at("hears a tone")
-        self.play(FadeIn(lab), FadeIn(tone, shift=RIGHT * 0.2), FadeIn(tone_l), run_time=0.6)
-        self.at("mild shock")
-        self.play(FadeIn(shock, shift=RIGHT * 0.2), FadeIn(shock_l), run_time=0.5)
-
-        # test row
-        t_tone = tone_block(-5.3, -0.5, 1.9, 0.9)
-        t_tl = T("tone", 22, YELLOW).next_to(t_tone, DOWN, buff=0.08)
-        rat = nbox("rat", GREY, 32, min_w=1.3, min_h=1.0).move_to([-3.1, -0.5, 0])
-        rat[1].set_stroke(TEXT).set_fill(TEXT, 0.1)
-        rat[2].set_color(TEXT)
-        freeze = nbox("freezing", BLUE, 30, min_w=2.5, min_h=0.95).move_to([3.0, 0.7, 0])
-        press = nbox("pressure rise", ORANGE, 30, min_w=2.5, min_h=0.95).move_to([3.0, -1.7, 0])
-        a_tr = arr(t_tone[0].get_right(), rat[1].get_left())
-        a_rf = arr(rat[1].get_right(), freeze[1].get_left())
-        a_rp = arr(rat[1].get_right(), press[1].get_left())
-        self.at("it freezes")
-        self.play(FadeIn(t_tone), FadeIn(t_tl), run_time=0.4)
-        self.play(GrowArrow(a_tr), FadeIn(rat), run_time=0.4)
-        self.play(GrowArrow(a_rf), FadeIn(freeze, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("pressure rises")
-        self.play(GrowArrow(a_rp), FadeIn(press, shift=RIGHT * 0.2), run_time=0.5)
-
-        # one pathway? a question box between the rat and both responses
-        q = nbox("?", YELLOW, 52, min_w=1.2, min_h=1.2, fill=0.12).move_to([-0.55, -0.5, 0])
-        q_cap = T("one pathway?", 24, YELLOW).next_to(q, UP, buff=0.18)
-        b1 = arr(rat[1].get_right(), q[1].get_left())
-        b2 = arr(q[1].get_right() + UP * 0.25, freeze[1].get_left())
-        b3 = arr(q[1].get_right() + DOWN * 0.25, press[1].get_left())
-        self.at("one pathway")
-        self.play(FadeOut(a_rf), FadeOut(a_rp), run_time=0.3)
-        self.play(FadeIn(q, scale=0.8), FadeIn(q_cap), GrowArrow(b1), GrowArrow(b2), GrowArrow(b3), run_time=0.6)
-
-        # neither response is the feeling of fear; both can be measured
-        feel = nbox("feeling of fear", GREY, 28, dashed=True, min_w=3.1).move_to([3.0, -3.3, 0])
-        self.at("feeling of fear")
-        self.play(FadeIn(feel, shift=UP * 0.15), run_time=0.5)
-        br = Brace(VGroup(freeze, press), RIGHT, color=TEXT, buff=0.2)
-        meas = T("measured", 24, TEXT).next_to(br, RIGHT, buff=0.12)
-        self.at("both can be measured")
-        self.play(GrowFromCenter(br), FadeIn(meas), run_time=0.5)
+        chamber=RoundedRectangle(width=11.9,height=6.4,corner_radius=.2,color=GREY)
+        r=rat_icon().scale(1.7).move_to([0,-1,0])
+        speaker=VGroup(Rectangle(width=.4,height=.8,color=YELLOW),Polygon([.2,.4,0],[.8,.8,0],[.8,-.8,0],[.2,-.4,0],color=YELLOW)).move_to([-4.3,1.5,0])
+        wave=sine(-1.5,1.5,3,.25)
+        self.add(chamber,r)
+        self.at('hears a tone'); self.play(FadeIn(speaker),Create(wave),FadeIn(label('tone',-1.5,2.3,YELLOW,30)),run_time=.4)
+        self.at('mild shock'); self.play(FadeIn(shock_block(3.5,1.5,.9,1.2)),FadeIn(label('shock',3.5,2.5,GOLD,30)),run_time=.35)
+        self.at('What does'); self.play(Indicate(r[2],color=TEAL),run_time=.5)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S02Learned(SpokenScene):
-    """paired vs unpaired timelines, then freezing and pressure bars with the learned difference."""
-
+class S02TwoThings(SpokenScene):
     def construct(self):
-        # --- timelines ---------------------------------------------------------------------
-        def row(y, shocks, name, col):
-            nm = T(name, 28, col, weight=BOLD)
-            nm.move_to([-6.1 + nm.width / 2, y + 0.95, 0])
-            axis = Line([-6.1, y - 0.55, 0], [6.2, y - 0.55, 0], color=GREY, stroke_width=2)
-            g = VGroup(nm, axis)
-            for k in range(3):
-                g.add(tone_block(-5.0 + k * 4.0, y, 1.8, 0.8))
-            for sx in shocks:
-                g.add(shock_block(sx, y, 0.7, 0.8))
-            return g
-
-        paired = row(1.5, [-3.65, 0.35, 4.35], "paired group", BLUE)
-        unpaired = row(-1.2, [-2.9, 1.4, 5.6], "unpaired control", GREY)
-        ask = T("Is the response learned?", 38, TEXT).move_to([0, 0.2, 0])
-        self.play(FadeIn(ask, shift=UP * 0.1), run_time=0.6)
-        self.at("One group of rats")
-        self.play(FadeOut(ask), FadeIn(paired, shift=RIGHT * 0.2), run_time=0.9)
-        self.at("Controls hear")
-        self.play(FadeIn(unpaired, shift=RIGHT * 0.2), run_time=0.9)
-        cap = T("the difference estimates learning", 30, TEXT).move_to([0, -3.0, 0])
-        self.at("the difference")
-        self.play(FadeIn(cap, shift=UP * 0.1), run_time=0.5)
-
-        # --- charts ------------------------------------------------------------------------
-        tag = T("invented numbers, not the study's data", 22, GREY).move_to([0, 3.5, 0])
-        self.at("In invented numbers")
-        self.play(FadeOut(paired), FadeOut(unpaired), FadeOut(cap), FadeIn(tag), run_time=0.6)
-
-        base = -2.2
-
-        def chart(ax_x, unit, ticks, top, title, col, xs):
-            sc = 4.0 / top
-            ax = VGroup(Line([ax_x, base, 0], [ax_x, base + top * sc, 0], color=GREY, stroke_width=3),
-                        Line([ax_x, base, 0], [ax_x + 5.0, base, 0], color=GREY, stroke_width=3))
-            for v in ticks:
-                ax.add(M(str(v), 22, GREY).move_to([ax_x - 0.34, base + v * sc, 0]))
-            ttl = T(title, 24, col).move_to([ax_x + 2.6, 2.45, 0])
-            xl = VGroup(T("unpaired", 22, GREY).move_to([xs[0], base - 0.32, 0]),
-                        T("paired", 22, col).move_to([xs[1], base - 0.32, 0]))
-            return sc, VGroup(ax, ttl, xl)
-
-        xsA, xsB = [-4.5, -2.9], [1.6, 3.3]
-        scA, axA = chart(-5.6, "%", (0, 50, 100), 100, "Freezing (% of the tone)", BLUE, xsA)
-        scB, axB = chart(0.4, "mmHg", (0, 10, 20), 25, "Pressure rise (mmHg)", ORANGE, xsB)
-
-        def bar(x, v, sc, col, lab):
-            h = max(v * sc, 0.02)
-            b = Rectangle(width=1.0, height=h, stroke_color=col, stroke_width=3, fill_color=col, fill_opacity=0.6)
-            b.move_to([x, base + h / 2, 0])
-            return b, M(lab, 24, TEXT).move_to([x, base + h + 0.3, 0])
-
-        def diff(xr, v_lo, v_hi, sc, text, xl):
-            """dashed line at the unpaired top, brace beside the paired bar, label."""
-            y_lo, y_hi = base + v_lo * sc, base + v_hi * sc
-            dl = DashedLine([xl, y_lo, 0], [xr + 0.55, y_lo, 0], dash_length=0.12, color=TEXT, stroke_width=2)
-            br = Brace(Line([xr + 0.6, y_lo, 0], [xr + 0.6, y_hi, 0]), RIGHT, color=TEXT, buff=0.04)
-            lb = T(text, 24, TEXT).next_to(br, RIGHT, buff=0.1)
-            return VGroup(dl, br, lb)
-
-        self.play(FadeIn(axA), FadeIn(axB), run_time=0.6)
-        pA, lpA = bar(xsA[1], 60, scA, BLUE, "60")
-        uA, luA = bar(xsA[0], 8, scA, GREY, "8")
-        self.at("paired rats froze")
-        self.play(GrowFromEdge(pA, DOWN), FadeIn(lpA), run_time=0.6)
-        self.at("and unpaired rats")
-        self.play(GrowFromEdge(uA, DOWN), FadeIn(luA), run_time=0.5)
-        dA = diff(xsA[1], 8, 60, scA, "52 points", xsA[0] + 0.5)
-        self.at("learned difference")
-        self.play(Create(dA[0]), GrowFromCenter(dA[1]), FadeIn(dA[2]), run_time=0.7)
-
-        pB, lpB = bar(xsB[1], 20, scB, ORANGE, "20")
-        uB, luB = bar(xsB[0], 3, scB, GREY, "3")
-        self.at("Pressure rose")
-        self.play(GrowFromEdge(pB, DOWN), FadeIn(lpB), run_time=0.6)
-        self.at("in unpaired rats")
-        self.play(GrowFromEdge(uB, DOWN), FadeIn(luB), run_time=0.5)
-        dB = diff(xsB[1], 3, 20, scB, "17 mmHg", xsB[0] + 0.5)
-        self.at("learned difference", nth=1)
-        self.play(Create(dB[0]), GrowFromCenter(dB[1]), FadeIn(dB[2]), run_time=0.7)
+        v=responses(False); v[2].shift(DOWN*.55); self.add(v[0],v[1])
+        self.at('Two things')
+        feet=v[0][5]; tail=v[0][0]
+        feet.add_updater(lambda m,dt:m.rotate(.11*np.sin(self.elapsed()*16),about_point=m.get_center()))
+        tail.add_updater(lambda m,dt:m.rotate(.04*np.sin(self.elapsed()*14),about_point=m.get_right()))
+        self.play(v[0].animate.shift(RIGHT*.6),run_time=1.2,rate_func=linear)
+        self.at('stops moving'); feet.clear_updaters(); tail.clear_updaters()
+        self.play(FadeIn(v[2]),FadeIn(label('still',-3.2,1.9,BLUE,28)),run_time=.25)
+        self.at('blood pressure rises'); self.play(Transform(v[1],gauge(True).scale(1.8).move_to(v[1])),FadeIn(v[3]),run_time=.65)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S03Routes(SpokenScene):
-    """the rat circuit: tone -> lateral amygdala -> central amygdala -> two routes; which carries which response?"""
-
+class S03NotFeeling(SpokenScene):
     def construct(self):
-        b = circuit("wide")
-        arrows = circuit_arrows(b, "wide")
-        tag = T("in the rat", 26, GREY).move_to([-5.2, 3.2, 0])
-        self.at("rat circuit")
-        self.play(FadeIn(tag), run_time=0.3)
-        self.at("the tone reaches")
-        self.play(FadeIn(b["tone"]), GrowArrow(arrows[0]), FadeIn(b["la"], shift=RIGHT * 0.2), run_time=0.8)
-        inp = T("input stage", 22, TEAL).next_to(b["la"], DOWN, buff=0.18)
-        self.at("lateral amygdala")
-        self.play(FadeIn(inp), run_time=0.4)
-        self.at("central amygdala")
-        self.play(GrowArrow(arrows[1]), FadeIn(b["cea"], shift=RIGHT * 0.2), run_time=0.7)
-        self.at("lateral hypothalamus")
-        self.play(GrowArrow(arrows[2]), FadeIn(b["lh"], shift=RIGHT * 0.2), run_time=0.7)
-        self.at("caudal periaqueductal")
-        self.play(GrowArrow(arrows[3]), FadeIn(b["pag"], shift=RIGHT * 0.2), run_time=0.7)
-
-        # the question: which route carries which response?
-        freeze, press, links, qq = routes_question(b)
-        self.at("Which")
-        self.play(FadeIn(freeze), FadeIn(press), run_time=0.4)
-        self.play(Create(links), run_time=0.7)
-        self.play(FadeIn(qq, scale=1.4), run_time=0.4)
+        v=responses(); b=thought(0,2.3); self.add(v)
+        self.at('Neither one'); self.play(FadeIn(b),run_time=.3)
+        self.at('feeling of fear'); self.play(Create(Line([-1,1.8,0],[1,2.8,0],color=RED,stroke_width=6)),run_time=.3)
+        scored=nbox('scored',BLUE,28).move_to([-3.2,-3,0])
+        readout=VGroup(nbox('readout',ORANGE,28),Line([-.6,0,0],[.6,0,0],color=ORANGE)).arrange(RIGHT,buff=.2).move_to([3.3,-3,0])
+        self.at('both can be measured'); self.play(FadeIn(scored),FadeIn(readout),run_time=.5)
+        self.at('trace them'); self.play(Indicate(v[0],color=BLUE),Indicate(v[1],color=ORANGE),run_time=.6)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S04Cut(SpokenScene):
-    """circuit moves left; lesion one route at a time; bars of the share of the learned response left."""
-
+class S04Paired(SpokenScene):
     def construct(self):
-        # rebuild the end of scene 3
-        w = circuit("wide")
-        wa = circuit_arrows(w, "wide")
-        tag = T("in the rat", 26, GREY).move_to([-5.2, 3.2, 0])
-        inp = T("input stage", 22, TEAL).next_to(w["la"], DOWN, buff=0.18)
-        freeze, press, links, qq = routes_question(w)
-        self.add(*w.values(), wa, tag, inp, freeze, press, links, qq)
-
-        # to the compact layout
-        c = circuit("compact")
-        ca = circuit_arrows(c, "compact")
-        self.at("cut one")
-        self.play(FadeOut(wa), FadeOut(tag), FadeOut(inp), FadeOut(freeze), FadeOut(press), FadeOut(links),
-                  FadeOut(qq), run_time=0.4)
-        self.play(*[w[k].animate.scale(22 / 24).move_to(c[k].get_center()) for k in w], run_time=0.9)
-        # swap to the exact compact boxes (same place) so the labels are the smaller size
-        self.remove(*w.values())
-        self.add(*c.values())
-        self.play(FadeIn(ca), run_time=0.3)
-
-        axes = share_axes()
-        labs = group_labels()
-        leg = share_legend()
-        self.play(FadeIn(axes), FadeIn(labs), FadeIn(leg), run_time=0.6)
-
-        rule = M("(lesion − unpaired) / learned", 22, GREY).move_to([3.0, 2.35, 0])
-        self.at("taking away")
-        self.play(FadeIn(rule), run_time=0.4)
-
-        # --- lateral hypothalamus lesion ---------------------------------------------------
-        x_lh = lesion_badge(c["lh"])
-        wl1 = work_lines("freezing: (57 − 8) / 52 = 94%", "pressure: (4 − 3) / 17 = 6%")
-        self.at("the lateral hypothalamus")
-        self.play(FadeOut(rule), FadeIn(x_lh, scale=0.5), hit(c["lh"]), run_time=0.5)
-        f1, lf1 = share_bar(0, 0, 94)
-        p1, lp1 = share_bar(0, 1, 6)
-        self.at("freezing keeps")
-        self.play(FadeIn(wl1[0]), GrowFromEdge(f1, DOWN), FadeIn(lf1), run_time=0.6)
-        self.at("pressure rise keeps")
-        self.play(FadeIn(wl1[1]), GrowFromEdge(p1, DOWN), FadeIn(lp1), run_time=0.5)
-
-        # --- caudal PAG lesion: clear the old working and the old X first ------------------
-        x_pag = lesion_badge(c["pag"])
-        wl2 = work_lines("freezing: (9 − 8) / 52 = 2%", "pressure: (19 − 3) / 17 = 94%")
-        self.at("caudal periaqueductal")
-        self.play(FadeOut(x_lh), FadeOut(wl1), hit(c["lh"], False),
-                  FadeIn(x_pag, scale=0.5), hit(c["pag"]), run_time=0.6)
-        f2, lf2 = share_bar(1, 0, 2)
-        p2, lp2 = share_bar(1, 1, 94)
-        self.at("Freezing keeps", nth=1)
-        self.play(FadeIn(wl2[0]), GrowFromEdge(f2, DOWN), FadeIn(lf2), run_time=0.6)
-        self.at("pressure keeps")
-        self.play(FadeIn(wl2[1]), GrowFromEdge(p2, DOWN), FadeIn(lp2), run_time=0.5)
+        q=label('Is the response learned?',0,3.1,size=38); row=timeline(.3)
+        # Rat silhouettes ground the group before the stimuli appear.
+        rats=VGroup(*[rat_icon(BLUE).scale(.5).move_to([x,-2.25,0]) for x in (-4.3,0,4.3)])
+        self.add(q,row[2],rats)
+        self.at('one group'); self.play(FadeIn(row[3]),run_time=.3)
+        self.at('hears tones'); self.play(FadeIn(row[0]),FadeIn(row[4][0]),run_time=.4)
+        self.at('end in a shock'); self.play(FadeIn(row[1]),FadeIn(row[4][1]),run_time=.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S05Dissociation(SpokenScene):
-    """central amygdala lesion removes both; the double dissociation; it says nothing yet about a feeling."""
-
+class S05Unpaired(SpokenScene):
     def construct(self):
-        # rebuild the end of scene 4
-        c = circuit("compact")
-        ca = circuit_arrows(c, "compact")
-        axes, labs, leg = share_axes(), group_labels(), share_legend()
-        f1, lf1 = share_bar(0, 0, 94)
-        p1, lp1 = share_bar(0, 1, 6)
-        f2, lf2 = share_bar(1, 0, 2)
-        p2, lp2 = share_bar(1, 1, 94)
-        x_pag = lesion_badge(c["pag"])
-        c["pag"][1].set_stroke(RED).set_fill(RED, 0.4)
-        wl2 = work_lines("freezing: (9 − 8) / 52 = 2%", "pressure: (19 − 3) / 17 = 94%")
-        self.add(*c.values(), ca, axes, labs, leg, f1, lf1, p1, lp1, f2, lf2, p2, lp2, x_pag, wl2)
-
-        # --- central amygdala lesion: clear the old X and working in the same beat ---------
-        x_cea = lesion_badge(c["cea"])
-        wl3 = work_lines("freezing: (6 − 8) / 52, about 0%", "pressure: (3 − 3) / 17 = 0%")
-        self.at("Lesion the central")
-        self.play(FadeOut(x_pag), FadeOut(wl2), hit(c["pag"], False),
-                  FadeIn(x_cea, scale=0.5), hit(c["cea"]), run_time=0.6)
-        f3, lf3 = share_bar(2, 0, 0)
-        p3, lp3 = share_bar(2, 1, 0, "0%")
-        self.play(FadeIn(wl3[0]), FadeIn(wl3[1]), FadeIn(f3), FadeIn(lf3), FadeIn(p3), FadeIn(lp3), run_time=0.7)
-
-        # --- each output lesion removed one and kept the other -----------------------------
-        self.play(FadeOut(x_cea), FadeOut(wl3), hit(c["cea"], False, TEAL), run_time=0.4)
-        fr1 = SurroundingRectangle(VGroup(f1, p1, lf1, lp1), color=TEXT, buff=0.12, stroke_width=2)
-        fr2 = SurroundingRectangle(VGroup(f2, p2, lf2, lp2), color=TEXT, buff=0.12, stroke_width=2)
-        tag_h = T("pressure route", 22, ORANGE).next_to(c["lh"], DOWN, buff=0.15)
-        tag_p = T("freezing route", 22, BLUE).next_to(c["pag"], DOWN, buff=0.15)
-        self.at("Each output lesion")
-        self.play(Create(fr1), run_time=0.5)
-        self.play(Create(fr2), run_time=0.5)
-
-        dd = nbox("double dissociation", TEXT, 28, min_w=3.6).move_to([-3.9, -3.2, 0])
-        dd[1].set_stroke(TEXT).set_fill(TEXT, 0.08)
-        self.at("double dissociation")
-        self.play(FadeIn(dd, shift=UP * 0.1), run_time=0.5)
-
-        self.at("two separate routes")
-        self.play(c["lh"][1].animate.set_stroke(ORANGE).set_fill(ORANGE, 0.16),
-                  c["pag"][1].animate.set_stroke(BLUE).set_fill(BLUE, 0.16),
-                  FadeIn(tag_h), FadeIn(tag_p), Indicate(ca[2], color=TEXT), Indicate(ca[3], color=TEXT),
-                  run_time=0.8)
-        self.at("locates the outputs")
-        self.play(FadeOut(fr1), FadeOut(fr2), Indicate(c["lh"], color=ORANGE), Indicate(c["pag"], color=BLUE),
-                  run_time=0.8)
-
-        feel = nbox("a feeling?", GREY, 28, dashed=True, min_w=3.6).move_to([-3.9, -3.2, 0])
-        self.at("nothing yet")
-        self.play(FadeOut(dd), FadeIn(feel, shift=UP * 0.1), run_time=0.5)
+        top=timeline(1.65); bottom=timeline(-1.7,False); self.add(top,bottom[2],bottom[3])
+        self.at('same tones'); self.play(FadeIn(bottom[0]),FadeIn(bottom[4][0]),run_time=.3)
+        self.at('same shocks'); self.play(FadeIn(bottom[1]),FadeIn(bottom[4][1]),run_time=.3)
+        gap=DoubleArrow([-3.95,-1.7,0],[-2.8,-1.7,0],buff=.05,color=TEXT)
+        self.at('kept apart'); self.play(GrowArrow(gap),FadeIn(label('far apart',-3.375,-1.0,size=28)),run_time=.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Feeling(SpokenScene):
-    """SM and the CO2 breath (people), then what rat work can and cannot say."""
-
+class S06Difference(SpokenScene):
     def construct(self):
-        # --- row 1: SM, minimal fear, external threats ---------------------------------------
-        a = nbox("patient SM:\ndamage to both\namygdalae", PINK, 26, min_w=3.0).move_to([-4.3, 2.4, 0])
-        cx = nbox("at most\nminimal fear", PINK, 26, min_w=3.0).move_to([4.3, 2.4, 0])
-        bx = nbox("external threats\ntested", GREY, 26, min_w=3.0).move_to([0, 2.4, 0])
-        r1 = arr(a[1].get_right(), cx[1].get_left())
-        self.at("Patient")
-        self.play(FadeIn(a, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("at most minimal fear")
-        self.play(GrowArrow(r1), FadeIn(cx, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("external threats")
-        self.play(FadeIn(bx, scale=0.9), run_time=0.5)
-
-        # --- row 2: one breath of 35% CO2 ----------------------------------------------------
-        co2 = nbox("one breath of\n35% CO2", GREY, 26, min_w=3.0, min_h=1.3).move_to([-4.6, -1.3, 0])
-
-        def dots(n, k, x0, y0, per_row):
-            g = VGroup()
-            for i in range(n):
-                r, ci = divmod(i, per_row)
-                d = Circle(radius=0.26, stroke_width=3)
-                if i < k:
-                    d.set_stroke(PINK).set_fill(PINK, 0.9)
-                else:
-                    d.set_stroke(GREY).set_fill(GREY, 0.0)
-                d.move_to([x0 + ci * 0.7, y0 - r * 0.7, 0])
-                g.add(d)
-            return g
-
-        def left(t, x, y):
-            t.move_to([x + t.width / 2, y, 0])
-            return t
-
-        labA = left(T("damage to both amygdalae", 24, PINK), -2.4, 0.1)
-        dotsA = dots(3, 3, -2.1, -0.45, 6)
-        cntA = left(T("3 of 3 panicked", 26, TEXT), 0.3, -0.45)
-        labB = left(T("comparison women", 24, GREY), -2.4, -1.45)
-        dotsB = dots(12, 3, -2.1, -2.0, 6)
-        cntB = left(T("3 of 12", 26, TEXT), 1.9, -2.35)
-        self.at("all panicked", lead=0.0)
-        self.play(FadeIn(labA), LaggedStart(*[GrowFromCenter(d) for d in dotsA], lag_ratio=0.25), run_time=0.8)
-        self.play(FadeIn(cntA), run_time=0.3)
-        self.at("one breath")
-        self.play(FadeIn(co2, shift=RIGHT * 0.2), run_time=0.5)
-        self.at("Three of twelve")
-        self.play(FadeIn(labB), LaggedStart(*[FadeIn(d) for d in dotsB], lag_ratio=0.05), run_time=0.7)
-        self.play(FadeIn(cntB), run_time=0.3)
-        thr = VGroup(T("the kind of threat", 26, TEXT), T("seems to matter", 26, TEXT)).arrange(DOWN, buff=0.1)
-        thr.move_to([4.7, -1.6, 0])
-        self.at("kind of threat")
-        self.play(FadeIn(thr, shift=UP * 0.1), run_time=0.5)
-
-        # --- row 3: rat work ----------------------------------------------------------------
-        cea_i = nbox("central\namygdala", TEAL, 28, min_w=2.2, min_h=1.5).move_to([-5.0, 1.3, 0])
-        lh = nbox("lateral\nhypothalamus", PURPLE, 26, min_w=2.5, min_h=1.1).move_to([-1.9, 2.05, 0])
-        pg = nbox("caudal\nPAG", PURPLE, 26, min_w=2.5, min_h=1.1).move_to([-1.9, 0.55, 0])
-        rp = nbox("pressure rise", ORANGE, 26, min_w=2.6, min_h=1.1).move_to([1.7, 2.05, 0])
-        rf = nbox("freezing", BLUE, 26, min_w=2.6, min_h=1.1).move_to([1.7, 0.55, 0])
-        ch = VGroup(edge(cea_i, lh), edge(cea_i, pg), edge(lh, rp), edge(pg, rf))
-        frame = DashedVMobject(RoundedRectangle(corner_radius=0.2, width=9.8, height=3.3, stroke_color=GREY,
-                                                stroke_width=2), num_dashes=80).move_to([-1.55, 1.3, 0])
-        frame_l = T("in rats, under defined conditions", 24, GREY).move_to([-1.55, 3.2, 0])
-        self.at("can find necessary")
-        self.play(FadeOut(a), FadeOut(bx), FadeOut(cx), FadeOut(r1), FadeOut(co2), FadeOut(labA), FadeOut(dotsA),
-                  FadeOut(cntA), FadeOut(labB), FadeOut(dotsB), FadeOut(cntB), FadeOut(thr), run_time=0.6)
-        self.play(FadeIn(cea_i), run_time=0.3)
-        self.play(GrowArrow(ch[0]), GrowArrow(ch[1]), FadeIn(lh), FadeIn(pg), run_time=0.5)
-        self.play(GrowArrow(ch[2]), GrowArrow(ch[3]), FadeIn(rp), FadeIn(rf), run_time=0.5)
-        self.at("under defined conditions")
-        self.play(Create(frame), FadeIn(frame_l), run_time=0.7)
-
-        feels = nbox("what the animal\nfeels", GREY, 28, dashed=True, min_w=3.4, min_h=1.3).move_to([-2.3, -2.45, 0])
-        human = nbox("a human\nfeeling", GREY, 28, dashed=True, min_w=3.4, min_h=1.3).move_to([3.0, -2.45, 0])
-        d1 = darr(rf[1].get_bottom() + LEFT * 0.5, feels[1].get_top() + RIGHT * 0.8)
-        d2 = darr(rf[1].get_bottom() + RIGHT * 0.5, human[1].get_top())
-        q1 = T("?", 48, YELLOW, weight=BOLD).move_to([0.0, -1.0, 0])
-        q2 = T("?", 48, YELLOW, weight=BOLD).move_to([3.0, -1.0, 0])
-        self.at("cannot say what")
-        self.play(Create(d1), FadeIn(feels), FadeIn(q1), run_time=0.7)
-        self.at("human feeling")
-        self.play(Create(d2), FadeIn(human), FadeIn(q2), run_time=0.7)
+        # Values are the lesson's invented worked example, not 1988 measurements.
+        base=-2.65; scale=.08
+        axes=VGroup(Line([-4.8,base,0],[-4.8,2.6,0],color=GREY),Line([-4.8,base,0],[5.4,base,0],color=GREY))
+        yl=label('freezing to tone\n(no numbers)',-5.65,.1,BLUE,26).rotate(PI/2)
+        bars=VGroup(*[Rectangle(width=1.9,height=v*scale,color=col,fill_color=col,fill_opacity=.55).move_to([x,base+v*scale/2,0]) for x,v,col in [(-2.5,60,BLUE),(1.5,8,GREY)]])
+        self.add(axes,yl,label('Tone alone',0,3.15,BLUE,34),label('paired',-2.5,-3.15,BLUE),label('unpaired',1.5,-3.15,GREY))
+        self.at('the paired rats'); self.play(GrowFromEdge(bars[0],DOWN),GrowFromEdge(bars[1],DOWN),run_time=.6)
+        bottom=base+8*scale; top=base+60*scale
+        gap=Rectangle(width=1.9,height=top-bottom,color=GOLD,fill_color=GOLD,fill_opacity=.25).move_to([1.5,(bottom+top)/2,0])
+        hatch=VGroup(*[Line([.6,y,0],[2.4,y+.3,0],color=GOLD,stroke_width=2) for y in np.arange(bottom+.05,top-.3,.35)])
+        bracket=Brace(Line([2.8,bottom,0],[2.8,top,0]),RIGHT,color=GOLD)
+        self.at('That difference'); self.play(FadeIn(gap),Create(hatch),GrowFromCenter(bracket),run_time=.4)
+        self.at('what was learned'); self.play(FadeIn(label('learned',4.3,0,GOLD,32)),run_time=.3)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S07End(EndCard):
-    LINE = "Rat work finds necessary steps for a response, not a feeling."
+class S07Amygdala(SpokenScene):
+    def construct(self):
+        b=brain_view(); self.add(b[0],b[1],b[4][0],b[4][1])
+        self.at('Where is it learned'); self.play(FadeIn(b[2]),FadeIn(b[3]),FadeIn(b[4][2]),FadeIn(b[4][3]),run_time=.35)
+        self.at('The tone travels'); self.play(Create(b[5]),run_time=.35)
+        wave=sine(-5.6,.6,.65,.15,2)
+        path=VMobject().set_points_as_corners([b[1].get_center(),b[2].get_center(),b[3].get_center()])
+        self.play(MoveAlongPath(wave,path),run_time=.65)
+        self.at('the amygdala'); self.play(FadeOut(wave),Indicate(b[3],color=TEAL),run_time=.4)
+        self.finish()
+
+
+class S08TwoStages(SpokenScene):
+    def construct(self):
+        b=brain_view(); self.add(b)
+        a=nbox('lateral amygdala',TEAL,32,min_w=5,min_h=3.6).move_to([-3.4,0,0])
+        c=nbox('central amygdala',TEAL,32,min_w=5,min_h=3.6).move_to([3.4,0,0])
+        # Transform the glowing tissue into the empty input box, then fade in
+        # clean text (never interpolate glyph outlines from the tissue shape).
+        self.at('The lateral')
+        self.play(FadeOut(VGroup(b[0],b[1],b[2],b[4],b[5])),
+                  ReplacementTransform(b[3],VGroup(a[0],a[1])),run_time=.5)
+        self.play(FadeIn(a[2]),run_time=.25)
+        self.at('input stage'); self.play(FadeIn(label('input',-3.4,-.9,TEAL,32)),run_time=.3)
+        self.at('The central')
+        self.play(FadeIn(c[:2]),GrowArrow(arr(a.get_right(),c.get_left(),TEAL)),run_time=.3)
+        self.at('sends the signal out')
+        self.play(FadeIn(c[2]),FadeIn(label('output',3.4,-.9,TEAL,32)),run_time=.3)
+        self.finish()
+
+
+class S09RoutePag(SpokenScene):
+    def construct(self):
+        m,c,ts,outs,links=route_map(3); self.add(m[1])
+        stubs=VGroup(*[links[i][0].copy().set_opacity(.45) for i in range(3)])
+        self.add(stubs)
+        self.at('leave it'); self.play(Indicate(stubs,color=TEXT),run_time=.35)
+        self.at('One runs'); self.play(FadeIn(ts[0]),run_time=.4)
+        self.at('periaqueductal gray'); self.play(Indicate(ts[0][1],color=BLUE),run_time=.4)
+        self.at('It drives freezing'); self.play(GrowArrow(links[0][1]),FadeIn(outs[0]),run_time=.5)
+        self.finish()
+
+
+class S10RouteLh(SpokenScene):
+    def construct(self):
+        prior,*_=route_map(1); self.add(prior)
+        m,c,ts,outs,links=route_map(2)
+        self.at('A second runs'); self.play(Create(links[1][0]),FadeIn(ts[1]),run_time=.4)
+        self.at('rise in blood pressure'); self.play(GrowArrow(links[1][1]),FadeIn(outs[1]),run_time=.5)
+        self.finish()
+
+
+class S11RouteHpa(SpokenScene):
+    def construct(self):
+        prior,c,*_=route_map(2); self.add(prior)
+        chain=VGroup(*[nbox(t,GREEN,26,min_w=w,min_h=1.05).move_to([x,-1.55,0]) for t,x,w in [('hypothalamus\n(PVN)',-1.95,3),('pituitary',1.3,2.6),('adrenal',4.65,2.4)]])
+        self.at('A third'); self.play(Create(darr(c.get_bottom(),chain[0].get_left(),GREEN)),run_time=.3)
+        self.at('mostly indirect'); self.play(FadeIn(chain[0]),run_time=.35)
+        self.at('pituitary'); self.play(GrowArrow(arr(chain[0].get_right(),chain[1].get_left(),GREEN)),FadeIn(chain[1]),run_time=.3)
+        self.at('adrenal'); self.play(GrowArrow(arr(chain[1].get_right(),chain[2].get_left(),GREEN)),FadeIn(chain[2]),run_time=.3)
+        # A continuous curved teardrop, with its hormone name on the body.
+        drop=VMobject(stroke_color=GREEN,stroke_width=3,fill_color=GREEN,fill_opacity=.18)
+        drop.start_new_path(np.array([3.1,-2.15,0]))
+        drop.add_cubic_bezier_curve_to([2.9,-2.7,0],[1.25,-3.5,0],[3.1,-3.5,0])
+        drop.add_cubic_bezier_curve_to([4.95,-3.5,0],[3.3,-2.7,0],[3.1,-2.15,0])
+        hormone=VGroup(drop,label('cortisol',3.1,-3.13,GREEN,28),
+                       label('corticosterone in rats',3.1,-3.65,GREEN,26))
+        self.at('In people'); self.play(GrowArrow(arr(chain[2].get_bottom(),[3.65,-2.75,0],GREEN)),run_time=.3)
+        self.at('is cortisol'); self.play(FadeIn(hormone),run_time=.25)
+        self.finish()
+
+
+class S12FastClock(SpokenScene):
+    def construct(self):
+        m,c,ts,outs,links=route_map(2); self.add(m)
+        originals=[o.copy() for o in outs[:2]]
+        link_originals=[l.copy() for l in links]
+        for o in outs[:2]: o.set_opacity(.2)
+        for l in links: l.set_opacity(.2)
+        bar=Rectangle(width=8.5,height=.55,color=YELLOW).move_to([1.5,-2.25,0])
+        fill=Rectangle(width=.02,height=.5,stroke_width=0,fill_color=YELLOW,fill_opacity=.4).move_to([-2.73,-2.25,0])
+        start=self.elapsed()
+        fill.add_updater(lambda z: z.stretch_to_fit_width(max(.02,min(8.45,(self.elapsed()-start)*1.3))).align_to(bar,LEFT).shift(RIGHT*.025))
+        cl=running_clock(clock_face(2.55,1.05,.4),TAU*1.5)
+        self.at('Two of these'); self.add(bar,fill,label('tone playing',1.5,-3,YELLOW,30),cl,label('seconds',3.9,1.05,size=28))
+        self.at('are fast'); self.play(FadeIn(speed_tag(-3,1.65)),FadeIn(speed_tag(-2.85,-1.55)),run_time=.3)
+        self.at('Freezing and'); self.play(*[Transform(o,orig) for o,orig in zip(outs[:2],originals)],*[Transform(l,orig) for l,orig in zip(links,link_originals)],run_time=.4)
+        marks=VGroup(*[Line([x,-1.9,0],[x,-2.6,0],color=col,stroke_width=5) for x,col in [(.4,BLUE),(.8,ORANGE)]])
+        self.play(Create(marks),run_time=.2)
+        self.at('while the tone'); self.play(Indicate(bar,color=YELLOW),run_time=.4)
+        self.finish()
+
+
+class S13SlowClock(SpokenScene):
+    def construct(self):
+        # Qualitative ordinal model: lag, peak, clearance toward continuing secretion.
+        # Dimensionless anchors encode only the lesson's ordering, never fitted data.
+        ax=np.array([0,1,2,3,4,6,8,10],float); ay=np.array([.5,.5,.55,1.7,3.2,2,.8,.55],float)
+        f=lambda t: np.array([-3.8+t*.94,-2.55+np.interp(t,ax,ay)*1.28,0])
+        adrenal=nbox('3 • adrenal hormone',GREEN,32,min_w=3.6).move_to([-4.45,2.9,0])
+        cl=running_clock(clock_face(-1.7,3,.35),.28)
+        self.add(adrenal,cl,label('minutes',-.4,3,size=26),label('qualitative timing',3.9,3.15,TEXT,28))
+        axes=VGroup(Line([-3.8,-2.55,0],[5.9,-2.55,0],color=GREY),Line([-3.8,-2.55,0],[-3.8,2,0],color=GREY))
+        self.at('is slow'); self.play(Create(axes),FadeIn(label('hormone level',-5.35,-.25,GREEN,26).rotate(PI/2)),FadeIn(label('time after stress',1.5,-3.35,GREY,28)),run_time=.4)
+        self.at('The adrenal must'); self.play(Create(DashedLine(f(0),f(10)*[1,0,1]+[0,f(0)[1],0],color=GREY)),Create(Line([-3.8,-2.4,0],[-3.8,-2.75,0],color=TEXT,stroke_width=4)),FadeIn(label('stress begins',-3.8,-2.99,size=26)),run_time=.4)
+        rise=ParametricFunction(f,t_range=[0,4,.02],color=GREEN,stroke_width=6)
+        fall=ParametricFunction(f,t_range=[4,10,.02],color=GREEN,stroke_width=6)
+        self.at('so levels peak'); self.play(Create(rise),run_time=.65)
+        bracket=VGroup(Line([-3.8,1.95,0],[-.04,1.95,0],color=GREEN),Line([-3.8,1.8,0],[-3.8,2.1,0],color=GREEN),Line([-.04,1.8,0],[-.04,2.1,0],color=GREEN))
+        self.at('tens of minutes later'); self.play(Create(bracket),FadeIn(label('tens of minutes',-1.9,2.3,GREEN,26)),run_time=.4)
+        self.at('Feedback then'); self.play(Create(fall),FadeIn(label('feedback limits release',3.1,1.5,GREEN,26)),GrowArrow(arr([3.1,1.15,0],f(6.5),GREEN)),run_time=.65)
+        self.finish()
+
+
+class S14Rule(SpokenScene):
+    def construct(self):
+        m,c,ts,outs,links=route_map(3,tags=True); self.add(m)
+        self.at('here is the rule'); self.play(FadeIn(label('One node, separate routes',1.1,3.35,size=32)),run_time=.3)
+        self.at('cue reaches'); self.play(Indicate(m[1][1],color=TEAL),Indicate(c,color=TEAL),run_time=.5)
+        self.at('separate routes'); self.play(Indicate(links,color=TEXT),run_time=.4)
+        self.finish()
+
+
+class S15Cut(SpokenScene):
+    def construct(self):
+        m,c,ts,outs,links=lesion_picture(); self.add(m)
+        originals=[o.copy() for o in outs[:2]]
+        self.add(label('Simplified model • hormone branch not measured here',0,-3.35,GREY,26))
+        badge=lesion_badge(ts[0]); cap=label('freezing lost, pressure kept',0,-2.5,BLUE,30)
+        self.at('damaging neurons'); self.play(FadeIn(badge),run_time=.15)
+        self.play(outs[0].animate.set_opacity(.18),FadeIn(cap),run_time=.15)
+        self.wait(2.05)
+        self.at('impaired mainly'); self.play(FadeOut(badge),FadeOut(cap),Transform(outs[0],originals[0]),run_time=.15)
+        badge=lesion_badge(ts[1]); cap=label('pressure lost, freezing kept',0,-2.5,ORANGE,30)
+        self.play(FadeIn(badge),run_time=.15)
+        self.play(outs[1].animate.set_opacity(.18),FadeIn(cap),run_time=.15)
+        self.wait(2.05)
+        self.at('Damage to'); self.play(FadeOut(badge),FadeOut(cap),Transform(outs[1],originals[1]),run_time=.15)
+        badge=lesion_badge(c); cap=label('both learned responses impaired',0,-2.5,RED,30)
+        self.play(FadeIn(badge),run_time=.15)
+        self.play(outs[0].animate.set_opacity(.18),outs[1].animate.set_opacity(.18),FadeIn(cap),run_time=.15)
+        self.finish()
+
+
+class S16Scope(SpokenScene):
+    def construct(self):
+        # Continue the shared-node result across the cut for one full second.
+        old,c,ts,outs,links=lesion_picture()
+        outs[0].set_opacity(.18); outs[1].set_opacity(.18)
+        prev=VGroup(old,lesion_badge(c),label('both learned responses impaired',0,-2.5,RED,30),label('Simplified model • hormone branch not measured here',0,-3.35,GREY,26))
+        self.add(prev); self.at('This map'); self.wait(1)
+        m,f,l=scope_map(); self.play(FadeOut(prev),FadeIn(m),Create(f),run_time=.45)
+        self.at('learned responses'); self.play(FadeIn(l),run_time=.3)
+        self.finish()
+
+
+class S17Limits(SpokenScene):
+    def construct(self):
+        m,f,l=scope_map(); self.add(m,f,l)
+        self.at('does not say')
+        bubble=thought(6.1,.15)
+        bubble[0].stretch_to_fit_width(1.05)
+        self.play(FadeIn(bubble),Create(DashedLine([5.4,-1.2,0],[5.4,1.4,0],color=GREY)),run_time=.4)
+        self.at('Later chapters'); self.play(Indicate(bubble[1],color=TEXT,scale_factor=1.15),run_time=.7)
+        self.at('where the map stops'); self.play(Indicate(f,color=TEXT,scale_factor=1),Indicate(bubble[0],color=TEXT,scale_factor=1),run_time=.6)
+        self.finish()
+
+
+class S18Takeaway(SpokenScene):
+    def construct(self):
+        m,c,ts,outs,links=route_map(3,tags=True); self.add(m)
+        self.at('The amygdala'); self.play(FadeIn(label('The amygdala is needed to learn the threat',.65,3.45,TEAL,30)),Indicate(VGroup(m[1][1],c),color=TEAL),run_time=.6)
+        self.at('Separate routes'); self.play(FadeIn(label('Separate routes respond: two fast, one slow',0,-3.35,size=30)),Indicate(links,color=TEXT),run_time=.6)
+        self.at('two fast'); self.play(Indicate(VGroup(links[0],links[1]),color=TEXT),run_time=.4)
+        self.at('one slow'); self.play(Indicate(links[2],color=GREEN),run_time=.35)
+        self.finish()
+
+
+class S19End(EndCard):
+    LINE='The amygdala is needed to learn threats; routes respond separately.'

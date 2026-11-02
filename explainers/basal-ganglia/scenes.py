@@ -1,428 +1,494 @@
-"""Counting signs around the brake: the basal ganglia as a signed loop (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-The whole film is one flat box-and-arrow circuit of the classic rate model (no brain outline, no
-section). Box brightness is a qualitative activity level "in this sketch"; no firing rate is drawn.
-Only the lesson's links and signs are drawn.
-
-COLOR MAP (one color per concept, whole video)
-  GREEN  = excitatory link and its sign (+1); "cortical drive up"
-  RED    = inhibitory link and its sign (-1); "cortical drive down"; the brake; akinesia
-  GOLD   = modulatory dopamine link and SNc (dashed)
-  BLUE   = a population (box); its fill brightness is its activity level in this sketch
-  YELLOW = the thing that moves or is highlighted (spikes, outline of the box in play)
-  GREY   = legend, key, notes, de-emphasised text
-  TEXT   = the product being multiplied
+"""Two Counts: Side and Sign — reviewed redraw.
+COLOR MAP: GREEN excitation; YELLOW increased drive; RED inhibition/lesion/weakness;
+GOLD modulation; BLUE neural populations; YELLOW highlighted tract/spikes;
+GREY anatomy; TEXT explanatory labels. No molecular structures.
+Tick trains are qualitative signed-model illustrations, not measured rates:
+r_i = baseline + delta * product(link signs); evenly spaced events over a
+common unit time window. Baseline=6, delta=4, inhibitory signs=(-1,-1).
 """
+import json
+import os
+from pathlib import Path
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-EXC, INH, MOD, POP, HI = GREEN, RED, GOLD, BLUE, YELLOW
-LOW, MID, HIGH = 0.07, 0.30, 0.66
-DIM = 0.22
-MINUS = "−"
-
-# centre, (half width, half height)
-POS = {"ctx": (-2.9, 2.30), "thal": (4.9, 2.30), "gpi": (4.9, 0.45), "gpe": (-0.6, -1.95),
-       "stn": (2.6, -1.95), "snc": (-5.45, -1.95), "str": (-2.9, 0.10), "D1": (-2.9, 0.45), "D2": (-2.9, -0.50)}
-HALF = {"ctx": (1.0, 0.4), "thal": (1.0, 0.4), "gpi": (0.8, 0.4), "gpe": (0.8, 0.4), "stn": (0.8, 0.4),
-        "snc": (0.8, 0.4), "str": (1.45, 1.225), "D1": (1.2, 0.31), "D2": (1.2, 0.31)}
-NAMES = {"ctx": "Cortex", "thal": "Thalamus", "gpi": "GPi", "gpe": "GPe", "stn": "STN", "snc": "SNc"}
-
-# name: (from, to, kind)
-LINKS = {"c_s": ("ctx", "str", "exc"), "s_gpi": ("D1", "gpi", "inh"), "s_gpe": ("D2", "gpe", "inh"),
-         "gpe_stn": ("gpe", "stn", "inh"), "stn_gpi": ("stn", "gpi", "exc"), "gpi_t": ("gpi", "thal", "inh"),
-         "t_c": ("thal", "ctx", "exc"), "da1": ("snc", "D1", "mod"), "da2": ("snc", "D2", "mod")}
-KCOL = {"exc": EXC, "inh": INH, "mod": MOD}
-# sign label offsets from link midpoint
-LOFF = {"c_s": (0.5, 0.0), "s_gpi": (0.0, 0.33), "s_gpe": (0.8, 0.05), "gpe_stn": (0.0, 0.33),
-        "stn_gpi": (0.55, 0.0), "gpi_t": (0.55, 0.0), "t_c": (0.0, 0.33)}
-SIGN = {"c_s": 1, "s_gpi": -1, "s_gpe": -1, "gpe_stn": -1, "stn_gpi": 1, "gpi_t": -1, "t_c": 1}
-DIRECT = ["c_s", "s_gpi", "gpi_t", "t_c"]
-INDIRECT = ["c_s", "s_gpe", "gpe_stn", "stn_gpi", "gpi_t", "t_c"]
-STRIP_Y = 3.22
-KEY_Y = -3.2
+from bp_style import *
+from bp_style import SpokenScene as HouseSpokenScene
 
 
-def P(name):
-    x, y = POS[name]
-    return np.array([x, y, 0.0])
+class SpokenScene(HouseSpokenScene):
+    # The house logger prints the clock BEFORE waiting: negative 'late' values
+    # are pending waits, not early pictures. Audit the actual clock AFTER waiting.
+    # Keep audit output and all renderer intermediates outside the deliverables.
+    def at(self, phrase, lead=0, nth=0):
+        target = self.t_of(phrase, nth)
+        if target > self.elapsed() + .001:
+            self.wait(target - self.elapsed())
+        audit = Path(os.environ.get('BG_CUE_AUDIT', '/tmp/bg-cue-audit.jsonl'))
+        with audit.open('a') as f:
+            f.write(json.dumps(dict(scene=os.environ['KX_SCENE_ID'], phrase=phrase,
+                                    target=target, actual=self.elapsed()))+'\n')
+
+    def finish(self):
+        if self.elapsed() < self.narration_s:
+            self.wait(self.narration_s-self.elapsed())
 
 
-def edge(src, dst, gap=0.07):
-    c, d = P(src), P(dst)
-    v = d - c
-    hw, hh = HALF[src]
-    t = min(hw / abs(v[0]) if abs(v[0]) > 1e-6 else 1e9, hh / abs(v[1]) if abs(v[1]) > 1e-6 else 1e9)
-    u = v / np.linalg.norm(v)
-    return c + v * t + u * gap
+def label(s, x=0, y=3.15, size=28, color=TEXT):
+    return T(s, size=size, color=color).move_to([x,y,0])
 
 
-EP = {("snc", "D1"): ((-5.7, -1.56, 0.0), (-4.15, 0.42, 0.0)), ("snc", "D2"): ((-5.2, -1.56, 0.0), (-4.15, -0.5, 0.0))}
+def path(points, color=YELLOW, width=6):
+    return VMobject(stroke_color=color, stroke_width=width).set_points_as_corners(
+        [np.array([x,y,0.]) for x,y in points])
 
 
-def make_link(a, b, kind):
-    p, q = edge(a, b), edge(b, a)
-    if (a, b) in EP:
-        p, q = np.array(EP[(a, b)][0]), np.array(EP[(a, b)][1])
-    col = KCOL[kind]
-    u = (q - p) / np.linalg.norm(q - p)
-    if kind == "inh":
-        shaft = Line(p, q - u * 0.02, color=col, stroke_width=5)
-        n = np.array([-u[1], u[0], 0.0])
-        mark = Line(q + n * 0.2, q - n * 0.2, color=col, stroke_width=7)
+def lesion(x,y):
+    return VGroup(Circle(radius=.22,color=RED,stroke_width=4).move_to([x,y,0]),
+                  Line([x-.12,y-.12,0],[x+.12,y+.12,0],color=RED,stroke_width=5),
+                  Line([x-.12,y+.12,0],[x+.12,y-.12,0],color=RED,stroke_width=5))
+
+
+CX=0
+
+def anatomy():
+    brain=Ellipse(width=4.8,height=1.9,color=GREY).move_to([CX,2.05,0])
+    mid=DashedLine([CX,2.98,0],[CX,1.15,0],color=GREY,stroke_width=2)
+    stem=VGroup(*[RoundedRectangle(width=w,height=h,corner_radius=.1,color=GREY,
+                 fill_color=GREY,fill_opacity=.09).move_to([CX,y,0])
+                 for w,h,y in [(1.3,.6,.8),(1.65,.7,.12),(1.25,.8,-.65)]])
+    cord=RoundedRectangle(width=1.1,height=2,corner_radius=.15,color=GREY).move_to([CX,-2.12,0])
+    def limbs(side):
+        return VGroup(path([(CX+side*.6,-1.8),(CX+side*1.6,-1.8),(CX+side*3.0,-2.25)],BLUE,13),
+                      path([(CX+side*.5,-2.4),(CX+side*1.4,-3.12),(CX+side*2,-3.12)],BLUE,13))
+    sides=VGroup(label("Patient's right",-3.8,3.35,32),label("Patient's left",3.8,3.35,32),
+                 label('Frontal view',0,3.35,32),
+                 *[label('arm',side*3.55,-2.25,32) for side in [-1,1]],
+                 *[label('leg',side*2.5,-3.33,32) for side in [-1,1]])
+    return VGroup(brain,mid,stem,cord,limbs(-1),limbs(1),sides)
+
+
+def crossing():
+    return VGroup(path([(CX+.4,-.85),(CX-.4,-1.4)]),
+                  path([(CX-.4,-.85),(CX+.4,-1.4)]))
+
+
+def upper(side=1):
+    return path([(CX+side*1.1,2.7),(CX+side*.85,1.9),(CX+side*.45,.8),
+                 (CX+side*.4,.1),(CX+side*.4,-.85)])
+
+
+def distal(side=-1,color=YELLOW):
+    # Coloured paths follow the exact limb centrelines, ending on the limb.
+    return VGroup(path([(CX+side*.4,-1.4),(CX+side*.4,-1.8),
+                        (CX+side*1.6,-1.8),(CX+side*3,-2.25)],color),
+                  path([(CX+side*.4,-1.8),(CX+side*.4,-2.4),
+                        (CX+side*.5,-2.4),(CX+side*1.4,-3.12),
+                        (CX+side*2,-3.12)],color),
+                  Dot([CX+side*3,-2.25,0],radius=.08,color=color),
+                  Dot([CX+side*2,-3.12,0],radius=.08,color=color))
+
+
+def crossing_glow(x):
+    return VGroup(*[x.copy().set_stroke(color=YELLOW,width=w,opacity=o)
+                   for w,o in [(26,.08),(18,.14),(11,.28)]])
+
+
+def tract():
+    return VGroup(upper(),crossing()[0],distal())
+
+
+def leader(s, x,y, px,py, color=TEXT,size=26):
+    t=label(s,x,y,size,color)
+    edge=t.get_left() if px<x else t.get_right()
+    return VGroup(Line([px,py,0],edge+(.12*LEFT if px<x else .12*RIGHT),color=GREY,stroke_width=2),t)
+
+
+def result_lines(first, second):
+    return VGroup(label(first,4.65,1.35,28),label('below the lesion',4.65,.8,28),
+                  label(second,4.65,-.2,32,RED))
+
+
+def question1():
+    return (anatomy(),crossing(),lesion(CX-.4,-.58),
+            label('Which limbs\nare weak?',4.65,-.25,32),
+            leader('Right pyramid',4.65,1.3,CX-.4,-.58))
+
+
+def time_hint(y=-3.35):
+    return label('Pause and answer',4.65,y,26,YELLOW)
+
+
+def inhibit(a,b,y=.5):
+    p=np.array([a+1.15,y,0]); q=np.array([b-1.15,y,0])
+    return VGroup(Line(p,q,color=RED,stroke_width=6),
+                  Line(q+UP*.25,q+DOWN*.25,color=RED,stroke_width=7),
+                  chip('−',RED,32).move_to((p+q)/2+UP*.7))
+
+
+def ticks(x,n):
+    # Deterministic event times in a common [0,1] window, from the signed model.
+    times=(np.arange(n)+.5)/n
+    return VGroup(*[Line([x-1.1+2.2*t,-2.42,0],[x-1.1+2.2*t,-1.32,0],
+                         color=YELLOW,stroke_width=4) for t in times])
+
+
+def rate(i,fast=False,released=False):
+    reached=fast and (i==0 or released)
+    return int(6 + (4 * np.prod([-1]*i) if reached else 0))
+
+
+def neurons(fast=False,released=False):
+    nodes=VGroup(*[VGroup(Circle(radius=1.15,color=BLUE,fill_color=BLUE,
+                    fill_opacity=(.65 if rate(i,fast,released)>6 else .08 if rate(i,fast,released)<6 else .28)),
+                    label(c,0,0,44)).move_to([x,.5,0]) for i,(x,c) in enumerate(zip([-4,0,4],'ABC'))])
+    trains=VGroup(*[ticks(x,rate(i,fast,released)) for i,x in enumerate([-4,0,4])])
+    links=VGroup(inhibit(-4,0),inhibit(0,4))
+    return nodes,trains,links
+
+
+def circuit_labels(fast=False,released=False,heading='Any three cells in a row'):
+    rates=[rate(i,fast,released) for i in range(3)]
+    return VGroup(label(heading,0,3.25,30),label('Firing, over time',0,-.95,26),
+         *[VGroup(Arrow([x-1.2,-2.62,0],[x+1.2,-2.62,0],buff=0,color=GREY,stroke_width=2),
+                   label('fast' if r>6 else 'slow' if r<6 else 'baseline',x,-3.05,26,
+                         YELLOW if r!=6 else TEXT)) for x,r in zip([-4,0,4],rates)])
+
+
+def question2():
+    n,t,l=neurons(True)
+    return n,t,l,circuit_labels(True),label('What does the third neuron do?',0,2.4,30)
+
+
+def count_card(which,x):
+    box=RoundedRectangle(width=5.8,height=4.75,corner_radius=.2,color=BLUE,
+                          fill_color=BLUE,fill_opacity=.08).move_to([x,-.35,0])
+    if which==1:
+        content=VGroup(label('Count 1 · crossings',x,1.35,30,YELLOW),
+             label('One crossing',x,.5,30),label('flips the side',x,-.15,30),
+             path([(x-1.2,-.8),(x+1.2,-2.05)]),path([(x+1.2,-.8),(x-1.2,-2.05)]),
+             label('right',x-1.4,-2.4,26),label('left',x+1.4,-2.4,26))
     else:
-        tip = q - u * 0.2
-        shaft = (DashedLine(p, tip, color=col, stroke_width=4.5, dash_length=0.13) if kind == "mod"
-                 else Line(p, tip, color=col, stroke_width=5))
-        mark = Triangle(fill_color=col, fill_opacity=1, stroke_width=0).scale(0.15)
-        mark.rotate(np.arctan2(u[1], u[0]) - PI / 2).move_to(q - u * 0.1)
-    return VGroup(shaft, mark)
+        content=VGroup(label('Count 2 · inhibitions',x,1.35,30,RED),
+             label('Each inhibition',x,.5,30),label('flips the sign',x,-.15,30),
+             label('increase',x-1.5,-1.1,26,YELLOW),label('decrease',x+1.5,-2.05,26,RED),
+             Arrow([x-1,-1.3,0],[x+1,-1.85,0],buff=.05,color=RED),chip('−',RED,30).move_to([x+.5,-1.1,0]))
+    return VGroup(box,content)
 
 
-def make_node(name, text, size=26):
-    hw, hh = HALF[name]
-    rect = RoundedRectangle(corner_radius=0.12, width=2 * hw, height=2 * hh, stroke_color=POP, stroke_width=3,
-                            fill_color=POP, fill_opacity=MID).move_to(P(name))
-    lab = T(text, size=size, color=TEXT).move_to(rect)
-    return VGroup(rect, lab)
+class S00Title(TitleCard):
+    LESSON='Descending Control and the Basal Ganglia'
+    TITLE='Two Counts: Side and Sign'
+    def construct(self):
+        self.add(VGroup(T('BIOCHEMISTRYPEDIA',26,TEAL),T(self.LESSON,28),
+            T(self.TITLE,48,font=TITLE_FONT),Line(LEFT*1.2,RIGHT*1.2,color=GOLD,stroke_width=4)).arrange(DOWN,buff=.4))
+        self.wait(self.narration_s)
 
 
-class Diag:
-    """The circuit. Rebuilt identically at the start of each scene."""
-
-    def __init__(self, links=(), nodes=("ctx", "thal", "gpi", "gpe", "stn", "snc", "str"), lv=None, op=1.0):
-        self.node = {}
-        for n in ("ctx", "thal", "gpi", "gpe", "stn", "snc"):
-            self.node[n] = make_node(n, NAMES[n])
-        out = RoundedRectangle(corner_radius=0.16, width=2 * HALF["str"][0], height=2 * HALF["str"][1],
-                               stroke_color=GREY, stroke_width=2.5, fill_opacity=0).move_to(P("str"))
-        slab = T("Striatum", 24, TEXT).move_to(P("str") + UP * 0.93)
-        self.node["str"] = VGroup(out, slab)
-        self.node["D1"] = make_node("D1", "D1 · direct", 22)
-        self.node["D2"] = make_node("D2", "D2 · indirect", 22)
-        self.node["snc"][0].set_stroke(MOD).set_fill(MOD, opacity=MID)
-        self.names = list(nodes) + ["D1", "D2"] if "str" in nodes else list(nodes)
-        self.link = {k: make_link(*v) for k, v in LINKS.items()}
-        self.lab = {}
-        for k, off in LOFF.items():
-            s = SIGN[k]
-            m = LinesOff = None
-            t = M(("+1" if s > 0 else MINUS + "1"), 26, EXC if s > 0 else INH, weight=BOLD)
-            mid = (edge(LINKS[k][0], LINKS[k][1]) + edge(LINKS[k][1], LINKS[k][0])) / 2
-            t.move_to(mid + np.array([off[0], off[1], 0.0]))
-            self.lab[k] = t
-        self.lv = {n: MID for n in ("ctx", "thal", "gpi", "gpe", "stn", "snc", "D1", "D2")}
-        if lv:
-            self.lv.update(lv)
-        for n, v in self.lv.items():
-            self.node[n][0].set_fill(opacity=v)
-        self.shown = list(links)
-        for k in self.link:
-            self.link[k].set_opacity(op if k in self.shown else 0)
-        for k in self.lab:
-            self.lab[k].set_opacity(0)
-
-    def mobs(self):
-        g = [self.node[n] for n in self.names]
-        return g
-
-    def everything(self):
-        return VGroup(*self.link.values(), *self.lab.values(), *self.node.values())
-
-    def level(self, name, v, **kw):
-        self.lv[name] = v
-        return self.node[name][0].animate.set_fill(opacity=v)
-
-    def only(self, keys, others=DIM):
-        return [self.link[k].animate.set_opacity(1.0 if k in keys else others) for k in self.link
-                if k in self.shown and not k.startswith("da")]
+class S01Question(SpokenScene):
+    def construct(self):
+        a=anatomy(); self.add(a)
+        self.at('stroke deep'); self.play(FadeIn(lesion(CX+.85,1.9)),run_time=.3)
+        self.at('weakens the right'); self.play(a[4].animate.set_stroke(opacity=.2),run_time=.4)
+        self.at('Why the opposite'); self.play(FadeIn(label('Why the\nopposite side?',4.65,.2,32)),run_time=.3)
+        self.finish()
 
 
-def legend():
-    items = []
-    for kind, text in (("exc", "excitatory +1"), ("inh", "inhibitory " + MINUS + "1"), ("mod", "modulatory")):
-        col = KCOL[kind]
-        if kind == "inh":
-            a = VGroup(Line(LEFT * 0.3, RIGHT * 0.25, color=col, stroke_width=5),
-                       Line(RIGHT * 0.3 + UP * 0.15, RIGHT * 0.3 + DOWN * 0.15, color=col, stroke_width=7))
-        elif kind == "exc":
-            a = VGroup(Line(LEFT * 0.3, RIGHT * 0.15, color=col, stroke_width=5),
-                       Triangle(fill_color=col, fill_opacity=1, stroke_width=0).scale(0.13)
-                       .rotate(-PI / 2).move_to(RIGHT * 0.25))
-        else:
-            a = VGroup(DashedLine(LEFT * 0.3, RIGHT * 0.15, color=col, stroke_width=4.5, dash_length=0.12),
-                       Triangle(fill_color=col, fill_opacity=1, stroke_width=0).scale(0.13)
-                       .rotate(-PI / 2).move_to(RIGHT * 0.25))
-        items.append(VGroup(a, T(text, 22, GREY)).arrange(RIGHT, buff=0.15))
-    g = VGroup(*items).arrange(RIGHT, buff=0.5)
-    g.move_to([-6.25 + g.width / 2, KEY_Y, 0])
+class S02Neck(SpokenScene):
+    def construct(self):
+        a=anatomy(); old=lesion(CX+.85,1.9).set_color(GREY).set_opacity(.35); self.add(a,old)
+        self.at('cut through'); self.play(FadeIn(lesion(CX-.4,-1.6)),run_time=.3)
+        self.at('weakens the right'); self.play(a[4].animate.set_stroke(opacity=.2),run_time=.4)
+        self.at('on opposite sides'); txt=label('Lesions on\nopposite sides,',4.65,1.3,30); self.play(FadeIn(txt),run_time=.3)
+        self.at('weakness on the same'); self.play(FadeIn(label('weakness on\nthe same side',4.65,-.15,30,RED)),run_time=.3)
+        self.finish()
+
+
+class S03Tract(SpokenScene):
+    def construct(self):
+        self.add(anatomy())
+        self.at('Follow the tract'); self.play(Create(path([(CX+1.1,2.7),(CX+.85,1.9)])),run_time=.65)
+        self.at('motor cortex'); self.play(FadeIn(leader('Motor cortex',4.55,2.7,CX+1.1,2.7)),run_time=.3)
+        self.at('through the internal'); self.play(Create(path([(CX+.85,1.9),(CX+.45,1.1)])),
+                       FadeIn(leader('Internal capsule',4.55,1.85,CX+.7,1.5)),run_time=.55)
+        self.at('and the brainstem')
+        for s,y,end in [('Cerebral peduncle',.8,.5),('Base of pons',.05,-.25),('Pyramid',-.7,-.85)]:
+            start=1.1 if s=='Cerebral peduncle' else .5 if s=='Base of pons' else -.25
+            self.play(Create(path([(CX+.4,start),(CX+.4,end)])),
+                      FadeIn(leader(s,4.55,y,CX+.4,y)),run_time=.35)
+        self.finish()
+
+
+class S04Cross(SpokenScene):
+    def construct(self):
+        a=anatomy(); x=crossing(); self.add(a,upper(),upper(-1).set_stroke(opacity=.25))
+        self.at('caudal medulla'); self.play(FadeIn(leader('Caudal medulla',4.65,.8,CX,-.65)),run_time=.3)
+        self.at('most of its'); self.play(FadeIn(label('Most fibres',4.65,2,30,YELLOW)),run_time=.3)
+        self.at('cross the midline'); self.play(Create(x),run_time=.55); self.play(Create(distal()),run_time=.45)
+        self.at('That crossing is'); self.play(FadeIn(leader('Pyramidal\ndecussation',4.65,-.8,CX,-1.12)),
+            FadeIn(label('Both pyramids cross',4.65,-2.4,26)),run_time=.4)
+        self.finish()
+
+
+class S05Above(SpokenScene):
+    def construct(self):
+        a=anatomy(); t=tract(); self.add(a,t,crossing()[1].set_opacity(.3))
+        self.at('Damage above'); self.play(FadeIn(lesion(CX+.85,1.9)),run_time=.3)
+        self.at('shows up'); self.play(ShowPassingFlash(upper().set_stroke(width=12),time_width=.5),run_time=.55)
+        self.at('opposite side'); self.play(a[4].animate.set_stroke(opacity=.2),FadeIn(result_lines('One crossing','Opposite side')),run_time=.35)
+        self.finish()
+
+
+class S06Below(SpokenScene):
+    def construct(self):
+        a=anatomy(); x=crossing(); self.add(a,tract(),x)
+        self.at('In the cord'); self.play(FadeIn(lesion(CX-.4,-1.6)),run_time=.3)
+        self.at('already crossed'); self.play(Indicate(x,color=YELLOW,scale_factor=1.2),run_time=.5)
+        self.at('damage there'); self.play(Create(distal(-1,RED)),
+            a[4].animate.set_stroke(opacity=.2),FadeIn(result_lines('No crossing','Same side')),run_time=.55)
+        self.finish()
+
+
+class S07Count1(SpokenScene):
+    def construct(self):
+        card=count_card(1,0).scale(1.3)
+        x=VGroup(card[1][3],card[1][4]); glow=crossing_glow(x)
+        self.add(card)
+        self.at('first count'); self.play(FadeIn(glow),run_time=.25)
+        self.play(glow.animate.set_opacity(.15),rate_func=there_and_back,run_time=.8)
+        self.at('between the damage'); self.play(card[0].animate.set_stroke(YELLOW,width=4),run_time=.3)
+        self.at('crossing flips'); self.play(Indicate(x,color=YELLOW,scale_factor=1.15),run_time=.7)
+        self.finish()
+
+
+class S08Q1(SpokenScene):
+    def construct(self):
+        a,x,m,q,h=question1(); self.add(a,x)
+        self.at('lesion sits'); self.play(FadeIn(m),run_time=.3)
+        self.at('right pyramid'); self.play(FadeIn(h),run_time=.3)
+        self.at('Which limbs'); self.play(FadeIn(q),run_time=.3); self.finish()
+
+
+class S09Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; a,x,m,q,h=question1()
+        glow=crossing_glow(x); self.add(a,glow,x,m,q,h,time_hint())
+        for i in range(5):
+            d=label(str(5-i),4.65,-2.65,30,YELLOW); self.add(d)
+            self.play(glow.animate.set_opacity(.25),rate_func=there_and_back,run_time=1)
+            self.remove(d)
+
+
+class S10Reveal1(SpokenScene):
+    def construct(self):
+        a,x,m,q,h=question1(); self.add(a,x,m,h)
+        self.at('The left limbs'); self.play(a[5].animate.set_stroke(opacity=.2),FadeIn(label('Left limbs',4.65,.1,32,RED)),run_time=.4)
+        self.at('crossing lies below'); self.play(Create(path([(CX-.4,-.83),(CX+.4,-1.4)])),Indicate(x,scale_factor=1.5,color=YELLOW),run_time=.6)
+        self.play(Create(distal(1)),run_time=.35)
+        self.at('so the side'); self.play(FadeIn(label('One crossing,\nopposite side',4.65,-1.6,28,YELLOW)),run_time=.3); self.finish()
+
+
+def nuclei():
+    outline=Ellipse(width=7.5,height=5.6,color=GREY).move_to([-1.5,-.25,0])
+    blobs=VGroup(*[Ellipse(width=2.1,height=1.4,color=BLUE,fill_color=BLUE,fill_opacity=.25).move_to([x,y,0])
+                   for x,y in [(-3.6,.9),(-.9,.9),(.6,-.8)]])
+    return VGroup(outline,blobs)
+
+
+def bg_notes():
+    return VGroup(label('Basal ganglia',0,3.15,34,BLUE),label('Classic model',4.3,1.8,26),
+                  label('Movement\ngoes ahead?',4.4,-.1,28))
+
+
+class S11Bg(SpokenScene):
+    def construct(self):
+        a=anatomy(); opening=label('Second puzzle',3.6,.6,32); self.add(a,opening)
+        self.at('The basal ganglia'); self.play(FadeOut(a),FadeOut(opening),FadeIn(nuclei()),FadeIn(label('Basal ganglia',0,3.15,34,BLUE)),run_time=.65)
+        self.at('never reach'); gap=VGroup(DashedLine([-.3,-1.7,0],[-.3,-2.2,0],color=GREY),
+            DashedLine([-.3,-2.65,0],[-.3,-2.95,0],color=GREY),lesion(-.3,-2.42),label('No direct link to spinal cord',0,-3.35,26))
+        self.play(FadeIn(gap),run_time=.4)
+        self.at('classic model'); self.play(FadeIn(label('Classic model',4.3,1.8,26)),run_time=.3)
+        self.at('whether a movement'); self.play(FadeIn(label('Movement\ngoes ahead?',4.4,-.1,28)),
+            Create(Line([-2.55,.9,0],[-1.95,.9,0],color=RED,stroke_width=7)),
+            Create(Line([-1.95,.65,0],[-1.95,1.15,0],color=RED,stroke_width=7)),run_time=.4)
+        self.finish()
+
+
+class S12Bg2(SpokenScene):
+    def construct(self):
+        self.add(nuclei(),bg_notes())
+        link=VGroup(Line([-2.55,.9,0],[-1.95,.9,0],color=RED,stroke_width=7),
+                    Line([-1.95,.65,0],[-1.95,1.15,0],color=RED,stroke_width=7))
+        self.add(link)
+        self.at('rests on inhibition'); self.play(Indicate(link,color=YELLOW,scale_factor=1.2),FadeIn(label('Inhibition',-2.3,-.2,32,RED)),run_time=.4); self.finish()
+
+
+class S13Abc(SpokenScene):
+    def construct(self):
+        n,t,l=neurons(); self.add(circuit_labels())
+        self.at('Picture three neurons'); self.play(FadeIn(n),FadeIn(t),run_time=.55)
+        self.at('first inhibits'); self.play(Create(l[0]),run_time=.5)
+        self.at('second inhibits'); self.play(Create(l[1]),run_time=.5); self.finish()
+
+
+class S14Q2(SpokenScene):
+    def construct(self):
+        n,t,l=neurons(); c=circuit_labels(); self.add(n,t,l,c)
+        self.at('starts firing faster'); self.play(Transform(t[0],ticks(-4,rate(0,True))),n[0][0].animate.set_fill(opacity=.65),Transform(c,circuit_labels(True)),run_time=.45)
+        self.at('What does the third'); self.play(FadeIn(label('What does the third neuron do?',0,2.4,30)),run_time=.3); self.finish()
+
+
+class S15Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(*question2())
+        hint=label('Pause and answer · 5',0,-3.55,26,YELLOW); self.add(hint)
+        for i in range(5):
+            self.play(Transform(hint,label('Pause and answer · '+str(5-i),0,-3.55,26,YELLOW)),run_time=.1); self.wait(.9)
+
+
+class S16Reveal2(SpokenScene):
+    def construct(self):
+        n,t,l,c,q=question2(); self.add(n,t,l,c,q)
+        # Complete removal before answer appears; no superimposed cross-fade.
+        self.play(FadeOut(q),run_time=.2)
+        self.at('third fires faster'); self.play(Indicate(n[0],color=YELLOW),run_time=.35)
+        self.at('first holds'); self.play(l[0][2].animate.set_color(YELLOW),
+            ShowPassingFlash(l[0][0].copy().set_color(YELLOW),time_width=.5),run_time=.3)
+        self.play(Transform(t[1],ticks(0,rate(1,True,True))),n[1][0].animate.set_fill(opacity=.08),
+            Transform(c[3][1],label('slow',0,-3.05,26,YELLOW)),run_time=.35)
+        self.at('second lets go'); self.play(l[1][2].animate.set_color(YELLOW),
+            ShowPassingFlash(l[1][0].copy().set_color(YELLOW),time_width=.5),run_time=.3)
+        self.play(Transform(t[2],ticks(4,rate(2,True,True))),n[2][0].animate.set_fill(opacity=.65),
+            FadeIn(label('C fires faster',0,2.4,30,YELLOW)),
+            Transform(c[4][1],label('fast',4,-3.05,26,YELLOW)),run_time=.4)
+        self.finish()
+
+
+class S17Disinh(SpokenScene):
+    def construct(self):
+        n,t,l=neurons(True,True); l[0][2].set_color(YELLOW); l[1][2].set_color(YELLOW)
+        self.add(n,t,l,circuit_labels(True,True))
+        self.at('Inhibiting an inhibitor'); self.play(Indicate(l[0][2],scale_factor=1.3),Indicate(l[1][2],scale_factor=1.3),run_time=.65)
+        self.at('releases its target'); self.play(Indicate(n[2],color=YELLOW),run_time=.55)
+        self.at('That is disinhibition'); self.play(FadeIn(label('Disinhibition · two flips, direction kept',0,2.4,30,YELLOW)),run_time=.3); self.finish()
+
+
+def sign_example(even=True):
+    y=-.65 if even else -2.25
+    xs=[-3,0,3] if even else [-3,3]
+    signs=[(-1)**i for i in range(len(xs))]
+    g=VGroup(*[Circle(radius=.35,color=BLUE).move_to([x,y,0]) for x in xs])
+    for x,s in zip(xs,signs):
+        g.add(Arrow([x,y-.23*s,0],[x,y+.23*s,0],buff=0,color=YELLOW if s>0 else RED,stroke_width=5,max_tip_length_to_length_ratio=.4))
+    for a,b in zip(xs[:-1],xs[1:]):
+        g.add(Line([a+.4,y,0],[b-.4,y,0],color=RED,stroke_width=5),Line([b-.4,y-.2,0],[b-.4,y+.2,0],color=RED,stroke_width=5),label('−',(a+b)/2,y+.4,30,RED))
+    g.add(label('Even: direction kept' if even else 'Odd: direction reversed',0,y-.7,28))
     return g
 
 
-def model_tag():
-    t = T("classic rate model, a sketch", 22, GREY)
-    t.move_to([6.25 - t.width / 2, KEY_Y, 0])
-    return t
+def sign_card(even=None):
+    box=RoundedRectangle(width=11.8,height=5.6,corner_radius=.2,color=BLUE,
+                         fill_color=BLUE,fill_opacity=.08).move_to([0,-.25,0])
+    chain=sign_example(even is True)
+    # Fill the card with a large, legible chain and direction arrows.
+    chain.scale(1.55).move_to([0,-.65,0])
+    if even is None:
+        chain[-1].become(label('One link flips the direction',0,-2.45,32))
+    return VGroup(box,label('Count 2 · inhibitions flip the sign',0,1.8,34,RED),chain)
 
 
-def dop_note():
-    t = T("dopamine: + on D1 (direct), " + MINUS + " on D2 (indirect), in this model", 22, MOD)
-    return t.move_to([0.9, -2.72, 0])
-
-
-def strip(tokens, size=30):
-    """tokens: list of (text, color). Returns a centred row, each token separate."""
-    g = VGroup(*[M(t, size, c) for t, c in tokens]).arrange(RIGHT, buff=0.22)
-    fit(g, max_w=12.0)
-    return g.move_to([0, STRIP_Y, 0])
-
-
-def product_tokens(keys):
-    toks = []
-    for i, k in enumerate(keys):
-        if i:
-            toks.append(("×", TEXT))
-        s = SIGN[k]
-        toks.append((("+1" if s > 0 else MINUS + "1"), EXC if s > 0 else INH))
-    res = int(np.prod([SIGN[k] for k in keys]))
-    toks += [("=", TEXT), (("+1" if res > 0 else MINUS + "1"), EXC if res > 0 else INH)]
-    return toks
-
-
-class Base(SpokenScene):
-    def until(self, t):
-        rest = t - self.elapsed()
-        if rest > 0.02:
-            self.wait(rest)
-
-    def times(self, n, start_phrase, end_phrase, s_nth=0, e_nth=0, pad_s=0.0, pad_e=0.3):
-        a = self.t_of(start_phrase, s_nth) + pad_s
-        b = self.t_of(end_phrase, e_nth) - pad_e
-        return [a + (b - a) * i / n for i in range(n)]
-
-
-# -------------------------------------------------------------------------------------------------
-class S00Title(TitleCard):
-    LESSON = "Descending Control and the Basal Ganglia"
-    TITLE = "Counting Signs Around the Brake"
-
-
-# -------------------------------------------------------------------------------------------------
-class S01Brake(Base):
+class S18Count2(SpokenScene):
     def construct(self):
-        d = Diag(links=[])
-        key = T("The classic rate model. Brighter box = more active, in this sketch.", 24, GREY).move_to([0, STRIP_Y, 0])
-        note = T("The basal ganglia do not project to the spinal cord.", 24, GREY).move_to([0, KEY_Y, 0])
-        self.at("Deep nuclei")
-        boxes = [d.node[n] for n in ("ctx", "str", "D1", "D2", "gpe", "stn", "gpi", "thal", "snc")]
-        self.play(LaggedStart(*[FadeIn(b, scale=0.9) for b in boxes], lag_ratio=0.05, run_time=0.9),
-                  FadeIn(key, run_time=0.9))
-        self.at("never reach")
-        faint = [d.link[k] for k in LINKS if k not in ("gpi_t", "t_c", "da1", "da2")]
-        for l in faint:
-            l.set_opacity(0.35)
-        self.play(FadeIn(note, shift=UP * 0.1), *[FadeIn(l) for l in faint], run_time=0.8)
-        self.at("Their output neurons")
-        self.play(d.node["gpi"][0].animate.set_stroke(HI, width=6).set_fill(opacity=HIGH),
-                  d.node["gpi"][1].animate.set_color(TEXT), run_time=0.6)
-        d.lv["gpi"] = HIGH
-        self.at("fire steadily")
-        d.link["gpi_t"].set_opacity(1)
-        d.link["t_c"].set_opacity(1)
-        ph = [0.0]
-        p0, q0 = edge("gpi", "thal"), edge("thal", "gpi")
-        dd = VGroup(*[Dot(p0, radius=0.075, color=HI) for _ in range(4)])
-
-        def adv(m, dt):
-            ph[0] += dt * 0.55
-            for i, dot in enumerate(m):
-                dot.move_to(p0 + (q0 - p0) * ((ph[0] + i / 4) % 1.0))
-        adv(dd, 0)
-        dd.add_updater(adv)
-        self.add(dd)
-        self.play(FadeIn(d.link["gpi_t"]), d.node["thal"][0].animate.set_fill(opacity=LOW), run_time=1.0)
-        d.lv["thal"] = LOW
-        self.at("hold the thalamus")
-        self.at("foot resting")
-        brake = chip("brake", INH, size=26).move_to([3.4, 1.4, 0])
-        self.play(FadeIn(brake, shift=RIGHT * 0.2), run_time=0.6)
-        self.at("needs")
-        dd.remove_updater(adv)
-        self.play(FadeOut(dd), FadeOut(brake),
-                  d.node["gpi"][0].animate.set_fill(opacity=LOW).set_stroke(POP, width=3),
-                  d.node["thal"][0].animate.set_fill(opacity=HIGH),
-                  FadeIn(d.link["t_c"]), run_time=1.4)
-        self.finish()
+        first=count_card(1,-3.1); second=count_card(2,3.1)
+        self.add(first)
+        self.at('second count'); self.play(FadeIn(second,shift=UP*.2),run_time=.3)
+        cards=VGroup(first,second)
+        self.at('Each inhibitory link'); self.remove(first,second); one=sign_card(); self.add(one)
+        self.at('An even number'); self.remove(one); even=sign_card(True); self.add(even)
+        self.at('An odd number'); self.remove(even); self.add(sign_card(False)); self.finish()
 
 
-# -------------------------------------------------------------------------------------------------
-class S02Direct(Base):
+class S19Rule(SpokenScene):
     def construct(self):
-        d = Diag(links=list(LINKS.keys() - {"da1", "da2"}), op=DIM)
-        leg, tag = legend(), model_tag()
-        self.add(*d.node.values(), *d.link.values(), *d.lab.values(), leg, tag)
-        self.at("roots")
-        self.play(*[d.link[k].animate.set_opacity(0.5) for k in d.shown], run_time=0.6)
-        self.at("direct pathway")
-        self.play(*d.only(["s_gpi"], 0.5), d.node["D1"][0].animate.set_stroke(HI, width=5), run_time=0.6)
-        self.at("inhibit")
-        self.play(Indicate(d.link["s_gpi"], color=INH, scale_factor=1.0), run_time=0.8)
-        self.at("Give each excitatory")
-        self.play(Indicate(leg[0], color=EXC), run_time=0.9)
-        self.at("each inhibitory")
-        self.play(Indicate(leg[1], color=INH), run_time=0.9)
-        self.at("Then multiply")
-        toks = product_tokens(DIRECT)
-        row = strip(toks)
-        tt = self.times(4, "multiply", "The product", pad_s=0.5, pad_e=0.55)
-        self.play(*d.only(DIRECT, 0.2), d.node["D1"][0].animate.set_stroke(POP, width=3), run_time=0.5)
-        shown = 0
-        for i, k in enumerate(DIRECT):
-            self.until(tt[i])
-            parts = [row[2 * i]] + ([row[2 * i - 1]] if i else [])
-            self.play(*[FadeIn(p, shift=UP * 0.1) for p in parts], d.lab[k].animate.set_opacity(1),
-                      Indicate(d.link[k], color=KCOL[LINKS[k][2]], scale_factor=1.0), run_time=0.5)
-        self.at("The product")
-        self.play(FadeIn(row[-2]), FadeIn(row[-1], scale=1.3), run_time=0.7)
-        self.at("Two inhibitions")
-        verdict = T("brake lifted: cortical drive up", 26, EXC).move_to([1.5, 1.3, 0])
-        self.play(d.level("D1", HIGH), d.level("gpi", LOW), d.level("thal", HIGH),
-                  FadeIn(verdict), run_time=1.6)
-        self.finish()
+        cards=VGroup(count_card(1,-3.1),count_card(2,3.1)); self.add(cards,label('Motor pathway',0,3.2,34))
+        self.at('Put them together'); frame=RoundedRectangle(width=12.4,height=5.05,color=GREY).move_to([0,-.45,0]); self.play(Create(frame),run_time=.4)
+        self.at('a motor pathway'); self.wait(.1)
+        self.at('follow the chain'); chain=label('Follow the chain',0,2.4,28); self.play(FadeIn(chain),run_time=.3)
+        self.at('lesion or drug'); self.remove(chain); self.play(FadeIn(label('Lesion or drug  →  muscle',0,2.4,30)),run_time=.25)
+        self.at('Crossings set the side'); self.play(cards[0][0].animate.set_stroke(YELLOW,width=5),Indicate(cards[0][1][3],color=YELLOW),run_time=.5)
+        self.at('Inhibitions set the sign'); self.play(cards[1][0].animate.set_stroke(RED,width=5),Indicate(cards[1][1][6],color=YELLOW),run_time=.5); self.finish()
 
 
-# -------------------------------------------------------------------------------------------------
-class S03Indirect(Base):
+def chosen_path():
+    return VGroup(anatomy(),tract(),label('Some limits',4.65,1.8,34))
+
+
+def direction_pic():
+    return VGroup(label('Direction, not size',0,3.2,34),
+        Arrow([-3,-2,0],[-3,1.8,0],buff=0,color=YELLOW,stroke_width=9),
+        label('increase',-3,-2.8,32,YELLOW),Arrow([3,1.8,0],[3,-2,0],buff=0,color=RED,stroke_width=9),
+        label('decrease',3,-2.8,32,RED),label('No magnitude scale',0,.1,28))
+
+
+def fixed_pic():
+    n,t,l=neurons(); c=circuit_labels(heading='Fixed link signs')
+    return VGroup(n,t,l,c)
+
+
+def opposing_pic():
+    target=Circle(radius=1.15,color=BLUE,fill_color=BLUE,fill_opacity=.2).move_to([0,-1.2,0])
+    return VGroup(label('Opposing routes',0,3.2,34),target,label('?',0,-1.2,56),
+        Arrow([-5,1.4,0],[-1.15,-1.1,0],buff=.05,color=YELLOW,stroke_width=9),
+        Arrow([5,1.4,0],[1.15,-1.1,0],buff=.05,color=RED,stroke_width=9),
+        label('increase',-4.6,2.15,28,YELLOW),label('decrease',4.6,2.15,28,RED),
+        label('?',-3,-1.5,40),label('?',3,-1.5,40))
+
+
+def face_picture():
+    # Frontal convention: patient right = screen left. Cortex markers sit in
+    # actual cortex cartoons above the centred face, never on label chips.
+    face=Ellipse(width=4.2,height=6.6,color=GREY).move_to([0,-.15,0])
+    eyes=VGroup(Dot([-.65,-.35,0],color=TEXT),Dot([.65,-.35,0],color=TEXT))
+    forehead=RoundedRectangle(width=2.5,height=.6,corner_radius=.15,color=BLUE,fill_color=BLUE,fill_opacity=.65).move_to([0,1.1,0])
+    lower=VGroup(Line([-1.1,-1.9,0],[-.15,-1.9,0],color=BLUE,stroke_width=12),Line([.15,-1.9,0],[1.1,-1.9,0],color=BLUE,stroke_width=12))
+    cortices=VGroup(*[Ellipse(width=1.8,height=.85,color=BLUE,fill_color=BLUE,fill_opacity=.2).move_to([x,2.4,0]) for x in [-3.7,3.7]])
+    labels=VGroup(label('Right cortex',-3.7,3.2,28),label('Left cortex',3.7,3.2,28),label("Patient's right",-3.9,-3.25,26))
+    arrows=VGroup(Arrow([-3.1,2.05,0],[-.6,1.43,0],buff=.1,color=YELLOW),
+                   Arrow([3.1,2.05,0],[.6,1.43,0],buff=.1,color=YELLOW),
+                   VGroup(path([(3.7,1.95),(2.4,1.3),(2.4,-2.5),(-.8,-2.5)],YELLOW,5),
+                          Arrow([-.8,-2.5,0],[-.8,-2.02,0],buff=0,color=YELLOW,stroke_width=5,max_tip_length_to_length_ratio=.35)))
+    return VGroup(face,eyes,forehead,lower,cortices,labels,arrows)
+
+
+class S20Scope(SpokenScene):
+    def switch(self,old,new):
+        self.clear(); self.add(new)
     def construct(self):
-        d = Diag(links=list(LINKS.keys() - {"da1", "da2"}), op=0.5)
-        leg, tag = legend(), model_tag()
-        self.add(*d.node.values(), *d.link.values(), *d.lab.values(), leg, tag)
-        self.at("The indirect")
-        self.play(*d.only(["s_gpe", "gpe_stn", "stn_gpi"], 0.5), run_time=0.5)
-        self.at("receptors inhibit")
-        self.play(d.node["D2"][0].animate.set_stroke(HI, width=5), Indicate(d.link["s_gpe"], color=INH,
-                  scale_factor=1.0), run_time=0.8)
-        self.at("inhibits the")
-        self.play(Indicate(d.link["gpe_stn"], color=INH, scale_factor=1.0), d.node["stn"][0].animate.set_stroke(HI, width=5),
-                  run_time=0.8)
-        self.at("excites")
-        self.play(Indicate(d.link["stn_gpi"], color=EXC, scale_factor=1.0), run_time=0.8)
-        self.at("Multiply again")
-        toks = product_tokens(INDIRECT)
-        row = strip(toks)
-        tt = self.times(6, "again", "The product", pad_s=0.4, pad_e=0.4)
-        self.play(*d.only(INDIRECT, 0.2), d.node["D2"][0].animate.set_stroke(POP, width=3),
-                  d.node["stn"][0].animate.set_stroke(POP, width=3), run_time=0.5)
-        for i, k in enumerate(INDIRECT):
-            self.until(tt[i])
-            parts = [row[2 * i]] + ([row[2 * i - 1]] if i else [])
-            self.play(*[FadeIn(p, shift=UP * 0.1) for p in parts], d.lab[k].animate.set_opacity(1),
-                      Indicate(d.link[k], color=KCOL[LINKS[k][2]], scale_factor=1.0), run_time=0.45)
-        self.at("The product")
-        self.play(FadeIn(row[-2]), FadeIn(row[-1], scale=1.3), run_time=0.7)
-        self.at("ends up")
-        verdict = T("brake pressed: cortical drive down", 26, INH).move_to([1.5, 1.3, 0])
-        self.play(d.level("D2", HIGH), d.level("gpe", LOW), d.level("stn", HIGH), d.level("gpi", HIGH),
-                  d.level("thal", LOW), FadeIn(verdict), run_time=1.8)
-        self.finish()
+        pic=chosen_path(); self.add(pic)
+        self.at('one chosen path'); self.play(Transform(pic[-1],label('One chosen\npath',4.65,1.8,32)),pic[1].animate.set_color(YELLOW),run_time=.35)
+        self.at('not its size'); new=direction_pic(); self.switch(pic,new); pic=new
+        self.at('fixed sign'); new=fixed_pic(); self.switch(pic,new); pic=new
+        self.play(Indicate(pic[2],color=YELLOW,scale_factor=1.06),run_time=.4)
+        self.at('can still change'); live_n,live_t,_=neurons(True,True)
+        self.play(Transform(pic[0],live_n),Transform(pic[1],live_t),
+            Transform(pic[3],circuit_labels(True,True,heading='Neurons must still be able to respond')),run_time=.4)
+        self.at('pull in opposite'); new=opposing_pic(); self.switch(pic,new); pic=new
+        self.at('net effect depends'); strength=label('Net change needs both route strengths',0,-2.65,30); self.play(FadeIn(strength),run_time=.35); pic.add(strength)
+        self.at('input from both sides'); new=face_picture(); self.switch(pic,new); pic=new
+        self.at('cortical lesion'); self.play(FadeIn(lesion(3.7,2.4)),pic[6][1].animate.set_opacity(.18),pic[6][2][0].animate.set_stroke(opacity=.18),pic[6][2][1].animate.set_opacity(.18),run_time=.4)
+        self.at('forehead is usually'); self.play(FadeIn(leader('Forehead\nusually relatively\nspared',-4.35,1.1,-1.25,1.1,BLUE,26)),run_time=.35)
+        self.at('lower face'); self.play(pic[3][0].animate.set_opacity(.18),FadeIn(leader('Lower face\nweakens more',-4.3,-1.65,-1.1,-1.9,RED,26)),run_time=.35); self.finish()
 
 
-# -------------------------------------------------------------------------------------------------
-class S04Dopamine(Base):
+class S21Takeaway(SpokenScene):
     def construct(self):
-        d = Diag(links=list(LINKS.keys()), op=0.5)
-        leg, tag = legend(), model_tag()
-        for k in ("da1", "da2"):
-            d.link[k].set_opacity(0)
-        self.add(*d.node.values(), *d.link.values(), *d.lab.values(), leg, tag)
-        dop = T("dopamine", 22, MOD).move_to(P("snc") + DOWN * 0.7)
-        s1 = M("+", 48, EXC, weight=BOLD).move_to([-5.3, -0.35, 0])
-        s2 = M(MINUS, 48, INH, weight=BOLD).move_to([-4.0, -1.4, 0])
-        self.at("Now add dopamine")
-        self.play(d.node["snc"][0].animate.set_stroke(HI, width=5).set_fill(opacity=HIGH), FadeIn(dop), run_time=0.8)
-        self.at("In the classic")
-        self.play(d.link["da1"].animate.set_opacity(1), d.link["da2"].animate.set_opacity(1), d.node["snc"][0].animate.set_stroke(MOD, width=3),
-                  run_time=0.9)
-        self.at("excites the")
-        note = dop_note()
-        self.play(FadeIn(note), FadeIn(s1, scale=1.4), d.level("D1", HIGH), Indicate(d.link["da1"], color=EXC, scale_factor=1.0),
-                  run_time=0.9)
-        self.at("inhibits the")
-        self.play(FadeIn(s2, scale=1.4), d.level("D2", LOW), Indicate(d.link["da2"], color=INH, scale_factor=1.0),
-                  run_time=0.9)
-        self.at("Exciting a")
-        r1 = strip([("excite a", TEXT), ("+1", EXC), ("route:", TEXT), ("drive up", EXC)], 30)
-        self.play(*d.only(DIRECT, 0.2), FadeIn(r1, shift=UP * 0.1), run_time=0.7)
-        self.at("Inhibiting a")
-        r2 = strip([("inhibit a", TEXT), (MINUS + "1", INH), ("route:", TEXT), ("drive up", EXC)], 30)
-        self.play(*d.only(INDIRECT, 0.2), FadeOut(r1), FadeIn(r2, shift=UP * 0.1), run_time=0.7)
-        self.at("Both actions")
-        r3 = strip([("both push toward movement", EXC)], 32)
-        self.play(*d.only(DIRECT + INDIRECT, 0.8), FadeOut(r2), FadeIn(r3, shift=UP * 0.1), run_time=0.8)
-        self.finish()
+        # A quiet chain occupies the frame before the words arrive.
+        self.add(VGroup(Dot([-3,-1.8,0],color=BLUE),Dot([0,-1.8,0],color=BLUE),Dot([3,-1.8,0],color=BLUE),
+                        Arrow([-2.8,-1.8,0],[-.2,-1.8,0],color=YELLOW,buff=0),Arrow([.2,-1.8,0],[2.8,-1.8,0],color=YELLOW,buff=0)))
+        self.at('Follow the chain'); self.play(FadeIn(label('Follow the chain,',0,.8,44)),run_time=.3)
+        self.at('count what flips'); self.play(FadeIn(label('and count what flips.',0,-.3,44,YELLOW)),run_time=.3); self.finish()
 
 
-# -------------------------------------------------------------------------------------------------
-class S05Loss(Base):
+class S22End(EndCard):
+    LINE='Follow the chain, and count what flips.'
     def construct(self):
-        d = Diag(links=list(LINKS.keys()), op=0.5, lv={"D1": HIGH, "D2": LOW})
-        leg, tag = legend(), model_tag()
-        s1 = M("+", 48, EXC, weight=BOLD).move_to([-5.3, -0.35, 0])
-        s2 = M(MINUS, 48, INH, weight=BOLD).move_to([-4.0, -1.4, 0])
-        dop = T("dopamine", 22, MOD).move_to(P("snc") + DOWN * 0.7)
-        d.node["snc"][0].set_fill(opacity=MID)
-        d.link["da1"].set_opacity(1); d.link["da2"].set_opacity(1)
-        note = dop_note()
-        self.add(*d.node.values(), *d.link.values(), *d.lab.values(), leg, tag, s1, s2, dop, note)
-        self.at("losing dopamine")
-        gone = T("dopamine lost", 22, RED).move_to(P("snc") + DOWN * 0.7)
-        self.play(FadeOut(d.link["da1"]), FadeOut(d.link["da2"]), FadeOut(s1), FadeOut(s2), FadeOut(dop),
-                  FadeOut(note), run_time=0.5)
-        self.play(FadeIn(gone), d.level("snc", LOW), d.node["snc"][0].animate.set_stroke(RED, width=3), run_time=0.6)
-        self.at("direct route weakens")
-        self.play(d.level("D1", LOW), run_time=0.8)
-        self.at("indirect route strengthens")
-        self.play(d.level("D2", HIGH), run_time=0.8)
-        self.at("more inhibited")
-        self.play(d.level("gpe", LOW), run_time=0.8)
-        self.at("is released")
-        self.play(d.level("stn", HIGH), run_time=0.8)
-        self.at("fires more")
-        self.play(d.level("gpi", HIGH), run_time=0.8)
-        self.at("held down")
-        self.play(d.level("thal", LOW), run_time=0.9)
-        self.at("The model predicts")
-        r = strip([("model prediction: akinesia", RED)], 32)
-        self.play(FadeIn(r, shift=UP * 0.1), run_time=0.8)
-        self.finish()
-
-
-# -------------------------------------------------------------------------------------------------
-class S06Limits(Base):
-    def construct(self):
-        d = Diag(links=list(LINKS.keys() - {"da1", "da2"}), op=0.5)
-        leg, tag = legend(), model_tag()
-        self.add(*d.node.values(), *d.link.values(), *d.lab.values(), leg, tag)
-        self.at("a way to reason")
-        r1 = strip([("a way to reason about the direction of a change", TEXT)], 28)
-        self.play(FadeIn(r1, shift=UP * 0.1), run_time=0.8)
-        self.at("not a measured law")
-        r2 = strip([("not a measured law of how firing rates add", GOLD)], 28)
-        self.play(FadeOut(r1), FadeIn(r2, shift=UP * 0.1), run_time=0.7)
-        self.at("In mice")
-        n1 = chip("in mice: both rise at action start", YELLOW, size=22).move_to([1.5, 1.3, 0])
-        self.play(FadeIn(n1, shift=DOWN * 0.1), d.level("D1", HIGH), d.level("D2", HIGH), run_time=1.2)
-        self.at("rest tremor")
-        n2 = chip("rest tremor: no account", RED, size=22).move_to([1.5, -0.65, 0])
-        self.play(FadeIn(n2, shift=UP * 0.1), run_time=0.8)
-        self.at("Keep the rule")
-        r3 = strip([("multiply the signs to predict direction. It is a model.", TEXT)], 28)
-        self.play(FadeOut(r2), FadeOut(n1), FadeOut(n2), FadeIn(r3, shift=UP * 0.1),
-                  d.level("D1", MID), d.level("D2", MID), run_time=1.0)
-        self.finish()
-
-
-# -------------------------------------------------------------------------------------------------
-class S07End(EndCard):
-    LINE = "Multiply the signs to predict direction; remember it is a model."
+        self.add(label('biochemistrypedia.com',0,.8,38,TEAL),label('Next: The Brake and Its Two Routes',0,-.5,32))
+        self.wait(self.narration_s)
