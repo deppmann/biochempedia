@@ -5,17 +5,21 @@ course: "neuroscience"
 courseChapter: "Neuroscience · Unit 4: Motor systems"
 order: 615
 summary: >-
-  Movements of the limbs and trunk end in the spinal cord, where motor neurons turn synaptic input into muscle
-  force. This lesson explains how the cord grades force by recruiting motor units in order of
-  size and by changing their firing rates, how the stretch reflex and its inhibitory partner
-  hold a joint, how gamma motor neurons keep muscle spindles in range, and how spinal circuits
-  make a walking rhythm on their own. Afterwards you can predict a recruitment order from Ohm's
-  law and trace which motor neurons a stretch excites and which it inhibits.
-hook: "Tap the tendon below your kneecap and your leg kicks after a single synapse in the spinal cord. Why only one?"
+  Movements of the limbs and trunk end in the spinal cord, where motor neurons turn synaptic
+  input into muscle force. One idea carries the lesson: every command, from a stretch, a pain,
+  a rhythm or the brain, arrives as synaptic current onto motor neurons, Sherrington's final
+  common path, and a motor neuron fires when the net current, times its input resistance,
+  lifts it to threshold. With it you explain how the cord grades force by recruiting motor
+  units in order of size and by changing their firing rates, how the stretch reflex and its
+  inhibitory partner hold a joint, how gamma motor neurons keep muscle spindles in range, and
+  how spinal circuits make a walking rhythm on their own. Afterwards you can predict a
+  recruitment order from Ohm's law and trace which motor pools a circuit pushes up and which
+  it pushes down.
+hook: "A knee tap makes the quadriceps kick and inhibits the hamstrings, yet the sensory axon that starts both only ever excites. How?"
 
-estMinutes: 24
+estMinutes: 32
 objectives:
-  - "Define a motor unit and a motor pool, and work out a recruitment order from input resistance with Ohm's law."
+  - "Define a motor unit and a motor pool, explain why motor neurons are the final common path, and work out a recruitment order from input resistance with Ohm's law, stating the condition on how input scales with cell size."
   - "Explain how recruitment and rate coding together grade muscle force, with summation of twitches."
   - "Trace the stretch reflex from spindle Ia afferent to homonymous motor neurons, with disynaptic reciprocal inhibition on the same side, and contrast it with the tendon organ and the crossed-extensor reflex."
   - "Explain gamma motor neurons, alpha-gamma coactivation and central pattern generators, and judge what isolated-cord and human experiments show about each."
@@ -24,10 +28,28 @@ explainer:
   src: "/explainers/motor-units-reflexes/explainer.mp4"
   captions: "/explainers/motor-units-reflexes/explainer.vtt"
   poster: "/explainers/motor-units-reflexes/poster.jpg"
-  title: "One Stretch, Two Opposite Commands"
-  durationSec: 148.3
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Where Every Command Ends"
+  durationSec: 165.2
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "stretch-reflex"
+    src: "/explainers/motor-units-reflexes/stretch-reflex.mp4"
+    captions: "/explainers/motor-units-reflexes/stretch-reflex.vtt"
+    poster: "/explainers/motor-units-reflexes/stretch-reflex-poster.jpg"
+    title: "One Stretch, Two Opposite Commands"
+    durationSec: 159.6
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "rhythm"
+    src: "/explainers/motor-units-reflexes/rhythm.mp4"
+    captions: "/explainers/motor-units-reflexes/rhythm.vtt"
+    poster: "/explainers/motor-units-reflexes/rhythm-poster.jpg"
+    title: "Rhythm Without a Conductor"
+    durationSec: 136.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Charles Sherrington"
@@ -338,26 +360,58 @@ draft: false
 ---
 
 import SizePrincipleRamp from '../../../components/SizePrincipleRamp.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Tap the tendon just below your kneecap and your leg kicks, through a path in the spinal cord with only one synapse between sensor and motor neuron.** The same few segments of cord decide how hard a muscle pulls, keep a joint steady and can lay down the rhythm of a step. This lesson takes those jobs one at a time.
+**Tap the tendon just below your kneecap and your leg kicks, through a path in the spinal cord with only one synapse between sensor and motor neuron.**
 
-Directions here use the spinal-cord frame: dorsal means toward the back, ventral toward the belly. **Ipsilateral** means on the same side of the body, and **contralateral** on the opposite side.
+The same tap also inhibits the motor neurons of the muscle on the back of your thigh. The same few segments of cord decide how hard a muscle pulls, keep a joint steady and can lay down the rhythm of a step. All of these commands funnel into one set of cells, and one idea about those cells ties the jobs together.
 
-## Motor units and the size principle
+## Motor units: where every command ends
 
 The cells that command skeletal muscle are **alpha motor neurons**, whose cell bodies sit in the ventral horn of the cord and whose axons leave through the ventral roots. Each axon branches to many muscle fibres. A **motor unit** is one alpha motor neuron and all the fibres it innervates; a **motor pool** is all the motor neurons that supply one muscle. In mature muscle each fibre is contacted by one motor neuron, after an early period of multiple innervation that [synapse elimination](/lessons/synapse-elimination/) covers; how a motor neuron gets its identity is in [the motor neuron code](/lessons/motor-neuron-code/), and how its junction is built in [the neuromuscular junction](/lessons/neuromuscular-junction/).
 
 At the junction, acetylcholine released by the motor neuron depolarizes the fibre ([synaptic transmission](/lessons/synaptic-transmission/)), and normally each motor-neuron spike gives every fibre of its unit an action potential and a twitch. So the unit is the smallest piece of force the cord can command. Units differ widely: small motor neurons supply few fibres and make weak units, large ones supply many and make strong units.
 
-When the drive to a pool rises, which units start first? Under shared input, smaller motor neurons are recruited before larger ones, the **size principle**. The reason is Ohm's law. **Input resistance** is the voltage change a cell shows per unit of steady current injected into it ([the resting membrane and passive signals](/lessons/resting-membrane-passive/)). A small cell has less membrane, so fewer channels in parallel and a higher input resistance. The same synaptic current therefore depolarizes it more:
+Every command that makes a limb muscle contract has to pass through these motor neurons. Charles Sherrington called them the **final common path**. Three puzzles show why that matters. Two words first: **flexors** are muscles that bend a joint, and **extensors** are muscles that straighten it.
 
-> **ΔV = I × R_in, so the current needed to reach threshold is I = ΔV / R_in**
+1. **One axon, two opposite results.** A tap below the kneecap stretches the quadriceps, on the front of the thigh. A sensory axon from the stretched muscle fires, and the quadriceps contracts. Yet the motor neurons of the hamstrings, on the back of the thigh, are inhibited, and that sensory axon only ever excites. How can it inhibit anything?
+2. **Which units do the work?** Lifting a coffee cup takes far less force than lifting a full suitcase, so fewer forearm motor units need to work. Which go first, and why those?
+3. **Who keeps the beat?** A cat's spinal cord, cut off from the brain and from the sensory nerves of the hind legs, can still make the ankle flexors and extensors contract in turn. Where does the rhythm come from?
 
-How synaptic currents sum on the way is the subject of [synaptic integration](/lessons/synaptic-integration/). The order is a tendency, first measured in cats, and it holds under common input. Differences in threshold, in persistent inward currents and in neuromodulation can shift it, and separate inputs to parts of a pool can break it.
+The idea that answers all three needs one more term. A cell's **input resistance**, R_in, is how many millivolts its voltage changes for each nanoampere of steady current put into it. Picture a bathtub, where the water level is the voltage: with fewer drains, the same inflow raises the water higher.
+
+> **The one idea to carry through this lesson.** Every command the spinal cord sends to a muscle, whether it starts from a stretch, a pain, a rhythm or the brain, arrives as synaptic current onto motor neurons. Excitation adds current and inhibition, in effect, takes it away. A motor neuron fires when the net current, times its input resistance, lifts it to threshold, and then, normally, every fibre in its unit twitches. So ask two questions of any spinal circuit: **which motor pools does it push up, and which down? And within a pool, which cells reach threshold first?**
+
+The rule is a simplification: its Ohm's-law step describes a slow approach to threshold (Going deeper, "Where the rule is approximate").
+
+## The size principle: small before large
+
+**Predict.** A pool holds small motor neurons, which make weak units, and large ones, which make strong units. The drive to the whole pool rises a little at a time. Which start firing first, and why?
+
+<details>
+<summary>Check your prediction</summary>
+
+The small ones. Many people guess the large ones, because big seems strong. But whether a cell fires depends on how far the input moves its voltage, not on how strong its unit is, and the same input moves a small cell further.
+
+</details>
+
+Picture three motor neurons side by side, small, medium and large, all receiving the same input. Under each one, draw a bar for its membrane voltage, with a line across the bar at threshold. Now turn the input up slowly. The small cell's bar climbs fastest and crosses the line first. The medium cell crosses next, and the large one last. This order, small before large, is the **size principle**. Elwood Henneman described it in cats in 1957.
+
+Why does the small cell's bar climb fastest? Current that enters a cell has to leave through open channels in its membrane ([the resting membrane and passive signals](/lessons/resting-membrane-passive/)). A small cell has less membrane, so fewer channels in parallel and a higher input resistance: fewer drains.
+
+> **Ohm's law for a motor neuron.** ΔV = I × R_in. To fire, a cell must depolarize by ΔV_th, so the current it needs is **I_th = ΔV_th / R_in**. Higher input resistance means less current is needed, so the cell is recruited earlier.
+
+How synaptic currents sum on the way to the cell body is the subject of [synaptic integration](/lessons/synaptic-integration/).
+
+There is a catch. A large cell has more membrane, so it has room for more synapses and could collect more of the shared input. If its current grew as steeply as its resistance falls, the two would cancel, and cells needing the same depolarization would reach threshold together. For spindle input in cats, that does not happen. The same spindle input gives larger synaptic potentials in the smaller cells, and when the effective current reaching the cell body was measured in cat medial gastrocnemius motor neurons, it was on average larger, not smaller, in the high-resistance cells, reinforcing their head start (Heckman and Binder, 1988). Large motor neurons, which mostly supply fast units, also tend to have leakier membrane, which lowers their resistance further. In general, with equal required depolarizations, the small cells still go first whenever effective current grows less steeply with size than input resistance falls (Going deeper works through the scaling).
+
+**Why this order helps.** Small units make small forces. Recruiting them first makes the first steps of force tiny, which is when an error of a fraction of a newton matters most: threading a needle, not lifting a suitcase.
+
+**Scope.** The order is a tendency under shared input, first measured in cats, not a law. Differences in voltage threshold, persistent inward currents and neuromodulation can shift it, and an input that reaches only part of a pool can recruit cells out of size order.
 
 ## Grading force: recruitment and rate
 
-**Worked problem.** Three motor neurons, S, M and L, in one pool receive the same synaptic current, ramped up from 0 at 1 nA per second. These are illustrative round numbers, in the range reported for cat lumbar motor neurons, not readings from one recording. Input resistances are S 4.0 MΩ, M 2.0 MΩ and L 1.0 MΩ. Assume steady state (the ramp is slow compared with the membrane time constant) and that each cell must depolarize 10 mV from rest to fire. That last assumption is a simplification, since real thresholds also differ.
+**Worked problem.** Three motor neurons, S, M and L, in one pool receive the same synaptic current, ramped up from 0 at 1 nA per second. These are illustrative round numbers, in the range reported for cat lumbar motor neurons, not readings from one recording. Input resistances are S 4.0 MΩ, M 2.0 MΩ and L 1.0 MΩ. Assume steady state (the ramp is slow compared with the membrane time constant) and that each cell must depolarize 10 mV from rest to fire. Both are simplifications: real thresholds differ, and identical effective current is only the simplest model of how an input is shared.
 
 *Step 1: current to threshold.* A millivolt divided by a megohm is a nanoampere.
 
@@ -365,44 +419,109 @@ How synaptic currents sum on the way is the subject of [synaptic integration](/l
 
 *Step 2: time to threshold.* At 1 nA per second, S fires at 2.5 s, M at 5.0 s and L at 10 s. The order is smallest first.
 
-*Step 3: force.* Give the units forces of 0.05 N, 0.30 N and 1.50 N. As each joins, total force goes 0.05 N, then 0.35 N, then 1.85 N. The steps get bigger as force grows, so the smallest steps come when force is low, where a small error matters most. In a real pool of many units the same logic means each new recruit adds force roughly in step with the force already present.
+*Step 3: force.* Give the units forces of 0.05 N, 0.30 N and 1.50 N. As each joins, total force goes 0.05 N, then 0.35 N, then 1.85 N. The steps get bigger as force grows. In an illustrative model pool (Going deeper), each later recruit adds about 4% of the force already present, a fraction set by how unit forces are spread along the recruitment order, not by Ohm's law.
 
 <SizePrincipleRamp />
 
-Recruitment is half the story. **Rate coding** is the other half: an active unit can fire faster. One spike gives a twitch. If the next spike arrives before the twitch has relaxed, the second twitch adds to the first, and at high rates the twitches fuse into a smooth contraction, a tetanus. So force rises both by adding units and by driving the active ones harder.
+Recruitment is half the story.
 
-How firing rate rises with force differs from unit to unit. Avrillon and colleagues (2024) recorded the tibialis anterior and vastus lateralis of eight people per muscle with grids of 64 surface electrodes, during contractions up to 80% of maximal force, and sorted the signals into single motor units, about 129 units per participant in tibialis anterior. After an initial steep acceleration just above each unit's recruitment, firing rates rose between force plateaus 10% of maximal force apart by 3.5 ± 1.7 pulses per second in tibialis anterior and 2.0 ± 1.1 in vastus lateralis. Trajectories varied across units, and most fitted a logarithm better than a straight line or an exponential. The input to each motor neuron was inferred from force, not measured inside the cell.
+**Predict.** A muscle's force keeps rising after the last unit you are watching has joined. No new units are recruited. Where can the extra force come from?
 
-## The stretch reflex and its inhibitory partner
+<details>
+<summary>Check your prediction</summary>
 
-A **muscle spindle** is a stretch sensor: a capsule of small, specialized **intrafusal** fibres lying parallel to the ordinary **extrafusal** fibres that make force. Stretching the muscle stretches the spindle. Its **Ia** (primary) afferents respond to both the speed and the amount of stretch; its **group II** (secondary) afferents mainly to the amount (relaxed human muscle; reviewed by Dimitriou, 2022).
+From the units already firing: they fire faster. Over the range where a motor neuron's firing has not saturated, more excitatory drive generally raises its firing rate. That current-to-frequency relation is a property of the cell's spiking, separate from the passive Ohm's-law step, and it differs from cell to cell.
+
+</details>
+
+Picture a plot of one unit's force against time. Each spike gives a **twitch**, a brief bump of force that rises and relaxes. With spikes far apart, the bumps stand separate. Bring the spikes closer, and each new twitch starts before the last has relaxed, so it rides on top of it and the line climbs higher, still rippling. Closer still, and the ripples merge into a smooth, high plateau, a **tetanus** (here a fused contraction; the word also names a disease). Fusion means the force has become smooth; it need not be the most force the unit can make, which keeps rising with rate until the force-frequency relation levels off. This is **rate coding**: an active unit makes more force by firing faster. So force rises both by adding units and by driving the active ones harder.
+
+Full fusion is not how everyday force stays smooth: during ordinary voluntary contractions most units fire below it. The muscle's force is smooth largely because its many units fire out of step with each other, so their ripples fill one another's gaps.
+
+In people, firing rate rises steeply just after a unit is recruited, then more slowly, and the shape differs from unit to unit (Going deeper).
+
+## One stretch, two commands
+
+<LessonFilm film={frontmatter.films[0]} />
+
+Directions here use the spinal-cord frame: dorsal means toward the back, ventral toward the belly. **Ipsilateral** means on the same side of the body, and **contralateral** on the opposite side. An **afferent** is a sensory axon carrying signals into the cord; an **efferent** carries signals out, as motor axons do.
+
+A **muscle spindle** is a stretch sensor: a capsule of small, specialized **intrafusal** fibres lying parallel to the ordinary **extrafusal** fibres that make force, like a thread laid along a rope. When the muscle lengthens, the spindle lengthens with it, so it reports length. Its **Ia** afferents, said "one-A", are its primary afferents. The name comes from an old numbering of nerve fibres by thickness, and Ia fibres are among the thickest and fastest. In relaxed human muscle, Ia afferents respond to both the speed and the amount of stretch, and the spindle's **group II** (secondary) afferents mainly to the amount (reviewed by Dimitriou, 2022).
 
 A tendon tap gives a brief stretch, and the Ia afferents fire. They enter the cord through the dorsal root and branch.
 
-- One branch excites the motor neurons of the same muscle, the **homonymous** motor neurons, directly: one synapse, a **monosynaptic** path. The muscle contracts against the stretch.
-- Another branch excites a **Ia inhibitory interneuron** on the same side of the cord, which inhibits the motor neurons of the **antagonist**, the muscle that moves the joint the other way. That path has two synapses, so it is **disynaptic**, and it is ipsilateral. Sherrington called this pairing of excitation and inhibition reciprocal innervation.
+**Predict.** Ask the two questions of the tap. Which motor pools should the Ia afferents push up, which down, and through how many synapses each? Remember that a Ia afferent releases only an excitatory transmitter, glutamate.
 
-The excitatory branch is monosynaptic, and Ia afferents also excite the motor neurons of synergist muscles directly. The inhibitory branch to the antagonist is not, so the reflex as a whole is not purely monosynaptic.
+<details>
+<summary>Check your prediction</summary>
 
-The **Golgi tendon organ** sits at the junction of muscle and tendon, in series with the fibres, so it signals the force the muscle makes rather than its length. Its **Ib** afferents act through interneurons. The textbook pathway inhibits the muscle's own motor neurons, but Ib effects change with task and are not simply a safety cutout against tearing.
+- One branch excites the motor neurons of the same muscle, the **homonymous** motor neurons, directly: one synapse, a **monosynaptic** path. That pool goes up, and the muscle contracts against the stretch. This is how the circuit helps hold a joint: a sudden stretch from an unexpected load is met by contraction of the stretched muscle.
+- Another branch excites a **Ia inhibitory interneuron** on the same side of the cord, which inhibits the motor neurons of the **antagonist**, the muscle that moves the joint the other way. That pool goes down. The path has two synapses, so it is **disynaptic**, and it is ipsilateral.
 
-The **crossed-extensor reflex** is the one that crosses. A painful stimulus to one foot excites, through several interneurons, the flexors of that leg, which withdraws, and through interneurons whose axons cross the midline, the extensors of the other leg, which takes the weight. It is polysynaptic and bilateral, where the stretch reflex is local and one-sided.
+In this fast pathway the Ia afferent itself makes only excitatory synapses; the inhibitory interneuron changes the sign.
 
-What descending pathways add, and the signs that follow damage to them, are taken up in [the basal ganglia](/lessons/basal-ganglia/) and [the cerebellum](/lessons/cerebellum/); diseases of motor neurons are in [neurodegeneration](/lessons/neurodegeneration/).
+</details>
+
+That answers the first puzzle. The kick itself needs only one synapse. Inhibiting the hamstring motor neurons needs two, and that second command goes to a different pool, so the reflex as a whole is not purely monosynaptic. Sherrington called this pairing of excitation and inhibition **reciprocal innervation**; its inhibitory half is called reciprocal inhibition. Ia afferents also excite, directly, the motor neurons of **synergists**, muscles that help move the joint the same way.
+
+A single central synapse keeps the delay inside the cord to a minimum; Going deeper compares that delay with the time spent in conduction.
+
+### The tendon organ: a force sensor
+
+A second sensor shows why the spindle needs help. The **Golgi tendon organ** sits at the junction of muscle and tendon, in series with a small group of muscle fibres: in line with them, like a link in a chain. It senses the tension those fibres pass to the tendon, and together the tendon organs signal the force the muscle makes rather than its length.
+
+**Predict.** A motor neuron fires, and its unit, whose fibres pull on one tendon organ, twitches. The muscle is free to shorten a little. Which sensor fires, and which may fall silent?
+
+<details>
+<summary>Check your prediction</summary>
+
+That tendon organ fires, because the twitching fibres pull on it. The spindle lies alongside fibres that have just shortened, so it shortens too and can fall slack, and its firing drops or stops. Length and force are different signals, and the two sensors split them.
+
+</details>
+
+The tendon organ's **Ib** afferents act through interneurons. The textbook pathway pushes the muscle's own pool down, inhibiting its motor neurons. Real Ib effects change with the task, so the tendon organ is not simply a safety cutout against tearing.
+
+### The crossed-extensor reflex: four groups of pools at once
+
+In the **crossed-extensor reflex**, the circuit crosses the midline. A painful stimulus to one foot acts through several interneurons, some of whose axons cross to the other side. Ask the two questions, and four groups of muscles answer, each with its own pools.
+
+| Muscles | Same leg as the stimulus | Other leg |
+| --- | --- | --- |
+| Flexors | pushed up: the leg withdraws | pushed down |
+| Extensors | pushed down | pushed up: the leg takes the weight |
+
+In the classic pattern two groups go up and two go down: reciprocal innervation again, now across both legs. The reflex is polysynaptic (many synapses in series) and bilateral, where the stretch reflex is local and one-sided.
 
 ## Gamma: keeping the spindle in range
 
-A spindle has a problem. When the muscle shortens, the spindle shortens too and can fall slack, so its firing drops or stops. **Gamma motor neurons** fix this. They supply muscle spindles only, ending on the contractile poles of the intrafusal fibres. When the poles contract, the centre of the spindle, where the Ia endings wrap, is pulled taut again.
+The twitch in the last check exposed a problem: a shortening muscle can leave its spindle slack and silent. **Gamma motor neurons** fix this. They supply muscle spindles only, ending on the contractile poles of the intrafusal fibres. When the poles contract, the centre of the spindle, where the Ia endings wrap, is pulled taut again.
 
-Think of a tape measure that winds itself in as the muscle shortens, so it never goes loose. When alpha and gamma motor neurons fire together, **alpha-gamma coactivation**, the spindle can be kept from falling slack during a contraction.
+Think of a tape measure that winds itself in as the muscle shortens, so it never goes loose. When alpha and gamma motor neurons fire together, **alpha-gamma coactivation**, the spindle can be kept from falling slack during a contraction, so the stretch circuit keeps its length signal just as the muscle moves.
 
-Gamma drive is not simply locked to alpha drive. Papaioannou and Dimitriou (2021) recorded single Ia afferents from wrist and finger extensors of volunteers with microneurography during an instructed delay before a reach. About 80 ms after the target was cued, Ia firing fell when the coming reach would stretch the spindle-bearing muscle, while kinematics and surface EMG showed no systematic change with the target. The principal analysis used eight afferents from six people, and separate experiments with a robot measured whole-arm stretch reflexes. The authors interpreted the results as compatible with goal-directed changes in gamma drive. Gamma neurons were not recorded, so that drive is an inference.
+Gamma drive is not simply locked to alpha drive. One human study suggests it may be tuned to the goal of a coming movement, though gamma neurons themselves were not recorded (Going deeper).
 
 ## Rhythm without a conductor
 
-A **central pattern generator** is a neural network capable of producing rhythmic output without patterned descending or sensory input. Graham Brown's 1911 cats, with the cord cut and the dorsal roots of the hind limbs severed, still alternated ankle flexors and extensors.
+<LessonFilm film={frontmatter.films[1]} />
 
-Much modern evidence comes from **fictive locomotion**, locomotor-like motor output with no movement. It is also studied in paralysed adult cats, but a common preparation is an isolated spinal cord from a newborn rodent, bathed in drugs such as NMDA and serotonin, producing alternating bursts in the ventral roots that would drive flexors and extensors. Hägglund and colleagues (2013) used optogenetics in the isolated neonatal mouse cord to activate or inhibit selected populations, and found that locomotor-like bursting could be induced on one side alone. That shows a spinal network can make rhythm. It does not show a single pacemaker cell. A 2021 review of mouse work reports that rhythm persisted after silencing or ablating each individual genetically defined ventral population it considered, so the rhythm generator is still an open question.
+In the early twentieth century a common view held that walking is a chain of reflexes: each step produces sensory signals that trigger the next.
+
+**Predict.** In 1911 T. Graham Brown cut the spinal cord of cats, removing input from the brain, and also cut the dorsal roots that carry sensory signals from the hind limbs into the cord. If walking is a chain of reflexes, what should be left?
+
+<details>
+<summary>Check your prediction</summary>
+
+If the chain idea were right, nothing rhythmic should remain. Instead, the ankle flexors and extensors still contracted in alternation. The rhythm arose within the cord. That answers the third puzzle.
+
+</details>
+
+A **central pattern generator** is a neural network capable of producing rhythmic output without patterned descending or sensory input.
+
+Much modern evidence comes from **fictive locomotion**, locomotor-like motor output with no movement. It is also studied in paralysed adult cats, but a common preparation is an isolated spinal cord from a newborn rodent, bathed in drugs such as NMDA (a glutamate-receptor agonist) and serotonin, producing alternating bursts in the ventral roots that would drive flexors and extensors. The drugs are a steady push, like holding down an accelerator. They carry no timing, so the beat comes from the cord.
+
+How could a network keep a beat? Graham Brown proposed the **half-centre**: two groups of neurons, one driving flexors and one driving extensors, that inhibit each other. Activity switches between them when the inhibition from the active group fades, or when the held-down group escapes, recovering and firing despite the inhibition. It is reciprocal inhibition laid out in time. Whether the rhythm comes from a simple pair of half-centres is still debated, and which spinal neurons make it is still open (Going deeper).
+
+Whatever makes the rhythm, it reaches muscle the way every other command does: as synaptic current onto motor neurons, pushing the flexor pools up while the extensor pools go down, then the reverse. Within each pool, the second question still applies.
 
 Sensory input still matters. In the work of Li, Garcia-Ramirez and Dougherty (2019) on cords of mice one to three days old, ankle nerve stimulation between flexor bursts could start a new flexor burst early. The network makes the rhythm and feedback adjusts its timing. For people, evidence for a spinal pattern generator is indirect; these results come from neonatal rodents and cats.
 
@@ -422,3 +541,54 @@ To test resetting, first transect the ventral roots proximal to the spinal nerve
 Limits: this is a neonatal cord driven by drugs, not adult or human walking. Rhythm with no patterned input shows the circuit is enough under these conditions; it does not identify a single pacemaker cell or prove that normal walking dispenses with the brain or with feedback.
 
 </details>
+
+## Where this leads
+
+What descending pathways add, and the signs that follow damage to them, are taken up in [the basal ganglia](/lessons/basal-ganglia/) and [the cerebellum](/lessons/cerebellum/); diseases of motor neurons are in [neurodegeneration](/lessons/neurodegeneration/).
+
+## Going deeper
+
+### Why one synapse?
+
+A rough, illustrative delay budget for the human knee-jerk loop: the path between knee and cord is about 0.55 m each way, so at 60 to 70 m/s conduction alone takes about 16 to 18 ms. A further central synapse would add roughly 0.5 to 1 ms, about 2.5 to 5% of an illustrative 20-ms latency to the muscle's electrical response; visible knee movement comes later still. Even that increment may matter for rapid feedback and timing precision. These are rough values, not a measurement, and the budget alone does not establish why the excitatory pathway is monosynaptic.
+
+### How the input scales with cell size
+
+Suppose a cell's effective share of a shared input grows with its membrane area A as A^α, and its input resistance falls as A^−β. Then the depolarization scales as ΔV ∝ A^(α−β). For cells of relative area 1, 2 and 4, these hypothetical cases illustrate the algebra; none is a measured scaling law:
+
+| Case | α | β | Relative ΔV, small to large | Order |
+| --- | --- | --- | --- | --- |
+| Identical current | 0 | 1 | 1, 0.5, 0.25 | small first |
+| Current in proportion to area | 1 | 1 | 1, 1, 1 | none |
+| Current grows more slowly than area (twice the area, about 1.4 times the current) | 0.5 | 1 | 1, 0.71, 0.5 | small first |
+| Current in proportion to area, large cells leakier | 1 | 1.5 | 1, 0.71, 0.5 | small first |
+
+Real current distributions depend on the input pathway and on dendritic filtering; the cat Ia measurement in the main text shows that effective current need not rise with area at all. Input resistance also differs between motor neurons not only because of how much membrane they have but because of how leaky that membrane is, which varies with motor-neuron type.
+
+### Where the rule is approximate
+
+The Ohm's-law part of the guiding idea describes a slow approach to threshold, with steady or slowly rising input. Inhibition works by opening channels, so it also lowers input resistance, and both effects raise the excitatory current a cell needs (next section). Persistent inward currents and neuromodulation amplify and prolong synaptic input, and they can make the current at which a unit stops firing differ from the current at which it started.
+
+### Inhibition opens channels
+
+Inhibition does not literally subtract current; it opens channels. Take a cell with rest at −70 mV, threshold at −60 mV, input resistance 2 MΩ and an inhibitory reversal potential of −80 mV. With no inhibition it needs 5.0 nA of excitatory current to reach threshold. With inhibitory conductances of 0.05, 0.1 and 0.2 µS it needs 6.0, 7.0 and 9.0 nA. Even a pure shunt, with the inhibitory reversal potential at rest, raises the requirement, to 5.5, 6.0 and 7.0 nA. So in this passive model, with a steady excitatory current and an inhibitory reversal potential below threshold, "inhibition takes current away" is fair shorthand. Inhibition need not hyperpolarize a resting cell: a shunt leaves rest where it is, and an inhibitory reversal potential above rest can even depolarize it while still making firing harder. These are illustrative values.
+
+### Force steps across a large pool
+
+In an illustrative model pool of 120 units, with recruitment thresholds spread tenfold and unit forces spread a hundredfold, both rising geometrically, recruitment order equals size order. With each active unit's force held fixed, the force each new recruit adds, as a fraction of the force already present, falls from about 13% at the tenth unit to a nearly constant 4%. The first half of the units recruited carry only about 9% of the force that recruitment alone adds. The 4% holds only if unit force rises roughly geometrically along the recruitment order, and only after enough units have joined.
+
+### Smooth force from many units
+
+As an explicit illustration, let one twitch be h(t) = P(t/τ)e^(1−t/τ), which peaks at t = τ, and sum identical twitches at regular intervals until the train reaches a periodic steady state. Define ripple as (maximum − minimum) / maximum within one steady-state interval. With τ = 80 ms (a slow unit), ripple is about 51% at 5 Hz and 4.7% at 20 Hz; with τ = 30 ms (a fast unit), it is about 28% at 20 Hz. These are outputs of the chosen linear model, not general physiological percentages: slow units tend to fuse at lower firing rates than fast ones, and the model does not capture force saturation at high rates.
+
+### Firing rate in human muscles
+
+Avrillon and colleagues (2024) recorded the tibialis anterior and vastus lateralis of eight people per muscle with grids of 64 surface electrodes, during contractions up to 80% of maximal force, and sorted the signals into single motor units, about 129 units per participant in tibialis anterior. After an initial steep acceleration just above each unit's recruitment, firing rates rose between force plateaus 10% of maximal force apart by 3.5 ± 1.7 pulses per second in tibialis anterior and 2.0 ± 1.1 in vastus lateralis. Most trajectories fitted a logarithm better than a straight line or an exponential. The input to each motor neuron was inferred from force, not measured inside the cell.
+
+### A spindle that changes before you move
+
+Papaioannou and Dimitriou (2021) recorded single Ia afferents from wrist and finger extensors of volunteers with microneurography during an instructed delay before a reach. About 80 ms after the target was cued, Ia firing fell when the coming reach would stretch the spindle-bearing muscle, while kinematics and surface EMG showed no systematic change with the target. The principal analysis used eight afferents from six people, and separate experiments with a robot measured whole-arm stretch reflexes. The authors interpreted the results as compatible with goal-directed changes in gamma drive.
+
+### Who makes the rhythm?
+
+Hägglund and colleagues (2013) used optogenetics in the isolated neonatal mouse cord to activate or inhibit selected populations, and found that locomotor-like bursting could be induced on one side alone, so rhythmic bursting does not need the other side of the cord. A 2021 review of mouse work reports that rhythm persisted after silencing or ablating each individual genetically defined ventral population it considered.

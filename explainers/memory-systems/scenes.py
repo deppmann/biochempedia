@@ -1,440 +1,392 @@
-"""Memory systems: opposite failures separate memory systems  (Biochemistrypedia explainer)
+"""Chapter 1: Two Ways of Remembering.
 
-COLOR MAP (one color per concept, whole video)
-  BLUE   = declarative memory / the questionnaire task (memory for the training)
-  PURPLE = skill learning / the probabilistic classification task
-  TEAL   = working memory
-  GREY   = controls, frames, de-emphasized
-  ORANGE = amnesic patients
-  GOLD   = Parkinson's patients
-  YELLOW = chance level (guessing)
-  GREEN  = kept / passes        RED = lost / fails
-  TEXT   = the double-dissociation claim and the take-home
+COLOR MAP (from scenes.old.py; shared across chapters)
+BLUE=declarative / questionnaire; PURPLE=skill / classification; TEAL=working memory;
+GREY=controls / frames; ORANGE=amnesic patients; GOLD=Parkinson's patients;
+YELLOW=chance; GREEN=kept / pass; RED=lost / fail; TEXT=central claim.
+CHAPTERS.md remains unchanged under the task's edit-only-scenes.py restriction.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
 PURPLE = "#B58CD9"
 ORANGE = "#F29E4C"
-SC = 0.036          # scene units per percentage point
-BASE = -1.9         # y of 0 % on the score panels
 
-
+# Reference-film helpers, preserved with the same geometry and colours.
 def tick(c=GREEN, s=0.2, w=6):
-    return VGroup(Line([-s, 0, 0], [-s * 0.3, -s * 0.8, 0], color=c, stroke_width=w),
-                  Line([-s * 0.3, -s * 0.8, 0], [s, s * 0.9, 0], color=c, stroke_width=w))
-
+    return VGroup(Line([-s, 0, 0], [-s*.3, -s*.8, 0], color=c, stroke_width=w),
+                  Line([-s*.3, -s*.8, 0], [s, s*.9, 0], color=c, stroke_width=w))
 
 def cross(c=RED, s=0.2, w=6):
-    return VGroup(Line([-s, -s, 0], [s, s, 0], color=c, stroke_width=w),
-                  Line([-s, s, 0], [s, -s, 0], color=c, stroke_width=w))
+    return VGroup(Line([-s,-s,0],[s,s,0],color=c,stroke_width=w),
+                  Line([-s,s,0],[s,-s,0],color=c,stroke_width=w))
+
+def arr(a,b,color=GREY,w=5):
+    return Arrow(a,b,buff=.05,color=color,stroke_width=w,tip_length=.22,
+                 max_tip_length_to_length_ratio=.45,max_stroke_width_to_length_ratio=12)
+
+def label(s,x,y,size=28,c=TEXT):
+    return T(s,size,c).move_to([x,y,0])
+
+def box(x,y,w,h,c=GREY):
+    return RoundedRectangle(width=w,height=h,corner_radius=.2,stroke_color=c,
+                            fill_color=c,fill_opacity=.07,stroke_width=3).move_to([x,y,0])
+
+def star_pair(center=ORIGIN,r=2):
+    # Analytic five-point star geometry, rather than a hand-drawn outline.
+    return VGroup(*[Star(n=5,outer_radius=r*k,inner_radius=r*.44*k,
+                         color=PURPLE,stroke_width=3).move_to(center) for k in (1,.79)])
+
+def hand_pen(p):
+    # Side view of a writing grip: separated curled fingers and an opposing thumb.
+    g=VGroup(
+        Polygon([1.05,.32,0],[2,.18,0],[2.13,.92,0],[1.18,1.02,0],color=ORANGE,fill_color=ORANGE,fill_opacity=.7),
+        RoundedRectangle(width=.95,height=.92,corner_radius=.24,color=ORANGE,fill_color=ORANGE,fill_opacity=1).move_to([.94,.77,0]))
+    for i in range(4):
+        finger=RoundedRectangle(width=.82-i*.07,height=.23,corner_radius=.1,
+                                color=BG,fill_color=ORANGE,fill_opacity=1,stroke_width=2)
+        finger.rotate(-.22).move_to([.55+i*.10,1.24-i*.27,0])
+        g.add(finger,Line([.45+i*.10,1.28-i*.27,0],[.56+i*.10,1.16-i*.27,0],color=BG,stroke_width=2))
+    g.add(Line([0,0,0],[.72,1.58,0],color=TEXT,stroke_width=9),
+          Line([0,0,0],[.10,.22,0],color=GREY,stroke_width=6),
+          RoundedRectangle(width=.88,height=.29,corner_radius=.13,color=BG,stroke_width=2,
+                           fill_color=ORANGE,fill_opacity=1).rotate(-.65).move_to([.98,.77,0]))
+    return g.shift(np.array(p,dtype=float))
 
 
-def arr(a, b, color=GREY, w=5):
-    return Arrow(a, b, buff=0.05, color=color, stroke_width=w, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45, max_stroke_width_to_length_ratio=12)
+def brain(x=0,y=0,scale=1):
+    lobes=VGroup(*[Ellipse(width=2.3,height=4.5,color=GREY,fill_color=GREY,fill_opacity=.13).move_to([a,0,0]) for a in (-1.2,1.2)])
+    temporal=VGroup(); medial=VGroup()
+    for side in (-1,1):
+        # Inferior view: anterior is up; temporal tissue is lateral, mid/anterior.
+        temporal.add(VMobject(color=BLUE,fill_color=BLUE,fill_opacity=.16).set_points_smoothly([
+            [side*.55,-.85,0],[side*1.55,-.95,0],[side*2,.1,0],
+            [side*1.65,1.3,0],[side*.72,1.05,0],[side*.55,-.85,0]]))
+        medial.add(Ellipse(width=.34,height=1.45,color=RED,fill_color=RED,fill_opacity=.7)
+                   .rotate(-side*.10).move_to([side*.85,.15,0]))
+    return VGroup(lobes,temporal,medial).scale(scale).move_to([x,y,0])
 
 
-def tag():
-    return T("invented numbers, not the study's data", 22, GREY).move_to([0, 3.4, 0])
+def learning_plot():
+    # Illustrative exponential practice law; deterministic within-day scatter.
+    # These are model values, never H.M.'s measured data.
+    axes=VGroup(Line([-4.9,-2,0],[-4.9,2.35,0],color=GREY),Line([-4.9,-2,0],[5.25,-2,0],color=GREY))
+    for v in (0,10,20,30):
+        y=-2+v/30*4.2
+        axes.add(Line([-5.02,y,0],[-4.9,y,0],color=GREY),label(str(v),-5.45,y,26,GREY))
+    days=VGroup(*[label(f'Day {i+1}',x,-2.45,28) for i,x in enumerate((-3.4,0,3.4))])
+    base=VGroup(axes,days,label('Errors per attempt · model',0,3.15,30,PURPLE),label('Schematic of the shape, not the original data',0,-3.15,26,GREY))
+    def pt(t,v): return [-4.6+t*9.5/17,-2+v/30*4.2,0]
+    ts=np.linspace(0,17,200); vals=3+25*np.exp(-ts/5.5)
+    curve=VMobject(color=PURPLE,stroke_width=6).set_points_as_corners([pt(t,v) for t,v in zip(ts,vals)])
+    dots=VGroup(*[Dot(pt(t,3+25*np.exp(-t/5.5)+.75*np.sin(t*2.3)),radius=.075,color=PURPLE) for t in range(18)])
+    return base,VGroup(curve,dots)
 
 
-GCOL = {"ctrl": GREY, "am": ORANGE, "pd": GOLD}
-VALS = {"ctrl": (70, 80), "am": (68, 40), "pd": (52, 78)}
-CHANCE = (50, 25)
+def bubble(x,y,text=''):
+    g=VGroup(RoundedRectangle(width=3.05,height=.95,corner_radius=.2,color=BLUE).move_to([x,y,0]),VMobject(color=BLUE).set_points_as_corners([[x-.65,y-.47,0],[x-.85,y-.7,0],[x-.2,y-.47,0]]))
+    if text: g.add(label(text,x,y,26,BLUE))
+    return g
 
 
-class Panel:
-    """One score panel (task idx 0 classification, 1 questionnaire), drawn without LaTeX."""
-
-    def __init__(self, cx, idx):
-        self.cx, self.idx = cx, idx
-        col = PURPLE if idx == 0 else BLUE
-        name = "Classification" if idx == 0 else "Questionnaire"
-        sub = "2 choices, chance 50%" if idx == 0 else "4 choices, chance 25%"
-        ax_x = cx - 2.2
-        self.axis = VGroup(Line([ax_x, BASE, 0], [ax_x, BASE + 100 * SC, 0], color=GREY, stroke_width=3),
-                           Line([ax_x, BASE, 0], [cx + 2.3, BASE, 0], color=GREY, stroke_width=3))
-        for v in (0, 50, 100):
-            self.axis.add(M(str(v), 22, GREY).move_to([ax_x - 0.33, BASE + v * SC, 0]))
-        self.title = VGroup(T(name, 28, col, weight=BOLD).move_to([cx, 2.78, 0]),
-                            T(sub, 22, GREY).move_to([cx, 2.3, 0]))
-        y = BASE + CHANCE[idx] * SC
-        self.chance = DashedLine([ax_x, y, 0], [cx + 2.3, y, 0], color=YELLOW, stroke_width=4, dash_length=0.14)
-        self.xs = {"ctrl": cx - 0.9, "am": cx + 0.3, "pd": cx + 1.5}
-        self.bars, self.labs = {}, {}
-        for g in ("ctrl", "am", "pd"):
-            v = VALS[g][idx]
-            b = Rectangle(width=0.8, height=v * SC, stroke_color=GCOL[g], stroke_width=3,
-                          fill_color=GCOL[g], fill_opacity=0.55)
-            b.move_to([self.xs[g], BASE + v * SC / 2, 0])
-            self.bars[g] = b
-            self.labs[g] = M(str(v), 22, TEXT).move_to([self.xs[g], BASE + v * SC + 0.28, 0])
-        self.base = VGroup(self.axis, self.title)
+def speech_days():
+    return VGroup(*[bubble(x,y,'Never done\nthis before') for x,y in ((-2.9,2.95),(0,1.55),(3.4,.65))])
 
 
-def legend(y=-2.75):
-    items = []
-    for key, name in (("ctrl", "Controls"), ("am", "Amnesic patients"), ("pd", "Parkinson's patients")):
-        sw = Square(0.26, stroke_color=GCOL[key], fill_color=GCOL[key], fill_opacity=0.6, stroke_width=3)
-        items.append(VGroup(sw, T(name, 22, TEXT).next_to(sw, RIGHT, buff=0.15)))
-    sw = DashedLine(LEFT * 0.2, RIGHT * 0.2, color=YELLOW, stroke_width=4, dash_length=0.1)
-    items.append(VGroup(sw, T("chance", 22, TEXT).next_to(sw, RIGHT, buff=0.15)))
-    return VGroup(*items).arrange(RIGHT, buff=0.5).move_to([0, y, 0])
+def glowing_curve(curve):
+    return VGroup(curve[0].copy().set_stroke(PURPLE,width=24,opacity=.08),curve[0].copy().set_stroke(PURPLE,width=15,opacity=.18),curve.copy().set_stroke(width=8))
+
+Q1='Why could he not tell anyone about it?'
+Q2='What second result would rule out\n“the failed task was just harder” ?'
 
 
-def build_panels():
-    return Panel(-3.4, 0), Panel(3.4, 1)
+def puzzle_plot():
+    base,curve=learning_plot()
+    base[2].set_opacity(0)
+    return VGroup(base,glowing_curve(curve),bubble(3.45,.85),label('?',3.45,.85,46,BLUE),label(Q1,0,3.15,30),label('Kept a record',-.4,.4,28,PURPLE))
 
+
+def memory_cards(named=False):
+    g=VGroup()
+    for x,c,title,gloss in ((-3.2,BLUE,'Recall and report','Bring to mind and state'),(3.2,PURPLE,'Performance','Show it by doing')):
+        g.add(VGroup(box(x,0,5.9,6.1,c),label(title,x,2.35,30,c),label(gloss,x,1.35,26,c)))
+    return g
+
+
+def event_icons():
+    table=VGroup(Line([-1.3,-.2,0],[1.3,-.2,0],color=BLUE,stroke_width=6),Line([-1.1,-.2,0],[-1.1,-1.3,0],color=BLUE),Line([1.1,-.2,0],[1.1,-1.3,0],color=BLUE),Ellipse(width=1,height=.3,color=BLUE).move_to([-.2,0,0]),Circle(.48,color=BLUE).move_to([.9,.9,0]),Line([.9,.9,0],[.9,1.25,0],color=BLUE),Line([.9,.9,0],[1.15,.9,0],color=BLUE)).move_to([-3,.25,0])
+    spider=VGroup(Ellipse(width=.7,height=1.05,color=BLUE,fill_color=BLUE,fill_opacity=.3))
+    for side in (-1,1):
+        for i in range(4):
+            y=.4-i*.25
+            spider.add(VMobject(color=BLUE).set_points_as_corners([[side*.25,y,0],[side*.8,y+.25-i*.1,0],[side*1.35,y-.2-i*.1,0]]))
+    spider.move_to([3,.25,0])
+    return VGroup(table,label('Episodic · events',-3,-1.55,28,BLUE),spider,label('8 legs · semantic facts',3,-1.55,28,BLUE))
+
+
+def task_table(reverse=False,questions=True):
+    g=VGroup(label('Recall',.2,2,30,BLUE),label('Drawing',4,2,30,PURPLE),Line([-6,1.45,0],[6,1.45,0],color=GREY),label('H.M.',-4.4,.65,32,ORANGE),label('FAIL',.2,.65,32,RED),label('PASS',4,.65,32,GREEN),label('Hypothetical\nreverse case',-4.4,-1.05,28,GREY))
+    if questions: g.add(label('PASS' if reverse else '?',.2,-1.05,32,GREEN if reverse else GREY),label('FAIL' if reverse else '?',4,-1.05,32,RED if reverse else GREY))
+    return g
+
+
+def crossing():
+    axes=VGroup(Line([-3.7,-2.45,0],[-3.7,2.65,0],color=GREY),Line([-3.7,-2.45,0],[3,-2.45,0],color=GREY),label('Result',-5.3,2.9,28),label('PASS',-4.65,2.1,28,GREEN),label('FAIL',-4.65,-1.9,28,RED),label('Recall',-2.8,-2.95,28,BLUE),label('Drawing',2.1,-2.95,28,PURPLE))
+    hm=Line([-2.8,-1.9,0],[2.1,2.1,0],color=ORANGE,stroke_width=7)
+    rev=Line([-2.8,2.1,0],[2.1,-1.9,0],color=GREY,stroke_width=7)
+    dots=VGroup(*[Dot(p,radius=.12,color=c) for line,c in ((hm,ORANGE),(rev,GREY)) for p in (line.get_start(),line.get_end())])
+    names=VGroup(label('H.M.',4.25,2.1,28,ORANGE),label('Hypothetical\nreverse case',4.35,-1.35,28,GREY),Line([2.25,-1.9,0],[3,-1.35,0],color=GREY))
+    return VGroup(axes,hm,rev,dots,names)
 
 class S00Title(TitleCard):
-    LESSON = "Memory systems"
-    TITLE = "Opposite failures separate memory systems"
-
-
-# ---------------------------------------------------------------------------------------------
-class S01Puzzle(SpokenScene):
+    LESSON='Memory Systems'
+    TITLE='Two Ways of Remembering'
     def construct(self):
-        t1 = T("1953", 56, font=TITLE_FONT).move_to([0, 1.3, 0])
-        t2 = chip("Inner part of both temporal lobes removed", GREY, 30).move_to([0, 0.1, 0])
-        t3 = chip("severe epilepsy", GREY, 28).move_to([0, -1.2, 0])
-        self.at("In 1953")
-        self.play(FadeIn(t1, shift=UP * 0.1), run_time=0.6)
-        self.at("removed tissue")
-        self.play(FadeIn(t2, shift=UP * 0.1), run_time=0.7)
-        self.at("severe epilepsy")
-        self.play(FadeIn(t3, shift=UP * 0.1), run_time=0.6)
+        g=VGroup(T('BIOCHEMISTRYPEDIA',26,TEAL),T(self.LESSON.upper(),28,GREY),T(self.TITLE,46,font=TITLE_FONT),Line(LEFT*1.4,RIGHT*1.4,color=GOLD)).arrange(DOWN,buff=.4)
+        self.play(FadeIn(g),run_time=.7); self.wait(1.6); self.play(FadeOut(g),run_time=.6); self.finish()
 
-        head = T("1953 · patient H.M. · inner part of both temporal lobes removed", 24, GREY).move_to([0, 3.15, 0])
-        fit(head, max_w=12.2)
-        self.at("the patient known")
-        self.play(ReplacementTransform(VGroup(t1, t2, t3), head), run_time=0.9)
-
-        # left card: events
-        cl = RoundedRectangle(corner_radius=0.2, width=5.8, height=4.3, stroke_color=BLUE, stroke_width=3,
-                              fill_color=BLUE, fill_opacity=0.06).move_to([-3.4, 0.3, 0])
-        ct = T("Events from an hour ago", 28, BLUE, weight=BOLD).move_to([-3.4, 1.85, 0])
-        dots = VGroup(*[Circle(0.28, stroke_color=BLUE, stroke_width=3, fill_color=BLUE, fill_opacity=0.5)
-                        for _ in range(3)]).arrange(RIGHT, buff=0.55).move_to([-3.4, 0.7, 0])
-        lost = T("not remembered", 26, RED).move_to([-3.4, -0.6, 0])
-        self.at("could not remember")
-        self.play(FadeIn(cl), FadeIn(ct), LaggedStart(*[GrowFromCenter(d) for d in dots], lag_ratio=0.25), run_time=1.0)
-        self.at("an hour earlier")
-        xs = VGroup(*[cross(RED, 0.2, 6).move_to(d) for d in dots])
-        self.play(*[d.animate.set_opacity(0.25) for d in dots], FadeIn(xs), FadeIn(lost), run_time=0.8)
-
-        # right card: mirror drawing across three days
-        cr = RoundedRectangle(corner_radius=0.2, width=5.8, height=4.3, stroke_color=PURPLE, stroke_width=3,
-                              fill_color=PURPLE, fill_opacity=0.06).move_to([3.4, 0.3, 0])
-        rt = T("Mirror drawing", 28, PURPLE, weight=BOLD).move_to([3.4, 1.85, 0])
-        star = Star(n=5, outer_radius=0.8, inner_radius=0.34, color=PURPLE, stroke_width=4).move_to([1.7, 0.45, 0])
-        dot = Dot(star.get_start(), radius=0.1, color=TEXT)
-        days = VGroup(*[T(f"Day {i}", 24, TEXT) for i in (1, 2, 3)]).arrange(RIGHT, buff=0.35).move_to([4.5, 0.95, 0])
-        up = arr([3.55, 0.35, 0], [5.45, 0.75, 0], GREEN)
-        better = T("better with practice", 24, GREEN).move_to([4.5, -0.1, 0])
-        nomem = T("no memory of practising", 26, RED).move_to([3.4, -0.95, 0])
-        self.at("new hand skill")
-        self.play(FadeIn(cr), FadeIn(rt), Create(star), run_time=0.6)
-        self.add(dot)
-        self.play(MoveAlongPath(dot, star), FadeIn(days, lag_ratio=0.3), run_time=0.7)
-        self.play(GrowArrow(up), FadeIn(better), FadeIn(nomem), run_time=0.5)
-
-        q1 = chip("one ability?", GREY, 30)
-        q2 = chip("several?", GREY, 30)
-        qs = VGroup(q1, q2).arrange(RIGHT, buff=1.0).move_to([0, -2.75, 0])
-        self.at("Is memory one ability")
-        self.play(FadeIn(q1, shift=UP * 0.1), run_time=0.5)
-        self.at("or several")
-        self.play(FadeIn(q2, shift=UP * 0.1), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-def mem_box(x, title, col, sub, w=3.7, h=2.6, y=0.3):
-    box = RoundedRectangle(corner_radius=0.2, width=w, height=h, stroke_color=col, stroke_width=3,
-                           fill_color=col, fill_opacity=0.1).move_to([x, y, 0])
-    t = T(title, 28, col, weight=BOLD).move_to([x, y + 0.6, 0])
-    fit(t, max_w=w - 0.3)
-    s = T(sub, 24, TEXT).move_to([x, y - 0.25, 0])
-    fit(s, max_w=w - 0.3)
-    return VGroup(box, t, s)
-
-
-class S02Dissociation(SpokenScene):
+class S01(SpokenScene):
     def construct(self):
-        head = T("dissociation: one ability fails, another survives", 30, TEXT).move_to([0, 3.0, 0])
-        wm = mem_box(-4.7, "Working memory", TEAL, "digit span: normal")
-        dm = mem_box(0.0, "Declarative memory", BLUE, "new ones: rare")
-        sk = mem_box(4.7, "Skill learning", PURPLE, "mirror drawing: improves")
-        note = T("the notepad", 24, TEAL).move_to([-4.7, -1.35, 0])
-        b_wm = tick().move_to([-4.7, -0.55, 0])
-        b_dm = cross().move_to([0, -0.55, 0])
-        b_sk = tick().move_to([4.7, -0.55, 0])
+        stars=star_pair([-3.65,-.35,0],2.8); hand=hand_pen([-3.65,.85,0]).scale(1.2,about_point=[-3.65,.85,0])
+        self.add(stars,hand)
+        self.at('Can a man')
+        self.play(FadeIn(label('Can a man get better\nevery day and never\nremember doing it?',2.9,.85,36)),run_time=.6)
+        self.at('get better')
+        self.play(hand.animate.shift(DOWN*.25),run_time=.5)
+        self.at('One patient did')
+        self.play(FadeIn(label('One patient did.',2.9,-1.6,38,ORANGE)),run_time=.4); self.finish()
 
-        self.at("The test is a dissociation")
-        self.play(FadeIn(head, shift=DOWN * 0.1), run_time=0.8)
-        self.at("digit span was normal")
-        self.play(FadeIn(wm), run_time=0.8)
-        self.at("repeat back at once")
-        self.play(Indicate(wm[2], color=TEAL, scale_factor=1.08), run_time=0.8)
-        self.at("could hold")
-        self.play(Indicate(wm[1], color=TEAL, scale_factor=1.1), run_time=0.8)
-        self.at("working memory worked")
-        self.play(FadeIn(b_wm, scale=0.6), FadeIn(note), run_time=0.6)
-        self.at("nothing on that notepad")
-        a = arr([-2.8, 0.3, 0], [-1.95, 0.3, 0], GREY)
-        self.play(FadeIn(dm), GrowArrow(a), run_time=0.8)
-        stop = Line([-2.45, 0.7, 0], [-2.45, -0.1, 0], color=RED, stroke_width=8)
-        self.at("reached")
-        self.play(Create(stop), FadeIn(b_dm, scale=0.6), run_time=0.6)
-        self.at("skill learning survived")
-        self.play(FadeIn(sk), run_time=0.7)
-        self.play(FadeIn(b_sk, scale=0.6), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S03Single(SpokenScene):
+class S02(SpokenScene):
     def construct(self):
-        grp = chip("one patient group", GREY, 30).move_to([-4.2, 0.9, 0])
-        ta = chip("Task A", GREY, 30).move_to([0.2, 1.9, 0])
-        tb = chip("Task B", GREY, 30).move_to([0.2, -0.1, 0])
-        a1 = arr([grp.get_right() + RIGHT * 0.05, ], [ta.get_left() + LEFT * 0.05], GREY) if False else \
-            arr(grp.get_right() + UP * 0.1, ta.get_left(), GREY)
-        a2 = arr(grp.get_right() + DOWN * 0.1, tb.get_left(), GREY)
-        ok = tick().move_to([1.9, 1.9, 0])
-        bad = cross().move_to([1.9, -0.1, 0])
-        okt = T("passes", 26, GREEN).next_to(ok, RIGHT, buff=0.25)
-        badt = T("fails", 26, RED).next_to(bad, RIGHT, buff=0.25)
-        # difficulty scale
-        sc_line = Line([-3.0, -1.8, 0], [3.0, -1.8, 0], color=GREY, stroke_width=4)
-        easy = T("easier", 24, GREY).next_to(sc_line.get_left(), DOWN, buff=0.25)
-        hard = T("harder", 24, GREY).next_to(sc_line.get_right(), DOWN, buff=0.25)
-        ma = Dot([-1.6, -1.8, 0], radius=0.14, color=GREY)
-        mb = Dot([2.0, -1.8, 0], radius=0.14, color=RED)
-        qa = T("A", 24, TEXT).next_to(ma, UP, buff=0.2)
-        qb = T("B", 24, TEXT).next_to(mb, UP, buff=0.2)
-        why = T("or is Task B just harder?", 28, RED).move_to([0.2, -0.95, 0])
+        b=brain(-1.8,0,1.15); self.add(b[0],b[1],label('Front',-1.8,3.15,28),label('Back',-1.8,-3.05,28),label('View from below · schematic',0,-3.55,26,GREY))
+        self.at('In 1953'); self.play(FadeIn(label('1953',3.8,2.5,48)),FadeIn(label('Temporal lobes',3.65,.85,28,BLUE)),FadeIn(label('Inner (medial) tissue\nboth sides',3.8,-.65,28,RED)),run_time=.4)
+        self.at('removed tissue'); self.play(FadeIn(b[2][0]),run_time=.5)
+        self.at('both temporal lobes'); self.play(FadeIn(b[2][1]),Create(Line([1.7,-.15,0],[-.6,.15,0],color=RED)),run_time=.5); self.finish()
 
-        self.at("One task fails")
-        self.play(FadeIn(grp), FadeIn(ta), FadeIn(tb), GrowArrow(a1), GrowArrow(a2), run_time=1.0)
-        self.play(FadeIn(ok, scale=0.6), FadeIn(okt), FadeIn(bad, scale=0.6), FadeIn(badt), run_time=0.7)
-        self.at("single dissociation")
-        self.play(Indicate(VGroup(grp, bad, badt), color=RED, scale_factor=1.05), run_time=0.8)
-        self.at("only that the task is harder")
-        self.play(Create(sc_line), FadeIn(easy), FadeIn(hard), FadeIn(ma), FadeIn(mb), FadeIn(qa), FadeIn(qb), FadeIn(why), run_time=1.0)
-        self.at("worked problem")
-        diag = VGroup(grp, ta, tb, a1, a2, ok, bad, okt, badt, sc_line, easy, hard, ma, mb, qa, qb, why)
-        self.play(FadeOut(diag), run_time=0.5)
-        tg = tag()
-        pl, pr = build_panels()
-        self.at("invented numbers")
-        self.play(FadeIn(tg), run_time=0.5)
-        self.at("There are two tasks")
-        self.play(FadeIn(pl.base), FadeIn(pr.base), run_time=0.8)
-        self.at("classification where")
-        self.play(Indicate(pl.title, color=PURPLE, scale_factor=1.1), run_time=0.7)
-        self.at("where chance is")
-        self.play(Create(pl.chance), run_time=0.6)
-        self.at("questionnaire about")
-        self.play(Indicate(pr.title, color=BLUE, scale_factor=1.1), run_time=0.7)
-        self.at("where chance is", nth=1)
-        self.play(Create(pr.chance), run_time=0.6)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S04Scores(SpokenScene):
+class S03(SpokenScene):
     def construct(self):
-        tg = tag()
-        pl, pr = build_panels()
-        for p in (pl, pr):
-            self.add(p.base, p.chance)
-        self.add(tg)
-        leg = legend()
+        self.add(label('H.M.',-4.6,2.9,48,ORANGE))
+        clock=Circle(2.05,color=GREY).move_to([-2,0,0]); hand=Line([-2,0,0],[-2,1.75,0],color=TEXT,stroke_width=6)
+        ticks=VGroup(*[Line(np.array([-2,0,0])+1.85*np.array([np.cos(a),np.sin(a),0]),np.array([-2,0,0])+2*np.array([np.cos(a),np.sin(a),0]),color=GREY) for a in np.linspace(0,TAU,12,endpoint=False)])
+        self.add(clock,ticks,hand,Line([-2,0,0],[-.95,.2,0],color=GREY,stroke_width=5))
+        cup=VGroup(RoundedRectangle(width=1.2,height=1.2,corner_radius=.15,color=BLUE),Arc(radius=.35,start_angle=-PI/2,angle=PI,color=BLUE).move_to([.8,0,0]),label('New event',0,-1.05,28,BLUE)).move_to([3.3,1,0])
+        arrow=arr([3,-1.5,0],[3,.1,0],BLUE)
+        self.at('new events'); self.play(FadeIn(cup),GrowArrow(arrow),FadeIn(label('Attention',3,-2.2,28,BLUE)),run_time=.45)
+        self.at('within minutes'); self.play(Rotate(hand,angle=-PI/2,about_point=[-2,0,0]),FadeIn(label('a few minutes',-2,-2.65,28)),run_time=.7)
+        self.at('attention moved on'); self.play(Rotate(arrow,angle=-PI/2,about_point=[3,-1.5,0]),FadeOut(cup),run_time=.7); self.finish()
 
-        def grow(g):
-            self.play(*[GrowFromEdge(p.bars[g], DOWN) for p in (pl, pr)],
-                      *[FadeIn(p.labs[g], shift=UP * 0.1) for p in (pl, pr)], run_time=0.9)
-
-        self.at("Control scores")
-        self.play(FadeIn(leg[0]), FadeIn(leg[3]), run_time=0.4)
-        grow("ctrl")
-        self.at("Amnesic patients score")
-        self.play(FadeIn(leg[1]), run_time=0.3)
-        grow("am")
-        self.at("patients score", nth=1)
-        self.play(FadeIn(leg[2]), run_time=0.3)
-        grow("pd")
-        self.at("Look at")
-        hl = VGroup(SurroundingRectangle(VGroup(pr.bars["ctrl"], pr.labs["ctrl"]), color=TEXT, buff=0.1, stroke_width=3),
-                    SurroundingRectangle(VGroup(pr.bars["am"], pr.labs["am"]), color=TEXT, buff=0.1, stroke_width=3))
-        self.play(Create(hl), run_time=0.7)
-        self.at("It looks like")
-        half = T("half?", 30, TEXT).move_to([pr.cx - 0.3, 1.85, 0])
-        self.play(FadeIn(half), run_time=0.5)
-        self.at("hide the guessing")
-        g = Rectangle(width=0.8, height=25 * SC, stroke_width=0, fill_color=YELLOW, fill_opacity=0.65)
-        g.move_to([pr.xs["am"], BASE + 25 * SC / 2, 0])
-        g2 = Rectangle(width=0.8, height=25 * SC, stroke_width=0, fill_color=YELLOW, fill_opacity=0.65)
-        g2.move_to([pr.xs["ctrl"], BASE + 25 * SC / 2, 0])
-        self.play(FadeIn(g), FadeIn(g2), run_time=0.8)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S05Chance(SpokenScene):
+class S04(SpokenScene):
     def construct(self):
-        tg = tag()
-        self.add(tg)
-        f0 = M("relative score =", 24, TEXT)
-        f1 = M("(patient - chance)", 24, ORANGE)
-        f2 = M("/", 24, TEXT)
-        f3 = M("(control - chance)", 24, GREY)
-        f1 = M("(patient − chance)", 24, TEXT)
-        f2 = M("÷", 24, TEXT)
-        f3 = M("(control − chance)", 24, TEXT)
-        formula = VGroup(f0, f1, f2, f3).arrange(RIGHT, buff=0.22).move_to([0, 2.7, 0])
-        fit(formula, max_w=12.2)
+        mirror=VGroup(box(0,0,11.5,5.6,GREY),Rectangle(width=11.15,height=5.25,color=GREY,fill_color=BLUE,fill_opacity=.06),Line([4.8,1.3,0],[5.3,1.8,0],color=GREY),Line([4.5,1.3,0],[5.15,1.95,0],color=GREY)); stars=star_pair([-1,-.3,0],2.1)
+        self.add(mirror,stars,label('Brenda Milner, Montreal',0,3.25,32),label('Mirror',4.2,2.3,28,GREY))
+        reflected=hand_pen(ORIGIN).flip(UP).scale(.9).move_to([3.5,-.25,0]); self.add(reflected)
+        center=Star(n=5,outer_radius=2.1*.895,inner_radius=2.1*.44*.895).move_to([-1,-.3,0])
+        pts=[center.point_from_proportion(t)+np.array([.22*np.sin(44*t),.22*np.cos(38*t),0]) for t in np.linspace(0,1,201)]
+        trace=VMobject(color=TEXT,stroke_width=5).set_points_as_corners(pts)
+        preview=VMobject(color=TEXT,stroke_width=5).set_points_as_corners(pts[:18]); self.add(preview)
+        self.at('mirror drawing task'); self.play(Indicate(mirror,scale_factor=1.01),run_time=.4)
+        hand=hand_pen(pts[0]).scale(.5,about_point=pts[0]); self.at('He traced between'); self.play(FadeIn(hand),run_time=.35)
+        self.at('two outlines'); offset=hand.get_center()-pts[0]
+        self.play(FadeOut(preview),Create(trace),UpdateFromAlphaFunc(hand,lambda m,a:m.move_to(trace.point_from_proportion(a)+offset)),reflected.animate.shift(LEFT*.25),run_time=1.2)
+        def inside(point,vertices):
+            x,y=point[:2]; hit=False
+            for a,b in zip(vertices,np.roll(vertices,-1,axis=0)):
+                if (a[1]>y)!=(b[1]>y) and x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]: hit=not hit
+            return hit
+        errors=[p for p in pts[::8] if not inside(p,stars[0].get_vertices()) or inside(p,stars[1].get_vertices())]
+        self.at('seeing his hand'); self.play(FadeIn(VGroup(*[cross(s=.13,w=5).move_to(p) for p in errors[:5]])),FadeIn(label('Reflected hand',3.4,-1.65,28,ORANGE)),run_time=.4)
+        self.at('only in a mirror'); self.play(FadeIn(box(0,-3.05,9.5,.55,GREY)),FadeIn(label('Direct view blocked',0,-3.05,26,GREY)),run_time=.4); self.finish()
 
-        # gains above chance (questionnaire), left
-        cy = -1.1
-        chance_line = DashedLine([-6.0, cy, 0], [-0.7, cy, 0], color=YELLOW, stroke_width=4, dash_length=0.14)
-        chance_lab = T("chance, 25%", 24, YELLOW).move_to([-5.0, cy - 0.38, 0])
-        gc = 55 * 0.045
-        ga = 15 * 0.045
-        bc = Rectangle(width=1.0, height=gc, stroke_color=GREY, stroke_width=3, fill_color=GREY, fill_opacity=0.55)
-        bc.move_to([-4.5, cy + gc / 2, 0])
-        ba = Rectangle(width=1.0, height=ga, stroke_color=ORANGE, stroke_width=3, fill_color=ORANGE, fill_opacity=0.55)
-        ba.move_to([-2.2, cy + ga / 2, 0])
-        lc = M("80 − 25 = 55", 22, TEXT).move_to([-4.5, cy + gc + 0.3, 0])
-        la = M("40 − 25 = 15", 22, TEXT).move_to([-2.2, cy + ga + 0.3, 0])
-        qlab = T("Questionnaire, above chance", 24, BLUE).move_to([-3.3, 2.2, 0])
-        quarter = T("about a quarter, not a half", 24, TEXT).move_to([-3.3, -2.3, 0])
-
-        # table, right
-        cx1, cx2 = 3.0, 5.2
-        h1 = T("Classification", 22, PURPLE).move_to([cx1, 1.55, 0])
-        h2 = T("Questionnaire", 22, BLUE).move_to([cx2, 1.55, 0])
-        r1 = T("Amnesic", 24, ORANGE).move_to([0.75, 0.6, 0])
-        r2 = T("Parkinson's", 24, GOLD).move_to([0.75, -0.6, 0])
-        cells = {("am", 0): ("18/20 = 90%", cx1, 0.6), ("am", 1): ("15/55 = 27%", cx2, 0.6),
-                 ("pd", 0): ("2/20 = 10%", cx1, -0.6), ("pd", 1): ("53/55 = 96%", cx2, -0.6)}
-        cm = {k: M(v[0], 22, TEXT).move_to([v[1], v[2], 0]) for k, v in cells.items()}
-
-        self.at("subtract chance first")
-        self.play(FadeIn(formula, shift=DOWN * 0.1), Create(chance_line), FadeIn(chance_lab), run_time=0.9)
-        self.play(Indicate(f1, color=YELLOW, scale_factor=1.08), run_time=0.7)
-        self.at("Then divide")
-        self.play(Indicate(f3, color=YELLOW, scale_factor=1.08), FadeIn(qlab), GrowFromEdge(bc, DOWN), FadeIn(lc), run_time=1.0)
-        self.at("The amnesic questionnaire")
-        self.play(GrowFromEdge(ba, DOWN), FadeIn(la), FadeIn(h1), FadeIn(h2), FadeIn(r1), FadeIn(r2), run_time=0.9)
-        self.play(FadeIn(cm[("am", 1)], shift=UP * 0.1), run_time=0.6)
-        self.at("about a quarter")
-        self.play(FadeIn(quarter), Indicate(cm[("am", 1)], color=ORANGE, scale_factor=1.12), run_time=0.8)
-        self.at("guessing")
-        self.play(Indicate(chance_line, color=YELLOW, scale_factor=1.0), Indicate(chance_lab, color=YELLOW), run_time=0.8)
-        self.at("Amnesic classification")
-        self.play(FadeIn(cm[("am", 0)], shift=UP * 0.1), run_time=0.6)
-        self.at("patients get")
-        self.play(FadeIn(cm[("pd", 0)], shift=UP * 0.1), run_time=0.5)
-        self.play(FadeIn(cm[("pd", 1)], shift=UP * 0.1), run_time=0.5)
-        self.finish()
-
-
-# ---------------------------------------------------------------------------------------------
-class S06Double(SpokenScene):
+class S05(SpokenScene):
     def construct(self):
-        tg = tag()
-        self.add(tg)
-        ax_x = -5.5
-        x1, x2 = -4.4, -2.0
-        axis = VGroup(Line([ax_x, BASE, 0], [ax_x, BASE + 100 * SC, 0], color=GREY, stroke_width=3),
-                      Line([ax_x, BASE, 0], [-0.9, BASE, 0], color=GREY, stroke_width=3))
-        for v in (0, 50, 100):
-            axis.add(M(str(v), 22, GREY).move_to([ax_x - 0.33, BASE + v * SC, 0]))
-        ytitle = T("% of controls' gain above chance", 22, GREY).move_to([-3.1, 2.55, 0])
-        c1 = T("Classification", 24, PURPLE).move_to([x1, BASE - 0.4, 0])
-        c2 = T("Questionnaire", 24, BLUE).move_to([x2 + 0.1, BASE - 0.4, 0])
-        chart = VGroup(axis, ytitle, c1, c2)
+        base,curve=learning_plot(); self.add(base)
+        self.at('Across'); self.play(Create(curve[0]),FadeIn(curve[1]),run_time=1.7)
+        self.at('he improved'); self.play(Indicate(curve,scale_factor=1.01,color=PURPLE),run_time=.5); self.finish()
 
-        def pt(x, v, col):
-            return Dot([x, BASE + v * SC, 0], radius=0.15, color=col)
+class S06(SpokenScene):
+    def construct(self):
+        base,curve=learning_plot(); base[2].scale(.82).move_to([2,3.25,0]); self.add(base,curve)
+        self.at('did not remember'); self.play(LaggedStart(*[FadeIn(b) for b in speech_days()],lag_ratio=.12),run_time=.7); self.finish()
 
-        am1, am2 = pt(x1, 90, ORANGE), pt(x2, 27, ORANGE)
-        pd1, pd2 = pt(x1, 10, GOLD), pt(x2, 96, GOLD)
-        lam = Line(am1.get_center(), am2.get_center(), color=ORANGE, stroke_width=5)
-        lpd = Line(pd1.get_center(), pd2.get_center(), color=GOLD, stroke_width=5)
-        v_am1 = M("90%", 22, ORANGE).move_to(am1.get_center() + LEFT * 0.62)
-        v_pd1 = M("10%", 22, GOLD).move_to(pd1.get_center() + LEFT * 0.62)
-        v_am2 = M("27%", 22, ORANGE).move_to(am2.get_center() + DOWN * 0.38)
-        v_pd2 = M("96%", 22, GOLD).move_to(pd2.get_center() + UP * 0.38)
-        n_am = T("Amnesic", 24, ORANGE).move_to(am2.get_center() + RIGHT * 1.2)
-        n_pd = T("Parkinson's", 24, GOLD).move_to(pd2.get_center() + RIGHT * 1.35)
-        fail_am = cross(RED, 0.16, 5).move_to(am2.get_center() + RIGHT * 0.0 + DOWN * 0.0)
-        fail_pd = cross(RED, 0.16, 5).move_to(pd1.get_center())
+class S07(SpokenScene):
+    def construct(self):
+        base,curve=learning_plot(); base[2].scale(.82).move_to([2,3.25,0]); bubbles=speech_days(); bubbles.set_stroke(opacity=.4); self.add(base,curve,bubbles)
+        self.at('kept a record'); self.play(Transform(curve,glowing_curve(curve)),FadeIn(label('Kept a record',-.4,.4,28,PURPLE)),run_time=.6)
+        self.at('Why could he not'); self.play(FadeOut(bubbles),FadeOut(base[2]),FadeIn(bubble(3.45,.85)),FadeIn(label('?',3.45,.85,46,BLUE)),FadeIn(label(Q1,0,3.15,30)),run_time=.5); self.finish()
 
-        self.at("Now compare")
-        self.play(FadeIn(chart), run_time=0.8)
-        self.at("Each group fails")
-        self.play(FadeIn(am1), FadeIn(pd1), run_time=0.5)
-        self.play(Create(lam), Create(lpd), FadeIn(am2), FadeIn(pd2), run_time=1.0)
-        self.play(FadeIn(v_am1), FadeIn(v_pd1), FadeIn(v_am2), FadeIn(v_pd2), FadeIn(n_am), FadeIn(n_pd), run_time=0.7)
-        self.play(FadeIn(fail_am, scale=0.5), FadeIn(fail_pd, scale=0.5), run_time=0.5)
-        self.at("double dissociation")
-        dd = chip("double dissociation", TEXT, 30).move_to([3.7, 2.7, 0])
-        self.play(FadeIn(dd, shift=DOWN * 0.1), Indicate(VGroup(lam, lpd), scale_factor=1.03), run_time=0.8)
+class S08Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(puzzle_plot()); self.wait(5)
 
-        # difficulty scales: no single order fits
-        def scale_row(y, name, ncol, left_col, right_col):
-            ln = Line([1.5, y, 0], [5.9, y, 0], color=GREY, stroke_width=4)
-            lab = T(name, 24, ncol).move_to([3.7, y + 0.5, 0])
-            l_lab = T("easier", 22, GREY).move_to([2.0, y - 0.4, 0])
-            r_lab = T("harder", 22, GREY).move_to([5.4, y - 0.4, 0])
-            dl = Dot([2.0, y, 0], radius=0.17, color=left_col)
-            dr = Dot([5.4, y, 0], radius=0.17, color=right_col)
-            return VGroup(ln, lab, l_lab, r_lab, dl, dr)
+class S09(SpokenScene):
+    def construct(self):
+        p=puzzle_plot(); self.add(p)
+        self.at('The record showed up'); self.play(FadeOut(p[4]),FadeOut(p[3]),run_time=.35)
+        self.at('how well he drew'); self.play(FadeIn(label('Performance',-.7,1.15,32,PURPLE)),run_time=.4)
+        self.at('recall and report'); self.play(FadeIn(label('Recall and report',3.45,1.9,28,BLUE)),Create(cross(s=.45).move_to(p[2])),run_time=.5); self.finish()
 
-        r1 = scale_row(1.1, "Amnesic patients", ORANGE, PURPLE, BLUE)
-        r2 = scale_row(-0.7, "Parkinson's patients", GOLD, BLUE, PURPLE)
-        nofit = T("no one order fits both", 26, RED).move_to([3.7, -1.75, 0])
-        self.at("No single difficulty scale")
-        self.play(FadeIn(r1), run_time=0.7)
-        self.at("hard for one group")
-        self.play(FadeIn(r2), run_time=0.7)
-        self.play(FadeIn(nofit), run_time=0.5)
+class S10(SpokenScene):
+    def construct(self):
+        cards=memory_cards()
+        report=bubble(-3.2,-.05); report.add(*[Line([-4,y,0],[-2.4,y,0],color=BLUE) for y in (.16,-.06)])
+        doing=hand_pen(ORIGIN).scale(.85).move_to([3.2,-.05,0])
+        cards[0].add(report); cards[1].add(doing); self.add(cards)
+        self.at('two ways of remembering'); self.play(Indicate(cards[0],scale_factor=1.01,color=BLUE),Indicate(cards[1],scale_factor=1.01,color=PURPLE),run_time=.6)
+        self.at('badly damaged only one'); self.play(cards[0].animate.set_color(GREY),FadeIn(label('Severely impaired',-3.2,-1.4,30,RED)),FadeIn(label('Kept',3.2,-1.4,36,GREEN)),run_time=.6); self.finish()
 
-        self.at("two separable learning processes")
-        self.play(FadeOut(VGroup(r1, r2, nofit)), run_time=0.5)
-        p1 = chip("classification", PURPLE, 22).move_to([2.2, 1.6, 0])
-        p2 = chip("questionnaire", BLUE, 22).move_to([5.0, 1.6, 0])
-        sep = DashedLine([3.62, 2.1, 0], [3.62, 1.1, 0], color=GREY, stroke_width=3)
-        cap = T("evidence for separate processes", 24, TEXT).move_to([3.7, 0.7, 0])
-        self.play(FadeIn(p1), FadeIn(p2), Create(sep), FadeIn(cap), run_time=0.9)
+class S11(SpokenScene):
+    def construct(self):
+        panel=box(0,0,11.8,6.3,GREY); heading=label('Recall and report',0,2.5,34,BLUE); self.add(panel,heading)
+        self.at('bring to mind'); self.play(FadeIn(label('Bring to mind and state',0,1.55,28,BLUE)),run_time=.4)
+        self.at('is declarative'); new=label('Declarative memory',0,2.5,34,BLUE); self.play(FadeOut(heading),run_time=.15); self.play(FadeIn(new),run_time=.2)
+        icons=event_icons(); self.at('events'); self.play(FadeIn(icons[:2]),run_time=.4)
+        self.at('facts about the world'); self.play(FadeIn(icons[2:]),run_time=.4); self.finish()
 
-        self.at("pin each")
-        target = chip("one structure?", GREY, 24).move_to([3.7, -0.9, 0])
-        e1 = arr([2.4, 1.2, 0], [3.2, -0.5, 0], GREY, 4)
-        e2 = arr([4.9, 1.2, 0], [4.2, -0.5, 0], GREY, 4)
-        x1m, x2m = cross(RED, 0.16, 5).move_to([2.8, 0.35, 0]), cross(RED, 0.16, 5).move_to([4.55, 0.35, 0])
-        self.play(FadeOut(cap), FadeIn(target), GrowArrow(e1), GrowArrow(e2), run_time=0.8)
-        self.play(FadeIn(x1m, scale=0.5), FadeIn(x2m, scale=0.5), run_time=0.4)
-        self.at("more than the striatum")
-        pk = T("Parkinson's disease damages", 22, GOLD).move_to([3.7, -1.75, 0])
-        pk2 = T("more than the striatum", 22, GOLD).move_to([3.7, -2.15, 0])
-        self.play(FadeIn(pk), FadeIn(pk2), run_time=0.6)
+class S12(SpokenScene):
+    def construct(self):
+        icons=event_icons(); self.add(box(0,0,11.8,6.3,GREY),label('Declarative memory',0,2.5,34,BLUE),icons)
+        self.at('could almost never'); self.play(icons[0].animate.set_color(GREY),icons[1].animate.set_color(GREY),FadeIn(label('New declarative learning: severely impaired',0,-2.2,28,RED)),run_time=.5)
+        self.at('new declarative memories'); self.play(FadeIn(label('Older facts: largely spared',0,-2.85,28,GREEN)),run_time=.4); self.finish()
 
-        self.at("A lesion shows")
-        self.play(FadeOut(VGroup(p1, p2, sep, target, e1, e2, x1m, x2m, pk, pk2)), run_time=0.5)
-        les = chip("lesion: structure needed", GREEN, 30).move_to([3.7, 1.0, 0])
-        sto = chip("memory lives there", GREY, 30).move_to([3.7, -0.7, 0])
-        self.play(FadeIn(les, shift=UP * 0.1), run_time=0.6)
-        self.at("not that the memory")
-        sl = Line(sto.get_left() + RIGHT * 0.1, sto.get_right() + LEFT * 0.1, color=RED, stroke_width=7)
-        self.play(FadeIn(sto), run_time=0.5)
-        self.play(FadeIn(sl, scale=0.5), run_time=0.4)
-        self.finish()
+class S13(SpokenScene):
+    def construct(self):
+        heading=label('Performance',0,2.65,34,PURPLE)
+        hand=hand_pen([-5.15,.15,0]).scale(.8,about_point=[-5.15,.15,0])
+        skill=VGroup(hand,label('Skills',-4.4,-1.1,28,PURPLE))
+        habit=VGroup(Arc(radius=.82,start_angle=.3,angle=5.4,color=PURPLE).add_tip().move_to([-1.5,.4,0]),label('Habits',-1.5,-1.1,28,PURPLE))
+        prime=VGroup(arr([.5,.2,0],[2.4,.2,0],PURPLE),Line([.4,.55,0],[1.2,.55,0],color=PURPLE),Line([.3,.85,0],[1,.85,0],color=PURPLE),label('Priming',1.4,-1.1,28,PURPLE))
+        eye=VGroup(ArcBetweenPoints([3.8,.3,0],[5.4,.3,0],angle=-1,color=PURPLE),ArcBetweenPoints([3.8,.3,0],[5.4,.3,0],angle=1,color=PURPLE),Dot([4.6,.3,0],color=PURPLE),label('♪',3.8,1.25,44,PURPLE),label('Conditioning',4.4,-1.1,26,PURPLE))
+        icons=VGroup(skill,habit,prime,eye)
+        for icon in icons: icon.save_state(); icon.set_opacity(.18)
+        self.add(box(0,0,12.2,6.4,PURPLE),heading,icons)
+        self.at('is non'); self.play(FadeOut(heading),run_time=.15); self.play(FadeIn(label('Nondeclarative memory',0,2.65,34,PURPLE)),run_time=.2)
+        for phrase,icon in (('skills',skill),('habits',habit),('priming',prime),('simple conditioning',eye)):
+            self.at(phrase); self.play(Restore(icon),run_time=.3)
+        self.at('He kept his skill learning')
+        frame=Rectangle(width=2.6,height=3.7,color=GREEN).move_to([-4.4,-.1,0])
+        self.play(Create(frame),FadeIn(label('H.M. kept this',-4.4,-2.45,26,GREEN)),FadeIn(star_pair([-4.4,-1.6,0],.28),shift=RIGHT*.7),run_time=.6); self.finish()
+
+class S14(SpokenScene):
+    def construct(self):
+        self.add(box(0,0,12,6.6,TEAL),label('Working memory',0,2.75,36,TEAL))
+        paper=box(-3,.9,5,2.5,TEAL)
+        rings=VGroup(*[Line([x,1.95,0],[x,2.3,0],color=TEAL,stroke_width=5) for x in (-4.6,-3.8,-3,-2.2,-1.4)])
+        self.at('Working memory'); self.play(Create(paper),Create(rings),run_time=.4)
+        self.at('a few items for seconds'); self.play(FadeIn(label('5 8 2 7',-3,.9,56,TEAL)),run_time=.4)
+        keys=VGroup()
+        for n in range(1,10):
+            x=2.1+(n-1)%3*1.25; y=1.55-(n-1)//3*1.12
+            keys.add(VGroup(box(x,y,1.08,1.02,TEAL),label(str(n),x,y,40,TEAL)))
+        self.at('phone number while you dial')
+        loop=Arc(radius=.44,start_angle=.3,angle=5.3,color=TEAL).add_tip().set(width=.95).move_to([.35,.95,0])
+        self.play(FadeIn(keys),Create(loop),FadeIn(label('Rehearsing',-.1,-.65,24,TEAL)),FadeIn(label('Phone keypad',3.35,-1.65,26,TEAL)),run_time=.4)
+        self.play(LaggedStart(*[Indicate(keys[i-1],color=TEXT,scale_factor=1.12) for i in (5,8,2,7)],lag_ratio=.6),run_time=1)
+        # Horizontal span scale gives the illustrative normal band its own right end.
+        x0=-5.1; x1=.65; y=-1.65
+        axis=VGroup(Line([x0,-2.25,0],[x1,-2.25,0],color=GREY),label('Digits remembered',-2.25,-2.95,26))
+        for n in (0,2,4,6,8,10):
+            x=x0+(x1-x0)*n/10
+            axis.add(Line([x,-2.25,0],[x,-2.36,0],color=GREY),label(str(n),x,-2.58,22,GREY))
+        band=Rectangle(width=2.875,height=.92,stroke_opacity=0,fill_color=GREEN,fill_opacity=.18).move_to([-.7875,y,0])
+        normal=label('Normal\nrange',-.05,y,22,GREEN)
+        bar=Rectangle(width=.05,height=.45,color=GREEN,fill_color=GREEN,fill_opacity=.85).move_to([x0+.025,y,0])
+        self.at('His was normal'); self.play(FadeIn(axis),FadeIn(band),FadeIn(normal),FadeIn(bar),run_time=.25)
+        self.play(bar.animate.stretch_to_fit_width(4.025).move_to([x0+2.0125,y,0]),FadeIn(label('Digit span: normal',3.35,-2.75,28,GREEN)),run_time=.7); self.finish()
 
 
-class S07End(EndCard):
-    LINE = "A lesion shows a structure is needed, not that memory lives there."
+class S15(SpokenScene):
+    def construct(self):
+        rails=VGroup(Line([-2.4,-2.6,0],[-2.4,2.6,0],color=GREY),Line([-.1,-2.6,0],[-.1,2.6,0],color=GREY),*[Line([-2.4,y,0],[-.1,y,0],color=GREY) for y in (-2.1,0,2.1)])
+        self.add(rails,label('A difficulty difference?',0,3.25,34))
+        self.at('Perhaps recall tests'); self.play(FadeIn(label('Recall',1.4,2.1,30,BLUE)),FadeIn(label('Mirror drawing',2,-2.1,30,PURPLE)),FadeIn(label('Intermediate task',2,0,26,GREY)),run_time=.5)
+        self.at('simply harder'); self.play(GrowArrow(arr([-3.1,-2.3,0],[-3.1,2.3,0],GREY)),FadeIn(label('Harder?',-4.3,.8,28,GREY)),run_time=.4)
+        self.at('brain damage hurts hard tasks first'); self.play(Create(cross(s=.3).move_to([3.7,2.1,0])),FadeIn(label('H.M. fails here',4.6,1.35,26,RED)),Create(tick(s=.3).move_to([4.3,-2.1,0])),FadeIn(label('H.M. passes',4.6,-2.8,26,GREEN)),Create(DashedLine([-2.7,1,0],[.3,1,0],color=RED)),FadeIn(label('Damage cuts off here?',2.35,.8,26,RED)),run_time=.6)
+        self.add(label('Single dissociation · one patient, one failed task',0,-3.5,26,GREY)); self.finish()
+
+class S16(SpokenScene):
+    def construct(self):
+        self.add(task_table()); self.at('What second result'); self.play(FadeIn(label(Q2,0,-2.65,28)),run_time=.6); self.finish()
+
+class S17Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(task_table(),label(Q2,0,-2.65,28)); self.wait(5)
+
+class S18(SpokenScene):
+    def construct(self):
+        table=task_table(); question=label(Q2,0,-2.65,28); self.add(table,question)
+        self.at('A patient with damage somewhere else'); self.play(FadeOut(question),run_time=.4)
+        self.at('who fails the task'); self.play(Transform(table[-1],label('FAIL',4,-1.05,32,RED)),run_time=.4)
+        self.at('passes the task he failed'); self.play(Transform(table[-2],label('PASS',.2,-1.05,32,GREEN)),run_time=.4)
+        self.at('he failed'); plot=crossing(); self.play(FadeOut(table),FadeIn(plot[0]),FadeIn(plot[4]),run_time=.4)
+        self.play(Create(plot[1]),FadeIn(plot[3][:2]),run_time=.65)
+        self.play(Create(plot[2]),FadeIn(plot[3][2:]),run_time=.65)
+        self.wait(5); self.finish()
+
+class S19(SpokenScene):
+    def construct(self):
+        plot=crossing(); self.add(plot)
+        self.at('Here is the one idea'); self.play(FadeIn(label('The one idea',0,3.35,36,GOLD)),run_time=.4)
+        self.at('Memory systems'); self.play(FadeOut(plot),FadeIn(label('Memory systems are told apart',0,.8,44)),run_time=.4)
+        self.at('by crossed failures'); self.play(FadeIn(label('by crossed failures.',0,-.45,44)),Create(Line([-1.7,-2.8,0],[1.7,-1.65,0],color=ORANGE,stroke_width=8)),Create(Line([-1.7,-1.65,0],[1.7,-2.8,0],color=GREY,stroke_width=8)),run_time=.4); self.finish()
+
+
+def structure_brain(x,damaged):
+    outline=VGroup(*[Ellipse(width=1.85,height=4.35,color=GREY,fill_color=GREY,fill_opacity=.08).move_to([x+s*1.05,.6,0]) for s in (-1,1)])
+    regions=VGroup()
+    for name,c,y in (('X',BLUE,1.35),('Y',PURPLE,-.35)):
+        for side in (-1,1):
+            region=Ellipse(width=.75,height=1.05,color=c,fill_color=c,fill_opacity=.65 if name==damaged else .15).move_to([x+side*.95,y,0]); regions.add(region)
+            if name==damaged: regions.add(cross(s=.21).move_to(region))
+    return VGroup(outline,regions,label('Structure X',x,3.2,28,BLUE),label('Structure Y',x,-1.75,28,PURPLE),Line([x,2.9,0],[x+.65,1.7,0],color=BLUE),Line([x,-1.65,0],[x+.65,-.7,0],color=PURPLE))
+
+class S20(SpokenScene):
+    def construct(self):
+        left=structure_brain(-3.35,'X'); right=structure_brain(3.35,'Y'); self.add(left)
+        self.at('impairs task'); self.play(FadeIn(label('Task A',-4.45,-2.55,28,BLUE)),Create(cross(s=.35).move_to([-4.45,-3.1,0])),run_time=.4)
+        self.at('spares task'); self.play(FadeIn(label('Task B',-1.95,-2.55,28,PURPLE)),Create(tick(s=.35).move_to([-1.95,-3.1,0])),run_time=.4)
+        self.at('Damage elsewhere'); self.play(FadeIn(right),run_time=.25)
+        self.play(FadeIn(label('Task A',1.95,-2.55,28,BLUE)),FadeIn(label('Task B',4.45,-2.55,28,PURPLE)),Create(tick(s=.35).move_to([1.95,-3.1,0])),Create(cross(s=.35).move_to([4.45,-3.1,0])),run_time=.5); self.finish()
+
+
+def dial(x,y,c,angle=.8,r=1.9):
+    end=np.array([x,y,0])+r*.77*np.array([np.cos(angle),np.sin(angle),0])
+    return VGroup(Circle(r,color=c).move_to([x,y,0]),Line([x,y,0],end,color=c,stroke_width=8),Dot([x,y,0],color=c),*[Line(np.array([x,y,0])+r*.88*np.array([np.cos(a),np.sin(a),0]),np.array([x,y,0])+r*np.array([np.cos(a),np.sin(a),0]),color=c) for a in np.linspace(-.5,3.6,9)])
+
+class S21(SpokenScene):
+    def construct(self):
+        one=dial(0,0,GREY,r=2.5); title=label('One shared capacity',0,3.1,36); self.add(one,title)
+        self.at('Then weakening'); self.play(Rotate(one[1],angle=-1.7,about_point=ORIGIN),run_time=.9)
+        self.at('cannot explain both'); mark=cross(s=1.5); self.play(Create(mark),run_time=.5)
+        self.at('The tasks rely')
+        panel=box(0,0,12,6.7,GREY)
+        pair=VGroup(dial(-3,.2,BLUE,angle=2.6),dial(3,.2,PURPLE,angle=.35),label('Process 1',-3,2.65,32,BLUE),label('Process 2',3,2.65,32,PURPLE))
+        self.play(FadeOut(one),FadeOut(title),FadeOut(mark),run_time=.2)
+        self.remove(one,title,mark)
+        self.play(FadeIn(panel),FadeIn(pair),run_time=.2)
+        self.at('at least partly',lead=.45); self.play(FadeIn(label('Strong evidence, not proof',0,-2.7,30,GOLD)),run_time=.25)
+        self.at('separable processes'); self.play(Indicate(pair[0][1],scale_factor=1.03),Indicate(pair[1][1],scale_factor=1.03),run_time=.4); self.finish()
+
+class S22(SpokenScene):
+    def construct(self):
+        plot=crossing(); self.add(plot)
+        self.at('That crossing'); self.play(Indicate(VGroup(plot[1],plot[2]),scale_factor=1.01),run_time=.4)
+        self.at('double dissociation'); self.play(FadeIn(label('Double dissociation',0,3.35,36)),run_time=.4)
+        # Translate and compress only the geometry vertically; preserve all label sizes.
+        self.at('It shows each structure')
+        target=plot.copy()
+        target.stretch(.70,1).shift(UP*.65)
+        for m in target.get_family():
+            if isinstance(m,Text): m.stretch(1/.70,1)
+        self.play(Transform(plot,target),run_time=.5)
+        self.at('needed for its task'); self.play(FadeIn(label('Needed, in this experiment: shown',0,-2.35,30,GREEN)),run_time=.4)
+        self.at('not that the memory'); self.play(FadeIn(label('Where it is stored: not shown?',0,-3.15,30,GREY)),run_time=.4); self.finish()
+
+class S23(SpokenScene):
+    def construct(self):
+        self.add(label('Needed, not stored.',0,1.1,48),Line([-4,0,0],[4,0,0],color=GOLD))
+        self.at('the key to reading'); self.play(FadeIn(label('The key to reading\nevery lesion study',0,-1.1,38,GOLD)),run_time=.5); self.finish()
+
+class S24End(EndCard):
+    LINE='Crossed failures show a structure is needed, not that it stores.'
+    def construct(self):
+        self.add(label('Crossed failures show a structure is needed,',0,.7,32),label('not that it stores.',0,-.2,38),label('biochemistrypedia.com',0,-1.6,26,TEAL)); self.finish()

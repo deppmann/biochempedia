@@ -1,344 +1,456 @@
-"""One Stretch, Two Opposite Commands  (Biochemistrypedia neuroscience explainer, motor-units-reflexes)
-
-Timed to the SPOKEN words with self.at("..."). A flat schematic only: two muscle blocks, a spindle,
-a spinal cord cross-section (circle with a dashed midline, dorsal at the top, ventral at the bottom)
-and labelled neurons. No body, no leg, no drawn limb. Every neuron sits on ONE half of the cord (the
-half on the same side as the stretched muscle); the other half is labelled and left empty.
-
-COLOR MAP (one color per concept, whole video)
-  BLUE   = neurons (Ia afferent, alpha motor neurons, their axons)
-  GREEN  = excitation (excitatory synapse, the muscle that is excited)
-  RED    = inhibition (inhibitory interneuron, inhibitory synapse, the muscle that relaxes)
-  YELLOW = the stretch and the spikes it sends
-  TEAL   = the muscle spindle (the sensor)
-  GREY   = muscles at rest, the cord, structure, the crossed-extensor reflex (not part of the circuit)
+"""Where Every Command Ends — reviewed animation.
+COLOR MAP: BLUE neurons/axons/voltage; GREEN excitation/muscle force;
+RED inhibition; YELLOW input/spikes/threshold; TEAL spindle; GREY structure.
+All curves and voltage ratios are calculated from the stated dimensionless models.
 """
+import os
+import json
+from pathlib import Path
 import numpy as np
-from bp_style import *  # noqa: F401,F403
-
-C = np.array([3.2, 0.0, 0.0])   # cord centre
-R = 2.9
-AY, BY = 1.9, -2.55             # muscle A (stretched) and B (antagonist) centre y
-AX = -4.7
+from bp_style import *
 
 
-def P(x, y):
-    return np.array([x, y, 0.0])
+class SpokenScene(SpokenScene):
+    # Keep the fixed audio timeline: the shared helper adds .4 s to every scene.
+    # Cue diagnostics belong in temporary render storage, not the chapter sources.
+    def at(self, phrase, lead=.2, nth=0):
+        target = max(0., self.t_of(phrase, nth)-lead)
+        with open('/tmp/motor-units-fix-sync.log', 'a') as f:
+            f.write(f'{os.environ.get("KX_SCENE_ID")} {phrase!r} target={target:.3f} now={self.elapsed():.3f} late={max(0,self.elapsed()-target):.3f}\n')
+        if target-self.elapsed() > .02:
+            self.wait(target-self.elapsed())
+
+    def finish(self):
+        if self.narration_s-self.elapsed() > .001:
+            self.wait(self.narration_s-self.elapsed())
 
 
-def poly(pts, color=BLUE, w=5, dashed=False):
-    m = VMobject(stroke_color=color, stroke_width=w)
-    m.set_points_as_corners([P(*p) for p in pts])
-    return m
+def P(x,y): return np.array([x,y,0.])
+def label(s,x,y,size=28,color=TEXT,font=FONT):
+    # Pango positions actual subscripts, avoiding absent Unicode subscript glyphs.
+    replacements={'Rᵢₙ':'R<sub>in</sub>','Iₜₕ':'I<sub>th</sub>','ΔVₜₕ':'ΔV<sub>th</sub>',
+                  'Iₑff':'I<sub>eff</sub>','Aᵅ⁻ᵝ':'A<sup>α−β</sup>',
+                  'A⁻ᵝ':'A<sup>−β</sup>','Aᵅ':'A<sup>α</sup>'}
+    marked=s
+    for old,new in replacements.items(): marked=marked.replace(old,new)
+    mob=MarkupText(marked,font=font,font_size=size,color=color) if marked!=s else T(s,size,color,font=font)
+    return mob.move_to(P(x,y))
+def poly(points,color=BLUE,w=5):
+    return VMobject(stroke_color=color,stroke_width=w).set_points_as_corners([P(*p) for p in points])
+def neuron(x,y,r=.6):
+    body=Circle(r,color=BLUE,fill_color=BLUE,fill_opacity=.2).move_to(P(x,y))
+    dend=VGroup(*[Line(P(x-r*.85,y+d*r),P(x-r-.28,y+d*r*1.5),color=BLUE,stroke_width=4) for d in (-.55,0,.55)])
+    return VGroup(body,dend)
+def fibres(x=4,count=6):
+    return VGroup(*[RoundedRectangle(width=2.6,height=.28,corner_radius=.12,color=GREY,fill_color=GREY,fill_opacity=.2).move_to(P(x,1.7-i*.55)) for i in range(count)])
+def unit():
+    n=neuron(-4.6,.2,.8); a=Line(P(-3.8,.2),P(-1.5,.2),color=BLUE,stroke_width=5)
+    f=fibres(3.8,8)
+    # Six owned fibres and two separate, dark fibres below the unit bracket.
+    b=VGroup(*[poly([(-1.5,.2),(.2,f[i].get_y()),(2.5,f[i].get_y())]) for i in range(6)])
+    return n,a,f,b
 
+def cord():
+    c=Circle(2.55,color=GREY,fill_color=GREY,fill_opacity=.08).move_to(P(-2.5,.1))
+    h=Polygon(*[P(-2.5+dx,.1+dy) for dx,dy in [(-.2,.5),(-1.1,1.7),(-.85,.1),(-1.4,-1.4),(-.3,-.7),(.3,-.7),(1.4,-1.4),(.85,.1),(1.1,1.7),(.2,.5)]],color=GREY,fill_color=GREY,fill_opacity=.25)
+    return VGroup(c,h,label('spinal cord',-2.5,3.35,30),label('dorsal',-2.5,2.95,26),label('ventral',-2.5,-2.9,26))
 
-def inhib_end(a, b, color=RED, w=6):
-    a, b = np.array(a, float), np.array(b, float)
-    d = (b - a) / np.linalg.norm(b - a)
-    perp = np.array([-d[1], d[0], 0])
-    return VGroup(Line(a, b, color=color, stroke_width=w),
-                  Line(b + perp * 0.24, b - perp * 0.24, color=color, stroke_width=w + 1))
+BOTTOM=-2.05
+THRESH=1.65
 
+def voltage(x,h=1.,width=.63):
+    return Rectangle(width=width,height=max(.025,h),stroke_width=0,fill_color=BLUE,fill_opacity=.8).move_to(P(x,BOTTOM+h/2))
+def gauge(x,h=.4):
+    outline=Rectangle(width=.86,height=4.35,color=GREY,stroke_width=2).move_to(P(x,.125))
+    line=DashedLine(P(x-.62,THRESH),P(x+.43,THRESH),color=YELLOW,dash_length=.1)
+    return VGroup(outline,voltage(x,h),line)
 
-def exc_arrow(a, b, color=GREEN, w=6):
-    return Arrow(a, b, buff=0, color=color, stroke_width=w, tip_length=0.24,
-                 max_tip_length_to_length_ratio=0.6, max_stroke_width_to_length_ratio=20)
+def pool(hs=(.35,.35,.35),shared=False,question=False,units=True):
+    g=VGroup(); bars=[]; cells=[]
+    for i,(x,r,name) in enumerate(zip((-4.35,0,4.35),(.30,.46,.65),('small','medium','large'))):
+        n=neuron(x-.65,.25,r); b=gauge(x+.52,hs[i]); cells.append(n); bars.append(b[1])
+        col=VGroup(n,b,label(name,x, -2.43,28),label('threshold',x+1.65,THRESH,22,YELLOW))
+        if units:
+            count=(3,6,12)[i]
+            fs=VGroup(*[RoundedRectangle(width=.54,height=.13,corner_radius=.05,color=GREY,fill_color=GREY,fill_opacity=.2).move_to(P(x-1.13+(j%2)*.63,-.9-(j//2)*.17)) for j in range(count)])
+            col.add(fs,label(('weak unit','more fibres','strong unit')[i],x,-3.0,26,GREY))
+        if i==2:
+            col[2].shift(DOWN*.05)
+            if units: col[-1].shift(DOWN*.05)
+        g.add(col)
+    if shared:
+        bus=VGroup(label('shared input',0,3.35,30,YELLOW),Line(P(-5,2.85),P(4,2.85),color=YELLOW))
+        bus.add(*[Arrow(P(x-.65,2.85),P(x-.65,1.06),buff=0,color=YELLOW,stroke_width=3) for x in (-4.35,0,4.35)])
+        dial=VGroup(Arc(radius=.42,start_angle=-PI*.8,angle=PI*1.6,color=YELLOW).move_to(P(-5.8,3.15)),Line(P(-5.8,3.15),P(-5.6,3.44),color=YELLOW,stroke_width=4),label('input',-4.6,3.42,26,YELLOW))
+        g.add(bus,dial)
+    if question: g.add(label('Which fires first?',0,-3.5,32))
+    return g,bars,cells
 
+def prediction():
+    g,bs,ns=pool(shared=True,question=True)
+    g[4][1].rotate(-.7,about_point=P(-5.8,3.15))
+    return g,bs,ns
 
-def num(text, x, y, color):
-    return T(text, 28, color, weight=BOLD).move_to(P(x, y))
+def inputs():
+    n=neuron(1,0,1.05); n.remove(n[1]); gs=[]
+    for i,name in enumerate(('brain','muscle spindle (stretch)','skin pain receptor','rhythm circuit')):
+        y=2.6-i*1.55
+        landing=.75-i*.5
+        end=P(1-np.sqrt(1.05**2-landing**2),landing)
+        source=label(name,-4.6,y,26,TEAL if i==1 else TEXT)
+        start=source.get_right()+RIGHT*.15
+        # Horizontal first segment keeps labels beside their source; relay has its own landing point.
+        relaypoint=P(-1.6,y)
+        path=VMobject(color=TEAL if i==1 else BLUE,stroke_width=4).set_points_as_corners([start,relaypoint,end])
+        tip=Arrow(relaypoint,end,color=TEAL if i==1 else BLUE,buff=0,stroke_width=4)
+        group=VGroup(source,VGroup(path,tip))
+        if i!=1:
+            group.add(Circle(.18,color=BLUE,fill_color=BG,fill_opacity=1).move_to(relaypoint),label('interneuron',-1.3,y+(.4 if i==0 else -.4),26,GREY))
+        gs.append(group)
+    return n,gs
 
-
-class Rig:
-    """Everything that stays the same in every scene; scenes add/fade the parts they need."""
-
-    def __init__(self):
-        # muscles
-        self.mA = Rectangle(width=2.8, height=0.95, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                            fill_opacity=0.22).move_to(P(AX, AY))
-        self.mB = Rectangle(width=2.8, height=1.0, stroke_color=GREY, stroke_width=3, fill_color=GREY,
-                            fill_opacity=0.22).move_to(P(AX, BY))
-        self.fibres = VGroup(*[Line(P(-5.85, AY + dy), P(-3.55, AY + dy), color=GREY, stroke_width=2).set_opacity(0.7)
-                               for dy in (-0.3, 0.3)])
-        self.labA = T("muscle", 22, GREY).move_to(P(-5.5, AY))
-        self.labB = T("antagonist", 22, GREY).move_to(P(AX, BY))
-        # spindle: parallel to the ordinary fibres
-        self.spindle = RoundedRectangle(corner_radius=0.17, width=0.8, height=0.34, stroke_color=TEAL,
-                                        stroke_width=3.5, fill_color=TEAL, fill_opacity=0.35).move_to(P(-4.2, AY))
-        # cord cross-section
-        self.cord = Circle(radius=R, stroke_color=GREY, stroke_width=3.5, fill_color=GREY, fill_opacity=0.10).move_to(C)
-        self.mid = DashedLine(C + UP * R, C + DOWN * R, color=GREY, stroke_width=2.5, dash_length=0.14).set_opacity(0.7)
-        self.dors = T("dorsal", 22, GREY).move_to(P(3.2, 2.45))
-        self.vent = T("ventral", 22, GREY).move_to(P(3.2, -2.2))
-        self.same = T("same side", 24, TEXT).move_to(P(1.15, -2.95))
-        self.other = T("other side", 24, GREY).move_to(P(5.2, -2.95))
-        # neurons
-        self.aff = poly([(-3.8, AY), (1.7, AY), (1.7, 0.8)], BLUE, 5)
-        self.br1 = poly([(1.7, 0.8), (1.08, -0.38)], BLUE, 5)
-        self.br2 = poly([(1.7, 0.8), (2.38, 0.22)], BLUE, 5)
-        self.mnA = Circle(radius=0.3, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.25).move_to(P(1.0, -0.7))
-        self.axA = poly([(0.7, -0.7), (-3.6, -0.7), (-3.6, AY - 0.475)], BLUE, 5)
-        self.mnB = Circle(radius=0.3, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.25).move_to(P(1.9, -1.8))
-        self.axB = poly([(1.6, -1.8), (-4.0, -1.8), (-4.0, BY + 0.5)], BLUE, 5)
-        self.inn = Circle(radius=0.28, stroke_color=RED, stroke_width=4, fill_color=RED, fill_opacity=0.25).move_to(P(2.55, 0.0))
-        self.inax = poly([(2.5, -0.28), (2.0, -1.5)], RED, 5)
-        self.inend = inhib_end(P(2.1, -1.2), P(2.0, -1.5), RED, 5)
-        # synapse ends
-        self.syn1 = exc_arrow(P(1.2, -0.12), P(1.08, -0.4))
-        self.syn2 = exc_arrow(P(2.2, 0.35), P(2.33, 0.25))
-        # labels
-        self.lAff = T("Ia afferent", 22, BLUE).move_to(P(-1.5, AY + 0.35))
-        self.lDR = T("dorsal root", 22, GREY).move_to(P(-0.55, AY - 0.4))
-        self.lMN = T("motor neuron", 22, BLUE).move_to(P(-1.9, -0.4))
-        self.lMNB = T("motor neuron", 22, BLUE).move_to(P(-1.9, -1.5))
-
-    def base(self):
-        return VGroup(self.cord, self.mid, self.dors, self.vent, self.same, self.other,
-                      self.mA, self.fibres, self.labA, self.mB, self.labB, self.spindle)
-
-    def circuit(self):
-        return VGroup(self.aff, self.br1, self.br2, self.mnA, self.axA, self.mnB, self.axB, self.inn, self.inax, self.inend,
-                      self.syn1, self.syn2)
-
-
-def slot(text, color, which):
-    c = chip(text, color, size=22, pad=0.16)
-    c.move_to(P(-4.4 if which == 0 else -1.2, 3.05))
-    return c
-
-
-def spike(path, color=YELLOW):
-    d = Dot(radius=0.14, color=color)
-    d.move_to(path.get_start())
-    return d
-
-
-def run_spike(scene, dot, path, t):
-    scene.play(FadeIn(dot, run_time=0.1))
-    scene.play(MoveAlongPath(dot, path), run_time=t, rate_func=linear)
-
+def inhibition_panel(x,h):
+    return VGroup(gauge(x,h),label('threshold',x+1.58,THRESH,24,YELLOW))
+def excitation(x):
+    return VGroup(Arrow(P(x-1.1,-1.3),P(x-1.1,1.2),color=GREEN,buff=0),label('excitation',x-1.3,-2.6,26,GREEN))
+def inhibition(x):
+    return VGroup(Arrow(P(x+1.1,1.1),P(x+1.1,-1.2),color=RED,buff=0),label('inhibition',x+1.35,-2.65,26,RED))
 
 class S00Title(TitleCard):
-    LESSON = "Motor Units, Reflexes and Locomotion"
-    TITLE = "One Stretch, Two Opposite Commands"
-
-
-class S01Puzzle(SpokenScene):
+    LESSON='Motor Units, Reflexes and Locomotion'
+    TITLE='Where Every Command Ends'
     def construct(self):
-        r = Rig()
-        self.add(r.base())
-        tap = slot("tendon tap", YELLOW, 0)
-        # the unknown path: sensor -> ? -> motor neuron -> muscle
-        q1 = chip("?", YELLOW, size=34, pad=0.2).move_to(P(1.7, 1.0))
-        qa = DashedLine(P(-3.8, AY), P(1.7, 1.4), color=BLUE, stroke_width=4, dash_length=0.15)
-        qb = DashedLine(P(1.7, 0.6), P(1.1, -0.38), color=BLUE, stroke_width=4, dash_length=0.15)
-        mn = Circle(radius=0.3, stroke_color=BLUE, stroke_width=4, fill_color=BLUE, fill_opacity=0.25).move_to(P(1.0, -0.7))
-        qc = DashedVMobject(r.axA.copy(), num_dashes=40)
-        sensor = T("sensor", 22, TEAL).move_to(P(-4.45, AY - 0.8))
-        mnl = T("motor neuron", 22, BLUE).move_to(P(-1.9, -0.4))
-        self.at("Tap the tendon")
-        self.play(FadeIn(tap, shift=DOWN * 0.1), run_time=0.5)
-        self.at("your leg kicks")
-        self.play(Indicate(r.mA, color=YELLOW, scale_factor=1.06), run_time=0.7)
-        self.at("only one synapse")
-        self.play(Create(qa), FadeIn(q1), Create(qb), FadeIn(mn), Create(qc), FadeIn(mnl), run_time=1.4)
-        self.at("sensor")
-        self.play(FadeIn(sensor), Indicate(r.spindle, color=TEAL, scale_factor=1.3), run_time=0.6)
-        self.at("Why only one")
-        self.play(Indicate(q1, color=YELLOW, scale_factor=1.3), run_time=0.7)
-        self.at("other side of the joint")
-        self.play(Indicate(r.mB, color=RED, scale_factor=1.06), run_time=0.7)
+        title=fit(T(self.TITLE,54,font=TITLE_FONT),max_w=11.5).move_to(P(0,0))
+        self.add(label('BIOCHEMISTRYPEDIA',0,1.8,26,TEAL),label(self.LESSON.upper(),0,1.1,26,GREY))
+        self.play(FadeIn(title),Create(Line(P(-1.2,-.85),P(1.2,-.85),color=GOLD,stroke_width=4)),run_time=.6)
+        self.finish()
+    def finish(self):
+        if self.narration_s>self.elapsed(): self.wait(self.narration_s-self.elapsed())
+
+class S01Question(SpokenScene):
+    def construct(self):
+        def arm(x,heavy=False):
+            # A tapered upper arm and forearm, with a rounded grip above each load.
+            upper=Polygon(*[P(x+dx,y) for dx,y in [(-2.25,-2.25),(-1.72,-2.25),(-1.2,-.55),(-1.72,-.3)]],color=GREY,fill_color=GREY,fill_opacity=.25,stroke_width=4)
+            fore=Polygon(*[P(x+dx,y) for dx,y in [(-1.72,-.3),(-1.2,-.55),(.48,1.1),(.15,1.5)]],color=GREY,fill_color=GREY,fill_opacity=.25,stroke_width=4)
+            a=VGroup(upper,fore,Circle(.26,color=GREY,fill_color=GREY,fill_opacity=.3).move_to(P(x-1.48,-.4)))
+            muscle=Ellipse(width=2.1,height=.5,color=GREEN,stroke_width=5).rotate(.79).move_to(P(x-.55,.5))
+            hand=Ellipse(width=.8,height=.48,color=TEXT,fill_color=BG,fill_opacity=1).rotate(-.12).move_to(P(x+.55,1.32))
+            fingers=VGroup(*[Arc(radius=.16,start_angle=-PI*.5,angle=PI,color=TEXT,stroke_width=3).move_to(P(x+.43+j*.15,1.29)) for j in range(3)])
+            if heavy:
+                body=RoundedRectangle(width=2.4,height=2.05,corner_radius=.18,color=GREY,fill_color=GREY,fill_opacity=.12,stroke_width=5).move_to(P(x+1.12,-.6))
+                handle=poly([(x+.72,.43),(x+.72,1.3),(x+1.42,1.3),(x+1.42,.43)],TEXT,5)
+                seams=VGroup(*[Line(P(x+dx,.39),P(x+dx,-1.59),color=GREY,stroke_width=3) for dx in (.32,1.92)])
+                obj=VGroup(body,handle,seams)
+            else:
+                body=Polygon(*[P(x+dx,y) for dx,y in [(.95,1.83),(2.2,1.83),(2.06,.35),(1.09,.35)]],color=TEXT,fill_color=GREY,fill_opacity=.2,stroke_width=5)
+                rim=Ellipse(width=1.25,height=.18,color=TEXT,stroke_width=4).move_to(P(x+1.575,1.83))
+                handle=Arc(radius=.43,start_angle=PI/2,angle=PI,color=TEXT,stroke_width=5).move_to(P(x+.77,1.12))
+                obj=VGroup(body,rim,handle)
+            return VGroup(a,muscle,obj,hand,fingers)
+        a,b=arm(-3.25),arm(3.25,True)
+        self.add(Line(P(0,-2.65),P(0,3.25),color=GREY),a,b,label('cup',-3.3,2.85,34),label('suitcase',3.3,2.85,34))
+        self.at('Lifting a cup'); self.play(a.animate.shift(UP*.25),run_time=.55)
+        self.at('lifting a suitcase'); self.play(b.animate.shift(UP*.18),run_time=.8)
+        self.add(label('light load',-3.3,-2.7,28,GREY),label('heavy load',3.3,-2.7,28,GREY))
+        self.at('same muscle'); self.play(Indicate(a[1]),Indicate(b[1]),run_time=.5)
+        self.at('Who decides',lead=.4); self.play(FadeIn(label('Who decides?',0,-3.45,38)),run_time=.2)
         self.finish()
 
-
-class S02Spindle(SpokenScene):
+class S02MotorNeuron(SpokenScene):
     def construct(self):
-        r = Rig()
-        self.add(r.base())
-        tap = slot("brief stretch", YELLOW, 0)
-        # scene one's leftovers, rebuilt in place so they can be replaced
-        self.add(tap)
-        stretch = DoubleArrow(P(-6.05, AY + 0.72), P(-3.35, AY + 0.72), color=YELLOW, stroke_width=5, tip_length=0.2, buff=0)
-        self.at("muscle spindle")
-        self.play(Indicate(r.spindle, color=TEAL, scale_factor=1.3), FadeIn(T("muscle spindle", 22, TEAL).move_to(P(-4.1, AY - 0.8))), run_time=0.7)
-        self.at("parallel to")
-        self.play(Indicate(r.fibres, color=TEXT, scale_factor=1.0), run_time=0.7)
-        self.at("tendon tap")
-        self.play(FadeIn(stretch), run_time=0.5)
-        self.at("stretches the spindle")
-        self.play(r.spindle.animate.set_fill(YELLOW, opacity=0.6).set_stroke(YELLOW), run_time=0.4)
-        self.at("afferents")
-        self.play(Create(r.aff), FadeIn(r.lAff), run_time=0.8)
-        d = spike(r.aff)
-        self.at("respond")
-        run_spike(self, d, r.aff, 1.3)
-        self.at("dorsal root")
-        self.play(FadeIn(r.lDR), run_time=0.4)
-        self.at("they branch")
-        self.play(Create(r.br1), Create(r.br2), run_time=0.8)
+        c=cord(); n=neuron(-1.55,-.65,.25); n[0].set_fill(BLUE,opacity=1)
+        glow=VGroup(*[Circle(r,stroke_width=0,fill_color=BLUE,fill_opacity=o).move_to(n[0]) for r,o in ((.42,.08),(.35,.16),(.29,.3))])
+        n.add_to_back(glow)
+        root=poly([(-1.3,-.65),(-.85,-1.35),(.3,-1.65),(4.8,-1.65)],BLUE,8)
+        self.add(c)
+        self.at('spinal cord'); self.play(Indicate(c[0]),run_time=.4)
+        self.at('at cells'); self.play(FadeIn(n),Create(root),Flash(n[1],color=BLUE),run_time=.65)
+        self.at('alpha motor neurons'); self.play(FadeIn(label('alpha motor neuron',3.35,.9,32,BLUE)),Create(Line(P(2.2,.5),P(-1.55,-.38),color=BLUE)),FadeIn(label('ventral root',3.4,-2.15,28)),Create(Line(P(3.4,-1.9),P(3.4,-1.65),color=TEXT)),run_time=.5)
         self.finish()
 
-
-def build_state(scene, r, upto):
-    """Rebuild the circuit as it stood at the end of the previous scene."""
-    parts = [r.aff, r.lAff, r.lDR, r.br1, r.br2]
-    if upto >= 3:
-        parts += [r.mnA, r.axA, r.syn1]
-    if upto >= 4:
-        parts += [r.inn, r.inax, r.inend, r.syn2, r.mnB, r.axB]
-    scene.add(*parts)
-
-
-class S03Mono(SpokenScene):
+class S03Unit(SpokenScene):
     def construct(self):
-        r = Rig()
-        self.add(r.base())
-        r.spindle.set_fill(YELLOW, opacity=0.6).set_stroke(YELLOW)
-        self.add(r.aff, r.lAff, r.lDR, r.br1, r.br2)
-        mono = slot("monosynaptic", GREEN, 0)
-        one = num("1", 0.7, 0.05, GREEN)
-        self.at("One branch excites")
-        self.play(Indicate(r.br1, color=GREEN, scale_factor=1.0), run_time=0.7)
-        self.play(FadeIn(r.mnA), FadeIn(r.syn1), run_time=0.6)
-        d = spike(r.aff)
-        path = poly([(-3.8, AY), (1.7, AY), (1.7, 0.8), (1.08, -0.38)])
-        self.at("directly")
-        run_spike(self, d, path, 1.2)
-        self.play(FadeOut(d), FadeIn(one), r.mnA.animate.set_fill(YELLOW, opacity=0.6), run_time=0.4)
-        self.at("one synapse")
-        self.play(FadeIn(mono), Indicate(one, color=GREEN, scale_factor=1.5), run_time=0.7)
-        self.at("alpha motor neurons")
-        self.play(FadeIn(r.lMN), run_time=0.4)
-        self.at("ventral horn")
-        self.play(Indicate(r.mnA, color=BLUE, scale_factor=1.3), run_time=0.7)
-        self.at("ventral root")
-        self.play(Create(r.axA), run_time=0.8)
-        self.at("The muscle contracts")
-        d2 = spike(r.axA)
-        run_spike(self, d2, r.axA, 1.0)
-        shrunk = Rectangle(width=2.5, height=1.1, stroke_color=GREEN, stroke_width=3.5, fill_color=GREEN,
-                           fill_opacity=0.35).move_to(P(AX, AY))
-        self.play(FadeOut(d2), Transform(r.mA, shrunk), Transform(r.labA, T("contracts", 22, GREEN).move_to(P(-5.3, AY))),
-                  run_time=0.6)
-        self.at("Synergists get")
-        self.play(Indicate(mono, color=GREEN, scale_factor=1.15), run_time=0.7)
-        self.at("as a whole")
-        self.play(Indicate(r.br2, color=TEXT, scale_factor=1.0), run_time=0.7)
+        n,a,f,b=unit(); self.add(n,a,f,label('other fibres',4,-3.1,26,GREY))
+        self.at("Each motor neuron's"); self.play(Indicate(n),run_time=.5)
+        self.at('axon branches'); self.play(Create(b),run_time=1)
+        self.at('The neuron and'); self.play(*[f[i].animate.set_stroke(BLUE).set_fill(BLUE,opacity=.3) for i in range(6)],run_time=.6)
+        bracket=poly([(-5.85,2.45),(-5.85,-1.32),(5.35,-1.32),(5.35,2.45)],BLUE,3)
+        self.at('one motor unit'); self.play(Create(bracket),FadeIn(label('motor unit: neuron + its fibres',0,3.2,32,BLUE)),run_time=.45)
         self.finish()
 
-
-class S04Disyn(SpokenScene):
+class S04Spike(SpokenScene):
     def construct(self):
-        r = Rig()
-        self.add(r.base())
-        r.spindle.set_fill(YELLOW, opacity=0.6).set_stroke(YELLOW)
-        r.mA.become(Rectangle(width=2.5, height=1.1, stroke_color=GREEN, stroke_width=3.5, fill_color=GREEN,
-                              fill_opacity=0.35).move_to(P(AX, AY)))
-        r.labA.become(T("contracts", 22, GREEN).move_to(P(-5.3, AY)))
-        r.mnA.set_fill(YELLOW, opacity=0.6)
-        mono = slot("monosynaptic", GREEN, 0)
-        self.add(r.aff, r.lAff, r.lDR, r.br1, r.br2, r.mnA, r.axA, r.syn1, mono, r.lMN, num("1", 0.7, 0.05, GREEN))
-        dis = slot("inhibitory interneuron", RED, 1)
-        o1 = num("1", 2.22, 0.78, GREEN)
-        o2 = num("2", 2.6, -1.1, RED)
-        # fade the first-case lamps so the old answer does not linger under the new case
-        self.at("other branch")
-        self.play(r.mA.animate.set_stroke(GREY).set_fill(GREY, opacity=0.22), Transform(r.labA, T("muscle", 22, GREY).move_to(P(-5.35, AY))),
-                  r.mnA.animate.set_fill(BLUE, opacity=0.25), Indicate(r.br2, color=TEXT, scale_factor=1.0), FadeIn(r.inn), FadeIn(r.syn2), run_time=0.6)
-        d = spike(r.aff)
-        path = poly([(-3.8, AY), (1.7, AY), (1.7, 0.8), (2.38, 0.22)])
-        run_spike(self, d, path, 0.7)
-        self.play(FadeOut(d), FadeIn(o1), r.inn.animate.set_fill(YELLOW, opacity=0.6), run_time=0.4)
-        self.at("inhibitory interneuron")
-        self.play(FadeIn(dis), run_time=0.4)
-        self.at("same side of the cord")
-        self.play(Indicate(r.same, color=YELLOW, scale_factor=1.25), run_time=0.7)
-        self.at("inhibits the motor neurons")
-        self.play(Create(r.inax), FadeIn(r.inend), FadeIn(r.mnB), run_time=0.8)
-        d2 = spike(r.inax)
-        run_spike(self, d2, r.inax, 0.9)
-        self.play(FadeOut(d2), FadeIn(o2), r.mnB.animate.set_fill(RED, opacity=0.4), run_time=0.4)
-        self.at("antagonist")
-        self.play(Create(r.axB), FadeIn(r.lMNB), run_time=0.7)
-        self.at("two synapses")
-        self.play(Transform(dis, slot("disynaptic", RED, 1)), Indicate(o2, color=RED, scale_factor=1.5), run_time=0.7)
-        self.at("It stays")
-        self.play(Indicate(r.same, color=YELLOW, scale_factor=1.25), Indicate(r.other, color=GREY, scale_factor=1.15), run_time=0.8)
+        n,a,f,b=unit(); self.add(n,a,f,b,label('one motor unit',0,3.2,32,BLUE),label('other fibres',4,-3.1,26,GREY))
+        for i in range(6): f[i].set_stroke(BLUE).set_fill(BLUE,opacity=.3)
+        d=Dot(a.get_start(),color=YELLOW,radius=.16); self.add(d)
+        self.at('One spike'); self.play(MoveAlongPath(d,a),run_time=.7,rate_func=linear); self.remove(d)
+        ds=VGroup(*[Dot(p.get_start(),color=YELLOW,radius=.13) for p in b]); self.add(ds)
+        self.play(*[MoveAlongPath(dot,path) for dot,path in zip(ds,b)],run_time=.65,rate_func=linear); self.remove(ds)
+        self.at('every fiber'); self.play(*[f[i].animate.set_fill(GREEN,opacity=.8).set_stroke(GREEN).stretch(.9,0) for i in range(6)],run_time=.4)
+        self.at('unit twitch'); self.play(*[f[i].animate.stretch(1/.9,0) for i in range(6)],run_time=.35)
         self.finish()
 
-
-def full_circuit(scene, r):
-    scene.add(r.base())
-    scene.add(r.aff, r.lAff, r.lDR, r.br1, r.br2, r.mnA, r.axA, r.syn1, r.inn, r.inax, r.inend, r.syn2, r.mnB, r.axB, r.lMN, r.lMNB)
-    scene.add(slot("monosynaptic", GREEN, 0), slot("disynaptic", RED, 1))
-    scene.add(num("1", 0.7, 0.05, GREEN), num("1", 2.22, 0.78, GREEN), num("2", 2.6, -1.1, RED))
-
-
-class S05Pair(SpokenScene):
+class S05Pool(SpokenScene):
     def construct(self):
-        r = Rig()
-        full_circuit(self, r)
-        r.spindle.set_fill(YELLOW, opacity=0.6).set_stroke(YELLOW)
-        d1 = spike(r.aff)
-        p1 = poly([(-3.8, AY), (1.7, AY), (1.7, 0.8), (1.08, -0.38)])
-        p2 = poly([(-3.8, AY), (1.7, AY), (1.7, 0.8), (2.38, 0.22)])
-        self.at("Sherrington found")
-        d2 = spike(r.aff)
-        self.play(FadeIn(d1), FadeIn(d2), run_time=0.1)
-        self.play(MoveAlongPath(d1, p1), MoveAlongPath(d2, p2), run_time=1.3, rate_func=linear)
-        self.play(FadeOut(d1), FadeOut(d2), r.mnA.animate.set_fill(YELLOW, opacity=0.6), r.inn.animate.set_fill(YELLOW, opacity=0.6), run_time=0.3)
-        self.play(r.mA.animate.set_stroke(GREEN).set_fill(GREEN, opacity=0.35), run_time=0.4)
-        relax = VGroup(T("antagonist", 22, RED), T("relaxes", 22, RED)).arrange(DOWN, buff=0.05).move_to(P(AX, BY))
-        self.at("the muscle that opposes")
-        self.play(r.mB.animate.set_stroke(RED).set_fill(RED, opacity=0.22), Transform(r.labB, relax), run_time=0.8)
-        self.at("reciprocal innervation")
-        pair = T("reciprocal innervation", 22, TEXT).move_to(P(-1.75, 0.6))
-        self.play(FadeIn(pair), run_time=0.6)
-        veil = Rectangle(width=14.4, height=8.1, stroke_width=0, fill_color=BG, fill_opacity=0.72)
-        cross = DashedLine(P(3.55, 1.5), P(4.65, 0.5), color=GREY, stroke_width=5, dash_length=0.16)
-        cross.add_tip(tip_length=0.22)
-        clab = VGroup(T("opposite leg:", 22, TEXT), T("extensor contracts", 22, TEXT)).arrange(DOWN, buff=0.06)
-        box = SurroundingRectangle(clab, color=GREY, buff=0.15, corner_radius=0.1)
-        clab = VGroup(box, clab).move_to(P(4.65, -0.05))
-        self.at("is the one that crosses")
-        self.play(FadeIn(veil), run_time=0.5)
-        self.add(cross, clab)
-        self.play(Create(cross), FadeIn(clab), run_time=0.9)
-        self.at("painful stimulus")
-        self.play(Indicate(cross, color=TEXT, scale_factor=1.1), run_time=0.7)
-        self.at("polysynaptic")
-        self.play(Indicate(clab, color=TEXT, scale_factor=1.1), run_time=0.7)
-        self.at("reflex is local")
-        self.play(FadeOut(veil), FadeOut(clab), FadeOut(cross), run_time=0.6)
-        self.play(Indicate(r.same, color=YELLOW, scale_factor=1.25), run_time=0.7)
+        region=RoundedRectangle(width=5.1,height=5.3,corner_radius=.8,color=GREY,fill_color=GREY,fill_opacity=.08).move_to(P(-3.2,0))
+        ns=VGroup(*[neuron(-3.5,y,r) for y,r in zip((1.55,0,-1.55),(.35,.5,.65))])
+        ring=DashedVMobject(Ellipse(width=3.5,height=4.9,color=BLUE).move_to(P(-3.35,0)),num_dashes=40)
+        f=fibres(4,7)
+        paths=VGroup(*[poly([(-3.5+r,y),(-.7,y),(2.7,target)]) for y,r,target in zip((1.55,0,-1.55),(.35,.5,.65),(1.7,.05,-1.6))])
+        self.add(region,ns,label('ventral horn · enlarged',-3.1,3.15,28))
+        self.at('All the motor neurons'); self.play(Indicate(ns),run_time=.5)
+        self.at('supply one muscle'); self.play(Create(paths),FadeIn(f),FadeIn(label('one muscle',4,2.7,30)),run_time=.6)
+        self.at('motor pool'); self.play(Create(ring),FadeIn(label('motor pool',-3.2,-3.05,32,BLUE)),run_time=.4)
         self.finish()
 
-
-class S06Rule(SpokenScene):
+class S06Converge(SpokenScene):
     def construct(self):
-        r = Rig()
-        self.add(r.base())
-        r.spindle.set_fill(YELLOW, opacity=0.6).set_stroke(YELLOW)
-        r.mA.set_stroke(GREEN).set_fill(GREEN, opacity=0.35)
-        r.mB.set_stroke(RED).set_fill(RED, opacity=0.22)
-        r.labB.become(VGroup(T("antagonist", 22, RED), T("relaxes", 22, RED)).arrange(DOWN, buff=0.05).move_to(P(AX, BY)))
-        r.mnA.set_fill(YELLOW, opacity=0.6)
-        self.add(r.aff, r.br1, r.br2, r.mnA, r.axA, r.syn1, r.inn, r.inax, r.inend, r.syn2, r.mnB, r.axB, r.lAff)
-        self.add(slot("monosynaptic", GREEN, 0), slot("disynaptic", RED, 1))
-        g1 = VGroup(T("excites the same muscle", 22, GREEN), T("1 synapse", 26, GREEN, weight=BOLD)).arrange(DOWN, buff=0.05).move_to(P(-1.55, 0.4))
-        g2 = VGroup(T("inhibits the antagonist", 22, RED), T("2 synapses", 26, RED, weight=BOLD)).arrange(DOWN, buff=0.05).move_to(P(-1.5, -1.25))
-        self.at("one stretch")
-        self.play(Indicate(r.mA, color=YELLOW, scale_factor=1.06), run_time=0.7)
-        self.at("One synapse")
-        self.play(FadeIn(g1), Indicate(r.syn1, color=GREEN, scale_factor=1.6), run_time=0.8)
-        self.at("Two synapses")
-        self.play(FadeIn(g2), Indicate(r.inend, color=RED, scale_factor=1.4), run_time=0.8)
-        self.at("on the same side")
-        self.play(Indicate(r.same, color=YELLOW, scale_factor=1.25), run_time=0.7)
-        self.at("The rule to keep")
-        self.play(Indicate(g1, color=GREEN, scale_factor=1.08), Indicate(g2, color=RED, scale_factor=1.08), run_time=0.9)
+        n,gs=inputs(); self.add(n,label('motor neuron',1,-1.65,28,BLUE))
+        for cue,g in zip(('the brain','stretch sensors','pain','rhythm circuits'),gs):
+            self.at(cue); self.play(FadeIn(g),run_time=.32)
+        self.add(label('Only the spindle arrow lands directly',0,-3.4,28,TEAL))
         self.finish()
 
+class S07FinalPath(SpokenScene):
+    def construct(self):
+        n,gs=inputs(); self.add(n,*gs,label('motor neuron',1,-1.65,28,BLUE),label('Only the spindle arrow lands directly',0,-3.4,28,TEAL))
+        self.at('All of them'); dots=VGroup(*[Dot(g[1][0].get_start(),color=YELLOW,radius=.12) for g in gs]); self.add(dots)
+        self.play(*[MoveAlongPath(d,g[1][0]) for d,g in zip(dots,gs)],run_time=.8); self.remove(dots)
+        self.play(*[g[1].animate.set_stroke(opacity=.3) for g in gs],Indicate(n),run_time=.2)
+        ax=Arrow(P(2.05,0),P(4.1,0),color=BLUE,buff=0); f=fibres(5.1,3).scale(.55).move_to(P(5.2,0))
+        self.at('the motor neurons'); self.play(GrowArrow(ax),FadeIn(f),FadeIn(label('muscle',5.2,-.95,28,GREY)),run_time=.6)
+        self.at('called them'); self.play(FadeIn(label('the final common path',3.7,2.25,30,BLUE)),FadeIn(label('Sherrington',3.7,2.85,26,GREY)),Create(Line(P(3.7,1.9),P(3.2,.15),color=BLUE)),run_time=.5)
+        self.finish()
 
-class S07End(EndCard):
-    LINE = "A stretch excites the same muscle and inhibits its antagonist."
+class S08Bar(SpokenScene):
+    def construct(self):
+        n=neuron(-1.5,0,1.05); g=gauge(.8,1)
+        self.add(n,label('motor neuron',-1.5,-1.75,28,BLUE))
+        self.at('voltage as a bar'); self.play(FadeIn(VGroup(g[0],g[1])),FadeIn(label('voltage change\nfrom rest',3.6,-.2,30)),run_time=.6)
+        self.at('line at threshold'); self.play(Create(g[2]),FadeIn(label('threshold',3.4,1.65,30,YELLOW)),run_time=.4)
+        self.finish()
+
+class S09Push(SpokenScene):
+    def construct(self):
+        g=inhibition_panel(-3.1,1); e=excitation(-3.1); self.add(g)
+        self.at('Excitation pushes'); self.play(FadeIn(e),Transform(g[0][1],voltage(-3.1,3.35)),run_time=1.5)
+        self.at('Inhibition holds'); self.play(FadeIn(inhibition(-3.1)),Transform(g[0][1],voltage(-3.1,1.6)),run_time=.8)
+        self.finish()
+
+class S09bShunt(SpokenScene):
+    def construct(self):
+        g=inhibition_panel(-3.1,1.6); self.add(g,excitation(-3.1),inhibition(-3.1))
+        self.at('pulls the bar down'); self.play(Transform(g[0][1],voltage(-3.1,.7)),FadeIn(label('downward pull',-3.1,2.8,30,RED)),run_time=.65)
+        right=inhibition_panel(3.15,.7)
+        ghost=voltage(3.15,3.35).set_fill(BLUE,opacity=.12).set_stroke(BLUE,width=2,opacity=.5)
+        channels=VGroup(*[VGroup(Line(P(3.58,y-.18),P(3.58,y+.18),color=BG,stroke_width=12),Line(P(3.46,y-.18),P(3.7,y-.18),color=RED,stroke_width=3),Line(P(3.46,y+.18),P(3.7,y+.18),color=RED,stroke_width=3),Arrow(P(3.29,y),P(4.38,y),color=RED,buff=0,stroke_width=4)) for y in (-1.3,-.5,.3)])
+        self.at('open channels'); self.play(FadeIn(right),FadeIn(ghost),FadeIn(channels),FadeIn(label('inhibition opens channels',3.1,3.25,28,RED)),FadeIn(excitation(3.15)),run_time=.5)
+        self.at('also blunt excitation'); self.play(Transform(right[0][1],voltage(3.15,1.65)),FadeIn(label('blunted rise',3.15,2.65,28,RED)),run_time=.55)
+        self.play(FadeIn(label('less likely to fire',0,-3.5,30,RED)),run_time=.2)
+        self.finish()
+
+class S10Fire(SpokenScene):
+    def construct(self):
+        n=neuron(-3.7,0,.85); g=gauge(-1.6,1); f=fibres(4.6,3)
+        ax=Line(P(-2.85,0),P(-2.3,0),color=BLUE)
+        out=poly([(-2.3,0),(-2.3,-2.55),(1.6,-2.55),(1.6,.8),(3.3,.8)])
+        branches=VGroup(*[Line(P(3.3,.8),f[i].get_left(),color=BLUE) for i in range(3)])
+        self.add(n,g,f,ax,out,branches,label('threshold',.4,1.65,28,YELLOW),label('voltage change from rest',-2.5,-3.25,28),label('Steady or slowly rising input',0,3.35,28,GREY),label('net current × input resistance → threshold',0,2.75,30))
+        self.at('net current'); self.play(Transform(g[1],voltage(-1.6,4.0)),run_time=1.65)
+        self.at('cell fires'); d=Dot(out.get_start(),color=YELLOW,radius=.15); self.add(d)
+        self.play(Flash(n[0],color=YELLOW),MoveAlongPath(d,out),run_time=.5); self.remove(d)
+        self.play(f.animate.set_stroke(GREEN).set_fill(GREEN,opacity=.65).stretch(.9,0),run_time=.25)
+        self.finish()
+
+def question_pools():
+    g=VGroup()
+    for x,col in ((-2.4,GREEN),(2.4,RED)):
+        g.add(DashedVMobject(Ellipse(width=3.3,height=2.3,color=BLUE).move_to(P(x,-1.6)),num_dashes=28))
+        g.add(*[neuron(x+dx,-1.65+dy,r) for dx,dy,r in ((-.8,.4,.28),(.65,.4,.34),(0,-.5,.36))])
+        g.add(Arrow(P(x+1.95,-2.6 if col==GREEN else -.7),P(x+1.95,-.7 if col==GREEN else -2.6),color=col,buff=0))
+    return g
+
+def questions(second=False):
+    g=VGroup(label('1',-5.6,1.8,56,YELLOW),label('Which motor pools?',0,2.35,40),label('does the circuit push up or down?',0,1.5,34),label('Push up',-2.4,.45,38,GREEN),label('Down',2.4,.45,38,RED))
+    g[4].align_to(g[3],UP)
+    if second: g.add(label('2',-5.6,-1.9,56,YELLOW),label('Within a pool,',0,-1.45,36),label('which cells reach threshold first?',0,-2.4,36))
+    return g
+
+class S11TwoQuestions(SpokenScene):
+    def construct(self):
+        g=questions(); self.add(g,question_pools())
+        self.at('Which motor pools'); self.play(Indicate(g[1],scale_factor=1.04),run_time=.6)
+        self.finish()
+class S12Second(SpokenScene):
+    def construct(self):
+        g=questions(True); pools=question_pools(); self.add(*g[:5],pools)
+        self.at('within a pool'); self.play(FadeOut(pools),run_time=.15); self.play(FadeIn(VGroup(*g[5:])),run_time=.25)
+        self.finish()
+class S13Setup(SpokenScene):
+    def construct(self):
+        g,bs,ns=pool(); self.add(g,label('voltage change from rest',0,3.25,30))
+        self.at('small cells'); self.play(Indicate(ns[0]),run_time=.4)
+        self.at('weak units'); self.play(Indicate(g[0][5]),run_time=.4)
+        self.at('large cells'); self.play(Indicate(ns[2]),run_time=.4)
+        self.at('strong units'); self.play(Indicate(g[2][5]),run_time=.4)
+        self.finish()
+class S14Predict(SpokenScene):
+    def construct(self):
+        g,bs,ns=pool(shared=True); self.add(g)
+        self.at('rises a little'); self.play(g[4][1].animate.rotate(-.7,about_point=P(-5.8,3.15)),run_time=1.1)
+        self.at('Which cells fire'); self.play(FadeIn(label('Which fires first?',0,-3.5,32)),run_time=.3)
+        self.finish()
+class S15Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG
+        g,_,_=prediction(); self.add(g); self.wait(5)
+class S16Reveal(SpokenScene):
+    def construct(self):
+        g,bs,ns=pool(shared=True); g[4][1].rotate(-.7,about_point=P(-5.8,3.15)); self.add(g)
+        # Equal I, R=[1,.5,.25], common threshold 3.7: crossing currents 3.7,7.4,14.8.
+        drive=ValueTracker(.35); rs=np.array([1.,.5,.25])
+        for b,x,r in zip(bs,(-3.83,.52,4.87),rs):
+            b.add_updater(lambda m,x=x,r=r: m.become(voltage(x,min(4.1,drive.get_value()*r))))
+        self.at('The small ones'); self.play(drive.animate.set_value(3.95),run_time=.45,rate_func=linear)
+        self.play(Flash(ns[0][0],color=YELLOW),FadeIn(label('1st',-5,.25,24,YELLOW)),run_time=.2)
+        self.play(drive.animate.set_value(7.9),run_time=.3,rate_func=linear)
+        self.play(Flash(ns[1][0],color=YELLOW),FadeIn(label('2nd',-.65,.25,24,YELLOW)),run_time=.2)
+        self.play(drive.animate.set_value(15.8),run_time=.3,rate_func=linear)
+        self.play(Flash(ns[2][0],color=YELLOW),FadeIn(label('3rd',3.7,.25,24,YELLOW)),run_time=.25)
+        for b in bs: b.clear_updaters()
+        self.at('Many people guess'); thought=chip('Guess: big = strong = first?',GREY,26,pad=.1).move_to(P(0,-3.5)); self.play(FadeIn(thought),run_time=.25)
+        self.at('big seems strong'); x=thought.get_left()[0]-.38
+        rejection=VGroup(Line(P(x-.13,-3.63),P(x+.13,-3.37),color=RED,stroke_width=4),Line(P(x-.13,-3.37),P(x+.13,-3.63),color=RED,stroke_width=4))
+        self.play(Create(rejection),run_time=.3)
+        self.finish()
+class S17Why(SpokenScene):
+    def construct(self):
+        g,bs,_=pool(shared=True,units=False); self.add(g)
+        self.at('moves the voltage'); self.play(*[Transform(b,voltage(x,1.8*r)) for b,x,r in zip(bs,(-3.83,.52,4.87),(1,.5,.25))],run_time=.7)
+        self.at('The same input'); self.play(*[Transform(b,voltage(x,3.6*r)) for b,x,r in zip(bs,(-3.83,.52,4.87),(1,.5,.25))],FadeIn(label('Same input, bigger voltage change in the small cell',0,-3.35,30,YELLOW)),*[FadeIn(label(s,x,-2.85,28,BLUE)) for s,x in zip(('100%','50%','25%'),(-4.35,0,4.35))],run_time=.7)
+        self.finish()
+class S18Resistance(SpokenScene):
+    def construct(self):
+        cells=VGroup(); exits=VGroup()
+        for x,r,k in ((-3.3,1.1,3),(3.2,1.8,8)):
+            center=P(x,.1)
+            cell=VGroup(Circle(r,stroke_width=0,fill_color=BLUE,fill_opacity=.1).move_to(center))
+            angles=np.linspace(0,TAU,k,endpoint=False)+(PI/8 if k==8 else 0)
+            half_gap=.15/r
+            for t in angles:
+                cell.add(Arc(radius=r,start_angle=t+half_gap,angle=TAU/k-2*half_gap,arc_center=center,color=BLUE,stroke_width=9))
+                d=P(np.cos(t),np.sin(t)); tangent=P(-np.sin(t),np.cos(t)); p=center+r*d
+                exits.add(VGroup(*[Line(p+tangent*side*.15-d*.13,p+tangent*side*.15+d*.13,color=BLUE,stroke_width=4) for side in (-1,1)],Arrow(p-d*.25,p+d*.57,color=YELLOW,buff=0,stroke_width=4)))
+            cells.add(cell)
+        self.add(cells,label('small cell',-3.3,3.2,32,BLUE),label('large cell',3.2,3.2,32,BLUE))
+        for x,r in ((-3.3,1.1),(3.2,1.8)):
+            self.add(label('membrane',x,2.55,26,BLUE),Line(P(x,2.3),P(x+r*np.cos(PI*.55),.1+r*np.sin(PI*.55)),color=BLUE,stroke_width=2))
+        self.at('fewer ways'); self.play(FadeIn(exits),FadeIn(label('fewer exits',-3.3,-1.65,28,YELLOW)),FadeIn(label('more exits',3.2,-2.3,28,YELLOW)),run_time=.6)
+        self.at('input resistance is higher'); self.play(FadeIn(label('higher Rᵢₙ',-3.3,-2.8,32)),FadeIn(label('lower Rᵢₙ',3.2,-2.8,32)),run_time=.5)
+        self.finish()
+class S19Bathtub(SpokenScene):
+    def construct(self):
+        waters=[]; streams=VGroup()
+        for x,k in ((-3.25,2),(3.25,6)):
+            tub=poly([(x-2.15,1.6),(x-2.15,-1.9),(x+2.15,-1.9),(x+2.15,1.6)],GREY,7)
+            tap=poly([(x-.8,2.15),(x-.8,2.8),(x,2.8),(x,2.25)],GREY,8)
+            w=Rectangle(width=4.1,height=.35,stroke_width=0,fill_color=BLUE,fill_opacity=.5).move_to(P(x,-1.7)); waters.append(w)
+            drains=VGroup()
+            for dx in np.linspace(-1.65,1.65,k):
+                drains.add(poly([(x+dx-.13,-1.7),(x+dx-.13,-2.2),(x+dx+.13,-2.2),(x+dx+.13,-1.7)],GREY,3))
+                streams.add(Arrow(P(x+dx,-2.2),P(x+dx,-2.65),color=BLUE,buff=0,stroke_width=3))
+            streams.add(Line(P(x,2.2),P(x,.5),color=BLUE,stroke_width=8))
+            self.add(w,tub,tap,drains,label('2 drains' if k==2 else 'many drains',x,-2.95,28))
+        self.add(label('same inflow',0,3.35,32,BLUE))
+        self.at('fewer drains'); self.play(Indicate(waters[0]),run_time=.4)
+        self.at('same inflow'); self.play(FadeIn(streams),run_time=.3)
+        # Q=5.4, k=2 or 6, equilibrium h=Q/k.
+        self.at('raises the water',lead=.5); self.play(*[Transform(w,Rectangle(width=4.1,height=5.4/k,stroke_width=0,fill_color=BLUE,fill_opacity=.5).move_to(P(x,-1.85+5.4/k/2))) for w,x,k in zip(waters,(-3.25,3.25),(2,6))],FadeIn(label('fewer drains = higher Rᵢₙ',0,-3.55,28,YELLOW)),run_time=.4)
+        self.finish()
+class S20Formula(SpokenScene):
+    def construct(self):
+        box=RoundedRectangle(width=10.8,height=4.45,corner_radius=.2,color=BLUE).move_to(P(0,.1))
+        self.add(box,label('Steady or slowly rising input',0,3.05,30,GREY),label('ΔV = I × Rᵢₙ',0,1.2,60),label('Iₜₕ = ΔVₜₕ / Rᵢₙ',0,-.2,52),label('Equal required voltage changes',0,-1.55,30,GREY))
+        self.at("Ohm's law"); self.play(Indicate(box),run_time=.5)
+        self.at('Higher input resistance'); self.play(FadeIn(label('Higher Rᵢₙ → less current → earlier recruitment',0,-2.9,32,YELLOW)),run_time=.5)
+        self.finish()
+class S21Order(SpokenScene):
+    def construct(self):
+        ax=Axes(x_range=[0,4.8,1],y_range=[0,3.4,1],x_length=10.5,y_length=4.6,axis_config={'include_ticks':False,'color':GREY}).move_to(P(.25,-.05))
+        self.add(ax,label('The size principle',0,3.35,36,BLUE),label('Henneman · cats · 1957',3.5,2.75,26,GREY),label('shared input →',0,-2.85,28),label('units active',-5.4,2.9,26))
+        for v in (1,2,3): self.add(label(str(v),ax.c2p(0,v)[0]-.3,ax.c2p(0,v)[1],26))
+        # Recruitment from I_th=1/R, R=[1,.5,.25].
+        self.at('That order')
+        for i,(lo,hi,name) in enumerate(((1,2,'small'),(2,4,'medium'),(4,4.7,'large'))):
+            pts=[ax.c2p(0 if i==0 else lo, i),ax.c2p(lo,i),ax.c2p(lo,i+1),ax.c2p(hi,i+1)]
+            path=VMobject(color=BLUE,stroke_width=6).set_points_as_corners(pts)
+            pos=ax.c2p((lo+hi)/2,i+1)+UP*.32
+            self.play(Create(path),FadeIn(label(name,pos[0],pos[1],28,BLUE)),run_time=.5)
+        self.at('strong tendency'); self.play(FadeIn(label('Shared input: a strong tendency, not a law',0,-3.5,28,YELLOW)),run_time=.4)
+        self.finish()
+class S22Catch(SpokenScene):
+    def construct(self):
+        a,b=neuron(-3.2,0,.8),neuron(3,0,1.7)
+        self.add(a,b,label('small cell',-3.2,2.85,32,BLUE),label('large cell',3,2.85,32,BLUE))
+        dots=VGroup(); arrows=VGroup()
+        for x,r,k in ((-3.2,.8,3),(3,1.7,9)):
+            for t in np.linspace(-PI*.45,PI*1.4,k):
+                p=P(x+r*np.cos(t),r*np.sin(t)); d=P(np.cos(t),np.sin(t))
+                dots.add(Dot(p,radius=.11,color=BLUE)); arrows.add(Arrow(p+d*.65,p,buff=.12,color=YELLOW,stroke_width=3))
+        self.at('A large cell'); self.play(Indicate(b),run_time=.45)
+        self.at('more synapses'); self.play(FadeIn(dots),FadeIn(label('more membrane, more synapses',0,-2.65,32,BLUE)),run_time=.45)
+        self.at('collect more input'); self.play(*[GrowArrow(a) for a in arrows],run_time=.5)
+        self.finish()
+class S22bCondition(SpokenScene):
+    def construct(self):
+        # A in [1,10]. Exact log10 power laws: alpha=.5, beta=1 (lesson table).
+        ax=Axes(x_range=[0,1,.5],y_range=[-1.05,.6,.5],x_length=6.5,y_length=4.3,axis_config={'include_ticks':False,'color':GREY}).move_to(P(-2.7,.1))
+        self.add(ax,label('hypothetical example · log scales',0,3.45,32),label('cell size A →',-2.3,1.02,24),label('relative value',-4.65,2.98,26,GREY))
+        for x,s in ((0,'1'),(.5,'3.16'),(1,'10')):
+            p=ax.c2p(x,0); self.add(Line(p,p+DOWN*.1,color=GREY),label(s,p[0],p[1]-.27,24))
+        cur=ax.plot(lambda x:.5*x,x_range=[0,1],color=YELLOW)
+        res=ax.plot(lambda x:-x,x_range=[0,1],color=BLUE)
+        prod=ax.plot(lambda x:-.5*x,x_range=[0,1],color=GREEN)
+        self.at('In this simple model'); self.add(label('Equal ΔVₜₕ assumed',3.95,2.8,27,GREY))
+        self.at('effective current grows'); self.play(Create(cur),Create(Line(ax.c2p(1,.5),P(3.25,1.75),color=YELLOW,stroke_width=2)),FadeIn(label('Iₑff ∝ Aᵅ',4.35,1.75,32,YELLOW,font='Georgia')),FadeIn(label('alpha: current growth = 0.5',3.9,1.1,24,YELLOW)),run_time=.8)
+        self.at('input resistance falls'); self.play(Create(res),Create(Line(ax.c2p(1,-1),P(3.25,-1.9),color=BLUE,stroke_width=2)),FadeIn(label('Rᵢₙ ∝ A⁻ᵝ',4.35,-1.9,32,BLUE,font='Georgia')),FadeIn(label('beta: resistance fall = 1',3.9,-2.55,24,BLUE)),run_time=.6)
+        self.play(Create(prod),Create(Line(ax.c2p(1,-.5),P(3.25,.15),color=GREEN,stroke_width=2)),FadeIn(label('ΔV ∝ Aᵅ⁻ᵝ',4.35,.15,32,GREEN,font='Georgia')),FadeIn(label('alpha < beta',4.2,-.95,30,YELLOW)),run_time=.6)
+        self.at('Real current distributions'); self.play(FadeIn(label('Cat medial gastrocnemius: mean homonymous Ia effective current',0,-3.2,26,GREY)),FadeIn(label('was larger in high-resistance cells; pathway matters.',0,-3.65,26,GREY)),run_time=.4)
+        self.finish()
+class S22cStill(SpokenScene):
+    def construct(self):
+        g,bs,ns=pool(shared=True,units=False); self.add(g,label('input higher · equal thresholds assumed',0,-3.25,30,YELLOW))
+        self.at('equal thresholds'); self.play(g[4][1].animate.rotate(-.8,about_point=P(-5.8,3.15)),run_time=.4)
+        self.at('small cells still'); self.play(*[Transform(b,voltage(x,3.95*a**(-.5))) for b,x,a in zip(bs,(-3.83,.52,4.87),(1,2,4))],Flash(ns[0][0],color=YELLOW),run_time=.7)
+        self.finish()
+class S23Rate(SpokenScene):
+    def construct(self):
+        ax=Axes(x_range=[0,8.2,1],y_range=[0,2.7,1],x_length=10.8,y_length=4.65,axis_config={'include_ticks':False,'color':GREY}).move_to(P(.2,.05))
+        self.add(ax,label('one active motor unit · rate coding',0,3.35,34,BLUE),label('time →',0,-3.45,28),label('force',-5.5,2.85,28,GREEN),label('spikes',-5.3,-2.95,28,YELLOW))
+        times=np.array([.2,1.65,3.1,3.45,3.8,4.15,4.5])
+        def force(t):
+            d=t-times; d=d[d>=0]; return float(np.sum((d/.32)*np.exp(1-d/.32)))
+        sparse=ax.plot(force,x_range=[0,2.9,.01],color=GREEN)
+        dense=ax.plot(force,x_range=[2.9,8.2,.01],color=GREEN)
+        spikes=VGroup(*[Line(ax.c2p(t,0)+DOWN*.45,ax.c2p(t,0)+DOWN*.12,color=YELLOW,stroke_width=4) for t in times])
+        self.at('add force'); self.play(Create(sparse),Create(VGroup(*spikes[:2])),run_time=.7)
+        self.at('Active units fire faster'); self.play(Create(VGroup(*spikes[2:])),Create(dense),run_time=1.35)
+        self.at('twitches add up'); self.play(FadeIn(label('Closer spikes: twitches add up',1.3,2.6,28,GREEN)),run_time=.25)
+        self.finish()
+class S24Takeaway(SpokenScene):
+    def construct(self):
+        title=VGroup(label('Every command ends as synaptic',0,2.25,36),label('current on motor neurons.',0,1.5,36,BLUE))
+        self.add(title)
+        self.at('Which pools go'); self.play(FadeIn(label('Which pools go up, which down?',0,.35,34)),run_time=.25)
+        self.at('who fires first',lead=.85); self.play(FadeIn(label('Within a pool, who reaches threshold first?',0,-.95,32)),run_time=.25)
+        self.play(FadeIn(label('Force grows by recruitment and faster firing.',0,-2.3,32,GREEN)),run_time=.25)
+        self.finish()
+class S25End(EndCard):
+    LINE='Every command ends as current on motor neurons.'
+    def construct(self):
+        line=fit(T(self.LINE,40,font=TITLE_FONT),max_w=11.5).move_to(P(0,.25))
+        self.play(FadeIn(line),FadeIn(label('biochemistrypedia.com',0,-.7,26,TEAL)),run_time=.4)
+        self.finish()
+    def finish(self):
+        if self.narration_s>self.elapsed(): self.wait(self.narration_s-self.elapsed())
