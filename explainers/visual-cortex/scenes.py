@@ -1,375 +1,471 @@
-"""Visual cortex: why a bar beats a spot  (Biochemistrypedia neuroscience explainer)
+"""Adding Up the Light — revised chapter 1.
 
-COLOR MAP (one colour per concept, whole film)
-  BLUE   = the recorded cortical cell and its spikes (and the plotted tuning data)
-  YELLOW = the light stimulus (spot, slit, bar, light patch)
-  GREEN  = ON subregion / excitation / excitatory arrow / "firing changed" marker
-  RED    = OFF subregion / inhibition
-  PURPLE = complex cell
-  ORANGE = measurement guides on the tuning plot (half height, width)
-  GREY   = screen, outlines, structure, baseline, de-emphasized
-  GOLD   = title rule only
+COLOR MAP: BLUE recorded cell/spikes; YELLOW light outline; GREEN ON/plus;
+RED OFF/minus; GREY structure; GOLD rule; PURPLE complex cells.
+White is the bright interior of a light stimulus (yellow boundary).
+Steady drive is the normalized area integral, with balanced centre/surround.
+Rasters use a deterministic integrate-and-fire illustration: rate =
+clip(4 + 17*drive, 0, 24) spikes per displayed interval. They are model
+illustrations, not recordings. Off transient uses an explicitly separate
+exponential change-response term, never the steady-light sum.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
 
 PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
-
-SCR_C = np.array([-3.4, 0.1, 0.0])   # screen centre
-SCR_W, SCR_H = 5.8, 4.4
-STRIP_X0, STRIP_X1, STRIP_Y = 0.9, 6.2, -0.2
-CELL_P = np.array([3.5, 2.0, 0.0])
+P = np.array([-3.1, 0., 0.])
+R = 3.0
+RC = R/2
 
 
-def head(text):
-    return T(text, 26, GREY).to_edge(UP, buff=0.35)
+def head(s):
+    return T(s, 30).move_to([0, 3.55, 0])
 
 
-def screen(label=True):
-    box = Rectangle(width=SCR_W, height=SCR_H, stroke_color=GREY, stroke_width=3,
-                    fill_color=GREY, fill_opacity=0.08).move_to(SCR_C)
-    g = VGroup(box)
-    if label:
-        g.add(T("screen in front of the cat", 22, GREY).next_to(box, DOWN, buff=0.18))
+def drive(centre_light, ring_light):
+    return (np.pi*RC**2*centre_light/(np.pi*RC**2)
+            - np.pi*(R**2-RC**2)*ring_light/(np.pi*(R**2-RC**2)))
+
+
+def spike_times(v=0, transient=False):
+    # Integrate rate on a 1 ms grid; threshold crossings produce every tick.
+    t=np.arange(0,1,.001)
+    rate=np.full(t.shape,np.clip(4+17*v,0,24),dtype=float)
+    if transient:
+        rate += 95*np.exp(-t/.12)
+    phase=np.cumsum(rate)*.001
+    return t[np.flatnonzero(np.diff(np.floor(phase),prepend=0)>0)]
+
+
+def ticks(v=0, x0=.6, x1=6., y=-1.8, h=.7, transient=False):
+    return VGroup(*[Line([x0+(x1-x0)*t,y,0],[x0+(x1-x0)*t,y+h,0],
+                        color=BLUE,stroke_width=3) for t in spike_times(v,transient)])
+
+
+def raster(v=0,label="spontaneous firing",transient=False):
+    g=VGroup(Line([.6,-1.8,0],[6,-1.8,0],color=GREY),
+             ticks(v,transient=transient),
+             T(label,28,BLUE).move_to([3.3,-2.3,0]),
+             T("time →",26).move_to([4.9,-3.02,0]),
+             T("spikes",26,BLUE).move_to([1.3,-3.02,0]))
+    if not len(g[1]):
+        g.add(T("no spikes",28,BLUE).move_to([3.3,-1.35,0]))
     return g
 
 
-def cell_icon(color=BLUE, label="cortical cell"):
-    soma = Circle(radius=0.34, stroke_color=color, stroke_width=3, fill_color=color, fill_opacity=0.3)
-    parts = [soma]
-    for ang in (150, 210, 90, 30):
-        d = np.array([np.cos(np.radians(ang)), np.sin(np.radians(ang)), 0])
-        parts.append(Line(d * 0.34, d * 0.85, color=color, stroke_width=3))
-    parts.append(Line(DOWN * 0.34, DOWN * 0.95, color=color, stroke_width=3))
-    g = VGroup(*parts).move_to(CELL_P)
-    lbl = T(label, 24, color).next_to(g, LEFT, buff=0.3)
-    return VGroup(g, lbl)
+def field_icon(radius=R):
+    return VGroup(Annulus(inner_radius=radius/2,outer_radius=radius,
+                         color=RED,fill_opacity=.23,stroke_width=3),
+                  Circle(radius=radius/2,color=GREEN,fill_opacity=.26,stroke_width=3).set_z_index(1),
+                  T("+",44 if radius>1 else 28,GREEN),
+                  T("−",40 if radius>1 else 26,RED).move_to([0,radius*.77,0]),
+                  T("−",40 if radius>1 else 26,RED).move_to([0,-radius*.77,0]))
 
 
-def electrode():
-    tip = CELL_P + np.array([0.55, 0.25, 0])
-    return VGroup(Line(tip + np.array([1.0, 1.0, 0]), tip, color=GREY, stroke_width=5),
-                  T("electrode", 22, GREY).move_to(tip + np.array([1.55, 1.15, 0])))
+def field():
+    f=field_icon().move_to(P)
+    # Labels sit below the corresponding field, with clear leaders.
+    f.add(T("centre (ON)",26,GREEN).move_to([-4.45,-3.45,0]),
+          T("surround (OFF)",26,RED).move_to([-1.45,-3.45,0]),
+          Line([-4.4,-3.15,0],[-3.65,-1.2,0],color=GREEN),
+          Line([-1.45,-3.15,0],[-1.5,-2.1,0],color=RED))
+    return f
 
 
-def strip_base(label="spikes (schematic)"):
-    base = Line([STRIP_X0, STRIP_Y, 0], [STRIP_X1, STRIP_Y, 0], color=GREY, stroke_width=2)
-    lbl = T(label, 22, GREY).move_to([(STRIP_X0 + STRIP_X1) / 2, STRIP_Y - 0.5, 0])
-    return VGroup(base, lbl)
+def meter():
+    return VGroup(Rectangle(width=.75,height=3.25,color=GREY).move_to([2.25,.8,0]),
+                  Line([1.65,.8,0],[2.85,.8,0],color=WHITE,stroke_width=3),
+                  T("0",28).move_to([3.15,.8,0]),
+                  T("stimulus drive",28).move_to([3.15,2.85,0]),
+                  T("steady",26).move_to([4.65,1.05,0]),
+                  T("background",26).move_to([4.65,.5,0]))
 
 
-def ticks(n, seed, color=BLUE, x0=STRIP_X0, x1=STRIP_X1, y=STRIP_Y, h=0.8):
-    rng = np.random.default_rng(seed)
-    xs = np.sort(x0 + 0.1 + (x1 - x0 - 0.2) * (np.arange(n) + rng.uniform(0.1, 0.9, n)) / max(n, 1))
-    return VGroup(*[Line([x, y + 0.08, 0], [x, y + 0.08 + h, 0], color=color, stroke_width=4) for x in xs])
+def fill(v):
+    # Keep matching geometry in every state: only the model bar changes height.
+    # The near-zero label fades in place rather than morphing into a bar.
+    h=max(.025,abs(v)*1.45)
+    c=WHITE if abs(v)<.001 else (GREEN if v>0 else RED)
+    return VGroup(Rectangle(width=.57,height=h,stroke_width=0,
+                            fill_color=c,fill_opacity=.9)
+                  .move_to([2.25,.8+np.sign(v)*h/2,0]),
+                  T("≈ 0",28).move_to([1.0,.8,0]).set_opacity(1 if abs(v)<.001 else 0))
 
 
-def show_ticks(scene, tk, t=0.7):
-    if len(tk) == 0:
-        return
-    scene.play(LaggedStart(*[FadeIn(k, shift=UP * 0.08) for k in tk], lag_ratio=0.12), run_time=t)
+def light(mode):
+    kw=dict(fill_color=WHITE,fill_opacity=.9,color=YELLOW,stroke_width=3)
+    if mode=="spot": wash=Circle(radius=RC,**kw)
+    elif mode=="ring": wash=Annulus(inner_radius=RC,outer_radius=R,**kw)
+    else: wash=Circle(radius=R,**kw)
+    wash.move_to(P).set_z_index(-1)
+    signs=VGroup()
+    if mode!="ring": signs.add(T("+",44,"#285220").move_to(P))
+    if mode!="spot":
+        signs.add(*[T("−",40,"#96251E").move_to(P+UP*y) for y in (R*.77,-R*.77)])
+    signs.set_z_index(2)
+    return VGroup(wash,signs)
 
 
-def arrow_e(a, b):
-    return Arrow(a, b, buff=0.08, color=GREEN, stroke_width=5, tip_length=0.22,
-                 max_tip_length_to_length_ratio=0.45)
+def stage(v=0,mode=None,label="spontaneous firing"):
+    g=VGroup(field(),meter(),fill(v),raster(v,label))
+    if mode: g.add(light(mode))
+    return g
+
+
+def question():
+    return head("Light over the whole patch?")
+
+
+def rule_card(full=False):
+    g=VGroup(T("Approximate rule",36,font=TITLE_FONT).move_to([0,3.25,0]),
+             T("Add up the light",46).move_to([0,2.25,0]),
+             chip("+  ON region",GREEN,38,pad=.4).move_to([-3, .95,0]),
+             chip("−  OFF region",RED,38,pad=.4).move_to([3,.95,0]))
+    if full:
+        g.add(T("Bigger sum → stronger drive",34).move_to([0,-.3,0]),
+              T("Near zero → spontaneous rate",32).move_to([0,-1.05,0]),
+              T("Positive → can raise firing",30,GREEN).move_to([-3.05,-1.85,0]),
+              T("Negative → lower firing",30,RED).move_to([3.05,-1.85,0]),
+              T("Firing also depends on baseline,",30).move_to([0,-2.65,0]),
+              T("threshold and saturation.",30).move_to([0,-3.3,0]))
+    return g
 
 
 class S00Title(TitleCard):
-    LESSON = "Visual Cortex"
-    TITLE = "Why a bar beats a spot"
+    LESSON="Visual Cortex"
+    TITLE="Adding Up the Light"
 
 
-# ---------------------------------------------------------------------------------------------
-class S01Spot(SpokenScene):
+class S01Question(SpokenScene):
     def construct(self):
-        hd = head("Anaesthetized cat · recording from visual cortex")
-        scr = screen()
-        cell = cell_icon()
-        elec = electrode()
-        base = strip_base()
-        self.play(FadeIn(hd), FadeIn(scr), run_time=0.6)
-        self.at("single cells")
-        self.play(FadeIn(cell), Create(elec), Create(base), run_time=0.8)
+        screen=Rectangle(width=5.5,height=5.8,color=GREY,fill_opacity=.12).move_to([-3.35,.15,0])
+        spot=Circle(radius=.28,color=YELLOW,fill_color=WHITE,fill_opacity=1).move_to(screen)
+        title=T("retina",34,BLUE).move_to([3.15,2.75,0])
+        def row(v):
+            return VGroup(Line([.5,-.6,0],[6,-.6,0],color=GREY),
+                          ticks(v,x0=.5,x1=6,y=-.6,h=1.7),
+                          T("spikes",28,BLUE).move_to([1.2,1.75,0]),
+                          T("time →",28).move_to([4.95,-1.25,0]),
+                          T("model illustration",26,GREY).move_to([3.2,-2.1,0]))
+        dense=row(1)
+        self.add(screen)
         self.at("spots of light")
-        spot = Circle(radius=0.28, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to(SCR_C + LEFT * 0.4)
-        spot_lbl = T("spot", 24, YELLOW).next_to(spot, DOWN, buff=0.25)
-        self.play(FadeIn(spot, scale=0.5), FadeIn(spot_lbl), run_time=0.6)
-        self.at("retina well")
-        rchip = chip("retina: spots drive it well", GREEN, size=24).move_to([3.5, -1.65, 0])
-        self.play(FadeIn(rchip), run_time=0.5)
-        self.at("often did little")
-        tk1 = ticks(3, 1)
-        show_ticks(self, tk1, 0.6)
-        cchip = chip("cortex: spot, little response", GREY, size=24).move_to([3.5, -2.45, 0])
-        self.play(FadeIn(cchip), run_time=0.4)
-        self.at("right orientation")
-        bar = Rectangle(width=0.32, height=3.0, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to(spot)
-        bar_lbl = T("bar at the right orientation", 24, YELLOW).next_to(scr[0], UP, buff=-0.0).shift(DOWN * 0.0)
-        bar_lbl = T("bar", 24, YELLOW).next_to(bar, RIGHT, buff=0.25)
-        self.play(Transform(spot, bar), Transform(spot_lbl, bar_lbl), FadeOut(tk1), run_time=0.7)
-        tk2 = ticks(16, 2)
-        show_ticks(self, tk2, 1.0)
-        cchip2 = chip("cortex: bar drives the cell hard", BLUE, size=24).move_to(cchip)
-        self.play(Transform(cchip, cchip2), run_time=0.4)
-        self.at("bar win")
-        q = T("Why does the bar win?", 32, YELLOW, font=TITLE_FONT).move_to([3.5, -3.3, 0])
-        self.play(Write(q), run_time=0.9)
+        self.play(FadeIn(spot),FadeIn(dense),FadeIn(title),run_time=.35)
+        self.at("in cat visual cortex")
+        self.play(Transform(title,T("cat visual cortex",32,BLUE).move_to(title)),
+                  Transform(dense,row(-.13)),run_time=.35)
+        self.at("a bar at")
+        bar=Rectangle(width=.38,height=4.5,color=YELLOW,fill_color=WHITE,fill_opacity=1).rotate(-PI/6).move_to(screen)
+        self.play(Transform(spot,bar),run_time=.5)
+        self.at("drove some cells hard")
+        self.play(Transform(dense,row(1)),run_time=.4)
+        self.at("why would")
+        self.play(FadeIn(T("Why would a bar beat a spot?",32,font=TITLE_FONT).move_to([0,-3.25,0])),run_time=.35)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
 class S02Field(SpokenScene):
     def construct(self):
-        hd = head("Receptive field")
-        scr = screen()
-        cell = cell_icon()
-        elec = electrode()
-        d1 = T("receptive field:", 24, GREEN, weight=BOLD)
-        d2 = T("where a stimulus changes the cell's firing", 24, TEXT)
-        dg = VGroup(d1, d2).arrange(DOWN, aligned_edge=LEFT, buff=0.12).move_to([3.0, 0.6, 0])
-        self.at("receptive field")
-        self.play(FadeIn(hd), FadeIn(scr), FadeIn(dg, shift=UP * 0.1), run_time=0.6)
-        self.at("electrode outside")
-        self.play(FadeIn(cell), Create(elec), run_time=0.8)
-        self.at("mapped each field")
-        icons = VGroup(
-            VGroup(Circle(radius=0.16, stroke_width=0, fill_color=YELLOW, fill_opacity=1), T("spot", 22, YELLOW)).arrange(RIGHT, buff=0.15),
-            VGroup(Rectangle(width=0.08, height=0.6, stroke_width=0, fill_color=YELLOW, fill_opacity=1), T("slit", 22, YELLOW)).arrange(RIGHT, buff=0.15),
-            VGroup(Rectangle(width=0.2, height=0.6, stroke_width=0, fill_color=YELLOW, fill_opacity=1), T("bar", 22, YELLOW)).arrange(RIGHT, buff=0.15),
-        ).arrange(RIGHT, buff=0.5).move_to([3.0, -0.8, 0])
-        self.play(LaggedStart(*[FadeIn(i, shift=UP * 0.1) for i in icons], lag_ratio=0.3), run_time=0.9)
-        self.at("Moving a stimulus")
-        field = Rectangle(width=2.2, height=1.5, stroke_width=0).move_to(SCR_C + np.array([-0.5, 0.5, 0]))
-        spot = Circle(radius=0.2, stroke_width=0, fill_color=YELLOW, fill_opacity=1).move_to(SCR_C + np.array([-2.3, -1.6, 0]))
-        self.play(FadeIn(spot), run_time=0.3)
-        path = [(-2.3, 1.5), (-1.5, 0.5), (-0.5, 0.5), (0.5, 0.5), (1.0, -1.0), (-0.5, -1.0)]
-        marks = VGroup()
-        for px, py in path:
-            p = SCR_C + np.array([px, py, 0])
-            self.play(spot.animate.move_to(p), run_time=0.25)
-            inside = abs(px + 0.5) <= 1.1 and abs(py - 0.5) <= 0.75
-            m = Circle(radius=0.11, stroke_width=0, fill_color=GREEN if inside else GREY, fill_opacity=1).move_to(p)
-            marks.add(m)
-            self.add(m)
-        self.play(FadeOut(spot), run_time=0.3)
-        leg = VGroup(
-            VGroup(Circle(radius=0.11, stroke_width=0, fill_color=GREEN, fill_opacity=1), T("firing changed", 22, GREEN)).arrange(RIGHT, buff=0.15),
-            VGroup(Circle(radius=0.11, stroke_width=0, fill_color=GREY, fill_opacity=1), T("no change", 22, GREY)).arrange(RIGHT, buff=0.15),
-        ).arrange(RIGHT, buff=0.5).move_to([3.0, -2.2, 0])
-        self.play(FadeIn(leg), run_time=0.4)
-        self.at("where the field lies")
-        outline = DashedVMobject(Rectangle(width=2.5, height=1.8, stroke_color=GREEN, stroke_width=4).move_to(field), num_dashes=40)
-        olbl = T("receptive field", 24, GREEN).next_to(outline, UP, buff=0.1)
-        self.play(Create(outline), FadeIn(olbl), run_time=1.0)
+        screen=Rectangle(width=5.25,height=5.6,color=GREY,fill_opacity=.1).move_to([-3.55,.1,0])
+        eye=Circle(radius=2.55,color=GREY).move_to([3.5,.1,0])
+        ret=Arc(radius=2.32,start_angle=-PI/2,angle=PI,color=BLUE,stroke_width=7).shift([3.5,.1,0])
+        # A soma, dendrites and axon make this a drawn retinal neuron.
+        soma=Circle(radius=.2,color=BLUE,fill_color=BLUE,fill_opacity=1).move_to([4.6,.25,0])
+        dendrites=VGroup(*[Line(soma.get_left(),[3.7,y,0],color=BLUE,stroke_width=3)
+                            for y in (-.35,.25,.85)])
+        axon=VMobject(color=BLUE,stroke_width=4).set_points_as_corners([
+            soma.get_right(),[5.35,.25,0],[5.35,-1.1,0],[4.9,-1.65,0]])
+        cell=VGroup(soma,dendrites,axon)
+        label=T("ganglion cell",28,BLUE).move_to([3.7,1.6,0])
+        leader=Line(label.get_bottom(),soma.get_top(),color=BLUE,stroke_width=2)
+        lens=Ellipse(width=.5,height=1.55,color=GREY).move_to([1.55,.1,0])
+        patch=Circle(radius=1.25,color=YELLOW,fill_color=GREY,fill_opacity=.2).move_to([-3.55,.1,0])
+        # Leave the patch through the screen's top edge, then travel above both
+        # outlines and terminate at the eye edge, rather than crossing the cell.
+        link=VMobject(color=BLUE,stroke_width=2).set_points_as_corners([
+            patch.get_top(),[-3.55,3.15,0],[3.5,3.15,0],eye.get_top()])
+        self.add(screen,patch,eye,lens,ret,cell,label,leader,
+                 T("retina",30,BLUE).move_to([3.7,-2.95,0]))
+        self.at("start in the retina")
+        self.play(Indicate(ret,color=BLUE),run_time=.55)
+        self.at("every visual neuron")
+        self.play(Create(link),run_time=.55)
+        self.at("one patch")
+        self.play(FadeIn(T("receptive field",32).move_to([-3.55,-1.85,0])),run_time=.25)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-def on_off_map():
-    on = Rectangle(width=1.0, height=3.6, stroke_color=GREEN, stroke_width=3, fill_color=GREEN, fill_opacity=0.28)
-    off = Rectangle(width=1.0, height=3.6, stroke_color=RED, stroke_width=3, fill_color=RED, fill_opacity=0.28)
-    on.move_to(SCR_C + LEFT * 0.5)
-    off.move_to(SCR_C + RIGHT * 0.5)
-    on_l = T("ON", 28, GREEN, weight=BOLD).move_to(on.get_top() + DOWN * 0.4)
-    off_l = T("OFF", 28, RED, weight=BOLD).move_to(off.get_top() + DOWN * 0.4)
-    return VGroup(on, off, on_l, off_l), on, off
-
-
-class S03Simple(SpokenScene):
+class S03Oncentre(SpokenScene):
     def construct(self):
-        hd = head("Simple cell · cat visual cortex")
-        scr = screen(label=False)
-        cell = cell_icon("#58C4DD", "simple cell")
-        base = strip_base()
-        self.play(FadeIn(hd), FadeIn(scr), FadeIn(cell), Create(base), run_time=0.7)
-        self.at("simple cell")
-        mp, on, off = on_off_map()
-        self.play(FadeIn(mp), run_time=0.8)
-        self.at("side by side")
-        self.play(Indicate(VGroup(on, off), color=TEXT, scale_factor=1.04), run_time=0.8)
-        self.at("excites the cell")
-        patch = Rectangle(width=0.8, height=1.2, stroke_width=0, fill_color=YELLOW, fill_opacity=0.75).move_to(on.get_center() + DOWN * 0.3)
-        state = chip("light on ON: excites", GREEN, size=26).move_to([3.5, -2.2, 0])
-        self.play(FadeIn(patch), FadeIn(state), run_time=0.4)
-        tk = ticks(16, 3)
-        show_ticks(self, tk, 0.9)
-        self.at("inhibits it")
-        newstate = chip("light on OFF: inhibits", RED, size=26).move_to(state)
-        self.play(FadeOut(tk), patch.animate.move_to(off.get_center() + DOWN * 0.3), Transform(state, newstate), run_time=0.7)
-        self.at("removing that light")
-        newstate = chip("light removed: excites", GREEN, size=26).move_to(state)
-        self.play(FadeOut(patch), Transform(state, newstate), run_time=0.4)
-        tk = ticks(12, 4)
-        show_ticks(self, tk, 0.8)
-        self.at("tended to cancel")
-        both = Rectangle(width=2.0, height=1.2, stroke_width=0, fill_color=YELLOW, fill_opacity=0.75).move_to(SCR_C + DOWN * 0.3)
-        newstate = chip("light on both: tends to cancel", GREY, size=26).move_to(state)
-        self.play(FadeOut(tk), FadeIn(both), Transform(state, newstate), run_time=0.5)
-        tk = ticks(3, 5)
-        show_ticks(self, tk, 0.6)
+        f=field()
+        self.add(head("ON-centre ganglion cell"),Circle(radius=R,color=GREY).move_to(P),meter(),raster(),fill(0))
+        self.at("take an")
+        self.wait(.2)
+        self.at("small round")
+        self.play(FadeIn(f[1]),FadeIn(f[2]),run_time=.35)
+        self.at("excites it")
+        self.play(FadeIn(f[5]),Create(f[7]),run_time=.3)
+        self.at("ring around it")
+        self.play(FadeIn(f[0]),FadeIn(f[3]),FadeIn(f[4]),run_time=.35)
+        self.at("the surround")
+        self.play(FadeIn(f[6]),Create(f[8]),run_time=.3)
         self.finish()
 
 
-class S04Angle(SpokenScene):
+class S04Spot(SpokenScene):
     def construct(self):
-        hd = head("Simple cell · does the bar's angle matter?")
-        scr = screen(label=False)
-        cell = cell_icon("#58C4DD", "simple cell")
-        base = strip_base()
-        mp, on, off = on_off_map()
-        self.add(hd, scr, cell, base, mp)
-        self.wait(0.3)
-        self.at("elongated")
-        self.play(Indicate(VGroup(on, off), color=TEXT, scale_factor=1.04), run_time=0.8)
-        self.at("aligned with")
-        bar = Rectangle(width=0.3, height=2.4, stroke_width=0, fill_color=YELLOW, fill_opacity=0.85).move_to(on.get_center())
-        state = chip("bar along the ON strip", GREEN, size=26).move_to([3.5, -2.2, 0])
-        self.play(FadeIn(bar), FadeIn(state), run_time=0.5)
-        tk = ticks(16, 6)
-        show_ticks(self, tk, 0.9)
-        self.at("across the strip")
-        newstate = chip("bar across the strip: barely", GREY, size=26).move_to(state)
-        self.play(FadeOut(tk), bar.animate.move_to(SCR_C), Transform(state, newstate), run_time=0.4)
-        self.play(Rotate(bar, angle=-PI / 2, about_point=bar.get_center()), run_time=0.7)
-        tk = ticks(3, 7)
-        show_ticks(self, tk, 0.6)
-        self.at("Turn the bar")
-        newstate = chip("turn the bar: response changes", YELLOW, size=26).move_to(state)
-        self.play(FadeOut(tk), Transform(state, newstate), Rotate(bar, angle=PI / 2, about_point=bar.get_center()), run_time=0.8)
-        self.play(bar.animate.move_to(on.get_center()), run_time=0.4)
-        tk = ticks(16, 8)
-        show_ticks(self, tk, 0.8)
+        g=stage()
+        self.add(head("ON-centre ganglion cell"),g)
+        spot=light("spot").shift(LEFT*.5)
+        self.at("shine a small spot")
+        self.play(FadeIn(spot),run_time=.35)
+        self.at("just fills")
+        self.play(spot.animate.shift(RIGHT*.5),run_time=.4)
+        self.at("only on plus")
+        self.play(Transform(g[2],fill(drive(1,0))),run_time=.35)
+        self.at("cell fires faster")
+        g[3].become(raster(drive(1,0),"faster firing"))
+        self.wait(.4)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-RATES = [(0, 2), (30, 6), (60, 24), (90, 40), (120, 22), (150, 5)]
-
-
-class S05Tuning(SpokenScene):
+class S05Predict(SpokenScene):
     def construct(self):
-        ax = Axes(x_range=[0, 150, 30], y_range=[0, 45, 10], x_length=6.6, y_length=4.4, tips=False,
-                  axis_config={"color": GREY, "include_ticks": True, "include_numbers": False, "stroke_width": 3})
-        ax.move_to([-2.55, -0.2, 0])
-        labels = VGroup()
-        for x in range(0, 151, 30):
-            labels.add(M(str(x), 22, GREY).next_to(ax.c2p(x, 0), DOWN, buff=0.15))
-        for y in range(0, 41, 10):
-            labels.add(M(str(y), 22, GREY).next_to(ax.c2p(0, y), LEFT, buff=0.15))
-        xl = T("bar orientation (degrees)", 24, GREY).next_to(ax, DOWN, buff=0.55)
-        yl = T("spikes/s", 24, GREY).next_to(ax.c2p(0, 45), UP, buff=0.12).align_to(ax.c2p(0, 45), LEFT)
-        X0 = 1.8   # left edge of the callout column
-        tag = T("made-up recording", 24, YELLOW)
-        note = T("best bar position, many trials", 24, TEXT)
-        s_lbl = T("no bar: 2 spikes/s", 24, GREY)
-        pk = T("peak: 90\u00b0, 40 spikes/s", 24, BLUE, weight=BOLD)
-        hlbl = T("half height: 21 spikes/s", 24, ORANGE)
-        wlbl = T("about 67\u00b0 wide (interpolated)", 24, ORANGE)
-        f1 = T("orientation index", 24, TEXT, weight=BOLD)
-        f2 = M("(40 \u2212 2) / (40 + 2)", 24, TEXT)
-        f3 = M("= 0.90", 28, GREEN)
-        f4 = T("orthogonal = 0\u00b0, 90\u00b0 from the peak", 22, GREY)
-        col1 = VGroup(tag, note, s_lbl, pk, hlbl, wlbl).arrange(DOWN, aligned_edge=LEFT, buff=0.2)
-        col1.move_to([0, 0, 0]).align_to([X0, 0, 0], LEFT).to_edge(UP, buff=0.35)
-        fg = VGroup(f1, f2, f3, f4).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
-        fg.align_to([X0, 0, 0], LEFT).align_to([0, -0.5, 0], UP)
-        self.play(FadeIn(ax), FadeIn(labels), FadeIn(xl), FadeIn(yl), FadeIn(tag), run_time=0.8)
-        self.at("recording from")
-        self.wait(0.1)
-        self.at("best position")
-        self.play(FadeIn(note), run_time=0.4)
-        self.at("no bar")
-        spont = DashedLine(ax.c2p(0, 2), ax.c2p(150, 2), color=GREY, stroke_width=3)
-        self.play(Create(spont), FadeIn(s_lbl), run_time=0.5)
-        self.at("orientations draw")
-        dots, segs = VGroup(), VGroup()
-        pts = [ax.c2p(x, y) for x, y in RATES]
-        for i, p in enumerate(pts):
-            d = Dot(p, radius=0.1, color=BLUE)
-            anims = [FadeIn(d, scale=0.5)]
-            if i:
-                s = Line(pts[i - 1], p, color=BLUE, stroke_width=4)
-                segs.add(s)
-                anims = [Create(s)] + anims
-            dots.add(d)
-            self.play(*anims, run_time=0.2)
-        self.at("tuning curve")
-        self.play(Indicate(segs, color=BLUE, scale_factor=1.0), run_time=0.5)
-        self.at("best orientation")
-        self.play(Indicate(dots[3], color=TEXT, scale_factor=1.8), FadeIn(pk), run_time=0.6)
-        self.at("half height")
-        hh = DashedLine(ax.c2p(0, 21), ax.c2p(150, 21), color=ORANGE, stroke_width=3)
-        x_lo, x_hi = 55.0, 121.8
-        br = Line(ax.c2p(x_lo, 21), ax.c2p(x_hi, 21), color=ORANGE, stroke_width=7)
-        e1 = Line(ax.c2p(x_lo, 21) + DOWN * 0.15, ax.c2p(x_lo, 21) + UP * 0.15, color=ORANGE, stroke_width=5)
-        e2 = Line(ax.c2p(x_hi, 21) + DOWN * 0.15, ax.c2p(x_hi, 21) + UP * 0.15, color=ORANGE, stroke_width=5)
-        self.play(Create(hh), FadeIn(hlbl), run_time=0.7)
-        self.at("about")
-        self.play(Create(br), Create(e1), Create(e2), FadeIn(wlbl), run_time=0.8)
-        self.at("orientation index")
-        self.play(FadeIn(fg, shift=UP * 0.1), run_time=0.8)
-        self.at("strong preference")
-        f5 = T("strong preference for the best", 22, GREEN)
-        f6 = T("orientation over the orthogonal one;", 22, GREEN)
-        f7 = T("not the tuning width", 22, GREEN)
-        g5 = VGroup(f5, f6, f7).arrange(DOWN, aligned_edge=LEFT, buff=0.08).next_to(fg, DOWN, buff=0.3).align_to(fg, LEFT)
-        self.play(Indicate(f3, color=GREEN), FadeIn(g5), run_time=0.8)
+        g=stage(1,"spot","faster firing")
+        hd=head("ON-centre ganglion cell")
+        self.add(hd,g)
+        self.at("now light")
+        g[3].become(raster())
+        self.play(FadeOut(g[4]),Transform(g[2],fill(0)),run_time=.4)
+        self.at("whole patch")
+        self.play(Transform(hd,question()),run_time=.35)
+        self.at("what will")
+        self.play(FadeIn(T("Pause and predict",26).move_to([4.8,-.3,0])),run_time=.25)
         self.finish()
 
 
-# ---------------------------------------------------------------------------------------------
-class S06Complex(SpokenScene):
+class S06Pause(Scene):
     def construct(self):
-        hd = head("Complex cell · cat visual cortex")
-        scr = screen(label=False)
-        cell = cell_icon(PURPLE, "complex cell")
-        base = strip_base()
-        self.play(FadeIn(hd), FadeIn(scr), FadeIn(cell), Create(base), run_time=0.6)
-        fld = DashedVMobject(Rectangle(width=4.6, height=3.4, stroke_color=PURPLE, stroke_width=3).move_to(SCR_C), num_dashes=50)
-        flbl = T("receptive field", 22, PURPLE).next_to(fld, UP, buff=-0.45).shift(DOWN * 0.0)
-        flbl.move_to(SCR_C + UP * 1.45)
-        self.play(Create(fld), FadeIn(flbl), run_time=0.6)
-        self.at("tolerate position")
-        bar = Rectangle(width=0.3, height=2.4, stroke_width=0, fill_color=YELLOW, fill_opacity=0.9).move_to(SCR_C + LEFT * 1.5)
-        state = chip("same bar angle, new position", PURPLE, size=26).move_to([3.5, -2.4, 0])
-        self.play(FadeIn(bar), FadeIn(state), run_time=0.4)
-        tk = ticks(14, 9, color=PURPLE)
-        show_ticks(self, tk, 0.6)
-        for i, dx in enumerate([0.0, 1.5]):
-            self.play(FadeOut(tk), bar.animate.move_to(SCR_C + RIGHT * dx), run_time=0.45)
-            tk = ticks(14, 10 + i, color=PURPLE)
-            show_ticks(self, tk, 0.6)
-        self.at("No separate")
-        nm = T("no separate ON and OFF regions", 24, TEXT).move_to([3.5, -3.2, 0])
-        self.play(FadeIn(nm), run_time=0.6)
-        self.at("suggested that geniculate")
-        # switch to the proposed wiring: boxes and typed arrows
-        self.play(*[FadeOut(m) for m in (scr, fld, flbl, bar, tk, base, nm, state, cell, hd)], run_time=0.6)
-        hd2 = head("Proposed wiring (Hubel and Wiesel, 1962)")
-        lgn = VGroup(*[chip("LGN cell", GREY, size=32) for _ in range(3)]).arrange(DOWN, buff=0.6).move_to([-3.3, -0.2, 0])
-        simple = chip("simple cell", BLUE, size=34).move_to([2.0, -0.2, 0])
-        arrows = VGroup(*[arrow_e(l.get_right(), simple.get_left() + UP * (0.15 * (1 - i))) for i, l in enumerate(lgn)])
-        leg = VGroup(Line(ORIGIN, RIGHT * 0.7, color=GREEN, stroke_width=5), T("excitatory", 22, GREEN)).arrange(RIGHT, buff=0.2).move_to([-3.3, -3.0, 0])
-        self.play(FadeIn(hd2), LaggedStart(*[FadeIn(l, shift=RIGHT * 0.2) for l in lgn], lag_ratio=0.25), run_time=1.0)
-        self.play(FadeIn(simple), LaggedStart(*[Create(a) for a in arrows], lag_ratio=0.2), FadeIn(leg), run_time=1.0)
-        self.at("simple cells converge")
-        # relabel stage 1 into stage 2: simple cells -> complex cell
-        lgn2 = VGroup(*[chip("simple cell", BLUE, size=32) for _ in range(3)]).arrange(DOWN, buff=0.6).move_to(lgn)
-        cx = chip("complex cell", PURPLE, size=34).move_to(simple)
-        note = T("same orientation, different positions", 24, GREY).move_to([-1.9, 2.55, 0])
-        self.play(*[Transform(a, b) for a, b in zip(lgn, lgn2)], Transform(simple, cx), FadeIn(note), run_time=1.0)
-        self.at("proposal")
-        prop = chip("1962 proposal; step one later supported", YELLOW, size=28).move_to([2.6, 1.7, 0])
-        self.play(FadeIn(prop), run_time=0.5)
-        self.at("Keep the rule")
-        rule = T("In cat visual cortex, bars at the right angle drive cells that spots often miss.", 26, TEXT)
-        fit(rule, max_w=12.0)
-        rule.move_to([0, -3.0, 0])
-        self.play(FadeOut(leg), FadeIn(rule, shift=UP * 0.1), run_time=0.8)
+        self.camera.background_color=BG
+        centre=np.array([5.85,2.1,0])
+        track=Circle(radius=.58,color=WHITE,stroke_width=3).move_to(centre)
+        remaining=ValueTracker(1)
+        ring=always_redraw(lambda: Arc(radius=.58,start_angle=PI/2,
+            angle=TAU*max(.001,remaining.get_value()),color=YELLOW,stroke_width=9).move_arc_center_to(centre))
+        self.add(question(),stage(),T("Pause and predict",26).move_to([4.8,-.3,0]),track,ring)
+        self.play(remaining.animate.set_value(0),run_time=5,rate_func=linear)
+
+
+class S07Reveal(SpokenScene):
+    def construct(self):
+        hd=question()
+        self.add(hd,stage())
+        self.at("very little")
+        self.play(Transform(hd,head("Whole patch: almost no change")),FadeIn(light("whole")),run_time=.4)
+        plus=Rectangle(width=.25,height=1.4,color=GREEN,fill_opacity=1).move_to([2.08,1.5,0])
+        minus=Rectangle(width=.25,height=1.4,color=RED,fill_opacity=1).move_to([2.42,.1,0])
+        self.at("adds plus")
+        self.play(GrowFromEdge(plus,DOWN),run_time=.3)
+        self.at("ring adds minus")
+        self.play(GrowFromEdge(minus,UP),run_time=.3)
+        self.at("largely cancel")
+        self.play(Transform(plus,Line([1.9,.8,0],[2.25,.8,0],color=GREEN,stroke_width=5)),
+                  Transform(minus,Line([2.25,.8,0],[2.6,.8,0],color=RED,stroke_width=5)),run_time=.55)
         self.finish()
 
 
-class S07End(EndCard):
-    LINE = "Bars at the right angle drive cells that spots often miss."
+class S08Ring(SpokenScene):
+    def construct(self):
+        g=stage(mode="whole")
+        self.add(head("ON-centre ganglion cell"),g)
+        self.at("light the ring alone")
+        self.play(Transform(g[4],light("ring")),run_time=.5)
+        self.at("sum goes negative")
+        g[3].become(raster(drive(0,1),"below spontaneous rate"))
+        self.play(Transform(g[2],fill(drive(0,1))),run_time=.6)
+        self.at("firing drops")
+        self.wait(.2)
+        self.finish()
+
+
+class S08bOffburst(SpokenScene):
+    def construct(self):
+        g=stage(-1,"ring","below spontaneous rate")
+        self.add(head("ON-centre ganglion cell"),g)
+        self.at("light goes off")
+        self.play(FadeOut(g[4]),Transform(g[2],fill(0)),run_time=.4)
+        self.at("brief burst")
+        burst=raster(0,"burst → spontaneous firing",transient=True)
+        burst.remove(burst[2])
+        burst_label=VGroup(T("Light-off burst,",26,BLUE),
+                           T("not part of the sum",26)).arrange(DOWN,aligned_edge=LEFT,buff=.1)
+        burst_label.move_to([.65,-2.42,0],aligned_edge=LEFT)
+        bracket=VGroup(Line([.65,-1.97,0],[2.2,-1.97,0],color=BLUE),
+                       Line([.65,-1.97,0],[.65,-1.82,0],color=BLUE),
+                       Line([2.2,-1.97,0],[2.2,-1.82,0],color=BLUE),burst_label)
+        g[3].become(burst)
+        self.play(FadeIn(bracket),run_time=.4)
+        self.at("change in light")
+        self.play(Indicate(bracket[0],color=BLUE),run_time=.4)
+        self.at("sum alone")
+        self.wait(.2)
+        self.finish()
+
+
+class S09Rule(SpokenScene):
+    def construct(self):
+        c=rule_card()
+        # A large field is present until replaced by the two signed regions.
+        f=field_icon(1.7).move_to([0,-1.65,0])
+        self.add(c,f)
+        self.at("here is the rule")
+        self.wait(.2)
+        self.at("add up the light")
+        self.play(Indicate(f,color=YELLOW),run_time=.45)
+        self.at("plus")
+        self.play(Indicate(c[2],color=GREEN,scale_factor=1.04),run_time=.25)
+        self.at("minus")
+        self.play(Indicate(c[3],color=RED,scale_factor=1.04),run_time=.25)
+        self.finish()
+
+
+class S10Rule2(SpokenScene):
+    def construct(self):
+        self.add(rule_card())
+        # Persistent state slots: no previous result disappears as a new one arrives.
+        data=[("Bigger sum → stronger drive",TEXT,1),
+              ("Near zero → spontaneous rate",TEXT,0),
+              ("Positive sum → can raise firing",GREEN,1),
+              ("Negative sum → lower firing",RED,-.15),
+              ("Negative sum → down to zero firing",RED,-1)]
+        slots=VGroup(*[T(s,32,c).move_to([-1.1,-.35-i*.72,0]) for i,(s,c,v) in enumerate(data)])
+        self.add(slots.copy().set_opacity(.3))
+        cues=("a bigger sum","a sum near zero","a positive sum","a negative sum","down to zero")
+        # Mini rasters stay alongside their own stable text line.
+        for i,(cue,(s,c,v)) in enumerate(zip(cues,data)):
+            self.at(cue)
+            slots[i].move_to([-1.1,-.35-i*.72,0])
+            base=Line([4.1,slots[i].get_y()-.17,0],[6.2,slots[i].get_y()-.17,0],color=GREY)
+            tk=ticks(v,x0=4.1,x1=6.2,y=slots[i].get_y()-.17,h=.35)
+            self.play(FadeIn(slots[i]),FadeIn(base),FadeIn(tk),run_time=.18)
+            if v==-1:
+                self.add(T("no spikes",26,BLUE).move_to([5.15,slots[i].get_y()+.16,0]))
+        self.wait(max(.1,12.2-self.elapsed()))
+        self.finish()
+
+
+class S11Card(NarratedScene):
+    def construct(self):
+        self.clear()
+        # Rebuild a clean opaque card; no mini-raster from the prior scene.
+        self.add(Rectangle(width=14.23,height=8.01,stroke_width=0,
+                           fill_color=BG,fill_opacity=1),rule_card(full=True))
+        self.finish()
+
+
+MAP_POINTS=([-4.4,1.65,0],[-2.5,0,0],[-.5,-1.65,0])
+
+
+class S12TwoHalves(SpokenScene):
+    def construct(self):
+        card=rule_card(full=True)
+        self.add(card)
+        self.at("where the patch sits")
+        self.play(Transform(card,chip("Add up the light",GOLD,34,pad=.3,fill_opacity=.24).move_to([3.8,3.15,0])),run_time=.3)
+        screen=Rectangle(width=8,height=5.9,color=GREY,fill_opacity=.1).move_to([-1.9,0,0])
+        patches=VGroup(*[field_icon(.65).move_to(p) for p in MAP_POINTS])
+        cells=VGroup(*[chip("cell",BLUE,28).move_to([5.2,p[1],0]) for p in MAP_POINTS])
+        # Each horizontal link has a separate lane; none intersects another field.
+        links=VGroup(*[Line(a.get_right(),b.get_left(),color=BLUE) for a,b in zip(patches,cells)])
+        self.play(FadeIn(screen),FadeIn(patches),Create(links),FadeIn(cells),run_time=.4)
+        self.at("which part of the world")
+        self.play(FadeIn(T("where in the visual field",30).move_to([0,-3.3,0])),
+                  FadeIn(Circle(radius=.78,color=YELLOW,stroke_width=4).move_to(MAP_POINTS[1])),run_time=.5)
+        self.finish()
+
+
+class S13Layout(SpokenScene):
+    def construct(self):
+        f=field_icon(.65).move_to(MAP_POINTS[1])
+        self.add(f,chip("where",GREY,26).move_to([-5.4,3.1,0]))
+        self.at("how plus and minus")
+        self.play(f.animate.scale(2.6/.65).move_to([0,-.1,0]),run_time=.4)
+        # The circular layout holds until 2.22 s, ~two seconds after scene start.
+        self.at("which stimulus",lead=0)
+        strips=VGroup(*[Rectangle(width=1.25,height=5.2,color=c,fill_opacity=.25).move_to([x,-.1,0])
+                       for x,c in ((-1.25,RED),(0,GREEN),(1.25,RED))],
+                      T("−",40,RED).move_to([-1.25,-.1,0]),T("+",44,GREEN).move_to([0,-.1,0]),
+                      T("−",40,RED).move_to([1.25,-.1,0]))
+        self.play(Transform(f,strips),FadeIn(head("which stimulus")),run_time=.5)
+        self.at("reports best")
+        bar=Rectangle(width=.7,height=3.5,color=YELLOW,fill_color=WHITE,fill_opacity=.75).move_to([0,-.1,0]).set_z_index(-1)
+        self.play(FadeIn(bar),FadeIn(T("+",44,"#285220").move_to([0,-.1,0]).set_z_index(2)),run_time=.3)
+        self.finish()
+
+
+class S15Thalamus(SpokenScene):
+    def construct(self):
+        # Triangular group allows all three fields to be large without collisions.
+        fields=VGroup(field_icon(1.55).move_to([-4.2,1.25,0]),
+                      field_icon(1.55).move_to([-.85,1.25,0]),
+                      field_icon(1.55).move_to([-2.5,-2.0,0]))
+        v1=chip("V1  ?",BLUE,44,pad=.55).move_to([4.55,0,0])
+        arrow=Arrow([1,0,0],[3.1,0,0],color=GREY,buff=0)
+        self.add(head("LGN: thalamic relay"),fields,arrow,v1)
+        self.at("cells of the thalamic relay")
+        self.play(Circumscribe(fields[0],color=BLUE,buff=.08),run_time=.45)
+        self.at("lateral geniculate nucleus")
+        self.play(Transform(self.mobjects[0],head("Lateral geniculate nucleus (LGN)")),run_time=.35)
+        self.at("fields of the same kind")
+        self.play(Circumscribe(fields[1],color=BLUE,buff=.08),run_time=.45)
+        self.finish()
+
+
+class S16Scope(SpokenScene):
+    def construct(self):
+        self.add(head("Good first approximation"))
+        icons=VGroup()
+        for i,(name,x) in enumerate(zip(("retina","LGN","V1 simple cell"),(-4.3,0,4.3))):
+            if i<2: shape=field_icon(1.6).move_to([x,.55,0])
+            else:
+                shape=VGroup(*[Rectangle(width=.95,height=3.2,color=c,fill_opacity=.25).move_to([x+dx,.55,0])
+                               for dx,c in ((-.95,RED),(0,GREEN),(.95,RED))])
+            icons.add(VGroup(shape,T(name,32).move_to([x,2.65,0])))
+        self.add(icons.copy().set_opacity(.35))
+        self.add(Line([-5.9,-1.35,0],[5.9,-1.35,0],color=GREY))
+        self.at("good first approximation")
+        self.wait(.2)
+        self.at("many cells in the retina")
+        self.play(FadeIn(icons[0]),run_time=.3)
+        self.at("and thalamus")
+        self.play(FadeIn(icons[1]),run_time=.3)
+        self.at("simple cells in cortex")
+        self.play(FadeIn(icons[2]),run_time=.3)
+        cx=VGroup(*[Rectangle(width=.65,height=1.55,color=GREY,fill_opacity=.35).move_to([-4.35+dx,-2.45,0])
+                    for dx in (-.8,0,.8)],
+                  T("complex cell",34,TEXT).move_to([-.9,-2.2,0]),
+                  T("beyond one sum",30,TEXT).move_to([3.25,-2.75,0]),
+                  Line([1.9,-2.35,0],[1.9,-1.65,0],color=WHITE),
+                  Polygon([1.9,-1.65,0],[2.8,-1.9,0],[1.9,-2.15,0],color=GREY,fill_opacity=.7))
+        self.at("later we find",lead=.25)
+        self.add(cx)
+        self.wait(max(.1,self.narration_s+1.4-self.elapsed()))
+        self.finish()
+
+
+class S17Takeaway(SpokenScene):
+    def construct(self):
+        c=rule_card(full=True)
+        self.at("keep the rule")
+        self.play(FadeIn(c),run_time=.25)
+        self.at("add up")
+        self.play(Indicate(c[1],color=YELLOW,scale_factor=1.04),run_time=.4)
+        self.at("plus on on regions")
+        self.play(Indicate(c[2],color=GREEN,scale_factor=1.06),run_time=.4)
+        self.at("minus on off regions")
+        self.play(Indicate(c[3],color=RED,scale_factor=1.06),run_time=.4)
+        self.finish()
+
+
+class S18End(EndCard):
+    LINE="Add up the light: plus on ON, minus on OFF."

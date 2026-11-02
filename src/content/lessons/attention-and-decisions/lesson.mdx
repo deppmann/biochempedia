@@ -5,29 +5,54 @@ course: "neuroscience"
 courseChapter: "Neuroscience · Unit 6: Cognition and learning"
 order: 625
 summary: >-
-  How does a brain hold a goal in mind, pick out what matters, and commit to a choice? This
-  lesson follows the evidence from recordings in behaving monkeys and mice and from human
-  experiments: prefrontal delay activity and rule coding, attention as a change in neuronal
-  competition, gain and shared noise, and parietal activity that ramps toward a decision. You
-  will compute reaction times from a drift-to-bound model and learn to tell a neural correlate
-  of a decision from a part of the brain the decision needs.
+  How does a brain turn weak, noisy evidence into a choice, pick out what matters, and hold a
+  goal in mind? One idea carries the lesson: adding up noisy signals makes them more reliable,
+  because the signal adds in step while independent noise partly cancels. With it you follow
+  monkeys judging the direction of moving dots, from the MT neurons that supply the evidence
+  to parietal activity that ramps toward a decision, and you compute reaction times from a
+  drift-to-bound model. The same arithmetic across neurons shows why two effects of attention
+  in visual area V4, a stronger signal and less shared noise, help a readout; attention also
+  biases competition between stimuli. Prefrontal delay activity and rule coding show what
+  prefrontal neurons carry while a goal is held, and a theory proposes how that could steer
+  other areas. You will finish by learning to tell a neural correlate of a
+  decision from a part of the brain the decision needs, using evidence from behaving monkeys
+  and mice and from human experiments.
 hook: "On average, a parietal neuron's firing climbs toward a similar level just before a monkey announces its choice. In one study, silencing that area left the choice no worse. What was the neuron doing?"
 
-estMinutes: 24
+estMinutes: 30
 objectives:
-  - "Describe the evidence for prefrontal contributions to working memory and executive control, from monkey delay activity and rule coding, mouse thalamus-prefrontal loops and human latent memory states, and state Miller and Cohen's proposal as a theory."
-  - "Explain three effects of attention on visual neurons in macaque V4: competition within a receptive field, larger gains at low contrast in one study, and reduced shared variability."
+  - "Explain why adding up noisy evidence makes it more reliable (signal grows with the number of independent samples, noise only with its square root), and state when that rule holds."
   - "Calculate reaction times from a drift-to-bound model and interpret MT and LIP recordings, MT microstimulation and the reaction-time random-dot task in terms of evidence accumulation."
+  - "Explain three effects of attention on visual neurons in macaque V4: competition within a receptive field, larger gains at low contrast in one study, and reduced shared variability."
+  - "Describe the evidence for prefrontal contributions to working memory and executive control, from monkey delay activity and rule coding, mouse thalamus-prefrontal loops and human latent memory states, and state Miller and Cohen's proposal as a theory."
   - "Distinguish a neural correlate of a decision from a necessary component, using reversible inactivation of MT and LIP."
 
 explainer:
   src: "/explainers/attention-and-decisions/explainer.mp4"
   captions: "/explainers/attention-and-decisions/explainer.vtt"
   poster: "/explainers/attention-and-decisions/poster.jpg"
-  title: "A Correlate Is Not a Requirement"
-  durationSec: 201.4
-  narration: "an AI narrator voice (ElevenLabs, Sarah) reading narration written from this lesson's text"
+  title: "Adding Up Noisy Evidence"
+  durationSec: 137.4
+  narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "ramp-to-bound"
+    src: "/explainers/attention-and-decisions/ramp-to-bound.mp4"
+    captions: "/explainers/attention-and-decisions/ramp-to-bound.vtt"
+    poster: "/explainers/attention-and-decisions/ramp-to-bound-poster.jpg"
+    title: "A Ramp to a Bound"
+    durationSec: 190.3
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "visible-not-needed"
+    src: "/explainers/attention-and-decisions/visible-not-needed.mp4"
+    captions: "/explainers/attention-and-decisions/visible-not-needed.vtt"
+    poster: "/explainers/attention-and-decisions/visible-not-needed-poster.jpg"
+    title: "Visible Is Not the Same as Needed"
+    durationSec: 135.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Patricia Goldman-Rakic"
@@ -142,19 +167,21 @@ simulations:
     attribution: "Original interactive — Biochemistrypedia (Deppmann Lab)."
 
 practiceQuestions:
-  - stem: "In the monkey principal-sulcus study, 87 of 288 recorded neurons changed their firing during the memory delay, and 79% of those 87 were directionally selective. About what percentage of the whole sample was directionally selective during the delay?"
+  - stem: "In a noisy drift-to-bound model of a two-choice motion decision, both bounds are moved farther from the starting point while the drift rate at each motion strength stays the same. What does the model predict?"
     choices:
-      - "About 30 percent"
-      - "About 79 percent"
-      - "About 87 percent"
-      - "About 24 percent"
-    answer: 3
+      - "Faster but less accurate choices at every motion strength"
+      - "Slower, more accurate choices, with the largest delay at weak motion"
+      - "No change in speed, because the slope is set by motion strength"
+      - "Faster choices, because the accumulator fires at a higher rate"
+    answer: 1
     rationale: >-
-      Directionally selective cells number 0.79 × 87 ≈ 69, and 69 / 288 ≈ 0.24, so about 24% of
-      the sample. Choosing 79% applies the percentage to the wrong denominator: it describes the
-      delay-modulated subset, not all 288 cells. About 30% is the fraction that was
-      delay-modulated at all (87 / 288), before asking about direction. About 87% mistakes the
-      count of delay-modulated neurons for a percentage.
+      Farther bounds mean more evidence must accumulate, so the time to a bound grows, and
+      noise has more time to average out, so accuracy rises wherever there is net motion (at 0%
+      it stays at chance). The added time is largest at weak motion, where noise rather than
+      drift sets how long the total takes to reach a bound. Faster, less accurate choices follow
+      from bringing the bounds closer. The slope is unchanged, but the distance to a bound is
+      longer, so speed must change. Moving the bounds does not raise the rate of rise; it only
+      moves the finishing lines.
   - stem: "A macaque V4 neuron responds strongly to a red bar and weakly to a green bar. Both bars sit inside its receptive field. The monkey is cued to attend to the green bar and ignore the red one. What happens to the neuron's response, compared with attending to the red bar?"
     choices:
       - "It rises, because the attended bar now adds its own drive"
@@ -192,26 +219,26 @@ practiceQuestions:
       - "Noise correlation measures tuning similarity, which attention sharpens"
     answer: 0
     rationale: >-
-      Fluctuations private to each neuron partly average out when many neurons are summed, but
-      fluctuations shared across neurons add up and cannot be averaged away, so lowering shared
-      variability helps a pooled readout. Higher variance alone makes a readout noisier, not
-      better. A correlation coefficient says nothing about the mean number of spikes; firing
-      rate is a separate measure. Similarity of tuning is signal correlation, a different
-      quantity from the trial-to-trial co-fluctuation that noise correlation measures.
-  - stem: "In a noisy drift-to-bound model of a motion decision, the bound is raised while the drift rate at each motion strength stays the same. What does the model predict?"
+      When a readout adds up many similarly tuned neurons, fluctuations private to each neuron
+      partly average out, but fluctuations shared across neurons add up and cannot be averaged
+      away, so for that kind of readout lowering shared variability helps. Higher variance alone
+      makes a readout noisier, not better. A correlation coefficient says nothing about the mean
+      number of spikes; firing rate is a separate measure. Similarity of tuning is signal
+      correlation, a different quantity from the trial-to-trial co-fluctuation that noise
+      correlation measures.
+  - stem: "In the monkey principal-sulcus study, 87 of 288 recorded neurons changed their firing during the memory delay, and 79% of those 87 were directionally selective. About what percentage of the whole sample was directionally selective during the delay?"
     choices:
-      - "Faster but less accurate choices at every motion strength"
-      - "Slower, more accurate choices, with the largest delay at weak motion"
-      - "No change in speed, because the slope is set by motion strength"
-      - "Faster choices, because the accumulator fires at a higher rate"
-    answer: 1
+      - "About 30 percent"
+      - "About 79 percent"
+      - "About 87 percent"
+      - "About 24 percent"
+    answer: 3
     rationale: >-
-      A higher bound means more evidence must accumulate, so rise time grows, and noise has more
-      time to average out, so accuracy rises wherever there is net motion (at 0% it stays at chance); since rise time is roughly distance over slope, the
-      added time is largest where the slope is shallow, at weak motion. Faster, less accurate
-      choices follow from lowering the bound. The slope is unchanged, but the distance to the
-      bound is longer, so speed must change. A higher bound does not raise the rate of rise; it
-      only moves the finishing line.
+      Directionally selective cells number 0.79 × 87 ≈ 69, and 69 / 288 ≈ 0.24, so about 24% of
+      the sample. Choosing 79% applies the percentage to the wrong denominator: it describes the
+      delay-modulated subset, not all 288 cells. About 30% is the fraction that was
+      delay-modulated at all (87 / 288), before asking about direction. About 87% mistakes the
+      count of delay-modulated neurons for a percentage.
 
 mcatQuestions:
   - stem: "In a made-up recording, an LIP neuron fires at 25 spikes/s until 200 ms after motion onset. At 25.6% coherence its rate then rises linearly at 200 spikes/s per second. The decision is made when the rate reaches 65 spikes/s, and the saccade follows 80 ms later. What reaction time does this model predict?"
@@ -266,28 +293,32 @@ explainLevels:
   - level: "highschool"
     label: "High school"
     text: >-
-      In trained monkeys, some neurons in the prefrontal cortex keep firing while the animal
-      remembers a location during a delay, and others signal which rule is in force. Attention
-      changes what visual neurons report: a neuron facing two objects responds mostly to the one
-      the animal attends to. To decide which way a cloud of dots is moving, the brain seems to add
-      up evidence over time. On average, neurons in the parietal cortex speed up faster when the motion is
-      clearer, and their firing reaches a similar level just before the monkey answers. But in one study silencing that
-      parietal area did not measurably impair the decision, so a neuron that tracks a choice is
-      not always needed for it. Other studies did find deficits, so the question is still open.
+      To decide which way a cloud of dots is moving, the brain seems to add up evidence over
+      time, because each glimpse is noisy and adding glimpses lets the noise partly cancel. On
+      average, neurons in the parietal cortex speed up faster when the motion is clearer, and
+      their firing reaches a similar level just before the monkey answers. Attention changes what
+      visual neurons report: a neuron facing two objects responds mostly to the one the animal
+      attends to. In trained monkeys, some neurons in the prefrontal cortex keep firing while the
+      animal remembers a location during a delay, and others signal which rule is in force. But
+      in one study silencing that parietal area did not measurably impair the decision, so a
+      neuron that tracks a choice is not always needed for it. Other studies did find deficits,
+      so the question is still open.
   - level: "college"
     label: "College"
     text: >-
-      Executive control organizes action around internal goals; one theory (Miller and Cohen,
-      2001) proposes that maintained prefrontal goal representations bias processing elsewhere.
-      Evidence includes direction-selective delay activity in monkey principal sulcus
-      (Funahashi and colleagues, 1989), rule coding in monkey prefrontal neurons that generalizes
-      to new pictures (Wallis and colleagues, 2001), and mouse experiments in which mediodorsal
-      thalamus to prefrontal signalling supported maintenance. In macaque V4, attention biases
-      competition between stimuli in a receptive field, acts like a contrast gain (mean factor
-      1.51 in one study), and lowers noise correlations. In the random-dot task MT supplies
-      evidence, which microstimulation shows can bias choice, and LIP firing ramps with a slope
-      set by coherence, as a drift-to-bound model predicts. Yet muscimol in LIP left
-      discrimination intact in that task while muscimol in MT impaired it.
+      Adding up noisy evidence makes it more reliable, because the signal adds in step while
+      independent noise partly cancels; a drift-to-bound model stops that sum at a bound. In the
+      random-dot task MT supplies evidence, which microstimulation shows can bias choice, and LIP
+      firing ramps with a slope set by coherence, as a drift-to-bound model predicts. In macaque
+      V4, attention biases competition between stimuli in a receptive field, acts like an
+      increase in contrast (mean factor 1.51 in one study), and lowers noise correlations, the
+      shared noise that pooling cannot cancel. Executive control organizes action around internal
+      goals; one theory (Miller and Cohen, 2001) proposes that maintained prefrontal goal
+      representations bias processing elsewhere. Evidence includes direction-selective delay
+      activity in monkey principal sulcus (Funahashi and colleagues, 1989), rule coding in monkey
+      prefrontal neurons that generalizes to new pictures (Wallis and colleagues, 2001), and mouse
+      experiments in which mediodorsal thalamus to prefrontal signalling supported maintenance.
+      Yet muscimol in LIP left discrimination intact in that task while muscimol in MT impaired it.
   - level: "grad"
     label: "Graduate"
     text: >-
@@ -355,67 +386,210 @@ draft: false
 ---
 
 import DriftToBoundTrials from '../../../components/DriftToBoundTrials.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**A monkey watches a cloud of dots, some moving together and the rest at random, and must decide which way the coherent dots are going. As it watches, a neuron in its parietal cortex fires faster and faster, and on average the firing reaches a similar level just before the monkey moves its eyes to give its answer.** Is that neuron making the decision? In one study, silencing the area it sits in left the monkey deciding just as well, although other studies found deficits. This lesson builds toward that puzzle through three abilities that sit between seeing and acting: holding information in mind, choosing what to process, and turning evidence into a choice.
+**A monkey watches a cloud of dots, some moving together and the rest at random, and must decide which way the coherent dots are going. As it watches, a neuron in its parietal cortex, toward the top and back of the brain, on average fires faster and faster and reaches a similar level just before the monkey moves its eyes to give its answer.**
 
-## Holding and using information: prefrontal cortex keeps the goal in view
+Is that neuron making the decision? It certainly looks that way. Hold the question; the lesson ends on it. Answering it rests on one piece of arithmetic about deciding under noise. The same arithmetic then helps explain some of what attention does to visual neurons, and the lesson asks where a brain might hold the goal that says what to count.
 
-**Executive control** is the ability to organize thought and action according to internal goals rather than whatever the senses offer next. **Working memory**, holding information that is no longer in front of you so that you can use it, is one of its tools. Both are tied to the **prefrontal cortex**, the front part of the frontal lobe, which never works alone. Working memory is different from the long-term stores in [memory systems](/lessons/memory-systems/).
+## The task and the puzzle
 
-The classic recording came from monkeys. Funahashi, Bruce and Goldman-Rakic (1989) trained them in an oculomotor delayed-response task. The monkey fixated a central spot, a cue flashed for 0.5 s at one of several peripheral places, and the monkey kept fixating through a delay of 1 to 6 s before making a **saccade** (a fast eye movement) to where the cue had been. Fixation is the key control: with the eyes still and the screen blank, firing that depends on the cue's location cannot be a response to a visible cue or an eye movement under way (a planned movement is not ruled out by fixation alone).
+In the **random-dot motion task**, a patch of dots appears on a screen. **Coherence** is the percentage of dots moving together in one direction; the rest move randomly. At 51.2% coherence the motion is easy to see, and at 3.2% it is hard to see. At 0% there is no imposed direction: random fluctuations can favour either side on a given trial, but the expected signal is zero.
 
-Of 288 neurons recorded around the principal sulcus, 87 changed their firing significantly during the delay, and 79% of those 87 were directionally selective. Do the arithmetic before you summarize it: 0.79 × 87 ≈ 69 cells, and 69 / 288 ≈ 24% of the sample. A subset of principal-sulcus neurons carried the remembered direction, in this task, in monkeys.
+Two choice targets sit on either side of the dots. The monkey reports the direction with a **saccade** (a fast eye movement) to one of them. In the reaction-time version of the task it answers whenever it is ready.
 
-Prefrontal neurons also code what to do. Wallis, Anderson and Miller (2001) trained monkeys to judge two pictures under one of two rules, respond if they match or respond if they differ. The most common activity in their prefrontal sample reflected the rule in force, and the monkeys applied the rules to pictures they had never seen. The new pictures matter: a cell that signals the rule for a novel picture cannot be signalling a memorized picture-response pairing.
+Picture the behaviour as two graphs, each with coherence along the bottom.
 
-Miller and Cohen (2001) proposed a theory that ties these findings together: prefrontal cortex maintains representations of goals, and these bias processing in other structures toward what the goal needs. Think of a referee's whistle held up front, tilting contests that happen elsewhere. It is a proposal, and the prefrontal cortex is one partner among several.
+- **Accuracy** (the psychometric curve) rises with coherence. At 0% the choices are at chance.
+- **Reaction time** (the chronometric curve) falls with coherence. Strong motion gives fast answers, and weak motion gives slow ones.
 
-Two newer results widen the picture. In mice running a delayed non-match-to-sample task in a T-maze, Bolkan and colleagues (2017) inhibited pathways selectively. Input from the **mediodorsal thalamus** (a thalamic nucleus, or cluster of neurons, connected with prefrontal cortex) to medial prefrontal cortex supported maintenance during the delay, and the reverse projection supported the later choice. Delay firing in medial prefrontal cortex needed the thalamic input, yet those delay-tuned neurons overlapped minimally with neurons tuned to position in the maze. In humans, Rose and colleagues (2016) cued people to set one remembered item aside. That item's category could no longer be decoded from the EEG, but a single TMS pulse briefly made it decodable again, and only while it might still be needed. The authors suggest that short-term synaptic changes could hold such latent items; the synapses were not measured, and because decoding was at the category level, reinstated category context is an alternative to reactivation of the item itself.
+That is the behaviour to explain, and it poses a puzzle. At any one moment the dots give only a weak, noisy hint about the direction. How does a brain turn a stream of unreliable hints into a choice, and why does that take longer when the motion is weak?
 
-## Attention changes what neurons report
+> **The one idea to carry through this lesson.** Adding up noisy signals makes them more reliable, because the signal adds in step while independent noise partly cancels. Add n samples that each carry the same average push, with independent noise of the same size, and the signal grows n-fold but the noise (its spread) grows only √n-fold, so reliability (signal divided by noise) grows as √n. In the drift-to-bound model this lesson uses, a decision is this sum taken over time and stopped at a bound. It is a model of behaviour and of trial-averaged firing; it does not say where in the brain any adding happens, and that gap is the puzzle this lesson ends on.
 
-**Attention** is selecting part of what is available for further processing. Keep it apart from **arousal**, the overall level of alertness, which shifts with [sleep and rhythms](/lessons/sleep-and-rhythms/). A **receptive field** is the region of space in which a stimulus changes a neuron's firing, as in [visual cortex](/lessons/visual-cortex/).
+### Why adding up helps
 
-Moran and Desimone (1985) recorded from neurons in macaque visual area V4 and placed two stimuli inside one receptive field: one that drove the cell well and one that drove it poorly. When the monkey attended to the poor stimulus, the response fell toward what that stimulus gave alone, although the retinal image was unchanged. In that study, primary visual cortex cells showed no such effect, though later work found smaller attention effects in V1. Stimuli seem to compete for a neuron, and attention biases the competition.
+Picture it as a running tally. Each glimpse adds a small push toward the true direction plus a random jiggle. The pushes all point the same way and add in step; the jiggles point every which way and partly cancel.
 
-Attention is not one fixed multiplier. Reynolds, Pasternak and Desimone (2000) varied contrast and found that attention raised V4 responses more at low contrast than at high. On average it acted like multiplying contrast by 1.51: an attended 10% contrast grating drove cells about as well as an unattended grating of 10 × 1.51 ≈ 15%. Near the top of the contrast-response curve, where responses saturate, extra effective contrast changes little.
+**Predict.** You watch four times as long. Is your running total four times as reliable?
 
-Attention also changes how neurons vary together. **Noise correlation** is the correlation of two neurons' spike counts across repeats of the same stimulus:
+<details>
+<summary>Check your prediction</summary>
 
-> **ρ = Cov(n1, n2) / √(Var(n1) × Var(n2))**
+No, twice as reliable. The signal grows fourfold, but the noise grows too, by √4 = 2, so signal divided by noise doubles. In the same way, doubling the viewing time multiplies reliability by √2, about 1.41, not 2.
 
-Kanashiro and colleagues (2017) reanalyzed V4 recordings from two monkeys detecting orientation changes. Mean noise correlation was 0.065 unattended and 0.045 attended. Mean covariance fell 34.0% while mean single-neuron variance rose 1.61%. Private noise partly cancels when a downstream cell pools many inputs; shared noise does not, so less of it makes the pool more reliable. Their circuit model predicts that attention acts mainly on inhibitory neurons, a prediction still to be tested.
+</details>
 
-Damage in humans shows that attention also depends on parietal and frontal cortex. After damage to parietal or frontal cortex, a patient may fail to notice or respond to things on the side of space opposite the lesion (contralesional **hemispatial neglect**). Neglect is commoner and more severe after right-hemisphere damage.
+Two limits keep the rule honest.
 
-## Accumulating evidence toward a choice: a ramp to a bound
+- **Reliability means signal divided by noise, not percent correct.** Percent correct is a bounded, nonlinear function of reliability whose shape depends on the noise and the decision rule, so doubling reliability does not double percent correct. And there must be a signal to add: at 0% coherence waiting cannot help.
+- **The √n gain needs samples with independent noise.** Over neurons, that means only the part of each neuron's noise that is private to it. Over time, noise that still resembles the last moment's gives fewer effective independent samples than raw ones, so √t growth is an approximation that holds only under the conditions in Going deeper.
 
-In the random-dot task, **coherence** is the percentage of dots moving together; the rest move randomly. Neurons in area MT are tuned to direction (see [sensory coding](/lessons/sensory-coding/)). Newsome, Britten and Movshon (1989) found that most of the MT neurons they studied, on a task matched to the neurons' properties, discriminated motion about as well as, or better than, the monkey. Salzman, Britten and Newsome (1990) then stimulated small clusters of MT neurons with a shared preferred direction and biased the monkeys' choices toward that direction. MT supplies evidence, and its activity can sway the choice.
+Now the behaviour makes sense. Weak motion gives a small push per glimpse, so the total needs longer to become trustworthy. Waiting longer buys accuracy and costs time. A brain that adds up evidence therefore needs a rule for when to stop.
 
-The **lateral intraparietal area (LIP)** in the parietal lobe holds neurons that fire before saccades into their response field. Roitman and Shadlen (2002) let rhesus monkeys answer whenever they were ready, with one choice target in the recorded neuron's response field. Stronger motion gave faster and more accurate choices. LIP firing ramped, predicted the choice, rose more steeply with stronger motion, and reached a similar level shortly before the saccade, which the authors read as a threshold that appeared to mark the end of the decision. These ramps are averages across trials. Whether single trials ramp or step is debated. LIP firing also mixes sensory and premotor signals with a rise that grows with elapsed time (an urgency signal), so a common level before the saccade need not mark a pure decision bound.
+## Adding up evidence: a ramp to a bound
 
-A **drift-to-bound model** captures this: momentary evidence is added up until the total hits a bound, and the drift, the average slope, grows with coherence.
+<LessonFilm film={frontmatter.films[0]} />
 
-> **rise time = (bound − baseline) / slope**
-> **reaction time = latency + rise time + motor delay**
+### The evidence comes from MT
 
-**Worked problem.** The numbers are invented for teaching. An LIP neuron fires 30 spikes/s until 200 ms after motion onset, then rises linearly at 7.8125 (spikes/s) per second for each percent coherence. The decision occurs at 70 spikes/s, and the saccade follows 70 ms later. Assume no noise and a single neuron standing for the accumulator.
+The momentary evidence comes from **MT**, the middle temporal area, a visual area specialized for motion. Its neurons are tuned to direction (see [sensory coding](/lessons/sensory-coding/)). Newsome, Britten and Movshon (1989) found that most of the MT neurons they studied, on a task matched to the neurons' properties, discriminated motion about as well as, or better than, the monkey. That is a correlation. Salzman, Britten and Newsome (1990) then passed weak electrical current into small clusters of MT neurons with a shared preferred direction (microstimulation) and biased the monkeys' choices toward that direction. That was a causal test: MT supplies evidence, and in this task its activity can sway the choice. What adds the evidence up?
 
-*Step 1, slopes.* 7.8125 × 51.2 = 400 (spikes/s)/s; × 12.8 = 100; × 3.2 = 25.
+### A rule for when to stop
 
-*Step 2, rise times.* The distance to the bound is 70 − 30 = 40 spikes/s. 40 / 400 = 0.10 s; 40 / 100 = 0.40 s; 40 / 25 = 1.60 s. Units: (spikes/s) / ((spikes/s)/s) = s.
+The simplest rule is a **bound**: keep adding until the total reaches a set level, then act. Picture it as a line drawn on a graph. Time since the dots appeared runs along the bottom, and the running total runs up the side. The total wobbles but drifts upward, and the model commits to a choice when the total touches the bound. Two features of the picture carry the whole model.
 
-*Step 3, reaction times.* 200 + 100 + 70 = 370 ms at 51.2%; 200 + 400 + 70 = 670 ms at 12.8%; 200 + 1,600 + 70 = 1,870 ms at 3.2%.
+- **The drift**, the average slope of the total, is set by the strength of the evidence. Stronger motion means a steeper drift, so the total reaches the bound sooner.
+- **The wobble** comes from noise. On some trials it carries the total to the bound early, on others late, so reaction times vary from trial to trial even at one motion strength.
 
-*Step 4, compare.* In one illustrated experiment, Roitman and Shadlen reported a mean of 350 ± 9 ms (SEM) for correct choices at 51.2%, close to the model. At 0% the mean slope is zero, so only noise reaches the bound: long, variable times and chance choices. In a noisy model with one bound for each choice, noise carries many weak-motion trials to one bound or the other early, so it predicts shorter mean times at weak motion than this noiseless version.
+For a choice between two directions, draw a second bound below the starting point for the other answer. The total drifts toward the correct bound, but on weak-motion trials the wobble sometimes carries it to the wrong one. That is an error.
+
+This is a **drift-to-bound model** (also called bounded accumulation, or drift-diffusion). For the noiseless average, the timing comes out of two lines:
+
+> **time to bound = (bound − starting level) / drift**
+> **reaction time = latency + time to bound + motor delay**
+
+The **latency** is the time before the total starts to move, and the **motor delay** is the time from reaching the bound to the eye moving.
+
+**Predict.** If some neuron held this running total, what would its firing look like on strong-motion and weak-motion trials? Where would it be just before the eye moved?
+
+<details>
+<summary>Check your prediction</summary>
+
+On trials that end at the upper bound, a choice of the target this neuron represents, it should climb, more steeply when the motion is stronger, and reach about the same level just before the saccade whatever the motion strength, because the bound is the same on every trial. Choices of the other target end at the other bound, so they need not reach that level.
+
+</details>
+
+### The record: LIP
+
+The **lateral intraparietal area (LIP)** in the parietal lobe holds neurons that fire before an eye movement to a target in their **response field**. A response field is LIP's version of a receptive field: the place a target must be for the neuron to fire before a saccade to it. Roitman and Shadlen (2002) placed one of the two choice targets in the recorded neuron's response field and let rhesus monkeys answer whenever they were ready. Picture their main figure: firing rate against time, one line for each motion strength, averaged over many trials and aligned to the start of motion.
+
+- For the first 200 ms or so the lines lie together: motion strength has not yet shown up in the firing.
+- Then they ramp. The ramp is steeper for stronger motion when the monkey chose the target in the response field, and the firing predicts the choice.
+- Realigned to the saccade, the lines arrive at about the same rate shortly before the eye moves, whatever the motion strength.
+
+That is what the model predicts for a neuron that holds the total. The authors read the common level as a threshold that appeared to mark the end of the decision. Two cautions. These are averages: whether single trials ramp or step is debated, because a smooth average is compatible with steps of varied timing on single trials, and population recordings are needed to settle it. And LIP firing also mixes in sensory and premotor signals and a rise that grows with elapsed time (an urgency signal), so a common level before the saccade need not mark a pure decision bound.
+
+### Worked problem
+
+The numbers are invented for teaching, and one model LIP neuron stands for the accumulator. It fires at 30 spikes/s until 200 ms after motion starts, then climbs. The bound is 70 spikes/s, and the saccade follows 70 ms later. The drift is 400 (spikes/s) per second at 51.2% coherence, 100 at 12.8% and 25 at 3.2%: it scales with coherence.
+
+*Step 1, without noise.* The distance to the bound is 70 − 30 = 40 spikes/s. The time to bound is 40 / 400 = 0.10 s at 51.2%, 40 / 100 = 0.40 s at 12.8% and 40 / 25 = 1.60 s at 3.2%. Adding the latency and motor delay gives reaction times of 200 + 100 + 70 = 370 ms, 200 + 400 + 70 = 670 ms and 200 + 1,600 + 70 = 1,870 ms. Units: (spikes/s) divided by (spikes/s per s) gives seconds.
+
+*Step 2, add the wobble.* Real reaction times do not stretch out like that. Add noise and a second bound for the other answer, the same 40 units below the start. A firing rate cannot go below zero, so from here read the total as a relative decision variable, not one neuron's rate. Choose the noise so that the model is 90% correct at 12.8%: Gaussian, the same size at every coherence (about 60 units per square-root second), with the same 270 ms of latency plus motor delay. The mean reaction times from this model, over both choices, become about 370, 590 and 700 ms. At 0% coherence the mean drift is zero, so only noise reaches a bound: times are long and variable, about 710 ms on average, and the choices fall to chance.
+
+Why does noise make weak-motion answers faster? With two bounds you never wait forever: even with no drift, the wobble carries the total off to one side or the other. At 3.2% the drift alone would take 1.6 s, so the wobble gets most trials to a bound sooner, some of them to the wrong one. Strong motion is unchanged, because the drift does nearly all the work. The small drift is why weak motion gives slow answers; the wobble is why it also gives errors. Turn up the noise in the simulation below to watch this happen (its slider stops at 40, so it shows the effect, not these exact numbers).
+
+*Step 3, compare.* In one illustrated experiment, Roitman and Shadlen reported a mean of 350 ± 9 ms (SEM) for correct choices at 51.2%. The invented numbers were chosen to land near this, so the match is not a test of the model. The test is the shape: steeper ramps, shorter and less variable reaction times, and higher accuracy as motion strengthens, all from one rule.
+
+### The speed–accuracy trade
+
+Raise the bound and every trial must gather more evidence. Choices get slower and more accurate wherever there is net motion; at 0% they stay at chance. In the noisy model the slowing is largest at weak motion, because there the wobble, not the drift, sets how long the total takes to reach a bound. In the worked problem's model, moving both bounds 10 units farther from the start (the upper one from 70 to 80) adds about 25 ms at 51.2% coherence, 120 ms at 12.8% and 230 ms at 3.2%.
 
 <DriftToBoundTrials />
 
 How long to keep sampling also depends on what a choice is worth, which links to [motivation and reward](/lessons/motivation-and-reward/), and selecting one action among many draws on the [basal ganglia](/lessons/basal-ganglia/).
 
+## Attention: a stronger signal, less shared noise
+
+Return to the rule, now across neurons instead of across time. Each neuron is like one glimpse, so a downstream cell that adds up many neurons gains in the same way: their private noise partly cancels, their shared noise does not, and a stronger signal helps either way. Attention acts on both.
+
+**Attention** is selecting part of what is available for further processing. Keep it apart from **arousal**, the overall level of alertness, which shifts with [sleep and rhythms](/lessons/sleep-and-rhythms/). A **receptive field** is the region of space in which a stimulus changes a neuron's firing, as in [visual cortex](/lessons/visual-cortex/). **V4** is a mid-level visual area in the macaque.
+
+### Attention biases a competition
+
+Moran and Desimone (1985) recorded from neurons in macaque V4 and placed two stimuli inside one receptive field: one that drove the cell well and one that drove it poorly. Then they changed only where the monkey attended.
+
+**Predict.** The monkey attends to the stimulus the cell responds to poorly. Does the response go up, go down, or stay the same?
+
+<details>
+<summary>Check your prediction</summary>
+
+It goes down. When the monkey attended to the poor stimulus, the response fell toward what that stimulus gave alone, although the retinal image was unchanged.
+
+</details>
+
+Stimuli seem to compete for a neuron, and attention biases the competition toward the attended one. In that study, primary visual cortex (V1) cells showed no such effect; later work found smaller attention effects there.
+
+### Attention acts like more contrast
+
+Picture a **contrast-response curve**: a neuron's response on the vertical axis against stimulus contrast on the horizontal. It rises steeply at low and middle contrasts, then flattens near the top, where responses saturate.
+
+Reynolds, Pasternak and Desimone (2000) varied contrast and found that attention raised V4 responses more at low contrast than at high. On average, attention acted as if it multiplied the stimulus contrast by 1.51. An attended 10% contrast grating drove cells about as well as an unattended grating of 10 × 1.51 ≈ 15%. Draw the attended curve on a contrast axis with a log scale and it is the same curve slid to the left. So the same multiplication raises the response most where the curve rises steeply and hardly at all near saturation. This pattern is called **contrast gain**. **Response gain**, a separate pattern other studies have reported, scales the whole curve up instead; the turning-up-the-volume picture in the Like-I'm-five summary is closer to it. In terms of the rule, contrast gain is a stronger signal for the attended stimulus.
+
+### Attention lowers shared noise
+
+Attention also changes how neurons vary together. Show the same stimulus many times and count two neurons' spikes on each repeat. Plot one count against the other, one dot per repeat. If the two tend to fire more on the same repeats, the cloud of dots tilts; if not, it has no tilt. **Noise correlation** is the correlation of two neurons' spike counts across repeats of the same stimulus:
+
+> **ρ = Cov(n1, n2) / √(Var(n1) × Var(n2))**
+
+Now average N similarly tuned neurons, each with noise of size σ and pairwise noise correlation ρ. The guiding rule gives the result:
+
+> **variance of the average = σ² × [1 + (N − 1)ρ] / N**
+
+With ρ = 0, the noise of the average shrinks as 1/√N. With ρ above zero, the private part still shrinks, but the shared part stays. As N grows, the noise falls toward a floor of σ√ρ, so pooling can improve on one neuron at most 1/√ρ-fold.
+
+**Predict.** Average 100 neurons whose noise correlation is 0.065. How much less noisy is the average than one neuron? What if the correlation were zero?
+
+<details>
+<summary>Check your prediction</summary>
+
+With ρ = 0.065, the variance of the average is σ² × (1 + 99 × 0.065) / 100 ≈ 0.074σ², so the noise is about 0.27σ: about 3.7 times smaller than one neuron's. With ρ = 0 it would be σ/10, ten times smaller. Even an endless pool could do no better than 1/√0.065, about 3.9-fold. A small shared correlation wipes out most of the benefit of a large pool.
+
+</details>
+
+Kanashiro and colleagues (2017) reanalyzed V4 recordings from two monkeys detecting orientation changes. Mean noise correlation was 0.065 unattended and 0.045 attended. As an illustration, in an idealized pool of 100 identical, similarly tuned neurons, that drop would cut the pooled noise by about 14%, even though each neuron's own variability rose slightly. That is a calculation from the averages, not a measured pool. So for a readout that adds up similarly tuned neurons, less shared noise makes the pool more reliable. For other readouts, whether a correlation hurts depends on how it lines up with the neurons' tuning; some correlations are harmless, or even helpful, for an optimal decoder.
+
+Where does the bias come from? Attention also depends on parietal and frontal cortex, as damage in humans shows. After damage there, a patient may fail to notice or respond to things on the side of space opposite the lesion (contralesional **hemispatial neglect**). Neglect is commoner and more severe after right-hemisphere damage.
+
+## Holding the goal: prefrontal cortex
+
+Attention needs a target, and a decision needs to know which evidence counts. One answer to what sets them points to the front of the brain.
+
+**Executive control** is the ability to organize thought and action according to internal goals rather than whatever the senses offer next. **Working memory**, holding information that is no longer in front of you so that you can use it, is one of its tools. Both are tied to the **prefrontal cortex**, the front part of the frontal lobe, which never works alone. Working memory is different from the long-term stores in [memory systems](/lessons/memory-systems/).
+
+### Holding a place in mind
+
+The classic recording came from monkeys. Funahashi, Bruce and Goldman-Rakic (1989) trained them in an oculomotor delayed-response task. The monkey fixated a central spot, a cue flashed for 0.5 s at one of several peripheral places, and the monkey kept fixating through a delay of 1 to 6 s before making a saccade to where the cue had been.
+
+Fixation is the key control. With the eyes still and the screen blank, firing that depends on the cue's location cannot be a response to a visible cue or to an eye movement under way. Fixation does not rule out a movement being planned, though. Whether delay activity is a memory of the place or a plan to look there is a question this task alone cannot settle.
+
+The recordings came from around the **principal sulcus**, a groove in the lateral prefrontal cortex. Of 288 neurons, 87 changed their firing in the delay and 79% of those were directionally selective: 0.79 × 87 ≈ 69 cells, about 24% of the sample, carried the remembered direction through the delay. A subset of principal-sulcus neurons did this, in this task, in monkeys.
+
+### Holding a rule
+
+Prefrontal neurons also code what to do. Wallis, Anderson and Miller (2001) trained monkeys to judge two pictures under one of two rules, respond if they match or respond if they differ. The most common activity in their prefrontal sample reflected the rule in force, and the monkeys applied the rules to pictures they had never seen. The new pictures matter: a cell that signals the rule for a novel picture cannot be signalling a memorized picture-response pairing.
+
+### A theory that ties these together
+
+Miller and Cohen (2001) proposed that prefrontal cortex maintains representations of goals, and these bias processing in other structures toward what the goal needs. Think of a coach on the sideline who holds the plan. The players do the running, but the coach's call tips which play the team runs. In this lesson's terms, the goal says which signal to count. That is not a claim that prefrontal cortex does the adding. It is a proposal, and the prefrontal cortex is one partner among several.
+
 ## When the best correlate is not necessary
 
-Correlation shows what activity goes with a choice; a manipulation tests whether the choice depends on it. Katz, Yates, Pillow and Huk (2016) recorded MT and LIP in rhesus monkeys and then reversibly silenced each with muscimol, a GABA-A receptor agonist. MT inactivation impaired motion discrimination. LIP inactivation produced no measurable impairment of motion decisions in the tasks tested. In a free-choice task, the same LIP inactivation changed spatial selection and eye-movement metrics. The result is debated. Zhou and Freedman (2019) found that parietal inactivation impaired motion and category decisions, most when the visual stimuli, rather than the response targets, sat in the inactivated field. Jeurissen and colleagues (2022) found that LIP inactivation biased decisions, but the biases faded while the area was still silenced, which suggests that other areas compensated.
+<LessonFilm film={frontmatter.films[1]} />
+
+Go back to the neuron in the opening. LIP firing looks like the running total. But correlation shows only what activity goes with a choice. A manipulation asks two further questions: does changing the activity change the choice, and does the choice need it? MT passed the first test when stimulation swayed the choice in this task. Does the choice need MT, or LIP?
+
+Katz, Yates, Pillow and Huk (2016) recorded MT and LIP in rhesus monkeys and then reversibly silenced each with muscimol, a drug that activates the inhibitory GABA-A receptors (see [synaptic transmission](/lessons/synaptic-transmission/)) and quiets nearby neurons.
+
+**Predict.** If LIP is the accumulator, what should happen to motion discrimination when MT is silenced? When LIP is silenced?
+
+<details>
+<summary>Check your prediction</summary>
+
+If LIP were the one place the evidence is added up, and nothing else could cover for it, silencing either area should impair discrimination. In fact MT inactivation impaired motion discrimination, but LIP inactivation produced no measurable impairment of motion decisions in the tasks tested.
+
+</details>
+
+A null result is easy to dismiss: perhaps the injection missed, or was too small. So the same monkeys did a free-choice task with no right answer. After LIP inactivation they chose targets in the affected part of space less often, and their saccades to that side landed less accurately, so the drug had acted. The control is what makes the null result readable. Even so, a null result cannot exclude compensation by other areas.
+
+**What other studies found.** The result is debated.
+
+- Microstimulation of LIP has biased choices (Hanks, Ditterich and Shadlen, 2006).
+- Zhou and Freedman (2019) found that parietal inactivation impaired motion and category decisions, most when the visual stimuli, rather than the response targets, sat in the inactivated field.
+- Jeurissen and colleagues (2022) found that LIP inactivation biased decisions, but the biases faded while the area was still silenced, which suggests that other areas compensated.
+
+The model survives: if a decision is built by adding up evidence, the adding is done somewhere, perhaps in several places at once. What the experiments show is that a neuron displaying the running total is not thereby the place the total is needed. Which areas a decision needs, and whether that changes with training and task, is an open question.
 
 ### Design problem
 
@@ -429,3 +603,25 @@ LIP activity correlates with the decision, but silencing the targeted LIP sites 
 Several readings remain. Other areas that carry choice signals, such as the frontal eye field or the superior colliculus, may hold the signal redundantly or compensate when LIP is silenced. Or LIP may reflect a decision computed elsewhere. Next, inactivate several areas together, and record many neurons at once to see single-trial dynamics. Scope every conclusion to this task, this training and this species. The [circuit experiment design](/lessons/circuit-experiment-design/) and [large-scale neuroscience](/lessons/large-scale-neuroscience/) lessons build those tools.
 
 </details>
+
+## Going deeper
+
+### The numbers behind the worked problem
+
+The drifts in the worked problem come from one constant: 7.8125 (spikes/s) per second for each percent coherence, which makes 51.2% come out at exactly 400. The simulation uses the same constant.
+
+### When adding up stops helping
+
+The exact √n rule applies to independent samples with the same expected signal and finite noise variance. If the noise drifts slowly, so that one moment's noise resembles the last, adding the two cancels little. The span over which it still resembles the last is the noise's **correlation time**, and over windows shorter than that, waiting barely helps. For steady (stationary) noise with a stable mean signal whose correlations die away fast enough to have a finite integrated autocovariance, adding over windows much longer than the correlation time gives approximately √t growth in reliability, with fewer effective independent samples than raw ones. A long window is an approximation, not a guarantee of independence: slowly decaying correlations, or noise shared across a whole trial, prevent the gain.
+
+### The Kanashiro figures
+
+In Kanashiro and colleagues' reanalysis, mean covariance fell 34.0% while mean single-neuron variance rose 1.61%. Dividing one by the other does not reproduce the mean correlations (0.065 × 0.66 / 1.016 ≈ 0.042, not 0.045), presumably because the paper averaged pair by pair, so do not try to recompute one from the other. The 14% illustration in the main text comes out the same to the nearest percent with or without the small rise in variance (13.7% with it, 14.3% without). Their circuit model predicts that attention acts mainly on inhibitory neurons, a prediction still to be tested.
+
+### Holding a goal: thalamus and prefrontal cortex in mice
+
+In mice running a delayed non-match-to-sample task in a T-maze, Bolkan and colleagues (2017) inhibited pathways selectively. Input from the **mediodorsal thalamus** (a thalamic nucleus, or cluster of neurons, connected with prefrontal cortex) to medial prefrontal cortex supported maintenance during the delay, and the reverse projection supported the later choice. Delay firing in medial prefrontal cortex needed the thalamic input, yet those delay-tuned neurons overlapped minimally with neurons tuned to position in the maze.
+
+### Memories that go quiet
+
+In humans, Rose and colleagues (2016) cued people to set one remembered item aside. That item's category could no longer be decoded from the EEG, but a single TMS pulse briefly made it decodable again, and only while it might still be needed. The authors suggest that short-term synaptic changes could hold such latent items. The synapses were not measured, and because decoding was at the category level, reinstated category context is an alternative to reactivation of the item itself.
