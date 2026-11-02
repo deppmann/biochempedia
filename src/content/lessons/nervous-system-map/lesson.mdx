@@ -5,7 +5,8 @@ course: "neuroscience"
 courseChapter: "Neuroscience · Unit 1: Neurons and their signals"
 order: 601
 summary: >-
-  Before you can read a recording you need to know where it came from. This lesson lays out the
+  Before you can read a recording you need to know where it came from. This lesson builds the map
+  from one working picture, the central nervous system as a hollow tube bent once, and lays out the
   divisions of the nervous system and the major brain regions, the directions and planes used to
   name places in it, the route cerebrospinal fluid takes and the two main barriers that separate the
   brain from the blood, and the four kinds of evidence used to say where a function lives.
@@ -14,9 +15,10 @@ summary: >-
   stimulation experiment can and cannot show.
 hook: "Inject a protein tracer into a mouse's blood and, in the cerebral cortex, it goes no farther than the cells lining the capillaries. Why there?"
 
-estMinutes: 24
+estMinutes: 26
 objectives:
   - "Name the divisions of the central and peripheral nervous systems (somatic, autonomic, enteric; afferent and efferent) and the major brain regions, saying what each broadly contributes without assigning any region a single function."
+  - "Relate the brain regions, the ventricles and their order, and the sensory dorsal roots and motor ventral roots of the spinal cord to the shape of the embryonic neural tube, and say where that plan stops applying."
   - "Use sagittal, coronal and horizontal planes and the terms dorsal, ventral, rostral and caudal correctly, including the change of axis between the brain and the spinal cord."
   - "Trace cerebrospinal fluid from the choroid plexus through the ventricles to the subarachnoid space, compute a turnover time from volume and flow, and place the blood-brain barrier at the capillary endothelium and the blood-CSF barrier at the choroid plexus epithelium."
   - "Compare lesion, recording, imaging and stimulation as evidence, and say what each licenses you to conclude about where a function lives."
@@ -25,10 +27,28 @@ explainer:
   src: "/explainers/nervous-system-map/explainer.mp4"
   captions: "/explainers/nervous-system-map/explainer.vtt"
   poster: "/explainers/nervous-system-map/poster.jpg"
-  title: "A Map Is Not a Verdict"
-  durationSec: 145.3
+  title: "One Tube, Bent Once"
+  durationSec: 185.4
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "follow-the-fluid"
+    src: "/explainers/nervous-system-map/follow-the-fluid.mp4"
+    captions: "/explainers/nervous-system-map/follow-the-fluid.vtt"
+    poster: "/explainers/nervous-system-map/follow-the-fluid-poster.jpg"
+    title: "Follow the Fluid, Find the Seal"
+    durationSec: 178.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "where-to-what"
+    src: "/explainers/nervous-system-map/where-to-what.mp4"
+    captions: "/explainers/nervous-system-map/where-to-what.vtt"
+    poster: "/explainers/nervous-system-map/where-to-what-poster.jpg"
+    title: "From Where to What"
+    durationSec: 137.8
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Thomas S. Reese"
@@ -106,8 +126,8 @@ techniques:
     blurb: >-
       You compare behaviour after damage to a region with earlier performance or with matched controls, whether the damage was made on purpose in an
       animal or caused by surgery, stroke or injury in a person. A deficit shows the damaged
-      tissue contributes to the task, but damage rarely respects boundaries and the rest of the
-      brain may compensate.
+      tissue contributes to the task, as the rest of the brain performs it, but damage rarely
+      respects boundaries and the rest of the brain may compensate.
   - name: "Functional MRI (BOLD)"
     blurb: >-
       MRI detects a change in blood oxygenation that follows local neural activity by a few
@@ -160,9 +180,9 @@ practiceQuestions:
     answer: 1
     rationale: >-
       In the spinal cord the neuraxis runs up and down the body, so dorsal points toward the
-      back, the side the dorsal roots enter. Toward the top of the head is what dorsal means in
-      the brain above the midbrain-diencephalon junction, and in the cord that direction is
-      rostral. The front of the body is ventral in the cord. The feet are caudal.
+      back, the side the dorsal roots enter, and the brainstem uses the same frame. Toward the
+      top of the head is what dorsal means in the forebrain, rostral to the
+      midbrain-diencephalon junction, and in the cord that direction is rostral. The front of the body is ventral in the cord. The feet are caudal.
   - stem: "In Reese and Karnovsky's experiments on mouse cerebral cortex, where was intravenously injected peroxidase stopped?"
     choices:
       - "At the basement membrane outside each capillary"
@@ -346,37 +366,112 @@ draft: false
 ---
 
 import CsfTurnoverWashout from '../../../components/CsfTurnoverWashout.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
-**Inject a protein tracer into a mouse's blood and, in the cerebral cortex, it goes no farther than the single layer of cells lining the capillaries.**
+**Most of the neurons and glia in your brain and spinal cord descend from the wall of one tube, a few millimetres long, that formed along the back of the embryo. Its open ends had closed by about four weeks after fertilization, about six weeks into pregnancy as it is usually counted.**
 
-That result, from Thomas Reese and Morris Karnovsky in 1967, answered a question about where the brain's barrier sits. This lesson is about where: a map of the nervous system, words for naming places on it, the fluid it floats in, and, hardest, what kind of experiment entitles you to say that a function lives in a particular place.
+Learn that tube, and the map of the nervous system stops being a list of names. The map comes first because every recording you meet later in this course comes from a place on it. How the tube forms and closes is [a developmental story](/lessons/neurulation-and-tube-defects/) of its own.
 
-## The map: two systems and a brain in four parts
+## A map and its puzzles
 
-The **central nervous system** (CNS) is the brain and spinal cord. The **peripheral nervous system** (PNS) is all the nervous tissue outside them: nerves, and **ganglia**, which are clusters of neuron cell bodies outside the CNS. Inside the CNS a cluster of cell bodies is a **nucleus** (not to be confused with the cell's nucleus), and a bundle of axons running together is a **tract**.
+Start with what has to be explained. The **central nervous system** (CNS) is the brain and spinal cord. Its parts carry a great many names, and some facts about them look like things you would simply have to memorize:
 
-**Afferent** fibres carry signals toward the CNS, as from a touch receptor. **Efferent** fibres carry signals away from it, to a muscle or a gland.
+1. **Four cavities.** The brain holds four fluid-filled spaces, the **ventricles**, joined in a fixed order. Why four, and why that order?
+2. **A blocked channel.** Block one narrow channel between them, and some ventricles swell while others do not. Which ones?
+3. **A word that points two ways.** In your spinal cord, "dorsal" points toward your back. In your forebrain, it points toward the top of your head. Why?
+4. **A seal.** Inject a protein tracer into a mouse's blood, and in many tissues, muscle for example, it leaks out of the capillaries. In the cerebral cortex it goes no farther than the single layer of cells lining them. Why there?
+5. **An address for a function.** What kind of experiment entitles you to say that a function lives in a particular place?
 
-This lesson counts three divisions of the PNS; many textbooks instead treat the enteric system as a third part of the autonomic division. The **somatic** division serves the skin, joints and skeletal muscle. Somatic does not mean voluntary: the knee jerk is a somatic motor response that happens before you decide anything, and [the stretch reflex](/lessons/motor-units-reflexes/) gets its own lesson. The **autonomic** division (sympathetic and parasympathetic) serves smooth muscle, heart muscle and glands, largely without conscious control. The **enteric** division lies in the wall of the gut and has its own sensory neurons, interneurons and motor neurons, so it can run local reflexes.
+The sections below take them in order: one shape answers the first three, an experiment answered the fourth, and the fifth is about which experiments entitle you to which claims.
 
-The adult brain has four parts:
+> **The one idea to carry through this lesson.** Picture the central nervous system as one hollow tube, bent once. That is a working picture of how it develops, not a literal adult anatomy. The tube's walls became the brain's regions and the spinal cord; blood vessels grew in from outside, and the immune cells called microglia moved in. In the brain its canal became the ventricles, through which cerebrospinal fluid takes a one-way net route to an exit in the hindbrain. And the tube's own long axis, not the body's, sets what dorsal, ventral, rostral and caudal mean.
 
-- **Cerebrum**: the cerebral cortex, folded into ridges (gyri) and grooves (sulci) and divided into frontal, parietal, temporal and occipital lobes, plus the **basal nuclei** buried beneath it. The precentral gyrus contains primary motor cortex; the postcentral gyrus contains primary somatosensory cortex; primary visual cortex (Brodmann's area 17) lies in the occipital lobe; primary auditory cortex lies in the temporal lobe. The basal nuclei take part in [selecting and controlling movement](/lessons/basal-ganglia/), among other roles.
-- **Diencephalon**: the **thalamus**, which relays and gates information passing to and from the cortex, and the **hypothalamus**, which contributes to [homeostatic regulation](/lessons/hypothalamus-autonomic/) of temperature, feeding, fluid balance and hormone release.
-- **Brainstem**: midbrain, pons and medulla. They carry the long tracts between brain and cord, hold most cranial nerve nuclei, and take part in breathing and cardiovascular control.
-- **Cerebellum**: compares intended movements with sensory feedback and helps correct them; the [cerebellum lesson](/lessons/cerebellum/) shows how.
+The picture does not tell you what a region *does*, or where the blood-brain barrier sits on the vessels that grew in; experiments had to find those. And the embryo's tube in fact bends in three places, but for naming places in the adult brain only one matters: the bend near the midbrain, which this lesson calls the bend in the neuraxis.
 
-Read every "contains" and "takes part in" literally: no region here has a single function, and no function lives in a single region. The cortex is a mosaic: one multimodal MRI atlas of healthy young adults divides each hemisphere into 180 areas (Glasser and colleagues, 2016), and borders vary between people. How the neural tube becomes these regions is [a developmental story](/lessons/neurulation-and-tube-defects/), and how cortex is divided into areas is [another](/lessons/cortical-areas/). The cells that make up the tissue come in [the next lesson](/lessons/neurons-and-glia-at-work/).
+## One tube, bent once
 
-Counts need their source. One study using the isotropic fractionator on the brains of adult men estimated 86.1 ± 8.1 billion neurons and 84.6 ± 9.8 billion non-neuronal cells (Azevedo and colleagues, 2009), so the claim that glia outnumber neurons ten to one is not supported.
+Picture the tube lying along the back of the embryo, its front end toward the head. As it grows, the front end swells into three bulges: the **forebrain**, the **midbrain** and the **hindbrain**. The forebrain then divides in two, and so does the hindbrain, giving five bulges in a row. The rest of the tube becomes the spinal cord. The front of the forebrain also buds out on each side as the two cerebral hemispheres, so its canal becomes one lateral ventricle in each, and each stays joined to the third ventricle by an opening, the interventricular foramen.
 
-Many pathways cross the midline: the corticospinal tract mainly in the caudal medulla, the dorsal column pathway in the medulla, the spinothalamic pathway in the spinal cord, and at the optic chiasm only fibres from the nasal half of each retina. You will work lesions out from these in [touch and pain](/lessons/touch-and-pain/) and [visual cortex](/lessons/visual-cortex/).
+| Part of the embryonic tube | What its walls become | What its canal becomes |
+|---|---|---|
+| Front of the forebrain (telencephalon) | **Cerebrum**: cerebral cortex and the basal nuclei (often called basal ganglia) beneath it | the two **lateral ventricles**, one in each hemisphere |
+| Back of the forebrain (diencephalon) | **Diencephalon**: thalamus and hypothalamus | the **third ventricle** |
+| Midbrain | **Midbrain** | the narrow **cerebral aqueduct** |
+| Front of the hindbrain | **Pons**, and the **cerebellum** growing from its dorsal side | the **fourth ventricle** |
+| Back of the hindbrain | **Medulla** | the fourth ventricle, narrowing into the central canal |
+| The rest of the tube | **Spinal cord** | the central canal, largely closed in most adult humans |
 
-## Directions, planes and the bend in the neuraxis
+So the adult brain has four parts: the cerebrum, the diencephalon, the **brainstem** (midbrain, pons and medulla together) and the cerebellum.
 
-The **neuraxis** is the long axis of the CNS. In a rat it runs nearly straight from nose to tail. In a human it bends by roughly a right angle where the midbrain meets the diencephalon. Think of a bent flashlight: "toward the beam" points forward at the head but up along the handle.
+The cerebrum grew most. Its cortex folded into ridges (**gyri**) and grooves (**sulci**) and is divided into frontal, parietal, temporal and occipital lobes. A few landmarks you will use all term:
 
-So the direction terms change meaning across that bend. In the forebrain, **dorsal** points toward the top of the head and **ventral** toward the base of the skull; **rostral** points toward the face and **caudal** toward the back of the head. In the spinal cord, dorsal points toward the back of the body, ventral toward the belly, rostral toward the head and caudal toward the feet. Always say which frame you mean. **Medial** means toward the midline and **lateral** away from it. **Ipsilateral** means on the same side of the body, and **contralateral** means on the opposite side.
+- **primary motor cortex** is in the precentral gyrus;
+- **primary somatosensory cortex** is in the postcentral gyrus;
+- **primary visual cortex** is in the occipital lobe (Brodmann's area 17);
+- **primary auditory cortex** is in the temporal lobe.
+
+**Predict.** The cerebellum grows from the dorsal side of the front of the hindbrain. Which ventricle should lie directly beneath it?
+
+<details>
+<summary>Check your prediction</summary>
+
+The fourth ventricle. It is the canal of the hindbrain, so the cerebellum lies over it, and the pons and medulla form its floor. In the adult, the fourth ventricle lies between the pons and medulla in front and the cerebellum behind. You did not need to memorize that; the tube gave it to you.
+
+</details>
+
+### A map names places, not jobs
+
+Each of these regions takes part in many functions, and most functions involve several regions. The thalamus relays and gates information passing to and from the cortex. The hypothalamus takes part in [homeostatic regulation](/lessons/hypothalamus-autonomic/) of temperature, feeding, fluid balance and hormone release. The brainstem carries the long tracts between brain and cord, holds most cranial nerve nuclei, and takes part in breathing and cardiovascular control. The basal nuclei take part in [selecting and controlling movement](/lessons/basal-ganglia/), among other roles. The cerebellum takes part in comparing intended movements with sensory feedback and correcting them, among other roles; the [cerebellum lesson](/lessons/cerebellum/) shows how.
+
+The cortex itself is a mosaic of many smaller areas, and their borders vary between people. How cortex is divided into areas is [another lesson](/lessons/cortical-areas/).
+
+Many pathways cross the midline, so for movement and touch each cerebral hemisphere mostly serves the opposite side of the body. Not every system works this way: each side of the cerebellum mostly serves the same side of the body, and many systems are bilateral. You will trace where each one crosses, and work out lesions from it, in [touch and pain](/lessons/touch-and-pain/) and [visual cortex](/lessons/visual-cortex/).
+
+### Outside the tube: the peripheral nervous system
+
+Everything nervous outside the brain and cord is the **peripheral nervous system** (PNS): nerves, and **ganglia**, which are clusters of neuron cell bodies outside the CNS. Inside the CNS, a cluster of cell bodies is called a **nucleus** (not to be confused with the cell's nucleus), and a bundle of axons running together is a **tract**.
+
+Signals travel in two directions. **Afferent** fibres carry signals toward the CNS, as from a touch receptor in the skin. **Efferent** fibres carry signals away from it, to a muscle or a gland.
+
+The tube explains where each kind connects. In the spinal cord, the neurons that receive incoming sensory signals develop mainly in the dorsal half of the tube's wall, which becomes the dorsal horn, and motor neurons develop in its ventral half. So sensory fibres enter the cord through **dorsal roots**, and motor axons leave through **ventral roots**.
+
+The first-order sensory neurons themselves sit just outside the cord, in the dorsal root ganglia. These formed from **neural crest** cells, a band of cells at the edges of the folding sheet that left as the tube closed. The brainstem keeps the same plan for its cranial nerve nuclei, though in the hindbrain the tube splays open to form the floor of the fourth ventricle, so the sensory nuclei lie lateral and the motor nuclei medial.
+
+This is a plan for where groups of neurons develop, not for every tract. In the classical picture it stops at the brainstem. The forebrain does not follow it: primary motor cortex, for example, lies just in front of somatosensory cortex, not ventral to it.
+
+This lesson divides the PNS into three parts:
+
+- the **somatic** division serves the skin, joints and skeletal muscle;
+- the **autonomic** division (sympathetic and parasympathetic) serves smooth muscle, heart muscle and glands, largely without conscious control;
+- the **enteric** division lies in the wall of the gut and has its own sensory neurons, interneurons and motor neurons, so it can run local reflexes. Many textbooks instead count it as part of the autonomic division; the facts are the same, only the filing differs.
+
+Somatic does not mean voluntary. The knee jerk is a somatic motor response that happens before you decide anything: the command travels out through a ventral root to skeletal muscle. [The stretch reflex](/lessons/motor-units-reflexes/) gets its own lesson, and the cells that make up all this tissue come in [the next lesson](/lessons/neurons-and-glia-at-work/).
+
+## Naming places on a bent tube
+
+The **neuraxis** is the long axis of the CNS: the tube's own axis. In a rat it runs nearly straight from nose to tail. In a human it bends by roughly a right angle where the midbrain meets the diencephalon.
+
+Picture a rat on all fours. Its tube runs straight, so the words are easy. **Dorsal** is toward its back, which is up. **Ventral** is toward its belly. **Rostral** is toward its nose, and **caudal** toward its tail. Now stand the rat up on its hind legs, but keep its face pointing forward, as yours does. The body, spinal cord and brainstem turn, and their direction arrows turn with them. Only the forebrain keeps its old frame. In you, that turn falls inside the skull, not at the neck. That is the bend.
+
+So the direction words change meaning across the bend:
+
+| Part of the CNS | Dorsal points toward | Ventral points toward | Rostral points toward | Caudal points toward |
+|---|---|---|---|---|
+| Forebrain | the top of the head | the base of the skull | the face | the back of the head |
+| Spinal cord | the back of the body | the belly | the head | the feet |
+
+Always say which frame you mean.
+
+Two more pairs of words do not change across the bend. **Medial** means toward the midline and **lateral** away from it. **Ipsilateral** means on the same side of the body, and **contralateral** means on the opposite side.
+
+**Predict.** You are standing up. Which way does dorsal point in your spinal cord? In your brainstem? In your forebrain?
+
+<details>
+<summary>Check your prediction</summary>
+
+In the spinal cord, toward your back: the side the dorsal roots enter. The brainstem lies caudal to the bend, so it follows the cord's frame: dorsal there also points toward your back. In the forebrain, dorsal points toward the top of your head. That is why the cerebellum, grown from the hindbrain's dorsal side, lies toward your back.
+
+</details>
 
 Three section planes cut the brain:
 
@@ -384,35 +479,99 @@ Three section planes cut the brain:
 - a **coronal** plane separates front from back;
 - a **horizontal** plane separates top from bottom.
 
-A section of the cord cut across its long axis is a **transverse** section. Because of the bend, a coronal section of the forebrain and a transverse section of the cord are both roughly perpendicular to the neuraxis at their level.
+A section of the cord cut across its long axis is a **transverse** section.
 
-## Ventricles, cerebrospinal fluid and two barriers
+**Predict.** A horizontal section through the head runs along the forebrain's long axis. How does the same cut pass through the brainstem?
 
-The brain contains four fluid-filled **ventricles**, the remains of the neural tube's central canal: two lateral ventricles, one in each hemisphere, the third ventricle in the diencephalon, and the fourth between the pons and medulla in front and the cerebellum behind. **Cerebrospinal fluid** (CSF) is secreted mainly by the **choroid plexus**, a frond of capillaries covered by a secretory epithelium that projects into each ventricle. The choroid plexus is the predominant source in the adult mammalian brain, not the only one, and in isolated mouse choroid plexus water could be moved against an imposed osmotic gradient, so secretion is an active process (Steffensen and colleagues, 2018).
+<details>
+<summary>Check your prediction</summary>
 
-The net route runs one way, though the fluid also moves back and forth with each heartbeat and breath. Fluid passes from each lateral ventricle through an interventricular foramen into the third ventricle, through the narrow cerebral aqueduct of the midbrain into the fourth ventricle, and out through the fourth ventricle's median and lateral apertures into the **subarachnoid space** around the brain and cord, where it cushions them. It leaves through arachnoid granulations into the venous sinuses and by other routes: in mice, lymphatic vessels at the skull base clear CSF macromolecules (Ahn and colleagues, 2019), and dural lymphatic vessels have been imaged in five healthy people and three marmosets (Absinta and colleagues, 2017), though that study could not show that they drain CSF.
+Roughly across it, close to a transverse section, because the brainstem's axis runs up and down, like the cord's. Roughly, not exactly: the brainstem is not perfectly vertical, so the cut is somewhat oblique. The same logic says that, because of the bend, a coronal section of the forebrain and a transverse section of the cord are both roughly perpendicular to the neuraxis at their level.
 
-How quickly is the fluid replaced? Take conventional adult human teaching values, not measurements from one person: a total CSF volume V of about 150 mL and a secretion rate Q of about 500 mL/day, with outflow equal to secretion so the volume is steady, and treat the CSF as one well-mixed compartment.
+</details>
+
+## The fluid in the tube
+
+<LessonFilm film={frontmatter.films[0]} />
+
+**Cerebrospinal fluid** (CSF) fills the four ventricles. In the adult mammalian brain most of it, though not all, is secreted by the **choroid plexus**, a frond of capillaries covered by a secretory epithelium that projects into each ventricle. Secretion is an active process, driven by transporters in that epithelium (the evidence, and a debate about the mechanism, are in Going deeper).
+
+The net route runs one way, though the fluid also moves back and forth with each heartbeat and breath:
+
+1. from each lateral ventricle through an interventricular foramen into the third ventricle;
+2. through the cerebral aqueduct into the fourth ventricle;
+3. out of the hindbrain through the fourth ventricle's median and lateral apertures, into the **subarachnoid space** around the brain and cord, where it cushions them;
+4. out through arachnoid granulations into the venous sinuses, and by other routes, including lymphatic vessels (see Going deeper).
+
+In most adult humans the central canal is largely closed and is not a major route for CSF; the fluid reaches the cord through the subarachnoid space around it.
+
+### How quickly is the fluid replaced?
+
+Start with a picture. Take a full glass of dyed water. Pour clean water in slowly, stirring all the time, so the glass overflows as you pour. When you have poured in one full glassful, is the water clear? No. Each spill carries away a mix of old and new water, so the dye fades but does not vanish. If the new water pushed the old out like a piston, one glassful would clear it. Because it mixes, about 37% of the dye is still there.
+
+Now the numbers. Take conventional adult human teaching values, not measurements from one person: a total CSF volume V of about 150 mL and a secretion rate Q of about 500 mL/day, with outflow equal to secretion so the volume is steady. Treat the CSF as one well-mixed compartment, like the stirred glass: the new fluid carries no marker, and the marker leaves only with the outflow.
 
 > **turnover rate = Q / V; volume-to-flow time τ = V / Q; fraction of an initial marker left = exp(−t / τ)**
 
 1. Turnover rate: 500 mL/day ÷ 150 mL = 3.33 per day.
 2. Volume-to-flow time: τ = 150 ÷ 500 = 0.3 day, which is 0.3 × 24 = 7.2 h.
-3. Check: 500 mL/day ÷ 1,440 min/day = 0.347 mL/min, and 150 ÷ 0.347 = 432 min = 7.2 h.
-4. A marker present at time zero, with fresh fluid mixing in, falls as exp(−t/τ). At t = 7.2 h that is exp(−1) = 0.368, so 36.8 percent of the marker is still there after one full volume of fluid has been made. Replacing a volume does not empty it.
-5. Now block the cerebral aqueduct while secretion continues. Fluid made in the lateral and third ventricles loses its normal exit, so pressure rises and those ventricles enlarge; the fourth ventricle, downstream of the block, does not.
+3. The same in minutes: 500 mL/day ÷ 1,440 min/day = 0.347 mL/min, and 150 ÷ 0.347 = 432 min = 7.2 h.
+4. Why an exponential? At every moment the outflow removes the same fraction, 1/τ per unit time, of whatever marker is left, so the marker M falls at a rate proportional to itself: dM/dt = −M/τ. A marker present at time zero therefore falls as exp(−t/τ). At t = 7.2 h that is exp(−1) = 0.368: about 37% of the marker is still there after one full volume of fluid has been made. Replacing a volume does not empty it.
+5. Do not confuse τ with the half-life. Half the marker is gone at τ × ln 2 = 7.2 h × 0.693, about 5.0 h.
 
 <CsfTurnoverWashout />
 
-Two main barriers separate the brain from the blood. A third, a sealed cell layer in the arachnoid membrane, separates the CSF from blood vessels in the dura. The **blood-brain barrier** lies at the endothelial cells of brain capillaries, joined by tight junctions (the junction itself is covered in [the epithelia lesson](/lessons/epithelia/)). These cells also move very little material across in vesicles and pump many drugs back out, and pericytes and astrocytes help them keep these properties. Astrocyte endfeet wrap the vessels, but in Reese and Karnovsky's mouse experiments the tracer never reached them. It is selective, not a wall: transporters carry glucose and amino acids across, and small lipid-soluble molecules diffuse through. A few small regions around the ventricles, the circumventricular organs, have leaky capillaries. The **blood-CSF barrier** is different: choroid plexus capillaries are leaky, and the seal is formed by the tight junctions of the epithelium over them.
+### Block the tube
 
-Does sleep speed clearance? In 13 sleeping people, slow EEG rhythms were followed by pulses of CSF flow (Fultz and colleagues, 2019), a correlation, and mouse tracer studies disagree. Keep it open until [sleep and rhythms](/lessons/sleep-and-rhythms/).
+The washout rule describes how a marker fades. A blockage asks a different question: where does the fluid go when its exit is closed?
 
-## Four kinds of evidence, four different licences
+**Predict.** Block the cerebral aqueduct while secretion continues. Which ventricles enlarge?
+
+<details>
+<summary>Check your prediction</summary>
+
+The lateral and third ventricles. Fluid made in them loses its normal exit, so pressure rises and they enlarge. The fourth ventricle, downstream of the block, does not.
+
+</details>
+
+The general rule, in this simplified obstructive model: a lasting, complete block, with secretion continuing and no adequate alternative drainage, tends to enlarge the ventricles upstream of it. Block the fourth ventricle's apertures, and all four ventricles enlarge, because all four lie upstream of the exit. This rule predicts *obstructive* hydrocephalus, with a block inside the tube. If absorption fails instead while the pathways stay open, often all four ventricles enlarge together. That is *communicating* hydrocephalus, and the upstream rule does not predict it.
+
+## Where is the seal?
+
+Back to the fourth puzzle. By the 1960s it was known that many dyes injected into the blood stain most tissues but leave the brain pale, so a barrier existed. Where it sat was the open question.
+
+Picture a brain capillary in cross-section. Three layers could be the seal:
+
+1. the **endothelial cells** that line the capillary;
+2. the **basement membrane** around them;
+3. the **astrocyte endfeet** pressed against the outside of the vessel.
+
+A light microscope could not tell them apart. Thomas Reese and Morris Karnovsky chose a tracer that an electron microscope can see. Horseradish peroxidase is an enzyme, and wherever it lies it drives a histochemical reaction that leaves a dense deposit. They injected it into the veins of mice, fixed the cortex at times from 10 to 60 minutes later, and looked at the capillaries.
+
+**Predict.** Where did the deposit stop?
+
+<details>
+<summary>Check your prediction</summary>
+
+At the endothelial cells. The deposit filled the vessel lumen and went no farther. None was found in the basement membrane or between the astrocyte endfeet. Reese and Karnovsky proposed that tight junctions between endothelial cells were probably what blocked the path between cells. They published in 1967. The result holds for that tracer and that time window.
+
+</details>
+
+Then the experiment was run from the other side. Milton Brightman and Reese put the same tracer into the ventricles of mice. It spread through the spaces between neurons and glia, reached the outer surface of the capillaries, and stopped at the junctions between endothelial cells. Two experiments run in opposite directions pointed to the same layer.
+
+So two main barriers separate the brain from the blood. The **blood-brain barrier** lies at the endothelial cells of brain capillaries, joined by tight junctions, protein seals between neighbouring cells (the junction itself is covered in [the epithelia lesson](/lessons/epithelia/)). These cells also move very little material across in vesicles and pump many drugs back out. Pericytes, cells wrapped around the capillaries, and astrocytes help them keep these properties: astrocytes are not the seal, but they help maintain it. The barrier is selective, not a wall: transporters carry glucose and amino acids across, and small lipid-soluble molecules diffuse through. A few small regions around the ventricles, the circumventricular organs, have leaky capillaries.
+
+The **blood-CSF barrier** sits on a specialized part of the tube's own lining. Choroid plexus capillaries are leaky, and the seal is formed by the tight junctions of the epithelium over them. A third barrier, a sealed cell layer in the arachnoid membrane, separates the CSF from blood vessels in the dura.
+
+## From where to what: four kinds of evidence
+
+<LessonFilm film={frontmatter.films[1]} />
+
+The tube has told you where everything is. It cannot tell you what a region does. That takes an experiment, and each kind licenses, that is, entitles you to, a different claim.
 
 | Evidence | What it can show | What it cannot show alone |
 |---|---|---|
-| Lesion | The damaged tissue contributes to a task | Which part of the damage mattered |
+| Lesion | The damaged tissue contributes to the task, as the rest of the brain performs it | Which part of the damage mattered |
 | Recording | Activity covaries with a task or stimulus | That the activity is used |
 | Imaging (fMRI) | Where a haemodynamic signal goes with a task | Which neural signal, or necessity |
 | Stimulation | Adding activity changes behaviour | That the region is required |
@@ -421,7 +580,7 @@ A **lesion** tests necessity, but damage spreads. Scoville and Milner's 1957 rep
 
 A **recording** shows that firing goes with a stimulus or a choice, not that the brain uses it. **Imaging** has the same limit plus one more: BOLD fMRI measures blood oxygenation, and in anaesthetized macaque visual cortex it followed local field potentials, which mostly reflect summed synaptic and dendritic currents near an electrode, better than spiking (Logothetis and colleagues, 2001). An fMRI activation does not mark a region as the seat of anything.
 
-**Stimulation** adds activity and asks whether behaviour follows. That shows a contribution, in that task, from the stimulated population, not from one identified cell type, because imaging in anaesthetized animals found that microstimulation sparsely activates neurons around the electrode, some as far as millimetres away. Tools for recording many neurons and for silencing or driving defined cells come in [large-scale neuroscience](/lessons/large-scale-neuroscience/) and [circuit experiment design](/lessons/circuit-experiment-design/).
+**Stimulation** adds activity and asks whether behaviour follows. That shows a contribution, in that task, from the stimulated population, not from one identified cell type: imaging in anaesthetized animals found that the current sparsely activates a scattered population around the tip, some neurons as far as millimetres away. Tools for recording many neurons and for silencing or driving defined cells come in [large-scale neuroscience](/lessons/large-scale-neuroscience/) and [circuit experiment design](/lessons/circuit-experiment-design/).
 
 ### Design problem
 
@@ -434,6 +593,34 @@ Place a microelectrode among MT neurons that share a preferred direction, mapped
 
 Predict the sign first: if those signals are used, stimulation should push choices toward the preferred direction, not merely make the monkey worse. Salzman, Murasugi, Britten and Newsome (1992) did this in 139 experiments: stimulation had a significant effect in 89, and in 86 of those the bias was toward the preferred direction.
 
-What it licenses: MT activity contributes causally to this choice in this task. Not that MT is the only place motion is processed, or that it is required. A lesion or reversible silencing would test necessity, though depending on the method a lesion can also damage neighbours and passing fibres. fMRI would show neither, because it observes activity without changing it. It is also an indirect measure: in anaesthetized macaque visual cortex, BOLD followed local field potentials better than spiking (Logothetis and colleagues, 2001).
+What it licenses: MT activity contributes causally to this choice in this task. Not that MT is the only place motion is processed, or that it is required. A lesion or reversible silencing would test necessity, though depending on the method a lesion can also damage neighbours and passing fibres. fMRI would show neither, because it observes activity without changing it, and it measures blood oxygenation, not spikes.
 
 </details>
+
+Reese and Karnovsky also added something and watched what happened, but the two experiments license different claims: the tracer showed where one tracer stopped, and the stimulation showed a causal contribution to a choice. Claim only what the evidence licenses.
+
+## Going deeper
+
+### How many neurons and glia?
+
+Counts need their source. One study using the isotropic fractionator on the brains of adult men estimated 86.1 ± 8.1 billion neurons and 84.6 ± 9.8 billion non-neuronal cells (Azevedo and colleagues, 2009), so the claim that glia outnumber neurons ten to one is not supported.
+
+### Where pathways cross the midline
+
+The corticospinal tract crosses mainly in the caudal medulla, the dorsal column pathway in the medulla, and the spinothalamic pathway in the spinal cord. At the optic chiasm only fibres from the nasal half of each retina cross.
+
+### Brodmann's areas and a modern atlas
+
+Area 18 lies next to area 17 and is not primary. Maps get revised: one multimodal MRI atlas of healthy young adults divides each hemisphere into 180 areas (Glasser and colleagues, 2016).
+
+### The evidence that secretion is active
+
+In isolated mouse choroid plexus, water could be moved against an imposed osmotic gradient, so secretion is an active process (Steffensen and colleagues, 2018). That was one study in isolated mouse tissue, and the mechanism it proposed is debated; the conclusion that secretion is active is the safe part.
+
+### Lymphatic exits for CSF
+
+In mice, lymphatic vessels at the skull base clear CSF macromolecules (Ahn and colleagues, 2019). Dural lymphatic vessels have been imaged in five healthy people and three marmosets (Absinta and colleagues, 2017), though that study could not show that they drain CSF.
+
+### Does sleep speed clearance?
+
+In 13 sleeping people, slow EEG rhythms were followed by pulses of CSF flow (Fultz and colleagues, 2019). That is a correlation, and mouse tracer studies disagree about whether clearance rises or falls during sleep. Keep the question open until [sleep and rhythms](/lessons/sleep-and-rhythms/).

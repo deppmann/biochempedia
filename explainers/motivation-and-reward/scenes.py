@@ -1,417 +1,340 @@
-"""Motivation and reward: dopamine neurons signal a prediction error  (Biochemistrypedia explainer)
-
-Timed to the SPOKEN words: every self.at("...") cue waits for that phrase in audio/words.json.
-
-COLOR MAP (one color per concept, whole video)
-  YELLOW = the reward (juice), received reward r
-  BLUE   = the cue (the sound)
-  GREEN  = a burst of firing / a positive prediction error (delta above zero)
-  RED    = a dip below baseline / a negative prediction error / the reward left out
-  TEAL   = the cue's learned value V, "the reward predicted"
-  ORANGE = alpha, the learning rate
-  PURPLE = the dopamine neuron
-  GREY   = axes, baselines, frames, tags, and every unanswered thing (dashed)
-  TEXT   = the firing trace itself
-
-Scenes 1 to 3 draw firing-rate sketches ("in this sketch": relative units, the lesson gives no
-recording). Scenes 4 to 6 use the lesson's model numbers only: alpha 0.30, r 1, V 0 at the start,
-V = 1 - 0.7^n, and V near 0.95 for the omission.
+"""Received Minus Predicted, revision.
+COLOR MAP: TEAL prediction; YELLOW received reward; GREEN positive error/burst;
+RED negative error/pause; BLUE tone; PURPLE dopamine; PINK hypothalamic AgRP;
+ORANGE learning step; TEXT light/firing; GREY anatomy/axes.
+Model: delta=r-V; V_next=V+.30*delta. Firing diagrams are deterministic
+illustrations, not recordings: baseline 4 ticks/unit, extra ticks proportional
+ to positive delta, a central pause proportional to negative delta.
 """
 import numpy as np
-from bp_style import *  # noqa: F401,F403
+from bp_style import *
+PURPLE='#B58CD9'
+PINK='#ED91AE'
+ORANGE='#F29E4C'
+BASE=-2.15
+SCALE=4.5
+PX=-4.6
+RX=-2.2
+LINE='Dopamine bursts and pauses report better or worse than predicted.'
 
-PURPLE = "#B58CD9"
-ORANGE = "#F29E4C"
+def label(s,x=0,y=3.15,size=32,color=TEXT):
+    return T(s,size=size,color=color).move_to([x,y,0])
 
-# ---------------------------------------------------------------------------------------------
-# firing-rate sketch geometry (scenes 1 to 3)
-# ---------------------------------------------------------------------------------------------
-X0, X1 = -5.4, 5.6
-YB, U = -0.4, 2.2            # baseline y, units of y per unit of rate
-YAX, YEV = -2.25, -2.95      # time axis, event-chip row
-T_SOUND, T_JUICE, T_LATE = 1.5, 5.5, 8.0
-TS = np.linspace(0, 10, 240)
+def mouse():
+    body=Ellipse(width=3.5,height=1.9,color=GREY,fill_color=GREY,fill_opacity=.25)
+    head=Ellipse(width=1.3,height=1.15,color=GREY,fill_opacity=.3).move_to([1.65,.22,0])
+    ear=Circle(radius=.43,color=GREY,fill_opacity=.3).move_to([1.3,.92,0])
+    eye=Dot([1.95,.42,0],radius=.07,color=TEXT)
+    feet=VGroup(Line([-.9,-.8,0],[-.3,-1,0],color=GREY),Line([1,-.65,0],[1.5,-.9,0],color=GREY))
+    tail=ArcBetweenPoints([-1.7,-.1,0],[-3,-.65,0],angle=1,color=GREY)
+    return VGroup(body,head,ear,eye,feet,tail)
 
+def dish():
+    bowl=Polygon([-1,.3,0],[-.7,-.35,0],[.7,-.35,0],[1,.3,0],color=GREY,fill_opacity=.2)
+    food=VGroup(*[RoundedRectangle(width=.35,height=.25,corner_radius=.06,color=YELLOW,fill_opacity=.85).move_to([x,y,0]) for x,y in [(-.5,.35),(0,.4),(.5,.35)]])
+    return VGroup(bowl,food)
 
-def tx(t):
-    return X0 + (X1 - X0) * t / 10.0
+def brain():
+    # Schematic sagittal silhouette: anterior left, posterior right, ventral base below.
+    pts=[[-4,-.2,0],[-3.8,1.3,0],[-2.3,2.3,0],[0,2.45,0],[2,1.65,0],[2.6,.4,0],[2.2,-.5,0],[2.8,-1.6,0],[1.9,-1.8,0],[1.1,-.8,0],[-.2,-1.05,0],[-1.9,-.9,0],[-3.5,-.8,0],[-4,-.2,0]]
+    outline=VMobject(color=GREY,fill_color=GREY,fill_opacity=.1).set_points_smoothly(pts)
+    hypo=VGroup(*[Dot([x,y,0],radius=.14,color=PINK) for x,y in [(-1.3,-.6),(-.9,-.75),(-.5,-.6)]])
+    mid=VGroup(*[Dot([x,y,0],radius=.14,color=PURPLE) for x,y in [(.8,-.25),(1.2,-.4),(1.5,-.2)]])
+    hl=VGroup(label('hypothalamus',-2.8,-2,28,PINK),Line([-2,-1.7,0],[-1,-.9,0],color=PINK))
+    ml=VGroup(label('midbrain',3.8,-.6,28,PURPLE),Line([2.9,-.55,0],[1.65,-.3,0],color=PURPLE))
+    return VGroup(outline,hypo,mid,hl,ml)
 
+def switch():
+    return chip('light switch',TEXT,28).move_to([4,2,0])
 
-def trace(specs):
-    """always_redraw builder: a firing-rate curve from bumps (centre, width, tracker)."""
-    def build():
-        e = sum(tr.get_value() * np.exp(-((TS - c) / w) ** 2) for c, w, tr in specs)
-        pts = [np.array([tx(t), YB + U * v, 0]) for t, v in zip(TS, e)]
-        out = [VMobject(stroke_color=TEXT, stroke_width=4).set_points_as_corners(pts)]
-        for sign, col in ((1, GREEN), (-1, RED)):
-            ev = np.maximum(sign * e, 0)
-            if ev.max() > 0.03:
-                top = [np.array([tx(t), YB + U * sign * v, 0]) for t, v in zip(TS, ev)]
-                base = [np.array([tx(t), YB, 0]) for t in TS[::-1]]
-                out.append(Polygon(*top, *base, stroke_width=0, fill_color=col, fill_opacity=0.55))
-        return VGroup(*out)
-    return build
+def illumination():
+    return VGroup(Polygon([3.4,1.7,0],[-1.6,-.35,0],[-.4,-1,0],color=TEXT,fill_color=TEXT,fill_opacity=.12,stroke_width=0),Circle(radius=.67,color=TEXT,stroke_width=5).move_to([-1,-.6,0]))
 
+def cup():
+    return Polygon([-.4,.38,0],[-.3,-.38,0],[.3,-.38,0],[.4,.38,0],color=YELLOW,fill_color=YELLOW,fill_opacity=.65).move_to([-.75,2,0])
 
-def neuron_icon():
-    """A simple dopamine neuron: soma, dendrites, axon."""
-    c = np.array([0.0, 0.0, 0])
-    soma = Circle(radius=0.26, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.3).move_to(c)
-    dend = VGroup(*[Line(c + 0.26 * np.array([np.cos(a), np.sin(a), 0]),
-                         c + 0.8 * np.array([np.cos(a), np.sin(a), 0]), color=PURPLE, stroke_width=3)
-                    for a in (2.4, 3.14, 3.9)])
-    ax = Line(c + [0.26, 0, 0], c + [1.1, 0, 0], color=PURPLE, stroke_width=3)
-    bulb = Circle(radius=0.09, stroke_color=PURPLE, stroke_width=3, fill_color=PURPLE, fill_opacity=0.6).move_to(c + [1.15, 0, 0])
-    return VGroup(dend, ax, soma, bulb)
+def bar(x,v,color):
+    if v<=0:
+        return DashedVMobject(Rectangle(width=1.05,height=.16,color=color).move_to([x,BASE+.08,0]),num_dashes=12)
+    return Rectangle(width=1.05,height=v*SCALE,color=color,fill_color=color,fill_opacity=.7).move_to([x,BASE+v*SCALE/2,0])
 
+def bars(v=0,r=1):
+    axis=VGroup(Arrow([-5.6,BASE,0],[-5.6,2.6,0],buff=0,color=GREY),Line([-5.6,BASE,0],[-1.4,BASE,0],color=GREY),label('reward amount',-3.55,2.8,26))
+    return VGroup(axis,bar(PX,v,TEAL),bar(RX,r,YELLOW),VGroup(label('predicted',PX,-2.6,26,TEAL),label('received',RX,-2.6,26,YELLOW)),cup())
 
-def plot_frame(show_tag=True):
-    """Axes, labels, baseline and the neuron header. Returns (group, parts)."""
-    yax = Line([X0 - 0.12, YAX, 0], [X0 - 0.12, 2.1, 0], color=GREY, stroke_width=3)
-    xax = Arrow([X0 - 0.12, YAX, 0], [X1 + 0.35, YAX, 0], buff=0, color=GREY, stroke_width=3, tip_length=0.2)
-    xl = T("time", 22, GREY).next_to(xax, DOWN, buff=0.04).align_to([X1 - 0.3, 0, 0], RIGHT)
-    xl.move_to([X1 - 0.1, YAX + 0.28, 0])
-    yl = T("firing rate, relative units", 22, GREY).move_to([X0 + 1.95, 2.4, 0])
-    base = DashedLine([X0 - 0.12, YB, 0], [X1, YB, 0], color=GREY, stroke_width=2, dash_length=0.12)
-    bl = T("baseline", 22, GREY).move_to([X1 - 0.65, YB + 0.28, 0])
-    nr = neuron_icon().move_to([-5.0, 3.05, 0])
-    nl = T("dopamine neuron, monkey", 24, TEXT).next_to(nr, RIGHT, buff=0.35)
-    tag = T("in this sketch", 22, GREY).move_to([5.0, 3.05, 0])
-    axes = VGroup(yax, xax, base)
-    labels = VGroup(xl, yl, bl, tag)
-    head = VGroup(nr, nl)
-    return axes, labels, head
+def gap(v,r,word='error'):
+    yp,yr=BASE+v*SCALE,BASE+r*SCALE
+    color=GREEN if r>v else RED if r<v else TEXT
+    guides=VGroup(DashedLine([PX+.55,yp,0],[-3.4,yp,0],color=color),DashedLine([RX-.55,yr,0],[-3.4,yr,0],color=color))
+    if abs(r-v)<.005:
+        arrow=VGroup(Line([-3.65,yr,0],[-3.15,yr,0],color=TEXT),Line([-3.65,yr-.08,0],[-3.65,yr+.08,0],color=TEXT),Line([-3.15,yr-.08,0],[-3.15,yr+.08,0],color=TEXT))
+    else:
+        arrow=DoubleArrow([-3.4,yp,0],[-3.4,yr,0],buff=0,color=color,tip_length=min(.12,abs(yr-yp)/4))
+    # Label below the chart, clearly separate from the firing panel.
+    return VGroup(guides,arrow,label(word,-3.4,-3.2,28,color))
 
+def spike_ticks(delta=0,cx=3.55,y=-.65,w=5.1,h=1.65):
+    xs=list(np.arange(-w/2,w/2+.001,.34))
+    if delta<0: xs=[x for x in xs if abs(x)>.78*abs(delta)]
+    if delta>0: xs+=list(np.linspace(-.55,.55,int(round(15*delta))))
+    return VGroup(*[Line([cx+x,y,0],[cx+x,y+h,0],color=TEXT,stroke_width=2.6) for x in sorted(xs)])
 
-def evchip(text, color, t):
-    return chip(text, color, size=24, pad=0.16).move_to([tx(t), YEV, 0])
+def firing(delta=0,question=False,marker='juice arrives'):
+    axis=Arrow([.9,-.65,0],[6.3,-.65,0],buff=0,color=GREY)
+    mark=DashedLine([3.55,-1,0],[3.55,1.5,0],color=YELLOW,stroke_opacity=.6)
+    title=label('dopamine neuron firing',3.5,2.35,27,PURPLE)
+    labs=VGroup(label(marker,3.55,1.8,26,YELLOW),label('time',5.8,-1.15,26))
+    spikes=spike_ticks(delta) if not question else VGroup()
+    return VGroup(title,axis,mark,labs,spikes)
 
+def question_frame():
+    return VGroup(bars(1,1),label('Exactly as predicted',0,3.4,34),firing(question=True),label('?',3.55,.2,60),label('What does the neuron do?',3.55,-1.8,26),label('after many trials',-3.4,-3.2,28))
 
-def evline(t, color):
-    return DashedLine([tx(t), YAX, 0], [tx(t), 2.0, 0], color=color, stroke_width=2, dash_length=0.1).set_opacity(0.55)
+def gauge(value=0):
+    a=PI*(1-value)
+    return VGroup(Arc(radius=1.4,start_angle=0,angle=PI,color=GREY,stroke_width=7),Arrow(ORIGIN,[1.2*np.cos(a),1.2*np.sin(a),0],buff=0,color=YELLOW),Dot(radius=.1,color=YELLOW))
 
+def scope():
+    texts=['Many, not all, dopamine neurons','Trained monkeys and rodents','Tasks with predictable reward timing','A signal; recording alone ≠ proof of teaching','Nothing about pleasure']
+    rows=VGroup(*[label(t,0,2.1-i*1.12,38) for i,t in enumerate(texts)])
+    # Long line uses two rows rather than shrinking the font.
+    rows[3].become(VGroup(label('A signal; recording alone',0,-1.12,38),label('≠ proof of teaching',0,-1.67,38)))
+    rows[4].move_to([0,-2.75,0]).set_color(ORANGE)
+    return VGroup(RoundedRectangle(width=12.5,height=6.6,corner_radius=.2,color=GREY),rows)
 
-def ghost(text, t):
-    lab = T(text, 24, GREY)
-    w, h = lab.width + 0.32, lab.height + 0.32
-    box = DashedVMobject(RoundedRectangle(corner_radius=0.14, width=w, height=h, stroke_color=GREY, stroke_width=3), num_dashes=30)
-    return VGroup(box, lab).move_to([tx(t), YEV, 0])
-
-
-def eqrow(parts, size=40, buff=0.16):
-    return VGroup(*[M(s, size, c) for s, c in parts]).arrange(RIGHT, buff=buff, aligned_edge=DOWN)
-
-
-# ---------------------------------------------------------------------------------------------
-# scenes
-# ---------------------------------------------------------------------------------------------
 class S00Title(TitleCard):
-    LESSON = "Feeding, Motivation and Reward"
-    TITLE = "Dopamine Neurons Signal Prediction Errors"
+    LESSON='Feeding, Motivation and Reward'
+    TITLE='Received Minus Predicted'
 
-
-class S01Juice(SpokenScene):
+class S01Question(SpokenScene):
     def construct(self):
-        axes, labels, head = plot_frame()
-        juice, jl = evchip("juice", YELLOW, T_JUICE), evline(T_JUICE, YELLOW)
-        amp = ValueTracker(0)
-        tr = always_redraw(trace([(T_JUICE, 0.35, amp)]))
-        self.at("A monkey receives")
-        self.play(Create(axes), FadeIn(labels), run_time=0.8)
-        self.play(FadeIn(juice, shift=DOWN * 0.3), Create(jl), run_time=0.6)
-        self.add(tr)
-        nw = T("no warning", 22, GREY).next_to(juice, RIGHT, buff=0.3)
-        self.at("with no warning")
-        self.play(FadeIn(nw), run_time=0.4)
-        self.at("recorded single dopamine neurons")
-        self.play(FadeIn(head, shift=RIGHT * 0.2), run_time=0.7)
-        def ticks(ts):
-            return VGroup(*[Line([tx(t), YB + 0.12, 0], [tx(t), YB + 0.5, 0], color=TEXT, stroke_width=3) for t in ts])
-        base_ticks = ticks([0.4, 1.1, 1.9, 2.6, 3.5, 4.3, 6.9, 7.6, 8.3])
-        sp_lab = T("spikes", 22, GREY).move_to([tx(2.2), YB + 0.85, 0])
-        self.play(LaggedStart(*[FadeIn(t) for t in base_ticks], lag_ratio=0.5), FadeIn(sp_lab),
-                  run_time=max(1.0, self.t_of("three quarters") - 0.3 - self.elapsed()))
-        self.at("-quarters")
-        bar_o = Rectangle(width=3.0, height=0.3, stroke_color=GREY, stroke_width=3)
-        bar_f = Rectangle(width=2.25, height=0.3, stroke_width=0, fill_color=GREEN, fill_opacity=0.8)
-        bar_o.move_to([4.3, 1.45, 0]); bar_f.align_to(bar_o, LEFT).align_to(bar_o, UP)
-        cap = VGroup(T("about three quarters of", 22, TEXT), T("recorded neurons, two monkeys", 22, TEXT)).arrange(DOWN, buff=0.06)
-        cap.next_to(bar_o, UP, buff=0.18)
-        self.play(FadeIn(cap), Create(bar_o), GrowFromEdge(bar_f, LEFT), run_time=0.8)
-        self.at("fired a brief burst")
-        burst_ticks = ticks([5.15, 5.3, 5.4, 5.5, 5.6, 5.7, 5.85])
-        self.play(amp.animate.set_value(1.0), LaggedStart(*[FadeIn(t) for t in burst_ticks], lag_ratio=0.15), run_time=0.9)
-        self.at("What is that burst")
-        self.play(FadeOut(base_ticks), FadeOut(burst_ticks), FadeOut(sp_lab), run_time=0.4)
-        q = T("?", 72, TEXT).move_to([tx(T_JUICE) - 1.2, 1.2, 0])
-        self.play(FadeIn(q, scale=1.4), run_time=0.5)
+        m=mouse().scale(1.9).move_to([-1.6,.2,0]); d=dish().scale(1.4).move_to([5,-1.05,0])
+        self.add(m,d,label('well-fed • no hunger',-1.6,-2.85,32),label('?',3.45,1.8,80))
+        self.at('Why would'); self.play(Indicate(d,color=YELLOW),run_time=.7); self.finish()
+
+class S02Hook(SpokenScene):
+    def construct(self):
+        b=brain(); b[1].set_opacity(0); b[2].set_opacity(.35); self.add(b)
+        self.at('light sensitive switch'); self.play(FadeIn(switch()),run_time=.4)
+        self.at('small group of neurons'); self.play(b[1].animate.set_opacity(1),run_time=.4)
+        self.at('base of its brain'); self.play(FadeIn(label('AgRP neurons at the base',0,-3,30,PINK)),run_time=.4); self.finish()
+
+class S03Hook2(SpokenScene):
+    def construct(self):
+        b=brain(); sw=switch(); beam=illumination(); self.add(b,sw)
+        self.at('shone light'); self.play(FadeIn(beam),FadeIn(label('Aponte, Atasoy and Sternson, 2011',0,-3.1,26)),run_time=.3)
+        # Preserve an anatomical inset without scaling text below readable size.
+        self.play(FadeOut(b[3]),FadeOut(b[4]),FadeOut(sw[1]),run_time=.15)
+        inset=VGroup(b[0],b[1],b[2],sw[0],beam)
+        m=mouse().scale(.85).move_to([-2.8,-.9,0]); d=dish().move_to([3,-1.45,0])
+        self.play(inset.animate.scale(.4).move_to([-3.9,1.65,0]),FadeIn(m),FadeIn(d),run_time=.35)
+        self.add(label('light on',-3.9,2.95,26))
+        self.at('on those neurons'); self.play(m.animate.shift(RIGHT*3.5),run_time=1.5)
+        self.at('began eating'); self.play(m.animate.rotate(-.07),FadeOut(d[1][0]),run_time=.3)
+        self.play(m.animate.rotate(.07),FadeOut(d[1][1]),run_time=.3)
+        self.at('within minutes'); self.play(FadeIn(label('eating within minutes',2,1.4,32,YELLOW)),run_time=.25); self.finish()
+
+class S04Two(SpokenScene):
+    def construct(self):
+        a=RoundedRectangle(width=12,height=2.5,color=GREY).move_to([0,1.6,0]); b=a.copy().move_to([0,-1.6,0]); q1=label('?',0,1.6,60); q2=label('?',0,-1.6,60); self.add(a,b,q1,q2)
+        self.at('two questions'); self.play(a.animate.set_stroke(TEXT),b.animate.set_stroke(TEXT),run_time=.4)
+        self.at('Why is food'); self.play(FadeOut(q1),FadeIn(label('Why is food worth seeking?',0,1.6,38)),run_time=.4)
+        self.at('how does the brain'); self.play(FadeOut(q2),FadeIn(label('How does the brain learn where it is?',0,-1.6,36)),run_time=.4); self.finish()
+
+class S05Worth(SpokenScene):
+    def construct(self):
+        g=gauge(.15).scale(1.35).shift(LEFT*2.7+DOWN*.3); d=dish().scale(2).move_to([2.5,-.6,0]); tag=chip('worth now',YELLOW,34).move_to([2.5,1.7,0]); self.add(g,d,tag,Line([-.9,.3,0],d[0].get_vertices()[0],color=YELLOW),label('hunger',-2.7,-1.2,32))
+        self.at('Hunger answers'); self.play(Indicate(g),run_time=.4)
+        self.at('Hunger changes'); self.play(Transform(g,gauge(.85).scale(1.35).shift(LEFT*2.7+DOWN*.3)),tag.animate.scale(1.2),d[0].animate.set_stroke(YELLOW,width=7),run_time=1.2)
+        self.at('hypothalamus'); self.play(FadeIn(label('Hypothalamus circuits may help set worth',0,-2.9,30,PINK)),run_time=.4); self.finish()
+
+class S06Dopamine(SpokenScene):
+    def construct(self):
+        b=brain(); self.add(b)
+        self.at('Dopamine neurons'); self.play(Indicate(b[2],color=PURPLE),run_time=.5)
+        self.at('in the midbrain')
+        # Keep a highlighted anatomical inset beside the magnified neurons.
+        enlarged=b[2].copy().scale(4).move_to([2.7,.6,0])
+        anatomy=VGroup(b[0],b[1],b[2])
+        self.play(anatomy.animate.scale(.65).move_to([-3.5,.6,0]),
+                  FadeOut(b[3]),b[4].animate.move_to([-3.5,-1.5,0]),run_time=.65)
+        # Re-anchor the readable midbrain label to the highlighted inset region.
+        b[4][0].move_to([-3.5,-1.5,0])
+        b[4][1].put_start_and_end_on([-3.5,-1.2,0],b[2].get_bottom()+DOWN*.1)
+        ring=SurroundingRectangle(b[2],buff=.18,color=PURPLE,corner_radius=.12)
+        connector=DashedLine(ring.get_right(),enlarged.get_left(),color=PURPLE)
+        self.play(Create(ring),Create(connector),FadeIn(enlarged),run_time=.5)
+        self.add(label('dopamine neurons',2.7,2.5,34,PURPLE))
+        self.at('help with the second'); self.play(FadeIn(label('Learning where to find reward',0,-2.8,32)),run_time=.4); self.finish()
+
+class S07Rule(SpokenScene):
+    def construct(self):
+        c=chip('reward alone?',GREY,36).move_to([0,1.9,0]); self.add(label('Dopamine neuron signal'),c)
+        self.at('They do not'); self.play(Create(Line(c.get_left(),c.get_right(),color=RED,stroke_width=6)),run_time=.4)
+        self.at('They report how much'); self.play(FadeIn(label('received − predicted',0,.35,48)),FadeIn(label('better',-3.5,-2.5,36,GREEN)),FadeIn(label('worse',3.5,-2.5,36,RED)),Create(spike_ticks(1,-3.5,-1.8,4,.9)),Create(spike_ticks(-1,3.5,-1.8,4,.9)),run_time=.7); self.finish()
+
+class S08Bars(SpokenScene):
+    def construct(self):
+        b=bars(); self.add(b[0],b[4],firing(question=True))
+        self.at('Picture two bars'); self.play(FadeIn(b[1]),run_time=.4)
+        self.at('One shows'); self.play(FadeIn(b[3][0]),run_time=.4)
+        self.at('The other shows'); self.play(GrowFromEdge(b[2],DOWN),FadeIn(b[3][1]),run_time=.7); self.finish()
+
+class S09Gap(SpokenScene):
+    def construct(self):
+        self.add(bars(),firing(question=True)); g=gap(0,1)
+        self.at('The gap between'); self.play(Create(g[0]),Create(g[1]),run_time=.45)
+        self.at('is the error'); self.play(FadeIn(g[2]),Indicate(g[1],color=GREEN,scale_factor=1.1),run_time=.55); self.finish()
+
+class S10Better(SpokenScene):
+    def construct(self):
+        f=firing(question=True); self.add(bars(),gap(0,1),f)
+        self.at('better than predicted'); self.play(FadeIn(label('Better than predicted',0,3.45,34,GREEN)),run_time=.35)
+        self.at('gap is positive'); self.play(Transform(self.mobjects[1],gap(0,1,'positive error')),run_time=.4)
+        self.at('neuron fires'); self.play(Create(spike_ticks(1)),FadeIn(label('brief burst',3.55,-2.3,32,GREEN)),run_time=.6); self.finish()
+
+class S11Q(SpokenScene):
+    def construct(self):
+        f=question_frame(); self.add(f[0],f[2],f[5])
+        self.at('exactly as predicted'); self.play(FadeIn(f[1]),run_time=.4)
+        self.at('What does the neuron'); self.play(FadeIn(f[3]),FadeIn(f[4]),run_time=.4); self.finish()
+
+class S12Pause(Scene):
+    def construct(self):
+        self.camera.background_color=BG; self.add(question_frame())
+        ring=Circle(radius=.42,color=GREY).move_to([5.2,.2,0]); sweep=Arc(radius=.42,start_angle=PI/2,angle=-TAU,color=TEAL,stroke_width=7).move_to(ring)
+        self.add(ring); self.play(Create(sweep),run_time=5,rate_func=linear)
+
+class S13Reveal(SpokenScene):
+    def construct(self):
+        f=question_frame(); self.add(f)
+        ring=Circle(radius=.42,color=TEAL).move_to([5.2,.2,0]); self.add(ring)
+        self.at('nothing'); self.play(FadeOut(f[3]),FadeOut(f[4]),FadeOut(f[5]),FadeOut(ring),Create(spike_ticks()),run_time=.5)
+        self.at('no gap'); self.play(Create(gap(1,1,'no error')),run_time=.4)
+        self.at('firing stays steady'); self.play(FadeIn(label('steady firing',3.55,-2.3,32)),run_time=.4); self.finish()
+
+class S14Worse(SpokenScene):
+    def construct(self):
+        b=bars(1,.3); f=firing(question=True,marker='expected juice time'); self.add(b,f)
+        self.at('worse than predicted'); self.play(FadeIn(label('Worse than predicted',0,3.45,34,RED)),run_time=.4)
+        self.at('or missing'); self.play(Transform(b[2],bar(RX,0,YELLOW)),FadeIn(label('reward omitted',3.55,-3.1,28,YELLOW)),run_time=.45)
+        self.at('gap is negative'); self.play(Create(gap(1,0,'negative error')),run_time=.4)
+        self.at('Firing pauses briefly'); self.play(Create(spike_ticks(-1)),FadeIn(label('brief pause',3.55,-2.3,32,RED)),run_time=.5); self.finish()
+
+class S15Learn(SpokenScene):
+    def construct(self):
+        b=bars(0,1); g=gap(0,1); f=firing(1); count=label('trial 1 • same juice',0,3.45,34); self.add(b,g,f,count)
+        self.at('same juice comes'); self.play(Indicate(b[2],color=YELLOW),run_time=.4)
+        self.at('the prediction moves')
+        v=0
+        # A solid rectangle grows continuously; dashed zero and text never morph.
+        growing=bar(PX,.001,TEAL)
+        self.remove(b[1]); b[1].become(growing); self.add(b[1])
+        for n in range(1,4):
+            nv=v+.3*(1-v)
+            portion=Line([PX+.65,BASE+v*SCALE,0],[PX+.65,BASE+nv*SCALE,0],color=ORANGE,stroke_width=9)
+            new_count=label(f'trial {n+1} • same juice',0,3.45,34)
+            self.play(FadeOut(count),Create(portion),run_time=.15)
+            self.play(FadeIn(new_count),run_time=.15); count=new_count
+            next_gap=gap(nv,1); next_ticks=spike_ticks(1-nv)
+            self.play(b[1].animate.stretch_to_fit_height(nv*SCALE).move_to([PX,BASE+nv*SCALE/2,0]),
+                      FadeOut(g),FadeIn(next_gap),FadeOut(f[4]),FadeIn(next_ticks),FadeOut(portion),run_time=.5)
+            g=next_gap; f[4].become(next_ticks)
+            # Keep the new tick object in the firing group for the next swap.
+            self.remove(next_ticks); self.add(f[4])
+            v=nv
         self.finish()
 
-
-class S02Cue(SpokenScene):
+class S16Shrink(SpokenScene):
     def construct(self):
-        axes, labels, head = plot_frame()
-        juice, jl = evchip("juice", YELLOW, T_JUICE), evline(T_JUICE, YELLOW)
-        a_s, a_j = ValueTracker(0), ValueTracker(1.0)
-        tr = always_redraw(trace([(T_SOUND, 0.35, a_s), (T_JUICE, 0.35, a_j)]))
-        self.add(axes, labels, head, juice, jl, tr)
-        sound, sl = evchip("sound", BLUE, T_SOUND), evline(T_SOUND, BLUE)
-        pred = Arrow(sound.get_right() + [0.05, 0, 0], juice.get_left() - [0.05, 0, 0], buff=0, color=BLUE, stroke_width=4, tip_length=0.2)
-        pl = T("predicts", 22, BLUE).move_to([(tx(T_SOUND) + tx(T_JUICE)) / 2, YEV + 0.3, 0])
-        self.at("Now suppose a sound")
-        self.play(FadeIn(sound, shift=DOWN * 0.3), Create(sl), run_time=0.6)
-        self.play(GrowArrow(pred), FadeIn(pl), run_time=0.6)
-        self.at("the burst came at the sound")
-        self.play(a_s.animate.set_value(1.0), a_j.animate.set_value(0.0), run_time=1.3)
-        self.at("rather than at the juice")
-        nb = T("no burst", 24, GREY).move_to([tx(T_JUICE) + 0.9, YB + 0.5, 0])
-        self.play(FadeIn(nb), Indicate(juice, color=YELLOW, scale_factor=1.12), run_time=0.7)
-        self.at("The response moved")
-        arc = CurvedArrow([tx(T_JUICE) - 0.2, 1.2, 0], [tx(T_SOUND) + 0.2, 1.2, 0], angle=TAU / 6, color=GREEN, stroke_width=5)
-        self.play(Create(arc), run_time=0.8)
+        v=1-.7**3; b=bars(v,1); g=gap(v,1); f=firing(1-v); title=label('Repeated, certain juice',0,3.45,34); self.add(b,g,f,title)
+        self.at('error at the juice')
+        for n in (5,8,12):
+            nv=1-.7**n
+            self.play(Transform(b[1],bar(PX,nv,TEAL)),Transform(g,gap(nv,1)),Transform(f[4],spike_ticks(1-nv)),run_time=.45)
+        self.at('An uncertain reward'); self.play(Transform(title,label('Uncertain reward',0,3.45,34)),Transform(b[1],bar(PX,.5,TEAL)),Transform(g,gap(.5,1,'positive error')),Transform(f[4],spike_ticks(.5)),run_time=.4)
+        outcome=label('half the trials: full juice',3.55,-2.4,28,GREEN); self.play(FadeIn(outcome),run_time=.25); self.wait(.5)
+        self.at('leaves some surprise'); self.play(Transform(b[2],bar(RX,0,YELLOW)),Transform(g,gap(.5,0,'negative error')),Transform(f[4],spike_ticks(-.5)),Transform(outcome,label('other half: no juice',3.55,-2.4,28,RED)),Transform(f[3][0],label('expected juice time',3.55,1.8,26,YELLOW)),run_time=.5); self.finish()
+
+class S17Earliest(SpokenScene):
+    def construct(self):
+        y=-.4; w=11.5
+        baseline=spike_ticks(0,0,y,w,1.8)
+        extra=VGroup(*[Line([x,y,0],[x,y+1.8,0],color=TEXT,stroke_width=2.6) for x in np.linspace(3.5-.55,3.5+.55,15)])
+        tone=chip('tone',BLUE,32).move_to([-3.5,-1.7,0]); juice=chip('juice',YELLOW,32).move_to([3.5,-1.7,0])
+        title=label('Before learning',0,3.35,36)
+        self.add(title,baseline,extra,Arrow([-5.9,y,0],[6.1,y,0],buff=0,color=GREY),tone,juice,label('dopamine neuron firing',0,2.45,30,PURPLE),label('time',5.7,-1,26),label('Tone comes at unpredictable times',0,-2.85,32),DashedLine([-3.5,-.8,0],[-3.5,1.45,0],color=BLUE),DashedLine([3.5,-.8,0],[3.5,1.45,0],color=YELLOW))
+        self.at('With learning'); self.wait(1.5)
+        self.at('to the tone'); self.play(extra.animate.shift(LEFT*7),Transform(title,label('After learning',0,3.35,36)),run_time=1.1)
+        self.at('Good news'); self.play(FadeIn(label('burst: good news',-3.5,1.9,28,GREEN)),FadeIn(label('no change',3.5,1.9,28)),run_time=.4); self.finish()
+
+class S18Hunger(SpokenScene):
+    def construct(self):
+        b=bars(.5,1); g=gap(.5,1); d=gauge(.85).scale(.95).shift(RIGHT*3.4+DOWN*.3)
+        worth=label('worth',RX,2.55,28,YELLOW)
+        link=Arrow([1.9,.2,0],[-1.55,.2,0],buff=0,color=YELLOW)
+        state=label('greater worth',3.4,1.8,30,YELLOW)
+        self.add(b,g,d,worth,link,state,label('Worth changes the error',0,3.45,34),label('hunger / satiety',3.4,-1.3,30),label('a modelling idea',-3.55,-3.6,28))
+        self.at('Hunger and satiety')
+        low=label('worth',RX,BASE+.25*SCALE+.3,28,YELLOW)
+        lower=label('less worth',3.4,1.8,30,YELLOW)
+        explanation=label('worth below prediction',3.4,-2.4,28,RED)
+        low_gap=gap(.5,.25,'negative error')
+        self.play(Transform(d,gauge(.2).scale(.95).shift(RIGHT*3.4+DOWN*.3)),
+                  Transform(b[2],bar(RX,.25,YELLOW)),FadeOut(g),FadeIn(low_gap),
+                  worth.animate.move_to(low),FadeOut(state),FadeIn(lower),FadeIn(explanation),run_time=.6)
+        self.at('change how much')
+        # Clear the negative case together with its explanation as worth rises.
+        self.play(Transform(d,gauge(.85).scale(.95).shift(RIGHT*3.4+DOWN*.3)),
+                  Transform(b[2],bar(RX,1,YELLOW)),worth.animate.move_to([RX,2.55,0]),
+                  FadeOut(lower),FadeIn(state),FadeOut(explanation),FadeOut(low_gap),FadeIn(g),run_time=1)
         self.finish()
 
-
-class S03Error(SpokenScene):
+class S19Scope(SpokenScene):
     def construct(self):
-        axes, labels, head = plot_frame()
-        juice, jl = evchip("juice", YELLOW, T_JUICE), evline(T_JUICE, YELLOW)
-        sound, sl = evchip("sound", BLUE, T_SOUND), evline(T_SOUND, BLUE)
-        pred = Arrow(sound.get_right() + [0.05, 0, 0], juice.get_left() - [0.05, 0, 0], buff=0, color=BLUE, stroke_width=4, tip_length=0.2)
-        pl = T("predicts", 22, BLUE).move_to([(tx(T_SOUND) + tx(T_JUICE)) / 2, YEV + 0.3, 0])
-        a_s, a_j, a_l = ValueTracker(1.0), ValueTracker(0.0), ValueTracker(0.0)
-        tr = always_redraw(trace([(T_SOUND, 0.35, a_s), (T_JUICE, 0.45, a_j), (T_LATE, 0.35, a_l)]))
-        self.add(axes, labels, head, juice, jl, sound, sl, pred, pl, tr)
-        c1 = T("expected juice left out", 26, TEXT).move_to([2.6, 2.4, 0])
-        c2 = T("juice at an unexpected time", 26, TEXT).move_to([2.6, 2.4, 0])
-        gh = ghost("juice", T_JUICE)
-        self.at("an expected reward was left out")
-        self.play(FadeIn(c1), FadeOut(juice), FadeIn(gh), run_time=0.7)
-        self.at("dipped below baseline")
-        self.play(a_j.animate.set_value(-0.6), run_time=0.8)
-        self.at("A reward at an unexpected time")
-        late, ll = evchip("juice", YELLOW, T_LATE), evline(T_LATE, YELLOW)
-        self.play(FadeOut(c1), FadeOut(gh), FadeOut(sound), FadeOut(sl), FadeOut(pred), FadeOut(pl), FadeOut(jl),
-                  a_j.animate.set_value(0.0), a_s.animate.set_value(0.0),
-                  FadeIn(late, shift=DOWN * 0.3), Create(ll), run_time=0.9)
-        self.play(FadeIn(c2), run_time=0.3)
-        self.at("evoked a burst")
-        self.play(a_l.animate.set_value(1.0), run_time=0.6)
-        self.at("So the firing follows")
-        self.play(*[FadeOut(m) for m in (axes, labels, head, tr, late, ll, c2)], run_time=0.7)
-        self.remove(tr)
-        rec = chip("reward received", YELLOW, size=34, pad=0.26).move_to([-3.5, 1.1, 0])
-        prd = chip("reward predicted", TEAL, size=34, pad=0.26).move_to([3.5, 1.1, 0])
-        minus = M("−", 56, TEXT).move_to([0, 1.1, 0])
-        self.at("the reward received")
-        self.play(FadeIn(rec, shift=UP * 0.2), run_time=0.5)
-        self.at("the reward predicted")
-        self.play(FadeIn(minus), FadeIn(prd, shift=UP * 0.2), run_time=0.5)
-        self.at("reward prediction error")
-        res = chip("reward prediction error", GREEN, size=44, pad=0.3).move_to([0, -1.5, 0])
-        ar = Arrow([0, 0.35, 0], [0, -0.7, 0], buff=0, color=GREEN, stroke_width=6, tip_length=0.28)
-        self.play(GrowArrow(ar), FadeIn(res, shift=UP * 0.2), run_time=0.7)
-        self.finish()
+        s=scope(); s[1][3:].set_opacity(0)
+        for row,y in zip(s[1][:3],[1.2,0,-1.2]): row.move_to([0,y,0]).set_opacity(.5)
+        self.add(s)
+        self.at('Keep the scope'); self.play(s[0].animate.set_stroke(TEAL),run_time=.4)
+        self.at('many not all'); self.play(s[1][0].animate.set_color(PURPLE).set_opacity(1),run_time=.4)
+        self.at('monkeys and rodents'); self.play(s[1][0].animate.set_opacity(.5),s[1][1].animate.set_color(TEAL).set_opacity(1),s[1][2].animate.set_color(YELLOW).set_opacity(.55),run_time=.4); self.finish()
 
-
-# ---- bar charts for the model numbers (scenes 4 to 6) ---------------------------------------
-def bargroup(x, delta, v, base, scale, bw, off, labels=True, size=28):
-    d = Rectangle(width=bw, height=max(delta * scale, 0.02), stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
-    d.move_to([x - off, base + max(delta * scale, 0.02) / 2, 0])
-    vv = Rectangle(width=bw, height=max(v * scale, 0.02), stroke_width=0, fill_color=TEAL, fill_opacity=0.85)
-    vv.move_to([x + off, base + max(v * scale, 0.02) / 2, 0])
-    parts = [d, vv]
-    labs = VGroup()
-    if labels:
-        labs.add(M(f"{delta:.2f}", size, GREEN).next_to(d, UP, buff=0.1))
-        labs.add(M(f"{v:.2f}", size, TEAL).next_to(vv, UP, buff=0.1))
-    return VGroup(d, vv), labs
-
-
-def model_series(n=9, alpha=0.3):
-    out, v = [], 0.0
-    for _ in range(n):
-        dl = 1.0 - v
-        v = v + alpha * dl
-        out.append((dl, v))
-    return out
-
-
-SER = model_series()
-S4_BASE, S4_SCALE = -2.5, 3.0
-
-
-def s4_chart(upto):
-    groups, labs, tl = [], [], []
-    for i, x in enumerate((-2.2, 2.2)[:upto]):
-        g, lb = bargroup(x, SER[i][0], SER[i][1], S4_BASE, S4_SCALE, 0.9, 0.55)
-        groups.append(g); labs.append(lb)
-        tl.append(T(f"trial {i + 1}", 26, GREY).move_to([x, S4_BASE - 0.4, 0]))
-    return groups, labs, tl
-
-
-def legend_left():
-    a = chip("δ  error", GREEN, size=24, pad=0.16).move_to([-4.9, 0.1, 0])
-    b = chip("V  cue value", TEAL, size=24, pad=0.16).move_to([-4.9, -0.7, 0])
-    return VGroup(a, b)
-
-
-class S04Rule(SpokenScene):
+class S20Scope2(SpokenScene):
     def construct(self):
-        base_line = Line([-6.0, S4_BASE, 0], [6.0, S4_BASE, 0], color=GREY, stroke_width=3)
-        e1 = eqrow([("δ", GREEN), (" = ", TEXT), ("r", YELLOW), (" − ", TEXT), ("V", TEAL)]).move_to([0, 3.0, 0])
-        e2 = eqrow([("new V", TEAL), (" = ", TEXT), ("V", TEAL), (" + ", TEXT), ("α", ORANGE), (" × ", TEXT), ("δ", GREEN)]).move_to([0, 2.25, 0])
-        par = eqrow([("α = 0.30", ORANGE), ("r = 1", YELLOW), ("V starts at 0", TEAL)], size=26, buff=0.6).move_to([0, 1.6, 0])
-        gs, ls, ts = s4_chart(2)
-        lg = legend_left()
-        self.add(base_line)
-        self.remove(base_line)
-        rname = chip("Rescorla-Wagner rule", ORANGE, size=40, pad=0.3).move_to([0, 2.6, 0])
-        self.at("simplest rule")
-        self.play(FadeIn(rname, shift=UP * 0.2), run_time=0.6)
-        e1.move_to([0, 1.1, 0]).scale(1.4); e2.scale(1.4).move_to([0, 0.0, 0])
-        par.move_to([0, -1.2, 0])
-        self.at("Delta is the reward")
-        self.play(FadeIn(e1, shift=UP * 0.15), run_time=0.6)
-        self.at("and the new")
-        self.play(FadeIn(e2, shift=UP * 0.15), run_time=0.6)
-        self.at("With alpha at")
-        self.play(FadeIn(par, shift=UP * 0.1), run_time=0.6)
-        self.at("gives delta", nth=0)
-        self.play(FadeOut(rname), e1.animate.scale(1 / 1.4).move_to([0, 3.0, 0]), e2.animate.scale(1 / 1.4).move_to([0, 2.25, 0]),
-                  par.animate.move_to([0, 1.6, 0]), Create(base_line), FadeIn(lg), run_time=0.7)
-        self.play(FadeIn(ts[0]), GrowFromEdge(gs[0][0], DOWN), run_time=0.6)
-        self.play(FadeIn(ls[0][0]), run_time=0.3)
-        self.at("and V of", nth=0)
-        self.play(GrowFromEdge(gs[0][1], DOWN), run_time=0.6)
-        self.play(FadeIn(ls[0][1]), run_time=0.3)
-        self.at("gives delta", nth=1)
-        self.play(FadeIn(ts[1]), GrowFromEdge(gs[1][0], DOWN), run_time=0.6)
-        self.play(FadeIn(ls[1][0]), run_time=0.3)
-        self.at("and V of", nth=1)
-        self.play(GrowFromEdge(gs[1][1], DOWN), run_time=0.6)
-        self.play(FadeIn(ls[1][1]), run_time=0.3)
-        self.finish()
+        s=scope(); s[0].set_stroke(TEAL); s[1][3:].set_opacity(0)
+        for row,y,col,opacity in zip(s[1][:3],[1.2,0,-1.2],[PURPLE,TEAL,YELLOW],[.5,1,.55]):
+            row.move_to([0,y,0]).set_color(col).set_opacity(opacity)
+        self.add(s)
+        self.at('It describes a signal')
+        # Centre the visible rows, making room as each qualification arrives.
+        self.play(s[1][0].animate.move_to([0,1.8,0]).set_opacity(.4),
+                  s[1][1].animate.move_to([0,.7,0]).set_opacity(.4),
+                  s[1][2].animate.move_to([0,-.4,0]).set_opacity(.4),
+                  s[1][3].animate.move_to([0,-1.8,0]),run_time=.3)
+        self.play(s[1][3].animate.set_opacity(1),run_time=.3)
+        self.at('recording alone'); self.play(Indicate(s[1][3],color=TEAL,scale_factor=1.02),run_time=.6)
+        self.at('nothing about pleasure')
+        self.play(s[1][0].animate.move_to([0,2.1,0]),s[1][1].animate.move_to([0,.98,0]),
+                  s[1][2].animate.move_to([0,-.14,0]),s[1][3].animate.move_to([0,-1.395,0]).set_opacity(.4),
+                  s[1][4].animate.set_opacity(1),run_time=.3); self.finish()
 
-
-S5_BASE, S5_SCALE = -2.0, 3.2
-S5_XS = [-4.9 + 1.2 * i for i in range(9)]
-
-
-class S05Shift(SpokenScene):
+class S21Takeaway(SpokenScene):
     def construct(self):
-        base_line = Line([-6.0, S4_BASE, 0], [6.0, S4_BASE, 0], color=GREY, stroke_width=3)
-        gs, ls, ts = s4_chart(2)
-        lg = legend_left()
-        self.add(base_line, *gs, *ls, *ts, lg)
-        # the same two trials, moved into a nine-trial row
-        new_base = Line([-6.0, S5_BASE, 0], [6.0, S5_BASE, 0], color=GREY, stroke_width=3)
-        ng, nl_, nt = [], [], []
-        for i, x in enumerate(S5_XS):
-            g, _ = bargroup(x, SER[i][0], SER[i][1], S5_BASE, S5_SCALE, 0.42, 0.22, labels=False)
-            ng.append(g)
-            nt.append(T(str(i + 1), 24, GREY).move_to([x, S5_BASE - 0.38, 0]))
-        lg2 = VGroup(chip("δ  error at the reward", GREEN, size=24, pad=0.16), chip("V  cue value", TEAL, size=24, pad=0.16)).arrange(RIGHT, buff=0.6).move_to([0, 2.6, 0])
-        trial_lab = T("trial", 22, GREY).move_to([0, S5_BASE - 0.85, 0])
-        self.at("The error at the reward")
-        self.play(FadeOut(VGroup(*ls)), FadeOut(VGroup(*ts)), FadeOut(lg),
-                  ReplacementTransform(base_line, new_base),
-                  ReplacementTransform(gs[0], ng[0]), ReplacementTransform(gs[1], ng[1]),
-                  FadeIn(VGroup(nt[0], nt[1])), FadeIn(lg2), run_time=1.0)
-        self.play(FadeIn(trial_lab), run_time=0.2)
-        rest = VGroup(*ng[2:])
-        t_end = self.t_of("After nine trials") - 0.35
-        self.play(LaggedStart(*[GrowFromEdge(g, DOWN) for g in ng[2:]], lag_ratio=0.35), FadeIn(VGroup(*nt[2:])),
-                  run_time=max(0.8, t_end - self.elapsed()))
-        self.at("trials")
-        v9 = M("0.96", 26, TEAL).next_to(ng[8][1], UP, buff=0.1)
-        ring = SurroundingRectangle(ng[8], color=TEAL, buff=0.1, stroke_width=3)
-        self.play(Create(ring), FadeIn(v9), run_time=0.6)
-        self.at("itself arrives")
-        # panels: first trial and after nine trials
-        cxl, cxr, yb = -3.2, 3.2, -1.2
-        sc = 3.0
-        def panel(cx, title, cue_h, rew_h, cue_lab, rew_lab):
-            bl = Line([cx - 2.6, yb, 0], [cx + 2.6, yb, 0], color=GREY, stroke_width=3)
-            ti = T(title, 28, TEXT).move_to([cx, 3.0, 0])
-            cch = chip("cue", BLUE, size=24, pad=0.16).move_to([cx - 1.4, yb - 0.75, 0])
-            rch = chip("reward", YELLOW, size=24, pad=0.16).move_to([cx + 1.4, yb - 0.75, 0])
-            cb = Rectangle(width=0.8, height=max(cue_h * sc, 0.02), stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
-            cb.move_to([cx - 1.4, yb + max(cue_h * sc, 0.02) / 2, 0])
-            rb = Rectangle(width=0.8, height=max(rew_h * sc, 0.02), stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
-            rb.move_to([cx + 1.4, yb + max(rew_h * sc, 0.02) / 2, 0])
-            rl = M(rew_lab, 26, GREEN).next_to(rb, UP, buff=0.1)
-            return VGroup(bl, ti, cch, rch), cb, rb, rl
-        pl_s, cb1, rb1, rl1 = panel(cxl, "trial 1", 0.0, 1.0, "", "1.00")
-        pl_e, cb2, rb2, rl2 = panel(cxr, "after nine trials", 0.96, 0.04, "", "0.04")
-        tdr = T("in the temporal-difference reading", 24, TEAL).move_to([cxr, -2.85, 0])
-        self.play(FadeOut(VGroup(new_base, *ng, *nt, lg2, trial_lab, ring, v9)), run_time=0.6)
-        self.play(FadeIn(pl_s), FadeIn(pl_e), GrowFromEdge(rb1, DOWN), FadeIn(rl1), FadeIn(tdr), run_time=0.7)
-        self.at("grows toward")
-        tow = T("toward V", 24, TEAL).move_to([cxr - 0.1, 1.0, 0])
-        self.play(GrowFromEdge(cb2, DOWN), run_time=0.7)
-        self.play(GrowFromEdge(rb2, DOWN), FadeIn(rl2), FadeIn(tow), run_time=0.5)
-        self.at("The burst moves from")
-        arc = CurvedArrow([cxl + 1.4, 2.55, 0], [cxr - 1.4, 2.0, 0], angle=-TAU / 8, color=GREEN, stroke_width=5)
-        self.play(Create(arc), run_time=0.8)
-        self.at("These are model units")
-        tagm = T("model units, not spikes per second", 24, GREY).move_to([0, -3.35, 0])
-        self.play(FadeIn(tagm), run_time=0.5)
-        self.finish()
+        self.add(label('dopamine neuron firing',0,3.35,30,PURPLE))
+        strips=VGroup()
+        for x,d,word,col in [(-4.4,1,'better',GREEN),(0,0,'as predicted',TEXT),(4.4,-1,'worse',RED)]:
+            strips.add(VGroup(spike_ticks(d,x,-.2,3.3,2),Arrow([x-1.7,-.2,0],[x+1.75,-.2,0],buff=0,color=GREY),DashedLine([x,-.35,0],[x,2.05,0],color=YELLOW),label('juice arrives',x,2.4,26,YELLOW),label(word,x,-1.05,30,col),label('time',x+1.25,-.55,22)))
+        eq=label('received − predicted',0,-1.85,42); self.add(strips,eq)
+        self.at('Carry one idea'); self.play(Indicate(eq,color=TEAL,scale_factor=1.04),run_time=.4)
+        self.at('Dopamine bursts and pauses'); self.play(Indicate(strips[0],color=GREEN,scale_factor=1.03),Indicate(strips[2],color=RED,scale_factor=1.03),run_time=.5)
+        self.at('better or worse'); self.play(FadeIn(VGroup(label('Dopamine bursts and pauses report',0,-2.75,34),label('better or worse than predicted.',0,-3.35,34))),run_time=.4)
+        self.at('hunger shapes'); self.play(Transform(eq,label('received (worth) − predicted',0,-1.85,34)),run_time=.4); self.finish()
 
-
-class S06Keep(SpokenScene):
+class S22End(EndCard):
+    LINE=LINE
     def construct(self):
-        zy, sc = 0.3, 1.8
-        xa, xb = -3.0, 3.0
-        zero = Line([-6.0, zy, 0], [6.0, zy, 0], color=GREY, stroke_width=3)
-        za = M("0", 24, GREY).move_to([-6.1, zy, 0])
-        tagm = T("model units, not spikes per second", 22, GREY).move_to([0, -3.3, 0])
-        la = VGroup(T("reward left out", 26, TEXT), M("V near 0.95", 24, TEAL)).arrange(DOWN, buff=0.08).move_to([xa, 3.05, 0])
-        lb = VGroup(T("unpredicted reward", 26, TEXT), M("V = 0", 24, TEAL)).arrange(DOWN, buff=0.08).move_to([xb, 3.05, 0])
-        cue_a = chip("cue", BLUE, size=24, pad=0.16).move_to([xa - 1.5, -2.6, 0])
-        gh_a = VGroup(*ghost("reward", 0)).move_to([xa + 0.4, -2.6, 0]) if False else ghost("reward", 0).move_to([xa + 0.5, -2.6, 0])
-        rew_b = chip("reward", YELLOW, size=24, pad=0.16).move_to([xb, -2.6, 0])
-        bar_a = Rectangle(width=1.1, height=0.95 * sc, stroke_width=0, fill_color=RED, fill_opacity=0.85)
-        bar_a.move_to([xa + 0.5, zy - 0.95 * sc / 2, 0])
-        lab_a = M("−0.95", 28, RED).next_to(bar_a, DOWN, buff=0.1)
-        bar_b = Rectangle(width=1.1, height=1.0 * sc, stroke_width=0, fill_color=GREEN, fill_opacity=0.85)
-        bar_b.move_to([xb, zy + sc / 2, 0])
-        lab_b = M("+1.00", 28, GREEN).next_to(bar_b, UP, buff=0.1)
-        self.at("Now leave the reward out")
-        self.play(Create(zero), FadeIn(za), FadeIn(tagm), FadeIn(la), FadeIn(cue_a), FadeIn(gh_a), run_time=0.8)
-        self.at("Delta is minus")
-        self.play(GrowFromEdge(bar_a, UP), run_time=0.7)
-        self.play(FadeIn(lab_a), run_time=0.3)
-        self.at("An unpredicted reward")
-        self.play(FadeIn(lb), FadeIn(rew_b), run_time=0.6)
-        self.at("gives plus")
-        self.play(GrowFromEdge(bar_b, DOWN), run_time=0.6)
-        self.play(FadeIn(lab_b), run_time=0.3)
-        self.at("A recording shows")
-        self.play(*[FadeOut(m) for m in (zero, za, tagm, la, lb, cue_a, gh_a, rew_b, bar_a, bar_b, lab_a, lab_b)], run_time=0.6)
-        r1 = chip("recording", TEXT, size=28, pad=0.2).move_to([-4.6, 2.3, 0])
-        r2 = chip("firing goes with error", GREEN, size=28, pad=0.2).move_to([0.0, 2.3, 0])
-        a1 = Arrow(r1.get_right() + [0.05, 0, 0], r2.get_left() - [0.05, 0, 0], buff=0, color=GREEN, stroke_width=5, tip_length=0.22)
-        r3 = chip("burst teaches?", GREY, size=28, pad=0.2).move_to([4.7, 2.3, 0])
-        a2 = DashedLine(r2.get_right() + [0.05, 0, 0], r3.get_left() - [0.3, 0, 0], color=GREY, stroke_width=4, dash_length=0.12)
-        a2h = Triangle(fill_color=GREY, fill_opacity=1, stroke_width=0).scale(0.12).rotate(-PI / 2).move_to(r3.get_left() - [0.2, 0, 0])
-        self.play(FadeIn(r1), run_time=0.4)
-        self.play(GrowArrow(a1), FadeIn(r2), run_time=0.5)
-        self.play(Create(a2), FadeIn(a2h), FadeIn(r3), run_time=0.6)
-        self.at("Keep the rule")
-        self.play(VGroup(r1, r2, r3, a1, a2, a2h).animate.set_opacity(0.35), run_time=0.5)
-        note = T("in these monkeys", 26, GREY).move_to([0, 0.0, 0])
-        f1 = chip("reward received", YELLOW, size=34, pad=0.24).move_to([-4.2, -1.5, 0])
-        f2 = M("−", 52, TEXT).move_to([-1.8, -1.5, 0])
-        f3 = chip("reward predicted", TEAL, size=34, pad=0.24).move_to([0.75, -1.5, 0])
-        f4 = chip("firing", GREEN, size=34, pad=0.24).move_to([4.9, -1.5, 0])
-        ar = Arrow([3.95, -1.2, 0], [4.3, -1.2, 0], buff=0, color=GREEN, stroke_width=5, tip_length=0.22) if False else M("→", 46, GREEN).move_to([3.4, -1.5, 0])
-        self.play(FadeIn(note), FadeIn(f1, shift=UP * 0.15), run_time=0.5)
-        self.play(FadeIn(f2), FadeIn(f3, shift=UP * 0.15), run_time=0.5)
-        self.play(FadeIn(ar), FadeIn(f4, shift=UP * 0.15), run_time=0.5)
-        self.finish()
-
-
-class S07End(EndCard):
-    LINE = "In these monkeys, firing follows reward received minus predicted."
+        self.add(label('received − predicted',0,1.8,46,TEAL))
+        a=label('Dopamine bursts and pauses report',0,.2,38)
+        b=label('better or worse than predicted.',0,-.6,38)
+        self.play(FadeIn(a),FadeIn(b),run_time=.6)
+        self.add(label('biochemistrypedia.com',0,-2,26,TEAL)); self.finish()

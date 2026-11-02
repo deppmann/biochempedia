@@ -6,16 +6,17 @@ courseChapter: "Neuroscience · Unit 3: Sensory systems"
 order: 610
 summary: >-
   How does a sheet of tissue at the back of the eye turn light into spikes that report edges,
-  contrast and colour? This lesson follows the signal from the photoreceptor, which light quiets,
-  through bipolar, horizontal and amacrine cells to the ganglion cells that send spikes to
-  the brain. Afterwards you can explain why ON and OFF cells exist, build a centre-surround
-  receptive field from the circuit, compute photon statistics from a rod recording, and say why
-  colour needs more than one kind of cone.
+  contrast and colour? One rule carries the lesson: one receptor cannot separate wavelength from
+  intensity; the circuit compares. You follow the signal from the photoreceptor, which light quiets, through bipolar,
+  horizontal and amacrine cells to the ganglion cells that send spikes to the brain. Afterwards
+  you can explain why ON and OFF cells exist, build a centre-surround receptive field from the
+  circuit, compute photon statistics from a rod recording, and say why colour needs more than
+  one kind of cone.
 hook: "A rod in the dark is depolarized and releasing glutamate. A flash of light turns it down. How does quieting a cell let you see?"
 
-estMinutes: 26
+estMinutes: 32
 objectives:
-  - "Trace phototransduction from the isomerization of 11-cis retinal through transducin, PDE6 and falling cGMP to the closure of CNG channels, the hyperpolarization of the photoreceptor and the fall in glutamate release, and explain calcium feedback through GCAPs."
+  - "Trace phototransduction from the isomerization of 11-cis retinal through transducin, PDE6 and falling cGMP to the closure of CNG channels, the hyperpolarization of the photoreceptor and the fall in glutamate release; explain with the balance point why closing a cation channel makes the cell more negative; and explain calcium feedback through GCAPs."
   - "Follow a signal through photoreceptors, bipolar, horizontal, amacrine and ganglion cells, and say which of them signal with graded potentials and which fire action potentials."
   - "Explain ON and OFF centre-surround receptive fields from the circuit: sign inversion by mGluR6 and TRPM1 in ON bipolar cells, sign preservation by AMPA and kainate receptors in OFF bipolar cells, and surrounds built by horizontal and amacrine cells."
   - "Compare rods and cones in sensitivity, speed and convergence, trace the AII rod pathway, and explain colour as a comparison across three cone classes."
@@ -24,10 +25,28 @@ explainer:
   src: "/explainers/retina/explainer.mp4"
   captions: "/explainers/retina/explainer.vtt"
   poster: "/explainers/retina/poster.jpg"
-  title: "Light Turns the Receptor Off"
-  durationSec: 144.7
+  title: "One Cell Counts"
+  durationSec: 165.8
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "two-signs"
+    src: "/explainers/retina/two-signs.mp4"
+    captions: "/explainers/retina/two-signs.vtt"
+    poster: "/explainers/retina/two-signs-poster.jpg"
+    title: "One Transmitter, Two Signs"
+    durationSec: 136.9
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "centre-surround"
+    src: "/explainers/retina/centre-surround.mp4"
+    captions: "/explainers/retina/centre-surround.vtt"
+    poster: "/explainers/retina/centre-surround-poster.jpg"
+    title: "Centre Minus Surround"
+    durationSec: 151.2
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Stephen Kuffler"
@@ -311,7 +330,7 @@ explainLevels:
       (Behrens and colleagues, 2016) found anatomical contacts from cones onto rod bipolar cells
       and from rods onto OFF cone bipolar types 3A, 3B and 4, though without explicit synaptic
       markers, and in mice rods kept contributing to moderate-contrast responses at backgrounds up
-      to 10^7 photoisomerizations per rod per second, depending on exposure history. How cone
+      to a nominal 10^7 photoisomerizations per rod per second, depending on exposure history. How cone
       surrounds are made remains open: in macaque cones the surround inhibition was inconsistent
       with a GABA-gated chloride conductance, and which of the other proposed feedback mechanisms
       dominates, and in which species, is unsettled.
@@ -324,8 +343,8 @@ anecdotes:
       Tikidji-Hamburyan and colleagues tested this in mice, recording ganglion cells in isolated
       retinas from cone-deficient mice with multielectrode arrays and recording in the lateral
       geniculate nucleus in vivo. In isolated retinas they raised the background tenfold every 30 minutes and found rod-driven
-      responses to moderate contrast at backgrounds up to 10^7 photoisomerizations per rod per
-      second. Rod sensitivity recovered over time after a step to a bright background, faster at
+      responses to moderate contrast at backgrounds up to a nominal 10^7 photoisomerizations per
+      rod per second. Rod sensitivity recovered over time after a step to a bright background, faster at
       higher light levels. The result is for mice under that protocol; it gives no cutoff for
       human rods.
   - title: "A wiring diagram with crossed wires"
@@ -353,36 +372,107 @@ draft: false
 ---
 
 import CentreSurroundSpot from '../../../components/CentreSurroundSpot.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **A rod sitting in the dark is depolarized, with current flowing steadily into it, and it releases glutamate all the time. Light turns that current and that release down.**
 
 Most sensory receptors are excited by their stimulus. Rods and cones are turned down by theirs. The retina then reads that drop in two opposite ways, compares each spot of the image with its neighbours, and sends the brain spikes through many parallel types of ganglion cell. Most report contrast, colour or motion more than raw brightness, though a few, such as melanopsin ganglion cells, track overall light level. This lesson follows the signal from the photon to the optic nerve.
 
-First, the layout. Light enters the eye and passes through the transparent inner retina, including the ganglion cells, before it reaches the photoreceptors at the back. The signal then runs the other way: photoreceptors to **bipolar cells** to **ganglion cells**, whose axons gather at the optic disk to form the optic nerve. Two kinds of cell act sideways. **Horizontal cells** spread across many photoreceptor terminals in the outer retina; **amacrine cells** connect bipolar and ganglion cells in the inner retina. Photoreceptors and horizontal cells signal with **graded potentials**, voltage changes that vary smoothly with input and need no spike over these short distances, and so do most bipolar cells, though some fast mouse bipolar types also spike at their terminals (see [synaptic transmission](/lessons/synaptic-transmission/) for graded release). Ganglion cells fire action potentials, and so do some amacrine cells. The ganglion cells are the retina's only output.
+## The layout
 
-## Light that turns a cell off
+Light enters the eye and passes through the transparent inner retina, including the ganglion cells, before it reaches the photoreceptors at the back. The signal then runs the other way. Hold three lines in mind.
 
-In darkness, cGMP made by guanylyl cyclase holds open **cyclic-nucleotide-gated (CNG) channels** in the outer segment. Sodium and calcium flow in, a steady inward **dark current**, which keeps the cell depolarized and releasing glutamate at its terminal.
+- **The through path.** Photoreceptors (rods and cones) drive **bipolar cells**, which drive **ganglion cells**. Ganglion cell axons gather at the optic disk (the blind spot) to form the optic nerve.
+- **The sideways cells.** **Horizontal cells** spread across many photoreceptor terminals in the outer retina. **Amacrine cells** connect bipolar and ganglion cells in the inner retina.
+- **The signals.** Photoreceptors, horizontal cells and most bipolar cells signal with **graded potentials**, voltage changes that vary smoothly with input and need no spike over these short distances (see [synaptic transmission](/lessons/synaptic-transmission/) for graded release). Ganglion cells fire action potentials. **The ganglion cells are the retina's only output.**
 
-A photon absorbed by rhodopsin (in rods) or a cone opsin isomerizes the chromophore from 11-cis to all-trans retinal. The activated pigment switches on the G protein **transducin**, which activates **PDE6**, a phosphodiesterase that hydrolyzes cGMP. As cGMP falls, CNG channels close, the dark current shrinks, the photoreceptor hyperpolarizes, and glutamate release falls. One activated pigment activates many transducins, which is where much of the gain comes from. The molecular steps, the G protein, the shutoff of rhodopsin by rhodopsin kinase and arrestin, and the shutoff of transducin by RGS9-1 belong to [senses and cGMP](/lessons/senses-and-cgmp/), [G proteins](/lessons/gpcrs-and-g-proteins/) and [turning signals off](/lessons/turning-signals-off/).
+The layout raises four puzzles.
 
-Calcium closes the loop. With the channels shut, calcium extrusion continues while entry stops, so outer-segment calcium falls. Low calcium lets **GCAPs** (guanylyl cyclase-activating proteins) stimulate the cyclase, which remakes cGMP and speeds recovery.
+1. **Why does light make a photoreceptor more negative?**
+2. **How can one transmitter** make some bipolar cells report "lighter" and others "darker"?
+3. **Why do ganglion cells answer a small spot** better than light spread evenly over the whole retina?
+4. **How can colour come from cells** that cannot tell one wavelength from another?
 
-How small can the signal be? Baylor, Lamb and Yau (1979) held single outer segments of toad rods in a suction electrode and gave dim flashes. Responses were absent or made of discrete quantal events, each with a mean size of about 1 pA: the current suppressed by one photoisomerization, the activation of one pigment molecule.
+> **The one idea to carry through this lesson.** One receptor cannot separate wavelength from intensity; the circuit compares. Each rod or cone turns the photons it absorbs into a graded signal, a fall in its glutamate release below the dark level, and that signal carries no label for which wavelengths the photons had. The classic pathways build their reports by comparing these signals: the bipolar cell's receptor sets the sign of the comparison (lighter or darker), the surround subtracts the neighbourhood (where), and opponent circuits compare cone classes (what colour).
+
+**What the rule covers.** It describes the classic ON and OFF centre-surround pathways over their roughly linear range. Three limits matter. First, the subtraction is usually partial: in this lesson's examples the surround is weaker than the centre, and how much it cancels varies between cell types and light levels. Second, a receptor's signal is a noisy time course, not a tally of photons: the same number of photons arriving at different times need not give the same response, and adaptation (below) changes the response to each photon. Two lights are confused only when they give the same effective catch with the same timing, under the same adaptation. Third, a cone's release is already shaped by horizontal-cell feedback from its neighbours, the circuit's first comparison. A few ganglion cell types need more than this rule (see Going deeper).
+
+## Light turns the photoreceptor down
+
+### The dark current
+
+In darkness, cGMP made by guanylyl cyclase holds open **cyclic-nucleotide-gated (CNG) channels** in the outer segment. Sodium and calcium flow in, the inward **dark current**, which leaves again at the inner segment in a steady loop. It keeps the cell depolarized and releasing glutamate at its terminal.
+
+### Why closing channels makes the cell more negative
+
+Depolarized compared with what? Use the rule from [the action potential](/lessons/action-potential/): in a sketch with fixed conductances and no current injected, the membrane potential moves toward a balance point, the average of the reversal potentials (the voltage where each channel's current is zero), weighted by their conductances.
+
+Two conductances matter most in a photoreceptor.
+
+- The **CNG channels** in the outer segment pass cations, reverse near 0 mV and pull the voltage up toward it.
+- **Potassium channels** in the inner segment pull the voltage down toward E_K, about −80 mV in this sketch.
+
+In the dark the two pulls are comparable; take the conductances as equal, a convenient sketch rather than a measurement. The balance point then sits halfway, at about −40 mV, the textbook dark potential of a photoreceptor.
+
+> **Vm = (g_CNG × 0 mV + g_K × E_K) / (g_CNG + g_K)**
+
+**Predict.** Light closes half the CNG channels, and the potassium conductance stays the same. Which way does the balance point move?
+
+<details>
+<summary>Check your prediction</summary>
+
+Toward E_K, so the cell hyperpolarizes. With half the CNG conductance left, the sketch gives (0.5 × 0 + 1 × −80) / (0.5 + 1) ≈ −53 mV. Close all the CNG channels and the sketch gives −80 mV. Real rods reach about −65 to −70 mV in bright light, because other conductances remain. A less depolarized terminal releases less glutamate.
+
+</details>
+
+So closing a channel can make a cell more negative: removing the inward cation pull leaves potassium in charge. The response is graded: dim light closes a few channels, brighter light more. Only saturating light shuts the whole dark current.
+
+### The cascade
+
+What closes the channels? A five-step chain, each step pushing the next.
+
+1. **A photon** absorbed by rhodopsin (in rods) or a cone opsin isomerizes its chromophore, the light-absorbing retinal, changing its shape from 11-cis to all-trans. The pigment is now active.
+2. **The active pigment switches on the G protein transducin.** One activated pigment activates many transducins, which is where much of the amplification, or gain, comes from.
+3. **Transducin activates PDE6**, a phosphodiesterase.
+4. **PDE6 hydrolyzes cGMP**, so cGMP falls.
+5. **CNG channels close.** The dark current shrinks, the photoreceptor hyperpolarizes, and glutamate release falls.
+
+The molecular steps belong to [senses and cGMP](/lessons/senses-and-cgmp/) and [G proteins](/lessons/gpcrs-and-g-proteins/). Shutoff, of rhodopsin by rhodopsin kinase and arrestin and of transducin by RGS9-1, is in [turning signals off](/lessons/turning-signals-off/).
+
+Calcium closes the loop. As the channels close, less calcium enters while extrusion continues, so outer-segment calcium falls. Low calcium lets **GCAPs** (guanylyl cyclase-activating proteins) stimulate the cyclase, which remakes cGMP and speeds recovery. In steadier, brighter light the same feedback turns the gain down, part of **light adaptation**, the photoreceptor's adjustment to the prevailing light. So the response to each photon depends on recent light.
+
+One more fact gives the first half of the rule. **Once absorbed, every photon has the same effect, whatever its wavelength.** The response keeps no record of which wavelengths were caught; the colour section puts this to work.
+
+## Counting photons
+
+How small can the signal be? Picture the record that answered it.
+
+Baylor, Lamb and Yau (1979) drew the outer segment of a single toad rod into a snug glass pipette, a **suction electrode**, so the current entering the outer segment had to pass through the pipette. In darkness the trace is flat: the steady dark current. A very dim flash, repeated many times at the same strength, gives a scatter of results. Some flashes give nothing. Many give a dip of about the same size. The responses do not vary smoothly: a histogram of their sizes has a peak at zero and a peak near 1 pA. So the responses come in discrete units, or **quanta**. Each unit, with a mean size of about 1 pA, is the current suppressed by one photoisomerization, the activation of one pigment molecule by one photon.
+
+**Predict.** Double the strength of the dim flash. Does each response double in size, or do more trials respond?
+
+<details>
+<summary>Check your prediction</summary>
+
+More trials respond, and more of them carry two events instead of one. The unit stays about 1 pA, because each event is still one photoisomerization. The mean response doubles. Single events scatter in size around 1 pA and the recording adds noise, but each trial holds a whole number of events, never a fraction of one. That is what quantal means.
+
+</details>
 
 **Worked problem: counting photons.** Take a toad rod, suction-electrode recording, and dim flashes that give on average m = 0.5 photoisomerizations per rod. Assume photon capture is random and independent, so the chance that a flash gives exactly k events follows a Poisson distribution, P(k) = m^k × e^−m / k!, and that each event gives 1 pA and events add linearly.
 
-*Step 1: failures.* P(0) = e^−0.5 = 0.607. About 61% of flashes give no response at all.
+*Step 1: failures, the chance of zero events.* P(0) = e^−0.5 = 0.607. About 61% of flashes give no response at all.
 
 *Step 2: singles.* P(1) = 0.5 × e^−0.5 = 0.303.
 
 *Step 3: doubles or more.* P(2 or more) = 1 − 0.607 − 0.303 = 0.090.
 
-*Step 4: the mean.* Mean response = 0.5 events × 1 pA = 0.5 pA, though no single trial gives 0.5 pA; each gives 0, 1, 2 pA and so on.
+*Step 4: the mean.* Mean response = 0.5 events × 1 pA = 0.5 pA, though no single trial gives 0.5 pA; in this ideal model each gives 0, 1, 2 pA and so on.
 
-Run it backwards and the failure rate gives the mean: m = −ln P(0). This is the same Poisson logic used for quantal release at a synapse. It is the current of one toad rod in vitro, not a statement that a person sees a single photon.
+Run it backwards and the failure rate gives the mean: m = −ln P(0). This is the same Poisson logic used for quantal release at a synapse. It is the current of one toad rod in vitro, not a statement that a person sees a single photon. Dim-flash rod recordings resolve single photoisomerizations, but the fixed 1-pA event is an idealization, and a cone cannot reliably signal single photons through its noise.
 
-## Two kinds of bipolar cell from one transmitter
+## One transmitter, two signs
+
+<LessonFilm film={frontmatter.films[0]} />
 
 Photoreceptors release one transmitter, glutamate, more in the dark and less in the light. Yet some bipolar cells depolarize to light and others hyperpolarize. Glutamate's sign is set by the receptor, not the molecule ([transmitter systems](/lessons/transmitter-systems/) covers receptor classes).
 
@@ -390,13 +480,60 @@ Photoreceptors release one transmitter, glutamate, more in the dark and less in 
 
 **ON bipolar cells** use the metabotropic receptor **mGluR6**. In the dark, glutamate-bound mGluR6 activates the G protein Go, which keeps the cation channel **TRPM1** closed. Light lowers glutamate, Go activity declines, TRPM1 opens and the cell depolarizes. The sign is inverted.
 
+Two decreases and then an opening are easy to lose, so keep a **sign ledger**, following one flash from the photons to each bipolar cell.
+
+| Step | In light | Sign so far |
+| --- | --- | --- |
+| Photons on the cone | more | + |
+| Cone voltage | hyperpolarizes | − (first flip) |
+| Glutamate release | falls | − (follows the voltage) |
+| OFF bipolar (AMPA or kainate: glutamate opens cation channels) | less excitation, hyperpolarizes | − → **OFF** (no flip) |
+| ON bipolar (mGluR6 → Go keeps TRPM1 shut) | Go activity falls, TRPM1 opens, depolarizes | + → **ON** (second flip) |
+
+A rule of thumb: count the inversions. The photoreceptor gives one. The OFF bipolar cell adds none, so it responds like darkness. The ON bipolar cell adds a second, and an even number means the cell responds like light.
+
+### The evidence: one drug, one pathway
+
+How do we know the two cells read glutamate with different receptors? Slaughter and Miller (1981) worked with the retina of the mudpuppy, a salamander with large retinal cells, kept as a perfused eyecup so they could change the bathing solution while recording intracellularly. They applied APB, a glutamate analogue that mimics glutamate at the ON receptor.
+
+**Predict.** Apply APB, then turn on a light. What does an ON bipolar cell do? An OFF bipolar cell?
+
+<details>
+<summary>Check your prediction</summary>
+
+ON responses were abolished and OFF responses were spared. Acting like glutamate at the ON synapse, APB holds ON bipolar cells in their dark state, so light has nothing to remove. OFF cells read glutamate through other receptors and respond as before. The OFF responses in the same retina, and recovery after washout, are the controls that show a receptor effect rather than a damaged retina.
+
+</details>
+
+APB shows only that the ON pathway uses a distinct receptor; it does not name the receptor or the channel (the design problem at the end takes that step).
+
 So each cone feeds two parallel streams, one signalling "lighter" and one "darker". Rods reach both streams by a different route, described below. ON bipolar cells drive ON ganglion cells, and OFF bipolar cells drive OFF ganglion cells.
 
-## Centre and surround
+## Centre minus surround
 
-A ganglion cell's **receptive field** is the patch of retina where light changes its firing. Stephen Kuffler (1953), recording single ganglion cells in cats, found two main patterns. An **ON-centre** cell fires faster when a spot lights the centre of its field and is suppressed when light falls on a ring around it, the **surround**. An **OFF-centre** cell does the mirror image: light in the centre suppresses it and light in the surround excites it.
+<LessonFilm film={frontmatter.films[1]} />
 
-The centre comes from the bipolar cells directly beneath. The surround comes from lateral cells. Horizontal cells, which collect from many photoreceptors, feed back onto cone terminals, so light in the surround changes what the centre cones release. In whole-cell recordings from macaque cones, Verweij, Hornstein and Schnapf (2003) saw this antagonism when surrounding cones were lit, and found it inconsistent with a GABA-gated chloride conductance. How the feedback works in each species is still unsettled. Amacrine cells add further surround inhibition in the inner retina.
+### Kuffler's spots
+
+A ganglion cell's **receptive field** is the patch of retina where light changes its firing. Stephen Kuffler (1953) recorded single ganglion cells in cats while he projected small spots of light onto the retina.
+
+- **A spot in the middle of the field:** the cell fires faster.
+- **A spot a little farther out, on a ring around the middle:** the same cell falls silent, then fires when the light goes off.
+
+That is an **ON-centre** cell: light on the centre excites it, and light on the ring around it, the **surround**, suppresses it. An **OFF-centre** cell does the mirror image: light in the centre suppresses it and light in the surround excites it.
+
+### Where centre and surround come from
+
+The centre comes from the bipolar cells that contact the ganglion cell's dendrites. The surround comes from lateral cells. Horizontal cells, which collect from many photoreceptors, feed back onto cone terminals, so light in the surround pushes the centre cones' release the opposite way from light on the centre. How that feedback works is still debated (see Going deeper). Amacrine cells add further surround inhibition in the inner retina.
+
+**Predict.** Light the whole receptive field of an ON-centre cell, centre and surround together. Does it fire more than for the best centre spot, less, or no more than on the grey background?
+
+<details>
+<summary>Check your prediction</summary>
+
+Less than for the spot, but more than on the background: in this lesson's example the surround subtracts but is weaker than the centre. The worked problem below puts numbers on it.
+
+</details>
 
 **Worked problem: reading a receptive field.** In a made-up recording, an ON-centre ganglion cell fires 20 spikes/s on a uniform grey background. A spot filling the centre raises it to 60 spikes/s; an annulus over the surround alone lowers it to 5 spikes/s. Assume the two effects add linearly.
 
@@ -404,40 +541,77 @@ The centre comes from the bipolar cells directly beneath. The surround comes fro
 
 *Step 2.* Surround effect = 5 − 20 = −15 spikes/s.
 
-*Step 3.* Light covering both: 20 + 40 − 15 = 45 spikes/s.
+*Step 3.* Light covering both: 20 + 40 − 15 = 45 spikes/s, less than the spot's 60.
 
-Uniform light drives the cell less than the spot does. The cell reports contrast, a spot brighter than its surroundings, more than overall light level. An OFF-centre cell would give the mirror image, firing best to a dark spot on a light background. That is why an edge, where light and dark meet, drives these cells strongly. [Sensory coding](/lessons/sensory-coding/) treats receptive fields in general; [visual cortex](/lessons/visual-cortex/) follows the signal through the optic chiasm.
+The cell reports contrast, a spot brighter than its surroundings, more than overall light level. In this linear model, uniform light would leave the cell at its 20 spikes/s background only if the surround cancelled the centre exactly. Here the net change is 40 − 15 = +25 spikes/s. An OFF-centre cell would give the mirror image, firing best to a dark spot on a light background.
+
+Grow a spot from tiny to the full field, and in a standard model of the field the response rises, peaks for a spot about the size of the centre, then falls as the spot spreads into the surround. With this example's weaker surround, it settles above the background rate rather than returning to it.
+
+### Edges stand out across the population
+
+What about an edge, where light and dark meet? Picture a row of ON-centre cells lined up across it. A cell centred exactly on the edge does not fire the most. In a linear model with a symmetric field, half its centre and half its surround are lit, so it fires halfway between its rates for uniform bright and uniform dark: its change from the uniform-dark rate is half the full bright-field change. (If bright and dark sit equally above and below a grey background, its change from the grey rate is zero.) **Cells whose centres sit just on the bright side of an edge fire more than cells in the middle of a bright area**, because their surrounds reach into the dark and subtract less. ON-centre cells just on the dark side fire least of all. OFF-centre cells show the mirror image: they fire most just on the dark side and least just on the bright side. [Sensory coding](/lessons/sensory-coding/) treats receptive fields in general; [visual cortex](/lessons/visual-cortex/) follows the signal through the optic chiasm.
+
+### Try it
+
+Start with a small spot on the centre and enlarge it. Watch the rate rise, peak and fall. Then try the annulus alone, then the full field. Switch to an OFF-centre cell, which the simulation tests with dark spots and rings, and repeat.
 
 <CentreSurroundSpot />
 
-## Rods, cones and the dim-light pathway
+## Rods borrow the cone circuits
 
-Rods are more sensitive than cones and respond more slowly, trading temporal resolution for sensitivity. Human cone responses to dim flashes peak in 50 to 100 ms (Schnapf, Kraft and Baylor, 1987). Many rods also converge onto each downstream cell, pooling their scarce photons at the cost of spatial detail. Cones dominate the fovea, the central pit of the retina used for fine detail, and rods are absent from its very centre.
+Rods are more sensitive than cones and respond more slowly, trading temporal resolution for sensitivity. Human cone responses to dim flashes peak in 50 to 100 ms (Schnapf, Kraft and Baylor, 1987). Many rods also converge onto each downstream cell, pooling scarce photons at the cost of spatial detail. In a human retina there are about 20 rods for every cone, and rods make up about 95% of photoreceptors (the counts are in Going deeper). Cones dominate the fovea, the central pit of the retina used for fine detail, and rods are absent from its very centre.
 
-**Worked problem: how many rods?** Curcio and colleagues (1990) counted photoreceptors in eight whole-mounted adult human retinas from seven people aged 27 to 44. The means were 92 million rods and 4.6 million cones per retina.
+Rods have no ganglion cells of their own. In the main mammalian rod circuit, their signal joins the ON and OFF lines that the cones use. Following one dim flash through five stops is a good test of the sign ledger.
 
-*Step 1.* Rods per cone = 92 / 4.6 = 20.
+1. **Rod.** Light hyperpolarizes the rod, and its glutamate release falls.
+2. **Rod bipolar cell.** Rod bipolar cells read glutamate through mGluR6, so they are ON cells. Less glutamate means they depolarize.
+3. **AII amacrine cell.** In the classical primary pathway, rod bipolar cells do not contact ganglion cells directly. Their glutamate excites a narrow-field amacrine cell called the **AII**, which depolarizes and relays the signal into the cone pathways. Their ribbon synapses also commonly contact A17 amacrine cells, which feed inhibition back. Many rods feed each rod bipolar cell, and many rod bipolar cells feed each AII: this is where the pooling happens.
+4. **Into the cone circuits, two ways.**
+   - To **ON cone bipolar cells** through **gap junctions**. Current passes straight through, so the ON cone bipolar cell depolarizes too. The sign is kept.
+   - To **OFF cone bipolar cells** through **glycine synapses**. Glycine is inhibitory, so the OFF cone bipolar cell hyperpolarizes. The sign is inverted. AII cells also inhibit some OFF ganglion cells directly.
+5. **Ganglion cells.** The cone bipolar cells drive ON and OFF ganglion cells as they do in daylight. In dim light, ON ganglion cells fire more and OFF ganglion cells fire less, the same pattern that cone signals produce.
 
-*Step 2.* Rods as a share of photoreceptors = 92 / (92 + 4.6) = 92 / 96.6 = 0.952, or 95.2%.
+| Stop | Response to dim light | Sign |
+| --- | --- | --- |
+| Rod | hyperpolarizes | − |
+| Rod bipolar (mGluR6) | depolarizes | + |
+| AII amacrine | depolarizes | + |
+| ON cone bipolar (gap junction) | depolarizes | + |
+| OFF cone bipolar (glycine) | hyperpolarizes | − |
 
-These are ratios of sample means, and they exclude every other retinal cell: 95.2% of photoreceptors are rods, not 95% of the retina.
+So one ganglion cell can carry rod signals at night and cone signals by day, and the brain receives ON and OFF reports either way. This is the primary rod pathway, mapped synapse by synapse in rabbit retina and found across mammals; rods also reach cone circuits by secondary routes (Going deeper).
 
-Rod signals reach ganglion cells by a borrowed route. Rods drive **rod bipolar cells**, which are ON cells. In the rabbit retina, mapped synapse by synapse by electron microscopy (the RC1 connectome, Marc and colleagues, 2014), rod bipolar cells feed **AII amacrine cells**; each of five fully analysed AII cells received input from 9 to 17 rod bipolar cells. AII cells pass the signal to ON cone bipolar cells through gap junctions, which keep the sign, and to OFF cone bipolar cells through glycinergic synapses, which invert it. Rod signals then ride the cone circuits to ON and OFF ganglion cells, and AII cells also inhibit some OFF ganglion cells directly. The cell counts are rabbit anatomy, but this primary rod pathway is found across mammals. Rods also reach cone circuits by secondary routes: gap junctions between rods and cones, and direct contacts onto some OFF cone bipolar cells. In mice, serial EM (Behrens and colleagues, 2016) confirmed those rod contacts and found cones contacting rod bipolar cells, though the staining showed no explicit synaptic markers. Mouse rods also kept responding to moderate contrast in bright light (Tikidji-Hamburyan and colleagues, 2017), so rods are not simply silent in daylight. The mouse result gives no value for humans, where estimates of rod saturation depend on viewing conditions.
+**Predict.** A drug blocks glycine receptors. In very dim light, which ganglion cells lose most of their rod-driven response, ON or OFF?
 
-## Colour by comparison
+<details>
+<summary>Check your prediction</summary>
 
-A single cone cannot report colour. Once absorbed, every photon has the same effect, so a cone signals only how many photons it caught. Wavelength changes the probability of capture, and a change in intensity can mimic that exactly. This is the **principle of univariance**: an M cone can give identical responses to a dim light near its peak and a brighter light far from it.
+OFF cells. In the circuit as drawn, the AII reaches OFF cone bipolar cells, and some OFF ganglion cells directly, through glycine synapses. Its route to ON cone bipolar cells is a gap junction, which needs no transmitter. Some rod signal can still reach OFF cells by the secondary routes, especially at the brighter end of dim light.
 
-Colour comes from comparing cones with different, broad sensitivity curves. Humans with normal colour vision have three classes: short-wavelength (S), medium (M) and long (L). Schnapf, Kraft and Baylor (1987) recorded from a small number of human cones and found M and L sensitivity peaks near 530 and 560 nm. The two curves overlap heavily, so it is the ratio of M to L catch, read by colour-opponent circuits, that varies with wavelength. In dim, mesopic light, rods also interact with cone signals and can shift perceived colour. How the retina's maps in the brain are refined during development, including by spontaneous retinal waves before eye opening, is covered in [spontaneous activity](/lessons/spontaneous-activity/) and [topographic maps](/lessons/topographic-maps/).
+</details>
+
+## Colour is a comparison
+
+A single cone cannot report colour. Wavelength changes only the probability that a photon is caught, and a change in intensity can mimic that. This is the **principle of univariance**: given the same timing and the same adaptation, an M cone responds to a dim light near its peak and a brighter light far from it in ways it cannot tell apart (the same on average; each trial is noisy). In standard pigment templates, an L cone, with its peak near 560 nm, needs about 2.6 times as many photons at 620 nm as at 560 nm to give the same catch.
+
+Colour comes from comparing cones with different, broad sensitivity curves. Humans with normal colour vision have three classes: short-wavelength (S), medium (M) and long (L). Schnapf, Kraft and Baylor (1987) recorded from a small number of human cones and found M and L sensitivity peaks near 530 and 560 nm. The two curves overlap heavily, so it is the ratio of M to L catch (photons absorbed) that varies with wavelength. Turn a light up or down and both catches change together, so the ratio holds: that is the comparison doing what a single cone cannot. **Colour-opponent** circuits read such comparisons; a cell excited through L cones and inhibited through M cones, for example, signals the balance between their catches. That balance is a difference, not a ratio, so it still grows as the light gets brighter; adaptation and later normalization reduce, but do not remove, its dependence on intensity.
+
+**What does the third cone add?** Two cone classes already give some colour vision: people with only two (dichromats) see colours but confuse some lights that others tell apart. In standard pigment templates the M/L ratio does not change steadily with wavelength. It rises to a peak near 466 nm and then falls, so a light near 427 nm and a light near 529 nm give the same M/L ratio. Adjust their intensities so their L catches match, and their M catches match too, so M and L cones alone would confuse them. The S cone breaks the tie: it catches far more at 427 nm than at 529 nm.
+
+In dim, mesopic light, between night and daylight levels, rods also interact with cone signals and can shift perceived colour.
+
+So the rule from the start holds to the end: **one receptor cannot separate wavelength from intensity; the circuit compares.** Ganglion cells send those comparisons to the brain as spikes.
+
+Where next: how the retina's maps in the brain are refined during development, including by spontaneous retinal waves before eye opening, is covered in [spontaneous activity](/lessons/spontaneous-activity/) and [topographic maps](/lessons/topographic-maps/).
 
 ### Design problem
 
-Slaughter and Miller (1981), recording intracellularly in a perfused mudpuppy eyecup, found that APB, a glutamate analogue that acts on the ON receptor, abolished ON responses and spared OFF responses. APB tells you the ON pathway uses a distinct receptor. It does not tell you which channel ON bipolar cells open to light. Design experiments to name it.
+Slaughter and Miller's APB result shows that the ON pathway uses a distinct receptor, but not which channel ON bipolar cells open to light. Design experiments to name it.
 
 <details>
 <summary>One way to do it</summary>
 
-Start from what APB means. Acting like glutamate at the ON synapse, it holds ON bipolar cells in their dark state, so the channel must be one that glutamate's receptor keeps shut and light allows to open. Add the controls: OFF responses in the same retina, and recovery after washout.
+Start from what APB means. Because it holds ON bipolar cells in their dark state, the channel must be one that glutamate's receptor keeps shut and light allows to open. Keep the same controls: OFF responses in the same retina, and recovery after washout.
 
 Next, test a candidate channel genetically. Morgans and colleagues (2009) compared TRPM1-deficient mice with controls by electroretinogram. The a-wave, mainly photoreceptor current, was normal; the b-wave, mainly ON bipolar activity, was absent. The defect lies after photoreceptor activation.
 
@@ -448,3 +622,43 @@ Then rescue: restore TRPM1 in ON bipolar cells of the knockout and look for the 
 Two caveats. A germline knockout can act during development, for example by changing synapse formation, so a missing current might not mean the channel itself is gone from a normal circuit. Check that the synapse is still built, or delete the gene only in adults. And loss of function shows the channel is needed; expressing TRPM1 with mGluR6 and Go in another cell would test whether the parts are enough.
 
 </details>
+
+## Going deeper
+
+### Cells that break the signalling pattern
+
+Most bipolar cells signal with graded potentials, but some fast mouse bipolar types also spike at their terminals. Some amacrine cells fire action potentials too. Neither changes which cells carry the output.
+
+### How horizontal-cell feedback works
+
+In whole-cell recordings from macaque cones, Verweij, Hornstein and Schnapf (2003) saw surround antagonism when surrounding cones were lit, and found it inconsistent with a GABA-gated chloride conductance. Which of the other proposed feedback mechanisms dominates, and in which species, is still unsettled.
+
+### Beyond adding and subtracting
+
+The lesson's rule does not cover every ganglion cell. Melanopsin ganglion cells have their own pigment (see [intrinsically photosensitive ganglion cells](/lessons/iprgcs/)). Direction selectivity needs more than adding and subtracting signals (see [computing motion in the retina](/lessons/direction-selectivity/)).
+
+### What the third cone class adds, in numbers
+
+The colour section's numbers, including the 2.6 factor, come from the A1 pigment template of Govardovskii and colleagues (2000), including its beta band, with peaks at 420, 530 and 560 nm, counting photons absorbed by the pigment and ignoring the lens and macular pigment. The matched M/L ratio at 427 and 529 nm is about 1.2. The S/L ratio is about 6 at 427 nm against about 0.001 at 529 nm. At any one wavelength the lens and macular pigment dim all three cone classes alike, so they change how much light must enter the eye, not the ratios between cones.
+
+### How many rods?
+
+Curcio and colleagues (1990) counted photoreceptors in eight whole-mounted adult human retinas from seven people aged 27 to 44. The means were 92 million rods and 4.6 million cones per retina.
+
+*Step 1.* Rods per cone = 92 / 4.6 = 20.
+
+*Step 2.* Rods as a share of photoreceptors = 92 / (92 + 4.6) = 92 / 96.6 = 0.952, or 95.2%.
+
+These are ratios of sample means, and they exclude every other retinal cell: 95.2% of photoreceptors are rods, not 95% of the retina.
+
+### The AII hub in numbers
+
+In the rabbit RC1 connectome, an electron-microscopy reconstruction (Marc and colleagues, 2014), each of five fully analysed AII cells received input from 9 to 17 rod bipolar cells. These are rabbit numbers.
+
+### Secondary rod routes
+
+Rods also reach cone circuits through gap junctions between rods and cones, and through direct contacts onto some OFF cone bipolar cells. In mouse serial EM (Behrens and colleagues, 2016), rod contacts onto OFF cone bipolar types 3A, 3B and 4 were confirmed, and cones were found contacting rod bipolar cells, though the staining showed no explicit synaptic markers.
+
+### Rods in daylight
+
+Mouse rods, after an initial drop, recovered responses to moderate contrast in bright light, at backgrounds nominally up to 10^7 photoisomerizations per rod per second (Tikidji-Hamburyan and colleagues, 2017; the nominal values ignore bleaching, so the true rate was lower). Rods are not simply silent in daylight. The mouse result gives no value for humans, where estimates of rod saturation depend on viewing conditions.

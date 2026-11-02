@@ -6,15 +6,18 @@ courseChapter: "Neuroscience · Unit 3: Sensory systems"
 order: 613
 summary: >-
   How does skin turn pressure, vibration, heat, cold and damage into signals, and why can the
-  same input hurt on one day and not the next? This lesson sorts the touch receptors by
-  adaptation and receptive field and the fibres by speed, traces the two spinal pathways and
-  where each crosses, introduces the ion channels that transduce heat, cold, irritants and
-  touch, and asks how sensitization, spinal gates and descending control turn pain up and down.
-  You will be able to predict the deficits of a spinal hemisection and design the experiment
-  that tests whether a cloned channel is needed in an animal.
+  same input hurt on one day and not the next? One idea carries the lesson: follow the line. A
+  sensory neuron's firing tells the brain which line is active and how strongly, but not uniquely what activated it; for
+  the two main routes from the body, each line crosses the midline at a known level; and relays
+  along the way turn the signal up or down. With it you meet
+  the ion channels that transduce heat, cold, irritants and touch, sort the touch receptors by
+  adaptation and receptive field and the fibres by speed, trace the two spinal pathways and
+  where each crosses, and ask how sensitization, spinal gates and descending control turn pain
+  up and down. You will be able to predict the deficits of a spinal hemisection and design the
+  experiment that tests whether a cloned channel is needed in an animal.
 hook: "Capsaicin carries no heat, yet it opens the same channel that heat above about 43 °C opens. What is the skin actually measuring?"
 
-estMinutes: 25
+estMinutes: 35
 objectives:
   - "Compare the Merkel (SAI), Meissner, Pacinian and SAII afferents of glabrous skin by adaptation and receptive field, and the Aβ, Aδ and C fibre classes by conduction velocity, noting that some C fibres signal gentle touch."
   - "Trace the dorsal column-medial lemniscus and spinothalamic pathways, state where each crosses the midline, and predict the deficits of a spinal hemisection."
@@ -25,10 +28,28 @@ explainer:
   src: "/explainers/touch-and-pain/explainer.mp4"
   captions: "/explainers/touch-and-pain/explainer.vtt"
   poster: "/explainers/touch-and-pain/poster.jpg"
-  title: "Two Pathways, Two Crossings"
-  durationSec: 134.1
+  title: "Why Capsaicin Feels Hot"
+  durationSec: 151.7
   narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
   aiGenerated: true
+
+films:
+  - id: "two-lines"
+    src: "/explainers/touch-and-pain/two-lines.mp4"
+    captions: "/explainers/touch-and-pain/two-lines.vtt"
+    poster: "/explainers/touch-and-pain/two-lines-poster.jpg"
+    title: "Two Lines, Two Crossings"
+    durationSec: 153.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
+  - id: "turning-it-up"
+    src: "/explainers/touch-and-pain/turning-it-up.mp4"
+    captions: "/explainers/touch-and-pain/turning-it-up.vtt"
+    poster: "/explainers/touch-and-pain/turning-it-up-poster.jpg"
+    title: "Turning the Report Up and Down"
+    durationSec: 172.0
+    narration: "an AI narrator voice (Kokoro, af_heart) reading narration written from this lesson's text"
+    aiGenerated: true
 
 scientists:
   - name: "Ronald Melzack"
@@ -331,7 +352,7 @@ anecdotes:
   - title: "Why mint feels cold"
     source: "McKemy, Neuhausser & Julius, Nature 416:52–58 (2002); Peier et al., Cell 108:705–715 (2002)."
     text: >-
-      Menthol does not lower skin temperature, yet mint feels cool. In 2002 the Julius laboratory
+      Mint feels cool without needing the skin to cool. In 2002 the Julius laboratory
       cloned a receptor from rat trigeminal sensory neurons, CMR1, that was activated by menthol
       and by temperatures in the cool-to-cold range when expressed in other cells; the
       Patapoutian laboratory reported the same channel independently that year. It is now called
@@ -360,45 +381,91 @@ draft: false
 ---
 
 import HemisectionPathwayTracer from '../../../components/HemisectionPathwayTracer.astro';
+import LessonFilm from '../../../components/LessonFilm.astro';
 
 **Capsaicin, the molecule that makes chili peppers burn, carries no heat. Yet when the cloned rat capsaicin receptor is put into cells that normally lack it, both capsaicin and heat above about 43 °C open the same ion channel.**
 
-So the burn is a reading taken by a sensory neuron. This lesson follows such readings from skin to brain, and then asks how the nervous system turns them up and down.
+So the burn is not a temperature reading. Capsaicin opens TRPV1 and excites sensory neurons that noxious heat also excites, so the brain receives a similar message from both.
 
-One distinction first. **Nociception** is the neural encoding of a damaging or potentially damaging stimulus. **Pain** is an experience. The notes to the revised 2020 definition of the International Association for the Study of Pain state that pain cannot be inferred solely from activity in sensory neurons (Raja and colleagues, 2020). A firing nociceptor or a withdrawing mouse paw is evidence about nociception. It is not a report of pain.
+## What the skin is measuring
 
-## Four receptors, three fibre sizes
+One distinction first. **Nociception** is the neural encoding of a damaging or potentially damaging stimulus. **Pain** is an experience. A firing nociceptor or a withdrawing mouse paw is evidence about nociception, not a report of pain.
 
-Touch and pain from the body start in neurons whose cell bodies sit in the dorsal root ganglia beside the spinal cord (a **ganglion** is a cluster of neuron cell bodies outside the brain and cord). These neurons arise from the [neural crest](/lessons/neural-crest/), and many nociceptors depend on nerve growth factor while they develop ([Trk and p75](/lessons/trk-and-p75/)). The face uses trigeminal pathways, left aside here.
+Three questions run through everything that follows. What does a sensory line report? Where does it cross the midline? And who turns its report up or down? One idea answers all three.
 
-In the hairless (glabrous) skin of the human hand, four kinds of low-threshold mechanoreceptor afferent are recognised. Each has a **receptive field**, the patch of skin where a stimulus changes its firing, and an adaptation rate, how fast its firing falls during a held stimulus. Both came up in [sensory coding](/lessons/sensory-coding/). Think of four reporters: two describe what is there, two what is changing.
+> **The one idea to carry through this lesson.** Follow the line. A sensory neuron's firing tells the brain which line is active, with information about the input's strength and timing, but it does not uniquely identify what activated it: the channels and structure of its endings decide what can. For the two main routes from the body, each line crosses the midline at a known level. At relays along the way the signal can be turned up or down, and when spinal inhibition fails, touch input can drive a pain line.
 
-- **Merkel cell afferents (SAI)** adapt slowly and have small receptive fields. Single human SAI afferents can resolve spatial detail down to about 0.5 mm.
-- **Meissner corpuscle afferents** adapt rapidly and also have small fields. They respond best to low-frequency vibration, the range of flutter and slip.
-- **Pacinian corpuscle afferents** adapt faster still and have large fields. They respond best to high-frequency vibration, with a peak near 250 Hz in reviews of fingertip data. These are bands of best sensitivity, not cutoffs.
-- **SAII afferents** adapt slowly, have large fields and are particularly sensitive to skin stretch. They are conventionally assigned to Ruffini endings, but in the review by Abraira and Ginty (2013) that pairing has only been postulated, without direct evidence.
+The idea has limits; the end of the lesson lists them.
 
-Axons are also sorted by diameter and myelin, which set conduction velocity, as [the action potential lesson](/lessons/action-potential/) explains. Large myelinated **Aβ** fibres carry most of these touch signals. Thinly myelinated **Aδ** fibres, often summarised at roughly 5 to 30 m/s, and unmyelinated **C** fibres, at roughly 0.5 to 2 m/s, carry most nociceptive and thermal signals. Most, not all: some C fibres are low-threshold touch afferents (C-LTMRs), not nociceptors. Speed does not tell you what a fibre reports.
+## What a line reports: the channels
 
-## Two pathways, two crossings
+Start with the first question. Touch and pain from the body start in neurons whose cell bodies sit in the dorsal root ganglia beside the spinal cord (a **ganglion** is a cluster of neuron cell bodies outside the brain and cord). These neurons arise from the [neural crest](/lessons/neural-crest/), and many nociceptors depend on nerve growth factor while they develop ([Trk and p75](/lessons/trk-and-p75/)).
 
-Touch and pain enter through the same dorsal root and then part company. **Ipsilateral** means on the same side as a reference point, and **contralateral** means on the opposite side. A **tract** is a bundle of axons inside the brain or spinal cord, and a **nucleus** is a cluster of neuron cell bodies inside them. In the spinal cord, dorsal means toward the back.
+**Nociceptors**, the sensory neurons that carry out nociception, end as free nerve endings, so transduction happens in the terminal membrane. The first molecular handle on that membrane came from expression cloning. Caterina, Julius and colleagues (1997) took **cDNA**, DNA copies of the genes a tissue was expressing, from rodent dorsal root ganglia. They expressed it in pools in HEK293 cells, which do not normally respond to capsaicin, and screened for capsaicin-evoked calcium influx.
 
-The **dorsal column-medial lemniscus pathway** carries fine touch, vibration and position sense from the body. The first-order axon enters the cord and sends a branch up the dorsal column on the same side; that branch does not synapse until the medulla, though the axon also gives off branches to the dorsal horn. It synapses in the gracile or cuneate nucleus of the caudal medulla. Axons from those nuclei cross the midline as internal arcuate fibres, form the medial lemniscus, and ascend to the thalamus, which relays to primary somatosensory cortex. This pathway crosses in the medulla.
+Picture the readout: the calcium level inside a dish of HEK cells, plotted against time. Add capsaicin to cells carrying most pools and the trace stays flat. A positive pool makes the trace jump when capsaicin arrives. Dividing positive pools down isolated one cDNA, named VR1 and now called **TRPV1**, that made the cells respond. It encodes a nonselective cation channel, and in these foreign cells it also opened with heat above about 43 °C. That threshold belongs to the cloned rat channel in a foreign cell, not to human perception. How TRP and Piezo channels gate belongs to [ion channels as receptors](/lessons/ion-channels-as-receptors/).
 
-The **spinothalamic pathway**, the main part of the anterolateral system, carries pain and temperature. The first-order axon synapses in the dorsal horn near its entry. The second-order axon crosses through the anterior white commissure, within a segment or two, and ascends in the contralateral anterolateral cord to the thalamus. This pathway crosses in the spinal cord. Both are major routes, not the whole of touch or pain processing, and where they cross lets you locate a lesion.
+So two very different stimuli, a chemical and a temperature, open one channel and excite the same neurons. Their firing shows that those neurons were driven, and its rate and timing carry information about the input, but on its own it cannot say for certain which stimulus drove them.
 
-**Worked problem, part (a).** A clean cut through the right half of the spinal cord at the tenth thoracic segment (a hemisection at T10). What is lost, and on which side?
+**Predict.** A chemical opens a channel that cool temperatures also open. What will it feel like on the skin?
 
-1. *Dorsal columns.* Fibres from the right side of the body below T10 ascend in the right dorsal column and have not crossed yet. Fine touch, vibration and position sense are lost on the right, below T10.
-2. *Spinothalamic tract.* The right anterolateral cord at T10 carries axons that have already crossed from the left. Pain and temperature are lost on the left. Fibres entering just below the cut cross a segment or two higher, and some cross above it and escape, so the left-sided loss begins a little lower, from about T11 to T12 down.
-3. *Corticospinal tract.* The lateral corticospinal tract crossed in the caudal medulla, at the pyramidal decussation (see [the basal ganglia lesson](/lessons/basal-ganglia/)), so in the cord it serves its own side. Weakness is on the right, below the lesion.
+<details>
+<summary>Check your prediction</summary>
 
-Touch and strength are lost on one side and pain on the other: the Brown-Séquard pattern. At the level of the cut itself, a narrow band on the right loses all sensation, because the roots entering there and the dorsal horn they reach are destroyed.
+Most likely cool, if the chemical mainly drives intact cold-sensitive neurons. Menthol is such a chemical: mint can feel cool without the skin cooling, although depending on dose and how it is applied, menthol can also sting or burn. Its receptor, now called **TRPM8**, was cloned from rat trigeminal neurons as CMR1 and is activated by temperatures in the cool-to-cold range (McKemy and colleagues, 2002).
 
-<HemisectionPathwayTracer />
+</details>
 
-**Worked problem, part (b).** Now speed. Take an illustrative path of 1.00 m from foot to cord, and assume constant velocity and conduction alone.
+Four channels carry most of this lesson.
+
+- **TRPV1** responds to capsaicin, noxious heat and protons. Protons lower its heat threshold, and at pH 5.9 or below the cloned channel opened at room temperature (Tominaga and colleagues, 1998).
+- **TRPM8** is the menthol receptor, activated by cool-to-cold temperatures.
+- **TRPA1** is activated by thiol-reactive irritants, such as mustard oil. They differ in structure but act mainly by covalently modifying cysteines in its N-terminus, with a lysine also contributing (Hinman and colleagues, 2006, in foreign cells).
+- **Piezo2** is a mechanically activated channel needed for gentle touch in mice (Ranade and colleagues, 2014). Merkel cells in the skin use it too (Woo and colleagues, 2014).
+
+**Design problem.** A cDNA from rat sensory neurons makes HEK cells respond to capsaicin and to heat above about 43 °C. Does this show how mammals sense noxious heat? Predict the answer, and design the test, before you open the box.
+
+<details>
+<summary>Check your prediction</summary>
+
+No. Cloning shows the gene is **sufficient**: enough to give a foreign cell the response. It does not show it is **necessary**, that the animal needs it, nor that it is the only heat sensor.
+
+Test necessity. Knock out the gene in mice and compare knockouts with littermate controls on capsaicin-evoked behaviour, withdrawal at several temperatures (a partial loss may appear only at some), a mechanical assay as a control modality, and heat hypersensitivity after inflammation.
+
+Caterina and colleagues (2000) did this. Their VR1-null mice showed no vanilloid-evoked pain behaviour, were impaired in detecting painful heat, showed little inflammatory thermal hypersensitivity, and had normal mechanical responses. So TRPV1 is not "the pain receptor". The heat deficit was partial, so other heat sensors must exist.
+
+</details>
+
+## What touch afferents report: four receptors, three fibre sizes
+
+In the hairless (glabrous) skin of the human hand, four kinds of low-threshold mechanoreceptor afferent are recognised (an **afferent** is a sensory axon carrying signals toward the cord or brain). They differ in two properties you met in [sensory coding](/lessons/sensory-coding/). The **receptive field** is the patch of skin where a stimulus changes an afferent's firing. The **adaptation rate** is how fast its firing falls during a held stimulus. Cross the two and each afferent gets its own box.
+
+| | Small receptive field | Large receptive field |
+| --- | --- | --- |
+| **Slowly adapting:** reports what is there | Merkel cell afferent (SAI) | SAII afferent |
+| **Rapidly adapting:** reports what is changing | Meissner corpuscle afferent | Pacinian corpuscle afferent |
+
+Slow adapters keep firing while a stimulus is held, such as an edge or a stretch. Fast adapters fire mainly as a stimulus starts and stops, as with slip or vibration.
+
+What the table leaves out:
+
+- **Merkel cell afferents (SAI):** single human SAI afferents can resolve spatial detail down to about 0.5 mm.
+- **SAII afferents** are particularly sensitive to skin stretch. They are conventionally assigned to Ruffini endings, a pairing only postulated, without direct evidence (Abraira and Ginty, 2013).
+- **Meissner corpuscle afferents** respond best to low-frequency vibration, the range of flutter and slip.
+- **Pacinian corpuscle afferents** adapt faster still. They respond best to high-frequency vibration, with a peak near 250 Hz in reviews of fingertip data. These are bands of best sensitivity, not cutoffs.
+
+**Predict.** A coin is pressed onto a fingertip and held there. Which afferents are still firing after a second, and which fired only at contact?
+
+<details>
+<summary>Check your prediction</summary>
+
+The slowly adapting afferents are still firing: the Merkel (SAI) afferents under the coin, and SAII afferents if the press stretches the skin. The rapidly adapting Meissner and Pacinian afferents fired at contact and fall quiet while the coin is held. They fire again when it is lifted, because that is a change too.
+
+</details>
+
+Axons are also sorted by diameter and myelin, which set conduction velocity: thicker and myelinated means faster, as [the action potential lesson](/lessons/action-potential/) explains. Large myelinated **Aβ** fibres carry most of these touch signals. Thinly myelinated **Aδ** fibres, often summarised at roughly 5 to 30 m/s, and unmyelinated **C** fibres, at roughly 0.5 to 2 m/s, carry most nociceptive and thermal signals. Most, not all: some C fibres are low-threshold touch afferents (C-LTMRs), not nociceptors. Speed alone does not fix what a fibre reports.
+
+**Worked problem: the conduction race.** How much do these speeds matter over the length of a leg? Take an illustrative path of 1.00 m from foot to cord, and assume constant velocity and conduction alone.
 
 > **t = L / v**
 
@@ -409,40 +476,124 @@ Touch and strength are lost on one side and pain on the other: the Brown-Séquar
 
 The velocities are illustrative, with the Aδ and C values inside the summarised ranges. This is conduction only, leaving out transduction, synapses and central processing, so it is not a measured interval between a sharp first pain and a later burning one.
 
-## Channels that feel heat, cold and damage
+## Where each line crosses: two pathways
 
-Nociceptors end as free nerve endings, so transduction happens in the terminal membrane. The first molecular handle came from expression cloning. Caterina, Julius and colleagues (1997) expressed pools of cDNA from rodent dorsal root ganglia in HEK293 cells and screened for capsaicin-evoked calcium influx. One cDNA, named VR1 and now called TRPV1, made the cells respond. It encodes a nonselective cation channel, and in heterologous cells it opened with heat above about 43 °C. In Xenopus oocytes expressing it, capsaicin had an EC50 of 711.9 nM. Both numbers belong to the cloned rat channel in a foreign cell, not to human perception. How TRP and Piezo channels gate belongs to [ion channels as receptors](/lessons/ion-channels-as-receptors/); here the question is what each one reports.
+<LessonFilm film={frontmatter.films[0]} />
 
-- **TRPV1** responds to capsaicin, noxious heat and protons. Tominaga and colleagues (1998) found that protons lowered the temperature threshold of cloned VR1, and at pH 5.9 or below it could be activated at room temperature.
-- **TRPM8** is the menthol receptor, cloned from rat trigeminal neurons as CMR1 and activated by temperatures in the cool-to-cold range (McKemy and colleagues, 2002).
-- **TRPA1** is activated by thiol-reactive irritants of diverse structure through covalent modification of cysteines in its N-terminus (Hinman and colleagues, 2006, heterologous cells).
-- **Piezo2** is a mechanically activated channel needed for gentle touch in mice (Ranade and colleagues, 2014). Merkel cells use it too (Woo and colleagues, 2014).
+Now the second question. Touch and pain enter through the same dorsal root and then part company.
 
-Whether the animal needs a channel is a separate question. Caterina and colleagues (2000) found that mice lacking VR1 kept normal responses to noxious mechanical stimuli, so TRPV1 is not "the pain receptor". Szczot and colleagues (2018) found that Piezo2-knockout mouse sensory neurons still responded robustly to noxious pinch, while people with loss-of-function PIEZO2 variants failed to develop painful touch after the tested skin inflammation. Piezo2 carries gentle touch, including touch that hurts after injury; something else also senses pinch, although in mice Piezo2 contributes to part of the response to painful mechanical stimuli (Murthy and colleagues, 2018).
+Picture a cross-section of the spinal cord: a grey butterfly of cell bodies inside a rim of white matter. **Dorsal** means toward the back, so the dorsal horn, where sensory axons arrive, is at the top. Draw the touch line in blue and the pain line in red, and follow each one up from a root on the right side of the body.
 
-## Turning pain up and down: sensitization, gates and descending control
+**The blue line: the dorsal column-medial lemniscus pathway.** It carries fine touch, vibration and position sense from the body.
 
-The gain on pain changes at three levels.
+1. The first-order axon, the sensory neuron itself, enters the cord. Its main branch climbs the dorsal column on its own side with no synapse until the medulla. That side is **ipsilateral**: the same side as a reference point, here the body part it serves. (Other branches synapse in the dorsal horn as the axon enters.)
+2. It synapses in the gracile or cuneate nucleus of the caudal medulla. A **nucleus** is a cluster of neuron cell bodies inside the brain or cord.
+3. Axons from those nuclei cross the midline as internal arcuate fibres, form the medial lemniscus, and ascend to the thalamus, which relays to primary somatosensory cortex.
 
-**At the ending.** Injured tissue releases mediators such as bradykinin and protons. In cultured small sensory neurons from neonatal rats, bradykinin increased the heat-activated inward current, and activators of protein kinase C mimicked it (Cesare and McNaughton, 1996), the pathway covered in [PLC, IP3, DAG and PKC](/lessons/plc-ip3-dag-pkc/). Two terms describe what the person feels, whether the change happens at the ending or in the cord. **Hyperalgesia** is greater pain from a normally painful stimulus. **Allodynia** is pain from a normally innocuous one, such as a light touch.
+**The blue line crosses in the medulla.**
 
-**In the dorsal horn.** Nociceptor input can trigger a prolonged but reversible increase in the excitability and synaptic efficacy of central nociceptive neurons, called central sensitization (reviewed by Woolf, 2011). It can involve NMDA receptor-mediated rises in postsynaptic calcium, a form of the plasticity in [synaptic plasticity](/lessons/synaptic-plasticity/). Convergence matters too. In isolated thoracic spinal cord from 10- to 14-day-old rats, somatic and visceral C fibres converged monosynaptically onto individual lamina I neurons (Luz and colleagues, 2015). Such convergence is a substrate for **referred pain**, pain felt away from its source, though not shown to be the whole explanation.
+**The red line: the spinothalamic pathway.** The main part of the anterolateral system, it carries pain and temperature. The first-order axon can branch up or down a segment or so in Lissauer's tract before it synapses in the dorsal horn near its entry. The second-order axon crosses through the anterior white commissure, so the line reaches the opposite side within a segment or two of entry, and ascends in the anterolateral cord of the opposite side to the thalamus. The opposite side is **contralateral**. A bundle of axons like this one, running inside the brain or cord, is a **tract**. **The red line crosses in the spinal cord.**
 
-Melzack and Wall's **gate control theory** (1965) proposed that substantia gelatinosa cells inhibit afferent terminals, with large-fibre activity increasing and small-fibre activity decreasing that inhibition. Touch input would act like a volume knob on nociceptive transmission. That wiring is not settled. Duan and colleagues (2014) tested one form of gating in mice by genetically ablating six spinal neuron lineages: dynorphin-lineage inhibitory neurons were required to gate mechanical pain, and loss of somatostatin-lineage neurons markedly impaired mechanical withdrawal. That supports spinal gating by particular populations, not the 1965 diagram as drawn.
+Where they cross lets you locate a lesion.
 
-**From the brainstem.** The periaqueductal gray (PAG) of the midbrain supplies top-down input to the rostral ventromedial medulla (RVM), which projects to the dorsal horn. In rodent recordings, functionally defined RVM OFF cells suppress and ON cells facilitate pain-related processing. Control runs both ways: in mice, activating GABAergic RVM projections to the dorsal horn facilitated mechanical nociception, because they inhibited enkephalin- and GABA-releasing interneurons (François and colleagues, 2017). Mu-opioid receptor agonists act at several of these sites ([transmitter systems](/lessons/transmitter-systems/)). How the functional ON and OFF classes map onto molecularly defined cells remains open (De Preter and Heinricher, 2024).
+**Predict.** A clean cut goes through the right half of the spinal cord at the tenth thoracic segment: a hemisection at T10. Using only where each line crosses, which side of the body loses fine touch below the cut, and which side loses pain? Decide before you read the worked problem.
 
-### Design problem
+**Worked problem: a hemisection at T10.**
 
-A cDNA from rat sensory neurons makes HEK cells respond to capsaicin and to heat above about 43 °C. Does this show how mammals sense noxious heat? Design the test.
+1. *Dorsal columns.* Fibres from the right side of the body below T10 ascend in the right dorsal column and have not crossed yet. Fine touch, vibration and position sense are lost on the right, below T10.
+2. *Spinothalamic tract.* The right anterolateral cord at T10 carries axons that have already crossed from the left. Pain and temperature are lost on the left. But the loss does not start exactly at the cut. Recall that the red line reaches the opposite side a segment or two above its entry. Follow one pain fibre that enters on the left at T11. In this simplified example its pathway crosses at about T10 or T9. If it crosses at T10, it runs into the cut and is lost. If it crosses at T9, it reaches the right side above the cut and is spared. So the left-sided loss begins one or two segments below the cut, from about T11 to T12 down.
+3. *Corticospinal tract.* The cut also hits the motor tract. The lateral corticospinal tract crossed in the caudal medulla, at the pyramidal decussation (see [descending control and the basal ganglia](/lessons/basal-ganglia/)), so in the cord it serves its own side. Weakness is on the right, below the lesion.
+
+Touch and strength are lost on one side and pain on the other: the Brown-Séquard pattern. At the cut, damage to sensory fibres at the dorsal root entry zone and to the dorsal horn can also cause a narrow band of sensory loss on the right (the dorsal roots themselves need not be cut). Right-side pain fibres entering a segment or two lower also reach the cut before they cross. So in this simple model both modelled routes from the right, touch and pain, are cut in a band from T10 to T11 or T12, depending on whether pain pathways cross one or two segments above entry: two or three segments, counting inclusively. That is not a claim that every sensation is lost there, and real borders are less sharp, because afferents branch, dermatomes overlap and lesions vary.
+
+The rule runs backwards too. Pain lost on one side and vibration lost on the other point to the half of the cord on the side of the vibration loss.
+
+Try other cuts in the simulation, and predict each pattern before you look.
+
+<HemisectionPathwayTracer />
+
+## Turning the report up and down
+
+<LessonFilm film={frontmatter.films[1]} />
+
+After a mild sunburn, a shirt brushing the skin hurts, and a shower hot enough to sting a little now hurts a great deal. The stimuli are the same as the day before. The reports are not. That is the third question: who turns them up?
+
+Two terms name what the person feels. **Hyperalgesia** is greater pain from a normally painful stimulus, like the shower. **Allodynia** is pain from a normally innocuous one, like the shirt. Both terms describe the experience, not where the change happens. The size of the signal can change at three levels.
+
+### At the ending
+
+Injured tissue releases mediators such as bradykinin and protons, which make nociceptors more sensitive. In cultured small sensory neurons from neonatal rats, bradykinin increased the heat-activated inward current, and activators of protein kinase C mimicked it (Cesare and McNaughton, 1996). That pathway is covered in [PLC, IP3, DAG and PKC](/lessons/plc-ip3-dag-pkc/).
+
+### In the dorsal horn
+
+Nociceptor input can trigger a prolonged but reversible increase in the excitability and synaptic efficacy of central nociceptive neurons, called **central sensitization** (reviewed by Woolf, 2011). It can involve NMDA receptor-mediated rises in postsynaptic calcium, a form of the plasticity in [synaptic plasticity](/lessons/synaptic-plasticity/).
+
+Convergence matters too. In isolated thoracic spinal cord from 10- to 14-day-old rats, somatic and visceral C fibres converged monosynaptically onto individual neurons of lamina I, the outermost layer of the dorsal horn (Luz and colleagues, 2015). When one cell hears from both skin and an internal organ, its firing alone does not say which one sent the signal. Such convergence is a substrate for **referred pain**, pain felt away from its source, though not shown to be the whole explanation.
+
+### The gate in the dorsal horn
+
+You bang your shin and, without thinking, rub it. It hurts less. Gentle rubbing mainly excites touch afferents, the large Aβ fibres, rather than nociceptors. So why should touch change pain?
+
+Ronald Melzack and Patrick Wall offered an answer in 1965, the **gate control theory**. Picture two cells in the dorsal horn and the two kinds of fibre that reach them.
+
+- A **transmission cell** sends the signal up toward the brain. Both large touch fibres and small nociceptor fibres excite it.
+- An **inhibitory interneuron** in the substantia gelatinosa, the pale band near the top of the dorsal horn, damps the input to the transmission cell.
+- The two kinds of fibre pull this interneuron in opposite directions. Large fibres excite it, so they strengthen the damping. Small fibres suppress it, so they weaken the damping.
+
+So a touch fibre acts on the transmission cell twice: directly, which excites it, and through the interneuron, which damps it.
+
+**Predict.** In this picture, hold the nociceptor input fixed and add rubbing. What happens to the signal leaving the transmission cell? And what would light touch do if the inhibitory interneuron were removed?
 
 <details>
-<summary>One way to do it</summary>
+<summary>Check your prediction</summary>
 
-No. Cloning shows sufficiency in a foreign cell, not necessity in an animal, nor that it is the only heat sensor.
-
-Test necessity. Knock out the gene in mice and compare knockouts with littermate controls on capsaicin-evoked behaviour, withdrawal at several temperatures (a partial loss may appear only at some), a mechanical assay as a control modality, and heat hypersensitivity after inflammation.
-
-Caterina and colleagues (2000) did this. Their VR1-null mice showed no vanilloid-evoked pain behaviour, were impaired in detecting painful heat, showed little inflammatory thermal hypersensitivity, and had normal mechanical responses. The heat deficit was partial, so other heat sensors must exist. A later mouse study (Vandewauw and colleagues, 2018) reported that acute heat withdrawal was largely lost only when TRPV1, TRPM3 and TRPA1 were all removed.
+Rubbing adds large-fibre input. That excites the interneuron, which damps the transmission cell, so less signal goes up. This works only if the extra damping from touch outweighs its direct excitation of the transmission cell; otherwise rubbing would not reduce the signal. Remove the interneuron and nothing damps the touch input. Touch alone can now drive the transmission cell, so a light touch could send a signal up the pain line.
 
 </details>
+
+Melzack and Wall called this a **gate**, and let signals from the brain act on it too. In their paper the substantia gelatinosa cells inhibited the incoming afferent terminals themselves, so the picture above is a simplified version, and that wiring is not settled. What survived is the general claim: the dorsal horn computes, rather than passing signals straight through.
+
+Half a century later, Duan and colleagues (2014) tested a related prediction in mice. They genetically ablated six groups of spinal neurons, each defined by **lineage**: the cells that had expressed a particular gene at some point in development. They then tested how the mice withdrew from light touch and from painful mechanical stimuli.
+
+- Removing excitatory neurons of the somatostatin lineage markedly impaired mechanical withdrawal. These neurons help *transmit* mechanical pain.
+- Removing inhibitory neurons of the dynorphin lineage made light touch evoke pain-like withdrawal, a behavioural sign of mechanical allodynia. These neurons were required to gate mechanical pain, as the gate picture predicts when inhibition is lost.
+
+So spinal gating by particular populations is real, in these mice and these assays. It is not proof of the 1965 diagram as drawn. And a withdrawing paw measures a protective reflex: indirect evidence about pain, not by itself proof of what the mouse feels.
+
+### From the brainstem
+
+The brainstem can turn dorsal-horn transmission up or down. The periaqueductal gray (PAG), the grey matter around the midbrain's fluid canal, supplies top-down input to the rostral ventromedial medulla (RVM), low in the brainstem, which projects to the dorsal horn. Recording in the RVM of rodents, Fields and Heinricher found cells that burst into faster firing just before an animal withdraws from noxious heat, called **ON cells**, and cells that pause just before it, called **OFF cells**. These classes are defined by that firing pattern. OFF cells suppress and ON cells facilitate pain-related processing.
+
+The sign of a transmitter does not give the sign of its effect. In mice, activating GABAergic RVM projections to the dorsal horn facilitated mechanical nociception, because they inhibited enkephalin- and GABA-releasing interneurons (François and colleagues, 2017). An inhibitory projection turned the report up by inhibiting an inhibitor. Mu-opioid receptor agonists act at several of these sites ([transmitter systems](/lessons/transmitter-systems/)). How the ON and OFF classes map onto molecularly defined cells remains open (De Preter and Heinricher, 2024).
+
+### Back to nociception and pain
+
+Follow the line once more: which neurons fired, where their line crosses, and who reset the size of the signal on the way. Because the ending, the dorsal horn and the brainstem can each reset that size, the same stimulus can mean little one day and a great deal the next. A nociceptor's firing is a report. Pain is what the nervous system makes of it.
+
+### Where the idea stops
+
+- **A line is a population, not one fibre.** Many C-fibre nociceptors are **polymodal**: one neuron carries several transducers and responds to more than one kind of stimulus, so its firing alone cannot say for certain which one acted. Some sensations seem to come from comparing lines. In the thermal grill, interleaved warm and cool bars, neither painful alone, can feel like burning. Labelled lines are a first approximation, not the whole code.
+- **The crossing rule covers two major routes from the body below the head.** The face uses trigeminal pathways, and other spinal routes also contribute to touch and pain. Here we followed the dorsal column-medial lemniscus and spinothalamic pathways.
+- **Allodynia has more than one cause.** It can arise from changes at the ending or in the cord. Loss of spinal inhibition, shown in the gate section, is one mechanism.
+
+## Going deeper
+
+### Where the nociception-pain distinction comes from
+
+The notes to the revised 2020 definition of the International Association for the Study of Pain state that pain cannot be inferred solely from activity in sensory neurons (Raja and colleagues, 2020).
+
+### How potent capsaicin is on the cloned channel
+
+In Xenopus oocytes expressing cloned rat VR1, capsaicin had an EC50 of 711.9 nM, again a property of the cloned channel in a foreign cell.
+
+### Heat sensing beyond TRPV1
+
+A later mouse study (Vandewauw and colleagues, 2018) reported that acute heat withdrawal was largely lost only when TRPV1, TRPM3 and TRPA1 were all removed. Acute heat sensing appears to be distributed across several TRP channels.
+
+### Piezo2 and painful touch
+
+Szczot and colleagues (2018) found that Piezo2-knockout mouse sensory neurons still responded robustly to noxious pinch, while people with loss-of-function PIEZO2 variants failed to develop painful touch after the tested skin inflammation. Something else also senses pinch, although in mice Piezo2 contributes to part of the response to painful mechanical stimuli (Murthy and colleagues, 2018).
+
+### More on spinal pain circuits
+
+The advanced elective's lesson on [spinal circuits that gate pain](/lessons/spinal-pain-circuits/) takes the dorsal horn further.
